@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
@@ -18,7 +18,7 @@ import 'package:analyzer/src/summary2/reference.dart';
 
 class LinkedElementFactory {
   final AnalysisContextImpl analysisContext;
-  final AnalysisSession analysisSession;
+  final AnalysisSessionImpl analysisSession;
   final Reference rootReference;
   final Map<String, LinkedLibraryContext> libraryMap = {};
 
@@ -58,6 +58,15 @@ class LinkedElementFactory {
     var exportedReferences = exportsOfLibrary('$uri');
     for (var exportedReference in exportedReferences) {
       var element = elementOfReference(exportedReference);
+      // TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/41212
+      if (element == null) {
+        throw StateError(
+          '[No element]'
+          '[uri: $uri]'
+          '[exportedReferences: $exportedReferences]'
+          '[exportedReference: $exportedReference]',
+        );
+      }
       exportedNames[element.name] = element;
     }
 
@@ -141,10 +150,26 @@ class LinkedElementFactory {
   /// We have linked the bundle, and need to disconnect its libraries, so
   /// that the client can re-add the bundle, this time read from bytes.
   void removeBundle(LinkedBundleContext context) {
+    // TODO(scheglov) Use removeLibraries()
     for (var uriStr in context.libraryMap.keys) {
       libraryMap.remove(uriStr);
       rootReference.removeChild(uriStr);
     }
+
+    var classHierarchy = analysisSession.classHierarchy;
+    classHierarchy.removeOfLibraries(context.libraryMap.keys);
+  }
+
+  /// Remove libraries with the specified URIs from the reference tree, and
+  /// any session level caches.
+  void removeLibraries(List<String> uriStrList) {
+    for (var uriStr in uriStrList) {
+      libraryMap.remove(uriStr);
+      rootReference.removeChild(uriStr);
+    }
+
+    var classHierarchy = analysisSession.classHierarchy;
+    classHierarchy.removeOfLibraries(uriStrList);
   }
 
   /// Set optional informative data for the unit.

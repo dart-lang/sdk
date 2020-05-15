@@ -518,7 +518,7 @@ typedef struct {
  * for each part.
  */
 
-#define DART_FLAGS_CURRENT_VERSION (0x0000000b)
+#define DART_FLAGS_CURRENT_VERSION (0x0000000c)
 
 typedef struct {
   int32_t version;
@@ -528,7 +528,6 @@ typedef struct {
   bool obfuscate;
   Dart_QualifiedFunctionName* entry_points;
   bool load_vmservice_library;
-  bool unsafe_trust_strong_mode_types;
   bool copy_parent_code;
 } Dart_IsolateFlags;
 
@@ -570,10 +569,7 @@ DART_EXPORT void Dart_IsolateFlagsInitialize(Dart_IsolateFlags* flags);
  *   eventually run.  This is provided for advisory purposes only to
  *   improve debugging messages.  The main function is not invoked by
  *   this function.
- * \param package_root The package root path for this isolate to resolve
- *   package imports against. Only one of package_root and package_map
- *   parameters is non-NULL. If neither parameter is passed the package
- *   resolution of the parent isolate should be used.
+ * \param package_root Ignored.
  * \param package_map The package map for this isolate to resolve package
  *   imports against. The array contains alternating keys and values,
  *   terminated by a NULL key. Only one of package_root and package_map
@@ -847,6 +843,9 @@ DART_EXPORT DART_WARN_UNUSED_RESULT char* Dart_Initialize(
  *
  * \return NULL if cleanup is successful. Returns an error message otherwise.
  *   The caller is responsible for freeing the error message.
+ *
+ * NOTE: This function must not be called on a thread that was created by the VM
+ * itself.
  */
 DART_EXPORT DART_WARN_UNUSED_RESULT char* Dart_Cleanup();
 

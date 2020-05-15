@@ -13,7 +13,7 @@ namespace dart {
 
 // Scan the stack until we hit the first function in the _AssertionError
 // class. We then return the next frame's script taking inlining into account.
-static RawScript* FindScript(DartFrameIterator* iterator) {
+static ScriptPtr FindScript(DartFrameIterator* iterator) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   // The precompiled runtime faces two issues in recovering the correct
   // assertion text. First, the precompiled runtime does not include

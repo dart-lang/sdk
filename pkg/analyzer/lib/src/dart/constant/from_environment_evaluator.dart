@@ -216,8 +216,13 @@ class FromEnvironmentEvaluator {
     return defaultDefault;
   }
 
-  bool hasEnvironment(String name) {
-    return _declaredVariables.get(name) != null;
+  DartObject hasEnvironment(String name) {
+    var value = _declaredVariables.get(name) != null;
+    return DartObjectImpl(
+      _typeSystem,
+      _typeSystem.typeProvider.boolType,
+      BoolState(value),
+    );
   }
 
   static DartObject _defaultValueDefaultValue(ConstructorElement constructor) {

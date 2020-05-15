@@ -1,0 +1,4 @@
+library test;
+
+void foo([List<String> list1 = const [], List<String> list2 = const [42]]) {}
+void main() {}

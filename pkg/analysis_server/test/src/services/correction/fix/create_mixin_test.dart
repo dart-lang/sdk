@@ -32,7 +32,7 @@ main() {
   }
 
   Future<void> test_inLibraryOfPrefix() async {
-    String libCode = r'''
+    var libCode = r'''
 class A {}
 ''';
     addSource('/home/test/lib/lib.dart', libCode);

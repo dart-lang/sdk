@@ -5,7 +5,11 @@
 #include "platform/globals.h"
 #if defined(HOST_OS_FUCHSIA)
 
+#include <memory>
+
+#include "lib/sys/cpp/component_context.h"
 #include "platform/utils.h"
+#include "platform/utils_fuchsia.h"
 
 namespace dart {
 
@@ -31,6 +35,12 @@ int Utils::VSNPrint(char* str, size_t size, const char* format, va_list args) {
     FATAL1("Fatal error in Utils::VSNPrint with format '%s'", format);
   }
   return retval;
+}
+
+sys::ComponentContext* ComponentContext() {
+  static std::unique_ptr<sys::ComponentContext> context =
+      sys::ComponentContext::CreateAndServeOutgoingDirectory();
+  return context.get();
 }
 
 }  // namespace dart

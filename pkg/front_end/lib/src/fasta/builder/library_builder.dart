@@ -6,7 +6,7 @@ library fasta.library_builder;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-import 'package:kernel/ast.dart' show Library, Nullability;
+import 'package:kernel/ast.dart' show Library, Nullability, Version;
 
 import '../combinator.dart' show Combinator;
 
@@ -53,7 +53,7 @@ abstract class LibraryBuilder implements ModifierBuilder {
 
   bool mayImplementRestrictedTypes;
 
-  /// Set the language version to a specific non-null major and minor version.
+  /// Set the language version to a specific non-null [version].
   ///
   /// If the language version has previously been explicitly set set (i.e. with
   /// [explicit] set to true), any subsequent call (explicit or not) should be
@@ -67,7 +67,7 @@ abstract class LibraryBuilder implements ModifierBuilder {
   ///
   /// [offset] and [length] refers to the offset and length of the source code
   /// specifying the language version.
-  void setLanguageVersion(int major, int minor,
+  void setLanguageVersion(Version version,
       {int offset: 0, int length, bool explicit});
 
   bool get isPart;
@@ -148,8 +148,8 @@ abstract class LibraryBuilder implements ModifierBuilder {
   /// where they were omitted by the programmer and not provided by the type
   /// inference.  The method returns the number of distinct type variables
   /// that were instantiated in this library.
-  int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder bottomType,
-      ClassBuilder objectClass);
+  int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder nullType,
+      TypeBuilder bottomType, ClassBuilder objectClass);
 
   void becomeCoreLibrary();
 
@@ -222,6 +222,9 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
 
   /// Set the language version to a specific non-null major and minor version.
   ///
+  /// If [version] is null (and no other version has been explicitly set) a
+  /// problem is issued.
+  ///
   /// If the language version has previously been explicitly set set (i.e. with
   /// [explicit] set to true), any subsequent call (explicit or not) should be
   /// ignored.
@@ -235,7 +238,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   /// [offset] and [length] refers to the offset and length of the source code
   /// specifying the language version.
   @override
-  void setLanguageVersion(int major, int minor,
+  void setLanguageVersion(Version version,
       {int offset: 0, int length, bool explicit});
 
   @override
@@ -337,7 +340,10 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
         .lookup(className, -1, null);
     if (cls is TypeAliasBuilder) {
       TypeAliasBuilder aliasBuilder = cls;
-      cls = aliasBuilder.unaliasDeclaration;
+      // No type arguments are available, but this method is only called in
+      // order to find constructors of specific non-generic classes (errors),
+      // so we can pass the empty list.
+      cls = aliasBuilder.unaliasDeclaration(const <TypeBuilder>[]);
     }
     if (cls is ClassBuilder) {
       // TODO(ahe): This code is similar to code in `endNewExpression` in
@@ -368,8 +374,8 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   int computeVariances() => 0;
 
   @override
-  int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder bottomType,
-      ClassBuilder objectClass) {
+  int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder nullType,
+      TypeBuilder bottomType, ClassBuilder objectClass) {
     return 0;
   }
 

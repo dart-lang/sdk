@@ -28,7 +28,7 @@ bar() async {
   // install handlers. When the function finishes, it can then synchronously
   // propagate the values.
   await null;
-  new Future.microtask(() => throw 'in microtask error')
+  new Future<void>.microtask(() => throw 'in microtask error')
       .catchError(events.add)
       .then(delayedError.complete);
   throw 'in async function error';

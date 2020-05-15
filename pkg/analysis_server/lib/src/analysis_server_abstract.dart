@@ -4,15 +4,27 @@
 
 import 'dart:async';
 import 'dart:core';
+import 'dart:io' as io;
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/api_for_nnbd_migration.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
+import 'package:analysis_server/src/plugin/notification_manager.dart';
+import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analysis_server/src/plugin/plugin_watcher.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analysis_server/src/services/search/search_engine_internal.dart';
+import 'package:analysis_server/src/utilities/file_string_sink.dart';
+import 'package:analysis_server/src/utilities/null_string_sink.dart';
+import 'package:analysis_server/src/utilities/request_statistics.dart';
+import 'package:analysis_server/src/utilities/tee_string_sink.dart';
+import 'package:analyzer/dart/analysis/features.dart' as analyzer_features;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -21,22 +33,25 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
 import 'package:analyzer/src/dart/analysis/file_byte_store.dart'
     show EvictingFileByteStore;
 import 'package:analyzer/src/dart/analysis/file_state.dart' as nd;
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/util/glob.dart';
 
 /// Implementations of [AbstractAnalysisServer] implement a server that listens
 /// on a [CommunicationChannel] for analysis messages and process them.
-abstract class AbstractAnalysisServer {
+abstract class AbstractAnalysisServer implements DriverProvider {
   /// The options of this server instance.
   AnalysisServerOptions options;
 
@@ -46,6 +61,24 @@ abstract class AbstractAnalysisServer {
   /// The [ContextManager] that handles the mapping from analysis roots to
   /// context directories.
   ContextManager contextManager;
+
+  /// The default options used to create new analysis contexts. This object is
+  /// also referenced by the ContextManager.
+  final AnalysisOptionsImpl defaultContextOptions = AnalysisOptionsImpl();
+
+  /// The object used to manage sending a subset of notifications to the client.
+  /// The subset of notifications are those to which plugins may contribute.
+  /// This field is `null` when the new plugin support is disabled.
+  NotificationManager notificationManager;
+
+  /// The object used to manage the execution of plugins.
+  PluginManager pluginManager;
+
+  /// The object used to manage the SDK's known to this server.
+  final DartSdkManager sdkManager;
+
+  /// The [SearchEngine] for this server, may be `null` if indexing is disabled.
+  SearchEngine searchEngine;
 
   ByteStore byteStore;
 
@@ -63,6 +96,9 @@ abstract class AbstractAnalysisServer {
   /// server.
   final RecentBuffer<ServerException> exceptions = RecentBuffer(10);
 
+  /// The instrumentation service that is to be used by this analysis server.
+  InstrumentationService instrumentationService;
+
   /// Performance information after initial analysis is complete
   /// or `null` if the initial analysis is not yet complete
   ServerPerformance performanceAfterStartup;
@@ -74,6 +110,10 @@ abstract class AbstractAnalysisServer {
 
   /// Performance information before initial analysis is complete.
   final ServerPerformance performanceDuringStartup = ServerPerformance();
+
+  RequestStatisticsHelper requestStatistics;
+
+  PerformanceLog analysisPerformanceLogger;
 
   /// The set of the files that are currently priority.
   final Set<String> priorityFiles = <String>{};
@@ -88,6 +128,7 @@ abstract class AbstractAnalysisServer {
   ];
 
   /// The [ResourceProvider] using which paths are converted into [Resource]s.
+  @override
   final OverlayResourceProvider resourceProvider;
 
   /// The next modification stamp for a changed file in the [resourceProvider].
@@ -98,12 +139,63 @@ abstract class AbstractAnalysisServer {
   List<Glob> _analyzedFilesGlobs;
 
   AbstractAnalysisServer(
-      this.options,
-      this.diagnosticServer,
-      this.crashReportingAttachmentsBuilder,
-      ResourceProvider baseResourceProvider)
-      : resourceProvider = OverlayResourceProvider(baseResourceProvider) {
+    this.options,
+    this.sdkManager,
+    this.diagnosticServer,
+    this.crashReportingAttachmentsBuilder,
+    ResourceProvider baseResourceProvider,
+    this.instrumentationService,
+    this.notificationManager, {
+    this.requestStatistics,
+  }) : resourceProvider = OverlayResourceProvider(baseResourceProvider) {
     performance = performanceDuringStartup;
+
+    pluginManager = PluginManager(
+        resourceProvider,
+        _getByteStorePath(),
+        sdkManager.defaultSdkDirectory,
+        notificationManager,
+        instrumentationService);
+    var pluginWatcher = PluginWatcher(resourceProvider, pluginManager);
+
+    defaultContextOptions.contextFeatures =
+        analyzer_features.FeatureSet.fromEnableFlags(
+            options.enabledExperiments);
+    defaultContextOptions.useFastaParser = options.useFastaParser;
+
+    {
+      var name = options.newAnalysisDriverLog;
+      StringSink sink = NullStringSink();
+      if (name != null) {
+        if (name == 'stdout') {
+          sink = io.stdout;
+        } else if (name.startsWith('file:')) {
+          var path = name.substring('file:'.length);
+          sink = FileStringSink(path);
+        }
+      }
+      if (requestStatistics != null) {
+        sink = TeeStringSink(sink, requestStatistics.perfLoggerStringSink);
+      }
+      analysisPerformanceLogger = PerformanceLog(sink);
+    }
+
+    byteStore = createByteStore(resourceProvider);
+
+    analysisDriverScheduler = nd.AnalysisDriverScheduler(
+        analysisPerformanceLogger,
+        driverWatcher: pluginWatcher);
+
+    if (options.featureSet.completion) {
+      declarationsTracker = DeclarationsTracker(byteStore, resourceProvider);
+      declarationsTrackerData = DeclarationsTrackerData(declarationsTracker);
+      analysisDriverScheduler.outOfBandWorker =
+          CompletionLibrariesWorker(declarationsTracker);
+    }
+
+    contextManager = ContextManagerImpl(resourceProvider, sdkManager,
+        analyzedFilesGlobs, instrumentationService, defaultContextOptions);
+    searchEngine = SearchEngineImpl(driverMap.values);
   }
 
   /// Return a list of the globs used to determine which files should be
@@ -111,7 +203,7 @@ abstract class AbstractAnalysisServer {
   List<Glob> get analyzedFilesGlobs {
     if (_analyzedFilesGlobs == null) {
       _analyzedFilesGlobs = <Glob>[];
-      for (String pattern in analyzableFilePatterns) {
+      for (var pattern in analyzableFilePatterns) {
         try {
           _analyzedFilesGlobs
               .add(Glob(resourceProvider.pathContext.separator, pattern));
@@ -135,7 +227,7 @@ abstract class AbstractAnalysisServer {
 
   /// Return the total time the server's been alive.
   Duration get uptime {
-    DateTime start =
+    var start =
         DateTime.fromMillisecondsSinceEpoch(performanceDuringStartup.startTime);
     return DateTime.now().difference(start);
   }
@@ -150,18 +242,17 @@ abstract class AbstractAnalysisServer {
   /// If the state location can be accessed, return the file byte store,
   /// otherwise return the memory byte store.
   ByteStore createByteStore(ResourceProvider resourceProvider) {
-    const int M = 1024 * 1024 /*1 MiB*/;
-    const int G = 1024 * 1024 * 1024 /*1 GiB*/;
+    const M = 1024 * 1024 /*1 MiB*/;
+    const G = 1024 * 1024 * 1024 /*1 GiB*/;
 
-    const int memoryCacheSize = 128 * M;
+    const memoryCacheSize = 128 * M;
 
     if (resourceProvider is OverlayResourceProvider) {
       OverlayResourceProvider overlay = resourceProvider;
       resourceProvider = overlay.baseProvider;
     }
     if (resourceProvider is PhysicalResourceProvider) {
-      Folder stateLocation =
-          resourceProvider.getStateLocation('.analysis-driver');
+      var stateLocation = resourceProvider.getStateLocation('.analysis-driver');
       if (stateLocation != null) {
         return MemoryCachingByteStore(
             EvictingFileByteStore(stateLocation.path, G), memoryCacheSize);
@@ -175,13 +266,13 @@ abstract class AbstractAnalysisServer {
   /// added if one exists, otherwise a driver in which the file was analyzed if
   /// one exists, otherwise the first driver, otherwise `null`.
   nd.AnalysisDriver getAnalysisDriver(String path) {
-    List<nd.AnalysisDriver> drivers = driverMap.values.toList();
+    var drivers = driverMap.values.toList();
     if (drivers.isNotEmpty) {
       // Sort the drivers so that more deeply nested contexts will be checked
       // before enclosing contexts.
       drivers.sort((first, second) =>
           second.contextRoot.root.length - first.contextRoot.root.length);
-      nd.AnalysisDriver driver = drivers.firstWhere(
+      var driver = drivers.firstWhere(
           (driver) => driver.contextRoot.containsFile(path),
           orElse: () => null);
       driver ??= drivers.firstWhere(
@@ -192,6 +283,10 @@ abstract class AbstractAnalysisServer {
     }
     return null;
   }
+
+  @override
+  AnalysisSession getAnalysisSession(String path) =>
+      getAnalysisDriver(path).currentSession;
 
   DartdocDirectiveInfo getDartdocDirectiveInfoFor(ResolvedUnitResult result) {
     return declarationsTracker
@@ -204,8 +299,6 @@ abstract class AbstractAnalysisServer {
   /// [offset] of the given [file], or with `null` if there is no node at the
   /// [offset] or the node does not have an element.
   Future<Element> getElementAtOffset(String file, int offset) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     if (!priorityFiles.contains(file)) {
       var driver = getAnalysisDriver(file);
       if (driver == null) {
@@ -223,7 +316,7 @@ abstract class AbstractAnalysisServer {
       }
     }
 
-    AstNode node = await getNodeAtOffset(file, offset);
+    var node = await getNodeAtOffset(file, offset);
     return getElementOfNode(node);
   }
 
@@ -242,7 +335,7 @@ abstract class AbstractAnalysisServer {
     if (node is StringLiteral && node.parent is UriBasedDirective) {
       return null;
     }
-    Element element = ElementLocator.locate(node);
+    var element = ElementLocator.locate(node);
     if (node is SimpleIdentifier && element is PrefixElement) {
       element = getImportElement(node);
     }
@@ -253,10 +346,8 @@ abstract class AbstractAnalysisServer {
   /// given [offset] of the given [file], or with `null` if there is no node as
   /// the [offset].
   Future<AstNode> getNodeAtOffset(String file, int offset) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    ResolvedUnitResult result = await getResolvedUnit(file);
-    CompilationUnit unit = result?.unit;
+    var result = await getResolvedUnit(file);
+    var unit = result?.unit;
     if (unit != null) {
       return NodeLocator(offset).searchWithin(unit);
     }
@@ -281,7 +372,7 @@ abstract class AbstractAnalysisServer {
       return null;
     }
 
-    nd.AnalysisDriver driver = getAnalysisDriver(path);
+    var driver = getAnalysisDriver(path);
     if (driver == null) {
       return Future.value();
     }
@@ -295,7 +386,7 @@ abstract class AbstractAnalysisServer {
   }
 
   void logExceptionResult(nd.ExceptionResult result) {
-    String message = 'Analysis failed: ${result.filePath}';
+    var message = 'Analysis failed: ${result.filePath}';
     if (result.contextKey != null) {
       message += ' context: ${result.contextKey}';
     }
@@ -333,5 +424,21 @@ abstract class AbstractAnalysisServer {
   void updateContextInDeclarationsTracker(nd.AnalysisDriver driver) {
     declarationsTracker?.discardContext(driver.analysisContext);
     declarationsTracker?.addContext(driver.analysisContext);
+  }
+
+  /// Return the path to the location of the byte store on disk, or `null` if
+  /// there is no on-disk byte store.
+  String _getByteStorePath() {
+    ResourceProvider provider = resourceProvider;
+    if (provider is OverlayResourceProvider) {
+      provider = (provider as OverlayResourceProvider).baseProvider;
+    }
+    if (provider is PhysicalResourceProvider) {
+      var stateLocation = provider.getStateLocation('.analysis-driver');
+      if (stateLocation != null) {
+        return stateLocation.path;
+      }
+    }
+    return null;
   }
 }

@@ -5,12 +5,14 @@
 #ifndef RUNTIME_VM_COMPILER_FRONTEND_KERNEL_TRANSLATION_HELPER_H_
 #define RUNTIME_VM_COMPILER_FRONTEND_KERNEL_TRANSLATION_HELPER_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/compiler/backend/il.h"  // For CompileType.
 #include "vm/kernel.h"
 #include "vm/kernel_binary.h"
 #include "vm/object.h"
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 namespace kernel {
@@ -71,10 +73,10 @@ class TranslationHelper {
 
   KernelProgramInfo& info() { return info_; }
 
-  RawGrowableObjectArray* EnsurePotentialPragmaFunctions();
+  GrowableObjectArrayPtr EnsurePotentialPragmaFunctions();
 
   void AddPotentialExtensionLibrary(const Library& library);
-  RawGrowableObjectArray* GetPotentialExtensionLibraries();
+  GrowableObjectArrayPtr GetPotentialExtensionLibraries();
 
   void SetKernelProgramInfo(const KernelProgramInfo& info);
   const KernelProgramInfo& GetKernelProgramInfo() const { return info_; }
@@ -111,7 +113,7 @@ class TranslationHelper {
   // of the enclosing class or library.
   NameIndex EnclosingName(NameIndex name);
 
-  RawInstance* Canonicalize(const Instance& instance);
+  InstancePtr Canonicalize(const Instance& instance);
 
   const String& DartString(const char* content) {
     return DartString(content, allocation_space_);
@@ -157,20 +159,19 @@ class TranslationHelper {
   // A subclass overrides these when reading in the Kernel program in order to
   // support recursive type expressions (e.g. for "implements X" ...
   // annotations).
-  virtual RawLibrary* LookupLibraryByKernelLibrary(NameIndex library);
-  virtual RawClass* LookupClassByKernelClass(NameIndex klass);
+  virtual LibraryPtr LookupLibraryByKernelLibrary(NameIndex library);
+  virtual ClassPtr LookupClassByKernelClass(NameIndex klass);
 
-  RawField* LookupFieldByKernelField(NameIndex field);
-  RawFunction* LookupStaticMethodByKernelProcedure(NameIndex procedure);
-  RawFunction* LookupConstructorByKernelConstructor(NameIndex constructor);
-  RawFunction* LookupConstructorByKernelConstructor(const Class& owner,
-                                                    NameIndex constructor);
-  RawFunction* LookupConstructorByKernelConstructor(
+  FieldPtr LookupFieldByKernelField(NameIndex field);
+  FunctionPtr LookupStaticMethodByKernelProcedure(NameIndex procedure);
+  FunctionPtr LookupConstructorByKernelConstructor(NameIndex constructor);
+  FunctionPtr LookupConstructorByKernelConstructor(const Class& owner,
+                                                   NameIndex constructor);
+  FunctionPtr LookupConstructorByKernelConstructor(
       const Class& owner,
       StringIndex constructor_name);
-  RawFunction* LookupMethodByMember(NameIndex target,
-                                    const String& method_name);
-  RawFunction* LookupDynamicFunction(const Class& klass, const String& name);
+  FunctionPtr LookupMethodByMember(NameIndex target, const String& method_name);
+  FunctionPtr LookupDynamicFunction(const Class& klass, const String& name);
 
   Type& GetDeclarationType(const Class& klass);
 
@@ -191,7 +192,7 @@ class TranslationHelper {
                    const char* format,
                    ...) PRINTF_ATTRIBUTE(5, 6);
 
-  RawArray* GetBytecodeComponent() const { return info_.bytecode_component(); }
+  ArrayPtr GetBytecodeComponent() const { return info_.bytecode_component(); }
   void SetBytecodeComponent(const Array& bytecode_component) {
     info_.set_bytecode_component(bytecode_component);
   }
@@ -211,7 +212,7 @@ class TranslationHelper {
     ASSERT(!real_class.IsNull());
     expression_evaluation_real_class_ = &Class::Handle(zone_, real_class.raw());
   }
-  RawClass* GetExpressionEvaluationRealClass() {
+  ClassPtr GetExpressionEvaluationRealClass() {
     ASSERT(expression_evaluation_real_class_ != nullptr);
     return expression_evaluation_real_class_->raw();
   }
@@ -276,7 +277,7 @@ class FunctionNodeHelper {
     kEnd,
   };
 
-  enum AsyncMarker {
+  enum AsyncMarker : intptr_t {
     kSync = 0,
     kSyncStar = 1,
     kAsync = 2,
@@ -958,7 +959,9 @@ struct InferredTypeMetadata {
   CompileType ToCompileType(Zone* zone) const {
     if (IsInt() && cid == kDynamicCid) {
       return CompileType::FromAbstractType(
-          Type::ZoneHandle(zone, Type::IntType()), IsNullable());
+          Type::ZoneHandle(
+              zone, (IsNullable() ? Type::NullableIntType() : Type::IntType())),
+          IsNullable());
     } else {
       return CompileType::CreateNullable(IsNullable(), cid);
     }
@@ -1052,6 +1055,7 @@ class CallSiteAttributesMetadataHelper : public MetadataHelper {
 struct TableSelectorInfo {
   int call_count = 0;
   bool called_on_null = true;
+  bool torn_off = true;
 };
 
 // Collection of table selector information for all selectors in the program.
@@ -1077,8 +1081,8 @@ class TableSelectorMetadataHelper : public MetadataHelper {
   TableSelectorMetadata* GetTableSelectorMetadata(Zone* zone);
 
  private:
-  static const int32_t kCalledOnNullBit = 1 << 0;
-  static const int32_t kCallCountShift = 1;
+  static const uint8_t kCalledOnNullBit = 1 << 0;
+  static const uint8_t kTornOffBit = 1 << 1;
 
   void ReadTableSelectorInfo(TableSelectorInfo* info);
 
@@ -1218,11 +1222,12 @@ class KernelReaderHelper {
   Nullability ReadNullability();
   Variance ReadVariance();
 
+  intptr_t SourceTableFieldCountFromFirstLibraryOffset();
   intptr_t SourceTableSize();
   intptr_t GetOffsetForSourceInfo(intptr_t index);
   String& SourceTableUriFor(intptr_t index);
   const String& GetSourceFor(intptr_t index);
-  RawTypedData* GetLineStartsFor(intptr_t index);
+  TypedDataPtr GetLineStartsFor(intptr_t index);
   String& SourceTableImportUriFor(intptr_t index, uint32_t binaryVersion);
 
   Zone* zone_;
@@ -1280,12 +1285,12 @@ class ActiveClass {
 
   bool MemberIsProcedure() {
     ASSERT(member != NULL);
-    RawFunction::Kind function_kind = member->kind();
-    return function_kind == RawFunction::kRegularFunction ||
-           function_kind == RawFunction::kGetterFunction ||
-           function_kind == RawFunction::kSetterFunction ||
-           function_kind == RawFunction::kMethodExtractor ||
-           function_kind == RawFunction::kDynamicInvocationForwarder ||
+    FunctionLayout::Kind function_kind = member->kind();
+    return function_kind == FunctionLayout::kRegularFunction ||
+           function_kind == FunctionLayout::kGetterFunction ||
+           function_kind == FunctionLayout::kSetterFunction ||
+           function_kind == FunctionLayout::kMethodExtractor ||
+           function_kind == FunctionLayout::kDynamicInvocationForwarder ||
            member->IsFactory();
   }
 
@@ -1294,8 +1299,8 @@ class ActiveClass {
     return member->IsFactory();
   }
 
-  bool RequireLegacyErasure() const {
-    return klass != nullptr && !FLAG_null_safety &&
+  bool RequireLegacyErasure(bool null_safety) const {
+    return klass != nullptr && !null_safety &&
            Library::Handle(klass->library()).nnbd_compiled_mode() ==
                NNBDCompiledMode::kAgnostic;
   }
@@ -1502,5 +1507,4 @@ class TypeTranslator {
 }  // namespace kernel
 }  // namespace dart
 
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 #endif  // RUNTIME_VM_COMPILER_FRONTEND_KERNEL_TRANSLATION_HELPER_H_

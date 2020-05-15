@@ -165,7 +165,7 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
     } else if (node is FieldDeclaration) {
       return _getNames(node.fields);
     } else if (node is FunctionDeclaration) {
-      SimpleIdentifier nameNode = node.name;
+      var nameNode = node.name;
       if (nameNode != null) {
         return nameNode.name;
       }
@@ -190,9 +190,9 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
   /// Return a string containing a comma-separated list of the names of all of
   /// the variables in the given list of [variables].
   String _getNames(VariableDeclarationList variables) {
-    StringBuffer buffer = StringBuffer();
-    bool first = true;
-    for (VariableDeclaration variable in variables.variables) {
+    var buffer = StringBuffer();
+    var first = true;
+    for (var variable in variables.variables) {
       if (first) {
         first = false;
       } else {

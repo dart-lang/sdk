@@ -132,8 +132,6 @@ class StatementCompletionProcessor {
       statementContext.resolveResult.unit.declaredElement;
 
   Future<StatementCompletion> compute() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     node = _selectedNode();
     if (node == null) {
       return NO_COMPLETION;
@@ -152,7 +150,7 @@ class StatementCompletionProcessor {
     if (_isEmptyStatementOrEmptyBlock(node)) {
       node = node.parent;
     }
-    for (engine.AnalysisError error in statementContext.resolveResult.errors) {
+    for (var error in statementContext.resolveResult.errors) {
       if (error.offset >= node.offset && error.offset <= node.end) {
         if (error.errorCode is! HintCode) {
           errors.add(error);
@@ -200,19 +198,19 @@ class StatementCompletionProcessor {
   }
 
   void _addInsertEdit(int offset, String text) {
-    SourceEdit edit = SourceEdit(offset, 0, text);
+    var edit = SourceEdit(offset, 0, text);
     doSourceChange_addElementEdit(change, unitElement, edit);
   }
 
   void _addReplaceEdit(SourceRange range, String text) {
-    SourceEdit edit = SourceEdit(range.offset, range.length, text);
+    var edit = SourceEdit(range.offset, range.length, text);
     doSourceChange_addElementEdit(change, unitElement, edit);
   }
 
   void _appendEmptyBraces(SourceBuilder sb, [bool needsExitMark = false]) {
     sb.append('{');
     sb.append(eol);
-    String indent = utils.getLinePrefix(selectionOffset);
+    var indent = utils.getLinePrefix(selectionOffset);
     sb.append(indent);
     sb.append(utils.getIndent(1));
     if (needsExitMark && sb.exitOffset == null) {
@@ -230,14 +228,14 @@ class StatementCompletionProcessor {
   int _appendNewlinePlusIndentAt(int offset) {
     // Append a newline plus proper indent and another newline.
     // Return the position before the second newline.
-    String indent = utils.getLinePrefix(offset);
-    int loc = utils.getLineNext(offset);
+    var indent = utils.getLinePrefix(offset);
+    var loc = utils.getLineNext(offset);
     _addInsertEdit(loc, indent + eol);
     return loc + indent.length;
   }
 
   String _baseNodeText(AstNode astNode) {
-    String text = utils.getNodeText(astNode);
+    var text = utils.getNodeText(astNode);
     if (text.endsWith(eol)) {
       text = text.substring(0, text.length - eol.length);
     }
@@ -252,7 +250,7 @@ class StatementCompletionProcessor {
       if (error == null) {
         return null;
       }
-      AstNode expr = _selectedNode();
+      var expr = _selectedNode();
       return (expr.thisOrAncestorOfType<StringInterpolation>() == null)
           ? expr
           : null;
@@ -260,9 +258,9 @@ class StatementCompletionProcessor {
 
     var expr = errorMatching(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
     if (expr != null) {
-      String source = utils.getNodeText(expr);
-      String content = source;
-      int char = content.codeUnitAt(0);
+      var source = utils.getNodeText(expr);
+      var content = source;
+      var char = content.codeUnitAt(0);
       if (char == 'r'.codeUnitAt(0)) {
         content = source.substring(1);
         char = content.codeUnitAt(0);
@@ -274,7 +272,7 @@ class StatementCompletionProcessor {
           char == content.codeUnitAt(2)) {
         // multi-line string
         delimiter = content.substring(0, 3);
-        int newlineLoc = source.indexOf(eol, selectionOffset - expr.offset);
+        var newlineLoc = source.indexOf(eol, selectionOffset - expr.offset);
         if (newlineLoc < 0) {
           newlineLoc = source.length;
         }
@@ -294,10 +292,10 @@ class StatementCompletionProcessor {
       if (expr != null) {
         ListLiteral lit = expr;
         if (lit.rightBracket.isSynthetic) {
-          String src = utils.getNodeText(expr).trim();
-          int loc = expr.offset + src.length;
+          var src = utils.getNodeText(expr).trim();
+          var loc = expr.offset + src.length;
           if (src.contains(eol)) {
-            String indent = utils.getNodePrefix(node);
+            var indent = utils.getNodePrefix(node);
             _addInsertEdit(loc, ',' + eol + indent + ']');
           } else {
             _addInsertEdit(loc, ']');
@@ -343,7 +341,7 @@ class StatementCompletionProcessor {
     ClassDeclaration decl = node;
     if (decl.leftBracket.isSynthetic && errors.length == 1) {
       // The space before the left brace is assumed to exist, even if it does not.
-      SourceBuilder sb = SourceBuilder(file, decl.end - 1);
+      var sb = SourceBuilder(file, decl.end - 1);
       sb.append(' ');
       _appendEmptyBraces(sb, true);
       _insertBuilder(sb);
@@ -354,7 +352,7 @@ class StatementCompletionProcessor {
   }
 
   bool _complete_controlFlowBlock() {
-    Expression expr = (node is ExpressionStatement)
+    var expr = (node is ExpressionStatement)
         ? (node as ExpressionStatement).expression
         : (node is ReturnStatement
             ? (node as ReturnStatement).expression
@@ -365,15 +363,15 @@ class StatementCompletionProcessor {
     if (node.parent is! Block) {
       return false;
     }
-    AstNode outer = node.parent.parent;
+    var outer = node.parent.parent;
     if (!(outer is DoStatement ||
         outer is ForStatement ||
         outer is IfStatement ||
         outer is WhileStatement)) {
       return false;
     }
-    int previousInsertions = _lengthOfInsertions();
-    int delta = 0;
+    var previousInsertions = _lengthOfInsertions();
+    var delta = 0;
     if (errors.isNotEmpty) {
       var error =
           _findError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "';'");
@@ -402,7 +400,7 @@ class StatementCompletionProcessor {
         delta = 1;
       }
     }
-    int offset = _appendNewlinePlusIndentAt(node.parent.end);
+    var offset = _appendNewlinePlusIndentAt(node.parent.end);
     exitPosition = Position(file, offset + delta + previousInsertions);
     _setCompletion(DartStatementCompletion.COMPLETE_CONTROL_FLOW_BLOCK);
     return true;
@@ -413,27 +411,27 @@ class StatementCompletionProcessor {
       return false;
     }
     DoStatement statement = node;
-    SourceBuilder sb = _sourceBuilderAfterKeyword(statement.doKeyword);
+    var sb = _sourceBuilderAfterKeyword(statement.doKeyword);
     // I modified the code and ran the tests with both the old and new parser.
     // Apparently the old parser sometimes sticks something other than 'while'
     // into the whileKeyword field, which causes statement completion to throw
     // an exception further downstream.
     // TODO(danrubel): change `statement.whileKeyword?.lexeme == "while"`
     // to `statement.whileKeyword != null` once the fasta parser is the default.
-    bool hasWhileKeyword = statement.whileKeyword?.lexeme == 'while' &&
+    var hasWhileKeyword = statement.whileKeyword?.lexeme == 'while' &&
         !statement.whileKeyword.isSynthetic;
-    int exitDelta = 0;
+    var exitDelta = 0;
     if (!_statementHasValidBody(statement.doKeyword, statement.body)) {
-      String text = utils.getNodeText(statement.body);
-      int delta = 0;
+      var text = utils.getNodeText(statement.body);
+      var delta = 0;
       if (text.startsWith(';')) {
         delta = 1;
         _addReplaceEdit(range.startLength(statement.body, delta), '');
         if (hasWhileKeyword) {
           text = utils.getNodeText(statement);
           if (text.indexOf(RegExp(r'do\s*;\s*while')) == 0) {
-            int end = text.indexOf('while');
-            int start = text.indexOf(';') + 1;
+            var end = text.indexOf('while');
+            var start = text.indexOf(';') + 1;
             delta += end - start - 1;
             _addReplaceEdit(
                 SourceRange(start + statement.offset, end - start), ' ');
@@ -525,8 +523,8 @@ class StatementCompletionProcessor {
     if (inKeyword.isSynthetic) {
       return false; // Can't happen -- would be parsed as a for-statement.
     }
-    SourceBuilder sb = SourceBuilder(file, rightParenthesis.offset + 1);
-    String src = utils.getNodeText(node);
+    var sb = SourceBuilder(file, rightParenthesis.offset + 1);
+    var src = utils.getNodeText(node);
     if (name == null) {
       exitPosition = Position(file, leftParenthesis.offset + 1);
       src = src.substring(leftParenthesis.offset - node.offset);
@@ -562,7 +560,7 @@ class StatementCompletionProcessor {
 
   bool _complete_forStatement(ForStatement forNode, ForParts forParts) {
     SourceBuilder sb;
-    int replacementLength = 0;
+    var replacementLength = 0;
     if (forNode.leftParenthesis.isSynthetic) {
       if (!forNode.rightParenthesis.isSynthetic) {
         return false;
@@ -579,17 +577,16 @@ class StatementCompletionProcessor {
         sb = SourceBuilder(file, forNode.rightParenthesis.offset + 1);
       } else if (!forParts.leftSeparator.isSynthetic) {
         if (_isSyntheticExpression(forParts.condition)) {
-          String text = utils
+          var text = utils
               .getNodeText(forNode)
               .substring(forParts.leftSeparator.offset - forNode.offset);
-          Match match =
-              RegExp(r';\s*(/\*.*\*/\s*)?\)[ \t]*').matchAsPrefix(text);
+          var match = RegExp(r';\s*(/\*.*\*/\s*)?\)[ \t]*').matchAsPrefix(text);
           if (match != null) {
             // emptyCondition, emptyInitializersEmptyCondition
             replacementLength = match.end - match.start;
             sb = SourceBuilder(file, forParts.leftSeparator.offset);
             sb.append('; ${match.group(1) ?? ''}; )');
-            String suffix = text.substring(match.end);
+            var suffix = text.substring(match.end);
             if (suffix.trim().isNotEmpty) {
               sb.append(' ');
               sb.append(suffix.trim());
@@ -628,12 +625,11 @@ class StatementCompletionProcessor {
             forNode.rightParenthesis,
             forNode.body);
       } else {
-        int start = forParts.condition.offset + forParts.condition.length;
-        String text =
-            utils.getNodeText(forNode).substring(start - forNode.offset);
+        var start = forParts.condition.offset + forParts.condition.length;
+        var text = utils.getNodeText(forNode).substring(start - forNode.offset);
         if (text.startsWith(RegExp(r'\s*\)'))) {
           // missingLeftSeparator
-          int end = text.indexOf(')');
+          var end = text.indexOf(')');
           sb = SourceBuilder(file, start);
           _addReplaceEdit(SourceRange(start, end), '; ; ');
           exitPosition = Position(file, start - (end - '; '.length));
@@ -678,7 +674,7 @@ class StatementCompletionProcessor {
     if (node is! MethodDeclaration && node is! FunctionDeclaration) {
       return false;
     }
-    bool needsParen = false;
+    var needsParen = false;
     int computeExitPos(FormalParameterList parameters) {
       if (needsParen = parameters.rightParenthesis.isSynthetic) {
         var error = _findError(ParserErrorCode.MISSING_CLOSING_PARENTHESIS);
@@ -697,7 +693,7 @@ class StatementCompletionProcessor {
       MethodDeclaration meth = node;
       paramListEnd = computeExitPos(meth.parameters);
     }
-    SourceBuilder sb = SourceBuilder(file, paramListEnd);
+    var sb = SourceBuilder(file, paramListEnd);
     if (needsParen) {
       sb.append(')');
     }
@@ -715,18 +711,18 @@ class StatementCompletionProcessor {
     var error = _findError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "';'");
     if (error != null) {
       FunctionDeclarationStatement stmt = node;
-      String src = utils.getNodeText(stmt);
-      int insertOffset = stmt.functionDeclaration.end - 1;
+      var src = utils.getNodeText(stmt);
+      var insertOffset = stmt.functionDeclaration.end - 1;
       if (stmt.functionDeclaration.functionExpression.body
           is ExpressionFunctionBody) {
         ExpressionFunctionBody fnb =
             stmt.functionDeclaration.functionExpression.body;
-        int fnbOffset = fnb.functionDefinition.offset;
-        String fnSrc = src.substring(fnbOffset - stmt.offset);
+        var fnbOffset = fnb.functionDefinition.offset;
+        var fnSrc = src.substring(fnbOffset - stmt.offset);
         if (!fnSrc.startsWith('=>')) {
           return false;
         }
-        int delta = 0;
+        var delta = 0;
         if (fnb.expression.isSynthetic) {
           if (!fnSrc.startsWith('=> ')) {
             _addInsertEdit(insertOffset, ' ');
@@ -752,11 +748,11 @@ class StatementCompletionProcessor {
     if (_statementHasValidBody(statement.keyword, statement.block)) {
       return false;
     }
-    SourceBuilder sb = _complete_keywordCondition(statement);
+    var sb = _complete_keywordCondition(statement);
     if (sb == null) {
       return false;
     }
-    int overshoot = _lengthOfDeletions();
+    var overshoot = _lengthOfDeletions();
     sb.append(' ');
     _appendEmptyBraces(sb, exitPosition == null);
     _insertBuilder(sb);
@@ -775,8 +771,8 @@ class StatementCompletionProcessor {
     if (ifNode.elseKeyword != null) {
       if (selectionOffset >= ifNode.elseKeyword.end &&
           _isEmptyStatement(ifNode.elseStatement)) {
-        SourceBuilder sb = SourceBuilder(file, selectionOffset);
-        String src = utils.getNodeText(ifNode);
+        var sb = SourceBuilder(file, selectionOffset);
+        var src = utils.getNodeText(ifNode);
         if (!src
             .substring(ifNode.elseKeyword.end - node.offset)
             .startsWith(RegExp(r'[ \t]'))) {
@@ -819,7 +815,7 @@ class StatementCompletionProcessor {
         sb = SourceBuilder(file, statement.condition.end);
         sb.append(')');
       } else {
-        int afterParen = statement.rightParenthesis.offset + 1;
+        var afterParen = statement.rightParenthesis.offset + 1;
         if (utils
             .getNodeText(node)
             .substring(afterParen - node.offset)
@@ -848,9 +844,9 @@ class StatementCompletionProcessor {
     if (argList?.thisOrAncestorMatching((n) => n == node) == null) {
       return false;
     }
-    int previousInsertions = _lengthOfInsertions();
-    int loc = min(selectionOffset, argList.end - 1);
-    int delta = 1;
+    var previousInsertions = _lengthOfInsertions();
+    var loc = min(selectionOffset, argList.end - 1);
+    var delta = 1;
     var semicolonError =
         _findError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "';'");
     if (semicolonError == null) {
@@ -861,8 +857,8 @@ class StatementCompletionProcessor {
     if (semicolonError != null) {
       _addInsertEdit(loc, ';');
     }
-    String indent = utils.getLinePrefix(selectionOffset);
-    int exit = utils.getLineNext(selectionOffset);
+    var indent = utils.getLinePrefix(selectionOffset);
+    var exit = utils.getLineNext(selectionOffset);
     _addInsertEdit(exit, indent + eol);
     exit += indent.length + eol.length + previousInsertions;
 
@@ -875,8 +871,8 @@ class StatementCompletionProcessor {
     if (errors.isNotEmpty) {
       offset = selectionOffset;
     } else {
-      String indent = utils.getLinePrefix(selectionOffset);
-      int loc = utils.getLineNext(selectionOffset);
+      var indent = utils.getLinePrefix(selectionOffset);
+      var loc = utils.getLineNext(selectionOffset);
       _addInsertEdit(loc, indent + eol);
       offset = loc + indent.length;
     }
@@ -890,11 +886,11 @@ class StatementCompletionProcessor {
     }
     var error = _findError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "';'");
     if (error != null) {
-      int previousInsertions = _lengthOfInsertions();
+      var previousInsertions = _lengthOfInsertions();
       // TODO(messick) Fix this to find the correct place in all cases.
-      int insertOffset = error.offset + error.length;
+      var insertOffset = error.offset + error.length;
       _addInsertEdit(insertOffset, ';');
-      int offset = _appendNewlinePlusIndent() + 1 /*';'*/ + previousInsertions;
+      var offset = _appendNewlinePlusIndent() + 1 /*';'*/ + previousInsertions;
       _setCompletionAt(DartStatementCompletion.SIMPLE_SEMICOLON, offset);
       return true;
     }
@@ -910,7 +906,7 @@ class StatementCompletionProcessor {
     if (switchNode.leftParenthesis.isSynthetic &&
         switchNode.rightParenthesis.isSynthetic) {
       exitPosition = Position(file, switchNode.switchKeyword.end + 2);
-      String src = utils.getNodeText(switchNode);
+      var src = utils.getNodeText(switchNode);
       if (src
           .substring(switchNode.switchKeyword.end - switchNode.offset)
           .startsWith(RegExp(r'[ \t]+'))) {
@@ -935,10 +931,10 @@ class StatementCompletionProcessor {
       sb.append(' ');
       _appendEmptyBraces(sb, exitPosition == null);
     } else {
-      SwitchMember member = _findInvalidElement(switchNode.members);
+      var member = _findInvalidElement(switchNode.members);
       if (member != null) {
         if (member.colon.isSynthetic) {
-          int loc =
+          var loc =
               member is SwitchCase ? member.expression.end : member.keyword.end;
           sb = SourceBuilder(file, loc);
           sb.append(': ');
@@ -958,9 +954,9 @@ class StatementCompletionProcessor {
     TryStatement tryNode = node;
     SourceBuilder sb;
     CatchClause catchNode;
-    bool addSpace = true;
+    var addSpace = true;
     if (tryNode.body.leftBracket.isSynthetic) {
-      String src = utils.getNodeText(tryNode);
+      var src = utils.getNodeText(tryNode);
       if (src
           .substring(tryNode.tryKeyword.end - tryNode.offset)
           .startsWith(RegExp(r'[ \t]+'))) {
@@ -981,7 +977,7 @@ class StatementCompletionProcessor {
             null !=
                 _findError(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE,
                     partialMatch: "name 'catch")) {
-          String src = utils.getNodeText(catchNode);
+          var src = utils.getNodeText(catchNode);
           if (src.startsWith(RegExp(r'on[ \t]+'))) {
             if (src.startsWith(RegExp(r'on[ \t][ \t]+'))) {
               // onSpaces
@@ -1086,13 +1082,13 @@ class StatementCompletionProcessor {
 
   void _insertBuilder(SourceBuilder builder, [int length = 0]) {
     {
-      SourceRange range = SourceRange(builder.offset, length);
-      String text = builder.toString();
+      var range = SourceRange(builder.offset, length);
+      var text = builder.toString();
       _addReplaceEdit(range, text);
     }
     // add exit position
     {
-      int exitOffset = builder.exitOffset;
+      var exitOffset = builder.exitOffset;
       if (exitOffset != null) {
         exitPosition = _newPosition(exitOffset);
       }
@@ -1105,7 +1101,7 @@ class StatementCompletionProcessor {
 
   bool _isEmptyStatement(AstNode stmt) {
     if (stmt is ExpressionStatement) {
-      Expression expression = stmt.expression;
+      var expression = stmt.expression;
       if (expression is SimpleIdentifier) {
         return expression.token.isSynthetic;
       }
@@ -1124,7 +1120,7 @@ class StatementCompletionProcessor {
     if (n is! VariableDeclaration && n is! FunctionDeclaration) {
       return true;
     }
-    AstNode p = n.parent;
+    var p = n.parent;
     return p is! Statement &&
         p?.parent is! Statement &&
         p?.parent?.parent is! Statement;
@@ -1138,9 +1134,9 @@ class StatementCompletionProcessor {
     if (change.edits.isEmpty) {
       return 0;
     }
-    int length = 0;
-    for (SourceFileEdit edit in change.edits) {
-      for (SourceEdit srcEdit in edit.edits) {
+    var length = 0;
+    for (var edit in change.edits) {
+      for (var srcEdit in edit.edits) {
         if (srcEdit.length > 0) {
           length += srcEdit.length - srcEdit.replacement.length;
         }
@@ -1158,9 +1154,9 @@ class StatementCompletionProcessor {
     if (change.edits.isEmpty) {
       return 0;
     }
-    int length = 0;
-    for (SourceFileEdit edit in change.edits) {
-      for (SourceEdit srcEdit in edit.edits) {
+    var length = 0;
+    for (var edit in change.edits) {
+      for (var srcEdit in edit.edits) {
         if (srcEdit.length == 0) {
           length += srcEdit.replacement.length;
         }
@@ -1199,9 +1195,9 @@ class StatementCompletionProcessor {
 
   SourceBuilder _sourceBuilderAfterKeyword(Token keyword) {
     SourceBuilder sb;
-    String text = _baseNodeText(node);
+    var text = _baseNodeText(node);
     text = text.substring(keyword.offset - node.offset);
-    int len = keyword.length;
+    var len = keyword.length;
     if (text.length == len || // onCatchComment
         !text.substring(len, len + 1).contains(RegExp(r'[ \t]'))) {
       sb = SourceBuilder(file, keyword.offset + len);
@@ -1219,7 +1215,7 @@ class StatementCompletionProcessor {
       return false;
     }
     if (body is Block) {
-      Block block = body;
+      var block = body;
       return (!(block.leftBracket.isSynthetic));
     }
     return (lineInfo.getLocation(keyword.offset) ==

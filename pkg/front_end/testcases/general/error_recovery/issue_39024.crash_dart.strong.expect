@@ -1,0 +1,42 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/error_recovery/issue_39024.crash_dart:1:6: Error: Can't find ')' to match '('.
+// n<S e(
+//      ^
+//
+// pkg/front_end/testcases/general/error_recovery/issue_39024.crash_dart:1:2: Error: Can't find '>' to match '<'.
+// n<S e(
+//  ^
+//
+// pkg/front_end/testcases/general/error_recovery/issue_39024.crash_dart:1:3: Error: Expected '>' after this.
+// n<S e(
+//   ^
+//
+// pkg/front_end/testcases/general/error_recovery/issue_39024.crash_dart:1:7: Error: Expected an identifier, but got ''.
+// n<S e(
+//       ^...
+//
+// pkg/front_end/testcases/general/error_recovery/issue_39024.crash_dart:1:7: Error: A function declaration needs an explicit list of parameters.
+// Try adding a parameter list to the function declaration.
+// n<S e(
+//       ^...
+//
+// pkg/front_end/testcases/general/error_recovery/issue_39024.crash_dart:1:7: Error: Expected '{' before this.
+// n<S e(
+//       ^...
+//
+// pkg/front_end/testcases/general/error_recovery/issue_39024.crash_dart:1:3: Error: Type 'S' not found.
+// n<S e(
+//   ^
+//
+// pkg/front_end/testcases/general/error_recovery/issue_39024.crash_dart:1:1: Error: Type 'n' not found.
+// n<S e(
+// ^
+//
+// pkg/front_end/testcases/general/error_recovery/issue_39024.crash_dart:1:1: Error: Expected 0 type arguments.
+// n<S e(
+// ^
+//
+import self as self;

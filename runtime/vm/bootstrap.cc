@@ -90,9 +90,9 @@ static void Finish(Thread* thread) {
   ClassFinalizer::LoadClassMembers(cls);
 }
 
-static RawError* BootstrapFromKernel(Thread* thread,
-                                     const uint8_t* kernel_buffer,
-                                     intptr_t kernel_buffer_size) {
+static ErrorPtr BootstrapFromKernel(Thread* thread,
+                                    const uint8_t* kernel_buffer,
+                                    intptr_t kernel_buffer_size) {
   Zone* zone = thread->zone();
   const char* error = nullptr;
   std::unique_ptr<kernel::Program> program = kernel::Program::ReadFromBuffer(
@@ -105,6 +105,7 @@ static RawError* BootstrapFromKernel(Thread* thread,
     const String& msg = String::Handle(String::New(message_buffer, Heap::kOld));
     return ApiError::New(msg, Heap::kOld);
   }
+  program->AutoDetectNullSafety(thread->isolate());
   kernel::KernelLoader loader(program.get(), /*uri_to_source_table=*/nullptr);
 
   Isolate* isolate = thread->isolate();
@@ -140,8 +141,8 @@ static RawError* BootstrapFromKernel(Thread* thread,
   return Error::null();
 }
 
-RawError* Bootstrap::DoBootstrapping(const uint8_t* kernel_buffer,
-                                     intptr_t kernel_buffer_size) {
+ErrorPtr Bootstrap::DoBootstrapping(const uint8_t* kernel_buffer,
+                                    intptr_t kernel_buffer_size) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
@@ -167,8 +168,8 @@ RawError* Bootstrap::DoBootstrapping(const uint8_t* kernel_buffer,
   return BootstrapFromKernel(thread, kernel_buffer, kernel_buffer_size);
 }
 #else
-RawError* Bootstrap::DoBootstrapping(const uint8_t* kernel_buffer,
-                                     intptr_t kernel_buffer_size) {
+ErrorPtr Bootstrap::DoBootstrapping(const uint8_t* kernel_buffer,
+                                    intptr_t kernel_buffer_size) {
   UNREACHABLE();
   return Error::null();
 }

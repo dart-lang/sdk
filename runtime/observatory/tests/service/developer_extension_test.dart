@@ -5,9 +5,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+import 'package:expect/expect.dart';
 import 'package:observatory/service_io.dart';
 import 'package:observatory/sample_profile.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
@@ -37,10 +38,6 @@ Future<ServiceExtensionResponse> Handler(String method, Map paremeters) {
         'method': method,
         'parameters': paremeters,
       })));
-    case 'ext..null':
-      return null;
-    case 'ext..nullFuture':
-      return new Future<ServiceExtensionResponse>.value(null);
   }
 }
 
@@ -51,8 +48,6 @@ void test() {
   debugger();
   registerExtension('ext..error', Handler);
   registerExtension('ext..exception', Handler);
-  registerExtension('ext..null', Handler);
-  registerExtension('ext..nullFuture', Handler);
   registerExtension('ext..success', Handler);
   bool exceptionThrown = false;
   try {
@@ -60,7 +55,8 @@ void test() {
   } catch (e) {
     exceptionThrown = true;
   }
-  expect(exceptionThrown, isTrue);
+  // This check is running in the target process so we can't used package:test.
+  Expect.isTrue(exceptionThrown);
 }
 
 var tests = <IsolateTest>[
@@ -72,8 +68,6 @@ var tests = <IsolateTest>[
     expect(isolate.extensionRPCs, contains('ext..delay'));
     expect(isolate.extensionRPCs, isNot(contains('ext..error')));
     expect(isolate.extensionRPCs, isNot(contains('ext..exception')));
-    expect(isolate.extensionRPCs, isNot(contains('ext..null')));
-    expect(isolate.extensionRPCs, isNot(contains('ext..nullFuture')));
     expect(isolate.extensionRPCs, isNot(contains('ext..success')));
   },
   resumeIsolateAndAwaitEvent(Isolate.kExtensionStream, (ServiceEvent event) {
@@ -109,23 +103,6 @@ var tests = <IsolateTest>[
     } on ServerRpcException catch (e, st) {
       expect(e.code, equals(ServiceExtensionResponse.extensionError));
       expect(e.message.startsWith('I always throw!\n'), isTrue);
-    }
-
-    try {
-      await isolate.invokeRpcNoUpgrade('ext..null', {});
-    } on ServerRpcException catch (e, st) {
-      expect(e.code, equals(ServiceExtensionResponse.extensionError));
-      expect(e.message, equals('Extension handler must return a Future'));
-    }
-
-    try {
-      await isolate.invokeRpcNoUpgrade('ext..nullFuture', {});
-    } on ServerRpcException catch (e, st) {
-      expect(e.code, equals(ServiceExtensionResponse.extensionError));
-      expect(
-          e.message,
-          equals('Extension handler must complete to a '
-              'ServiceExtensionResponse'));
     }
 
     result =

@@ -39,7 +39,7 @@ void f(Derived d) {
 }
 ''');
     await computeSuggestions();
-    List<CompletionSuggestion> suggestionsForX = suggestions
+    var suggestionsForX = suggestions
         .where((CompletionSuggestion s) => s.completion == 'x')
         .toList();
     expect(suggestionsForX, hasLength(1));
@@ -2046,7 +2046,7 @@ void f(C<int> c) {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'int');
+    var suggestion = assertSuggestMethod('m', 'C', 'int');
     expect(suggestion.parameterTypes[0], 'int');
     expect(suggestion.element.returnType, 'int');
     expect(suggestion.element.parameters, '(int t)');
@@ -2065,7 +2065,7 @@ void f(C<int> c) {
     // TODO(paulberry): modify assertSuggestSetter so that we can pass 'int'
     // as a parmeter to it, and it will check the appropriate field in
     // the suggestion object.
-    CompletionSuggestion suggestion = assertSuggestSetter('t');
+    var suggestion = assertSuggestSetter('t');
     expect(suggestion.element.parameters, '(int value)');
   }
 
@@ -2586,7 +2586,7 @@ class C {
 }
 void main() {new C().^}''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
+    var suggestion = assertSuggestMethod('m', 'C', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -2603,7 +2603,7 @@ class C {
 }
 void main() {new C().^}''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
+    var suggestion = assertSuggestMethod('m', 'C', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -2620,7 +2620,7 @@ class C {
 }
 void main() {new C().^}''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
+    var suggestion = assertSuggestMethod('m', 'C', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -2637,7 +2637,7 @@ class C {
 }
 void main() {new C().^}''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
+    var suggestion = assertSuggestMethod('m', 'C', 'void');
     expect(suggestion.parameterNames, isEmpty);
     expect(suggestion.parameterTypes, isEmpty);
     expect(suggestion.requiredParameterCount, 0);
@@ -2651,7 +2651,7 @@ class C {
 }
 void main() {new C().^}''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
+    var suggestion = assertSuggestMethod('m', 'C', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -2668,7 +2668,7 @@ class C {
 }
 void main() {new C().^}''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
+    var suggestion = assertSuggestMethod('m', 'C', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -2934,7 +2934,7 @@ class C {
 }
 void main() {new C().^}''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestField('x', 'int');
+    var suggestion = assertSuggestField('x', 'int');
     assertHasNoParameterInfo(suggestion);
   }
 
@@ -2945,7 +2945,7 @@ class C {
 }
 void main() {int y = new C().^}''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestGetter('x', 'int');
+    var suggestion = assertSuggestGetter('x', 'int');
     assertHasNoParameterInfo(suggestion);
   }
 
@@ -2956,7 +2956,7 @@ class C {
 }
 void main() {int y = new C().^}''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestSetter('x');
+    var suggestion = assertSuggestSetter('x');
     assertHasNoParameterInfo(suggestion);
   }
 

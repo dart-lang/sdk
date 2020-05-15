@@ -50,6 +50,7 @@ class SetupCompilerOptions {
 
   static CompilerOptions getOptions() {
     var options = CompilerOptions()
+      ..verbose = false // set to true for debugging
       ..sdkRoot = sdkRoot
       ..target = DevCompilerTarget(TargetFlags())
       ..librariesSpecificationUri = Uri.base.resolve('sdk/lib/libraries.json')
@@ -240,7 +241,7 @@ class TestDriver {
     for (int line = 0; line < lines.length; line++) {
       var content = lines[line];
       if (placeholderRegExp.firstMatch(content) != null) {
-        return line;
+        return line + 1;
       }
     }
     return -1;
@@ -259,7 +260,7 @@ int main() {
           return ret;
         }
       }
-      main => 0;
+      main() => 0;
     ''';
 
     TestDriver driver;
@@ -285,9 +286,6 @@ int main() {
           expression: 'ret',
           expectedResult: '''
           (function(ret) {
-            let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
             return ret;
           }(
           1234
@@ -331,6 +329,8 @@ int main() {
           return x;
         }
       }
+
+      main() => 0;
       ''';
 
     TestDriver driver;
@@ -356,11 +356,6 @@ int main() {
           expression: 'x',
           expectedResult: '''
           (function(x) {
-            let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
-            let _field = dart.privateName(foo, "_field");
-            let _staticField = dart.privateName(foo, "_staticField");
             return x;
           }.bind(this)(
           1
@@ -374,11 +369,6 @@ int main() {
           expression: 'this',
           expectedResult: '''
           (function(x) {
-            let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
-            let _field = dart.privateName(foo, "_field");
-            let _staticField = dart.privateName(foo, "_staticField");
             return this;
           }.bind(this)(
           1
@@ -392,11 +382,6 @@ int main() {
           expression: 'x + 1',
           expectedResult: '''
           (function(x) {
-            let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
-            let _field = dart.privateName(foo, "_field");
-            let _staticField = dart.privateName(foo, "_staticField");
             return dart.dsend(x, '+', [1]);
           }.bind(this)(
           1
@@ -410,11 +395,6 @@ int main() {
           expression: 'x + staticField',
           expectedResult: '''
           (function(x) {
-            let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
-            let _field = dart.privateName(foo, "_field");
-            let _staticField = dart.privateName(foo, "_staticField");
             return dart.dsend(x, '+', [foo.C.staticField]);
           }.bind(this)(
           1
@@ -429,9 +409,6 @@ int main() {
           expectedResult: '''
           (function(x) {
             let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
-            let _field = dart.privateName(foo, "_field");
             let _staticField = dart.privateName(foo, "_staticField");
             return dart.dsend(x, '+', [foo.C._staticField]);
           }.bind(this)(
@@ -446,11 +423,6 @@ int main() {
           expression: 'x + field',
           expectedResult: '''
           (function(x) {
-            let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
-            let _field = dart.privateName(foo, "_field");
-            let _staticField = dart.privateName(foo, "_staticField");
             return dart.dsend(x, '+', [this.field]);
           }.bind(this)(
           1
@@ -465,10 +437,7 @@ int main() {
           expectedResult: '''
           (function(x) {
             let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
             let _field = dart.privateName(foo, "_field");
-            let _staticField = dart.privateName(foo, "_staticField");
             return dart.dsend(x, '+', [this[_field]]);
           }.bind(this)(
           1
@@ -482,11 +451,6 @@ int main() {
           expression: 'x + global',
           expectedResult: '''
           (function(x) {
-            let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
-            let _field = dart.privateName(foo, "_field");
-            let _staticField = dart.privateName(foo, "_staticField");
             return dart.dsend(x, '+', [foo.global]);
           }.bind(this)(
           1
@@ -500,11 +464,6 @@ int main() {
           expression: 'methodFieldAccess(2)',
           expectedResult: '''
           (function(x) {
-            let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
-            let _field = dart.privateName(foo, "_field");
-            let _staticField = dart.privateName(foo, "_staticField");
             return this.methodFieldAccess(2);
           }.bind(this)(
           1
@@ -518,11 +477,6 @@ int main() {
           expression: 'asyncMethod(2)',
           expectedResult: '''
           (function(x) {
-            let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
-            let _field = dart.privateName(foo, "_field");
-            let _staticField = dart.privateName(foo, "_staticField");
             return this.asyncMethod(2);
           }.bind(this)(
           1
@@ -536,11 +490,6 @@ int main() {
           expression: '"1234".parseInt()',
           expectedResult: '''
         (function(x) {
-          let foo = require('foo.dart').foo;
-          let dart = require('dart_sdk').dart;
-          let core = require('dart_sdk').core;
-          let _field = dart.privateName(foo, "_field");
-          let _staticField = dart.privateName(foo, "_staticField");
           return foo['NumberParsing|parseInt']("1234");
         }.bind(this)(
         1
@@ -555,10 +504,7 @@ int main() {
           expectedResult: '''
         (function(x) {
           let foo = require('foo.dart').foo;
-          let dart = require('dart_sdk').dart;
-          let core = require('dart_sdk').core;
           let _field = dart.privateName(foo, "_field");
-          let _staticField = dart.privateName(foo, "_staticField");
           return this[_field] = 2;
         }.bind(this)(
         1
@@ -572,11 +518,6 @@ int main() {
           expression: 'field = 2',
           expectedResult: '''
           (function(x) {
-            let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
-            let _field = dart.privateName(foo, "_field");
-            let _staticField = dart.privateName(foo, "_staticField");
             return this.field = 2;
           }.bind(this)(
           1
@@ -591,9 +532,6 @@ int main() {
           expectedResult: '''
           (function(x) {
             let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
-            let _field = dart.privateName(foo, "_field");
             let _staticField = dart.privateName(foo, "_staticField");
             return foo.C._staticField = 2;
           }.bind(this)(
@@ -608,11 +546,6 @@ int main() {
           expression: 'staticField = 2',
           expectedResult: '''
           (function(x) {
-            let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
-            let _field = dart.privateName(foo, "_field");
-            let _staticField = dart.privateName(foo, "_staticField");
             return foo.C.staticField = 2;
           }.bind(this)(
           1
@@ -649,6 +582,8 @@ int main() {
           return x;
         }
       }
+
+      main() => 0;
       ''';
 
     TestDriver driver;
@@ -673,11 +608,6 @@ int main() {
           expression: 'x + staticField',
           expectedResult: '''
           (function(x) {
-            let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
-            let _field = dart.privateName(foo, "_field");
-            let _staticField = dart.privateName(foo, "_staticField");
             return dart.dsend(x, '+', [foo.C.staticField]);
           }.bind(this)(
           1
@@ -692,9 +622,6 @@ int main() {
           expectedResult: '''
           (function(x) {
             let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
-            let _field = dart.privateName(foo, "_field");
             let _staticField = dart.privateName(foo, "_staticField");
             return dart.dsend(x, '+', [foo.C._staticField]);
           }.bind(this)(
@@ -709,11 +636,6 @@ int main() {
           expression: 'x + field',
           expectedResult: '''
           (function(x) {
-            let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
-            let _field = dart.privateName(foo, "_field");
-            let _staticField = dart.privateName(foo, "_staticField");
             return dart.dsend(x, '+', [this.field]);
           }.bind(this)(
           1
@@ -728,10 +650,7 @@ int main() {
           expectedResult: '''
           (function(x) {
             let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
             let _field = dart.privateName(foo, "_field");
-            let _staticField = dart.privateName(foo, "_staticField");
             return dart.dsend(x, '+', [this[_field]]);
           }.bind(this)(
           1
@@ -746,10 +665,7 @@ int main() {
           expectedResult: '''
           (function(x) {
             let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
             let _field = dart.privateName(foo, "_field");
-            let _staticField = dart.privateName(foo, "_staticField");
             return this[_field] = 2;
           }.bind(this)(
           1
@@ -763,11 +679,6 @@ int main() {
           expression: 'field = 2',
           expectedResult: '''
           (function(x) {
-            let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
-            let _field = dart.privateName(foo, "_field");
-            let _staticField = dart.privateName(foo, "_staticField");
             return this.field = 2;
           }.bind(this)(
           1
@@ -782,9 +693,6 @@ int main() {
           expectedResult: '''
           (function(x) {
             let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
-            let _field = dart.privateName(foo, "_field");
             let _staticField = dart.privateName(foo, "_staticField");
             return foo.C._staticField = 2;
           }.bind(this)(
@@ -799,11 +707,6 @@ int main() {
           expression: 'staticField = 2',
           expectedResult: '''
           (function(x) {
-            let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
-            let _field = dart.privateName(foo, "_field");
-            let _staticField = dart.privateName(foo, "_staticField");
             return foo.C.staticField = 2;
           }.bind(this)(
           1
@@ -825,6 +728,8 @@ int main() {
           return x;
         }
       }
+
+      main() => 0;
       ''';
 
     TestDriver driver;
@@ -849,10 +754,6 @@ int main() {
           expression: 'x',
           expectedResult: '''
           (function(x) {
-            let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
-            let _field = dart.privateName(foo, "_field");
             return x;
           }.bind(this)(
           1
@@ -866,10 +767,6 @@ int main() {
           expression: 'this',
           expectedResult: '''
           (function(x) {
-            let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
-            let _field = dart.privateName(foo, "_field");
             return this;
           }.bind(this)(
           1
@@ -939,9 +836,6 @@ int main() {
           expression: 'x',
           expectedResult: '''
           (function(x, c) {
-            let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
             return x;
           }(
           1, null
@@ -955,9 +849,6 @@ int main() {
           expression: 'c',
           expectedResult: '''
           (function(x, c) {
-            let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
             return c;
           }(
           1, null
@@ -971,9 +862,6 @@ int main() {
           expression: 'C(1,3)',
           expectedResult: '''
             (function(x, c) {
-              let foo = require('foo.dart').foo;
-              let dart = require('dart_sdk').dart;
-              let core = require('dart_sdk').core;
               return new foo.C.new(1, 3);
             }(
             1, null
@@ -988,8 +876,6 @@ int main() {
           expectedResult: '''
           (function(x, c) {
             let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
             let _field = dart.privateName(foo, "_field");
             return new foo.C.new(1, 3)[_field];
           }(
@@ -1004,9 +890,6 @@ int main() {
           expression: 'C.staticField',
           expectedResult: '''
           (function(x, c) {
-            let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
             return foo.C.staticField;
           }(
           1, null
@@ -1027,9 +910,6 @@ int main() {
           expression: 'c.field',
           expectedResult: '''
           (function(x, c) {
-            let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
             return dart.dloadRepl(c, 'field');
           }(
           1, null
@@ -1044,8 +924,6 @@ int main() {
           expectedResult: '''
           (function(x, c) {
             let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
             let _field = dart.privateName(foo, "_field");
             return dart.dloadRepl(c, _field);
           }(
@@ -1060,9 +938,6 @@ int main() {
           expression: 'c.methodFieldAccess(2)',
           expectedResult: '''
           (function(x, c) {
-            let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
             return dart.dsendRepl(c, 'methodFieldAccess', [2]);
           }(
           1, null
@@ -1076,9 +951,6 @@ int main() {
           expression: 'c.asyncMethod(2)',
           expectedResult: '''
           (function(x, c) {
-            let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
             return dart.dsendRepl(c, 'asyncMethod', [2]);
           }(
           1, null
@@ -1092,9 +964,6 @@ int main() {
           expression: '"1234".parseInt()',
           expectedResult: '''
         (function(x, c) {
-          let foo = require('foo.dart').foo;
-          let dart = require('dart_sdk').dart;
-          let core = require('dart_sdk').core;
           return foo['NumberParsing|parseInt']("1234");
         }(
         1, null
@@ -1109,8 +978,6 @@ int main() {
           expectedResult: '''
           (function(x, c) {
             let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
             let _field = dart.privateName(foo, "_field");
             return dart.dputRepl(c, _field, 2);
           }(
@@ -1125,9 +992,6 @@ int main() {
           expression: 'c.field = 2',
           expectedResult: '''
           (function(x, c) {
-            let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
             return dart.dputRepl(c, 'field', 2);
           }(
           1, null
@@ -1148,9 +1012,6 @@ int main() {
           expression: 'C.staticField = 2',
           expectedResult: '''
           (function(x, c) {
-            let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
             return foo.C.staticField = 2;
           }(
           1, null
@@ -1164,9 +1025,6 @@ int main() {
           expression: 'print(x)',
           expectedResult: '''
           (function(x, c) {
-            let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
             return core.print(x);
           }(
           1, null
@@ -1192,6 +1050,8 @@ int main() {
       outerClosure(3);
       return 0;
     }
+
+    main() => 0;
     ''';
 
     TestDriver driver;
@@ -1216,9 +1076,6 @@ int main() {
           expression: r"'$x+$y+$z'",
           expectedResult: '''
           (function(x, c, y, z) {
-            let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
             return dart.str(x) + "+" + dart.str(y) + "+" + dart.str(z);
           }(
           1, null, 3, 0
@@ -1232,9 +1089,6 @@ int main() {
           expression: r"'$y+$z'",
           expectedResult: '''
           (function(x, c, y, z) {
-            let foo = require('foo.dart').foo;
-            let dart = require('dart_sdk').dart;
-            let core = require('dart_sdk').core;
             return dart.str(y) + "+" + dart.str(z);
           }(
           1, null, 3, 0

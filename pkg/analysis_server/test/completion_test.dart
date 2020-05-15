@@ -10,7 +10,7 @@ import 'package:test/test.dart';
 import 'completion_test_support.dart';
 
 void main() {
-  CompletionTestBuilder builder = CompletionTestBuilder();
+  var builder = CompletionTestBuilder();
   builder.buildAll();
 }
 
@@ -28,7 +28,7 @@ class CompletionTestBuilder {
     buildCompletionTests();
     buildOtherTests();
     buildLibraryTests();
-    int testCount = expectedPassCount + expectedFailCount;
+    var testCount = expectedPassCount + expectedFailCount;
     print(
         'Total $testCount tests, of which $expectedFailCount are expected to fail.');
   }
@@ -103,8 +103,15 @@ class F {m() { m(); !1}}''', <String>['1+m']);
 class F {var x = !1false;}''', <String>['1+true']);
 
     buildTests('testCommentSnippets018', '''
-class Map{}class Arrays{}class C{ m(!1){} n(!2 x, q)''',
-        <String>['1+Map', '1-void', '1-null', '2+Arrays', '2-void', '2-null']);
+class Map{}class Arrays{}class C{ m(!1){} n(!2 x, q)''', <String>[
+      '1+Map',
+      '1+dynamic',
+      '1+void',
+      '1-null',
+      '2+Arrays',
+      '2-void',
+      '2-null'
+    ]);
 
     buildTests('testCommentSnippets019', '''
 class A{m(){Object x;x.!1/**/clear()''', <String>['1+toString']);
@@ -2415,8 +2422,7 @@ class A<Z extends X> {
   /// have not yet been fixed.
   void buildTests(String baseName, String originalSource, List<String> results,
       {Map<String, String> extraFiles, String failingTests = ''}) {
-    List<LocationSpec> completionTests =
-        LocationSpec.from(originalSource, results);
+    var completionTests = LocationSpec.from(originalSource, results);
     completionTests.sort((LocationSpec first, LocationSpec second) {
       return first.id.compareTo(second.id);
     });
@@ -2426,9 +2432,9 @@ class A<Z extends X> {
             'position at which code completion should occur');
       });
     }
-    Set<String> allSpecIds =
+    var allSpecIds =
         completionTests.map((LocationSpec spec) => spec.id).toSet();
-    for (String id in failingTests.split('')) {
+    for (var id in failingTests.split('')) {
       if (!allSpecIds.contains(id)) {
         test('$baseName-$id', () {
           fail(
@@ -2436,12 +2442,12 @@ class A<Z extends X> {
         });
       }
     }
-    for (LocationSpec spec in completionTests) {
-      String testName = '$baseName-${spec.id}';
+    for (var spec in completionTests) {
+      var testName = '$baseName-${spec.id}';
       if (failingTests.contains(spec.id)) {
         ++expectedFailCount;
         test('$testName (expected failure $expectedFailCount)', () {
-          CompletionTestCase test = CompletionTestCase();
+          var test = CompletionTestCase();
           return Future(() => test.runTest(spec, extraFiles)).then((_) {
             fail('Test passed - expected to fail.');
           }, onError: (_) {});
@@ -2449,7 +2455,7 @@ class A<Z extends X> {
       } else {
         ++expectedPassCount;
         test(testName, () {
-          CompletionTestCase test = CompletionTestCase();
+          var test = CompletionTestCase();
           return test.runTest(spec, extraFiles);
         });
       }

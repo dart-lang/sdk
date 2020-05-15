@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/compiler/backend/block_scheduler.h"
 
 #include "vm/allocation.h"
@@ -55,7 +53,7 @@ void BlockScheduler::AssignEdgeWeights(FlowGraph* flow_graph) {
   if (!FLAG_reorder_basic_blocks) {
     return;
   }
-  if (FLAG_precompiled_mode) {
+  if (CompilerState::Current().is_aot()) {
     return;
   }
 
@@ -159,7 +157,7 @@ static void Union(GrowableArray<Chain*>* chains,
 }
 
 void BlockScheduler::ReorderBlocks(FlowGraph* flow_graph) {
-  if (FLAG_precompiled_mode) {
+  if (CompilerState::Current().is_aot()) {
     ReorderBlocksAOT(flow_graph);
   } else {
     ReorderBlocksJIT(flow_graph);
@@ -304,5 +302,3 @@ void BlockScheduler::ReorderBlocksAOT(FlowGraph* flow_graph) {
 }
 
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

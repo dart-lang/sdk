@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -29,17 +28,17 @@ class MemberDeclarationsTest extends AbstractSearchDomainTest {
 
   Future findMemberDeclarations(String name) async {
     await waitForTasksFinished();
-    Request request = SearchFindMemberDeclarationsParams(name).toRequest('0');
-    Response response = await waitResponse(request);
+    var request = SearchFindMemberDeclarationsParams(name).toRequest('0');
+    var response = await waitResponse(request);
     var result = SearchFindMemberDeclarationsResult.fromResponse(response);
     searchId = result.id;
     return waitForSearchResults();
   }
 
   SearchResult findTopLevelResult(ElementKind kind, String enclosingClass) {
-    for (SearchResult result in results) {
-      Element element = result.path[0];
-      Element clazz = result.path[1];
+    for (var result in results) {
+      var element = result.path[0];
+      var clazz = result.path[1];
       if (element.kind == kind && clazz.name == enclosingClass) {
         return result;
       }

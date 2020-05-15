@@ -8,6 +8,16 @@ library from "org-dartlang-test:///main.dart" as main {
     method a() → dynamic {
       dart.core::print("Class A method a!");
     }
+    abstract member-signature get _identityHashCode() → dart.core::int*;
+    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*;
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*;
+    abstract member-signature get hashCode() → dart.core::int*;
+    abstract member-signature method toString() → dart.core::String*;
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic;
+    abstract member-signature get runtimeType() → dart.core::Type*;
   }
   abstract class B extends main::A /*isMixinDeclaration*/  {
     method b() → dynamic {
@@ -18,6 +28,16 @@ library from "org-dartlang-test:///main.dart" as main {
     synthetic constructor •() → main::_C&A&B*
       : super dart.core::Object::•()
       ;
+    abstract member-signature get _identityHashCode() → dart.core::int*;
+    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*;
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*;
+    abstract member-signature get hashCode() → dart.core::int*;
+    abstract member-signature method toString() → dart.core::String*;
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic;
+    abstract member-signature get runtimeType() → dart.core::Type*;
   }
   abstract class C extends main::_C&A&B /*isMixinDeclaration*/  {
     method c() → dynamic {

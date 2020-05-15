@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /*member: main:static=[
  testBoolFromEnvironment(0),
  testComplexConstSymbol(0),
@@ -129,7 +131,16 @@ testComplexConstSymbol() => const Symbol(complexSymbolField);
 /*member: testIfNullConstSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
 testIfNullConstSymbol() => const Symbol(null ?? 'foo');
 
-/*member: testTypeLiteral:static=[createRuntimeType(1),typeLiteral(1)],type=[inst:Type,inst:_Type,lit:Object]*/
+/*spec:nnbd-off.member: testTypeLiteral:static=[createRuntimeType(1),typeLiteral(1)],type=[inst:Type,inst:_Type,lit:Object]*/
+/*spec:nnbd-sdk.member: testTypeLiteral:
+ static=[
+  createRuntimeType(1),
+  typeLiteral(1)],
+ type=[
+  inst:Type,
+  inst:_Type,
+  lit:Object*]
+*/
 testTypeLiteral() => Object;
 
 /*member: testBoolFromEnvironment:type=[inst:JSBool]*/
@@ -141,13 +152,17 @@ testEmptyListLiteral() => [];
 /*member: testEmptyListLiteralDynamic:type=[inst:List<dynamic>]*/
 testEmptyListLiteralDynamic() => <dynamic>[];
 
-/*member: testEmptyListLiteralTyped:type=[inst:List<String>]*/
+/*spec:nnbd-off.member: testEmptyListLiteralTyped:type=[inst:List<String>]*/
+/*spec:nnbd-sdk.member: testEmptyListLiteralTyped:type=[inst:List<String*>]*/
 testEmptyListLiteralTyped() => <String>[];
 
 /*member: testEmptyListLiteralConstant:type=[inst:List<dynamic>]*/
 testEmptyListLiteralConstant() => const [];
 
-/*member: testNonEmptyListLiteral:type=[inst:JSBool,inst:List<bool>]*/
+/*spec:nnbd-off.member: testNonEmptyListLiteral:type=[inst:JSBool,inst:List<bool>]*/
+/*spec:nnbd-sdk.member: testNonEmptyListLiteral:type=[
+  inst:JSBool,
+  inst:List<bool*>]*/
 testNonEmptyListLiteral() => [true];
 
 /*member: testEmptyMapLiteral:type=[inst:Map<dynamic,dynamic>]*/
@@ -156,7 +171,8 @@ testEmptyMapLiteral() => {};
 /*member: testEmptyMapLiteralDynamic:type=[inst:Map<dynamic,dynamic>]*/
 testEmptyMapLiteralDynamic() => <dynamic, dynamic>{};
 
-/*member: testEmptyMapLiteralTyped:type=[inst:Map<String,int>]*/
+/*spec:nnbd-off.member: testEmptyMapLiteralTyped:type=[inst:Map<String,int>]*/
+/*spec:nnbd-sdk.member: testEmptyMapLiteralTyped:type=[inst:Map<String*,int*>]*/
 testEmptyMapLiteralTyped() => <String, int>{};
 
 /*member: testEmptyMapLiteralConstant:
@@ -168,7 +184,11 @@ type=[
 */
 testEmptyMapLiteralConstant() => const {};
 
-/*member: testNonEmptyMapLiteral:type=[inst:JSBool,inst:JSNull,inst:Map<Null,bool>]*/
+/*spec:nnbd-off.member: testNonEmptyMapLiteral:type=[inst:JSBool,inst:JSNull,inst:Map<Null,bool>]*/
+/*spec:nnbd-sdk.member: testNonEmptyMapLiteral:type=[
+  inst:JSBool,
+  inst:JSNull,
+  inst:Map<Null,bool*>]*/
 testNonEmptyMapLiteral() => {null: true};
 
 class GenericClass<X, Y> {

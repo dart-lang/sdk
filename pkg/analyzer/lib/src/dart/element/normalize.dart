@@ -6,6 +6,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
@@ -45,12 +46,9 @@ class NormalizeHelper {
     return FunctionTypeImpl(
       typeFormals: functionType.typeFormals,
       parameters: functionType.parameters.map((e) {
-        return ParameterElementImpl.synthetic(
-          e.name,
-          _normalize(e.type),
-          // ignore: deprecated_member_use_from_same_package
-          e.parameterKind,
-        )..isExplicitlyCovariant = e.isCovariant;
+        return e.copyWith(
+          type: _normalize(e.type),
+        );
       }).toList(),
       returnType: _normalize(functionType.returnType),
       nullabilitySuffix: NullabilitySuffix.none,

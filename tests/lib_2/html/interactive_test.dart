@@ -6,7 +6,7 @@ library interactive_test;
 
 import 'dart:async';
 import 'dart:html';
-import 'package:unittest/unittest.dart';
+import 'package:expect/minitest.dart';
 import 'utils.dart';
 
 main() {

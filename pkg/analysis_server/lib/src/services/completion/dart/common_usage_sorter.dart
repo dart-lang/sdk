@@ -53,7 +53,7 @@ class CommonUsageSorter implements DartContributionSorter {
       var visitor = _BestTypeVisitor(target.entity);
       var typeElem = target.containingNode.accept(visitor);
       if (typeElem != null) {
-        LibraryElement libElem = typeElem.library;
+        var libElem = typeElem.library;
         if (libElem != null) {
           _updateInvocationRelevance(typeElem.name, libElem, suggestions);
         }
@@ -65,10 +65,10 @@ class CommonUsageSorter implements DartContributionSorter {
   /// target type and library.
   void _updateInvocationRelevance(String typeName, LibraryElement libElem,
       Iterable<CompletionSuggestion> suggestions) {
-    List<String> selectors = selectorRelevance['${libElem.name}.$typeName'];
+    var selectors = selectorRelevance['${libElem.name}.$typeName'];
     if (selectors != null) {
-      for (CompletionSuggestion suggestion in suggestions) {
-        protocol.Element element = suggestion.element;
+      for (var suggestion in suggestions) {
+        var element = suggestion.element;
         if (element != null &&
             (element.kind == protocol.ElementKind.CONSTRUCTOR ||
                 element.kind == protocol.ElementKind.FIELD ||
@@ -77,7 +77,7 @@ class CommonUsageSorter implements DartContributionSorter {
                 element.kind == protocol.ElementKind.SETTER) &&
             suggestion.kind == CompletionSuggestionKind.INVOCATION &&
             suggestion.declaringType == typeName) {
-          int index = selectors.indexOf(suggestion.completion);
+          var index = selectors.indexOf(suggestion.completion);
           if (index != -1) {
             suggestion.relevance = DART_RELEVANCE_COMMON_USAGE - index;
           }
@@ -106,11 +106,11 @@ class _BestTypeVisitor extends UnifyingAstVisitor<Element> {
 
   @override
   Element visitNamedExpression(NamedExpression node) {
-    AstNode parent = node.parent;
+    var parent = node.parent;
     if (parent is ArgumentListImpl) {
-      List<ParameterElement> params = parent.correspondingStaticParameters;
+      var params = parent.correspondingStaticParameters;
       if (params != null) {
-        int index = parent.arguments.indexOf(node);
+        var index = parent.arguments.indexOf(node);
         return params[index]?.type?.element;
       }
     }

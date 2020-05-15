@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*strong.member: method:direct,explicit=[method.T],needsArgs*/
-/*omit.member: method:direct,explicit=[method.T],needsArgs*/
+// @dart = 2.7
+
+/*spec:nnbd-off|prod:nnbd-off.member: method:direct,explicit=[method.T],needsArgs*/
+/*spec:nnbd-sdk|prod:nnbd-sdk.member: method:direct,explicit=[method.T*],needsArgs*/
 method<T>(T t) => t is T;
 
 main() {

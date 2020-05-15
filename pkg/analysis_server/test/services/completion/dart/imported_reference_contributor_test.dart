@@ -1362,7 +1362,7 @@ class B extends A {
     expect(replacementLength, 0);
     assertNotSuggested('A');
     assertNotSuggested('_B');
-    CompletionSuggestion suggestionO = assertSuggestClass('Object');
+    var suggestionO = assertSuggestClass('Object');
     if (suggestionO != null) {
       expect(suggestionO.element.isDeprecated, isFalse);
       expect(suggestionO.element.isPrivate, isFalse);
@@ -1786,7 +1786,7 @@ class A {}
 
     await computeSuggestions();
 
-    CompletionSuggestion suggestion = assertSuggestClass('A');
+    var suggestion = assertSuggestClass('A');
     expect(suggestion.docSummary, 'My class.\nShort description.');
     expect(suggestion.docComplete,
         'My class.\nShort description.\n\nLonger description.');
@@ -1808,7 +1808,7 @@ int myFunc() {}
 
     await computeSuggestions();
 
-    CompletionSuggestion suggestion = assertSuggestFunction('myFunc', 'int');
+    var suggestion = assertSuggestFunction('myFunc', 'int');
     expect(suggestion.docSummary, 'My function.\nShort description.');
     expect(suggestion.docComplete,
         'My function.\nShort description.\n\nLonger description.');
@@ -1829,7 +1829,7 @@ int myFunc() {}
 
     await computeSuggestions();
 
-    CompletionSuggestion suggestion = assertSuggestFunction('myFunc', 'int');
+    var suggestion = assertSuggestFunction('myFunc', 'int');
     expect(suggestion.docSummary, 'My function.\nShort description.');
     expect(suggestion.docComplete,
         'My function.\nShort description.\n\nLonger description.');
@@ -1924,12 +1924,47 @@ main() {
     assertNoSuggestions();
   }
 
-  Future<void> test_extendsClause() async {
+  Future<void> test_ExtendsClause() async {
     newFile('/home/test/lib/a.dart', content: 'class A {}');
     addTestSource('''
 import 'a.dart';
 
 class B extends ^
+''');
+    await computeSuggestions();
+    assertSuggestClass('A');
+  }
+
+  Future<void> test_ExtensionDeclaration_extendedType() async {
+    newFile('/home/test/lib/a.dart', content: 'class A {}');
+    addTestSource('''
+import 'a.dart';
+
+extension E on ^
+''');
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertNotSuggested('E');
+  }
+
+  Future<void> test_ExtensionDeclaration_extendedType2() async {
+    newFile('/home/test/lib/a.dart', content: 'class A {}');
+    addTestSource('''
+import 'a.dart';
+
+extension E on ^ {}
+''');
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertNotSuggested('E');
+  }
+
+  Future<void> test_ExtensionDeclaration_member() async {
+    newFile('/home/test/lib/a.dart', content: 'class A {}');
+    addTestSource('''
+import 'a.dart';
+
+extension E on A { ^ }
 ''');
     await computeSuggestions();
     assertSuggestClass('A');
@@ -1957,6 +1992,80 @@ class B extends ^
 
     await computeSuggestions();
     assertNoSuggestions();
+  }
+
+  Future<void> test_FieldDeclaration_type() async {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // FieldDeclaration
+    addSource('/home/test/lib/a.dart', 'class A { }');
+    addTestSource('''
+        import 'a.dart';
+        class C {^ foo;) ''');
+
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertCoreTypeSuggestions();
+  }
+
+  Future<void> test_FieldDeclaration_type_after_comment1() async {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // FieldDeclaration
+    addSource('/home/test/lib/a.dart', 'class A { }');
+    addTestSource('''
+        import 'a.dart';
+        class C {
+          // comment
+          ^ foo;
+        } ''');
+
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertCoreTypeSuggestions();
+  }
+
+  Future<void> test_FieldDeclaration_type_after_comment2() async {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // FieldDeclaration
+    addSource('/home/test/lib/a.dart', 'class A { }');
+    addTestSource('''
+        import 'a.dart';
+        class C {
+          /* comment */
+          ^ foo;
+        } ''');
+
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertCoreTypeSuggestions();
+  }
+
+  Future<void> test_FieldDeclaration_type_after_comment3() async {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // FieldDeclaration
+    addSource('/home/test/lib/a.dart', 'class A { }');
+    addTestSource('''
+        import 'a.dart';
+        class C {
+          /// some dartdoc
+          ^ foo;
+        } ''');
+
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertCoreTypeSuggestions();
+  }
+
+  Future<void> test_FieldDeclaration_type_without_semicolon() async {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // FieldDeclaration
+    addSource('/home/test/lib/a.dart', 'class A { }');
+    addTestSource('''
+        import 'a.dart';
+        class C {^ foo} ''');
+
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertCoreTypeSuggestions();
   }
 
   Future<void> test_FieldFormalParameter_in_non_constructor() async {
@@ -2142,7 +2251,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestFunction('m', 'int');
+    var suggestion = assertSuggestFunction('m', 'int');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -2163,7 +2272,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void');
+    var suggestion = assertSuggestFunction('m', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -2184,7 +2293,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void');
+    var suggestion = assertSuggestFunction('m', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -2206,7 +2315,7 @@ class B extends A {
 ''');
 
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void');
+    var suggestion = assertSuggestFunction('m', 'void');
     expect(suggestion.parameterNames, isEmpty);
     expect(suggestion.parameterTypes, isEmpty);
     expect(suggestion.requiredParameterCount, 0);
@@ -2224,7 +2333,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void');
+    var suggestion = assertSuggestFunction('m', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -2245,7 +2354,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void');
+    var suggestion = assertSuggestFunction('m', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -3119,7 +3228,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void');
+    var suggestion = assertSuggestFunction('m', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -3140,7 +3249,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void');
+    var suggestion = assertSuggestFunction('m', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -3161,7 +3270,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void');
+    var suggestion = assertSuggestFunction('m', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -3183,7 +3292,7 @@ class B extends A {
 ''');
 
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void');
+    var suggestion = assertSuggestFunction('m', 'void');
     expect(suggestion.parameterNames, isEmpty);
     expect(suggestion.parameterTypes, isEmpty);
     expect(suggestion.requiredParameterCount, 0);
@@ -3201,7 +3310,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void');
+    var suggestion = assertSuggestFunction('m', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -3222,7 +3331,7 @@ class B {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void');
+    var suggestion = assertSuggestFunction('m', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -3567,7 +3676,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestTopLevelVar('x', null);
+    var suggestion = assertSuggestTopLevelVar('x', null);
     assertHasNoParameterInfo(suggestion);
   }
 
@@ -3582,7 +3691,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestGetter('x', 'int');
+    var suggestion = assertSuggestGetter('x', 'int');
     assertHasNoParameterInfo(suggestion);
   }
 
@@ -3597,7 +3706,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestSetter('x');
+    var suggestion = assertSuggestSetter('x');
     assertHasNoParameterInfo(suggestion);
   }
 
@@ -4328,6 +4437,74 @@ class B extends A {
     assertNotSuggested('X');
     assertNotSuggested('Object');
     assertNotSuggested('==');
+  }
+
+  Future<void> test_TopLevelVariableDeclaration_type() async {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // TopLevelVariableDeclaration
+    addSource('/home/test/lib/a.dart', 'class A { }');
+    addTestSource('''
+        import 'a.dart';
+        ^ foo; ''');
+
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertCoreTypeSuggestions();
+  }
+
+  Future<void> test_TopLevelVariableDeclaration_type_after_comment1() async {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // TopLevelVariableDeclaration
+    addSource('/home/test/lib/a.dart', 'class A { }');
+    addTestSource('''
+        import 'a.dart';
+        // comment
+        ^ foo; ''');
+
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertCoreTypeSuggestions();
+  }
+
+  Future<void> test_TopLevelVariableDeclaration_type_after_comment2() async {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // TopLevelVariableDeclaration
+    addSource('/home/test/lib/a.dart', 'class A { }');
+    addTestSource('''
+        import 'a.dart';
+        /* comment */
+        ^ foo; ''');
+
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertCoreTypeSuggestions();
+  }
+
+  Future<void> test_TopLevelVariableDeclaration_type_after_comment3() async {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // TopLevelVariableDeclaration
+    addSource('/home/test/lib/a.dart', 'class A { }');
+    addTestSource('''
+        import 'a.dart';
+        /// some dartdoc
+        ^ foo; ''');
+
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertCoreTypeSuggestions();
+  }
+
+  Future<void> test_TopLevelVariableDeclaration_type_without_semicolon() async {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // TopLevelVariableDeclaration
+    addSource('/home/test/lib/a.dart', 'class A { }');
+    addTestSource('''
+        import 'a.dart';
+        ^ foo ''');
+
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertCoreTypeSuggestions();
   }
 
   Future<void> test_TopLevelVariableDeclaration_typed_name() async {

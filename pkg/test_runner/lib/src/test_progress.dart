@@ -13,6 +13,7 @@ import 'command_output.dart';
 import 'configuration.dart';
 import 'path.dart';
 import 'summary_report.dart';
+import 'terminal.dart';
 import 'test_case.dart';
 import 'utils.dart';
 
@@ -81,9 +82,10 @@ class TimedProgressPrinter extends EventListener {
 
   void callback(Timer timer) {
     if (_allKnown) {
-      print('$_numCompleted out of $_numTests completed');
+      Terminal.print('$_numCompleted out of $_numTests completed');
     }
-    print("Tests running for ${(interval * timer.tick).inMinutes} minutes");
+    Terminal.print(
+        "Tests running for ${(interval * timer.tick).inMinutes} minutes");
   }
 
   void testAdded() => _numTests++;
@@ -104,10 +106,11 @@ class IgnoredTestMonitor extends EventListener {
     if (test.lastCommandOutput.result(test) == Expectation.ignore) {
       countIgnored++;
       if (countIgnored > maxIgnored) {
-        print("/nMore than $maxIgnored tests were ignored due to flakes in");
-        print("the test infrastructure. Notify whesse@google.com.");
-        print("Output of the last ignored test was:");
-        print(_buildFailureOutput(test));
+        Terminal.print(
+            "\nMore than $maxIgnored tests were ignored due to flakes in");
+        Terminal.print("the test infrastructure. Notify dart-engprod@.");
+        Terminal.print("Output of the last ignored test was:");
+        Terminal.print(_buildFailureOutput(test));
         exit(1);
       }
     }
@@ -115,7 +118,7 @@ class IgnoredTestMonitor extends EventListener {
 
   void allDone() {
     if (countIgnored > 0) {
-      print("Ignored $countIgnored tests due to flaky infrastructure");
+      Terminal.print("Ignored $countIgnored tests due to flaky infrastructure");
     }
   }
 }
@@ -184,14 +187,14 @@ class UnexpectedCrashLogger extends EventListener {
           unexpectedCrashesFile.writeStringSync(
               "${test.displayName},$pid,${binaries.join(',')}\n");
         } catch (e) {
-          print('Failed to add crash to unexpected-crashes list: $e');
+          Terminal.print('Failed to add crash to unexpected-crashes list: $e');
         } finally {
           try {
             if (unexpectedCrashesFile != null) {
               unexpectedCrashesFile.closeSync();
             }
           } catch (e) {
-            print('Failed to close unexpected-crashes file: $e');
+            Terminal.print('Failed to close unexpected-crashes file: $e');
           }
         }
       }
@@ -206,8 +209,8 @@ class SummaryPrinter extends EventListener {
 
   void allTestsKnown() {
     if (jsonOnly) {
-      print("JSON:");
-      print(jsonEncode(summaryReport.values));
+      Terminal.print("JSON:");
+      Terminal.print(jsonEncode(summaryReport.values));
     } else {
       summaryReport.printReport();
     }
@@ -232,7 +235,7 @@ class TimingPrinter extends EventListener {
 
   void allDone() {
     var d = DateTime.now().difference(_startTime);
-    print('\n--- Total time: ${_timeString(d)} ---');
+    Terminal.print('\n--- Total time: ${_timeString(d)} ---');
     var outputs = _commandOutputs.toList();
     outputs.sort((a, b) {
       return b.time.inMilliseconds - a.time.inMilliseconds;
@@ -246,72 +249,10 @@ class TimingPrinter extends EventListener {
         return "${testCase.configurationString}/${testCase.displayName}";
       }).join(', ');
 
-      print('${commandOutput.time} - '
+      Terminal.print('${commandOutput.time} - '
           '${command.displayName} - '
           '$testCasesDescription');
     }
-  }
-}
-
-class StatusFileUpdatePrinter extends EventListener {
-  final Map<String, List<String>> statusToConfigs = {};
-
-  void done(TestCase test) {
-    if (test.unexpectedOutput) {
-      _printFailureOutput(test);
-    }
-  }
-
-  void allDone() {
-    _printFailureSummary();
-  }
-
-  void _printFailureOutput(TestCase test) {
-    var status = '${test.displayName}: ${test.result}';
-    var configs = statusToConfigs.putIfAbsent(status, () => <String>[]);
-    configs.add(test.configurationString);
-    if (test.lastCommandOutput.hasTimedOut) {
-      print('\n${test.displayName} timed out on ${test.configurationString}');
-    }
-  }
-
-  String _extractRuntime(String configuration) {
-    // Extract runtime from a configuration, for example,
-    // 'none-vm-checked release_ia32'.
-    var runtime = configuration.split(' ')[0].split('-');
-    return '${runtime[0]}-${runtime[1]}';
-  }
-
-  void _printFailureSummary() {
-    var groupedStatuses = <String, List<String>>{};
-    statusToConfigs.forEach((status, configs) {
-      var runtimeToConfiguration = <String, List<String>>{};
-      for (var config in configs) {
-        var runtime = _extractRuntime(config);
-        runtimeToConfiguration
-            .putIfAbsent(runtime, () => <String>[])
-            .add(config);
-      }
-
-      runtimeToConfiguration.forEach((runtime, runtimeConfigs) {
-        runtimeConfigs.sort((a, b) => a.compareTo(b));
-        var statuses = groupedStatuses.putIfAbsent(
-            '$runtime: $runtimeConfigs', () => <String>[]);
-        statuses.add(status);
-      });
-    });
-
-    if (groupedStatuses.isEmpty) return;
-
-    print('\n\nNecessary status file updates:');
-    groupedStatuses.forEach((String config, List<String> statuses) {
-      print('');
-      print('$config:');
-      statuses.sort((a, b) => a.compareTo(b));
-      for (var status in statuses) {
-        print('  $status');
-      }
-    });
   }
 }
 
@@ -326,64 +267,84 @@ class SkippedCompilationsPrinter extends EventListener {
 
   void allDone() {
     if (_skippedCompilations > 0) {
-      print('\n$_skippedCompilations compilations were skipped because '
+      Terminal.print(
+          '\n$_skippedCompilations compilations were skipped because '
           'the previous output was already up to date.\n');
     }
   }
 }
 
-class LineProgressIndicator extends EventListener {
+class TestFailurePrinter extends EventListener {
+  final Formatter _formatter;
+
+  TestFailurePrinter([this._formatter = Formatter.normal]);
+
   void done(TestCase test) {
-    var status = 'pass';
-    if (test.unexpectedOutput) {
-      status = 'fail';
+    if (!test.unexpectedOutput) return;
+    for (var line in _buildFailureOutput(test, _formatter)) {
+      Terminal.print(line);
     }
-    print('Done ${test.configurationString} ${test.displayName}: $status');
   }
 }
 
-class TestFailurePrinter extends EventListener {
-  final bool _printSummary;
+/// Prints a one-line summary of passed and failed tests.
+class ResultCountPrinter extends EventListener {
   final Formatter _formatter;
-  final _failureSummary = <String>[];
   int _failedTests = 0;
   int _passedTests = 0;
 
-  TestFailurePrinter(this._printSummary, [this._formatter = Formatter.normal]);
+  ResultCountPrinter(this._formatter);
 
   void done(TestCase test) {
     if (test.unexpectedOutput) {
       _failedTests++;
-      var lines = _buildFailureOutput(test, _formatter);
-      for (var line in lines) {
-        print(line);
-      }
-      print('');
-      if (_printSummary) {
-        _failureSummary.addAll(lines);
-        _failureSummary.add('');
-      }
     } else {
       _passedTests++;
     }
   }
 
   void allDone() {
-    if (!_printSummary || _failureSummary.isEmpty) return;
+    var suffix = _passedTests != 1 ? 's' : '';
+    var passed =
+        '${_formatter.passed(_passedTests.toString())} test$suffix passed';
 
-    // Don't bother showing the summary if it's longer than the number of lines
-    // of successful test output. The benefit of the summary is that it saves
-    // you from scrolling past lots of passed tests to find the few failures.
-    // If most of the output *is* failures, showing them *twice* just makes it
-    // worse.
-    if (_passedTests <= _failureSummary.length) return;
-
-    print('\n=== Failure summary:\n');
-    for (var line in _failureSummary) {
-      print(line);
+    String summary;
+    if (_failedTests == 0) {
+      summary = 'All $passed';
+    } else {
+      summary = '$passed, ${_formatter.failed(_failedTests.toString())} failed';
     }
-    print('');
-    print(_buildSummaryEnd(_formatter, _failedTests));
+
+    var marker = _formatter.section('===');
+    Terminal.print('\n$marker $summary $marker');
+  }
+}
+
+/// Prints a list of the tests that failed.
+class FailedTestsPrinter extends EventListener {
+  final List<TestCase> _failedTests = [];
+
+  FailedTestsPrinter();
+
+  void done(TestCase test) {
+    if (test.unexpectedOutput) {
+      _failedTests.add(test);
+    }
+  }
+
+  void allDone() {
+    if (_failedTests.isEmpty) return;
+
+    Terminal.print('');
+    Terminal.print('=== Failed tests ===');
+    for (var test in _failedTests) {
+      var result = test.realResult.toString();
+      if (test.realExpected != Expectation.pass) {
+        result += ' (expected ${test.realExpected})';
+      }
+
+      Terminal.print('${test.displayName}: $result');
+    }
   }
 }
 
@@ -403,7 +364,7 @@ class PassingStdoutPrinter extends EventListener {
         commandOutput.describe(test, test.configuration.progress, output);
       }
       for (var line in lines) {
-        print(line);
+        Terminal.print(line);
       }
     }
   }
@@ -411,7 +372,7 @@ class PassingStdoutPrinter extends EventListener {
   void allDone() {}
 }
 
-class ProgressIndicator extends EventListener {
+abstract class ProgressIndicator extends EventListener {
   final DateTime _startTime;
   int _foundTests = 0;
   int _passedTests = 0;
@@ -426,11 +387,10 @@ class ProgressIndicator extends EventListener {
       case Progress.compact:
         return CompactProgressIndicator(startTime, formatter);
       case Progress.line:
-        return LineProgressIndicator();
       case Progress.verbose:
-        return VerboseProgressIndicator(startTime);
+        return LineProgressIndicator(startTime);
       case Progress.status:
-        return ProgressIndicator(startTime);
+        return null;
       case Progress.buildbot:
         return BuildbotProgressIndicator(startTime);
     }
@@ -455,25 +415,13 @@ class ProgressIndicator extends EventListener {
     _allTestsKnown = true;
   }
 
-  void _printDoneProgress(TestCase test) {}
+  void _printDoneProgress(TestCase test);
 
-  int _completedTests() => _passedTests + _failedTests;
+  int get _completedTests => _passedTests + _failedTests;
 }
 
 abstract class CompactIndicator extends ProgressIndicator {
   CompactIndicator(DateTime startTime) : super(startTime);
-
-  void allDone() {
-    if (_failedTests > 0) {
-      // We may have printed many failure logs, so reprint the summary data.
-      _printProgress();
-    }
-    print('');
-  }
-
-  void _printDoneProgress(TestCase test) => _printProgress();
-
-  void _printProgress();
 }
 
 class CompactProgressIndicator extends CompactIndicator {
@@ -482,8 +430,8 @@ class CompactProgressIndicator extends CompactIndicator {
   CompactProgressIndicator(DateTime startTime, this._formatter)
       : super(startTime);
 
-  void _printProgress() {
-    var percent = ((_completedTests() / _foundTests) * 100).toInt().toString();
+  void _printDoneProgress(TestCase testCase) {
+    var percent = ((_completedTests / _foundTests) * 100).toInt().toString();
     var progressPadded = (_allTestsKnown ? percent : '--').padLeft(3);
     var passedPadded = _passedTests.toString().padLeft(5);
     var failedPadded = _failedTests.toString().padLeft(5);
@@ -491,58 +439,48 @@ class CompactProgressIndicator extends CompactIndicator {
     var progressLine = '\r[${_timeString(elapsed)} | $progressPadded% | '
         '+${_formatter.passed(passedPadded)} | '
         '-${_formatter.failed(failedPadded)}]';
-    stdout.write(progressLine);
+    Terminal.writeLine(progressLine);
+  }
+
+  void allDone() {
+    Terminal.finishLine();
   }
 }
 
-class VerboseProgressIndicator extends ProgressIndicator {
-  VerboseProgressIndicator(DateTime startTime) : super(startTime);
+class LineProgressIndicator extends ProgressIndicator {
+  LineProgressIndicator(DateTime startTime) : super(startTime);
 
   void _printDoneProgress(TestCase test) {
     var status = 'pass';
     if (test.unexpectedOutput) {
       status = 'fail';
     }
-    print('Done ${test.configurationString} ${test.displayName}: $status');
+    Terminal.print(
+        'Done ${test.configurationString} ${test.displayName}: $status');
   }
 }
 
 class BuildbotProgressIndicator extends ProgressIndicator {
   static String stepName;
-  final _failureSummary = <String>[];
 
   BuildbotProgressIndicator(DateTime startTime) : super(startTime);
-
-  void done(TestCase test) {
-    super.done(test);
-    if (test.unexpectedOutput) {
-      _failureSummary.addAll(_buildFailureOutput(test));
-    }
-  }
 
   void _printDoneProgress(TestCase test) {
     var status = 'pass';
     if (test.unexpectedOutput) {
       status = 'fail';
     }
-    var percent = ((_completedTests() / _foundTests) * 100).toInt().toString();
-    print('Done ${test.configurationString} ${test.displayName}: $status');
-    print('@@@STEP_CLEAR@@@');
-    print('@@@STEP_TEXT@ $percent% +$_passedTests -$_failedTests @@@');
+    var percent = ((_completedTests / _foundTests) * 100).toInt().toString();
+    Terminal.print(
+        'Done ${test.configurationString} ${test.displayName}: $status');
+    Terminal.print('@@@STEP_CLEAR@@@');
+    Terminal.print('@@@STEP_TEXT@ $percent% +$_passedTests -$_failedTests @@@');
   }
 
   void allDone() {
-    if (!_failureSummary.isEmpty) {
-      print('@@@STEP_FAILURE@@@');
-      if (stepName != null) {
-        print('@@@BUILD_STEP $stepName failures@@@');
-      }
-      for (var line in _failureSummary) {
-        print(line);
-      }
-      print('');
-    }
-    print(_buildSummaryEnd(Formatter.normal, _failedTests));
+    if (_failedTests == 0) return;
+    Terminal.print('@@@STEP_FAILURE@@@');
+    if (stepName != null) Terminal.print('@@@BUILD_STEP $stepName failures@@@');
   }
 }
 
@@ -690,16 +628,6 @@ void _writeFailureReproductionCommands(
   arguments.add(test.displayName);
 
   output.write(arguments.map(escapeCommandLineArgument).join(' '));
-}
-
-String _buildSummaryEnd(Formatter formatter, int failedTests) {
-  if (failedTests == 0) {
-    return formatter.passed('\n===\n=== All tests succeeded\n===\n');
-  } else {
-    var pluralSuffix = failedTests != 1 ? 's' : '';
-    return formatter
-        .failed('\n===\n=== $failedTests test$pluralSuffix failed\n===\n');
-  }
 }
 
 /// Writes a results.json file with a line for each test.

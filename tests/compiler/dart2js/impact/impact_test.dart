@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'dart:io';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:async_helper/async_helper.dart';
@@ -23,15 +25,13 @@ main(List<String> args) {
     print('==================================================================');
     useImpactDataForTesting = false;
     await checkTests(dataDir, const ImpactDataComputer(),
-        args: args,
-        testedConfigs: [strongConfig]);
+        args: args, testedConfigs: allSpecConfigs);
 
     print('Testing computation of ResolutionImpact through ImpactData');
     print('==================================================================');
     useImpactDataForTesting = true;
     await checkTests(dataDir, const ImpactDataComputer(),
-        args: args,
-        testedConfigs: [strongConfig]);
+        args: args, testedConfigs: allSpecConfigs);
   });
 }
 
@@ -46,6 +46,8 @@ class Tags {
 class ImpactDataComputer extends DataComputer<Features> {
   const ImpactDataComputer();
 
+  static const String wildcard = '%';
+
   @override
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<Features>> actualMap,
@@ -55,14 +57,14 @@ class ImpactDataComputer extends DataComputer<Features> {
     ir.Member node = frontendStrategy.elementMap.getMemberNode(member);
     Features features = new Features();
     if (impact.typeUses.length > 50) {
-      features.addElement(Tags.typeUse, '*');
+      features.addElement(Tags.typeUse, wildcard);
     } else {
       for (TypeUse use in impact.typeUses) {
         features.addElement(Tags.typeUse, use.shortText);
       }
     }
     if (impact.staticUses.length > 50) {
-      features.addElement(Tags.staticUse, '*');
+      features.addElement(Tags.staticUse, wildcard);
     } else {
       for (StaticUse use in impact.staticUses) {
         features.addElement(Tags.staticUse, use.shortText);
@@ -92,5 +94,5 @@ class ImpactDataComputer extends DataComputer<Features> {
 
   @override
   DataInterpreter<Features> get dataValidator =>
-      const FeaturesDataInterpreter();
+      const FeaturesDataInterpreter(wildcard: wildcard);
 }

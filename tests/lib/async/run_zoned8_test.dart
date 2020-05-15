@@ -13,7 +13,7 @@ main() {
 
   var events = [];
   // Test runZoned with periodic Timers.
-  runZoned(() {
+  runZonedGuarded(() {
     int counter = 0;
     new Timer.periodic(const Duration(milliseconds: 50), (timer) {
       if (counter == 1) {
@@ -24,7 +24,7 @@ main() {
       events.add(counter);
       throw counter;
     });
-  }, onError: (e, [s]) {
+  }, (e, [StackTrace? s]) {
     events.add("error: $e");
     Expect.isNotNull(s); // Regression test for http://dartbug.com/33589
   });

@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 
 /// A computer for [HighlightRegion]s in a Dart [CompilationUnit].
@@ -25,7 +24,7 @@ class DartUnitHighlightsComputer2 {
   }
 
   void _addCommentRanges() {
-    Token token = _unit.beginToken;
+    var token = _unit.beginToken;
     while (token != null && token.type != TokenType.EOF) {
       Token commentToken = token.precedingComments;
       while (commentToken != null) {
@@ -99,7 +98,7 @@ class DartUnitHighlightsComputer2 {
   }
 
   void _addIdentifierRegion_annotation(Annotation node) {
-    ArgumentList arguments = node.arguments;
+    var arguments = node.arguments;
     if (arguments == null) {
       _addRegion_node(node, HighlightRegionType.ANNOTATION);
     } else {
@@ -110,7 +109,7 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_class(SimpleIdentifier node) {
-    Element element = node.staticElement;
+    var element = node.staticElement;
     if (element is! ClassElement) {
       return false;
     }
@@ -132,7 +131,7 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_constructor(SimpleIdentifier node) {
-    Element element = node.staticElement;
+    var element = node.staticElement;
     if (element is! ConstructorElement) {
       return false;
     }
@@ -140,11 +139,11 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_dynamicLocal(SimpleIdentifier node) {
-    Element element = node.staticElement;
+    var element = node.staticElement;
     if (element is LocalVariableElement) {
       var elementType = element.type;
       if (elementType?.isDynamic == true) {
-        HighlightRegionType type = node.inDeclarationContext()
+        var type = node.inDeclarationContext()
             ? HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION
             : HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_REFERENCE;
         return _addRegion_node(node, type);
@@ -153,7 +152,7 @@ class DartUnitHighlightsComputer2 {
     if (element is ParameterElement) {
       var elementType = element.type;
       if (elementType?.isDynamic == true) {
-        HighlightRegionType type = node.inDeclarationContext()
+        var type = node.inDeclarationContext()
             ? HighlightRegionType.DYNAMIC_PARAMETER_DECLARATION
             : HighlightRegionType.DYNAMIC_PARAMETER_REFERENCE;
         return _addRegion_node(node, type);
@@ -163,7 +162,7 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_field(SimpleIdentifier node) {
-    Element element = node.staticElement;
+    var element = node.staticElement;
     if (element is FieldFormalParameterElement) {
       if (node.parent is FieldFormalParameter) {
         element = (element as FieldFormalParameterElement).field;
@@ -172,7 +171,7 @@ class DartUnitHighlightsComputer2 {
     // prepare type
     HighlightRegionType type;
     if (element is FieldElement) {
-      Element enclosingElement = element.enclosingElement;
+      var enclosingElement = element.enclosingElement;
       if (enclosingElement is ClassElement && enclosingElement.isEnum) {
         type = HighlightRegionType.ENUM_CONSTANT;
       } else if (element.isStatic) {
@@ -186,8 +185,8 @@ class DartUnitHighlightsComputer2 {
       type = HighlightRegionType.TOP_LEVEL_VARIABLE_DECLARATION;
     }
     if (element is PropertyAccessorElement) {
-      PropertyAccessorElement accessor = element;
-      Element enclosingElement = element.enclosingElement;
+      var accessor = element;
+      var enclosingElement = element.enclosingElement;
       if (accessor.variable is TopLevelVariableElement) {
         type = accessor.isGetter
             ? HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE
@@ -212,12 +211,12 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_function(SimpleIdentifier node) {
-    Element element = node.staticElement;
+    var element = node.staticElement;
     if (element is! FunctionElement) {
       return false;
     }
     HighlightRegionType type;
-    bool isTopLevel = element.enclosingElement is CompilationUnitElement;
+    var isTopLevel = element.enclosingElement is CompilationUnitElement;
     if (node.inDeclarationContext()) {
       type = isTopLevel
           ? HighlightRegionType.TOP_LEVEL_FUNCTION_DECLARATION
@@ -231,7 +230,7 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_functionTypeAlias(SimpleIdentifier node) {
-    Element element = node.staticElement;
+    var element = node.staticElement;
     if (element is! FunctionTypeAliasElement) {
       return false;
     }
@@ -240,19 +239,18 @@ class DartUnitHighlightsComputer2 {
 
   bool _addIdentifierRegion_getterSetterDeclaration(SimpleIdentifier node) {
     // should be declaration
-    AstNode parent = node.parent;
+    var parent = node.parent;
     if (!(parent is MethodDeclaration || parent is FunctionDeclaration)) {
       return false;
     }
     // should be property accessor
-    Element element = node.staticElement;
+    var element = node.staticElement;
     if (element is! PropertyAccessorElement) {
       return false;
     }
     // getter or setter
-    PropertyAccessorElement propertyAccessorElement =
-        element as PropertyAccessorElement;
-    bool isTopLevel = element.enclosingElement is CompilationUnitElement;
+    var propertyAccessorElement = element as PropertyAccessorElement;
+    var isTopLevel = element.enclosingElement is CompilationUnitElement;
     HighlightRegionType type;
     if (propertyAccessorElement.isGetter) {
       if (isTopLevel) {
@@ -275,7 +273,7 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_importPrefix(SimpleIdentifier node) {
-    Element element = node.staticElement;
+    var element = node.staticElement;
     if (element is! PrefixElement) {
       return false;
     }
@@ -283,7 +281,7 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_keyword(SimpleIdentifier node) {
-    String name = node.name;
+    var name = node.name;
     if (name == 'void') {
       return _addRegion_node(node, HighlightRegionType.KEYWORD);
     }
@@ -291,7 +289,7 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_label(SimpleIdentifier node) {
-    Element element = node.staticElement;
+    var element = node.staticElement;
     if (element is! LabelElement) {
       return false;
     }
@@ -299,24 +297,24 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_localVariable(SimpleIdentifier node) {
-    Element element = node.staticElement;
+    var element = node.staticElement;
     if (element is! LocalVariableElement) {
       return false;
     }
     // OK
-    HighlightRegionType type = node.inDeclarationContext()
+    var type = node.inDeclarationContext()
         ? HighlightRegionType.LOCAL_VARIABLE_DECLARATION
         : HighlightRegionType.LOCAL_VARIABLE_REFERENCE;
     return _addRegion_node(node, type);
   }
 
   bool _addIdentifierRegion_method(SimpleIdentifier node) {
-    Element element = node.staticElement;
+    var element = node.staticElement;
     if (element is! MethodElement) {
       return false;
     }
-    MethodElement methodElement = element as MethodElement;
-    bool isStatic = methodElement.isStatic;
+    var methodElement = element as MethodElement;
+    var isStatic = methodElement.isStatic;
     // OK
     HighlightRegionType type;
     if (node.inDeclarationContext()) {
@@ -336,18 +334,18 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_parameter(SimpleIdentifier node) {
-    Element element = node.staticElement;
+    var element = node.staticElement;
     if (element is! ParameterElement) {
       return false;
     }
-    HighlightRegionType type = node.inDeclarationContext()
+    var type = node.inDeclarationContext()
         ? HighlightRegionType.PARAMETER_DECLARATION
         : HighlightRegionType.PARAMETER_REFERENCE;
     return _addRegion_node(node, type);
   }
 
   bool _addIdentifierRegion_typeParameter(SimpleIdentifier node) {
-    Element element = node.staticElement;
+    var element = node.staticElement;
     if (element is! TypeParameterElement) {
       return false;
     }
@@ -357,15 +355,15 @@ class DartUnitHighlightsComputer2 {
   bool _addIdentifierRegion_unresolvedInstanceMemberReference(
       SimpleIdentifier node) {
     // unresolved
-    Element element = node.staticElement;
+    var element = node.staticElement;
     if (element != null) {
       return false;
     }
     // invoke / get / set
-    bool decorate = false;
-    AstNode parent = node.parent;
+    var decorate = false;
+    var parent = node.parent;
     if (parent is MethodInvocation) {
-      Expression target = parent.realTarget;
+      var target = parent.realTarget;
       if (parent.methodName == node &&
           target != null &&
           _isDynamicExpression(target)) {
@@ -391,31 +389,31 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addRegion_node(AstNode node, HighlightRegionType type) {
-    int offset = node.offset;
-    int length = node.length;
+    var offset = node.offset;
+    var length = node.length;
     _addRegion(offset, length, type);
     return true;
   }
 
   void _addRegion_nodeStart_tokenEnd(
       AstNode a, Token b, HighlightRegionType type) {
-    int offset = a.offset;
-    int end = b.end;
+    var offset = a.offset;
+    var end = b.end;
     _addRegion(offset, end - offset, type);
   }
 
   void _addRegion_token(Token token, HighlightRegionType type) {
     if (token != null) {
-      int offset = token.offset;
-      int length = token.length;
+      var offset = token.offset;
+      var length = token.length;
       _addRegion(offset, length, type);
     }
   }
 
   void _addRegion_tokenStart_tokenEnd(
       Token a, Token b, HighlightRegionType type) {
-    int offset = a.offset;
-    int end = b.end;
+    var offset = a.offset;
+    var end = b.end;
     _addRegion(offset, end - offset, type);
   }
 
@@ -871,7 +869,7 @@ class _DartUnitHighlightsComputerVisitor2 extends RecursiveAstVisitor<void> {
 
   @override
   void visitTypeName(TypeName node) {
-    DartType type = node.type;
+    var type = node.type;
     if (type != null) {
       if (type.isDynamic && node.name.name == 'dynamic') {
         computer._addRegion_node(node, HighlightRegionType.TYPE_NAME_DYNAMIC);
@@ -902,20 +900,20 @@ class _DartUnitHighlightsComputerVisitor2 extends RecursiveAstVisitor<void> {
 
   @override
   void visitYieldStatement(YieldStatement node) {
-    Token keyword = node.yieldKeyword;
-    Token star = node.star;
-    int offset = keyword.offset;
-    int end = star != null ? star.end : keyword.end;
+    var keyword = node.yieldKeyword;
+    var star = node.star;
+    var offset = keyword.offset;
+    var end = star != null ? star.end : keyword.end;
     computer._addRegion(offset, end - offset, HighlightRegionType.BUILT_IN);
     super.visitYieldStatement(node);
   }
 
   void _addRegions_functionBody(FunctionBody node) {
-    Token keyword = node.keyword;
+    var keyword = node.keyword;
     if (keyword != null) {
-      Token star = node.star;
-      int offset = keyword.offset;
-      int end = star != null ? star.end : keyword.end;
+      var star = node.star;
+      var offset = keyword.offset;
+      var end = star != null ? star.end : keyword.end;
       computer._addRegion(offset, end - offset, HighlightRegionType.BUILT_IN);
     }
   }

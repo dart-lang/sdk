@@ -72,7 +72,7 @@ class GCSNamer(object):
 
   For every (channel,revision,release-type) tuple we have a base path:
 
-    gs://dart-archive/channels/{be,dev,stable,try,integration}
+    gs://dart-archive/channels/{be,beta,dev,stable,try,integration}
                      /{raw,signed,release}/{revision,latest}/
 
   Under every base path, the following structure is used:

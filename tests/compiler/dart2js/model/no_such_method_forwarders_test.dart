@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
@@ -143,6 +145,7 @@ main() {
               .parameterTypes
               .first;
         }
+        type = type.withoutNullability;
         Expect.isTrue(type is TypeVariableType,
             "Unexpected member type for $member: $type");
         TypeVariableType typeVariable = type;

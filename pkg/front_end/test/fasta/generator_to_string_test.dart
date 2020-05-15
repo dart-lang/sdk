@@ -170,7 +170,7 @@ main() async {
     check("IncompleteErrorGenerator(offset: 4, message: Unspecified)",
         new IncompleteErrorGenerator(helper, token, message));
     check("SendAccessGenerator(offset: 4, name: bar, arguments: (\"arg\"))",
-        new SendAccessGenerator(helper, token, name, arguments));
+        new SendAccessGenerator(helper, token, name, null, arguments));
     check("IncompletePropertyAccessGenerator(offset: 4, name: bar)",
         new IncompletePropertyAccessGenerator(helper, token, name));
     check(
@@ -184,11 +184,13 @@ main() async {
             helper, token, prefixUseGenerator, generator));
     check(
         "ReadOnlyAccessGenerator(offset: 4, expression: expression,"
-        " plainNameForRead: foo, value: null)",
-        new ReadOnlyAccessGenerator(helper, token, expression, "foo"));
+        " plainNameForRead: foo, kind: ReadOnlyAccessKind.FinalVariable)",
+        new ReadOnlyAccessGenerator(helper, token, expression, "foo",
+            ReadOnlyAccessKind.FinalVariable));
     check(
         "ParenthesizedExpressionGenerator(offset: 4, expression: expression,"
-        " plainNameForRead: null, value: null)",
+        " plainNameForRead: null, kind:"
+        " ReadOnlyAccessKind.ParenthesizedExpression)",
         new ParenthesizedExpressionGenerator(helper, token, expression));
     check("TypeUseGenerator(offset: 4, declaration: T, plainNameForRead: foo)",
         new TypeUseGenerator(helper, token, declaration, "foo"));

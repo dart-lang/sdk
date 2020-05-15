@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'lib1.dart' deferred as lib1;
 import 'lib2.dart' as lib2;
 import 'lib3.dart' deferred as lib3;
 
-/*member: main:
+/*spec:nnbd-off.member: main:
  OutputUnit(main, {}),
  constants=[
   ConstructedConstant(A<B>())=OutputUnit(1, {lib1}),
@@ -14,6 +16,7 @@ import 'lib3.dart' deferred as lib3;
   ConstructedConstant(C<D>())=OutputUnit(main, {}),
   ConstructedConstant(E<F>())=OutputUnit(3, {lib3})]
 */
+/*spec:nnbd-sdk.member: main:OutputUnit(main, {}),constants=[ConstructedConstant(A<B*>())=OutputUnit(1, {lib1}),ConstructedConstant(A<F*>())=OutputUnit(1, {lib1}),ConstructedConstant(C<D*>())=OutputUnit(main, {}),ConstructedConstant(E<F*>())=OutputUnit(3, {lib3})]*/
 main() async {
   await lib1.loadLibrary();
   lib1.field1;

@@ -130,6 +130,12 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
             .skip(node.requiredParameterCount)
             .toList()),
         node.namedParameters.map((n) => n.name).toList(),
+        _options.useLegacySubtyping
+            ? const <String>{}
+            : node.namedParameters
+                .where((n) => n.isRequired)
+                .map((n) => n.name)
+                .toSet(),
         node.namedParameters.map((n) => visitType(n.type)).toList(),
         typeVariables ?? const <FunctionTypeVariable>[]);
     DartType type = _convertNullability(functionType, node.nullability);
@@ -186,6 +192,8 @@ class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue> {
 
   ConstantValuefier(this.elementMap);
 
+  DartTypes get _dartTypes => elementMap.commonElements.dartTypes;
+
   @override
   ConstantValue defaultConstant(ir.Constant node) {
     throw new UnsupportedError(
@@ -199,7 +207,7 @@ class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue> {
 
   @override
   ConstantValue visitTypeLiteralConstant(ir.TypeLiteralConstant node) {
-    DartType type = elementMap.getDartType(node.type);
+    DartType type = _dartTypes.eraseLegacy(elementMap.getDartType(node.type));
     return constant_system.createType(elementMap.commonElements, type);
   }
 

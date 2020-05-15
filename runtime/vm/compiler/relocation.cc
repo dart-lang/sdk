@@ -28,9 +28,10 @@ const intptr_t kTrampolineSize = Utils::RoundUp(
     kObjectAlignment);
 
 CodeRelocator::CodeRelocator(Thread* thread,
-                             GrowableArray<RawCode*>* code_objects,
+                             GrowableArray<CodePtr>* code_objects,
                              GrowableArray<ImageWriterCommand>* commands)
     : StackResource(thread),
+      thread_(thread),
       code_objects_(code_objects),
       commands_(commands),
       kind_type_and_offset_(Smi::Handle(thread->zone())),
@@ -103,7 +104,7 @@ void CodeRelocator::Relocate(bool is_vm_isolate) {
 }
 
 void CodeRelocator::FindInstructionAndCallLimits() {
-  Zone* zone = Thread::Current()->zone();
+  auto zone = thread_->zone();
   auto& current_caller = Code::Handle(zone);
   auto& call_targets = Array::Handle(zone);
 
@@ -131,28 +132,26 @@ void CodeRelocator::FindInstructionAndCallLimits() {
         if (kind == Code::kCallViaCode) {
           continue;
         }
-        num_calls++;
 
-        target_ = call.Get<Code::kSCallTableFunctionTarget>();
-        if (target_.IsFunction()) {
-          auto& fun = Function::Cast(target_);
-          ASSERT(fun.HasCode());
-          destination_ = fun.CurrentCode();
-          ASSERT(!destination_.IsStubCode());
-        } else {
-          target_ = call.Get<Code::kSCallTableCodeTarget>();
-          ASSERT(target_.IsCode());
-          destination_ = Code::Cast(target_).raw();
-        }
+        destination_ = GetTarget(call);
+        num_calls++;
 
         // A call site can decide to jump not to the beginning of a function but
         // rather jump into it at a certain (positive) offset.
         int32_t offset_into_target = 0;
-        const intptr_t call_instruction_offset =
-            return_pc_offset - PcRelativeCallPattern::kLengthInBytes;
-        {
+        if (kind == Code::kPcRelativeCall || kind == Code::kPcRelativeTTSCall) {
+          const intptr_t call_instruction_offset =
+              return_pc_offset - PcRelativeCallPattern::kLengthInBytes;
           PcRelativeCallPattern call(current_caller.PayloadStart() +
                                      call_instruction_offset);
+          ASSERT(call.IsValid());
+          offset_into_target = call.distance();
+        } else {
+          ASSERT(kind == Code::kPcRelativeTailCall);
+          const intptr_t call_instruction_offset =
+              return_pc_offset - PcRelativeTailCallPattern::kLengthInBytes;
+          PcRelativeTailCallPattern call(current_caller.PayloadStart() +
+                                         call_instruction_offset);
           ASSERT(call.IsValid());
           offset_into_target = call.distance();
         }
@@ -176,8 +175,8 @@ void CodeRelocator::FindInstructionAndCallLimits() {
   }
 }
 
-bool CodeRelocator::AddInstructionsToText(RawCode* code) {
-  RawInstructions* instructions = Code::InstructionsOf(code);
+bool CodeRelocator::AddInstructionsToText(CodePtr code) {
+  InstructionsPtr instructions = Code::InstructionsOf(code);
 
   // If two [Code] objects point to the same [Instructions] object, we'll just
   // use the first one (they are equivalent for all practical purposes).
@@ -221,7 +220,7 @@ UnresolvedTrampoline* CodeRelocator::FindTrampolineFor(
   return nullptr;
 }
 
-void CodeRelocator::AddTrampolineToText(RawInstructions* destination,
+void CodeRelocator::AddTrampolineToText(InstructionsPtr destination,
                                         uint8_t* trampoline_bytes,
                                         intptr_t trampoline_length) {
   commands_->Add(ImageWriterCommand(next_text_offset_, trampoline_bytes,
@@ -248,27 +247,29 @@ void CodeRelocator::ScanCallTargets(const Code& code,
       continue;
     }
 
-    target_ = call.Get<Code::kSCallTableFunctionTarget>();
-    if (target_.IsFunction()) {
-      auto& fun = Function::Cast(target_);
-      ASSERT(fun.HasCode());
-      destination_ = fun.CurrentCode();
-      ASSERT(!destination_.IsStubCode());
-    } else {
-      target_ = call.Get<Code::kSCallTableCodeTarget>();
-      ASSERT(target_.IsCode());
-      destination_ = Code::Cast(target_).raw();
-    }
+    destination_ = GetTarget(call);
 
     // A call site can decide to jump not to the beginning of a function but
     // rather jump into it at a certain offset.
     int32_t offset_into_target = 0;
-    const intptr_t call_instruction_offset =
-        return_pc_offset - PcRelativeCallPattern::kLengthInBytes;
-    {
+    bool is_tail_call;
+    intptr_t call_instruction_offset;
+    if (kind == Code::kPcRelativeCall || kind == Code::kPcRelativeTTSCall) {
+      call_instruction_offset =
+          return_pc_offset - PcRelativeCallPattern::kLengthInBytes;
       PcRelativeCallPattern call(code.PayloadStart() + call_instruction_offset);
       ASSERT(call.IsValid());
       offset_into_target = call.distance();
+      is_tail_call = false;
+    } else {
+      ASSERT(kind == Code::kPcRelativeTailCall);
+      call_instruction_offset =
+          return_pc_offset - PcRelativeTailCallPattern::kLengthInBytes;
+      PcRelativeTailCallPattern call(code.PayloadStart() +
+                                     call_instruction_offset);
+      ASSERT(call.IsValid());
+      offset_into_target = call.distance();
+      is_tail_call = true;
     }
 
     const uword destination_payload = destination_.PayloadStart();
@@ -283,7 +284,7 @@ void CodeRelocator::ScanCallTargets(const Code& code,
 
     UnresolvedCall unresolved_call(code.raw(), call_instruction_offset,
                                    text_offset, destination_.raw(),
-                                   offset_into_target);
+                                   offset_into_target, is_tail_call);
     if (!TryResolveBackwardsCall(&unresolved_call)) {
       EnqueueUnresolvedCall(new UnresolvedCall(unresolved_call));
     }
@@ -295,7 +296,7 @@ void CodeRelocator::EnqueueUnresolvedCall(UnresolvedCall* unresolved_call) {
   all_unresolved_calls_.Append(unresolved_call);
 
   // Add it to callers of destination.
-  RawInstructions* destination = Code::InstructionsOf(unresolved_call->callee);
+  InstructionsPtr destination = Code::InstructionsOf(unresolved_call->callee);
   if (!unresolved_calls_by_destination_.HasKey(destination)) {
     unresolved_calls_by_destination_.Insert(
         {destination, new SameDestinationUnresolvedCallsList()});
@@ -329,7 +330,7 @@ bool CodeRelocator::TryResolveBackwardsCall(UnresolvedCall* unresolved_call) {
 }
 
 void CodeRelocator::ResolveUnresolvedCallsTargeting(
-    const RawInstructions* instructions) {
+    const InstructionsPtr instructions) {
   if (unresolved_calls_by_destination_.HasKey(instructions)) {
     SameDestinationUnresolvedCallsList* calls =
         unresolved_calls_by_destination_.LookupValue(instructions);
@@ -371,12 +372,19 @@ void CodeRelocator::ResolveCallToDestination(UnresolvedCall* unresolved_call,
     auto const caller = unresolved_call->caller;
     uword addr = Code::PayloadStartOf(caller) + call_offset;
     if (FLAG_write_protect_code) {
-      addr -= HeapPage::Of(Code::InstructionsOf(caller))->AliasOffset();
+      addr -= OldPage::Of(Code::InstructionsOf(caller))->AliasOffset();
     }
-    PcRelativeCallPattern call(addr);
-    ASSERT(call.IsValid());
-    call.set_distance(static_cast<int32_t>(distance));
-    ASSERT(call.distance() == distance);
+    if (unresolved_call->is_tail_call) {
+      PcRelativeTailCallPattern call(addr);
+      ASSERT(call.IsValid());
+      call.set_distance(static_cast<int32_t>(distance));
+      ASSERT(call.distance() == distance);
+    } else {
+      PcRelativeCallPattern call(addr);
+      ASSERT(call.IsValid());
+      call.set_distance(static_cast<int32_t>(distance));
+      ASSERT(call.distance() == distance);
+    }
   }
 
   unresolved_call->caller = nullptr;
@@ -405,8 +413,58 @@ bool CodeRelocator::IsTargetInRangeFor(UnresolvedCall* unresolved_call,
                                        intptr_t target_text_offset) {
   const auto forward_distance =
       target_text_offset - unresolved_call->text_offset;
-  return PcRelativeCallPattern::kLowerCallingRange < forward_distance &&
-         forward_distance < PcRelativeCallPattern::kUpperCallingRange;
+  if (unresolved_call->is_tail_call) {
+    return PcRelativeTailCallPattern::kLowerCallingRange < forward_distance &&
+           forward_distance < PcRelativeTailCallPattern::kUpperCallingRange;
+  } else {
+    return PcRelativeCallPattern::kLowerCallingRange < forward_distance &&
+           forward_distance < PcRelativeCallPattern::kUpperCallingRange;
+  }
+}
+
+CodePtr CodeRelocator::GetTarget(const StaticCallsTableEntry& call) {
+  // The precompiler should have already replaced all function entries
+  // with code entries.
+  ASSERT(call.Get<Code::kSCallTableFunctionTarget>() == Function::null());
+
+  target_ = call.Get<Code::kSCallTableCodeOrTypeTarget>();
+  if (target_.IsAbstractType()) {
+    target_ = AbstractType::Cast(target_).type_test_stub();
+    destination_ = Code::Cast(target_).raw();
+
+    // The AssertAssignableInstr will emit pc-relative calls to the TTS iff
+    // dst_type is instantiated. If we happened to not install an optimized
+    // TTS but rather a default one, it will live in the vm-isolate (to
+    // which we cannot make pc-relative calls).
+    // Though we have "equivalent" isolate-specific stubs we can use as
+    // targets instead.
+    //
+    // (We could make the AOT compiler install isolate-specific stubs
+    // into the types directly, but that does not work for types which
+    // live in the "vm-isolate" - such as `Type::dynamic_type()`).
+    if (destination_.InVMIsolateHeap()) {
+      auto object_store = thread_->isolate()->object_store();
+      if (destination_.raw() == StubCode::DefaultTypeTest().raw()) {
+        destination_ = object_store->default_tts_stub();
+      } else if (destination_.raw() ==
+                 StubCode::DefaultNullableTypeTest().raw()) {
+        destination_ = object_store->default_nullable_tts_stub();
+      } else if (destination_.raw() == StubCode::TopTypeTypeTest().raw()) {
+        destination_ = object_store->top_type_tts_stub();
+      } else if (destination_.raw() == StubCode::UnreachableTypeTest().raw()) {
+        destination_ = object_store->unreachable_tts_stub();
+      } else if (destination_.raw() == StubCode::SlowTypeTest().raw()) {
+        destination_ = object_store->slow_tts_stub();
+      } else {
+        UNREACHABLE();
+      }
+    }
+  } else {
+    ASSERT(target_.IsCode());
+    destination_ = Code::Cast(target_).raw();
+  }
+  ASSERT(!destination_.InVMIsolateHeap());
+  return destination_.raw();
 }
 
 static void MarkAsFreeListElement(uint8_t* trampoline_bytes,
@@ -414,15 +472,15 @@ static void MarkAsFreeListElement(uint8_t* trampoline_bytes,
   uint32_t tags = 0;
 #if defined(IS_SIMARM_X64)
   // Account for difference in kObjectAlignment between host and target.
-  tags = RawObject::SizeTag::update(trampoline_length * 2, tags);
+  tags = ObjectLayout::SizeTag::update(trampoline_length * 2, tags);
 #else
-  tags = RawObject::SizeTag::update(trampoline_length, tags);
+  tags = ObjectLayout::SizeTag::update(trampoline_length, tags);
 #endif
-  tags = RawObject::ClassIdTag::update(kFreeListElement, tags);
-  tags = RawObject::OldBit::update(true, tags);
-  tags = RawObject::OldAndNotMarkedBit::update(true, tags);
-  tags = RawObject::OldAndNotRememberedBit::update(true, tags);
-  tags = RawObject::NewBit::update(false, tags);
+  tags = ObjectLayout::ClassIdTag::update(kFreeListElement, tags);
+  tags = ObjectLayout::OldBit::update(true, tags);
+  tags = ObjectLayout::OldAndNotMarkedBit::update(true, tags);
+  tags = ObjectLayout::OldAndNotRememberedBit::update(true, tags);
+  tags = ObjectLayout::NewBit::update(false, tags);
 
   auto header_word = reinterpret_cast<uintptr_t*>(trampoline_bytes);
   *header_word = tags;
@@ -505,9 +563,8 @@ void CodeRelocator::BuildTrampolinesForAlmostOutOfRangeCalls() {
   }
 }
 
-intptr_t CodeRelocator::FindDestinationInText(
-    const RawInstructions* destination,
-    intptr_t offset_into_target) {
+intptr_t CodeRelocator::FindDestinationInText(const InstructionsPtr destination,
+                                              intptr_t offset_into_target) {
   auto const destination_offset = text_offsets_.LookupValue(destination);
   return destination_offset + AdjustPayloadOffset(offset_into_target);
 }

@@ -1,0 +1,7 @@
+class A<T> {}
+
+class B<T extends num, S extends List<T>> extends A<T> {
+  B([T x]) {}
+}
+
+main() {}

@@ -578,7 +578,7 @@ static void StreamingWriteCallback(void* callback_data,
                                    const uint8_t* buffer,
                                    intptr_t size) {
   File* file = reinterpret_cast<File*>(callback_data);
-  if (!file->WriteFully(buffer, size)) {
+  if ((file != nullptr) && !file->WriteFully(buffer, size)) {
     Syslog::PrintErr("Error: Unable to write snapshot file\n\n");
     Dart_ExitScope();
     Dart_ShutdownIsolate();
@@ -659,7 +659,7 @@ static Dart_QualifiedFunctionName no_entry_points[] = {
 
 static int CreateIsolateAndSnapshot(const CommandLineOptions& inputs) {
   uint8_t* kernel_buffer = NULL;
-  intptr_t kernel_buffer_size = NULL;
+  intptr_t kernel_buffer_size = 0;
   ReadFile(inputs.GetArgument(0), &kernel_buffer, &kernel_buffer_size);
 
   Dart_IsolateFlags isolate_flags;
@@ -670,7 +670,7 @@ static int CreateIsolateAndSnapshot(const CommandLineOptions& inputs) {
   }
 
   auto isolate_group_data = std::unique_ptr<IsolateGroupData>(
-      new IsolateGroupData(nullptr, nullptr, nullptr, nullptr, false));
+      new IsolateGroupData(nullptr, nullptr, nullptr, false));
   Dart_Isolate isolate;
   char* error = NULL;
 

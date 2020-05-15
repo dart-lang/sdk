@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Tests that the dart2js compiler can be run in a js engine.  This ensures that
 // the internal compiler APIs have no dependency on dart:io.
 library dummy_compiler;
@@ -56,12 +58,8 @@ void handler(Uri uri, int begin, int end, String message, Diagnostic kind) {
 
 main() {
   asyncStart();
-  Future<CompilationResult> result = compile(
-      new Uri(scheme: 'main'),
-      new Uri(scheme: 'lib', path: '/'),
-      new Uri(scheme: 'package', path: '/'),
-      provider,
-      handler);
+  Future<CompilationResult> result = compile(new Uri(scheme: 'main'),
+      new Uri(scheme: 'lib', path: '/'), provider, handler);
   result.then((CompilationResult result) {
     if (!result.isSuccess) {
       throw 'Compilation failed';

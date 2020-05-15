@@ -1,0 +1,39 @@
+//
+// Problems outside component:
+//
+// pkg/front_end/testcases/inference/generic_methods_infer_js_builtin.dart:9:8: Error: Not found: 'dart:_foreign_helper'
+// import 'dart:_foreign_helper' show JS; // error
+//        ^
+//
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/generic_methods_infer_js_builtin.dart:9:8: Error: Can't access platform private library.
+// import 'dart:_foreign_helper' show JS; // error
+//        ^
+//
+// pkg/front_end/testcases/inference/generic_methods_infer_js_builtin.dart:12:14: Error: Method not found: 'JS'.
+//   String x = JS('int', '42'); // error
+//              ^^
+//
+// pkg/front_end/testcases/inference/generic_methods_infer_js_builtin.dart:13:29: Error: Method not found: 'JS'.
+//   var /*@type=dynamic*/ y = JS<String>('String', '"hello"');
+//                             ^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "dart:_foreign_helper";
+
+static method test() → dynamic {
+  core::String* x = invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_js_builtin.dart:12:14: Error: Method not found: 'JS'.
+  String x = JS('int', '42'); // error
+             ^^" as{TypeError,ForDynamic} core::String*;
+  dynamic y = invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_js_builtin.dart:13:29: Error: Method not found: 'JS'.
+  var /*@type=dynamic*/ y = JS<String>('String', '\"hello\"');
+                            ^^";
+  y = "world";
+  y = 42;
+}
+static method main() → dynamic {}

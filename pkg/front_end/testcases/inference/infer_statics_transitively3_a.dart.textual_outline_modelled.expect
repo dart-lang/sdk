@@ -1,0 +1,7 @@
+class A {
+  static const a3 = null;
+}
+
+const a1 = 3;
+const a2 = 4;
+main() {}

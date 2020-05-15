@@ -76,10 +76,10 @@ class C extends A {
     await scheduler.waitForIdle();
 
     var resultA = await driver1.getResult(a);
-    ClassElement elementA = resultA.unit.declaredElement.types[0];
+    var elementA = resultA.unit.declaredElement.types[0];
 
     var searchEngine = SearchEngineImpl([driver1, driver2]);
-    Set<String> members = await searchEngine.membersOfSubtypes(elementA);
+    var members = await searchEngine.membersOfSubtypes(elementA);
     expect(members, unorderedEquals(['a', 'b']));
   }
 
@@ -103,10 +103,10 @@ class B extends A {}
     await scheduler.waitForIdle();
 
     var resultA = await driver.getResult(a);
-    ClassElement elementA = resultA.unit.declaredElement.types[0];
+    var elementA = resultA.unit.declaredElement.types[0];
 
     var searchEngine = SearchEngineImpl([driver]);
-    Set<String> members = await searchEngine.membersOfSubtypes(elementA);
+    var members = await searchEngine.membersOfSubtypes(elementA);
     expect(members, isEmpty);
   }
 
@@ -132,10 +132,10 @@ class B {
     await scheduler.waitForIdle();
 
     var resultA = await driver.getResult(a);
-    ClassElement elementA = resultA.unit.declaredElement.types[0];
+    var elementA = resultA.unit.declaredElement.types[0];
 
     var searchEngine = SearchEngineImpl([driver]);
-    Set<String> members = await searchEngine.membersOfSubtypes(elementA);
+    var members = await searchEngine.membersOfSubtypes(elementA);
     expect(members, isNull);
   }
 
@@ -169,10 +169,10 @@ class D extends B {
     await scheduler.waitForIdle();
 
     var resultA = await driver1.getResult(a);
-    ClassElement elementA = resultA.unit.declaredElement.types[0];
+    var elementA = resultA.unit.declaredElement.types[0];
 
     var searchEngine = SearchEngineImpl([driver1, driver2]);
-    Set<String> members = await searchEngine.membersOfSubtypes(elementA);
+    var members = await searchEngine.membersOfSubtypes(elementA);
     expect(members, unorderedEquals(['a', '_b']));
   }
 
@@ -188,10 +188,10 @@ class C implements B {}
     driver.addFile(p);
 
     var resultA = await driver.getResult(p);
-    ClassElement element = resultA.unit.declaredElement.types[0];
+    var element = resultA.unit.declaredElement.types[0];
 
     var searchEngine = SearchEngineImpl([driver]);
-    Set<ClassElement> subtypes = await searchEngine.searchAllSubtypes(element);
+    var subtypes = await searchEngine.searchAllSubtypes(element);
     expect(subtypes, hasLength(3));
     _assertContainsClass(subtypes, 'A');
     _assertContainsClass(subtypes, 'B');
@@ -216,10 +216,10 @@ class C extends B {}
     driver2.addFile(b);
 
     var resultA = await driver1.getResult(a);
-    ClassElement element = resultA.unit.declaredElement.types[0];
+    var element = resultA.unit.declaredElement.types[0];
 
     var searchEngine = SearchEngineImpl([driver1, driver2]);
-    Set<ClassElement> subtypes = await searchEngine.searchAllSubtypes(element);
+    var subtypes = await searchEngine.searchAllSubtypes(element);
     expect(subtypes, hasLength(3));
     expect(subtypes, contains(predicate((ClassElement e) => e.name == 'A')));
     expect(subtypes, contains(predicate((ClassElement e) => e.name == 'B')));
@@ -243,10 +243,10 @@ mixin E implements C {}
     driver.addFile(p);
 
     var resultA = await driver.getResult(p);
-    ClassElement element = resultA.unit.declaredElement.types[0];
+    var element = resultA.unit.declaredElement.types[0];
 
     var searchEngine = SearchEngineImpl([driver]);
-    Set<ClassElement> subtypes = await searchEngine.searchAllSubtypes(element);
+    var subtypes = await searchEngine.searchAllSubtypes(element);
     expect(subtypes, hasLength(5));
     _assertContainsClass(subtypes, 'A');
     _assertContainsClass(subtypes, 'B');
@@ -284,8 +284,7 @@ int test;
     }
 
     var searchEngine = SearchEngineImpl([driver1, driver2]);
-    List<SearchMatch> matches =
-        await searchEngine.searchMemberDeclarations('test');
+    var matches = await searchEngine.searchMemberDeclarations('test');
     expect(matches, hasLength(2));
 
     void assertHasElement(String name, int nameOffset) {
@@ -324,8 +323,7 @@ bar(p) {
     driver2.addFile(b);
 
     var searchEngine = SearchEngineImpl([driver1, driver2]);
-    List<SearchMatch> matches =
-        await searchEngine.searchMemberReferences('test');
+    var matches = await searchEngine.searchMemberReferences('test');
     expect(matches, hasLength(2));
     expect(
         matches,
@@ -354,10 +352,10 @@ T b;
     driver2.addFile(b);
 
     var resultA = await driver1.getResult(a);
-    ClassElement element = resultA.unit.declaredElement.types[0];
+    var element = resultA.unit.declaredElement.types[0];
 
     var searchEngine = SearchEngineImpl([driver1, driver2]);
-    List<SearchMatch> matches = await searchEngine.searchReferences(element);
+    var matches = await searchEngine.searchReferences(element);
     expect(matches, hasLength(2));
     expect(
         matches, contains(predicate((SearchMatch m) => m.element.name == 'a')));
@@ -380,8 +378,8 @@ int a;
     driver1.addFile(t);
     driver2.addFile(a);
 
-    LibraryElement coreLib = await driver1.getLibraryByUri('dart:core');
-    ClassElement intElement = coreLib.getType('int');
+    var coreLib = await driver1.getLibraryByUri('dart:core');
+    var intElement = coreLib.getType('int');
 
     var searchEngine = SearchEngineImpl([driver1, driver2]);
     var matches = await searchEngine.searchReferences(intElement);
@@ -423,7 +421,7 @@ get b => 42;
     expect(matches, hasLength(4));
 
     void assertHasOneElement(String name) {
-      Iterable<SearchMatch> nameMatches = matches.where((SearchMatch m) =>
+      var nameMatches = matches.where((SearchMatch m) =>
           m.kind == MatchKind.DECLARATION && m.element.name == name);
       expect(nameMatches, hasLength(1));
     }
@@ -455,15 +453,14 @@ class B extends A {}
     }
 
     var searchEngine = SearchEngineImpl([driver1, driver2]);
-    List<SearchMatch> matches =
-        await searchEngine.searchTopLevelDeclarations('.*');
+    var matches = await searchEngine.searchTopLevelDeclarations('.*');
     // We get exactly two items: A and B.
     // I.e. we get exactly one A.
     expect(
         matches.where((match) => !match.libraryElement.isInSdk), hasLength(2));
 
     void assertHasOneElement(String name) {
-      Iterable<SearchMatch> nameMatches = matches.where((SearchMatch m) =>
+      var nameMatches = matches.where((SearchMatch m) =>
           m.kind == MatchKind.DECLARATION && m.element.name == name);
       expect(nameMatches, hasLength(1));
     }

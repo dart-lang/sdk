@@ -73,14 +73,23 @@ export 'visitor.dart';
 import 'canonical_name.dart' show CanonicalName;
 export 'canonical_name.dart' show CanonicalName;
 
-import 'default_language_version.dart';
+import 'default_language_version.dart' show defaultLanguageVersion;
+export 'default_language_version.dart' show defaultLanguageVersion;
 
 import 'transformations/flags.dart';
-import 'text/ast_to_text.dart';
+import 'text/ast_to_text.dart' as astToText;
 import 'core_types.dart';
 import 'type_algebra.dart';
 import 'type_environment.dart';
 import 'src/assumptions.dart';
+import 'src/text_util.dart';
+
+/// Set this `true` to use fully qualified names in types for debugging.
+const bool _verboseTypeToString = false;
+
+/// Set this `true` to use fully qualified names in classes, extensions,
+/// typedefs and members for debugging.
+const bool _verboseMemberToString = false;
 
 /// Any type of node in the IR.
 abstract class Node {
@@ -91,22 +100,32 @@ abstract class Node {
 
   /// Returns the textual representation of this node for use in debugging.
   ///
-  /// [toString] should only be used for debugging and short-running test tools
-  /// as it can cause serious memory leaks.
+  /// [toString] should only be used for debugging, but should not leak.
   ///
-  /// Synthetic names are cached globally to retain consistency across different
-  /// [toString] calls (hence the memory leak).
+  /// The data is generally bare-bones, but can easily be updated for your
+  /// specific debugging needs.
+  String toString();
+
+  /// Returns the textual representation of this node for use in debugging.
   ///
-  /// Nodes that are named, such as [Class] and [Member], return their
-  /// (possibly synthesized) name, whereas other AST nodes return the complete
-  /// textual representation of their subtree.
-  String toString() => debugNodeToString(this);
+  /// [toStringInternal] should only be used for debugging, but should not leak.
+  ///
+  /// The data is generally bare-bones, but can easily be updated for your
+  /// specific debugging needs.
+  ///
+  /// This method is called internally by toString methods to create conciser
+  /// textual representations.
+  String toStringInternal();
 
   /// Returns the textual representation of this node for use in debugging.
   ///
   /// Note that this adds some nodes to a static map to ensure consistent
-  /// naming, but that it thus also leaks memory.
-  String leakingDebugToString() => debugNodeToString(this);
+  /// naming, but that it thus also leaks memory. [leakingDebugToString] should
+  /// thus only be used for debugging and short-running test tools.
+  ///
+  /// Synthetic names are cached globally to retain consistency across different
+  /// [leakingDebugToString] calls (hence the memory leak).
+  String leakingDebugToString() => astToText.debugNodeToString(this);
 }
 
 /// A mutable AST node with a parent pointer.
@@ -254,11 +273,15 @@ class Reference {
   }
 
   String toString() {
+    return "Reference to ${toStringInternal()}";
+  }
+
+  String toStringInternal() {
     if (canonicalName != null) {
-      return 'Reference to $canonicalName';
+      return '${canonicalName.toStringInternal()}';
     }
     if (node != null) {
-      return 'Reference to $node';
+      return node.toStringInternal();
     }
     return 'Unbound reference';
   }
@@ -331,18 +354,14 @@ class Library extends NamedNode
   /// The URI of the source file this library was loaded from.
   Uri fileUri;
 
-  int _languageVersionMajor;
-  int _languageVersionMinor;
-  int get languageVersionMajor =>
-      _languageVersionMajor ?? defaultLanguageVersionMajor;
-  int get languageVersionMinor =>
-      _languageVersionMinor ?? defaultLanguageVersionMinor;
-  void setLanguageVersion(int languageVersionMajor, int languageVersionMinor) {
-    if (languageVersionMajor == null || languageVersionMinor == null) {
+  Version _languageVersion;
+  Version get languageVersion => _languageVersion ?? defaultLanguageVersion;
+
+  void setLanguageVersion(Version languageVersion) {
+    if (languageVersion == null) {
       throw new StateError("Trying to set language version 'null'");
     }
-    _languageVersionMajor = languageVersionMajor;
-    _languageVersionMinor = languageVersionMinor;
+    _languageVersion = languageVersion;
   }
 
   static const int SyntheticFlag = 1 << 1;
@@ -615,11 +634,14 @@ class Library extends NamedNode
 
   /// Returns a possibly synthesized name for this library, consistent with
   /// the names across all [toString] calls.
-  String toString() => debugLibraryName(this);
+  String toString() => libraryNameToString(this);
+  String toStringInternal() => libraryNameToString(this);
 
   Location _getLocationInEnclosingFile(int offset) {
     return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
+
+  String leakingDebugToString() => astToText.debugLibraryToString(this);
 }
 
 /// An import or export declaration in a library.
@@ -698,6 +720,16 @@ class LibraryDependency extends TreeNode {
     transformList(annotations, v, this);
     transformList(combinators, v, this);
   }
+
+  @override
+  String toString() {
+    return "LibraryDependency(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// A part declaration in a library.
@@ -726,6 +758,16 @@ class LibraryPart extends TreeNode {
   transformChildren(Transformer v) {
     transformList(annotations, v, this);
   }
+
+  @override
+  String toString() {
+    return "LibraryPart(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// A `show` or `hide` clause for an import or export.
@@ -750,6 +792,16 @@ class Combinator extends TreeNode {
 
   @override
   transformChildren(Transformer v) {}
+
+  @override
+  String toString() {
+    return "Combinator(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Declaration of a type alias.
@@ -816,6 +868,17 @@ class Typedef extends NamedNode implements FileUriNode {
 
   Location _getLocationInEnclosingFile(int offset) {
     return _getLocationInComponent(enclosingComponent, fileUri, offset);
+  }
+
+  @override
+  String toString() {
+    return "Typedef(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return qualifiedTypedefNameToString(this,
+        includeLibraryName: _verboseMemberToString);
   }
 }
 
@@ -1328,7 +1391,14 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
 
   /// Returns a possibly synthesized name for this class, consistent with
   /// the names used across all [toString] calls.
-  String toString() => debugQualifiedClassName(this);
+  // TODO(johnniwinther): Remove test dependencies on Class.toString();
+  @override
+  String toString() =>
+      qualifiedClassNameToString(this, includeLibraryName: true);
+
+  @override
+  String toStringInternal() => qualifiedClassNameToString(this,
+      includeLibraryName: _verboseMemberToString);
 
   visitChildren(Visitor v) {
     visitList(annotations, v);
@@ -1425,6 +1495,17 @@ class Extension extends NamedNode implements FileUriNode {
     if (onType != null) {
       onType = v.visitDartType(onType);
     }
+  }
+
+  @override
+  String toString() {
+    return "Extension(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return qualifiedExtensionNameToString(this,
+        includeLibraryName: _verboseMemberToString);
   }
 }
 
@@ -1586,7 +1667,12 @@ abstract class Member extends NamedNode implements Annotatable, FileUriNode {
 
   /// Returns a possibly synthesized name for this member, consistent with
   /// the names used across all [toString] calls.
-  String toString() => debugQualifiedMemberName(this);
+  @override
+  String toString() => toStringInternal();
+
+  @override
+  String toStringInternal() => qualifiedMemberNameToString(this,
+      includeLibraryName: _verboseMemberToString);
 
   void addAnnotation(Expression node) {
     if (annotations.isEmpty) {
@@ -1652,6 +1738,7 @@ class Field extends Member {
   static const int FlagLate = 1 << 7;
   static const int FlagExtensionMember = 1 << 8;
   static const int FlagNonNullableByDefault = 1 << 9;
+  static const int FlagInternalImplementation = 1 << 10;
 
   /// Whether the field is declared with the `covariant` keyword.
   bool get isCovariant => flags & FlagCovariant != 0;
@@ -1692,6 +1779,13 @@ class Field extends Member {
 
   /// Whether the field is declared with the `late` keyword.
   bool get isLate => flags & FlagLate != 0;
+
+  // If `true` this field is not part of the interface but only part of the
+  // class members.
+  //
+  // This is `true` for instance for synthesized fields added for the late
+  // lowering.
+  bool get isInternalImplementation => flags & FlagInternalImplementation != 0;
 
   void set isCovariant(bool value) {
     flags = value ? (flags | FlagCovariant) : (flags & ~FlagCovariant);
@@ -1734,6 +1828,12 @@ class Field extends Member {
 
   void set isLate(bool value) {
     flags = value ? (flags | FlagLate) : (flags & ~FlagLate);
+  }
+
+  void set isInternalImplementation(bool value) {
+    flags = value
+        ? (flags | FlagInternalImplementation)
+        : (flags & ~FlagInternalImplementation);
   }
 
   /// True if the field is neither final nor const.
@@ -2362,6 +2462,16 @@ class InvalidInitializer extends Initializer {
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
+
+  @override
+  String toString() {
+    return "InvalidInitializer(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// A field assignment `field = value` occurring in the initializer list of
@@ -2402,6 +2512,16 @@ class FieldInitializer extends Initializer {
       value = value.accept<TreeNode>(v);
       value?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "FieldInitializer(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -2445,6 +2565,16 @@ class SuperInitializer extends Initializer {
       arguments?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "SuperInitializer(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// A redirecting call `this(x,y)` occurring in the initializer list of
@@ -2483,6 +2613,16 @@ class RedirectingInitializer extends Initializer {
       arguments?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "RedirectingInitializer(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Binding of a temporary variable in the initializer list of a constructor.
@@ -2508,6 +2648,16 @@ class LocalInitializer extends Initializer {
       variable?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "LocalInitializer(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 class AssertInitializer extends Initializer {
@@ -2526,6 +2676,16 @@ class AssertInitializer extends Initializer {
   transformChildren(Transformer v) {
     statement = statement.accept<TreeNode>(v);
     statement.parent = this;
+  }
+
+  @override
+  String toString() {
+    return "AssertInitializer(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -2676,6 +2836,16 @@ class FunctionNode extends TreeNode {
       body?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "FunctionNode(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 enum AsyncMarker {
@@ -2802,6 +2972,16 @@ class InvalidExpression extends Expression {
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
+
+  @override
+  String toString() {
+    return "InvalidExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Read a local variable, a local function, or a function parameter.
@@ -2827,6 +3007,16 @@ class VariableGet extends Expression {
     if (promotedType != null) {
       promotedType = v.visitDartType(promotedType);
     }
+  }
+
+  @override
+  String toString() {
+    return "VariableGet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -2857,6 +3047,16 @@ class VariableSet extends Expression {
       value = value.accept<TreeNode>(v);
       value?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "VariableSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -2918,6 +3118,16 @@ class PropertyGet extends Expression {
       receiver?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "PropertyGet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "${receiver.toStringInternal()}.${name.toStringInternal()}";
+  }
 }
 
 /// Expression of form `x.field = value`.
@@ -2973,6 +3183,16 @@ class PropertySet extends Expression {
       value?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "PropertySet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Directly read a field, call a getter, or tear off a method.
@@ -3014,6 +3234,16 @@ class DirectPropertyGet extends Expression {
     var receiverType = receiver.getStaticTypeAsInstanceOf(superclass, context);
     return Substitution.fromInterfaceType(receiverType)
         .substituteType(target.getterType);
+  }
+
+  @override
+  String toString() {
+    return "DirectPropertyGet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3063,6 +3293,16 @@ class DirectPropertySet extends Expression {
 
   DartType getStaticType(StaticTypeContext context) =>
       value.getStaticType(context);
+
+  @override
+  String toString() {
+    return "DirectPropertySet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Directly call an instance method, bypassing ordinary dispatch.
@@ -3124,6 +3364,16 @@ class DirectMethodInvocation extends InvocationExpression {
             target.function.typeParameters, arguments.types)
         .substituteType(returnType);
   }
+
+  @override
+  String toString() {
+    return "DirectMethodInvocation(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Expression of form `super.field`.
@@ -3172,6 +3422,16 @@ class SuperPropertyGet extends Expression {
   }
 
   transformChildren(Transformer v) {}
+
+  @override
+  String toString() {
+    return "SuperPropertyGet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Expression of form `super.field = value`.
@@ -3218,6 +3478,16 @@ class SuperPropertySet extends Expression {
       value?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "SuperPropertySet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Read a static field, call a static getter, or tear off a static method.
@@ -3246,6 +3516,16 @@ class StaticGet extends Expression {
   }
 
   transformChildren(Transformer v) {}
+
+  @override
+  String toString() {
+    return "StaticGet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Assign a static field or call a static setter.
@@ -3286,6 +3566,16 @@ class StaticSet extends Expression {
       value = value.accept<TreeNode>(v);
       value?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "StaticSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3334,6 +3624,17 @@ class Arguments extends TreeNode {
     transformList(positional, v, this);
     transformList(named, v, this);
   }
+
+  @override
+  String toString() {
+    return "Arguments(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    // TODO(jensj): Make (much) better.
+    return "";
+  }
 }
 
 /// A named argument, `name: value`.
@@ -3356,6 +3657,16 @@ class NamedExpression extends TreeNode {
       value = value.accept<TreeNode>(v);
       value?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "NamedExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3486,6 +3797,16 @@ class MethodInvocation extends InvocationExpression {
       arguments?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "MethodInvocation(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Expression of form `super.foo(x)`.
@@ -3541,6 +3862,16 @@ class SuperMethodInvocation extends InvocationExpression {
       arguments?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "SuperMethodInvocation(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Expression of form `foo(x)`, or `const foo(x)` if the target is an
@@ -3591,6 +3922,17 @@ class StaticInvocation extends InvocationExpression {
       arguments = arguments.accept<TreeNode>(v);
       arguments?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "StaticInvocation(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "${targetReference.toStringInternal()}, "
+        "${arguments.toStringInternal()}";
   }
 }
 
@@ -3659,6 +4001,16 @@ class ConstructorInvocation extends InvocationExpression {
         : new InterfaceType(
             enclosingClass, Nullability.legacy, arguments.types);
   }
+
+  @override
+  String toString() {
+    return "ConstructorInvocation(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// An explicit type instantiation of a generic function.
@@ -3692,6 +4044,16 @@ class Instantiation extends Expression {
     }
     transformTypeList(typeArguments, v);
   }
+
+  @override
+  String toString() {
+    return "Instantiation(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Expression of form `!x`.
@@ -3720,6 +4082,16 @@ class Not extends Expression {
       operand = operand.accept<TreeNode>(v);
       operand?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "Not(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3755,6 +4127,16 @@ class LogicalExpression extends Expression {
       right = right.accept<TreeNode>(v);
       right?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "LogicalExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3804,6 +4186,18 @@ class ConditionalExpression extends Expression {
       staticType = v.visitDartType(staticType);
     }
   }
+
+  @override
+  String toString() {
+    return "ConditionalExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "${condition.toStringInternal()} ? "
+        "${then.toStringInternal()} : "
+        "${otherwise.toStringInternal()}";
+  }
 }
 
 /// Convert expressions to strings and concatenate them.  Semantically, calls
@@ -3833,6 +4227,16 @@ class StringConcatenation extends Expression {
 
   transformChildren(Transformer v) {
     transformList(expressions, v, this);
+  }
+
+  @override
+  String toString() {
+    return "StringConcatenation(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3867,6 +4271,16 @@ class ListConcatenation extends Expression {
   transformChildren(Transformer v) {
     typeArgument = v.visitDartType(typeArgument);
     transformList(lists, v, this);
+  }
+
+  @override
+  String toString() {
+    return "ListConcatenation(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3904,6 +4318,16 @@ class SetConcatenation extends Expression {
   transformChildren(Transformer v) {
     typeArgument = v.visitDartType(typeArgument);
     transformList(sets, v, this);
+  }
+
+  @override
+  String toString() {
+    return "SetConcatenation(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3947,6 +4371,16 @@ class MapConcatenation extends Expression {
     keyType = v.visitDartType(keyType);
     valueType = v.visitDartType(valueType);
     transformList(maps, v, this);
+  }
+
+  @override
+  String toString() {
+    return "MapConcatenation(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -4007,6 +4441,16 @@ class InstanceCreation extends Expression {
     transformList(asserts, v, this);
     transformList(unusedArguments, v, this);
   }
+
+  @override
+  String toString() {
+    return "InstanceCreation(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// A marker indicating that a subexpression originates in a different source
@@ -4043,6 +4487,16 @@ class FileUriExpression extends Expression implements FileUriNode {
 
   Location _getLocationInEnclosingFile(int offset) {
     return _getLocationInComponent(enclosingComponent, fileUri, offset);
+  }
+
+  @override
+  String toString() {
+    return "FileUriExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -4090,6 +4544,16 @@ class IsExpression extends Expression {
       operand?.parent = this;
     }
     type = v.visitDartType(type);
+  }
+
+  @override
+  String toString() {
+    return "IsExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -4183,6 +4647,16 @@ class AsExpression extends Expression {
     }
     type = v.visitDartType(type);
   }
+
+  @override
+  String toString() {
+    return "AsExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "${operand.toStringInternal()} as ${type.toStringInternal()}";
+  }
 }
 
 /// Null check expression of form `x!`.
@@ -4200,7 +4674,7 @@ class NullCheck extends Expression {
     DartType operandType = operand.getStaticType(context);
     return operandType == context.typeEnvironment.nullType
         ? const NeverType(Nullability.nonNullable)
-        : operandType.withNullability(Nullability.nonNullable);
+        : operandType.withDeclaredNullability(Nullability.nonNullable);
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitNullCheck(this);
@@ -4216,6 +4690,16 @@ class NullCheck extends Expression {
       operand = operand.accept<TreeNode>(v);
       operand?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "NullCheck(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -4238,6 +4722,16 @@ class StringLiteral extends BasicLiteral {
   R accept<R>(ExpressionVisitor<R> v) => v.visitStringLiteral(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
       v.visitStringLiteral(this, arg);
+
+  @override
+  String toString() {
+    return "StringLiteral(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "$value";
+  }
 }
 
 class IntLiteral extends BasicLiteral {
@@ -4255,6 +4749,16 @@ class IntLiteral extends BasicLiteral {
   R accept<R>(ExpressionVisitor<R> v) => v.visitIntLiteral(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
       v.visitIntLiteral(this, arg);
+
+  @override
+  String toString() {
+    return "IntLiteral(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "$value";
+  }
 }
 
 class DoubleLiteral extends BasicLiteral {
@@ -4268,6 +4772,16 @@ class DoubleLiteral extends BasicLiteral {
   R accept<R>(ExpressionVisitor<R> v) => v.visitDoubleLiteral(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
       v.visitDoubleLiteral(this, arg);
+
+  @override
+  String toString() {
+    return "DoubleLiteral(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "$value";
+  }
 }
 
 class BoolLiteral extends BasicLiteral {
@@ -4281,6 +4795,16 @@ class BoolLiteral extends BasicLiteral {
   R accept<R>(ExpressionVisitor<R> v) => v.visitBoolLiteral(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
       v.visitBoolLiteral(this, arg);
+
+  @override
+  String toString() {
+    return "BoolLiteral(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "$value";
+  }
 }
 
 class NullLiteral extends BasicLiteral {
@@ -4292,6 +4816,16 @@ class NullLiteral extends BasicLiteral {
   R accept<R>(ExpressionVisitor<R> v) => v.visitNullLiteral(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
       v.visitNullLiteral(this, arg);
+
+  @override
+  String toString() {
+    return "NullLiteral(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "null";
+  }
 }
 
 class SymbolLiteral extends Expression {
@@ -4308,6 +4842,16 @@ class SymbolLiteral extends Expression {
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
+
+  @override
+  String toString() {
+    return "SymbolLiteral(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "#$value";
+  }
 }
 
 class TypeLiteral extends Expression {
@@ -4329,6 +4873,16 @@ class TypeLiteral extends Expression {
   transformChildren(Transformer v) {
     type = v.visitDartType(type);
   }
+
+  @override
+  String toString() {
+    return "TypeLiteral(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "${type.toStringInternal()}";
+  }
 }
 
 class ThisExpression extends Expression {
@@ -4340,6 +4894,16 @@ class ThisExpression extends Expression {
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
+
+  @override
+  String toString() {
+    return "ThisExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 class Rethrow extends Expression {
@@ -4354,6 +4918,16 @@ class Rethrow extends Expression {
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
+
+  @override
+  String toString() {
+    return "Rethrow(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 class Throw extends Expression {
@@ -4380,6 +4954,16 @@ class Throw extends Expression {
       expression = expression.accept<TreeNode>(v);
       expression?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "Throw(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -4411,6 +4995,16 @@ class ListLiteral extends Expression {
     typeArgument = v.visitDartType(typeArgument);
     transformList(expressions, v, this);
   }
+
+  @override
+  String toString() {
+    return "ListLiteral(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 class SetLiteral extends Expression {
@@ -4440,6 +5034,16 @@ class SetLiteral extends Expression {
   transformChildren(Transformer v) {
     typeArgument = v.visitDartType(typeArgument);
     transformList(expressions, v, this);
+  }
+
+  @override
+  String toString() {
+    return "SetLiteral(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -4478,6 +5082,16 @@ class MapLiteral extends Expression {
     valueType = v.visitDartType(valueType);
     transformList(entries, v, this);
   }
+
+  @override
+  String toString() {
+    return "MapLiteral(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 class MapEntry extends TreeNode {
@@ -4506,6 +5120,16 @@ class MapEntry extends TreeNode {
       value?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "MapEntry(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Expression of form `await x`.
@@ -4533,6 +5157,16 @@ class AwaitExpression extends Expression {
       operand = operand.accept<TreeNode>(v);
       operand?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "AwaitExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -4569,6 +5203,16 @@ class FunctionExpression extends Expression implements LocalFunction {
       function?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "FunctionExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 class ConstantExpression extends Expression {
@@ -4593,6 +5237,16 @@ class ConstantExpression extends Expression {
   transformChildren(Transformer v) {
     constant = v.visitConstant(constant);
     type = v.visitDartType(type);
+  }
+
+  @override
+  String toString() {
+    return "ConstantExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -4627,6 +5281,16 @@ class Let extends Expression {
       body?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "Let(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 class BlockExpression extends Expression {
@@ -4660,6 +5324,16 @@ class BlockExpression extends Expression {
       value?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "BlockExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Attempt to load the library referred to by a deferred import.
@@ -4691,6 +5365,16 @@ class LoadLibrary extends Expression {
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
+
+  @override
+  String toString() {
+    return "LoadLibrary(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Checks that the given deferred import has been marked as 'loaded'.
@@ -4710,6 +5394,16 @@ class CheckLibraryIsLoaded extends Expression {
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
+
+  @override
+  String toString() {
+    return "CheckLibraryIsLoaded(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 // ------------------------------------------------------------------------
@@ -4742,6 +5436,16 @@ class ExpressionStatement extends Statement {
       expression?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "ExpressionStatement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 class Block extends Statement {
@@ -4770,6 +5474,16 @@ class Block extends Statement {
   void addStatement(Statement node) {
     statements.add(node);
     node.parent = this;
+  }
+
+  @override
+  String toString() {
+    return "Block(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -4806,6 +5520,16 @@ class AssertBlock extends Statement {
     statements.add(node);
     node.parent = this;
   }
+
+  @override
+  String toString() {
+    return "AssertBlock(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 class EmptyStatement extends Statement {
@@ -4815,6 +5539,16 @@ class EmptyStatement extends Statement {
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
+
+  @override
+  String toString() {
+    return "EmptyStatement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 class AssertStatement extends Statement {
@@ -4856,6 +5590,16 @@ class AssertStatement extends Statement {
       message?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "AssertStatement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// A target of a [Break] statement.
@@ -4883,6 +5627,16 @@ class LabeledStatement extends Statement {
       body = body.accept<TreeNode>(v);
       body?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "LabeledStatement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -4917,6 +5671,16 @@ class BreakStatement extends Statement {
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
+
+  @override
+  String toString() {
+    return "BreakStatement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 class WhileStatement extends Statement {
@@ -4947,6 +5711,16 @@ class WhileStatement extends Statement {
       body?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "WhileStatement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 class DoStatement extends Statement {
@@ -4976,6 +5750,16 @@ class DoStatement extends Statement {
       condition = condition.accept<TreeNode>(v);
       condition?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "DoStatement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5014,6 +5798,16 @@ class ForStatement extends Statement {
       body = body.accept<TreeNode>(v);
       body?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "ForStatement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5060,6 +5854,16 @@ class ForInStatement extends Statement {
       body?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "ForInStatement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Statement of form `switch (e) { case x: ... }`.
@@ -5090,6 +5894,16 @@ class SwitchStatement extends Statement {
       expression?.parent = this;
     }
     transformList(cases, v, this);
+  }
+
+  @override
+  String toString() {
+    return "SwitchStatement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5135,6 +5949,16 @@ class SwitchCase extends TreeNode {
       body?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "SwitchCase(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// Jump to a case in an enclosing switch.
@@ -5149,6 +5973,16 @@ class ContinueSwitchStatement extends Statement {
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
+
+  @override
+  String toString() {
+    return "ContinueSwitchStatement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 class IfStatement extends Statement {
@@ -5186,6 +6020,16 @@ class IfStatement extends Statement {
       otherwise?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "IfStatement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 class ReturnStatement extends Statement {
@@ -5208,6 +6052,16 @@ class ReturnStatement extends Statement {
       expression = expression.accept<TreeNode>(v);
       expression?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "ReturnStatement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5236,6 +6090,16 @@ class TryCatch extends Statement {
       body?.parent = this;
     }
     transformList(catches, v, this);
+  }
+
+  @override
+  String toString() {
+    return "TryCatch(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5277,6 +6141,16 @@ class Catch extends TreeNode {
       body?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "Catch(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 class TryFinally extends Statement {
@@ -5306,6 +6180,16 @@ class TryFinally extends Statement {
       finalizer = finalizer.accept<TreeNode>(v);
       finalizer?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "TryFinally(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5350,6 +6234,16 @@ class YieldStatement extends Statement {
       expression = expression.accept<TreeNode>(v);
       expression?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "YieldStatement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5550,7 +6444,13 @@ class VariableDeclaration extends Statement {
 
   /// Returns a possibly synthesized name for this variable, consistent with
   /// the names used across all [toString] calls.
-  String toString() => debugVariableDeclarationName(this);
+  String toString() {
+    return "VariableDeclaration(${toStringInternal()})";
+  }
+
+  String toStringInternal() {
+    return name ?? "null-named VariableDeclaration (${hashCode})";
+  }
 }
 
 /// Declaration a local function.
@@ -5583,6 +6483,16 @@ class FunctionDeclaration extends Statement implements LocalFunction {
       function = function.accept<TreeNode>(v);
       function?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "FunctionDeclaration(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5637,7 +6547,7 @@ abstract class Name implements Node {
   ///
   /// Note that this adds some nodes to a static map to ensure consistent
   /// naming, but that it thus also leaks memory.
-  String leakingDebugToString() => debugNodeToString(this);
+  String leakingDebugToString() => astToText.debugNodeToString(this);
 }
 
 class _PrivateName extends Name {
@@ -5648,7 +6558,8 @@ class _PrivateName extends Name {
       : this.libraryName = libraryName,
         super._internal(_computeHashCode(name, libraryName), name);
 
-  String toString() => library != null ? '$library::$name' : name;
+  String toString() => toStringInternal();
+  String toStringInternal() => library != null ? '$library::$name' : name;
 
   Library get library => libraryName.asLibrary;
 
@@ -5667,7 +6578,8 @@ class _PublicName extends Name {
 
   _PublicName(String name) : super._internal(name.hashCode, name);
 
-  String toString() => name;
+  String toString() => toStringInternal();
+  String toStringInternal() => name;
 }
 
 // ------------------------------------------------------------------------
@@ -5730,6 +6642,24 @@ abstract class DartType extends Node {
   @override
   bool operator ==(Object other);
 
+  /// The nullability declared on the type.
+  ///
+  /// For example, the declared nullability of `FutureOr<int?>` is
+  /// [Nullability.nonNullable], the declared nullability of `dynamic` is
+  /// [Nullability.nullable], the declared nullability of `int*` is
+  /// [Nullability.legacy], the declared nullability of the promoted type `X &
+  /// int` where `X extends Object?`
+  /// is [Nullability.undetermined].
+  Nullability get declaredNullability;
+
+  /// The nullability of the type as the property to contain null.
+  ///
+  /// For example, nullability-as-property of FutureOr<int?> is
+  /// [Nullability.nullable], nullability-as-property of dynamic is
+  /// [Nullability.nullable], nullability-as-property of int* is
+  /// [Nullability.legacy], nullability-as-property of the promoted type `X &
+  /// int` where `X extends Object?`
+  /// is [Nullability.nonNullable].
   Nullability get nullability;
 
   /// If this is a typedef type, repeatedly unfolds its type definition until
@@ -5742,11 +6672,11 @@ abstract class DartType extends Node {
   /// returns the type itself.
   DartType get unaliasOnce => this;
 
-  /// Creates a copy of the type with the given [nullability] if possible.
+  /// Creates a copy of the type with the given [declaredNullability].
   ///
   /// Some types have fixed nullabilities, such as `dynamic`, `invalid-type`,
   /// `void`, or `bottom`.
-  DartType withNullability(Nullability nullability);
+  DartType withDeclaredNullability(Nullability declaredNullability);
 
   /// Checks if the type is potentially nullable.
   ///
@@ -5796,10 +6726,25 @@ class InvalidType extends DartType {
   bool equals(Object other, Assumptions assumptions) => other is InvalidType;
 
   @override
-  Nullability get nullability => throw "InvalidType doesn't have nullability";
+  Nullability get declaredNullability {
+    throw "InvalidType doesn't have nullability.";
+  }
 
   @override
-  InvalidType withNullability(Nullability nullability) => this;
+  Nullability get nullability => throw "InvalidType doesn't have nullability.";
+
+  @override
+  InvalidType withDeclaredNullability(Nullability declaredNullability) => this;
+
+  @override
+  String toString() {
+    return "InvalidType(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "invalid-type";
+  }
 }
 
 class DynamicType extends DartType {
@@ -5825,10 +6770,23 @@ class DynamicType extends DartType {
   bool equals(Object other, Assumptions assumptions) => other is DynamicType;
 
   @override
+  Nullability get declaredNullability => Nullability.nullable;
+
+  @override
   Nullability get nullability => Nullability.nullable;
 
   @override
-  DynamicType withNullability(Nullability nullability) => this;
+  DynamicType withDeclaredNullability(Nullability declaredNullability) => this;
+
+  @override
+  String toString() {
+    return "DynamicType(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "dynamic";
+  }
 }
 
 class VoidType extends DartType {
@@ -5854,17 +6812,33 @@ class VoidType extends DartType {
   bool equals(Object other, Assumptions assumptions) => other is VoidType;
 
   @override
+  Nullability get declaredNullability => Nullability.nullable;
+
+  @override
   Nullability get nullability => Nullability.nullable;
 
   @override
-  VoidType withNullability(Nullability nullability) => this;
+  VoidType withDeclaredNullability(Nullability declaredNullability) => this;
+
+  @override
+  String toString() {
+    return "VoidType(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "void";
+  }
 }
 
 class NeverType extends DartType {
   @override
-  final Nullability nullability;
+  final Nullability declaredNullability;
 
-  const NeverType(this.nullability);
+  const NeverType(this.declaredNullability);
+
+  @override
+  Nullability get nullability => declaredNullability;
 
   @override
   int get hashCode {
@@ -5889,8 +6863,20 @@ class NeverType extends DartType {
       other is NeverType && nullability == other.nullability;
 
   @override
-  NeverType withNullability(Nullability nullability) {
-    return this.nullability == nullability ? this : new NeverType(nullability);
+  NeverType withDeclaredNullability(Nullability declaredNullability) {
+    return this.declaredNullability == declaredNullability
+        ? this
+        : new NeverType(declaredNullability);
+  }
+
+  @override
+  String toString() {
+    return "NeverType(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "${nullabilityToString(nullability)}";
   }
 }
 
@@ -5917,32 +6903,48 @@ class BottomType extends DartType {
   bool equals(Object other, Assumptions assumptions) => other is BottomType;
 
   @override
+  Nullability get declaredNullability => Nullability.nonNullable;
+
+  @override
   Nullability get nullability => Nullability.nonNullable;
 
   @override
-  BottomType withNullability(Nullability nullability) => this;
+  BottomType withDeclaredNullability(Nullability declaredNullability) => this;
+
+  @override
+  String toString() {
+    return "BottomType(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "<BottomType>";
+  }
 }
 
 class InterfaceType extends DartType {
   Reference className;
 
   @override
-  final Nullability nullability;
+  final Nullability declaredNullability;
 
   final List<DartType> typeArguments;
 
   /// The [typeArguments] list must not be modified after this call. If the
   /// list is omitted, 'dynamic' type arguments are filled in.
-  InterfaceType(Class classNode, Nullability nullability,
+  InterfaceType(Class classNode, Nullability declaredNullability,
       [List<DartType> typeArguments])
-      : this.byReference(getClassReference(classNode), nullability,
+      : this.byReference(getClassReference(classNode), declaredNullability,
             typeArguments ?? _defaultTypeArguments(classNode));
 
   InterfaceType.byReference(
-      this.className, this.nullability, this.typeArguments)
-      : assert(nullability != null);
+      this.className, this.declaredNullability, this.typeArguments)
+      : assert(declaredNullability != null);
 
   Class get classNode => className.asClass;
+
+  @override
+  Nullability get nullability => declaredNullability;
 
   static List<DartType> _defaultTypeArguments(Class classNode) {
     if (classNode.typeParameters.length == 0) {
@@ -6000,10 +7002,38 @@ class InterfaceType extends DartType {
   }
 
   @override
-  InterfaceType withNullability(Nullability nullability) {
-    return nullability == this.nullability
+  InterfaceType withDeclaredNullability(Nullability declaredNullability) {
+    return declaredNullability == this.declaredNullability
         ? this
-        : new InterfaceType.byReference(className, nullability, typeArguments);
+        : new InterfaceType.byReference(
+            className, declaredNullability, typeArguments);
+  }
+
+  @override
+  String toString() {
+    return "InterfaceType(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    StringBuffer sb = new StringBuffer();
+    if (_verboseTypeToString) {
+      sb.write(className.toStringInternal());
+    } else {
+      sb.write(classNode.name);
+    }
+    if (typeArguments.isNotEmpty) {
+      sb.write("<");
+      String comma = "";
+      for (DartType typeArgument in typeArguments) {
+        sb.write(comma);
+        sb.write(typeArgument.toStringInternal());
+        comma = ", ";
+      }
+      sb.write(">");
+    }
+    sb.write(nullabilityToString(nullability));
+    return sb.toString();
   }
 }
 
@@ -6013,7 +7043,9 @@ class FunctionType extends DartType {
   final int requiredParameterCount;
   final List<DartType> positionalParameters;
   final List<NamedType> namedParameters; // Must be sorted.
-  final Nullability nullability;
+
+  @override
+  final Nullability declaredNullability;
 
   /// The [Typedef] this function type is created for.
   final TypedefType typedefType;
@@ -6021,8 +7053,8 @@ class FunctionType extends DartType {
   final DartType returnType;
   int _hashCode;
 
-  FunctionType(
-      List<DartType> positionalParameters, this.returnType, this.nullability,
+  FunctionType(List<DartType> positionalParameters, this.returnType,
+      this.declaredNullability,
       {this.namedParameters: const <NamedType>[],
       this.typeParameters: const <TypeParameter>[],
       int requiredParameterCount,
@@ -6034,6 +7066,9 @@ class FunctionType extends DartType {
   Reference get typedefReference => typedefType?.typedefReference;
 
   Typedef get typedef => typedefReference?.asTypedef;
+
+  @override
+  Nullability get nullability => declaredNullability;
 
   @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitFunctionType(this);
@@ -6164,16 +7199,62 @@ class FunctionType extends DartType {
   }
 
   @override
-  FunctionType withNullability(Nullability nullability) {
-    if (nullability == this.nullability) return this;
+  FunctionType withDeclaredNullability(Nullability declaredNullability) {
+    if (declaredNullability == this.declaredNullability) return this;
     FunctionType result = FunctionType(
-        positionalParameters, returnType, nullability,
+        positionalParameters, returnType, declaredNullability,
         namedParameters: namedParameters,
         typeParameters: typeParameters,
         requiredParameterCount: requiredParameterCount,
-        typedefType: typedefType?.withNullability(nullability));
+        typedefType: typedefType?.withDeclaredNullability(declaredNullability));
     if (typeParameters.isEmpty) return result;
     return getFreshTypeParameters(typeParameters).applyToFunctionType(result);
+  }
+
+  @override
+  String toString() {
+    return "FunctionType(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    StringBuffer sb = new StringBuffer();
+    sb.write(returnType.toStringInternal());
+    sb.write(" Function");
+    if (typeParameters.isNotEmpty) {
+      sb.write("<");
+      String comma = "";
+      for (TypeParameter typeParameter in typeParameters) {
+        sb.write(comma);
+        sb.write(typeParameter.toStringInternal());
+        comma = ", ";
+      }
+      sb.write(">");
+    }
+
+    sb.write("(");
+    for (int i = 0; i < positionalParameters.length; i++) {
+      if (i > 0) sb.write(", ");
+      if (i == requiredParameterCount) sb.write("[");
+      sb.write(positionalParameters[i].toStringInternal());
+    }
+    if (requiredParameterCount < positionalParameters.length) sb.write("]");
+
+    if (namedParameters.isNotEmpty) {
+      if (positionalParameters.isNotEmpty) {
+        sb.write(", ");
+      }
+      sb.write("{");
+      for (int i = 0; i < namedParameters.length; i++) {
+        if (i > 0) sb.write(", ");
+        sb.write(namedParameters[i].toStringInternal());
+      }
+      sb.write("}");
+    }
+    sb.write(")");
+    sb.write(nullabilityToString(nullability));
+
+    return sb.toString();
   }
 }
 
@@ -6181,7 +7262,7 @@ class FunctionType extends DartType {
 ///
 /// The underlying type can be extracted using [unalias].
 class TypedefType extends DartType {
-  final Nullability nullability;
+  final Nullability declaredNullability;
   final Reference typedefReference;
   final List<DartType> typeArguments;
 
@@ -6191,9 +7272,14 @@ class TypedefType extends DartType {
             typeArguments ?? const <DartType>[]);
 
   TypedefType.byReference(
-      this.typedefReference, this.nullability, this.typeArguments);
+      this.typedefReference, this.declaredNullability, this.typeArguments);
 
   Typedef get typedefNode => typedefReference.asTypedef;
+
+  // TODO(dmitryas): Replace with uniteNullabilities(declaredNullability,
+  // typedefNode.type.nullability).
+  @override
+  Nullability get nullability => declaredNullability;
 
   @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitTypedefType(this);
@@ -6212,7 +7298,7 @@ class TypedefType extends DartType {
   DartType get unaliasOnce {
     DartType result =
         Substitution.fromTypedefType(this).substituteType(typedefNode.type);
-    return result.withNullability(
+    return result.withDeclaredNullability(
         combineNullabilitiesForSubstitution(result.nullability, nullability));
   }
 
@@ -6257,11 +7343,33 @@ class TypedefType extends DartType {
   }
 
   @override
-  TypedefType withNullability(Nullability nullability) {
-    return nullability == this.nullability
+  TypedefType withDeclaredNullability(Nullability declaredNullability) {
+    return declaredNullability == this.declaredNullability
         ? this
         : new TypedefType.byReference(
-            typedefReference, nullability, typeArguments);
+            typedefReference, declaredNullability, typeArguments);
+  }
+
+  @override
+  String toString() {
+    return "TypedefType(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    StringBuffer sb = new StringBuffer();
+    sb.write(typedefNode.toStringInternal());
+    if (typeArguments.isNotEmpty) {
+      sb.write("<");
+      String comma = "";
+      for (DartType typeArgument in typeArguments) {
+        sb.write(comma);
+        sb.write(typeArgument.toStringInternal());
+        comma = ", ";
+      }
+      sb.write(">");
+    }
+    return sb.toString();
   }
 }
 
@@ -6301,6 +7409,19 @@ class NamedType extends Node implements Comparable<NamedType> {
   void visitChildren(Visitor v) {
     type.accept(v);
   }
+
+  @override
+  String toString() {
+    return "NamedType(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    StringBuffer sb = new StringBuffer();
+    if (isRequired) sb.write("required ");
+    sb.write("$name: ${type.toStringInternal()}");
+    return sb.toString();
+  }
 }
 
 /// Reference to a type variable.
@@ -6312,17 +7433,11 @@ class NamedType extends Node implements Comparable<NamedType> {
 /// viewed as representing an intersection type between the type-parameter type
 /// and the promoted bound.
 class TypeParameterType extends DartType {
-  /// Nullability of the type-parameter type or of its part of the intersection.
+  /// The declared nullability of a type-parameter type.
   ///
-  /// Declarations of type-parameter types can set the nullability of a
-  /// type-parameter type to [Nullability.nullable] (if the `?` marker is used)
-  /// or [Nullability.legacy] (if the type comes from a library opted out from
-  /// NNBD).  Otherwise, it's defined indirectly via the nullability of the
-  /// bound of [parameter].  In cases when the [TypeParameterType] represents an
-  /// intersection between a type-parameter type and [promotedBound],
-  /// [typeParameterTypeNullability] represents the nullability of the left-hand
-  /// side of the intersection.
-  Nullability typeParameterTypeNullability;
+  /// When a [TypeParameterType] represents an intersection, [declaredNullability] is the nullability of the left-hand side.
+  @override
+  Nullability declaredNullability;
 
   TypeParameter parameter;
 
@@ -6332,12 +7447,12 @@ class TypeParameterType extends DartType {
   /// is therefore the same as the bound of [parameter].
   DartType promotedBound;
 
-  TypeParameterType(this.parameter, this.typeParameterTypeNullability,
+  TypeParameterType(this.parameter, this.declaredNullability,
       [this.promotedBound]);
 
   /// Creates an intersection type between a type parameter and [promotedBound].
   TypeParameterType.intersection(
-      this.parameter, this.typeParameterTypeNullability, this.promotedBound);
+      this.parameter, this.declaredNullability, this.promotedBound);
 
   /// Creates a type-parameter type to be used in alpha-renaming.
   ///
@@ -6359,7 +7474,7 @@ class TypeParameterType extends DartType {
   /// the bound of [parameter].
   TypeParameterType.withDefaultNullabilityForLibrary(
       this.parameter, Library library) {
-    typeParameterTypeNullability = library.isNonNullableByDefault
+    declaredNullability = library.isNonNullableByDefault
         ? computeNullabilityFromBound(parameter)
         : Nullability.legacy;
   }
@@ -6447,24 +7562,24 @@ class TypeParameterType extends DartType {
   @override
   Nullability get nullability {
     return getNullability(
-        typeParameterTypeNullability ?? computeNullabilityFromBound(parameter),
+        declaredNullability ?? computeNullabilityFromBound(parameter),
         promotedBound);
   }
 
   /// Gets a new [TypeParameterType] with given [typeParameterTypeNullability].
   ///
-  /// In contrast with other types, [TypeParameterType.withNullability] doesn't
-  /// set the overall nullability of the returned type but sets that of the
-  /// left-hand side of the intersection type.  In case [promotedBound] is null,
-  /// it is an equivalent of setting the overall nullability.
+  /// In contrast with other types, [TypeParameterType.withDeclaredNullability]
+  /// doesn't set the overall nullability of the returned type but sets that of
+  /// the left-hand side of the intersection type.  In case [promotedBound] is
+  /// null, it is an equivalent of setting the overall nullability.
   @override
-  TypeParameterType withNullability(Nullability typeParameterTypeNullability) {
+  TypeParameterType withDeclaredNullability(Nullability declaredNullability) {
+    // TODO(dmitryas): Consider removing the assert.
     assert(promotedBound == null,
         "Can't change the nullability attribute of an intersection type.");
-    return typeParameterTypeNullability == this.typeParameterTypeNullability
+    return declaredNullability == this.declaredNullability
         ? this
-        : new TypeParameterType(
-            parameter, typeParameterTypeNullability, promotedBound);
+        : new TypeParameterType(parameter, declaredNullability, promotedBound);
   }
 
   /// Gets the nullability of a type-parameter type based on the bound.
@@ -6481,6 +7596,30 @@ class TypeParameterType extends DartType {
     if (bound == null) {
       throw new StateError("Can't compute nullability from an absent bound.");
     }
+
+    // If a type parameter's nullability depends on itself, it is deemed 'undetermined'.
+    // Currently, it's possible if the type parameter has a possibly nested FutureOr containing that type parameter.
+    // If there are other ways for such a dependency to exist, they should be checked here.
+    bool nullabilityDependsOnItself = false;
+    {
+      DartType type = typeParameter.bound;
+      while (type is InterfaceType &&
+          type.classNode.name == "FutureOr" &&
+          type.classNode.enclosingLibrary.importUri.scheme == "dart" &&
+          type.classNode.enclosingLibrary.importUri.path == "async") {
+        type = (type as InterfaceType).typeArguments.single;
+      }
+      if (type is TypeParameterType && type.parameter == typeParameter) {
+        // Intersection types can't appear in the bound.
+        assert(type.promotedBound == null);
+
+        nullabilityDependsOnItself = true;
+      }
+    }
+    if (nullabilityDependsOnItself) {
+      return Nullability.undetermined;
+    }
+
     Nullability boundNullability =
         bound is InvalidType ? Nullability.undetermined : bound.nullability;
     return boundNullability == Nullability.nullable ||
@@ -6570,6 +7709,36 @@ class TypeParameterType extends DartType {
     }
 
     return Nullability.legacy;
+  }
+
+  @override
+  String toString() {
+    return "TypeParameterType(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    StringBuffer sb = new StringBuffer();
+    sb.write(qualifiedTypeParameterNameToString(parameter,
+        includeLibraryName: _verboseTypeToString));
+    sb.write(nullabilityToString(declaredNullability));
+    if (promotedBound != null) {
+      sb.write(" & ");
+      sb.write(promotedBound.toStringInternal());
+      sb.write(" /* '");
+      sb.write(nullabilityToString(declaredNullability));
+      sb.write("' & '");
+      if (promotedBound is InvalidType) {
+        sb.write(nullabilityToString(Nullability.undetermined));
+      } else {
+        sb.write(nullabilityToString(promotedBound.nullability));
+      }
+      sb.write("' = '");
+      sb.write(nullabilityToString(nullability));
+      sb.write("' */");
+    }
+
+    return sb.toString();
   }
 }
 
@@ -6772,7 +7941,14 @@ class TypeParameter extends TreeNode {
 
   /// Returns a possibly synthesized name for this type parameter, consistent
   /// with the names used across all [toString] calls.
-  String toString() => debugQualifiedTypeParameterName(this);
+  String toString() {
+    return "TypeParameter(${toStringInternal()})";
+  }
+
+  String toStringInternal() {
+    return qualifiedTypeParameterNameToString(this,
+        includeLibraryName: _verboseMemberToString);
+  }
 
   bool get isFunctionTypeTypeParameter => parent == null;
 }
@@ -6820,6 +7996,32 @@ class Supertype extends Node {
     }
     return hash;
   }
+
+  @override
+  String toString() {
+    return "Supertype(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    StringBuffer sb = new StringBuffer();
+    if (_verboseTypeToString) {
+      sb.write(className.toStringInternal());
+    } else {
+      sb.write(classNode.name);
+    }
+    if (typeArguments.isNotEmpty) {
+      sb.write("<");
+      String comma = "";
+      for (DartType typeArgument in typeArguments) {
+        sb.write(comma);
+        sb.write(typeArgument.toStringInternal());
+        comma = ", ";
+      }
+      sb.write(">");
+    }
+    return sb.toString();
+  }
 }
 
 // ------------------------------------------------------------------------
@@ -6859,7 +8061,8 @@ abstract class PrimitiveConstant<T> extends Constant {
 
   PrimitiveConstant(this.value);
 
-  String toString() => '$value';
+  String toString() => toStringInternal();
+  String toStringInternal() => '$value';
 
   int get hashCode => value.hashCode;
 
@@ -6941,7 +8144,9 @@ class SymbolConstant extends Constant {
   R accept<R>(ConstantVisitor<R> v) => v.visitSymbolConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitSymbolConstantReference(this);
 
-  String toString() {
+  String toString() => toStringInternal();
+
+  String toStringInternal() {
     return libraryReference != null
         ? '#${libraryReference.asLibrary.importUri}::$name'
         : '#$name';
@@ -6978,7 +8183,10 @@ class MapConstant extends Constant {
   R accept<R>(ConstantVisitor<R> v) => v.visitMapConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitMapConstantReference(this);
 
-  String toString() => '${this.runtimeType}<$keyType, $valueType>($entries)';
+  String toString() => toStringInternal();
+  String toStringInternal() {
+    return '${this.runtimeType}<$keyType, $valueType>($entries)';
+  }
 
   int _cachedHashCode;
   int get hashCode {
@@ -7002,7 +8210,8 @@ class ConstantMapEntry {
   final Constant value;
   ConstantMapEntry(this.key, this.value);
 
-  String toString() => '$key: $value';
+  String toString() => toStringInternal();
+  String toStringInternal() => '$key: $value';
 
   int get hashCode => _Hash.hash2(key, value);
 
@@ -7026,7 +8235,10 @@ class ListConstant extends Constant {
   R accept<R>(ConstantVisitor<R> v) => v.visitListConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitListConstantReference(this);
 
-  String toString() => '${this.runtimeType}<$typeArgument>($entries)';
+  String toString() => toStringInternal();
+  String toStringInternal() {
+    return '${runtimeType}<${typeArgument.toStringInternal()}>($entries)';
+  }
 
   int _cachedHashCode;
   int get hashCode {
@@ -7060,7 +8272,10 @@ class SetConstant extends Constant {
   R accept<R>(ConstantVisitor<R> v) => v.visitSetConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitSetConstantReference(this);
 
-  String toString() => '${this.runtimeType}<$typeArgument>($entries)';
+  String toString() => toStringInternal();
+  String toStringInternal() {
+    return '${runtimeType}<${typeArgument.toStringInternal()}>($entries)';
+  }
 
   int _cachedHashCode;
   int get hashCode {
@@ -7101,12 +8316,13 @@ class InstanceConstant extends Constant {
   R accept<R>(ConstantVisitor<R> v) => v.visitInstanceConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitInstanceConstantReference(this);
 
-  String toString() {
+  String toString() => toStringInternal();
+  String toStringInternal() {
     final sb = new StringBuffer();
     sb.write('${classReference.asClass}');
     if (!classReference.asClass.typeParameters.isEmpty) {
       sb.write('<');
-      sb.write(typeArguments.map((type) => type.toString()).join(', '));
+      sb.write(typeArguments.map((type) => type.toStringInternal()).join(', '));
       sb.write('>');
     }
     sb.write(' {');
@@ -7153,8 +8369,10 @@ class PartialInstantiationConstant extends Constant {
   R acceptReference<R>(Visitor<R> v) =>
       v.visitPartialInstantiationConstantReference(this);
 
-  String toString() {
-    return '${runtimeType}(${tearOffConstant.procedure}<${types.join(', ')}>)';
+  String toString() => toStringInternal();
+  String toStringInternal() {
+    return '${runtimeType}(${tearOffConstant.procedure}<'
+        '${types.map((t) => t.toStringInternal()).join(', ')}>)';
   }
 
   int get hashCode => _Hash.combineFinish(
@@ -7195,7 +8413,8 @@ class TearOffConstant extends Constant {
   R accept<R>(ConstantVisitor<R> v) => v.visitTearOffConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitTearOffConstantReference(this);
 
-  String toString() {
+  String toString() => toStringInternal();
+  String toStringInternal() {
     return '${runtimeType}(${procedure})';
   }
 
@@ -7224,7 +8443,8 @@ class TypeLiteralConstant extends Constant {
   R acceptReference<R>(Visitor<R> v) =>
       v.visitTypeLiteralConstantReference(this);
 
-  String toString() => '${runtimeType}(${type})';
+  String toString() => toStringInternal();
+  String toStringInternal() => '${runtimeType}(${type})';
 
   int get hashCode => type.hashCode;
 
@@ -7256,6 +8476,16 @@ class UnevaluatedConstant extends Constant {
 
   @override
   Expression asExpression() => expression;
+
+  @override
+  String toString() {
+    return "UnevaluatedConstant(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 // ------------------------------------------------------------------------
@@ -7285,7 +8515,14 @@ class Component extends TreeNode {
       <String, MetadataRepository<dynamic>>{};
 
   /// Reference to the main method in one of the libraries.
-  Reference mainMethodName;
+  Reference _mainMethodName;
+  Reference get mainMethodName => _mainMethodName;
+  NonNullableByDefaultCompiledMode _mode;
+  NonNullableByDefaultCompiledMode get mode {
+    return _mode ?? NonNullableByDefaultCompiledMode.Disabled;
+  }
+
+  NonNullableByDefaultCompiledMode get modeRaw => _mode;
 
   Component(
       {CanonicalName nameRoot,
@@ -7369,8 +8606,12 @@ class Component extends TreeNode {
 
   Procedure get mainMethod => mainMethodName?.asProcedure;
 
-  void set mainMethod(Procedure main) {
-    mainMethodName = getMemberReference(main);
+  void setMainMethodAndMode(Reference main, bool overwriteMainIfSet,
+      NonNullableByDefaultCompiledMode mode) {
+    if (_mainMethodName == null || overwriteMainIfSet) {
+      _mainMethodName = main;
+    }
+    _mode = mode;
   }
 
   R accept<R>(TreeVisitor<R> v) => v.visitComponent(this);
@@ -7391,8 +8632,27 @@ class Component extends TreeNode {
     return uriToSource[file]?.getLocation(file, offset);
   }
 
+  /// Translates line and column numbers to an offset in the given file.
+  ///
+  /// Returns offset of the line and column in the file, or -1 if the
+  /// source is not available or has no lines.
+  /// Throws [RangeError] if line or calculated offset are out of range.
+  int getOffset(Uri file, int line, int column) {
+    return uriToSource[file]?.getOffset(line, column) ?? -1;
+  }
+
   void addMetadataRepository(MetadataRepository repository) {
     metadata[repository.tag] = repository;
+  }
+
+  @override
+  String toString() {
+    return "Component(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -7626,7 +8886,7 @@ class Source {
     throw "Internal error";
   }
 
-  /// Translates an offset to line and column numbers in the given file.
+  /// Translates an offset to 1-based line and column numbers in the given file.
   Location getLocation(Uri file, int offset) {
     if (lineStarts == null || lineStarts.isEmpty) {
       return new Location(file, TreeNode.noOffset, TreeNode.noOffset);
@@ -7647,6 +8907,21 @@ class Source {
     int lineNumber = 1 + lineIndex;
     int columnNumber = 1 + offset - lineStart;
     return new Location(file, lineNumber, columnNumber);
+  }
+
+  /// Translates 1-based line and column numbers to an offset in the given file
+  ///
+  /// Returns offset of the line and column in the file, or -1 if the source
+  /// has no lines.
+  /// Throws [RangeError] if line or calculated offset are out of range.
+  int getOffset(int line, int column) {
+    if (lineStarts == null || lineStarts.isEmpty) {
+      return -1;
+    }
+    RangeError.checkValueInInterval(line, 1, lineStarts.length, 'line');
+    var offset = lineStarts[line - 1] + column - 1;
+    RangeError.checkValueInInterval(offset, 0, lineStarts.last, 'offset');
+    return offset;
   }
 }
 
@@ -7901,4 +9176,66 @@ List<DartType> getAsTypeArguments(
         typeParameters[i], library);
   }
   return result;
+}
+
+class Version extends Object {
+  final int major;
+  final int minor;
+
+  const Version(this.major, this.minor)
+      : assert(major != null),
+        assert(minor != null);
+
+  bool operator <(Version other) {
+    if (major < other.major) return true;
+    if (major > other.major) return false;
+
+    // Major is the same.
+    if (minor < other.minor) return true;
+    return false;
+  }
+
+  bool operator <=(Version other) {
+    if (major < other.major) return true;
+    if (major > other.major) return false;
+
+    // Major is the same.
+    if (minor <= other.minor) return true;
+    return false;
+  }
+
+  bool operator >(Version other) {
+    if (major > other.major) return true;
+    if (major < other.major) return false;
+
+    // Major is the same.
+    if (minor > other.minor) return true;
+    return false;
+  }
+
+  bool operator >=(Version other) {
+    if (major > other.major) return true;
+    if (major < other.major) return false;
+
+    // Major is the same.
+    if (minor >= other.minor) return true;
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    return major.hashCode * 13 + minor.hashCode * 17;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! Version) return false;
+    return major == other.major && minor == other.minor;
+  }
+
+  @override
+  String toString() {
+    return "Version(major=$major, minor=$minor)";
+  }
 }

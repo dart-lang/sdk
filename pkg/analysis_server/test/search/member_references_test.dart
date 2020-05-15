@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -26,8 +25,8 @@ class MemberReferencesTest extends AbstractSearchDomainTest {
 
   Future findMemberReferences(String name) async {
     await waitForTasksFinished();
-    Request request = SearchFindMemberReferencesParams(name).toRequest('0');
-    Response response = await waitResponse(request);
+    var request = SearchFindMemberReferencesParams(name).toRequest('0');
+    var response = await waitResponse(request);
     searchId = SearchFindMemberReferencesResult.fromResponse(response).id;
     return waitForSearchResults();
   }

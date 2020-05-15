@@ -4,8 +4,6 @@
 
 #include "vm/compiler/compiler_pass.h"
 
-#ifndef DART_PRECOMPILED_RUNTIME
-
 #include "vm/compiler/backend/block_scheduler.h"
 #include "vm/compiler/backend/branch_optimizer.h"
 #include "vm/compiler/backend/constant_propagator.h"
@@ -482,7 +480,8 @@ COMPILER_PASS(OptimizeTypedDataAccesses,
               { TypedDataSpecializer::Optimize(flow_graph); });
 
 COMPILER_PASS(TryCatchOptimization, {
-  OptimizeCatchEntryStates(flow_graph, /*is_aot=*/FLAG_precompiled_mode);
+  OptimizeCatchEntryStates(flow_graph,
+                           /*is_aot=*/CompilerState::Current().is_aot());
 });
 
 COMPILER_PASS(EliminateEnvironments, { flow_graph->EliminateEnvironments(); });
@@ -574,5 +573,3 @@ COMPILER_PASS(RoundTripSerialization, {
 })
 
 }  // namespace dart
-
-#endif  // DART_PRECOMPILED_RUNTIME

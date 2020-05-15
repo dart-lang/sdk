@@ -25,7 +25,7 @@ class Test {
     t. /*@target=Test::member*/ member = /*@ typeArgs=B* */ f();
     /*@ type=Test* */ t
             . /*@target=Test::member*/ /*@target=Test::member*/ member
-        /*@target=Object::==*/ ??= /*@ typeArgs=B* */ f();
+        /*@target=A::==*/ ??= /*@ typeArgs=B* */ f();
     /*@ type=Test* */ t
             . /*@target=Test::member*/ /*@target=Test::member*/ member
         /*@ target=B::+ */ += /*@ typeArgs=C* */ f();
@@ -45,7 +45,7 @@ class Test {
     var /*@ type=B* */ v2 =
         /*@ type=Test* */ t
                 . /*@target=Test::member*/ /*@target=Test::member*/ member
-            /*@target=Object::==*/ ??= /*@ typeArgs=B* */ f();
+            /*@target=A::==*/ ??= /*@ typeArgs=B* */ f();
     var /*@ type=A* */ v3 =
         /*@ type=Test* */ t
                 . /*@target=Test::member*/ /*@target=Test::member*/ member

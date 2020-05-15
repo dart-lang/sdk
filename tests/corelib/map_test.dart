@@ -55,14 +55,17 @@ void main() {
   testNumericKeys(new MapBaseMap<num, String>());
   testNumericKeys(new MapMixinMap<num, String>());
 
+  // NaN maps need to have nullable value types because the forEach method
+  // cannot look up the value and therefore might find `null` instead of the
+  // actuall value. See MapMixin.forEach in dart:collection/maps.dart
   testNaNKeys(new Map());
-  testNaNKeys(new Map<num, String>());
+  testNaNKeys(new Map<num, String?>());
   testNaNKeys(new HashMap());
-  testNaNKeys(new HashMap<num, String>());
+  testNaNKeys(new HashMap<num, String?>());
   testNaNKeys(new LinkedHashMap());
-  testNaNKeys(new LinkedHashMap<num, String>());
-  testNaNKeys(new MapBaseMap<num, String>());
-  testNaNKeys(new MapMixinMap<num, String>());
+  testNaNKeys(new LinkedHashMap<num, String?>());
+  testNaNKeys(new MapBaseMap<num, String?>());
+  testNaNKeys(new MapMixinMap<num, String?>());
   // Identity maps fail the NaN-keys tests because the test assumes that
   // NaN is not equal to NaN.
 
@@ -160,7 +163,7 @@ void testLinkedHashMap() {
 
 void testMap<K, V>(
     Map<K, V> typedMap, key1, key2, key3, key4, key5, key6, key7, key8) {
-  Map map = typedMap;
+  dynamic map = typedMap;
   int value1 = 10;
   int value2 = 20;
   int value3 = 30;
@@ -379,10 +382,10 @@ void testDeletedElement(Map map) {
 }
 
 void testMapLiteral() {
-  Map m = {"a": 1, "b": 2, "c": 3};
+  var m = {"a": 1, "b": 2, "c": 3};
   Expect.equals(3, m.length);
   int sum = 0;
-  m.forEach((a, int b) {
+  m.forEach((a, b) {
     sum += b;
   });
   Expect.equals(6, sum);

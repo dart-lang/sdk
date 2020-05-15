@@ -193,7 +193,7 @@ class LibraryAnalyzer {
       PerformanceStatistics.lints.makeCurrentWhile(() {
         var allUnits = _library.libraryFiles.map(
           (file) {
-            var content = getFileContent(file.path);
+            var content = _getFileContent(file.path);
             return LinterContextUnit(content, units[file]);
           },
         ).toList();
@@ -240,7 +240,7 @@ class LibraryAnalyzer {
       ErrorReporter errorReporter, CompilationUnit unit) {
     ConstantVerifier constantVerifier = ConstantVerifier(
         errorReporter, _libraryElement, _declaredVariables,
-        featureSet: unit.featureSet, forAnalysisDriver: true);
+        featureSet: unit.featureSet);
     unit.accept(constantVerifier);
   }
 
@@ -260,21 +260,28 @@ class LibraryAnalyzer {
     AnalysisErrorListener errorListener = _getErrorListener(file);
     ErrorReporter errorReporter = _getErrorReporter(file);
 
-    unit.accept(DeadCodeVerifier(errorReporter, unit.featureSet,
-        typeSystem: _typeSystem));
+    unit.accept(DeadCodeVerifier(errorReporter, typeSystem: _typeSystem));
 
     // Dart2js analysis.
     if (_analysisOptions.dart2jsHint) {
       unit.accept(Dart2JSVerifier(errorReporter));
     }
 
-    var content = getFileContent(file.path);
-    unit.accept(BestPracticesVerifier(
-        errorReporter, _typeProvider, _libraryElement, unit, content,
+    var content = _getFileContent(file.path);
+    unit.accept(
+      BestPracticesVerifier(
+        errorReporter,
+        _typeProvider,
+        _libraryElement,
+        unit,
+        content,
+        declaredVariables: _declaredVariables,
         typeSystem: _typeSystem,
         inheritanceManager: _inheritance,
         resourceProvider: _resourceProvider,
-        analysisOptions: _context.analysisOptions));
+        analysisOptions: _context.analysisOptions,
+      ),
+    );
 
     unit.accept(OverrideVerifier(
       _inheritance,
@@ -420,7 +427,7 @@ class LibraryAnalyzer {
     // Use the ErrorVerifier to compute errors.
     //
     ErrorVerifier errorVerifier = ErrorVerifier(
-        errorReporter, _libraryElement, _typeProvider, _inheritance, false);
+        errorReporter, _libraryElement, _typeProvider, _inheritance);
     unit.accept(errorVerifier);
   }
 
@@ -518,7 +525,8 @@ class LibraryAnalyzer {
    */
   CompilationUnit _parse(FileState file) {
     AnalysisErrorListener errorListener = _getErrorListener(file);
-    String content = getFileContent(file.path);
+    String content = _getFileContent(file.path);
+
     CompilationUnit unit = file.parse(errorListener, content);
 
     LineInfo lineInfo = unit.lineInfo;
@@ -784,6 +792,17 @@ class LibraryAnalyzer {
       if (directive is UriBasedDirective) {
         _validateUriBasedDirective(file, directive);
       }
+    }
+  }
+
+  /**
+   * Catch all exceptions from the `getFileContent` function.
+   */
+  String _getFileContent(String path) {
+    try {
+      return getFileContent(path);
+    } catch (_) {
+      return '';
     }
   }
 

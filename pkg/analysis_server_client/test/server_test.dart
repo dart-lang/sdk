@@ -74,7 +74,7 @@ void main() {
       process.stderr = _noMessage();
       // ignore: unawaited_futures
       process.mockin.controller.stream.first.then((_) {
-        String encoded = json.encode({'id': '0'});
+        var encoded = json.encode({'id': '0'});
         mockout.add(utf8.encoder.convert('$encoded\n'));
       });
       process.exitCode = Future.value(0);
@@ -97,7 +97,7 @@ void main() {
       final mockout = StreamController<List<int>>();
       process.stdout = mockout.stream;
       process.stderr = _noMessage();
-      process.exitCode = Future.delayed(const Duration(seconds: 1));
+      process.exitCode = Future.delayed(const Duration(seconds: 1), () => 0);
 
       server.listenToOutput();
       await server.stop(timeLimit: const Duration(milliseconds: 10));
@@ -165,7 +165,7 @@ class MockProcess implements Process {
 
   @override
   bool kill([ProcessSignal signal = ProcessSignal.sigterm]) {
-    bool wasKilled = killed;
+    var wasKilled = killed;
     killed = true;
     return !wasKilled;
   }

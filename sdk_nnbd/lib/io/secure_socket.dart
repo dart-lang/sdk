@@ -113,7 +113,7 @@ abstract class SecureSocket implements Socket {
     return ((socket as dynamic /*_Socket*/)._detachRaw() as Future)
         .then<RawSecureSocket>((detachedRaw) {
       return RawSecureSocket.secure(detachedRaw[0] as RawSocket,
-          subscription: detachedRaw[1] as StreamSubscription<RawSocketEvent>,
+          subscription: detachedRaw[1] as StreamSubscription<RawSocketEvent>?,
           host: host,
           context: context,
           onBadCertificate: onBadCertificate,
@@ -151,7 +151,7 @@ abstract class SecureSocket implements Socket {
     return ((socket as dynamic /*_Socket*/)._detachRaw() as Future)
         .then<RawSecureSocket>((detachedRaw) {
       return RawSecureSocket.secureServer(detachedRaw[0] as RawSocket, context,
-          subscription: detachedRaw[1] as StreamSubscription<RawSocketEvent>,
+          subscription: detachedRaw[1] as StreamSubscription<RawSocketEvent>?,
           bufferedData: bufferedData,
           requestClientCertificate: requestClientCertificate,
           requireClientCertificate: requireClientCertificate,
@@ -581,12 +581,12 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     if (host is! String && host is! InternetAddress) {
       throw new ArgumentError("host is not a String or an InternetAddress");
     }
-    // TODO: Remove once non-nullability is sound.
+    // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(requestedPort, "requestedPort");
     if (requestedPort < 0 || requestedPort > 65535) {
       throw ArgumentError("requestedPort is not in the range 0..65535");
     }
-    // TODO: Remove once non-nullability is sound.
+    // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(
         requestClientCertificate, "requestClientCertificate");
     ArgumentError.checkNotNull(
@@ -698,7 +698,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       throw new ArgumentError(
           "Invalid bytes parameter in SecureSocket.read (bytes: $bytes)");
     }
-    // TODO: Remove once non-nullability is sound.
+    // TODO(40614): Remove once non-nullability is sound.
     offset = _fixOffset(offset);
     if (offset < 0) {
       throw new ArgumentError(
@@ -1236,7 +1236,7 @@ abstract class _SecureFilter {
       Uint8List protocols);
   void destroy();
   void handshake();
-  String selectedProtocol();
+  String? selectedProtocol();
   void rehandshake();
   void renegotiate(bool useSessionCache, bool requestClientCertificate,
       bool requireClientCertificate);

@@ -224,27 +224,27 @@ class TokenStreamGhostWriter
 
   @override
   void _setEndGroup(BeginToken setOn, Token endGroup) {
-    throw UnimplementedError("_setEndGroup");
+    throw new UnimplementedError("_setEndGroup");
   }
 
   @override
   Token _setNext(Token setOn, Token nextToken) {
-    throw UnimplementedError("_setNext");
+    throw new UnimplementedError("_setNext");
   }
 
   @override
   void _setOffset(Token setOn, int offset) {
-    throw UnimplementedError("_setOffset");
+    throw new UnimplementedError("_setOffset");
   }
 
   @override
   void _setPrecedingComments(SimpleToken setOn, CommentToken comment) {
-    throw UnimplementedError("_setPrecedingComments");
+    throw new UnimplementedError("_setPrecedingComments");
   }
 
   @override
   void _setPrevious(Token setOn, Token previous) {
-    throw UnimplementedError("_setPrevious");
+    throw new UnimplementedError("_setPrevious");
   }
 }
 

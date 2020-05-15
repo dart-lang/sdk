@@ -42,7 +42,7 @@ quazz() async {
     try {
       x = await bar(1);
       throw x;
-    } catch (e1) {
+    } on int catch (e1) {
       var y = await baz(e1 + 1);
       throw y;
     }
@@ -65,7 +65,7 @@ nesting() async {
       };
       var a = await y();
       throw a;
-    } catch (e2) {
+    } on int catch (e2) {
       throw e2 + 1;
     }
   } catch (e3) {

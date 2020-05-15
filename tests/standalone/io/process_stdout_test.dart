@@ -59,10 +59,9 @@ main() {
 
   // Run the test using the dart binary with an echo script.
   // The test runner can be run from either the root or from runtime.
-  var scriptFile = new File("tests/standalone_2/io/process_std_io_script.dart");
+  var scriptFile = new File("tests/standalone/io/process_std_io_script.dart");
   if (!scriptFile.existsSync()) {
-    scriptFile =
-        new File("../tests/standalone_2/io/process_std_io_script.dart");
+    scriptFile = new File("../tests/standalone/io/process_std_io_script.dart");
   }
   Expect.isTrue(scriptFile.existsSync());
   test(

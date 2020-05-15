@@ -30,9 +30,9 @@ class AnalysisBenchmark extends Benchmark {
     bool quick = false,
     bool verbose = false,
   }) async {
-    Stopwatch stopwatch = Stopwatch()..start();
+    var stopwatch = Stopwatch()..start();
 
-    AnalysisServerMemoryUsageTest test = AnalysisServerMemoryUsageTest();
+    var test = AnalysisServerMemoryUsageTest();
     if (verbose) {
       test.debugStdio();
     }
@@ -42,20 +42,20 @@ class AnalysisBenchmark extends Benchmark {
     await test.analysisFinished;
 
     stopwatch.stop();
-    int usedBytes = await test.getMemoryUsage();
+    var usedBytes = await test.getMemoryUsage();
 
-    CompoundBenchMarkResult result = CompoundBenchMarkResult(id);
+    var result = CompoundBenchMarkResult(id);
     result.add('warm-analysis',
         BenchMarkResult('micros', stopwatch.elapsedMicroseconds));
     result.add('warm-memory', BenchMarkResult('bytes', usedBytes));
 
     if (!quick) {
       // change timing
-      final int editMicros = await _calcEditTiming(test);
+      var editMicros = await _calcEditTiming(test);
       result.add('edit', BenchMarkResult('micros', editMicros));
 
       // code completion
-      final int completionMicros = await _calcCompletionTiming(test);
+      var completionMicros = await _calcCompletionTiming(test);
       result.add('completion', BenchMarkResult('micros', completionMicros));
     }
 
@@ -66,17 +66,17 @@ class AnalysisBenchmark extends Benchmark {
 
   Future<int> _calcCompletionTiming(
       AbstractAnalysisServerIntegrationTest test) async {
-    const int kGroupCount = 10;
+    const kGroupCount = 10;
 
-    final String filePath =
+    var filePath =
         path.join(analysisServerSrcPath, 'lib/src/analysis_server.dart');
-    String contents = File(filePath).readAsStringSync();
+    var contents = File(filePath).readAsStringSync();
 
     await test
         .sendAnalysisUpdateContent({filePath: AddContentOverlay(contents)});
 
-    int completionCount = 0;
-    final Stopwatch stopwatch = Stopwatch()..start();
+    var completionCount = 0;
+    var stopwatch = Stopwatch()..start();
 
     Future _complete(int offset) async {
       // Create a new non-broadcast stream and subscribe to
@@ -87,10 +87,9 @@ class AnalysisBenchmark extends Benchmark {
       final completionResults = StreamController<CompletionResultsParams>();
       completionResults.sink.addStream(test.onCompletionResults);
 
-      CompletionGetSuggestionsResult result =
-          await test.sendCompletionGetSuggestions(filePath, offset);
+      var result = await test.sendCompletionGetSuggestions(filePath, offset);
 
-      Future<CompletionResultsParams> future = completionResults.stream
+      var future = completionResults.stream
           .where((CompletionResultsParams params) =>
               params.id == result.id && params.isLast)
           .first;
@@ -99,10 +98,10 @@ class AnalysisBenchmark extends Benchmark {
       completionCount++;
     }
 
-    for (int i = 0; i < kGroupCount; i++) {
-      int startIndex = i * (contents.length ~/ (kGroupCount + 2));
+    for (var i = 0; i < kGroupCount; i++) {
+      var startIndex = i * (contents.length ~/ (kGroupCount + 2));
       // Look for a line with a period in it that ends with a semi-colon.
-      int index =
+      var index =
           contents.indexOf(RegExp(r'\..*;$', multiLine: true), startIndex);
 
       await _complete(index - 10);
@@ -129,20 +128,20 @@ class AnalysisBenchmark extends Benchmark {
 
   Future<int> _calcEditTiming(
       AbstractAnalysisServerIntegrationTest test) async {
-    const int kGroupCount = 5;
+    const kGroupCount = 5;
 
-    final String filePath =
+    var filePath =
         path.join(analysisServerSrcPath, 'lib/src/analysis_server.dart');
-    String contents = File(filePath).readAsStringSync();
+    var contents = File(filePath).readAsStringSync();
 
     await test
         .sendAnalysisUpdateContent({filePath: AddContentOverlay(contents)});
 
-    final Stopwatch stopwatch = Stopwatch()..start();
+    var stopwatch = Stopwatch()..start();
 
-    for (int i = 0; i < kGroupCount; i++) {
-      int startIndex = i * (contents.length ~/ (kGroupCount + 2));
-      int index = contents.indexOf(';', startIndex);
+    for (var i = 0; i < kGroupCount; i++) {
+      var startIndex = i * (contents.length ~/ (kGroupCount + 2));
+      var index = contents.indexOf(';', startIndex);
       contents = contents.substring(0, index + 1) +
           ' ' +
           contents.substring(index + 1);
@@ -180,18 +179,18 @@ class ColdAnalysisBenchmark extends Benchmark {
       deleteServerCache();
     }
 
-    Stopwatch stopwatch = Stopwatch()..start();
+    var stopwatch = Stopwatch()..start();
 
-    AnalysisServerMemoryUsageTest test = AnalysisServerMemoryUsageTest();
+    var test = AnalysisServerMemoryUsageTest();
     await test.setUp();
     await test.subscribeToStatusNotifications();
     await test.sendAnalysisSetAnalysisRoots(getProjectRoots(quick: quick), []);
     await test.analysisFinished;
 
     stopwatch.stop();
-    int usedBytes = await test.getMemoryUsage();
+    var usedBytes = await test.getMemoryUsage();
 
-    CompoundBenchMarkResult result = CompoundBenchMarkResult(id);
+    var result = CompoundBenchMarkResult(id);
     result.add(
         'analysis', BenchMarkResult('micros', stopwatch.elapsedMicroseconds));
     result.add('memory', BenchMarkResult('bytes', usedBytes));

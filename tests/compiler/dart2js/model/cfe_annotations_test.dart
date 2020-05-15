@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'package:args/args.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
@@ -9,6 +11,7 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/ir/annotations.dart';
 import 'package:compiler/src/js_backend/native_data.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
+import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/element_map_impl.dart';
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -202,6 +205,7 @@ main(List<String> args) {
       void testAll(NativeData nativeData) {
         void testMember(String idPrefix, ir.Member member,
             {bool implicitJsInteropMember, bool implicitNativeMember}) {
+          if (memberIsIgnorable(member)) return;
           String memberId = '$idPrefix::${member.name.name}';
           MemberEntity memberEntity = elementMap.getMember(member);
 

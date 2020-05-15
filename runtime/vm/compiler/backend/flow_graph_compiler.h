@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_FLOW_GRAPH_COMPILER_H_
 #define RUNTIME_VM_COMPILER_BACKEND_FLOW_GRAPH_COMPILER_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #include <functional>
 
 #include "vm/allocation.h"
@@ -177,9 +181,9 @@ class CompilerDeoptInfo : public ZoneAllocated {
   }
   virtual ~CompilerDeoptInfo() {}
 
-  RawTypedData* CreateDeoptInfo(FlowGraphCompiler* compiler,
-                                DeoptInfoBuilder* builder,
-                                const Array& deopt_table);
+  TypedDataPtr CreateDeoptInfo(FlowGraphCompiler* compiler,
+                               DeoptInfoBuilder* builder,
+                               const Array& deopt_table);
 
   // No code needs to be generated.
   virtual void GenerateCode(FlowGraphCompiler* compiler, intptr_t stub_ix) {}
@@ -348,6 +352,21 @@ class NullArgErrorSlowPath : public ThrowErrorSlowPathCode {
   }
 };
 
+class RangeErrorSlowPath : public ThrowErrorSlowPathCode {
+ public:
+  static const intptr_t kNumberOfArguments = 0;
+
+  RangeErrorSlowPath(GenericCheckBoundInstr* instruction, intptr_t try_index)
+      : ThrowErrorSlowPathCode(instruction,
+                               kRangeErrorRuntimeEntry,
+                               kNumberOfArguments,
+                               try_index) {}
+  virtual const char* name() { return "check bound"; }
+
+  virtual void EmitSharedStubCall(FlowGraphCompiler* compielr,
+                                  bool save_fpu_registers);
+};
+
 class FlowGraphCompiler : public ValueObject {
  private:
   class BlockInfo : public ZoneAllocated {
@@ -441,6 +460,7 @@ class FlowGraphCompiler : public ValueObject {
   bool is_optimizing() const { return is_optimizing_; }
 
   void InsertBSSRelocation(BSS::Relocation reloc);
+  void LoadBSSEntry(BSS::Relocation relocation, Register dst, Register tmp);
 
   // The function was fully intrinsified, so the body is unreachable.
   //
@@ -548,9 +568,12 @@ class FlowGraphCompiler : public ValueObject {
                      Representation src_type,
                      TemporaryRegisterAllocator* temp);
 
-  void GenerateAssertAssignable(TokenPosition token_pos,
+  bool CheckAssertAssignableTypeTestingABILocations(
+      const LocationSummary& locs);
+
+  void GenerateAssertAssignable(CompileType* receiver_type,
+                                TokenPosition token_pos,
                                 intptr_t deopt_id,
-                                const AbstractType& dst_type,
                                 const String& dst_name,
                                 LocationSummary* locs);
 
@@ -559,13 +582,14 @@ class FlowGraphCompiler : public ValueObject {
   static bool ShouldUseTypeTestingStubFor(bool optimizing,
                                           const AbstractType& type);
 
-  void GenerateAssertAssignableViaTypeTestingStub(TokenPosition token_pos,
+  void GenerateAssertAssignableViaTypeTestingStub(CompileType* receiver_type,
+                                                  TokenPosition token_pos,
                                                   intptr_t deopt_id,
-                                                  const AbstractType& dst_type,
                                                   const String& dst_name,
                                                   LocationSummary* locs);
 
   void GenerateAssertAssignableViaTypeTestingStub(
+      CompileType* receiver_type,
       const AbstractType& dst_type,
       const String& dst_name,
       const Register dst_type_reg_to_call,
@@ -578,33 +602,29 @@ class FlowGraphCompiler : public ValueObject {
                            intptr_t argument_count,
                            LocationSummary* locs);
 
-  void GenerateCall(TokenPosition token_pos,
-                    const Code& stub,
-                    RawPcDescriptors::Kind kind,
-                    LocationSummary* locs);
-
-  void GenerateCallWithDeopt(TokenPosition token_pos,
-                             intptr_t deopt_id,
-                             const Code& stub,
-                             RawPcDescriptors::Kind kind,
-                             LocationSummary* locs);
+  void GenerateStubCall(TokenPosition token_pos,
+                        const Code& stub,
+                        PcDescriptorsLayout::Kind kind,
+                        LocationSummary* locs,
+                        intptr_t deopt_id = DeoptId::kNone,
+                        Environment* env = nullptr);
 
   void GeneratePatchableCall(TokenPosition token_pos,
                              const Code& stub,
-                             RawPcDescriptors::Kind kind,
+                             PcDescriptorsLayout::Kind kind,
                              LocationSummary* locs);
 
   void GenerateDartCall(intptr_t deopt_id,
                         TokenPosition token_pos,
                         const Code& stub,
-                        RawPcDescriptors::Kind kind,
+                        PcDescriptorsLayout::Kind kind,
                         LocationSummary* locs,
                         Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   void GenerateStaticDartCall(
       intptr_t deopt_id,
       TokenPosition token_pos,
-      RawPcDescriptors::Kind kind,
+      PcDescriptorsLayout::Kind kind,
       LocationSummary* locs,
       const Function& target,
       Code::EntryKind entry_kind = Code::EntryKind::kNormal);
@@ -744,6 +764,7 @@ class FlowGraphCompiler : public ValueObject {
                                       bool needs_number_check,
                                       TokenPosition token_pos,
                                       intptr_t deopt_id);
+  Condition EmitBoolTest(Register value, BranchLabels labels, bool invert);
 
   bool NeedsEdgeCounter(BlockEntryInstr* block);
 
@@ -751,6 +772,9 @@ class FlowGraphCompiler : public ValueObject {
 
   void RecordCatchEntryMoves(Environment* env = NULL,
                              intptr_t try_index = kInvalidTryIndex);
+
+  void EmitCallToStub(const Code& stub);
+  void EmitTailCallToStub(const Code& stub);
 
   // Emits the following metadata for the current PC:
   //
@@ -763,7 +787,7 @@ class FlowGraphCompiler : public ValueObject {
   // `pending_deoptimization_env`.
   void EmitCallsiteMetadata(TokenPosition token_pos,
                             intptr_t deopt_id,
-                            RawPcDescriptors::Kind kind,
+                            PcDescriptorsLayout::Kind kind,
                             LocationSummary* locs,
                             Environment* env = nullptr);
 
@@ -801,16 +825,16 @@ class FlowGraphCompiler : public ValueObject {
                            const Array& handler_types,
                            bool needs_stacktrace);
   void SetNeedsStackTrace(intptr_t try_index);
-  void AddCurrentDescriptor(RawPcDescriptors::Kind kind,
+  void AddCurrentDescriptor(PcDescriptorsLayout::Kind kind,
                             intptr_t deopt_id,
                             TokenPosition token_pos);
   void AddDescriptor(
-      RawPcDescriptors::Kind kind,
+      PcDescriptorsLayout::Kind kind,
       intptr_t pc_offset,
       intptr_t deopt_id,
       TokenPosition token_pos,
       intptr_t try_index,
-      intptr_t yield_index = RawPcDescriptors::kInvalidYieldIndex);
+      intptr_t yield_index = PcDescriptorsLayout::kInvalidYieldIndex);
 
   // Add NullCheck information for the current PC.
   void AddNullCheck(TokenPosition token_pos, const String& name);
@@ -829,7 +853,7 @@ class FlowGraphCompiler : public ValueObject {
 
   void FinalizeExceptionHandlers(const Code& code);
   void FinalizePcDescriptors(const Code& code);
-  RawArray* CreateDeoptInfo(compiler::Assembler* assembler);
+  ArrayPtr CreateDeoptInfo(compiler::Assembler* assembler);
   void FinalizeStackMaps(const Code& code);
   void FinalizeVarDescriptors(const Code& code);
   void FinalizeCatchEntryMovesMap(const Code& code);
@@ -907,9 +931,9 @@ class FlowGraphCompiler : public ValueObject {
   void AddStubCallTarget(const Code& code);
   void AddDispatchTableCallTarget(const compiler::TableSelector* selector);
 
-  RawArray* edge_counters_array() const { return edge_counters_array_.raw(); }
+  ArrayPtr edge_counters_array() const { return edge_counters_array_.raw(); }
 
-  RawArray* InliningIdToFunction() const;
+  ArrayPtr InliningIdToFunction() const;
 
   void BeginCodeSourceRange();
   void EndCodeSourceRange(TokenPosition token_pos);
@@ -943,6 +967,7 @@ class FlowGraphCompiler : public ValueObject {
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
   friend class CheckedSmiSlowPath;          // Same.
   friend class CheckedSmiComparisonSlowPath;  // Same.
+  friend class InitInstanceFieldInstr;        // Same.
 
   // Architecture specific implementation of simple native moves.
   void EmitNativeMoveArchitecture(const compiler::ffi::NativeLocation& dst,
@@ -954,6 +979,8 @@ class FlowGraphCompiler : public ValueObject {
   void AddPcRelativeCallTarget(const Function& function,
                                Code::EntryKind entry_kind);
   void AddPcRelativeCallStubTarget(const Code& stub_code);
+  void AddPcRelativeTailCallStubTarget(const Code& stub_code);
+  void AddPcRelativeTTSCallTypeTarget(const AbstractType& type);
   void AddStaticCallTarget(const Function& function,
                            Code::EntryKind entry_kind);
 
@@ -1004,13 +1031,13 @@ class FlowGraphCompiler : public ValueObject {
                      compiler::Label* is_instance_lbl,
                      compiler::Label* is_not_instance_lbl);
 
-  RawSubtypeTestCache* GenerateInlineInstanceof(
+  SubtypeTestCachePtr GenerateInlineInstanceof(
       TokenPosition token_pos,
       const AbstractType& type,
       compiler::Label* is_instance_lbl,
       compiler::Label* is_not_instance_lbl);
 
-  RawSubtypeTestCache* GenerateInstantiatedTypeWithArgumentsTest(
+  SubtypeTestCachePtr GenerateInstantiatedTypeWithArgumentsTest(
       TokenPosition token_pos,
       const AbstractType& dst_type,
       compiler::Label* is_instance_lbl,
@@ -1022,19 +1049,19 @@ class FlowGraphCompiler : public ValueObject {
       compiler::Label* is_instance_lbl,
       compiler::Label* is_not_instance_lbl);
 
-  RawSubtypeTestCache* GenerateUninstantiatedTypeTest(
+  SubtypeTestCachePtr GenerateUninstantiatedTypeTest(
       TokenPosition token_pos,
       const AbstractType& dst_type,
       compiler::Label* is_instance_lbl,
       compiler::Label* is_not_instance_label);
 
-  RawSubtypeTestCache* GenerateFunctionTypeTest(
+  SubtypeTestCachePtr GenerateFunctionTypeTest(
       TokenPosition token_pos,
       const AbstractType& dst_type,
       compiler::Label* is_instance_lbl,
       compiler::Label* is_not_instance_label);
 
-  RawSubtypeTestCache* GenerateSubtype1TestCacheLookup(
+  SubtypeTestCachePtr GenerateSubtype1TestCacheLookup(
       TokenPosition token_pos,
       const Class& type_class,
       compiler::Label* is_instance_lbl,
@@ -1051,7 +1078,7 @@ class FlowGraphCompiler : public ValueObject {
   TypeTestStubKind GetTypeTestStubKindForTypeParameter(
       const TypeParameter& type_param);
 
-  RawSubtypeTestCache* GenerateCallSubtypeTestStub(
+  SubtypeTestCachePtr GenerateCallSubtypeTestStub(
       TypeTestStubKind test_kind,
       Register instance_reg,
       Register instantiator_type_arguments_reg,
@@ -1068,7 +1095,6 @@ class FlowGraphCompiler : public ValueObject {
                                         intptr_t type_arguments_field_offset);
 
   void GenerateGetterIntrinsic(intptr_t offset);
-  void GenerateSetterIntrinsic(intptr_t offset);
 
   // Perform a greedy local register allocation.  Consider all registers free.
   void AllocateRegistersLocally(Instruction* instr);
@@ -1131,21 +1157,27 @@ class FlowGraphCompiler : public ValueObject {
     Code::CallKind call_kind;
     Code::CallEntryPoint entry_point;
     const intptr_t offset;
-    const Function* function;  // Can be NULL.
-    const Code* code;          // Can be NULL.
+    const Function* function;      // Can be nullptr.
+    const Code* code;              // Can be nullptr.
+    const AbstractType* dst_type;  // Can be nullptr.
     StaticCallsStruct(Code::CallKind call_kind,
                       Code::CallEntryPoint entry_point,
                       intptr_t offset_arg,
                       const Function* function_arg,
-                      const Code* code_arg)
+                      const Code* code_arg,
+                      const AbstractType* dst_type)
         : call_kind(call_kind),
           entry_point(entry_point),
           offset(offset_arg),
           function(function_arg),
-          code(code_arg) {
-      ASSERT((function == NULL) || function->IsZoneHandle());
-      ASSERT((code == NULL) || code->IsZoneHandle() ||
+          code(code_arg),
+          dst_type(dst_type) {
+      ASSERT(function == nullptr || function->IsZoneHandle());
+      ASSERT(code == nullptr || code->IsZoneHandle() ||
              code->IsReadOnlyHandle());
+      ASSERT(dst_type == nullptr || dst_type->IsZoneHandle() ||
+             dst_type->IsReadOnlyHandle());
+      ASSERT(code == nullptr || dst_type == nullptr);
     }
 
    private:

@@ -12,6 +12,10 @@ parser/error_recovery/issue_39230.crash:3:5: A method declaration needs an expli
     /
     ^
 
+parser/error_recovery/issue_39230.crash:3:5: The name of a constructor must match the name of the enclosing class.
+    /
+    ^
+
 beginCompilationUnit(class)
   beginMetadataStar(class)
   endMetadataStar(0)
@@ -62,7 +66,8 @@ beginCompilationUnit(class)
             endInitializers(1, :, ;)
             handleAsyncModifier(null, null)
             handleEmptyFunctionBody(;)
-          endClassMethod(null, operator, (, :, ;)
+            handleRecoverableError(ConstructorWithWrongName, /, /)
+          endClassConstructor(null, operator, (, :, ;)
         endMember()
       endClassOrMixinBody(DeclarationKind.Class, 2, {, })
     endClassDeclaration(class, })

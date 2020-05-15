@@ -24,9 +24,9 @@ library;
 //   var f = Map<A, B> {};
 //                       ^
 //
-// pkg/front_end/testcases/regress/issue_31155.dart:11:14: Error: The method '<' isn't defined for the class 'Type'.
+// pkg/front_end/testcases/regress/issue_31155.dart:11:14: Error: The operator '<' isn't defined for the class 'Type'.
 //  - 'Type' is from 'dart:core'.
-// Try correcting the name to the name of an existing method, or defining a method named '<'.
+// Try correcting the operator to an existing operator, or defining a '<' operator.
 //   var f = Map<A, B> {};
 //              ^
 //
@@ -37,16 +37,36 @@ class A extends core::Object {
   synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class B extends core::Object {
   synthetic constructor •() → self::B*
     : super core::Object::•()
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class C extends core::Object {
-  field dynamic f = invalid-expression "pkg/front_end/testcases/regress/issue_31155.dart:11:14: Error: The method '<' isn't defined for the class 'Type'.
+  field dynamic f = invalid-expression "pkg/front_end/testcases/regress/issue_31155.dart:11:14: Error: The operator '<' isn't defined for the class 'Type'.
  - 'Type' is from 'dart:core'.
-Try correcting the name to the name of an existing method, or defining a method named '<'.
+Try correcting the operator to an existing operator, or defining a '<' operator.
   var f = Map<A, B> {};
              ^";
   field dynamic B = null;
@@ -54,5 +74,15 @@ Try correcting the name to the name of an existing method, or defining a method 
     : super core::Object::•()
     ;
   operator >() → dynamic {}
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method main() → void {}

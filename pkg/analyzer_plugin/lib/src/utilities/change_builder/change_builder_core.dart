@@ -42,7 +42,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
 
   @override
   SourceChange get sourceChange {
-    final SourceChange change = SourceChange('');
+    var change = SourceChange('');
     for (var builder in _fileEditBuilders.values) {
       if (builder.hasEdits) {
         change.addFileEdit(builder.fileEdit);
@@ -61,7 +61,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
   @override
   Future<void> addFileEdit(
       String path, void Function(FileEditBuilder builder) buildFileEdit) async {
-    FileEditBuilderImpl builder = _fileEditBuilders[path];
+    var builder = _fileEditBuilders[path];
     if (builder == null) {
       builder = await createFileEditBuilder(path);
       if (builder != null) {
@@ -84,7 +84,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
   /// Return the linked edit group with the given [groupName], creating it if it
   /// did not already exist.
   LinkedEditGroup getLinkedEditGroup(String groupName) {
-    LinkedEditGroup group = _linkedEditGroups[groupName];
+    var group = _linkedEditGroups[groupName];
     if (group == null) {
       group = LinkedEditGroup.empty();
       _linkedEditGroups[groupName] = group;
@@ -111,8 +111,8 @@ class ChangeBuilderImpl implements ChangeBuilder {
       }
     }
 
-    for (LinkedEditGroup group in _linkedEditGroups.values) {
-      for (Position position in group.positions) {
+    for (var group in _linkedEditGroups.values) {
+      for (var position in group.positions) {
         _updatePosition(position);
       }
     }
@@ -157,20 +157,19 @@ class EditBuilderImpl implements EditBuilder {
   @override
   void addLinkedEdit(String groupName,
       void Function(LinkedEditBuilder builder) buildLinkedEdit) {
-    LinkedEditBuilderImpl builder = createLinkedEditBuilder();
-    int start = offset + _buffer.length;
+    var builder = createLinkedEditBuilder();
+    var start = offset + _buffer.length;
     try {
       buildLinkedEdit(builder);
     } finally {
-      int end = offset + _buffer.length;
-      int length = end - start;
+      var end = offset + _buffer.length;
+      var length = end - start;
       if (length != 0) {
-        Position position = Position(fileEditBuilder.fileEdit.file, start);
+        var position = Position(fileEditBuilder.fileEdit.file, start);
         fileEditBuilder.changeBuilder._lockedPositions.add(position);
-        LinkedEditGroup group =
-            fileEditBuilder.changeBuilder.getLinkedEditGroup(groupName);
+        var group = fileEditBuilder.changeBuilder.getLinkedEditGroup(groupName);
         group.addPosition(position, length);
-        for (LinkedEditSuggestion suggestion in builder.suggestions) {
+        for (var suggestion in builder.suggestions) {
           group.addSuggestion(suggestion);
         }
       }
@@ -183,7 +182,7 @@ class EditBuilderImpl implements EditBuilder {
     addLinkedEdit(groupName, (LinkedEditBuilder builder) {
       builder.write(text);
       if (kind != null && suggestions != null) {
-        for (String suggestion in suggestions) {
+        for (var suggestion in suggestions) {
           builder.addSuggestion(kind, suggestion);
         }
       } else if (kind != null || suggestions != null) {
@@ -199,9 +198,9 @@ class EditBuilderImpl implements EditBuilder {
 
   @override
   void selectAll(void Function() writer) {
-    int rangeOffset = _buffer.length;
+    var rangeOffset = _buffer.length;
     writer();
-    int rangeLength = _buffer.length - rangeOffset;
+    var rangeLength = _buffer.length - rangeOffset;
     _selectionRange = SourceRange(offset + rangeOffset, rangeLength);
   }
 
@@ -249,14 +248,14 @@ class FileEditBuilderImpl implements FileEditBuilder {
   @override
   void addDeletion(SourceRange range) {
     if (range.length > 0) {
-      EditBuilderImpl builder = createEditBuilder(range.offset, range.length);
+      var builder = createEditBuilder(range.offset, range.length);
       _addEditBuilder(builder);
     }
   }
 
   @override
   void addInsertion(int offset, void Function(EditBuilder builder) buildEdit) {
-    EditBuilderImpl builder = createEditBuilder(offset, 0);
+    var builder = createEditBuilder(offset, 0);
     try {
       buildEdit(builder);
     } finally {
@@ -266,8 +265,8 @@ class FileEditBuilderImpl implements FileEditBuilder {
 
   @override
   void addLinkedPosition(SourceRange range, String groupName) {
-    LinkedEditGroup group = changeBuilder.getLinkedEditGroup(groupName);
-    Position position =
+    var group = changeBuilder.getLinkedEditGroup(groupName);
+    var position =
         Position(fileEdit.file, range.offset + _deltaToOffset(range.offset));
     group.addPosition(position, range.length);
   }
@@ -275,7 +274,7 @@ class FileEditBuilderImpl implements FileEditBuilder {
   @override
   void addReplacement(
       SourceRange range, void Function(EditBuilder builder) buildEdit) {
-    EditBuilderImpl builder = createEditBuilder(range.offset, range.length);
+    var builder = createEditBuilder(range.offset, range.length);
     try {
       buildEdit(builder);
     } finally {
@@ -285,7 +284,7 @@ class FileEditBuilderImpl implements FileEditBuilder {
 
   @override
   void addSimpleInsertion(int offset, String text) {
-    EditBuilderImpl builder = createEditBuilder(offset, 0);
+    var builder = createEditBuilder(offset, 0);
     try {
       builder.write(text);
     } finally {
@@ -295,7 +294,7 @@ class FileEditBuilderImpl implements FileEditBuilder {
 
   @override
   void addSimpleReplacement(SourceRange range, String text) {
-    EditBuilderImpl builder = createEditBuilder(range.offset, range.length);
+    var builder = createEditBuilder(range.offset, range.length);
     try {
       builder.write(text);
     } finally {
@@ -334,7 +333,7 @@ class FileEditBuilderImpl implements FileEditBuilder {
   /// current file.
   void _addEdit(SourceEdit edit) {
     fileEdit.add(edit);
-    int delta = _editDelta(edit);
+    var delta = _editDelta(edit);
     changeBuilder._updatePositions(
         edit.offset + math.max<int>(0, delta), delta);
     changeBuilder._lockedPositions.clear();
@@ -343,17 +342,16 @@ class FileEditBuilderImpl implements FileEditBuilder {
   /// Add the edit from the given [builder] to the edits associates with the
   /// current file.
   void _addEditBuilder(EditBuilderImpl builder) {
-    SourceEdit edit = builder.sourceEdit;
+    var edit = builder.sourceEdit;
     _addEdit(edit);
     _captureSelection(builder, edit);
   }
 
   /// Capture the selection offset if one was set.
   void _captureSelection(EditBuilderImpl builder, SourceEdit edit) {
-    SourceRange range = builder._selectionRange;
+    var range = builder._selectionRange;
     if (range != null) {
-      Position position =
-          Position(fileEdit.file, range.offset + _deltaToEdit(edit));
+      var position = Position(fileEdit.file, range.offset + _deltaToEdit(edit));
       changeBuilder.setSelection(position);
       changeBuilder._setSelectionRange(range);
     }
@@ -365,8 +363,8 @@ class FileEditBuilderImpl implements FileEditBuilder {
   /// edit before the applied edits will be at `offset + _deltaToOffset(offset)`
   /// after the edits.
   int _deltaToEdit(SourceEdit targetEdit) {
-    int delta = 0;
-    for (SourceEdit edit in fileEdit.edits) {
+    var delta = 0;
+    for (var edit in fileEdit.edits) {
       if (edit.offset < targetEdit.offset) {
         delta += _editDelta(edit);
       }
@@ -380,8 +378,8 @@ class FileEditBuilderImpl implements FileEditBuilder {
   /// applied edits will be at `offset + _deltaToOffset(offset)` after the
   /// edits.
   int _deltaToOffset(int offset) {
-    int delta = 0;
-    for (SourceEdit edit in fileEdit.edits) {
+    var delta = 0;
+    for (var edit in fileEdit.edits) {
       if (edit.offset <= offset) {
         delta += _editDelta(edit);
       }

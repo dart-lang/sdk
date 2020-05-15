@@ -16,11 +16,31 @@ abstract class FooBase<Tf extends core::Object* = dynamic> extends core::Object 
   abstract get x() → core::int*;
   static factory •<Tf extends core::Object* = dynamic>(core::int* x) → self::FooBase<self::FooBase::•::Tf*>*
     let dynamic #redirecting_factory = self::Foo::• in let self::FooBase::•::Tf* #typeArg0 = null in invalid-expression;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 abstract class Foo<T extends core::Object* = dynamic> extends core::Object implements self::FooBase<dynamic> {
   static field dynamic _redirecting# = <dynamic>[self::Foo::•];
   static factory •<T extends core::Object* = dynamic>(core::int* x) → self::Foo<self::Foo::•::T*>*
     let dynamic #redirecting_factory = self::Bar::• in let core::String* #typeArg0 = null in let self::Foo::•::T* #typeArg1 = null in invalid-expression;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class Bar<Sb extends core::Object* = dynamic, Tb extends core::Object* = dynamic> extends core::Object implements self::Foo<self::Bar::Tb*> {
   field core::int* x;
@@ -28,6 +48,16 @@ class Bar<Sb extends core::Object* = dynamic, Tb extends core::Object* = dynamic
     : self::Bar::x = x, super core::Object::•() {
     core::print("Bar<${self::Bar::Sb*},${self::Bar::Tb*}>");
   }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class Builder<X extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::Builder<self::Builder::X*>*
@@ -36,31 +66,91 @@ class Builder<X extends core::Object* = dynamic> extends core::Object {
   method method() → dynamic {
     return new self::Bar::•<core::String*, self::Builder::X*>(4);
   }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class SimpleCase<A extends core::Object* = dynamic, B extends core::Object* = dynamic> extends core::Object {
   static field dynamic _redirecting# = <dynamic>[self::SimpleCase::•];
   static factory •<A extends core::Object* = dynamic, B extends core::Object* = dynamic>() → self::SimpleCase<self::SimpleCase::•::A*, self::SimpleCase::•::B*>*
     let dynamic #redirecting_factory = self::SimpleCaseImpl::• in let self::SimpleCase::•::A* #typeArg0 = null in let self::SimpleCase::•::B* #typeArg1 = null in invalid-expression;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class SimpleCaseImpl<Ai extends core::Object* = dynamic, Bi extends core::Object* = dynamic> extends core::Object implements self::SimpleCase<self::SimpleCaseImpl::Ai*, self::SimpleCaseImpl::Bi*> {
   static field dynamic _redirecting# = <dynamic>[self::SimpleCaseImpl::•];
   static factory •<Ai extends core::Object* = dynamic, Bi extends core::Object* = dynamic>() → self::SimpleCaseImpl<self::SimpleCaseImpl::•::Ai*, self::SimpleCaseImpl::•::Bi*>*
     let dynamic #redirecting_factory = self::SimpleCaseImpl2::• in let self::SimpleCaseImpl::•::Ai* #typeArg0 = null in let self::SimpleCaseImpl::•::Bi* #typeArg1 = null in invalid-expression;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class SimpleCaseImpl2<Ai2 extends core::Object* = dynamic, Bi2 extends core::Object* = dynamic> extends core::Object implements self::SimpleCaseImpl<self::SimpleCaseImpl2::Ai2*, self::SimpleCaseImpl2::Bi2*> {
   synthetic constructor •() → self::SimpleCaseImpl2<self::SimpleCaseImpl2::Ai2*, self::SimpleCaseImpl2::Bi2*>*
     : super core::Object::•()
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class Base<M extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::Base<self::Base::M*>*
     : super core::Object::•()
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class Mixin<M extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::Mixin<self::Mixin::M*>*
     : super core::Object::•()
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class Mix<M extends core::Object* = dynamic> = self::Base<self::Mix::M*> with self::Mixin<self::Mix::M*> {
   synthetic constructor •() → self::Mix<self::Mix::M*>*

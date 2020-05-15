@@ -1,0 +1,6 @@
+class C {
+  C() : field = null;
+  set field(value) {}
+}
+
+main() {}

@@ -48,8 +48,8 @@ TEST_CASE(SlotFromGuardedField) {
 
   const Function& dummy_function = Function::ZoneHandle(
       Function::New(String::Handle(Symbols::New(thread, "foo")),
-                    RawFunction::kRegularFunction, false, false, false, false,
-                    false, dummy_class, TokenPosition::kMinSource));
+                    FunctionLayout::kRegularFunction, false, false, false,
+                    false, false, dummy_class, TokenPosition::kMinSource));
 
   const Field& field = Field::Handle(
       Field::New(String::Handle(Symbols::New(thread, "field")),
@@ -63,7 +63,7 @@ TEST_CASE(SlotFromGuardedField) {
   field.set_is_nullable(false);
 
   // Enter compiler state.
-  CompilerState compiler_state(thread);
+  CompilerState compiler_state(thread, /*is_aot=*/false);
 
   const Field& field_clone_1 = Field::ZoneHandle(field.CloneFromOriginal());
   const Field& field_clone_2 = Field::ZoneHandle(field.CloneFromOriginal());

@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.30.0';
+const String vmServiceVersion = '3.33.0';
 
 /// @optional
 const String optional = 'optional';
@@ -194,6 +194,7 @@ Map<String, List<String>> _methodReturnTypes = {
   'evaluate': const ['InstanceRef', 'ErrorRef'],
   'evaluateInFrame': const ['InstanceRef', 'ErrorRef'],
   'getAllocationProfile': const ['AllocationProfile'],
+  'getClassList': const ['ClassList'],
   'getClientName': const ['ClientName'],
   'getCpuSamples': const ['CpuSamples'],
   'getFlagList': const ['FlagList'],
@@ -496,6 +497,18 @@ abstract class VmServiceInterface {
   /// returned.
   Future<AllocationProfile> getAllocationProfile(String isolateId,
       {bool reset, bool gc});
+
+  /// The `getClassList` RPC is used to retrieve a `ClassList` containing all
+  /// classes for an isolate based on the isolate's `isolateId`.
+  ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
+  /// See [ClassList].
+  ///
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<ClassList> getClassList(String isolateId);
 
   /// The `getClientName` RPC is used to retrieve the name associated with the
   /// currently connected VM service client. If no name was previously set
@@ -932,7 +945,15 @@ abstract class VmServiceInterface {
   /// clients which need to provide resume approval for this pause type have
   /// done so.
   ///
-  /// Important Notes:<strong>Important Notes:</strong>
+  /// **Important Notes:**
+  ///
+  /// - All clients with the same client name share resume permissions. Only a
+  /// single client of a given name is required to provide resume approval.
+  /// - When a client requiring approval disconnects from the service, a paused
+  /// isolate may resume if all other clients requiring resume approval have
+  /// already given approval. In the case that no other client requires resume
+  /// approval for the current pause event, the isolate will be resumed if at
+  /// least one other client has attempted to [resume] the isolate.
   Future<Success> requirePermissionToResume(
       {bool onPauseStart, bool onPauseReload, bool onPauseExit});
 
@@ -1000,6 +1021,23 @@ abstract class VmServiceInterface {
   ///
   /// The following flags may be set at runtime:
   ///
+  /// - pause_isolates_on_start
+  /// - pause_isolates_on_exit
+  /// - pause_isolates_on_unhandled_exceptions
+  /// - profile_period
+  /// - profiler
+  ///
+  /// Notes:
+  ///
+  /// - `profile_period` can be set to a minimum value of 50. Attempting to set
+  /// `profile_period` to a lower value will result in a value of 50 being set.
+  /// - Setting `profiler` will enable or disable the profiler depending on the
+  /// provided value. If set to false when the profiler is already running, the
+  /// profiler will be stopped but may not free its sample buffer depending on
+  /// platform limitations.
+  ///
+  /// See [Success].
+  ///
   /// The return value can be one of [Success] or [Error].
   Future<Response> setFlag(String name, String value);
 
@@ -1039,6 +1077,9 @@ abstract class VmServiceInterface {
   /// are to be enabled. Streams not explicitly specified will be disabled.
   /// Invalid stream names are ignored.
   ///
+  /// A `TimelineStreamSubscriptionsUpdate` event is sent on the `Timeline`
+  /// stream as a result of invoking this RPC.
+  ///
   /// To get the list of currently enabled timeline streams, see
   /// [getVMTimelineFlags].
   ///
@@ -1071,7 +1112,7 @@ abstract class VmServiceInterface {
   /// BreakpointResolved, BreakpointRemoved, Inspect, None
   /// GC | GC
   /// Extension | Extension
-  /// Timeline | TimelineEvents
+  /// Timeline | TimelineEvents, TimelineStreamsSubscriptionUpdate
   /// Logging | Logging
   /// Service | ServiceRegistered, ServiceUnregistered
   /// HeapSnapshot | HeapSnapshot
@@ -1158,7 +1199,8 @@ class VmServerConnection {
       }
       var method = request['method'] as String;
       if (method == null) {
-        throw RPCError(null, -32600, 'Invalid Request', request);
+        throw RPCError(
+            null, RPCError.kInvalidRequest, 'Invalid Request', request);
       }
       var params = request['params'] as Map;
       Response response;
@@ -1230,6 +1272,11 @@ class VmServerConnection {
             params['isolateId'],
             reset: params['reset'],
             gc: params['gc'],
+          );
+          break;
+        case 'getClassList':
+          response = await _serviceImplementation.getClassList(
+            params['isolateId'],
           );
           break;
         case 'getClientName':
@@ -1420,9 +1467,12 @@ class VmServerConnection {
           var id = params['streamId'];
           var existing = _streamSubscriptions.remove(id);
           if (existing == null) {
-            throw RPCError('streamCancel', 104, 'Stream not subscribed', {
-              'details': "The stream '$id' is not subscribed",
-            });
+            throw RPCError.withDetails(
+              'streamCancel',
+              104,
+              'Stream not subscribed',
+              details: "The stream '$id' is not subscribed",
+            );
           }
           await existing.cancel();
           response = Success();
@@ -1430,9 +1480,12 @@ class VmServerConnection {
         case 'streamListen':
           var id = params['streamId'];
           if (_streamSubscriptions.containsKey(id)) {
-            throw RPCError('streamListen', 103, 'Stream already subscribed', {
-              'details': "The stream '$id' is already subscribed",
-            });
+            throw RPCError.withDetails(
+              'streamListen',
+              103,
+              'Stream already subscribed',
+              details: "The stream '$id' is already subscribed",
+            );
           }
 
           var stream = id == 'Service'
@@ -1468,7 +1521,8 @@ class VmServerConnection {
             response = await _serviceImplementation.callServiceExtension(method,
                 isolateId: isolateId, args: args);
           } else {
-            throw RPCError(method, -32601, 'Method not found', request);
+            throw RPCError(
+                method, RPCError.kMethodNotFound, 'Method not found', request);
           }
       }
       if (response == null) {
@@ -1481,8 +1535,12 @@ class VmServerConnection {
       });
     } catch (e, st) {
       var error = e is RPCError
-          ? {'code': e.code, 'data': e.data, 'message': e.message}
-          : {'code': -32603, 'message': '$e\n$st'};
+          ? e.toMap()
+          : {
+              'code': RPCError.kInternalError,
+              'message': '${request['method']}: $e',
+              'data': {'details': '$st'},
+            };
       _responseSink.add({
         'jsonrpc': '2.0',
         'id': request['id'],
@@ -1557,7 +1615,7 @@ class VmService implements VmServiceInterface {
   // Extension
   Stream<Event> get onExtensionEvent => _getEventController('Extension').stream;
 
-  // TimelineEvents
+  // TimelineEvents, TimelineStreamsSubscriptionUpdate
   Stream<Event> get onTimelineEvent => _getEventController('Timeline').stream;
 
   // Logging
@@ -1676,6 +1734,10 @@ class VmService implements VmServiceInterface {
         if (reset != null && reset) 'reset': reset,
         if (gc != null && gc) 'gc': gc,
       });
+
+  @override
+  Future<ClassList> getClassList(String isolateId) =>
+      _call('getClassList', {'isolateId': isolateId});
 
   @override
   Future<ClientName> getClientName() => _call('getClientName');
@@ -1916,8 +1978,8 @@ class VmService implements VmServiceInterface {
     _streamSub.cancel();
     _completers.forEach((id, c) {
       final method = _methodCalls[id];
-      return c.completeError(
-          RPCError(method, -32000, 'Service connection disposed'));
+      return c.completeError(RPCError(
+          method, RPCError.kServerError, 'Service connection disposed'));
     });
     _completers.clear();
     if (_disposeHandler != null) {
@@ -1930,13 +1992,17 @@ class VmService implements VmServiceInterface {
 
   Future get onDone => _onDoneCompleter.future;
 
-  Future<T> _call<T>(String method, [Map args]) {
+  Future<T> _call<T>(String method, [Map args = const {}]) {
     String id = '${++_id}';
     Completer<T> completer = Completer<T>();
     _completers[id] = completer;
     _methodCalls[id] = method;
-    Map m = {'id': id, 'method': method};
-    if (args != null) m['params'] = args;
+    Map m = {
+      'jsonrpc': '2.0',
+      'id': id,
+      'method': method,
+      'params': args,
+    };
     String message = jsonEncode(m);
     _onSend.add(message);
     _writeMessage(message);
@@ -2032,7 +2098,8 @@ class VmService implements VmServiceInterface {
   }
 
   Future _processRequest(Map<String, dynamic> json) async {
-    final Map m = await _routeRequest(json['method'], json['params']);
+    final Map m = await _routeRequest(
+        json['method'], json['params'] ?? <String, dynamic>{});
     m['id'] = json['id'];
     m['jsonrpc'] = '2.0';
     String message = jsonEncode(m);
@@ -2042,7 +2109,7 @@ class VmService implements VmServiceInterface {
 
   Future _processNotification(Map<String, dynamic> json) async {
     final String method = json['method'];
-    final Map params = json['params'];
+    final Map params = json['params'] ?? <String, dynamic>{};
     if (method == 'streamNotify') {
       String streamId = params['streamId'];
       _getEventController(streamId)
@@ -2052,24 +2119,23 @@ class VmService implements VmServiceInterface {
     }
   }
 
-  Future<Map> _routeRequest(String method, Map params) async {
+  Future<Map> _routeRequest(String method, Map<String, dynamic> params) async {
+    if (!_services.containsKey(method)) {
+      RPCError error = RPCError(
+          method, RPCError.kMethodNotFound, 'method not found \'$method\'');
+      return {'error': error.toMap()};
+    }
+
     try {
-      if (_services.containsKey(method)) {
-        return await _services[method](params);
-      }
-      return {
-        'error': {
-          'code': -32601, // Method not found
-          'message': 'Method not found \'$method\''
-        }
-      };
+      return await _services[method](params);
     } catch (e, st) {
-      return {
-        'error': {
-          'code': -32000, // SERVER ERROR
-          'message': 'Unexpected Server Error $e\n$st'
-        }
-      };
+      RPCError error = RPCError.withDetails(
+        method,
+        RPCError.kServerError,
+        '$e',
+        details: '$st',
+      );
+      return {'error': error.toMap()};
     }
   }
 }
@@ -2077,6 +2143,21 @@ class VmService implements VmServiceInterface {
 typedef DisposeHandler = Future Function();
 
 class RPCError implements Exception {
+  /// Application specific error codes.
+  static const int kServerError = -32000;
+
+  /// The JSON sent is not a valid Request object.
+  static const int kInvalidRequest = -32600;
+
+  /// The method does not exist or is not available.
+  static const int kMethodNotFound = -32601;
+
+  /// Invalid method parameter(s), such as a mismatched type.
+  static const int kInvalidParams = -32602;
+
+  /// Internal JSON-RPC error.
+  static const int kInternalError = -32603;
+
   static RPCError parse(String callingMethod, dynamic json) {
     return RPCError(callingMethod, json['code'], json['message'], json['data']);
   }
@@ -2088,13 +2169,34 @@ class RPCError implements Exception {
 
   RPCError(this.callingMethod, this.code, this.message, [this.data]);
 
+  RPCError.withDetails(this.callingMethod, this.code, this.message,
+      {Object details})
+      : data = details == null ? null : <String, dynamic>{} {
+    if (details != null) {
+      data['details'] = details;
+    }
+  }
+
   String get details => data == null ? null : data['details'];
+
+  /// Return a map representation of this error suitable for converstion to
+  /// json.
+  Map<String, dynamic> toMap() {
+    Map<String, dynamic> map = {
+      'code': code,
+      'message': message,
+    };
+    if (data != null) {
+      map['data'] = data;
+    }
+    return map;
+  }
 
   String toString() {
     if (details == null) {
-      return '${message} (${code}) from ${callingMethod}()';
+      return '$callingMethod: ($code) $message';
     } else {
-      return '${message} (${code}) from ${callingMethod}():\n${details}';
+      return '$callingMethod: ($code) $message\n$details';
     }
   }
 }
@@ -2263,6 +2365,18 @@ class EventKind {
 
   /// Event from dart:developer.log.
   static const String kLogging = 'Logging';
+
+  /// A block of timeline events has been completed.
+  ///
+  /// This service event is not sent for individual timeline events. It is
+  /// subject to buffering, so the most recent timeline events may never be
+  /// included in any TimelineEvents event if no timeline events occur later to
+  /// complete the block.
+  static const String kTimelineEvents = 'TimelineEvents';
+
+  /// The set of active timeline streams was changed via `setVMTimelineFlags`.
+  static const String kTimelineStreamSubscriptionsUpdate =
+      'TimelineStreamSubscriptionsUpdate';
 
   /// Notification that a Service has been registered into the Service Protocol
   /// from another client.
@@ -2454,6 +2568,7 @@ class AllocationProfile extends Response {
     this.dateLastAccumulatorReset,
     this.dateLastServiceGC,
   });
+
   AllocationProfile._fromJson(Map<String, dynamic> json)
       : super._fromJson(json) {
     members = List<ClassHeapStats>.from(
@@ -2506,6 +2621,7 @@ class BoundField {
     @required this.decl,
     @required this.value,
   });
+
   BoundField._fromJson(Map<String, dynamic> json) {
     decl = createServiceObject(json['decl'], const ['FieldRef']);
     value =
@@ -2560,6 +2676,7 @@ class BoundVariable extends Response {
     @required this.scopeStartTokenPos,
     @required this.scopeEndTokenPos,
   });
+
   BoundVariable._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     value = createServiceObject(
@@ -2621,6 +2738,7 @@ class Breakpoint extends Obj {
     @required this.location,
     this.isSyntheticAsyncContinuation,
   });
+
   Breakpoint._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     breakpointNumber = json['breakpointNumber'];
     resolved = json['resolved'];
@@ -2663,6 +2781,7 @@ class ClassRef extends ObjRef {
   ClassRef({
     @required this.name,
   });
+
   ClassRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
   }
@@ -2755,6 +2874,7 @@ class Class extends Obj implements ClassRef {
     this.superType,
     this.mixin,
   });
+
   Class._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     error = createServiceObject(json['error'], const ['ErrorRef']);
@@ -2832,6 +2952,7 @@ class ClassHeapStats extends Response {
     @required this.instancesAccumulated,
     @required this.instancesCurrent,
   });
+
   ClassHeapStats._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     classRef = createServiceObject(json['class'], const ['ClassRef']);
     accumulatedSize = json['accumulatedSize'];
@@ -2868,6 +2989,7 @@ class ClassList extends Response {
   ClassList({
     @required this.classes,
   });
+
   ClassList._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     classes = List<ClassRef>.from(
         createServiceObject(json['classes'], const ['ClassRef']) ?? []);
@@ -2897,6 +3019,7 @@ class ClientName extends Response {
   ClientName({
     @required this.name,
   });
+
   ClientName._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
   }
@@ -2929,6 +3052,7 @@ class CodeRef extends ObjRef {
     @required this.name,
     @required this.kind,
   });
+
   CodeRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     kind = json['kind'];
@@ -2968,6 +3092,7 @@ class Code extends ObjRef implements CodeRef {
     @required this.name,
     @required this.kind,
   });
+
   Code._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     kind = json['kind'];
@@ -3002,6 +3127,7 @@ class ContextRef extends ObjRef {
   ContextRef({
     @required this.length,
   });
+
   ContextRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     length = json['length'];
   }
@@ -3045,6 +3171,7 @@ class Context extends Obj implements ContextRef {
     @required this.variables,
     this.parent,
   });
+
   Context._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     length = json['length'];
     parent = createServiceObject(json['parent'], const ['Context']);
@@ -3082,6 +3209,7 @@ class ContextElement {
   ContextElement({
     @required this.value,
   });
+
   ContextElement._fromJson(Map<String, dynamic> json) {
     value =
         createServiceObject(json['value'], const ['InstanceRef', 'Sentinel']);
@@ -3145,6 +3273,7 @@ class CpuSamples extends Response {
     @required this.functions,
     @required this.samples,
   });
+
   CpuSamples._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     samplePeriod = json['samplePeriod'];
     maxStackDepth = json['maxStackDepth'];
@@ -3226,6 +3355,7 @@ class CpuSample {
     this.userTag,
     this.truncated,
   });
+
   CpuSample._fromJson(Map<String, dynamic> json) {
     tid = json['tid'];
     timestamp = json['timestamp'];
@@ -3267,6 +3397,7 @@ class ErrorRef extends ObjRef {
     @required this.kind,
     @required this.message,
   });
+
   ErrorRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'];
     message = json['message'];
@@ -3319,6 +3450,7 @@ class Error extends Obj implements ErrorRef {
     this.exception,
     this.stacktrace,
   });
+
   Error._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'];
     message = json['message'];
@@ -3460,6 +3592,12 @@ class Event extends Response {
   @optional
   List<TimelineEvent> timelineEvents;
 
+  /// The new set of recorded timeline streams.
+  ///
+  /// This is provided for the TimelineStreamSubscriptionsUpdate event.
+  @optional
+  List<String> updatedStreams;
+
   /// Is the isolate paused at an await, yield, or yield* statement?
   ///
   /// This is provided for the event kinds:
@@ -3471,7 +3609,6 @@ class Event extends Response {
   /// The status (success or failure) related to the event. This is provided for
   /// the event kinds:
   ///  - IsolateReloaded
-  ///  - IsolateSpawn
   @optional
   String status;
 
@@ -3547,6 +3684,7 @@ class Event extends Response {
     this.extensionKind,
     this.extensionData,
     this.timelineEvents,
+    this.updatedStreams,
     this.atAsyncSuspension,
     this.status,
     this.logRecord,
@@ -3558,6 +3696,7 @@ class Event extends Response {
     this.last,
     this.data,
   });
+
   Event._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'];
     isolate = createServiceObject(json['isolate'], const ['IsolateRef']);
@@ -3579,6 +3718,9 @@ class Event extends Response {
         ? null
         : List<TimelineEvent>.from(createServiceObject(
             json['timelineEvents'], const ['TimelineEvent']));
+    updatedStreams = json['updatedStreams'] == null
+        ? null
+        : List<String>.from(json['updatedStreams']);
     atAsyncSuspension = json['atAsyncSuspension'];
     status = json['status'];
     logRecord = createServiceObject(json['logRecord'], const ['LogRecord']);
@@ -3613,6 +3755,8 @@ class Event extends Response {
     _setIfNotNull(json, 'extensionData', extensionData?.data);
     _setIfNotNull(json, 'timelineEvents',
         timelineEvents?.map((f) => f?.toJson())?.toList());
+    _setIfNotNull(
+        json, 'updatedStreams', updatedStreams?.map((f) => f)?.toList());
     _setIfNotNull(json, 'atAsyncSuspension', atAsyncSuspension);
     _setIfNotNull(json, 'status', status);
     _setIfNotNull(json, 'logRecord', logRecord?.toJson());
@@ -3664,6 +3808,7 @@ class FieldRef extends ObjRef {
     @required this.isFinal,
     @required this.isStatic,
   });
+
   FieldRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     owner = createServiceObject(json['owner'], const ['ObjRef']);
@@ -3740,6 +3885,7 @@ class Field extends Obj implements FieldRef {
     this.staticValue,
     this.location,
   });
+
   Field._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     owner = createServiceObject(json['owner'], const ['ObjRef']);
@@ -3803,6 +3949,7 @@ class Flag {
     @required this.modified,
     this.valueAsString,
   });
+
   Flag._fromJson(Map<String, dynamic> json) {
     name = json['name'];
     comment = json['comment'];
@@ -3836,6 +3983,7 @@ class FlagList extends Response {
   FlagList({
     @required this.flags,
   });
+
   FlagList._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     flags = List<Flag>.from(
         createServiceObject(json['flags'], const ['Flag']) ?? []);
@@ -3884,6 +4032,7 @@ class Frame extends Response {
     this.vars,
     this.kind,
   });
+
   Frame._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     index = json['index'];
     function = createServiceObject(json['function'], const ['FuncRef']);
@@ -3939,6 +4088,7 @@ class FuncRef extends ObjRef {
     @required this.isStatic,
     @required this.isConst,
   });
+
   FuncRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     owner = createServiceObject(
@@ -4004,6 +4154,7 @@ class Func extends Obj implements FuncRef {
     this.location,
     this.code,
   });
+
   Func._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     owner = createServiceObject(
@@ -4152,6 +4303,7 @@ class InstanceRef extends ObjRef {
     this.closureFunction,
     this.closureContext,
   });
+
   InstanceRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'];
     classRef = createServiceObject(json['class'], const ['ClassRef']);
@@ -4481,6 +4633,7 @@ class Instance extends Obj implements InstanceRef {
     this.targetType,
     this.bound,
   });
+
   Instance._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'];
     classRef = createServiceObject(json['class'], const ['ClassRef']);
@@ -4591,6 +4744,7 @@ class IsolateRef extends Response {
     @required this.number,
     @required this.name,
   });
+
   IsolateRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     id = json['id'];
     number = json['number'];
@@ -4691,6 +4845,7 @@ class Isolate extends Response implements IsolateRef {
     this.error,
     this.extensionRPCs,
   });
+
   Isolate._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     id = json['id'];
     number = json['number'];
@@ -4763,6 +4918,7 @@ class IsolateGroupRef extends Response {
     @required this.number,
     @required this.name,
   });
+
   IsolateGroupRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     id = json['id'];
     number = json['number'];
@@ -4812,6 +4968,7 @@ class IsolateGroup extends Response implements IsolateGroupRef {
     @required this.name,
     @required this.isolates,
   });
+
   IsolateGroup._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     id = json['id'];
     number = json['number'];
@@ -4853,6 +5010,7 @@ class InboundReferences extends Response {
   InboundReferences({
     @required this.references,
   });
+
   InboundReferences._fromJson(Map<String, dynamic> json)
       : super._fromJson(json) {
     references = List<InboundReference>.from(
@@ -4897,6 +5055,7 @@ class InboundReference {
     this.parentListIndex,
     this.parentField,
   });
+
   InboundReference._fromJson(Map<String, dynamic> json) {
     source = createServiceObject(json['source'], const ['ObjRef']);
     parentListIndex = json['parentListIndex'];
@@ -4931,6 +5090,7 @@ class InstanceSet extends Response {
     @required this.totalCount,
     @required this.instances,
   });
+
   InstanceSet._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     totalCount = json['totalCount'];
     instances = List<ObjRef>.from(createServiceObject(
@@ -4967,6 +5127,7 @@ class LibraryRef extends ObjRef {
     @required this.name,
     @required this.uri,
   });
+
   LibraryRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     uri = json['uri'];
@@ -5032,6 +5193,7 @@ class Library extends Obj implements LibraryRef {
     @required this.functions,
     @required this.classes,
   });
+
   Library._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     uri = json['uri'];
@@ -5095,6 +5257,7 @@ class LibraryDependency {
     @required this.prefix,
     @required this.target,
   });
+
   LibraryDependency._fromJson(Map<String, dynamic> json) {
     isImport = json['isImport'];
     isDeferred = json['isDeferred'];
@@ -5159,6 +5322,7 @@ class LogRecord extends Response {
     @required this.error,
     @required this.stackTrace,
   });
+
   LogRecord._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     message = createServiceObject(json['message'], const ['InstanceRef']);
     time = json['time'];
@@ -5204,6 +5368,7 @@ class MapAssociation {
     @required this.key,
     @required this.value,
   });
+
   MapAssociation._fromJson(Map<String, dynamic> json) {
     key = createServiceObject(json['key'], const ['InstanceRef', 'Sentinel']);
     value =
@@ -5249,6 +5414,7 @@ class MemoryUsage extends Response {
     @required this.heapCapacity,
     @required this.heapUsage,
   });
+
   MemoryUsage._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     externalUsage = json['externalUsage'];
     heapCapacity = json['heapCapacity'];
@@ -5308,6 +5474,7 @@ class Message extends Response {
     this.handler,
     this.location,
   });
+
   Message._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     index = json['index'];
     name = json['name'];
@@ -5349,6 +5516,7 @@ class NativeFunction {
   NativeFunction({
     @required this.name,
   });
+
   NativeFunction._fromJson(Map<String, dynamic> json) {
     name = json['name'];
   }
@@ -5376,6 +5544,7 @@ class NullValRef extends InstanceRef {
   NullValRef({
     @required this.valueAsString,
   });
+
   NullValRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     valueAsString = json['valueAsString'];
   }
@@ -5411,6 +5580,7 @@ class NullVal extends Instance implements NullValRef {
   NullVal({
     @required this.valueAsString,
   });
+
   NullVal._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     valueAsString = json['valueAsString'];
   }
@@ -5453,6 +5623,7 @@ class ObjRef extends Response {
     @required this.id,
     this.fixedId,
   });
+
   ObjRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     id = json['id'];
     fixedId = json['fixedId'];
@@ -5520,6 +5691,7 @@ class Obj extends Response implements ObjRef {
     this.classRef,
     this.size,
   });
+
   Obj._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     id = json['id'];
     fixedId = json['fixedId'];
@@ -5578,6 +5750,7 @@ class ProfileFunction {
     @required this.resolvedUrl,
     @required this.function,
   });
+
   ProfileFunction._fromJson(Map<String, dynamic> json) {
     kind = json['kind'];
     inclusiveTicks = json['inclusiveTicks'];
@@ -5613,6 +5786,7 @@ class ReloadReport extends Response {
   ReloadReport({
     @required this.success,
   });
+
   ReloadReport._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     success = json['success'];
   }
@@ -5656,6 +5830,7 @@ class RetainingObject {
     this.parentMapKey,
     this.parentField,
   });
+
   RetainingObject._fromJson(Map<String, dynamic> json) {
     value = createServiceObject(json['value'], const ['ObjRef']);
     parentListIndex = json['parentListIndex'];
@@ -5698,6 +5873,7 @@ class RetainingPath extends Response {
     @required this.gcRootType,
     @required this.elements,
   });
+
   RetainingPath._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     length = json['length'];
     gcRootType = json['gcRootType'];
@@ -5738,6 +5914,7 @@ class Response {
   Response({
     @required this.type,
   });
+
   Response._fromJson(this.json) {
     type = json['type'];
   }
@@ -5769,6 +5946,7 @@ class Sentinel extends Response {
     @required this.kind,
     @required this.valueAsString,
   });
+
   Sentinel._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'];
     valueAsString = json['valueAsString'];
@@ -5800,6 +5978,7 @@ class ScriptRef extends ObjRef {
   ScriptRef({
     @required this.uri,
   });
+
   ScriptRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     uri = json['uri'];
   }
@@ -5888,6 +6067,7 @@ class Script extends Obj implements ScriptRef {
     this.source,
     this.tokenPosTable,
   });
+
   Script._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     uri = json['uri'];
     library = createServiceObject(json['library'], const ['LibraryRef']);
@@ -5961,6 +6141,7 @@ class ScriptList extends Response {
   ScriptList({
     @required this.scripts,
   });
+
   ScriptList._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     scripts = List<ScriptRef>.from(
         createServiceObject(json['scripts'], const ['ScriptRef']) ?? []);
@@ -6000,6 +6181,7 @@ class SourceLocation extends Response {
     @required this.tokenPos,
     this.endTokenPos,
   });
+
   SourceLocation._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     script = createServiceObject(json['script'], const ['ScriptRef']);
     tokenPos = json['tokenPos'];
@@ -6045,6 +6227,7 @@ class SourceReport extends Response {
     @required this.ranges,
     @required this.scripts,
   });
+
   SourceReport._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     ranges = List<SourceReportRange>.from(
         _createSpecificObject(json['ranges'], SourceReportRange.parse));
@@ -6088,6 +6271,7 @@ class SourceReportCoverage {
     @required this.hits,
     @required this.misses,
   });
+
   SourceReportCoverage._fromJson(Map<String, dynamic> json) {
     hits = List<int>.from(json['hits']);
     misses = List<int>.from(json['misses']);
@@ -6155,6 +6339,7 @@ class SourceReportRange {
     this.coverage,
     this.possibleBreakpoints,
   });
+
   SourceReportRange._fromJson(Map<String, dynamic> json) {
     scriptIndex = json['scriptIndex'];
     startPos = json['startPos'];
@@ -6208,6 +6393,7 @@ class Stack extends Response {
     this.asyncCausalFrames,
     this.awaiterFrames,
   });
+
   Stack._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     frames = List<Frame>.from(
         createServiceObject(json['frames'], const ['Frame']) ?? []);
@@ -6249,6 +6435,7 @@ class Success extends Response {
       json == null ? null : Success._fromJson(json);
 
   Success();
+
   Success._fromJson(Map<String, dynamic> json) : super._fromJson(json);
 
   @override
@@ -6265,7 +6452,9 @@ class Timeline extends Response {
   static Timeline parse(Map<String, dynamic> json) =>
       json == null ? null : Timeline._fromJson(json);
 
-  /// A list of timeline events.
+  /// A list of timeline events. No order is guarenteed for these events; in
+  /// particular, these events may be unordered with respect to their
+  /// timestamps.
   List<TimelineEvent> traceEvents;
 
   /// The start of the period of time in which traceEvents were collected.
@@ -6279,6 +6468,7 @@ class Timeline extends Response {
     @required this.timeOriginMicros,
     @required this.timeExtentMicros,
   });
+
   Timeline._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     traceEvents = List<TimelineEvent>.from(
         createServiceObject(json['traceEvents'], const ['TimelineEvent']) ??
@@ -6313,6 +6503,7 @@ class TimelineEvent {
   Map<String, dynamic> json;
 
   TimelineEvent();
+
   TimelineEvent._fromJson(this.json);
 
   Map<String, dynamic> toJson() {
@@ -6344,6 +6535,7 @@ class TimelineFlags extends Response {
     @required this.availableStreams,
     @required this.recordedStreams,
   });
+
   TimelineFlags._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     recorderName = json['recorderName'];
     availableStreams = List<String>.from(json['availableStreams']);
@@ -6377,6 +6569,7 @@ class Timestamp extends Response {
   Timestamp({
     @required this.timestamp,
   });
+
   Timestamp._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     timestamp = json['timestamp'];
   }
@@ -6405,6 +6598,7 @@ class TypeArgumentsRef extends ObjRef {
   TypeArgumentsRef({
     @required this.name,
   });
+
   TypeArgumentsRef._fromJson(Map<String, dynamic> json)
       : super._fromJson(json) {
     name = json['name'];
@@ -6447,6 +6641,7 @@ class TypeArguments extends Obj implements TypeArgumentsRef {
     @required this.name,
     @required this.types,
   });
+
   TypeArguments._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     types = List<InstanceRef>.from(
@@ -6517,6 +6712,7 @@ class UnresolvedSourceLocation extends Response {
     this.line,
     this.column,
   });
+
   UnresolvedSourceLocation._fromJson(Map<String, dynamic> json)
       : super._fromJson(json) {
     script = createServiceObject(json['script'], const ['ScriptRef']);
@@ -6558,6 +6754,7 @@ class Version extends Response {
     @required this.major,
     @required this.minor,
   });
+
   Version._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     major = json['major'];
     minor = json['minor'];
@@ -6589,6 +6786,7 @@ class VMRef extends Response {
   VMRef({
     @required this.name,
   });
+
   VMRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
   }
@@ -6654,6 +6852,7 @@ class VM extends Response implements VMRef {
     @required this.isolates,
     @required this.isolateGroups,
   });
+
   VM._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     architectureBits = json['architectureBits'];

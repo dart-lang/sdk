@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, StringDataInterpreter, runTests;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
+import 'package:front_end/src/api_prototype/language_version.dart' as lv;
 import 'package:front_end/src/fasta/messages.dart' show FormattedMessage;
 import 'package:front_end/src/testing/id_testing_helper.dart'
     show
@@ -18,7 +19,8 @@ import 'package:front_end/src/testing/id_testing_helper.dart'
         createUriForFileName,
         onFailure,
         runTestFor;
-import 'package:kernel/ast.dart' show Library;
+
+import 'package:kernel/ast.dart' show Component, Library, Version;
 
 main(List<String> args) async {
   // Fix default/max major and minor version so we can test it.
@@ -38,12 +40,16 @@ main(List<String> args) async {
       ]);
 }
 
+// Ugly hack.
+CompilerOptions stashedOptions;
+
 class TestConfigWithLanguageVersion extends TestConfig {
   TestConfigWithLanguageVersion(String marker, String name)
       : super(marker, name);
 
   @override
   void customizeCompilerOptions(CompilerOptions options, TestData testData) {
+    stashedOptions = options;
     options.currentSdkVersion = "2.8";
 
     File f = new File.fromUri(testData.testFileUri.resolve("test.options"));
@@ -66,6 +72,24 @@ class TestConfigWithLanguageVersion extends TestConfig {
 
 class LanguageVersioningDataComputer extends DataComputer<String> {
   const LanguageVersioningDataComputer();
+
+  Future<void> inspectComponent(Component component) async {
+    for (Library library in component.libraries) {
+      if (library.importUri.scheme == "dart") continue;
+      Version lvFile =
+          await lv.languageVersionForUri(library.fileUri, stashedOptions);
+      Version lvImportUri =
+          await lv.languageVersionForUri(library.importUri, stashedOptions);
+      if ((lvFile != lvImportUri || lvFile != library.languageVersion)) {
+        throw """
+Language version disagreement:
+Library: ${library.languageVersion}
+Language version API (file URI): ${lvFile}
+Language version API (import URI): ${lvImportUri}
+""";
+      }
+    }
+  }
 
   void computeLibraryData(
       TestConfig config,
@@ -96,9 +120,8 @@ class LanguageVersioningDataExtractor extends CfeDataExtractor<String> {
 
   @override
   String computeLibraryValue(Id id, Library library) {
-    StringBuffer sb = new StringBuffer();
-    sb.write('languageVersion='
-        '${library.languageVersionMajor}.${library.languageVersionMinor}');
-    return sb.toString();
+    return "languageVersion=${library.languageVersion.major}"
+        "."
+        "${library.languageVersion.minor}";
   }
 }

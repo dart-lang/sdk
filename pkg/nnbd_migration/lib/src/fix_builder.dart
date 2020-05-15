@@ -25,14 +25,29 @@ import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/task/strong/checker.dart';
+import 'package:nnbd_migration/fix_reason_target.dart';
+import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/fix_aggregator.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
+import 'package:nnbd_migration/src/utilities/hint_utils.dart';
 import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
+import 'package:nnbd_migration/src/utilities/resolution_utils.dart';
 import 'package:nnbd_migration/src/variables.dart';
+
+bool _isIncrementOrDecrementOperator(TokenType tokenType) {
+  switch (tokenType) {
+    case TokenType.PLUS_PLUS:
+    case TokenType.MINUS_MINUS:
+      return true;
+    default:
+      return false;
+  }
+}
 
 /// Problem reported by [FixBuilder] when encountering a compound assignment
 /// for which the combination result is nullable.  This occurs if the compound
@@ -97,6 +112,10 @@ class FixBuilder {
   /// that type should be.
   final Map<ParameterElement, DartType> _addedParameterTypes = {};
 
+  final bool warnOnWeakCode;
+
+  final NullabilityGraph _graph;
+
   factory FixBuilder(
       Source source,
       DecoratedClassHierarchy decoratedClassHierarchy,
@@ -105,7 +124,9 @@ class FixBuilder {
       Variables variables,
       LibraryElement definingLibrary,
       NullabilityMigrationListener listener,
-      CompilationUnit unit) {
+      CompilationUnit unit,
+      bool warnOnWeakCode,
+      NullabilityGraph graph) {
     var migrationResolutionHooks = MigrationResolutionHooksImpl();
     return FixBuilder._(
         decoratedClassHierarchy,
@@ -118,7 +139,9 @@ class FixBuilder {
         definingLibrary,
         listener,
         unit,
-        migrationResolutionHooks);
+        migrationResolutionHooks,
+        warnOnWeakCode,
+        graph);
   }
 
   FixBuilder._(
@@ -129,7 +152,9 @@ class FixBuilder {
       LibraryElement definingLibrary,
       this.listener,
       this.unit,
-      this.migrationResolutionHooks)
+      this.migrationResolutionHooks,
+      this.warnOnWeakCode,
+      this._graph)
       : typeProvider = _typeSystem.typeProvider {
     migrationResolutionHooks._fixBuilder = this;
     // TODO(paulberry): make use of decoratedClassHierarchy
@@ -254,6 +279,17 @@ class FixBuilder {
   }
 }
 
+/// Fix reason object when adding a null check because of an explicit hint.
+class FixReason_NullCheckHint implements SimpleFixReasonInfo {
+  @override
+  final CodeReference codeReference;
+
+  FixReason_NullCheckHint(this.codeReference);
+
+  @override
+  String get description => 'Null check hint';
+}
+
 /// Implementation of [MigrationResolutionHooks] that interfaces with
 /// [FixBuilder].
 class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
@@ -262,6 +298,9 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
   final Expando<List<CollectionElement>> _collectionElements = Expando();
 
   final Expando<bool> _shouldStayNullAware = Expando();
+
+  final Map<Expression, _AssignmentLikeExpressionHandler>
+      _assignmentLikeExpressionHandlers = {};
 
   FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>
       _flowAnalysis;
@@ -288,14 +327,28 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
           var conditionValue = conditionalDiscard.keepTrue;
           (_fixBuilder._getChange(node) as NodeChangeForConditional)
             ..conditionValue = conditionValue
-            ..conditionReasons = conditionalDiscard.reasons.toList();
-          return conditionValue;
+            ..conditionReason = conditionalDiscard.reason;
+          // If we're just issuing warnings, instruct the resolver to go ahead
+          // and visit both branches of the conditional.
+          return _fixBuilder.warnOnWeakCode ? null : conditionValue;
         }
       });
 
   @override
-  List<ParameterElement> getExecutableParameters(ExecutableElement element) =>
-      getExecutableType(element as ElementImplWithFunctionType).parameters;
+  List<ParameterElement> getExecutableParameters(
+      ExecutableElementImpl element) {
+    if (_fixBuilder._graph.isBeingMigrated(element.library.source)) {
+      // The element is part of a library that's being migrated, so its
+      // parameters all have been visited (and thus have their own final
+      // types).  So we don't need to do anything.
+      return const ElementTypeProvider().getExecutableParameters(element);
+    } else {
+      // The element is not part of a library that's being migrated, so its
+      // parameters probably haven't been visited; we need to get the parameters
+      // from the final function type.
+      return getExecutableType(element).parameters;
+    }
+  }
 
   @override
   DartType getExecutableReturnType(Element element) =>
@@ -384,25 +437,25 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
   @override
   DartType modifyExpressionType(Expression node, DartType type) =>
       _wrapExceptions(node, () => type, () {
-        if (type.isDynamic) return type;
-        var ancestor = _findNullabilityContextAncestor(node);
-        var context =
-            InferenceContext.getContext(ancestor) ?? DynamicTypeImpl.instance;
-        if (!_fixBuilder._typeSystem.isSubtypeOf(type, context)) {
-          // Either a cast or a null check is needed.  We prefer to do a null
-          // check if we can.
-          var nonNullType = _fixBuilder._typeSystem.promoteToNonNull(type);
-          if (_fixBuilder._typeSystem.isSubtypeOf(nonNullType, context)) {
-            return _addNullCheck(node, type);
-          } else {
-            return _addCast(node, context);
+        var parent = node.parent;
+        if (parent is AssignmentExpression) {
+          return (_assignmentLikeExpressionHandlers[parent] ??=
+                  _AssignmentExpressionHandler(parent))
+              .modifySubexpressionType(this, node, type);
+        } else if (parent is PrefixExpression) {
+          if (_isIncrementOrDecrementOperator(parent.operator.type)) {
+            return (_assignmentLikeExpressionHandlers[parent] ??=
+                    _PrefixExpressionHandler(parent))
+                .modifySubexpressionType(this, node, type);
+          }
+        } else if (parent is PostfixExpression) {
+          if (_isIncrementOrDecrementOperator(parent.operator.type)) {
+            return (_assignmentLikeExpressionHandlers[parent] ??=
+                    _PostfixExpressionHandler(parent))
+                .modifySubexpressionType(this, node, type);
           }
         }
-        if (!_fixBuilder._typeSystem.isNullable(type)) return type;
-        if (_needsNullCheckDueToStructure(ancestor)) {
-          return _addNullCheck(node, type);
-        }
-        return type;
+        return _modifyRValueType(node, type);
       });
 
   @override
@@ -410,7 +463,7 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
       ParameterElement parameter, DartType type) {
     var postMigrationType = parameter.type;
     if (postMigrationType != type) {
-      // TODO(paulberry): make sure we test all kinds of parameters
+      // TODO(paulberry): test field formal parameters.
       _fixBuilder._addedParameterTypes[parameter] = postMigrationType;
       return postMigrationType;
     }
@@ -424,28 +477,33 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
     _flowAnalysis = flowAnalysis;
   }
 
-  DartType _addCast(Expression node, DartType contextType) {
+  DartType _addCast(
+      Expression node, DartType expressionType, DartType contextType) {
+    var isDowncast =
+        _fixBuilder._typeSystem.isSubtypeOf(contextType, expressionType);
     var checks =
         _fixBuilder._variables.expressionChecks(_fixBuilder.source, node);
-    var info = checks != null
-        ? AtomicEditInfo(
-            NullabilityFixDescription.checkExpression, checks.edges)
-        : null;
+    var info = AtomicEditInfo(
+        isDowncast
+            ? NullabilityFixDescription.downcastExpression
+            : NullabilityFixDescription.otherCastExpression,
+        checks != null ? checks.edges : {});
     (_fixBuilder._getChange(node) as NodeChangeForExpression)
-        .introduceAs(contextType.getDisplayString(withNullability: true), info);
+        .introduceAs(contextType, info);
     _flowAnalysis.asExpression_end(node, contextType);
     return contextType;
   }
 
-  DartType _addNullCheck(Expression node, DartType type) {
+  DartType _addNullCheck(Expression node, DartType type,
+      {AtomicEditInfo info, HintComment hint}) {
     var checks =
         _fixBuilder._variables.expressionChecks(_fixBuilder.source, node);
-    var info = checks != null
+    info ??= checks != null
         ? AtomicEditInfo(
             NullabilityFixDescription.checkExpression, checks.edges)
         : null;
     (_fixBuilder._getChange(node) as NodeChangeForExpression)
-        .addNullCheck(info);
+        .addNullCheck(info, hint: hint);
     _flowAnalysis.nonNullAssert_end(node);
     return _fixBuilder._typeSystem.promoteToNonNull(type as TypeImpl);
   }
@@ -461,6 +519,42 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
       }
       return node;
     }
+  }
+
+  DartType _modifyRValueType(Expression node, DartType type,
+      {DartType context}) {
+    var hint =
+        _fixBuilder._variables.getNullCheckHint(_fixBuilder.source, node);
+    if (hint != null) {
+      type = _addNullCheck(node, type,
+          info: AtomicEditInfo(
+              NullabilityFixDescription.checkExpressionDueToHint,
+              {
+                FixReasonTarget.root:
+                    FixReason_NullCheckHint(CodeReference.fromAstNode(node))
+              },
+              hintComment: hint),
+          hint: hint);
+    }
+    if (type.isDynamic) return type;
+    var ancestor = _findNullabilityContextAncestor(node);
+    context ??=
+        InferenceContext.getContext(ancestor) ?? DynamicTypeImpl.instance;
+    if (!_fixBuilder._typeSystem.isSubtypeOf(type, context)) {
+      // Either a cast or a null check is needed.  We prefer to do a null
+      // check if we can.
+      var nonNullType = _fixBuilder._typeSystem.promoteToNonNull(type);
+      if (_fixBuilder._typeSystem.isSubtypeOf(nonNullType, context)) {
+        return _addNullCheck(node, type);
+      } else {
+        return _addCast(node, type, context);
+      }
+    }
+    if (!_fixBuilder._typeSystem.isNullable(type)) return type;
+    if (_needsNullCheckDueToStructure(ancestor)) {
+      return _addNullCheck(node, type);
+    }
+    return type;
   }
 
   bool _needsNullCheckDueToStructure(Expression node) {
@@ -554,6 +648,143 @@ class NonNullableUnnamedOptionalParameter implements Problem {
 /// Common supertype for problems reported by [FixBuilder._addProblem].
 abstract class Problem {}
 
+/// Specialization of [_AssignmentLikeExpressionHandler] for
+/// [AssignmentExpression].
+class _AssignmentExpressionHandler extends _AssignmentLikeExpressionHandler {
+  @override
+  final AssignmentExpression node;
+
+  _AssignmentExpressionHandler(this.node);
+
+  @override
+  MethodElement get combiner => node.staticElement;
+
+  @override
+  TokenType get combinerType => node.operator.type;
+
+  @override
+  Expression get target => node.leftHandSide;
+}
+
+/// Data structure keeping track of intermediate results when the fix builder
+/// is handling an assignment expression, or an expression that desugars to an
+/// assignment.
+abstract class _AssignmentLikeExpressionHandler {
+  /// For compound and null-aware assignments, the type read from the LHS.
+  /*late final*/ DartType readType;
+
+  /// The type that may be written to the LHS.
+  /*late final*/ DartType writeType;
+
+  /// The type that should be used as a context type when inferring the RHS.
+  DartType rhsContextType;
+
+  /// Gets the static element representing the combiner.
+  MethodElement get combiner;
+
+  /// Gets the operator type representing the combiner.
+  TokenType get combinerType;
+
+  /// Gets the expression in question.
+  Expression get node;
+
+  /// Gets the target of the assignment.
+  Expression get target;
+
+  /// Called after visiting the RHS of the assignment, to verify that for
+  /// compound assignments, the return value of the assignment is assignable to
+  /// [writeType].
+  void handleAssignmentRhs(
+      MigrationResolutionHooksImpl hooks, DartType rhsType) {
+    MethodElement combiner = this.combiner;
+    if (combiner != null) {
+      var fixBuilder = hooks._fixBuilder;
+      var combinerReturnType =
+          fixBuilder._typeSystem.refineBinaryExpressionType(
+        readType,
+        combinerType,
+        rhsType,
+        combiner.returnType,
+      );
+      if (!fixBuilder._typeSystem.isSubtypeOf(combinerReturnType, writeType)) {
+        (fixBuilder._getChange(node) as NodeChangeForAssignmentLike)
+            .hasBadCombinedType = true;
+      }
+    }
+  }
+
+  /// Called after visiting the LHS of the assignment.  Records the [readType],
+  /// [writeType], and [rhsContextType].  Also verifies that for compound
+  /// assignments, the [readType] is non-nullable, and that for null-aware
+  /// assignments, the [readType] is nullable.
+  void handleLValueType(
+      MigrationResolutionHooksImpl hooks, DartType resolvedType) {
+    assert(resolvedType.nullabilitySuffix != NullabilitySuffix.star);
+    // Provisionally store the resolved type as the type of the target, so that
+    // getReadType can fall back on it if necessary.
+    var target = this.target;
+    target.staticType = resolvedType;
+    // The type passed in by the resolver for the LHS of an assignment is the
+    // "write type".
+    var writeType = resolvedType;
+    if (target is SimpleIdentifier) {
+      var element = target.staticElement;
+      if (element is PromotableElement) {
+        // However, if the LHS is a reference to a local variable that has
+        // been promoted, the resolver passes in the promoted type.  We
+        // want to use the variable element's type, so that we consider it
+        // ok to assign a value to the variable that un-does the
+        // promotion.  See https://github.com/dart-lang/sdk/issues/41411.
+        writeType = element.type;
+      }
+    }
+    assert(writeType.nullabilitySuffix != NullabilitySuffix.star);
+    this.writeType = writeType;
+    var fixBuilder = hooks._fixBuilder;
+    if (combinerType == TokenType.EQ) {
+      rhsContextType = writeType;
+    } else {
+      readType = getReadType(target);
+      assert(readType.nullabilitySuffix != NullabilitySuffix.star);
+      if (combinerType == TokenType.QUESTION_QUESTION_EQ) {
+        rhsContextType = writeType;
+        if (fixBuilder._typeSystem.isNonNullable(readType)) {
+          (fixBuilder._getChange(node) as NodeChangeForAssignment)
+              .isWeakNullAware = true;
+        }
+      } else {
+        if (!readType.isDynamic &&
+            fixBuilder._typeSystem.isPotentiallyNullable(readType)) {
+          (fixBuilder._getChange(node) as NodeChangeForAssignmentLike)
+              .hasNullableSource = true;
+        }
+      }
+    }
+  }
+
+  /// Called after visiting the LHS or the RHS of the assignment.
+  DartType modifySubexpressionType(MigrationResolutionHooksImpl hooks,
+      Expression subexpression, DartType type) {
+    if (identical(subexpression, target)) {
+      handleLValueType(hooks, type);
+      if (node is! AssignmentExpression) {
+        // Must be a pre or post increment/decrement, so the "RHS" is implicitly
+        // the integer 1.
+        handleAssignmentRhs(hooks, hooks._fixBuilder.typeProvider.intType);
+      }
+      return type;
+    } else {
+      var node = this.node;
+      assert(node is AssignmentExpression &&
+          identical(subexpression, node.rightHandSide));
+      type =
+          hooks._modifyRValueType(subexpression, type, context: rhsContextType);
+      handleAssignmentRhs(hooks, type);
+      return type;
+    }
+  }
+}
+
 /// Visitor that computes additional migrations on behalf of [FixBuilder] that
 /// should be run after resolution
 class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
@@ -576,6 +807,15 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
       (_fixBuilder._getChange(node) as NodeChangeForAsExpression).removeAs =
           true;
     }
+  }
+
+  @override
+  void visitCompilationUnit(CompilationUnit node) {
+    if ((node as CompilationUnitImpl).languageVersionToken != null) {
+      (_fixBuilder._getChange(node) as NodeChangeForCompilationUnit)
+          .removeLanguageVersionComment = true;
+    }
+    super.visitCompilationUnit(node);
   }
 
   @override
@@ -618,6 +858,36 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
         }
       }
     }
+
+    // Check if the nullability node for a single variable declaration has been
+    // declared to be late.
+    if (node.variables.length == 1) {
+      var variableElement = node.variables.single.declaredElement;
+      var lateCondition = _fixBuilder._variables
+          .decoratedElementType(variableElement)
+          .node
+          .lateCondition;
+      switch (lateCondition) {
+        case LateCondition.possiblyLate:
+          (_fixBuilder._getChange(node) as NodeChangeForVariableDeclarationList)
+              .lateAdditionReason = LateAdditionReason.inference;
+          break;
+        case LateCondition.possiblyLateDueToTestSetup:
+          (_fixBuilder._getChange(node) as NodeChangeForVariableDeclarationList)
+              .lateAdditionReason = LateAdditionReason.testVariableInference;
+          break;
+        case LateCondition.lateDueToHint:
+        // Handled below.
+        case LateCondition.notLate:
+        // Nothing to do.
+      }
+    }
+
+    var lateHint = _fixBuilder._variables.getLateHint(source, node);
+    if (lateHint != null) {
+      (_fixBuilder._getChange(node) as NodeChangeForVariableDeclarationList)
+          .lateHint = lateHint;
+    }
     super.visitVariableDeclarationList(node);
   }
 }
@@ -650,19 +920,50 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
           _fixBuilder._addProblem(
               node, const NonNullableUnnamedOptionalParameter());
         }
+      } else if (element.metadata.any((m) => m.isRequired)) {
+        _addRequiredKeyword(node, nullabilityNode);
       }
     }
     super.visitDefaultFormalParameter(node);
   }
 
   @override
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    // Field formal parameter types are generally handled in [visitTypeName],
+    // _function-typed_ field formal parameters need to be handled here.
+    if (node.parameters != null) {
+      var decoratedType =
+          _fixBuilder._variables.decoratedElementType(node.declaredElement);
+      if (decoratedType.node.isNullable) {
+        (_fixBuilder._getChange(node) as NodeChangeForFieldFormalParameter)
+            .recordNullability(decoratedType, decoratedType.node.isNullable,
+                nullabilityHint:
+                    _fixBuilder._variables.getNullabilityHint(source, node));
+      }
+    }
+    super.visitFieldFormalParameter(node);
+  }
+
+  @override
+  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+    var decoratedType =
+        _fixBuilder._variables.decoratedElementType(node.declaredElement);
+    if (decoratedType.node.isNullable) {
+      (_fixBuilder._getChange(node)
+              as NodeChangeForFunctionTypedFormalParameter)
+          .recordNullability(decoratedType, decoratedType.node.isNullable,
+              nullabilityHint:
+                  _fixBuilder._variables.getNullabilityHint(source, node));
+    }
+    super.visitFunctionTypedFormalParameter(node);
+  }
+
+  @override
   void visitGenericFunctionType(GenericFunctionType node) {
     var decoratedType = _fixBuilder._variables
         .decoratedTypeAnnotation(_fixBuilder.source, node);
-    if (decoratedType.node.isNullable) {
-      (_fixBuilder._getChange(node) as NodeChangeForTypeAnnotation)
-        ..makeNullable = true
-        ..makeNullableType = decoratedType;
+    if (!typeIsNonNullableByContext(node)) {
+      _makeTypeNameNullable(node, decoratedType);
     }
     (node as GenericFunctionTypeImpl).type =
         _fixBuilder._variables.toFinalType(decoratedType);
@@ -673,11 +974,11 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
   void visitTypeName(TypeName node) {
     var decoratedType = _fixBuilder._variables
         .decoratedTypeAnnotation(_fixBuilder.source, node);
-    var type = decoratedType.type;
-    if (!type.isDynamic && !type.isVoid && decoratedType.node.isNullable) {
-      (_fixBuilder._getChange(node) as NodeChangeForTypeAnnotation)
-        ..makeNullable = true
-        ..makeNullableType = decoratedType;
+    if (!typeIsNonNullableByContext(node)) {
+      var type = decoratedType.type;
+      if (!type.isDynamic && !type.isVoid) {
+        _makeTypeNameNullable(node, decoratedType);
+      }
     }
     node.type = _fixBuilder._variables.toFinalType(decoratedType);
     super.visitTypeName(node);
@@ -693,7 +994,7 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
     var info = AtomicEditInfo(
         NullabilityFixDescription.addRequired(
             cls.name, method.name, element.name),
-        [node]);
+        {FixReasonTarget.root: node});
     var metadata = parameter.metadata;
     for (var annotation in metadata) {
       if (annotation.elementAnnotation.isRequired) {
@@ -710,4 +1011,50 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
       ..addRequiredKeyword = true
       ..addRequiredKeywordInfo = info;
   }
+
+  void _makeTypeNameNullable(TypeAnnotation node, DecoratedType decoratedType) {
+    (_fixBuilder._getChange(node) as NodeChangeForTypeAnnotation)
+        .recordNullability(
+            decoratedType, decoratedType.node.isNullable,
+            nullabilityHint:
+                _fixBuilder._variables.getNullabilityHint(source, node));
+  }
+}
+
+/// Specialization of [_AssignmentLikeExpressionHandler] for
+/// [PostfixExpression].
+class _PostfixExpressionHandler extends _AssignmentLikeExpressionHandler {
+  @override
+  final PostfixExpression node;
+
+  _PostfixExpressionHandler(this.node)
+      : assert(_isIncrementOrDecrementOperator(node.operator.type));
+
+  @override
+  MethodElement get combiner => node.staticElement;
+
+  @override
+  TokenType get combinerType => node.operator.type;
+
+  @override
+  Expression get target => node.operand;
+}
+
+/// Specialization of [_AssignmentLikeExpressionHandler] for
+/// [PrefixExpression].
+class _PrefixExpressionHandler extends _AssignmentLikeExpressionHandler {
+  @override
+  final PrefixExpression node;
+
+  _PrefixExpressionHandler(this.node)
+      : assert(_isIncrementOrDecrementOperator(node.operator.type));
+
+  @override
+  MethodElement get combiner => node.staticElement;
+
+  @override
+  TokenType get combinerType => node.operator.type;
+
+  @override
+  Expression get target => node.operand;
 }

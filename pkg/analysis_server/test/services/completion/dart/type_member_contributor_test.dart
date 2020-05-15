@@ -15,9 +15,6 @@ import 'completion_contributor_util.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeMemberContributorTest);
-    defineReflectiveTests(TypeMemberContributorWithExtensionMethodsTest);
-    defineReflectiveTests(
-        TypeMemberContributorWithExtensionMethodsAndNewRelevanceTest);
     defineReflectiveTests(TypeMemberContributorWithNewRelevanceTest);
   });
 }
@@ -42,7 +39,7 @@ void f(Derived d) {
 }
 ''');
     await computeSuggestions();
-    List<CompletionSuggestion> suggestionsForX = suggestions
+    var suggestionsForX = suggestions
         .where((CompletionSuggestion s) => s.completion == 'x')
         .toList();
     expect(suggestionsForX, hasLength(1));
@@ -1743,6 +1740,20 @@ void main() {new A().f^}''');
     assertNoSuggestions();
   }
 
+  Future<void> test_extensionOverride() async {
+    addTestSource('''
+extension E on int {
+  int get foo => 0;
+}
+
+void f() {
+  E(1).^
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('toString');
+  }
+
   Future<void> test_FieldDeclaration_name_typed() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // FieldDeclaration
@@ -2064,7 +2075,7 @@ void f(C<int> c) {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'int');
+    var suggestion = assertSuggestMethod('m', 'C', 'int');
     expect(suggestion.parameterTypes[0], 'int');
     expect(suggestion.element.returnType, 'int');
     expect(suggestion.element.parameters, '(int t)');
@@ -2083,7 +2094,7 @@ void f(C<int> c) {
     // TODO(paulberry): modify assertSuggestSetter so that we can pass 'int'
     // as a parmeter to it, and it will check the appropriate field in
     // the suggestion object.
-    CompletionSuggestion suggestion = assertSuggestSetter('t');
+    var suggestion = assertSuggestSetter('t');
     expect(suggestion.element.parameters, '(int value)');
   }
 
@@ -2271,12 +2282,7 @@ void f() {
 ''');
 
     await computeSuggestions();
-    assertSuggest(
-      'call()',
-      selectionOffset: 6,
-      elemKind: ElementKind.METHOD,
-      isSynthetic: true,
-    );
+    assertNotSuggested('call');
   }
 
   Future<void> test_InterfaceType_Function_implemented_call() async {
@@ -2289,12 +2295,7 @@ void f() {
 ''');
 
     await computeSuggestions();
-    assertSuggest(
-      'call()',
-      selectionOffset: 6,
-      elemKind: ElementKind.METHOD,
-      isSynthetic: true,
-    );
+    assertNotSuggested('call');
   }
 
   Future<void> test_InterpolationExpression() async {
@@ -2737,7 +2738,7 @@ class C {
 }
 void main() {new C().^}''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
+    var suggestion = assertSuggestMethod('m', 'C', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -2754,7 +2755,7 @@ class C {
 }
 void main() {new C().^}''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
+    var suggestion = assertSuggestMethod('m', 'C', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -2771,7 +2772,7 @@ class C {
 }
 void main() {new C().^}''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
+    var suggestion = assertSuggestMethod('m', 'C', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -2788,7 +2789,7 @@ class C {
 }
 void main() {new C().^}''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
+    var suggestion = assertSuggestMethod('m', 'C', 'void');
     expect(suggestion.parameterNames, isEmpty);
     expect(suggestion.parameterTypes, isEmpty);
     expect(suggestion.requiredParameterCount, 0);
@@ -2802,7 +2803,7 @@ class C {
 }
 void main() {new C().^}''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
+    var suggestion = assertSuggestMethod('m', 'C', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -2819,7 +2820,7 @@ class C {
 }
 void main() {new C().^}''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
+    var suggestion = assertSuggestMethod('m', 'C', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -3111,7 +3112,7 @@ class C {
 }
 void main() {new C().^}''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestField('x', 'int');
+    var suggestion = assertSuggestField('x', 'int');
     assertHasNoParameterInfo(suggestion);
   }
 
@@ -3122,7 +3123,7 @@ class C {
 }
 void main() {int y = new C().^}''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestGetter('x', 'int');
+    var suggestion = assertSuggestGetter('x', 'int');
     assertHasNoParameterInfo(suggestion);
   }
 
@@ -3133,7 +3134,18 @@ class C {
 }
 void main() {int y = new C().^}''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestSetter('x');
+    var suggestion = assertSuggestSetter('x');
+    assertHasNoParameterInfo(suggestion);
+  }
+
+  Future<void> test_no_parameters_setter2() async {
+    addTestSource('''
+class C {
+  set x() {};
+}
+void main() {int y = new C().^}''');
+    await computeSuggestions();
+    var suggestion = assertSuggestSetter('x');
     assertHasNoParameterInfo(suggestion);
   }
 
@@ -4231,42 +4243,6 @@ class C with M {
     assertNotSuggested('f');
     assertNotSuggested('x');
     assertNotSuggested('e');
-  }
-}
-
-@reflectiveTest
-class TypeMemberContributorWithExtensionMethodsAndNewRelevanceTest
-    extends TypeMemberContributorWithExtensionMethodsTest {
-  @override
-  bool get useNewRelevance => true;
-}
-
-@reflectiveTest
-class TypeMemberContributorWithExtensionMethodsTest
-    extends DartCompletionContributorTest {
-  @override
-  DartCompletionContributor createContributor() {
-    return TypeMemberContributor();
-  }
-
-  @override
-  void setUp() {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
-    super.setUp();
-  }
-
-  Future<void> test_extensionOverride() async {
-    addTestSource('''
-extension E on int {
-  int get foo => 0;
-}
-
-void f() {
-  E(1).^
-}
-''');
-    await computeSuggestions();
-    assertNotSuggested('toString');
   }
 }
 

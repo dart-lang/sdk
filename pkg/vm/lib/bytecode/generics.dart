@@ -28,7 +28,9 @@ List<DartType> getTypeParameterTypes(List<TypeParameter> typeParameters) {
   }
   final types = new List<DartType>(typeParameters.length);
   for (int i = 0; i < typeParameters.length; ++i) {
-    types[i] = new TypeParameterType(typeParameters[i], Nullability.legacy);
+    final tp = typeParameters[i];
+    types[i] = new TypeParameterType(
+        tp, TypeParameterType.computeNullabilityFromBound(tp));
   }
   return types;
 }
@@ -37,8 +39,11 @@ bool _canReuseSuperclassTypeArguments(List<DartType> superTypeArgs,
     List<TypeParameter> typeParameters, int overlap) {
   for (int i = 0; i < overlap; ++i) {
     final superTypeArg = superTypeArgs[superTypeArgs.length - overlap + i];
+    final typeParam = typeParameters[i];
     if (!(superTypeArg is TypeParameterType &&
-        superTypeArg.parameter == typeParameters[i])) {
+        superTypeArg.parameter == typeParameters[i] &&
+        superTypeArg.nullability ==
+            TypeParameterType.computeNullabilityFromBound(typeParam))) {
       return false;
     }
   }
@@ -68,6 +73,8 @@ List<DartType> flattenInstantiatorTypeArguments(
       break;
     }
   }
+
+  assert(typeParameters.length == typeArgs.length);
 
   final substitution = Substitution.fromPairs(typeParameters, typeArgs);
 

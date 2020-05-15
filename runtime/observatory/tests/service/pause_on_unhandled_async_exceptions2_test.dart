@@ -8,7 +8,7 @@
 
 import 'package:observatory/service_io.dart';
 import 'package:observatory/models.dart' as M;
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 import 'service_test_common.dart';
 
@@ -61,7 +61,13 @@ var tests = <IsolateTest>[
   }
 ];
 
-main(args) => runIsolateTests(args, tests,
-    pause_on_unhandled_exceptions: true,
-    testeeConcurrent: testeeMain,
-    extraArgs: extraDebuggingArgs);
+main(args) => runIsolateTests(
+      args,
+      tests,
+      pause_on_unhandled_exceptions: true,
+      testeeConcurrent: testeeMain,
+      extraArgs: extraDebuggingArgs,
+      // TODO(bkonyi): causes ASSERT in debug mode, unrelated to DDS.
+      // See https://github.com/dart-lang/sdk/issues/41379.
+      enableDds: false,
+    );

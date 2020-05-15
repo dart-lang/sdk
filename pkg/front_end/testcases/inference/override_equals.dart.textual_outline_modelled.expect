@@ -1,0 +1,13 @@
+library test;
+
+class NullEquality {
+  @override
+  Null operator ==(Object other) => null;
+}
+
+class SubNullEquality extends NullEquality {
+  void test() {}
+}
+
+main() {}
+test() {}

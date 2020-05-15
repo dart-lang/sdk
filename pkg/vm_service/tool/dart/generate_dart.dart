@@ -104,8 +104,8 @@ final String _implCode = r'''
     _streamSub.cancel();
     _completers.forEach((id, c) {
       final method = _methodCalls[id];
-      return c.completeError(
-          RPCError(method, -32000, 'Service connection disposed'));
+      return c.completeError(RPCError(
+          method, RPCError.kServerError, 'Service connection disposed'));
     });
     _completers.clear();
     if (_disposeHandler != null) {
@@ -118,13 +118,12 @@ final String _implCode = r'''
 
   Future get onDone => _onDoneCompleter.future;
 
-  Future<T> _call<T>(String method, [Map args]) {
+  Future<T> _call<T>(String method, [Map args = const {}]) {
     String id = '${++_id}';
     Completer<T> completer = Completer<T>();
     _completers[id] = completer;
     _methodCalls[id] = method;
-    Map m = {'id': id, 'method': method};
-    if (args != null) m['params'] = args;
+    Map m = {'jsonrpc': '2.0', 'id': id, 'method': method, 'params': args,};
     String message = jsonEncode(m);
     _onSend.add(message);
     _writeMessage(message);
@@ -221,7 +220,7 @@ final String _implCode = r'''
   }
 
   Future _processRequest(Map<String, dynamic> json) async {
-    final Map m = await _routeRequest(json['method'], json['params']);
+    final Map m = await _routeRequest(json['method'], json['params'] ?? <String, dynamic>{});
     m['id'] = json['id'];
     m['jsonrpc'] = '2.0';
     String message = jsonEncode(m);
@@ -231,7 +230,7 @@ final String _implCode = r'''
 
   Future _processNotification(Map<String, dynamic> json) async {
     final String method = json['method'];
-    final Map params = json['params'];
+    final Map params = json['params'] ?? <String, dynamic>{};
     if (method == 'streamNotify') {
       String streamId = params['streamId'];
       _getEventController(streamId).add(createServiceObject(params['event'], const ['Event']));
@@ -240,24 +239,19 @@ final String _implCode = r'''
     }
   }
 
-  Future<Map> _routeRequest(String method, Map params) async{
+  Future<Map> _routeRequest(String method, Map<String, dynamic> params) async{
+    if (!_services.containsKey(method)) {
+      RPCError error = RPCError(
+          method, RPCError.kMethodNotFound, 'method not found \'$method\'');
+      return {'error': error.toMap()};
+    }
+
     try {
-      if (_services.containsKey(method)) {
-        return await _services[method](params);
-      }
-      return {
-        'error': {
-          'code': -32601, // Method not found
-          'message': 'Method not found \'$method\''
-        }
-      };
+      return await _services[method](params);
     } catch (e, st) {
-      return {
-        'error': {
-          'code': -32000, // SERVER ERROR
-          'message': 'Unexpected Server Error $e\n$st'
-        }
-      };
+      RPCError error = RPCError.withDetails(
+        method, RPCError.kServerError, '$e', details: '$st',);
+      return {'error': error.toMap()};
     }
   }
 ''';
@@ -268,6 +262,21 @@ final String _rpcError = r'''
 typedef DisposeHandler = Future Function();
 
 class RPCError implements Exception {
+  /// Application specific error codes.
+  static const int kServerError = -32000;
+
+  /// The JSON sent is not a valid Request object.
+  static const int kInvalidRequest = -32600;
+
+  /// The method does not exist or is not available.
+  static const int kMethodNotFound = -32601;
+
+  /// Invalid method parameter(s), such as a mismatched type.
+  static const int kInvalidParams = -32602;
+
+  /// Internal JSON-RPC error.
+  static const int kInternalError = -32603;
+
   static RPCError parse(String callingMethod, dynamic json) {
     return RPCError(callingMethod, json['code'], json['message'], json['data']);
   }
@@ -279,13 +288,34 @@ class RPCError implements Exception {
 
   RPCError(this.callingMethod, this.code, this.message, [this.data]);
 
+  RPCError.withDetails(this.callingMethod, this.code, this.message,
+      {Object details})
+      : data = details == null ? null : <String, dynamic>{} {
+    if (details != null) {
+      data['details'] = details;
+    }
+  }
+
   String get details => data == null ? null : data['details'];
+
+  /// Return a map representation of this error suitable for converstion to
+  /// json.
+  Map<String, dynamic> toMap() {
+    Map<String, dynamic> map = {
+      'code': code,
+      'message': message,
+    };
+    if (data != null) {
+      map['data'] = data;
+    }
+    return map;
+  }
 
   String toString() {
     if (details == null) {
-      return '${message} (${code}) from ${callingMethod}()';
+      return '$callingMethod: ($code) $message';
     } else {
-      return '${message} (${code}) from ${callingMethod}():\n${details}';
+      return '$callingMethod: ($code) $message\n$details';
     }
   }
 }
@@ -338,9 +368,10 @@ response =  Success();''';
 final _streamListenCaseImpl = '''
 var id = params['streamId'];
 if (_streamSubscriptions.containsKey(id)) {
-  throw RPCError('streamListen', 103, 'Stream already subscribed', {
-      'details': "The stream '\$id' is already subscribed",
-    });
+  throw RPCError.withDetails(
+    'streamListen', 103, 'Stream already subscribed',
+    details: "The stream '\$id' is already subscribed",
+  );
 }
 
 var stream = id == 'Service'
@@ -362,9 +393,10 @@ final _streamCancelCaseImpl = '''
 var id = params['streamId'];
 var existing = _streamSubscriptions.remove(id);
 if (existing == null) {
-  throw RPCError('streamCancel', 104, 'Stream not subscribed', {
-      'details': "The stream '\$id' is not subscribed",
-    });
+  throw RPCError.withDetails(
+    'streamCancel', 104, 'Stream not subscribed',
+    details: "The stream '\$id' is not subscribed",
+  );
 }
 await existing.cancel();
 response = Success();''';
@@ -405,10 +437,13 @@ class Api extends Member with ApiParseUtil {
         String docs = '';
 
         while (i + 1 < nodes.length &&
-            (isPara(nodes[i + 1]) || isBlockquote(nodes[i + 1]))) {
+                (isPara(nodes[i + 1]) || isBlockquote(nodes[i + 1])) ||
+            isList(nodes[i + 1])) {
           Element p = nodes[++i];
           String str = TextOutputVisitor.printText(p);
-          if (!str.contains('|') && !str.contains('``')) {
+          if (!str.contains('|') &&
+              !str.contains('``') &&
+              !str.startsWith('- ')) {
             str = collapseWhitespace(str);
           }
           docs = '${docs}\n\n${str}';
@@ -661,7 +696,8 @@ abstract class VmServiceInterface {
         }
         var method = request['method'] as String;
         if (method == null) {
-          throw RPCError(null, -32600, 'Invalid Request', request);
+          throw RPCError(
+            null, RPCError.kInvalidRequest, 'Invalid Request', request);
         }
         var params = request['params'] as Map;
         Response response;
@@ -726,7 +762,7 @@ abstract class VmServiceInterface {
           response = await _serviceImplementation.callServiceExtension(method,
               isolateId: isolateId, args: args);
         } else {
-          throw RPCError(method, -32601, 'Method not found', request);
+          throw RPCError(method, RPCError.kMethodNotFound, 'Method not found', request);
         }
 ''');
     // Terminate the switch
@@ -751,8 +787,12 @@ abstract class VmServiceInterface {
     gen.write(r'''
       } catch (e, st) {
         var error = e is RPCError
-            ? {'code': e.code, 'data': e.data, 'message': e.message}
-            : {'code': -32603, 'message': '$e\n$st'};
+            ? e.toMap()
+            : {
+                'code': RPCError.kInternalError,
+                'message': '${request['method']}: $e',
+                'data': {'details': '$st'},
+              };
         _responseSink.add({
           'jsonrpc': '2.0',
           'id': request['id'],
@@ -1363,8 +1403,9 @@ class Type extends Member {
     if (docs != null) gen.writeDocs(docs);
     gen.write('class ${name} ');
     if (superName != null) gen.write('extends ${superName} ');
-    if (parent.getType('${name}Ref') != null)
+    if (parent.getType('${name}Ref') != null) {
       gen.write('implements ${name}Ref ');
+    }
     gen.writeln('{');
     gen.writeln('static ${name} parse(Map<String, dynamic> json) => '
         'json == null ? null : ${name}._fromJson(json);');
@@ -1399,6 +1440,7 @@ class Type extends Member {
     gen.writeln(');');
 
     // Build from JSON.
+    gen.writeln();
     String superCall = superName == null ? '' : ": super._fromJson(json) ";
     if (name == 'Response' || name == 'TimelineEvent') {
       gen.write('${name}._fromJson(this.json)');
@@ -1899,6 +1941,14 @@ class TextOutputVisitor implements NodeVisitor {
       _blockquote = true;
     } else if (element.tag == 'a') {
       _href = true;
+    } else if (element.tag == 'strong') {
+      buf.write('**');
+    } else if (element.tag == 'ul') {
+      // Nothing to do.
+    } else if (element.tag == 'li') {
+      buf.write('- ');
+    } else {
+      throw 'unknown node type: ${element.tag}';
     }
 
     return true;
@@ -1926,13 +1976,17 @@ class TextOutputVisitor implements NodeVisitor {
     } else if (element.tag == 'p') {
       buf.write('\n\n');
     } else if (element.tag == 'blockquote') {
-      //buf.write('```\n');
       _blockquote = false;
     } else if (element.tag == 'a') {
       _href = false;
+    } else if (element.tag == 'strong') {
+      buf.write('**');
+    } else if (element.tag == 'ul') {
+      // Nothing to do.
+    } else if (element.tag == 'li') {
+      buf.write('\n');
     } else {
-      print('             </${element.tag}>');
-      buf.write(renderToHtml([element]));
+      throw 'unknown node type: ${element.tag}';
     }
   }
 

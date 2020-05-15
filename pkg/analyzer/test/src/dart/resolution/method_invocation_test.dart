@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -1580,6 +1581,31 @@ main() {
     );
   }
 
+  test_syntheticName() async {
+    // This code is invalid, and the constructor initializer has a method
+    // invocation with a synthetic name. But we should still resolve the
+    // invocation, and resolve all its arguments.
+    await assertErrorsInCode(r'''
+class A {
+  A() : B(1 + 2, [0]);
+}
+''', [
+      error(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 18, 1),
+      error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 13),
+    ]);
+
+    assertMethodInvocation2(
+      findNode.methodInvocation(');'),
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'dynamic',
+      type: 'dynamic',
+    );
+
+    assertType(findNode.binary('1 + 2'), 'int');
+    assertType(findNode.listLiteral('[0]'), 'List<int>');
+  }
+
   test_typeArgumentTypes_generic_inferred() async {
     await assertErrorsInCode(r'''
 U foo<T, U>(T a) => null;
@@ -1955,5 +1981,96 @@ main(A? a) {
       invokeType: 'void Function()',
       type: 'void',
     );
+  }
+
+  test_nullShorting_cascade_firstMethodInvocation() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int foo() => 0;
+  int bar() => 0;
+}
+
+main(A? a) {
+  a?..foo()..bar();
+}
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('..foo()'),
+      element: findElement.method('foo'),
+      typeArgumentTypes: [],
+      invokeType: 'int Function()',
+      type: 'int',
+    );
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('..bar()'),
+      element: findElement.method('bar'),
+      typeArgumentTypes: [],
+      invokeType: 'int Function()',
+      type: 'int',
+    );
+
+    assertType(findNode.cascade('a?'), 'A?');
+  }
+
+  test_nullShorting_cascade_firstPropertyAccess() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int get foo => 0;
+  int bar() => 0;
+}
+
+main(A? a) {
+  a?..foo..bar();
+}
+''');
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('..foo'),
+      element: findElement.getter('foo'),
+      type: 'int',
+    );
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('..bar()'),
+      element: findElement.method('bar'),
+      typeArgumentTypes: [],
+      invokeType: 'int Function()',
+      type: 'int',
+    );
+
+    assertType(findNode.cascade('a?'), 'A?');
+  }
+
+  test_nullShorting_cascade_nullAwareInside() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int? foo() => 0;
+}
+
+main() {
+  A a = A()..foo()?.abs();
+  a;
+}
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('..foo()'),
+      element: findElement.method('foo'),
+      typeArgumentTypes: [],
+      invokeType: 'int? Function()',
+      type: 'int?',
+    );
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('.abs()'),
+      element: intElement.getMethod('abs'),
+      typeArgumentTypes: [],
+      invokeType: 'int Function()',
+      type: 'int',
+    );
+
+    assertType(findNode.cascade('A()'), 'A');
   }
 }

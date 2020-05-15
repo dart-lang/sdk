@@ -156,19 +156,27 @@ class DillClassMember extends BuilderClassMember {
   bool get isSourceDeclaration => false;
 
   @override
+  bool get isInternalImplementation {
+    Member member = memberBuilder.member;
+    return member is Field && member.isInternalImplementation;
+  }
+
+  @override
   bool get isProperty =>
       memberBuilder.kind == null ||
       memberBuilder.kind == ProcedureKind.Getter ||
       memberBuilder.kind == ProcedureKind.Setter;
 
   @override
+  bool get isSynthesized {
+    Member member = memberBuilder.member;
+    return member is Procedure &&
+        (member.isMemberSignature ||
+            (member.isForwardingStub && !member.isForwardingSemiStub));
+  }
+
+  @override
   bool get isFunction => !isProperty;
-
-  @override
-  bool get hasExplicitReturnType => true;
-
-  @override
-  bool hasExplicitlyTypedFormalParameter(int index) => true;
 
   @override
   void inferType(ClassHierarchyBuilder hierarchy) {

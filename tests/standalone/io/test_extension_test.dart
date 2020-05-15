@@ -21,6 +21,7 @@ Future copyFileToDirectory(String file, String directory) {
     default:
       Expect.fail('Unknown operating system ${Platform.operatingSystem}');
   }
+  throw 'Unknown operating system ${Platform.operatingSystem}';
 }
 
 // Returns a list containing the source file name in the first element and the
@@ -37,6 +38,7 @@ List<String> getExtensionNames(String arch) {
     default:
       Expect.fail('Unknown operating system ${Platform.operatingSystem}');
   }
+  throw 'Unknown operating system ${Platform.operatingSystem}';
 }
 
 String getExtensionPath(String buildDirectory, String filename) {

@@ -52,9 +52,9 @@ class EntryGenerator {
   /// non-fatal 'plugin.error' notification.
   GeneratorResult<KytheGetKytheEntriesResult> generateGetEntriesResponse(
       EntryRequest request) {
-    List<Notification> notifications = <Notification>[];
-    EntryCollectorImpl collector = EntryCollectorImpl();
-    for (EntryContributor contributor in contributors) {
+    var notifications = <Notification>[];
+    var collector = EntryCollectorImpl();
+    for (var contributor in contributors) {
       try {
         contributor.computeEntries(request, collector);
       } catch (exception, stackTrace) {
@@ -63,8 +63,7 @@ class EntryGenerator {
             .toNotification());
       }
     }
-    KytheGetKytheEntriesResult result =
-        KytheGetKytheEntriesResult(collector.entries, collector.files);
+    var result = KytheGetKytheEntriesResult(collector.entries, collector.files);
     return GeneratorResult(result, notifications);
   }
 }

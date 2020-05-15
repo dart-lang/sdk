@@ -43,6 +43,8 @@ anyone
 ap
 api
 app
+apparently
+applicable
 arg
 args
 argument1
@@ -66,6 +68,7 @@ atoms
 attributes
 automagically
 auxiliary
+awaited
 awaiting
 b
 b0i
@@ -76,6 +79,7 @@ b23d3b125e9d246e07a2b43b61740759a0dace
 b2i
 b2m
 backping
+badly
 bang
 bar
 basically
@@ -103,14 +107,17 @@ bit2
 bj
 blob
 blocking
+bmp
 bn
 bo
 bodied
 body's
 bof
 bom
+bones
 boolean
 bother
+boundness
 breadcrumbs
 brianwilkerson
 bs
@@ -137,6 +144,7 @@ caret
 carets
 carriage
 cascades
+casing
 cast
 casted
 casts
@@ -147,6 +155,7 @@ char
 charcode
 chars
 checkpoint
+chunks
 ci
 ck
 cl
@@ -195,11 +204,13 @@ compression
 concat
 concatenate
 concerned
+conciser
 cond
 condensed
 config
 configs
 configured
+consideration
 constness
 consult
 consumers
@@ -231,6 +242,7 @@ cwd
 cyclically
 d
 d11e
+d7c
 dag
 dangerous
 dangling
@@ -307,6 +319,7 @@ dq
 dquote
 dst
 dummy
+dupdate
 e
 easy
 ecma
@@ -329,6 +342,7 @@ emitting
 en
 enforce
 enforced
+enforces
 enumerates
 env
 eof
@@ -336,6 +350,7 @@ eq
 equation
 erasure
 es
+established
 estimate
 eval
 excludes
@@ -356,6 +371,7 @@ extracts
 f
 faced
 factor
+factored
 fangorn
 fasta
 favoring
@@ -365,6 +381,7 @@ fcov
 fe
 feff
 fetched
+fewest
 ff
 fff
 ffff
@@ -451,6 +468,7 @@ histogram
 hit
 hoc
 hoisted
+hopefully
 href
 html
 http
@@ -473,6 +491,7 @@ implementers
 imply
 implying
 importantly
+inapplicable
 inc
 incomparable
 inconsistency
@@ -488,6 +507,8 @@ init
 initializations
 initializer's
 insertion
+inspect
+inspection
 inspector
 inspired
 inst
@@ -560,6 +581,7 @@ llub
 lm
 locationd
 logging
+logically
 lots
 lp
 lparen
@@ -580,12 +602,14 @@ maintaining
 mangled
 manipulation
 markdown
+masking
 matcher
 mb
 md
 me
 merely
 meta
+metadata's
 method10a
 method10b
 method1a
@@ -621,6 +645,7 @@ mk
 mm
 mn
 mockito
+modelling
 momentarily
 monomorphic
 morebottom
@@ -674,6 +699,7 @@ nulls
 o
 oauth
 obj
+obligated
 observatory
 observe
 obstruct
@@ -686,6 +712,8 @@ oked
 op
 opt
 optimizations
+option1
+option2
 opts
 ordered
 orders
@@ -694,6 +722,7 @@ org
 orphans
 ors
 os
+outputting
 overlap
 overloader
 overshadowed
@@ -806,6 +835,7 @@ re
 reach
 react
 realign
+realise
 reassigned
 rebind
 rebuild
@@ -819,6 +849,7 @@ recompiled
 recompiling
 recompute
 recomputed
+recoveries
 recreate
 recursion
 red
@@ -874,6 +905,7 @@ room
 rooted
 roughly
 rounding
+roundtrip
 rparen
 rpc
 rs
@@ -908,6 +940,7 @@ shadowed
 shallow
 shas
 shelf
+shifts
 showing
 shrinking
 shru
@@ -937,6 +970,7 @@ socket
 sole
 solely
 somewhat
+sortable
 sourcemap
 spaced
 sparse
@@ -956,6 +990,7 @@ stability
 stacktrace
 stacktraces
 stale
+starter
 statics
 stderr
 stdin
@@ -963,6 +998,7 @@ stdio
 stdout
 stmt
 str
+streak
 streaming
 strict
 stringified
@@ -1029,6 +1065,7 @@ tester
 testers
 testing
 tex
+textualize
 tflite
 th
 therein
@@ -1050,6 +1087,7 @@ todo
 token's
 tokenize
 tokenized
+tokenizer
 tolerate
 tolerated
 toplevel
@@ -1182,6 +1220,7 @@ wn
 worthwhile
 writeln
 wrt
+wtf
 www
 x
 x0
@@ -1222,6 +1261,7 @@ xm
 xn
 xnon
 xor
+xor's
 xpotentially
 xs
 xss

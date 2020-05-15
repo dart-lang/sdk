@@ -528,8 +528,9 @@ testPausedSecuringSubscription(bool pausedServer, bool pausedClient) {
         }
 
         try {
-          RawSecureSocket.secureServer(client, serverContext,
-                  subscription: subscription)
+          Future<RawSecureSocket?>.value(RawSecureSocket.secureServer(
+                  client, serverContext,
+                  subscription: subscription))
               .catchError((_) {})
               .whenComplete(() {
             if (pausedServer) {
@@ -556,7 +557,8 @@ testPausedSecuringSubscription(bool pausedServer, bool pausedClient) {
           subscription.pause();
         }
         try {
-          RawSecureSocket.secure(socket, subscription: subscription)
+          Future<RawSecureSocket?>.value(
+                  RawSecureSocket.secure(socket, subscription: subscription))
               .catchError((_) {})
               .whenComplete(() {
             if (pausedClient) {

@@ -72,9 +72,6 @@ class Object {
 
   @JSExportName('as')
   static Object _as_Object(Object o) => o;
-
-  @JSExportName('_check')
-  static Object _check_Object(Object o) => o;
 }
 
 @patch
@@ -89,14 +86,7 @@ class Null {
   static Object _as_Null(Object o) {
     // Avoid extra function call to core.Null.is() by manually inlining.
     if (o == null) return o;
-    return dart.cast(o, dart.unwrapType(Null), false);
-  }
-
-  @JSExportName('_check')
-  static Object _check_Null(Object o) {
-    // Avoid extra function call to core.Null.is() by manually inlining.
-    if (o == null) return o;
-    return dart.cast(o, dart.unwrapType(Null), true);
+    return dart.cast(o, dart.unwrapType(Null));
   }
 }
 
@@ -135,14 +125,7 @@ class Function {
   static Object _as_Function(Object o) {
     // Avoid extra function call to core.Function.is() by manually inlining.
     if (JS<Object>('!', 'typeof $o == "function"') || o == null) return o;
-    return dart.cast(o, dart.unwrapType(Function), false);
-  }
-
-  @JSExportName('_check')
-  static Object _check_Function(Object o) {
-    // Avoid extra function call to core.Function.is() by manually inlining.
-    if (JS<Object>('!', 'typeof $o == "function"') || o == null) return o;
-    return dart.cast(o, dart.unwrapType(Function), true);
+    return dart.cast(o, dart.unwrapType(Function));
   }
 }
 
@@ -183,23 +166,24 @@ class Expando<T> {
   static int _keyCount = 0;
 }
 
-Null _kNull(_) => null;
-
 @patch
 class int {
   @patch
   static int parse(String source,
       {int radix, @deprecated int onError(String source)}) {
-    return Primitives.parseInt(source, radix, onError);
+    var value = tryParse(source, radix: radix);
+    if (value != null) return value;
+    if (onError != null) return onError(source);
+    throw new FormatException(source);
   }
 
   @patch
   static int tryParse(String source, {int radix}) {
-    return Primitives.parseInt(source, radix, _kNull);
+    return Primitives.parseInt(source, radix);
   }
 
   @patch
-  factory int.fromEnvironment(String name, {int defaultValue}) {
+  factory int.fromEnvironment(String name, {int defaultValue = 0}) {
     // ignore: const_constructor_throws_exception
     throw UnsupportedError(
         'int.fromEnvironment can only be used as a const constructor');
@@ -217,17 +201,7 @@ class int {
         o == null) {
       return o;
     }
-    return dart.cast(o, dart.unwrapType(int), false);
-  }
-
-  @JSExportName('_check')
-  static Object _check_int(Object o) {
-    // Avoid extra function call to core.int.is() by manually inlining.
-    if (JS<bool>('!', '(typeof $o == "number" && Math.floor($o) == $o)') ||
-        o == null) {
-      return o;
-    }
-    return dart.cast(o, dart.unwrapType(int), true);
+    return dart.cast(o, dart.unwrapType(int));
   }
 }
 
@@ -236,12 +210,15 @@ class double {
   @patch
   static double parse(String source,
       [@deprecated double onError(String source)]) {
-    return Primitives.parseDouble(source, onError);
+    var value = tryParse(source);
+    if (value != null) return value;
+    if (onError != null) return onError(source);
+    throw new FormatException('Invalid double', source);
   }
 
   @patch
   static double tryParse(String source) {
-    return Primitives.parseDouble(source, _kNull);
+    return Primitives.parseDouble(source);
   }
 
   @JSExportName('is')
@@ -253,14 +230,7 @@ class double {
   static Object _as_double(o) {
     // Avoid extra function call to core.double.is() by manually inlining.
     if (JS<bool>('!', 'typeof $o == "number"') || o == null) return o;
-    return dart.cast(o, dart.unwrapType(double), false);
-  }
-
-  @JSExportName('_check')
-  static Object _check_double(o) {
-    // Avoid extra function call to core.double.is() by manually inlining.
-    if (JS<bool>('!', 'typeof $o == "number"') || o == null) return o;
-    return dart.cast(o, dart.unwrapType(double), true);
+    return dart.cast(o, dart.unwrapType(double));
   }
 }
 
@@ -275,14 +245,7 @@ abstract class num implements Comparable<num> {
   static Object _as_num(o) {
     // Avoid extra function call to core.num.is() by manually inlining.
     if (JS<bool>('!', 'typeof $o == "number"') || o == null) return o;
-    return dart.cast(o, dart.unwrapType(num), false);
-  }
-
-  @JSExportName('_check')
-  static Object _check_num(o) {
-    // Avoid extra function call to core.num.is() by manually inlining.
-    if (JS<bool>('!', 'typeof $o == "number"') || o == null) return o;
-    return dart.cast(o, dart.unwrapType(num), true);
+    return dart.cast(o, dart.unwrapType(num));
   }
 }
 
@@ -597,7 +560,7 @@ class String {
   }
 
   @patch
-  factory String.fromEnvironment(String name, {String defaultValue}) {
+  factory String.fromEnvironment(String name, {String defaultValue = ""}) {
     // ignore: const_constructor_throws_exception
     throw UnsupportedError(
         'String.fromEnvironment can only be used as a const constructor');
@@ -657,14 +620,7 @@ class String {
   static Object _as_String(Object o) {
     // Avoid extra function call to core.String.is() by manually inlining.
     if (JS<bool>('!', 'typeof $o == "string"') || o == null) return o;
-    return dart.cast(o, dart.unwrapType(String), false);
-  }
-
-  @JSExportName('_check')
-  static Object _check_String(Object o) {
-    // Avoid extra function call to core.String.is() by manually inlining.
-    if (JS<bool>('!', 'typeof $o == "string"') || o == null) return o;
-    return dart.cast(o, dart.unwrapType(String), true);
+    return dart.cast(o, dart.unwrapType(String));
   }
 }
 
@@ -695,14 +651,7 @@ class bool {
   static Object _as_bool(Object o) {
     // Avoid extra function call to core.bool.is() by manually inlining.
     if (JS<bool>("!", '$o === true || $o === false') || o == null) return o;
-    return dart.cast(o, dart.unwrapType(bool), false);
-  }
-
-  @JSExportName('_check')
-  static Object _check_bool(Object o) {
-    // Avoid extra function call to core.bool.is() by manually inlining.
-    if (JS<bool>("!", '$o === true || $o === false') || o == null) return o;
-    return dart.cast(o, dart.unwrapType(bool), true);
+    return dart.cast(o, dart.unwrapType(bool));
   }
 }
 
@@ -2876,7 +2825,7 @@ class _BigIntImpl implements BigInt {
           // There is already one in the cachedBits.
           roundUp();
         } else {
-          for (int i = digitIndex; digitIndex >= 0; i--) {
+          for (int i = digitIndex; i >= 0; i--) {
             if (_digits[i] != 0) {
               roundUp();
               break;

@@ -12,7 +12,7 @@ import 'to_html.dart';
 
 final GeneratedFile target = GeneratedFile(
     'test/integration/support/protocol_matchers.dart', (String pkgPath) async {
-  CodegenMatchersVisitor visitor = CodegenMatchersVisitor(readApi(pkgPath));
+  var visitor = CodegenMatchersVisitor(readApi(pkgPath));
   return visitor.collectCode(visitor.visitApi);
 });
 
@@ -67,8 +67,8 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
     }
     writeln('{');
     indent(() {
-      bool commaNeeded = false;
-      for (TypeObjectField field in fields) {
+      var commaNeeded = false;
+      for (var field in fields) {
         if (commaNeeded) {
           writeln(',');
         }
@@ -94,10 +94,10 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
     writeln();
     writeln("import 'integration_tests.dart';");
     writeln();
-    List<ImpliedType> impliedTypes = computeImpliedTypes(api).values.toList();
+    var impliedTypes = computeImpliedTypes(api).values.toList();
     impliedTypes.sort((ImpliedType first, ImpliedType second) =>
         first.camelName.compareTo(second.camelName));
-    for (ImpliedType impliedType in impliedTypes) {
+    for (var impliedType in impliedTypes) {
       makeMatcher(impliedType);
     }
   }
@@ -106,8 +106,8 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
   void visitTypeEnum(TypeEnum typeEnum) {
     writeln("MatchesEnum('$context', [");
     indent(() {
-      bool commaNeeded = false;
-      for (TypeEnumValue value in typeEnum.values) {
+      var commaNeeded = false;
+      for (var value in typeEnum.values) {
         if (commaNeeded) {
           writeln(',');
         }
@@ -140,10 +140,10 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
     writeln('LazyMatcher(() => MatchesJsonObject(');
     indent(() {
       write("'$context', ");
-      Iterable<TypeObjectField> requiredFields =
+      var requiredFields =
           typeObject.fields.where((TypeObjectField field) => !field.optional);
       outputObjectFields(requiredFields);
-      List<TypeObjectField> optionalFields = typeObject.fields
+      var optionalFields = typeObject.fields
           .where((TypeObjectField field) => field.optional)
           .toList();
       if (optionalFields.isNotEmpty) {
@@ -156,7 +156,7 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
 
   @override
   void visitTypeReference(TypeReference typeReference) {
-    String typeName = typeReference.typeName;
+    var typeName = typeReference.typeName;
     if (typeName == 'long') {
       typeName = 'int';
     }
@@ -165,9 +165,9 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
 
   @override
   void visitTypeUnion(TypeUnion typeUnion) {
-    bool commaNeeded = false;
+    var commaNeeded = false;
     write('isOneOf([');
-    for (TypeDecl choice in typeUnion.choices) {
+    for (var choice in typeUnion.choices) {
       if (commaNeeded) {
         write(', ');
       }

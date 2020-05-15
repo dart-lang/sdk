@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/compiler/backend/range_analysis.h"
 
 #include "vm/bit_vector.h"
@@ -837,7 +835,7 @@ class BoundsCheckGeneralizer {
     scheduler_.Start();
 
     // AOT should only see non-deopting GenericCheckBound.
-    ASSERT(!FLAG_precompiled_mode);
+    ASSERT(!CompilerState::Current().is_aot());
 
     ConstantInstr* max_smi = flow_graph_->GetConstant(
         Smi::Handle(Smi::New(compiler::target::kSmiMax)));
@@ -1350,7 +1348,7 @@ void RangeAnalysis::EliminateRedundantBoundsChecks() {
     // check earlier and we are not compiling precompiled code
     // (no optimistic hoisting of checks possible)
     const bool try_generalization =
-        !FLAG_precompiled_mode &&
+        !CompilerState::Current().is_aot() &&
         !function.ProhibitsBoundsCheckGeneralization();
     BoundsCheckGeneralizer generalizer(this, flow_graph_);
     for (CheckBoundBase* check : bounds_checks_) {
@@ -1829,7 +1827,7 @@ RangeBoundary RangeBoundary::Shl(const RangeBoundary& value_boundary,
   } else if (shift_count == 0 ||
              (limit > 0 && Utils::IsInt(static_cast<int>(limit), value))) {
     // Result stays in 64 bit range.
-    const int64_t result = value << shift_count;
+    const int64_t result = static_cast<uint64_t>(value) << shift_count;
     return RangeBoundary(result);
   }
 
@@ -2771,7 +2769,7 @@ void LoadIndexedInstr::InferRange(RangeAnalysis* analysis, Range* range) {
 }
 
 void LoadCodeUnitsInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  ASSERT(RawObject::IsStringClassId(class_id()));
+  ASSERT(IsStringClassId(class_id()));
   RangeBoundary zero = RangeBoundary::FromConstant(0);
   // Take the number of loaded characters into account when determining the
   // range of the result.
@@ -3045,5 +3043,3 @@ bool CheckBoundBase::IsRedundant(bool use_loops) {
 }
 
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

@@ -15,6 +15,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../generated/test_support.dart';
 import '../resolution/driver_resolution.dart';
+import 'potentially_constant_test.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -22,6 +23,7 @@ main() {
     defineReflectiveTests(ConstantVisitorWithConstantUpdate2018Test);
     defineReflectiveTests(
         ConstantVisitorWithFlowControlAndSpreadCollectionsTest);
+    defineReflectiveTests(ConstantVisitorWithNullSafetyTest);
   });
 }
 
@@ -128,6 +130,21 @@ const b = bool.fromEnvironment('b', defaultValue: true);
         declaredVariables: {'b': 'bbb'},
         lexicalEnvironment: {'defaultValue': _boolValue(true)},
       ),
+      _boolValue(true),
+    );
+  }
+
+  test_visitInstanceCreationExpression_bool_hasEnvironment() async {
+    await resolveTestCode('''
+const a = bool.hasEnvironment('a');
+''');
+    expect(
+      _evaluateConstant('a'),
+      _boolValue(false),
+    );
+
+    expect(
+      _evaluateConstant('a', declaredVariables: {'a': '42'}),
       _boolValue(true),
     );
   }
@@ -1135,5 +1152,24 @@ const c = {1, ...{2, 3}, 4};
     DartObjectImpl result = _evaluateConstant('c');
     expect(result.type, typeProvider.setType2(typeProvider.intType));
     expect(result.toSetValue().map((e) => e.toIntValue()), [1, 2, 3, 4]);
+  }
+}
+
+@reflectiveTest
+class ConstantVisitorWithNullSafetyTest extends ConstantVisitorTestSupport
+    with WithNullSafetyMixin {
+  test_visitAsExpression_potentialConstType() async {
+    await assertNoErrorsInCode('''
+const num three = 3;
+
+class C<T extends num> {
+  final T w;
+  const C() : w = three as T;
+}
+
+void main() {
+  const C<int>().w;
+}
+''');
   }
 }

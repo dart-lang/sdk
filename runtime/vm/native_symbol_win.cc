@@ -49,7 +49,7 @@ void NativeSymbolResolver::Cleanup() {
   }
 }
 
-char* NativeSymbolResolver::LookupSymbolName(uintptr_t pc, uintptr_t* start) {
+char* NativeSymbolResolver::LookupSymbolName(uword pc, uword* start) {
   static const intptr_t kMaxNameLength = 2048;
   static const intptr_t kSymbolInfoSize = sizeof(SYMBOL_INFO);  // NOLINT.
   static char buffer[kSymbolInfoSize + kMaxNameLength];

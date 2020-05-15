@@ -7,7 +7,7 @@ library vm.transformations.type_flow.summary;
 
 import 'dart:core' hide Type;
 
-import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
+import 'package:kernel/ast.dart' hide Statement, StatementVisitor, MapEntry;
 
 import 'calls.dart';
 import 'types.dart';
@@ -74,6 +74,9 @@ class Parameter extends Statement {
   Type defaultValue;
   Type _argumentType = const EmptyType();
 
+  // Whether this parameter is passed at all call-sites.
+  bool isAlwaysPassed = true;
+
   Parameter(this.name, this.staticTypeForNarrowing);
 
   @override
@@ -103,6 +106,13 @@ class Parameter extends Statement {
     _argumentType = _argumentType.union(argType, typeHierarchy);
     assertx(_argumentType.isSpecialized);
   }
+
+  Type _observeNotPassed(TypeHierarchy typeHierarchy) {
+    isAlwaysPassed = false;
+    final Type argType = defaultValue.specialize(typeHierarchy);
+    _observeArgumentType(argType, typeHierarchy);
+    return argType;
+  }
 }
 
 /// Narrows down [arg] to [type].
@@ -122,6 +132,49 @@ class Narrow extends Statement {
   Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
           CallHandler callHandler) =>
       arg.getComputedType(computedTypes).intersection(type, typeHierarchy);
+}
+
+/// A flavor of [Narrow] statement which narrows argument
+/// to a non-nullable type and records if argument can be
+/// null or not null.
+class NarrowNotNull extends Narrow {
+  static const int canBeNullFlag = 1 << 0;
+  static const int canBeNotNullFlag = 1 << 1;
+  int _flags = 0;
+
+  NarrowNotNull(TypeExpr arg) : super(arg, const AnyType());
+
+  // Shared NarrowNotNull instances which are used when the outcome is
+  // known at summary creation time.
+  static final NarrowNotNull alwaysNotNull = NarrowNotNull(null)
+    .._flags = canBeNotNullFlag;
+  static final NarrowNotNull alwaysNull = NarrowNotNull(null)
+    .._flags = canBeNullFlag;
+  static final NarrowNotNull unknown = NarrowNotNull(null)
+    .._flags = canBeNullFlag | canBeNotNullFlag;
+
+  bool get isAlwaysNull => (_flags & canBeNotNullFlag) == 0;
+  bool get isAlwaysNotNull => (_flags & canBeNullFlag) == 0;
+
+  Type handleArgument(Type argType) {
+    if (argType is NullableType) {
+      final baseType = argType.baseType;
+      if (baseType is EmptyType) {
+        _flags |= canBeNullFlag;
+      } else {
+        _flags |= (canBeNullFlag | canBeNotNullFlag);
+      }
+      return baseType;
+    } else {
+      _flags |= canBeNotNullFlag;
+      return argType;
+    }
+  }
+
+  @override
+  Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
+          CallHandler callHandler) =>
+      handleArgument(arg.getComputedType(computedTypes));
 }
 
 /// Joins values from multiple sources. Its type is a union of [values].
@@ -310,14 +363,16 @@ class Extract extends Statement {
 
   final Class referenceClass;
   final int paramIndex;
+  final Nullability nullability;
 
-  Extract(this.arg, this.referenceClass, this.paramIndex);
+  Extract(this.arg, this.referenceClass, this.paramIndex, this.nullability);
 
   @override
   void accept(StatementVisitor visitor) => visitor.visitExtract(this);
 
   @override
-  String dump() => "$label = _Extract ($arg[$referenceClass/$paramIndex])";
+  String dump() =>
+      "$label = _Extract ($arg[$referenceClass/$paramIndex]${nullability.suffix})";
 
   @override
   Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
@@ -327,16 +382,37 @@ class Extract extends Statement {
 
     void extractType(ConcreteType c) {
       if (c.typeArgs == null) {
-        extractedType = const AnyType();
+        extractedType = const UnknownType();
       } else {
         final interfaceOffset = typeHierarchy.genericInterfaceOffsetFor(
             c.cls.classNode, referenceClass);
-        final extract = c.typeArgs[interfaceOffset + paramIndex];
-        assertx(extract is AnyType || extract is RuntimeType);
-        if (extractedType == null || extract == extractedType) {
-          extractedType = extract;
+        final typeArg = c.typeArgs[interfaceOffset + paramIndex];
+        Type extracted = typeArg;
+        if (typeArg is RuntimeType) {
+          final argNullability = typeArg.nullability;
+          if (argNullability != nullability) {
+            // Apply nullability of type parameter type.
+            Nullability result;
+            if (argNullability == Nullability.nullable ||
+                nullability == Nullability.nullable) {
+              result = Nullability.nullable;
+            } else if (argNullability == Nullability.legacy ||
+                nullability == Nullability.legacy) {
+              result = Nullability.legacy;
+            } else {
+              result = Nullability.nonNullable;
+            }
+            if (argNullability != result) {
+              extracted = typeArg.withNullability(result);
+            }
+          }
         } else {
-          extractedType = const AnyType();
+          assertx(typeArg is UnknownType);
+        }
+        if (extractedType == null || extracted == extractedType) {
+          extractedType = extracted;
+        } else {
+          extractedType = const UnknownType();
         }
       }
     }
@@ -348,7 +424,7 @@ class Extract extends Statement {
       argType.types.forEach(extractType);
     }
 
-    return extractedType ?? const AnyType();
+    return extractedType ?? const UnknownType();
   }
 }
 
@@ -381,7 +457,7 @@ class CreateConcreteType extends Statement {
     final types = new List<Type>(flattenedTypeArgs.length);
     for (int i = 0; i < types.length; ++i) {
       final computed = flattenedTypeArgs[i].getComputedType(computedTypes);
-      assertx(computed is RuntimeType || computed is AnyType);
+      assertx(computed is RuntimeType || computed is UnknownType);
       if (computed is RuntimeType) hasRuntimeType = true;
       types[i] = computed;
     }
@@ -391,19 +467,21 @@ class CreateConcreteType extends Statement {
 
 // Similar to "CreateConcreteType", but creates a "RuntimeType" rather than a
 // "ConcreteType". Unlike a "ConcreteType", none of the type arguments can be
-// missing ("AnyType").
+// missing ("UnknownType").
 class CreateRuntimeType extends Statement {
   final Class klass;
+  final Nullability nullability;
   final List<TypeExpr> flattenedTypeArgs;
 
-  CreateRuntimeType(this.klass, this.flattenedTypeArgs);
+  CreateRuntimeType(this.klass, this.nullability, this.flattenedTypeArgs);
 
   @override
   void accept(StatementVisitor visitor) => visitor.visitCreateRuntimeType(this);
 
   @override
   String dump() => "$label = _CreateRuntimeType ($klass @ "
-      "${flattenedTypeArgs.take(klass.typeParameters.length)})";
+      "${flattenedTypeArgs.take(klass.typeParameters.length)}"
+      "${nullability.suffix})";
 
   @override
   Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
@@ -411,11 +489,11 @@ class CreateRuntimeType extends Statement {
     final types = new List<RuntimeType>(flattenedTypeArgs.length);
     for (int i = 0; i < types.length; ++i) {
       final computed = flattenedTypeArgs[i].getComputedType(computedTypes);
-      assertx(computed is RuntimeType || computed is AnyType);
-      if (computed is AnyType) return const AnyType();
+      assertx(computed is RuntimeType || computed is UnknownType);
+      if (computed is UnknownType) return const UnknownType();
       types[i] = computed;
     }
-    return new RuntimeType(new InterfaceType(klass, Nullability.legacy), types);
+    return new RuntimeType(new InterfaceType(klass, nullability), types);
   }
 }
 
@@ -466,11 +544,11 @@ class TypeCheck extends Statement {
     Type argType = arg.getComputedType(computedTypes);
     Type checkType = type.getComputedType(computedTypes);
     // TODO(sjindel/tfa): Narrow the result if possible.
-    assertx(checkType is AnyType || checkType is RuntimeType);
+    assertx(checkType is UnknownType || checkType is RuntimeType);
 
     bool canSkip = true; // Can this check be skipped on this invocation.
 
-    if (checkType is AnyType) {
+    if (checkType is UnknownType) {
       // If we don't know what the RHS of the check is going to be, we can't
       // guarantee that it will pass.
       canSkip = false;
@@ -558,6 +636,12 @@ class Summary {
 
     List<Type> types = new List<Type>(_statements.length);
 
+    if (arguments.unknownArity) {
+      for (int i = 0; i < parameterCount; ++i) {
+        (_statements[i] as Parameter).isAlwaysPassed = false;
+      }
+    }
+
     for (int i = 0; i < positionalArgCount; i++) {
       final Parameter param = _statements[i] as Parameter;
       if (args[i] is RuntimeType) {
@@ -576,10 +660,7 @@ class Summary {
     }
 
     for (int i = positionalArgCount; i < positionalParameterCount; i++) {
-      final Parameter param = _statements[i] as Parameter;
-      final argType = param.defaultValue.specialize(typeHierarchy);
-      param._observeArgumentType(argType, typeHierarchy);
-      types[i] = argType;
+      types[i] = (_statements[i] as Parameter)._observeNotPassed(typeHierarchy);
     }
 
     final argNames = arguments.names;
@@ -601,9 +682,7 @@ class Summary {
       } else {
         assertx((argIndex == namedArgCount) ||
             (param.name.compareTo(argNames[argIndex]) < 0));
-        final argType = param.defaultValue.specialize(typeHierarchy);
-        param._observeArgumentType(argType, typeHierarchy);
-        types[i] = argType;
+        types[i] = param._observeNotPassed(typeHierarchy);
       }
     }
     assertx(argIndex == namedArgCount);
@@ -647,6 +726,17 @@ class Summary {
           statement.canAlwaysSkip &&
           statement.parameter != null) {
         params.add(statement.parameter);
+      }
+    }
+    return params;
+  }
+
+  Set<String> alwaysPassedOptionalParameters() {
+    final params = Set<String>();
+    for (int i = requiredParameterCount; i < parameterCount; ++i) {
+      final Parameter p = _statements[i] as Parameter;
+      if (p.isAlwaysPassed) {
+        params.add(p.name);
       }
     }
     return params;

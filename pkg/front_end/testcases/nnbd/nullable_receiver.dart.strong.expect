@@ -30,23 +30,16 @@ library /*isNonNullableByDefault*/;
 //   a.baz = 42;
 //     ^^^
 //
-// pkg/front_end/testcases/nnbd/nullable_receiver.dart:26:4: Error: Method 'call' cannot be called on 'A?' because it is potentially null.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
-// Try calling using ?. instead.
-//   a();
-//    ^
-//
 // pkg/front_end/testcases/nnbd/nullable_receiver.dart:26:4: Error: Can't use an expression of type 'A?' as a function because it's potentially null.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
 // Try calling using ?.call instead.
 //   a();
 //    ^
 //
-// pkg/front_end/testcases/nnbd/nullable_receiver.dart:27:5: Error: Method 'toString' cannot be called on 'B?' because it is potentially null.
-//  - 'B' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
-// Try calling using ?. instead.
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:27:13: Error: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
 //   b.toString(0);
-//     ^^^^^^^^
+//             ^
 //
 // pkg/front_end/testcases/nnbd/nullable_receiver.dart:29:17: Error: Can't tear off method 'call' from a potentially null value.
 //   Function f1 = a;
@@ -108,23 +101,18 @@ Try accessing using ?. instead.
  - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
 Try calling using ?.call instead.
   a();
-   ^" in let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_receiver.dart:26:4: Error: Method 'call' cannot be called on 'A?' because it is potentially null.
- - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
-Try calling using ?. instead.
-  a();
    ^" in a.{self::A::call}();
-  let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_receiver.dart:27:5: Error: Method 'toString' cannot be called on 'B?' because it is potentially null.
- - 'B' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
-Try calling using ?. instead.
+  let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_receiver.dart:27:13: Error: Too many positional arguments: 0 allowed, but 1 found.
+Try removing the extra positional arguments.
   b.toString(0);
-    ^^^^^^^^" in b.{self::B::toString}(0);
-  core::Function f1 = let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_receiver.dart:29:17: Error: Can't tear off method 'call' from a potentially null value.
+            ^" in b.{core::Object::toString}(0);
+  core::Function f1 = let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_receiver.dart:29:17: Error: Can't tear off method 'call' from a potentially null value.
   Function f1 = a;
                 ^" in a as{TypeError} core::Function;
-  () → void f2 = let final<BottomType> #t10 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_receiver.dart:30:24: Error: Can't tear off method 'call' from a potentially null value.
+  () → void f2 = let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_receiver.dart:30:24: Error: Can't tear off method 'call' from a potentially null value.
   void Function() f2 = a;
                        ^" in a as{TypeError} () → void;
-  () →? void f3 = let final<BottomType> #t11 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_receiver.dart:31:25: Error: Can't tear off method 'call' from a potentially null value.
+  () →? void f3 = let final<BottomType> #t10 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_receiver.dart:31:25: Error: Can't tear off method 'call' from a potentially null value.
   void Function()? f3 = a;
                         ^" in a as{TypeError} () →? void;
 }
@@ -133,33 +121,33 @@ static method ok<T extends core::Object? = core::Object?>(core::String? s, self:
   a.{core::Object::==}(a);
   t.{core::Object::==}(t);
   b.{core::Object::==}(b);
-  s.{core::String::hashCode};
+  s.{core::Object::hashCode};
   a.{core::Object::hashCode};
   t.{core::Object::hashCode};
   b.{core::Object::hashCode};
   s.{core::Object::toString}();
   a.{core::Object::toString}();
   t.{core::Object::toString}();
-  b.{self::B::toString}();
+  b.{core::Object::toString}();
   try {
     s.{core::Object::noSuchMethod}(i);
   }
-  on dynamic catch(final dynamic e, final core::StackTrace t) {
+  on core::Object catch(final core::Object e, final core::StackTrace t) {
   }
   try {
     a.{core::Object::noSuchMethod}(i);
   }
-  on dynamic catch(final dynamic e, final core::StackTrace t) {
+  on core::Object catch(final core::Object e, final core::StackTrace t) {
   }
   try {
     t.{core::Object::noSuchMethod}(i);
   }
-  on dynamic catch(final dynamic e, final core::StackTrace t) {
+  on core::Object catch(final core::Object e, final core::StackTrace t) {
   }
   try {
     b.{core::Object::noSuchMethod}(i);
   }
-  on dynamic catch(final dynamic e, final core::StackTrace t) {
+  on core::Object catch(final core::Object e, final core::StackTrace t) {
   }
   s.{core::Object::runtimeType};
   a.{core::Object::runtimeType};

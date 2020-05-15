@@ -1,0 +1,10 @@
+library test;
+
+class C {
+  double f(x) => 1.0;
+}
+
+var v = new C().f(() {
+  return 1;
+});
+main() {}

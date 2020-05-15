@@ -57,6 +57,22 @@ contexts:
   }
   ```
 
+### Potentially non-nullable
+
+A type is _potentially non-nullable_ if it's either explicitly non-nullable or
+if it's a type parameter.
+
+A type is explicitly non-nullable if it is a type name that is not followed by a
+question mark. Note that there are a few types that are always nullable, such as
+`Null` and `dynamic`, and that `FutureOr` is only non-nullable if it is not
+followed by a question mark _and_ the type argument is non-nullable (such as
+`FutureOr<String>`).
+
+Type parameters are potentially non-nullable because the actual runtime type
+(the type specified as a type argument) might be non-nullable. For example,
+given a declaration of `class C<T> {}`, the type `C` could be used with a
+non-nullable type argument as in `C<int>`.
+
 ## Diagnostics
 
 The analyzer produces the following diagnostics for code that
@@ -557,6 +573,82 @@ class C {
 
 Rewrite the code so that there isn't an assignment to a method.
 
+### body_might_complete_normally
+
+_The body might complete normally, causing 'null' to be returned, but the return
+type is a potentially non-nullable type._
+
+#### Description
+
+The analyzer produces this diagnostic when a method or function has a
+return type that's <a href=”#potentially-non-nullable”>potentially
+non-nullable</a> but would implicitly return `null` if control reached the
+end of the function.
+
+#### Example
+
+The following code produces this diagnostic because the method `m` has an
+implicit return of `null` inserted at the end of the method, but the method
+is declared to not return `null`:
+
+{% prettify dart %}
+class C {
+  int [!m!](int t) {
+    print(t);
+  }
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the method `m` has an
+implicit return of `null` inserted at the end of the method, but because
+the class `C` can be instantiated with a non-nullable type argument, the
+method is effectively declared to not return `null`:
+
+{% prettify dart %}
+class C<T> {
+  T [!m!](T t) {
+    print(t);
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If there's a reasonable value that can be returned, then add a return
+statement at the end of the method:
+
+{% prettify dart %}
+class C<T> {
+  T m(T t) {
+    print(t);
+    return t;
+  }
+}
+{% endprettify %}
+
+If the method won't reach the implicit return, then add a throw at the end
+of the method:
+
+{% prettify dart %}
+class C<T> {
+  T m(T t) {
+    print(t);
+    throw '';
+  }
+}
+{% endprettify %}
+
+If the method intentionally returns `null` at the end, then change the
+return type so that it's valid to return `null`:
+
+{% prettify dart %}
+class C<T> {
+  T? m(T t) {
+    print(t);
+  }
+}
+{% endprettify %}
+
 ### built_in_identifier_as_extension_name
 
 _The built-in identifier '{0}' can't be used as an extension name._
@@ -644,6 +736,57 @@ void f(int x) {
       break;
     default:
       x += 1;
+  }
+}
+{% endprettify %}
+
+### case_expression_type_is_not_switch_expression_subtype
+
+_The switch case expression type '{0}' must be a subtype of the switch
+expression type '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when the expression following `case`
+in a switch statement has a static type that isn't a subtype of the static
+type of the expression following `switch`.
+
+#### Example
+
+The following code produces this diagnostic because `1` is an `int`, which
+isn't a subtype of `String` (the type of `s`):
+
+{% prettify dart %}
+void f(String s) {
+  switch (s) {
+    case [!1!]:
+      break;
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the value of the case expression is wrong, then change the case
+expression so that it has the required type:
+
+{% prettify dart %}
+void f(String s) {
+  switch (s) {
+    case '1':
+      break;
+  }
+}
+{% endprettify %}
+
+If the value of the case expression is correct, then change the switch
+expression to have the required type:
+
+{% prettify dart %}
+void f(int s) {
+  switch (s) {
+    case 1:
+      break;
   }
 }
 {% endprettify %}
@@ -1156,6 +1299,160 @@ void f() {
 }
 {% endprettify %}
 
+### dead_null_aware_expression
+
+_The left operand can't be null, so the right operand is never executed._
+
+#### Description
+
+The analyzer produces this diagnostic in two cases.
+
+The first is when the left operand of an `??` operator can't be `null`.
+The right operand is only evaluated if the left operand has the value
+`null`, and because the left operand can't be `null`, the right operand is
+never evaluated.
+
+The second is when the left-hand side of an assignment using the `??=`
+operator can't be `null`. The right-hand side is only evaluated if the
+left-hand side has the value `null`, and because the left-hand side can't
+be `null`, the right-hand side is never evaluated.
+
+#### Example
+
+The following code produces this diagnostic because `x` can't be `null`:
+
+{% prettify dart %}
+int f(int x) {
+  return x ?? [!0!];
+}
+{% endprettify %}
+
+The following code produces this diagnostic because `f` can't be `null`:
+
+{% prettify dart %}
+class C {
+  int f = -1;
+
+  void m(int x) {
+    f ??= [!x!];
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the diagnostic is reported for an `??` operator, then remove the `??`
+operator and the right operand:
+
+{% prettify dart %}
+int f(int x) {
+  return x;
+}
+{% endprettify %}
+
+If the diagnostic is reported for an assignment, and the assignment isn't
+needed, then remove the assignment:
+
+{% prettify dart %}
+class C {
+  int f = -1;
+
+  void m(int x) {
+  }
+}
+{% endprettify %}
+
+If the assignment is needed, but should be based on a different condition,
+then rewrite the code to use `=` and the different condition:
+
+{% prettify dart %}
+class C {
+  int f = -1;
+
+  void m(int x) {
+    if (f < 0) {
+      f = x;
+    }
+  }
+}
+{% endprettify %}
+
+### default_list_constructor
+
+_Calling the default 'List' constructor causes an error._
+
+#### Description
+
+The analyzer produces this diagnostic when it finds a use of the default
+constructor for the class `List` in code that has opted in to null safety.
+
+#### Example
+
+Assuming the following code is opted in to null safety, it produces this
+diagnostic because it uses the default `List` constructor:
+
+{% prettify dart %}
+var l = [!List<int>!]();
+{% endprettify %}
+
+#### Common fixes
+
+If no initial size is provided, then convert the code to use a list
+literal:
+
+{% prettify dart %}
+var l = <int>[];
+{% endprettify %}
+
+If an initial size needs to be provided and there is a single reasonable
+initial value for the elements, then use `List.filled`:
+
+{% prettify dart %}
+var l = List.filled(3, 0);
+{% endprettify %}
+
+If an initial size needs to be provided but each element needs to be
+computed, then use `List.generate`:
+
+{% prettify dart %}
+var l = List.generate(3, (i) => i);
+{% endprettify %}
+
+### definitely_unassigned_late_local_variable
+
+_The late local variable '{0}' is definitely unassigned at this point._
+
+#### Description
+
+The analyzer produces this diagnostic when
+[definite assignment](https://github.com/dart-lang/language/blob/master/resources/type-system/flow-analysis.md)
+analysis shows that a local variable that's marked as `late` is read before
+being assigned.
+
+#### Example
+
+The following code produces this diagnostic because `x` was not assigned a
+value before being read:
+
+{% prettify dart %}
+void f(bool b) {
+  late int x;
+  print([!x!]);
+}
+{% endprettify %}
+
+#### Common fixes
+
+Assign a value to the variable before reading from it:
+
+{% prettify dart %}
+void f(bool b) {
+  late int x;
+  x = b ? 1 : 0;
+  print(x);
+}
+{% endprettify %}
+
 ### deprecated_member_use
 
 _'{0}' is deprecated and shouldn't be used._
@@ -1467,6 +1764,56 @@ const map = <int, String>{1: 'a', 2: 'b', 4: 'd'};
 Note that literal maps preserve the order of their entries, so the choice
 of which entry to remove might affect the order in which keys and values
 are returned by an iterator.
+
+### export_legacy_symbol
+
+_The symbol '{0}' is defined in a legacy library, and can't be re-exported from
+a non-nullable by default library._
+
+#### Description
+
+The analyzer produces this diagnostic when a library that was opted in to
+null safety exports another library, and the exported library is opted out
+of null safety.
+
+#### Example
+
+Given a library that is opted out of null safety:
+
+{% prettify dart %}
+// @dart = 2.8
+String s;
+{% endprettify %}
+
+The following code produces this diagnostic because it's exporting symbols
+from an opted-out library:
+
+{% prettify dart %}
+export [!'optedOut.dart'!];
+
+class C {}
+{% endprettify %}
+
+#### Common fixes
+
+If you're able to do so, migrate the exported library so that it doesn't
+need to opt out:
+
+{% prettify dart %}
+String? s;
+{% endprettify %}
+
+If you can't migrate the library, then remove the export:
+
+{% prettify dart %}
+class C {}
+{% endprettify %}
+
+If the exported library (the one that is opted out) itself exports an
+opted-in library, then it's valid for your library to indirectly export the
+symbols from the opted-in library. You can do so by adding a hide
+combinator to the export directive in your library that hides all of the
+names declared in the opted-out library.
 
 ### expression_in_map
 
@@ -2749,6 +3096,48 @@ annotation:
 var x;
 {% endprettify %}
 
+### invalid_null_aware_operator
+
+_The target expression can't be null, so the null-aware operator '{0}' can't be
+used._
+
+#### Description
+
+The analyzer produces this diagnostic when a null-aware operator (`?.`,
+`?..`, `?[`, `?..[`, or `...?`) is used on a target that's known to be
+non-nullable.
+
+#### Example
+
+The following code produces this diagnostic because `s` can't be `null`:
+
+{% prettify dart %}
+int? getLength(String s) {
+  return s[!?.!]length;
+}
+{% endprettify %}
+
+The following code produces this diagnostic because `a` can't be `null`:
+
+{% prettify dart %}
+var a = [];
+var b = [[!...?!]a];
+{% endprettify %}
+
+#### Common fixes
+
+Replace the null-aware operator with a non-null-aware equivalent, such as
+replacing '?.' with  '.':
+
+{% prettify dart %}
+int getLength(String s) {
+  return s.length;
+}
+{% endprettify %}
+
+(Note that the return type was also changed to be non-nullable, which might
+not be appropriate in some cases.)
+
 ### invalid_override
 
 _'{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}')._
@@ -2894,6 +3283,37 @@ Remove the 'covariant' keyword:
 {% prettify dart %}
 extension E on String {
   void a(int i) {}
+}
+{% endprettify %}
+
+### invalid_use_of_null_value
+
+_An expression whose value is always 'null' can't be dereferenced._
+
+#### Description
+
+The analyzer produces this diagnostic when an expression whose value will
+always be `null` is dererenced.
+
+#### Example
+
+The following code produces this diagnostic because `x` will always be
+`null`:
+
+{% prettify dart %}
+int f(Null x) {
+  return [!x!].length;
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the value is allowed to be something other than `null`, then change the
+type of the expression:
+
+{% prettify dart %}
+int f(String? x) {
+  return x!.length;
 }
 {% endprettify %}
 
@@ -3205,6 +3625,59 @@ If the type of the value is correct, then change the value type of the map:
 var m = <String, int>{'a' : 2};
 {% endprettify %}
 
+### missing_default_value_for_parameter
+
+_The parameter '{0}' can't have a value of 'null' because of its type, and no
+non-null default value is provided._
+
+#### Description
+
+The analyzer produces this diagnostic when an optional parameter, whether
+positional or named, has a <a href=”#potentially-non-nullable”>potentially
+non-nullable</a> type and doesn't specify a default value. Optional
+parameters that have no explicit default value have an implicit default
+value of `null`. If the type of the parameter doesn't allow the parameter
+to have a value of `null`, then the implicit default value isn't valid.
+
+#### Example
+
+The following code produces this diagnostic because `x` can't be `null`,
+and no non-`null` default value is specified:
+
+{% prettify dart %}
+void f([int [!x!]]) {}
+{% endprettify %}
+
+As does this:
+
+{% prettify dart %}
+void g({int [!x!]}) {}
+{% endprettify %}
+
+#### Common fixes
+
+If you want to use `null` to indicate that no value was provided, then you
+need to make the type nullable:
+
+{% prettify dart %}
+void f([int? x]) {}
+void g({int? x}) {}
+{% endprettify %}
+
+If the parameter can't be null, then either provide a default value:
+
+{% prettify dart %}
+void f([int x = 1]) {}
+void g({int x = 2}) {}
+{% endprettify %}
+
+or make the parameter a required parameter:
+
+{% prettify dart %}
+void f(int x) {}
+void g({required int x}) {}
+{% endprettify %}
+
 ### missing_enum_constant_in_switch
 
 _Missing case clause for '{0}'._
@@ -3264,6 +3737,38 @@ void f(E e) {
     default:
       break;
   }
+}
+{% endprettify %}
+
+### missing_required_argument
+
+_The named parameter '{0}' is required, but there's no corresponding argument._
+
+#### Description
+
+The analyzer produces this diagnostic when an invocation of a function is
+missing a required named parameter.
+
+#### Example
+
+The following code produces this diagnostic because the invocation of `f`
+doesn't include a value for the required named parameter `end`:
+
+{% prettify dart %}
+void f(int start, {required int end}) {}
+void g() {
+  [!f!](3);
+}
+{% endprettify %}
+
+#### Common fixes
+
+Add a named argument corresponding to the missing required parameter:
+
+{% prettify dart %}
+void f(int start, {required int end}) {}
+void g() {
+  f(3, end: 5);
 }
 {% endprettify %}
 
@@ -4159,6 +4664,122 @@ void f() {
 }
 {% endprettify %}
 
+### not_assigned_potentially_non_nullable_local_variable
+
+_The non-nullable local variable '{0}' must be assigned before it can be used._
+
+#### Description
+
+The analyzer produces this diagnostic when a local variable is referenced
+and has all these characteristics:
+- Has a type that's <a href=”#potentially-non-nullable”>potentially
+  non-nullable</a>.
+- Doesn't have an initializer.
+- Isn't marked as `late`.
+- The analyzer can't prove that the local variable will be assigned before
+  the reference based on the specification of
+  [definite assignment](https://github.com/dart-lang/language/blob/master/resources/type-system/flow-analysis.md).
+
+#### Example
+
+The following code produces this diagnostic because `x` can't have a value
+of `null`, but is referenced before a value was assigned to it:
+
+{% prettify dart %}
+String f() {
+  int x;
+  return [!x!].toString();
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the assignment to `x`
+might not be executed, so it might have a value of `null`:
+
+{% prettify dart %}
+int g(bool b) {
+  int x;
+  if (b) {
+    x = 1;
+  }
+  return [!x!] * 2;
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the analyzer can't
+prove, based on definite assignment analysis, that `x` won't be referenced
+without having a value assigned to it:
+
+{% prettify dart %}
+int h(bool b) {
+  int x;
+  if (b) {
+    x = 1;
+  }
+  if (b) {
+    return [!x!] * 2;
+  }
+  return 0;
+}
+{% endprettify %}
+
+#### Common fixes
+
+If `null` is a valid value, then make the variable nullable:
+
+{% prettify dart %}
+String f() {
+  int? x;
+  return x!.toString();
+}
+{% endprettify %}
+
+If `null` isn’t a valid value, and there's a reasonable default value, then
+add an initializer:
+
+{% prettify dart %}
+int g(bool b) {
+  int x = 2;
+  if (b) {
+    x = 1;
+  }
+  return x * 2;
+}
+{% endprettify %}
+
+Otherwise, ensure that a value was assigned on every possible code path
+before the value is accessed:
+
+{% prettify dart %}
+int g(bool b) {
+  int x;
+  if (b) {
+    x = 1;
+  } else {
+    x = 2;
+  }
+  return x * 2;
+}
+{% endprettify %}
+
+You can also mark the variable as `late`, which removes the diagnostic, but
+if the variable isn't assigned a value before it's accessed, then it
+results in an exception being thrown at runtime. This approach should only
+be used if you're sure that the variable will always be assigned, even
+though the analyzer can't prove it based on definite assignment analysis.
+
+{% prettify dart %}
+int h(bool b) {
+  late int x;
+  if (b) {
+    x = 1;
+  }
+  if (b) {
+    return x * 2;
+  }
+  return 0;
+}
+{% endprettify %}
+
 ### not_a_type
 
 _{0} isn't a type._
@@ -4211,6 +4832,138 @@ Add arguments corresponding to the remaining parameters:
 void f(int a, int b) {}
 void g() {
   f(0, 1);
+}
+{% endprettify %}
+
+### not_initialized_non_nullable_instance_field
+
+_Non-nullable instance field '{0}' must be initialized._
+
+_Non-nullable instance field '{0}' must be initialized._
+
+#### Description
+
+The analyzer produces this diagnostic when a field is declared and has all
+these characteristics:
+- Has a type that's <a href=”#potentially-non-nullable”>potentially
+  non-nullable</a>
+- Doesn't have an initializer
+- Isn't marked as `late`
+
+#### Example
+
+The following code produces this diagnostic because `x` is implicitly
+initialized to `null` when it isn't allowed to be `null`:
+
+{% prettify dart %}
+class C {
+  int [!x!];
+}
+{% endprettify %}
+
+Similarly, the following code produces this diagnostic because `x` is
+implicitly initialized to `null`, when it isn't allowed to be `null`, by
+one of the constructors, even though it's initialized by other
+constructors:
+
+{% prettify dart %}
+class C {
+  int x;
+
+  C(this.x);
+
+  [!C!].n();
+}
+{% endprettify %}
+
+#### Common fixes
+
+If there's a reasonable default value for the field that’s the same for all
+instances, then add an initializer expression:
+
+{% prettify dart %}
+class C {
+  int x = 0;
+}
+{% endprettify %}
+
+If the value of the field should be provided when an instance is created,
+then add a constructor that sets the value of the field or update an
+existing constructor:
+
+{% prettify dart %}
+class C {
+  int x;
+
+  C(this.x);
+}
+{% endprettify %}
+
+You can also mark the field as `late`, which removes the diagnostic, but if
+the field isn't assigned a value before it's accessed, then it results in
+an exception being thrown at runtime. This approach should only be used if
+you're sure that the field will always be assigned before it's referenced.
+
+{% prettify dart %}
+class C {
+  late int x;
+}
+{% endprettify %}
+
+### not_initialized_non_nullable_variable
+
+_The non-nullable variable '{0}' must be initialized._
+
+#### Description
+
+The analyzer produces this diagnostic when a static field or top-level
+variable has a type that's non-nullable and doesn't have an initializer.
+Fields and variables that don't have an initializer are normally
+initialized to `null`, but the type of the field or variable doesn't allow
+it to be set to `null`, so an explicit initializer must be provided.
+
+#### Example
+
+The following code produces this diagnostic because the field `f` can't be
+initialized to `null`:
+
+{% prettify dart %}
+class C {
+  static int [!f!];
+}
+{% endprettify %}
+
+Similarly, the following code produces this diagnostic because the
+top-level variable `v` can't be initialized to `null`:
+
+{% prettify dart %}
+int [!v!];
+{% endprettify %}
+
+#### Common fixes
+
+If the field or variable can't be initialized to `null`, then add an
+initializer that sets it to a non-null value:
+
+{% prettify dart %}
+class C {
+  static int f = 0;
+}
+{% endprettify %}
+
+If the field or variable should be initialized to `null`, then change the
+type to be nullable:
+
+{% prettify dart %}
+int? v;
+{% endprettify %}
+
+If the field or variable can't be initialized in the declaration but will
+always be initialized before it's referenced, then mark it as being `late`:
+
+{% prettify dart %}
+class C {
+  static late int f;
 }
 {% endprettify %}
 
@@ -4309,6 +5062,189 @@ class C {
 
 @C()
 var x;
+{% endprettify %}
+
+### nullable_type_in_catch_clause
+
+_A potentially nullable type can't be used in an 'on' clause because it isn't
+valid to throw a nullable expression._
+
+#### Description
+
+The analyzer produces this diagnostic when the type following `on` in a
+catch clause is a nullable type. It isn't valid to specify a nullable type
+because it isn't possible to catch `null` (because it's a runtime error to
+throw `null`).
+
+#### Example
+
+The following code produces this diagnostic because the exception type is
+specified to allow `null` when `null` can't be thrown:
+
+{% prettify dart %}
+void f() {
+  try {
+    // ...
+  } on [!FormatException?!] {
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the question mark from the type:
+
+{% prettify dart %}
+void f() {
+  try {
+    // ...
+  } on FormatException {
+  }
+}
+{% endprettify %}
+
+### nullable_type_in_extends_clause
+
+_A class can't extend a nullable type._
+
+#### Description
+
+The analyzer produces this diagnostic when a class declaration uses an
+extends clause to specify a superclass, and the superclass is followed by a
+`?`.
+
+It isn't valid to specify a nullable superclass because doing so would have
+no meaning; it wouldn't change either the interface or implementation being
+inherited by the class containing the extends clause.
+
+Note, however, that it _is_ valid to use a nullable type as a type argument
+to the superclass, such as `class A extends B<C?> {}`.
+
+#### Example
+
+The following code produces this diagnostic because `A?` is a nullable
+type, and nullable types can't be used in an extends clause:
+
+{% prettify dart %}
+class A {}
+class B extends [!A?!] {}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the question mark from the type:
+
+{% prettify dart %}
+class A {}
+class B extends A {}
+{% endprettify %}
+
+### nullable_type_in_implements_clause
+
+_A class or mixin can't implement a nullable type._
+
+#### Description
+
+The analyzer produces this diagnostic when a class or mixin declaration has
+an implements clause, and an interface is followed by a `?`.
+
+It isn't valid to specify a nullable interface because doing so would have
+no meaning; it wouldn't change the interface being inherited by the class
+containing the implements clause.
+
+Note, however, that it _is_ valid to use a nullable type as a type argument
+to the interface, such as `class A implements B<C?> {}`.
+
+
+#### Example
+
+The following code produces this diagnostic because `A?` is a nullable
+type, and nullable types can't be used in an implements clause:
+
+{% prettify dart %}
+class A {}
+class B implements [!A?!] {}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the question mark from the type:
+
+{% prettify dart %}
+class A {}
+class B implements A {}
+{% endprettify %}
+
+### nullable_type_in_on_clause
+
+_A mixin can't have a nullable type as a superclass constraint._
+
+#### Description
+
+The analyzer produces this diagnostic when a mixin declaration uses an on
+clause to specify a superclass constraint, and the class that's specified
+is followed by a `?`.
+
+It isn't valid to specify a nullable superclass constraint because doing so
+would have no meaning; it wouldn't change the interface being depended on
+by the mixin containing the on clause.
+
+Note, however, that it _is_ valid to use a nullable type as a type argument
+to the superclass constraint, such as `mixin A on B<C?> {}`.
+
+
+#### Example
+
+The following code produces this diagnostic because `A?` is a nullable type
+and nullable types can't be used in an on clause:
+
+{% prettify dart %}
+class C {}
+mixin M on [!C?!] {}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the question mark from the type:
+
+{% prettify dart %}
+class C {}
+mixin M on C {}
+{% endprettify %}
+
+### nullable_type_in_with_clause
+
+_A class or mixin can't mix in a nullable type._
+
+#### Description
+
+The analyzer produces this diagnostic when a class or mixin declaration has
+a with clause, and a mixin is followed by a `?`.
+
+It isn't valid to specify a nullable mixin because doing so would have no
+meaning; it wouldn't change either the interface or implementation being
+inherited by the class containing the with clause.
+
+Note, however, that it _is_ valid to use a nullable type as a type argument
+to the mixin, such as `class A with B<C?> {}`.
+
+#### Example
+
+The following code produces this diagnostic because `A?` is a nullable
+type, and nullable types can't be used in a with clause:
+
+{% prettify dart %}
+mixin M {}
+class C with [!M?!] {}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the question mark from the type:
+
+{% prettify dart %}
+mixin M {}
+class C with M {}
 {% endprettify %}
 
 ### override_on_non_overriding_member
@@ -4471,7 +5407,7 @@ class B implements A {
 
 ### redirect_to_invalid_return_type
 
-_The return type '{0}' of the redirected constructor isn't assignable to '{1}'._
+_The return type '{0}' of the redirected constructor isn't a subtype of '{1}'._
 
 #### Description
 
@@ -5295,6 +6231,37 @@ void f() {
 
 Rewrite the code to not use `super`.
 
+### throw_of_invalid_type
+
+_The type '{0}' of the thrown expression must be assignable to 'Object'._
+
+#### Description
+
+The analyzer produces this diagnostic when the type of the expression in a
+throw expression is not assignable to `Object`. It’s not valid to throw
+`null`, so it isn't valid to use an expression that might evaluate to
+`null`.
+
+#### Example
+
+The following code produces this diagnostic because `s` might be `null`:
+
+{% prettify dart %}
+void f(String? s) {
+  throw [!s!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+Add an explicit null check to the expression:
+
+{% prettify dart %}
+void f(String? s) {
+  throw s!;
+}
+{% endprettify %}
+
 ### type_argument_not_matching_bounds
 
 _'{0}' doesn't extend '{1}'._
@@ -5354,6 +6321,67 @@ Replace the name with the name of a type:
 {% prettify dart %}
 void f(Object o) {
   if (o is String) {
+    // ...
+  }
+}
+{% endprettify %}
+
+### unchecked_use_of_nullable_value
+
+_An expression whose value can be 'null' must be null-checked before it can be
+dereferenced._
+
+#### Description
+
+The analyzer produces this diagnostic when an expression whose type is
+<a href=”#potentially-non-nullable”>potentially non-nullable</a> is
+dereferenced without first verifying that the value isn't `null`.
+
+#### Example
+
+The following code produces this diagnostic because `s` can be `null` at
+the point where it's referenced:
+
+{% prettify dart %}
+void f(String? s) {
+  if ([!s!].length > 3) {
+    // ...
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the value really can be `null`, then add a test to ensure that members
+are only accessed when the value isn't `null`:
+
+{% prettify dart %}
+void f(String? s) {
+  if (s != null && s.length > 3) {
+    // ...
+  }
+}
+{% endprettify %}
+
+If the expression is a variable and the value should never be `null`, then
+change the type of the variable to be non-nullable:
+
+{% prettify dart %}
+void f(String s) {
+  if (s.length > 3) {
+    // ...
+  }
+}
+{% endprettify %}
+
+If you believe that the value of the expression should never be `null`, but
+you can't change the type of the variable, and you're willing to risk
+having an exception thrown at runtime if you're wrong, then you can assert
+that the value isn't null:
+
+{% prettify dart %}
+void f(String? s) {
+  if (s!.length > 3) {
     // ...
   }
 }
@@ -6209,6 +7237,93 @@ void f(num n) {
   if (n is int) {
     n.isEven;
   }
+}
+{% endprettify %}
+
+### unnecessary_non_null_assertion
+
+_The '!' will have no effect because the target expression can't be null._
+
+#### Description
+
+The analyzer produces this diagnostic when the operand of the `!` operator
+can't be `null`.
+
+#### Example
+
+The following code produces this diagnostic because `x` can't be `null`:
+
+{% prettify dart %}
+int f(int x) {
+  return x[!!!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the null check operator (`!`):
+
+{% prettify dart %}
+int f(int x) {
+  return x;
+}
+{% endprettify %}
+
+### unnecessary_null_comparison
+
+_The operand can't be null, so the condition is always false._
+
+_The operand can't be null, so the condition is always true._
+
+#### Description
+
+The analyzer produces this diagnostic when it finds an equality comparison
+(either `==` or `!=`) with one operand of `null` and the other operand
+can't be `null`. Such comparisons are always either `true` or `false`, so
+they serve no purpose.
+
+#### Example
+
+The following code produces this diagnostic because `x` can never be
+`null`, so the comparison always evaluates to `true`:
+
+{% prettify dart %}
+void f(int x) {
+  if (x [!!= null!]) {
+    print(x);
+  }
+}
+{% endprettify %}
+
+The following code produces this diagnostic because `x` can never be
+`null`, so the comparison always evaluates to `false`:
+
+{% prettify dart %}
+void f(int x) {
+  if (x [!== null!]) {
+    throw ArgumentError("x can't be null");
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the other operand should be able to be `null`, then change the type of
+the operand:
+
+{% prettify dart %}
+void f(int? x) {
+  if (x != null) {
+    print(x);
+  }
+}
+{% endprettify %}
+
+If the other operand really can't be `null`, then remove the condition:
+
+{% prettify dart %}
+void f(int x) {
+  print(x);
 }
 {% endprettify %}
 

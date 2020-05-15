@@ -24,7 +24,7 @@ class OptionsIntegrationTest extends AbstractAnalysisServerIntegrationTest {
   }
 
   Future<void> test_option_warning_optionFile() async {
-    String options = sourcePath(AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
+    var options = sourcePath(AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
     writeFile(options, '''
 linter:
   rules:
@@ -36,9 +36,9 @@ linter:
     await analysisFinished;
 
     expect(currentAnalysisErrors[options], isList);
-    List<AnalysisError> errors = currentAnalysisErrors[options];
+    var errors = currentAnalysisErrors[options];
     expect(errors, hasLength(1));
-    AnalysisError error = errors[0];
+    var error = errors[0];
     expect(error.location.file, options);
     expect(error.severity, AnalysisErrorSeverity.WARNING);
     expect(error.type, AnalysisErrorType.STATIC_WARNING);

@@ -10,10 +10,6 @@
 // so the cloud function only needs to process 100 records within its time
 // limit of 60s. Because of this, we never approach the limit of 10 MB
 // base64-encoded data bytes per message.
-//
-// The function also scans results.json to find the configurations tested
-// by this builder, and writes them and a results feed URL filtered to
-// those configuration groups to a json file, used later in the recipe.
 
 import 'dart:convert';
 import 'dart:io';
@@ -62,34 +58,6 @@ main(List<String> args) async {
     print('No results in input file');
     return;
   }
-  // Record the configurations appearing in these results.
-  final configurationRegexp = RegExp('"configuration":"([^"]*)"');
-  final configurationsSet = {
-    for (final result in lines) configurationRegexp.firstMatch(result)?.group(1)
-  };
-  if (configurationsSet.contains(null)) {
-    print("Error: result without a configuration");
-    configurationsSet.remove(null);
-  }
-  final configurations = configurationsSet.toList()..sort();
-  final configurationGroups = {
-    for (final configuration in configurations) configuration.split('-').first
-  };
-  // Construct a link to the results feed that includes a filter showing
-  // unapproved failures for those configuration groups.
-  String fragment = [
-    'showLatestFailures=true',
-    'showUnapprovedOnly=true',
-    if (configurationGroups.isNotEmpty)
-      'configurationGroups=${configurationGroups.join(',')}'
-  ].join('&');
-  final resultsFeedUrl = 'https://dart-ci.firebaseapp.com/#$fragment';
-  // Save them to a file.
-  await File('builder_tested_configurations')
-      .writeAsString(JsonEncoder.withIndent('  ').convert({
-    'configurations': configurations,
-    'results_feed_link': resultsFeedUrl,
-  }));
 
   final changedPattern = '"changed":true';
   List<String> changedResults =

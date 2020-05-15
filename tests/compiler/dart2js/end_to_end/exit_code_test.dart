@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Test the exit code of dart2js in case of exceptions, errors, warnings, etc.
 
 import 'dart:async';
@@ -29,6 +31,7 @@ import 'package:compiler/src/options.dart' show CompilerOptions;
 import 'package:compiler/src/universe/world_impact.dart';
 import 'package:compiler/src/world.dart';
 import 'diagnostic_reporter_helper.dart';
+import '../helpers/memory_compiler.dart';
 
 class TestCompiler extends CompilerImpl {
   final String testMarker;
@@ -190,7 +193,8 @@ Future testExitCode(
     entry.compileFunc = compile;
 
     List<String> args = new List<String>.from(options)
-      ..add("--libraries-spec=${Uri.base.resolve('sdk/lib/libraries.json')}")
+      ..add("--libraries-spec=$sdkLibrariesSpecificationUri")
+      ..add("--platform-binaries=$sdkPlatformBinariesPath")
       ..add("tests/compiler/dart2js/end_to_end/data/exit_code_helper.dart");
     Future result = entry.internalMain(args);
     return result.catchError((e, s) {

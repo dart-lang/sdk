@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
+import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
+import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -454,6 +456,210 @@ mixin D<V> on C<int, V> {}
         same(decoratedTypeAnnotation('V> {').node));
   }
 
+  Future<void> test_displayName_castType() async {
+    await analyze('f(x) => x as int;');
+    expect(decoratedTypeAnnotation('int').node.displayName,
+        'cast type (test.dart:1:14)');
+  }
+
+  Future<void> test_displayName_constructedType() async {
+    await analyze('''
+class C {
+  factory C() = D<int>;
+}
+class D<T> implements C {}
+''');
+    expect(decoratedTypeAnnotation('int').node.displayName,
+        'type argument 0 of constructed type (test.dart:2:19)');
+  }
+
+  Future<void> test_displayName_exceptionType_implicit() async {
+    await analyze('''
+f(void Function() g) {
+  try {
+    g();
+  } catch (e) {}
+}
+''');
+    expect(
+        variables
+            .decoratedElementType(findNode.simple('e)').staticElement)
+            .node
+            .displayName,
+        'f.e (test.dart:4:5)');
+  }
+
+  Future<void> test_displayName_exceptionType_no_variable() async {
+    await analyze('''
+f(void Function() g) {
+  try {
+    g();
+  } on String {}
+}
+''');
+    expect(decoratedTypeAnnotation('String').node.displayName,
+        'exception type (test.dart:4:8)');
+  }
+
+  Future<void> test_displayName_exceptionType_variable() async {
+    await analyze('''
+f(void Function() g) {
+  try {
+    g();
+  } on String catch (s) {}
+}
+''');
+    expect(decoratedTypeAnnotation('String').node.displayName,
+        'f.s (test.dart:4:8)');
+  }
+
+  Future<void> test_displayName_explicitParameterType_named() async {
+    await analyze('void f({int x, int y}) {}');
+    expect(decoratedTypeAnnotation('int x').node.displayName,
+        'parameter x of f (test.dart:1:9)');
+    expect(decoratedTypeAnnotation('int y').node.displayName,
+        'parameter y of f (test.dart:1:16)');
+  }
+
+  Future<void> test_displayName_explicitParameterType_positional() async {
+    await analyze('void f(int x, int y, [int z]) {}');
+    expect(decoratedTypeAnnotation('int x').node.displayName,
+        'parameter 0 of f (test.dart:1:8)');
+    expect(decoratedTypeAnnotation('int y').node.displayName,
+        'parameter 1 of f (test.dart:1:15)');
+    expect(decoratedTypeAnnotation('int z').node.displayName,
+        'parameter 2 of f (test.dart:1:23)');
+  }
+
+  Future<void> test_displayName_extendedType() async {
+    await analyze('extension E on int {}');
+    expect(decoratedTypeAnnotation('int').node.displayName,
+        'extended type (test.dart:1:16)');
+  }
+
+  Future<void> test_displayName_field() async {
+    await analyze('class C { int x; }');
+    expect(decoratedTypeAnnotation('int').node.displayName,
+        'C.x (test.dart:1:11)');
+  }
+
+  Future<void> test_displayName_for_loop_variable() async {
+    await analyze('f(List<int> x) { for (int y in x) {} }');
+    expect(decoratedTypeAnnotation('int y').node.displayName,
+        'f.y (test.dart:1:23)');
+  }
+
+  Future<void>
+      test_displayName_functionExpressionInvocation_type_argument() async {
+    await analyze('f(g) => g<int>();');
+    expect(decoratedTypeAnnotation('int').node.displayName,
+        'type argument (test.dart:1:11)');
+  }
+
+  Future<void> test_displayName_listElementType() async {
+    await analyze('f() => <int>[];');
+    expect(decoratedTypeAnnotation('int').node.displayName,
+        'list element type (test.dart:1:9)');
+  }
+
+  Future<void> test_displayName_mapKeyType() async {
+    await analyze('f() => <int, String>{};');
+    expect(decoratedTypeAnnotation('int').node.displayName,
+        'map key type (test.dart:1:9)');
+  }
+
+  Future<void> test_displayName_mapValueType() async {
+    await analyze('f() => <int, String>{};');
+    expect(decoratedTypeAnnotation('String').node.displayName,
+        'map value type (test.dart:1:14)');
+  }
+
+  Future<void> test_displayName_methodInvocation_type_argument() async {
+    await analyze('f(x) => x.g<int>();');
+    expect(decoratedTypeAnnotation('int').node.displayName,
+        'type argument (test.dart:1:13)');
+  }
+
+  Future<void> test_displayName_setElementType() async {
+    await analyze('f() => <int>{};');
+    expect(decoratedTypeAnnotation('int').node.displayName,
+        'set element type (test.dart:1:9)');
+  }
+
+  Future<void> test_displayName_supertype() async {
+    await analyze('''
+class C<T> {}
+class D extends C<int> {}
+''');
+    expect(decoratedTypeAnnotation('int').node.displayName,
+        'type argument 0 of supertype of D (test.dart:2:19)');
+  }
+
+  Future<void> test_displayName_testedType() async {
+    await analyze('f(x) => x is int;');
+    expect(decoratedTypeAnnotation('int').node.displayName,
+        'tested type (test.dart:1:14)');
+  }
+
+  Future<void> test_displayName_typeArgument() async {
+    await analyze('var x = <List<int>>[];');
+    expect(decoratedTypeAnnotation('int').node.displayName,
+        'type argument 0 of list element type (test.dart:1:15)');
+  }
+
+  Future<void> test_displayName_typedef_new_parameter() async {
+    await analyze('typedef F = void Function(int x);');
+    expect(decoratedTypeAnnotation('int').node.displayName,
+        'parameter 0 of F (test.dart:1:27)');
+  }
+
+  Future<void> test_displayName_typedef_new_returnType() async {
+    await analyze('typedef F = int Function();');
+    expect(decoratedTypeAnnotation('int').node.displayName,
+        'return type of F (test.dart:1:13)');
+  }
+
+  Future<void> test_displayName_typedef_old_parameter() async {
+    await analyze('typedef void F(int x);');
+    expect(decoratedTypeAnnotation('int').node.displayName,
+        'parameter 0 of F (test.dart:1:16)');
+  }
+
+  Future<void> test_displayName_typedef_old_returnType() async {
+    await analyze('typedef int F();');
+    expect(decoratedTypeAnnotation('int').node.displayName,
+        'return type of F (test.dart:1:9)');
+  }
+
+  Future<void> test_displayName_typeParameterBound() async {
+    await analyze('class C<T extends num> {}');
+    expect(decoratedTypeAnnotation('num').node.displayName,
+        'bound of C.T (test.dart:1:19)');
+  }
+
+  Future<void> test_displayName_typeParameterBound_implicit() async {
+    await analyze('class C<T extends num> {}');
+    expect(
+        variables
+            .decoratedTypeParameterBound(
+                findElement.class_('C').typeParameters[0])
+            .node
+            .displayName,
+        'bound of C.T (test.dart:1:19)');
+  }
+
+  Future<void> test_displayName_variable_local() async {
+    await analyze('f() { int x; }');
+    expect(
+        decoratedTypeAnnotation('int').node.displayName, 'f.x (test.dart:1:7)');
+  }
+
+  Future<void> test_displayName_variable_top_level() async {
+    await analyze('int x;');
+    expect(
+        decoratedTypeAnnotation('int').node.displayName, 'x (test.dart:1:1)');
+  }
+
   Future<void> test_dynamic_type() async {
     await analyze('''
 dynamic f() {}
@@ -461,6 +667,16 @@ dynamic f() {}
     var decoratedType = decoratedTypeAnnotation('dynamic');
     expect(decoratedFunctionType('f').returnType, same(decoratedType));
     assertNoEdge(always, decoratedType.node);
+  }
+
+  Future<void> test_extended_type_no_add_hint_actions() async {
+    await analyze('''
+class A extends Object {}
+''');
+    final node = decoratedTypeAnnotation('Object').node;
+    expect(
+        node.hintActions, isNot(contains(HintActionKind.addNonNullableHint)));
+    expect(node.hintActions, isNot(contains(HintActionKind.addNullableHint)));
   }
 
   Future<void> test_field_type_implicit_dynamic() async {
@@ -656,7 +872,8 @@ class C {
 }
 ''');
     var decoratedType = decoratedTypeAnnotation('int');
-    expect(decoratedType.node.displayName, 'return type of C.f');
+    expect(
+        decoratedType.node.displayName, 'return type of C.f (test.dart:2:3)');
   }
 
   Future<void> test_function_generic_bounded() async {
@@ -903,7 +1120,7 @@ void f(int Function() x) {}
     expect(decoratedIntType.node, isNotNull);
     expect(decoratedIntType.node, isNot(never));
     expect(decoratedType.returnType.node.displayName,
-        'return type of explicit type (test.dart:1:8)');
+        'return type of parameter 0 of f (test.dart:1:8)');
   }
 
   Future<void> test_genericFunctionType_syntax_inferred_dynamic_return() async {
@@ -1010,7 +1227,41 @@ typedef F = int Function(String s);
     expect(decoratedType.typeFormals, isEmpty);
     expect(decoratedType.positionalParameters[0],
         same(decoratedTypeAnnotation('String')));
-    expect(decoratedType.returnType.node.displayName, 'return type of F');
+    expect(decoratedType.returnType.node.displayName,
+        'return type of F (test.dart:1:13)');
+  }
+
+  Future<void> test_implicit_type_nested_no_add_hint_actions() async {
+    await analyze('''
+var x = [1];
+''');
+    final node = variables
+        .decoratedElementType(findNode
+            .topLevelVariableDeclaration('x')
+            .variables
+            .variables[0]
+            .declaredElement)
+        .typeArguments[0]
+        .node;
+    expect(
+        node.hintActions, isNot(contains(HintActionKind.addNonNullableHint)));
+    expect(node.hintActions, isNot(contains(HintActionKind.addNullableHint)));
+  }
+
+  Future<void> test_implicit_type_no_add_hint_actions() async {
+    await analyze('''
+var x = 1;
+''');
+    final node = variables
+        .decoratedElementType(findNode
+            .topLevelVariableDeclaration('x')
+            .variables
+            .variables[0]
+            .declaredElement)
+        .node;
+    expect(
+        node.hintActions, isNot(contains(HintActionKind.addNonNullableHint)));
+    expect(node.hintActions, isNot(contains(HintActionKind.addNullableHint)));
   }
 
   Future<void> test_interfaceType_generic_instantiate_to_dynamic() async {
@@ -1535,19 +1786,86 @@ var x = f();
     expect(decoratedType.node.isImmutable, false);
   }
 
+  Future<void> test_type_add_non_null_hint() async {
+    await analyze('''
+void f(int i) {}
+''');
+    final node = decoratedTypeAnnotation('int').node;
+    expect(node.hintActions, contains(HintActionKind.addNonNullableHint));
+    expect(
+        node.hintActions[HintActionKind.addNonNullableHint]
+            .applyTo(super.testCode),
+        '''
+void f(int/*!*/ i) {}
+''');
+  }
+
+  Future<void> test_type_add_null_hint() async {
+    await analyze('''
+void f(int i) {}
+''');
+    final node = decoratedTypeAnnotation('int').node;
+    expect(node.hintActions, contains(HintActionKind.addNullableHint));
+    expect(
+        node.hintActions[HintActionKind.addNullableHint]
+            .applyTo(super.testCode),
+        '''
+void f(int/*?*/ i) {}
+''');
+  }
+
   Future<void> test_type_comment_bang() async {
     await analyze('''
 void f(int/*!*/ i) {}
 ''');
-    assertEdge(decoratedTypeAnnotation('int').node, never,
-        hard: true, checkable: false);
+    final node = decoratedTypeAnnotation('int').node;
+    assertEdge(node, never, hard: true, checkable: false);
+    expect(
+        node.hintActions, isNot(contains(HintActionKind.addNonNullableHint)));
+    expect(node.hintActions, isNot(contains(HintActionKind.addNullableHint)));
+    // TODO(mfairhurst): support 'change to null hint'/'remove non-null hint'
+    // Filed as dartbug.com/41857, dartbug.com/41858
   }
 
   Future<void> test_type_comment_question() async {
     await analyze('''
 void f(int/*?*/ i) {}
 ''');
-    assertUnion(always, decoratedTypeAnnotation('int').node);
+    final node = decoratedTypeAnnotation('int').node;
+    assertUnion(always, node);
+    expect(
+        node.hintActions, isNot(contains(HintActionKind.addNonNullableHint)));
+    expect(node.hintActions, isNot(contains(HintActionKind.addNullableHint)));
+    // TODO(mfairhurst): support 'change to non-null hint'/'remove null hint'
+    // Filed as dartbug.com/41857, dartbug.com/41858
+  }
+
+  Future<void> test_type_nested_add_non_null_hint() async {
+    await analyze('''
+void f(List<int> i) {}
+''');
+    final node = decoratedTypeAnnotation('int').node;
+    expect(node.hintActions, contains(HintActionKind.addNonNullableHint));
+    expect(
+        node.hintActions[HintActionKind.addNonNullableHint]
+            .applyTo(super.testCode),
+        '''
+void f(List<int/*!*/> i) {}
+''');
+  }
+
+  Future<void> test_type_nested_add_null_hint() async {
+    await analyze('''
+void f(List<int> i) {}
+''');
+    final node = decoratedTypeAnnotation('int').node;
+    expect(node.hintActions, contains(HintActionKind.addNullableHint));
+    expect(
+        node.hintActions[HintActionKind.addNullableHint]
+            .applyTo(super.testCode),
+        '''
+void f(List<int/*?*/> i) {}
+''');
   }
 
   Future<void> test_type_parameter_explicit_bound() async {
@@ -1616,7 +1934,7 @@ F f;
         .get((decoratedType.type as FunctionType).typeFormals[0]);
     _assertType(decoratedTypeFormalBound.type, 'num');
     expect(decoratedTypeFormalBound.node.displayName,
-        'bound of type formal T of explicit type (test.dart:2:1)');
+        'bound of type formal T of f (test.dart:2:1)');
     var decoratedTypedefTypeFormalBound = decoratedTypeParameterBounds
         .get((typedefDecoratedType.type as FunctionType).typeFormals[0]);
     expect(decoratedTypeFormalBound.node,
@@ -1642,17 +1960,17 @@ F f;
         decoratedType.returnType.node, TypeMatcher<NullabilityNodeMutable>());
     expect(decoratedType.returnType.node,
         isNot(same(typedefDecoratedType.returnType.node)));
-    expect(
-        typedefDecoratedType.returnType.node.displayName, 'return type of F');
+    expect(typedefDecoratedType.returnType.node.displayName,
+        'return type of F (test.dart:1:9)');
     expect(decoratedType.returnType.node.displayName,
-        'return type of explicit type (test.dart:2:1)');
+        'return type of f (test.dart:2:1)');
     _assertType(decoratedType.positionalParameters[0].type, 'String');
     expect(decoratedType.positionalParameters[0].node,
         TypeMatcher<NullabilityNodeMutable>());
     expect(decoratedType.positionalParameters[0].node,
         isNot(same(typedefDecoratedType.positionalParameters[0].node)));
     expect(decoratedType.positionalParameters[0].node.displayName,
-        'parameter 0 of explicit type (test.dart:2:1)');
+        'parameter 0 of f (test.dart:2:1)');
   }
 
   Future<void> test_typedef_reference_simple_named_parameter() async {
@@ -1666,7 +1984,7 @@ F f;
     // its usage will be visited first.
     var decoratedType = decoratedTypeAnnotation('F f');
     expect(decoratedType.namedParameters['s'].node.displayName,
-        'parameter s of explicit type (test.dart:2:1)');
+        'parameter s of f (test.dart:2:1)');
   }
 
   Future<void> test_typedef_reference_simple_two_parameters() async {
@@ -1680,9 +1998,9 @@ F f;
     // its usage will be visited first.
     var decoratedType = decoratedTypeAnnotation('F f');
     expect(decoratedType.positionalParameters[0].node.displayName,
-        'parameter 0 of explicit type (test.dart:2:1)');
+        'parameter 0 of f (test.dart:2:1)');
     expect(decoratedType.positionalParameters[1].node.displayName,
-        'parameter 1 of explicit type (test.dart:2:1)');
+        'parameter 1 of f (test.dart:2:1)');
   }
 
   Future<void> test_typedef_rhs_nullability() async {
@@ -1691,6 +2009,38 @@ typedef F = void Function();
 ''');
     var decorated = decoratedGenericFunctionTypeAnnotation('void Function()');
     expect(decorated.node, same(never));
+  }
+
+  Future<void> test_variableDeclaration_late_hint_after_metadata() async {
+    await analyze('@deprecated /*late*/ int i;');
+    expect(
+        variables.getLateHint(
+            testSource, findNode.variableDeclarationList('int i')),
+        isNotNull);
+  }
+
+  Future<void> test_variableDeclaration_late_hint_multiple_comments() async {
+    await analyze('/*other*/ /*late*/ int i;');
+    expect(
+        variables.getLateHint(
+            testSource, findNode.variableDeclarationList('int i')),
+        isNotNull);
+  }
+
+  Future<void> test_variableDeclaration_late_hint_simple() async {
+    await analyze('/*late*/ int i;');
+    expect(
+        variables.getLateHint(
+            testSource, findNode.variableDeclarationList('int i')),
+        isNotNull);
+  }
+
+  Future<void> test_variableDeclaration_late_hint_with_spaces() async {
+    await analyze('/* late */ int i;');
+    expect(
+        variables.getLateHint(
+            testSource, findNode.variableDeclarationList('int i')),
+        isNotNull);
   }
 
   Future<void> test_variableDeclaration_type_simple() async {

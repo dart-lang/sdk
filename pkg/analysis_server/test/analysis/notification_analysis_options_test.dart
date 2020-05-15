@@ -7,7 +7,6 @@ import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
 import 'package:analysis_server/src/domain_analysis.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
@@ -53,7 +52,7 @@ main() {
   }
 
   void setAnalysisRoot() {
-    Request request =
+    var request =
         AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
     handleSuccessfulRequest(request);
   }
@@ -253,7 +252,7 @@ linter:
   }
 
   void verifyLintsEnabled(List<String> lints) {
-    AnalysisOptions options = analysisOptions;
+    var options = analysisOptions;
     expect(options.lint, true);
     var rules = options.lintRules.map((rule) => rule.name);
     expect(rules, unorderedEquals(lints));

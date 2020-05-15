@@ -1,0 +1,10 @@
+class B {
+  num get foo => null;
+  set foo(dynamic newFoo) {}
+}
+
+class A extends B {
+  set foo(newFoo) {}
+}
+
+main() {}

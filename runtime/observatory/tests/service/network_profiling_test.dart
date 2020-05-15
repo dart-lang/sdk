@@ -7,8 +7,11 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io' as io;
 import 'dart:isolate';
+
+import 'package:expect/expect.dart';
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
+
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
@@ -115,6 +118,9 @@ var tests = <IsolateTest>[
     expect(stats.length, 3);
     stats.forEach((socket) {
       expect(socket['address'], contains(localhost));
+      Expect.type<int>(socket['startTime']);
+      Expect.type<int>(socket['id']);
+      Expect.type<int>(socket['port']);
       if (socket['socketType'] == 'tcp') {
         expect(socket['writeBytes'], content.length);
         expect(socket.containsKey('lastWriteTime'), true);

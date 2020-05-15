@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
@@ -32,9 +34,11 @@ main() {
     """);
 
     for (FunctionTypeData data in signatures) {
-      FunctionType functionType = env.getElementType('t${data.name}');
+      FunctionType functionType =
+          env.getElementType('t${data.name}').withoutNullability;
       FunctionEntity method = env.getElement('m${data.name}');
-      FunctionType methodType = env.getElementType('m${data.name}');
+      FunctionType methodType =
+          env.getElementType('m${data.name}').withoutNullability;
       ParameterStructure parameterStructure = method.parameterStructure;
       Expect.equals(functionType, methodType, "Type mismatch on $data");
       Expect.equals(

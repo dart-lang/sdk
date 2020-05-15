@@ -1,0 +1,9 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+static method throwing() → Never
+  ;
+static method main() → void
+  ;
+static method errors() → void
+  ;

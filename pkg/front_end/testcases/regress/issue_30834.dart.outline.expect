@@ -3,6 +3,7 @@ library;
 // Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_30834.dart:6:7: Error: A class member can't have the same name as the enclosing class.
+// Try renaming the member.
 //   set A(v) {}
 //       ^
 //
@@ -14,6 +15,16 @@ class A extends core::Object {
     ;
   set A(dynamic v) → void
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method main() → dynamic
   ;

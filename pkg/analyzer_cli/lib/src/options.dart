@@ -220,7 +220,7 @@ class CommandLineOptions {
   /// by default prints an error message to stderr and exits.
   static CommandLineOptions parse(List<String> args,
       {Function(String msg) printAndFail = printAndFail}) {
-    CommandLineOptions options = _parse(args);
+    var options = _parse(args);
 
     /// Only happens in testing.
     if (options == null) {
@@ -232,7 +232,7 @@ class CommandLineOptions {
       // Infer if unspecified.
       options.dartSdkPath ??= getSdkPath(args);
 
-      String sdkPath = options.dartSdkPath;
+      var sdkPath = options.dartSdkPath;
 
       // Check that SDK is specified.
       if (sdkPath == null) {
@@ -268,9 +268,8 @@ class CommandLineOptions {
   static String _getVersion() {
     try {
       // This is relative to bin/snapshot, so ../..
-      String versionPath =
-          Platform.script.resolve('../../version').toFilePath();
-      File versionFile = File(versionPath);
+      var versionPath = Platform.script.resolve('../../version').toFilePath();
+      var versionFile = File(versionPath);
       return versionFile.readAsStringSync().trim();
     } catch (_) {
       // This happens when the script is not running in the context of an SDK.
@@ -281,10 +280,10 @@ class CommandLineOptions {
   static CommandLineOptions _parse(List<String> args) {
     args = preprocessArgs(PhysicalResourceProvider.INSTANCE, args);
 
-    bool verbose = args.contains('-v') || args.contains('--verbose');
-    bool hide = !verbose;
+    var verbose = args.contains('-v') || args.contains('--verbose');
+    var hide = !verbose;
 
-    ArgParser parser = ArgParser(allowTrailingOptions: true);
+    var parser = ArgParser(allowTrailingOptions: true);
 
     if (!hide) {
       parser.addSeparator('General options:');
@@ -488,12 +487,12 @@ class CommandLineOptions {
       if (args.contains('--$ignoreUnrecognizedFlagsFlag')) {
         args = filterUnknownArguments(args, parser);
       }
-      ArgResults results = parser.parse(args);
+      var results = parser.parse(args);
 
       // Persistent worker.
       if (args.contains('--persistent_worker')) {
-        bool hasBuildMode = args.contains('--build-mode');
-        bool onlyDartSdkArg = args.length == 2 ||
+        var hasBuildMode = args.contains('--build-mode');
+        var onlyDartSdkArg = args.length == 2 ||
             (args.length == 3 && args.any((a) => a.startsWith('--dart-sdk'))) ||
             (args.length == 4 && args.contains('--dart-sdk'));
         if (!(hasBuildMode && onlyDartSdkArg)) {
@@ -546,9 +545,9 @@ class CommandLineOptions {
             'future release.\n');
       }
       if (results.wasParsed('enable-experiment')) {
-        List<String> names =
+        var names =
             (results['enable-experiment'] as List).cast<String>().toList();
-        bool errorFound = false;
+        var errorFound = false;
         for (var validationResult in validateFlags(names)) {
           if (validationResult.isError) {
             errorFound = true;
@@ -582,6 +581,6 @@ class CommandLineOptions {
     errorSink.writeln('');
     errorSink.writeln('''
 Run "dartanalyzer -h -v" for verbose help output, including less commonly used options.
-For more information, see https://www.dartlang.org/tools/analyzer.\n''');
+For more information, see https://dart.dev/tools/dartanalyzer.\n''');
   }
 }

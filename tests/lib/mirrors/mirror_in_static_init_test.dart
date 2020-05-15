@@ -12,7 +12,7 @@ import 'dart:mirrors';
 
 // This class is only loaded during initialization of `staticField`.
 abstract class C {
-  int _a;
+  int? _a;
   // This is a syntax error on purpose.
   C([this._a: 0]); //# 01: compile-time error
 }

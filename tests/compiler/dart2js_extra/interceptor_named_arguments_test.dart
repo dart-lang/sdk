@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Test that the proper one-shot interceptor is used for different
 // combinations of named arguments.
 import "package:expect/expect.dart";

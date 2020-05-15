@@ -23,8 +23,8 @@ class RangeFactory {
   /// Return a source range that starts at the end of [leftEntity] and ends at
   /// the end of [rightEntity].
   SourceRange endEnd(SyntacticEntity leftEntity, SyntacticEntity rightEntity) {
-    int offset = leftEntity.end;
-    int length = rightEntity.end - offset;
+    var offset = leftEntity.end;
+    var length = rightEntity.end - offset;
     return SourceRange(offset, length);
   }
 
@@ -38,8 +38,8 @@ class RangeFactory {
   /// the start of [rightEntity].
   SourceRange endStart(
       SyntacticEntity leftEntity, SyntacticEntity rightEntity) {
-    int offset = leftEntity.end;
-    int length = rightEntity.offset - offset;
+    var offset = leftEntity.end;
+    var length = rightEntity.offset - offset;
     return SourceRange(offset, length);
   }
 
@@ -88,8 +88,8 @@ class RangeFactory {
   /// the end of [rightEntity].
   SourceRange startEnd(
       SyntacticEntity leftEntity, SyntacticEntity rightEntity) {
-    int offset = leftEntity.offset;
-    int length = rightEntity.end - offset;
+    var offset = leftEntity.offset;
+    var length = rightEntity.end - offset;
     return SourceRange(offset, length);
   }
 
@@ -102,7 +102,7 @@ class RangeFactory {
   /// Return a source range that starts at the given [startOffset] and ends at
   /// the given [endOffset].
   SourceRange startOffsetEndOffset(int startOffset, int endOffset) {
-    int length = endOffset - startOffset;
+    var length = endOffset - startOffset;
     return SourceRange(startOffset, length);
   }
 
@@ -110,8 +110,8 @@ class RangeFactory {
   /// the start of [rightEntity].
   SourceRange startStart(
       SyntacticEntity leftEntity, SyntacticEntity rightEntity) {
-    int offset = leftEntity.offset;
-    int length = rightEntity.offset - offset;
+    var offset = leftEntity.offset;
+    var length = rightEntity.offset - offset;
     return SourceRange(offset, length);
   }
 

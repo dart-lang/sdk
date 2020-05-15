@@ -5,11 +5,14 @@
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/object_graph.dart';
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
 class Foo {
+  // Make sure these fields are not removed by the tree shaker.
+  @pragma("vm:entry-point")
   dynamic left;
+  @pragma("vm:entry-point")
   dynamic right;
 }
 

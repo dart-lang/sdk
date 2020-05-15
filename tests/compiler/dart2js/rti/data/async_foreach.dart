@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*strong.class: Class:direct,explicit=[Class.T],implicit=[Class.T],needsArgs*/
-/*omit.class: Class:needsArgs*/
+// @dart = 2.7
+
+/*spec:nnbd-off.class: Class:direct,explicit=[Class.T],implicit=[Class.T],needsArgs*/
+/*prod:nnbd-off|prod:nnbd-sdk.class: Class:needsArgs*/
+/*spec:nnbd-sdk.class: Class:direct,explicit=[Class.T*],implicit=[Class.T],needsArgs*/
 class Class<T> {
   method() {
     var list = <T>[];
@@ -14,8 +17,7 @@ class Class<T> {
     // This happens because the closure is thought as possibly going to the
     // async.errorHandler callback.
     list.forEach(
-        /*strong.needsSignature*/
-        /*omit.needsSignature*/
+        /*needsSignature*/
         (x) => print(x));
   }
 }

@@ -1,0 +1,41 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue41495.dart:14:6: Error: Property 'c1' cannot be accessed on 'A?' because it is potentially null.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/issue41495.dart'.
+// Try accessing using ?. instead.
+//   a1.c1;
+//      ^^
+//
+// pkg/front_end/testcases/nnbd/issue41495.dart:15:6: Error: Property 'test' cannot be accessed on 'A?' because it is potentially null.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/issue41495.dart'.
+// Try accessing using ?. instead.
+//   a1.test;
+//      ^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::int c1 = 1;
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  method test() → core::int
+    return 2;
+}
+static method main() → dynamic {}
+static method errors() → dynamic {
+  self::A? a1 = new self::A::•();
+  let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/issue41495.dart:14:6: Error: Property 'c1' cannot be accessed on 'A?' because it is potentially null.
+ - 'A' is from 'pkg/front_end/testcases/nnbd/issue41495.dart'.
+Try accessing using ?. instead.
+  a1.c1;
+     ^^" in a1.{self::A::c1};
+  let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/issue41495.dart:15:6: Error: Property 'test' cannot be accessed on 'A?' because it is potentially null.
+ - 'A' is from 'pkg/front_end/testcases/nnbd/issue41495.dart'.
+Try accessing using ?. instead.
+  a1.test;
+     ^^^^" in a1.{self::A::test};
+}

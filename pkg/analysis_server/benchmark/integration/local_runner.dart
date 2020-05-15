@@ -64,7 +64,7 @@ void main(List<String> args) {
     '-i${inputFile.path}',
     '-t$tmpSrcDirPath',
   ];
-  for (int index = 3; index < args.length; ++index) {
+  for (var index = 3; index < args.length; ++index) {
     perfArgs.add(args[index].replaceAll('@tmpSrcDir@', tmpSrcDirPath));
   }
   perfArgs.add('-m${gitDir.path},$tmpSrcDirPath');

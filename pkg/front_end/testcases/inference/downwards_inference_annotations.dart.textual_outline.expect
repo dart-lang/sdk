@@ -1,0 +1,14 @@
+library test;
+
+class Foo {
+  const Foo(List<String> l);
+  const Foo.named(List<String> l);
+}
+
+@Foo(const [])
+class Bar {}
+
+@Foo.named(const [])
+class Baz {}
+
+main() {}

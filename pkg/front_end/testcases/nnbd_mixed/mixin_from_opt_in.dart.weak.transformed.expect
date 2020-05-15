@@ -1,0 +1,45 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "mixin_from_opt_in_lib.dart" as mix;
+
+import "org-dartlang-testcase:///mixin_from_opt_in_lib.dart";
+
+abstract class _Class&Object&Mixin extends core::Object implements mix::Mixin /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Class&Object&Mixin*
+    : super core::Object::•()
+    ;
+  method /*isNonNullableByDefault, from org-dartlang-testcase:///mixin_from_opt_in_lib.dart */ method(core::int? i) → core::int
+    return let final core::int? #t1 = i in #t1.{core::num::==}(null) ?{core::int} 0 : #t1{core::int};
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
+class Class extends self::_Class&Object&Mixin {
+  synthetic constructor •() → self::Class*
+    : super self::_Class&Object&Mixin::•()
+    ;
+  abstract member-signature method method(core::int* i) → core::int*;
+}
+static method main() → dynamic {
+  core::print(new self::Class::•().{self::Class::method}(null));
+}
+
+library /*isNonNullableByDefault*/;
+import self as mix;
+import "dart:core" as core;
+
+class Mixin extends core::Object {
+  synthetic constructor •() → mix::Mixin
+    : super core::Object::•()
+    ;
+  method method(core::int? i) → core::int
+    return let final core::int? #t2 = i in #t2.{core::num::==}(null) ?{core::int} 0 : #t2{core::int};
+}

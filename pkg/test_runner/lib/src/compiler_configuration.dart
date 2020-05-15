@@ -591,6 +591,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 
   bool get _isSimArm => _configuration.architecture == Architecture.simarm;
 
+  bool get _isSimArm64 => _configuration.architecture == Architecture.simarm64;
+
   bool get _isArmX64 => _configuration.architecture == Architecture.arm_x64;
 
   bool get _isArm64 => _configuration.architecture == Architecture.arm64;
@@ -688,10 +690,12 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         }
       } else if (_configuration.builderTag == "crossword") {
         exec = "${buildDir}_X64/gen_snapshot";
-      } else if (_configuration.useQemu) {
+      } else if (_isArm && _configuration.useQemu) {
         // DebugXARM --> DebugSIMARM_X64
         final simBuildDir = buildDir.replaceAll("XARM", "SIMARM_X64");
         exec = "$simBuildDir/gen_snapshot";
+      } else if (_isArm64 && _configuration.useQemu) {
+        exec = "$buildDir/clang_x64/gen_snapshot";
       } else {
         exec = "$buildDir/gen_snapshot";
       }
@@ -736,8 +740,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
           "$host-x86_64/bin/$abiTriple-gcc";
       shared = '-shared';
     } else if (Platform.isLinux) {
-      if (_isSimArm || _configuration.useQemu) {
+      if (_isSimArm || (_isArm && _configuration.useQemu)) {
         cc = 'arm-linux-gnueabihf-gcc';
+      } else if (_isSimArm64 || (_isArm64 && _configuration.useQemu)) {
+        cc = 'aarch64-linux-gnu-gcc';
       } else {
         cc = 'gcc';
       }
@@ -754,9 +760,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     String ccFlags;
     switch (_configuration.architecture) {
       case Architecture.x64:
-      case Architecture.simarm64:
         ccFlags = "-m64";
         break;
+      case Architecture.simarm64:
       case Architecture.ia32:
       case Architecture.simarm:
       case Architecture.arm:
@@ -1086,6 +1092,8 @@ abstract class VMKernelCompilerMixin {
 
     var dillFile = tempKernelFile(tempDir);
 
+    var isProductMode = _configuration.configuration.mode == Mode.product;
+
     var causalAsyncStacks = !arguments.any(noCausalAsyncStacksRegExp.hasMatch);
 
     var args = [
@@ -1098,6 +1106,7 @@ abstract class VMKernelCompilerMixin {
           name.startsWith('-D') ||
           name.startsWith('--packages=') ||
           name.startsWith('--enable-experiment=')),
+      '-Ddart.vm.product=$isProductMode',
       '-Ddart.developer.causal_async_stacks=$causalAsyncStacks',
       if (_enableAsserts ||
           arguments.contains('--enable-asserts') ||

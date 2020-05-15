@@ -1,0 +1,19 @@
+import 'inheritance_from_opt_out_lib.dart';
+
+class Class1 extends LegacyClass1 {}
+
+class Class2<T> extends LegacyClass2<T> {}
+
+class Class3a<T> extends LegacyClass3<T> {}
+
+class Class3b<T> extends LegacyClass3<T> implements GenericInterface<T> {}
+
+class Class4a extends LegacyClass4 {}
+
+class Class4b implements GenericInterface<num> {}
+
+class Class4c implements GenericInterface<num?> {}
+
+class Class4d extends LegacyClass4 implements GenericInterface<num> {}
+
+main() {}

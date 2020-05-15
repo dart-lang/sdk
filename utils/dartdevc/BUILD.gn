@@ -16,10 +16,10 @@ sdk_summary = "$target_gen_dir/ddc_sdk.sum"
 sdk_outline_dill = "$root_out_dir/ddc_sdk.dill"
 sdk_full_dill = "$root_out_dir/ddc_platform.dill"
 
-if (use_nnbd) {
-  libraries_specification_path = "sdk_nnbd/lib/libraries.json"
-} else {
+if (dont_use_nnbd) {
   libraries_specification_path = "sdk/lib/libraries.json"
+} else {
+  libraries_specification_path = "sdk_nnbd/lib/libraries.json"
 }
 
 application_snapshot("dartdevc") {
@@ -33,21 +33,8 @@ application_snapshot("dartdevc") {
     "-k",
     "-o",
     "dartdevc.js",
+    rebase_path("../../pkg/dev_compiler/bin/dartdevc.dart"),
   ]
-
-  if (use_nnbd) {
-    training_args += [
-      "--enable-experiment=non-nullable",
-
-      # TODO(sigmund): restore training with dartdevc.dart. Currently blocked by
-      # some regressions in type-promotion in the CFE when nnbd is enabled.
-      # The following test file is pretty simple and has no imports, so it
-      # should be easier to compile while we bootstrap NNBD.
-      rebase_path("../../tests/language_2/abstract/equal_test.dart"),
-    ]
-  } else {
-    training_args += [ rebase_path("../../pkg/dev_compiler/bin/dartdevc.dart") ]
-  }
 
   deps = [
     ":dartdevc_kernel_sdk",
@@ -58,12 +45,12 @@ application_snapshot("dartdevc") {
 }
 
 # TODO(#38701) Cleanup after merging the forked SDK into mainline.
-if (use_nnbd) {
-  sdk_root = "../../sdk_nnbd"
-  libraries_specification_path = "sdk_nnbd/lib/libraries.json"
-} else {
+if (dont_use_nnbd) {
   sdk_root = "../../sdk"
   libraries_specification_path = "sdk/lib/libraries.json"
+} else {
+  sdk_root = "../../sdk_nnbd"
+  libraries_specification_path = "sdk_nnbd/lib/libraries.json"
 }
 
 sdk_lib_files = exec_script("../../tools/list_dart_files.py",
@@ -154,8 +141,8 @@ prebuilt_dart_action("dartdevc_patch_sdk") {
   ]
 
   # TODO(#38701) Cleanup after merging the forked SDK into mainline.
-  if (use_nnbd) {
-    args += [ "--nnbd" ]
+  if (dont_use_nnbd) {
+    args += [ "--no-nnbd" ]
   }
 }
 
@@ -202,25 +189,14 @@ create_timestamp_file("dartdevc_sdk_patch_stamp") {
 group("dartdevc_test_kernel_pkg") {
   deps = [
     ":async_helper_js",
+    ":collection_js",
     ":expect_js",
     ":js_js",
+    ":matcher_js",
     ":meta_js",
+    ":path_js",
+    ":stack_trace_js",
   ]
-
-  # TODO(38701): Cleanup after merging the forked SDK into mainline.
-  if (!use_nnbd) {
-    # TODO(sigmund): Merge this list into above. We turned this off temporarily
-    # while the migration of libraries is in flux, this step otherwise fails
-    # with many nnbd-related compile-time errors because the packages are
-    # assumed to be nnbd compilant.
-    deps += [
-      ":collection_js",
-      ":matcher_js",
-      ":path_js",
-      ":stack_trace_js",
-      ":unittest_js",
-    ]
-  }
 }
 
 template("dartdevc_kernel_compile") {
@@ -287,7 +263,7 @@ template("dartdevc_kernel_compile") {
     }
 
     # TODO(38701): Cleanup after merging the forked SDK into mainline.
-    if (use_nnbd) {
+    if (!dont_use_nnbd) {
       args += [ "--enable-experiment=non-nullable" ]
     }
   }
@@ -329,21 +305,6 @@ dartdevc_kernel_compile("stack_trace_js") {
   package_dependencies = [ "path" ]
 }
 
-# TODO(rnystrom): Remove this when unittest is no longer used. Also remove
-# any of the above packages that are only here because unittest uses them.
-dartdevc_kernel_compile("unittest_js") {
-  package = "unittest"
-  package_dependencies = [
-    "path",
-    "stack_trace",
-  ]
-  extra_libraries = [
-    "html_config",
-    "html_individual_config",
-    "html_enhanced_config",
-  ]
-}
-
 compile_platform("dartdevc_platform") {
   single_root_scheme = "org-dartlang-sdk"
   single_root_base = rebase_path("../../")
@@ -361,7 +322,7 @@ compile_platform("dartdevc_platform") {
   ]
 
   # TODO(38701): Cleanup after merging the forked SDK into mainline.
-  if (use_nnbd) {
+  if (!dont_use_nnbd) {
     args += [ "--enable-experiment=non-nullable" ]
   }
 }
@@ -418,7 +379,7 @@ prebuilt_dart_action("dartdevc_kernel_sdk") {
   ]
 
   # TODO(38701): Cleanup after merging the forked SDK into mainline.
-  if (use_nnbd) {
+  if (!dont_use_nnbd) {
     args += [ "--enable-experiment=non-nullable" ]
   }
 }

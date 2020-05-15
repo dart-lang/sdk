@@ -14,7 +14,5 @@ typedef void G(List<F> l);
 
 main() {
   F foo(G g) => g;
-  //            ^
-  // [cfe] A value of type 'void Function(List<invalid-type>)' can't be assigned to a variable of type 'void Function(List<void Function(List<invalid-type>)>)'.
   foo(null);
 }

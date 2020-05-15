@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Test that substitutions are emitted for classes that are only used as
 // type arguments.
 
@@ -9,12 +11,14 @@ import 'package:expect/expect.dart';
 
 class K {}
 
-/*class: A:explicit=[X<A<String>>]*/
+/*spec:nnbd-off|prod:nnbd-off.class: A:explicit=[X<A<String>>]*/
+/*spec:nnbd-sdk|prod:nnbd-sdk.class: A:explicit=[X<A<String*>*>*]*/
 class A<T> {}
 
 class B extends A<K> {}
 
-/*class: X:explicit=[X<A<String>>],needsArgs*/
+/*spec:nnbd-off|prod:nnbd-off.class: X:explicit=[X<A<String>>],needsArgs*/
+/*spec:nnbd-sdk|prod:nnbd-sdk.class: X:explicit=[X<A<String*>*>*],needsArgs*/
 class X<T> {}
 
 main() {

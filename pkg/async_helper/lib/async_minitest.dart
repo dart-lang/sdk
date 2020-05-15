@@ -99,7 +99,7 @@ R Function(A, B) expectAsync2<R, A, B>(R Function(A, B) f, {int count = 1}) {
 
 dynamic expectAsync(Function f, {int count = 1}) {
   var f2 = f; // Avoid type-promoting f, we want dynamic invocations.
-  if (f2 is Function(Null, Null, Null, Null, Null)) {
+  if (f2 is Function(Never, Never, Never, Never, Never)) {
     asyncStart(count);
     return ([a, b, c, d, e]) {
       var result = f(a, b, c, d, e);
@@ -107,7 +107,7 @@ dynamic expectAsync(Function f, {int count = 1}) {
       return result;
     };
   }
-  if (f2 is Function(Null, Null, Null, Null)) {
+  if (f2 is Function(Never, Never, Never, Never)) {
     asyncStart(count);
     return ([a, b, c, d]) {
       var result = f(a, b, c, d);
@@ -115,7 +115,7 @@ dynamic expectAsync(Function f, {int count = 1}) {
       return result;
     };
   }
-  if (f2 is Function(Null, Null, Null)) {
+  if (f2 is Function(Never, Never, Never)) {
     asyncStart(count);
     return ([a, b, c]) {
       var result = f(a, b, c);
@@ -123,7 +123,7 @@ dynamic expectAsync(Function f, {int count = 1}) {
       return result;
     };
   }
-  if (f2 is Function(Null, Null)) {
+  if (f2 is Function(Never, Never)) {
     asyncStart(count);
     return ([a, b]) {
       var result = f(a, b);
@@ -131,7 +131,7 @@ dynamic expectAsync(Function f, {int count = 1}) {
       return result;
     };
   }
-  if (f2 is Function(Null)) {
+  if (f2 is Function(Never)) {
     asyncStart(count);
     return ([a]) {
       var result = f(a);
@@ -310,9 +310,7 @@ final _testToken = Object();
 bool _initializedTestNameCallback = false;
 
 /// The current combined name of the nesting [group] or [test].
-// TODO(rnystrom): Type this "String?" when this library does not need to be
-// NNBD agnostic.
-dynamic _currentName = null;
+String _currentName = "";
 
 String _pushName(String newName) {
   // Look up the current test name from the zone created for the test.
@@ -322,7 +320,7 @@ String _pushName(String newName) {
   }
 
   var oldName = _currentName;
-  if (oldName == null) {
+  if (oldName == "") {
     _currentName = newName;
   } else {
     _currentName = "$oldName $newName";

@@ -199,5 +199,8 @@ class ConstantReference extends ir.TreeNode {
   }
 
   @override
-  String toString() => 'ConstantReference(constant=$constant)';
+  String toString() => 'ConstantReference(${toStringInternal()})';
+
+  @override
+  String toStringInternal() => 'constant=${constant.toStringInternal()}';
 }

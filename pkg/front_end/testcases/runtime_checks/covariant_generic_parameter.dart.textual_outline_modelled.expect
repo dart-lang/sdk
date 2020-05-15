@@ -1,0 +1,10 @@
+library test;
+
+class C<T> {
+  void f(T x) {}
+}
+
+main() {}
+void g1(C<num> c) {}
+void g2(C<int> c) {}
+void g3(C<num> c) {}

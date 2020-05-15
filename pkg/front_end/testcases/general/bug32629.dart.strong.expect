@@ -1,20 +1,37 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/bug32629.dart:16:19: Error: The argument type 'dynamic Function(dynamic, dynamic)' can't be assigned to the parameter type 'String Function(String, dynamic)'.
+//   foo<String>(new A());
+//                   ^
+//
 import self as self;
 import "dart:core" as core;
 
-typedef Reducer<S extends core::Object> = (S, dynamic) → S;
+typedef Reducer<invariant S extends core::Object* = dynamic> = (S*, dynamic) →* S*;
 class A extends core::Object {
-  synthetic constructor •() → void
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
   method call(dynamic a, dynamic b) → dynamic {
     return a;
   }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
-static method foo<S extends core::Object>((self::foo::S, dynamic) → self::foo::S v) → void {}
-static method main() → void {
-  self::foo<core::String>(let final dynamic #t1 = let final self::A #t2 = new self::A::•() in #t2.==(null) ?{(dynamic, dynamic) → dynamic} null : #t2.{self::A::call} in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/bug32629.dart:18:47: Error: A value of type '(dynamic, dynamic) \u8594 dynamic' can't be assigned to a variable of type '(dart.core::String, dynamic) \u8594 dart.core::String'.
-Try changing the type of the left hand side, or casting the right hand side to '(dart.core::String, dynamic) \u8594 dart.core::String'.
-  foo<String>(new /*@error=InvalidAssignment*/A());
-                                              ^");
+static method foo<S extends core::Object* = dynamic>((self::foo::S*, dynamic) →* self::foo::S* v) → void {}
+static method test() → void {
+  self::foo<core::String*>(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/general/bug32629.dart:16:19: Error: The argument type 'dynamic Function(dynamic, dynamic)' can't be assigned to the parameter type 'String Function(String, dynamic)'.
+  foo<String>(new A());
+                  ^" in (let final self::A* #t2 = new self::A::•() in #t2.==(null) ?{(dynamic, dynamic) →* dynamic} null : #t2.{self::A::call}) as{TypeError} (core::String*, dynamic) →* core::String*);
 }
+static method main() → dynamic {}

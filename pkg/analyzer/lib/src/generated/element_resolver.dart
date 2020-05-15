@@ -703,15 +703,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
       return;
     }
     //
-    // The name dynamic denotes a Type object even though dynamic is not a
-    // class.
-    //
-    if (node.name == 'dynamic') {
-      node.staticElement = _dynamicType.element;
-      node.staticType = _typeType;
-      return;
-    }
-    //
     // Otherwise, the node should be resolved.
     //
     Element element = _resolveSimpleIdentifier(node);
@@ -722,8 +713,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
           CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, node);
     } else if (_isConstructorReturnType(node) &&
         !identical(element, enclosingClass)) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
+      // This error is now reported by the parser.
       element = null;
     } else if (element == null ||
         (element is PrefixElement && !_isValidAsPrefix(node))) {
@@ -1406,8 +1396,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
       if (staticType is InterfaceTypeImpl) {
         if (propertyName.inGetterContext()) {
           var name = Name(_definingLibrary.source.uri, propertyName.name);
-          var element =
-              _resolver.inheritance.getMember(staticType, name, forSuper: true);
+          var element = _resolver.inheritance
+              .getMember2(staticType.element, name, forSuper: true);
 
           if (element != null) {
             element = _resolver.toLegacyElement(element);
@@ -1416,18 +1406,15 @@ class ElementResolver extends SimpleAstVisitor<void> {
             // We were not able to find the concrete dispatch target.
             // But we would like to give the user at least some resolution.
             // So, we retry simply looking for an inherited member.
-            var element = _resolver.inheritance.getInherited(staticType, name);
+            var element =
+                _resolver.inheritance.getInherited2(staticType.element, name);
             if (element != null) {
               propertyName.staticElement = element;
-              ClassElementImpl receiverSuperClass =
-                  staticType.element.supertype.element;
-              if (!receiverSuperClass.hasNoSuchMethod) {
-                _errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
-                  propertyName,
-                  [element.kind.displayName, propertyName.name],
-                );
-              }
+              _errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
+                propertyName,
+                [element.kind.displayName, propertyName.name],
+              );
             } else {
               _errorReporter.reportErrorForNode(
                 StaticTypeWarningCode.UNDEFINED_SUPER_GETTER,

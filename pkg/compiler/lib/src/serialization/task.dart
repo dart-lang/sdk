@@ -98,6 +98,10 @@ class SerializationTask extends CompilerTask {
       new ir.BinaryBuilder(dillInput.data).readComponent(component);
       return component;
     });
+    if (component.libraries.any((lib) =>
+        lib.isNonNullableByDefault && lib.importUri.scheme == 'dart')) {
+      _options.useNullSafety = true;
+    }
 
     return await measureIoSubtask('deserialize data', () async {
       _reporter.log('Reading data from ${_options.readDataUri}');

@@ -17,12 +17,12 @@ main() {
   initWaitForEvent();
   asyncStart();
   bool flag = false;
-  runZoned(() {
+  runZonedGuarded(() {
     Timer.run(() {
       asyncEnd();
       throw "Exception";
     });
-  }, onError: (e) {
+  }, (e, s) {
     flag = true;
   });
   Expect.isFalse(flag);

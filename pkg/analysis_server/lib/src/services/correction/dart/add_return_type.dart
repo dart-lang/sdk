@@ -111,6 +111,9 @@ class AddReturnType extends CorrectionProducer {
     }
     return baseType;
   }
+
+  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
+  static AddReturnType newInstance() => AddReturnType();
 }
 
 /// Copied from lib/src/services/refactoring/extract_method.dart", but
@@ -133,12 +136,12 @@ class _ReturnTypeComputer extends RecursiveAstVisitor<void> {
   void visitReturnStatement(ReturnStatement node) {
     hasReturn = true;
     // prepare expression
-    Expression expression = node.expression;
+    var expression = node.expression;
     if (expression == null) {
       return;
     }
     // prepare type
-    DartType type = expression.staticType;
+    var type = expression.staticType;
     if (type.isBottom) {
       return;
     }

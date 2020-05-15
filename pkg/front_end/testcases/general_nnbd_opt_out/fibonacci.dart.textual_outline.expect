@@ -1,0 +1,3 @@
+// @dart = 2.6
+int fibonacci(int n) {}
+main() {}

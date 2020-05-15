@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'dart:_foreign_helper' show JS, JS_GET_NAME, TYPE_REF;
 import 'dart:_js_embedded_names' show JsGetName;
 import 'dart:_rti' as rti;
@@ -37,6 +39,7 @@ void runTests() {
   testInterfaces();
   testTopTypes();
   testNull();
+  testBottom();
   testFutureOr();
   testFunctions();
   testGenericFunctions();
@@ -76,6 +79,11 @@ void testNull() {
   strictSubtype(nullName, 'Iterable<CodeUnits>');
   strictSubtype(nullName, objectName);
   equivalent(nullName, nullName);
+}
+
+void testBottom() {
+  String never = '0&';
+  equivalent(nullName, never); // This test is run with legacy subtyping
 }
 
 void testFutureOr() {

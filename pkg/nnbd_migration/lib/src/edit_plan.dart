@@ -11,8 +11,10 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:meta/meta.dart';
+import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
+import 'package:nnbd_migration/src/utilities/hint_utils.dart';
 
 Map<int, List<AtomicEdit>> _removeCode(
     int offset, int end, _RemovalStyle removalStyle, AtomicEditInfo info) {
@@ -69,20 +71,28 @@ class AtomicEdit {
   /// if no characters should be inserted.
   final String replacement;
 
+  /// If `true`, this edit shouldn't actually be made to the source file; it
+  /// exists merely to provide additional information to be shown in the preview
+  /// tool.
+  final bool isInformative;
+
   /// Initialize an edit to delete [length] characters.
   ///
   /// Optional argument [info] contains information about why the change was
   /// made.
-  const AtomicEdit.delete(this.length, {this.info})
+  const AtomicEdit.delete(this.length, {this.info, this.isInformative = false})
       : assert(length > 0),
+        assert(isInformative is bool),
         replacement = '';
 
   /// Initialize an edit to insert the [replacement] characters.
   ///
   /// Optional argument [info] contains information about why the change was
   /// made.
-  const AtomicEdit.insert(this.replacement, {this.info})
+  const AtomicEdit.insert(this.replacement,
+      {this.info, this.isInformative: false})
       : assert(replacement.length > 0),
+        assert(isInformative is bool),
         length = 0;
 
   /// Initialize an edit to replace [length] characters with the [replacement]
@@ -91,7 +101,8 @@ class AtomicEdit {
   /// Optional argument [info] contains information about why the change was
   /// made.
   const AtomicEdit.replace(this.length, this.replacement, {this.info})
-      : assert(length > 0 || replacement.length > 0);
+      : assert(length > 0 || replacement.length > 0),
+        isInformative = false;
 
   /// Return `true` if this edit is a deletion (no characters added).
   bool get isDeletion => replacement.length == 0;
@@ -120,9 +131,13 @@ class AtomicEditInfo {
   final NullabilityFixDescription description;
 
   /// The reasons for the edit.
-  final List<FixReasonInfo> fixReasons;
+  final Map<FixReasonTarget, FixReasonInfo> fixReasons;
 
-  AtomicEditInfo(this.description, this.fixReasons);
+  /// If the edit is being made due to a hint, the hint in question; otherwise
+  /// `null`.
+  final HintComment hintComment;
+
+  AtomicEditInfo(this.description, this.fixReasons, {this.hintComment});
 }
 
 /// An [EditPlan] is a builder capable of accumulating a set of edits to be
@@ -170,6 +185,36 @@ class EditPlanner {
   EditPlanner(this.lineInfo, this.sourceText, {this.removeViaComments = false});
 
   /// Creates a new edit plan that consists of executing [innerPlan], and then
+  /// converting the late [hint] into an explicit `late`.
+  NodeProducingEditPlan acceptLateHint(
+      NodeProducingEditPlan innerPlan, HintComment hint,
+      {AtomicEditInfo info}) {
+    var affixPlan = innerPlan is _CommentAffixPlan
+        ? innerPlan
+        : _CommentAffixPlan(innerPlan);
+    var changes = hint.changesToAccept(sourceText, info: info);
+    assert(affixPlan.offset >= _endForChanges(changes));
+    affixPlan.offset = _offsetForChanges(changes);
+    affixPlan._prefixChanges = changes + affixPlan._prefixChanges;
+    return affixPlan;
+  }
+
+  /// Creates a new edit plan that consists of executing [innerPlan], and then
+  /// converting the nullability [hint] into an explicit `?` or `!`.
+  NodeProducingEditPlan acceptNullabilityOrNullCheckHint(
+      NodeProducingEditPlan innerPlan, HintComment hint,
+      {AtomicEditInfo info}) {
+    var affixPlan = innerPlan is _CommentAffixPlan
+        ? innerPlan
+        : _CommentAffixPlan(innerPlan);
+    var changes = hint.changesToAccept(sourceText);
+    assert(affixPlan.end <= _offsetForChanges(changes));
+    affixPlan.end = _endForChanges(changes);
+    affixPlan._postfixChanges += hint.changesToAccept(sourceText, info: info);
+    return affixPlan;
+  }
+
+  /// Creates a new edit plan that consists of executing [innerPlan], and then
   /// appending the given [operand], with an intervening binary [operator].
   ///
   /// Optional argument [info] contains information about why the change was
@@ -215,6 +260,28 @@ class EditPlanner {
   }
 
   /// Creates a new edit plan that consists of executing [innerPlan], and then
+  /// appending the given [comment]].
+  ///
+  /// Optional argument [info] contains information about why the change was
+  /// made.
+  ///
+  /// Optional argument [isInformative] indicates whether the comment is simply
+  /// informative, or should actually be applied to the final output (the
+  /// default).
+  NodeProducingEditPlan addCommentPostfix(
+      NodeProducingEditPlan innerPlan, String comment,
+      {AtomicEditInfo info, bool isInformative = false}) {
+    var end = innerPlan.end;
+    return surround(innerPlan, suffix: [
+      AtomicEdit.insert(' ', isInformative: isInformative),
+      AtomicEdit.insert(comment, info: info, isInformative: isInformative),
+      if (!_isJustBefore(end, const [')', ']', '}', ';']) &&
+          !_isJustBeforeWhitespace(end))
+        AtomicEdit.insert(' ', isInformative: isInformative)
+    ]);
+  }
+
+  /// Creates a new edit plan that consists of executing [innerPlan], and then
   /// appending the given postfix [operator].  This could be used, for example,
   /// to add a null check.
   ///
@@ -255,6 +322,33 @@ class EditPlanner {
       _PassThroughBuilderImpl(node);
 
   /// Creates a new edit plan that consists of executing [innerPlan], and then
+  /// dropping the given nullability [hint].
+  NodeProducingEditPlan dropNullabilityHint(
+      NodeProducingEditPlan innerPlan, HintComment hint,
+      {AtomicEditInfo info}) {
+    var affixPlan = innerPlan is _CommentAffixPlan
+        ? innerPlan
+        : _CommentAffixPlan(innerPlan);
+    var changes = hint.changesToRemove(sourceText, info: info);
+    assert(affixPlan.end <= _offsetForChanges(changes));
+    affixPlan.end = _endForChanges(changes);
+    affixPlan._postfixChanges += changes;
+    return affixPlan;
+  }
+
+  /// Creates a new edit plan that consists of executing [innerPlan], and then
+  /// appending an informative ` `, to illustrate that the type is non-nullable.
+  ///
+  /// Optional argument [info] contains information about why the change was
+  /// made.
+  NodeProducingEditPlan explainNonNullable(NodeProducingEditPlan innerPlan,
+      {AtomicEditInfo info}) {
+    assert(innerPlan.sourceNode is TypeAnnotation);
+    return surround(innerPlan,
+        suffix: [AtomicEdit.insert(' ', info: info, isInformative: true)]);
+  }
+
+  /// Creates a new edit plan that consists of executing [innerPlan], and then
   /// removing from the source code any code that is in [sourceNode] but not in
   /// [innerPlan.sourceNode].  This is intended to be used to drop unnecessary
   /// syntax (for example, to drop an unnecessary cast).
@@ -272,12 +366,15 @@ class EditPlanner {
   /// caller.
   NodeProducingEditPlan extract(
       AstNode sourceNode, NodeProducingEditPlan innerPlan,
-      {AtomicEditInfo infoBefore, AtomicEditInfo infoAfter}) {
+      {AtomicEditInfo infoBefore,
+      AtomicEditInfo infoAfter,
+      bool alwaysDelete = false}) {
     var parent = innerPlan.sourceNode.parent;
     if (!identical(parent, sourceNode) && parent is ParenthesizedExpression) {
       innerPlan = _ProvisionalParenEditPlan(parent, innerPlan);
     }
-    return _ExtractEditPlan(sourceNode, innerPlan, this, infoBefore, infoAfter);
+    return _ExtractEditPlan(
+        sourceNode, innerPlan, this, infoBefore, infoAfter, alwaysDelete);
   }
 
   /// Converts [plan] to a representation of the concrete edits that need
@@ -298,6 +395,20 @@ class EditPlanner {
     return (plan as NodeProducingEditPlan)._getChanges(false);
   }
 
+  /// Creates a new edit plan that adds an informative message to the given
+  /// [token].
+  ///
+  /// The created edit plan should be inserted into the list of inner plans for
+  /// a pass-through plan targeted at the [containingNode].  See [passThrough].
+  EditPlan informativeMessageForToken(AstNode containingNode, Token token,
+      {AtomicEditInfo info}) {
+    return _TokenChangePlan(containingNode, {
+      token.offset: [
+        AtomicEdit.delete(token.lexeme.length, info: info, isInformative: true)
+      ]
+    });
+  }
+
   /// Creates a new edit plan that inserts the text indicated by [edits] at the
   /// given [offset].
   ///
@@ -316,7 +427,10 @@ class EditPlanner {
   /// made.
   NodeProducingEditPlan makeNullable(NodeProducingEditPlan innerPlan,
       {AtomicEditInfo info}) {
-    assert(innerPlan.sourceNode is TypeAnnotation);
+    var sourceNode = innerPlan.sourceNode;
+    assert(sourceNode is TypeAnnotation ||
+        sourceNode is FunctionTypedFormalParameter ||
+        (sourceNode is FieldFormalParameter && sourceNode.parameters != null));
     return surround(innerPlan, suffix: [AtomicEdit.insert('?', info: info)]);
   }
 
@@ -433,7 +547,15 @@ class EditPlanner {
   ///
   /// The created edit plan should be inserted into the list of inner plans for
   /// a pass-through plan targeted at the source node.  See [passThrough].
-  EditPlan removeNullAwareness(Expression sourceNode, {AtomicEditInfo info}) {
+  ///
+  /// Optional argument [info] contains information about why the change was
+  /// made.
+  ///
+  /// Optional argument [isInformative] indicates whether the comment is simply
+  /// informative, or should actually be applied to the final output (the
+  /// default).
+  EditPlan removeNullAwareness(Expression sourceNode,
+      {AtomicEditInfo info, bool isInformative = false}) {
     Token operator;
     if (sourceNode is MethodInvocation) {
       operator = sourceNode.operator;
@@ -446,7 +568,9 @@ class EditPlanner {
     }
     assert(operator.type == TokenType.QUESTION_PERIOD);
     return _TokenChangePlan(sourceNode, {
-      operator.offset: [AtomicEdit.delete(1, info: info)]
+      operator.offset: [
+        AtomicEdit.delete(1, info: info, isInformative: isInformative)
+      ]
     });
   }
 
@@ -480,16 +604,10 @@ class EditPlanner {
   /// text.
   ///
   /// [parentNode] should be the innermost AST node containing [token].
-  EditPlan replaceToken(
-      AstNode parentNode, Token token, List<AtomicEdit> replacement,
+  EditPlan replaceToken(AstNode parentNode, Token token, String replacement,
       {AtomicEditInfo info}) {
-    assert(!replacement.any((edit) => !edit.isInsertion),
-        'All edits should be insertions');
     return _TokenChangePlan(parentNode, {
-      token.offset: [
-        AtomicEdit.delete(token.length, info: info),
-        ...replacement
-      ]
+      token.offset: [AtomicEdit.replace(token.length, replacement, info: info)]
     });
   }
 
@@ -534,10 +652,10 @@ class EditPlanner {
     var innerChanges =
         innerPlan._getChanges(parensNeeded) ?? <int, List<AtomicEdit>>{};
     if (prefix != null) {
-      (innerChanges[innerPlan.sourceNode.offset] ??= []).insertAll(0, prefix);
+      (innerChanges[innerPlan.offset] ??= []).insertAll(0, prefix);
     }
     if (suffix != null) {
-      (innerChanges[innerPlan.sourceNode.end] ??= []).addAll(suffix);
+      (innerChanges[innerPlan.end] ??= []).addAll(suffix);
     }
     return _SimpleEditPlan(
         innerPlan.sourceNode,
@@ -588,6 +706,18 @@ class EditPlanner {
     return lineInfo.lineStarts[lineNumber - 1];
   }
 
+  int _endForChanges(Map<int, List<AtomicEdit>> changes) {
+    int result;
+    for (var entry in changes.entries) {
+      var end = entry.key;
+      for (var edit in entry.value) {
+        end += edit.length;
+      }
+      if (result == null || end > result) result = end;
+    }
+    return result;
+  }
+
   /// Finds the deepest entry in [builderStack] that matches an entry in
   /// [ancestryStack], taking advantage of the fact that [builderStack] walks
   /// stepwise down the AST, and [ancestryStack] walks stepwise up the AST, with
@@ -633,21 +763,34 @@ class EditPlanner {
     return lineInfo.lineStarts[lineNumber];
   }
 
-  /// Determines whether the given source [offset] comes just after an opener
-  /// ('(', '[', or '{').
-  bool _isJustAfterOpener(int offset) =>
-      offset > 0 && const ['(', '[', '{'].contains(sourceText[offset - 1]);
+  /// Determines whether the given source [offset] comes just after one of the
+  /// characters in [characters].
+  bool _isJustAfter(int offset, List<String> characters) =>
+      offset > 0 && characters.contains(sourceText[offset - 1]);
 
-  /// Determines whether the given source [end] comes just before a closer
-  /// (')', ']', or '}').
-  bool _isJustBeforeCloser(int end) =>
-      end < sourceText.length &&
-      const [')', ']', '}'].contains(sourceText[end]);
+  /// Determines whether the given source [end] comes just before one of the
+  /// characters in [characters].
+  bool _isJustBefore(int end, List<String> characters) =>
+      end < sourceText.length && characters.contains(sourceText[end]);
+
+  /// Determines whether the given source [end] comes just before whitespace.
+  /// For the purpose of this check, the end of the file is considered
+  /// whitespace.
+  bool _isJustBeforeWhitespace(int end) =>
+      end >= sourceText.length || _isWhitespaceRange(end, end + 1);
 
   /// Determines if the characters between [offset] and [end] in the source text
   /// are all whitespace characters.
   bool _isWhitespaceRange(int offset, int end) {
     return sourceText.substring(offset, end).trimRight().isEmpty;
+  }
+
+  int _offsetForChanges(Map<int, List<AtomicEdit>> changes) {
+    int result;
+    for (var key in changes.keys) {
+      if (result == null || key < result) result = key;
+    }
+    return result;
   }
 
   /// If the given [node] maintains a variable-length sequence of child nodes,
@@ -695,10 +838,16 @@ abstract class NodeProducingEditPlan extends EditPlan {
 
   NodeProducingEditPlan._(this.sourceNode) : super._();
 
+  /// Offset just past the end of the source text affected by this plan.
+  int get end => sourceNode.end;
+
   /// If the result of executing this [EditPlan] will be an expression,
   /// indicates whether the expression will end in an unparenthesized cascade.
   @visibleForTesting
   bool get endsInCascade;
+
+  /// Offset of the start of the source text affected by this plan.
+  int get offset => sourceNode.offset;
 
   @override
   AstNode get parentNode => sourceNode.parent;
@@ -728,8 +877,8 @@ abstract class NodeProducingEditPlan extends EditPlan {
   Map<int, List<AtomicEdit>> _createAddParenChanges(
       Map<int, List<AtomicEdit>> changes) {
     changes ??= {};
-    (changes[sourceNode.offset] ??= []).insert(0, const AtomicEdit.insert('('));
-    (changes[sourceNode.end] ??= []).add(const AtomicEdit.insert(')'));
+    (changes[offset] ??= []).insert(0, const AtomicEdit.insert('('));
+    (changes[end] ??= []).add(const AtomicEdit.insert(')'));
     return changes;
   }
 
@@ -764,6 +913,28 @@ abstract class PassThroughBuilder {
   NodeProducingEditPlan finish(EditPlanner planner);
 }
 
+/// [EditPlan] that wraps an inner plan with optional prefix and suffix changes.
+class _CommentAffixPlan extends _NestedEditPlan {
+  Map<int, List<AtomicEdit>> _prefixChanges;
+
+  Map<int, List<AtomicEdit>> _postfixChanges;
+
+  @override
+  int offset;
+
+  @override
+  int end;
+
+  _CommentAffixPlan(NodeProducingEditPlan innerPlan)
+      : offset = innerPlan.offset,
+        end = innerPlan.end,
+        super(innerPlan.sourceNode, innerPlan);
+
+  @override
+  Map<int, List<AtomicEdit>> _getChanges(bool parens) =>
+      _prefixChanges + innerPlan._getChanges(parens) + _postfixChanges;
+}
+
 /// Visitor that determines whether a given [AstNode] ends in a cascade.
 class _EndsInCascadeVisitor extends UnifyingAstVisitor<void> {
   bool endsInCascade = false;
@@ -796,33 +967,35 @@ class _ExtractEditPlan extends _NestedEditPlan {
 
   final AtomicEditInfo _infoAfter;
 
+  /// Whether text-to-be-removed should be removed (as opposed to commented out)
+  /// even when [EditPlan.removeViaComments] is true.
+  final bool _alwaysDelete;
+
   _ExtractEditPlan(AstNode sourceNode, NodeProducingEditPlan innerPlan,
-      this._planner, this._infoBefore, this._infoAfter)
+      this._planner, this._infoBefore, this._infoAfter, this._alwaysDelete)
       : super(sourceNode, innerPlan);
 
   @override
   Map<int, List<AtomicEdit>> _getChanges(bool parens) {
-    // Get the inner changes.  If they already have provsional parens and we
+    // Get the inner changes.  If they already have provisional parens and we
     // need them, use them.
     var useInnerParens = parens && innerPlan is _ProvisionalParenEditPlan;
     var changes = innerPlan._getChanges(useInnerParens);
-    // Extract the inner expression.
     // TODO(paulberry): don't remove comments
+    _RemovalStyle leadingChangeRemovalStyle;
+    _RemovalStyle trailingChangeRemovalStyle;
+    if (_alwaysDelete || !_planner.removeViaComments) {
+      leadingChangeRemovalStyle = _RemovalStyle.delete;
+      trailingChangeRemovalStyle = _RemovalStyle.delete;
+    } else {
+      leadingChangeRemovalStyle = _RemovalStyle.commentSpace;
+      trailingChangeRemovalStyle = _RemovalStyle.spaceComment;
+    }
+    // Extract the inner expression.
     changes = _removeCode(
-            sourceNode.offset,
-            innerPlan.sourceNode.offset,
-            _planner.removeViaComments
-                ? _RemovalStyle.commentSpace
-                : _RemovalStyle.delete,
-            _infoBefore) +
+            offset, innerPlan.offset, leadingChangeRemovalStyle, _infoBefore) +
         changes +
-        _removeCode(
-            innerPlan.sourceNode.end,
-            sourceNode.end,
-            _planner.removeViaComments
-                ? _RemovalStyle.spaceComment
-                : _RemovalStyle.delete,
-            _infoAfter);
+        _removeCode(innerPlan.end, end, trailingChangeRemovalStyle, _infoAfter);
     // Apply parens if needed.
     if (parens && !useInnerParens) {
       changes = _createAddParenChanges(changes);
@@ -1183,6 +1356,9 @@ class _PassThroughBuilderImpl implements PassThroughBuilder {
       }
     }
     changes += innerPlan._getChanges(parensNeeded);
+    // Note: we use innerPlan.sourceNode.end here instead of innerPlan.end,
+    // because what we care about is the input grammar, so we don't want to be
+    // fooled by any whitespace or comments included in the innerPlan.
     if (endsInCascade == null && innerPlan.sourceNode.end == node.end) {
       endsInCascade = !parensNeeded && innerPlan.endsInCascade;
     }
@@ -1235,10 +1411,12 @@ class _PassThroughBuilderImpl implements PassThroughBuilder {
         // that we're left with just `()`, `{}`, or `[]`.
         var candidateFirstRemovalOffset =
             planner._backAcrossWhitespace(firstRemovalOffset, node.offset);
-        if (planner._isJustAfterOpener(candidateFirstRemovalOffset)) {
+        if (planner
+            ._isJustAfter(candidateFirstRemovalOffset, const ['(', '[', '{'])) {
           var candidateLastRemovalEnd =
               planner._forwardAcrossWhitespace(lastRemovalEnd, node.end);
-          if (planner._isJustBeforeCloser(candidateLastRemovalEnd)) {
+          if (planner
+              ._isJustBefore(candidateLastRemovalEnd, const [')', ']', '}'])) {
             firstRemovalOffset = candidateFirstRemovalOffset;
             lastRemovalEnd = candidateLastRemovalEnd;
           }
@@ -1395,8 +1573,8 @@ class _ProvisionalParenEditPlan extends _NestedEditPlan {
     var changes = innerPlan._getChanges(false);
     if (!parens) {
       changes ??= {};
-      (changes[sourceNode.offset] ??= []).insert(0, const AtomicEdit.delete(1));
-      (changes[sourceNode.end - 1] ??= []).add(const AtomicEdit.delete(1));
+      (changes[offset] ??= []).insert(0, const AtomicEdit.delete(1));
+      (changes[end - 1] ??= []).add(const AtomicEdit.delete(1));
     }
     return changes;
   }
@@ -1498,12 +1676,17 @@ class _TokenChangePlan extends EditPlan {
 extension AtomicEditList on List<AtomicEdit> {
   /// Converts a list of [AtomicEdits] to a single [SourceEdit] by concatenating
   /// them.
-  SourceEdit toSourceEdit(int offset) {
+  ///
+  /// If [includeInformative] is `true`, informative edits are included;
+  /// otherwise they are ignored.
+  SourceEdit toSourceEdit(int offset, {bool includeInformative = false}) {
     var totalLength = 0;
     var replacement = '';
     for (var edit in this) {
-      totalLength += edit.length;
-      replacement += edit.replacement;
+      if (!edit.isInformative || includeInformative) {
+        totalLength += edit.length;
+        replacement += edit.replacement;
+      }
     }
     return SourceEdit(offset, totalLength, replacement);
   }
@@ -1514,16 +1697,24 @@ extension AtomicEditList on List<AtomicEdit> {
 /// source file changes.
 extension AtomicEditMap on Map<int, List<AtomicEdit>> {
   /// Applies the changes to source file text.
-  String applyTo(String code) {
-    return SourceEdit.applySequence(code, toSourceEdits());
+  ///
+  /// If [includeInformative] is `true`, informative edits are included;
+  /// otherwise they are ignored.
+  String applyTo(String code, {bool includeInformative = false}) {
+    return SourceEdit.applySequence(
+        code, toSourceEdits(includeInformative: includeInformative));
   }
 
   /// Converts the changes to a list of [SourceEdit]s.  The list is reverse
   /// sorted by offset so that they can be applied in order.
-  List<SourceEdit> toSourceEdits() {
+  ///
+  /// If [includeInformative] is `true`, informative edits are included;
+  /// otherwise they are ignored.
+  List<SourceEdit> toSourceEdits({bool includeInformative = false}) {
     return [
       for (var offset in keys.toList()..sort((a, b) => b.compareTo(a)))
-        this[offset].toSourceEdit(offset)
+        this[offset]
+            .toSourceEdit(offset, includeInformative: includeInformative)
     ];
   }
 

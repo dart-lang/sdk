@@ -44,6 +44,13 @@ intptr_t ZoneTextBuffer::Printf(const char* format, ...) {
   return len;
 }
 
+void ZoneTextBuffer::AddChar(char ch) {
+  EnsureCapacity(sizeof(ch));
+  buffer_[length_] = ch;
+  length_++;
+  buffer_[length_] = '\0';
+}
+
 void ZoneTextBuffer::AddString(const char* s) {
   Printf("%s", s);
 }

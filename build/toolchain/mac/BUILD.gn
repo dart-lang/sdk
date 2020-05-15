@@ -222,6 +222,9 @@ mac_toolchain("clang_x64") {
   ld = cxx
   strip = "strip"
   is_clang = true
+  if (mac_enable_relative_sdk_path) {
+    mac_sdk_path = rebase_path(mac_sdk_path, root_build_dir)
+  }
   sysroot_flags = "-isysroot $mac_sdk_path -mmacosx-version-min=$mac_sdk_min"
 }
 
@@ -236,5 +239,8 @@ mac_toolchain("clang_x86") {
   ld = cxx
   strip = "strip"
   is_clang = true
+  if (mac_enable_relative_sdk_path) {
+    mac_sdk_path = rebase_path(mac_sdk_path, root_build_dir)
+  }
   sysroot_flags = "-isysroot $mac_sdk_path -mmacosx-version-min=$mac_sdk_min"
 }

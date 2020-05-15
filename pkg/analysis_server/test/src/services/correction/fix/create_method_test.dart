@@ -15,7 +15,6 @@ void main() {
     defineReflectiveTests(AddMissingHashOrEqualsTest);
     defineReflectiveTests(CreateMethodMixinTest);
     defineReflectiveTests(CreateMethodTest);
-    defineReflectiveTests(CreateMethodWithExtensionMethodsTest);
   });
 }
 
@@ -322,7 +321,7 @@ class A {
 }
 ''');
     // linked positions
-    int index = 0;
+    var index = 0;
     assertLinkedGroup(
         change.linkedEditGroups[index++], ['void myUndefinedMethod(']);
     assertLinkedGroup(change.linkedEditGroups[index++],
@@ -365,7 +364,7 @@ class A {
 }
 ''');
     // linked positions
-    int index = 0;
+    var index = 0;
     assertLinkedGroup(
         change.linkedEditGroups[index++], ['void myUndefinedMethod(']);
     assertLinkedGroup(change.linkedEditGroups[index++],
@@ -712,8 +711,57 @@ main() {
     await assertNoFix();
   }
 
+  Future<void> test_internal_instance() async {
+    await resolveTestUnit('''
+extension E on String {
+  int m() => n();
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  int m() => n();
+
+  n() {}
+}
+''');
+  }
+
+  Future<void> test_internal_static() async {
+    await resolveTestUnit('''
+extension E on String {
+  static int m() => n();
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  static int m() => n();
+
+  static n() {}
+}
+''');
+  }
+
+  Future<void> test_override() async {
+    await resolveTestUnit('''
+extension E on String {}
+
+void f() {
+  E('a').m();
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  void m() {}
+}
+
+void f() {
+  E('a').m();
+}
+''');
+  }
+
   Future<void> test_parameterType_differentPrefixInTargetUnit() async {
-    String code2 = r'''
+    var code2 = r'''
 import 'test3.dart' as bbb;
 export 'test3.dart';
 
@@ -770,77 +818,6 @@ class E {}
 ''', target: '/home/test/lib/test2.dart');
   }
 
-  Future<void> test_targetIsEnum() async {
-    await resolveTestUnit('''
-enum MyEnum {A, B}
-main() {
-  MyEnum.foo();
-}
-''');
-    await assertNoFix();
-  }
-}
-
-@reflectiveTest
-class CreateMethodWithExtensionMethodsTest extends FixProcessorTest {
-  @override
-  FixKind get kind => DartFixKind.CREATE_METHOD;
-
-  @override
-  void setUp() {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
-    super.setUp();
-  }
-
-  Future<void> test_internal_instance() async {
-    await resolveTestUnit('''
-extension E on String {
-  int m() => n();
-}
-''');
-    await assertHasFix('''
-extension E on String {
-  int m() => n();
-
-  n() {}
-}
-''');
-  }
-
-  Future<void> test_internal_static() async {
-    await resolveTestUnit('''
-extension E on String {
-  static int m() => n();
-}
-''');
-    await assertHasFix('''
-extension E on String {
-  static int m() => n();
-
-  static n() {}
-}
-''');
-  }
-
-  Future<void> test_override() async {
-    await resolveTestUnit('''
-extension E on String {}
-
-void f() {
-  E('a').m();
-}
-''');
-    await assertHasFix('''
-extension E on String {
-  void m() {}
-}
-
-void f() {
-  E('a').m();
-}
-''');
-  }
-
   Future<void> test_static() async {
     await resolveTestUnit('''
 extension E on String {}
@@ -858,5 +835,15 @@ void f() {
   E.m();
 }
 ''');
+  }
+
+  Future<void> test_targetIsEnum() async {
+    await resolveTestUnit('''
+enum MyEnum {A, B}
+main() {
+  MyEnum.foo();
+}
+''');
+    await assertNoFix();
   }
 }

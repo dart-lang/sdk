@@ -18,7 +18,7 @@ ObjectIdRing::~ObjectIdRing() {
   table_ = NULL;
 }
 
-int32_t ObjectIdRing::GetIdForObject(RawObject* object, IdPolicy policy) {
+int32_t ObjectIdRing::GetIdForObject(ObjectPtr object, IdPolicy policy) {
   // We do not allow inserting null because null is how we detect as entry was
   // reclaimed by the GC.
   ASSERT(object != Object::null());
@@ -34,7 +34,7 @@ int32_t ObjectIdRing::GetIdForObject(RawObject* object, IdPolicy policy) {
   return AllocateNewId(object);
 }
 
-int32_t ObjectIdRing::FindExistingIdForObject(RawObject* raw_obj) {
+int32_t ObjectIdRing::FindExistingIdForObject(ObjectPtr raw_obj) {
   for (int32_t i = 0; i < capacity_; i++) {
     if (table_[i] == raw_obj) {
       return IdOfIndex(i);
@@ -43,7 +43,7 @@ int32_t ObjectIdRing::FindExistingIdForObject(RawObject* raw_obj) {
   return kInvalidId;
 }
 
-RawObject* ObjectIdRing::GetObjectForId(int32_t id, LookupResult* kind) {
+ObjectPtr ObjectIdRing::GetObjectForId(int32_t id, LookupResult* kind) {
   int32_t index = IndexOfId(id);
   if (index == kInvalidId) {
     *kind = kExpired;
@@ -86,22 +86,22 @@ void ObjectIdRing::PrintJSON(JSONStream* js) {
   }
 }
 
-ObjectIdRing::ObjectIdRing(int32_t capacity) {
-  ASSERT(capacity > 0);
+ObjectIdRing::ObjectIdRing() {
   serial_num_ = 0;
   wrapped_ = false;
   table_ = NULL;
-  SetCapacityAndMaxSerial(capacity, kMaxId);
+  SetCapacityAndMaxSerial(kDefaultCapacity, kMaxId);
 }
 
 void ObjectIdRing::SetCapacityAndMaxSerial(int32_t capacity,
                                            int32_t max_serial) {
+  ASSERT(capacity > 0);
   ASSERT(max_serial <= kMaxId);
   capacity_ = capacity;
   if (table_ != NULL) {
     free(table_);
   }
-  table_ = reinterpret_cast<RawObject**>(calloc(capacity_, kWordSize));
+  table_ = reinterpret_cast<ObjectPtr*>(calloc(capacity_, kWordSize));
   for (int32_t i = 0; i < capacity_; i++) {
     table_[i] = Object::null();
   }
@@ -120,7 +120,7 @@ int32_t ObjectIdRing::NextSerial() {
   return r;
 }
 
-int32_t ObjectIdRing::AllocateNewId(RawObject* raw_obj) {
+int32_t ObjectIdRing::AllocateNewId(ObjectPtr raw_obj) {
   ASSERT(raw_obj->IsHeapObject());
   int32_t id = NextSerial();
   ASSERT(id != kInvalidId);

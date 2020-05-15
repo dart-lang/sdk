@@ -225,6 +225,110 @@ class B implements A {
   }''', displayText: 'foo() { … }', selectionOffset: 51, selectionLength: 0);
   }
 
+  Future<void> test_inComment() async {
+    addTestSource('''
+class A {
+  void foo() {}
+}
+
+class B implements A {
+  // comment^
+  void m() {}
+}
+''');
+    await computeSuggestions();
+    _assertNoOverrideContaining('foo');
+  }
+
+  Future<void> test_inComment_dartdoc() async {
+    addTestSource('''
+class A {
+  void foo() {}
+}
+
+class B implements A {
+  /// dartdoc^
+  void m() {}
+}
+''');
+    await computeSuggestions();
+    _assertNoOverrideContaining('foo');
+  }
+
+  Future<void> test_inComment_reference() async {
+    addTestSource('''
+class A {
+  void foo() {}
+}
+
+class B implements A {
+  /// Asdf [St^]
+  void m() {}
+}
+''');
+    await computeSuggestions();
+    _assertNoOverrideContaining('foo');
+  }
+
+  Future<void> test_inConstructor() async {
+    addTestSource('''
+class A {
+  void foo() {}
+}
+
+class B implements A {
+  var one;
+  B(this.^);
+}
+''');
+    await computeSuggestions();
+    _assertNoOverrideContaining('foo');
+  }
+
+  Future<void> test_inConstructor2() async {
+    addTestSource('''
+class A {
+  void foo() {}
+}
+
+class B implements A {
+  var one;
+  var two;
+  B(this.one, {this.^});
+}
+''');
+    await computeSuggestions();
+    _assertNoOverrideContaining('foo');
+  }
+
+  Future<void> test_inFieldDeclaration_name() async {
+    addTestSource('''
+class A {
+  void foo() {}
+}
+
+class B implements A {
+  final String ^type;
+}
+''');
+    await computeSuggestions();
+    _assertNoOverrideContaining('foo');
+  }
+
+  Future<void> test_inFieldDeclaration_value() async {
+    addTestSource('''
+class A {
+  void foo() {}
+}
+
+class B implements A {
+  final String type = '^';
+}
+''');
+    await computeSuggestions();
+    _assertNoOverrideContaining('foo');
+  }
+
   Future<void> test_inMixin_of_interface() async {
     addTestSource('''
 class A {
@@ -413,7 +517,7 @@ method() {
 
   CompletionSuggestion _assertOverride(String completion,
       {String displayText, int selectionOffset, int selectionLength}) {
-    CompletionSuggestion cs = getSuggest(
+    var cs = getSuggest(
         completion: completion,
         csKind: CompletionSuggestionKind.OVERRIDE,
         elemKind: null);

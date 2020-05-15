@@ -9,6 +9,16 @@ class B<T extends core::Object* = dynamic> extends core::Object {
     ;
   operator +(generic-covariant-impl self::B<self::B::T*>* other) → self::B<self::B::T*>*
     return null;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class C<T extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::C<self::C::T*>*
@@ -17,12 +27,22 @@ class C<T extends core::Object* = dynamic> extends core::Object {
   operator [](core::int* i) → self::B<(self::C::T*) →* void>*
     return null;
   operator []=(core::int* i, self::B<(self::C::T*) →* void>* x) → void {}
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method test(self::C<core::num*>* c) → void {
   c.{self::C::[]=}(0, new self::B::•<(core::num*) →* void>());
   let final self::C<core::num*>* #t1 = c in let final core::int* #t2 = 0 in #t1.{self::C::[]=}(#t2, (#t1.{self::C::[]}(#t2) as{TypeError,CovarianceCheck} self::B<(core::num*) →* void>*).{self::B::+}(new self::B::•<(core::num*) →* void>()));
   self::B<(core::num*) →* void>* x = let final self::C<core::num*>* #t3 = c in let final core::int* #t4 = 0 in let final self::B<(core::num*) →* void>* #t5 = (#t3.{self::C::[]}(#t4) as{TypeError,CovarianceCheck} self::B<(core::num*) →* void>*).{self::B::+}(new self::B::•<(core::num*) →* void>()) in let final void #t6 = #t3.{self::C::[]=}(#t4, #t5) in #t5;
-  let final self::C<core::num*>* #t7 = c in let final core::int* #t8 = 0 in (#t7.{self::C::[]}(#t8) as{TypeError,CovarianceCheck} self::B<(core::num*) →* void>*).{core::Object::==}(null) ?{self::B<(core::num*) →* void>*} #t7.{self::C::[]=}(#t8, new self::B::•<(core::num*) →* void>()) : null;
-  self::B<(core::num*) →* void>* y = let final self::C<core::num*>* #t9 = c in let final core::int* #t10 = 0 in let final self::B<(core::num*) →* void>* #t11 = #t9.{self::C::[]}(#t10) as{TypeError,CovarianceCheck} self::B<(core::num*) →* void>* in #t11.{core::Object::==}(null) ?{self::B<(core::num*) →* void>*} let final self::B<(core::num*) →* void>* #t12 = new self::B::•<(core::num*) →* void>() in let final void #t13 = #t9.{self::C::[]=}(#t10, #t12) in #t12 : #t11;
+  let final self::C<core::num*>* #t7 = c in let final core::int* #t8 = 0 in (#t7.{self::C::[]}(#t8) as{TypeError,CovarianceCheck} self::B<(core::num*) →* void>*).{self::B::==}(null) ?{self::B<(core::num*) →* void>*} #t7.{self::C::[]=}(#t8, new self::B::•<(core::num*) →* void>()) : null;
+  self::B<(core::num*) →* void>* y = let final self::C<core::num*>* #t9 = c in let final core::int* #t10 = 0 in let final self::B<(core::num*) →* void>* #t11 = #t9.{self::C::[]}(#t10) as{TypeError,CovarianceCheck} self::B<(core::num*) →* void>* in #t11.{self::B::==}(null) ?{self::B<(core::num*) →* void>*} let final self::B<(core::num*) →* void>* #t12 = new self::B::•<(core::num*) →* void>() in let final void #t13 = #t9.{self::C::[]=}(#t10, #t12) in #t12 : #t11;
 }
 static method main() → dynamic {}

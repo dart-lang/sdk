@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'dart:io';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:async_helper/async_helper.dart';
@@ -36,7 +38,7 @@ class OptimizationDataValidator
   const OptimizationDataValidator({this.strict: false});
 
   @override
-  String getText(OptimizationTestLog actualData) {
+  String getText(OptimizationTestLog actualData, [String indentation]) {
     Features features = new Features();
     for (OptimizationLogEntry entry in actualData.entries) {
       features.addElement(

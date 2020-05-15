@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 main() {
   var c = new Class();
   c.method1a(null);
@@ -19,7 +21,8 @@ main() {
 }
 
 // Checks are needed both with and without --omit-implicit-checks.
-/*class: Class1a:explicit=[Class1a]*/
+/*spec:nnbd-off|prod:nnbd-off.class: Class1a:explicit=[Class1a]*/
+/*spec:nnbd-sdk|prod:nnbd-sdk.class: Class1a:explicit=[Class1a*]*/
 class Class1a {}
 
 // Checks are needed neither with nor without --omit-implicit-checks.
@@ -27,7 +30,8 @@ class Class1a {}
 class Class1b {}
 
 // Checks are needed both with and without --omit-implicit-checks.
-/*class: Class2a:explicit=[Class2a]*/
+/*spec:nnbd-off|prod:nnbd-off.class: Class2a:explicit=[Class2a]*/
+/*spec:nnbd-sdk|prod:nnbd-sdk.class: Class2a:explicit=[Class2a*]*/
 class Class2a {}
 
 // Checks are needed neither with nor without --omit-implicit-checks.
@@ -35,7 +39,8 @@ class Class2a {}
 class Class2b {}
 
 // Checks are needed both with and without --omit-implicit-checks.
-/*class: Class3a:explicit=[Class3a]*/
+/*spec:nnbd-off|prod:nnbd-off.class: Class3a:explicit=[Class3a]*/
+/*spec:nnbd-sdk|prod:nnbd-sdk.class: Class3a:explicit=[Class3a*]*/
 class Class3a {}
 
 // Checks are needed neither with nor without --omit-implicit-checks.
@@ -43,7 +48,8 @@ class Class3a {}
 class Class3b {}
 
 // Checks are needed both with and without --omit-implicit-checks.
-/*class: Class4a:explicit=[Class4a<int>],needsArgs*/
+/*spec:nnbd-off|prod:nnbd-off.class: Class4a:explicit=[Class4a<int>],needsArgs*/
+/*spec:nnbd-sdk|prod:nnbd-sdk.class: Class4a:explicit=[Class4a<int*>*],needsArgs*/
 class Class4a<T> {}
 
 // Checks are needed neither with nor without --omit-implicit-checks.
@@ -51,7 +57,8 @@ class Class4a<T> {}
 class Class4b<T> {}
 
 // Checks are needed both with and without --omit-implicit-checks.
-/*class: Class5a:explicit=[Class5a<int>],needsArgs*/
+/*spec:nnbd-off|prod:nnbd-off.class: Class5a:explicit=[Class5a<int>],needsArgs*/
+/*spec:nnbd-sdk|prod:nnbd-sdk.class: Class5a:explicit=[Class5a<int*>*],needsArgs*/
 class Class5a<T> {}
 
 // Checks are needed neither with nor without --omit-implicit-checks.
@@ -59,7 +66,8 @@ class Class5a<T> {}
 class Class5b<T> {}
 
 // Checks are needed both with and without --omit-implicit-checks.
-/*class: Class6a:explicit=[Class6a<int>],needsArgs*/
+/*spec:nnbd-off|prod:nnbd-off.class: Class6a:explicit=[Class6a<int>],needsArgs*/
+/*spec:nnbd-sdk|prod:nnbd-sdk.class: Class6a:explicit=[Class6a<int*>*],needsArgs*/
 class Class6a<T> {}
 
 // Checks are needed neither with nor without --omit-implicit-checks.

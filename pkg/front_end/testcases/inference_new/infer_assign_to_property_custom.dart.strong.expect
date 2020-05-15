@@ -33,12 +33,32 @@ class A extends core::Object {
     return 1;
   operator -(dynamic other) → core::double*
     return 2.0;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class B extends core::Object {
   field self::A* a = null;
   synthetic constructor •() → self::B*
     : super core::Object::•()
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static field core::int* v_prefix_pp = let final self::B* #t1 = new self::B::•() in #t1.{self::B::a} = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:17:39: Error: A value of type 'int' can't be assigned to a variable of type 'A'.
  - 'A' is from 'pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart'.

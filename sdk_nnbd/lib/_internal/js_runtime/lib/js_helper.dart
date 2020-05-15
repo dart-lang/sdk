@@ -414,14 +414,13 @@ class Primitives {
     int digitsIndex = 1;
     int hexIndex = 2;
     int decimalIndex = 3;
-    int nonDecimalHexIndex = 4;
     if (match == null) {
       // TODO(sra): It might be that the match failed due to unrecognized U+0085
       // spaces.  We could replace them with U+0020 spaces and try matching
       // again.
       return null;
     }
-    String decimalMatch = match[decimalIndex];
+    Object? decimalMatch = match[decimalIndex];
     if (radix == null) {
       if (decimalMatch != null) {
         // Cannot fail because we know that the digits are all decimal.
@@ -661,7 +660,6 @@ class Primitives {
     if (timerFrequency != 0) return;
     // Start with low-resolution. We overwrite the fields if we find better.
     timerFrequency = 1000;
-    timerTicks = dateNow;
     if (JS('bool', 'typeof window == "undefined"')) return;
     var window = JS('var', 'window');
     if (window == null) return;
@@ -673,7 +671,7 @@ class Primitives {
   }
 
   static int timerFrequency = 0;
-  static late int Function() timerTicks;
+  static int Function() timerTicks = dateNow; // Low-resolution version.
 
   static String? currentUri() {
     requiresPreamble();
@@ -1191,7 +1189,11 @@ class Primitives {
       List keys = JS('JSArray', r'Object.keys(#)', defaultValues);
       if (namedArguments == null) {
         for (String key in keys) {
-          arguments.add(JS('var', '#[#]', defaultValues, key));
+          var defaultValue = JS('var', '#[#]', defaultValues, key);
+          if (isRequired(defaultValue)) {
+            return functionNoSuchMethod(function, arguments, namedArguments);
+          }
+          arguments.add(defaultValue);
         }
       } else {
         int used = 0;
@@ -1200,7 +1202,11 @@ class Primitives {
             used++;
             arguments.add(namedArguments[key]);
           } else {
-            arguments.add(JS('var', r'#[#]', defaultValues, key));
+            var defaultValue = JS('var', '#[#]', defaultValues, key);
+            if (isRequired(defaultValue)) {
+              return functionNoSuchMethod(function, arguments, namedArguments);
+            }
+            arguments.add(defaultValue);
           }
         }
         if (used != namedArguments.length) {
@@ -1780,6 +1786,18 @@ class UnknownJsTypeError extends Error {
   String toString() => _message.isEmpty ? 'Error' : 'Error: $_message';
 }
 
+class NullThrownFromJavaScriptException implements Exception {
+  final dynamic _irritant;
+  NullThrownFromJavaScriptException(this._irritant);
+
+  @override
+  String toString() {
+    String description =
+        JS('bool', '# === null', _irritant) ? 'null' : 'undefined';
+    return "Throw of null ('$description' from JavaScript)";
+  }
+}
+
 /// A wrapper around an exception, much like the one created by [wrapException]
 /// but with a pre-given stack-trace.
 class ExceptionAndStackTrace {
@@ -1789,40 +1807,49 @@ class ExceptionAndStackTrace {
   ExceptionAndStackTrace(this.dartException, this.stackTrace);
 }
 
-/// Called from catch blocks in generated code to extract the Dart
-/// exception from the thrown value. The thrown value may have been
-/// created by [wrapException] or it may be a 'native' JS exception.
+/// Called from catch blocks in generated code to extract the Dart exception
+/// from the thrown value. The thrown value may have been created by
+/// [wrapException] or it may be a 'native' JavaScript exception.
 ///
 /// Some native exceptions are mapped to new Dart instances, others are
 /// returned unmodified.
-unwrapException(ex) {
-  /// If error implements Error, save [ex] in [error.$thrownJsError].
-  /// Otherwise, do nothing. Later, the stack trace can then be extracted from
-  /// [ex].
-  saveStackTrace(error) {
-    if (error is Error) {
-      var thrownStackTrace = JS('', r'#.$thrownJsError', error);
-      if (thrownStackTrace == null) {
-        JS('void', r'#.$thrownJsError = #', error, ex);
-      }
-    }
-    return error;
+Object unwrapException(Object? ex) {
+  // Dart converts `null` to `NullThrownError()`. JavaScript can still throw a
+  // nullish value.
+  if (ex == null) {
+    return NullThrownFromJavaScriptException(ex);
   }
 
-  // Note that we are checking if the object has the property. If it
-  // has, it could be set to null if the thrown value is null.
-  if (ex == null) return null;
   if (ex is ExceptionAndStackTrace) {
-    return saveStackTrace(ex.dartException);
+    return saveStackTrace(ex, ex.dartException);
   }
+
+  // e.g. a primitive value thrown by JavaScript.
   if (JS('bool', 'typeof # !== "object"', ex)) return ex;
 
   if (JS('bool', r'"dartException" in #', ex)) {
-    return saveStackTrace(JS('', r'#.dartException', ex));
-  } else if (!JS('bool', r'"message" in #', ex)) {
+    return saveStackTrace(ex, JS('', r'#.dartException', ex));
+  }
+  return _unwrapNonDartException(ex);
+}
+
+/// If error implements Dart [Error], save [ex] in [error.$thrownJsError].
+/// Otherwise, do nothing. Later, the stack trace can then be extracted from
+/// [ex].
+Object saveStackTrace(Object ex, Object error) {
+  if (error is Error) {
+    var thrownStackTrace = JS('', r'#.$thrownJsError', error);
+    if (thrownStackTrace == null) {
+      JS('void', r'#.$thrownJsError = #', error, ex);
+    }
+  }
+  return error;
+}
+
+Object _unwrapNonDartException(Object ex) {
+  if (!JS('bool', r'"message" in #', ex)) {
     return ex;
   }
-
   // Grab hold of the exception message. This field is available on
   // all supported browsers.
   var message = JS('var', r'#.message', ex);
@@ -1845,19 +1872,17 @@ unwrapException(ex) {
       switch (ieErrorCode) {
         case 438:
           return saveStackTrace(
-              new JsNoSuchMethodError('$message (Error $ieErrorCode)', null));
+              ex, JsNoSuchMethodError('$message (Error $ieErrorCode)', null));
         case 445:
         case 5007:
           return saveStackTrace(
-              new NullError('$message (Error $ieErrorCode)', null));
+              ex, NullError('$message (Error $ieErrorCode)', null));
       }
     }
   }
 
   if (JS('bool', r'# instanceof TypeError', ex)) {
     var match;
-    // Using JS to give type hints to the compiler to help tree-shaking.
-    // TODO(ahe): That should be unnecessary due to type inference.
     var nsme = TypeErrorDecoder.noSuchMethodPattern;
     var notClosure = TypeErrorDecoder.notClosurePattern;
     var nullCall = TypeErrorDecoder.nullCallPattern;
@@ -1869,14 +1894,14 @@ unwrapException(ex) {
     var undefProperty = TypeErrorDecoder.undefinedPropertyPattern;
     var undefLiteralProperty = TypeErrorDecoder.undefinedLiteralPropertyPattern;
     if ((match = nsme.matchTypeError(message)) != null) {
-      return saveStackTrace(new JsNoSuchMethodError(message, match));
+      return saveStackTrace(ex, JsNoSuchMethodError(message, match));
     } else if ((match = notClosure.matchTypeError(message)) != null) {
       // notClosure may match "({c:null}).c()" or "({c:1}).c()", so we
       // cannot tell if this an attempt to invoke call on null or a
       // non-function object.
       // But we do know the method name is "call".
       JS('', '#.method = "call"', match);
-      return saveStackTrace(new JsNoSuchMethodError(message, match));
+      return saveStackTrace(ex, JsNoSuchMethodError(message, match));
     } else if ((match = nullCall.matchTypeError(message)) != null ||
         (match = nullLiteralCall.matchTypeError(message)) != null ||
         (match = undefCall.matchTypeError(message)) != null ||
@@ -1885,19 +1910,19 @@ unwrapException(ex) {
         (match = nullLiteralCall.matchTypeError(message)) != null ||
         (match = undefProperty.matchTypeError(message)) != null ||
         (match = undefLiteralProperty.matchTypeError(message)) != null) {
-      return saveStackTrace(new NullError(message, match));
+      return saveStackTrace(ex, NullError(message, match));
     }
 
     // If we cannot determine what kind of error this is, we fall back
     // to reporting this as a generic error. It's probably better than
     // nothing.
     return saveStackTrace(
-        new UnknownJsTypeError(message is String ? message : ''));
+        ex, UnknownJsTypeError(message is String ? message : ''));
   }
 
   if (JS('bool', r'# instanceof RangeError', ex)) {
     if (message is String && contains(message, 'call stack')) {
-      return new StackOverflowError();
+      return StackOverflowError();
     }
 
     // In general, a RangeError is thrown when trying to pass a number as an
@@ -1908,7 +1933,7 @@ unwrapException(ex) {
     if (message is String) {
       message = JS('String', r'#.replace(/^RangeError:\s*/, "")', message);
     }
-    return saveStackTrace(new ArgumentError(message));
+    return saveStackTrace(ex, ArgumentError(message));
   }
 
   // Check for the Firefox specific stack overflow signal.
@@ -1917,13 +1942,13 @@ unwrapException(ex) {
       r'typeof InternalError == "function" && # instanceof InternalError',
       ex)) {
     if (message is String && message == 'too much recursion') {
-      return new StackOverflowError();
+      return StackOverflowError();
     }
   }
 
-  // Just return the exception. We should not wrap it because in case
-  // the exception comes from the DOM, it is a JavaScript
-  // object backed by a native Dart class.
+  // Just return the exception. We should not wrap it because in case the
+  // exception comes from the DOM, it is a JavaScript object that has a Dart
+  // interceptor.
   return ex;
 }
 
@@ -2696,6 +2721,7 @@ class BoundClosure extends TearOffClosure {
         return JS('String', '#', name);
       }
     }
+    throw new ArgumentError("Field name $fieldName not found.");
   }
 }
 
@@ -3542,3 +3568,21 @@ void registerGlobalObject(object) {}
 // Hook to register new browser classes.
 // This is currently a no-op in dart2js.
 void applyExtension(name, nativeObject) {}
+
+// See tests/compiler/dart2js_extra/platform_environment_variable1_test.dart
+const String testPlatformEnvironmentVariableValue = String.fromEnvironment(
+    'dart2js.test.platform.environment.variable',
+    defaultValue: 'not-specified');
+
+String testingGetPlatformEnvironmentVariable() {
+  return testPlatformEnvironmentVariableValue;
+}
+
+// These are used to indicate that a named parameter is required when lazily
+// retrieving default values via [JsGetName.DEFAULT_VALUES_PROPERTY].
+class _Required {
+  const _Required();
+}
+
+const kRequiredSentinel = const _Required();
+bool isRequired(Object? value) => identical(kRequiredSentinel, value);

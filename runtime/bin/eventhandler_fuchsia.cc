@@ -161,7 +161,12 @@ uint32_t IOHandle::MaskToEpollEvents(intptr_t mask) {
   MutexLocker ml(&mutex_);
   // Do not ask for POLLERR and POLLHUP explicitly as they are
   // triggered anyway.
-  uint32_t events = POLLRDHUP;
+  uint32_t events = 0;
+  // Do not subscribe to read closed events when kCloseEvent has already been
+  // sent to the Dart thread.
+  if (close_events_enabled_) {
+    events |= POLLRDHUP;
+  }
   if (read_events_enabled_ && ((mask & (1 << kInEvent)) != 0)) {
     events |= POLLIN;
   }
@@ -253,19 +258,39 @@ uint32_t IOHandle::WaitEnd(zx_signals_t observed) {
   return events;
 }
 
+// This function controls the simulation of edge-triggering. It is responsible
+// for removing events from the event mask when they should be supressed, and
+// for supressing future events. Events are unsupressed by their respective
+// operations by the Dart thread on the socket---that is, where the
+// *_events_enabled_ flags are set to true.
 intptr_t IOHandle::ToggleEvents(intptr_t event_mask) {
   MutexLocker ml(&mutex_);
+  // If write events are disabled, then remove the kOutEvent bit from the
+  // event mask.
   if (!write_events_enabled_) {
-    LOG_INFO("IOHandle::ToggleEvents: fd = %ld de-asserting write\n", fd_);
+    LOG_INFO(
+        "IOHandle::ToggleEvents: fd = %ld "
+        "de-asserting kOutEvent\n",
+        fd_);
     event_mask = event_mask & ~(1 << kOutEvent);
   }
+  // If the kOutEvent bit is set, then supress future write events until the
+  // Dart thread writes.
   if ((event_mask & (1 << kOutEvent)) != 0) {
-    LOG_INFO("IOHandle::ToggleEvents: fd = %ld asserting write and disabling\n",
-             fd_);
+    LOG_INFO(
+        "IOHandle::ToggleEvents: fd = %ld "
+        "asserting kOutEvent and disabling\n",
+        fd_);
     write_events_enabled_ = false;
   }
+
+  // If read events are disabled, then remove the kInEvent bit from the event
+  // mask.
   if (!read_events_enabled_) {
-    LOG_INFO("IOHandle::ToggleEvents: fd=%ld de-asserting read\n", fd_);
+    LOG_INFO(
+        "IOHandle::ToggleEvents: fd = %ld "
+        "de-asserting kInEvent\n",
+        fd_);
     event_mask = event_mask & ~(1 << kInEvent);
   }
   // We may get In events without available bytes, so we must make sure there
@@ -283,11 +308,43 @@ intptr_t IOHandle::ToggleEvents(intptr_t event_mask) {
   //
   // As a detail, negative available bytes (errors) are handled specially; see
   // IOHandle::AvailableBytes for more information.
-  if ((event_mask & (1 << kInEvent)) != 0 &&
-      FDUtils::AvailableBytes(fd_) != 0) {
-    LOG_INFO("IOHandle::ToggleEvents: fd = %ld asserting read and disabling\n",
-             fd_);
-    read_events_enabled_ = false;
+  if ((event_mask & (1 << kInEvent)) != 0) {
+    if (FDUtils::AvailableBytes(fd_) != 0) {
+      LOG_INFO(
+          "IOHandle::ToggleEvents: fd = %ld "
+          "asserting kInEvent and disabling with bytes available\n",
+          fd_);
+      read_events_enabled_ = false;
+    }
+    // Also supress future read events if we get a kCloseEvent. This is to
+    // account for POLLIN being set by Fuchsia when the socket is read-closed.
+    if ((event_mask & (1 << kCloseEvent)) != 0) {
+      LOG_INFO(
+          "IOHandle::ToggleEvents: fd = %ld "
+          "asserting kInEvent and disabling due to a close event\n",
+          fd_);
+      read_events_enabled_ = false;
+    }
+  }
+
+  // If the close events are disabled, then remove the kCloseEvent bit from the
+  // event mask.
+  if (!close_events_enabled_) {
+    LOG_INFO(
+        "IOHandle::ToggleEvents: fd = %ld "
+        "de-asserting kCloseEvent\n",
+        fd_);
+    event_mask = event_mask & ~(1 << kCloseEvent);
+  }
+  // If the kCloseEvent bit is set, then supress future close events, they will
+  // be ignored by the Dart thread. See _NativeSocket.multiplex in
+  // socket_patch.dart.
+  if ((event_mask & (1 << kCloseEvent)) != 0) {
+    LOG_INFO(
+        "IOHandle::ToggleEvents: fd = %ld "
+        "asserting kCloseEvent and disabling\n",
+        fd_);
+    close_events_enabled_ = false;
   }
   return event_mask;
 }

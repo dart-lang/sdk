@@ -6,31 +6,67 @@ library test;
 // Try adding an explicit type.
 //   f(x, {y}) {}
 //   ^
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:10:5: Context: This is one of the inherited members.
+//   A f(A x, {A y}) {}
+//     ^
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:22:5: Context: This is one of the inherited members.
+//   I f(I x, {I y}) {}
+//     ^
 //
 // pkg/front_end/testcases/inference/inconsistent_overrides.dart:16:5: Error: Can't infer a type for 'x' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   f(x, {y}) {}
+//     ^
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:10:5: Context: This is one of the inherited members.
+//   A f(A x, {A y}) {}
+//     ^
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:22:5: Context: This is one of the inherited members.
+//   I f(I x, {I y}) {}
 //     ^
 //
 // pkg/front_end/testcases/inference/inconsistent_overrides.dart:16:9: Error: Can't infer a type for 'y' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   f(x, {y}) {}
 //         ^
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:10:5: Context: This is one of the inherited members.
+//   A f(A x, {A y}) {}
+//     ^
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:22:5: Context: This is one of the inherited members.
+//   I f(I x, {I y}) {}
+//     ^
 //
 // pkg/front_end/testcases/inference/inconsistent_overrides.dart:17:5: Error: Can't infer a type for 'x' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   g(x, {y}) {}
+//     ^
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:11:5: Context: This is one of the inherited members.
+//   A g(A x, {A y}) {}
+//     ^
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:23:5: Context: This is one of the inherited members.
+//   A g(I x, {I y}) {}
 //     ^
 //
 // pkg/front_end/testcases/inference/inconsistent_overrides.dart:17:9: Error: Can't infer a type for 'y' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   g(x, {y}) {}
 //         ^
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:11:5: Context: This is one of the inherited members.
+//   A g(A x, {A y}) {}
+//     ^
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:23:5: Context: This is one of the inherited members.
+//   A g(I x, {I y}) {}
+//     ^
 //
 // pkg/front_end/testcases/inference/inconsistent_overrides.dart:18:9: Error: Can't infer a type for 'y' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   h(x, {y}) {}
 //         ^
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:12:5: Context: This is one of the inherited members.
+//   A h(A x, {A y}) {}
+//     ^
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:24:5: Context: This is one of the inherited members.
+//   A h(A x, {I y}) {}
+//     ^
 //
 import self as self;
 import "dart:core" as core;
@@ -44,6 +80,16 @@ class A extends core::Object {
     ;
   method h(self::A* x, {self::A* y}) → self::A*
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class B extends self::A implements self::I {
   synthetic constructor •() → self::B*
@@ -64,6 +110,16 @@ class I extends core::Object {
     ;
   method h(self::A* x, {self::I* y}) → self::A*
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method main() → dynamic
   ;

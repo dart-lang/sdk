@@ -6,18 +6,31 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
-import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
+import 'package:nnbd_migration/src/variables.dart';
 
 /// [TypeOperations] that works with [DecoratedType]s.
 class DecoratedTypeOperations
     implements TypeOperations<PromotableElement, DecoratedType> {
   final TypeSystem _typeSystem;
-  final VariableRepository _variableRepository;
+  final Variables _variableRepository;
   final NullabilityGraph _graph;
 
   DecoratedTypeOperations(
       this._typeSystem, this._variableRepository, this._graph);
+
+  @override
+  DecoratedType factor(DecoratedType from, DecoratedType what) {
+    // TODO(scheglov): https://github.com/dart-lang/sdk/issues/41672
+    return from;
+  }
+
+  @override
+  bool isLocalVariableWithoutDeclaredType(PromotableElement variable) {
+    return variable is LocalVariableElement &&
+        variable.hasImplicitType &&
+        variable.initializer == null;
+  }
 
   @override
   bool isSameType(DecoratedType type1, DecoratedType type2) {

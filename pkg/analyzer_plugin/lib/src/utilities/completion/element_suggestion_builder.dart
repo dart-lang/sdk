@@ -40,7 +40,7 @@ mixin ElementSuggestionBuilder {
         return;
       }
     }
-    String completion = element.displayName;
+    var completion = element.displayName;
     if (prefix != null && prefix.isNotEmpty) {
       if (completion == null || completion.isEmpty) {
         completion = prefix;
@@ -51,8 +51,8 @@ mixin ElementSuggestionBuilder {
     if (completion == null || completion.isEmpty) {
       return;
     }
-    SuggestionBuilderImpl builder = SuggestionBuilderImpl(resourceProvider);
-    CompletionSuggestion suggestion = builder.forElement(element,
+    var builder = SuggestionBuilderImpl(resourceProvider);
+    var suggestion = builder.forElement(element,
         completion: completion, kind: kind, relevance: relevance);
     if (suggestion != null) {
       if (element.isSynthetic && element is PropertyAccessorElement) {
@@ -65,16 +65,14 @@ mixin ElementSuggestionBuilder {
           cacheKey = cacheKey.substring(0, cacheKey.length - 1);
         }
         if (cacheKey != null) {
-          CompletionSuggestion existingSuggestion = _syntheticMap[cacheKey];
+          var existingSuggestion = _syntheticMap[cacheKey];
 
           // Pair getter/setter by updating the existing suggestion
           if (existingSuggestion != null) {
-            CompletionSuggestion getter =
-                element.isGetter ? suggestion : existingSuggestion;
-            protocol.ElementKind elemKind =
-                element.enclosingElement is ClassElement
-                    ? protocol.ElementKind.FIELD
-                    : protocol.ElementKind.TOP_LEVEL_VARIABLE;
+            var getter = element.isGetter ? suggestion : existingSuggestion;
+            var elemKind = element.enclosingElement is ClassElement
+                ? protocol.ElementKind.FIELD
+                : protocol.ElementKind.TOP_LEVEL_VARIABLE;
             existingSuggestion.element = protocol.Element(
                 elemKind,
                 existingSuggestion.element.name,

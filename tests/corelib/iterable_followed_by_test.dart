@@ -29,8 +29,9 @@ test(List expects, Iterable iterable, [String? name]) {
           expect, iterable.elementAt(index), "$name: elementAt($index)");
       Expect.isTrue(iterable.contains(expect), "$name:contains $index");
     }
-    Expect.isFalse(it.moveNext(),
-        "$name: extra element at ${expects.length}: ${it.current}");
+    var hasNext = it.moveNext();
+    Expect.isFalse(hasNext,
+        "$name: extra element at ${expects.length}: ${hasNext ? it.current : ''}");
   } on Error {
     print("Failed during: $name");
     rethrow;
@@ -50,9 +51,9 @@ tests(List<int> expects, Iterable<int> follow, [String? name]) {
   for (int i = 0; i <= length; i++) {
     for (int j = 0; j <= length - i; j++) {
       test(expects.sublist(i, i + j), follow.skip(i).take(j),
-          "$name.skiptake($i,${i+j})");
+          "$name.skiptake($i,${i + j})");
       test(expects.sublist(i, i + j), follow.take(i + j).skip(i),
-          "$name.takeskip($i,${i+j})");
+          "$name.takeskip($i,${i + j})");
     }
   }
 }

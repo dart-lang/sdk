@@ -178,10 +178,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
         exceptionNode.staticElement = element;
 
+        element.isFinal = true;
         if (exceptionTypeNode == null) {
           element.hasImplicitType = true;
-          element.type = _dynamicType;
-          exceptionNode.staticType = _dynamicType;
+          var type =
+              _isNonNullableByDefault ? _typeProvider.objectType : _dynamicType;
+          element.type = type;
+          exceptionNode.staticType = type;
         } else {
           element.type = exceptionTypeNode.type;
           exceptionNode.staticType = exceptionTypeNode.type;
@@ -201,6 +204,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
         stackTraceNode.staticElement = element;
 
+        element.isFinal = true;
         element.type = _typeProvider.stackTraceType;
         stackTraceNode.staticType = _typeProvider.stackTraceType;
 
@@ -476,6 +480,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         // ignore: deprecated_member_use_from_same_package
         element.parameterKind = node.kind;
         _setCodeRange(element, node);
+        element.metadata = _createElementAnnotations(node.metadata);
       }
       nameNode.staticElement = element;
     }

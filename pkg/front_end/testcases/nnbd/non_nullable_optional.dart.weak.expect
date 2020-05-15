@@ -2,19 +2,19 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/non_nullable_optional.dart:9:14: Warning: Optional parameter 'a' doesn't have a default value and its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/non_nullable_optional.dart:9:14: Error: Optional parameter 'a' should have a default value because its type 'int' doesn't allow null.
 // method1({int a}) {}
 //              ^
 //
-// pkg/front_end/testcases/nnbd/non_nullable_optional.dart:11:14: Warning: Optional parameter 'a' doesn't have a default value and its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/non_nullable_optional.dart:11:14: Error: Optional parameter 'a' should have a default value because its type 'int' doesn't allow null.
 // method2([int a]) {}
 //              ^
 //
-// pkg/front_end/testcases/nnbd/non_nullable_optional_part.dart:7:14: Warning: Optional parameter 'a' doesn't have a default value and its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/non_nullable_optional_part.dart:7:14: Error: Optional parameter 'a' should have a default value because its type 'int' doesn't allow null.
 // method3({int a}) {}
 //              ^
 //
-// pkg/front_end/testcases/nnbd/non_nullable_optional_part.dart:9:14: Warning: Optional parameter 'a' doesn't have a default value and its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/non_nullable_optional_part.dart:9:14: Error: Optional parameter 'a' should have a default value because its type 'int' doesn't allow null.
 // method4([int a]) {}
 //              ^
 //

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/compiler/ffi/native_location.h"
 
 #include "vm/compiler/backend/il_printer.h"
@@ -307,6 +305,7 @@ DRegister NativeFpuRegistersLocation::fpu_as_d_reg() const {
     case kSingleFpuReg:
       return DRegisterOf(fpu_s_reg());
   }
+  UNREACHABLE();
 }
 
 SRegister NativeFpuRegistersLocation::fpu_as_s_reg() const {
@@ -318,6 +317,7 @@ SRegister NativeFpuRegistersLocation::fpu_as_s_reg() const {
     case kSingleFpuReg:
       return fpu_s_reg();
   }
+  UNREACHABLE();
 }
 
 bool NativeFpuRegistersLocation::IsLowestBits() const {
@@ -340,5 +340,3 @@ bool NativeFpuRegistersLocation::IsLowestBits() const {
 }  // namespace compiler
 
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

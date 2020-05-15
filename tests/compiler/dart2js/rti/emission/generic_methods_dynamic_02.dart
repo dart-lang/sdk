@@ -2,16 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Based on language/generic_methods_dynamic_test/02
 
 library generic_methods_dynamic_test;
 
-/*strong.class: A:checkedInstance,checks=[],typeArgument*/
-/*omit.class: A:*/
+/*spec:nnbd-off|spec:nnbd-sdk.class: A:checkedInstance,checks=[],typeArgument*/
+/*prod:nnbd-off.class: A:*/
 class A {}
 
-/*strong.class: B:checks=[],instance*/
-/*omit.class: B:*/
+/*spec:nnbd-off|spec:nnbd-sdk.class: B:checks=[],instance*/
+/*prod:nnbd-off.class: B:*/
 class B {}
 
 /*class: C:*/

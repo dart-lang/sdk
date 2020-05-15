@@ -122,7 +122,7 @@ class _DemotionNullabilityNormalization extends ReplacementVisitor {
     Nullability newNullability = visitNullability(node);
     if (demoteTypeVariables && node.promotedBound != null) {
       return new TypeParameterType(
-          node.parameter, newNullability ?? node.typeParameterTypeNullability);
+          node.parameter, newNullability ?? node.declaredNullability);
     }
     return createTypeParameterType(node, newNullability);
   }

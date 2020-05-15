@@ -1,0 +1,12 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method errors() → void
+  ;
+static method _takesObject(core::Object o) → void
+  ;
+static method _takesStackTrace(core::StackTrace o) → void
+  ;
+static method main() → void
+  ;

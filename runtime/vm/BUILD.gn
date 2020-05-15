@@ -71,7 +71,10 @@ library_for_all_configs("libdart_vm") {
     if (using_fuchsia_sdk) {
       extra_deps += [
         "$fuchsia_sdk_root/fidl:fuchsia.deprecatedtimezone",
+        "$fuchsia_sdk_root/pkg:inspect",
+        "$fuchsia_sdk_root/pkg:inspect_service_cpp",
         "$fuchsia_sdk_root/pkg:sys_cpp",
+        "$fuchsia_sdk_root/pkg:sys_inspect_cpp",
         "$fuchsia_sdk_root/pkg:trace-engine",
       ]
     } else {
@@ -80,6 +83,7 @@ library_for_all_configs("libdart_vm") {
         # necessary.
         "//sdk/fidl/fuchsia.deprecatedtimezone",
         "//sdk/lib/sys/cpp",
+        "//sdk/lib/sys/inspect/cpp",
         "//zircon/public/lib/fbl",
         "//zircon/public/lib/trace-engine",
       ]
@@ -90,9 +94,31 @@ library_for_all_configs("libdart_vm") {
                                   "*_test.cc",
                                   "*_test.h",
                                 ])
-  sources = vm_sources + rebase_path(compiler_sources, ".", "./compiler/") +
+  sources = vm_sources + rebase_path(compiler_api_sources, ".", "./compiler/") +
+            rebase_path(disassembler_sources, ".", "./compiler/") +
             rebase_path(heap_sources, ".", "./heap/")
   include_dirs = [ ".." ]
+}
+
+library_for_all_configs_with_compiler("libdart_compiler") {
+  target_type = "source_set"
+  public_configs = [ ":libdart_vm_config" ]
+  set_sources_assignment_filter([
+                                  "*_test.cc",
+                                  "*_test.h",
+                                ])
+  sources = rebase_path(compiler_sources, ".", "./compiler/")
+  include_dirs = [ ".." ]
+  if (is_fuchsia) {
+    if (using_fuchsia_sdk) {
+      extra_deps = [ "$fuchsia_sdk_root/pkg:trace-engine" ]
+    } else {
+      extra_deps = [
+        "//zircon/public/lib/fbl",
+        "//zircon/public/lib/trace-engine",
+      ]
+    }
+  }
 }
 
 library_for_all_configs("libdart_lib") {
@@ -132,7 +158,7 @@ template("gen_vm_platform") {
     }
     single_root_scheme = "org-dartlang-sdk"
     single_root_base = rebase_path("../../")
-    if (use_nnbd) {
+    if (!dont_use_nnbd) {
       libraries_specification_uri =
           "org-dartlang-sdk:///sdk_nnbd/lib/libraries.json"
     } else {
@@ -150,7 +176,7 @@ template("gen_vm_platform") {
       "-Ddart.developer.causal_async_stacks=$allow_causal_async_stacks",
       "-Ddart.isVM=true",
     ]
-    if (use_nnbd) {
+    if (!dont_use_nnbd) {
       args += [ "--enable-experiment=non-nullable" ]
       args += [ "--nnbd-agnostic" ]
     }

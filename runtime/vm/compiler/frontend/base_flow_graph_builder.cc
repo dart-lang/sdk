@@ -11,8 +11,6 @@
 #include "vm/growable_array.h"
 #include "vm/object_store.h"
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 namespace dart {
 namespace kernel {
 
@@ -555,6 +553,12 @@ Fragment BaseFlowGraphBuilder::RedefinitionWithType(const AbstractType& type) {
   return Fragment(redefinition);
 }
 
+Fragment BaseFlowGraphBuilder::ReachabilityFence() {
+  Fragment instructions;
+  instructions <<= new (Z) ReachabilityFenceInstr(Pop());
+  return instructions;
+}
+
 Fragment BaseFlowGraphBuilder::StoreStaticField(TokenPosition position,
                                                 const Field& field) {
   return Fragment(
@@ -817,7 +821,8 @@ JoinEntryInstr* BaseFlowGraphBuilder::BuildThrowNoSuchMethod() {
   JoinEntryInstr* nsm = BuildJoinEntry();
 
   Fragment failing(nsm);
-  const Code& nsm_handler = StubCode::CallClosureNoSuchMethod();
+  const Code& nsm_handler = Code::ZoneHandle(
+      Z, I->object_store()->call_closure_no_such_method_stub());
   failing += LoadArgDescriptor();
   failing += TailCall(nsm_handler);
 
@@ -825,9 +830,6 @@ JoinEntryInstr* BaseFlowGraphBuilder::BuildThrowNoSuchMethod() {
 }
 
 Fragment BaseFlowGraphBuilder::AssertBool(TokenPosition position) {
-  if (!I->should_emit_strong_mode_checks()) {
-    return Fragment();
-  }
   Value* value = Pop();
   AssertBooleanInstr* instr =
       new (Z) AssertBooleanInstr(position, value, GetNextDeoptId());
@@ -966,7 +968,7 @@ Fragment BaseFlowGraphBuilder::DebugStepCheck(TokenPosition position) {
   return Fragment();
 #else
   return Fragment(new (Z) DebugStepCheckInstr(
-      position, RawPcDescriptors::kRuntimeCall, GetNextDeoptId()));
+      position, PcDescriptorsLayout::kRuntimeCall, GetNextDeoptId()));
 #endif
 }
 
@@ -1014,7 +1016,7 @@ void BaseFlowGraphBuilder::RecordUncheckedEntryPoint(
   // reconsider this heuristic if we identify non-inlined type-checks in
   // hotspots of new benchmarks.
   if (!IsInlining() && (parsed_function_->function().IsClosureFunction() ||
-                        !FLAG_precompiled_mode)) {
+                        !CompilerState::Current().is_aot())) {
     graph_entry->set_unchecked_entry(unchecked_entry);
   } else if (InliningUncheckedEntry()) {
     graph_entry->set_normal_entry(unchecked_entry);
@@ -1103,19 +1105,15 @@ void BaseFlowGraphBuilder::reset_context_depth_for_deopt_id(intptr_t deopt_id) {
 
 Fragment BaseFlowGraphBuilder::AssertAssignable(
     TokenPosition position,
-    const AbstractType& dst_type,
     const String& dst_name,
     AssertAssignableInstr::Kind kind) {
-  if (!I->should_emit_strong_mode_checks()) {
-    return Drop() + Drop();
-  }
-
   Value* function_type_args = Pop();
   Value* instantiator_type_args = Pop();
+  Value* dst_type = Pop();
   Value* value = Pop();
 
   AssertAssignableInstr* instr = new (Z) AssertAssignableInstr(
-      position, value, instantiator_type_args, function_type_args, dst_type,
+      position, value, dst_type, instantiator_type_args, function_type_args,
       dst_name, GetNextDeoptId(), kind);
   Push(instr);
 
@@ -1139,5 +1137,3 @@ Fragment BaseFlowGraphBuilder::InitConstantParameters() {
 
 }  // namespace kernel
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

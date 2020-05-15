@@ -19,6 +19,8 @@ main() {
   C<String, int> c2 = new C<String, int>();
   A<int> a0 = c1;
   A<int> a1 = c2;
+  //          ^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
   //          ^
   // [cfe] A value of type 'C<String, int>' can't be assigned to a variable of type 'A<int>'.
 }

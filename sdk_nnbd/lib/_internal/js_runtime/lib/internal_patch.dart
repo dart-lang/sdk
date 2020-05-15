@@ -10,6 +10,13 @@ import 'dart:_interceptors' show JSArray;
 import 'dart:_foreign_helper' show JS, JS_GET_FLAG;
 
 @patch
+@pragma('dart2js:tryInline')
+bool typeAcceptsNull<T>() {
+  bool isLegacySubtyping = JS_GET_FLAG('LEGACY');
+  return isLegacySubtyping || null is T;
+}
+
+@patch
 class Symbol implements core.Symbol {
   @patch
   const Symbol(String name) : this._name = name;

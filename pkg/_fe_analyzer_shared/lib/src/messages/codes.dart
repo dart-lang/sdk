@@ -12,9 +12,7 @@ import '../scanner/token.dart' show Token;
 
 import 'severity.dart' show Severity;
 
-import '../util/relativize.dart' show isWindows;
-
-import '../util/relativize.dart' as util show relativizeUri;
+import '../util/relativize.dart' as util show isWindows, relativizeUri;
 
 part 'codes_generated.dart';
 
@@ -123,6 +121,7 @@ class LocatedMessage implements Comparable<LocatedMessage> {
 
   Map<String, dynamic> get arguments => messageObject.arguments;
 
+  @override
   int compareTo(LocatedMessage other) {
     int result = "${uri}".compareTo("${other.uri}");
     if (result != 0) return result;
@@ -136,6 +135,28 @@ class LocatedMessage implements Comparable<LocatedMessage> {
     return new FormattedMessage(
         this, formatted, line, column, severity, relatedInformation);
   }
+
+  @override
+  int get hashCode =>
+      13 * uri.hashCode +
+      17 * charOffset.hashCode +
+      19 * length.hashCode +
+      23 * messageObject.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is LocatedMessage &&
+        uri == other.uri &&
+        charOffset == other.charOffset &&
+        length == other.length &&
+        messageObject == other.messageObject;
+  }
+
+  @override
+  String toString() =>
+      'LocatedMessage(uri=$uri,charOffset=$charOffset,length=$length,'
+      'messageObject=$messageObject)';
 }
 
 class FormattedMessage implements DiagnosticMessage {
@@ -252,7 +273,7 @@ String relativizeUri(Uri uri) {
   // (otherwise, we might get an `UNUSED_IMPORT` warning).
   //
   // 2. We can change `base` argument here if needed.
-  return uri == null ? null : util.relativizeUri(Uri.base, uri, isWindows);
+  return uri == null ? null : util.relativizeUri(Uri.base, uri, util.isWindows);
 }
 
 typedef SummaryTemplate = Message Function(int, int, num, num, num);

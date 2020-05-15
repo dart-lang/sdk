@@ -232,26 +232,32 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
       return null;
     }
 
+    var isLegacy = false;
     var combined = substitution;
     if (element is ExecutableMember) {
       ExecutableMember member = element;
       element = member.declaration;
+
+      isLegacy = member.isLegacy;
+
       var map = <TypeParameterElement, DartType>{};
-      map.addAll(member._substitution.map);
+      for (var entry in member._substitution.map.entries) {
+        map[entry.key] = substitution.substituteType(entry.value);
+      }
       map.addAll(substitution.map);
       combined = Substitution.fromMap(map);
     }
 
-    if (combined.map.isEmpty) {
+    if (!isLegacy && combined.map.isEmpty) {
       return element;
     }
 
     if (element is ConstructorElement) {
-      return ConstructorMember(element, combined, false);
+      return ConstructorMember(element, combined, isLegacy);
     } else if (element is MethodElement) {
-      return MethodMember(element, combined, false);
+      return MethodMember(element, combined, isLegacy);
     } else if (element is PropertyAccessorElement) {
-      return PropertyAccessorMember(element, combined, false);
+      return PropertyAccessorMember(element, combined, isLegacy);
     } else {
       throw UnimplementedError('(${element.runtimeType}) $element');
     }
@@ -388,29 +394,13 @@ class FieldMember extends VariableMember implements FieldElement {
 }
 
 class FunctionMember extends ExecutableMember implements FunctionElement {
-  factory FunctionMember(
-    FunctionElement declaration,
-    MapSubstitution substitution,
-    bool isLegacy,
-  ) {
-    var freshTypeParameters = _SubstitutedTypeParameters(
-      declaration.typeParameters,
-      substitution,
-    );
-    return FunctionMember._(
-      declaration,
-      freshTypeParameters.substitution,
-      isLegacy,
-      freshTypeParameters.elements,
-    );
-  }
-
-  FunctionMember._(
-    FunctionElement declaration,
-    MapSubstitution substitution,
-    bool isLegacy,
-    List<TypeParameterElement> typeParameters,
-  ) : super(declaration, substitution, isLegacy, typeParameters);
+  FunctionMember(FunctionElement declaration, bool isLegacy)
+      : super(
+          declaration,
+          Substitution.empty,
+          isLegacy,
+          declaration.typeParameters,
+        );
 
   @override
   FunctionElement get declaration => super.declaration;
@@ -658,15 +648,8 @@ abstract class Member implements Element {
     } else if (element is FunctionElement) {
       if (!element.library.isNonNullableByDefault) {
         return element;
-      } else if (element is Member) {
-        var member = element as Member;
-        return FunctionMember(
-          member._declaration,
-          member._substitution,
-          true,
-        );
       } else {
-        return FunctionMember(element, Substitution.empty, true);
+        return FunctionMember(element.declaration, true);
       }
     } else if (element is MethodElement) {
       if (!element.library.isNonNullableByDefault) {
@@ -1044,6 +1027,7 @@ abstract class VariableMember extends Member implements VariableElement {
   @override
   VariableElement get baseElement => declaration;
 
+  @Deprecated('Use computeConstantValue() instead')
   @override
   DartObject get constantValue => declaration.constantValue;
 

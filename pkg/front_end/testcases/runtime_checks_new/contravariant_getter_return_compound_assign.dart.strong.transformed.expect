@@ -32,6 +32,16 @@ class B<T extends core::Object* = dynamic> extends core::Object {
     ;
   operator +(generic-covariant-impl self::B<self::B::T*>* other) → self::B<self::B::T*>*
     return null;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class C<T extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::C<self::C::T*>*
@@ -40,6 +50,16 @@ class C<T extends core::Object* = dynamic> extends core::Object {
   get x() → self::B<(self::C::T*) →* void>*
     return null;
   set x(self::B<(self::C::T*) →* void>* value) → void {}
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method test(self::C<core::num*>* c) → void {
   let final self::C<core::num*>* #t1 = c in #t1.{self::C::x} = (#t1.{self::C::x} as{TypeError,CovarianceCheck} self::B<(core::num*) →* void>*).{self::B::+}(let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:20:54: Error: A value of type 'B<num>' can't be assigned to a variable of type 'B<void Function(num)>'.
@@ -50,11 +70,11 @@ static method test(self::C<core::num*>* c) → void {
  - 'B' is from 'pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart'.
   var y = c. /*@ checkReturn=B<(num*) ->* void>* */ x += new B<num>();
                                                              ^" in new self::B::•<core::num*>() as{TypeError} self::B<(core::num*) →* void>*);
-  let final self::C<core::num*>* #t5 = c in (#t5.{self::C::x} as{TypeError,CovarianceCheck} self::B<(core::num*) →* void>*).{core::Object::==}(null) ?{self::B<core::Object*>*} #t5.{self::C::x} = let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:22:55: Error: A value of type 'B<num>' can't be assigned to a variable of type 'B<void Function(num)>'.
+  let final self::C<core::num*>* #t5 = c in (#t5.{self::C::x} as{TypeError,CovarianceCheck} self::B<(core::num*) →* void>*).{self::B::==}(null) ?{self::B<core::Object*>*} #t5.{self::C::x} = let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:22:55: Error: A value of type 'B<num>' can't be assigned to a variable of type 'B<void Function(num)>'.
  - 'B' is from 'pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart'.
   c. /*@ checkReturn=B<(num*) ->* void>* */ x ??= new B<num>();
                                                       ^" in new self::B::•<core::num*>() as{TypeError} self::B<(core::num*) →* void>* : null;
-  self::B<core::Object*>* z = let final self::C<core::num*>* #t7 = c in let final self::B<(core::num*) →* void>* #t8 = #t7.{self::C::x} as{TypeError,CovarianceCheck} self::B<(core::num*) →* void>* in #t8.{core::Object::==}(null) ?{self::B<core::Object*>*} #t7.{self::C::x} = let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:23:63: Error: A value of type 'B<num>' can't be assigned to a variable of type 'B<void Function(num)>'.
+  self::B<core::Object*>* z = let final self::C<core::num*>* #t7 = c in let final self::B<(core::num*) →* void>* #t8 = #t7.{self::C::x} as{TypeError,CovarianceCheck} self::B<(core::num*) →* void>* in #t8.{self::B::==}(null) ?{self::B<core::Object*>*} #t7.{self::C::x} = let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:23:63: Error: A value of type 'B<num>' can't be assigned to a variable of type 'B<void Function(num)>'.
  - 'B' is from 'pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart'.
   var z = c. /*@ checkReturn=B<(num*) ->* void>* */ x ??= new B<num>();
                                                               ^" in new self::B::•<core::num*>() as{TypeError} self::B<(core::num*) →* void>* : #t8;

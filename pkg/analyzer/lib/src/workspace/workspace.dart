@@ -79,7 +79,13 @@ abstract class WorkspacePackage {
  */
 class WorkspaceWithDefaultAnalysisOptions {
   /**
-   * The uri for the analysis options file.
+   * The uri for the default analysis options file.
    */
   static const String uri = 'package:dart.analysis_options/default.yaml';
+
+  /**
+   *  The uri for third_party analysis options file.
+   */
+  static const String thirdPartyUri =
+      'package:dart.analysis_options/third_party.yaml';
 }

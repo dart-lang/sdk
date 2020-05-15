@@ -10,7 +10,6 @@ import 'package:analysis_server/src/services/refactoring/naming_conventions.dart
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -36,39 +35,37 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<RefactoringStatus> checkFinalConditions() {
-    RefactoringStatus result = RefactoringStatus();
+    var result = RefactoringStatus();
     return Future.value(result);
   }
 
   @override
   RefactoringStatus checkNewName() {
-    RefactoringStatus result = super.checkNewName();
+    var result = super.checkNewName();
     result.addStatus(validateImportPrefixName(newName));
     return result;
   }
 
   @override
   Future<void> fillChange() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     // update declaration
     {
-      PrefixElement prefix = element.prefix;
+      var prefix = element.prefix;
       SourceEdit edit;
       if (newName.isEmpty) {
-        ImportDirective node = _findNode();
-        int uriEnd = node.uri.end;
-        int prefixEnd = element.prefixOffset + prefix.nameLength;
+        var node = _findNode();
+        var uriEnd = node.uri.end;
+        var prefixEnd = element.prefixOffset + prefix.nameLength;
         edit = newSourceEdit_range(
             range.startOffsetEndOffset(uriEnd, prefixEnd), '');
       } else {
         if (prefix == null) {
-          ImportDirective node = _findNode();
-          int uriEnd = node.uri.end;
+          var node = _findNode();
+          var uriEnd = node.uri.end;
           edit = newSourceEdit_range(SourceRange(uriEnd, 0), ' as $newName');
         } else {
-          int offset = element.prefixOffset;
-          int length = prefix.nameLength;
+          var offset = element.prefixOffset;
+          var length = prefix.nameLength;
           edit = newSourceEdit_range(SourceRange(offset, length), newName);
         }
       }
@@ -77,14 +74,13 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
       }
     }
     // update references
-    List<SearchMatch> matches = await searchEngine.searchReferences(element);
-    List<SourceReference> references = getSourceReferences(matches);
-    for (SourceReference reference in references) {
+    var matches = await searchEngine.searchReferences(element);
+    var references = getSourceReferences(matches);
+    for (var reference in references) {
       if (newName.isEmpty) {
         reference.addEdit(change, '');
       } else {
-        SimpleIdentifier interpolationIdentifier =
-            _getInterpolationIdentifier(reference);
+        var interpolationIdentifier = _getInterpolationIdentifier(reference);
         if (interpolationIdentifier != null) {
           doSourceChange_addElementEdit(
               change,
@@ -102,10 +98,10 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
 
   /// Return the [ImportDirective] node that corresponds to the [element].
   ImportDirective _findNode() {
-    LibraryElement library = element.library;
-    String path = library.source.fullName;
-    CompilationUnit unit = session.getParsedUnit(path).unit;
-    int index = library.imports.indexOf(element);
+    var library = element.library;
+    var path = library.source.fullName;
+    var unit = session.getParsedUnit(path).unit;
+    var index = library.imports.indexOf(element);
     return unit.directives.whereType<ImportDirective>().elementAt(index);
   }
 
@@ -113,12 +109,12 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
   /// an [InterpolationExpression] without surrounding curly brackets, return
   /// it. Otherwise return `null`.
   SimpleIdentifier _getInterpolationIdentifier(SourceReference reference) {
-    Source source = reference.element.source;
-    CompilationUnit unit = session.getParsedUnit(source.fullName).unit;
-    NodeLocator nodeLocator = NodeLocator(reference.range.offset);
-    AstNode node = nodeLocator.searchWithin(unit);
+    var source = reference.element.source;
+    var unit = session.getParsedUnit(source.fullName).unit;
+    var nodeLocator = NodeLocator(reference.range.offset);
+    var node = nodeLocator.searchWithin(unit);
     if (node is SimpleIdentifier) {
-      AstNode parent = node.parent;
+      var parent = node.parent;
       if (parent is InterpolationExpression && parent.rightBracket == null) {
         return node;
       }

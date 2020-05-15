@@ -215,7 +215,7 @@ class Utils {
   }
 
   static inline int64_t LowHighTo64Bits(uint32_t low, int32_t high) {
-    return (static_cast<int64_t>(high) << 32) | (low & 0x0ffffffffLL);
+    return (static_cast<uint64_t>(high) << 32) | (low & 0x0ffffffffLL);
   }
 
   static inline constexpr bool IsAlphaNumeric(uint32_t c) {
@@ -300,6 +300,25 @@ class Utils {
     return static_cast<int64_t>(static_cast<uint64_t>(a) << b);
   }
 
+  template <typename T>
+  static inline T RotateLeft(T value, uint8_t rotate) {
+    const uint8_t width = sizeof(T) * kBitsPerByte;
+    ASSERT(0 <= rotate);
+    ASSERT(rotate <= width);
+    using Unsigned = typename std::make_unsigned<T>::type;
+    return (static_cast<Unsigned>(value) << rotate) |
+           (static_cast<T>(value) >> ((width - rotate) & (width - 1)));
+  }
+  template <typename T>
+  static inline T RotateRight(T value, uint8_t rotate) {
+    const uint8_t width = sizeof(T) * kBitsPerByte;
+    ASSERT(0 <= rotate);
+    ASSERT(rotate <= width);
+    using Unsigned = typename std::make_unsigned<T>::type;
+    return (static_cast<T>(value) >> rotate) |
+           (static_cast<Unsigned>(value) << ((width - rotate) & (width - 1)));
+  }
+
   // Utility functions for converting values from host endianness to
   // big or little endian values.
   static uint16_t HostToBigEndian16(uint16_t host_value);
@@ -347,7 +366,7 @@ class Utils {
                             "Unexpected uword size");
       return std::numeric_limits<uword>::max();
     }
-    return (1ll << n) - 1;
+    return (static_cast<uword>(1) << n) - 1;
   }
 
   static word SignedNBitMask(uint32_t n) {
@@ -364,6 +383,7 @@ class Utils {
 
   template <typename T>
   DART_FORCE_INLINE static bool TestBit(T mask, intptr_t position) {
+    ASSERT(position < static_cast<intptr_t>(sizeof(T) * kBitsPerByte));
     return ((mask >> position) & 1) != 0;
   }
 
@@ -372,22 +392,22 @@ class Utils {
   static ValueType DecodeSLEB128(const uint8_t* data,
                                  const intptr_t data_length,
                                  intptr_t* byte_index) {
+    using Unsigned = typename std::make_unsigned<ValueType>::type;
     ASSERT(*byte_index < data_length);
     uword shift = 0;
-    ValueType value = 0;
+    Unsigned value = 0;
     uint8_t part = 0;
     do {
       part = data[(*byte_index)++];
-      value |= static_cast<ValueType>(part & 0x7f) << shift;
+      value |= static_cast<Unsigned>(part & 0x7f) << shift;
       shift += 7;
     } while ((part & 0x80) != 0);
 
     if ((shift < (sizeof(ValueType) * CHAR_BIT)) && ((part & 0x40) != 0)) {
-      using Unsigned = typename std::make_unsigned<ValueType>::type;
       const Unsigned kMax = std::numeric_limits<Unsigned>::max();
-      value |= static_cast<ValueType>(kMax << shift);
+      value |= static_cast<Unsigned>(kMax << shift);
     }
-    return value;
+    return static_cast<ValueType>(value);
   }
 
   static char* StrError(int err, char* buffer, size_t bufsize);

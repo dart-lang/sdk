@@ -16,7 +16,7 @@ void main() {
 @reflectiveTest
 class SetSubscriptionsTest extends AbstractAnalysisServerIntegrationTest {
   Future<void> test_subscriptions() async {
-    String pathname = sourcePath('test.dart');
+    var pathname = sourcePath('test.dart');
     writeFile(pathname, '''
 class Foo {
   void bar() {}

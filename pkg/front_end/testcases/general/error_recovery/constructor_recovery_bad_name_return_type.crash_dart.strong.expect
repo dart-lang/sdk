@@ -1,0 +1,67 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_return_type.crash_dart:2:8: Error: The name of a constructor must match the name of the enclosing class.
+//   void foo.x() {
+//        ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_return_type.crash_dart:2:3: Error: Constructors can't have a return type.
+// Try removing the return type.
+//   void foo.x() {
+//   ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_return_type.crash_dart:5:8: Error: The name of a constructor must match the name of the enclosing class.
+//   void foo.x() : initializer = true {
+//        ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_return_type.crash_dart:5:3: Error: Constructors can't have a return type.
+// Try removing the return type.
+//   void foo.x() : initializer = true {
+//   ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_return_type.crash_dart:5:8: Error: 'Foo.x' is already declared in this scope.
+//   void foo.x() : initializer = true {
+//        ^^^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_return_type.crash_dart:2:8: Context: Previous declaration of 'Foo.x'.
+//   void foo.x() {
+//        ^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_return_type.crash_dart:8:8: Error: The name of a constructor must match the name of the enclosing class.
+//   void foo() : initializer = true {
+//        ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_return_type.crash_dart:8:3: Error: Constructors can't have a return type.
+// Try removing the return type.
+//   void foo() : initializer = true {
+//   ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_return_type.crash_dart:5:18: Error: 'initializer' isn't an instance field of this class.
+//   void foo.x() : initializer = true {
+//                  ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_return_type.crash_dart:8:16: Error: 'initializer' isn't an instance field of this class.
+//   void foo() : initializer = true {
+//                ^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  constructor x() → self::Foo*
+    : super core::Object::•() {}
+  constructor foo() → self::Foo*
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_return_type.crash_dart:8:16: Error: 'initializer' isn't an instance field of this class.
+  void foo() : initializer = true {
+               ^^^^^^^^^^^" {}
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}

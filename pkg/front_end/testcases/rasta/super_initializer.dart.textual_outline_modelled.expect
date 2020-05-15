@@ -1,0 +1,18 @@
+class Sub extends Super {
+  Sub.arg0()
+      : super.arg0(),
+        field = 42;
+  Sub.arg1(a)
+      : super.arg1(a),
+        field = 42;
+  Sub.arg2(a, b)
+      : super.arg2(a, b),
+        field = 42;
+  var field;
+}
+
+class Super {
+  Super.arg0();
+  Super.arg1(a);
+  Super.arg2(a, b);
+}

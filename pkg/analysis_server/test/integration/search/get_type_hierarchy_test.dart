@@ -23,7 +23,7 @@ class GetTypeHierarchyTest extends AbstractAnalysisServerIntegrationTest {
   String pathname;
 
   Future getTypeHierarchy_badTarget() {
-    String text = r'''
+    var text = r'''
 main() {
   if /* target */ (true) {
     print('Hello');
@@ -36,7 +36,7 @@ main() {
   }
 
   Future getTypeHierarchy_classElement() {
-    String text = r'''
+    var text = r'''
 class Base {}
 class Pivot /* target */ extends Base {}
 class Derived extends Pivot {}
@@ -47,7 +47,7 @@ class Derived extends Pivot {}
       void checkElement(String name) {
         // We don't check the full element data structure; just enough to make
         // sure that we're pointing to the correct element.
-        Element element = results.items[results.nameToIndex[name]].classElement;
+        var element = results.items[results.nameToIndex[name]].classElement;
         expect(element.kind, equals(ElementKind.CLASS));
         expect(element.name, equals(name));
         if (name != 'Object') {
@@ -64,7 +64,7 @@ class Derived extends Pivot {}
   }
 
   Future getTypeHierarchy_displayName() {
-    String text = r'''
+    var text = r'''
 class Base<T> {}
 class Pivot /* target */ extends Base<int> {}
 ''';
@@ -77,7 +77,7 @@ class Pivot /* target */ extends Base<int> {}
   }
 
   Future getTypeHierarchy_functionTarget() {
-    String text = r'''
+    var text = r'''
 main /* target */ () {
 }
 ''';
@@ -87,7 +87,7 @@ main /* target */ () {
   }
 
   Future getTypeHierarchy_interfaces() {
-    String text = r'''
+    var text = r'''
 class Interface1 {}
 class Interface2 {}
 class Pivot /* target */ implements Interface1, Interface2 {}
@@ -106,7 +106,7 @@ class Pivot /* target */ implements Interface1, Interface2 {}
   }
 
   Future getTypeHierarchy_memberElement() {
-    String text = r'''
+    var text = r'''
 class Base1 {
   void foo /* base1 */ ();
 }
@@ -133,7 +133,7 @@ class Derived2 extends Derived1 {
   }
 
   Future getTypeHierarchy_mixins() {
-    String text = r'''
+    var text = r'''
 class Base {}
 class Mixin1 {}
 class Mixin2 {}
@@ -152,7 +152,7 @@ class Pivot /* target */ extends Base with Mixin1, Mixin2 {}
   }
 
   Future getTypeHierarchy_subclasses() {
-    String text = r'''
+    var text = r'''
 class Base {}
 class Pivot /* target */ extends Base {}
 class Sub1 extends Pivot {}
@@ -174,7 +174,7 @@ class Sub2a extends Sub2 {}
   }
 
   Future getTypeHierarchy_superclass() {
-    String text = r'''
+    var text = r'''
 class Base1 {}
 class Base2 extends Base1 {}
 class Pivot /* target */ extends Base2 {}
@@ -200,7 +200,7 @@ class Pivot /* target */ extends Base2 {}
 
     // Run all the getTypeHierarchy tests at once so that the server can take
     // advantage of incremental analysis and the test doesn't time out.
-    List tests = [
+    var tests = [
       getTypeHierarchy_classElement,
       getTypeHierarchy_displayName,
       getTypeHierarchy_memberElement,
@@ -215,7 +215,7 @@ class Pivot /* target */ extends Base2 {}
   }
 
   Future<HierarchyResults> typeHierarchyTest(String text) async {
-    int offset = text.indexOf(' /* target */') - 1;
+    var offset = text.indexOf(' /* target */') - 1;
     sendAnalysisUpdateContent({pathname: AddContentOverlay(text)});
     await analysisFinished;
     var result = await sendSearchGetTypeHierarchy(pathname, offset);
@@ -244,7 +244,7 @@ class HierarchyResults {
   HierarchyResults(this.items) {
     pivot = items[0];
     nameToIndex = <String, int>{};
-    for (int i = 0; i < items.length; i++) {
+    for (var i = 0; i < items.length; i++) {
       nameToIndex[items[i].classElement.name] = i;
     }
   }

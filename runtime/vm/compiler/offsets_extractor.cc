@@ -47,10 +47,10 @@ class OffsetsExtractor : public AllStatic {
 #define PRINT_ARRAY_LAYOUT(Class, Name)                                        \
   std::cout << "static constexpr dart::compiler::target::word AOT_" #Class     \
                "_elements_start_offset = "                                     \
-            << Class::ArrayLayout::elements_start_offset() << ";\n";           \
+            << Class::ArrayTraits::elements_start_offset() << ";\n";           \
   std::cout << "static constexpr dart::compiler::target::word AOT_" #Class     \
                "_element_size = "                                              \
-            << Class::ArrayLayout::kElementSize << ";\n";
+            << Class::ArrayTraits::kElementSize << ";\n";
 
 #define PRINT_ARRAY_STRUCTFIELD_OFFSET(Class, Name, ElementOffsetName,         \
                                        FieldOffset)
@@ -92,10 +92,10 @@ class OffsetsExtractor : public AllStatic {
 #define PRINT_ARRAY_LAYOUT(Class, Name)                                        \
   std::cout << "static constexpr dart::compiler::target::word " #Class         \
                "_elements_start_offset = "                                     \
-            << Class::ArrayLayout::elements_start_offset() << ";\n";           \
+            << Class::ArrayTraits::elements_start_offset() << ";\n";           \
   std::cout << "static constexpr dart::compiler::target::word " #Class         \
                "_element_size = "                                              \
-            << Class::ArrayLayout::kElementSize << ";\n";
+            << Class::ArrayTraits::kElementSize << ";\n";
 
 #define PRINT_ARRAY_STRUCTFIELD_OFFSET(Class, Name, ElementOffsetName,         \
                                        FieldOffset)

@@ -5,11 +5,13 @@
 #ifndef RUNTIME_VM_COMPILER_FRONTEND_BYTECODE_READER_H_
 #define RUNTIME_VM_COMPILER_FRONTEND_BYTECODE_READER_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/constants_kbc.h"
 #include "vm/object.h"
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 namespace kernel {
@@ -40,10 +42,10 @@ class BytecodeMetadataHelper : public MetadataHelper {
                                          intptr_t* p_num_classes,
                                          intptr_t* p_num_procedures);
 
-  RawLibrary* GetMainLibrary();
+  LibraryPtr GetMainLibrary();
 
-  RawArray* GetBytecodeComponent();
-  RawArray* ReadBytecodeComponent();
+  ArrayPtr GetBytecodeComponent();
+  ArrayPtr ReadBytecodeComponent();
 
  private:
   ActiveClass* const active_class_;
@@ -62,7 +64,7 @@ class BytecodeReaderHelper : public ValueObject {
 
   void ReadCode(const Function& function, intptr_t code_offset);
 
-  RawArray* CreateForwarderChecks(const Function& function);
+  ArrayPtr CreateForwarderChecks(const Function& function);
 
   void ReadMembers(const Class& cls, bool discard_fields);
 
@@ -79,9 +81,9 @@ class BytecodeReaderHelper : public ValueObject {
   void ParseBytecodeFunction(ParsedFunction* parsed_function,
                              const Function& function);
 
-  RawLibrary* ReadMain();
+  LibraryPtr ReadMain();
 
-  RawArray* ReadBytecodeComponent(intptr_t md_offset);
+  ArrayPtr ReadBytecodeComponent(intptr_t md_offset);
   void ResetObjects();
 
   // Fills in [is_covariant] and [is_generic_covariant_impl] vectors
@@ -96,10 +98,10 @@ class BytecodeReaderHelper : public ValueObject {
 
   // Returns an flattened array of tuples {isFinal, defaultValue, metadata},
   // or an Error.
-  RawObject* BuildParameterDescriptor(const Function& function);
+  ObjectPtr BuildParameterDescriptor(const Function& function);
 
   // Read bytecode PackedObject.
-  RawObject* ReadObject();
+  ObjectPtr ReadObject();
 
  private:
   // These constants should match corresponding constants in class ObjectHandle
@@ -145,6 +147,7 @@ class BytecodeReaderHelper : public ValueObject {
     static const int kIsCovariantFlag = 1 << 0;
     static const int kIsGenericCovariantImplFlag = 1 << 1;
     static const int kIsFinalFlag = 1 << 2;
+    static const int kIsRequiredFlag = 1 << 3;
   };
 
   class FunctionTypeScope : public ValueObject {
@@ -190,12 +193,13 @@ class BytecodeReaderHelper : public ValueObject {
   };
 
   void ReadClosureDeclaration(const Function& function, intptr_t closureIndex);
-  RawType* ReadFunctionSignature(const Function& func,
-                                 bool has_optional_positional_params,
-                                 bool has_optional_named_params,
-                                 bool has_type_params,
-                                 bool has_positional_param_names,
-                                 Nullability nullability);
+  TypePtr ReadFunctionSignature(const Function& func,
+                                bool has_optional_positional_params,
+                                bool has_optional_named_params,
+                                bool has_type_params,
+                                bool has_positional_param_names,
+                                bool has_parameter_flags,
+                                Nullability nullability);
   void ReadTypeParametersDeclaration(const Class& parameterized_class,
                                      const Function& parameterized_function);
 
@@ -206,22 +210,22 @@ class BytecodeReaderHelper : public ValueObject {
                             const ObjectPool& pool,
                             intptr_t start_index);
 
-  RawBytecode* ReadBytecode(const ObjectPool& pool);
+  BytecodePtr ReadBytecode(const ObjectPool& pool);
   void ReadExceptionsTable(const Bytecode& bytecode, bool has_exceptions_table);
   void ReadSourcePositions(const Bytecode& bytecode, bool has_source_positions);
   void ReadLocalVariables(const Bytecode& bytecode, bool has_local_variables);
-  RawTypedData* NativeEntry(const Function& function,
-                            const String& external_name);
-  RawString* ConstructorName(const Class& cls, const String& name);
+  TypedDataPtr NativeEntry(const Function& function,
+                           const String& external_name);
+  StringPtr ConstructorName(const Class& cls, const String& name);
 
-  RawObject* ReadObjectContents(uint32_t header);
-  RawObject* ReadConstObject(intptr_t tag);
-  RawObject* ReadType(intptr_t tag, Nullability nullability);
-  RawString* ReadString(bool is_canonical = true);
-  RawScript* ReadSourceFile(const String& uri, intptr_t offset);
-  RawTypeArguments* ReadTypeArguments();
+  ObjectPtr ReadObjectContents(uint32_t header);
+  ObjectPtr ReadConstObject(intptr_t tag);
+  ObjectPtr ReadType(intptr_t tag, Nullability nullability);
+  StringPtr ReadString(bool is_canonical = true);
+  ScriptPtr ReadSourceFile(const String& uri, intptr_t offset);
+  TypeArgumentsPtr ReadTypeArguments();
   void ReadAttributes(const Object& key);
-  RawPatchClass* GetPatchClass(const Class& cls, const Script& script);
+  PatchClassPtr GetPatchClass(const Class& cls, const Script& script);
   void ParseForwarderFunction(ParsedFunction* parsed_function,
                               const Function& function,
                               const Function& target);
@@ -308,32 +312,32 @@ class BytecodeComponentData : ValueObject {
   intptr_t GetLocalVariablesOffset() const;
   intptr_t GetAnnotationsOffset() const;
   void SetObject(intptr_t index, const Object& obj) const;
-  RawObject* GetObject(intptr_t index) const;
+  ObjectPtr GetObject(intptr_t index) const;
 
   bool IsNull() const { return data_.IsNull(); }
 
-  static RawArray* New(Zone* zone,
-                       intptr_t version,
-                       intptr_t num_objects,
-                       intptr_t strings_header_offset,
-                       intptr_t strings_contents_offset,
-                       intptr_t object_offsets_offset,
-                       intptr_t objects_contents_offset,
-                       intptr_t main_offset,
-                       intptr_t num_libraries,
-                       intptr_t library_index_offset,
-                       intptr_t libraries_offset,
-                       intptr_t num_classes,
-                       intptr_t classes_offset,
-                       intptr_t members_offset,
-                       intptr_t num_codes,
-                       intptr_t codes_offset,
-                       intptr_t source_positions_offset,
-                       intptr_t source_files_offset,
-                       intptr_t line_starts_offset,
-                       intptr_t local_variables_offset,
-                       intptr_t annotations_offset,
-                       Heap::Space space);
+  static ArrayPtr New(Zone* zone,
+                      intptr_t version,
+                      intptr_t num_objects,
+                      intptr_t strings_header_offset,
+                      intptr_t strings_contents_offset,
+                      intptr_t object_offsets_offset,
+                      intptr_t objects_contents_offset,
+                      intptr_t main_offset,
+                      intptr_t num_libraries,
+                      intptr_t library_index_offset,
+                      intptr_t libraries_offset,
+                      intptr_t num_classes,
+                      intptr_t classes_offset,
+                      intptr_t members_offset,
+                      intptr_t num_codes,
+                      intptr_t codes_offset,
+                      intptr_t source_positions_offset,
+                      intptr_t source_files_offset,
+                      intptr_t line_starts_offset,
+                      intptr_t local_variables_offset,
+                      intptr_t annotations_offset,
+                      Heap::Space space);
 
  private:
   Array& data_;
@@ -343,14 +347,14 @@ class BytecodeReader : public AllStatic {
  public:
   // Reads bytecode for the given function and sets its bytecode field.
   // Returns error (if any), or null.
-  static RawError* ReadFunctionBytecode(Thread* thread,
-                                        const Function& function);
+  static ErrorPtr ReadFunctionBytecode(Thread* thread,
+                                       const Function& function);
 
   // Read annotations for the given annotation field.
-  static RawObject* ReadAnnotation(const Field& annotation_field);
+  static ObjectPtr ReadAnnotation(const Field& annotation_field);
   // Read the |count| annotations following given annotation field.
-  static RawArray* ReadExtendedAnnotations(const Field& annotation_field,
-                                           intptr_t count);
+  static ArrayPtr ReadExtendedAnnotations(const Field& annotation_field,
+                                          intptr_t count);
 
   static void ResetObjectTable(const KernelProgramInfo& info);
 
@@ -364,11 +368,11 @@ class BytecodeReader : public AllStatic {
   static void FinishClassLoading(const Class& cls);
 
   // Value of attribute [name] of Function/Field [key].
-  static RawObject* GetBytecodeAttribute(const Object& key, const String& name);
+  static ObjectPtr GetBytecodeAttribute(const Object& key, const String& name);
 
 #if !defined(PRODUCT)
   // Compute local variable descriptors for [function] with [bytecode].
-  static RawLocalVarDescriptors* ComputeLocalVarDescriptors(
+  static LocalVarDescriptorsPtr ComputeLocalVarDescriptors(
       Zone* zone,
       const Function& function,
       const Bytecode& bytecode);
@@ -528,11 +532,11 @@ class BytecodeLocalVariablesIterator : ValueObject {
     ASSERT(IsVariableDeclaration() || IsContextVariable());
     return cur_index_;
   }
-  RawString* Name() const {
+  StringPtr Name() const {
     ASSERT(IsVariableDeclaration());
     return String::RawCast(object_pool_.ObjectAt(cur_name_));
   }
-  RawAbstractType* Type() const {
+  AbstractTypePtr Type() const {
     ASSERT(IsVariableDeclaration());
     return AbstractType::RawCast(object_pool_.ObjectAt(cur_type_));
   }
@@ -582,5 +586,4 @@ bool IsStaticFieldGetterGeneratedAsInitializer(const Function& function,
 }  // namespace kernel
 }  // namespace dart
 
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 #endif  // RUNTIME_VM_COMPILER_FRONTEND_BYTECODE_READER_H_

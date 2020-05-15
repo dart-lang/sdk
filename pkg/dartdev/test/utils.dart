@@ -7,9 +7,14 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
-Timeout defaultTimeout = Timeout(Duration(seconds: 15));
+/// A long [Timeout] is provided for tests that start a process on
+/// `bin/dartdev.dart` as the command is not compiled ahead of time, and each
+/// invocation requires the VM to compile the entire dependency graph.
+const Timeout longTimeout = Timeout(Duration(minutes: 5));
 
-TestProject project({String mainSrc}) => TestProject(mainSrc: mainSrc);
+TestProject project({String mainSrc, String analysisOptions}) {
+  return TestProject(mainSrc: mainSrc, analysisOptions: analysisOptions);
+}
 
 class TestProject {
   static String get defaultProjectName => 'dartdev_temp';
@@ -22,12 +27,15 @@ class TestProject {
 
   String get relativeFilePath => 'lib/main.dart';
 
-  TestProject({String mainSrc}) {
+  TestProject({String mainSrc, String analysisOptions}) {
     dir = Directory.systemTemp.createTempSync('dartdev');
+    file('pubspec.yaml', 'name: $name\ndev_dependencies:\n  test: any\n');
+    if (analysisOptions != null) {
+      file('analysis_options.yaml', analysisOptions);
+    }
     if (mainSrc != null) {
       file(relativeFilePath, mainSrc);
     }
-    file('pubspec.yaml', 'name: $name\ndev_dependencies:\n  test: any\n');
   }
 
   void file(String name, String contents) {
@@ -86,11 +94,6 @@ class TestProject {
 
   String get absolutePathToDartdevFile {
     return path.join(sdkRootPath, 'pkg', 'dartdev', 'bin', 'dartdev.dart');
-  }
-
-  String get absolutePathToAnalysisServerFile {
-    return path.join(
-        sdkRootPath, 'pkg', 'analysis_server', 'bin', 'server.dart');
   }
 
   File findFile(String name) {

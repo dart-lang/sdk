@@ -19,11 +19,11 @@ void main() {
 @reflectiveTest
 class LibraryPrefixContributorTest extends DartCompletionContributorTest {
   void assertSuggestLibraryPrefixes(List<String> expectedPrefixes) {
-    for (String prefix in expectedPrefixes) {
-      CompletionSuggestion cs = assertSuggest(prefix,
+    for (var prefix in expectedPrefixes) {
+      var cs = assertSuggest(prefix,
           csKind: CompletionSuggestionKind.IDENTIFIER,
           relevance: DART_RELEVANCE_DEFAULT);
-      Element element = cs.element;
+      var element = cs.element;
       expect(element, isNotNull);
       expect(element.kind, equals(ElementKind.LIBRARY));
       expect(element.parameters, isNull);

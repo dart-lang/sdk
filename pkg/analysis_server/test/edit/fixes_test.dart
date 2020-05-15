@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
@@ -42,10 +41,9 @@ main() {
 ''');
     await waitForTasksFinished();
     doAllDeclarationsTrackerWork();
-    List<AnalysisErrorFixes> errorFixes =
-        await _getFixesAt('Completer<String>');
+    var errorFixes = await _getFixesAt('Completer<String>');
     expect(errorFixes, hasLength(1));
-    List<SourceChange> fixes = errorFixes[0].fixes;
+    var fixes = errorFixes[0].fixes;
     expect(fixes, hasLength(3));
     expect(fixes[0].message, matches('Import library'));
     expect(fixes[1].message, matches('Create class'));
@@ -54,14 +52,13 @@ main() {
 
   Future<void> test_fromPlugins() async {
     PluginInfo info = DiscoveredPluginInfo('a', 'b', 'c', null, null);
-    plugin.AnalysisErrorFixes fixes = plugin.AnalysisErrorFixes(AnalysisError(
+    var fixes = plugin.AnalysisErrorFixes(AnalysisError(
         AnalysisErrorSeverity.ERROR,
         AnalysisErrorType.HINT,
         Location('', 0, 0, 0, 0),
         'message',
         'code'));
-    plugin.EditGetFixesResult result =
-        plugin.EditGetFixesResult(<plugin.AnalysisErrorFixes>[fixes]);
+    var result = plugin.EditGetFixesResult(<plugin.AnalysisErrorFixes>[fixes]);
     pluginManager.broadcastResults = <PluginInfo, Future<plugin.Response>>{
       info: Future.value(result.toResponse('-', 1))
     };
@@ -69,7 +66,7 @@ main() {
     createProject();
     addTestFile('main() {}');
     await waitForTasksFinished();
-    List<AnalysisErrorFixes> errorFixes = await _getFixesAt('in(');
+    var errorFixes = await _getFixesAt('in(');
     expect(errorFixes, hasLength(1));
   }
 
@@ -86,13 +83,13 @@ bar() {
     await waitForTasksFinished();
     // print(1)
     {
-      List<AnalysisErrorFixes> errorFixes = await _getFixesAt('print(1)');
+      var errorFixes = await _getFixesAt('print(1)');
       expect(errorFixes, hasLength(1));
       _isSyntacticErrorWithSingleFix(errorFixes[0]);
     }
     // print(10)
     {
-      List<AnalysisErrorFixes> errorFixes = await _getFixesAt('print(10)');
+      var errorFixes = await _getFixesAt('print(10)');
       expect(errorFixes, hasLength(2));
       _isSyntacticErrorWithSingleFix(errorFixes[0]);
       _isSyntacticErrorWithSingleFix(errorFixes[1]);
@@ -128,7 +125,7 @@ print(1)
     _addOverlay(testFile, testCode);
     // ask for fixes
     await waitForTasksFinished();
-    List<AnalysisErrorFixes> errorFixes = await _getFixesAt('print(1)');
+    var errorFixes = await _getFixesAt('print(1)');
     expect(errorFixes, hasLength(1));
     _isSyntacticErrorWithSingleFix(errorFixes[0]);
   }
@@ -165,7 +162,7 @@ bbb:${toUri('/bbb/lib')}
     await waitForTasksFinished();
     doAllDeclarationsTrackerWork();
 
-    List<String> fixes = (await _getFixesAt('Foo()'))
+    var fixes = (await _getFixesAt('Foo()'))
         .single
         .fixes
         .map((f) => f.message)
@@ -180,26 +177,26 @@ bbb:${toUri('/bbb/lib')}
   }
 
   void _addOverlay(String name, String contents) {
-    Request request =
+    var request =
         AnalysisUpdateContentParams({name: AddContentOverlay(contents)})
             .toRequest('0');
     handleSuccessfulRequest(request, handler: analysisHandler);
   }
 
   Future<List<AnalysisErrorFixes>> _getFixes(int offset) async {
-    Request request = EditGetFixesParams(testFile, offset).toRequest('0');
-    Response response = await waitResponse(request);
+    var request = EditGetFixesParams(testFile, offset).toRequest('0');
+    var response = await waitResponse(request);
     var result = EditGetFixesResult.fromResponse(response);
     return result.fixes;
   }
 
   Future<List<AnalysisErrorFixes>> _getFixesAt(String search) async {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     return await _getFixes(offset);
   }
 
   void _isSyntacticErrorWithSingleFix(AnalysisErrorFixes fixes) {
-    AnalysisError error = fixes.error;
+    var error = fixes.error;
     expect(error.severity, AnalysisErrorSeverity.ERROR);
     expect(error.type, AnalysisErrorType.SYNTACTIC_ERROR);
     expect(fixes.fixes, hasLength(1));

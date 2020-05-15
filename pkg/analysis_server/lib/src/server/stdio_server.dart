@@ -24,7 +24,7 @@ class StdioAnalysisServer {
   ///
   /// Return a future that will be completed when stdin closes.
   Future serveStdio() {
-    ByteStreamServerChannel serverChannel = ByteStreamServerChannel(
+    var serverChannel = ByteStreamServerChannel(
       stdin,
       stdout,
       socketServer.instrumentationService,

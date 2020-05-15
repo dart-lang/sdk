@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 class Class1<T> {
   /*member: Class1.field:hasThis*/
   var field = /*fields=[T],free=[T],hasThis*/ () => T;
@@ -56,12 +58,12 @@ class Class1<T> {
     }
 
     var local2 =
-        /*strong.fields=[S,this],free=[S,this],hasThis*/
-        /*omit.hasThis*/
+        /*spec:nnbd-off|spec:nnbd-sdk.fields=[S,this],free=[S,this],hasThis*/
+        /*prod:nnbd-off|prod:nnbd-sdk.hasThis*/
         (o) {
       return
-          /*strong.fields=[S,this],free=[S,this],hasThis*/
-          /*omit.hasThis*/
+          /*spec:nnbd-off|spec:nnbd-sdk.fields=[S,this],free=[S,this],hasThis*/
+          /*prod:nnbd-off|prod:nnbd-sdk.hasThis*/
           () => new Map<T, S>();
     };
     return local2(local<double>());

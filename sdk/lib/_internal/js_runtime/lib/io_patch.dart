@@ -217,6 +217,11 @@ class _RandomAccessFileOps {
 }
 
 @patch
+bool _isDirectIOCapableTypedList(List<int> buffer) {
+  return buffer is Uint8List || buffer is Int8List;
+}
+
+@patch
 class _IOCrypto {
   @patch
   static Uint8List getRandomBytes(int count) {
@@ -406,9 +411,16 @@ class InternetAddress {
   }
 
   @patch
-  factory InternetAddress(String address) {
+  factory InternetAddress(String address, {InternetAddressType type}) {
     throw new UnsupportedError("InternetAddress");
   }
+
+  @patch
+  factory InternetAddress.fromRawAddress(Uint8List rawAddress,
+      {InternetAddressType type}) {
+    throw new UnsupportedError("InternetAddress.fromRawAddress");
+  }
+
   @patch
   static Future<List<InternetAddress>> lookup(String host,
       {InternetAddressType type: InternetAddressType.any}) {
@@ -419,6 +431,11 @@ class InternetAddress {
   static InternetAddress _cloneWithNewHost(
       InternetAddress address, String host) {
     throw new UnsupportedError("InternetAddress._cloneWithNewHost");
+  }
+
+  @patch
+  static InternetAddress tryParse(String address) {
+    throw new UnsupportedError("InternetAddress.tryParse");
   }
 }
 

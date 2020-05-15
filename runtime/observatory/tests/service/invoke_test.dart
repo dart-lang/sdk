@@ -4,20 +4,24 @@
 
 import 'dart:developer';
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
 libraryFunction() => "foobar1";
 
 class Klass {
+  @pragma('vm:entry-point')
   static classFunction(x) => "foobar2" + x;
+  @pragma('vm:entry-point')
   instanceFunction(x, y) => "foobar3" + x + y;
 }
 
 var instance;
 
+@pragma('vm:entry-point')
 var apple;
+@pragma('vm:entry-point')
 var banana;
 
 void testFunction() {
@@ -27,11 +31,22 @@ void testFunction() {
   debugger();
 }
 
+@pragma('vm:entry-point')
+void foo() {
+  print('foobar');
+}
+
+@pragma('vm:entry-point')
+void invokeFunction(Function func) {
+  func();
+}
+
 var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   (Isolate isolate) async {
     Library lib = isolate.rootLibrary;
     await lib.load();
+    final fooFunc = lib.functions.singleWhere((func) => func.name == "foo");
     Class cls = lib.classes.singleWhere((cls) => cls.name == "Klass");
     Field field =
         lib.variables.singleWhere((field) => field.name == "instance");
@@ -66,30 +81,43 @@ var tests = <IsolateTest>[
     expect(result.valueAsString, equals('foobar3applebanana'));
 
     // Wrong arity.
-    await expectError(() => isolate.invokeRpc("invoke", {
-          "targetId": instance.id,
-          "selector": "instanceFunction",
-          "argumentIds": [apple.id]
-        }));
+    await expectError(
+        () => isolate.invokeRpc("invoke", {
+              "targetId": instance.id,
+              "selector": "instanceFunction",
+              "argumentIds": [apple.id]
+            }),
+        ServerRpcException.kExpressionCompilationError);
+
+    // Non-instance argument.
+    await expectError(
+        () => isolate.invokeRpc("invoke", {
+              "targetId": lib.id,
+              "selector": "invokeFunction",
+              "argumentIds": [fooFunc.id]
+            }),
+        ServerRpcException.kInvalidParams);
 
     // No such target.
-    await expectError(() => isolate.invokeRpc("invoke", {
-          "targetId": instance.id,
-          "selector": "functionDoesNotExist",
-          "argumentIds": [apple.id]
-        }));
+    await expectError(
+        () => isolate.invokeRpc("invoke", {
+              "targetId": instance.id,
+              "selector": "functionDoesNotExist",
+              "argumentIds": [apple.id]
+            }),
+        ServerRpcException.kExpressionCompilationError);
   },
   resumeIsolate,
 ];
 
-expectError(func) async {
+expectError(func, code) async {
   bool gotException = false;
   dynamic result;
   try {
     result = await func();
     expect(result.type, equals('Error')); // dart1 semantics
   } on ServerRpcException catch (e) {
-    expect(e.code, equals(ServerRpcException.kExpressionCompilationError));
+    expect(e.code, code);
     gotException = true;
   }
   if (result?.type != 'Error') {

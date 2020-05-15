@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_COMPILER_FFI_MARSHALLER_H_
 #define RUNTIME_VM_COMPILER_FFI_MARSHALLER_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #include <platform/globals.h>
 
 #include "vm/compiler/backend/locations.h"
@@ -70,7 +74,7 @@ class BaseMarshaller : public NativeCallingConvention {
            kFfiVoidCid;
   }
 
-  RawString* function_name() const { return dart_signature_.name(); }
+  StringPtr function_name() const { return dart_signature_.name(); }
 
  protected:
   BaseMarshaller(Zone* zone, const Function& dart_signature)

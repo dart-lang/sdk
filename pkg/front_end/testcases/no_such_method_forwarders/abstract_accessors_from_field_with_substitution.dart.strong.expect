@@ -7,6 +7,16 @@ abstract class A<X extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::A<self::A::X*>*
     : super core::Object::•()
     ;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class B extends core::Object implements self::A<core::int*> {
   synthetic constructor •() → self::B*
@@ -14,6 +24,15 @@ class B extends core::Object implements self::A<core::int*> {
     ;
   method noSuchMethod(core::Invocation* i) → dynamic
     return <dynamic>[];
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature get runtimeType() → core::Type*;
   no-such-method-forwarder get foo() → core::List<core::int*>*
     return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::List<core::int*>*;
   no-such-method-forwarder set foo(core::List<core::int*>* value) → void

@@ -11,8 +11,6 @@ import 'package:kernel/ast.dart';
 
 import 'package:kernel/type_algebra.dart' show containsTypeVariable, substitute;
 
-import '../../base/nnbd_mode.dart';
-
 import '../identifiers.dart';
 import '../scope.dart';
 
@@ -28,8 +26,7 @@ import '../messages.dart'
         messagePatchDeclarationOrigin,
         messagePatchNonExternal,
         noLength,
-        templateRequiredNamedParameterHasDefaultValueError,
-        templateRequiredNamedParameterHasDefaultValueWarning;
+        templateRequiredNamedParameterHasDefaultValueError;
 
 import '../modifier.dart';
 
@@ -65,8 +62,6 @@ abstract class FunctionBuilder implements MemberBuilder {
   ProcedureKind get kind;
 
   bool get isAbstract;
-
-  bool get isExternal;
 
   bool get isConstructor;
 
@@ -393,21 +388,12 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
         if (library.isNonNullableByDefault) {
           // Required named parameters can't have default values.
           if (formal.isNamedRequired && formal.initializerToken != null) {
-            if (library.loader.nnbdMode == NnbdMode.Weak) {
-              library.addProblem(
-                  templateRequiredNamedParameterHasDefaultValueWarning
-                      .withArguments(formal.name),
-                  formal.charOffset,
-                  formal.name.length,
-                  formal.fileUri);
-            } else {
-              library.addProblem(
-                  templateRequiredNamedParameterHasDefaultValueError
-                      .withArguments(formal.name),
-                  formal.charOffset,
-                  formal.name.length,
-                  formal.fileUri);
-            }
+            library.addProblem(
+                templateRequiredNamedParameterHasDefaultValueError
+                    .withArguments(formal.name),
+                formal.charOffset,
+                formal.name.length,
+                formal.fileUri);
           }
         }
       }

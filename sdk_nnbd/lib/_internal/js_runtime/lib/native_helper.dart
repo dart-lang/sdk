@@ -159,8 +159,9 @@ lookupAndCacheInterceptor(obj) {
   // [initNativeDispatch].
   var interceptorClass = lookupInterceptor(tag);
   if (interceptorClass == null) {
-    tag = alternateTagFunction!(obj, tag);
-    if (tag != null) {
+    String? altTag = alternateTagFunction!(obj, tag);
+    if (altTag != null) {
+      tag = altTag;
       // Fast path for instance and uncached tags again.
       record = propertyGet(dispatchRecordsForInstanceTags, tag);
       if (record != null) return patchInstance(obj, record);

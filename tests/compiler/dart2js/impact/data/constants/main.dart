@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'lib.dart';
 import 'lib.dart' deferred as defer;
 
-/*member: main:static=**/
+/*member: main:static=%*/
 main() {
   nullLiteral();
   boolLiteral();
@@ -89,7 +91,10 @@ stringLiteral() {
 /*member: symbolLiteral:static=[Symbol.(1)],type=[inst:Symbol]*/
 symbolLiteral() => #foo;
 
-/*member: listLiteral:type=[inst:JSBool,inst:List<bool>]*/
+/*spec:nnbd-off.member: listLiteral:type=[inst:JSBool,inst:List<bool>]*/
+/*spec:nnbd-sdk.member: listLiteral:type=[
+  inst:JSBool,
+  inst:List<bool*>]*/
 listLiteral() => const [true, false];
 
 /*member: mapLiteral:type=[inst:ConstantMap<dynamic,dynamic>,inst:ConstantProtoMap<dynamic,dynamic>,inst:ConstantStringMap<dynamic,dynamic>,inst:GeneralConstantMap<dynamic,dynamic>,inst:JSBool]*/
@@ -107,7 +112,16 @@ setLiteral() => const {true, false};
 */
 instanceConstant() => const Class(true, false);
 
-/*member: typeLiteral:static=[createRuntimeType(1),typeLiteral(1)],type=[inst:Type,inst:_Type,lit:String]*/
+/*spec:nnbd-off.member: typeLiteral:static=[createRuntimeType(1),typeLiteral(1)],type=[inst:Type,inst:_Type,lit:String]*/
+/*spec:nnbd-sdk.member: typeLiteral:
+ static=[
+  createRuntimeType(1),
+  typeLiteral(1)],
+ type=[
+  inst:Type,
+  inst:_Type,
+  lit:String*]
+*/
 typeLiteral() {
   const dynamic local = String;
   return local;
@@ -149,7 +163,10 @@ stringLiteralRef() => stringLiteralField;
 /*member: symbolLiteralRef:static=[Symbol.(1)],type=[inst:Symbol]*/
 symbolLiteralRef() => symbolLiteralField;
 
-/*member: listLiteralRef:type=[inst:JSBool,inst:List<bool>]*/
+/*spec:nnbd-off.member: listLiteralRef:type=[inst:JSBool,inst:List<bool>]*/
+/*spec:nnbd-sdk.member: listLiteralRef:type=[
+  inst:JSBool,
+  inst:List<bool*>]*/
 listLiteralRef() => listLiteralField;
 
 /*member: mapLiteralRef:type=[inst:ConstantMap<dynamic,dynamic>,inst:ConstantProtoMap<dynamic,dynamic>,inst:ConstantStringMap<dynamic,dynamic>,inst:GeneralConstantMap<dynamic,dynamic>,inst:JSBool]*/
@@ -167,7 +184,16 @@ setLiteralRef() => setLiteralField;
 */
 instanceConstantRef() => instanceConstantField;
 
-/*member: typeLiteralRef:static=[createRuntimeType(1),typeLiteral(1)],type=[inst:Type,inst:_Type,lit:String]*/
+/*spec:nnbd-off.member: typeLiteralRef:static=[createRuntimeType(1),typeLiteral(1)],type=[inst:Type,inst:_Type,lit:String]*/
+/*spec:nnbd-sdk.member: typeLiteralRef:
+ static=[
+  createRuntimeType(1),
+  typeLiteral(1)],
+ type=[
+  inst:Type,
+  inst:_Type,
+  lit:String*]
+*/
 typeLiteralRef() => typeLiteralField;
 
 /*member: instantiationRef:static=[closureFunctionType(1),id,instantiate1(1),instantiatedGenericFunctionType(2)],type=[inst:Instantiation1<dynamic>]*/
@@ -199,7 +225,10 @@ stringLiteralDeferred() => defer.stringLiteralField;
 symbolLiteralDeferred() => defer.symbolLiteralField;
 
 // TODO(johnniwinther): Should we record that this is deferred?
-/*member: listLiteralDeferred:type=[inst:JSBool,inst:List<bool>]*/
+/*spec:nnbd-off.member: listLiteralDeferred:type=[inst:JSBool,inst:List<bool>]*/
+/*spec:nnbd-sdk.member: listLiteralDeferred:type=[
+  inst:JSBool,
+  inst:List<bool*>]*/
 listLiteralDeferred() => defer.listLiteralField;
 
 // TODO(johnniwinther): Should we record that this is deferred?
@@ -220,7 +249,16 @@ setLiteralDeferred() => defer.setLiteralField;
 */
 instanceConstantDeferred() => defer.instanceConstantField;
 
-/*member: typeLiteralDeferred:static=[createRuntimeType(1),typeLiteral(1)],type=[inst:Type,inst:_Type,lit:String{defer}]*/
+/*spec:nnbd-off.member: typeLiteralDeferred:static=[createRuntimeType(1),typeLiteral(1)],type=[inst:Type,inst:_Type,lit:String{defer}]*/
+/*spec:nnbd-sdk.member: typeLiteralDeferred:
+ static=[
+  createRuntimeType(1),
+  typeLiteral(1)],
+ type=[
+  inst:Type,
+  inst:_Type,
+  lit:String*{defer}]
+*/
 typeLiteralDeferred() => defer.typeLiteralField;
 
 /*member: instantiationDeferred:static=[closureFunctionType(1),id{defer},instantiate1(1),instantiatedGenericFunctionType(2)],type=[inst:Instantiation1<dynamic>]*/

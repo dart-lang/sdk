@@ -19,7 +19,7 @@ class FindMemberReferencesTest extends AbstractAnalysisServerIntegrationTest {
   String pathname;
 
   Future<void> test_findMemberReferences() async {
-    String text = r'''
+    var text = r'''
 String qux() => 'qux';
 
 class Foo {
@@ -33,17 +33,16 @@ class Foo {
     standardAnalysisSetup();
     await analysisFinished;
 
-    SearchFindMemberReferencesResult referencesResult =
-        await sendSearchFindMemberReferences('bar');
+    var referencesResult = await sendSearchFindMemberReferences('bar');
     expect(referencesResult.id, isNotNull);
 
-    SearchResultsParams searchParams = await onSearchResults.first;
+    var searchParams = await onSearchResults.first;
     expect(searchParams.id, referencesResult.id);
     expect(searchParams.isLast, isTrue);
     expect(searchParams.results, isNotEmpty);
     expect(searchParams.results, hasLength(2));
 
-    SearchResult result = searchParams.results.first;
+    var result = searchParams.results.first;
     expect(result.location.file, pathname);
     expect(result.isPotential, isTrue);
     expect(result.kind.name, SearchResultKind.INVOCATION.name);

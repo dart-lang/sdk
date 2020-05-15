@@ -31,7 +31,6 @@ class JSONStream;
 class Object;
 class ObjectPointerVisitor;
 class Isolate;
-class RawArray;
 class Thread;
 class TimelineEvent;
 class TimelineEventBlock;
@@ -133,6 +132,9 @@ class Timeline : public AllStatic {
 #ifndef PRODUCT
   // Print information about streams to JSON.
   static void PrintFlagsToJSON(JSONStream* json);
+
+  // Output the recorded streams to a JSONS array.
+  static void PrintFlagsToJSONArray(JSONArray* arr);
 #endif
 
 #define TIMELINE_STREAM_ACCESSOR(name, fuchsia_name)                           \
@@ -867,6 +869,7 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
 #endif
 
   TimelineEventBlock* head_;
+  TimelineEventBlock* tail_;
   intptr_t block_index_;
 
   friend class TimelineTestHelper;

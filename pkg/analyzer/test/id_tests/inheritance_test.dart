@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 
 import '../util/id_testing_helper.dart';
@@ -60,6 +61,8 @@ class _InheritanceDataComputer extends DataComputer<String> {
 }
 
 class _InheritanceDataExtractor extends AstDataExtractor<String> {
+  final inheritance = InheritanceManager3();
+
   _InheritanceDataExtractor(Uri uri, Map<Id, ActualData<String>> actualMap)
       : super(uri, actualMap);
 
@@ -75,42 +78,7 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
   void computeForClass(Declaration node, Id id) {
     super.computeForClass(node, id);
     if (node is ClassDeclaration) {
-      var cls = node.declaredElement;
-
-      var getterNames = <Name>{};
-      var setterNames = <Name>{};
-      var methodNames = <Name>{};
-
-      void collectMembers(InterfaceType type) {
-        for (var element in type.accessors) {
-          if (element.isGetter) {
-            getterNames.add(Name(element));
-          }
-          if (element.isSetter) {
-            setterNames.add(Name(element, isSetter: true));
-          }
-          var getter = element.declaration.correspondingGetter != null
-              ? element.correspondingGetter
-              : null;
-          if (getter != null) {
-            getterNames.add(Name(getter));
-          }
-          var setter = element.declaration.correspondingSetter != null
-              ? element.correspondingSetter
-              : null;
-          if (setter != null) {
-            setterNames.add(Name(setter, isSetter: true));
-          }
-        }
-        for (var method in type.methods) {
-          methodNames.add(Name(method));
-        }
-      }
-
-      collectMembers(cls.thisType);
-      for (var supertype in cls.allSupertypes) {
-        collectMembers(supertype);
-      }
+      var element = node.declaredElement;
 
       void registerMember(
           MemberId id, int offset, Object object, DartType type) {
@@ -118,44 +86,34 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
             type.getDisplayString(withNullability: true), object);
       }
 
-      for (var getterName in getterNames) {
-        var getter =
-            cls.thisType.lookUpGetter2(getterName.text, getterName.library);
-        if (getter != null) {
-          ClassElement enclosingClass = getter.enclosingElement;
-          if (enclosingClass.isDartCoreObject) continue;
-          var id = MemberId.internal(getterName.text, className: cls.name);
-          var offset =
-              enclosingClass == cls ? getter.nameOffset : cls.nameOffset;
-          registerMember(id, offset, getter, getter.returnType);
-        }
-      }
+      var interface = inheritance.getInterface(element);
+      for (var name in interface.map.keys) {
+        var executable = interface.map[name];
 
-      for (var setterName in setterNames) {
-        var setter =
-            cls.thisType.lookUpSetter2(setterName.text, setterName.library);
-        if (setter != null) {
-          ClassElement enclosingClass = setter.enclosingElement;
-          if (enclosingClass.isDartCoreObject) continue;
-          var id =
-              MemberId.internal('${setterName.text}=', className: cls.name);
-          var offset =
-              enclosingClass == cls ? setter.nameOffset : cls.nameOffset;
-          registerMember(id, offset, setter, setter.type.parameters.first.type);
-        }
-      }
+        ClassElement enclosingClass = executable.enclosingElement;
+        if (enclosingClass.isDartCoreObject) continue;
 
-      for (var methodName in methodNames) {
-        var method =
-            cls.thisType.lookUpMethod2(methodName.text, methodName.library);
-        if (method != null) {
-          ClassElement enclosingClass = method.enclosingElement;
-          if (enclosingClass.isDartCoreObject) continue;
-          var id = MemberId.internal(methodName.text, className: cls.name);
-          var offset =
-              enclosingClass == cls ? method.nameOffset : cls.nameOffset;
-          registerMember(id, offset, method, method.type);
+        var id = MemberId.internal(
+          name.name,
+          className: element.name,
+        );
+
+        var offset = enclosingClass == element
+            ? executable.nameOffset
+            : element.nameOffset;
+
+        DartType type;
+        if (executable is MethodElement) {
+          type = executable.type;
+        } else if (executable is PropertyAccessorElement) {
+          if (executable.isGetter) {
+            type = executable.returnType;
+          } else {
+            type = executable.parameters.first.type;
+          }
         }
+
+        registerMember(id, offset, executable, type);
       }
     }
   }
@@ -190,40 +148,4 @@ String supertypeToString(InterfaceType type) {
     sb.write('>');
   }
   return sb.toString();
-}
-
-class Name {
-  final String text;
-  final bool isPrivate;
-  final LibraryElement library;
-
-  Name.internal(this.text, this.isPrivate, this.library);
-
-  factory Name(Element element, {bool isSetter = false}) {
-    String name = element.name;
-    if (isSetter) {
-      if (!name.endsWith('=')) {
-        throw UnsupportedError("Unexpected setter name '$name'");
-      }
-      name = name.substring(0, name.length - 1);
-    }
-    return Name.internal(name, element.isPrivate, element.library);
-  }
-
-  @override
-  int get hashCode => isPrivate
-      ? text.hashCode * 13 + library.hashCode * 17
-      : text.hashCode * 13;
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is Name &&
-        text == other.text &&
-        isPrivate == other.isPrivate &&
-        (!isPrivate || library == other.library);
-  }
-
-  @override
-  String toString() => isPrivate ? '${library.name}::$text' : text;
 }

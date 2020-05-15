@@ -1,0 +1,7 @@
+library test;
+
+class C {
+  bool operator [](int index) => true;
+}
+
+main() {}

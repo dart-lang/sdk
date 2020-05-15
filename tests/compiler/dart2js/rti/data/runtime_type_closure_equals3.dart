@@ -2,19 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'package:expect/expect.dart';
 
 String method() => null;
 
-/*omit.class: Class1:needsArgs*/
-/*strong.class: Class1:direct,explicit=[Class1.T],needsArgs*/
+/*prod:nnbd-off|prod:nnbd-sdk.class: Class1:needsArgs*/
+/*spec:nnbd-off.class: Class1:direct,explicit=[Class1.T],needsArgs*/
+/*spec:nnbd-sdk.class: Class1:direct,explicit=[Class1.T*],needsArgs*/
 class Class1<T> {
-  /*strong.member: Class1.:*/
-  /*omit.member: Class1.:*/
+  /*spec:nnbd-off|prod:nnbd-off.member: Class1.:*/
   Class1();
 
-  /*strong.member: Class1.method:*/
-  /*omit.member: Class1.method:*/
+  /*spec:nnbd-off|prod:nnbd-off.member: Class1.method:*/
   method() {
     /*needsSignature*/
     T local1a() => null;
@@ -31,16 +32,13 @@ class Class1<T> {
   }
 }
 
-/*strong.class: Class2:*/
-/*omit.class: Class2:*/
+/*spec:nnbd-off|prod:nnbd-off.class: Class2:*/
 class Class2<T> {
-  /*strong.member: Class2.:*/
-  /*omit.member: Class2.:*/
+  /*spec:nnbd-off|prod:nnbd-off.member: Class2.:*/
   Class2();
 }
 
-/*strong.member: main:*/
-/*omit.member: main:*/
+/*spec:nnbd-off|prod:nnbd-off.member: main:*/
 main() {
   new Class1<int>().method();
   new Class2<int>();

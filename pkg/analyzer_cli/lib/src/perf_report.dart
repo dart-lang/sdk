@@ -28,8 +28,8 @@ final String _osType = () {
 
 String makePerfReport(int startTime, int endTime, CommandLineOptions options,
     int analyzedFileCount, AnalysisStats stats) {
-  int totalTime = endTime - startTime;
-  int otherTime = totalTime;
+  var totalTime = endTime - startTime;
+  var otherTime = totalTime;
 
   var platformJson = <String, dynamic>{
     'osType': _osType,
@@ -50,9 +50,9 @@ String makePerfReport(int startTime, int endTime, CommandLineOptions options,
 
   // Convert performance tags to JSON representation.
   var perfTagsJson = <String, dynamic>{};
-  for (PerformanceTag tag in PerformanceTag.all) {
+  for (var tag in PerformanceTag.all) {
     if (tag != PerformanceTag.unknown) {
-      int tagTime = tag.elapsedMs;
+      var tagTime = tag.elapsedMs;
       perfTagsJson[tag.label] = tagTime;
       otherTime -= tagTime;
     }

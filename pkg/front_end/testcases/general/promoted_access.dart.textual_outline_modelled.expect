@@ -1,0 +1,6 @@
+class Class<T> {
+  method(T o) {}
+}
+
+main() {}
+method<T>(T o) {}

@@ -104,13 +104,13 @@ void null_aware_cascades_do_not_promote_target(C? c) {
   // holds the result of evaluating the cascade target.  So
   // effectively, no promotion happens (because there is no way to
   // observe a change to the type of that variable).
-  c?..setter = /*cfe.nonNullable*/ c;
-  c?..getterSetter += /*cfe.nonNullable*/ c;
-  c?..getterSetter ??= /*cfe.nonNullable*/ c;
-  c?..[/*cfe.nonNullable*/ c];
-  c?..[/*cfe.nonNullable*/ c] = /*cfe.nonNullable*/ c;
-  c?..[/*cfe.nonNullable*/ c] += /*cfe.nonNullable*/ c;
-  c?..[/*cfe.nonNullable*/ c] ??= /*cfe.nonNullable*/ c;
+  c?..setter = /*nonNullable*/ c;
+  c?..getterSetter += /*nonNullable*/ c;
+  c?..getterSetter ??= /*nonNullable*/ c;
+  c?..[/*nonNullable*/ c];
+  c?..[/*nonNullable*/ c] = /*nonNullable*/ c;
+  c?..[/*nonNullable*/ c] += /*nonNullable*/ c;
+  c?..[/*nonNullable*/ c] ??= /*nonNullable*/ c;
 }
 
 void null_aware_cascades_do_not_promote_others(C? c, int? i, int? j) {

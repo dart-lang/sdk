@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
@@ -15,13 +16,21 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 
 /// An abstract implementation of a request handler.
-abstract class AbstractRequestHandler implements RequestHandler {
+abstract class AbstractRequestHandler
+    with RequestHandlerMixin<AnalysisServer>
+    implements RequestHandler {
   /// The analysis server that is using this handler to process requests.
+  @override
   final AnalysisServer server;
 
   /// Initialize a newly created request handler to be associated with the given
   /// analysis [server].
   AbstractRequestHandler(this.server);
+}
+
+mixin RequestHandlerMixin<T extends AbstractAnalysisServer> {
+  /// The analysis server that is using this handler to process requests.
+  T get server;
 
   /// Given a mapping from plugins to futures that will complete when the plugin
   /// has responded to a request, wait for a finite amount of time for each of
@@ -34,16 +43,14 @@ abstract class AbstractRequestHandler implements RequestHandler {
       Map<PluginInfo, Future<plugin.Response>> futures,
       {plugin.RequestParams requestParameters,
       int timeout = 500}) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     // TODO(brianwilkerson) requestParameters might need to be required.
-    int endTime = DateTime.now().millisecondsSinceEpoch + timeout;
-    List<plugin.Response> responses = <plugin.Response>[];
-    for (PluginInfo pluginInfo in futures.keys) {
-      Future<plugin.Response> future = futures[pluginInfo];
+    var endTime = DateTime.now().millisecondsSinceEpoch + timeout;
+    var responses = <plugin.Response>[];
+    for (var pluginInfo in futures.keys) {
+      var future = futures[pluginInfo];
       try {
-        int startTime = DateTime.now().millisecondsSinceEpoch;
-        plugin.Response response = await future
+        var startTime = DateTime.now().millisecondsSinceEpoch;
+        var response = await future
             .timeout(Duration(milliseconds: math.max(endTime - startTime, 0)));
         if (response.error != null) {
           // TODO(brianwilkerson) Report the error to the plugin manager.

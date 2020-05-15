@@ -71,25 +71,29 @@ class ForInOfInvalidTypeWithNnbdTest extends ForInOfInvalidTypeTest {
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
   test_awaitForIn_never() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f(Never e) async {
   await for (var id in e) {
     id;
   }
 }
-''');
+''', [
+      error(HintCode.DEAD_CODE, 32, 26),
+    ]);
     // TODO(scheglov) extract for-in resolution and implement
 //    assertType(findNode.simple('id;'), 'Never');
   }
 
   test_forIn_never() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f(Never e) {
   for (var id in e) {
     id;
   }
 }
-''');
+''', [
+      error(HintCode.DEAD_CODE, 20, 26),
+    ]);
     // TODO(scheglov) extract for-in resolution and implement
 //    assertType(findNode.simple('id;'), 'Never');
   }

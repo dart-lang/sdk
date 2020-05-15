@@ -15,212 +15,176 @@ main() {
 
 @reflectiveTest
 class ReturnOfInvalidTypeTest extends DriverResolutionTest {
-  test_async_future_future_int_mismatches_future_int() async {
+  test_function_async_block__to_Future_void() async {
+    await assertNoErrorsInCode(r'''
+Future<void> f1() async {}
+Future<void> f2() async { return; }
+Future<void> f3() async { return null; }
+Future<void> f4() async { return g1(); }
+Future<void> f5() async { return g2(); }
+g1() {}
+void g2() {}
+''');
+  }
+
+  test_function_async_block_Future_Future_int__to_Future_int() async {
     await assertErrorsInCode('''
-import 'dart:async';
-Future<int> f() async {
-  return g();
+Future<int> f(Future<Future<int>> a) async {
+  return a;
 }
-Future<Future<int>> g() => null;
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 54, 3),
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 54, 1),
     ]);
   }
 
-  test_async_future_int_mismatches_future_string() async {
-    await assertErrorsInCode('''
-import 'dart:async';
-Future<String> f() async {
-  return 5;
-}
-''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 57, 1),
-    ]);
+  test_function_async_block_Future_void() async {
+    await assertNoErrorsInCode('''
+void f1(Future<void> a) async { return a; }
+dynamic f2(Future<void> a) async { return a; }
+''');
   }
 
-  test_async_future_int_mismatches_int() async {
-    // TODO(brianwilkerson) Stop producing RETURN_OF_INVALID_TYPE_FROM_FUNCTION.
+  test_function_async_block_illegalReturnType() async {
     await assertErrorsInCode('''
 int f() async {
   return 5;
 }
 ''', [
       error(StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, 0, 3),
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 25, 1,
-          contextMessages: [
-            message('/sdk/lib/core/core.dart', 2090, 3),
-            message('/sdk/lib/core/core.dart', 2090, 3)
-          ]),
     ]);
   }
 
-  test_expressionFunctionBody_function() async {
+  test_function_async_block_int__to_Future_int() async {
+    await assertNoErrorsInCode(r'''
+Future<int> f() async {
+  return 0;
+}
+''');
+  }
+
+  test_function_async_block_int__to_Future_num() async {
+    await assertNoErrorsInCode(r'''
+Future<num> f() async {
+  return 0;
+}
+''');
+  }
+
+  test_function_async_block_int__to_Future_String() async {
     await assertErrorsInCode('''
-int f() => '0';
-''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 11, 3),
-    ]);
-  }
-
-  test_expressionFunctionBody_getter() async {
-    await assertErrorsInCode('''
-int get g => '0';
-''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 13, 3),
-    ]);
-  }
-
-  test_expressionFunctionBody_localFunction() async {
-    await assertErrorsInCode(r'''
-class A {
-  String m() {
-    int f() => '0';
-    return '0';
-  }
+Future<String> f() async {
+  return 5;
 }
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 33, 1),
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 40, 3),
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 36, 1),
     ]);
   }
 
-  test_expressionFunctionBody_method() async {
-    await assertErrorsInCode(r'''
-class A {
-  int f() => '0';
+  test_function_async_block_int__to_Future_void() async {
+    await assertNoErrorsInCode(r'''
+Future<void> f() async {
+  return 0;
+}
+''');
+  }
+
+  test_function_async_block_int__to_void() async {
+    await assertErrorsInCode('''
+void f() async {
+  return 5;
 }
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 23, 3),
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 26, 1),
     ]);
   }
 
-  test_function() async {
+  test_function_async_block_void__to_dynamic() async {
+    await assertNoErrorsInCode('''
+dynamic f(void a) async {
+  return a;
+}
+''');
+  }
+
+  test_function_async_block_void__to_Future_int() async {
     await assertErrorsInCode('''
-int f() { return '0'; }
+Future<int> f(void a) async {
+  return a;
+}
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 17, 3),
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 39, 1),
     ]);
   }
 
-  test_getter() async {
+  test_function_async_block_void__to_void() async {
+    await assertNoErrorsInCode('''
+void f(void a) async {
+  return a;
+}
+''');
+  }
+
+  test_function_sync_block__to_dynamic() async {
+    await assertNoErrorsInCode(r'''
+f() {
+  try {
+    return 0;
+  } on ArgumentError {
+    return 'abc';
+  }
+}
+''');
+  }
+
+  test_function_sync_block__to_void() async {
+    await assertNoErrorsInCode(r'''
+void f1() {}
+void f2() { return; }
+void f3() { return null; }
+void f4() { return g1(); }
+void f5() { return g2(); }
+g1() {}
+void g2() {}
+''');
+  }
+
+  test_function_sync_block_int__to_num() async {
+    await assertNoErrorsInCode(r'''
+num f(int a) {
+  return a;
+}
+''');
+  }
+
+  test_function_sync_block_int__to_void() async {
     await assertErrorsInCode('''
-int get g { return '0'; }
+void f() {
+  return 42;
+}
+''', [
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 20, 2),
+    ]);
+  }
+
+  test_function_sync_block_num__to_int() async {
+    await assertNoErrorsInCode(r'''
+int f(num a) {
+  return a;
+}
+''');
+  }
+
+  test_function_sync_block_String__to_int() async {
+    await assertErrorsInCode('''
+int f() {
+  return '0';
+}
 ''', [
       error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 19, 3),
     ]);
   }
 
-  test_localFunction() async {
-    await assertErrorsInCode(r'''
-class A {
-  String m() {
-    int f() { return '0'; }
-    return '0';
-  }
-}
-''', [
-      error(HintCode.UNUSED_ELEMENT, 33, 1),
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 46, 3),
-    ]);
-  }
-
-  test_method() async {
-    await assertErrorsInCode(r'''
-class A {
-  int f() { return '0'; }
-}
-''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 29, 3),
-    ]);
-  }
-
-  test_not_issued_for_expressionFunctionBody_void() async {
-    await assertNoErrorsInCode('''
-void f() => 42;
-''');
-  }
-
-  test_not_issued_for_valid_generic_return() async {
-    await assertNoErrorsInCode(r'''
-abstract class F<T, U>  {
-  U get value;
-}
-
-abstract class G<T> {
-  T test(F<int, T> arg) => arg.value;
-}
-
-abstract class H<S> {
-  S test(F<int, S> arg) => arg.value;
-}
-
-void main() { }
-''');
-  }
-
-  test_valid_async() async {
-    await assertNoErrorsInCode(r'''
-import 'dart:async';
-class A {
-  Future<int> m() async {
-    return 0;
-  }
-}
-''');
-  }
-
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38162')
-  test_valid_async_callable_class() async {
-    await assertNoErrorsInCode(r'''
-typedef Fn = void Function(String s);
-
-class CanFn {
-  void call(String s) => print(s);
-}
-
-Future<Fn> f() async {
-  return CanFn();
-}
-''');
-  }
-
-  test_valid_dynamic() async {
-    await assertErrorsInCode(r'''
-class TypeError {}
-class A {
-  static void testLogicalOp() {
-    testOr(a, b, onTypeError) {
-      try {
-        return a || b;
-      } on TypeError catch (t) {
-        return onTypeError;
-      }
-    }
-  }
-}
-''', [
-      error(HintCode.UNUSED_ELEMENT, 65, 6),
-      error(HintCode.UNUSED_CATCH_CLAUSE, 156, 1),
-    ]);
-  }
-
-  test_valid_subtype() async {
-    await assertNoErrorsInCode(r'''
-class A {}
-class B extends A {}
-A f(B b) { return b; }
-''');
-  }
-
-  test_valid_supertype() async {
-    await assertNoErrorsInCode(r'''
-class A {}
-class B extends A {}
-B f(A a) { return a; }
-''');
-  }
-
-  test_valid_typeParameter_18468() async {
+  test_function_sync_block_typeParameter__to_Type() async {
     // https://code.google.com/p/dart/issues/detail?id=18468
     //
     // This test verifies that the type of T is more specific than Type, where T
@@ -238,22 +202,129 @@ class Foo<T> {
 ''');
   }
 
-  test_valid_void() async {
-    await assertNoErrorsInCode(r'''
-void f1() {}
-void f2() { return; }
-void f3() { return null; }
-void f4() { return g1(); }
-void f5() { return g2(); }
-void f6() => throw 42;
-g1() {}
-void g2() {}
+  test_function_sync_block_void() async {
+    await assertNoErrorsInCode('''
+void a;
+void f1() { return a; }
+dynamic f2() { return a; }
+Null f3() { return a; }
 ''');
   }
 
-  test_void() async {
-    await assertErrorsInCode("void f() { return 42; }", [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 18, 2),
+  test_function_sync_block_void__to_int() async {
+    await assertErrorsInCode('''
+int f(void a) {
+  return a;
+}
+''', [
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 25, 1),
+    ]);
+  }
+
+  test_function_sync_expression_int__to_void() async {
+    await assertNoErrorsInCode('''
+void f() => 42;
+''');
+  }
+
+  test_function_sync_expression_String__to_int() async {
+    await assertErrorsInCode('''
+int f() => '0';
+''', [
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 11, 3),
+    ]);
+  }
+
+  test_getter_sync_block_String__to_int() async {
+    await assertErrorsInCode('''
+int get g {
+  return '0';
+}
+''', [
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 21, 3),
+    ]);
+  }
+
+  test_getter_sync_expression_String__to_int() async {
+    await assertErrorsInCode('''
+int get g => '0';
+''', [
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 13, 3),
+    ]);
+  }
+
+  test_localFunction_sync_block_String__to_int() async {
+    await assertErrorsInCode(r'''
+void f() {
+  int g() {
+    return '0';
+  }
+  g();
+}
+''', [
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 34, 3),
+    ]);
+  }
+
+  test_localFunction_sync_expression_String__to_int() async {
+    await assertErrorsInCode(r'''
+class A {
+  void m() {
+    int f() => '0';
+    f();
+  }
+}
+''', [
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 38, 3),
+    ]);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38162')
+  test_method_async_block_callable_class() async {
+    await assertNoErrorsInCode(r'''
+typedef Fn = void Function(String s);
+
+class CanFn {
+  void call(String s) => print(s);
+}
+
+Future<Fn> f() async {
+  return CanFn();
+}
+''');
+  }
+
+  test_method_sync_block_String__to_int() async {
+    await assertErrorsInCode(r'''
+class A {
+  int m() {
+    return '0';
+  }
+}
+''', [
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 33, 3),
+    ]);
+  }
+
+  test_method_sync_expression_generic() async {
+    await assertNoErrorsInCode(r'''
+abstract class F<T>  {
+  T get value;
+}
+
+abstract class G<U> {
+  U test(F<U> arg) => arg.value;
+}
+''');
+  }
+
+  test_method_sync_expression_String__to_int() async {
+    await assertErrorsInCode(r'''
+class A {
+  int f() => '0';
+}
+''', [
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 23, 3),
     ]);
   }
 }

@@ -1,0 +1,16 @@
+// @dart = 2.6
+class Subclass extends Superclass {
+  bar({alpha, beta}) {}
+  foo({beta, alpha}) {}
+  namedCallback(callback({int beta, String alpha})) {}
+}
+
+class Superclass {
+  bar({beta, alpha}) {}
+  foo({alpha, beta}) {}
+  namedCallback(callback({String alpha, int beta})) {}
+}
+
+main() {}
+topLevelNamed(beta, alpha, {gamma, delta}) {}
+topLevelOptional(beta, alpha, [gamma, delta]) {}

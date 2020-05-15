@@ -11,6 +11,7 @@
 #endif
 #include "vm/flags.h"
 #include "vm/heap/safepoint.h"
+#include "vm/log.h"
 #include "vm/native_arguments.h"
 #include "vm/runtime_entry_list.h"
 
@@ -57,11 +58,6 @@ class RuntimeEntry : public BaseRuntimeEntry {
                                intptr_t argument_count) const);
 
   static uword InterpretCallEntry();
-  static RawObject* InterpretCall(RawFunction* function,
-                                  RawArray* argdesc,
-                                  intptr_t argc,
-                                  RawObject** argv,
-                                  Thread* thread);
 
  protected:
   NOT_IN_PRECOMPILED(static void CallInternal(const RuntimeEntry* runtime_entry,

@@ -353,6 +353,10 @@ abstract class CommonElements {
 
   ClassEntity get jsInvocationMirrorClass;
 
+  ClassEntity get requiredSentinelClass;
+
+  InterfaceType get requiredSentinelType;
+
   MemberEntity get invocationTypeArgumentGetter;
 
   /// Interface used to determine if an object has the JavaScript
@@ -499,7 +503,6 @@ abstract class CommonElements {
   FunctionEntity get typeLiteralMaker;
   FunctionEntity get checkTypeBound;
   FieldEntity get rtiAsField;
-  FieldEntity get rtiCheckField;
   FieldEntity get rtiIsField;
   FieldEntity get rtiRestField;
   FieldEntity get rtiPrecomputed1Field;
@@ -509,29 +512,36 @@ abstract class CommonElements {
   FunctionEntity get rtiAddErasedTypesMethod;
   FunctionEntity get rtiAddTypeParameterVariancesMethod;
 
+  FunctionEntity get installSpecializedIsTest;
+  FunctionEntity get installSpecializedAsCheck;
   FunctionEntity get generalIsTestImplementation;
   FunctionEntity get generalAsCheckImplementation;
-  FunctionEntity get generalTypeCheckImplementation;
+  FunctionEntity get generalNullableIsTestImplementation;
+  FunctionEntity get generalNullableAsCheckImplementation;
 
   FunctionEntity get specializedIsObject;
   FunctionEntity get specializedAsObject;
-  FunctionEntity get specializedCheckObject;
   FunctionEntity get specializedIsTop;
   FunctionEntity get specializedAsTop;
   FunctionEntity get specializedIsBool;
+  FunctionEntity get specializedAsBool;
+  FunctionEntity get specializedAsBoolLegacy;
   FunctionEntity get specializedAsBoolNullable;
-  FunctionEntity get specializedCheckBoolNullable;
+  FunctionEntity get specializedAsDouble;
+  FunctionEntity get specializedAsDoubleLegacy;
   FunctionEntity get specializedAsDoubleNullable;
-  FunctionEntity get specializedCheckDoubleNullable;
   FunctionEntity get specializedIsInt;
+  FunctionEntity get specializedAsInt;
+  FunctionEntity get specializedAsIntLegacy;
   FunctionEntity get specializedAsIntNullable;
-  FunctionEntity get specializedCheckIntNullable;
   FunctionEntity get specializedIsNum;
+  FunctionEntity get specializedAsNum;
+  FunctionEntity get specializedAsNumLegacy;
   FunctionEntity get specializedAsNumNullable;
-  FunctionEntity get specializedCheckNumNullable;
   FunctionEntity get specializedIsString;
+  FunctionEntity get specializedAsString;
+  FunctionEntity get specializedAsStringLegacy;
   FunctionEntity get specializedAsStringNullable;
-  FunctionEntity get specializedCheckStringNullable;
 
   FunctionEntity get instantiatedGenericFunctionTypeNewRti;
   FunctionEntity get closureFunctionType;
@@ -1550,6 +1560,13 @@ class CommonElementsImpl
   ClassEntity get jsInvocationMirrorClass =>
       _jsInvocationMirrorClass ??= _findHelperClass('JSInvocationMirror');
 
+  ClassEntity _requiredSentinelClass;
+  @override
+  ClassEntity get requiredSentinelClass =>
+      _requiredSentinelClass ??= _findHelperClass('_Required');
+  @override
+  InterfaceType get requiredSentinelType => _getRawType(requiredSentinelClass);
+
   MemberEntity _invocationTypeArgumentGetter;
   @override
   MemberEntity get invocationTypeArgumentGetter =>
@@ -1921,11 +1938,6 @@ class CommonElementsImpl
   @override
   FieldEntity get rtiIsField => _rtiIsField ??= _findRtiClassField('_is');
 
-  FieldEntity _rtiCheckField;
-  @override
-  FieldEntity get rtiCheckField =>
-      _rtiCheckField ??= _findRtiClassField('_check');
-
   FieldEntity _rtiRestField;
   @override
   FieldEntity get rtiRestField => _rtiRestField ??= _findRtiClassField('_rest');
@@ -1961,11 +1973,25 @@ class CommonElementsImpl
       _rtiAddTypeParameterVariancesMethod ??=
           _findClassMember(_rtiUniverseClass, 'addTypeParameterVariances');
 
+  @override
+  FunctionEntity get installSpecializedIsTest =>
+      _findRtiFunction('_installSpecializedIsTest');
+
+  @override
+  FunctionEntity get installSpecializedAsCheck =>
+      _findRtiFunction('_installSpecializedAsCheck');
+
   FunctionEntity _generalIsTestImplementation;
   @override
   FunctionEntity get generalIsTestImplementation =>
       _generalIsTestImplementation ??=
           _findRtiFunction('_generalIsTestImplementation');
+
+  FunctionEntity _generalNullableIsTestImplementation;
+  @override
+  FunctionEntity get generalNullableIsTestImplementation =>
+      _generalNullableIsTestImplementation ??=
+          _findRtiFunction('_generalNullableIsTestImplementation');
 
   FunctionEntity _generalAsCheckImplementation;
   @override
@@ -1973,11 +1999,11 @@ class CommonElementsImpl
       _generalAsCheckImplementation ??=
           _findRtiFunction('_generalAsCheckImplementation');
 
-  FunctionEntity _generalTypeCheckImplementation;
+  FunctionEntity _generalNullableAsCheckImplementation;
   @override
-  FunctionEntity get generalTypeCheckImplementation =>
-      _generalTypeCheckImplementation ??=
-          _findRtiFunction('_generalTypeCheckImplementation');
+  FunctionEntity get generalNullableAsCheckImplementation =>
+      _generalNullableAsCheckImplementation ??=
+          _findRtiFunction('_generalNullableAsCheckImplementation');
 
   FunctionEntity _specializedIsObject;
   @override
@@ -1989,11 +2015,6 @@ class CommonElementsImpl
   FunctionEntity get specializedAsObject =>
       _specializedAsObject ??= _findRtiFunction('_asObject');
 
-  FunctionEntity _specializedCheckObject;
-  @override
-  FunctionEntity get specializedCheckObject =>
-      _specializedCheckObject ??= _findRtiFunction('_checkObject');
-
   @override
   FunctionEntity get specializedIsTop => _findRtiFunction('_isTop');
 
@@ -2004,53 +2025,62 @@ class CommonElementsImpl
   FunctionEntity get specializedIsBool => _findRtiFunction('_isBool');
 
   @override
-  FunctionEntity get specializedAsBoolNullable =>
-      _findRtiFunction('_asBoolNullable');
+  FunctionEntity get specializedAsBool => _findRtiFunction('_asBool');
 
   @override
-  FunctionEntity get specializedCheckBoolNullable =>
-      _findRtiFunction('_checkBoolNullable');
+  FunctionEntity get specializedAsBoolLegacy => _findRtiFunction('_asBoolS');
+
+  @override
+  FunctionEntity get specializedAsBoolNullable => _findRtiFunction('_asBoolQ');
+
+  @override
+  FunctionEntity get specializedAsDouble => _findRtiFunction('_asDouble');
+
+  @override
+  FunctionEntity get specializedAsDoubleLegacy =>
+      _findRtiFunction('_asDoubleS');
 
   @override
   FunctionEntity get specializedAsDoubleNullable =>
-      _findRtiFunction('_asDoubleNullable');
-
-  @override
-  FunctionEntity get specializedCheckDoubleNullable =>
-      _findRtiFunction('_checkDoubleNullable');
+      _findRtiFunction('_asDoubleQ');
 
   @override
   FunctionEntity get specializedIsInt => _findRtiFunction('_isInt');
 
   @override
-  FunctionEntity get specializedAsIntNullable =>
-      _findRtiFunction('_asIntNullable');
+  FunctionEntity get specializedAsInt => _findRtiFunction('_asInt');
 
   @override
-  FunctionEntity get specializedCheckIntNullable =>
-      _findRtiFunction('_checkIntNullable');
+  FunctionEntity get specializedAsIntLegacy => _findRtiFunction('_asIntS');
+
+  @override
+  FunctionEntity get specializedAsIntNullable => _findRtiFunction('_asIntQ');
 
   @override
   FunctionEntity get specializedIsNum => _findRtiFunction('_isNum');
 
   @override
-  FunctionEntity get specializedAsNumNullable =>
-      _findRtiFunction('_asNumNullable');
+  FunctionEntity get specializedAsNum => _findRtiFunction('_asNum');
 
   @override
-  FunctionEntity get specializedCheckNumNullable =>
-      _findRtiFunction('_checkNumNullable');
+  FunctionEntity get specializedAsNumLegacy => _findRtiFunction('_asNumS');
+
+  @override
+  FunctionEntity get specializedAsNumNullable => _findRtiFunction('_asNumQ');
 
   @override
   FunctionEntity get specializedIsString => _findRtiFunction('_isString');
 
   @override
-  FunctionEntity get specializedAsStringNullable =>
-      _findRtiFunction('_asStringNullable');
+  FunctionEntity get specializedAsString => _findRtiFunction('_asString');
 
   @override
-  FunctionEntity get specializedCheckStringNullable =>
-      _findRtiFunction('_checkStringNullable');
+  FunctionEntity get specializedAsStringLegacy =>
+      _findRtiFunction('_asStringS');
+
+  @override
+  FunctionEntity get specializedAsStringNullable =>
+      _findRtiFunction('_asStringQ');
 
   @override
   FunctionEntity get instantiatedGenericFunctionTypeNewRti =>

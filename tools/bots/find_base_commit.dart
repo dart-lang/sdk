@@ -89,8 +89,10 @@ ${parser.usage}""");
   for (final build in builds) {
     final parameters = jsonDecode(build["parameters_json"]);
     final bot = parameters["builder_name"];
-    if (bot.endsWith("-dev") || bot.endsWith("-stable")) {
-      // Ignore the -dev and -stable builders. The -try builders aren't in the
+    if (bot.endsWith("-beta") ||
+        bot.endsWith("-dev") ||
+        bot.endsWith("-stable")) {
+      // Ignore the release builders. The -try builders aren't in the
       // bucket we're reading.
       continue;
     }

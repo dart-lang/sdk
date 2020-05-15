@@ -1,0 +1,9 @@
+// @dart = 2.6
+library redirecting_factory_constructors.typeparam_test;
+
+class A<T, S> {
+  A(T t, S s);
+  factory A.redir(T t, S s) = A<T, S>;
+}
+
+main() {}

@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_ARM64_H_
 #define RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_ARM64_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #ifndef RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_H_
 #error Do not include assembler_arm64.h directly; use assembler.h instead.
 #endif
@@ -147,7 +151,8 @@ class Address : public ValueObject {
       ASSERT((at == PairOffset) || (at == PairPreIndex) ||
              (at == PairPostIndex));
       ASSERT(Utils::IsInt(7 + scale, offset) &&
-             (offset == ((offset >> scale) << scale)));
+             (static_cast<uint32_t>(offset) ==
+              ((static_cast<uint32_t>(offset) >> scale) << scale)));
       int32_t idx = 0;
       switch (at) {
         case PairPostIndex:
@@ -163,8 +168,10 @@ class Address : public ValueObject {
           UNREACHABLE();
           break;
       }
-      encoding_ = idx | (((offset >> scale) << kImm7Shift) & kImm7Mask) |
-                  Arm64Encode::Rn(rn);
+      encoding_ =
+          idx |
+          ((static_cast<uint32_t>(offset >> scale) << kImm7Shift) & kImm7Mask) |
+          Arm64Encode::Rn(rn);
     }
     type_ = at;
     base_ = ConcreteRegister(rn);
@@ -195,7 +202,8 @@ class Address : public ValueObject {
              (at == PairPostIndex));
       const int32_t scale = Log2OperandSizeBytes(sz);
       return (Utils::IsInt(7 + scale, offset) &&
-              (offset == ((offset >> scale) << scale)));
+              (static_cast<uint32_t>(offset) ==
+               ((static_cast<uint32_t>(offset) >> scale) << scale)));
     }
   }
 
@@ -468,7 +476,7 @@ class Assembler : public AssemblerBase {
   void Drop(intptr_t stack_elements) {
     ASSERT(stack_elements >= 0);
     if (stack_elements > 0) {
-      add(SP, SP, Operand(stack_elements * target::kWordSize));
+      AddImmediate(SP, SP, stack_elements * target::kWordSize);
     }
   }
 
@@ -476,6 +484,9 @@ class Assembler : public AssemblerBase {
   void Jump(Label* label) { b(label); }
 
   void LoadField(Register dst, FieldAddress address) { ldr(dst, address); }
+  void LoadMemoryValue(Register dst, Register base, int32_t offset) {
+    LoadFromOffset(dst, base, offset, kDoubleWord);
+  }
 
   void CompareWithFieldValue(Register value, FieldAddress address) {
     CompareWithMemoryValue(value, address);
@@ -1031,11 +1042,6 @@ class Assembler : public AssemblerBase {
   // Breakpoint.
   void brk(uint16_t imm) { EmitExceptionGenOp(BRK, imm); }
 
-  static uword GetBreakInstructionFiller() {
-    const intptr_t encoding = ExceptionGenOpEncoding(BRK, 0);
-    return encoding << 32 | encoding;
-  }
-
   // Double floating point.
   bool fmovdi(VRegister vd, double immd) {
     int64_t imm64 = bit_cast<int64_t, double>(immd);
@@ -1403,16 +1409,17 @@ class Assembler : public AssemblerBase {
   }
   void BranchLinkToRuntime();
 
-  void CallNullErrorShared(bool save_fpu_registers);
-
-  void CallNullArgErrorShared(bool save_fpu_registers);
-
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.
   void BranchLinkWithEquivalence(
       const Code& code,
       const Object& equivalence,
       CodeEntryKind entry_kind = CodeEntryKind::kNormal);
+
+  void Call(Address target) {
+    ldr(LR, target);
+    blr(LR);
+  }
 
   void AddImmediate(Register dest, int64_t imm) {
     AddImmediate(dest, dest, imm);
@@ -1568,6 +1575,9 @@ class Assembler : public AssemblerBase {
   }
   void CompareObject(Register reg, const Object& object);
 
+  void ExtractClassIdFromTags(Register result, Register tags);
+  void ExtractInstanceSizeFromTags(Register result, Register tags);
+
   void LoadClassId(Register result, Register object);
   void LoadClassById(Register result, Register class_id);
   void CompareClassId(Register object,
@@ -1577,7 +1587,8 @@ class Assembler : public AssemblerBase {
   void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
 
-  void SetupDartSP();
+  // Reserve specifies how much space to reserve for the Dart stack.
+  void SetupDartSP(intptr_t reserve = 4096);
   void SetupCSPFromThread(Register thr);
   void RestoreCSP();
 
@@ -1654,8 +1665,8 @@ class Assembler : public AssemblerBase {
   // the code can be used.
   //
   // The neccessary information for the "linker" (i.e. the relocation
-  // information) is stored in [RawCode::static_calls_target_table_]: an entry
-  // of the form
+  // information) is stored in [CodeLayout::static_calls_target_table_]: an
+  // entry of the form
   //
   //   (Code::kPcRelativeCall & pc_offset, <target-code>, <target-function>)
   //
@@ -1665,6 +1676,11 @@ class Assembler : public AssemblerBase {
   // destination.  It can be used e.g. for calling into the middle of a
   // function.
   void GenerateUnRelocatedPcRelativeCall(intptr_t offset_into_target = 0);
+
+  // This emits an PC-relative tail call of the form "b <offset>".
+  //
+  // See also above for the pc-relative call.
+  void GenerateUnRelocatedPcRelativeTailCall(intptr_t offset_into_target = 0);
 
   Address ElementAddressForIntIndex(bool is_external,
                                     intptr_t cid,
@@ -1704,6 +1720,10 @@ class Assembler : public AssemblerBase {
                                         bool index_unboxed,
                                         Register array,
                                         Register index);
+
+  void LoadFieldAddressForRegOffset(Register address,
+                                    Register instance,
+                                    Register offset_in_words_as_smi);
 
   // Returns object data offset for address calculation; for heap objects also
   // accounts for the tag.
@@ -1861,12 +1881,14 @@ class Assembler : public AssemblerBase {
       BailoutWithBranchOffsetError();
     }
     const int32_t imm32 = static_cast<int32_t>(imm);
-    const int32_t off = (((imm32 >> 2) << kImm19Shift) & kImm19Mask);
+    const int32_t off =
+        ((static_cast<uint32_t>(imm32 >> 2) << kImm19Shift) & kImm19Mask);
     return (instr & ~kImm19Mask) | off;
   }
 
   int64_t DecodeImm19BranchOffset(int32_t instr) {
-    const int32_t off = (((instr & kImm19Mask) >> kImm19Shift) << 13) >> 11;
+    int32_t insns = (static_cast<uint32_t>(instr) & kImm19Mask) >> kImm19Shift;
+    const int32_t off = static_cast<int32_t>(insns << 13) >> 11;
     return static_cast<int64_t>(off);
   }
 
@@ -1876,12 +1898,14 @@ class Assembler : public AssemblerBase {
       BailoutWithBranchOffsetError();
     }
     const int32_t imm32 = static_cast<int32_t>(imm);
-    const int32_t off = (((imm32 >> 2) << kImm14Shift) & kImm14Mask);
+    const int32_t off =
+        ((static_cast<uint32_t>(imm32 >> 2) << kImm14Shift) & kImm14Mask);
     return (instr & ~kImm14Mask) | off;
   }
 
   int64_t DecodeImm14BranchOffset(int32_t instr) {
-    const int32_t off = (((instr & kImm14Mask) >> kImm14Shift) << 18) >> 16;
+    int32_t insns = (static_cast<uint32_t>(instr) & kImm14Mask) >> kImm14Shift;
+    const int32_t off = static_cast<int32_t>(insns << 18) >> 16;
     return static_cast<int64_t>(off);
   }
 
@@ -2195,7 +2219,8 @@ class Assembler : public AssemblerBase {
     ASSERT(Utils::IsInt(21, imm.value()));
     ASSERT((rd != R31) && (rd != CSP));
     const int32_t loimm = (imm.value() & 0x3) << 29;
-    const int32_t hiimm = ((imm.value() >> 2) << kImm19Shift) & kImm19Mask;
+    const int32_t hiimm =
+        (static_cast<uint32_t>(imm.value() >> 2) << kImm19Shift) & kImm19Mask;
     const int32_t encoding = op | loimm | hiimm | Arm64Encode::Rd(rd);
     Emit(encoding);
   }

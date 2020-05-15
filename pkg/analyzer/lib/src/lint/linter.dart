@@ -17,14 +17,20 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
+import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisErrorInfo, AnalysisErrorInfoImpl, AnalysisOptions;
+    show
+        AnalysisErrorInfo,
+        AnalysisErrorInfoImpl,
+        AnalysisOptions,
+        AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/resolver.dart'
     show ConstantVerifier, ScopedVisitor;
 import 'package:analyzer/src/generated/source.dart' show LineInfo;
@@ -85,8 +91,6 @@ class DartLinter implements AnalysisErrorListener {
   DartLinter(this.options, {this.reporter = const PrintingReporter()});
 
   Future<Iterable<AnalysisErrorInfo>> lintFiles(List<File> files) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     List<AnalysisErrorInfo> errors = [];
     final lintDriver = LintDriver(options);
     errors.addAll(await lintDriver.analyze(files.where((f) => isDartFile(f))));
@@ -241,15 +245,15 @@ abstract class LinterContext {
 
   TypeSystem get typeSystem;
 
-  /// Return `true` if it would be valid for the given instance creation
-  /// [expression] to have a keyword of `const`.
+  /// Return `true` if it would be valid for the given [expression] to have
+  /// a keyword of `const`.
   ///
   /// The [expression] is expected to be a node within one of the compilation
   /// units in [allUnits].
   ///
   /// Note that this method can cause constant evaluation to occur, which can be
   /// computationally expensive.
-  bool canBeConst(InstanceCreationExpression expression);
+  bool canBeConst(Expression expression);
 
   /// Return `true` if it would be valid for the given constructor declaration
   /// [node] to have a keyword of `const`.
@@ -309,29 +313,13 @@ class LinterContextImpl implements LinterContext {
   );
 
   @override
-  bool canBeConst(InstanceCreationExpression expression) {
-    //
-    // Verify that the invoked constructor is a const constructor.
-    //
-    ConstructorElement element = expression.staticElement;
-    if (element == null || !element.isConst) {
+  bool canBeConst(Expression expression) {
+    if (expression is InstanceCreationExpression) {
+      return _canBeConstInstanceCreation(expression);
+    } else if (expression is TypedLiteral) {
+      return _canBeConstTypedLiteral(expression);
+    } else {
       return false;
-    }
-
-    // Ensure that dependencies (e.g. default parameter values) are computed.
-    ConstructorElementImpl implElement = element.declaration;
-    implElement.computeConstantDependencies();
-
-    //
-    // Verify that the evaluation of the constructor would not produce an
-    // exception.
-    //
-    Token oldKeyword = expression.keyword;
-    try {
-      expression.keyword = KeywordToken(Keyword.CONST, expression.offset);
-      return !_hasConstantVerifierError(expression);
-    } finally {
-      expression.keyword = oldKeyword;
     }
   }
 
@@ -425,10 +413,56 @@ class LinterContextImpl implements LinterContext {
     return const LinterNameInScopeResolutionResult._none();
   }
 
+  bool _canBeConstInstanceCreation(InstanceCreationExpression node) {
+    //
+    // Verify that the invoked constructor is a const constructor.
+    //
+    ConstructorElement element = node.staticElement;
+    if (element == null || !element.isConst) {
+      return false;
+    }
+
+    // Ensure that dependencies (e.g. default parameter values) are computed.
+    ConstructorElementImpl implElement = element.declaration;
+    implElement.computeConstantDependencies();
+
+    //
+    // Verify that the evaluation of the constructor would not produce an
+    // exception.
+    //
+    Token oldKeyword = node.keyword;
+    try {
+      node.keyword = KeywordToken(Keyword.CONST, node.offset);
+      return !_hasConstantVerifierError(node);
+    } finally {
+      node.keyword = oldKeyword;
+    }
+  }
+
+  bool _canBeConstTypedLiteral(TypedLiteral node) {
+    Token oldKeyword = node.constKeyword;
+    try {
+      node.constKeyword = KeywordToken(Keyword.CONST, node.offset);
+      return !_hasConstantVerifierError(node);
+    } finally {
+      node.constKeyword = oldKeyword;
+    }
+  }
+
   /// Return `true` if [ConstantVerifier] reports an error for the [node].
   bool _hasConstantVerifierError(AstNode node) {
     var unitElement = currentUnit.unit.declaredElement;
     var libraryElement = unitElement.library;
+
+    var dependenciesFinder = ConstantExpressionsDependenciesFinder();
+    node.accept(dependenciesFinder);
+    computeConstants(
+      typeProvider,
+      typeSystem,
+      declaredVariables,
+      dependenciesFinder.dependencies.toList(),
+      (analysisOptions as AnalysisOptionsImpl).experimentStatus,
+    );
 
     var listener = ConstantAnalysisErrorListener();
     var errorReporter = ErrorReporter(
@@ -594,6 +628,12 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
     }
   }
 
+  void reportLintForOffset(int offset, int length,
+      {List<Object> arguments = const [], ErrorCode errorCode}) {
+    reporter.reportErrorForOffset(
+        errorCode ?? lintCode, offset, length, arguments);
+  }
+
   void reportLintForToken(Token token,
       {List<Object> arguments = const [],
       ErrorCode errorCode,
@@ -703,8 +743,6 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
 
   @override
   Future<Iterable<AnalysisErrorInfo>> lintFiles(List<File> files) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     List<AnalysisErrorInfo> errors = [];
     final lintDriver = LintDriver(options);
     errors.addAll(await lintDriver.analyze(files.where((f) => isDartFile(f))));

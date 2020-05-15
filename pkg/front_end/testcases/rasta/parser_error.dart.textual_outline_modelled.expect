@@ -1,0 +1,4 @@
+import "package:expect/expect.dart";
+
+int test(a, {b, c}) {}
+main() {}

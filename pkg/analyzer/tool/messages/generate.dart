@@ -135,7 +135,7 @@ part of 'syntactic_errors.dart';
     for (Map entry in translatedEntries) {
       final name = nameForEntry(entry);
       final errorCode = name[1];
-      if (!syntacticErrorsSource.contains('_$errorCode')) {
+      if (!syntacticErrorsSource.contains(' _$errorCode')) {
         if (publicCount == 0) {
           print('');
           print('The following ParserErrorCodes should be updated'

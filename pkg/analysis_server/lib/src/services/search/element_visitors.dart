@@ -64,7 +64,7 @@ class _ElementVisitorAdapter extends GeneralizingElementVisitor<void> {
 
   @override
   void visitElement(Element element) {
-    bool visitChildren = processor(element);
+    var visitChildren = processor(element);
     if (visitChildren == true) {
       element.visitChildren(this);
     }

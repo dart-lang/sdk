@@ -4,14 +4,14 @@
 
 #include "vm/code_descriptors.h"
 
-#include "vm/compiler/compiler_state.h"
+#include "vm/compiler/api/deopt_id.h"
 #include "vm/log.h"
 #include "vm/object_store.h"
 #include "vm/zone_text_buffer.h"
 
 namespace dart {
 
-void DescriptorList::AddDescriptor(RawPcDescriptors::Kind kind,
+void DescriptorList::AddDescriptor(PcDescriptorsLayout::Kind kind,
                                    intptr_t pc_offset,
                                    intptr_t deopt_id,
                                    TokenPosition token_pos,
@@ -20,19 +20,20 @@ void DescriptorList::AddDescriptor(RawPcDescriptors::Kind kind,
   // yield index 0 is reserved for normal entry.
   RELEASE_ASSERT(yield_index != 0);
 
-  ASSERT((kind == RawPcDescriptors::kRuntimeCall) ||
-         (kind == RawPcDescriptors::kBSSRelocation) ||
-         (kind == RawPcDescriptors::kOther) ||
-         (yield_index != RawPcDescriptors::kInvalidYieldIndex) ||
+  ASSERT((kind == PcDescriptorsLayout::kRuntimeCall) ||
+         (kind == PcDescriptorsLayout::kBSSRelocation) ||
+         (kind == PcDescriptorsLayout::kOther) ||
+         (yield_index != PcDescriptorsLayout::kInvalidYieldIndex) ||
          (deopt_id != DeoptId::kNone));
 
   // When precompiling, we only use pc descriptors for exceptions,
   // relocations and yield indices.
   if (!FLAG_precompiled_mode || try_index != -1 ||
-      yield_index != RawPcDescriptors::kInvalidYieldIndex ||
-      kind == RawPcDescriptors::kBSSRelocation) {
+      yield_index != PcDescriptorsLayout::kInvalidYieldIndex ||
+      kind == PcDescriptorsLayout::kBSSRelocation) {
     const int32_t kind_and_metadata =
-        RawPcDescriptors::KindAndMetadata::Encode(kind, try_index, yield_index);
+        PcDescriptorsLayout::KindAndMetadata::Encode(kind, try_index,
+                                                     yield_index);
 
     PcDescriptors::EncodeInteger(&encoded_data_, kind_and_metadata);
     PcDescriptors::EncodeInteger(&encoded_data_, pc_offset - prev_pc_offset);
@@ -48,7 +49,7 @@ void DescriptorList::AddDescriptor(RawPcDescriptors::Kind kind,
   }
 }
 
-RawPcDescriptors* DescriptorList::FinalizePcDescriptors(uword entry_point) {
+PcDescriptorsPtr DescriptorList::FinalizePcDescriptors(uword entry_point) {
   if (encoded_data_.length() == 0) {
     return Object::empty_descriptors().raw();
   }
@@ -82,7 +83,7 @@ void CompressedStackMapsBuilder::AddEntry(intptr_t pc_offset,
   last_pc_offset_ = pc_offset;
 }
 
-RawCompressedStackMaps* CompressedStackMapsBuilder::Finalize() const {
+CompressedStackMapsPtr CompressedStackMapsBuilder::Finalize() const {
   if (encoded_bytes_.length() == 0) return CompressedStackMaps::null();
   return CompressedStackMaps::NewInlined(encoded_bytes_);
 }
@@ -248,7 +249,7 @@ const char* CompressedStackMapsIterator::ToCString() const {
   return ToCString(Thread::Current()->zone());
 }
 
-RawExceptionHandlers* ExceptionHandlerList::FinalizeExceptionHandlers(
+ExceptionHandlersPtr ExceptionHandlerList::FinalizeExceptionHandlers(
     uword entry_point) const {
   intptr_t num_handlers = Length();
   if (num_handlers == 0) {
@@ -360,7 +361,7 @@ void CatchEntryMovesMapBuilder::EndMapping() {
   }
 }
 
-RawTypedData* CatchEntryMovesMapBuilder::FinalizeCatchEntryMovesMap() {
+TypedDataPtr CatchEntryMovesMapBuilder::FinalizeCatchEntryMovesMap() {
   TypedData& td = TypedData::Handle(TypedData::New(
       kTypedDataInt8ArrayCid, stream_.bytes_written(), Heap::kOld));
   NoSafepointScope no_safepoint;
@@ -518,12 +519,12 @@ void CodeSourceMapBuilder::EndCodeSourceRange(int32_t pc_offset,
   BufferAdvancePC(pc_offset - buffered_pc_offset_);
 }
 
-void CodeSourceMapBuilder::NoteDescriptor(RawPcDescriptors::Kind kind,
+void CodeSourceMapBuilder::NoteDescriptor(PcDescriptorsLayout::Kind kind,
                                           int32_t pc_offset,
                                           TokenPosition pos) {
   const uint8_t kCanThrow =
-      RawPcDescriptors::kIcCall | RawPcDescriptors::kUnoptStaticCall |
-      RawPcDescriptors::kRuntimeCall | RawPcDescriptors::kOther;
+      PcDescriptorsLayout::kIcCall | PcDescriptorsLayout::kUnoptStaticCall |
+      PcDescriptorsLayout::kRuntimeCall | PcDescriptorsLayout::kOther;
   if ((kind & kCanThrow) != 0) {
     BufferChangePosition(pos);
     BufferAdvancePC(pc_offset - buffered_pc_offset_);
@@ -552,14 +553,14 @@ intptr_t CodeSourceMapBuilder::GetFunctionId(intptr_t inline_id) {
   return inlined_functions_.Length() - 1;
 }
 
-RawArray* CodeSourceMapBuilder::InliningIdToFunction() {
+ArrayPtr CodeSourceMapBuilder::InliningIdToFunction() {
   if (inlined_functions_.Length() == 0) {
     return Object::empty_array().raw();
   }
   return Array::MakeFixedLength(inlined_functions_);
 }
 
-RawCodeSourceMap* CodeSourceMapBuilder::Finalize() {
+CodeSourceMapPtr CodeSourceMapBuilder::Finalize() {
   if (!stack_traces_only_) {
     FlushBuffer();
   }

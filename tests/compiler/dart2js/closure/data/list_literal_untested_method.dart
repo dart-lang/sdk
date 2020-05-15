@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'package:expect/expect.dart';
 
 @pragma('dart2js:noInline')
 method<T>() {
-  /*omit.*/
-  /*strong.fields=[T],free=[T]*/
+  /*prod:nnbd-off.*/
+  /*spec:nnbd-off|spec:nnbd-sdk.fields=[T],free=[T]*/
   dynamic local() => <T>[];
   return local;
 }

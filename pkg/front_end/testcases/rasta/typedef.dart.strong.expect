@@ -2,11 +2,11 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/rasta/typedef.dart:9:3: Error: Setter not found: 'Foo'.
+// pkg/front_end/testcases/rasta/typedef.dart:9:3: Error: Can't assign to a type literal.
 //   Foo = null;
 //   ^^^
 //
-// pkg/front_end/testcases/rasta/typedef.dart:10:3: Error: Setter not found: 'Foo'.
+// pkg/front_end/testcases/rasta/typedef.dart:10:3: Error: Can't assign to a type literal.
 //   Foo ??= null;
 //   ^^^
 //
@@ -20,10 +20,10 @@ import "dart:core" as core;
 typedef Foo = () →* void;
 static method main() → dynamic {
   core::print(() →* void);
-  invalid-expression "pkg/front_end/testcases/rasta/typedef.dart:9:3: Error: Setter not found: 'Foo'.
+  invalid-expression "pkg/front_end/testcases/rasta/typedef.dart:9:3: Error: Can't assign to a type literal.
   Foo = null;
   ^^^";
-  () →* void.{core::Object::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/typedef.dart:10:3: Error: Setter not found: 'Foo'.
+  () →* void.{core::Object::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/typedef.dart:10:3: Error: Can't assign to a type literal.
   Foo ??= null;
   ^^^" : null;
   invalid-expression "pkg/front_end/testcases/rasta/typedef.dart:11:3: Error: Method not found: 'Foo'.

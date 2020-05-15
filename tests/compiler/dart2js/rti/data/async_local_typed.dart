@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*strong.class: Class:explicit=[Class<int>],needsArgs*/
-/*omit.class: Class:*/
+// @dart = 2.7
+
+/*spec:nnbd-off.class: Class:explicit=[Class<int>],needsArgs*/
+/*spec:nnbd-sdk.class: Class:explicit=[Class<int*>*],needsArgs*/
 class Class<T> {}
 
 main() async {
@@ -12,8 +14,7 @@ main() async {
   // `dynamic Function(dynamic, Class<int>)`, is not a potential subtype and
   // therefore doesn't need its signature.
 
-  /*strong.needsSignature*/
-  /*omit.*/
+  /*spec:nnbd-off|spec:nnbd-sdk.needsSignature*/
   local(object, Class<int> stacktrace) => null;
 
   return local;

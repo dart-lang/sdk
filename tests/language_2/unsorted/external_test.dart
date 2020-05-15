@@ -46,8 +46,9 @@ class Foo {
   // [analyzer] STATIC_WARNING.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
 
   external Foo.n21(val) : x = 1;
-  //                           ^
-  // [cfe] Only constructors can have initializers, and 'n21' is not a constructor.
+  //                    ^
+  // [analyzer] SYNTACTIC_ERROR.EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER
+  // [cfe] An external constructor can't have any initializers.
   external Foo.n22(val) { x = 1; }
   //                    ^
   // [analyzer] SYNTACTIC_ERROR.EXTERNAL_METHOD_WITH_BODY
@@ -71,13 +72,13 @@ class Foo {
 }
 
 external int t06(int i) { }
-// [error line 73, column 1, length 8]
+// [error line 74, column 1, length 8]
 // [analyzer] SYNTACTIC_ERROR.EXTERNAL_METHOD_WITH_BODY
 // [cfe] An external or native method can't have a body.
 //                      ^
 // [cfe] An external or native method can't have a body.
 external int t07(int i) => i + 1;
-// [error line 79, column 1, length 8]
+// [error line 80, column 1, length 8]
 // [analyzer] SYNTACTIC_ERROR.EXTERNAL_METHOD_WITH_BODY
 // [cfe] An external or native method can't have a body.
 //                         ^

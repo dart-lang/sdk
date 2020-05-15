@@ -268,6 +268,46 @@ class CommonMasks implements AbstractValueDomain {
   AbstractValueWithPrecision createFromStaticType(DartType type,
       {ClassRelation classRelation = ClassRelation.subtype, bool nullable}) {
     assert(nullable != null);
+
+    if ((classRelation == ClassRelation.subtype ||
+            classRelation == ClassRelation.thisExpression) &&
+        dartTypes.isTopType(type)) {
+      // A cone of a top type includes all values.
+      return AbstractValueWithPrecision(dynamicType, true);
+    }
+
+    if (type is NullableType) {
+      assert(dartTypes.useNullSafety);
+      return _createFromStaticType(type.baseType, classRelation, true);
+    }
+
+    if (type is LegacyType) {
+      assert(dartTypes.useNullSafety);
+      DartType baseType = type.baseType;
+      if (baseType is NeverType) {
+        // Never* is same as Null, for both 'is' and 'as'.
+        return AbstractValueWithPrecision(nullType, true);
+      }
+
+      // Object* is a top type for both 'is' and 'as'. This is handled in the
+      // 'cone of top type' case above.
+
+      return _createFromStaticType(baseType, classRelation, nullable);
+    }
+
+    if (dartTypes.useLegacySubtyping) {
+      // In legacy and weak mode, `String` is nullable depending on context.
+      return _createFromStaticType(type, classRelation, nullable);
+    } else {
+      // In strong mode nullability comes from explicit NullableType.
+      return _createFromStaticType(type, classRelation, false);
+    }
+  }
+
+  AbstractValueWithPrecision _createFromStaticType(
+      DartType type, ClassRelation classRelation, bool nullable) {
+    assert(nullable != null);
+
     AbstractValueWithPrecision finish(TypeMask value, bool isPrecise) {
       return AbstractValueWithPrecision(
           nullable ? value : value.nonNullable(), isPrecise);
@@ -280,37 +320,71 @@ class CommonMasks implements AbstractValueDomain {
           .getTypeVariableBound(typeVariable.element);
       classRelation = ClassRelation.subtype;
       isPrecise = false;
+      if (type is NullableType) {
+        // <A extends B?, B extends num>  ...  null is A --> can be `true`.
+        // <A extends B, B extends num?>  ...  null is A --> can be `true`.
+        nullable = true;
+        type = type.withoutNullability;
+      }
+    }
+
+    if ((classRelation == ClassRelation.thisExpression ||
+            classRelation == ClassRelation.subtype) &&
+        dartTypes.isTopType(type)) {
+      // A cone of a top type includes all values. Since we already tested this
+      // in [createFromStaticType], we get here only for type parameter bounds.
+      return AbstractValueWithPrecision(dynamicType, isPrecise);
     }
 
     if (type is InterfaceType) {
-      if (isPrecise) {
-        // TODO(sra): Could be precise if instantiated-to-bounds.
-        for (DartType argument in type.typeArguments) {
-          if (argument is DynamicType) continue;
+      ClassEntity cls = type.element;
+      List<DartType> arguments = type.typeArguments;
+      if (isPrecise && arguments.isNotEmpty) {
+        // Can we ignore the type arguments?
+        //
+        // For legacy covariance, if the interface type is a generic interface
+        // type and is maximal (i.e. instantiated to bounds), the typemask,
+        // which is based on the class element, is still precise. We check
+        // against Top for the parameter arguments since we don't have a
+        // convenient check for instantation to bounds.
+        //
+        // TODO(sra): Check arguments against bounds.
+        // TODO(sra): Handle other variances.
+        List<Variance> variances = dartTypes.getTypeVariableVariances(cls);
+        for (int i = 0; i < arguments.length; i++) {
+          Variance variance = variances[i];
+          DartType argument = arguments[i];
+          if (variance == Variance.legacyCovariant &&
+              dartTypes.isTopType(argument)) {
+            continue;
+          }
           isPrecise = false;
         }
       }
       switch (classRelation) {
         case ClassRelation.exact:
-          return finish(TypeMask.exact(type.element, _closedWorld), isPrecise);
+          return finish(TypeMask.exact(cls, _closedWorld), isPrecise);
         case ClassRelation.thisExpression:
-          if (!_closedWorld.isUsedAsMixin(type.element)) {
-            return finish(
-                TypeMask.subclass(type.element, _closedWorld), isPrecise);
+          if (!_closedWorld.isUsedAsMixin(cls)) {
+            return finish(TypeMask.subclass(cls, _closedWorld), isPrecise);
           }
           break;
         case ClassRelation.subtype:
           break;
       }
-      return finish(TypeMask.subtype(type.element, _closedWorld), isPrecise);
-    } else if (type is FunctionType) {
+      return finish(TypeMask.subtype(cls, _closedWorld), isPrecise);
+    }
+
+    if (type is FunctionType) {
       return finish(
           TypeMask.subtype(commonElements.functionClass, _closedWorld), false);
-    } else if (type is DynamicType) {
-      return AbstractValueWithPrecision(dynamicType, true);
-    } else {
-      return finish(dynamicType, false);
     }
+
+    if (type is NeverType) {
+      return finish(nullType, isPrecise);
+    }
+
+    return AbstractValueWithPrecision(dynamicType, false);
   }
 
   @override

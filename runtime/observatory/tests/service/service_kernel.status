@@ -30,8 +30,8 @@ rewind_optimized_out_test: SkipByDesign # No incremental compiler available.
 rewind_test: SkipByDesign # No incremental compiler available.
 
 [ $compiler == dartkp ]
-add_breakpoint_rpc_kernel_test: RuntimeError
-async_generator_breakpoint_test: RuntimeError
+add_breakpoint_rpc_kernel_test: SkipByDesign
+async_generator_breakpoint_test: SkipByDesign
 async_next_regession_18877_test: Skip, Timeout
 async_next_test: Skip, Timeout
 async_scope_test: Skip, Timeout
@@ -43,49 +43,50 @@ async_star_step_out_test: Skip, Timeout
 async_step_out_test: Skip, Timeout
 awaiter_async_stack_contents_2_test: Skip, Timeout
 awaiter_async_stack_contents_test: Skip, Timeout
-bad_reload_test: RuntimeError
-break_on_activation_test: RuntimeError
+bad_reload_test: SkipByDesign
+break_on_activation_test: SkipByDesign
 break_on_async_function_test: Skip, Timeout
-break_on_default_constructor_test: RuntimeError
+break_on_default_constructor_test: SkipByDesign
 break_on_function_test: Skip, Timeout
-breakpoint_async_break_test: RuntimeError
-breakpoint_in_package_parts_class_file_uri_test: RuntimeError
-breakpoint_in_package_parts_class_test: RuntimeError
-breakpoint_in_parts_class_test: RuntimeError
-breakpoint_non_debuggable_library_test: RuntimeError
-breakpoint_on_if_null_1_test: RuntimeError
-breakpoint_on_if_null_2_test: RuntimeError
-breakpoint_on_if_null_3_test: RuntimeError
-breakpoint_on_if_null_4_test: RuntimeError
-breakpoint_partfile_test: RuntimeError
+breakpoint_async_break_test: SkipByDesign
+breakpoint_in_package_parts_class_file_uri_test: SkipByDesign
+breakpoint_in_package_parts_class_test: SkipByDesign
+breakpoint_in_parts_class_test: SkipByDesign
+breakpoint_non_debuggable_library_test: SkipByDesign
+breakpoint_on_if_null_1_test: SkipByDesign
+breakpoint_on_if_null_2_test: SkipByDesign
+breakpoint_on_if_null_3_test: SkipByDesign
+breakpoint_on_if_null_4_test: SkipByDesign
+breakpoint_partfile_test: SkipByDesign
 breakpoint_two_args_checked_test: Skip, Timeout
-breakpoints_with_mixin_test: RuntimeError # Debugger is disabled in AOT mode.
+breakpoints_with_mixin_test: SkipByDesign # Debugger is disabled in AOT mode.
 capture_stdio_test: Skip, Timeout
 causal_async_stack_contents_test: Skip, Timeout
 causal_async_stack_presence_test: Skip, Timeout
 causal_async_star_stack_contents_test: Skip, Timeout
 causal_async_star_stack_presence_test: Skip, Timeout
-client_resume_approvals_reload_test: RuntimeError # Compiler is disabled in AOT mode.
-code_test: RuntimeError
-column_breakpoint_test: RuntimeError
-complex_reload_test: RuntimeError
+client_resume_approvals_reload_test: SkipByDesign # Compiler is disabled in AOT mode.
+code_test: SkipByDesign
+column_breakpoint_test: SkipByDesign
+complex_reload_test: SkipByDesign
 coverage_const_field_async_closure_test: Skip, Timeout
 coverage_leaf_function_test: Skip, Timeout
 coverage_optimized_function_test: Skip, Timeout
-debugger_inspect_test: RuntimeError
+dds_log_history_size_*: Skip, Timeout
+debugger_inspect_test: SkipByDesign
 debugger_location_second_test: Skip, Timeout
 debugger_location_test: Skip, Timeout
 debugging_inlined_finally_test: Skip, Timeout
-debugging_test: RuntimeError
-dev_fs_spawn_test: RuntimeError
+debugging_test: SkipByDesign
+dev_fs_spawn_test: SkipByDesign
 developer_extension_test: Skip, Timeout
 developer_service_get_isolate_id_test: Skip, Timeout
-eval_internal_class_test: RuntimeError
+eval_internal_class_test: SkipByDesign
 eval_regression_flutter20255_test: Skip, Timeout
 eval_test: Skip, Timeout
 evaluate_activation_in_method_class_test: Skip, Timeout
-evaluate_activation_test: RuntimeError
-evaluate_async_closure_test: RuntimeError
+evaluate_activation_test: SkipByDesign
+evaluate_async_closure_test: SkipByDesign
 evaluate_class_type_parameters_test: Skip, Timeout
 evaluate_function_type_parameters_test: Skip, Timeout
 evaluate_in_async_activation_test: Skip, Timeout
@@ -93,22 +94,22 @@ evaluate_in_async_star_activation_test: Skip, Timeout
 evaluate_in_frame_rpc_test: Skip, Timeout
 evaluate_in_frame_with_scope_test: Skip, Timeout
 evaluate_in_sync_star_activation_test: Skip, Timeout
-evaluate_with_escaping_closure_test: RuntimeError
-evaluate_with_scope_test: RuntimeError
-field_script_test: RuntimeError
+evaluate_with_escaping_closure_test: SkipByDesign
+evaluate_with_scope_test: SkipByDesign
+field_script_test: SkipByDesign
 get_allocation_samples_test: Skip, Timeout
 get_isolate_after_language_error_test: CompileTimeError
-get_object_rpc_test: RuntimeError
+get_object_rpc_test: SkipByDesign
 get_source_report_test: Skip, Timeout
 get_source_report_with_mixin_test: Skip, Timeout
 get_stack_rpc_test: Skip, Timeout
-implicit_getter_setter_test: RuntimeError
+implicit_getter_setter_test: SkipByDesign
 invoke_test: Skip, Timeout
-isolate_lifecycle_test: RuntimeError
-issue_25465_test: RuntimeError
+isolate_lifecycle_test: SkipByDesign
+issue_25465_test: SkipByDesign
 issue_27238_test: Skip, Timeout
 issue_27287_test: Skip, Timeout
-issue_30555_test: RuntimeError
+issue_30555_test: SkipByDesign
 kill_paused_test: Skip, Timeout
 library_dependency_test: CompileTimeError
 local_variable_declaration_test: Skip, Timeout
@@ -116,68 +117,68 @@ logging_test: Skip, Timeout
 mirror_references_test: CompileTimeError
 mixin_break_test: Skip, Timeout
 network_profiling_test: Skip, Timeout
-next_through_assign_call_test: RuntimeError
-next_through_assign_int_test: RuntimeError
-next_through_await_for_test: RuntimeError
-next_through_call_on_field_in_class_test: RuntimeError
-next_through_call_on_field_test: RuntimeError
-next_through_call_on_static_field_in_class_test: RuntimeError
-next_through_catch_test: RuntimeError
-next_through_closure_test: RuntimeError
-next_through_create_list_and_map_test: RuntimeError
-next_through_for_each_loop_test: RuntimeError
-next_through_for_loop_with_break_and_continue_test: RuntimeError
-next_through_function_expression_test: RuntimeError
-next_through_implicit_call_test: RuntimeError
-next_through_is_and_as_test: RuntimeError
-next_through_multi_catch_test: RuntimeError
-next_through_new_test: RuntimeError
-next_through_operator_bracket_on_super_test: RuntimeError
-next_through_operator_bracket_on_this_test: RuntimeError
-next_through_operator_bracket_test: RuntimeError
-next_through_simple_async_test: RuntimeError
-next_through_simple_async_with_returns_test: RuntimeError
-next_through_simple_linear_2_test: RuntimeError
-next_through_simple_linear_test: RuntimeError
+next_through_assign_call_test: SkipByDesign
+next_through_assign_int_test: SkipByDesign
+next_through_await_for_test: SkipByDesign
+next_through_call_on_field_in_class_test: SkipByDesign
+next_through_call_on_field_test: SkipByDesign
+next_through_call_on_static_field_in_class_test: SkipByDesign
+next_through_catch_test: SkipByDesign
+next_through_closure_test: SkipByDesign
+next_through_create_list_and_map_test: SkipByDesign
+next_through_for_each_loop_test: SkipByDesign
+next_through_for_loop_with_break_and_continue_test: SkipByDesign
+next_through_function_expression_test: SkipByDesign
+next_through_implicit_call_test: SkipByDesign
+next_through_is_and_as_test: SkipByDesign
+next_through_multi_catch_test: SkipByDesign
+next_through_new_test: SkipByDesign
+next_through_operator_bracket_on_super_test: SkipByDesign
+next_through_operator_bracket_on_this_test: SkipByDesign
+next_through_operator_bracket_test: SkipByDesign
+next_through_simple_async_test: SkipByDesign
+next_through_simple_async_with_returns_test: SkipByDesign
+next_through_simple_linear_2_test: SkipByDesign
+next_through_simple_linear_test: SkipByDesign
 parameters_in_scope_at_entry_test: Skip, Timeout
 pause_idle_isolate_test: Skip, Timeout
-pause_on_exceptions_test: RuntimeError
-pause_on_start_then_step_test: RuntimeError
-pause_on_unhandled_async_exceptions2_test: RuntimeError
-pause_on_unhandled_async_exceptions3_test: RuntimeError
-pause_on_unhandled_async_exceptions_test: RuntimeError
-pause_on_unhandled_exceptions_test: RuntimeError
+pause_on_exceptions_test: SkipByDesign
+pause_on_start_then_step_test: SkipByDesign
+pause_on_unhandled_async_exceptions2_test: SkipByDesign
+pause_on_unhandled_async_exceptions3_test: SkipByDesign
+pause_on_unhandled_async_exceptions_test: SkipByDesign
+pause_on_unhandled_exceptions_test: SkipByDesign
 positive_token_pos_test: Skip, Timeout
-regress_28443_test: RuntimeError
-regress_28980_test: RuntimeError
+regress_28443_test: SkipByDesign
+regress_28980_test: SkipByDesign
 regress_34841_test: Skip, Timeout
 reload_sources_test: Skip, Timeout
 rewind_optimized_out_test: Skip, Timeout
 rewind_test: Skip, Timeout
 set_library_debuggable_test: Skip, Timeout
-simple_reload_test: RuntimeError
-steal_breakpoint_test: RuntimeError
+simple_reload_test: SkipByDesign
+steal_breakpoint_test: SkipByDesign
 step_into_async_no_await_test: Skip, Timeout
 step_over_await_test: Skip, Timeout
-step_test: RuntimeError
-step_through_arithmetic_test: RuntimeError
-step_through_constructor_calls_test: RuntimeError
-step_through_constructor_test: RuntimeError
-step_through_for_each_sync_star_2_test: RuntimeError
-step_through_for_each_sync_star_test: RuntimeError
-step_through_function_2_test: RuntimeError
-step_through_function_test: RuntimeError
-step_through_getter_test: RuntimeError
-step_through_mixin_from_sdk_test: RuntimeError
-step_through_property_get_test: RuntimeError
-step_through_property_set_test: RuntimeError
-step_through_setter_test: RuntimeError
-step_through_switch_test: RuntimeError
-step_through_switch_with_continue_test: RuntimeError
+step_test: SkipByDesign
+step_through_arithmetic_test: SkipByDesign
+step_through_constructor_calls_test: SkipByDesign
+step_through_constructor_test: SkipByDesign
+step_through_for_each_sync_star_2_test: SkipByDesign
+step_through_for_each_sync_star_test: SkipByDesign
+step_through_function_2_test: SkipByDesign
+step_through_function_test: SkipByDesign
+step_through_getter_test: SkipByDesign
+step_through_mixin_from_sdk_test: SkipByDesign
+step_through_property_get_test: SkipByDesign
+step_through_property_set_test: SkipByDesign
+step_through_setter_test: SkipByDesign
+step_through_switch_test: SkipByDesign
+step_through_switch_with_continue_test: SkipByDesign
 valid_source_locations_test: Skip, Timeout
 vm_timeline_flags_test: Skip, Timeout
 weak_properties_test: CompileTimeError
-yield_positions_with_finally_test: RuntimeError
+yield_positions_with_finally_test: SkipByDesign
 
 [ $fasta ]
 get_isolate_after_language_error_test: CompileTimeError
@@ -193,11 +194,18 @@ eval_regression_flutter20255_test: SkipSlow # Timeout
 get_vm_timeline_rpc_test: Pass, Slow
 rewind_optimized_out_test: SkipSlow # Timeout
 
+[ $arch == ia32 && $compiler == dartk ]
+valid_source_locations_test: Skip # Issue 34736, too slow.
+
 [ $arch != simarm && $arch != simarm64 && $compiler == dartk ]
 complex_reload_test: RuntimeError
 
 [ $compiler == dartkb && ($builder_tag == bytecode_interpreter || $builder_tag == bytecode_mixed) ]
 *: Skip # There are still timeouts in the interpreter and mixed modes which cause infra timeouts.
+
+[ $mode == debug && $system == windows ]
+debugger_location_second_test: Skip, Timeout
+debugger_location_test: Skip, Timeout
 
 [ $mode == debug && ($compiler == dartk || $compiler == dartkb) ]
 isolate_lifecycle_test: Skip # Flaky.
@@ -262,6 +270,7 @@ bad_reload_test: Skip # Times out on sim architectures, also RuntimeError.
 break_on_activation_test: RuntimeError # Issue #34736
 breakpoint_in_package_parts_class_file_uri_test: RuntimeError # Issue #34736
 complex_reload_test: Skip # Times out on sim architectures, also RuntimeError.
+dds_log_history_size_gigantic_test: SkipSlow # Involves hundreds of thousands of log messages
 debugger_inspect_test: RuntimeError, Timeout # Issue #34736
 eval_internal_class_test: RuntimeError # Issue #34736
 eval_regression_flutter20255_test: SkipByDesign # No incremental compiler available.
@@ -282,7 +291,7 @@ rewind_optimized_out_test: RuntimeError # Issue #34736
 rewind_test: Pass, RuntimeError
 set_name_rpc_test: RuntimeError # Please triage.
 simple_reload_test: RuntimeError, Timeout
-valid_source_locations_test: Pass, Slow, Timeout # Issue 34736
+valid_source_locations_test: Skip # Issue 34736, too slow.
 
 [ $compiler == dartk || $compiler == dartkb ]
 bad_reload_test: RuntimeError # Issue 34025

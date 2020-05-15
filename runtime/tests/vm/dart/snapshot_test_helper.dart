@@ -14,6 +14,8 @@ class Result {
   final ProcessResult processResult;
 
   Result(this.cmdline, this.processResult);
+
+  String get output => processResult.stdout.trim();
 }
 
 void reportError(Result result, String msg) {
@@ -36,7 +38,7 @@ ${result.processResult.stderr}''');
 }
 
 void expectOutput(String what, Result result) {
-  if (result.processResult.stdout.trim() != what) {
+  if (result.output != what) {
     reportError(result, 'Expected test to print \'${what}\' to stdout');
   }
 }

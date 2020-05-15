@@ -145,7 +145,7 @@ Iterable<String> _wrapLines(List<String> lines, int maxLength) sync* {
         yield line;
         break;
       } else {
-        int lastSpace = line.lastIndexOf(' ', maxLength);
+        var lastSpace = line.lastIndexOf(' ', maxLength);
         // If there was no valid place to wrap, yield the whole string.
         if (lastSpace == -1) {
           yield line;
@@ -348,24 +348,16 @@ void _writeEquals(IndentableStringBuffer buffer, Interface interface) {
     ..writeIndentedln('@override')
     ..writeIndentedln('bool operator ==(Object other) {')
     ..indent()
-    ..writeIndentedln('if (other is ${interface.name}) {')
+    // We want an exact type match, but also need `is` to have the analyzer
+    // promote the type to allow access to the fields on `other`.
+    ..writeIndentedln(
+        'if (other is ${interface.name} && other.runtimeType == ${interface.name}) {')
     ..indent()
     ..writeIndented('return ');
   for (var field in _getAllFields(interface)) {
-    final type = field.type;
-    if (type is ArrayType) {
-      final elementType = type.elementType;
-      final elementDartType = elementType.dartTypeWithTypeArgs;
-      buffer.write(
-          'listEqual(${field.name}, other.${field.name}, ($elementDartType a, $elementDartType b) => a == b) && ');
-    } else if (type is MapType) {
-      final valueType = type.valueType;
-      final valueDartType = valueType.dartTypeWithTypeArgs;
-      buffer.write(
-          'mapEqual(${field.name}, other.${field.name}, ($valueDartType a, $valueDartType b) => a == b) && ');
-    } else {
-      buffer.write('${field.name} == other.${field.name} && ');
-    }
+    final type = resolveTypeAlias(field.type);
+    _writeEqualsExpression(buffer, type, field.name, 'other.${field.name}');
+    buffer.write(' && ');
   }
   buffer
     ..writeln('true;')
@@ -374,6 +366,27 @@ void _writeEquals(IndentableStringBuffer buffer, Interface interface) {
     ..writeIndentedln('return false;')
     ..outdent()
     ..writeIndentedln('}');
+}
+
+void _writeEqualsExpression(IndentableStringBuffer buffer, TypeBase type,
+    String thisName, String otherName) {
+  if (type is ArrayType) {
+    final elementType = type.elementType;
+    final elementDartType = elementType.dartTypeWithTypeArgs;
+    buffer.write(
+        'listEqual($thisName, $otherName, ($elementDartType a, $elementDartType b) => ');
+    _writeEqualsExpression(buffer, elementType, 'a', 'b');
+    buffer.write(')');
+  } else if (type is MapType) {
+    final valueType = type.valueType;
+    final valueDartType = valueType.dartTypeWithTypeArgs;
+    buffer.write(
+        'mapEqual($thisName, $otherName, ($valueDartType a, $valueDartType b) => ');
+    _writeEqualsExpression(buffer, valueType, 'a', 'b');
+    buffer.write(')');
+  } else {
+    buffer.write('$thisName == $otherName');
+  }
 }
 
 void _writeField(IndentableStringBuffer buffer, Field field) {
@@ -501,7 +514,7 @@ void _writeHashCode(IndentableStringBuffer buffer, Interface interface) {
     ..writeIndentedln('@override')
     ..writeIndentedln('int get hashCode {')
     ..indent()
-    ..writeIndentedln('int hash = 0;');
+    ..writeIndentedln('var hash = 0;');
   for (var field in _getAllFields(interface)) {
     buffer.writeIndentedln(
         'hash = JenkinsSmiHash.combine(hash, ${field.name}.hashCode);');
@@ -628,7 +641,7 @@ void _writeToJsonMethod(IndentableStringBuffer buffer, Interface interface) {
   buffer
     ..writeIndentedln('Map<String, dynamic> toJson() {')
     ..indent()
-    ..writeIndentedln('Map<String, dynamic> __result = {};');
+    ..writeIndentedln('var __result = <String, dynamic>{};');
   // ResponseMessage must confirm to JSON-RPC which says only one of
   // result/error can be included. Since this isn't encoded in the types we
   // need to special-case it's toJson generation.

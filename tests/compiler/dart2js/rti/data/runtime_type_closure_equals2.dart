@@ -2,30 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'package:expect/expect.dart';
 
-/*strong.class: Class:*/
-/*omit.class: Class:*/
+/*spec:nnbd-off|prod:nnbd-off.class: Class:*/
 class Class<T> {
-  /*strong.member: Class.:*/
-  /*omit.member: Class.:*/
+  /*spec:nnbd-off|prod:nnbd-off.member: Class.:*/
   Class();
 }
 
-/*strong.member: main:*/
-/*omit.member: main:*/
+/*spec:nnbd-off|prod:nnbd-off.member: main:*/
 main() {
-  /*strong.needsArgs,needsSignature*/
-  /*omit.needsArgs,needsSignature*/
+  /*needsArgs,needsSignature*/
   T local1a<T>() => null;
 
-  /*strong.needsArgs,needsSignature*/
-  /*omit.needsArgs,needsSignature*/
+  /*needsArgs,needsSignature*/
   T local1b<T>() => null;
 
-  /*strong.direct,explicit=[local2.T],needsArgs,needsSignature*/
-  /*omit.needsArgs,needsSignature*/
-  T local2<T>(T t, String s) => t;
+  /*spec:nnbd-off.direct,explicit=[local2.T],needsArgs,needsSignature*/
+  /*prod:nnbd-off|prod:nnbd-sdk.needsArgs,needsSignature*/
+  /*spec:nnbd-sdk.direct,explicit=[local2.T*],needsArgs,needsSignature*/ T
+      local2<T>(T t, String s) => t;
 
   Expect.isTrue(local1a.runtimeType == local1b.runtimeType);
   Expect.isFalse(local1a.runtimeType == local2.runtimeType);

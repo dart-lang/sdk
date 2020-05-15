@@ -13,7 +13,16 @@ abstract class Interface {
 }
 
 /*class: Class:Class,Interface,LegacyClass,Object*/
+/*cfe|cfe:builder.member: Class.toString:String Function()*/
+/*cfe|cfe:builder.member: Class.runtimeType:Type*/
+/*cfe|cfe:builder.member: Class._simpleInstanceOf:bool Function(dynamic)*/
+/*cfe|cfe:builder.member: Class._instanceOf:bool Function(dynamic, dynamic, dynamic)*/
+/*cfe|cfe:builder.member: Class.noSuchMethod:dynamic Function(Invocation)*/
+/*cfe|cfe:builder.member: Class._identityHashCode:int*/
+/*cfe|cfe:builder.member: Class.hashCode:int*/
+/*cfe|cfe:builder.member: Class._simpleInstanceOfFalse:bool Function(dynamic)*/
+/*cfe|cfe:builder.member: Class._simpleInstanceOfTrue:bool Function(dynamic)*/
+/*cfe|cfe:builder.member: Class.==:bool* Function(dynamic)**/
 abstract class Class extends LegacyClass implements Interface {
-  /*cfe|cfe:builder.member: Class.method:int Function(int?)*/
-  /*analyzer.member: Class.method:int* Function(int*)**/
+  /*member: Class.method:int Function(int?)*/
 }

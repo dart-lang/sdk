@@ -22,7 +22,6 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 import 'package:analyzer_plugin/src/utilities/null_string_sink.dart';
 import 'package:analyzer_plugin/utilities/subscriptions/subscription_manager.dart';
-import 'package:path/src/context.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// The abstract superclass of any class implementing a plugin for the analysis
@@ -108,7 +107,7 @@ abstract class ServerPlugin {
 
   /// Return the context root containing the file at the given [filePath].
   ContextRoot contextRootContaining(String filePath) {
-    Context pathContext = resourceProvider.pathContext;
+    var pathContext = resourceProvider.pathContext;
 
     /// Return `true` if the given [child] is either the same as or within the
     /// given [parent].
@@ -119,8 +118,8 @@ abstract class ServerPlugin {
     /// Return `true` if the given context [root] contains the target [file].
     bool ownsFile(ContextRoot root) {
       if (isOrWithin(root.root, filePath)) {
-        List<String> excludedPaths = root.exclude;
-        for (String excludedPath in excludedPaths) {
+        var excludedPaths = root.exclude;
+        for (var excludedPath in excludedPaths) {
           if (isOrWithin(excludedPath, filePath)) {
             return false;
           }
@@ -130,7 +129,7 @@ abstract class ServerPlugin {
       return false;
     }
 
-    for (ContextRoot root in driverMap.keys) {
+    for (var root in driverMap.keys) {
       if (ownsFile(root)) {
         return root;
       }
@@ -144,7 +143,7 @@ abstract class ServerPlugin {
 
   /// Return the driver being used to analyze the file with the given [path].
   AnalysisDriverGeneric driverForPath(String path) {
-    ContextRoot contextRoot = contextRootContaining(path);
+    var contextRoot = contextRootContaining(path);
     if (contextRoot == null) {
       return null;
     }
@@ -158,15 +157,14 @@ abstract class ServerPlugin {
   Future<ResolvedUnitResult> getResolvedUnitResult(String path) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    AnalysisDriverGeneric driver = driverForPath(path);
+    var driver = driverForPath(path);
     if (driver is! AnalysisDriver) {
       // Return an error from the request.
       throw RequestFailure(
           RequestErrorFactory.pluginError('Failed to analyze $path', null));
     }
-    ResolvedUnitResult result =
-        await (driver as AnalysisDriver).getResult(path);
-    ResultState state = result.state;
+    var result = await (driver as AnalysisDriver).getResult(path);
+    var state = result.state;
     if (state != ResultState.VALID) {
       // Return an error from the request.
       throw RequestFailure(
@@ -201,7 +199,7 @@ abstract class ServerPlugin {
       AnalysisHandleWatchEventsParams parameters) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    for (WatchEvent event in parameters.events) {
+    for (var event in parameters.events) {
       switch (event.type) {
         case WatchEventType.ADD:
           // TODO(brianwilkerson) Handle the event.
@@ -227,13 +225,13 @@ abstract class ServerPlugin {
       AnalysisSetContextRootsParams parameters) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    List<ContextRoot> contextRoots = parameters.roots;
-    List<ContextRoot> oldRoots = driverMap.keys.toList();
-    for (ContextRoot contextRoot in contextRoots) {
+    var contextRoots = parameters.roots;
+    var oldRoots = driverMap.keys.toList();
+    for (var contextRoot in contextRoots) {
       if (!oldRoots.remove(contextRoot)) {
         // The context is new, so we create a driver for it. Creating the driver
         // has the side-effect of adding it to the analysis driver scheduler.
-        AnalysisDriverGeneric driver = createAnalysisDriver(contextRoot);
+        var driver = createAnalysisDriver(contextRoot);
         driverMap[contextRoot] = driver;
         _addFilesToDriver(
             driver,
@@ -241,9 +239,9 @@ abstract class ServerPlugin {
             contextRoot.exclude);
       }
     }
-    for (ContextRoot contextRoot in oldRoots) {
+    for (var contextRoot in oldRoots) {
       // The context has been removed, so we remove its driver.
-      AnalysisDriverGeneric driver = driverMap.remove(contextRoot);
+      var driver = driverMap.remove(contextRoot);
       // The `dispose` method has the side-effect of removing the driver from
       // the analysis driver scheduler.
       driver.dispose();
@@ -258,14 +256,13 @@ abstract class ServerPlugin {
       AnalysisSetPriorityFilesParams parameters) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    List<String> files = parameters.files;
-    Map<AnalysisDriverGeneric, List<String>> filesByDriver =
-        <AnalysisDriverGeneric, List<String>>{};
-    for (String file in files) {
-      ContextRoot contextRoot = contextRootContaining(file);
+    var files = parameters.files;
+    var filesByDriver = <AnalysisDriverGeneric, List<String>>{};
+    for (var file in files) {
+      var contextRoot = contextRootContaining(file);
       if (contextRoot != null) {
         // TODO(brianwilkerson) Which driver should we use if there is no context root?
-        AnalysisDriverGeneric driver = driverMap[contextRoot];
+        var driver = driverMap[contextRoot];
         filesByDriver.putIfAbsent(driver, () => <String>[]).add(file);
       }
     }
@@ -284,9 +281,8 @@ abstract class ServerPlugin {
       AnalysisSetSubscriptionsParams parameters) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    Map<AnalysisService, List<String>> subscriptions = parameters.subscriptions;
-    Map<String, List<AnalysisService>> newSubscriptions =
-        subscriptionManager.setSubscriptions(subscriptions);
+    var subscriptions = parameters.subscriptions;
+    var newSubscriptions = subscriptionManager.setSubscriptions(subscriptions);
     sendNotificationsForSubscriptions(newSubscriptions);
     return AnalysisSetSubscriptionsResult();
   }
@@ -305,7 +301,7 @@ abstract class ServerPlugin {
       if (overlay is AddContentOverlay) {
         fileContentOverlay[filePath] = overlay.content;
       } else if (overlay is ChangeContentOverlay) {
-        String oldContents = fileContentOverlay[filePath];
+        var oldContents = fileContentOverlay[filePath];
         String newContents;
         if (oldContents == null) {
           // The server should only send a ChangeContentOverlay if there is
@@ -408,10 +404,10 @@ abstract class ServerPlugin {
       PluginVersionCheckParams parameters) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    String byteStorePath = parameters.byteStorePath;
-    String sdkPath = parameters.sdkPath;
-    String versionString = parameters.version;
-    Version serverVersion = Version.parse(versionString);
+    var byteStorePath = parameters.byteStorePath;
+    var sdkPath = parameters.sdkPath;
+    var versionString = parameters.version;
+    var serverVersion = Version.parse(versionString);
     _byteStore = MemoryCachingByteStore(
         FileByteStore(byteStorePath,
             tempNameSuffix: DateTime.now().millisecondsSinceEpoch.toString()),
@@ -461,7 +457,7 @@ abstract class ServerPlugin {
   /// This is a convenience method that subclasses can use to send notifications
   /// after analysis has been performed on a file.
   void sendNotificationsForFile(String path) {
-    for (AnalysisService service in subscriptionManager.servicesForFile(path)) {
+    for (var service in subscriptionManager.servicesForFile(path)) {
       _sendNotificationForFile(path, service);
     }
   }
@@ -477,7 +473,7 @@ abstract class ServerPlugin {
   void sendNotificationsForSubscriptions(
       Map<String, List<AnalysisService>> subscriptions) {
     subscriptions.forEach((String path, List<AnalysisService> services) {
-      for (AnalysisService service in services) {
+      for (var service in services) {
         _sendNotificationForFile(path, service);
       }
     });
@@ -505,7 +501,7 @@ abstract class ServerPlugin {
   /// list of [excluded] resources to the given [driver].
   void _addFilesToDriver(
       AnalysisDriverGeneric driver, Resource resource, List<String> excluded) {
-    String path = resource.path;
+    var path = resource.path;
     if (excluded.contains(path)) {
       return;
     }
@@ -513,7 +509,7 @@ abstract class ServerPlugin {
       driver.addFile(path);
     } else if (resource is Folder) {
       try {
-        for (Resource child in resource.getChildren()) {
+        for (var child in resource.getChildren()) {
           _addFilesToDriver(driver, child, excluded);
         }
       } on FileSystemException {
@@ -600,8 +596,8 @@ abstract class ServerPlugin {
   Future<void> _onRequest(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    int requestTime = DateTime.now().millisecondsSinceEpoch;
-    String id = request.id;
+    var requestTime = DateTime.now().millisecondsSinceEpoch;
+    var id = request.id;
     Response response;
     try {
       response = await _getResponse(request, requestTime);

@@ -27,8 +27,8 @@ class StringBaseTest {
 
   static testCreation() {
     String s = "Hello";
-    List<int> a = new List.filled(s.length, -1);
-    List<int> ga = new List();
+    List<int> a = new List<int>.filled(s.length, -1);
+    List<int> ga = [];
     bool exception_caught = false;
     for (int i = 0; i < a.length; i++) {
       a[i] = s.codeUnitAt(i);

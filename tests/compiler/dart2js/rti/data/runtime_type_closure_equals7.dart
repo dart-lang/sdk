@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'package:expect/expect.dart';
 
 /*member: method1a:*/
@@ -10,20 +12,17 @@ T method1a<T>() => null;
 /*member: method1b:*/
 T method1b<T>() => null;
 
-/*strong.member: method2:direct,explicit=[method2.T],needsArgs*/
-/*omit.member: method2:*/
+/*spec:nnbd-off.member: method2:direct,explicit=[method2.T],needsArgs*/
+/*spec:nnbd-sdk.member: method2:direct,explicit=[method2.T*],needsArgs*/
 T method2<T>(T t, String s) => t;
 
-/*strong.class: Class:*/
-/*omit.class: Class:*/
+/*spec:nnbd-off|prod:nnbd-off.class: Class:*/
 class Class<T> {
-  /*strong.member: Class.:*/
-  /*omit.member: Class.:*/
+  /*spec:nnbd-off|prod:nnbd-off.member: Class.:*/
   Class();
 }
 
-/*strong.member: main:*/
-/*omit.member: main:*/
+/*spec:nnbd-off|prod:nnbd-off.member: main:*/
 main() {
   Expect.isTrue(method1a.runtimeType == method1b.runtimeType);
   Expect.isFalse(method1a.runtimeType == method2.runtimeType);

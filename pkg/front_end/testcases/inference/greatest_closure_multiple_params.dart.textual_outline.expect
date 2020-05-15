@@ -1,0 +1,9 @@
+library test;
+
+abstract class C<E> {
+  void sort([int compare(E a, E b)]) {}
+  static int _compareAny(a, b) {}
+  static void sort2<E>(C<E> a, int compare(E a, E b)) {}
+}
+
+main() {}

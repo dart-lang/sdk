@@ -428,6 +428,31 @@ main() {
         "<form id='single_node_clobbering' onmouseover='alert(1)'><input name='attributes'>",
         "");
 
+    testHtml('DOM clobbering of previousSibling',
+      validator,
+      'https://example.com/<div><img/src="x"/onerror="alert();"/><form><input/name="previousSibling"></form></div>',
+      'https://example.com/<div><img src="x"></div>'
+    );
+
+    // The lastChild and childNodes clobbering corrupts iterating the tree. They
+    // get removed, but in the meantime the evil node has been skipped. Note
+    // that we end up deleting the entire form because the clobbering makes its
+    // lastChild incorrect and we detect this, but only on the second time
+    // through.
+    testHtml('DOM clobbering of both childNodes and lastChild',
+      validator,
+      "abc<form><div><img src='x' onerror='alert(document.domain)'></div><div><input name='childNodes'><input id='lastChild' name='childNodes'></div></form>",
+      'abc'
+    );
+
+    test('DOM clobbering of previousSibling via append', () {
+      var div = Element.div();
+      var bad =
+          'https://example.com/<div><img/src="x"/onerror="alert();"/><form><input/name="previousSibling"></form></div>';
+      div.innerHtml = bad;
+      expect(div.innerHtml, 'https://example.com/<div><img src="x"></div>');
+    });
+
     testHtml(
         'DOM clobbering of attributes with multiple nodes',
         validator,

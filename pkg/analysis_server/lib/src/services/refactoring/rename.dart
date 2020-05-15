@@ -25,16 +25,15 @@ class RenameProcessor {
   /// Add the edit that updates the [element] declaration.
   void addDeclarationEdit(Element element) {
     if (element != null && workspace.containsElement(element)) {
-      SourceEdit edit =
-          newSourceEdit_range(range.elementName(element), newName);
+      var edit = newSourceEdit_range(range.elementName(element), newName);
       doSourceChange_addElementEdit(change, element, edit);
     }
   }
 
   /// Add edits that update [matches].
   void addReferenceEdits(List<SearchMatch> matches) {
-    List<SourceReference> references = getSourceReferences(matches);
-    for (SourceReference reference in references) {
+    var references = getSourceReferences(matches);
+    for (var reference in references) {
       if (!workspace.containsElement(reference.element)) {
         continue;
       }
@@ -75,16 +74,16 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
 
   @override
   Future<RefactoringStatus> checkInitialConditions() {
-    RefactoringStatus result = RefactoringStatus();
+    var result = RefactoringStatus();
     if (element.source.isInSystemLibrary) {
-      String message = format(
+      var message = format(
           "The {0} '{1}' is defined in the SDK, so cannot be renamed.",
           getElementKindName(element),
           getElementQualifiedName(element));
       result.addFatalError(message);
     }
     if (!workspace.containsElement(element)) {
-      String message = format(
+      var message = format(
           "The {0} '{1}' is defined outside of the project, so cannot be renamed.",
           getElementKindName(element),
           getElementQualifiedName(element));
@@ -95,7 +94,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
 
   @override
   RefactoringStatus checkNewName() {
-    RefactoringStatus result = RefactoringStatus();
+    var result = RefactoringStatus();
     if (newName == oldName) {
       result.addFatalError(
           'The new name must be different than the current name.');
@@ -105,9 +104,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
 
   @override
   Future<SourceChange> createChange() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    String changeName = "$refactoringName '$oldName' to '$newName'";
+    var changeName = "$refactoringName '$oldName' to '$newName'";
     change = SourceChange(changeName);
     await fillChange();
     return change;
@@ -118,7 +115,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
 
   static String _getDisplayName(Element element) {
     if (element is ImportElement) {
-      PrefixElement prefix = element.prefix;
+      var prefix = element.prefix;
       if (prefix != null) {
         return prefix.displayName;
       }

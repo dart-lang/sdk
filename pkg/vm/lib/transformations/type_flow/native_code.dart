@@ -9,6 +9,8 @@ import 'dart:core' hide Type;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
+import 'package:front_end/src/api_unstable/vm.dart'
+    show getRedirectingFactoryBody;
 
 import 'calls.dart';
 import 'types.dart';
@@ -73,42 +75,66 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
   @override
   visitProcedure(Procedure proc) {
     var type = _annotationsDefineRoot(proc.annotations);
-    if (type != null) {
-      void addSelector(CallKind ck) {
-        entryPoints.addRawCall(proc.isInstanceMember
-            ? new InterfaceSelector(proc, callKind: ck)
-            : new DirectSelector(proc, callKind: ck));
+    if (type == null) return;
+
+    if (proc.isRedirectingFactoryConstructor) {
+      if (type != PragmaEntryPointType.CallOnly &&
+          type != PragmaEntryPointType.Default) {
+        throw "Error: factory $proc doesn't have a setter or getter";
       }
-
-      final defaultCallKind = proc.isGetter
-          ? CallKind.PropertyGet
-          : (proc.isSetter ? CallKind.PropertySet : CallKind.Method);
-
-      switch (type) {
-        case PragmaEntryPointType.CallOnly:
-          addSelector(defaultCallKind);
-          break;
-        case PragmaEntryPointType.SetterOnly:
-          if (!proc.isSetter) {
-            throw "Error: cannot generate a setter for a method or getter ($proc).";
-          }
-          addSelector(CallKind.PropertySet);
-          break;
-        case PragmaEntryPointType.GetterOnly:
-          if (proc.isSetter) {
-            throw "Error: cannot closurize a setter ($proc).";
-          }
-          addSelector(CallKind.PropertyGet);
-          break;
-        case PragmaEntryPointType.Default:
-          addSelector(defaultCallKind);
-          if (!proc.isSetter && !proc.isGetter) {
-            addSelector(CallKind.PropertyGet);
-          }
+      Member target = proc;
+      while (target is Procedure && target.isRedirectingFactoryConstructor) {
+        target = getRedirectingFactoryBody(target).target;
+        assertx(target != null);
+        assertx(
+            (target is Procedure && target.isFactory) || target is Constructor);
       }
-
-      nativeCodeOracle.setMemberReferencedFromNativeCode(proc);
+      entryPoints
+          .addRawCall(new DirectSelector(target, callKind: CallKind.Method));
+      if (target is Constructor) {
+        entryPoints.addAllocatedClass(target.enclosingClass);
+      }
+      nativeCodeOracle.setMemberReferencedFromNativeCode(target);
+      return;
     }
+
+    void addSelector(CallKind ck) {
+      entryPoints.addRawCall(proc.isInstanceMember
+          ? new InterfaceSelector(proc, callKind: ck)
+          : new DirectSelector(proc, callKind: ck));
+    }
+
+    final defaultCallKind = proc.isGetter
+        ? CallKind.PropertyGet
+        : (proc.isSetter ? CallKind.PropertySet : CallKind.Method);
+
+    switch (type) {
+      case PragmaEntryPointType.CallOnly:
+        addSelector(defaultCallKind);
+        break;
+      case PragmaEntryPointType.SetterOnly:
+        if (!proc.isSetter) {
+          throw "Error: cannot generate a setter for a method or getter ($proc).";
+        }
+        addSelector(CallKind.PropertySet);
+        break;
+      case PragmaEntryPointType.GetterOnly:
+        if (proc.isSetter) {
+          throw "Error: cannot closurize a setter ($proc).";
+        }
+        if (proc.isFactory) {
+          throw "Error: cannot closurize a factory ($proc).";
+        }
+        addSelector(CallKind.PropertyGet);
+        break;
+      case PragmaEntryPointType.Default:
+        addSelector(defaultCallKind);
+        if (!proc.isSetter && !proc.isGetter && !proc.isFactory) {
+          addSelector(CallKind.PropertyGet);
+        }
+    }
+
+    nativeCodeOracle.setMemberReferencedFromNativeCode(proc);
   }
 
   @override
@@ -221,7 +247,8 @@ class NativeCodeOracle {
             returnType = translator.instantiateConcreteType(
                 returnType,
                 member.function.typeParameters
-                    .map((t) => TypeParameterType(t, Nullability.legacy))
+                    .map((t) => TypeParameterType(
+                        t, TypeParameterType.computeNullabilityFromBound(t)))
                     .toList());
           }
           continue;

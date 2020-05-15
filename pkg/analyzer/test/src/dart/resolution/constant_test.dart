@@ -6,9 +6,11 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -191,6 +193,37 @@ import 'a.dart';
     expect(a.computeConstantValue().toIntValue(), 42);
   }
 
+  test_imported_super_defaultFieldFormalParameter() async {
+    newFile('/test/lib/a.dart', content: r'''
+import 'test.dart';
+
+class A {
+  static const B b = const B();
+
+  final bool f1;
+  final bool f2;
+
+  const A({this.f1: false}) : this.f2 = f1 && true;
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart';
+
+class B extends A {
+  const B() : super();
+}
+''');
+
+    result = await resolveFile(convertPath('/test/lib/a.dart'));
+    assertErrorsInResolvedUnit(result, []);
+
+    var bElement = FindElement(result.unit).field('b') as ConstVariableElement;
+    var bValue = bElement.evaluationResult.value;
+    var superFields = bValue.getField(GenericState.SUPERCLASS_FIELD);
+    expect(superFields.getField('f1').toBoolValue(), false);
+  }
+
   test_local_prefixedIdentifier_staticField_extension() async {
     await assertNoErrorsInCode(r'''
 const a = E.f;
@@ -295,7 +328,25 @@ const c = b;
     _assertIntValue(c, 42);
   }
 
+  test_topLevelVariable_optOut3() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.7
+const a = int.fromEnvironment('a', defaultValue: 42);
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.7
+import 'a.dart';
+
+const b = a;
+''');
+
+    var c = findElement.topVar('b');
+    assertType(c.type, 'int*');
+    _assertIntValue(c, 42);
+  }
+
   void _assertIntValue(VariableElement element, int value) {
-    expect(element.constantValue.toIntValue(), value);
+    expect(element.computeConstantValue().toIntValue(), value);
   }
 }

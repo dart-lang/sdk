@@ -4,6 +4,7 @@
 
 #include "vm/object.h"
 
+#include "platform/unaligned.h"
 #include "vm/code_patcher.h"
 #include "vm/hash_table.h"
 #include "vm/isolate_reload.h"
@@ -73,9 +74,8 @@ void CallSiteResetter::ResetCaches(const Code& code) {
   const int32_t* offsets = code.raw_ptr()->data();
   for (intptr_t i = 0; i < offsets_length; i++) {
     int32_t offset = offsets[i];
-    RawObject** object_ptr =
-        reinterpret_cast<RawObject**>(base_address + offset);
-    RawObject* raw_object = *object_ptr;
+    ObjectPtr* object_ptr = reinterpret_cast<ObjectPtr*>(base_address + offset);
+    ObjectPtr raw_object = LoadUnaligned(object_ptr);
     if (!raw_object->IsHeapObject()) {
       continue;
     }
@@ -127,7 +127,7 @@ void CallSiteResetter::ResetSwitchableCalls(const Code& code) {
   }
   const Function& function = Function::Cast(object_);
 
-  if (function.kind() == RawFunction::kIrregexpFunction) {
+  if (function.kind() == FunctionLayout::kIrregexpFunction) {
     // Regex matchers do not support breakpoints or stepping, and they only call
     // core library functions that cannot change due to reload. As a performance
     // optimization, avoid this matching of ICData to PCs for these functions'
@@ -143,7 +143,7 @@ void CallSiteResetter::ResetSwitchableCalls(const Code& code) {
     // calls.
 #if defined(DEBUG)
     descriptors_ = code.pc_descriptors();
-    PcDescriptors::Iterator iter(descriptors_, RawPcDescriptors::kIcCall);
+    PcDescriptors::Iterator iter(descriptors_, PcDescriptorsLayout::kIcCall);
     while (iter.MoveNext()) {
       FATAL1("%s has IC calls but no ic_data_array\n", object_.ToCString());
     }
@@ -152,7 +152,7 @@ void CallSiteResetter::ResetSwitchableCalls(const Code& code) {
   }
 
   descriptors_ = code.pc_descriptors();
-  PcDescriptors::Iterator iter(descriptors_, RawPcDescriptors::kIcCall);
+  PcDescriptors::Iterator iter(descriptors_, PcDescriptorsLayout::kIcCall);
   while (iter.MoveNext()) {
     uword pc = code.PayloadStart() + iter.PcOffset();
     CodePatcher::GetInstanceCallAt(pc, code, &object_);
@@ -567,7 +567,7 @@ class EnumClassConflict : public ClassReasonForCancelling {
   EnumClassConflict(Zone* zone, const Class& from, const Class& to)
       : ClassReasonForCancelling(zone, from, to) {}
 
-  RawString* ToString() {
+  StringPtr ToString() {
     return String::NewFormatted(
         from_.is_enum_class()
             ? "Enum class cannot be redefined to be a non-enum class: %s"
@@ -581,7 +581,7 @@ class TypedefClassConflict : public ClassReasonForCancelling {
   TypedefClassConflict(Zone* zone, const Class& from, const Class& to)
       : ClassReasonForCancelling(zone, from, to) {}
 
-  RawString* ToString() {
+  StringPtr ToString() {
     return String::NewFormatted(
         from_.IsTypedefClass()
             ? "Typedef class cannot be redefined to be a non-typedef class: %s"
@@ -601,9 +601,9 @@ class EnsureFinalizedError : public ClassReasonForCancelling {
  private:
   const Error& error_;
 
-  RawError* ToError() { return error_.raw(); }
+  ErrorPtr ToError() { return error_.raw(); }
 
-  RawString* ToString() { return String::New(error_.ToErrorCString()); }
+  StringPtr ToString() { return String::New(error_.ToErrorCString()); }
 };
 
 class ConstToNonConstClass : public ClassReasonForCancelling {
@@ -612,7 +612,7 @@ class ConstToNonConstClass : public ClassReasonForCancelling {
       : ClassReasonForCancelling(zone, from, to) {}
 
  private:
-  RawString* ToString() {
+  StringPtr ToString() {
     return String::NewFormatted("Const class cannot become non-const: %s",
                                 from_.ToCString());
   }
@@ -624,7 +624,7 @@ class ConstClassFieldRemoved : public ClassReasonForCancelling {
       : ClassReasonForCancelling(zone, from, to) {}
 
  private:
-  RawString* ToString() {
+  StringPtr ToString() {
     return String::NewFormatted("Const class cannot remove fields: %s",
                                 from_.ToCString());
   }
@@ -636,7 +636,7 @@ class NativeFieldsConflict : public ClassReasonForCancelling {
       : ClassReasonForCancelling(zone, from, to) {}
 
  private:
-  RawString* ToString() {
+  StringPtr ToString() {
     return String::NewFormatted("Number of native fields changed in %s",
                                 from_.ToCString());
   }
@@ -647,7 +647,7 @@ class TypeParametersChanged : public ClassReasonForCancelling {
   TypeParametersChanged(Zone* zone, const Class& from, const Class& to)
       : ClassReasonForCancelling(zone, from, to) {}
 
-  RawString* ToString() {
+  StringPtr ToString() {
     return String::NewFormatted(
         "Limitation: type parameters have changed for %s", from_.ToCString());
   }
@@ -669,7 +669,7 @@ class PreFinalizedConflict : public ClassReasonForCancelling {
       : ClassReasonForCancelling(zone, from, to) {}
 
  private:
-  RawString* ToString() {
+  StringPtr ToString() {
     return String::NewFormatted(
         "Original class ('%s') is prefinalized and replacement class "
         "('%s') is not ",
@@ -683,7 +683,7 @@ class InstanceSizeConflict : public ClassReasonForCancelling {
       : ClassReasonForCancelling(zone, from, to) {}
 
  private:
-  RawString* ToString() {
+  StringPtr ToString() {
     return String::NewFormatted("Instance size mismatch between '%s' (%" Pd
                                 ") and replacement "
                                 "'%s' ( %" Pd ")",
@@ -848,7 +848,8 @@ bool Class::CanReloadFinalized(const Class& replacement,
   // Make sure the declaration types argument count matches for the two classes.
   // ex. class A<int,B> {} cannot be replace with class A<B> {}.
   auto group_context = context->group_reload_context();
-  auto shared_class_table = group_context->isolate_group()->class_table();
+  auto shared_class_table =
+      group_context->isolate_group()->shared_class_table();
   if (NumTypeArguments() != replacement.NumTypeArguments()) {
     group_context->AddReasonForCancelling(
         new (context->zone())
@@ -939,7 +940,7 @@ void CallSiteResetter::Reset(const ICData& ic) {
 
     if (rule == ICData::kStatic) {
       ASSERT(old_target_.is_static() ||
-             old_target_.kind() == RawFunction::kConstructor);
+             old_target_.kind() == FunctionLayout::kConstructor);
       // This can be incorrect if the call site was an unqualified invocation.
       new_cls_ = old_target_.Owner();
       new_target_ = new_cls_.LookupFunction(name_);

@@ -5,7 +5,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart';
+import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
+    show StringToken;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -20,6 +21,7 @@ import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -536,7 +538,6 @@ class FileState {
     return astFactory.compilationUnit(
       beginToken: token,
       endToken: token,
-      languageVersion: null,
       featureSet: _featureSet,
     )..lineInfo = LineInfo(const <int>[0]);
   }
@@ -599,7 +600,6 @@ class FileState {
     Parser parser = Parser(
       source,
       errorListener,
-      languageVersion: scanner.languageVersion,
       featureSet: scanner.featureSet,
       useFasta: useFasta,
     );
@@ -610,6 +610,7 @@ class FileState {
     try {
       unit = parser.parseCompilationUnit(token);
       unit.lineInfo = lineInfo;
+      _setLanguageVersion(unit, scanner.languageVersion);
     } catch (e) {
       throw StateError('''
 Parser error.
@@ -638,6 +639,22 @@ $content
       }
     }
     return directive.uri;
+  }
+
+  /// Set the language version into the [unit], from the [languageVersionToken]
+  /// override, or the configured from the [FeatureSetProvider].
+  void _setLanguageVersion(
+    CompilationUnitImpl unit,
+    LanguageVersionToken languageVersionToken,
+  ) {
+    if (languageVersionToken != null) {
+      unit.languageVersionMajor = languageVersionToken.major;
+      unit.languageVersionMinor = languageVersionToken.minor;
+    } else {
+      var version = _fsState.featureSetProvider.getLanguageVersion(path, uri);
+      unit.languageVersionMajor = version.major;
+      unit.languageVersionMinor = version.minor;
+    }
   }
 
   static UnlinkedUnit2Builder serializeAstUnlinked2(CompilationUnit unit) {

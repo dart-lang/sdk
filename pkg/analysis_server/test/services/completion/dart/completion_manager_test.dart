@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/completion/completion_performance.d
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -45,14 +46,13 @@ part 'test.dart';
     addTestSource('part of libB; main() {^}');
 
     // Build the request
-    CompletionRequestImpl baseRequest = CompletionRequestImpl(
+    var baseRequest = CompletionRequestImpl(
         await session.getResolvedUnit(testFile),
         completionOffset,
         false,
         CompletionPerformance());
-    Completer<DartCompletionRequest> requestCompleter =
-        Completer<DartCompletionRequest>();
-    DartCompletionRequestImpl.from(baseRequest)
+    var requestCompleter = Completer<DartCompletionRequest>();
+    DartCompletionRequestImpl.from(baseRequest, DartdocDirectiveInfo())
         .then((DartCompletionRequest request) {
       requestCompleter.complete(request);
     });
@@ -60,13 +60,13 @@ part 'test.dart';
 
     var directives = request.target.unit.directives;
 
-    List<ImportElement> imports = request.libraryElement.imports;
+    var imports = request.libraryElement.imports;
     expect(imports, hasLength(directives.length + 1));
 
     ImportElement importNamed(String expectedUri) {
-      List<String> uriList = <String>[];
-      for (ImportElement importElement in imports) {
-        String uri = importElement.importedLibrary.source.uri.toString();
+      var uriList = <String>[];
+      for (var importElement in imports) {
+        var uri = importElement.importedLibrary.source.uri.toString();
         uriList.add(uri);
         if (uri.endsWith(expectedUri)) {
           return importElement;
@@ -76,7 +76,7 @@ part 'test.dart';
     }
 
     void assertImportedLib(String expectedUri) {
-      ImportElement importElem = importNamed(expectedUri);
+      var importElem = importNamed(expectedUri);
       expect(importElem.importedLibrary.exportNamespace, isNotNull);
     }
 

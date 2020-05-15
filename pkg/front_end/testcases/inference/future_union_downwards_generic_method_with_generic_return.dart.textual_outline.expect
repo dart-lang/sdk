@@ -1,0 +1,7 @@
+library test;
+
+import 'dart:async';
+
+T id<T>(T x) => x;
+test() async {}
+main() {}

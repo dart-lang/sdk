@@ -551,7 +551,9 @@ extension on A {
     this.foo();
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_ELEMENT, 53, 3),
+    ]);
     _checkMethodNone();
   }
 
@@ -566,7 +568,9 @@ extension on A {
     this.foo();
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_ELEMENT, 53, 3),
+    ]);
     _checkMethodRequested(findElement.parameter('foo'));
   }
 
@@ -583,7 +587,9 @@ extension on A {
 }
 
 var foo = 0;
-''');
+''', [
+      error(HintCode.UNUSED_ELEMENT, 53, 3),
+    ]);
     _checkMethodRequested(findElement.topGet('foo'));
   }
 
@@ -598,7 +604,9 @@ extension on A {
     this.foo();
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_ELEMENT, 53, 3),
+    ]);
     _checkMethodRequested(findElement.method('foo'));
   }
 

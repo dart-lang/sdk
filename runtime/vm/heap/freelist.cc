@@ -22,20 +22,20 @@ FreeListElement* FreeListElement::AsElement(uword addr, intptr_t size) {
   FreeListElement* result = reinterpret_cast<FreeListElement*>(addr);
 
   uint32_t tags = 0;
-  tags = RawObject::SizeTag::update(size, tags);
-  tags = RawObject::ClassIdTag::update(kFreeListElement, tags);
+  tags = ObjectLayout::SizeTag::update(size, tags);
+  tags = ObjectLayout::ClassIdTag::update(kFreeListElement, tags);
   ASSERT((addr & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset);
-  tags = RawObject::OldBit::update(true, tags);
-  tags = RawObject::OldAndNotMarkedBit::update(true, tags);
-  tags = RawObject::OldAndNotRememberedBit::update(true, tags);
-  tags = RawObject::NewBit::update(false, tags);
+  tags = ObjectLayout::OldBit::update(true, tags);
+  tags = ObjectLayout::OldAndNotMarkedBit::update(true, tags);
+  tags = ObjectLayout::OldAndNotRememberedBit::update(true, tags);
+  tags = ObjectLayout::NewBit::update(false, tags);
   result->tags_ = tags;
 #if defined(HASH_IN_OBJECT_HEADER)
   // Clearing this is mostly for neatness. The identityHashCode
   // of free list entries is not used.
   result->hash_ = 0;
 #endif
-  if (size > RawObject::SizeTag::kMaxSizeTag) {
+  if (size > ObjectLayout::SizeTag::kMaxSizeTag) {
     *result->SizeAddress() = size;
   }
   result->set_next(NULL);
@@ -51,11 +51,10 @@ void FreeListElement::Init() {
 
 intptr_t FreeListElement::HeaderSizeFor(intptr_t size) {
   if (size == 0) return 0;
-  return ((size > RawObject::SizeTag::kMaxSizeTag) ? 3 : 2) * kWordSize;
+  return ((size > ObjectLayout::SizeTag::kMaxSizeTag) ? 3 : 2) * kWordSize;
 }
 
-FreeList::FreeList()
-    : mutex_(), freelist_search_budget_(kInitialFreeListSearchBudget) {
+FreeList::FreeList() : mutex_() {
   Reset();
 }
 

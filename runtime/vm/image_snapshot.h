@@ -9,6 +9,7 @@
 #include <utility>
 
 #include "platform/assert.h"
+#include "platform/utils.h"
 #include "vm/allocation.h"
 #include "vm/compiler/runtime_api.h"
 #include "vm/datastream.h"
@@ -28,10 +29,6 @@ class Dwarf;
 class Elf;
 class Instructions;
 class Object;
-class RawApiError;
-class RawCode;
-class RawInstructions;
-class RawObject;
 
 class Image : ValueObject {
  public:
@@ -49,16 +46,40 @@ class Image : ValueObject {
     return snapshot_size - kHeaderSize;
   }
 
-  uword bss_offset() const {
-    return *(reinterpret_cast<const uword*>(raw_memory_) + 1);
+  // Returns the offset of the BSS section from this image. Only has meaning for
+  // instructions images.
+  word bss_offset() const {
+    auto const raw_value = *(reinterpret_cast<const word*>(raw_memory_) + 1);
+    return Utils::RoundDown(raw_value, kBssAlignment);
   }
 
-  static constexpr intptr_t kHeaderFields = 2;
-  static constexpr intptr_t kHeaderSize = kMaxObjectAlignment;
-  COMPILE_ASSERT((kHeaderFields * compiler::target::kWordSize) <= kHeaderSize);
+  // Returns true if the image was compiled directly to ELF. Only has meaning
+  // for instructions images.
+  bool compiled_to_elf() const {
+    auto const raw_value = *(reinterpret_cast<const word*>(raw_memory_) + 1);
+    return (raw_value & 0x1) == 0x1;
+  }
 
  private:
+  static constexpr intptr_t kHeaderFields = 2;
+  static constexpr intptr_t kHeaderSize = kMaxObjectAlignment;
+  // Explicitly double-checking kHeaderSize is never changed. Increasing the
+  // Image header size would mean objects would not start at a place expected
+  // by parts of the VM (like the GC) that use Image pages as HeapPages.
+  static_assert(kHeaderSize == kMaxObjectAlignment,
+                "Image page cannot be used as HeapPage");
+
+  // Determines how many bits we have for encoding any extra information in
+  // the BSS offset.
+  static constexpr intptr_t kBssAlignment = compiler::target::kWordSize;
+
   const void* raw_memory_;  // The symbol kInstructionsSnapshot.
+
+  // For access to private constants.
+  friend class AssemblyImageWriter;
+  friend class BlobImageWriter;
+  friend class ImageWriter;
+  friend class Elf;
 
   DISALLOW_COPY_AND_ASSIGN(Image);
 };
@@ -67,12 +88,12 @@ class ImageReader : public ZoneAllocated {
  public:
   ImageReader(const uint8_t* data_image, const uint8_t* instructions_image);
 
-  RawApiError* VerifyAlignment() const;
+  ApiErrorPtr VerifyAlignment() const;
 
   ONLY_IN_PRECOMPILED(uword GetBareInstructionsAt(uint32_t offset) const);
   ONLY_IN_PRECOMPILED(uword GetBareInstructionsEnd() const);
-  RawInstructions* GetInstructionsAt(uint32_t offset) const;
-  RawObject* GetObjectAt(uint32_t offset) const;
+  InstructionsPtr GetInstructionsAt(uint32_t offset) const;
+  ObjectPtr GetObjectAt(uint32_t offset) const;
 
  private:
   const uint8_t* data_image_;
@@ -84,16 +105,16 @@ class ImageReader : public ZoneAllocated {
 struct ObjectOffsetPair {
  public:
   ObjectOffsetPair() : ObjectOffsetPair(NULL, 0) {}
-  ObjectOffsetPair(RawObject* obj, int32_t off) : object(obj), offset(off) {}
+  ObjectOffsetPair(ObjectPtr obj, int32_t off) : object(obj), offset(off) {}
 
-  RawObject* object;
+  ObjectPtr object;
   int32_t offset;
 };
 
 class ObjectOffsetTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
-  typedef RawObject* Key;
+  typedef ObjectPtr Key;
   typedef int32_t Value;
   typedef ObjectOffsetPair Pair;
 
@@ -119,7 +140,7 @@ struct ImageWriterCommand {
     InsertBytesOfTrampoline,
   };
 
-  ImageWriterCommand(intptr_t expected_offset, RawCode* code)
+  ImageWriterCommand(intptr_t expected_offset, CodePtr code)
       : expected_offset(expected_offset),
         op(ImageWriterCommand::InsertInstructionOfCode),
         insert_instruction_of_code({code}) {}
@@ -138,7 +159,7 @@ struct ImageWriterCommand {
   Opcode op;
   union {
     struct {
-      RawCode* code;
+      CodePtr code;
     } insert_instruction_of_code;
     struct {
       uint8_t* buffer;
@@ -172,8 +193,8 @@ class ImageWriter : public ValueObject {
            offset_space_ == V8SnapshotProfileWriter::kIsolateData ||
            offset_space_ == V8SnapshotProfileWriter::kIsolateText;
   }
-  int32_t GetTextOffsetFor(RawInstructions* instructions, RawCode* code);
-  uint32_t GetDataOffsetFor(RawObject* raw_object);
+  int32_t GetTextOffsetFor(InstructionsPtr instructions, CodePtr code);
+  uint32_t GetDataOffsetFor(ObjectPtr raw_object);
 
   void Write(WriteStream* clustered_stream, bool vm);
   intptr_t data_size() const { return next_data_offset_; }
@@ -191,7 +212,7 @@ class ImageWriter : public ValueObject {
 
   void TraceInstructions(const Instructions& instructions);
 
-  static intptr_t SizeInSnapshot(RawObject* object);
+  static intptr_t SizeInSnapshot(ObjectPtr object);
   static const intptr_t kBareInstructionsAlignment = 4;
 
   static_assert(
@@ -200,9 +221,9 @@ class ImageWriter : public ValueObject {
       "Target object alignment is larger than the host object alignment");
 
   // Converts the target object size (in bytes) to an appropriate argument for
-  // RawObject::SizeTag methods on the host machine.
+  // ObjectLayout::SizeTag methods on the host machine.
   //
-  // RawObject::SizeTag expects a size divisible by kObjectAlignment and
+  // ObjectLayout::SizeTag expects a size divisible by kObjectAlignment and
   // checks this in debug mode, but the size on the target machine may not be
   // divisible by the host machine's object alignment if they differ.
   //
@@ -219,8 +240,8 @@ class ImageWriter : public ValueObject {
 
   static UNLESS_DEBUG(constexpr) compiler::target::uword
       UpdateObjectSizeForTarget(intptr_t size, uword marked_tags) {
-    return RawObject::SizeTag::update(AdjustObjectSizeForTarget(size),
-                                      marked_tags);
+    return ObjectLayout::SizeTag::update(AdjustObjectSizeForTarget(size),
+                                         marked_tags);
   }
 
   // Returns nullptr if there is no profile writer.
@@ -235,9 +256,7 @@ class ImageWriter : public ValueObject {
   void DumpInstructionsSizes();
 
   struct InstructionsData {
-    InstructionsData(RawInstructions* insns,
-                     RawCode* code,
-                     intptr_t text_offset)
+    InstructionsData(InstructionsPtr insns, CodePtr code, intptr_t text_offset)
         : raw_insns_(insns),
           raw_code_(code),
           text_offset_(text_offset),
@@ -254,11 +273,11 @@ class ImageWriter : public ValueObject {
           trampoline_length(trampoline_length) {}
 
     union {
-      RawInstructions* raw_insns_;
+      InstructionsPtr raw_insns_;
       const Instructions* insns_;
     };
     union {
-      RawCode* raw_code_;
+      CodePtr raw_code_;
       const Code* code_;
     };
     intptr_t text_offset_;
@@ -268,10 +287,10 @@ class ImageWriter : public ValueObject {
   };
 
   struct ObjectData {
-    explicit ObjectData(RawObject* raw_obj) : raw_obj_(raw_obj) {}
+    explicit ObjectData(ObjectPtr raw_obj) : raw_obj_(raw_obj) {}
 
     union {
-      RawObject* raw_obj_;
+      ObjectPtr raw_obj_;
       const Object* obj_;
     };
   };
@@ -381,13 +400,14 @@ class AssemblyImageWriter : public ImageWriter {
   const char* kLiteralPrefix = ".long";
 #endif
 
-  void WriteWordLiteralText(compiler::target::uword value) {
+  intptr_t WriteWordLiteralText(compiler::target::uword value) {
     // Padding is helpful for comparing the .S with --disassemble.
 #if defined(TARGET_ARCH_IS_64_BIT)
     assembly_stream_.Print(".quad 0x%0.16" Px "\n", value);
 #else
     assembly_stream_.Print(".long 0x%0.8" Px "\n", value);
 #endif
+    return compiler::target::kWordSize;
   }
 
   StreamingWriteStream assembly_stream_;

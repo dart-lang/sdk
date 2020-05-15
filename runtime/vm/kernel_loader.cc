@@ -1,6 +1,7 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+#if !defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/kernel_loader.h"
 
@@ -23,7 +24,6 @@
 #include "vm/symbols.h"
 #include "vm/thread.h"
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
 namespace dart {
 namespace kernel {
 
@@ -115,7 +115,7 @@ class SimpleExpressionConverter {
   DISALLOW_COPY_AND_ASSIGN(SimpleExpressionConverter);
 };
 
-RawArray* KernelLoader::MakeFieldsArray() {
+ArrayPtr KernelLoader::MakeFieldsArray() {
   const intptr_t len = fields_.length();
   const Array& res = Array::Handle(zone_, Array::New(len, Heap::kOld));
   for (intptr_t i = 0; i < len; i++) {
@@ -124,7 +124,7 @@ RawArray* KernelLoader::MakeFieldsArray() {
   return res.raw();
 }
 
-RawArray* KernelLoader::MakeFunctionsArray() {
+ArrayPtr KernelLoader::MakeFunctionsArray() {
   const intptr_t len = functions_.length();
   const Array& res = Array::Handle(zone_, Array::New(len, Heap::kOld));
   for (intptr_t i = 0; i < len; i++) {
@@ -133,12 +133,12 @@ RawArray* KernelLoader::MakeFunctionsArray() {
   return res.raw();
 }
 
-RawLibrary* BuildingTranslationHelper::LookupLibraryByKernelLibrary(
+LibraryPtr BuildingTranslationHelper::LookupLibraryByKernelLibrary(
     NameIndex library) {
   return loader_->LookupLibrary(library);
 }
 
-RawClass* BuildingTranslationHelper::LookupClassByKernelClass(NameIndex klass) {
+ClassPtr BuildingTranslationHelper::LookupClassByKernelClass(NameIndex klass) {
 #if defined(DEBUG)
   LibraryLookupHandleScope library_lookup_handle_scope(library_lookup_handle_);
 #endif  // defined(DEBUG)
@@ -337,9 +337,9 @@ void KernelLoader::index_programs(
   subprogram_file_starts->Reverse();
 }
 
-RawString* KernelLoader::FindSourceForScript(const uint8_t* kernel_buffer,
-                                             intptr_t kernel_buffer_length,
-                                             const String& uri) {
+StringPtr KernelLoader::FindSourceForScript(const uint8_t* kernel_buffer,
+                                            intptr_t kernel_buffer_length,
+                                            const String& uri) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   TranslationHelper translation_helper(thread);
@@ -566,7 +566,7 @@ void KernelLoader::AnnotateNativeProcedures() {
   kernel_program_info_.set_potential_natives(potential_natives_);
 }
 
-RawString* KernelLoader::DetectExternalNameCtor() {
+StringPtr KernelLoader::DetectExternalNameCtor() {
   helper_.ReadTag();
   helper_.ReadPosition();
   NameIndex annotation_class = H.EnclosingName(
@@ -721,7 +721,7 @@ void KernelLoader::LoadNativeExtension(const Library& library,
 #endif
 }
 
-RawObject* KernelLoader::LoadProgram(bool process_pending_classes) {
+ObjectPtr KernelLoader::LoadProgram(bool process_pending_classes) {
   ASSERT(kernel_program_info_.constants() == Array::null());
 
   if (!program_->is_single_program()) {
@@ -793,7 +793,7 @@ void KernelLoader::LoadLibrary(const Library& library) {
   }
 }
 
-RawObject* KernelLoader::LoadExpressionEvaluationFunction(
+ObjectPtr KernelLoader::LoadExpressionEvaluationFunction(
     const String& library_url,
     const String& klass) {
   // Find the original context, i.e. library/class, in which the evaluation will
@@ -986,7 +986,7 @@ void KernelLoader::CheckForInitializer(const Field& field) {
   field.set_has_nontrivial_initializer(false);
 }
 
-RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
+LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
   if (!program_->is_single_program()) {
     FATAL(
         "Trying to load a concatenated dill file at a time where that is "
@@ -1030,15 +1030,15 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
   library.set_is_nnbd(library_helper.IsNonNullableByDefault());
   const NNBDCompiledMode mode =
       library_helper.GetNonNullableByDefaultCompiledMode();
-  if (!FLAG_null_safety && mode == NNBDCompiledMode::kStrong) {
+  if (!I->null_safety() && mode == NNBDCompiledMode::kStrong) {
     H.ReportError(
         "Library '%s' was compiled with null safety (in strong mode) and it "
         "requires --null-safety option at runtime",
         String::Handle(library.url()).ToCString());
   }
-  if (FLAG_null_safety && (mode == NNBDCompiledMode::kWeak ||
+  if (I->null_safety() && (mode == NNBDCompiledMode::kWeak ||
                            mode == NNBDCompiledMode::kDisabled)) {
-    H.ReportError(
+    FATAL1(
         "Library '%s' was compiled without null safety (in weak mode) and it "
         "cannot be used with --null-safety at runtime",
         String::Handle(library.url()).ToCString());
@@ -1234,6 +1234,11 @@ void KernelLoader::FinishTopLevelClassLoading(
     field.SetFieldType(type);
     ReadInferredType(field, field_offset + library_kernel_offset_);
     CheckForInitializer(field);
+    // In NNBD libraries, static fields with initializers are
+    // implicitly late.
+    if (field.has_initializer() && library.is_nnbd()) {
+      field.set_is_late(true);
+    }
     field_helper.SetJustRead(FieldHelper::kType);
     field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
     intptr_t field_initializer_offset = helper_.ReaderOffset();
@@ -1592,6 +1597,12 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       field.set_is_extension_member(is_extension_member);
       ReadInferredType(field, field_offset + library_kernel_offset_);
       CheckForInitializer(field);
+      // In NNBD libraries, static fields with initializers are
+      // implicitly late.
+      if (field_helper.IsStatic() && field.has_initializer() &&
+          library.is_nnbd()) {
+        field.set_is_late(true);
+      }
       field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
       intptr_t field_initializer_offset = helper_.ReaderOffset();
       field_helper.ReadUntilExcluding(FieldHelper::kEnd);
@@ -1664,7 +1675,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     }
 
     Function& function = Function::ZoneHandle(
-        Z, Function::New(name, RawFunction::kConstructor,
+        Z, Function::New(name, FunctionLayout::kConstructor,
                          false,  // is_static
                          constructor_helper.IsConst(),
                          false,  // is_abstract
@@ -1928,7 +1939,7 @@ void KernelLoader::LoadProcedure(const Library& library,
   procedure_helper.SetJustRead(ProcedureHelper::kAnnotations);
   const Object& script_class =
       ClassForScriptAt(owner, procedure_helper.source_uri_index_);
-  RawFunction::Kind kind = GetFunctionType(procedure_helper.kind_);
+  FunctionLayout::Kind kind = GetFunctionType(procedure_helper.kind_);
 
   // We do not register expression evaluation libraries with the VM:
   // The expression evaluation functions should be GC-able as soon as
@@ -1956,6 +1967,9 @@ void KernelLoader::LoadProcedure(const Library& library,
   if ((library.is_dart_scheme() &&
        H.IsPrivate(procedure_helper.canonical_name_)) ||
       (function.is_static() && (library.raw() == Library::InternalLibrary()))) {
+    function.set_is_reflectable(false);
+  }
+  if (procedure_helper.IsMemberSignature()) {
     function.set_is_reflectable(false);
   }
 
@@ -1992,19 +2006,19 @@ void KernelLoader::LoadProcedure(const Library& library,
 
   switch (function_node_helper.dart_async_marker_) {
     case FunctionNodeHelper::kSyncStar:
-      function.set_modifier(RawFunction::kSyncGen);
+      function.set_modifier(FunctionLayout::kSyncGen);
       function.set_is_visible(!FLAG_causal_async_stacks &&
                               !FLAG_lazy_async_stacks);
       break;
     case FunctionNodeHelper::kAsync:
-      function.set_modifier(RawFunction::kAsync);
+      function.set_modifier(FunctionLayout::kAsync);
       function.set_is_inlinable(!FLAG_causal_async_stacks &&
                                 !FLAG_lazy_async_stacks);
       function.set_is_visible(!FLAG_causal_async_stacks &&
                               !FLAG_lazy_async_stacks);
       break;
     case FunctionNodeHelper::kAsyncStar:
-      function.set_modifier(RawFunction::kAsyncGen);
+      function.set_modifier(FunctionLayout::kAsyncGen);
       function.set_is_inlinable(!FLAG_causal_async_stacks &&
                                 !FLAG_lazy_async_stacks);
       function.set_is_visible(!FLAG_causal_async_stacks &&
@@ -2074,8 +2088,8 @@ const Object& KernelLoader::ClassForScriptAt(const Class& klass,
   return klass;
 }
 
-RawScript* KernelLoader::LoadScriptAt(intptr_t index,
-                                      UriToSourceTable* uri_to_source_table) {
+ScriptPtr KernelLoader::LoadScriptAt(intptr_t index,
+                                     UriToSourceTable* uri_to_source_table) {
   const String& uri_string = helper_.SourceTableUriFor(index);
   const String& import_uri_string =
       helper_.SourceTableImportUriFor(index, program_->binary_version());
@@ -2168,13 +2182,6 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
   }
   ASSERT(field.NeedsGetter());
 
-  if (field.is_late() && field.has_nontrivial_initializer()) {
-    // Late fields are initialized to Object::sentinel, which is a flavor of
-    // null. So we need to record that store so that the field guard doesn't
-    // prematurely optimise out the late field's sentinel checking logic.
-    field.RecordStore(Object::null_object());
-  }
-
   const String& getter_name = H.DartGetterName(field_helper->canonical_name_);
   const Object& script_class =
       ClassForScriptAt(klass, field_helper->source_uri_index_);
@@ -2182,8 +2189,8 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
       Z,
       Function::New(
           getter_name,
-          field_helper->IsStatic() ? RawFunction::kImplicitStaticGetter
-                                   : RawFunction::kImplicitGetter,
+          field_helper->IsStatic() ? FunctionLayout::kImplicitStaticGetter
+                                   : FunctionLayout::kImplicitGetter,
           field_helper->IsStatic(),
           // The functions created by the parser have is_const for static fields
           // that are const (not just final) and they have is_const for
@@ -2209,7 +2216,7 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
     ASSERT(!field_helper->IsConst());
     const String& setter_name = H.DartSetterName(field_helper->canonical_name_);
     Function& setter = Function::ZoneHandle(
-        Z, Function::New(setter_name, RawFunction::kImplicitSetter,
+        Z, Function::New(setter_name, FunctionLayout::kImplicitSetter,
                          field_helper->IsStatic(),
                          false,  // is_const
                          false,  // is_abstract
@@ -2227,8 +2234,8 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
   }
 }
 
-RawLibrary* KernelLoader::LookupLibraryOrNull(NameIndex library) {
-  RawLibrary* result;
+LibraryPtr KernelLoader::LookupLibraryOrNull(NameIndex library) {
+  LibraryPtr result;
   name_index_handle_ = Smi::New(library);
   {
     result = kernel_program_info_.LookupLibrary(thread_, name_index_handle_);
@@ -2251,10 +2258,10 @@ RawLibrary* KernelLoader::LookupLibraryOrNull(NameIndex library) {
                                             handle);
 }
 
-RawLibrary* KernelLoader::LookupLibrary(NameIndex library) {
+LibraryPtr KernelLoader::LookupLibrary(NameIndex library) {
   name_index_handle_ = Smi::New(library);
   {
-    RawLibrary* result =
+    LibraryPtr result =
         kernel_program_info_.LookupLibrary(thread_, name_index_handle_);
     NoSafepointScope no_safepoint_scope(thread_);
     if (result != Library::null()) {
@@ -2285,14 +2292,14 @@ RawLibrary* KernelLoader::LookupLibrary(NameIndex library) {
                                             handle);
 }
 
-RawLibrary* KernelLoader::LookupLibraryFromClass(NameIndex klass) {
+LibraryPtr KernelLoader::LookupLibraryFromClass(NameIndex klass) {
   return LookupLibrary(H.CanonicalNameParent(klass));
 }
 
-RawClass* KernelLoader::LookupClass(const Library& library, NameIndex klass) {
+ClassPtr KernelLoader::LookupClass(const Library& library, NameIndex klass) {
   name_index_handle_ = Smi::New(klass);
   {
-    RawClass* raw_class =
+    ClassPtr raw_class =
         kernel_program_info_.LookupClass(thread_, name_index_handle_);
     NoSafepointScope no_safepoint_scope(thread_);
     if (raw_class != Class::null()) {
@@ -2324,23 +2331,23 @@ RawClass* KernelLoader::LookupClass(const Library& library, NameIndex klass) {
   return handle.raw();
 }
 
-RawFunction::Kind KernelLoader::GetFunctionType(
+FunctionLayout::Kind KernelLoader::GetFunctionType(
     ProcedureHelper::Kind procedure_kind) {
   intptr_t lookuptable[] = {
-      RawFunction::kRegularFunction,  // Procedure::kMethod
-      RawFunction::kGetterFunction,   // Procedure::kGetter
-      RawFunction::kSetterFunction,   // Procedure::kSetter
-      RawFunction::kRegularFunction,  // Procedure::kOperator
-      RawFunction::kConstructor,      // Procedure::kFactory
+      FunctionLayout::kRegularFunction,  // Procedure::kMethod
+      FunctionLayout::kGetterFunction,   // Procedure::kGetter
+      FunctionLayout::kSetterFunction,   // Procedure::kSetter
+      FunctionLayout::kRegularFunction,  // Procedure::kOperator
+      FunctionLayout::kConstructor,      // Procedure::kFactory
   };
   intptr_t kind = static_cast<int>(procedure_kind);
   ASSERT(0 <= kind && kind <= ProcedureHelper::kFactory);
-  return static_cast<RawFunction::Kind>(lookuptable[kind]);
+  return static_cast<FunctionLayout::Kind>(lookuptable[kind]);
 }
 
-RawFunction* CreateFieldInitializerFunction(Thread* thread,
-                                            Zone* zone,
-                                            const Field& field) {
+FunctionPtr CreateFieldInitializerFunction(Thread* thread,
+                                           Zone* zone,
+                                           const Field& field) {
   ASSERT(field.InitializerFunction() == Function::null());
 
   String& init_name = String::Handle(zone, field.name());
@@ -2365,7 +2372,7 @@ RawFunction* CreateFieldInitializerFunction(Thread* thread,
 
   // Create a static initializer.
   const Function& initializer_fun = Function::Handle(
-      zone, Function::New(init_name, RawFunction::kFieldInitializer,
+      zone, Function::New(init_name, FunctionLayout::kFieldInitializer,
                           field.is_static(),  // is_static
                           false,              // is_const
                           false,              // is_abstract

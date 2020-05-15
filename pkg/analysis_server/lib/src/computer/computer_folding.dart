@@ -37,7 +37,7 @@ class DartUnitFoldingComputer {
   }
 
   void _addFileHeaderRegion() {
-    Token firstToken = _unit.beginToken;
+    var firstToken = _unit.beginToken;
     while (firstToken?.type == TokenType.SCRIPT_TAG) {
       firstToken = firstToken.next;
     }
@@ -50,7 +50,7 @@ class DartUnitFoldingComputer {
 
     // Walk through the comments looking for a blank line to signal the end of
     // the file header.
-    Token lastComment = firstComment;
+    var lastComment = firstComment;
     while (lastComment.next != null) {
       lastComment = lastComment.next;
 

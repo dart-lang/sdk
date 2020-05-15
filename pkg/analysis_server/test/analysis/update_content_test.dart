@@ -5,7 +5,6 @@
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -49,7 +48,7 @@ class UpdateContentTest extends AbstractAnalysisTest {
     // doesn't have an overlay yet.
     createProject();
     addTestFile('library foo;');
-    String id = 'myId';
+    var id = 'myId';
     try {
       server.updateContent(id, {
         testFile: ChangeContentOverlay([SourceEdit(8, 3, 'bar')])
@@ -84,21 +83,21 @@ class UpdateContentTest extends AbstractAnalysisTest {
   }
 
   Future<void> test_multiple_contexts() async {
-    String project1path = convertPath('/project1');
-    String project2path = convertPath('/project2');
-    String fooPath = newFile('/project1/foo.dart', content: '''
+    var project1path = convertPath('/project1');
+    var project2path = convertPath('/project2');
+    var fooPath = newFile('/project1/foo.dart', content: '''
 library foo;
 import '../project2/baz.dart';
 main() { f(); }''').path;
-    String barPath = newFile('/project2/bar.dart', content: '''
+    var barPath = newFile('/project2/bar.dart', content: '''
 library bar;
 import 'baz.dart';
 main() { f(); }''').path;
-    String bazPath = newFile('/project2/baz.dart', content: '''
+    var bazPath = newFile('/project2/baz.dart', content: '''
 library baz;
 f(int i) {}
 ''').path;
-    Request request =
+    var request =
         AnalysisSetAnalysisRootsParams([project1path, project2path], [])
             .toRequest('0');
     handleSuccessfulRequest(request);
@@ -128,7 +127,7 @@ f() {}
   @failingTest
   Future<void> test_overlay_addPreviouslyImported() async {
     // The list of errors doesn't include errors for '/project/target.dart'.
-    Folder project = newFolder('/project');
+    var project = newFolder('/project');
     handleSuccessfulRequest(
         AnalysisSetAnalysisRootsParams([project.path], []).toRequest('0'));
 
@@ -163,8 +162,8 @@ f() {}
 
     // exactly 2 contexts
     expect(server.driverMap, hasLength(2));
-    AnalysisDriver driver1 = server.getAnalysisDriver(filePath1);
-    AnalysisDriver driver2 = server.getAnalysisDriver(filePath2);
+    var driver1 = server.getAnalysisDriver(filePath1);
+    var driver2 = server.getAnalysisDriver(filePath2);
 
     // no sources
     expect(_getUserSources(driver1), isEmpty);
@@ -224,18 +223,17 @@ f() {}
   }
 
   void test_sentToPlugins() {
-    String filePath = convertPath('/project/target.dart');
-    String fileContent = 'import "none.dart";';
+    var filePath = convertPath('/project/target.dart');
+    var fileContent = 'import "none.dart";';
     //
     // Add
     //
     handleSuccessfulRequest(AnalysisUpdateContentParams(
             <String, dynamic>{filePath: AddContentOverlay(fileContent)})
         .toRequest('0'));
-    plugin.AnalysisUpdateContentParams params =
-        pluginManager.analysisUpdateContentParams;
+    var params = pluginManager.analysisUpdateContentParams;
     expect(params, isNotNull);
-    Map<String, dynamic> files = params.files;
+    var files = params.files;
     expect(files, hasLength(1));
     Object overlay = files[filePath];
     expect(overlay, const TypeMatcher<plugin.AddContentOverlay>());
@@ -279,7 +277,7 @@ f() {}
 //  }
 
   List<String> _getUserSources(AnalysisDriver driver) {
-    List<String> sources = <String>[];
+    var sources = <String>[];
     driver.addedFiles.forEach((path) {
       if (path.startsWith(convertPath('/User/'))) {
         sources.add(path);

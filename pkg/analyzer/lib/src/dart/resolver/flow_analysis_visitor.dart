@@ -26,7 +26,7 @@ class FlowAnalysisDataForTesting {
 
   /// The list of [Expression]s representing variable accesses that occur before
   /// the corresponding variable has been definitely assigned.
-  final List<AstNode> unassignedNodes = [];
+  final List<AstNode> potentiallyUnassignedNodes = [];
 
   /// The list of [SimpleIdentifier]s representing variable accesses that occur
   /// when the corresponding variable has been definitely unassigned.
@@ -181,12 +181,11 @@ class FlowAnalysisHelper {
     var element = node.staticElement;
     if (element is LocalVariableElement) {
       var typeSystem = _typeOperations.typeSystem;
+      var isUnassigned = !flow.isAssigned(element);
+      if (isUnassigned) {
+        dataForTesting?.potentiallyUnassignedNodes?.add(node);
+      }
       if (typeSystem.isPotentiallyNonNullable(element.type)) {
-        var isUnassigned = !flow.isAssigned(element);
-        if (isUnassigned) {
-          dataForTesting?.unassignedNodes?.add(node);
-        }
-
         // Note: in principle we could make this slightly more performant by
         // checking element.isLate earlier, but we would lose the ability to
         // test the flow analysis mechanism using late variables.  And it seems
@@ -217,6 +216,14 @@ class FlowAnalysisHelper {
     }
 
     return false;
+  }
+
+  void labeledStatement_enter(LabeledStatement node) {
+    flow.labeledStatement_begin(node);
+  }
+
+  void labeledStatement_exit(LabeledStatement node) {
+    flow.labeledStatement_end();
   }
 
   void topLevelDeclaration_enter(
@@ -273,26 +280,28 @@ class FlowAnalysisHelper {
   /// not specify a label), so the default enclosing target is returned.
   static Statement getLabelTarget(AstNode node, LabelElement element) {
     for (; node != null; node = node.parent) {
-      if (node is DoStatement ||
-          node is ForStatement ||
-          node is SwitchStatement ||
-          node is WhileStatement) {
-        if (element == null) {
+      if (element == null) {
+        if (node is DoStatement ||
+            node is ForStatement ||
+            node is SwitchStatement ||
+            node is WhileStatement) {
           return node;
         }
-        var parent = node.parent;
-        if (parent is LabeledStatement) {
-          for (var nodeLabel in parent.labels) {
-            if (identical(nodeLabel.label.staticElement, element)) {
+      } else {
+        if (node is LabeledStatement) {
+          if (_hasLabel(node.labels, element)) {
+            var statement = node.statement;
+            if (statement is Block ||
+                statement is IfStatement ||
+                statement is TryStatement) {
               return node;
             }
+            return statement;
           }
         }
-      }
-      if (element != null && node is SwitchStatement) {
-        for (var member in node.members) {
-          for (var nodeLabel in member.labels) {
-            if (identical(nodeLabel.label.staticElement, element)) {
+        if (node is SwitchStatement) {
+          for (var member in node.members) {
+            if (_hasLabel(member.labels, element)) {
               return node;
             }
           }
@@ -300,6 +309,15 @@ class FlowAnalysisHelper {
       }
     }
     return null;
+  }
+
+  static bool _hasLabel(List<Label> labels, LabelElement element) {
+    for (var nodeLabel in labels) {
+      if (identical(nodeLabel.label.staticElement, element)) {
+        return true;
+      }
+    }
+    return false;
   }
 }
 
@@ -331,6 +349,18 @@ class TypeSystemTypeOperations
   final TypeSystemImpl typeSystem;
 
   TypeSystemTypeOperations(this.typeSystem);
+
+  @override
+  DartType factor(DartType from, DartType what) {
+    return typeSystem.factor(from, what);
+  }
+
+  @override
+  bool isLocalVariableWithoutDeclaredType(PromotableElement variable) {
+    return variable is LocalVariableElement &&
+        variable.hasImplicitType &&
+        variable.initializer == null;
+  }
 
   @override
   bool isSameType(covariant TypeImpl type1, covariant TypeImpl type2) {

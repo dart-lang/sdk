@@ -1,0 +1,18 @@
+class Class1 {
+  int field;
+  Class1(this.field);
+  String toString() => 'Class1($field)';
+}
+class Class2 {
+  int field;
+  Class2(this.field);
+  String toString() => 'Class2($field)';
+}
+extension Extension1 ;
+on Class1 (){ }
+extension Extension2 ;
+on Class2 (){ }
+main() { }
+testExtension1() { }
+testExtension2() { }
+expect(expected, actual) { }

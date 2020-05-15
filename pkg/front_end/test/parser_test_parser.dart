@@ -647,6 +647,19 @@ class TestParser extends Parser {
     return result;
   }
 
+  Token ensureIdentifierPotentiallyRecovered(
+      Token token, IdentifierContext context, bool isRecovered) {
+    doPrint('ensureIdentifierPotentiallyRecovered('
+        '$token, '
+        '$context, '
+        '$isRecovered)');
+    indent++;
+    var result =
+        super.ensureIdentifierPotentiallyRecovered(token, context, isRecovered);
+    indent--;
+    return result;
+  }
+
   bool notEofOrValue(String value, Token token) {
     doPrint('notEofOrValue(' '$value, ' '$token)');
     indent++;
@@ -689,7 +702,9 @@ class TestParser extends Parser {
       Token beforeType,
       TypeInfo typeInfo,
       Token name,
-      DeclarationKind kind) {
+      DeclarationKind kind,
+      String enclosingDeclarationName,
+      bool nameIsRecovered) {
     doPrint('parseFields('
         '$beforeStart, '
         '$externalToken, '
@@ -700,7 +715,9 @@ class TestParser extends Parser {
         '$beforeType, '
         '$typeInfo, '
         '$name, '
-        '$kind)');
+        '$kind, '
+        '$enclosingDeclarationName, '
+        '$nameIsRecovered)');
     indent++;
     var result = super.parseFields(
         beforeStart,
@@ -712,23 +729,32 @@ class TestParser extends Parser {
         beforeType,
         typeInfo,
         name,
-        kind);
+        kind,
+        enclosingDeclarationName,
+        nameIsRecovered);
     indent--;
     return result;
   }
 
-  Token parseTopLevelMethod(Token beforeStart, Token externalToken,
-      Token beforeType, TypeInfo typeInfo, Token getOrSet, Token name) {
+  Token parseTopLevelMethod(
+      Token beforeStart,
+      Token externalToken,
+      Token beforeType,
+      TypeInfo typeInfo,
+      Token getOrSet,
+      Token name,
+      bool nameIsRecovered) {
     doPrint('parseTopLevelMethod('
         '$beforeStart, '
         '$externalToken, '
         '$beforeType, '
         '$typeInfo, '
         '$getOrSet, '
-        '$name)');
+        '$name, '
+        '$nameIsRecovered)');
     indent++;
-    var result = super.parseTopLevelMethod(
-        beforeStart, externalToken, beforeType, typeInfo, getOrSet, name);
+    var result = super.parseTopLevelMethod(beforeStart, externalToken,
+        beforeType, typeInfo, getOrSet, name, nameIsRecovered);
     indent--;
     return result;
   }
@@ -741,17 +767,24 @@ class TestParser extends Parser {
     return result;
   }
 
-  Token parseFieldInitializerOpt(Token token, Token name, Token lateToken,
-      Token varFinalOrConst, DeclarationKind kind) {
+  Token parseFieldInitializerOpt(
+      Token token,
+      Token name,
+      Token lateToken,
+      Token externalToken,
+      Token varFinalOrConst,
+      DeclarationKind kind,
+      String enclosingDeclarationName) {
     doPrint('parseFieldInitializerOpt('
         '$token, '
         '$name, '
         '$lateToken, '
         '$varFinalOrConst, '
-        '$kind)');
+        '$kind, '
+        '$enclosingDeclarationName)');
     indent++;
-    var result = super.parseFieldInitializerOpt(
-        token, name, lateToken, varFinalOrConst, kind);
+    var result = super.parseFieldInitializerOpt(token, name, lateToken,
+        externalToken, varFinalOrConst, kind, enclosingDeclarationName);
     indent--;
     return result;
   }
@@ -940,6 +973,22 @@ class TestParser extends Parser {
     return result;
   }
 
+  bool isReservedKeyword(Token token) {
+    doPrint('isReservedKeyword(' '$token)');
+    indent++;
+    var result = super.isReservedKeyword(token);
+    indent--;
+    return result;
+  }
+
+  bool indicatesMethodOrField(Token token) {
+    doPrint('indicatesMethodOrField(' '$token)');
+    indent++;
+    var result = super.indicatesMethodOrField(token);
+    indent--;
+    return result;
+  }
+
   Token parseClassOrMixinOrExtensionMemberImpl(
       Token token, DeclarationKind kind, String enclosingDeclarationName) {
     doPrint('parseClassOrMixinOrExtensionMemberImpl('
@@ -965,7 +1014,8 @@ class TestParser extends Parser {
       Token getOrSet,
       Token name,
       DeclarationKind kind,
-      String enclosingDeclarationName) {
+      String enclosingDeclarationName,
+      bool nameIsRecovered) {
     doPrint('parseMethod('
         '$beforeStart, '
         '$externalToken, '
@@ -978,7 +1028,8 @@ class TestParser extends Parser {
         '$getOrSet, '
         '$name, '
         '$kind, '
-        '$enclosingDeclarationName)');
+        '$enclosingDeclarationName, '
+        '$nameIsRecovered)');
     indent++;
     var result = super.parseMethod(
         beforeStart,
@@ -992,7 +1043,8 @@ class TestParser extends Parser {
         getOrSet,
         name,
         kind,
-        enclosingDeclarationName);
+        enclosingDeclarationName,
+        nameIsRecovered);
     indent--;
     return result;
   }

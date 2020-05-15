@@ -1,0 +1,74 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
+extension A on self::C* {
+  method method = self::A|method;
+  tearoff method = self::A|get#method;
+  get getter = self::A|get#getter;
+  get property = self::A|get#property;
+  operator + = self::A|+;
+  operator unary- = self::A|unary-;
+  operator [] = self::A|[];
+  set setter = self::A|set#setter;
+}
+extension B on self::C* {
+  method method = self::B|method;
+  tearoff method = self::B|get#method;
+  get getter = self::B|get#getter;
+  operator + = self::B|+;
+  operator unary- = self::B|unary-;
+  operator []= = self::B|[]=;
+  set setter = self::B|set#setter;
+  set property = self::B|set#property;
+}
+static method A|method(final self::C* #this) → void
+  ;
+static method A|get#method(final self::C* #this) → () →* void
+  return () → void => self::A|method(#this);
+static method A|get#getter(final self::C* #this) → core::int*
+  ;
+static method A|set#setter(final self::C* #this, core::int* value) → void
+  ;
+static method A|get#property(final self::C* #this) → core::int*
+  ;
+static method A|+(final self::C* #this, core::int* i) → core::int*
+  ;
+static method A|unary-(final self::C* #this) → core::int*
+  ;
+static method A|[](final self::C* #this, core::int* i) → core::int*
+  ;
+static method B|method(final self::C* #this) → void
+  ;
+static method B|get#method(final self::C* #this) → () →* void
+  return () → void => self::B|method(#this);
+static method B|get#getter(final self::C* #this) → core::int*
+  ;
+static method B|set#setter(final self::C* #this, core::int* value) → void
+  ;
+static method B|set#property(final self::C* #this, core::int* value) → void
+  ;
+static method B|+(final self::C* #this, core::int* i) → core::int*
+  ;
+static method B|unary-(final self::C* #this) → core::int*
+  ;
+static method B|[]=(final self::C* #this, core::int* i, core::int* j) → void
+  ;
+static method errors(self::C* c) → dynamic
+  ;
+static method main() → dynamic
+  ;

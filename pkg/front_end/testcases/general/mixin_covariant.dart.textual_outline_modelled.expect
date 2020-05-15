@@ -1,0 +1,88 @@
+abstract class Implement1 {
+  void method(covariant int a, int b, int c, int d, int e) {}
+}
+
+class C extends Object with M1, M2 {}
+
+class Direct {
+  void named({covariant int a, int b, covariant int c, int d}) {}
+  void optional([covariant int a, int b, covariant int c, int d]) {}
+  void positional(covariant int a, int b, covariant int c, int d, int e) {}
+}
+
+class Implement2 {
+  void method(int a, covariant int b, int c, int d, int e) {}
+}
+
+class Implement3 {
+  void method(int a, int b, covariant int c, int d, int e) {}
+}
+
+class Implement4 implements Implement3 {
+  void method(int a, int b, int c, covariant int d, int e) {}
+}
+
+class Implement5 implements Implement1, Implement2, Implement4 {
+  void method(int a, int b, int c, int d, covariant int e) {}
+}
+
+class Inherited extends Direct {}
+
+class Interface1 {
+  void method(covariant int a, int b, int c, int d, int e) {}
+}
+
+class Interface2 {
+  void method(int a, covariant int b, int c, int d, int e) {}
+}
+
+class M1 {
+  method(covariant int a, int b) {}
+}
+
+class M2 {
+  method(int a, covariant int b) {}
+}
+
+class Mixed extends Superclass
+    with Mixin1, Mixin2
+    implements Interface1, Interface2 {}
+
+class Mixin1 {
+  void method(int a, int b, covariant int c, int d, int e) {}
+}
+
+class Mixin2 {
+  void method(int a, int b, int c, covariant int d, int e) {}
+}
+
+class Override1 {
+  void method(covariant int a, int b, int c, int d, int e) {}
+}
+
+class Override2 extends Override1 {
+  void method(int a, int b, covariant int c, int d, int e) {}
+}
+
+class Override3 extends Override2 {
+  void method(int a, int b, int c, int d, int e) {}
+}
+
+class Superclass {
+  void method(int a, int b, int c, int d, covariant int e) {}
+}
+
+typedef void TakeInts(int a, int b, int c, int d, int e);
+typedef void TakeNamedInts({int a, int b, int c, int d});
+typedef void TakeNamedObjectsAndInts({Object a, int b, Object c, int d});
+typedef void TakeObjects(Object a, Object b, Object c, Object d, Object e);
+typedef void TakeObjectsAndInts(Object a, int b, Object c, int d, int e);
+typedef void TakeOptionalInts([int a, int b, int c, int d]);
+typedef void TakeOptionalObjectsAndInts([Object a, int b, Object c, int d]);
+void isTrue(bool value) {}
+void main() {}
+void testDirect() {}
+void testImplemented() {}
+void testInherited() {}
+void testMixed() {}
+void testOverridden() {}

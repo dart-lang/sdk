@@ -5,16 +5,21 @@
 library get_object_rpc_test;
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
 class Super {
+  // Make sure these fields are not removed by the tree shaker.
+  @pragma("vm:entry-point")
   var z = 1;
+  @pragma("vm:entry-point")
   var y = 2;
 }
 
 class Sub extends Super {
+  @pragma("vm:entry-point")
   var y = 3;
+  @pragma("vm:entry-point")
   var x = 4;
 }
 

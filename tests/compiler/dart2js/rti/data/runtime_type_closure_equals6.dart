@@ -2,30 +2,32 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'package:expect/expect.dart';
 
-/*strong.member: method1a:*/
-/*omit.member: method1a:*/
+/*spec:nnbd-off.member: method1a:*/
+/*prod:nnbd-off.member: method1a:*/
 method1a() => null;
 
-/*strong.member: method1b:*/
-/*omit.member: method1b:*/
+/*spec:nnbd-off.member: method1b:*/
+/*prod:nnbd-off.member: method1b:*/
 method1b() => null;
 
-/*strong.member: method2:*/
-/*omit.member: method2:*/
+/*spec:nnbd-off.member: method2:*/
+/*prod:nnbd-off.member: method2:*/
 method2(t, s) => t;
 
-/*strong.class: Class:*/
-/*omit.class: Class:*/
+/*spec:nnbd-off.class: Class:*/
+/*prod:nnbd-off.class: Class:*/
 class Class<T> {
-  /*strong.member: Class.:*/
-  /*omit.member: Class.:*/
+  /*spec:nnbd-off.member: Class.:*/
+  /*prod:nnbd-off.member: Class.:*/
   Class();
 }
 
-/*strong.member: main:*/
-/*omit.member: main:*/
+/*spec:nnbd-off.member: main:*/
+/*prod:nnbd-off.member: main:*/
 main() {
   Expect.isTrue(method1a.runtimeType == method1b.runtimeType);
   Expect.isFalse(method1a.runtimeType == method2.runtimeType);

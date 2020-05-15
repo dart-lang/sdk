@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*strong.class: global#List:deps=[Class],explicit=[List,List<String>],indirect,needsArgs*/
-/*omit.class: global#List:deps=[Class],explicit=[List],indirect,needsArgs*/
+// @dart = 2.7
 
-/*strong.class: global#JSArray:deps=[ArrayIterator,List],explicit=[JSArray,JSArray.E,JSArray<ArrayIterator.E>],implicit=[JSArray.E],indirect,needsArgs*/
-/*omit.class: global#JSArray:deps=[List],explicit=[JSArray],implicit=[JSArray.E],indirect,needsArgs*/
+/*spec:nnbd-off.class: global#List:deps=[Class],explicit=[List,List<String>],indirect,needsArgs*/
+/*prod:nnbd-off.class: global#List:deps=[Class],explicit=[List],indirect,needsArgs*/
+
+/*spec:nnbd-off.class: global#JSArray:deps=[ArrayIterator,List],explicit=[JSArray,JSArray.E,JSArray<ArrayIterator.E>],implicit=[JSArray.E],indirect,needsArgs*/
+/*prod:nnbd-off.class: global#JSArray:deps=[List],explicit=[JSArray],implicit=[JSArray.E],indirect,needsArgs*/
 
 main() {
   var c = new Class<int>();

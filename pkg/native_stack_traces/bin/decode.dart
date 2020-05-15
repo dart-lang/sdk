@@ -10,36 +10,40 @@ import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:path/path.dart' as path;
 import 'package:native_stack_traces/native_stack_traces.dart';
 
-final ArgParser _translateParser = ArgParser(allowTrailingOptions: true)
+ArgParser _createBaseDebugParser(ArgParser parser) => parser
   ..addOption('debug',
       abbr: 'd',
       help: 'Filename containing debugging information (REQUIRED)',
       valueHelp: 'FILE')
-  ..addOption('input',
-      abbr: 'i', help: 'Filename for processed input', valueHelp: 'FILE')
-  ..addOption('output',
-      abbr: 'o', help: 'Filename for generated output', valueHelp: 'FILE')
-  ..addFlag('verbose',
-      abbr: 'v',
-      negatable: false,
-      help: 'Translate all frames, not just user or library code frames');
-
-final ArgParser _findParser = ArgParser(allowTrailingOptions: true)
-  ..addOption('debug',
-      abbr: 'd',
-      help: 'Filename containing debugging information (REQUIRED)',
-      valueHelp: 'FILE')
-  ..addMultiOption('location',
-      abbr: 'l', help: 'PC address to find', valueHelp: 'PC')
   ..addFlag('verbose',
       abbr: 'v',
       negatable: false,
       help: 'Translate all frames, not just user or library code frames')
-  ..addOption('vm_start',
-      help: 'Absolute address for start of VM instructions', valueHelp: 'PC')
-  ..addOption('isolate_start',
-      help: 'Absolute address for start of isolate instructions',
-      valueHelp: 'PC');
+  ..addFlag('dump_debug_file_contents',
+      negatable: false,
+      help: 'Dump all the parsed information from the debugging file');
+
+final ArgParser _translateParser =
+    _createBaseDebugParser(ArgParser(allowTrailingOptions: true))
+      ..addOption('input',
+          abbr: 'i', help: 'Filename for processed input', valueHelp: 'FILE')
+      ..addOption('output',
+          abbr: 'o', help: 'Filename for generated output', valueHelp: 'FILE');
+
+final ArgParser _findParser =
+    _createBaseDebugParser(ArgParser(allowTrailingOptions: true))
+      ..addMultiOption('location',
+          abbr: 'l', help: 'PC address to find', valueHelp: 'PC')
+      ..addFlag('force_hexadecimal',
+          abbr: 'x',
+          negatable: false,
+          help: 'Always parse integers as hexadecimal')
+      ..addOption('vm_start',
+          help: 'Absolute address for start of VM instructions',
+          valueHelp: 'PC')
+      ..addOption('isolate_start',
+          help: 'Absolute address for start of isolate instructions',
+          valueHelp: 'PC');
 
 final ArgParser _helpParser = ArgParser(allowTrailingOptions: true);
 
@@ -88,19 +92,30 @@ final String _findUsage = '''
 Usage: convert_stack_traces find [options] <PC> ...
 
 The find command looks up program counter (PC) addresses, either given as
-arguments on the command line or via the -l option. For each PC address,
-it outputs the file, function, and line number information if found.
+arguments on the command line or via the -l/--location option. For each
+successful PC lookup, it outputs the call information in one of two formats:
 
-PC addresses are expected to be hexadecimal numbers with or without an initial
-"0x" marker.
+- If the location corresponds to a call site in Dart source code, the call
+  information includes the file, function, and line number information.
+- If it corresponds to a Dart VM stub, the call information includes the dynamic
+  symbol name for the instructions payload and an offset into that payload.
 
 The -l option may be provided multiple times, or a single use of the -l option
 may be given multiple arguments separated by commas.
 
-By default, PC addresses are assumed to be virtual addresses valid for the
-given debugging information. To find absolute PC addresses, use both the
---vm_start and --isolate_start arguments tp provide the absolute addresses of
-the VM and isolate instructions sections.
+PC addresses can be provided in one of two formats:
+
+- An integer, e.g. 0x2a3f or 15049
+- A static symbol in the VM snapshot plus an integer offset, e.g.,
+  _kDartIsolateSnapshotInstructions+1523 or _kDartVMSnapshotInstructions+0x403f
+
+Integers without an "0x" prefix that do not includes hexadecimal digits are
+assumed to be decimal unless the -x/--force_hexadecimal flag is used.
+
+By default, integer PC addresses are assumed to be virtual addresses valid for
+the given debugging information. Otherwise, use both the --vm_start and
+--isolate_start arguments to provide the appropriate starting addresses of the
+VM and isolate instructions sections.
 
 Options shared by all commands:
 ${_argParser.usage}
@@ -141,65 +156,92 @@ void help(ArgResults options) {
   }
 }
 
-void find(ArgResults options) {
-  void usageError(String message) => errorWithUsage(message, command: 'find');
-  int convertAddress(String s) => int.tryParse(s, radix: 16);
-
-  if (options['debug'] == null) {
-    return usageError('must provide -d/--debug');
+Dwarf _loadFromFile(String original, Function(String) usageError) {
+  if (original == null) {
+    usageError('must provide -d/--debug');
+    return null;
   }
-  final dwarf = Dwarf.fromFile(options['debug']);
-  final verbose = options['verbose'];
+  final filename = path.canonicalize(path.normalize(original));
+  if (!io.File(filename).existsSync()) {
+    usageError('debug file "$original" does not exist');
+    return null;
+  }
+  final dwarf = Dwarf.fromFile(filename);
+  if (dwarf == null) {
+    usageError('file "$original" does not contain debugging information');
+  }
+  return dwarf;
+}
 
-  int vm_start;
+void find(ArgResults options) {
+  final bool verbose = options['verbose'];
+  final bool forceHexadecimal = options['force_hexadecimal'];
+
+  void usageError(String message) => errorWithUsage(message, command: 'find');
+  int parseIntAddress(String s) {
+    if (!forceHexadecimal && !s.startsWith("0x")) {
+      final decimal = int.tryParse(s);
+      if (decimal != null) return decimal;
+    }
+    return int.tryParse(s.startsWith("0x") ? s.substring(2) : s, radix: 16);
+  }
+
+  PCOffset convertAddress(StackTraceHeader header, String s) {
+    final parsedOffset = tryParseSymbolOffset(s, forceHexadecimal);
+    if (parsedOffset != null) return parsedOffset;
+
+    final address = parseIntAddress(s);
+    if (address != null) return header.offsetOf(address);
+
+    return null;
+  }
+
+  final dwarf = _loadFromFile(options['debug'], usageError);
+  if (dwarf == null) return;
+
+  if (options['dump_debug_file_contents']) {
+    print(dwarf.dumpFileInfo());
+  }
+
+  if ((options['vm_start'] == null) != (options['isolate_start'] == null)) {
+    return usageError("need both VM start and isolate start");
+  }
+
+  int vmStart = dwarf.vmStartAddress;
   if (options['vm_start'] != null) {
-    vm_start = convertAddress(options['vm_start']);
-    if (vm_start == null) {
+    vmStart = parseIntAddress(options['vm_start']);
+    if (vmStart == null) {
       return usageError('could not parse VM start address '
           '${options['vm_start']}');
     }
   }
 
-  int isolate_start;
+  int isolateStart = dwarf.isolateStartAddress;
   if (options['isolate_start'] != null) {
-    isolate_start = convertAddress(options['isolate_start']);
-    if (isolate_start == null) {
+    isolateStart = parseIntAddress(options['isolate_start']);
+    if (isolateStart == null) {
       return usageError('could not parse isolate start address '
           '${options['isolate_start']}');
     }
   }
 
-  if ((vm_start == null) != (isolate_start == null)) {
-    return usageError("need both VM start and isolate start");
-  }
+  final header = StackTraceHeader(isolateStart, vmStart);
 
-  final locations = <int>[];
-  for (final s in options['location'] + options.rest) {
-    final location = convertAddress(s);
-    if (location == null) {
-      return usageError('could not parse PC address ${s}');
-    }
+  final locations = <PCOffset>[];
+  for (final String s in options['location'] + options.rest) {
+    final location = convertAddress(header, s);
+    if (location == null) return usageError('could not parse PC address ${s}');
     locations.add(location);
   }
   if (locations.isEmpty) return usageError('no PC addresses to find');
 
-  // Used to approximate how many hex digits we should have in the final output.
-  final maxDigits = options['location']
-      .fold(0, ((acc, s) => s.startsWith('0x') ? s.length - 2 : s.length));
-
-  Iterable<int> addresses = locations;
-  if (vm_start != null) {
-    final header = StackTraceHeader(isolate_start, vm_start);
-    addresses =
-        locations.map((l) => header.offsetOf(l).virtualAddressIn(dwarf));
-  }
-  for (final addr in addresses) {
+  for (final offset in locations) {
+    final addr = dwarf.virtualAddressOf(offset);
     final frames = dwarf
         .callInfoFor(addr, includeInternalFrames: verbose)
         ?.map((CallInfo c) => "  " + c.toString());
-    final addrString = addr > 0
-        ? "0x" + addr.toRadixString(16).padLeft(maxDigits, '0')
-        : addr.toString();
+    final addrString =
+        addr > 0 ? "0x" + addr.toRadixString(16) : addr.toString();
     print("For virtual address ${addrString}:");
     if (frames == null) {
       print("  Invalid virtual address.");
@@ -215,11 +257,13 @@ Future<void> translate(ArgResults options) async {
   void usageError(String message) =>
       errorWithUsage(message, command: 'translate');
 
-  if (options['debug'] == null) {
-    return usageError('must provide -d/--debug');
+  final dwarf = _loadFromFile(options['debug'], usageError);
+  if (dwarf == null) {
+    return;
   }
-  final dwarf =
-      Dwarf.fromFile(path.canonicalize(path.normalize(options['debug'])));
+  if (options['dump_debug_file_contents']) {
+    print(dwarf.dumpFileInfo());
+  }
 
   final verbose = options['verbose'];
   final output = options['output'] != null

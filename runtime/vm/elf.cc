@@ -5,10 +5,11 @@
 #include "vm/elf.h"
 
 #include "platform/elf.h"
-#include "platform/text_buffer.h"
 #include "vm/cpu.h"
 #include "vm/hash_map.h"
+#include "vm/image_snapshot.h"
 #include "vm/thread.h"
+#include "vm/zone_text_buffer.h"
 
 namespace dart {
 
@@ -87,36 +88,49 @@ class Section : public ZoneAllocated {
   intptr_t section_info = 0;
   intptr_t section_entry_size = 0;
 
+  static constexpr intptr_t kInitValue = -1;
+
 #define FOR_EACH_SECTION_LINEAR_FIELD(M)                                       \
-  M(section_name, intptr_t, -1)                                                \
-  M(section_index, intptr_t, -1)                                               \
-  M(file_offset, intptr_t, -1)
+  M(section_name, intptr_t, kInitValue)                                        \
+  M(section_index, intptr_t, kInitValue)                                       \
+  M(file_offset, intptr_t, kInitValue)
 
   FOR_EACH_SECTION_LINEAR_FIELD(DEFINE_LINEAR_FIELD_METHODS);
 
-  virtual intptr_t FileSize() = 0;
+  virtual intptr_t FileSize() const = 0;
 
   // Loader view.
   const intptr_t segment_type;
   const intptr_t segment_flags;
 
-#define FOR_EACH_SEGMENT_LINEAR_FIELD(M) M(memory_offset, intptr_t, -1)
+#define FOR_EACH_SEGMENT_LINEAR_FIELD(M) M(memory_offset, intptr_t, kInitValue)
 
   FOR_EACH_SEGMENT_LINEAR_FIELD(DEFINE_LINEAR_FIELD_METHODS);
 
-  virtual intptr_t MemorySize() = 0;
+  virtual intptr_t MemorySize() const = 0;
 
   // Other methods.
+  bool IsSegment() const { return segment_type != 0; }
+  // Returns whether new content can be added to a section.
+  bool HasBeenFinalized() const {
+    if (IsSegment()) {
+      // The contents of a segment must not change after the segment is added
+      // (when its memory offset is calculated).
+      return memory_offset_ != kInitValue;
+    } else {
+      // Sections with an in-memory segment can have new content added until
+      // we calculate file offsets.
+      return file_offset_ != kInitValue;
+    }
+  }
+
   virtual void Write(Elf* stream) = 0;
 
-  void WriteSegmentEntry(Elf* stream, bool dynamic = false) {
-    // This should never be used on either the reserved 0-filled section or
-    // on sections without a segment.
+  void WriteSegmentEntry(Elf* stream) {
+    // This should never be used on sections without a segment.
     ASSERT(MemorySize() > 0);
-    // dynamic should only be true if this section is the dynamic table.
-    ASSERT(!dynamic || section_type == elf::SHT_DYNAMIC);
 #if defined(TARGET_ARCH_IS_32_BIT)
-    stream->WriteWord(dynamic ? elf::PT_DYNAMIC : segment_type);
+    stream->WriteWord(segment_type);
     stream->WriteOff(file_offset());
     stream->WriteAddr(memory_offset());  // Virtual address.
     stream->WriteAddr(memory_offset());  // Physical address, not used.
@@ -125,7 +139,7 @@ class Section : public ZoneAllocated {
     stream->WriteWord(segment_flags);
     stream->WriteWord(alignment);
 #else
-    stream->WriteWord(dynamic ? elf::PT_DYNAMIC : segment_type);
+    stream->WriteWord(segment_type);
     stream->WriteWord(segment_flags);
     stream->WriteOff(file_offset());
     stream->WriteAddr(memory_offset());  // Virtual address.
@@ -198,8 +212,7 @@ class Section : public ZoneAllocated {
 #undef DEFINE_LINEAR_FIELD_METHODS
 
 // Represents the first entry in the section table, which should only contain
-// zero values. Only used for WriteSectionEntry and should never actually appear
-// in sections_.
+// zero values and does not correspond to a memory segment.
 class ReservedSection : public Section {
  public:
   ReservedSection()
@@ -213,9 +226,9 @@ class ReservedSection : public Section {
     set_file_offset(0);
   }
 
-  intptr_t FileSize() { return 0; }
-  intptr_t MemorySize() { return 0; }
-  void Write(Elf* stream) { UNREACHABLE(); }
+  intptr_t FileSize() const { return 0; }
+  intptr_t MemorySize() const { return 0; }
+  void Write(Elf* stream) {}
 };
 
 class BlobSection : public Section {
@@ -248,8 +261,8 @@ class BlobSection : public Section {
                     memsz,
                     alignment) {}
 
-  intptr_t FileSize() { return file_size_; }
-  intptr_t MemorySize() { return memory_size_; }
+  intptr_t FileSize() const { return file_size_; }
+  intptr_t MemorySize() const { return memory_size_; }
 
   virtual void Write(Elf* stream) = 0;
 
@@ -258,11 +271,11 @@ class BlobSection : public Section {
   const intptr_t memory_size_;
 };
 
-// A section for representing the program header segment in the program header
-// table. Only used for WriteSegmentEntry.
-class ProgramTable : public BlobSection {
+// A segment for representing the program header table self-reference in the
+// program header table. There is no corresponding section for this segment.
+class ProgramTableSelfSegment : public BlobSection {
  public:
-  ProgramTable(intptr_t offset, intptr_t size)
+  ProgramTableSelfSegment(intptr_t offset, intptr_t size)
       : BlobSection(/*type=*/0,
                     /*segment_type=*/elf::PT_PHDR,
                     /*allocate=*/true,
@@ -274,13 +287,12 @@ class ProgramTable : public BlobSection {
     set_memory_offset(offset);
   }
 
-  // This should never actually be added to sections_ or segments_.
   void Write(Elf* stream) { UNREACHABLE(); }
 };
 
-// A section for representing the program header table load segment in the
-// program header table. Only used for WriteSegmentEntry.
-class ProgramTableLoad : public BlobSection {
+// A segment for representing the program header table load segment in the
+// program header table. There is no corresponding section for this segment.
+class ProgramTableLoadSegment : public BlobSection {
  public:
   // The Android dynamic linker in Jelly Bean incorrectly assumes that all
   // non-writable segments are continguous. Since the BSS segment comes directly
@@ -290,7 +302,7 @@ class ProgramTableLoad : public BlobSection {
   //
   // The bug is here:
   //   https://github.com/aosp-mirror/platform_bionic/blob/94963af28e445384e19775a838a29e6a71708179/linker/linker.c#L1991-L2001
-  explicit ProgramTableLoad(intptr_t size)
+  explicit ProgramTableLoadSegment(intptr_t size)
       : BlobSection(/*type=*/0,
                     /*allocate=*/true,
                     /*executable=*/false,
@@ -301,7 +313,6 @@ class ProgramTableLoad : public BlobSection {
     set_memory_offset(0);
   }
 
-  // This should never actually be added to sections_ or segments_.
   void Write(Elf* stream) { UNREACHABLE(); }
 };
 
@@ -347,17 +358,17 @@ class StringTable : public Section {
                 /*executable=*/false,
                 /*writable=*/false),
         dynamic_(allocate),
-        text_(128),
+        text_(Thread::Current()->zone(), 128),
         text_indices_() {
     text_.AddChar('\0');
     text_indices_.Insert({"", 1});
   }
 
-  intptr_t FileSize() { return text_.length(); }
-  intptr_t MemorySize() { return dynamic_ ? FileSize() : 0; }
+  intptr_t FileSize() const { return text_.length(); }
+  intptr_t MemorySize() const { return dynamic_ ? FileSize() : 0; }
 
   void Write(Elf* stream) {
-    stream->WriteBytes(reinterpret_cast<const uint8_t*>(text_.buf()),
+    stream->WriteBytes(reinterpret_cast<const uint8_t*>(text_.buffer()),
                        text_.length());
   }
 
@@ -370,8 +381,12 @@ class StringTable : public Section {
     return offset;
   }
 
+  intptr_t Lookup(const char* str) const {
+    return text_indices_.LookupValue(str) - 1;
+  }
+
   const bool dynamic_;
-  TextBuffer text_;
+  ZoneTextBuffer text_;
   // To avoid kNoValue for intptr_t (0), we store an index n as n + 1.
   CStringMap<intptr_t> text_indices_;
 };
@@ -384,39 +399,40 @@ class Symbol : public ZoneAllocated {
          intptr_t section,
          intptr_t offset,
          intptr_t size)
-      : cstr_(cstr),
-        name_index_(name),
-        info_(info),
-        section_index_(section),
-        offset_(offset),
-        size_(size) {}
+      : name_index(name),
+        info(info),
+        section_index(section),
+        offset(offset),
+        size(size),
+        cstr_(cstr) {}
 
   void Write(Elf* stream) const {
-    stream->WriteWord(name_index_);
+    stream->WriteWord(name_index);
 #if defined(TARGET_ARCH_IS_32_BIT)
-    stream->WriteAddr(offset_);
-    stream->WriteWord(size_);
-    stream->WriteByte(info_);
+    stream->WriteAddr(offset);
+    stream->WriteWord(size);
+    stream->WriteByte(info);
     stream->WriteByte(0);
-    stream->WriteHalf(section_index_);
+    stream->WriteHalf(section_index);
 #else
-    stream->WriteByte(info_);
+    stream->WriteByte(info);
     stream->WriteByte(0);
-    stream->WriteHalf(section_index_);
-    stream->WriteAddr(offset_);
-    stream->WriteXWord(size_);
+    stream->WriteHalf(section_index);
+    stream->WriteAddr(offset);
+    stream->WriteXWord(size);
 #endif
   }
+
+  const intptr_t name_index;
+  const intptr_t info;
+  const intptr_t section_index;
+  const intptr_t offset;
+  const intptr_t size;
 
  private:
   friend class SymbolHashTable;  // For cstr_ access.
 
-  const char* cstr_;
-  intptr_t name_index_;
-  intptr_t info_;
-  intptr_t section_index_;
-  intptr_t offset_;
-  intptr_t size_;
+  const char* const cstr_;
 };
 
 class SymbolTable : public Section {
@@ -435,8 +451,8 @@ class SymbolTable : public Section {
     section_info = 1;  // One "local" symbol, the reserved first entry.
   }
 
-  intptr_t FileSize() { return Length() * kElfSymbolTableEntrySize; }
-  intptr_t MemorySize() { return dynamic_ ? FileSize() : 0; }
+  intptr_t FileSize() const { return Length() * kElfSymbolTableEntrySize; }
+  intptr_t MemorySize() const { return dynamic_ ? FileSize() : 0; }
 
   void Write(Elf* stream) {
     for (intptr_t i = 0; i < Length(); i++) {
@@ -451,6 +467,14 @@ class SymbolTable : public Section {
   void AddSymbol(const Symbol* symbol) { symbols_.Add(symbol); }
   intptr_t Length() const { return symbols_.length(); }
   const Symbol* At(intptr_t i) const { return symbols_[i]; }
+
+  const Symbol* FindSymbolWithNameIndex(intptr_t name_index) const {
+    for (intptr_t i = 0; i < Length(); i++) {
+      auto const symbol = At(i);
+      if (symbol->name_index == name_index) return symbol;
+    }
+    return nullptr;
+  }
 
  private:
   const bool dynamic_;
@@ -503,8 +527,8 @@ class SymbolHashTable : public Section {
     }
   }
 
-  intptr_t FileSize() { return 4 * (nbucket_ + nchain_ + 2); }
-  intptr_t MemorySize() { return FileSize(); }
+  intptr_t FileSize() const { return 4 * (nbucket_ + nchain_ + 2); }
+  intptr_t MemorySize() const { return FileSize(); }
 
   void Write(Elf* stream) {
     stream->WriteWord(nbucket_);
@@ -543,8 +567,10 @@ class DynamicTable : public Section {
     AddEntry(elf::DT_NULL, 0);
   }
 
-  intptr_t FileSize() { return entries_.length() * kElfDynamicTableEntrySize; }
-  intptr_t MemorySize() { return FileSize(); }
+  intptr_t FileSize() const {
+    return entries_.length() * kElfDynamicTableEntrySize;
+  }
+  intptr_t MemorySize() const { return FileSize(); }
 
   void Write(Elf* stream) {
     for (intptr_t i = 0; i < entries_.length(); i++) {
@@ -561,7 +587,7 @@ class DynamicTable : public Section {
     }
   }
 
-  class Entry {
+  class Entry : public ZoneAllocated {
    public:
     intptr_t tag;
     intptr_t value;
@@ -578,32 +604,67 @@ class DynamicTable : public Section {
   GrowableArray<Entry*> entries_;
 };
 
-// The first section must be written out and contains only zeros.
-static const intptr_t kNumInvalidSections = 1;
+// A segment for representing the dynamic table segment in the program header
+// table. There is no corresponding section for this segment.
+class DynamicSegment : public BlobSection {
+ public:
+  explicit DynamicSegment(DynamicTable* dynamic)
+      : BlobSection(dynamic->section_type,
+                    /*segment_type=*/elf::PT_DYNAMIC,
+                    /*allocate=*/true,
+                    /*executable=*/false,
+                    /*writable=*/true,
+                    /*filesz=*/dynamic->FileSize(),
+                    /*memsz=*/dynamic->MemorySize()) {
+    set_memory_offset(dynamic->memory_offset());
+  }
 
-// Extra segments put in the program table that aren't reified in
-// Elf::segments_.
-static const intptr_t kNumImplicitSegments = 3;
+  void Write(Elf* stream) { UNREACHABLE(); }
+};
 
 static const intptr_t kProgramTableSegmentSize = Elf::kPageSize;
 
-Elf::Elf(Zone* zone, StreamingWriteStream* stream)
+Elf::Elf(Zone* zone, StreamingWriteStream* stream, bool strip)
     : zone_(zone),
       stream_(stream),
+      strip_(strip),
       shstrtab_(new (zone) StringTable(/*allocate=*/false)),
       dynstrtab_(new (zone) StringTable(/*allocate=*/true)),
       dynsym_(new (zone) SymbolTable(/*dynamic=*/true)),
       memory_offset_(kProgramTableSegmentSize) {
   // Assumed by various offset logic in this file.
   ASSERT(stream_->position() == 0);
+  // The first section in the section header table is always a reserved
+  // entry containing only 0 values.
+  sections_.Add(new (zone_) ReservedSection());
+  // Go ahead and add the section header string table, since it doesn't have
+  // an in-memory segment and so can be added to until we compute file offsets.
+  AddSection(shstrtab_, ".shstrtab");
+}
+
+// The VM segment comes after the program header segment and BSS segments,
+// both of which are a single page.
+static constexpr uword kVmSnapshotOffset = 2 * Elf::kPageSize;
+
+// Find the relocated base of the loaded ELF snapshot. Returns 0 if there is
+// no loaded ELF snapshot.
+uword Elf::SnapshotRelocatedBaseAddress(uword vm_start) {
+  ASSERT(vm_start > kVmSnapshotOffset);
+
+  const Image vm_instructions_image(reinterpret_cast<const void*>(vm_start));
+  if (!vm_instructions_image.compiled_to_elf()) return 0;
+
+  return vm_start - kVmSnapshotOffset;
 }
 
 void Elf::AddSection(Section* section, const char* name) {
-  ASSERT(shstrtab_ != nullptr);
+  ASSERT(section_table_file_size_ < 0);
+  ASSERT(!shstrtab_->HasBeenFinalized());
   section->set_section_name(shstrtab_->AddString(name));
-  section->set_section_index(sections_.length() + kNumInvalidSections);
+  section->set_section_index(sections_.length());
   sections_.Add(section);
   if (section->MemorySize() > 0) {
+    ASSERT(program_table_file_size_ < 0);
     memory_offset_ = Utils::RoundUp(memory_offset_, section->alignment);
     section->set_memory_offset(memory_offset_);
     segments_.Add(section);
@@ -612,28 +673,15 @@ void Elf::AddSection(Section* section, const char* name) {
   }
 }
 
-intptr_t Elf::NextMemoryOffset() const {
-  return memory_offset_;
-}
-
-intptr_t Elf::NextSectionIndex() const {
-  return sections_.length() + kNumInvalidSections;
-}
-
-intptr_t Elf::AddSectionSymbol(const Section* section,
-                               const char* name,
-                               intptr_t size) {
-  auto const name_index = dynstrtab_->AddString(name);
+intptr_t Elf::AddSegmentSymbol(const Section* section, const char* name) {
   auto const info = (elf::STB_GLOBAL << 4) | elf::STT_FUNC;
   auto const section_index = section->section_index();
   // For shared libraries, this is the offset from the DSO base. For static
   // libraries, this is section relative.
-  auto const memory_offset = section->memory_offset();
-  auto const symbol = new (zone_)
-      Symbol(name, name_index, info, section_index, memory_offset, size);
-  dynsym_->AddSymbol(symbol);
-
-  return memory_offset;
+  auto const address = section->memory_offset();
+  auto const size = section->MemorySize();
+  AddDynamicSymbol(name, info, section_index, address, size);
+  return address;
 }
 
 intptr_t Elf::AddText(const char* name, const uint8_t* bytes, intptr_t size) {
@@ -645,25 +693,32 @@ intptr_t Elf::AddText(const char* name, const uint8_t* bytes, intptr_t size) {
   }
   AddSection(image, ".text");
 
-  return AddSectionSymbol(image, name, size);
+  return AddSegmentSymbol(image, name);
 }
 
-void Elf::AddStaticSymbol(intptr_t section,
-                          const char* name,
-                          size_t memory_offset) {
-  // Lazily allocate the static string and symbol tables, as we only add static
-  // symbols in unstripped ELF files.
-  if (strtab_ == nullptr) {
-    ASSERT(symtab_ == nullptr);
-    strtab_ = new (zone_) StringTable(/* allocate= */ false);
-    symtab_ = new (zone_) SymbolTable(/*dynamic=*/false);
-  }
-
-  auto const name_index = strtab_->AddString(name);
+void Elf::AddCodeSymbol(const char* name,
+                        intptr_t section_index,
+                        intptr_t address,
+                        intptr_t size) {
+  ASSERT(!strip_);
   auto const info = (elf::STB_GLOBAL << 4) | elf::STT_FUNC;
-  Symbol* symbol = new (zone_)
-      Symbol(name, name_index, info, section, memory_offset, /*size=*/0);
-  symtab_->AddSymbol(symbol);
+  AddStaticSymbol(name, info, section_index, address, size);
+}
+
+bool Elf::FindDynamicSymbol(const char* name,
+                            intptr_t* offset,
+                            intptr_t* size) const {
+  auto const name_index = dynstrtab_->Lookup(name);
+  if (name_index < 0) return false;
+  auto const symbol = dynsym_->FindSymbolWithNameIndex(name_index);
+  if (symbol == nullptr) return false;
+  if (offset != nullptr) {
+    *offset = symbol->offset;
+  }
+  if (size != nullptr) {
+    *size = symbol->size;
+  }
+  return true;
 }
 
 intptr_t Elf::AddBSSData(const char* name, intptr_t size) {
@@ -677,9 +732,12 @@ intptr_t Elf::AddBSSData(const char* name, intptr_t size) {
 
   ProgramBits* const image =
       new (zone_) ProgramBits(true, false, true, bytes, size);
+  static_assert(Image::kBssAlignment <= kPageSize,
+                "ELF .bss section is not aligned as expected by Image class");
+  ASSERT_EQUAL(image->alignment, kPageSize);
   AddSection(image, ".bss");
 
-  return AddSectionSymbol(image, name, size);
+  return AddSegmentSymbol(image, name);
 }
 
 intptr_t Elf::AddROData(const char* name, const uint8_t* bytes, intptr_t size) {
@@ -687,17 +745,64 @@ intptr_t Elf::AddROData(const char* name, const uint8_t* bytes, intptr_t size) {
   ProgramBits* image = new (zone_) ProgramBits(true, false, false, bytes, size);
   AddSection(image, ".rodata");
 
-  return AddSectionSymbol(image, name, size);
+  return AddSegmentSymbol(image, name);
 }
 
 void Elf::AddDebug(const char* name, const uint8_t* bytes, intptr_t size) {
+  ASSERT(!strip_);
   ASSERT(bytes != nullptr);
   ProgramBits* image =
       new (zone_) ProgramBits(false, false, false, bytes, size);
   AddSection(image, name);
 }
 
+void Elf::AddDynamicSymbol(const char* name,
+                           intptr_t info,
+                           intptr_t section_index,
+                           intptr_t address,
+                           intptr_t size) {
+  ASSERT(!dynstrtab_->HasBeenFinalized() && !dynsym_->HasBeenFinalized());
+  auto const name_index = dynstrtab_->AddString(name);
+  auto const symbol =
+      new (zone_) Symbol(name, name_index, info, section_index, address, size);
+  dynsym_->AddSymbol(symbol);
+
+  // Some tools assume the static symbol table is a superset of the dynamic
+  // symbol table when it exists (see dartbug.com/41783).
+  if (!strip_) {
+    AddStaticSymbol(name, info, section_index, address, size);
+  }
+}
+
+void Elf::AddStaticSymbol(const char* name,
+                          intptr_t info,
+                          intptr_t section_index,
+                          intptr_t address,
+                          intptr_t size) {
+  ASSERT(!strip_);
+
+  // Lazily allocate the static string and symbol tables, as we only add static
+  // symbols in unstripped ELF files.
+  if (strtab_ == nullptr) {
+    ASSERT(symtab_ == nullptr);
+    ASSERT(section_table_file_size_ < 0);
+    strtab_ = new (zone_) StringTable(/* allocate= */ false);
+    AddSection(strtab_, ".strtab");
+    symtab_ = new (zone_) SymbolTable(/*dynamic=*/false);
+    AddSection(symtab_, ".symtab");
+    symtab_->section_link = strtab_->section_index();
+  }
+
+  ASSERT(!symtab_->HasBeenFinalized() && !strtab_->HasBeenFinalized());
+  auto const name_index = strtab_->AddString(name);
+  auto const symbol =
+      new (zone_) Symbol(name, name_index, info, section_index, address, size);
+  symtab_->AddSymbol(symbol);
+}
+
 void Elf::Finalize() {
+  // Unlike the static tables, we must wait until finalization to add the
+  // dynamic tables, as adding them marks them as finalized.
   AddSection(dynstrtab_, ".dynstr");
   AddSection(dynsym_, ".dynsym");
   dynsym_->section_link = dynstrtab_->section_index();
@@ -705,46 +810,141 @@ void Elf::Finalize() {
   auto const hash = new (zone_) SymbolHashTable(dynstrtab_, dynsym_);
   AddSection(hash, ".hash");
 
-  if (symtab_ != nullptr) {
-    ASSERT(strtab_ != nullptr);
-    AddSection(strtab_, ".strtab");
-    AddSection(symtab_, ".symtab");
-    symtab_->section_link = strtab_->section_index();
-  }
-
   dynamic_ = new (zone_) DynamicTable(dynstrtab_, dynsym_, hash);
   AddSection(dynamic_, ".dynamic");
 
-  AddSection(shstrtab_, ".shstrtab");
+  // Also add a PT_DYNAMIC segment for the dynamic symbol table.
+  dynamic_segment_ = new (zone_) DynamicSegment(dynamic_);
+  segments_.Add(dynamic_segment_);
 
+  // At this point, all sections and user-defined segments have been added. Add
+  // any program table-specific segments and then calculate file offsets for all
+  // sections and segments.
+  FinalizeProgramTable();
   ComputeFileOffsets();
 
+  ASSERT(VerifySegmentOrder());
+
+  // Finally, write the ELF file contents.
   WriteHeader();
   WriteProgramTable();
   WriteSections();
   WriteSectionTable();
 }
 
-void Elf::ComputeFileOffsets() {
-  intptr_t file_offset = kElfHeaderSize;
+void Elf::FinalizeProgramTable() {
+  ASSERT(program_table_file_size_ < 0);
 
-  program_table_file_offset_ = file_offset;
+  program_table_file_offset_ = kElfHeaderSize;
+
+  // There are two segments we need the size of the program table to create, so
+  // calculate it as if those two segments were already in place.
   program_table_file_size_ =
-      (segments_.length() + kNumImplicitSegments) * kElfProgramTableEntrySize;
-  file_offset += program_table_file_size_;
+      (2 + segments_.length()) * kElfProgramTableEntrySize;
 
-  for (intptr_t i = 0; i < sections_.length(); i++) {
+  // We pre-allocated the virtual memory space for the program table itself.
+  // Check that we didn't generate too many segments. Currently we generate a
+  // fixed num of segments based on the four pieces of a snapshot, but if we
+  // use more in the future we'll likely need to do something more compilated
+  // to generate DWARF without knowing a piece's virtual address in advance.
+  auto const program_table_segment_size =
+      program_table_file_offset_ + program_table_file_size_;
+  RELEASE_ASSERT(program_table_segment_size < kProgramTableSegmentSize);
+
+  // Self-reference to program header table. Required by Android but not by
+  // Linux. Must appear before any PT_LOAD entries.
+  segments_.InsertAt(
+      0, new (zone_) ProgramTableSelfSegment(program_table_file_offset_,
+                                             program_table_file_size_));
+
+  // Segment for loading the initial part of the ELF file, including the
+  // program header table. Required by Android but not by Linux.
+  segments_.InsertAt(
+      1, new (zone_) ProgramTableLoadSegment(program_table_segment_size));
+}
+
+void Elf::ComputeFileOffsets() {
+  // We calculate the size and offset of the program header table during
+  // finalization.
+  ASSERT(program_table_file_offset_ > 0 && program_table_file_size_ > 0);
+  intptr_t file_offset = program_table_file_offset_ + program_table_file_size_;
+
+  // The first (reserved) section's file offset is set to 0 during construction,
+  // so skip it.
+  ASSERT(sections_.length() >= 1 && sections_[0]->section_type == 0);
+  // The others are output to the file in order after the program header table.
+  for (intptr_t i = 1; i < sections_.length(); i++) {
     Section* section = sections_[i];
     file_offset = Utils::RoundUp(file_offset, section->alignment);
     section->set_file_offset(file_offset);
     file_offset += section->FileSize();
   }
 
+  // Make the dynamic segment's file offset the same as the dynamic table now
+  // that it's been calculated for the latter.
+  dynamic_segment_->set_file_offset(dynamic_->file_offset());
+
   file_offset = Utils::RoundUp(file_offset, kElfSectionTableAlignment);
   section_table_file_offset_ = file_offset;
-  section_table_file_size_ =
-      (sections_.length() + kNumInvalidSections) * kElfSectionTableEntrySize;
+  section_table_file_size_ = sections_.length() * kElfSectionTableEntrySize;
   file_offset += section_table_file_size_;
+}
+
+bool Elf::VerifySegmentOrder() {
+  // We can only verify the segment order after FinalizeProgramTable(), since
+  // we assume that all segments have been added, including the two program
+  // table segments.
+  ASSERT(program_table_file_size_ > 0);
+
+  // Find the names and symbols for the .bss and .text segments.
+  auto const bss_section_name = shstrtab_->Lookup(".bss");
+  // For separate debugging information for assembly snapshots, no .bss section
+  // is added. However, we're only interested in strict segment orders when
+  // generating ELF snapshots, so only continue when there's a .bss section.
+  if (bss_section_name == -1) return true;
+  auto const text_section_name = shstrtab_->Lookup(".text");
+  ASSERT(text_section_name != -1);
+
+  auto const bss_symbol_name = dynstrtab_->Lookup("_kDartBSSData");
+  auto const vm_symbol_name =
+      dynstrtab_->Lookup(kVmSnapshotInstructionsAsmSymbol);
+  auto const isolate_symbol_name =
+      dynstrtab_->Lookup(kIsolateSnapshotInstructionsAsmSymbol);
+  ASSERT(bss_symbol_name != -1);
+  ASSERT(vm_symbol_name != -1);
+  ASSERT(isolate_symbol_name != -1);
+
+  auto const bss_symbol = dynsym_->FindSymbolWithNameIndex(bss_symbol_name);
+  auto const vm_symbol = dynsym_->FindSymbolWithNameIndex(vm_symbol_name);
+  auto const isolate_symbol =
+      dynsym_->FindSymbolWithNameIndex(isolate_symbol_name);
+  ASSERT(bss_symbol != nullptr);
+  ASSERT(vm_symbol != nullptr);
+  ASSERT(isolate_symbol != nullptr);
+
+  // Check that the first non-program table segments are in the expected order.
+  auto const bss_segment = segments_[2];
+  ASSERT_EQUAL(bss_segment->segment_type, elf::PT_LOAD);
+  ASSERT_EQUAL(bss_segment->section_name(), bss_section_name);
+  ASSERT_EQUAL(bss_segment->memory_offset(), bss_symbol->offset);
+  ASSERT_EQUAL(bss_segment->MemorySize(), bss_symbol->size);
+  auto const vm_segment = segments_[3];
+  ASSERT_EQUAL(vm_segment->segment_type, elf::PT_LOAD);
+  ASSERT_EQUAL(vm_segment->section_name(), text_section_name);
+  ASSERT_EQUAL(vm_segment->memory_offset(), vm_symbol->offset);
+  ASSERT_EQUAL(vm_segment->MemorySize(), vm_symbol->size);
+  auto const isolate_segment = segments_[4];
+  ASSERT_EQUAL(isolate_segment->segment_type, elf::PT_LOAD);
+  ASSERT_EQUAL(isolate_segment->section_name(), text_section_name);
+  ASSERT_EQUAL(isolate_segment->memory_offset(), isolate_symbol->offset);
+  ASSERT_EQUAL(isolate_segment->MemorySize(), isolate_symbol->size);
+
+  // Also make sure that the memory offset of the VM segment is as expected.
+  ASSERT_EQUAL(bss_segment->memory_offset(), kPageSize);
+  ASSERT(bss_segment->MemorySize() <= kPageSize);
+  ASSERT_EQUAL(vm_segment->memory_offset(), kVmSnapshotOffset);
+
+  return true;
 }
 
 void Elf::WriteHeader() {
@@ -801,9 +1001,9 @@ void Elf::WriteHeader() {
 
   WriteHalf(kElfHeaderSize);
   WriteHalf(kElfProgramTableEntrySize);
-  WriteHalf(segments_.length() + kNumImplicitSegments);
+  WriteHalf(segments_.length());
   WriteHalf(kElfSectionTableEntrySize);
-  WriteHalf(sections_.length() + kNumInvalidSections);
+  WriteHalf(sections_.length());
   WriteHalf(shstrtab_->section_index());
 
   ASSERT(stream_->position() == kElfHeaderSize);
@@ -812,55 +1012,10 @@ void Elf::WriteHeader() {
 void Elf::WriteProgramTable() {
   ASSERT(stream_->position() == program_table_file_offset_);
 
-  // Self-reference to program header table. Required by Android but not by
-  // Linux. Must appear before any PT_LOAD entries.
-  {
-    ProgramTable program_table(program_table_file_offset_,
-                               program_table_file_size_);
-
-    ASSERT(kNumImplicitSegments == 3);
-    const intptr_t start = stream_->position();
-    program_table.WriteSegmentEntry(this);
-    const intptr_t end = stream_->position();
-    ASSERT((end - start) == kElfProgramTableEntrySize);
-  }
-  // Load for self-reference to program header table. Required by Android but
-  // not by Linux.
-  {
-    // We pre-allocated the virtual memory space for the program table itself.
-    // Check that we didn't generate too many segments. Currently we generate a
-    // fixed num of segments based on the four pieces of a snapshot, but if we
-    // use more in the future we'll likely need to do something more compilated
-    // to generate DWARF without knowing a piece's virtual address in advance.
-    auto const program_table_segment_size =
-        program_table_file_offset_ + program_table_file_size_;
-    RELEASE_ASSERT(program_table_segment_size < kProgramTableSegmentSize);
-
-    // We create a section that, when printed as a segment, contains the
-    // appropriate info for the program table.
-    ProgramTableLoad program_table_load(program_table_segment_size);
-
-    ASSERT(kNumImplicitSegments == 3);
-    const intptr_t start = stream_->position();
-    program_table_load.WriteSegmentEntry(this);
-    const intptr_t end = stream_->position();
-    ASSERT((end - start) == kElfProgramTableEntrySize);
-  }
-
   for (intptr_t i = 0; i < segments_.length(); i++) {
     Section* section = segments_[i];
     const intptr_t start = stream_->position();
     section->WriteSegmentEntry(this);
-    const intptr_t end = stream_->position();
-    ASSERT((end - start) == kElfProgramTableEntrySize);
-  }
-
-  // Special case: the dynamic section requires both LOAD and DYNAMIC program
-  // header table entries.
-  {
-    ASSERT(kNumImplicitSegments == 3);
-    const intptr_t start = stream_->position();
-    dynamic_->WriteSegmentEntry(this, /*dynamic=*/true);
     const intptr_t end = stream_->position();
     ASSERT((end - start) == kElfProgramTableEntrySize);
   }
@@ -870,16 +1025,6 @@ void Elf::WriteSectionTable() {
   stream_->Align(kElfSectionTableAlignment);
 
   ASSERT(stream_->position() == section_table_file_offset_);
-
-  {
-    // The first entry in the section table is reserved and must be all zeros.
-    ASSERT(kNumInvalidSections == 1);
-    const intptr_t start = stream_->position();
-    ReservedSection reserved;
-    reserved.WriteSectionEntry(this);
-    const intptr_t end = stream_->position();
-    ASSERT((end - start) == kElfSectionTableEntrySize);
-  }
 
   for (intptr_t i = 0; i < sections_.length(); i++) {
     Section* section = sections_[i];
@@ -891,7 +1036,10 @@ void Elf::WriteSectionTable() {
 }
 
 void Elf::WriteSections() {
-  for (intptr_t i = 0; i < sections_.length(); i++) {
+  // Skip the reserved first section, as its alignment is 0 and it does not
+  // contain any contents.
+  ASSERT(sections_[0]->alignment == 0 && sections_[0]->section_type == 0);
+  for (intptr_t i = 1; i < sections_.length(); i++) {
     Section* section = sections_[i];
     stream_->Align(section->alignment);
     ASSERT(stream_->position() == section->file_offset());

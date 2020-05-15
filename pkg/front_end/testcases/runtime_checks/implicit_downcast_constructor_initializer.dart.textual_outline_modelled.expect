@@ -1,0 +1,8 @@
+library test;
+
+class C {
+  C(Object o) : b = o;
+  bool b;
+}
+
+main() {}

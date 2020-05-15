@@ -22,7 +22,7 @@ class Logger {
   /// while the [content] contains the actual information. If a list of
   /// [arguments] is provided, then they will be written after the content.
   void log(String label, String content, {List<String> arguments}) {
-    for (int i = _labelWidth - label.length; i > 0; i--) {
+    for (var i = _labelWidth - label.length; i > 0; i--) {
       sink.write(' ');
     }
     sink.write(label);

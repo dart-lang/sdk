@@ -1,0 +1,48 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    ;
+  operator ==(covariant self::A* other) → core::bool*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B*
+    ;
+  operator ==(covariant self::A* other) → core::bool*
+    ;
+}
+class C<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T*>*
+    ;
+  operator ==(covariant generic-covariant-impl self::C<self::C::T*>* other) → core::bool*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
+class D extends self::C<core::int*> {
+  synthetic constructor •() → self::D*
+    ;
+}
+static method main() → dynamic
+  ;
+static method test(self::A* a, self::B* b, self::C<dynamic>* c_dynamic, self::C<core::int*>* c_int, self::C<core::String*>* c_string, self::D* d) → dynamic
+  ;

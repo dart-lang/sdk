@@ -16,10 +16,10 @@ class OccurrencesCollectorImpl implements OccurrencesCollector {
 
   @override
   void addOccurrences(protocol.Occurrences current) {
-    protocol.Element element = current.element;
-    protocol.Occurrences existing = elementOccurrences[element];
+    var element = current.element;
+    var existing = elementOccurrences[element];
     if (existing != null) {
-      List<int> offsets = _merge(existing.offsets, current.offsets);
+      var offsets = _merge(existing.offsets, current.offsets);
       current = protocol.Occurrences(element, offsets, existing.length);
     }
     elementOccurrences[element] = current;

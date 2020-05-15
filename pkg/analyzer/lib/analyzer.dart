@@ -127,7 +127,6 @@ CompilationUnit parseDirectives(String contents,
   var parser = Parser(
     source,
     errorCollector,
-    languageVersion: scanner.languageVersion,
     featureSet: featureSet,
   );
   var unit = parser.parseDirectives(token);
@@ -155,7 +154,6 @@ CompilationUnit _parseSource(
   var parser = Parser(
     source,
     errorCollector,
-    languageVersion: scanner.languageVersion,
     featureSet: featureSet,
   )..parseFunctionBodies = parseFunctionBodies;
   var unit = parser.parseCompilationUnit(token)

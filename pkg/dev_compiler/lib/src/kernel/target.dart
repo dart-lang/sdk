@@ -159,7 +159,7 @@ class DevCompilerTarget extends Target {
       ChangedStructureNotifier changedStructureNotifier}) {
     if (flags.trackWidgetCreation) {
       _widgetTracker ??= WidgetCreatorTracker();
-      _widgetTracker.transform(component, libraries);
+      _widgetTracker.transform(component, libraries, changedStructureNotifier);
     }
   }
 

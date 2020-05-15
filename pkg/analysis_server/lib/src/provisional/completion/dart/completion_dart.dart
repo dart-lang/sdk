@@ -6,10 +6,12 @@ import 'dart:async';
 
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
@@ -22,8 +24,10 @@ export 'package:analyzer_plugin/utilities/completion/relevance.dart';
 abstract class DartCompletionContributor {
   /// Return a [Future] that completes with a list of suggestions
   /// for the given completion [request].
+  // TODO(brianwilkerson) When all of the suggestions are being built using the
+  //  builder, change the return type to `Future<void>`.
   Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request);
+      DartCompletionRequest request, SuggestionBuilder builder);
 }
 
 /// The information about a requested list of completions within a Dart file.
@@ -33,6 +37,9 @@ abstract class DartCompletionRequest extends CompletionRequest {
   /// Return the type imposed on the target's `containingNode` based on its
   /// context, or `null` if the context does not impose any type.
   DartType get contextType;
+
+  /// Return the object used to resolve macros in Dartdoc comments.
+  DartdocDirectiveInfo get dartdocDirectiveInfo;
 
   /// Return the expression to the right of the "dot" or "dot dot",
   /// or `null` if this is not a "dot" completion (e.g. `foo.b`).

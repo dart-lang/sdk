@@ -86,7 +86,6 @@ class RunKernelTask : public ThreadPool::Task {
     Dart_IsolateFlags api_flags;
     Isolate::FlagsInitialize(&api_flags);
     api_flags.enable_asserts = false;
-    api_flags.unsafe_trust_strong_mode_types = false;
 #if !defined(DART_PRECOMPILER)
     api_flags.use_field_guards = true;
 #endif
@@ -758,8 +757,8 @@ class KernelCompilationRequest : public ValueObject {
         isolate != NULL ? isolate->asserts() : FLAG_enable_asserts;
 
     Dart_CObject null_safety;
-    null_safety.type = Dart_CObject_kBool;
-    null_safety.value.as_bool = FLAG_null_safety;
+    null_safety.type = Dart_CObject_kInt32;
+    null_safety.value.as_int32 = FLAG_null_safety;
 
     intptr_t num_experimental_flags = experimental_flags->length();
     Dart_CObject** experimental_flags_array =

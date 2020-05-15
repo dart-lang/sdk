@@ -15,6 +15,9 @@ import 'package:build_integration/file_system/multi_root.dart'
 
 import 'package:crypto/crypto.dart';
 
+import 'package:front_end/src/api_prototype/language_version.dart'
+    show uriUsesLegacyLanguageVersion;
+
 import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerContext,
@@ -22,6 +25,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         CompilerResult,
         DiagnosticMessage,
         DiagnosticMessageHandler,
+        ExperimentalFlag,
         FileSystem,
         FileSystemEntity,
         FileSystemException,
@@ -78,6 +82,8 @@ void declareCompilerOptions(ArgParser args) {
   args.addOption('depfile', help: 'Path to output Ninja depfile');
   args.addFlag('link-platform',
       help: 'Include platform into resulting kernel file.', defaultsTo: true);
+  args.addFlag('minimal-kernel',
+      help: 'Produce minimal tree-shaken kernel file.', defaultsTo: false);
   args.addFlag('embed-sources',
       help: 'Embed source files in the generated kernel component',
       defaultsTo: true);
@@ -94,6 +100,9 @@ void declareCompilerOptions(ArgParser args) {
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
       defaultsTo: true);
+  args.addFlag('tree-shake-write-only-fields',
+      help: 'Enable tree shaking of fields which are only written in AOT mode.',
+      defaultsTo: false);
   args.addFlag('protobuf-tree-shaker',
       help: 'Enable protobuf tree shaker transformation in AOT mode.',
       defaultsTo: false);
@@ -105,7 +114,7 @@ void declareCompilerOptions(ArgParser args) {
   args.addFlag('null-safety',
       help:
           'Respect the nullability of types at runtime in casts and instance checks.',
-      defaultsTo: false);
+      defaultsTo: null);
   args.addFlag('split-output-by-packages',
       help:
           'Split resulting kernel file into multiple files (one per package).',
@@ -167,6 +176,8 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool nullSafety = options['null-safety'];
   final bool useProtobufTreeShaker = options['protobuf-tree-shaker'];
   final bool splitOutputByPackages = options['split-output-by-packages'];
+  final bool minimalKernel = options['minimal-kernel'];
+  final bool treeShakeWriteOnlyFields = options['tree-shake-write-only-fields'];
   final List<String> experimentalFlags = options['enable-experiment'];
   final Map<String, String> environmentDefines = {};
 
@@ -193,12 +204,6 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     aot: aot,
   )..parseCommandLineFlags(options['bytecode-options']);
 
-  final target = createFrontEndTarget(targetName);
-  if (target == null) {
-    print('Failed to create front-end target $targetName.');
-    return badUsageExitCode;
-  }
-
   final fileSystem =
       createFrontEndFileSystem(fileSystemScheme, fileSystemRoots);
 
@@ -220,18 +225,29 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   final CompilerOptions compilerOptions = new CompilerOptions()
     ..sdkSummary = platformKernelUri
-    ..target = target
     ..fileSystem = fileSystem
     ..additionalDills = additionalDills
     ..packagesFileUri = packagesUri
     ..experimentalFlags = parseExperimentalFlags(
         parseExperimentalArguments(experimentalFlags),
         onError: print)
-    ..nnbdMode = nullSafety ? NnbdMode.Strong : NnbdMode.Weak
+    ..nnbdMode = (nullSafety == true) ? NnbdMode.Strong : NnbdMode.Weak
     ..onDiagnostic = (DiagnosticMessage m) {
       errorDetector(m);
     }
     ..embedSourceText = embedSources;
+
+  if (nullSafety == null &&
+      compilerOptions.experimentalFlags[ExperimentalFlag.nonNullable]) {
+    await autoDetectNullSafetyMode(mainUri, compilerOptions);
+  }
+
+  compilerOptions.target = createFrontEndTarget(targetName,
+      nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong);
+  if (compilerOptions.target == null) {
+    print('Failed to create front-end target $targetName.');
+    return badUsageExitCode;
+  }
 
   final results = await compileToKernel(mainUri, compilerOptions,
       includePlatform: additionalDills.isNotEmpty,
@@ -242,7 +258,9 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       genBytecode: genBytecode,
       bytecodeOptions: bytecodeOptions,
       dropAST: dropAST && !splitOutputByPackages,
-      useProtobufTreeShaker: useProtobufTreeShaker);
+      useProtobufTreeShaker: useProtobufTreeShaker,
+      minimalKernel: minimalKernel,
+      treeShakeWriteOnlyFields: treeShakeWriteOnlyFields);
 
   errorPrinter.printCompilationMessages();
 
@@ -255,7 +273,10 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   }
 
   final IOSink sink = new File(outputFileName).openWrite();
-  final BinaryPrinter printer = new BinaryPrinter(sink);
+  final BinaryPrinter printer = new BinaryPrinter(sink,
+      libraryFilter: minimalKernel
+          ? ((lib) => !results.loadedLibraries.contains(lib))
+          : null);
   printer.writeComponentFile(results.component);
   await sink.close();
 
@@ -314,7 +335,9 @@ Future<KernelCompilationResults> compileToKernel(
     bool genBytecode: false,
     BytecodeOptions bytecodeOptions,
     bool dropAST: false,
-    bool useProtobufTreeShaker: false}) async {
+    bool useProtobufTreeShaker: false,
+    bool minimalKernel: false,
+    bool treeShakeWriteOnlyFields: false}) async {
   // Replace error handler to detect if there are compilation errors.
   final errorDetector =
       new ErrorDetector(previousErrorHandler: options.onDiagnostic);
@@ -325,21 +348,33 @@ Future<KernelCompilationResults> compileToKernel(
 
   CompilerResult compilerResult = await kernelForProgram(source, options);
   Component component = compilerResult?.component;
-  final compiledSources = component?.uriToSource?.keys;
+  Iterable<Uri> compiledSources = component?.uriToSource?.keys;
 
   Set<Library> loadedLibraries = createLoadedLibrariesSet(
       compilerResult?.loadedComponents, compilerResult?.sdkComponent,
       includePlatform: includePlatform);
 
   // Run global transformations only if component is correct.
-  if (aot && component != null) {
+  if ((aot || minimalKernel) && component != null) {
     await runGlobalTransformations(
         options.target,
         component,
         useGlobalTypeFlowAnalysis,
         enableAsserts,
         useProtobufTreeShaker,
-        errorDetector);
+        errorDetector,
+        minimalKernel: minimalKernel,
+        treeShakeWriteOnlyFields: treeShakeWriteOnlyFields);
+
+    if (minimalKernel) {
+      // compiledSources is component.uriToSource.keys.
+      // Make a copy of compiledSources to detach it from
+      // component.uriToSource which is cleared below.
+      compiledSources = compiledSources.toList();
+
+      component.metadata.clear();
+      component.uriToSource.clear();
+    }
   }
 
   if (genBytecode && !errorDetector.hasCompilationErrors && component != null) {
@@ -404,7 +439,9 @@ Future runGlobalTransformations(
     bool useGlobalTypeFlowAnalysis,
     bool enableAsserts,
     bool useProtobufTreeShaker,
-    ErrorDetector errorDetector) async {
+    ErrorDetector errorDetector,
+    {bool minimalKernel: false,
+    bool treeShakeWriteOnlyFields: false}) async {
   if (errorDetector.hasCompilationErrors) return;
 
   final coreTypes = new CoreTypes(component);
@@ -422,7 +459,9 @@ Future runGlobalTransformations(
   unreachable_code_elimination.transformComponent(component, enableAsserts);
 
   if (useGlobalTypeFlowAnalysis) {
-    globalTypeFlow.transformComponent(target, coreTypes, component);
+    globalTypeFlow.transformComponent(target, coreTypes, component,
+        treeShakeSignatures: !minimalKernel,
+        treeShakeWriteOnlyFields: treeShakeWriteOnlyFields);
   } else {
     devirtualization.transformComponent(coreTypes, component);
     no_dynamic_invocations_annotator.transformComponent(component);
@@ -436,7 +475,9 @@ Future runGlobalTransformations(
     protobuf_tree_shaker.removeUnusedProtoReferences(
         component, coreTypes, null);
 
-    globalTypeFlow.transformComponent(target, coreTypes, component);
+    globalTypeFlow.transformComponent(target, coreTypes, component,
+        treeShakeSignatures: !minimalKernel,
+        treeShakeWriteOnlyFields: treeShakeWriteOnlyFields);
   }
 
   // TODO(35069): avoid recomputing CSA by reading it from the platform files.
@@ -526,14 +567,21 @@ bool parseCommandLineDefines(
   return true;
 }
 
+/// Detect null safety mode from an entry point and set [options.nnbdMode].
+Future<void> autoDetectNullSafetyMode(
+    Uri script, CompilerOptions options) async {
+  var isLegacy = await uriUsesLegacyLanguageVersion(script, options);
+  options.nnbdMode = isLegacy ? NnbdMode.Weak : NnbdMode.Strong;
+}
+
 /// Create front-end target with given name.
 Target createFrontEndTarget(String targetName,
-    {bool trackWidgetCreation = false}) {
+    {bool trackWidgetCreation = false, bool nullSafety = false}) {
   // Make sure VM-specific targets are available.
   installAdditionalTargets();
 
-  final TargetFlags targetFlags =
-      new TargetFlags(trackWidgetCreation: trackWidgetCreation);
+  final TargetFlags targetFlags = new TargetFlags(
+      trackWidgetCreation: trackWidgetCreation, enableNullSafety: nullSafety);
   return getTarget(targetName, targetFlags);
 }
 
@@ -730,12 +778,13 @@ Future<Null> forEachPackage<T>(KernelCompilationResults results,
 
   final mainMethod = component.mainMethod;
   final problemsAsJson = component.problemsAsJson;
-  component.mainMethod = null;
+  final compilationMode = component.mode;
+  component.setMainMethodAndMode(null, true, compilationMode);
   component.problemsAsJson = null;
   for (String package in packages.keys) {
     await action(package, packages[package]);
   }
-  component.mainMethod = mainMethod;
+  component.setMainMethodAndMode(mainMethod?.reference, true, compilationMode);
   component.problemsAsJson = problemsAsJson;
 
   if (!mainFirst) {

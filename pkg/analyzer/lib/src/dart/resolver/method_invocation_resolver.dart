@@ -85,13 +85,6 @@ class MethodInvocationResolver {
     String name = nameNode.name;
     _currentName = Name(_definingLibraryUri, name);
 
-    //
-    // Synthetic identifiers have been already reported during parsing.
-    //
-    if (nameNode.isSynthetic) {
-      return;
-    }
-
     Expression receiver = node.realTarget;
 
     if (receiver == null) {
@@ -579,12 +572,12 @@ class MethodInvocationResolver {
       SimpleIdentifier nameNode, String name) {
     var enclosingClass = _resolver.enclosingClass;
     if (SuperContext.of(receiver) != SuperContext.valid) {
+      _setDynamicResolution(node);
       return;
     }
 
-    var receiverType = enclosingClass.thisType;
-    var target = _inheritance.getMember(
-      receiverType,
+    var target = _inheritance.getMember2(
+      enclosingClass,
       _currentName,
       forSuper: true,
     );
@@ -603,7 +596,7 @@ class MethodInvocationResolver {
     // Otherwise, this is an error.
     // But we would like to give the user at least some resolution.
     // So, we try to find the interface target.
-    target = _inheritance.getInherited(receiverType, _currentName);
+    target = _inheritance.getInherited2(enclosingClass, _currentName);
     if (target != null) {
       nameNode.staticElement = target;
       _setResolution(node, target.type);
@@ -670,11 +663,14 @@ class MethodInvocationResolver {
     } else if (receiverType is FunctionType) {
       receiverClassName = 'Function';
     }
-    _resolver.errorReporter.reportErrorForNode(
-      StaticTypeWarningCode.UNDEFINED_METHOD,
-      nameNode,
-      [name, receiverClassName],
-    );
+
+    if (!nameNode.isSynthetic) {
+      _resolver.errorReporter.reportErrorForNode(
+        StaticTypeWarningCode.UNDEFINED_METHOD,
+        nameNode,
+        [name, receiverClassName],
+      );
+    }
   }
 
   void _resolveReceiverTypeLiteral(MethodInvocation node, ClassElement receiver,

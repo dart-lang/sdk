@@ -5,57 +5,54 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol_server.dart'
-    show CompletionSuggestion, CompletionSuggestionKind;
+    show CompletionSuggestion;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
     show DartCompletionRequestImpl;
-import 'package:analysis_server/src/services/completion/dart/utilities.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol
-    show ElementKind;
-import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart'
     show LocalDeclarationVisitor;
 
-/// A contributor for calculating label suggestions.
+/// A contributor that produces suggestions based on the labels that are in
+/// scope. More concretely, this class produces completions in `break` and
+/// `continue` statements.
 class LabelContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    OpType optype = (request as DartCompletionRequestImpl).opType;
+      DartCompletionRequest request, SuggestionBuilder builder) async {
+    var optype = (request as DartCompletionRequestImpl).opType;
 
     // Collect suggestions from the specific child [AstNode] that contains
     // the completion offset and all of its parents recursively.
-    List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
     if (!optype.isPrefixed) {
       if (optype.includeStatementLabelSuggestions ||
           optype.includeCaseLabelSuggestions) {
-        _LabelVisitor(request, optype.includeStatementLabelSuggestions,
-                optype.includeCaseLabelSuggestions, suggestions)
+        _LabelVisitor(request, builder, optype.includeStatementLabelSuggestions,
+                optype.includeCaseLabelSuggestions)
             .visit(request.target.containingNode);
       }
     }
-    return suggestions;
+    return const <CompletionSuggestion>[];
   }
 }
 
 /// A visitor for collecting suggestions for break and continue labels.
 class _LabelVisitor extends LocalDeclarationVisitor {
   final DartCompletionRequest request;
-  final List<CompletionSuggestion> suggestions;
 
-  /// True if statement labels should be included as suggestions.
+  final SuggestionBuilder builder;
+
+  /// A flag indicating whether statement labels should be included as
+  /// suggestions.
   final bool includeStatementLabels;
 
-  /// True if case labels should be included as suggestions.
+  /// A flag indicating whether case labels should be included as suggestions.
   final bool includeCaseLabels;
 
-  _LabelVisitor(DartCompletionRequest request, this.includeStatementLabels,
-      this.includeCaseLabels, this.suggestions)
-      : request = request,
-        super(request.offset);
+  _LabelVisitor(this.request, this.builder, this.includeStatementLabels,
+      this.includeCaseLabels)
+      : super(request.offset);
 
   @override
   void declaredClass(ClassDeclaration declaration) {
@@ -95,12 +92,7 @@ class _LabelVisitor extends LocalDeclarationVisitor {
   @override
   void declaredLabel(Label label, bool isCaseLabel) {
     if (isCaseLabel ? includeCaseLabels : includeStatementLabels) {
-      CompletionSuggestion suggestion = _addSuggestion(label.label);
-      if (suggestion != null) {
-        suggestion.element = createLocalElement(
-            request.source, protocol.ElementKind.LABEL, label.label,
-            returnType: NO_RETURN_TYPE);
-      }
+      builder.suggestLabel(label);
     }
   }
 
@@ -137,24 +129,5 @@ class _LabelVisitor extends LocalDeclarationVisitor {
     // Labels are only accessible within the local function, so stop visiting
     // once we reach a function boundary.
     finished();
-  }
-
-  CompletionSuggestion _addSuggestion(SimpleIdentifier id) {
-    if (id != null) {
-      String completion = id.name;
-      if (completion != null && completion.isNotEmpty && completion != '_') {
-        CompletionSuggestion suggestion = CompletionSuggestion(
-            CompletionSuggestionKind.IDENTIFIER,
-            DART_RELEVANCE_DEFAULT,
-            completion,
-            completion.length,
-            0,
-            false,
-            false);
-        suggestions.add(suggestion);
-        return suggestion;
-      }
-    }
-    return null;
   }
 }

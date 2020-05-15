@@ -1,0 +1,6 @@
+class Foo {
+  Foo() : initializer = true {}
+  Foo() {}
+  Foo.x() : initializer = true {}
+  Foo.x() {}
+}

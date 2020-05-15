@@ -9,7 +9,30 @@ import 'package:test/test.dart';
 import '../utils.dart';
 
 void main() {
-  group('flag', help);
+  group('command', command, timeout: longTimeout);
+  group('flag', help, timeout: longTimeout);
+}
+
+void command() {
+  // For each command description, assert that the values are not empty, don't
+  // have trailing white space and end with a period.
+  test('description formatting', () {
+    DartdevRunner([]).commands.forEach((String commandKey, Command command) {
+      expect(commandKey, isNotEmpty);
+      expect(command.description, isNotEmpty);
+      expect(command.description.split('\n').first, endsWith('.'));
+      expect(command.description.trim(), equals(command.description));
+    });
+  });
+
+  // Assert that all found usageLineLengths are the same and null
+  test('argParser usageLineLength isNull', () {
+    DartdevRunner([]).commands.forEach((String commandKey, Command command) {
+      if (command.argParser != null) {
+        expect(command.argParser.usageLineLength, isNull);
+      }
+    });
+  });
 }
 
 void help() {
@@ -24,13 +47,14 @@ void help() {
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains(DartdevRunner.dartdevDescription));
-    expect(result.stdout, contains('Usage: dart <command> [arguments]'));
+    expect(result.stdout,
+        contains('Usage: dart [<vm-flags>] <command|dart-file> [<arguments>]'));
     expect(result.stdout, contains('Global options:'));
     expect(result.stdout, contains('Available commands:'));
     expect(result.stdout, contains('analyze '));
     expect(result.stdout, contains('create '));
     expect(result.stdout, contains('format '));
-    expect(result.stdout, isNot(contains('migrate ')));
+    expect(result.stdout, contains('migrate '));
   });
 
   test('--help --verbose', () {
@@ -47,16 +71,5 @@ void help() {
 
     expect(result.exitCode, 0);
     expect(result.stdout, contains('migrate '));
-  });
-
-  // For each command description, assert that the values are not empty, don't
-  // have trailing white space and end with a period.
-  test('description formatting', () {
-    DartdevRunner([]).commands.forEach((String commandKey, Command command) {
-      expect(commandKey, isNotEmpty);
-      expect(command.description, isNotEmpty);
-      expect(command.description, endsWith('.'));
-      expect(command.description.trim(), equals(command.description));
-    });
   });
 }

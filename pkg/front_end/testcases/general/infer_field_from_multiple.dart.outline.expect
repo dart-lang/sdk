@@ -6,65 +6,143 @@ library;
 // Try adding an explicit type.
 //   var field2; // error
 //       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:7:7: Context: This is one of the inherited members.
+//   var field2 = 0;
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:28:7: Context: This is one of the inherited members.
+//   var field2 = '';
+//       ^^^^^^
 //
 // pkg/front_end/testcases/general/infer_field_from_multiple.dart:51:7: Error: Can't infer a type for 'field4' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   var field4 = 0; // error
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:9:7: Context: This is one of the inherited members.
+//   var field4 = 0;
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:30:7: Context: This is one of the inherited members.
+//   var field4 = '';
 //       ^^^^^^
 //
 // pkg/front_end/testcases/general/infer_field_from_multiple.dart:53:7: Error: Can't infer a type for 'field6' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   var field6; // error
 //       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:11:7: Context: This is one of the inherited members.
+//   int field6;
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:32:10: Context: This is one of the inherited members.
+//   String field6;
+//          ^^^^^^
 //
 // pkg/front_end/testcases/general/infer_field_from_multiple.dart:55:7: Error: Can't infer a type for 'field8' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   var field8 = 0; // error
 //       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:13:7: Context: This is one of the inherited members.
+//   int field8;
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:34:10: Context: This is one of the inherited members.
+//   String field8;
+//          ^^^^^^
 //
 // pkg/front_end/testcases/general/infer_field_from_multiple.dart:58:7: Error: Can't infer a type for 'field11' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   var field11; // error
 //       ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:16:5: Context: This is one of the inherited members.
+//   T field11;
+//     ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:37:5: Context: This is one of the inherited members.
+//   S field11;
+//     ^^^^^^^
 //
 // pkg/front_end/testcases/general/infer_field_from_multiple.dart:64:7: Error: Can't infer a type for 'field17' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   var field17; // error
 //       ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:22:7: Context: This is one of the inherited members.
+//   var field17 = 0;
+//       ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:43:10: Context: This is one of the inherited members.
+//   String field17;
+//          ^^^^^^^
 //
 // pkg/front_end/testcases/general/infer_field_from_multiple.dart:65:7: Error: Can't infer a type for 'field18' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   var field18; // error
+//       ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:23:7: Context: This is one of the inherited members.
+//   int field18;
+//       ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:44:7: Context: This is one of the inherited members.
+//   var field18 = '';
 //       ^^^^^^^
 //
 // pkg/front_end/testcases/general/infer_field_from_multiple.dart:90:7: Error: Can't infer a type for 'field2' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   var field2; // error
 //       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:7:7: Context: This is one of the inherited members.
+//   var field2 = 0;
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:28:7: Context: This is one of the inherited members.
+//   var field2 = '';
+//       ^^^^^^
 //
 // pkg/front_end/testcases/general/infer_field_from_multiple.dart:92:7: Error: Can't infer a type for 'field4' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   var field4 = 0; // error
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:9:7: Context: This is one of the inherited members.
+//   var field4 = 0;
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:30:7: Context: This is one of the inherited members.
+//   var field4 = '';
 //       ^^^^^^
 //
 // pkg/front_end/testcases/general/infer_field_from_multiple.dart:94:7: Error: Can't infer a type for 'field6' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   var field6; // error
 //       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:11:7: Context: This is one of the inherited members.
+//   int field6;
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:32:10: Context: This is one of the inherited members.
+//   String field6;
+//          ^^^^^^
 //
 // pkg/front_end/testcases/general/infer_field_from_multiple.dart:96:7: Error: Can't infer a type for 'field8' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   var field8 = 0; // error
 //       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:13:7: Context: This is one of the inherited members.
+//   int field8;
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:34:10: Context: This is one of the inherited members.
+//   String field8;
+//          ^^^^^^
 //
 // pkg/front_end/testcases/general/infer_field_from_multiple.dart:105:7: Error: Can't infer a type for 'field17' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   var field17; // error
 //       ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:22:7: Context: This is one of the inherited members.
+//   var field17 = 0;
+//       ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:43:10: Context: This is one of the inherited members.
+//   String field17;
+//          ^^^^^^^
 //
 // pkg/front_end/testcases/general/infer_field_from_multiple.dart:106:7: Error: Can't infer a type for 'field18' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   var field18; // error
+//       ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:23:7: Context: This is one of the inherited members.
+//   int field18;
+//       ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:44:7: Context: This is one of the inherited members.
+//   var field18 = '';
 //       ^^^^^^^
 //
 // pkg/front_end/testcases/general/infer_field_from_multiple.dart:61:7: Error: The return type of the method 'C.field14' is 'int', which does not match the return type, 'String', of the overridden method, 'B.field14'.
@@ -106,6 +184,16 @@ class A<T extends core::Object* = dynamic> extends core::Object {
   field core::int* field18;
   synthetic constructor •() → self::A<self::A::T*>*
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class B<T extends core::Object* = dynamic, S extends core::Object* = dynamic> extends core::Object {
   field core::int* field1;
@@ -128,6 +216,16 @@ class B<T extends core::Object* = dynamic, S extends core::Object* = dynamic> ex
   field core::String* field18;
   synthetic constructor •() → self::B<self::B::T*, self::B::S*>*
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class C extends core::Object implements self::A<core::int*>, self::B<core::int*, core::String*> {
   field core::int* field1;
@@ -150,6 +248,16 @@ class C extends core::Object implements self::A<core::int*>, self::B<core::int*,
   field invalid-type field18;
   constructor •(core::int* field1, invalid-type field2, core::int* field3, invalid-type field4, core::int* field5, invalid-type field6, core::int* field7, invalid-type field8, dynamic field9, core::int* field10, invalid-type field11, core::int* field12, core::int* field13, core::int* field14, core::int* field15, core::int* field16, invalid-type field17, invalid-type field18) → self::C*
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class D<T extends core::Object* = dynamic> extends core::Object implements self::A<self::D::T*>, self::B<self::D::T*, self::D::T*> {
   field core::int* field1;
@@ -172,4 +280,14 @@ class D<T extends core::Object* = dynamic> extends core::Object implements self:
   field invalid-type field18;
   constructor •(core::int* field1, invalid-type field2, core::int* field3, invalid-type field4, core::int* field5, invalid-type field6, core::int* field7, invalid-type field8, dynamic field9, self::D::T* field10, self::D::T* field11, self::D::T* field12, self::D::T* field13, self::D::T* field14, core::int* field15, core::int* field16, invalid-type field17, invalid-type field18) → self::D<self::D::T*>*
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }

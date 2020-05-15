@@ -109,6 +109,13 @@ Future<CompilerResult> _compile(List<String> args,
         help: 'The path to the libraries.json file for the sdk.')
     ..addOption('used-inputs-file',
         help: 'If set, the file to record inputs used.', hide: true)
+    // TODO(41852) Define a process for breaking changes before graduating from
+    // experimental.
+    ..addFlag('experimental-emit-debug-metadata',
+        help: 'Experimental option for compiler development.\n'
+            'Output a metadata file for debug tools next to the .js output.',
+        defaultsTo: false,
+        hide: true)
     ..addFlag('kernel',
         abbr: 'k',
         help: 'Deprecated and ignored. To be removed in a future release.',
@@ -409,18 +416,36 @@ Future<CompilerResult> _compile(List<String> args,
     var moduleFormat = moduleFormats[i];
     var file = File(output);
     await file.parent.create(recursive: true);
+    var mapUrl = p.toUri('$output.map').toString();
     var jsCode = jsProgramToCode(jsModule, moduleFormat,
         buildSourceMap: options.sourceMap,
         inlineSourceMap: options.inlineSourceMap,
         jsUrl: p.toUri(output).toString(),
-        mapUrl: p.toUri(output + '.map').toString(),
+        mapUrl: mapUrl,
         customScheme: multiRootScheme,
-        multiRootOutputPath: multiRootOutputPath);
+        multiRootOutputPath: multiRootOutputPath,
+        component: compiledLibraries);
 
     outFiles.add(file.writeAsString(jsCode.code));
     if (jsCode.sourceMap != null) {
       outFiles.add(
-          File(output + '.map').writeAsString(json.encode(jsCode.sourceMap)));
+          File('$output.map').writeAsString(json.encode(jsCode.sourceMap)));
+    }
+
+    if (argResults['experimental-emit-debug-metadata'] as bool) {
+      var moduleMetadata = [
+        for (var lib in compiledLibraries.libraries)
+          {
+            'name': compiler.jsLibraryName(lib),
+            'sourceMapFileUri': mapUrl,
+            'dartFileUris': [
+              lib.fileUri.toString(),
+              ...lib.parts.map((p) => p.partUri.toString())
+            ],
+          }
+      ];
+      outFiles.add(
+          File('$output.metadata').writeAsString(json.encode(moduleMetadata)));
     }
   }
 
@@ -514,7 +539,8 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
         jsUrl: p.toUri(output).toString(),
         mapUrl: p.toUri(output + '.map').toString(),
         customScheme: multiRootScheme,
-        multiRootOutputPath: multiRootOutputPath);
+        multiRootOutputPath: multiRootOutputPath,
+        component: component);
 
     outFiles.add(file.writeAsString(jsCode.code));
     if (jsCode.sourceMap != null) {
@@ -523,6 +549,33 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
     }
   }
   return CompilerResult(0);
+}
+
+// Compute code size to embed in the generated JavaScript
+// for this module.  Return `null` to indicate when size could not be properly
+// computed for this module.
+int _computeDartSize(Component component) {
+  var dartSize = 0;
+  var uriToSource = component.uriToSource;
+  for (var lib in component.libraries) {
+    var libUri = lib.fileUri;
+    var importUri = lib.importUri;
+    var source = uriToSource[libUri];
+    if (source == null) return null;
+    dartSize += source.source.length;
+    for (var part in lib.parts) {
+      var partUri = part.partUri;
+      if (partUri.startsWith(importUri.scheme)) {
+        // Convert to a relative-to-library uri in order to compute a file uri.
+        partUri = p.relative(partUri, from: p.dirname('${lib.importUri}'));
+      }
+      var fileUri = libUri.resolve(partUri);
+      var partSource = uriToSource[fileUri];
+      if (partSource == null) return null;
+      dartSize += partSource.source.length;
+    }
+  }
+  return dartSize;
 }
 
 /// The output of compiling a JavaScript module in a particular format.
@@ -554,7 +607,8 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
     String mapUrl,
     String sourceMapBase,
     String customScheme,
-    String multiRootOutputPath}) {
+    String multiRootOutputPath,
+    Component component}) {
   var opts = js_ast.JavaScriptPrintingOptions(
       allowKeywordsInProperties: true, allowSingleLineIfStatements: true);
   js_ast.SimpleJavaScriptPrintingContext printer;
@@ -585,11 +639,28 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
   }
 
   var text = printer.getText();
-  var rawSourceMap = inlineSourceMap
-      ? js.escapedString(json.encode(builtMap), "'").value
-      : 'null';
+  var encodedMap = json.encode(builtMap);
+  var rawSourceMap =
+      inlineSourceMap ? js.escapedString(encodedMap, "'").value : 'null';
   text = text.replaceFirst(SharedCompiler.sourceMapLocationID, rawSourceMap);
 
+  // This is intended to be used by our build/debug tools to gather metrics.
+  // See pkg/dev_compiler/lib/js/legacy/dart_library.js for runtime code that
+  // reads this.
+  //
+  // These keys (see corresponding logic in dart_library.js) include:
+  // - dartSize: <size of Dart input code in bytes>
+  // - sourceMapSize: <size of JS source map in bytes>
+  //
+  // TODO(vsm): Ideally, this information is never sent to the browser.  I.e.,
+  // our runtime metrics gathering would obtain this information from the
+  // compilation server, not the browser.  We don't yet have the infra for that.
+  var compileTimeStatistics = {
+    'dartSize': component != null ? _computeDartSize(component) : null,
+    'sourceMapSize': encodedMap.length
+  };
+  text = text.replaceFirst(
+      SharedCompiler.metricsLocationID, '$compileTimeStatistics');
   return JSCode(text, builtMap);
 }
 

@@ -49,7 +49,7 @@ class ConstructorReferenceBuilder {
       declaration = scope.lookup(prefix, charOffset, fileUri);
       if (declaration is TypeAliasBuilder) {
         TypeAliasBuilder aliasBuilder = declaration;
-        declaration = aliasBuilder.unaliasDeclaration;
+        declaration = aliasBuilder.unaliasDeclaration(typeArguments);
       }
       if (declaration is PrefixBuilder) {
         PrefixBuilder prefix = declaration;

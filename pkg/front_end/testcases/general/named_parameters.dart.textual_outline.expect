@@ -1,0 +1,15 @@
+class Superclass {
+  foo({alpha, beta}) {}
+  bar({beta, alpha}) {}
+  namedCallback(callback({String alpha, int beta})) {}
+}
+
+class Subclass extends Superclass {
+  foo({beta, alpha}) {}
+  bar({alpha, beta}) {}
+  namedCallback(callback({int beta, String alpha})) {}
+}
+
+topLevelNamed(beta, alpha, {gamma, delta}) {}
+topLevelOptional(beta, alpha, [gamma, delta]) {}
+main() {}

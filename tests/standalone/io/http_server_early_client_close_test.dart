@@ -75,7 +75,7 @@ class EarlyCloseTest {
 }
 
 void testEarlyClose1() {
-  List<EarlyCloseTest> tests = new List<EarlyCloseTest>();
+  List<EarlyCloseTest> tests = <EarlyCloseTest>[];
   void add(Object data, [String? exception, bool expectRequest = false]) {
     tests.add(new EarlyCloseTest(data, exception, expectRequest));
   }

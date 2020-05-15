@@ -28,7 +28,7 @@ class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
 
   /// Asserts that there is an offset of [search] in [testOccurrences].
   void assertHasOffset(String search) {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     expect(testOccurrences.offsets, contains(offset));
   }
 
@@ -36,7 +36,7 @@ class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
   /// If [length] is not specified explicitly, then length of an identifier
   /// from [search] is used.
   void assertHasRegion(String search, [int length = -1]) {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     if (length == -1) {
       length = findIdentifierLength(search);
     }
@@ -50,11 +50,11 @@ class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
   ///
   /// If [exists] is `false`, then fails if such [Occurrences] exists.
   void findRegion(int offset, int length, [bool exists]) {
-    for (Occurrences occurrences in occurrencesList) {
+    for (var occurrences in occurrencesList) {
       if (occurrences.length != length) {
         continue;
       }
-      for (int occurrenceOffset in occurrences.offsets) {
+      for (var occurrenceOffset in occurrences.offsets) {
         if (occurrenceOffset == offset) {
           if (exists == false) {
             fail('Not expected to find (offset=$offset; length=$length) in\n'
@@ -236,7 +236,7 @@ main() {
 dynamic V = 3;
 ''');
     await prepareOccurrences();
-    int offset = findOffset('dynamic a');
+    var offset = findOffset('dynamic a');
     findRegion(offset, 'dynamic'.length, false);
   }
 
@@ -246,7 +246,7 @@ void main() {
 }
 ''');
     await prepareOccurrences();
-    int offset = findOffset('void main()');
+    var offset = findOffset('void main()');
     findRegion(offset, 'void'.length, false);
   }
 }

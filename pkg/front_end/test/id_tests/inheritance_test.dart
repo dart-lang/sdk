@@ -132,8 +132,17 @@ class InheritanceDataExtractor extends CfeDataExtractor<String> {
           type = substitution
               .substituteType(member.function.positionalParameters.single.type);
         } else {
-          type = substitution.substituteType(member.function
-              .computeThisFunctionType(member.enclosingLibrary.nonNullable));
+          Nullability functionTypeNullability;
+          if (node.enclosingLibrary.isNonNullableByDefault) {
+            functionTypeNullability = member.enclosingLibrary.nonNullable;
+          } else {
+            // We don't create a member signature when the member is just
+            // a substitution. We should still take the nullability to be
+            // legacy, though.
+            functionTypeNullability = node.enclosingLibrary.nonNullable;
+          }
+          type = substitution.substituteType(
+              member.function.computeThisFunctionType(functionTypeNullability));
         }
       } else if (member is Field) {
         type = substitution.substituteType(member.type);

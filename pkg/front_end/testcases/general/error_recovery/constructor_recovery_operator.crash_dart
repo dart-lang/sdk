@@ -1,0 +1,14 @@
+class Foo {
+  Foo() / : super() {
+    // Not OK.
+  }
+  Foo()./ : super() {
+    // Not OK.
+  }
+  foo() / : super() {
+    // Not OK.
+  }
+  foo()./ : super() {
+    // Not OK.
+  }
+}

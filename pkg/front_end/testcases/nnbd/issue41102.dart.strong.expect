@@ -1,0 +1,132 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue41102.dart:15:12: Warning: Operand of null-aware operation '?.' has type 'List<dynamic>' which excludes null.
+//  - 'List' is from 'dart:core'.
+// final s2 = s1?.length;
+//            ^
+//
+// pkg/front_end/testcases/nnbd/issue41102.dart:17:16: Error: Can't use the default List constructor.
+// Try using List.filled instead.
+// final s3 = new List<int>(2);
+//                ^
+//
+// pkg/front_end/testcases/nnbd/issue41102.dart:22:5: Error: Switch case may fall through to the next case.
+//     case 0:
+//     ^
+//
+// pkg/front_end/testcases/nnbd/issue41102.dart:25:10: Error: Type 'String' of the case expression is not a subtype of type 'int' of this switch expression.
+//     case '':
+//          ^
+// pkg/front_end/testcases/nnbd/issue41102.dart:21:11: Context: The switch expression is here.
+//   switch (e) {
+//           ^
+//
+// pkg/front_end/testcases/nnbd/issue41102.dart:31:15: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
+// final s6 = s5 + 0;
+//               ^
+//
+// pkg/front_end/testcases/nnbd/issue41102.dart:35:14: Error: Operator '[]' cannot be called on 'List<dynamic>?' because it is potentially null.
+//  - 'List' is from 'dart:core'.
+// final s8 = s7[0];
+//              ^
+//
+// pkg/front_end/testcases/nnbd/issue41102.dart:37:14: Error: Operator '[]=' cannot be called on 'List<dynamic>?' because it is potentially null.
+//  - 'List' is from 'dart:core'.
+// final s9 = s7[0] = 0;
+//              ^
+//
+// pkg/front_end/testcases/nnbd/issue41102.dart:39:16: Error: Property 'length' cannot be accessed on 'List<dynamic>?' because it is potentially null.
+//  - 'List' is from 'dart:core'.
+// Try accessing using ?. instead.
+// final s10 = s7.length;
+//                ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue41102.dart:41:16: Error: Property 'length' cannot be accessed on 'List<dynamic>?' because it is potentially null.
+//  - 'List' is from 'dart:core'.
+// Try accessing using ?. instead.
+// final s11 = s7.length = 0;
+//                ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue41102.dart:43:13: Error: Operator 'unary-' cannot be called on 'int?' because it is potentially null.
+// final s12 = -s5;
+//             ^
+//
+// pkg/front_end/testcases/nnbd/issue41102.dart:47:18: Error: Can't use an expression of type 'int Function()?' as a function because it's potentially null.
+// Try calling using ?.call instead.
+// final s14 = (s13)();
+//                  ^
+//
+// pkg/front_end/testcases/nnbd/issue41102.dart:49:19: Error: Can't throw a value of 'Null' since it is neither dynamic nor non-nullable.
+// final s15 = throw null;
+//                   ^
+//
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+import "dart:async";
+
+static final field asy::StreamTransformer<core::Object?, core::Object?> t = new asy::_StreamHandlerTransformer::•<core::Object?, core::Object?>(handleData: (core::Object? data, asy::EventSink<core::Object?> sink) → asy::Future<void> => asy::Future::microtask<void>(() → void => sink.{asy::EventSink::add}(data)), handleDone: (asy::EventSink<core::Object?> sink) → asy::Future<void> => asy::Future::microtask<void>(() → void => sink.{asy::EventSink::close}()));
+static final field core::List<dynamic> s1 = <dynamic>[];
+static final field core::int? s2 = let final core::List<dynamic> #t1 = self::s1 in #t1.{core::List::==}(null) ?{core::int?} null : #t1.{core::List::length};
+static final field core::List<core::int> s3 = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:17:16: Error: Can't use the default List constructor.
+Try using List.filled instead.
+final s3 = new List<int>(2);
+               ^" in core::List::•<core::int>(2);
+static final field dynamic s4 = (() → core::Null? {
+  core::int e = 0;
+  switch(e) {
+    #L1:
+    case #C1:
+      {
+        core::print("fallthrough");
+      }
+    #L2:
+    case #C2:
+    case #C3:
+      {}
+  }
+}).call();
+static field core::int? s5;
+static final field core::int? s6 = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:31:15: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
+final s6 = s5 + 0;
+              ^" in self::s5.{core::num::+}(0);
+static field core::List<dynamic>? s7;
+static final field dynamic s8 = let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:35:14: Error: Operator '[]' cannot be called on 'List<dynamic>?' because it is potentially null.
+ - 'List' is from 'dart:core'.
+final s8 = s7[0];
+             ^" in self::s7.{core::List::[]}(0);
+static final field core::int s9 = let final core::List<dynamic>? #t5 = self::s7 in let final core::int #t6 = 0 in let final core::int #t7 = 0 in let final void #t8 = let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:37:14: Error: Operator '[]=' cannot be called on 'List<dynamic>?' because it is potentially null.
+ - 'List' is from 'dart:core'.
+final s9 = s7[0] = 0;
+             ^" in #t5.{core::List::[]=}(#t6, #t7) in #t7;
+static final field core::int s10 = let final<BottomType> #t10 = invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:39:16: Error: Property 'length' cannot be accessed on 'List<dynamic>?' because it is potentially null.
+ - 'List' is from 'dart:core'.
+Try accessing using ?. instead.
+final s10 = s7.length;
+               ^^^^^^" in self::s7.{core::List::length};
+static final field core::int s11 = let final<BottomType> #t11 = invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:41:16: Error: Property 'length' cannot be accessed on 'List<dynamic>?' because it is potentially null.
+ - 'List' is from 'dart:core'.
+Try accessing using ?. instead.
+final s11 = s7.length = 0;
+               ^^^^^^" in self::s7.{core::List::length} = 0;
+static final field core::int s12 = let final<BottomType> #t12 = invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:43:13: Error: Operator 'unary-' cannot be called on 'int?' because it is potentially null.
+final s12 = -s5;
+            ^" in self::s5.{core::int::unary-}();
+static field () →? core::int s13;
+static final field core::int s14 = let final<BottomType> #t13 = invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:47:18: Error: Can't use an expression of type 'int Function()?' as a function because it's potentially null.
+Try calling using ?.call instead.
+final s14 = (s13)();
+                 ^" in self::s13.call();
+static final field Never s15 = invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:49:19: Error: Can't throw a value of 'Null' since it is neither dynamic nor non-nullable.
+final s15 = throw null;
+                  ^" as{TypeError,ForDynamic,ForNonNullableByDefault} Never;
+static method main() → void {}
+
+constants  {
+  #C1 = 0
+  #C2 = 1
+  #C3 = ""
+}

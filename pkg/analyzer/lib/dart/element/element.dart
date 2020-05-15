@@ -119,9 +119,15 @@ abstract class ClassElement
 
   /// Return `true` if this class [isProxy], or if it inherits the proxy
   /// annotation from a supertype.
+  @Deprecated(
+    'The @proxy annotation is deprecated in the langauge, and will be removed',
+  )
   bool get isOrInheritsProxy;
 
   /// Return `true` if this element has an annotation of the form '@proxy'.
+  @Deprecated(
+    'The @proxy annotation is deprecated in the langauge, and will be removed',
+  )
   bool get isProxy;
 
   /// Return `true` if this class can validly be used as a mixin when defining
@@ -1332,6 +1338,12 @@ abstract class LibraryElement implements Element {
 
   bool get isNonNullableByDefault;
 
+  /// The major component of the language version for this library.
+  int get languageVersionMajor;
+
+  /// The minor component of the language version for this library.
+  int get languageVersionMinor;
+
   /// Return the element representing the synthetic function `loadLibrary` that
   /// is implicitly defined for this library if the library is imported using a
   /// deferred import.
@@ -1723,6 +1735,7 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
   /// Return `null` if either this variable was not declared with the 'const'
   /// modifier or if the value of this variable could not be computed because of
   /// errors.
+  @Deprecated('Use computeConstantValue() instead')
   DartObject get constantValue;
 
   @override

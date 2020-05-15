@@ -63,7 +63,7 @@ class AnalyzerImpl {
     if (unit == null || !units.add(unit)) {
       return;
     }
-    Source source = unit.source;
+    var source = unit.source;
     if (source != null) {
       files.add(source.fullName);
     }
@@ -80,14 +80,14 @@ class AnalyzerImpl {
     }
     // Add compilation units.
     addCompilationUnitSource(library.definingCompilationUnit, units);
-    for (CompilationUnitElement child in library.parts) {
+    for (var child in library.parts) {
       addCompilationUnitSource(child, units);
     }
     // Add referenced libraries.
-    for (LibraryElement child in library.importedLibraries) {
+    for (var child in library.importedLibraries) {
       addLibrarySources(child, libraries, units);
     }
-    for (LibraryElement child in library.exportedLibraries) {
+    for (var child in library.exportedLibraries) {
       addLibrarySources(child, libraries, units);
     }
   }
@@ -107,9 +107,9 @@ class AnalyzerImpl {
 
   /// Returns the maximal [ErrorSeverity] of the recorded errors.
   ErrorSeverity computeMaxErrorSeverity() {
-    ErrorSeverity status = ErrorSeverity.NONE;
-    for (ErrorsResult result in errorsResults) {
-      for (AnalysisError error in result.errors) {
+    var status = ErrorSeverity.NONE;
+    for (var result in errorsResults) {
+      for (var error in result.errors) {
         if (_defaultSeverityProcessor(error) == null) {
           continue;
         }
@@ -123,10 +123,10 @@ class AnalyzerImpl {
   Future<void> prepareErrors() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    PerformanceTag previous = _prepareErrorsTag.makeCurrent();
+    var previous = _prepareErrorsTag.makeCurrent();
     try {
-      for (String path in files) {
-        ErrorsResult errorsResult = await analysisDriver.getErrors(path);
+      for (var path in files) {
+        var errorsResult = await analysisDriver.getErrors(path);
         errorsResults.add(errorsResult);
       }
     } finally {
@@ -145,7 +145,7 @@ class AnalyzerImpl {
   void setupForAnalysis() {
     files.clear();
     errorsResults.clear();
-    Uri libraryUri = libraryFile.uri;
+    var libraryUri = libraryFile.uri;
     if (libraryUri.scheme == 'package' && libraryUri.pathSegments.isNotEmpty) {
       _selfPackageName = libraryUri.pathSegments[0];
     }
@@ -157,13 +157,13 @@ class AnalyzerImpl {
     await null;
     // Don't try to analyze parts.
     if (libraryFile.isPart) {
-      String libraryPath = libraryFile.path;
+      var libraryPath = libraryFile.path;
       stderr.writeln('Only libraries can be analyzed.');
       stderr.writeln('$libraryPath is a part and cannot be analyzed.');
       return ErrorSeverity.ERROR;
     }
 
-    LibraryElement libraryElement = await _resolveLibrary();
+    var libraryElement = await _resolveLibrary();
     prepareSources(libraryElement);
     await prepareErrors();
 
@@ -183,7 +183,7 @@ class AnalyzerImpl {
 
   /// Returns true if we want to report diagnostics for this library.
   bool _isAnalyzedLibrary(LibraryElement library) {
-    Source source = library.source;
+    var source = library.source;
     switch (source.uriKind) {
       case UriKind.DART_URI:
         return options.showSdkWarnings;
@@ -202,7 +202,7 @@ class AnalyzerImpl {
     if (uri.scheme != 'package' || uri.pathSegments.isEmpty) {
       return false;
     }
-    String packageName = uri.pathSegments.first;
+    var packageName = uri.pathSegments.first;
     if (packageName == _selfPackageName) {
       return true;
     } else if (!options.showPackageWarnings) {
@@ -217,11 +217,11 @@ class AnalyzerImpl {
   // TODO(devoncarew): This is never called.
   void _printColdPerf() {
     // Print cold VM performance numbers.
-    int totalTime = currentTimeMillis - startTime;
-    int otherTime = totalTime;
-    for (PerformanceTag tag in PerformanceTag.all) {
+    var totalTime = currentTimeMillis - startTime;
+    var otherTime = totalTime;
+    for (var tag in PerformanceTag.all) {
       if (tag != PerformanceTag.unknown) {
-        int tagTime = tag.elapsedMs;
+        var tagTime = tag.elapsedMs;
         outSink.writeln('${tag.label}-cold:$tagTime');
         otherTime -= tagTime;
       }
@@ -233,12 +233,11 @@ class AnalyzerImpl {
   Future<LibraryElement> _resolveLibrary() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    PerformanceTag previous = _resolveLibraryTag.makeCurrent();
+    var previous = _resolveLibraryTag.makeCurrent();
     try {
-      String libraryPath = libraryFile.path;
+      var libraryPath = libraryFile.path;
       analysisDriver.priorityFiles = [libraryPath];
-      UnitElementResult elementResult =
-          await analysisDriver.getUnitElement(libraryPath);
+      var elementResult = await analysisDriver.getUnitElement(libraryPath);
       return elementResult.element.library;
     } finally {
       previous.makeCurrent();
@@ -247,11 +246,11 @@ class AnalyzerImpl {
 
   /// Return `true` if the given [pathName] is in the Pub cache.
   static bool _isPathInPubCache(String pathName) {
-    List<String> parts = path.split(pathName);
+    var parts = path.split(pathName);
     if (parts.contains('.pub-cache')) {
       return true;
     }
-    for (int i = 0; i < parts.length - 2; i++) {
+    for (var i = 0; i < parts.length - 2; i++) {
       if (parts[i] == 'Pub' && parts[i + 1] == 'Cache') {
         return true;
       }

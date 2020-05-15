@@ -1,0 +1,7 @@
+// @dart = 2.6
+import "continue_inference_after_error_lib.dart" as lib;
+
+class C {}
+
+main() {}
+test() {}

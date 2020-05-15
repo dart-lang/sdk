@@ -1,0 +1,240 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/generic_override.dart:39:8: Error: Declared bound 'Object?' of type variable 'T' of 'Class2.method4b' doesn't match the bound 'Object' on overridden method 'Class1.method4b'.
+//  - 'Object' is from 'dart:core'.
+//   void method4b<T extends Object?>(); // error
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/generic_override.dart:19:8: Context: This is the overridden method ('method4b').
+//   void method4b<T extends Object>();
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/generic_override.dart:40:8: Error: Declared bound 'Object' of type variable 'T' of 'Class2.method4c' doesn't match the bound 'Object?' on overridden method 'Class1.method4c'.
+//  - 'Object' is from 'dart:core'.
+//   void method4c<T extends Object>(); // error
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/generic_override.dart:20:8: Context: This is the overridden method ('method4c').
+//   void method4c<T extends Object?>();
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/generic_override.dart:43:8: Error: Declared bound 'Class1?' of type variable 'T' of 'Class2.method5b' doesn't match the bound 'Class1' on overridden method 'Class1.method5b'.
+//  - 'Class1' is from 'pkg/front_end/testcases/nnbd_mixed/generic_override.dart'.
+//   void method5b<T extends Class1?>(); // error
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/generic_override.dart:23:8: Context: This is the overridden method ('method5b').
+//   void method5b<T extends Class1>();
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/generic_override.dart:44:8: Error: Declared bound 'Class1' of type variable 'T' of 'Class2.method5c' doesn't match the bound 'Class1?' on overridden method 'Class1.method5c'.
+//  - 'Class1' is from 'pkg/front_end/testcases/nnbd_mixed/generic_override.dart'.
+//   void method5c<T extends Class1>(); // error
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/generic_override.dart:24:8: Context: This is the overridden method ('method5c').
+//   void method5c<T extends Class1?>();
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/generic_override.dart:51:8: Error: Declared bound 'Object?' of type variable 'T' of 'Class3.method2a' doesn't match the bound 'Object' on overridden method 'LegacyClass1.method2a'.
+//  - 'Object' is from 'dart:core'.
+//   void method2a<T>();
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/generic_override_lib.dart:13:8: Context: This is the overridden method ('method2a').
+//   void method2a<T extends Object>();
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/generic_override.dart:52:8: Error: Declared bound 'Object?' of type variable 'T' of 'Class3.method2b' doesn't match the bound 'Object' on overridden method 'LegacyClass1.method2b'.
+//  - 'Object' is from 'dart:core'.
+//   void method2b<T extends Object?>();
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/generic_override_lib.dart:14:8: Context: This is the overridden method ('method2b').
+//   void method2b<T extends Object>();
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/generic_override.dart:53:8: Error: Declared bound 'dynamic' of type variable 'T' of 'Class3.method2c' doesn't match the bound 'Object' on overridden method 'LegacyClass1.method2c'.
+//  - 'Object' is from 'dart:core'.
+//   void method2c<T extends dynamic>();
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/generic_override_lib.dart:15:8: Context: This is the overridden method ('method2c').
+//   void method2c<T extends Object>();
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/generic_override.dart:59:8: Error: Declared bound 'Object?' of type variable 'T' of 'Class3.method4b' doesn't match the bound 'Object' on overridden method 'LegacyClass1.method4b'.
+//  - 'Object' is from 'dart:core'.
+//   void method4b<T extends Object?>();
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/generic_override_lib.dart:21:8: Context: This is the overridden method ('method4b').
+//   void method4b<T extends Object>();
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/generic_override.dart:63:8: Error: Declared bound 'Class1?' of type variable 'T' of 'Class3.method5b' doesn't match the bound 'Class1' on overridden method 'LegacyClass1.method5b'.
+//  - 'Class1' is from 'pkg/front_end/testcases/nnbd_mixed/generic_override.dart'.
+//   void method5b<T extends Class1?>();
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/generic_override_lib.dart:25:8: Context: This is the overridden method ('method5b').
+//   void method5b<T extends Class1>();
+//        ^
+//
+import self as self;
+import "dart:core" as core;
+import "generic_override_lib.dart" as gen;
+
+import "org-dartlang-testcase:///generic_override_lib.dart";
+
+abstract class Class1 extends core::Object {
+  synthetic constructor •() → self::Class1
+    ;
+  abstract method method1a<T extends core::Object? = dynamic>() → void;
+  abstract method method1b<T extends core::Object? = dynamic>() → void;
+  abstract method method1c<T extends core::Object? = dynamic>() → void;
+  abstract method method2a<T extends core::Object? = core::Object?>() → void;
+  abstract method method2b<T extends core::Object? = core::Object?>() → void;
+  abstract method method2c<T extends core::Object? = core::Object?>() → void;
+  abstract method method3a<T extends dynamic = dynamic>() → void;
+  abstract method method3b<T extends dynamic = dynamic>() → void;
+  abstract method method3c<T extends dynamic = dynamic>() → void;
+  abstract method method4a<T extends core::Object = core::Object>() → void;
+  abstract method method4b<T extends core::Object = core::Object>() → void;
+  abstract method method4c<T extends core::Object? = core::Object?>() → void;
+  abstract method method5a<T extends self::Class1 = self::Class1>() → void;
+  abstract method method5b<T extends self::Class1 = self::Class1>() → void;
+  abstract method method5c<T extends self::Class1? = self::Class1?>() → void;
+}
+abstract class Class2 extends self::Class1 {
+  synthetic constructor •() → self::Class2
+    ;
+  abstract method method1a<T extends core::Object? = dynamic>() → void;
+  abstract method method1b<T extends core::Object? = core::Object?>() → void;
+  abstract method method1c<T extends dynamic = dynamic>() → void;
+  abstract method method2a<T extends core::Object? = dynamic>() → void;
+  abstract method method2b<T extends core::Object? = core::Object?>() → void;
+  abstract method method2c<T extends dynamic = dynamic>() → void;
+  abstract method method3a<T extends core::Object? = dynamic>() → void;
+  abstract method method3b<T extends core::Object? = core::Object?>() → void;
+  abstract method method3c<T extends dynamic = dynamic>() → void;
+  abstract method method4a<T extends core::Object = core::Object>() → void;
+  abstract method method4b<T extends core::Object? = core::Object?>() → void;
+  abstract method method4c<T extends core::Object = core::Object>() → void;
+  abstract method method5a<T extends self::Class1 = self::Class1>() → void;
+  abstract method method5b<T extends self::Class1? = self::Class1?>() → void;
+  abstract method method5c<T extends self::Class1 = self::Class1>() → void;
+}
+abstract class Class3 extends gen::LegacyClass1 {
+  synthetic constructor •() → self::Class3
+    ;
+  abstract method method1a<T extends core::Object? = dynamic>() → void;
+  abstract method method1b<T extends core::Object? = core::Object?>() → void;
+  abstract method method1c<T extends dynamic = dynamic>() → void;
+  abstract method method2a<T extends core::Object? = dynamic>() → void;
+  abstract method method2b<T extends core::Object? = core::Object?>() → void;
+  abstract method method2c<T extends dynamic = dynamic>() → void;
+  abstract method method3a<T extends core::Object? = dynamic>() → void;
+  abstract method method3b<T extends core::Object? = core::Object?>() → void;
+  abstract method method3c<T extends dynamic = dynamic>() → void;
+  abstract method method4a<T extends core::Object = core::Object>() → void;
+  abstract method method4b<T extends core::Object? = core::Object?>() → void;
+  abstract method method4c<T extends core::Object = core::Object>() → void;
+  abstract method method5a<T extends self::Class1 = self::Class1>() → void;
+  abstract method method5b<T extends self::Class1? = self::Class1?>() → void;
+  abstract method method5c<T extends self::Class1 = self::Class1>() → void;
+}
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/generic_override_lib.dart:5:1: Error: A library can't opt out of non-nullable by default, when in nnbd-strong mode.
+// // @dart=2.6
+// ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/generic_override_lib.dart:31:8: Error: Declared bound 'Object' of type variable 'T' of 'LegacyClass2.method1b' doesn't match the bound 'Object?' on overridden method 'Class1.method1b'.
+//  - 'Object' is from 'dart:core'.
+//   void method1b<T extends Object>();
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/generic_override.dart:9:8: Context: This is the overridden method ('method1b').
+//   void method1b<T>();
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/generic_override_lib.dart:34:8: Error: Declared bound 'Object' of type variable 'T' of 'LegacyClass2.method2b' doesn't match the bound 'Object?' on overridden method 'Class1.method2b'.
+//  - 'Object' is from 'dart:core'.
+//   void method2b<T extends Object>();
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/generic_override.dart:12:8: Context: This is the overridden method ('method2b').
+//   void method2b<T extends Object?>();
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/generic_override_lib.dart:37:8: Error: Declared bound 'Object' of type variable 'T' of 'LegacyClass2.method3b' doesn't match the bound 'dynamic' on overridden method 'Class1.method3b'.
+//  - 'Object' is from 'dart:core'.
+//   void method3b<T extends Object>();
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/generic_override.dart:15:8: Context: This is the overridden method ('method3b').
+//   void method3b<T extends dynamic>();
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/generic_override_lib.dart:42:8: Error: Declared bound 'Object' of type variable 'T' of 'LegacyClass2.method4c' doesn't match the bound 'Object?' on overridden method 'Class1.method4c'.
+//  - 'Object' is from 'dart:core'.
+//   void method4c<T extends Object>();
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/generic_override.dart:20:8: Context: This is the overridden method ('method4c').
+//   void method4c<T extends Object?>();
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/generic_override_lib.dart:46:8: Error: Declared bound 'Class1' of type variable 'T' of 'LegacyClass2.method5c' doesn't match the bound 'Class1?' on overridden method 'Class1.method5c'.
+//  - 'Class1' is from 'pkg/front_end/testcases/nnbd_mixed/generic_override.dart'.
+//   void method5c<T extends Class1>();
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/generic_override.dart:24:8: Context: This is the overridden method ('method5c').
+//   void method5c<T extends Class1?>();
+//        ^
+//
+import self as gen;
+import "dart:core" as core;
+import "generic_override.dart" as self;
+
+import "org-dartlang-testcase:///generic_override.dart";
+
+abstract class LegacyClass1 extends core::Object {
+  synthetic constructor •() → gen::LegacyClass1
+    ;
+  abstract method method1a<T extends core::Object? = dynamic>() → void;
+  abstract method method1b<T extends core::Object? = dynamic>() → void;
+  abstract method method1c<T extends core::Object? = dynamic>() → void;
+  abstract method method2a<T extends core::Object = core::Object>() → void;
+  abstract method method2b<T extends core::Object = core::Object>() → void;
+  abstract method method2c<T extends core::Object = core::Object>() → void;
+  abstract method method3a<T extends dynamic = dynamic>() → void;
+  abstract method method3b<T extends dynamic = dynamic>() → void;
+  abstract method method3c<T extends dynamic = dynamic>() → void;
+  abstract method method4a<T extends core::Object = core::Object>() → void;
+  abstract method method4b<T extends core::Object = core::Object>() → void;
+  abstract method method4c<T extends core::Object = core::Object>() → void;
+  abstract method method5a<T extends self::Class1 = self::Class1>() → void;
+  abstract method method5b<T extends self::Class1 = self::Class1>() → void;
+  abstract method method5c<T extends self::Class1 = self::Class1>() → void;
+}
+abstract class LegacyClass2 extends self::Class1 {
+  synthetic constructor •() → gen::LegacyClass2
+    ;
+  abstract method method1a<T extends core::Object? = dynamic>() → void;
+  abstract method method1b<T extends core::Object = core::Object>() → void;
+  abstract method method1c<T extends dynamic = dynamic>() → void;
+  abstract method method2a<T extends core::Object? = dynamic>() → void;
+  abstract method method2b<T extends core::Object = core::Object>() → void;
+  abstract method method2c<T extends dynamic = dynamic>() → void;
+  abstract method method3a<T extends core::Object? = dynamic>() → void;
+  abstract method method3b<T extends core::Object = core::Object>() → void;
+  abstract method method3c<T extends dynamic = dynamic>() → void;
+  abstract method method4a<T extends core::Object = core::Object>() → void;
+  abstract method method4b<T extends core::Object = core::Object>() → void;
+  abstract method method4c<T extends core::Object = core::Object>() → void;
+  abstract method method5a<T extends self::Class1 = self::Class1>() → void;
+  abstract method method5b<T extends self::Class1 = self::Class1>() → void;
+  abstract method method5c<T extends self::Class1 = self::Class1>() → void;
+}
+abstract class LegacyClass3 extends self::Class1 {
+  synthetic constructor •() → gen::LegacyClass3
+    ;
+}
+static method main() → dynamic
+  ;

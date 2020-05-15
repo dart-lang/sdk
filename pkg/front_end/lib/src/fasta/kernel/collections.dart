@@ -99,6 +99,16 @@ class SpreadElement extends Expression with ControlFlowElement {
       void onConvertForElement(TreeNode from, TreeNode to)) {
     return new SpreadMapEntry(expression, isNullAware)..fileOffset = fileOffset;
   }
+
+  @override
+  String toString() {
+    return "SpreadElement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// An 'if' element in a list or set literal.
@@ -155,6 +165,16 @@ class IfElement extends Expression with ControlFlowElement {
     return new IfMapEntry(condition, thenEntry, otherwiseEntry)
       ..fileOffset = fileOffset;
   }
+
+  @override
+  String toString() {
+    return "IfElement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// A 'for' element in a list or set literal.
@@ -206,6 +226,16 @@ class ForElement extends Expression with ControlFlowElement {
           ..fileOffset = fileOffset;
     onConvertForElement(this, result);
     return result;
+  }
+
+  @override
+  String toString() {
+    return "ForElement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -286,6 +316,16 @@ class ForInElement extends Expression with ControlFlowElement {
     onConvertForElement(this, result);
     return result;
   }
+
+  @override
+  String toString() {
+    return "ForInElement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 mixin ControlFlowMapEntry implements MapEntry {
@@ -340,6 +380,16 @@ class SpreadMapEntry extends TreeNode with ControlFlowMapEntry {
       expression?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "SpreadMapEntry(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 /// An 'if' element in a map literal.
@@ -375,6 +425,16 @@ class IfMapEntry extends TreeNode with ControlFlowMapEntry {
       otherwise = otherwise.accept<TreeNode>(v);
       otherwise?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "IfMapEntry(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -412,6 +472,16 @@ class ForMapEntry extends TreeNode with ControlFlowMapEntry {
       body = body.accept<TreeNode>(v);
       body?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "ForMapEntry(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -476,6 +546,16 @@ class ForInMapEntry extends TreeNode with ControlFlowMapEntry {
       problem = problem.accept<TreeNode>(v);
       problem?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "ForInMapEntry(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 

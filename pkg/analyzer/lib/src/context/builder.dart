@@ -5,7 +5,6 @@
 import 'dart:collection';
 import 'dart:core';
 
-import 'package:analyzer/dart/analysis/analysis_context.dart' as api;
 import 'package:analyzer/dart/analysis/context_locator.dart' as api;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -15,7 +14,6 @@ import 'package:analyzer/src/command_line/arguments.dart'
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/context_root.dart' as api;
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriver, AnalysisDriverScheduler;
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart'

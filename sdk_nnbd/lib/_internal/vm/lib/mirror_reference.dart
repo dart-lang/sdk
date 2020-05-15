@@ -10,5 +10,5 @@ class _MirrorReference {
     throw "Unreachable";
   }
 
-  bool operator ==(other) native "MirrorReference_equals";
+  bool operator ==(Object other) native "MirrorReference_equals";
 }

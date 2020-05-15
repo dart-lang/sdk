@@ -2,22 +2,30 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // From co19/Language/Types/Function_Types/subtype_named_args_t01.
 
 import "package:expect/expect.dart";
 
-/*strong.class: A:explicit=[A,dynamic Function({a:A})]*/
+/*spec:nnbd-off.class: A:explicit=[A,dynamic Function({a:A})]*/
+/*spec:nnbd-sdk.class: A:explicit=[A*,dynamic Function({a:A*})*]*/
 class A {}
 
-/*strong.class: B:explicit=[B,dynamic Function({a:B}),dynamic Function({f:dynamic Function({a:B})})]*/
-/*omit.class: B:explicit=[dynamic Function({a:B}),dynamic Function({f:dynamic Function({a:B})})]*/
+/*spec:nnbd-off.class: B:explicit=[B,dynamic Function({a:B}),dynamic Function({f:dynamic Function({a:B})})]*/
+/*prod:nnbd-off.class: B:explicit=[dynamic Function({a:B}),dynamic Function({f:dynamic Function({a:B})})]*/
+/*spec:nnbd-sdk.class: B:explicit=[B*,dynamic Function({a:B*})*,dynamic Function({f:dynamic Function({a:B*})*})*]*/
+/*prod:nnbd-sdk.class: B:explicit=[dynamic Function({a:B*})*,dynamic Function({f:dynamic Function({a:B*})*})*]*/
 class B implements A {}
 
-/*strong.class: C:explicit=[C,dynamic Function({a:C}),dynamic Function({c:C})]*/
-/*omit.class: C:explicit=[dynamic Function({c:C})]*/
+/*spec:nnbd-off.class: C:explicit=[C,dynamic Function({a:C}),dynamic Function({c:C})]*/
+/*prod:nnbd-off.class: C:explicit=[dynamic Function({c:C})]*/
+/*spec:nnbd-sdk.class: C:explicit=[C*,dynamic Function({a:C*})*,dynamic Function({c:C*})*]*/
+/*prod:nnbd-sdk.class: C:explicit=[dynamic Function({c:C*})*]*/
 class C implements B {}
 
-/*strong.class: D:explicit=[D,dynamic Function({a:D})]*/
+/*spec:nnbd-off.class: D:explicit=[D,dynamic Function({a:D})]*/
+/*spec:nnbd-sdk.class: D:explicit=[D*,dynamic Function({a:D*})*]*/
 class D implements C {}
 
 typedef t1({B a});
@@ -37,8 +45,10 @@ typedef okWithT1_4({D a});
 main() {
   Expect.isTrue(/*needsSignature*/ ({A a}) {} is t1);
   Expect.isTrue(/*needsSignature*/ ({B a}) {} is t1);
-  Expect.isTrue(/*strong.needsSignature*/ ({C a}) {} is t1);
-  Expect.isTrue(/*strong.needsSignature*/ ({D a}) {} is t1);
+  Expect.isTrue(
+      /*spec:nnbd-off|spec:nnbd-sdk.needsSignature*/ ({C a}) {} is t1);
+  Expect.isTrue(
+      /*spec:nnbd-off|spec:nnbd-sdk.needsSignature*/ ({D a}) {} is t1);
   Expect.isTrue(/*needsSignature*/ ({Object a}) {} is t1);
   Expect.isTrue(/*needsSignature*/ ({var a}) {} is t1);
 
@@ -88,8 +98,10 @@ main() {
 
   Expect.isTrue(/*needsSignature*/ ({A a}) {} is t8);
   Expect.isTrue(/*needsSignature*/ ({B a}) {} is t8);
-  Expect.isTrue(/*strong.needsSignature*/ ({C a}) {} is t8);
-  Expect.isTrue(/*strong.needsSignature*/ ({D a}) {} is t8);
+  Expect.isTrue(
+      /*spec:nnbd-off|spec:nnbd-sdk.needsSignature*/ ({C a}) {} is t8);
+  Expect.isTrue(
+      /*spec:nnbd-off|spec:nnbd-sdk.needsSignature*/ ({D a}) {} is t8);
   Expect.isTrue(/*needsSignature*/ ({Object a}) {} is t8);
   Expect.isTrue(/*needsSignature*/ ({var a}) {} is t8);
   Expect.isTrue(({num a}) {} is t8);

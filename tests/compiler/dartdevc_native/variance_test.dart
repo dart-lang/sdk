@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Tests the emission of explicit variance modifiers.
+// @dart = 2.6
 
 // SharedOptions=--enable-experiment=variance
 
-import 'dart:_runtime' as dart;
+// Tests the emission of explicit variance modifiers.
+
+import 'dart:_runtime'
+    show wrapType, unwrapType, getGenericArgVariances, Variance, typeRep;
 
 import 'package:expect/expect.dart';
 
@@ -24,31 +27,27 @@ mixin F<in T> {}
 
 class G<inout T> = Object with F<T>;
 
-List getVariances(Type typeWrapped) {
-  var type = dart.unwrapType(typeWrapped);
-  return dart.getGenericArgVariances(type);
-}
-
-void checkVariances(List v1, List v2) {
-  Expect.equals(v1.length, v2.length);
-  for (int i = 0; i < v1.length; i++) {
-    Expect.equals(v1[i], v2[i]);
-  }
+List getVariances(Object t) {
+  // TODO(nshahan) Update to handle legacy wrapper when we unfork dart:_runtime.
+  var type = unwrapType(wrapType(t));
+  return getGenericArgVariances(type);
 }
 
 main() {
-  checkVariances(getVariances(A), [dart.Variance.contravariant]);
+  Expect.listEquals([Variance.contravariant], getVariances(typeRep<A>()));
 
-  checkVariances(getVariances(B), [dart.Variance.covariant]);
+  Expect.listEquals([Variance.covariant], getVariances(typeRep<B>()));
 
-  checkVariances(getVariances(C), [dart.Variance.invariant]);
+  Expect.listEquals([Variance.invariant], getVariances(typeRep<C>()));
 
   // Implicit variance is not emitted into the generated code.
-  Expect.isNull(getVariances(D));
+  Expect.isNull(getVariances(typeRep<D>()));
 
-  checkVariances(getVariances(E), [dart.Variance.invariant, dart.Variance.covariant, dart.Variance.contravariant]);
+  Expect.listEquals(
+      [Variance.invariant, Variance.covariant, Variance.contravariant],
+      getVariances(typeRep<E>()));
 
-  checkVariances(getVariances(F), [dart.Variance.contravariant]);
+  Expect.listEquals([Variance.contravariant], getVariances(typeRep<F>()));
 
-  checkVariances(getVariances(G), [dart.Variance.invariant]);
+  Expect.listEquals([Variance.invariant], getVariances(typeRep<G>()));
 }

@@ -4,8 +4,6 @@
 
 library _fe_analyzer_shared.parser.parser;
 
-import '../messages/codes.dart' show Message, Template;
-
 import '../messages/codes.dart' as codes;
 
 import '../scanner/scanner.dart' show ErrorToken, Token;
@@ -1151,6 +1149,7 @@ class Parser {
   }
 
   Token parseWithClauseOpt(Token token) {
+    // <mixins> ::= with <typeNotVoidList>
     Token withKeyword = token.next;
     if (optional('with', withKeyword)) {
       token = parseTypeList(withKeyword);
@@ -1304,7 +1303,7 @@ class Parser {
 
   /// Return the message that should be produced when the formal parameters are
   /// missing.
-  Message missingParameterMessage(MemberKind kind) {
+  codes.Message missingParameterMessage(MemberKind kind) {
     if (kind == MemberKind.FunctionTypeAlias) {
       return codes.messageMissingTypedefParameters;
     } else if (kind == MemberKind.NonStaticMethod ||
@@ -1936,6 +1935,7 @@ class Parser {
   }
 
   Token parseClassExtendsOpt(Token token) {
+    // extends <typeNotVoid>
     Token next = token.next;
     if (optional('extends', next)) {
       Token extendsKeyword = next;
@@ -2186,7 +2186,7 @@ class Parser {
   /// message based on the given [context]. Return the synthetic identifier that
   /// was inserted.
   Token insertSyntheticIdentifier(Token token, IdentifierContext context,
-      {Message message, Token messageOnToken}) {
+      {codes.Message message, Token messageOnToken}) {
     Token next = token.next;
     reportRecoverableError(messageOnToken ?? next,
         message ?? context.recoveryTemplate.withArguments(next));
@@ -2204,6 +2204,28 @@ class Parser {
     Token identifier = token.next;
     if (identifier.kind != IDENTIFIER_TOKEN) {
       identifier = context.ensureIdentifier(token, this);
+      assert(identifier != null);
+      assert(identifier.isKeywordOrIdentifier);
+    }
+    listener.handleIdentifier(identifier, context);
+    return identifier;
+  }
+
+  /// Parse a simple identifier at the given [token], and return the identifier
+  /// that was parsed.
+  ///
+  /// If the token is not an identifier, or is not appropriate for use as an
+  /// identifier in the given [context], create a synthetic identifier, report
+  /// an error, and return the synthetic identifier.
+  /// [isRecovered] is passed to [context] which - if true - allows implementers
+  /// to use the token as an identifier, even if it isn't a valid identifier.
+  Token ensureIdentifierPotentiallyRecovered(
+      Token token, IdentifierContext context, bool isRecovered) {
+    assert(context != null);
+    Token identifier = token.next;
+    if (identifier.kind != IDENTIFIER_TOKEN) {
+      identifier = context.ensureIdentifierPotentiallyRecovered(
+          token, this, isRecovered);
       assert(identifier != null);
       assert(identifier.isKeywordOrIdentifier);
     }
@@ -2304,6 +2326,25 @@ class Parser {
       }
     }
 
+    bool nameIsRecovered = false;
+
+    // Recovery: If the code is
+    // <return type>? <reserved word> <token indicating method or field>
+    // take the reserved keyword as the name.
+    if (typeInfo == noType &&
+        varFinalOrConst == null &&
+        isReservedKeyword(next.next) &&
+        indicatesMethodOrField(next.next.next)) {
+      // Recovery: Use the reserved keyword despite that not being legal.
+      typeInfo = computeType(
+          token,
+          /*required = */ true,
+          /* inDeclaration = */ true);
+      token = typeInfo.skipType(token);
+      next = token.next;
+      nameIsRecovered = true;
+    }
+
     if (next.type != TokenType.IDENTIFIER) {
       value = next.stringValue;
       if (identical(value, 'factory') || identical(value, 'operator')) {
@@ -2380,7 +2421,7 @@ class Parser {
             lateToken, codes.templateExtraneousModifier);
       }
       return parseTopLevelMethod(beforeStart, externalToken, beforeType,
-          typeInfo, getOrSet, token.next);
+          typeInfo, getOrSet, token.next, nameIsRecovered);
     }
 
     if (getOrSet != null) {
@@ -2397,7 +2438,9 @@ class Parser {
         beforeType,
         typeInfo,
         token.next,
-        DeclarationKind.TopLevel);
+        DeclarationKind.TopLevel,
+        null,
+        nameIsRecovered);
   }
 
   Token parseFields(
@@ -2410,10 +2453,9 @@ class Parser {
       Token beforeType,
       TypeInfo typeInfo,
       Token name,
-      DeclarationKind kind) {
-    if (externalToken != null) {
-      reportRecoverableError(externalToken, codes.messageExternalField);
-    }
+      DeclarationKind kind,
+      String enclosingDeclarationName,
+      bool nameIsRecovered) {
     // Covariant affects only the setter and final fields do not have a setter,
     // unless it's a late field (dartbug.com/40805).
     // Field that are covariant late final with initializers are checked further
@@ -2440,7 +2482,8 @@ class Parser {
     IdentifierContext context = kind == DeclarationKind.TopLevel
         ? IdentifierContext.topLevelVariableDeclaration
         : IdentifierContext.fieldDeclaration;
-    Token firstName = name = ensureIdentifier(token, context);
+    Token firstName = name = ensureIdentifierPotentiallyRecovered(
+        token, context, /* isRecovered = */ nameIsRecovered);
 
     // Check for covariant late final with initializer.
     if (covariantToken != null && lateToken != null) {
@@ -2455,12 +2498,12 @@ class Parser {
     }
 
     int fieldCount = 1;
-    token =
-        parseFieldInitializerOpt(name, name, lateToken, varFinalOrConst, kind);
+    token = parseFieldInitializerOpt(name, name, lateToken, externalToken,
+        varFinalOrConst, kind, enclosingDeclarationName);
     while (optional(',', token.next)) {
       name = ensureIdentifier(token.next, context);
-      token = parseFieldInitializerOpt(
-          name, name, lateToken, varFinalOrConst, kind);
+      token = parseFieldInitializerOpt(name, name, lateToken, externalToken,
+          varFinalOrConst, kind, enclosingDeclarationName);
       ++fieldCount;
     }
     Token semicolon = token.next;
@@ -2478,7 +2521,7 @@ class Parser {
         reportRecoverableError(
             beforeType.next,
             codes.templateExperimentNotEnabled
-                .withArguments('extension-methods'));
+                .withArguments('extension-methods', '2.6'));
         token = rewriter.insertSyntheticToken(token, TokenType.SEMICOLON);
       } else {
         token = ensureSemicolon(token);
@@ -2486,37 +2529,45 @@ class Parser {
     }
     switch (kind) {
       case DeclarationKind.TopLevel:
-        listener.endTopLevelFields(staticToken, covariantToken, lateToken,
-            varFinalOrConst, fieldCount, beforeStart.next, token);
+        listener.endTopLevelFields(externalToken, staticToken, covariantToken,
+            lateToken, varFinalOrConst, fieldCount, beforeStart.next, token);
         break;
       case DeclarationKind.Class:
-        listener.endClassFields(staticToken, covariantToken, lateToken,
-            varFinalOrConst, fieldCount, beforeStart.next, token);
+        listener.endClassFields(externalToken, staticToken, covariantToken,
+            lateToken, varFinalOrConst, fieldCount, beforeStart.next, token);
         break;
       case DeclarationKind.Mixin:
-        listener.endMixinFields(staticToken, covariantToken, lateToken,
-            varFinalOrConst, fieldCount, beforeStart.next, token);
+        listener.endMixinFields(externalToken, staticToken, covariantToken,
+            lateToken, varFinalOrConst, fieldCount, beforeStart.next, token);
         break;
       case DeclarationKind.Extension:
-        if (staticToken == null) {
+        if (staticToken == null && externalToken == null) {
           reportRecoverableError(
               firstName, codes.messageExtensionDeclaresInstanceField);
         }
-        listener.endExtensionFields(staticToken, covariantToken, lateToken,
-            varFinalOrConst, fieldCount, beforeStart.next, token);
+        listener.endExtensionFields(externalToken, staticToken, covariantToken,
+            lateToken, varFinalOrConst, fieldCount, beforeStart.next, token);
         break;
     }
     return token;
   }
 
-  Token parseTopLevelMethod(Token beforeStart, Token externalToken,
-      Token beforeType, TypeInfo typeInfo, Token getOrSet, Token name) {
+  Token parseTopLevelMethod(
+      Token beforeStart,
+      Token externalToken,
+      Token beforeType,
+      TypeInfo typeInfo,
+      Token getOrSet,
+      Token name,
+      bool nameIsRecovered) {
     listener.beginTopLevelMethod(beforeStart, externalToken);
 
     Token token = typeInfo.parseType(beforeType, this);
     assert(token.next == (getOrSet ?? name) || token.next.isEof);
-    name = ensureIdentifier(
-        getOrSet ?? token, IdentifierContext.topLevelFunctionDeclaration);
+    name = ensureIdentifierPotentiallyRecovered(
+        getOrSet ?? token,
+        IdentifierContext.topLevelFunctionDeclaration,
+        /* isRecovered = */ nameIsRecovered);
 
     bool isGetter = false;
     if (getOrSet == null) {
@@ -2564,8 +2615,17 @@ class Parser {
     return token;
   }
 
-  Token parseFieldInitializerOpt(Token token, Token name, Token lateToken,
-      Token varFinalOrConst, DeclarationKind kind) {
+  Token parseFieldInitializerOpt(
+      Token token,
+      Token name,
+      Token lateToken,
+      Token externalToken,
+      Token varFinalOrConst,
+      DeclarationKind kind,
+      String enclosingDeclarationName) {
+    if (name.lexeme == enclosingDeclarationName) {
+      reportRecoverableError(name, codes.messageMemberWithSameNameAsClass);
+    }
     Token next = token.next;
     if (optional('=', next)) {
       Token assignment = next;
@@ -2581,7 +2641,8 @@ class Parser {
                   .withArguments(name.lexeme));
         } else if (kind == DeclarationKind.TopLevel &&
             optional("final", varFinalOrConst) &&
-            lateToken == null) {
+            lateToken == null &&
+            externalToken == null) {
           reportRecoverableError(
               name,
               codes.templateFinalFieldWithoutInitializer
@@ -2830,7 +2891,7 @@ class Parser {
   /// a default error message instead.
   Token ensureBlock(
       Token token,
-      Template<Message Function(Token token)> template,
+      codes.Template<codes.Message Function(Token token)> template,
       String missingBlockName) {
     Token next = token.next;
     if (optional('{', next)) return next;
@@ -2892,7 +2953,7 @@ class Parser {
   Token ensureColon(Token token) {
     Token next = token.next;
     if (optional(':', next)) return next;
-    Message message = codes.templateExpectedButGot.withArguments(':');
+    codes.Message message = codes.templateExpectedButGot.withArguments(':');
     Token newToken = new SyntheticToken(TokenType.COLON, next.charOffset);
     return rewriteAndRecover(token, message, newToken);
   }
@@ -2903,7 +2964,7 @@ class Parser {
   Token ensureLiteralString(Token token) {
     Token next = token.next;
     if (!identical(next.kind, STRING_TOKEN)) {
-      Message message = codes.templateExpectedString.withArguments(next);
+      codes.Message message = codes.templateExpectedString.withArguments(next);
       Token newToken =
           new SyntheticStringToken(TokenType.STRING, '""', next.charOffset, 0);
       rewriteAndRecover(token, message, newToken);
@@ -2931,7 +2992,7 @@ class Parser {
 
   /// Report an error at the token after [token] that has the given [message].
   /// Insert the [newToken] after [token] and return [newToken].
-  Token rewriteAndRecover(Token token, Message message, Token newToken) {
+  Token rewriteAndRecover(Token token, codes.Message message, Token newToken) {
     reportRecoverableError(token.next, message);
     return rewriter.insertToken(token, newToken);
   }
@@ -3053,6 +3114,24 @@ class Parser {
         .next;
   }
 
+  bool isReservedKeyword(Token token) {
+    if (!token.isKeyword) return false;
+    return token.type.isReservedWord;
+  }
+
+  bool indicatesMethodOrField(Token token) {
+    String value = token.stringValue;
+    if (identical(value, ';') ||
+        identical(value, '=') ||
+        identical(value, '(') ||
+        identical(value, '{') ||
+        identical(value, '=>') ||
+        identical(value, '<')) {
+      return true;
+    }
+    return false;
+  }
+
   /// ```
   /// classMember:
   ///   fieldDeclaration |
@@ -3138,17 +3217,27 @@ class Parser {
     listener.beginMember();
 
     Token beforeType = token;
-    TypeInfo typeInfo = computeType(token, false, true);
+    TypeInfo typeInfo = computeType(
+        token,
+        /*required = */ false,
+        /* inDeclaration = */ true);
     token = typeInfo.skipType(token);
     next = token.next;
 
     Token getOrSet;
+    bool nameIsRecovered = false;
     if (next.type != TokenType.IDENTIFIER) {
       String value = next.stringValue;
       if (identical(value, 'get') || identical(value, 'set')) {
         if (next.next.isIdentifier) {
           getOrSet = token = next;
           next = token.next;
+        } else if (isReservedKeyword(next.next) &&
+            indicatesMethodOrField(next.next.next)) {
+          // Recovery: Getter or setter followed by a reserved word (name).
+          getOrSet = token = next;
+          next = token.next;
+          nameIsRecovered = true;
         }
         // Fall through to continue parsing `get` or `set` as an identifier.
       } else if (identical(value, 'factory')) {
@@ -3181,7 +3270,8 @@ class Parser {
               getOrSet,
               token.next,
               kind,
-              enclosingDeclarationName);
+              enclosingDeclarationName,
+              nameIsRecovered);
           listener.endMember();
           return token;
         } else if (optional('===', next2) ||
@@ -3214,7 +3304,8 @@ class Parser {
               getOrSet,
               token.next,
               kind,
-              enclosingDeclarationName);
+              enclosingDeclarationName,
+              nameIsRecovered);
           listener.endMember();
           return token;
         }
@@ -3257,6 +3348,16 @@ class Parser {
               kind,
               enclosingDeclarationName);
         }
+      } else if (isReservedKeyword(next2) &&
+          indicatesMethodOrField(next2.next)) {
+        // Recovery: Use the reserved keyword despite that not being legal.
+        typeInfo = computeType(
+            token,
+            /*required = */ true,
+            /* inDeclaration = */ true);
+        token = typeInfo.skipType(token);
+        next = token.next;
+        nameIsRecovered = true;
       }
     }
 
@@ -3281,7 +3382,8 @@ class Parser {
           getOrSet,
           token.next,
           kind,
-          enclosingDeclarationName);
+          enclosingDeclarationName,
+          nameIsRecovered);
     } else {
       if (getOrSet != null) {
         reportRecoverableErrorWithToken(
@@ -3297,7 +3399,9 @@ class Parser {
           beforeType,
           typeInfo,
           token.next,
-          kind);
+          kind,
+          enclosingDeclarationName,
+          nameIsRecovered);
     }
     listener.endMember();
     return token;
@@ -3315,7 +3419,8 @@ class Parser {
       Token getOrSet,
       Token name,
       DeclarationKind kind,
-      String enclosingDeclarationName) {
+      String enclosingDeclarationName,
+      bool nameIsRecovered) {
     if (lateToken != null) {
       reportRecoverableErrorWithToken(
           lateToken, codes.templateExtraneousModifier);
@@ -3369,29 +3474,51 @@ class Parser {
     assert(token.next == (getOrSet ?? name));
     token = getOrSet ?? token;
 
+    bool hasQualifiedName = false;
+
     if (isOperator) {
       token = parseOperatorName(token);
     } else {
-      token = ensureIdentifier(token, IdentifierContext.methodDeclaration);
-      if (getOrSet == null) {
-        token = parseQualifiedRestOpt(
-            token, IdentifierContext.methodDeclarationContinuation);
+      token = ensureIdentifierPotentiallyRecovered(
+          token,
+          IdentifierContext.methodDeclaration,
+          /* isRecovered = */ nameIsRecovered);
+      // Possible recovery: This call only does something if the next token is
+      // a '.' --- that's not legal for get or set, but an error is reported
+      // later, and it will recover better if we allow it.
+      Token qualified = parseQualifiedRestOpt(
+          token, IdentifierContext.methodDeclarationContinuation);
+      if (token != qualified) {
+        hasQualifiedName = true;
       }
+      token = qualified;
     }
 
-    bool isGetter = false;
+    bool isConsideredGetter = false;
     if (getOrSet == null) {
       token = parseMethodTypeVar(token);
     } else {
-      isGetter = optional("get", getOrSet);
+      isConsideredGetter = optional("get", getOrSet);
       listener.handleNoTypeVariables(token.next);
+
+      // If it becomes considered a constructor below, don't consider it a
+      // getter now (this also enforces parenthesis (and thus parameters)).
+      if (hasQualifiedName) {
+        isConsideredGetter = false;
+      } else if (isConsideredGetter && optional(':', token.next)) {
+        isConsideredGetter = false;
+      } else if (isConsideredGetter &&
+          name.lexeme == enclosingDeclarationName) {
+        // This is a simple case of an badly named getter so we don't consider
+        // that a constructor. We issue an error about the name below.
+      }
     }
 
     Token beforeParam = token;
     Token beforeInitializers = parseGetterOrFormalParameters(
         token,
         name,
-        isGetter,
+        isConsideredGetter,
         kind == DeclarationKind.Extension
             ? staticToken != null
                 ? MemberKind.ExtensionStaticMethod
@@ -3425,45 +3552,14 @@ class Parser {
 
     bool isConstructor = false;
     if (optional('.', name.next) || beforeInitializers != null) {
+      // This is only legal for constructors.
       isConstructor = true;
-      if (name.lexeme != enclosingDeclarationName) {
-        // Recovery: The name does not match,
-        // but the name is prefixed or the declaration contains initializers.
-        // Report an error and continue with invalid name.
-        // TODO(danrubel): report invalid constructor name
-        // Currently multiple listeners report this error, but that logic should
-        // be removed and the error reported here instead.
-        if (isOperator) {
-          isConstructor = false;
-        }
-      }
-      if (getOrSet != null) {
-        // Recovery
-        if (optional('.', name.next)) {
-          // Unexpected get/set before constructor.
-          // Report an error and skip over the token.
-          // TODO(danrubel): report an error on get/set token
-          // This is currently reported by listeners other than AstBuilder.
-          // It should be reported here rather than in the listeners.
-        } else {
-          isConstructor = false;
-          if (beforeInitializers != null) {
-            // Unexpected initializers after get/set declaration.
-            // Report an error on the initializers
-            // and continue with the get/set declaration.
-            // TODO(danrubel): report invalid initializers error
-            // Currently multiple listeners report this error, but that logic
-            // should be removed and the error reported here instead.
-          }
-        }
-      }
     } else if (name.lexeme == enclosingDeclarationName) {
       if (getOrSet != null) {
-        // Recovery: The get/set member name is invalid.
-        // Report an error and continue with invalid name.
-        // TODO(danrubel): report invalid get/set member name
-        // Currently multiple listeners report this error, but that logic should
-        // be removed and the error reported here instead.
+        // Recovery: The (simple) get/set member name is invalid.
+        // Report an error and continue with invalid name
+        // (keeping it as a getter/setter).
+        reportRecoverableError(name, codes.messageMemberWithSameNameAsClass);
       } else {
         isConstructor = true;
       }
@@ -3473,9 +3569,28 @@ class Parser {
       //
       // constructor
       //
+      if (name.lexeme != enclosingDeclarationName) {
+        reportRecoverableError(name, codes.messageConstructorWithWrongName);
+      }
       if (staticToken != null) {
         reportRecoverableError(staticToken, codes.messageStaticConstructor);
       }
+      if (getOrSet != null) {
+        if (optional("get", getOrSet)) {
+          reportRecoverableError(getOrSet, codes.messageGetterConstructor);
+        } else {
+          reportRecoverableError(getOrSet, codes.messageSetterConstructor);
+        }
+      }
+      if (typeInfo != noType) {
+        reportRecoverableError(
+            beforeType.next, codes.messageConstructorWithReturnType);
+      }
+      if (beforeInitializers != null && externalToken != null) {
+        reportRecoverableError(beforeInitializers.next,
+            codes.messageExternalConstructorWithInitializer);
+      }
+
       switch (kind) {
         case DeclarationKind.Class:
           // TODO(danrubel): Remove getOrSet from constructor events
@@ -4421,6 +4536,7 @@ class Parser {
       // postfix operator to assert the expression has a non-null value.
       TokenType nextType = token.next.type;
       if (identical(nextType, TokenType.PERIOD) ||
+          identical(nextType, TokenType.QUESTION) ||
           identical(nextType, TokenType.OPEN_PAREN) ||
           identical(nextType, TokenType.OPEN_SQUARE_BRACKET) ||
           identical(nextType, TokenType.QUESTION_PERIOD) ||
@@ -4859,7 +4975,7 @@ class Parser {
         // This looks like the start of an expression.
         // Report an error, insert the comma, and continue parsing.
         SyntheticToken comma = new SyntheticToken(TokenType.COMMA, next.offset);
-        Message message = ifCount > 0
+        codes.Message message = ifCount > 0
             ? codes.messageExpectedElseOrComma
             : codes.templateExpectedButGot.withArguments(',');
         next = rewriteAndRecover(token, message, comma);
@@ -4942,7 +5058,7 @@ class Parser {
           // TODO(danrubel): Consider better error message
           SyntheticToken comma =
               new SyntheticToken(TokenType.COMMA, next.offset);
-          Message message = ifCount > 0
+          codes.Message message = ifCount > 0
               ? codes.messageExpectedElseOrComma
               : codes.templateExpectedButGot.withArguments(',');
           token = rewriteAndRecover(token, message, comma);
@@ -5449,8 +5565,10 @@ class Parser {
     if (optional('!', token.next)) {
       not = token = token.next;
     }
+    listener.beginIsOperatorType(operator);
     TypeInfo typeInfo = computeTypeAfterIsOrAs(token);
     token = typeInfo.ensureTypeNotVoid(token, this);
+    listener.endIsOperatorType(operator);
     listener.handleIsOperator(operator, not);
     return skipChainedAsIsOperators(token);
   }
@@ -5478,8 +5596,10 @@ class Parser {
   Token parseAsOperatorRest(Token token) {
     Token operator = token = token.next;
     assert(optional('as', operator));
+    listener.beginAsOperatorType(operator);
     TypeInfo typeInfo = computeTypeAfterIsOrAs(token);
     token = typeInfo.ensureTypeNotVoid(token, this);
+    listener.endAsOperatorType(operator);
     listener.handleAsOperator(operator);
     return skipChainedAsIsOperators(token);
   }
@@ -6734,7 +6854,8 @@ class Parser {
         null,
         beforeName.next,
         kind,
-        enclosingDeclarationName);
+        enclosingDeclarationName,
+        false);
     listener.endMember();
     return token;
   }
@@ -6793,7 +6914,8 @@ class Parser {
           getOrSet,
           token.next,
           kind,
-          enclosingDeclarationName);
+          enclosingDeclarationName,
+          false);
     } else if (token == beforeStart) {
       // TODO(danrubel): Provide a more specific error message for extra ';'.
       reportRecoverableErrorWithToken(next, codes.templateExpectedClassMember);
@@ -6813,7 +6935,9 @@ class Parser {
           beforeType,
           typeInfo,
           token.next,
-          kind);
+          kind,
+          enclosingDeclarationName,
+          false);
     }
 
     listener.endMember();
@@ -6835,14 +6959,14 @@ class Parser {
     return token;
   }
 
-  void reportRecoverableError(Token token, Message message) {
+  void reportRecoverableError(Token token, codes.Message message) {
     // Find a non-synthetic token on which to report the error.
     token = findNonZeroLengthToken(token);
     listener.handleRecoverableError(message, token, token);
   }
 
   void reportRecoverableErrorWithToken(
-      Token token, Template<_MessageWithArgument<Token>> template) {
+      Token token, codes.Template<_MessageWithArgument<Token>> template) {
     // Find a non-synthetic token on which to report the error.
     token = findNonZeroLengthToken(token);
     listener.handleRecoverableError(
@@ -7231,4 +7355,4 @@ class Parser {
 }
 
 // TODO(ahe): Remove when analyzer supports generalized function syntax.
-typedef _MessageWithArgument<T> = Message Function(T);
+typedef _MessageWithArgument<T> = codes.Message Function(T);

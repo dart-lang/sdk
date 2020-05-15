@@ -31,6 +31,10 @@ class FindNode {
     return _node(search, (n) => n is AssignmentExpression);
   }
 
+  AwaitExpression awaitExpression(String search) {
+    return _node(search, (n) => n is AwaitExpression);
+  }
+
   BinaryExpression binary(String search) {
     return _node(search, (n) => n is BinaryExpression);
   }
@@ -49,6 +53,10 @@ class FindNode {
 
   CascadeExpression cascade(String search) {
     return _node(search, (n) => n is CascadeExpression);
+  }
+
+  CatchClause catchClause(String search) {
+    return _node(search, (n) => n is CatchClause);
   }
 
   ClassDeclaration classDeclaration(String search) {
@@ -298,6 +306,10 @@ class FindNode {
 
   TypeAnnotation typeAnnotation(String search) {
     return _node(search, (n) => n is TypeAnnotation);
+  }
+
+  TypedLiteral typedLiteral(String search) {
+    return _node(search, (n) => n is TypedLiteral);
   }
 
   TypeName typeName(String search) {

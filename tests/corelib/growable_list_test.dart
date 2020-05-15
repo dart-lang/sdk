@@ -51,8 +51,9 @@ class CallbackIterator implements Iterator<int> {
     }
     _current = _nextIndex;
     _nextIndex++;
-    if (_current == _iterable.callbackIndex) {
-      _iterable.callback();
+    var tempCallback = _iterable.callback;
+    if (_current == _iterable.callbackIndex && tempCallback != null) {
+      tempCallback();
     }
     return true;
   }
@@ -83,21 +84,19 @@ void testConstructor() {
     Expect.throws(fn, (_) => true, name);
   }
 
-  testFixedLength(new List<int?>(0));
-  testFixedLength(new List<int?>(5));
+  testFixedLength(new List<int?>.empty());
   testFixedLength(new List<int?>.filled(5, null)); // default growable: false.
-  testGrowable(new List<int?>());
-  testGrowable(new List<int?>()..length = 5);
+  testGrowable(<int?>[]);
+  testGrowable(<int?>[]..length = 5);
   testGrowable(new List<int?>.filled(5, null, growable: true));
-  Expect.throwsArgumentError(() => new List<int?>(-1), "-1");
+  Expect.throwsArgumentError(() => new List<int?>.filled(-1, null), "-1");
   // There must be limits. Fix this test if we ever allow 2^63 elements.
-  Expect.throws(() => new List<int?>(0x7ffffffffffff000),
+  Expect.throws(() => new List<int?>.filled(0x7ffffffffffff000, null),
       (e) => e is OutOfMemoryError || e is ArgumentError, "bignum");
-  Expect.throwsArgumentError(() => new List<int?>(null), "null");
   testThrowsOrTypeError(
-      () => new List([] as dynamic), // Cast to avoid warning.
+      () => new List.filled([] as dynamic, null), // Cast to avoid warning.
       'list');
-  testThrowsOrTypeError(() => new List([42] as dynamic), "list2");
+  testThrowsOrTypeError(() => new List.filled([42] as dynamic, null), "list2");
 }
 
 void testConcurrentModification() {

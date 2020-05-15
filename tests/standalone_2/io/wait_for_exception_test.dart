@@ -11,12 +11,12 @@ import 'package:expect/expect.dart';
 main() {
   asyncStart();
   Completer<bool> c = new Completer<bool>();
-  runZoned(() {
+  runZonedGuarded(() {
     Timer.run(() {
       asyncEnd();
       throw "Error";
     });
-  }, onError: (e) {
+  }, (e, s) {
     Expect.isTrue(e is String);
     c.complete(true);
   });

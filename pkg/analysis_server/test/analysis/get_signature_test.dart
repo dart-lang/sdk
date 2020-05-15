@@ -22,25 +22,25 @@ void main() {
 @reflectiveTest
 class AnalysisSignatureTest extends AbstractAnalysisTest {
   Future<Response> prepareRawSignature(String search) {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     return prepareRawSignatureAt(offset);
   }
 
   Future<Response> prepareRawSignatureAt(int offset, {String file}) async {
     await waitForTasksFinished();
-    Request request =
+    var request =
         AnalysisGetSignatureParams(file ?? testFile, offset).toRequest('0');
     return waitResponse(request);
   }
 
   Future<AnalysisGetSignatureResult> prepareSignature(String search) {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     return prepareSignatureAt(offset);
   }
 
   Future<AnalysisGetSignatureResult> prepareSignatureAt(int offset,
       {String file}) async {
-    Response response = await prepareRawSignatureAt(offset, file: file);
+    var response = await prepareRawSignatureAt(offset, file: file);
     return AnalysisGetSignatureResult.fromResponse(response);
   }
 

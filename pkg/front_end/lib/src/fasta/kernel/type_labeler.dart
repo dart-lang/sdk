@@ -180,7 +180,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
         node.parameter.name,
         enclosingLibrary == null ? unknownUri : enclosingLibrary.importUri,
         enclosingLibrary == null ? unknownUri : enclosingLibrary.fileUri));
-    addNullability(node.typeParameterTypeNullability);
+    addNullability(node.declaredNullability);
   }
 
   void visitFunctionType(FunctionType node) {
@@ -254,6 +254,12 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
         first = false;
       }
       result.add(">");
+    }
+    if (classNode.name == 'Null' &&
+        classNode.enclosingLibrary.importUri.scheme == 'dart' &&
+        classNode.enclosingLibrary.importUri.path == 'core') {
+      // Don't print nullability on `Null`.
+      return;
     }
     addNullability(node.nullability);
   }

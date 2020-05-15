@@ -47,7 +47,7 @@ class String {
   }
 
   @patch
-  const factory String.fromEnvironment(String name, {String defaultValue})
+  const factory String.fromEnvironment(String name, {String defaultValue = ""})
       native "String_fromEnvironment";
 
   bool get _isOneByte;
@@ -1224,14 +1224,20 @@ class _OneByteString extends _StringBase {
   // Allocates a string of given length, expecting its content to be
   // set using _setAt.
   @pragma("vm:exact-result-type", _OneByteString)
-  static _OneByteString _allocate(int length) native "OneByteString_allocate";
+  @pragma("vm:prefer-inline")
+  static _OneByteString _allocate(int length) {
+    return unsafeCast<_OneByteString>(allocateOneByteString(length));
+  }
 
   static _OneByteString _allocateFromOneByteList(List<int> list, int start,
       int end) native "OneByteString_allocateFromOneByteList";
 
   // This is internal helper method. Code point value must be a valid
   // Latin1 value (0..0xFF), index must be valid.
-  void _setAt(int index, int codePoint) native "OneByteString_setAt";
+  @pragma("vm:prefer-inline")
+  void _setAt(int index, int codePoint) {
+    writeIntoOneByteString(this, index, codePoint);
+  }
 
   // Should be optimizable to a memory move.
   // Accepts both _OneByteString and _ExternalOneByteString as argument.
@@ -1257,8 +1263,23 @@ class _TwoByteString extends _StringBase {
     throw "Unreachable";
   }
 
+  // Allocates a string of given length, expecting its content to be
+  // set using _setAt.
+  @pragma("vm:exact-result-type", _TwoByteString)
+  @pragma("vm:prefer-inline")
+  static _TwoByteString _allocate(int length) {
+    return unsafeCast<_TwoByteString>(allocateTwoByteString(length));
+  }
+
   static String _allocateFromTwoByteList(List<int> list, int start, int end)
       native "TwoByteString_allocateFromTwoByteList";
+
+  // This is internal helper method. Code point value must be a valid
+  // UTF-16 value (0..0xFFFF), index must be valid.
+  @pragma("vm:prefer-inline")
+  void _setAt(int index, int codePoint) {
+    writeIntoTwoByteString(this, index, codePoint);
+  }
 
   bool _isWhitespace(int codeUnit) {
     return _StringBase._isTwoByteWhitespace(codeUnit);

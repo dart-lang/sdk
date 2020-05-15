@@ -30,6 +30,8 @@ void main(List<String> arguments) {
   var totalMigratedFiles = 0;
   var totalMigratedLines = 0;
 
+  var skipCompleteSubfolders = arguments.contains("--incomplete");
+
   for (var rootDir in legacyRootDirs) {
     var subdirs = Directory(p.join(testRoot, rootDir))
         .listSync()
@@ -59,6 +61,7 @@ void main(List<String> arguments) {
       }
 
       if (files == 0) continue;
+      if (skipCompleteSubfolders && lines == migratedLines) continue;
 
       _show(dir, migratedFiles, files, migratedLines, lines);
       totalFiles += files;

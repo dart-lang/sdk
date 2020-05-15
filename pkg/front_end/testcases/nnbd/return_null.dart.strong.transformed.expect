@@ -1,0 +1,639 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/return_null.dart:7:8: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+// String returnImplicit() /*error*/ {
+//        ^
+//
+// pkg/front_end/testcases/nnbd/return_null.dart:13:10: Error: A value of type 'Null' can't be assigned to a variable of type 'String'.
+//   return null; // error
+//          ^
+//
+// pkg/front_end/testcases/nnbd/return_null.dart:19:12: Error: A value of type 'Null' can't be assigned to a variable of type 'String'.
+//     return null; // error
+//            ^
+//
+// pkg/front_end/testcases/nnbd/return_null.dart:16:8: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+// String returnMixed(bool b) /*error*/ {
+//        ^
+//
+// pkg/front_end/testcases/nnbd/return_null.dart:27:15: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
+// FutureOr<int> returnAsync3() async {} // error
+//               ^
+//
+// pkg/front_end/testcases/nnbd/return_null.dart:54:6: Error: A non-null value must be returned since the return type 'Enum' doesn't allow null.
+//  - 'Enum' is from 'pkg/front_end/testcases/nnbd/return_null.dart'.
+// Enum caseReturn2(Enum e) /* error */ {
+//      ^
+//
+// pkg/front_end/testcases/nnbd/return_null.dart:63:3: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+//   String returnImplicit() /* error */ {
+//   ^
+//
+// pkg/front_end/testcases/nnbd/return_null.dart:69:12: Error: A value of type 'Null' can't be assigned to a variable of type 'String'.
+//     return null; // error
+//            ^
+//
+// pkg/front_end/testcases/nnbd/return_null.dart:75:14: Error: A value of type 'Null' can't be assigned to a variable of type 'String'.
+//       return null; // error
+//              ^
+//
+// pkg/front_end/testcases/nnbd/return_null.dart:72:3: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+//   String returnMixed(bool b) /* error */ {
+//   ^
+//
+// pkg/front_end/testcases/nnbd/return_null.dart:83:3: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
+//   FutureOr<int> returnAsync3() async {} // error
+//   ^
+//
+// pkg/front_end/testcases/nnbd/return_null.dart:108:3: Error: A non-null value must be returned since the return type 'Enum' doesn't allow null.
+//  - 'Enum' is from 'pkg/front_end/testcases/nnbd/return_null.dart'.
+//   Enum caseReturn2(Enum e) /* error */ {
+//   ^
+//
+// pkg/front_end/testcases/nnbd/return_null.dart:117:16: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
+//   var local1 = () /* error */ {
+//                ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+
+class Enum extends core::Object /*isEnum*/  {
+  final field core::int index;
+  final field core::String _name;
+  static const field core::List<self::Enum> values = #C7;
+  static const field self::Enum a = #C3;
+  static const field self::Enum b = #C6;
+  const constructor •(core::int index, core::String _name) → self::Enum
+    : self::Enum::index = index, self::Enum::_name = _name, super core::Object::•()
+    ;
+  method toString() → core::String
+    return this.{=self::Enum::_name};
+}
+static method returnImplicit() → core::String {
+  core::print("foo");
+  return let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:7:8: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+String returnImplicit() /*error*/ {
+       ^" in null;
+}
+static method returnExplicit() → core::String {
+  core::print("foo");
+  return let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:13:10: Error: A value of type 'Null' can't be assigned to a variable of type 'String'.
+  return null; // error
+         ^" in null as{TypeError,ForNonNullableByDefault} core::String;
+}
+static method returnMixed(core::bool b) → core::String {
+  if(b) {
+    core::print("foo");
+    return let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:19:12: Error: A value of type 'Null' can't be assigned to a variable of type 'String'.
+    return null; // error
+           ^" in null as{TypeError,ForNonNullableByDefault} core::String;
+  }
+  return let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:16:8: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+String returnMixed(bool b) /*error*/ {
+       ^" in null;
+}
+static method returnAsync1() → asy::Future<dynamic> /* originally async */ {
+  final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
+  asy::FutureOr<dynamic>? :return_value;
+  dynamic :async_stack_trace;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
+  core::int :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try {
+      #L1:
+      {}
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
+      return;
+    }
+    on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+    }
+  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+  return :async_completer.{asy::Completer::future};
+}
+static method returnAsync2() → asy::FutureOr<dynamic> /* originally async */ {
+  final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
+  asy::FutureOr<dynamic>? :return_value;
+  dynamic :async_stack_trace;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
+  core::int :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try {
+      #L2:
+      {}
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
+      return;
+    }
+    on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+    }
+  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+  return :async_completer.{asy::Completer::future};
+}
+static method returnAsync3() → asy::FutureOr<core::int> /* originally async */ {
+  final asy::_AsyncAwaitCompleter<core::int> :async_completer = new asy::_AsyncAwaitCompleter::•<core::int>();
+  asy::FutureOr<core::int>? :return_value;
+  dynamic :async_stack_trace;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
+  core::int :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try {
+      #L3:
+      {
+        :return_value = let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:27:15: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
+FutureOr<int> returnAsync3() async {} // error
+              ^" in null;
+        break #L3;
+      }
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
+      return;
+    }
+    on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+    }
+  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+  return :async_completer.{asy::Completer::future};
+}
+static method returnAsync4() → asy::FutureOr<core::int?> /* originally async */ {
+  final asy::_AsyncAwaitCompleter<core::int?> :async_completer = new asy::_AsyncAwaitCompleter::•<core::int?>();
+  asy::FutureOr<core::int?>? :return_value;
+  dynamic :async_stack_trace;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
+  core::int :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try {
+      #L4:
+      {}
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
+      return;
+    }
+    on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+    }
+  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+  return :async_completer.{asy::Completer::future};
+}
+static method returnAsync5() → dynamic /* originally async */ {
+  final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
+  asy::FutureOr<dynamic>? :return_value;
+  dynamic :async_stack_trace;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
+  core::int :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try {
+      #L5:
+      {}
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
+      return;
+    }
+    on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+    }
+  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+  return :async_completer.{asy::Completer::future};
+}
+static method returnAsync6() → asy::Future<core::int?> /* originally async */ {
+  final asy::_AsyncAwaitCompleter<core::int?> :async_completer = new asy::_AsyncAwaitCompleter::•<core::int?>();
+  asy::FutureOr<core::int?>? :return_value;
+  dynamic :async_stack_trace;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
+  core::int :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try {
+      #L6:
+      {
+        :return_value = null;
+        break #L6;
+      }
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
+      return;
+    }
+    on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+    }
+  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+  return :async_completer.{asy::Completer::future};
+}
+static method returnAsync7() → asy::Future<core::int?> /* originally async */ {
+  final asy::_AsyncAwaitCompleter<core::int?> :async_completer = new asy::_AsyncAwaitCompleter::•<core::int?>();
+  asy::FutureOr<core::int?>? :return_value;
+  dynamic :async_stack_trace;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
+  core::int :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try {
+      #L7:
+      {}
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
+      return;
+    }
+    on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+    }
+  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+  return :async_completer.{asy::Completer::future};
+}
+static method yieldSync() → core::Iterable<dynamic> /* originally sync* */ {
+  function :sync_op_gen() → (core::_SyncIterator<dynamic>?) → core::bool* {
+    core::int :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    return (core::_SyncIterator<dynamic>? :iterator) → core::bool* yielding {
+      {}
+      return false;
+    };
+  }
+  return new core::_SyncIterable::•<dynamic>(:sync_op_gen);
+}
+static method yieldAsync() → asy::Stream<dynamic> /* originally async* */ {
+  asy::_AsyncStarStreamController<dynamic>? :controller;
+  dynamic :controller_stream;
+  dynamic :async_stack_trace;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
+  core::int :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try
+      try {
+        #L8:
+        {}
+        return;
+      }
+      on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+        :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace);
+      }
+    finally {
+      :controller.{asy::_AsyncStarStreamController::close}();
+    }
+  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  :controller = new asy::_AsyncStarStreamController::•<dynamic>(:async_op);
+  :controller_stream = :controller.{asy::_AsyncStarStreamController::stream};
+  return :controller_stream;
+}
+static method caseReturn1(self::Enum e) → self::Enum {
+  switch(e) {
+    #L9:
+    case #C3:
+      {
+        return e;
+      }
+    #L10:
+    case #C6:
+      {
+        return e;
+      }
+  }
+}
+static method caseReturn2(self::Enum e) → self::Enum {
+  switch(e) {
+    #L11:
+    case #C3:
+      {
+        return e;
+      }
+    #L12:
+    default:
+      {}
+  }
+  return let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:54:6: Error: A non-null value must be returned since the return type 'Enum' doesn't allow null.
+ - 'Enum' is from 'pkg/front_end/testcases/nnbd/return_null.dart'.
+Enum caseReturn2(Enum e) /* error */ {
+     ^" in null;
+}
+static method localFunctions() → dynamic {
+  function returnImplicit() → core::String {
+    core::print("foo");
+    return let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:63:3: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+  String returnImplicit() /* error */ {
+  ^" in null;
+  }
+  function returnExplicit() → core::String {
+    core::print("foo");
+    return let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:69:12: Error: A value of type 'Null' can't be assigned to a variable of type 'String'.
+    return null; // error
+           ^" in null as{TypeError,ForNonNullableByDefault} core::String;
+  }
+  function returnMixed(core::bool b) → core::String {
+    if(b) {
+      core::print("foo");
+      return let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:75:14: Error: A value of type 'Null' can't be assigned to a variable of type 'String'.
+      return null; // error
+             ^" in null as{TypeError,ForNonNullableByDefault} core::String;
+    }
+    return let final<BottomType> #t10 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:72:3: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+  String returnMixed(bool b) /* error */ {
+  ^" in null;
+  }
+  function returnAsync1() → asy::Future<dynamic> /* originally async */ {
+    final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
+    asy::FutureOr<dynamic>? :return_value;
+    dynamic :async_stack_trace;
+    (dynamic) → dynamic :async_op_then;
+    (core::Object, core::StackTrace) → dynamic :async_op_error;
+    core::int :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try {
+        #L13:
+        {}
+        asy::_completeOnAsyncReturn(:async_completer, :return_value);
+        return;
+      }
+      on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+        :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+      }
+    :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+    :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+    :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+    return :async_completer.{asy::Completer::future};
+  }
+  function returnAsync2() → asy::FutureOr<dynamic> /* originally async */ {
+    final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
+    asy::FutureOr<dynamic>? :return_value;
+    dynamic :async_stack_trace;
+    (dynamic) → dynamic :async_op_then;
+    (core::Object, core::StackTrace) → dynamic :async_op_error;
+    core::int :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try {
+        #L14:
+        {}
+        asy::_completeOnAsyncReturn(:async_completer, :return_value);
+        return;
+      }
+      on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+        :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+      }
+    :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+    :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+    :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+    return :async_completer.{asy::Completer::future};
+  }
+  function returnAsync3() → asy::FutureOr<core::int> /* originally async */ {
+    final asy::_AsyncAwaitCompleter<core::int> :async_completer = new asy::_AsyncAwaitCompleter::•<core::int>();
+    asy::FutureOr<core::int>? :return_value;
+    dynamic :async_stack_trace;
+    (dynamic) → dynamic :async_op_then;
+    (core::Object, core::StackTrace) → dynamic :async_op_error;
+    core::int :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try {
+        #L15:
+        {
+          :return_value = let final<BottomType> #t11 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:83:3: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
+  FutureOr<int> returnAsync3() async {} // error
+  ^" in null;
+          break #L15;
+        }
+        asy::_completeOnAsyncReturn(:async_completer, :return_value);
+        return;
+      }
+      on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+        :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+      }
+    :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+    :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+    :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+    return :async_completer.{asy::Completer::future};
+  }
+  function returnAsync4() → asy::FutureOr<core::int?> /* originally async */ {
+    final asy::_AsyncAwaitCompleter<core::int?> :async_completer = new asy::_AsyncAwaitCompleter::•<core::int?>();
+    asy::FutureOr<core::int?>? :return_value;
+    dynamic :async_stack_trace;
+    (dynamic) → dynamic :async_op_then;
+    (core::Object, core::StackTrace) → dynamic :async_op_error;
+    core::int :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try {
+        #L16:
+        {}
+        asy::_completeOnAsyncReturn(:async_completer, :return_value);
+        return;
+      }
+      on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+        :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+      }
+    :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+    :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+    :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+    return :async_completer.{asy::Completer::future};
+  }
+  function returnAsync5() → asy::Future<core::Null?> /* originally async */ {
+    final asy::_AsyncAwaitCompleter<core::Null?> :async_completer = new asy::_AsyncAwaitCompleter::•<core::Null?>();
+    asy::FutureOr<core::Null?>? :return_value;
+    dynamic :async_stack_trace;
+    (dynamic) → dynamic :async_op_then;
+    (core::Object, core::StackTrace) → dynamic :async_op_error;
+    core::int :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try {
+        #L17:
+        {}
+        asy::_completeOnAsyncReturn(:async_completer, :return_value);
+        return;
+      }
+      on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+        :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+      }
+    :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+    :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+    :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+    return :async_completer.{asy::Completer::future};
+  }
+  function returnAsync6() → asy::Future<core::int?> /* originally async */ {
+    final asy::_AsyncAwaitCompleter<core::int?> :async_completer = new asy::_AsyncAwaitCompleter::•<core::int?>();
+    asy::FutureOr<core::int?>? :return_value;
+    dynamic :async_stack_trace;
+    (dynamic) → dynamic :async_op_then;
+    (core::Object, core::StackTrace) → dynamic :async_op_error;
+    core::int :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try {
+        #L18:
+        {
+          :return_value = null;
+          break #L18;
+        }
+        asy::_completeOnAsyncReturn(:async_completer, :return_value);
+        return;
+      }
+      on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+        :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+      }
+    :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+    :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+    :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+    return :async_completer.{asy::Completer::future};
+  }
+  function returnAsync7() → asy::Future<core::int?> /* originally async */ {
+    final asy::_AsyncAwaitCompleter<core::int?> :async_completer = new asy::_AsyncAwaitCompleter::•<core::int?>();
+    asy::FutureOr<core::int?>? :return_value;
+    dynamic :async_stack_trace;
+    (dynamic) → dynamic :async_op_then;
+    (core::Object, core::StackTrace) → dynamic :async_op_error;
+    core::int :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try {
+        #L19:
+        {}
+        asy::_completeOnAsyncReturn(:async_completer, :return_value);
+        return;
+      }
+      on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+        :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+      }
+    :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+    :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+    :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+    return :async_completer.{asy::Completer::future};
+  }
+  function yieldSync() → core::Iterable<dynamic> /* originally sync* */ {
+    function :sync_op_gen() → (core::_SyncIterator<dynamic>?) → core::bool* {
+      core::int :await_jump_var = 0;
+      dynamic :await_ctx_var;
+      return (core::_SyncIterator<dynamic>? :iterator) → core::bool* yielding {
+        {}
+        return false;
+      };
+    }
+    return new core::_SyncIterable::•<dynamic>(:sync_op_gen);
+  }
+  function yieldAsync() → asy::Stream<dynamic> /* originally async* */ {
+    asy::_AsyncStarStreamController<dynamic>? :controller;
+    dynamic :controller_stream;
+    dynamic :async_stack_trace;
+    (dynamic) → dynamic :async_op_then;
+    (core::Object, core::StackTrace) → dynamic :async_op_error;
+    core::int :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try
+        try {
+          #L20:
+          {}
+          return;
+        }
+        on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+          :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace);
+        }
+      finally {
+        :controller.{asy::_AsyncStarStreamController::close}();
+      }
+    :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+    :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+    :controller = new asy::_AsyncStarStreamController::•<dynamic>(:async_op);
+    :controller_stream = :controller.{asy::_AsyncStarStreamController::stream};
+    return :controller_stream;
+  }
+  function caseReturn1(self::Enum e) → self::Enum {
+    switch(e) {
+      #L21:
+      case #C3:
+        {
+          return e;
+        }
+      #L22:
+      case #C6:
+        {
+          return e;
+        }
+    }
+  }
+  function caseReturn2(self::Enum e) → self::Enum {
+    switch(e) {
+      #L23:
+      case #C3:
+        {
+          return e;
+        }
+      #L24:
+      default:
+        {}
+    }
+    return let final<BottomType> #t12 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:108:3: Error: A non-null value must be returned since the return type 'Enum' doesn't allow null.
+ - 'Enum' is from 'pkg/front_end/testcases/nnbd/return_null.dart'.
+  Enum caseReturn2(Enum e) /* error */ {
+  ^" in null;
+  }
+  core::bool b = false;
+  core::int local1 = (() → core::int {
+    if(b)
+      return 0;
+    return let final<BottomType> #t13 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:117:16: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
+  var local1 = () /* error */ {
+               ^" in null;
+  }).call();
+  core::int? local2 = (() → core::int? {
+    if(b)
+      return null;
+    if(!b)
+      return 0;
+  }).call();
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = 0
+  #C2 = "Enum.a"
+  #C3 = self::Enum {index:#C1, _name:#C2}
+  #C4 = 1
+  #C5 = "Enum.b"
+  #C6 = self::Enum {index:#C4, _name:#C5}
+  #C7 = <self::Enum>[#C3, #C6]
+}

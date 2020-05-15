@@ -1,0 +1,6 @@
+library test;
+
+import 'dart:async';
+
+typedef int IntToInt(int i);
+main() {}

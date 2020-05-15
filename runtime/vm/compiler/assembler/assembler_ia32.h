@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_IA32_H_
 #define RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_IA32_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #ifndef RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_H_
 #error Do not include assembler_ia32.h directly; use assembler.h instead.
 #endif
@@ -549,8 +553,6 @@ class Assembler : public AssemblerBase {
   void int3();
   void hlt();
 
-  static uword GetBreakInstructionFiller() { return 0xCCCCCCCC; }
-
   void j(Condition condition, Label* label, bool near = kFarJump);
   void j(Condition condition, const ExternalLabel* label);
 
@@ -568,9 +570,14 @@ class Assembler : public AssemblerBase {
    * Macros for High-level operations and implemented on all architectures.
    */
 
+  void Ret() { ret(); }
   void CompareRegisters(Register a, Register b);
   void BranchIf(Condition condition, Label* label) { j(condition, label); }
-  void LoadField(Register dst, FieldAddress address) { movw(dst, address); }
+
+  void LoadField(Register dst, FieldAddress address) { movl(dst, address); }
+  void LoadMemoryValue(Register dst, Register base, int32_t offset) {
+    movl(dst, Address(base, offset));
+  }
 
   // Issues a move instruction if 'to' is not the same as 'from'.
   void MoveRegister(Register to, Register from);
@@ -593,9 +600,21 @@ class Assembler : public AssemblerBase {
     cmpl(reg, Immediate(immediate));
   }
 
+  void LoadImmediate(Register reg, int32_t immediate) {
+    if (immediate == 0) {
+      xorl(reg, reg);
+    } else {
+      movl(reg, Immediate(immediate));
+    }
+  }
+
   void Drop(intptr_t stack_elements);
 
   void LoadIsolate(Register dst);
+
+  void LoadUniqueObject(Register dst, const Object& object) {
+    LoadObject(dst, object, /*movable_referent=*/true);
+  }
 
   void LoadObject(Register dst,
                   const Object& object,
@@ -700,9 +719,7 @@ class Assembler : public AssemblerBase {
             CodeEntryKind entry_kind = CodeEntryKind::kNormal);
   void CallToRuntime();
 
-  void CallNullErrorShared(bool save_fpu_registers) { UNREACHABLE(); }
-
-  void CallNullArgErrorShared(bool save_fpu_registers) { UNREACHABLE(); }
+  void Call(Address target) { call(target); }
 
   void Jmp(const Code& code);
   void J(Condition condition, const Code& code);
@@ -738,6 +755,13 @@ class Assembler : public AssemblerBase {
                                            Register array,
                                            Register index,
                                            intptr_t extra_disp = 0);
+
+  void LoadFieldAddressForRegOffset(Register address,
+                                    Register instance,
+                                    Register offset_in_words_as_smi) {
+    static_assert(kSmiTagShift == 1, "adjust scale factor");
+    leal(address, FieldAddress(instance, offset_in_words_as_smi, TIMES_2, 0));
+  }
 
   static Address VMTagAddress() {
     return Address(THR, target::Thread::vm_tag_offset());
@@ -805,6 +829,7 @@ class Assembler : public AssemblerBase {
   //   pushl immediate(0)
   //   .....
   void EnterStubFrame();
+  void LeaveStubFrame();
   static const intptr_t kEnterStubFramePushedWords = 2;
 
   // Instruction pattern from entrypoint is used in dart frame prologs

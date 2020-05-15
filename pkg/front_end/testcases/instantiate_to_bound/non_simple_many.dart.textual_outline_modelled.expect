@@ -1,0 +1,7 @@
+class Fisk<TypeY extends Fisk<TypeY>> {}
+
+class Hest<TypeX extends Hest<TypeX>> {}
+
+class Naebdyr<TypeZ extends Map<Hest, Fisk>> {}
+
+main() {}

@@ -5,10 +5,12 @@
 library inbound_references_test;
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
 class Node {
+  // Make sure this field is not removed by the tree shaker.
+  @pragma("vm:entry-point")
   var edge;
 }
 

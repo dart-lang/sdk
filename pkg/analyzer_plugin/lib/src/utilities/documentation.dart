@@ -8,10 +8,10 @@ String getDartDocSummary(String string) {
   if (string == null) {
     return null;
   }
-  List<String> lines = string.split('\n');
-  StringBuffer buffer = StringBuffer();
-  bool firstLine = true;
-  for (String line in lines) {
+  var lines = string.split('\n');
+  var buffer = StringBuffer();
+  var firstLine = true;
+  for (var line in lines) {
     if (buffer.length != 0 && line.isEmpty) {
       return buffer.toString();
     }
@@ -39,10 +39,10 @@ String removeDartDocDelimiters(String string) {
   }
   string = string.trim();
   // remove leading '* ' and '/// '
-  List<String> lines = string.split('\n');
-  StringBuffer buffer = StringBuffer();
-  bool firstLine = true;
-  for (String line in lines) {
+  var lines = string.split('\n');
+  var buffer = StringBuffer();
+  var firstLine = true;
+  for (var line in lines) {
     line = line.trim();
     if (line.startsWith('*')) {
       line = line.substring(1);

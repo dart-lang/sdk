@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:developer';
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
@@ -47,10 +48,19 @@ var tests = <IsolateTest>[
     expect(filterEvents(result['traceEvents'], isNotMetaData).length, 0);
   },
   (Isolate isolate) async {
+    final completer = Completer<void>();
+    await subscribeToStream(isolate.vm, 'Timeline', (event) async {
+      expect(event.kind, ServiceEvent.kTimelineStreamSubscriptionsUpdate);
+      expect(event.updatedStreams.length, 1);
+      expect(event.updatedStreams.first, 'Dart');
+      await cancelStreamSubscription('Timeline');
+      completer.complete();
+    });
     // Enable the Dart category.
     await isolate.vm.invokeRpcNoUpgrade('setVMTimelineFlags', {
       "recordedStreams": ["Dart"]
     });
+    await completer.future;
   },
   (Isolate isolate) async {
     // Get the flags.
@@ -77,6 +87,14 @@ var tests = <IsolateTest>[
   },
   hasStoppedAtBreakpoint,
   (Isolate isolate) async {
+    final completer = Completer<void>();
+    await subscribeToStream(isolate.vm, 'Timeline', (event) async {
+      expect(event.kind, ServiceEvent.kTimelineStreamSubscriptionsUpdate);
+      expect(event.updatedStreams.length, 0);
+      await cancelStreamSubscription('Timeline');
+      completer.complete();
+    });
+
     // Disable the Dart category.
     await isolate.vm
         .invokeRpcNoUpgrade('setVMTimelineFlags', {"recordedStreams": []});
@@ -85,6 +103,8 @@ var tests = <IsolateTest>[
     expect(result['type'], equals('Timeline'));
     expect(result['traceEvents'], new isInstanceOf<List>());
     dartEventCount = filterEvents(result['traceEvents'], isDart).length;
+
+    await completer.future;
   },
   (Isolate isolate) async {
     // Get the flags.

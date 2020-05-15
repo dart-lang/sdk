@@ -24,13 +24,13 @@ class RenameLabelRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<RefactoringStatus> checkFinalConditions() {
-    RefactoringStatus result = RefactoringStatus();
+    var result = RefactoringStatus();
     return Future.value(result);
   }
 
   @override
   RefactoringStatus checkNewName() {
-    RefactoringStatus result = super.checkNewName();
+    var result = super.checkNewName();
     result.addStatus(validateLabelName(newName));
     return result;
   }

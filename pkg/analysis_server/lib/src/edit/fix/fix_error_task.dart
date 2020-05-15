@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_dartfix.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
@@ -20,8 +19,8 @@ mixin FixErrorProcessor {
   final errorTaskMap = <ErrorCode, FixErrorTask>{};
 
   Future<bool> processErrors(ResolvedUnitResult result) async {
-    bool foundError = false;
-    for (AnalysisError error in result.errors) {
+    var foundError = false;
+    for (var error in result.errors) {
       final task = errorTaskMap[error.errorCode];
       if (task != null) {
         await task.fixError(result, error);
@@ -52,7 +51,7 @@ class FixErrorTask {
       (name) => [],
     );
     final processor = FixProcessor(dartContext);
-    Fix fix = await processor.computeFix();
+    var fix = await processor.computeFix();
     final location = listener.locationFor(result, error.offset, error.length);
     if (fix != null) {
       listener.addSourceChange(fix.change.message, location, fix.change);

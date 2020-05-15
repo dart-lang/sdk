@@ -1,0 +1,6 @@
+import 'dart:async';
+
+void main() {}
+final t = StreamTransformer.fromHandlers(
+    handleData: (data, sink) => Future.microtask(() => sink.add(data)),
+    handleDone: (sink) => Future.microtask(() => sink.close()));

@@ -398,8 +398,8 @@ DART_EXPORT void Dart_SetThreadName(const char* name);
 /**
  * Return metrics gathered for the VM and individual isolates.
  *
- * NOTE: Metrics are not available in PRODUCT builds of Dart.
- * Calling the metric functions on a PRODUCT build might return invalid metrics.
+ * NOTE: Non-heap metrics are not available in PRODUCT builds of Dart.
+ * Calling the non-heap metric functions on a PRODUCT build might return invalid metrics.
  */
 DART_EXPORT int64_t Dart_VMIsolateCountMetric();  // Counter
 DART_EXPORT int64_t Dart_VMCurrentRSSMetric();    // Byte

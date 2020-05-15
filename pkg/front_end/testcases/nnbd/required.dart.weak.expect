@@ -2,7 +2,7 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/required.dart:29:8: Warning: Optional parameter 'x' doesn't have a default value and its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/required.dart:29:8: Error: Optional parameter 'x' should have a default value because its type 'int' doesn't allow null.
 //   foo({x}) {}
 //        ^
 //
@@ -21,27 +21,27 @@ library /*isNonNullableByDefault*/;
 //   f2 = (int a = 42, [int b]) {};
 //               ^
 //
-// pkg/front_end/testcases/nnbd/required.dart:48:15: Warning: Optional parameter 'a' doesn't have a default value and its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/required.dart:48:15: Error: Optional parameter 'a' should have a default value because its type 'int' doesn't allow null.
 //   void g({int a, required int b = 42}) {}
 //               ^
 //
-// pkg/front_end/testcases/nnbd/required.dart:48:31: Warning: Named parameter 'b' is required and has a default value.
+// pkg/front_end/testcases/nnbd/required.dart:48:31: Error: Named parameter 'b' is required and can't have a default value.
 //   void g({int a, required int b = 42}) {}
 //                               ^
 //
-// pkg/front_end/testcases/nnbd/required.dart:49:13: Warning: Optional parameter 'a' doesn't have a default value and its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/required.dart:49:13: Error: Optional parameter 'a' should have a default value because its type 'int' doesn't allow null.
 //   f = ({int a, required int b = 42}) {};
 //             ^
 //
-// pkg/front_end/testcases/nnbd/required.dart:49:29: Warning: Named parameter 'b' is required and has a default value.
+// pkg/front_end/testcases/nnbd/required.dart:49:29: Error: Named parameter 'b' is required and can't have a default value.
 //   f = ({int a, required int b = 42}) {};
 //                             ^
 //
-// pkg/front_end/testcases/nnbd/required.dart:52:28: Warning: Optional parameter 'b' doesn't have a default value and its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/required.dart:52:28: Error: Optional parameter 'b' should have a default value because its type 'int' doesn't allow null.
 //   void g2(int a = 42, [int b]) {}
 //                            ^
 //
-// pkg/front_end/testcases/nnbd/required.dart:53:26: Warning: Optional parameter 'b' doesn't have a default value and its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/required.dart:53:26: Error: Optional parameter 'b' should have a default value because its type 'int' doesn't allow null.
 //   f2 = (int a = 42, [int b]) {};
 //                          ^
 //

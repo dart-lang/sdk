@@ -23,26 +23,23 @@ class DiagnosticDomainHandler implements RequestHandler {
 
   /// Answer the `diagnostic.getDiagnostics` request.
   Response computeDiagnostics(Request request) {
-    List<ContextData> contexts =
-        server.driverMap.values.map(extractDataFromDriver).toList();
+    var contexts = server.driverMap.values.map(extractDataFromDriver).toList();
     return DiagnosticGetDiagnosticsResult(contexts).toResponse(request.id);
   }
 
   /// Extract context data from the given [driver].
   ContextData extractDataFromDriver(AnalysisDriver driver) {
-    int explicitFileCount = driver.addedFiles.length;
-    int knownFileCount = driver.knownFiles.length;
+    var explicitFileCount = driver.addedFiles.length;
+    var knownFileCount = driver.knownFiles.length;
     return ContextData(driver.name, explicitFileCount,
         knownFileCount - explicitFileCount, driver.numberOfFilesToAnalyze, []);
   }
 
   /// Answer the `diagnostic.getServerPort` request.
   Future handleGetServerPort(Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     try {
       // Open a port (or return the existing one).
-      int port = await server.diagnosticServer.getServerPort();
+      var port = await server.diagnosticServer.getServerPort();
       server.sendResponse(
           DiagnosticGetServerPortResult(port).toResponse(request.id));
     } catch (error) {
@@ -53,7 +50,7 @@ class DiagnosticDomainHandler implements RequestHandler {
   @override
   Response handleRequest(Request request) {
     try {
-      String requestName = request.method;
+      var requestName = request.method;
       if (requestName == DIAGNOSTIC_REQUEST_GET_DIAGNOSTICS) {
         return computeDiagnostics(request);
       } else if (requestName == DIAGNOSTIC_REQUEST_GET_SERVER_PORT) {

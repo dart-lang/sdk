@@ -21,11 +21,13 @@ void func1() {
 
 // -----------------------------------------------------------------------------
 
-// Gathering constraints for S from comparison Null <: Future<S>.
+// Gathering constraints for S from comparison bot <: Future<S>.
 void func2() {
   void foo<S>(Future<S> bar) {}
 
-  /*invoke: void*/ foo/*<dynamic>*/(/*Null*/ null);
+  /*invoke: void*/ foo/*<dynamic>*/(
+      /*cfe.<bottom>*/ /*cfe:nnbd.Never*/
+      throw /*cfe.int*/ /*cfe:nnbd.int!*/ 42);
 }
 
 // -----------------------------------------------------------------------------

@@ -10,7 +10,7 @@ int foo() {
   return x;
 }
 
-int bar() {}
+int bar() => 0;
 
 int baz(int x) {
   return x;
@@ -28,7 +28,7 @@ class Class {
     return x;
   }
 
-  int bar() {}
+  int bar() => 0;
 
   int baz(int x) {
     return x;

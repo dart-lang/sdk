@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/compiler/backend/constant_propagator.h"
 
 #include "vm/bit_vector.h"
@@ -38,7 +36,8 @@ ConstantPropagator::ConstantPropagator(
       non_constant_(Object::non_constant()),
       constant_value_(Object::Handle(Z)),
       reachable_(new (Z) BitVector(Z, graph->preorder().length())),
-      marked_phis_(new (Z) BitVector(Z, graph->max_virtual_register_number())),
+      unwrapped_phis_(new (Z)
+                          BitVector(Z, graph->max_virtual_register_number())),
       block_worklist_(),
       definition_worklist_(graph, 10) {}
 
@@ -220,7 +219,16 @@ void ConstantPropagator::VisitGoto(GotoInstr* instr) {
   // Phi value depends on the reachability of a predecessor. We have
   // to revisit phis every time a predecessor becomes reachable.
   for (PhiIterator it(instr->successor()); !it.Done(); it.Advance()) {
-    it.Current()->Accept(this);
+    PhiInstr* phi = it.Current();
+    phi->Accept(this);
+
+    // If this phi was previously unwrapped as redundant and it is no longer
+    // redundant (does not unwrap) then we need to revisit the uses.
+    if (unwrapped_phis_->Contains(phi->ssa_temp_index()) &&
+        (UnwrapPhi(phi) == phi)) {
+      unwrapped_phis_->Remove(phi->ssa_temp_index());
+      definition_worklist_.Add(phi);
+    }
   }
 }
 
@@ -315,9 +323,25 @@ Definition* ConstantPropagator::UnwrapPhi(Definition* defn) {
   return defn;
 }
 
-void ConstantPropagator::MarkPhi(Definition* phi) {
+void ConstantPropagator::MarkUnwrappedPhi(Definition* phi) {
   ASSERT(phi->IsPhi());
-  marked_phis_->Add(phi->ssa_temp_index());
+  unwrapped_phis_->Add(phi->ssa_temp_index());
+}
+
+ConstantPropagator::PhiInfo* ConstantPropagator::GetPhiInfo(PhiInstr* phi) {
+  if (phi->HasPassSpecificId(CompilerPass::kConstantPropagation)) {
+    const intptr_t id =
+        phi->GetPassSpecificId(CompilerPass::kConstantPropagation);
+    // Note: id might have been assigned by the previous round of constant
+    // propagation, so we need to verify it before using it.
+    if (id < phis_.length() && phis_[id].phi == phi) {
+      return &phis_[id];
+    }
+  }
+
+  phi->SetPassSpecificId(CompilerPass::kConstantPropagation, phis_.length());
+  phis_.Add({phi, 0});
+  return &phis_.Last();
 }
 
 // --------------------------------------------------------------------------
@@ -325,6 +349,29 @@ void ConstantPropagator::MarkPhi(Definition* phi) {
 // and the definition has input uses, add the definition to the definition
 // worklist so that the used can be processed.
 void ConstantPropagator::VisitPhi(PhiInstr* instr) {
+  // Detect convergence issues by checking if visit count for this phi
+  // is too high. We should only visit this phi once for every predecessor
+  // becoming reachable, once for every input changing its constant value and
+  // once for an unwrapped redundant phi becoming non-redundant.
+  // Inputs can only change their constant value at most three times: from
+  // non-constant to unknown to specific constant to non-constant. The first
+  // link (non-constant to ...) can happen when we run the second round of
+  // constant propagation - some instructions can have non-constant assigned to
+  // them at the end of the previous constant propagation.
+  auto info = GetPhiInfo(instr);
+  info->visit_count++;
+  const intptr_t kMaxVisitsExpected = 5 * instr->InputCount();
+  if (info->visit_count > kMaxVisitsExpected) {
+    OS::PrintErr(
+        "ConstantPropagation pass is failing to converge on graph for %s\n",
+        graph_->parsed_function().function().ToCString());
+    OS::PrintErr("Phi %s was visited %" Pd " times\n", instr->ToCString(),
+                 info->visit_count);
+    NOT_IN_PRODUCT(
+        FlowGraphPrinter::PrintGraph("Constant Propagation", graph_));
+    FATAL("Aborting due to non-covergence.");
+  }
+
   // Compute the join over all the reachable predecessor values.
   JoinEntryInstr* block = instr->block();
   Object& value = Object::ZoneHandle(Z, Unknown());
@@ -334,11 +381,7 @@ void ConstantPropagator::VisitPhi(PhiInstr* instr) {
       Join(&value, instr->InputAt(pred_idx)->definition()->constant_value());
     }
   }
-  if (!SetValue(instr, value) &&
-      marked_phis_->Contains(instr->ssa_temp_index())) {
-    marked_phis_->Remove(instr->ssa_temp_index());
-    definition_worklist_.Add(instr);
-  }
+  SetValue(instr, value);
 }
 
 void ConstantPropagator::VisitRedefinition(RedefinitionInstr* instr) {
@@ -348,6 +391,10 @@ void ConstantPropagator::VisitRedefinition(RedefinitionInstr* instr) {
   } else {
     SetValue(instr, non_constant_);
   }
+}
+
+void ConstantPropagator::VisitReachabilityFence(ReachabilityFenceInstr* instr) {
+  // Nothing to do.
 }
 
 void ConstantPropagator::VisitCheckArrayBound(CheckArrayBoundInstr* instr) {
@@ -384,13 +431,15 @@ void ConstantPropagator::VisitPushArgument(PushArgumentInstr* instr) {
 }
 
 void ConstantPropagator::VisitAssertAssignable(AssertAssignableInstr* instr) {
-  const Object& value = instr->value()->definition()->constant_value();
-  if (IsNonConstant(value)) {
+  const auto& value = instr->value()->definition()->constant_value();
+  const auto& dst_type = instr->dst_type()->definition()->constant_value();
+
+  if (IsNonConstant(value) || IsNonConstant(dst_type)) {
     SetValue(instr, non_constant_);
-  } else if (IsConstant(value)) {
+  } else if (IsConstant(value) && IsConstant(dst_type)) {
     // We are ignoring the instantiator and instantiator_type_arguments, but
     // still monotonic and safe.
-    if (instr->value()->Type()->IsAssignableTo(instr->dst_type())) {
+    if (instr->value()->Type()->IsAssignableTo(AbstractType::Cast(dst_type))) {
       SetValue(instr, value);
     } else {
       SetValue(instr, non_constant_);
@@ -519,12 +568,13 @@ void ConstantPropagator::VisitStrictCompare(StrictCompareInstr* instr) {
   Definition* unwrapped_right_defn = UnwrapPhi(right_defn);
   if (unwrapped_left_defn == unwrapped_right_defn) {
     // Fold x === x, and x !== x to true/false.
-    SetValue(instr, Bool::Get(instr->kind() == Token::kEQ_STRICT));
-    if (unwrapped_left_defn != left_defn) {
-      MarkPhi(left_defn);
-    }
-    if (unwrapped_right_defn != right_defn) {
-      MarkPhi(right_defn);
+    if (SetValue(instr, Bool::Get(instr->kind() == Token::kEQ_STRICT))) {
+      if (unwrapped_left_defn != left_defn) {
+        MarkUnwrappedPhi(left_defn);
+      }
+      if (unwrapped_right_defn != right_defn) {
+        MarkUnwrappedPhi(right_defn);
+      }
     }
     return;
   }
@@ -546,7 +596,11 @@ void ConstantPropagator::VisitStrictCompare(StrictCompareInstr* instr) {
       const intptr_t right_cid = instr->right()->Type()->ToCid();
       // If exact classes (cids) are known and they differ, the result
       // of strict compare can be computed.
+      // The only exception is comparison with special sentinel value
+      // (used for lazy initialization) which can be compared to a
+      // value of any type. Sentinel value has kNeverCid.
       if ((left_cid != kDynamicCid) && (right_cid != kDynamicCid) &&
+          (left_cid != kNeverCid) && (right_cid != kNeverCid) &&
           (left_cid != right_cid)) {
         const bool result = (instr->kind() != Token::kEQ_STRICT);
         SetValue(instr, Bool::Get(result));
@@ -616,18 +670,19 @@ void ConstantPropagator::VisitEqualityCompare(EqualityCompareInstr* instr) {
   Definition* left_defn = instr->left()->definition();
   Definition* right_defn = instr->right()->definition();
 
-  if (RawObject::IsIntegerClassId(instr->operation_cid())) {
+  if (IsIntegerClassId(instr->operation_cid())) {
     // Fold x == x, and x != x to true/false for numbers comparisons.
     Definition* unwrapped_left_defn = UnwrapPhi(left_defn);
     Definition* unwrapped_right_defn = UnwrapPhi(right_defn);
     if (unwrapped_left_defn == unwrapped_right_defn) {
       // Fold x === x, and x !== x to true/false.
-      SetValue(instr, Bool::Get(instr->kind() == Token::kEQ));
-      if (unwrapped_left_defn != left_defn) {
-        MarkPhi(left_defn);
-      }
-      if (unwrapped_right_defn != right_defn) {
-        MarkPhi(right_defn);
+      if (SetValue(instr, Bool::Get(instr->kind() == Token::kEQ))) {
+        if (unwrapped_left_defn != left_defn) {
+          MarkUnwrappedPhi(left_defn);
+        }
+        if (unwrapped_right_defn != right_defn) {
+          MarkUnwrappedPhi(right_defn);
+        }
       }
       return;
     }
@@ -691,7 +746,7 @@ void ConstantPropagator::VisitOneByteStringFromCharCode(
     const intptr_t ch_code = Smi::Cast(o).Value();
     ASSERT(ch_code >= 0);
     if (ch_code < Symbols::kMaxOneCharCodeSymbol) {
-      RawString** table = Symbols::PredefinedAddress();
+      StringPtr* table = Symbols::PredefinedAddress();
       SetValue(instr, String::ZoneHandle(Z, table[ch_code]));
     } else {
       SetValue(instr, non_constant_);
@@ -803,7 +858,7 @@ void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
   const Object& value = def->constant_value();
   const AbstractType& checked_type = instr->type();
   // If the checked type is a top type, the result is always true.
-  if (checked_type.IsTopType()) {
+  if (checked_type.IsTopTypeForInstanceOf()) {
     SetValue(instr, Bool::True());
   } else if (IsNonConstant(value)) {
     intptr_t value_cid = instr->value()->definition()->Type()->ToCid();
@@ -1623,5 +1678,3 @@ bool ConstantPropagator::TransformDefinition(Definition* defn) {
 }
 
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

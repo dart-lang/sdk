@@ -1,0 +1,135 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/never_opt_out.dart:5:1: Error: A library can't opt out of non-nullable by default, when in nnbd-strong mode.
+// // @dart=2.6
+// ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/never_opt_out.dart:9:7: Error: Field 'optOutNever' should be initialized because its type 'Never' doesn't allow null.
+// Never optOutNever;
+//       ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/never_opt_out.dart:68:8: Error: The return type of the method 'B.neverField' is 'Null', which does not match the return type, 'Never', of the overridden method, 'A.neverField'.
+// Change to a subtype of 'Never'.
+//   Null neverField;
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/never_opt_out_lib.dart:12:9: Context: This is the overridden method ('neverField').
+//   Never neverField = throw "Should not reach here";
+//         ^
+//
+// pkg/front_end/testcases/nnbd_mixed/never_opt_out.dart:69:8: Error: The return type of the method 'B.neverMethod' is 'Null', which does not match the return type, 'Never', of the overridden method, 'A.neverMethod'.
+// Change to a subtype of 'Never'.
+//   Null neverMethod(Null value) => value;
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/never_opt_out_lib.dart:13:9: Context: This is the overridden method ('neverMethod').
+//   Never neverMethod(Never value) => value;
+//         ^
+//
+// pkg/front_end/testcases/nnbd_mixed/never_opt_out.dart:70:12: Error: The return type of the method 'B.neverProperty' is 'Null', which does not match the return type, 'Never', of the overridden method, 'A.neverProperty'.
+// Change to a subtype of 'Never'.
+//   Null get neverProperty => null;
+//            ^
+// pkg/front_end/testcases/nnbd_mixed/never_opt_out_lib.dart:14:13: Context: This is the overridden method ('neverProperty').
+//   Never get neverProperty => throw "Should not reach here";
+//             ^
+//
+// pkg/front_end/testcases/nnbd_mixed/never_opt_out.dart:85:9: Error: The field 'C.nullField' has type 'Never', which does not match the corresponding type, 'Null', in the overridden setter, 'A.nullField'.
+//   Never nullField;
+//         ^
+// pkg/front_end/testcases/nnbd_mixed/never_opt_out_lib.dart:17:8: Context: This is the overridden method ('nullField').
+//   Null nullField = null;
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/never_opt_out.dart:86:26: Error: The parameter 'value' of the method 'C.nullMethod' has type 'Never', which does not match the corresponding type, 'Null', in the overridden method, 'A.nullMethod'.
+// Change to a supertype of 'Null', or, for a covariant parameter, a subtype.
+//   Never nullMethod(Never value) => value;
+//                          ^
+// pkg/front_end/testcases/nnbd_mixed/never_opt_out_lib.dart:18:8: Context: This is the overridden method ('nullMethod').
+//   Null nullMethod(Null value) => value;
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/never_opt_out.dart:88:31: Error: The parameter 'value' of the method 'C.nullProperty' has type 'Never', which does not match the corresponding type, 'Null', in the overridden method, 'A.nullProperty'.
+// Change to a supertype of 'Null', or, for a covariant parameter, a subtype.
+//   void set nullProperty(Never value) {}
+//                               ^
+// pkg/front_end/testcases/nnbd_mixed/never_opt_out_lib.dart:20:12: Context: This is the overridden method ('nullProperty').
+//   void set nullProperty(Null value) {}
+//            ^
+//
+import self as self;
+import "never_opt_out_lib.dart" as nev;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///never_opt_out_lib.dart";
+
+class B extends nev::A {
+  field core::Null? neverField;
+  field core::Null? nullField;
+  synthetic constructor •() → self::B
+    ;
+  method neverMethod(core::Null? value) → core::Null?
+    ;
+  get neverProperty() → core::Null?
+    ;
+  set neverProperty(core::Null? value) → void
+    ;
+  method nullMethod(core::Null? value) → core::Null?
+    ;
+  get nullProperty() → core::Null?
+    ;
+  set nullProperty(core::Null? value) → void
+    ;
+}
+class C extends nev::A {
+  field Never neverField;
+  field Never nullField;
+  synthetic constructor •() → self::C
+    ;
+  method neverMethod(Never value) → Never
+    ;
+  get neverProperty() → Never
+    ;
+  set neverProperty(Never value) → void
+    ;
+  method nullMethod(Never value) → Never
+    ;
+  get nullProperty() → Never
+    ;
+  set nullProperty(Never value) → void
+    ;
+}
+static field Never optOutNever;
+static field Never inferredOptOutNever;
+static method main() → dynamic
+  ;
+static method throws(() → void f) → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as nev;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///never_opt_out.dart";
+
+class A extends core::Object {
+  field Never neverField;
+  field core::Null? nullField;
+  synthetic constructor •() → nev::A
+    ;
+  method neverMethod(Never value) → Never
+    ;
+  get neverProperty() → Never
+    ;
+  set neverProperty(Never value) → void
+    ;
+  method nullMethod(core::Null? value) → core::Null?
+    ;
+  get nullProperty() → core::Null?
+    ;
+  set nullProperty(core::Null? value) → void
+    ;
+}
+static field Never optInNever;
+static method throwing() → Never
+  ;

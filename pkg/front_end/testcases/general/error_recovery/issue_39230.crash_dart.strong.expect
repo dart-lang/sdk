@@ -1,0 +1,46 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/error_recovery/issue_39230.crash_dart:3:5: Error: Expected '{' before this.
+//     /
+//     ^
+//
+// pkg/front_end/testcases/general/error_recovery/issue_39230.crash_dart:3:5: Error: Operator declarations must be preceded by the keyword 'operator'.
+// Try adding the keyword 'operator'.
+//     /
+//     ^
+//
+// pkg/front_end/testcases/general/error_recovery/issue_39230.crash_dart:3:5: Error: A method declaration needs an explicit list of parameters.
+// Try adding a parameter list to the method declaration.
+//     /
+//     ^
+//
+// pkg/front_end/testcases/general/error_recovery/issue_39230.crash_dart:3:5: Error: The name of a constructor must match the name of the enclosing class.
+//     /
+//     ^
+//
+// pkg/front_end/testcases/general/error_recovery/issue_39230.crash_dart:3:5: Error: Operator '/' should have exactly one parameter.
+//     /
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  constructor •() → self::C*
+    : super core::Object::•() {}
+  constructor /() → self::C*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}

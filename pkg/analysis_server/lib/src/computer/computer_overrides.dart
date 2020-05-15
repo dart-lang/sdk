@@ -6,7 +6,6 @@ import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/protocol_server.dart' as proto;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 
 /// Return the elements that the given [element] overrides.
 OverriddenElements findOverriddenElements(Element element) {
@@ -25,9 +24,9 @@ class DartUnitOverridesComputer {
 
   /// Returns the computed occurrences, not `null`.
   List<proto.Override> compute() {
-    for (CompilationUnitMember unitMember in _unit.declarations) {
+    for (var unitMember in _unit.declarations) {
       if (unitMember is ClassOrMixinDeclaration) {
-        for (ClassMember classMember in unitMember.members) {
+        for (var classMember in unitMember.members) {
           if (classMember is MethodDeclaration) {
             if (classMember.isStatic) {
               continue;
@@ -39,7 +38,7 @@ class DartUnitOverridesComputer {
               continue;
             }
             List<VariableDeclaration> fields = classMember.fields.variables;
-            for (VariableDeclaration field in fields) {
+            for (var field in fields) {
               _addOverride(field.name);
             }
           }
@@ -51,16 +50,15 @@ class DartUnitOverridesComputer {
 
   /// Add a new [Override] for the declaration with the given name [node].
   void _addOverride(SimpleIdentifier node) {
-    Element element = node.staticElement;
-    OverriddenElements overridesResult =
-        _OverriddenElementsFinder(element).find();
-    List<Element> superElements = overridesResult.superElements;
-    List<Element> interfaceElements = overridesResult.interfaceElements;
+    var element = node.staticElement;
+    var overridesResult = _OverriddenElementsFinder(element).find();
+    var superElements = overridesResult.superElements;
+    var interfaceElements = overridesResult.interfaceElements;
     if (superElements.isNotEmpty || interfaceElements.isNotEmpty) {
-      proto.OverriddenMember superMember = superElements.isNotEmpty
+      var superMember = superElements.isNotEmpty
           ? proto.newOverriddenMember_fromEngine(superElements.first)
           : null;
-      List<proto.OverriddenMember> interfaceMembers = interfaceElements
+      var interfaceMembers = interfaceElements
           .map((member) => proto.newOverriddenMember_fromEngine(member))
           .toList();
       _overrides.add(proto.Override(node.offset, node.length,
@@ -150,13 +148,13 @@ class _OverriddenElementsFinder {
     }
     // this type
     if (checkType) {
-      Element element = _lookupMember(class_);
+      var element = _lookupMember(class_);
       if (element != null && !_interfaceElements.contains(element)) {
         _interfaceElements.add(element);
       }
     }
     // interfaces
-    for (InterfaceType interfaceType in class_.interfaces) {
+    for (var interfaceType in class_.interfaces) {
       _addInterfaceOverrides(interfaceType.element, true);
     }
     // super
@@ -172,7 +170,7 @@ class _OverriddenElementsFinder {
     }
 
     if (withThisType) {
-      Element element = _lookupMember(class_);
+      var element = _lookupMember(class_);
       if (element != null && !_superElements.contains(element)) {
         _superElements.add(element);
       }

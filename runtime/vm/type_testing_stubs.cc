@@ -4,10 +4,14 @@
 
 #include "vm/type_testing_stubs.h"
 #include "vm/compiler/assembler/disassembler.h"
+#include "vm/object_store.h"
+#include "vm/stub_code.h"
+#include "vm/timeline.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/il_printer.h"
-#include "vm/object_store.h"
-#include "vm/timeline.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #define __ assembler->
 
@@ -24,12 +28,8 @@ TypeTestingStubNamer::TypeTestingStubNamer()
 
 const char* TypeTestingStubNamer::StubNameForType(
     const AbstractType& type) const {
-  NoSafepointScope no_safepoint;
-  const uintptr_t address =
-      reinterpret_cast<uintptr_t>(type.raw()) & 0x7fffffff;
   Zone* Z = Thread::Current()->zone();
-  return OS::SCreate(Z, "TypeTestingStub_%s__%" Pd "", StringifyType(type),
-                     address);
+  return OS::SCreate(Z, "TypeTestingStub_%s", StringifyType(type));
 }
 
 const char* TypeTestingStubNamer::StringifyType(
@@ -88,12 +88,13 @@ const char* TypeTestingStubNamer::AssemblerSafeName(char* cname) {
   return cname;
 }
 
-RawCode* TypeTestingStubGenerator::DefaultCodeForType(
+CodePtr TypeTestingStubGenerator::DefaultCodeForType(
     const AbstractType& type,
     bool lazy_specialize /* = true */) {
   if (type.IsTypeRef()) {
-    return FLAG_null_safety ? StubCode::DefaultTypeTest().raw()
-                            : StubCode::DefaultNullableTypeTest().raw();
+    return Isolate::Current()->null_safety()
+               ? StubCode::DefaultTypeTest().raw()
+               : StubCode::DefaultNullableTypeTest().raw();
   }
 
   // During bootstrapping we have no access to stubs yet, so we'll just return
@@ -101,11 +102,11 @@ RawCode* TypeTestingStubGenerator::DefaultCodeForType(
   if (!StubCode::HasBeenInitialized()) {
     ASSERT(type.IsType());
     const classid_t cid = type.type_class_id();
-    ASSERT(cid == kDynamicCid || cid == kVoidCid || cid == kNeverCid);
+    ASSERT(cid == kDynamicCid || cid == kVoidCid);
     return Code::null();
   }
 
-  if (type.IsTopTypeForAssignability()) {
+  if (type.IsTopTypeForSubtyping()) {
     return StubCode::TopTypeTypeTest().raw();
   }
 
@@ -138,7 +139,7 @@ void TypeTestingStubGenerator::SpecializeStubFor(Thread* thread,
 TypeTestingStubGenerator::TypeTestingStubGenerator()
     : object_store_(Isolate::Current()->object_store()) {}
 
-RawCode* TypeTestingStubGenerator::OptimizedCodeForType(
+CodePtr TypeTestingStubGenerator::OptimizedCodeForType(
     const AbstractType& type) {
 #if !defined(TARGET_ARCH_IA32)
   ASSERT(StubCode::HasBeenInitialized());
@@ -148,7 +149,7 @@ RawCode* TypeTestingStubGenerator::OptimizedCodeForType(
         type, /*lazy_specialize=*/false);
   }
 
-  if (type.IsTopTypeForAssignability()) {
+  if (type.IsTopTypeForSubtyping()) {
     return StubCode::TopTypeTypeTest().raw();
   }
 
@@ -177,8 +178,9 @@ RawCode* TypeTestingStubGenerator::OptimizedCodeForType(
 #if !defined(TARGET_ARCH_IA32)
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
-RawCode* TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
+CodePtr TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
   auto thread = Thread::Current();
+  auto zone = thread->zone();
   HierarchyInfo* hi = thread->hierarchy_info();
   ASSERT(hi != NULL);
 
@@ -190,9 +192,20 @@ RawCode* TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
   const Class& type_class = Class::Handle(type.type_class());
   ASSERT(!type_class.IsNull());
 
+  auto& slow_tts_stub = Code::ZoneHandle(zone);
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    slow_tts_stub = thread->isolate()->object_store()->slow_tts_stub();
+  }
+
   // To use the already-defined __ Macro !
   compiler::Assembler assembler(nullptr);
-  BuildOptimizedTypeTestStub(&assembler, hi, type, type_class);
+  compiler::UnresolvedPcRelativeCalls unresolved_calls;
+  BuildOptimizedTypeTestStub(&assembler, &unresolved_calls, slow_tts_stub, hi,
+                             type, type_class);
+
+  const auto& static_calls_table =
+      Array::Handle(zone, compiler::StubCodeCompiler::BuildStaticCallsTable(
+                              zone, &unresolved_calls));
 
   const char* name = namer_.StubNameForType(type);
   const auto pool_attachment = FLAG_use_bare_instructions
@@ -203,6 +216,9 @@ RawCode* TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
   auto install_code_fun = [&]() {
     code = Code::FinalizeCode(nullptr, &assembler, pool_attachment,
                               /*optimized=*/false, /*stats=*/nullptr);
+    if (!static_calls_table.IsNull()) {
+      code.set_static_calls_target_table(static_calls_table);
+    }
   };
 
   // We have to ensure no mutators are running, because:
@@ -239,7 +255,7 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
     const Type& type,
     const Class& type_class) {
   // These are handled via the TopTypeTypeTestStub!
-  ASSERT(!type.IsTopTypeForAssignability());
+  ASSERT(!type.IsTopTypeForSubtyping());
 
   // Fast case for 'int'.
   if (type.IsIntType()) {
@@ -404,7 +420,7 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
     const AbstractType& type_arg,
     intptr_t type_param_value_offset_i,
     compiler::Label* check_failed) {
-  if (type_arg.IsTopType()) {
+  if (type_arg.IsTopTypeForSubtyping()) {
     return;
   }
 
@@ -459,7 +475,8 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
     // Weak NNBD mode uses LEGACY_SUBTYPE which ignores nullability.
     // We don't need to check nullability of LHS for nullable and legacy RHS
     // ("Right Legacy", "Right Nullable" rules).
-    if (FLAG_null_safety && !type_arg.IsNullable() && !type_arg.IsLegacy()) {
+    if (Isolate::Current()->null_safety() && !type_arg.IsNullable() &&
+        !type_arg.IsLegacy()) {
       compiler::Label skip_nullable_check;
       // Nullable type is not a subtype of non-nullable type.
       // TODO(dartbug.com/40736): Allocate a register for instance type argument
@@ -582,6 +599,7 @@ void RegisterTypeArgumentsUse(const Function& function,
 
 #else  // !defined(TARGET_ARCH_IA32)
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 void RegisterTypeArgumentsUse(const Function& function,
                               TypeUsageInfo* type_usage_info,
                               const Class& klass,
@@ -589,6 +607,7 @@ void RegisterTypeArgumentsUse(const Function& function,
   // We only have a [TypeUsageInfo] object available durin AOT compilation.
   UNREACHABLE();
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #endif  // !defined(TARGET_ARCH_IA32)
 
@@ -614,7 +633,7 @@ const TypeArguments& TypeArgumentInstantiator::InstantiateTypeArguments(
   return *instantiated_type_arguments;
 }
 
-RawAbstractType* TypeArgumentInstantiator::InstantiateType(
+AbstractTypePtr TypeArgumentInstantiator::InstantiateType(
     const AbstractType& type) {
   if (type.IsTypeParameter()) {
     const TypeParameter& parameter = TypeParameter::Cast(type);
@@ -623,7 +642,11 @@ RawAbstractType* TypeArgumentInstantiator::InstantiateType(
     if (instantiator_type_arguments_.IsNull()) {
       return Type::DynamicType();
     }
-    return instantiator_type_arguments_.TypeAt(parameter.index());
+    AbstractType& result = AbstractType::Handle(
+        instantiator_type_arguments_.TypeAt(parameter.index()));
+    result = result.SetInstantiatedNullability(TypeParameter::Cast(type),
+                                               Heap::kOld);
+    return result.NormalizeFutureOrType(Heap::kOld);
   } else if (type.IsFunctionType()) {
     // No support for function types yet.
     UNREACHABLE();
@@ -847,7 +870,7 @@ void TypeUsageInfo::UpdateAssertAssignableTypes(
   // eagerly and avoid doing it down inside the loop.
   type = Type::DynamicType();
   UseTypeInAssertAssignable(type);
-  type = Type::ObjectType();
+  type = Type::ObjectType();  // TODO(regis): Add nullable Object?
   UseTypeInAssertAssignable(type);
 
   for (intptr_t cid = 0; cid < cid_count; ++cid) {
@@ -918,7 +941,7 @@ void DeoptimizeTypeTestingStubs() {
     CollectTypes(GrowableArray<AbstractType*>* types, Zone* zone)
         : types_(types), object_(Object::Handle(zone)), zone_(zone) {}
 
-    void VisitObject(RawObject* object) {
+    void VisitObject(ObjectPtr object) {
       if (object->IsPseudoObject()) {
         // Cannot even be wrapped in handles.
         return;

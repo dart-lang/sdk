@@ -31,7 +31,7 @@ abstract class IOSink implements StreamSink<List<int>>, StringSink {
    * The [Encoding] used when writing strings. Depending on the
    * underlying consumer this property might be mutable.
    */
-  Encoding encoding;
+  late Encoding encoding;
 
   /**
    * Adds byte [data] to the target consumer, ignoring [encoding].

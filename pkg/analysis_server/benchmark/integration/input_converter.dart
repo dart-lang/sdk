@@ -63,9 +63,9 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
     String event = json['event'];
     if (event == SERVER_NOTIFICATION_STATUS) {
       // {"event":"server.status","params":{"analysis":{"isAnalyzing":false}}}
-      Map<String, dynamic> params = asMap(json['params']);
+      var params = asMap(json['params']);
       if (params != null) {
-        Map<String, dynamic> analysis = asMap(params['analysis']);
+        var analysis = asMap(params['analysis']);
         if (analysis != null && analysis['isAnalyzing'] == false) {
           return WaitForAnalysisCompleteOperation();
         }
@@ -83,7 +83,7 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
 
   /// Return an operation for the request or `null` if none.
   Operation convertRequest(Map<String, dynamic> origJson) {
-    Map<String, dynamic> json = asMap(translateSrcPaths(origJson));
+    var json = asMap(translateSrcPaths(origJson));
     requestMap[json['id']] = json;
     String method = json['method'];
     // Sanity check operations that modify source
@@ -91,23 +91,23 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
     if (method == ANALYSIS_REQUEST_UPDATE_CONTENT) {
       // Track overlays in parallel with the analysis server
       // so that when an overlay is removed, the file can be updated on disk
-      Request request = Request.fromJson(json);
+      var request = Request.fromJson(json);
       var params = AnalysisUpdateContentParams.fromRequest(request);
       params.files.forEach((String filePath, change) {
         if (change is AddContentOverlay) {
-          String content = change.content;
+          var content = change.content;
           if (content == null) {
             throw 'expected new overlay content\n$json';
           }
           overlays[filePath] = content;
         } else if (change is ChangeContentOverlay) {
-          String content = overlays[filePath];
+          var content = overlays[filePath];
           if (content == null) {
             throw 'expected cached overlay content\n$json';
           }
           overlays[filePath] = SourceEdit.applySequence(content, change.edits);
         } else if (change is RemoveContentOverlay) {
-          String content = overlays.remove(filePath);
+          var content = overlays.remove(filePath);
           if (content == null) {
             throw 'expected cached overlay content\n$json';
           }
@@ -158,8 +158,8 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
 
   void logOverlayContent() {
     logger.log(Level.WARNING, '${overlays.length} overlays');
-    List<String> allPaths = overlays.keys.toList()..sort();
-    for (String filePath in allPaths) {
+    var allPaths = overlays.keys.toList()..sort();
+    for (var filePath in allPaths) {
       logger.log(Level.WARNING, 'overlay $filePath\n${overlays[filePath]}');
     }
   }
@@ -201,7 +201,7 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
   /// or stashing it in [responseMap] if no completer exists.
   /// The response result may be `null`.
   void processResponseResult(String id, result) {
-    Completer completer = responseCompleters[id];
+    var completer = responseCompleters[id];
     if (completer != null) {
       logger.log(Level.INFO, 'processing response $id');
       completer.complete(result);
@@ -219,14 +219,14 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
       return srcPathMap.translate(json);
     }
     if (json is List) {
-      List result = [];
-      for (int i = 0; i < json.length; ++i) {
+      var result = [];
+      for (var i = 0; i < json.length; ++i) {
         result.add(translateSrcPaths(json[i]));
       }
       return result;
     }
     if (json is Map) {
-      Map<String, dynamic> result = <String, dynamic>{};
+      var result = <String, dynamic>{};
       json.forEach((origKey, value) {
         result[translateSrcPaths(origKey)] = translateSrcPaths(value);
       });
@@ -309,8 +309,8 @@ class PathMap {
   }
 
   String translate(String original) {
-    String result = original;
-    for (PathMapEntry entry in entries) {
+    var result = original;
+    for (var entry in entries) {
       result = entry.translate(result);
     }
     return result;
@@ -340,7 +340,7 @@ class _InputSink extends ChunkedConversionSink<String> {
 
   @override
   void add(String line) {
-    Operation op = converter.convert(line);
+    var op = converter.convert(line);
     if (op != null) {
       outSink.add(op);
     }

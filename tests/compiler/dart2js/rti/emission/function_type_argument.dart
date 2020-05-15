@@ -2,16 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'package:expect/expect.dart';
 
-/*strong.class: C:checkedInstance,checks=[],instance,typeArgument*/
-/*omit.class: C:checks=[],instance,typeArgument*/
+/*spec:nnbd-off|spec:nnbd-sdk.class: C:checkedInstance,checks=[],instance,typeArgument*/
+/*prod:nnbd-off|prod:nnbd-sdk.class: C:checks=[],instance,typeArgument*/
 class C {
   call(int i) {}
 }
 
-/*strong.class: D:checkedInstance,checks=[],instance,typeArgument*/
-/*omit.class: D:checks=[],instance,typeArgument*/
+/*spec:nnbd-off|spec:nnbd-sdk.class: D:checkedInstance,checks=[],instance,typeArgument*/
+/*prod:nnbd-off|prod:nnbd-sdk.class: D:checks=[],instance,typeArgument*/
 class D {
   call(double i) {}
 }

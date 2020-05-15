@@ -45,7 +45,7 @@ class EditDartFix
       }
     }
     if (params.includedFixes != null) {
-      for (String key in params.includedFixes) {
+      for (var key in params.includedFixes) {
         var info = allFixes.firstWhere((i) => i.key == key, orElse: () => null);
         if (info != null) {
           fixInfo.add(info);
@@ -56,7 +56,7 @@ class EditDartFix
       }
     }
     if (params.excludedFixes != null) {
-      for (String key in params.excludedFixes) {
+      for (var key in params.excludedFixes) {
         var info = allFixes.firstWhere((i) => i.key == key, orElse: () => null);
         if (info != null) {
           fixInfo.remove(info);
@@ -66,7 +66,7 @@ class EditDartFix
         }
       }
     }
-    for (DartFixInfo info in fixInfo) {
+    for (var info in fixInfo) {
       info.setup(this, listener, params);
     }
 
@@ -80,11 +80,11 @@ class EditDartFix
     // will be used from within the IDE.
     contextManager.refresh(null);
 
-    for (String filePath in params.included) {
+    for (var filePath in params.included) {
       if (!server.isValidFilePath(filePath)) {
         return Response.invalidFilePathFormat(request, filePath);
       }
-      Resource res = resourceProvider.getResource(filePath);
+      var res = resourceProvider.getResource(filePath);
       if (!res.exists ||
           !(contextManager.includedPaths.contains(filePath) ||
               contextManager.isInAnalysisRoot(filePath))) {
@@ -121,9 +121,6 @@ class EditDartFix
       };
     });
 
-    // Set up the rerun function on the NNBD migration for interactivity.
-    nonNullableFixTask?.rerunFunction = rerunTasks;
-
     bool hasErrors;
     try {
       hasErrors = await runAllTasks();
@@ -147,7 +144,6 @@ class EditDartFix
       hasErrors,
       listener.sourceChange.edits,
       details: listener.details,
-      urls: nonNullableFixTask?.previewUrls,
     ).toResponse(request.id);
   }
 
@@ -162,39 +158,19 @@ class EditDartFix
     return null;
   }
 
-  /// Return `true` if the path in within the set of `included` files
-  /// or is within an `included` directory.
-  bool isIncluded(String filePath) {
-    if (filePath != null) {
-      for (File file in fixFiles) {
-        if (file.path == filePath) {
-          return true;
-        }
-      }
-      for (Folder folder in fixFolders) {
-        if (folder.contains(filePath)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  /// Call the supplied [process] function to process each compilation unit.
-  Future processResources(
-      Future<void> Function(ResolvedUnitResult result) process) async {
+  Set<String> getPathsToProcess() {
     final contextManager = server.contextManager;
     final resourceProvider = server.resourceProvider;
     final resources = <Resource>[];
-    for (String rootPath in contextManager.includedPaths) {
+    for (var rootPath in contextManager.includedPaths) {
       resources.add(resourceProvider.getResource(rootPath));
     }
 
     var pathsToProcess = <String>{};
     while (resources.isNotEmpty) {
-      Resource res = resources.removeLast();
+      var res = resources.removeLast();
       if (res is Folder) {
-        for (Resource child in res.getChildren()) {
+        for (var child in res.getChildren()) {
           if (!child.shortName.startsWith('.') &&
               contextManager.isInAnalysisRoot(child.path) &&
               !contextManager.isIgnored(child.path)) {
@@ -208,9 +184,33 @@ class EditDartFix
       }
       pathsToProcess.add(res.path);
     }
+    return pathsToProcess;
+  }
 
+  /// Return `true` if the path in within the set of `included` files
+  /// or is within an `included` directory.
+  bool isIncluded(String filePath) {
+    if (filePath != null) {
+      for (var file in fixFiles) {
+        if (file.path == filePath) {
+          return true;
+        }
+      }
+      for (var folder in fixFolders) {
+        if (folder.contains(filePath)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /// Call the supplied [process] function to process each compilation unit.
+  Future processResources(
+      Future<void> Function(ResolvedUnitResult result) process) async {
+    final pathsToProcess = getPathsToProcess();
     var pathsProcessed = <String>{};
-    for (String path in pathsToProcess) {
+    for (var path in pathsToProcess) {
       if (pathsProcessed.contains(path)) continue;
       var driver = server.getAnalysisDriver(path);
       switch (await driver.getSourceKind(path)) {
@@ -220,7 +220,7 @@ class EditDartFix
           continue;
           break;
         case SourceKind.LIBRARY:
-          ResolvedLibraryResult result = await driver.getResolvedLibrary(path);
+          var result = await driver.getResolvedLibrary(path);
           if (result != null) {
             for (var unit in result.units) {
               if (pathsToProcess.contains(unit.path) &&
@@ -236,8 +236,8 @@ class EditDartFix
       }
     }
 
-    for (String path in pathsToProcess.difference(pathsProcessed)) {
-      ResolvedUnitResult result = await server.getResolvedUnit(path);
+    for (var path in pathsToProcess.difference(pathsProcessed)) {
+      var result = await server.getResolvedUnit(path);
       if (result == null || result.unit == null) {
         continue;
       }
@@ -245,22 +245,13 @@ class EditDartFix
     }
   }
 
-  Future<bool> rerunTasks(List<String> changedPaths) async {
-    for (String path in changedPaths) {
-      var driver = server.getAnalysisDriver(path);
-      driver.changeFile(path);
-    }
-
-    return await runAllTasks();
-  }
-
   Future<bool> runAllTasks() async {
     // Process each package
-    for (Folder pkgFolder in pkgFolders) {
+    for (var pkgFolder in pkgFolders) {
       await processPackage(pkgFolder);
     }
 
-    bool hasErrors = false;
+    var hasErrors = false;
 
     // Process each source file.
     try {
@@ -272,7 +263,7 @@ class EditDartFix
           await processCodeTasks(0, result);
         }
       });
-      for (int phase = 1; phase < numPhases; phase++) {
+      for (var phase = 1; phase < numPhases; phase++) {
         await processResources((ResolvedUnitResult result) async {
           await processCodeTasks(phase, result);
         });

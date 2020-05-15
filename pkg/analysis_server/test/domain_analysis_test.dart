@@ -34,16 +34,15 @@ void main() {
 @reflectiveTest
 class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
   Future<void> outOfRangeTest(SourceEdit edit) async {
-    AnalysisTestHelper helper = AnalysisTestHelper();
+    var helper = AnalysisTestHelper();
     helper.createSingleFileProject('library A;');
     await helper.onAnalysisComplete;
     helper.sendContentChange(AddContentOverlay('library B;'));
     await helper.onAnalysisComplete;
-    ChangeContentOverlay contentChange = ChangeContentOverlay([edit]);
-    Request request =
-        AnalysisUpdateContentParams({helper.testFile: contentChange})
-            .toRequest('0');
-    Response response = helper.handler.handleRequest(request);
+    var contentChange = ChangeContentOverlay([edit]);
+    var request = AnalysisUpdateContentParams({helper.testFile: contentChange})
+        .toRequest('0');
+    var response = helper.handler.handleRequest(request);
     expect(response,
         isResponseFailure('0', RequestErrorCode.INVALID_OVERLAY_CHANGE));
   }
@@ -58,7 +57,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
 
   Future<void> test_setAnalysisRoots_included_newFolder() async {
     newFile('/project/pubspec.yaml', content: 'name: project');
-    String file = newFile('/project/bin/test.dart', content: 'main() {}').path;
+    var file = newFile('/project/bin/test.dart', content: 'main() {}').path;
     var response = testSetAnalysisRoots([projectPath], []);
     var serverRef = server;
     expect(response, isResponseSuccess('0'));
@@ -69,9 +68,9 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   Future<void> test_setAnalysisRoots_included_nonexistentFolder() async {
-    String projectA = convertPath('/project_a');
-    String projectB = convertPath('/project_b');
-    String fileB = newFile('/project_b/b.dart', content: '// b').path;
+    var projectA = convertPath('/project_a');
+    var projectB = convertPath('/project_b');
+    var fileB = newFile('/project_b/b.dart', content: '// b').path;
     var response = testSetAnalysisRoots([projectA, projectB], []);
     var serverRef = server;
     expect(response, isResponseSuccess('0'));
@@ -144,22 +143,22 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   Future<void> test_updateContent_badType() async {
-    AnalysisTestHelper helper = AnalysisTestHelper();
+    var helper = AnalysisTestHelper();
     helper.createSingleFileProject('// empty');
     await helper.onAnalysisComplete;
-    Request request = Request('0', ANALYSIS_REQUEST_UPDATE_CONTENT, {
+    var request = Request('0', ANALYSIS_REQUEST_UPDATE_CONTENT, {
       ANALYSIS_REQUEST_UPDATE_CONTENT_FILES: {
         helper.testFile: {
           'type': 'foo',
         }
       }
     });
-    Response response = helper.handler.handleRequest(request);
+    var response = helper.handler.handleRequest(request);
     expect(response, isResponseFailure('0'));
   }
 
   Future<void> test_updateContent_changeOnDisk_duringOverride() async {
-    AnalysisTestHelper helper = AnalysisTestHelper();
+    var helper = AnalysisTestHelper();
     helper.createSingleFileProject('library A;');
     await helper.onAnalysisComplete;
     // update code
@@ -181,7 +180,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   Future<void> test_updateContent_changeOnDisk_normal() async {
-    AnalysisTestHelper helper = AnalysisTestHelper();
+    var helper = AnalysisTestHelper();
     helper.createSingleFileProject('library A;');
     await helper.onAnalysisComplete;
     // There should be no errors
@@ -195,11 +194,11 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   Future<void> test_updateContent_fullContent() async {
-    AnalysisTestHelper helper = AnalysisTestHelper();
+    var helper = AnalysisTestHelper();
     helper.createSingleFileProject('// empty');
     await helper.onAnalysisComplete;
     // no errors initially
-    List<AnalysisError> errors = helper.getTestErrors();
+    var errors = helper.getTestErrors();
     expect(errors, isEmpty);
     // update code
     helper.sendContentChange(AddContentOverlay('library lib'));
@@ -210,12 +209,12 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   Future<void> test_updateContent_incremental() async {
-    AnalysisTestHelper helper = AnalysisTestHelper();
-    String initialContent = 'library A;';
+    var helper = AnalysisTestHelper();
+    var initialContent = 'library A;';
     helper.createSingleFileProject(initialContent);
     await helper.onAnalysisComplete;
     // no errors initially
-    List<AnalysisError> errors = helper.getTestErrors();
+    var errors = helper.getTestErrors();
     expect(errors, isEmpty);
     // Add the file to the cache
     helper.sendContentChange(AddContentOverlay(initialContent));
@@ -258,7 +257,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   Response testSetAnalysisRoots(List<String> included, List<String> excluded) {
-    Request request =
+    var request =
         AnalysisSetAnalysisRootsParams(included, excluded).toRequest('0');
     return handler.handleRequest(request);
   }
@@ -282,7 +281,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
   Future<void> xtest_getReachableSources_validSources() async {
     // TODO(brianwilkerson) Re-enable this test if we re-enable the
     // analysis.getReachableSources request.
-    String fileA = newFile('/project/a.dart', content: 'import "b.dart";').path;
+    var fileA = newFile('/project/a.dart', content: 'import "b.dart";').path;
     newFile('/project/b.dart');
 
     server.setAnalysisRoots('0', ['/project/'], [], {});
@@ -316,7 +315,7 @@ class AnalysisDomainTest extends AbstractAnalysisTest {
 
   Future<void> test_setRoots_packages() {
     // prepare package
-    String pkgFile = newFile('/packages/pkgA/libA.dart', content: '''
+    var pkgFile = newFile('/packages/pkgA/libA.dart', content: '''
 library lib_a;
 class A {}
 ''').path;
@@ -369,8 +368,7 @@ class AnalysisTestHelper with ResourceProviderMixin {
         InstrumentationService.NULL_SERVICE);
     handler = AnalysisDomainHandler(server);
     // listen for notifications
-    Stream<Notification> notificationStream =
-        serverChannel.notificationController.stream;
+    var notificationStream = serverChannel.notificationController.stream;
     notificationStream.listen((Notification notification) {
       if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
         var decoded = AnalysisErrorsParams.fromNotification(notification);
@@ -401,7 +399,7 @@ class AnalysisTestHelper with ResourceProviderMixin {
     }
     files.add(file);
     // set subscriptions
-    Request request =
+    var request =
         AnalysisSetSubscriptionsParams(analysisSubscriptions).toRequest('0');
     handleSuccessfulRequest(request);
   }
@@ -417,7 +415,7 @@ class AnalysisTestHelper with ResourceProviderMixin {
   /// Creates an empty project `/project`.
   void createEmptyProject() {
     newFolder(projectPath);
-    Request request =
+    var request =
         AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
     handleSuccessfulRequest(request);
   }
@@ -428,7 +426,7 @@ class AnalysisTestHelper with ResourceProviderMixin {
     testCode = _getCodeString(code);
     newFolder(projectPath);
     newFile(testFile, content: testCode);
-    Request request =
+    var request =
         AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
     handleSuccessfulRequest(request);
   }
@@ -436,7 +434,7 @@ class AnalysisTestHelper with ResourceProviderMixin {
   /// Returns the offset of [search] in [testCode].
   /// Fails if not found.
   int findOffset(String search) {
-    int offset = testCode.indexOf(search);
+    var offset = testCode.indexOf(search);
     expect(offset, isNot(-1));
     return offset;
   }
@@ -444,7 +442,7 @@ class AnalysisTestHelper with ResourceProviderMixin {
   /// Returns [AnalysisError]s recorded for the given [file].
   /// May be empty, but not `null`.
   List<AnalysisError> getErrors(String file) {
-    List<AnalysisError> errors = filesErrors[file];
+    var errors = filesErrors[file];
     if (errors != null) {
       return errors;
     }
@@ -454,7 +452,7 @@ class AnalysisTestHelper with ResourceProviderMixin {
   /// Returns highlights recorded for the given [file].
   /// May be empty, but not `null`.
   List<HighlightRegion> getHighlights(String file) {
-    List<HighlightRegion> highlights = filesHighlights[file];
+    var highlights = filesHighlights[file];
     if (highlights != null) {
       return highlights;
     }
@@ -464,7 +462,7 @@ class AnalysisTestHelper with ResourceProviderMixin {
   /// Returns navigation regions recorded for the given [file].
   /// May be empty, but not `null`.
   List<NavigationRegion> getNavigation(String file) {
-    List<NavigationRegion> navigation = filesNavigation[file];
+    var navigation = filesNavigation[file];
     if (navigation != null) {
       return navigation;
     }
@@ -491,13 +489,13 @@ class AnalysisTestHelper with ResourceProviderMixin {
 
   /// Validates that the given [request] is handled successfully.
   void handleSuccessfulRequest(Request request) {
-    Response response = handler.handleRequest(request);
+    var response = handler.handleRequest(request);
     expect(response, isResponseSuccess('0'));
   }
 
   /// Send an `updateContent` request for [testFile].
   void sendContentChange(dynamic contentChange) {
-    Request request =
+    var request =
         AnalysisUpdateContentParams({testFile: contentChange}).toRequest('0');
     handleSuccessfulRequest(request);
   }
@@ -544,7 +542,7 @@ class SetSubscriptionsTest extends AbstractAnalysisTest {
   }
 
   Future<void> test_afterAnalysis_noSuchFile() async {
-    String file = convertPath('/no-such-file.dart');
+    var file = convertPath('/no-such-file.dart');
     addTestFile('// no matter');
     createProject();
     // wait for analysis, no results initially
@@ -558,7 +556,7 @@ class SetSubscriptionsTest extends AbstractAnalysisTest {
   }
 
   Future<void> test_afterAnalysis_packageFile_external() async {
-    String pkgFile = newFile('/packages/pkgA/lib/libA.dart', content: '''
+    var pkgFile = newFile('/packages/pkgA/lib/libA.dart', content: '''
 library lib_a;
 class A {}
 ''').path;
@@ -582,9 +580,9 @@ main() {
   }
 
   Future<void> test_afterAnalysis_packageFile_inRoot() async {
-    String pkgA = convertPath('/pkgA');
-    String pkgB = convertPath('/pkgA');
-    String pkgFileA = newFile('$pkgA/lib/libA.dart', content: '''
+    var pkgA = convertPath('/pkgA');
+    var pkgB = convertPath('/pkgA');
+    var pkgFileA = newFile('$pkgA/lib/libA.dart', content: '''
 library lib_a;
 class A {}
 ''').path;
@@ -609,7 +607,7 @@ main() {
   }
 
   Future<void> test_afterAnalysis_packageFile_notUsed() async {
-    String pkgFile = newFile('/packages/pkgA/lib/libA.dart', content: '''
+    var pkgFile = newFile('/packages/pkgA/lib/libA.dart', content: '''
 library lib_a;
 class A {}
 ''').path;
@@ -630,7 +628,7 @@ class A {}
   }
 
   Future<void> test_afterAnalysis_sdkFile() async {
-    String file = convertPath('/sdk/lib/core/core.dart');
+    var file = convertPath('/sdk/lib/core/core.dart');
     addTestFile('// no matter');
     createProject();
     // wait for analysis, no results initially
@@ -660,13 +658,11 @@ class A {}
     addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
     // wait for analysis
     await waitForTasksFinished();
-    plugin.AnalysisSetSubscriptionsParams params =
-        pluginManager.analysisSetSubscriptionsParams;
+    var params = pluginManager.analysisSetSubscriptionsParams;
     expect(params, isNotNull);
-    Map<plugin.AnalysisService, List<String>> subscriptions =
-        params.subscriptions;
+    var subscriptions = params.subscriptions;
     expect(subscriptions, hasLength(1));
-    List<String> files = subscriptions[plugin.AnalysisService.HIGHLIGHTS];
+    var files = subscriptions[plugin.AnalysisService.HIGHLIGHTS];
     expect(files, [testFile]);
   }
 }

@@ -4,7 +4,6 @@
 
 import 'dart:collection';
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -19,6 +18,7 @@ import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
@@ -85,21 +85,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     this._currentLibrary,
     CompilationUnit unit,
     String content, {
-    TypeSystemImpl typeSystem,
+    @required TypeSystemImpl typeSystem,
     @required InheritanceManager3 inheritanceManager,
-    ResourceProvider resourceProvider,
-    DeclaredVariables declaredVariables,
-    AnalysisOptions analysisOptions,
+    @required ResourceProvider resourceProvider,
+    @required DeclaredVariables declaredVariables,
+    @required AnalysisOptions analysisOptions,
   })  : _nullType = typeProvider.nullType,
-        _typeSystem = typeSystem ??
-            TypeSystemImpl(
-              implicitCasts: true,
-              isNonNullableByDefault: false,
-              strictInference: false,
-              typeProvider: typeProvider,
-            ),
-        _isNonNullableByDefault =
-            unit.featureSet.isEnabled(Feature.non_nullable),
+        _typeSystem = typeSystem,
+        _isNonNullableByDefault = typeSystem.isNonNullableByDefault,
         _strictInference =
             (analysisOptions as AnalysisOptionsImpl).strictInference,
         _inheritanceManager = inheritanceManager,
@@ -242,6 +235,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitCatchClause(CatchClause node) {
+    super.visitCatchClause(node);
+    _checkForNullableTypeInCatchClause(node);
+  }
+
+  @override
   void visitClassDeclaration(ClassDeclaration node) {
     ClassElementImpl element = node.declaredElement;
     _enclosingClass = element;
@@ -309,15 +308,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             Name name = Name(_currentLibrary.source.uri, element.name);
             Element enclosingElement = element.enclosingElement;
             if (enclosingElement is ClassElement) {
-              InterfaceType classType = enclosingElement.thisType;
-              var overridden = _inheritanceManager.getMember(classType, name,
-                  forSuper: true);
+              var overridden = _inheritanceManager
+                  .getMember2(enclosingElement, name, forSuper: true);
               // Check for a setter.
               if (overridden == null) {
                 Name setterName =
                     Name(_currentLibrary.source.uri, '${element.name}=');
                 overridden = _inheritanceManager
-                    .getMember(classType, setterName, forSuper: true);
+                    .getMember2(enclosingElement, setterName, forSuper: true);
               }
               return overridden;
             }
@@ -464,21 +462,21 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     ExecutableElement element = node.declaredElement;
     Element enclosingElement = element?.enclosingElement;
 
-    InterfaceType classType =
-        enclosingElement is ClassElement ? enclosingElement.thisType : null;
     Name name = Name(_currentLibrary.source.uri, element?.name ?? '');
 
     bool elementIsOverride() =>
-        element is ClassMemberElement && enclosingElement != null
-            ? _inheritanceManager.getOverridden(classType, name) != null
+        element is ClassMemberElement && enclosingElement is ClassElement
+            ? _inheritanceManager.getOverridden2(enclosingElement, name) != null
             : false;
     ExecutableElement getConcreteOverriddenElement() =>
-        element is ClassMemberElement && enclosingElement != null
-            ? _inheritanceManager.getMember(classType, name, forSuper: true)
+        element is ClassMemberElement && enclosingElement is ClassElement
+            ? _inheritanceManager.getMember2(enclosingElement, name,
+                forSuper: true)
             : null;
     ExecutableElement getOverriddenPropertyAccessor() =>
-        element is PropertyAccessorElement && enclosingElement != null
-            ? _inheritanceManager.getMember(classType, name, forSuper: true)
+        element is PropertyAccessorElement && enclosingElement is ClassElement
+            ? _inheritanceManager.getMember2(enclosingElement, name,
+                forSuper: true)
             : null;
 
     if (element != null && element.hasDeprecated) {
@@ -661,7 +659,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         return true;
       }
       // `is Object` or `is! Object`
-      if (rhsType.isObject) {
+      if (rhsType.isDartCoreObject) {
         var nullability = rhsType.nullabilitySuffix;
         if (nullability == NullabilitySuffix.star ||
             nullability == NullabilitySuffix.question) {
@@ -1110,56 +1108,56 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
-    if (body is BlockFunctionBody) {
-      // Prefer the type from the element model, in case we've inferred one.
-      DartType returnType = element?.returnType ?? returnNode?.type;
+    // Generators always return.
+    if (body.isGenerator) {
+      return;
+    }
 
-      // Skip the check if we're missing a return type (e.g. erroneous code).
-      // Generators are never required to have a return statement.
-      if (returnType == null || body.isGenerator) {
-        return;
-      }
+    if (body is! BlockFunctionBody) {
+      return;
+    }
 
-      var flattenedType =
-          body.isAsynchronous ? _typeSystem.flatten(returnType) : returnType;
+    var bodyContext = BodyInferenceContext.of(body);
+    // TODO(scheglov) Update InferenceContext to record any type, dynamic.
+    var returnType = bodyContext.contextType ?? DynamicTypeImpl.instance;
 
-      // Function expressions without a return will have their return type set
-      // to `Null` regardless of their context type. So we need to figure out
-      // if a return type was expected from the original downwards context.
-      //
-      // This helps detect hint cases like `int Function() f = () {}`.
-      // See https://github.com/dart-lang/sdk/issues/28233 for context.
-      if (flattenedType.isDartCoreNull && functionNode is FunctionExpression) {
-        var contextType = InferenceContext.getContext(functionNode);
-        if (contextType is FunctionType) {
-          returnType = contextType.returnType;
-          flattenedType = body.isAsynchronous
-              ? _typeSystem.flatten(returnType)
-              : returnType;
-        }
-      }
+    if (_typeSystem.isNullable(returnType)) {
+      return;
+    }
 
-      // dynamic, Null, void, and FutureOr<T> where T is (dynamic, Null, void)
-      // are allowed to omit a return.
-      if (flattenedType.isDartAsyncFutureOr) {
-        flattenedType = (flattenedType as InterfaceType).typeArguments[0];
-      }
-      if (flattenedType.isBottom ||
-          flattenedType.isDynamic ||
-          flattenedType.isDartCoreNull ||
-          flattenedType.isVoid) {
-        return;
-      }
-      // Otherwise issue a warning if the block doesn't have a return.
-      if (!ExitDetector.exits(body)) {
-        AstNode errorNode = functionNode is MethodDeclaration
-            ? functionNode.name
-            : functionNode is FunctionDeclaration
-                ? functionNode.name
-                : functionNode;
-        _errorReporter.reportErrorForNode(
-            HintCode.MISSING_RETURN, errorNode, [returnType]);
-      }
+    if (ExitDetector.exits(body)) {
+      return;
+    }
+
+    var errorNode = functionNode;
+    if (functionNode is FunctionDeclaration) {
+      errorNode = functionNode.name;
+    } else if (functionNode is MethodDeclaration) {
+      errorNode = functionNode.name;
+    }
+
+    _errorReporter.reportErrorForNode(
+      HintCode.MISSING_RETURN,
+      errorNode,
+      [returnType],
+    );
+  }
+
+  void _checkForNullableTypeInCatchClause(CatchClause node) {
+    if (!_isNonNullableByDefault) {
+      return;
+    }
+
+    var type = node.exceptionType;
+    if (type == null) {
+      return;
+    }
+
+    if (_typeSystem.isPotentiallyNullable(type.type)) {
+      _errorReporter.reportErrorForNode(
+        HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE,
+        type,
+      );
     }
   }
 
@@ -1484,6 +1482,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 class _InvalidAccessVerifier {
   static final _templateExtension = '.template';
   static final _testDir = '${path.separator}test${path.separator}';
+  static final _testDriverDir = '${path.separator}test_driver${path.separator}';
   static final _testingDir = '${path.separator}testing${path.separator}';
 
   final ErrorReporter _errorReporter;
@@ -1497,7 +1496,9 @@ class _InvalidAccessVerifier {
   _InvalidAccessVerifier(this._errorReporter, this._library) {
     var path = _library.source.fullName;
     _inTemplateSource = path.contains(_templateExtension);
-    _inTestDirectory = path.contains(_testDir) || path.contains(_testingDir);
+    _inTestDirectory = path.contains(_testDir) ||
+        path.contains(_testDriverDir) ||
+        path.contains(_testingDir);
   }
 
   /// Produces a hint if [identifier] is accessed from an invalid location. In

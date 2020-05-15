@@ -14,7 +14,7 @@ import 'package:observatory/src/elements/helpers/uris.dart';
 class ScriptRefElement extends CustomElement implements Renderable {
   static const tag = const Tag<ScriptRefElement>('script-ref');
 
-  RenderingScheduler _r;
+  RenderingScheduler<ScriptRefElement> _r;
 
   Stream<RenderedEvent<ScriptRefElement>> get onRendered => _r.onRendered;
 

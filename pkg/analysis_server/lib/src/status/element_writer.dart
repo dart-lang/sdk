@@ -45,8 +45,6 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
       properties['isAbstract'] = element.isAbstract;
       properties['isEnum'] = element.isEnum;
       properties['isMixinApplication'] = element.isMixinApplication;
-      properties['isOrInheritsProxy'] = element.isOrInheritsProxy;
-      properties['isProxy'] = element.isProxy;
       properties['isValidMixin'] = element.isValidMixin;
       properties['mixins'] = element.mixins;
       properties['superclassConstraints'] = element.superclassConstraints;
@@ -147,7 +145,6 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
       properties['typeParameters'] = element.typeParameters;
     }
     if (element is VariableElement) {
-      properties['constantValue'] = element.constantValue;
       properties['hasImplicitType'] = element.hasImplicitType;
       properties['isConst'] = element.isConst;
       properties['isFinal'] = element.isFinal;

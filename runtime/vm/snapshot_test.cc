@@ -1078,16 +1078,16 @@ VM_UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
       "  return ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];\n"
       "}\n"
       "getListList() {\n"
-      "  return [[],"
-      "          [0],"
-      "          [0, 1],"
-      "          [0, 1, 2],"
-      "          [0, 1, 2, 3],"
-      "          [0, 1, 2, 3, 4],"
-      "          [0, 1, 2, 3, 4, 5],"
-      "          [0, 1, 2, 3, 4, 5, 6],"
-      "          [0, 1, 2, 3, 4, 5, 6, 7],"
-      "          [0, 1, 2, 3, 4, 5, 6, 7, 8]];\n"
+      "  return <dynamic>[[],"
+      "                   [0],"
+      "                   [0, 1],"
+      "                   [0, 1, 2],"
+      "                   [0, 1, 2, 3],"
+      "                   [0, 1, 2, 3, 4],"
+      "                   [0, 1, 2, 3, 4, 5],"
+      "                   [0, 1, 2, 3, 4, 5, 6],"
+      "                   [0, 1, 2, 3, 4, 5, 6, 7],"
+      "                   [0, 1, 2, 3, 4, 5, 6, 7, 8]];\n"
       "}\n"
       "getMixedList() {\n"
       "  var list = [];\n"
@@ -1096,10 +1096,10 @@ VM_UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
       "  list.add(2.2);\n"
       "  list.add(true);\n"
       "  list.add([]);\n"
-      "  list.add([[]]);\n"
-      "  list.add([[[]]]);\n"
-      "  list.add([1, [2, [3]]]);\n"
-      "  list.add([1, [1, 2, [1, 2, 3]]]);\n"
+      "  list.add(<dynamic>[[]]);\n"
+      "  list.add(<dynamic>[<dynamic>[[]]]);\n"
+      "  list.add(<dynamic>[1, <dynamic>[2, [3]]]);\n"
+      "  list.add(<dynamic>[1, <dynamic>[1, 2, [1, 2, 3]]]);\n"
       "  list.add([1, 2, 3]);\n"
       "  return list;\n"
       "}\n";
@@ -1991,6 +1991,61 @@ TEST_CASE(IsKernelNegative) {
 
   uint8_t buffer[4] = {0, 0, 0, 0};
   EXPECT(!Dart_IsKernel(buffer, ARRAY_SIZE(buffer)));
+}
+
+VM_UNIT_TEST_CASE(LegacyErasureDetectionInFullSnapshot) {
+  const char* kScriptChars =
+      "class Generic<T> {\n"
+      "  const Generic();\n"
+      "  static const Generic<int> g = const Generic<int>();\n"
+      "  static testMain() => g.runtimeType;\n"
+      "}\n";
+
+  // Start an Isolate, load and execute a script and check if legacy erasure is
+  // required, preventing to write a full snapshot.
+  {
+    TestIsolateScope __test_isolate__;
+
+    // Create a test library and Load up a test script in it.
+    Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+    EXPECT_VALID(lib);
+
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    ASSERT(isolate == __test_isolate__.isolate());
+    TransitionNativeToVM transition(thread);
+    StackZone zone(thread);
+    HandleScope scope(thread);
+
+    Dart_Handle result = Api::CheckAndFinalizePendingClasses(thread);
+    Dart_Handle cls;
+    {
+      TransitionVMToNative to_native(thread);
+      EXPECT_VALID(result);
+
+      // Invoke a function so that the constant is evaluated.
+      cls = Dart_GetClass(TestCase::lib(), NewString("Generic"));
+      result = Dart_Invoke(cls, NewString("testMain"), 0, NULL);
+      EXPECT_VALID(result);
+    }
+    // Verify that legacy erasure is required in strong mode.
+    Type& type = Type::Handle();
+    type ^= Api::UnwrapHandle(cls);  // Dart_GetClass actually returns a Type.
+    const Class& clazz = Class::Handle(type.type_class());
+    const bool required = clazz.RequireLegacyErasureOfConstants(zone.GetZone());
+    EXPECT(required == isolate->null_safety());
+
+    // Verify that snapshot writing succeeds if erasure is not required.
+    if (!required) {
+      // Write snapshot with object content.
+      uint8_t* isolate_snapshot_data_buffer;
+      FullSnapshotWriter writer(
+          Snapshot::kFull, NULL, &isolate_snapshot_data_buffer,
+          &malloc_allocator, NULL, /*image_writer*/ nullptr);
+      writer.WriteFullSnapshot();
+      free(isolate_snapshot_data_buffer);
+    }
+  }
 }
 
 }  // namespace dart

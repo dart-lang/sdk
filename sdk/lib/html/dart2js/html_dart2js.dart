@@ -11778,6 +11778,10 @@ class _ChildrenElementList extends ListBase<Element>
     }
   }
 
+  void insertAll(int index, Iterable<Element> iterable) {
+    throw new UnimplementedError();
+  }
+
   void setAll(int index, Iterable<Element> iterable) {
     throw new UnimplementedError();
   }
@@ -11796,9 +11800,7 @@ class _ChildrenElementList extends ListBase<Element>
 
   Element removeLast() {
     final result = this.last;
-    if (result != null) {
-      _element._removeChild(result);
-    }
+    _element._removeChild(result);
     return result;
   }
 
@@ -13645,7 +13647,9 @@ class Element extends Node
     if (Range.supportsCreateContextualFragment &&
         _canBeUsedToCreateContextualFragment) {
       _parseRange.selectNodeContents(contextElement);
-      fragment = _parseRange.createContextualFragment(html);
+      // createContextualFragment expects a non-nullable html string.
+      // If null is passed, it gets converted to 'null' instead.
+      fragment = _parseRange.createContextualFragment(html ?? 'null');
     } else {
       contextElement._innerHtml = html;
 
@@ -13770,6 +13774,14 @@ class Element extends Node
          if (!(element.attributes instanceof NamedNodeMap)) {
 	   return true;
 	 }
+         // If something has corrupted the traversal we want to detect
+         // these on not only the children (tested below) but on the node itself
+         // in case it was bypassed.
+         if (element["id"] == 'lastChild' || element["name"] == 'lastChild' ||
+             element["id"] == 'previousSibling' || element["name"] == 'previousSibling' ||
+             element["id"] == 'children' || element["name"] == 'children') {
+           return true;
+         }
 	 var childNodes = element.childNodes;
 	 if (element.lastChild &&
 	     element.lastChild !== childNodes[childNodes.length -1]) {
@@ -13795,6 +13807,7 @@ class Element extends Node
            // allowing us to check for clobbering that may show up in other accesses.
            if (child["id"] == 'attributes' || child["name"] == 'attributes' ||
                child["id"] == 'lastChild'  || child["name"] == 'lastChild' ||
+               child["id"] == 'previousSibling'  || child["name"] == 'previousSibling' ||
                child["id"] == 'children' || child["name"] == 'children') {
              return true;
            }
@@ -15372,7 +15385,7 @@ class ErrorEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
-@Native("Event,InputEvent")
+@Native("Event,InputEvent,SubmitEvent")
 class Event extends Interceptor {
   // In JS, canBubble and cancelable are technically required parameters to
   // init*Event. In practice, though, if they aren't provided they simply
@@ -20432,6 +20445,15 @@ class MediaDevices extends EventTarget {
 
   @JSName('getSupportedConstraints')
   _getSupportedConstraints_1() native;
+
+  Future<MediaStream> getUserMedia([Map constraints]) {
+    var constraints_dict = null;
+    if (constraints != null) {
+      constraints_dict = convertDartToNative_Dictionary(constraints);
+    }
+    return promiseToFuture<MediaStream>(
+        JS("", "#.getUserMedia(#)", this, constraints_dict));
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36043,7 +36065,8 @@ abstract class CssClassSet implements Set<String> {
    * after the operation, and returns `false` if [value] is absent after the
    * operation.
    *
-   * If this corresponds to many elements, `null` is always returned.
+   * If this CssClassSet corresponds to many elements, `false` is always
+   * returned.
    *
    * [value] must be a valid 'token' representing a single class, i.e. a
    * non-empty string containing no whitespace.  To toggle multiple classes, use
@@ -36077,7 +36100,8 @@ abstract class CssClassSet implements Set<String> {
    * If this CssClassSet corresponds to one element. Returns true if [value] was
    * added to the set, otherwise false.
    *
-   * If this corresponds to many elements, `null` is always returned.
+   * If this CssClassSet corresponds to many elements, `false` is always
+   * returned.
    *
    * [value] must be a valid 'token' representing a single class, i.e. a
    * non-empty string containing no whitespace.  To add multiple classes use
@@ -40773,6 +40797,9 @@ class _ThrowsNodeValidator implements NodeValidator {
  */
 class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   NodeValidator validator;
+
+  /// Did we modify the tree by removing anything.
+  bool modifiedTree = false;
   _ValidatingTreeSanitizer(this.validator) {}
 
   void sanitizeTree(Node node) {
@@ -40781,11 +40808,15 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
 
       var child = node.lastChild;
       while (null != child) {
-        var nextChild;
+        Node nextChild;
         try {
-          // Child may be removed during the walk, and we may not
-          // even be able to get its previousNode.
+          // Child may be removed during the walk, and we may not even be able
+          // to get its previousNode. But it's also possible that previousNode
+          // (i.e. previousSibling) is being spoofed, so double-check it.
           nextChild = child.previousNode;
+          if (nextChild != null && nextChild.nextNode != child) {
+            throw StateError("Corrupt HTML");
+          }
         } catch (e) {
           // Child appears bad, remove it. We want to check the rest of the
           // children of node and, but we have no way of getting to the next
@@ -40799,7 +40830,12 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
       }
     }
 
+    modifiedTree = false;
     walk(node, null);
+    while (modifiedTree) {
+      modifiedTree = false;
+      walk(node, null);
+    }
   }
 
   /// Aggressively try to remove node.
@@ -40807,7 +40843,8 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
     // If we have the parent, it's presumably already passed more sanitization
     // or is the fragment, so ask it to remove the child. And if that fails
     // try to set the outer html.
-    if (parent == null) {
+    modifiedTree = true;
+    if (parent == null || parent != node.parentNode) {
       node.remove();
     } else {
       parent._removeChild(node);

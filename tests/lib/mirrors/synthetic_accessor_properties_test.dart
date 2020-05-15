@@ -45,8 +45,7 @@ main() {
   Expect.equals(reflectClass(num), mm.returnType);
   Expect.listEquals([], mm.parameters);
 
-  mm = cm.instanceMembers[const Symbol('finalInstanceField=')] as MethodMirror;
-  Expect.isNull(mm);
+  Expect.isNull(cm.instanceMembers[const Symbol('finalInstanceField=')]);
 
   mm = cm.staticMembers[#staticField] as MethodMirror;
   expect('Method(s(staticField) in s(C), synthetic, static, getter)', mm);
@@ -67,6 +66,5 @@ main() {
   Expect.equals(reflectClass(int), mm.returnType);
   Expect.listEquals([], mm.parameters);
 
-  mm = cm.staticMembers[const Symbol('finalStaticField=')] as MethodMirror;
-  Expect.isNull(mm);
+  Expect.isNull(cm.staticMembers[const Symbol('finalStaticField=')]);
 }

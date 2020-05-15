@@ -6,15 +6,13 @@
 
 #include "include/dart_api.h"
 
-#include "platform/address_sanitizer.h"
-
+#include "vm/code_descriptors.h"
 #include "vm/code_patcher.h"
+#include "vm/compiler/api/deopt_id.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/assembler/disassembler_kbc.h"
-#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
-#include "vm/deopt_instructions.h"
 #include "vm/flags.h"
 #include "vm/globals.h"
 #include "vm/interpreter.h"
@@ -40,6 +38,11 @@
 #include "vm/timeline.h"
 #include "vm/token_position.h"
 #include "vm/visitor.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/frontend/bytecode_reader.h"
+#include "vm/deopt_instructions.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 
@@ -145,13 +148,13 @@ void Breakpoint::set_bpt_location(BreakpointLocation* new_bpt_location) {
 }
 
 void Breakpoint::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&closure_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&closure_));
 }
 
 void BreakpointLocation::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&script_));
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&url_));
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&function_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&script_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&url_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&function_));
 
   Breakpoint* bpt = conditions_;
   while (bpt != NULL) {
@@ -178,9 +181,9 @@ void Breakpoint::PrintJSON(JSONStream* stream) {
 }
 
 void CodeBreakpoint::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&code_));
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&bytecode_));
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&saved_value_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&code_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&bytecode_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&saved_value_));
 }
 
 ActivationFrame::ActivationFrame(uword pc,
@@ -328,15 +331,15 @@ void Debugger::InvokeEventHandler(ServiceEvent* event) {
   Service::HandleEvent(event);
 }
 
-RawError* Debugger::PauseInterrupted() {
+ErrorPtr Debugger::PauseInterrupted() {
   return PauseRequest(ServiceEvent::kPauseInterrupted);
 }
 
-RawError* Debugger::PausePostRequest() {
+ErrorPtr Debugger::PausePostRequest() {
   return PauseRequest(ServiceEvent::kPausePostRequest);
 }
 
-RawError* Debugger::PauseRequest(ServiceEvent::EventKind kind) {
+ErrorPtr Debugger::PauseRequest(ServiceEvent::EventKind kind) {
   if (ignore_breakpoints_ || IsPaused()) {
     // We don't let the isolate get interrupted if we are already
     // paused or ignoring breakpoints.
@@ -356,7 +359,7 @@ RawError* Debugger::PauseRequest(ServiceEvent::EventKind kind) {
 
   // If any error occurred while in the debug message loop, return it here.
   NoSafepointScope no_safepoint;
-  RawError* error = Thread::Current()->StealStickyError();
+  ErrorPtr error = Thread::Current()->StealStickyError();
   ASSERT((error == Error::null()) || error->IsUnwindError());
   return error;
 }
@@ -459,14 +462,14 @@ static bool FunctionOverlaps(const Function& func,
 
 static bool IsImplicitFunction(const Function& func) {
   switch (func.kind()) {
-    case RawFunction::kImplicitGetter:
-    case RawFunction::kImplicitSetter:
-    case RawFunction::kImplicitStaticGetter:
-    case RawFunction::kFieldInitializer:
-    case RawFunction::kMethodExtractor:
-    case RawFunction::kNoSuchMethodDispatcher:
-    case RawFunction::kInvokeFieldDispatcher:
-    case RawFunction::kIrregexpFunction:
+    case FunctionLayout::kImplicitGetter:
+    case FunctionLayout::kImplicitSetter:
+    case FunctionLayout::kImplicitStaticGetter:
+    case FunctionLayout::kFieldInitializer:
+    case FunctionLayout::kMethodExtractor:
+    case FunctionLayout::kNoSuchMethodDispatcher:
+    case FunctionLayout::kInvokeFieldDispatcher:
+    case FunctionLayout::kIrregexpFunction:
       return true;
     default:
       if (func.token_pos() == func.end_token_pos()) {
@@ -605,20 +608,20 @@ ActivationFrame::Relation ActivationFrame::CompareTo(
   return IsCalleeFrameOf(other_fp, fp()) ? kCallee : kCaller;
 }
 
-RawString* ActivationFrame::QualifiedFunctionName() {
+StringPtr ActivationFrame::QualifiedFunctionName() {
   return String::New(Debugger::QualifiedFunctionName(function()));
 }
 
-RawString* ActivationFrame::SourceUrl() {
+StringPtr ActivationFrame::SourceUrl() {
   const Script& script = Script::Handle(SourceScript());
   return script.url();
 }
 
-RawScript* ActivationFrame::SourceScript() {
+ScriptPtr ActivationFrame::SourceScript() {
   return function().script();
 }
 
-RawLibrary* ActivationFrame::Library() {
+LibraryPtr ActivationFrame::Library() {
   const Class& cls = Class::Handle(function().origin());
   return cls.library();
 }
@@ -643,7 +646,7 @@ TokenPosition ActivationFrame::TokenPos() {
     }
     token_pos_ = TokenPosition::kNoSource;
     GetPcDescriptors();
-    PcDescriptors::Iterator iter(pc_desc_, RawPcDescriptors::kAnyKind);
+    PcDescriptors::Iterator iter(pc_desc_, PcDescriptorsLayout::kAnyKind);
     const uword pc_offset = pc_ - code().PayloadStart();
     while (iter.MoveNext()) {
       if (iter.PcOffset() == pc_offset) {
@@ -801,10 +804,10 @@ intptr_t ActivationFrame::ContextLevel() {
       intptr_t var_desc_len = var_descriptors_.Length();
       bool found = false;
       for (intptr_t cur_idx = 0; cur_idx < var_desc_len; cur_idx++) {
-        RawLocalVarDescriptors::VarInfo var_info;
+        LocalVarDescriptorsLayout::VarInfo var_info;
         var_descriptors_.GetInfo(cur_idx, &var_info);
         const int8_t kind = var_info.kind();
-        if ((kind == RawLocalVarDescriptors::kContextLevel) &&
+        if ((kind == LocalVarDescriptorsLayout::kContextLevel) &&
             (deopt_id >= var_info.begin_pos.value()) &&
             (deopt_id <= var_info.end_pos.value())) {
           context_level_ = var_info.index();
@@ -821,7 +824,7 @@ intptr_t ActivationFrame::ContextLevel() {
   return context_level_;
 }
 
-RawObject* ActivationFrame::GetAsyncContextVariable(const String& name) {
+ObjectPtr ActivationFrame::GetAsyncContextVariable(const String& name) {
   if (!function_.IsAsyncClosure() && !function_.IsAsyncGenClosure()) {
     return Object::null();
   }
@@ -830,18 +833,18 @@ RawObject* ActivationFrame::GetAsyncContextVariable(const String& name) {
   intptr_t ctxt_slot = -1;
   intptr_t var_desc_len = var_descriptors_.Length();
   for (intptr_t i = 0; i < var_desc_len; i++) {
-    RawLocalVarDescriptors::VarInfo var_info;
+    LocalVarDescriptorsLayout::VarInfo var_info;
     var_descriptors_.GetInfo(i, &var_info);
     if (var_descriptors_.GetName(i) == name.raw()) {
       const int8_t kind = var_info.kind();
       if (!live_frame_) {
-        ASSERT(kind == RawLocalVarDescriptors::kContextVar);
+        ASSERT(kind == LocalVarDescriptorsLayout::kContextVar);
       }
       const auto variable_index = VariableIndex(var_info.index());
-      if (kind == RawLocalVarDescriptors::kStackVar) {
+      if (kind == LocalVarDescriptorsLayout::kStackVar) {
         return GetStackVar(variable_index);
       } else {
-        ASSERT(kind == RawLocalVarDescriptors::kContextVar);
+        ASSERT(kind == LocalVarDescriptorsLayout::kContextVar);
         // Variable descriptors constructed from bytecode have all variables of
         // enclosing functions, even shadowed by the current function.
         // Pick the variable with the highest context level.
@@ -868,11 +871,11 @@ RawObject* ActivationFrame::GetAsyncContextVariable(const String& name) {
   return Object::null();
 }
 
-RawObject* ActivationFrame::GetAsyncCompleter() {
+ObjectPtr ActivationFrame::GetAsyncCompleter() {
   return GetAsyncContextVariable(Symbols::AsyncCompleter());
 }
 
-RawObject* ActivationFrame::GetAsyncCompleterAwaiter(const Object& completer) {
+ObjectPtr ActivationFrame::GetAsyncCompleterAwaiter(const Object& completer) {
   DEBUG_ASSERT(Thread::Current()->TopErrorHandlerIsExitFrame());
 
   Object& future = Object::Handle();
@@ -899,11 +902,11 @@ RawObject* ActivationFrame::GetAsyncCompleterAwaiter(const Object& completer) {
   return Instance::Cast(future).GetField(awaiter_field);
 }
 
-RawObject* ActivationFrame::GetAsyncStreamControllerStream() {
+ObjectPtr ActivationFrame::GetAsyncStreamControllerStream() {
   return GetAsyncContextVariable(Symbols::ControllerStream());
 }
 
-RawObject* ActivationFrame::GetAsyncStreamControllerStreamAwaiter(
+ObjectPtr ActivationFrame::GetAsyncStreamControllerStreamAwaiter(
     const Object& stream) {
   const Class& stream_cls = Class::Handle(stream.clazz());
   ASSERT(!stream_cls.IsNull());
@@ -914,7 +917,7 @@ RawObject* ActivationFrame::GetAsyncStreamControllerStreamAwaiter(
   return Instance::Cast(stream).GetField(awaiter_field);
 }
 
-RawObject* ActivationFrame::GetAsyncAwaiter() {
+ObjectPtr ActivationFrame::GetAsyncAwaiter() {
   const Object& async_stream_controller_stream =
       Object::Handle(GetAsyncStreamControllerStream());
   if (!async_stream_controller_stream.IsNull()) {
@@ -928,7 +931,7 @@ RawObject* ActivationFrame::GetAsyncAwaiter() {
   return Object::null();
 }
 
-RawObject* ActivationFrame::GetCausalStack() {
+ObjectPtr ActivationFrame::GetCausalStack() {
   return GetAsyncContextVariable(Symbols::AsyncStackTraceVar());
 }
 
@@ -987,11 +990,11 @@ intptr_t ActivationFrame::GetAwaitJumpVariable() {
   intptr_t var_desc_len = var_descriptors_.Length();
   intptr_t await_jump_var = -1;
   for (intptr_t i = 0; i < var_desc_len; i++) {
-    RawLocalVarDescriptors::VarInfo var_info;
+    LocalVarDescriptorsLayout::VarInfo var_info;
     var_descriptors_.GetInfo(i, &var_info);
     const int8_t kind = var_info.kind();
     if (var_descriptors_.GetName(i) == Symbols::AwaitJumpVar().raw()) {
-      ASSERT(kind == RawLocalVarDescriptors::kContextVar);
+      ASSERT(kind == LocalVarDescriptorsLayout::kContextVar);
       ASSERT(!ctx_.IsNull());
       // Variable descriptors constructed from bytecode have all variables of
       // enclosing functions, even shadowed by the current function.
@@ -1060,7 +1063,7 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
   const auto& pc_descriptors =
       PcDescriptors::Handle(zone, code().pc_descriptors());
   ASSERT(!pc_descriptors.IsNull());
-  PcDescriptors::Iterator it(pc_descriptors, RawPcDescriptors::kOther);
+  PcDescriptors::Iterator it(pc_descriptors, PcDescriptorsLayout::kOther);
   while (it.MoveNext()) {
     if (it.YieldIndex() == await_jump_var) {
       try_index_ = it.TryIndex();
@@ -1096,10 +1099,10 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
   intptr_t var_desc_len = var_descriptors_.Length();
   Object& obj = Object::Handle();
   for (intptr_t i = 0; i < var_desc_len; i++) {
-    RawLocalVarDescriptors::VarInfo var_info;
+    LocalVarDescriptorsLayout::VarInfo var_info;
     var_descriptors_.GetInfo(i, &var_info);
     const int8_t kind = var_info.kind();
-    if (kind == RawLocalVarDescriptors::kSavedCurrentContext) {
+    if (kind == LocalVarDescriptorsLayout::kSavedCurrentContext) {
       if (FLAG_trace_debugger_stacktrace) {
         OS::PrintErr("\tFound saved current ctx at index %d\n",
                      var_info.index());
@@ -1123,7 +1126,7 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
   return ctx_;
 }
 
-RawObject* ActivationFrame::GetAsyncOperation() {
+ObjectPtr ActivationFrame::GetAsyncOperation() {
   if (function().name() == Symbols::AsyncOperation().raw()) {
     return GetParameter(0);
   }
@@ -1163,16 +1166,16 @@ void ActivationFrame::GetDescIndices() {
   intptr_t var_desc_len = var_descriptors_.Length();
   for (intptr_t cur_idx = 0; cur_idx < var_desc_len; cur_idx++) {
     ASSERT(var_names.length() == desc_indices_.length());
-    RawLocalVarDescriptors::VarInfo var_info;
+    LocalVarDescriptorsLayout::VarInfo var_info;
     var_descriptors_.GetInfo(cur_idx, &var_info);
     const int8_t kind = var_info.kind();
-    if ((kind != RawLocalVarDescriptors::kStackVar) &&
-        (kind != RawLocalVarDescriptors::kContextVar)) {
+    if ((kind != LocalVarDescriptorsLayout::kStackVar) &&
+        (kind != LocalVarDescriptorsLayout::kContextVar)) {
       continue;
     }
     if ((var_info.begin_pos <= activation_token_pos) &&
         (activation_token_pos <= var_info.end_pos)) {
-      if ((kind == RawLocalVarDescriptors::kContextVar) &&
+      if ((kind == LocalVarDescriptorsLayout::kContextVar) &&
           (ContextLevel() < var_info.scope_id)) {
         // The variable is textually in scope but the context level
         // at the activation frame's PC is lower than the context
@@ -1193,7 +1196,7 @@ void ActivationFrame::GetDescIndices() {
           // Found two local variables with the same name. Now determine
           // which one is shadowed.
           name_match_found = true;
-          RawLocalVarDescriptors::VarInfo i_var_info;
+          LocalVarDescriptorsLayout::VarInfo i_var_info;
           var_descriptors_.GetInfo(desc_indices_[i], &i_var_info);
           if (i_var_info.begin_pos < var_info.begin_pos) {
             // The variable we found earlier is in an outer scope
@@ -1225,12 +1228,12 @@ intptr_t ActivationFrame::NumLocalVariables() {
   return desc_indices_.length();
 }
 
-DART_FORCE_INLINE static RawObject* GetVariableValue(uword addr) {
-  return *reinterpret_cast<RawObject**>(addr);
+DART_FORCE_INLINE static ObjectPtr GetVariableValue(uword addr) {
+  return *reinterpret_cast<ObjectPtr*>(addr);
 }
 
 // Caution: GetParameter only works for fixed parameters.
-RawObject* ActivationFrame::GetParameter(intptr_t index) {
+ObjectPtr ActivationFrame::GetParameter(intptr_t index) {
   intptr_t num_parameters = function().num_fixed_parameters();
   ASSERT(0 <= index && index < num_parameters);
 
@@ -1259,12 +1262,12 @@ RawObject* ActivationFrame::GetParameter(intptr_t index) {
   }
 }
 
-RawObject* ActivationFrame::GetClosure() {
+ObjectPtr ActivationFrame::GetClosure() {
   ASSERT(function().IsClosureFunction());
   return GetParameter(0);
 }
 
-RawObject* ActivationFrame::GetStackVar(VariableIndex variable_index) {
+ObjectPtr ActivationFrame::GetStackVar(VariableIndex variable_index) {
   if (IsInterpreted()) {
     intptr_t slot_index = -variable_index.value();
     if (slot_index < 0) {
@@ -1359,7 +1362,7 @@ void ActivationFrame::VariableAt(intptr_t i,
 
   *name = var_descriptors_.GetName(desc_index);
 
-  RawLocalVarDescriptors::VarInfo var_info;
+  LocalVarDescriptorsLayout::VarInfo var_info;
   var_descriptors_.GetInfo(desc_index, &var_info);
   ASSERT(declaration_token_pos != NULL);
   *declaration_token_pos = var_info.declaration_pos;
@@ -1370,25 +1373,25 @@ void ActivationFrame::VariableAt(intptr_t i,
   ASSERT(value != NULL);
   const int8_t kind = var_info.kind();
   const auto variable_index = VariableIndex(var_info.index());
-  if (kind == RawLocalVarDescriptors::kStackVar) {
+  if (kind == LocalVarDescriptorsLayout::kStackVar) {
     *value = GetStackVar(variable_index);
   } else {
-    ASSERT(kind == RawLocalVarDescriptors::kContextVar);
+    ASSERT(kind == LocalVarDescriptorsLayout::kContextVar);
     *value = GetContextVar(var_info.scope_id, variable_index.value());
   }
 }
 
-RawObject* ActivationFrame::GetContextVar(intptr_t var_ctx_level,
-                                          intptr_t ctx_slot) {
+ObjectPtr ActivationFrame::GetContextVar(intptr_t var_ctx_level,
+                                         intptr_t ctx_slot) {
   // The context level at the PC/token index of this activation frame.
   intptr_t frame_ctx_level = ContextLevel();
 
   return GetRelativeContextVar(var_ctx_level, ctx_slot, frame_ctx_level);
 }
 
-RawObject* ActivationFrame::GetRelativeContextVar(intptr_t var_ctx_level,
-                                                  intptr_t ctx_slot,
-                                                  intptr_t frame_ctx_level) {
+ObjectPtr ActivationFrame::GetRelativeContextVar(intptr_t var_ctx_level,
+                                                 intptr_t ctx_slot,
+                                                 intptr_t frame_ctx_level) {
   const Context& ctx = GetSavedCurrentContext();
 
   // It's possible that ctx was optimized out as no locals were captured by the
@@ -1423,7 +1426,7 @@ RawObject* ActivationFrame::GetRelativeContextVar(intptr_t var_ctx_level,
   }
 }
 
-RawArray* ActivationFrame::GetLocalVariables() {
+ArrayPtr ActivationFrame::GetLocalVariables() {
   GetDescIndices();
   intptr_t num_variables = desc_indices_.length();
   String& var_name = String::Handle();
@@ -1438,7 +1441,7 @@ RawArray* ActivationFrame::GetLocalVariables() {
   return list.raw();
 }
 
-RawObject* ActivationFrame::GetReceiver() {
+ObjectPtr ActivationFrame::GetReceiver() {
   GetDescIndices();
   intptr_t num_variables = desc_indices_.length();
   String& var_name = String::Handle();
@@ -1461,7 +1464,7 @@ static bool IsPrivateVariableName(const String& var_name) {
   return (var_name.Length() >= 1) && (var_name.CharAt(0) == '_');
 }
 
-RawObject* ActivationFrame::EvaluateCompiledExpression(
+ObjectPtr ActivationFrame::EvaluateCompiledExpression(
     const ExternalTypedData& kernel_buffer,
     const Array& type_definitions,
     const Array& arguments,
@@ -1483,7 +1486,7 @@ RawObject* ActivationFrame::EvaluateCompiledExpression(
   }
 }
 
-RawTypeArguments* ActivationFrame::BuildParameters(
+TypeArgumentsPtr ActivationFrame::BuildParameters(
     const GrowableObjectArray& param_names,
     const GrowableObjectArray& param_values,
     const GrowableObjectArray& type_params_names) {
@@ -1715,14 +1718,14 @@ void DebuggerStackTrace::AddAsyncCausalFrame(uword pc,
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-const uint8_t kSafepointKind = RawPcDescriptors::kIcCall |
-                               RawPcDescriptors::kUnoptStaticCall |
-                               RawPcDescriptors::kRuntimeCall;
+const uint8_t kSafepointKind = PcDescriptorsLayout::kIcCall |
+                               PcDescriptorsLayout::kUnoptStaticCall |
+                               PcDescriptorsLayout::kRuntimeCall;
 
 CodeBreakpoint::CodeBreakpoint(const Code& code,
                                TokenPosition token_pos,
                                uword pc,
-                               RawPcDescriptors::Kind kind)
+                               PcDescriptorsLayout::Kind kind)
     : code_(code.raw()),
       bytecode_(Bytecode::null()),
       token_pos_(token_pos),
@@ -1750,7 +1753,7 @@ CodeBreakpoint::CodeBreakpoint(const Bytecode& bytecode,
       is_enabled_(false),
       bpt_location_(NULL),
       next_(NULL),
-      breakpoint_kind_(RawPcDescriptors::kAnyKind),
+      breakpoint_kind_(PcDescriptorsLayout::kAnyKind),
       saved_value_(Code::null()) {
   ASSERT(!bytecode.IsNull());
   ASSERT(FLAG_enable_interpreter);
@@ -1768,11 +1771,11 @@ CodeBreakpoint::~CodeBreakpoint() {
   pc_ = 0ul;
   bpt_location_ = NULL;
   next_ = NULL;
-  breakpoint_kind_ = RawPcDescriptors::kOther;
+  breakpoint_kind_ = PcDescriptorsLayout::kOther;
 #endif
 }
 
-RawFunction* CodeBreakpoint::function() const {
+FunctionPtr CodeBreakpoint::function() const {
   if (IsInterpreted()) {
     ASSERT(Bytecode::Handle(bytecode_).function() != Function::null());
     return Bytecode::Handle(bytecode_).function();
@@ -1781,12 +1784,12 @@ RawFunction* CodeBreakpoint::function() const {
   }
 }
 
-RawScript* CodeBreakpoint::SourceCode() {
+ScriptPtr CodeBreakpoint::SourceCode() {
   const Function& func = Function::Handle(this->function());
   return func.script();
 }
 
-RawString* CodeBreakpoint::SourceUrl() {
+StringPtr CodeBreakpoint::SourceUrl() {
   const Script& script = Script::Handle(SourceCode());
   return script.url();
 }
@@ -2081,9 +2084,9 @@ ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
   return activation;
 }
 
-RawArray* Debugger::DeoptimizeToArray(Thread* thread,
-                                      StackFrame* frame,
-                                      const Code& code) {
+ArrayPtr Debugger::DeoptimizeToArray(Thread* thread,
+                                     StackFrame* frame,
+                                     const Code& code) {
   ASSERT(code.is_optimized() && !code.is_force_optimized());
   Isolate* isolate = thread->isolate();
   // Create the DeoptContext for this deoptimization.
@@ -3231,7 +3234,7 @@ void Debugger::MakeCodeBreakpointAt(const Function& func,
     ASSERT(!code.IsNull());
     PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
     uword lowest_pc_offset = kUwordMax;
-    RawPcDescriptors::Kind lowest_kind = RawPcDescriptors::kAnyKind;
+    PcDescriptorsLayout::Kind lowest_kind = PcDescriptorsLayout::kAnyKind;
     // Find the safe point with the lowest compiled code address
     // that maps to the token position of the source breakpoint.
     PcDescriptors::Iterator iter(desc, kSafepointKind);
@@ -3872,7 +3875,7 @@ void Debugger::VisitObjectPointers(ObjectPointerVisitor* visitor) {
     cbpt->VisitObjectPointers(visitor);
     cbpt = cbpt->next();
   }
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&top_frame_awaiter_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&top_frame_awaiter_));
 }
 
 void Debugger::Pause(ServiceEvent* event) {
@@ -4135,12 +4138,12 @@ static uword LookupRewindPc(const Code& code, uword return_address) {
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
   PcDescriptors::Iterator iter(
-      descriptors, RawPcDescriptors::kRewind | RawPcDescriptors::kIcCall |
-                       RawPcDescriptors::kUnoptStaticCall);
+      descriptors, PcDescriptorsLayout::kRewind | PcDescriptorsLayout::kIcCall |
+                       PcDescriptorsLayout::kUnoptStaticCall);
   intptr_t rewind_deopt_id = -1;
   uword rewind_pc = 0;
   while (iter.MoveNext()) {
-    if (iter.Kind() == RawPcDescriptors::kRewind) {
+    if (iter.Kind() == PcDescriptorsLayout::kRewind) {
       // Remember the last rewind so we don't need to iterator twice.
       rewind_pc = code.PayloadStart() + iter.PcOffset();
       rewind_deopt_id = iter.DeoptId();
@@ -4430,10 +4433,10 @@ bool Debugger::IsAtAsyncJump(ActivationFrame* top_frame) {
       return false;
     }
     const TokenPosition looking_for = top_frame->TokenPos();
-    PcDescriptors::Iterator it(pc_descriptors, RawPcDescriptors::kOther);
+    PcDescriptors::Iterator it(pc_descriptors, PcDescriptorsLayout::kOther);
     while (it.MoveNext()) {
       if (it.TokenPos() == looking_for &&
-          it.YieldIndex() != RawPcDescriptors::kInvalidYieldIndex) {
+          it.YieldIndex() != PcDescriptorsLayout::kInvalidYieldIndex) {
         return true;
       }
     }
@@ -4441,7 +4444,7 @@ bool Debugger::IsAtAsyncJump(ActivationFrame* top_frame) {
   return false;
 }
 
-RawError* Debugger::PauseStepping() {
+ErrorPtr Debugger::PauseStepping() {
   ASSERT(isolate_->single_step());
   // Don't pause recursively.
   if (IsPaused()) {
@@ -4557,7 +4560,7 @@ RawError* Debugger::PauseStepping() {
   return Thread::Current()->StealStickyError();
 }
 
-RawError* Debugger::PauseBreakpoint() {
+ErrorPtr Debugger::PauseBreakpoint() {
   // We ignore this breakpoint when the VM is executing code invoked
   // by the debugger to evaluate variables values, or when we see a nested
   // breakpoint or exception event.
@@ -4712,8 +4715,8 @@ void Debugger::NotifyIsolateCreated() {
 
 // Return innermost closure contained in 'function' that contains
 // the given token position.
-RawFunction* Debugger::FindInnermostClosure(const Function& function,
-                                            TokenPosition token_pos) {
+FunctionPtr Debugger::FindInnermostClosure(const Function& function,
+                                           TokenPosition token_pos) {
   Zone* zone = Thread::Current()->zone();
   const Script& outer_origin = Script::Handle(zone, function.script());
   const GrowableObjectArray& closures = GrowableObjectArray::Handle(
@@ -5010,7 +5013,7 @@ CodeBreakpoint* Debugger::GetCodeBreakpoint(uword breakpoint_address) {
   return NULL;
 }
 
-RawCode* Debugger::GetPatchedStubAddress(uword breakpoint_address) {
+CodePtr Debugger::GetPatchedStubAddress(uword breakpoint_address) {
   CodeBreakpoint* cbpt = GetCodeBreakpoint(breakpoint_address);
   if (cbpt != NULL) {
     return cbpt->OrigStubAddress();

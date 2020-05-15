@@ -89,7 +89,7 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   RefactoringStatus checkNewName() {
-    RefactoringStatus result = super.checkNewName();
+    var result = super.checkNewName();
     if (element is TopLevelVariableElement) {
       result.addStatus(validateVariableName(newName));
     }
@@ -108,11 +108,11 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<void> fillChange() async {
     // prepare elements
-    List<Element> elements = [];
+    var elements = <Element>[];
     if (element is PropertyInducingElement && element.isSynthetic) {
-      PropertyInducingElement property = element as PropertyInducingElement;
-      PropertyAccessorElement getter = property.getter;
-      PropertyAccessorElement setter = property.setter;
+      var property = element as PropertyInducingElement;
+      var getter = property.getter;
+      var setter = property.setter;
       if (getter != null) {
         elements.add(getter);
       }
@@ -186,8 +186,6 @@ class _RenameUnitMemberValidator {
   }
 
   Future<RefactoringStatus> validate() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     _validateWillConflict();
     if (isRename) {
       references = await searchEngine.searchReferences(element);
@@ -200,13 +198,13 @@ class _RenameUnitMemberValidator {
 
   /// Returns `true` if [element] is visible at the given [SearchMatch].
   bool _isVisibleAt(Element element, SearchMatch at) {
-    LibraryElement atLibrary = at.element.library;
+    var atLibrary = at.element.library;
     // may be the same library
     if (library == atLibrary) {
       return true;
     }
     // check imports
-    for (ImportElement importElement in atLibrary.imports) {
+    for (var importElement in atLibrary.imports) {
       // ignore if imported with prefix
       if (importElement.prefix != null) {
         continue;
@@ -225,11 +223,11 @@ class _RenameUnitMemberValidator {
     if (!Identifier.isPrivateName(name)) {
       return;
     }
-    for (SearchMatch reference in references) {
-      Element refElement = reference.element;
-      LibraryElement refLibrary = refElement.library;
+    for (var reference in references) {
+      var refElement = reference.element;
+      var refLibrary = refElement.library;
       if (refLibrary != library) {
-        String message = format("Renamed {0} will be invisible in '{1}'.",
+        var message = format("Renamed {0} will be invisible in '{1}'.",
             getElementKindName(element), getElementQualifiedName(refLibrary));
         result.addError(message, newLocation_fromMatch(reference));
       }
@@ -238,13 +236,13 @@ class _RenameUnitMemberValidator {
 
   /// Validates if any usage of [element] renamed to [name] will be shadowed.
   void _validateWillBeShadowed() {
-    for (SearchMatch reference in references) {
-      Element refElement = reference.element;
-      ClassElement refClass = refElement.thisOrAncestorOfType();
+    for (var reference in references) {
+      var refElement = reference.element;
+      var refClass = refElement.thisOrAncestorOfType<ClassElement>();
       if (refClass != null) {
         visitChildren(refClass, (shadow) {
           if (hasDisplayName(shadow, name)) {
-            String message = format(
+            var message = format(
                 "Reference to renamed {0} will be shadowed by {1} '{2}'.",
                 getElementKindName(element),
                 getElementKindName(shadow),
@@ -262,7 +260,7 @@ class _RenameUnitMemberValidator {
   void _validateWillConflict() {
     visitLibraryTopLevelElements(library, (element) {
       if (hasDisplayName(element, name)) {
-        String message = format("Library already declares {0} with name '{1}'.",
+        var message = format("Library already declares {0} with name '{1}'.",
             getElementKindName(element), name);
         result.addError(message, newLocation_fromElement(element));
       }
@@ -271,23 +269,19 @@ class _RenameUnitMemberValidator {
 
   /// Validates if renamed [element] will shadow any [Element] named [name].
   Future _validateWillShadow() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    List<SearchMatch> declarations =
-        await searchEngine.searchMemberDeclarations(name);
-    for (SearchMatch declaration in declarations) {
-      Element member = declaration.element;
+    var declarations = await searchEngine.searchMemberDeclarations(name);
+    for (var declaration in declarations) {
+      var member = declaration.element;
       ClassElement declaringClass = member.enclosingElement;
-      List<SearchMatch> memberReferences =
-          await searchEngine.searchReferences(member);
-      for (SearchMatch memberReference in memberReferences) {
-        Element refElement = memberReference.element;
+      var memberReferences = await searchEngine.searchReferences(member);
+      for (var memberReference in memberReferences) {
+        var refElement = memberReference.element;
         // cannot be shadowed if qualified
         if (memberReference.isQualified) {
           continue;
         }
         // cannot be shadowed if declared in the same class as reference
-        ClassElement refClass = refElement.thisOrAncestorOfType();
+        var refClass = refElement.thisOrAncestorOfType<ClassElement>();
         if (refClass == declaringClass) {
           continue;
         }
@@ -296,7 +290,7 @@ class _RenameUnitMemberValidator {
           continue;
         }
         // OK, reference will be shadowed be the element being renamed
-        String message = format(
+        var message = format(
             isRename
                 ? "Renamed {0} will shadow {1} '{2}'."
                 : "Created {0} will shadow {1} '{2}'.",

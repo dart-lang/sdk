@@ -256,12 +256,13 @@ class _StringAdapterSink extends StringConversionSinkBase {
 class _Utf8StringSinkAdapter extends ByteConversionSink {
   final _Utf8Decoder _decoder;
   final Sink _sink;
+  final StringSink _stringSink;
 
-  _Utf8StringSinkAdapter(this._sink, StringSink stringSink, bool allowMalformed)
-      : _decoder = _Utf8Decoder(stringSink, allowMalformed);
+  _Utf8StringSinkAdapter(this._sink, this._stringSink, bool allowMalformed)
+      : _decoder = _Utf8Decoder(allowMalformed);
 
   void close() {
-    _decoder.close();
+    _decoder.flush(_stringSink);
     if (_sink != null) _sink.close();
   }
 
@@ -271,7 +272,7 @@ class _Utf8StringSinkAdapter extends ByteConversionSink {
 
   void addSlice(
       List<int> codeUnits, int startIndex, int endIndex, bool isLast) {
-    _decoder.convert(codeUnits, startIndex, endIndex);
+    _stringSink.write(_decoder.convertChunked(codeUnits, startIndex, endIndex));
     if (isLast) close();
   }
 }
@@ -289,11 +290,11 @@ class _Utf8ConversionSink extends ByteConversionSink {
 
   _Utf8ConversionSink._(
       this._chunkedSink, StringBuffer stringBuffer, bool allowMalformed)
-      : _decoder = _Utf8Decoder(stringBuffer, allowMalformed),
+      : _decoder = _Utf8Decoder(allowMalformed),
         _buffer = stringBuffer;
 
   void close() {
-    _decoder.close();
+    _decoder.flush(_buffer);
     if (_buffer.isNotEmpty) {
       var accumulated = _buffer.toString();
       _buffer.clear();
@@ -308,7 +309,7 @@ class _Utf8ConversionSink extends ByteConversionSink {
   }
 
   void addSlice(List<int> chunk, int startIndex, int endIndex, bool isLast) {
-    _decoder.convert(chunk, startIndex, endIndex);
+    _buffer.write(_decoder.convertChunked(chunk, startIndex, endIndex));
     if (_buffer.isNotEmpty) {
       var accumulated = _buffer.toString();
       _chunkedSink.addSlice(accumulated, 0, accumulated.length, isLast);

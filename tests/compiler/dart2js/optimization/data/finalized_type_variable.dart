@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 abstract class AppView<T> {
   T ctx;
 }
@@ -52,8 +54,8 @@ class ViewCardComponent2 extends AppView<CardComponent2> {
   }
 }
 
-/*strong.member: main:*/
-/*omit.member: main:FieldSet=[name=AppView.ctx,name=AppView.ctx]*/
+/*spec:nnbd-off.member: main:*/
+/*prod:nnbd-off|prod:nnbd-sdk.member: main:FieldSet=[name=AppView.ctx,name=AppView.ctx]*/
 main() {
   var c1 = new ViewCardComponent();
   c1.ctx = new CardComponent();

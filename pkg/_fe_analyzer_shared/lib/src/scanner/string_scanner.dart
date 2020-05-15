@@ -34,6 +34,16 @@ class StringScanner extends AbstractScanner {
       : string = ensureZeroTermination(string),
         super(configuration, includeComments, languageVersionChanged);
 
+  StringScanner.recoveryOptionScanner(StringScanner copyFrom)
+      : super.recoveryOptionScanner(copyFrom) {
+    string = copyFrom.string;
+    scanOffset = copyFrom.scanOffset;
+  }
+
+  StringScanner createRecoveryOptionScanner() {
+    return new StringScanner.recoveryOptionScanner(this);
+  }
+
   static String ensureZeroTermination(String string) {
     return (string.isEmpty || string.codeUnitAt(string.length - 1) != 0)
         // TODO(lry): abort instead of copying the array, or warn?

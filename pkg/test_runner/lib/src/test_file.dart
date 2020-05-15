@@ -7,9 +7,6 @@ import 'feature.dart';
 import 'path.dart';
 import 'static_error.dart';
 
-final _multiHtmlTestGroupRegExp = RegExp(r"\s*[^/]\s*group\('[^,']*");
-final _multiHtmlTestRegExp = RegExp(r"useHtmlIndividualConfiguration\(\)");
-
 // TODO(rnystrom): Remove support for "///" once tests have been migrated.
 // https://dart-review.googlesource.com/c/sdk/+/106201
 // https://github.com/dart-lang/co19/issues/391
@@ -186,8 +183,6 @@ class TestFile extends _TestFileBase {
           hasStaticWarning: false,
           hasCrash: false,
           isMultitest: false,
-          isMultiHtmlTest: false,
-          subtestNames: [],
           sharedObjects: [],
           otherResources: []);
     }
@@ -274,15 +269,6 @@ class TestFile extends _TestFileBase {
     }
 
     var isMultitest = _multitestRegExp.hasMatch(contents);
-    var isMultiHtmlTest = _multiHtmlTestRegExp.hasMatch(contents);
-
-    var subtestNames = <String>[];
-    if (isMultiHtmlTest) {
-      for (var match in _multiHtmlTestGroupRegExp.allMatches(contents)) {
-        var fullMatch = match.group(0);
-        subtestNames.add(fullMatch.substring(fullMatch.indexOf("'") + 1));
-      }
-    }
 
     // TODO(rnystrom): During the migration of the existing tests to Dart 2.0,
     // we have a number of tests that used to both generate static type warnings
@@ -322,13 +308,11 @@ class TestFile extends _TestFileBase {
         packages: packages,
         environment: environment,
         isMultitest: isMultitest,
-        isMultiHtmlTest: isMultiHtmlTest,
         hasSyntaxError: hasSyntaxError,
         hasCompileError: hasCompileError,
         hasRuntimeError: contents.contains("@runtime-error"),
         hasStaticWarning: contents.contains("@static-warning"),
         hasCrash: false,
-        subtestNames: subtestNames,
         requirements: requirements,
         sharedOptions: sharedOptions,
         dartOptions: dartOptions,
@@ -350,8 +334,6 @@ class TestFile extends _TestFileBase {
       : packages = null,
         environment = null,
         isMultitest = false,
-        isMultiHtmlTest = false,
-        subtestNames = [],
         requirements = [],
         sharedOptions = [],
         dartOptions = [],
@@ -367,13 +349,11 @@ class TestFile extends _TestFileBase {
       {this.packages,
       this.environment,
       this.isMultitest,
-      this.isMultiHtmlTest,
       this.hasSyntaxError,
       this.hasCompileError,
       this.hasRuntimeError,
       this.hasStaticWarning,
       this.hasCrash,
-      this.subtestNames,
       this.requirements,
       this.sharedOptions,
       this.dartOptions,
@@ -396,14 +376,11 @@ class TestFile extends _TestFileBase {
   final Map<String, String> environment;
 
   final bool isMultitest;
-  final bool isMultiHtmlTest;
   final bool hasSyntaxError;
   final bool hasCompileError;
   final bool hasRuntimeError;
   final bool hasStaticWarning;
   final bool hasCrash;
-
-  final List<String> subtestNames;
 
   /// The features that a test configuration must support in order to run this
   /// test.
@@ -445,13 +422,11 @@ class TestFile extends _TestFileBase {
   packages: $packages
   environment: $environment
   isMultitest: $isMultitest
-  isMultiHtmlTest: $isMultiHtmlTest
   hasSyntaxError: $hasSyntaxError
   hasCompileError: $hasCompileError
   hasRuntimeError: $hasRuntimeError
   hasStaticWarning: $hasStaticWarning
   hasCrash: $hasCrash
-  subtestNames: $subtestNames
   requirements: $requirements
   sharedOptions: $sharedOptions
   dartOptions: $dartOptions
@@ -498,14 +473,12 @@ class _MultitestFile extends _TestFileBase implements TestFile {
   List<String> get ddcOptions => _origin.ddcOptions;
   Map<String, String> get environment => _origin.environment;
 
-  bool get isMultiHtmlTest => _origin.isMultiHtmlTest;
   bool get isMultitest => _origin.isMultitest;
 
   List<String> get otherResources => _origin.otherResources;
   List<String> get sharedObjects => _origin.sharedObjects;
   List<String> get experiments => _origin.experiments;
   List<String> get sharedOptions => _origin.sharedOptions;
-  List<String> get subtestNames => _origin.subtestNames;
   List<List<String>> get vmOptions => _origin.vmOptions;
 
   TestFile split(Path path, String multitestKey, String contents,

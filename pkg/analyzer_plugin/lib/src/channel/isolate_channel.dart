@@ -95,8 +95,8 @@ class PluginIsolateChannel implements PluginCommunicationChannel {
   void listen(void Function(Request request) onRequest,
       {Function onError, void Function() onDone}) {
     void onData(data) {
-      Map<String, Object> requestMap = data as Map<String, Object>;
-      Request request = Request.fromJson(requestMap);
+      var requestMap = data as Map<String, Object>;
+      var request = Request.fromJson(requestMap);
       if (request != null) {
         onRequest(request);
       }
@@ -111,13 +111,13 @@ class PluginIsolateChannel implements PluginCommunicationChannel {
 
   @override
   void sendNotification(Notification notification) {
-    Map<String, Object> json = notification.toJson();
+    var json = notification.toJson();
     _sendPort.send(json);
   }
 
   @override
   void sendResponse(Response response) {
-    Map<String, Object> json = response.toJson();
+    var json = response.toJson();
     _sendPort.send(json);
   }
 }
@@ -216,18 +216,18 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
       close();
       return null;
     }
-    Completer<void> channelReady = Completer<void>();
+    var channelReady = Completer<void>();
     _receivePort.listen((dynamic input) {
       if (input is SendPort) {
         _sendPort = input;
         channelReady.complete(null);
       } else if (input is Map) {
         if (input.containsKey('id')) {
-          String encodedInput = json.encode(input);
+          var encodedInput = json.encode(input);
           instrumentationService.logPluginResponse(pluginId, encodedInput);
           onResponse(Response.fromJson(input));
         } else if (input.containsKey('event')) {
-          String encodedInput = json.encode(input);
+          var encodedInput = json.encode(input);
           instrumentationService.logPluginNotification(pluginId, encodedInput);
           onNotification(Notification.fromJson(input));
         }
@@ -239,8 +239,8 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
   @override
   void sendRequest(Request request) {
     if (_sendPort != null) {
-      Map<String, Object> jsonData = request.toJson();
-      String encodedRequest = json.encode(jsonData);
+      var jsonData = request.toJson();
+      var encodedRequest = json.encode(jsonData);
       instrumentationService.logPluginRequest(pluginId, encodedRequest);
       _sendPort.send(jsonData);
     }

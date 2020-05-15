@@ -131,10 +131,22 @@ class _Builder {
   }
 
   CompilationUnit _parse(Source source) {
-    return parseString(
+    var result = parseString(
       content: source.contents.data,
       featureSet: featureSet,
       throwIfDiagnostics: false,
-    ).unit;
+    );
+
+    if (result.errors.isNotEmpty) {
+      var errorsStr = result.errors.map((e) {
+        var location = result.lineInfo.getLocation(e.offset);
+        return '${source.fullName}:$location - ${e.message}';
+      }).join('\n');
+      throw StateError(
+        'Unexpected diagnostics:\n$errorsStr',
+      );
+    }
+
+    return result.unit;
   }
 }

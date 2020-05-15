@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/statement/statement_completion.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -42,17 +41,17 @@ class StatementCompletionTest extends AbstractSingleUnitTest {
   ]) {
     if (change.message == message) {
       if (change.edits.isNotEmpty) {
-        String resultCode =
+        var resultCode =
             SourceEdit.applySequence(testCode, change.edits[0].edits);
         expect(resultCode, expectedCode.replaceAll('////', ''));
         if (cmp != null) {
-          int offset = cmp(resultCode);
+          var offset = cmp(resultCode);
           expect(change.selection.offset, offset);
         }
       } else {
         expect(testCode, expectedCode.replaceAll('////', ''));
         if (cmp != null) {
-          int offset = cmp(testCode);
+          var offset = cmp(testCode);
           expect(change.selection.offset, offset);
         }
       }
@@ -63,18 +62,17 @@ class StatementCompletionTest extends AbstractSingleUnitTest {
 
   Future<void> _computeCompletion(int offset) async {
     driver.changeFile(testFile);
-    ResolvedUnitResult result = await session.getResolvedUnit(testFile);
+    var result = await session.getResolvedUnit(testFile);
     var context = StatementCompletionContext(result, offset);
-    StatementCompletionProcessor processor =
-        StatementCompletionProcessor(context);
-    StatementCompletion completion = await processor.compute();
+    var processor = StatementCompletionProcessor(context);
+    var completion = await processor.compute();
     change = completion.change;
   }
 
   Future<void> _prepareCompletion(String search, String sourceCode,
       {bool atEnd = false, int delta = 0}) async {
     testCode = sourceCode.replaceAll('////', '');
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     if (atEnd) {
       delta = search.length;
     }
@@ -1413,12 +1411,12 @@ main() {
     // Fixing this properly means modifying the scanner not to generate
     // closing ')', then updating the parser to handle that situation.
     // This is a fair amount of work and won't be tackled today.
-    String before = '''
+    var before = '''
 main() {
   var s = 'sample'.substring(3;
 }
 ''';
-    String after = '''
+    var after = '''
 main() {
   var s = 'sample'.substring(3);
   ////

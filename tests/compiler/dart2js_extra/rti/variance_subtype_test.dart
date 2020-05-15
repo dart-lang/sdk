@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// dart2jsOptions= --enable-experiment=variance
+// @dart = 2.7
+
+// SharedOptions=--enable-experiment=variance
 
 import 'dart:_foreign_helper' show JS;
 import 'dart:_rti' as rti;

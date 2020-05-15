@@ -113,8 +113,7 @@ bool DFE::InitKernelServiceAndPlatformDills(int target_abi_version) {
   }
 
   // |dir_prefix| includes the last path seperator.
-  auto dir_prefix = std::unique_ptr<char, void (*)(void*)>(
-      EXEUtils::GetDirectoryPrefixFromExeName(), free);
+  auto dir_prefix = EXEUtils::GetDirectoryPrefixFromExeName();
 
   if (target_abi_version != Options::kAbiVersionUnset) {
     kernel_service_dill_ = nullptr;

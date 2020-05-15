@@ -2,40 +2,48 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:analyzer/dart/analysis/context_locator.dart';
-import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/src/context/context.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/context_root.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart' show ErrorEncoding;
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
-import 'package:analyzer/src/dart/analysis/session.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/micro/analysis_context.dart';
 import 'package:analyzer/src/dart/micro/library_analyzer.dart';
 import 'package:analyzer/src/dart/micro/library_graph.dart';
+import 'package:analyzer/src/generated/engine.dart'
+    show AnalysisEngine, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/link.dart' as link2;
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
+import 'package:yaml/yaml.dart';
 
-/*
- * Resolves a single file.
- */
+class FileContext {
+  final AnalysisOptionsImpl analysisOptions;
+  final FileState file;
+
+  FileContext(this.analysisOptions, this.file);
+}
+
 class FileResolver {
   final PerformanceLog logger;
   final ResourceProvider resourceProvider;
@@ -55,125 +63,308 @@ class FileResolver {
    */
   final void Function(List<String> paths) prefetchFiles;
 
-  Workspace workspace;
+  final Workspace workspace;
 
-  MicroAnalysisContextImpl analysisContext;
+  _LibraryContextReset _libraryContextReset;
 
-  FileResolver(this.logger, this.resourceProvider, this.byteStore,
-      this.sourceFactory, this.getFileDigest, this.prefetchFiles,
-      {Workspace workspace})
-      : this.workspace = workspace;
+  /// This field gets value only during testing.
+  FileResolverTestView testView;
+
+  FileSystemState fsState;
+
+  MicroContextObjects contextObjects;
+
+  _LibraryContext libraryContext;
+
+  FileResolver(
+    this.logger,
+    this.resourceProvider,
+    this.byteStore,
+    this.sourceFactory,
+    this.getFileDigest,
+    this.prefetchFiles, {
+    @required Workspace workspace,
+    Duration libraryContextResetTimeout = const Duration(seconds: 60),
+  }) : this.workspace = workspace {
+    _libraryContextReset = _LibraryContextReset(
+      fileResolver: this,
+      resetTimeout: libraryContextResetTimeout,
+    );
+  }
 
   FeatureSet get defaultFeatureSet => FeatureSet.fromEnableFlags([]);
+
+  /// Update the resolver to reflect the fact that the file with the given
+  /// [path] was changed. We need to make sure that when this file, of any file
+  /// that directly or indirectly referenced it, is resolved, we used the new
+  /// state of the file.
+  void changeFile(String path) {
+    if (fsState == null) {
+      return;
+    }
+
+    // Remove this file and all files that transitively depend on it.
+    var removedFiles = <FileState>[];
+    fsState.changeFile(path, removedFiles);
+
+    // Remove libraries represented by removed files.
+    // If we need these libraries later, we will relink and reattach them.
+    if (libraryContext != null) {
+      libraryContext.elementFactory.removeLibraries(
+        removedFiles.map((e) => e.uriStr).toList(),
+      );
+    }
+  }
+
+  void dispose() {
+    _libraryContextReset.dispose();
+  }
+
+  ErrorsResult getErrors(String path) {
+    _throwIfNotAbsoluteNormalizedPath(path);
+
+    return _withLibraryContextReset(() {
+      return logger.run('Get errors for $path', () {
+        var fileContext = getFileContext(path);
+        var file = fileContext.file;
+
+        var errorsSignatureBuilder = ApiSignature();
+        errorsSignatureBuilder.addBytes(file.libraryCycle.signature);
+        errorsSignatureBuilder.addBytes(file.digest);
+        var errorsSignature = errorsSignatureBuilder.toByteList();
+
+        var errorsKey = file.path + '.errors';
+        var bytes = byteStore.get(errorsKey);
+
+        List<AnalysisError> errors;
+        if (bytes != null) {
+          var data = CiderUnitErrors.fromBuffer(bytes);
+          if (const ListEquality().equals(data.signature, errorsSignature)) {
+            errors = data.errors.map((error) {
+              return ErrorEncoding.decode(file.source, error);
+            }).toList();
+          }
+        }
+
+        if (errors == null) {
+          var unitResult = resolve(path);
+          errors = unitResult.errors;
+
+          bytes = CiderUnitErrorsBuilder(
+            signature: errorsSignature,
+            errors: errors.map((ErrorEncoding.encode)).toList(),
+          ).toBuffer();
+          byteStore.put(errorsKey, bytes);
+        }
+
+        return ErrorsResultImpl(
+          contextObjects.analysisSession,
+          path,
+          file.uri,
+          file.lineInfo,
+          false, // isPart
+          errors,
+        );
+      });
+    });
+  }
+
+  FileContext getFileContext(String path) {
+    var analysisOptions = _getAnalysisOptions(path);
+    _createContext(path, analysisOptions);
+
+    var file = fsState.getFileForPath(path);
+    return FileContext(analysisOptions, file);
+  }
+
+  String getLibraryLinkedSignature(String path) {
+    _throwIfNotAbsoluteNormalizedPath(path);
+
+    var file = fsState.getFileForPath(path);
+    return file.libraryCycle.signatureStr;
+  }
 
   ResolvedUnitResult resolve(String path) {
     _throwIfNotAbsoluteNormalizedPath(path);
 
-    return logger.run('Resolve $path', () {
-      logger.run('Create AnalysisContext', () {
-        var contextLocator = ContextLocator(
-          resourceProvider: this.resourceProvider,
-        );
+    return _withLibraryContextReset(() {
+      return logger.run('Resolve $path', () {
+        var fileContext = getFileContext(path);
+        var file = fileContext.file;
+        var libraryFile = file.partOfLibrary ?? file;
 
-        var roots = contextLocator.locateRoots(
-          includedPaths: [path],
-          excludedPaths: [],
-        );
-        if (roots.length != 1) {
-          throw StateError('Exactly one root expected: $roots');
-        }
-        var root = roots[0];
+        libraryContext.load2(libraryFile);
 
-        var analysisOptions = AnalysisOptionsImpl();
-        var declaredVariables = DeclaredVariables();
+        testView?.addResolvedFile(path);
 
-        analysisContext = MicroAnalysisContextImpl(
-          this,
-          root,
-          analysisOptions,
-          declaredVariables,
-          sourceFactory,
-          resourceProvider,
-          workspace: workspace,
+        var errorListener = RecordingErrorListener();
+        var content = resourceProvider.getFile(path).readAsStringSync();
+        var unit = file.parse(errorListener, content);
+
+        Map<FileState, UnitAnalysisResult> results;
+
+        logger.run('Compute analysis results', () {
+          var libraryAnalyzer = LibraryAnalyzer(
+            fileContext.analysisOptions,
+            contextObjects.declaredVariables,
+            sourceFactory,
+            (_) => true, // _isLibraryUri
+            contextObjects.analysisContext,
+            libraryContext.elementFactory,
+            contextObjects.inheritanceManager,
+            libraryFile,
+            resourceProvider,
+            (String path) => resourceProvider.getFile(path).readAsStringSync(),
+          );
+
+          results = libraryAnalyzer.analyzeSync();
+        });
+        UnitAnalysisResult fileResult = results[file];
+
+        return ResolvedUnitResultImpl(
+          contextObjects.analysisSession,
+          path,
+          file.uri,
+          file.exists,
+          content,
+          unit.lineInfo,
+          false, // isPart
+          fileResult.unit,
+          fileResult.errors,
         );
       });
-
-      return _resolve(path);
     });
   }
 
-  ResolvedUnitResultImpl _resolve(String path) {
-    var options = analysisContext.analysisOptions;
-    var featureSetProvider = FeatureSetProvider.build(
-      resourceProvider: resourceProvider,
-      packages: Packages.empty,
-      packageDefaultFeatureSet: analysisContext.analysisOptions.contextFeatures,
-      nonPackageDefaultFeatureSet:
-          (options as AnalysisOptionsImpl).nonPackageFeatureSet,
-    );
+  /// Make sure that [fsState], [contextObjects], and [libraryContext] are
+  /// created and configured with the given [fileAnalysisOptions].
+  ///
+  /// The [fsState] is not affected by [fileAnalysisOptions].
+  ///
+  /// The [fileAnalysisOptions] only affect reported diagnostics, but not
+  /// elements and types. So, we really need to reconfigure only when we are
+  /// going to resolve some files using these new options.
+  ///
+  /// Specifically, "implicit casts" and "strict inference" affect the type
+  /// system. And there are lints that are enabled for one package, but not
+  /// for another.
+  void _createContext(String path, AnalysisOptionsImpl fileAnalysisOptions) {
+    if (contextObjects != null) {
+      contextObjects.analysisOptions = fileAnalysisOptions;
+      return;
+    }
 
-    var fsState = FileSystemState(
-      logger,
-      resourceProvider,
-      byteStore,
-      analysisContext.sourceFactory,
-      analysisContext.analysisOptions,
-      Uint32List(0), // linkedSalt
-      featureSetProvider,
-      getFileDigest,
-      prefetchFiles,
-    );
+    var analysisOptions = AnalysisOptionsImpl()
+      ..implicitCasts = fileAnalysisOptions.implicitCasts
+      ..strictInference = fileAnalysisOptions.strictInference;
 
-    FileState file;
-    logger.run('Get file $path', () {
-      file = fsState.getFileForPath(path);
-    });
-
-    var errorListener = RecordingErrorListener();
-    var content = resourceProvider.getFile(path).readAsStringSync();
-    var unit = file.parse(errorListener, content);
-
-    _LibraryContext libraryContext = _LibraryContext(
-      logger,
-      resourceProvider,
-      byteStore,
-      analysisContext.currentSession,
-      analysisContext.analysisOptions,
-      analysisContext.sourceFactory,
-      analysisContext.declaredVariables,
-    );
-    libraryContext.load2(file);
-
-    Map<FileState, UnitAnalysisResult> results;
-    logger.run('Compute analysis results', () {
-      var libraryAnalyzer = LibraryAnalyzer(
-        analysisContext.analysisOptions,
-        analysisContext.declaredVariables,
-        analysisContext.sourceFactory,
-        (_) => true, // _isLibraryUri
-        libraryContext.analysisContext,
-        libraryContext.elementFactory,
-        libraryContext.inheritanceManager,
-        file,
-        resourceProvider,
-        (String path) => resourceProvider.getFile(path).readAsStringSync(),
+    if (fsState == null) {
+      var featureSetProvider = FeatureSetProvider.build(
+        resourceProvider: resourceProvider,
+        packages: Packages.empty,
+        packageDefaultFeatureSet: analysisOptions.contextFeatures,
+        nonPackageDefaultFeatureSet: analysisOptions.nonPackageFeatureSet,
       );
 
-      results = libraryAnalyzer.analyzeSync();
-    });
-    UnitAnalysisResult fileResult = results[file];
+      fsState = FileSystemState(
+        logger,
+        resourceProvider,
+        byteStore,
+        sourceFactory,
+        analysisOptions,
+        Uint32List(0),
+        // linkedSalt
+        featureSetProvider,
+        getFileDigest,
+        prefetchFiles,
+      );
+    }
 
-    return ResolvedUnitResultImpl(
-      analysisContext.currentSession,
-      path,
-      file.uri,
-      file.exists,
-      content,
-      unit.lineInfo,
-      false, // isPart
-      fileResult.unit,
-      fileResult.errors,
-    );
+    if (contextObjects == null) {
+      var rootFolder = resourceProvider.getFolder(workspace.root);
+      var root = ContextRootImpl(resourceProvider, rootFolder);
+      root.included.add(rootFolder);
+
+      contextObjects = createMicroContextObjects(
+        fileResolver: this,
+        analysisOptions: analysisOptions,
+        sourceFactory: sourceFactory,
+        root: root,
+        resourceProvider: resourceProvider,
+        workspace: workspace,
+      );
+
+      libraryContext = _LibraryContext(
+        logger,
+        resourceProvider,
+        byteStore,
+        contextObjects,
+      );
+    }
+  }
+
+  File _findOptionsFile(Folder folder) {
+    while (folder != null) {
+      File packagesFile =
+          _getFile(folder, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
+      if (packagesFile != null) {
+        return packagesFile;
+      }
+      folder = folder.parent;
+    }
+    return null;
+  }
+
+  /// Return the analysis options.
+  ///
+  /// If the [path] is not `null`, read it.
+  ///
+  /// If the [workspace] is a [WorkspaceWithDefaultAnalysisOptions], get the
+  /// default options, if the file exists.
+  ///
+  /// Otherwise, return the default options.
+  AnalysisOptionsImpl _getAnalysisOptions(String path) {
+    YamlMap optionMap;
+    var folder = resourceProvider.getFile(path).parent;
+    var optionsFile = _findOptionsFile(folder);
+    if (optionsFile != null) {
+      try {
+        var optionsProvider = AnalysisOptionsProvider(sourceFactory);
+        optionMap = optionsProvider.getOptionsFromFile(optionsFile);
+      } catch (e) {
+        // ignored
+      }
+    } else {
+      Source source;
+      if (workspace is WorkspaceWithDefaultAnalysisOptions) {
+        var separator = resourceProvider.pathContext.separator;
+        if (path
+            .contains('${separator}third_party${separator}dart$separator')) {
+          source = sourceFactory
+              .forUri(WorkspaceWithDefaultAnalysisOptions.thirdPartyUri);
+        } else {
+          source =
+              sourceFactory.forUri(WorkspaceWithDefaultAnalysisOptions.uri);
+        }
+      }
+
+      if (source != null && source.exists()) {
+        try {
+          var optionsProvider = AnalysisOptionsProvider(sourceFactory);
+          optionMap = optionsProvider.getOptionsFromSource(source);
+        } catch (e) {
+          // ignored
+        }
+      }
+    }
+
+    var options = AnalysisOptionsImpl();
+
+    if (optionMap != null) {
+      applyToAnalysisOptions(options, optionMap);
+    }
+
+    return options;
   }
 
   void _throwIfNotAbsoluteNormalizedPath(String path) {
@@ -184,17 +375,47 @@ class FileResolver {
       );
     }
   }
+
+  /// Run the [operation] that uses the library context, by locking it first,
+  /// so that it is not reset while the operating is still running, and
+  /// unlocking after the operation is done, so that the library context
+  /// will be reset after some timeout.
+  T _withLibraryContextReset<T>(T Function() operation) {
+    _libraryContextReset.lock();
+    try {
+      return operation();
+    } finally {
+      _libraryContextReset.unlock();
+    }
+  }
+
+  static File _getFile(Folder directory, String name) {
+    Resource resource = directory.getChild(name);
+    if (resource is File && resource.exists) {
+      return resource;
+    }
+    return null;
+  }
+}
+
+class FileResolverTestView {
+  /// The paths of files which were resolved.
+  ///
+  /// The file path is added every time when it is resolved.
+  final List<String> resolvedFiles = [];
+
+  void addResolvedFile(String path) {
+    resolvedFiles.add(path);
+  }
 }
 
 class _LibraryContext {
   final PerformanceLog logger;
   final ResourceProvider resourceProvider;
   final MemoryByteStore byteStore;
-  final AnalysisSession analysisSession;
+  final MicroContextObjects contextObjects;
 
-  AnalysisContextImpl analysisContext;
   LinkedElementFactory elementFactory;
-  InheritanceManager3 inheritanceManager;
 
   Set<LibraryCycle> loadedBundles = Set.identity();
 
@@ -202,18 +423,9 @@ class _LibraryContext {
     this.logger,
     this.resourceProvider,
     this.byteStore,
-    this.analysisSession,
-    AnalysisOptionsImpl analysisOptions,
-    SourceFactory sourceFactory,
-    DeclaredVariables declaredVariables,
+    this.contextObjects,
   ) {
-    var synchronousSession =
-        SynchronousSession(analysisOptions, declaredVariables);
-    analysisContext = AnalysisContextImpl(
-      synchronousSession,
-      sourceFactory,
-    );
-
+    // TODO(scheglov) remove it?
     _createElementFactory();
   }
 
@@ -312,7 +524,7 @@ class _LibraryContext {
       // linker might have set the type provider. So, clear it, and recreate
       // the element factory - it is empty anyway.
       if (!elementFactory.hasDartCore) {
-        analysisContext.clearTypeProvider();
+        contextObjects.analysisContext.clearTypeProvider();
         _createElementFactory();
       }
       var cBundle = CiderLinkedLibraryCycle.fromBuffer(bytes);
@@ -351,7 +563,24 @@ class _LibraryContext {
     // already include the [targetLibrary]. When this happens, [loadBundle]
     // exists without doing any work. But the type provider must be created.
     _createElementFactoryTypeProvider();
-    inheritanceManager = InheritanceManager3();
+  }
+
+  void _createElementFactory() {
+    elementFactory = LinkedElementFactory(
+      contextObjects.analysisContext,
+      contextObjects.analysisSession,
+      Reference.root(),
+    );
+  }
+
+  /// Ensure that type provider is created.
+  void _createElementFactoryTypeProvider() {
+    var analysisContext = contextObjects.analysisContext;
+    if (analysisContext.typeProviderNonNullableByDefault == null) {
+      var dartCore = elementFactory.libraryOfUri('dart:core');
+      var dartAsync = elementFactory.libraryOfUri('dart:async');
+      elementFactory.createTypeProviders(dartCore, dartAsync);
+    }
   }
 
   static CiderLinkedLibraryCycleBuilder serializeBundle(
@@ -361,21 +590,62 @@ class _LibraryContext {
       bundle: linkResult.bundle,
     );
   }
+}
 
-  void _createElementFactory() {
-    elementFactory = LinkedElementFactory(
-      analysisContext,
-      analysisSession,
-      Reference.root(),
-    );
+/// The helper to reset the library context will be reset after the specified
+/// interval of inactivity. Keeping library context with loaded elements
+/// significantly improves performance of resolution, because we don't have
+/// to resynthesize elements, build export scopes for libraries, etc.
+/// However keeping elements that we don't need anymore, or when the user
+/// does not work with files, is wasteful.
+class _LibraryContextReset {
+  final FileResolver fileResolver;
+  final Duration resetTimeout;
+
+  /// The lock level, incremented by [lock], and decremented by [unlock].
+  /// The timeout timer is started when the level reaches zero.
+  int _lockLevel = 0;
+  Timer _timer;
+
+  _LibraryContextReset({
+    @required this.fileResolver,
+    @required this.resetTimeout,
+  });
+
+  void dispose() {
+    _stop();
   }
 
-  /// Ensure that type provider is created.
-  void _createElementFactoryTypeProvider() {
-    if (analysisContext.typeProviderNonNullableByDefault == null) {
-      var dartCore = elementFactory.libraryOfUri('dart:core');
-      var dartAsync = elementFactory.libraryOfUri('dart:async');
-      elementFactory.createTypeProviders(dartCore, dartAsync);
+  /// Stop the timeout timer, and increment the lock level. The library context
+  /// will be not reset until [unlock] will bring the lock level back to zero.
+  void lock() {
+    _stop();
+    _lockLevel++;
+  }
+
+  /// Unlock the timer, the library context will be reset after the timeout.
+  void unlock() {
+    assert(_lockLevel > 0);
+    _lockLevel--;
+
+    if (_lockLevel == 0) {
+      _stop();
+      if (resetTimeout != null) {
+        _timer = Timer(resetTimeout, () {
+          _timer = null;
+          if (fileResolver.libraryContext != null) {
+            fileResolver.contextObjects = null;
+            fileResolver.libraryContext = null;
+          }
+        });
+      }
+    }
+  }
+
+  void _stop() {
+    if (_timer != null) {
+      _timer.cancel();
+      _timer = null;
     }
   }
 }

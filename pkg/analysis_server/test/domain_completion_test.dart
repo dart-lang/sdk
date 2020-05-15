@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
@@ -290,24 +289,22 @@ class A {
         c^''');
 
     // Make a request for suggestions
-    Request request1 =
-        CompletionGetSuggestionsParams(testFile, completionOffset)
-            .toRequest('7');
-    Future<Response> responseFuture1 = waitResponse(request1);
+    var request1 = CompletionGetSuggestionsParams(testFile, completionOffset)
+        .toRequest('7');
+    var responseFuture1 = waitResponse(request1);
 
     // Make another request before the first request completes
-    Request request2 =
-        CompletionGetSuggestionsParams(testFile, completionOffset)
-            .toRequest('8');
-    Future<Response> responseFuture2 = waitResponse(request2);
+    var request2 = CompletionGetSuggestionsParams(testFile, completionOffset)
+        .toRequest('8');
+    var responseFuture2 = waitResponse(request2);
 
     // Await first response
-    Response response1 = await responseFuture1;
+    var response1 = await responseFuture1;
     var result1 = CompletionGetSuggestionsResult.fromResponse(response1);
     assertValidId(result1.id);
 
     // Await second response
-    Response response2 = await responseFuture2;
+    var response2 = await responseFuture2;
     var result2 = CompletionGetSuggestionsResult.fromResponse(response2);
     assertValidId(result2.id);
 
@@ -335,9 +332,9 @@ class A {
         c^''');
 
     // Make a request for suggestions
-    Request request = CompletionGetSuggestionsParams(testFile, completionOffset)
+    var request = CompletionGetSuggestionsParams(testFile, completionOffset)
         .toRequest('0');
-    Future<Response> responseFuture = waitResponse(request);
+    var responseFuture = waitResponse(request);
 
     // Simulate user deleting text after request but before suggestions returned
     server.updateContent('uc1', {testFile: AddContentOverlay(testCode)});
@@ -346,7 +343,7 @@ class A {
     });
 
     // Await a response
-    Response response = await responseFuture;
+    var response = await responseFuture;
     completionId = response.id;
     assertValidId(completionId);
 
@@ -390,7 +387,7 @@ class A {
 
     // Wait for analysis then edit the content
     await waitForTasksFinished();
-    String revisedContent = testCode.substring(0, completionOffset) +
+    var revisedContent = testCode.substring(0, completionOffset) +
         'i' +
         testCode.substring(completionOffset);
     ++completionOffset;
@@ -398,7 +395,7 @@ class A {
         {testFile: AddContentOverlay(revisedContent)}).toRequest('add1'));
 
     // Request code completion immediately after edit
-    Response response = await waitResponse(
+    var response = await waitResponse(
         CompletionGetSuggestionsParams(testFile, completionOffset)
             .toRequest('0'));
     completionId = response.id;
@@ -543,7 +540,8 @@ class B extends A {
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'm');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'm',
+          relevance: DART_RELEVANCE_LOCAL_METHOD);
     });
   }
 
@@ -572,7 +570,8 @@ class B extends A {
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'b');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'b',
+          relevance: DART_RELEVANCE_LOCAL_METHOD);
     });
   }
 
@@ -604,7 +603,8 @@ class B extends A {
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'b');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'b',
+          relevance: DART_RELEVANCE_LOCAL_METHOD);
     });
   }
 
@@ -614,7 +614,7 @@ class A { var isVisible;}
 main(A p) { var v1 = p.is^; }''');
     await getSuggestions();
     assertHasResult(CompletionSuggestionKind.INVOCATION, 'isVisible',
-        relevance: DART_RELEVANCE_DEFAULT);
+        relevance: DART_RELEVANCE_LOCAL_FIELD);
   }
 
   Future<void> test_keyword() {
@@ -677,8 +677,7 @@ class B extends A {
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'm',
-          relevance: DART_RELEVANCE_LOCAL_METHOD);
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'm');
     });
   }
 
@@ -728,9 +727,9 @@ main() {
 
   Future<void> test_offset_past_eof() async {
     addTestFile('main() { }', offset: 300);
-    Request request = CompletionGetSuggestionsParams(testFile, completionOffset)
+    var request = CompletionGetSuggestionsParams(testFile, completionOffset)
         .toRequest('0');
-    Response response = await waitResponse(request);
+    var response = await waitResponse(request);
     expect(response.id, '0');
     expect(response.error.code, RequestErrorCode.INVALID_PARAMETER);
   }
@@ -744,8 +743,7 @@ class B extends A {m() {^}}
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'm',
-          relevance: DART_RELEVANCE_LOCAL_METHOD);
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'm');
     });
   }
 
@@ -802,9 +800,8 @@ class B extends A {m() {^}}
       }
     ''');
     PluginInfo info = DiscoveredPluginInfo('a', 'b', 'c', null, null);
-    plugin.CompletionGetSuggestionsResult result =
-        plugin.CompletionGetSuggestionsResult(
-            testFile.indexOf('^'), 0, <CompletionSuggestion>[
+    var result = plugin.CompletionGetSuggestionsResult(
+        testFile.indexOf('^'), 0, <CompletionSuggestion>[
       CompletionSuggestion(CompletionSuggestionKind.IDENTIFIER,
           DART_RELEVANCE_DEFAULT, 'plugin completion', 3, 0, false, false)
     ]);
@@ -832,14 +829,14 @@ class B extends A {m() {^}}
     });
   }
 
-  Future<void> test_static() {
+  Future<void> test_static() async {
     addTestFile('class A {static b() {} c() {}} main() {A.^}');
-    return getSuggestions().then((_) {
-      expect(replacementOffset, equals(completionOffset));
-      expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'b');
-      assertNoResult('c');
-    });
+    await getSuggestions();
+    expect(replacementOffset, equals(completionOffset));
+    expect(replacementLength, equals(0));
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'b',
+        relevance: DART_RELEVANCE_INHERITED_METHOD);
+    assertNoResult('c');
   }
 
   Future<void> test_topLevel() {
@@ -867,8 +864,8 @@ class CompletionDomainHandlerListTokenDetailsTest
 
   void expectTokens(String content, List<TokenDetails> expectedTokens) async {
     newFile(testFile, content: content);
-    Request request = CompletionListTokenDetailsParams(testFile).toRequest('0');
-    Response response = await waitResponse(request);
+    var request = CompletionListTokenDetailsParams(testFile).toRequest('0');
+    var response = await waitResponse(request);
     List<Map<String, dynamic>> tokens = response.result['tokens'];
     _compareTokens(tokens, expectedTokens);
   }
@@ -1228,12 +1225,12 @@ int x;
 
   void _compareTokens(List<Map<String, dynamic>> actualTokens,
       List<TokenDetails> expectedTokens) {
-    int length = expectedTokens.length;
+    var length = expectedTokens.length;
     expect(actualTokens, hasLength(length));
-    List<String> errors = [];
-    for (int i = 0; i < length; i++) {
-      Map<String, dynamic> actual = actualTokens[i];
-      TokenDetails expected = expectedTokens[i];
+    var errors = <String>[];
+    for (var i = 0; i < length; i++) {
+      var actual = actualTokens[i];
+      var expected = expectedTokens[i];
       if (actual['lexeme'] != expected.lexeme) {
         errors.add('Lexeme at $i: '
             'expected "${expected.lexeme}", '
@@ -1266,11 +1263,11 @@ int x;
     } else if (expected == null) {
       return true;
     }
-    int expectedLength = expected.length;
+    var expectedLength = expected.length;
     if (actual.length != expectedLength) {
       return true;
     }
-    for (int i = 0; i < expectedLength; i++) {
+    for (var i = 0; i < expectedLength; i++) {
       if (actual[i] != expected[i]) {
         return true;
       }

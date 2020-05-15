@@ -12,11 +12,11 @@ import 'package:path/path.dart' as pathos;
 
 /// Return a protocol [Element] corresponding to the given [engine.Element].
 Element convertElement(engine.Element element) {
-  String name = getElementDisplayName(element);
-  String elementTypeParameters = _getTypeParametersString(element);
-  String elementParameters = _getParametersString(element);
-  String elementReturnType = getReturnTypeString(element);
-  ElementKind kind = convertElementToElementKind(element);
+  var name = getElementDisplayName(element);
+  var elementTypeParameters = _getTypeParametersString(element);
+  var elementParameters = _getParametersString(element);
+  var elementReturnType = getReturnTypeString(element);
+  var kind = convertElementToElementKind(element);
   return Element(
       kind,
       name,
@@ -102,8 +102,7 @@ ElementKind convertElementToElementKind(engine.Element element) {
   if (element is engine.ClassElement) {
     if (element.isEnum) {
       return ElementKind.ENUM;
-    }
-    if (element.isMixin) {
+    } else if (element.isMixin) {
       return ElementKind.MIXIN;
     }
   }
@@ -150,9 +149,9 @@ String _getParametersString(engine.Element element) {
 
   parameters.sort(_preferRequiredParams);
 
-  StringBuffer sb = StringBuffer();
-  String closeOptionalString = '';
-  for (engine.ParameterElement parameter in parameters) {
+  var sb = StringBuffer();
+  var closeOptionalString = '';
+  for (var parameter in parameters) {
     if (sb.isNotEmpty) {
       sb.write(', ');
     }
@@ -234,7 +233,7 @@ bool _isStatic(engine.Element element) {
 /// Sort required named parameters before optional ones.
 int _preferRequiredParams(
     engine.ParameterElement e1, engine.ParameterElement e2) {
-  int rank1 = (e1.isRequiredNamed || e1.hasRequired) ? 0 : !e1.isNamed ? -1 : 1;
-  int rank2 = (e2.isRequiredNamed || e2.hasRequired) ? 0 : !e2.isNamed ? -1 : 1;
+  var rank1 = (e1.isRequiredNamed || e1.hasRequired) ? 0 : !e1.isNamed ? -1 : 1;
+  var rank2 = (e2.isRequiredNamed || e2.hasRequired) ? 0 : !e2.isNamed ? -1 : 1;
   return rank1 - rank2;
 }

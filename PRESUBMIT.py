@@ -38,6 +38,30 @@ def _CheckNnbdSdkSync(input_api, output_api):
     return []
 
 
+def _CheckSdkDdcRuntimeSync(input_api, output_api):
+    files = [git_file.LocalPath() for git_file in input_api.AffectedTextFiles()]
+    unsynchronized_files = []
+    runtime_lib = 'lib/_internal/js_dev_runtime/private/ddc_runtime/'
+    for nnbd_file in files:
+        if nnbd_file.startswith('sdk_nnbd/' + runtime_lib):
+            file = 'sdk/' + nnbd_file[9:]
+            if not file in files:
+                unsynchronized_files.append(file)
+    if unsynchronized_files:
+        return [
+            output_api.PresubmitPromptWarning(
+                'Changes were made to '
+                'sdk_nnbd/lib/_internal/js_dev_runtime/private/ddc_runtime/ '
+                'that were not made to '
+                'sdk/lib/_internal/js_dev_runtime/private/ddc_runtime/ '
+                'Please copy those changes (without Null Safety syntax) to '
+                'these files as well:\n'
+                '\n'
+                '%s' % ('\n'.join(unsynchronized_files)))
+        ]
+    return []
+
+
 def _CheckNnbdTestSync(input_api, output_api):
     """Make sure that any forked SDK tests are kept in sync. If a CL touches
     a test, the test's counterpart (if it exists at all) should be in the CL
@@ -313,15 +337,47 @@ def _CheckClangTidy(input_api, output_api):
     ]
 
 
+def _CheckTestMatrixValid(input_api, output_api):
+    """Run script to check that the test matrix has no errors."""
+
+    def test_matrix_filter(affected_file):
+        """Only run test if either the test matrix or the code that
+           validates it was modified."""
+        path = affected_file.LocalPath()
+        return (path == 'tools/bots/test_matrix.json' or
+                path == 'tools/validate_test_matrix.dart' or
+                path.startswith('pkg/smith/'))
+
+    if len(
+            input_api.AffectedFiles(
+                include_deletes=False, file_filter=test_matrix_filter)) == 0:
+        return []
+
+    command = [
+        'tools/sdks/dart-sdk/bin/dart',
+        'tools/validate_test_matrix.dart',
+    ]
+    stdout = input_api.subprocess.check_output(command).strip()
+    if not stdout:
+        return []
+    else:
+        return [
+            output_api.PresubmitError(
+                'The test matrix is not valid:', long_text=stdout)
+        ]
+
+
 def _CommonChecks(input_api, output_api):
     results = []
     results.extend(_CheckNnbdSdkSync(input_api, output_api))
+    results.extend(_CheckSdkDdcRuntimeSync(input_api, output_api))
     results.extend(_CheckNnbdTestSync(input_api, output_api))
     results.extend(_CheckValidHostsInDEPS(input_api, output_api))
     results.extend(_CheckDartFormat(input_api, output_api))
     results.extend(_CheckStatusFiles(input_api, output_api))
     results.extend(_CheckLayering(input_api, output_api))
     results.extend(_CheckClangTidy(input_api, output_api))
+    results.extend(_CheckTestMatrixValid(input_api, output_api))
     results.extend(
         input_api.canned_checks.CheckPatchFormatted(input_api, output_api))
     return results

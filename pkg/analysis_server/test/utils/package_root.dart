@@ -11,16 +11,17 @@ import 'package:path/path.dart' as pathos;
 String get packageRoot {
   // If the package root directory is specified on the command line using
   // -DpkgRoot=..., use it.
-  String pkgRootVar = const String.fromEnvironment('pkgRoot');
+  const pkgRootVar =
+      bool.hasEnvironment('pkgRoot') ? String.fromEnvironment('pkgRoot') : null;
   if (pkgRootVar != null) {
-    String path = pathos.join(Directory.current.path, pkgRootVar);
+    var path = pathos.join(Directory.current.path, pkgRootVar);
     if (!path.endsWith(pathos.separator)) path += pathos.separator;
     return path;
   }
   // Otherwise try to guess based on the script path.
-  String scriptPath = pathos.fromUri(Platform.script);
-  List<String> parts = pathos.split(scriptPath);
-  int pkgIndex = parts.indexOf('pkg');
+  var scriptPath = pathos.fromUri(Platform.script);
+  var parts = pathos.split(scriptPath);
+  var pkgIndex = parts.indexOf('pkg');
   if (pkgIndex != -1) {
     return pathos.joinAll(parts.sublist(0, pkgIndex + 1)) + pathos.separator;
   }

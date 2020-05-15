@@ -117,7 +117,7 @@ class BinaryMdDillReader {
 
     // Skip to the start of the index.
     _binaryOffset = _dillContent.length -
-        ((numLibs + 1) + 9 /* number of fixed fields */) * 4;
+        ((numLibs + 1) + 10 /* number of fixed fields */) * 4;
 
     // Read index.
     binaryOffsetForSourceTable = _peekUint32();
@@ -133,6 +133,8 @@ class BinaryMdDillReader {
     binaryOffsetForConstantTable = _peekUint32();
     _binaryOffset += 4;
     mainMethodReference = _peekUint32();
+    _binaryOffset += 4;
+    /*int compilationMode = */ _peekUint32();
 
     _binaryOffset = binaryOffsetForStringTable;
     var saved = _readingInstructions["ComponentFile"];
@@ -439,7 +441,7 @@ class BinaryMdDillReader {
           instruction == "Byte[] 8bitAlignment;") {
         // Special-case 8-byte alignment.
         int sizeWithoutPadding = _binaryOffset +
-            ((numLibs + 1) + 9 /* number of fixed fields */) * 4;
+            ((numLibs + 1) + 10 /* number of fixed fields */) * 4;
         int padding = 8 - sizeWithoutPadding % 8;
         if (padding == 8) padding = 0;
         _binaryOffset += padding;

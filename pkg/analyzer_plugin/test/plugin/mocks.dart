@@ -112,9 +112,9 @@ class MockChannel implements PluginCommunicationChannel {
     if (_onRequest == null) {
       fail('Unexpected invocation of sendNotification');
     }
-    String id = (idCounter++).toString();
-    Request request = params.toRequest(id);
-    Completer<Response> completer = Completer<Response>();
+    var id = (idCounter++).toString();
+    var request = params.toRequest(id);
+    var completer = Completer<Response>();
     completers[request.id] = completer;
     _onRequest(request);
     return completer.future;
@@ -125,7 +125,7 @@ class MockChannel implements PluginCommunicationChannel {
     if (_closed) {
       throw StateError('Sent a response to a closed channel');
     }
-    Completer<Response> completer = completers.remove(response.id);
+    var completer = completers.remove(response.id);
     completer.complete(response);
   }
 }

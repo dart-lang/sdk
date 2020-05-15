@@ -1413,13 +1413,17 @@ class Dart2JSBackend(HtmlDartGenerator):
                     self._members_emitter.Emit(
                         '\n'
                         '  // Use implementation from $SUPER.\n'
-                        '  // $TYPE get $NAME native;\n'
-                        '  // void set $NAME($TYPE value) native;\n',
+                        '  // $GET_TYPE get $NAME native;\n'
+                        '  // void set $NAME($SET_TYPE value) native;\n',
                         SUPER=super_attribute_interface,
                         NAME=html_name,
-                        TYPE=self.SecureOutputType(attribute.type.id,
+                        GET_TYPE=self.SecureOutputType(attribute.type.id,
                             can_narrow_type=read_only,
-                            nullable=attribute.type.nullable))
+                            nullable=attribute.type.nullable),
+                        SET_TYPE=self.SecureOutputType(attribute.type.id,
+                            can_narrow_type=read_only,
+                            nullable=attribute.type.nullable or \
+                                'TreatNullAs' in attribute.ext_attrs))
                     return
             self._members_emitter.Emit('\n  // Shadowing definition.')
             self._AddAttributeUsingProperties(attribute, html_name, read_only)
@@ -1548,7 +1552,7 @@ class Dart2JSBackend(HtmlDartGenerator):
         conversion = self._InputConversion(attr.type.id, attr.id)
         if conversion:
             return self._AddConvertingSetter(attr, html_name, conversion)
-        nullable_type = attr.type.nullable
+        nullable_type = attr.type.nullable or 'TreatNullAs' in attr.ext_attrs
         # If this attr has an output conversion, it is possible that there is a
         # converting getter. We need to make sure the setter type matches the
         # getter type.
@@ -1592,8 +1596,8 @@ class Dart2JSBackend(HtmlDartGenerator):
 
     def _AddConvertingSetter(self, attr, html_name, conversion):
         # If the attribute is nullable, the setter should be nullable.
-        nullable_in = attr.type.nullable and \
-            not conversion.input_type == 'dynamic'
+        nullable_in = (attr.type.nullable or 'TreatNullAs' in attr.ext_attrs) \
+            and not conversion.input_type == 'dynamic'
         nullable_out = conversion.nullable_output and \
             not conversion.output_type == 'dynamic'
         self._members_emitter.Emit(

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -29,7 +28,7 @@ main() {
     createRenameRefactoringAtString('fromCharCodes(');
     // check status
     refactoring.newName = 'newName';
-    RefactoringStatus status = await refactoring.checkInitialConditions();
+    var status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedMessage:
             "The constructor 'String.fromCharCodes' is defined in the SDK, so cannot be renamed.");
@@ -72,7 +71,7 @@ class A {
     _createConstructorDeclarationRefactoring('test() {}');
     // check status
     refactoring.newName = 'newName';
-    RefactoringStatus status = refactoring.checkNewName();
+    var status = refactoring.checkNewName();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage:
             "Class 'A' already declares constructor with name 'newName'.",
@@ -89,7 +88,7 @@ class A {
     _createConstructorDeclarationRefactoring('test() {}');
     // check status
     refactoring.newName = 'newName';
-    RefactoringStatus status = refactoring.checkNewName();
+    var status = refactoring.checkNewName();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage:
             "Class 'A' already declares method with name 'newName'.",

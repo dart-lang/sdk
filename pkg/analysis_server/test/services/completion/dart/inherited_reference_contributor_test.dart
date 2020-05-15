@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/inherited_reference_contributor.dart';
 import 'package:test/test.dart';
@@ -76,7 +75,34 @@ class B extends A {
     assertSuggestMethod('y', 'A', 'Future<dynamic>');
   }
 
-  Future<void> test_Block_inherited_imported() async {
+  Future<void> test_Block_inherited_imported_from_constructor() async {
+    // Block  BlockFunctionBody  ConstructorDeclaration  ClassDeclaration
+    resolveSource('/home/test/lib/b.dart', '''
+      lib B;
+      class F { var f1; f2() { } get f3 => 0; set f4(fx) { } var _pf; }
+      class E extends F { var e1; e2() { } }
+      class I { int i1; i2() { } }
+      class M { var m1; int m2() { } }''');
+    addTestSource('''
+      import "b.dart";
+      class A extends E implements I with M {const A() {^}}''');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestField('e1', null);
+    assertSuggestField('f1', null);
+    assertSuggestField('i1', 'int');
+    assertSuggestField('m1', null);
+    assertSuggestGetter('f3', null);
+    assertSuggestSetter('f4');
+    assertSuggestMethod('e2', 'E', null);
+    assertSuggestMethod('f2', 'F', null);
+    assertSuggestMethod('i2', 'I', null);
+    assertSuggestMethod('m2', 'M', 'int');
+    assertNotSuggested('==');
+  }
+
+  Future<void> test_Block_inherited_imported_from_method() async {
     // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
     resolveSource('/home/test/lib/b.dart', '''
       lib B;
@@ -103,7 +129,31 @@ class B extends A {
     assertNotSuggested('==');
   }
 
-  Future<void> test_Block_inherited_local() async {
+  Future<void> test_Block_inherited_local_from_constructor() async {
+    // Block  BlockFunctionBody  ConstructorDeclaration  ClassDeclaration
+    addTestSource('''
+class F { var f1; f2() { } get f3 => 0; set f4(fx) { } }
+class E extends F { var e1; e2() { } }
+class I { int i1; i2() { } }
+class M { var m1; int m2() { } }
+class A extends E implements I with M {const A() {^}}''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestField('e1', null);
+    assertSuggestField('f1', null);
+    assertSuggestField('i1', 'int');
+    assertSuggestField('m1', null);
+    assertSuggestGetter('f3', null);
+    assertSuggestSetter('f4');
+    assertSuggestMethod('e2', 'E', null);
+    assertSuggestMethod('f2', 'F', null);
+    assertSuggestMethod('i2', 'I', null);
+    assertSuggestMethod('m2', 'M', 'int');
+  }
+
+  Future<void> test_Block_inherited_local_from_method() async {
     // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
     addTestSource('''
 class F { var f1; f2() { } get f3 => 0; set f4(fx) { } }
@@ -252,7 +302,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    var suggestion = assertSuggestMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -272,7 +322,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    var suggestion = assertSuggestMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -295,7 +345,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    var suggestion = assertSuggestMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -316,7 +366,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    var suggestion = assertSuggestMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -339,7 +389,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    var suggestion = assertSuggestMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -359,7 +409,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    var suggestion = assertSuggestMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -382,7 +432,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    var suggestion = assertSuggestMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, isEmpty);
     expect(suggestion.parameterTypes, isEmpty);
     expect(suggestion.requiredParameterCount, 0);
@@ -399,7 +449,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    var suggestion = assertSuggestMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, isEmpty);
     expect(suggestion.parameterTypes, isEmpty);
     expect(suggestion.requiredParameterCount, 0);
@@ -419,7 +469,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    var suggestion = assertSuggestMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -439,7 +489,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    var suggestion = assertSuggestMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -462,7 +512,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    var suggestion = assertSuggestMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -507,7 +557,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestField('x', 'int');
+    var suggestion = assertSuggestField('x', 'int');
     assertHasNoParameterInfo(suggestion);
   }
 
@@ -524,7 +574,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestGetter('x', 'int');
+    var suggestion = assertSuggestGetter('x', 'int');
     assertHasNoParameterInfo(suggestion);
   }
 
@@ -541,7 +591,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestSetter('x');
+    var suggestion = assertSuggestSetter('x');
     assertHasNoParameterInfo(suggestion);
   }
 
@@ -689,8 +739,7 @@ $line^
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion cs =
-        assertSuggest(completion, selectionOffset: selectionOffset);
+    var cs = assertSuggest(completion, selectionOffset: selectionOffset);
     expect(cs.selectionLength, 0);
 
     // It is an invocation, but we don't need any additional info for it.

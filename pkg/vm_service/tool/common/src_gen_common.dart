@@ -19,6 +19,7 @@ bool isEmphasis(Node node) => node is Element && node.tag == 'em';
 bool isPara(Node node) => node is Element && node.tag == 'p';
 bool isBlockquote(Node node) => node is Element && node.tag == 'blockquote';
 bool isPre(Node node) => node is Element && node.tag == 'pre';
+bool isList(Node node) => node is Element && node.tag == 'ul';
 bool isH1(Node node) => node is Element && node.tag == 'h1';
 bool isH3(Node node) => node is Element && node.tag == 'h3';
 bool isHeader(Node node) => node is Element && node.tag.startsWith('h');

@@ -158,7 +158,7 @@ DEFINE_NATIVE_ENTRY(Integer_equalToInteger, 0, 2) {
   return Bool::Get(left.CompareWith(right) == 0).raw();
 }
 
-static RawInteger* ParseInteger(const String& value) {
+static IntegerPtr ParseInteger(const String& value) {
   // Used by both Integer_parse and Integer_fromEnvironment.
   if (value.IsOneByteString()) {
     // Quick conversion for unpadded integers in strings.
@@ -202,9 +202,9 @@ DEFINE_NATIVE_ENTRY(Integer_fromEnvironment, 0, 3) {
   return default_value.raw();
 }
 
-static RawInteger* ShiftOperationHelper(Token::Kind kind,
-                                        const Integer& value,
-                                        const Integer& amount) {
+static IntegerPtr ShiftOperationHelper(Token::Kind kind,
+                                       const Integer& value,
+                                       const Integer& amount) {
   if (amount.AsInt64Value() < 0) {
     Exceptions::ThrowArgumentError(amount);
   }

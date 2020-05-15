@@ -1,0 +1,11 @@
+void expectTypeError(callback()) {}
+
+abstract class A<X> {
+  List<X> foo;
+}
+
+class B implements A<int> {
+  dynamic noSuchMethod(i) => <dynamic>[];
+}
+
+main() {}

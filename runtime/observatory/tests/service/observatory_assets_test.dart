@@ -4,7 +4,7 @@
 
 import 'dart:io';
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'test_helper.dart';
 
@@ -22,4 +22,8 @@ var tests = <VMTest>[
   }
 ];
 
-main(args) async => runVMTests(args, tests);
+main(args) async => runVMTests(
+      args, tests,
+      // TODO(bkonyi): DDS doesn't forward Observatory assets properly yet.
+      enableDds: false,
+    );

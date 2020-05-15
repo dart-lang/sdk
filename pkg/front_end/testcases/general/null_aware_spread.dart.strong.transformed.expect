@@ -1,7 +1,6 @@
 library;
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 import "dart:collection" as col;
 
 static method nullAwareListSpread(core::List<core::String*>* list) → dynamic {
@@ -10,7 +9,7 @@ static method nullAwareListSpread(core::List<core::String*>* list) → dynamic {
     #t1.{core::List::add}("foo");
     final core::Iterable<core::String*>* #t2 = list;
     if(!#t2.{core::Object::==}(null)) {
-      core::Iterator<core::String*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::String*>*>(#t2).{core::Iterable::iterator};
+      core::Iterator<core::String*>* :sync-for-iterator = #t2.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::String* #t3 = :sync-for-iterator.{core::Iterator::current};
         #t1.{core::List::add}(#t3);
@@ -24,7 +23,7 @@ static method nullAwareSetSpread(core::Set<core::String*>* set) → dynamic {
     #t4.{core::Set::add}("foo");
     final core::Iterable<core::String*>* #t5 = set;
     if(!#t5.{core::Object::==}(null)) {
-      core::Iterator<core::String*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::String*>*>(#t5).{core::Iterable::iterator};
+      core::Iterator<core::String*>* :sync-for-iterator = #t5.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::String* #t6 = :sync-for-iterator.{core::Iterator::current};
         #t4.{core::Set::add}(#t6);
@@ -38,7 +37,7 @@ static method nullAwareMapSpread(core::Map<core::int*, core::String*>* map) → 
     #t7.{core::Map::[]=}(0, "foo");
     final core::Map<core::int*, core::String*>* #t8 = map;
     if(!#t8.{core::Object::==}(null)) {
-      core::Iterator<core::MapEntry<core::int*, core::String*>*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::MapEntry<core::int*, core::String*>*>*>(#t8.{core::Map::entries}).{core::Iterable::iterator};
+      core::Iterator<core::MapEntry<core::int*, core::String*>>* :sync-for-iterator = #t8.{core::Map::entries}.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::MapEntry<core::int*, core::String*>* #t9 = :sync-for-iterator.{core::Iterator::current};
         #t7.{core::Map::[]=}(#t9.{core::MapEntry::key}, #t9.{core::MapEntry::value});

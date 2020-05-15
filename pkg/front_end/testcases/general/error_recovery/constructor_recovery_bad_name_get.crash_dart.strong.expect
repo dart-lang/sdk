@@ -1,0 +1,72 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_get.crash_dart:2:7: Error: The name of a constructor must match the name of the enclosing class.
+//   get foo.x() {
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_get.crash_dart:2:3: Error: Constructors can't be a getter.
+// Try removing 'get'.
+//   get foo.x() {
+//   ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_get.crash_dart:5:7: Error: The name of a constructor must match the name of the enclosing class.
+//   get foo.x() : initializer = true {
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_get.crash_dart:5:3: Error: Constructors can't be a getter.
+// Try removing 'get'.
+//   get foo.x() : initializer = true {
+//   ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_get.crash_dart:5:7: Error: 'Foo.x' is already declared in this scope.
+//   get foo.x() : initializer = true {
+//       ^^^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_get.crash_dart:2:7: Context: Previous declaration of 'Foo.x'.
+//   get foo.x() {
+//       ^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_get.crash_dart:8:10: Error: A getter can't have formal parameters.
+// Try removing '(...)'.
+//   get foo() : initializer = true {
+//          ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_get.crash_dart:8:7: Error: The name of a constructor must match the name of the enclosing class.
+//   get foo() : initializer = true {
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_get.crash_dart:8:3: Error: Constructors can't be a getter.
+// Try removing 'get'.
+//   get foo() : initializer = true {
+//   ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_get.crash_dart:5:17: Error: 'initializer' isn't an instance field of this class.
+//   get foo.x() : initializer = true {
+//                 ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_get.crash_dart:8:15: Error: 'initializer' isn't an instance field of this class.
+//   get foo() : initializer = true {
+//               ^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  constructor x() → self::Foo*
+    : super core::Object::•() {}
+  constructor foo() → self::Foo*
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_get.crash_dart:8:15: Error: 'initializer' isn't an instance field of this class.
+  get foo() : initializer = true {
+              ^^^^^^^^^^^" {}
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}

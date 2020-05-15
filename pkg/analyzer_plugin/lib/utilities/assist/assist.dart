@@ -43,9 +43,9 @@ class AssistGenerator {
   /// also create a non-fatal 'plugin.error' notification.
   GeneratorResult<EditGetAssistsResult> generateAssistsResponse(
       AssistRequest request) {
-    List<Notification> notifications = <Notification>[];
-    AssistCollectorImpl collector = AssistCollectorImpl();
-    for (AssistContributor contributor in contributors) {
+    var notifications = <Notification>[];
+    var collector = AssistCollectorImpl();
+    for (var contributor in contributors) {
       try {
         contributor.computeAssists(request, collector);
       } catch (exception, stackTrace) {
@@ -54,7 +54,7 @@ class AssistGenerator {
             .toNotification());
       }
     }
-    EditGetAssistsResult result = EditGetAssistsResult(collector.assists);
+    var result = EditGetAssistsResult(collector.assists);
     return GeneratorResult(result, notifications);
   }
 }
@@ -65,7 +65,8 @@ class AssistGenerator {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AssistKind {
-  /// The unique identifier of this kind of assist.
+  /// The unique identifier of this kind of assist. May be used by client editors,
+  /// for example to allow key-binding specific fixes (or groups of).
   final String id;
 
   /// The priority of this kind of assist for the kind of error being addressed.

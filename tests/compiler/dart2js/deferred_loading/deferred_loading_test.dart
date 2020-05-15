@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'dart:io' hide Link;
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/closure.dart';
@@ -32,11 +34,9 @@ main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, const OutputUnitDataComputer(),
-        options: compilerOptions,
-        args: args,
-        setUpFunction: () {
+        options: compilerOptions, args: args, setUpFunction: () {
       importPrefixes.clear();
-    }, testedConfigs: allStrongConfigs);
+    }, testedConfigs: allSpecConfigs);
   });
 }
 

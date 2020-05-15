@@ -26,14 +26,14 @@ class DescriptorList : public ZoneAllocated {
 
   ~DescriptorList() {}
 
-  void AddDescriptor(RawPcDescriptors::Kind kind,
+  void AddDescriptor(PcDescriptorsLayout::Kind kind,
                      intptr_t pc_offset,
                      intptr_t deopt_id,
                      TokenPosition token_pos,
                      intptr_t try_index,
                      intptr_t yield_index);
 
-  RawPcDescriptors* FinalizePcDescriptors(uword entry_point);
+  PcDescriptorsPtr FinalizePcDescriptors(uword entry_point);
 
  private:
   GrowableArray<uint8_t> encoded_data_;
@@ -55,7 +55,7 @@ class CompressedStackMapsBuilder : public ZoneAllocated {
                 BitmapBuilder* bitmap,
                 intptr_t spill_slot_bit_count);
 
-  RawCompressedStackMaps* Finalize() const;
+  CompressedStackMapsPtr Finalize() const;
 
  private:
   intptr_t last_pc_offset_ = 0;
@@ -199,7 +199,7 @@ class ExceptionHandlerList : public ZoneAllocated {
     return false;
   }
 
-  RawExceptionHandlers* FinalizeExceptionHandlers(uword entry_point) const;
+  ExceptionHandlersPtr FinalizeExceptionHandlers(uword entry_point) const;
 
  private:
   GrowableArray<struct HandlerDesc> list_;
@@ -215,7 +215,7 @@ class CatchEntryMovesMapBuilder : public ZoneAllocated {
   void NewMapping(intptr_t pc_offset);
   void Append(const CatchEntryMove& move);
   void EndMapping();
-  RawTypedData* FinalizeCatchEntryMovesMap();
+  TypedDataPtr FinalizeCatchEntryMovesMap();
 
  private:
   class TrieNode;
@@ -263,13 +263,13 @@ class CodeSourceMapBuilder : public ZoneAllocated {
   void StartInliningInterval(int32_t pc_offset, intptr_t inline_id);
   void BeginCodeSourceRange(int32_t pc_offset);
   void EndCodeSourceRange(int32_t pc_offset, TokenPosition pos);
-  void NoteDescriptor(RawPcDescriptors::Kind kind,
+  void NoteDescriptor(PcDescriptorsLayout::Kind kind,
                       int32_t pc_offset,
                       TokenPosition pos);
   void NoteNullCheck(int32_t pc_offset, TokenPosition pos, intptr_t name_index);
 
-  RawArray* InliningIdToFunction();
-  RawCodeSourceMap* Finalize();
+  ArrayPtr InliningIdToFunction();
+  CodeSourceMapPtr Finalize();
 
  private:
   intptr_t GetFunctionId(intptr_t inline_id);

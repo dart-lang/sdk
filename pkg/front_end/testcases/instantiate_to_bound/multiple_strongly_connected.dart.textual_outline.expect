@@ -1,0 +1,47 @@
+class A<X> {}
+
+class B<X, Y> {}
+
+class C<X, Y> {}
+
+class D<X extends A<X>, Y extends A<Y>> {}
+
+D d;
+
+class E<W extends B<W, X>, X extends C<W, X>, Y extends B<Y, Z>,
+    Z extends C<Y, Z>> {}
+
+E e;
+
+class F<V extends num, W extends B<W, X>, X extends C<W, X>, Y extends B<W, X>,
+    Z extends C<Y, Z>> {}
+
+F f;
+
+class G<V extends num, W extends B<V, X>, X extends C<W, V>, Y extends B<W, X>,
+    Z extends C<Y, Z>> {}
+
+G g;
+
+class H<S extends A<S>, T extends B<T, U>, U extends C<T, U>, V extends A<V>,
+    W extends S, X extends T, Y extends U, Z extends V> {}
+
+H h;
+
+class I<T extends U, U extends Y, V extends Function(W), W extends Function(X),
+    X extends Function(V), Y extends Z, Z extends T> {}
+
+I i;
+
+class J<
+    S extends T Function(U),
+    T extends U Function(S),
+    U extends S Function(T),
+    V extends W,
+    W extends X,
+    X extends Y Function(V),
+    Y extends Z,
+    Z extends X> {}
+
+J j;
+main() {}

@@ -100,7 +100,7 @@ class ReplaceWithInterpolation extends CorrectionProducer {
     var quotes = style.quotes;
     var buffer = StringBuffer();
     buffer.write(quotes);
-    for (int i = 0; i < components.length; i++) {
+    for (var i = 0; i < components.length; i++) {
       var component = components[i];
       if (component is SimpleStringLiteral) {
         var contents = utils.getRangeText(range.startOffsetEndOffset(
@@ -143,6 +143,9 @@ class ReplaceWithInterpolation extends CorrectionProducer {
     }
     return false;
   }
+
+  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
+  static ReplaceWithInterpolation newInstance() => ReplaceWithInterpolation();
 }
 
 class _StringStyle {

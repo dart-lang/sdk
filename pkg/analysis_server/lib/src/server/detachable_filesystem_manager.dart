@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/analysis_server.dart';
 
-/// A class that can be used to confirm an analysis server instance to better
+/// A class that can be used to configure an analysis server instance to better
 /// support intermittent file systems.
 ///
 /// See also [AnalysisServerOptions.detachableFileSystemManager].

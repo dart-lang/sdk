@@ -23,11 +23,10 @@ import 'package:nnbd_migration/src/conditional_discard.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/fix_builder.dart';
-import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/nullability_node_target.dart';
 import 'package:nnbd_migration/src/postmortem_file.dart';
-import 'package:nnbd_migration/src/potential_modification.dart';
+import 'package:nnbd_migration/src/utilities/hint_utils.dart';
 
 /// Data structure used by [Variables.spanForUniqueIdentifier] to return an
 /// offset/end pair.
@@ -42,7 +41,7 @@ class OffsetEndPair {
   String toString() => '$offset-$end';
 }
 
-class Variables implements VariableRecorder, VariableRepository {
+class Variables {
   final NullabilityGraph _graph;
 
   final TypeProvider _typeProvider;
@@ -58,7 +57,11 @@ class Variables implements VariableRecorder, VariableRepository {
 
   final _expressionChecks = <Source, Map<int, ExpressionChecks>>{};
 
-  final _potentialModifications = <Source, List<PotentialModification>>{};
+  final _lateHints = <Source, Map<int, HintComment>>{};
+
+  final _nullCheckHints = <Source, Map<int, HintComment>>{};
+
+  final _nullabilityHints = <Source, Map<int, HintComment>>{};
 
   final _unnecessaryCasts = <Source, Set<int>>{};
 
@@ -73,14 +76,20 @@ class Variables implements VariableRecorder, VariableRepository {
       : _alreadyMigratedCodeDecorator =
             AlreadyMigratedCodeDecorator(_graph, _typeProvider);
 
-  @override
+  /// Given a [class_], gets the decorated type information for the superclasses
+  /// it directly implements/extends/etc.
   Map<ClassElement, DecoratedType> decoratedDirectSupertypes(
       ClassElement class_) {
     return _decoratedDirectSupertypes[class_] ??=
         _decorateDirectSupertypes(class_);
   }
 
-  @override
+  /// Retrieves the [DecoratedType] associated with the static type of the given
+  /// [element].
+  ///
+  /// If no decorated type is found for the given element, and the element is in
+  /// a library that's not being migrated, a decorated type is synthesized using
+  /// [DecoratedType.forElement].
   DecoratedType decoratedElementType(Element element) {
     assert(element is! TypeParameterElement,
         'Use decoratedTypeParameterBound instead');
@@ -88,7 +97,7 @@ class Variables implements VariableRecorder, VariableRepository {
         _createDecoratedElementType(element);
   }
 
-  @override
+  /// Gets the [DecoratedType] associated with the given [typeAnnotation].
   DecoratedType decoratedTypeAnnotation(
       Source source, TypeAnnotation typeAnnotation) {
     var annotationsInSource = _decoratedTypeAnnotations[source];
@@ -106,6 +115,8 @@ class Variables implements VariableRecorder, VariableRepository {
     return decoratedTypeAnnotation;
   }
 
+  /// Retrieves the decorated bound of the given [typeParameter].
+  ///
   /// Note: the optional argument [allowNullUnparentedBounds] is intended for
   /// the FixBuilder stage only, to allow it to cope with the situation where
   /// a type parameter element with a null parent doesn't have a decorated type
@@ -115,7 +126,6 @@ class Variables implements VariableRecorder, VariableRepository {
   /// because at that point the types we are dealing with are all
   /// post-migration types, so their bounds already reflect the correct
   /// nullabilities.
-  @override
   DecoratedType decoratedTypeParameterBound(TypeParameterElement typeParameter,
       {bool allowNullUnparentedBounds = false}) {
     var enclosingElement = typeParameter.enclosingElement;
@@ -157,23 +167,46 @@ class Variables implements VariableRecorder, VariableRepository {
   ConditionalDiscard getConditionalDiscard(Source source, AstNode node) =>
       (_conditionalDiscards[source] ?? {})[node.offset];
 
-  Map<Source, List<PotentialModification>> getPotentialModifications() =>
-      _potentialModifications;
+  /// If the given [node] is preceded by a `/*late*/` hint, returns the
+  /// HintComment for it; otherwise returns `null`.  See [recordLateHint].
+  HintComment getLateHint(Source source, VariableDeclarationList node) {
+    return (_lateHints[source] ?? {})[node.offset];
+  }
 
-  @override
+  /// If the given [node] is followed by a `/*?*/` or /*!*/ hint, returns the
+  /// HintComment for it; otherwise returns `null`.  See
+  /// [recordNullabilityHint].
+  HintComment getNullabilityHint(Source source, AstNode node) {
+    assert(node is TypeAnnotation ||
+        node is FunctionTypedFormalParameter ||
+        (node is FieldFormalParameter && node.parameters != null));
+    return (_nullabilityHints[source] ??
+        {})[uniqueIdentifierForSpan(node.offset, node.end)];
+  }
+
+  /// If the given [expression] is followed by a null check hint (`/*!*/`),
+  /// returns the HintComment for it; otherwise returns `null`.  See
+  /// [recordNullCheckHint].
+  HintComment getNullCheckHint(Source source, Expression expression) {
+    return (_nullCheckHints[source] ??
+        {})[(uniqueIdentifierForSpan(expression.offset, expression.end))];
+  }
+
+  /// Records conditional discard information for the given AST node (which is
+  /// an `if` statement or a conditional (`?:`) expression).
   void recordConditionalDiscard(
       Source source, AstNode node, ConditionalDiscard conditionalDiscard) {
     (_conditionalDiscards[source] ??= {})[node.offset] = conditionalDiscard;
-    _addPotentialModification(
-        source, ConditionalModification(node, conditionalDiscard));
   }
 
-  @override
+  /// Associates a [class_] with decorated type information for the superclasses
+  /// it directly implements/extends/etc.
   void recordDecoratedDirectSupertypes(ClassElement class_,
       Map<ClassElement, DecoratedType> decoratedDirectSupertypes) {
     _decoratedDirectSupertypes[class_] = decoratedDirectSupertypes;
   }
 
+  /// Associates decorated type information with the given [element].
   void recordDecoratedElementType(Element element, DecoratedType type) {
     assert(() {
       assert(element is! TypeParameterElement,
@@ -190,35 +223,53 @@ class Variables implements VariableRecorder, VariableRepository {
     _decoratedElementTypes[element] = type;
   }
 
+  /// Associates decorated type information with the given expression [node].
   void recordDecoratedExpressionType(Expression node, DecoratedType type) {}
 
-  void recordDecoratedTypeAnnotation(Source source, TypeAnnotation node,
-      DecoratedType type, PotentiallyAddQuestionSuffix potentialModification) {
+  /// Associates decorated type information with the given [type] node.
+  void recordDecoratedTypeAnnotation(
+      Source source, TypeAnnotation node, DecoratedType type) {
     instrumentation?.explicitTypeNullability(source, node, type.node);
-    if (potentialModification != null)
-      _addPotentialModification(source, potentialModification);
     var id = uniqueIdentifierForSpan(node.offset, node.end);
     (_decoratedTypeAnnotations[source] ??= {})[id] = type;
     postmortemFileWriter?.storeFileDecorations(source.fullName, id, type);
   }
 
-  @override
+  /// Associates a set of nullability checks with the given expression [node].
   void recordExpressionChecks(
       Source source, Expression expression, ExpressionChecksOrigin origin) {
-    _addPotentialModification(source, origin.checks);
     (_expressionChecks[source] ??=
             {})[uniqueIdentifierForSpan(expression.offset, expression.end)] =
         origin.checks;
   }
 
-  @override
-  void recordPossiblyOptional(
-      Source source, DefaultFormalParameter parameter, NullabilityNode node) {
-    var modification = PotentiallyAddRequired(parameter, node);
-    _addPotentialModification(source, modification);
+  /// Records that the given [node] was preceded by a `/*late*/` hint.
+  void recordLateHint(
+      Source source, VariableDeclarationList node, HintComment hint) {
+    (_lateHints[source] ??= {})[node.offset] = hint;
   }
 
-  @override
+  /// Records that the given [node] was followed by a `/*?*/` or `/*!*/` hint.
+  void recordNullabilityHint(
+      Source source, AstNode node, HintComment hintComment) {
+    assert(node is TypeAnnotation ||
+        node is FunctionTypedFormalParameter ||
+        (node is FieldFormalParameter && node.parameters != null));
+    (_nullabilityHints[source] ??=
+        {})[uniqueIdentifierForSpan(node.offset, node.end)] = hintComment;
+  }
+
+  /// Records that the given [expression] is followed by a null check hint
+  /// (`/*!*/`), for later recall by [hasNullCheckHint].
+  void recordNullCheckHint(
+      Source source, Expression expression, HintComment hintComment) {
+    (_nullCheckHints[source] ??=
+            {})[uniqueIdentifierForSpan(expression.offset, expression.end)] =
+        hintComment;
+  }
+
+  /// Records the fact that prior to migration, an unnecessary cast existed at
+  /// [node].
   void recordUnnecessaryCast(Source source, AsExpression node) {
     bool newlyAdded = (_unnecessaryCasts[source] ??= {})
         .add(uniqueIdentifierForSpan(node.offset, node.end));
@@ -298,11 +349,6 @@ class Variables implements VariableRecorder, VariableRepository {
   bool wasUnnecessaryCast(Source source, AsExpression node) =>
       (_unnecessaryCasts[source] ?? const {})
           .contains(uniqueIdentifierForSpan(node.offset, node.end));
-
-  void _addPotentialModification(
-      Source source, PotentialModification potentialModification) {
-    (_potentialModifications[source] ??= []).add(potentialModification);
-  }
 
   /// Creates a decorated type for the given [element], which should come from
   /// an already-migrated library (or the SDK).

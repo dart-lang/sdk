@@ -34,6 +34,10 @@
 namespace dart {
 
 DEFINE_FLAG(bool, write_protect_vm_isolate, true, "Write protect vm_isolate.");
+DEFINE_FLAG(bool,
+            disable_heap_verification,
+            false,
+            "Explicitly disable heap verification.");
 
 // We ensure that the GC does not use the current isolate.
 class NoActiveIsolateScope {
@@ -87,23 +91,24 @@ uword Heap::AllocateNew(intptr_t size) {
   if (LIKELY(addr != 0)) {
     return addr;
   }
+  if (new_space_.GrowthControlState()) {
+    // This call to CollectGarbage might end up "reusing" a collection spawned
+    // from a different thread and will be racing to allocate the requested
+    // memory with other threads being released after the collection.
+    CollectGarbage(kNew);
 
-  // This call to CollectGarbage might end up "reusing" a collection spawned
-  // from a different thread and will be racing to allocate the requested
-  // memory with other threads being released after the collection.
-  CollectGarbage(kNew);
-
-  addr = new_space_.TryAllocate(thread, size);
-  if (LIKELY(addr != 0)) {
-    return addr;
+    addr = new_space_.TryAllocate(thread, size);
+    if (LIKELY(addr != 0)) {
+      return addr;
+    }
   }
 
   // It is possible a GC doesn't clear enough space.
   // In that case, we must fall through and allocate into old space.
-  return AllocateOld(size, HeapPage::kData);
+  return AllocateOld(size, OldPage::kData);
 }
 
-uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
+uword Heap::AllocateOld(intptr_t size, OldPage::PageType type) {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
   CollectForDebugging();
   uword addr = old_space_.TryAllocate(size, type);
@@ -204,19 +209,19 @@ bool Heap::OldContains(uword addr) const {
 }
 
 bool Heap::CodeContains(uword addr) const {
-  return old_space_.Contains(addr, HeapPage::kExecutable);
+  return old_space_.Contains(addr, OldPage::kExecutable);
 }
 
 bool Heap::DataContains(uword addr) const {
   return old_space_.DataContains(addr);
 }
 
-void Heap::VisitObjects(ObjectVisitor* visitor) const {
+void Heap::VisitObjects(ObjectVisitor* visitor) {
   new_space_.VisitObjects(visitor);
   old_space_.VisitObjects(visitor);
 }
 
-void Heap::VisitObjectsNoImagePages(ObjectVisitor* visitor) const {
+void Heap::VisitObjectsNoImagePages(ObjectVisitor* visitor) {
   new_space_.VisitObjects(visitor);
   old_space_.VisitObjectsNoImagePages(visitor);
 }
@@ -317,31 +322,31 @@ void HeapIterationScope::IterateStackPointers(
   isolate_group()->VisitStackPointers(visitor, validate_frames);
 }
 
-void Heap::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
+void Heap::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   new_space_.VisitObjectPointers(visitor);
   old_space_.VisitObjectPointers(visitor);
 }
 
-RawInstructions* Heap::FindObjectInCodeSpace(FindObjectVisitor* visitor) const {
+InstructionsPtr Heap::FindObjectInCodeSpace(FindObjectVisitor* visitor) const {
   // Only executable pages can have RawInstructions objects.
-  RawObject* raw_obj = old_space_.FindObject(visitor, HeapPage::kExecutable);
+  ObjectPtr raw_obj = old_space_.FindObject(visitor, OldPage::kExecutable);
   ASSERT((raw_obj == Object::null()) ||
          (raw_obj->GetClassId() == kInstructionsCid));
-  return reinterpret_cast<RawInstructions*>(raw_obj);
+  return static_cast<InstructionsPtr>(raw_obj);
 }
 
-RawObject* Heap::FindOldObject(FindObjectVisitor* visitor) const {
-  return old_space_.FindObject(visitor, HeapPage::kData);
+ObjectPtr Heap::FindOldObject(FindObjectVisitor* visitor) const {
+  return old_space_.FindObject(visitor, OldPage::kData);
 }
 
-RawObject* Heap::FindNewObject(FindObjectVisitor* visitor) const {
+ObjectPtr Heap::FindNewObject(FindObjectVisitor* visitor) {
   return new_space_.FindObject(visitor);
 }
 
-RawObject* Heap::FindObject(FindObjectVisitor* visitor) const {
+ObjectPtr Heap::FindObject(FindObjectVisitor* visitor) {
   // The visitor must not allocate from the heap.
   NoSafepointScope no_safepoint_scope;
-  RawObject* raw_obj = FindNewObject(visitor);
+  ObjectPtr raw_obj = FindNewObject(visitor);
   if (raw_obj != Object::null()) {
     return raw_obj;
   }
@@ -640,25 +645,26 @@ void Heap::WaitForSweeperTasksAtSafepoint(Thread* thread) {
 }
 
 void Heap::UpdateGlobalMaxUsed() {
-#if !defined(PRODUCT)
   ASSERT(isolate_group_ != NULL);
   // We are accessing the used in words count for both new and old space
   // without synchronizing. The value of this metric is approximate.
   isolate_group_->GetHeapGlobalUsedMaxMetric()->SetValue(
       (UsedInWords(Heap::kNew) * kWordSize) +
       (UsedInWords(Heap::kOld) * kWordSize));
-#endif  // !defined(PRODUCT)
 }
 
 void Heap::InitGrowthControl() {
+  new_space_.InitGrowthControl();
   old_space_.InitGrowthControl();
 }
 
 void Heap::SetGrowthControlState(bool state) {
+  new_space_.SetGrowthControlState(state);
   old_space_.SetGrowthControlState(state);
 }
 
 bool Heap::GrowthControlState() {
+  ASSERT(new_space_.GrowthControlState() == old_space_.GrowthControlState());
   return old_space_.GrowthControlState();
 }
 
@@ -698,7 +704,7 @@ void Heap::AddRegionsToObjectSet(ObjectSet* set) const {
 
 void Heap::CollectOnNthAllocation(intptr_t num_allocations) {
   // Prevent generated code from using the TLAB fast path on next allocation.
-  new_space_.AbandonRemainingTLAB(Thread::Current());
+  new_space_.AbandonRemainingTLABForDebugging(Thread::Current());
   gc_on_nth_allocation_ = num_allocations;
 }
 
@@ -720,19 +726,23 @@ void Heap::MergeOtherHeap(Heap* other) {
 
 void Heap::CollectForDebugging() {
   if (gc_on_nth_allocation_ == kNoForcedGarbageCollection) return;
+  if (Thread::Current()->IsAtSafepoint()) {
+    // CollectAllGarbage is not supported when we are at a safepoint.
+    // Allocating when at a safepoint is not a common case.
+    return;
+  }
   gc_on_nth_allocation_--;
   if (gc_on_nth_allocation_ == 0) {
     CollectAllGarbage(kDebugging);
     gc_on_nth_allocation_ = kNoForcedGarbageCollection;
   } else {
     // Prevent generated code from using the TLAB fast path on next allocation.
-    new_space_.AbandonRemainingTLAB(Thread::Current());
+    new_space_.AbandonRemainingTLABForDebugging(Thread::Current());
   }
 }
 
-ObjectSet* Heap::CreateAllocatedObjectSet(
-    Zone* zone,
-    MarkExpectation mark_expectation) const {
+ObjectSet* Heap::CreateAllocatedObjectSet(Zone* zone,
+                                          MarkExpectation mark_expectation) {
   ObjectSet* allocated_set = new (zone) ObjectSet(zone);
 
   this->AddRegionsToObjectSet(allocated_set);
@@ -759,16 +769,17 @@ ObjectSet* Heap::CreateAllocatedObjectSet(
   return allocated_set;
 }
 
-bool Heap::Verify(MarkExpectation mark_expectation) const {
+bool Heap::Verify(MarkExpectation mark_expectation) {
+  if (FLAG_disable_heap_verification) {
+    return true;
+  }
   HeapIterationScope heap_iteration_scope(Thread::Current());
   return VerifyGC(mark_expectation);
 }
 
-bool Heap::VerifyGC(MarkExpectation mark_expectation) const {
-  StackZone stack_zone(Thread::Current());
-
-  // Change the new space's top_ with the more up-to-date thread's view of top_
-  new_space_.MakeNewSpaceIterable();
+bool Heap::VerifyGC(MarkExpectation mark_expectation) {
+  auto thread = Thread::Current();
+  StackZone stack_zone(thread);
 
   ObjectSet* allocated_set =
       CreateAllocatedObjectSet(stack_zone.GetZone(), mark_expectation);
@@ -862,6 +873,8 @@ const char* Heap::GCReasonToString(GCReason gc_reason) {
       return "low memory";
     case kDebugging:
       return "debugging";
+    case kSendAndExit:
+      return "send_and_exit";
     default:
       UNREACHABLE();
       return "";
@@ -882,7 +895,7 @@ void Heap::ResetObjectIdTable() {
   old_weak_tables_[kObjectIds]->Reset();
 }
 
-intptr_t Heap::GetWeakEntry(RawObject* raw_obj, WeakSelector sel) const {
+intptr_t Heap::GetWeakEntry(ObjectPtr raw_obj, WeakSelector sel) const {
   if (raw_obj->IsNewObject()) {
     return new_weak_tables_[sel]->GetValue(raw_obj);
   }
@@ -890,7 +903,7 @@ intptr_t Heap::GetWeakEntry(RawObject* raw_obj, WeakSelector sel) const {
   return old_weak_tables_[sel]->GetValue(raw_obj);
 }
 
-void Heap::SetWeakEntry(RawObject* raw_obj, WeakSelector sel, intptr_t val) {
+void Heap::SetWeakEntry(ObjectPtr raw_obj, WeakSelector sel, intptr_t val) {
   if (raw_obj->IsNewObject()) {
     new_weak_tables_[sel]->SetValue(raw_obj, val);
   } else {
@@ -899,8 +912,7 @@ void Heap::SetWeakEntry(RawObject* raw_obj, WeakSelector sel, intptr_t val) {
   }
 }
 
-void Heap::ForwardWeakEntries(RawObject* before_object,
-                              RawObject* after_object) {
+void Heap::ForwardWeakEntries(ObjectPtr before_object, ObjectPtr after_object) {
   const auto before_space =
       before_object->IsNewObject() ? Heap::kNew : Heap::kOld;
   const auto after_space =

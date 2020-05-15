@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 @pragma('dart2js:noInline')
 test(o) => o is Function();
 
@@ -9,7 +11,6 @@ main() {
   test(/*checks=[$signature],instance*/ () {});
   test(
 
-      /*strong.checks=[],instance*/
-      /*omit.checks=[],instance*/
+      /*checks=[],instance*/
       (a) {});
 }

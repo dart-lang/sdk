@@ -95,7 +95,7 @@ class BytecodeRegExpMacroAssembler : public RegExpMacroAssembler {
 
   virtual IrregexpImplementation Implementation();
   // virtual Handle<HeapObject> GetCode(Handle<String> source);
-  RawTypedData* GetBytecode();
+  TypedDataPtr GetBytecode();
 
   // New
   virtual bool IsClosed() const {
@@ -107,11 +107,11 @@ class BytecodeRegExpMacroAssembler : public RegExpMacroAssembler {
   virtual void PrintBlocks() { UNIMPLEMENTED(); }
   /////
 
-  static RawInstance* Interpret(const RegExp& regexp,
-                                const String& str,
-                                const Smi& start_index,
-                                bool is_sticky,
-                                Zone* zone);
+  static InstancePtr Interpret(const RegExp& regexp,
+                               const String& str,
+                               const Smi& start_index,
+                               bool is_sticky,
+                               Zone* zone);
 
  private:
   void Expand();

@@ -422,8 +422,11 @@ class List<E> {
         ? new JSArray<E>.growable(length)
         : new JSArray<E>.fixed(length);
     if (length != 0 && fill != null) {
+      // TODO(sra): Consider using `Array.fill`.
       for (int i = 0; i < result.length; i++) {
-        result[i] = fill;
+        // Unchecked assignment equivalent to `result[i] = fill`;
+        // `fill` is checked statically at call site.
+        JS('', '#[#] = #', result, i, fill);
       }
     }
     return result;
@@ -483,8 +486,12 @@ class String {
   @patch
   factory String.fromCharCodes(Iterable<int> charCodes,
       [int start = 0, int? end]) {
-    if (charCodes is JSArray<int>) {
-      return _stringFromJSArray(charCodes as JSArray<int>, start, end);
+    if (charCodes is JSArray) {
+      // Type promotion doesn't work unless the check is `is JSArray<int>`,
+      // which is more expensive.
+      // TODO(41383): Optimize `is JSArray<int>` rather than do weird 'casts'.
+      JSArray array = JS('JSArray', '#', charCodes);
+      return _stringFromJSArray(array, start, end);
     }
     if (charCodes is NativeUint8List) {
       return _stringFromUint8List(charCodes, start, end);
@@ -497,12 +504,11 @@ class String {
     return Primitives.stringFromCharCode(charCode);
   }
 
-  static String _stringFromJSArray(
-      JSArray<int> list, int start, int? endOrNull) {
+  static String _stringFromJSArray(JSArray list, int start, int? endOrNull) {
     int len = list.length;
     int end = RangeError.checkValidRange(start, endOrNull, len);
     if (start > 0 || end < len) {
-      list = list.sublist(start, end) as JSArray<int>;
+      list = JS('JSArray', '#.slice(#, #)', list, start, end);
     }
     return Primitives.stringFromCharCodes(list);
   }
@@ -633,7 +639,7 @@ class StringBuffer {
     return string;
   }
 
-  static String _writeOne(String string, Object obj) {
+  static String _writeOne(String string, Object? obj) {
     return Primitives.stringConcatUnchecked(string, '$obj');
   }
 }
@@ -2754,7 +2760,7 @@ class _BigIntImpl implements BigInt {
           // There is already one in the cachedBits.
           roundUp();
         } else {
-          for (int i = digitIndex; digitIndex >= 0; i--) {
+          for (int i = digitIndex; i >= 0; i--) {
             if (_digits[i] != 0) {
               roundUp();
               break;

@@ -64,8 +64,5 @@ git cl web
 set +x
 cat << EOF
 
-Wait for the builders to finish. If any failed, pre-approve them:
-
-  tools/sdks/dart-sdk/bin/dart tools/approve_results.dart \
-    -p https://dart-review.googlesource.com/c/sdk/+/$ISSUE
+Wait for the builders to finish. If any failed, pre-approve them.
 EOF

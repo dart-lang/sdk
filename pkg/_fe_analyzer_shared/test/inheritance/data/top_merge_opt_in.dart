@@ -32,30 +32,27 @@ abstract class D {
 
 /*class: E1:A,B,C,D,E1,Object*/
 abstract class E1 implements A, B, C, D {
-  /*cfe|cfe:builder.member: E1.method:void Function(void)*/
-/*analyzer.member: E1.method:FutureOr<dynamic> Function(FutureOr<dynamic>)*/
+  /*member: E1.method:Object? Function(Object?)*/
 }
 
 /*class: E2:A,B,E2,Object*/
 abstract class E2 implements A, B {
-  /*cfe|cfe:builder.member: E2.method:Object? Function(Object?)*/
-  /*analyzer.member: E2.method:dynamic Function(dynamic)*/
+  /*member: E2.method:Object? Function(Object?)*/
 }
 
 /*class: E3:B,C,E3,Object*/
 abstract class E3 implements B, C {
-  /*member: E3.method:void Function(void)*/
+  /*member: E3.method:Object? Function(Object?)*/
 }
 
 /*class: E4:A,C,E4,Object*/
 abstract class E4 implements A, C {
-  /*member: E4.method:void Function(void)*/
+  /*member: E4.method:Object? Function(Object?)*/
 }
 
 /*class: E5:A,D,E5,Object*/
 abstract class E5 implements A, D {
-  /*cfe|cfe:builder.member: E5.method:Object? Function(Object?)*/
-  /*analyzer.member: E5.method:FutureOr<dynamic> Function(FutureOr<dynamic>)*/
+  /*member: E5.method:Object? Function(Object?)*/
 }
 
 /*class: E6:A,D,E6,Object*/
@@ -71,22 +68,20 @@ abstract class F {
 
 /*class: G1:A,C,F,G1,Object*/
 abstract class G1 implements A, C, F {
-  /*member: G1.method:void Function(void)*/
+  /*member: G1.method:Object? Function(Object?)*/
 }
 
 /*class: G2:A,C,F,G2,Object*/
 abstract class G2 implements A, F, C {
-  /*member: G2.method:void Function(void)*/
+  /*member: G2.method:Object? Function(Object?)*/
 }
 
 /*class: G3:A,C,F,G3,Object*/
 abstract class G3 implements C, A, F {
-  /*cfe|cfe:builder.member: G3.method:void Function(void)*/
-  /*analyzer.member: G3.method:Object? Function(Object?)*/
+  /*member: G3.method:Object? Function(Object?)*/
 }
 
 /*class: G4:A,C,F,G4,Object*/
 abstract class G4 implements C, F, A {
-  /*cfe|cfe:builder.member: G4.method:void Function(void)*/
-  /*analyzer.member: G4.method:Object? Function(Object?)*/
+  /*member: G4.method:Object? Function(Object?)*/
 }

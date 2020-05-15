@@ -1,0 +1,7 @@
+// @dart = 2.6
+class A {
+  int a;
+  A(int a) {}
+}
+
+main() {}

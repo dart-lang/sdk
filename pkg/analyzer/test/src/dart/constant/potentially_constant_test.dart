@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -12,7 +15,9 @@ import '../resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IsConstantTypeExpressionTest);
+    defineReflectiveTests(IsPotentiallyConstantTypeExpressionTest);
     defineReflectiveTests(PotentiallyConstantTest);
+    defineReflectiveTests(PotentiallyConstantWithNullSafetyTest);
   });
 }
 
@@ -132,6 +137,35 @@ void x;
 }
 
 @reflectiveTest
+class IsPotentiallyConstantTypeExpressionTest
+    extends IsConstantTypeExpressionTest {
+  @override
+  test_typeParameter() async {
+    await _assertConst(r'''
+class A<T> {
+  m() {
+    T x;
+  }
+}
+''');
+  }
+
+  @override
+  Future<void> _assertConst(String code) async {
+    await resolveTestCode(code);
+    var type = findNode.variableDeclarationList('x;').type;
+    expect(isPotentiallyConstantTypeExpression(type), isTrue);
+  }
+
+  @override
+  Future<void> _assertNotConst(String code) async {
+    await resolveTestCode(code);
+    var type = findNode.variableDeclarationList('x;').type;
+    expect(isPotentiallyConstantTypeExpression(type), isFalse);
+  }
+}
+
+@reflectiveTest
 class PotentiallyConstantTest extends DriverResolutionTest {
   test_adjacentStrings() async {
     await _assertConst(r'''
@@ -153,7 +187,7 @@ var x = a as int;
 ''', () => _xInitializer(), () => [findNode.simple('a as')]);
   }
 
-  test_asExpression_notConstType() async {
+  test_asExpression_typeParameter() async {
     await _assertNotConst(r'''
 const a = 0;
 class A<T> {
@@ -249,7 +283,7 @@ var x = a is int;
 ''', () => _xInitializer(), () => [findNode.simple('a is')]);
   }
 
-  test_isExpression_notConstType() async {
+  test_isExpression_typeParameter() async {
     await _assertNotConst(r'''
 const a = 0;
 class A<T> {
@@ -845,7 +879,10 @@ var x = 'a';
   _assertConst(String code, AstNode Function() getNode) async {
     await resolveTestCode(code);
     var node = getNode();
-    var notConstList = getNotPotentiallyConstants(node);
+    var notConstList = getNotPotentiallyConstants(
+      node,
+      isNonNullableByDefault: typeSystem.isNonNullableByDefault,
+    );
     expect(notConstList, isEmpty);
   }
 
@@ -853,7 +890,10 @@ var x = 'a';
       List<AstNode> Function() getNotConstList) async {
     await resolveTestCode(code);
     var node = getNode();
-    var notConstList = getNotPotentiallyConstants(node);
+    var notConstList = getNotPotentiallyConstants(
+      node,
+      isNonNullableByDefault: typeSystem.isNonNullableByDefault,
+    );
 
     var expectedNotConst = getNotConstList();
     expect(notConstList, unorderedEquals(expectedNotConst));
@@ -862,4 +902,43 @@ var x = 'a';
   Expression _xInitializer() {
     return findNode.variableDeclaration('x = ').initializer;
   }
+}
+
+@reflectiveTest
+class PotentiallyConstantWithNullSafetyTest extends PotentiallyConstantTest
+    with WithNullSafetyMixin {
+  @override
+  test_asExpression_typeParameter() async {
+    await _assertConst(r'''
+const a = 0;
+class A<T> {
+  m() {
+    var x = a as T;
+  }
+}
+''', () => _xInitializer());
+  }
+
+  @override
+  test_isExpression_typeParameter() async {
+    await _assertConst(r'''
+const a = 0;
+class A<T> {
+  m() {
+    var x = a is T;
+  }
+}
+''', () => _xInitializer());
+  }
+}
+
+mixin WithNullSafetyMixin on DriverResolutionTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.fromEnableFlags(
+      [EnableString.non_nullable],
+    );
+
+  @override
+  bool get typeToStringWithNullability => true;
 }

@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_IL_SERIALIZER_H_
 #define RUNTIME_VM_COMPILER_BACKEND_IL_SERIALIZER_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #include "platform/assert.h"
 #include "platform/text_buffer.h"
 
@@ -144,7 +148,7 @@ class FlowGraphSerializer : ValueObject {
       return a.raw() == b.raw();
     }
     static uword Hash(const Object& obj) {
-      if (obj.IsSmi()) return reinterpret_cast<uword>(obj.raw());
+      if (obj.IsSmi()) return static_cast<uword>(obj.raw());
       if (obj.IsInstance()) return Instance::Cast(obj).CanonicalizeHash();
       return obj.GetClassId();
     }

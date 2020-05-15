@@ -12,7 +12,6 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -24,9 +23,9 @@ import 'package:test/test.dart';
 import 'mocks.dart';
 
 int findIdentifierLength(String search) {
-  int length = 0;
+  var length = 0;
   while (length < search.length) {
-    int c = search.codeUnitAt(length);
+    var c = search.codeUnitAt(length);
     if (!(c >= 'a'.codeUnitAt(0) && c <= 'z'.codeUnitAt(0) ||
         c >= 'A'.codeUnitAt(0) && c <= 'Z'.codeUnitAt(0) ||
         c >= '0'.codeUnitAt(0) && c <= '9'.codeUnitAt(0) ||
@@ -79,14 +78,14 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     }
     files.add(file);
     // set subscriptions
-    Request request =
+    var request =
         AnalysisSetSubscriptionsParams(analysisSubscriptions).toRequest('0');
     handleSuccessfulRequest(request);
   }
 
   void addGeneralAnalysisSubscription(GeneralAnalysisService service) {
     generalServices.add(service);
-    Request request =
+    var request =
         AnalysisSetGeneralSubscriptionsParams(generalServices).toRequest('0');
     handleSuccessfulRequest(request);
   }
@@ -99,11 +98,11 @@ class AbstractAnalysisTest with ResourceProviderMixin {
 
   /// Create an analysis options file based on the given arguments.
   void createAnalysisOptionsFile({List<String> experiments}) {
-    StringBuffer buffer = StringBuffer();
+    var buffer = StringBuffer();
     if (experiments != null) {
       buffer.writeln('analyzer:');
       buffer.writeln('  enable-experiment:');
-      for (String experiment in experiments) {
+      for (var experiment in experiments) {
         buffer.writeln('    - $experiment');
       }
     }
@@ -120,7 +119,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     //
     // Create server
     //
-    AnalysisServerOptions options = AnalysisServerOptions();
+    var options = AnalysisServerOptions();
     return AnalysisServer(
         serverChannel,
         resourceProvider,
@@ -133,7 +132,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   /// Creates a project [projectPath].
   void createProject({Map<String, String> packageRoots}) {
     newFolder(projectPath);
-    Request request = AnalysisSetAnalysisRootsParams([projectPath], [],
+    var request = AnalysisSetAnalysisRootsParams([projectPath], [],
             packageRoots: packageRoots)
         .toRequest('0');
     handleSuccessfulRequest(request, handler: analysisHandler);
@@ -148,9 +147,9 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   /// Returns the offset of [search] in the file at the given [path].
   /// Fails if not found.
   int findFileOffset(String path, String search) {
-    File file = getFile(path);
-    String code = file.createSource().contents.data;
-    int offset = code.indexOf(search);
+    var file = getFile(path);
+    var code = file.createSource().contents.data;
+    var offset = code.indexOf(search);
     expect(offset, isNot(-1), reason: '"$search" in\n$code');
     return offset;
   }
@@ -158,7 +157,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   /// Returns the offset of [search] in [testCode].
   /// Fails if not found.
   int findOffset(String search) {
-    int offset = testCode.indexOf(search);
+    var offset = testCode.indexOf(search);
     expect(offset, isNot(-1));
     return offset;
   }
@@ -166,7 +165,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   /// Validates that the given [request] is handled successfully.
   Response handleSuccessfulRequest(Request request, {RequestHandler handler}) {
     handler ??= this.handler;
-    Response response = handler.handleRequest(request);
+    var response = handler.handleRequest(request);
     expect(response, isResponseSuccess(request.id));
     return response;
   }
@@ -185,7 +184,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
 
   void removeGeneralAnalysisSubscription(GeneralAnalysisService service) {
     generalServices.remove(service);
-    Request request =
+    var request =
         AnalysisSetGeneralSubscriptionsParams(generalServices).toRequest('0');
     handleSuccessfulRequest(request);
   }
@@ -205,8 +204,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     server.pluginManager = pluginManager;
     handler = analysisHandler;
     // listen for notifications
-    Stream<Notification> notificationStream =
-        serverChannel.notificationController.stream;
+    var notificationStream = serverChannel.notificationController.stream;
     notificationStream.listen((Notification notification) {
       processNotification(notification);
     });

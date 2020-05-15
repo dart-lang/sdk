@@ -4,69 +4,57 @@
 
 import 'dart:async';
 
+import 'package:analysis_server/src/protocol_server.dart'
+    show CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart'
-    show createSuggestion, ElementSuggestionBuilder;
-import 'package:analyzer/dart/analysis/features.dart';
+    show SuggestionBuilder;
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
-import '../../../protocol_server.dart'
-    show CompletionSuggestion, CompletionSuggestionKind;
-
 /// A visitor for building suggestions based upon the elements defined by
 /// a source file contained in the same library but not the same as
 /// the source in which the completions are being requested.
-class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
-    with ElementSuggestionBuilder {
+class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
   final DartCompletionRequest request;
-  final OpType optype;
-  @override
+
+  final SuggestionBuilder builder;
+
+  final OpType opType;
+
+  DartType contextType;
+
   CompletionSuggestionKind kind;
+
   final String prefix;
 
   /// The set of libraries that have been, or are currently being, visited.
   final Set<LibraryElement> visitedLibraries = <LibraryElement>{};
 
-  LibraryElementSuggestionBuilder(this.request, this.optype, [this.prefix]) {
+  LibraryElementSuggestionBuilder(this.request, this.builder, [this.prefix])
+      : opType = request.opType {
+    contextType = request.featureComputer
+        .computeContextType(request.target.containingNode);
     kind = request.target.isFunctionalArgument()
         ? CompletionSuggestionKind.IDENTIFIER
-        : optype.suggestKind;
+        : opType.suggestKind;
   }
 
   @override
-  LibraryElement get containingLibrary => request.libraryElement;
-
-  @override
   void visitClassElement(ClassElement element) {
-    if (optype.includeTypeNameSuggestions) {
-      // if includeTypeNameSuggestions, then use the filter
-      int relevance = optype.typeNameSuggestionsFilter(
-          _instantiateClassElement(element), DART_RELEVANCE_DEFAULT);
-      if (relevance != null) {
-        addSuggestion(element, prefix: prefix, relevance: relevance);
-      }
+    if (opType.includeTypeNameSuggestions) {
+      builder.suggestClass(element, kind: kind, prefix: prefix);
     }
-    if (optype.includeConstructorSuggestions) {
-      int relevance = optype.returnValueSuggestionsFilter(
-          _instantiateClassElement(element), DART_RELEVANCE_DEFAULT);
-      _addConstructorSuggestions(element, relevance);
+    if (opType.includeConstructorSuggestions) {
+      _addConstructorSuggestions(element);
     }
-    if (optype.includeReturnValueSuggestions) {
+    if (opType.includeReturnValueSuggestions) {
       if (element.isEnum) {
-        String enumName = element.displayName;
-        int relevance = optype.returnValueSuggestionsFilter(
-            _instantiateClassElement(element), DART_RELEVANCE_DEFAULT);
         for (var field in element.fields) {
           if (field.isEnumConstant) {
-            addSuggestion(field,
-                prefix: prefix,
-                relevance: relevance,
-                elementCompletion: '$enumName.${field.name}');
+            builder.suggestEnumConstant(field, prefix: prefix);
           }
         }
       }
@@ -85,8 +73,8 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
 
   @override
   void visitExtensionElement(ExtensionElement element) {
-    if (optype.includeReturnValueSuggestions) {
-      addSuggestion(element, prefix: prefix, relevance: DART_RELEVANCE_DEFAULT);
+    if (opType.includeReturnValueSuggestions) {
+      builder.suggestExtension(element, kind: kind, prefix: prefix);
     }
     element.visitChildren(this);
   }
@@ -100,28 +88,22 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
     if (element.enclosingElement is! CompilationUnitElement) {
       return;
     }
-    int relevance = element.library == containingLibrary
-        ? DART_RELEVANCE_LOCAL_FUNCTION
-        : DART_RELEVANCE_DEFAULT;
-    DartType returnType = element.returnType;
+    var returnType = element.returnType;
     if (returnType != null && returnType.isVoid) {
-      if (optype.includeVoidReturnSuggestions) {
-        addSuggestion(element, prefix: prefix, relevance: relevance);
+      if (opType.includeVoidReturnSuggestions) {
+        builder.suggestTopLevelFunction(element, kind: kind, prefix: prefix);
       }
     } else {
-      if (optype.includeReturnValueSuggestions) {
-        addSuggestion(element, prefix: prefix, relevance: relevance);
+      if (opType.includeReturnValueSuggestions) {
+        builder.suggestTopLevelFunction(element, kind: kind, prefix: prefix);
       }
     }
   }
 
   @override
   void visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
-    if (optype.includeTypeNameSuggestions) {
-      int relevance = element.library == containingLibrary
-          ? DART_RELEVANCE_LOCAL_FUNCTION
-          : DART_RELEVANCE_DEFAULT;
-      addSuggestion(element, prefix: prefix, relevance: relevance);
+    if (opType.includeTypeNameSuggestions) {
+      builder.suggestFunctionTypeAlias(element, prefix: prefix);
     }
   }
 
@@ -134,103 +116,60 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
 
   @override
   void visitPropertyAccessorElement(PropertyAccessorElement element) {
-    if (optype.includeReturnValueSuggestions) {
-      int relevance;
-      if (element.library == containingLibrary) {
-        if (element.enclosingElement is ClassElement) {
-          relevance = DART_RELEVANCE_LOCAL_FIELD;
-        } else {
-          relevance = DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE;
-        }
+    if (opType.includeReturnValueSuggestions) {
+      if (element.enclosingElement is ClassElement) {
+        // TODO(brianwilkerson) Verify that we cannot reach this point and
+        //  remove the dead code.
+        builder.suggestAccessor(element, inheritanceDistance: -1.0);
       } else {
-        relevance = DART_RELEVANCE_DEFAULT;
+        builder.suggestTopLevelPropertyAccessor(element, prefix: prefix);
       }
-      addSuggestion(element, prefix: prefix, relevance: relevance);
     }
   }
 
   @override
   void visitTopLevelVariableElement(TopLevelVariableElement element) {
-    if (optype.includeReturnValueSuggestions) {
-      int relevance = element.library == containingLibrary
-          ? DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE
-          : DART_RELEVANCE_DEFAULT;
-      addSuggestion(element, prefix: prefix, relevance: relevance);
+    if (opType.includeReturnValueSuggestions && !element.isSynthetic) {
+      builder.suggestTopLevelVariable(element, prefix: prefix);
     }
   }
 
   /// Add constructor suggestions for the given class.
-  void _addConstructorSuggestions(ClassElement classElem, int relevance) {
-    String className = classElem.name;
-    for (ConstructorElement constructor in classElem.constructors) {
+  void _addConstructorSuggestions(ClassElement classElem) {
+    for (var constructor in classElem.constructors) {
       if (constructor.isPrivate) {
         continue;
       }
       if (classElem.isAbstract && !constructor.isFactory) {
         continue;
       }
-
-      CompletionSuggestion suggestion =
-          createSuggestion(constructor, relevance: relevance);
-      if (suggestion != null) {
-        String name = suggestion.completion;
-        name = name.isNotEmpty ? '$className.$name' : className;
-        if (prefix != null && prefix.isNotEmpty) {
-          name = '$prefix.$name';
-        }
-        suggestion.completion = name;
-        suggestion.selectionOffset = suggestion.completion.length;
-        suggestions.add(suggestion);
-      }
+      builder.suggestConstructor(constructor, kind: kind, prefix: prefix);
     }
-  }
-
-  InterfaceType _instantiateClassElement(ClassElement element) {
-    var typeParameters = element.typeParameters;
-    var typeArguments = const <DartType>[];
-    if (typeParameters.isNotEmpty) {
-      var typeProvider = request.libraryElement.typeProvider;
-      typeArguments = typeParameters.map((t) {
-        return typeProvider.dynamicType;
-      }).toList();
-    }
-
-    var nullabilitySuffix = request.featureSet.isEnabled(Feature.non_nullable)
-        ? NullabilitySuffix.none
-        : NullabilitySuffix.star;
-
-    return element.instantiate(
-      typeArguments: typeArguments,
-      nullabilitySuffix: nullabilitySuffix,
-    );
   }
 }
 
-/// A contributor for calculating suggestions for top level members
-/// in the library in which the completion is requested
-/// but outside the file in which the completion is requested.
+/// A contributor that produces suggestions based on the top level members in
+/// the library in which the completion is requested but outside the file in
+/// which the completion is requested.
 class LocalLibraryContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
+      DartCompletionRequest request, SuggestionBuilder builder) async {
     if (!request.includeIdentifiers) {
       return const <CompletionSuggestion>[];
     }
 
-    List<CompilationUnitElement> libraryUnits =
-        request.result.unit.declaredElement.library.units;
+    var libraryUnits = request.result.unit.declaredElement.library.units;
     if (libraryUnits == null) {
       return const <CompletionSuggestion>[];
     }
 
-    OpType optype = (request as DartCompletionRequestImpl).opType;
-    LibraryElementSuggestionBuilder visitor =
-        LibraryElementSuggestionBuilder(request, optype);
-    for (CompilationUnitElement unit in libraryUnits) {
+    var visitor = LibraryElementSuggestionBuilder(request, builder);
+    for (var unit in libraryUnits) {
       if (unit != null && unit.source != request.source) {
         unit.accept(visitor);
       }
     }
-    return visitor.suggestions;
+    return const <CompletionSuggestion>[];
   }
 }

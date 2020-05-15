@@ -1,0 +1,30 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
+extension E on self::C* {
+  method errors = self::E|errors;
+  tearoff errors = self::E|get#errors;
+}
+static method E|errors(final self::C* #this) → dynamic
+  ;
+static method E|get#errors(final self::C* #this) → () →* dynamic
+  return () → dynamic => self::E|errors(#this);
+static method errors() → dynamic
+  ;
+static method main() → dynamic
+  ;

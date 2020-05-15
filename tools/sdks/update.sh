@@ -8,9 +8,10 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
-channel="stable"
 case "$1" in
-*-dev.*) channel="dev";;
+*-*.0.dev) channel="dev";;
+*-*.*.beta) channel="beta";;
+*) channel="stable";;
 esac
 
 tmpdir=$(mktemp -d)
@@ -82,3 +83,5 @@ cipd create \
 rm -rf sdk
 
 popd
+
+gclient setdep --var="sdk_tag=version:$1"

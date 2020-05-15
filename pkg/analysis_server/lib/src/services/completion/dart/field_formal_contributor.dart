@@ -10,35 +10,39 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 
-/// A contributor for calculating invocation / access suggestions
-/// `completion.getSuggestions` request results.
+/// A contributor that produces suggestions for field formal parameters that are
+/// based on the fields declared directly by the enclosing class that are not
+/// already initialized. More concretely, this class produces suggestions for
+/// expressions of the form `this.^` in a constructor's parameter list.
 class FieldFormalContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    AstNode node = request.target.containingNode;
+      DartCompletionRequest request, SuggestionBuilder builder) async {
+    var node = request.target.containingNode;
+    // TODO(brianwilkerson) We should suggest field formal parameters even if
+    //  the user hasn't already typed the `this.` prefix, by including the
+    //  prefix in the completion.
     if (node is! FieldFormalParameter) {
       return const <CompletionSuggestion>[];
     }
 
-    ConstructorDeclaration constructor = node.thisOrAncestorOfType();
+    var constructor = node.thisOrAncestorOfType<ConstructorDeclaration>();
     if (constructor == null) {
       return const <CompletionSuggestion>[];
     }
 
-    // Compute the list of fields already referenced in the constructor
-    List<String> referencedFields = <String>[];
-    for (FormalParameter param in constructor.parameters.parameters) {
-      if (param is DefaultFormalParameter &&
-          param.parameter is FieldFormalParameter) {
+    // Compute the list of fields already referenced in the constructor.
+    // TODO(brianwilkerson) This doesn't include fields in initializers, which
+    //  shouldn't be suggested.
+    var referencedFields = <String>[];
+    for (var param in constructor.parameters.parameters) {
+      if (param is DefaultFormalParameter) {
         param = (param as DefaultFormalParameter).parameter;
       }
       if (param is FieldFormalParameter) {
-        SimpleIdentifier fieldId = param.identifier;
+        var fieldId = param.identifier;
         if (fieldId != null && fieldId != request.target.entity) {
-          String fieldName = fieldId.name;
+          var fieldName = fieldId.name;
           if (fieldName != null && fieldName.isNotEmpty) {
             referencedFields.add(fieldName);
           }
@@ -46,33 +50,27 @@ class FieldFormalContributor extends DartCompletionContributor {
       }
     }
 
-    ClassDeclaration class_ = constructor.thisOrAncestorOfType();
-    if (class_ == null) {
+    var enclosingClass = constructor.thisOrAncestorOfType<ClassDeclaration>();
+    if (enclosingClass == null) {
       return const <CompletionSuggestion>[];
     }
 
-    // Add suggestions for fields that are not already referenced
-    List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
-    for (ClassMember member in class_.members) {
+    // Add suggestions for fields that are not already referenced.
+    for (var member in enclosingClass.members) {
       if (member is FieldDeclaration && !member.isStatic) {
-        for (VariableDeclaration varDecl in member.fields.variables) {
-          SimpleIdentifier fieldId = varDecl.name;
-          if (fieldId != null) {
-            String fieldName = fieldId.name;
+        for (var variable in member.fields.variables) {
+          var field = variable.name.staticElement;
+          if (field != null) {
+            var fieldName = field.name;
             if (fieldName != null && fieldName.isNotEmpty) {
               if (!referencedFields.contains(fieldName)) {
-                CompletionSuggestion suggestion = createSuggestion(
-                    fieldId.staticElement,
-                    relevance: DART_RELEVANCE_LOCAL_FIELD);
-                if (suggestion != null) {
-                  suggestions.add(suggestion);
-                }
+                builder.suggestFieldFormalParameter(field);
               }
             }
           }
         }
       }
     }
-    return suggestions;
+    return const <CompletionSuggestion>[];
   }
 }

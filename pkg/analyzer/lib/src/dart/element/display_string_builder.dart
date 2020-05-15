@@ -65,7 +65,7 @@ class ElementDisplayStringBuilder {
       _write(element.displayName);
     }
 
-    _writeFormalParameters(element.parameters);
+    _writeFormalParameters(element.parameters, forElement: true);
   }
 
   void writeDynamicType() {
@@ -85,7 +85,7 @@ class ElementDisplayStringBuilder {
 
     if (element.kind != ElementKind.GETTER) {
       _writeTypeParameters(element.typeParameters);
-      _writeFormalParameters(element.parameters);
+      _writeFormalParameters(element.parameters, forElement: true);
     }
   }
 
@@ -103,14 +103,14 @@ class ElementDisplayStringBuilder {
 
   void writeFormalParameter(ParameterElement element) {
     if (element.isRequiredPositional) {
-      _writeWithoutDelimiters(element);
+      _writeWithoutDelimiters(element, forElement: true);
     } else if (element.isOptionalPositional) {
       _write('[');
-      _writeWithoutDelimiters(element);
+      _writeWithoutDelimiters(element, forElement: true);
       _write(']');
     } else if (element.isNamed) {
       _write('{');
-      _writeWithoutDelimiters(element);
+      _writeWithoutDelimiters(element, forElement: true);
       _write('}');
     }
   }
@@ -121,7 +121,7 @@ class ElementDisplayStringBuilder {
     _writeType(type.returnType);
     _write(' Function');
     _writeTypeParameters(type.typeFormals);
-    _writeFormalParameters(type.parameters, withNamesOfPositional: false);
+    _writeFormalParameters(type.parameters, forElement: false);
     _writeNullability(type.nullabilitySuffix);
   }
 
@@ -129,7 +129,7 @@ class ElementDisplayStringBuilder {
     _writeType(element.returnType);
     _write(' Function');
     _writeTypeParameters(element.typeParameters);
-    _writeFormalParameters(element.parameters);
+    _writeFormalParameters(element.parameters, forElement: true);
   }
 
   void writeGenericTypeAliasElement(GenericTypeAliasElementImpl element) {
@@ -210,7 +210,7 @@ class ElementDisplayStringBuilder {
 
   void _writeFormalParameters(
     List<ParameterElement> parameters, {
-    bool withNamesOfPositional = true,
+    @required bool forElement,
   }) {
     _write('(');
 
@@ -239,10 +239,7 @@ class ElementDisplayStringBuilder {
       } else if (parameter.isNamed) {
         openGroup(_WriteFormalParameterKind.named, '{', '}');
       }
-      _writeWithoutDelimiters(
-        parameter,
-        withNamesOfPositional: withNamesOfPositional,
-      );
+      _writeWithoutDelimiters(parameter, forElement: forElement);
     }
 
     _write(lastClose);
@@ -334,7 +331,7 @@ class ElementDisplayStringBuilder {
 
   void _writeWithoutDelimiters(
     ParameterElement element, {
-    bool withNamesOfPositional = true,
+    @required bool forElement,
   }) {
     if (element.isRequiredNamed) {
       _write('required ');
@@ -342,9 +339,14 @@ class ElementDisplayStringBuilder {
 
     _writeType(element.type);
 
-    if (element.isNamed || withNamesOfPositional) {
+    if (forElement || element.isNamed) {
       _write(' ');
       _write(element.displayName);
+    }
+
+    if (forElement && element.defaultValueCode != null) {
+      _write(' = ');
+      _write(element.defaultValueCode);
     }
   }
 

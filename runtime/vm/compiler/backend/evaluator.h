@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_EVALUATOR_H_
 #define RUNTIME_VM_COMPILER_BACKEND_EVALUATOR_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/allocation.h"
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
@@ -20,19 +24,19 @@ class Evaluator : public AllStatic {
 
   // Evaluates a binary integer operation and returns a pointer to a
   // canonicalized RawInteger.
-  static RawInteger* BinaryIntegerEvaluate(const Object& left,
-                                           const Object& right,
-                                           Token::Kind token_kind,
-                                           bool is_truncating,
-                                           Representation representation,
-                                           Thread* thread);
+  static IntegerPtr BinaryIntegerEvaluate(const Object& left,
+                                          const Object& right,
+                                          Token::Kind token_kind,
+                                          bool is_truncating,
+                                          Representation representation,
+                                          Thread* thread);
 
   // Evaluates a unary integer operation and returns a pointer to a
   // canonicalized RawInteger.
-  static RawInteger* UnaryIntegerEvaluate(const Object& value,
-                                          Token::Kind token_kind,
-                                          Representation representation,
-                                          Thread* thread);
+  static IntegerPtr UnaryIntegerEvaluate(const Object& value,
+                                         Token::Kind token_kind,
+                                         Representation representation,
+                                         Thread* thread);
 
   // Evaluates a binary double operation and returns the result.
   static double EvaluateDoubleOp(const double left,

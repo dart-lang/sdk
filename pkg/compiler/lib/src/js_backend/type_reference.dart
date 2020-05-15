@@ -693,7 +693,7 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
     var parameterTypes = type.parameterTypes;
     var optionalParameterTypes = type.optionalParameterTypes;
     var namedParameters = type.namedParameters;
-    // TODO(fishythefish): Handle required named parameters.
+    var requiredNamedParameters = type.requiredNamedParameters;
 
     if (optionalParameterTypes.isEmpty &&
         namedParameters.isEmpty &&
@@ -725,6 +725,9 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
       bool needsNamedComma = false;
       for (int index = 0; index < namedParameters.length; index++) {
         needsNamedComma = _comma(needsNamedComma);
+        if (requiredNamedParameters.contains(namedParameters[index])) {
+          _add(r'$req');
+        }
         _identifier(namedParameters[index]);
         _visit(type.namedParameterTypes[index], type);
       }
@@ -744,7 +747,7 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
     if (arguments.isEmpty) return;
     if (arguments.length == 1) {
       // e.g. "List_of_int_Function"
-      if (arguments.first is FunctionType) {
+      if (arguments.first.withoutNullability is FunctionType) {
         _add('of');
       }
       // e.g. "List_int"

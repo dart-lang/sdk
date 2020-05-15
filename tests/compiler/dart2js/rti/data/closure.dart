@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*omit.class: A:needsArgs*/
-/*strong.class: A:direct,explicit=[A.T],needsArgs*/
+// @dart = 2.7
+
+/*prod:nnbd-off|prod:nnbd-sdk.class: A:needsArgs*/
+/*spec:nnbd-off.class: A:direct,explicit=[A.T],needsArgs*/
+/*spec:nnbd-sdk.class: A:direct,explicit=[A.T*],needsArgs*/
 class A<T> {
   m() {
     return /*needsSignature*/ (T t) {};
@@ -14,8 +17,7 @@ class A<T> {
     // TODO(johnniwinther): Optimize local function type signature need.
     return
 
-        /*strong.needsSignature*/
-        /*omit.needsSignature*/
+        /*needsSignature*/
         (int t) {};
   }
 }

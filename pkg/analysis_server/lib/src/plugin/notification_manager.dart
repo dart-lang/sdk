@@ -9,11 +9,11 @@ import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/plugin/result_collector.dart';
 import 'package:analysis_server/src/plugin/result_converter.dart';
 import 'package:analysis_server/src/plugin/result_merger.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:path/path.dart';
 
 /// The object used to coordinate the results of notifications from the analysis
 /// server and multiple plugins.
@@ -24,8 +24,8 @@ class NotificationManager {
   /// The channel used to send notifications to the client.
   final ServerCommunicationChannel channel;
 
-  /// The resource provider used to get the path context.
-  final ResourceProvider provider;
+  /// The path context.
+  final Context pathContext;
 
   /// A list of the paths of files and directories that are included for
   /// analysis.
@@ -66,7 +66,7 @@ class NotificationManager {
   final ResultMerger merger = ResultMerger();
 
   /// Initialize a newly created notification manager.
-  NotificationManager(this.channel, this.provider) {
+  NotificationManager(this.channel, this.pathContext) {
     errors =
         ResultCollector<List<AnalysisError>>(serverId, predicate: _isIncluded);
     folding = ResultCollector<List<FoldingRegion>>(serverId);
@@ -79,42 +79,40 @@ class NotificationManager {
   /// Handle the given [notification] from the plugin with the given [pluginId].
   void handlePluginNotification(
       String pluginId, plugin.Notification notification) {
-    String event = notification.event;
+    var event = notification.event;
     switch (event) {
       case plugin.ANALYSIS_NOTIFICATION_ERRORS:
-        plugin.AnalysisErrorsParams params =
-            plugin.AnalysisErrorsParams.fromNotification(notification);
+        var params = plugin.AnalysisErrorsParams.fromNotification(notification);
         recordAnalysisErrors(pluginId, params.file, params.errors);
         break;
       case plugin.ANALYSIS_NOTIFICATION_FOLDING:
-        plugin.AnalysisFoldingParams params =
+        var params =
             plugin.AnalysisFoldingParams.fromNotification(notification);
         recordFoldingRegions(pluginId, params.file, params.regions);
         break;
       case plugin.ANALYSIS_NOTIFICATION_HIGHLIGHTS:
-        plugin.AnalysisHighlightsParams params =
+        var params =
             plugin.AnalysisHighlightsParams.fromNotification(notification);
         recordHighlightRegions(pluginId, params.file, params.regions);
         break;
       case plugin.ANALYSIS_NOTIFICATION_NAVIGATION:
-        plugin.AnalysisNavigationParams params =
+        var params =
             plugin.AnalysisNavigationParams.fromNotification(notification);
         recordNavigationParams(pluginId, params.file,
             converter.convertAnalysisNavigationParams(params));
         break;
       case plugin.ANALYSIS_NOTIFICATION_OCCURRENCES:
-        plugin.AnalysisOccurrencesParams params =
+        var params =
             plugin.AnalysisOccurrencesParams.fromNotification(notification);
         recordOccurrences(pluginId, params.file, params.occurrences);
         break;
       case plugin.ANALYSIS_NOTIFICATION_OUTLINE:
-        plugin.AnalysisOutlineParams params =
+        var params =
             plugin.AnalysisOutlineParams.fromNotification(notification);
         recordOutlines(pluginId, params.file, params.outline);
         break;
       case plugin.PLUGIN_NOTIFICATION_ERROR:
-        plugin.PluginErrorParams params =
-            plugin.PluginErrorParams.fromNotification(notification);
+        var params = plugin.PluginErrorParams.fromNotification(notification);
         // TODO(brianwilkerson) There is no indication for the client as to the
         // fact that the error came from a plugin, let alone which plugin it
         // came from. We should consider whether we really want to send them to
@@ -132,9 +130,8 @@ class NotificationManager {
       String pluginId, String filePath, List<AnalysisError> errorData) {
     if (errors.isCollectingFor(filePath)) {
       errors.putResults(filePath, pluginId, errorData);
-      List<List<AnalysisError>> unmergedErrors = errors.getResults(filePath);
-      List<AnalysisError> mergedErrors =
-          merger.mergeAnalysisErrors(unmergedErrors);
+      var unmergedErrors = errors.getResults(filePath);
+      var mergedErrors = merger.mergeAnalysisErrors(unmergedErrors);
       channel.sendNotification(
           server.AnalysisErrorsParams(filePath, mergedErrors).toNotification());
     }
@@ -146,9 +143,8 @@ class NotificationManager {
       String pluginId, String filePath, List<FoldingRegion> foldingData) {
     if (folding.isCollectingFor(filePath)) {
       folding.putResults(filePath, pluginId, foldingData);
-      List<List<FoldingRegion>> unmergedFolding = folding.getResults(filePath);
-      List<FoldingRegion> mergedFolding =
-          merger.mergeFoldingRegions(unmergedFolding);
+      var unmergedFolding = folding.getResults(filePath);
+      var mergedFolding = merger.mergeFoldingRegions(unmergedFolding);
       channel.sendNotification(
           server.AnalysisFoldingParams(filePath, mergedFolding)
               .toNotification());
@@ -161,10 +157,8 @@ class NotificationManager {
       String pluginId, String filePath, List<HighlightRegion> highlightData) {
     if (highlights.isCollectingFor(filePath)) {
       highlights.putResults(filePath, pluginId, highlightData);
-      List<List<HighlightRegion>> unmergedHighlights =
-          highlights.getResults(filePath);
-      List<HighlightRegion> mergedHighlights =
-          merger.mergeHighlightRegions(unmergedHighlights);
+      var unmergedHighlights = highlights.getResults(filePath);
+      var mergedHighlights = merger.mergeHighlightRegions(unmergedHighlights);
       channel.sendNotification(
           server.AnalysisHighlightsParams(filePath, mergedHighlights)
               .toNotification());
@@ -177,10 +171,8 @@ class NotificationManager {
       server.AnalysisNavigationParams navigationData) {
     if (navigation.isCollectingFor(filePath)) {
       navigation.putResults(filePath, pluginId, navigationData);
-      List<server.AnalysisNavigationParams> unmergedNavigations =
-          navigation.getResults(filePath);
-      server.AnalysisNavigationParams mergedNavigations =
-          merger.mergeNavigation(unmergedNavigations);
+      var unmergedNavigations = navigation.getResults(filePath);
+      var mergedNavigations = merger.mergeNavigation(unmergedNavigations);
       channel.sendNotification(mergedNavigations.toNotification());
     }
   }
@@ -191,10 +183,8 @@ class NotificationManager {
       String pluginId, String filePath, List<Occurrences> occurrencesData) {
     if (occurrences.isCollectingFor(filePath)) {
       occurrences.putResults(filePath, pluginId, occurrencesData);
-      List<List<Occurrences>> unmergedOccurrences =
-          occurrences.getResults(filePath);
-      List<Occurrences> mergedOccurrences =
-          merger.mergeOccurrences(unmergedOccurrences);
+      var unmergedOccurrences = occurrences.getResults(filePath);
+      var mergedOccurrences = merger.mergeOccurrences(unmergedOccurrences);
       channel.sendNotification(
           server.AnalysisOccurrencesParams(filePath, mergedOccurrences)
               .toNotification());
@@ -207,8 +197,8 @@ class NotificationManager {
       String pluginId, String filePath, List<Outline> outlineData) {
     if (outlines.isCollectingFor(filePath)) {
       outlines.putResults(filePath, pluginId, outlineData);
-      List<List<Outline>> unmergedOutlines = outlines.getResults(filePath);
-      List<Outline> mergedOutlines = merger.mergeOutline(unmergedOutlines);
+      var unmergedOutlines = outlines.getResults(filePath);
+      var mergedOutlines = merger.mergeOutline(unmergedOutlines);
       channel.sendNotification(server.AnalysisOutlineParams(
               filePath, server.FileKind.LIBRARY, mergedOutlines[0])
           .toNotification());
@@ -246,10 +236,10 @@ class NotificationManager {
     services.addAll(currentSubscriptions.keys);
     services.addAll(newSubscriptions.keys);
     services.forEach((server.AnalysisService service) {
-      ResultCollector collector = collectorFor(service);
+      var collector = collectorFor(service);
       if (collector != null) {
-        Set<String> currentPaths = currentSubscriptions[service];
-        Set<String> newPaths = newSubscriptions[service];
+        var currentPaths = currentSubscriptions[service];
+        var newPaths = newSubscriptions[service];
         if (currentPaths == null) {
           if (newPaths == null) {
             // This should not happen.
@@ -286,9 +276,9 @@ class NotificationManager {
   /// [path] (because it is being analyzed).
   bool _isIncluded(String path) {
     bool isIncluded() {
-      for (String includedPath in includedPaths) {
-        if (provider.pathContext.isWithin(includedPath, path) ||
-            provider.pathContext.equals(includedPath, path)) {
+      for (var includedPath in includedPaths) {
+        if (pathContext.isWithin(includedPath, path) ||
+            pathContext.equals(includedPath, path)) {
           return true;
         }
       }
@@ -296,8 +286,8 @@ class NotificationManager {
     }
 
     bool isExcluded() {
-      for (String excludedPath in excludedPaths) {
-        if (provider.pathContext.isWithin(excludedPath, path)) {
+      for (var excludedPath in excludedPaths) {
+        if (pathContext.isWithin(excludedPath, path)) {
           return true;
         }
       }

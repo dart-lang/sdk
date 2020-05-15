@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -29,12 +28,12 @@ class ElementReferencesTest extends AbstractSearchDomainTest {
 
   Future<void> findElementReferences(
       String search, bool includePotential) async {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     await waitForTasksFinished();
-    Request request =
+    var request =
         SearchFindElementReferencesParams(testFile, offset, includePotential)
             .toRequest('0');
-    Response response = await waitResponse(request);
+    var response = await waitResponse(request);
     var result = SearchFindElementReferencesResult.fromResponse(response);
     searchId = result.id;
     searchElement = result.element;
@@ -129,7 +128,6 @@ main() {
   }
 
   Future<void> test_extension() async {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
     addTestFile('''
 extension E on int {
   static void foo() {}
@@ -239,7 +237,6 @@ class A {
   }
 
   Future<void> test_field_ofExtension_explicit_static() async {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
     addTestFile('''
 extension E on int {
   static var fff; // declaration
@@ -275,7 +272,6 @@ main() {
   }
 
   Future<void> test_field_ofExtension_implicit_instance() async {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
     addTestFile('''
 extension E on int {
   var get fff => null;
@@ -310,7 +306,6 @@ main() {
   }
 
   Future<void> test_field_ofExtension_implicit_static() async {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
     addTestFile('''
 extension E on int {
   static var get fff => null;
@@ -516,7 +511,6 @@ main(A a) {
   }
 
   Future<void> test_method_ofExtension() async {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
     addTestFile('''
 extension E on int {
   void foo() {}

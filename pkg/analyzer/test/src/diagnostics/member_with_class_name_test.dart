@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -21,7 +21,7 @@ class A {
   int A = 0;
 }
 ''', [
-      error(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, 16, 1),
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 16, 1),
     ]);
   }
 
@@ -31,7 +31,7 @@ class A {
   int z, A, b = 0;
 }
 ''', [
-      error(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, 19, 1),
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 19, 1),
     ]);
   }
 
@@ -41,7 +41,7 @@ class A {
   get A => 0;
 }
 ''', [
-      error(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, 16, 1),
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 16, 1),
     ]);
   }
 

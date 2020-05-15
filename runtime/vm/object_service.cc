@@ -43,7 +43,7 @@ void Object::AddCommonObjectProperties(JSONObject* jsobj,
   }
   if (!ref) {
     if (raw()->IsHeapObject()) {
-      jsobj->AddProperty("size", raw()->HeapSize());
+      jsobj->AddProperty("size", raw()->ptr()->HeapSize());
     } else {
       jsobj->AddProperty("size", (intptr_t)0);
     }
@@ -261,7 +261,7 @@ static void AddFunctionServiceId(const JSONObject& jsobj,
   }
   // Oddball functions (not known to their owner) fall back to use the object
   // id ring. Current known examples are signature functions of closures
-  // and stubs like 'megamorphic_miss'.
+  // and stubs like 'megamorphic_call_miss'.
   jsobj.AddServiceId(f);
 }
 
@@ -326,10 +326,10 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("_optimizedCallSiteCount", optimized_call_site_count());
   jsobj.AddProperty("_deoptimizations",
                     static_cast<intptr_t>(deoptimization_counter()));
-  if ((kind() == RawFunction::kImplicitGetter) ||
-      (kind() == RawFunction::kImplicitSetter) ||
-      (kind() == RawFunction::kImplicitStaticGetter) ||
-      (kind() == RawFunction::kFieldInitializer)) {
+  if ((kind() == FunctionLayout::kImplicitGetter) ||
+      (kind() == FunctionLayout::kImplicitSetter) ||
+      (kind() == FunctionLayout::kImplicitStaticGetter) ||
+      (kind() == FunctionLayout::kFieldInitializer)) {
     const Field& field = Field::Handle(accessor_field());
     if (!field.IsNull()) {
       jsobj.AddProperty("_field", field);
@@ -619,9 +619,9 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
       entry = entries.GetNext();
       if (entry.IsFunction()) {
         const Function& func = Function::Cast(entry);
-        if (func.kind() == RawFunction::kRegularFunction ||
-            func.kind() == RawFunction::kGetterFunction ||
-            func.kind() == RawFunction::kSetterFunction) {
+        if (func.kind() == FunctionLayout::kRegularFunction ||
+            func.kind() == FunctionLayout::kGetterFunction ||
+            func.kind() == FunctionLayout::kSetterFunction) {
           jsarr.AddValue(func);
         }
       }
@@ -661,6 +661,16 @@ void Instructions::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 void InstructionsSection::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
+}
+
+void WeakSerializationReference::PrintJSONImpl(JSONStream* stream,
+                                               bool ref) const {
+  JSONObject jsobj(stream);
+  AddCommonObjectProperties(&jsobj, "Object", ref);
+  jsobj.AddServiceId(*this);
+  if (ref) return;
+  auto& obj = Object::Handle(target());
+  jsobj.AddProperty("target", obj);
 }
 
 void ObjectPool::PrintJSONImpl(JSONStream* stream, bool ref) const {
@@ -721,7 +731,7 @@ void PcDescriptors::PrintToJSONObject(JSONObject* jsobj, bool ref) const {
     return;
   }
   JSONArray members(jsobj, "members");
-  Iterator iter(*this, RawPcDescriptors::kAnyKind);
+  Iterator iter(*this, PcDescriptorsLayout::kAnyKind);
   while (iter.MoveNext()) {
     JSONObject descriptor(&members);
     descriptor.AddPropertyF("pcOffset", "%" Px "", iter.PcOffset());
@@ -758,7 +768,7 @@ void LocalVarDescriptors::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONArray members(&jsobj, "members");
   String& var_name = String::Handle();
   for (intptr_t i = 0; i < Length(); i++) {
-    RawLocalVarDescriptors::VarInfo info;
+    LocalVarDescriptorsLayout::VarInfo info;
     var_name = GetName(i);
     GetInfo(i, &info);
     JSONObject var(&members);
@@ -814,6 +824,10 @@ void MonomorphicSmiableCall::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("_target", Code::Handle(target()));
 }
 
+void CallSiteData::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  UNREACHABLE();
+}
+
 void ICData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Object", ref);
@@ -862,7 +876,8 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
   AddCommonObjectProperties(&jsobj, "Code", ref);
   jsobj.AddFixedServiceId("code/%" Px64 "-%" Px "", compile_timestamp(),
                           PayloadStart());
-  const char* qualified_name = QualifiedName();
+  const char* qualified_name =
+      QualifiedName(kUserVisibleName, NameDisambiguation::kNo);
   const char* vm_name = Name();
   AddNameProperties(&jsobj, qualified_name, vm_name);
   const bool is_stub =

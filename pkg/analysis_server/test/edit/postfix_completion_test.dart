@@ -70,7 +70,7 @@ main() {
   void _assertHasChange(String message, String expectedCode, [Function cmp]) {
     if (change.message == message) {
       if (change.edits.isNotEmpty) {
-        String resultCode =
+        var resultCode =
             SourceEdit.applySequence(testCode, change.edits[0].edits);
         expect(resultCode, expectedCode.replaceAll('/*caret*/', ''));
         if (cmp != null) {
@@ -90,8 +90,8 @@ main() {
 
   Future<void> _prepareCompletion(String key,
       {bool atStart = false, bool atEnd = false, int delta = 0}) async {
-    int offset = findOffset(key);
-    String src = testCode.replaceFirst(key, '', offset);
+    var offset = findOffset(key);
+    var src = testCode.replaceFirst(key, '', offset);
     modifyTestFile(src);
     await _prepareCompletionAt(offset, key);
   }
@@ -100,7 +100,7 @@ main() {
     var params = EditGetPostfixCompletionParams(testFile, key, offset);
     var request =
         Request('0', 'edit.isPostfixCompletionApplicable', params.toJson());
-    Response response = await waitResponse(request, throwOnError: false);
+    var response = await waitResponse(request, throwOnError: false);
     var isApplicable =
         EditIsPostfixCompletionApplicableResult.fromResponse(response);
     if (!isApplicable.value) {

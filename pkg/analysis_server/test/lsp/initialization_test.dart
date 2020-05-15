@@ -5,7 +5,8 @@
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
-import 'package:analysis_server/src/lsp/handlers/handler_initialize.dart';
+import 'package:analysis_server/src/lsp/server_capabilities_computer.dart';
+import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -85,7 +86,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // should be no `client/registerCapability` calls.
 
     // Set a flag if any registerCapability request comes through.
-    bool didGetRegisterCapabilityRequest = false;
+    var didGetRegisterCapabilityRequest = false;
     requestsFromServer
         .firstWhere((n) => n.method == Method.client_registerCapability)
         .then((params) {
@@ -183,6 +184,95 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
       expect(registration, isNotNull,
           reason: 'Missing dynamic registration for $expectedRegistration');
     }
+  }
+
+  Future<void> test_dynamicRegistration_unregistersOutdatedAfterChange() async {
+    // Initialize by supporting dynamic registrations everywhere
+    List<Registration> registrations;
+    await handleExpectedRequest<ResponseMessage, RegistrationParams, void>(
+      Method.client_registerCapability,
+      () => initialize(
+          textDocumentCapabilities: withAllSupportedDynamicRegistrations(
+              emptyTextDocumentClientCapabilities)),
+      handler: (registrationParams) =>
+          registrations = registrationParams.registrations,
+    );
+
+    final unregisterRequest =
+        await expectRequest(Method.client_unregisterCapability, () {
+      final plugin = configureTestPlugin();
+      plugin.currentSession = PluginSession(plugin)
+        ..interestingFiles = ['*.foo'];
+      pluginManager.pluginsChangedController.add(null);
+    });
+    final unregistrations =
+        (unregisterRequest.params as UnregistrationParams).unregisterations;
+
+    // folding method should have been unregistered as the server now supports
+    // *.foo files for it as well.
+    final registrationIdForFolding = registrations
+        .singleWhere((r) => r.method == 'textDocument/foldingRange')
+        .id;
+    expect(
+      unregistrations,
+      contains(isA<Unregistration>()
+          .having((r) => r.method, 'method', 'textDocument/foldingRange')
+          .having((r) => r.id, 'id', registrationIdForFolding)),
+    );
+
+    // Renaming documents is a Dart-specific service that should not have been
+    // affected by the plugin change.
+    final registrationIdForRename =
+        registrations.singleWhere((r) => r.method == 'textDocument/rename').id;
+    expect(
+        unregistrations,
+        isNot(contains(isA<Unregistration>()
+            .having((r) => r.id, 'id', registrationIdForRename))));
+  }
+
+  Future<void> test_dynamicRegistration_updatesWithPlugins() async {
+    await initialize(
+      textDocumentCapabilities:
+          extendTextDocumentCapabilities(emptyTextDocumentClientCapabilities, {
+        'foldingRange': {'dynamicRegistration': true},
+      }),
+    );
+
+    // The server will send an unregister request followed by another register
+    // request to change document filter on folding. We need to respond to the
+    // unregister request as the server awaits that.
+    requestsFromServer
+        .firstWhere((r) => r.method == Method.client_unregisterCapability)
+        .then((request) {
+      respondTo(request, null);
+      return (request.params as UnregistrationParams).unregisterations;
+    });
+
+    final request = await expectRequest(Method.client_registerCapability, () {
+      final plugin = configureTestPlugin();
+      plugin.currentSession = PluginSession(plugin)
+        ..interestingFiles = ['*.sql'];
+      pluginManager.pluginsChangedController.add(null);
+    });
+
+    final registrations = (request.params as RegistrationParams).registrations;
+
+    final documentFilterSql = DocumentFilter(null, 'file', '**/*.sql');
+    final documentFilterDart = DocumentFilter('dart', 'file', null);
+    final expectedFoldingRegistration =
+        isA<TextDocumentRegistrationOptions>().having(
+      (o) => o.documentSelector,
+      'documentSelector',
+      containsAll([documentFilterSql, documentFilterDart]),
+    );
+
+    expect(
+      registrations,
+      contains(isA<Registration>()
+          .having((r) => r.method, 'method', 'textDocument/foldingRange')
+          .having((r) => r.registerOptions, 'registerOptions',
+              expectedFoldingRegistration)),
+    );
   }
 
   Future<void> test_initialize() async {

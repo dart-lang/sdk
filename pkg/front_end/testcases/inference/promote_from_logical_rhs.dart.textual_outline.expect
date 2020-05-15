@@ -1,0 +1,4 @@
+library test;
+
+void test(Object a, bool b) {}
+main() {}

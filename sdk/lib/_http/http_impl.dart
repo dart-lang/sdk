@@ -1748,6 +1748,10 @@ class _HttpClientConnection {
     _currentUri = uri;
     // Start with pausing the parser.
     _subscription.pause();
+    if (method == "CONNECT") {
+      // Parser will ignore Content-Length or Transfer-Encoding header
+      _httpParser.connectMethod = true;
+    }
     _ProxyCredentials proxyCreds; // Credentials used to authorize proxy.
     _SiteCredentials creds; // Credentials used to authorize this request.
     var outgoing = new _HttpOutgoing(_socket);
@@ -1760,9 +1764,9 @@ class _HttpClientConnection {
     request.headers
       ..host = host
       ..port = port
-      .._add(HttpHeaders.acceptEncodingHeader, "gzip");
+      ..add(HttpHeaders.acceptEncodingHeader, "gzip");
     if (_httpClient.userAgent != null) {
-      request.headers._add(HttpHeaders.userAgentHeader, _httpClient.userAgent);
+      request.headers.add(HttpHeaders.userAgentHeader, _httpClient.userAgent);
     }
     if (proxy.isAuthenticated) {
       // If the proxy configuration contains user information use that
@@ -2262,6 +2266,32 @@ class _HttpClient implements HttpClient {
     });
   }
 
+  /// Whether HTTP requests are currently allowed.
+  ///
+  /// If the [Zone] variable `#dart.library.io.allow_http` is set to a boolean,
+  /// it determines whether the HTTP protocol is allowed. If the zone variable
+  /// is set to any other non-null value, HTTP is not allowed.
+  /// Otherwise, if the `dart.library.io.allow_http` environment flag
+  /// is set to `false`, HTTP is not allowed.
+  /// Otherwise, [_embedderAllowsHTTP] determines the result.
+  bool get _isHttpAllowed {
+    final zoneOverride = Zone.current[#dart.library.io.allow_http];
+    if (zoneOverride != null) return true == zoneOverride;
+    bool envOverride =
+        bool.fromEnvironment("dart.library.io.allow_http", defaultValue: true);
+    return envOverride && _embedderAllowsHttp;
+  }
+
+  bool _isLoopback(String host) {
+    if (host.isEmpty) return false;
+    if ("localhost" == host) return true;
+    try {
+      return InternetAddress(host).isLoopback;
+    } on ArgumentError {
+      return false;
+    }
+  }
+
   Future<_HttpClientRequest> _openUrl(String method, Uri uri) {
     if (_closing) {
       throw new StateError("Client is closed");
@@ -2282,7 +2312,12 @@ class _HttpClient implements HttpClient {
       }
     }
 
-    bool isSecure = (uri.scheme == "https");
+    bool isSecure = uri.isScheme("https");
+    if (!_isHttpAllowed && !isSecure && !_isLoopback(uri.host)) {
+      throw new StateError(
+          "Insecure HTTP is not allowed by the current platform: $uri");
+    }
+
     int port = uri.port;
     if (port == 0) {
       port =
@@ -2560,6 +2595,10 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection>
           outgoing,
           _httpServer.defaultResponseHeaders,
           _httpServer.serverHeader);
+      // Parser found badRequest and sent out Response.
+      if (incoming.statusCode == HttpStatus.badRequest) {
+        response.statusCode = HttpStatus.badRequest;
+      }
       var request = new _HttpRequest(response, incoming, _httpServer, this);
       _streamFuture = outgoing.done.then((_) {
         response.deadline = null;

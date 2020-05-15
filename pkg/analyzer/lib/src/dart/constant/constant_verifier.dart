@@ -55,8 +55,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// Initialize a newly created constant verifier.
   ConstantVerifier(ErrorReporter errorReporter, LibraryElement currentLibrary,
       DeclaredVariables declaredVariables,
-      // TODO(brianwilkerson) Remove the unused parameter `forAnalysisDriver`.
-      {bool forAnalysisDriver,
+      {
       // TODO(paulberry): make [featureSet] a required parameter.
       FeatureSet featureSet})
       : this._(
@@ -380,7 +379,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _reportNotPotentialConstants(AstNode node) {
-    var notPotentiallyConstants = getNotPotentiallyConstants(node);
+    var notPotentiallyConstants = getNotPotentiallyConstants(
+      node,
+      isNonNullableByDefault: _isNonNullableByDefault,
+    );
     if (notPotentiallyConstants.isEmpty) return;
 
     for (var notConst in notPotentiallyConstants) {
@@ -750,7 +752,10 @@ class _ConstLiteralVerifier {
 
   /// Return `true` if the [node] is a potential constant.
   bool _reportNotPotentialConstants(AstNode node) {
-    var notPotentiallyConstants = getNotPotentiallyConstants(node);
+    var notPotentiallyConstants = getNotPotentiallyConstants(
+      node,
+      isNonNullableByDefault: verifier._isNonNullableByDefault,
+    );
     if (notPotentiallyConstants.isEmpty) return true;
 
     for (var notConst in notPotentiallyConstants) {

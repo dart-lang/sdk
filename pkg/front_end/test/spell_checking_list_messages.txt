@@ -39,6 +39,7 @@ name.#name
 name.stack
 native('native
 nativetype
+nnbd
 nosuchmethod
 num1%.3ms
 o
@@ -46,6 +47,7 @@ opt
 opts
 part(s)
 patch(es)
+pubspec.yaml
 re
 sdksummary
 stacktrace

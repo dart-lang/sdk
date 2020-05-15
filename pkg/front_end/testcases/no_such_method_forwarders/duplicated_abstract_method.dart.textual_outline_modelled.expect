@@ -1,0 +1,13 @@
+abstract class I1 {
+  void foo();
+}
+
+abstract class I2 {
+  void foo();
+}
+
+class M implements I1, I2 {
+  dynamic noSuchMethod(Invocation i) => null;
+}
+
+main() {}

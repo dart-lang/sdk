@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.30
+# Dart VM Service Protocol 3.33
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.30_ of the Dart VM Service Protocol. This
+This document describes of _version 3.33_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -27,6 +27,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
 - [IDs and Names](#ids-and-names)
 - [Versioning](#versioning)
 - [Private RPCs, Types, and Properties](#private-rpcs-types-and-properties)
+- [Single Client Mode](#single-client-mode)
 - [Public RPCs](#public-rpcs)
   - [addBreakpoint](#addbreakpoint)
   - [addBreakpointWithScriptUri](#addbreakpointwithscripturi)
@@ -405,6 +406,17 @@ become stable. Some private types and properties expose VM specific
 implementation state and will never be appropriate to add to
 the public api.
 
+## Single Client Mode
+
+The VM service allows for an extended feature set via the Dart Development
+Service (DDS) that forward all core VM service RPCs described in this
+document to the true VM service.
+
+When DDS connects to the VM service, the VM service enters single client
+mode and will no longer accept incoming web socket connections. If DDS
+disconnects from the VM service, the VM service will once again start accepting
+incoming web socket connections.
+
 ## Public RPCs
 
 The following is a list of all public RPCs supported by the Service Protocol.
@@ -698,7 +710,24 @@ collection will be actually be performed.
 If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
 
+### getClassList
+
+```
+ClassList|Sentinel getClassList(string isolateId)
+```
+
+The _getClassList_ RPC is used to retrieve a _ClassList_ containing all
+classes for an isolate based on the isolate's _isolateId_.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
+See [ClassList](#classlist).
+
 ### getClientName
+
+_**Note**: This method is deprecated and will be removed in v4.0 of the protocol.
+An equivalent can be found in the Dart Development Service (DDS) protocol._
 
 ```
 ClientName getClientName()
@@ -1175,6 +1204,9 @@ _Collected_ [Sentinel](#sentinel) is returned.
 
 ### requirePermissionToResume
 
+_**Note**: This method is deprecated and will be removed in v4.0 of the protocol.
+An equivalent can be found in the Dart Development Service (DDS) protocol._
+
 ```
 Success requirePermissionToResume(bool onPauseStart [optional],
                                   bool onPauseReload[optional],
@@ -1207,7 +1239,6 @@ need to provide resume approval for this pause type have done so.
   already given approval. In the case that no other client requires resume
   approval for the current pause event, the isolate will be resumed if at
   least one other client has attempted to [resume](#resume) the isolate.
-
 
 ### resume
 
@@ -1244,6 +1275,9 @@ _Collected_ [Sentinel](#sentinel) is returned.
 See [Success](#success), [StepOption](#StepOption).
 
 ### setClientName
+
+_**Note**: This method is deprecated and will be removed in v4.0 of the protocol.
+An equivalent can be found in the Dart Development Service (DDS) protocol._
 
 ```
 Success setClientName(string name)
@@ -1356,6 +1390,9 @@ The _recordedStreams_ parameter is the list of all timeline streams which are
 to be enabled. Streams not explicitly specified will be disabled. Invalid stream
 names are ignored.
 
+A `TimelineStreamSubscriptionsUpdate` event is sent on the `Timeline` stream as
+a result of invoking this RPC.
+
 To get the list of currently enabled timeline streams, see [getVMTimelineFlags](#getvmtimelineflags).
 
 See [Success](#success).
@@ -1394,7 +1431,7 @@ Isolate | IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate, IsolateRelo
 Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, PausePostRequest, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect, None
 GC | GC
 Extension | Extension
-Timeline | TimelineEvents
+Timeline | TimelineEvents, TimelineStreamsSubscriptionUpdate
 Logging | Logging
 Service | ServiceRegistered, ServiceUnregistered
 HeapSnapshot | HeapSnapshot
@@ -1689,6 +1726,9 @@ class ClassList extends Response {
 ```
 
 ### ClientName
+
+_**Note**: This class is deprecated and will be removed in v4.0 of the protocol.
+An equivalent can be found in the Dart Development Service (DDS) protocol._
 
 ```
 class ClientName extends Response {
@@ -1996,6 +2036,11 @@ class Event extends Response {
   // This is provided for the TimelineEvents event.
   TimelineEvent[] timelineEvents [optional];
 
+  // The new set of recorded timeline streams.
+  //
+  // This is provided for the TimelineStreamSubscriptionsUpdate event.
+  string[] updatedStreams [optional];
+
   // Is the isolate paused at an await, yield, or yield* statement?
   //
   // This is provided for the event kinds:
@@ -2006,7 +2051,6 @@ class Event extends Response {
   // The status (success or failure) related to the event.
   // This is provided for the event kinds:
   //   IsolateReloaded
-  //   IsolateSpawn
   string status [optional];
 
   // LogRecord data.
@@ -2135,18 +2179,29 @@ enum EventKind {
   Inspect,
 
   // Event from dart:developer.postEvent.
-  Extension
+  Extension,
 
   // Event from dart:developer.log.
-  Logging
+  Logging,
 
-   // Notification that a Service has been registered into the Service Protocol
+  // A block of timeline events has been completed.
+  //
+  // This service event is not sent for individual timeline events. It is
+  // subject to buffering, so the most recent timeline events may never be
+  // included in any TimelineEvents event if no timeline events occur later to
+  // complete the block.
+  TimelineEvents,
+
+  // The set of active timeline streams was changed via `setVMTimelineFlags`.
+  TimelineStreamSubscriptionsUpdate,
+
+  // Notification that a Service has been registered into the Service Protocol
   // from another client.
   ServiceRegistered,
 
   // Notification that a Service has been removed from the Service Protocol
   // from another client.
-  ServiceUnregistered
+  ServiceUnregistered,
 }
 ```
 
@@ -3516,7 +3571,7 @@ The _Success_ type is used to indicate that an operation completed successfully.
 
 ```
 class Timeline extends Response {
-  // A list of timeline events.
+  // A list of timeline events. No order is guarenteed for these events; in particular, these events may be unordered with respect to their timestamps.
   TimelineEvent[] traceEvents;
 
   // The start of the period of time in which traceEvents were collected.
@@ -3727,5 +3782,10 @@ version | comments
 3.28 | TODO(aam): document changes from 3.28
 3.29 | Add `getClientName`, `setClientName`, `requireResumeApproval`
 3.30 | Updated return types of RPCs which require an `isolateId` to allow for `Sentinel` results if the target isolate has shutdown.
+3.31 | Added single client mode, which allows for the Dart Development Service (DDS) to become the sole client of
+the VM service.
+3.32 | Added `getClassList` RPC and `ClassList` object.
+3.33 | Added deprecation notice for `getClientName`, `setClientName`, `requireResumeApproval`, and `ClientName`. These RPCs are moving to the DDS protocol and will be removed in v4.0 of the VM service protocol.
+3.34 | Added `TimelineStreamSubscriptionsUpdate` event which is sent when `setVMTimelineFlags` is invoked.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

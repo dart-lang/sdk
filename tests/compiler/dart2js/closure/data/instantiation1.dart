@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 int f<T>(T a) => null;
 
 typedef int F<R>(R a);
@@ -11,8 +13,8 @@ class B<S> {
   /*member: B.method:hasThis*/
   method() {
     return
-        /*strong.fields=[this],free=[this],hasThis*/
-        /*omit.hasThis*/
+        /*spec:nnbd-off|spec:nnbd-sdk.fields=[this],free=[this],hasThis*/
+        /*prod:nnbd-off|prod:nnbd-sdk.hasThis*/
         () {
       F<S> c = f;
       return c;

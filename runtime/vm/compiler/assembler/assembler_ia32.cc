@@ -14,14 +14,10 @@
 
 namespace dart {
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
 DECLARE_FLAG(bool, inline_alloc);
 DECLARE_FLAG(bool, use_slow_path);
-#endif
 
 namespace compiler {
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
 
 class DirectCallRelocation : public AssemblerFixup {
  public:
@@ -1938,7 +1934,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
 
   testb(FieldAddress(object, target::Object::tags_offset()),
-        Immediate(1 << target::RawObject::kOldAndNotRememberedBit));
+        Immediate(1 << target::ObjectLayout::kOldAndNotRememberedBit));
   j(ZERO, &done, Assembler::kNearJump);
 
   Stop("Store buffer update is required");
@@ -2123,7 +2119,7 @@ void Assembler::MonomorphicCheckedEntryJIT() {
   intptr_t start = CodeSize();
   Label have_cid, miss;
   Bind(&miss);
-  jmp(Address(THR, target::Thread::monomorphic_miss_entry_offset()));
+  jmp(Address(THR, target::Thread::switchable_call_miss_entry_offset()));
 
   Comment("MonomorphicCheckedEntry");
   ASSERT(CodeSize() - start ==
@@ -2409,8 +2405,7 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
   Address state_address(kNoRegister, 0);
 
   const intptr_t shared_table_offset =
-      target::Isolate::class_table_offset() +
-      target::ClassTable::shared_class_table_offset();
+      target::Isolate::shared_class_table_offset();
   const intptr_t table_offset =
       target::SharedClassTable::class_heap_stats_table_offset();
   const intptr_t class_offset = target::ClassTable::ClassOffsetFor(cid);
@@ -2539,6 +2534,10 @@ void Assembler::EnterStubFrame() {
   EnterDartFrame(0);
 }
 
+void Assembler::LeaveStubFrame() {
+  LeaveFrame();
+}
+
 void Assembler::EmitOperand(int rm, const Operand& operand) {
   ASSERT(rm >= 0 && rm < 8);
   const intptr_t length = operand.length_;
@@ -2623,19 +2622,19 @@ void Assembler::EmitGenericShift(int rm,
 }
 
 void Assembler::LoadClassId(Register result, Register object) {
-  ASSERT(target::RawObject::kClassIdTagPos == 16);
-  ASSERT(target::RawObject::kClassIdTagSize == 16);
+  ASSERT(target::ObjectLayout::kClassIdTagPos == 16);
+  ASSERT(target::ObjectLayout::kClassIdTagSize == 16);
   const intptr_t class_id_offset =
       target::Object::tags_offset() +
-      target::RawObject::kClassIdTagPos / kBitsPerByte;
+      target::ObjectLayout::kClassIdTagPos / kBitsPerByte;
   movzxw(result, FieldAddress(object, class_id_offset));
 }
 
 void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(result != class_id);
 
-  const intptr_t table_offset = target::Isolate::class_table_offset() +
-                                target::ClassTable::table_offset();
+  const intptr_t table_offset =
+      target::Isolate::cached_class_table_table_offset();
   LoadIsolate(result);
   movl(result, Address(result, table_offset));
   movl(result, Address(result, class_id, TIMES_4, 0));
@@ -2653,11 +2652,11 @@ void Assembler::SmiUntagOrCheckClass(Register object,
                                      Register scratch,
                                      Label* is_smi) {
   ASSERT(kSmiTagShift == 1);
-  ASSERT(target::RawObject::kClassIdTagPos == 16);
-  ASSERT(target::RawObject::kClassIdTagSize == 16);
+  ASSERT(target::ObjectLayout::kClassIdTagPos == 16);
+  ASSERT(target::ObjectLayout::kClassIdTagSize == 16);
   const intptr_t class_id_offset =
       target::Object::tags_offset() +
-      target::RawObject::kClassIdTagPos / kBitsPerByte;
+      target::ObjectLayout::kClassIdTagPos / kBitsPerByte;
 
   // Untag optimistically. Tag bit is shifted into the CARRY.
   SmiUntag(object);
@@ -2683,8 +2682,8 @@ void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
     Bind(&join);
   } else {
     ASSERT(result != object);
-    static const intptr_t kSmiCidSource = kSmiCid
-                                          << target::RawObject::kClassIdTagPos;
+    static const intptr_t kSmiCidSource =
+        kSmiCid << target::ObjectLayout::kClassIdTagPos;
 
     // Make a dummy "Object" whose cid is kSmiCid.
     movl(result, Immediate(reinterpret_cast<int32_t>(&kSmiCidSource) + 1));
@@ -2790,8 +2789,6 @@ Address Assembler::ElementAddressForRegIndex(bool is_external,
                         target::Instance::DataOffsetFor(cid) + extra_disp);
   }
 }
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace compiler
 }  // namespace dart

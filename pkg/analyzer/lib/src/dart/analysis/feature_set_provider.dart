@@ -7,6 +7,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 class FeatureSetProvider {
   /// This flag will be turned to `true` and inlined when we un-fork SDK,
@@ -34,19 +35,27 @@ class FeatureSetProvider {
       return _sdkFeatureSet;
     }
 
-    for (var package in _packages.packages) {
-      if (package.rootFolder.contains(path)) {
-        var languageVersion = package.languageVersion;
-        if (languageVersion == null ||
-            languageVersion == ExperimentStatus.currentVersion) {
-          return _packageDefaultFeatureSet;
-        } else {
-          return _packageDefaultFeatureSet.restrictToVersion(languageVersion);
-        }
-      }
+    var package = _packages.packageForPath(path);
+    if (package != null) {
+      var languageVersion = package.languageVersion;
+      languageVersion ??= ExperimentStatus.currentVersion;
+      return _packageDefaultFeatureSet.restrictToVersion(languageVersion);
     }
 
     return _nonPackageDefaultFeatureSet;
+  }
+
+  /// Return the language version configured for the file.
+  Version getLanguageVersion(String path, Uri uri) {
+    var package = _packages.packageForPath(path);
+    if (package != null) {
+      var languageVersion = package.languageVersion;
+      if (languageVersion != null) {
+        return languageVersion;
+      }
+    }
+
+    return ExperimentStatus.currentVersion;
   }
 
   static FeatureSetProvider build({

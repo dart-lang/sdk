@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'package:expect/expect.dart';
 
 /*member: A.:hasThis*/
@@ -9,8 +11,8 @@ class A<T> {
   /*member: A.method:hasThis*/
   @pragma('dart2js:noInline')
   method() {
-    /*omit.hasThis*/
-    /*strong.fields=[this],free=[this],hasThis*/
+    /*prod:nnbd-off|prod:nnbd-sdk.hasThis*/
+    /*spec:nnbd-off|spec:nnbd-sdk.fields=[this],free=[this],hasThis*/
     dynamic local() => <T>[];
     return local;
   }

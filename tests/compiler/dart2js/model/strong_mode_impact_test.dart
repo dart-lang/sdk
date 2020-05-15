@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/world.dart';
 import 'package:compiler/src/universe/use.dart';
 import 'package:compiler/src/universe/world_impact.dart';
@@ -55,7 +58,7 @@ main() {
 }
 ''';
 
-  Map<String, Impact> expectedImpactMap = <String, Impact>{
+  Map<String, Impact> expectedImpactMapNnbdOff = <String, Impact>{
     'method1': const Impact(),
     'method2': new Impact(implicitCasts: ['int']),
     'method3': new Impact(parameterChecks: ['int']),
@@ -71,11 +74,36 @@ main() {
     'method13': new Impact(implicitCasts: ['int'], parameterChecks: ['String']),
   };
 
+  Map<String, Impact> expectedImpactMapNnbdOn = <String, Impact>{
+    'method1': const Impact(),
+    'method2': new Impact(implicitCasts: ['int*']),
+    'method3': new Impact(parameterChecks: ['int*']),
+    'method4': new Impact(asCasts: ['int*']),
+    'method5': const Impact(),
+    'method6': const Impact(),
+    'method7': const Impact(),
+    'method8': const Impact(),
+    'method9': new Impact(implicitCasts: ['int*']),
+    'method10': const Impact(),
+    'method11': const Impact(),
+    'method12': const Impact(),
+    'method13':
+        new Impact(implicitCasts: ['int*'], parameterChecks: ['String*']),
+  };
+
+  Map<String, Impact> expectedImpactMap =
+      isDart2jsNnbd ? expectedImpactMapNnbdOn : expectedImpactMapNnbdOff;
   retainDataForTesting = true;
   CompilationResult result =
       await runCompiler(memorySourceFiles: {'main.dart': source});
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
+  var options = compiler.options;
+
+  String printType(DartType type) {
+    return type.toStructuredText(
+        printLegacyStars: true, useLegacySubtyping: options.useLegacySubtyping);
+  }
 
   KClosedWorld closedWorld = compiler.frontendClosedWorldForTesting;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
@@ -98,7 +126,7 @@ main() {
     String context = 'in $member:\n'
         'Expected: $expectedImpact\nActual: $typeUses';
     for (TypeUse typeUse in typeUses) {
-      String type = '${typeUse.type}';
+      String type = printType(typeUse.type);
       switch (typeUse.kind) {
         case TypeUseKind.AS_CAST:
           Expect.isTrue(asCasts.contains(type), "Extra $typeUse $context");

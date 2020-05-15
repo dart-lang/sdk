@@ -14,6 +14,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as driver;
 import 'package:analyzer/src/dart/analysis/uri_converter.dart';
+import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
@@ -38,7 +39,8 @@ class AnalysisSessionImpl implements AnalysisSession {
   /// The cache of libraries for URIs.
   final Map<String, LibraryElement> _uriToLibraryCache = {};
 
-  final InheritanceManager3 inheritanceManager = InheritanceManager3();
+  ClassHierarchy classHierarchy = ClassHierarchy();
+  InheritanceManager3 inheritanceManager = InheritanceManager3();
 
   /// Initialize a newly created analysis session.
   AnalysisSessionImpl(this._driver);
@@ -58,8 +60,6 @@ class AnalysisSessionImpl implements AnalysisSession {
   @Deprecated('Use LibraryElement.typeProvider')
   @override
   Future<TypeProvider> get typeProvider async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     _checkConsistency();
     if (_typeProvider == null) {
       LibraryElement coreLibrary = await _driver.getLibraryByUri('dart:core');
@@ -76,8 +76,6 @@ class AnalysisSessionImpl implements AnalysisSession {
   @Deprecated('Use LibraryElement.typeSystem')
   @override
   Future<TypeSystemImpl> get typeSystem async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     _checkConsistency();
     if (_typeSystem == null) {
       var typeProvider = await this.typeProvider;
@@ -94,6 +92,12 @@ class AnalysisSessionImpl implements AnalysisSession {
   @override
   UriConverter get uriConverter {
     return _uriConverter ??= DriverBasedUriConverter(_driver);
+  }
+
+  /// Clear hierarchies, to reduce memory consumption.
+  void clearHierarchies() {
+    classHierarchy = ClassHierarchy();
+    inheritanceManager = InheritanceManager3();
   }
 
   @deprecated
@@ -113,8 +117,6 @@ class AnalysisSessionImpl implements AnalysisSession {
 
   @override
   Future<LibraryElement> getLibraryByUri(String uri) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     _checkConsistency();
     var libraryElement = _uriToLibraryCache[uri];
     if (libraryElement == null) {
@@ -214,7 +216,7 @@ class AnalysisSessionImpl implements AnalysisSession {
 /// Data structure containing information about the analysis session that is
 /// available synchronously.
 class SynchronousSession {
-  final AnalysisOptionsImpl analysisOptions;
+  AnalysisOptionsImpl _analysisOptions;
 
   final DeclaredVariables declaredVariables;
 
@@ -224,12 +226,22 @@ class SynchronousSession {
   TypeSystemImpl _typeSystemLegacy;
   TypeSystemImpl _typeSystemNonNullableByDefault;
 
-  InheritanceManager3 _inheritanceManager;
+  SynchronousSession(this._analysisOptions, this.declaredVariables);
 
-  SynchronousSession(this.analysisOptions, this.declaredVariables);
+  AnalysisOptionsImpl get analysisOptions => _analysisOptions;
 
-  InheritanceManager3 get inheritanceManager {
-    return _inheritanceManager ??= InheritanceManager3();
+  set analysisOptions(AnalysisOptionsImpl analysisOptions) {
+    this._analysisOptions = analysisOptions;
+
+    _typeSystemLegacy?.updateOptions(
+      implicitCasts: analysisOptions.implicitCasts,
+      strictInference: analysisOptions.strictInference,
+    );
+
+    _typeSystemNonNullableByDefault?.updateOptions(
+      implicitCasts: analysisOptions.implicitCasts,
+      strictInference: analysisOptions.strictInference,
+    );
   }
 
   @Deprecated('Use LibraryElement.typeProvider')
@@ -262,8 +274,6 @@ class SynchronousSession {
 
     _typeSystemLegacy = null;
     _typeSystemNonNullableByDefault = null;
-
-    _inheritanceManager = null;
   }
 
   void setTypeProviders({
@@ -279,16 +289,16 @@ class SynchronousSession {
     _typeProviderNonNullableByDefault = nonNullableByDefault;
 
     _typeSystemLegacy = TypeSystemImpl(
-      implicitCasts: analysisOptions.implicitCasts,
+      implicitCasts: _analysisOptions.implicitCasts,
       isNonNullableByDefault: false,
-      strictInference: analysisOptions.strictInference,
+      strictInference: _analysisOptions.strictInference,
       typeProvider: _typeProviderLegacy,
     );
 
     _typeSystemNonNullableByDefault = TypeSystemImpl(
-      implicitCasts: analysisOptions.implicitCasts,
+      implicitCasts: _analysisOptions.implicitCasts,
       isNonNullableByDefault: true,
-      strictInference: analysisOptions.strictInference,
+      strictInference: _analysisOptions.strictInference,
       typeProvider: _typeProviderNonNullableByDefault,
     );
   }

@@ -26,7 +26,7 @@ namespace dart {
 using compiler::BlockBuilder;
 
 ISOLATE_UNIT_TEST_CASE(TypePropagator_RedefinitionAfterStrictCompareWithNull) {
-  CompilerState S(thread);
+  CompilerState S(thread, /*is_aot=*/false);
 
   FlowGraphBuilderHelper H;
 
@@ -101,7 +101,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_RedefinitionAfterStrictCompareWithNull) {
 
 ISOLATE_UNIT_TEST_CASE(
     TypePropagator_RedefinitionAfterStrictCompareWithLoadClassId) {
-  CompilerState S(thread);
+  CompilerState S(thread, /*is_aot=*/false);
 
   FlowGraphBuilderHelper H;
 
@@ -164,14 +164,14 @@ ISOLATE_UNIT_TEST_CASE(
 }
 
 ISOLATE_UNIT_TEST_CASE(TypePropagator_Refinement) {
-  CompilerState S(thread);
+  CompilerState S(thread, /*is_aot=*/false);
 
   const Class& object_class =
       Class::Handle(thread->isolate()->object_store()->object_class());
 
   const Function& target_func = Function::ZoneHandle(Function::New(
       String::Handle(Symbols::New(thread, "dummy2")),
-      RawFunction::kRegularFunction,
+      FunctionLayout::kRegularFunction,
       /*is_static=*/true,
       /*is_const=*/false,
       /*is_abstract=*/false,
@@ -266,7 +266,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_Refinement) {
 // This test verifies that mutable compile types are not incorrectly cached
 // as reaching types after inference.
 ISOLATE_UNIT_TEST_CASE(TypePropagator_Regress36156) {
-  CompilerState S(thread);
+  CompilerState S(thread, /*is_aot=*/false);
   FlowGraphBuilderHelper H;
 
   // We are going to build the following graph:

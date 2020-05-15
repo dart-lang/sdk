@@ -22,10 +22,10 @@ Future<void> main(List<String> arguments) async {
     return;
   }
 
-  final String script = Platform.script.toFilePath();
+  final script = Platform.script.toFilePath();
   // 3x parent = file -> lsp_spec -> tool -> analysis_server.
-  final String packageFolder = File(script).parent.parent.parent.path;
-  final String outFolder = path.join(packageFolder, 'lib', 'lsp_protocol');
+  final packageFolder = File(script).parent.parent.parent.path;
+  final outFolder = path.join(packageFolder, 'lib', 'lsp_protocol');
   Directory(outFolder).createSync();
 
   // Collect definitions for types in the spec and our custom extensions.
@@ -39,8 +39,8 @@ Future<void> main(List<String> arguments) async {
   recordTypes(customTypes);
 
   // Generate formatted Dart code (as a string) for each set of types.
-  final String specTypesOutput = generateDartForTypes(specTypes);
-  final String customTypesOutput = generateDartForTypes(customTypes);
+  final specTypesOutput = generateDartForTypes(specTypes);
+  final customTypesOutput = generateDartForTypes(customTypes);
 
   File(path.join(outFolder, 'protocol_generated.dart')).writeAsStringSync(
       generatedFileHeader(2018, importCustom: true) + specTypesOutput);
@@ -195,7 +195,7 @@ List<AstNode> getCustomClasses() {
         null, Token.identifier(name), fieldType, canBeNull, canBeUndefined);
   }
 
-  final List<AstNode> customTypes = [
+  final customTypes = <AstNode>[
     interface('DartDiagnosticServer', [field('port', type: 'number')]),
     interface('AnalyzerStatusParams', [field('isAnalyzing', type: 'boolean')]),
     interface('PublishClosingLabelsParams', [
@@ -264,9 +264,9 @@ Future<List<AstNode>> getSpecClasses(ArgResults args) async {
   if (args[argDownload]) {
     await downloadSpec();
   }
-  final String spec = await readSpec();
+  final spec = await readSpec();
 
-  final List<AstNode> types = extractTypeScriptBlocks(spec)
+  final types = extractTypeScriptBlocks(spec)
       .where(shouldIncludeScriptBlock)
       .map(parseString)
       .expand((f) => f)

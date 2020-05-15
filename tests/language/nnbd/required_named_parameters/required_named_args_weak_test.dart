@@ -26,7 +26,9 @@ main() {
 
   // Valid: Invocation may pass null as a required named argument in weak mode.
   f("", p1: null, p2: null);
+  Function.apply(f, [""], {#p1: null, #p2: null});
 
   // Valid: Invocation may omit a required named argument in weak mode.
   f("", p1: 100);
+  Function.apply(f, [""], {#p1: 100});
 }

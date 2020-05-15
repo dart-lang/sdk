@@ -10,14 +10,12 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 
 void addDartOccurrences(OccurrencesCollector collector, CompilationUnit unit) {
-  _DartUnitOccurrencesComputerVisitor visitor =
-      _DartUnitOccurrencesComputerVisitor();
+  var visitor = _DartUnitOccurrencesComputerVisitor();
   unit.accept(visitor);
   visitor.elementsOffsets.forEach((engineElement, offsets) {
-    int length = engineElement.nameLength;
-    protocol.Element serverElement = protocol.convertElement(engineElement);
-    protocol.Occurrences occurrences =
-        protocol.Occurrences(serverElement, offsets, length);
+    var length = engineElement.nameLength;
+    var serverElement = protocol.convertElement(engineElement);
+    var occurrences = protocol.Occurrences(serverElement, offsets, length);
     collector.addOccurrences(occurrences);
   });
 }
@@ -27,7 +25,7 @@ class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    Element element = node.staticElement;
+    var element = node.staticElement;
     if (element != null) {
       _addOccurrence(element, node.offset);
     }
@@ -39,7 +37,7 @@ class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
     if (element == null || element == DynamicElementImpl.instance) {
       return;
     }
-    List<int> offsets = elementsOffsets[element];
+    var offsets = elementsOffsets[element];
     if (offsets == null) {
       offsets = <int>[];
       elementsOffsets[element] = offsets;

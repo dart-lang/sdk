@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Class for intrinsifying functions.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/compiler/graph_intrinsifier.h"
 #include "vm/compiler/backend/block_builder.h"
 #include "vm/compiler/backend/flow_graph.h"
@@ -189,7 +187,7 @@ static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
   index = PrepareIndexedOp(flow_graph, &builder, array, index,
                            Slot::GetLengthFieldForArrayCid(array_cid));
 
-  if (RawObject::IsExternalTypedDataClassId(array_cid)) {
+  if (IsExternalTypedDataClassId(array_cid)) {
     array = builder.AddDefinition(new LoadUntaggedInstr(
         new Value(array), target::TypedDataBase::data_field_offset()));
   }
@@ -369,13 +367,13 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
       UNREACHABLE();
   }
 
-  if (RawObject::IsExternalTypedDataClassId(array_cid)) {
+  if (IsExternalTypedDataClassId(array_cid)) {
     array = builder.AddDefinition(new LoadUntaggedInstr(
         new Value(array), target::TypedDataBase::data_field_offset()));
   }
   // No store barrier.
-  ASSERT(RawObject::IsExternalTypedDataClassId(array_cid) ||
-         RawObject::IsTypedDataClassId(array_cid));
+  ASSERT(IsExternalTypedDataClassId(array_cid) ||
+         IsTypedDataClassId(array_cid));
   builder.AddInstruction(new StoreIndexedInstr(
       new Value(array), new Value(index), new Value(value), kNoStoreBarrier,
       /*index_unboxed=*/false,
@@ -750,14 +748,6 @@ bool GraphIntrinsifier::Build_GrowableArrayGetIndexed(FlowGraph* flow_graph) {
   return true;
 }
 
-bool GraphIntrinsifier::Build_ObjectArraySetIndexed(FlowGraph* flow_graph) {
-  if (Isolate::Current()->argument_type_checks()) {
-    return false;
-  }
-
-  return Build_ObjectArraySetIndexedUnchecked(flow_graph);
-}
-
 bool GraphIntrinsifier::Build_ObjectArraySetIndexedUnchecked(
     FlowGraph* flow_graph) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
@@ -780,14 +770,6 @@ bool GraphIntrinsifier::Build_ObjectArraySetIndexedUnchecked(
   Definition* null_def = builder.AddNullDefinition();
   builder.AddReturn(new Value(null_def));
   return true;
-}
-
-bool GraphIntrinsifier::Build_GrowableArraySetIndexed(FlowGraph* flow_graph) {
-  if (Isolate::Current()->argument_type_checks()) {
-    return false;
-  }
-
-  return Build_GrowableArraySetIndexedUnchecked(flow_graph);
 }
 
 bool GraphIntrinsifier::Build_GrowableArraySetIndexedUnchecked(
@@ -1074,5 +1056,3 @@ bool GraphIntrinsifier::Build_DoubleRound(FlowGraph* flow_graph) {
 
 }  // namespace compiler
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

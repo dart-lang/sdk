@@ -20,7 +20,7 @@ class CustomAnnotation {
 
 class B {
   B.foo(int x) {}
-  factory B.bar(@m3 @m2 int z, x) {}
+  factory B.bar(@m3 @m2 int z, x) => new B.foo(0);
 
   baz(@m1 final int x, @m2 int y, @m3 final int z) {}
   qux(int x, [@m3 @m2 @m1 int y = 3 + 1]) {}

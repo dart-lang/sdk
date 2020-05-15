@@ -349,7 +349,7 @@ abstract class TypeConstraintGatherer {
           computeNullability(supertype.typeArguments[0], futureOrClass),
           supertype.nullability);
       DartType supertypeArg =
-          supertype.typeArguments[0].withNullability(unitedNullability);
+          supertype.typeArguments[0].withDeclaredNullability(unitedNullability);
       DartType supertypeFuture = futureType(supertypeArg, unitedNullability);
 
       // The match against FutureOr<X> succeeds if the match against either

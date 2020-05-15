@@ -21,11 +21,9 @@ class RequestConverter {
 
   plugin.AnalysisSetSubscriptionsParams convertAnalysisSetSubscriptionsParams(
       server.AnalysisSetSubscriptionsParams params) {
-    Map<server.AnalysisService, List<String>> serverSubscriptions =
-        params.subscriptions;
-    Map<plugin.AnalysisService, List<String>> pluginSubscriptions =
-        <plugin.AnalysisService, List<String>>{};
-    for (server.AnalysisService service in serverSubscriptions.keys) {
+    var serverSubscriptions = params.subscriptions;
+    var pluginSubscriptions = <plugin.AnalysisService, List<String>>{};
+    for (var service in serverSubscriptions.keys) {
       try {
         pluginSubscriptions[convertAnalysisService(service)] =
             serverSubscriptions[service];

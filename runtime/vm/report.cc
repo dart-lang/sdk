@@ -17,11 +17,11 @@ namespace dart {
 DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
 DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
 
-RawString* Report::PrependSnippet(Kind kind,
-                                  const Script& script,
-                                  TokenPosition token_pos,
-                                  bool report_after_token,
-                                  const String& message) {
+StringPtr Report::PrependSnippet(Kind kind,
+                                 const Script& script,
+                                 TokenPosition token_pos,
+                                 bool report_after_token,
+                                 const String& message) {
   const char* message_header;
   switch (kind) {
     case kWarning:

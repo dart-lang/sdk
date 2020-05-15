@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'dart:io';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:async_helper/async_helper.dart';
@@ -23,12 +25,12 @@ main(List<String> args) {
     print(' Test with enqueuer checks');
     print('------------------------------------------------------------------');
     await checkTests(dataDir, const ClosedWorldDataComputer(false),
-        args: args, testedConfigs: allStrongConfigs);
+        args: args, testedConfigs: allSpecConfigs);
     print('------------------------------------------------------------------');
     print(' Test without enqueuer checks');
     print('------------------------------------------------------------------');
     await checkTests(dataDir, const ClosedWorldDataComputer(true),
-        args: args, testedConfigs: allStrongConfigs);
+        args: args, testedConfigs: allSpecConfigs);
   });
 }
 

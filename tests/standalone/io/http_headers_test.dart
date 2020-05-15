@@ -17,6 +17,7 @@ import "dart:typed_data";
 import "package:expect/expect.dart";
 
 part "../../../sdk/lib/_http/crypto.dart";
+part "../../../sdk/lib/_http/embedder_config.dart";
 part "../../../sdk/lib/_http/http_impl.dart";
 part "../../../sdk/lib/_http/http_date.dart";
 part "../../../sdk/lib/_http/http_parser.dart";
@@ -259,6 +260,25 @@ void testHeaderValue() {
   }
 
   HeaderValue headerValue;
+  headerValue = HeaderValue.parse("");
+  check(headerValue, "", {});
+  headerValue = HeaderValue.parse(";");
+  check(headerValue, "", {});
+  headerValue = HeaderValue.parse(";;");
+  check(headerValue, "", {});
+  headerValue = HeaderValue.parse("v;a");
+  check(headerValue, "v", {"a": null});
+  headerValue = HeaderValue.parse("v;a=");
+  check(headerValue, "v", {"a": ""});
+  Expect.throws(() => HeaderValue.parse("v;a=\""), (e) => e is HttpException);
+  headerValue = HeaderValue.parse("v;a=\"\"");
+  check(headerValue, "v", {"a": ""});
+  Expect.throws(() => HeaderValue.parse("v;a=\"\\"), (e) => e is HttpException);
+  Expect.throws(
+      () => HeaderValue.parse("v;a=\";b=\"c\""), (e) => e is HttpException);
+  Expect.throws(() => HeaderValue.parse("v;a=b c"), (e) => e is HttpException);
+  headerValue = HeaderValue.parse("æ;ø=å");
+  check(headerValue, "æ", {"ø": "å"});
   headerValue =
       HeaderValue.parse("xxx; aaa=bbb; ccc=\"\\\";\\a\"; ddd=\"    \"");
   check(headerValue, "xxx", {"aaa": "bbb", "ccc": '\";a', "ddd": "    "});
@@ -280,6 +300,29 @@ void testHeaderValue() {
   check(headerValue, "attachment", parameters);
   headerValue = HeaderValue.parse("xxx; aaa; bbb; ccc");
   check(headerValue, "xxx", {"aaa": null, "bbb": null, "ccc": null});
+  headerValue = HeaderValue.parse("v; a=A; b=B, V; c=C", valueSeparator: ";");
+  check(headerValue, "v", {});
+  headerValue = HeaderValue.parse("v; a=A; b=B, V; c=C", valueSeparator: ",");
+  check(headerValue, "v", {"a": "A", "b": "B"});
+  Expect.throws(() => HeaderValue.parse("v; a=A; b=B, V; c=C"));
+
+  Expect.equals("", HeaderValue().toString());
+  Expect.equals("", HeaderValue("").toString());
+  Expect.equals("v", HeaderValue("v").toString());
+  Expect.equals("v", HeaderValue("v", {}).toString());
+  Expect.equals("v; ", HeaderValue("v", {"": null}).toString());
+  Expect.equals("v; a", HeaderValue("v", {"a": null}).toString());
+  Expect.equals("v; a; b", HeaderValue("v", {"a": null, "b": null}).toString());
+  Expect.equals(
+      "v; a; b=c", HeaderValue("v", {"a": null, "b": "c"}).toString());
+  Expect.equals(
+      "v; a=c; b", HeaderValue("v", {"a": "c", "b": null}).toString());
+  Expect.equals("v; a=\"\"", HeaderValue("v", {"a": ""}).toString());
+  Expect.equals("v; a=\"b c\"", HeaderValue("v", {"a": "b c"}).toString());
+  Expect.equals("v; a=\",\"", HeaderValue("v", {"a": ","}).toString());
+  Expect.equals(
+      "v; a=\"\\\\\\\"\"", HeaderValue("v", {"a": "\\\""}).toString());
+  Expect.equals("v; a=\"ø\"", HeaderValue("v", {"a": "ø"}).toString());
 }
 
 void testContentType() {
@@ -352,7 +395,7 @@ void testContentType() {
   check(contentType, "text", "html", {"charset": "utf-8", "xxx": "yyy"});
 
   contentType = ContentType.parse("text/html; charset=;");
-  check(contentType, "text", "html", {"charset": null});
+  check(contentType, "text", "html", {"charset": ""});
   contentType = ContentType.parse("text/html; charset;");
   check(contentType, "text", "html", {"charset": null});
 

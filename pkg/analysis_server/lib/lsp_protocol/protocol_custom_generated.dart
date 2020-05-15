@@ -42,7 +42,7 @@ class AnalyzerStatusParams implements ToJsonable {
   final bool isAnalyzing;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['isAnalyzing'] =
         isAnalyzing ?? (throw 'isAnalyzing is required but was not set');
     return __result;
@@ -76,7 +76,8 @@ class AnalyzerStatusParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is AnalyzerStatusParams) {
+    if (other is AnalyzerStatusParams &&
+        other.runtimeType == AnalyzerStatusParams) {
       return isAnalyzing == other.isAnalyzing && true;
     }
     return false;
@@ -84,7 +85,7 @@ class AnalyzerStatusParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, isAnalyzing.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -115,7 +116,7 @@ class ClosingLabel implements ToJsonable {
   final Range range;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['range'] = range ?? (throw 'range is required but was not set');
     __result['label'] = label ?? (throw 'label is required but was not set');
     return __result;
@@ -166,7 +167,7 @@ class ClosingLabel implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ClosingLabel) {
+    if (other is ClosingLabel && other.runtimeType == ClosingLabel) {
       return range == other.range && label == other.label && true;
     }
     return false;
@@ -174,7 +175,7 @@ class ClosingLabel implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, label.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -229,7 +230,7 @@ class CompletionItemResolutionInfo implements ToJsonable {
   final num rOffset;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['file'] = file ?? (throw 'file is required but was not set');
     __result['offset'] = offset ?? (throw 'offset is required but was not set');
     __result['libId'] = libId ?? (throw 'libId is required but was not set');
@@ -355,7 +356,8 @@ class CompletionItemResolutionInfo implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CompletionItemResolutionInfo) {
+    if (other is CompletionItemResolutionInfo &&
+        other.runtimeType == CompletionItemResolutionInfo) {
       return file == other.file &&
           offset == other.offset &&
           libId == other.libId &&
@@ -369,7 +371,7 @@ class CompletionItemResolutionInfo implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, file.hashCode);
     hash = JenkinsSmiHash.combine(hash, offset.hashCode);
     hash = JenkinsSmiHash.combine(hash, libId.hashCode);
@@ -400,7 +402,7 @@ class DartDiagnosticServer implements ToJsonable {
   final num port;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['port'] = port ?? (throw 'port is required but was not set');
     return __result;
   }
@@ -433,7 +435,8 @@ class DartDiagnosticServer implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DartDiagnosticServer) {
+    if (other is DartDiagnosticServer &&
+        other.runtimeType == DartDiagnosticServer) {
       return port == other.port && true;
     }
     return false;
@@ -441,7 +444,7 @@ class DartDiagnosticServer implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, port.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -480,7 +483,7 @@ class Element implements ToJsonable {
   final String typeParameters;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (range != null) {
       __result['range'] = range;
     }
@@ -580,7 +583,7 @@ class Element implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is Element) {
+    if (other is Element && other.runtimeType == Element) {
       return range == other.range &&
           name == other.name &&
           kind == other.kind &&
@@ -594,7 +597,7 @@ class Element implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, name.hashCode);
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
@@ -667,7 +670,7 @@ class FlutterOutline implements ToJsonable {
   final String variableName;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['kind'] = kind ?? (throw 'kind is required but was not set');
     if (label != null) {
       __result['label'] = label;
@@ -816,7 +819,7 @@ class FlutterOutline implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is FlutterOutline) {
+    if (other is FlutterOutline && other.runtimeType == FlutterOutline) {
       return kind == other.kind &&
           label == other.label &&
           className == other.className &&
@@ -838,7 +841,7 @@ class FlutterOutline implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
     hash = JenkinsSmiHash.combine(hash, label.hashCode);
     hash = JenkinsSmiHash.combine(hash, className.hashCode);
@@ -880,7 +883,7 @@ class FlutterOutlineAttribute implements ToJsonable {
   final Range valueRange;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['name'] = name ?? (throw 'name is required but was not set');
     __result['label'] = label ?? (throw 'label is required but was not set');
     if (valueRange != null) {
@@ -944,7 +947,8 @@ class FlutterOutlineAttribute implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is FlutterOutlineAttribute) {
+    if (other is FlutterOutlineAttribute &&
+        other.runtimeType == FlutterOutlineAttribute) {
       return name == other.name &&
           label == other.label &&
           valueRange == other.valueRange &&
@@ -955,7 +959,7 @@ class FlutterOutlineAttribute implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, name.hashCode);
     hash = JenkinsSmiHash.combine(hash, label.hashCode);
     hash = JenkinsSmiHash.combine(hash, valueRange.hashCode);
@@ -999,7 +1003,7 @@ class Outline implements ToJsonable {
   final Range range;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['element'] =
         element ?? (throw 'element is required but was not set');
     __result['range'] = range ?? (throw 'range is required but was not set');
@@ -1085,7 +1089,7 @@ class Outline implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is Outline) {
+    if (other is Outline && other.runtimeType == Outline) {
       return element == other.element &&
           range == other.range &&
           codeRange == other.codeRange &&
@@ -1098,7 +1102,7 @@ class Outline implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, element.hashCode);
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, codeRange.hashCode);
@@ -1135,7 +1139,7 @@ class PublishClosingLabelsParams implements ToJsonable {
   final String uri;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
     __result['labels'] = labels ?? (throw 'labels is required but was not set');
     return __result;
@@ -1188,7 +1192,8 @@ class PublishClosingLabelsParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is PublishClosingLabelsParams) {
+    if (other is PublishClosingLabelsParams &&
+        other.runtimeType == PublishClosingLabelsParams) {
       return uri == other.uri &&
           listEqual(labels, other.labels,
               (ClosingLabel a, ClosingLabel b) => a == b) &&
@@ -1199,7 +1204,7 @@ class PublishClosingLabelsParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, uri.hashCode);
     hash = JenkinsSmiHash.combine(hash, labels.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -1234,7 +1239,7 @@ class PublishFlutterOutlineParams implements ToJsonable {
   final String uri;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
     __result['outline'] =
         outline ?? (throw 'outline is required but was not set');
@@ -1286,7 +1291,8 @@ class PublishFlutterOutlineParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is PublishFlutterOutlineParams) {
+    if (other is PublishFlutterOutlineParams &&
+        other.runtimeType == PublishFlutterOutlineParams) {
       return uri == other.uri && outline == other.outline && true;
     }
     return false;
@@ -1294,7 +1300,7 @@ class PublishFlutterOutlineParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, uri.hashCode);
     hash = JenkinsSmiHash.combine(hash, outline.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -1327,7 +1333,7 @@ class PublishOutlineParams implements ToJsonable {
   final String uri;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
     __result['outline'] =
         outline ?? (throw 'outline is required but was not set');
@@ -1379,7 +1385,8 @@ class PublishOutlineParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is PublishOutlineParams) {
+    if (other is PublishOutlineParams &&
+        other.runtimeType == PublishOutlineParams) {
       return uri == other.uri && outline == other.outline && true;
     }
     return false;
@@ -1387,7 +1394,7 @@ class PublishOutlineParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, uri.hashCode);
     hash = JenkinsSmiHash.combine(hash, outline.hashCode);
     return JenkinsSmiHash.finish(hash);

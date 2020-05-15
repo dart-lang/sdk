@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -27,7 +26,7 @@ class C with B {}
 
   Future<void> test_dartfix_exclude() async {
     setupTarget();
-    EditDartfixResult result = await sendEditDartfix([(sourceDirectory.path)],
+    var result = await sendEditDartfix([(sourceDirectory.path)],
         excludedFixes: ['convert_class_to_mixin']);
     expect(result.hasErrors, isFalse);
     expect(result.suggestions.length, 0);
@@ -36,7 +35,7 @@ class C with B {}
 
   Future<void> test_dartfix_include() async {
     setupTarget();
-    EditDartfixResult result = await sendEditDartfix([(sourceDirectory.path)],
+    var result = await sendEditDartfix([(sourceDirectory.path)],
         includedFixes: ['convert_class_to_mixin']);
     expect(result.hasErrors, isFalse);
     expect(result.suggestions.length, greaterThanOrEqualTo(1));
@@ -45,7 +44,7 @@ class C with B {}
 
   Future<void> test_dartfix_include_other() async {
     setupTarget();
-    EditDartfixResult result = await sendEditDartfix([(sourceDirectory.path)],
+    var result = await sendEditDartfix([(sourceDirectory.path)],
         includedFixes: ['prefer_int_literals']);
     expect(result.hasErrors, isFalse);
     expect(result.suggestions.length, 0);

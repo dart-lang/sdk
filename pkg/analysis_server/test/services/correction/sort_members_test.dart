@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/services/correction/sort_members.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -655,7 +654,6 @@ class D {}
   }
 
   Future<void> test_unitMembers_extensionClass() async {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
     await _parseTestUnit(r'''
 extension E on C {}
 class C {}
@@ -668,7 +666,6 @@ extension E on C {}
   }
 
   Future<void> test_unitMembers_extensions() async {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
     await _parseTestUnit(r'''
 extension E2 on String {}
 extension on List {}
@@ -877,15 +874,15 @@ int c;
   }
 
   void _assertSort(String expectedCode) {
-    MemberSorter sorter = MemberSorter(testCode, testUnit);
-    List<SourceEdit> edits = sorter.sort();
-    String result = SourceEdit.applySequence(testCode, edits);
+    var sorter = MemberSorter(testCode, testUnit);
+    var edits = sorter.sort();
+    var result = SourceEdit.applySequence(testCode, edits);
     expect(result, expectedCode);
   }
 
   Future<void> _parseTestUnit(String code) async {
     addTestSource(code);
-    ParsedUnitResult result = session.getParsedUnit(testSource.fullName);
+    var result = session.getParsedUnit(testSource.fullName);
     testUnit = result.unit;
   }
 }

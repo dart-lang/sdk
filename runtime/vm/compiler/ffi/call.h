@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_COMPILER_FFI_CALL_H_
 #define RUNTIME_VM_COMPILER_FFI_CALL_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #include <platform/globals.h>
 
 #include "vm/raw_object.h"
@@ -15,8 +19,8 @@ namespace compiler {
 
 namespace ffi {
 
-RawFunction* TrampolineFunction(const Function& dart_signature,
-                                const Function& c_signature);
+FunctionPtr TrampolineFunction(const Function& dart_signature,
+                               const Function& c_signature);
 
 }  // namespace ffi
 

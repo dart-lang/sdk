@@ -75,117 +75,117 @@ library;
 //   print(foo ~ 2);
 //             ^
 //
-// pkg/front_end/testcases/general/operator_method_not_found.dart:12:13: Error: The method '<' isn't defined for the class 'Foo'.
+// pkg/front_end/testcases/general/operator_method_not_found.dart:12:13: Error: The operator '<' isn't defined for the class 'Foo'.
 //  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-// Try correcting the name to the name of an existing method, or defining a method named '<'.
+// Try correcting the operator to an existing operator, or defining a '<' operator.
 //   print(foo < 2);
 //             ^
 //
-// pkg/front_end/testcases/general/operator_method_not_found.dart:13:13: Error: The method '>' isn't defined for the class 'Foo'.
+// pkg/front_end/testcases/general/operator_method_not_found.dart:13:13: Error: The operator '>' isn't defined for the class 'Foo'.
 //  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-// Try correcting the name to the name of an existing method, or defining a method named '>'.
+// Try correcting the operator to an existing operator, or defining a '>' operator.
 //   print(foo > 2);
 //             ^
 //
-// pkg/front_end/testcases/general/operator_method_not_found.dart:14:13: Error: The method '<=' isn't defined for the class 'Foo'.
+// pkg/front_end/testcases/general/operator_method_not_found.dart:14:13: Error: The operator '<=' isn't defined for the class 'Foo'.
 //  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-// Try correcting the name to the name of an existing method, or defining a method named '<='.
+// Try correcting the operator to an existing operator, or defining a '<=' operator.
 //   print(foo <= 2);
 //             ^^
 //
-// pkg/front_end/testcases/general/operator_method_not_found.dart:15:13: Error: The method '>=' isn't defined for the class 'Foo'.
+// pkg/front_end/testcases/general/operator_method_not_found.dart:15:13: Error: The operator '>=' isn't defined for the class 'Foo'.
 //  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-// Try correcting the name to the name of an existing method, or defining a method named '>='.
+// Try correcting the operator to an existing operator, or defining a '>=' operator.
 //   print(foo >= 2);
 //             ^^
 //
-// pkg/front_end/testcases/general/operator_method_not_found.dart:17:13: Error: The method '-' isn't defined for the class 'Foo'.
+// pkg/front_end/testcases/general/operator_method_not_found.dart:17:13: Error: The operator '-' isn't defined for the class 'Foo'.
 //  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-// Try correcting the name to the name of an existing method, or defining a method named '-'.
+// Try correcting the operator to an existing operator, or defining a '-' operator.
 //   print(foo - 2);
 //             ^
 //
-// pkg/front_end/testcases/general/operator_method_not_found.dart:18:13: Error: The method '+' isn't defined for the class 'Foo'.
+// pkg/front_end/testcases/general/operator_method_not_found.dart:18:13: Error: The operator '+' isn't defined for the class 'Foo'.
 //  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-// Try correcting the name to the name of an existing method, or defining a method named '+'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
 //   print(foo + 2);
 //             ^
 //
-// pkg/front_end/testcases/general/operator_method_not_found.dart:19:13: Error: The method '/' isn't defined for the class 'Foo'.
+// pkg/front_end/testcases/general/operator_method_not_found.dart:19:13: Error: The operator '/' isn't defined for the class 'Foo'.
 //  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-// Try correcting the name to the name of an existing method, or defining a method named '/'.
+// Try correcting the operator to an existing operator, or defining a '/' operator.
 //   print(foo / 2);
 //             ^
 //
-// pkg/front_end/testcases/general/operator_method_not_found.dart:20:13: Error: The method '~/' isn't defined for the class 'Foo'.
+// pkg/front_end/testcases/general/operator_method_not_found.dart:20:13: Error: The operator '~/' isn't defined for the class 'Foo'.
 //  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-// Try correcting the name to the name of an existing method, or defining a method named '~/'.
+// Try correcting the operator to an existing operator, or defining a '~/' operator.
 //   print(foo ~/ 2);
 //             ^^
 //
-// pkg/front_end/testcases/general/operator_method_not_found.dart:21:13: Error: The method '*' isn't defined for the class 'Foo'.
+// pkg/front_end/testcases/general/operator_method_not_found.dart:21:13: Error: The operator '*' isn't defined for the class 'Foo'.
 //  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-// Try correcting the name to the name of an existing method, or defining a method named '*'.
+// Try correcting the operator to an existing operator, or defining a '*' operator.
 //   print(foo * 2);
 //             ^
 //
-// pkg/front_end/testcases/general/operator_method_not_found.dart:22:13: Error: The method '%' isn't defined for the class 'Foo'.
+// pkg/front_end/testcases/general/operator_method_not_found.dart:22:13: Error: The operator '%' isn't defined for the class 'Foo'.
 //  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-// Try correcting the name to the name of an existing method, or defining a method named '%'.
+// Try correcting the operator to an existing operator, or defining a '%' operator.
 //   print(foo % 2);
 //             ^
 //
-// pkg/front_end/testcases/general/operator_method_not_found.dart:23:13: Error: The method '|' isn't defined for the class 'Foo'.
+// pkg/front_end/testcases/general/operator_method_not_found.dart:23:13: Error: The operator '|' isn't defined for the class 'Foo'.
 //  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-// Try correcting the name to the name of an existing method, or defining a method named '|'.
+// Try correcting the operator to an existing operator, or defining a '|' operator.
 //   print(foo | 2);
 //             ^
 //
-// pkg/front_end/testcases/general/operator_method_not_found.dart:24:13: Error: The method '^' isn't defined for the class 'Foo'.
+// pkg/front_end/testcases/general/operator_method_not_found.dart:24:13: Error: The operator '^' isn't defined for the class 'Foo'.
 //  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-// Try correcting the name to the name of an existing method, or defining a method named '^'.
+// Try correcting the operator to an existing operator, or defining a '^' operator.
 //   print(foo ^ 2);
 //             ^
 //
-// pkg/front_end/testcases/general/operator_method_not_found.dart:25:13: Error: The method '&' isn't defined for the class 'Foo'.
+// pkg/front_end/testcases/general/operator_method_not_found.dart:25:13: Error: The operator '&' isn't defined for the class 'Foo'.
 //  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-// Try correcting the name to the name of an existing method, or defining a method named '&'.
+// Try correcting the operator to an existing operator, or defining a '&' operator.
 //   print(foo & 2);
 //             ^
 //
-// pkg/front_end/testcases/general/operator_method_not_found.dart:26:13: Error: The method '<<' isn't defined for the class 'Foo'.
+// pkg/front_end/testcases/general/operator_method_not_found.dart:26:13: Error: The operator '<<' isn't defined for the class 'Foo'.
 //  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-// Try correcting the name to the name of an existing method, or defining a method named '<<'.
+// Try correcting the operator to an existing operator, or defining a '<<' operator.
 //   print(foo << 2);
 //             ^^
 //
-// pkg/front_end/testcases/general/operator_method_not_found.dart:27:13: Error: The method '>>' isn't defined for the class 'Foo'.
+// pkg/front_end/testcases/general/operator_method_not_found.dart:27:13: Error: The operator '>>' isn't defined for the class 'Foo'.
 //  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-// Try correcting the name to the name of an existing method, or defining a method named '>>'.
+// Try correcting the operator to an existing operator, or defining a '>>' operator.
 //   print(foo >> 2);
 //             ^^
 //
-// pkg/front_end/testcases/general/operator_method_not_found.dart:29:12: Error: The method '[]=' isn't defined for the class 'Foo'.
+// pkg/front_end/testcases/general/operator_method_not_found.dart:29:12: Error: The operator '[]=' isn't defined for the class 'Foo'.
 //  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-// Try correcting the name to the name of an existing method, or defining a method named '[]='.
+// Try correcting the operator to an existing operator, or defining a '[]=' operator.
 //   print(foo[2] = 2);
 //            ^
 //
-// pkg/front_end/testcases/general/operator_method_not_found.dart:30:12: Error: The method '[]' isn't defined for the class 'Foo'.
+// pkg/front_end/testcases/general/operator_method_not_found.dart:30:12: Error: The operator '[]' isn't defined for the class 'Foo'.
 //  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-// Try correcting the name to the name of an existing method, or defining a method named '[]'.
+// Try correcting the operator to an existing operator, or defining a '[]' operator.
 //   print(foo[2]);
 //            ^
 //
-// pkg/front_end/testcases/general/operator_method_not_found.dart:31:9: Error: The method '~' isn't defined for the class 'Foo'.
+// pkg/front_end/testcases/general/operator_method_not_found.dart:31:9: Error: The operator '~' isn't defined for the class 'Foo'.
 //  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-// Try correcting the name to the name of an existing method, or defining a method named '~'.
+// Try correcting the operator to an existing operator, or defining a '~' operator.
 //   print(~foo);
 //         ^
 //
-// pkg/front_end/testcases/general/operator_method_not_found.dart:32:9: Error: The method 'unary-' isn't defined for the class 'Foo'.
+// pkg/front_end/testcases/general/operator_method_not_found.dart:32:9: Error: The operator 'unary-' isn't defined for the class 'Foo'.
 //  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-// Try correcting the name to the name of an existing method, or defining a method named 'unary-'.
+// Try correcting the operator to an existing operator, or defining a 'unary-' operator.
 //   print(-foo);
 //         ^
 //
@@ -196,103 +196,113 @@ class Foo extends core::Object {
   synthetic constructor •() → self::Foo*
     : super core::Object::•()
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method main() → dynamic {
   self::Foo* foo = new self::Foo::•();
-  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:12:13: Error: The method '<' isn't defined for the class 'Foo'.
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:12:13: Error: The operator '<' isn't defined for the class 'Foo'.
  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-Try correcting the name to the name of an existing method, or defining a method named '<'.
+Try correcting the operator to an existing operator, or defining a '<' operator.
   print(foo < 2);
             ^");
-  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:13:13: Error: The method '>' isn't defined for the class 'Foo'.
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:13:13: Error: The operator '>' isn't defined for the class 'Foo'.
  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-Try correcting the name to the name of an existing method, or defining a method named '>'.
+Try correcting the operator to an existing operator, or defining a '>' operator.
   print(foo > 2);
             ^");
-  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:14:13: Error: The method '<=' isn't defined for the class 'Foo'.
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:14:13: Error: The operator '<=' isn't defined for the class 'Foo'.
  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-Try correcting the name to the name of an existing method, or defining a method named '<='.
+Try correcting the operator to an existing operator, or defining a '<=' operator.
   print(foo <= 2);
             ^^");
-  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:15:13: Error: The method '>=' isn't defined for the class 'Foo'.
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:15:13: Error: The operator '>=' isn't defined for the class 'Foo'.
  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-Try correcting the name to the name of an existing method, or defining a method named '>='.
+Try correcting the operator to an existing operator, or defining a '>=' operator.
   print(foo >= 2);
             ^^");
-  core::print(foo.{core::Object::==}(2));
-  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:17:13: Error: The method '-' isn't defined for the class 'Foo'.
+  core::print(foo.{self::Foo::==}(2));
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:17:13: Error: The operator '-' isn't defined for the class 'Foo'.
  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-Try correcting the name to the name of an existing method, or defining a method named '-'.
+Try correcting the operator to an existing operator, or defining a '-' operator.
   print(foo - 2);
             ^");
-  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:18:13: Error: The method '+' isn't defined for the class 'Foo'.
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:18:13: Error: The operator '+' isn't defined for the class 'Foo'.
  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-Try correcting the name to the name of an existing method, or defining a method named '+'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
   print(foo + 2);
             ^");
-  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:19:13: Error: The method '/' isn't defined for the class 'Foo'.
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:19:13: Error: The operator '/' isn't defined for the class 'Foo'.
  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-Try correcting the name to the name of an existing method, or defining a method named '/'.
+Try correcting the operator to an existing operator, or defining a '/' operator.
   print(foo / 2);
             ^");
-  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:20:13: Error: The method '~/' isn't defined for the class 'Foo'.
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:20:13: Error: The operator '~/' isn't defined for the class 'Foo'.
  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-Try correcting the name to the name of an existing method, or defining a method named '~/'.
+Try correcting the operator to an existing operator, or defining a '~/' operator.
   print(foo ~/ 2);
             ^^");
-  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:21:13: Error: The method '*' isn't defined for the class 'Foo'.
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:21:13: Error: The operator '*' isn't defined for the class 'Foo'.
  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-Try correcting the name to the name of an existing method, or defining a method named '*'.
+Try correcting the operator to an existing operator, or defining a '*' operator.
   print(foo * 2);
             ^");
-  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:22:13: Error: The method '%' isn't defined for the class 'Foo'.
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:22:13: Error: The operator '%' isn't defined for the class 'Foo'.
  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-Try correcting the name to the name of an existing method, or defining a method named '%'.
+Try correcting the operator to an existing operator, or defining a '%' operator.
   print(foo % 2);
             ^");
-  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:23:13: Error: The method '|' isn't defined for the class 'Foo'.
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:23:13: Error: The operator '|' isn't defined for the class 'Foo'.
  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-Try correcting the name to the name of an existing method, or defining a method named '|'.
+Try correcting the operator to an existing operator, or defining a '|' operator.
   print(foo | 2);
             ^");
-  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:24:13: Error: The method '^' isn't defined for the class 'Foo'.
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:24:13: Error: The operator '^' isn't defined for the class 'Foo'.
  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-Try correcting the name to the name of an existing method, or defining a method named '^'.
+Try correcting the operator to an existing operator, or defining a '^' operator.
   print(foo ^ 2);
             ^");
-  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:25:13: Error: The method '&' isn't defined for the class 'Foo'.
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:25:13: Error: The operator '&' isn't defined for the class 'Foo'.
  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-Try correcting the name to the name of an existing method, or defining a method named '&'.
+Try correcting the operator to an existing operator, or defining a '&' operator.
   print(foo & 2);
             ^");
-  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:26:13: Error: The method '<<' isn't defined for the class 'Foo'.
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:26:13: Error: The operator '<<' isn't defined for the class 'Foo'.
  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-Try correcting the name to the name of an existing method, or defining a method named '<<'.
+Try correcting the operator to an existing operator, or defining a '<<' operator.
   print(foo << 2);
             ^^");
-  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:27:13: Error: The method '>>' isn't defined for the class 'Foo'.
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:27:13: Error: The operator '>>' isn't defined for the class 'Foo'.
  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-Try correcting the name to the name of an existing method, or defining a method named '>>'.
+Try correcting the operator to an existing operator, or defining a '>>' operator.
   print(foo >> 2);
             ^^");
-  core::print(let final self::Foo* #t1 = foo in let final core::int* #t2 = 2 in let final core::int* #t3 = 2 in let final void #t4 = invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:29:12: Error: The method '[]=' isn't defined for the class 'Foo'.
+  core::print(let final self::Foo* #t1 = foo in let final core::int* #t2 = 2 in let final core::int* #t3 = 2 in let final void #t4 = invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:29:12: Error: The operator '[]=' isn't defined for the class 'Foo'.
  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-Try correcting the name to the name of an existing method, or defining a method named '[]='.
+Try correcting the operator to an existing operator, or defining a '[]=' operator.
   print(foo[2] = 2);
            ^" in #t3);
-  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:30:12: Error: The method '[]' isn't defined for the class 'Foo'.
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:30:12: Error: The operator '[]' isn't defined for the class 'Foo'.
  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-Try correcting the name to the name of an existing method, or defining a method named '[]'.
+Try correcting the operator to an existing operator, or defining a '[]' operator.
   print(foo[2]);
            ^");
-  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:31:9: Error: The method '~' isn't defined for the class 'Foo'.
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:31:9: Error: The operator '~' isn't defined for the class 'Foo'.
  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-Try correcting the name to the name of an existing method, or defining a method named '~'.
+Try correcting the operator to an existing operator, or defining a '~' operator.
   print(~foo);
         ^");
-  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:32:9: Error: The method 'unary-' isn't defined for the class 'Foo'.
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:32:9: Error: The operator 'unary-' isn't defined for the class 'Foo'.
  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
-Try correcting the name to the name of an existing method, or defining a method named 'unary-'.
+Try correcting the operator to an existing operator, or defining a 'unary-' operator.
   print(-foo);
         ^");
   core::print(<invalid-type>[]);

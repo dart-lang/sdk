@@ -1,0 +1,8 @@
+library test;
+
+class C {
+  static m({int a: 0}) {}
+}
+
+main() {}
+void test() {}

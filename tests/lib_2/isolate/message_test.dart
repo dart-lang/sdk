@@ -10,10 +10,11 @@
 
 library MessageTest;
 
-import 'dart:isolate';
 import 'dart:async';
-import 'package:unittest/unittest.dart';
-import "remote_unittest_helper.dart";
+import 'dart:isolate';
+
+import 'package:async_helper/async_helper.dart';
+import 'package:expect/expect.dart';
 
 // ---------------------------------------------------------------------------
 // Message passing test.
@@ -42,14 +43,12 @@ class MessageTest {
   ];
 
   static void VerifyMap(Map expected, Map actual) {
-    expect(expected, isMap);
-    expect(actual, isMap);
-    expect(actual.length, expected.length);
+    Expect.equals(actual.length, expected.length);
     testForEachMap(key, value) {
       if (value is List) {
         VerifyList(value, actual[key]);
       } else {
-        expect(actual[key], value);
+        Expect.equals(actual[key], value);
       }
     }
 
@@ -61,18 +60,19 @@ class MessageTest {
       if (expected[i] is List) {
         VerifyList(expected[i], actual[i]);
       } else if (expected[i] is Map) {
+        Expect.type<Map>(actual[i]);
         VerifyMap(expected[i], actual[i]);
       } else {
-        expect(actual[i], expected[i]);
+        Expect.equals(actual[i], expected[i]);
       }
     }
   }
 
   static void VerifyObject(int index, var actual) {
     var expected = elms[index];
-    expect(expected, isList);
-    expect(actual, isList);
-    expect(actual.length, expected.length);
+    Expect.type<List>(expected);
+    Expect.type<List>(actual);
+    Expect.equals(actual.length, expected.length);
     VerifyList(expected, actual);
   }
 }
@@ -107,46 +107,47 @@ Future remoteCall(SendPort port, message) {
 }
 
 void main([args, port]) {
-  if (testRemote(main, port)) return;
-  test("send objects and receive them back", () {
-    ReceivePort port = new ReceivePort();
-    Isolate.spawn(pingPong, port.sendPort);
-    port.first.then(expectAsync1((remote) {
-      // Send objects and receive them back.
-      for (int i = 0; i < MessageTest.elms.length; i++) {
-        var sentObject = MessageTest.elms[i];
-        remoteCall(remote, sentObject).then(expectAsync1((receivedObject) {
-          MessageTest.VerifyObject(i, receivedObject);
-        }));
-      }
-
-      // Send recursive objects and receive them back.
-      List local_list1 = ["Hello", "World", "Hello", 0xffffffffff];
-      List local_list2 = [null, local_list1, local_list1];
-      List local_list3 = [local_list2, 2.0, true, false, 0xffffffffff];
-      List sendObject = new List(5);
-      sendObject[0] = local_list1;
-      sendObject[1] = sendObject;
-      sendObject[2] = local_list2;
-      sendObject[3] = sendObject;
-      sendObject[4] = local_list3;
-      remoteCall(remote, sendObject).then((var replyObject) {
-        expect(sendObject, isList);
-        expect(replyObject, isList);
-        expect(sendObject.length, equals(replyObject.length));
-        expect(replyObject[1], same(replyObject));
-        expect(replyObject[3], same(replyObject));
-        expect(replyObject[0], same(replyObject[2][1]));
-        expect(replyObject[0], same(replyObject[2][2]));
-        expect(replyObject[2], same(replyObject[4][0]));
-        expect(replyObject[0][0], same(replyObject[0][2]));
-        expect(replyObject[0][3], equals(replyObject[4][4]));
+  ReceivePort port = new ReceivePort();
+  Isolate.spawn(pingPong, port.sendPort);
+  asyncStart();
+  port.first.then((remote) {
+    // Send objects and receive them back.
+    for (int i = 0; i < MessageTest.elms.length; i++) {
+      var sentObject = MessageTest.elms[i];
+      asyncStart();
+      remoteCall(remote, sentObject).then((receivedObject) {
+        MessageTest.VerifyObject(i, receivedObject);
+        asyncEnd();
       });
+    }
 
-      // Shutdown the MessageServer.
-      remoteCall(remote, -1).then(expectAsync1((message) {
-        expect(message, MessageTest.elms.length + 1);
-      }));
-    }));
+    // Send recursive objects and receive them back.
+    List local_list1 = ["Hello", "World", "Hello", 0xffffffffff];
+    List local_list2 = [null, local_list1, local_list1];
+    List local_list3 = [local_list2, 2.0, true, false, 0xffffffffff];
+    List sendObject = new List(5);
+    sendObject[0] = local_list1;
+    sendObject[1] = sendObject;
+    sendObject[2] = local_list2;
+    sendObject[3] = sendObject;
+    sendObject[4] = local_list3;
+    remoteCall(remote, sendObject).then((var replyObject) {
+      Expect.type<List>(sendObject);
+      Expect.type<List>(replyObject);
+      Expect.equals(sendObject.length, replyObject.length);
+      Expect.identical(replyObject[1], replyObject);
+      Expect.identical(replyObject[3], replyObject);
+      Expect.identical(replyObject[0], replyObject[2][1]);
+      Expect.identical(replyObject[0], replyObject[2][2]);
+      Expect.identical(replyObject[2], replyObject[4][0]);
+      Expect.identical(replyObject[0][0], replyObject[0][2]);
+      Expect.equals(replyObject[0][3], replyObject[4][4]);
+    });
+
+    // Shutdown the MessageServer.
+    remoteCall(remote, -1).then((message) {
+      Expect.equals(message, MessageTest.elms.length + 1);
+      asyncEnd();
+    });
   });
 }

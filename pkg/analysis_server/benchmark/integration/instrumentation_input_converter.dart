@@ -46,7 +46,7 @@ class InstrumentationInputConverter extends CommonInputConverter {
           'Failed to parse line\n$line', CaughtException(e, s));
     }
     // int timeStamp = int.parse(fields[0], onError: (_) => -1);
-    String opCode = fields[1];
+    var opCode = fields[1];
     if (opCode == InstrumentationLogAdapter.TAG_NOTIFICATION) {
       return convertNotification(decodeJson(line, fields[2]));
     } else if (opCode == 'Read') {
@@ -89,23 +89,23 @@ class InstrumentationInputConverter extends CommonInputConverter {
   /// For example:
   /// `1433175833005:Ver:1421765742287333878467:org.dartlang.dartplugin:0.0.0:1.6.2:1.11.0-edge.131698`
   static bool isFormat(String line) {
-    List<String> fields = _parseFields(line);
+    var fields = _parseFields(line);
     if (fields.length < 2) return false;
-    int timeStamp = int.tryParse(fields[0]) ?? -1;
-    String opCode = fields[1];
+    var timeStamp = int.tryParse(fields[0]) ?? -1;
+    var opCode = fields[1];
     return timeStamp > 0 && opCode == 'Ver';
   }
 
   /// Extract fields from the given [line].
   static List<String> _parseFields(String line) {
-    List<String> fields = <String>[];
-    int index = 0;
-    StringBuffer sb = StringBuffer();
+    var fields = <String>[];
+    var index = 0;
+    var sb = StringBuffer();
     while (index < line.length) {
-      int code = line.codeUnitAt(index);
+      var code = line.codeUnitAt(index);
       if (code == COLON) {
         // Embedded colons are doubled
-        int next = index + 1;
+        var next = index + 1;
         if (next < line.length && line.codeUnitAt(next) == COLON) {
           sb.write(':');
           ++index;

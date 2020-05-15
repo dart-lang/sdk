@@ -125,7 +125,7 @@ _platform_sdk_snapshots = [
   ],
   [
     "dartdev",
-    "../utils/dartdev",
+    "../utils/dartdev:generate_dartdev_snapshot",
   ],
   [
     "dartdoc",
@@ -170,7 +170,7 @@ _full_sdk_snapshots = [
   ],
   [
     "dartdev",
-    "../utils/dartdev",
+    "../utils/dartdev:generate_dartdev_snapshot",
   ],
   [
     "dartdevc",
@@ -511,7 +511,7 @@ foreach(script, _scripts) {
 
 # This is the main target for copying scripts in _platform_sdk_scripts to bin/
 group("copy_platform_sdk_scripts") {
-  visibility = [ ":create_platform_sdk" ]
+  visibility = [ ":_create_platform_sdk" ]
   public_deps = []
   foreach(sdk_script, _platform_sdk_scripts) {
     public_deps += [ ":copy_${sdk_script}_script" ]
@@ -556,7 +556,7 @@ foreach(snapshot, _full_sdk_snapshots) {
 # This is the main rule for copying snapshots from _platform_sdk_snapshots to
 # bin/snapshots
 group("copy_platform_sdk_snapshots") {
-  visibility = [ ":create_platform_sdk" ]
+  visibility = [ ":_create_platform_sdk" ]
   public_deps = []
   foreach(snapshot, _platform_sdk_snapshots) {
     public_deps += [ ":copy_${snapshot[0]}_snapshot" ]
@@ -619,11 +619,15 @@ copy("copy_dart2js_dill_files") {
   deps = [
     ":copy_libraries",
     "../utils/compiler:compile_dart2js_platform",
+    "../utils/compiler:compile_dart2js_nnbd_strong_platform",
     "../utils/compiler:compile_dart2js_server_platform",
+    "../utils/compiler:compile_dart2js_server_nnbd_strong_platform",
   ]
   sources = [
     "$root_out_dir/dart2js_platform.dill",
+    "$root_out_dir/dart2js_nnbd_strong_platform.dill",
     "$root_out_dir/dart2js_server_platform.dill",
+    "$root_out_dir/dart2js_server_nnbd_strong_platform.dill",
   ]
   outputs = [ "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}" ]
 }
@@ -743,7 +747,7 @@ copy("copy_libraries_specification") {
 # This is the main rule to copy libraries in _platform_sdk_libraries to lib/
 group("copy_platform_sdk_libraries") {
   visibility = [
-    ":create_platform_sdk",
+    ":_create_platform_sdk",
     ":copy_libraries",
   ]
   public_deps = []
@@ -851,7 +855,10 @@ copy("copy_api_readme") {
 
 # Parts common to both platform and full SDKs.
 group("create_common_sdk") {
-  visibility = [ ":create_sdk" ]
+  visibility = [
+    ":create_sdk",
+    ":create_platform_sdk",
+  ]
   public_deps = [
     ":copy_analysis_summaries",
     ":copy_api_readme",
@@ -886,8 +893,11 @@ group("create_common_sdk") {
 }
 
 # Parts specific to the platform SDK.
-group("create_platform_sdk") {
-  visibility = [ ":create_sdk" ]
+group("_create_platform_sdk") {
+  visibility = [
+    ":create_sdk",
+    ":create_platform_sdk",
+  ]
   public_deps = [
     ":copy_platform_sdk_libraries",
     ":copy_platform_sdk_scripts",
@@ -908,11 +918,19 @@ group("create_full_sdk") {
   ]
 }
 
+# Build a SDK with less stuff. It excludes dart2js, ddc, and web libraries.
+group("create_platform_sdk") {
+  public_deps = [
+    ":_create_platform_sdk",
+    ":create_common_sdk",
+  ]
+}
+
 # The main target to depend on from ../BUILD.gn
 group("create_sdk") {
   public_deps = [ ":create_common_sdk" ]
   if (dart_platform_sdk) {
-    public_deps += [ ":create_platform_sdk" ]
+    public_deps += [ ":_create_platform_sdk" ]
   } else {
     public_deps += [ ":create_full_sdk" ]
   }

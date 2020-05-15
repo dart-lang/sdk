@@ -61,7 +61,6 @@ class B extends A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 163, 6),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 163, 6),
     ]);
   }
 
@@ -122,6 +121,24 @@ abstract class VA<T> {}
 
 abstract class VB<T> implements VA<T> {}
 ''');
+  }
+
+  test_method_covariant_3() async {
+    await assertErrorsInCode(r'''
+class A {
+  void foo(num a) {}
+}
+
+class B extends A {
+  void foo(dynamic a) {}
+}
+
+class C extends B {
+  void foo(covariant String a) {}
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 109, 3),
+    ]);
   }
 
   test_method_named_fewerNamedParameters() async {
@@ -220,7 +237,6 @@ class B extends A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 124, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 124, 1),
     ]);
   }
 
@@ -268,7 +284,6 @@ class B extends A {
   m([String n]) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 128, 1),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 128, 1),
     ]);
   }
@@ -408,7 +423,6 @@ class B extends A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 129, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 129, 1),
     ]);
   }
 
@@ -422,6 +436,63 @@ class B extends A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 63, 1),
+    ]);
+  }
+
+  test_mixin_field_type() async {
+    await assertErrorsInCode(r'''
+class A {
+  String foo = '';
+}
+
+mixin M on A {
+  int foo = 0;
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 53, 3),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 53, 3),
+    ]);
+  }
+
+  test_mixin_getter_type() async {
+    await assertErrorsInCode(r'''
+class A {
+  String get foo => '';
+}
+
+mixin M on A {
+  int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 62, 3),
+    ]);
+  }
+
+  test_mixin_method_returnType() async {
+    await assertErrorsInCode(r'''
+class A {
+  String foo() => '';
+}
+
+mixin M on A {
+  int foo() => 0;
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 56, 3),
+    ]);
+  }
+
+  test_mixin_setter_type() async {
+    await assertErrorsInCode(r'''
+class A {
+  set foo(String _) {}
+}
+
+mixin M on A {
+  set foo(int _) {}
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 57, 3),
     ]);
   }
 
@@ -452,7 +523,6 @@ class B extends A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 173, 8),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 173, 8),
     ]);
   }
 
@@ -470,7 +540,6 @@ class B extends A {
   set setter14(String _) => null;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 166, 8),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 166, 8),
     ]);
   }
@@ -539,14 +608,81 @@ class B extends A {
 ''');
   }
 
-  test_method_viaLegacy_returnType_notSubtype() async {
+  test_mixedInheritance_1() async {
     newFile('/test/lib/a.dart', content: r'''
-class Nullable {
-  int? foo() => 0;
+class B {
+  List<int Function(int)> get a => [];
+  set a(List<int Function(int)> _) {}
+  int Function(int) m(int Function(int) x) => x;
 }
 
-class NonNullable {
-  int foo() => 0;
+class Bq {
+  List<int? Function(int?)> get a => [];
+  set a(List<int? Function(int?)> _) {}
+  int? Function(int?) m(int? Function(int?) x) => x;
+}
+''');
+
+    newFile('/test/lib/b.dart', content: r'''
+// @dart = 2.7
+import 'a.dart';
+
+class C with B {}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart';
+import 'b.dart';
+
+class D extends C implements Bq {}
+''');
+  }
+
+  test_mixedInheritance_2() async {
+    newFile('/test/lib/a.dart', content: r'''
+class B {
+  List<int Function(int)> get a => [];
+  set a(List<int Function(int)> _) {}
+  int Function(int) m(int Function(int) x) => x;
+}
+
+class Bq {
+  List<int? Function(int?)> get a => [];
+  set a(List<int? Function(int?)> _) {}
+  int? Function(int?) m(int? Function(int?) x) => x;
+}
+''');
+
+    newFile('/test/lib/b.dart', content: r'''
+// @dart = 2.7
+import 'a.dart';
+
+class C extends B with Bq {}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'b.dart';
+
+class D extends C {
+  List<int Function(int)> get a => [];
+  set a(List<int Function(int)> _) {}
+  int Function(int) m(int Function(int) x) => x;
+}
+''');
+  }
+
+  test_viaLegacy_class() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A1 {
+  int m() => 0;
+  int get g => 0;
+  set s(int? _) {}
+}
+
+class A2 {
+  int? m() => 0;
+  int? get g => 0;
+  set s(int _) {}
 }
 ''');
 
@@ -554,19 +690,58 @@ class NonNullable {
 // @dart=2.6
 import 'a.dart';
 
-class A extends Nullable implements NonNullable {}
+class L extends A2 implements A1 {}
 ''');
 
-    await assertErrorsInCode('''
+    await assertNoErrorsInCode('''
+import 'a.dart';
 import 'b.dart';
 
-class B extends A {}
+class X1 extends L implements A1 {}
+class X2 extends L implements A2 {}
 
-class C extends A {   
-  int? foo() => 0;
+class Y extends L {
+  int? get g => 0;
+  int? m() => 0;
+  set s(int _) {}
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 70, 3),
-    ]);
+''');
+  }
+
+  test_viaLegacy_mixin() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A1 {
+  int m() => 0;
+  int get g => 0;
+  set s(int? _) {}
+}
+
+mixin A2 {
+  int? m() => 0;
+  int? get g => 0;
+  set s(int _) {}
+}
+''');
+
+    newFile('/test/lib/b.dart', content: r'''
+// @dart=2.6
+import 'a.dart';
+
+class L extends Object with A2 implements A1 {}
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart';
+import 'b.dart';
+
+class X1 extends L implements A1 {}
+class X2 extends L implements A2 {}
+
+class Y extends L {
+  int? get g => 0;
+  int? m() => 0;
+  set s(int _) {}
+}
+''');
   }
 }

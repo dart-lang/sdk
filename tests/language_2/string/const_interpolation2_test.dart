@@ -9,9 +9,15 @@ import "package:expect/expect.dart";
 const u1 = null;
 const int u2 = null;
 const List u3 = null;
-const u4 = const String.fromEnvironment("XXXXX");
-const u5 = const int.fromEnvironment("XXXXX");
-const u6 = const bool.fromEnvironment("XXXXX", defaultValue: null);
+const u4 = const bool.hasEnvironment("XXXXX")
+    ? const String.fromEnvironment("XXXXX")
+    : null;
+const u5 = const bool.hasEnvironment("XXXXX")
+    ? const int.fromEnvironment("XXXXX")
+    : null;
+const u6 = bool.hasEnvironment("XXXXX")
+    ? const bool.fromEnvironment("XXXXX")
+    : null;
 const n1 = 42;
 const n2 = 3.1415;
 const int n3 = 37;
@@ -88,7 +94,7 @@ main() {
   Expect.equals(b2.toString(), sb2);
   Expect.equals(b3.toString(), sb3);
   Expect.equals(b4.toString(), sb4);
-  var expect = "null null null  0 null 42 3.1415 37 4.6692 2.71828 87 "
+  var expect = "null null null null null null 42 3.1415 37 4.6692 2.71828 87 "
       "s1 s2 s1s2 s4 true false false true";
   Expect.equals(expect, interpolation1);
   Expect.equals(expect, interpolation2);

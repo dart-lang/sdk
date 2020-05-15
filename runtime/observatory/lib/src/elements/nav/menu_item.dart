@@ -10,7 +10,7 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 class NavMenuItemElement extends CustomElement implements Renderable {
   static const tag = const Tag<NavMenuItemElement>('nav-menu-item');
 
-  RenderingScheduler _r;
+  RenderingScheduler<NavMenuItemElement> _r;
 
   Stream<RenderedEvent<NavMenuItemElement>> get onRendered => _r.onRendered;
 

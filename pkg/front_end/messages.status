@@ -5,6 +5,9 @@
 # Note that test/spelling: Status will have no effect. Spelling errors can
 # always be fixed by either spelling correctly or updating the dictionary.
 
+StrongModeNNBDButOptOut/analyzerCode: Fail
+StrongModeNNBDButOptOut/example: Fail
+
 AbstractClassInstantiation/example: Fail
 AbstractClassMember/part_wrapped_script5: Fail
 AbstractClassMember/part_wrapped_script6: Fail
@@ -14,6 +17,9 @@ AbstractNotSync/example: Fail
 AbstractRedirectedClassInstantiation/example: Fail
 AccessError/analyzerCode: Fail
 AccessError/example: Fail
+AmbiguousExtensionMethod/analyzerCode: Fail
+AmbiguousExtensionOperator/analyzerCode: Fail
+AmbiguousExtensionProperty/analyzerCode: Fail
 AmbiguousSupertypes/example: Fail
 AnnotationOnEnumConstant/example: Fail
 AnnotationOnFunctionTypeTypeVariable/analyzerCode: Fail
@@ -35,8 +41,12 @@ BuiltInIdentifierAsType/example: Fail
 BuiltInIdentifierInDeclaration/example: Fail
 BytecodeLimitExceededTooManyArguments/analyzerCode: Fail
 BytecodeLimitExceededTooManyArguments/example: Fail
+CannotAssignToConstVariable/analyzerCode: Fail
+CannotAssignToExtensionThis/analyzerCode: Fail
+CannotAssignToFinalVariable/analyzerCode: Fail
 CannotAssignToParenthesizedExpression/example: Fail
 CannotAssignToSuper/example: Fail
+CannotAssignToTypeLiteral/analyzerCode: Fail
 CannotReadPackagesFile/analyzerCode: Fail
 CannotReadPackagesFile/example: Fail
 CannotReadSdkSpecification/analyzerCode: Fail
@@ -115,6 +125,8 @@ ConstEvalNotMapInSpread/example: Fail
 ConstEvalNullValue/example: Fail
 ConstEvalStartingPoint/analyzerCode: Fail # This is just used for displaying the starting point.
 ConstEvalStartingPoint/example: Fail # This is just used for displaying the starting point.
+ConstEvalTruncateError/analyzerCode: Fail
+ConstEvalTruncateError/example: Fail
 ConstEvalUnevaluated/analyzerCode: Fail
 ConstEvalUnevaluated/example: Fail
 ConstEvalZeroDivisor/example: Fail
@@ -156,8 +168,6 @@ DirectiveAfterDeclaration/part_wrapped_script1: Fail
 DirectiveAfterDeclaration/part_wrapped_script2: Fail
 DirectiveAfterDeclaration/script1: Fail
 DirectiveAfterDeclaration/script2: Fail
-DuplicateDeferred/example: Fail
-DuplicatePrefix/example: Fail
 DuplicatedDeclarationUse/analyzerCode: Fail # No corresponding analyzer code.
 DuplicatedDeclarationUse/part_wrapped_script1: Fail
 DuplicatedDeclarationUse/part_wrapped_script2: Fail
@@ -165,6 +175,7 @@ DuplicatedDeclarationUse/script1: Fail # This test can't pass.
 DuplicatedDeclarationUse/script2: Fail # Wrong error.
 DuplicatedDefinition/analyzerCode: Fail
 DuplicatedDefinition/example: Fail
+DuplicateDeferred/example: Fail
 DuplicatedExport/part_wrapped_script: Fail # Exporting file in the (now) part.
 DuplicatedExportInType/analyzerCode: Fail
 DuplicatedExportInType/example: Fail
@@ -176,6 +187,7 @@ DuplicatedModifier/script1: Fail
 DuplicatedName/example: Fail
 DuplicatedNamedArgument/example: Fail
 DuplicatedParameterName/example: Fail
+DuplicatePrefix/example: Fail
 Encoding/analyzerCode: Fail
 EnumConstantSameNameAsEnclosing/example: Fail
 EnumInstantiation/example: Fail
@@ -223,6 +235,8 @@ ExportOptOutFromOptIn/analyzerCode: Fail
 ExportOptOutFromOptIn/part_wrapped_script: Fail
 ExpressionNotMetadata/analyzerCode: Fail
 ExpressionNotMetadata/example: Fail
+ExtendFunction/part_wrapped_script: Fail
+ExtendFunction/script: Fail # TODO(johnniwinther): This message is currently ignored.
 ExtendingEnum/example: Fail
 ExtendingRestricted/example: Fail
 ExtendsDynamic/analyzerCode: Fail # Feature not yet in analyzer.
@@ -245,6 +259,7 @@ ExternalConstructorWithFieldInitializers/example: Fail
 ExternalFactoryRedirection/example: Fail
 ExternalFactoryWithBody/part_wrapped_script1: Fail
 ExternalFactoryWithBody/script1: Fail
+ExtraneousModifier/part_wrapped_script1: Fail
 ExtraneousModifier/part_wrapped_script10: Fail
 ExtraneousModifier/part_wrapped_script11: Fail
 ExtraneousModifier/part_wrapped_script12: Fail
@@ -253,15 +268,15 @@ ExtraneousModifier/part_wrapped_script16: Fail
 ExtraneousModifier/part_wrapped_script17: Fail
 ExtraneousModifier/part_wrapped_script18: Fail
 ExtraneousModifier/part_wrapped_script19: Fail
-ExtraneousModifier/part_wrapped_script1: Fail
-ExtraneousModifier/part_wrapped_script20: Fail
 ExtraneousModifier/part_wrapped_script2: Fail
+ExtraneousModifier/part_wrapped_script20: Fail
 ExtraneousModifier/part_wrapped_script3: Fail
 ExtraneousModifier/part_wrapped_script4: Fail
 ExtraneousModifier/part_wrapped_script5: Fail
 ExtraneousModifier/part_wrapped_script7: Fail
 ExtraneousModifier/part_wrapped_script8: Fail
 ExtraneousModifier/part_wrapped_script9: Fail
+ExtraneousModifier/script1: Fail
 ExtraneousModifier/script10: Fail
 ExtraneousModifier/script11: Fail
 ExtraneousModifier/script12: Fail
@@ -270,9 +285,8 @@ ExtraneousModifier/script16: Fail
 ExtraneousModifier/script17: Fail
 ExtraneousModifier/script18: Fail
 ExtraneousModifier/script19: Fail
-ExtraneousModifier/script1: Fail
-ExtraneousModifier/script20: Fail
 ExtraneousModifier/script2: Fail
+ExtraneousModifier/script20: Fail
 ExtraneousModifier/script3: Fail
 ExtraneousModifier/script4: Fail
 ExtraneousModifier/script5: Fail
@@ -340,6 +354,8 @@ IllegalRecursiveType/analyzerCode: Fail
 IllegalRecursiveType/part_wrapped_script: Fail
 IllegalRecursiveType/script: Fail
 IllegalSyncGeneratorVoidReturnType/analyzerCode: Fail # The analyzer doesn't report this error.
+ImplementFunction/part_wrapped_script: Fail
+ImplementFunction/script: Fail # TODO(johnniwinther): This message is currently ignored.
 ImplementsBeforeExtends/part_wrapped_script: Fail
 ImplementsBeforeExtends/script: Fail
 ImplementsBeforeOn/part_wrapped_script: Fail
@@ -360,15 +376,16 @@ ImplementsVoid/example: Fail # Feature not yet enabled by default.
 ImplicitCallOfNonMethod/example: Fail
 ImplicitMixinOverride/analyzerCode: Fail
 ImplicitMixinOverride/example: Fail
+ImplicitReturnNull/analyzerCode: Fail
 ImportAfterPart/part_wrapped_script1: Fail
 ImportAfterPart/script1: Fail
 IncompatibleRedirecteeFunctionType/part_wrapped_script6: Fail
 IncompatibleRedirecteeFunctionType/script6: Fail # Triggers multiple errors.
 IncompatibleRedirecteeFunctionTypeWarning/example: Fail
+IncorrectTypeArgumentInferredWarning/example: Fail
 IncorrectTypeArgumentInReturnTypeWarning/example: Fail
 IncorrectTypeArgumentInSupertypeInferredWarning/example: Fail
 IncorrectTypeArgumentInSupertypeWarning/example: Fail
-IncorrectTypeArgumentInferredWarning/example: Fail
 IncorrectTypeArgumentQualifiedInferredWarning/example: Fail
 IncorrectTypeArgumentQualifiedWarning/example: Fail
 IncorrectTypeArgumentWarning/example: Fail
@@ -434,8 +451,6 @@ LibraryDirectiveNotFirst/script3: Fail
 ListLiteralTooManyTypeArguments/example: Fail
 LoadLibraryTakesNoArguments/example: Fail
 MapLiteralTypeArgumentMismatch/example: Fail
-MemberWithSameNameAsClass/analyzerCode: Fail
-MemberWithSameNameAsClass/example: Fail
 MetadataTypeArguments/example: Fail
 MethodNotFound/example: Fail
 MissingArgumentList/analyzerCode: Fail
@@ -451,6 +466,8 @@ MissingMain/example: Fail
 MissingPartOf/part_wrapped_script: Fail # Using 'part' in the (now) part.
 MissingPrefixInDeferredImport/example: Fail
 MixinDeclaresConstructor/example: Fail
+MixinFunction/part_wrapped_script: Fail
+MixinFunction/script: Fail # TODO(johnniwinther): This message is currently ignored.
 MixinInferenceNoMatchingClass/example: Fail
 ModifierOutOfOrder/part_wrapped_script1: Fail
 ModifierOutOfOrder/script1: Fail
@@ -469,9 +486,6 @@ NamedMixinOverride/analyzerCode: Fail
 NamedMixinOverride/example: Fail
 NativeClauseShouldBeAnnotation/example: Fail
 NoFormals/example: Fail
-NoSuchNamedParameter/example: Fail
-NoUnnamedConstructorInObject/analyzerCode: Fail
-NoUnnamedConstructorInObject/example: Fail
 NonAgnosticConstant/analyzerCode: Fail
 NonAgnosticConstant/example: Fail
 NonAsciiIdentifier/expression: Fail
@@ -479,23 +493,26 @@ NonAsciiIdentifier/part_wrapped_expression: Fail
 NonConstConstructor/example: Fail
 NonConstFactory/example: Fail
 NonInstanceTypeVariableUse/example: Fail
-NonNullAwareSpreadIsNull/analyzerCode: Fail # There's no analyzer code for that error yet.
 NonNullableInNullAware/analyzerCode: Fail
 NonNullableInNullAware/example: Fail
+NonNullableLateDefinitelyAssignedError/analyzerCode: Fail
+NonNullableLateDefinitelyUnassignedError/analyzerCode: Fail
 NonNullableNotAssignedError/analyzerCode: Fail
-NonNullableNotAssignedError/example: Fail
 NonNullableNotAssignedWarning/analyzerCode: Fail
 NonNullableNotAssignedWarning/example: Fail
 NonNullableOptOut/analyzerCode: Fail
 NonNullableOptOut/example: Fail
+NonNullAwareSpreadIsNull/analyzerCode: Fail # There's no analyzer code for that error yet.
 NonPartOfDirectiveInPart/part_wrapped_script1: Fail
 NonPartOfDirectiveInPart/script1: Fail
+NoSuchNamedParameter/example: Fail
 NotAConstantExpression/example: Fail
-NotAType/example: Fail
 NotAnLvalue/example: Fail
+NotAType/example: Fail
 NotBinaryOperator/analyzerCode: Fail
 NotConstantExpression/example: Fail
-NullAwareCascadeOutOfOrder/example: Fail
+NoUnnamedConstructorInObject/analyzerCode: Fail
+NoUnnamedConstructorInObject/example: Fail
 NullableExpressionCallError/analyzerCode: Fail
 NullableExpressionCallError/example: Fail
 NullableExpressionCallWarning/analyzerCode: Fail
@@ -528,6 +545,7 @@ NullableTearoffError/analyzerCode: Fail
 NullableTearoffError/example: Fail
 NullableTearoffWarning/analyzerCode: Fail
 NullableTearoffWarning/example: Fail
+NullAwareCascadeOutOfOrder/example: Fail
 OperatorMinusParameterMismatch/example: Fail
 OperatorParameterMismatch0/analyzerCode: Fail
 OperatorParameterMismatch0/example: Fail
@@ -540,6 +558,7 @@ OptionalNonNullableWithoutInitializerWarning/analyzerCode: Fail
 OverrideFewerNamedArguments/example: Fail
 OverrideFewerPositionalArguments/example: Fail
 OverrideMismatchNamedParameter/example: Fail
+OverrideMismatchRequiredNamedParameter/analyzerCode: Fail
 OverrideMoreRequiredArguments/example: Fail
 OverrideTypeMismatchParameter/example: Fail
 OverrideTypeMismatchParameterWarning/example: Fail
@@ -616,13 +635,13 @@ SpreadTypeMismatch/analyzerCode: Fail # There's no analyzer code for that error 
 StackOverflow/example: Fail
 SuperAsExpression/example: Fail
 SuperAsIdentifier/example: Fail
-SuperNullAware/example: Fail
 SuperclassHasNoDefaultConstructor/example: Fail
 SuperclassHasNoGetter/example: Fail
 SuperclassHasNoMethod/example: Fail
 SuperclassHasNoSetter/example: Fail
 SuperclassMethodArgumentMismatch/analyzerCode: Fail
 SuperclassMethodArgumentMismatch/example: Fail
+SuperNullAware/example: Fail
 SupertypeIsFunction/analyzerCode: Fail
 SupertypeIsFunction/example: Fail
 SupertypeIsIllegal/example: Fail
@@ -646,11 +665,14 @@ TypeAfterVar/example: Fail
 TypeArgumentMismatch/example: Fail
 TypeArgumentsOnTypeVariable/part_wrapped_script1: Fail
 TypeArgumentsOnTypeVariable/script1: Fail
+TypedefNotFunction/example: Fail
+TypedefNotType/example: Fail # Feature not yet enabled by default.
+TypedefNullableType/analyzerCode: Fail
+TypedefTypeVariableNotConstructor/analyzerCode: Fail # Feature not yet enabled by default.
+TypedefTypeVariableNotConstructor/example: Fail # Feature not yet enabled by default.
 TypeNotFound/example: Fail
 TypeVariableDuplicatedName/example: Fail
 TypeVariableSameNameAsEnclosing/example: Fail
-TypedefNotFunction/example: Fail
-TypedefNotType/example: Fail # Feature not yet enabled by default.
 UnexpectedToken/part_wrapped_script1: Fail
 UnexpectedToken/script1: Fail
 UnmatchedToken/part_wrapped_script1: Fail

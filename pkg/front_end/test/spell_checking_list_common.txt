@@ -71,6 +71,8 @@ adds
 adjacent
 adjust
 adjusted
+admit
+admitted
 adopt
 advance
 advanced
@@ -177,6 +179,7 @@ are
 aren't
 argument
 arguments
+arises
 arithmetic
 arose
 around
@@ -466,6 +469,7 @@ closed
 closer
 closers
 closes
+closest
 closing
 closure
 closures
@@ -564,6 +568,7 @@ conflicting
 conflicts
 conform
 conformed
+confuse
 confused
 connect
 connected
@@ -652,6 +657,7 @@ correction
 correctly
 correctness
 correspond
+correspondence
 corresponding
 corresponds
 cost
@@ -1052,6 +1058,8 @@ exited
 exits
 expand
 expanding
+expands
+expansion
 expect
 expectation
 expectations
@@ -1077,6 +1085,7 @@ exporting
 exports
 exposed
 exposes
+expressed
 expression
 expressions
 extend
@@ -1112,6 +1121,7 @@ fake
 fall
 fallback
 falls
+fallthrough
 false
 far
 fashion
@@ -1164,6 +1174,7 @@ fixed
 fixes
 fixing
 flag
+flagged
 flags
 flat
 flatten
@@ -1327,6 +1338,7 @@ hexadecimal
 hidden
 hide
 hides
+hiding
 hierarchies
 hierarchy
 high
@@ -1362,6 +1374,7 @@ identify
 identity
 ie
 if
+ignorable
 ignorant
 ignore
 ignored
@@ -1403,6 +1416,7 @@ include
 included
 includes
 including
+inclusion
 inclusive
 incoming
 incompatible
@@ -1439,6 +1453,7 @@ inferrer
 inferring
 infers
 infinite
+infinity
 infix
 info
 inform
@@ -1697,6 +1712,7 @@ logger
 logging
 logic
 logical
+lone
 long
 longer
 longest
@@ -1719,6 +1735,7 @@ lowercase
 lowered
 lowering
 lowerings
+lowest
 machine
 made
 magenta
@@ -1759,6 +1776,7 @@ mathematical
 matter
 maturity
 max
+maximal
 maximum
 may
 maybe
@@ -1806,6 +1824,7 @@ misleading
 mismatch
 mismatches
 missing
+misused
 mix
 mixed
 mixes
@@ -1833,6 +1852,7 @@ modules
 modulo
 moment
 mongolian
+monotonous
 more
 moreover
 most
@@ -1867,6 +1887,7 @@ namely
 names
 namespace
 naming
+nan
 narrow
 narrower
 native
@@ -1933,6 +1954,7 @@ object's
 objects
 oblivious
 observation
+observations
 observed
 obtain
 obtained
@@ -2236,6 +2258,7 @@ promotes
 promotion
 promotions
 propagate
+propagates
 propagating
 propagation
 proper
@@ -2316,6 +2339,8 @@ recognized
 recognizes
 recommend
 recommendations
+recomputation
+recomputes
 record
 recorded
 recording
@@ -2398,6 +2423,7 @@ removing
 rename
 renamed
 renaming
+repeat
 repeated
 repeatedly
 repetitions
@@ -2547,6 +2573,7 @@ searches
 searching
 second
 section
+security
 see
 seeing
 seem
@@ -2805,6 +2832,7 @@ suffix
 suffixes
 suggested
 suitable
+suites
 summaries
 summarize
 summarizes
@@ -2916,6 +2944,7 @@ third
 this
 those
 though
+threaded
 three
 threshold
 threw
@@ -2976,6 +3005,7 @@ translated
 translates
 translating
 translator
+traveling
 traversed
 treat
 treated
@@ -3002,6 +3032,8 @@ true
 truly
 truncate
 truncating
+trust
+trusts
 truth
 try
 trying
@@ -3019,12 +3051,16 @@ typedefs
 types
 typically
 typing
+ultimate
+ultimately
 unable
 unalias
 unaliased
+unaliasing
 unambiguous
 unary
 unassignable
+unassigned
 unbalanced
 unbind
 uncertain
@@ -3095,6 +3131,7 @@ until
 untranslatable
 untyped
 unused
+unwanted
 unwrap
 unwrapped
 up
@@ -3175,6 +3212,7 @@ wait
 walk
 walked
 want
+wanted
 warn
 warning
 warnings

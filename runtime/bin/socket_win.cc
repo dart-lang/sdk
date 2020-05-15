@@ -131,6 +131,13 @@ intptr_t Socket::CreateConnect(const RawAddr& addr) {
   return Connect(fd, addr, bind_addr);
 }
 
+intptr_t Socket::CreateUnixDomainConnect(const RawAddr& addr) {
+  // TODO(21403): Support unix domain socket on Windows
+  // https://devblogs.microsoft.com/commandline/af_unix-comes-to-windows/
+  SetLastError(ERROR_NOT_SUPPORTED);
+  return -1;
+}
+
 intptr_t Socket::CreateBindConnect(const RawAddr& addr,
                                    const RawAddr& source_addr) {
   intptr_t fd = Create(addr);
@@ -139,6 +146,12 @@ intptr_t Socket::CreateBindConnect(const RawAddr& addr,
   }
 
   return Connect(fd, addr, source_addr);
+}
+
+intptr_t Socket::CreateUnixDomainBindConnect(const RawAddr& addr,
+                                             const RawAddr& source_addr) {
+  SetLastError(ERROR_NOT_SUPPORTED);
+  return -1;
 }
 
 intptr_t ServerSocket::Accept(intptr_t fd) {
@@ -269,6 +282,14 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
   }
 
   return reinterpret_cast<intptr_t>(listen_socket);
+}
+
+intptr_t ServerSocket::CreateUnixDomainBindListen(const RawAddr& addr,
+                                                  intptr_t backlog) {
+  // TODO(21403): Support unix domain socket on Windows
+  // https://devblogs.microsoft.com/commandline/af_unix-comes-to-windows/
+  SetLastError(ERROR_NOT_SUPPORTED);
+  return -1;
 }
 
 bool ServerSocket::StartAccept(intptr_t fd) {

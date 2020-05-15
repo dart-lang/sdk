@@ -52,6 +52,7 @@ void main() {
     if (m.group(1) != null) return "-";
     if (m.group(2) != null) return "+";
     if (m.group(3) != null) return "=";
+    throw 'Unexpected match $m';
   });
   assertEquals("= -. +, or + -. There is - =.", str);
 
@@ -88,6 +89,7 @@ void main() {
     if (m.group(1) != null) return "-";
     if (m.group(2) != null) return "+";
     if (m.group(3) != null) return "=";
+    throw 'Unexpected match $m';
   });
   assertEquals("= -. +, or + -. There is - =.", str);
 
@@ -121,9 +123,9 @@ void main() {
   re_string = re_string + "1";
   // re_string = "(((...((a))...)))1"
 
-  var regexps = new List();
-  var last_match_expectations = new List();
-  var first_capture_expectations = new List();
+  var regexps = [];
+  var last_match_expectations = [];
+  var first_capture_expectations = [];
 
   // Atomic regexp.
   regexps.add(new RegExp(r"a1"));

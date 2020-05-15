@@ -56,7 +56,7 @@ Future testWaitWithSingleError() {
     throw 'incorrect error';
   }).catchError((error, stackTrace) {
     Expect.equals('correct error', error);
-    Expect.isNull(stackTrace);
+    Expect.isNotNull(stackTrace);
   });
 }
 
@@ -73,8 +73,17 @@ Future testWaitWithMultipleErrors() {
     throw 'incorrect error 2';
   }).catchError((error, stackTrace) {
     Expect.equals('correct error', error);
-    Expect.isNull(stackTrace);
+    Expect.isNotNull(stackTrace);
   });
+}
+
+// Regression test for https://github.com/dart-lang/sdk/issues/41656
+Future testWaitWithErrorAndNonErrorEager() {
+  return Future(() {
+    var f1 = Future(() => throw "Error");
+    var f2 = Future(() => 3);
+    return Future.wait([f1, f2], eagerError: true);
+  }).then((_) => 0, onError: (_) => -1);
 }
 
 Future testWaitWithMultipleErrorsEager() {
@@ -90,7 +99,7 @@ Future testWaitWithMultipleErrorsEager() {
     throw 'incorrect error 2';
   }).catchError((error, stackTrace) {
     Expect.equals('correct error', error);
-    Expect.isNull(stackTrace);
+    Expect.isNotNull(stackTrace);
   });
 }
 
@@ -100,7 +109,7 @@ StackTrace get currentStackTrace {
   } catch (e, st) {
     return st;
   }
-  return null;
+  throw "unreachable";
 }
 
 Future testWaitWithSingleErrorWithStackTrace() {
@@ -193,8 +202,8 @@ Future testForEach() {
 
 Future testForEachSync() {
   final seen = <int>[];
-  return Future.forEach([1, 2, 3, 4, 5], seen.add).then(
-      (_) => Expect.listEquals([1, 2, 3, 4, 5], seen));
+  return Future.forEach([1, 2, 3, 4, 5], seen.add)
+      .then((_) => Expect.listEquals([1, 2, 3, 4, 5], seen));
 }
 
 Future testForEachWithException() {
@@ -250,6 +259,7 @@ main() {
   futures.add(testWaitWithMultipleValues());
   futures.add(testWaitWithSingleError());
   futures.add(testWaitWithMultipleErrors());
+  futures.add(testWaitWithErrorAndNonErrorEager());
   futures.add(testWaitWithMultipleErrorsEager());
   futures.add(testWaitWithSingleErrorWithStackTrace());
   futures.add(testWaitWithMultipleErrorsWithStackTrace());
@@ -265,7 +275,7 @@ main() {
 
   asyncStart();
   Future.wait(futures).then((List list) {
-    Expect.equals(18, list.length);
+    Expect.equals(19, list.length);
     asyncEnd();
   });
 }

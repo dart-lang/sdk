@@ -648,12 +648,14 @@ class _HttpHeaders implements HttpHeaders {
 
 class _HeaderValue implements HeaderValue {
   String _value;
-  Map<String, String>? _parameters;
-  Map<String, String>? _unmodifiableParameters;
+  Map<String, String?>? _parameters;
+  Map<String, String?>? _unmodifiableParameters;
 
-  _HeaderValue([this._value = "", Map<String, String>? parameters]) {
-    if (parameters != null) {
-      _parameters = new HashMap<String, String>.from(parameters);
+  _HeaderValue([this._value = "", Map<String, String?> parameters = const {}]) {
+    // TODO(40614): Remove once non-nullability is sound.
+    Map<String, String?>? nullableParameters = parameters;
+    if (nullableParameters != null && nullableParameters.isNotEmpty) {
+      _parameters = new HashMap<String, String?>.from(nullableParameters);
     }
   }
 
@@ -669,23 +671,55 @@ class _HeaderValue implements HeaderValue {
 
   String get value => _value;
 
-  Map<String, String> _ensureParameters() =>
-      _parameters ??= HashMap<String, String>();
+  Map<String, String?> _ensureParameters() =>
+      _parameters ??= <String, String?>{};
 
-  Map<String, String> get parameters =>
+  Map<String, String?> get parameters =>
       _unmodifiableParameters ??= UnmodifiableMapView(_ensureParameters());
+
+  static bool _isToken(String token) {
+    if (token.isEmpty) {
+      return false;
+    }
+    final delimiters = "\"(),/:;<=>?@[\]{}";
+    for (int i = 0; i < token.length; i++) {
+      int codeUnit = token.codeUnitAt(i);
+      if (codeUnit <= 32 ||
+          codeUnit >= 127 ||
+          delimiters.indexOf(token[i]) >= 0) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write(_value);
     var parameters = this._parameters;
     if (parameters != null && parameters.length > 0) {
-      parameters.forEach((String name, String value) {
-        sb
-          ..write("; ")
-          ..write(name)
-          ..write("=")
-          ..write(value == "" ? '""' : value);
+      parameters.forEach((String name, String? value) {
+        sb..write("; ")..write(name);
+        if (value != null) {
+          sb.write("=");
+          if (_isToken(value)) {
+            sb.write(value);
+          } else {
+            sb.write('"');
+            int start = 0;
+            for (int i = 0; i < value.length; i++) {
+              // Can use codeUnitAt here instead.
+              int codeUnit = value.codeUnitAt(i);
+              if (codeUnit == 92 /* backslash */ ||
+                  codeUnit == 34 /* double quote */) {
+                sb.write(value.substring(start, i));
+                sb.write(r'\');
+                start = i;
+              }
+            }
+            sb..write(value.substring(start))..write('"');
+          }
+        }
       });
     }
     return sb.toString();
@@ -724,8 +758,12 @@ class _HeaderValue implements HeaderValue {
       index++;
     }
 
-    void maybeExpect(String expected) {
-      if (s[index] == expected) index++;
+    bool maybeExpect(String expected) {
+      if (done() || !s.startsWith(expected, index)) {
+        return false;
+      }
+      index++;
+      return true;
     }
 
     void parseParameters() {
@@ -762,13 +800,13 @@ class _HeaderValue implements HeaderValue {
               index++;
             } else if (char == "\"") {
               index++;
-              break;
+              return sb.toString();
             }
             char = s[index];
             sb.write(char);
             index++;
           }
-          return sb.toString();
+          throw new HttpException("Failed to parse header value");
         } else {
           // Parse non-quoted value.
           return parseValue();
@@ -780,23 +818,18 @@ class _HeaderValue implements HeaderValue {
         if (done()) return;
         String name = parseParameterName();
         skipWS();
-        if (done()) {
-          parameters[name] = "";
-          return;
+        if (maybeExpect("=")) {
+          skipWS();
+          String value = parseParameterValue();
+          if (name == 'charset' && this is _ContentType) {
+            // Charset parameter of ContentTypes are always lower-case.
+            value = value.toLowerCase();
+          }
+          parameters[name] = value;
+          skipWS();
+        } else if (name.isNotEmpty) {
+          parameters[name] = null;
         }
-        maybeExpect("=");
-        skipWS();
-        if (done()) {
-          parameters[name] = "";
-          return;
-        }
-        String value = parseParameterValue();
-        if (name == 'charset' && this is _ContentType) {
-          // Charset parameter of ContentTypes are always lower-case.
-          value = value.toLowerCase();
-        }
-        parameters[name] = value;
-        skipWS();
         if (done()) return;
         // TODO: Implement support for multi-valued parameters.
         if (s[index] == valueSeparator) return;
@@ -805,9 +838,10 @@ class _HeaderValue implements HeaderValue {
     }
 
     skipWS();
-    _value = parseValue(); // TODO(39784): No _validateValue?
+    _value = parseValue();
     skipWS();
     if (done()) return;
+    if (s[index] == valueSeparator) return;
     maybeExpect(parameterSeparator);
     parseParameters();
   }
@@ -818,17 +852,23 @@ class _ContentType extends _HeaderValue implements ContentType {
   String _subType = "";
 
   _ContentType(String primaryType, String subType, String? charset,
-      Map<String, String>? parameters)
+      Map<String, String?> parameters)
       : _primaryType = primaryType,
         _subType = subType,
         super("") {
+    // TODO(40614): Remove once non-nullability is sound.
+    String emptyIfNull(String? string) => string ?? "";
+    _primaryType = emptyIfNull(_primaryType);
+    _subType = emptyIfNull(_subType);
     _value = "$_primaryType/$_subType";
-    if (parameters != null) {
+    // TODO(40614): Remove once non-nullability is sound.
+    Map<String, String?>? nullableParameters = parameters;
+    if (nullableParameters != null) {
       var parameterMap = _ensureParameters();
-      parameters.forEach((String key, String value) {
+      nullableParameters.forEach((String key, String? value) {
         String lowerCaseKey = key.toLowerCase();
         if (lowerCaseKey == "charset") {
-          value = value.toLowerCase();
+          value = value?.toLowerCase();
         }
         parameterMap[lowerCaseKey] = value;
       });

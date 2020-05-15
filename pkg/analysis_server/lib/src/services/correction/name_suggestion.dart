@@ -12,12 +12,12 @@ final List<String> _KNOWN_METHOD_NAME_PREFIXES = ['get', 'is', 'to'];
 
 /// Returns all variants of names by removing leading words one by one.
 List<String> getCamelWordCombinations(String name) {
-  List<String> result = [];
-  List<String> parts = getCamelWords(name);
-  for (int i = 0; i < parts.length; i++) {
+  var result = <String>[];
+  var parts = getCamelWords(name);
+  for (var i = 0; i < parts.length; i++) {
     var s1 = parts[i].toLowerCase();
     var s2 = parts.skip(i + 1).join();
-    String suggestion = '$s1$s2';
+    var suggestion = '$s1$s2';
     result.add(suggestion);
   }
   return result;
@@ -32,27 +32,25 @@ List<String> getVariableNameSuggestionsForExpression(
 
   if (isMethod) {
     // If we're in a build() method, use 'build' as the name prefix.
-    MethodDeclaration method =
-        assignedExpression.thisOrAncestorOfType<MethodDeclaration>();
+    var method = assignedExpression.thisOrAncestorOfType<MethodDeclaration>();
     if (method != null) {
-      String enclosingName = method.name?.name;
+      var enclosingName = method.name?.name;
       if (enclosingName != null && enclosingName.startsWith('build')) {
         prefix = 'build';
       }
     }
   }
 
-  Set<String> res = {};
+  var res = <String>{};
   // use expression
   if (assignedExpression != null) {
-    String nameFromExpression = _getBaseNameFromExpression(assignedExpression);
+    var nameFromExpression = _getBaseNameFromExpression(assignedExpression);
     if (nameFromExpression != null) {
       nameFromExpression = removeStart(nameFromExpression, '_');
       _addAll(excluded, res, getCamelWordCombinations(nameFromExpression),
           prefix: prefix);
     }
-    String nameFromParent =
-        _getBaseNameFromLocationInParent(assignedExpression);
+    var nameFromParent = _getBaseNameFromLocationInParent(assignedExpression);
     if (nameFromParent != null) {
       _addAll(excluded, res, getCamelWordCombinations(nameFromParent));
     }
@@ -79,9 +77,9 @@ List<String> getVariableNameSuggestionsForText(
     String text, Set<String> excluded) {
   // filter out everything except of letters and white spaces
   {
-    StringBuffer sb = StringBuffer();
-    for (int i = 0; i < text.length; i++) {
-      int c = text.codeUnitAt(i);
+    var sb = StringBuffer();
+    for (var i = 0; i < text.length; i++) {
+      var c = text.codeUnitAt(i);
       if (isLetter(c) || isWhitespace(c)) {
         sb.writeCharCode(c);
       }
@@ -90,10 +88,10 @@ List<String> getVariableNameSuggestionsForText(
   }
   // make single camel-case text
   {
-    List<String> words = text.split(' ');
-    StringBuffer sb = StringBuffer();
-    for (int i = 0; i < words.length; i++) {
-      String word = words[i];
+    var words = text.split(' ');
+    var sb = StringBuffer();
+    for (var i = 0; i < words.length; i++) {
+      var word = words[i];
       if (i > 0) {
         word = capitalize(word);
       }
@@ -102,7 +100,7 @@ List<String> getVariableNameSuggestionsForText(
     text = sb.toString();
   }
   // split camel-case into separate suggested names
-  Set<String> res = {};
+  var res = <String>{};
   _addAll(excluded, res, getCamelWordCombinations(text));
   return List.from(res);
 }
@@ -110,11 +108,11 @@ List<String> getVariableNameSuggestionsForText(
 /// Adds [toAdd] items which are not excluded.
 void _addAll(Set<String> excluded, Set<String> result, Iterable<String> toAdd,
     {String prefix}) {
-  for (String item in toAdd) {
+  for (var item in toAdd) {
     // add name based on "item", but not "excluded"
-    for (int suffix = 1;; suffix++) {
+    for (var suffix = 1;; suffix++) {
       // prepare name, just "item" or "item2", "item3", etc
-      String name = item;
+      var name = item;
       if (suffix > 1) {
         name += suffix.toString();
       }
@@ -130,7 +128,7 @@ void _addAll(Set<String> excluded, Set<String> result, Iterable<String> toAdd,
 /// Adds to [result] either [c] or the first ASCII character after it.
 void _addSingleCharacterName(Set<String> excluded, Set<String> result, int c) {
   while (c < 0x7A) {
-    String name = String.fromCharCode(c);
+    var name = String.fromCharCode(c);
     // may be done
     if (!excluded.contains(name)) {
       result.add(name);
@@ -153,13 +151,13 @@ String _getBaseNameFromExpression(Expression expression) {
 String _getBaseNameFromLocationInParent(Expression expression) {
   // value in named expression
   if (expression.parent is NamedExpression) {
-    NamedExpression namedExpression = expression.parent as NamedExpression;
+    var namedExpression = expression.parent as NamedExpression;
     if (namedExpression.expression == expression) {
       return namedExpression.name.label.name;
     }
   }
   // positional argument
-  ParameterElement parameter = expression.staticParameterElement;
+  var parameter = expression.staticParameterElement;
   if (parameter != null) {
     return parameter.displayName;
   }
@@ -179,17 +177,17 @@ String _getBaseNameFromUnwrappedExpression(Expression expression) {
   } else if (expression is MethodInvocation) {
     name = expression.methodName.name;
   } else if (expression is InstanceCreationExpression) {
-    ConstructorName constructorName = expression.constructorName;
-    TypeName typeName = constructorName.type;
+    var constructorName = expression.constructorName;
+    var typeName = constructorName.type;
     if (typeName != null) {
-      Identifier typeNameIdentifier = typeName.name;
+      var typeNameIdentifier = typeName.name;
       // new ClassName()
       if (typeNameIdentifier is SimpleIdentifier) {
         return typeNameIdentifier.name;
       }
       // new prefix.name();
       if (typeNameIdentifier is PrefixedIdentifier) {
-        PrefixedIdentifier prefixed = typeNameIdentifier;
+        var prefixed = typeNameIdentifier;
         // new prefix.ClassName()
         if (prefixed.prefix.staticElement is PrefixElement) {
           return prefixed.identifier.name;
@@ -206,8 +204,8 @@ String _getBaseNameFromUnwrappedExpression(Expression expression) {
   }
   // strip known prefixes
   if (name != null) {
-    for (int i = 0; i < _KNOWN_METHOD_NAME_PREFIXES.length; i++) {
-      String curr = _KNOWN_METHOD_NAME_PREFIXES[i];
+    for (var i = 0; i < _KNOWN_METHOD_NAME_PREFIXES.length; i++) {
+      var curr = _KNOWN_METHOD_NAME_PREFIXES[i];
       if (name.startsWith(curr)) {
         if (name == curr) {
           return null;

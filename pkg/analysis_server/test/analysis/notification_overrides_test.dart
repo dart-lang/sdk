@@ -28,8 +28,8 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
   /// Asserts that there is an overridden interface [OverriddenMember] at the
   /// offset of [search] in [override].
   void assertHasInterfaceMember(String search) {
-    int offset = findOffset(search);
-    for (OverriddenMember member in overrideObject.interfaceMembers) {
+    var offset = findOffset(search);
+    for (var member in overrideObject.interfaceMembers) {
       if (member.element.location.offset == offset) {
         return;
       }
@@ -43,7 +43,7 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
   /// If [length] is not specified explicitly, then length of an identifier
   /// from [search] is used.
   void assertHasOverride(String search, [int length = -1]) {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     if (length == -1) {
       length = findIdentifierLength(search);
     }
@@ -53,8 +53,8 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
   /// Asserts that there is an overridden superclass [OverriddenMember] at the
   /// offset of [search] in [override].
   void assertHasSuperElement(String search) {
-    int offset = findOffset(search);
-    OverriddenMember member = overrideObject.superclassMember;
+    var offset = findOffset(search);
+    var member = overrideObject.superclassMember;
     expect(member.element.location.offset, offset);
   }
 
@@ -68,7 +68,7 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
   /// If [length] is not specified explicitly, then length of an identifier
   /// from [search] is used.
   void assertNoOverride(String search, [int length = -1]) {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     if (length == -1) {
       length = findIdentifierLength(search);
     }
@@ -87,7 +87,7 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
   ///
   /// If [exists] is `false`, then fails if such [Override] exists.
   void findOverride(int offset, int length, [bool exists]) {
-    for (Override override in overridesList) {
+    for (var override in overridesList) {
       if (override.offset == offset && override.length == length) {
         if (exists == false) {
           fail('Not expected to find (offset=$offset; length=$length) in\n'

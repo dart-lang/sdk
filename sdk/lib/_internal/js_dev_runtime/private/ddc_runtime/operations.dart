@@ -21,7 +21,7 @@ class InvocationImpl extends Invocation {
 
   InvocationImpl(memberName, List<Object> positionalArguments,
       {namedArguments,
-      List typeArguments,
+      List typeArguments = const [],
       this.isMethod = false,
       this.isGetter = false,
       this.isSetter = false,
@@ -30,9 +30,7 @@ class InvocationImpl extends Invocation {
             isSetter ? _setterSymbol(memberName) : _dartSymbol(memberName),
         positionalArguments = List.unmodifiable(positionalArguments),
         namedArguments = _namedArgsToSymbols(namedArguments),
-        typeArguments = typeArguments == null
-            ? const []
-            : List.unmodifiable(typeArguments.map(wrapType));
+        typeArguments = List.unmodifiable(typeArguments.map(wrapType));
 
   static Map<Symbol, dynamic> _namedArgsToSymbols(namedArgs) {
     if (namedArgs == null) return const {};
@@ -134,7 +132,7 @@ dput(obj, field, value) {
   if (f != null) {
     var setterType = getSetterType(getType(obj), f);
     if (setterType != null) {
-      return JS('', '#[#] = #._check(#)', obj, f, setterType, value);
+      return JS('', '#[#] = #.as(#)', obj, f, setterType, value);
     }
     // Always allow for JS interop objects.
     if (isJsInterop(obj)) return JS('', '#[#] = #', obj, f, value);
@@ -169,24 +167,44 @@ String _argumentErrors(FunctionType type, List actuals, namedActuals) {
   // Check if we have invalid named arguments.
   Iterable names;
   var named = type.named;
+  var requiredNamed = type.requiredNamed;
   if (namedActuals != null) {
     names = getOwnPropertyNames(namedActuals);
     for (var name in names) {
-      if (!JS('!', '#.hasOwnProperty(#)', named, name)) {
+      if (!JS<bool>('!', '(#.hasOwnProperty(#) || #.hasOwnProperty(#))', named,
+          name, requiredNamed, name)) {
         return "Dynamic call with unexpected named argument '$name'.";
+      }
+    }
+  }
+  // Verify that all required named parameters are provided an argument.
+  Iterable requiredNames = getOwnPropertyNames(requiredNamed);
+  if (requiredNames.isNotEmpty) {
+    var missingRequired = namedActuals == null
+        ? requiredNames
+        : requiredNames.where((name) =>
+            !JS<bool>('!', '#.hasOwnProperty(#)', namedActuals, name));
+    if (missingRequired.isNotEmpty) {
+      var error = "Dynamic call with missing required named arguments: "
+          "${missingRequired.join(', ')}.";
+      if (!strictNullSafety) {
+        _nullWarn(error);
+      } else {
+        return error;
       }
     }
   }
   // Now that we know the signature matches, we can perform type checks.
   for (var i = 0; i < requiredCount; ++i) {
-    JS('', '#[#]._check(#[#])', required, i, actuals, i);
+    JS('', '#[#].as(#[#])', required, i, actuals, i);
   }
   for (var i = 0; i < extras; ++i) {
-    JS('', '#[#]._check(#[#])', optionals, i, actuals, i + requiredCount);
+    JS('', '#[#].as(#[#])', optionals, i, actuals, i + requiredCount);
   }
   if (names != null) {
     for (var name in names) {
-      JS('', '#[#]._check(#[#])', named, name, namedActuals, name);
+      JS('', '(#[#] || #[#]).as(#[#])', named, name, requiredNamed, name,
+          namedActuals, name);
     }
   }
   return null;
@@ -244,7 +262,9 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) =>
     return $noSuchMethod(originalTarget, new $InvocationImpl.new(
         $displayName, $args, {
           namedArguments: $named,
-          typeArguments: $typeArgs,
+          // Repeated the default value here to avoid passing null from JS to a
+          // non-nullable argument.
+          typeArguments: $typeArgs || [],
           isMethod: true,
           failureMessage: errorMessage
         }));
@@ -283,7 +303,7 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) =>
   }
 
   // Apply type arguments
-  if ($ftype instanceof $GenericFunctionType) {
+  if (${_jsInstanceOf(ftype, GenericFunctionType)}) {
     let formalCount = $ftype.formalCount;
 
     if ($typeArgs == null) {
@@ -311,8 +331,8 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) =>
 dcall(f, args, [@undefined named]) => _checkAndCall(
     f, null, JS('', 'void 0'), null, args, named, JS('', 'f.name'));
 
-dgcall(f, typeArgs, args, [@undefined named]) =>
-    _checkAndCall(f, null, JS('', 'void 0'), typeArgs, args, named, 'call');
+dgcall(f, typeArgs, args, [@undefined named]) => _checkAndCall(f, null,
+    JS('', 'void 0'), typeArgs, args, named, JS('', "f.name || 'call'"));
 
 /// Helper for REPL dynamic invocation variants that make a best effort to
 /// enable accessing private members across library boundaries.
@@ -387,52 +407,74 @@ dindex(obj, index) => callMethod(obj, '_get', null, [index], null, '[]');
 dsetindex(obj, index, value) =>
     callMethod(obj, '_set', null, [index, value], null, '[]=');
 
+/// General implementation of the Dart `is` operator.
+///
+/// Some basic cases are handled directly by the `.is` methods that are attached
+/// directly on types, but any query that requires checking subtyping relations
+/// is handled here.
 @notNull
 @JSExportName('is')
 bool instanceOf(obj, type) {
   if (obj == null) {
-    return identical(type, unwrapType(Null)) || _isTop(type);
+    return _equalType(type, Null) ||
+        _isTop(type) ||
+        _jsInstanceOf(type, NullableType);
   }
   return isSubtypeOf(getReifiedType(obj), type);
 }
 
+/// General implementation of the Dart `as` operator.
+///
+/// Some basic cases are handled directly by the `.as` methods that are attached
+/// directly on types, but any query that requires checking subtyping relations
+/// is handled here.
 @JSExportName('as')
-cast(obj, type, @notNull bool isImplicit) {
-  if (obj == null) return obj;
-  var actual = getReifiedType(obj);
-  if (isSubtypeOf(actual, type)) {
+cast(obj, type) {
+  // We hoist the common case where null is checked against another type here
+  // for better performance.
+  if (obj == null && !strictNullSafety) {
+    // Check the null comparison cache to avoid emitting repeated warnings.
+    _nullWarnOnType(type);
     return obj;
+  } else {
+    var actual = getReifiedType(obj);
+    if (isSubtypeOf(actual, type)) return obj;
   }
-  return castError(obj, type, isImplicit);
+
+  return castError(obj, type);
 }
 
 bool test(bool obj) {
-  if (obj == null) _throwBooleanConversionError();
+  if (obj == null) throw BooleanConversionAssertionError();
   return obj;
 }
 
 bool dtest(obj) {
-  if (obj is! bool) booleanConversionFailed(obj);
+  // Only throw an AssertionError in weak mode for compatibility. Strong mode
+  // should throw a TypeError.
+  if (obj is! bool) booleanConversionFailed(strictNullSafety ? obj : test(obj));
   return obj;
 }
 
-void _throwBooleanConversionError() => throw BooleanConversionAssertionError();
-
 void booleanConversionFailed(obj) {
-  var actual = typeName(getReifiedType(test(obj)));
+  var actual = typeName(getReifiedType(obj));
   throw TypeErrorImpl("type '$actual' is not a 'bool' in boolean expression");
 }
 
 asInt(obj) {
-  if (obj == null) return null;
-
+  // Note: null (and undefined) will fail this test.
   if (JS('!', 'Math.floor(#) != #', obj, obj)) {
-    castError(obj, JS('', '#', int), false);
+    if (obj == null && !strictNullSafety) {
+      _nullWarnOnType(JS('', '#', int));
+      return null;
+    } else {
+      castError(obj, JS('', '#', int));
+    }
   }
   return obj;
 }
 
-asNullableInt(obj) => asInt(obj);
+asNullableInt(obj) => obj == null ? null : asInt(obj);
 
 /// Checks that `x` is not null or undefined.
 //
@@ -447,11 +489,25 @@ _notNull(x) {
   return x;
 }
 
-/// No-op without null safety enabled.
-nullCast(x, type, [@notNull bool isImplicit = false]) => x;
+/// Checks that `x` is not null or undefined.
+///
+/// Unlike `_notNull`, this throws a `CastError` (under strict checking)
+/// or emits a runtime warning (otherwise).  This is only used by the
+/// compiler when casting from nullable to non-nullable variants of the
+/// same type.
+nullCast(x, type) {
+  if (x == null) {
+    if (!strictNullSafety) {
+      _nullWarnOnType(type);
+    } else {
+      castError(x, type);
+    }
+  }
+  return x;
+}
 
 /// The global constant map table.
-final constantMaps = JS('', 'new Map()');
+final constantMaps = JS<Object>('!', 'new Map()');
 
 // TODO(leafp): This table gets quite large in apps.
 // Keeping the paths is probably expensive.  It would probably
@@ -471,14 +527,14 @@ Map<K, V> constMap<K, V>(JSArray elements) {
     map = _lookupNonTerminal(map, JS('', '#[#]', elements, i));
   }
   map = _lookupNonTerminal(map, K);
-  var result = JS('', '#.get(#)', map, V);
+  Map<K, V> result = JS('', '#.get(#)', map, V);
   if (result != null) return result;
   result = ImmutableMap<K, V>.from(elements);
   JS('', '#.set(#, #)', map, V, result);
   return result;
 }
 
-final constantSets = JS('', 'new Map()');
+final constantSets = JS<Object>('!', 'new Map()');
 var _immutableSetConstructor;
 
 // We cannot invoke private class constructors directly in Dart.
@@ -494,7 +550,7 @@ Set<E> constSet<E>(JSArray<E> elements) {
   for (var i = 0; i < count; i++) {
     map = _lookupNonTerminal(map, JS('', '#[#]', elements, i));
   }
-  var result = JS('', '#.get(#)', map, E);
+  Set<E> result = JS('', '#.get(#)', map, E);
   if (result != null) return result;
   result = _createImmutableSet<E>(elements);
   JS('', '#.set(#, #)', map, E, result);
@@ -537,7 +593,7 @@ multiKeyPutIfAbsent(map, keys, valueFn) => JS('', '''(() => {
 /// and value of the field.  The final map is
 /// indexed by runtime type, and contains the canonical
 /// version of the object.
-final constants = JS('', 'new Map()');
+final constants = JS('!', 'new Map()');
 
 ///
 /// Canonicalize a constant object.
@@ -656,7 +712,7 @@ runtimeType(obj) {
   return obj == null ? Null : JS('', '#[dartx.runtimeType]', obj);
 }
 
-final identityHashCode_ = JS('', 'Symbol("_identityHashCode")');
+final identityHashCode_ = JS<Object>('!', 'Symbol("_identityHashCode")');
 
 /// Adapts a Dart `get iterator` into a JS `[Symbol.iterator]`.
 // TODO(jmesserly): instead of an adaptor, we could compile Dart iterators
@@ -697,8 +753,91 @@ _canonicalMember(obj, name) {
 Future loadLibrary() => Future.value();
 
 /// Defines lazy statics.
-void defineLazy(to, from, bool checkCycles) {
+///
+/// TODO: Remove useOldSemantics when non-null-safe late static field behavior is
+/// deprecated.
+void defineLazy(to, from, bool useOldSemantics) {
   for (var name in getOwnNamesAndSymbols(from)) {
-    defineLazyField(to, name, getOwnPropertyDescriptor(from, name));
+    if (useOldSemantics) {
+      defineLazyFieldOld(to, name, getOwnPropertyDescriptor(from, name));
+    } else {
+      defineLazyField(to, name, getOwnPropertyDescriptor(from, name));
+    }
   }
 }
+
+/// Defines a lazy static field.
+/// After initial get or set, it will replace itself with a value property.
+// TODO(jmesserly): reusing descriptor objects has been shown to improve
+// performance in other projects (e.g. webcomponents.js ShadowDOM polyfill).
+defineLazyField(to, name, desc) => JS('', '''(() => {
+  const initializer = $desc.get;
+  let init = initializer;
+  let value = null;
+  let executed = false;
+  $desc.get = function() {
+    if (init == null) return value;
+    if (!executed) {
+      // Record the field on first execution so we can reset it later if
+      // needed (hot restart).
+      $_resetFields.push(() => {
+        init = initializer;
+        value = null;
+        executed = false;
+      });
+      executed = true;
+    }
+    value = init();
+    init = null;
+    return value;
+  };
+  $desc.configurable = true;
+  if ($desc.set != null) {
+    $desc.set = function(x) {
+      init = null;
+      value = x;
+      // executed is dead since init is set to null
+    };
+  }
+  return ${defineProperty(to, name, desc)};
+})()''');
+
+/// Defines a lazy static field with pre-null-safety semantics.
+defineLazyFieldOld(to, name, desc) => JS('', '''(() => {
+  const initializer = $desc.get;
+  let init = initializer;
+  let value = null;
+  $desc.get = function() {
+    if (init == null) return value;
+    let f = init;
+    init = $throwCyclicInitializationError;
+    if (f === init) f($name); // throw cycle error
+
+    // On the first (non-cyclic) execution, record the field so we can reset it
+    // later if needed (hot restart).
+    $_resetFields.push(() => {
+      init = initializer;
+      value = null;
+    });
+
+    // Try to evaluate the field, using try+catch to ensure we implement the
+    // correct Dart error semantics.
+    try {
+      value = f();
+      init = null;
+      return value;
+    } catch (e) {
+      init = null;
+      value = null;
+      throw e;
+    }
+  };
+  $desc.configurable = true;
+  if ($desc.set != null) {
+    $desc.set = function(x) {
+      init = null;
+      value = x;
+    };
+  }
+  return ${defineProperty(to, name, desc)};
+})()''');

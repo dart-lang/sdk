@@ -15,6 +15,7 @@
 #include "vm/class_id.h"
 #include "vm/flags.h"
 #include "vm/globals.h"
+#include "vm/tagged_pointer.h"
 
 namespace dart {
 
@@ -30,7 +31,6 @@ class JSONStream;
 template <typename T>
 class MallocGrowableArray;
 class ObjectPointerVisitor;
-class RawClass;
 
 // Wraps a 64-bit integer to represent the bitmap of unboxed fields
 // stored in the shared class table.
@@ -42,9 +42,11 @@ class UnboxedFieldBitmap {
   UnboxedFieldBitmap& operator=(const UnboxedFieldBitmap&) = default;
 
   DART_FORCE_INLINE bool Get(intptr_t position) const {
+    if (position >= Length()) return false;
     return Utils::TestBit(bitmap_, position);
   }
   DART_FORCE_INLINE void Set(intptr_t position) {
+    ASSERT(position < Length());
     bitmap_ |= Utils::Bit<decltype(bitmap_)>(position);
   }
   DART_FORCE_INLINE uint64_t Value() const { return bitmap_; }
@@ -71,13 +73,13 @@ class SharedClassTable {
   // Thread-safe.
   intptr_t SizeAt(intptr_t index) const {
     ASSERT(IsValidIndex(index));
-    return table_[index];
+    return table_.load()[index];
   }
 
   bool HasValidClassAt(intptr_t index) const {
     ASSERT(IsValidIndex(index));
-    ASSERT(table_[index] >= 0);
-    return table_[index] != 0;
+    ASSERT(table_.load()[index] >= 0);
+    return table_.load()[index] != 0;
   }
 
   void SetSizeAt(intptr_t index, intptr_t size) {
@@ -85,8 +87,10 @@ class SharedClassTable {
 
     // Ensure we never change size for a given cid from one non-zero size to
     // another non-zero size.
-    RELEASE_ASSERT(table_[index] == 0 || table_[index] == size);
-    table_[index] = size;
+    intptr_t old_size = 0;
+    if (!table_.load()[index].compare_exchange_strong(old_size, size)) {
+      RELEASE_ASSERT(old_size == size);
+    }
   }
 
   bool IsValidIndex(intptr_t index) const { return index > 0 && index < top_; }
@@ -117,12 +121,12 @@ class SharedClassTable {
   void SetTraceAllocationFor(intptr_t cid, bool trace) {
     ASSERT(cid > 0);
     ASSERT(cid < top_);
-    trace_allocation_table_[cid] = trace ? 1 : 0;
+    trace_allocation_table_.load()[cid] = trace ? 1 : 0;
   }
   bool TraceAllocationFor(intptr_t cid) {
     ASSERT(cid > 0);
     ASSERT(cid < top_);
-    return trace_allocation_table_[cid] != 0;
+    return trace_allocation_table_.load()[cid] != 0;
   }
 #endif  // !defined(PRODUCT)
 
@@ -132,14 +136,24 @@ class SharedClassTable {
     const intptr_t num_cids = NumCids();
     const intptr_t bytes = sizeof(intptr_t) * num_cids;
     auto size_table = static_cast<intptr_t*>(malloc(bytes));
-    memmove(size_table, table_, sizeof(intptr_t) * num_cids);
+    auto table = table_.load();
+    for (intptr_t i = 0; i < num_cids; i++) {
+      // Don't use memmove, which changes this from a relaxed atomic operation
+      // to a non-atomic operation.
+      size_table[i] = table[i];
+    }
     *copy_num_cids = num_cids;
     *copy = size_table;
   }
 
   void ResetBeforeHotReload() {
     // The [IsolateReloadContext] is now source-of-truth for GC.
-    memset(table_, 0, sizeof(intptr_t) * top_);
+    auto table = table_.load();
+    for (intptr_t i = 0; i < top_; i++) {
+      // Don't use memset, which changes this from a relaxed atomic operation
+      // to a non-atomic operation.
+      table[i] = 0;
+    }
   }
 
   void ResetAfterHotReload(intptr_t* old_table,
@@ -149,7 +163,12 @@ class SharedClassTable {
     // return, so we restore size information for all classes.
     if (is_rollback) {
       SetNumCids(num_old_cids);
-      memmove(table_, old_table, sizeof(intptr_t) * num_old_cids);
+      auto table = table_.load();
+      for (intptr_t i = 0; i < num_old_cids; i++) {
+        // Don't use memmove, which changes this from a relaxed atomic operation
+        // to a non-atomic operation.
+        table[i] = old_table[i];
+      }
     }
 
     // Can't free this table immediately as another thread (e.g., concurrent
@@ -205,7 +224,7 @@ class SharedClassTable {
 #ifndef PRODUCT
   // Copy-on-write is used for trace_allocation_table_, with old copies stored
   // in old_tables_.
-  uint8_t* trace_allocation_table_ = nullptr;
+  AcqRelAtomic<uint8_t*> trace_allocation_table_ = {nullptr};
 #endif  // !PRODUCT
 
   void AddOldTable(intptr_t* old_table);
@@ -216,7 +235,8 @@ class SharedClassTable {
   intptr_t capacity_;
 
   // Copy-on-write is used for table_, with old copies stored in old_tables_.
-  intptr_t* table_ = nullptr;  // Maps the cid to the instance size.
+  // Maps the cid to the instance size.
+  AcqRelAtomic<RelaxedAtomic<intptr_t>*> table_ = {nullptr};
   MallocGrowableArray<void*>* old_tables_;
 
   IsolateGroupReloadContext* reload_context_ = nullptr;
@@ -238,13 +258,18 @@ class ClassTable {
 
   SharedClassTable* shared_class_table() const { return shared_class_table_; }
 
-  void CopyBeforeHotReload(RawClass*** copy, intptr_t* copy_num_cids) {
+  void CopyBeforeHotReload(ClassPtr** copy, intptr_t* copy_num_cids) {
     // The [IsolateReloadContext] will need to maintain a copy of the old class
     // table until instances have been morphed.
     const intptr_t num_cids = NumCids();
-    const intptr_t bytes = sizeof(RawClass*) * num_cids;
-    auto class_table = static_cast<RawClass**>(malloc(bytes));
-    memmove(class_table, table_, sizeof(RawClass*) * num_cids);
+    const intptr_t bytes = sizeof(ClassPtr) * num_cids;
+    auto class_table = static_cast<ClassPtr*>(malloc(bytes));
+    auto table = table_.load();
+    for (intptr_t i = 0; i < num_cids; i++) {
+      // Don't use memmove, which changes this from a relaxed atomic operation
+      // to a non-atomic operation.
+      class_table[i] = table[i];
+    }
     *copy_num_cids = num_cids;
     *copy = class_table;
   }
@@ -257,14 +282,19 @@ class ClassTable {
     // here).
   }
 
-  void ResetAfterHotReload(RawClass** old_table,
+  void ResetAfterHotReload(ClassPtr* old_table,
                            intptr_t num_old_cids,
                            bool is_rollback) {
     // The [IsolateReloadContext] is no longer source-of-truth for GC after we
     // return, so we restore size information for all classes.
     if (is_rollback) {
       SetNumCids(num_old_cids);
-      memmove(table_, old_table, sizeof(RawClass*) * num_old_cids);
+      auto table = table_.load();
+      for (intptr_t i = 0; i < num_old_cids; i++) {
+        // Don't use memmove, which changes this from a relaxed atomic operation
+        // to a non-atomic operation.
+        table[i] = old_table[i];
+      }
     } else {
       CopySizesFromClassObjects();
     }
@@ -277,16 +307,16 @@ class ClassTable {
   }
 
   // Thread-safe.
-  RawClass* At(intptr_t index) const {
+  ClassPtr At(intptr_t index) const {
     ASSERT(IsValidIndex(index));
-    return table_[index];
+    return table_.load()[index];
   }
 
   intptr_t SizeAt(intptr_t index) const {
     return shared_class_table_->SizeAt(index);
   }
 
-  void SetAt(intptr_t index, RawClass* raw_cls);
+  void SetAt(intptr_t index, ClassPtr raw_cls);
 
   bool IsValidIndex(intptr_t index) const {
     return shared_class_table_->IsValidIndex(index);
@@ -294,7 +324,7 @@ class ClassTable {
 
   bool HasValidClassAt(intptr_t index) const {
     ASSERT(IsValidIndex(index));
-    return table_[index] != nullptr;
+    return table_.load()[index] != nullptr;
   }
 
   intptr_t NumCids() const { return shared_class_table_->NumCids(); }
@@ -325,17 +355,9 @@ class ClassTable {
 
   void Print();
 
-  // Used by the generated code.
-  static intptr_t table_offset() { return OFFSET_OF(ClassTable, table_); }
-
-  // Used by the generated code.
-  static intptr_t shared_class_table_offset() {
-    return OFFSET_OF(ClassTable, shared_class_table_);
-  }
-
 #ifndef PRODUCT
   // Describes layout of heap stats for code generation. See offset_extractor.cc
-  struct ArrayLayout {
+  struct ArrayTraits {
     static intptr_t elements_start_offset() { return 0; }
 
     static constexpr intptr_t kElementSize = sizeof(uint8_t);
@@ -357,23 +379,28 @@ class ClassTable {
   friend class MarkingWeakVisitor;
   friend class Scavenger;
   friend class ScavengerWeakVisitor;
+  friend class Dart;
   friend Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
                                                    const char* name,
                                                    char** error);
+  friend class Isolate;  // for table()
   static const int kInitialCapacity = SharedClassTable::kInitialCapacity;
   static const int kCapacityIncrement = SharedClassTable::kCapacityIncrement;
 
-  void AddOldTable(RawClass** old_table);
+  void AddOldTable(ClassPtr* old_table);
 
   void Grow(intptr_t index);
+
+  ClassPtr* table() { return table_.load(); }
+  void set_table(ClassPtr* table);
 
   intptr_t top_;
   intptr_t capacity_;
 
   // Copy-on-write is used for table_, with old copies stored in
   // old_class_tables_.
-  RawClass** table_;
-  MallocGrowableArray<RawClass**>* old_class_tables_;
+  AcqRelAtomic<ClassPtr*> table_;
+  MallocGrowableArray<ClassPtr*>* old_class_tables_;
   SharedClassTable* shared_class_table_;
 
   DISALLOW_COPY_AND_ASSIGN(ClassTable);

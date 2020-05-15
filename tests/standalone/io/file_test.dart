@@ -74,7 +74,7 @@ class FileTest {
     File file = new File(filename);
     Expect.isTrue('$file'.contains(file.path));
     var subscription;
-    List<int> buffer = new List<int>();
+    List<int> buffer = <int>[];
     subscription = file.openRead().listen((d) {
       buffer.addAll(d);
       if (buffer.length >= 12) {
@@ -105,7 +105,7 @@ class FileTest {
     int bytesRead;
 
     var file1 = new File(inFilename);
-    List<int> buffer = new List<int>();
+    List<int> buffer = <int>[];
     file1.openRead().listen((d) {
       buffer.addAll(d);
     }, onDone: () {
@@ -118,7 +118,7 @@ class FileTest {
       output.flush().then((_) => output.close());
       output.done.then((_) {
         // Now read the contents of the file just written.
-        List<int> buffer2 = new List<int>();
+        List<int> buffer2 = <int>[];
         new File(outFilename).openRead().listen((d) {
           buffer2.addAll(d);
         }, onDone: () {
@@ -819,11 +819,11 @@ class FileTest {
     }
 
     read(0, 3, 3, [1, 2, 3]);
-    read(0, 2, 2, [1, 2, null]);
-    read(1, 2, 1, [null, 1, null]);
-    read(1, 3, 2, [null, 1, 2]);
-    read(2, 3, 1, [null, null, 1]);
-    read(0, 0, 0, [null, null, null]);
+    read(0, 2, 2, [1, 2, -1]);
+    read(1, 2, 1, [-1, 1, -1]);
+    read(1, 3, 2, [-1, 1, 2]);
+    read(2, 3, 1, [-1, -1, 1]);
+    read(0, 0, 0, [-1, -1, -1]);
 
     openedFile.closeSync();
   }
@@ -1296,7 +1296,7 @@ class FileTest {
     int done = 0;
     bool error = false;
     void getLength() {
-      file.length().catchError((e) {
+      Future<int?>.value(file.length()).catchError((e) {
         error = true;
       }).whenComplete(() {
         if (++done == 2) {
@@ -1564,9 +1564,12 @@ class FileTest {
         .then((_) => lift(Expect.isFalse)(newfile.exists()))
         .then((_) {
       if (Platform.operatingSystem != "windows") {
-        new Link(source).create(dest).then((_) => file.rename("xxx")).then((_) {
+        Future<File?>.value(new Link(source)
+            .create(dest)
+            .then((_) => file.rename("xxx"))
+            .then((_) {
           throw "Rename of broken link succeeded";
-        }).catchError((e) {
+        })).catchError((e) {
           Expect.isTrue(e is FileSystemException);
           asyncTestDone("testRename$targetExists");
         });

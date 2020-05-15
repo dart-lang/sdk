@@ -15,38 +15,34 @@ Type embedNullableFutureOrType<T>() => Embed<FutureOr<T>?>().runtimeType;
 
 main() {
   // FutureOr types are normalized when they appear explicitly in the source.
-  Expect.identical(dynamic, extractType<FutureOr>());
-  Expect.identical(dynamic, extractType<FutureOr<dynamic>>());
-  Expect.identical(Object, extractType<FutureOr<Object>>());
-  Expect.identical(extractType<Object?>(), extractType<FutureOr<Object>?>());
-  Expect.identical(extractType<Object?>(), extractType<FutureOr<Object?>>());
-  Expect.identical(extractType<void>(), extractType<FutureOr<void>>());
-  Expect.identical(
-      extractType<Future<Never>>(), extractType<FutureOr<Never>>());
-  Expect.identical(extractType<Future<Null>?>(), extractType<FutureOr<Null>>());
-  Expect.identical(
-      extractType<FutureOr<int?>>(), extractType<FutureOr<int?>?>());
-  Expect.identical(extractType<FutureOr<A?>>(), extractType<FutureOr<A?>?>());
+  Expect.equals(dynamic, extractType<FutureOr>());
+  Expect.equals(dynamic, extractType<FutureOr<dynamic>>());
+  Expect.equals(Object, extractType<FutureOr<Object>>());
+  Expect.equals(extractType<Object?>(), extractType<FutureOr<Object>?>());
+  Expect.equals(extractType<Object?>(), extractType<FutureOr<Object?>>());
+  Expect.equals(extractType<void>(), extractType<FutureOr<void>>());
+  Expect.equals(extractType<Future<Never>>(), extractType<FutureOr<Never>>());
+  Expect.equals(extractType<Future<Null>?>(), extractType<FutureOr<Null>>());
+  Expect.equals(extractType<FutureOr<int?>>(), extractType<FutureOr<int?>?>());
+  Expect.equals(extractType<FutureOr<A?>>(), extractType<FutureOr<A?>?>());
 
   // FutureOr types are normalized when they are composed at runtime.
-  Expect.identical(extractType<Embed<dynamic>>(), extractFutureOrType());
-  Expect.identical(
-      extractType<Embed<dynamic>>(), extractFutureOrType<dynamic>());
-  Expect.identical(extractType<Embed<Object>>(), extractFutureOrType<Object>());
-  Expect.identical(
+  Expect.equals(extractType<Embed<dynamic>>(), extractFutureOrType());
+  Expect.equals(extractType<Embed<dynamic>>(), extractFutureOrType<dynamic>());
+  Expect.equals(extractType<Embed<Object>>(), extractFutureOrType<Object>());
+  Expect.equals(
       extractType<Embed<Object?>>(), embedNullableFutureOrType<Object>());
-  Expect.identical(
-      extractType<Embed<Object?>>(), extractFutureOrType<Object?>());
-  Expect.identical(extractType<Embed<void>>(), extractFutureOrType<void>());
-  Expect.identical(
+  Expect.equals(extractType<Embed<Object?>>(), extractFutureOrType<Object?>());
+  Expect.equals(extractType<Embed<void>>(), extractFutureOrType<void>());
+  Expect.equals(
       extractType<Embed<Future<Never>>>(), extractFutureOrType<Never>());
-  Expect.identical(
+  Expect.equals(
       extractType<Embed<Future<Null>?>>(), extractFutureOrType<Null>());
-  Expect.identical(
+  Expect.equals(
       extractType<Embed<FutureOr<int?>>>(), embedNullableFutureOrType<int?>());
-  Expect.identical(
+  Expect.equals(
       extractType<Embed<FutureOr<A?>>>(), embedNullableFutureOrType<A?>());
 
   // Object* == FutureOr<Object*>
-  Expect.identical(legacy.object, legacy.nonNullableFutureOrOfLegacyObject());
+  Expect.equals(legacy.object, legacy.nonNullableFutureOrOfLegacyObject());
 }

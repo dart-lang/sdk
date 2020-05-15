@@ -12,15 +12,15 @@ main() {
   // to the next runZoned when the handler returns false.
   bool sawInnerHandler = false;
   try {
-    runZoned(() {
+    runZonedGuarded(() {
       runZoned(() {
         throw 0;
-      }, onError: (e) {
+      }, onError: (e, s) {
         Expect.equals(0, e);
         sawInnerHandler = true;
         throw e;
       });
-    }, onError: (e) {
+    }, (e, s) {
       Expect.equals(0, e);
       Expect.isTrue(sawInnerHandler);
       // If we are waiting for an error, don't asyncEnd, but let it time out.

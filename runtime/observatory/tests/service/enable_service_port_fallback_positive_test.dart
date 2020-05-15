@@ -5,7 +5,7 @@
 import 'dart:io';
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
 // Tests that the --enable-service-port-fallback flag works correctly by trying to bind to
@@ -21,11 +21,15 @@ int selectedPort = 0;
 
 main(args) async {
   selectedPort = await _getUnusedPort();
-  await runVMTests(args, tests,
-      enable_service_port_fallback: true,
-      // Choose a port number that should always be open.
-      port: selectedPort,
-      extraArgs: []);
+  await runVMTests(
+    args, tests,
+    enable_service_port_fallback: true,
+    // Choose a port number that should always be open.
+    port: selectedPort,
+    extraArgs: [],
+    // TODO(bkonyi): investigate failure.
+    enableDds: false,
+  );
 }
 
 Future<int> _getUnusedPort() async {

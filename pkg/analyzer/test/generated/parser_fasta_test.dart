@@ -3,19 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/parser/async_modifier.dart';
-import 'package:_fe_analyzer_shared/src/parser/forwarding_listener.dart'
-    as fasta;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/scanner/error_token.dart'
     show ErrorToken;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
-    show LanguageVersionToken, ScannerConfiguration, ScannerResult, scanString;
+    show ScannerConfiguration, ScannerResult, scanString;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/language_version.dart';
 import 'package:analyzer/dart/ast/token.dart' as analyzer;
-import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
+import 'package:analyzer/dart/ast/token.dart'
+    show Token, TokenType, LanguageVersionToken;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -149,6 +147,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     var unit = parseCompilationUnit('class{const():super.{n', errors: [
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 5, 1),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 11, 1),
+      expectedError(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 11, 1),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 20, 1),
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 20, 1),
       expectedError(ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, 20, 1),
@@ -156,6 +155,17 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
       expectedError(ScannerErrorCode.EXPECTED_TOKEN, 22, 1),
       expectedError(ScannerErrorCode.EXPECTED_TOKEN, 22, 1),
     ]);
+    var classDeclaration = unit.declarations[0] as ClassDeclaration;
+    var constructor = classDeclaration.members[0] as ConstructorDeclaration;
+    var invocation = constructor.initializers[0] as SuperConstructorInvocation;
+    expect(invocation.argumentList.arguments, hasLength(0));
+  }
+
+  void test_parseConstructor_operator_name() {
+    var unit = parseCompilationUnit('class A { operator/() : super(); }',
+        errors: [
+          expectedError(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 10, 8)
+        ]);
     var classDeclaration = unit.declarations[0] as ClassDeclaration;
     var constructor = classDeclaration.members[0] as ConstructorDeclaration;
     var invocation = constructor.initializers[0] as SuperConstructorInvocation;
@@ -1962,9 +1972,7 @@ class FastaParserTestCase
 
   @override
   void createParser(String content,
-      {int expectedEndOffset,
-      LanguageVersion languageVersion,
-      FeatureSet featureSet}) {
+      {int expectedEndOffset, FeatureSet featureSet}) {
     featureSet ??= FeatureSet.forTesting();
     var result = scanString(content,
         configuration: featureSet.isEnabled(Feature.non_nullable)
@@ -1972,7 +1980,7 @@ class FastaParserTestCase
             : ScannerConfiguration.classic,
         includeComments: true);
     _fastaTokens = result.tokens;
-    _parserProxy = ParserProxy(_fastaTokens, languageVersion, featureSet,
+    _parserProxy = ParserProxy(_fastaTokens, featureSet,
         allowNativeClause: allowNativeClause,
         expectedEndOffset: expectedEndOffset);
   }
@@ -2083,7 +2091,7 @@ class FastaParserTestCase
 
   CompilationUnit parseCompilationUnit2(
       String content, GatheringErrorListener listener,
-      {LanguageVersion languageVersion, FeatureSet featureSet}) {
+      {LanguageVersionToken languageVersion, FeatureSet featureSet}) {
     featureSet ??= FeatureSet.forTesting();
     var source = StringSource(content, 'parser_test_StringSource.dart');
 
@@ -2109,8 +2117,8 @@ class FastaParserTestCase
       isNonNullableByDefault: false,
     );
     fasta.Parser parser = fasta.Parser(null);
-    AstBuilder astBuilder = AstBuilder(
-        errorReporter, source.uri, true, languageVersion, featureSet);
+    AstBuilder astBuilder =
+        AstBuilder(errorReporter, source.uri, true, featureSet);
     parser.listener = astBuilder;
     astBuilder.parser = parser;
     astBuilder.allowNativeClause = allowNativeClause;
@@ -2715,6 +2723,28 @@ main() {
     parseCompilationUnit('D? foo(X? x) { X? x1; X? x2 = x; }');
   }
 
+  void test_bangQuestionIndex() {
+    // http://dartbug.com/41177
+    CompilationUnit unit = parseCompilationUnit('f(dynamic a) { a!?[0]; }');
+    FunctionDeclaration funct = unit.declarations[0];
+    BlockFunctionBody body = funct.functionExpression.body;
+
+    ExpressionStatement statement = body.block.statements[0];
+    IndexExpression expression = statement.expression;
+
+    IntegerLiteral index = expression.index;
+    expect(index.value, 0);
+
+    Token question = expression.question;
+    expect(question, isNotNull);
+    expect(question.lexeme, "?");
+
+    PostfixExpression target = expression.target;
+    SimpleIdentifier identifier = target.operand;
+    expect(identifier.name, 'a');
+    expect(target.operator.lexeme, '!');
+  }
+
   void test_bangBeforeFuctionCall1() {
     // https://github.com/dart-lang/sdk/issues/39776
     var unit = parseCompilationUnit('f() { Function? f1; f1!(42); }');
@@ -2934,6 +2964,12 @@ main() { a?.[7]; }''',
     PropertyAccess expression = statement.expression;
     expect(expression.target.toSource(), 'a');
     expect(expression.operator.lexeme, '?.');
+  }
+
+  void test_indexExpression_nullable_disabled() {
+    parseCompilationUnit('main(a) { a?[0]; }',
+        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 11, 1)],
+        featureSet: preNonNullable);
   }
 
   void test_is_nullable() {
@@ -3514,8 +3550,7 @@ class ParserProxy extends analyzer.ParserAdapter {
    * Creates a [ParserProxy] which is prepared to begin parsing at the given
    * Fasta token.
    */
-  factory ParserProxy(analyzer.Token firstToken,
-      LanguageVersion languageVersion, FeatureSet featureSet,
+  factory ParserProxy(analyzer.Token firstToken, FeatureSet featureSet,
       {bool allowNativeClause = false, int expectedEndOffset}) {
     TestSource source = TestSource();
     var errorListener = GatheringErrorListener(checkRanges: true);
@@ -3524,22 +3559,16 @@ class ParserProxy extends analyzer.ParserAdapter {
       source,
       isNonNullableByDefault: false,
     );
-    return ParserProxy._(firstToken, errorReporter, null, errorListener,
-        languageVersion, featureSet,
+    return ParserProxy._(
+        firstToken, errorReporter, null, errorListener, featureSet,
         allowNativeClause: allowNativeClause,
         expectedEndOffset: expectedEndOffset);
   }
 
-  ParserProxy._(
-      analyzer.Token firstToken,
-      ErrorReporter errorReporter,
-      Uri fileUri,
-      this._errorListener,
-      LanguageVersion languageVersion,
-      FeatureSet featureSet,
-      {bool allowNativeClause = false,
-      this.expectedEndOffset})
-      : super(firstToken, errorReporter, fileUri, languageVersion, featureSet,
+  ParserProxy._(analyzer.Token firstToken, ErrorReporter errorReporter,
+      Uri fileUri, this._errorListener, FeatureSet featureSet,
+      {bool allowNativeClause = false, this.expectedEndOffset})
+      : super(firstToken, errorReporter, fileUri, featureSet,
             allowNativeClause: allowNativeClause) {
     _eventListener = ForwardingTestListener(astBuilder);
     fastaParser.listener = _eventListener;

@@ -218,7 +218,7 @@ class RuntimeTypeUse {
       case RuntimeTypeUseKind.equals:
         sb.write('equals:');
         sb.write(receiverType);
-        sb.write('/');
+        sb.write('==');
         sb.write(argumentType);
         break;
       case RuntimeTypeUseKind.unknown:

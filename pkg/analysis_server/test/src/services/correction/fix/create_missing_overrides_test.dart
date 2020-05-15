@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test/test.dart';
@@ -245,7 +244,7 @@ abstract class A {
 class B extends A {
 }
 ''');
-    String expectedCode = '''
+    var expectedCode = '''
 abstract class A {
   void m1();
   int m2();
@@ -295,11 +294,11 @@ class B extends A {
     await assertHasFix(expectedCode);
     {
       // end position should be on "m1", not on "m2", "m3", etc.
-      Position endPosition = change.selection;
+      var endPosition = change.selection;
       expect(endPosition, isNotNull);
       expect(endPosition.file, testFile);
-      int endOffset = endPosition.offset;
-      String endString = expectedCode.substring(endOffset, endOffset + 25);
+      var endOffset = endPosition.offset;
+      var endString = expectedCode.substring(endOffset, endOffset + 25);
       expect(endString, contains('m1'));
       expect(endString, isNot(contains('m2')));
       expect(endString, isNot(contains('m3')));

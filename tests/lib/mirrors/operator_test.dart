@@ -12,26 +12,26 @@ import 'package:expect/expect.dart';
 import 'stringify.dart';
 
 class Foo {
-  Foo operator ~() {}
-  Foo operator -() {}
+  Foo operator ~() => this;
+  Foo operator -() => this;
 
-  bool operator ==(a) {}
-  Foo operator [](int a) {}
-  Foo operator *(Foo a) {}
-  Foo operator /(Foo a) {}
-  Foo operator %(Foo a) {}
-  Foo operator ~/(Foo a) {}
-  Foo operator +(Foo a) {}
-  Foo operator <<(Foo a) {}
-  Foo operator >>(Foo a) {}
-  Foo operator >=(Foo a) {}
-  Foo operator >(Foo a) {}
-  Foo operator <=(Foo a) {}
-  Foo operator <(Foo a) {}
-  Foo operator &(Foo a) {}
-  Foo operator ^(Foo a) {}
-  Foo operator |(Foo a) {}
-  Foo operator -(Foo a) {}
+  bool operator ==(a) => false;
+  Foo operator [](int a) => this;
+  Foo operator *(Foo a) => this;
+  Foo operator /(Foo a) => this;
+  Foo operator %(Foo a) => this;
+  Foo operator ~/(Foo a) => this;
+  Foo operator +(Foo a) => this;
+  Foo operator <<(Foo a) => this;
+  Foo operator >>(Foo a) => this;
+  Foo operator >=(Foo a) => this;
+  Foo operator >(Foo a) => this;
+  Foo operator <=(Foo a) => this;
+  Foo operator <(Foo a) => this;
+  Foo operator &(Foo a) => this;
+  Foo operator ^(Foo a) => this;
+  Foo operator |(Foo a) => this;
+  Foo operator -(Foo a) => this;
 
   // TODO(ahe): use void when dart2js reifies that type.
   operator []=(int a, Foo b) {}

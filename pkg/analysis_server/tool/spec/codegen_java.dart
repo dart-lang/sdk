@@ -15,14 +15,14 @@ import 'to_html.dart';
 GeneratedFile javaGeneratedFile(
     String path, CodegenJavaVisitor Function(Api api) createVisitor) {
   return GeneratedFile(path, (String pkgPath) async {
-    CodegenJavaVisitor visitor = createVisitor(readApi(pkgPath));
+    var visitor = createVisitor(readApi(pkgPath));
     return visitor.collectCode(visitor.visitApi);
   });
 }
 
 /// Iterate through the values in [map] in the order of increasing keys.
 Iterable<String> _valuesSortedByKey(Map<String, String> map) {
-  List<String> keys = map.keys.toList();
+  var keys = map.keys.toList();
   keys.sort();
   return keys.map((String key) => map[key]);
 }
@@ -96,7 +96,7 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
   /// Return true iff the passed [TypeDecl] will be represented as Object in
   /// Java.
   bool isObject(TypeDecl type) {
-    String typeStr = javaType(type);
+    var typeStr = javaType(type);
     return typeStr == 'Object';
   }
 
@@ -104,7 +104,7 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
   /// type.
   bool isPrimitive(TypeDecl type) {
     if (type is TypeReference) {
-      String typeStr = javaType(type);
+      var typeStr = javaType(type);
       return typeStr == 'boolean' ||
           typeStr == 'double' ||
           typeStr == 'int' ||
@@ -135,7 +135,7 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
   String javaType(TypeDecl type, [bool optional = false]) {
     if (type is TypeReference) {
       TypeReference resolvedType = resolveTypeReferenceChain(type);
-      String typeName = resolvedType.typeName;
+      var typeName = resolvedType.typeName;
       if (_typeRenames.containsKey(typeName)) {
         typeName = _typeRenames[typeName];
         if (optional) {
@@ -169,32 +169,31 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
   /// sorted).  [header] is the part of the class declaration before the
   /// opening brace.
   void makeClass(String header, void Function() callback) {
-    _CodegenJavaState oldState = _state;
+    var oldState = _state;
     try {
       _state = _CodegenJavaState();
       callback();
       writeln('$header {');
       indent(() {
         // fields
-        List<String> allFields = _state.publicFields.values.toList();
+        var allFields = _state.publicFields.values.toList();
         allFields.addAll(_state.privateFields.values.toList());
-        for (String field in allFields) {
+        for (var field in allFields) {
           writeln();
           write(field);
         }
 
         // constructors
-        List<String> allConstructors = _state.constructors.values.toList();
-        for (String constructor in allConstructors) {
+        var allConstructors = _state.constructors.values.toList();
+        for (var constructor in allConstructors) {
           writeln();
           write(constructor);
         }
 
         // methods (ordered by method name)
-        List<String> allMethods =
-            _valuesSortedByKey(_state.publicMethods).toList();
+        var allMethods = _valuesSortedByKey(_state.publicMethods).toList();
         allMethods.addAll(_valuesSortedByKey(_state.privateMethods));
-        for (String method in allMethods) {
+        for (var method in allMethods) {
           writeln();
           write(method);
         }
@@ -228,7 +227,7 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
 
   @override
   TypeDecl resolveTypeReferenceChain(TypeDecl type) {
-    TypeDecl typeDecl = super.resolveTypeReferenceChain(type);
+    var typeDecl = super.resolveTypeReferenceChain(type);
     if (typeDecl is TypeEnum) {
       return TypeReference('String', null);
     }

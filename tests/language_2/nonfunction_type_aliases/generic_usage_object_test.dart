@@ -4,9 +4,6 @@
 
 // SharedOptions=--enable-experiment=nonfunction-type-aliases
 
-// Test that a non-function type alias can be used as the denoted type in
-// many situations.
-
 import 'dart:async';
 
 // Introduce an aliased type.
@@ -22,17 +19,17 @@ const List<T<C>> v4 = [];
 const v5 = <Type, Type>{T: T};
 
 abstract class C {
-  static T<C> v1;
-  static List<T<T>> v2 = [];
-  static final T<Null> v3 = throw "Anything";
-  static const List<T<List>> v4 = [];
+  static T<C> v6;
+  static List<T<T>> v7 = [];
+  static final T<Null> v8 = throw "Anything";
+  static const List<T<List>> v9 = [];
 
-  T<C> v5;
-  List<T<T>> v6 = [];
-  final T<Null> v7;
+  T<C> v10;
+  List<T<T>> v11 = [];
+  final T<Null> v12;
 
-  C(): v7 = T();
-  C.name1(this.v5, this.v7);
+  C(): v12 = T();
+  C.name1(this.v10, this.v12);
   factory C.name2(T<C> arg1, T<Null> arg2) = C.name1;
 
   T<double> operator +(T<double> other);
@@ -43,17 +40,16 @@ abstract class C {
 }
 
 class D1<X> extends T<X> {}
-abstract class D2 extends C with T<int> {}
-abstract class D3<X, Y> implements T<T> {}
-abstract class D4 = C with T<void>;
+
+abstract class D3<X, Y> extends C implements T<T> {}
 
 extension E on T<dynamic> {
   T<dynamic> foo(T<dynamic> t) => t;
 }
 
-X foo<X>(X x) => x;
-
 T<Type> Function(T<Type>) id;
+
+X foo<X>(X x) => x;
 
 main() {
   var v8 = <T<C>>[];
@@ -63,8 +59,5 @@ main() {
   Set<List<T<C>>> v11 = v10;
   v10 = v11;
   T<Null>();
-  T<Null>.named();
   T<Object> v12 = foo<T<bool>>(T<bool>());
-  id(v12);
-  T<List<List<List<List>>>>.staticMethod<T<int>>();
 }

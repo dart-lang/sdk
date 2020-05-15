@@ -7,13 +7,11 @@ import 'dart:async';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/plugin/plugin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/src/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:analyzer_plugin/utilities/generator.dart';
 
 /// A mixin that can be used when creating a subclass of [ServerPlugin] and
 /// mixing in [FixesMixin]. This implements the creation of the fixes request
@@ -27,18 +25,18 @@ mixin DartFixesMixin implements FixesMixin {
   Future<FixesRequest> getFixesRequest(EditGetFixesParams parameters) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    String path = parameters.file;
-    int offset = parameters.offset;
-    ResolvedUnitResult result = await getResolvedUnitResult(path);
+    var path = parameters.file;
+    var offset = parameters.offset;
+    var result = await getResolvedUnitResult(path);
     return DartFixesRequestImpl(
         resourceProvider, offset, _getErrors(offset, result), result);
   }
 
   List<AnalysisError> _getErrors(int offset, ResolvedUnitResult result) {
-    LineInfo lineInfo = result.lineInfo;
-    int offsetLine = lineInfo.getLocation(offset).lineNumber;
+    var lineInfo = result.lineInfo;
+    var offsetLine = lineInfo.getLocation(offset).lineNumber;
     return result.errors.where((AnalysisError error) {
-      int errorLine = lineInfo.getLocation(error.offset).lineNumber;
+      var errorLine = lineInfo.getLocation(error.offset).lineNumber;
       return errorLine == offsetLine;
     }).toList();
   }
@@ -65,11 +63,10 @@ mixin FixesMixin implements ServerPlugin {
       EditGetFixesParams parameters) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    String path = parameters.file;
-    FixesRequest request = await getFixesRequest(parameters);
-    FixGenerator generator = FixGenerator(getFixContributors(path));
-    GeneratorResult<EditGetFixesResult> result =
-        generator.generateFixesResponse(request);
+    var path = parameters.file;
+    var request = await getFixesRequest(parameters);
+    var generator = FixGenerator(getFixContributors(path));
+    var result = generator.generateFixesResponse(request);
     result.sendNotifications(channel);
     return result.result;
   }

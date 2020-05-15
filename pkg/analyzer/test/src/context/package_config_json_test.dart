@@ -234,6 +234,30 @@ class PackageConfigJsonTest with ResourceProviderMixin {
 ''', 'packageUri');
   }
 
+  test_packages_packageUri_empty() {
+    var config = _parse('''
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "test",
+      "rootUri": "../",
+      "packageUri": ""
+    }
+  ]
+}
+''');
+    assertPackage(
+      config.packages[0],
+      _ExpectedPackage(
+        name: 'test',
+        rootUriPath: '/test/',
+        packageUriPath: '/test/',
+        languageVersion: null,
+      ),
+    );
+  }
+
   test_packages_packageUri_notInRootUri() {
     _throwsFormatException('''
 {
@@ -248,6 +272,30 @@ class PackageConfigJsonTest with ResourceProviderMixin {
   ]
 }
 ''', 'packageUri');
+  }
+
+  test_packages_rootUri_doesNotEndWithSlash() {
+    var config = _parse('''
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "test",
+      "rootUri": "..",
+      "packageUri": "lib"
+    }
+  ]
+}
+''');
+    assertPackage(
+      config.packages[0],
+      _ExpectedPackage(
+        name: 'test',
+        rootUriPath: '/test/',
+        packageUriPath: '/test/lib/',
+        languageVersion: null,
+      ),
+    );
   }
 
   PackageConfigJson _parse(String content) {

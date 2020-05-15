@@ -54,7 +54,11 @@
 namespace dart {
 namespace bin {
 
-SocketAddress::SocketAddress(struct sockaddr* sa) {
+SocketAddress::SocketAddress(struct sockaddr* sa, bool unnamed_unix_socket) {
+  // Fuchsia does not support unix domain sockets.
+  if (unnamed_unix_socket) {
+    FATAL("Fuchsia does not support unix domain sockets.");
+  }
   ASSERT(INET6_ADDRSTRLEN >= INET_ADDRSTRLEN);
   if (!SocketBase::FormatNumericAddress(*reinterpret_cast<RawAddr*>(sa),
                                         as_string_, INET6_ADDRSTRLEN)) {
@@ -131,6 +135,12 @@ intptr_t SocketBase::RecvFrom(intptr_t fd,
                               SocketOpKind sync) {
   errno = ENOSYS;
   return -1;
+}
+
+bool SocketBase::AvailableDatagram(intptr_t fd,
+                                   void* buffer,
+                                   intptr_t num_bytes) {
+  return false;
 }
 
 intptr_t SocketBase::Write(intptr_t fd,
@@ -272,6 +282,16 @@ bool SocketBase::ParseAddress(int type, const char* address, RawAddr* addr) {
         NO_RETRY_EXPECTED(inet_pton(AF_INET6, address, &addr->in6.sin6_addr));
   }
   return (result == 1);
+}
+
+bool SocketBase::RawAddrToString(RawAddr* addr, char* str) {
+  if (addr->addr.sa_family == AF_INET) {
+    return inet_ntop(AF_INET, &addr->in.sin_addr, str, INET_ADDRSTRLEN) != NULL;
+  } else {
+    ASSERT(addr->addr.sa_family == AF_INET6);
+    return inet_ntop(AF_INET6, &addr->in6.sin6_addr, str, INET6_ADDRSTRLEN) !=
+           NULL;
+  }
 }
 
 bool SocketBase::ListInterfacesSupported() {

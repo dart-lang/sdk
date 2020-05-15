@@ -2,9 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore: deprecated_member_use
+import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/fix_aggregator.dart';
@@ -23,6 +29,10 @@ main() {
 
 @reflectiveTest
 class FixAggregatorTest extends FixAggregatorTestBase {
+  TypeProviderImpl get nnbdTypeProvider =>
+      (testAnalysisResult.typeProvider as TypeProviderImpl)
+          .asNonNullableByDefault;
+
   Future<void> test_addRequired() async {
     await analyze('f({int x}) => 0;');
     var previewInfo = run({
@@ -43,6 +53,105 @@ class FixAggregatorTest extends FixAggregatorTestBase {
         ..addNullCheck(_MockInfo())
     });
     expect(previewInfo.applyTo(code), 'f(a, b) => (a! + b!)!;');
+  }
+
+  Future<void> test_assignment_add_null_check() async {
+    var content = 'f(int x, int y) => x += y;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.assignment('+='): NodeChangeForAssignment()..addNullCheck(null)
+    });
+    expect(previewInfo.applyTo(code), 'f(int x, int y) => (x += y)!;');
+  }
+
+  Future<void> test_assignment_change_lhs() async {
+    var content = 'f(List<int> x, int y) => x[0] += y;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.assignment('+='): NodeChangeForAssignment(),
+      findNode.index('[0]').target: NodeChangeForExpression()
+        ..addNullCheck(null)
+    });
+    expect(previewInfo.applyTo(code), 'f(List<int> x, int y) => x![0] += y;');
+  }
+
+  Future<void> test_assignment_change_rhs() async {
+    var content = 'f(int x, int y) => x += y;';
+    await analyze(content);
+    var assignment = findNode.assignment('+=');
+    var previewInfo = run({
+      assignment: NodeChangeForAssignment(),
+      assignment.rightHandSide: NodeChangeForExpression()..addNullCheck(null)
+    });
+    expect(previewInfo.applyTo(code), 'f(int x, int y) => x += y!;');
+  }
+
+  Future<void> test_assignment_compound_with_bad_combined_type() async {
+    var content = 'f(int x, int y) => x += y;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.assignment('+='): NodeChangeForAssignment()
+        ..hasBadCombinedType = true
+    });
+    expect(previewInfo.applyTo(code), content);
+    expect(previewInfo, hasLength(1));
+    var edit = previewInfo[content.indexOf('+=')].single;
+    expect(edit.info.description,
+        NullabilityFixDescription.compoundAssignmentHasBadCombinedType);
+    expect(edit.isInformative, isTrue);
+    expect(edit.length, '+='.length);
+  }
+
+  Future<void> test_assignment_compound_with_nullable_source() async {
+    var content = 'f(int x, int y) => x += y;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.assignment('+='): NodeChangeForAssignment()
+        ..hasNullableSource = true
+    });
+    expect(previewInfo.applyTo(code), content);
+    expect(previewInfo, hasLength(1));
+    var edit = previewInfo[content.indexOf('+=')].single;
+    expect(edit.info.description,
+        NullabilityFixDescription.compoundAssignmentHasNullableSource);
+    expect(edit.isInformative, isTrue);
+    expect(edit.length, '+='.length);
+  }
+
+  Future<void> test_assignment_introduce_as() async {
+    var content = 'f(int x, int y) => x += y;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.assignment('+='): NodeChangeForAssignment()
+        ..introduceAs(nnbdTypeProvider.intType, null)
+    });
+    expect(previewInfo.applyTo(code), 'f(int x, int y) => (x += y) as int;');
+  }
+
+  Future<void> test_assignment_weak_null_aware() async {
+    var content = 'f(int x, int y) => x ??= y;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.assignment('??='): NodeChangeForAssignment()
+        ..isWeakNullAware = true
+    }, warnOnWeakCode: true);
+    expect(previewInfo.applyTo(code), content);
+    expect(previewInfo, hasLength(1));
+    var edit = previewInfo[content.indexOf('??=')].single;
+    expect(edit.info.description,
+        NullabilityFixDescription.nullAwareAssignmentUnnecessaryInStrongMode);
+    expect(edit.isInformative, isTrue);
+    expect(edit.length, '??='.length);
+  }
+
+  Future<void> test_assignment_weak_null_aware_remove() async {
+    var content = 'f(int x, int y) => x ??= y;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.assignment('??='): NodeChangeForAssignment()
+        ..isWeakNullAware = true
+    }, warnOnWeakCode: false);
+    expect(previewInfo.applyTo(code), 'f(int x, int y) => x;');
   }
 
   Future<void> test_eliminateDeadIf_changesInKeptCode() async {
@@ -374,26 +483,305 @@ void f(int i, String callback()) {
     // leave them.
     await analyze('f(a, c) => a..b = (throw c..d);');
     var cd = findNode.cascade('c..d');
-    var previewInfo =
-        run({cd: NodeChangeForExpression()..introduceAs('int', _MockInfo())});
+    var previewInfo = run({
+      cd: NodeChangeForExpression()
+        ..introduceAs(nnbdTypeProvider.intType, _MockInfo())
+    });
     expect(
         previewInfo.applyTo(code), 'f(a, c) => a..b = (throw (c..d) as int);');
+  }
+
+  Future<void> test_introduceAs_dynamic() async {
+    await analyze('f(Object o) => o;');
+    var expr = findNode.simple('o;');
+    var previewInfo = run({
+      expr: NodeChangeForExpression()
+        ..introduceAs(nnbdTypeProvider.dynamicType, _MockInfo())
+    });
+    expect(previewInfo.applyTo(code), 'f(Object o) => o as dynamic;');
+  }
+
+  Future<void> test_introduceAs_favorPrefix() async {
+    await analyze('''
+import 'dart:async' as a;
+import 'dart:async';
+f(Object o) => o;
+''');
+    var expr = findNode.simple('o;');
+    var previewInfo = run({
+      expr: NodeChangeForExpression()
+        ..introduceAs(nnbdTypeProvider.futureNullType, _MockInfo())
+    });
+    expect(previewInfo.applyTo(code), '''
+import 'dart:async' as a;
+import 'dart:async';
+f(Object o) => o as a.Future<Null>;
+''');
+  }
+
+  Future<void> test_introduceAs_functionType() async {
+    await analyze('f(Object o) => o;');
+    var expr = findNode.simple('o;');
+    var previewInfo = run({
+      expr: NodeChangeForExpression()
+        ..introduceAs(
+            FunctionTypeImpl(
+                returnType: nnbdTypeProvider.boolType,
+                typeFormals: [],
+                parameters: [],
+                nullabilitySuffix: NullabilitySuffix.none),
+            _MockInfo())
+    });
+    expect(previewInfo.applyTo(code), 'f(Object o) => o as bool Function();');
+  }
+
+  Future<void> test_introduceAs_functionType_formal_bound() async {
+    await analyze('f(Object o) => o;');
+    var expr = findNode.simple('o;');
+    var previewInfo = run({
+      expr: NodeChangeForExpression()
+        ..introduceAs(
+            FunctionTypeImpl(
+                returnType: nnbdTypeProvider.boolType,
+                typeFormals: [
+                  TypeParameterElementImpl.synthetic('T')
+                    ..bound = nnbdTypeProvider.numType
+                ],
+                parameters: [],
+                nullabilitySuffix: NullabilitySuffix.none),
+            _MockInfo())
+    });
+    expect(previewInfo.applyTo(code),
+        'f(Object o) => o as bool Function<T extends num>();');
+  }
+
+  Future<void> test_introduceAs_functionType_formal_bound_dynamic() async {
+    await analyze('f(Object o) => o;');
+    var expr = findNode.simple('o;');
+    var previewInfo = run({
+      expr: NodeChangeForExpression()
+        ..introduceAs(
+            FunctionTypeImpl(
+                returnType: nnbdTypeProvider.boolType,
+                typeFormals: [
+                  TypeParameterElementImpl.synthetic('T')
+                    ..bound = nnbdTypeProvider.dynamicType
+                ],
+                parameters: [],
+                nullabilitySuffix: NullabilitySuffix.none),
+            _MockInfo())
+    });
+    expect(
+        previewInfo.applyTo(code), 'f(Object o) => o as bool Function<T>();');
+  }
+
+  Future<void> test_introduceAs_functionType_formal_bound_object() async {
+    await analyze('f(Object o) => o;');
+    var expr = findNode.simple('o;');
+    var previewInfo = run({
+      expr: NodeChangeForExpression()
+        ..introduceAs(
+            FunctionTypeImpl(
+                returnType: nnbdTypeProvider.boolType,
+                typeFormals: [
+                  TypeParameterElementImpl.synthetic('T')
+                    ..bound = nnbdTypeProvider.objectType
+                ],
+                parameters: [],
+                nullabilitySuffix: NullabilitySuffix.none),
+            _MockInfo())
+    });
+    expect(previewInfo.applyTo(code),
+        'f(Object o) => o as bool Function<T extends Object>();');
+  }
+
+  Future<void>
+      test_introduceAs_functionType_formal_bound_object_question() async {
+    await analyze('f(Object o) => o;');
+    var expr = findNode.simple('o;');
+    var previewInfo = run({
+      expr: NodeChangeForExpression()
+        ..introduceAs(
+            FunctionTypeImpl(
+                returnType: nnbdTypeProvider.boolType,
+                typeFormals: [
+                  TypeParameterElementImpl.synthetic('T')
+                    ..bound = (nnbdTypeProvider.objectType as TypeImpl)
+                        .withNullability(NullabilitySuffix.question)
+                ],
+                parameters: [],
+                nullabilitySuffix: NullabilitySuffix.none),
+            _MockInfo())
+    });
+    expect(
+        previewInfo.applyTo(code), 'f(Object o) => o as bool Function<T>();');
+  }
+
+  Future<void> test_introduceAs_functionType_formal_bound_question() async {
+    await analyze('f(Object o) => o;');
+    var expr = findNode.simple('o;');
+    var previewInfo = run({
+      expr: NodeChangeForExpression()
+        ..introduceAs(
+            FunctionTypeImpl(
+                returnType: nnbdTypeProvider.boolType,
+                typeFormals: [
+                  TypeParameterElementImpl.synthetic('T')
+                    ..bound = (nnbdTypeProvider.numType as TypeImpl)
+                        .withNullability(NullabilitySuffix.question)
+                ],
+                parameters: [],
+                nullabilitySuffix: NullabilitySuffix.none),
+            _MockInfo())
+    });
+    expect(previewInfo.applyTo(code),
+        'f(Object o) => o as bool Function<T extends num?>();');
+  }
+
+  Future<void> test_introduceAs_functionType_formals() async {
+    await analyze('f(Object o) => o;');
+    var expr = findNode.simple('o;');
+    var previewInfo = run({
+      expr: NodeChangeForExpression()
+        ..introduceAs(
+            FunctionTypeImpl(
+                returnType: nnbdTypeProvider.boolType,
+                typeFormals: [
+                  TypeParameterElementImpl.synthetic('T'),
+                  TypeParameterElementImpl.synthetic('U')
+                ],
+                parameters: [],
+                nullabilitySuffix: NullabilitySuffix.none),
+            _MockInfo())
+    });
+    expect(previewInfo.applyTo(code),
+        'f(Object o) => o as bool Function<T, U>();');
+  }
+
+  Future<void> test_introduceAs_functionType_parameters() async {
+    await analyze('f(Object o) => o;');
+    var expr = findNode.simple('o;');
+    var previewInfo = run({
+      expr: NodeChangeForExpression()
+        ..introduceAs(
+            FunctionTypeImpl(
+                returnType: nnbdTypeProvider.boolType,
+                typeFormals: [],
+                parameters: [
+                  ParameterElementImpl.synthetic(
+                      'x', nnbdTypeProvider.intType, ParameterKind.REQUIRED),
+                  ParameterElementImpl.synthetic(
+                      'y', nnbdTypeProvider.numType, ParameterKind.REQUIRED)
+                ],
+                nullabilitySuffix: NullabilitySuffix.none),
+            _MockInfo())
+    });
+    expect(previewInfo.applyTo(code),
+        'f(Object o) => o as bool Function(int, num);');
+  }
+
+  Future<void> test_introduceAs_functionType_parameters_named() async {
+    await analyze('f(Object o) => o;');
+    var expr = findNode.simple('o;');
+    var previewInfo = run({
+      expr: NodeChangeForExpression()
+        ..introduceAs(
+            FunctionTypeImpl(
+                returnType: nnbdTypeProvider.boolType,
+                typeFormals: [],
+                parameters: [
+                  ParameterElementImpl.synthetic(
+                      'x', nnbdTypeProvider.intType, ParameterKind.NAMED),
+                  ParameterElementImpl.synthetic(
+                      'y', nnbdTypeProvider.numType, ParameterKind.NAMED)
+                ],
+                nullabilitySuffix: NullabilitySuffix.none),
+            _MockInfo())
+    });
+    expect(previewInfo.applyTo(code),
+        'f(Object o) => o as bool Function({int x, num y});');
+  }
+
+  Future<void> test_introduceAs_functionType_parameters_optional() async {
+    await analyze('f(Object o) => o;');
+    var expr = findNode.simple('o;');
+    var previewInfo = run({
+      expr: NodeChangeForExpression()
+        ..introduceAs(
+            FunctionTypeImpl(
+                returnType: nnbdTypeProvider.boolType,
+                typeFormals: [],
+                parameters: [
+                  ParameterElementImpl.synthetic(
+                      'x', nnbdTypeProvider.intType, ParameterKind.POSITIONAL),
+                  ParameterElementImpl.synthetic(
+                      'y', nnbdTypeProvider.numType, ParameterKind.POSITIONAL)
+                ],
+                nullabilitySuffix: NullabilitySuffix.none),
+            _MockInfo())
+    });
+    expect(previewInfo.applyTo(code),
+        'f(Object o) => o as bool Function([int, num]);');
+  }
+
+  Future<void> test_introduceAs_interfaceType_parameterized() async {
+    await analyze('f(Object o) => o;');
+    var expr = findNode.simple('o;');
+    var previewInfo = run({
+      expr: NodeChangeForExpression()
+        ..introduceAs(
+            nnbdTypeProvider.mapType2(
+                nnbdTypeProvider.intType, nnbdTypeProvider.boolType),
+            _MockInfo())
+    });
+    expect(previewInfo.applyTo(code), 'f(Object o) => o as Map<int, bool>;');
   }
 
   Future<void> test_introduceAs_no_parens() async {
     await analyze('f(a, b) => a | b;');
     var expr = findNode.binary('a | b');
-    var previewInfo =
-        run({expr: NodeChangeForExpression()..introduceAs('int', _MockInfo())});
+    var previewInfo = run({
+      expr: NodeChangeForExpression()
+        ..introduceAs(nnbdTypeProvider.intType, _MockInfo())
+    });
     expect(previewInfo.applyTo(code), 'f(a, b) => a | b as int;');
   }
 
   Future<void> test_introduceAs_parens() async {
     await analyze('f(a, b) => a < b;');
     var expr = findNode.binary('a < b');
-    var previewInfo = run(
-        {expr: NodeChangeForExpression()..introduceAs('bool', _MockInfo())});
+    var previewInfo = run({
+      expr: NodeChangeForExpression()
+        ..introduceAs(nnbdTypeProvider.boolType, _MockInfo())
+    });
     expect(previewInfo.applyTo(code), 'f(a, b) => (a < b) as bool;');
+  }
+
+  Future<void> test_introduceAs_usePrefix() async {
+    await analyze('''
+import 'dart:async' as a;
+f(Object o) => o;
+''');
+    var expr = findNode.simple('o;');
+    var previewInfo = run({
+      expr: NodeChangeForExpression()
+        ..introduceAs(nnbdTypeProvider.futureNullType, _MockInfo())
+    });
+    expect(previewInfo.applyTo(code), '''
+import 'dart:async' as a;
+f(Object o) => o as a.Future<Null>;
+''');
+  }
+
+  Future<void> test_introduceAs_withNullCheck() async {
+    await analyze('f(x) => x;');
+    var expr = findNode.simple('x;');
+    var previewInfo = run({
+      expr: NodeChangeForExpression()
+        ..introduceAs(nnbdTypeProvider.intType, _MockInfo())
+        ..addNullCheck(_MockInfo())
+    });
+    expect(previewInfo.applyTo(code), 'f(x) => x! as int;');
   }
 
   Future<void> test_keep_redundant_parens() async {
@@ -407,11 +795,35 @@ void f(int i, String callback()) {
     var typeName = findNode.typeName('int');
     var previewInfo = run({
       typeName: NodeChangeForTypeAnnotation()
-        ..makeNullable = true
-        ..makeNullableType = MockDecoratedType(
-            MockDartType(toStringValueWithoutNullability: 'int'))
+        ..recordNullability(
+            MockDecoratedType(
+                MockDartType(toStringValueWithoutNullability: 'int')),
+            true)
     });
     expect(previewInfo.applyTo(code), 'f(int? x) {}');
+  }
+
+  Future<void> test_noChangeToTypeAnnotation() async {
+    await analyze('int x = 0;');
+    var typeName = findNode.typeName('int');
+    var previewInfo = run({
+      typeName: NodeChangeForTypeAnnotation()
+        ..recordNullability(
+            MockDecoratedType(
+                MockDartType(toStringValueWithoutNullability: 'int')),
+            false)
+    });
+    expect(previewInfo.applyTo(code), 'int x = 0;');
+    expect(previewInfo.applyTo(code, includeInformative: true), 'int  x = 0;');
+    expect(previewInfo.values.single.single.info.description.appliedMessage,
+        "Type 'int' was not made nullable");
+  }
+
+  Future<void> test_noInfoForTypeAnnotation() async {
+    await analyze('int x = 0;');
+    var typeName = findNode.typeName('int');
+    var previewInfo = run({typeName: NodeChangeForTypeAnnotation()});
+    expect(previewInfo, null);
   }
 
   Future<void> test_nullCheck_index_cascadeResult() async {
@@ -452,6 +864,221 @@ void f(int i, String callback()) {
     var previewInfo = run(
         {property: NodeChangeForPropertyAccess()..addNullCheck(_MockInfo())});
     expect(previewInfo.applyTo(code), 'f(a) => a..b!.c;');
+  }
+
+  Future<void> test_parameter_addExplicitType_annotated() async {
+    await analyze('f({@deprecated x = 0}) {}');
+    var previewInfo = run({
+      findNode.simpleParameter('x'): NodeChangeForSimpleFormalParameter()
+        ..addExplicitType = nnbdTypeProvider.intType
+    });
+    expect(previewInfo.applyTo(code), 'f({@deprecated int x = 0}) {}');
+  }
+
+  Future<void> test_parameter_addExplicitType_declared_with_covariant() async {
+    await analyze('''
+class C {
+  m({num x}) {}
+}
+class D extends C {
+  m({covariant x = 3}) {}
+}
+''');
+    var previewInfo = run({
+      findNode.simpleParameter('x = 3'): NodeChangeForSimpleFormalParameter()
+        ..addExplicitType = nnbdTypeProvider.intType
+    });
+    expect(previewInfo.applyTo(code), '''
+class C {
+  m({num x}) {}
+}
+class D extends C {
+  m({covariant int x = 3}) {}
+}
+''');
+  }
+
+  Future<void> test_parameter_addExplicitType_declared_with_final() async {
+    await analyze('f({final x = 0}) {}');
+    var previewInfo = run({
+      findNode.simpleParameter('x'): NodeChangeForSimpleFormalParameter()
+        ..addExplicitType = nnbdTypeProvider.intType
+    });
+    expect(previewInfo.applyTo(code), 'f({final int x = 0}) {}');
+  }
+
+  Future<void> test_parameter_addExplicitType_declared_with_var() async {
+    await analyze('f({var x = 0}) {}');
+    var previewInfo = run({
+      findNode.simpleParameter('x'): NodeChangeForSimpleFormalParameter()
+        ..addExplicitType = nnbdTypeProvider.intType
+    });
+    expect(previewInfo.applyTo(code), 'f({int x = 0}) {}');
+  }
+
+  Future<void> test_parameter_addExplicitType_named() async {
+    await analyze('f({x = 0}) {}');
+    var previewInfo = run({
+      findNode.simpleParameter('x'): NodeChangeForSimpleFormalParameter()
+        ..addExplicitType = nnbdTypeProvider.intType
+    });
+    expect(previewInfo.applyTo(code), 'f({int x = 0}) {}');
+  }
+
+  Future<void> test_parameter_addExplicitType_no() async {
+    await analyze('f([x = 0]) {}');
+    var previewInfo = run(
+        {findNode.simpleParameter('x'): NodeChangeForSimpleFormalParameter()});
+    expect(previewInfo, isNull);
+  }
+
+  Future<void> test_parameter_addExplicitType_optional_insert() async {
+    await analyze('f([x = 0]) {}');
+    var previewInfo = run({
+      findNode.simpleParameter('x'): NodeChangeForSimpleFormalParameter()
+        ..addExplicitType = nnbdTypeProvider.intType
+    });
+    expect(previewInfo.applyTo(code), 'f([int x = 0]) {}');
+  }
+
+  Future<void> test_parameter_addExplicitType_prefixed_type() async {
+    await analyze('''
+import 'dart:core' as core;
+f({x = 0}) {}
+''');
+    var previewInfo = run({
+      findNode.simpleParameter('x'): NodeChangeForSimpleFormalParameter()
+        ..addExplicitType = nnbdTypeProvider.intType
+    });
+    expect(previewInfo.applyTo(code), '''
+import 'dart:core' as core;
+f({core.int x = 0}) {}
+''');
+  }
+
+  Future<void> test_post_increment_add_null_check() async {
+    var content = 'f(int x) => x++;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.postfix('++'): NodeChangeForPostfixExpression()
+        ..addNullCheck(null)
+    });
+    expect(previewInfo.applyTo(code), 'f(int x) => x++!;');
+  }
+
+  Future<void> test_post_increment_change_target() async {
+    var content = 'f(List<int> x) => x[0]++;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.postfix('++'): NodeChangeForPostfixExpression(),
+      findNode.index('[0]').target: NodeChangeForExpression()
+        ..addNullCheck(null)
+    });
+    expect(previewInfo.applyTo(code), 'f(List<int> x) => x![0]++;');
+  }
+
+  Future<void> test_post_increment_introduce_as() async {
+    var content = 'f(int x) => x++;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.postfix('++'): NodeChangeForPostfixExpression()
+        ..introduceAs(nnbdTypeProvider.intType, null)
+    });
+    expect(previewInfo.applyTo(code), 'f(int x) => x++ as int;');
+  }
+
+  Future<void> test_post_increment_with_bad_combined_type() async {
+    var content = 'f(int x) => x++;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.postfix('++'): NodeChangeForPostfixExpression()
+        ..hasBadCombinedType = true
+    });
+    expect(previewInfo.applyTo(code), content);
+    expect(previewInfo, hasLength(1));
+    var edit = previewInfo[content.indexOf('++')].single;
+    expect(edit.info.description,
+        NullabilityFixDescription.compoundAssignmentHasBadCombinedType);
+    expect(edit.isInformative, isTrue);
+    expect(edit.length, '++'.length);
+  }
+
+  Future<void> test_post_increment_with_nullable_source() async {
+    var content = 'f(int x) => x++;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.postfix('++'): NodeChangeForPostfixExpression()
+        ..hasNullableSource = true
+    });
+    expect(previewInfo.applyTo(code), content);
+    expect(previewInfo, hasLength(1));
+    var edit = previewInfo[content.indexOf('++')].single;
+    expect(edit.info.description,
+        NullabilityFixDescription.compoundAssignmentHasNullableSource);
+    expect(edit.isInformative, isTrue);
+    expect(edit.length, '++'.length);
+  }
+
+  Future<void> test_pre_increment_add_null_check() async {
+    var content = 'f(int x) => ++x;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.prefix('++'): NodeChangeForPrefixExpression()..addNullCheck(null)
+    });
+    expect(previewInfo.applyTo(code), 'f(int x) => (++x)!;');
+  }
+
+  Future<void> test_pre_increment_change_target() async {
+    var content = 'f(List<int> x) => ++x[0];';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.prefix('++'): NodeChangeForPrefixExpression(),
+      findNode.index('[0]').target: NodeChangeForExpression()
+        ..addNullCheck(null)
+    });
+    expect(previewInfo.applyTo(code), 'f(List<int> x) => ++x![0];');
+  }
+
+  Future<void> test_pre_increment_introduce_as() async {
+    var content = 'f(int x) => ++x;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.prefix('++'): NodeChangeForPrefixExpression()
+        ..introduceAs(nnbdTypeProvider.intType, null)
+    });
+    expect(previewInfo.applyTo(code), 'f(int x) => ++x as int;');
+  }
+
+  Future<void> test_pre_increment_with_bad_combined_type() async {
+    var content = 'f(int x) => ++x;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.prefix('++'): NodeChangeForPrefixExpression()
+        ..hasBadCombinedType = true
+    });
+    expect(previewInfo.applyTo(code), content);
+    expect(previewInfo, hasLength(1));
+    var edit = previewInfo[content.indexOf('++')].single;
+    expect(edit.info.description,
+        NullabilityFixDescription.compoundAssignmentHasBadCombinedType);
+    expect(edit.isInformative, isTrue);
+    expect(edit.length, '++'.length);
+  }
+
+  Future<void> test_pre_increment_with_nullable_source() async {
+    var content = 'f(int x) => ++x;';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.prefix('++'): NodeChangeForPrefixExpression()
+        ..hasNullableSource = true
+    });
+    expect(previewInfo.applyTo(code), content);
+    expect(previewInfo, hasLength(1));
+    var edit = previewInfo[content.indexOf('++')].single;
+    expect(edit.info.description,
+        NullabilityFixDescription.compoundAssignmentHasNullableSource);
+    expect(edit.isInformative, isTrue);
+    expect(edit.length, '++'.length);
   }
 
   Future<void>
@@ -568,6 +1195,72 @@ void f(int i, String callback()) {
     expect(previewInfo.applyTo(code), 'f(a, b, c) => a < b | c;');
   }
 
+  Future<void> test_removeLanguageVersion() async {
+    await analyze('''
+//@dart=2.6
+void main() {}
+''');
+    var previewInfo = run({
+      findNode.unit: NodeChangeForCompilationUnit()
+        ..removeLanguageVersionComment = true
+    });
+    // TODO(mfairhurst): Remove beginning \n once it renders properly in preview
+    expect(previewInfo.applyTo(code), '\nvoid main() {}\n');
+  }
+
+  Future<void> test_removeLanguageVersion_after_license() async {
+    await analyze('''
+// Some licensing stuff here...
+// Some copyrighting stuff too...
+// etc...
+// @dart = 2.6
+void main() {}
+''');
+    var previewInfo = run({
+      findNode.unit: NodeChangeForCompilationUnit()
+        ..removeLanguageVersionComment = true
+    });
+    // TODO(mfairhurst): Remove beginning \n once it renders properly in preview
+    expect(previewInfo.applyTo(code), '''
+// Some licensing stuff here...
+// Some copyrighting stuff too...
+// etc...
+
+void main() {}
+''');
+  }
+
+  Future<void> test_removeLanguageVersion_spaces() async {
+    await analyze('''
+// @dart = 2.6
+void main() {}
+''');
+    var previewInfo = run({
+      findNode.unit: NodeChangeForCompilationUnit()
+        ..removeLanguageVersionComment = true
+    });
+    // TODO(mfairhurst): Remove beginning \n once it renders properly in preview
+    expect(previewInfo.applyTo(code), '\nvoid main() {}\n');
+  }
+
+  Future<void> test_removeLanguageVersion_withOtherChanges() async {
+    await analyze('''
+//@dart=2.6
+int f() => null;
+''');
+    var previewInfo = run({
+      findNode.unit: NodeChangeForCompilationUnit()
+        ..removeLanguageVersionComment = true,
+      findNode.typeAnnotation('int'): NodeChangeForTypeAnnotation()
+        ..recordNullability(
+            MockDecoratedType(
+                MockDartType(toStringValueWithoutNullability: 'int')),
+            true)
+    });
+    // TODO(mfairhurst): Remove beginning \n once it renders properly in preview
+    expect(previewInfo.applyTo(code), '\nint? f() => null;\n');
+  }
+
   Future<void> test_removeNullAwarenessFromMethodInvocation() async {
     await analyze('f(x) => x?.m();');
     var methodInvocation = findNode.methodInvocation('?.');
@@ -613,9 +1306,10 @@ void f(int i, String callback()) {
       methodInvocation: NodeChangeForMethodInvocation()
         ..removeNullAwareness = true,
       typeAnnotation: NodeChangeForTypeAnnotation()
-        ..makeNullable = true
-        ..makeNullableType = MockDecoratedType(
-            MockDartType(toStringValueWithoutNullability: 'int'))
+        ..recordNullability(
+            MockDecoratedType(
+                MockDartType(toStringValueWithoutNullability: 'int')),
+            true)
     });
     expect(previewInfo.applyTo(code), 'f(x) => x.m<int?>();');
   }
@@ -692,15 +1386,42 @@ f({required int x}) {}
     expect(previewInfo.values.single.single.isDeletion, true);
   }
 
+  Future<void>
+      test_requiredAnnotationToRequiredKeyword_simple_removeViaComment() async {
+    addMetaPackage();
+    await analyze('''
+import 'package:meta/meta.dart';
+f({@required int x}) {}
+''');
+    var annotation = findNode.annotation('required');
+    var previewInfo = run(
+        {annotation: NodeChangeForAnnotation()..changeToRequiredKeyword = true},
+        removeViaComments: true);
+    expect(previewInfo.applyTo(code), '''
+import 'package:meta/meta.dart';
+f({required int x}) {}
+''');
+    expect(previewInfo.values.single.single.isDeletion, true);
+  }
+
   Future<void> test_variableDeclarationList_addExplicitType_insert() async {
     await analyze('final x = 0;');
     var previewInfo = run({
       findNode.variableDeclarationList('final'):
           NodeChangeForVariableDeclarationList()
-            ..addExplicitType =
-                MockDartType(toStringValueWithNullability: 'int')
+            ..addExplicitType = nnbdTypeProvider.intType
     });
     expect(previewInfo.applyTo(code), 'final int x = 0;');
+  }
+
+  Future<void> test_variableDeclarationList_addExplicitType_metadata() async {
+    await analyze('@deprecated var x = 0;');
+    var previewInfo = run({
+      findNode.variableDeclarationList('var'):
+          NodeChangeForVariableDeclarationList()
+            ..addExplicitType = nnbdTypeProvider.intType
+    });
+    expect(previewInfo.applyTo(code), '@deprecated int x = 0;');
   }
 
   Future<void> test_variableDeclarationList_addExplicitType_no() async {
@@ -717,12 +1438,27 @@ f({required int x}) {}
     var previewInfo = run({
       findNode.variableDeclarationList('var'):
           NodeChangeForVariableDeclarationList()
-            ..addExplicitType =
-                MockDartType(toStringValueWithNullability: 'int'),
+            ..addExplicitType = nnbdTypeProvider.intType,
       findNode.integerLiteral('0'): NodeChangeForExpression()
         ..addNullCheck(_MockInfo())
     });
     expect(previewInfo.applyTo(code), 'int x = 0!;');
+  }
+
+  Future<void> test_variableDeclarationList_addExplicitType_prefixed() async {
+    await analyze('''
+import 'dart:core' as core;
+final x = 0;
+''');
+    var previewInfo = run({
+      findNode.variableDeclarationList('final'):
+          NodeChangeForVariableDeclarationList()
+            ..addExplicitType = nnbdTypeProvider.intType
+    });
+    expect(previewInfo.applyTo(code), '''
+import 'dart:core' as core;
+final core.int x = 0;
+''');
   }
 
   Future<void> test_variableDeclarationList_addExplicitType_replaceVar() async {
@@ -730,10 +1466,61 @@ f({required int x}) {}
     var previewInfo = run({
       findNode.variableDeclarationList('var'):
           NodeChangeForVariableDeclarationList()
-            ..addExplicitType =
-                MockDartType(toStringValueWithNullability: 'int')
+            ..addExplicitType = nnbdTypeProvider.intType
     });
     expect(previewInfo.applyTo(code), 'int x = 0;');
+  }
+
+  Future<void> test_warnOnDeadIf_false() async {
+    await analyze('''
+f(int i) {
+  if (i == null) print(i);
+}
+''');
+    var previewInfo = run({
+      findNode.statement('if'): NodeChangeForIfStatement()
+        ..conditionValue = false
+    }, warnOnWeakCode: true);
+    expect(previewInfo.applyTo(code, includeInformative: true), '''
+f(int i) {
+  if (i == null /* == false */) print(i);
+}
+''');
+  }
+
+  Future<void> test_warnOnDeadIf_true() async {
+    await analyze('''
+f(int i) {
+  if (i != null) print(i);
+}
+''');
+    var previewInfo = run({
+      findNode.statement('if'): NodeChangeForIfStatement()
+        ..conditionValue = true
+    }, warnOnWeakCode: true);
+    expect(previewInfo.applyTo(code, includeInformative: true), '''
+f(int i) {
+  if (i != null /* == true */) print(i);
+}
+''');
+  }
+
+  Future<void> test_warnOnNullAwareAccess() async {
+    var content = '''
+f(int i) {
+  print(i?.isEven);
+}
+''';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.propertyAccess('?.'): NodeChangeForPropertyAccess()
+        ..removeNullAwareness = true
+    }, warnOnWeakCode: true);
+    expect(previewInfo.applyTo(code), content);
+    expect(previewInfo, hasLength(1));
+    var edit = previewInfo[content.indexOf('?')].single;
+    expect(edit.isInformative, isTrue);
+    expect(edit.length, '?'.length);
   }
 }
 
@@ -746,9 +1533,9 @@ class FixAggregatorTestBase extends AbstractSingleUnitTest {
   }
 
   Map<int, List<AtomicEdit>> run(Map<AstNode, NodeChange> changes,
-      {bool removeViaComments: false}) {
+      {bool removeViaComments = false, bool warnOnWeakCode = false}) {
     return FixAggregator.run(testUnit, testCode, changes,
-        removeViaComments: removeViaComments);
+        removeViaComments: removeViaComments, warnOnWeakCode: warnOnWeakCode);
   }
 }
 

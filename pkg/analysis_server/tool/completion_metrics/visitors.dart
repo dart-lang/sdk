@@ -11,6 +11,8 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart' as element;
 
 class ExpectedCompletion {
+  final String _filePath;
+
   final SyntacticEntity _entity;
 
   /// Some completions are special cased from the DAS "import" for instance is
@@ -26,11 +28,12 @@ class ExpectedCompletion {
 
   final protocol.ElementKind _elementKind;
 
-  ExpectedCompletion(this._entity, this._lineNumber, this._columnNumber,
-      this._kind, this._elementKind)
+  ExpectedCompletion(this._filePath, this._entity, this._lineNumber,
+      this._columnNumber, this._kind, this._elementKind)
       : _completionString = null;
 
   ExpectedCompletion.specialCompletionString(
+      this._filePath,
       this._entity,
       this._lineNumber,
       this._columnNumber,
@@ -44,9 +47,13 @@ class ExpectedCompletion {
 
   protocol.ElementKind get elementKind => _elementKind;
 
+  String get filePath => _filePath;
+
   protocol.CompletionSuggestionKind get kind => _kind;
 
   int get lineNumber => _lineNumber;
+
+  String get location => '$filePath:$lineNumber:$columnNumber';
 
   int get offset => _entity.offset;
 
@@ -68,10 +75,16 @@ class ExpectedCompletion {
     }
     return false;
   }
+
+  @override
+  String toString() =>
+      "'$completion', kind = $kind, elementKind = $elementKind, $location";
 }
 
 class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
   final List<ExpectedCompletion> expectedCompletions;
+
+  final String filePath;
 
   CompilationUnit _enclosingCompilationUnit;
 
@@ -88,7 +101,9 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
   /// comment don't yield an error like Dart syntax mistakes would yield.
   final bool _doExpectCommentRefs = false;
 
-  ExpectedCompletionsVisitor() : expectedCompletions = <ExpectedCompletion>[];
+  ExpectedCompletionsVisitor(this.filePath)
+      : expectedCompletions = <ExpectedCompletion>[],
+        assert(filePath != null);
 
   void safelyRecordEntity(SyntacticEntity entity,
       {protocol.CompletionSuggestionKind kind,
@@ -108,9 +123,16 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
       // DAS is "import '';" which we want to be sure to match.
       if (entity.toString() == 'async') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
-            entity, lineNumber, columnNumber, ASYNC_STAR, kind, elementKind));
+            filePath,
+            entity,
+            lineNumber,
+            columnNumber,
+            ASYNC_STAR,
+            kind,
+            elementKind));
       } else if (entity.toString() == 'default') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
+            filePath,
             entity,
             lineNumber,
             columnNumber,
@@ -119,9 +141,16 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
             elementKind));
       } else if (entity.toString() == 'deferred') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
-            entity, lineNumber, columnNumber, DEFERRED_AS, kind, elementKind));
+            filePath,
+            entity,
+            lineNumber,
+            columnNumber,
+            DEFERRED_AS,
+            kind,
+            elementKind));
       } else if (entity.toString() == 'export') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
+            filePath,
             entity,
             lineNumber,
             columnNumber,
@@ -130,6 +159,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
             elementKind));
       } else if (entity.toString() == 'import') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
+            filePath,
             entity,
             lineNumber,
             columnNumber,
@@ -138,6 +168,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
             elementKind));
       } else if (entity.toString() == 'part') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
+            filePath,
             entity,
             lineNumber,
             columnNumber,
@@ -146,13 +177,25 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
             elementKind));
       } else if (entity.toString() == 'sync') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
-            entity, lineNumber, columnNumber, SYNC_STAR, kind, elementKind));
+            filePath,
+            entity,
+            lineNumber,
+            columnNumber,
+            SYNC_STAR,
+            kind,
+            elementKind));
       } else if (entity.toString() == 'yield') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
-            entity, lineNumber, columnNumber, YIELD_STAR, kind, elementKind));
+            filePath,
+            entity,
+            lineNumber,
+            columnNumber,
+            YIELD_STAR,
+            kind,
+            elementKind));
       } else {
         expectedCompletions.add(ExpectedCompletion(
-            entity, lineNumber, columnNumber, kind, elementKind));
+            filePath, entity, lineNumber, columnNumber, kind, elementKind));
       }
     }
   }
@@ -528,7 +571,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
     if (_doIncludeSimpleIdentifier(node)) {
       var elementKind;
       if (node.staticElement?.kind != null) {
-        elementKind = protocol.convertElementKind(node.staticElement?.kind);
+        elementKind = protocol.convertElementKind(node.staticElement.kind);
 
         // If the completed element kind is a getter or setter set the element
         // kind to null as the exact kind from the DAS is unknown at this
@@ -550,6 +593,27 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
         // PARAMETER).
         if (node.parent is FieldFormalParameter) {
           elementKind = protocol.ElementKind.FIELD;
+        }
+
+        // Class references that are constructor calls are constructor kinds,
+        // unless either:
+        //   1) the constructor is a named constructor, i.e. some "Foo.bar()",
+        //      the "Foo" in this case is a class,
+        //   2) or, there is an explicit const or new keyword before the
+        //      constructor invocation in which case the "Foo" above is
+        //      considered a constructor still
+        if (elementKind == protocol.ElementKind.CLASS) {
+          if (node.parent?.parent is ConstructorName) {
+            var constructorName = node.parent.parent as ConstructorName;
+            var instanceCreationExpression = constructorName.parent;
+            if (instanceCreationExpression is InstanceCreationExpression &&
+                constructorName.type.name == node) {
+              if (instanceCreationExpression.keyword != null ||
+                  constructorName.name == null) {
+                elementKind = protocol.ElementKind.CONSTRUCTOR;
+              }
+            }
+          }
         }
       }
       safelyRecordEntity(node, elementKind: elementKind);
@@ -644,6 +708,12 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
     if (node == null || node.isSynthetic || node.inDeclarationContext()) {
       return false;
     }
+
+    // If the type of the SimpleIdentifier is dynamic, don't include.
+    if (node.staticType != null && node.staticType.isDynamic) {
+      return false;
+    }
+
     // If we are in a comment reference context, return if we should include
     // such identifiers.
     if (node.thisOrAncestorOfType<CommentReference>() != null) {
@@ -661,16 +731,17 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
     // Named arguments, i.e. the 'foo' in 'method_call(foo: 1)' should not be
     // included, by design, the completion engine won't suggest named arguments
     // already it the source.
-    if (node.staticElement?.kind == element.ElementKind.PARAMETER &&
+    //
+    // The null check, node.staticElement == null, handles the cases where the
+    // invocation is unknown, i.e. the 'arg' in 'foo.bar(arg: 1)', where foo is
+    // dynamic.
+    if ((node.staticElement == null ||
+            node.staticElement?.kind == element.ElementKind.PARAMETER) &&
         node.parent is Label &&
         node.thisOrAncestorOfType<ArgumentList>() != null) {
       return false;
     }
 
-    // If the type of the SimpleIdentifier is dynamic, don't include.
-    if (node.staticType != null && node.staticType.isDynamic) {
-      return false;
-    }
     return true;
   }
 }

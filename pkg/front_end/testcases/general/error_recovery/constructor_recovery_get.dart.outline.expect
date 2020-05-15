@@ -1,0 +1,62 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_get.dart:2:10: Error: A getter can't have formal parameters.
+// Try removing '(...)'.
+//   get Foo() {
+//          ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_get.dart:2:7: Error: A class member can't have the same name as the enclosing class.
+// Try renaming the member.
+//   get Foo() {
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_get.dart:5:10: Error: A getter can't have formal parameters.
+// Try removing '(...)'.
+//   get Foo() : initializer = true {
+//          ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_get.dart:5:3: Error: Constructors can't be a getter.
+// Try removing 'get'.
+//   get Foo() : initializer = true {
+//   ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_get.dart:8:3: Error: Constructors can't be a getter.
+// Try removing 'get'.
+//   get Foo.x() {
+//   ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_get.dart:11:3: Error: Constructors can't be a getter.
+// Try removing 'get'.
+//   get Foo.x() : initializer = true {
+//   ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_get.dart:11:7: Error: 'Foo.x' is already declared in this scope.
+//   get Foo.x() : initializer = true {
+//       ^^^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_get.dart:8:7: Context: Previous declaration of 'Foo.x'.
+//   get Foo.x() {
+//       ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  constructor •() → self::Foo*
+    ;
+  constructor x() → self::Foo*
+    ;
+  get Foo() → dynamic
+    ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}

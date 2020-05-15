@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /// Regression test for Issue #33761: is-checks and null-checks were assumed to
 /// be true even in nested non-condition contexts.
 

@@ -1,0 +1,15 @@
+abstract class B<Y> implements A<Y> {
+  get field;
+  set field(value);
+}
+
+abstract class C implements A<int> {
+  get field;
+  set field(value);
+}
+
+class A<X> {
+  X field;
+}
+
+main() {}

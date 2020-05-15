@@ -4,9 +4,8 @@
 
 #include "vm/compiler/assembler/disassembler.h"
 
+#include "platform/unaligned.h"
 #include "vm/code_patcher.h"
-#include "vm/compiler/assembler/assembler.h"
-#include "vm/compiler/backend/il_printer.h"
 #include "vm/deopt_instructions.h"
 #include "vm/globals.h"
 #include "vm/instructions.h"
@@ -18,7 +17,10 @@ namespace dart {
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 DECLARE_FLAG(bool, trace_inlining_intervals);
+#endif
+
 DEFINE_FLAG(bool, trace_source_positions, false, "Source position diagnostics");
 
 void DisassembleToStdout::ConsumeInstruction(char* hex_buffer,
@@ -231,7 +233,7 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
   Object& obj = Object::Handle(zone);
   for (intptr_t i = code.pointer_offsets_length() - 1; i >= 0; i--) {
     const uword addr = code.GetPointerOffsetAt(i) + code.PayloadStart();
-    obj = *reinterpret_cast<RawObject**>(addr);
+    obj = LoadUnaligned(reinterpret_cast<ObjectPtr*>(addr));
     THR_Print(" %d : %#" Px " '%s'\n", code.GetPointerOffsetAt(i), addr,
               obj.ToCString());
   }
@@ -240,7 +242,7 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
   ASSERT(code.pointer_offsets_length() == 0);
 #endif
 
-  if (FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     THR_Print("(No object pool for bare instructions.)\n");
   } else {
     const ObjectPool& object_pool =
@@ -300,20 +302,20 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
     String& var_name = String::Handle(zone);
     for (intptr_t i = 0; i < var_desc_length; i++) {
       var_name = var_descriptors.GetName(i);
-      RawLocalVarDescriptors::VarInfo var_info;
+      LocalVarDescriptorsLayout::VarInfo var_info;
       var_descriptors.GetInfo(i, &var_info);
       const int8_t kind = var_info.kind();
-      if (kind == RawLocalVarDescriptors::kSavedCurrentContext) {
+      if (kind == LocalVarDescriptorsLayout::kSavedCurrentContext) {
         THR_Print("  saved current CTX reg offset %d\n", var_info.index());
       } else {
-        if (kind == RawLocalVarDescriptors::kContextLevel) {
+        if (kind == LocalVarDescriptorsLayout::kContextLevel) {
           THR_Print("  context level %d scope %d", var_info.index(),
                     var_info.scope_id);
-        } else if (kind == RawLocalVarDescriptors::kStackVar) {
+        } else if (kind == LocalVarDescriptorsLayout::kStackVar) {
           THR_Print("  stack var '%s' offset %d", var_name.ToCString(),
                     var_info.index());
         } else {
-          ASSERT(kind == RawLocalVarDescriptors::kContextVar);
+          ASSERT(kind == LocalVarDescriptorsLayout::kContextVar);
           THR_Print("  context var '%s' level %d offset %d",
                     var_name.ToCString(), var_info.scope_id, var_info.index());
         }
@@ -368,13 +370,22 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
     auto& cls = Class::Handle(zone);
     auto& kind_type_and_offset = Smi::Handle(zone);
     auto& function = Function::Handle(zone);
+    auto& object = Object::Handle(zone);
     auto& code = Code::Handle(zone);
+    auto& dst_type = AbstractType::Handle(zone);
     if (!table.IsNull()) {
       StaticCallsTable static_calls(table);
       for (auto& call : static_calls) {
         kind_type_and_offset = call.Get<Code::kSCallTableKindAndOffset>();
         function = call.Get<Code::kSCallTableFunctionTarget>();
-        code = call.Get<Code::kSCallTableCodeTarget>();
+        object = call.Get<Code::kSCallTableCodeOrTypeTarget>();
+
+        dst_type = AbstractType::null();
+        if (object.IsAbstractType()) {
+          dst_type = AbstractType::Cast(object).raw();
+        } else if (object.IsCode()) {
+          code = Code::Cast(object).raw();
+        }
 
         auto kind = Code::KindField::decode(kind_type_and_offset.Value());
         auto offset = Code::OffsetField::decode(kind_type_and_offset.Value());
@@ -388,17 +399,28 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
           case Code::kPcRelativeCall:
             skind = "pc-relative-call";
             break;
+          case Code::kPcRelativeTTSCall:
+            skind = "pc-relative-tts-call";
+            break;
+          case Code::kPcRelativeTailCall:
+            skind = "pc-relative-tail-call";
+            break;
           case Code::kCallViaCode:
             skind = "call-via-code";
             break;
           default:
             UNREACHABLE();
         }
-        if (function.IsNull()) {
+        if (!dst_type.IsNull()) {
+          THR_Print("  0x%" Px ": type testing stub %s, (%s)%s\n",
+                    base + offset, dst_type.ToCString(), skind, s_entry_point);
+        } else if (function.IsNull()) {
           cls ^= code.owner();
           if (cls.IsNull()) {
             THR_Print("  0x%" Px ": %s, (%s)%s\n", base + offset,
-                      code.QualifiedName(), skind, s_entry_point);
+                      code.QualifiedName(Object::kScrubbedName,
+                                         Object::NameDisambiguation::kYes),
+                      skind, s_entry_point);
           } else {
             THR_Print("  0x%" Px ": allocation stub for %s, (%s)%s\n",
                       base + offset, cls.ToCString(), skind, s_entry_point);
@@ -413,9 +435,12 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
   }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (optimized && FLAG_trace_inlining_intervals) {
     code.DumpInlineIntervals();
   }
+#endif
+
   if (FLAG_trace_source_positions) {
     code.DumpSourcePositions();
   }
@@ -436,7 +461,7 @@ void Disassembler::DisassembleStub(const char* name, const Code& code) {
   code.Disassemble(&formatter);
   THR_Print("}\n");
   const ObjectPool& object_pool = ObjectPool::Handle(code.object_pool());
-  if (FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     THR_Print("(No object pool for bare instructions.)\n");
   } else if (!object_pool.IsNull()) {
     object_pool.DebugPrint();

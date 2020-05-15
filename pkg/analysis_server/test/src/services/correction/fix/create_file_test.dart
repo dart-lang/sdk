@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test/test.dart';
@@ -27,9 +26,9 @@ import 'my_file.dart';
 ''');
     await assertHasFixWithoutApplying();
     // validate change
-    List<SourceFileEdit> fileEdits = change.edits;
+    var fileEdits = change.edits;
     expect(fileEdits, hasLength(1));
-    SourceFileEdit fileEdit = change.edits[0];
+    var fileEdit = change.edits[0];
     expect(fileEdit.file, convertPath('/home/test/lib/my_file.dart'));
     expect(fileEdit.fileStamp, -1);
     expect(fileEdit.edits, hasLength(1));
@@ -52,9 +51,9 @@ import 'a/bb/my_lib.dart';
 ''');
     await assertHasFixWithoutApplying();
     // validate change
-    List<SourceFileEdit> fileEdits = change.edits;
+    var fileEdits = change.edits;
     expect(fileEdits, hasLength(1));
-    SourceFileEdit fileEdit = change.edits[0];
+    var fileEdit = change.edits[0];
     expect(fileEdit.file, convertPath('/home/test/lib/a/bb/my_lib.dart'));
     expect(fileEdit.fileStamp, -1);
     expect(fileEdit.edits, hasLength(1));
@@ -71,9 +70,9 @@ import 'a/bb/my_lib.dart';
 ''');
     await assertHasFixWithoutApplying();
     // validate change
-    List<SourceFileEdit> fileEdits = change.edits;
+    var fileEdits = change.edits;
     expect(fileEdits, hasLength(1));
-    SourceFileEdit fileEdit = change.edits[0];
+    var fileEdit = change.edits[0];
     expect(fileEdit.file, convertPath('/home/test/test/a/bb/my_lib.dart'));
     expect(fileEdit.fileStamp, -1);
     expect(fileEdit.edits, hasLength(1));
@@ -90,9 +89,9 @@ part 'my_part.dart';
 ''');
     await assertHasFixWithoutApplying();
     // validate change
-    List<SourceFileEdit> fileEdits = change.edits;
+    var fileEdits = change.edits;
     expect(fileEdits, hasLength(1));
-    SourceFileEdit fileEdit = change.edits[0];
+    var fileEdit = change.edits[0];
     expect(fileEdit.file, convertPath('/home/test/lib/my_part.dart'));
     expect(fileEdit.fileStamp, -1);
     expect(fileEdit.edits, hasLength(1));

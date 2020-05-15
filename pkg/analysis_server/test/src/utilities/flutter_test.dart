@@ -117,9 +117,9 @@ class MyWidget extends StatelessWidget {
     {
       ExpressionStatement statement = statements[0];
       InstanceCreationExpression creation = statement.expression;
-      ConstructorName constructorName = creation.constructorName;
-      TypeName typeName = constructorName.type;
-      ArgumentList argumentList = creation.argumentList;
+      var constructorName = creation.constructorName;
+      var typeName = constructorName.type;
+      var argumentList = creation.argumentList;
       expect(flutter.identifyWidgetExpression(creation), creation);
       expect(flutter.identifyWidgetExpression(constructorName), creation);
       expect(flutter.identifyWidgetExpression(typeName), creation);
@@ -134,9 +134,9 @@ class MyWidget extends StatelessWidget {
     {
       ExpressionStatement statement = statements[1];
       InstanceCreationExpression creation = statement.expression;
-      ConstructorName constructorName = creation.constructorName;
-      TypeName typeName = constructorName.type;
-      ArgumentList argumentList = creation.argumentList;
+      var constructorName = creation.constructorName;
+      var typeName = constructorName.type;
+      var argumentList = creation.argumentList;
       expect(flutter.identifyWidgetExpression(creation), creation);
       expect(flutter.identifyWidgetExpression(constructorName), creation);
       expect(flutter.identifyWidgetExpression(typeName), creation);
@@ -166,7 +166,7 @@ Text createText(String txt) => new Text(txt);
       MethodInvocation invocation = findNodeAtString(
           'createEmptyText();', (node) => node is MethodInvocation);
       expect(flutter.identifyWidgetExpression(invocation), invocation);
-      ArgumentList argumentList = invocation.argumentList;
+      var argumentList = invocation.argumentList;
       expect(flutter.identifyWidgetExpression(argumentList), isNull);
     }
 
@@ -174,7 +174,7 @@ Text createText(String txt) => new Text(txt);
       MethodInvocation invocation = findNodeAtString(
           "createText('xyz');", (node) => node is MethodInvocation);
       expect(flutter.identifyWidgetExpression(invocation), invocation);
-      ArgumentList argumentList = invocation.argumentList;
+      var argumentList = invocation.argumentList;
       expect(flutter.identifyWidgetExpression(argumentList), isNull);
       expect(
         flutter.identifyWidgetExpression(argumentList.arguments[0]),
@@ -464,10 +464,10 @@ var b = new Text('bbb');
 ''');
     expect(flutter.isWidgetCreation(null), isFalse);
 
-    InstanceCreationExpression a = _getTopVariableCreation('a');
+    var a = _getTopVariableCreation('a');
     expect(flutter.isWidgetCreation(a), isFalse);
 
-    InstanceCreationExpression b = _getTopVariableCreation('b');
+    var b = _getTopVariableCreation('b');
     expect(flutter.isWidgetCreation(b), isTrue);
   }
 

@@ -6,9 +6,11 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/generated/type_system.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 
 class TopMergeHelper {
   final TypeSystemImpl typeSystem;
@@ -43,6 +45,11 @@ class TopMergeHelper {
       return DynamicTypeImpl.instance;
     }
 
+    if (identical(T, NeverTypeImpl.instance) &&
+        identical(S, NeverTypeImpl.instance)) {
+      return NeverTypeImpl.instance;
+    }
+
     // NNBD_TOP_MERGE(void, void) = void
     var T_isVoid = identical(T, VoidTypeImpl.instance);
     var S_isVoid = identical(S, VoidTypeImpl.instance);
@@ -50,26 +57,26 @@ class TopMergeHelper {
       return VoidTypeImpl.instance;
     }
 
-    // NNBD_TOP_MERGE(void, Object?) = void
     // NNBD_TOP_MERGE(Object?, void) = void
-    if (T_isVoid && S_isObjectQuestion || T_isObjectQuestion && S_isVoid) {
-      return VoidTypeImpl.instance;
+    // NNBD_TOP_MERGE(void, Object?) = void
+    if (T_isObjectQuestion && S_isVoid || T_isVoid && S_isObjectQuestion) {
+      return typeSystem.objectQuestion;
     }
 
-    // NNBD_TOP_MERGE(void, Object*) = void
     // NNBD_TOP_MERGE(Object*, void) = void
+    // NNBD_TOP_MERGE(void, Object*) = void
     var T_isObjectStar =
         T_nullability == NullabilitySuffix.star && T.isDartCoreObject;
     var S_isObjectStar =
         S_nullability == NullabilitySuffix.star && S.isDartCoreObject;
-    if (T_isVoid && S_isObjectStar || T_isObjectStar && S_isVoid) {
-      return VoidTypeImpl.instance;
+    if (T_isObjectStar && S_isVoid || T_isVoid && S_isObjectStar) {
+      return typeSystem.objectQuestion;
     }
 
-    // NNBD_TOP_MERGE(void, dynamic) = void
     // NNBD_TOP_MERGE(dynamic, void) = void
-    if (T_isVoid && S_isDynamic || T_isDynamic && S_isVoid) {
-      return VoidTypeImpl.instance;
+    // NNBD_TOP_MERGE(void, dynamic) = void
+    if (T_isDynamic && S_isVoid || T_isVoid && S_isDynamic) {
+      return typeSystem.objectQuestion;
     }
 
     // NNBD_TOP_MERGE(Object?, dynamic) = Object?
@@ -212,13 +219,8 @@ class TopMergeHelper {
       var T_parameter = T_parameters[i];
       var S_parameter = S_parameters[i];
 
-      // ignore: deprecated_member_use_from_same_package
-      var T_kind = T_parameter.parameterKind;
-
-      // ignore: deprecated_member_use_from_same_package
-      var S_kind = S_parameter.parameterKind;
-
-      if (T_kind != S_kind) {
+      var R_kind = _parameterKind(T_parameter, S_parameter);
+      if (R_kind == null) {
         throw _TopMergeStateError(T, S, 'Different formal parameter kinds');
       }
 
@@ -254,11 +256,10 @@ class TopMergeHelper {
         R_type = mergeTypes(T_parameter.type, S_parameter.type);
       }
 
-      R_parameters[i] = ParameterElementImpl.synthetic(
-        T_parameter.name,
-        R_type,
-        T_kind,
-      )..isExplicitlyCovariant = R_isCovariant;
+      R_parameters[i] = T_parameter.copyWith(
+        type: R_type,
+        kind: R_kind,
+      );
     }
 
     return FunctionTypeImpl(
@@ -288,6 +289,31 @@ class TopMergeHelper {
         nullabilitySuffix: NullabilitySuffix.none,
       );
     }
+  }
+
+  ParameterKind _parameterKind(
+    ParameterElement T_parameter,
+    ParameterElement S_parameter,
+  ) {
+    // ignore: deprecated_member_use_from_same_package
+    var T_kind = T_parameter.parameterKind;
+
+    // ignore: deprecated_member_use_from_same_package
+    var S_kind = S_parameter.parameterKind;
+
+    if (T_kind == S_kind) {
+      return T_kind;
+    }
+
+    // Legacy named vs. Required named.
+    if (T_kind == ParameterKind.NAMED_REQUIRED &&
+            S_kind == ParameterKind.NAMED ||
+        T_kind == ParameterKind.NAMED &&
+            S_kind == ParameterKind.NAMED_REQUIRED) {
+      return ParameterKind.NAMED_REQUIRED;
+    }
+
+    return null;
   }
 
   _MergeTypeParametersResult _typeParameters(

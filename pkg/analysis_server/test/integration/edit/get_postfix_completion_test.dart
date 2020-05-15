@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -19,14 +18,14 @@ void main() {
 class GetPostfixCompletionTest extends AbstractAnalysisServerIntegrationTest {
   @TestTimeout(Timeout.factor(2))
   Future<void> test_postfix_completion() async {
-    String pathname = sourcePath('test.dart');
-    String text = r'''
+    var pathname = sourcePath('test.dart');
+    var text = r'''
 void bar() {
   foo();.tryon
 }
 void foo() { }
 ''';
-    int loc = text.indexOf('.tryon');
+    var loc = text.indexOf('.tryon');
     text = text.replaceAll('.tryon', '');
     writeFile(pathname, text);
     standardAnalysisSetup();
@@ -35,14 +34,13 @@ void foo() { }
     expect(currentAnalysisErrors[pathname], isEmpty);
 
     // expect a postfix completion result
-    EditGetPostfixCompletionResult result =
-        await sendEditGetPostfixCompletion(pathname, '.tryon', loc);
+    var result = await sendEditGetPostfixCompletion(pathname, '.tryon', loc);
     expect(result.change.edits, isNotEmpty);
 
     // apply the edit, expect that the new code has no errors
-    SourceChange change = result.change;
+    var change = result.change;
     expect(change.edits.first.edits, isNotEmpty);
-    for (SourceEdit edit in change.edits.first.edits) {
+    for (var edit in change.edits.first.edits) {
       text = text.replaceRange(edit.offset, edit.end, edit.replacement);
     }
     await sendAnalysisUpdateContent({pathname: AddContentOverlay(text)});

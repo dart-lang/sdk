@@ -21,7 +21,7 @@ main() {
   asyncStart();
   completer.future.whenComplete(() {
     throw "other_error";
-  }).then((_) {
+  }).then<Null>((_) {
     throw "should never be reached";
   }).catchError((e, st) {
     Expect.equals("other_error", e);

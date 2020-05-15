@@ -102,17 +102,12 @@ class ContextCacheEntry {
   /// This should not be used except behind the getter which caches this result
   /// automatically.
   AnalysisOptionsImpl _getAnalysisOptions() {
-    AnalysisOptionsImpl contextOptions = builder.getAnalysisOptions(
-            requestedSourceDirectory,
+    var contextOptions = builder.getAnalysisOptions(requestedSourceDirectory,
             verbosePrint: clOptions.verbose ? verbosePrint : null)
         as AnalysisOptionsImpl;
 
-    contextOptions.trackCacheDependencies = false;
-    contextOptions.disableCacheFlushing = clOptions.disableCacheFlushing;
     _buildContextFeatureSet(contextOptions);
     contextOptions.hint = !clOptions.disableHints;
-    contextOptions.generateImplicitErrors = clOptions.showPackageWarnings;
-    contextOptions.generateSdkErrors = clOptions.showSdkWarnings;
     contextOptions.useFastaParser = clOptions.useFastaParser;
     return contextOptions;
   }

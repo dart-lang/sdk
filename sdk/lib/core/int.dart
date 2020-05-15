@@ -44,7 +44,8 @@ abstract class int extends num {
   // Disable those static errors.
   //ignore: const_constructor_with_body
   //ignore: const_factory
-  external const factory int.fromEnvironment(String name, {int defaultValue});
+  external const factory int.fromEnvironment(String name,
+      {int defaultValue = 0});
 
   /**
    * Bit-wise and operator.
@@ -53,7 +54,7 @@ abstract class int extends num {
    * integers, the result is a number with only the bits set that are set in
    * both `this` and [other]
    *
-   * Of both operands are negative, the result is negative, otherwise
+   * If both operands are negative, the result is negative, otherwise
    * the result is non-negative.
    */
   int operator &(int other);

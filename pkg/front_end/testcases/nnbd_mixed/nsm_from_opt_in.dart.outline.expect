@@ -1,0 +1,93 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/nsm_from_opt_in.dart:5:1: Error: A library can't opt out of non-nullable by default, when in nnbd-strong mode.
+// // @dart=2.6
+// ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/nsm_from_opt_in.dart:16:16: Error: Class 'B2' inherits multiple members named 'method' with incompatible signatures.
+// Try adding a declaration of 'method' to 'B2'.
+// abstract class B2 extends A implements C2 {
+//                ^^
+// pkg/front_end/testcases/nnbd_mixed/nsm_from_opt_in_lib.dart:6:7: Context: This is one of the inherited members.
+//   int method(int? i) => i ?? 0;
+//       ^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/nsm_from_opt_in.dart:24:7: Context: This is one of the inherited members.
+//   int method(int i, {optional});
+//       ^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/nsm_from_opt_in.dart:16:16: Error: Class 'B2' inherits multiple members named 'genericMethod2' with incompatible signatures.
+// Try adding a declaration of 'genericMethod2' to 'B2'.
+// abstract class B2 extends A implements C2 {
+//                ^^
+// pkg/front_end/testcases/nnbd_mixed/nsm_from_opt_in_lib.dart:8:5: Context: This is one of the inherited members.
+//   T genericMethod2<T extends Object?>(T t) => t;
+//     ^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/nsm_from_opt_in.dart:26:5: Context: This is one of the inherited members.
+//   T genericMethod2<T extends Object>(T t);
+//     ^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+import "nsm_from_opt_in_lib.dart" as nsm;
+
+import "org-dartlang-testcase:///nsm_from_opt_in_lib.dart";
+
+abstract class A2 extends core::Object implements nsm::A {
+  synthetic constructor •() → self::A2
+    ;
+  @core::override
+  method noSuchMethod(core::Invocation invocation) → dynamic
+    ;
+}
+abstract class B2 extends nsm::A implements self::C2 {
+  synthetic constructor •() → self::B2
+    ;
+  @core::override
+  method noSuchMethod(core::Invocation invocation) → dynamic
+    ;
+}
+abstract class C2 extends core::Object {
+  synthetic constructor •() → self::C2
+    ;
+  abstract method method(core::int i, {dynamic optional}) → core::int;
+  abstract method genericMethod1<T extends core::Object? = dynamic>(self::C2::genericMethod1::T% t) → self::C2::genericMethod1::T%;
+  abstract method genericMethod2<T extends core::Object = core::Object>(self::C2::genericMethod2::T t) → self::C2::genericMethod2::T;
+  abstract method genericMethod3<T extends core::Object = core::Object>(self::C2::genericMethod3::T t) → self::C2::genericMethod3::T;
+}
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as nsm;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → nsm::A
+    ;
+  method method(core::int? i) → core::int
+    ;
+  method genericMethod1<T extends core::Object? = dynamic>(nsm::A::genericMethod1::T% t) → nsm::A::genericMethod1::T%
+    ;
+  method genericMethod2<T extends core::Object? = core::Object?>(nsm::A::genericMethod2::T% t) → nsm::A::genericMethod2::T%
+    ;
+  method genericMethod3<T extends core::Object = core::Object>(nsm::A::genericMethod3::T t) → nsm::A::genericMethod3::T
+    ;
+}
+abstract class B1 extends nsm::A implements nsm::C1 {
+  synthetic constructor •() → nsm::B1
+    ;
+  @core::override
+  method noSuchMethod(core::Invocation invocation) → dynamic
+    ;
+  abstract forwarding-stub method method(core::int? i, {dynamic optional}) → core::int;
+}
+abstract class C1 extends core::Object {
+  synthetic constructor •() → nsm::C1
+    ;
+  abstract method method(core::int? i, {dynamic optional}) → core::int;
+  abstract method genericMethod1<T extends core::Object? = dynamic>(nsm::C1::genericMethod1::T% t) → nsm::C1::genericMethod1::T%;
+  abstract method genericMethod2<T extends core::Object? = core::Object?>(nsm::C1::genericMethod2::T% t) → nsm::C1::genericMethod2::T%;
+  abstract method genericMethod3<T extends core::Object = core::Object>(nsm::C1::genericMethod3::T t) → nsm::C1::genericMethod3::T;
+}

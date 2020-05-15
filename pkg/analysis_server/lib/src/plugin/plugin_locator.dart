@@ -52,7 +52,7 @@ class PluginLocator {
 
   /// The implementation of [findPlugin].
   String _findPlugin(String packageRoot) {
-    Folder packageFolder = resourceProvider.getFolder(packageRoot);
+    var packageFolder = resourceProvider.getFolder(packageRoot);
     // TODO(brianwilkerson) Re-enable this after deciding how we want to deal
     // with discovery of plugins.
 //    import 'package:yaml/yaml.dart';
@@ -76,7 +76,7 @@ class PluginLocator {
 //        // If we can't read the file, or if it isn't valid YAML, then ignore it.
 //      }
 //    }
-    Folder pluginFolder = packageFolder
+    var pluginFolder = packageFolder
         .getChildAssumingFolder(toolsFolderName)
         .getChildAssumingFolder(defaultPluginFolderName);
     if (pluginFolder.exists) {

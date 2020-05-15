@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /*class: A:checks=[],instance*/
 class A<T> {
   @pragma('dart2js:noInline')
@@ -10,8 +12,7 @@ class A<T> {
     // potential subtype of the checked function types.
     return
 
-        /*strong.checks=[],instance*/
-        /*omit.checks=[],instance*/
+        /*checks=[],instance*/
         (T t, String s) {};
   }
 }

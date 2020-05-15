@@ -1,0 +1,20 @@
+class A {
+  final int foo;
+  const A(this.foo);
+}
+
+class B extends A {
+  const B(int foo) : super(foo);
+}
+
+class C extends B {
+  const C(int foo) : super(foo);
+}
+
+class D extends B {
+  const D(int foo) : super(foo);
+  bool operator ==(dynamic other) => identical(this, other);
+}
+
+bar(B b) {}
+main() {}

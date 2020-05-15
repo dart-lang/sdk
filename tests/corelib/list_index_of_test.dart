@@ -5,8 +5,8 @@
 import "package:expect/expect.dart";
 
 main() {
-  test(new List<int?>(5));
-  var l = new List<int?>();
+  test(new List<int?>.filled(5, null));
+  var l = <int?>[];
   l.length = 5;
   test(l);
 }

@@ -904,7 +904,7 @@ class HighlightsTestSupport extends AbstractAnalysisTest {
   final Completer<void> _resultsAvailable = Completer();
 
   void assertHasRawRegion(HighlightRegionType type, int offset, int length) {
-    for (HighlightRegion region in regions) {
+    for (var region in regions) {
       if (region.offset == offset &&
           region.length == length &&
           region.type == type) {
@@ -917,19 +917,19 @@ class HighlightsTestSupport extends AbstractAnalysisTest {
 
   void assertHasRegion(HighlightRegionType type, String search,
       [int length = -1]) {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     length = findRegionLength(search, length);
     assertHasRawRegion(type, offset, length);
   }
 
   void assertHasStringRegion(HighlightRegionType type, String str) {
-    int offset = findOffset(str);
-    int length = str.length;
+    var offset = findOffset(str);
+    var length = str.length;
     assertHasRawRegion(type, offset, length);
   }
 
   void assertNoRawRegion(HighlightRegionType type, int offset, int length) {
-    for (HighlightRegion region in regions) {
+    for (var region in regions) {
       if (region.offset == offset &&
           region.length == length &&
           region.type == type) {
@@ -942,7 +942,7 @@ class HighlightsTestSupport extends AbstractAnalysisTest {
 
   void assertNoRegion(HighlightRegionType type, String search,
       [int length = -1]) {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     length = findRegionLength(search, length);
     assertNoRawRegion(type, offset, length);
   }
@@ -951,7 +951,7 @@ class HighlightsTestSupport extends AbstractAnalysisTest {
     if (length == -1) {
       length = 0;
       while (length < search.length) {
-        int c = search.codeUnitAt(length);
+        var c = search.codeUnitAt(length);
         if (length == 0 && c == '@'.codeUnitAt(0)) {
           length++;
           continue;
@@ -1004,16 +1004,6 @@ part 'test.dart';
 
 @reflectiveTest
 class HighlightsWithControlFlowCollectionsTest extends HighlightsTestSupport {
-  @override
-  void createProject({Map<String, String> packageRoots}) {
-    addAnalysisOptionsFile('''
-analyzer:
-  enable-experiment:
-    - control-flow-collections
-''');
-    super.createProject(packageRoots: packageRoots);
-  }
-
   @failingTest
   Future<void> test_KEYWORD_awaitForIn_list() async {
     addTestFile('''

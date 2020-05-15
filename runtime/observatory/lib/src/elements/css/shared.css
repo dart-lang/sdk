@@ -479,11 +479,7 @@ button.big {
 }
 
 .allocation-profile .collection {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  top: 560px;
+  height: 100%;
 }
 
 .allocation-profile .collection.expanded {
@@ -1535,7 +1531,7 @@ eval-box .historyDelete button:hover {
 }
 
 .isolate-shared-summary > .summary {
-  height: 300px;
+  height: 350px;
   position: relative;
 }
 .isolate-shared-summary .menu {

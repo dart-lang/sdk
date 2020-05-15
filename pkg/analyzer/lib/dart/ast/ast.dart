@@ -33,7 +33,6 @@
 /// the elements that they refer to and every expression in the AST will have a
 /// type associated with it.
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/language_version.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -837,9 +836,13 @@ abstract class BreakStatement implements Statement {
 ///      | identifier
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class CascadeExpression implements Expression {
+abstract class CascadeExpression
+    implements Expression, NullShortableExpression {
   /// Return the cascade sections sharing the common target.
   NodeList<Expression> get cascadeSections;
+
+  /// Whether this cascade is null aware (as opposed to non-null).
+  bool get isNullAware;
 
   /// Return the target of the cascade sections.
   Expression get target;
@@ -1235,7 +1238,7 @@ abstract class CompilationUnit implements AstNode {
 
   /// The language version override specified for this compilation unit using a
   /// token like '// @dart = 2.7', or `null` if no override is specified.
-  LanguageVersion get languageVersion;
+  LanguageVersionToken get languageVersionToken;
 
   /// Return the line information for this compilation unit.
   LineInfo get lineInfo;

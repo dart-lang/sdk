@@ -4,8 +4,6 @@
 
 #include "vm/compiler/aot/precompiler.h"
 
-#ifndef DART_PRECOMPILED_RUNTIME
-
 #include "platform/unicode.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_patcher.h"
@@ -136,7 +134,7 @@ static void Jump(const Error& error) {
   Thread::Current()->long_jump_base()->Jump(1, error);
 }
 
-RawError* Precompiler::CompileAll() {
+ErrorPtr Precompiler::CompileAll() {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     Precompiler precompiler(Thread::Current());
@@ -167,7 +165,8 @@ Precompiler::Precompiler(Thread* thread)
           GrowableObjectArray::Handle(GrowableObjectArray::New())),
       pending_static_fields_to_retain_(),
       sent_selectors_(),
-      enqueued_functions_(
+      seen_functions_(HashTables::New<FunctionSet>(/*initial_capacity=*/1024)),
+      possibly_retained_functions_(
           HashTables::New<FunctionSet>(/*initial_capacity=*/1024)),
       fields_to_retain_(),
       functions_to_retain_(
@@ -186,7 +185,8 @@ Precompiler::Precompiler(Thread* thread)
 
 Precompiler::~Precompiler() {
   // We have to call Release() in DEBUG mode.
-  enqueued_functions_.Release();
+  seen_functions_.Release();
+  possibly_retained_functions_.Release();
   functions_to_retain_.Release();
 
   ASSERT(Precompiler::singleton_ == this);
@@ -233,7 +233,11 @@ void Precompiler::DoCompileAll() {
       // optimized instruction count (used in inlining heuristics).
       ClassFinalizer::ClearAllCode(
           /*including_nonchanging_cids=*/FLAG_use_bare_instructions);
-      PrecompileConstructors();
+
+      {
+        CompilerState state(thread_, /*is_aot=*/true);
+        PrecompileConstructors();
+      }
 
       ClassFinalizer::ClearAllCode(
           /*including_nonchanging_cids=*/FLAG_use_bare_instructions);
@@ -276,73 +280,22 @@ void Precompiler::DoCompileAll() {
         global_object_pool_builder()->Reset();
         stub_pool.CopyInto(global_object_pool_builder());
 
-        // We have two global code objects we need to re-generate with the new
-        // global object pool, namely the
-        //   - megamorphic miss handler code and the
-        //   - build method extractor code
-        MegamorphicCacheTable::ReInitMissHandlerCode(
-            isolate_, global_object_pool_builder());
-
+        // We have various stubs we would like to generate inside the isolate,
+        // to ensure the rest of the AOT compilation will use the
+        // isolate-specific stubs (callable via pc-relative calls).
         auto& stub_code = Code::Handle();
-
+#define DO(member, name)                                                       \
+  stub_code = StubCode::BuildIsolateSpecific##name##Stub(                      \
+      global_object_pool_builder());                                           \
+  I->object_store()->set_##member(stub_code);
+        OBJECT_STORE_STUB_CODE_LIST(DO)
+#undef DO
         stub_code =
             StubCode::GetBuildMethodExtractorStub(global_object_pool_builder());
         I->object_store()->set_build_method_extractor_code(stub_code);
 
-        stub_code = StubCode::BuildIsolateSpecificDispatchTableNullErrorStub(
-            global_object_pool_builder());
-        I->object_store()->set_dispatch_table_null_error_stub(stub_code);
-
-        stub_code =
-            StubCode::BuildIsolateSpecificNullErrorSharedWithFPURegsStub(
-                global_object_pool_builder());
-        I->object_store()->set_null_error_stub_with_fpu_regs_stub(stub_code);
-
-        stub_code =
-            StubCode::BuildIsolateSpecificNullErrorSharedWithoutFPURegsStub(
-                global_object_pool_builder());
-        I->object_store()->set_null_error_stub_without_fpu_regs_stub(stub_code);
-
-        stub_code =
-            StubCode::BuildIsolateSpecificNullArgErrorSharedWithFPURegsStub(
-                global_object_pool_builder());
-        I->object_store()->set_null_arg_error_stub_with_fpu_regs_stub(
-            stub_code);
-
-        stub_code =
-            StubCode::BuildIsolateSpecificNullArgErrorSharedWithoutFPURegsStub(
-                global_object_pool_builder());
-        I->object_store()->set_null_arg_error_stub_without_fpu_regs_stub(
-            stub_code);
-
-        stub_code = StubCode::BuildIsolateSpecificAllocateMintWithFPURegsStub(
-            global_object_pool_builder());
-        I->object_store()->set_allocate_mint_with_fpu_regs_stub(stub_code);
-
-        stub_code =
-            StubCode::BuildIsolateSpecificAllocateMintWithoutFPURegsStub(
-                global_object_pool_builder());
-        I->object_store()->set_allocate_mint_without_fpu_regs_stub(stub_code);
-
-        stub_code =
-            StubCode::BuildIsolateSpecificStackOverflowSharedWithFPURegsStub(
-                global_object_pool_builder());
-        I->object_store()->set_stack_overflow_stub_with_fpu_regs_stub(
-            stub_code);
-
-        stub_code =
-            StubCode::BuildIsolateSpecificStackOverflowSharedWithoutFPURegsStub(
-                global_object_pool_builder());
-        I->object_store()->set_stack_overflow_stub_without_fpu_regs_stub(
-            stub_code);
-
-        stub_code = StubCode::BuildIsolateSpecificWriteBarrierWrappersStub(
-            global_object_pool_builder());
-        I->object_store()->set_write_barrier_wrappers_stub(stub_code);
-
-        stub_code = StubCode::BuildIsolateSpecificArrayWriteBarrierStub(
-            global_object_pool_builder());
-        I->object_store()->set_array_write_barrier_stub(stub_code);
+        MegamorphicCacheTable::ReInitMissHandlerCode(
+            isolate_, global_object_pool_builder());
       }
 
       CollectDynamicFunctionNames();
@@ -398,22 +351,38 @@ void Precompiler::DoCompileAll() {
           // We don't want the Array backing for any mappings in the snapshot,
           // only the pools themselves.
           I->object_store()->set_llvm_constant_hash_table(Array::null_array());
+
+          // Keep any functions, classes, etc. referenced from the LLVM pools,
+          // even if they could have been dropped due to not being otherwise
+          // needed at runtime.
+          const auto& constant_pool = GrowableObjectArray::Handle(
+              Z, I->object_store()->llvm_constant_pool());
+          auto& object = Object::Handle(Z);
+          for (intptr_t i = 0; i < constant_pool.Length(); i++) {
+            object = constant_pool.At(i);
+            if (object.IsNull()) continue;
+            if (object.IsInstance()) {
+              AddConstObject(Instance::Cast(object));
+            } else if (object.IsField()) {
+              AddField(Field::Cast(object));
+            } else if (object.IsFunction()) {
+              AddFunction(Function::Cast(object));
+            }
+          }
+
+          const auto& function_pool = GrowableObjectArray::Handle(
+              Z, I->object_store()->llvm_function_pool());
+          auto& function = Function::Handle(Z);
+          for (intptr_t i = 0; i < function_pool.Length(); i++) {
+            function ^= function_pool.At(i);
+            AddFunction(function);
+          }
         }
       }
 
       TraceForRetainedFunctions();
-
-      if (FLAG_use_bare_instructions && FLAG_use_table_dispatch) {
-        // Build the entries used to serialize the dispatch table before
-        // dropping functions, as we may clear references to Code objects.
-        const auto& entries =
-            Array::Handle(Z, dispatch_table_generator_->BuildCodeArray());
-        I->object_store()->set_dispatch_table_code_entries(entries);
-        // Delete the dispatch table generator to ensure there's no attempt
-        // to add new entries after this point.
-        delete dispatch_table_generator_;
-        dispatch_table_generator_ = nullptr;
-      }
+      FinalizeDispatchTable();
+      ReplaceFunctionPCRelativeCallEntries();
 
       DropFunctions();
       DropFields();
@@ -448,11 +417,17 @@ void Precompiler::DoCompileAll() {
     DropClasses();
     DropLibraries();
 
-    BindStaticCalls();
-    DedupUnlinkedCalls();
     Obfuscate();
 
-    ProgramVisitor::Dedup();
+#if defined(DEBUG)
+    const auto& non_visited =
+        Function::Handle(Z, FindUnvisitedRetainedFunction());
+    if (!non_visited.IsNull()) {
+      FATAL1("Code visitor would miss the code for function \"%s\"\n",
+             non_visited.ToFullyQualifiedCString());
+    }
+#endif
+    ProgramVisitor::Dedup(T);
 
     zone_ = NULL;
   }
@@ -487,7 +462,7 @@ void Precompiler::PrecompileConstructors() {
    public:
     explicit ConstructorVisitor(Precompiler* precompiler, Zone* zone)
         : precompiler_(precompiler), zone_(zone) {}
-    void Visit(const Function& function) {
+    void VisitFunction(const Function& function) {
       if (!function.IsGenerativeConstructor()) return;
       if (function.HasCode()) {
         // Const constructors may have been visited before. Recompile them here
@@ -506,8 +481,8 @@ void Precompiler::PrecompileConstructors() {
   };
 
   HANDLESCOPE(T);
-  ConstructorVisitor visitor(this, zone_);
-  ProgramVisitor::VisitFunctions(&visitor);
+  ConstructorVisitor visitor(this, Z);
+  ProgramVisitor::WalkProgram(Z, I, &visitor);
 }
 
 void Precompiler::AddRoots() {
@@ -633,7 +608,7 @@ void Precompiler::CollectCallbackFields() {
             if (subcls.is_allocated()) {
               // Add dispatcher to cls.
               dispatcher = subcls.GetInvocationDispatcher(
-                  field_name, args_desc, RawFunction::kInvokeFieldDispatcher,
+                  field_name, args_desc, FunctionLayout::kInvokeFieldDispatcher,
                   /* create_if_absent = */ true);
               if (FLAG_trace_precompiler) {
                 THR_Print("Added invoke-field-dispatcher for %s to %s\n",
@@ -701,9 +676,11 @@ void Precompiler::AddCalleesOf(const Function& function, intptr_t gop_offset) {
   for (auto& view : static_calls) {
     entry = view.Get<Code::kSCallTableFunctionTarget>();
     if (entry.IsFunction()) {
-      AddFunction(Function::Cast(entry));
+      AddFunction(Function::Cast(entry), FLAG_retain_function_objects);
+      ASSERT(view.Get<Code::kSCallTableCodeOrTypeTarget>() == Code::null());
+      continue;
     }
-    entry = view.Get<Code::kSCallTableCodeTarget>();
+    entry = view.Get<Code::kSCallTableCodeOrTypeTarget>();
     if (entry.IsCode() && Code::Cast(entry).IsAllocationStubCode()) {
       cls ^= Code::Cast(entry).owner();
       AddInstantiatedClass(cls);
@@ -829,7 +806,7 @@ void Precompiler::AddTypesOf(const Function& function) {
   }
   Code& code = Code::Handle(Z, function.CurrentCode());
   if (code.IsNull()) {
-    ASSERT(function.kind() == RawFunction::kSignatureFunction);
+    ASSERT(function.kind() == FunctionLayout::kSignatureFunction);
   } else {
     const ExceptionHandlers& handlers =
         ExceptionHandlers::Handle(Z, code.exception_handlers());
@@ -885,6 +862,9 @@ void Precompiler::AddType(const AbstractType& abstype) {
     const AbstractType& type =
         AbstractType::Handle(Z, TypeParameter::Cast(abstype).bound());
     AddType(type);
+    const auto& function = Function::Handle(
+        Z, TypeParameter::Cast(abstype).parameterized_function());
+    AddTypesOf(function);
     const Class& cls =
         Class::Handle(Z, TypeParameter::Cast(abstype).parameterized_class());
     AddTypesOf(cls);
@@ -911,6 +891,11 @@ void Precompiler::AddConstObject(const class Instance& instance) {
     return;
   } else if (instance.IsTypeArguments()) {
     AddTypeArguments(TypeArguments::Cast(instance));
+    return;
+  }
+
+  if (instance.raw() == Object::sentinel().raw() ||
+      instance.raw() == Object::transition_sentinel().raw()) {
     return;
   }
 
@@ -955,8 +940,8 @@ void Precompiler::AddConstObject(const class Instance& instance) {
           precompiler_(precompiler),
           subinstance_(Object::Handle()) {}
 
-    virtual void VisitPointers(RawObject** first, RawObject** last) {
-      for (RawObject** current = first; current <= last; current++) {
+    virtual void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+      for (ObjectPtr* current = first; current <= last; current++) {
         subinstance_ = *current;
         if (subinstance_.IsInstance()) {
           precompiler_->AddConstObject(Instance::Cast(subinstance_));
@@ -971,16 +956,17 @@ void Precompiler::AddConstObject(const class Instance& instance) {
   };
 
   ConstObjectVisitor visitor(this, I);
-  instance.raw()->VisitPointers(&visitor);
+  instance.raw()->ptr()->VisitPointers(&visitor);
 }
 
 void Precompiler::AddClosureCall(const Array& arguments_descriptor) {
   const Class& cache_class =
       Class::Handle(Z, I->object_store()->closure_class());
-  const Function& dispatcher = Function::Handle(
-      Z, cache_class.GetInvocationDispatcher(
-             Symbols::Call(), arguments_descriptor,
-             RawFunction::kInvokeFieldDispatcher, true /* create_if_absent */));
+  const Function& dispatcher =
+      Function::Handle(Z, cache_class.GetInvocationDispatcher(
+                              Symbols::Call(), arguments_descriptor,
+                              FunctionLayout::kInvokeFieldDispatcher,
+                              true /* create_if_absent */));
   AddFunction(dispatcher);
 }
 
@@ -991,72 +977,62 @@ void Precompiler::AddField(const Field& field) {
 
   if (field.is_static()) {
     const Object& value = Object::Handle(Z, field.StaticValue());
-    if (value.IsInstance()) {
+    // Should not be in the middle of initialization while precompiling.
+    ASSERT(value.raw() != Object::transition_sentinel().raw());
+
+    if (value.raw() != Object::sentinel().raw() &&
+        value.raw() != Object::null()) {
+      ASSERT(value.IsInstance());
       AddConstObject(Instance::Cast(value));
     }
+  }
 
-    if (field.has_nontrivial_initializer()) {
-      // Should not be in the middle of initialization while precompiling.
-      ASSERT(value.raw() != Object::transition_sentinel().raw());
-
-      if (!field.HasInitializerFunction() ||
-          !Function::Handle(Z, field.InitializerFunction()).HasCode()) {
-        if (FLAG_trace_precompiler) {
-          THR_Print("Precompiling initializer for %s\n", field.ToCString());
-        }
-        const intptr_t gop_offset =
-            FLAG_use_bare_instructions
-                ? global_object_pool_builder()->CurrentLength()
-                : 0;
-        ASSERT(Dart::vm_snapshot_kind() != Snapshot::kFullAOT);
-        const Function& initializer =
-            Function::Handle(Z, CompileStaticInitializer(field));
-        ASSERT(!initializer.IsNull());
-        field.SetInitializerFunction(initializer);
-        AddCalleesOf(initializer, gop_offset);
-      }
-    }
+  if (field.has_nontrivial_initializer() &&
+      (field.is_static() || field.is_late())) {
+    const Function& initializer =
+        Function::ZoneHandle(Z, field.EnsureInitializerFunction());
+    AddFunction(initializer);
   }
 }
 
-RawFunction* Precompiler::CompileStaticInitializer(const Field& field) {
-  ASSERT(field.is_static());
-  Thread* thread = Thread::Current();
-  StackZone stack_zone(thread);
-  Zone* zone = stack_zone.GetZone();
-  ASSERT(Error::Handle(zone, thread->sticky_error()).IsNull());
+bool Precompiler::MustRetainFunction(const Function& function) {
+  // There are some cases where we must retain, even if there are no directly
+  // observable need for function objects at runtime. Here, we check for cases
+  // where the function is not marked with the vm:entry-point pragma, which also
+  // forces retention:
+  //
+  // * Native functions (for LinkNativeCall)
+  // * Selector matches a symbol used in Resolver::ResolveDynamic calls
+  //   in dart_entry.cc or dart_api_impl.cc.
+  // * _Closure.call (used in async stack handling)
+  if (function.is_native()) return true;
 
-  const Function& initializer_fun =
-      Function::ZoneHandle(zone, field.EnsureInitializerFunction());
-  ParsedFunction* parsed_function =
-      new (zone) ParsedFunction(thread, initializer_fun);
+  // Resolver::ResolveDynamic uses.
+  const auto& selector = String::Handle(Z, function.name());
+  if (selector.raw() == Symbols::toString().raw()) return true;
+  if (selector.raw() == Symbols::AssignIndexToken().raw()) return true;
+  if (selector.raw() == Symbols::IndexToken().raw()) return true;
+  if (selector.raw() == Symbols::hashCode().raw()) return true;
+  if (selector.raw() == Symbols::NoSuchMethod().raw()) return true;
+  if (selector.raw() == Symbols::EqualOperator().raw()) return true;
 
-  DartCompilationPipeline pipeline;
-  PrecompileParsedFunctionHelper helper(Precompiler::Instance(),
-                                        parsed_function,
-                                        /* optimized = */ true);
-  if (!helper.Compile(&pipeline)) {
-    Error& error = Error::Handle(zone, thread->sticky_error());
-    ASSERT(!error.IsNull());
-    Jump(error);
-    UNREACHABLE();
+  // Use the same check for _Closure.call as in stack_trace.{h|cc}.
+  if (selector.raw() == Symbols::Call().raw()) {
+    const auto& name = String::Handle(Z, function.QualifiedScrubbedName());
+    if (name.Equals(Symbols::_ClosureCall())) return true;
   }
 
-  if ((FLAG_disassemble || FLAG_disassemble_optimized) &&
-      FlowGraphPrinter::ShouldPrint(parsed_function->function())) {
-    Code& code = Code::Handle(parsed_function->function().CurrentCode());
-    Disassembler::DisassembleCode(parsed_function->function(), code,
-                                  /* optimized = */ true);
-  }
-
-  ASSERT(Error::Handle(zone, thread->sticky_error()).IsNull());
-  return parsed_function->function().raw();
+  return false;
 }
 
-void Precompiler::AddFunction(const Function& function) {
-  if (enqueued_functions_.ContainsKey(function)) return;
+void Precompiler::AddFunction(const Function& function, bool retain) {
+  if (possibly_retained_functions_.ContainsKey(function)) return;
+  if (retain || MustRetainFunction(function)) {
+    possibly_retained_functions_.Insert(function);
+  }
 
-  enqueued_functions_.Insert(function);
+  if (seen_functions_.ContainsKey(function)) return;
+  seen_functions_.Insert(function);
   pending_functions_.Add(function);
   changed_ = true;
 }
@@ -1206,7 +1182,7 @@ void Precompiler::AddAnnotatedRoots() {
 
           if ((type == EntryPointPragma::kAlways ||
                type == EntryPointPragma::kGetterOnly) &&
-              function.kind() != RawFunction::kConstructor &&
+              function.kind() != FunctionLayout::kConstructor &&
               !function.IsSetterFunction()) {
             function2 = function.ImplicitClosureFunction();
             AddFunction(function2);
@@ -1216,7 +1192,7 @@ void Precompiler::AddAnnotatedRoots() {
             AddInstantiatedClass(cls);
           }
         }
-        if (function.kind() == RawFunction::kImplicitGetter &&
+        if (function.kind() == FunctionLayout::kImplicitGetter &&
             !implicit_getters.IsNull()) {
           for (intptr_t i = 0; i < implicit_getters.Length(); ++i) {
             field ^= implicit_getters.At(i);
@@ -1225,7 +1201,7 @@ void Precompiler::AddAnnotatedRoots() {
             }
           }
         }
-        if (function.kind() == RawFunction::kImplicitSetter &&
+        if (function.kind() == FunctionLayout::kImplicitSetter &&
             !implicit_setters.IsNull()) {
           for (intptr_t i = 0; i < implicit_setters.Length(); ++i) {
             field ^= implicit_setters.At(i);
@@ -1234,7 +1210,7 @@ void Precompiler::AddAnnotatedRoots() {
             }
           }
         }
-        if (function.kind() == RawFunction::kImplicitStaticGetter &&
+        if (function.kind() == FunctionLayout::kImplicitStaticGetter &&
             !implicit_static_getters.IsNull()) {
           for (intptr_t i = 0; i < implicit_static_getters.Length(); ++i) {
             field ^= implicit_static_getters.At(i);
@@ -1282,8 +1258,11 @@ void Precompiler::CheckForNewDynamicFunctions() {
         // if (function.HasCode()) continue;
 
         selector = function.name();
-        if (IsSent(selector) || IsHitByTableSelector(function)) {
+        if (IsSent(selector)) {
           AddFunction(function);
+        }
+        if (IsHitByTableSelector(function)) {
+          AddFunction(function, FLAG_retain_function_objects);
         }
 
         bool found_metadata = false;
@@ -1303,7 +1282,7 @@ void Precompiler::CheckForNewDynamicFunctions() {
           if (IsSent(selector3)) {
             AddFunction(function);
           }
-        } else if (function.kind() == RawFunction::kRegularFunction) {
+        } else if (function.kind() == FunctionLayout::kRegularFunction) {
           selector2 = Field::LookupGetterSymbol(selector);
           if (IsSent(selector2)) {
             metadata = kernel::ProcedureAttributesOf(function, Z);
@@ -1322,12 +1301,12 @@ void Precompiler::CheckForNewDynamicFunctions() {
           }
         }
 
-        if (function.kind() == RawFunction::kImplicitSetter ||
-            function.kind() == RawFunction::kSetterFunction ||
-            function.kind() == RawFunction::kRegularFunction) {
+        if (function.kind() == FunctionLayout::kImplicitSetter ||
+            function.kind() == FunctionLayout::kSetterFunction ||
+            function.kind() == FunctionLayout::kRegularFunction) {
           selector2 = Function::CreateDynamicInvocationForwarderName(selector);
           if (IsSent(selector2)) {
-            if (function.kind() == RawFunction::kImplicitSetter) {
+            if (function.kind() == FunctionLayout::kImplicitSetter) {
               field = function.accessor_field();
               metadata = kernel::ProcedureAttributesOf(field, Z);
             } else if (!found_metadata) {
@@ -1355,7 +1334,7 @@ class NameFunctionsTraits {
            String::Cast(a).Equals(String::Cast(b));
   }
   static uword Hash(const Object& obj) { return String::Cast(obj).Hash(); }
-  static RawObject* NewKey(const String& str) { return str.raw(); }
+  static ObjectPtr NewKey(const String& str) { return str.raw(); }
 };
 
 typedef UnorderedHashMap<NameFunctionsTraits> Table;
@@ -1468,7 +1447,7 @@ void Precompiler::TraceForRetainedFunctions() {
       functions = cls.functions();
       for (intptr_t j = 0; j < functions.Length(); j++) {
         function ^= functions.At(j);
-        bool retain = enqueued_functions_.ContainsKey(function);
+        bool retain = possibly_retained_functions_.ContainsKey(function);
         if (!retain && function.HasImplicitClosureFunction()) {
           // It can happen that all uses of an implicit closure inline their
           // target function, leaving the target function uncompiled. Keep
@@ -1488,7 +1467,7 @@ void Precompiler::TraceForRetainedFunctions() {
   closures = isolate()->object_store()->closure_functions();
   for (intptr_t j = 0; j < closures.Length(); j++) {
     function ^= closures.At(j);
-    bool retain = enqueued_functions_.ContainsKey(function);
+    bool retain = possibly_retained_functions_.ContainsKey(function);
     if (retain) {
       AddTypesOf(function);
 
@@ -1507,11 +1486,92 @@ void Precompiler::TraceForRetainedFunctions() {
   }
 }
 
+void Precompiler::FinalizeDispatchTable() {
+  if (!FLAG_use_bare_instructions || !FLAG_use_table_dispatch) return;
+  // Build the entries used to serialize the dispatch table before
+  // dropping functions, as we may clear references to Code objects.
+  const auto& entries =
+      Array::Handle(Z, dispatch_table_generator_->BuildCodeArray());
+  I->object_store()->set_dispatch_table_code_entries(entries);
+  // Delete the dispatch table generator to ensure there's no attempt
+  // to add new entries after this point.
+  delete dispatch_table_generator_;
+  dispatch_table_generator_ = nullptr;
+
+  if (FLAG_retain_function_objects || !FLAG_trace_precompiler) return;
+
+  FunctionSet printed(HashTables::New<FunctionSet>(/*initial_capacity=*/1024));
+  auto& code = Code::Handle(Z);
+  auto& function = Function::Handle(Z);
+  for (intptr_t i = 0; i < entries.Length(); i++) {
+    code = Code::RawCast(entries.At(i));
+    if (code.IsNull()) continue;
+    if (!code.IsFunctionCode()) continue;
+    function = code.function();
+    ASSERT(!function.IsNull());
+    if (printed.ContainsKey(function)) continue;
+    if (functions_to_retain_.ContainsKey(function)) continue;
+    THR_Print("Dispatch table references code for function to drop: %s\n",
+              function.ToLibNamePrefixedQualifiedCString());
+    printed.Insert(function);
+  }
+  printed.Release();
+}
+
+void Precompiler::ReplaceFunctionPCRelativeCallEntries() {
+  class StaticCallTableEntryFixer : public CodeVisitor {
+   public:
+    explicit StaticCallTableEntryFixer(Zone* zone)
+        : table_(Array::Handle(zone)),
+          kind_and_offset_(Smi::Handle(zone)),
+          target_function_(Function::Handle(zone)),
+          target_code_(Code::Handle(zone)) {}
+
+    void VisitCode(const Code& code) {
+      if (!code.IsFunctionCode()) return;
+      table_ = code.static_calls_target_table();
+      StaticCallsTable static_calls(table_);
+      for (auto& view : static_calls) {
+        kind_and_offset_ = view.Get<Code::kSCallTableKindAndOffset>();
+        auto const kind = Code::KindField::decode(kind_and_offset_.Value());
+        if (kind != Code::kPcRelativeCall) continue;
+
+        target_function_ = view.Get<Code::kSCallTableFunctionTarget>();
+        if (target_function_.IsNull()) continue;
+
+        ASSERT(view.Get<Code::kSCallTableCodeOrTypeTarget>() == Code::null());
+        ASSERT(target_function_.HasCode());
+        target_code_ = target_function_.CurrentCode();
+        ASSERT(!target_code_.IsStubCode());
+        view.Set<Code::kSCallTableCodeOrTypeTarget>(target_code_);
+        view.Set<Code::kSCallTableFunctionTarget>(Object::null_function());
+        if (FLAG_trace_precompiler) {
+          THR_Print("Updated static call entry to %s in \"%s\"\n",
+                    target_function_.ToFullyQualifiedCString(),
+                    code.ToCString());
+        }
+      }
+    }
+
+   private:
+    Array& table_;
+    Smi& kind_and_offset_;
+    Function& target_function_;
+    Code& target_code_;
+  };
+
+  HANDLESCOPE(T);
+  StaticCallTableEntryFixer visitor(Z);
+  ProgramVisitor::WalkProgram(Z, I, &visitor);
+}
+
 void Precompiler::DropFunctions() {
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
   Array& functions = Array::Handle(Z);
   Function& function = Function::Handle(Z);
+  Code& code = Code::Handle(Z);
+  Object& owner = Object::Handle(Z);
   GrowableObjectArray& retained_functions = GrowableObjectArray::Handle(Z);
   GrowableObjectArray& closures = GrowableObjectArray::Handle(Z);
 
@@ -1530,6 +1590,15 @@ void Precompiler::DropFunctions() {
         if (retain) {
           retained_functions.Add(function);
         } else {
+          if (function.HasCode()) {
+            code = function.CurrentCode();
+            function.ClearCode();
+            // Wrap the owner of the code object in case the code object will be
+            // serialized but the function object will not.
+            owner = code.owner();
+            owner = WeakSerializationReference::Wrap(Z, owner);
+            code.set_owner(owner);
+          }
           dropped_function_count_++;
           if (FLAG_trace_precompiler) {
             THR_Print("Dropping function %s\n",
@@ -1556,6 +1625,15 @@ void Precompiler::DropFunctions() {
     if (retain) {
       retained_functions.Add(function);
     } else {
+      if (function.HasCode()) {
+        code = function.CurrentCode();
+        function.ClearCode();
+        // Wrap the owner of the code object in case the code object will be
+        // serialized but the function object will not.
+        owner = code.owner();
+        owner = WeakSerializationReference::Wrap(Z, owner);
+        code.set_owner(owner);
+      }
       dropped_function_count_++;
       if (FLAG_trace_precompiler) {
         THR_Print("Dropping function %s\n",
@@ -1633,7 +1711,7 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
                               GrowableHandlePtrArray<const AbstractType>* types)
           : type_(AbstractType::Handle(zone)), types_(types) {}
 
-      void VisitObject(RawObject* obj) {
+      void VisitObject(ObjectPtr obj) {
         if (obj->GetClassId() == kTypeCid || obj->GetClassId() == kTypeRefCid) {
           type_ ^= obj;
           types_->Add(type_);
@@ -1965,7 +2043,6 @@ void Precompiler::DropLibraryEntries() {
 void Precompiler::DropClasses() {
   Class& cls = Class::Handle(Z);
   Array& constants = Array::Handle(Z);
-  const Script& null_script = Script::Handle(Z);
 
   // We are about to remove classes from the class table. For this to be safe,
   // there must be no instances of these classes on the heap, not even
@@ -2008,7 +2085,6 @@ void Precompiler::DropClasses() {
 
     class_table->Unregister(cid);
     cls.set_id(kIllegalCid);  // We check this when serializing.
-    cls.set_script(null_script);
   }
 }
 
@@ -2019,7 +2095,6 @@ void Precompiler::DropLibraries() {
       Library::Handle(Z, I->object_store()->root_library());
   Library& lib = Library::Handle(Z);
   Class& toplevel_class = Class::Handle(Z);
-  const Script& null_script = Script::Handle(Z);
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
@@ -2057,7 +2132,6 @@ void Precompiler::DropLibraries() {
 
       I->class_table()->Unregister(toplevel_class.id());
       toplevel_class.set_id(kIllegalCid);  // We check this when serializing.
-      toplevel_class.set_script(null_script);
 
       dropped_library_count_++;
       lib.set_index(-1);
@@ -2071,179 +2145,50 @@ void Precompiler::DropLibraries() {
   libraries_ = retained_libraries.raw();
 }
 
-void Precompiler::BindStaticCalls() {
-  class BindAOTStaticCallsVisitor : public FunctionVisitor {
+// Traits for the HashTable template.
+struct CodeKeyTraits {
+  static uint32_t Hash(const Object& key) { return Code::Cast(key).Size(); }
+  static const char* Name() { return "CodeKeyTraits"; }
+  static bool IsMatch(const Object& x, const Object& y) {
+    return x.raw() == y.raw();
+  }
+  static bool ReportStats() { return false; }
+};
+
+typedef UnorderedHashSet<CodeKeyTraits> CodeSet;
+
+#if defined(DEBUG)
+FunctionPtr Precompiler::FindUnvisitedRetainedFunction() {
+  class CodeChecker : public CodeVisitor {
    public:
-    explicit BindAOTStaticCallsVisitor(Zone* zone)
-        : code_(Code::Handle(zone)),
-          table_(Array::Handle(zone)),
-          kind_and_offset_(Smi::Handle(zone)),
-          target_(Object::Handle(zone)),
-          target_code_(Code::Handle(zone)) {}
+    CodeChecker()
+        : visited_code_(HashTables::New<CodeSet>(/*initial_capacity=*/1024)) {}
+    ~CodeChecker() { visited_code_.Release(); }
 
-    void Visit(const Function& function) {
-      if (!function.HasCode()) {
-        return;
-      }
+    const CodeSet& visited() const { return visited_code_; }
 
-      code_ = function.CurrentCode();
-      table_ = code_.static_calls_target_table();
-      StaticCallsTable static_calls(table_);
-      bool only_call_via_code = true;
-      for (auto& view : static_calls) {
-        kind_and_offset_ = view.Get<Code::kSCallTableKindAndOffset>();
-        auto kind = Code::KindField::decode(kind_and_offset_.Value());
-        auto pc_offset = Code::OffsetField::decode(kind_and_offset_.Value());
-        if (kind == Code::kCallViaCode) {
-          target_ = view.Get<Code::kSCallTableFunctionTarget>();
-          if (target_.IsNull()) {
-            target_ = view.Get<Code::kSCallTableCodeTarget>();
-            ASSERT(!Code::Cast(target_).IsFunctionCode());
-            // Allocation stub or AllocateContext or AllocateArray or ...
-          } else {
-            // Static calls initially call the CallStaticFunction stub because
-            // their target might not be compiled yet. After tree shaking, all
-            // static call targets are compiled.
-            // Cf. runtime entry PatchStaticCall called from CallStaticFunction
-            // stub.
-            auto& fun = Function::Cast(target_);
-            ASSERT(fun.HasCode());
-            target_code_ = fun.CurrentCode();
-            uword pc = pc_offset + code_.PayloadStart();
-            CodePatcher::PatchStaticCallAt(pc, code_, target_code_);
-          }
-        } else {
-          ASSERT(kind == Code::kPcRelativeCall);
-          only_call_via_code = false;
-        }
-      }
-
-      // We won't patch static calls anymore, so drop the static call table to
-      // save space.
-      if (only_call_via_code) {
-        code_.set_static_calls_target_table(Object::empty_array());
-      }
-    }
+    void VisitCode(const Code& code) { visited_code_.Insert(code); }
 
    private:
-    Code& code_;
-    Array& table_;
-    Smi& kind_and_offset_;
-    Object& target_;
-    Code& target_code_;
+    CodeSet visited_code_;
   };
 
-  BindAOTStaticCallsVisitor visitor(Z);
+  CodeChecker visitor;
+  ProgramVisitor::WalkProgram(Z, I, &visitor);
+  const CodeSet& visited = visitor.visited();
 
-  // We need both iterations to ensure we visit all the functions that might end
-  // up in the snapshot. The ProgramVisitor will miss closures from duplicated
-  // finally clauses, and not all functions are compiled through the
-  // tree-shaker's queue
-  ProgramVisitor::VisitFunctions(&visitor);
-  FunctionSet::Iterator it(&enqueued_functions_);
-  Function& handle = Function::Handle();
+  FunctionSet::Iterator it(&functions_to_retain_);
+  Function& function = Function::Handle(Z);
+  Code& code = Code::Handle(Z);
   while (it.MoveNext()) {
-    handle ^= enqueued_functions_.GetKey(it.Current());
-    visitor.Visit(handle);
+    function ^= functions_to_retain_.GetKey(it.Current());
+    if (!function.HasCode()) continue;
+    code = function.CurrentCode();
+    if (!visited.ContainsKey(code)) return function.raw();
   }
+  return Function::null();
 }
-
-DECLARE_FLAG(charp, write_v8_snapshot_profile_to);
-
-void Precompiler::DedupUnlinkedCalls() {
-  class UnlinkedCallDeduper {
-   public:
-    explicit UnlinkedCallDeduper(Zone* zone)
-        : zone_(zone),
-          entry_(Object::Handle(zone)),
-          unlinked_(UnlinkedCall::Handle(zone)),
-          canonical_unlinked_calls_() {}
-
-    void DedupPool(const ObjectPool& pool) {
-      for (intptr_t i = 0; i < pool.Length(); i++) {
-        if (pool.TypeAt(i) != ObjectPool::EntryType::kTaggedObject) {
-          continue;
-        }
-        entry_ = pool.ObjectAt(i);
-        if (entry_.IsUnlinkedCall()) {
-          unlinked_ ^= entry_.raw();
-          unlinked_ = DedupUnlinkedCall(unlinked_);
-          pool.SetObjectAt(i, unlinked_);
-        }
-      }
-    }
-
-    RawUnlinkedCall* DedupUnlinkedCall(const UnlinkedCall& unlinked) {
-      const UnlinkedCall* canonical_unlinked =
-          canonical_unlinked_calls_.LookupValue(&unlinked);
-      if (canonical_unlinked == NULL) {
-        canonical_unlinked_calls_.Insert(
-            &UnlinkedCall::ZoneHandle(zone_, unlinked.raw()));
-        return unlinked.raw();
-      } else {
-        return canonical_unlinked->raw();
-      }
-    }
-
-   private:
-    Zone* zone_;
-    Object& entry_;
-    UnlinkedCall& unlinked_;
-    UnlinkedCallSet canonical_unlinked_calls_;
-  };
-
-  class DedupUnlinkedCallsVisitor : public FunctionVisitor {
-   public:
-    DedupUnlinkedCallsVisitor(UnlinkedCallDeduper* deduper, Zone* zone)
-        : deduper_(*deduper),
-          code_(Code::Handle(zone)),
-          pool_(ObjectPool::Handle(zone)) {}
-
-    void Visit(const Function& function) {
-      if (!function.HasCode()) {
-        return;
-      }
-      code_ = function.CurrentCode();
-      pool_ = code_.object_pool();
-      deduper_.DedupPool(pool_);
-    }
-
-   private:
-    UnlinkedCallDeduper& deduper_;
-    Code& code_;
-    ObjectPool& pool_;
-  };
-
-  UnlinkedCallDeduper deduper(Z);
-  auto& gop = ObjectPool::Handle(I->object_store()->global_object_pool());
-  ASSERT(gop.IsNull() != FLAG_use_bare_instructions);
-  if (FLAG_use_bare_instructions) {
-    deduper.DedupPool(gop);
-  }
-
-  // Note: in bare instructions mode we can still have object pools attached
-  // to code objects and these pools need to be deduplicated.
-  // We use these pools to carry information about references between code
-  // objects and other objects in the snapshots (these references are otherwise
-  // implicit and go through global object pool). This information is needed
-  // to produce more informative snapshot profile.
-  if (!FLAG_use_bare_instructions ||
-      FLAG_write_v8_snapshot_profile_to != nullptr) {
-    DedupUnlinkedCallsVisitor visitor(&deduper, Z);
-
-    // We need both iterations to ensure we visit all the functions that might
-    // end up in the snapshot. The ProgramVisitor will miss closures from
-    // duplicated finally clauses, and not all functions are compiled through
-    // the tree-shaker's queue
-    ProgramVisitor::VisitFunctions(&visitor);
-    FunctionSet::Iterator it(&enqueued_functions_);
-    Function& current = Function::Handle();
-    while (it.MoveNext()) {
-      current ^= enqueued_functions_.GetKey(it.Current());
-      visitor.Visit(current);
-    }
-  }
-}
+#endif
 
 void Precompiler::Obfuscate() {
   if (!I->obfuscate()) {
@@ -2256,7 +2201,7 @@ void Precompiler::Obfuscate() {
                               GrowableHandlePtrArray<const Script>* scripts)
         : script_(Script::Handle(zone)), scripts_(scripts) {}
 
-    void VisitObject(RawObject* obj) {
+    void VisitObject(ObjectPtr obj) {
       if (obj->GetClassId() == kScriptCid) {
         script_ ^= obj;
         scripts_->Add(Script::Cast(script_));
@@ -2394,7 +2339,7 @@ static void GenerateNecessaryAllocationStubs(FlowGraph* flow_graph) {
 // If optimized_result_code is not NULL then it is caller's responsibility
 // to install code.
 bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
-  ASSERT(FLAG_precompiled_mode);
+  ASSERT(CompilerState::Current().is_aot());
   if (optimized() && !parsed_function()->function().IsOptimizable()) {
     // All functions compiled by precompiler must be optimizable.
     UNREACHABLE();
@@ -2423,7 +2368,8 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       ZoneGrowableArray<const ICData*>* ic_data_array = nullptr;
       const Function& function = parsed_function()->function();
 
-      CompilerState compiler_state(thread());
+      CompilerState compiler_state(thread(), /*is_aot=*/true,
+                                   CompilerState::ShouldTrace(function));
 
       {
         ic_data_array = new (zone) ZoneGrowableArray<const ICData*>();
@@ -2619,12 +2565,12 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   return is_compiled;
 }
 
-static RawError* PrecompileFunctionHelper(Precompiler* precompiler,
-                                          CompilationPipeline* pipeline,
-                                          const Function& function,
-                                          bool optimized) {
+static ErrorPtr PrecompileFunctionHelper(Precompiler* precompiler,
+                                         CompilationPipeline* pipeline,
+                                         const Function& function,
+                                         bool optimized) {
   // Check that we optimize, except if the function is not optimizable.
-  ASSERT(FLAG_precompiled_mode);
+  ASSERT(CompilerState::Current().is_aot());
   ASSERT(!function.IsOptimizable() || optimized);
   ASSERT(!function.HasCode());
   LongJumpScope jump;
@@ -2694,14 +2640,14 @@ static RawError* PrecompileFunctionHelper(Precompiler* precompiler,
   return Error::null();
 }
 
-RawError* Precompiler::CompileFunction(Precompiler* precompiler,
-                                       Thread* thread,
-                                       Zone* zone,
-                                       const Function& function) {
+ErrorPtr Precompiler::CompileFunction(Precompiler* precompiler,
+                                      Thread* thread,
+                                      Zone* zone,
+                                      const Function& function) {
   VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread, "CompileFunction", function);
 
-  ASSERT(FLAG_precompiled_mode);
+  ASSERT(CompilerState::Current().is_aot());
   const bool optimized = function.IsOptimizable();  // False for natives.
   DartCompilationPipeline pipeline;
   return PrecompileFunctionHelper(precompiler, &pipeline, function, optimized);
@@ -2836,8 +2782,8 @@ void Obfuscator::InitializeRenamingMap(Isolate* isolate) {
   PreventRenaming("_NamespaceImpl");
 }
 
-RawString* Obfuscator::ObfuscationState::RenameImpl(const String& name,
-                                                    bool atomic) {
+StringPtr Obfuscator::ObfuscationState::RenameImpl(const String& name,
+                                                   bool atomic) {
   ASSERT(name.IsSymbol());
 
   renamed_ ^= renames_.GetOrNull(name);
@@ -2913,7 +2859,7 @@ void Obfuscator::ObfuscationState::NextName() {
   }
 }
 
-RawString* Obfuscator::ObfuscationState::NewAtomicRename(
+StringPtr Obfuscator::ObfuscationState::NewAtomicRename(
     bool should_be_private) {
   do {
     NextName();
@@ -2925,8 +2871,8 @@ RawString* Obfuscator::ObfuscationState::NewAtomicRename(
   return renamed_.raw();
 }
 
-RawString* Obfuscator::ObfuscationState::BuildRename(const String& name,
-                                                     bool atomic) {
+StringPtr Obfuscator::ObfuscationState::BuildRename(const String& name,
+                                                    bool atomic) {
   if (atomic) {
     return NewAtomicRename(name.CharAt(0) == '_');
   }
@@ -3142,5 +3088,3 @@ const char** Obfuscator::SerializeMap(Thread* thread) {
 #endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
 
 }  // namespace dart
-
-#endif  // DART_PRECOMPILED_RUNTIME

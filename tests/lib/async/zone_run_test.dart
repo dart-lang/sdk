@@ -35,6 +35,7 @@ main() {
   shouldForward = false;
   result = forked.run(() {
     Expect.fail("should not be invoked");
+    return -1;
   });
   Expect.equals(42, result);
   events.add("executed run2");

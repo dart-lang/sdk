@@ -2,101 +2,50 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_foreign_helper' show JS;
-import 'dart:_runtime' as dart;
+import 'dart:_runtime' show gFnType, typeRep, isSubtypeOf;
 
-import 'dart:async';
 import 'package:expect/expect.dart';
 
-// Function type used to extract the FutureOr now that a raw FutureOr gets
-// normalized away.
-typedef _futureOrReturn = FutureOr<int> Function();
-
-// The runtime representation of the void type.
-final voidType = dart.wrapType(dart.void_);
-
-/// Unwrap the user code type representation to expose the runtime
-/// representation of [t].
+/// Returns an unwrapped generic function type with a bounded type argument in
+/// the form: <T extends [bound]> void -> void.
 ///
-/// Generic functions are unchanged, as they have a separate runtime type object representation.
-Object unwrap(Type t) {
-  if (t is dart.GenericFunctionType) {
-    return t;
-  }
-  return dart.unwrapType(t);
-}
+// TODO(nshahan): The generic function type is created as a legacy type.
+genericFunction(bound) => gFnType((T) => [typeRep<void>(), []], (T) => [bound]);
 
-Type futureOrOf(Type tWrapped) {
-  var t = unwrap(tWrapped);
-  var f = unwrap(_futureOrReturn);
-  // Extract a raw FutureOr from an existing use.
-  var futureOrGeneric = dart.getGenericClass(JS('', '#.returnType', f));
-  return dart.wrapType(JS('', '#(#)', futureOrGeneric, t));
-}
-
-// Returns sWrapped<tWrapped> as a wrapped type.
-Type generic1(Type sWrapped, Type tWrapped) {
-  var s = unwrap(sWrapped);
-  var t = unwrap(tWrapped);
-  var sGeneric = dart.getGenericClass(s);
-  return dart.wrapType(JS('', '#(#)', sGeneric, t));
-}
-
-// Returns sWrapped<tWrapped, rWrapped> as a wrapped type.
-Type generic2(Type sWrapped, Type tWrapped, Type rWrapped) {
-  var s = unwrap(sWrapped);
-  var t = unwrap(tWrapped);
-  var r = unwrap(rWrapped);
-  var sGeneric = dart.getGenericClass(s);
-  return dart.wrapType(JS('', '#(#, #)', sGeneric, t, r));
-}
-
-// Returns a function type of argWrapped -> returnWrapped as a wrapped type.
-Type function1(Type returnWrapped, Type argWrapped) {
-  var returnType = unwrap(returnWrapped);
-  var argType = unwrap(argWrapped);
-  var fun = dart.fnType(returnType, [argType]);
-  return dart.wrapType(fun);
-}
-
-// Returns a function type with a bounded type argument that takes no argument
-// and returns void as a wrapped type.
-Type genericFunction(Type boundWrapped) =>
-    dart.gFnType((T) => [dart.VoidType, []], (T) => [unwrap(boundWrapped)]);
-
-// Returns a function type with a bounded generic return type of
-// <T extends boundWrapped> argWrapped -> T as a wrapped type.
-Type functionGenericReturn(Type boundWrapped, Type argWrapped) => dart.gFnType(
+/// Returns an unwrapped generic function type with a bounded type argument in
+/// the form: <T extends [bound]> [argumentType] -> T.
+///
+// TODO(nshahan): The generic function type is created as a legacy type.
+functionGenericReturn(bound, argumentType) => gFnType(
     (T) => [
           T,
-          [unwrap(argWrapped)]
+          [argumentType]
         ],
-    (T) => [unwrap(boundWrapped)]);
+    (T) => [bound]);
 
-// Returns a function with a bounded generic argument type of
-// <T extends boundWrapped> T -> returnWrapped as a wrapped type.
-Type functionGenericArg(Type boundWrapped, Type returnWrapped) => dart.gFnType(
+/// Returns an unwrapped generic function type with a bounded type argument in
+/// the form: <T extends [bound]> T -> [returnType].
+///
+// TODO(nshahan): The generic function type is created as a legacy type.
+functionGenericArg(bound, returnType) => gFnType(
     (T) => [
-          unwrap(returnWrapped),
+          returnType,
           [T]
         ],
-    (T) => [unwrap(boundWrapped)]);
+    (T) => [bound]);
 
-void checkSubtype(Type sWrapped, Type tWrapped) {
-  var s = unwrap(sWrapped);
-  var t = unwrap(tWrapped);
-  Expect.isTrue(dart.isSubtypeOf(s, t), '$s should be subtype of $t.');
+void checkSubtype(s, t) =>
+    Expect.isTrue(isSubtypeOf(s, t), '$s should be subtype of $t.');
+
+void checkProperSubtype(s, t) {
+  Expect.isTrue(isSubtypeOf(s, t), '$s should be subtype of $t.');
+  checkSubtypeFailure(t, s);
 }
 
-void checkProperSubtype(Type sWrapped, Type tWrapped) {
-  var s = unwrap(sWrapped);
-  var t = unwrap(tWrapped);
-  Expect.isTrue(dart.isSubtypeOf(s, t), '$s should be subtype of $t.');
-  checkSubtypeFailure(tWrapped, sWrapped);
+void checkMutualSubtype(Object s, Object t) {
+  Expect.isTrue(isSubtypeOf(s, t), '$s should be subtype of $t.');
+  Expect.isTrue(isSubtypeOf(t, s), '$t should be subtype of $s.');
 }
 
-void checkSubtypeFailure(Type sWrapped, Type tWrapped) {
-  var s = unwrap(sWrapped);
-  var t = unwrap(tWrapped);
-  Expect.isFalse(dart.isSubtypeOf(s, t), '$s should not be subtype of $t.');
-}
+void checkSubtypeFailure(s, t) =>
+    Expect.isFalse(isSubtypeOf(s, t), '$s should not be subtype of $t.');

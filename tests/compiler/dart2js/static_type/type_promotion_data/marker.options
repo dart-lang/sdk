@@ -1,2 +1,4 @@
-strong=tests/compiler/dart2js/static_type/type_promotion_test.dart
-omit=tests/compiler/dart2js/static_type/type_promotion_test.dart
+spec:nnbd-off=tests/compiler/dart2js/static_type/type_promotion_test.dart
+prod:nnbd-off=tests/compiler/dart2js/static_type/type_promotion_test.dart
+spec:nnbd-sdk=tests/compiler/dart2js/static_type/type_promotion_test.dart
+prod:nnbd-sdk=tests/compiler/dart2js/static_type/type_promotion_test.dart

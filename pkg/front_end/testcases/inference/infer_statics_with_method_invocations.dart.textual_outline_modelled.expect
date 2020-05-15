@@ -1,0 +1,11 @@
+library test;
+
+import 'infer_statics_with_method_invocations_a.dart';
+
+class T {
+  static String m2(e) {}
+  static T m1(String m) {}
+  static final T foo = m1(m2(m3('', '')));
+}
+
+main() {}

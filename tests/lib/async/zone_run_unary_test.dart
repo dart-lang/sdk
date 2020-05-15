@@ -25,7 +25,7 @@ main() {
 
   events.add("zone forked");
   Zone expectedZone = forked;
-  var result = forked.runUnary((arg) {
+  var result = forked.runUnary((dynamic arg) {
     Expect.identical(expectedZone, Zone.current);
     events.add("run closure");
     return arg + 3;
@@ -36,13 +36,14 @@ main() {
   shouldForward = false;
   result = forked.runUnary<int, int>((arg) {
     Expect.fail("should not be invoked");
+    return -1;
   }, 99);
   Expect.equals(42, result);
   events.add("executed run2");
 
   asyncStart();
   shouldForward = true;
-  result = forked.runUnary((arg) {
+  result = forked.runUnary((dynamic arg) {
     Expect.identical(forked, Zone.current);
     events.add("run closure 2");
     scheduleMicrotask(() {

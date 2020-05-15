@@ -28,9 +28,9 @@ library;
 // }
 // ^
 //
-// pkg/front_end/testcases/rasta/issue_000032.dart:10:4: Error: The method '<' isn't defined for the class 'Type'.
+// pkg/front_end/testcases/rasta/issue_000032.dart:10:4: Error: The operator '<' isn't defined for the class 'Type'.
 //  - 'Type' is from 'dart:core'.
-// Try correcting the name to the name of an existing method, or defining a method named '<'.
+// Try correcting the operator to an existing operator, or defining a '<' operator.
 //   C<
 //    ^
 //
@@ -40,11 +40,21 @@ import "dart:core" as core;
 class C extends core::Object {
   constructor •() → self::C*
     : super core::Object::•() {}
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method main() → dynamic {
-  invalid-expression "pkg/front_end/testcases/rasta/issue_000032.dart:10:4: Error: The method '<' isn't defined for the class 'Type'.
+  invalid-expression "pkg/front_end/testcases/rasta/issue_000032.dart:10:4: Error: The operator '<' isn't defined for the class 'Type'.
  - 'Type' is from 'dart:core'.
-Try correcting the name to the name of an existing method, or defining a method named '<'.
+Try correcting the operator to an existing operator, or defining a '<' operator.
   C<
    ^";
 }

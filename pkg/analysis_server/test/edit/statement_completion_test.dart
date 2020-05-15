@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -89,7 +88,7 @@ main() {
 }
 ''');
     await waitForTasksFinished();
-    String match = 'v =';
+    var match = 'v =';
     await _prepareCompletion(match, atEnd: true);
     _assertHasChange(
         'Insert a newline at the end of the current line',
@@ -105,7 +104,7 @@ main() {
   void _assertHasChange(String message, String expectedCode, [Function cmp]) {
     if (change.message == message) {
       if (change.edits.isNotEmpty) {
-        String resultCode =
+        var resultCode =
             SourceEdit.applySequence(testCode, change.edits[0].edits);
         expect(resultCode, expectedCode.replaceAll('/*caret*/', ''));
         if (cmp != null) {
@@ -125,7 +124,7 @@ main() {
 
   Future<void> _prepareCompletion(String search,
       {bool atStart = false, bool atEnd = false, int delta = 0}) async {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     if (atStart) {
       delta = 0;
     } else if (atEnd) {
@@ -135,9 +134,9 @@ main() {
   }
 
   Future<void> _prepareCompletionAt(int offset) async {
-    Request request =
+    var request =
         EditGetStatementCompletionParams(testFile, offset).toRequest('0');
-    Response response = await waitResponse(request);
+    var response = await waitResponse(request);
     var result = EditGetStatementCompletionResult.fromResponse(response);
     change = result.change;
   }

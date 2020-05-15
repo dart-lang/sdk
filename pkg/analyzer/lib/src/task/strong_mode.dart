@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
@@ -22,8 +23,9 @@ class InstanceMemberInferrer {
   final InheritanceManager3 inheritance;
   final Set<ClassElement> elementsBeingInferred = HashSet<ClassElement>();
 
+  TypeSystemImpl typeSystem;
   bool isNonNullableByDefault;
-  InterfaceType interfaceType;
+  ClassElement currentClassElement;
 
   /**
    * Initialize a newly create inferrer.
@@ -37,7 +39,8 @@ class InstanceMemberInferrer {
    * compilation [unit].
    */
   void inferCompilationUnit(CompilationUnitElement unit) {
-    isNonNullableByDefault = unit.library.isNonNullableByDefault;
+    typeSystem = unit.library.typeSystem;
+    isNonNullableByDefault = typeSystem.isNonNullableByDefault;
     _inferClasses(unit.mixins);
     _inferClasses(unit.types);
   }
@@ -65,15 +68,15 @@ class InstanceMemberInferrer {
       PropertyAccessorElement accessor) {
     String name = accessor.displayName;
 
-    var overriddenGetters = inheritance.getOverridden(
-      interfaceType,
+    var overriddenGetters = inheritance.getOverridden2(
+      currentClassElement,
       Name(accessor.library.source.uri, name),
     );
 
     List<ExecutableElement> overriddenSetters;
     if (overriddenGetters == null || !accessor.variable.isFinal) {
-      overriddenSetters = inheritance.getOverridden(
-        interfaceType,
+      overriddenSetters = inheritance.getOverridden2(
+        currentClassElement,
         Name(accessor.library.source.uri, '$name='),
       );
     }
@@ -136,15 +139,18 @@ class InstanceMemberInferrer {
    */
   DartType _computeParameterType(ParameterElement parameter, int index,
       List<FunctionType> overriddenTypes) {
-    DartType parameterType;
-    int length = overriddenTypes.length;
-    for (int i = 0; i < length; i++) {
+    var typesMerger = _OverriddenTypesMerger(typeSystem);
+
+    for (var overriddenType in overriddenTypes) {
       ParameterElement matchingParameter = _getCorrespondingParameter(
-          parameter, index, overriddenTypes[i].parameters);
+        parameter,
+        index,
+        overriddenType.parameters,
+      );
       DartType type = matchingParameter?.type ?? _dynamicType;
-      if (parameterType == null) {
-        parameterType = type;
-      } else if (parameterType != type) {
+      typesMerger.update(type);
+
+      if (typesMerger.hasError) {
         if (parameter is ParameterElementImpl && parameter.linkedNode != null) {
           LazyAst.setTypeInferenceError(
             parameter.linkedNode,
@@ -156,7 +162,8 @@ class InstanceMemberInferrer {
         return _dynamicType;
       }
     }
-    return parameterType ?? _dynamicType;
+
+    return typesMerger.result ?? _dynamicType;
   }
 
   /**
@@ -168,18 +175,17 @@ class InstanceMemberInferrer {
    * want to be smarter about it.
    */
   DartType _computeReturnType(Iterable<DartType> overriddenReturnTypes) {
-    DartType returnType;
+    var typesMerger = _OverriddenTypesMerger(typeSystem);
+
     for (DartType type in overriddenReturnTypes) {
-      if (type == null) {
-        type = _dynamicType;
-      }
-      if (returnType == null) {
-        returnType = type;
-      } else if (returnType != type) {
+      type ??= _dynamicType;
+      typesMerger.update(type);
+      if (typesMerger.hasError) {
         return _dynamicType;
       }
     }
-    return returnType ?? _dynamicType;
+
+    return typesMerger.result ?? _dynamicType;
   }
 
   /**
@@ -279,7 +285,7 @@ class InstanceMemberInferrer {
         //
         // Then infer the types for the members.
         //
-        this.interfaceType = classElement.thisType;
+        currentClassElement = classElement;
         for (FieldElement field in classElement.fields) {
           _inferField(field);
         }
@@ -336,8 +342,8 @@ class InstanceMemberInferrer {
 
     // TODO(scheglov) If no implicit types, don't ask inherited.
 
-    List<ExecutableElement> overriddenElements = inheritance.getOverridden(
-      interfaceType,
+    List<ExecutableElement> overriddenElements = inheritance.getOverridden2(
+      currentClassElement,
       Name(element.library.source.uri, element.name),
     );
     if (overriddenElements == null ||
@@ -559,4 +565,54 @@ class _FieldOverrideInferenceResult {
   final bool isError;
 
   _FieldOverrideInferenceResult(this.isCovariant, this.type, this.isError);
+}
+
+/// Helper for merging types from several overridden executables, according
+/// to legacy or NNBD rules.
+class _OverriddenTypesMerger {
+  final TypeSystemImpl _typeSystem;
+
+  bool hasError = false;
+
+  DartType _legacyResult;
+
+  DartType _notNormalized;
+  DartType _currentMerge;
+
+  _OverriddenTypesMerger(this._typeSystem);
+
+  DartType get result {
+    if (_typeSystem.isNonNullableByDefault) {
+      return _currentMerge ?? _notNormalized;
+    } else {
+      return _legacyResult;
+    }
+  }
+
+  void update(DartType type) {
+    if (hasError) {
+      // Stop updating it.
+    } else if (_typeSystem.isNonNullableByDefault) {
+      if (_currentMerge == null) {
+        if (_notNormalized == null) {
+          _notNormalized = type;
+          return;
+        } else {
+          _currentMerge = _typeSystem.normalize(_notNormalized);
+        }
+      }
+      var normType = _typeSystem.normalize(type);
+      try {
+        _currentMerge = _typeSystem.topMerge(_currentMerge, normType);
+      } catch (_) {
+        hasError = true;
+      }
+    } else {
+      if (_legacyResult == null) {
+        _legacyResult = type;
+      } else if (_legacyResult != type) {
+        hasError = true;
+      }
+    }
+  }
 }

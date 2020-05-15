@@ -19,27 +19,28 @@
 #include "vm/globals.h"
 #include "vm/pointer_tagging.h"
 #include "vm/snapshot.h"
+#include "vm/tagged_pointer.h"
 #include "vm/token.h"
 #include "vm/token_position.h"
 
 namespace dart {
 
 // For now there are no compressed pointers.
-typedef RawObject* RawCompressed;
+typedef ObjectPtr RawCompressed;
 
 // Forward declarations.
 class Isolate;
 class IsolateGroup;
-#define DEFINE_FORWARD_DECLARATION(clazz) class Raw##clazz;
+#define DEFINE_FORWARD_DECLARATION(clazz) class clazz##Layout;
 CLASS_LIST(DEFINE_FORWARD_DECLARATION)
 #undef DEFINE_FORWARD_DECLARATION
 class CodeStatistics;
 
 #define VISIT_FROM(type, first)                                                \
-  type* from() { return reinterpret_cast<type*>(&ptr()->first); }
+  type* from() { return reinterpret_cast<type*>(&first); }
 
 #define VISIT_TO(type, last)                                                   \
-  type* to() { return reinterpret_cast<type*>(&ptr()->last); }
+  type* to() { return reinterpret_cast<type*>(&last); }
 
 #define VISIT_TO_LENGTH(type, last)                                            \
   type* to(intptr_t length) { return reinterpret_cast<type*>(last); }
@@ -47,15 +48,15 @@ class CodeStatistics;
 #define VISIT_NOTHING() int NothingToVisit();
 
 #define ASSERT_UNCOMPRESSED(Type)                                              \
-  ASSERT(SIZE_OF_DEREFERENCED_RETURNED_VALUE(Raw##Type, from) == kWordSize)
+  ASSERT(SIZE_OF_DEREFERENCED_RETURNED_VALUE(Type##Layout, from) == kWordSize)
 
 // For now there are no compressed pointers, so this assert is the same as
 // the above.
 #define ASSERT_COMPRESSED(Type)                                                \
-  ASSERT(SIZE_OF_DEREFERENCED_RETURNED_VALUE(Raw##Type, from) == kWordSize)
+  ASSERT(SIZE_OF_DEREFERENCED_RETURNED_VALUE(Type##Layout, from) == kWordSize)
 
 #define ASSERT_NOTHING_TO_VISIT(Type)                                          \
-  ASSERT(SIZE_OF_RETURNED_VALUE(Raw##Type, NothingToVisit) == sizeof(int))
+  ASSERT(SIZE_OF_RETURNED_VALUE(Type##Layout, NothingToVisit) == sizeof(int))
 
 enum TypedDataElementType {
 #define V(name) k##name##Element,
@@ -69,7 +70,7 @@ enum TypedDataElementType {
   friend class SnapshotWriter;
 
 #define VISITOR_SUPPORT(object)                                                \
-  static intptr_t Visit##object##Pointers(Raw##object* raw_obj,                \
+  static intptr_t Visit##object##Pointers(object##Ptr raw_obj,                 \
                                           ObjectPointerVisitor* visitor);
 
 #define HEAP_PROFILER_SUPPORT() friend class HeapProfiler;
@@ -78,7 +79,7 @@ enum TypedDataElementType {
  private: /* NOLINT */                                                         \
   VISITOR_SUPPORT(object)                                                      \
   friend class object;                                                         \
-  friend class RawObject;                                                      \
+  friend class ObjectLayout;                                                   \
   friend class Heap;                                                           \
   friend class Interpreter;                                                    \
   friend class InterpreterHelpers;                                             \
@@ -86,17 +87,11 @@ enum TypedDataElementType {
   friend class SimulatorHelpers;                                               \
   friend class OffsetsTable;                                                   \
   DISALLOW_ALLOCATION();                                                       \
-  DISALLOW_IMPLICIT_CONSTRUCTORS(Raw##object)
+  DISALLOW_IMPLICIT_CONSTRUCTORS(object##Layout)
 
-// TODO(koda): Make ptr() return const*, like Object::raw_ptr().
 #define RAW_HEAP_OBJECT_IMPLEMENTATION(object)                                 \
  private:                                                                      \
   RAW_OBJECT_IMPLEMENTATION(object);                                           \
-  Raw##object* ptr() const {                                                   \
-    ASSERT(IsHeapObject());                                                    \
-    return reinterpret_cast<Raw##object*>(reinterpret_cast<uword>(this) -      \
-                                          kHeapObjectTag);                     \
-  }                                                                            \
   SNAPSHOT_WRITER_SUPPORT()                                                    \
   HEAP_PROFILER_SUPPORT()                                                      \
   friend class object##SerializationCluster;                                   \
@@ -108,7 +103,7 @@ enum TypedDataElementType {
 // RawObject is the base class of all raw objects; even though it carries the
 // tags_ field not all raw objects are allocated in the heap and thus cannot
 // be dereferenced (e.g. RawSmi).
-class RawObject {
+class ObjectLayout {
  public:
   // The tags field which is a part of the object header uses the following
   // bit fields for storing tags.
@@ -151,7 +146,7 @@ class RawObject {
     typedef intptr_t Type;
 
     static constexpr intptr_t kMaxSizeTagInUnitsOfAlignment =
-        ((1 << RawObject::kSizeTagSize) - 1);
+        ((1 << ObjectLayout::kSizeTagSize) - 1);
     static constexpr intptr_t kMaxSizeTag =
         kMaxSizeTagInUnitsOfAlignment * kObjectAlignment;
 
@@ -167,6 +162,11 @@ class RawObject {
       return SizeBits::update(SizeToTagValue(size), tag);
     }
 
+    static UNLESS_DEBUG(constexpr) bool SizeFits(intptr_t size) {
+      DEBUG_ASSERT(Utils::IsAligned(size, kObjectAlignment));
+      return (size <= kMaxSizeTag);
+    }
+
    private:
     // The actual unscaled bit field used within the tag field.
     class SizeBits
@@ -174,7 +174,7 @@ class RawObject {
 
     static UNLESS_DEBUG(constexpr) intptr_t SizeToTagValue(intptr_t size) {
       DEBUG_ASSERT(Utils::IsAligned(size, kObjectAlignment));
-      return (size > kMaxSizeTag) ? 0 : (size >> kObjectAlignmentLog2);
+      return !SizeFits(size) ? 0 : (size >> kObjectAlignmentLog2);
     }
     static constexpr intptr_t TagValueToSize(intptr_t value) {
       return value << kObjectAlignmentLog2;
@@ -269,166 +269,86 @@ class RawObject {
     COMPILE_ASSERT(sizeof(std::atomic<uint32_t>) == sizeof(uint32_t));
   };
 
-  bool IsWellFormed() const {
-    uword value = reinterpret_cast<uword>(this);
-    return (value & kSmiTagMask) == 0 ||
-           Utils::IsAligned(value - kHeapObjectTag, kWordSize);
-  }
-  bool IsHeapObject() const {
-    ASSERT(IsWellFormed());
-    uword value = reinterpret_cast<uword>(this);
-    return (value & kSmiTagMask) == kHeapObjectTag;
-  }
   // Assumes this is a heap object.
   bool IsNewObject() const {
-    ASSERT(IsHeapObject());
     uword addr = reinterpret_cast<uword>(this);
-    return (addr & kNewObjectAlignmentOffset) == kNewObjectAlignmentOffset;
-  }
-  bool IsNewObjectMayBeSmi() const {
-    static const uword kNewObjectBits =
-        (kNewObjectAlignmentOffset | kHeapObjectTag);
-    const uword addr = reinterpret_cast<uword>(this);
-    return (addr & kObjectAlignmentMask) == kNewObjectBits;
+    return (addr & kObjectAlignmentMask) == kNewObjectAlignmentOffset;
   }
   // Assumes this is a heap object.
   bool IsOldObject() const {
-    ASSERT(IsHeapObject());
     uword addr = reinterpret_cast<uword>(this);
-    return (addr & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset;
-  }
-
-  // Like !IsHeapObject() || IsOldObject(), but compiles to a single branch.
-  bool IsSmiOrOldObject() const {
-    ASSERT(IsWellFormed());
-    static const uword kNewObjectBits =
-        (kNewObjectAlignmentOffset | kHeapObjectTag);
-    const uword addr = reinterpret_cast<uword>(this);
-    return (addr & kObjectAlignmentMask) != kNewObjectBits;
-  }
-
-  // Like !IsHeapObject() || IsNewObject(), but compiles to a single branch.
-  bool IsSmiOrNewObject() const {
-    ASSERT(IsWellFormed());
-    static const uword kOldObjectBits =
-        (kOldObjectAlignmentOffset | kHeapObjectTag);
-    const uword addr = reinterpret_cast<uword>(this);
-    return (addr & kObjectAlignmentMask) != kOldObjectBits;
+    return (addr & kObjectAlignmentMask) == kOldObjectAlignmentOffset;
   }
 
   // Support for GC marking bit. Marked objects are either grey (not yet
   // visited) or black (already visited).
   bool IsMarked() const {
     ASSERT(IsOldObject());
-    return !ptr()->tags_.Read<OldAndNotMarkedBit>();
+    return !tags_.Read<OldAndNotMarkedBit>();
   }
   void SetMarkBit() {
     ASSERT(IsOldObject());
     ASSERT(!IsMarked());
-    ptr()->tags_.UpdateBool<OldAndNotMarkedBit>(false);
+    tags_.UpdateBool<OldAndNotMarkedBit>(false);
   }
   void SetMarkBitUnsynchronized() {
     ASSERT(IsOldObject());
     ASSERT(!IsMarked());
-    ptr()->tags_.UpdateUnsynchronized<OldAndNotMarkedBit>(false);
+    tags_.UpdateUnsynchronized<OldAndNotMarkedBit>(false);
   }
   void ClearMarkBit() {
     ASSERT(IsOldObject());
     ASSERT(IsMarked());
-    ptr()->tags_.UpdateBool<OldAndNotMarkedBit>(true);
+    tags_.UpdateBool<OldAndNotMarkedBit>(true);
   }
   // Returns false if the bit was already set.
   DART_WARN_UNUSED_RESULT
   bool TryAcquireMarkBit() {
     ASSERT(IsOldObject());
-    return ptr()->tags_.TryClear<OldAndNotMarkedBit>();
+    return tags_.TryClear<OldAndNotMarkedBit>();
   }
 
   // Canonical objects have the property that two canonical objects are
   // logically equal iff they are the same object (pointer equal).
-  bool IsCanonical() const { return ptr()->tags_.Read<CanonicalBit>(); }
-  void SetCanonical() { ptr()->tags_.UpdateBool<CanonicalBit>(true); }
-  void ClearCanonical() { ptr()->tags_.UpdateBool<CanonicalBit>(false); }
+  bool IsCanonical() const { return tags_.Read<CanonicalBit>(); }
+  void SetCanonical() { tags_.UpdateBool<CanonicalBit>(true); }
+  void ClearCanonical() { tags_.UpdateBool<CanonicalBit>(false); }
 
   bool InVMIsolateHeap() const;
 
   // Support for GC remembered bit.
   bool IsRemembered() const {
     ASSERT(IsOldObject());
-    return !ptr()->tags_.Read<OldAndNotRememberedBit>();
+    return !tags_.Read<OldAndNotRememberedBit>();
   }
   void SetRememberedBit() {
     ASSERT(!IsRemembered());
     ASSERT(!IsCardRemembered());
-    ptr()->tags_.UpdateBool<OldAndNotRememberedBit>(false);
+    tags_.UpdateBool<OldAndNotRememberedBit>(false);
   }
   void ClearRememberedBit() {
     ASSERT(IsOldObject());
-    ptr()->tags_.UpdateBool<OldAndNotRememberedBit>(true);
+    tags_.UpdateBool<OldAndNotRememberedBit>(true);
   }
 
   DART_FORCE_INLINE
   void AddToRememberedSet(Thread* thread) {
     ASSERT(!this->IsRemembered());
     this->SetRememberedBit();
-    thread->StoreBufferAddObject(this);
+    thread->StoreBufferAddObject(ObjectPtr(this));
   }
 
-  bool IsCardRemembered() const {
-    return ptr()->tags_.Read<CardRememberedBit>();
-  }
+  bool IsCardRemembered() const { return tags_.Read<CardRememberedBit>(); }
   void SetCardRememberedBitUnsynchronized() {
     ASSERT(!IsRemembered());
     ASSERT(!IsCardRemembered());
-    ptr()->tags_.UpdateUnsynchronized<CardRememberedBit>(true);
+    tags_.UpdateUnsynchronized<CardRememberedBit>(true);
   }
 
-#define DEFINE_IS_CID(clazz)                                                   \
-  bool Is##clazz() const { return ((GetClassId() == k##clazz##Cid)); }
-  CLASS_LIST(DEFINE_IS_CID)
-#undef DEFINE_IS_CID
-
-#define DEFINE_IS_CID(clazz)                                                   \
-  bool IsTypedData##clazz() const {                                            \
-    return ((GetClassId() == kTypedData##clazz##Cid));                         \
-  }                                                                            \
-  bool IsTypedDataView##clazz() const {                                        \
-    return ((GetClassId() == kTypedData##clazz##ViewCid));                     \
-  }                                                                            \
-  bool IsExternalTypedData##clazz() const {                                    \
-    return ((GetClassId() == kExternalTypedData##clazz##Cid));                 \
-  }
-  CLASS_LIST_TYPED_DATA(DEFINE_IS_CID)
-#undef DEFINE_IS_CID
-
-#define DEFINE_IS_CID(clazz)                                                   \
-  bool IsFfi##clazz() const { return ((GetClassId() == kFfi##clazz##Cid)); }
-  CLASS_LIST_FFI(DEFINE_IS_CID)
-#undef DEFINE_IS_CID
-
-  bool IsStringInstance() const { return IsStringClassId(GetClassId()); }
-  bool IsRawNull() const { return GetClassId() == kNullCid; }
-  bool IsDartInstance() const {
-    return (!IsHeapObject() || (GetClassId() >= kInstanceCid));
-  }
-  bool IsFreeListElement() const {
-    return ((GetClassId() == kFreeListElement));
-  }
-  bool IsForwardingCorpse() const {
-    return ((GetClassId() == kForwardingCorpse));
-  }
-  bool IsPseudoObject() const {
-    return IsFreeListElement() || IsForwardingCorpse();
-  }
-
-  intptr_t GetClassId() const { return ptr()->tags_.Read<ClassIdTag>(); }
-  intptr_t GetClassIdMayBeSmi() const {
-    return IsHeapObject() ? GetClassId() : static_cast<intptr_t>(kSmiCid);
-  }
+  intptr_t GetClassId() const { return tags_.Read<ClassIdTag>(); }
 
   intptr_t HeapSize() const {
-    ASSERT(IsHeapObject());
-    uint32_t tags = ptr()->tags_;
+    uint32_t tags = tags_;
     intptr_t result = SizeTag::decode(tags);
     if (result != 0) {
 #if defined(DEBUG)
@@ -437,23 +357,34 @@ class RawObject {
       // leading to inconsistency between HeapSizeFromClass() and
       // SizeTag::decode(tags). We are working around it by reloading tags_ and
       // recomputing size from tags.
-      const intptr_t size_from_class = HeapSizeFromClass();
+      const intptr_t size_from_class = HeapSizeFromClass(tags);
       if ((result > size_from_class) && (GetClassId() == kArrayCid) &&
-          (ptr()->tags_) != tags) {
-        result = SizeTag::decode(ptr()->tags_);
+          (tags_ != tags)) {
+        result = SizeTag::decode(tags_);
       }
       ASSERT(result == size_from_class);
 #endif
       return result;
     }
-    result = HeapSizeFromClass();
+    result = HeapSizeFromClass(tags);
+    ASSERT(result > SizeTag::kMaxSizeTag);
+    return result;
+  }
+
+  // This variant must not deference this->tags_.
+  intptr_t HeapSize(uint32_t tags) const {
+    intptr_t result = SizeTag::decode(tags);
+    if (result != 0) {
+      return result;
+    }
+    result = HeapSizeFromClass(tags);
     ASSERT(result > SizeTag::kMaxSizeTag);
     return result;
   }
 
   bool Contains(uword addr) const {
     intptr_t this_size = HeapSize();
-    uword this_addr = RawObject::ToAddr(this);
+    uword this_addr = ObjectLayout::ToAddr(this);
     return (addr >= this_addr) && (addr < (this_addr + this_size));
   }
 
@@ -473,18 +404,18 @@ class RawObject {
     // Calculate the first and last raw object pointer fields.
     intptr_t instance_size = HeapSize();
     uword obj_addr = ToAddr(this);
-    uword from = obj_addr + sizeof(RawObject);
+    uword from = obj_addr + sizeof(ObjectLayout);
     uword to = obj_addr + instance_size - kWordSize;
-    const auto first = reinterpret_cast<RawObject**>(from);
-    const auto last = reinterpret_cast<RawObject**>(to);
+    const auto first = reinterpret_cast<ObjectPtr*>(from);
+    const auto last = reinterpret_cast<ObjectPtr*>(to);
 
 #if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
     const auto unboxed_fields_bitmap =
         visitor->shared_class_table()->GetUnboxedFieldsMapAt(class_id);
 
     if (!unboxed_fields_bitmap.IsEmpty()) {
-      intptr_t bit = sizeof(RawObject) / kWordSize;
-      for (RawObject** current = first; current <= last; current++) {
+      intptr_t bit = sizeof(ObjectLayout) / kWordSize;
+      for (ObjectPtr* current = first; current <= last; current++) {
         if (!unboxed_fields_bitmap.Get(bit++)) {
           visitor->VisitPointer(current);
         }
@@ -511,18 +442,18 @@ class RawObject {
     // Calculate the first and last raw object pointer fields.
     intptr_t instance_size = HeapSize();
     uword obj_addr = ToAddr(this);
-    uword from = obj_addr + sizeof(RawObject);
+    uword from = obj_addr + sizeof(ObjectLayout);
     uword to = obj_addr + instance_size - kWordSize;
-    const auto first = reinterpret_cast<RawObject**>(from);
-    const auto last = reinterpret_cast<RawObject**>(to);
+    const auto first = reinterpret_cast<ObjectPtr*>(from);
+    const auto last = reinterpret_cast<ObjectPtr*>(to);
 
 #if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
     const auto unboxed_fields_bitmap =
         visitor->shared_class_table()->GetUnboxedFieldsMapAt(class_id);
 
     if (!unboxed_fields_bitmap.IsEmpty()) {
-      intptr_t bit = sizeof(RawObject) / kWordSize;
-      for (RawObject** current = first; current <= last; current++) {
+      intptr_t bit = sizeof(ObjectLayout) / kWordSize;
+      for (ObjectPtr* current = first; current <= last; current++) {
         if (!unboxed_fields_bitmap.Get(bit++)) {
           visitor->V::VisitPointers(current, current);
         }
@@ -542,47 +473,22 @@ class RawObject {
   // rounding up instance sizes up to the allocation unit.
   void VisitPointersPrecise(Isolate* isolate, ObjectPointerVisitor* visitor);
 
-  static RawObject* FromAddr(uword addr) {
+  static ObjectPtr FromAddr(uword addr) {
     // We expect the untagged address here.
     ASSERT((addr & kSmiTagMask) != kHeapObjectTag);
-    return reinterpret_cast<RawObject*>(addr + kHeapObjectTag);
+    return static_cast<ObjectPtr>(addr + kHeapObjectTag);
   }
 
-  static uword ToAddr(const RawObject* raw_obj) {
-    return reinterpret_cast<uword>(raw_obj->ptr());
+  static uword ToAddr(const ObjectLayout* raw_obj) {
+    return reinterpret_cast<uword>(raw_obj);
+  }
+  static uword ToAddr(const ObjectPtr raw_obj) {
+    return static_cast<uword>(raw_obj) - kHeapObjectTag;
   }
 
   static bool IsCanonical(intptr_t value) {
     return CanonicalBit::decode(value);
   }
-
-  // Class Id predicates.
-  static bool IsErrorClassId(intptr_t index);
-  static bool IsNumberClassId(intptr_t index);
-  static bool IsIntegerClassId(intptr_t index);
-  static bool IsStringClassId(intptr_t index);
-  static bool IsOneByteStringClassId(intptr_t index);
-  static bool IsTwoByteStringClassId(intptr_t index);
-  static bool IsExternalStringClassId(intptr_t index);
-  static bool IsBuiltinListClassId(intptr_t index);
-  static bool IsTypedDataBaseClassId(intptr_t index);
-  static bool IsTypedDataClassId(intptr_t index);
-  static bool IsTypedDataViewClassId(intptr_t index);
-  static bool IsExternalTypedDataClassId(intptr_t index);
-  static bool IsFfiNativeTypeTypeClassId(intptr_t index);
-  static bool IsFfiPointerClassId(intptr_t index);
-  static bool IsFfiTypeClassId(intptr_t index);
-  static bool IsFfiTypeIntClassId(intptr_t index);
-  static bool IsFfiTypeDoubleClassId(intptr_t index);
-  static bool IsFfiTypeVoidClassId(intptr_t index);
-  static bool IsFfiTypeNativeFunctionClassId(intptr_t index);
-  static bool IsFfiDynamicLibraryClassId(intptr_t index);
-  static bool IsFfiClassId(intptr_t index);
-  static bool IsInternalVMdefinedClassId(intptr_t index);
-  static bool IsVariableSizeClassId(intptr_t index);
-  static bool IsImplicitFieldClassId(intptr_t index);
-
-  static intptr_t NumberOfTypedDataClasses();
 
  private:
   Tags tags_;  // Various object tags (bits).
@@ -595,20 +501,13 @@ class RawObject {
   uint32_t padding_;
 #endif
 
-  // TODO(koda): After handling tags_, return const*, like Object::raw_ptr().
-  RawObject* ptr() const {
-    ASSERT(IsHeapObject());
-    return reinterpret_cast<RawObject*>(reinterpret_cast<uword>(this) -
-                                        kHeapObjectTag);
-  }
-
   intptr_t VisitPointersPredefined(ObjectPointerVisitor* visitor,
                                    intptr_t class_id);
 
-  intptr_t HeapSizeFromClass() const;
+  intptr_t HeapSizeFromClass(uint32_t tags) const;
 
   void SetClassId(intptr_t new_cid) {
-    ptr()->tags_.UpdateUnsynchronized<ClassIdTag>(new_cid);
+    tags_.UpdateUnsynchronized<ClassIdTag>(new_cid);
   }
 
   // All writes to heap objects should ultimately pass through one of the
@@ -638,9 +537,17 @@ class RawObject {
     }
   }
 
+  template <typename type>
+  void StorePointerUnaligned(type const* addr, type value, Thread* thread) {
+    StoreUnaligned(const_cast<type*>(addr), value);
+    if (value->IsHeapObject()) {
+      CheckHeapPointerStore(value, thread);
+    }
+  }
+
   DART_FORCE_INLINE
-  void CheckHeapPointerStore(RawObject* value, Thread* thread) {
-    uint32_t source_tags = this->ptr()->tags_;
+  void CheckHeapPointerStore(ObjectPtr value, Thread* thread) {
+    uint32_t source_tags = this->tags_;
     uint32_t target_tags = value->ptr()->tags_;
     if (((source_tags >> kBarrierOverlapShift) & target_tags &
          thread->write_barrier_mask()) != 0) {
@@ -659,7 +566,7 @@ class RawObject {
           return;
         }
 #endif
-        if (value->TryAcquireMarkBit()) {
+        if (value->ptr()->TryAcquireMarkBit()) {
           thread->MarkingStackAddObject(value);
         }
       }
@@ -685,9 +592,9 @@ class RawObject {
 
   template <typename type>
   DART_FORCE_INLINE void CheckArrayPointerStore(type const* addr,
-                                                RawObject* value,
+                                                ObjectPtr value,
                                                 Thread* thread) {
-    uint32_t source_tags = this->ptr()->tags_;
+    uint32_t source_tags = this->tags_;
     uint32_t target_tags = value->ptr()->tags_;
     if (((source_tags >> kBarrierOverlapShift) & target_tags &
          thread->write_barrier_mask()) != 0) {
@@ -696,10 +603,10 @@ class RawObject {
         // old-and-not-remembered -> new reference.
         ASSERT(!this->IsRemembered());
         if (this->IsCardRemembered()) {
-          RememberCard(reinterpret_cast<RawObject* const*>(addr));
+          RememberCard(reinterpret_cast<ObjectPtr const*>(addr));
         } else {
           this->SetRememberedBit();
-          thread->StoreBufferAddObject(this);
+          thread->StoreBufferAddObject(static_cast<ObjectPtr>(this));
         }
       } else {
         // Incremental barrier: record when a store creates an
@@ -712,7 +619,7 @@ class RawObject {
           return;
         }
 #endif
-        if (value->TryAcquireMarkBit()) {
+        if (value->ptr()->TryAcquireMarkBit()) {
           thread->MarkingStackAddObject(value);
         }
       }
@@ -721,21 +628,21 @@ class RawObject {
 
   // Use for storing into an explicitly Smi-typed field of an object
   // (i.e., both the previous and new value are Smis).
-  void StoreSmi(RawSmi* const* addr, RawSmi* value) {
+  void StoreSmi(SmiPtr const* addr, SmiPtr value) {
     // Can't use Contains, as array length is initialized through this method.
-    ASSERT(reinterpret_cast<uword>(addr) >= RawObject::ToAddr(this));
-    *const_cast<RawSmi**>(addr) = value;
+    ASSERT(reinterpret_cast<uword>(addr) >= ObjectLayout::ToAddr(this));
+    *const_cast<SmiPtr*>(addr) = value;
   }
   NO_SANITIZE_THREAD
-  void StoreSmiIgnoreRace(RawSmi* const* addr, RawSmi* value) {
+  void StoreSmiIgnoreRace(SmiPtr const* addr, SmiPtr value) {
     // Can't use Contains, as array length is initialized through this method.
-    ASSERT(reinterpret_cast<uword>(addr) >= RawObject::ToAddr(this));
-    *const_cast<RawSmi**>(addr) = value;
+    ASSERT(reinterpret_cast<uword>(addr) >= ObjectLayout::ToAddr(this));
+    *const_cast<SmiPtr*>(addr) = value;
   }
 
  protected:
   friend class StoreBufferUpdateVisitor;  // RememberCard
-  void RememberCard(RawObject* const* slot);
+  void RememberCard(ObjectPtr const* slot);
 
   friend class Array;
   friend class ByteBuffer;
@@ -759,9 +666,10 @@ class RawObject {
   friend class Mint;
   friend class Object;
   friend class OneByteString;  // StoreSmi
-  friend class RawInstance;
+  friend class InstanceLayout;
   friend class Scavenger;
-  friend class ScavengerVisitor;
+  template <bool>
+  friend class ScavengerVisitorBase;
   friend class ImageReader;  // tags_ check
   friend class ImageWriter;
   friend class AssemblyImageWriter;
@@ -781,12 +689,17 @@ class RawObject {
   friend class ObjectLocator;
   friend class WriteBarrierUpdateVisitor;  // CheckHeapPointerStore
   friend class OffsetsTable;
+  friend class Object;
 
   DISALLOW_ALLOCATION();
-  DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);
+  DISALLOW_IMPLICIT_CONSTRUCTORS(ObjectLayout);
 };
 
-class RawClass : public RawObject {
+inline intptr_t ObjectPtr::GetClassId() const {
+  return ptr()->GetClassId();
+}
+
+class ClassLayout : public ObjectLayout {
  public:
   enum ClassFinalizedState {
     kAllocated = 0,  // Initial state.
@@ -810,35 +723,35 @@ class RawClass : public RawObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Class);
 
-  VISIT_FROM(RawObject*, name_);
-  RawString* name_;
-  RawString* user_name_;
-  RawArray* functions_;
-  RawArray* functions_hash_table_;
-  RawArray* fields_;
-  RawArray* offset_in_words_to_field_;
-  RawArray* interfaces_;  // Array of AbstractType.
-  RawScript* script_;
-  RawLibrary* library_;
-  RawTypeArguments* type_parameters_;  // Array of TypeParameter.
-  RawAbstractType* super_type_;
-  RawFunction* signature_function_;  // Associated function for typedef class.
-  RawArray* constants_;        // Canonicalized const instances of this class.
-  RawType* declaration_type_;  // Declaration type for this class.
-  RawArray* invocation_dispatcher_cache_;  // Cache for dispatcher functions.
-  RawCode* allocation_stub_;  // Stub code for allocation of instances.
-  RawGrowableObjectArray* direct_implementors_;  // Array of Class.
-  RawGrowableObjectArray* direct_subclasses_;    // Array of Class.
-  RawArray* dependent_code_;                     // CHA optimized codes.
-  VISIT_TO(RawObject*, dependent_code_);
-  RawObject** to_snapshot(Snapshot::Kind kind) {
+  VISIT_FROM(ObjectPtr, name_);
+  StringPtr name_;
+  StringPtr user_name_;
+  ArrayPtr functions_;
+  ArrayPtr functions_hash_table_;
+  ArrayPtr fields_;
+  ArrayPtr offset_in_words_to_field_;
+  ArrayPtr interfaces_;  // Array of AbstractType.
+  ScriptPtr script_;
+  LibraryPtr library_;
+  TypeArgumentsPtr type_parameters_;  // Array of TypeParameter.
+  AbstractTypePtr super_type_;
+  FunctionPtr signature_function_;  // Associated function for typedef class.
+  ArrayPtr constants_;        // Canonicalized const instances of this class.
+  TypePtr declaration_type_;  // Declaration type for this class.
+  ArrayPtr invocation_dispatcher_cache_;  // Cache for dispatcher functions.
+  CodePtr allocation_stub_;  // Stub code for allocation of instances.
+  GrowableObjectArrayPtr direct_implementors_;  // Array of Class.
+  GrowableObjectArrayPtr direct_subclasses_;    // Array of Class.
+  ArrayPtr dependent_code_;                     // CHA optimized codes.
+  VISIT_TO(ObjectPtr, dependent_code_);
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
-        return reinterpret_cast<RawObject**>(&ptr()->allocation_stub_);
+        return reinterpret_cast<ObjectPtr*>(&allocation_stub_);
       case Snapshot::kFull:
-        return reinterpret_cast<RawObject**>(&ptr()->direct_subclasses_);
+        return reinterpret_cast<ObjectPtr*>(&direct_subclasses_);
       case Snapshot::kFullJIT:
-        return reinterpret_cast<RawObject**>(&ptr()->dependent_code_);
+        return reinterpret_cast<ObjectPtr*>(&dependent_code_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
@@ -885,32 +798,32 @@ class RawClass : public RawObject {
   friend class Instance;
   friend class Isolate;
   friend class Object;
-  friend class RawInstance;
-  friend class RawInstructions;
-  friend class RawTypeArguments;
+  friend class InstanceLayout;
+  friend class InstructionsLayout;
+  friend class TypeArgumentsLayout;
   friend class SnapshotReader;
   friend class InstanceSerializationCluster;
   friend class CidRewriteVisitor;
 };
 
-class RawPatchClass : public RawObject {
+class PatchClassLayout : public ObjectLayout {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(PatchClass);
 
-  VISIT_FROM(RawObject*, patched_class_);
-  RawClass* patched_class_;
-  RawClass* origin_class_;
-  RawScript* script_;
-  RawExternalTypedData* library_kernel_data_;
-  VISIT_TO(RawObject*, library_kernel_data_);
+  VISIT_FROM(ObjectPtr, patched_class_);
+  ClassPtr patched_class_;
+  ClassPtr origin_class_;
+  ScriptPtr script_;
+  ExternalTypedDataPtr library_kernel_data_;
+  VISIT_TO(ObjectPtr, library_kernel_data_);
 
-  RawObject** to_snapshot(Snapshot::Kind kind) {
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
-        return reinterpret_cast<RawObject**>(&ptr()->script_);
+        return reinterpret_cast<ObjectPtr*>(&script_);
       case Snapshot::kFull:
       case Snapshot::kFullJIT:
-        return reinterpret_cast<RawObject**>(&ptr()->library_kernel_data_);
+        return reinterpret_cast<ObjectPtr*>(&library_kernel_data_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
@@ -925,7 +838,7 @@ class RawPatchClass : public RawObject {
   friend class Function;
 };
 
-class RawFunction : public RawObject {
+class FunctionLayout : public ObjectLayout {
  public:
   // When you add a new kind, please also update the observatory to account
   // for the new string returned by KindToCString().
@@ -1076,22 +989,22 @@ class RawFunction : public RawObject {
   uword entry_point_;            // Accessed from generated code.
   uword unchecked_entry_point_;  // Accessed from generated code.
 
-  VISIT_FROM(RawObject*, name_);
-  RawString* name_;
-  RawObject* owner_;  // Class or patch class or mixin class
-                      // where this function is defined.
-  RawAbstractType* result_type_;
-  RawArray* parameter_types_;
-  RawArray* parameter_names_;
-  RawTypeArguments* type_parameters_;  // Array of TypeParameter.
-  RawObject* data_;  // Additional data specific to the function kind. See
-                     // Function::set_data() for details.
-  RawObject** to_snapshot(Snapshot::Kind kind) {
+  VISIT_FROM(ObjectPtr, name_);
+  StringPtr name_;
+  ObjectPtr owner_;  // Class or patch class or mixin class
+                     // where this function is defined.
+  AbstractTypePtr result_type_;
+  ArrayPtr parameter_types_;
+  ArrayPtr parameter_names_;
+  TypeArgumentsPtr type_parameters_;  // Array of TypeParameter.
+  ObjectPtr data_;  // Additional data specific to the function kind. See
+                    // Function::set_data() for details.
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
       case Snapshot::kFull:
       case Snapshot::kFullJIT:
-        return reinterpret_cast<RawObject**>(&ptr()->data_);
+        return reinterpret_cast<ObjectPtr*>(&data_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
@@ -1100,18 +1013,18 @@ class RawFunction : public RawObject {
     UNREACHABLE();
     return NULL;
   }
-  RawArray* ic_data_array_;  // ICData of unoptimized code.
-  RawObject** to_no_code() {
-    return reinterpret_cast<RawObject**>(&ptr()->ic_data_array_);
+  ArrayPtr ic_data_array_;  // ICData of unoptimized code.
+  ObjectPtr* to_no_code() {
+    return reinterpret_cast<ObjectPtr*>(&ic_data_array_);
   }
-  RawCode* code_;  // Currently active code. Accessed from generated code.
-  NOT_IN_PRECOMPILED(RawBytecode* bytecode_);
-  NOT_IN_PRECOMPILED(RawCode* unoptimized_code_);  // Unoptimized code, keep it
-                                                   // after optimization.
+  CodePtr code_;  // Currently active code. Accessed from generated code.
+  NOT_IN_PRECOMPILED(BytecodePtr bytecode_);
+  NOT_IN_PRECOMPILED(CodePtr unoptimized_code_);  // Unoptimized code, keep it
+                                                  // after optimization.
 #if defined(DART_PRECOMPILED_RUNTIME)
-  VISIT_TO(RawObject*, code_);
+  VISIT_TO(ObjectPtr, code_);
 #else
-  VISIT_TO(RawObject*, unoptimized_code_);
+  VISIT_TO(ObjectPtr, unoptimized_code_);
 #endif
 
   NOT_IN_PRECOMPILED(TokenPosition token_pos_);
@@ -1139,7 +1052,7 @@ class RawFunction : public RawObject {
       PackedNumOptionalParameters;
   static_assert(PackedNumOptionalParameters::kNextBit <=
                     kBitsPerWord * sizeof(decltype(packed_fields_)),
-                "RawFunction::packed_fields_ bitfields don't align.");
+                "FunctionLayout::packed_fields_ bitfields don't align.");
 
 #define JIT_FUNCTION_COUNTERS(F)                                               \
   F(intptr_t, int32_t, usage_counter)                                          \
@@ -1163,61 +1076,61 @@ class RawFunction : public RawObject {
   NOT_IN_PRECOMPILED(UnboxedParameterBitmap unboxed_parameters_info_);
 };
 
-class RawClosureData : public RawObject {
+class ClosureDataLayout : public ObjectLayout {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(ClosureData);
 
-  VISIT_FROM(RawObject*, context_scope_);
-  RawContextScope* context_scope_;
-  RawFunction* parent_function_;  // Enclosing function of this local function.
-  RawType* signature_type_;
-  RawInstance* closure_;  // Closure object for static implicit closures.
-  VISIT_TO(RawObject*, closure_);
+  VISIT_FROM(ObjectPtr, context_scope_);
+  ContextScopePtr context_scope_;
+  FunctionPtr parent_function_;  // Enclosing function of this local function.
+  TypePtr signature_type_;
+  InstancePtr closure_;  // Closure object for static implicit closures.
+  VISIT_TO(ObjectPtr, closure_);
 
   friend class Function;
 };
 
-class RawSignatureData : public RawObject {
+class SignatureDataLayout : public ObjectLayout {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(SignatureData);
 
-  VISIT_FROM(RawObject*, parent_function_);
-  RawFunction* parent_function_;  // Enclosing function of this sig. function.
-  RawType* signature_type_;
-  VISIT_TO(RawObject*, signature_type_);
-  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
+  VISIT_FROM(ObjectPtr, parent_function_);
+  FunctionPtr parent_function_;  // Enclosing function of this sig. function.
+  TypePtr signature_type_;
+  VISIT_TO(ObjectPtr, signature_type_);
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class Function;
 };
 
-class RawRedirectionData : public RawObject {
+class RedirectionDataLayout : public ObjectLayout {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(RedirectionData);
 
-  VISIT_FROM(RawObject*, type_);
-  RawType* type_;
-  RawString* identifier_;
-  RawFunction* target_;
-  VISIT_TO(RawObject*, target_);
-  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
+  VISIT_FROM(ObjectPtr, type_);
+  TypePtr type_;
+  StringPtr identifier_;
+  FunctionPtr target_;
+  VISIT_TO(ObjectPtr, target_);
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
-class RawFfiTrampolineData : public RawObject {
+class FfiTrampolineDataLayout : public ObjectLayout {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(FfiTrampolineData);
 
-  VISIT_FROM(RawObject*, signature_type_);
-  RawType* signature_type_;
-  RawFunction* c_signature_;
+  VISIT_FROM(ObjectPtr, signature_type_);
+  TypePtr signature_type_;
+  FunctionPtr c_signature_;
 
   // Target Dart method for callbacks, otherwise null.
-  RawFunction* callback_target_;
+  FunctionPtr callback_target_;
 
   // For callbacks, value to return if Dart target throws an exception.
-  RawInstance* callback_exceptional_return_;
+  InstancePtr callback_exceptional_return_;
 
-  VISIT_TO(RawObject*, callback_exceptional_return_);
-  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
+  VISIT_TO(ObjectPtr, callback_exceptional_return_);
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   // Callback id for callbacks.
   //
@@ -1231,29 +1144,32 @@ class RawFfiTrampolineData : public RawObject {
   uint32_t callback_id_;
 };
 
-class RawField : public RawObject {
+class FieldLayout : public ObjectLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Field);
 
-  VISIT_FROM(RawObject*, name_);
-  RawString* name_;
-  RawObject* owner_;  // Class or patch class or mixin class
-                      // where this field is defined or original field.
-  RawAbstractType* type_;
-  RawFunction* initializer_function_;  // Static initializer function.
+  VISIT_FROM(ObjectPtr, name_);
+  StringPtr name_;
+  ObjectPtr owner_;  // Class or patch class or mixin class
+                     // where this field is defined or original field.
+  AbstractTypePtr type_;
+  FunctionPtr initializer_function_;  // Static initializer function.
+
+  // - for instance fields: offset in words to the value in the class instance.
+  // - for static fields: index into field_table.
+  SmiPtr host_offset_or_field_id_;
+
   // When generating APPJIT snapshots after running the application it is
   // necessary to save the initial value of static fields so that we can
   // restore the value back to the original initial value.
-  NOT_IN_PRECOMPILED(RawInstance* saved_initial_value_);  // Saved initial value
-  RawSmi* guarded_list_length_;
-  RawArray* dependent_code_;
-  RawObject** to_snapshot(Snapshot::Kind kind) {
+  NOT_IN_PRECOMPILED(InstancePtr saved_initial_value_);  // Saved initial value
+  SmiPtr guarded_list_length_;
+  ArrayPtr dependent_code_;
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFull:
-        return reinterpret_cast<RawObject**>(&ptr()->guarded_list_length_);
       case Snapshot::kFullJIT:
-        return reinterpret_cast<RawObject**>(&ptr()->dependent_code_);
       case Snapshot::kFullAOT:
-        return reinterpret_cast<RawObject**>(&ptr()->initializer_function_);
+        return reinterpret_cast<ObjectPtr*>(&initializer_function_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
@@ -1263,10 +1179,10 @@ class RawField : public RawObject {
     return NULL;
   }
 #if defined(DART_PRECOMPILED_RUNTIME)
-  VISIT_TO(RawObject*, dependent_code_);
+  VISIT_TO(ObjectPtr, dependent_code_);
 #else
-  RawSubtypeTestCache* type_test_cache_;  // For type test in implicit setter.
-  VISIT_TO(RawObject*, type_test_cache_);
+  SubtypeTestCachePtr type_test_cache_;  // For type test in implicit setter.
+  VISIT_TO(ObjectPtr, type_test_cache_);
 #endif
   TokenPosition token_pos_;
   TokenPosition end_token_pos_;
@@ -1292,10 +1208,6 @@ class RawField : public RawObject {
 
   uint16_t kind_bits_;  // static, final, const, has initializer....
 
-  // - for instance fields: offset in words to the value in the class instance.
-  // - for static fields: index into field_table.
-  intptr_t host_offset_or_field_id_;
-
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // for instance fields, the offset in words in the target architecture
   int32_t target_offset_;
@@ -1304,7 +1216,7 @@ class RawField : public RawObject {
   friend class CidRewriteVisitor;
 };
 
-class RawScript : public RawObject {
+class ScriptLayout : public ObjectLayout {
  public:
   enum {
     kLazyLookupSourceAndLineStartsPos = 0,
@@ -1314,22 +1226,22 @@ class RawScript : public RawObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Script);
 
-  VISIT_FROM(RawObject*, url_);
-  RawString* url_;
-  RawString* resolved_url_;
-  RawArray* compile_time_constants_;
-  RawTypedData* line_starts_;
-  RawArray* debug_positions_;
-  RawKernelProgramInfo* kernel_program_info_;
-  RawString* source_;
-  VISIT_TO(RawObject*, source_);
-  RawObject** to_snapshot(Snapshot::Kind kind) {
+  VISIT_FROM(ObjectPtr, url_);
+  StringPtr url_;
+  StringPtr resolved_url_;
+  ArrayPtr compile_time_constants_;
+  TypedDataPtr line_starts_;
+  ArrayPtr debug_positions_;
+  KernelProgramInfoPtr kernel_program_info_;
+  StringPtr source_;
+  VISIT_TO(ObjectPtr, source_);
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
-        return reinterpret_cast<RawObject**>(&ptr()->url_);
+        return reinterpret_cast<ObjectPtr*>(&url_);
       case Snapshot::kFull:
       case Snapshot::kFullJIT:
-        return reinterpret_cast<RawObject**>(&ptr()->kernel_program_info_);
+        return reinterpret_cast<ObjectPtr*>(&kernel_program_info_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
@@ -1353,7 +1265,7 @@ class RawScript : public RawObject {
   int64_t load_timestamp_;
 };
 
-class RawLibrary : public RawObject {
+class LibraryLayout : public ObjectLayout {
   enum LibraryState {
     kAllocated,       // Initial state.
     kLoadRequested,   // Compiler or script requested load of library.
@@ -1383,24 +1295,24 @@ class RawLibrary : public RawObject {
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(Library);
 
-  VISIT_FROM(RawObject*, name_);
-  RawString* name_;
-  RawString* url_;
-  RawString* private_key_;
-  RawArray* dictionary_;              // Top-level names in this library.
-  RawGrowableObjectArray* metadata_;  // Metadata on classes, methods etc.
-  RawClass* toplevel_class_;          // Class containing top-level elements.
-  RawGrowableObjectArray* used_scripts_;
-  RawArray* imports_;        // List of Namespaces imported without prefix.
-  RawArray* exports_;        // List of re-exported Namespaces.
-  RawExternalTypedData* kernel_data_;
-  RawObject** to_snapshot(Snapshot::Kind kind) {
+  VISIT_FROM(ObjectPtr, name_);
+  StringPtr name_;
+  StringPtr url_;
+  StringPtr private_key_;
+  ArrayPtr dictionary_;              // Top-level names in this library.
+  GrowableObjectArrayPtr metadata_;  // Metadata on classes, methods etc.
+  ClassPtr toplevel_class_;          // Class containing top-level elements.
+  GrowableObjectArrayPtr used_scripts_;
+  ArrayPtr imports_;  // List of Namespaces imported without prefix.
+  ArrayPtr exports_;  // List of re-exported Namespaces.
+  ExternalTypedDataPtr kernel_data_;
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
-        return reinterpret_cast<RawObject**>(&ptr()->exports_);
+        return reinterpret_cast<ObjectPtr*>(&exports_);
       case Snapshot::kFull:
       case Snapshot::kFullJIT:
-        return reinterpret_cast<RawObject**>(&ptr()->kernel_data_);
+        return reinterpret_cast<ObjectPtr*>(&kernel_data_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
@@ -1409,10 +1321,10 @@ class RawLibrary : public RawObject {
     UNREACHABLE();
     return NULL;
   }
-  RawArray* resolved_names_;  // Cache of resolved names in library scope.
-  RawArray* exported_names_;  // Cache of exported names by library.
-  RawArray* loaded_scripts_;  // Array of scripts loaded in this library.
-  VISIT_TO(RawObject*, loaded_scripts_);
+  ArrayPtr resolved_names_;  // Cache of resolved names in library scope.
+  ArrayPtr exported_names_;  // Cache of exported names by library.
+  ArrayPtr loaded_scripts_;  // Array of scripts loaded in this library.
+  VISIT_TO(ObjectPtr, loaded_scripts_);
 
   Dart_NativeEntryResolver native_entry_resolver_;  // Resolves natives.
   Dart_NativeEntrySymbol native_entry_symbol_resolver_;
@@ -1431,47 +1343,60 @@ class RawLibrary : public RawObject {
   friend class Isolate;
 };
 
-class RawNamespace : public RawObject {
+class NamespaceLayout : public ObjectLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Namespace);
 
-  VISIT_FROM(RawObject*, library_);
-  RawLibrary* library_;       // library with name dictionary.
-  RawArray* show_names_;      // list of names that are exported.
-  RawArray* hide_names_;      // blacklist of names that are not exported.
-  RawField* metadata_field_;  // remembers the token pos of metadata if any,
-                              // and the metadata values if computed.
-  VISIT_TO(RawObject*, metadata_field_);
-  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
+  VISIT_FROM(ObjectPtr, library_);
+  LibraryPtr library_;       // library with name dictionary.
+  ArrayPtr show_names_;      // list of names that are exported.
+  ArrayPtr hide_names_;      // blacklist of names that are not exported.
+  FieldPtr metadata_field_;  // remembers the token pos of metadata if any,
+                             // and the metadata values if computed.
+  VISIT_TO(ObjectPtr, metadata_field_);
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
-class RawKernelProgramInfo : public RawObject {
+class KernelProgramInfoLayout : public ObjectLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(KernelProgramInfo);
 
-  VISIT_FROM(RawObject*, string_offsets_);
-  RawTypedData* string_offsets_;
-  RawExternalTypedData* string_data_;
-  RawTypedData* canonical_names_;
-  RawExternalTypedData* metadata_payloads_;
-  RawExternalTypedData* metadata_mappings_;
-  RawArray* scripts_;
-  RawArray* constants_;
-  RawArray* bytecode_component_;
-  RawGrowableObjectArray* potential_natives_;
-  RawGrowableObjectArray* potential_pragma_functions_;
-  RawExternalTypedData* constants_table_;
-  RawArray* libraries_cache_;
-  RawArray* classes_cache_;
-  RawObject* retained_kernel_blob_;
-  VISIT_TO(RawObject*, retained_kernel_blob_);
+  VISIT_FROM(ObjectPtr, string_offsets_);
+  TypedDataPtr string_offsets_;
+  ExternalTypedDataPtr string_data_;
+  TypedDataPtr canonical_names_;
+  ExternalTypedDataPtr metadata_payloads_;
+  ExternalTypedDataPtr metadata_mappings_;
+  ArrayPtr scripts_;
+  ArrayPtr constants_;
+  ArrayPtr bytecode_component_;
+  GrowableObjectArrayPtr potential_natives_;
+  GrowableObjectArrayPtr potential_pragma_functions_;
+  ExternalTypedDataPtr constants_table_;
+  ArrayPtr libraries_cache_;
+  ArrayPtr classes_cache_;
+  ObjectPtr retained_kernel_blob_;
+  VISIT_TO(ObjectPtr, retained_kernel_blob_);
 
   uint32_t kernel_binary_version_;
 
-  RawObject** to_snapshot(Snapshot::Kind kind) {
-    return reinterpret_cast<RawObject**>(&ptr()->constants_table_);
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) {
+    return reinterpret_cast<ObjectPtr*>(&constants_table_);
   }
 };
 
-class RawCode : public RawObject {
+class WeakSerializationReferenceLayout : public ObjectLayout {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(WeakSerializationReference);
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+  VISIT_NOTHING();
+  classid_t cid_;
+#else
+  VISIT_FROM(ObjectPtr, target_);
+  ObjectPtr target_;
+  VISIT_TO(ObjectPtr, target_);
+#endif
+};
+
+class CodeLayout : public ObjectLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Code);
 
   // When in the precompiled runtime, there is no disabling of Code objects
@@ -1520,39 +1445,39 @@ class RawCode : public RawObject {
   uword unchecked_entry_point_;              // Accessed from generated code.
   uword monomorphic_unchecked_entry_point_;  // Accessed from generated code.
 
-  VISIT_FROM(RawObject*, object_pool_);
-  RawObjectPool* object_pool_;     // Accessed from generated code.
-  RawInstructions* instructions_;  // Accessed from generated code.
+  VISIT_FROM(ObjectPtr, object_pool_);
+  ObjectPoolPtr object_pool_;     // Accessed from generated code.
+  InstructionsPtr instructions_;  // Accessed from generated code.
   // If owner_ is Function::null() the owner is a regular stub.
   // If owner_ is a Class the owner is the allocation stub for that class.
   // Else, owner_ is a regular Dart Function.
-  RawObject* owner_;  // Function, Null, or a Class.
-  RawExceptionHandlers* exception_handlers_;
-  RawPcDescriptors* pc_descriptors_;
+  ObjectPtr owner_;  // Function, Null, or a Class.
+  ExceptionHandlersPtr exception_handlers_;
+  PcDescriptorsPtr pc_descriptors_;
   // If FLAG_precompiled_mode, then this field contains
-  //   RawTypedData* catch_entry_moves_maps
+  //   TypedDataPtr catch_entry_moves_maps
   // Otherwise, it is
-  //   RawSmi* num_variables
-  RawObject* catch_entry_;
-  RawCompressedStackMaps* compressed_stackmaps_;
-  RawArray* inlined_id_to_function_;
-  RawCodeSourceMap* code_source_map_;
-  NOT_IN_PRECOMPILED(RawInstructions* active_instructions_);
-  NOT_IN_PRECOMPILED(RawArray* deopt_info_array_);
+  //   SmiPtr num_variables
+  ObjectPtr catch_entry_;
+  CompressedStackMapsPtr compressed_stackmaps_;
+  ArrayPtr inlined_id_to_function_;
+  CodeSourceMapPtr code_source_map_;
+  NOT_IN_PRECOMPILED(InstructionsPtr active_instructions_);
+  NOT_IN_PRECOMPILED(ArrayPtr deopt_info_array_);
   // (code-offset, function, code) triples.
-  NOT_IN_PRECOMPILED(RawArray* static_calls_target_table_);
+  NOT_IN_PRECOMPILED(ArrayPtr static_calls_target_table_);
   // If return_address_metadata_ is a Smi, it is the offset to the prologue.
   // Else, return_address_metadata_ is null.
-  NOT_IN_PRODUCT(RawObject* return_address_metadata_);
-  NOT_IN_PRODUCT(RawLocalVarDescriptors* var_descriptors_);
-  NOT_IN_PRODUCT(RawArray* comments_);
+  NOT_IN_PRODUCT(ObjectPtr return_address_metadata_);
+  NOT_IN_PRODUCT(LocalVarDescriptorsPtr var_descriptors_);
+  NOT_IN_PRODUCT(ArrayPtr comments_);
 
 #if !defined(PRODUCT)
-  VISIT_TO(RawObject*, comments_);
+  VISIT_TO(ObjectPtr, comments_);
 #elif defined(DART_PRECOMPILED_RUNTIME)
-  VISIT_TO(RawObject*, code_source_map_);
+  VISIT_TO(ObjectPtr, code_source_map_);
 #else
-  VISIT_TO(RawObject*, static_calls_target_table_);
+  VISIT_TO(ObjectPtr, static_calls_target_table_);
 #endif
 
   // Compilation timestamp.
@@ -1573,7 +1498,7 @@ class RawCode : public RawObject {
   int32_t* data() { OPEN_ARRAY_START(int32_t, int32_t); }
   const int32_t* data() const { OPEN_ARRAY_START(int32_t, int32_t); }
 
-  static bool ContainsPC(const RawObject* raw_obj, uword pc);
+  static bool ContainsPC(const ObjectPtr raw_obj, uword pc);
 
   friend class Function;
   template <bool>
@@ -1584,47 +1509,47 @@ class RawCode : public RawObject {
   friend class CallSiteResetter;
 };
 
-class RawBytecode : public RawObject {
+class BytecodeLayout : public ObjectLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Bytecode);
 
   uword instructions_;
   intptr_t instructions_size_;
 
-  VISIT_FROM(RawObject*, object_pool_);
-  RawObjectPool* object_pool_;
-  RawFunction* function_;
-  RawArray* closures_;
-  RawExceptionHandlers* exception_handlers_;
-  RawPcDescriptors* pc_descriptors_;
-  NOT_IN_PRODUCT(RawLocalVarDescriptors* var_descriptors_);
+  VISIT_FROM(ObjectPtr, object_pool_);
+  ObjectPoolPtr object_pool_;
+  FunctionPtr function_;
+  ArrayPtr closures_;
+  ExceptionHandlersPtr exception_handlers_;
+  PcDescriptorsPtr pc_descriptors_;
+  NOT_IN_PRODUCT(LocalVarDescriptorsPtr var_descriptors_);
 #if defined(PRODUCT)
-  VISIT_TO(RawObject*, pc_descriptors_);
+  VISIT_TO(ObjectPtr, pc_descriptors_);
 #else
-  VISIT_TO(RawObject*, var_descriptors_);
+  VISIT_TO(ObjectPtr, var_descriptors_);
 #endif
 
-  RawObject** to_snapshot(Snapshot::Kind kind) {
-    return reinterpret_cast<RawObject**>(&ptr()->pc_descriptors_);
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) {
+    return reinterpret_cast<ObjectPtr*>(&pc_descriptors_);
   }
 
   int32_t instructions_binary_offset_;
   int32_t source_positions_binary_offset_;
   int32_t local_variables_binary_offset_;
 
-  static bool ContainsPC(RawObject* raw_obj, uword pc);
+  static bool ContainsPC(ObjectPtr raw_obj, uword pc);
 
   friend class Function;
   friend class StackFrame;
 };
 
-class RawObjectPool : public RawObject {
+class ObjectPoolLayout : public ObjectLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ObjectPool);
 
   intptr_t length_;
 
   struct Entry {
     union {
-      RawObject* raw_obj_;
+      ObjectPtr raw_obj_;
       uword raw_value_;
     };
   };
@@ -1642,7 +1567,7 @@ class RawObjectPool : public RawObject {
   friend class CodeSerializationCluster;
 };
 
-class RawInstructions : public RawObject {
+class InstructionsLayout : public ObjectLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Instructions);
   VISIT_NOTHING();
 
@@ -1656,10 +1581,10 @@ class RawInstructions : public RawObject {
   // Private helper function used while visiting stack frames. The
   // code which iterates over dart frames is also called during GC and
   // is not allowed to create handles.
-  static bool ContainsPC(const RawInstructions* raw_instr, uword pc);
+  static bool ContainsPC(const InstructionsPtr raw_instr, uword pc);
 
-  friend class RawCode;
-  friend class RawFunction;
+  friend class CodeLayout;
+  friend class FunctionLayout;
   friend class Code;
   friend class StackFrame;
   template <bool>
@@ -1673,7 +1598,7 @@ class RawInstructions : public RawObject {
 
 // Used only to provide memory accounting for the bare instruction payloads
 // we serialize, since they are no longer part of RawInstructions objects.
-class RawInstructionsSection : public RawObject {
+class InstructionsSectionLayout : public ObjectLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(InstructionsSection);
   VISIT_NOTHING();
 
@@ -1684,7 +1609,7 @@ class RawInstructionsSection : public RawObject {
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
 };
 
-class RawPcDescriptors : public RawObject {
+class PcDescriptorsLayout : public ObjectLayout {
  public:
 // The macro argument V is passed two arguments, the raw name of the enum value
 // and the initialization expression used within the enum definition.  The uses
@@ -1726,50 +1651,41 @@ class RawPcDescriptors : public RawObject {
    public:
     // Most of the time try_index will be small and merged field will fit into
     // one byte.
-    static int32_t Encode(intptr_t kind,
-                          intptr_t try_index,
-                          intptr_t yield_index) {
-      const intptr_t kind_shift = Utils::ShiftForPowerOfTwo(kind);
-      ASSERT(Utils::IsUint(kKindShiftSize, kind_shift));
-      ASSERT(Utils::IsInt(kTryIndexSize, try_index));
-      ASSERT(Utils::IsInt(kYieldIndexSize, yield_index));
-      return (yield_index << kYieldIndexPos) | (try_index << kTryIndexPos) |
-             (kind_shift << kKindShiftPos);
+    static uint32_t Encode(intptr_t kind,
+                           intptr_t try_index,
+                           intptr_t yield_index) {
+      return KindShiftBits::encode(Utils::ShiftForPowerOfTwo(kind)) |
+             TryIndexBits::encode(try_index + 1) |
+             YieldIndexBits::encode(yield_index + 1);
     }
 
-    static intptr_t DecodeKind(int32_t kind_and_metadata) {
-      const intptr_t kKindShiftMask = (1 << kKindShiftSize) - 1;
-      return 1 << (kind_and_metadata & kKindShiftMask);
+    static intptr_t DecodeKind(uint32_t kind_and_metadata) {
+      return 1 << KindShiftBits::decode(kind_and_metadata);
     }
 
-    static intptr_t DecodeTryIndex(int32_t kind_and_metadata) {
-      // Arithmetic shift.
-      return static_cast<int32_t>(static_cast<uint32_t>(kind_and_metadata)
-                                  << (32 - (kTryIndexPos + kTryIndexSize))) >>
-             (32 - kTryIndexSize);
+    static intptr_t DecodeTryIndex(uint32_t kind_and_metadata) {
+      return TryIndexBits::decode(kind_and_metadata) - 1;
     }
 
-    static intptr_t DecodeYieldIndex(int32_t kind_and_metadata) {
-      // Arithmetic shift.
-      return static_cast<int32_t>(
-                 static_cast<uint32_t>(kind_and_metadata)
-                 << (32 - (kYieldIndexPos + kYieldIndexSize))) >>
-             (32 - kYieldIndexSize);
+    static intptr_t DecodeYieldIndex(uint32_t kind_and_metadata) {
+      return YieldIndexBits::decode(kind_and_metadata) - 1;
     }
 
    private:
-    static const intptr_t kKindShiftPos = 0;
     static const intptr_t kKindShiftSize = 3;
-    // Is kKindShiftSize enough bits?
-    COMPILE_ASSERT(kLastKind <= 1 << ((1 << kKindShiftSize) - 1));
-
-    static const intptr_t kTryIndexPos = kKindShiftPos + kKindShiftSize;
     static const intptr_t kTryIndexSize = 10;
+    static const intptr_t kYieldIndexSize = 32 - kKindShiftSize - kTryIndexSize;
 
-    static const intptr_t kYieldIndexPos = kTryIndexPos + kTryIndexSize;
-    static const intptr_t kYieldIndexSize = 32 - kYieldIndexPos;
-
-    COMPILE_ASSERT((kYieldIndexPos + kYieldIndexSize) == 32);
+    class KindShiftBits
+        : public BitField<uint32_t, intptr_t, 0, kKindShiftSize> {};
+    class TryIndexBits : public BitField<uint32_t,
+                                         intptr_t,
+                                         KindShiftBits::kNextBit,
+                                         kTryIndexSize> {};
+    class YieldIndexBits : public BitField<uint32_t,
+                                           intptr_t,
+                                           TryIndexBits::kNextBit,
+                                           kYieldIndexSize> {};
   };
 
  private:
@@ -1791,7 +1707,7 @@ class RawPcDescriptors : public RawObject {
 
 // CodeSourceMap encodes a mapping from code PC ranges to source token
 // positions and the stack of inlined functions.
-class RawCodeSourceMap : public RawObject {
+class CodeSourceMapLayout : public ObjectLayout {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(CodeSourceMap);
   VISIT_NOTHING();
@@ -1811,7 +1727,7 @@ class RawCodeSourceMap : public RawObject {
 // RawCompressedStackMaps is a compressed representation of the stack maps
 // for certain PC offsets into a set of instructions, where a stack map is a bit
 // map that marks each live object index starting from the base of the frame.
-class RawCompressedStackMaps : public RawObject {
+class CompressedStackMapsLayout : public ObjectLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(CompressedStackMaps);
   VISIT_NOTHING();
 
@@ -1882,7 +1798,7 @@ class RawCompressedStackMaps : public RawObject {
   friend class ImageWriter;
 };
 
-class RawLocalVarDescriptors : public RawObject {
+class LocalVarDescriptorsLayout : public ObjectLayout {
  public:
   enum VarInfoKind {
     kStackVar = 1,
@@ -1933,23 +1849,23 @@ class RawLocalVarDescriptors : public RawObject {
   // platforms.
   uword num_entries_;
 
-  VISIT_FROM(RawObject*, names()[0]);
-  RawString** names() {
+  VISIT_FROM(ObjectPtr, names()[0]);
+  StringPtr* names() {
     // Array of [num_entries_] variable names.
-    OPEN_ARRAY_START(RawString*, RawString*);
+    OPEN_ARRAY_START(StringPtr, StringPtr);
   }
-  RawString** nameAddrAt(intptr_t i) { return &(ptr()->names()[i]); }
-  VISIT_TO_LENGTH(RawObject*, nameAddrAt(length - 1));
+  StringPtr* nameAddrAt(intptr_t i) { return &(names()[i]); }
+  VISIT_TO_LENGTH(ObjectPtr, nameAddrAt(length - 1));
 
   // Variable info with [num_entries_] entries.
   VarInfo* data() {
-    return reinterpret_cast<VarInfo*>(nameAddrAt(ptr()->num_entries_));
+    return reinterpret_cast<VarInfo*>(nameAddrAt(num_entries_));
   }
 
   friend class Object;
 };
 
-class RawExceptionHandlers : public RawObject {
+class ExceptionHandlersLayout : public ObjectLayout {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExceptionHandlers);
 
@@ -1958,9 +1874,9 @@ class RawExceptionHandlers : public RawObject {
 
   // Array with [num_entries_] entries. Each entry is an array of all handled
   // exception types.
-  VISIT_FROM(RawObject*, handled_types_data_)
-  RawArray* handled_types_data_;
-  VISIT_TO_LENGTH(RawObject*, &ptr()->handled_types_data_);
+  VISIT_FROM(ObjectPtr, handled_types_data_)
+  ArrayPtr handled_types_data_;
+  VISIT_TO_LENGTH(ObjectPtr, &handled_types_data_);
 
   // Exception handler info of length [num_entries_].
   const ExceptionHandlerInfo* data() const {
@@ -1973,130 +1889,138 @@ class RawExceptionHandlers : public RawObject {
   friend class Object;
 };
 
-class RawContext : public RawObject {
+class ContextLayout : public ObjectLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Context);
 
   int32_t num_variables_;
 
-  VISIT_FROM(RawObject*, parent_);
-  RawContext* parent_;
+  VISIT_FROM(ObjectPtr, parent_);
+  ContextPtr parent_;
 
   // Variable length data follows here.
-  RawObject** data() { OPEN_ARRAY_START(RawObject*, RawObject*); }
-  RawObject* const* data() const { OPEN_ARRAY_START(RawObject*, RawObject*); }
-  VISIT_TO_LENGTH(RawObject*, &ptr()->data()[length - 1]);
+  ObjectPtr* data() { OPEN_ARRAY_START(ObjectPtr, ObjectPtr); }
+  ObjectPtr const* data() const { OPEN_ARRAY_START(ObjectPtr, ObjectPtr); }
+  VISIT_TO_LENGTH(ObjectPtr, &data()[length - 1]);
 
   friend class Object;
   friend class SnapshotReader;
 };
 
-class RawContextScope : public RawObject {
+class ContextScopeLayout : public ObjectLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ContextScope);
 
   // TODO(iposva): Switch to conventional enum offset based structure to avoid
   // alignment mishaps.
   struct VariableDesc {
-    RawSmi* declaration_token_pos;
-    RawSmi* token_pos;
-    RawString* name;
-    RawSmi* flags;
+    SmiPtr declaration_token_pos;
+    SmiPtr token_pos;
+    StringPtr name;
+    SmiPtr flags;
     static constexpr intptr_t kIsFinal = 0x1;
     static constexpr intptr_t kIsConst = 0x2;
     static constexpr intptr_t kIsLate = 0x4;
-    RawSmi* late_init_offset;
+    SmiPtr late_init_offset;
     union {
-      RawAbstractType* type;
-      RawInstance* value;  // iff is_const is true
+      AbstractTypePtr type;
+      InstancePtr value;  // iff is_const is true
     };
-    RawSmi* context_index;
-    RawSmi* context_level;
+    SmiPtr context_index;
+    SmiPtr context_level;
   };
 
   int32_t num_variables_;
   bool is_implicit_;  // true, if this context scope is for an implicit closure.
 
-  RawObject** from() {
-    VariableDesc* begin = const_cast<VariableDesc*>(ptr()->VariableDescAddr(0));
-    return reinterpret_cast<RawObject**>(begin);
+  ObjectPtr* from() {
+    VariableDesc* begin = const_cast<VariableDesc*>(VariableDescAddr(0));
+    return reinterpret_cast<ObjectPtr*>(begin);
   }
   // Variable length data follows here.
-  RawObject* const* data() const { OPEN_ARRAY_START(RawObject*, RawObject*); }
+  ObjectPtr const* data() const { OPEN_ARRAY_START(ObjectPtr, ObjectPtr); }
   const VariableDesc* VariableDescAddr(intptr_t index) const {
     ASSERT((index >= 0) && (index < num_variables_ + 1));
     // data() points to the first component of the first descriptor.
     return &(reinterpret_cast<const VariableDesc*>(data())[index]);
   }
-  RawObject** to(intptr_t num_vars) {
-    uword end = reinterpret_cast<uword>(ptr()->VariableDescAddr(num_vars));
+  ObjectPtr* to(intptr_t num_vars) {
+    uword end = reinterpret_cast<uword>(VariableDescAddr(num_vars));
     // 'end' is the address just beyond the last descriptor, so step back.
-    return reinterpret_cast<RawObject**>(end - kWordSize);
+    return reinterpret_cast<ObjectPtr*>(end - kWordSize);
   }
-  RawObject** to_snapshot(Snapshot::Kind kind, intptr_t num_vars) {
+  ObjectPtr* to_snapshot(Snapshot::Kind kind, intptr_t num_vars) {
     return to(num_vars);
   }
 
   friend class Object;
-  friend class RawClosureData;
+  friend class ClosureDataLayout;
   friend class SnapshotReader;
 };
 
-class RawParameterTypeCheck : public RawObject {
+class ParameterTypeCheckLayout : public ObjectLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ParameterTypeCheck);
   intptr_t index_;
-  VISIT_FROM(RawObject*, param_);
-  RawAbstractType* param_;
-  RawAbstractType* type_or_bound_;
-  RawString* name_;
-  RawSubtypeTestCache* cache_;
-  VISIT_TO(RawObject*, cache_);
-  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
+  VISIT_FROM(ObjectPtr, param_);
+  AbstractTypePtr param_;
+  AbstractTypePtr type_or_bound_;
+  StringPtr name_;
+  SubtypeTestCachePtr cache_;
+  VISIT_TO(ObjectPtr, cache_);
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
-class RawSingleTargetCache : public RawObject {
+class SingleTargetCacheLayout : public ObjectLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(SingleTargetCache);
-  VISIT_FROM(RawObject*, target_);
-  RawCode* target_;
-  VISIT_TO(RawObject*, target_);
+  VISIT_FROM(ObjectPtr, target_);
+  CodePtr target_;
+  VISIT_TO(ObjectPtr, target_);
   uword entry_point_;
   classid_t lower_limit_;
   classid_t upper_limit_;
 };
 
-class RawUnlinkedCall : public RawObject {
+class UnlinkedCallLayout : public ObjectLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(UnlinkedCall);
-  VISIT_FROM(RawObject*, target_name_);
-  RawString* target_name_;
-  RawArray* args_descriptor_;
-  VISIT_TO(RawObject*, args_descriptor_);
+  VISIT_FROM(ObjectPtr, target_name_);
+  StringPtr target_name_;
+  ArrayPtr args_descriptor_;
+  VISIT_TO(ObjectPtr, args_descriptor_);
   bool can_patch_to_monomorphic_;
-  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
-class RawMonomorphicSmiableCall : public RawObject {
+class MonomorphicSmiableCallLayout : public ObjectLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(MonomorphicSmiableCall);
-  VISIT_FROM(RawObject*, target_);
-  RawCode* target_;  // Entrypoint PC in bare mode, Code in non-bare mode.
-  VISIT_TO(RawObject*, target_);
+  VISIT_FROM(ObjectPtr, target_);
+  CodePtr target_;  // Entrypoint PC in bare mode, Code in non-bare mode.
+  VISIT_TO(ObjectPtr, target_);
   uword expected_cid_;
   uword entrypoint_;
-  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
-class RawICData : public RawObject {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ICData);
+// Abstract base class for RawICData/RawMegamorphicCache
+class CallSiteDataLayout : public ObjectLayout {
+ protected:
+  StringPtr target_name_;  // Name of target function.
+  // arg_descriptor in RawICData and in RawMegamorphicCache should be
+  // in the same position so that NoSuchMethod can access it.
+  ArrayPtr args_descriptor_;  // Arguments descriptor.
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(CallSiteData)
+};
 
-  VISIT_FROM(RawObject*, entries_);
-  RawArray* entries_;          // Contains class-ids, target and count.
-  RawString* target_name_;     // Name of target function.
-  RawArray* args_descriptor_;  // Arguments descriptor.
+class ICDataLayout : public CallSiteDataLayout {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ICData);
+  VISIT_FROM(ObjectPtr, target_name_);
+  ArrayPtr entries_;  // Contains class-ids, target and count.
   // Static type of the receiver, if instance call and available.
-  NOT_IN_PRECOMPILED(RawAbstractType* receivers_static_type_);
-  RawObject* owner_;  // Parent/calling function or original IC of cloned IC.
-  VISIT_TO(RawObject*, owner_);
-  RawObject** to_snapshot(Snapshot::Kind kind) {
+  NOT_IN_PRECOMPILED(AbstractTypePtr receivers_static_type_);
+  ObjectPtr owner_;  // Parent/calling function or original IC of cloned IC.
+  VISIT_TO(ObjectPtr, owner_);
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
-        return reinterpret_cast<RawObject**>(&ptr()->args_descriptor_);
+        return reinterpret_cast<ObjectPtr*>(&entries_);
       case Snapshot::kFull:
       case Snapshot::kFullJIT:
         return to();
@@ -2112,93 +2036,90 @@ class RawICData : public RawObject {
   uint32_t state_bits_;  // Number of arguments tested in IC, deopt reasons.
 };
 
-class RawMegamorphicCache : public RawObject {
+class MegamorphicCacheLayout : public CallSiteDataLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(MegamorphicCache);
-
-  VISIT_FROM(RawObject*, buckets_)
-  RawArray* buckets_;
-  RawSmi* mask_;
-  RawString* target_name_;     // Name of target function.
-  RawArray* args_descriptor_;  // Arguments descriptor.
-  VISIT_TO(RawObject*, args_descriptor_)
-  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
+  VISIT_FROM(ObjectPtr, target_name_)
+  ArrayPtr buckets_;
+  SmiPtr mask_;
+  VISIT_TO(ObjectPtr, mask_)
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   int32_t filled_entry_count_;
 };
 
-class RawSubtypeTestCache : public RawObject {
+class SubtypeTestCacheLayout : public ObjectLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(SubtypeTestCache);
-  VISIT_FROM(RawObject*, cache_);
-  RawArray* cache_;
-  VISIT_TO(RawObject*, cache_);
+  VISIT_FROM(ObjectPtr, cache_);
+  ArrayPtr cache_;
+  VISIT_TO(ObjectPtr, cache_);
 };
 
-class RawError : public RawObject {
+class ErrorLayout : public ObjectLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Error);
 };
 
-class RawApiError : public RawError {
+class ApiErrorLayout : public ErrorLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ApiError);
 
-  VISIT_FROM(RawObject*, message_)
-  RawString* message_;
-  VISIT_TO(RawObject*, message_)
+  VISIT_FROM(ObjectPtr, message_)
+  StringPtr message_;
+  VISIT_TO(ObjectPtr, message_)
 };
 
-class RawLanguageError : public RawError {
+class LanguageErrorLayout : public ErrorLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(LanguageError);
 
-  VISIT_FROM(RawObject*, previous_error_)
-  RawError* previous_error_;  // May be null.
-  RawScript* script_;
-  RawString* message_;
-  RawString* formatted_message_;  // Incl. previous error's formatted message.
-  VISIT_TO(RawObject*, formatted_message_)
+  VISIT_FROM(ObjectPtr, previous_error_)
+  ErrorPtr previous_error_;  // May be null.
+  ScriptPtr script_;
+  StringPtr message_;
+  StringPtr formatted_message_;  // Incl. previous error's formatted message.
+  VISIT_TO(ObjectPtr, formatted_message_)
   TokenPosition token_pos_;  // Source position in script_.
   bool report_after_token_;  // Report message at or after the token.
   int8_t kind_;              // Of type Report::Kind.
 
-  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
-class RawUnhandledException : public RawError {
+class UnhandledExceptionLayout : public ErrorLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(UnhandledException);
 
-  VISIT_FROM(RawObject*, exception_)
-  RawInstance* exception_;
-  RawInstance* stacktrace_;
-  VISIT_TO(RawObject*, stacktrace_)
-  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
+  VISIT_FROM(ObjectPtr, exception_)
+  InstancePtr exception_;
+  InstancePtr stacktrace_;
+  VISIT_TO(ObjectPtr, stacktrace_)
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
-class RawUnwindError : public RawError {
+class UnwindErrorLayout : public ErrorLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(UnwindError);
 
-  VISIT_FROM(RawObject*, message_)
-  RawString* message_;
-  VISIT_TO(RawObject*, message_)
+  VISIT_FROM(ObjectPtr, message_)
+  StringPtr message_;
+  VISIT_TO(ObjectPtr, message_)
   bool is_user_initiated_;
 };
 
-class RawInstance : public RawObject {
+class InstanceLayout : public ObjectLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Instance);
 };
 
-class RawLibraryPrefix : public RawInstance {
+class LibraryPrefixLayout : public InstanceLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(LibraryPrefix);
 
-  VISIT_FROM(RawObject*, name_)
-  RawString* name_;           // Library prefix name.
-  RawLibrary* importer_;      // Library which declares this prefix.
-  RawArray* imports_;         // Libraries imported with this prefix.
-  VISIT_TO(RawObject*, imports_)
-  RawObject** to_snapshot(Snapshot::Kind kind) {
+  VISIT_FROM(ObjectPtr, name_)
+  StringPtr name_;       // Library prefix name.
+  LibraryPtr importer_;  // Library which declares this prefix.
+  ArrayPtr imports_;     // Libraries imported with this prefix.
+  VISIT_TO(ObjectPtr, imports_)
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFull:
       case Snapshot::kFullJIT:
-        return reinterpret_cast<RawObject**>(&ptr()->imports_);
+        return reinterpret_cast<ObjectPtr*>(&imports_);
       case Snapshot::kFullAOT:
-        return reinterpret_cast<RawObject**>(&ptr()->importer_);
+        return reinterpret_cast<ObjectPtr*>(&importer_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
@@ -2211,33 +2132,33 @@ class RawLibraryPrefix : public RawInstance {
   bool is_deferred_load_;
 };
 
-class RawTypeArguments : public RawInstance {
+class TypeArgumentsLayout : public InstanceLayout {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeArguments);
 
-  VISIT_FROM(RawObject*, instantiations_)
+  VISIT_FROM(ObjectPtr, instantiations_)
   // The instantiations_ array remains empty for instantiated type arguments.
-  RawArray* instantiations_;  // Of 3-tuple: 2 instantiators, result.
-  RawSmi* length_;
-  RawSmi* hash_;
-  RawSmi* nullability_;
+  ArrayPtr instantiations_;  // Of 3-tuple: 2 instantiators, result.
+  SmiPtr length_;
+  SmiPtr hash_;
+  SmiPtr nullability_;
 
   // Variable length data follows here.
-  RawAbstractType* const* types() const {
-    OPEN_ARRAY_START(RawAbstractType*, RawAbstractType*);
+  AbstractTypePtr const* types() const {
+    OPEN_ARRAY_START(AbstractTypePtr, AbstractTypePtr);
   }
-  RawAbstractType** types() {
-    OPEN_ARRAY_START(RawAbstractType*, RawAbstractType*);
+  AbstractTypePtr* types() {
+    OPEN_ARRAY_START(AbstractTypePtr, AbstractTypePtr);
   }
-  RawObject** to(intptr_t length) {
-    return reinterpret_cast<RawObject**>(&ptr()->types()[length - 1]);
+  ObjectPtr* to(intptr_t length) {
+    return reinterpret_cast<ObjectPtr*>(&types()[length - 1]);
   }
 
   friend class Object;
   friend class SnapshotReader;
 };
 
-class RawAbstractType : public RawInstance {
+class AbstractTypeLayout : public InstanceLayout {
  public:
   enum TypeState {
     kAllocated,                // Initial state.
@@ -2248,8 +2169,8 @@ class RawAbstractType : public RawInstance {
 
  protected:
   uword type_test_stub_entry_point_;  // Accessed from generated code.
-  RawCode* type_test_stub_;  // Must be the last field, since subclasses use it
-                             // in their VISIT_FROM.
+  CodePtr type_test_stub_;  // Must be the last field, since subclasses use it
+                            // in their VISIT_FROM.
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(AbstractType);
@@ -2258,39 +2179,39 @@ class RawAbstractType : public RawInstance {
   friend class StubCode;
 };
 
-class RawType : public RawAbstractType {
+class TypeLayout : public AbstractTypeLayout {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Type);
 
-  VISIT_FROM(RawObject*, type_test_stub_)
-  RawSmi* type_class_id_;
-  RawTypeArguments* arguments_;
-  RawSmi* hash_;
+  VISIT_FROM(ObjectPtr, type_test_stub_)
+  SmiPtr type_class_id_;
+  TypeArgumentsPtr arguments_;
+  SmiPtr hash_;
   // This type object represents a function type if its signature field is a
   // non-null function object.
-  RawFunction* signature_;  // If not null, this type is a function type.
-  VISIT_TO(RawObject*, signature_)
+  FunctionPtr signature_;  // If not null, this type is a function type.
+  VISIT_TO(ObjectPtr, signature_)
   TokenPosition token_pos_;
   int8_t type_state_;
   int8_t nullability_;
 
-  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class CidRewriteVisitor;
-  friend class RawTypeArguments;
+  friend class TypeArgumentsLayout;
 };
 
-class RawTypeRef : public RawAbstractType {
+class TypeRefLayout : public AbstractTypeLayout {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeRef);
 
-  VISIT_FROM(RawObject*, type_test_stub_)
-  RawAbstractType* type_;  // The referenced type.
-  VISIT_TO(RawObject*, type_)
-  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
+  VISIT_FROM(ObjectPtr, type_test_stub_)
+  AbstractTypePtr type_;  // The referenced type.
+  VISIT_TO(ObjectPtr, type_)
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
-class RawTypeParameter : public RawAbstractType {
+class TypeParameterLayout : public AbstractTypeLayout {
  public:
   enum {
     kFinalizedBit = 0,
@@ -2303,24 +2224,24 @@ class RawTypeParameter : public RawAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeParameter);
 
-  VISIT_FROM(RawObject*, type_test_stub_)
-  RawString* name_;
-  RawSmi* hash_;
-  RawAbstractType* bound_;  // ObjectType if no explicit bound specified.
-  RawFunction* parameterized_function_;
-  VISIT_TO(RawObject*, parameterized_function_)
+  VISIT_FROM(ObjectPtr, type_test_stub_)
+  StringPtr name_;
+  SmiPtr hash_;
+  AbstractTypePtr bound_;  // ObjectType if no explicit bound specified.
+  FunctionPtr parameterized_function_;
+  VISIT_TO(ObjectPtr, parameterized_function_)
   classid_t parameterized_class_id_;
   TokenPosition token_pos_;
   int16_t index_;
   uint8_t flags_;
   int8_t nullability_;
 
-  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class CidRewriteVisitor;
 };
 
-class RawClosure : public RawInstance {
+class ClosureLayout : public InstanceLayout {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Closure);
 
@@ -2330,16 +2251,16 @@ class RawClosure : public RawInstance {
   // The following fields are also declared in the Dart source of class
   // _Closure.
   VISIT_FROM(RawCompressed, instantiator_type_arguments_)
-  RawTypeArguments* instantiator_type_arguments_;
-  RawTypeArguments* function_type_arguments_;
-  RawTypeArguments* delayed_type_arguments_;
-  RawFunction* function_;
-  RawContext* context_;
-  RawSmi* hash_;
+  TypeArgumentsPtr instantiator_type_arguments_;
+  TypeArgumentsPtr function_type_arguments_;
+  TypeArgumentsPtr delayed_type_arguments_;
+  FunctionPtr function_;
+  ContextPtr context_;
+  SmiPtr hash_;
 
   VISIT_TO(RawCompressed, hash_)
 
-  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   // Note that instantiator_type_arguments_, function_type_arguments_ and
   // delayed_type_arguments_ are used to instantiate the signature of function_
@@ -2365,19 +2286,19 @@ class RawClosure : public RawInstance {
   // any type arguments passed directly (or NSM will be invoked instead).
 };
 
-class RawNumber : public RawInstance {
+class NumberLayout : public InstanceLayout {
   RAW_OBJECT_IMPLEMENTATION(Number);
 };
 
-class RawInteger : public RawNumber {
+class IntegerLayout : public NumberLayout {
   RAW_OBJECT_IMPLEMENTATION(Integer);
 };
 
-class RawSmi : public RawInteger {
+class SmiLayout : public IntegerLayout {
   RAW_OBJECT_IMPLEMENTATION(Smi);
 };
 
-class RawMint : public RawInteger {
+class MintLayout : public IntegerLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Mint);
   VISIT_NOTHING();
 
@@ -2388,9 +2309,9 @@ class RawMint : public RawInteger {
   friend class Integer;
   friend class SnapshotReader;
 };
-COMPILE_ASSERT(sizeof(RawMint) == 16);
+COMPILE_ASSERT(sizeof(MintLayout) == 16);
 
-class RawDouble : public RawNumber {
+class DoubleLayout : public NumberLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Double);
   VISIT_NOTHING();
 
@@ -2400,19 +2321,19 @@ class RawDouble : public RawNumber {
   friend class SnapshotReader;
   friend class Class;
 };
-COMPILE_ASSERT(sizeof(RawDouble) == 16);
+COMPILE_ASSERT(sizeof(DoubleLayout) == 16);
 
-class RawString : public RawInstance {
+class StringLayout : public InstanceLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(String);
 
  protected:
-  VISIT_FROM(RawObject*, length_)
-  RawSmi* length_;
+  VISIT_FROM(ObjectPtr, length_)
+  SmiPtr length_;
 #if !defined(HASH_IN_OBJECT_HEADER)
-  RawSmi* hash_;
-  VISIT_TO(RawObject*, hash_)
+  SmiPtr hash_;
+  VISIT_TO(ObjectPtr, hash_)
 #else
-  VISIT_TO(RawObject*, length_)
+  VISIT_TO(ObjectPtr, length_)
 #endif
 
  private:
@@ -2425,7 +2346,7 @@ class RawString : public RawInstance {
   friend class ImageWriter;
 };
 
-class RawOneByteString : public RawString {
+class OneByteStringLayout : public StringLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(OneByteString);
   VISIT_NOTHING();
 
@@ -2439,7 +2360,7 @@ class RawOneByteString : public RawString {
   friend class String;
 };
 
-class RawTwoByteString : public RawString {
+class TwoByteStringLayout : public StringLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(TwoByteString);
   VISIT_NOTHING();
 
@@ -2457,7 +2378,7 @@ class RawTwoByteString : public RawString {
 //
 // TypedData extends this with a length field, while Pointer extends this with
 // TypeArguments field.
-class RawPointerBase : public RawInstance {
+class PointerBaseLayout : public InstanceLayout {
  protected:
   // The contents of [data_] depends on what concrete subclass is used:
   //
@@ -2477,31 +2398,31 @@ class RawPointerBase : public RawInstance {
 };
 
 // Abstract base class for RawTypedData/RawExternalTypedData/RawTypedDataView.
-class RawTypedDataBase : public RawPointerBase {
+class TypedDataBaseLayout : public PointerBaseLayout {
  protected:
   // The length of the view in element sizes (obtainable via
   // [TypedDataBase::ElementSizeInBytes]).
-  RawSmi* length_;
+  SmiPtr length_;
 
  private:
-  friend class RawTypedDataView;
+  friend class TypedDataViewLayout;
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypedDataBase);
 };
 
-class RawTypedData : public RawTypedDataBase {
+class TypedDataLayout : public TypedDataBaseLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypedData);
 
  public:
   static intptr_t payload_offset() {
-    return OFFSET_OF_RETURNED_VALUE(RawTypedData, internal_data);
+    return OFFSET_OF_RETURNED_VALUE(TypedDataLayout, internal_data);
   }
 
   // Recompute [data_] pointer to internal data.
-  void RecomputeDataField() { ptr()->data_ = ptr()->internal_data(); }
+  void RecomputeDataField() { data_ = internal_data(); }
 
  protected:
   VISIT_FROM(RawCompressed, length_)
-  VISIT_TO_LENGTH(RawCompressed, &ptr()->length_)
+  VISIT_TO_LENGTH(RawCompressed, &length_)
 
   // Variable length data follows here.
 
@@ -2524,20 +2445,20 @@ class RawTypedData : public RawTypedDataBase {
   friend class ObjectPool;
   friend class ObjectPoolDeserializationCluster;
   friend class ObjectPoolSerializationCluster;
-  friend class RawObjectPool;
+  friend class ObjectPoolLayout;
   friend class SnapshotReader;
 };
 
 // All _*ArrayView/_ByteDataView classes share the same layout.
-class RawTypedDataView : public RawTypedDataBase {
+class TypedDataViewLayout : public TypedDataBaseLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypedDataView);
 
  public:
   // Recompute [data_] based on internal/external [typed_data_].
   void RecomputeDataField() {
-    const intptr_t offset_in_bytes = ValueFromRawSmi(ptr()->offset_in_bytes_);
-    uint8_t* payload = ptr()->typed_data_->ptr()->data_;
-    ptr()->data_ = payload + offset_in_bytes;
+    const intptr_t offset_in_bytes = RawSmiValue(offset_in_bytes_);
+    uint8_t* payload = typed_data_->ptr()->data_;
+    data_ = payload + offset_in_bytes;
   }
 
   // Recopute [data_] based on internal [typed_data_] - needs to be called by GC
@@ -2547,47 +2468,47 @@ class RawTypedDataView : public RawTypedDataBase {
   // [typed_data_] pointer points to the new backing store. The backing store's
   // fields don't need to be valid - only it's address.
   void RecomputeDataFieldForInternalTypedData() {
-    const intptr_t offset_in_bytes = ValueFromRawSmi(ptr()->offset_in_bytes_);
+    const intptr_t offset_in_bytes = RawSmiValue(offset_in_bytes_);
     uint8_t* payload = reinterpret_cast<uint8_t*>(
-        RawObject::ToAddr(ptr()->typed_data_) + RawTypedData::payload_offset());
-    ptr()->data_ = payload + offset_in_bytes;
+        ObjectLayout::ToAddr(typed_data_) + TypedDataLayout::payload_offset());
+    data_ = payload + offset_in_bytes;
   }
 
   void ValidateInnerPointer() {
-    if (ptr()->typed_data_->GetClassId() == kNullCid) {
+    if (typed_data_->ptr()->GetClassId() == kNullCid) {
       // The view object must have gotten just initialized.
-      if (ptr()->data_ != nullptr ||
-          ValueFromRawSmi(ptr()->offset_in_bytes_) != 0 ||
-          ValueFromRawSmi(ptr()->length_) != 0) {
+      if (data_ != nullptr || RawSmiValue(offset_in_bytes_) != 0 ||
+          RawSmiValue(length_) != 0) {
         FATAL("RawTypedDataView has invalid inner pointer.");
       }
     } else {
-      const intptr_t offset_in_bytes = ValueFromRawSmi(ptr()->offset_in_bytes_);
-      uint8_t* payload = ptr()->typed_data_->ptr()->data_;
-      if ((payload + offset_in_bytes) != ptr()->data_) {
+      const intptr_t offset_in_bytes = RawSmiValue(offset_in_bytes_);
+      uint8_t* payload = typed_data_->ptr()->data_;
+      if ((payload + offset_in_bytes) != data_) {
         FATAL("RawTypedDataView has invalid inner pointer.");
       }
     }
   }
 
  protected:
-  VISIT_FROM(RawObject*, length_)
-  RawTypedDataBase* typed_data_;
-  RawSmi* offset_in_bytes_;
-  VISIT_TO(RawObject*, offset_in_bytes_)
-  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
+  VISIT_FROM(ObjectPtr, length_)
+  TypedDataBasePtr typed_data_;
+  SmiPtr offset_in_bytes_;
+  VISIT_TO(ObjectPtr, offset_in_bytes_)
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class Api;
   friend class Object;
   friend class ObjectPoolDeserializationCluster;
   friend class ObjectPoolSerializationCluster;
-  friend class RawObjectPool;
+  friend class ObjectPoolLayout;
   friend class GCCompactor;
-  friend class ScavengerVisitor;
+  template <bool>
+  friend class ScavengerVisitorBase;
   friend class SnapshotReader;
 };
 
-class RawExternalOneByteString : public RawString {
+class ExternalOneByteStringLayout : public StringLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalOneByteString);
 
   const uint8_t* external_data_;
@@ -2596,7 +2517,7 @@ class RawExternalOneByteString : public RawString {
   friend class String;
 };
 
-class RawExternalTwoByteString : public RawString {
+class ExternalTwoByteStringLayout : public StringLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalTwoByteString);
 
   const uint16_t* external_data_;
@@ -2605,76 +2526,79 @@ class RawExternalTwoByteString : public RawString {
   friend class String;
 };
 
-class RawBool : public RawInstance {
+class BoolLayout : public InstanceLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Bool);
   VISIT_NOTHING();
 
   bool value_;
+
+  friend class Object;
 };
 
-class RawArray : public RawInstance {
+class ArrayLayout : public InstanceLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Array);
 
   VISIT_FROM(RawCompressed, type_arguments_)
-  RawTypeArguments* type_arguments_;
-  RawSmi* length_;
+  TypeArgumentsPtr type_arguments_;
+  SmiPtr length_;
   // Variable length data follows here.
-  RawObject** data() { OPEN_ARRAY_START(RawObject*, RawObject*); }
-  RawObject* const* data() const { OPEN_ARRAY_START(RawObject*, RawObject*); }
-  VISIT_TO_LENGTH(RawCompressed, &ptr()->data()[length - 1])
+  ObjectPtr* data() { OPEN_ARRAY_START(ObjectPtr, ObjectPtr); }
+  ObjectPtr const* data() const { OPEN_ARRAY_START(ObjectPtr, ObjectPtr); }
+  VISIT_TO_LENGTH(RawCompressed, &data()[length - 1])
 
   friend class LinkedHashMapSerializationCluster;
   friend class LinkedHashMapDeserializationCluster;
+  friend class CodeSerializationCluster;
   friend class CodeDeserializationCluster;
   friend class Deserializer;
-  friend class RawCode;
-  friend class RawImmutableArray;
+  friend class CodeLayout;
+  friend class ImmutableArrayLayout;
   friend class SnapshotReader;
   friend class GrowableObjectArray;
   friend class LinkedHashMap;
-  friend class RawLinkedHashMap;
+  friend class LinkedHashMapLayout;
   friend class Object;
   friend class ICData;            // For high performance access.
   friend class SubtypeTestCache;  // For high performance access.
 
-  friend class HeapPage;
+  friend class OldPage;
 };
 
-class RawImmutableArray : public RawArray {
+class ImmutableArrayLayout : public ArrayLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ImmutableArray);
 
   friend class SnapshotReader;
 };
 
-class RawGrowableObjectArray : public RawInstance {
+class GrowableObjectArrayLayout : public InstanceLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(GrowableObjectArray);
 
   VISIT_FROM(RawCompressed, type_arguments_)
-  RawTypeArguments* type_arguments_;
-  RawSmi* length_;
-  RawArray* data_;
+  TypeArgumentsPtr type_arguments_;
+  SmiPtr length_;
+  ArrayPtr data_;
   VISIT_TO(RawCompressed, data_)
-  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class SnapshotReader;
 };
 
-class RawLinkedHashMap : public RawInstance {
+class LinkedHashMapLayout : public InstanceLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(LinkedHashMap);
 
   VISIT_FROM(RawCompressed, type_arguments_)
-  RawTypeArguments* type_arguments_;
-  RawTypedData* index_;
-  RawSmi* hash_mask_;
-  RawArray* data_;
-  RawSmi* used_data_;
-  RawSmi* deleted_keys_;
+  TypeArgumentsPtr type_arguments_;
+  TypedDataPtr index_;
+  SmiPtr hash_mask_;
+  ArrayPtr data_;
+  SmiPtr used_data_;
+  SmiPtr deleted_keys_;
   VISIT_TO(RawCompressed, deleted_keys_)
 
   friend class SnapshotReader;
 };
 
-class RawFloat32x4 : public RawInstance {
+class Float32x4Layout : public InstanceLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Float32x4);
   VISIT_NOTHING();
 
@@ -2689,9 +2613,9 @@ class RawFloat32x4 : public RawInstance {
   float z() const { return value_[2]; }
   float w() const { return value_[3]; }
 };
-COMPILE_ASSERT(sizeof(RawFloat32x4) == 24);
+COMPILE_ASSERT(sizeof(Float32x4Layout) == 24);
 
-class RawInt32x4 : public RawInstance {
+class Int32x4Layout : public InstanceLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Int32x4);
   VISIT_NOTHING();
 
@@ -2705,9 +2629,9 @@ class RawInt32x4 : public RawInstance {
   int32_t z() const { return value_[2]; }
   int32_t w() const { return value_[3]; }
 };
-COMPILE_ASSERT(sizeof(RawInt32x4) == 24);
+COMPILE_ASSERT(sizeof(Int32x4Layout) == 24);
 
-class RawFloat64x2 : public RawInstance {
+class Float64x2Layout : public InstanceLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Float64x2);
   VISIT_NOTHING();
 
@@ -2720,7 +2644,7 @@ class RawFloat64x2 : public RawInstance {
   double x() const { return value_[0]; }
   double y() const { return value_[1]; }
 };
-COMPILE_ASSERT(sizeof(RawFloat64x2) == 24);
+COMPILE_ASSERT(sizeof(Float64x2Layout) == 24);
 
 // Define an aliases for intptr_t.
 #if defined(ARCH_IS_32_BIT)
@@ -2733,27 +2657,27 @@ COMPILE_ASSERT(sizeof(RawFloat64x2) == 24);
 #error Architecture is not 32-bit or 64-bit.
 #endif  // ARCH_IS_32_BIT
 
-class RawExternalTypedData : public RawTypedDataBase {
+class ExternalTypedDataLayout : public TypedDataBaseLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalTypedData);
 
  protected:
   VISIT_FROM(RawCompressed, length_)
   VISIT_TO(RawCompressed, length_)
 
-  friend class RawBytecode;
+  friend class BytecodeLayout;
 };
 
-class RawPointer : public RawPointerBase {
+class PointerLayout : public PointerBaseLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Pointer);
 
   VISIT_FROM(RawCompressed, type_arguments_)
-  RawTypeArguments* type_arguments_;
+  TypeArgumentsPtr type_arguments_;
   VISIT_TO(RawCompressed, type_arguments_)
 
   friend class Pointer;
 };
 
-class RawDynamicLibrary : public RawInstance {
+class DynamicLibraryLayout : public InstanceLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(DynamicLibrary);
   VISIT_NOTHING();
   void* handle_;
@@ -2762,13 +2686,13 @@ class RawDynamicLibrary : public RawInstance {
 };
 
 // VM implementations of the basic types in the isolate.
-class alignas(8) RawCapability : public RawInstance {
+class alignas(8) CapabilityLayout : public InstanceLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Capability);
   VISIT_NOTHING();
   uint64_t id_;
 };
 
-class alignas(8) RawSendPort : public RawInstance {
+class alignas(8) SendPortLayout : public InstanceLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(SendPort);
   VISIT_NOTHING();
   Dart_Port id_;
@@ -2777,16 +2701,16 @@ class alignas(8) RawSendPort : public RawInstance {
   friend class ReceivePort;
 };
 
-class RawReceivePort : public RawInstance {
+class ReceivePortLayout : public InstanceLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ReceivePort);
 
-  VISIT_FROM(RawObject*, send_port_)
-  RawSendPort* send_port_;
-  RawInstance* handler_;
-  VISIT_TO(RawObject*, handler_)
+  VISIT_FROM(ObjectPtr, send_port_)
+  SendPortPtr send_port_;
+  InstancePtr handler_;
+  VISIT_TO(ObjectPtr, handler_)
 };
 
-class RawTransferableTypedData : public RawInstance {
+class TransferableTypedDataLayout : public InstanceLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(TransferableTypedData);
   VISIT_NOTHING();
 };
@@ -2795,15 +2719,15 @@ class RawTransferableTypedData : public RawInstance {
 // Currently we don't have any interface that this object is supposed
 // to implement so we just support the 'toString' method which
 // converts the stack trace into a string.
-class RawStackTrace : public RawInstance {
+class StackTraceLayout : public InstanceLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(StackTrace);
 
-  VISIT_FROM(RawObject*, async_link_)
-  RawStackTrace* async_link_;  // Link to parent async stack trace.
-  RawArray* code_array_;       // Code object for each frame in the stack trace.
-  RawArray* pc_offset_array_;  // Offset of PC for each frame.
-  VISIT_TO(RawObject*, pc_offset_array_)
-  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
+  VISIT_FROM(ObjectPtr, async_link_)
+  StackTracePtr async_link_;  // Link to parent async stack trace.
+  ArrayPtr code_array_;       // Code object for each frame in the stack trace.
+  ArrayPtr pc_offset_array_;  // Offset of PC for each frame.
+  VISIT_TO(ObjectPtr, pc_offset_array_)
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   // False for pre-allocated stack trace (used in OOM and Stack overflow).
   bool expand_inlined_;
@@ -2814,35 +2738,35 @@ class RawStackTrace : public RawInstance {
 };
 
 // VM type for capturing JS regular expressions.
-class RawRegExp : public RawInstance {
+class RegExpLayout : public InstanceLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(RegExp);
 
-  VISIT_FROM(RawObject*, num_bracket_expressions_)
-  RawSmi* num_bracket_expressions_;
-  RawArray* capture_name_map_;
-  RawString* pattern_;  // Pattern to be used for matching.
+  VISIT_FROM(ObjectPtr, num_bracket_expressions_)
+  SmiPtr num_bracket_expressions_;
+  ArrayPtr capture_name_map_;
+  StringPtr pattern_;  // Pattern to be used for matching.
   union {
-    RawFunction* function_;
-    RawTypedData* bytecode_;
+    FunctionPtr function_;
+    TypedDataPtr bytecode_;
   } one_byte_;
   union {
-    RawFunction* function_;
-    RawTypedData* bytecode_;
+    FunctionPtr function_;
+    TypedDataPtr bytecode_;
   } two_byte_;
-  RawFunction* external_one_byte_function_;
-  RawFunction* external_two_byte_function_;
+  FunctionPtr external_one_byte_function_;
+  FunctionPtr external_two_byte_function_;
   union {
-    RawFunction* function_;
-    RawTypedData* bytecode_;
+    FunctionPtr function_;
+    TypedDataPtr bytecode_;
   } one_byte_sticky_;
   union {
-    RawFunction* function_;
-    RawTypedData* bytecode_;
+    FunctionPtr function_;
+    TypedDataPtr bytecode_;
   } two_byte_sticky_;
-  RawFunction* external_one_byte_sticky_function_;
-  RawFunction* external_two_byte_sticky_function_;
-  VISIT_TO(RawObject*, external_two_byte_sticky_function_)
-  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
+  FunctionPtr external_one_byte_sticky_function_;
+  FunctionPtr external_two_byte_sticky_function_;
+  VISIT_TO(ObjectPtr, external_two_byte_sticky_function_)
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   // The same pattern may use different amount of registers if compiled
   // for a one-byte target than a two-byte target. For example, we do not
@@ -2858,14 +2782,14 @@ class RawRegExp : public RawInstance {
   int8_t type_flags_;
 };
 
-class RawWeakProperty : public RawInstance {
+class WeakPropertyLayout : public InstanceLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(WeakProperty);
 
-  VISIT_FROM(RawObject*, key_)
-  RawObject* key_;
-  RawObject* value_;
-  VISIT_TO(RawObject*, value_)
-  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
+  VISIT_FROM(ObjectPtr, key_)
+  ObjectPtr key_;
+  ObjectPtr value_;
+  VISIT_TO(ObjectPtr, value_)
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   // Linked list is chaining all pending weak properties.
   // Untyped to make it clear that it is not to be visited by GC.
@@ -2875,26 +2799,27 @@ class RawWeakProperty : public RawInstance {
   template <bool>
   friend class MarkingVisitorBase;
   friend class Scavenger;
-  friend class ScavengerVisitor;
+  template <bool>
+  friend class ScavengerVisitorBase;
 };
 
 // MirrorReferences are used by mirrors to hold reflectees that are VM
 // internal objects, such as libraries, classes, functions or types.
-class RawMirrorReference : public RawInstance {
+class MirrorReferenceLayout : public InstanceLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(MirrorReference);
 
-  VISIT_FROM(RawObject*, referent_)
-  RawObject* referent_;
-  VISIT_TO(RawObject*, referent_)
+  VISIT_FROM(ObjectPtr, referent_)
+  ObjectPtr referent_;
+  VISIT_TO(ObjectPtr, referent_)
 };
 
 // UserTag are used by the profiler to track Dart script state.
-class RawUserTag : public RawInstance {
+class UserTagLayout : public InstanceLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(UserTag);
 
-  VISIT_FROM(RawObject*, label_)
-  RawString* label_;
-  VISIT_TO(RawObject*, label_)
+  VISIT_FROM(ObjectPtr, label_)
+  StringPtr label_;
+  VISIT_TO(ObjectPtr, label_)
 
   // Isolate unique tag.
   uword tag_;
@@ -2906,223 +2831,15 @@ class RawUserTag : public RawInstance {
   uword tag() const { return tag_; }
 };
 
-class RawFutureOr : public RawInstance {
+class FutureOrLayout : public InstanceLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(FutureOr);
 
   VISIT_FROM(RawCompressed, type_arguments_)
-  RawTypeArguments* type_arguments_;
+  TypeArgumentsPtr type_arguments_;
   VISIT_TO(RawCompressed, type_arguments_)
 
   friend class SnapshotReader;
 };
-
-// Class Id predicates.
-
-inline bool RawObject::IsErrorClassId(intptr_t index) {
-  // Make sure this function is updated when new Error types are added.
-  COMPILE_ASSERT(
-      kApiErrorCid == kErrorCid + 1 && kLanguageErrorCid == kErrorCid + 2 &&
-      kUnhandledExceptionCid == kErrorCid + 3 &&
-      kUnwindErrorCid == kErrorCid + 4 && kInstanceCid == kErrorCid + 5);
-  return (index >= kErrorCid && index < kInstanceCid);
-}
-
-inline bool RawObject::IsNumberClassId(intptr_t index) {
-  // Make sure this function is updated when new Number types are added.
-  COMPILE_ASSERT(kIntegerCid == kNumberCid + 1 && kSmiCid == kNumberCid + 2 &&
-                 kMintCid == kNumberCid + 3 && kDoubleCid == kNumberCid + 4);
-  return (index >= kNumberCid && index <= kDoubleCid);
-}
-
-inline bool RawObject::IsIntegerClassId(intptr_t index) {
-  // Make sure this function is updated when new Integer types are added.
-  COMPILE_ASSERT(kSmiCid == kIntegerCid + 1 && kMintCid == kIntegerCid + 2);
-  return (index >= kIntegerCid && index <= kMintCid);
-}
-
-inline bool RawObject::IsStringClassId(intptr_t index) {
-  // Make sure this function is updated when new StringCid types are added.
-  COMPILE_ASSERT(kOneByteStringCid == kStringCid + 1 &&
-                 kTwoByteStringCid == kStringCid + 2 &&
-                 kExternalOneByteStringCid == kStringCid + 3 &&
-                 kExternalTwoByteStringCid == kStringCid + 4);
-  return (index >= kStringCid && index <= kExternalTwoByteStringCid);
-}
-
-inline bool RawObject::IsOneByteStringClassId(intptr_t index) {
-  // Make sure this function is updated when new StringCid types are added.
-  COMPILE_ASSERT(kOneByteStringCid == kStringCid + 1 &&
-                 kTwoByteStringCid == kStringCid + 2 &&
-                 kExternalOneByteStringCid == kStringCid + 3 &&
-                 kExternalTwoByteStringCid == kStringCid + 4);
-  return (index == kOneByteStringCid || index == kExternalOneByteStringCid);
-}
-
-inline bool RawObject::IsTwoByteStringClassId(intptr_t index) {
-  // Make sure this function is updated when new StringCid types are added.
-  COMPILE_ASSERT(kOneByteStringCid == kStringCid + 1 &&
-                 kTwoByteStringCid == kStringCid + 2 &&
-                 kExternalOneByteStringCid == kStringCid + 3 &&
-                 kExternalTwoByteStringCid == kStringCid + 4);
-  return (index == kTwoByteStringCid || index == kExternalTwoByteStringCid);
-}
-
-inline bool RawObject::IsExternalStringClassId(intptr_t index) {
-  // Make sure this function is updated when new StringCid types are added.
-  COMPILE_ASSERT(kOneByteStringCid == kStringCid + 1 &&
-                 kTwoByteStringCid == kStringCid + 2 &&
-                 kExternalOneByteStringCid == kStringCid + 3 &&
-                 kExternalTwoByteStringCid == kStringCid + 4);
-  return (index == kExternalOneByteStringCid ||
-          index == kExternalTwoByteStringCid);
-}
-
-inline bool RawObject::IsBuiltinListClassId(intptr_t index) {
-  // Make sure this function is updated when new builtin List types are added.
-  COMPILE_ASSERT(kImmutableArrayCid == kArrayCid + 1);
-  return ((index >= kArrayCid && index <= kImmutableArrayCid) ||
-          (index == kGrowableObjectArrayCid) || IsTypedDataBaseClassId(index) ||
-          (index == kByteBufferCid));
-}
-
-inline bool RawObject::IsTypedDataBaseClassId(intptr_t index) {
-  // Make sure this is updated when new TypedData types are added.
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 3 == kTypedDataUint8ArrayCid);
-  return index >= kTypedDataInt8ArrayCid && index < kByteDataViewCid;
-}
-
-inline bool RawObject::IsTypedDataClassId(intptr_t index) {
-  // Make sure this is updated when new TypedData types are added.
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 3 == kTypedDataUint8ArrayCid);
-  return IsTypedDataBaseClassId(index) && ((index - kTypedDataInt8ArrayCid) %
-                                           3) == kTypedDataCidRemainderInternal;
-}
-
-inline bool RawObject::IsTypedDataViewClassId(intptr_t index) {
-  // Make sure this is updated when new TypedData types are added.
-  COMPILE_ASSERT(kTypedDataInt8ArrayViewCid + 3 == kTypedDataUint8ArrayViewCid);
-
-  const bool is_byte_data_view = index == kByteDataViewCid;
-  return is_byte_data_view ||
-         (IsTypedDataBaseClassId(index) &&
-          ((index - kTypedDataInt8ArrayCid) % 3) == kTypedDataCidRemainderView);
-}
-
-inline bool RawObject::IsExternalTypedDataClassId(intptr_t index) {
-  // Make sure this is updated when new TypedData types are added.
-  COMPILE_ASSERT(kExternalTypedDataInt8ArrayCid + 3 ==
-                 kExternalTypedDataUint8ArrayCid);
-
-  return IsTypedDataBaseClassId(index) && ((index - kTypedDataInt8ArrayCid) %
-                                           3) == kTypedDataCidRemainderExternal;
-}
-
-inline bool RawObject::IsFfiNativeTypeTypeClassId(intptr_t index) {
-  return index == kFfiNativeTypeCid;
-}
-
-inline bool RawObject::IsFfiTypeClassId(intptr_t index) {
-  // Make sure this is updated when new Ffi types are added.
-  COMPILE_ASSERT(kFfiNativeFunctionCid == kFfiPointerCid + 1 &&
-                 kFfiInt8Cid == kFfiPointerCid + 2 &&
-                 kFfiInt16Cid == kFfiPointerCid + 3 &&
-                 kFfiInt32Cid == kFfiPointerCid + 4 &&
-                 kFfiInt64Cid == kFfiPointerCid + 5 &&
-                 kFfiUint8Cid == kFfiPointerCid + 6 &&
-                 kFfiUint16Cid == kFfiPointerCid + 7 &&
-                 kFfiUint32Cid == kFfiPointerCid + 8 &&
-                 kFfiUint64Cid == kFfiPointerCid + 9 &&
-                 kFfiIntPtrCid == kFfiPointerCid + 10 &&
-                 kFfiFloatCid == kFfiPointerCid + 11 &&
-                 kFfiDoubleCid == kFfiPointerCid + 12 &&
-                 kFfiVoidCid == kFfiPointerCid + 13);
-  return (index >= kFfiPointerCid && index <= kFfiVoidCid);
-}
-
-inline bool RawObject::IsFfiTypeIntClassId(intptr_t index) {
-  return (index >= kFfiInt8Cid && index <= kFfiIntPtrCid);
-}
-
-inline bool RawObject::IsFfiTypeDoubleClassId(intptr_t index) {
-  return (index >= kFfiFloatCid && index <= kFfiDoubleCid);
-}
-
-inline bool RawObject::IsFfiPointerClassId(intptr_t index) {
-  return index == kFfiPointerCid;
-}
-
-inline bool RawObject::IsFfiTypeVoidClassId(intptr_t index) {
-  return index == kFfiVoidCid;
-}
-
-inline bool RawObject::IsFfiTypeNativeFunctionClassId(intptr_t index) {
-  return index == kFfiNativeFunctionCid;
-}
-
-inline bool RawObject::IsFfiClassId(intptr_t index) {
-  return (index >= kFfiPointerCid && index <= kFfiVoidCid);
-}
-
-inline bool RawObject::IsFfiDynamicLibraryClassId(intptr_t index) {
-  return index == kFfiDynamicLibraryCid;
-}
-
-inline bool RawObject::IsInternalVMdefinedClassId(intptr_t index) {
-  return ((index < kNumPredefinedCids) &&
-          !RawObject::IsImplicitFieldClassId(index));
-}
-
-inline bool RawObject::IsVariableSizeClassId(intptr_t index) {
-  return (index == kArrayCid) || (index == kImmutableArrayCid) ||
-         RawObject::IsOneByteStringClassId(index) ||
-         RawObject::IsTwoByteStringClassId(index) ||
-         RawObject::IsTypedDataClassId(index) || (index == kContextCid) ||
-         (index == kTypeArgumentsCid) || (index == kInstructionsCid) ||
-         (index == kInstructionsSectionCid) || (index == kObjectPoolCid) ||
-         (index == kPcDescriptorsCid) || (index == kCodeSourceMapCid) ||
-         (index == kCompressedStackMapsCid) ||
-         (index == kLocalVarDescriptorsCid) ||
-         (index == kExceptionHandlersCid) || (index == kCodeCid) ||
-         (index == kContextScopeCid) || (index == kInstanceCid) ||
-         (index == kRegExpCid);
-}
-
-// This is a set of classes that are not Dart classes whose representation
-// is defined by the VM but are used in the VM code by computing the
-// implicit field offsets of the various fields in the dart object.
-inline bool RawObject::IsImplicitFieldClassId(intptr_t index) {
-  return index == kByteBufferCid;
-}
-
-inline intptr_t RawObject::NumberOfTypedDataClasses() {
-  // Make sure this is updated when new TypedData types are added.
-
-  // Ensure that each typed data type comes in internal/view/external variants
-  // next to each other.
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 1 == kTypedDataInt8ArrayViewCid);
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 2 == kExternalTypedDataInt8ArrayCid);
-
-  // Ensure the order of the typed data members in 3-step.
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 1 * 3 == kTypedDataUint8ArrayCid);
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 2 * 3 ==
-                 kTypedDataUint8ClampedArrayCid);
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 3 * 3 == kTypedDataInt16ArrayCid);
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 4 * 3 == kTypedDataUint16ArrayCid);
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 5 * 3 == kTypedDataInt32ArrayCid);
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 6 * 3 == kTypedDataUint32ArrayCid);
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 7 * 3 == kTypedDataInt64ArrayCid);
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 8 * 3 == kTypedDataUint64ArrayCid);
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 9 * 3 == kTypedDataFloat32ArrayCid);
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 10 * 3 == kTypedDataFloat64ArrayCid);
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 11 * 3 ==
-                 kTypedDataFloat32x4ArrayCid);
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 12 * 3 == kTypedDataInt32x4ArrayCid);
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 13 * 3 ==
-                 kTypedDataFloat64x2ArrayCid);
-  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 14 * 3 == kByteDataViewCid);
-  COMPILE_ASSERT(kByteBufferCid + 1 == kNullCid);
-  return (kNullCid - kTypedDataInt8ArrayCid);
-}
 
 }  // namespace dart
 

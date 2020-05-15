@@ -11,6 +11,7 @@ import 'package:kernel/binary/ast_from_binary.dart'
         BinaryBuilderWithMetadata,
         CanonicalNameError,
         CanonicalNameSdkError,
+        CompilationModeError,
         InvalidKernelVersionError,
         SubComponentView;
 
@@ -30,6 +31,7 @@ import 'package:kernel/kernel.dart'
         LibraryDependency,
         LibraryPart,
         Name,
+        NonNullableByDefaultCompiledMode,
         Procedure,
         ProcedureKind,
         ReturnStatement,
@@ -279,9 +281,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             await userCode.buildComponent(verify: c.options.verify);
       }
       hierarchy ??= userCode.loader.hierarchy;
-      if (hierarchy != null && userCode.classesChangedStructure != null) {
-        hierarchy.applyMemberChanges(userCode.classesChangedStructure,
-            findDescendants: true);
+      if (hierarchy != null) {
+        if (userCode.classHierarchyChanges != null) {
+          hierarchy.applyTreeChanges([], [], userCode.classHierarchyChanges);
+        }
+        if (userCode.classMemberChanges != null) {
+          hierarchy.applyMemberChanges(userCode.classMemberChanges,
+              findDescendants: true);
+        }
       }
       recordNonFullComponentForTesting(componentWithDill);
 
@@ -331,11 +338,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       // Output result.
       Procedure mainMethod = componentWithDill == null
-          ? data.userLoadedUriMain
+          ? data.component?.mainMethod
           : componentWithDill.mainMethod;
+      NonNullableByDefaultCompiledMode compiledMode = componentWithDill == null
+          ? data.component?.mode
+          : componentWithDill.mode;
       return context.options.target.configureComponent(
           new Component(libraries: outputLibraries, uriToSource: uriToSource))
-        ..mainMethod = mainMethod
+        ..setMainMethodAndMode(mainMethod?.reference, true, compiledMode)
         ..problemsAsJson = problemsAsJson;
     });
   }
@@ -640,10 +650,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           while (iterator.moveNext()) {
             Builder childBuilder = iterator.current;
             if (childBuilder is SourceClassBuilder) {
-              TypeBuilder typeBuilder = childBuilder.supertype;
+              TypeBuilder typeBuilder = childBuilder.supertypeBuilder;
               replaceTypeBuilder(
                   replacementMap, replacementSettersMap, typeBuilder);
-              typeBuilder = childBuilder.mixedInType;
+              typeBuilder = childBuilder.mixedInTypeBuilder;
               replaceTypeBuilder(
                   replacementMap, replacementSettersMap, typeBuilder);
               if (childBuilder.onTypes != null) {
@@ -652,8 +662,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                       replacementMap, replacementSettersMap, typeBuilder);
                 }
               }
-              if (childBuilder.interfaces != null) {
-                for (typeBuilder in childBuilder.interfaces) {
+              if (childBuilder.interfaceBuilders != null) {
+                for (typeBuilder in childBuilder.interfaceBuilders) {
                   replaceTypeBuilder(
                       replacementMap, replacementSettersMap, typeBuilder);
                 }
@@ -784,7 +794,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         Library lib = builder.library;
         removedLibraries.add(lib);
       }
-      hierarchy.applyTreeChanges(removedLibraries, const []);
+      hierarchy.applyTreeChanges(removedLibraries, const [], const []);
     }
   }
 
@@ -1006,7 +1016,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
             if (e is InvalidKernelVersionError ||
                 e is PackageChangedError ||
-                e is CanonicalNameSdkError) {
+                e is CanonicalNameSdkError ||
+                e is CompilationModeError) {
               // Don't report any warning.
             } else {
               Uri gzInitializedFrom;
@@ -1374,7 +1385,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         incrementalSerializer?.invalidate(builder.fileUri);
       }
     }
-    hierarchy?.applyTreeChanges(removedLibraries, const []);
+    hierarchy?.applyTreeChanges(removedLibraries, const [], const []);
     if (removedDillBuilders) {
       makeDillLoaderLibrariesUpToDateWithBuildersMap();
     }
@@ -1491,7 +1502,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
         initializedFromDill = true;
         bytesLength += initializationBytes.length;
-        data.userLoadedUriMain = data.component.mainMethod;
         saveComponentProblems(data);
       }
     }
@@ -1522,8 +1532,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     data.component = new Component(
         libraries: componentToInitializeFrom.libraries,
         uriToSource: componentToInitializeFrom.uriToSource)
-      ..mainMethod = componentToInitializeFrom.mainMethod;
-    data.userLoadedUriMain = componentToInitializeFrom.mainMethod;
+      ..setMainMethodAndMode(componentToInitializeFrom.mainMethod?.reference,
+          true, componentToInitializeFrom.mode);
     saveComponentProblems(data);
 
     bool foundDartCore = false;
@@ -1592,9 +1602,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         scope: libraryBuilder.scope.createNestedScope("expression"),
         nameOrigin: libraryBuilder.library,
       );
-      debugLibrary.setLanguageVersion(
-          libraryBuilder.library.languageVersionMajor,
-          libraryBuilder.library.languageVersionMinor);
+      debugLibrary.setLanguageVersion(libraryBuilder.library.languageVersion);
 
       if (libraryBuilder is DillLibraryBuilder) {
         for (LibraryDependency dependency
@@ -1888,7 +1896,6 @@ class InitializeFromComponentError {
 }
 
 class IncrementalCompilerData {
-  Procedure userLoadedUriMain = null;
   Component component = null;
   List<int> initializationBytes = null;
 }
@@ -1921,7 +1928,9 @@ class ExperimentalInvalidation {
 
 class IncrementalKernelTarget extends KernelTarget
     implements ChangedStructureNotifier {
-  Set<Class> classesChangedStructure;
+  Set<Class> classHierarchyChanges;
+  Set<Class> classMemberChanges;
+
   IncrementalKernelTarget(FileSystem fileSystem, bool includeComments,
       DillTarget dillTarget, UriTranslator uriTranslator)
       : super(fileSystem, includeComments, dillTarget, uriTranslator);
@@ -1929,8 +1938,14 @@ class IncrementalKernelTarget extends KernelTarget
   ChangedStructureNotifier get changedStructureNotifier => this;
 
   @override
-  void forClass(Class c) {
-    classesChangedStructure ??= new Set<Class>();
-    classesChangedStructure.add(c);
+  void registerClassMemberChange(Class c) {
+    classMemberChanges ??= new Set<Class>();
+    classMemberChanges.add(c);
+  }
+
+  @override
+  void registerClassHierarchyChange(Class cls) {
+    classHierarchyChanges ??= <Class>{};
+    classHierarchyChanges.add(cls);
   }
 }

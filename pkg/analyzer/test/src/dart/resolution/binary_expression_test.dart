@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -50,6 +51,25 @@ f(int a, int b) {
       ),
       type: 'bool',
     );
+  }
+
+  test_eqEqEq() async {
+    await assertErrorsInCode(r'''
+f(int a, int b) {
+  a === b;
+}
+''', [
+      error(ScannerErrorCode.UNSUPPORTED_OPERATOR, 22, 1),
+    ]);
+
+    assertBinaryExpression(
+      findNode.binary('a === b'),
+      element: null,
+      type: 'dynamic',
+    );
+
+    assertType(findNode.simple('a ==='), 'int');
+    assertType(findNode.simple('b;'), 'int');
   }
 
   test_ifNull() async {

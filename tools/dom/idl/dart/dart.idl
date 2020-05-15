@@ -4,7 +4,7 @@
 interface WaveShaperNode {
   // TODO(ager): Auto-generate this custom method when the info about retaining
   // typed arrays is in the IDL.
-  [Custom=Setter] attribute Float32Array curve;
+  [Custom=Setter] attribute Float32Array? curve;
 };
 
 [DartSupplemental]
@@ -40,14 +40,14 @@ interface ScriptProcessorNode {
 
 [DartSupplemental]
 interface Element {
-  readonly attribute Element nextElementSibling;
-  readonly attribute Element previousElementSibling;
+  readonly attribute Element? nextElementSibling;
+  readonly attribute Element? previousElementSibling;
 };
 
 [DartSupplemental]
 interface CharacterData {
-  readonly attribute Element nextElementSibling;
-  readonly attribute Element previousElementSibling;
+  readonly attribute Element? nextElementSibling;
+  readonly attribute Element? previousElementSibling;
 };
 
 [Callback]
@@ -316,15 +316,15 @@ interface SVGNumber {
 };
 
 [DartSupplemental]
-interface MediaDevices {
-  [DartSuppress] Promise<MediaStream> getUserMedia(optional MediaStreamConstraints constraints);
-};
-
-[DartSupplemental]
 interface Navigator {
   [DartSuppress] void getUserMedia(MediaStreamConstraints constraints,
                                    NavigatorUserMediaSuccessCallback successCallback,
                                    NavigatorUserMediaErrorCallback errorCallback);
+  // deviceMemory is only available on some browsers so it is nullable.
+  [DartSuppress, MeasureAs=NavigatorDeviceMemory,RuntimeEnabled=NavigatorDeviceMemory,SecureContext]
+  readonly attribute float deviceMemory;
+  [MeasureAs=NavigatorDeviceMemory,RuntimeEnabled=NavigatorDeviceMemory,SecureContext]
+  readonly attribute float? deviceMemory;
 };
 
 [DartSupplemental,
@@ -418,6 +418,9 @@ interface Window : EventTarget {
   [DartSuppress] void scroll(long x, long y);
   [DartSuppress] void scroll(long x, long y, Dictionary scrollOptions);
   [RaisesException] void scroll(long x, long y, optional Dictionary scrollOptions);
+
+  [RuntimeEnabled=VisualViewportAPI, Replaceable, SameObject, DartSuppress] readonly attribute VisualViewport visualViewport;
+  [RuntimeEnabled=VisualViewportAPI, Replaceable, SameObject] readonly attribute VisualViewport? visualViewport;
 };
 
 [DartSupplemental]

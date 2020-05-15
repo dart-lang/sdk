@@ -2,14 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 int f<T>(T a) => null;
 
 typedef int F<R>(R a);
 
 method<S>() {
   return
-      /*strong.fields=[S],free=[S]*/
-      /*omit.*/
+      /*spec:nnbd-off|spec:nnbd-sdk.fields=[S],free=[S]*/
+      /*prod:nnbd-off.*/
       () {
     F<S> c = f;
     return c;

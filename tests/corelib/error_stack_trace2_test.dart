@@ -15,6 +15,20 @@ cyclicInitialization() {
   return cyclicStatic;
 }
 
+// Helper method to detect whether [errorType] is an overflow error.
+//
+// TODO(41308): Use `is StackOverflowError` once DDC converts overflow errors
+// from JavaSript.
+bool isOverflowError(Type errorType) {
+  void detectOverflowError() => detectOverflowError();
+  try {
+    detectOverflowError();
+  } catch (e) {
+    return errorType == e.runtimeType;
+  }
+  return false;
+}
+
 main() {
   bool hasThrown = false;
   try {
@@ -22,8 +36,8 @@ main() {
   } catch (e2) {
     var e = e2;
     hasThrown = true;
-    Expect.isTrue(
-        e.stackTrace is StackTrace, "$e doesn't have a non-null stack trace");
+    Expect.isTrue(isOverflowError(e.runtimeType),
+        "Got '$e' instead of StackOverflowError");
   }
   Expect.isTrue(hasThrown);
 }

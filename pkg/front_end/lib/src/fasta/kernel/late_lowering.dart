@@ -61,7 +61,7 @@ Statement createGetterWithInitializer(CoreTypes coreTypes, int fileOffset,
     //    return let # = _#field in # == null ? _#field = <init> : #;
     VariableDeclaration variable = new VariableDeclaration.forValue(
         createVariableRead(needsPromotion: false)..fileOffset = fileOffset,
-        type: type.withNullability(Nullability.nullable))
+        type: type.withDeclaredNullability(Nullability.nullable))
       ..fileOffset = fileOffset;
     return new ReturnStatement(
         new Let(
@@ -167,7 +167,7 @@ Statement createGetterWithInitializerWithRecheck(
     //        : #1;
     VariableDeclaration variable = new VariableDeclaration.forValue(
         createVariableRead(needsPromotion: false)..fileOffset = fileOffset,
-        type: type.withNullability(Nullability.nullable))
+        type: type.withDeclaredNullability(Nullability.nullable))
       ..fileOffset = fileOffset;
     return new ReturnStatement(
         new Let(
@@ -244,7 +244,7 @@ Statement createGetterBodyWithoutInitializer(CoreTypes coreTypes,
     //    return let # = _#field in # == null ? throw '...' : #;
     VariableDeclaration variable = new VariableDeclaration.forValue(
         createVariableRead()..fileOffset = fileOffset,
-        type: type.withNullability(Nullability.nullable))
+        type: type.withDeclaredNullability(Nullability.nullable))
       ..fileOffset = fileOffset;
     return new ReturnStatement(
         new Let(

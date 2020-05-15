@@ -1,0 +1,5 @@
+library test;
+
+typedef T F<T>();
+final x = <String, F<int>>{};
+main() {}

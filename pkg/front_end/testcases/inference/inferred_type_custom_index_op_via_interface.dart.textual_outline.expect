@@ -1,0 +1,10 @@
+library test;
+
+class I {
+  bool operator [](int index) => true;
+}
+
+abstract class C implements I {}
+
+f() {}
+main() {}

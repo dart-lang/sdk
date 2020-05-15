@@ -1,0 +1,11 @@
+library test;
+
+class C {
+  D<T> f<T>() => null;
+}
+
+class D<T> {}
+
+C c;
+var f = c.f<int>();
+main() {}

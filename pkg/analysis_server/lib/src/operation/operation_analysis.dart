@@ -13,29 +13,24 @@ import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/computer/computer_overrides.dart';
 import 'package:analysis_server/src/domains/analysis/implemented_dart.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
-import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 Future<void> scheduleImplementedNotification(
     AnalysisServer server, Iterable<String> files) async {
-  // TODO(brianwilkerson) Determine whether this await is necessary.
-  await null;
-  SearchEngine searchEngine = server.searchEngine;
+  var searchEngine = server.searchEngine;
   if (searchEngine == null) {
     return;
   }
-  for (String file in files) {
-    CompilationUnit unit = server.getCachedResolvedUnit(file)?.unit;
-    CompilationUnitElement unitElement = unit?.declaredElement;
+  for (var file in files) {
+    var unit = server.getCachedResolvedUnit(file)?.unit;
+    var unitElement = unit?.declaredElement;
     if (unitElement != null) {
       try {
-        ImplementedComputer computer =
-            ImplementedComputer(searchEngine, unitElement);
+        var computer = ImplementedComputer(searchEngine, unitElement);
         await computer.compute();
         var params = protocol.AnalysisImplementedParams(
             file, computer.classes, computer.members);
@@ -53,7 +48,7 @@ Future<void> scheduleImplementedNotification(
 
 void sendAnalysisNotificationAnalyzedFiles(AnalysisServer server) {
   _sendNotification(server, () {
-    Set<String> analyzedFiles = server.driverMap.values
+    var analyzedFiles = server.driverMap.values
         .map((driver) => driver.knownFiles)
         .expand((files) => files)
         .toSet();
@@ -62,7 +57,7 @@ void sendAnalysisNotificationAnalyzedFiles(AnalysisServer server) {
     // all the files in folders which contain analyzed files.
     analyzedFiles.removeWhere((file) => file.endsWith('.yaml'));
 
-    Set<String> prevAnalyzedFiles = server.prevAnalyzedFiles;
+    var prevAnalyzedFiles = server.prevAnalyzedFiles;
     if (prevAnalyzedFiles != null &&
         prevAnalyzedFiles.length == analyzedFiles.length &&
         prevAnalyzedFiles.difference(analyzedFiles).isEmpty) {
@@ -71,8 +66,7 @@ void sendAnalysisNotificationAnalyzedFiles(AnalysisServer server) {
       return;
     }
     server.prevAnalyzedFiles = analyzedFiles;
-    protocol.AnalysisAnalyzedFilesParams params =
-        protocol.AnalysisAnalyzedFilesParams(analyzedFiles.toList());
+    var params = protocol.AnalysisAnalyzedFilesParams(analyzedFiles.toList());
     server.sendNotification(params.toNotification());
   });
 }
@@ -130,10 +124,10 @@ void sendAnalysisNotificationOutline(
     }
 
     // compute library name
-    String libraryName = _computeLibraryName(resolvedUnit.unit);
+    var libraryName = _computeLibraryName(resolvedUnit.unit);
 
     // compute Outline
-    protocol.Outline outline = DartUnitOutlineComputer(
+    var outline = DartUnitOutlineComputer(
       resolvedUnit,
       withBasicFlutter: true,
     ).compute();
@@ -156,12 +150,12 @@ void sendAnalysisNotificationOverrides(
 }
 
 String _computeLibraryName(CompilationUnit unit) {
-  for (Directive directive in unit.directives) {
+  for (var directive in unit.directives) {
     if (directive is LibraryDirective && directive.name != null) {
       return directive.name.name;
     }
   }
-  for (Directive directive in unit.directives) {
+  for (var directive in unit.directives) {
     if (directive is PartOfDirective && directive.libraryName != null) {
       return directive.libraryName.name;
     }

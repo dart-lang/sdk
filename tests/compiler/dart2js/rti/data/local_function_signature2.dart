@@ -2,31 +2,31 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'package:expect/expect.dart';
 
 class Class1 {
   method1() {
-    /**/
     num local<T>(num n) => null;
     return local;
   }
 
   method2() {
-    /**/
     num local<T>(int n) => null;
     return local;
   }
 
   method3() {
-    /**/
     int local<T>(num n) => null;
     return local;
   }
 }
 
 class Class2 {
-  /*strong.member: Class2.method4:direct,explicit=[method4.T],needsArgs,selectors=[Selector(call, method4, arity=0, types=1)]*/
-  /*omit.member: Class2.method4:needsArgs,selectors=[Selector(call, method4, arity=0, types=1)]*/
+  /*spec:nnbd-sdk.member: Class2.method4:direct,explicit=[method4.T*],needsArgs,selectors=[Selector(call, method4, arity=0, types=1)]*/
+  /*spec:nnbd-off.member: Class2.method4:direct,explicit=[method4.T],needsArgs,selectors=[Selector(call, method4, arity=0, types=1)]*/
+  /*prod:nnbd-off|prod:nnbd-sdk.member: Class2.method4:needsArgs,selectors=[Selector(call, method4, arity=0, types=1)]*/
   method4<T>() {
     /*needsSignature*/
     num local(T n) => null;
@@ -44,17 +44,17 @@ class Class3 {
 }
 
 class Class4 {
-  /*strong.member: Class4.method6:direct,explicit=[method6.T],needsArgs,selectors=[Selector(call, method6, arity=0, types=1)]*/
-  /*omit.member: Class4.method6:*/
+  /*spec:nnbd-sdk.member: Class4.method6:direct,explicit=[method6.T*],needsArgs,selectors=[Selector(call, method6, arity=0, types=1)]*/
+  /*spec:nnbd-off.member: Class4.method6:direct,explicit=[method6.T],needsArgs,selectors=[Selector(call, method6, arity=0, types=1)]*/
   method6<T>() {
-    /**/
     num local(num n, T t) => null;
     return local;
   }
 }
 
-/*strong.member: method7:direct,explicit=[method7.T],needsArgs*/
-/*omit.member: method7:needsArgs*/
+/*spec:nnbd-off.member: method7:direct,explicit=[method7.T],needsArgs*/
+/*prod:nnbd-off|prod:nnbd-sdk.member: method7:needsArgs*/
+/*spec:nnbd-sdk.member: method7:direct,explicit=[method7.T*],needsArgs*/
 method7<T>() {
   /*needsSignature*/
   num local(T n) => null;
@@ -68,31 +68,30 @@ method8<T>() {
   return local;
 }
 
-/*strong.member: method9:direct,explicit=[method9.T],needsArgs*/
-/*omit.member: method9:*/
+/*spec:nnbd-off.member: method9:direct,explicit=[method9.T],needsArgs*/
+/*spec:nnbd-sdk.member: method9:direct,explicit=[method9.T*],needsArgs*/
 method9<T>() {
-  /**/
   num local(num n, T t) => null;
   return local;
 }
 
 method10() {
-  /*strong.direct,explicit=[local.T],needsArgs*/
-  /*omit.*/
-  num local<T>(T n) => null;
+  /*spec:nnbd-off.direct,explicit=[local.T],needsArgs*/
+  /*spec:nnbd-sdk.direct,explicit=[local.T*],needsArgs*/ num local<T>(T n) =>
+      null;
   return local;
 }
 
 method11() {
-  /**/
   T local<T>(num n) => null;
   return local;
 }
 
 method12() {
-  /*strong.direct,explicit=[local.T],needsArgs*/
-  /*omit.*/
-  num local<T>(num n, T t) => null;
+  /*spec:nnbd-off.direct,explicit=[local.T],needsArgs*/
+  /*spec:nnbd-sdk.direct,explicit=[local.T*],needsArgs*/ num local<T>(
+          num n, T t) =>
+      null;
   return local;
 }
 

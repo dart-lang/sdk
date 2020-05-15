@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'dart:collection';
 
 /*member: dynamicIndex:Specializer=[!Index]*/
@@ -37,8 +39,8 @@ mutableListDynamicIndex(dynamic index) {
   return list[index]; // CFE inserts an implicit cast of the index.
 }
 
-/*strong.member: mutableDynamicListDynamicIndex:Specializer=[!Index]*/
-/*omit.member: mutableDynamicListDynamicIndex:Specializer=[Index]*/
+/*spec:nnbd-off.member: mutableDynamicListDynamicIndex:Specializer=[!Index]*/
+/*prod:nnbd-off|prod:nnbd-sdk.member: mutableDynamicListDynamicIndex:Specializer=[Index]*/
 @pragma('dart2js:noInline')
 @pragma('dart2js:disableFinal')
 mutableDynamicListDynamicIndex(dynamic index) {

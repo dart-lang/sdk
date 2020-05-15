@@ -10,14 +10,17 @@ import 'package:update_homebrew/update_homebrew.dart';
 
 void main(List<String> args) async {
   final parser = ArgParser()
+    ..addFlag('dry-run', abbr: 'n')
     ..addOption('revision', abbr: 'r')
     ..addOption('channel', abbr: 'c', allowed: supportedChannels)
     ..addOption('key', abbr: 'k');
   final options = parser.parse(args);
+  final dryRun = options['dry-run'] as bool;
   final revision = options['revision'] as String;
   final channel = options['channel'] as String;
   if ([revision, channel].contains(null)) {
-    print("Usage: update_homebrew.dart -r revision -c channel [-k ssh_key]\n"
+    print(
+        "Usage: update_homebrew.dart -r version -c channel [-k ssh_key] [-n]\n"
         "  ssh_key should allow pushes to $githubRepo on github");
     exitCode = 1;
     return;
@@ -46,8 +49,11 @@ void main(List<String> args) async {
         '-m',
         'Updated $channel branch to revision $revision'
       ], repository, gitEnvironment);
-
-      await runGit(['push'], repository, gitEnvironment);
+      if (dryRun) {
+        await runGit(['diff', 'origin/master'], repository, gitEnvironment);
+      } else {
+        await runGit(['push'], repository, gitEnvironment);
+      }
     } finally {
       await tempDir.delete(recursive: true);
     }

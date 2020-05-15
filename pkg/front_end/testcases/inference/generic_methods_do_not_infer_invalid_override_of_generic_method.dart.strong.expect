@@ -30,6 +30,16 @@ class C extends core::Object {
     ;
   method m<T extends core::Object* = dynamic>(self::C::m::T* x) → self::C::m::T*
     return x;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class D extends self::C {
   synthetic constructor •() → self::D*
@@ -39,8 +49,8 @@ class D extends self::C {
     return x;
 }
 static method main() → dynamic {
-  core::int* y = (let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:18:74: Error: Expected 0 type arguments.
+  core::int* y = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:18:74: Error: Expected 0 type arguments.
       . /*error:WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD*/ /*@target=D::m*/ m<int>(
-                                                                         ^" in new self::D::•().{self::D::m}<core::int*>(42)) as{TypeError} core::int*;
+                                                                         ^" in new self::D::•().{self::D::m}<core::int*>(42);
   core::print(y);
 }

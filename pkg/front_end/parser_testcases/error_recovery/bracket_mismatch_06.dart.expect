@@ -1,0 +1,43 @@
+Problems reported:
+
+parser/error_recovery/bracket_mismatch_06:2:9: Expected an identifier, but got ';'.
+  new C(;
+        ^
+
+parser/error_recovery/bracket_mismatch_06:2:8: Can't find ')' to match '('.
+  new C(;
+       ^
+
+beginCompilationUnit(main)
+  beginMetadataStar(main)
+  endMetadataStar(0)
+  beginTopLevelMember(main)
+    beginTopLevelMethod(UnmatchedToken((), null)
+      handleNoType(UnmatchedToken(())
+      handleIdentifier(main, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+        beginNewExpression(new)
+          handleIdentifier(C, constructorReference)
+          beginConstructorReference(C)
+            handleNoTypeArguments(()
+            handleNoConstructorReferenceContinuationAfterTypeArguments(()
+          endConstructorReference(C, null, ()
+          beginArguments(()
+            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got ';'., null, {token: ;}], ;, ;)
+            handleIdentifier(, expression)
+            handleNoTypeArguments(;)
+            handleNoArguments(;)
+            handleSend(, ;)
+          endArguments(1, (, ))
+        endNewExpression(new)
+        handleExpressionStatement(;)
+      endBlockFunctionBody(1, {, })
+    endTopLevelMethod(main, null, })
+  endTopLevelDeclaration()
+  handleErrorToken(UnmatchedToken(())
+  handleRecoverableError(Message[UnmatchedToken, Can't find ')' to match '('., null, {string: ), token: (}], UnmatchedToken((), UnmatchedToken(())
+endCompilationUnit(1, )

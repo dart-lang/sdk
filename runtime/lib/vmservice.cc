@@ -415,38 +415,4 @@ DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 0, 1) {
 #endif
 }
 
-DEFINE_NATIVE_ENTRY(VMService_spawnUriNotify, 0, 2) {
-#ifndef PRODUCT
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, result, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(String, token, arguments->NativeArgAt(1));
-
-  if (result.IsSendPort()) {
-    Dart_Port id = SendPort::Cast(result).Id();
-    Isolate* isolate = PortMap::GetIsolate(id);
-    if (isolate != NULL) {
-      ServiceEvent spawn_event(isolate, ServiceEvent::kIsolateSpawn);
-      spawn_event.set_spawn_token(&token);
-      Service::HandleEvent(&spawn_event);
-    } else {
-      // There is no isolate at the control port anymore.  Must have
-      // died already.
-      ServiceEvent spawn_event(NULL, ServiceEvent::kIsolateSpawn);
-      const String& error = String::Handle(
-          String::New("spawned isolate exited before notification completed"));
-      spawn_event.set_spawn_token(&token);
-      spawn_event.set_spawn_error(&error);
-      Service::HandleEvent(&spawn_event);
-    }
-  } else {
-    // The isolate failed to spawn.
-    ASSERT(result.IsString());
-    ServiceEvent spawn_event(NULL, ServiceEvent::kIsolateSpawn);
-    spawn_event.set_spawn_token(&token);
-    spawn_event.set_spawn_error(&String::Cast(result));
-    Service::HandleEvent(&spawn_event);
-  }
-#endif  // PRODUCT
-  return Object::null();
-}
-
 }  // namespace dart

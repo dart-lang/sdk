@@ -1,0 +1,25 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+import "dart:async";
+
+static final field asy::StreamTransformer<core::Object?, core::Object?> t;
+static final field core::List<dynamic> s1;
+static final field core::int? s2;
+static final field core::List<core::int> s3;
+static final field dynamic s4;
+static field core::int? s5;
+static final field core::int? s6;
+static field core::List<dynamic>? s7;
+static final field dynamic s8;
+static final field core::int s9;
+static final field core::int s10;
+static final field core::int s11;
+static final field core::int s12;
+static field () →? core::int s13;
+static final field core::int s14;
+static final field Never s15;
+static method main() → void
+  ;

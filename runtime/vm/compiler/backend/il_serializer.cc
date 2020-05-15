@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/compiler/backend/il_serializer.h"
 
 #include "vm/compiler/backend/flow_graph.h"
@@ -590,9 +588,9 @@ SExpression* FlowGraphSerializer::FunctionToSExp(const Function& func) {
       AddExtraSymbol(sexp, "native_name", tmp_string_.ToCString());
     }
   }
-  if (func.kind() != RawFunction::Kind::kRegularFunction ||
+  if (func.kind() != FunctionLayout::Kind::kRegularFunction ||
       FLAG_verbose_flow_graph_serialization) {
-    AddExtraSymbol(sexp, "kind", RawFunction::KindToCString(func.kind()));
+    AddExtraSymbol(sexp, "kind", FunctionLayout::KindToCString(func.kind()));
   }
   function_type_args_ = func.type_parameters();
   if (auto const ta_sexp = NonEmptyTypeArgumentsToSExp(function_type_args_)) {
@@ -835,9 +833,6 @@ void Instruction::AddExtraInfoToSExpression(SExpList* sexp,
   if (!token_pos().IsNoSource()) {
     s->AddExtraInteger(sexp, "token_pos", token_pos().value());
   }
-  if (lifetime_position() != kNoPlaceId) {
-    s->AddExtraInteger(sexp, "lifetime_position", lifetime_position());
-  }
 }
 
 SExpression* Range::ToSExpression(FlowGraphSerializer* s) {
@@ -912,7 +907,6 @@ void AssertAssignableInstr::AddExtraInfoToSExpression(
     SExpList* sexp,
     FlowGraphSerializer* s) const {
   Instruction::AddExtraInfoToSExpression(sexp, s);
-  sexp->AddExtra("type", s->DartValueToSExp(dst_type()));
   sexp->AddExtra("name", s->DartValueToSExp(dst_name()));
 }
 
@@ -1066,9 +1060,9 @@ void DebugStepCheckInstr::AddExtraInfoToSExpression(
     SExpList* sexp,
     FlowGraphSerializer* s) const {
   Instruction::AddExtraInfoToSExpression(sexp, s);
-  if (stub_kind_ != RawPcDescriptors::kAnyKind ||
+  if (stub_kind_ != PcDescriptorsLayout::kAnyKind ||
       FLAG_verbose_flow_graph_serialization) {
-    auto const stub_kind_name = RawPcDescriptors::KindToCString(stub_kind_);
+    auto const stub_kind_name = PcDescriptorsLayout::KindToCString(stub_kind_);
     ASSERT(stub_kind_name != nullptr);
     s->AddExtraSymbol(sexp, "stub_kind", stub_kind_name);
   }
@@ -1232,17 +1226,22 @@ void InstanceCallBaseInstr::AddExtraInfoToSExpression(
     sexp->AddExtra("interface_target", target);
   }
 
+  if (auto const target = s->DartValueToSExp(tearoff_interface_target())) {
+    sexp->AddExtra("tearoff_interface_target", target);
+  }
+
   if (HasICData()) {
     sexp->AddExtra("ic_data", s->ICDataToSExp(ic_data()));
   }
 
   if (function_name().IsNull()) {
-    if (!interface_target().IsNull()) {
+    if (!interface_target().IsNull() || !tearoff_interface_target().IsNull()) {
       s->AddExtraSymbol(sexp, "function_name", "null");
     }
   } else {
     if (interface_target().IsNull() ||
-        function_name().raw() != interface_target().name()) {
+        (function_name().raw() != interface_target().name() &&
+         function_name().raw() != tearoff_interface_target().name())) {
       s->AddExtraString(sexp, "function_name", function_name().ToCString());
     }
   }
@@ -1487,5 +1486,3 @@ SExpression* Environment::ToSExpression(FlowGraphSerializer* s) const {
 }
 
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

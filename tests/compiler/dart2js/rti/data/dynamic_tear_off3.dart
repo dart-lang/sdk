@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*omit.class: A:*/
-/*strong.class: A:explicit=[A]*/
+// @dart = 2.7
+
+/*spec:nnbd-off.class: A:explicit=[A]*/
+/*spec:nnbd-sdk.class: A:explicit=[A*]*/
 class A {
-  /*member: A.instanceMethod:deps=[staticMethod],direct,explicit=[instanceMethod.T],needsArgs,selectors=[Selector(call, instanceMethod, arity=1, types=1)]*/
+  /*spec:nnbd-off|prod:nnbd-off.member: A.instanceMethod:deps=[staticMethod],direct,explicit=[instanceMethod.T],needsArgs,selectors=[Selector(call, instanceMethod, arity=1, types=1)]*/
+  /*spec:nnbd-sdk|prod:nnbd-sdk.member: A.instanceMethod:deps=[staticMethod],direct,explicit=[instanceMethod.T*],needsArgs,selectors=[Selector(call, instanceMethod, arity=1, types=1)]*/
   instanceMethod<T>(t) => t is T;
 }
 

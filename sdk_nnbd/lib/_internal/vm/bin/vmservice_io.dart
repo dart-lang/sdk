@@ -196,6 +196,11 @@ Future<Uri?> webServerControlCallback(bool enable) async {
   return _server.serverAddress;
 }
 
+void webServerAcceptNewWebSocketConnections(bool enable) {
+  final _server = _lazyServerBoot();
+  _server.acceptNewWebSocketConnections = enable;
+}
+
 void _clearFuture(_) {
   serverFuture = null;
 }
@@ -241,6 +246,8 @@ main() {
   VMServiceEmbedderHooks.listFiles = listFilesCallback;
   VMServiceEmbedderHooks.serverInformation = serverInformationCallback;
   VMServiceEmbedderHooks.webServerControl = webServerControlCallback;
+  VMServiceEmbedderHooks.acceptNewWebSocketConnections =
+      webServerAcceptNewWebSocketConnections;
   // Always instantiate the vmservice object so that the exit message
   // can be delivered and waiting loaders can be cancelled.
   VMService();

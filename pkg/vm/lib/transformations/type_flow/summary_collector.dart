@@ -65,7 +65,7 @@ class _SummaryNormalizer extends StatementVisitor {
     }
 
     for (Statement st in statements) {
-      if (st is Call || st is TypeCheck) {
+      if (st is Call || st is TypeCheck || st is NarrowNotNull) {
         _normalizeExpr(st, false);
       } else if (st is Use) {
         _normalizeExpr(st.arg, true);
@@ -113,6 +113,14 @@ class _SummaryNormalizer extends StatementVisitor {
                 return first;
               }
             }
+          }
+        } else if (st is NarrowNotNull) {
+          // This pattern may appear after approximations during summary
+          // normalization, so it's not enough to handle it in
+          // _makeNarrowNotNull.
+          final arg = st.arg;
+          if (arg is Type) {
+            return st.handleArgument(arg);
           }
         } else if (st is Narrow) {
           // This pattern may appear after approximations during summary
@@ -344,7 +352,19 @@ class _VariablesInfoCollector extends RecursiveVisitor<Null> {
     final savedNumVariablesAtFunctionEntry = numVariablesAtFunctionEntry;
     numVariablesAtFunctionEntry = numVariables;
 
-    node.function.accept(this);
+    final function = node.function;
+    function.accept(this);
+
+    if (function.asyncMarker == AsyncMarker.SyncYielding) {
+      // Mark parameters of synthetic async_op closures as captured
+      // to make sure their updates at yield points are taken into account.
+      for (var v in function.positionalParameters) {
+        _captureVariable(v);
+      }
+      for (var v in function.namedParameters) {
+        _captureVariable(v);
+      }
+    }
 
     activeStatements = savedActiveStatements;
     numVariablesAtActiveStatements = savedNumVariablesAtActiveStatements;
@@ -354,10 +374,14 @@ class _VariablesInfoCollector extends RecursiveVisitor<Null> {
   bool _isDeclaredBefore(int variableIndex, int entryDeclarationCounter) =>
       variableIndex < entryDeclarationCounter;
 
+  void _captureVariable(VariableDeclaration variable) {
+    (captured ??= <VariableDeclaration>{}).add(variable);
+  }
+
   void _useVariable(VariableDeclaration variable, bool isVarAssignment) {
     final index = varIndex[variable];
     if (_isDeclaredBefore(index, numVariablesAtFunctionEntry)) {
-      (captured ??= <VariableDeclaration>{}).add(variable);
+      _captureVariable(variable);
       return;
     }
     if (isVarAssignment && activeStatements != null) {
@@ -501,6 +525,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   final Map<TreeNode, Call> callSites = <TreeNode, Call>{};
   final Map<AsExpression, TypeCheck> explicitCasts =
       <AsExpression, TypeCheck>{};
+  final Map<TreeNode, NarrowNotNull> nullTests = <TreeNode, NarrowNotNull>{};
   final _FallthroughDetector _fallthroughDetector = new _FallthroughDetector();
   final Set<Name> _nullMethodsAndGetters = <Name>{};
   final Set<Name> _nullSetters = <Name>{};
@@ -568,8 +593,10 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   Summary createSummary(Member member,
       {fieldSummaryType: FieldSummaryType.kInitializer}) {
-    debugPrint("===== ${member} =====");
+    debugPrint(
+        "===== ${member}${fieldSummaryType == FieldSummaryType.kFieldGuard ? " (guard)" : ""} =====");
     assertx(!member.isAbstract);
+    assertx(!(member is Procedure && member.isRedirectingFactoryConstructor));
 
     _staticTypeContext = new StaticTypeContext(member, _environment);
     _variablesInfo = new _VariablesInfoCollector(member);
@@ -763,7 +790,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
     final numTypeParameters = numTypeParams(member);
     for (int i = 0; i < numTypeParameters; ++i) {
-      args.add(const AnyType());
+      args.add(const UnknownType());
     }
 
     if (hasReceiverArg(member)) {
@@ -800,6 +827,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         break;
 
       case CallKind.PropertySet:
+      case CallKind.SetFieldInConstructor:
         args.add(new Type.nullableAny());
         break;
 
@@ -807,7 +835,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         break;
     }
 
-    return new Args<Type>(args, names: names);
+    return new Args<Type>(args, names: names, unknownArity: true);
   }
 
   TypeExpr _visit(TreeNode node) => node.accept(this);
@@ -1086,6 +1114,37 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     return _makeNarrow(arg, _typesBuilder.fromStaticType(type, canBeNull));
   }
 
+  TypeExpr _makeNarrowNotNull(TreeNode node, TypeExpr arg) {
+    assertx(node is NullCheck ||
+        node is MethodInvocation && isComparisonWithNull(node));
+    if (arg is NarrowNotNull) {
+      nullTests[node] = arg;
+      return arg;
+    } else if (arg is Narrow) {
+      if (arg.type is! NullableType) {
+        nullTests[node] = NarrowNotNull.alwaysNotNull;
+        return arg;
+      }
+    } else if (arg is Type) {
+      if (arg is NullableType) {
+        final baseType = arg.baseType;
+        if (baseType is EmptyType) {
+          nullTests[node] = NarrowNotNull.alwaysNull;
+        } else {
+          nullTests[node] = NarrowNotNull.unknown;
+        }
+        return baseType;
+      } else {
+        nullTests[node] = NarrowNotNull.alwaysNotNull;
+        return arg;
+      }
+    }
+    final narrow = NarrowNotNull(arg);
+    nullTests[node] = narrow;
+    _summary.add(narrow);
+    return narrow;
+  }
+
   // Add an artificial use of given expression in order to make it possible to
   // infer its type even if it is not used in a summary.
   void _addUse(TypeExpr arg) {
@@ -1285,13 +1344,16 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
           node.arguments.named.isEmpty);
       final lhs = node.receiver as VariableGet;
       final rhs = node.arguments.positional.single;
-      if (rhs is NullLiteral) {
+      if (isNullLiteral(rhs)) {
         // 'x == null', where x is a variable.
-        _addUse(_visit(node));
+        final expr = _visit(lhs);
+        _makeCall(node, DirectSelector(_environment.coreTypes.objectEquals),
+            Args<TypeExpr>([expr, _nullType]));
+        final narrowedNotNull = _makeNarrowNotNull(node, expr);
         final int varIndex = _variablesInfo.varIndex[lhs.variable];
         if (_variableCells[varIndex] == null) {
           trueState[varIndex] = _nullType;
-          falseState[varIndex] = _makeNarrow(_visit(lhs), const AnyType());
+          falseState[varIndex] = narrowedNotNull;
         }
         _variableValues = null;
         return;
@@ -1345,6 +1407,10 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     }
   }
 
+  Procedure _cachedUnsafeCast;
+  Procedure get unsafeCast => _cachedUnsafeCast ??= _environment.coreTypes.index
+      .getTopLevelMember('dart:_internal', 'unsafeCast');
+
   @override
   defaultTreeNode(TreeNode node) =>
       throw 'Unexpected node ${node.runtimeType}: $node at ${node.location}';
@@ -1367,7 +1433,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   @override
   TypeExpr visitNullCheck(NullCheck node) {
     final operandNode = node.operand;
-    final TypeExpr result = _makeNarrow(_visit(operandNode), const AnyType());
+    final TypeExpr result = _makeNarrowNotNull(node, _visit(operandNode));
     if (operandNode is VariableGet) {
       final int varIndex = _variablesInfo.varIndex[operandNode.variable];
       if (_variableCells[varIndex] == null) {
@@ -1550,6 +1616,13 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitMethodInvocation(MethodInvocation node) {
+    if (isComparisonWithNull(node)) {
+      final arg = _visit(getArgumentOfComparisonWithNull(node));
+      _makeNarrowNotNull(node, arg);
+      _makeCall(node, DirectSelector(_environment.coreTypes.objectEquals),
+          Args<TypeExpr>([arg, _nullType]));
+      return _boolType;
+    }
     final receiverNode = node.receiver;
     final receiver = _visit(receiverNode);
     final args = _visitArguments(receiver, node.arguments);
@@ -1563,10 +1636,6 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     TypeExpr result;
     if (target == null) {
       if (node.name.name == '==') {
-        assertx(args.values.length == 2);
-        if ((args.values[0] == _nullType) || (args.values[1] == _nullType)) {
-          return _boolType;
-        }
         _makeCall(node, new DynamicSelector(CallKind.Method, node.name), args);
         return new Type.nullable(_boolType);
       }
@@ -1736,7 +1805,17 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         passTypeArguments: node.target.isFactory);
     final target = node.target;
     assertx((target is! Field) && !target.isGetter && !target.isSetter);
-    return _makeCall(node, new DirectSelector(target), args);
+    TypeExpr result = _makeCall(node, new DirectSelector(target), args);
+    if (target == unsafeCast) {
+      // Async transformation inserts unsafeCasts to make sure
+      // kernel is correctly typed. Instead of using the result of unsafeCast
+      // (which is an opaque native function), we can use its argument narrowed
+      // by the casted type.
+      final arg = args.values.single;
+      result = _makeNarrow(
+          arg, _typesBuilder.fromStaticType(node.arguments.types.single, true));
+    }
+    return result;
   }
 
   @override
@@ -2071,8 +2150,11 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   TypeExpr visitFieldInitializer(FieldInitializer node) {
     final value = _visit(node.value);
     final args = new Args<TypeExpr>([_receiver, value]);
-    _makeCall(node,
-        new DirectSelector(node.field, callKind: CallKind.PropertySet), args);
+    _makeCall(
+        node,
+        new DirectSelector(node.field,
+            callKind: CallKind.SetFieldInConstructor),
+        args);
     return null;
   }
 
@@ -2159,16 +2241,16 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
     final flattenedTypeExprs = new List<TypeExpr>(flattenedTypeArgs.length);
 
     bool createConcreteType = true;
-    bool allAnyType = true;
+    bool allUnknown = true;
     for (int i = 0; i < flattenedTypeArgs.length; ++i) {
       final typeExpr =
           translate(substitution.substituteType(flattenedTypeArgs[i]));
-      if (typeExpr != const AnyType()) allAnyType = false;
+      if (typeExpr is! UnknownType) allUnknown = false;
       if (typeExpr is Statement) createConcreteType = false;
       flattenedTypeExprs[i] = typeExpr;
     }
 
-    if (allAnyType) return type;
+    if (allUnknown) return type;
 
     if (createConcreteType) {
       return new ConcreteType(
@@ -2183,7 +2265,7 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
   // Creates a TypeExpr representing the set of types which can flow through a
   // given DartType.
   //
-  // Will return AnyType, RuntimeType or Statement.
+  // Will return UnknownType, RuntimeType or Statement.
   TypeExpr translate(DartType type) {
     final cached = typesCache[type];
     if (cached != null) return cached;
@@ -2193,18 +2275,19 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
     //   class A<T> extends Comparable<A<T>> {}
     //
     // Creating the factored type arguments of A will lead to an infinite loop.
-    // We break such loops by inserting an 'AnyType' in place of the currently
+    // We break such loops by inserting an 'UnknownType' in place of the currently
     // processed type, ensuring we try to build 'A<T>' in the process of
     // building 'A<T>'.
-    typesCache[type] = const AnyType();
+    typesCache[type] = const UnknownType();
     final result = type.accept(this);
-    assertx(result is AnyType || result is RuntimeType || result is Statement);
+    assertx(
+        result is UnknownType || result is RuntimeType || result is Statement);
     typesCache[type] = result;
     return result;
   }
 
   @override
-  TypeExpr defaultDartType(DartType node) => const AnyType();
+  TypeExpr defaultDartType(DartType node) => const UnknownType();
 
   @override
   TypeExpr visitDynamicType(DynamicType type) => new RuntimeType(type, null);
@@ -2232,18 +2315,18 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
     for (var i = 0; i < flattenedTypeArgs.length; ++i) {
       final typeExpr =
           translate(substitution.substituteType(flattenedTypeArgs[i]));
-      if (typeExpr == const AnyType()) return const AnyType();
+      if (typeExpr == const UnknownType()) return const UnknownType();
       if (typeExpr is! RuntimeType) createRuntimeType = false;
       flattenedTypeExprs[i] = typeExpr;
     }
 
     if (createRuntimeType) {
       return new RuntimeType(
-          new InterfaceType(type.classNode, Nullability.legacy),
+          new InterfaceType(type.classNode, type.nullability),
           new List<RuntimeType>.from(flattenedTypeExprs));
     } else {
-      final instantiate =
-          new CreateRuntimeType(type.classNode, flattenedTypeExprs);
+      final instantiate = new CreateRuntimeType(
+          type.classNode, type.nullability, flattenedTypeExprs);
       summary.add(instantiate);
       return instantiate;
     }
@@ -2255,11 +2338,17 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
       final result = functionTypeVariables[type.parameter];
       if (result != null) return result;
     }
-    if (type.parameter.parent is! Class) return const AnyType();
+    if (type.parameter.parent is! Class) return const UnknownType();
     final interfaceClass = type.parameter.parent as Class;
     assertx(receiver != null);
+    // Undetermined nullability is equivalent to nonNullable when
+    // instantiating type parameter, so convert it right away.
+    Nullability nullability = type.nullability;
+    if (nullability == Nullability.undetermined) {
+      nullability = Nullability.nonNullable;
+    }
     final extract = new Extract(receiver, interfaceClass,
-        interfaceClass.typeParameters.indexOf(type.parameter));
+        interfaceClass.typeParameters.indexOf(type.parameter), nullability);
     summary.add(extract);
     return extract;
   }

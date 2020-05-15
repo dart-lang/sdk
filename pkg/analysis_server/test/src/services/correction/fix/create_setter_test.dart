@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -12,7 +13,6 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CreateSetterTest);
     defineReflectiveTests(CreateSetterMixinTest);
-    defineReflectiveTests(CreateSetterWithExtensionMethodsTest);
   });
 }
 
@@ -117,6 +117,36 @@ main(List p) {
     await assertNoFix();
   }
 
+  Future<void> test_internal_instance() async {
+    await resolveTestUnit('''
+extension E on String {
+  int m(int x) => s = x;
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  set s(int s) {}
+
+  int m(int x) => s = x;
+}
+''');
+  }
+
+  Future<void> test_internal_static() async {
+    await resolveTestUnit('''
+extension E on String {
+  static int m(int x) => s = x;
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  static set s(int s) {}
+
+  static int m(int x) => s = x;
+}
+''');
+  }
+
   Future<void> test_location_afterLastAccessor() async {
     await resolveTestUnit('''
 class A {
@@ -172,6 +202,26 @@ class C {
 }
 main(C c) {
   c.b.a.test = 0;
+}
+''');
+  }
+
+  Future<void> test_override() async {
+    await resolveTestUnit('''
+extension E on String {
+}
+
+main(String s) {
+  E(s).test = '0';
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  set test(String test) {}
+}
+
+main(String s) {
+  E(s).test = '0';
 }
 ''');
   }
@@ -251,6 +301,39 @@ class B {
 ''');
   }
 
+  Future<void> test_qualified_instance_inPart_imported() async {
+    addSource('/home/test/lib/a.dart', '''
+part of lib;
+
+class A {}
+''');
+
+    await resolveTestUnit('''
+import 'package:test/a.dart';
+
+main(A a) {
+  a.test = 0;
+}
+''');
+    await assertNoFix(errorFilter: (e) {
+      return e.errorCode == StaticTypeWarningCode.UNDEFINED_SETTER;
+    });
+  }
+
+  Future<void> test_qualified_instance_inPart_self() async {
+    await resolveTestUnit('''
+part of lib;
+
+class A {
+}
+
+main(A a) {
+  a.test = 0;
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_qualified_propagatedType() async {
     await resolveTestUnit('''
 class A {
@@ -270,6 +353,26 @@ class A {
 main() {
   var a = new A();
   a.self.test = 0;
+}
+''');
+  }
+
+  Future<void> test_static() async {
+    await resolveTestUnit('''
+extension E on String {
+}
+
+main(String s) {
+  E.test = 0;
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  static set test(int test) {}
+}
+
+main(String s) {
+  E.test = 0;
 }
 ''');
   }
@@ -302,87 +405,5 @@ class A {
 }
 ''');
     await assertNoFix();
-  }
-}
-
-@reflectiveTest
-class CreateSetterWithExtensionMethodsTest extends FixProcessorTest {
-  @override
-  FixKind get kind => DartFixKind.CREATE_SETTER;
-
-  @override
-  void setUp() {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
-    super.setUp();
-  }
-
-  Future<void> test_internal_instance() async {
-    await resolveTestUnit('''
-extension E on String {
-  int m(int x) => s = x;
-}
-''');
-    await assertHasFix('''
-extension E on String {
-  set s(int s) {}
-
-  int m(int x) => s = x;
-}
-''');
-  }
-
-  Future<void> test_internal_static() async {
-    await resolveTestUnit('''
-extension E on String {
-  static int m(int x) => s = x;
-}
-''');
-    await assertHasFix('''
-extension E on String {
-  static set s(int s) {}
-
-  static int m(int x) => s = x;
-}
-''');
-  }
-
-  Future<void> test_override() async {
-    await resolveTestUnit('''
-extension E on String {
-}
-
-main(String s) {
-  E(s).test = '0';
-}
-''');
-    await assertHasFix('''
-extension E on String {
-  set test(String test) {}
-}
-
-main(String s) {
-  E(s).test = '0';
-}
-''');
-  }
-
-  Future<void> test_static() async {
-    await resolveTestUnit('''
-extension E on String {
-}
-
-main(String s) {
-  E.test = 0;
-}
-''');
-    await assertHasFix('''
-extension E on String {
-  static set test(int test) {}
-}
-
-main(String s) {
-  E.test = 0;
-}
-''');
   }
 }

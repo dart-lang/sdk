@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'package:expect/expect.dart';
 
 /*member: main:[null]*/
@@ -16,8 +18,8 @@ main() {
 /*member: _trustParameters:[exact=JSUInt31]*/
 _trustParameters(
     int
-        /*strong.Union([exact=JSString], [exact=JSUInt31])*/
-        /*omit.[exact=JSUInt31]*/
+        /*spec:nnbd-off|spec:nnbd-sdk.Union([exact=JSString], [exact=JSUInt31])*/
+        /*prod:nnbd-off|prod:nnbd-sdk.[exact=JSUInt31]*/
         i) {
   return i;
 }

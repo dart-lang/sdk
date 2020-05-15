@@ -18,9 +18,10 @@ fuzzSyncMethods() {
     doItSync(() {
       Directory.systemTemp.createTempSync(v as String?).deleteSync();
     });
-    late Directory d;
-    doItSync(() => d = new Directory(v as String));
-    if (d == null) return;
+    Directory? directory;
+    doItSync(() => directory = new Directory(v as String));
+    if (directory == null) return;
+    final d = directory!;
     doItSync(d.existsSync);
     doItSync(d.createSync);
     doItSync(d.deleteSync);

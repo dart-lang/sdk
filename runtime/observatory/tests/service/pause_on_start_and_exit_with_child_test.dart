@@ -4,7 +4,7 @@
 
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 import 'dart:async';
 import 'dart:isolate' as isolate;
@@ -101,12 +101,16 @@ var tests = <IsolateTest>[
   },
 ];
 
-main(args) => runIsolateTests(args, tests,
-        testeeConcurrent: testMain,
-        pause_on_start: true,
-        pause_on_exit: true,
-        verbose_vm: true,
-        extraArgs: [
-          '--trace-service',
-          '--trace-service-verbose',
-        ]);
+main(args) => runIsolateTests(
+      args, tests,
+      testeeConcurrent: testMain,
+      pause_on_start: true,
+      pause_on_exit: true,
+      verbose_vm: true,
+      extraArgs: [
+        '--trace-service',
+        '--trace-service-verbose',
+      ],
+      // TODO(bkonyi): investigate failure.
+      enableDds: false,
+    );

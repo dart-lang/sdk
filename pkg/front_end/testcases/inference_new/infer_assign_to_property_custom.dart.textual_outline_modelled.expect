@@ -1,0 +1,16 @@
+library test;
+
+class A {
+  double operator -(other) => 2.0;
+  int operator +(other) => 1;
+}
+
+class B {
+  A a;
+}
+
+main() {}
+var v_postfix_mm = (new B().a--);
+var v_postfix_pp = (new B().a++);
+var v_prefix_mm = (--new B().a);
+var v_prefix_pp = (++new B().a);

@@ -609,7 +609,7 @@ class CollectionTransformer extends Transformer {
         Expression spreadExpression = entry.expression.accept<TreeNode>(this);
         if (entry.isNullAware) {
           VariableDeclaration temp = _createVariable(spreadExpression,
-              collectionType.withNullability(_currentLibrary.nullable));
+              collectionType.withDeclaredNullability(_currentLibrary.nullable));
           parts.add(_createNullAwareGuard(entry.fileOffset, temp,
               makeLiteral(entry.fileOffset, []), collectionType));
         } else {
@@ -682,7 +682,7 @@ class CollectionTransformer extends Transformer {
     assert(variable != null);
     assert(variable.fileOffset != TreeNode.noOffset);
     DartType promotedType =
-        variable.type.withNullability(_currentLibrary.nonNullable);
+        variable.type.withDeclaredNullability(_currentLibrary.nonNullable);
     if (promotedType != variable.type) {
       return new VariableGet(variable, promotedType)
         ..fileOffset = variable.fileOffset;

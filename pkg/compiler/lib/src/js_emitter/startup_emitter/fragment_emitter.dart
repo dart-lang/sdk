@@ -1914,8 +1914,8 @@ class FragmentEmitter {
     if (program.typeToInterceptorMap != null) {
       // This property is assigned later.
       // Initialize property to avoid map transitions.
-      globals.add(new js.Property(
-          js.string(TYPE_TO_INTERCEPTOR_MAP), js.LiteralNull()));
+      globals.add(
+          js.Property(js.string(TYPE_TO_INTERCEPTOR_MAP), js.LiteralNull()));
     }
 
     if (_options.useNewRti) {
@@ -1929,26 +1929,30 @@ class FragmentEmitter {
     // therefore unused in this emitter.
     // TODO(johnniwinther): Remove the need for adding an empty list of
     // mangled names.
-    globals.add(new js.Property(
-        js.string(MANGLED_NAMES), new js.ObjectInitializer(<js.Property>[])));
+    globals.add(js.Property(
+        js.string(MANGLED_NAMES), js.ObjectInitializer(<js.Property>[])));
 
     globals.add(emitGetTypeFromName());
 
     globals.addAll(emitMetadata(program));
 
     if (program.needsNativeSupport) {
-      globals.add(new js.Property(
-          js.string(INTERCEPTORS_BY_TAG), new js.LiteralNull()));
-      globals.add(new js.Property(js.string(LEAF_TAGS), new js.LiteralNull()));
+      globals
+          .add(js.Property(js.string(INTERCEPTORS_BY_TAG), js.LiteralNull()));
+      globals.add(js.Property(js.string(LEAF_TAGS), js.LiteralNull()));
     }
 
     globals.add(js.Property(
         js.string(ARRAY_RTI_PROPERTY),
-        js.js(r'typeof Symbol == "function" && typeof Symbol() == "symbol"'
-            r'    ? Symbol("$ti")'
-            r'    : "$ti"')));
+        _options.legacyJavaScript
+            ? js.js(
+                r'typeof Symbol == "function" && typeof Symbol() == "symbol"'
+                r'    ? Symbol("$ti")'
+                r'    : "$ti"')
+            : js.js(r'Symbol("$ti")')));
 
-    js.ObjectInitializer globalsObject = js.ObjectInitializer(globals);
+    js.ObjectInitializer globalsObject =
+        js.ObjectInitializer(globals, isOneLiner: false);
 
     return js.js.statement('var init = #;', globalsObject);
   }

@@ -130,7 +130,7 @@ dput(obj, field, value) {
   if (f != null) {
     var setterType = getSetterType(getType(obj), f);
     if (setterType != null) {
-      return JS('', '#[#] = #._check(#)', obj, f, setterType, value);
+      return JS('', '#[#] = #.as(#)', obj, f, setterType, value);
     }
     // Always allow for JS interop objects.
     if (isJsInterop(obj)) return JS('', '#[#] = #', obj, f, value);
@@ -168,7 +168,7 @@ String? _argumentErrors(FunctionType type, List actuals, namedActuals) {
   var requiredNamed = type.requiredNamed;
   if (namedActuals != null) {
     names = getOwnPropertyNames(namedActuals);
-    for (var name in names!) {
+    for (var name in names) {
       if (!JS<bool>('!', '(#.hasOwnProperty(#) || #.hasOwnProperty(#))', named,
           name, requiredNamed, name)) {
         return "Dynamic call with unexpected named argument '$name'.";
@@ -185,7 +185,7 @@ String? _argumentErrors(FunctionType type, List actuals, namedActuals) {
     if (missingRequired.isNotEmpty) {
       var error = "Dynamic call with missing required named arguments: "
           "${missingRequired.join(', ')}.";
-      if (!_strictSubtypeChecks) {
+      if (!strictNullSafety) {
         _nullWarn(error);
       } else {
         return error;
@@ -194,14 +194,14 @@ String? _argumentErrors(FunctionType type, List actuals, namedActuals) {
   }
   // Now that we know the signature matches, we can perform type checks.
   for (var i = 0; i < requiredCount; ++i) {
-    JS('', '#[#]._check(#[#])', required, i, actuals, i);
+    JS('', '#[#].as(#[#])', required, i, actuals, i);
   }
   for (var i = 0; i < extras; ++i) {
-    JS('', '#[#]._check(#[#])', optionals, i, actuals, i + requiredCount);
+    JS('', '#[#].as(#[#])', optionals, i, actuals, i + requiredCount);
   }
   if (names != null) {
     for (var name in names) {
-      JS('', '(#[#] || #[#])._check(#[#])', named, name, requiredNamed, name,
+      JS('', '(#[#] || #[#]).as(#[#])', named, name, requiredNamed, name,
           namedActuals, name);
     }
   }
@@ -427,10 +427,10 @@ bool instanceOf(obj, type) {
 /// directly on types, but any query that requires checking subtyping relations
 /// is handled here.
 @JSExportName('as')
-cast(obj, type, @notNull bool isImplicit) {
+cast(obj, type) {
   // We hoist the common case where null is checked against another type here
   // for better performance.
-  if (obj == null && !_strictSubtypeChecks) {
+  if (obj == null && !strictNullSafety) {
     // Check the null comparison cache to avoid emitting repeated warnings.
     _nullWarnOnType(type);
     return obj;
@@ -439,34 +439,34 @@ cast(obj, type, @notNull bool isImplicit) {
     if (isSubtypeOf(actual, type)) return obj;
   }
 
-  return castError(obj, type, isImplicit);
+  return castError(obj, type);
 }
 
 bool test(bool? obj) {
-  if (obj == null) _throwBooleanConversionError();
-  return obj!;
-}
-
-bool dtest(obj) {
-  if (obj is! bool) booleanConversionFailed(obj);
+  if (obj == null) throw BooleanConversionAssertionError();
   return obj;
 }
 
-void _throwBooleanConversionError() => throw BooleanConversionAssertionError();
+bool dtest(obj) {
+  // Only throw an AssertionError in weak mode for compatibility. Strong mode
+  // should throw a TypeError.
+  if (obj is! bool) booleanConversionFailed(strictNullSafety ? obj : test(obj));
+  return obj;
+}
 
 void booleanConversionFailed(obj) {
-  var actual = typeName(getReifiedType(test(obj)));
+  var actual = typeName(getReifiedType(obj));
   throw TypeErrorImpl("type '$actual' is not a 'bool' in boolean expression");
 }
 
 asInt(obj) {
   // Note: null (and undefined) will fail this test.
   if (JS('!', 'Math.floor(#) != #', obj, obj)) {
-    if (obj == null && !_strictSubtypeChecks) {
+    if (obj == null && !strictNullSafety) {
       _nullWarnOnType(JS('', '#', int));
       return null;
     } else {
-      castError(obj, JS('', '#', int), false);
+      castError(obj, JS('', '#', int));
     }
   }
   return obj;
@@ -493,12 +493,12 @@ _notNull(x) {
 /// or emits a runtime warning (otherwise).  This is only used by the
 /// compiler when casting from nullable to non-nullable variants of the
 /// same type.
-nullCast(x, type, [@notNull bool isImplicit = false]) {
+nullCast(x, type) {
   if (x == null) {
-    if (!_strictSubtypeChecks) {
+    if (!strictNullSafety) {
       _nullWarnOnType(type);
     } else {
-      castError(x, type, isImplicit);
+      castError(x, type);
     }
   }
   return x;
@@ -781,6 +781,7 @@ defineLazyField(to, name, desc) => JS('', '''(() => {
       $_resetFields.push(() => {
         init = initializer;
         value = null;
+        executed = false;
       });
       executed = true;
     }
@@ -793,6 +794,7 @@ defineLazyField(to, name, desc) => JS('', '''(() => {
     $desc.set = function(x) {
       init = null;
       value = x;
+      // executed is dead since init is set to null
     };
   }
   return ${defineProperty(to, name, desc)};

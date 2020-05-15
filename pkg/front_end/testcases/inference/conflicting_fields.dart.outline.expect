@@ -6,21 +6,45 @@ library;
 // Try adding an explicit type.
 //   get field1 => null;
 //       ^^^^^^
+// pkg/front_end/testcases/inference/conflicting_fields.dart:8:11: Context: This is one of the inherited members.
+//   dynamic field1;
+//           ^^^^^^
+// pkg/front_end/testcases/inference/conflicting_fields.dart:13:7: Context: This is one of the inherited members.
+//   int field1;
+//       ^^^^^^
 //
 // pkg/front_end/testcases/inference/conflicting_fields.dart:20:14: Error: Can't infer a type for 'value' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   set field1(value) {}
 //              ^^^^^
+// pkg/front_end/testcases/inference/conflicting_fields.dart:8:11: Context: This is one of the inherited members.
+//   dynamic field1;
+//           ^^^^^^
+// pkg/front_end/testcases/inference/conflicting_fields.dart:13:7: Context: This is one of the inherited members.
+//   int field1;
+//       ^^^^^^
 //
 // pkg/front_end/testcases/inference/conflicting_fields.dart:19:7: Error: Can't infer a return type for 'field2' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   get field2 => null;
 //       ^^^^^^
+// pkg/front_end/testcases/inference/conflicting_fields.dart:9:7: Context: This is one of the inherited members.
+//   int field2;
+//       ^^^^^^
+// pkg/front_end/testcases/inference/conflicting_fields.dart:14:11: Context: This is one of the inherited members.
+//   dynamic field2;
+//           ^^^^^^
 //
 // pkg/front_end/testcases/inference/conflicting_fields.dart:21:14: Error: Can't infer a type for 'value' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   set field2(value) {}
 //              ^^^^^
+// pkg/front_end/testcases/inference/conflicting_fields.dart:9:7: Context: This is one of the inherited members.
+//   int field2;
+//       ^^^^^^
+// pkg/front_end/testcases/inference/conflicting_fields.dart:14:11: Context: This is one of the inherited members.
+//   dynamic field2;
+//           ^^^^^^
 //
 import self as self;
 import "dart:core" as core;
@@ -30,12 +54,32 @@ class A extends core::Object {
   field core::int* field2;
   synthetic constructor •() → self::A*
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class I extends core::Object {
   field core::int* field1;
   field dynamic field2;
   synthetic constructor •() → self::I*
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class B extends self::A implements self::I {
   synthetic constructor •() → self::B*

@@ -15,6 +15,7 @@
 #include "vm/dart_api_message.h"
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
+#include "vm/hash_table.h"
 #include "vm/lockers.h"
 #include "vm/longjump.h"
 #include "vm/message_handler.h"
@@ -108,6 +109,151 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 0, 2) {
   return Object::null();
 }
 
+class ObjectPtrSetTraitsLayout {
+ public:
+  static bool ReportStats() { return false; }
+  static const char* Name() { return "RawObjectPtrSetTraits"; }
+
+  static bool IsMatch(const ObjectPtr a, const ObjectPtr b) { return a == b; }
+
+  static uword Hash(const ObjectPtr obj) { return static_cast<uword>(obj); }
+};
+
+static ObjectPtr ValidateMessageObject(Zone* zone,
+                                       Isolate* isolate,
+                                       const Object& obj) {
+  TIMELINE_DURATION(Thread::Current(), Isolate, "ValidateMessageObject");
+
+  class SendMessageValidator : public ObjectPointerVisitor {
+   public:
+    SendMessageValidator(IsolateGroup* isolate_group,
+                         WeakTable* visited,
+                         MallocGrowableArray<ObjectPtr>* const working_set)
+        : ObjectPointerVisitor(isolate_group),
+          visited_(visited),
+          working_set_(working_set) {}
+
+   private:
+    void VisitPointers(ObjectPtr* from, ObjectPtr* to) {
+      for (ObjectPtr* raw = from; raw <= to; raw++) {
+        if (!(*raw)->IsHeapObject() || (*raw)->ptr()->IsCanonical()) {
+          continue;
+        }
+        if (visited_->GetValueExclusive(*raw) == 1) {
+          continue;
+        }
+        visited_->SetValueExclusive(*raw, 1);
+        working_set_->Add(*raw);
+      }
+    }
+
+    WeakTable* visited_;
+    MallocGrowableArray<ObjectPtr>* const working_set_;
+  };
+  if (!obj.raw()->IsHeapObject() || obj.raw()->ptr()->IsCanonical()) {
+    return obj.raw();
+  }
+  ClassTable* class_table = isolate->class_table();
+
+  Class& klass = Class::Handle(zone);
+  Closure& closure = Closure::Handle(zone);
+
+  MallocGrowableArray<ObjectPtr> working_set;
+  std::unique_ptr<WeakTable> visited(new WeakTable());
+
+  NoSafepointScope no_safepoint;
+  SendMessageValidator visitor(isolate->group(), visited.get(), &working_set);
+
+  visited->SetValueExclusive(obj.raw(), 1);
+  working_set.Add(obj.raw());
+
+  while (!working_set.is_empty()) {
+    ObjectPtr raw = working_set.RemoveLast();
+
+    if (visited->GetValueExclusive(raw) > 0) {
+      continue;
+    }
+    visited->SetValueExclusive(raw, 1);
+
+    const intptr_t cid = raw->GetClassId();
+    switch (cid) {
+      // List below matches the one in raw_object_snapshot.cc
+#define MESSAGE_SNAPSHOT_ILLEGAL(type)                                         \
+  case k##type##Cid:                                                           \
+    return Exceptions::CreateUnhandledException(                               \
+        zone, Exceptions::kArgumentValue,                                      \
+        "Illegal argument in isolate message : (object is a " #type ")");
+
+      MESSAGE_SNAPSHOT_ILLEGAL(DynamicLibrary);
+      MESSAGE_SNAPSHOT_ILLEGAL(MirrorReference);
+      MESSAGE_SNAPSHOT_ILLEGAL(Pointer);
+      MESSAGE_SNAPSHOT_ILLEGAL(ReceivePort);
+      MESSAGE_SNAPSHOT_ILLEGAL(RegExp);
+      MESSAGE_SNAPSHOT_ILLEGAL(StackTrace);
+      MESSAGE_SNAPSHOT_ILLEGAL(UserTag);
+
+      case kClosureCid: {
+        closure = Closure::RawCast(raw);
+        FunctionPtr func = closure.function();
+        // We only allow closure of top level methods or static functions in a
+        // class to be sent in isolate messages.
+        if (!Function::IsImplicitStaticClosureFunction(func)) {
+          return Exceptions::CreateUnhandledException(
+              zone, Exceptions::kArgumentValue, "Closures are not allowed");
+        }
+        break;
+      }
+      default:
+        if (cid >= kNumPredefinedCids) {
+          klass = class_table->At(cid);
+          if (klass.num_native_fields() != 0) {
+            return Exceptions::CreateUnhandledException(
+                zone, Exceptions::kArgumentValue,
+                "Objects that extend NativeWrapper are not allowed");
+          }
+        }
+    }
+    raw->ptr()->VisitPointers(&visitor);
+  }
+  isolate->set_forward_table_new(nullptr);
+  return obj.raw();
+}
+
+DEFINE_NATIVE_ENTRY(SendPortImpl_sendAndExitInternal_, 0, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
+  if (!PortMap::IsReceiverInThisIsolateGroup(port.Id(), isolate->group())) {
+    const auto& error =
+        String::Handle(String::New("sendAndExit is only supported across "
+                                   "isolates spawned via spawnFunction."));
+    Exceptions::ThrowArgumentError(error);
+    UNREACHABLE();
+  }
+
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(1));
+
+  Object& validated_result = Object::Handle(zone);
+  Object& msg_obj = Object::Handle(zone, obj.raw());
+  validated_result = ValidateMessageObject(zone, isolate, msg_obj);
+  if (validated_result.IsUnhandledException()) {
+    Exceptions::PropagateError(Error::Cast(validated_result));
+    UNREACHABLE();
+  }
+  PersistentHandle* handle =
+      isolate->group()->api_state()->AllocatePersistentHandle();
+  handle->set_raw(msg_obj);
+  isolate->bequeath(std::unique_ptr<Bequest>(new Bequest(handle, port.Id())));
+  // TODO(aam): Ensure there are no dart api calls after this point as we want
+  // to ensure that validated message won't get tampered with.
+  Isolate::KillIfExists(isolate, Isolate::LibMsgId::kKillMsg);
+  // Drain interrupts before running so any IMMEDIATE operations on the current
+  // isolate happen synchronously.
+  const Error& error = Error::Handle(thread->HandleInterrupts());
+  RELEASE_ASSERT(error.IsUnwindError());
+  Exceptions::PropagateError(error);
+  // We will never execute dart code again in this isolate.
+  return Object::null();
+}
+
 static void ThrowIsolateSpawnException(const String& message) {
   const Array& args = Array::Handle(Array::New(1));
   args.SetAt(0, message);
@@ -117,8 +263,11 @@ static void ThrowIsolateSpawnException(const String& message) {
 class SpawnIsolateTask : public ThreadPool::Task {
  public:
   SpawnIsolateTask(Isolate* parent_isolate,
-                   std::unique_ptr<IsolateSpawnState> state)
-      : parent_isolate_(parent_isolate), state_(std::move(state)) {
+                   std::unique_ptr<IsolateSpawnState> state,
+                   bool in_new_isolate_group)
+      : parent_isolate_(parent_isolate),
+        state_(std::move(state)),
+        in_new_isolate_group_(in_new_isolate_group) {
     parent_isolate->IncrementSpawnCount();
   }
 
@@ -153,7 +302,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
     char* error = nullptr;
     Isolate* isolate = nullptr;
     if (!FLAG_enable_isolate_groups || group == nullptr ||
-        initialize_callback == nullptr) {
+        initialize_callback == nullptr || in_new_isolate_group_) {
       // Make a copy of the state's isolate flags and hand it to the callback.
       Dart_IsolateFlags api_flags = *(state_->isolate_flags());
       isolate = reinterpret_cast<Isolate*>((create_group_callback)(
@@ -167,7 +316,11 @@ class SpawnIsolateTask : public ThreadPool::Task {
         return;
       }
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+      isolate = CreateWithinExistingIsolateGroupAOT(group, name, &error);
+#else
       isolate = CreateWithinExistingIsolateGroup(group, name, &error);
+#endif
       parent_isolate_->DecrementSpawnCount();
       parent_isolate_ = nullptr;
       if (isolate == nullptr) {
@@ -227,6 +380,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
 
   Isolate* parent_isolate_;
   std::unique_ptr<IsolateSpawnState> state_;
+  bool in_new_isolate_group_;
 
   DISALLOW_COPY_AND_ASSIGN(SpawnIsolateTask);
 };
@@ -249,8 +403,8 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 11) {
   GET_NATIVE_ARGUMENT(Bool, fatalErrors, arguments->NativeArgAt(5));
   GET_NATIVE_ARGUMENT(SendPort, onExit, arguments->NativeArgAt(6));
   GET_NATIVE_ARGUMENT(SendPort, onError, arguments->NativeArgAt(7));
-  GET_NATIVE_ARGUMENT(String, packageRoot, arguments->NativeArgAt(8));
-  GET_NATIVE_ARGUMENT(String, packageConfig, arguments->NativeArgAt(9));
+  GET_NATIVE_ARGUMENT(String, packageConfig, arguments->NativeArgAt(8));
+  GET_NATIVE_ARGUMENT(Bool, newIsolateGroup, arguments->NativeArgAt(9));
   GET_NATIVE_ARGUMENT(String, debugName, arguments->NativeArgAt(10));
 
   if (closure.IsClosure()) {
@@ -291,7 +445,9 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 11) {
       // Since this is a call to Isolate.spawn, copy the parent isolate's code.
       state->isolate_flags()->copy_parent_code = true;
 
-      Dart::thread_pool()->Run<SpawnIsolateTask>(isolate, std::move(state));
+      const bool in_new_isolate_group = newIsolateGroup.value();
+      isolate->group()->thread_pool()->Run<SpawnIsolateTask>(
+          isolate, std::move(state), in_new_isolate_group);
       return Object::null();
     }
   }
@@ -332,26 +488,19 @@ static const char* CanonicalizeUri(Thread* thread,
   return result;
 }
 
-DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 13) {
+DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 12) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, uri, arguments->NativeArgAt(1));
-
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, args, arguments->NativeArgAt(2));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, message, arguments->NativeArgAt(3));
-
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, paused, arguments->NativeArgAt(4));
   GET_NATIVE_ARGUMENT(SendPort, onExit, arguments->NativeArgAt(5));
   GET_NATIVE_ARGUMENT(SendPort, onError, arguments->NativeArgAt(6));
-
   GET_NATIVE_ARGUMENT(Bool, fatalErrors, arguments->NativeArgAt(7));
   GET_NATIVE_ARGUMENT(Bool, checked, arguments->NativeArgAt(8));
-
   GET_NATIVE_ARGUMENT(Array, environment, arguments->NativeArgAt(9));
-
-  GET_NATIVE_ARGUMENT(String, packageRoot, arguments->NativeArgAt(10));
-  GET_NATIVE_ARGUMENT(String, packageConfig, arguments->NativeArgAt(11));
-
-  GET_NATIVE_ARGUMENT(String, debugName, arguments->NativeArgAt(12));
+  GET_NATIVE_ARGUMENT(String, packageConfig, arguments->NativeArgAt(10));
+  GET_NATIVE_ARGUMENT(String, debugName, arguments->NativeArgAt(11));
 
   if (Dart::vm_snapshot_kind() == Snapshot::kFullAOT) {
     const Array& args = Array::Handle(Array::New(1));
@@ -412,7 +561,9 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 13) {
   // Since this is a call to Isolate.spawnUri, don't copy the parent's code.
   state->isolate_flags()->copy_parent_code = false;
 
-  Dart::thread_pool()->Run<SpawnIsolateTask>(isolate, std::move(state));
+  const bool in_new_isolate_group = false;
+  isolate->group()->thread_pool()->Run<SpawnIsolateTask>(
+      isolate, std::move(state), in_new_isolate_group);
   return Object::null();
 }
 

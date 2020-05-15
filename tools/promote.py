@@ -46,7 +46,14 @@ def BuildOptions():
         help='The channel to promote.',
         default=None)
     group.add_option(
-        "--dry", help='Dry run', default=False, action="store_true")
+        '--source-channel',
+        type='string',
+        help='The channel to promote from. Defaults to the --channel value.',
+        default=None)
+    group.add_option('--dry',
+                     help='Dry run',
+                     default=False,
+                     action='store_true')
     result.add_option_group(group)
 
     return result
@@ -67,14 +74,16 @@ def main():
     if args[0] == 'promote':
         command = 'promote'
         if options.revision is None:
-            die('You must specify a --revision to specify which revision to promote'
-               )
+            die('You must specify the --version to promote')
 
         # Make sure options.channel is a valid
         if not options.channel:
             die('Specify --channel=beta/dev/stable')
         if options.channel not in bot_utils.Channel.ALL_CHANNELS:
-            die('You must supply a valid channel to --channel to promote')
+            die('You must supply a valid --channel to promote')
+        if (options.source_channel and
+                options.source_channel not in bot_utils.Channel.ALL_CHANNELS):
+            die('You must supply a valid --source-channel to promote from')
     else:
         die('Invalid command specified: {0}.  See help below'.format(args[0]))
 
@@ -82,13 +91,14 @@ def main():
         global DRY_RUN
         DRY_RUN = True
     if command == 'promote':
-        _PromoteDartArchiveBuild(options.channel, options.revision)
+        source = options.source_channel or options.channel
+        _PromoteDartArchiveBuild(options.channel, source, options.revision)
 
 
 def UpdateDocs():
     try:
         print 'Updating docs'
-        url = "http://api.dartlang.org/docs/releases/latest/?force_reload=true"
+        url = 'http://api.dartlang.org/docs/releases/latest/?force_reload=true'
         f = urllib.urlopen(url)
         f.read()
         print 'Successfully updated api docs'
@@ -97,11 +107,12 @@ def UpdateDocs():
         print 'Failed with: %s' % e
 
 
-def _PromoteDartArchiveBuild(channel, revision):
+def _PromoteDartArchiveBuild(channel, source_channel, revision):
     # These namer objects will be used to create GCS object URIs. For the
     # structure we use, please see tools/bots/bot_utils.py:GCSNamer
-    raw_namer = bot_utils.GCSNamer(channel, bot_utils.ReleaseType.RAW)
-    signed_namer = bot_utils.GCSNamer(channel, bot_utils.ReleaseType.SIGNED)
+    raw_namer = bot_utils.GCSNamer(source_channel, bot_utils.ReleaseType.RAW)
+    signed_namer = bot_utils.GCSNamer(source_channel,
+                                      bot_utils.ReleaseType.SIGNED)
     release_namer = bot_utils.GCSNamer(channel, bot_utils.ReleaseType.RELEASE)
 
     def promote(to_revision):
@@ -110,7 +121,7 @@ def _PromoteDartArchiveBuild(channel, revision):
             if not (revision != None and len(channel) > 0 and
                     ('%s' % revision) in gs_path and channel in gs_path):
                 raise Exception(
-                    "InternalError: Sanity check failed on GS URI: %s" %
+                    'InternalError: Sanity check failed on GS URI: %s' %
                     gs_path)
 
         def exists(gs_path):
@@ -176,7 +187,7 @@ def Gsutil(cmd, throw_on_error=True):
     gsutilTool = join(DART_PATH, 'third_party', 'gsutil', 'gsutil')
     command = [sys.executable, gsutilTool] + cmd
     if DRY_RUN:
-        print "DRY runnning: %s" % command
+        print 'DRY runnning: %s' % command
         return (None, None, 0)
     return bot_utils.run(command, throw_on_error=throw_on_error)
 

@@ -1,0 +1,582 @@
+library main /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:78:8: Error: The return type of the method 'Class2b.method2' is 'int?', which does not match the return type, 'int', of the overridden method, 'LegacyClass.method2'.
+// Change to a subtype of 'int'.
+//   int? method2() => 0;
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:12:7: Context: This is the overridden method ('method2').
+//   int method2() => 0;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:86:8: Error: The return type of the method 'Class2b.method4a' is 'int?', which does not match the return type, 'int', of the overridden method, 'LegacyClass.method4a'.
+// Change to a subtype of 'int'.
+//   int? method4a(int? a, int? b) => 0;
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:20:7: Context: This is the overridden method ('method4a').
+//   int method4a(int a, int b) => 0;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:88:8: Error: The return type of the method 'Class2b.method4b' is 'int?', which does not match the return type, 'int', of the overridden method, 'LegacyClass.method4b'.
+// Change to a subtype of 'int'.
+//   int? method4b(int? a, [int? b]) => 0;
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:22:7: Context: This is the overridden method ('method4b').
+//   int method4b(int a, [int b]) => 0;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:90:8: Error: The return type of the method 'Class2b.method4c' is 'int?', which does not match the return type, 'int', of the overridden method, 'LegacyClass.method4c'.
+// Change to a subtype of 'int'.
+//   int? method4c([int? a, int? b]) => 0;
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:24:7: Context: This is the overridden method ('method4c').
+//   int method4c([int a, int b]) => 0;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:96:30: Error: The required named parameter 'a' in method 'Class2b.method5c' is not required in overridden method 'LegacyClass.method5c'.
+//   int method5c({required int a, required int b}) => 0;
+//                              ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:30:7: Context: This is the overridden method ('method5c').
+//   int method5c({int a, int b}) => 0;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:96:46: Error: The required named parameter 'b' in method 'Class2b.method5c' is not required in overridden method 'LegacyClass.method5c'.
+//   int method5c({required int a, required int b}) => 0;
+//                                              ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:30:7: Context: This is the overridden method ('method5c').
+//   int method5c({int a, int b}) => 0;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:98:8: Error: The return type of the method 'Class2b.method6a' is 'int?', which does not match the return type, 'int', of the overridden method, 'LegacyClass.method6a'.
+// Change to a subtype of 'int'.
+//   int? method6a(int? a, {int? b}) => 0;
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:32:7: Context: This is the overridden method ('method6a').
+//   int method6a(int a, {int b}) => 0;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:100:8: Error: The return type of the method 'Class2b.method6b' is 'int?', which does not match the return type, 'int', of the overridden method, 'LegacyClass.method6b'.
+// Change to a subtype of 'int'.
+//   int? method6b({int? a, int? b}) => 0;
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:34:7: Context: This is the overridden method ('method6b').
+//   int method6b({int a, int b}) => 0;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:102:8: Error: The return type of the method 'Class2b.method6c' is 'int?', which does not match the return type, 'int', of the overridden method, 'LegacyClass.method6c'.
+// Change to a subtype of 'int'.
+//   int? method6c({required int? a, required int? b}) => 0;
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:36:7: Context: This is the overridden method ('method6c').
+//   int method6c({int a, int b}) => 0;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:102:32: Error: The required named parameter 'a' in method 'Class2b.method6c' is not required in overridden method 'LegacyClass.method6c'.
+//   int? method6c({required int? a, required int? b}) => 0;
+//                                ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:36:7: Context: This is the overridden method ('method6c').
+//   int method6c({int a, int b}) => 0;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:102:49: Error: The required named parameter 'b' in method 'Class2b.method6c' is not required in overridden method 'LegacyClass.method6c'.
+//   int? method6c({required int? a, required int? b}) => 0;
+//                                                 ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:36:7: Context: This is the overridden method ('method6c').
+//   int method6c({int a, int b}) => 0;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:106:12: Error: The return type of the method 'Class2b.getter2' is 'int?', which does not match the return type, 'int', of the overridden method, 'LegacyClass.getter2'.
+// Change to a subtype of 'int'.
+//   int? get getter2 => 0;
+//            ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:40:11: Context: This is the overridden method ('getter2').
+//   int get getter2 => 0;
+//           ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:114:8: Error: The return type of the method 'Class2b.field2' is 'int?', which does not match the return type, 'int', of the overridden method, 'LegacyClass.field2'.
+// Change to a subtype of 'int'.
+//   int? field2;
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:48:7: Context: This is the overridden method ('field2').
+//   int field2;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:120:12: Error: The return type of the method 'Class2b.field4' is 'int?', which does not match the return type, 'int', of the overridden method, 'LegacyClass.field4'.
+// Change to a subtype of 'int'.
+//   int? get field4 => 0;
+//            ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:52:7: Context: This is the overridden method ('field4').
+//   int field4;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:128:12: Error: The return type of the method 'Class2b.property2' is 'int?', which does not match the return type, 'int', of the overridden method, 'LegacyClass.property2'.
+// Change to a subtype of 'int'.
+//   int? get property2 => 0;
+//            ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:58:11: Context: This is the overridden method ('property2').
+//   int get property2 => 0;
+//           ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:134:8: Error: The return type of the method 'Class2b.property4' is 'int?', which does not match the return type, 'int', of the overridden method, 'LegacyClass.property4'.
+// Change to a subtype of 'int'.
+//   int? property4;
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:66:11: Context: This is the overridden method ('property4').
+//   int get property4 => 0;
+//           ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:73:7: Error: The implementation of 'method4a' in the non-abstract class 'Class2a' does not conform to its interface.
+// class Class2a extends LegacyClass implements Interface {}
+//       ^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:20:20: Context: The parameter 'a' of the method 'LegacyClass.method4a' has type 'int', which does not match the corresponding type, 'int?', in the overridden method, 'Interface.method4a'.
+// Change to a supertype of 'int?', or, for a covariant parameter, a subtype.
+//   int method4a(int a, int b) => 0;
+//                    ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:20:8: Context: This is the overridden method ('method4a').
+//   int? method4a(int? a, int? b);
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:73:7: Error: Class 'Class2a' inherits multiple members named 'method4a' with incompatible signatures.
+// Try adding a declaration of 'method4a' to 'Class2a'.
+// class Class2a extends LegacyClass implements Interface {}
+//       ^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:20:7: Context: This is one of the inherited members.
+//   int method4a(int a, int b) => 0;
+//       ^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:20:8: Context: This is one of the inherited members.
+//   int? method4a(int? a, int? b);
+//        ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:73:7: Error: The implementation of 'method4b' in the non-abstract class 'Class2a' does not conform to its interface.
+// class Class2a extends LegacyClass implements Interface {}
+//       ^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:22:20: Context: The parameter 'a' of the method 'LegacyClass.method4b' has type 'int', which does not match the corresponding type, 'int?', in the overridden method, 'Interface.method4b'.
+// Change to a supertype of 'int?', or, for a covariant parameter, a subtype.
+//   int method4b(int a, [int b]) => 0;
+//                    ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:22:8: Context: This is the overridden method ('method4b').
+//   int? method4b(int? a, [int? b]);
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:73:7: Error: Class 'Class2a' inherits multiple members named 'method4b' with incompatible signatures.
+// Try adding a declaration of 'method4b' to 'Class2a'.
+// class Class2a extends LegacyClass implements Interface {}
+//       ^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:22:7: Context: This is one of the inherited members.
+//   int method4b(int a, [int b]) => 0;
+//       ^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:22:8: Context: This is one of the inherited members.
+//   int? method4b(int? a, [int? b]);
+//        ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:73:7: Error: The implementation of 'method4c' in the non-abstract class 'Class2a' does not conform to its interface.
+// class Class2a extends LegacyClass implements Interface {}
+//       ^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:24:21: Context: The parameter 'a' of the method 'LegacyClass.method4c' has type 'int', which does not match the corresponding type, 'int?', in the overridden method, 'Interface.method4c'.
+// Change to a supertype of 'int?', or, for a covariant parameter, a subtype.
+//   int method4c([int a, int b]) => 0;
+//                     ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:24:8: Context: This is the overridden method ('method4c').
+//   int? method4c([int? a, int? b]);
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:73:7: Error: Class 'Class2a' inherits multiple members named 'method4c' with incompatible signatures.
+// Try adding a declaration of 'method4c' to 'Class2a'.
+// class Class2a extends LegacyClass implements Interface {}
+//       ^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:24:7: Context: This is one of the inherited members.
+//   int method4c([int a, int b]) => 0;
+//       ^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:24:8: Context: This is one of the inherited members.
+//   int? method4c([int? a, int? b]);
+//        ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:73:7: Error: The implementation of 'method6a' in the non-abstract class 'Class2a' does not conform to its interface.
+// class Class2a extends LegacyClass implements Interface {}
+//       ^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:32:20: Context: The parameter 'a' of the method 'LegacyClass.method6a' has type 'int', which does not match the corresponding type, 'int?', in the overridden method, 'Interface.method6a'.
+// Change to a supertype of 'int?', or, for a covariant parameter, a subtype.
+//   int method6a(int a, {int b}) => 0;
+//                    ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:32:8: Context: This is the overridden method ('method6a').
+//   int? method6a(int? a, {int? b});
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:73:7: Error: Class 'Class2a' inherits multiple members named 'method6a' with incompatible signatures.
+// Try adding a declaration of 'method6a' to 'Class2a'.
+// class Class2a extends LegacyClass implements Interface {}
+//       ^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:32:7: Context: This is one of the inherited members.
+//   int method6a(int a, {int b}) => 0;
+//       ^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:32:8: Context: This is one of the inherited members.
+//   int? method6a(int? a, {int? b});
+//        ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:73:7: Error: The implementation of 'method6b' in the non-abstract class 'Class2a' does not conform to its interface.
+// class Class2a extends LegacyClass implements Interface {}
+//       ^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:34:21: Context: The parameter 'a' of the method 'LegacyClass.method6b' has type 'int', which does not match the corresponding type, 'int?', in the overridden method, 'Interface.method6b'.
+// Change to a supertype of 'int?', or, for a covariant parameter, a subtype.
+//   int method6b({int a, int b}) => 0;
+//                     ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:34:8: Context: This is the overridden method ('method6b').
+//   int? method6b({int? a, int? b});
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:73:7: Error: Class 'Class2a' inherits multiple members named 'method6b' with incompatible signatures.
+// Try adding a declaration of 'method6b' to 'Class2a'.
+// class Class2a extends LegacyClass implements Interface {}
+//       ^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:34:7: Context: This is one of the inherited members.
+//   int method6b({int a, int b}) => 0;
+//       ^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:34:8: Context: This is one of the inherited members.
+//   int? method6b({int? a, int? b});
+//        ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:73:7: Error: The implementation of 'method6c' in the non-abstract class 'Class2a' does not conform to its interface.
+// class Class2a extends LegacyClass implements Interface {}
+//       ^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:36:21: Context: The parameter 'a' of the method 'LegacyClass.method6c' has type 'int', which does not match the corresponding type, 'int?', in the overridden method, 'Interface.method6c'.
+// Change to a supertype of 'int?', or, for a covariant parameter, a subtype.
+//   int method6c({int a, int b}) => 0;
+//                     ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:36:8: Context: This is the overridden method ('method6c').
+//   int? method6c({required int? a, required int? b});
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:73:7: Error: Class 'Class2a' inherits multiple members named 'method6c' with incompatible signatures.
+// Try adding a declaration of 'method6c' to 'Class2a'.
+// class Class2a extends LegacyClass implements Interface {}
+//       ^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:36:7: Context: This is one of the inherited members.
+//   int method6c({int a, int b}) => 0;
+//       ^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:36:8: Context: This is one of the inherited members.
+//   int? method6c({required int? a, required int? b});
+//        ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:73:7: Error: The implementation of 'field2' in the non-abstract class 'Class2a' does not conform to its interface.
+// class Class2a extends LegacyClass implements Interface {}
+//       ^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:48:7: Context: The field 'LegacyClass.field2' has type 'int', which does not match the corresponding type, 'int?', in the overridden setter, 'Interface.field2'.
+//   int field2;
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:48:8: Context: This is the overridden method ('field2').
+//   int? field2;
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:73:7: Error: The implementation of 'field4' in the non-abstract class 'Class2a' does not conform to its interface.
+// class Class2a extends LegacyClass implements Interface {}
+//       ^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:52:7: Context: The field 'LegacyClass.field4' has type 'int', which does not match the corresponding type, 'int?', in the overridden setter, 'Interface.field4'.
+//   int field4;
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:56:12: Context: This is the overridden method ('field4').
+//   void set field4(int? value);
+//            ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:73:7: Error: The implementation of 'property2' in the non-abstract class 'Class2a' does not conform to its interface.
+// class Class2a extends LegacyClass implements Interface {}
+//       ^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:60:26: Context: The parameter 'value' of the method 'LegacyClass.property2' has type 'int', which does not match the corresponding type, 'int?', in the overridden method, 'Interface.property2'.
+// Change to a supertype of 'int?', or, for a covariant parameter, a subtype.
+//   void set property2(int value) {}
+//                          ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:64:12: Context: This is the overridden method ('property2').
+//   void set property2(int? value);
+//            ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:73:7: Error: The implementation of 'property4' in the non-abstract class 'Class2a' does not conform to its interface.
+// class Class2a extends LegacyClass implements Interface {}
+//       ^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:68:26: Context: The parameter 'value' of the method 'LegacyClass.property4' has type 'int', which does not match the corresponding type, 'int?', in the overridden method, 'Interface.property4'.
+// Change to a supertype of 'int?', or, for a covariant parameter, a subtype.
+//   void set property4(int value) {}
+//                          ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:68:8: Context: This is the overridden method ('property4').
+//   int? property4;
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:73:7: Error: The implementation of 'setter2' in the non-abstract class 'Class2a' does not conform to its interface.
+// class Class2a extends LegacyClass implements Interface {}
+//       ^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:44:24: Context: The parameter 'value' of the method 'LegacyClass.setter2' has type 'int', which does not match the corresponding type, 'int?', in the overridden method, 'Interface.setter2'.
+// Change to a supertype of 'int?', or, for a covariant parameter, a subtype.
+//   void set setter2(int value) {}
+//                        ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:44:12: Context: This is the overridden method ('setter2').
+//   void set setter2(int? value);
+//            ^
+//
+import self as self;
+import "dart:core" as core;
+import "member_inheritance_from_opt_out_lib.dart" as opt;
+
+import "org-dartlang-testcase:///member_inheritance_from_opt_out_lib.dart";
+
+abstract class Interface extends core::Object {
+  field core::int field1;
+  field core::int? field2;
+  field core::int property3;
+  field core::int? property4;
+  synthetic constructor •() → self::Interface
+    ;
+  abstract method method1() → core::int;
+  abstract method method2() → core::int?;
+  abstract method method3a(core::int a, core::int b) → core::int;
+  abstract method method3b(core::int a, [core::int b]) → core::int;
+  abstract method method3c([core::int a, core::int b]) → core::int;
+  abstract method method4a(core::int? a, core::int? b) → core::int?;
+  abstract method method4b(core::int? a, [core::int? b]) → core::int?;
+  abstract method method4c([core::int? a, core::int? b]) → core::int?;
+  abstract method method5a(core::int a, {core::int b = 0}) → core::int;
+  abstract method method5b({core::int a = 0, core::int b = 0}) → core::int;
+  abstract method method5c({required core::int a, required core::int b}) → core::int;
+  abstract method method6a(core::int? a, {core::int? b}) → core::int?;
+  abstract method method6b({core::int? a, core::int? b}) → core::int?;
+  abstract method method6c({required core::int? a, required core::int? b}) → core::int?;
+  abstract get getter1() → core::int;
+  abstract get getter2() → core::int?;
+  abstract set setter1(core::int value) → void;
+  abstract set setter2(core::int? value) → void;
+  abstract get field3() → core::int;
+  abstract set field3(core::int value) → void;
+  abstract get field4() → core::int?;
+  abstract set field4(core::int? value) → void;
+  abstract get property1() → core::int;
+  abstract set property1(core::int value) → void;
+  abstract get property2() → core::int?;
+  abstract set property2(core::int? value) → void;
+}
+class Class1 extends opt::LegacyClass {
+  synthetic constructor •() → self::Class1
+    ;
+}
+class Class2a extends opt::LegacyClass implements self::Interface {
+  synthetic constructor •() → self::Class2a
+    ;
+  abstract forwarding-stub set field2(core::int? _) → void;
+  abstract forwarding-stub set field4(core::int? value) → void;
+  abstract forwarding-stub set property2(core::int? value) → void;
+  abstract forwarding-stub set property4(core::int? _) → void;
+  abstract forwarding-stub set setter2(core::int? value) → void;
+}
+class Class2b extends opt::LegacyClass implements self::Interface {
+  field core::int field1;
+  field core::int? field2;
+  field core::int property3;
+  field core::int? property4;
+  synthetic constructor •() → self::Class2b
+    ;
+  method method1() → core::int
+    ;
+  method method2() → core::int?
+    ;
+  method method3a(core::int a, core::int b) → core::int
+    ;
+  method method3b(core::int a, [core::int b = 42]) → core::int
+    ;
+  method method3c([core::int a = 42, core::int b = 42]) → core::int
+    ;
+  method method4a(core::int? a, core::int? b) → core::int?
+    ;
+  method method4b(core::int? a, [core::int? b]) → core::int?
+    ;
+  method method4c([core::int? a, core::int? b]) → core::int?
+    ;
+  method method5a(core::int a, {core::int b = 0}) → core::int
+    ;
+  method method5b({core::int a = 0, core::int b = 0}) → core::int
+    ;
+  method method5c({required core::int a, required core::int b}) → core::int
+    ;
+  method method6a(core::int? a, {core::int? b}) → core::int?
+    ;
+  method method6b({core::int? a, core::int? b}) → core::int?
+    ;
+  method method6c({required core::int? a, required core::int? b}) → core::int?
+    ;
+  get getter1() → core::int
+    ;
+  get getter2() → core::int?
+    ;
+  set setter1(core::int value) → void
+    ;
+  set setter2(core::int? value) → void
+    ;
+  get field3() → core::int
+    ;
+  set field3(core::int value) → void
+    ;
+  get field4() → core::int?
+    ;
+  set field4(core::int? value) → void
+    ;
+  get property1() → core::int
+    ;
+  set property1(core::int value) → void
+    ;
+  get property2() → core::int?
+    ;
+  set property2(core::int? value) → void
+    ;
+}
+class Class3a extends opt::GenericLegacyClass<core::int> {
+  synthetic constructor •() → self::Class3a
+    ;
+}
+class Class3b extends opt::GenericLegacyClass<core::int?> {
+  synthetic constructor •() → self::Class3b
+    ;
+}
+class Class3c<S extends core::Object? = dynamic> extends opt::GenericLegacyClass<self::Class3c::S%> {
+  synthetic constructor •() → self::Class3c<self::Class3c::S%>
+    ;
+}
+static method main() → dynamic
+  ;
+
+library opt_out /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:5:1: Error: A library can't opt out of non-nullable by default, when in nnbd-strong mode.
+// // @dart=2.5
+// ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:16:28: Error: Optional parameter 'b' should have a default value because its type 'int' doesn't allow null.
+//   int method3b(int a, [int b]) => 0;
+//                            ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:18:21: Error: Optional parameter 'a' should have a default value because its type 'int' doesn't allow null.
+//   int method3c([int a, int b]) => 0;
+//                     ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:18:28: Error: Optional parameter 'b' should have a default value because its type 'int' doesn't allow null.
+//   int method3c([int a, int b]) => 0;
+//                            ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:22:28: Error: Optional parameter 'b' should have a default value because its type 'int' doesn't allow null.
+//   int method4b(int a, [int b]) => 0;
+//                            ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:24:21: Error: Optional parameter 'a' should have a default value because its type 'int' doesn't allow null.
+//   int method4c([int a, int b]) => 0;
+//                     ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:24:28: Error: Optional parameter 'b' should have a default value because its type 'int' doesn't allow null.
+//   int method4c([int a, int b]) => 0;
+//                            ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:26:28: Error: Optional parameter 'b' should have a default value because its type 'int' doesn't allow null.
+//   int method5a(int a, {int b}) => 0;
+//                            ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:28:21: Error: Optional parameter 'a' should have a default value because its type 'int' doesn't allow null.
+//   int method5b({int a, int b}) => 0;
+//                     ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:28:28: Error: Optional parameter 'b' should have a default value because its type 'int' doesn't allow null.
+//   int method5b({int a, int b}) => 0;
+//                            ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:30:21: Error: Optional parameter 'a' should have a default value because its type 'int' doesn't allow null.
+//   int method5c({int a, int b}) => 0;
+//                     ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:30:28: Error: Optional parameter 'b' should have a default value because its type 'int' doesn't allow null.
+//   int method5c({int a, int b}) => 0;
+//                            ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:32:28: Error: Optional parameter 'b' should have a default value because its type 'int' doesn't allow null.
+//   int method6a(int a, {int b}) => 0;
+//                            ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:34:21: Error: Optional parameter 'a' should have a default value because its type 'int' doesn't allow null.
+//   int method6b({int a, int b}) => 0;
+//                     ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:34:28: Error: Optional parameter 'b' should have a default value because its type 'int' doesn't allow null.
+//   int method6b({int a, int b}) => 0;
+//                            ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:36:21: Error: Optional parameter 'a' should have a default value because its type 'int' doesn't allow null.
+//   int method6c({int a, int b}) => 0;
+//                     ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:36:28: Error: Optional parameter 'b' should have a default value because its type 'int' doesn't allow null.
+//   int method6c({int a, int b}) => 0;
+//                            ^
+//
+import self as opt;
+import "dart:core" as core;
+
+class LegacyClass extends core::Object {
+  field core::int field1;
+  field core::int field2;
+  field core::int field3;
+  field core::int field4;
+  synthetic constructor •() → opt::LegacyClass
+    ;
+  method method1() → core::int
+    ;
+  method method2() → core::int
+    ;
+  method method3a(core::int a, core::int b) → core::int
+    ;
+  method method3b(core::int a, [core::int b]) → core::int
+    ;
+  method method3c([core::int a, core::int b]) → core::int
+    ;
+  method method4a(core::int a, core::int b) → core::int
+    ;
+  method method4b(core::int a, [core::int b]) → core::int
+    ;
+  method method4c([core::int a, core::int b]) → core::int
+    ;
+  method method5a(core::int a, {core::int b}) → core::int
+    ;
+  method method5b({core::int a, core::int b}) → core::int
+    ;
+  method method5c({core::int a, core::int b}) → core::int
+    ;
+  method method6a(core::int a, {core::int b}) → core::int
+    ;
+  method method6b({core::int a, core::int b}) → core::int
+    ;
+  method method6c({core::int a, core::int b}) → core::int
+    ;
+  get getter1() → core::int
+    ;
+  get getter2() → core::int
+    ;
+  set setter1(core::int value) → void
+    ;
+  set setter2(core::int value) → void
+    ;
+  get property1() → core::int
+    ;
+  set property1(core::int value) → void
+    ;
+  get property2() → core::int
+    ;
+  set property2(core::int value) → void
+    ;
+  get property3() → core::int
+    ;
+  set property3(core::int value) → void
+    ;
+  get property4() → core::int
+    ;
+  set property4(core::int value) → void
+    ;
+}
+class GenericLegacyClass<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → opt::GenericLegacyClass<opt::GenericLegacyClass::T%>
+    ;
+  method method1() → opt::GenericLegacyClass::T%
+    ;
+}

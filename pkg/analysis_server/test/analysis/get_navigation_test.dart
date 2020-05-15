@@ -47,7 +47,7 @@ main() {
   Future<void> test_fieldType() async {
     // This test mirrors test_navigation() from
     // test/integration/analysis/get_navigation_test.dart
-    String text = r'''
+    var text = r'''
 class Foo {}
 
 class Bar {
@@ -57,7 +57,7 @@ class Bar {
     addTestFile(text);
     await _getNavigation(testFile, text.indexOf('Foo foo'), 0);
     expect(targets, hasLength(1));
-    NavigationTarget target = targets.first;
+    var target = targets.first;
     expect(target.kind, ElementKind.CLASS);
     expect(target.offset, text.indexOf('Foo {'));
     expect(target.length, 3);
@@ -66,9 +66,9 @@ class Bar {
   }
 
   Future<void> test_fileDoesNotExist() async {
-    String file = convertPath('$projectPath/doesNotExist.dart');
-    Request request = _createGetNavigationRequest(file, 0, 100);
-    Response response = await serverChannel.sendRequest(request);
+    var file = convertPath('$projectPath/doesNotExist.dart');
+    var request = _createGetNavigationRequest(file, 0, 100);
+    var response = await serverChannel.sendRequest(request);
     expect(response.error, isNull);
     expect(response.result['files'], isEmpty);
     expect(response.result['targets'], isEmpty);
@@ -161,7 +161,7 @@ main() {
 ''');
     await waitForTasksFinished();
     // request navigation
-    String navCode = ' + bbb + ';
+    var navCode = ' + bbb + ';
     await _getNavigation(testFile, testCode.indexOf(navCode), navCode.length);
     // verify
     {
@@ -194,32 +194,32 @@ main() {
 ''');
     await waitForTasksFinished();
     {
-      String search = '[0';
+      var search = '[0';
       await _getNavigation(testFile, testCode.indexOf(search), 1);
       assertHasOperatorRegion(search, 1, '[](index)', 2);
     }
     {
-      String search = '] // []';
+      var search = '] // []';
       await _getNavigation(testFile, testCode.indexOf(search), 1);
       assertHasOperatorRegion(search, 1, '[](index)', 2);
     }
     {
-      String search = '[1';
+      var search = '[1';
       await _getNavigation(testFile, testCode.indexOf(search), 1);
       assertHasOperatorRegion(search, 1, '[]=(index', 3);
     }
     {
-      String search = '] = 1';
+      var search = '] = 1';
       await _getNavigation(testFile, testCode.indexOf(search), 1);
       assertHasOperatorRegion(search, 1, '[]=(index', 3);
     }
     {
-      String search = '[2';
+      var search = '[2';
       await _getNavigation(testFile, testCode.indexOf(search), 1);
       assertHasOperatorRegion(search, 1, '[]=(index', 3);
     }
     {
-      String search = '] += 2';
+      var search = '] += 2';
       await _getNavigation(testFile, testCode.indexOf(search), 1);
       assertHasOperatorRegion(search, 1, '[]=(index', 3);
     }
@@ -257,10 +257,9 @@ main() {
   }
 
   Future<void> _getNavigation(String file, int offset, int length) async {
-    Request request = _createGetNavigationRequest(file, offset, length);
-    Response response = await serverChannel.sendRequest(request);
-    AnalysisGetNavigationResult result =
-        AnalysisGetNavigationResult.fromResponse(response);
+    var request = _createGetNavigationRequest(file, offset, length);
+    var response = await serverChannel.sendRequest(request);
+    var result = AnalysisGetNavigationResult.fromResponse(response);
     targetFiles = result.files;
     targets = result.targets;
     regions = result.regions;

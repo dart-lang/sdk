@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/rasta/unresolved_for_in.dart:14:10: Error: Setter not found: 'Fisk'.
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:14:10: Error: Can't assign to a type literal.
 //     for (Fisk in x) {
 //          ^^^^
 //
@@ -14,7 +14,7 @@ library;
 //     for (collection in x) {
 //          ^^^^^^^^^^
 //
-// pkg/front_end/testcases/rasta/unresolved_for_in.dart:20:10: Error: Setter not found: 'VoidFunction'.
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:20:10: Error: Can't assign to a type literal.
 //     for (VoidFunction in x) {
 //          ^^^^^^^^^^^^
 //
@@ -52,7 +52,7 @@ library;
 //   for (key in arguments) {
 //        ^^^
 //
-// pkg/front_end/testcases/rasta/unresolved_for_in.dart:34:8: Error: Setter not found: 'Fisk'.
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:34:8: Error: Can't assign to a type literal.
 //   for (Fisk in arguments) {
 //        ^^^^
 //
@@ -64,7 +64,7 @@ library;
 //   for (collection in arguments) {
 //        ^^^^^^^^^^
 //
-// pkg/front_end/testcases/rasta/unresolved_for_in.dart:40:8: Error: Setter not found: 'VoidFunction'.
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:40:8: Error: Can't assign to a type literal.
 //   for (VoidFunction in arguments) {
 //        ^^^^^^^^^^^^
 //
@@ -82,7 +82,6 @@ library;
 //
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 import "dart:collection" as collection;
 
@@ -93,7 +92,7 @@ class Fisk extends core::Object {
     ;
   method it1(dynamic x) → dynamic {
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(x as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = (x as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t1 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -111,11 +110,11 @@ Try correcting the name to the name of an existing getter, or defining a getter 
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(x as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = (x as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t2 = :sync-for-iterator.{core::Iterator::current};
         {
-          invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:14:10: Error: Setter not found: 'Fisk'.
+          invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:14:10: Error: Can't assign to a type literal.
     for (Fisk in x) {
          ^^^^";
           core::print(self::Fisk*);
@@ -123,7 +122,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(x as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = (x as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t3 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -137,11 +136,11 @@ Try correcting the name to the name of an existing getter, or defining a getter 
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(x as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = (x as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t4 = :sync-for-iterator.{core::Iterator::current};
         {
-          invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:20:10: Error: Setter not found: 'VoidFunction'.
+          invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:20:10: Error: Can't assign to a type literal.
     for (VoidFunction in x) {
          ^^^^^^^^^^^^";
           core::print(() →* void);
@@ -153,7 +152,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
     for (1 in x) {
          ^";
       {
-        core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(x as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
+        core::Iterator<dynamic>* :sync-for-iterator = (x as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
         for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
           final dynamic #t5 = :sync-for-iterator.{core::Iterator::current};
           {
@@ -171,11 +170,21 @@ Try correcting the name to the name of an existing getter, or defining a getter 
       }
     }
   }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method main(dynamic arguments) → dynamic {
   new self::Fisk::•();
   {
-    core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(arguments as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
+    core::Iterator<dynamic>* :sync-for-iterator = (arguments as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       final dynamic #t6 = :sync-for-iterator.{core::Iterator::current};
       {
@@ -189,11 +198,11 @@ static method main(dynamic arguments) → dynamic {
     }
   }
   {
-    core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(arguments as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
+    core::Iterator<dynamic>* :sync-for-iterator = (arguments as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       final dynamic #t7 = :sync-for-iterator.{core::Iterator::current};
       {
-        invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:34:8: Error: Setter not found: 'Fisk'.
+        invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:34:8: Error: Can't assign to a type literal.
   for (Fisk in arguments) {
        ^^^^";
         core::print(self::Fisk*);
@@ -201,7 +210,7 @@ static method main(dynamic arguments) → dynamic {
     }
   }
   {
-    core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(arguments as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
+    core::Iterator<dynamic>* :sync-for-iterator = (arguments as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       final dynamic #t8 = :sync-for-iterator.{core::Iterator::current};
       {
@@ -215,11 +224,11 @@ static method main(dynamic arguments) → dynamic {
     }
   }
   {
-    core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(arguments as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
+    core::Iterator<dynamic>* :sync-for-iterator = (arguments as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       final dynamic #t9 = :sync-for-iterator.{core::Iterator::current};
       {
-        invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:40:8: Error: Setter not found: 'VoidFunction'.
+        invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:40:8: Error: Can't assign to a type literal.
   for (VoidFunction in arguments) {
        ^^^^^^^^^^^^";
         core::print(() →* void);
@@ -231,7 +240,7 @@ static method main(dynamic arguments) → dynamic {
   for (1 in arguments) {
        ^";
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(arguments as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = (arguments as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t10 = :sync-for-iterator.{core::Iterator::current};
         {

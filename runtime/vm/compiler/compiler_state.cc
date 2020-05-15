@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/compiler/compiler_state.h"
-#include "vm/growable_array.h"
-
-#ifndef DART_PRECOMPILED_RUNTIME
 
 #include <functional>
 
+#include "vm/compiler/backend/il_printer.h"
+#include "vm/compiler/backend/slot.h"
+#include "vm/growable_array.h"
 #include "vm/scopes.h"
 
 namespace dart {
@@ -71,6 +71,9 @@ const ZoneGrowableArray<const Slot*>& CompilerState::GetDummyContextSlots(
       });
 }
 
-}  // namespace dart
+CompilerTracing CompilerState::ShouldTrace(const Function& func) {
+  return FlowGraphPrinter::ShouldPrint(func) ? CompilerTracing::kOn
+                                             : CompilerTracing::kOff;
+}
 
-#endif  // DART_PRECOMPILED_RUNTIME
+}  // namespace dart

@@ -89,13 +89,6 @@ class LibraryAnalyzer {
   final List<UsedImportedElements> _usedImportedElementsList = [];
   final List<UsedLocalElements> _usedLocalElementsList = [];
 
-  /**
-   * Constants in the current library.
-   *
-   * TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/31925
-   */
-  final Set<ConstantEvaluationTarget> _libraryConstants = {};
-
   final Set<ConstantEvaluationTarget> _constants = {};
 
   LibraryAnalyzer(
@@ -158,7 +151,6 @@ class LibraryAnalyzer {
 
     timerLibraryAnalyzerConst.start();
     units.values.forEach(_findConstants);
-    _clearConstantEvaluationResults();
     _computeConstants();
     timerLibraryAnalyzerConst.stop();
 
@@ -215,29 +207,11 @@ class LibraryAnalyzer {
     return results;
   }
 
-  /**
-   * Clear evaluation results for all constants before computing them again.
-   * The reason is described in https://github.com/dart-lang/sdk/issues/35940
-   *
-   * Otherwise, we reuse results, including errors are recorded only when
-   * we evaluate constants resynthesized from summaries.
-   *
-   * TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/31925
-   */
-  void _clearConstantEvaluationResults() {
-    for (var constant in _libraryConstants) {
-      if (constant is ConstFieldElementImpl_ofEnum) continue;
-      if (constant is ConstVariableElement) {
-        constant.evaluationResult = null;
-      }
-    }
-  }
-
   void _computeConstantErrors(
       ErrorReporter errorReporter, CompilationUnit unit) {
     ConstantVerifier constantVerifier = ConstantVerifier(
         errorReporter, _libraryElement, _declaredVariables,
-        featureSet: unit.featureSet, forAnalysisDriver: true);
+        featureSet: unit.featureSet);
     unit.accept(constantVerifier);
   }
 
@@ -257,20 +231,29 @@ class LibraryAnalyzer {
     AnalysisErrorListener errorListener = _getErrorListener(file);
     ErrorReporter errorReporter = _getErrorReporter(file);
 
-    unit.accept(DeadCodeVerifier(errorReporter, unit.featureSet,
-        typeSystem: _typeSystem));
+    if (!_libraryElement.isNonNullableByDefault) {
+      unit.accept(DeadCodeVerifier(errorReporter, typeSystem: _typeSystem));
+    }
 
     // Dart2js analysis.
     if (_analysisOptions.dart2jsHint) {
       unit.accept(Dart2JSVerifier(errorReporter));
     }
 
-    unit.accept(BestPracticesVerifier(
-        errorReporter, _typeProvider, _libraryElement, unit, file.content,
+    unit.accept(
+      BestPracticesVerifier(
+        errorReporter,
+        _typeProvider,
+        _libraryElement,
+        unit,
+        file.content,
+        declaredVariables: _declaredVariables,
         typeSystem: _typeSystem,
         inheritanceManager: _inheritance,
         resourceProvider: _resourceProvider,
-        analysisOptions: _context.analysisOptions));
+        analysisOptions: _context.analysisOptions,
+      ),
+    );
 
     unit.accept(OverrideVerifier(
       _inheritance,
@@ -403,7 +386,7 @@ class LibraryAnalyzer {
     // Use the ErrorVerifier to compute errors.
     //
     ErrorVerifier errorVerifier = ErrorVerifier(
-        errorReporter, _libraryElement, _typeProvider, _inheritance, false);
+        errorReporter, _libraryElement, _typeProvider, _inheritance);
     unit.accept(errorVerifier);
 
     // Verify constraints on FFI uses. The CFE enforces these constraints as
@@ -429,12 +412,46 @@ class LibraryAnalyzer {
     LineInfo lineInfo = _fileToLineInfo[file];
 
     bool isIgnored(AnalysisError error) {
+      var code = error.errorCode;
+      // Don't allow error severity issues to be ignored.
+      if (!code.isIgnorable) {
+        // The [code] is not ignorable, but we've allowed a few "privileged"
+        // cases. Each is annotated with an issue which represents technical
+        // debt. Once cleaned up, we may remove this notion of "privileged".
+        // In the case of [CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY], we may
+        // just decide that it happens enough in tests that it can be declared
+        // an ignorable error, and in practice other back ends will prevent
+        // non-internal code from importing internal code.
+        bool privileged = false;
+
+        if (code == StaticTypeWarningCode.UNDEFINED_FUNCTION ||
+            code == StaticTypeWarningCode.UNDEFINED_PREFIXED_NAME) {
+          // Special case a small number of errors in Flutter code which are
+          // ignored. The erroneous code is found in a conditionally imported
+          // library, which uses a special version of the "dart:ui" library
+          // which the Analyzer does not use during analysis. See
+          // https://github.com/flutter/flutter/issues/52899.
+          if (file.path.contains('flutter')) {
+            privileged = true;
+          }
+        }
+
+        if (code == CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY &&
+            file.path.contains('tests/compiler/dart2js')) {
+          // Special case the dart2js language tests. Some of these import
+          // various internal libraries.
+          privileged = true;
+        }
+
+        if (!privileged) return false;
+      }
+
       int errorLine = lineInfo.getLocation(error.offset).lineNumber;
-      String name = error.errorCode.name.toLowerCase();
+      String name = code.name.toLowerCase();
       if (ignoreInfo.ignoredAt(name, errorLine)) {
         return true;
       }
-      String uniqueName = error.errorCode.uniqueName;
+      String uniqueName = code.uniqueName;
       int period = uniqueName.indexOf('.');
       if (period >= 0) {
         uniqueName = uniqueName.substring(period + 1);
@@ -450,7 +467,6 @@ class LibraryAnalyzer {
   void _findConstants(CompilationUnit unit) {
     ConstantFinder constantFinder = ConstantFinder();
     unit.accept(constantFinder);
-    _libraryConstants.addAll(constantFinder.constantsToCompute);
     _constants.addAll(constantFinder.constantsToCompute);
 
     var dependenciesFinder = ConstantExpressionsDependenciesFinder();

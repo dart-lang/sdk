@@ -2283,6 +2283,9 @@ TEST_CASE(DartAPI_ExternalByteDataFinalizer) {
 
     const intptr_t kBufferSize = 100;
     void* buffer = malloc(kBufferSize);
+    // The buffer becomes readable by Dart, so ensure it is initialized to
+    // satisfy our eager MSAN check.
+    memset(buffer, 0, kBufferSize);
     Dart_Handle byte_data = Dart_NewExternalTypedDataWithFinalizer(
         Dart_TypedData_kByteData, buffer, kBufferSize, buffer, kBufferSize,
         ByteDataFinalizer);
@@ -3370,6 +3373,7 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSize) {
     weak2 = Dart_NewWeakPersistentHandle(obj, NULL, kWeak2ExternalSize,
                                          NopCallback);
     EXPECT_VALID(AsHandle(strong_ref));
+    EXPECT_VALID(AsHandle(weak2));
     Dart_ExitScope();
   }
   {
@@ -4492,7 +4496,7 @@ TEST_CASE(DartAPI_InjectNativeFields3) {
   // (1 + 2) * kWordSize + size of object header.
   // We check to make sure the instance size computed by the VM matches
   // our expectations.
-  intptr_t header_size = sizeof(RawObject);
+  intptr_t header_size = sizeof(ObjectLayout);
   EXPECT_EQ(
       Utils::RoundUp(((1 + 2) * kWordSize) + header_size, kObjectAlignment),
       cls.host_instance_size());

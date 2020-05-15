@@ -19,9 +19,9 @@ void main() {
 class AnalysisErrorIntegrationTest
     extends AbstractAnalysisServerIntegrationTest {
   Future<void> test_analysisRootDoesNotExist() async {
-    String packagePath = sourcePath('package');
-    String filePath = sourcePath('package/lib/test.dart');
-    String content = '''
+    var packagePath = sourcePath('package');
+    var filePath = sourcePath('package/lib/test.dart');
+    var content = '''
 main() {
   print(null) // parse error: missing ';'
 }''';
@@ -31,13 +31,13 @@ main() {
     await analysisFinished;
 
     expect(currentAnalysisErrors[filePath], isList);
-    List<AnalysisError> errors = currentAnalysisErrors[filePath];
+    var errors = currentAnalysisErrors[filePath];
     expect(errors, hasLength(1));
     expect(errors[0].location.file, equals(filePath));
   }
 
   Future<void> test_detect_simple_error() {
-    String pathname = sourcePath('test.dart');
+    var pathname = sourcePath('test.dart');
     writeFile(pathname, '''
 main() {
   print(null) // parse error: missing ';'
@@ -45,14 +45,14 @@ main() {
     standardAnalysisSetup();
     return analysisFinished.then((_) {
       expect(currentAnalysisErrors[pathname], isList);
-      List<AnalysisError> errors = currentAnalysisErrors[pathname];
+      var errors = currentAnalysisErrors[pathname];
       expect(errors, hasLength(1));
       expect(errors[0].location.file, equals(pathname));
     });
   }
 
   Future<void> test_super_mixins_disabled() async {
-    String pathname = sourcePath('test.dart');
+    var pathname = sourcePath('test.dart');
     writeFile(pathname, '''
 class Test extends Object with C {
   void foo() {}
@@ -69,10 +69,9 @@ abstract class C extends B {
     standardAnalysisSetup();
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isList);
-    List<AnalysisError> errors = currentAnalysisErrors[pathname];
+    var errors = currentAnalysisErrors[pathname];
     expect(errors, hasLength(2));
-    Set<String> allErrorMessages =
-        errors.map((AnalysisError e) => e.message).toSet();
+    var allErrorMessages = errors.map((AnalysisError e) => e.message).toSet();
     expect(
         allErrorMessages,
         contains(
@@ -92,7 +91,7 @@ abstract class C extends B {
     //    AnalysisError:{"severity":"ERROR","type":"COMPILE_TIME_ERROR","location":{"file":"/var/folders/00/0w95r000h01000cxqpysvccm003j4q/T/analysisServerfbuOQb/test.dart","offset":31,"length":1,"startLine":1,"startColumn":32},"message":"The class 'C' can't be used as a mixin because it references 'super'.","correction":"","code":"mixin_references_super","hasFix":false}
     //  ]
 
-    String pathname = sourcePath('test.dart');
+    var pathname = sourcePath('test.dart');
     writeFile(pathname, '''
 class Test extends Object with C {
   void foo() {}
@@ -112,7 +111,7 @@ abstract class C extends B {
     standardAnalysisSetup();
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isList);
-    List<AnalysisError> errors = currentAnalysisErrors[pathname];
+    var errors = currentAnalysisErrors[pathname];
     expect(errors, isEmpty);
   }
 }

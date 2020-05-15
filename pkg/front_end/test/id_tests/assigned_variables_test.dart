@@ -100,7 +100,7 @@ class _AssignedVariablesDataInterpreter implements DataInterpreter<_Data> {
   const _AssignedVariablesDataInterpreter();
 
   @override
-  String getText(_Data actualData) {
+  String getText(_Data actualData, [String indentation]) {
     var parts = <String>[];
     if (actualData.declared.isNotEmpty) {
       parts.add('declared=${_setToString(actualData.declared)}');

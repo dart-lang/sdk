@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -34,9 +33,9 @@ class SortMembersTest extends AbstractAnalysisTest {
   @failingTest
   Future<void> test_BAD_doesNotExist() async {
     // The analysis driver fails to return an error
-    Request request =
+    var request =
         EditSortMembersParams(convertPath('/no/such/file.dart')).toRequest('0');
-    Response response = await waitResponse(request);
+    var response = await waitResponse(request);
     expect(response,
         isResponseFailure('0', RequestErrorCode.SORT_MEMBERS_INVALID_FILE));
   }
@@ -47,17 +46,17 @@ main() {
   print()
 }
 ''');
-    Request request = EditSortMembersParams(testFile).toRequest('0');
-    Response response = await waitResponse(request);
+    var request = EditSortMembersParams(testFile).toRequest('0');
+    var response = await waitResponse(request);
     expect(response,
         isResponseFailure('0', RequestErrorCode.SORT_MEMBERS_PARSE_ERRORS));
   }
 
   Future<void> test_BAD_notDartFile() async {
-    Request request = EditSortMembersParams(
+    var request = EditSortMembersParams(
       convertPath('/not-a-Dart-file.txt'),
     ).toRequest('0');
-    Response response = await waitResponse(request);
+    var response = await waitResponse(request);
     expect(response,
         isResponseFailure('0', RequestErrorCode.SORT_MEMBERS_INVALID_FILE));
   }
@@ -263,13 +262,13 @@ class C {}
 
   Future _assertSorted(String expectedCode) async {
     await _requestSort();
-    String resultCode = SourceEdit.applySequence(testCode, fileEdit.edits);
+    var resultCode = SourceEdit.applySequence(testCode, fileEdit.edits);
     expect(resultCode, expectedCode);
   }
 
   Future _requestSort() async {
-    Request request = EditSortMembersParams(testFile).toRequest('0');
-    Response response = await waitResponse(request);
+    var request = EditSortMembersParams(testFile).toRequest('0');
+    var response = await waitResponse(request);
     var result = EditSortMembersResult.fromResponse(response);
     fileEdit = result.edit;
   }

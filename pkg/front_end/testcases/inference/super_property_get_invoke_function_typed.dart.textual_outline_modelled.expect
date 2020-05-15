@@ -1,0 +1,11 @@
+library test;
+
+class C {
+  var f = () => 0;
+}
+
+class D extends C {
+  void g() {}
+}
+
+main() {}

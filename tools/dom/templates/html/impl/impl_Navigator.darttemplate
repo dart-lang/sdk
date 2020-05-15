@@ -6,7 +6,7 @@ part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
-  List<Gamepad> getGamepads() {
+  List<Gamepad$NULLABLE> getGamepads() {
     var gamepadList = _getGamepads();
 
     // If no prototype we need one for the world to hookup to the proper Dart class.

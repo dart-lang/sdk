@@ -63,12 +63,12 @@ class ConvertToSetLiteral extends CorrectionProducer {
         // Handle an invocation of the default constructor `Set()`.
       } else if (name.name == 'from' || name.name == 'of') {
         // Handle an invocation of the constructor `Set.from()` or `Set.of()`.
-        NodeList<Expression> arguments = creation.argumentList.arguments;
+        var arguments = creation.argumentList.arguments;
         if (arguments.length != 1) {
           return;
         }
         if (arguments[0] is ListLiteral) {
-          ListLiteral elements = arguments[0] as ListLiteral;
+          var elements = arguments[0] as ListLiteral;
           elementTypeArguments = elements.typeArguments;
           elementsRange =
               range.endStart(elements.leftBracket, elements.rightBracket);
@@ -133,7 +133,7 @@ class ConvertToSetLiteral extends CorrectionProducer {
   /// Return `true` if the instance [creation] contains at least one unambiguous
   /// element that would cause a set to be inferred.
   bool _hasUnambiguousElement(InstanceCreationExpression creation) {
-    NodeList<Expression> arguments = creation.argumentList.arguments;
+    var arguments = creation.argumentList.arguments;
     if (arguments == null || arguments.isEmpty) {
       return false;
     }
@@ -159,7 +159,7 @@ class ConvertToSetLiteral extends CorrectionProducer {
   /// set literal rather than a map literal.
   bool _listHasUnambiguousElement(AstNode node) {
     if (node is ListLiteral && node.elements.isNotEmpty) {
-      for (CollectionElement element in node.elements) {
+      for (var element in node.elements) {
         if (_isUnambiguousElement(element)) {
           return true;
         }
@@ -171,9 +171,9 @@ class ConvertToSetLiteral extends CorrectionProducer {
   /// Return `true` if a set would be inferred if the literal replacing the
   /// instance [creation] did not have explicit type arguments.
   bool _setWouldBeInferred(InstanceCreationExpression creation) {
-    AstNode parent = creation.parent;
+    var parent = creation.parent;
     if (parent is VariableDeclaration) {
-      AstNode parent2 = parent.parent;
+      var parent2 = parent.parent;
       if (parent2 is VariableDeclarationList &&
           parent2.type?.type?.element == typeProvider.setElement) {
         return true;
@@ -181,4 +181,7 @@ class ConvertToSetLiteral extends CorrectionProducer {
     }
     return _hasUnambiguousElement(creation);
   }
+
+  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
+  static ConvertToSetLiteral newInstance() => ConvertToSetLiteral();
 }

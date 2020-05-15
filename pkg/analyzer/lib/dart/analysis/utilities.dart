@@ -121,7 +121,6 @@ ParseStringResult parseString(
   var parser = Parser(
     source,
     errorCollector,
-    languageVersion: scanner.languageVersion,
     featureSet: scanner.featureSet,
   );
   var unit = parser.parseCompilationUnit(token);

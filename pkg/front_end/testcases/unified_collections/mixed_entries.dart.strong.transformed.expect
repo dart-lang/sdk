@@ -40,7 +40,6 @@ library;
 //
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 static field core::bool* b = false;
 static field core::List<dynamic>* list = <dynamic>[];
@@ -50,7 +49,7 @@ static field core::Map<dynamic, dynamic>* map1 = block {
   if(self::b)
     #t1.{core::Map::[]=}(0, 1);
   else {
-    core::Iterator<core::MapEntry<dynamic, dynamic>*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::MapEntry<dynamic, dynamic>*>*>(self::map0.{core::Map::entries}).{core::Iterable::iterator};
+    core::Iterator<core::MapEntry<dynamic, dynamic>>* :sync-for-iterator = self::map0.{core::Map::entries}.{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       final core::MapEntry<dynamic, dynamic>* #t2 = :sync-for-iterator.{core::Iterator::current};
       #t1.{core::Map::[]=}(#t2.{core::MapEntry::key}, #t2.{core::MapEntry::value});
@@ -60,7 +59,7 @@ static field core::Map<dynamic, dynamic>* map1 = block {
 static field core::Map<dynamic, dynamic>* map2 = block {
   final core::Map<dynamic, dynamic>* #t3 = <dynamic, dynamic>{};
   if(self::b) {
-    core::Iterator<core::MapEntry<dynamic, dynamic>*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::MapEntry<dynamic, dynamic>*>*>(self::map0.{core::Map::entries}).{core::Iterable::iterator};
+    core::Iterator<core::MapEntry<dynamic, dynamic>>* :sync-for-iterator = self::map0.{core::Map::entries}.{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       final core::MapEntry<dynamic, dynamic>* #t4 = :sync-for-iterator.{core::Iterator::current};
       #t3.{core::Map::[]=}(#t4.{core::MapEntry::key}, #t4.{core::MapEntry::value});
@@ -72,14 +71,14 @@ static field core::Map<dynamic, dynamic>* map2 = block {
 static field core::Map<dynamic, dynamic>* map3 = block {
   final core::Map<dynamic, dynamic>* #t5 = <dynamic, dynamic>{};
   if(self::b) {
-    core::Iterator<core::MapEntry<dynamic, dynamic>*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::MapEntry<dynamic, dynamic>*>*>(self::map0.{core::Map::entries}).{core::Iterable::iterator};
+    core::Iterator<core::MapEntry<dynamic, dynamic>>* :sync-for-iterator = self::map0.{core::Map::entries}.{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       final core::MapEntry<dynamic, dynamic>* #t6 = :sync-for-iterator.{core::Iterator::current};
       #t5.{core::Map::[]=}(#t6.{core::MapEntry::key}, #t6.{core::MapEntry::value});
     }
   }
   else {
-    core::Iterator<core::MapEntry<dynamic, dynamic>*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::MapEntry<dynamic, dynamic>*>*>(self::map0.{core::Map::entries}).{core::Iterable::iterator};
+    core::Iterator<core::MapEntry<dynamic, dynamic>>* :sync-for-iterator = self::map0.{core::Map::entries}.{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       final core::MapEntry<dynamic, dynamic>* #t7 = :sync-for-iterator.{core::Iterator::current};
       #t5.{core::Map::[]=}(#t7.{core::MapEntry::key}, #t7.{core::MapEntry::value});
@@ -91,7 +90,7 @@ static field core::Map<dynamic, core::int*>* map4 = block {
   if(self::b)
     #t8.{core::Map::[]=}(0, 1);
   else {
-    core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(self::list).{core::Iterable::iterator};
+    core::Iterator<dynamic>* :sync-for-iterator = self::list.{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       dynamic a = :sync-for-iterator.{core::Iterator::current};
       #t8.{core::Map::[]=}(a, 1);
@@ -101,7 +100,7 @@ static field core::Map<dynamic, core::int*>* map4 = block {
 static field core::Map<dynamic, core::int*>* map5 = block {
   final core::Map<dynamic, core::int*>* #t9 = <dynamic, core::int*>{};
   if(self::b) {
-    core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(self::list).{core::Iterable::iterator};
+    core::Iterator<dynamic>* :sync-for-iterator = self::list.{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       dynamic a = :sync-for-iterator.{core::Iterator::current};
       #t9.{core::Map::[]=}(a, 1);
@@ -115,11 +114,11 @@ static field core::Map<dynamic, core::int*>* map6 = block {
   if(self::b)
     #t10.{core::Map::[]=}(0, 1);
   else {
-    core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(self::list).{core::Iterable::iterator};
+    core::Iterator<dynamic>* :sync-for-iterator = self::list.{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       dynamic a = :sync-for-iterator.{core::Iterator::current};
       {
-        core::Iterator<core::MapEntry<dynamic, core::int*>*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::MapEntry<dynamic, core::int*>*>*>(<dynamic, core::int*>{a: 1}.{core::Map::entries}).{core::Iterable::iterator};
+        core::Iterator<core::MapEntry<dynamic, core::int*>>* :sync-for-iterator = <dynamic, core::int*>{a: 1}.{core::Map::entries}.{core::Iterable::iterator};
         for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
           final core::MapEntry<dynamic, core::int*>* #t11 = :sync-for-iterator.{core::Iterator::current};
           #t10.{core::Map::[]=}(#t11.{core::MapEntry::key}, #t11.{core::MapEntry::value});
@@ -131,11 +130,11 @@ static field core::Map<dynamic, core::int*>* map6 = block {
 static field core::Map<dynamic, core::int*>* map7 = block {
   final core::Map<dynamic, core::int*>* #t12 = <dynamic, core::int*>{};
   if(self::b) {
-    core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(self::list).{core::Iterable::iterator};
+    core::Iterator<dynamic>* :sync-for-iterator = self::list.{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       dynamic a = :sync-for-iterator.{core::Iterator::current};
       {
-        core::Iterator<core::MapEntry<dynamic, core::int*>*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::MapEntry<dynamic, core::int*>*>*>(<dynamic, core::int*>{a: 1}.{core::Map::entries}).{core::Iterable::iterator};
+        core::Iterator<core::MapEntry<dynamic, core::int*>>* :sync-for-iterator = <dynamic, core::int*>{a: 1}.{core::Map::entries}.{core::Iterable::iterator};
         for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
           final core::MapEntry<dynamic, core::int*>* #t13 = :sync-for-iterator.{core::Iterator::current};
           #t12.{core::Map::[]=}(#t13.{core::MapEntry::key}, #t13.{core::MapEntry::value});
@@ -168,7 +167,7 @@ static field core::Map<dynamic, core::int*>* map10 = block {
     #t16.{core::Map::[]=}(0, 1);
   else
     for (core::int* i = 0; i.{core::num::<}(self::list.{core::List::length}); i = i.{core::num::+}(1)) {
-      core::Iterator<core::MapEntry<dynamic, core::int*>*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::MapEntry<dynamic, core::int*>*>*>(<dynamic, core::int*>{self::list.{core::List::[]}(i): 1}.{core::Map::entries}).{core::Iterable::iterator};
+      core::Iterator<core::MapEntry<dynamic, core::int*>>* :sync-for-iterator = <dynamic, core::int*>{self::list.{core::List::[]}(i): 1}.{core::Map::entries}.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::MapEntry<dynamic, core::int*>* #t17 = :sync-for-iterator.{core::Iterator::current};
         #t16.{core::Map::[]=}(#t17.{core::MapEntry::key}, #t17.{core::MapEntry::value});
@@ -179,7 +178,7 @@ static field core::Map<dynamic, core::int*>* map11 = block {
   final core::Map<dynamic, core::int*>* #t18 = <dynamic, core::int*>{};
   if(self::b)
     for (core::int* i = 0; i.{core::num::<}(self::list.{core::List::length}); i = i.{core::num::+}(1)) {
-      core::Iterator<core::MapEntry<dynamic, core::int*>*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::MapEntry<dynamic, core::int*>*>*>(<dynamic, core::int*>{self::list.{core::List::[]}(i): 1}.{core::Map::entries}).{core::Iterable::iterator};
+      core::Iterator<core::MapEntry<dynamic, core::int*>>* :sync-for-iterator = <dynamic, core::int*>{self::list.{core::List::[]}(i): 1}.{core::Map::entries}.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::MapEntry<dynamic, core::int*>* #t19 = :sync-for-iterator.{core::Iterator::current};
         #t18.{core::Map::[]=}(#t19.{core::MapEntry::key}, #t19.{core::MapEntry::value});
@@ -194,7 +193,7 @@ static field core::Map<core::int*, core::int*>* map12 = block {
     #t20.{core::Map::[]=}(0, 1);
   else
     if(self::b) {
-      core::Iterator<core::MapEntry<core::int*, core::int*>*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::MapEntry<core::int*, core::int*>*>*>(<core::int*, core::int*>{0: 1}.{core::Map::entries}).{core::Iterable::iterator};
+      core::Iterator<core::MapEntry<core::int*, core::int*>>* :sync-for-iterator = <core::int*, core::int*>{0: 1}.{core::Map::entries}.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::MapEntry<core::int*, core::int*>* #t21 = :sync-for-iterator.{core::Iterator::current};
         #t20.{core::Map::[]=}(#t21.{core::MapEntry::key}, #t21.{core::MapEntry::value});

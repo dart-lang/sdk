@@ -1,0 +1,4 @@
+String s;
+int i;
+main() {}
+var x = i = s;

@@ -26,259 +26,259 @@ library;
 //     use(Func());
 //         ^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:29:5: Error: Setter not found: 'C'.
+// pkg/front_end/testcases/rasta/type_literals.dart:29:5: Error: Can't assign to a type literal.
 //     C = 42;
 //     ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:30:9: Error: Setter not found: 'C'.
+// pkg/front_end/testcases/rasta/type_literals.dart:30:9: Error: Can't assign to a type literal.
 //     use(C = 42);
 //         ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:31:5: Error: Setter not found: 'dynamic'.
+// pkg/front_end/testcases/rasta/type_literals.dart:31:5: Error: Can't assign to a type literal.
 //     dynamic = 42;
 //     ^^^^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:32:9: Error: Setter not found: 'dynamic'.
+// pkg/front_end/testcases/rasta/type_literals.dart:32:9: Error: Can't assign to a type literal.
 //     use(dynamic = 42);
 //         ^^^^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:33:5: Error: Setter not found: 'T'.
+// pkg/front_end/testcases/rasta/type_literals.dart:33:5: Error: Can't assign to a type literal.
 //     T = 42;
 //     ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:34:9: Error: Setter not found: 'T'.
+// pkg/front_end/testcases/rasta/type_literals.dart:34:9: Error: Can't assign to a type literal.
 //     use(T = 42);
 //         ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:35:5: Error: Setter not found: 'Func'.
+// pkg/front_end/testcases/rasta/type_literals.dart:35:5: Error: Can't assign to a type literal.
 //     Func = 42;
 //     ^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:36:9: Error: Setter not found: 'Func'.
+// pkg/front_end/testcases/rasta/type_literals.dart:36:9: Error: Can't assign to a type literal.
 //     use(Func = 42);
 //         ^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:38:5: Error: Setter not found: 'C'.
+// pkg/front_end/testcases/rasta/type_literals.dart:38:5: Error: Can't assign to a type literal.
 //     C++;
 //     ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:39:9: Error: Setter not found: 'C'.
+// pkg/front_end/testcases/rasta/type_literals.dart:39:9: Error: Can't assign to a type literal.
 //     use(C++);
 //         ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:40:5: Error: Setter not found: 'dynamic'.
+// pkg/front_end/testcases/rasta/type_literals.dart:40:5: Error: Can't assign to a type literal.
 //     dynamic++;
 //     ^^^^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:41:9: Error: Setter not found: 'dynamic'.
+// pkg/front_end/testcases/rasta/type_literals.dart:41:9: Error: Can't assign to a type literal.
 //     use(dynamic++);
 //         ^^^^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:42:5: Error: Setter not found: 'T'.
+// pkg/front_end/testcases/rasta/type_literals.dart:42:5: Error: Can't assign to a type literal.
 //     T++;
 //     ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:43:9: Error: Setter not found: 'T'.
+// pkg/front_end/testcases/rasta/type_literals.dart:43:9: Error: Can't assign to a type literal.
 //     use(T++);
 //         ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:44:5: Error: Setter not found: 'Func'.
+// pkg/front_end/testcases/rasta/type_literals.dart:44:5: Error: Can't assign to a type literal.
 //     Func++;
 //     ^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:45:9: Error: Setter not found: 'Func'.
+// pkg/front_end/testcases/rasta/type_literals.dart:45:9: Error: Can't assign to a type literal.
 //     use(Func++);
 //         ^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:47:7: Error: Setter not found: 'C'.
+// pkg/front_end/testcases/rasta/type_literals.dart:47:7: Error: Can't assign to a type literal.
 //     ++C;
 //       ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:48:11: Error: Setter not found: 'C'.
+// pkg/front_end/testcases/rasta/type_literals.dart:48:11: Error: Can't assign to a type literal.
 //     use(++C);
 //           ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:49:7: Error: Setter not found: 'dynamic'.
+// pkg/front_end/testcases/rasta/type_literals.dart:49:7: Error: Can't assign to a type literal.
 //     ++dynamic;
 //       ^^^^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:50:11: Error: Setter not found: 'dynamic'.
+// pkg/front_end/testcases/rasta/type_literals.dart:50:11: Error: Can't assign to a type literal.
 //     use(++dynamic);
 //           ^^^^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:51:7: Error: Setter not found: 'T'.
+// pkg/front_end/testcases/rasta/type_literals.dart:51:7: Error: Can't assign to a type literal.
 //     ++T;
 //       ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:52:11: Error: Setter not found: 'T'.
+// pkg/front_end/testcases/rasta/type_literals.dart:52:11: Error: Can't assign to a type literal.
 //     use(++T);
 //           ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:53:7: Error: Setter not found: 'Func'.
+// pkg/front_end/testcases/rasta/type_literals.dart:53:7: Error: Can't assign to a type literal.
 //     ++Func;
 //       ^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:54:11: Error: Setter not found: 'Func'.
+// pkg/front_end/testcases/rasta/type_literals.dart:54:11: Error: Can't assign to a type literal.
 //     use(++Func);
 //           ^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:56:5: Error: Setter not found: 'C'.
+// pkg/front_end/testcases/rasta/type_literals.dart:56:5: Error: Can't assign to a type literal.
 //     C--;
 //     ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:57:9: Error: Setter not found: 'C'.
+// pkg/front_end/testcases/rasta/type_literals.dart:57:9: Error: Can't assign to a type literal.
 //     use(C--);
 //         ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:58:5: Error: Setter not found: 'dynamic'.
+// pkg/front_end/testcases/rasta/type_literals.dart:58:5: Error: Can't assign to a type literal.
 //     dynamic--;
 //     ^^^^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:59:9: Error: Setter not found: 'dynamic'.
+// pkg/front_end/testcases/rasta/type_literals.dart:59:9: Error: Can't assign to a type literal.
 //     use(dynamic--);
 //         ^^^^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:60:5: Error: Setter not found: 'T'.
+// pkg/front_end/testcases/rasta/type_literals.dart:60:5: Error: Can't assign to a type literal.
 //     T--;
 //     ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:61:9: Error: Setter not found: 'T'.
+// pkg/front_end/testcases/rasta/type_literals.dart:61:9: Error: Can't assign to a type literal.
 //     use(T--);
 //         ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:62:5: Error: Setter not found: 'Func'.
+// pkg/front_end/testcases/rasta/type_literals.dart:62:5: Error: Can't assign to a type literal.
 //     Func--;
 //     ^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:63:9: Error: Setter not found: 'Func'.
+// pkg/front_end/testcases/rasta/type_literals.dart:63:9: Error: Can't assign to a type literal.
 //     use(Func--);
 //         ^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:65:7: Error: Setter not found: 'C'.
+// pkg/front_end/testcases/rasta/type_literals.dart:65:7: Error: Can't assign to a type literal.
 //     --C;
 //       ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:66:11: Error: Setter not found: 'C'.
+// pkg/front_end/testcases/rasta/type_literals.dart:66:11: Error: Can't assign to a type literal.
 //     use(--C);
 //           ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:67:7: Error: Setter not found: 'dynamic'.
+// pkg/front_end/testcases/rasta/type_literals.dart:67:7: Error: Can't assign to a type literal.
 //     --dynamic;
 //       ^^^^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:68:11: Error: Setter not found: 'dynamic'.
+// pkg/front_end/testcases/rasta/type_literals.dart:68:11: Error: Can't assign to a type literal.
 //     use(--dynamic);
 //           ^^^^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:69:7: Error: Setter not found: 'T'.
+// pkg/front_end/testcases/rasta/type_literals.dart:69:7: Error: Can't assign to a type literal.
 //     --T;
 //       ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:70:11: Error: Setter not found: 'T'.
+// pkg/front_end/testcases/rasta/type_literals.dart:70:11: Error: Can't assign to a type literal.
 //     use(--T);
 //           ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:71:7: Error: Setter not found: 'Func'.
+// pkg/front_end/testcases/rasta/type_literals.dart:71:7: Error: Can't assign to a type literal.
 //     --Func;
 //       ^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:72:11: Error: Setter not found: 'Func'.
+// pkg/front_end/testcases/rasta/type_literals.dart:72:11: Error: Can't assign to a type literal.
 //     use(--Func);
 //           ^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:74:5: Error: Setter not found: 'C'.
+// pkg/front_end/testcases/rasta/type_literals.dart:74:5: Error: Can't assign to a type literal.
 //     C ??= 42;
 //     ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:75:9: Error: Setter not found: 'C'.
+// pkg/front_end/testcases/rasta/type_literals.dart:75:9: Error: Can't assign to a type literal.
 //     use(C ??= 42);
 //         ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:76:5: Error: Setter not found: 'dynamic'.
+// pkg/front_end/testcases/rasta/type_literals.dart:76:5: Error: Can't assign to a type literal.
 //     dynamic ??= 42;
 //     ^^^^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:77:9: Error: Setter not found: 'dynamic'.
+// pkg/front_end/testcases/rasta/type_literals.dart:77:9: Error: Can't assign to a type literal.
 //     use(dynamic ??= 42);
 //         ^^^^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:78:5: Error: Setter not found: 'T'.
+// pkg/front_end/testcases/rasta/type_literals.dart:78:5: Error: Can't assign to a type literal.
 //     T ??= 42;
 //     ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:79:9: Error: Setter not found: 'T'.
+// pkg/front_end/testcases/rasta/type_literals.dart:79:9: Error: Can't assign to a type literal.
 //     use(T ??= 42);
 //         ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:80:5: Error: Setter not found: 'Func'.
+// pkg/front_end/testcases/rasta/type_literals.dart:80:5: Error: Can't assign to a type literal.
 //     Func ??= 42;
 //     ^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:81:9: Error: Setter not found: 'Func'.
+// pkg/front_end/testcases/rasta/type_literals.dart:81:9: Error: Can't assign to a type literal.
 //     use(Func ??= 42);
 //         ^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:83:5: Error: Setter not found: 'C'.
+// pkg/front_end/testcases/rasta/type_literals.dart:83:5: Error: Can't assign to a type literal.
 //     C += 42;
 //     ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:84:9: Error: Setter not found: 'C'.
+// pkg/front_end/testcases/rasta/type_literals.dart:84:9: Error: Can't assign to a type literal.
 //     use(C += 42);
 //         ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:85:5: Error: Setter not found: 'dynamic'.
+// pkg/front_end/testcases/rasta/type_literals.dart:85:5: Error: Can't assign to a type literal.
 //     dynamic += 42;
 //     ^^^^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:86:9: Error: Setter not found: 'dynamic'.
+// pkg/front_end/testcases/rasta/type_literals.dart:86:9: Error: Can't assign to a type literal.
 //     use(dynamic += 42);
 //         ^^^^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:87:5: Error: Setter not found: 'T'.
+// pkg/front_end/testcases/rasta/type_literals.dart:87:5: Error: Can't assign to a type literal.
 //     T += 42;
 //     ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:88:9: Error: Setter not found: 'T'.
+// pkg/front_end/testcases/rasta/type_literals.dart:88:9: Error: Can't assign to a type literal.
 //     use(T += 42);
 //         ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:89:5: Error: Setter not found: 'Func'.
+// pkg/front_end/testcases/rasta/type_literals.dart:89:5: Error: Can't assign to a type literal.
 //     Func += 42;
 //     ^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:90:9: Error: Setter not found: 'Func'.
+// pkg/front_end/testcases/rasta/type_literals.dart:90:9: Error: Can't assign to a type literal.
 //     use(Func += 42);
 //         ^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:92:5: Error: Setter not found: 'C'.
+// pkg/front_end/testcases/rasta/type_literals.dart:92:5: Error: Can't assign to a type literal.
 //     C -= 42;
 //     ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:93:9: Error: Setter not found: 'C'.
+// pkg/front_end/testcases/rasta/type_literals.dart:93:9: Error: Can't assign to a type literal.
 //     use(C -= 42);
 //         ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:94:5: Error: Setter not found: 'dynamic'.
+// pkg/front_end/testcases/rasta/type_literals.dart:94:5: Error: Can't assign to a type literal.
 //     dynamic -= 42;
 //     ^^^^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:95:9: Error: Setter not found: 'dynamic'.
+// pkg/front_end/testcases/rasta/type_literals.dart:95:9: Error: Can't assign to a type literal.
 //     use(dynamic -= 42);
 //         ^^^^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:96:5: Error: Setter not found: 'T'.
+// pkg/front_end/testcases/rasta/type_literals.dart:96:5: Error: Can't assign to a type literal.
 //     T -= 42;
 //     ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:97:9: Error: Setter not found: 'T'.
+// pkg/front_end/testcases/rasta/type_literals.dart:97:9: Error: Can't assign to a type literal.
 //     use(T -= 42);
 //         ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:98:5: Error: Setter not found: 'Func'.
+// pkg/front_end/testcases/rasta/type_literals.dart:98:5: Error: Can't assign to a type literal.
 //     Func -= 42;
 //     ^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:99:9: Error: Setter not found: 'Func'.
+// pkg/front_end/testcases/rasta/type_literals.dart:99:9: Error: Can't assign to a type literal.
 //     use(Func -= 42);
 //         ^^^^
 //
@@ -319,199 +319,209 @@ class C<T extends core::Object* = dynamic> extends core::Object {
     self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:27:9: Error: Method not found: 'Func'.
     use(Func());
         ^^^^");
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:29:5: Error: Setter not found: 'C'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:29:5: Error: Can't assign to a type literal.
     C = 42;
     ^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:30:9: Error: Setter not found: 'C'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:30:9: Error: Can't assign to a type literal.
     use(C = 42);
         ^");
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:31:5: Error: Setter not found: 'dynamic'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:31:5: Error: Can't assign to a type literal.
     dynamic = 42;
     ^^^^^^^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:32:9: Error: Setter not found: 'dynamic'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:32:9: Error: Can't assign to a type literal.
     use(dynamic = 42);
         ^^^^^^^");
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:33:5: Error: Setter not found: 'T'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:33:5: Error: Can't assign to a type literal.
     T = 42;
     ^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:34:9: Error: Setter not found: 'T'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:34:9: Error: Can't assign to a type literal.
     use(T = 42);
         ^");
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:35:5: Error: Setter not found: 'Func'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:35:5: Error: Can't assign to a type literal.
     Func = 42;
     ^^^^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:36:9: Error: Setter not found: 'Func'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:36:9: Error: Can't assign to a type literal.
     use(Func = 42);
         ^^^^");
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:38:5: Error: Setter not found: 'C'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:38:5: Error: Can't assign to a type literal.
     C++;
     ^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:39:9: Error: Setter not found: 'C'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:39:9: Error: Can't assign to a type literal.
     use(C++);
         ^");
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:40:5: Error: Setter not found: 'dynamic'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:40:5: Error: Can't assign to a type literal.
     dynamic++;
     ^^^^^^^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:41:9: Error: Setter not found: 'dynamic'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:41:9: Error: Can't assign to a type literal.
     use(dynamic++);
         ^^^^^^^");
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:42:5: Error: Setter not found: 'T'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:42:5: Error: Can't assign to a type literal.
     T++;
     ^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:43:9: Error: Setter not found: 'T'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:43:9: Error: Can't assign to a type literal.
     use(T++);
         ^");
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:44:5: Error: Setter not found: 'Func'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:44:5: Error: Can't assign to a type literal.
     Func++;
     ^^^^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:45:9: Error: Setter not found: 'Func'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:45:9: Error: Can't assign to a type literal.
     use(Func++);
         ^^^^");
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:47:7: Error: Setter not found: 'C'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:47:7: Error: Can't assign to a type literal.
     ++C;
       ^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:48:11: Error: Setter not found: 'C'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:48:11: Error: Can't assign to a type literal.
     use(++C);
           ^");
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:49:7: Error: Setter not found: 'dynamic'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:49:7: Error: Can't assign to a type literal.
     ++dynamic;
       ^^^^^^^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:50:11: Error: Setter not found: 'dynamic'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:50:11: Error: Can't assign to a type literal.
     use(++dynamic);
           ^^^^^^^");
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:51:7: Error: Setter not found: 'T'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:51:7: Error: Can't assign to a type literal.
     ++T;
       ^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:52:11: Error: Setter not found: 'T'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:52:11: Error: Can't assign to a type literal.
     use(++T);
           ^");
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:53:7: Error: Setter not found: 'Func'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:53:7: Error: Can't assign to a type literal.
     ++Func;
       ^^^^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:54:11: Error: Setter not found: 'Func'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:54:11: Error: Can't assign to a type literal.
     use(++Func);
           ^^^^");
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:56:5: Error: Setter not found: 'C'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:56:5: Error: Can't assign to a type literal.
     C--;
     ^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:57:9: Error: Setter not found: 'C'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:57:9: Error: Can't assign to a type literal.
     use(C--);
         ^");
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:58:5: Error: Setter not found: 'dynamic'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:58:5: Error: Can't assign to a type literal.
     dynamic--;
     ^^^^^^^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:59:9: Error: Setter not found: 'dynamic'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:59:9: Error: Can't assign to a type literal.
     use(dynamic--);
         ^^^^^^^");
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:60:5: Error: Setter not found: 'T'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:60:5: Error: Can't assign to a type literal.
     T--;
     ^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:61:9: Error: Setter not found: 'T'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:61:9: Error: Can't assign to a type literal.
     use(T--);
         ^");
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:62:5: Error: Setter not found: 'Func'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:62:5: Error: Can't assign to a type literal.
     Func--;
     ^^^^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:63:9: Error: Setter not found: 'Func'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:63:9: Error: Can't assign to a type literal.
     use(Func--);
         ^^^^");
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:65:7: Error: Setter not found: 'C'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:65:7: Error: Can't assign to a type literal.
     --C;
       ^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:66:11: Error: Setter not found: 'C'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:66:11: Error: Can't assign to a type literal.
     use(--C);
           ^");
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:67:7: Error: Setter not found: 'dynamic'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:67:7: Error: Can't assign to a type literal.
     --dynamic;
       ^^^^^^^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:68:11: Error: Setter not found: 'dynamic'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:68:11: Error: Can't assign to a type literal.
     use(--dynamic);
           ^^^^^^^");
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:69:7: Error: Setter not found: 'T'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:69:7: Error: Can't assign to a type literal.
     --T;
       ^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:70:11: Error: Setter not found: 'T'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:70:11: Error: Can't assign to a type literal.
     use(--T);
           ^");
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:71:7: Error: Setter not found: 'Func'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:71:7: Error: Can't assign to a type literal.
     --Func;
       ^^^^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:72:11: Error: Setter not found: 'Func'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:72:11: Error: Can't assign to a type literal.
     use(--Func);
           ^^^^");
-    self::C<dynamic>*.{core::Object::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:74:5: Error: Setter not found: 'C'.
+    self::C<dynamic>*.{core::Object::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:74:5: Error: Can't assign to a type literal.
     C ??= 42;
     ^" : null;
-    self::use(let final core::Type* #t1 = self::C<dynamic>* in #t1.{core::Object::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:75:9: Error: Setter not found: 'C'.
+    self::use(let final core::Type* #t1 = self::C<dynamic>* in #t1.{core::Object::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:75:9: Error: Can't assign to a type literal.
     use(C ??= 42);
         ^" : #t1);
-    dynamic.{core::Object::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:76:5: Error: Setter not found: 'dynamic'.
+    dynamic.{core::Object::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:76:5: Error: Can't assign to a type literal.
     dynamic ??= 42;
     ^^^^^^^" : null;
-    self::use(let final core::Type* #t2 = dynamic in #t2.{core::Object::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:77:9: Error: Setter not found: 'dynamic'.
+    self::use(let final core::Type* #t2 = dynamic in #t2.{core::Object::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:77:9: Error: Can't assign to a type literal.
     use(dynamic ??= 42);
         ^^^^^^^" : #t2);
-    self::C::T*.{core::Object::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:78:5: Error: Setter not found: 'T'.
+    self::C::T*.{core::Object::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:78:5: Error: Can't assign to a type literal.
     T ??= 42;
     ^" : null;
-    self::use(let final core::Type* #t3 = self::C::T* in #t3.{core::Object::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:79:9: Error: Setter not found: 'T'.
+    self::use(let final core::Type* #t3 = self::C::T* in #t3.{core::Object::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:79:9: Error: Can't assign to a type literal.
     use(T ??= 42);
         ^" : #t3);
-    () →* void.{core::Object::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:80:5: Error: Setter not found: 'Func'.
+    () →* void.{core::Object::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:80:5: Error: Can't assign to a type literal.
     Func ??= 42;
     ^^^^" : null;
-    self::use(let final core::Type* #t4 = () →* void in #t4.{core::Object::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:81:9: Error: Setter not found: 'Func'.
+    self::use(let final core::Type* #t4 = () →* void in #t4.{core::Object::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:81:9: Error: Can't assign to a type literal.
     use(Func ??= 42);
         ^^^^" : #t4);
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:83:5: Error: Setter not found: 'C'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:83:5: Error: Can't assign to a type literal.
     C += 42;
     ^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:84:9: Error: Setter not found: 'C'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:84:9: Error: Can't assign to a type literal.
     use(C += 42);
         ^");
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:85:5: Error: Setter not found: 'dynamic'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:85:5: Error: Can't assign to a type literal.
     dynamic += 42;
     ^^^^^^^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:86:9: Error: Setter not found: 'dynamic'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:86:9: Error: Can't assign to a type literal.
     use(dynamic += 42);
         ^^^^^^^");
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:87:5: Error: Setter not found: 'T'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:87:5: Error: Can't assign to a type literal.
     T += 42;
     ^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:88:9: Error: Setter not found: 'T'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:88:9: Error: Can't assign to a type literal.
     use(T += 42);
         ^");
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:89:5: Error: Setter not found: 'Func'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:89:5: Error: Can't assign to a type literal.
     Func += 42;
     ^^^^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:90:9: Error: Setter not found: 'Func'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:90:9: Error: Can't assign to a type literal.
     use(Func += 42);
         ^^^^");
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:92:5: Error: Setter not found: 'C'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:92:5: Error: Can't assign to a type literal.
     C -= 42;
     ^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:93:9: Error: Setter not found: 'C'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:93:9: Error: Can't assign to a type literal.
     use(C -= 42);
         ^");
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:94:5: Error: Setter not found: 'dynamic'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:94:5: Error: Can't assign to a type literal.
     dynamic -= 42;
     ^^^^^^^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:95:9: Error: Setter not found: 'dynamic'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:95:9: Error: Can't assign to a type literal.
     use(dynamic -= 42);
         ^^^^^^^");
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:96:5: Error: Setter not found: 'T'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:96:5: Error: Can't assign to a type literal.
     T -= 42;
     ^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:97:9: Error: Setter not found: 'T'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:97:9: Error: Can't assign to a type literal.
     use(T -= 42);
         ^");
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:98:5: Error: Setter not found: 'Func'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:98:5: Error: Can't assign to a type literal.
     Func -= 42;
     ^^^^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:99:9: Error: Setter not found: 'Func'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:99:9: Error: Can't assign to a type literal.
     use(Func -= 42);
         ^^^^");
   }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method use(dynamic x) → dynamic {
   if(x.{core::Object::==}(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}))

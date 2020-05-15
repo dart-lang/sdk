@@ -1,0 +1,16 @@
+abstract class SuperClass1 {
+  SuperClass1(this.value);
+  final String value;
+}
+
+abstract class SuperClass2 {
+  SuperClass2(String i) : value = i;
+  final String value;
+}
+
+class Mixin {}
+
+class NamedMixin1 = SuperClass1 with Mixin;
+class NamedMixin2 = SuperClass2 with Mixin;
+errors() {}
+void main() {}

@@ -10,9 +10,9 @@ library test;
 //   /*error:UNDEFINED_IDENTIFIER*/ x
 //                                  ^
 //
-// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:32:58: Error: The method 'unary-' isn't defined for the class 'A'.
+// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:32:58: Error: The operator 'unary-' isn't defined for the class 'A'.
 //  - 'A' is from 'pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart'.
-// Try correcting the name to the name of an existing method, or defining a method named 'unary-'.
+// Try correcting the operator to an existing operator, or defining a 'unary-' operator.
 // var i = /*error:UNDEFINED_OPERATOR,info:DYNAMIC_INVOKE*/ -new A();
 //                                                          ^
 //
@@ -84,6 +84,16 @@ class A extends core::Object {
     ;
   operator +(dynamic other) → self::B*
     return null;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class B extends self::A {
   constructor •(dynamic ignore) → self::B*
@@ -103,9 +113,9 @@ static field self::A* e = let final self::A* #t1 = new self::A::•() in let fin
 static field core::int* f = 2.{core::num::+}(3);
 static field core::int* g = 3.{core::int::unary-}();
 static field self::B* h = new self::A::•().{self::A::+}(3);
-static field dynamic i = invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:32:58: Error: The method 'unary-' isn't defined for the class 'A'.
+static field dynamic i = invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:32:58: Error: The operator 'unary-' isn't defined for the class 'A'.
  - 'A' is from 'pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart'.
-Try correcting the name to the name of an existing method, or defining a method named 'unary-'.
+Try correcting the operator to an existing operator, or defining a 'unary-' operator.
 var i = /*error:UNDEFINED_OPERATOR,info:DYNAMIC_INVOKE*/ -new A();
                                                          ^";
 static field self::B* j = null as self::B*;

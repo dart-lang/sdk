@@ -105,7 +105,7 @@ main() async {
 @pragma('vm:never-inline')
 @pragma('dart2js:noInline')
 Future<int> performAwaitCallsClosureTargetPolymorphic(
-    FutureOr fun(int count)) async {
+    FutureOr<int> fun(int count)) async {
   int sum = 0;
   for (int i = 0; i < iterationLimitAsync; ++i) {
     sum += await fun(i);
@@ -330,7 +330,7 @@ Stream<int> generateNumbersAsyncStar2(int limit) async* {
 @pragma('dart2js:noInline')
 Stream<int> generateNumbersManualAsync(int limit) {
   int current = 0;
-  StreamController<int> controller;
+  StreamController<int> controller = StreamController(sync: true);
   void emit() {
     while (true) {
       if (controller.isPaused || !controller.hasListener) return;
@@ -347,7 +347,9 @@ Stream<int> generateNumbersManualAsync(int limit) {
     scheduleMicrotask(emit);
   }
 
-  controller = StreamController(onListen: run, onResume: run, sync: true);
+  controller.onListen = run;
+  controller.onResume = run;
+
   return controller.stream;
 }
 

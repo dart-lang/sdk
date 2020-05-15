@@ -12,5 +12,6 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <sys/socket.h>
+#include <sys/un.h>
 
 #endif  // RUNTIME_BIN_SOCKET_BASE_LINUX_H_

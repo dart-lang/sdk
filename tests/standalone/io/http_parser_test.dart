@@ -17,6 +17,7 @@ import "dart:typed_data";
 import "package:expect/expect.dart";
 
 part "../../../sdk/lib/_http/crypto.dart";
+part "../../../sdk/lib/_http/embedder_config.dart";
 part "../../../sdk/lib/_http/http_impl.dart";
 part "../../../sdk/lib/_http/http_date.dart";
 part "../../../sdk/lib/_http/http_parser.dart";
@@ -438,6 +439,18 @@ X-Header-B:           b\r
     headers["x-header-b"] = "bbb";
     _testParseRequestLean(request, "POST", "/test", expectedHeaders: headers);
 
+    // _testParseRequestLean encodes the request as ISO-8859-1. Test that the
+    // HTTP parser decodes header values as ISO-8859-1.
+    request = """
+POST /test HTTP/1.1\r
+latin1:   blåbærgrød\r
+\r
+""";
+
+    headers = new Map();
+    headers["latin1"] = "blåbærgrød";
+    _testParseRequestLean(request, "POST", "/test", expectedHeaders: headers);
+
     request = """
 POST /test HTTP/1.1\r
 Content-Length: 10\r
@@ -640,6 +653,18 @@ Content-Type: text/html\r
         expectedTransferLength: 20,
         expectedBytesReceived: 0,
         expectedHeaders: headers);
+
+    // _testParseRequestLean encodes the request as ISO-8859-1. Test that the
+    // HTTP parser decodes header values as ISO-8859-1.
+    response = """
+HTTP/1.1 200 OK\r
+Content-Length: 0\r
+test-latin1: blåbærgrød\r
+\r\n""";
+    headers = new Map();
+    headers["content-length"] = "0";
+    headers["test-latin1"] = "blåbærgrød";
+    _testParseResponse(response, 200, "OK", expectedHeaders: headers);
 
     // Test content.
     response = """

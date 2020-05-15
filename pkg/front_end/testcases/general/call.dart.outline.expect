@@ -7,12 +7,59 @@ class Callable extends core::Object {
     ;
   method call(dynamic x) → dynamic
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class CallableGetter extends core::Object {
   synthetic constructor •() → self::CallableGetter*
     ;
   get call() → dynamic
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
+static field (dynamic) →* dynamic closure;
+static field dynamic int1;
+static field dynamic int2;
+static field dynamic int3;
+static field dynamic int4;
+static field self::Callable* callable;
+static field dynamic string1;
+static field dynamic string2;
+static field dynamic string3;
+static field dynamic string4;
+static field self::CallableGetter* callableGetter;
+static field dynamic string5;
+static field dynamic string6;
+static field dynamic string7;
+static field dynamic string8;
+static field dynamic nothing1;
+static field dynamic nothing2;
+static field dynamic nothing3;
+static field dynamic nothing4;
+static field dynamic nothing5;
+static field dynamic nothing6;
+static field dynamic nothing7;
+static field dynamic nothing8;
+static field dynamic nothing9;
+static field dynamic nothing10;
+static field dynamic nothing11;
+static field dynamic nothing12;
 static method main() → dynamic
   ;

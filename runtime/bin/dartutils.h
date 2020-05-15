@@ -56,6 +56,7 @@ class CommandLineOptions {
   }
 
   int count() const { return count_; }
+  int max_count() const { return max_count_; }
   const char** arguments() const { return arguments_; }
 
   const char* GetArgument(int index) const {
@@ -67,6 +68,15 @@ class CommandLineOptions {
       count_ += 1;
     } else {
       abort();  // We should never get into this situation.
+    }
+  }
+
+  void AddArguments(const char** argv, int argc) {
+    if (count_ + argc >= max_count_) {
+      abort();  // We should never get into this situation.
+    }
+    for (int i = 0; i < argc; ++i) {
+      arguments_[count_++] = argv[i];
     }
   }
 
@@ -175,6 +185,7 @@ class DartUtils {
                                                  const char* exception_name,
                                                  const char* message);
   static Dart_Handle NewDartArgumentError(const char* message);
+  static Dart_Handle NewDartFormatException(const char* message);
   static Dart_Handle NewDartUnsupportedError(const char* message);
   static Dart_Handle NewDartIOException(const char* exception_name,
                                         const char* message,

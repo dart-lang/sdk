@@ -1,0 +1,2 @@
+main() {}
+method<T>(T o) {}

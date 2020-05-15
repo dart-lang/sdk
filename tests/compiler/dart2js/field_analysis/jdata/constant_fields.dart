@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 main() {
   print(const Class1().field1);
   print(const Class2(field2: true).field2);
@@ -17,7 +19,8 @@ class Class1 {
 }
 
 class Class2 {
-  /*strong.member: Class2.field2:constant=BoolConstant(true)*/
+  /*spec:nnbd-off|spec:nnbd-sdk.member: Class2.field2:constant=BoolConstant(true)*/
+  /*prod:nnbd-off|prod:nnbd-sdk.strong.member: Class2.field2:constant=BoolConstant(true)*/
   final bool field2;
 
   const Class2({this.field2: false});

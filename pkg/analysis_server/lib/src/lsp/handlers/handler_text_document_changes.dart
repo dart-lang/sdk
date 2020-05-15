@@ -14,6 +14,25 @@ import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:path/path.dart' show dirname, join;
 
+/// Finds the nearest ancestor to [filePath] that contains a pubspec/.packages/build file.
+String _findProjectFolder(ResourceProvider resourceProvider, String filePath) {
+  // TODO(dantup): Is there something we can reuse for this?
+  var folder = dirname(filePath);
+  while (folder != dirname(folder)) {
+    final pubspec =
+        resourceProvider.getFile(join(folder, ContextManagerImpl.PUBSPEC_NAME));
+    final packages = resourceProvider
+        .getFile(join(folder, ContextManagerImpl.PACKAGE_SPEC_NAME));
+    final build = resourceProvider.getFile(join(folder, 'BUILD'));
+
+    if (pubspec.exists || packages.exists || build.exists) {
+      return folder;
+    }
+    folder = dirname(folder);
+  }
+  return null;
+}
+
 class TextDocumentChangeHandler
     extends MessageHandler<DidChangeTextDocumentParams, void> {
   TextDocumentChangeHandler(LspAnalysisServer server) : super(server);
@@ -45,11 +64,12 @@ class TextDocumentChangeHandler
         null,
       );
     }
-    final newContents =
-        applyEdits(oldContents, params.contentChanges, failureIsCritical: true);
-    return newContents.mapResult((newcontents) {
+    final newContents = applyAndConvertEditsToServer(
+        oldContents, params.contentChanges,
+        failureIsCritical: true);
+    return newContents.mapResult((result) {
       server.documentVersions[path] = params.textDocument;
-      server.updateOverlay(path, newContents.result);
+      server.onOverlayUpdated(path, result.last, newContent: result.first);
       return success();
     });
   }
@@ -77,7 +97,7 @@ class TextDocumentCloseHandler
     return path.mapResult((path) {
       server.removePriorityFile(path);
       server.documentVersions.remove(path);
-      server.updateOverlay(path, null);
+      server.onOverlayDestroyed(path);
 
       if (updateAnalysisRoots) {
         // If there are no other open files in this context, we can remove it
@@ -108,6 +128,8 @@ class TextDocumentOpenHandler
   /// Whether analysis roots are based on open files and should be updated.
   bool updateAnalysisRoots;
 
+  DateTime lastSentAnalyzeOpenFilesWarnings;
+
   TextDocumentOpenHandler(LspAnalysisServer server, this.updateAnalysisRoots)
       : super(server);
 
@@ -130,7 +152,7 @@ class TextDocumentOpenHandler
         params.textDocument.version,
         params.textDocument.uri,
       );
-      server.updateOverlay(path, doc.text);
+      server.onOverlayCreated(path, doc.text);
 
       final driver = server.contextManager.getDriverFor(path);
       // If the file did not exist, and is "overlay only", it still should be
@@ -171,25 +193,4 @@ class TextDocumentOpenHandler
       return success();
     });
   }
-
-  DateTime lastSentAnalyzeOpenFilesWarnings;
-}
-
-/// Finds the nearest ancestor to [filePath] that contains a pubspec/.packages/build file.
-String _findProjectFolder(ResourceProvider resourceProvider, String filePath) {
-  // TODO(dantup): Is there something we can reuse for this?
-  var folder = dirname(filePath);
-  while (folder != dirname(folder)) {
-    final pubspec =
-        resourceProvider.getFile(join(folder, ContextManagerImpl.PUBSPEC_NAME));
-    final packages = resourceProvider
-        .getFile(join(folder, ContextManagerImpl.PACKAGE_SPEC_NAME));
-    final build = resourceProvider.getFile(join(folder, 'BUILD'));
-
-    if (pubspec.exists || packages.exists || build.exists) {
-      return folder;
-    }
-    folder = dirname(folder);
-  }
-  return null;
 }

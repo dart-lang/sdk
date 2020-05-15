@@ -11,8 +11,18 @@ class A extends core::Object {
   method method() → dynamic {
     core::print("A.method x: ${this.{self::A::x}} y: ${this.{self::A::y}}");
     core::print(this);
-    core::print(this.{core::Object::runtimeType});
+    core::print(this.{self::A::runtimeType});
   }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class B extends self::A {
   constructor •(dynamic x) → self::B*

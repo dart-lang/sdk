@@ -3492,9 +3492,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     js.Expression test;
     switch (node.specialization) {
-      case IsTestSpecialization.null_:
-        // This case should be lowered to [HIdentity] during optimization.
-        test = js.Binary(relation, value, js.LiteralNull());
+      case IsTestSpecialization.isNull:
+      case IsTestSpecialization.notNull:
+        // These cases should be lowered using [HIdentity] during optimization.
+        failedAt(node, 'Missing lowering');
         break;
 
       case IsTestSpecialization.string:
@@ -3518,7 +3519,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         break;
 
       case IsTestSpecialization.instanceof:
-        InterfaceType type = node.dartType;
+        DartType dartType = node.dartType;
+        // We don't generate instancof specializations for Never* and Object*.
+        assert(dartType is InterfaceType ||
+            (dartType is LegacyType &&
+                !dartType.baseType.isObject &&
+                dartType.baseType is! NeverType));
+        InterfaceType type = dartType.withoutNullability;
         _registry.registerTypeUse(TypeUse.instanceConstructor(type));
         test = handleNegative(js.js('# instanceof #',
             [value, _emitter.constructorAccess(type.element)]));
@@ -3535,9 +3542,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     _registry.registerTypeUse(TypeUse.isCheck(node.checkedTypeExpression));
 
-    FieldEntity field = node.isTypeError
-        ? _commonElements.rtiCheckField
-        : _commonElements.rtiAsField;
+    FieldEntity field = _commonElements.rtiAsField;
     js.Name name = _namer.instanceFieldPropertyName(field);
 
     push(js.js('#.#(#)', [first, name, second]).withSourceInformation(

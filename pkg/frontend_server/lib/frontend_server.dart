@@ -58,9 +58,14 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
       defaultsTo: false)
+  ..addFlag('tree-shake-write-only-fields',
+      help: 'Enable tree shaking of fields which are only written in AOT mode.',
+      defaultsTo: false)
   ..addFlag('protobuf-tree-shaker',
       help: 'Enable protobuf tree shaker transformation in AOT mode.',
       defaultsTo: false)
+  ..addFlag('minimal-kernel',
+      help: 'Produce minimal tree-shaken kernel file.', defaultsTo: false)
   ..addFlag('link-platform',
       help:
           'When in batch mode, link platform kernel file into result kernel file.'
@@ -147,7 +152,7 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('null-safety',
       help:
           'Respect the nullability of types at runtime in casts and instance checks.',
-      defaultsTo: false)
+      defaultsTo: null)
   ..addMultiOption('enable-experiment',
       help: 'Comma separated list of experimental features, eg set-literals.',
       hide: true)
@@ -162,7 +167,10 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addOption('libraries-spec',
       help: 'A path or uri to the libraries specification JSON file')
   ..addFlag('debugger-module-names',
-      help: 'Use debugger-friendly modules names', defaultsTo: false);
+      help: 'Use debugger-friendly modules names', defaultsTo: false)
+  ..addOption('dartdevc-module-format',
+      help: 'The module format to use on for the dartdevc compiler',
+      defaultsTo: 'amd');
 
 String usage = '''
 Usage: server [options] [input.dart]
@@ -377,7 +385,8 @@ class FrontendCompiler implements CompilerInterface {
       ..experimentalFlags = parseExperimentalFlags(
           parseExperimentalArguments(options['enable-experiment']),
           onError: (msg) => errors.add(msg))
-      ..nnbdMode = options['null-safety'] ? NnbdMode.Strong : NnbdMode.Weak
+      ..nnbdMode =
+          (options['null-safety'] == true) ? NnbdMode.Strong : NnbdMode.Weak
       ..onDiagnostic = (DiagnosticMessage message) {
         bool printMessage;
         switch (message.severity) {
@@ -438,6 +447,11 @@ class FrontendCompiler implements CompilerInterface {
       }
     }
 
+    if (options['null-safety'] == null &&
+        compilerOptions.experimentalFlags[ExperimentalFlag.nonNullable]) {
+      await autoDetectNullSafetyMode(_mainSource, compilerOptions);
+    }
+
     compilerOptions.bytecode = options['gen-bytecode'];
     final BytecodeOptions bytecodeOptions = BytecodeOptions(
       enableAsserts: options['enable-asserts'],
@@ -451,6 +465,7 @@ class FrontendCompiler implements CompilerInterface {
     compilerOptions.target = createFrontEndTarget(
       options['target'],
       trackWidgetCreation: options['track-widget-creation'],
+      nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
     );
     if (compilerOptions.target == null) {
       print('Failed to create front-end target ${options['target']}.');
@@ -513,17 +528,19 @@ class FrontendCompiler implements CompilerInterface {
           useGlobalTypeFlowAnalysis: options['tfa'],
           environmentDefines: environmentDefines,
           enableAsserts: options['enable-asserts'],
-          useProtobufTreeShaker: options['protobuf-tree-shaker']));
+          useProtobufTreeShaker: options['protobuf-tree-shaker'],
+          minimalKernel: options['minimal-kernel'],
+          treeShakeWriteOnlyFields: options['tree-shake-write-only-fields']));
     }
     if (results.component != null) {
       transformer?.transform(results.component);
 
       if (_compilerOptions.target.name == 'dartdevc') {
-        await writeJavascriptBundle(
-            results, _kernelBinaryFilename, options['filesystem-scheme']);
+        await writeJavascriptBundle(results, _kernelBinaryFilename,
+            options['filesystem-scheme'], options['dartdevc-module-format']);
       }
       await writeDillFile(results, _kernelBinaryFilename,
-          filterExternal: importDill != null,
+          filterExternal: importDill != null || options['minimal-kernel'],
           incrementalSerializer: incrementalSerializer);
 
       _outputStream.writeln(boundaryKey);
@@ -590,7 +607,7 @@ class FrontendCompiler implements CompilerInterface {
 
   /// Write a JavaScript bundle containg the provided component.
   Future<void> writeJavascriptBundle(KernelCompilationResults results,
-      String filename, String fileSystemScheme) async {
+      String filename, String fileSystemScheme, String moduleFormat) async {
     var packageConfig = await loadPackageConfigUri(
         _compilerOptions.packagesFileUri ?? File('.packages').absolute.uri);
     final Component component = results.component;
@@ -608,7 +625,8 @@ class FrontendCompiler implements CompilerInterface {
     }
     _bundler = JavaScriptBundler(
         component, strongComponents, fileSystemScheme, packageConfig,
-        useDebuggerModuleNames: useDebuggerModuleNames);
+        useDebuggerModuleNames: useDebuggerModuleNames,
+        moduleFormat: moduleFormat);
     final sourceFileSink = sourceFile.openWrite();
     final manifestFileSink = manifestFile.openWrite();
     final sourceMapsFileSink = sourceMapsFile.openWrite();
@@ -852,8 +870,8 @@ class FrontendCompiler implements CompilerInterface {
         deltaProgram.uriToSource.keys);
 
     if (_compilerOptions.target.name == 'dartdevc') {
-      await writeJavascriptBundle(
-          results, _kernelBinaryFilename, _options['filesystem-scheme']);
+      await writeJavascriptBundle(results, _kernelBinaryFilename,
+          _options['filesystem-scheme'], _options['dartdevc-module-format']);
     } else {
       await writeDillFile(results, _kernelBinaryFilename,
           incrementalSerializer: _generator.incrementalSerializer);
@@ -901,46 +919,45 @@ class FrontendCompiler implements CompilerInterface {
       Map<String, String> jsFrameValues,
       String moduleName,
       String expression) async {
-    final String boundaryKey = Uuid().generateV4();
-    _outputStream.writeln('result $boundaryKey');
-
     _generator.accept();
     errors.clear();
 
-    if (_bundler != null) {
-      var kernel2jsCompiler = _bundler.compilers[moduleName];
-      if (kernel2jsCompiler == null) {
-        throw Exception('Cannot find kernel2js compiler for $moduleName. '
-            'Compilers are avaiable for modules: '
-            '\n\t${_bundler.compilers.keys.toString()}');
-      }
-      assert(kernel2jsCompiler != null);
+    if (_bundler == null) {
+      reportError('JavaScript bundler is null');
+      return;
+    }
+    if (!_bundler.compilers.containsKey(moduleName)) {
+      reportError('Cannot find kernel2js compiler for $moduleName.');
+      return;
+    }
 
-      var evaluator = new ExpressionCompiler(
-          _generator.generator, kernel2jsCompiler, _component,
-          verbose: _compilerOptions.verbose,
-          onDiagnostic: _compilerOptions.onDiagnostic);
+    final String boundaryKey = Uuid().generateV4();
+    _outputStream.writeln('result $boundaryKey');
 
-      var procedure = await evaluator.compileExpressionToJs(libraryUri, line,
-          column, jsModules, jsFrameValues, moduleName, expression);
+    var kernel2jsCompiler = _bundler.compilers[moduleName];
 
-      var result = errors.length > 0 ? errors[0] : procedure;
+    var evaluator = new ExpressionCompiler(
+        _generator.generator, kernel2jsCompiler, _component,
+        verbose: _compilerOptions.verbose,
+        onDiagnostic: _compilerOptions.onDiagnostic);
 
-      // TODO(annagrin): kernelBinaryFilename is too specific
-      // rename to _outputFileName?
-      await File(_kernelBinaryFilename).writeAsString(result);
+    var procedure = await evaluator.compileExpressionToJs(libraryUri, line,
+        column, jsModules, jsFrameValues, moduleName, expression);
 
-      _outputStream
-          .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
+    var result = errors.length > 0 ? errors[0] : procedure;
 
-      // TODO(annagrin): do we need to add asserts/error reporting if
-      // initial compilation didn't happen and _kernelBinaryFilename
-      // is different from below?
-      if (procedure != null) {
-        _kernelBinaryFilename = _kernelBinaryFilenameIncremental;
-      }
-    } else {
-      _outputStream.writeln('$boundaryKey');
+    // TODO(annagrin): kernelBinaryFilename is too specific
+    // rename to _outputFileName?
+    await File(_kernelBinaryFilename).writeAsString(result);
+
+    _outputStream
+        .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
+
+    // TODO(annagrin): do we need to add asserts/error reporting if
+    // initial compilation didn't happen and _kernelBinaryFilename
+    // is different from below?
+    if (procedure != null) {
+      _kernelBinaryFilename = _kernelBinaryFilenameIncremental;
     }
   }
 

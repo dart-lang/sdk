@@ -11,33 +11,50 @@ import 'package:analysis_server/src/services/completion/dart/suggestion_builder.
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 
-/// A contributor for calculating `completion.getSuggestions` request results
-/// for the import combinators show and hide.
+/// A contributor that produces suggestions based on the members of a library
+/// when the completion is in a show or hide combinator of an import or export.
 class CombinatorContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    AstNode node = request.target.containingNode;
+      DartCompletionRequest request, SuggestionBuilder builder) async {
+    var node = request.target.containingNode;
     if (node is! Combinator) {
       return const <CompletionSuggestion>[];
     }
-
-    // Build list of suggestions
+    // Build the list of suggestions.
     var directive = node.thisOrAncestorOfType<NamespaceDirective>();
     if (directive is NamespaceDirective) {
-      LibraryElement library = directive.uriElement;
+      var library = directive.uriElement as LibraryElement;
       if (library != null) {
-        LibraryElementSuggestionBuilder builder =
-            LibraryElementSuggestionBuilder(request.libraryElement,
-                CompletionSuggestionKind.IDENTIFIER, false, false);
+        var existingNames = _getCombinatorNames(directive);
         for (var element in library.exportNamespace.definedNames.values) {
-          element.accept(builder);
+          if (!existingNames.contains(element.name)) {
+            builder.suggestElement(element,
+                kind: CompletionSuggestionKind.IDENTIFIER);
+          }
         }
-        return builder.suggestions;
       }
     }
     return const <CompletionSuggestion>[];
+  }
+
+  List<String> _getCombinatorNames(NamespaceDirective directive) {
+    var combinatorNameList = <String>[];
+    for (var combinator in directive.combinators) {
+      if (combinator is ShowCombinator) {
+        for (var simpleId in combinator.shownNames) {
+          if (!simpleId.isSynthetic) {
+            combinatorNameList.add(simpleId.name);
+          }
+        }
+      } else if (combinator is HideCombinator) {
+        for (var simpleId in combinator.hiddenNames) {
+          if (!simpleId.isSynthetic) {
+            combinatorNameList.add(simpleId.name);
+          }
+        }
+      }
+    }
+    return combinatorNameList;
   }
 }

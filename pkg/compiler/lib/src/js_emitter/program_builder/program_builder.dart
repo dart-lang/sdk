@@ -894,7 +894,7 @@ class ProgramBuilder {
       int index = 0;
       _elementEnvironment.forEachParameter(method,
           (DartType type, String name, ConstantValue defaultValue) {
-        if (index >= parameterStructure.requiredParameters) {
+        if (index >= parameterStructure.requiredPositionalParameters) {
           optionalParameterDefaultValues.add(defaultValue);
         }
         index++;
@@ -961,7 +961,8 @@ class ProgramBuilder {
 
     FunctionEntity method = element;
     ParameterStructure parameterStructure = method.parameterStructure;
-    int requiredParameterCount = parameterStructure.requiredParameters;
+    int requiredParameterCount =
+        parameterStructure.requiredPositionalParameters;
     var /* List | Map */ optionalParameterDefaultValues;
     int applyIndex = 0;
     if (canBeApplied) {
@@ -1249,7 +1250,8 @@ class ProgramBuilder {
 
     FunctionEntity method = element;
     ParameterStructure parameterStructure = method.parameterStructure;
-    int requiredParameterCount = parameterStructure.requiredParameters;
+    int requiredParameterCount =
+        parameterStructure.requiredPositionalParameters;
     var /* List | Map */ optionalParameterDefaultValues;
     int applyIndex = 0;
     if (canBeApplied) {

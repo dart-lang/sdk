@@ -267,7 +267,7 @@ main() {
 
     bool streamIsDone = false;
     int errorCount = 0;
-    runZoned(() {
+    runZonedGuarded(() {
       controller.stream
           .transform(new SinkTransformer((sink) =>
               new FutureWaitingTransformerSink(sink, closeCompleter.future)))
@@ -280,7 +280,7 @@ main() {
         Expect.listEquals([], events);
         streamIsDone = true;
       });
-    }, onError: (e) {
+    }, (e, s) {
       Expect.isTrue(e is StateError);
       errorCount++;
     });

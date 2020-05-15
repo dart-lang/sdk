@@ -1,0 +1,356 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:20:34: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
+// var topLevelBinary = nullableInt + 0;
+//                                  ^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:21:21: Error: Operator 'unary-' cannot be called on 'int?' because it is potentially null.
+// var topLevelUnary = -nullableInt;
+//                     ^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:22:35: Error: Operator '[]' cannot be called on 'Map<dynamic, dynamic>?' because it is potentially null.
+//  - 'Map' is from 'dart:core'.
+// var topLevelIndexGet = nullableMap[0];
+//                                   ^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:23:35: Error: Operator '[]=' cannot be called on 'Map<dynamic, dynamic>?' because it is potentially null.
+//  - 'Map' is from 'dart:core'.
+// var topLevelIndexSet = nullableMap[0] = 1;
+//                                   ^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:24:38: Error: Operator '[]' cannot be called on 'Map<dynamic, dynamic>?' because it is potentially null.
+//  - 'Map' is from 'dart:core'.
+// var topLevelIndexGetSet = nullableMap[0] += 1;
+//                                      ^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:24:38: Error: Operator '[]=' cannot be called on 'Map<dynamic, dynamic>?' because it is potentially null.
+//  - 'Map' is from 'dart:core'.
+// var topLevelIndexGetSet = nullableMap[0] += 1;
+//                                      ^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:25:41: Error: Property 'property' cannot be accessed on 'Class?' because it is potentially null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/potentially_nullable_access.dart'.
+// Try accessing using ?. instead.
+// var topLevelPropertyGet = nullableClass.property;
+//                                         ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:26:41: Error: Property 'property' cannot be accessed on 'Class?' because it is potentially null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/potentially_nullable_access.dart'.
+// Try accessing using ?. instead.
+// var topLevelPropertySet = nullableClass.property = 1;
+//                                         ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:27:44: Error: Property 'property' cannot be accessed on 'Class?' because it is potentially null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/potentially_nullable_access.dart'.
+// Try accessing using ?. instead.
+// var topLevelPropertyGetSet = nullableClass.property += 1;
+//                                            ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:28:46: Error: Method 'method' cannot be called on 'Class?' because it is potentially null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/potentially_nullable_access.dart'.
+// Try calling using ?. instead.
+// var topLevelMethodInvocation = nullableClass.method();
+//                                              ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:29:43: Error: Property 'method' cannot be accessed on 'Class?' because it is potentially null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/potentially_nullable_access.dart'.
+// Try accessing using ?. instead.
+// var topLevelMethodTearOff = nullableClass.method;
+//                                           ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:30:52: Error: Method 'call' cannot be called on 'Function?' because it is potentially null.
+//  - 'Function' is from 'dart:core'.
+// Try calling using ?. instead.
+// var topLevelFunctionImplicitCall = nullableFunction();
+//                                                    ^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:31:53: Error: Method 'call' cannot be called on 'Function?' because it is potentially null.
+//  - 'Function' is from 'dart:core'.
+// Try calling using ?. instead.
+// var topLevelFunctionExplicitCall = nullableFunction.call();
+//                                                     ^^^^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:32:48: Error: Property 'call' cannot be accessed on 'Function?' because it is potentially null.
+//  - 'Function' is from 'dart:core'.
+// Try accessing using ?. instead.
+// var topLevelFunctionTearOff = nullableFunction.call;
+//                                                ^^^^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:33:60: Error: Method 'call' cannot be called on 'void Function()?' because it is potentially null.
+// Try calling using ?. instead.
+// var topLevelFunctionTypeImplicitCall = nullableFunctionType();
+//                                                            ^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:34:61: Error: Method 'call' cannot be called on 'void Function()?' because it is potentially null.
+// Try calling using ?. instead.
+// var topLevelFunctionTypeExplicitCall = nullableFunctionType.call();
+//                                                             ^^^^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:35:56: Error: Property 'call' cannot be accessed on 'void Function()?' because it is potentially null.
+// Try accessing using ?. instead.
+// var topLevelFunctionTypeTearOff = nullableFunctionType.call;
+//                                                        ^^^^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:38:33: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
+//   var localBinary = nullableInt + 0;
+//                                 ^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:39:20: Error: Operator 'unary-' cannot be called on 'int?' because it is potentially null.
+//   var localUnary = -nullableInt;
+//                    ^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:40:34: Error: Operator '[]' cannot be called on 'Map<dynamic, dynamic>?' because it is potentially null.
+//  - 'Map' is from 'dart:core'.
+//   var localIndexGet = nullableMap[0];
+//                                  ^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:41:34: Error: Operator '[]=' cannot be called on 'Map<dynamic, dynamic>?' because it is potentially null.
+//  - 'Map' is from 'dart:core'.
+//   var localIndexSet = nullableMap[0] = 1;
+//                                  ^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:42:37: Error: Operator '[]' cannot be called on 'Map<dynamic, dynamic>?' because it is potentially null.
+//  - 'Map' is from 'dart:core'.
+//   var localIndexGetSet = nullableMap[0] += 1;
+//                                     ^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:42:37: Error: Operator '[]=' cannot be called on 'Map<dynamic, dynamic>?' because it is potentially null.
+//  - 'Map' is from 'dart:core'.
+//   var localIndexGetSet = nullableMap[0] += 1;
+//                                     ^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:43:40: Error: Property 'property' cannot be accessed on 'Class?' because it is potentially null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/potentially_nullable_access.dart'.
+// Try accessing using ?. instead.
+//   var localPropertyGet = nullableClass.property;
+//                                        ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:44:40: Error: Property 'property' cannot be accessed on 'Class?' because it is potentially null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/potentially_nullable_access.dart'.
+// Try accessing using ?. instead.
+//   var localPropertySet = nullableClass.property = 1;
+//                                        ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:45:43: Error: Property 'property' cannot be accessed on 'Class?' because it is potentially null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/potentially_nullable_access.dart'.
+// Try accessing using ?. instead.
+//   var localPropertyGetSet = nullableClass.property += 1;
+//                                           ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:46:45: Error: Method 'method' cannot be called on 'Class?' because it is potentially null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/potentially_nullable_access.dart'.
+// Try calling using ?. instead.
+//   var localMethodInvocation = nullableClass.method();
+//                                             ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:47:42: Error: Property 'method' cannot be accessed on 'Class?' because it is potentially null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/potentially_nullable_access.dart'.
+// Try accessing using ?. instead.
+//   var localMethodTearOff = nullableClass.method;
+//                                          ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:48:51: Error: Method 'call' cannot be called on 'Function?' because it is potentially null.
+//  - 'Function' is from 'dart:core'.
+// Try calling using ?. instead.
+//   var localFunctionImplicitCall = nullableFunction();
+//                                                   ^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:49:52: Error: Method 'call' cannot be called on 'Function?' because it is potentially null.
+//  - 'Function' is from 'dart:core'.
+// Try calling using ?. instead.
+//   var localFunctionExplicitCall = nullableFunction.call();
+//                                                    ^^^^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:50:47: Error: Property 'call' cannot be accessed on 'Function?' because it is potentially null.
+//  - 'Function' is from 'dart:core'.
+// Try accessing using ?. instead.
+//   var localFunctionTearOff = nullableFunction.call;
+//                                               ^^^^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:51:59: Error: Method 'call' cannot be called on 'void Function()?' because it is potentially null.
+// Try calling using ?. instead.
+//   var localFunctionTypeImplicitCall = nullableFunctionType();
+//                                                           ^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:52:60: Error: Method 'call' cannot be called on 'void Function()?' because it is potentially null.
+// Try calling using ?. instead.
+//   var localFunctionTypeExplicitCall = nullableFunctionType.call();
+//                                                            ^^^^
+//
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:53:55: Error: Property 'call' cannot be accessed on 'void Function()?' because it is potentially null.
+// Try accessing using ?. instead.
+//   var localFunctionTypeTearOff = nullableFunctionType.call;
+//                                                       ^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::int property = 0;
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  method method() → core::int
+    return 0;
+}
+static field core::num topLevelBinary = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:20:34: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
+var topLevelBinary = nullableInt + 0;
+                                 ^";
+static field core::int topLevelUnary = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:21:21: Error: Operator 'unary-' cannot be called on 'int?' because it is potentially null.
+var topLevelUnary = -nullableInt;
+                    ^";
+static field dynamic topLevelIndexGet = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:22:35: Error: Operator '[]' cannot be called on 'Map<dynamic, dynamic>?' because it is potentially null.
+ - 'Map' is from 'dart:core'.
+var topLevelIndexGet = nullableMap[0];
+                                  ^";
+static field core::int topLevelIndexSet = let final core::Map<dynamic, dynamic>? #t1 = self::nullableMap in let final core::int #t2 = 0 in let final core::int #t3 = 1 in let final void #t4 = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:23:35: Error: Operator '[]=' cannot be called on 'Map<dynamic, dynamic>?' because it is potentially null.
+ - 'Map' is from 'dart:core'.
+var topLevelIndexSet = nullableMap[0] = 1;
+                                  ^" in #t3;
+static field dynamic topLevelIndexGetSet = let final core::Map<dynamic, dynamic>? #t5 = self::nullableMap in let final core::int #t6 = 0 in let final dynamic #t7 = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:24:38: Error: Operator '[]' cannot be called on 'Map<dynamic, dynamic>?' because it is potentially null.
+ - 'Map' is from 'dart:core'.
+var topLevelIndexGetSet = nullableMap[0] += 1;
+                                     ^".+(1) in let final void #t8 = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:24:38: Error: Operator '[]=' cannot be called on 'Map<dynamic, dynamic>?' because it is potentially null.
+ - 'Map' is from 'dart:core'.
+var topLevelIndexGetSet = nullableMap[0] += 1;
+                                     ^" in #t7;
+static field core::int topLevelPropertyGet = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:25:41: Error: Property 'property' cannot be accessed on 'Class?' because it is potentially null.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/potentially_nullable_access.dart'.
+Try accessing using ?. instead.
+var topLevelPropertyGet = nullableClass.property;
+                                        ^^^^^^^^";
+static field core::int topLevelPropertySet = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:26:41: Error: Property 'property' cannot be accessed on 'Class?' because it is potentially null.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/potentially_nullable_access.dart'.
+Try accessing using ?. instead.
+var topLevelPropertySet = nullableClass.property = 1;
+                                        ^^^^^^^^";
+static field core::int topLevelPropertyGetSet = let final self::Class? #t9 = self::nullableClass in invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:27:44: Error: Property 'property' cannot be accessed on 'Class?' because it is potentially null.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/potentially_nullable_access.dart'.
+Try accessing using ?. instead.
+var topLevelPropertyGetSet = nullableClass.property += 1;
+                                           ^^^^^^^^";
+static field dynamic topLevelMethodInvocation = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:28:46: Error: Method 'method' cannot be called on 'Class?' because it is potentially null.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/potentially_nullable_access.dart'.
+Try calling using ?. instead.
+var topLevelMethodInvocation = nullableClass.method();
+                                             ^^^^^^";
+static field () → core::int topLevelMethodTearOff = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:29:43: Error: Property 'method' cannot be accessed on 'Class?' because it is potentially null.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/potentially_nullable_access.dart'.
+Try accessing using ?. instead.
+var topLevelMethodTearOff = nullableClass.method;
+                                          ^^^^^^";
+static field dynamic topLevelFunctionImplicitCall = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:30:52: Error: Method 'call' cannot be called on 'Function?' because it is potentially null.
+ - 'Function' is from 'dart:core'.
+Try calling using ?. instead.
+var topLevelFunctionImplicitCall = nullableFunction();
+                                                   ^";
+static field dynamic topLevelFunctionExplicitCall = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:31:53: Error: Method 'call' cannot be called on 'Function?' because it is potentially null.
+ - 'Function' is from 'dart:core'.
+Try calling using ?. instead.
+var topLevelFunctionExplicitCall = nullableFunction.call();
+                                                    ^^^^";
+static field core::Function? topLevelFunctionTearOff = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:32:48: Error: Property 'call' cannot be accessed on 'Function?' because it is potentially null.
+ - 'Function' is from 'dart:core'.
+Try accessing using ?. instead.
+var topLevelFunctionTearOff = nullableFunction.call;
+                                               ^^^^";
+static field dynamic topLevelFunctionTypeImplicitCall = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:33:60: Error: Method 'call' cannot be called on 'void Function()?' because it is potentially null.
+Try calling using ?. instead.
+var topLevelFunctionTypeImplicitCall = nullableFunctionType();
+                                                           ^";
+static field dynamic topLevelFunctionTypeExplicitCall = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:34:61: Error: Method 'call' cannot be called on 'void Function()?' because it is potentially null.
+Try calling using ?. instead.
+var topLevelFunctionTypeExplicitCall = nullableFunctionType.call();
+                                                            ^^^^";
+static field () →? void topLevelFunctionTypeTearOff = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:35:56: Error: Property 'call' cannot be accessed on 'void Function()?' because it is potentially null.
+Try accessing using ?. instead.
+var topLevelFunctionTypeTearOff = nullableFunctionType.call;
+                                                       ^^^^";
+static get nullableFunction() → core::Function?
+  return () → core::Null? {};
+static get nullableFunctionType() → () →? void
+  return () → core::Null? {};
+static get nullableInt() → core::int?
+  return 0;
+static get nullableMap() → core::Map<dynamic, dynamic>?
+  return <dynamic, dynamic>{};
+static get nullableClass() → self::Class?
+  return new self::Class::•();
+static method test() → dynamic {
+  core::num localBinary = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:38:33: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
+  var localBinary = nullableInt + 0;
+                                ^";
+  core::int localUnary = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:39:20: Error: Operator 'unary-' cannot be called on 'int?' because it is potentially null.
+  var localUnary = -nullableInt;
+                   ^";
+  dynamic localIndexGet = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:40:34: Error: Operator '[]' cannot be called on 'Map<dynamic, dynamic>?' because it is potentially null.
+ - 'Map' is from 'dart:core'.
+  var localIndexGet = nullableMap[0];
+                                 ^";
+  core::int localIndexSet = let final core::Map<dynamic, dynamic>? #t10 = self::nullableMap in let final core::int #t11 = 0 in let final core::int #t12 = 1 in let final void #t13 = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:41:34: Error: Operator '[]=' cannot be called on 'Map<dynamic, dynamic>?' because it is potentially null.
+ - 'Map' is from 'dart:core'.
+  var localIndexSet = nullableMap[0] = 1;
+                                 ^" in #t12;
+  dynamic localIndexGetSet = let final core::Map<dynamic, dynamic>? #t14 = self::nullableMap in let final core::int #t15 = 0 in let final dynamic #t16 = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:42:37: Error: Operator '[]' cannot be called on 'Map<dynamic, dynamic>?' because it is potentially null.
+ - 'Map' is from 'dart:core'.
+  var localIndexGetSet = nullableMap[0] += 1;
+                                    ^".+(1) in let final void #t17 = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:42:37: Error: Operator '[]=' cannot be called on 'Map<dynamic, dynamic>?' because it is potentially null.
+ - 'Map' is from 'dart:core'.
+  var localIndexGetSet = nullableMap[0] += 1;
+                                    ^" in #t16;
+  core::int localPropertyGet = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:43:40: Error: Property 'property' cannot be accessed on 'Class?' because it is potentially null.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/potentially_nullable_access.dart'.
+Try accessing using ?. instead.
+  var localPropertyGet = nullableClass.property;
+                                       ^^^^^^^^";
+  core::int localPropertySet = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:44:40: Error: Property 'property' cannot be accessed on 'Class?' because it is potentially null.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/potentially_nullable_access.dart'.
+Try accessing using ?. instead.
+  var localPropertySet = nullableClass.property = 1;
+                                       ^^^^^^^^";
+  core::int localPropertyGetSet = let final self::Class? #t18 = self::nullableClass in invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:45:43: Error: Property 'property' cannot be accessed on 'Class?' because it is potentially null.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/potentially_nullable_access.dart'.
+Try accessing using ?. instead.
+  var localPropertyGetSet = nullableClass.property += 1;
+                                          ^^^^^^^^";
+  dynamic localMethodInvocation = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:46:45: Error: Method 'method' cannot be called on 'Class?' because it is potentially null.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/potentially_nullable_access.dart'.
+Try calling using ?. instead.
+  var localMethodInvocation = nullableClass.method();
+                                            ^^^^^^";
+  () → core::int localMethodTearOff = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:47:42: Error: Property 'method' cannot be accessed on 'Class?' because it is potentially null.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/potentially_nullable_access.dart'.
+Try accessing using ?. instead.
+  var localMethodTearOff = nullableClass.method;
+                                         ^^^^^^";
+  dynamic localFunctionImplicitCall = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:48:51: Error: Method 'call' cannot be called on 'Function?' because it is potentially null.
+ - 'Function' is from 'dart:core'.
+Try calling using ?. instead.
+  var localFunctionImplicitCall = nullableFunction();
+                                                  ^";
+  dynamic localFunctionExplicitCall = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:49:52: Error: Method 'call' cannot be called on 'Function?' because it is potentially null.
+ - 'Function' is from 'dart:core'.
+Try calling using ?. instead.
+  var localFunctionExplicitCall = nullableFunction.call();
+                                                   ^^^^";
+  core::Function? localFunctionTearOff = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:50:47: Error: Property 'call' cannot be accessed on 'Function?' because it is potentially null.
+ - 'Function' is from 'dart:core'.
+Try accessing using ?. instead.
+  var localFunctionTearOff = nullableFunction.call;
+                                              ^^^^";
+  dynamic localFunctionTypeImplicitCall = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:51:59: Error: Method 'call' cannot be called on 'void Function()?' because it is potentially null.
+Try calling using ?. instead.
+  var localFunctionTypeImplicitCall = nullableFunctionType();
+                                                          ^";
+  dynamic localFunctionTypeExplicitCall = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:52:60: Error: Method 'call' cannot be called on 'void Function()?' because it is potentially null.
+Try calling using ?. instead.
+  var localFunctionTypeExplicitCall = nullableFunctionType.call();
+                                                           ^^^^";
+  () →? void localFunctionTypeTearOff = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:53:55: Error: Property 'call' cannot be accessed on 'void Function()?' because it is potentially null.
+Try accessing using ?. instead.
+  var localFunctionTypeTearOff = nullableFunctionType.call;
+                                                      ^^^^";
+}
+static method main() → dynamic {}

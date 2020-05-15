@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'dart:typed_data';
 
-// TODO(johnniwinther): Fix inference for strong mode. List elements should not
+// TODO(johnniwinther): Fix inference for spec:nnbd-off mode. List elements should not
 // be [empty].
 
 /*member: myList:Container([null|exact=NativeFloat32List], element: [subclass=JSNumber], length: 42)*/

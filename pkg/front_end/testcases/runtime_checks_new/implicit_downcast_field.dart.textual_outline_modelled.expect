@@ -1,0 +1,11 @@
+library test;
+
+Object o = 1;
+bool topLevelValue = o;
+
+class C {
+  bool instanceValue = o;
+  static bool staticValue = o;
+}
+
+main() {}

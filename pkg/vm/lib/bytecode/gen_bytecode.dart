@@ -632,7 +632,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (field.isExtensionMember) {
       flags |= FieldDeclaration.isExtensionMemberFlag;
     }
-    if (field.isLate) {
+    // In NNBD libraries, static fields with initializers are implicitly late.
+    if (field.isLate ||
+        (field.isStatic &&
+            field.initializer != null &&
+            field.isNonNullableByDefault)) {
       flags |= FieldDeclaration.isLateFlag;
     }
     int position = TreeNode.noOffset;
@@ -820,6 +824,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         library.importUri.toString() == 'dart:_internal') {
       return false;
     }
+    if (member is Procedure && member.isMemberSignature) {
+      return false;
+    }
     return true;
   }
 
@@ -861,6 +868,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       }
       if (variable.isFinal) {
         flags |= ParameterDeclaration.isFinalFlag;
+      }
+      if (variable.isRequired) {
+        flags |= ParameterDeclaration.isRequiredFlag;
       }
       return flags;
     }
@@ -2654,6 +2664,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       flags |= ClosureDeclaration.hasTypeParamsFlag;
     }
 
+    final List<int> parameterFlags = getParameterFlags(function);
+    if (parameterFlags != null) {
+      flags |= ClosureDeclaration.hasParameterFlagsFlag;
+    }
+
     return new ClosureDeclaration(
         flags,
         objectTable.getHandle(parent),
@@ -2664,6 +2679,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         function.requiredParameterCount,
         function.namedParameters.length,
         parameters,
+        parameterFlags,
         objectTable.getHandle(function.returnType));
   }
 

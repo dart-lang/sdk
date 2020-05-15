@@ -6,12 +6,17 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/src/analysis_server_abstract.dart';
+import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_cancel_request.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_reject.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer_plugin/protocol/protocol.dart';
+import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 
 /// Converts an iterable using the provided function and skipping over any
 /// null values.
@@ -48,6 +53,16 @@ abstract class CommandHandler<P, R> with Handler<P, R> {
 mixin Handler<P, R> {
   LspAnalysisServer server;
 
+  ErrorOr<LineInfo> getLineInfo(String path) {
+    final lineInfo = server.getLineInfo(path);
+
+    if (lineInfo == null) {
+      return error(ServerErrorCodes.InvalidFilePath, 'Invalid file path', path);
+    } else {
+      return success(lineInfo);
+    }
+  }
+
   Future<ErrorOr<ResolvedUnitResult>> requireResolvedUnit(String path) async {
     final result = await server.getResolvedUnit(path);
     if (result?.state != ResultState.VALID) {
@@ -65,10 +80,22 @@ mixin Handler<P, R> {
   }
 }
 
+mixin LspPluginRequestHandlerMixin<T extends AbstractAnalysisServer>
+    on RequestHandlerMixin<T> {
+  Future<List<Response>> requestFromPlugins(String path, RequestParams params) {
+    final driver = server.getAnalysisDriver(path);
+    final pluginFutures = server.pluginManager
+        .broadcastRequest(params, contextRoot: driver.contextRoot);
+
+    return waitForResponses(pluginFutures, requestParameters: params);
+  }
+}
+
 /// An object that can handle messages and produce responses for requests.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class MessageHandler<P, R> with Handler<P, R> {
+abstract class MessageHandler<P, R>
+    with Handler<P, R>, RequestHandlerMixin<LspAnalysisServer> {
   MessageHandler(LspAnalysisServer server) {
     this.server = server;
   }

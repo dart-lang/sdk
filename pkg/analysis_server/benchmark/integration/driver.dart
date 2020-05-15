@@ -19,7 +19,7 @@ void _printColumn(StringBuffer sb, String text, int keyLen,
     sb.write(text);
     sb.write(',');
   }
-  for (int i = text.length; i < keyLen; ++i) {
+  for (var i = text.length; i < keyLen; ++i) {
     sb.writeCharCode(SPACE);
   }
   if (rightJustified) {
@@ -84,7 +84,7 @@ class Driver extends IntegrationTestMixin {
     logger.log(Level.FINE, 'starting server');
     initializeInttestMixin();
     server = Server();
-    Completer serverConnected = Completer();
+    var serverConnected = Completer();
     onServerConnected.listen((_) {
       logger.log(Level.FINE, 'connected to server');
       serverConnected.complete();
@@ -138,31 +138,31 @@ class Measurement {
   int get count => elapsedTimes.length;
 
   void printSummary(int keyLen) {
-    int count = 0;
-    Duration maxTime = elapsedTimes[0];
-    Duration minTime = elapsedTimes[0];
-    int totalTimeMicros = 0;
-    for (Duration elapsed in elapsedTimes) {
+    var count = 0;
+    var maxTime = elapsedTimes[0];
+    var minTime = elapsedTimes[0];
+    var totalTimeMicros = 0;
+    for (var elapsed in elapsedTimes) {
       ++count;
-      int timeMicros = elapsed.inMicroseconds;
+      var timeMicros = elapsed.inMicroseconds;
       maxTime = maxTime.compareTo(elapsed) > 0 ? maxTime : elapsed;
       minTime = minTime.compareTo(elapsed) < 0 ? minTime : elapsed;
       totalTimeMicros += timeMicros;
     }
-    int meanTime = (totalTimeMicros / count).round();
-    List<Duration> sorted = elapsedTimes.toList()..sort();
-    Duration time90th = sorted[(sorted.length * 0.90).round() - 1];
-    Duration time99th = sorted[(sorted.length * 0.99).round() - 1];
-    int differenceFromMeanSquared = 0;
-    for (Duration elapsed in elapsedTimes) {
-      int timeMicros = elapsed.inMicroseconds;
-      int differenceFromMean = timeMicros - meanTime;
+    var meanTime = (totalTimeMicros / count).round();
+    var sorted = elapsedTimes.toList()..sort();
+    var time90th = sorted[(sorted.length * 0.90).round() - 1];
+    var time99th = sorted[(sorted.length * 0.99).round() - 1];
+    var differenceFromMeanSquared = 0;
+    for (var elapsed in elapsedTimes) {
+      var timeMicros = elapsed.inMicroseconds;
+      var differenceFromMean = timeMicros - meanTime;
       differenceFromMeanSquared += differenceFromMean * differenceFromMean;
     }
-    double variance = differenceFromMeanSquared / count;
-    int standardDeviation = sqrt(variance).round();
+    var variance = differenceFromMeanSquared / count;
+    var standardDeviation = sqrt(variance).round();
 
-    StringBuffer sb = StringBuffer();
+    var sb = StringBuffer();
     _printColumn(sb, tag, keyLen);
     _printColumn(sb, count.toString(), 6, rightJustified: true);
     _printColumn(sb, errorCount.toString(), 6, rightJustified: true);
@@ -204,14 +204,14 @@ class Results {
     print('');
     print('==================================================================');
     print('');
-    List<String> keys = measurements.keys.toList()..sort();
-    int keyLen = keys.fold(0, (int len, String key) => max(len, key.length));
+    var keys = measurements.keys.toList()..sort();
+    var keyLen = keys.fold(0, (int len, String key) => max(len, key.length));
     _printGroupHeader('Request/Response', keyLen);
-    int totalCount = 0;
-    int totalErrorCount = 0;
-    int totalUnexpectedResultCount = 0;
-    for (String tag in keys) {
-      Measurement m = measurements[tag];
+    var totalCount = 0;
+    var totalErrorCount = 0;
+    var totalUnexpectedResultCount = 0;
+    for (var tag in keys) {
+      var m = measurements[tag];
       if (!m.notification) {
         m.printSummary(keyLen);
         totalCount += m.count;
@@ -223,8 +223,8 @@ class Results {
         keyLen, totalCount, totalErrorCount, totalUnexpectedResultCount);
     print('');
     _printGroupHeader('Notifications', keyLen);
-    for (String tag in keys) {
-      Measurement m = measurements[tag];
+    for (var tag in keys) {
+      var m = measurements[tag];
       if (m.notification) {
         m.printSummary(keyLen);
       }
@@ -241,7 +241,7 @@ class Results {
   /// Record the elapsed time for the given operation.
   void record(String tag, Duration elapsed,
       {bool notification = false, bool success = true}) {
-    Measurement measurement = measurements[tag];
+    var measurement = measurements[tag];
     if (measurement == null) {
       measurement = Measurement(tag, notification);
       measurements[tag] = measurement;
@@ -254,7 +254,7 @@ class Results {
   }
 
   void _printGroupHeader(String groupName, int keyLen) {
-    StringBuffer sb = StringBuffer();
+    var sb = StringBuffer();
     _printColumn(sb, groupName, keyLen);
     _printColumn(sb, 'count', 6, rightJustified: true);
     _printColumn(sb, 'error', 6, rightJustified: true);
@@ -272,7 +272,7 @@ class Results {
 
   void _printTotals(int keyLen, int totalCount, int totalErrorCount,
       int totalUnexpectedResultCount) {
-    StringBuffer sb = StringBuffer();
+    var sb = StringBuffer();
     _printColumn(sb, 'Totals', keyLen);
     _printColumn(sb, totalCount.toString(), 6, rightJustified: true);
     _printColumn(sb, totalErrorCount.toString(), 6, rightJustified: true);

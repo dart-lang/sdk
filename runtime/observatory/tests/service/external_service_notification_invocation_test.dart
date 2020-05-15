@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 import 'dart:io' show WebSocket;
 import 'dart:convert' show jsonDecode, jsonEncode;
@@ -57,7 +57,7 @@ var tests = <IsolateTest>[
 
     client_invoker.first.then((_) {
       expect(false, isTrue, reason: 'shouldn\'t get here');
-    }).catchError((e) => e);
+    }).catchError((_) => null);
 
     // Testing serial invocation of service which succedes
     for (var iteration = 0; iteration < repetition; iteration++) {
@@ -83,4 +83,7 @@ var tests = <IsolateTest>[
   },
 ];
 
-main(args) => runIsolateTests(args, tests);
+main(args) => runIsolateTests(
+      args,
+      tests,
+    );

@@ -480,7 +480,7 @@ static int64_t TimespecToMilliseconds(const struct timespec& t) {
 static void MillisecondsToTimespec(int64_t millis, struct timespec* t) {
   ASSERT(t != NULL);
   t->tv_sec = millis / kMillisecondsPerSecond;
-  t->tv_nsec = (millis - (t->tv_sec * kMillisecondsPerSecond)) * 1000L;
+  t->tv_nsec = (millis % kMillisecondsPerSecond) * 1000L;
 }
 
 void File::Stat(Namespace* namespc, const char* name, int64_t* data) {
@@ -655,22 +655,28 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
   return kOther;
 }
 
-File::Identical File::AreIdentical(Namespace* namespc,
+File::Identical File::AreIdentical(Namespace* namespc_1,
                                    const char* file_1,
+                                   Namespace* namespc_2,
                                    const char* file_2) {
-  NamespaceScope ns1(namespc, file_1);
-  NamespaceScope ns2(namespc, file_2);
   struct stat file_1_info;
   struct stat file_2_info;
-  int status = TEMP_FAILURE_RETRY(
-      fstatat(ns1.fd(), ns1.path(), &file_1_info, AT_SYMLINK_NOFOLLOW));
-  if (status == -1) {
-    return File::kError;
+  int status;
+  {
+    NamespaceScope ns1(namespc_1, file_1);
+    status = TEMP_FAILURE_RETRY(
+        fstatat(ns1.fd(), ns1.path(), &file_1_info, AT_SYMLINK_NOFOLLOW));
+    if (status == -1) {
+      return File::kError;
+    }
   }
-  status = TEMP_FAILURE_RETRY(
-      fstatat(ns2.fd(), ns2.path(), &file_2_info, AT_SYMLINK_NOFOLLOW));
-  if (status == -1) {
-    return File::kError;
+  {
+    NamespaceScope ns2(namespc_2, file_2);
+    status = TEMP_FAILURE_RETRY(
+        fstatat(ns2.fd(), ns2.path(), &file_2_info, AT_SYMLINK_NOFOLLOW));
+    if (status == -1) {
+      return File::kError;
+    }
   }
   return ((file_1_info.st_ino == file_2_info.st_ino) &&
           (file_1_info.st_dev == file_2_info.st_dev))

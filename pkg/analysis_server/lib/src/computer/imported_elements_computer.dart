@@ -30,7 +30,7 @@ class ImportedElementsComputer {
     if (_regionIncludesDirectives()) {
       return const <ImportedElements>[];
     }
-    _Visitor visitor =
+    var visitor =
         _Visitor(unit.declaredElement.library, offset, offset + length);
     unit.accept(visitor);
     return visitor.importedElements.values.toList();
@@ -40,7 +40,7 @@ class ImportedElementsComputer {
   /// really only needs to check for import and export directives, but excluding
   /// other directives is unlikely to hurt the UX.
   bool _regionIncludesDirectives() {
-    NodeList<Directive> directives = unit.directives;
+    var directives = unit.directives;
     if (directives.isEmpty) {
       return false;
     }
@@ -83,13 +83,13 @@ class _Visitor extends UnifyingAstVisitor<void> {
         node.offset <= endOffset &&
         node.end >= startOffset &&
         !_isConstructorDeclarationReturnType(node)) {
-      Element nodeElement = node.staticElement;
+      var nodeElement = node.staticElement;
       if (nodeElement != null &&
           nodeElement.enclosingElement is CompilationUnitElement) {
-        LibraryElement nodeLibrary = nodeElement.library;
-        String path = nodeLibrary.definingCompilationUnit.source.fullName;
-        String prefix = '';
-        AstNode parent = node.parent;
+        var nodeLibrary = nodeElement.library;
+        var path = nodeLibrary.definingCompilationUnit.source.fullName;
+        var prefix = '';
+        var parent = node.parent;
         if (parent is PrefixedIdentifier && parent.identifier == node) {
           prefix = _getPrefixFrom(parent.prefix);
         } else if (parent is MethodInvocation &&
@@ -97,11 +97,11 @@ class _Visitor extends UnifyingAstVisitor<void> {
             parent.target is SimpleIdentifier) {
           prefix = _getPrefixFrom(parent.target);
         }
-        String key = '$prefix;$path';
-        ImportedElements elements = importedElements.putIfAbsent(
+        var key = '$prefix;$path';
+        var elements = importedElements.putIfAbsent(
             key, () => ImportedElements(path, prefix, <String>[]));
-        List<String> elementNames = elements.elements;
-        String elementName = nodeElement.name;
+        var elementNames = elements.elements;
+        var elementName = nodeElement.name;
         if (!elementNames.contains(elementName)) {
           elementNames.add(elementName);
         }
@@ -111,7 +111,7 @@ class _Visitor extends UnifyingAstVisitor<void> {
 
   String _getPrefixFrom(SimpleIdentifier identifier) {
     if (identifier.offset <= endOffset && identifier.end >= startOffset) {
-      Element prefixElement = identifier.staticElement;
+      var prefixElement = identifier.staticElement;
       if (prefixElement is PrefixElement) {
         return prefixElement.name;
       }
@@ -120,7 +120,7 @@ class _Visitor extends UnifyingAstVisitor<void> {
   }
 
   static bool _isConstructorDeclarationReturnType(SimpleIdentifier node) {
-    AstNode parent = node.parent;
+    var parent = node.parent;
     return parent is ConstructorDeclaration && parent.returnType == node;
   }
 }

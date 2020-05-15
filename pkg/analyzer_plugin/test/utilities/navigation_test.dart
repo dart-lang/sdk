@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
-import 'package:analyzer_plugin/utilities/generator.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -21,19 +20,19 @@ class NavigationGeneratorTest with ResourceProviderMixin {
   ResolvedUnitResult resolvedUnit = MockResolvedUnitResult(path: 'a.dart');
 
   void test_none() {
-    NavigationGenerator generator = NavigationGenerator([]);
+    var generator = NavigationGenerator([]);
     NavigationRequest request =
         DartNavigationRequestImpl(resourceProvider, 0, 100, resolvedUnit);
-    GeneratorResult result = generator.generateNavigationNotification(request);
+    var result = generator.generateNavigationNotification(request);
     expect(result.notifications, hasLength(1));
   }
 
   void test_normal() {
-    TestContributor contributor = TestContributor();
-    NavigationGenerator generator = NavigationGenerator([contributor]);
+    var contributor = TestContributor();
+    var generator = NavigationGenerator([contributor]);
     NavigationRequest request =
         DartNavigationRequestImpl(resourceProvider, 0, 100, resolvedUnit);
-    GeneratorResult result = generator.generateNavigationNotification(request);
+    var result = generator.generateNavigationNotification(request);
     expect(result.notifications, hasLength(1));
     expect(contributor.count, 1);
   }
@@ -42,15 +41,15 @@ class NavigationGeneratorTest with ResourceProviderMixin {
   /// throws an error and that an error in one contributor doesn't prevent other
   /// contributors from being called.
   void test_withException() {
-    TestContributor contributor1 = TestContributor();
-    TestContributor contributor2 = TestContributor(throwException: true);
-    TestContributor contributor3 = TestContributor();
-    TestContributor contributor4 = TestContributor(throwException: true);
-    NavigationGenerator generator = NavigationGenerator(
+    var contributor1 = TestContributor();
+    var contributor2 = TestContributor(throwException: true);
+    var contributor3 = TestContributor();
+    var contributor4 = TestContributor(throwException: true);
+    var generator = NavigationGenerator(
         [contributor1, contributor2, contributor3, contributor4]);
     NavigationRequest request =
         DartNavigationRequestImpl(resourceProvider, 0, 100, resolvedUnit);
-    GeneratorResult result = generator.generateNavigationNotification(request);
+    var result = generator.generateNavigationNotification(request);
     expect(result.notifications, hasLength(3));
     expect(
         result.notifications.where(

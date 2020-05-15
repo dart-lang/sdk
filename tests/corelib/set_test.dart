@@ -61,7 +61,7 @@ void testInts(Set create()) {
   Expect.isTrue(set.containsAll(set));
 
   // Test Set.map.
-  bool testMap(dynamic val) {
+  int testMap(dynamic val) {
     return (val as int) * val;
   }
 
@@ -177,7 +177,7 @@ void testInts(Set create()) {
   }
 
   // Test Set.addAll.
-  List list = new List(10);
+  List list = new List.filled(10, null);
   for (int i = 0; i < 10; i++) {
     list[i] = i + 10;
   }

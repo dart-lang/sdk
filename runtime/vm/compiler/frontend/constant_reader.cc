@@ -4,8 +4,6 @@
 
 #include "vm/compiler/frontend/constant_reader.h"
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 namespace dart {
 namespace kernel {
 
@@ -21,7 +19,7 @@ ConstantReader::ConstantReader(KernelReaderHelper* helper,
       script_(helper->script()),
       result_(Instance::Handle(zone_)) {}
 
-RawInstance* ConstantReader::ReadConstantExpression() {
+InstancePtr ConstantReader::ReadConstantExpression() {
   Tag tag = helper_->ReadTag();  // read tag.
   switch (tag) {
     case kConstantExpression:
@@ -46,7 +44,7 @@ RawInstance* ConstantReader::ReadConstantExpression() {
   return result_.raw();
 }
 
-RawObject* ConstantReader::ReadAnnotations() {
+ObjectPtr ConstantReader::ReadAnnotations() {
   intptr_t list_length = helper_->ReadListLength();  // read list length.
   const Array& metadata_values =
       Array::Handle(Z, Array::New(list_length, H.allocation_space()));
@@ -59,7 +57,7 @@ RawObject* ConstantReader::ReadAnnotations() {
   return metadata_values.raw();
 }
 
-RawInstance* ConstantReader::ReadConstant(intptr_t constant_offset) {
+InstancePtr ConstantReader::ReadConstant(intptr_t constant_offset) {
   ASSERT(!H.constants().IsNull());
   ASSERT(!H.constants_table().IsNull());  // raw bytes
 
@@ -102,8 +100,9 @@ bool ConstantReader::IsInstanceConstant(intptr_t constant_offset,
   return false;
 }
 
-RawInstance* ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
+InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
   // Get reader directly into raw bytes of constant table.
+  bool null_safety = H.thread()->isolate()->null_safety();
   KernelReaderHelper reader(Z, &H, script_, H.constants_table(), 0);
   reader.ReadUInt();  // skip variable-sized int for adjusted constant offset
   reader.SetOffset(reader.ReaderOffset() + constant_offset);
@@ -182,8 +181,9 @@ RawInstance* ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
       const auto& list_class =
           Class::Handle(Z, corelib.LookupClassAllowPrivate(Symbols::_List()));
       // Build type from the raw bytes (needs temporary translator).
-      TypeTranslator type_translator(&reader, this, active_class_, true,
-                                     active_class_->RequireLegacyErasure());
+      TypeTranslator type_translator(
+          &reader, this, active_class_, true,
+          active_class_->RequireLegacyErasure(null_safety));
       auto& type_arguments =
           TypeArguments::Handle(Z, TypeArguments::New(1, Heap::kOld));
       AbstractType& type = type_translator.BuildType();
@@ -224,8 +224,9 @@ RawInstance* ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
       ASSERT(klass.is_enum_class() || klass.is_const());
       instance = Instance::New(klass, Heap::kOld);
       // Build type from the raw bytes (needs temporary translator).
-      TypeTranslator type_translator(&reader, this, active_class_, true,
-                                     active_class_->RequireLegacyErasure());
+      TypeTranslator type_translator(
+          &reader, this, active_class_, true,
+          active_class_->RequireLegacyErasure(null_safety));
       const intptr_t number_of_type_arguments = reader.ReadUInt();
       if (klass.NumTypeArguments() > 0) {
         auto& type_arguments = TypeArguments::Handle(
@@ -267,8 +268,9 @@ RawInstance* ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
       ASSERT(!constant.IsNull());
 
       // Build type from the raw bytes (needs temporary translator).
-      TypeTranslator type_translator(&reader, this, active_class_, true,
-                                     active_class_->RequireLegacyErasure());
+      TypeTranslator type_translator(
+          &reader, this, active_class_, true,
+          active_class_->RequireLegacyErasure(null_safety));
       const intptr_t number_of_type_arguments = reader.ReadUInt();
       ASSERT(number_of_type_arguments > 0);
       auto& type_arguments = TypeArguments::Handle(
@@ -301,8 +303,9 @@ RawInstance* ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
     }
     case kTypeLiteralConstant: {
       // Build type from the raw bytes (needs temporary translator).
-      TypeTranslator type_translator(&reader, this, active_class_, true,
-                                     active_class_->RequireLegacyErasure());
+      TypeTranslator type_translator(
+          &reader, this, active_class_, true,
+          active_class_->RequireLegacyErasure(null_safety));
       instance = type_translator.BuildType().raw();
       break;
     }
@@ -323,5 +326,3 @@ RawInstance* ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
 
 }  // namespace kernel
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

@@ -210,11 +210,10 @@ void main(List<String> args) async {
   String sdkJsPath;
   String requirePath;
   String ddcSdk;
-  var archDir = nnbd ? 'ReleaseX64NNBD' : 'ReleaseX64';
   if (debug) {
     var sdkRoot = p.dirname(p.dirname(ddcPath));
     var buildDir = p.join(sdkRoot, Platform.isMacOS ? 'xcodebuild' : 'out');
-    dartSdk = p.join(buildDir, archDir, 'dart-sdk');
+    dartSdk = p.join(buildDir, 'ReleaseX64', 'dart-sdk');
   }
   var suffix = p.join('kernel', mod);
   sdkJsPath = p.join(dartSdk, 'lib', 'dev_compiler', suffix);
@@ -269,7 +268,7 @@ void main(List<String> args) async {
         function(sdk, app) {
     'use strict';
     if ($nnbd) {
-      sdk.dart.strictSubtypeChecks($isNnbdStrong);
+      sdk.dart.nullSafety($isNnbdStrong);
     }
     sdk._debugger.registerDevtoolsFormatter();
     app.$libname.main();
@@ -301,7 +300,7 @@ let sdk = require(\"dart_sdk\");
 let main = require(\"./$basename\").$libname.main;
 try {
   if ($nnbd) {
-    sdk.dart.strictSubtypeChecks($isNnbdStrong);
+    sdk.dart.nullSafety($isNnbdStrong);
   }
   sdk._isolate_helper.startRootIsolate(main, []);
 } catch(e) {
@@ -334,7 +333,7 @@ import { $libname } from '$basename.js';
 let main = $libname.main;
 try {
   if ($nnbd) {
-    dart.strictSubtypeChecks($isNnbdStrong);
+    dart.nullSafety($isNnbdStrong);
   }
   _isolate_helper.startRootIsolate(() => {}, []);
   main();

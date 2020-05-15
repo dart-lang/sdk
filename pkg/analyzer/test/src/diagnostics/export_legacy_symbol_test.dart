@@ -25,6 +25,18 @@ class ExportLegacySymbolTest extends DriverResolutionTest {
   @override
   bool get typeToStringWithNullability => true;
 
+  test_exportDartAsync() async {
+    await assertNoErrorsInCode(r'''
+export 'dart:async';
+''');
+  }
+
+  test_exportDartCore() async {
+    await assertNoErrorsInCode(r'''
+export 'dart:core';
+''');
+  }
+
   test_exportOptedIn() async {
     newFile('/test/lib/a.dart', content: r'''
 class A {}

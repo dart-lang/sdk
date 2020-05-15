@@ -11,12 +11,14 @@ import '../util/colors.dart' as colors;
 const String cfeMarker = 'cfe';
 const String cfeWithNnbdMarker = '$cfeMarker:nnbd';
 const String dart2jsMarker = 'dart2js';
+const String dart2jsWithNnbdSdkMarker = '$dart2jsMarker:nnbd-sdk';
 const String analyzerMarker = 'analyzer';
 
 /// Markers used in annotated tests shared by CFE, analyzer and dart2js.
 const List<String> sharedMarkers = [
   cfeMarker,
   dart2jsMarker,
+  dart2jsWithNnbdSdkMarker,
   analyzerMarker,
 ];
 
@@ -31,6 +33,7 @@ const List<String> sharedMarkersWithNnbd = [
   cfeMarker,
   cfeWithNnbdMarker,
   dart2jsMarker,
+  dart2jsWithNnbdSdkMarker,
   analyzerMarker,
 ];
 
@@ -434,7 +437,10 @@ abstract class DataInterpreter<T> {
   bool isEmpty(T actualData);
 
   /// Returns a textual representation of [actualData].
-  String getText(T actualData);
+  ///
+  /// If [indentation] is provided a multiline pretty printing can be returned
+  /// using [indentation] for additional lines.
+  String getText(T actualData, [String indentation]);
 }
 
 /// Default data interpreter for string data.
@@ -457,7 +463,7 @@ class StringDataInterpreter implements DataInterpreter<String> {
   }
 
   @override
-  String getText(String actualData) {
+  String getText(String actualData, [String indentation]) {
     return actualData;
   }
 }
@@ -725,6 +731,7 @@ Future<void> runTests<T>(Directory dataDir,
   bool continued = false;
   bool hasFailures = false;
   bool generateAnnotations = args.remove('-g');
+  bool forceUpdate = args.remove('-f');
 
   String relativeDir = dataDir.uri.path.replaceAll(Uri.base.path, '');
   print('Data dir: ${relativeDir}');
@@ -791,7 +798,7 @@ Future<void> runTests<T>(Directory dataDir,
     if (hasErrors) {
       // Cannot generate annotations for erroneous tests.
       hasFailures = true;
-    } else if (hasMismatches) {
+    } else if (hasMismatches || (forceUpdate && generateAnnotations)) {
       if (generateAnnotations) {
         DataInterpreter dataInterpreter;
         Map<String, Map<Uri, Map<Id, ActualData<T>>>> actualData = {};
@@ -823,7 +830,8 @@ Future<void> runTests<T>(Directory dataDir,
             testData.expectedMaps,
             testData.entryPoint,
             actualData,
-            dataInterpreter);
+            dataInterpreter,
+            forceUpdate: forceUpdate);
         annotations.forEach((Uri uri, List<Annotation> annotations) {
           assert(uri != null, "Annotations without uri: $annotations");
           AnnotatedCode code = testData.code[uri];
@@ -865,4 +873,23 @@ bool skipForConfig(
     }
   }
   return false;
+}
+
+/// Updates all id tests in [relativeTestPaths].
+///
+/// This assumes that the current working directory is the repository root.
+Future<void> updateAllTests(List<String> relativeTestPaths) async {
+  for (String testPath in relativeTestPaths) {
+    List<String> arguments = [
+      '--packages=${Platform.packageConfig}',
+      testPath,
+      '-g',
+      '--run-all'
+    ];
+    print('Running: ${Platform.resolvedExecutable} ${arguments.join(' ')}');
+    Process process = await Process.start(
+        Platform.resolvedExecutable, arguments,
+        mode: ProcessStartMode.inheritStdio);
+    await process.exitCode;
+  }
 }

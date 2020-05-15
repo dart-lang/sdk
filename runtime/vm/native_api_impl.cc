@@ -269,7 +269,7 @@ DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg) {
 
   } else if (strcmp(command, "is-mutator-in-native") == 0) {
     Isolate* const isolate = reinterpret_cast<Isolate*>(arg);
-    if (isolate->mutator_thread()->execution_state() ==
+    if (isolate->mutator_thread()->execution_state_cross_thread_for_testing() ==
         Thread::kThreadInNative) {
       return arg;
     } else {

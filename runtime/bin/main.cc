@@ -180,7 +180,7 @@ static Dart_Handle SetupCoreLibraries(Dart_Isolate isolate,
 
   // Prepare builtin and other core libraries for use to resolve URIs.
   // Set up various closures, e.g: printing, timers etc.
-  // Set up 'package root' for URI resolution.
+  // Set up package configuration for URI resolution.
   result = DartUtils::PrepareForScriptLoading(false, Options::trace_loading());
   if (Dart_IsError(result)) return result;
 
@@ -417,7 +417,6 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
 // For now we only support the kernel isolate coming up from an
 // application snapshot or from a .dill file.
 static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
-                                                const char* package_root,
                                                 const char* packages_config,
                                                 Dart_IsolateFlags* flags,
                                                 char** error,
@@ -459,9 +458,8 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
     app_snapshot->SetBuffers(
         &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
         &isolate_snapshot_data, &isolate_snapshot_instructions);
-    isolate_group_data =
-        new IsolateGroupData(uri, package_root, packages_config, app_snapshot,
-                             isolate_run_app_snapshot);
+    isolate_group_data = new IsolateGroupData(
+        uri, packages_config, app_snapshot, isolate_run_app_snapshot);
     isolate_data = new IsolateData(isolate_group_data);
     isolate = Dart_CreateIsolateGroup(
         DART_KERNEL_ISOLATE_NAME, DART_KERNEL_ISOLATE_NAME,
@@ -479,8 +477,8 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
     intptr_t kernel_service_buffer_size = 0;
     dfe.LoadKernelService(&kernel_service_buffer, &kernel_service_buffer_size);
     ASSERT(kernel_service_buffer != NULL);
-    isolate_group_data = new IsolateGroupData(
-        uri, package_root, packages_config, nullptr, isolate_run_app_snapshot);
+    isolate_group_data = new IsolateGroupData(uri, packages_config, nullptr,
+                                              isolate_run_app_snapshot);
     isolate_group_data->SetKernelBufferUnowned(
         const_cast<uint8_t*>(kernel_service_buffer),
         kernel_service_buffer_size);
@@ -508,7 +506,6 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
 // For now we only support the service isolate coming up from sources
 // which are compiled by the VM parser.
 static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
-                                                 const char* package_root,
                                                  const char* packages_config,
                                                  Dart_IsolateFlags* flags,
                                                  char** error,
@@ -516,8 +513,8 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
 #if !defined(PRODUCT)
   ASSERT(script_uri != NULL);
   Dart_Isolate isolate = NULL;
-  auto isolate_group_data = new IsolateGroupData(
-      script_uri, package_root, packages_config, nullptr, false);
+  auto isolate_group_data =
+      new IsolateGroupData(script_uri, packages_config, nullptr, false);
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   // AOT: All isolates start from the app snapshot.
@@ -580,7 +577,6 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
     bool is_main_isolate,
     const char* script_uri,
     const char* name,
-    const char* package_root,
     const char* packages_config,
     Dart_IsolateFlags* flags,
     void* callback_data,
@@ -637,9 +633,8 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-  auto isolate_group_data =
-      new IsolateGroupData(script_uri, package_root, packages_config,
-                           app_snapshot, isolate_run_app_snapshot);
+  auto isolate_group_data = new IsolateGroupData(
+      script_uri, packages_config, app_snapshot, isolate_run_app_snapshot);
   if (kernel_buffer != NULL) {
     if (parent_kernel_buffer) {
       isolate_group_data->SetKernelBufferAlreadyOwned(
@@ -716,28 +711,22 @@ static Dart_Isolate CreateIsolateGroupAndSetup(const char* script_uri,
   // The VM should never call the isolate helper with a NULL flags.
   ASSERT(flags != NULL);
   ASSERT(flags->version == DART_FLAGS_CURRENT_VERSION);
-  if ((package_root != NULL) && (package_config != NULL)) {
-    *error = strdup(
-        "Invalid arguments - Cannot simultaneously specify "
-        "package root and package map.");
-    return NULL;
-  }
-
+  ASSERT(package_root == nullptr);
   int exit_code = 0;
 #if !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
   if (strcmp(script_uri, DART_KERNEL_ISOLATE_NAME) == 0) {
-    return CreateAndSetupKernelIsolate(script_uri, package_root, package_config,
-                                       flags, error, &exit_code);
+    return CreateAndSetupKernelIsolate(script_uri, package_config, flags, error,
+                                       &exit_code);
   }
 #endif  // !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
   if (strcmp(script_uri, DART_VM_SERVICE_ISOLATE_NAME) == 0) {
-    return CreateAndSetupServiceIsolate(
-        script_uri, package_root, package_config, flags, error, &exit_code);
+    return CreateAndSetupServiceIsolate(script_uri, package_config, flags,
+                                        error, &exit_code);
   }
   bool is_main_isolate = false;
   return CreateIsolateGroupAndSetupHelper(is_main_isolate, script_uri, main,
-                                          package_root, package_config, flags,
-                                          callback_data, error, &exit_code);
+                                          package_config, flags, callback_data,
+                                          error, &exit_code);
 }
 
 static void OnIsolateShutdown(void* isolate_group_data, void* isolate_data) {
@@ -845,10 +834,15 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
   Dart_IsolateFlags flags;
   Dart_IsolateFlagsInitialize(&flags);
 
+  if (Options::package_root() != nullptr) {
+    Syslog::PrintErr(
+        "Warning: The --package-root option is deprecated (was: %s)\n",
+        Options::package_root());
+  }
+
   Dart_Isolate isolate = CreateIsolateGroupAndSetupHelper(
-      is_main_isolate, script_name, "main", Options::package_root(),
-      Options::packages_file(), &flags, NULL /* callback_data */, &error,
-      &exit_code);
+      is_main_isolate, script_name, "main", Options::packages_file(), &flags,
+      NULL /* callback_data */, &error, &exit_code);
 
   if (isolate == NULL) {
     Syslog::PrintErr("%s\n", error);
@@ -1005,7 +999,7 @@ void main(int argc, char** argv) {
   char* script_name;
   const int EXTRA_VM_ARGUMENTS = 10;
   CommandLineOptions vm_options(argc + EXTRA_VM_ARGUMENTS);
-  CommandLineOptions dart_options(argc);
+  CommandLineOptions dart_options(argc + EXTRA_VM_ARGUMENTS);
   bool print_flags_seen = false;
   bool verbose_debug_seen = false;
 

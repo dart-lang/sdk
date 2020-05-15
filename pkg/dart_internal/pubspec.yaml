@@ -1,5 +1,5 @@
 name: dart_internal
-version: 0.1.8
+version: 0.1.9
 author: "Dart Team <misc@dartlang.org>"
 homepage: http://www.dartlang.org
 description: >
@@ -16,4 +16,4 @@ description: >
 environment:
   # Restrict the upper bound so that we can remove support for this in a later
   # version of the SDK without it being a breaking change.
-  sdk: ">=2.0.0-dev.12.0 <2.8.0"
+  sdk: ">=2.0.0-dev.12.0 <2.9.0"

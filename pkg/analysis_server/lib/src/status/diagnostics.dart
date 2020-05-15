@@ -23,19 +23,13 @@ import 'package:analysis_server/src/status/ast_writer.dart';
 import 'package:analysis_server/src/status/element_writer.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analysis_server/src/utilities/profiling.dart';
-import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/context/source.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
-import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
@@ -153,7 +147,7 @@ td.pre {
 final bool _showLints = false;
 
 String get _sdkVersion {
-  String version = Platform.version;
+  var version = Platform.version;
   if (version.contains(' ')) {
     version = version.substring(0, version.indexOf(' '));
   }
@@ -175,22 +169,22 @@ abstract class AbstractCompletionPage extends DiagnosticPageWithNav {
 
   @override
   Future generateContent(Map<String, String> params) async {
-    List<CompletionPerformance> completions = performanceItems;
+    var completions = performanceItems;
 
     if (completions.isEmpty) {
       blankslate('No completions recorded.');
       return;
     }
 
-    int fastCount =
+    var fastCount =
         completions.where((c) => c.elapsedInMilliseconds <= 100).length;
     p('${completions.length} results; ${printPercentage(fastCount / completions.length)} within 100ms.');
 
     // draw a chart
     buf.writeln(
         '<div id="chart-div" style="width: 700px; height: 300px;"></div>');
-    StringBuffer rowData = StringBuffer();
-    for (int i = completions.length - 1; i >= 0; i--) {
+    var rowData = StringBuffer();
+    for (var i = completions.length - 1; i >= 0; i--) {
       // [' ', 101.5]
       if (rowData.isNotEmpty) {
         rowData.write(',');
@@ -217,8 +211,8 @@ abstract class AbstractCompletionPage extends DiagnosticPageWithNav {
     buf.writeln('<table>');
     buf.writeln(
         '<tr><th>Time</th><th>Results</th><th>Source</th><th>Snippet</th></tr>');
-    for (CompletionPerformance completion in completions) {
-      String shortName = pathContext.basename(completion.path);
+    for (var completion in completions) {
+      var shortName = pathContext.basename(completion.path);
       buf.writeln('<tr>'
           '<td class="pre right">${printMilliseconds(completion.elapsedInMilliseconds)}</td>'
           '<td class="right">${completion.suggestionCount}</td>'
@@ -244,18 +238,18 @@ class AstPage extends DiagnosticPageWithNav {
 
   @override
   Future<void> generateContent(Map<String, String> params) async {
-    String filePath = params['file'];
+    var filePath = params['file'];
     if (filePath == null) {
       p('No file path provided.');
       return;
     }
-    AnalysisDriver driver = server.getAnalysisDriver(filePath);
+    var driver = server.getAnalysisDriver(filePath);
     if (driver == null) {
       p('The file <code>${escape(filePath)}</code> is not being analyzed.',
           raw: true);
       return;
     }
-    ResolvedUnitResult result = await driver.getResult(filePath);
+    var result = await driver.getResult(filePath);
     if (result == null) {
       p(
           'An AST could not be produced for the file '
@@ -264,7 +258,7 @@ class AstPage extends DiagnosticPageWithNav {
       return;
     }
 
-    AstWriter writer = AstWriter(buf);
+    var writer = AstWriter(buf);
     result.unit.accept(writer);
   }
 
@@ -289,8 +283,8 @@ class CommunicationsPage extends DiagnosticPageWithNav {
   Future generateContent(Map<String, String> params) async {
     void writeRow(List<String> data, {List<String> classes}) {
       buf.write('<tr>');
-      for (int i = 0; i < data.length; i++) {
-        String c = classes == null ? null : classes[i];
+      for (var i = 0; i < data.length; i++) {
+        var c = classes == null ? null : classes[i];
         if (c != null) {
           buf.write('<td class="$c">${escape(data[i])}</td>');
         } else {
@@ -308,7 +302,7 @@ class CommunicationsPage extends DiagnosticPageWithNav {
       h3('Current');
       _writePerformanceTable(server.performanceAfterStartup, writeRow);
 
-      String time = server.uptime.toString();
+      var time = server.uptime.toString();
       if (time.contains('.')) {
         time = time.substring(0, time.indexOf('.'));
       }
@@ -323,7 +317,7 @@ class CommunicationsPage extends DiagnosticPageWithNav {
     _writePerformanceTable(server.performanceDuringStartup, writeRow);
 
     if (server.performanceAfterStartup != null) {
-      int startupTime = server.performanceAfterStartup.startTime -
+      var startupTime = server.performanceAfterStartup.startTime -
           server.performanceDuringStartup.startTime;
       buf.writeln(
           writeOption('Initial analysis time', printMilliseconds(startupTime)));
@@ -336,12 +330,12 @@ class CommunicationsPage extends DiagnosticPageWithNav {
 
   void _writePerformanceTable(ServerPerformance perf,
       void Function(List<String> data, {List<String> classes}) writeRow) {
-    int requestCount = perf.requestCount;
-    int latencyCount = perf.latencyCount;
-    int averageLatency =
+    var requestCount = perf.requestCount;
+    var latencyCount = perf.latencyCount;
+    var averageLatency =
         latencyCount > 0 ? (perf.requestLatency ~/ latencyCount) : 0;
-    int maximumLatency = perf.maxLatency;
-    double slowRequestPercent =
+    var maximumLatency = perf.maxLatency;
+    var slowRequestPercent =
         latencyCount > 0 ? (perf.slowRequestCount / latencyCount) : 0.0;
 
     buf.write('<table>');
@@ -379,6 +373,62 @@ class CompletionPage extends AbstractCompletionPage {
       completionDomain.performanceList.items.toList();
 }
 
+class ContentsPage extends DiagnosticPageWithNav {
+  String _description;
+
+  ContentsPage(DiagnosticsSite site)
+      : super(site, 'contents', 'Contents',
+            description: 'The Contents/Overlay of a file.');
+
+  @override
+  String get description => _description ?? super.description;
+
+  @override
+  bool get showInNav => false;
+
+  @override
+  Future<void> generateContent(Map<String, String> params) async {
+    var filePath = params['file'];
+    if (filePath == null) {
+      p('No file path provided.');
+      return;
+    }
+    var driver = server.getAnalysisDriver(filePath);
+    if (driver == null) {
+      p('The file <code>${escape(filePath)}</code> is not being analyzed.',
+          raw: true);
+      return;
+    }
+    var file = await server.resourceProvider.getFile(filePath);
+    if (!file.exists) {
+      p('The file <code>${escape(filePath)}</code> does not exist.', raw: true);
+      return;
+    }
+
+    if (server.resourceProvider.hasOverlay(filePath)) {
+      p('Showing overlay for file.');
+    } else {
+      p('Showing file system contents for file.');
+    }
+
+    pre(() {
+      buf.write('<code>');
+      buf.write(escape(file.readAsStringSync()));
+      buf.writeln('</code>');
+    });
+  }
+
+  @override
+  Future<void> generatePage(Map<String, String> params) async {
+    try {
+      _description = params['file'];
+      await super.generatePage(params);
+    } finally {
+      _description = null;
+    }
+  }
+}
+
 class ContextsPage extends DiagnosticPageWithNav {
   ContextsPage(DiagnosticsSite site)
       : super(site, 'contexts', 'Contexts',
@@ -389,7 +439,7 @@ class ContextsPage extends DiagnosticPageWithNav {
   String get navDetail => printInteger(server.driverMap.length);
 
   String describe(AnalysisOptionsImpl options) {
-    StringBuffer b = StringBuffer();
+    var b = StringBuffer();
 
     b.write(writeOption('Strong mode', options.strongMode));
     b.write(writeOption('Implicit dynamic', options.implicitDynamic));
@@ -397,32 +447,25 @@ class ContextsPage extends DiagnosticPageWithNav {
     b.write(writeOption('Feature set', options.contextFeatures.toString()));
     b.write('<br>');
 
-    b.write(
-        writeOption('Analyze function bodies', options.analyzeFunctionBodies));
     b.write(writeOption('Generate dart2js hints', options.dart2jsHint));
-    b.write(writeOption(
-        'Generate errors in implicit files', options.generateImplicitErrors));
-    b.write(
-        writeOption('Generate errors in SDK files', options.generateSdkErrors));
     b.write(writeOption('Generate hints', options.hint));
-    b.write(writeOption('Preserve comments', options.preserveComments));
 
     return b.toString();
   }
 
   @override
   Future generateContent(Map<String, String> params) async {
-    Map<Folder, AnalysisDriver> driverMap = server.driverMap;
+    var driverMap = server.driverMap;
     if (driverMap.isEmpty) {
       blankslate('No contexts.');
       return;
     }
 
-    String contextPath = params['context'];
-    List<Folder> folders = driverMap.keys.toList();
+    var contextPath = params['context'];
+    var folders = driverMap.keys.toList();
     folders
         .sort((first, second) => first.shortName.compareTo(second.shortName));
-    Folder folder =
+    var folder =
         folders.firstWhere((f) => f.path == contextPath, orElse: () => null);
 
     if (folder == null) {
@@ -430,16 +473,16 @@ class ContextsPage extends DiagnosticPageWithNav {
       contextPath = folder.path;
     }
 
-    AnalysisDriver driver = driverMap[folder];
+    var driver = driverMap[folder];
 
     buf.writeln('<div class="tabnav">');
     buf.writeln('<nav class="tabnav-tabs">');
-    for (Folder f in folders) {
+    for (var f in folders) {
       if (f == folder) {
         buf.writeln(
             '<a class="tabnav-tab selected">${escape(f.shortName)}</a>');
       } else {
-        String p = '${this.path}?context=${Uri.encodeQueryComponent(f.path)}';
+        var p = '${this.path}?context=${Uri.encodeQueryComponent(f.path)}';
         buf.writeln(
             '<a href="$p" class="tabnav-tab">${escape(f.shortName)}</a>');
       }
@@ -468,7 +511,7 @@ class ContextsPage extends DiagnosticPageWithNav {
     buf.writeln('</div>');
 
     buf.writeln('<div class="column one-half">');
-    DartSdk sdk = driver?.sourceFactory?.dartSdk;
+    var sdk = driver?.sourceFactory?.dartSdk;
     AnalysisOptionsImpl sdkOptions = sdk?.context?.analysisOptions;
     if (sdkOptions != null) {
       h3('SDK analysis options');
@@ -484,8 +527,8 @@ class ContextsPage extends DiagnosticPageWithNav {
     buf.writeln('</div>');
 
     h3('Lints');
-    List<String> lints =
-        driver.analysisOptions.lintRules.map((l) => l.name).toList()..sort();
+    var lints = driver.analysisOptions.lintRules.map((l) => l.name).toList()
+      ..sort();
     ul(lints, (String lint) => buf.write(lint), classes: 'scroll-table');
 
     h3('Error processors');
@@ -496,9 +539,9 @@ class ContextsPage extends DiagnosticPageWithNav {
     h3('Plugins');
     p(driver.analysisOptions.enabledPluginNames.join(', '));
 
-    List<String> priorityFiles = driver.priorityFiles;
-    List<String> addedFiles = driver.addedFiles.toList();
-    List<String> implicitFiles =
+    var priorityFiles = driver.priorityFiles;
+    var addedFiles = driver.addedFiles.toList();
+    var implicitFiles =
         driver.knownFiles.difference(driver.addedFiles).toList();
     addedFiles.sort();
     implicitFiles.sort();
@@ -510,10 +553,10 @@ class ContextsPage extends DiagnosticPageWithNav {
     h3('Context files');
 
     void writeFile(String file) {
-      String astPath = '/ast?file=${Uri.encodeQueryComponent(file)}';
-      String elementPath = '/element?file=${Uri.encodeQueryComponent(file)}';
-      String contentsPath = '/contents?file=${Uri.encodeQueryComponent(file)}';
-      bool hasOverlay = server.resourceProvider.hasOverlay(file);
+      var astPath = '/ast?file=${Uri.encodeQueryComponent(file)}';
+      var elementPath = '/element?file=${Uri.encodeQueryComponent(file)}';
+      var contentsPath = '/contents?file=${Uri.encodeQueryComponent(file)}';
+      var hasOverlay = server.resourceProvider.hasOverlay(file);
 
       buf.write(file);
       buf.writeln(' <a href="$astPath">ast</a>');
@@ -531,14 +574,14 @@ class ContextsPage extends DiagnosticPageWithNav {
     h4('Implicit files ${lenCounter(implicitFiles)}', raw: true);
     ul(implicitFiles, writeFile, classes: 'scroll-table');
 
-    SourceFactory sourceFactory = driver.sourceFactory;
+    var sourceFactory = driver.sourceFactory;
     if (sourceFactory is SourceFactoryImpl) {
       h3('Resolvers');
-      for (UriResolver resolver in sourceFactory.resolvers) {
+      for (var resolver in sourceFactory.resolvers) {
         h4(resolver.runtimeType.toString());
         buf.write('<p class="scroll-table">');
         if (resolver is DartUriResolver) {
-          DartSdk sdk = resolver.dartSdk;
+          var sdk = resolver.dartSdk;
           buf.write(' (sdk = ');
           buf.write(sdk.runtimeType);
           if (sdk is FolderBasedDartSdk) {
@@ -559,7 +602,7 @@ class ContextsPage extends DiagnosticPageWithNav {
     }
 
     h3('Dartdoc template info');
-    DartdocDirectiveInfo info = server.declarationsTracker
+    var info = server.declarationsTracker
             ?.getContext(driver.analysisContext)
             ?.dartdocDirectiveInfo ??
         DartdocDirectiveInfo();
@@ -573,14 +616,14 @@ class ContextsPage extends DiagnosticPageWithNav {
   }
 
   void writeMap<V>(Map<String, V> map) {
-    List<String> keys = map.keys.toList();
+    var keys = map.keys.toList();
     keys.sort();
-    int length = keys.length;
+    var length = keys.length;
     buf.write('{');
-    for (int i = 0; i < length; i++) {
+    for (var i = 0; i < length; i++) {
       buf.write('<br>');
-      String key = keys[i];
-      V value = map[key];
+      var key = keys[i];
+      var value = map[key];
       buf.write(key);
       buf.write(' = ');
       if (value is List) {
@@ -591,62 +634,6 @@ class ContextsPage extends DiagnosticPageWithNav {
       buf.write(',');
     }
     buf.write('<br>}');
-  }
-}
-
-class ContentsPage extends DiagnosticPageWithNav {
-  String _description;
-
-  ContentsPage(DiagnosticsSite site)
-      : super(site, 'contents', 'Contents',
-            description: 'The Contents/Overlay of a file.');
-
-  @override
-  String get description => _description ?? super.description;
-
-  @override
-  bool get showInNav => false;
-
-  @override
-  Future<void> generateContent(Map<String, String> params) async {
-    String filePath = params['file'];
-    if (filePath == null) {
-      p('No file path provided.');
-      return;
-    }
-    AnalysisDriver driver = server.getAnalysisDriver(filePath);
-    if (driver == null) {
-      p('The file <code>${escape(filePath)}</code> is not being analyzed.',
-          raw: true);
-      return;
-    }
-    File file = await server.resourceProvider.getFile(filePath);
-    if (!file.exists) {
-      p('The file <code>${escape(filePath)}</code> does not exist.', raw: true);
-      return;
-    }
-
-    if (server.resourceProvider.hasOverlay(filePath)) {
-      p('Showing overlay for file.');
-    } else {
-      p('Showing file system contents for file.');
-    }
-
-    pre(() {
-      buf.write('<code>');
-      buf.write(escape(file.readAsStringSync()));
-      buf.writeln('</code>');
-    });
-  }
-
-  @override
-  Future<void> generatePage(Map<String, String> params) async {
-    try {
-      _description = params['file'];
-      await super.generatePage(params);
-    } finally {
-      _description = null;
-    }
   }
 }
 
@@ -695,7 +682,7 @@ abstract class DiagnosticPage extends Page {
       <nav class="masthead-nav">
         <a href="/status" ${isNavPage ? ' class="active"' : ''}>Diagnostics</a>
         <a href="/feedback" ${isCurrentPage('/feedback') ? ' class="active"' : ''}>Feedback</a>
-        <a href="https://www.dartlang.org/tools/analyzer" target="_blank">Docs</a>
+        <a href="https://dart.dev/tools/dartanalyzer" target="_blank">Docs</a>
         <a href="https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/master/pkg/analysis_server/doc/api.html" target="_blank">Spec</a>
       </nav>
     </div>
@@ -753,10 +740,10 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
 
     buf.writeln('<div class="one-fifth column">');
     buf.writeln('<nav class="menu docs-menu">');
-    for (Page page in site.pages.where(shouldShowInNav)) {
+    for (var page in site.pages.where(shouldShowInNav)) {
       buf.write('<a class="menu-item ${page == this ? ' selected' : ''}" '
           'href="${page.path}">${escape(page.title)}');
-      String detail = (page as DiagnosticPageWithNav).navDetail;
+      var detail = (page as DiagnosticPageWithNav).navDetail;
       if (detail != null) {
         buf.write('<span class="counter">$detail</span>');
       }
@@ -796,19 +783,19 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
 
     // Add server-specific pages. Ordering doesn't matter as the items are
     // sorted later.
-    final AbstractAnalysisServer server = socketServer.analysisServer;
+    var server = socketServer.analysisServer;
     pages.add(MLCompletionPage(this, server));
+    pages.add(PluginsPage(this, server));
 
     if (server is AnalysisServer) {
       pages.add(CompletionPage(this, server));
-      pages.add(PluginsPage(this, server));
       pages.add(SubscriptionsPage(this, server));
     } else if (server is LspAnalysisServer) {
       pages.add(LspCompletionPage(this, server));
       pages.add(LspCapabilitiesPage(this, server));
     }
 
-    ProcessProfiler profiler = ProcessProfiler.getProfilerForPlatform();
+    var profiler = ProcessProfiler.getProfilerForPlatform();
     if (profiler != null) {
       pages.add(MemoryAndCpuPage(this, profiler));
     }
@@ -852,18 +839,18 @@ class ElementModelPage extends DiagnosticPageWithNav {
 
   @override
   Future<void> generateContent(Map<String, String> params) async {
-    String filePath = params['file'];
+    var filePath = params['file'];
     if (filePath == null) {
       p('No file path provided.');
       return;
     }
-    AnalysisDriver driver = server.getAnalysisDriver(filePath);
+    var driver = server.getAnalysisDriver(filePath);
     if (driver == null) {
       p('The file <code>${escape(filePath)}</code> is not being analyzed.',
           raw: true);
       return;
     }
-    ResolvedUnitResult result = await driver.getResult(filePath);
+    var result = await driver.getResult(filePath);
     if (result == null) {
       p(
           'An element model could not be produced for the file '
@@ -872,7 +859,7 @@ class ElementModelPage extends DiagnosticPageWithNav {
       return;
     }
 
-    ElementWriter writer = ElementWriter(buf);
+    var writer = ElementWriter(buf);
     result.unit.declaredElement.accept(writer);
   }
 
@@ -897,8 +884,8 @@ class EnvironmentVariablesPage extends DiagnosticPageWithNav {
   Future generateContent(Map<String, String> params) async {
     buf.writeln('<table>');
     buf.writeln('<tr><th>Variable</th><th>Value</th></tr>');
-    for (String key in Platform.environment.keys.toList()..sort()) {
-      String value = Platform.environment[key];
+    for (var key in Platform.environment.keys.toList()..sort()) {
+      var value = Platform.environment[key];
       buf.writeln('<tr><td>${escape(key)}</td><td>${escape(value)}</td></tr>');
     }
     buf.writeln('</table>');
@@ -932,7 +919,7 @@ class ExceptionsPage extends DiagnosticPageWithNav {
     if (exceptions.isEmpty) {
       blankslate('No exceptions encountered!');
     } else {
-      for (ServerException ex in exceptions) {
+      for (var ex in exceptions) {
         h3('Exception ${ex.exception}');
         p('${escape(ex.message)}<br>${writeOption('fatal', ex.fatal)}',
             raw: true);
@@ -951,7 +938,7 @@ class FeedbackPage extends DiagnosticPage {
 
   @override
   Future generateContent(Map<String, String> params) async {
-    final String issuesUrl = 'https://github.com/dart-lang/sdk/issues';
+    var issuesUrl = 'https://github.com/dart-lang/sdk/issues';
     p(
       'To file issues or feature requests, see our '
       '<a href="$issuesUrl">bug tracker</a>. When filing an issue, please describe:',
@@ -963,14 +950,14 @@ class FeedbackPage extends DiagnosticPage {
       'what you think the expected behavior should have been',
     ], (line) => buf.writeln(line));
 
-    List<String> ideInfo = [];
+    var ideInfo = <String>[];
     if (server.options.clientId != null) {
       ideInfo.add(server.options.clientId);
     }
     if (server.options.clientVersion != null) {
       ideInfo.add(server.options.clientVersion);
     }
-    String ideText = ideInfo.map((str) => '<code>$str</code>').join(', ');
+    var ideText = ideInfo.map((str) => '<code>$str</code>').join(', ');
 
     p('Other data to include:');
     ul([
@@ -1074,10 +1061,9 @@ class MemoryAndCpuPage extends DiagnosticPageWithNav {
 
   @override
   Future generateContent(Map<String, String> params) async {
-    UsageInfo usage = await profiler.getProcessUsage(pid);
+    var usage = await profiler.getProcessUsage(pid);
 
-    developer.ServiceProtocolInfo serviceProtocolInfo =
-        await developer.Service.getInfo();
+    var serviceProtocolInfo = await developer.Service.getInfo();
 
     if (usage != null) {
       buf.writeln(
@@ -1119,7 +1105,7 @@ class MLCompletionPage extends DiagnosticPageWithNav {
 
   @override
   Future<void> generateContent(Map<String, String> params) async {
-    final bool hasMLComplete = CompletionRanking.instance != null;
+    var hasMLComplete = CompletionRanking.instance != null;
     if (!hasMLComplete) {
       blankslate('''ML code completion is not enabled (see <a
 href="https://github.com/dart-lang/sdk/wiki/Previewing-Dart-code-completions-powered-by-machine-learning"
@@ -1129,14 +1115,14 @@ href="https://github.com/dart-lang/sdk/wiki/Previewing-Dart-code-completions-pow
 
     buf.writeln('ML completion enabled.<br>');
 
-    final String isolateTimes = CompletionRanking
+    var isolateTimes = CompletionRanking
         .instance.performanceMetrics.isolateInitTimes
         .map((Duration time) {
       return '${time.inMilliseconds}ms';
     }).join(', ');
     p('ML isolate init times: $isolateTimes');
 
-    final List<PredictionResult> predictions = CompletionRanking
+    var predictions = CompletionRanking
         .instance.performanceMetrics.predictionResults
         .toList();
 
@@ -1151,8 +1137,8 @@ href="https://github.com/dart-lang/sdk/wiki/Previewing-Dart-code-completions-pow
     // draw a chart
     buf.writeln(
         '<div id="chart-div" style="width: 700px; height: 300px;"></div>');
-    StringBuffer rowData = StringBuffer();
-    for (PredictionResult prediction in predictions.reversed) {
+    var rowData = StringBuffer();
+    for (var prediction in predictions.reversed) {
       // [' ', 101.5]
       if (rowData.isNotEmpty) {
         rowData.write(',');
@@ -1176,10 +1162,9 @@ href="https://github.com/dart-lang/sdk/wiki/Previewing-Dart-code-completions-pow
 ''');
 
     String summarize(PredictionResult prediction) {
-      List<MapEntry<String, double>> entries =
-          prediction.results.entries.toList();
+      var entries = prediction.results.entries.toList();
       entries.sort((a, b) => b.value.compareTo(a.value));
-      String summary = entries
+      var summary = entries
           .take(3)
           .map((entry) => '"${entry.key}":${entry.value.toStringAsFixed(3)}')
           .join('<br>');
@@ -1190,7 +1175,7 @@ href="https://github.com/dart-lang/sdk/wiki/Previewing-Dart-code-completions-pow
     buf.writeln('<table>');
     buf.writeln(
         '<tr><th>Time</th><th>Results</th><th>Snippet</th><th>Top suggestions</th></tr>');
-    for (PredictionResult prediction in predictions) {
+    for (var prediction in predictions) {
       buf.writeln('<tr>'
           '<td class="pre right">${printMilliseconds(prediction.elapsedTime.inMilliseconds)}</td>'
           '<td class="right">${prediction.results.length}</td>'
@@ -1215,7 +1200,7 @@ class NotFoundPage extends DiagnosticPage {
 
 class PluginsPage extends DiagnosticPageWithNav {
   @override
-  AnalysisServer server;
+  AbstractAnalysisServer server;
 
   PluginsPage(DiagnosticsSite site, this.server)
       : super(site, 'plugins', 'Plugins', description: 'Plugins in use.');
@@ -1223,21 +1208,20 @@ class PluginsPage extends DiagnosticPageWithNav {
   @override
   Future generateContent(Map<String, String> params) async {
     h3('Analysis plugins');
-    List<PluginInfo> analysisPlugins = server.pluginManager.plugins;
+    var analysisPlugins = server.pluginManager.plugins;
 
     if (analysisPlugins.isEmpty) {
       blankslate('No known analysis plugins.');
     } else {
       analysisPlugins
           .sort((first, second) => first.pluginId.compareTo(second.pluginId));
-      for (PluginInfo plugin in analysisPlugins) {
-        String id = plugin.pluginId;
-        PluginData data = plugin.data;
-        Map<String, List<int>> responseTimes =
-            PluginManager.pluginResponseTimes[plugin];
+      for (var plugin in analysisPlugins) {
+        var id = plugin.pluginId;
+        var data = plugin.data;
+        var responseTimes = PluginManager.pluginResponseTimes[plugin];
 
-        List<String> components = path.split(id);
-        int length = components.length;
+        var components = path.split(id);
+        var length = components.length;
         String name;
         if (length == 0) {
           name = 'unknown plugin';
@@ -1265,7 +1249,7 @@ class PluginsPage extends DiagnosticPageWithNav {
           p('name: ${data.name}');
           p('version: ${data.version}');
           p('Associated contexts:');
-          Set<ContextRoot> contexts = plugin.contextRoots;
+          var contexts = plugin.contextRoots;
           if (contexts.isEmpty) {
             blankslate('none');
           } else {
@@ -1274,13 +1258,13 @@ class PluginsPage extends DiagnosticPageWithNav {
             });
           }
           p('Performance:');
-          List<String> requestNames = responseTimes.keys.toList();
+          var requestNames = responseTimes.keys.toList();
           requestNames.sort();
-          for (String requestName in requestNames) {
-            List<int> data = responseTimes[requestName];
+          for (var requestName in requestNames) {
+            var data = responseTimes[requestName];
             // TODO(brianwilkerson) Consider displaying these times as a graph,
             //  similar to the one in AbstractCompletionPage.generateContent.
-            StringBuffer buffer = StringBuffer();
+            var buffer = StringBuffer();
             buffer.write(requestName);
             buffer.write(' ');
             buffer.write(data);
@@ -1302,19 +1286,19 @@ class ProfilePage extends DiagnosticPageWithNav {
     h3('Profiling performance tag data');
 
     // prepare sorted tags
-    List<PerformanceTag> tags = PerformanceTag.all.toList();
+    var tags = PerformanceTag.all.toList();
     tags.remove(ServerPerformanceStatistics.idle);
     tags.remove(PerformanceTag.unknown);
     tags.removeWhere((tag) => tag.elapsedMs == 0);
     tags.sort((a, b) => b.elapsedMs - a.elapsedMs);
 
     // print total time
-    int totalTime =
+    var totalTime =
         tags.fold<int>(0, (int a, PerformanceTag tag) => a + tag.elapsedMs);
     p('Total measured time: ${printMilliseconds(totalTime)}');
 
     // draw a pie chart
-    String rowData =
+    var rowData =
         tags.map((tag) => "['${tag.label}', ${tag.elapsedMs}]").join(',');
     buf.writeln(
         '<div id="chart-div" style="width: 700px; height: 300px;"></div>');
@@ -1339,13 +1323,13 @@ class ProfilePage extends DiagnosticPageWithNav {
     void _writeRow(List<String> data, {bool header = false}) {
       buf.write('<tr>');
       if (header) {
-        for (String d in data) {
+        for (var d in data) {
           buf.write('<th>$d</th>');
         }
       } else {
         buf.write('<td>${data[0]}</td>');
 
-        for (String d in data.sublist(1)) {
+        for (var d in data.sublist(1)) {
           buf.write('<td class="right">$d</td>');
         }
       }
@@ -1355,7 +1339,7 @@ class ProfilePage extends DiagnosticPageWithNav {
     buf.write('<table>');
     _writeRow(['Tag name', 'Time (in ms)', 'Percent'], header: true);
     void writeRow(PerformanceTag tag) {
-      double percent = tag.elapsedMs / totalTime;
+      var percent = tag.elapsedMs / totalTime;
       _writeRow([
         tag.label,
         printMilliseconds(tag.elapsedMs),
@@ -1368,14 +1352,14 @@ class ProfilePage extends DiagnosticPageWithNav {
 
     if (_showLints) {
       h3('Lint rule timings');
-      List<LintRule> rules = Registry.ruleRegistry.rules.toList();
-      int totalLintTime = rules.fold(0,
+      var rules = Registry.ruleRegistry.rules.toList();
+      var totalLintTime = rules.fold(0,
           (sum, rule) => sum + lintRegistry.getTimer(rule).elapsedMilliseconds);
       p('Total time spent in lints: ${printMilliseconds(totalLintTime)}');
 
       rules.sort((first, second) {
-        int firstTime = lintRegistry.getTimer(first).elapsedMilliseconds;
-        int secondTime = lintRegistry.getTimer(second).elapsedMilliseconds;
+        var firstTime = lintRegistry.getTimer(first).elapsedMilliseconds;
+        var secondTime = lintRegistry.getTimer(second).elapsedMilliseconds;
         if (firstTime == secondTime) {
           return first.lintCode.name.compareTo(second.lintCode.name);
         }
@@ -1384,7 +1368,7 @@ class ProfilePage extends DiagnosticPageWithNav {
       buf.write('<table>');
       _writeRow(['Lint code', 'Time (in ms)'], header: true);
       for (var rule in rules) {
-        int time = lintRegistry.getTimer(rule).elapsedMilliseconds;
+        var time = lintRegistry.getTimer(rule).elapsedMilliseconds;
         _writeRow([rule.lintCode.name, printMilliseconds(time)]);
       }
       buf.write('</table>');
@@ -1418,7 +1402,20 @@ class StatusPage extends DiagnosticPageWithNav {
 
     buf.writeln('</div>');
 
-    List<String> lines = site.lastPrintedLines;
+    // SDK configuration overrides.
+    var sdkConfig = server.options.configurationOverrides;
+    if (sdkConfig?.hasAnyOverrides == true) {
+      buf.writeln('<div class="columns">');
+
+      buf.writeln('<div class="column one-half">');
+      h3('Configuration Overrides');
+      buf.writeln('<pre><code>${sdkConfig.displayString}</code></pre><br>');
+      buf.writeln('</div>');
+
+      buf.writeln('</div>');
+    }
+
+    var lines = site.lastPrintedLines;
     if (lines.isNotEmpty) {
       h3('Debug output');
       p(lines.join('\n'), style: 'white-space: pre');
@@ -1448,7 +1445,7 @@ class SubscriptionsPage extends DiagnosticPageWithNav {
 
     // analysis domain
     h3('Analysis domain subscriptions');
-    for (AnalysisService service in AnalysisService.VALUES) {
+    for (var service in AnalysisService.VALUES) {
       buf.writeln('${service.name}<br>');
       ul(server.analysisServices[service] ?? [], (item) {
         buf.write('$item');

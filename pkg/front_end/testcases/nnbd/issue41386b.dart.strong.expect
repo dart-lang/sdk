@@ -1,0 +1,12 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method test() → void {
+  core::Map<dynamic, dynamic> map = <dynamic, dynamic>{};
+  map.{core::Map::[]}(0).foo;
+  core::Iterable<core::String> elements = <core::String>[];
+  core::List<dynamic> list = core::List::from<dynamic>(elements);
+  core::List::from<dynamic>(elements).{core::Iterable::forEach}((dynamic element) → dynamic => element.foo);
+}
+static method main() → dynamic {}

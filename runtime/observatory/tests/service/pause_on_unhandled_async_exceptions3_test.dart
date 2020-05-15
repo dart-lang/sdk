@@ -6,7 +6,7 @@
 // function. Regression test for https://dartbug.com/38697.
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 import 'service_test_common.dart';
 

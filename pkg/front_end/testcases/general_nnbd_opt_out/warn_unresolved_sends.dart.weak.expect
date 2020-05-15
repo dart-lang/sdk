@@ -1,10 +1,49 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/warn_unresolved_sends.dart:50:10: Error: The getter 'missingField' isn't defined for the class 'D'.
+//  - 'D' is from 'pkg/front_end/testcases/general_nnbd_opt_out/warn_unresolved_sends.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'missingField'.
+//     this.missingField;
+//          ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/warn_unresolved_sends.dart:51:10: Error: The setter 'missingField' isn't defined for the class 'D'.
+//  - 'D' is from 'pkg/front_end/testcases/general_nnbd_opt_out/warn_unresolved_sends.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'missingField'.
+//     this.missingField = 0;
+//          ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/warn_unresolved_sends.dart:52:10: Error: The method 'missingMethod' isn't defined for the class 'D'.
+//  - 'D' is from 'pkg/front_end/testcases/general_nnbd_opt_out/warn_unresolved_sends.dart'.
+// Try correcting the name to the name of an existing method, or defining a method named 'missingMethod'.
+//     this.missingMethod();
+//          ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/warn_unresolved_sends.dart:54:5: Error: The getter 'missingField' isn't defined for the class 'D'.
+//  - 'D' is from 'pkg/front_end/testcases/general_nnbd_opt_out/warn_unresolved_sends.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'missingField'.
+//     missingField;
+//     ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/warn_unresolved_sends.dart:55:5: Error: The setter 'missingField' isn't defined for the class 'D'.
+//  - 'D' is from 'pkg/front_end/testcases/general_nnbd_opt_out/warn_unresolved_sends.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'missingField'.
+//     missingField = 0;
+//     ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/warn_unresolved_sends.dart:56:5: Error: The method 'missingMethod' isn't defined for the class 'D'.
+//  - 'D' is from 'pkg/front_end/testcases/general_nnbd_opt_out/warn_unresolved_sends.dart'.
+// Try correcting the name to the name of an existing method, or defining a method named 'missingMethod'.
+//     missingMethod();
+//     ^^^^^^^^^^^^^
+//
 import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
   field dynamic superField = null;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::C*
     : super core::Object::•()
     ;
   method superMethod() → dynamic {}
@@ -14,10 +53,20 @@ class C extends core::Object {
   get getterOnly() → dynamic
     return null;
   set getterOnly(dynamic _) → void {}
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class D extends self::C {
   field dynamic field = null;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::D*
     : super self::C::•()
     ;
   set setterOnly(dynamic _) → void {}
@@ -45,21 +94,43 @@ class D extends self::C {
     this.{self::D::setterOnly} = 0;
     this.{self::D::getterOnly};
     this.{self::C::getterOnly} = 0;
-    let final dynamic #t1 = this in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/warn_unresolved_sends.dart:49:39: Error: The getter 'missingField' isn't defined for the class '#lib1::D'.\nTry correcting the name to the name of an existing getter, or defining a getter or field named 'missingField'.\n    this. /*@warning=GetterNotFound*/ missingField;\n                                      ^";
-    let final dynamic #t2 = this in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/warn_unresolved_sends.dart:50:39: Error: The setter 'missingField' isn't defined for the class '#lib1::D'.\nTry correcting the name to the name of an existing setter, or defining a setter or field named 'missingField'.\n    this. /*@warning=SetterNotFound*/ missingField = 0;\n                                      ^";
-    let final dynamic #t3 = this in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/warn_unresolved_sends.dart:51:39: Error: The method 'missingMethod' isn't defined for the class '#lib1::D'.\nTry correcting the name to the name of an existing method, or defining a method named 'missingMethod'.\n    this. /*@warning=MethodNotFound*/ missingMethod();\n                                      ^";
-    let final dynamic #t4 = this in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/warn_unresolved_sends.dart:53:33: Error: The getter 'missingField' isn't defined for the class '#lib1::D'.\nTry correcting the name to the name of an existing getter, or defining a getter or field named 'missingField'.\n    /*@warning=GetterNotFound*/ missingField;\n                                ^";
-    let final dynamic #t5 = this in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/warn_unresolved_sends.dart:54:33: Error: The setter 'missingField' isn't defined for the class '#lib1::D'.\nTry correcting the name to the name of an existing setter, or defining a setter or field named 'missingField'.\n    /*@warning=SetterNotFound*/ missingField = 0;\n                                ^";
-    let final dynamic #t6 = this in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/warn_unresolved_sends.dart:55:33: Error: The method 'missingMethod' isn't defined for the class '#lib1::D'.\nTry correcting the name to the name of an existing method, or defining a method named 'missingMethod'.\n    /*@warning=MethodNotFound*/ missingMethod();\n                                ^";
+    invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/warn_unresolved_sends.dart:50:10: Error: The getter 'missingField' isn't defined for the class 'D'.
+ - 'D' is from 'pkg/front_end/testcases/general_nnbd_opt_out/warn_unresolved_sends.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'missingField'.
+    this.missingField;
+         ^^^^^^^^^^^^";
+    invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/warn_unresolved_sends.dart:51:10: Error: The setter 'missingField' isn't defined for the class 'D'.
+ - 'D' is from 'pkg/front_end/testcases/general_nnbd_opt_out/warn_unresolved_sends.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'missingField'.
+    this.missingField = 0;
+         ^^^^^^^^^^^^";
+    invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/warn_unresolved_sends.dart:52:10: Error: The method 'missingMethod' isn't defined for the class 'D'.
+ - 'D' is from 'pkg/front_end/testcases/general_nnbd_opt_out/warn_unresolved_sends.dart'.
+Try correcting the name to the name of an existing method, or defining a method named 'missingMethod'.
+    this.missingMethod();
+         ^^^^^^^^^^^^^";
+    invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/warn_unresolved_sends.dart:54:5: Error: The getter 'missingField' isn't defined for the class 'D'.
+ - 'D' is from 'pkg/front_end/testcases/general_nnbd_opt_out/warn_unresolved_sends.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'missingField'.
+    missingField;
+    ^^^^^^^^^^^^";
+    invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/warn_unresolved_sends.dart:55:5: Error: The setter 'missingField' isn't defined for the class 'D'.
+ - 'D' is from 'pkg/front_end/testcases/general_nnbd_opt_out/warn_unresolved_sends.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'missingField'.
+    missingField = 0;
+    ^^^^^^^^^^^^";
+    invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/warn_unresolved_sends.dart:56:5: Error: The method 'missingMethod' isn't defined for the class 'D'.
+ - 'D' is from 'pkg/front_end/testcases/general_nnbd_opt_out/warn_unresolved_sends.dart'.
+Try correcting the name to the name of an existing method, or defining a method named 'missingMethod'.
+    missingMethod();
+    ^^^^^^^^^^^^^";
   }
 }
 class E extends self::D {
   field dynamic missingField = null;
-  synthetic constructor •() → void
+  synthetic constructor •() → self::E*
     : super self::D::•()
     ;
   method missingMethod() → void {}
 }
-static method main() → dynamic {
-  new self::E::•().{self::D::test}();
-}
+static method main() → dynamic {}

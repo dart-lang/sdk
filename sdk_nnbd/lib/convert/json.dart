@@ -514,7 +514,7 @@ class JsonDecoder extends Converter<String, Object?> {
 }
 
 // Internal optimized JSON parsing implementation.
-external _parseJson(String source, reviver(key, value)?);
+external dynamic _parseJson(String source, reviver(key, value)?);
 
 // Implementation of encoder/stringifier.
 
@@ -535,11 +535,16 @@ abstract class _JsonStringifier {
   static const int char_0 = 0x30;
   static const int backslash = 0x5c;
   static const int char_b = 0x62;
+  static const int char_d = 0x64;
   static const int char_f = 0x66;
   static const int char_n = 0x6e;
   static const int char_r = 0x72;
   static const int char_t = 0x74;
   static const int char_u = 0x75;
+  static const int surrogateMin = 0xd800;
+  static const int surrogateMask = 0xfc00;
+  static const int surrogateLead = 0xd800;
+  static const int surrogateTrail = 0xdc00;
 
   /// List of objects currently being traversed. Used to detect cycles.
   final List _seen = [];
@@ -573,7 +578,30 @@ abstract class _JsonStringifier {
     final length = s.length;
     for (var i = 0; i < length; i++) {
       var charCode = s.codeUnitAt(i);
-      if (charCode > backslash) continue;
+      if (charCode > backslash) {
+        if (charCode >= surrogateMin) {
+          // Possible surrogate. Check if it is unpaired.
+          if (((charCode & surrogateMask) == surrogateLead &&
+                  !(i + 1 < length &&
+                      (s.codeUnitAt(i + 1) & surrogateMask) ==
+                          surrogateTrail)) ||
+              ((charCode & surrogateMask) == surrogateTrail &&
+                  !(i - 1 >= 0 &&
+                      (s.codeUnitAt(i - 1) & surrogateMask) ==
+                          surrogateLead))) {
+            // Lone surrogate.
+            if (i > offset) writeStringSlice(s, offset, i);
+            offset = i + 1;
+            writeCharCode(backslash);
+            writeCharCode(char_u);
+            writeCharCode(char_d);
+            writeCharCode(hexDigit((charCode >> 8) & 0xf));
+            writeCharCode(hexDigit((charCode >> 4) & 0xf));
+            writeCharCode(hexDigit(charCode & 0xf));
+          }
+        }
+        continue;
+      }
       if (charCode < 32) {
         if (i > offset) writeStringSlice(s, offset, i);
         offset = i + 1;
@@ -961,16 +989,22 @@ class _JsonUtf8Stringifier extends _JsonStringifier {
       if (char <= 0x7f) {
         writeByte(char);
       } else {
-        if ((char & 0xFC00) == 0xD800 && i + 1 < end) {
-          // Lead surrogate.
-          var nextChar = string.codeUnitAt(i + 1);
-          if ((nextChar & 0xFC00) == 0xDC00) {
-            // Tail surrogate.
-            char = 0x10000 + ((char & 0x3ff) << 10) + (nextChar & 0x3ff);
-            writeFourByteCharCode(char);
-            i++;
-            continue;
+        if ((char & 0xF800) == 0xD800) {
+          // Surrogate.
+          if (char < 0xDC00 && i + 1 < end) {
+            // Lead surrogate.
+            var nextChar = string.codeUnitAt(i + 1);
+            if ((nextChar & 0xFC00) == 0xDC00) {
+              // Tail surrogate.
+              char = 0x10000 + ((char & 0x3ff) << 10) + (nextChar & 0x3ff);
+              writeFourByteCharCode(char);
+              i++;
+              continue;
+            }
           }
+          // Unpaired surrogate.
+          writeMultiByteCharCode(unicodeReplacementCharacterRune);
+          continue;
         }
         writeMultiByteCharCode(char);
       }

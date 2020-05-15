@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/services/correction/organize_directives.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
@@ -182,7 +181,7 @@ main() {
 
   Future<void> test_remove_unusedImports_hasUnresolvedError() async {
     Future<void> check(String declaration) async {
-      String code = '''
+      var code = '''
 import 'dart:async';
 $declaration
 ''';
@@ -316,18 +315,16 @@ import 'package:product2.client/entity.dart';
   }
 
   void _assertOrganize(String expectedCode, {bool removeUnused = false}) {
-    DirectiveOrganizer organizer = DirectiveOrganizer(
-        testCode, testUnit, testErrors,
+    var organizer = DirectiveOrganizer(testCode, testUnit, testErrors,
         removeUnused: removeUnused);
-    List<SourceEdit> edits = organizer.organize();
-    String result = SourceEdit.applySequence(testCode, edits);
+    var edits = organizer.organize();
+    var result = SourceEdit.applySequence(testCode, edits);
     expect(result, expectedCode);
   }
 
   Future<void> _computeUnitAndErrors(String code) async {
     addTestSource(code);
-    ResolvedUnitResult result =
-        await session.getResolvedUnit(testSource.fullName);
+    var result = await session.getResolvedUnit(testSource.fullName);
     testUnit = result.unit;
     testErrors = result.errors;
   }

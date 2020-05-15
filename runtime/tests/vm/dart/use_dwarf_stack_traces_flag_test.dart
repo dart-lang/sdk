@@ -54,15 +54,21 @@ main(List<String> args) async {
     // Run the AOT compiler with/without Dwarf stack traces.
     final scriptDwarfSnapshot = path.join(tempDir, 'dwarf.so');
     final scriptNonDwarfSnapshot = path.join(tempDir, 'non_dwarf.so');
+    final scriptDwarfDebugInfo = path.join(tempDir, 'debug_info.so');
     await Future.wait(<Future>[
       run(genSnapshot, <String>[
-        '--dwarf-stack-traces',
+        // We test --dwarf-stack-traces-mode, not --dwarf-stack-traces, because
+        // the latter is a handler that sets the former and also may change
+        // other flags. This way, we limit the difference between the two
+        // snapshots and also directly test the flag saved as a VM global flag.
+        '--dwarf-stack-traces-mode',
+        '--save-debugging-info=$scriptDwarfDebugInfo',
         '--snapshot-kind=app-aot-elf',
         '--elf=$scriptDwarfSnapshot',
         scriptDill,
       ]),
       run(genSnapshot, <String>[
-        '--no-dwarf-stack-traces',
+        '--no-dwarf-stack-traces-mode',
         '--snapshot-kind=app-aot-elf',
         '--elf=$scriptNonDwarfSnapshot',
         scriptDill,
@@ -70,27 +76,25 @@ main(List<String> args) async {
     ]);
 
     // Run the resulting Dwarf-AOT compiled script.
-    final dwarfOut1 = await runError(aotRuntime, <String>[
-      '--dwarf-stack-traces',
+    final dwarfTrace1 = await runError(aotRuntime, <String>[
+      '--dwarf-stack-traces-mode',
       scriptDwarfSnapshot,
       scriptDill,
     ]);
-    final dwarfTrace1 = cleanStacktrace(dwarfOut1);
-    final dwarfOut2 = await runError(aotRuntime, <String>[
-      '--no-dwarf-stack-traces',
+    final dwarfTrace2 = await runError(aotRuntime, <String>[
+      '--no-dwarf-stack-traces-mode',
       scriptDwarfSnapshot,
       scriptDill,
     ]);
-    final dwarfTrace2 = cleanStacktrace(dwarfOut2);
 
     // Run the resulting non-Dwarf-AOT compiled script.
     final nonDwarfTrace1 = await runError(aotRuntime, <String>[
-      '--dwarf-stack-traces',
+      '--dwarf-stack-traces-mode',
       scriptNonDwarfSnapshot,
       scriptDill,
     ]);
     final nonDwarfTrace2 = await runError(aotRuntime, <String>[
-      '--no-dwarf-stack-traces',
+      '--no-dwarf-stack-traces-mode',
       scriptNonDwarfSnapshot,
       scriptDill,
     ]);
@@ -102,12 +106,60 @@ main(List<String> args) async {
     // For DWARF stack traces, we can't guarantee that the stack traces are
     // textually equal on all platforms, but if we retrieve the PC offsets
     // out of the stack trace, those should be equal.
+    final tracePCOffsets1 = collectPCOffsets(dwarfTrace1);
+    final tracePCOffsets2 = collectPCOffsets(dwarfTrace2);
+    Expect.deepEquals(tracePCOffsets1, tracePCOffsets2);
+
+    // Check that translating the DWARF stack trace (without internal frames)
+    // matches the symbolic stack trace.
+    final dwarf = Dwarf.fromFile(scriptDwarfDebugInfo);
+    assert(dwarf != null);
+    final translatedDwarfTrace1 = await Stream.fromIterable(dwarfTrace1)
+        .transform(DwarfStackTraceDecoder(dwarf))
+        .toList();
+
+    final translatedStackFrames = onlySymbolicFrameLines(translatedDwarfTrace1);
+    final originalStackFrames = onlySymbolicFrameLines(nonDwarfTrace1);
+
+    print('Stack frames from translated non-symbolic stack trace:');
+    translatedStackFrames.forEach(print);
+    print('');
+
+    print('Stack frames from original symbolic stack trace:');
+    originalStackFrames.forEach(print);
+    print('');
+
+    Expect.isTrue(translatedStackFrames.length > 0);
+    Expect.isTrue(originalStackFrames.length > 0);
+
+    Expect.deepEquals(translatedStackFrames, originalStackFrames);
+
+    // Since we compiled directly to ELF, there should be 'virt' markers in the
+    // stack traces. Make sure the address following the marker matches the
+    // relocated address calculated from the PCOffset for each frame.
+    final virtTrace1 = explicitVirtualAddresses(dwarfTrace1);
+    final virtTrace2 = explicitVirtualAddresses(dwarfTrace2);
+
     Expect.deepEquals(
-        collectPCOffsets(dwarfTrace1), collectPCOffsets(dwarfTrace2));
+        virtTrace1, tracePCOffsets1.map((o) => o.virtualAddressIn(dwarf)));
+    Expect.deepEquals(
+        virtTrace2, tracePCOffsets2.map((o) => o.virtualAddressIn(dwarf)));
   });
 }
 
-Iterable<String> cleanStacktrace(Iterable<String> lines) {
-  // For DWARF stack traces, the pid/tid, if output, will vary over runs.
-  return lines.where((line) => !line.startsWith('pid'));
+final _symbolicFrameRE = RegExp(r'^#\d+\s+');
+
+Iterable<String> onlySymbolicFrameLines(Iterable<String> lines) {
+  return lines.where((line) => _symbolicFrameRE.hasMatch(line));
+}
+
+final _virtRE = RegExp(r'virt ([a-f\d]+)');
+
+Iterable<int> explicitVirtualAddresses(Iterable<String> lines) sync* {
+  for (final line in lines) {
+    final match = _virtRE.firstMatch(line);
+    if (match != null) {
+      yield int.parse(match.group(1), radix: 16);
+    }
+  }
 }

@@ -1,0 +1,19 @@
+late ;
+final int? lateTopLevelField;
+class Class<T> {
+  static late ;
+  final int? lateStaticField1;
+  static late ;
+  final int? lateStaticField2;
+  static staticMethod() { }
+  late ;
+  final int? lateInstanceField;
+  late ;
+  final T? lateGenericInstanceField;
+  instanceMethod(T value) { }
+}
+extension Extension<T> ( ){ }
+on Class<T> (){ }
+main() { }
+expect(expected, actual) { }
+throws(f(), String message) { }

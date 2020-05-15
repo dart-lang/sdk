@@ -2,20 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 library type_test_helper;
 
 import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/compiler.dart' show Compiler;
+import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/kernel/kelements.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
+import 'package:compiler/src/options.dart';
 import 'package:compiler/src/world.dart' show JClosedWorld, KClosedWorld;
 import 'memory_compiler.dart' as memory;
+
+extension DartTypeHelpers on DartType {
+  T withoutNullabilityAs<T extends DartType>() => withoutNullability as T;
+}
 
 DartType instantiate(
     DartTypes dartTypes, ClassEntity element, List<DartType> arguments) {
@@ -56,6 +62,12 @@ class TypeEnvironment {
 
   TypeEnvironment._(Compiler this.compiler, {this.testBackendWorld: false});
 
+  DartType legacyWrap(DartType type) {
+    return memory.isDart2jsNnbd && options.useLegacySubtyping
+        ? types.legacyType(type)
+        : type;
+  }
+
   ElementEnvironment get elementEnvironment {
     if (testBackendWorld) {
       return compiler.backendClosedWorldForTesting.elementEnvironment;
@@ -71,6 +83,8 @@ class TypeEnvironment {
       return compiler.frontendStrategy.commonElements;
     }
   }
+
+  CompilerOptions get options => compiler.options;
 
   DartTypes get types {
     if (testBackendWorld) {
@@ -182,6 +196,16 @@ class TypeEnvironment {
     assert(!testBackendWorld);
     return compiler.frontendClosedWorldForTesting;
   }
+
+  String printType(DartType type) => type.toStructuredText(
+      printLegacyStars: options.printLegacyStars,
+      useLegacySubtyping: options.useLegacySubtyping);
+
+  List<String> printTypes(List<DartType> types) =>
+      types.map(printType).toList();
+
+  DartType instantiate(ClassEntity element, List<DartType> arguments) =>
+      types.interfaceType(element, arguments.map(legacyWrap).toList());
 }
 
 /// Data used to create a function type either as method declaration or a

@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -17,8 +18,8 @@ import 'package:args/args.dart';
 
 /// Compute and print lexical and semantic information about a package.
 Future<void> main(List<String> args) async {
-  ArgParser parser = createArgParser();
-  ArgResults result = parser.parse(args);
+  var parser = createArgParser();
+  var result = parser.parse(args);
 
   if (validArguments(parser, result)) {
     var out = io.stdout;
@@ -40,7 +41,7 @@ Future<void> main(List<String> args) async {
 
 /// Create a parser that can be used to parse the command-line arguments.
 ArgParser createArgParser() {
-  ArgParser parser = ArgParser();
+  var parser = ArgParser();
   parser.addOption(
     'help',
     abbr: 'h',
@@ -321,6 +322,8 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
     _visitChildren(node, {
+      'documentationComment': node.documentationComment,
+      'metadata': node.metadata,
       'abstractKeyword': node.abstractKeyword,
       'name': node.name,
       'typeParameters': node.typeParameters,
@@ -694,7 +697,10 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     _visitChildren(node, {
+      'documentationComment': node.documentationComment,
+      'metadata': node.metadata,
       'returnType': node.returnType,
+      'name': node.name,
       'typeParameters': node.typeParameters,
       'parameters': node.parameters,
     });
@@ -929,6 +935,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
       'documentationComment': node.documentationComment,
       'metadata': node.metadata,
       'name': node.name,
+      'typeParameters': node.typeParameters,
       'onClause': node.onClause,
       'implementsClause': node.implementsClause,
       'members': node.members,
@@ -1138,6 +1145,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitSwitchCase(SwitchCase node) {
     _visitChildren(node, {
+      'labels': node.labels,
       'expression': node.expression,
       'statements': node.statements,
     });
@@ -1352,36 +1360,8 @@ class CodeShapeMetricsComputer {
       resourceProvider: PhysicalResourceProvider.INSTANCE,
     );
     final collector = CodeShapeDataCollector(data);
-
     for (var context in collection.contexts) {
-      for (var filePath in context.contextRoot.analyzedFiles()) {
-        if (AnalysisEngine.isDartFileName(filePath)) {
-          try {
-            ResolvedUnitResult resolvedUnitResult =
-                await context.currentSession.getResolvedUnit(filePath);
-            //
-            // Check for errors that cause the file to be skipped.
-            //
-            if (resolvedUnitResult.state != ResultState.VALID) {
-              print('File $filePath skipped because it could not be analyzed.');
-              print('');
-              continue;
-            } else if (hasError(resolvedUnitResult)) {
-              print('File $filePath skipped due to errors:');
-              for (var error in resolvedUnitResult.errors) {
-                print('  ${error.toString()}');
-              }
-              print('');
-              continue;
-            }
-
-            resolvedUnitResult.unit.accept(collector);
-          } catch (exception) {
-            print('Exception caught analyzing: "$filePath"');
-            print(exception.toString());
-          }
-        }
-      }
+      await _computeInContext(context.contextRoot, collector);
     }
   }
 
@@ -1392,6 +1372,49 @@ class CodeShapeMetricsComputer {
 
     // Write normal information.
     _writeChildData(sink);
+  }
+
+  /// Compute the metrics for the files in the context [root], creating a
+  /// separate context collection to prevent accumulating memory. The metrics
+  /// should be captured in the [collector]. Include additional details in the
+  /// output if [verbose] is `true`.
+  void _computeInContext(
+      ContextRoot root, CodeShapeDataCollector collector) async {
+    // Create a new collection to avoid consuming large quantities of memory.
+    final collection = AnalysisContextCollection(
+      includedPaths: root.includedPaths.toList(),
+      excludedPaths: root.excludedPaths.toList(),
+      resourceProvider: PhysicalResourceProvider.INSTANCE,
+    );
+    var context = collection.contexts[0];
+    for (var filePath in context.contextRoot.analyzedFiles()) {
+      if (AnalysisEngine.isDartFileName(filePath)) {
+        try {
+          var resolvedUnitResult =
+              await context.currentSession.getResolvedUnit(filePath);
+          //
+          // Check for errors that cause the file to be skipped.
+          //
+          if (resolvedUnitResult.state != ResultState.VALID) {
+            print('File $filePath skipped because it could not be analyzed.');
+            print('');
+            continue;
+          } else if (hasError(resolvedUnitResult)) {
+            print('File $filePath skipped due to errors:');
+            for (var error in resolvedUnitResult.errors) {
+              print('  ${error.toString()}');
+            }
+            print('');
+            continue;
+          }
+
+          resolvedUnitResult.unit.accept(collector);
+        } catch (exception) {
+          print('Exception caught analyzing: "$filePath"');
+          print(exception.toString());
+        }
+      }
+    }
   }
 
   /// Convert the contents of a single [map] into the values for each row in the

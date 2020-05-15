@@ -1,0 +1,11 @@
+abstract class B<T> {}
+
+abstract class C<T> {}
+
+class Base implements B {}
+
+class Child1 extends Base implements C<int> {}
+
+class Child2 extends Base implements C<double> {}
+
+main() {}

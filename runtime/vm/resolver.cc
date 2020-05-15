@@ -22,15 +22,15 @@ DEFINE_FLAG(bool, trace_resolving, false, "Trace resolving.");
 // them, since the entry code of such a method does not check for named
 // arguments. The dynamic resolver actually checks that a valid number of named
 // arguments is passed in.
-RawFunction* Resolver::ResolveDynamic(const Instance& receiver,
-                                      const String& function_name,
-                                      const ArgumentsDescriptor& args_desc) {
+FunctionPtr Resolver::ResolveDynamic(const Instance& receiver,
+                                     const String& function_name,
+                                     const ArgumentsDescriptor& args_desc) {
   // Figure out type of receiver first.
   const Class& cls = Class::Handle(receiver.clazz());
   return ResolveDynamicForReceiverClass(cls, function_name, args_desc);
 }
 
-RawFunction* Resolver::ResolveDynamicForReceiverClass(
+FunctionPtr Resolver::ResolveDynamicForReceiverClass(
     const Class& receiver_class,
     const String& function_name,
     const ArgumentsDescriptor& args_desc,
@@ -60,10 +60,10 @@ RawFunction* Resolver::ResolveDynamicForReceiverClass(
   return function.raw();
 }
 
-RawFunction* Resolver::ResolveDynamicAnyArgs(Zone* zone,
-                                             const Class& receiver_class,
-                                             const String& function_name,
-                                             bool allow_add) {
+FunctionPtr Resolver::ResolveDynamicAnyArgs(Zone* zone,
+                                            const Class& receiver_class,
+                                            const String& function_name,
+                                            bool allow_add) {
   Class& cls = Class::Handle(zone, receiver_class.raw());
   if (FLAG_trace_resolving) {
     THR_Print("ResolveDynamic '%s' for class %s\n", function_name.ToCString(),
@@ -86,7 +86,8 @@ RawFunction* Resolver::ResolveDynamicAnyArgs(Zone* zone,
     while (!cls.IsNull()) {
       function = cls.GetInvocationDispatcher(
           function_name, Array::null_array(),
-          RawFunction::kDynamicInvocationForwarder, /*create_if_absent=*/false);
+          FunctionLayout::kDynamicInvocationForwarder,
+          /*create_if_absent=*/false);
       if (!function.IsNull()) break;
       cls = cls.SuperClass();
     }
@@ -136,12 +137,12 @@ RawFunction* Resolver::ResolveDynamicAnyArgs(Zone* zone,
   return function.raw();
 }
 
-RawFunction* Resolver::ResolveStatic(const Library& library,
-                                     const String& class_name,
-                                     const String& function_name,
-                                     intptr_t type_args_len,
-                                     intptr_t num_arguments,
-                                     const Array& argument_names) {
+FunctionPtr Resolver::ResolveStatic(const Library& library,
+                                    const String& class_name,
+                                    const String& function_name,
+                                    intptr_t type_args_len,
+                                    intptr_t num_arguments,
+                                    const Array& argument_names) {
   ASSERT(!library.IsNull());
   Function& function = Function::Handle();
   if (class_name.IsNull() || (class_name.Length() == 0)) {
@@ -184,11 +185,11 @@ RawFunction* Resolver::ResolveStatic(const Library& library,
   return function.raw();
 }
 
-RawFunction* Resolver::ResolveStatic(const Class& cls,
-                                     const String& function_name,
-                                     intptr_t type_args_len,
-                                     intptr_t num_arguments,
-                                     const Array& argument_names) {
+FunctionPtr Resolver::ResolveStatic(const Class& cls,
+                                    const String& function_name,
+                                    intptr_t type_args_len,
+                                    intptr_t num_arguments,
+                                    const Array& argument_names) {
   ASSERT(!cls.IsNull());
   if (FLAG_trace_resolving) {
     THR_Print("ResolveStatic '%s'\n", function_name.ToCString());

@@ -39,21 +39,11 @@ abstract class Interface {
   /*member: Interface.method5b:int Function({int a, int b})*/
   int method5b({int a: 0, int b: 0});
 
-  /*member: Interface.method5c:int Function({required int a, required int b})*/
-  int method5c(
-      {required int /*analyzer.error: CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER*/ a:
-          0,
-      required int /*analyzer.error: CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER*/ b:
-          0});
-
   /*member: Interface.method6a:int? Function(int?, {int? b})*/
   int? method6a(int? a, {int? b});
 
   /*member: Interface.method6b:int? Function({int? a, int? b})*/
   int? method6b({int? a, int? b});
-
-  /*member: Interface.method6c:int? Function({required int? a, required int? b})*/
-  int? method6c({required int? a, required int? b});
 
   /*member: Interface.getter1:int*/
   int get getter1;
@@ -123,6 +113,16 @@ abstract class Interface {
 /*member: Class1.field4=:int**/
 /*member: Class1.field5=:int**/
 /*member: Class1.field6=:int**/
+/*cfe|cfe:builder.member: Class1.toString:String* Function()**/
+/*cfe|cfe:builder.member: Class1.runtimeType:Type**/
+/*cfe|cfe:builder.member: Class1._simpleInstanceOf:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: Class1._instanceOf:bool* Function(dynamic, dynamic, dynamic)**/
+/*cfe|cfe:builder.member: Class1.noSuchMethod:dynamic Function(Invocation*)**/
+/*cfe|cfe:builder.member: Class1._identityHashCode:int**/
+/*cfe|cfe:builder.member: Class1.hashCode:int**/
+/*cfe|cfe:builder.member: Class1._simpleInstanceOfFalse:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: Class1._simpleInstanceOfTrue:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: Class1.==:bool* Function(dynamic)**/
 class Class1 extends LegacyClass {
   /*member: Class1.method1:int* Function()**/
   /*member: Class1.method2:int* Function()**/
@@ -134,10 +134,8 @@ class Class1 extends LegacyClass {
   /*member: Class1.method4c:int* Function([int*, int*])**/
   /*member: Class1.method5a:int* Function(int*, {int* b})**/
   /*member: Class1.method5b:int* Function({int* a, int* b})**/
-  /*member: Class1.method5c:int* Function({int* a, int* b})**/
   /*member: Class1.method6a:int* Function(int*, {int* b})**/
   /*member: Class1.method6b:int* Function({int* a, int* b})**/
-  /*member: Class1.method6c:int* Function({int* a, int* b})**/
   /*member: Class1.getter1:int**/
   /*member: Class1.getter2:int**/
   /*member: Class1.setter1=:int**/
@@ -159,115 +157,89 @@ class Class1 extends LegacyClass {
 }
 
 /*class: Class2a:Class2a,Interface,LegacyClass,Object*/
+/*cfe|cfe:builder.member: Class2a.toString:String Function()*/
+/*cfe|cfe:builder.member: Class2a.runtimeType:Type*/
+/*cfe|cfe:builder.member: Class2a._simpleInstanceOf:bool Function(dynamic)*/
+/*cfe|cfe:builder.member: Class2a._instanceOf:bool Function(dynamic, dynamic, dynamic)*/
+/*cfe|cfe:builder.member: Class2a.noSuchMethod:dynamic Function(Invocation)*/
+/*cfe|cfe:builder.member: Class2a._identityHashCode:int*/
+/*cfe|cfe:builder.member: Class2a.hashCode:int*/
+/*cfe|cfe:builder.member: Class2a._simpleInstanceOfFalse:bool Function(dynamic)*/
+/*cfe|cfe:builder.member: Class2a._simpleInstanceOfTrue:bool Function(dynamic)*/
+/*cfe|cfe:builder.member: Class2a.==:bool* Function(dynamic)**/
 class Class2a extends LegacyClass implements Interface {
-  /*cfe|cfe:builder.member: Class2a.method1:int Function()*/
-  /*analyzer.member: Class2a.method1:int* Function()**/
+  /*member: Class2a.method1:int Function()*/
 
-  /*cfe|cfe:builder.member: Class2a.method2:int? Function()*/
-  /*analyzer.member: Class2a.method2:int* Function()**/
+  /*member: Class2a.method2:int? Function()*/
 
-  /*cfe|cfe:builder.member: Class2a.method3a:int Function(int, int)*/
-  /*analyzer.member: Class2a.method3a:int* Function(int*, int*)**/
+  /*member: Class2a.method3a:int Function(int, int)*/
 
-  /*cfe|cfe:builder.member: Class2a.method3b:int Function(int, [int])*/
-  /*analyzer.member: Class2a.method3b:int* Function(int*, [int*])**/
+  /*member: Class2a.method3b:int Function(int, [int])*/
 
-  /*cfe|cfe:builder.member: Class2a.method3c:int Function([int, int])*/
-  /*analyzer.member: Class2a.method3c:int* Function([int*, int*])**/
+  /*member: Class2a.method3c:int Function([int, int])*/
 
-  /*cfe|cfe:builder.member: Class2a.method4a:int? Function(int?, int?)*/
-  /*analyzer.member: Class2a.method4a:int* Function(int*, int*)**/
+  /*member: Class2a.method4a:int? Function(int?, int?)*/
 
-  /*cfe|cfe:builder.member: Class2a.method4b:int? Function(int?, [int?])*/
-  /*analyzer.member: Class2a.method4b:int* Function(int*, [int*])**/
+  /*member: Class2a.method4b:int? Function(int?, [int?])*/
 
-  /*cfe|cfe:builder.member: Class2a.method4c:int? Function([int?, int?])*/
-  /*analyzer.member: Class2a.method4c:int* Function([int*, int*])**/
+  /*member: Class2a.method4c:int? Function([int?, int?])*/
 
-  /*cfe|cfe:builder.member: Class2a.method5a:int Function(int, {int b})*/
-  /*analyzer.member: Class2a.method5a:int* Function(int*, {int* b})**/
+  /*member: Class2a.method5a:int Function(int, {int b})*/
 
-  /*cfe|cfe:builder.member: Class2a.method5b:int Function({int a, int b})*/
-  /*analyzer.member: Class2a.method5b:int* Function({int* a, int* b})**/
+  /*member: Class2a.method5b:int Function({int a, int b})*/
 
-  // TODO(johnniwinther): Should `method5c` be an error? It mixes required
-  // and optional named parameters.
-  /*cfe|cfe:builder.member: Class2a.method5c:int Function({int a, int b})*/
-  /*analyzer.member: Class2a.method5c:int* Function({int* a, int* b})**/
+  /*member: Class2a.method6a:int? Function(int?, {int? b})*/
 
-  /*cfe|cfe:builder.member: Class2a.method6a:int? Function(int?, {int? b})*/
-  /*analyzer.member: Class2a.method6a:int* Function(int*, {int* b})**/
+  /*member: Class2a.method6b:int? Function({int? a, int? b})*/
 
-  /*cfe|cfe:builder.member: Class2a.method6b:int? Function({int? a, int? b})*/
-  /*analyzer.member: Class2a.method6b:int* Function({int* a, int* b})**/
+  /*member: Class2a.getter1:int*/
+  /*member: Class2a.getter2:int?*/
 
-  // TODO(johnniwinther): Should `method6c` be an error? It mixes required
-  // and optional named parameters.
-  /*cfe|cfe:builder.member: Class2a.method6c:int? Function({int? a, int? b})*/
-  /*analyzer.member: Class2a.method6c:int* Function({int* a, int* b})**/
+  /*member: Class2a.setter1=:int*/
+  /*member: Class2a.setter2=:int?*/
 
-  /*cfe|cfe:builder.member: Class2a.getter1:int*/
-  /*analyzer.member: Class2a.getter1:int**/
-  /*cfe|cfe:builder.member: Class2a.getter2:int?*/
-  /*analyzer.member: Class2a.getter2:int**/
+  /*member: Class2a.field1:int*/
+  /*member: Class2a.field1=:int*/
 
-  /*cfe|cfe:builder.member: Class2a.setter1=:int*/
-  /*analyzer.member: Class2a.setter1=:int**/
-  /*cfe|cfe:builder.member: Class2a.setter2=:int?*/
-  /*analyzer.member: Class2a.setter2=:int**/
+  /*member: Class2a.field2:int?*/
+  /*member: Class2a.field2=:int?*/
 
-  /*cfe|cfe:builder.member: Class2a.field1:int*/
-  /*analyzer.member: Class2a.field1:int**/
-  /*cfe|cfe:builder.member: Class2a.field1=:int*/
-  /*analyzer.member: Class2a.field1=:int**/
+  /*member: Class2a.field3:int*/
+  /*member: Class2a.field3=:int*/
 
-  /*cfe|cfe:builder.member: Class2a.field2:int?*/
-  /*analyzer.member: Class2a.field2:int**/
-  /*cfe|cfe:builder.member: Class2a.field2=:int?*/
-  /*analyzer.member: Class2a.field2=:int**/
+  /*member: Class2a.field4:int?*/
+  /*member: Class2a.field4=:int?*/
 
-  /*cfe|cfe:builder.member: Class2a.field3:int*/
-  /*analyzer.member: Class2a.field3:int**/
-  /*cfe|cfe:builder.member: Class2a.field3=:int*/
-  /*analyzer.member: Class2a.field3=:int**/
+  /*member: Class2a.field5:int*/
+  /*member: Class2a.field5=:int*/
 
-  /*cfe|cfe:builder.member: Class2a.field4:int?*/
-  /*analyzer.member: Class2a.field4:int**/
-  /*cfe|cfe:builder.member: Class2a.field4=:int?*/
-  /*analyzer.member: Class2a.field4=:int**/
+  /*member: Class2a.field6:int?*/
+  /*member: Class2a.field6=:int?*/
 
-  /*cfe|cfe:builder.member: Class2a.field5:int*/
-  /*analyzer.member: Class2a.field5:int**/
-  /*cfe|cfe:builder.member: Class2a.field5=:int*/
-  /*analyzer.member: Class2a.field5=:int**/
+  /*member: Class2a.property1:int*/
+  /*member: Class2a.property1=:int*/
 
-  /*cfe|cfe:builder.member: Class2a.field6:int?*/
-  /*analyzer.member: Class2a.field6:int**/
-  /*cfe|cfe:builder.member: Class2a.field6=:int?*/
-  /*analyzer.member: Class2a.field6=:int**/
+  /*member: Class2a.property2:int?*/
+  /*member: Class2a.property2=:int?*/
 
-  /*cfe|cfe:builder.member: Class2a.property1:int*/
-  /*analyzer.member: Class2a.property1:int**/
-  /*cfe|cfe:builder.member: Class2a.property1=:int*/
-  /*analyzer.member: Class2a.property1=:int**/
+  /*member: Class2a.property3:int*/
+  /*member: Class2a.property3=:int*/
 
-  /*cfe|cfe:builder.member: Class2a.property2:int?*/
-  /*analyzer.member: Class2a.property2:int**/
-  /*cfe|cfe:builder.member: Class2a.property2=:int?*/
-  /*analyzer.member: Class2a.property2=:int**/
-
-  /*cfe|cfe:builder.member: Class2a.property3:int*/
-  /*analyzer.member: Class2a.property3:int**/
-  /*cfe|cfe:builder.member: Class2a.property3=:int*/
-  /*analyzer.member: Class2a.property3=:int**/
-
-  /*cfe|cfe:builder.member: Class2a.property4:int?*/
-  /*analyzer.member: Class2a.property4:int**/
-  /*cfe|cfe:builder.member: Class2a.property4=:int?*/
-  /*analyzer.member: Class2a.property4=:int**/
+  /*member: Class2a.property4:int?*/
+  /*member: Class2a.property4=:int?*/
 }
 
 /*class: Class2b:Class2b,Interface,LegacyClass,Object*/
+/*cfe|cfe:builder.member: Class2b.toString:String Function()*/
+/*cfe|cfe:builder.member: Class2b.runtimeType:Type*/
+/*cfe|cfe:builder.member: Class2b._simpleInstanceOf:bool Function(dynamic)*/
+/*cfe|cfe:builder.member: Class2b._instanceOf:bool Function(dynamic, dynamic, dynamic)*/
+/*cfe|cfe:builder.member: Class2b.noSuchMethod:dynamic Function(Invocation)*/
+/*cfe|cfe:builder.member: Class2b._identityHashCode:int*/
+/*cfe|cfe:builder.member: Class2b.hashCode:int*/
+/*cfe|cfe:builder.member: Class2b._simpleInstanceOfFalse:bool Function(dynamic)*/
+/*cfe|cfe:builder.member: Class2b._simpleInstanceOfTrue:bool Function(dynamic)*/
+/*cfe|cfe:builder.member: Class2b.==:bool* Function(dynamic)**/
 class Class2b extends LegacyClass implements Interface {
   /*member: Class2b.method1:int Function()*/
   int method1() => 0;
@@ -299,25 +271,11 @@ class Class2b extends LegacyClass implements Interface {
   /*member: Class2b.method5b:int Function({int a, int b})*/
   int method5b({int a: 0, int b: 0}) => 0;
 
-  /*member: Class2b.method5c:int Function({required int a, required int b})*/
-  int /*analyzer.error: CompileTimeErrorCode.INVALID_OVERRIDE*/
-      method5c(
-              {required int /*analyzer.error: CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER*/ a:
-                  0,
-              required int /*analyzer.error: CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER*/ b:
-                  0}) =>
-          0;
-
   /*member: Class2b.method6a:int? Function(int?, {int? b})*/
   int? method6a(int? a, {int? b}) => 0;
 
   /*member: Class2b.method6b:int? Function({int? a, int? b})*/
   int? method6b({int? a, int? b}) => 0;
-
-  /*member: Class2b.method6c:int? Function({required int? a, required int? b})*/
-  int? /*analyzer.error: CompileTimeErrorCode.INVALID_OVERRIDE*/ method6c(
-          {required int? a, required int? b}) =>
-      0;
 
   /*member: Class2b.getter1:int*/
   int get getter1 => 0;
@@ -381,16 +339,46 @@ class Class2b extends LegacyClass implements Interface {
 }
 
 /*class: Class3a:Class3a,GenericLegacyClass<int>,Object*/
+/*cfe|cfe:builder.member: Class3a.toString:String* Function()**/
+/*cfe|cfe:builder.member: Class3a.runtimeType:Type**/
+/*cfe|cfe:builder.member: Class3a._simpleInstanceOf:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: Class3a._instanceOf:bool* Function(dynamic, dynamic, dynamic)**/
+/*cfe|cfe:builder.member: Class3a.noSuchMethod:dynamic Function(Invocation*)**/
+/*cfe|cfe:builder.member: Class3a._identityHashCode:int**/
+/*cfe|cfe:builder.member: Class3a.hashCode:int**/
+/*cfe|cfe:builder.member: Class3a._simpleInstanceOfFalse:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: Class3a._simpleInstanceOfTrue:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: Class3a.==:bool* Function(dynamic)**/
 class Class3a extends GenericLegacyClass<int> {
   /*member: Class3a.method1:int* Function()**/
 }
 
 /*class: Class3b:Class3b,GenericLegacyClass<int?>,Object*/
+/*cfe|cfe:builder.member: Class3b.toString:String* Function()**/
+/*cfe|cfe:builder.member: Class3b.runtimeType:Type**/
+/*cfe|cfe:builder.member: Class3b._simpleInstanceOf:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: Class3b._instanceOf:bool* Function(dynamic, dynamic, dynamic)**/
+/*cfe|cfe:builder.member: Class3b.noSuchMethod:dynamic Function(Invocation*)**/
+/*cfe|cfe:builder.member: Class3b._identityHashCode:int**/
+/*cfe|cfe:builder.member: Class3b.hashCode:int**/
+/*cfe|cfe:builder.member: Class3b._simpleInstanceOfFalse:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: Class3b._simpleInstanceOfTrue:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: Class3b.==:bool* Function(dynamic)**/
 class Class3b extends GenericLegacyClass<int?> {
   /*member: Class3b.method1:int? Function()**/
 }
 
 /*class: Class3c:Class3c<S>,GenericLegacyClass<S>,Object*/
+/*cfe|cfe:builder.member: Class3c.toString:String* Function()**/
+/*cfe|cfe:builder.member: Class3c.runtimeType:Type**/
+/*cfe|cfe:builder.member: Class3c._simpleInstanceOf:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: Class3c._instanceOf:bool* Function(dynamic, dynamic, dynamic)**/
+/*cfe|cfe:builder.member: Class3c.noSuchMethod:dynamic Function(Invocation*)**/
+/*cfe|cfe:builder.member: Class3c._identityHashCode:int**/
+/*cfe|cfe:builder.member: Class3c.hashCode:int**/
+/*cfe|cfe:builder.member: Class3c._simpleInstanceOfFalse:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: Class3c._simpleInstanceOfTrue:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: Class3c.==:bool* Function(dynamic)**/
 class Class3c<S> extends GenericLegacyClass<S> {
   /*member: Class3c.method1:S* Function()**/
 }

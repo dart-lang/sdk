@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/language_version.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -163,8 +162,11 @@ class AstTestFactory {
           identifier3(propertyName));
 
   static CascadeExpression cascadeExpression(Expression target,
-          [List<Expression> cascadeSections]) =>
-      astFactory.cascadeExpression(target, cascadeSections);
+      [List<Expression> cascadeSections]) {
+    var cascade = astFactory.cascadeExpression(target, cascadeSections);
+    cascade.target.endToken.next = cascadeSections.first.beginToken;
+    return cascade;
+  }
 
   static CatchClause catchClause(String exceptionParameter,
           [List<Statement> statements]) =>
@@ -290,14 +292,12 @@ class AstTestFactory {
           directives: directives ?? <Directive>[],
           declarations: declarations ?? <CompilationUnitMember>[],
           endToken: TokenFactory.tokenFromType(TokenType.EOF),
-          languageVersion: null,
           featureSet: null);
 
   static CompilationUnit compilationUnit9(
           {String scriptTag,
           List<Directive> directives,
           List<CompilationUnitMember> declarations,
-          LanguageVersion languageVersion,
           FeatureSet featureSet}) =>
       astFactory.compilationUnit(
           beginToken: TokenFactory.tokenFromType(TokenType.EOF),
@@ -306,7 +306,6 @@ class AstTestFactory {
           directives: directives ?? <Directive>[],
           declarations: declarations ?? <CompilationUnitMember>[],
           endToken: TokenFactory.tokenFromType(TokenType.EOF),
-          languageVersion: languageVersion,
           featureSet: featureSet);
 
   static ConditionalExpression conditionalExpression(Expression condition,

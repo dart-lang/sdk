@@ -2,16 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*strong.class: A:checkedInstance,checks=[],typeArgument*/
-/*omit.class: A:checkedInstance,checks=[],typeArgument*/
+// @dart = 2.7
+
+/*class: A:checkedInstance,checks=[],typeArgument*/
 abstract class A {}
 
-/*strong.class: B:checks=[$isA],typeArgument*/
-/*omit.class: B:checks=[$isA],typeArgument*/
+/*class: B:checks=[$isA],typeArgument*/
 class B implements A {}
 
-/*strong.class: C:checkedInstance,checks=[],instance,typeArgument*/
-/*omit.class: C:checkedInstance,checks=[],instance,typeArgument*/
+/*class: C:checkedInstance,checks=[],instance,typeArgument*/
 class C<T> {}
 
 final Map<String, C> map = {};

@@ -46,6 +46,11 @@ class DefiniteAssignmentDataComputer extends DataComputer<String> {
     member.accept(new DefiniteAssignmentDataExtractor(compilerResult, actualMap,
         memberBuilder.dataForTesting.inferenceData.flowAnalysisResult));
   }
+
+  /// Errors are supported for testing erroneous code. The reported errors are
+  /// not tested.
+  @override
+  bool get supportsErrors => true;
 }
 
 class DefiniteAssignmentDataExtractor extends CfeDataExtractor<String> {
@@ -62,7 +67,7 @@ class DefiniteAssignmentDataExtractor extends CfeDataExtractor<String> {
   String computeNodeValue(Id id, TreeNode node) {
     if (node is VariableGet) {
       TreeNode alias = _sourceLoaderDataForTesting.toOriginal(node);
-      if (_flowResult.unassignedNodes.contains(alias)) {
+      if (_flowResult.potentiallyUnassignedNodes.contains(alias)) {
         return 'unassigned';
       }
     }

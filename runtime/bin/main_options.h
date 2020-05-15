@@ -46,7 +46,8 @@ namespace bin {
   V(disable_exit, exit_disabled)                                               \
   V(preview_dart_2, nop_option)                                                \
   V(suppress_core_dump, suppress_core_dump)                                    \
-  V(enable_service_port_fallback, enable_service_port_fallback)
+  V(enable_service_port_fallback, enable_service_port_fallback)                \
+  V(disable_dart_dev, disable_dart_dev)
 
 // Boolean flags that have a short form.
 #define SHORT_BOOL_OPTIONS_LIST(V)                                             \
@@ -167,6 +168,7 @@ class Options {
 
   // VM Service argument processing.
   static const char* vm_service_server_ip_;
+  static bool enable_vm_service_;
   static int vm_service_server_port_;
   static bool ExtractPortAndAddress(const char* option_value,
                                     int* out_port,

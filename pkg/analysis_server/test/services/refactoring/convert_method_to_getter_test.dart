@@ -4,12 +4,11 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/testing/element_search.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
-    show RefactoringProblemSeverity, SourceChange;
+    show RefactoringProblemSeverity;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_refactoring.dart';
@@ -184,7 +183,7 @@ void test() {}
   }
 
   Future _assertInitialConditions_fatal(String message) async {
-    RefactoringStatus status = await refactoring.checkInitialConditions();
+    var status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedMessage: message);
   }
@@ -193,7 +192,7 @@ void test() {}
   /// to [testUnit] is [expectedCode].
   Future _assertSuccessfulRefactoring(String expectedCode) async {
     await assertRefactoringConditionsOK();
-    SourceChange refactoringChange = await refactoring.createChange();
+    var refactoringChange = await refactoring.createChange();
     this.refactoringChange = refactoringChange;
     assertTestChangeResult(expectedCode);
   }

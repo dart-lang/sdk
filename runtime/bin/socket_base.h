@@ -23,6 +23,7 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/file.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "platform/allocation.h"
@@ -34,6 +35,7 @@ namespace bin {
 union RawAddr {
   struct sockaddr_in in;
   struct sockaddr_in6 in6;
+  struct sockaddr_un un;
   struct sockaddr_storage ss;
   struct sockaddr addr;
 };
@@ -44,6 +46,7 @@ class SocketAddress {
     TYPE_ANY = -1,
     TYPE_IPV4,
     TYPE_IPV6,
+    TYPE_UNIX,
   };
 
   enum {
@@ -55,7 +58,9 @@ class SocketAddress {
     ADDRESS_LAST = ADDRESS_ANY_IP_V6,
   };
 
-  explicit SocketAddress(struct sockaddr* sa);
+  // Unix domain socket may be unnamed. In this case addr_.un.sun_path contains
+  // garbage and should not be inspected.
+  explicit SocketAddress(struct sockaddr* sa, bool unnamed_unix_socket = false);
 
   ~SocketAddress() {}
 
@@ -68,6 +73,9 @@ class SocketAddress {
   static intptr_t GetInAddrLength(const RawAddr& addr);
   static bool AreAddressesEqual(const RawAddr& a, const RawAddr& b);
   static void GetSockAddr(Dart_Handle obj, RawAddr* addr);
+  static Dart_Handle GetUnixDomainSockAddr(const char* path,
+                                           Namespace* namespc,
+                                           RawAddr* addr);
   static int16_t FromType(int type);
   static void SetAddrPort(RawAddr* addr, intptr_t port);
   static intptr_t GetAddrPort(const RawAddr& addr);
@@ -77,7 +85,17 @@ class SocketAddress {
   static intptr_t GetAddrScope(const RawAddr& addr);
 
  private:
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) || defined(HOST_OS_ANDROID)
+  // Unix domain address is only on Linux, Mac OS and Android now.
+  // unix(7) require sun_path to be 108 bytes on Linux and Android, 104 bytes on
+  // Mac OS.
+  static const intptr_t kMaxUnixPathLength =
+      sizeof(((struct sockaddr_un*)0)->sun_path);
+  char as_string_[kMaxUnixPathLength];
+#else
   char as_string_[INET6_ADDRSTRLEN];
+#endif  // defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) ||                 \
+        // defined(HOST_OS_ANDROID)
   RawAddr addr_;
 
   DISALLOW_COPY_AND_ASSIGN(SocketAddress);
@@ -167,6 +185,7 @@ class SocketBase : public AllStatic {
                            intptr_t num_bytes,
                            RawAddr* addr,
                            SocketOpKind sync);
+  static bool AvailableDatagram(intptr_t fd, void* buffer, intptr_t num_bytes);
   // Returns true if the given error-number is because the system was not able
   // to bind the socket to a specific IP.
   static bool IsBindError(intptr_t error_number);
@@ -214,6 +233,9 @@ class SocketBase : public AllStatic {
                             OSError** os_error);
 
   static bool ParseAddress(int type, const char* address, RawAddr* addr);
+
+  // Convert address from byte representation to human readable string.
+  static bool RawAddrToString(RawAddr* addr, char* str);
   static bool FormatNumericAddress(const RawAddr& addr, char* address, int len);
 
   // Whether ListInterfaces is supported.

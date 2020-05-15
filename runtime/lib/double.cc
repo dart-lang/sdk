@@ -67,7 +67,7 @@ DEFINE_NATIVE_ENTRY(Double_div, 0, 2) {
   return Double::New(left / right);
 }
 
-static RawInteger* DoubleToInteger(double val, const char* error_msg) {
+static IntegerPtr DoubleToInteger(double val, const char* error_msg) {
   if (isinf(val) || isnan(val)) {
     const Array& args = Array::Handle(Array::New(1));
     args.SetAt(0, String::Handle(String::New(error_msg)));
@@ -89,8 +89,8 @@ DEFINE_NATIVE_ENTRY(Double_hashCode, 0, 1) {
   if (FLAG_trace_intrinsified_natives) {
     OS::PrintErr("Double_hashCode %f\n", val);
   }
-  if (val >= static_cast<double>(kMinInt64) &&
-      val <= static_cast<double>(kMaxInt64)) {
+  if ((val >= kMinInt64RepresentableAsDouble) &&
+      (val <= kMaxInt64RepresentableAsDouble)) {
     int64_t ival = static_cast<int64_t>(val);
     if (static_cast<double>(ival) == val) {
       return Integer::New(ival);

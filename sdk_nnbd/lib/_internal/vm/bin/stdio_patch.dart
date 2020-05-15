@@ -22,6 +22,7 @@ class _StdIOUtils {
       case _stdioHandleTypeFile:
         return new Stdin._(new _FileStream.forStdin(), fd);
     }
+    throw new UnsupportedError("Unexpected handle type $type");
   }
 
   @patch

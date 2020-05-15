@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'dart:html';
 
-/*strong.class: global#Event:checkedInstance,checkedTypeArgument,checks=[$isEvent],instance,typeArgument*/
-/*omit.class: global#Event:checkedTypeArgument,checks=[$isEvent],instance,typeArgument*/
+/*spec:nnbd-off.class: global#Event:checkedInstance,checkedTypeArgument,checks=[$isEvent],instance,typeArgument*/
+/*prod:nnbd-off.class: global#Event:checkedTypeArgument,checks=[$isEvent],instance,typeArgument*/
 /*class: global#MouseEvent:checks=[$isMouseEvent],instance,typeArgument*/
 /*class: global#KeyboardEvent:checks=[$isKeyboardEvent],instance,typeArgument*/
 

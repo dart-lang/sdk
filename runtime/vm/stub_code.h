@@ -6,11 +6,14 @@
 #define RUNTIME_VM_STUB_CODE_H_
 
 #include "vm/allocation.h"
-#include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/runtime_api.h"
-#include "vm/compiler/stub_code_compiler.h"
 #include "vm/object.h"
 #include "vm/stub_code_list.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/stub_code_compiler.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 
@@ -18,7 +21,6 @@ namespace dart {
 class Code;
 class Isolate;
 class ObjectPointerVisitor;
-class RawCode;
 class SnapshotReader;
 class SnapshotWriter;
 
@@ -59,19 +61,19 @@ class StubCode : public AllStatic {
   VM_STUB_CODE_LIST(STUB_CODE_ACCESSOR);
 #undef STUB_CODE_ACCESSOR
 
-  static RawCode* GetAllocationStubForClass(const Class& cls);
+  static CodePtr GetAllocationStubForClass(const Class& cls);
 
 #if !defined(TARGET_ARCH_IA32)
-  static RawCode* GetBuildMethodExtractorStub(
-      compiler::ObjectPoolBuilder* pool);
+  static CodePtr GetBuildMethodExtractorStub(compiler::ObjectPoolBuilder* pool);
 #endif
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   // Generate the stub and finalize the generated code into the stub
   // code executable area.
-  static RawCode* Generate(
-      const char* name,
-      compiler::ObjectPoolBuilder* object_pool_builder,
-      void (*GenerateStub)(compiler::Assembler* assembler));
+  static CodePtr Generate(const char* name,
+                          compiler::ObjectPoolBuilder* object_pool_builder,
+                          void (*GenerateStub)(compiler::Assembler* assembler));
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   static const Code& UnoptimizedStaticCallEntry(intptr_t num_args_tested);
 
@@ -87,7 +89,7 @@ class StubCode : public AllStatic {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #define GENERATE_STUB(name)                                                    \
-  static RawCode* BuildIsolateSpecific##name##Stub(                            \
+  static CodePtr BuildIsolateSpecific##name##Stub(                             \
       compiler::ObjectPoolBuilder* opw) {                                      \
     return StubCode::Generate(                                                 \
         "_iso_stub_" #name, opw,                                               \

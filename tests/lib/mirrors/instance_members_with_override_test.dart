@@ -49,7 +49,7 @@ main() {
     #==,
     #noSuchMethod,
     #toString
-  ], selectKeys(sMirror.instanceMembers, (dm) => !dm.isPrivate));
+  ], selectKeys(sMirror.instanceMembers, (dynamic dm) => !dm.isPrivate));
   // Filter out private to avoid implementation-specific members of Object.
 
   Expect.equals(sMirror, sMirror.instanceMembers[#field]!.owner);
@@ -74,7 +74,7 @@ main() {
     #==,
     #noSuchMethod,
     #toString
-  ], selectKeys(cMirror.instanceMembers, (dm) => !dm.isPrivate));
+  ], selectKeys(cMirror.instanceMembers, (dynamic dm) => !dm.isPrivate));
   // Filter out private to avoid implementation-specific members of Object.
 
   Expect.equals(cMirror, cMirror.instanceMembers[#field]!.owner);

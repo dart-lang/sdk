@@ -30,18 +30,18 @@ class BlobDiff {
 
   /// Parse the result of the git diff command (the [input]).
   void _parseInput(List<String> input) {
-    for (String line in input) {
+    for (var line in input) {
       _parseLine(line);
     }
   }
 
   /// Parse a single [line] from the result of the git diff command.
   void _parseLine(String line) {
-    DiffHunk currentHunk = hunks.isEmpty ? null : hunks.last;
+    var currentHunk = hunks.isEmpty ? null : hunks.last;
     if (line.startsWith('@@')) {
-      Match match = hunkHeaderRegExp.matchAsPrefix(line);
-      int srcLine = int.parse(match.group(1));
-      int dstLine = int.parse(match.group(2));
+      var match = hunkHeaderRegExp.matchAsPrefix(line);
+      var srcLine = int.parse(match.group(1));
+      var dstLine = int.parse(match.group(2));
       hunks.add(DiffHunk(srcLine, dstLine));
     } else if (currentHunk != null && line.startsWith('+')) {
       currentHunk.addLines.add(line.substring(1));
@@ -96,10 +96,10 @@ class CommitDelta {
   /// [globPatterns].
   void filterDiffs(List<String> inclusionPaths, List<Glob> globPatterns) {
     diffRecords.retainWhere((DiffRecord record) {
-      String filePath = record.srcPath ?? record.dstPath;
-      for (String inclusionPath in inclusionPaths) {
+      var filePath = record.srcPath ?? record.dstPath;
+      for (var inclusionPath in inclusionPaths) {
         if (path.isWithin(inclusionPath, filePath)) {
-          for (Glob glob in globPatterns) {
+          for (var glob in globPatterns) {
             if (glob.matches(filePath)) {
               return true;
             }
@@ -113,8 +113,8 @@ class CommitDelta {
   /// Return the index of the first nul character in the given [string] that is
   /// at or after the given [start] index.
   int _findEnd(String string, int start) {
-    int length = string.length;
-    int end = start;
+    var length = string.length;
+    var end = start;
     while (end < length && string.codeUnitAt(end) != NUL) {
       end++;
     }
@@ -129,8 +129,8 @@ class CommitDelta {
 
   /// Parse all of the diff records in the given [input].
   void _parseInput(String input) {
-    int length = input.length;
-    int start = 0;
+    var length = input.length;
+    var start = 0;
     while (start < length) {
       start = _parseRecord(input, start);
     }
@@ -161,18 +161,18 @@ class CommitDelta {
     // Skip the first five fields.
     startIndex += 15;
     // Parse field 6
-    String srcSha = input.substring(startIndex, startIndex + SHA_LENGTH);
+    var srcSha = input.substring(startIndex, startIndex + SHA_LENGTH);
     startIndex += SHA_LENGTH + 1;
     // Parse field 8
-    String dstSha = input.substring(startIndex, startIndex + SHA_LENGTH);
+    var dstSha = input.substring(startIndex, startIndex + SHA_LENGTH);
     startIndex += SHA_LENGTH + 1;
     // Parse field 10
-    int endIndex = _findEnd(input, startIndex);
-    String status = input.substring(startIndex, endIndex);
+    var endIndex = _findEnd(input, startIndex);
+    var status = input.substring(startIndex, endIndex);
     startIndex = endIndex + 1;
     // Parse field 12
     endIndex = _findEnd(input, startIndex);
-    String srcPath = _makeAbsolute(input.substring(startIndex, endIndex));
+    var srcPath = _makeAbsolute(input.substring(startIndex, endIndex));
     startIndex = endIndex + 1;
     // Parse field 14
     String dstPath;
@@ -319,9 +319,8 @@ class GitRepository {
   /// the SHA1 of the [srcBlob] and the SHA1 of the [dstBlob]. This is done by
   /// running the command `git diff <blob> <blob>`.
   BlobDiff getBlobDiff(String srcBlob, String dstBlob) {
-    ProcessResult result = _run(['diff', '-U0', srcBlob, dstBlob]);
-    List<String> diffResults =
-        LineSplitter.split(result.stdout as String).toList();
+    var result = _run(['diff', '-U0', srcBlob, dstBlob]);
+    var diffResults = LineSplitter.split(result.stdout as String).toList();
     return BlobDiff._(diffResults);
   }
 
@@ -331,7 +330,7 @@ class GitRepository {
   CommitDelta getCommitDiff(String srcCommit, String dstCommit) {
     // Consider --find-renames instead of --no-renames if rename information is
     // desired.
-    ProcessResult result = _run([
+    var result = _run([
       'diff',
       '--raw',
       '--no-abbrev',
@@ -346,9 +345,8 @@ class GitRepository {
   /// Return a representation of the history of this repository. This is done by
   /// running the command `git rev-list --first-parent HEAD`.
   LinearCommitHistory getCommitHistory() {
-    ProcessResult result = _run(['rev-list', '--first-parent', 'HEAD']);
-    List<String> commitIds =
-        LineSplitter.split(result.stdout as String).toList();
+    var result = _run(['rev-list', '--first-parent', 'HEAD']);
+    var commitIds = LineSplitter.split(result.stdout as String).toList();
     return LinearCommitHistory(this, commitIds);
   }
 

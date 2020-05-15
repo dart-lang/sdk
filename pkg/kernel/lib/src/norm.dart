@@ -51,15 +51,15 @@ class _Norm extends ReplacementVisitor {
             nullabilityAsProperty == Nullability.legacy);
         // [typeArgument] is nullable because it's a top type.  No need to unite
         // the nullabilities of [node] and [typeArgument].
-        return typeArgument.withNullability(nullabilityAsProperty);
+        return typeArgument.withDeclaredNullability(nullabilityAsProperty);
       } else if (typeArgument is InterfaceType &&
           typeArgument.classNode == coreTypes.objectClass &&
           typeArgument.nullability == Nullability.nonNullable) {
         assert(!coreTypes.isTop(typeArgument));
         // [typeArgument] is non-nullable, so the union of that and the
         // nullability of [node] is the nullability of [node].
-        return typeArgument
-            .withNullability(computeNullability(node, coreTypes.futureOrClass));
+        return typeArgument.withDeclaredNullability(
+            computeNullability(node, coreTypes.futureOrClass));
       } else if (typeArgument is NeverType &&
           typeArgument.nullability == Nullability.nonNullable) {
         assert(!coreTypes.isTop(typeArgument));
@@ -89,9 +89,8 @@ class _Norm extends ReplacementVisitor {
           computeNullability(node, coreTypes.futureOrClass),
           <DartType>[typeArgument]);
     }
-    return super
-        .visitInterfaceType(node)
-        ?.withNullability(computeNullability(node, coreTypes.futureOrClass));
+    return super.visitInterfaceType(node)?.withDeclaredNullability(
+        computeNullability(node, coreTypes.futureOrClass));
   }
 
   @override
@@ -100,7 +99,7 @@ class _Norm extends ReplacementVisitor {
       DartType bound = node.parameter.bound;
       if (normalizesToNever(bound)) {
         DartType result = new NeverType(Nullability.nonNullable)
-            .withNullability(node.nullability);
+            .withDeclaredNullability(node.nullability);
         return result.accept(this) ?? result;
       }
       assert(!coreTypes.isBottom(bound));
@@ -114,22 +113,18 @@ class _Norm extends ReplacementVisitor {
       } else if (coreTypes.isTop(bound)) {
         assert(!coreTypes.isBottom(bound));
         assert(bound.nullability == Nullability.nullable);
-        return new TypeParameterType(
-            node.parameter, node.typeParameterTypeNullability);
+        return new TypeParameterType(node.parameter, node.declaredNullability);
       } else if (bound is TypeParameterType &&
           bound.parameter == node.parameter &&
-          bound.typeParameterTypeNullability ==
-              node.typeParameterTypeNullability &&
+          bound.declaredNullability == node.declaredNullability &&
           bound.promotedBound == null) {
         assert(!coreTypes.isBottom(bound));
         assert(!coreTypes.isTop(bound));
-        return new TypeParameterType(
-            node.parameter, node.typeParameterTypeNullability);
+        return new TypeParameterType(node.parameter, node.declaredNullability);
       } else if (bound == coreTypes.objectNonNullableRawType &&
           norm(coreTypes, node.parameter.bound) ==
               coreTypes.objectNonNullableRawType) {
-        return new TypeParameterType(
-            node.parameter, node.typeParameterTypeNullability);
+        return new TypeParameterType(node.parameter, node.declaredNullability);
       } else if (identical(bound, node.promotedBound)) {
         // If [bound] is identical to [node.promotedBound], then the NORM
         // algorithms didn't change the promoted bound, so the [node] is
@@ -137,7 +132,7 @@ class _Norm extends ReplacementVisitor {
         return null;
       }
       return new TypeParameterType(
-          node.parameter, node.typeParameterTypeNullability, bound);
+          node.parameter, node.declaredNullability, bound);
     }
   }
 

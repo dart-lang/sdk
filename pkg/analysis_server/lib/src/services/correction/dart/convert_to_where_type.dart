@@ -15,7 +15,7 @@ class ConvertToWhereType extends CorrectionProducer {
 
   @override
   Future<void> compute(DartChangeBuilder builder) async {
-    AstNode node = this.node;
+    var node = this.node;
     if (node is! SimpleIdentifier || node.parent is! MethodInvocation) {
       return;
     }
@@ -55,4 +55,7 @@ class ConvertToWhereType extends CorrectionProducer {
       });
     });
   }
+
+  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
+  static ConvertToWhereType newInstance() => ConvertToWhereType();
 }

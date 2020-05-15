@@ -27,12 +27,11 @@ bool DartDevUtils::ShouldParseCommand(const char* script_uri) {
 
 bool DartDevUtils::TryResolveDartDevSnapshotPath(char** script_name) {
   // |dir_prefix| includes the last path seperator.
-  auto dir_prefix = std::unique_ptr<char, void (*)(void*)>(
-      EXEUtils::GetDirectoryPrefixFromExeName(), free);
+  auto dir_prefix = EXEUtils::GetDirectoryPrefixFromExeName();
 
   // First assume we're in dart-sdk/bin.
   char* snapshot_path =
-      Utils::SCreate("%s/snapshots/dartdev.dart.snapshot", dir_prefix.get());
+      Utils::SCreate("%ssnapshots/dartdev.dart.snapshot", dir_prefix.get());
   if (File::Exists(nullptr, snapshot_path)) {
     *script_name = snapshot_path;
     return true;
@@ -41,8 +40,7 @@ bool DartDevUtils::TryResolveDartDevSnapshotPath(char** script_name) {
 
   // If we're not in dart-sdk/bin, we might be in one of the $SDK/out/*
   // directories. Try to use a snapshot from a previously built SDK.
-  snapshot_path = Utils::SCreate(
-      "%s/dart-sdk/bin/snapshots/dartdev.dart.snapshot", dir_prefix.get());
+  snapshot_path = Utils::SCreate("%sdartdev.dart.snapshot", dir_prefix.get());
   if (File::Exists(nullptr, snapshot_path)) {
     *script_name = snapshot_path;
     return true;

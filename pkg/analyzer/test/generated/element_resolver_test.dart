@@ -699,7 +699,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     MethodInvocation invocation =
         AstTestFactory.methodInvocation(left, methodName);
     _resolveNode(invocation);
-    expect(invocation.methodName.staticElement,
+    expect(invocation.methodName.staticElement.declaration,
         same(numType.getMethod(methodName)));
     _listener.assertNoErrors();
   }
@@ -880,14 +880,6 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     SimpleIdentifier node = AstTestFactory.identifier3(fieldName);
     _resolveInClass(node, doubleType.element);
     expect(node.staticElement, doubleType.getGetter(fieldName));
-    _listener.assertNoErrors();
-  }
-
-  test_visitSimpleIdentifier_dynamic() async {
-    SimpleIdentifier node = AstTestFactory.identifier3("dynamic");
-    _resolveIdentifier(node);
-    expect(node.staticElement, same(_typeProvider.dynamicType.element));
-    expect(node.staticType, same(_typeProvider.typeType));
     _listener.assertNoErrors();
   }
 

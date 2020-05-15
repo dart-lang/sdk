@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 library compiler_helper;
 
 import 'dart:async';
+import 'dart:io';
 import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common_elements.dart';
@@ -217,7 +220,8 @@ checkerForAbsentPresent(String test) {
     }
     for (Match match in matches) {
       String directive = match.group(1);
-      String pattern = match.groups([2, 3]).where((s) => s != null).single;
+      Pattern pattern = match.groups([2, 3, 4]).where((s) => s != null).single;
+      if (match.group(4) != null) pattern = RegExp(pattern);
       if (directive == 'present') {
         Expect.isTrue(generated.contains(pattern),
             "Cannot find '$pattern' in:\n$generated");
@@ -233,5 +237,6 @@ checkerForAbsentPresent(String test) {
 }
 
 RegExp _directivePattern = new RegExp(
-    //      \1                     \2        \3
-    r'''// *(present|absent): *(?:"([^"]*)"|'([^'']*)')''', multiLine: true);
+    //      \1                     \2        \3         \4
+    r'''// *(present|absent): *(?:"([^"]*)"|'([^'']*)'|/(.*)/)''',
+    multiLine: true);

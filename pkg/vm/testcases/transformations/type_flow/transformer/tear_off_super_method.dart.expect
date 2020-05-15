@@ -14,28 +14,28 @@ class B extends self::A {
     : super self::A::•()
     ;
 [@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method foo() → core::int*
-    return _in::unsafeCast<core::int*>([@vm.direct-call.metadata=dart.core::_IntegerImplementation::+] [@vm.inferred-type.metadata=int (skip check)] 1.{core::num::+}(_in::unsafeCast<core::num*>([@vm.direct-call.metadata=#lib::B::foo] [@vm.inferred-type.metadata=int? (receiver not int)] [@vm.inferred-type.metadata=#lib::B] self::knownResult().foo())));
+    return _in::unsafeCast<core::int*>([@vm.direct-call.metadata=_IntegerImplementation::+] [@vm.inferred-type.metadata=int (skip check)] 1.{core::num::+}(_in::unsafeCast<core::num>([@vm.direct-call.metadata=B::foo] [@vm.inferred-type.metadata=int? (receiver not int)] [@vm.inferred-type.metadata=#lib::B] self::knownResult().foo())));
 }
 abstract class Base extends core::Object {
   synthetic constructor •() → self::Base*
     : super core::Object::•()
     ;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method foo() → core::int*
-    return _in::unsafeCast<core::int*>([@vm.direct-call.metadata=dart.core::_IntegerImplementation::+] [@vm.inferred-type.metadata=int (skip check)] 3.{core::num::+}(_in::unsafeCast<core::num*>([@vm.direct-call.metadata=#lib::B::foo] [@vm.inferred-type.metadata=int? (receiver not int)] [@vm.inferred-type.metadata=#lib::B] self::knownResult().foo())));
+    return _in::unsafeCast<core::int*>([@vm.direct-call.metadata=_IntegerImplementation::+] [@vm.inferred-type.metadata=int (skip check)] 3.{core::num::+}(_in::unsafeCast<core::num>([@vm.direct-call.metadata=B::foo] [@vm.inferred-type.metadata=int? (receiver not int)] [@vm.inferred-type.metadata=#lib::B] self::knownResult().foo())));
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method doCall(dynamic x) → core::int*
-    return [@vm.call-site-attributes.metadata=receiverType:dynamic] x.call() as{TypeError,ForDynamic} core::int*;
+    return [@vm.call-site-attributes.metadata=receiverType:DynamicType(dynamic)] x.call() as{TypeError,ForDynamic} core::int*;
 }
 class TearOffSuperMethod extends self::Base {
   synthetic constructor •() → self::TearOffSuperMethod*
     : super self::Base::•()
     ;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  method bar() → core::int*
-    return [@vm.direct-call.metadata=#lib::Base::doCall] [@vm.inferred-type.metadata=int? (skip check)] this.{self::Base::doCall}(super.{self::Base::foo});
+    return [@vm.direct-call.metadata=Base::doCall] [@vm.inferred-type.metadata=int? (skip check)] this.{self::Base::doCall}(super.{self::Base::foo});
 }
 [@vm.inferred-type.metadata=#lib::B?]static field self::A* aa = new self::B::•();
 static method knownResult() → dynamic
   return new self::B::•();
 static method main(core::List<core::String*>* args) → dynamic {
-  [@vm.direct-call.metadata=#lib::TearOffSuperMethod::bar] [@vm.inferred-type.metadata=!? (skip check)] new self::TearOffSuperMethod::•().{self::TearOffSuperMethod::bar}();
-  [@vm.direct-call.metadata=#lib::B::foo??] [@vm.inferred-type.metadata=!? (skip check)] [@vm.inferred-type.metadata=#lib::B?] self::aa.{self::A::foo}();
+  [@vm.direct-call.metadata=TearOffSuperMethod::bar] [@vm.inferred-type.metadata=!? (skip check)] new self::TearOffSuperMethod::•().{self::TearOffSuperMethod::bar}();
+  [@vm.direct-call.metadata=B::foo??] [@vm.inferred-type.metadata=!? (skip check)] [@vm.inferred-type.metadata=#lib::B?] self::aa.{self::A::foo}();
 }

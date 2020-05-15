@@ -67,6 +67,7 @@ void testForeachIterableThrows(Iterable<int> elements, n, error) {
         case 2:
           return new Future.microtask(() {});
       }
+      return new Future.value();
     }).then((_) {
       Expect.fail("Did not throw");
     }, onError: (e) {
@@ -101,6 +102,7 @@ void testForeachFunctionThrows(Iterable<int> elements, n) {
         case 2:
           return new Future.microtask(() {});
       }
+      return new Future.value();
     }).then((_) {
       Expect.fail("Did not throw");
     }, onError: (e) {

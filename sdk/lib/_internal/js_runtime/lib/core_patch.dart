@@ -423,8 +423,11 @@ class List<E> {
         ? new JSArray<E>.growable(length)
         : new JSArray<E>.fixed(length);
     if (length != 0 && fill != null) {
+      // TODO(sra): Consider using `Array.fill`.
       for (int i = 0; i < result.length; i++) {
-        result[i] = fill;
+        // Unchecked assignment equivalent to `result[i] = fill`;
+        // `fill` is checked statically at call site.
+        JS('', '#[#] = #', result, i, fill);
       }
     }
     return result;
@@ -2735,7 +2738,7 @@ class _BigIntImpl implements BigInt {
           // There is already one in the cachedBits.
           roundUp();
         } else {
-          for (int i = digitIndex; digitIndex >= 0; i--) {
+          for (int i = digitIndex; i >= 0; i--) {
             if (_digits[i] != 0) {
               roundUp();
               break;

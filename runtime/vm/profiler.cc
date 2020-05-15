@@ -457,12 +457,12 @@ void ClearProfileVisitor::VisitSample(Sample* sample) {
 }
 
 static void DumpStackFrame(intptr_t frame_index, uword pc, uword fp) {
-  uintptr_t start = 0;
-  char* native_symbol_name = NativeSymbolResolver::LookupSymbolName(pc, &start);
-  if (native_symbol_name != NULL) {
-    OS::PrintErr("  pc 0x%" Pp " fp 0x%" Pp " %s\n", pc, fp,
-                 native_symbol_name);
-    NativeSymbolResolver::FreeSymbolName(native_symbol_name);
+  uword start = 0;
+  if (auto const name = NativeSymbolResolver::LookupSymbolName(pc, &start)) {
+    uword offset = pc - start;
+    OS::PrintErr("  pc 0x%" Pp " fp 0x%" Pp " %s+0x%" Px "\n", pc, fp, name,
+                 offset);
+    NativeSymbolResolver::FreeSymbolName(name);
     return;
   }
 
@@ -1132,12 +1132,13 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
     }
   }
 
+  OS::PrintErr("version=%s\n", Version::String());
   OSThread* os_thread = OSThread::Current();
   ASSERT(os_thread != NULL);
   Isolate* isolate = Isolate::Current();
-  const char* name = isolate == NULL ? NULL : isolate->name();
-  OS::PrintErr("version=%s\npid=%" Pd ", thread=%" Pd ", isolate=%s(%p)\n",
-               Version::String(), OS::ProcessId(),
+  const char* name = isolate == NULL ? "(nil)" : isolate->name();
+  OS::PrintErr("pid=%" Pd ", thread=%" Pd ", isolate=%s(%p)\n",
+               static_cast<intptr_t>(OS::ProcessId()),
                OSThread::ThreadIdToIntPtr(os_thread->trace_id()), name,
                isolate);
   const IsolateGroupSource* source =
@@ -1174,11 +1175,13 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
   native_stack_walker.walk();
   OS::PrintErr("-- End of DumpStackTrace\n");
 
-  if (thread->execution_state() == Thread::kThreadInNative) {
-    TransitionNativeToVM transition(thread);
-    StackFrame::DumpCurrentTrace();
-  } else if (thread->execution_state() == Thread::kThreadInVM) {
-    StackFrame::DumpCurrentTrace();
+  if (thread != nullptr) {
+    if (thread->execution_state() == Thread::kThreadInNative) {
+      TransitionNativeToVM transition(thread);
+      StackFrame::DumpCurrentTrace();
+    } else if (thread->execution_state() == Thread::kThreadInVM) {
+      StackFrame::DumpCurrentTrace();
+    }
   }
 }
 
@@ -1451,7 +1454,7 @@ class CodeLookupTableBuilder : public ObjectVisitor {
 
   ~CodeLookupTableBuilder() {}
 
-  void VisitObject(RawObject* raw_obj) {
+  void VisitObject(ObjectPtr raw_obj) {
     if (raw_obj->IsCode()) {
       table_->Add(Code::Handle(Code::RawCast(raw_obj)));
     } else if (raw_obj->IsBytecode()) {

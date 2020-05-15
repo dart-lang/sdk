@@ -59,31 +59,74 @@ class Features {
 
   /// Returns a string containing all features in a comma-separated list sorted
   /// by feature names.
-  String getText() {
-    StringBuffer sb = new StringBuffer();
-    bool needsComma = false;
-    for (String name in _features.keys.toList()..sort()) {
-      dynamic value = _features[name];
-      if (value != null) {
-        if (needsComma) {
-          sb.write(',');
+  String getText([String indent]) {
+    if (indent == null) {
+      StringBuffer sb = new StringBuffer();
+      bool needsComma = false;
+      for (String name in _features.keys.toList()..sort()) {
+        dynamic value = _features[name];
+        if (value != null) {
+          if (needsComma) {
+            sb.write(',');
+          }
+          sb.write(name);
+          if (value is List<String>) {
+            if (_unsorted.contains(name)) {
+              value = '[${value.join(',')}]';
+            } else {
+              value = '[${(value..sort()).join(',')}]';
+            }
+          }
+          if (value != '') {
+            sb.write('=');
+            sb.write(value);
+          }
+          needsComma = true;
         }
+      }
+      return sb.toString();
+    } else {
+      StringBuffer sb = new StringBuffer();
+      Map<String, dynamic> values = {};
+      for (String name in _features.keys.toList()..sort()) {
+        dynamic value = _features[name];
+        if (value != null) {
+          values[name] = value;
+        }
+      }
+      String comma = '';
+      if (values.length > 1) {
+        comma = '\n$indent ';
+      }
+      values.forEach((String name, dynamic value) {
+        sb.write(comma);
         sb.write(name);
         if (value is List<String>) {
-          if (_unsorted.contains(name)) {
-            value = '[${value.join(',')}]';
+          if (value.length > 1) {
+            if (_unsorted.contains(name)) {
+              value = '[\n$indent  ${value.join(',\n$indent  ')}]';
+            } else {
+              value = '[\n$indent  ${(value..sort()).join(',\n$indent  ')}]';
+            }
           } else {
-            value = '[${(value..sort()).join(',')}]';
+            if (_unsorted.contains(name)) {
+              value = '[${value.join(',')}]';
+            } else {
+              value = '[${(value..sort()).join(',')}]';
+            }
           }
         }
         if (value != '') {
           sb.write('=');
           sb.write(value);
         }
-        needsComma = true;
+        comma = ',\n$indent ';
+      });
+      if (values.length > 1) {
+        sb.write('\n$indent');
       }
+      return sb.toString();
     }
-    return sb.toString();
   }
 
   @override
@@ -182,11 +225,13 @@ class Features {
 }
 
 class FeaturesDataInterpreter implements DataInterpreter<Features> {
-  const FeaturesDataInterpreter();
+  final String wildcard;
+
+  const FeaturesDataInterpreter({this.wildcard: null});
 
   @override
   String isAsExpected(Features actualFeatures, String expectedData) {
-    if (expectedData == '*') {
+    if (wildcard != null && expectedData == wildcard) {
       return null;
     } else if (expectedData == '') {
       return actualFeatures.isNotEmpty ? "Expected empty data." : null;
@@ -212,7 +257,7 @@ class FeaturesDataInterpreter implements DataInterpreter<Features> {
           if (actualValue != '') {
             errorsFound.add('Non-empty data found for $key');
           }
-        } else if (expectedValue == '*') {
+        } else if (wildcard != null && expectedValue == wildcard) {
           return;
         } else if (expectedValue is List) {
           if (actualValue is List) {
@@ -220,10 +265,10 @@ class FeaturesDataInterpreter implements DataInterpreter<Features> {
             for (Object expectedObject in expectedValue) {
               String expectedText = '$expectedObject';
               bool matchFound = false;
-              if (expectedText.endsWith('*')) {
+              if (wildcard != null && expectedText.endsWith(wildcard)) {
                 // Wildcard matcher.
                 String prefix =
-                    expectedText.substring(0, expectedText.indexOf('*'));
+                    expectedText.substring(0, expectedText.indexOf(wildcard));
                 List matches = [];
                 for (Object actualObject in actualList) {
                   if ('$actualObject'.startsWith(prefix)) {
@@ -274,8 +319,8 @@ class FeaturesDataInterpreter implements DataInterpreter<Features> {
   }
 
   @override
-  String getText(Features actualData) {
-    return actualData.getText();
+  String getText(Features actualData, [String indentation]) {
+    return actualData.getText(indentation);
   }
 
   @override

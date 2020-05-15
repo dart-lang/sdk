@@ -39,11 +39,11 @@ class OutlineCollectorImpl implements OutlineCollector {
 
   @override
   void startElement(Element element, int offset, int length) {
-    Outline outline = Outline(element, offset, length, offset, length);
+    var outline = Outline(element, offset, length, offset, length);
     if (outlineStack.isEmpty) {
       outlines.add(outline);
     } else {
-      List<Outline> children = outlineStack.last.children;
+      var children = outlineStack.last.children;
       if (children == null) {
         children = <Outline>[];
         outlineStack.last.children = children;

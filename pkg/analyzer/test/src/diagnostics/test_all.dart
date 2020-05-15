@@ -58,8 +58,7 @@ import 'const_spread_expected_list_or_set_test.dart'
 import 'const_spread_expected_map_test.dart' as const_spread_expected_map;
 import 'dead_code_test.dart' as dead_code;
 import 'dead_null_aware_expression_test.dart' as dead_null_aware_expression;
-import 'default_list_constructor_mismatch_test.dart'
-    as default_list_constructor_mismatch;
+import 'default_list_constructor_test.dart' as default_list_constructor;
 import 'default_value_in_function_type_test.dart'
     as default_value_in_function_type;
 import 'default_value_in_function_typed_parameter_test.dart'
@@ -83,6 +82,8 @@ import 'duplicate_import_test.dart' as duplicate_import;
 import 'duplicate_named_argument_test.dart' as duplicate_named_argument;
 import 'duplicate_part_test.dart' as duplicate_part;
 import 'duplicate_shown_name_test.dart' as duplicate_shown_name;
+import 'enum_constant_same_name_as_enclosing.dart'
+    as enum_constant_same_name_as_enclosing;
 import 'equal_elements_in_const_set_test.dart' as equal_elements_in_const_set;
 import 'equal_elements_in_set_test.dart' as equal_elements_in_set;
 import 'equal_keys_in_const_map_test.dart' as equal_keys_in_const_map;
@@ -167,6 +168,9 @@ import 'import_duplicated_library_named_test.dart'
 import 'import_of_non_library_test.dart' as import_of_non_library;
 import 'inconsistent_case_expression_types_test.dart'
     as inconsistent_case_expression_types;
+import 'inconsistent_inheritance_getter_and_method_test.dart'
+    as inconsistent_inheritance_getter_and_method;
+import 'inconsistent_inheritance_test.dart' as inconsistent_inheritance;
 import 'inference_failure_on_collection_literal_test.dart'
     as inference_failure_on_collection_literal;
 import 'inference_failure_on_function_return_type_test.dart'
@@ -375,6 +379,8 @@ import 'redirect_generative_to_missing_constructor_test.dart'
     as redirect_generative_to_missing_constructor;
 import 'redirect_generative_to_non_generative_constructor_test.dart'
     as redirect_generative_to_non_generative_constructor;
+import 'redirect_to_abstract_class_constructor_test.dart'
+    as redirect_to_abstract_class_constructor;
 import 'redirect_to_invalid_function_type_test.dart'
     as redirect_to_invalid_function_type;
 import 'redirect_to_invalid_return_type_test.dart'
@@ -432,6 +438,7 @@ import 'switch_case_completes_normally_test.dart'
     as switch_case_completes_normally;
 import 'switch_expression_not_assignable_test.dart'
     as switch_expression_not_assignable;
+import 'throw_of_invalid_type_test.dart' as throw_of_invalid_type;
 import 'todo_test.dart' as todo_test;
 import 'top_level_instance_getter_test.dart' as top_level_instance_getter;
 import 'top_level_instance_method_test.dart' as top_level_instance_method;
@@ -543,7 +550,7 @@ main() {
     const_spread_expected_map.main();
     dead_code.main();
     dead_null_aware_expression.main();
-    default_list_constructor_mismatch.main();
+    default_list_constructor.main();
     default_value_in_function_type.main();
     default_value_in_function_typed_parameter.main();
     default_value_in_redirecting_factory_constructor.main();
@@ -561,6 +568,7 @@ main() {
     duplicate_named_argument.main();
     duplicate_part.main();
     duplicate_shown_name.main();
+    enum_constant_same_name_as_enclosing.main();
     equal_elements_in_const_set.main();
     equal_elements_in_set.main();
     equal_keys_in_const_map.main();
@@ -614,6 +622,8 @@ main() {
     import_deferred_library_with_load_function.main();
     import_duplicated_library_named.main();
     inconsistent_case_expression_types.main();
+    inconsistent_inheritance_getter_and_method.main();
+    inconsistent_inheritance.main();
     import_of_non_library.main();
     inference_failure_on_collection_literal.main();
     inference_failure_on_function_return_type.main();
@@ -755,6 +765,7 @@ main() {
     recursive_factory_redirect.main();
     redirect_generative_to_missing_constructor.main();
     redirect_generative_to_non_generative_constructor.main();
+    redirect_to_abstract_class_constructor.main();
     redirect_to_invalid_function_type.main();
     redirect_to_invalid_return_type.main();
     redirect_to_missing_constructor.main();
@@ -792,6 +803,7 @@ main() {
     super_initializer_in_object.main();
     switch_case_completes_normally.main();
     switch_expression_not_assignable.main();
+    throw_of_invalid_type.main();
     todo_test.main();
     top_level_instance_getter.main();
     top_level_instance_method.main();

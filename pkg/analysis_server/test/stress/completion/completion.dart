@@ -10,13 +10,13 @@ import 'completion_runner.dart';
 
 /// The main entry point for the code completion stress test.
 void main(List<String> args) async {
-  ArgParser parser = createArgParser();
-  ArgResults result = parser.parse(args);
+  var parser = createArgParser();
+  var result = parser.parse(args);
 
   if (validArguments(parser, result)) {
-    String analysisRoot = result.rest[0];
+    var analysisRoot = result.rest[0];
 
-    CompletionRunner runner = CompletionRunner(
+    var runner = CompletionRunner(
         output: stdout,
         printMissing: result['missing'],
         printQuality: result['quality'],
@@ -29,7 +29,7 @@ void main(List<String> args) async {
 
 /// Create a parser that can be used to parse the command-line arguments.
 ArgParser createArgParser() {
-  ArgParser parser = ArgParser();
+  var parser = ArgParser();
   parser.addFlag(
     'help',
     abbr: 'h',

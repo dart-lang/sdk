@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'dart:async';
 import 'dart:io';
 
@@ -17,6 +19,7 @@ import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
 
+import '../helpers/compiler_helper.dart';
 import '../helpers/memory_compiler.dart';
 import '../equivalence/id_equivalence.dart';
 
@@ -24,42 +27,54 @@ export 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, StringDataInterpreter;
 export '../helpers/memory_compiler.dart' show CollectedMessage;
 
-const String strongMarker = 'strong';
-const String omitMarker = 'omit';
+const String specWithNnbdOffMarker = 'spec:nnbd-off';
+const String prodWithNnbdOffMarker = 'prod:nnbd-off';
+const String specWithNnbdSdkMarker = 'spec:nnbd-sdk';
+const String prodWithNnbdSdkMarker = 'prod:nnbd-sdk';
 
-const TestConfig strongConfig =
-    const TestConfig(strongMarker, 'strong mode', []);
+const TestConfig specWithNnbdOffConfig = const TestConfig(
+    specWithNnbdOffMarker, 'compliance mode with nnbd off', []);
 
-const TestConfig omitConfig = const TestConfig(
-    omitMarker,
-    'strong mode without implicit checks',
+const TestConfig prodWithNnbdOffConfig = const TestConfig(
+    prodWithNnbdOffMarker,
+    'production mode with nnbd off',
+    [Flags.omitImplicitChecks, Flags.laxRuntimeTypeToString]);
+
+const TestConfig specWithNnbdSdkConfig = const TestConfig(
+    specWithNnbdSdkMarker, 'compliance mode with nnbd sdk', []);
+
+const TestConfig prodWithNnbdSdkConfig = const TestConfig(
+    prodWithNnbdSdkMarker,
+    'production mode with nnbd sdk',
     [Flags.omitImplicitChecks, Flags.laxRuntimeTypeToString]);
 
 const List<String> allInternalMarkers = const [
-  strongMarker,
-  omitMarker,
+  specWithNnbdOffMarker,
+  prodWithNnbdOffMarker,
+  specWithNnbdSdkMarker,
+  prodWithNnbdSdkMarker
 ];
 
 /// Default internal configurations not including experimental features.
-const List<TestConfig> defaultInternalConfigs = const [
-  strongConfig,
-  omitConfig
-];
+List<TestConfig> defaultInternalConfigs = isDart2jsNnbd
+    ? const [specWithNnbdSdkConfig, prodWithNnbdSdkConfig]
+    : const [specWithNnbdOffConfig, prodWithNnbdOffConfig];
 
 /// All internal configurations including experimental features.
-const List<TestConfig> allInternalConfigs = const [
-  strongConfig,
-  omitConfig,
-];
+List<TestConfig> allInternalConfigs = isDart2jsNnbd
+    ? const [specWithNnbdSdkConfig, prodWithNnbdSdkConfig]
+    : const [specWithNnbdOffConfig, prodWithNnbdOffConfig];
 
 /// Compliance mode configurations (with strong mode checks) including
 /// experimental features.
-const List<TestConfig> allStrongConfigs = const [
-  strongConfig,
-];
+List<TestConfig> allSpecConfigs = isDart2jsNnbd
+    ? const [specWithNnbdSdkConfig]
+    : const [specWithNnbdOffConfig];
 
 /// Test configuration used in tests shared with CFE.
-const TestConfig sharedConfig = const TestConfig(dart2jsMarker, 'dart2js', []);
+TestConfig sharedConfig = isDart2jsNnbd
+    ? const TestConfig(dart2jsWithNnbdSdkMarker, 'dart2js with nnbd sdk', [])
+    : const TestConfig(dart2jsMarker, 'dart2js', []);
 
 abstract class DataComputer<T> {
   const DataComputer();
@@ -398,7 +413,8 @@ Future<void> checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
     int shards: 1,
     int shardIndex: 0,
     void onTest(Uri uri),
-    List<TestConfig> testedConfigs = defaultInternalConfigs}) async {
+    List<TestConfig> testedConfigs = const []}) async {
+  if (testedConfigs.isEmpty) testedConfigs = defaultInternalConfigs;
   Set<String> testedMarkers =
       testedConfigs.map((config) => config.marker).toSet();
   Expect.isTrue(

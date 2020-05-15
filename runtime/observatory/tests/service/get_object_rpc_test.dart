@@ -7,13 +7,13 @@ library get_object_rpc_test;
 import 'dart:typed_data';
 import 'dart:convert' show base64Decode;
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
 class _DummyClass {
   static var dummyVar = 11;
-  final List<String> dummyList = new List<String>(20);
+  final List<String> dummyList = new List<String>.filled(20, null);
   void dummyFunction() {}
 }
 

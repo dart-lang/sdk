@@ -14,29 +14,53 @@ library;
 //   c.m1 = 2;
 //     ^^
 //
-// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:32:5: Error: The getter 'm3' isn't defined for the class 'Class'.
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:32:5: Error: The property 'm3' is defined in multiple extensions for 'Class' and neither is more specific.
 //  - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named 'm3'.
+// Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
 //   c.m3;
 //     ^^
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:13:12: Context: This is one of the extension members.
+//   void set m3(int x) {}
+//            ^^
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:18:11: Context: This is one of the extension members.
+//   int get m3 => 0;
+//           ^^
 //
-// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:33:5: Error: The setter 'm3' isn't defined for the class 'Class'.
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:33:5: Error: The property 'm3' is defined in multiple extensions for 'Class' and neither is more specific.
 //  - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
-// Try correcting the name to the name of an existing setter, or defining a setter or field named 'm3'.
+// Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
 //   c.m3 = 2;
 //     ^^
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:13:12: Context: This is one of the extension members.
+//   void set m3(int x) {}
+//            ^^
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:18:11: Context: This is one of the extension members.
+//   int get m3 => 0;
+//           ^^
 //
-// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:34:5: Error: The getter 'm4' isn't defined for the class 'Class'.
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:34:5: Error: The property 'm4' is defined in multiple extensions for 'Class' and neither is more specific.
 //  - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named 'm4'.
+// Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
 //   c.m4;
 //     ^^
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:14:11: Context: This is one of the extension members.
+//   int get m4 => 0;
+//           ^^
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:19:12: Context: This is one of the extension members.
+//   void set m4(int x) {}
+//            ^^
 //
-// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:35:5: Error: The setter 'm4' isn't defined for the class 'Class'.
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:35:5: Error: The property 'm4' is defined in multiple extensions for 'Class' and neither is more specific.
 //  - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
-// Try correcting the name to the name of an existing setter, or defining a setter or field named 'm4'.
+// Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
 //   c.m4 = 2;
 //     ^^
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:14:11: Context: This is one of the extension members.
+//   int get m4 => 0;
+//           ^^
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:19:12: Context: This is one of the extension members.
+//   void set m4(int x) {}
+//            ^^
 //
 import self as self;
 import "dart:core" as core;
@@ -48,6 +72,16 @@ class Class extends core::Object {
   get m1() → core::int*
     return 0;
   set m2(core::int* x) → void {}
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 extension Extension0 on self::Class* {
   get m2 = self::Extension0|get#m2;
@@ -85,24 +119,24 @@ Try correcting the name to the name of an existing getter, or defining a getter 
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'm1'.
   c.m1 = 2;
     ^^";
-  invalid-expression "pkg/front_end/testcases/extensions/getter_setter_conflict.dart:32:5: Error: The getter 'm3' isn't defined for the class 'Class'.
+  invalid-expression "pkg/front_end/testcases/extensions/getter_setter_conflict.dart:32:5: Error: The property 'm3' is defined in multiple extensions for 'Class' and neither is more specific.
  - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
-Try correcting the name to the name of an existing getter, or defining a getter or field named 'm3'.
+Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
   c.m3;
     ^^";
-  invalid-expression "pkg/front_end/testcases/extensions/getter_setter_conflict.dart:33:5: Error: The setter 'm3' isn't defined for the class 'Class'.
+  invalid-expression "pkg/front_end/testcases/extensions/getter_setter_conflict.dart:33:5: Error: The property 'm3' is defined in multiple extensions for 'Class' and neither is more specific.
  - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
-Try correcting the name to the name of an existing setter, or defining a setter or field named 'm3'.
+Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
   c.m3 = 2;
     ^^";
-  invalid-expression "pkg/front_end/testcases/extensions/getter_setter_conflict.dart:34:5: Error: The getter 'm4' isn't defined for the class 'Class'.
+  invalid-expression "pkg/front_end/testcases/extensions/getter_setter_conflict.dart:34:5: Error: The property 'm4' is defined in multiple extensions for 'Class' and neither is more specific.
  - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
-Try correcting the name to the name of an existing getter, or defining a getter or field named 'm4'.
+Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
   c.m4;
     ^^";
-  invalid-expression "pkg/front_end/testcases/extensions/getter_setter_conflict.dart:35:5: Error: The setter 'm4' isn't defined for the class 'Class'.
+  invalid-expression "pkg/front_end/testcases/extensions/getter_setter_conflict.dart:35:5: Error: The property 'm4' is defined in multiple extensions for 'Class' and neither is more specific.
  - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
-Try correcting the name to the name of an existing setter, or defining a setter or field named 'm4'.
+Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
   c.m4 = 2;
     ^^";
 }

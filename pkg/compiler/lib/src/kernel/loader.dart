@@ -59,7 +59,11 @@ class KernelLoaderTask extends CompilerTask {
     return measure(() async {
       String targetName =
           _options.compileForServer ? "dart2js_server" : "dart2js";
-      String platform = '${targetName}_platform.dill';
+      String platform = targetName;
+      if (_options.useNullSafety && !_options.useWeakNullSafetySemantics) {
+        platform += "_nnbd_strong";
+      }
+      platform += "_platform.dill";
       var isDill = resolvedUri.path.endsWith('.dill');
       ir.Component component;
       if (isDill) {
@@ -117,6 +121,13 @@ class KernelLoaderTask extends CompilerTask {
             resolvedUri);
       }
       if (component == null) return null;
+
+      // TODO(sigmund): remove after we unfork the sdk, and force null-safety to
+      // always be considered to be true.
+      if (component.libraries.any((lib) =>
+          lib.isNonNullableByDefault && lib.importUri.scheme == 'dart')) {
+        _options.useNullSafety = true;
+      }
 
       if (_options.cfeOnly) {
         measureSubtask('serialize dill', () {

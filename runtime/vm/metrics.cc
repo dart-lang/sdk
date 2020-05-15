@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(PRODUCT)
-
 #include "vm/metrics.h"
 
 #include "vm/isolate.h"
@@ -37,6 +35,7 @@ void Metric::InitInstance(IsolateGroup* isolate_group,
   unit_ = unit;
 }
 
+#if !defined(PRODUCT)
 void Metric::InitInstance(Isolate* isolate,
                           const char* name,
                           const char* description,
@@ -59,7 +58,6 @@ void Metric::InitInstance(const char* name,
   unit_ = unit;
 }
 
-#ifndef PRODUCT
 static const char* UnitString(intptr_t unit) {
   switch (unit) {
     case Metric::kCounter:
@@ -90,7 +88,7 @@ void Metric::PrintJSON(JSONStream* stream) {
   double value_as_double = static_cast<double>(Value());
   obj.AddProperty("value", value_as_double);
 }
-#endif  // !PRODUCT
+#endif  // !defined(PRODUCT)
 
 char* Metric::ValueToString(int64_t value, Unit unit) {
   Thread* thread = Thread::Current();
@@ -179,6 +177,7 @@ int64_t MetricHeapUsed::Value() const {
          isolate_group()->heap()->UsedInWords(Heap::kOld) * kWordSize;
 }
 
+#if !defined(PRODUCT)
 int64_t MetricIsolateCount::Value() const {
   return Isolate::IsolateListLength();
 }
@@ -190,6 +189,9 @@ int64_t MetricCurrentRSS::Value() const {
 int64_t MetricPeakRSS::Value() const {
   return Service::MaxRSS();
 }
+#endif  // !defined(PRODUCT)
+
+#if !defined(PRODUCT)
 
 #define VM_METRIC_VARIABLE(type, variable, name, unit)                         \
   type vm_metric_##variable;
@@ -217,6 +219,8 @@ void Metric::Cleanup() {
   }
 }
 
+#endif  // !defined(PRODUCT)
+
 MaxMetric::MaxMetric() : Metric() {
   set_value(kMinInt64);
 }
@@ -238,5 +242,3 @@ void MinMetric::SetValue(int64_t new_value) {
 }
 
 }  // namespace dart
-
-#endif  // !defined(PRODUCT)

@@ -40,23 +40,23 @@ class ErrorsReportedOnceTest {
   }
 
   Future<void> test_once() async {
-    String testDir = path.join(testDirectory, 'data', 'errors_reported_once');
-    Driver driver = Driver(isTesting: true);
+    var testDir = path.join(testDirectory, 'data', 'errors_reported_once');
+    var driver = Driver(isTesting: true);
     await driver.start(
         [path.join(testDir, 'foo.dart'), path.join(testDir, 'bar.dart')]);
 
     expect(exitCode, 0);
 
     // Ensure that we only have one copy of the error.
-    final String unusedWarning = 'Unused import';
-    String output = outSink.toString();
+    final unusedWarning = 'Unused import';
+    var output = outSink.toString();
     expect(output, contains(unusedWarning));
     expect(unusedWarning.allMatches(output).toList(), hasLength(1));
   }
 
   Future<void> test_once_machine() async {
-    String testDir = path.join(testDirectory, 'data', 'errors_reported_once');
-    Driver driver = Driver(isTesting: true);
+    var testDir = path.join(testDirectory, 'data', 'errors_reported_once');
+    var driver = Driver(isTesting: true);
     await driver.start([
       '--format',
       'machine',
@@ -67,8 +67,8 @@ class ErrorsReportedOnceTest {
     expect(exitCode, 0);
 
     // Ensure that we only have one copy of the error.
-    final String unusedWarning = 'Unused import';
-    String output = errorSink.toString();
+    final unusedWarning = 'Unused import';
+    var output = errorSink.toString();
     expect(output, contains(unusedWarning));
     expect(unusedWarning.allMatches(output).toList(), hasLength(1));
   }

@@ -1,0 +1,60 @@
+library test;
+
+abstract class Test1 {
+  int operator [](String s);
+  void operator []=(String s, int v);
+  void test() {}
+}
+
+abstract class Test2 {
+  int operator [](String s);
+  void operator []=(String s, num v);
+  void test() {}
+}
+
+abstract class Test3 {
+  int operator [](String s);
+  void operator []=(String s, double v);
+  void test() {}
+}
+
+abstract class Test4 {
+  num operator [](String s);
+  void operator []=(String s, int v);
+  void test() {}
+}
+
+abstract class Test5 {
+  num operator [](String s);
+  void operator []=(String s, num v);
+  void test() {}
+}
+
+abstract class Test6 {
+  num operator [](String s);
+  void operator []=(String s, double v);
+  void test() {}
+}
+
+abstract class Test7 {
+  double operator [](String s);
+  void operator []=(String s, int v);
+  void test() {}
+}
+
+abstract class Test8 {
+  double operator [](String s);
+  void operator []=(String s, num v);
+  void test() {}
+}
+
+abstract class Test9 {
+  double operator [](String s);
+  void operator []=(String s, double v);
+  void test() {}
+}
+
+double getDouble() => 0.0;
+int getInt() => 0;
+main() {}
+num getNum() => 0;

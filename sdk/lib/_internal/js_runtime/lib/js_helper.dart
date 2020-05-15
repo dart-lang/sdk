@@ -416,7 +416,6 @@ class Primitives {
     int digitsIndex = 1;
     int hexIndex = 2;
     int decimalIndex = 3;
-    int nonDecimalHexIndex = 4;
     if (match == null) {
       // TODO(sra): It might be that the match failed due to unrecognized U+0085
       // spaces.  We could replace them with U+0020 spaces and try matching
@@ -3543,3 +3542,18 @@ void registerGlobalObject(object) {}
 // Hook to register new browser classes.
 // This is currently a no-op in dart2js.
 void applyExtension(name, nativeObject) {}
+
+// See tests/compiler/dart2js_extra/platform_environment_variable1_test.dart
+const String testPlatformEnvironmentVariableValue = String.fromEnvironment(
+    'dart2js.test.platform.environment.variable',
+    defaultValue: 'not-specified');
+
+String testingGetPlatformEnvironmentVariable() {
+  return testPlatformEnvironmentVariableValue;
+}
+
+// These are used to indicate that a named parameter is required when lazily
+// retrieving default values via [JsGetName.DEFAULT_VALUES_PROPERTY].
+class _Required {
+  const _Required();
+}

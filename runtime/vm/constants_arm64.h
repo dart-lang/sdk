@@ -143,10 +143,13 @@ const Register kWriteBarrierSlotReg = R25;
 const Register kAllocationStubTypeArgumentsReg = R1;
 
 // ABI for instantiation stubs.
-const Register kUninstantiatedTypeArgumentsReg = R3;
-const Register kInstantiatorTypeArgumentsReg = R2;
-const Register kFunctionTypeArgumentsReg = R1;
-const Register kResultTypeArgumentsReg = R0;
+struct InstantiationABI {
+  static const Register kUninstantiatedTypeArgumentsReg = R3;
+  static const Register kInstantiatorTypeArgumentsReg = R2;
+  static const Register kFunctionTypeArgumentsReg = R1;
+  static const Register kResultTypeArgumentsReg = R0;
+  static const Register kResultTypeReg = R0;
+};
 
 // Calling convention when calling TypeTestingStub and SubtypeTestCacheStub.
 struct TypeTestABI {
@@ -160,6 +163,9 @@ struct TypeTestABI {
       (1 << kInstanceReg) | (1 << kDstTypeReg) |
       (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
       (1 << kSubtypeTestCacheReg);
+
+  // For call to InstanceOfStub.
+  static const Register kResultReg = R0;
 };
 
 // Registers used inside the implementation of type testing stubs.
@@ -169,6 +175,49 @@ struct TTSInternalRegs {
 
   static const intptr_t kInternalRegisters =
       (1 << kInstanceTypeArgumentsReg) | (1 << kScratchReg);
+};
+
+// ABI for InitStaticFieldStub.
+struct InitStaticFieldABI {
+  static const Register kFieldReg = R0;
+};
+
+// ABI for InitInstanceFieldStub.
+struct InitInstanceFieldABI {
+  static const Register kInstanceReg = R0;
+  static const Register kFieldReg = R1;
+};
+
+// Registers used inside the implementation of InitLateInstanceFieldStub.
+struct InitLateInstanceFieldInternalRegs {
+  static const Register kFunctionReg = R0;
+  static const Register kInitializerResultReg = R0;
+  static const Register kInstanceReg = R1;
+  static const Register kFieldReg = R2;
+  static const Register kAddressReg = R3;
+  static const Register kScratchReg = R4;
+};
+
+// ABI for ThrowStub.
+struct ThrowABI {
+  static const Register kExceptionReg = R0;
+};
+
+// ABI for ReThrowStub.
+struct ReThrowABI {
+  static const Register kExceptionReg = R0;
+  static const Register kStackTraceReg = R1;
+};
+
+// ABI for AssertBooleanStub.
+struct AssertBooleanABI {
+  static const Register kObjectReg = R0;
+};
+
+// ABI for RangeErrorStub.
+struct RangeErrorABI {
+  static const Register kLengthReg = R0;
+  static const Register kIndexReg = R1;
 };
 
 // TODO(regis): Add ABIs for type testing stubs and is-type test stubs instead
@@ -330,8 +379,19 @@ enum Condition {
 };
 
 static inline Condition InvertCondition(Condition c) {
-  const int32_t i = static_cast<int32_t>(c) ^ 0x1;
-  return static_cast<Condition>(i);
+  COMPILE_ASSERT((EQ ^ NE) == 1);
+  COMPILE_ASSERT((CS ^ CC) == 1);
+  COMPILE_ASSERT((MI ^ PL) == 1);
+  COMPILE_ASSERT((VS ^ VC) == 1);
+  COMPILE_ASSERT((HI ^ LS) == 1);
+  COMPILE_ASSERT((GE ^ LT) == 1);
+  COMPILE_ASSERT((GT ^ LE) == 1);
+  COMPILE_ASSERT((AL ^ NV) == 1);
+  // Although the NV condition is not valid for branches, it is used internally
+  // in the assembler in the implementation of far branches, so we have to
+  // allow AL and NV here. See EmitConditionalBranch.
+  ASSERT(c != kInvalidCondition);
+  return static_cast<Condition>(c ^ 1);
 }
 
 enum Bits {
@@ -957,9 +1017,9 @@ static inline uint64_t RotateRight(uint64_t value,
                                    uint8_t rotate,
                                    uint8_t width) {
   ASSERT(width <= 64);
-  rotate &= 63;
-  return ((value & ((1ULL << rotate) - 1ULL)) << (width - rotate)) |
-         (value >> rotate);
+  uint8_t right = rotate & 63;
+  uint8_t left = (width - rotate) & 63;
+  return ((value & ((1ULL << right) - 1ULL)) << left) | (value >> right);
 }
 
 static inline uint64_t RepeatBitsAcrossReg(uint8_t reg_size,
@@ -1275,6 +1335,8 @@ class Instr {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Instr);
 };
+
+const uword kBreakInstructionFiller = 0xD4200000D4200000L;  // brk #0; brk #0
 
 }  // namespace dart
 

@@ -41,7 +41,7 @@ void testSync() {
   Future val = new Future.value(42);
   Future err1 = new Future.error("Error")..catchError((_) {});
   try {
-    throw new List(0);
+    throw [];
   } catch (e, st) {
     Future err2 = new Future.error(e, st)..catchError((_) {});
   }
@@ -83,7 +83,7 @@ void testCompleteWithSuccessHandlerBeforeComplete() {
   final completer = new Completer<int>();
   final future = completer.future;
 
-  late int after;
+  int? after;
 
   asyncStart();
   future.then((int v) {
@@ -101,7 +101,7 @@ void testCompleteWithSuccessHandlerAfterComplete() {
   final completer = new Completer<int>();
   final future = completer.future;
 
-  late int after;
+  int? after;
   completer.complete(3);
   Expect.isNull(after);
 
@@ -148,13 +148,14 @@ void testCompleteManySuccessHandlers() {
 // Tests for [catchError]
 
 void testException() {
-  final completer = new Completer<int>();
+  final completer = new Completer<int?>();
   final future = completer.future;
   final ex = new Exception();
 
   asyncStart();
   future.then((v) {
     throw "Value not expected";
+    return null;
   }).catchError((error) {
     Expect.equals(error, ex);
     asyncEnd();
@@ -163,7 +164,7 @@ void testException() {
 }
 
 void testExceptionHandler() {
-  final completer = new Completer<int>();
+  final completer = new Completer<int?>();
   final future = completer.future;
   final ex = new Exception();
 
@@ -184,7 +185,7 @@ void testExceptionHandler() {
 }
 
 void testExceptionHandlerReturnsTrue() {
-  final completer = new Completer<int>();
+  final completer = new Completer<int?>();
   final future = completer.future;
   final ex = new Exception();
 
@@ -200,7 +201,7 @@ void testExceptionHandlerReturnsTrue() {
 }
 
 void testExceptionHandlerReturnsTrue2() {
-  final completer = new Completer<int>();
+  final completer = new Completer<int?>();
   final future = completer.future;
   final ex = new Exception();
 
@@ -218,7 +219,7 @@ void testExceptionHandlerReturnsTrue2() {
 }
 
 void testExceptionHandlerReturnsFalse() {
-  final completer = new Completer<int>();
+  final completer = new Completer<int?>();
   final future = completer.future;
   final ex = new Exception();
 
@@ -515,13 +516,14 @@ void testFutureWhenErrorFutureError() {
 }
 
 void testFutureThenThrowsAsync() {
-  final completer = new Completer<int>();
+  final completer = new Completer<int?>();
   final future = completer.future;
   int error = 42;
 
   asyncStart();
   future.then((v) {
     throw error;
+    return null;
   }).catchError((e) {
     Expect.identical(error, e);
     asyncEnd();
@@ -530,7 +532,7 @@ void testFutureThenThrowsAsync() {
 }
 
 void testFutureCatchThrowsAsync() {
-  final completer = new Completer<int>();
+  final completer = new Completer<int?>();
   final future = completer.future;
   int error = 42;
 
@@ -545,7 +547,7 @@ void testFutureCatchThrowsAsync() {
 }
 
 void testFutureCatchRethrowsAsync() {
-  final completer = new Completer<int>();
+  final completer = new Completer<int?>();
   final future = completer.future;
   var error;
 
@@ -561,7 +563,7 @@ void testFutureCatchRethrowsAsync() {
 }
 
 void testFutureWhenThrowsAsync() {
-  final completer = new Completer<int>();
+  final completer = new Completer<int?>();
   final future = completer.future;
   var error = 42;
 
@@ -576,7 +578,7 @@ void testFutureWhenThrowsAsync() {
 }
 
 void testCompleteWithError() {
-  final completer = new Completer<int>();
+  final completer = new Completer<int?>();
   final future = completer.future;
   var error = 42;
 
@@ -660,7 +662,7 @@ void testCompleteWithCustomFutureSuccess() {
   asyncStart();
   final completer = new Completer<int>();
   final completer2 = new Completer<int>();
-  completer.complete(new CustomFuture(completer2.future));
+  completer.complete(new CustomFuture<int>(completer2.future));
   completer.future.then((v) {
     Expect.equals(42, v);
     asyncEnd();
@@ -672,7 +674,7 @@ void testCompleteWithCustomFutureError() {
   asyncStart();
   final completer = new Completer<int>();
   final completer2 = new Completer<int>();
-  completer.complete(new CustomFuture(completer2.future));
+  completer.complete(new CustomFuture<int>(completer2.future));
   completer.future.then((v) {
     Expect.fail("Should not happen");
     asyncEnd();
@@ -686,7 +688,7 @@ void testCompleteWithCustomFutureError() {
 void testCompleteErrorWithCustomFuture() {
   asyncStart();
   final completer = new Completer<int>();
-  var future = new CustomFuture(new Future.value(42));
+  var future = new CustomFuture<int>(new Future.value(42));
   completer.completeError(future);
   completer.future.then((_) {
     Expect.fail("Shouldn't happen");
@@ -770,8 +772,8 @@ void testWaitCleanUp() {
   void doTest(int mask, int permute) {
     asyncStart();
     String stringId = "waitCleanup-$mask-$permute";
-    List<Future?> futures = new List(3);
-    List cleanup = new List(3);
+    List<Future?> futures = <Future?>[null, null, null];
+    List cleanup = [null, null, null];
     int permuteTmp = permute;
     for (int i = 0; i < 3; i++) {
       bool throws = (mask & (1 << i)) != 0;
@@ -815,8 +817,8 @@ void testWaitCleanUpEager() {
     asyncStart();
     bool done = false;
     String stringId = "waitCleanup-$mask-$permute";
-    List<Future?> futures = new List<Future?>(3);
-    List cleanup = new List(3);
+    List<Future?> futures = <Future?>[null, null, null];
+    List cleanup = [null, null, null];
     int permuteTmp = permute;
     for (int i = 0; i < 3; i++) {
       bool throws = (mask & (1 << i)) != 0;
@@ -845,7 +847,8 @@ void testWaitCleanUpEager() {
     }
 
     Future.wait(futures.map((future) => future!),
-          eagerError: true, cleanUp: cleanUp).then((_) {
+            eagerError: true, cleanUp: cleanUp)
+        .then((_) {
       Expect.fail("No error: $stringId");
     }, onError: (e, s) {
       asyncEnd();
@@ -868,8 +871,8 @@ void testWaitCleanUpError() {
   asyncStart();
   asyncStart();
   asyncStart();
-  runZoned(() {
-    Future.wait([
+  runZonedGuarded(() {
+    Future<List<int>?>.value(Future.wait([
       new Future.delayed(cms, () => 0),
       new Future.delayed(cms * 2, () => throw 1),
       new Future.delayed(cms * 3, () => 2)
@@ -878,12 +881,12 @@ void testWaitCleanUpError() {
       Expect.isFalse(cleanups[index]);
       cleanups[index] = true;
       throw index;
-    }).catchError((e) {
+    })).catchError((e) {
       Expect.equals(e, 1);
       asyncEnd();
     });
-  }, onError: (e, s) {
-    int index = e;
+  }, (e, s) {
+    int index = e as int;
     Expect.isTrue(index == 0 || index == 2, "$index");
     Expect.isFalse(uncaughts[index]);
     uncaughts[index] = true;
@@ -901,7 +904,7 @@ void testWaitSyncError() {
         new Iterable.generate(5, (i) {
           if (i != 3) return new Future.delayed(cms * (i + 1), () => i);
           throw "throwing synchronously in iterable";
-        }), cleanUp: (index) {
+        }), cleanUp: (dynamic index) {
       Expect.isFalse(cleanups[index]);
       cleanups[index] = true;
       if (cleanups.every((x) => x)) asyncEnd();
@@ -919,7 +922,7 @@ Iterable<Future> badIterable() sync* {
 
 void testWaitSyncError2() {
   asyncStart();
-  Future.wait(badIterable()).catchError((e, st) {
+  Future<List?>.value(Future.wait(badIterable())).catchError((e, st) {
     // Makes sure that the `catchError` is invoked.
     // Regression test: an earlier version of `Future.wait` would propagate
     // the error too soon for the code to install an error handler.
@@ -945,7 +948,7 @@ void testWaitSyncError3() {
 
   asyncStart();
   runZoned(() {
-    Future.wait(badIterable()).catchError((e, st) {
+    Future<List?>.value(Future.wait(badIterable())).catchError((e, st) {
       Expect.identical(e, caughtError);
       Expect.equals(1, count);
       asyncEnd();
@@ -1000,9 +1003,10 @@ void testTypes() {
     testType("Future.sync(future($value))",
         new Future<int>.sync(() => new Future<int>.value(value)));
     testType("Future.value($value)", new Future<int>.value(value));
+    testType(
+        "Future.error", new Future<int>.error("ERR")..catchError((_) => value));
   }
   testType("Completer.future", new Completer<int>().future);
-  testType("Future.error", new Future<int>.error("ERR")..catchError((_) {}));
 }
 
 void testAnyValue() {
@@ -1248,7 +1252,7 @@ class UglyFuture implements Future<dynamic> {
       : _result = (badness == 0) ? 42 : new UglyFuture(badness - 1);
   Future<S> then<S>(action(value), {Function? onError}) {
     var c = new Completer<S>();
-    c.complete(new Future.microtask(() => action(_result)));
+    c.complete(new Future<S>.microtask(() => action(_result)));
     return c.future;
   }
 

@@ -56,7 +56,8 @@ String createAnalyticsStatusMessage(
 Analytics createAnalyticsInstance(
   String trackingId,
   String applicationName, {
-  bool disableForSession: false,
+  bool disableForSession = false,
+  bool forceEnabled = false,
 }) {
   Directory dir = getDartStorageDirectory();
   if (dir == null) {
@@ -75,9 +76,15 @@ Analytics createAnalyticsInstance(
     }
   }
 
-  File file = new File(path.join(dir.path, _settingsFileName));
+  File settingsFile = new File(path.join(dir.path, _settingsFileName));
   return new _TelemetryAnalytics(
-      trackingId, applicationName, getDartVersion(), file, disableForSession);
+    trackingId,
+    applicationName,
+    getDartVersion(),
+    settingsFile,
+    disableForSession: disableForSession,
+    forceEnabled: forceEnabled,
+  );
 }
 
 /// The directory used to store the analytics settings file.
@@ -100,16 +107,18 @@ String getDartVersion() => usage_io.getDartVersion();
 
 class _TelemetryAnalytics extends AnalyticsImpl {
   final bool disableForSession;
+  final bool forceEnabled;
 
   _TelemetryAnalytics(
     String trackingId,
     String applicationName,
     String applicationVersion,
-    File file,
-    this.disableForSession,
-  ) : super(
+    File settingsFile, {
+    @required this.disableForSession,
+    @required this.forceEnabled,
+  }) : super(
           trackingId,
-          new IOPersistentProperties.fromFile(file),
+          new IOPersistentProperties.fromFile(settingsFile),
           new IOPostHandler(),
           applicationName: applicationName,
           applicationVersion: applicationVersion,
@@ -124,6 +133,11 @@ class _TelemetryAnalytics extends AnalyticsImpl {
   bool get enabled {
     if (disableForSession || isRunningOnBot()) {
       return false;
+    }
+
+    // This is only used in special cases.
+    if (forceEnabled) {
+      return true;
     }
 
     // If there's no explicit setting (enabled or disabled) then we don't send.
@@ -146,34 +160,63 @@ class _DisabledAnalytics extends AnalyticsMock {
 /// Detect whether we're running on a bot or in a continuous testing
 /// environment.
 ///
-/// We should periodically keep this code up to date with
-/// https://github.com/flutter/flutter/blob/master/packages/flutter_tools/lib/src/base/utils.dart#L20.
+/// We should periodically keep this code up to date with:
+/// https://github.com/flutter/flutter/blob/master/packages/flutter_tools/lib/src/base/bot_detector.dart#L30
+/// and
+/// https://github.com/flutter/flutter/blob/master/packages/flutter_tools/lib/src/reporting/usage.dart#L200.
 bool isRunningOnBot() {
   final Map<String, String> env = Platform.environment;
 
-  return env['BOT'] != 'false' &&
-      (env['BOT'] == 'true'
-          // https://docs.travis-ci.com/user/environment-variables/#Default-Environment-Variables
+  if (
+      // Explicitly stated to not be a bot.
+      env['BOT'] == 'false'
+          // Set by the IDEs to the IDE name, so a strong signal that this is not a bot.
           ||
-          env['TRAVIS'] == 'true' ||
-          env['CONTINUOUS_INTEGRATION'] == 'true' ||
-          env.containsKey('CI') // Travis and AppVeyor
+          env.containsKey('FLUTTER_HOST')
+          // When set, GA logs to a local file (normally for tests) so we don't need to filter.
+          ||
+          env.containsKey('FLUTTER_ANALYTICS_LOG_FILE')) {
+    return false;
+  }
 
-          // https://www.appveyor.com/docs/environment-variables/
-          ||
-          env.containsKey('APPVEYOR')
+  return env['BOT'] == 'true'
+      // https://docs.travis-ci.com/user/environment-variables/#Default-Environment-Variables
+      ||
+      env['TRAVIS'] == 'true' ||
+      env['CONTINUOUS_INTEGRATION'] == 'true' ||
+      env.containsKey('CI') // Travis and AppVeyor
 
-          // https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-env-vars.html
-          ||
-          (env.containsKey('AWS_REGION') &&
-              env.containsKey('CODEBUILD_INITIATOR'))
+      // https://www.appveyor.com/docs/environment-variables/
+      ||
+      env.containsKey('APPVEYOR')
 
-          // https://wiki.jenkins.io/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-belowJenkinsSetEnvironmentVariables
-          ||
-          env.containsKey('JENKINS_URL')
+      // https://cirrus-ci.org/guide/writing-tasks/#environment-variables
+      ||
+      env.containsKey('CIRRUS_CI')
 
-          // Properties on Flutter's Chrome Infra bots.
-          ||
-          env['CHROME_HEADLESS'] == '1' ||
-          env.containsKey('BUILDBOT_BUILDERNAME'));
+      // https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-env-vars.html
+      ||
+      (env.containsKey('AWS_REGION') && env.containsKey('CODEBUILD_INITIATOR'))
+
+      // https://wiki.jenkins.io/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-belowJenkinsSetEnvironmentVariables
+      ||
+      env.containsKey('JENKINS_URL')
+
+      // https://help.github.com/en/actions/configuring-and-managing-workflows/using-environment-variables#default-environment-variables
+      ||
+      env.containsKey('GITHUB_ACTIONS')
+
+      // Properties on Flutter's Chrome Infra bots.
+      ||
+      env['CHROME_HEADLESS'] == '1' ||
+      env.containsKey('BUILDBOT_BUILDERNAME') ||
+      env.containsKey('SWARMING_TASK_ID')
+
+      // Property when running on borg.
+      ||
+      env.containsKey('BORG_ALLOC_DIR');
+
+  // TODO(jwren): Azure detection -- each call for this detection requires an
+  //  http connection, the flutter cli tool captures the result on the first
+  //  run, we should consider the same caching here.
 }

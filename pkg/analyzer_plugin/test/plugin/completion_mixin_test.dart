@@ -44,9 +44,8 @@ class CompletionMixinTest with ResourceProviderMixin {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
 
-    CompletionGetSuggestionsResult result =
-        await plugin.handleCompletionGetSuggestions(
-            CompletionGetSuggestionsParams(filePath1, 13));
+    var result = await plugin.handleCompletionGetSuggestions(
+        CompletionGetSuggestionsParams(filePath1, 13));
     expect(result, isNotNull);
     expect(result.results, hasLength(3));
   }
@@ -64,7 +63,7 @@ class _TestCompletionContributor implements CompletionContributor {
       collector.offset = 1;
       collector.length = 2;
     }
-    for (CompletionSuggestion suggestion in suggestions) {
+    for (var suggestion in suggestions) {
       collector.addSuggestion(suggestion);
     }
   }

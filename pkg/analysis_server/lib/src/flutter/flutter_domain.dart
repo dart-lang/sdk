@@ -72,7 +72,7 @@ class FlutterDomainHandler extends AbstractRequestHandler {
   @override
   Response handleRequest(Request request) {
     try {
-      String requestName = request.method;
+      var requestName = request.method;
       if (requestName == FLUTTER_REQUEST_GET_WIDGET_DESCRIPTION) {
         getWidgetDescription(request);
         return Response.DELAYED_RESPONSE;
@@ -118,8 +118,11 @@ class FlutterDomainHandler extends AbstractRequestHandler {
   /// Implement the 'flutter.setSubscriptions' request.
   Response setSubscriptions(Request request) {
     var params = FlutterSetSubscriptionsParams.fromRequest(request);
-    Map<FlutterService, Set<String>> subMap = mapMap(params.subscriptions,
-        valueCallback: (List<String> subscriptions) => subscriptions.toSet());
+    var subMap =
+        mapMap<FlutterService, List<String>, FlutterService, Set<String>>(
+            params.subscriptions,
+            valueCallback: (List<String> subscriptions) =>
+                subscriptions.toSet());
     server.setFlutterSubscriptions(subMap);
     return FlutterSetSubscriptionsResult().toResponse(request.id);
   }

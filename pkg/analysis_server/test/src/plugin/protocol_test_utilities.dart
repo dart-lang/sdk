@@ -102,7 +102,7 @@ class ProtocolTestUtilities {
 
   /// On return, increment [stringIndex] by 5 and [intIndex] by 7.
   Occurrences occurrences(int stringIndex, int intIndex) {
-    Element referencedElement = element(stringIndex, intIndex);
+    var referencedElement = element(stringIndex, intIndex);
     return Occurrences(referencedElement, <int>[intIndex + 5, intIndex + 6],
         referencedElement.name.length);
   }

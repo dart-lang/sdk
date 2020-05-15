@@ -1,14 +1,23 @@
+//
+// Problems outside component:
+//
+// pkg/front_end/testcases/inference/generic_methods_infer_js_builtin.dart:9:8: Error: Not found: 'dart:_foreign_helper'
+// import 'dart:_foreign_helper' show JS; // error
+//        ^
+//
 library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/generic_methods_infer_js_builtin.dart:8:42: Error: Can't access platform private library.
-// /*error:IMPORT_INTERNAL_LIBRARY*/ import 'dart:_foreign_helper' show JS;
-//                                          ^
+// pkg/front_end/testcases/inference/generic_methods_infer_js_builtin.dart:9:8: Error: Can't access platform private library.
+// import 'dart:_foreign_helper' show JS; // error
+//        ^
 //
 import self as self;
 
 import "dart:_foreign_helper";
 
+static method test() → dynamic
+  ;
 static method main() → dynamic
   ;

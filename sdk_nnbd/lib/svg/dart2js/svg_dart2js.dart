@@ -3037,11 +3037,11 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
     return container.innerHtml;
   }
 
-  set innerHtml(String value) {
+  set innerHtml(String? value) {
     this.setInnerHtml(value);
   }
 
-  DocumentFragment createFragment(String svg,
+  DocumentFragment createFragment(String? svg,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     if (treeSanitizer == null) {
       if (validator == null) {

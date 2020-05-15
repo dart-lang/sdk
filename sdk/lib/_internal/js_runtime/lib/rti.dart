@@ -55,12 +55,6 @@ class Rti {
   @pragma('dart2js:noElision')
   dynamic _as;
 
-  /// JavaScript method for type check.  The method is called from generated
-  /// code, e.g. parameter check for `T param` generates something like
-  /// `rtiForT._check(param)`.
-  @pragma('dart2js:noElision')
-  dynamic _check;
-
   /// JavaScript method for 'is' test.  The method is called from generated
   /// code, e.g. `o is T` generates something like `rtiForT._is(o)`.
   @pragma('dart2js:noElision')
@@ -68,10 +62,6 @@ class Rti {
 
   static void _setAsCheckFunction(Rti rti, fn) {
     rti._as = fn;
-  }
-
-  static void _setTypeCheckFunction(Rti rti, fn) {
-    rti._check = fn;
   }
 
   static void _setIsTestFunction(Rti rti, fn) {
@@ -837,12 +827,10 @@ bool _installSpecializedIsTest(object) {
   if (isObjectType(testRti)) {
     isFn = RAW_DART_FUNCTION_REF(_isObject);
     Rti._setAsCheckFunction(testRti, RAW_DART_FUNCTION_REF(_asObject));
-    Rti._setTypeCheckFunction(testRti, RAW_DART_FUNCTION_REF(_checkObject));
   } else if (isTopType(testRti)) {
     isFn = RAW_DART_FUNCTION_REF(_isTop);
     var asFn = RAW_DART_FUNCTION_REF(_asTop);
     Rti._setAsCheckFunction(testRti, asFn);
-    Rti._setTypeCheckFunction(testRti, asFn);
   } else if (_Utils.isIdentical(testRti, TYPE_REF<int>())) {
     isFn = RAW_DART_FUNCTION_REF(_isInt);
   } else if (_Utils.isIdentical(testRti, TYPE_REF<double>())) {
@@ -924,23 +912,6 @@ _generalAsCheckImplementation(object) {
   Rti objectRti = instanceOrFunctionType(object, testRti);
   String message =
       _Error.compose(object, objectRti, _rtiToString(testRti, null));
-  throw _CastError.fromMessage(message);
-}
-
-/// Called from generated code.
-_generalTypeCheckImplementation(object) {
-  // This static method is installed on an Rti object as a JavaScript instance
-  // method. The Rti object is 'this'.
-  Rti testRti = _castToRti(JS('', 'this'));
-  if (object == null) {
-    if (JS_GET_FLAG('LEGACY') || isNullable(testRti)) return object;
-  } else {
-    if (Rti._isCheck(testRti, object)) return object;
-  }
-
-  Rti objectRti = instanceOrFunctionType(object, testRti);
-  String message =
-      _Error.compose(object, objectRti, _rtiToString(testRti, null));
   throw _TypeError.fromMessage(message);
 }
 
@@ -953,7 +924,7 @@ checkTypeBound(Rti type, Rti bound, variable, methodName) {
   throw _TypeError.fromMessage(message);
 }
 
-/// Base class to _CastError and _TypeError.
+/// Base class to _TypeError.
 class _Error extends Error {
   final String _message;
   _Error(this._message);
@@ -971,14 +942,6 @@ class _Error extends Error {
   String toString() => _message;
 }
 
-class _CastError extends _Error implements CastError, TypeError {
-  _CastError.fromMessage(String message) : super('TypeError: $message');
-
-  factory _CastError.forType(object, String type) {
-    return _CastError.fromMessage(_Error.compose(object, null, type));
-  }
-}
-
 class _TypeError extends _Error implements TypeError, CastError {
   _TypeError.fromMessage(String message) : super('TypeError: $message');
 
@@ -992,7 +955,7 @@ class _TypeError extends _Error implements TypeError, CastError {
 
 // Specializations.
 //
-// Specializations can be placed on Rti objects as the _as, _check and _is
+// Specializations can be placed on Rti objects as the _as and _is
 // 'methods'. They can also be called directly called from generated code.
 
 /// Specialization for 'is Object'.
@@ -1005,13 +968,6 @@ bool _isObject(object) {
 /// Called from generated code via Rti `_as` method.
 dynamic _asObject(object) {
   if (JS_GET_FLAG('LEGACY') || object != null) return object;
-  throw _CastError.forType(object, 'Object');
-}
-
-/// Specialization for check on 'Object'.
-/// Called from generated code via Rti `_check` method.
-dynamic _checkObject(object) {
-  if (JS_GET_FLAG('LEGACY') || object != null) return object;
   throw _TypeError.forType(object, 'Object');
 }
 
@@ -1022,7 +978,7 @@ bool _isTop(object) {
 }
 
 /// Specialization for 'as dynamic' and other top types.
-/// Called from generated code via Rti `_as` and `_check` methods.
+/// Called from generated code via Rti `_as` methods.
 dynamic _asTop(object) {
   return object;
 }
@@ -1035,34 +991,48 @@ bool _isBool(object) {
 
 /// Specialization for 'as bool?'.
 /// Called from generated code.
-bool /*?*/ _asBoolNullable(object) {
+bool _asBool(object) {
   if (_isBool(object)) return _Utils.asBool(object);
-  if (object == null) return object;
-  throw _CastError.forType(object, 'bool');
+  throw _TypeError.forType(object, 'bool');
 }
 
-/// Specialization for check on 'bool?'.
+/// Specialization for 'as bool*'.
 /// Called from generated code.
-bool /*?*/ _checkBoolNullable(object) {
+bool /*?*/ _asBoolS(object) {
   if (_isBool(object)) return _Utils.asBool(object);
   if (object == null) return object;
   throw _TypeError.forType(object, 'bool');
 }
 
-/// Specialization for 'as double?'.
+/// Specialization for 'as bool?'.
 /// Called from generated code.
-double /*?*/ _asDoubleNullable(object) {
-  if (_isNum(object)) return _Utils.asDouble(object);
+bool /*?*/ _asBoolQ(object) {
+  if (_isBool(object)) return _Utils.asBool(object);
   if (object == null) return object;
-  throw _CastError.forType(object, 'double');
+  throw _TypeError.forType(object, 'bool?');
 }
 
-/// Specialization for check on 'double?'.
+/// Specialization for 'as double'.
 /// Called from generated code.
-double /*?*/ _checkDoubleNullable(object) {
+double /*?*/ _asDouble(object) {
+  if (_isNum(object)) return _Utils.asDouble(object);
+  throw _TypeError.forType(object, 'double');
+}
+
+/// Specialization for 'as double*'.
+/// Called from generated code.
+double /*?*/ _asDoubleS(object) {
   if (_isNum(object)) return _Utils.asDouble(object);
   if (object == null) return object;
   throw _TypeError.forType(object, 'double');
+}
+
+/// Specialization for 'as double?'.
+/// Called from generated code.
+double /*?*/ _asDoubleQ(object) {
+  if (_isNum(object)) return _Utils.asDouble(object);
+  if (object == null) return object;
+  throw _TypeError.forType(object, 'double?');
 }
 
 /// Specialization for 'is int'.
@@ -1072,20 +1042,27 @@ bool _isInt(object) {
       JS('bool', 'Math.floor(#) === #', object, object);
 }
 
-/// Specialization for 'as int?'.
+/// Specialization for 'as int'.
 /// Called from generated code.
-int /*?*/ _asIntNullable(object) {
+int _asInt(object) {
   if (_isInt(object)) return _Utils.asInt(object);
-  if (object == null) return object;
-  throw _CastError.forType(object, 'int');
+  throw _TypeError.forType(object, 'int');
 }
 
-/// Specialization for check on 'int?'.
+/// Specialization for 'as int*'.
 /// Called from generated code.
-int /*?*/ _checkIntNullable(object) {
+int /*?*/ _asIntS(object) {
   if (_isInt(object)) return _Utils.asInt(object);
   if (object == null) return object;
   throw _TypeError.forType(object, 'int');
+}
+
+/// Specialization for 'as int?'.
+/// Called from generated code.
+int /*?*/ _asIntQ(object) {
+  if (_isInt(object)) return _Utils.asInt(object);
+  if (object == null) return object;
+  throw _TypeError.forType(object, 'int?');
 }
 
 /// Specialization for 'is num' and 'is double'.
@@ -1096,18 +1073,25 @@ bool _isNum(object) {
 
 /// Specialization for 'as num?'.
 /// Called from generated code.
-num /*?*/ _asNumNullable(object) {
+num _asNum(object) {
   if (_isNum(object)) return _Utils.asNum(object);
-  if (object == null) return object;
-  throw _CastError.forType(object, 'num');
+  throw _TypeError.forType(object, 'num');
 }
 
-/// Specialization for check on 'num?'.
+/// Specialization for 'as num*'.
 /// Called from generated code.
-num /*?*/ _checkNumNullable(object) {
+num /*?*/ _asNumS(object) {
   if (_isNum(object)) return _Utils.asNum(object);
   if (object == null) return object;
   throw _TypeError.forType(object, 'num');
+}
+
+/// Specialization for 'as num?'.
+/// Called from generated code.
+num /*?*/ _asNumQ(object) {
+  if (_isNum(object)) return _Utils.asNum(object);
+  if (object == null) return object;
+  throw _TypeError.forType(object, 'num?');
 }
 
 /// Specialization for 'is String'.
@@ -1116,20 +1100,27 @@ bool _isString(object) {
   return JS('bool', 'typeof # == "string"', object);
 }
 
-/// Specialization for 'as String?'.
+/// Specialization for 'as String'.
 /// Called from generated code.
-String /*?*/ _asStringNullable(object) {
+String _asString(object) {
   if (_isString(object)) return _Utils.asString(object);
-  if (object == null) return object;
-  throw _CastError.forType(object, 'String');
+  throw _TypeError.forType(object, 'String');
 }
 
-/// Specialization for check on 'String?'.
+/// Specialization for 'as String*'.
 /// Called from generated code.
-String /*?*/ _checkStringNullable(object) {
+String /*?*/ _asStringS(object) {
   if (_isString(object)) return _Utils.asString(object);
   if (object == null) return object;
   throw _TypeError.forType(object, 'String');
+}
+
+/// Specialization for 'as String?'.
+/// Called from generated code.
+String /*?*/ _asStringQ(object) {
+  if (_isString(object)) return _Utils.asString(object);
+  if (object == null) return object;
+  throw _TypeError.forType(object, 'String?');
 }
 
 String _rtiArrayToString(Object array, List<String> genericContext) {
@@ -1165,8 +1156,7 @@ String _functionRtiToString(Rti functionType, List<String> genericContext,
       typeParametersText += typeSep;
       typeParametersText += genericContext[genericContext.length - 1 - i];
       Rti boundRti = _castToRti(_Utils.arrayAt(bounds, i));
-      if (!isTopType(boundRti) &&
-          (!JS_GET_FLAG('LEGACY') || !isObjectType(boundRti))) {
+      if (!isTopType(boundRti)) {
         typeParametersText +=
             ' extends ' + _rtiToString(boundRti, genericContext);
       }
@@ -1596,15 +1586,12 @@ class _Universe {
   }
 
   static Rti _installTypeTests(Object universe, Rti rti) {
-    // Set up methods to perform type tests. The general as-check / type-check
-    // methods use the is-test method. The is-test method on first use
-    // overwrites itself, and possibly the as-check / type-check methods, with a
-    // specialized version.
-    var checkFn = RAW_DART_FUNCTION_REF(_generalTypeCheckImplementation);
+    // Set up methods to perform type tests. The general as-check methods use
+    // the is-test method. The is-test method on first use overwrites itself,
+    // and possibly the as-check method, with a specialized version.
     var asFn = RAW_DART_FUNCTION_REF(_generalAsCheckImplementation);
     var isFn = RAW_DART_FUNCTION_REF(_installSpecializedIsTest);
     Rti._setAsCheckFunction(rti, asFn);
-    Rti._setTypeCheckFunction(rti, checkFn);
     Rti._setIsTestFunction(rti, isFn);
     return rti;
   }
@@ -1696,7 +1683,7 @@ class _Universe {
       universe, Rti baseType, String key, bool normalize) {
     if (normalize) {
       int baseKind = Rti._getKind(baseType);
-      if (isTopType(baseType) ||
+      if (isStrongTopType(baseType) ||
           isNullType(baseType) ||
           baseKind == Rti.kindQuestion ||
           baseKind == Rti.kindStar) {
@@ -2572,11 +2559,7 @@ bool _isSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
   if (isStrongTopType(s)) return false;
 
   // Left Bottom:
-  if (isLegacy) {
-    if (isNullType(s)) return true;
-  } else {
-    if (sKind == Rti.kindNever) return true;
-  }
+  if (isBottomType(s)) return true;
 
   // Left Type Variable Bound 1:
   bool leftTypeVariable = sKind == Rti.kindGenericFunctionParameter;
@@ -2865,6 +2848,10 @@ bool _isInterfaceSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
   // interface, so rather than iterating over the Ci, we can instead look up
   // [t] in our ruleset.
   // TODO(fishythefish): Handle variance correctly.
+
+  // We don't list Object explicitly as a supertype of each interface, so check
+  // this trivial case first.
+  if (isObjectType(t)) return true;
   Object rule = _Universe.findRule(universe, sName);
   if (rule == null) return false;
   var supertypeArgs = TypeRule.lookupSupertype(rule, tName);
@@ -2892,7 +2879,10 @@ bool isNullable(Rti t) {
       kind == Rti.kindFutureOr && isNullable(Rti._getFutureOrArgument(t));
 }
 
-bool isTopType(Rti t) => isStrongTopType(t) || isLegacyObjectType(t);
+bool isTopType(Rti t) =>
+    isStrongTopType(t) ||
+    isLegacyObjectType(t) ||
+    JS_GET_FLAG('LEGACY') && isObjectType(t);
 
 bool isStrongTopType(Rti t) {
   int kind = Rti._getKind(t);
@@ -2900,9 +2890,11 @@ bool isStrongTopType(Rti t) {
       kind == Rti.kindVoid ||
       kind == Rti.kindAny ||
       kind == Rti.kindErased ||
-      !JS_GET_FLAG('NNBD') && isObjectType(t) ||
       isNullableObjectType(t);
 }
+
+bool isBottomType(Rti t) =>
+    Rti._getKind(t) == Rti.kindNever || JS_GET_FLAG('LEGACY') && isNullType(t);
 
 bool isObjectType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Object>());
 bool isLegacyObjectType(Rti t) =>

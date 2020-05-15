@@ -5,7 +5,7 @@
 library dart.test.symbol_map_helper;
 
 // TODO(ahe): Update map literals to avoid this method.
-Map<Symbol, dynamic> symbolMapToStringMap(Map<String, dynamic> map) {
+Map<Symbol, dynamic>? symbolToStringMap(Map<String, dynamic> map) {
   if (map == null) return null;
   Map<Symbol, dynamic> result = new Map<Symbol, dynamic>();
   map.forEach((name, value) {

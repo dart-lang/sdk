@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'package:expect/expect.dart';
 
 class Class1 {
@@ -15,11 +17,10 @@ class Class1 {
   Object method3(num n) => null;
 }
 
-/*strong.class: Class2:direct,explicit=[Class2.T],needsArgs*/
-/*omit.class: Class2:*/
+/*spec:nnbd-off.class: Class2:direct,explicit=[Class2.T],needsArgs*/
+/*spec:nnbd-sdk.class: Class2:direct,explicit=[Class2.T*],needsArgs*/
 class Class2<T> {
-  /*strong.member: Class2.method4:*/
-  /*omit.member: Class2.method4:*/
+  /*spec:nnbd-off|prod:nnbd-off.member: Class2.method4:*/
   num method4(T n) => null;
 }
 
@@ -29,8 +30,8 @@ class Class3<T> {
   T method5(num n) => null;
 }
 
-/*omit.class: Class4:*/
-/*strong.class: Class4:direct,explicit=[Class4.T],needsArgs*/
+/*spec:nnbd-off.class: Class4:direct,explicit=[Class4.T],needsArgs*/
+/*spec:nnbd-sdk.class: Class4:direct,explicit=[Class4.T*],needsArgs*/
 class Class4<T> {
   /*member: Class4.method6:*/
   num method6(num n, T t) => null;

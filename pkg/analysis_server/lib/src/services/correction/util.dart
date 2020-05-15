@@ -33,11 +33,11 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
   var libraryPath = targetLibrary.source.fullName;
   var resolveResult = await session.getResolvedUnit(libraryPath);
   var libUtils = CorrectionUtils(resolveResult);
-  String eol = libUtils.endOfLine;
+  var eol = libUtils.endOfLine;
   // Prepare information about existing imports.
   LibraryDirective libraryDirective;
-  List<_ImportDirectiveInfo> importDirectives = <_ImportDirectiveInfo>[];
-  for (Directive directive in libUtils.unit.directives) {
+  var importDirectives = <_ImportDirectiveInfo>[];
+  for (var directive in libUtils.unit.directives) {
     if (directive is LibraryDirective) {
       libraryDirective = directive;
     } else if (directive is ImportDirective) {
@@ -47,7 +47,7 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
   }
 
   // Prepare all URIs to import.
-  List<String> uriList = libraries
+  var uriList = libraries
       .map((library) => getLibrarySourceUri(
           session.resourceProvider.pathContext, targetLibrary, library.uri))
       .toList();
@@ -55,12 +55,12 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
 
   // Insert imports: between existing imports.
   if (importDirectives.isNotEmpty) {
-    bool isFirstPackage = true;
-    for (String importUri in uriList) {
-      bool inserted = false;
-      bool isPackage = importUri.startsWith('package:');
-      bool isAfterDart = false;
-      for (_ImportDirectiveInfo existingImport in importDirectives) {
+    var isFirstPackage = true;
+    for (var importUri in uriList) {
+      var inserted = false;
+      var isPackage = importUri.startsWith('package:');
+      var isAfterDart = false;
+      for (var existingImport in importDirectives) {
         if (existingImport.uri.startsWith('dart:')) {
           isAfterDart = true;
         }
@@ -68,7 +68,7 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
           isFirstPackage = false;
         }
         if (importUri.compareTo(existingImport.uri) < 0) {
-          String importCode = "import '$importUri';$eol";
+          var importCode = "import '$importUri';$eol";
           doSourceChange_addElementEdit(change, targetLibrary,
               SourceEdit(existingImport.offset, 0, importCode));
           inserted = true;
@@ -76,7 +76,7 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
         }
       }
       if (!inserted) {
-        String importCode = "${eol}import '$importUri';";
+        var importCode = "${eol}import '$importUri';";
         if (isPackage && isFirstPackage && isAfterDart) {
           importCode = eol + importCode;
         }
@@ -92,9 +92,9 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
 
   // Insert imports: after the library directive.
   if (libraryDirective != null) {
-    String prefix = eol + eol;
-    for (String importUri in uriList) {
-      String importCode = "${prefix}import '$importUri';";
+    var prefix = eol + eol;
+    for (var importUri in uriList) {
+      var importCode = "${prefix}import '$importUri';";
       prefix = eol;
       doSourceChange_addElementEdit(change, targetLibrary,
           SourceEdit(libraryDirective.end, 0, importCode));
@@ -104,11 +104,11 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
 
   // If still at the beginning of the file, skip shebang and line comments.
   {
-    CorrectionUtils_InsertDesc desc = libUtils.getInsertDescTop();
-    int offset = desc.offset;
-    for (int i = 0; i < uriList.length; i++) {
-      String importUri = uriList[i];
-      String importCode = "import '$importUri';$eol";
+    var desc = libUtils.getInsertDescTop();
+    var offset = desc.offset;
+    for (var i = 0; i < uriList.length; i++) {
+      var importUri = uriList[i];
+      var importCode = "import '$importUri';$eol";
       if (i == 0) {
         importCode = desc.prefix + importCode;
       }
@@ -125,7 +125,7 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
 /// [node].
 Expression climbPropertyAccess(AstNode node) {
   while (true) {
-    AstNode parent = node.parent;
+    var parent = node.parent;
     if (parent is PrefixedIdentifier && parent.identifier == node) {
       node = parent;
       continue;
@@ -151,8 +151,8 @@ List<SimpleIdentifier> findLocalElementReferences(
 ///
 /// Returns [SourceRange]s of all comments in [unit].
 List<SourceRange> getCommentRanges(CompilationUnit unit) {
-  List<SourceRange> ranges = <SourceRange>[];
-  Token token = unit.beginToken;
+  var ranges = <SourceRange>[];
+  var token = unit.beginToken;
   while (token != null && token.type != TokenType.EOF) {
     Token commentToken = token.precedingComments;
     while (commentToken != null) {
@@ -207,7 +207,7 @@ String getElementKindName(Element element) {
 
 /// Returns the name to display in the UI for the given [Element].
 String getElementQualifiedName(Element element) {
-  ElementKind kind = element.kind;
+  var kind = element.kind;
   if (kind == ElementKind.CONSTRUCTOR ||
       kind == ElementKind.FIELD ||
       kind == ElementKind.METHOD) {
@@ -224,7 +224,7 @@ ClassElement getEnclosingClassElement(AstNode node) =>
 
 /// Returns a class or an unit member enclosing the given [node].
 AstNode getEnclosingClassOrUnitMember(AstNode node) {
-  AstNode member = node;
+  var member = node;
   while (node != null) {
     if (node is ClassDeclaration) {
       return member;
@@ -282,7 +282,7 @@ ExtensionElement getEnclosingExtensionElement(AstNode node) =>
 ///
 /// The reason is that `(expr)` is always executed after `expr`.
 Precedence getExpressionParentPrecedence(AstNode node) {
-  AstNode parent = node.parent;
+  var parent = node.parent;
   if (parent is ParenthesizedExpression) {
     return Precedence.assignment;
   } else if (parent is IndexExpression && parent.index == node) {
@@ -318,8 +318,8 @@ Map<String, Element> getImportNamespace(ImportElement imp) {
 String getLibrarySourceUri(
     pathos.Context pathContext, LibraryElement from, Uri what) {
   if (what.scheme == 'file') {
-    String fromFolder = pathContext.dirname(from.source.fullName);
-    String relativeFile = pathContext.relative(what.path, from: fromFolder);
+    var fromFolder = pathContext.dirname(from.source.fullName);
+    var relativeFile = pathContext.relative(what.path, from: fromFolder);
     return pathContext.split(relativeFile).join('/');
   }
   return what.toString();
@@ -328,9 +328,9 @@ String getLibrarySourceUri(
 /// Returns the line prefix from the given source, i.e. basically just a
 /// whitespace prefix of the given [String].
 String getLinePrefix(String line) {
-  int index = 0;
+  var index = 0;
   while (index < line.length) {
-    int c = line.codeUnitAt(index);
+    var c = line.codeUnitAt(index);
     if (!isWhitespace(c)) {
       break;
     }
@@ -342,7 +342,7 @@ String getLinePrefix(String line) {
 /// Return the [LocalVariableElement] if given [node] is a reference to a local
 /// variable, or `null` in the other case.
 LocalVariableElement getLocalVariableElement(SimpleIdentifier node) {
-  Element element = node.staticElement;
+  var element = node.staticElement;
   if (element is LocalVariableElement) {
     return element;
   }
@@ -356,17 +356,17 @@ AstNode getNearestCommonAncestor(List<AstNode> nodes) {
     return null;
   }
   // prepare parents
-  List<List<AstNode>> parents = [];
-  for (AstNode node in nodes) {
+  var parents = <List<AstNode>>[];
+  for (var node in nodes) {
     parents.add(getParents(node));
   }
   // find min length
-  int minLength = 1 << 20;
-  for (List<AstNode> parentList in parents) {
+  var minLength = 1 << 20;
+  for (var parentList in parents) {
     minLength = min(minLength, parentList.length);
   }
   // find deepest parent
-  int i = 0;
+  var i = 0;
   for (; i < minLength; i++) {
     if (!_allListsIdentical(parents, i)) {
       break;
@@ -378,7 +378,7 @@ AstNode getNearestCommonAncestor(List<AstNode> nodes) {
 /// Returns the [Expression] qualifier if given [node] is the name part of a
 /// [PropertyAccess] or a [PrefixedIdentifier]. Maybe `null`.
 Expression getNodeQualifier(SimpleIdentifier node) {
-  AstNode parent = node.parent;
+  var parent = node.parent;
   if (parent is MethodInvocation && identical(parent.methodName, node)) {
     return parent.target;
   }
@@ -394,7 +394,7 @@ Expression getNodeQualifier(SimpleIdentifier node) {
 /// Returns the [ParameterElement] if the given [node] is a reference to a
 /// parameter, or `null` in the other case.
 ParameterElement getParameterElement(SimpleIdentifier node) {
-  Element element = node.staticElement;
+  var element = node.staticElement;
   if (element is ParameterElement) {
     return element;
   }
@@ -405,18 +405,18 @@ ParameterElement getParameterElement(SimpleIdentifier node) {
 /// [node].
 List<AstNode> getParents(AstNode node) {
   // prepare number of parents
-  int numParents = 0;
+  var numParents = 0;
   {
-    AstNode current = node.parent;
+    var current = node.parent;
     while (current != null) {
       numParents++;
       current = current.parent;
     }
   }
   // fill array of parents
-  List<AstNode> parents = List<AstNode>(numParents);
-  AstNode current = node.parent;
-  int index = numParents;
+  var parents = List<AstNode>(numParents);
+  var current = node.parent;
+  var index = numParents;
   while (current != null) {
     parents[--index] = current;
     current = current.parent;
@@ -427,15 +427,15 @@ List<AstNode> getParents(AstNode node) {
 /// If given [node] is name of qualified property extraction, returns target
 /// from which this property is extracted, otherwise `null`.
 Expression getQualifiedPropertyTarget(AstNode node) {
-  AstNode parent = node.parent;
+  var parent = node.parent;
   if (parent is PrefixedIdentifier) {
-    PrefixedIdentifier prefixed = parent;
+    var prefixed = parent;
     if (prefixed.identifier == node) {
       return parent.prefix;
     }
   }
   if (parent is PropertyAccess) {
-    PropertyAccess access = parent;
+    var access = parent;
     if (access.propertyName == node) {
       return access.realTarget;
     }
@@ -485,11 +485,11 @@ bool isLeftHandOfAssignment(SimpleIdentifier node) {
 
 /// Return `true` if the given [node] is the name of a [NamedExpression].
 bool isNamedExpressionName(SimpleIdentifier node) {
-  AstNode parent = node.parent;
+  var parent = node.parent;
   if (parent is Label) {
-    Label label = parent;
+    var label = parent;
     if (identical(label.label, node)) {
-      AstNode parent2 = label.parent;
+      var parent2 = label.parent;
       if (parent2 is NamedExpression) {
         return identical(parent2.name, label);
       }
@@ -503,7 +503,7 @@ bool isNamedExpressionName(SimpleIdentifier node) {
 /// [expression].
 Expression stepUpNamedExpression(Expression expression) {
   if (expression != null) {
-    AstNode parent = expression.parent;
+    var parent = expression.parent;
     if (parent is NamedExpression && parent.expression == expression) {
       return parent;
     }
@@ -514,7 +514,7 @@ Expression stepUpNamedExpression(Expression expression) {
 /// Return `true` if the given [lists] are identical at the given [position].
 bool _allListsIdentical(List<List> lists, int position) {
   Object element = lists[0][position];
-  for (List list in lists) {
+  for (var list in lists) {
     if (list[position] != element) {
       return false;
     }
@@ -577,12 +577,11 @@ class CorrectionUtils {
   /// Returns names of elements that might conflict with a new local variable
   /// declared at [offset].
   Set<String> findPossibleLocalVariableConflicts(int offset) {
-    Set<String> conflicts = <String>{};
-    AstNode enclosingNode = findNode(offset);
-    Block enclosingBlock = enclosingNode.thisOrAncestorOfType<Block>();
+    var conflicts = <String>{};
+    var enclosingNode = findNode(offset);
+    var enclosingBlock = enclosingNode.thisOrAncestorOfType<Block>();
     if (enclosingBlock != null) {
-      _CollectReferencedUnprefixedNames visitor =
-          _CollectReferencedUnprefixedNames();
+      var visitor = _CollectReferencedUnprefixedNames();
       enclosingBlock.accept(visitor);
       return visitor.names;
     }
@@ -596,21 +595,21 @@ class CorrectionUtils {
   /// top-level declaration at the top of the file.
   CorrectionUtils_InsertDesc getInsertDescTop() {
     // skip leading line comments
-    int offset = 0;
-    bool insertEmptyLineBefore = false;
-    bool insertEmptyLineAfter = false;
-    String source = _buffer;
+    var offset = 0;
+    var insertEmptyLineBefore = false;
+    var insertEmptyLineAfter = false;
+    var source = _buffer;
     // skip hash-bang
     if (offset < source.length - 2) {
-      String linePrefix = getText(offset, 2);
+      var linePrefix = getText(offset, 2);
       if (linePrefix == '#!') {
         insertEmptyLineBefore = true;
         offset = getLineNext(offset);
         // skip empty lines to first line comment
-        int emptyOffset = offset;
+        var emptyOffset = offset;
         while (emptyOffset < source.length - 2) {
-          int nextLineOffset = getLineNext(emptyOffset);
-          String line = source.substring(emptyOffset, nextLineOffset);
+          var nextLineOffset = getLineNext(emptyOffset);
+          var line = source.substring(emptyOffset, nextLineOffset);
           if (line.trim().isEmpty) {
             emptyOffset = nextLineOffset;
             continue;
@@ -625,7 +624,7 @@ class CorrectionUtils {
     }
     // skip line comments
     while (offset < source.length - 2) {
-      String linePrefix = getText(offset, 2);
+      var linePrefix = getText(offset, 2);
       if (linePrefix == '//') {
         insertEmptyLineBefore = true;
         offset = getLineNext(offset);
@@ -634,13 +633,13 @@ class CorrectionUtils {
       }
     }
     // determine if empty line is required after
-    int nextLineOffset = getLineNext(offset);
-    String insertLine = source.substring(offset, nextLineOffset);
+    var nextLineOffset = getLineNext(offset);
+    var insertLine = source.substring(offset, nextLineOffset);
     if (insertLine.trim().isNotEmpty) {
       insertEmptyLineAfter = true;
     }
     // fill InsertDesc
-    CorrectionUtils_InsertDesc desc = CorrectionUtils_InsertDesc();
+    var desc = CorrectionUtils_InsertDesc();
     desc.offset = offset;
     if (insertEmptyLineBefore) {
       desc.prefix = endOfLine;
@@ -656,10 +655,10 @@ class CorrectionUtils {
   /// If [index] the end of a statement or method, then in the most cases it is
   /// a start of the next line.
   int getLineContentEnd(int index) {
-    int length = _buffer.length;
+    var length = _buffer.length;
     // skip whitespace characters
     while (index < length) {
-      int c = _buffer.codeUnitAt(index);
+      var c = _buffer.codeUnitAt(index);
       if (!isWhitespace(c) || isEOL(c)) {
         break;
       }
@@ -683,7 +682,7 @@ class CorrectionUtils {
   /// start on its line.
   int getLineContentStart(int index) {
     while (index > 0) {
-      int c = _buffer.codeUnitAt(index - 1);
+      var c = _buffer.codeUnitAt(index - 1);
       if (!isSpace(c)) {
         break;
       }
@@ -695,10 +694,10 @@ class CorrectionUtils {
   /// Returns a start index of the next line after the line which contains the
   /// given index.
   int getLineNext(int index) {
-    int length = _buffer.length;
+    var length = _buffer.length;
     // skip to the end of the line
     while (index < length) {
-      int c = _buffer.codeUnitAt(index);
+      var c = _buffer.codeUnitAt(index);
       if (c == 0xD || c == 0xA) {
         break;
       }
@@ -718,11 +717,11 @@ class CorrectionUtils {
 
   /// Returns the whitespace prefix of the line which contains given offset.
   String getLinePrefix(int index) {
-    int lineStart = getLineThis(index);
-    int length = _buffer.length;
-    int lineNonWhitespace = lineStart;
+    var lineStart = getLineThis(index);
+    var length = _buffer.length;
+    var lineNonWhitespace = lineStart;
     while (lineNonWhitespace < length) {
-      int c = _buffer.codeUnitAt(lineNonWhitespace);
+      var c = _buffer.codeUnitAt(lineNonWhitespace);
       if (c == 0xD || c == 0xA) {
         break;
       }
@@ -739,15 +738,15 @@ class CorrectionUtils {
   SourceRange getLinesRange(SourceRange sourceRange,
       {bool skipLeadingEmptyLines = false}) {
     // start
-    int startOffset = sourceRange.offset;
-    int startLineOffset = getLineContentStart(startOffset);
+    var startOffset = sourceRange.offset;
+    var startLineOffset = getLineContentStart(startOffset);
     if (skipLeadingEmptyLines) {
       startLineOffset = skipEmptyLinesLeft(startLineOffset);
     }
     // end
-    int endOffset = sourceRange.end;
-    int afterEndLineOffset = endOffset;
-    int lineStart = unit.lineInfo.getOffsetOfLine(
+    var endOffset = sourceRange.end;
+    var afterEndLineOffset = endOffset;
+    var lineStart = unit.lineInfo.getOffsetOfLine(
         unit.lineInfo.getLocation(startLineOffset).lineNumber - 1);
     if (lineStart == startLineOffset) {
       // Only consume line ends after the end of the range if there is nothing
@@ -767,7 +766,7 @@ class CorrectionUtils {
   /// Returns the start index of the line which contains given index.
   int getLineThis(int index) {
     while (index > 0) {
-      int c = _buffer.codeUnitAt(index - 1);
+      var c = _buffer.codeUnitAt(index - 1);
       if (c == 0xD || c == 0xA) {
         break;
       }
@@ -779,7 +778,7 @@ class CorrectionUtils {
   /// Returns the line prefix consisting of spaces and tabs on the left from the
   /// given [AstNode].
   String getNodePrefix(AstNode node) {
-    int offset = node.offset;
+    var offset = node.offset;
     // function literal is special, it uses offset of enclosing line
     if (node is FunctionExpression) {
       return getLinePrefix(offset);
@@ -796,7 +795,7 @@ class CorrectionUtils {
   /// Returns the line prefix consisting of spaces and tabs on the left from the
   /// given offset.
   String getPrefix(int endIndex) {
-    int startIndex = getLineContentStart(endIndex);
+    var startIndex = getLineContentStart(endIndex);
     return _buffer.substring(startIndex, endIndex);
   }
 
@@ -816,13 +815,13 @@ class CorrectionUtils {
   /// used by the generated source, but not imported.
   String getTypeSource(DartType type, Set<Source> librariesToImport,
       {StringBuffer parametersBuffer}) {
-    StringBuffer sb = StringBuffer();
+    var sb = StringBuffer();
     // type parameter
     if (!_isTypeVisible(type)) {
       return 'dynamic';
     }
 
-    Element element = type.element;
+    var element = type.element;
 
     // Typedef(s) are represented as GenericFunctionTypeElement(s).
     if (element is GenericFunctionTypeElement &&
@@ -837,8 +836,8 @@ class CorrectionUtils {
         return 'Function';
       }
       parametersBuffer.write('(');
-      for (ParameterElement parameter in type.parameters) {
-        String parameterType = getTypeSource(parameter.type, librariesToImport);
+      for (var parameter in type.parameters) {
+        var parameterType = getTypeSource(parameter.type, librariesToImport);
         if (parametersBuffer.length != 1) {
           parametersBuffer.write(', ');
         }
@@ -855,20 +854,20 @@ class CorrectionUtils {
     }
     // prepare element
     if (element == null) {
-      String source = type.toString();
+      var source = type.toString();
       source = source.replaceAll('<dynamic>', '');
       source = source.replaceAll('<dynamic, dynamic>', '');
       return source;
     }
     // check if imported
-    LibraryElement library = element.library;
+    var library = element.library;
     if (library != null && library != _library) {
       // no source, if private
       if (element.isPrivate) {
         return null;
       }
       // ensure import
-      ImportElement importElement = _getImportElement(element);
+      var importElement = _getImportElement(element);
       if (importElement != null) {
         if (importElement.prefix != null) {
           sb.write(importElement.prefix.displayName);
@@ -879,27 +878,27 @@ class CorrectionUtils {
       }
     }
     // append simple name
-    String name = element.displayName;
+    var name = element.displayName;
     sb.write(name);
     // may be type arguments
     if (type is ParameterizedType) {
-      List<DartType> arguments = type.typeArguments;
+      var arguments = type.typeArguments;
       // check if has arguments
-      bool hasArguments = false;
-      bool allArgumentsVisible = true;
-      for (DartType argument in arguments) {
+      var hasArguments = false;
+      var allArgumentsVisible = true;
+      for (var argument in arguments) {
         hasArguments = hasArguments || !argument.isDynamic;
         allArgumentsVisible = allArgumentsVisible && _isTypeVisible(argument);
       }
       // append type arguments
       if (hasArguments && allArgumentsVisible) {
         sb.write('<');
-        for (int i = 0; i < arguments.length; i++) {
-          DartType argument = arguments[i];
+        for (var i = 0; i < arguments.length; i++) {
+          var argument = arguments[i];
           if (i != 0) {
             sb.write(', ');
           }
-          String argumentSrc = getTypeSource(argument, librariesToImport);
+          var argumentSrc = getTypeSource(argument, librariesToImport);
           if (argumentSrc != null) {
             sb.write(argumentSrc);
           } else {
@@ -915,12 +914,12 @@ class CorrectionUtils {
 
   /// Indents given source left or right.
   String indentSourceLeftRight(String source, {bool indentLeft = true}) {
-    StringBuffer sb = StringBuffer();
-    String indent = getIndent(1);
-    String eol = endOfLine;
-    List<String> lines = source.split(eol);
-    for (int i = 0; i < lines.length; i++) {
-      String line = lines[i];
+    var sb = StringBuffer();
+    var indent = getIndent(1);
+    var eol = endOfLine;
+    var lines = source.split(eol);
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i];
       // last line, stop if empty
       if (i == lines.length - 1 && isEmpty(line)) {
         break;
@@ -952,7 +951,7 @@ class CorrectionUtils {
 
   /// Return <code>true</code> if [range] contains only whitespace or comments.
   bool isJustWhitespaceOrComment(SourceRange range) {
-    String trimmedText = getRangeText(range).trim();
+    var trimmedText = getRangeText(range).trim();
     // may be whitespace
     if (trimmedText.isEmpty) {
       return true;
@@ -964,14 +963,14 @@ class CorrectionUtils {
   ClassMemberLocation prepareNewClassMemberLocation(
       CompilationUnitMember declaration,
       bool Function(ClassMember existingMember) shouldSkip) {
-    String indent = getIndent(1);
+    var indent = getIndent(1);
     // Find the last target member.
     ClassMember targetMember;
-    List<ClassMember> members = _getMembers(declaration);
+    var members = _getMembers(declaration);
     if (members == null) {
       return null;
     }
-    for (ClassMember member in members) {
+    for (var member in members) {
       if (shouldSkip(member)) {
         targetMember = member;
       } else {
@@ -984,7 +983,7 @@ class CorrectionUtils {
           endOfLine + endOfLine + indent, targetMember.end, '');
     }
     // At the beginning of the class.
-    String suffix = members.isNotEmpty || isClassWithEmptyBody(declaration)
+    var suffix = members.isNotEmpty || isClassWithEmptyBody(declaration)
         ? endOfLine
         : '';
     return ClassMemberLocation(
@@ -1030,10 +1029,10 @@ class CorrectionUtils {
   String replaceSourceIndent(
       String source, String oldIndent, String newIndent) {
     // prepare STRING token ranges
-    List<SourceRange> lineRanges = [];
+    var lineRanges = <SourceRange>[];
     {
-      List<Token> tokens = TokenUtils.getTokens(source, unit.featureSet);
-      for (Token token in tokens) {
+      var tokens = TokenUtils.getTokens(source, unit.featureSet);
+      for (var token in tokens) {
         if (token.type == TokenType.STRING) {
           lineRanges.add(range.token(token));
         }
@@ -1041,19 +1040,19 @@ class CorrectionUtils {
       }
     }
     // re-indent lines
-    StringBuffer sb = StringBuffer();
-    String eol = endOfLine;
-    List<String> lines = source.split(eol);
-    int lineOffset = 0;
-    for (int i = 0; i < lines.length; i++) {
-      String line = lines[i];
+    var sb = StringBuffer();
+    var eol = endOfLine;
+    var lines = source.split(eol);
+    var lineOffset = 0;
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i];
       // last line, stop if empty
       if (i == lines.length - 1 && isEmpty(line)) {
         break;
       }
       // check if "offset" is in one of the String ranges
-      bool inString = false;
-      for (SourceRange lineRange in lineRanges) {
+      var inString = false;
+      for (var lineRange in lineRanges) {
         if (lineOffset > lineRange.offset && lineOffset < lineRange.end) {
           inString = true;
         }
@@ -1078,7 +1077,7 @@ class CorrectionUtils {
   /// to each other.
   String replaceSourceRangeIndent(
       SourceRange range, String oldIndent, String newIndent) {
-    String oldSource = getRangeText(range);
+    var oldSource = getRangeText(range);
     return replaceSourceIndent(oldSource, oldIndent, newIndent);
   }
 
@@ -1095,9 +1094,9 @@ class CorrectionUtils {
   /// If [index] is the start of a method, then in the most cases return the end
   /// of the previous not-whitespace line.
   int skipEmptyLinesLeft(int index) {
-    int lastLine = index;
+    var lastLine = index;
     while (index > 0) {
-      int c = _buffer.codeUnitAt(index - 1);
+      var c = _buffer.codeUnitAt(index - 1);
       if (!isWhitespace(c)) {
         return lastLine;
       }
@@ -1112,8 +1111,8 @@ class CorrectionUtils {
   /// Return the import element used to import given [element] into the library.
   /// May be `null` if was not imported, i.e. declared in the same library.
   ImportElement _getImportElement(Element element) {
-    for (ImportElement imp in _library.imports) {
-      Map<String, Element> definedNames = getImportNamespace(imp);
+    for (var imp in _library.imports) {
+      var definedNames = getImportNamespace(imp);
       if (definedNames.containsValue(element)) {
         return imp;
       }
@@ -1157,11 +1156,11 @@ class CorrectionUtils {
         return _InvertedCondition._simple('true');
       }
     } else if (expression is BinaryExpression) {
-      TokenType operator = expression.operator.type;
-      Expression le = expression.leftOperand;
-      Expression re = expression.rightOperand;
-      _InvertedCondition ls = _InvertedCondition._simple(getNodeText(le));
-      _InvertedCondition rs = _InvertedCondition._simple(getNodeText(re));
+      var operator = expression.operator.type;
+      var le = expression.leftOperand;
+      var re = expression.rightOperand;
+      var ls = _InvertedCondition._simple(getNodeText(le));
+      var rs = _InvertedCondition._simple(getNodeText(re));
       if (operator == TokenType.LT) {
         return _InvertedCondition._binary2(ls, ' >= ', rs);
       }
@@ -1193,23 +1192,23 @@ class CorrectionUtils {
             TokenType.AMPERSAND_AMPERSAND.precedence, ls, ' && ', rs);
       }
     } else if (expression is IsExpression) {
-      String expressionSource = getNodeText(expression.expression);
-      String typeSource = getNodeText(expression.type);
+      var expressionSource = getNodeText(expression.expression);
+      var typeSource = getNodeText(expression.type);
       if (expression.notOperator == null) {
         return _InvertedCondition._simple('$expressionSource is! $typeSource');
       } else {
         return _InvertedCondition._simple('$expressionSource is $typeSource');
       }
     } else if (expression is PrefixExpression) {
-      TokenType operator = expression.operator.type;
+      var operator = expression.operator.type;
       if (operator == TokenType.BANG) {
-        Expression operand = expression.operand.unParenthesized;
+        var operand = expression.operand.unParenthesized;
         return _InvertedCondition._simple(getNodeText(operand));
       }
     } else if (expression is ParenthesizedExpression) {
       return _invertCondition0(expression.unParenthesized);
     }
-    DartType type = expression.staticType;
+    var type = expression.staticType;
     if (type.isDartCoreBool) {
       return _InvertedCondition._simple('!${getNodeText(expression)}');
     }
@@ -1220,8 +1219,8 @@ class CorrectionUtils {
   /// [targetClassElement].
   bool _isTypeVisible(DartType type) {
     if (type is TypeParameterType) {
-      TypeParameterElement parameterElement = type.element;
-      Element parameterClassElement = parameterElement.enclosingElement;
+      var parameterElement = type.element;
+      var parameterClassElement = parameterElement.enclosingElement;
       return identical(parameterClassElement, targetExecutableElement) ||
           identical(parameterClassElement, targetClassElement);
     }
@@ -1275,10 +1274,10 @@ class TokenUtils {
   /// tokens or some exception happens.
   static List<Token> getTokens(String s, FeatureSet featureSet) {
     try {
-      List<Token> tokens = [];
-      Scanner scanner = Scanner(null, CharSequenceReader(s), null)
+      var tokens = <Token>[];
+      var scanner = Scanner(null, CharSequenceReader(s), null)
         ..configureFeatures(featureSet);
-      Token token = scanner.tokenize();
+      var token = scanner.tokenize();
       while (token.type != TokenType.EOF) {
         tokens.add(token);
         token = token.next;
@@ -1301,7 +1300,7 @@ class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor {
   }
 
   static bool _isPrefixed(SimpleIdentifier node) {
-    AstNode parent = node.parent;
+    var parent = node.parent;
     return parent is ConstructorName && parent.name == node ||
         parent is MethodInvocation &&
             parent.methodName == node &&
@@ -1343,7 +1342,7 @@ class _InvertedCondition {
 
   static _InvertedCondition _binary(int precedence, _InvertedCondition left,
       String operation, _InvertedCondition right) {
-    String src = _parenthesizeIfRequired(left, precedence) +
+    var src = _parenthesizeIfRequired(left, precedence) +
         operation +
         _parenthesizeIfRequired(right, precedence);
     return _InvertedCondition(precedence, src);
@@ -1377,7 +1376,7 @@ class _LocalElementsCollector extends RecursiveAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.inDeclarationContext()) {
-      Element element = node.staticElement;
+      var element = node.staticElement;
       if (element is LocalElement) {
         elements.add(element);
       }

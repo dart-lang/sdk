@@ -1,0 +1,11 @@
+// @dart = 2.6
+class Mixin {}
+
+class Super {
+  Super(this.field);
+  var field = 42;
+}
+
+class Class = Super with Mixin;
+error() {}
+main() {}

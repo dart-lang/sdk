@@ -25,8 +25,9 @@ import 'strong_components.dart';
 class JavaScriptBundler {
   JavaScriptBundler(this._originalComponent, this._strongComponents,
       this._fileSystemScheme, this._packageConfig,
-      {this.useDebuggerModuleNames = false})
-      : compilers = <String, ProgramCompiler>{} {
+      {this.useDebuggerModuleNames = false, String moduleFormat})
+      : compilers = <String, ProgramCompiler>{},
+        _moduleFormat = parseModuleFormat(moduleFormat ?? 'amd') {
     _summaries = <Component>[];
     _summaryUris = <Uri>[];
     _moduleImportForSummary = <Uri, String>{};
@@ -58,6 +59,7 @@ class JavaScriptBundler {
   final PackageConfig _packageConfig;
   final bool useDebuggerModuleNames;
   final Map<String, ProgramCompiler> compilers;
+  final ModuleFormat _moduleFormat;
 
   List<Component> _summaries;
   List<Uri> _summaryUris;
@@ -149,13 +151,14 @@ class JavaScriptBundler {
       }
       final code = jsProgramToCode(
         jsModule,
-        ModuleFormat.amd,
+        _moduleFormat,
         inlineSourceMap: true,
         buildSourceMap: true,
         jsUrl: '$moduleUrl.lib.js',
         mapUrl: '$moduleUrl.lib.js.map',
         sourceMapBase: sourceMapBase,
         customScheme: _fileSystemScheme,
+        component: summaryComponent,
       );
       final codeBytes = utf8.encode(code.code);
       final sourceMapBytes = utf8.encode(json.encode(code.sourceMap));

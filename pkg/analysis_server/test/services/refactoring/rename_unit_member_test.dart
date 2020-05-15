@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -25,7 +24,7 @@ class NewName {} // existing
     createRenameRefactoringAtString('Test {}');
     // check status
     refactoring.newName = 'NewName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: "Library already declares class with name 'NewName'.",
         expectedContextSearch: 'NewName {} // existing');
@@ -40,7 +39,7 @@ typedef NewName(); // existing
     createRenameRefactoringAtString('Test {}');
     // check status
     refactoring.newName = 'NewName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage:
             "Library already declares function type alias with name 'NewName'.",
@@ -63,7 +62,7 @@ class B extends A {
     createRenameRefactoringAtString('Test {}');
     // check status
     refactoring.newName = 'NewName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatusOK(status);
   }
 
@@ -83,7 +82,7 @@ main() {
     createRenameRefactoringAtString('Test {}');
     // check status
     refactoring.newName = '_NewName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: "Renamed class will be invisible in 'my.lib'.");
   }
@@ -101,7 +100,7 @@ class A {
     createRenameRefactoringAtString('Test {}');
     // check status
     refactoring.newName = 'NewName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage:
             "Reference to renamed class will be shadowed by method 'A.NewName'.",
@@ -127,7 +126,7 @@ class B extends A {
     createRenameRefactoringAtString('Test {}');
     // check status
     refactoring.newName = 'NewName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: "Renamed class will shadow method 'A.NewName'.");
   }
@@ -152,7 +151,7 @@ class B extends A {
     createRenameRefactoringAtString('Test {}');
     // check status
     refactoring.newName = 'NewName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatusOK(status);
   }
 
@@ -172,7 +171,7 @@ class B extends A {
     createRenameRefactoringAtString('Test {}');
     // check status
     refactoring.newName = 'NewName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: "Renamed class will shadow method 'A.NewName'.",
         expectedContextSearch: 'NewName(); // super-ref');
@@ -197,7 +196,7 @@ class Test {}
     createRenameRefactoringAtString('Test {}');
     // check status
     refactoring.newName = 'NewName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatusOK(status);
   }
 
@@ -216,7 +215,7 @@ class B {
     createRenameRefactoringAtString('Test {}');
     // check status
     refactoring.newName = 'NewName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatusOK(status);
   }
 
@@ -229,7 +228,7 @@ main() {
     createRenameRefactoringAtString('String s');
     // check status
     refactoring.newName = 'NewName';
-    RefactoringStatus status = await refactoring.checkInitialConditions();
+    var status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedMessage:
             "The class 'String' is defined in the SDK, so cannot be renamed.");
@@ -248,7 +247,7 @@ main() {
     createRenameRefactoringAtString('A a');
     // check status
     refactoring.newName = 'NewName';
-    RefactoringStatus status = await refactoring.checkInitialConditions();
+    var status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedMessage:
             "The class 'A' is defined outside of the project, so cannot be renamed.");

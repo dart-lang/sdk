@@ -41,10 +41,10 @@ $(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    */
   Document get document => JS('Document', '#.document', this);
 
-  WindowBase _open2(url, name) =>
+  WindowBase$NULLABLE _open2(url, name) =>
       JS('Window|Null', '#.open(#,#)', this, url, name);
 
-  WindowBase _open3(url, name, options) =>
+  WindowBase$NULLABLE _open3(url, name, options) =>
       JS('Window|Null', '#.open(#,#,#)', this, url, name, options);
 
   /**
@@ -163,7 +163,7 @@ $(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   @SupportedBrowser(SupportedBrowser.CHROME, '23.0')
   @SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')
   @SupportedBrowser(SupportedBrowser.IE, '10.0')
-  IdbFactory get indexedDB =>
+  IdbFactory$NULLABLE get indexedDB =>
       JS('IdbFactory|Null',  // If not supported, returns null.
          '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
          this, this, this);

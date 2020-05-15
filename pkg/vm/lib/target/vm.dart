@@ -119,7 +119,7 @@ class VmTarget extends Target {
       ChangedStructureNotifier changedStructureNotifier}) {
     super.performPreConstantEvaluationTransformations(
         component, coreTypes, libraries, diagnosticReporter,
-        logger: logger);
+        logger: logger, changedStructureNotifier: changedStructureNotifier);
     _patchVmConstants(coreTypes);
   }
 
@@ -385,7 +385,8 @@ class VmTarget extends Target {
   // purposes.
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
       super.allowPlatformPrivateLibraryAccess(importer, imported) ||
-      importer.path.contains('runtime/tests/vm/dart');
+      importer.path.contains('runtime/tests/vm/dart') ||
+      importer.path.contains('test-lib');
 
   // TODO(sigmund,ahe): limit this to `dart-ext` libraries only (see
   // https://github.com/dart-lang/sdk/issues/29763).

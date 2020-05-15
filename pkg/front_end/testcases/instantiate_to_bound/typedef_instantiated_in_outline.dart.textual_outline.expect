@@ -1,0 +1,8 @@
+typedef A<T extends num>(T p);
+
+class B {
+  foo(A a) => null;
+  A bar() => null;
+}
+
+main() {}

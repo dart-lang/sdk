@@ -1,6 +1,8 @@
 name: analyzer_cli
 description: Command line interface for the Dart Analyzer.
 publish_to: none
+environment:
+  sdk: "^2.7.0"
 dependencies:
   analyzer: ^0.37.0
   args: '>=0.13.0 <2.0.0'

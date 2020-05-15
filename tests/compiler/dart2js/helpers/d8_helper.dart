@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Partial test that the closed world computed from [WorldImpact]s derived from
 // kernel is equivalent to the original computed from resolution.
 library dart2js.kernel.compiler_helper;
@@ -59,7 +61,7 @@ Future<D8Result> runWithD8(
   }
 
   List<String> d8Args = [
-    'sdk/lib/_internal/js_runtime/lib/preambles/d8.js',
+    '$sdkPath/_internal/js_runtime/lib/preambles/d8.js',
     output
   ];
   if (printSteps) print('Running: d8 ${d8Args.join(' ')}');

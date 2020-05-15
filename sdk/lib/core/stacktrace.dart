@@ -16,6 +16,13 @@ part of dart.core;
  * them programmatically.
  */
 abstract class StackTrace {
+  /// A stack trace object with no information.
+  ///
+  /// This stack trace is used as the default in situations where
+  /// a stack trace is required, but the user has not supplied one.
+  @Since("2.8")
+  static const empty = const _StringStackTrace("");
+
   StackTrace(); // In case existing classes extend StackTrace.
 
   /**
@@ -57,6 +64,6 @@ abstract class StackTrace {
 
 class _StringStackTrace implements StackTrace {
   final String _stackTrace;
-  _StringStackTrace(this._stackTrace);
+  const _StringStackTrace(this._stackTrace);
   String toString() => _stackTrace;
 }

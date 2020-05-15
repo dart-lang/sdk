@@ -361,7 +361,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable<E> {
         throw new ConcurrentModificationError(this);
       }
     }
-    if (matchFound) return match!;
+    if (matchFound) return match as E;
     if (orElse != null) return orElse();
     throw IterableElementError.noElement();
   }
@@ -428,8 +428,8 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable<E> {
     List<E> otherList;
     int otherStart;
     // TODO(floitsch): Make this accept more.
-    if (iterable is List<E>) {
-      otherList = iterable;
+    if (iterable is List) {
+      otherList = JS<List<E>>('', '#', iterable);
       otherStart = skipCount;
     } else {
       otherList = iterable.skip(skipCount).toList(growable: false);
@@ -527,7 +527,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable<E> {
   }
 
   static int _compareAny(a, b) {
-    return Comparable.compare(a as Comparable, b as Comparable);
+    return Comparable.compare(a, b);
   }
 
   void shuffle([Random? random]) {
@@ -559,15 +559,15 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable<E> {
     return -1;
   }
 
-  int lastIndexOf(Object? element, [int? _startIndex]) {
-    int startIndex = _startIndex ?? this.length - 1;
-    if (startIndex < 0) {
+  int lastIndexOf(Object? element, [int? startIndex]) {
+    int start = startIndex ?? this.length - 1;
+    if (start < 0) {
       return -1;
     }
-    if (startIndex >= this.length) {
-      startIndex = this.length - 1;
+    if (start >= this.length) {
+      start = this.length - 1;
     }
-    for (int i = startIndex; i >= 0; i--) {
+    for (int i = start; i >= 0; i--) {
       if (this[i] == element) {
         return i;
       }
@@ -643,13 +643,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable<E> {
 
   Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
 
-  List<E> operator +(List<E> other) {
-    int totalLength = this.length + other.length;
-    return <E>[]
-      ..length = totalLength
-      ..setRange(0, this.length, this)
-      ..setRange(this.length, totalLength, other);
-  }
+  List<E> operator +(List<E> other) => [...this, ...other];
 
   int indexWhere(bool test(E element), [int start = 0]) {
     if (start >= this.length) return -1;

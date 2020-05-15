@@ -1061,7 +1061,7 @@ class TagProfileSnapshot {
   int get sum => _sum;
   int _sum = 0;
   TagProfileSnapshot(this.seconds, int countersLength)
-      : counters = new List<int>(countersLength);
+      : counters = new List<int>.filled(countersLength, 0);
 
   /// Set [counters] and update [sum].
   void set(List<int> counters) {
@@ -1097,8 +1097,8 @@ class TagProfileSnapshot {
 }
 
 class TagProfile {
-  final List<String> names = new List<String>();
-  final List<TagProfileSnapshot> snapshots = new List<TagProfileSnapshot>();
+  final List<String> names = <String>[];
+  final List<TagProfileSnapshot> snapshots = <TagProfileSnapshot>[];
   double get updatedAtSeconds => _seconds;
   double _seconds;
   TagProfileSnapshot _maxSnapshot;
@@ -1404,7 +1404,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     return M.IsolateStatus.loading;
   }
 
-  final List<String> extensionRPCs = new List<String>();
+  final List<String> extensionRPCs = <String>[];
 
   Map<String, ServiceObject> _cache = new Map<String, ServiceObject>();
   final TagProfile tagProfile = new TagProfile(20);
@@ -1601,7 +1601,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   SnapshotReader _snapshotFetch;
 
   List<Thread> get threads => _threads;
-  final List<Thread> _threads = new List<Thread>();
+  final List<Thread> _threads = <Thread>[];
 
   int get zoneHighWatermark => _zoneHighWatermark;
   int _zoneHighWatermark = 0;
@@ -2054,7 +2054,7 @@ class NamedField implements M.NamedField {
 }
 
 class ObjectStore extends ServiceObject implements M.ObjectStore {
-  List<NamedField> fields = new List<NamedField>();
+  List<NamedField> fields = <NamedField>[];
 
   ObjectStore._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -2204,8 +2204,13 @@ class ServiceEvent extends ServiceObject {
   static const kConnectionClosed = 'ConnectionClosed';
   static const kLogging = 'Logging';
   static const kExtension = 'Extension';
+  static const kTimelineEvents = 'TimelineEvents';
+  static const kTimelineStreamSubscriptionsUpdate =
+      'TimelineStreamSubscriptionsUpdate';
   static const kServiceRegistered = 'ServiceRegistered';
   static const kServiceUnregistered = 'ServiceUnregistered';
+  static const kDartDevelopmentServiceConnected =
+      'DartDevelopmentServiceConnected';
 
   ServiceEvent._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -2235,6 +2240,7 @@ class ServiceEvent extends ServiceObject {
   String extensionKind;
   Map extensionData;
   List timelineEvents;
+  List<String> updatedStreams;
   String spawnToken;
   String spawnError;
   String editor;
@@ -2242,6 +2248,8 @@ class ServiceEvent extends ServiceObject {
   String method;
   String service;
   String alias;
+  String message;
+  Uri uri;
 
   bool lastChunk;
 
@@ -2318,6 +2326,9 @@ class ServiceEvent extends ServiceObject {
     if (map['timelineEvents'] != null) {
       timelineEvents = map['timelineEvents'];
     }
+    if (map['updatedStreams'] != null) {
+      updatedStreams = map['updatedStreams'].cast<String>();
+    }
     if (map['spawnToken'] != null) {
       spawnToken = map['spawnToken'];
     }
@@ -2344,6 +2355,12 @@ class ServiceEvent extends ServiceObject {
     }
     if (map['newValue'] != null) {
       newValue = map['newValue'];
+    }
+    if (map['message'] != null) {
+      message = map['message'];
+    }
+    if (map['uri'] != null) {
+      uri = Uri.parse(map['uri']);
     }
   }
 
@@ -2911,7 +2928,7 @@ class Instance extends HeapObject implements M.Instance {
     twoByteBytecode = map['_twoByteBytecode'];
 
     if (map['fields'] != null) {
-      var fields = new List<BoundField>();
+      var fields = <BoundField>[];
       for (var f in map['fields']) {
         fields.add(new BoundField(f['decl'], f['value']));
       }
@@ -2930,7 +2947,7 @@ class Instance extends HeapObject implements M.Instance {
       // Should be:
       // elements = map['elements'].map((e) => new Guarded<Instance>(e)).toList();
       // some times we obtain object that are not InstanceRef
-      var localElements = new List<Guarded<HeapObject>>();
+      var localElements = <Guarded<HeapObject>>[];
       for (var element in map['elements']) {
         localElements.add(new Guarded<HeapObject>(element));
       }
@@ -3051,7 +3068,7 @@ class Context extends HeapObject implements M.Context {
     if (map['variables'] == null) {
       variables = <ContextElement>[];
     } else {
-      var localVariables = new List<ContextElement>();
+      var localVariables = <ContextElement>[];
       for (var element in map['variables']) {
         localVariables.add(new ContextElement(element));
       }
@@ -3465,15 +3482,18 @@ class CallSite {
   factory CallSite.fromMap(Map siteMap, Script script) {
     var name = siteMap['name'];
     var tokenPos = siteMap['tokenPos'];
-    var entries = new List<CallSiteEntry>();
+    var entries = <CallSiteEntry>[];
     for (var entryMap in siteMap['cacheEntries']) {
       entries.add(new CallSiteEntry.fromMap(entryMap));
     }
     return new CallSite(name, script, tokenPos, entries);
   }
 
-  operator ==(other) {
-    return (script == other.script) && (tokenPos == other.tokenPos);
+  bool operator ==(Object other) {
+    if (other is CallSite) {
+      return (script == other.script) && (tokenPos == other.tokenPos);
+    }
+    return false;
   }
 
   int get hashCode => (script.hashCode << 8) | tokenPos;
@@ -4239,7 +4259,7 @@ M.CodeKind stringToCodeKind(String s) {
 class CodeInlineInterval {
   final int start;
   final int end;
-  final List<ServiceFunction> functions = new List<ServiceFunction>();
+  final List<ServiceFunction> functions = <ServiceFunction>[];
   bool contains(int pc) => (pc >= start) && (pc < end);
   CodeInlineInterval(this.start, this.end);
 }

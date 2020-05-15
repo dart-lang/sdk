@@ -1,0 +1,13 @@
+library test;
+
+class ActionDispatcher<P> {
+  void call([P value]) {}
+}
+
+class Bar {}
+
+class FooActions {
+  ActionDispatcher<Bar> get foo => new ActionDispatcher<Bar>();
+}
+
+void main() {}

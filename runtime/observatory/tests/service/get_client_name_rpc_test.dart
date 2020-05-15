@@ -5,7 +5,7 @@
 import 'dart:async';
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'test_helper.dart';
 
@@ -37,4 +37,8 @@ final test = <IsolateTest>[
   },
 ];
 
-Future<void> main(args) => runIsolateTests(args, test, testeeBefore: fooBar);
+Future<void> main(args) => runIsolateTests(
+      args,
+      test,
+      testeeBefore: fooBar,
+    );

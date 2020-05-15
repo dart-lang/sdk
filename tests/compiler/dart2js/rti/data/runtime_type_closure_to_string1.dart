@@ -2,23 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*strong.class: Class:*/
-/*omit.class: Class:*/
+// @dart = 2.7
+
+/*spec:nnbd-off|prod:nnbd-off.class: Class:*/
 class Class<T> {
-  /*strong.member: Class.:*/
-  /*omit.member: Class.:*/
+  /*spec:nnbd-off|prod:nnbd-off.member: Class.:*/
   Class();
 }
 
-/*strong.member: main:*/
-/*omit.member: main:*/
+/*spec:nnbd-off|prod:nnbd-off.member: main:*/
 main() {
-  /*strong.needsSignature*/
-  /*omit.*/
+  /*spec:nnbd-off|spec:nnbd-sdk.needsSignature*/
   local1() {}
 
-  /*strong.needsSignature*/
-  /*omit.*/
+  /*spec:nnbd-off|spec:nnbd-sdk.needsSignature*/
   local2(int i, String s) => i;
 
   print('${local1.runtimeType}');

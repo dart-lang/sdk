@@ -45,8 +45,8 @@ class ByteStreamClientChannelTest {
   }
 
   Future<void> test_close() {
-    bool doneCalled = false;
-    bool closeCalled = false;
+    var doneCalled = false;
+    var closeCalled = false;
     // add listener so that outputSink will trigger done/close futures
     outputLineStream.listen((_) {/* no-op */});
     outputSink.done.then((_) {
@@ -62,7 +62,7 @@ class ByteStreamClientChannelTest {
   }
 
   Future<void> test_listen_notification() {
-    List<Notification> notifications = [];
+    var notifications = <Notification>[];
     channel.notificationStream.forEach((n) => notifications.add(n));
     inputSink.writeln('{"event":"server.connected"}');
     return pumpEventQueue().then((_) {
@@ -72,7 +72,7 @@ class ByteStreamClientChannelTest {
   }
 
   Future<void> test_listen_response() {
-    List<Response> responses = [];
+    var responses = <Response>[];
     channel.responseStream.forEach((n) => responses.add(n));
     inputSink.writeln('{"id":"72"}');
     return pumpEventQueue().then((_) {
@@ -82,8 +82,8 @@ class ByteStreamClientChannelTest {
   }
 
   Future<void> test_sendRequest() {
-    int assertCount = 0;
-    Request request = Request('72', 'foo.bar');
+    var assertCount = 0;
+    var request = Request('72', 'foo.bar');
     outputLineStream.first.then((line) => json.decode(line)).then((json) {
       expect(json[Request.ID], equals('72'));
       expect(json[Request.METHOD], equals('foo.bar'));
@@ -120,21 +120,20 @@ class ByteStreamServerChannelTest {
   Future doneFuture;
 
   void setUp() {
-    StreamController<List<int>> inputStream = StreamController<List<int>>();
+    var inputStream = StreamController<List<int>>();
     inputSink = IOSink(inputStream);
-    StreamController<List<int>> outputStream = StreamController<List<int>>();
+    var outputStream = StreamController<List<int>>();
     outputLineStream = outputStream.stream
         .transform((Utf8Codec()).decoder)
         .transform(LineSplitter());
-    IOSink outputSink = IOSink(outputStream);
+    var outputSink = IOSink(outputStream);
     channel = ByteStreamServerChannel(
         inputStream.stream, outputSink, InstrumentationService.NULL_SERVICE);
-    StreamController<Request> requestStreamController =
-        StreamController<Request>();
+    var requestStreamController = StreamController<Request>();
     requestStream = requestStreamController.stream;
-    StreamController errorStreamController = StreamController();
+    var errorStreamController = StreamController();
     errorStream = errorStreamController.stream;
-    Completer doneCompleter = Completer();
+    var doneCompleter = Completer();
     doneFuture = doneCompleter.future;
     channel.listen((Request request) {
       requestStreamController.add(request);

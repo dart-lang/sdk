@@ -6,6 +6,16 @@ class A extends core::Object {
   synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class B extends self::A {
   synthetic constructor •() → self::B*
@@ -32,20 +42,30 @@ class Test extends core::Object {
     ;
   method test() → void {
     this.{self::Test::member} = self::f<self::B*>();
-    this.{self::Test::member}.{core::Object::==}(null) ?{self::B*} this.{self::Test::member} = self::f<self::B*>() : null;
+    this.{self::Test::member}.{self::A::==}(null) ?{self::B*} this.{self::Test::member} = self::f<self::B*>() : null;
     this.{self::Test::member} = this.{self::Test::member}.{self::B::+}(self::f<self::C*>()) as{TypeError} self::B*;
     this.{self::Test::member} = this.{self::Test::member}.{self::B::*}(self::f<self::B*>());
     this.{self::Test::member} = this.{self::Test::member}.{self::B::&}(self::f<self::A*>());
     this.{self::Test::member} = this.{self::Test::member}.{self::B::-}(1);
     this.{self::Test::member} = this.{self::Test::member}.{self::B::-}(1);
     self::B* v1 = this.{self::Test::member} = self::f<self::B*>();
-    self::B* v2 = let final self::B* #t1 = this.{self::Test::member} in #t1.{core::Object::==}(null) ?{self::B*} this.{self::Test::member} = self::f<self::B*>() : #t1;
+    self::B* v2 = let final self::B* #t1 = this.{self::Test::member} in #t1.{self::A::==}(null) ?{self::B*} this.{self::Test::member} = self::f<self::B*>() : #t1;
     self::A* v3 = this.{self::Test::member} = this.{self::Test::member}.{self::B::+}(self::f<self::C*>()) as{TypeError} self::B*;
     self::B* v4 = this.{self::Test::member} = this.{self::Test::member}.{self::B::*}(self::f<self::B*>());
     self::C* v5 = this.{self::Test::member} = this.{self::Test::member}.{self::B::&}(self::f<self::A*>());
     self::B* v6 = this.{self::Test::member} = this.{self::Test::member}.{self::B::-}(1);
     self::B* v7 = let final self::B* #t2 = this.{self::Test::member} in let final self::B* #t3 = this.{self::Test::member} = #t2.{self::B::-}(1) in #t2;
   }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method f<T extends core::Object* = dynamic>() → self::f::T*
   return null;

@@ -158,7 +158,7 @@ class Flag {
     OptionHandler option_handler_;
   };
   FlagType type_;
-  bool changed_;
+  bool changed_ = false;
 };
 
 Flag* Flags::Lookup(const char* name) {

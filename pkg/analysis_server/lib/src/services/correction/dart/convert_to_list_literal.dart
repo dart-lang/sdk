@@ -34,8 +34,7 @@ class ConvertToListLiteral extends CorrectionProducer {
     //
     // Extract the information needed to build the edit.
     //
-    TypeArgumentList constructorTypeArguments =
-        creation.constructorName.type.typeArguments;
+    var constructorTypeArguments = creation.constructorName.type.typeArguments;
     //
     // Build the edit.
     //
@@ -48,4 +47,7 @@ class ConvertToListLiteral extends CorrectionProducer {
       });
     });
   }
+
+  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
+  static ConvertToListLiteral newInstance() => ConvertToListLiteral();
 }

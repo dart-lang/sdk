@@ -17,7 +17,7 @@ class GeneralErrorElement extends CustomElement implements Renderable {
   static const tag = const Tag<GeneralErrorElement>('general-error',
       dependencies: const [NavTopMenuElement.tag, NavNotifyElement.tag]);
 
-  RenderingScheduler _r;
+  RenderingScheduler<GeneralErrorElement> _r;
 
   Stream<RenderedEvent<GeneralErrorElement>> get onRendered => _r.onRendered;
 

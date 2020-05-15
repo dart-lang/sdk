@@ -269,7 +269,7 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
       // the bound because it's not yet available, it will be set to null.  In
       // that case, put it to the list to be updated later, when the bound is
       // available.
-      if (type.typeParameterTypeNullability == null) {
+      if (type.declaredNullability == null) {
         environment.pendingNullabilities.add(type);
       }
       return type;
@@ -437,13 +437,14 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
           ..defaultType = type;
       }
     }
-    List<DartType> defaultTypes = calculateBounds(typeParameters, objectClass);
+    List<DartType> defaultTypes = calculateBounds(typeParameters, objectClass,
+        new Library(new Uri.file("test.lib"))..isNonNullableByDefault = true);
     for (int i = 0; i < typeParameters.length; i++) {
       typeParameters[i].defaultType = defaultTypes[i];
     }
 
     for (TypeParameterType type in nestedEnvironment.pendingNullabilities) {
-      type.typeParameterTypeNullability =
+      type.declaredNullability =
           TypeParameterType.computeNullabilityFromBound(type.parameter);
     }
     nestedEnvironment.pendingNullabilities.clear();

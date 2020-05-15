@@ -30,8 +30,8 @@ namespace dart {
 DECLARE_FLAG(bool, dual_map_code);
 DECLARE_FLAG(bool, write_protect_code);
 
-static RawClass* CreateDummyClass(const String& class_name,
-                                  const Script& script) {
+static ClassPtr CreateDummyClass(const String& class_name,
+                                 const Script& script) {
   const Class& cls = Class::Handle(Class::New(
       Library::Handle(), class_name, script, TokenPosition::kNoSource));
   cls.set_is_synthesized_class();  // Dummy class for testing.
@@ -76,13 +76,13 @@ ISOLATE_UNIT_TEST_CASE(Class) {
   String& function_name = String::Handle();
   function_name = Symbols::New(thread, "foo");
   function =
-      Function::New(function_name, RawFunction::kRegularFunction, false, false,
-                    false, false, false, cls, TokenPosition::kMinSource);
+      Function::New(function_name, FunctionLayout::kRegularFunction, false,
+                    false, false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(0, function);
   function_name = Symbols::New(thread, "bar");
   function =
-      Function::New(function_name, RawFunction::kRegularFunction, false, false,
-                    false, false, false, cls, TokenPosition::kMinSource);
+      Function::New(function_name, FunctionLayout::kRegularFunction, false,
+                    false, false, false, false, cls, TokenPosition::kMinSource);
 
   const int kNumFixedParameters = 2;
   const int kNumOptionalParameters = 3;
@@ -94,25 +94,25 @@ ISOLATE_UNIT_TEST_CASE(Class) {
 
   function_name = Symbols::New(thread, "baz");
   function =
-      Function::New(function_name, RawFunction::kRegularFunction, false, false,
-                    false, false, false, cls, TokenPosition::kMinSource);
+      Function::New(function_name, FunctionLayout::kRegularFunction, false,
+                    false, false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(2, function);
 
   function_name = Symbols::New(thread, "Foo");
   function =
-      Function::New(function_name, RawFunction::kRegularFunction, true, false,
-                    false, false, false, cls, TokenPosition::kMinSource);
+      Function::New(function_name, FunctionLayout::kRegularFunction, true,
+                    false, false, false, false, cls, TokenPosition::kMinSource);
 
   functions.SetAt(3, function);
   function_name = Symbols::New(thread, "Bar");
   function =
-      Function::New(function_name, RawFunction::kRegularFunction, true, false,
-                    false, false, false, cls, TokenPosition::kMinSource);
+      Function::New(function_name, FunctionLayout::kRegularFunction, true,
+                    false, false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(4, function);
   function_name = Symbols::New(thread, "BaZ");
   function =
-      Function::New(function_name, RawFunction::kRegularFunction, true, false,
-                    false, false, false, cls, TokenPosition::kMinSource);
+      Function::New(function_name, FunctionLayout::kRegularFunction, true,
+                    false, false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(5, function);
 
   // Setup the functions in the class.
@@ -240,7 +240,7 @@ ISOLATE_UNIT_TEST_CASE(InstanceClass) {
   one_fields.SetAt(0, field);
   one_field_class.SetFields(one_fields);
   one_field_class.Finalize();
-  intptr_t header_size = sizeof(RawObject);
+  intptr_t header_size = sizeof(ObjectLayout);
   EXPECT_EQ(Utils::RoundUp((header_size + (1 * kWordSize)), kObjectAlignment),
             one_field_class.host_instance_size());
   EXPECT_EQ(header_size, field.HostOffset());
@@ -2060,13 +2060,13 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
   }
   used_size = Array::InstanceSize(array.Length());
   new_array = Array::MakeFixedLength(array);
-  addr = RawObject::ToAddr(new_array.raw());
-  obj = RawObject::FromAddr(addr);
+  addr = ObjectLayout::ToAddr(new_array.raw());
+  obj = ObjectLayout::FromAddr(addr);
   EXPECT(obj.IsArray());
   new_array ^= obj.raw();
   EXPECT_EQ(2, new_array.Length());
   addr += used_size;
-  obj = RawObject::FromAddr(addr);
+  obj = ObjectLayout::FromAddr(addr);
   EXPECT(obj.IsTypedData());
   left_over_array ^= obj.raw();
   EXPECT_EQ(4 * kWordSize - TypedData::InstanceSize(0),
@@ -2083,13 +2083,13 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
   }
   used_size = Array::InstanceSize(array.Length());
   new_array = Array::MakeFixedLength(array);
-  addr = RawObject::ToAddr(new_array.raw());
-  obj = RawObject::FromAddr(addr);
+  addr = ObjectLayout::ToAddr(new_array.raw());
+  obj = ObjectLayout::FromAddr(addr);
   EXPECT(obj.IsArray());
   new_array ^= obj.raw();
   EXPECT_EQ(3, new_array.Length());
   addr += used_size;
-  obj = RawObject::FromAddr(addr);
+  obj = ObjectLayout::FromAddr(addr);
   if (TypedData::InstanceSize(0) <= 2 * kWordSize) {
     EXPECT(obj.IsTypedData());
     left_over_array ^= obj.raw();
@@ -2109,13 +2109,13 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
   }
   used_size = Array::InstanceSize(array.Length());
   new_array = Array::MakeFixedLength(array);
-  addr = RawObject::ToAddr(new_array.raw());
-  obj = RawObject::FromAddr(addr);
+  addr = ObjectLayout::ToAddr(new_array.raw());
+  obj = ObjectLayout::FromAddr(addr);
   EXPECT(obj.IsArray());
   new_array ^= obj.raw();
   EXPECT_EQ(1, new_array.Length());
   addr += used_size;
-  obj = RawObject::FromAddr(addr);
+  obj = ObjectLayout::FromAddr(addr);
   EXPECT(obj.IsTypedData());
   left_over_array ^= obj.raw();
   EXPECT_EQ(8 * kWordSize - TypedData::InstanceSize(0),
@@ -2309,7 +2309,7 @@ ISOLATE_UNIT_TEST_CASE(Context) {
 ISOLATE_UNIT_TEST_CASE(ContextScope) {
   // We need an active compiler context to manipulate scopes, since local
   // variables and slots can be canonicalized in the compiler state.
-  CompilerState compiler_state(Thread::Current());
+  CompilerState compiler_state(Thread::Current(), /*is_aot=*/false);
 
   const intptr_t parent_scope_function_level = 0;
   LocalScope* parent_scope =
@@ -2424,7 +2424,7 @@ ISOLATE_UNIT_TEST_CASE(Closure) {
   Function& parent = Function::Handle();
   const String& parent_name = String::Handle(Symbols::New(thread, "foo_papa"));
   parent =
-      Function::New(parent_name, RawFunction::kRegularFunction, false, false,
+      Function::New(parent_name, FunctionLayout::kRegularFunction, false, false,
                     false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(0, parent);
   cls.SetFunctions(functions);
@@ -2483,11 +2483,11 @@ ISOLATE_UNIT_TEST_CASE(CheckedHandle) {
   EXPECT(!str3.IsOneByteString());
 }
 
-static RawLibrary* CreateDummyLibrary(const String& library_name) {
+static LibraryPtr CreateDummyLibrary(const String& library_name) {
   return Library::New(library_name);
 }
 
-static RawFunction* CreateFunction(const char* name) {
+static FunctionPtr CreateFunction(const char* name) {
   Thread* thread = Thread::Current();
   const String& class_name = String::Handle(Symbols::New(thread, "ownerClass"));
   const String& lib_name = String::Handle(Symbols::New(thread, "ownerLibrary"));
@@ -2497,7 +2497,7 @@ static RawFunction* CreateFunction(const char* name) {
   const Library& owner_library = Library::Handle(CreateDummyLibrary(lib_name));
   owner_class.set_library(owner_library);
   const String& function_name = String::ZoneHandle(Symbols::New(thread, name));
-  return Function::New(function_name, RawFunction::kRegularFunction, true,
+  return Function::New(function_name, FunctionLayout::kRegularFunction, true,
                        false, false, false, false, owner_class,
                        TokenPosition::kMinSource);
 }
@@ -2581,7 +2581,7 @@ ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeExecutability, "Crash") {
       Object::Handle(DartEntry::InvokeFunction(function, Array::empty_array()));
   EXPECT_EQ(1, Smi::Cast(result).Value());
   // Switch to the writeable but non-executable view of the instructions.
-  instructions ^= HeapPage::ToWritable(instructions.raw());
+  instructions ^= OldPage::ToWritable(instructions.raw());
   payload_start = instructions.PayloadStart();
   EXPECT_EQ(instructions.raw(), Instructions::FromPayloadStart(payload_start));
   // Hook up Code and Instructions objects.
@@ -2705,18 +2705,18 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptors) {
   DescriptorList* builder = new DescriptorList(0);
 
   // kind, pc_offset, deopt_id, token_pos, try_index, yield_index
-  builder->AddDescriptor(RawPcDescriptors::kOther, 10, 1, TokenPosition(20), 1,
-                         1);
-  builder->AddDescriptor(RawPcDescriptors::kDeopt, 20, 2, TokenPosition(30), 0,
-                         -1);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 30, 3, TokenPosition(40), 1,
-                         10);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 10, 4, TokenPosition(40), 2,
-                         20);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 10, 5, TokenPosition(80), 3,
-                         30);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 80, 6, TokenPosition(150), 3,
-                         30);
+  builder->AddDescriptor(PcDescriptorsLayout::kOther, 10, 1, TokenPosition(20),
+                         1, 1);
+  builder->AddDescriptor(PcDescriptorsLayout::kDeopt, 20, 2, TokenPosition(30),
+                         0, -1);
+  builder->AddDescriptor(PcDescriptorsLayout::kOther, 30, 3, TokenPosition(40),
+                         1, 10);
+  builder->AddDescriptor(PcDescriptorsLayout::kOther, 10, 4, TokenPosition(40),
+                         2, 20);
+  builder->AddDescriptor(PcDescriptorsLayout::kOther, 10, 5, TokenPosition(80),
+                         3, 30);
+  builder->AddDescriptor(PcDescriptorsLayout::kOther, 80, 6, TokenPosition(150),
+                         3, 30);
 
   PcDescriptors& descriptors = PcDescriptors::Handle();
   descriptors ^= builder->FinalizePcDescriptors(0);
@@ -2732,7 +2732,7 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptors) {
 
   // Verify the PcDescriptor entries by accessing them.
   const PcDescriptors& pc_descs = PcDescriptors::Handle(code.pc_descriptors());
-  PcDescriptors::Iterator iter(pc_descs, RawPcDescriptors::kAnyKind);
+  PcDescriptors::Iterator iter(pc_descs, PcDescriptorsLayout::kAnyKind);
 
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(1, iter.YieldIndex());
@@ -2740,12 +2740,12 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptors) {
   EXPECT_EQ(1, iter.TryIndex());
   EXPECT_EQ(static_cast<uword>(10), iter.PcOffset());
   EXPECT_EQ(1, iter.DeoptId());
-  EXPECT_EQ(RawPcDescriptors::kOther, iter.Kind());
+  EXPECT_EQ(PcDescriptorsLayout::kOther, iter.Kind());
 
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(-1, iter.YieldIndex());
   EXPECT_EQ(30, iter.TokenPos().value());
-  EXPECT_EQ(RawPcDescriptors::kDeopt, iter.Kind());
+  EXPECT_EQ(PcDescriptorsLayout::kDeopt, iter.Kind());
 
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(10, iter.YieldIndex());
@@ -2766,7 +2766,7 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptors) {
   EXPECT_EQ(3, iter.TryIndex());
   EXPECT_EQ(static_cast<uword>(80), iter.PcOffset());
   EXPECT_EQ(150, iter.TokenPos().value());
-  EXPECT_EQ(RawPcDescriptors::kOther, iter.Kind());
+  EXPECT_EQ(PcDescriptorsLayout::kOther, iter.Kind());
 
   EXPECT_EQ(false, iter.MoveNext());
 }
@@ -2775,18 +2775,18 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptorsLargeDeltas) {
   DescriptorList* builder = new DescriptorList(0);
 
   // kind, pc_offset, deopt_id, token_pos, try_index
-  builder->AddDescriptor(RawPcDescriptors::kOther, 100, 1, TokenPosition(200),
-                         1, 10);
-  builder->AddDescriptor(RawPcDescriptors::kDeopt, 200, 2, TokenPosition(300),
-                         0, -1);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 300, 3, TokenPosition(400),
-                         1, 10);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 100, 4, TokenPosition(0), 2,
-                         20);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 100, 5, TokenPosition(800),
-                         3, 30);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 800, 6, TokenPosition(150),
-                         3, 30);
+  builder->AddDescriptor(PcDescriptorsLayout::kOther, 100, 1,
+                         TokenPosition(200), 1, 10);
+  builder->AddDescriptor(PcDescriptorsLayout::kDeopt, 200, 2,
+                         TokenPosition(300), 0, -1);
+  builder->AddDescriptor(PcDescriptorsLayout::kOther, 300, 3,
+                         TokenPosition(400), 1, 10);
+  builder->AddDescriptor(PcDescriptorsLayout::kOther, 100, 4, TokenPosition(0),
+                         2, 20);
+  builder->AddDescriptor(PcDescriptorsLayout::kOther, 100, 5,
+                         TokenPosition(800), 3, 30);
+  builder->AddDescriptor(PcDescriptorsLayout::kOther, 800, 6,
+                         TokenPosition(150), 3, 30);
 
   PcDescriptors& descriptors = PcDescriptors::Handle();
   descriptors ^= builder->FinalizePcDescriptors(0);
@@ -2802,7 +2802,7 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptorsLargeDeltas) {
 
   // Verify the PcDescriptor entries by accessing them.
   const PcDescriptors& pc_descs = PcDescriptors::Handle(code.pc_descriptors());
-  PcDescriptors::Iterator iter(pc_descs, RawPcDescriptors::kAnyKind);
+  PcDescriptors::Iterator iter(pc_descs, PcDescriptorsLayout::kAnyKind);
 
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(10, iter.YieldIndex());
@@ -2810,12 +2810,12 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptorsLargeDeltas) {
   EXPECT_EQ(1, iter.TryIndex());
   EXPECT_EQ(static_cast<uword>(100), iter.PcOffset());
   EXPECT_EQ(1, iter.DeoptId());
-  EXPECT_EQ(RawPcDescriptors::kOther, iter.Kind());
+  EXPECT_EQ(PcDescriptorsLayout::kOther, iter.Kind());
 
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(-1, iter.YieldIndex());
   EXPECT_EQ(300, iter.TokenPos().value());
-  EXPECT_EQ(RawPcDescriptors::kDeopt, iter.Kind());
+  EXPECT_EQ(PcDescriptorsLayout::kDeopt, iter.Kind());
 
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(10, iter.YieldIndex());
@@ -2836,12 +2836,12 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptorsLargeDeltas) {
   EXPECT_EQ(3, iter.TryIndex());
   EXPECT_EQ(static_cast<uword>(800), iter.PcOffset());
   EXPECT_EQ(150, iter.TokenPos().value());
-  EXPECT_EQ(RawPcDescriptors::kOther, iter.Kind());
+  EXPECT_EQ(PcDescriptorsLayout::kOther, iter.Kind());
 
   EXPECT_EQ(false, iter.MoveNext());
 }
 
-static RawClass* CreateTestClass(const char* name) {
+static ClassPtr CreateTestClass(const char* name) {
   const String& class_name =
       String::Handle(Symbols::New(Thread::Current(), name));
   const Class& cls =
@@ -2849,7 +2849,7 @@ static RawClass* CreateTestClass(const char* name) {
   return cls.raw();
 }
 
-static RawField* CreateTestField(const char* name) {
+static FieldPtr CreateTestField(const char* name) {
   const Class& cls = Class::Handle(CreateTestClass("global:"));
   const String& field_name =
       String::Handle(Symbols::New(Thread::Current(), name));
@@ -2881,7 +2881,7 @@ ISOLATE_UNIT_TEST_CASE(ClassDictionaryIterator) {
   EXPECT(count == 2);
 }
 
-static RawFunction* GetDummyTarget(const char* name) {
+static FunctionPtr GetDummyTarget(const char* name) {
   const String& function_name =
       String::Handle(Symbols::New(Thread::Current(), name));
   const Class& cls =
@@ -2891,9 +2891,9 @@ static RawFunction* GetDummyTarget(const char* name) {
   const bool is_abstract = false;
   const bool is_external = false;
   const bool is_native = false;
-  return Function::New(function_name, RawFunction::kRegularFunction, is_static,
-                       is_const, is_abstract, is_external, is_native, cls,
-                       TokenPosition::kMinSource);
+  return Function::New(function_name, FunctionLayout::kRegularFunction,
+                       is_static, is_const, is_abstract, is_external, is_native,
+                       cls, TokenPosition::kMinSource);
 }
 
 ISOLATE_UNIT_TEST_CASE(ICData) {
@@ -3622,28 +3622,28 @@ ISOLATE_UNIT_TEST_CASE(MirrorReference) {
   EXPECT(obj.IsMirrorReference());
 }
 
-static RawFunction* GetFunction(const Class& cls, const char* name) {
+static FunctionPtr GetFunction(const Class& cls, const char* name) {
   const Function& result = Function::Handle(
       cls.LookupDynamicFunction(String::Handle(String::New(name))));
   EXPECT(!result.IsNull());
   return result.raw();
 }
 
-static RawFunction* GetStaticFunction(const Class& cls, const char* name) {
+static FunctionPtr GetStaticFunction(const Class& cls, const char* name) {
   const Function& result = Function::Handle(
       cls.LookupStaticFunction(String::Handle(String::New(name))));
   EXPECT(!result.IsNull());
   return result.raw();
 }
 
-static RawField* GetField(const Class& cls, const char* name) {
+static FieldPtr GetField(const Class& cls, const char* name) {
   const Field& field =
       Field::Handle(cls.LookupField(String::Handle(String::New(name))));
   EXPECT(!field.IsNull());
   return field.raw();
 }
 
-static RawClass* GetClass(const Library& lib, const char* name) {
+static ClassPtr GetClass(const Library& lib, const char* name) {
   const Class& cls = Class::Handle(
       lib.LookupClass(String::Handle(Symbols::New(Thread::Current(), name))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
@@ -3661,7 +3661,7 @@ ISOLATE_UNIT_TEST_CASE(FindClosureIndex) {
   Function& parent = Function::Handle();
   const String& parent_name = String::Handle(Symbols::New(thread, "foo_papa"));
   parent =
-      Function::New(parent_name, RawFunction::kRegularFunction, false, false,
+      Function::New(parent_name, FunctionLayout::kRegularFunction, false, false,
                     false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(0, parent);
   cls.SetFunctions(functions);
@@ -3697,7 +3697,7 @@ ISOLATE_UNIT_TEST_CASE(FindInvocationDispatcherFunctionIndex) {
   Function& parent = Function::Handle();
   const String& parent_name = String::Handle(Symbols::New(thread, "foo_papa"));
   parent =
-      Function::New(parent_name, RawFunction::kRegularFunction, false, false,
+      Function::New(parent_name, FunctionLayout::kRegularFunction, false, false,
                     false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(0, parent);
   cls.SetFunctions(functions);
@@ -3710,7 +3710,7 @@ ISOLATE_UNIT_TEST_CASE(FindInvocationDispatcherFunctionIndex) {
   Function& invocation_dispatcher = Function::Handle();
   invocation_dispatcher ^= cls.GetInvocationDispatcher(
       invocation_dispatcher_name, args_desc,
-      RawFunction::kNoSuchMethodDispatcher, true /* create_if_absent */);
+      FunctionLayout::kNoSuchMethodDispatcher, true /* create_if_absent */);
   EXPECT(!invocation_dispatcher.IsNull());
   // Get index to function.
   intptr_t invocation_dispatcher_index =
@@ -3987,7 +3987,7 @@ class ObjectAccumulator : public ObjectVisitor {
   explicit ObjectAccumulator(GrowableArray<Object*>* objects)
       : objects_(objects) {}
   virtual ~ObjectAccumulator() {}
-  virtual void VisitObject(RawObject* obj) {
+  virtual void VisitObject(ObjectPtr obj) {
     if (obj->IsPseudoObject()) {
       return;  // Cannot be wrapped in handles.
     }

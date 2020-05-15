@@ -7,6 +7,7 @@
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
+#include "platform/unaligned.h"
 #include "vm/kernel.h"
 #include "vm/object.h"
 
@@ -20,7 +21,7 @@ static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
 
 // Both version numbers are inclusive.
 static const uint32_t kMinSupportedKernelFormatVersion = 29;
-static const uint32_t kMaxSupportedKernelFormatVersion = 40;
+static const uint32_t kMaxSupportedKernelFormatVersion = 42;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -199,7 +200,9 @@ enum class NamedTypeFlags : uint8_t {
 
 static const int SpecializedIntLiteralBias = 3;
 static const int LibraryCountFieldCountFromEnd = 1;
-static const int SourceTableFieldCountFromFirstLibraryOffset = 6;
+static const int KernelFormatVersionOffset = 4;
+static const int SourceTableFieldCountFromFirstLibraryOffsetPre41 = 6;
+static const int SourceTableFieldCountFromFirstLibraryOffset41Plus = 7;
 
 static const int HeaderSize = 8;  // 'magic', 'formatVersion'.
 
@@ -234,7 +237,8 @@ class Reader : public ValueObject {
     ASSERT((size_ >= 4) && (offset >= 0) && (offset <= size_ - 4));
     uint32_t value;
     if (raw_buffer_ != NULL) {
-      value = *reinterpret_cast<const uint32_t*>(raw_buffer_ + offset);
+      value = LoadUnaligned(
+          reinterpret_cast<const uint32_t*>(raw_buffer_ + offset));
     } else {
       value = typed_data_->GetUint32(offset);
     }
@@ -257,7 +261,7 @@ class Reader : public ValueObject {
 
   double ReadDouble() {
     ASSERT((size_ >= 8) && (offset_ >= 0) && (offset_ <= size_ - 8));
-    double value = ReadUnaligned(
+    double value = LoadUnaligned(
         reinterpret_cast<const double*>(&this->buffer()[offset_]));
     offset_ += 8;
     return value;
@@ -413,7 +417,7 @@ class Reader : public ValueObject {
   const uint8_t* raw_buffer() const { return raw_buffer_; }
   void set_raw_buffer(const uint8_t* raw_buffer) { raw_buffer_ = raw_buffer; }
 
-  RawExternalTypedData* ExternalDataFromTo(intptr_t start, intptr_t end) {
+  ExternalTypedDataPtr ExternalDataFromTo(intptr_t start, intptr_t end) {
     return ExternalTypedData::New(kExternalTypedDataUint8ArrayCid,
                                   const_cast<uint8_t*>(buffer() + start),
                                   end - start, Heap::kOld);
@@ -424,7 +428,7 @@ class Reader : public ValueObject {
     return &buffer()[offset];
   }
 
-  RawTypedData* ReadLineStartsData(intptr_t line_start_count);
+  TypedDataPtr ReadLineStartsData(intptr_t line_start_count);
 
  private:
   const uint8_t* buffer() const {

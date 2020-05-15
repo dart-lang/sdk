@@ -903,7 +903,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       // @Native methods have conversion code for function arguments. Rather
       // than insert that code at the inlined call site, call the target on the
       // interceptor.
-      if (parameterType is FunctionType) return true;
+      if (parameterType.withoutNullability is FunctionType) return true;
     }
 
     if (!_closedWorld.annotationsData
@@ -2134,7 +2134,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       TypeExpressionRecipe recipe = typeInput.typeExpression;
       DartType dartType = recipe.type;
       MemberEntity specializedCheck = SpecializedChecks.findAsCheck(
-          dartType, node.isTypeError, _closedWorld.commonElements);
+          dartType, _closedWorld.commonElements, _options.useLegacySubtyping);
       if (specializedCheck != null) {
         AbstractValueWithPrecision checkedType =
             _abstractValueDomain.createFromStaticType(dartType, nullable: true);
@@ -2176,20 +2176,22 @@ class SsaInstructionSimplifier extends HBaseVisitor
           SpecializedChecks.findIsTestSpecialization(
               dartType, _graph, _closedWorld);
 
-      if (specialization == IsTestSpecialization.null_) {
-        return HIdentity(
+      if (specialization == IsTestSpecialization.isNull ||
+          specialization == IsTestSpecialization.notNull) {
+        HInstruction nullTest = HIdentity(
             node.checkedInput,
             _graph.addConstantNull(_closedWorld),
             null,
             _abstractValueDomain.boolType);
+        if (specialization == IsTestSpecialization.isNull) return nullTest;
+        nullTest.sourceInformation = node.sourceInformation;
+        node.block.addBefore(node, nullTest);
+        return HNot(nullTest, _abstractValueDomain.boolType);
       }
 
       if (specialization != null) {
-        AbstractValueWithPrecision checkedType =
-            _abstractValueDomain.createFromStaticType(dartType,
-                nullable: _abstractValueDomain
-                    .isNull(node.checkedAbstractValue.abstractValue)
-                    .isPotentiallyTrue);
+        AbstractValueWithPrecision checkedType = _abstractValueDomain
+            .createFromStaticType(dartType, nullable: false);
         return HIsTestSimple(dartType, checkedType, specialization,
             node.checkedInput, _abstractValueDomain.boolType);
       }
@@ -2383,8 +2385,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   HInstruction get zapInstruction {
     if (zapInstructionCache == null) {
       // A constant with no type does not pollute types at phi nodes.
-      ConstantValue constant = const UnreachableConstantValue();
-      zapInstructionCache = analyzer.graph.addConstant(constant, closedWorld);
+      zapInstructionCache = analyzer.graph.addConstantUnreachable(closedWorld);
     }
     return zapInstructionCache;
   }

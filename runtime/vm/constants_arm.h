@@ -71,7 +71,7 @@ enum Register {
   R3 = 3,
   R4 = 4,
   R5 = 5,  // PP
-  R6 = 6,
+  R6 = 6,  // CODE
   R7 = 7,  // iOS FP
   R8 = 8,
   R9 = 9,
@@ -311,10 +311,13 @@ const Register kWriteBarrierSlotReg = R9;
 const Register kAllocationStubTypeArgumentsReg = R3;
 
 // ABI for instantiation stubs.
-const Register kUninstantiatedTypeArgumentsReg = R3;
-const Register kInstantiatorTypeArgumentsReg = R2;
-const Register kFunctionTypeArgumentsReg = R1;
-const Register kResultTypeArgumentsReg = R0;
+struct InstantiationABI {
+  static const Register kUninstantiatedTypeArgumentsReg = R3;
+  static const Register kInstantiatorTypeArgumentsReg = R2;
+  static const Register kFunctionTypeArgumentsReg = R1;
+  static const Register kResultTypeArgumentsReg = R0;
+  static const Register kResultTypeReg = R0;
+};
 
 // Calling convention when calling TypeTestingStub and SubtypeTestCacheStub.
 struct TypeTestABI {
@@ -328,6 +331,9 @@ struct TypeTestABI {
       (1 << kInstanceReg) | (1 << kDstTypeReg) |
       (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
       (1 << kSubtypeTestCacheReg);
+
+  // For call to InstanceOfStub.
+  static const Register kResultReg = R0;
 };
 
 // Registers used inside the implementation of type testing stubs.
@@ -337,6 +343,49 @@ struct TTSInternalRegs {
 
   static const intptr_t kInternalRegisters =
       (1 << kInstanceTypeArgumentsReg) | (1 << kScratchReg);
+};
+
+// ABI for InitStaticFieldStub.
+struct InitStaticFieldABI {
+  static const Register kFieldReg = R0;
+};
+
+// ABI for InitInstanceFieldStub.
+struct InitInstanceFieldABI {
+  static const Register kInstanceReg = R0;
+  static const Register kFieldReg = R1;
+};
+
+// Registers used inside the implementation of InitLateInstanceFieldStub.
+struct InitLateInstanceFieldInternalRegs {
+  static const Register kFunctionReg = R0;
+  static const Register kInitializerResultReg = R0;
+  static const Register kInstanceReg = R1;
+  static const Register kFieldReg = R2;
+  static const Register kAddressReg = R3;
+  static const Register kScratchReg = R4;
+};
+
+// ABI for ThrowStub.
+struct ThrowABI {
+  static const Register kExceptionReg = R0;
+};
+
+// ABI for ReThrowStub.
+struct ReThrowABI {
+  static const Register kExceptionReg = R0;
+  static const Register kStackTraceReg = R1;
+};
+
+// ABI for AssertBooleanStub.
+struct AssertBooleanABI {
+  static const Register kObjectReg = R0;
+};
+
+// ABI for RangeErrorStub.
+struct RangeErrorABI {
+  static const Register kLengthReg = R0;
+  static const Register kIndexReg = R1;
 };
 
 // TODO(regis): Add ABIs for type testing stubs and is-type test stubs instead
@@ -478,6 +527,20 @@ enum Condition {
 
   kInvalidCondition = 16
 };
+
+static inline Condition InvertCondition(Condition c) {
+  COMPILE_ASSERT((EQ ^ NE) == 1);
+  COMPILE_ASSERT((CS ^ CC) == 1);
+  COMPILE_ASSERT((MI ^ PL) == 1);
+  COMPILE_ASSERT((VS ^ VC) == 1);
+  COMPILE_ASSERT((HI ^ LS) == 1);
+  COMPILE_ASSERT((GE ^ LT) == 1);
+  COMPILE_ASSERT((GT ^ LE) == 1);
+  ASSERT(c != AL);
+  ASSERT(c != kSpecialCondition);
+  ASSERT(c != kInvalidCondition);
+  return static_cast<Condition>(c ^ 1);
+}
 
 // Opcodes for Data-processing instructions (instructions with a type 0 and 1)
 // as defined in section A3.4
@@ -703,7 +766,10 @@ class Instr {
 
   // Fields used in Branch instructions
   inline int LinkField() const { return Bits(kLinkShift, kLinkBits); }
-  inline int SImmed24Field() const { return ((InstructionBits() << 8) >> 8); }
+  inline int32_t SImmed24Field() const {
+    uint32_t bits = InstructionBits();
+    return static_cast<int32_t>(bits << 8) >> 8;
+  }
 
   // Fields used in Supervisor Call instructions
   inline uint32_t SvcField() const { return Bits(0, 24); }
@@ -893,6 +959,8 @@ float ReciprocalStep(float op1, float op2);
 // A2-90 of ARM Architecture Reference Manual ARMv7-A edition).
 float ReciprocalSqrtEstimate(float op);
 float ReciprocalSqrtStep(float op1, float op2);
+
+constexpr uword kBreakInstructionFiller = 0xE1200070;  // bkpt #0
 
 }  // namespace dart
 

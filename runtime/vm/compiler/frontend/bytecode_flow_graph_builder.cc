@@ -13,8 +13,6 @@
 #include "vm/stack_frame.h"
 #include "vm/stack_frame_kbc.h"
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #define B (flow_graph_builder_)
 #define Z (zone_)
 
@@ -822,7 +820,7 @@ void BytecodeFlowGraphBuilder::BuildDirectCallCommon(bool is_unchecked_call) {
       BuildFfiAsFunction();
       return;
     case MethodRecognizer::kFfiNativeCallbackFunction:
-      if (FLAG_precompiled_mode) {
+      if (CompilerState::Current().is_aot()) {
         BuildFfiNativeCallbackFunction();
         return;
       }
@@ -1370,15 +1368,26 @@ void BytecodeFlowGraphBuilder::BuildAssertAssignable() {
 
   LoadStackSlots(5);
 
+  const AbstractType& dst_type =
+      AbstractType::Cast(B->Peek(/*depth=*/3)->AsConstant()->value());
+  if (dst_type.IsTopTypeForSubtyping()) {
+    code_ += B->Drop();  // dst_name
+    code_ += B->Drop();  // function_type_args
+    code_ += B->Drop();  // instantiator_type_args
+    code_ += B->Drop();  // dst_type
+    // Leave value on top.
+    return;
+  }
+
   const String& dst_name = String::Cast(PopConstant().value());
   Value* function_type_args = Pop();
   Value* instantiator_type_args = Pop();
-  const AbstractType& dst_type = AbstractType::Cast(PopConstant().value());
+  Value* dst_type_value = Pop();
   Value* value = Pop();
 
   AssertAssignableInstr* instr = new (Z) AssertAssignableInstr(
-      position_, value, instantiator_type_args, function_type_args, dst_type,
-      dst_name, B->GetNextDeoptId());
+      position_, value, dst_type_value, instantiator_type_args,
+      function_type_args, dst_name, B->GetNextDeoptId());
 
   code_ <<= instr;
 
@@ -1393,8 +1402,8 @@ void BytecodeFlowGraphBuilder::BuildAssertSubtype() {
   LoadStackSlots(5);
 
   const String& dst_name = String::Cast(PopConstant().value());
-  const AbstractType& super_type = AbstractType::Cast(PopConstant().value());
-  const AbstractType& sub_type = AbstractType::Cast(PopConstant().value());
+  Value* super_type = Pop();
+  Value* sub_type = Pop();
   Value* function_type_args = Pop();
   Value* instantiator_type_args = Pop();
 
@@ -1409,7 +1418,8 @@ void BytecodeFlowGraphBuilder::BuildNullCheck() {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
 
-  const String& selector = String::Cast(ConstantAt(DecodeOperandD()).value());
+  const String& selector =
+      String::CheckedZoneHandle(Z, ConstantAt(DecodeOperandD()).value().raw());
 
   LocalVariable* receiver_temp = B->MakeTemporary();
   code_ +=
@@ -1638,7 +1648,7 @@ void BytecodeFlowGraphBuilder::BuildReturnTOS() {
   BuildDebugStepCheck();
   LoadStackSlots(1);
   ASSERT(code_.is_open());
-  intptr_t yield_index = RawPcDescriptors::kInvalidYieldIndex;
+  intptr_t yield_index = PcDescriptorsLayout::kInvalidYieldIndex;
   if (function().IsAsyncClosure() || function().IsAsyncGenClosure()) {
     if (pc_ == last_yield_point_pc_) {
       // The return might actually be a yield point, if so we need to attach the
@@ -1959,7 +1969,7 @@ intptr_t BytecodeFlowGraphBuilder::GetTryIndex(const PcDescriptors& descriptors,
                                                intptr_t pc) {
   const uword pc_offset =
       KernelBytecode::BytecodePcToOffset(pc, /* is_return_address = */ true);
-  PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
+  PcDescriptors::Iterator iter(descriptors, PcDescriptorsLayout::kAnyKind);
   intptr_t try_index = kInvalidTryIndex;
   while (iter.MoveNext()) {
     const intptr_t current_try_index = iter.TryIndex();
@@ -2051,7 +2061,7 @@ void BytecodeFlowGraphBuilder::CollectControlFlow(
     pc += (KernelBytecode::Next(instr) - instr);
   }
 
-  PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
+  PcDescriptors::Iterator iter(descriptors, PcDescriptorsLayout::kAnyKind);
   while (iter.MoveNext()) {
     const intptr_t start_pc = KernelBytecode::OffsetToBytecodePc(
         iter.PcOffset(), /* is_return_address = */ true);
@@ -2106,7 +2116,7 @@ UncheckedEntryPointStyle BytecodeFlowGraphBuilder::ChooseEntryPointStyle(
     const KBCInstr* jump_if_unchecked) {
   ASSERT(KernelBytecode::IsJumpIfUncheckedOpcode(jump_if_unchecked));
 
-  if (!function().MayHaveUncheckedEntryPoint(isolate())) {
+  if (!function().MayHaveUncheckedEntryPoint()) {
     return UncheckedEntryPointStyle::kNone;
   }
 
@@ -2347,5 +2357,3 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
 
 }  // namespace kernel
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

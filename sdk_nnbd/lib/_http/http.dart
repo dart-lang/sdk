@@ -23,6 +23,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 part 'crypto.dart';
+part 'embedder_config.dart';
 part 'http_date.dart';
 part 'http_headers.dart';
 part 'http_impl.dart';
@@ -169,7 +170,7 @@ abstract class HttpServer implements Stream<HttpRequest> {
    * The default value is `false` (compression disabled).
    * To enable, set `autoCompress` to `true`.
    */
-  bool autoCompress;
+  bool autoCompress = false;
 
   /**
    * Gets or sets the timeout used for idle keep-alive connections. If no
@@ -183,7 +184,7 @@ abstract class HttpServer implements Stream<HttpRequest> {
    *
    * To disable, set [idleTimeout] to `null`.
    */
-  Duration? idleTimeout;
+  Duration? idleTimeout = const Duration(seconds: 120);
 
   /**
    * Starts listening for HTTP requests on the specified [address] and
@@ -643,22 +644,19 @@ abstract class HttpHeaders {
    *
    * The value is negative if there is no content length set.
    */
-  int get contentLength;
-  void set contentLength(int contentLength);
+  int contentLength = -1;
 
   /**
    * Whether the connection is persistent (keep-alive).
    */
-  bool get persistentConnection;
-  void set persistentConnection(bool persistentConnection);
+  late bool persistentConnection;
 
   /**
    * Whether the connection uses chunked transfer encoding.
    *
    * Reflects and modifies the value of the [transferEncodingHeader] header.
    */
-  bool get chunkedTransferEncoding;
-  void set chunkedTransferEncoding(bool chunkedTransferEncoding);
+  late bool chunkedTransferEncoding;
 
   /**
    * The values for the header named [name].
@@ -772,6 +770,11 @@ abstract class HttpHeaders {
  * [HeaderValue] can be used to conveniently build and parse header
  * values on this form.
  *
+ * Parameter values can be omitted, in which case the value is parsed as `null`.
+ * Values can be doubled quoted to allow characters outside of the RFC 7230
+ * token characters and backslash sequences can be used to represent the double
+ * quote and backslash characters themselves.
+ *
  * To build an "accepts" header with the value
  *
  *     text/plain; q=0.3, text/html
@@ -798,7 +801,8 @@ abstract class HeaderValue {
   /**
    * Creates a new header value object setting the value and parameters.
    */
-  factory HeaderValue([String value = "", Map<String, String>? parameters]) {
+  factory HeaderValue(
+      [String value = "", Map<String, String?> parameters = const {}]) {
     return new _HeaderValue(value, parameters);
   }
 
@@ -826,7 +830,7 @@ abstract class HeaderValue {
    *
    * This map cannot be modified.
    */
-  Map<String, String> get parameters;
+  Map<String, String?> get parameters;
 
   /**
    * Returns the formatted string representation in the form:
@@ -916,7 +920,7 @@ abstract class ContentType implements HeaderValue {
    * or in `parameters`, will have its value converted to lower-case.
    */
   factory ContentType(String primaryType, String subType,
-      {String? charset, Map<String, String>? parameters}) {
+      {String? charset, Map<String, String?> parameters = const {}}) {
     return new _ContentType(primaryType, subType, charset, parameters);
   }
 
@@ -988,7 +992,7 @@ abstract class Cookie {
    * `(`, `)`, `<`, `>`, `@`, `,`, `;`, `:`, `\`, `"`, `/`, `[`, `]`, `?`, `=`,
    * `{`, and `}`.
    */
-  String name;
+  late String name;
 
   /**
    * The value of the cookie.
@@ -1001,7 +1005,7 @@ abstract class Cookie {
    * Cookie values may be wrapped in a single pair of double quotes
    * (U+0022, `"`).
    */
-  String value;
+  late String value;
 
   /**
    * The time at which the cookie expires.
@@ -1027,13 +1031,13 @@ abstract class Cookie {
   /**
    * Whether to only send this cookie on secure connections.
    */
-  bool secure;
+  bool secure = false;
 
   /**
    * Whether the cookie is only sent in the HTTP request and is not made
    * available to client side scripts.
    */
-  bool httpOnly;
+  bool httpOnly = false;
 
   /**
    * Creates a new cookie setting the name and value.
@@ -1262,8 +1266,7 @@ abstract class HttpResponse implements IOSink {
    * the response is not known in advance set the content length to
    * -1, which is also the default if not set.
    */
-  int get contentLength;
-  void set contentLength(int contentLength);
+  int contentLength = -1;
 
   /**
    * The status code of the response.
@@ -1277,8 +1280,7 @@ abstract class HttpResponse implements IOSink {
    * to. Setting the status code after writing to the response body or
    * closing the response will throw a `StateError`.
    */
-  int get statusCode;
-  void set statusCode(int statusCode);
+  int statusCode = HttpStatus.ok;
 
   /**
    * The reason phrase for the response.
@@ -1289,16 +1291,14 @@ abstract class HttpResponse implements IOSink {
    * to. Setting the reason phrase after writing to the response body
    * or closing the response will throw a [StateError].
    */
-  String get reasonPhrase;
-  void set reasonPhrase(String reasonPhrase);
+  late String reasonPhrase;
 
   /**
    * Gets and sets the persistent connection state. The initial value
    * of this property is the persistent connection state from the
    * request.
    */
-  bool get persistentConnection;
-  void set persistentConnection(bool persistentConnection);
+  late bool persistentConnection;
 
   /**
    * Set and get the [deadline] for the response. The deadline is timed from the
@@ -1320,8 +1320,7 @@ abstract class HttpResponse implements IOSink {
    * __Note__: Disabling buffering of the output can result in very poor
    * performance, when writing many small chunks.
    */
-  bool get bufferOutput;
-  void set bufferOutput(bool bufferOutput);
+  bool bufferOutput = true;
 
   /**
    * Returns the response headers.
@@ -1490,7 +1489,7 @@ abstract class HttpClient {
   /// connections.
   ///
   /// The default value is 15 seconds.
-  Duration idleTimeout;
+  Duration idleTimeout = const Duration(seconds: 15);
 
   /// Gets and sets the connection timeout.
   ///
@@ -1540,7 +1539,7 @@ abstract class HttpClient {
    *
    * Default is `true`.
    */
-  bool autoUncompress;
+  bool autoUncompress = true;
 
   /// Gets and sets the default value of the `User-Agent` header for all requests
   /// generated by this [HttpClient].
@@ -1927,8 +1926,7 @@ abstract class HttpClientRequest implements IOSink {
    *
    * The default value is `true`.
    */
-  bool get persistentConnection;
-  void set persistentConnection(bool persistentConnection);
+  bool persistentConnection = true;
 
   /**
    * Whether to follow redirects automatically.
@@ -1950,8 +1948,7 @@ abstract class HttpClientRequest implements IOSink {
    * request(s). However, any body send with the request will not be
    * part of the redirection request(s).
    */
-  bool get followRedirects;
-  void set followRedirects(bool followRedirects);
+  bool followRedirects = true;
 
   /**
    * Set this property to the maximum number of redirects to follow
@@ -1960,8 +1957,7 @@ abstract class HttpClientRequest implements IOSink {
    *
    * The default value is 5.
    */
-  int get maxRedirects;
-  void set maxRedirects(int maxRedirects);
+  int maxRedirects = 5;
 
   /**
    * The method of the request.
@@ -1977,8 +1973,7 @@ abstract class HttpClientRequest implements IOSink {
   ///
   /// If the size of the request is not known in advance set content length to
   /// -1, which is also the default.
-  int get contentLength;
-  void set contentLength(int contentLength);
+  int contentLength = -1;
 
   /**
    * Gets or sets if the [HttpClientRequest] should buffer output.
@@ -1988,8 +1983,7 @@ abstract class HttpClientRequest implements IOSink {
    * __Note__: Disabling buffering of the output can result in very poor
    * performance, when writing many small chunks.
    */
-  bool get bufferOutput;
-  void set bufferOutput(bool bufferOutput);
+  bool bufferOutput = true;
 
   /**
    * Returns the client request headers.

@@ -11,6 +11,9 @@ convert/utf85_test: Skip # Pass, Slow Issue 20111.
 developer/timeline_test: Skip # Not supported
 isolate/issue_24243_parent_isolate_test: Skip # Requires checked mode
 
+[ $runtime == dart_precompiled ]
+isolate/package_config_getter_test: SkipByDesign # AOT mode doesn't preserve package structure.
+
 [ $runtime == ff ]
 convert/streamed_conversion_utf8_decode_test: Slow, Pass # Issue 12029
 mirrors/mirrors_reader_test: Slow, Pass # Issue 16589
@@ -23,6 +26,9 @@ html/transition_event_test: Skip # Times out. Issue 22167
 html/indexeddb_1_test/functional: Skip # Times out. Issue 21433
 html/indexeddb_3_test: Skip # Times out 1 out of 10.
 html/worker_api_test: Skip # Issue 13221
+
+[ $runtime != vm ]
+isolate/spawn_uri__package_uri__test: SkipByDesign # This test uses Isolate.spawnUri and only works in JIT mode.
 
 [ $system == windows ]
 html/xhr_test/xhr: Skip # Times out.  Issue 21527
@@ -48,13 +54,6 @@ convert/utf85_test: Skip # Pass, Slow Issue 12644.
 
 [ $arch != x64 || $compiler == dartkb || $runtime != vm ]
 isolate/int32_length_overflow_test: SkipSlow
-
-[ $compiler != none || $runtime != vm ]
-isolate/package_config_test: SkipByDesign # Uses Isolate.packageConfig
-isolate/package_resolve_test: SkipByDesign # Uses Isolate.resolvePackageUri
-isolate/package_root_test: SkipByDesign # Uses Isolate.packageRoot
-isolate/scenarios/*: SkipByDesign # Use automatic package resolution, spawnFunction and .dart URIs.
-isolate/spawn_uri_fail_test: SkipByDesign # Uses dart:io.
 
 [ $mode == product || $runtime != vm ]
 isolate/checked_test: Skip # Unsupported.
@@ -91,8 +90,15 @@ isolate/message_test: Skip # Isolate.spawnUri
 isolate/mint_maker_test: Skip # Isolate.spawnUri
 isolate/nested_spawn2_test: Skip # Isolate.spawnUri
 isolate/nested_spawn_test: Skip # Isolate.spawnUri
+isolate/nnbd_spawn_autodetect_test: Skip # Auto detect not for precompiled.
+isolate/nnbd_spawnuri_autodetect_test: Skip # Auto detect not for precompiled.
+isolate/no_package_test: Skip # Isolate.spawnUri
+isolate/package_config_test: Skip # Isolate.spawnUri
 isolate/raw_port_test: Skip # Isolate.spawnUri
 isolate/request_reply_test: Skip # Isolate.spawnUri
+isolate/scenarios/automatic_resolution_spec/package_resolve_test: Skip # Isolate.spawnUri
+isolate/scenarios/package_relative_spec/package_relative_spec_test: Skip # Isolate.spawnUri
+isolate/scenarios/short_package/short_package_test: Skip # Isolate.spawnUri
 isolate/spawn_function_custom_class_test: Skip # Isolate.spawnUri
 isolate/spawn_function_test: Skip # Isolate.spawnUri
 isolate/spawn_uri_exported_main_test: Skip # Isolate.spawnUri
@@ -105,6 +111,13 @@ isolate/spawn_uri_vm_test: Skip # Isolate.spawnUri
 isolate/stacktrace_message_test: Skip # Isolate.spawnUri
 isolate/static_function_test: Skip # Isolate.spawnUri
 isolate/unresolved_ports_test: Skip # Isolate.spawnUri
+
+[ $runtime != vm || $compiler != dartk && $compiler != none ]
+isolate/package_config_test: SkipByDesign # Uses Isolate.packageConfig
+isolate/package_resolve_test: SkipByDesign # Uses Isolate.resolvePackageUri
+isolate/package_root_test: SkipByDesign # Uses Isolate.packageRoot
+isolate/scenarios/*: SkipByDesign # Use automatic package resolution, spawnFunction and .dart URIs.
+isolate/spawn_uri_fail_test: SkipByDesign # Uses dart:io.
 
 [ $hot_reload || $hot_reload_rollback ]
 convert/chunked_conversion_utf88_test: SkipSlow

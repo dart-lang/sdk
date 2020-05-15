@@ -2,17 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*omit.class: global#Map:deps=[Class],needsArgs*/
-/*strong.class: global#Map:deps=[Class],explicit=[Map],indirect,needsArgs*/
+// @dart = 2.7
 
-/*omit.class: global#LinkedHashMap:deps=[Map],needsArgs*/
-/*strong.class: global#LinkedHashMap:deps=[Map],direct,explicit=[LinkedHashMap<LinkedHashMap.K,LinkedHashMap.V>],implicit=[LinkedHashMap.K,LinkedHashMap.V],needsArgs*/
+/*prod:nnbd-off.class: global#Map:deps=[Class],needsArgs*/
+/*spec:nnbd-off.class: global#Map:deps=[Class],explicit=[Map],indirect,needsArgs*/
 
-/*omit.class: global#JsLinkedHashMap:deps=[LinkedHashMap],implicit=[JsLinkedHashMap.K],needsArgs*/
-/*strong.class: global#JsLinkedHashMap:deps=[LinkedHashMap],direct,explicit=[JsLinkedHashMap.K,JsLinkedHashMap.V,void Function(JsLinkedHashMap.K,JsLinkedHashMap.V)],implicit=[JsLinkedHashMap.K,JsLinkedHashMap.V],needsArgs*/
+/*prod:nnbd-off.class: global#LinkedHashMap:deps=[Map],needsArgs*/
+/*spec:nnbd-off.class: global#LinkedHashMap:deps=[Map],direct,explicit=[LinkedHashMap<LinkedHashMap.K,LinkedHashMap.V>],implicit=[LinkedHashMap.K,LinkedHashMap.V],needsArgs*/
 
-/*omit.class: global#double:explicit=[double]*/
-/*strong.class: global#double:explicit=[double],implicit=[double]*/
+/*prod:nnbd-off.class: global#JsLinkedHashMap:deps=[LinkedHashMap],implicit=[JsLinkedHashMap.K],needsArgs*/
+/*spec:nnbd-off.class: global#JsLinkedHashMap:deps=[LinkedHashMap],direct,explicit=[JsLinkedHashMap.K,JsLinkedHashMap.V,void Function(JsLinkedHashMap.K,JsLinkedHashMap.V)],implicit=[JsLinkedHashMap.K,JsLinkedHashMap.V],needsArgs*/
+
+/*prod:nnbd-off.class: global#double:explicit=[double]*/
+/*spec:nnbd-off.class: global#double:explicit=[double],implicit=[double]*/
 
 /*class: global#JSDouble:*/
 
@@ -23,8 +25,8 @@ main() {
   set is Set<String>;
 }
 
-/*omit.class: Class:needsArgs*/
-/*strong.class: Class:implicit=[Class.S,Class.T],indirect,needsArgs*/
+/*prod:nnbd-off|prod:nnbd-sdk.class: Class:needsArgs*/
+/*spec:nnbd-off|spec:nnbd-sdk.class: Class:implicit=[Class.S,Class.T],indirect,needsArgs*/
 class Class<T, S> {
   m() {
     return <T, S>{};

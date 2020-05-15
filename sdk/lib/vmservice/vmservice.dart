@@ -49,7 +49,8 @@ final String serviceAuthToken = _makeAuthToken();
 final Map<int, IsolateEmbedderData> isolateEmbedderData =
     new Map<int, IsolateEmbedderData>();
 
-// These must be kept in sync with the declarations in vm/json_stream.h.
+// These must be kept in sync with the declarations in vm/json_stream.h and
+// pkg/dds/lib/src/stream_manager.dart.
 const kParseError = -32700;
 const kInvalidRequest = -32600;
 const kMethodNotFound = -32601;
@@ -178,6 +179,10 @@ typedef Future<Uri> ServerInformationCallback();
 /// Called when we want to [enable] or disable the web server.
 typedef Future<Uri> WebServerControlCallback(bool enable);
 
+/// Called when we want to [enable] or disable new websocket connections to the
+/// server.
+typedef void WebServerAcceptNewWebSocketConnectionsCallback(bool enable);
+
 /// Hooks that are setup by the embedder.
 class VMServiceEmbedderHooks {
   static ServerStartCallback serverStart;
@@ -191,6 +196,8 @@ class VMServiceEmbedderHooks {
   static ListFilesCallback listFiles;
   static ServerInformationCallback serverInformation;
   static WebServerControlCallback webServerControl;
+  static WebServerAcceptNewWebSocketConnectionsCallback
+      acceptNewWebSocketConnections;
 }
 
 class _ClientResumePermissions {
@@ -222,6 +229,33 @@ class VMService extends MessageRouter {
   final RawReceivePort eventPort;
 
   final devfs = new DevFS();
+
+  Uri get ddsUri => _ddsUri;
+  Uri _ddsUri;
+
+  Future<String> _yieldControlToDDS(Message message) async {
+    final acceptNewWebSocketConnections =
+        VMServiceEmbedderHooks.acceptNewWebSocketConnections;
+    if (acceptNewWebSocketConnections == null) {
+      return encodeRpcError(message, kFeatureDisabled,
+          details:
+              'Embedder does not support yielding to a VM service intermediary.');
+    }
+    final uri = message.params['uri'];
+    if (uri == null) {
+      return encodeMissingParamError(message, 'uri');
+    }
+    // DDS can only take control if there is no other clients connected
+    // directly to the VM service.
+    if (clients.length > 1) {
+      return encodeRpcError(message, kFeatureDisabled,
+          details:
+              'Existing VM service clients prevent DDS from taking control.');
+    }
+    acceptNewWebSocketConnections(false);
+    _ddsUri = Uri.parse(uri);
+    return encodeSuccess(message);
+  }
 
   void _clearClientName(Client client) {
     final name = client.name;
@@ -360,6 +394,16 @@ class VMService extends MessageRouter {
     // Complete all requests as failed
     for (var handle in client.serviceHandles.values) {
       handle(null);
+    }
+    if (clients.isEmpty) {
+      // If DDS was connected, we are in single client mode and need to
+      // allow for new websocket connections.
+      final acceptNewWebSocketConnections =
+          VMServiceEmbedderHooks.acceptNewWebSocketConnections;
+      if (_ddsUri != null && acceptNewWebSocketConnections != null) {
+        acceptNewWebSocketConnections(true);
+        _ddsUri = null;
+      }
     }
   }
 
@@ -670,45 +714,6 @@ class VMService extends MessageRouter {
         details: "Unknown service: ${message.method}");
   }
 
-  Future<String> _spawnUri(Message message) async {
-    var token = message.params['token'];
-    if (token == null) {
-      return encodeMissingParamError(message, 'token');
-    }
-    if (token is! String) {
-      return encodeInvalidParamError(message, 'token');
-    }
-    var uri = message.params['uri'];
-    if (uri == null) {
-      return encodeMissingParamError(message, 'uri');
-    }
-    if (uri is! String) {
-      return encodeInvalidParamError(message, 'uri');
-    }
-    var args = message.params['args'];
-    var argsOfString = new List<String>();
-    if (args != null) {
-      if (args is! List) {
-        return encodeInvalidParamError(message, 'args');
-      }
-      for (var arg in args) {
-        if (arg is! String) {
-          return encodeInvalidParamError(message, 'args');
-        }
-        argsOfString.add(arg);
-      }
-    }
-    var msg = message.params['message'];
-
-    Isolate.spawnUri(Uri.parse(uri), argsOfString, msg).then((isolate) {
-      _spawnUriNotify(isolate.controlPort, token);
-    }).catchError((e) {
-      _spawnUriNotify(e.toString(), token);
-    });
-
-    return encodeSuccess(message);
-  }
-
   Future<Response> routeRequest(VMService _, Message message) async {
     final response = await _routeRequestImpl(message);
     if (response == null) {
@@ -724,6 +729,9 @@ class VMService extends MessageRouter {
       if (message.completed) {
         return await message.response;
       }
+      if (message.method == '_yieldControlToDDS') {
+        return await _yieldControlToDDS(message);
+      }
       if (message.method == 'streamListen') {
         return await _streamListen(message);
       }
@@ -732,9 +740,6 @@ class VMService extends MessageRouter {
       }
       if (message.method == 'registerService') {
         return await _registerService(message);
-      }
-      if (message.method == '_spawnUri') {
-        return await _spawnUri(message);
       }
       if (message.method == 'setClientName') {
         return _setClientName(message);
@@ -801,6 +806,3 @@ void _vmCancelStream(String streamId) native "VMService_CancelStream";
 
 /// Get the bytes to the tar archive.
 Uint8List _requestAssets() native "VMService_RequestAssets";
-
-/// Notify the vm service that an isolate has been spawned via rpc.
-void _spawnUriNotify(obj, String token) native "VMService_spawnUriNotify";

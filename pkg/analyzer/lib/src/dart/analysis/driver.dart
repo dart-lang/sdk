@@ -91,7 +91,7 @@ typedef WorkToWaitAfterComputingResult = Future<void> Function(String path);
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 98;
+  static const int DATA_VERSION = 101;
 
   /// The length of the list returned by [_computeDeclaredVariablesSignature].
   static const int _declaredVariablesSignatureLength = 4;
@@ -445,7 +445,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _unitElementRequestedParts.isNotEmpty) {
       return AnalysisDriverPriority.general;
     }
-    _libraryContext = null;
+    _clearLibraryContext();
     return AnalysisDriverPriority.nothing;
   }
 
@@ -555,9 +555,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// This method does not use analysis priorities, and must not be used in
   /// interactive analysis, such as Analysis Server or its plugins.
   Future<ErrorsResult> getErrors(String path) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     _throwIfNotAbsolutePath(path);
+    if (!_fsState.hasUri(path)) {
+      return null;
+    }
 
     // Ask the analysis result without unit, so return cached errors.
     // If no cached analysis result, it will be computed.
@@ -905,8 +906,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// produced through the [results] stream (just because it is not a fully
   /// resolved unit).
   Future<ParsedUnitResult> parseFile(String path) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     return parseFileSync(path);
   }
 
@@ -930,8 +929,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   @override
   Future<void> performWork() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     if (_fileTracker.verifyChangedFilesIfNeeded()) {
       return;
     }
@@ -956,6 +953,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _fileTracker.fileWasAnalyzed(path);
         _resultController.add(result);
       } catch (exception, stackTrace) {
+        _reportException(path, exception, stackTrace);
         _fileTracker.fileWasAnalyzed(path);
         _requestedFiles.remove(path).forEach((completer) {
           completer.completeError(exception, stackTrace);
@@ -1115,6 +1113,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _partsToAnalyze.remove(path);
         _resultController.add(result);
       } catch (exception, stackTrace) {
+        _reportException(path, exception, stackTrace);
         _partsToAnalyze.remove(path);
         _requestedParts.remove(path).forEach((completer) {
           completer.completeError(exception, stackTrace);
@@ -1174,7 +1173,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _throwIfNotAbsolutePath(path);
     _throwIfChangesAreNotAllowed();
     _fileTracker.removeFile(path);
-    _libraryContext = null;
+    _clearLibraryContext();
     _priorityResults.clear();
   }
 
@@ -1189,7 +1188,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Implementation for [changeFile].
   void _changeFile(String path) {
     _fileTracker.changeFile(path);
-    _libraryContext = null;
+    _clearLibraryContext();
     _priorityResults.clear();
   }
 
@@ -1197,9 +1196,19 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// of state.
   void _changeHook(String path) {
     _createNewSession(path);
-    _libraryContext = null;
+    _clearLibraryContext();
     _priorityResults.clear();
     _scheduler.notify(this);
+  }
+
+  /// Clear the library context and any related data structures. Mostly we do
+  /// this to reduce memory consumption. The library context holds to every
+  /// library that was resynthesized, but after some initial analysis we might
+  /// not get again to many of these libraries. So, we should clear the context
+  /// periodically.
+  void _clearLibraryContext() {
+    _libraryContext = null;
+    _currentSession.clearHierarchies();
   }
 
   /// There was an exception during a file analysis, we don't know why.
@@ -1207,7 +1216,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// the library context state. Reset the library context, and hope that
   /// we will solve the inconsistency while loading / building summaries.
   void _clearLibraryContextAfterException() {
-    _libraryContext = null;
+    _clearLibraryContext();
   }
 
   /// Return the cached or newly computed analysis result of the file with the
@@ -1297,7 +1306,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
             libraryContext.isLibraryUri,
             libraryContext.analysisContext,
             libraryContext.elementFactory,
-            libraryContext.inheritanceManager,
+            libraryContext.analysisSession.inheritanceManager,
             library,
             _resourceProvider,
             testingData: testingData);
@@ -1380,7 +1389,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           libraryContext.isLibraryUri,
           libraryContext.analysisContext,
           libraryContext.elementFactory,
-          libraryContext.inheritanceManager,
+          libraryContext.analysisSession.inheritanceManager,
           library,
           _resourceProvider,
           testingData: testingData);
@@ -1498,7 +1507,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   LibraryContext _createLibraryContext(FileState library) {
     if (_libraryContext != null) {
       if (_libraryContext.pack()) {
-        _libraryContext = null;
+        _clearLibraryContext();
       }
     }
 
@@ -1507,7 +1516,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _libraryContext = LibraryContext(
           session: currentSession,
           logger: _logger,
-          fsState: fsState,
           byteStore: _byteStore,
           analysisOptions: _analysisOptions,
           declaredVariables: declaredVariables,
@@ -1589,35 +1597,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       FileState file, List<AnalysisDriverUnitError> serialized) {
     List<AnalysisError> errors = <AnalysisError>[];
     for (AnalysisDriverUnitError error in serialized) {
-      String errorName = error.uniqueName;
-      ErrorCode errorCode =
-          errorCodeByUniqueName(errorName) ?? _lintCodeByUniqueName(errorName);
-      if (errorCode == null) {
-        // This could fail because the error code is no longer defined, or, in
-        // the case of a lint rule, if the lint rule has been disabled since the
-        // errors were written.
-        AnalysisEngine.instance.instrumentationService
-            .logError('No error code for "$error" in "$file"');
-      } else {
-        List<DiagnosticMessageImpl> contextMessages;
-        if (error.contextMessages.isNotEmpty) {
-          contextMessages = <DiagnosticMessageImpl>[];
-          for (var message in error.contextMessages) {
-            contextMessages.add(DiagnosticMessageImpl(
-                filePath: message.filePath,
-                length: message.length,
-                message: message.message,
-                offset: message.offset));
-          }
-        }
-        errors.add(AnalysisError.forValues(
-            file.source,
-            error.offset,
-            error.length,
-            errorCode,
-            error.message,
-            error.correction.isEmpty ? null : error.correction,
-            contextMessages: contextMessages ?? const []));
+      var analysisError = ErrorEncoding.decode(file.source, error);
+      if (analysisError != null) {
+        errors.add(analysisError);
       }
     }
     return errors;
@@ -1636,24 +1618,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     signature.addString(library.transitiveSignature);
     signature.addString(file.contentHash);
     return signature.toHex();
-  }
-
-  /// Return the lint code with the given [errorName], or `null` if there is no
-  /// lint registered with that name.
-  ErrorCode _lintCodeByUniqueName(String errorName) {
-    const String lintPrefix = 'LintCode.';
-    if (errorName.startsWith(lintPrefix)) {
-      String lintName = errorName.substring(lintPrefix.length);
-      return linter.Registry.ruleRegistry.getRule(lintName)?.lintCode;
-    }
-
-    const String lintPrefixOld = '_LintCode.';
-    if (errorName.startsWith(lintPrefixOld)) {
-      String lintName = errorName.substring(lintPrefixOld.length);
-      return linter.Registry.ruleRegistry.getRule(lintName)?.lintCode;
-    }
-
-    return null;
   }
 
   /// We detected that one of the required `dart` libraries is missing.
@@ -1706,24 +1670,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         : AnalysisDriverUnitIndexBuilder();
     return AnalysisDriverResolvedUnitBuilder(
             errors: errors.map((error) {
-              List<DiagnosticMessageBuilder> contextMessages;
-              if (error.contextMessages != null) {
-                contextMessages = <DiagnosticMessageBuilder>[];
-                for (var message in error.contextMessages) {
-                  contextMessages.add(DiagnosticMessageBuilder(
-                      filePath: message.filePath,
-                      length: message.length,
-                      message: message.message,
-                      offset: message.offset));
-                }
-              }
-              return AnalysisDriverUnitErrorBuilder(
-                  offset: error.offset,
-                  length: error.length,
-                  uniqueName: error.errorCode.uniqueName,
-                  message: error.message,
-                  correction: error.correction,
-                  contextMessages: contextMessages);
+              return ErrorEncoding.encode(error);
             }).toList(),
             index: index)
         .toBuffer();
@@ -2116,6 +2063,94 @@ abstract class DriverWatcher {
 
   /// The context manager has just removed the given analysis [driver].
   void removedDriver(AnalysisDriver driver);
+}
+
+class ErrorEncoding {
+  static AnalysisError decode(
+    Source source,
+    AnalysisDriverUnitError error,
+  ) {
+    String errorName = error.uniqueName;
+    ErrorCode errorCode =
+        errorCodeByUniqueName(errorName) ?? _lintCodeByUniqueName(errorName);
+    if (errorCode == null) {
+      // This could fail because the error code is no longer defined, or, in
+      // the case of a lint rule, if the lint rule has been disabled since the
+      // errors were written.
+      AnalysisEngine.instance.instrumentationService
+          .logError('No error code for "$error" in "$source"');
+      return null;
+    }
+
+    List<DiagnosticMessageImpl> contextMessages;
+    if (error.contextMessages.isNotEmpty) {
+      contextMessages = <DiagnosticMessageImpl>[];
+      for (var message in error.contextMessages) {
+        contextMessages.add(
+          DiagnosticMessageImpl(
+            filePath: message.filePath,
+            length: message.length,
+            message: message.message,
+            offset: message.offset,
+          ),
+        );
+      }
+    }
+
+    return AnalysisError.forValues(
+      source,
+      error.offset,
+      error.length,
+      errorCode,
+      error.message,
+      error.correction.isEmpty ? null : error.correction,
+      contextMessages: contextMessages ?? const [],
+    );
+  }
+
+  static AnalysisDriverUnitErrorBuilder encode(AnalysisError error) {
+    List<DiagnosticMessageBuilder> contextMessages;
+    if (error.contextMessages != null) {
+      contextMessages = <DiagnosticMessageBuilder>[];
+      for (var message in error.contextMessages) {
+        contextMessages.add(
+          DiagnosticMessageBuilder(
+            filePath: message.filePath,
+            length: message.length,
+            message: message.message,
+            offset: message.offset,
+          ),
+        );
+      }
+    }
+
+    return AnalysisDriverUnitErrorBuilder(
+      offset: error.offset,
+      length: error.length,
+      uniqueName: error.errorCode.uniqueName,
+      message: error.message,
+      correction: error.correction,
+      contextMessages: contextMessages,
+    );
+  }
+
+  /// Return the lint code with the given [errorName], or `null` if there is no
+  /// lint registered with that name.
+  static ErrorCode _lintCodeByUniqueName(String errorName) {
+    const String lintPrefix = 'LintCode.';
+    if (errorName.startsWith(lintPrefix)) {
+      String lintName = errorName.substring(lintPrefix.length);
+      return linter.Registry.ruleRegistry.getRule(lintName)?.lintCode;
+    }
+
+    const String lintPrefixOld = '_LintCode.';
+    if (errorName.startsWith(lintPrefixOld)) {
+      String lintName = errorName.substring(lintPrefixOld.length);
+      return linter.Registry.ruleRegistry.getRule(lintName)?.lintCode;
+    }
+
+    return null;
+  }
 }
 
 /// Exception that happened during analysis.

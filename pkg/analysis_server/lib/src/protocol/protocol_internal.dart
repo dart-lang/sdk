@@ -25,8 +25,8 @@ void addAllEditsForSource(
 
 /// Adds the given [sourceEdit] to the list in [sourceFileEdit].
 void addEditForSource(SourceFileEdit sourceFileEdit, SourceEdit sourceEdit) {
-  List<SourceEdit> edits = sourceFileEdit.edits;
-  int index = 0;
+  var edits = sourceFileEdit.edits;
+  var index = 0;
   while (index < edits.length && edits[index].offset > sourceEdit.offset) {
     index++;
   }
@@ -36,7 +36,7 @@ void addEditForSource(SourceFileEdit sourceFileEdit, SourceEdit sourceEdit) {
 /// Adds [edit] to the [FileEdit] for the given [file].
 void addEditToSourceChange(
     SourceChange change, String file, int fileStamp, SourceEdit edit) {
-  SourceFileEdit fileEdit = change.getFileEdit(file);
+  var fileEdit = change.getFileEdit(file);
   if (fileEdit == null) {
     fileEdit = SourceFileEdit(file, fileStamp);
     change.addFileEdit(fileEdit);
@@ -65,7 +65,7 @@ String applySequenceOfEdits(String code, Iterable<SourceEdit> edits) {
 
 /// Returns the [FileEdit] for the given [file], maybe `null`.
 SourceFileEdit getChangeFileEdit(SourceChange change, String file) {
-  for (SourceFileEdit fileEdit in change.edits) {
+  for (var fileEdit in change.edits) {
     if (fileEdit.file == file) {
       return fileEdit;
     }
@@ -86,7 +86,7 @@ bool listEqual<T1, T2>(
   if (listA.length != listB.length) {
     return false;
   }
-  for (int i = 0; i < listA.length; i++) {
+  for (var i = 0; i < listA.length; i++) {
     if (!itemEqual(listA[i], listB[i])) {
       return false;
     }
@@ -166,7 +166,7 @@ RefactoringProblemSeverity maxRefactoringProblemSeverity(
 /// Create a [RefactoringFeedback] corresponding the given [kind].
 RefactoringFeedback refactoringFeedbackFromJson(
     JsonDecoder jsonDecoder, String jsonPath, Object json, Map feedbackJson) {
-  RefactoringKind kind = jsonDecoder.refactoringKind;
+  var kind = jsonDecoder.refactoringKind;
   if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
     return ExtractLocalVariableFeedback.fromJson(jsonDecoder, jsonPath, json);
   }
@@ -240,7 +240,7 @@ class RequestDecoder extends JsonDecoder {
 
   @override
   dynamic mismatch(String jsonPath, String expected, [Object actual]) {
-    StringBuffer buffer = StringBuffer();
+    var buffer = StringBuffer();
     buffer.write('Expected to be ');
     buffer.write(expected);
     if (actual != null) {
@@ -275,7 +275,7 @@ class ResponseDecoder extends JsonDecoder {
 
   @override
   dynamic mismatch(String jsonPath, String expected, [Object actual]) {
-    StringBuffer buffer = StringBuffer();
+    var buffer = StringBuffer();
     buffer.write('Expected ');
     buffer.write(expected);
     if (actual != null) {

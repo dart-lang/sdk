@@ -1,0 +1,7 @@
+library test;
+
+var x = 1;
+var a = 'aaa';
+var b = 'b ${x} bb';
+var c = 'c ${x} cc' 'ccc';
+main() {}

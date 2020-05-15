@@ -211,6 +211,20 @@ class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
   }
 }
 
+class QemuConfig {
+  static const all = <Architecture, QemuConfig>{
+    Architecture.arm:
+        QemuConfig('qemu-arm', ['-L', '/usr/arm-linux-gnueabihf/']),
+    Architecture.arm64:
+        QemuConfig('qemu-aarch64', ['-L', '/usr/aarch64-linux-gnu/']),
+  };
+
+  final String executable;
+  final List<String> arguments;
+
+  const QemuConfig(this.executable, this.arguments);
+}
+
 /// Common runtime configuration for runtimes based on the Dart VM.
 class DartVmRuntimeConfiguration extends RuntimeConfiguration {
   DartVmRuntimeConfiguration() : super._subclass();
@@ -243,6 +257,9 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
     if (isReload) {
       multiplier *= 2;
     }
+    if (_configuration.sanitizer != Sanitizer.none) {
+      multiplier *= 2;
+    }
     return multiplier;
   }
 }
@@ -272,8 +289,10 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
       executable = dartVmExecutableFileName;
     }
     if (_configuration.useQemu) {
-      arguments.insertAll(0, ['-L', '/usr/arm-linux-gnueabihf/', executable]);
-      executable = 'qemu-arm';
+      final config = QemuConfig.all[_configuration.architecture];
+      arguments.insert(0, executable);
+      arguments.insertAll(0, config.arguments);
+      executable = config.executable;
     }
     return [VMCommand(executable, arguments, environmentOverrides)];
   }
@@ -298,8 +317,10 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
     var executable = dartPrecompiledBinaryFileName;
 
     if (_configuration.useQemu) {
-      arguments.insertAll(0, ['-L', '/usr/arm-linux-gnueabihf/', executable]);
-      executable = 'qemu-arm';
+      final config = QemuConfig.all[_configuration.architecture];
+      arguments.insert(0, executable);
+      arguments.insertAll(0, config.arguments);
+      executable = config.executable;
     }
 
     return [VMCommand(executable, arguments, environmentOverrides)];

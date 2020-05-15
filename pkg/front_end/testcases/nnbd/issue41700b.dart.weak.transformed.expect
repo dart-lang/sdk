@@ -1,0 +1,49 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue41700b.dart:8:12: Error: A value of type 'Null/*1*/' can't be assigned to a variable of type 'Null/*2*/'.
+//  - 'Null/*1*/' is from 'dart:core'.
+//  - 'Null/*2*/' is from 'pkg/front_end/testcases/nnbd/issue41700b.dart'.
+//   Null x = null;
+//            ^
+//
+// pkg/front_end/testcases/nnbd/issue41700b.dart:9:5: Error: The method 'foo' isn't defined for the class 'Null'.
+//  - 'Null' is from 'pkg/front_end/testcases/nnbd/issue41700b.dart'.
+// Try correcting the name to the name of an existing method, or defining a method named 'foo'.
+//   x.foo();
+//     ^^^
+//
+// pkg/front_end/testcases/nnbd/issue41700b.dart:11:5: Error: The method 'foo' isn't defined for the class 'Null?'.
+//  - 'Null' is from 'pkg/front_end/testcases/nnbd/issue41700b.dart'.
+// Try correcting the name to the name of an existing method, or defining a method named 'foo'.
+//   y.foo();
+//     ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Null extends core::Object {
+  synthetic constructor •() → self::Null
+    : super core::Object::•()
+    ;
+}
+static method test() → dynamic {
+  self::Null x = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/issue41700b.dart:8:12: Error: A value of type 'Null/*1*/' can't be assigned to a variable of type 'Null/*2*/'.
+ - 'Null/*1*/' is from 'dart:core'.
+ - 'Null/*2*/' is from 'pkg/front_end/testcases/nnbd/issue41700b.dart'.
+  Null x = null;
+           ^" in null as{TypeError,ForNonNullableByDefault} self::Null;
+  invalid-expression "pkg/front_end/testcases/nnbd/issue41700b.dart:9:5: Error: The method 'foo' isn't defined for the class 'Null'.
+ - 'Null' is from 'pkg/front_end/testcases/nnbd/issue41700b.dart'.
+Try correcting the name to the name of an existing method, or defining a method named 'foo'.
+  x.foo();
+    ^^^";
+  self::Null? y = null;
+  invalid-expression "pkg/front_end/testcases/nnbd/issue41700b.dart:11:5: Error: The method 'foo' isn't defined for the class 'Null?'.
+ - 'Null' is from 'pkg/front_end/testcases/nnbd/issue41700b.dart'.
+Try correcting the name to the name of an existing method, or defining a method named 'foo'.
+  y.foo();
+    ^^^";
+}
+static method main() → dynamic {}

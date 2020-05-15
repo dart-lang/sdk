@@ -1,0 +1,9 @@
+// @dart = 2.6
+import './mixed_mode_hierarchy_generic_methods_lib.dart';
+import "dart:async";
+
+class B implements A<int> {
+  then<B>() => Future<B>.value();
+}
+
+main() {}

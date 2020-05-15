@@ -6,7 +6,6 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -21,31 +20,30 @@ class ExchangeOperands extends CorrectionProducer {
     if (node is! BinaryExpression) {
       return;
     }
-    BinaryExpression binaryExpression = node as BinaryExpression;
+    var binaryExpression = node as BinaryExpression;
     // prepare operator position
     if (!isOperatorSelected(binaryExpression)) {
       return;
     }
     // add edits
-    Expression leftOperand = binaryExpression.leftOperand;
-    Expression rightOperand = binaryExpression.rightOperand;
+    var leftOperand = binaryExpression.leftOperand;
+    var rightOperand = binaryExpression.rightOperand;
     // find "wide" enclosing binary expression with same operator
     while (binaryExpression.parent is BinaryExpression) {
-      BinaryExpression newBinaryExpression =
-          binaryExpression.parent as BinaryExpression;
+      var newBinaryExpression = binaryExpression.parent as BinaryExpression;
       if (newBinaryExpression.operator.type != binaryExpression.operator.type) {
         break;
       }
       binaryExpression = newBinaryExpression;
     }
     // exchange parts of "wide" expression parts
-    SourceRange leftRange = range.startEnd(binaryExpression, leftOperand);
-    SourceRange rightRange = range.startEnd(rightOperand, binaryExpression);
+    var leftRange = range.startEnd(binaryExpression, leftOperand);
+    var rightRange = range.startEnd(rightOperand, binaryExpression);
     // maybe replace the operator
-    Token operator = binaryExpression.operator;
+    var operator = binaryExpression.operator;
     // prepare a new operator
     String newOperator;
-    TokenType operatorType = operator.type;
+    var operatorType = operator.type;
     if (operatorType == TokenType.LT) {
       newOperator = '>';
     } else if (operatorType == TokenType.LT_EQ) {

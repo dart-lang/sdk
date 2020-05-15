@@ -5,7 +5,7 @@
 import 'dart:async';
 
 import 'package:observatory/cli.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 class TestCommand extends Command {
   TestCommand(this.out, name, children) : super(name, children);
@@ -143,24 +143,22 @@ void testCommandComplete() {
   });
 }
 
-void testCommandRunSimple() {
+testCommandRunSimple() async {
   // Run a simple command.
   StringBuffer out = new StringBuffer();
   RootCommand cmd =
       new RootCommand([new TestCommand(out, 'alpha', <Command>[])]);
 
   // Full name dispatch works.  Argument passing works.
-  cmd.runCommand('alpha dog').then(expectAsync((_) {
-    expect(out.toString(), contains('executing alpha([dog])\n'));
-    out.clear();
-    // Substring dispatch works.
-    cmd.runCommand('al cat mouse').then(expectAsync((_) {
-      expect(out.toString(), contains('executing alpha([cat , mouse])\n'));
-    }));
-  }));
+  await cmd.runCommand('alpha dog');
+  expect(out.toString(), contains('executing alpha([dog])\n'));
+  out.clear();
+  // Substring dispatch works.
+  await cmd.runCommand('al cat mouse');
+  expect(out.toString(), contains('executing alpha([cat , mouse])\n'));
 }
 
-void testCommandRunSubcommand() {
+testCommandRunSubcommand() async {
   // Run a simple command.
   StringBuffer out = new StringBuffer();
   RootCommand cmd = new RootCommand([
@@ -170,27 +168,29 @@ void testCommandRunSubcommand() {
     ])
   ]);
 
-  cmd.runCommand('a b').then(expectAsync((_) {
-    expect(out.toString(), equals('executing beta([])\n'));
-    out.clear();
-    cmd.runCommand('alpha g ').then(expectAsync((_) {
-      expect(out.toString(), equals('executing gamma([])\n'));
-    }));
-  }));
+  await cmd.runCommand('a b');
+  expect(out.toString(), equals('executing beta([])\n'));
+  out.clear();
+  await cmd.runCommand('alpha g ');
+  expect(out.toString(), equals('executing gamma([])\n'));
 }
 
-void testCommandRunNotFound() {
+testCommandRunNotFound() async {
   // Run a simple command.
   StringBuffer out = new StringBuffer();
   RootCommand cmd =
       new RootCommand([new TestCommand(out, 'alpha', <Command>[])]);
 
-  cmd.runCommand('goose').catchError(expectAsync((e) {
-    expect(e.toString(), equals("No such command: 'goose'"));
-  }));
+  dynamic e;
+  try {
+    await cmd.runCommand('goose');
+  } catch (ex) {
+    e = ex;
+  }
+  expect(e.toString(), equals("No such command: 'goose'"));
 }
 
-void testCommandRunAmbiguous() {
+testCommandRunAmbiguous() async {
   // Run a simple command.
   StringBuffer out = new StringBuffer();
   RootCommand cmd = new RootCommand([
@@ -198,16 +198,20 @@ void testCommandRunAmbiguous() {
     new TestCommand(out, 'ankle', <Command>[])
   ]);
 
-  cmd.runCommand('a 55').catchError(expectAsync((e) {
-    expect(e.toString(), equals("Command 'a 55' is ambiguous: [alpha, ankle]"));
-    out.clear();
-    cmd.runCommand('ankl 55').then(expectAsync((_) {
-      expect(out.toString(), equals('executing ankle([55])\n'));
-    }));
-  }));
+  dynamic e;
+  try {
+    await cmd.runCommand('a 55');
+  } catch (ex) {
+    e = ex;
+  }
+  expect(e.toString(), equals("Command 'a 55' is ambiguous: [alpha, ankle]"));
+  out.clear();
+
+  await cmd.runCommand('ankl 55');
+  expect(out.toString(), equals('executing ankle([55])\n'));
 }
 
-void testCommandRunAlias() {
+testCommandRunAlias() async {
   // Run a simple command.
   StringBuffer out = new StringBuffer();
   var aliasCmd = new TestCommand(out, 'alpha', <Command>[]);
@@ -215,9 +219,8 @@ void testCommandRunAlias() {
   RootCommand cmd =
       new RootCommand([aliasCmd, new TestCommand(out, 'ankle', <Command>[])]);
 
-  cmd.runCommand('a 55').then(expectAsync((_) {
-    expect(out.toString(), equals('executing alpha([55])\n'));
-  }));
+  await cmd.runCommand('a 55');
+  expect(out.toString(), equals('executing alpha([55])\n'));
 }
 
 main() {

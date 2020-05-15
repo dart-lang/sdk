@@ -11,6 +11,8 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// "Mini AST" representation of a declaration which can accept annotations.
 class AnnotatedNode {
@@ -475,6 +477,7 @@ class MiniAstBuilder extends StackListener {
 
   @override
   void endTopLevelFields(
+      Token externalToken,
       Token staticToken,
       Token covariantToken,
       Token lateToken,
@@ -615,16 +618,32 @@ class MiniAstBuilder extends StackListener {
   void reportErrorIfNullableType(Token questionMark) {
     if (questionMark != null) {
       assert(optional('?', questionMark));
+      var feature = ExperimentalFeatures.non_nullable;
       handleRecoverableError(
-          templateExperimentNotEnabled.withArguments('non-nullable'),
-          questionMark,
-          questionMark);
+        templateExperimentNotEnabled.withArguments(
+          feature.enableString,
+          _versionAsString(ExperimentStatus.currentVersion),
+        ),
+        questionMark,
+        questionMark,
+      );
     }
   }
 
   void reportNonNullAssertExpressionNotEnabled(Token bang) {
+    var feature = ExperimentalFeatures.non_nullable;
     handleRecoverableError(
-        templateExperimentNotEnabled.withArguments('non-nullable'), bang, bang);
+      templateExperimentNotEnabled.withArguments(
+        feature.enableString,
+        _versionAsString(ExperimentStatus.currentVersion),
+      ),
+      bang,
+      bang,
+    );
+  }
+
+  static String _versionAsString(Version version) {
+    return '${version.major}.${version.minor}.${version.patch}';
   }
 }
 

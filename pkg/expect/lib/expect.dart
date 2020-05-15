@@ -10,6 +10,12 @@ library expect;
 
 import 'package:meta/meta.dart';
 
+/// Whether the program is running with weak null safety checking.
+bool get isWeakMode => const <Null>[] is List<Object>;
+
+/// Whether the program is running with strong null safety checking.
+bool get isStrongMode => !isWeakMode;
+
 /**
  * Expect is used for tests that do not want to make use of the
  * Dart unit test library - for example, the core language tests.
@@ -490,7 +496,7 @@ class Expect {
    *
    * If the objects are iterables or maps, recurses into them.
    */
-  static void deepEquals(Object expected, Object actual) {
+  static void deepEquals(dynamic expected, dynamic actual) {
     // Early exit check for equality.
     if (expected == actual) return;
 
@@ -560,8 +566,10 @@ class Expect {
     // TODO(vsm): Make check and reason nullable or change call sites.
     // Existing tests pass null to set a reason and/or pass them through
     // via helpers.
-    check ??= _defaultCheck;
-    reason ??= "";
+    // TODO(rnystrom): Using the strange form below instead of "??=" to avoid
+    // warnings of unnecessary null checks when analyzed as NNBD code.
+    if ((check as dynamic) == null) check = _defaultCheck;
+    if ((reason as dynamic) == null) reason = "";
     String msg = reason.isEmpty ? "" : "($reason)";
     if (f is! Function()) {
       // Only throws from executing the function body should count as throwing.
@@ -570,7 +578,7 @@ class Expect {
     }
     try {
       f();
-    } on Object catch (e, s) {
+    } catch (e, s) {
       // A test failure doesn't count as throwing.
       if (e is ExpectException) rethrow;
       if (e is T && check(e as dynamic)) return;

@@ -4,8 +4,6 @@
 
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart'
-    hide AnalysisError;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -28,7 +26,7 @@ abstract class FixContributorMixin implements FixContributor {
   /// [args] to populate the message.
   void addFix(AnalysisError error, FixKind kind, ChangeBuilder builder,
       {List<Object> args}) {
-    SourceChange change = builder.sourceChange;
+    var change = builder.sourceChange;
     if (change.edits.isEmpty) {
       return;
     }
@@ -42,7 +40,7 @@ abstract class FixContributorMixin implements FixContributor {
     this.request = request;
     this.collector = collector;
     try {
-      for (AnalysisError error in request.errorsToFix) {
+      for (var error in request.errorsToFix) {
         computeFixesForError(error);
       }
     } finally {

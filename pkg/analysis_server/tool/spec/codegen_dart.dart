@@ -17,15 +17,15 @@ class DartCodegenVisitor extends HierarchicalApiVisitor {
   /// Convert the given [TypeDecl] to a Dart type.
   String dartType(TypeDecl type) {
     if (type is TypeReference) {
-      String typeName = type.typeName;
-      TypeDefinition referencedDefinition = api.types[typeName];
+      var typeName = type.typeName;
+      var referencedDefinition = api.types[typeName];
       if (_typeRenames.containsKey(typeName)) {
         return _typeRenames[typeName];
       }
       if (referencedDefinition == null) {
         return typeName;
       }
-      TypeDecl referencedType = referencedDefinition.type;
+      var referencedType = referencedDefinition.type;
       if (referencedType is TypeObject || referencedType is TypeEnum) {
         return typeName;
       }

@@ -4,12 +4,15 @@
 
 import 'dart:core' hide MapEntry;
 
+import 'package:front_end/src/fasta/dill/dill_member_builder.dart';
 import 'package:front_end/src/fasta/kernel/kernel_api.dart';
 import 'package:kernel/ast.dart';
 
 import 'package:kernel/type_algebra.dart';
 
 import '../kernel/class_hierarchy_builder.dart';
+import '../kernel/forest.dart';
+import '../kernel/internal_ast.dart';
 import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
 
 import '../loader.dart' show Loader;
@@ -20,6 +23,9 @@ import '../messages.dart'
 import '../problems.dart' show unexpected, unhandled;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
+import '../type_inference/type_inferrer.dart';
+import '../type_inference/type_schema.dart';
 
 import 'builder.dart';
 import 'constructor_reference_builder.dart';
@@ -565,23 +571,6 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
   List<ClassMember> get localSetters => isSetter
       ? <ClassMember>[new SourceProcedureMember(this)]
       : const <ClassMember>[];
-
-  static const int inferredTypesFromMethod = 3;
-  static const int inferredTypesFromField = 3;
-  static const int inferredTypesFromGetter = 1;
-  static const int inferredTypesFromSetter = 2;
-
-  /// Bit mask showing where types have been inferred from.
-  ///
-  /// The mask uses the values [inferredTypesFromMethod],
-  /// [inferredTypesFromField], [inferredTypesFromGetter],
-  /// [inferredTypesFromSetter].
-  ///
-  /// It is used to detect whether types have already been inferred and in
-  /// getter type inference to favor types from getters over types from
-  /// setters, and in setter type inference to favor types from setters over
-  /// types from getters.
-  int hadTypesInferredFrom = 0;
 }
 
 class SourceProcedureMember extends BuilderClassMember {
@@ -592,12 +581,6 @@ class SourceProcedureMember extends BuilderClassMember {
 
   @override
   bool get isSourceDeclaration => true;
-
-  int get hadTypesInferredFrom => memberBuilder.hadTypesInferredFrom;
-
-  void set hadTypesInferredFrom(int value) {
-    memberBuilder.hadTypesInferredFrom = value;
-  }
 
   @override
   void inferType(ClassHierarchyBuilder hierarchy) {
@@ -625,20 +608,6 @@ class SourceProcedureMember extends BuilderClassMember {
 
   @override
   bool get isFunction => !isProperty;
-
-  List<FormalParameterBuilder> get formals => memberBuilder.formals;
-
-  TypeBuilder get returnType => memberBuilder.returnType;
-
-  @override
-  bool get hasExplicitReturnType {
-    return memberBuilder.returnType != null;
-  }
-
-  @override
-  bool hasExplicitlyTypedFormalParameter(int index) {
-    return memberBuilder.formals[index].type != null;
-  }
 }
 
 class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
@@ -752,6 +721,79 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
       }
     }
     return _procedure;
+  }
+
+  @override
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {
+    super.buildOutlineExpressions(library, coreTypes);
+    LibraryBuilder thisLibrary = this.library;
+    if (thisLibrary is SourceLibraryBuilder) {
+      RedirectingFactoryBody redirectingFactoryBody = member.function.body;
+      if (redirectingFactoryBody.typeArguments != null &&
+          redirectingFactoryBody.typeArguments.any((t) => t is UnknownType)) {
+        TypeInferrerImpl inferrer = thisLibrary.loader.typeInferenceEngine
+            .createLocalTypeInferrer(
+                fileUri, classBuilder.thisType, thisLibrary, null);
+        inferrer.helper = thisLibrary.loader
+            .createBodyBuilderForOutlineExpression(
+                this.library, classBuilder, this, classBuilder.scope, fileUri);
+        Builder targetBuilder = redirectionTarget.target;
+        Member target;
+        if (targetBuilder is FunctionBuilder) {
+          target = targetBuilder.member;
+        } else if (targetBuilder is DillMemberBuilder) {
+          target = targetBuilder.member;
+        } else {
+          unhandled("${targetBuilder.runtimeType}", "buildOutlineExpressions",
+              charOffset, fileUri);
+        }
+        Arguments targetInvocationArguments;
+        {
+          List<Expression> positionalArguments = <Expression>[];
+          for (VariableDeclaration parameter
+              in member.function.positionalParameters) {
+            positionalArguments.add(new VariableGetImpl(
+                parameter,
+                inferrer.typePromoter.getFactForAccess(parameter, 0),
+                inferrer.typePromoter.currentScope,
+                forNullGuardedAccess: false));
+          }
+          List<NamedExpression> namedArguments = <NamedExpression>[];
+          for (VariableDeclaration parameter
+              in member.function.namedParameters) {
+            namedArguments.add(new NamedExpression(
+                parameter.name,
+                new VariableGetImpl(
+                    parameter,
+                    inferrer.typePromoter.getFactForAccess(parameter, 0),
+                    inferrer.typePromoter.currentScope,
+                    forNullGuardedAccess: false)));
+          }
+          // If arguments are created using [Forest.createArguments], and the
+          // type arguments are omitted, they are to be inferred.
+          targetInvocationArguments = const Forest().createArguments(
+              member.fileOffset, positionalArguments,
+              named: namedArguments);
+        }
+        InvocationInferenceResult result = inferrer.inferInvocation(
+            function.returnType,
+            charOffset,
+            target.function.computeFunctionType(Nullability.nonNullable),
+            targetInvocationArguments);
+        List<DartType> typeArguments;
+        if (result.inferredType is InterfaceType) {
+          typeArguments = (result.inferredType as InterfaceType).typeArguments;
+        } else {
+          // Assume that the error is reported elsewhere, use 'dynamic' for
+          // recovery.
+          typeArguments = new List<DartType>.filled(
+              target.enclosingClass.typeParameters.length, const DynamicType(),
+              growable: true);
+        }
+        member.function.body =
+            new RedirectingFactoryBody(target, typeArguments);
+      }
+    }
   }
 
   @override

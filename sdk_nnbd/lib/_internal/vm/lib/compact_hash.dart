@@ -120,7 +120,7 @@ abstract class _HashBase implements _HashVMBase {
   static int _nextProbe(int i, int sizeMask) => (i + 1) & sizeMask;
 
   // A self-loop is used to mark a deleted key or value.
-  static bool _isDeleted(List data, Object keyOrValue) =>
+  static bool _isDeleted(List data, Object? keyOrValue) =>
       identical(keyOrValue, data);
   static void _setDeletedAt(List data, int d) {
     data[d] = data;
@@ -471,6 +471,7 @@ class _CompactIterator<E> implements Iterator<E> {
 }
 
 // Set implementation, analogous to _CompactLinkedHashMap.
+@pragma('vm:entry-point')
 class _CompactLinkedHashSet<E> extends _HashFieldBase
     with _HashBase, _OperatorEqualsAndHashCode, SetMixin<E>
     implements LinkedHashSet<E> {
@@ -485,7 +486,7 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
 
   E get first {
     for (int offset = 0; offset < _usedData; offset++) {
-      Object current = _data[offset];
+      Object? current = _data[offset];
       if (!_HashBase._isDeleted(_data, current)) {
         return current as E;
       }
@@ -495,7 +496,7 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
 
   E get last {
     for (int offset = _usedData - 1; offset >= 0; offset--) {
-      Object current = _data[offset];
+      Object? current = _data[offset];
       if (!_HashBase._isDeleted(_data, current)) {
         return current as E;
       }

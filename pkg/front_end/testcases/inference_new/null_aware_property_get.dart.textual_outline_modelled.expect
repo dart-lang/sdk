@@ -1,0 +1,7 @@
+library test;
+
+class Class {
+  T method<T>() => null;
+}
+
+main() {}

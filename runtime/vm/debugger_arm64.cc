@@ -15,7 +15,7 @@ namespace dart {
 
 #ifndef PRODUCT
 
-RawCode* CodeBreakpoint::OrigStubAddress() const {
+CodePtr CodeBreakpoint::OrigStubAddress() const {
   return saved_value_;
 }
 
@@ -23,20 +23,20 @@ void CodeBreakpoint::PatchCode() {
   ASSERT(!is_enabled_);
   const Code& code = Code::Handle(code_);
   switch (breakpoint_kind_) {
-    case RawPcDescriptors::kIcCall: {
+    case PcDescriptorsLayout::kIcCall: {
       Object& data = Object::Handle();
       saved_value_ = CodePatcher::GetInstanceCallAt(pc_, code, &data);
       CodePatcher::PatchInstanceCallAt(pc_, code, data,
                                        StubCode::ICCallBreakpoint());
       break;
     }
-    case RawPcDescriptors::kUnoptStaticCall: {
+    case PcDescriptorsLayout::kUnoptStaticCall: {
       saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
       CodePatcher::PatchPoolPointerCallAt(
           pc_, code, StubCode::UnoptStaticCallBreakpoint());
       break;
     }
-    case RawPcDescriptors::kRuntimeCall: {
+    case PcDescriptorsLayout::kRuntimeCall: {
       saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
       CodePatcher::PatchPoolPointerCallAt(pc_, code,
                                           StubCode::RuntimeCallBreakpoint());
@@ -52,15 +52,15 @@ void CodeBreakpoint::RestoreCode() {
   ASSERT(is_enabled_);
   const Code& code = Code::Handle(code_);
   switch (breakpoint_kind_) {
-    case RawPcDescriptors::kIcCall: {
+    case PcDescriptorsLayout::kIcCall: {
       Object& data = Object::Handle();
       CodePatcher::GetInstanceCallAt(pc_, code, &data);
       CodePatcher::PatchInstanceCallAt(pc_, code, data,
                                        Code::Handle(saved_value_));
       break;
     }
-    case RawPcDescriptors::kUnoptStaticCall:
-    case RawPcDescriptors::kRuntimeCall: {
+    case PcDescriptorsLayout::kUnoptStaticCall:
+    case PcDescriptorsLayout::kRuntimeCall: {
       CodePatcher::PatchPoolPointerCallAt(pc_, code,
                                           Code::Handle(saved_value_));
       break;

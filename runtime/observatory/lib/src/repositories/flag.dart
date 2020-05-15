@@ -22,7 +22,7 @@ class FlagsRepository implements M.FlagsRepository {
   FlagsRepository(this.vm);
 
   Future<Iterable<Flag>> list() async {
-    var result = new List<Flag>();
+    var result = <Flag>[];
     for (var map in ((await vm.getFlagList()) as S.ServiceMap)['flags']) {
       result.add(_toFlag(map));
     }

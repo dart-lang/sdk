@@ -4049,7 +4049,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   String get cssFloat native;
 
-  set cssFloat(String value) native;
+  set cssFloat(String? value) native;
 
   String get cssText native;
 
@@ -10448,13 +10448,13 @@ class DocumentFragment extends Node
     implements NonElementParentNode, ParentNode {
   factory DocumentFragment() => document.createDocumentFragment();
 
-  factory DocumentFragment.html(String html,
+  factory DocumentFragment.html(String? html,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     return document.body!.createFragment(html,
         validator: validator, treeSanitizer: treeSanitizer);
   }
 
-  factory DocumentFragment.svg(String svgContent,
+  factory DocumentFragment.svg(String? svgContent,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     return new svg.SvgSvgElement().createFragment(svgContent,
         validator: validator, treeSanitizer: treeSanitizer);
@@ -10503,11 +10503,11 @@ class DocumentFragment extends Node
     return e.innerHtml;
   }
 
-  set innerHtml(String value) {
+  set innerHtml(String? value) {
     this.setInnerHtml(value);
   }
 
-  void setInnerHtml(String html,
+  void setInnerHtml(String? html,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     this.nodes.clear();
     append(document.body!.createFragment(html,
@@ -11795,6 +11795,10 @@ class _ChildrenElementList extends ListBase<Element>
     }
   }
 
+  void insertAll(int index, Iterable<Element> iterable) {
+    throw new UnimplementedError();
+  }
+
   void setAll(int index, Iterable<Element> iterable) {
     throw new UnimplementedError();
   }
@@ -11805,6 +11809,7 @@ class _ChildrenElementList extends ListBase<Element>
 
   Element removeAt(int index) {
     final result = this[index];
+    // TODO(41258): Remove null check after unfork/strong mode.
     if (result != null) {
       _element._removeChild(result);
     }
@@ -11813,9 +11818,7 @@ class _ChildrenElementList extends ListBase<Element>
 
   Element removeLast() {
     final result = this.last;
-    if (result != null) {
-      _element._removeChild(result);
-    }
+    _element._removeChild(result);
     return result;
   }
 
@@ -12661,7 +12664,7 @@ class Element extends Node
    * * [NodeValidator]
    *
    */
-  factory Element.html(String html,
+  factory Element.html(String? html,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     var fragment = document.body!.createFragment(html,
         validator: validator, treeSanitizer: treeSanitizer);
@@ -12881,6 +12884,7 @@ class Element extends Node
 
   @pragma('dart2js:tryInline')
   String? getAttribute(String name) {
+    // TODO(41258): Delete this assertion after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     return _getAttribute(name);
@@ -12888,6 +12892,7 @@ class Element extends Node
 
   @pragma('dart2js:tryInline')
   String? getAttributeNS(String? namespaceURI, String name) {
+    // TODO(41258): Delete this assertion after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     // [namespaceURI] does not need protecting, both `null` and `undefined` map to `null`.
     assert(name != null, 'Attribute name cannot be null');
@@ -12896,6 +12901,7 @@ class Element extends Node
 
   @pragma('dart2js:tryInline')
   bool hasAttribute(String name) {
+    // TODO(41258): Delete this assertion after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     return _hasAttribute(name);
@@ -12903,6 +12909,7 @@ class Element extends Node
 
   @pragma('dart2js:tryInline')
   bool hasAttributeNS(String? namespaceURI, String name) {
+    // TODO(41258): Delete this assertion after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     // [namespaceURI] does not need protecting, both `null` and `undefined` map to `null`.
     assert(name != null, 'Attribute name cannot be null');
@@ -12911,6 +12918,7 @@ class Element extends Node
 
   @pragma('dart2js:tryInline')
   void removeAttribute(String name) {
+    // TODO(41258): Delete this assertion after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     _removeAttribute(name);
@@ -12918,6 +12926,7 @@ class Element extends Node
 
   @pragma('dart2js:tryInline')
   void removeAttributeNS(String? namespaceURI, String name) {
+    // TODO(41258): Delete this assertion after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     _removeAttributeNS(namespaceURI, name);
@@ -12925,6 +12934,7 @@ class Element extends Node
 
   @pragma('dart2js:tryInline')
   void setAttribute(String name, String value) {
+    // TODO(41258): Delete these assertions after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     // TODO(sra): assert(value != null, 'Attribute value cannot be null.');
@@ -12933,6 +12943,7 @@ class Element extends Node
 
   @pragma('dart2js:tryInline')
   void setAttributeNS(String? namespaceURI, String name, String value) {
+    // TODO(41258): Delete these assertions after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     // TODO(sra): assert(value != null, 'Attribute value cannot be null.');
@@ -13476,7 +13487,7 @@ class Element extends Node
    *   from W3C.
    */
   @SupportedBrowser(SupportedBrowser.CHROME, '25')
-  ShadowRoot get shadowRoot =>
+  ShadowRoot? get shadowRoot =>
       JS('ShadowRoot|Null', '#.shadowRoot || #.webkitShadowRoot', this, this);
 
   /**
@@ -13615,7 +13626,7 @@ class Element extends Node
    * * [NodeValidator]
    * * [NodeTreeSanitizer]
    */
-  DocumentFragment createFragment(String html,
+  DocumentFragment createFragment(String? html,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     if (treeSanitizer == null) {
       if (validator == null) {
@@ -13663,7 +13674,9 @@ class Element extends Node
     if (Range.supportsCreateContextualFragment &&
         _canBeUsedToCreateContextualFragment) {
       _parseRange!.selectNodeContents(contextElement);
-      fragment = _parseRange!.createContextualFragment(html);
+      // createContextualFragment expects a non-nullable html string.
+      // If null is passed, it gets converted to 'null' instead.
+      fragment = _parseRange!.createContextualFragment(html ?? 'null');
     } else {
       contextElement._innerHtml = html;
 
@@ -13726,7 +13739,7 @@ class Element extends Node
    * This uses the default sanitization behavior to sanitize the HTML fragment,
    * use [setInnerHtml] to override the default behavior.
    */
-  set innerHtml(String html) {
+  set innerHtml(String? html) {
     this.setInnerHtml(html);
   }
 
@@ -13751,7 +13764,7 @@ class Element extends Node
    * * [NodeValidator]
    * * [NodeTreeSanitizer]
    */
-  void setInnerHtml(String html,
+  void setInnerHtml(String? html,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     text = null;
     if (treeSanitizer is _TrustedHtmlTreeSanitizer) {
@@ -13788,6 +13801,14 @@ class Element extends Node
          if (!(element.attributes instanceof NamedNodeMap)) {
 	   return true;
 	 }
+         // If something has corrupted the traversal we want to detect
+         // these on not only the children (tested below) but on the node itself
+         // in case it was bypassed.
+         if (element["id"] == 'lastChild' || element["name"] == 'lastChild' ||
+             element["id"] == 'previousSibling' || element["name"] == 'previousSibling' ||
+             element["id"] == 'children' || element["name"] == 'children') {
+           return true;
+         }
 	 var childNodes = element.childNodes;
 	 if (element.lastChild &&
 	     element.lastChild !== childNodes[childNodes.length -1]) {
@@ -13813,6 +13834,7 @@ class Element extends Node
            // allowing us to check for clobbering that may show up in other accesses.
            if (child["id"] == 'attributes' || child["name"] == 'attributes' ||
                child["id"] == 'lastChild'  || child["name"] == 'lastChild' ||
+               child["id"] == 'previousSibling'  || child["name"] == 'previousSibling' ||
                child["id"] == 'children' || child["name"] == 'children') {
              return true;
            }
@@ -14542,7 +14564,7 @@ class Element extends Node
   String get _innerHtml native;
 
   @JSName('innerHTML')
-  set _innerHtml(String value) native;
+  set _innerHtml(String? value) native;
 
   @JSName('localName')
   String get _localName native;
@@ -15390,7 +15412,7 @@ class ErrorEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
-@Native("Event,InputEvent")
+@Native("Event,InputEvent,SubmitEvent")
 class Event extends Interceptor {
   // In JS, canBubble and cancelable are technically required parameters to
   // init*Event. In practice, though, if they aren't provided they simply
@@ -19176,7 +19198,7 @@ class InputElement extends HtmlElement
 
   String get value native;
 
-  set value(String value) native;
+  set value(String? value) native;
 
   DateTime get valueAsDate =>
       convertNativeToDart_DateTime(this._get_valueAsDate);
@@ -19257,7 +19279,7 @@ abstract class InputElementBase implements Element {
   set name(String value);
 
   String get value;
-  set value(String value);
+  set value(String? value);
 
   List<Node> get labels;
 
@@ -20462,6 +20484,15 @@ class MediaDevices extends EventTarget {
 
   @JSName('getSupportedConstraints')
   _getSupportedConstraints_1() native;
+
+  Future<MediaStream> getUserMedia([Map? constraints]) {
+    var constraints_dict = null;
+    if (constraints != null) {
+      constraints_dict = convertDartToNative_Dictionary(constraints);
+    }
+    return promiseToFuture<MediaStream>(
+        JS("", "#.getUserMedia(#)", this, constraints_dict));
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22505,7 +22536,7 @@ class Navigator extends NavigatorConcurrentHardware
         NavigatorOnLine,
         NavigatorAutomationInformation,
         NavigatorID {
-  List<Gamepad> getGamepads() {
+  List<Gamepad?> getGamepads() {
     var gamepadList = _getGamepads();
 
     // If no prototype we need one for the world to hookup to the proper Dart class.
@@ -22602,7 +22633,7 @@ class Navigator extends NavigatorConcurrentHardware
 
   CredentialsContainer get credentials native;
 
-  num get deviceMemory native;
+  num? get deviceMemory native;
 
   String? get doNotTrack native;
 
@@ -22657,7 +22688,7 @@ class Navigator extends NavigatorConcurrentHardware
   @JSName('getGamepads')
   @Returns('_GamepadList')
   @Creates('_GamepadList')
-  List<Gamepad> _getGamepads() native;
+  List<Gamepad?> _getGamepads() native;
 
   Future<RelatedApplication> getInstalledRelatedApps() =>
       promiseToFuture<RelatedApplication>(
@@ -22904,13 +22935,13 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
   _ChildNodeListLazy(this._this);
 
   Node get first {
-    Node result = JS('Node|Null', '#.firstChild', _this);
+    Node? result = JS('Node|Null', '#.firstChild', _this);
     if (result == null) throw new StateError("No elements");
     return result;
   }
 
   Node get last {
-    Node result = JS('Node|Null', '#.lastChild', _this);
+    Node? result = JS('Node|Null', '#.lastChild', _this);
     if (result == null) throw new StateError("No elements");
     return result;
   }
@@ -22919,7 +22950,7 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
     int l = this.length;
     if (l == 0) throw new StateError("No elements");
     if (l > 1) throw new StateError("More than one element");
-    return JS('Node|Null', '#.firstChild', _this);
+    return JS('Node|Null', '#.firstChild', _this)!;
   }
 
   void add(Node value) {
@@ -27838,7 +27869,7 @@ class ShadowRoot extends DocumentFragment implements DocumentOrShadowRoot {
   String get innerHtml native;
 
   @JSName('innerHTML')
-  set innerHtml(String value) native;
+  set innerHtml(String? value) native;
 
   String get mode native;
 
@@ -29246,7 +29277,7 @@ class TableCellElement extends HtmlElement {
 
   String get headers native;
 
-  set headers(String value) native;
+  set headers(String? value) native;
 
   int get rowSpan native;
 
@@ -29312,7 +29343,7 @@ class TableElement extends HtmlElement {
   @JSName('createTBody')
   TableSectionElement _nativeCreateTBody() native;
 
-  DocumentFragment createFragment(String html,
+  DocumentFragment createFragment(String? html,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     if (Range.supportsCreateContextualFragment) {
       return super.createFragment(html,
@@ -29403,7 +29434,7 @@ class TableRowElement extends HtmlElement {
   TableCellElement insertCell(int index) =>
       _insertCell(index) as TableCellElement;
 
-  DocumentFragment createFragment(String html,
+  DocumentFragment createFragment(String? html,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     if (Range.supportsCreateContextualFragment) {
       return super.createFragment(html,
@@ -29466,7 +29497,7 @@ class TableSectionElement extends HtmlElement {
 
   TableRowElement insertRow(int index) => _insertRow(index) as TableRowElement;
 
-  DocumentFragment createFragment(String html,
+  DocumentFragment createFragment(String? html,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     if (Range.supportsCreateContextualFragment) {
       return super.createFragment(html,
@@ -29561,7 +29592,7 @@ class TemplateElement extends HtmlElement {
    *
    * * <https://w3c.github.io/DOM-Parsing/#the-innerhtml-mixin>
    */
-  void setInnerHtml(String html,
+  void setInnerHtml(String? html,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     text = null;
     content.nodes.clear();
@@ -29703,7 +29734,7 @@ class TextAreaElement extends HtmlElement {
 
   String get value native;
 
-  set value(String value) native;
+  set value(String? value) native;
 
   bool get willValidate native;
 
@@ -31930,10 +31961,10 @@ class Window extends EventTarget
    */
   Document get document => JS('Document', '#.document', this);
 
-  WindowBase _open2(url, name) =>
+  WindowBase? _open2(url, name) =>
       JS('Window|Null', '#.open(#,#)', this, url, name);
 
-  WindowBase _open3(url, name, options) =>
+  WindowBase? _open3(url, name, options) =>
       JS('Window|Null', '#.open(#,#,#)', this, url, name, options);
 
   /**
@@ -32055,7 +32086,7 @@ class Window extends EventTarget
   @SupportedBrowser(SupportedBrowser.CHROME, '23.0')
   @SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')
   @SupportedBrowser(SupportedBrowser.IE, '10.0')
-  IdbFactory get indexedDB => JS(
+  IdbFactory? get indexedDB => JS(
       'IdbFactory|Null', // If not supported, returns null.
       '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
       this,
@@ -32694,7 +32725,7 @@ class Window extends EventTarget
   @Returns('Window|=Object')
   dynamic get _get_top native;
 
-  VisualViewport get visualViewport native;
+  VisualViewport? get visualViewport native;
 
   /**
    * The current window.
@@ -35676,7 +35707,7 @@ class _ElementAttributeMap extends _AttributeMap {
   _ElementAttributeMap(Element element) : super(element);
 
   bool containsKey(Object? key) {
-    return _element._hasAttribute(key as String);
+    return key is String && _element._hasAttribute(key);
   }
 
   String? operator [](Object? key) {
@@ -35702,8 +35733,8 @@ class _ElementAttributeMap extends _AttributeMap {
   // Inline this because almost all call sites of [remove] do not use [value],
   // and the annotations on the `getAttribute` call allow it to be removed.
   @pragma('dart2js:tryInline')
-  static String _remove(Element element, String key) {
-    String value = JS(
+  static String? _remove(Element element, String key) {
+    String? value = JS(
         // throws:null(1) is not accurate since [key] could be malformed, but
         // [key] is checked again by `removeAttributeNS`.
         'returns:String|Null;depends:all;effects:none;throws:null(1)',
@@ -35719,12 +35750,12 @@ class _ElementAttributeMap extends _AttributeMap {
  * Wrapper to expose namespaced attributes as a typed map.
  */
 class _NamespacedAttributeMap extends _AttributeMap {
-  final String _namespace;
+  final String? _namespace;
 
   _NamespacedAttributeMap(Element element, this._namespace) : super(element);
 
   bool containsKey(Object? key) {
-    return _element._hasAttributeNS(_namespace, key as String);
+    return key is String && _element._hasAttributeNS(_namespace, key);
   }
 
   String? operator [](Object? key) {
@@ -35752,8 +35783,8 @@ class _NamespacedAttributeMap extends _AttributeMap {
   // returned [value], and the annotations on the `getAttributeNS` call allow it
   // to be removed.
   @pragma('dart2js:tryInline')
-  static String _remove(String namespace, Element element, String key) {
-    String value = JS(
+  static String? _remove(String? namespace, Element element, String key) {
+    String? value = JS(
         // throws:null(1) is not accurate since [key] could be malformed, but
         // [key] is checked again by `removeAttributeNS`.
         'returns:String|Null;depends:all;effects:none;throws:null(1)',
@@ -36088,7 +36119,8 @@ abstract class CssClassSet implements Set<String> {
    * after the operation, and returns `false` if [value] is absent after the
    * operation.
    *
-   * If this corresponds to many elements, `null` is always returned.
+   * If this CssClassSet corresponds to many elements, `false` is always
+   * returned.
    *
    * [value] must be a valid 'token' representing a single class, i.e. a
    * non-empty string containing no whitespace.  To toggle multiple classes, use
@@ -36122,7 +36154,8 @@ abstract class CssClassSet implements Set<String> {
    * If this CssClassSet corresponds to one element. Returns true if [value] was
    * added to the set, otherwise false.
    *
-   * If this corresponds to many elements, `null` is always returned.
+   * If this CssClassSet corresponds to many elements, `false` is always
+   * returned.
    *
    * [value] must be a valid 'token' representing a single class, i.e. a
    * non-empty string containing no whitespace.  To add multiple classes use
@@ -37144,16 +37177,18 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   }
 
   Future cancel() {
-    // Return type cannot be null due to override, so return empty Future
-    // instead.
-    var emptyFuture = new Future<void>.value();
-    if (_canceled) return emptyFuture;
+    // Check for strong mode. This function can no longer return null in strong
+    // mode, so only return null in weak mode to preserve synchronous timing.
+    // See issue 41653 for more details.
+    dynamic emptyFuture =
+        typeAcceptsNull<Event>() ? null : Future<void>.value();
+    if (_canceled) return emptyFuture as Future;
 
     _unlisten();
     // Clear out the target to indicate this is complete.
     _target = null;
     _onData = null;
-    return emptyFuture;
+    return emptyFuture as Future;
   }
 
   bool get _canceled => _target == null;
@@ -39898,7 +39933,7 @@ EventTarget? _convertNativeToDart_EventTarget(e) {
     return e;
 }
 
-EventTarget _convertDartToNative_EventTarget(e) {
+EventTarget? _convertDartToNative_EventTarget(e) {
   if (e is _DOMWindowCrossFrame) {
     return e._window;
   } else {
@@ -40369,7 +40404,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
       view = window;
     }
 
-    var eventObj;
+    dynamic eventObj;
 
     // Currently this works on everything but Safari. Safari throws an
     // "Attempting to change access mechanism for an unconfigurable property"
@@ -40512,7 +40547,7 @@ class Platform {
    * browser.  If false, using these types will generate a runtime
    * error.
    */
-  static final supportsTypedData = JS('bool', '!!(window.ArrayBuffer)');
+  static final bool supportsTypedData = JS('bool', '!!(window.ArrayBuffer)');
 
   /**
    * Returns true if SIMD types in dart:typed_data types are supported
@@ -40613,14 +40648,15 @@ class _WrappedEvent implements Event {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-void Function(T)? _wrapZone<T>(void Function(T) callback) {
+void Function(T)? _wrapZone<T>(void Function(T)? callback) {
   // For performance reasons avoid wrapping if we are in the root zone.
   if (Zone.current == Zone.root) return callback;
   if (callback == null) return null;
   return Zone.current.bindUnaryCallbackGuarded(callback);
 }
 
-void Function(T1, T2)? _wrapBinaryZone<T1, T2>(void Function(T1, T2) callback) {
+void Function(T1, T2)? _wrapBinaryZone<T1, T2>(
+    void Function(T1, T2)? callback) {
   // For performance reasons avoid wrapping if we are in the root zone.
   if (Zone.current == Zone.root) return callback;
   if (callback == null) return null;
@@ -40830,6 +40866,9 @@ class _ThrowsNodeValidator implements NodeValidator {
  */
 class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   NodeValidator validator;
+
+  /// Did we modify the tree by removing anything.
+  bool modifiedTree = false;
   _ValidatingTreeSanitizer(this.validator) {}
 
   void sanitizeTree(Node node) {
@@ -40838,11 +40877,15 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
 
       var child = node.lastChild;
       while (null != child) {
-        var nextChild;
+        Node? nextChild;
         try {
-          // Child may be removed during the walk, and we may not
-          // even be able to get its previousNode.
+          // Child may be removed during the walk, and we may not even be able
+          // to get its previousNode. But it's also possible that previousNode
+          // (i.e. previousSibling) is being spoofed, so double-check it.
           nextChild = child.previousNode;
+          if (nextChild != null && nextChild.nextNode != child) {
+            throw StateError("Corrupt HTML");
+          }
         } catch (e) {
           // Child appears bad, remove it. We want to check the rest of the
           // children of node and, but we have no way of getting to the next
@@ -40856,7 +40899,12 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
       }
     }
 
+    modifiedTree = false;
     walk(node, null);
+    while (modifiedTree) {
+      modifiedTree = false;
+      walk(node, null);
+    }
   }
 
   /// Aggressively try to remove node.
@@ -40864,7 +40912,8 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
     // If we have the parent, it's presumably already passed more sanitization
     // or is the fragment, so ask it to remove the child. And if that fails
     // try to set the outer html.
-    if (parent == null) {
+    modifiedTree = true;
+    if (parent == null || parent != node.parentNode) {
       node.remove();
     } else {
       parent._removeChild(node);
@@ -40922,7 +40971,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   /// important attributes we want to check, remove it if it's not valid
   /// or not allowed, either as a whole or particular attributes.
   void _sanitizeElement(Element element, Node? parent, bool corrupted,
-      String text, String tag, Map attrs, String isAttr) {
+      String text, String tag, Map attrs, String? isAttr) {
     if (false != corrupted) {
       _removeNode(element, parent);
       window.console

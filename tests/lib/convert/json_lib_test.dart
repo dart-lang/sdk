@@ -104,8 +104,8 @@ void testStringify() {
 
   // Lists.
   Expect.equals('[]', json.encode([]));
-  Expect.equals('[]', json.encode(new List(0)));
-  Expect.equals('[null,null,null]', json.encode(new List(3)));
+  Expect.equals('[]', json.encode(new List.empty()));
+  Expect.equals('[null,null,null]', json.encode(new List.filled(3, null)));
   validateRoundTrip([3, -4.5, null, true, 'hi', false]);
   Expect.equals(
       '[[3],[],[null],["hi",true]]',

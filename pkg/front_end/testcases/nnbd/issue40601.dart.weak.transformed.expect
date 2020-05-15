@@ -1,0 +1,20 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class A<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::T%>
+    : super core::Object::•()
+    ;
+  abstract method baz() → self::A::T%;
+  method bar(generic-covariant-impl self::A::T% value) → dynamic {}
+  method foo() → dynamic {
+    late self::A::T% value;
+    () → dynamic result = () → dynamic => this.{self::A::bar}(value);
+    (() → core::Null? {
+      value = this.{self::A::baz}();
+    }).call();
+    return result;
+  }
+}
+static method main() → dynamic {}

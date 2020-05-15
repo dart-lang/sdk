@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -17,12 +16,6 @@ void main() {
 
 @reflectiveTest
 class RenameExtensionMemberTest extends RenameRefactoringTest {
-  @override
-  void setUp() {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
-    super.setUp();
-  }
-
   Future<void> test_checkFinalConditions_hasMember_MethodElement() async {
     await indexTestUnit('''
 extension E on int {
@@ -33,7 +26,7 @@ extension E on int {
     createRenameRefactoringAtString('test() {}');
     // check status
     refactoring.newName = 'newName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage:
             "Extension 'E' already declares method with name 'newName'.",
@@ -49,7 +42,7 @@ extension E on int {
     createRenameRefactoringAtString('testOld() {}');
     // check status
     refactoring.newName = 'test';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatusOK(status);
   }
 
@@ -67,7 +60,7 @@ extension E on int {
     createRenameRefactoringAtString('test() {}');
     // check status
     refactoring.newName = 'newName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(
       status,
       RefactoringProblemSeverity.ERROR,
@@ -91,7 +84,7 @@ extension E on int {
     createRenameRefactoringAtString('test() {}');
     // check status
     refactoring.newName = 'newName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(
       status,
       RefactoringProblemSeverity.ERROR,
@@ -114,7 +107,7 @@ extension E on int {
     createRenameRefactoringAtString('test() {}');
     // check status
     refactoring.newName = 'newName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(
       status,
       RefactoringProblemSeverity.ERROR,
@@ -133,7 +126,7 @@ extension E on int {
     createRenameRefactoringAtString('-(other)');
     // check status
     refactoring.newName = 'newName';
-    RefactoringStatus status = await refactoring.checkInitialConditions();
+    var status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
   }
 

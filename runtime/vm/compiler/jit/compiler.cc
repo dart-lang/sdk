@@ -4,10 +4,9 @@
 
 #include "vm/compiler/jit/compiler.h"
 
-#include "vm/compiler/assembler/assembler.h"
-
+#if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/code_patcher.h"
-#include "vm/compiler/aot/precompiler.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/backend/block_scheduler.h"
 #include "vm/compiler/backend/branch_optimizer.h"
@@ -46,6 +45,7 @@
 #include "vm/thread_registry.h"
 #include "vm/timeline.h"
 #include "vm/timer.h"
+#endif
 
 namespace dart {
 
@@ -323,7 +323,7 @@ class CompileParsedFunctionHelper : public ValueObject {
         osr_id_(osr_id),
         thread_(Thread::Current()) {}
 
-  RawCode* Compile(CompilationPipeline* pipeline);
+  CodePtr Compile(CompilationPipeline* pipeline);
 
  private:
   ParsedFunction* parsed_function() const { return parsed_function_; }
@@ -331,9 +331,9 @@ class CompileParsedFunctionHelper : public ValueObject {
   intptr_t osr_id() const { return osr_id_; }
   Thread* thread() const { return thread_; }
   Isolate* isolate() const { return thread_->isolate(); }
-  RawCode* FinalizeCompilation(compiler::Assembler* assembler,
-                               FlowGraphCompiler* graph_compiler,
-                               FlowGraph* flow_graph);
+  CodePtr FinalizeCompilation(compiler::Assembler* assembler,
+                              FlowGraphCompiler* graph_compiler,
+                              FlowGraph* flow_graph);
   void CheckIfBackgroundCompilerIsBeingStopped(bool optimizing_compiler);
 
   ParsedFunction* parsed_function_;
@@ -344,11 +344,11 @@ class CompileParsedFunctionHelper : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(CompileParsedFunctionHelper);
 };
 
-RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
+CodePtr CompileParsedFunctionHelper::FinalizeCompilation(
     compiler::Assembler* assembler,
     FlowGraphCompiler* graph_compiler,
     FlowGraph* flow_graph) {
-  ASSERT(!FLAG_precompiled_mode);
+  ASSERT(!CompilerState::Current().is_aot());
   const Function& function = parsed_function()->function();
   Zone* const zone = thread()->zone();
 
@@ -502,7 +502,7 @@ void CompileParsedFunctionHelper::CheckIfBackgroundCompilerIsBeingStopped(
 // Return null if bailed out.
 // If optimized_result_code is not NULL then it is caller's responsibility
 // to install code.
-RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
+CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   ASSERT(!FLAG_precompiled_mode);
   const Function& function = parsed_function()->function();
   if (optimized() && !function.IsOptimizable()) {
@@ -532,7 +532,8 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       FlowGraph* flow_graph = nullptr;
       ZoneGrowableArray<const ICData*>* ic_data_array = nullptr;
 
-      CompilerState compiler_state(thread());
+      CompilerState compiler_state(thread(), /*is_aot=*/false,
+                                   CompilerState::ShouldTrace(function));
 
       {
         if (optimized()) {
@@ -712,10 +713,10 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   return result->raw();
 }
 
-static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
-                                        const Function& function,
-                                        volatile bool optimized,
-                                        intptr_t osr_id) {
+static ObjectPtr CompileFunctionHelper(CompilationPipeline* pipeline,
+                                       const Function& function,
+                                       volatile bool optimized,
+                                       intptr_t osr_id) {
   ASSERT(!FLAG_precompiled_mode);
   ASSERT(!optimized || function.WasCompiled() || function.ForceOptimize());
   ASSERT(function.is_background_optimizable() ||
@@ -750,7 +751,6 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
     }
 
     CompileParsedFunctionHelper helper(parsed_function, optimized, osr_id);
-
 
     const Code& result = Code::Handle(helper.Compile(pipeline));
 
@@ -861,12 +861,9 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
   return Object::null();
 }
 
-RawObject* Compiler::CompileFunction(Thread* thread, const Function& function) {
+ObjectPtr Compiler::CompileFunction(Thread* thread, const Function& function) {
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
-  if (FLAG_precompiled_mode) {
-    return Precompiler::CompileFunction(
-        /* precompiler = */ NULL, thread, thread->zone(), function);
-  }
+  RELEASE_ASSERT(!FLAG_precompiled_mode);
 #endif
 
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -894,8 +891,8 @@ RawObject* Compiler::CompileFunction(Thread* thread, const Function& function) {
   return CompileFunctionHelper(pipeline, function, optimized, kNoOSRDeoptId);
 }
 
-RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
-                                          const Function& function) {
+ErrorPtr Compiler::EnsureUnoptimizedCode(Thread* thread,
+                                         const Function& function) {
   ASSERT(!function.ForceOptimize());
   if (function.unoptimized_code() != Object::null()) {
     return Error::null();
@@ -926,9 +923,9 @@ RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
   return Error::null();
 }
 
-RawObject* Compiler::CompileOptimizedFunction(Thread* thread,
-                                              const Function& function,
-                                              intptr_t osr_id) {
+ObjectPtr Compiler::CompileOptimizedFunction(Thread* thread,
+                                             const Function& function,
+                                             intptr_t osr_id) {
   VMTagScope tagScope(thread, VMTag::kCompileOptimizedTagId);
 #if defined(SUPPORT_TIMELINE)
   const char* event_name;
@@ -952,6 +949,7 @@ RawObject* Compiler::CompileOptimizedFunction(Thread* thread,
 
 void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   ASSERT(!code.is_optimized());
+  ASSERT(!FLAG_precompiled_mode);
   const Function& function = Function::Handle(code.function());
   ASSERT(code.var_descriptors() == Object::null());
   // IsIrregexpFunction have eager var descriptors generation.
@@ -960,7 +958,7 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   // if state changed while compiling in background.
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  CompilerState state(thread);
+  CompilerState state(thread, /*is_aot=*/false);
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     ParsedFunction* parsed_function =
@@ -1001,7 +999,7 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   }
 }
 
-RawError* Compiler::CompileAllFunctions(const Class& cls) {
+ErrorPtr Compiler::CompileAllFunctions(const Class& cls) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Object& result = Object::Handle(zone);
@@ -1023,7 +1021,7 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
   return Error::null();
 }
 
-RawError* Compiler::ReadAllBytecode(const Class& cls) {
+ErrorPtr Compiler::ReadAllBytecode(const Class& cls) {
   Thread* thread = Thread::Current();
   ASSERT(thread->IsMutatorThread());
   Zone* zone = thread->zone();
@@ -1037,7 +1035,7 @@ RawError* Compiler::ReadAllBytecode(const Class& cls) {
     ASSERT(!func.IsNull());
     if (func.IsBytecodeAllowed(zone) && !func.HasBytecode() &&
         !func.HasCode()) {
-      RawError* error =
+      ErrorPtr error =
           kernel::BytecodeReader::ReadFunctionBytecode(thread, func);
       if (error != Error::null()) {
         return error;
@@ -1078,19 +1076,17 @@ class QueueElement {
     function_ = Function::null();
   }
 
-  RawFunction* Function() const { return function_; }
+  FunctionPtr Function() const { return function_; }
 
   void set_next(QueueElement* elem) { next_ = elem; }
   QueueElement* next() const { return next_; }
 
-  RawObject* function() const { return function_; }
-  RawObject** function_ptr() {
-    return reinterpret_cast<RawObject**>(&function_);
-  }
+  ObjectPtr function() const { return function_; }
+  ObjectPtr* function_ptr() { return reinterpret_cast<ObjectPtr*>(&function_); }
 
  private:
   QueueElement* next_;
-  RawFunction* function_;
+  FunctionPtr function_;
 
   DISALLOW_COPY_AND_ASSIGN(QueueElement);
 };
@@ -1129,7 +1125,7 @@ class BackgroundCompilationQueue {
 
   QueueElement* Peek() const { return first_; }
 
-  RawFunction* PeekFunction() const {
+  FunctionPtr PeekFunction() const {
     QueueElement* e = Peek();
     if (e == NULL) {
       return Function::null();
@@ -1203,9 +1199,11 @@ void BackgroundCompiler::Run() {
       Function& function = Function::Handle(zone);
       {
         MonitorLocker ml(&queue_monitor_);
-        function = function_queue()->PeekFunction();
+        if (running_) {
+          function = function_queue()->PeekFunction();
+        }
       }
-      while (running_ && !function.IsNull()) {
+      while (!function.IsNull()) {
         if (is_optimizing()) {
           Compiler::CompileOptimizedFunction(thread, function,
                                              Compiler::kNoOSRDeoptId);
@@ -1217,7 +1215,7 @@ void BackgroundCompiler::Run() {
         QueueElement* qelem = NULL;
         {
           MonitorLocker ml(&queue_monitor_);
-          if (function_queue()->IsEmpty()) {
+          if (!running_ || function_queue()->IsEmpty()) {
             // We are shutting down, queue was cleared.
             function = Function::null();
           } else {
@@ -1299,6 +1297,10 @@ void BackgroundCompiler::Start() {
   if (running_ || !done_) return;
   running_ = true;
   done_ = false;
+  // If we ever wanted to run the BG compiler on the
+  // `IsolateGroup::mutator_pool()` we would need to ensure the BG compiler
+  // stops when it's idle - otherwise the [MutatorThreadPool]-based idle
+  // notification would not work anymore.
   bool task_started = Dart::thread_pool()->Run<BackgroundCompilerTask>(this);
   if (!task_started) {
     running_ = false;
@@ -1367,20 +1369,20 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
   return false;
 }
 
-RawObject* Compiler::CompileFunction(Thread* thread, const Function& function) {
+ObjectPtr Compiler::CompileFunction(Thread* thread, const Function& function) {
   FATAL1("Attempt to compile function %s", function.ToCString());
   return Error::null();
 }
 
-RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
-                                          const Function& function) {
+ErrorPtr Compiler::EnsureUnoptimizedCode(Thread* thread,
+                                         const Function& function) {
   FATAL1("Attempt to compile function %s", function.ToCString());
   return Error::null();
 }
 
-RawObject* Compiler::CompileOptimizedFunction(Thread* thread,
-                                              const Function& function,
-                                              intptr_t osr_id) {
+ObjectPtr Compiler::CompileOptimizedFunction(Thread* thread,
+                                             const Function& function,
+                                             intptr_t osr_id) {
   FATAL1("Attempt to compile function %s", function.ToCString());
   return Error::null();
 }
@@ -1389,7 +1391,7 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   UNREACHABLE();
 }
 
-RawError* Compiler::CompileAllFunctions(const Class& cls) {
+ErrorPtr Compiler::CompileAllFunctions(const Class& cls) {
   FATAL1("Attempt to compile class %s", cls.ToCString());
   return Error::null();
 }

@@ -12,10 +12,8 @@ import 'implied_types.dart';
 
 GeneratedFile target(bool responseRequiresRequestTime) =>
     GeneratedFile('lib/protocol/protocol_common.dart', (String pkgPath) async {
-      CodegenCommonVisitor visitor = CodegenCommonVisitor(
-          path.basename(pkgPath),
-          responseRequiresRequestTime,
-          readApi(pkgPath));
+      var visitor = CodegenCommonVisitor(path.basename(pkgPath),
+          responseRequiresRequestTime, readApi(pkgPath));
       return visitor.collectCode(visitor.visitApi);
     });
 
@@ -41,8 +39,8 @@ class CodegenCommonVisitor extends CodegenProtocolVisitor {
 
   @override
   List<ImpliedType> getClassesToEmit() {
-    List<ImpliedType> types = impliedTypes.values.where((ImpliedType type) {
-      ApiNode node = type.apiNode;
+    var types = impliedTypes.values.where((ImpliedType type) {
+      var node = type.apiNode;
       return node is TypeDefinition && node.isExternal;
     }).toList();
     types.sort((first, second) =>

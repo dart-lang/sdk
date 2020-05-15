@@ -4,45 +4,35 @@
 
 import 'dart:async';
 
+import 'package:analysis_server/src/protocol_server.dart'
+    show CompletionSuggestion;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
-import 'package:analyzer/dart/element/element.dart';
 
-import '../../../protocol_server.dart'
-    show CompletionSuggestion, CompletionSuggestionKind;
-
-/// A contributor for calculating prefixed import library member suggestions
-/// `completion.getSuggestions` request results.
+/// A contributor that produces suggestions based on the prefixes defined on
+/// import directives.
 class LibraryPrefixContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
+      DartCompletionRequest request, SuggestionBuilder builder) async {
     if (!request.includeIdentifiers) {
       return const <CompletionSuggestion>[];
     }
 
-    List<ImportElement> imports = request.libraryElement.imports;
+    var imports = request.libraryElement.imports;
     if (imports == null) {
       return const <CompletionSuggestion>[];
     }
 
-    List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
-    for (ImportElement element in imports) {
-      String completion = element.prefix?.name;
-      if (completion != null && completion.isNotEmpty) {
-        LibraryElement libElem = element.importedLibrary;
-        if (libElem != null) {
-          CompletionSuggestion suggestion = createSuggestion(libElem,
-              completion: completion,
-              kind: CompletionSuggestionKind.IDENTIFIER);
-          if (suggestion != null) {
-            suggestions.add(suggestion);
-          }
+    for (var element in imports) {
+      var prefix = element.prefix?.name;
+      if (prefix != null && prefix.isNotEmpty) {
+        var libraryElement = element.importedLibrary;
+        if (libraryElement != null) {
+          builder.suggestPrefix(libraryElement, prefix);
         }
       }
     }
-    return suggestions;
+    return const <CompletionSuggestion>[];
   }
 }

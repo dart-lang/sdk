@@ -19,11 +19,11 @@ DEFINE_FLAG(bool,
             false,
             "Force compaction to move every movable object");
 
-// Each HeapPage is divided into blocks of size kBlockSize. Each object belongs
+// Each OldPage is divided into blocks of size kBlockSize. Each object belongs
 // to the block containing its header word (so up to kBlockSize +
 // kAllocatablePageSize - 2 * kObjectAlignment bytes belong to the same block).
 // During compaction, all live objects in the same block will slide such that
-// they all end up on the same HeapPage, and all gaps within the block will be
+// they all end up on the same OldPage, and all gaps within the block will be
 // closed. During sliding, a bitvector is computed that indictates which
 // allocation units are live, so the new address of any object in the block can
 // be found by adding the number of live allocation units before the object to
@@ -95,7 +95,7 @@ class ForwardingPage {
   uword Lookup(uword old_addr) { return BlockFor(old_addr)->Lookup(old_addr); }
 
   ForwardingBlock* BlockFor(uword old_addr) {
-    intptr_t page_offset = old_addr & ~kPageMask;
+    intptr_t page_offset = old_addr & ~kOldPageMask;
     intptr_t block_number = page_offset / kBlockSize;
     ASSERT(block_number >= 0);
     ASSERT(block_number <= kBlocksPerPage);
@@ -109,7 +109,7 @@ class ForwardingPage {
   DISALLOW_IMPLICIT_CONSTRUCTORS(ForwardingPage);
 };
 
-void HeapPage::AllocateForwardingPage() {
+void OldPage::AllocateForwardingPage() {
   ASSERT(forwarding_page_ == NULL);
   ASSERT((object_start() + sizeof(ForwardingPage)) < object_end());
   ASSERT(Utils::IsAligned(sizeof(ForwardingPage), kObjectAlignment));
@@ -123,8 +123,8 @@ class CompactorTask : public ThreadPool::Task {
                 GCCompactor* compactor,
                 ThreadBarrier* barrier,
                 RelaxedAtomic<intptr_t>* next_forwarding_task,
-                HeapPage* head,
-                HeapPage** tail,
+                OldPage* head,
+                OldPage** tail,
                 FreeList* freelist)
       : isolate_group_(isolate_group),
         compactor_(compactor),
@@ -141,8 +141,8 @@ class CompactorTask : public ThreadPool::Task {
   void RunEnteredIsolateGroup();
 
  private:
-  void PlanPage(HeapPage* page);
-  void SlidePage(HeapPage* page);
+  void PlanPage(OldPage* page);
+  void SlidePage(OldPage* page);
   uword PlanBlock(uword first_object, ForwardingPage* forwarding_page);
   uword SlideBlock(uword first_object, ForwardingPage* forwarding_page);
   void PlanMoveToContiguousSize(intptr_t size);
@@ -151,10 +151,10 @@ class CompactorTask : public ThreadPool::Task {
   GCCompactor* compactor_;
   ThreadBarrier* barrier_;
   RelaxedAtomic<intptr_t>* next_forwarding_task_;
-  HeapPage* head_;
-  HeapPage** tail_;
+  OldPage* head_;
+  OldPage** tail_;
   FreeList* freelist_;
-  HeapPage* free_page_;
+  OldPage* free_page_;
   uword free_current_;
   uword free_end_;
 
@@ -167,7 +167,7 @@ class CompactorTask : public ThreadPool::Task {
 // time, keeping blocks from spanning page boundaries (see ForwardingBlock).
 // Free space at the end of a page that is too small for the next block is
 // added to the freelist.
-void GCCompactor::Compact(HeapPage* pages,
+void GCCompactor::Compact(OldPage* pages,
                           FreeList* freelist,
                           Mutex* pages_lock) {
   SetupImagePageBoundaries();
@@ -175,7 +175,7 @@ void GCCompactor::Compact(HeapPage* pages,
   // Divide the heap.
   // TODO(30978): Try to divide based on live bytes or with work stealing.
   intptr_t num_pages = 0;
-  for (HeapPage* page = pages; page != NULL; page = page->next()) {
+  for (OldPage* page = pages; page != NULL; page = page->next()) {
     num_pages++;
   }
 
@@ -184,15 +184,15 @@ void GCCompactor::Compact(HeapPage* pages,
   if (num_pages < num_tasks) {
     num_tasks = num_pages;
   }
-  HeapPage** heads = new HeapPage*[num_tasks];
-  HeapPage** tails = new HeapPage*[num_tasks];
+  OldPage** heads = new OldPage*[num_tasks];
+  OldPage** tails = new OldPage*[num_tasks];
 
   {
     const intptr_t pages_per_task = num_pages / num_tasks;
     intptr_t task_index = 0;
     intptr_t page_index = 0;
-    HeapPage* page = pages;
-    HeapPage* prev = NULL;
+    OldPage* page = pages;
+    OldPage* prev = NULL;
     while (task_index < num_tasks) {
       if (page_index % pages_per_task == 0) {
         heads[task_index] = page;
@@ -220,8 +220,8 @@ void GCCompactor::Compact(HeapPage* pages,
          task_index++) {
       const intptr_t pages_per_task = num_pages / num_tasks;
       for (intptr_t j = 0; j < pages_per_task; j++) {
-        HeapPage* page = heap_->old_space()->AllocatePage(HeapPage::kData,
-                                                          /* link */ false);
+        OldPage* page = heap_->old_space()->AllocatePage(OldPage::kData,
+                                                         /* link */ false);
 
         if (page == nullptr) {
           oom = true;
@@ -279,10 +279,10 @@ void GCCompactor::Compact(HeapPage* pages,
       // If we have external typed data we can simply return, since the backing
       // store lives in C-heap and will not move. Otherwise we have to update
       // the inner pointer.
-      if (RawObject::IsTypedDataClassId(cid)) {
-        raw_view->RecomputeDataFieldForInternalTypedData();
+      if (IsTypedDataClassId(cid)) {
+        raw_view->ptr()->RecomputeDataFieldForInternalTypedData();
       } else {
-        ASSERT(RawObject::IsExternalTypedDataClassId(cid));
+        ASSERT(IsExternalTypedDataClassId(cid));
       }
     }
   }
@@ -301,9 +301,9 @@ void GCCompactor::Compact(HeapPage* pages,
 
     // Free empty pages.
     for (intptr_t task_index = 0; task_index < num_tasks; task_index++) {
-      HeapPage* page = tails[task_index]->next();
+      OldPage* page = tails[task_index]->next();
       while (page != NULL) {
-        HeapPage* next = page->next();
+        OldPage* next = page->next();
         heap_->old_space()->IncreaseCapacityInWordsLocked(
             -(page->memory_->size() >> kWordSizeLog2));
         page->Deallocate();
@@ -349,7 +349,7 @@ void CompactorTask::RunEnteredIsolateGroup() {
       free_current_ = free_page_->object_start();
       free_end_ = free_page_->object_end();
 
-      for (HeapPage* page = head_; page != NULL; page = page->next()) {
+      for (OldPage* page = head_; page != NULL; page = page->next()) {
         PlanPage(page);
       }
     }
@@ -362,7 +362,7 @@ void CompactorTask::RunEnteredIsolateGroup() {
       free_current_ = free_page_->object_start();
       free_end_ = free_page_->object_end();
 
-      for (HeapPage* page = head_; page != NULL; page = page->next()) {
+      for (OldPage* page = head_; page != NULL; page = page->next()) {
         SlidePage(page);
       }
 
@@ -386,7 +386,7 @@ void CompactorTask::RunEnteredIsolateGroup() {
       switch (forwarding_task) {
         case 0: {
           TIMELINE_FUNCTION_GC_DURATION(thread, "ForwardLargePages");
-          for (HeapPage* large_page =
+          for (OldPage* large_page =
                    isolate_group_->heap()->old_space()->large_pages_;
                large_page != NULL; large_page = large_page->next()) {
             large_page->VisitObjectPointers(compactor_);
@@ -418,7 +418,10 @@ void CompactorTask::RunEnteredIsolateGroup() {
           TIMELINE_FUNCTION_GC_DURATION(thread, "ForwardObjectIdRing");
           isolate_group_->ForEachIsolate(
               [&](Isolate* isolate) {
-                isolate->object_id_ring()->VisitPointers(compactor_);
+                ObjectIdRing* ring = isolate->object_id_ring();
+                if (ring != nullptr) {
+                  ring->VisitPointers(compactor_);
+                }
               },
               /*at_safepoint=*/true);
           break;
@@ -433,7 +436,7 @@ void CompactorTask::RunEnteredIsolateGroup() {
   }
 }
 
-void CompactorTask::PlanPage(HeapPage* page) {
+void CompactorTask::PlanPage(OldPage* page) {
   uword current = page->object_start();
   uword end = page->object_end();
 
@@ -445,7 +448,7 @@ void CompactorTask::PlanPage(HeapPage* page) {
   }
 }
 
-void CompactorTask::SlidePage(HeapPage* page) {
+void CompactorTask::SlidePage(OldPage* page) {
   uword current = page->object_start();
   uword end = page->object_end();
 
@@ -470,9 +473,9 @@ uword CompactorTask::PlanBlock(uword first_object,
   intptr_t block_dead_size = 0;
   uword current = first_object;
   while (current < block_end) {
-    RawObject* obj = RawObject::FromAddr(current);
-    intptr_t size = obj->HeapSize();
-    if (obj->IsMarked()) {
+    ObjectPtr obj = ObjectLayout::FromAddr(current);
+    intptr_t size = obj->ptr()->HeapSize();
+    if (obj->ptr()->IsMarked()) {
       forwarding_block->RecordLive(current, size);
       ASSERT(static_cast<intptr_t>(forwarding_block->Lookup(current)) ==
              block_live_size);
@@ -500,16 +503,16 @@ uword CompactorTask::SlideBlock(uword first_object,
 
   uword old_addr = first_object;
   while (old_addr < block_end) {
-    RawObject* old_obj = RawObject::FromAddr(old_addr);
-    intptr_t size = old_obj->HeapSize();
-    if (old_obj->IsMarked()) {
+    ObjectPtr old_obj = ObjectLayout::FromAddr(old_addr);
+    intptr_t size = old_obj->ptr()->HeapSize();
+    if (old_obj->ptr()->IsMarked()) {
       uword new_addr = forwarding_block->Lookup(old_addr);
       if (new_addr != free_current_) {
         // The only situation where these two don't match is if we are moving
         // to a new page.  But if we exactly hit the end of the previous page
         // then free_current could be at the start of the next page, so we
         // subtract 1.
-        ASSERT(HeapPage::Of(free_current_ - 1) != HeapPage::Of(new_addr));
+        ASSERT(OldPage::Of(free_current_ - 1) != OldPage::Of(new_addr));
         intptr_t free_remaining = free_end_ - free_current_;
         // Add any leftover at the end of a page to the free list.
         if (free_remaining > 0) {
@@ -521,7 +524,7 @@ uword CompactorTask::SlideBlock(uword first_object,
         free_end_ = free_page_->object_end();
         ASSERT(free_current_ == new_addr);
       }
-      RawObject* new_obj = RawObject::FromAddr(new_addr);
+      ObjectPtr new_obj = ObjectLayout::FromAddr(new_addr);
 
       // Fast path for no movement. There's often a large block of objects at
       // the beginning that don't move.
@@ -530,12 +533,12 @@ uword CompactorTask::SlideBlock(uword first_object,
         memmove(reinterpret_cast<void*>(new_addr),
                 reinterpret_cast<void*>(old_addr), size);
 
-        if (RawObject::IsTypedDataClassId(new_obj->GetClassId())) {
-          reinterpret_cast<RawTypedData*>(new_obj)->RecomputeDataField();
+        if (IsTypedDataClassId(new_obj->GetClassId())) {
+          static_cast<TypedDataPtr>(new_obj)->ptr()->RecomputeDataField();
         }
       }
-      new_obj->ClearMarkBit();
-      new_obj->VisitPointers(compactor_);
+      new_obj->ptr()->ClearMarkBit();
+      new_obj->ptr()->VisitPointers(compactor_);
 
       ASSERT(free_current_ == new_addr);
       free_current_ += size;
@@ -550,7 +553,7 @@ uword CompactorTask::SlideBlock(uword first_object,
 
 void CompactorTask::PlanMoveToContiguousSize(intptr_t size) {
   // Move the free cursor to ensure 'size' bytes of contiguous space.
-  ASSERT(size <= kPageSize);
+  ASSERT(size <= kOldPageSize);
 
   // Check if the current free page has enough space.
   intptr_t free_remaining = free_end_ - free_current_;
@@ -571,7 +574,7 @@ void GCCompactor::SetupImagePageBoundaries() {
     image_page_ranges_[i].size = 0;
   }
   intptr_t next_offset = 0;
-  HeapPage* image_page = Dart::vm_isolate()->heap()->old_space()->image_pages_;
+  OldPage* image_page = Dart::vm_isolate()->heap()->old_space()->image_pages_;
   while (image_page != NULL) {
     RELEASE_ASSERT(next_offset <= kMaxImagePages);
     image_page_ranges_[next_offset].base = image_page->object_start();
@@ -592,38 +595,38 @@ void GCCompactor::SetupImagePageBoundaries() {
 }
 
 DART_FORCE_INLINE
-void GCCompactor::ForwardPointer(RawObject** ptr) {
-  RawObject* old_target = *ptr;
+void GCCompactor::ForwardPointer(ObjectPtr* ptr) {
+  ObjectPtr old_target = *ptr;
   if (old_target->IsSmiOrNewObject()) {
     return;  // Not moved.
   }
 
-  uword old_addr = RawObject::ToAddr(old_target);
+  uword old_addr = ObjectLayout::ToAddr(old_target);
   for (intptr_t i = 0; i < kMaxImagePages; i++) {
     if ((old_addr - image_page_ranges_[i].base) < image_page_ranges_[i].size) {
       return;  // Not moved (unaligned image page).
     }
   }
 
-  HeapPage* page = HeapPage::Of(old_target);
+  OldPage* page = OldPage::Of(old_target);
   ForwardingPage* forwarding_page = page->forwarding_page();
   if (forwarding_page == NULL) {
     return;  // Not moved (VM isolate, large page, code page).
   }
 
-  RawObject* new_target =
-      RawObject::FromAddr(forwarding_page->Lookup(old_addr));
+  ObjectPtr new_target =
+      ObjectLayout::FromAddr(forwarding_page->Lookup(old_addr));
   ASSERT(!new_target->IsSmiOrNewObject());
   *ptr = new_target;
 }
 
-void GCCompactor::VisitTypedDataViewPointers(RawTypedDataView* view,
-                                             RawObject** first,
-                                             RawObject** last) {
+void GCCompactor::VisitTypedDataViewPointers(TypedDataViewPtr view,
+                                             ObjectPtr* first,
+                                             ObjectPtr* last) {
   // First we forward all fields of the typed data view.
-  RawObject* old_backing = view->ptr()->typed_data_;
+  ObjectPtr old_backing = view->ptr()->typed_data_;
   VisitPointers(first, last);
-  RawObject* new_backing = view->ptr()->typed_data_;
+  ObjectPtr new_backing = view->ptr()->typed_data_;
 
   const bool backing_moved = old_backing != new_backing;
   if (backing_moved) {
@@ -644,8 +647,8 @@ void GCCompactor::VisitTypedDataViewPointers(RawTypedDataView* view,
     // The backing store didn't move, we therefore don't need to update the
     // inner pointer.
     if (view->ptr()->data_ == 0) {
-      ASSERT(ValueFromRawSmi(view->ptr()->offset_in_bytes_) == 0 &&
-             ValueFromRawSmi(view->ptr()->length_) == 0 &&
+      ASSERT(RawSmiValue(view->ptr()->offset_in_bytes_) == 0 &&
+             RawSmiValue(view->ptr()->length_) == 0 &&
              view->ptr()->typed_data_ == Object::null());
     }
   }
@@ -653,8 +656,8 @@ void GCCompactor::VisitTypedDataViewPointers(RawTypedDataView* view,
 
 // N.B.: This pointer visitor is not idempotent. We must take care to visit
 // each pointer exactly once.
-void GCCompactor::VisitPointers(RawObject** first, RawObject** last) {
-  for (RawObject** ptr = first; ptr <= last; ptr++) {
+void GCCompactor::VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+  for (ObjectPtr* ptr = first; ptr <= last; ptr++) {
     ForwardPointer(ptr);
   }
 }

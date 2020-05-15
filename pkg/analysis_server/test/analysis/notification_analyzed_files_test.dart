@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -42,8 +41,7 @@ class AnalysisNotificationAnalyzedFilesTest extends AbstractAnalysisTest {
   @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_ANALYZED_FILES) {
-      AnalysisAnalyzedFilesParams params =
-          AnalysisAnalyzedFilesParams.fromNotification(notification);
+      var params = AnalysisAnalyzedFilesParams.fromNotification(notification);
       analyzedFilesReceived = true;
       analyzedFiles = params.directories;
     }
@@ -74,7 +72,7 @@ class A {}
   }
 
   Future<void> test_beforeAnalysis_excludeYamlFiles() async {
-    File yamlFile = getFolder(projectPath).getChildAssumingFile('sample.yaml');
+    var yamlFile = getFolder(projectPath).getChildAssumingFile('sample.yaml');
     yamlFile.writeAsStringSync('');
     addTestFile('''
 class A {}

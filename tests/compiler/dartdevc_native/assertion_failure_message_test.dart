@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 import "utils.dart";
 
 void main() {
@@ -10,7 +12,7 @@ void main() {
   } on AssertionError catch (error) {
     var message = error.toString();
     expectStringContains('Assertion failed:', message);
-    expectStringContains('assertion_failure_message_test.dart:9:12', message);
+    expectStringContains('assertion_failure_message_test.dart:11:12', message);
     expectStringContains('false', message);
     expectStringContains('failure message', message);
   }
@@ -22,7 +24,7 @@ void main() {
   } on AssertionError catch (error) {
     var message = error.toString();
     expectStringContains('Assertion failed:', message);
-    expectStringContains('assertion_failure_message_test.dart:21:12', message);
+    expectStringContains('assertion_failure_message_test.dart:23:12', message);
     expectStringContains('false', message);
     expectStringContains('after a non-UTF8 character', message);
   }

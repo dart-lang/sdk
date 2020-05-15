@@ -6,15 +6,7 @@
 /// analysis.
 library vm.transformations.type_flow.utils;
 
-import 'package:kernel/ast.dart'
-    show
-        Class,
-        Constructor,
-        DartType,
-        Procedure,
-        FunctionNode,
-        Member,
-        VariableDeclaration;
+import 'package:kernel/ast.dart';
 
 const bool kPrintTrace =
     const bool.fromEnvironment('global.type.flow.print.trace');
@@ -32,7 +24,7 @@ const bool kScopeTrace =
     const bool.fromEnvironment('global.type.flow.scope.trace');
 
 const int kScopeIndent =
-    const int.fromEnvironment('global.type.flow.scope.indent');
+    const int.fromEnvironment('global.type.flow.scope.indent', defaultValue: 1);
 
 /// Extended 'assert': always checks condition.
 assertx(bool cond, {details}) {
@@ -57,7 +49,7 @@ class _ScopedLogger implements _Logger {
     "\u001b[35m", // magenta
     "\u001b[36m", // cyan
   ];
-  static const int _scopeIndent = kScopeIndent ?? 1;
+  static const int _scopeIndent = kScopeIndent;
 
   int _scope = 0;
   List<String> _scopePrefixes = <String>[""];
@@ -256,3 +248,34 @@ int findOverlap(List list, List sublist) {
     }
   return list.length;
 }
+
+const nullabilitySuffix = {
+  Nullability.legacy: '*',
+  Nullability.nullable: '?',
+  Nullability.undetermined: '',
+  Nullability.nonNullable: '',
+};
+
+extension NullabilitySuffix on Nullability {
+  String get suffix => nullabilitySuffix[this];
+}
+
+bool isNullLiteral(Expression expr) =>
+    expr is NullLiteral ||
+    (expr is ConstantExpression && expr.constant is NullConstant);
+
+Expression getArgumentOfComparisonWithNull(MethodInvocation node) {
+  if (node.name.name == '==') {
+    final lhs = node.receiver;
+    final rhs = node.arguments.positional.single;
+    if (isNullLiteral(lhs)) {
+      return rhs;
+    } else if (isNullLiteral(rhs)) {
+      return lhs;
+    }
+  }
+  return null;
+}
+
+bool isComparisonWithNull(MethodInvocation node) =>
+    getArgumentOfComparisonWithNull(node) != null;

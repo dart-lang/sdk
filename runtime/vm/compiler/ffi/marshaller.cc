@@ -17,8 +17,6 @@ namespace compiler {
 
 namespace ffi {
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 Location CallMarshaller::LocInFfiCall(intptr_t arg_index) const {
   if (arg_index == kResultIndex) {
     return Location(arg_index).AsLocation();
@@ -153,8 +151,6 @@ CallbackMarshaller::CallbackMarshaller(Zone* zone,
       callback_locs_(
           CallbackArgumentTranslator::TranslateArgumentLocations(arg_locs_,
                                                                  zone_)) {}
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace ffi
 

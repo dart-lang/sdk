@@ -1,0 +1,30 @@
+int? lateTopLevelField1Init;
+int? initLateTopLevelField1(int value) { }
+late ;
+final int? lateTopLevelField1 = initLateTopLevelField1(123);
+class Class<T> {
+  static int? lateStaticField1Init;
+  static int? initLateStaticField1(int value) { }
+  static late ;
+  final int? lateStaticField1 = initLateStaticField1(87);
+  static int? lateStaticField2Init;
+  static int? initLateStaticField2(int value) { }
+  static late ;
+  final int? lateStaticField2 = initLateStaticField2(42);
+  static staticMethod() { }
+  int? lateInstanceFieldInit;
+  int? initLateInstanceField(int value) { }
+  late ;
+  final int? lateInstanceField = initLateInstanceField(16);
+  T? lateGenericInstanceFieldInit;
+  T? initLateGenericInstanceField(T? value) { }
+  final T? field;
+  late ;
+  final T? lateGenericInstanceField = initLateGenericInstanceField(field);
+  Class(this.field);
+  instanceMethod() { }
+}
+extension Extension<T> ( ){ }
+on Class<T> (){ }
+main() { }
+expect(expected, actual) { }

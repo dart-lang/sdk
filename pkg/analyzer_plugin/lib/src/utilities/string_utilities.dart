@@ -13,12 +13,12 @@ List<String> getCamelWords(String string) {
   if (string == null || string.isEmpty) {
     return const <String>[];
   }
-  List<String> parts = <String>[];
-  bool wasLowerCase = false;
-  bool wasUpperCase = false;
-  int wordStart = 0;
-  for (int i = 0; i < string.length; i++) {
-    int c = string.codeUnitAt(i);
+  var parts = <String>[];
+  var wasLowerCase = false;
+  var wasUpperCase = false;
+  var wordStart = 0;
+  for (var i = 0; i < string.length; i++) {
+    var c = string.codeUnitAt(i);
     var newLowerCase = isLowerCase(c);
     var newUpperCase = isUpperCase(c);
     // myWord

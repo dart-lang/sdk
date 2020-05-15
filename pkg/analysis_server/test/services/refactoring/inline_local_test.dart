@@ -44,7 +44,7 @@ main() {
 }
 ''');
     _createRefactoring('main() {');
-    RefactoringStatus status = await refactoring.checkInitialConditions();
+    var status = await refactoring.checkInitialConditions();
     _assert_fatalError_selection(status);
   }
 
@@ -54,7 +54,7 @@ main(int test) {
 }
 ''');
     _createRefactoring('test) {');
-    RefactoringStatus status = await refactoring.checkInitialConditions();
+    var status = await refactoring.checkInitialConditions();
     _assert_fatalError_selection(status);
   }
 
@@ -66,7 +66,7 @@ main() {
 }
 ''');
     _createRefactoring('test = 0');
-    RefactoringStatus status = await refactoring.checkInitialConditions();
+    var status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedContextSearch: 'test = 1');
   }
@@ -79,7 +79,7 @@ main() {
 }
 ''');
     _createRefactoring('test = 0');
-    RefactoringStatus status = await refactoring.checkInitialConditions();
+    var status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedContextSearch: 'test += 1');
   }
@@ -92,7 +92,7 @@ main() {
 }
 ''');
     _createRefactoring('test = 0');
-    RefactoringStatus status = await refactoring.checkInitialConditions();
+    var status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
   }
 
@@ -103,7 +103,7 @@ main() {
 }
 ''');
     _createRefactoring('test;');
-    RefactoringStatus status = await refactoring.checkInitialConditions();
+    var status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
   }
 
@@ -636,7 +636,7 @@ main() {
   }
 
   void _createRefactoring(String search) {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     refactoring = InlineLocalRefactoring(
       searchEngine,
       testAnalysisResult,

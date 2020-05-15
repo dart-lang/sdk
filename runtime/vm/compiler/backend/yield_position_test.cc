@@ -26,7 +26,7 @@ static YieldPoints* GetYieldPointsFromGraph(FlowGraph* flow_graph) {
     while (!it.Done()) {
       if (auto return_instr = it.Current()->AsReturn()) {
         if (return_instr->yield_index() !=
-            RawPcDescriptors::kInvalidYieldIndex) {
+            PcDescriptorsLayout::kInvalidYieldIndex) {
           ASSERT(return_instr->yield_index() > 0);
           array->Add(
               Pair(return_instr->yield_index(), return_instr->token_pos()));
@@ -42,9 +42,9 @@ static YieldPoints* GetYieldPointsFromGraph(FlowGraph* flow_graph) {
 static YieldPoints* GetYieldPointsFromCode(const Code& code) {
   auto array = new YieldPoints();
   const auto& pc_descriptor = PcDescriptors::Handle(code.pc_descriptors());
-  PcDescriptors::Iterator it(pc_descriptor, RawPcDescriptors::kOther);
+  PcDescriptors::Iterator it(pc_descriptor, PcDescriptorsLayout::kOther);
   while (it.MoveNext()) {
-    if (it.YieldIndex() != RawPcDescriptors::kInvalidYieldIndex) {
+    if (it.YieldIndex() != PcDescriptorsLayout::kInvalidYieldIndex) {
       array->Add(Pair(it.YieldIndex(), it.TokenPos()));
     }
   }

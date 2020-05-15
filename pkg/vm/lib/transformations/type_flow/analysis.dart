@@ -191,12 +191,17 @@ class _DirectInvocation extends _Invocation {
       case CallKind.PropertyGet:
         assertx(args.values.length == firstParamIndex);
         assertx(args.names.isEmpty);
+        fieldValue.isGetterUsed = true;
         return fieldValue.getValue(
             typeFlowAnalysis, field.isStatic ? null : args.values[0]);
 
       case CallKind.PropertySet:
+      case CallKind.SetFieldInConstructor:
         assertx(args.values.length == firstParamIndex + 1);
         assertx(args.names.isEmpty);
+        if (selector.callKind == CallKind.PropertySet) {
+          fieldValue.isSetterUsed = true;
+        }
         final Type setterArg = args.values[firstParamIndex];
         fieldValue.setValue(
             setterArg, typeFlowAnalysis, field.isStatic ? null : args.receiver);
@@ -206,6 +211,7 @@ class _DirectInvocation extends _Invocation {
         // Call via field.
         // TODO(alexmarkov): support function types and use inferred type
         // to get more precise return type.
+        fieldValue.isGetterUsed = true;
         final receiver = fieldValue.getValue(
             typeFlowAnalysis, field.isStatic ? null : args.values[0]);
         if (receiver != const EmptyType()) {
@@ -229,6 +235,9 @@ class _DirectInvocation extends _Invocation {
           // TODO(alexmarkov): Try to prove that static field initializer
           // does not throw exception.
           initializerResult = new Type.nullable(initializerResult);
+        }
+        if (kPrintTrace) {
+          tracePrint("Result of ${field} initializer: $initializerResult");
         }
         fieldValue.setValue(initializerResult, typeFlowAnalysis,
             field.isStatic ? null : args.receiver);
@@ -772,6 +781,12 @@ class _FieldValue extends _DependencyTracker {
   /// Flag indicating if field initializer was executed.
   bool isInitialized = false;
 
+  /// Flag indicating if field getter was executed.
+  bool isGetterUsed = false;
+
+  /// Flag indicating if field setter was executed.
+  bool isSetterUsed = false;
+
   _FieldValue(this.field, this.typeGuardSummary, TypesBuilder typesBuilder)
       : staticType = typesBuilder.fromStaticType(field.type, true) {
     if (field.initializer == null && _isDefaultValueOfFieldObservable()) {
@@ -948,8 +963,9 @@ class GenericInterfacesInfoImpl implements GenericInterfacesInfo {
     final cached = useCache ? cachedFlattenedTypeArgs[klass] : null;
     if (cached != null) return cached;
 
-    final flattenedTypeArguments = List<DartType>.from(klass.typeParameters
-        .map((t) => new TypeParameterType(t, Nullability.legacy)));
+    final flattenedTypeArguments = List<DartType>.from(klass.typeParameters.map(
+        (t) => new TypeParameterType(
+            t, TypeParameterType.computeNullabilityFromBound(t))));
 
     for (final Supertype intf in hierarchy.genericSupertypesOf(klass)) {
       int offset = findOverlap(flattenedTypeArguments, intf.typeArguments);
@@ -988,7 +1004,7 @@ class GenericInterfacesInfoImpl implements GenericInterfacesInfo {
     result = new List<Type>(flattenedTypeArgs.length);
     for (int i = 0; i < flattenedTypeArgs.length; ++i) {
       final translated = closedTypeTranslator.translate(flattenedTypeArgs[i]);
-      assertx(translated is RuntimeType || translated is AnyType);
+      assertx(translated is RuntimeType || translated is UnknownType);
       result[i] = translated;
     }
     cachedFlattenedTypeArgsForNonGeneric[klass] = result;
@@ -1022,10 +1038,10 @@ class _ClassHierarchyCache extends TypeHierarchy {
       <DynamicSelector, _DynamicTargetSet>{};
 
   _ClassHierarchyCache(this._typeFlowAnalysis, this.hierarchy,
-      this.genericInterfacesInfo, this.environment)
+      this.genericInterfacesInfo, this.environment, bool nullSafety)
       : objectNoSuchMethod = hierarchy.getDispatchTarget(
             environment.coreTypes.objectClass, noSuchMethodName),
-        super(environment.coreTypes) {
+        super(environment.coreTypes, nullSafety) {
     assertx(objectNoSuchMethod != null);
   }
 
@@ -1044,6 +1060,7 @@ class _ClassHierarchyCache extends TypeHierarchy {
 
   ConcreteType addAllocatedClass(Class cl) {
     assertx(!cl.isAbstract);
+    assertx(cl != coreTypes.futureOrClass);
     assertx(!_sealed);
 
     final _TFClassImpl classImpl = getTFClass(cl);
@@ -1339,8 +1356,8 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
       : annotationMatcher =
             matcher ?? new ConstantPragmaAnnotationParser(coreTypes) {
     nativeCodeOracle = new NativeCodeOracle(libraryIndex, annotationMatcher);
-    hierarchyCache = new _ClassHierarchyCache(
-        this, hierarchy, _genericInterfacesInfo, environment);
+    hierarchyCache = new _ClassHierarchyCache(this, hierarchy,
+        _genericInterfacesInfo, environment, target.flags.enableNullSafety);
     summaryCollector = new SummaryCollector(target, environment, hierarchy,
         this, hierarchyCache, nativeCodeOracle, hierarchyCache);
     _invocationsCache = new _InvocationsCache(this);
@@ -1391,6 +1408,26 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
     return false;
   }
 
+  /// Returns true if analysis found that getter corresponding to the given
+  /// [field] could be executed.
+  bool isFieldGetterUsed(Field field) {
+    final fieldValue = _fieldValues[field];
+    if (fieldValue != null) {
+      return fieldValue.isGetterUsed;
+    }
+    return false;
+  }
+
+  /// Returns true if analysis found that setter corresponding to the given
+  /// [field] could be executed.
+  bool isFieldSetterUsed(Field field) {
+    final fieldValue = _fieldValues[field];
+    if (fieldValue != null) {
+      return fieldValue.isSetterUsed;
+    }
+    return false;
+  }
+
   bool isClassAllocated(Class c) => hierarchyCache.allocatedClasses.contains(c);
 
   Call callSite(TreeNode node) => summaryCollector.callSites[node];
@@ -1398,12 +1435,19 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   TypeCheck explicitCast(AsExpression cast) =>
       summaryCollector.explicitCasts[cast];
 
+  NarrowNotNull nullTest(TreeNode node) => summaryCollector.nullTests[node];
+
   Type fieldType(Field field) => _fieldValues[field]?.value;
 
   Args<Type> argumentTypes(Member member) => _summaries[member]?.argumentTypes;
 
   List<VariableDeclaration> uncheckedParameters(Member member) =>
       _summaries[member]?.uncheckedParameters;
+
+  // The set of optional and named parameters to this procedure which
+  // are passed at all call-sites.
+  Set<String> alwaysPassedOptionalParameters(Member member) =>
+      _summaries[member]?.alwaysPassedOptionalParameters() ?? const {};
 
   bool isTearOffTaken(Member member) => _tearOffTaken.contains(member);
 

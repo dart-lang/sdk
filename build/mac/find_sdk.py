@@ -17,6 +17,41 @@ import sys
 from optparse import OptionParser
 
 
+# sdk/build/xcode_links
+ROOT_SRC_DIR = os.path.join(
+    os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
+
+
+def CreateSymlinkForSDKAt(src, dst):
+    """
+    Create symlink to Xcode directory at target location, which can be absolute or
+    relative to `ROOT_SRC_DIR`.
+    """
+
+    # If `dst` is relative, it is assumed to be relative to src root.
+    if not os.path.isabs(dst):
+        dst = os.path.join(ROOT_SRC_DIR, dst)
+
+    if not os.path.isdir(dst):
+        os.makedirs(dst)
+
+    dst = os.path.join(dst, os.path.basename(src))
+
+    # Update the symlink if exists.
+    if os.path.islink(dst):
+        current_src = os.readlink(dst)
+        if current_src == src:
+            return dst
+
+        os.unlink(dst)
+        sys.stderr.write('existing symlink %s points %s; want %s. Removed.' %
+                         (dst, current_src, src))
+
+    os.symlink(src, dst)
+    return dst
+
+
 def parse_version(version_str):
     """'10.6' => [10, 6]"""
     return map(int, re.findall(r'(\d+)', version_str))
@@ -43,6 +78,13 @@ def main():
         dest="print_sdk_path",
         default=False,
         help="Additionaly print the path the SDK (appears first).")
+    parser.add_option(
+        "--create_symlink_at",
+        action="store",
+        dest="create_symlink_at",
+        help=
+        "Create symlink to SDK at given location and return symlink path as SDK "
+        "info instead of the original location.")
     (options, args) = parser.parse_args()
     min_sdk_version = args[0]
 
@@ -91,9 +133,13 @@ def main():
         return min_sdk_version
 
     if options.print_sdk_path:
-        print subprocess.check_output(
+        sdk_path = subprocess.check_output(
             ['xcodebuild', '-version', '-sdk', 'macosx' + best_sdk,
              'Path']).strip()
+        if options.create_symlink_at:
+            print CreateSymlinkForSDKAt(sdk_path, options.create_symlink_at)
+        else:
+            print sdk_path
 
     return best_sdk
 

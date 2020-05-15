@@ -108,20 +108,20 @@ class IntrusiveDListEntry {
     prev_ = nullptr;
   }
 
-  bool IsEmpty() {
+  bool IsEmpty() const {
     bool result = next_ == this;
     ASSERT(result == (prev_ == this));
     return result;
   }
 
-  bool IsLinked() {
+  bool IsLinked() const {
     ASSERT((next_ == nullptr) == (prev_ == nullptr));
     return next_ != nullptr;
   }
 
-  IntrusiveDListEntry<T, N>* Prev() { return prev_; }
+  IntrusiveDListEntry<T, N>* Prev() const { return prev_; }
 
-  IntrusiveDListEntry<T, N>* Next() { return next_; }
+  IntrusiveDListEntry<T, N>* Next() const { return next_; }
 
   friend class IntrusiveDList<T, N>;
 
@@ -143,9 +143,9 @@ class IntrusiveDList {
              IntrusiveDListEntry<ContainerType, I>* entry)
         : head_(head), entry_(entry) {}
 
-    inline ContainerType* operator->() { return entry_->container(); }
+    inline ContainerType* operator->() const { return entry_->container(); }
 
-    inline ContainerType* operator*() { return entry_->container(); }
+    inline ContainerType* operator*() const { return entry_->container(); }
 
     inline bool operator==(const Iterator<ContainerType, I>& other) const {
       return entry_ == other.entry_;
@@ -180,18 +180,18 @@ class IntrusiveDList {
 
   // NOTE: This function only checks whether [a] is linked inside *a*
   // [IntrusiveDList].
-  inline bool IsInList(T* a) { return convert(a)->IsLinked(); }
+  inline bool IsInList(T* a) const { return convert(a)->IsLinked(); }
 
   inline void Remove(T* a) { convert(a)->Remove(); }
 
-  inline bool IsEmpty() { return head_.IsEmpty(); }
+  inline bool IsEmpty() const { return head_.IsEmpty(); }
 
-  inline T* First() {
+  inline T* First() const {
     ASSERT(!IsEmpty());
     return head_.Next()->container();
   }
 
-  inline T* Last() {
+  inline T* Last() const {
     ASSERT(!IsEmpty());
     return head_.Prev()->container();
   }
@@ -227,10 +227,34 @@ class IntrusiveDList {
     return next;
   }
 
+  bool ContainsForDebugging(const T* a) {
+    for (auto entry : *this) {
+      if (entry == a) return true;
+    }
+    return false;
+  }
+
+  void AppendList(IntrusiveDList<T, N>* other) {
+    if (other->IsEmpty()) return;
+
+    auto other_first = other->head_.Next();
+    auto other_last = other->head_.Prev();
+    other->head_.next_ = &other->head_;
+    other->head_.prev_ = &other->head_;
+
+    auto prev = head_.prev_;
+
+    prev->next_ = other_first;
+    other_first->prev_ = prev;
+
+    other_last->next_ = &head_;
+    head_.prev_ = other_last;
+  }
+
  private:
   Entry head_;
 
-  Entry* convert(T* entry) { return static_cast<Entry*>(entry); }
+  Entry* convert(T* entry) const { return static_cast<Entry*>(entry); }
 };
 
 }  // namespace dart.

@@ -1,0 +1,74 @@
+library #lib /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+abstract class A<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::T%>
+    : super core::Object::•()
+    ;
+}
+class B<T extends core::Object? = dynamic> extends self::A<self::B::T%> {
+  synthetic constructor •() → self::B<self::B::T%>
+    : super self::A::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method testT1([@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] dynamic x) → dynamic
+    return _in::unsafeCast<self::B::T%>(x);
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method testT2negative([@vm.inferred-type.metadata=dart.core::Null? (value: null)] dynamic x) → dynamic
+    return x as{ForNonNullableByDefault} self::B::T%;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  method testT3([@vm.inferred-type.metadata=dart.core::Null? (value: null)] dynamic x) → dynamic
+    return _in::unsafeCast<self::B::T%>(x);
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]  method testNullableT1([@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] dynamic x) → dynamic
+    return _in::unsafeCast<self::B::T?>(x);
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9,getterSelectorId:10]  method testNullableT2([@vm.inferred-type.metadata=dart.core::Null? (value: null)] dynamic x) → dynamic
+    return _in::unsafeCast<self::B::T?>(x);
+}
+[@vm.unboxing-info.metadata=(i)->i]static method testInt1([@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] dynamic x) → dynamic
+  return _in::unsafeCast<core::int>(x);
+static method testInt2negative([@vm.inferred-type.metadata=dart.core::Null? (value: null)] dynamic x) → dynamic
+  return x as{ForNonNullableByDefault} core::int;
+[@vm.unboxing-info.metadata=(i)->i]static method testNullableInt1([@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] dynamic x) → dynamic
+  return _in::unsafeCast<core::int?>(x);
+static method testNullableInt2([@vm.inferred-type.metadata=dart.core::Null? (value: null)] dynamic x) → dynamic
+  return _in::unsafeCast<core::int?>(x);
+static method testDynamic([@vm.inferred-type.metadata=dart.core::_OneByteString (value: hi)] dynamic x) → dynamic
+  return _in::unsafeCast<dynamic>(x);
+static method testObjectNegative([@vm.inferred-type.metadata=dart.core::Null? (value: null)] dynamic x) → dynamic
+  return x as{ForNonNullableByDefault} core::Object;
+static method testNullableObject([@vm.inferred-type.metadata=dart.core::Null? (value: null)] dynamic x) → dynamic
+  return _in::unsafeCast<core::Object?>(x);
+static method testAOfNum1([@vm.inferred-type.metadata=#lib::B<InterfaceType(int)>] dynamic x) → dynamic
+  return _in::unsafeCast<self::A<core::num>>(x);
+static method testAOfNum2negative([@vm.inferred-type.metadata=#lib::B<InterfaceType(int?)>] dynamic x) → dynamic
+  return x as{ForNonNullableByDefault} self::A<core::num>;
+static method testAOfNum3negative([@vm.inferred-type.metadata=dart.core::Null? (value: null)] dynamic x) → dynamic
+  return x as{ForNonNullableByDefault} self::A<core::num>;
+static method testAOfNullableNum([@vm.inferred-type.metadata=#lib::B<InterfaceType(int?)>] dynamic x) → dynamic
+  return _in::unsafeCast<self::A<core::num?>>(x);
+static method testNullableAOfNum([@vm.inferred-type.metadata=dart.core::Null? (value: null)] dynamic x) → dynamic
+  return _in::unsafeCast<self::A<core::num>?>(x);
+static method testNullableAOfNumNegative([@vm.inferred-type.metadata=#lib::B<InterfaceType(int?)>] dynamic x) → dynamic
+  return x as{ForNonNullableByDefault} self::A<core::num>?;
+static method testNullableAOfNullableNum([@vm.inferred-type.metadata=#lib::B<InterfaceType(int?)>] dynamic x) → dynamic
+  return _in::unsafeCast<self::A<core::num?>?>(x);
+static method main() → void {
+  self::testInt1(42);
+  self::testInt2negative(null);
+  self::testNullableInt1(42);
+  self::testNullableInt2(null);
+  self::testDynamic("hi");
+  self::testObjectNegative(null);
+  self::testNullableObject(null);
+  self::testAOfNum1(new self::B::•<core::int>());
+  self::testAOfNum2negative(new self::B::•<core::int?>());
+  self::testAOfNum3negative(null);
+  self::testAOfNullableNum(new self::B::•<core::int?>());
+  self::testNullableAOfNum(null);
+  self::testNullableAOfNumNegative(new self::B::•<core::int?>());
+  self::testNullableAOfNullableNum(new self::B::•<core::int?>());
+  [@vm.direct-call.metadata=B::testT1] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testT1}(42);
+  [@vm.direct-call.metadata=B::testT2negative] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testT2negative}(null);
+  [@vm.direct-call.metadata=B::testT3] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int?>().{self::B::testT3}(null);
+  [@vm.direct-call.metadata=B::testNullableT1] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testNullableT1}(42);
+  [@vm.direct-call.metadata=B::testNullableT2] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testNullableT2}(null);
+}

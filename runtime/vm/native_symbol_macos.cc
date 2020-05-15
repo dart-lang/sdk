@@ -17,7 +17,7 @@ void NativeSymbolResolver::Init() {}
 
 void NativeSymbolResolver::Cleanup() {}
 
-char* NativeSymbolResolver::LookupSymbolName(uintptr_t pc, uintptr_t* start) {
+char* NativeSymbolResolver::LookupSymbolName(uword pc, uword* start) {
   Dl_info info;
   int r = dladdr(reinterpret_cast<void*>(pc), &info);
   if (r == 0) {
@@ -27,7 +27,7 @@ char* NativeSymbolResolver::LookupSymbolName(uintptr_t pc, uintptr_t* start) {
     return NULL;
   }
   if (start != NULL) {
-    *start = reinterpret_cast<uintptr_t>(info.dli_saddr);
+    *start = reinterpret_cast<uword>(info.dli_saddr);
   }
   int status;
   char* demangled = abi::__cxa_demangle(info.dli_sname, NULL, NULL, &status);

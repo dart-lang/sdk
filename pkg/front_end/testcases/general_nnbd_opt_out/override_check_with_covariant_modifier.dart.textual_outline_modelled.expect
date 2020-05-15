@@ -1,0 +1,24 @@
+// @dart = 2.6
+class A {}
+
+class B extends A {}
+
+class C {
+  void f1(covariant A x) {}
+  void f2(A x) {}
+  void f3(covariant A x) {}
+  void f4(A x) {}
+  void f5(covariant A x) {}
+  void f6(covariant B x) {}
+}
+
+class D extends C {
+  void f1(B x) {}
+  void f2(covariant B x) {}
+  void f3(covariant B x) {}
+  void f4(B x) {}
+  void f5(covariant String x) {}
+  void f6(covariant A x) {}
+}
+
+main() {}

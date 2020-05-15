@@ -49,7 +49,7 @@ void main() {
 
     group('setSubscriptions', () {
       test('invalid service name', () {
-        Request request = Request('0', SERVER_REQUEST_SET_SUBSCRIPTIONS, {
+        var request = Request('0', SERVER_REQUEST_SET_SUBSCRIPTIONS, {
           SUBSCRIPTIONS: ['noSuchService']
         });
         var response = handler.handleRequest(request);
@@ -59,7 +59,7 @@ void main() {
       test('success', () {
         expect(server.serverServices, isEmpty);
         // send request
-        Request request =
+        var request =
             ServerSetSubscriptionsParams([ServerService.STATUS]).toRequest('0');
         var response = handler.handleRequest(request);
         expect(response, isResponseSuccess('0'));

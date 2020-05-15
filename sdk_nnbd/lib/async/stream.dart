@@ -154,7 +154,7 @@ abstract class Stream<T> {
     // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(error, "error");
     return (_AsyncStreamController<T>(null, null, null, null)
-          .._addError(error, stackTrace)
+          .._addError(error, stackTrace ?? AsyncError.defaultStackTrace(error))
           .._closeUnchecked())
         .stream;
   }
@@ -203,18 +203,20 @@ abstract class Stream<T> {
     // Declare these as variables holding closures instead of as
     // function declarations.
     // This avoids creating a new closure from the functions for each future.
-    var onValue = (T value) {
+    void onValue(T value) {
       if (!controller.isClosed) {
         controller._add(value);
         if (--count == 0) controller._closeUnchecked();
       }
-    };
-    var onError = (Object error, StackTrace? stack) {
+    }
+
+    void onError(Object error, StackTrace stack) {
       if (!controller.isClosed) {
         controller._addError(error, stack);
         if (--count == 0) controller._closeUnchecked();
       }
-    };
+    }
+
     // The futures are already running, so start listening to them immediately
     // (instead of waiting for the stream to be listened on).
     // If we wait, we might not catch errors in the futures in time.
@@ -261,7 +263,7 @@ abstract class Stream<T> {
    */
   factory Stream.periodic(Duration period,
       [T computation(int computationCount)?]) {
-    if (computation == null && null is! T) {
+    if (computation == null && !typeAcceptsNull<T>()) {
       throw ArgumentError.value(null, "computation",
           "Must not be omitted when the event type is non-nullable");
     }
@@ -411,7 +413,7 @@ abstract class Stream<T> {
    * error object and possibly a stack trace.
    *
    * The [onError] callback must be of type `void onError(Object error)` or
-   * `void onError(Object error, StackTrace? stackTrace)`. If [onError] accepts
+   * `void onError(Object error, StackTrace stackTrace)`. If [onError] accepts
    * two arguments it is called with the error object and the stack trace
    * (which could be `null` if this stream itself received an error without
    * stack trace).
@@ -508,6 +510,7 @@ abstract class Stream<T> {
       }
 
       final addError = controller._addError;
+      final resume = subscription.resume;
       subscription.onData((T event) {
         FutureOr<E> newValue;
         try {
@@ -518,21 +521,17 @@ abstract class Stream<T> {
         }
         if (newValue is Future<E>) {
           subscription.pause();
-          newValue
-              .then(add, onError: addError)
-              .whenComplete(subscription.resume);
+          newValue.then(add, onError: addError).whenComplete(resume);
         } else {
-          if (newValue is! E) {
-            throw "unreachable"; // TODO(lrn): Remove when type promotion works.
-          }
-          controller.add(newValue);
+          // TODO(40014): Remove cast when type promotion works.
+          controller.add(newValue as dynamic);
         }
       });
       controller.onCancel = subscription.cancel;
       if (!isBroadcast) {
         controller
           ..onPause = subscription.pause
-          ..onResume = subscription.resume;
+          ..onResume = resume;
       }
     };
     return controller.stream;
@@ -598,7 +597,7 @@ abstract class Stream<T> {
    * by the [onError] function.
    *
    * The [onError] callback must be of type `void onError(Object error)` or
-   * `void onError(Object error, StackTrace? stackTrace)`.
+   * `void onError(Object error, StackTrace stackTrace)`.
    * The function type determines whether [onError] is invoked with a stack
    * trace argument.
    * The stack trace argument may be `null` if this stream received an error
@@ -1075,7 +1074,9 @@ abstract class Stream<T> {
    * The [futureValue] must not be omitted if `null` is not assignable to [E].
    */
   Future<E> drain<E>([E? futureValue]) {
-    futureValue = futureValue as E;
+    if (futureValue == null) {
+      futureValue = futureValue as E;
+    }
     return listen(null, cancelOnError: true).asFuture<E>(futureValue);
   }
 
@@ -1471,7 +1472,8 @@ abstract class Stream<T> {
     subscription =
         this.listen(null, onError: result._completeError, onDone: () {
       result._completeError(
-          new RangeError.index(index, this, "index", null, elementIndex));
+          new RangeError.index(index, this, "index", null, elementIndex),
+          StackTrace.empty);
     }, cancelOnError: true);
     subscription.onData((T value) {
       if (index == elementIndex) {
@@ -1555,7 +1557,7 @@ abstract class Stream<T> {
           // issue: https://github.com/dart-lang/sdk/issues/37565
           controller.add(event);
         })
-        ..onError((Object error, StackTrace? stackTrace) {
+        ..onError((Object error, StackTrace stackTrace) {
           timer.cancel();
           timer = zone.createTimer(timeLimit, timeoutCallback);
           controller._addError(
@@ -2048,8 +2050,7 @@ abstract class StreamTransformer<S, T> {
    */
   factory StreamTransformer.fromHandlers(
       {void handleData(S data, EventSink<T> sink)?,
-      void handleError(
-          Object error, StackTrace? stackTrace, EventSink<T> sink)?,
+      void handleError(Object error, StackTrace stackTrace, EventSink<T> sink)?,
       void handleDone(EventSink<T> sink)?}) = _StreamHandlerTransformer<S, T>;
 
   /**

@@ -29,7 +29,7 @@ main(p) {
   p = null;
 }
 ''');
-    String expected = '''
+    var expected = '''
 class MyTypeName {}
 main(p) {
   if (p is MyTypeName) {
@@ -57,7 +57,7 @@ main(p) {
   }
 }
 ''');
-    String expected = '''
+    var expected = '''
 class MyTypeName {}
 main(p) {
   if (p is! MyTypeName) {
@@ -113,7 +113,7 @@ main(p) {
   p = null;
 }
 ''');
-    String expected = '''
+    var expected = '''
 main(p) {
   while (p is String) {
     String s = p;

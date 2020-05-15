@@ -16,12 +16,12 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
 
 
   Node get first {
-    Node result = JS('Node|Null', '#.firstChild', _this);
+    Node$NULLABLE result = JS('Node|Null', '#.firstChild', _this);
     if (result == null) throw new StateError("No elements");
     return result;
   }
   Node get last {
-    Node result = JS('Node|Null', '#.lastChild', _this);
+    Node$NULLABLE result = JS('Node|Null', '#.lastChild', _this);
     if (result == null) throw new StateError("No elements");
     return result;
   }
@@ -29,7 +29,7 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
     int l = this.length;
     if (l == 0) throw new StateError("No elements");
     if (l > 1) throw new StateError("More than one element");
-    return JS('Node|Null', '#.firstChild', _this);
+    return JS('Node|Null', '#.firstChild', _this)$NULLASSERT;
   }
 
   void add(Node value) {

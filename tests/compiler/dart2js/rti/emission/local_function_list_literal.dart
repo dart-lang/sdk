@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'package:expect/expect.dart';
 
-/*strong.class: global#JSArray:checkedInstance,checks=[$isIterable,$isList],instance*/
-/*omit.class: global#JSArray:checks=[$isList],instance*/
+/*spec:nnbd-off.class: global#JSArray:checkedInstance,checks=[$isIterable,$isList],instance*/
+/*prod:nnbd-off.class: global#JSArray:checks=[$isList],instance*/
 
 @pragma('dart2js:noInline')
 method<T>() {

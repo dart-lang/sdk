@@ -52,6 +52,7 @@ import 'convert_to_list_literal_test.dart' as convert_to_list_literal;
 import 'convert_to_map_literal_test.dart' as convert_to_map_literal;
 import 'convert_to_named_arguments_test.dart' as convert_to_named_arguments;
 import 'convert_to_null_aware_test.dart' as convert_to_null_aware;
+import 'convert_to_on_type_test.dart' as convert_to_on_type;
 import 'convert_to_package_import_test.dart' as convert_to_package_import;
 import 'convert_to_relative_import_test.dart' as convert_to_relative_import;
 import 'convert_to_set_literal_test.dart' as convert_to_set_literal;
@@ -111,6 +112,7 @@ import 'remove_parameters_in_getter_declaration_test.dart'
     as remove_parameters_in_getter_declaration;
 import 'remove_parentheses_in_getter_invocation_test.dart'
     as remove_parentheses_in_getter_invocation;
+import 'remove_question_mark_test.dart' as remove_question_mark;
 import 'remove_this_expression_test.dart' as remove_this_expression;
 import 'remove_type_annotation_test.dart' as remove_type_annotation;
 import 'remove_type_arguments_test.dart' as remove_type_arguments;
@@ -145,6 +147,7 @@ import 'replace_with_null_aware_test.dart' as replace_with_null_aware;
 import 'replace_with_tear_off_test.dart' as replace_with_tear_off;
 import 'replace_with_var_test.dart' as replace_with_var;
 import 'sort_child_property_last_test.dart' as sort_properties_last;
+import 'sort_directives_test.dart' as sort_directives;
 import 'update_sdk_constraints_test.dart' as update_sdk_constraints;
 import 'use_const_test.dart' as use_const;
 import 'use_effective_integer_division_test.dart'
@@ -197,6 +200,7 @@ void main() {
     convert_to_map_literal.main();
     convert_to_named_arguments.main();
     convert_to_null_aware.main();
+    convert_to_on_type.main();
     convert_to_package_import.main();
     convert_to_relative_import.main();
     convert_to_set_literal.main();
@@ -251,6 +255,7 @@ void main() {
     remove_operator.main();
     remove_parameters_in_getter_declaration.main();
     remove_parentheses_in_getter_invocation.main();
+    remove_question_mark.main();
     remove_this_expression.main();
     remove_type_annotation.main();
     remove_type_arguments.main();
@@ -283,6 +288,7 @@ void main() {
     replace_with_null_aware.main();
     replace_with_tear_off.main();
     replace_with_var.main();
+    sort_directives.main();
     sort_properties_last.main();
     update_sdk_constraints.main();
     use_const.main();

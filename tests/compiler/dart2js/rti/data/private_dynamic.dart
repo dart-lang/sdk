@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 class C {
-  /*member: C._private:direct,explicit=[_private.T],needsArgs,selectors=[Selector(call, _private, arity=1, types=1)]*/
+  /*spec:nnbd-off|prod:nnbd-off.member: C._private:direct,explicit=[_private.T],needsArgs,selectors=[Selector(call, _private, arity=1, types=1)]*/
+  /*spec:nnbd-sdk|prod:nnbd-sdk.member: C._private:direct,explicit=[_private.T*],needsArgs,selectors=[Selector(call, _private, arity=1, types=1)]*/
   _private<T>(t) => t is T;
 }
 

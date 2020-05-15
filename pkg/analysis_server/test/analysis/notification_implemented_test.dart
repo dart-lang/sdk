@@ -29,14 +29,14 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
   /// If [length] is not specified explicitly, then length of an identifier
   /// from [search] is used.
   void assertHasImplementedClass(String search, [int length = -1]) {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     if (length == -1) {
       length = findIdentifierLength(search);
     }
     if (implementedClasses == null) {
       fail('No notification of impemented classes was received');
     }
-    for (ImplementedClass clazz in implementedClasses) {
+    for (var clazz in implementedClasses) {
       if (clazz.offset == offset && clazz.length == length) {
         return;
       }
@@ -50,14 +50,14 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
   /// If [length] is not specified explicitly, then length of an identifier
   /// from [search] is used.
   void assertHasImplementedMember(String search, [int length = -1]) {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     if (length == -1) {
       length = findIdentifierLength(search);
     }
     if (implementedMembers == null) {
       fail('No notification of impemented members was received');
     }
-    for (ImplementedMember member in implementedMembers) {
+    for (var member in implementedMembers) {
       if (member.offset == offset && member.length == length) {
         return;
       }
@@ -71,14 +71,14 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
   /// If [length] is not specified explicitly, then length of an identifier
   /// from [search] is used.
   void assertNoImplementedMember(String search, [int length = -1]) {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     if (length == -1) {
       length = findIdentifierLength(search);
     }
     if (implementedMembers == null) {
       fail('No notification of impemented members was received');
     }
-    for (ImplementedMember member in implementedMembers) {
+    for (var member in implementedMembers) {
       if (member.offset == offset) {
         fail('Unexpected implemented member at $offset'
             ' in $implementedMembers');

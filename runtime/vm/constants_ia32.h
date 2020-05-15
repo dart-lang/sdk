@@ -92,13 +92,72 @@ const Register kWriteBarrierSlotReg = EDI;
 const Register kAllocationStubTypeArgumentsReg = EDX;
 
 // ABI for instantiation stubs.
-const Register kUninstantiatedTypeArgumentsReg = EBX;
-const Register kInstantiatorTypeArgumentsReg = EDX;
-const Register kFunctionTypeArgumentsReg = ECX;
-const Register kResultTypeArgumentsReg = EAX;
+struct InstantiationABI {
+  static const Register kUninstantiatedTypeArgumentsReg = EBX;
+  static const Register kInstantiatorTypeArgumentsReg = EDX;
+  static const Register kFunctionTypeArgumentsReg = ECX;
+  static const Register kResultTypeArgumentsReg = EAX;
+  static const Register kResultTypeReg = EAX;
+};
 
-// TODO(regis): Add ABIs for type testing stubs and is-type test stubs instead
-// of reusing the constants of the instantiation stubs ABI.
+// Calling convention when calling SubtypeTestCacheStub.
+// Although ia32 uses a stack-based calling convention, we keep the same
+// 'TypeTestABI' name for symmetry with other architectures with a proper ABI.
+// Note that ia32 has no support for type testing stubs.
+struct TypeTestABI {
+  static const Register kInstanceReg = EAX;
+  static const Register kDstTypeReg = EBX;
+  static const Register kInstantiatorTypeArgumentsReg = EDX;
+  static const Register kFunctionTypeArgumentsReg = ECX;
+  static const Register kSubtypeTestCacheReg =
+      EDI;  // On ia32 we don't use CODE_REG.
+
+  // For call to InstanceOfStub.
+  static const Register kResultReg = kNoRegister;
+};
+
+// ABI for InitStaticFieldStub.
+struct InitStaticFieldABI {
+  static const Register kFieldReg = EAX;
+};
+
+// ABI for InitInstanceFieldStub.
+struct InitInstanceFieldABI {
+  static const Register kInstanceReg = EAX;
+  static const Register kFieldReg = EBX;
+};
+
+// Registers used inside the implementation of InitLateInstanceFieldStub.
+struct InitLateInstanceFieldInternalRegs {
+  static const Register kFunctionReg = EAX;
+  static const Register kInitializerResultReg = EAX;
+  static const Register kInstanceReg = EBX;
+  static const Register kFieldReg = EDX;
+  static const Register kAddressReg = ECX;
+  static const Register kScratchReg = EDI;
+};
+
+// ABI for ThrowStub.
+struct ThrowABI {
+  static const Register kExceptionReg = EAX;
+};
+
+// ABI for ReThrowStub.
+struct ReThrowABI {
+  static const Register kExceptionReg = EAX;
+  static const Register kStackTraceReg = EBX;
+};
+
+// ABI for AssertBooleanStub.
+struct AssertBooleanABI {
+  static const Register kObjectReg = EAX;
+};
+
+// ABI for RangeErrorStub.
+struct RangeErrorABI {
+  static const Register kLengthReg = EAX;
+  static const Register kIndexReg = EBX;
+};
 
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFF;
@@ -197,6 +256,8 @@ class CallingConventions {
   static constexpr ExtensionStrategy kArgumentRegisterExtension = kNotExtended;
   static constexpr ExtensionStrategy kArgumentStackExtension = kExtendedTo4;
 };
+
+const uword kBreakInstructionFiller = 0xCCCCCCCC;
 
 }  // namespace dart
 

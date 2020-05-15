@@ -53,10 +53,15 @@ abstract class TypeBuilder {
     if (type == null) return null;
     type = builder.localsHandler.substInContext(type);
     if (_closedWorld.dartTypes.isTopType(type)) return null;
+    bool includeNull =
+        _closedWorld.dartTypes.useLegacySubtyping || type is NullableType;
+    type = type.withoutNullability;
     if (type is! InterfaceType) return null;
     // The type element is either a class or the void element.
     ClassEntity element = (type as InterfaceType).element;
-    return _abstractValueDomain.createNullableSubtype(element);
+    return includeNull
+        ? _abstractValueDomain.createNullableSubtype(element)
+        : _abstractValueDomain.createNonNullSubtype(element);
   }
 
   /// Create an instruction to simply trust the provided type.
@@ -102,8 +107,17 @@ abstract class TypeBuilder {
     return checkInstruction;
   }
 
-  HInstruction trustTypeOfParameter(HInstruction original, DartType type) {
+  HInstruction trustTypeOfParameter(
+      MemberEntity memberContext, HInstruction original, DartType type) {
     if (type == null) return original;
+
+    /// Dart semantics check against null outside the method definition,
+    /// however dart2js moves the null check to the callee for performance
+    /// reasons. As a result the body cannot trust or check that the type is not
+    /// nullable.
+    if (builder.options.useNullSafety && memberContext.name == '==') {
+      type = _closedWorld.dartTypes.nullableType(type);
+    }
     HInstruction trusted = _trustType(original, type);
     if (trusted == original) return original;
     if (trusted is HTypeKnown && trusted.isRedundant(builder.closedWorld)) {
@@ -119,6 +133,14 @@ abstract class TypeBuilder {
     HInstruction checkedOrTrusted = original;
     CheckPolicy parameterCheckPolicy = builder.closedWorld.annotationsData
         .getParameterCheckPolicy(memberContext);
+
+    /// Dart semantics check against null outside the method definition,
+    /// however dart2js moves the null check to the callee for performance
+    /// reasons. As a result the body cannot trust or check that the type is not
+    /// nullable.
+    if (builder.options.useNullSafety && memberContext.name == '==') {
+      type = _closedWorld.dartTypes.nullableType(type);
+    }
     if (parameterCheckPolicy.isTrusted) {
       checkedOrTrusted = _trustType(original, type);
     } else if (parameterCheckPolicy.isEmitted) {

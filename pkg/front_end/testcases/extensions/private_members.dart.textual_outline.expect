@@ -1,0 +1,4 @@
+import 'private_members_lib.dart';
+
+main() {}
+errors() {}

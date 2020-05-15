@@ -43,8 +43,6 @@ import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../../base/nnbd_mode.dart';
-
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/constructor_builder.dart';
@@ -273,6 +271,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   ///    }
   ///
   bool get inLateLocalInitializer => _localInitializerState.head;
+
+  Link<bool> _isOrAsOperatorTypeState = const Link<bool>().prepend(false);
+
+  @override
+  bool get inIsOrAsOperatorType => _isOrAsOperatorTypeState.head;
 
   Link<bool> _localInitializerState = const Link<bool>().prepend(false);
 
@@ -662,6 +665,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   void endTopLevelFields(
+      Token externalToken,
       Token staticToken,
       Token covariantToken,
       Token lateToken,
@@ -672,16 +676,31 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("TopLevelFields");
     if (!libraryBuilder.isNonNullableByDefault) {
       reportNonNullableModifierError(lateToken);
+      if (externalToken != null) {
+        handleRecoverableError(
+            fasta.messageExternalField, externalToken, externalToken);
+      }
     }
     push(count);
   }
 
   @override
-  void endClassFields(Token staticToken, Token covariantToken, Token lateToken,
-      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+  void endClassFields(
+      Token externalToken,
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
     debugEvent("Fields");
     if (!libraryBuilder.isNonNullableByDefault) {
       reportNonNullableModifierError(lateToken);
+      if (externalToken != null) {
+        handleRecoverableError(
+            fasta.messageExternalField, externalToken, externalToken);
+      }
     }
     push(count);
   }
@@ -847,7 +866,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     assert(!inInitializer);
     Object node = pop();
     List<Initializer> initializers;
-    if (node is Initializer) {
+
+    final ModifierBuilder member = this.member;
+    if (!(member is ConstructorBuilder && !member.isExternal)) {
+      // An error has been reported by the parser.
+      initializers = <Initializer>[];
+    } else if (node is Initializer) {
       initializers = <Initializer>[node];
     } else if (node is Generator) {
       initializers = node.buildFieldInitializer(initializedFields);
@@ -868,14 +892,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
     _initializers ??= <Initializer>[];
     _initializers.addAll(initializers);
-    final ModifierBuilder member = this.member;
-    if (!(member is ConstructorBuilder && !member.isExternal)) {
-      addProblem(
-          fasta.templateInitializerOutsideConstructor
-              .withArguments(member.name),
-          token.charOffset,
-          member.name.length);
-    }
   }
 
   DartType _computeReturnTypeContext(MemberBuilder member) {
@@ -955,8 +971,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
 
     if (body != null) {
-      body = typeInferrer?.inferFunctionBody(
-          this, _computeReturnTypeContext(member), asyncModifier, body);
+      body = typeInferrer?.inferFunctionBody(this, member.charOffset,
+          _computeReturnTypeContext(member), asyncModifier, body);
       libraryBuilder.loader.transformPostInference(body, transformSetLiterals,
           transformCollections, libraryBuilder.library);
     }
@@ -1290,6 +1306,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   Expression parseSingleExpression(
       Parser parser, Token token, FunctionNode parameters) {
+    int fileOffset = offsetForToken(token);
     List<TypeVariableBuilder> typeParameterBuilders;
     for (TypeParameter typeParameter in parameters.typeParameters) {
       typeParameterBuilders ??= <TypeVariableBuilder>[];
@@ -1311,7 +1328,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
     enterLocalScope(
         null,
-        new FormalParameters(formals, offsetForToken(token), noLength, uri)
+        new FormalParameters(formals, fileOffset, noLength, uri)
             .computeFormalParameterScope(scope, member, this));
 
     token = parser.parseExpression(parser.syntheticPreviousToken(token));
@@ -1328,8 +1345,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
     ReturnStatementImpl fakeReturn = new ReturnStatementImpl(true, expression);
 
-    typeInferrer?.inferFunctionBody(
-        this, const DynamicType(), AsyncMarker.Sync, fakeReturn);
+    Statement inferredStatement = typeInferrer?.inferFunctionBody(
+        this, fileOffset, const DynamicType(), AsyncMarker.Sync, fakeReturn);
+    assert(
+        fakeReturn == inferredStatement,
+        "Previously implicit assumption about inferFunctionBody "
+        "not returning anything different.");
+    libraryBuilder.loader.transformPostInference(fakeReturn,
+        transformSetLiterals, transformCollections, libraryBuilder.library);
 
     return fakeReturn.expression;
   }
@@ -1402,7 +1425,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           checkArgumentsForFunction(superTarget.function, arguments,
                   builder.charOffset, const <TypeParameter>[]) !=
               null) {
-        String superclass = classBuilder.supertype.fullNameForErrors;
+        String superclass = classBuilder.supertypeBuilder.fullNameForErrors;
         int length = constructor.name.name.length;
         if (length == 0) {
           length = (constructor.parent as Class).name.length;
@@ -1523,33 +1546,56 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Arguments arguments = pop();
     List<UnresolvedType> typeArguments = pop();
     Object receiver = pop();
-    if (arguments != null && typeArguments != null) {
+    // Delay adding [typeArguments] to [forest] for type aliases: They
+    // must be unaliased to the type arguments of the denoted type.
+    bool isInForest = arguments != null &&
+        typeArguments != null &&
+        (receiver is! TypeUseGenerator ||
+            (receiver is TypeUseGenerator &&
+                receiver.declaration is! TypeAliasBuilder));
+    if (isInForest) {
       assert(forest.argumentsTypeArguments(arguments).isEmpty);
       forest.argumentsSetTypeArguments(
           arguments, buildDartTypeArguments(typeArguments));
     } else {
-      assert(typeArguments == null);
+      assert(typeArguments == null ||
+          (receiver is TypeUseGenerator &&
+              receiver.declaration is TypeAliasBuilder));
     }
     if (receiver is Identifier) {
       Name name = new Name(receiver.name, libraryBuilder.nameOrigin);
       if (arguments == null) {
         push(new IncompletePropertyAccessGenerator(this, beginToken, name));
       } else {
-        push(new SendAccessGenerator(this, beginToken, name, arguments));
+        push(new SendAccessGenerator(
+            this, beginToken, name, typeArguments, arguments,
+            isTypeArgumentsInForest: isInForest));
       }
+    } else if (receiver is ParserRecovery) {
+      push(new ParserErrorGenerator(this, null, fasta.messageSyntheticToken));
     } else if (arguments == null) {
       push(receiver);
     } else {
-      push(finishSend(receiver, arguments, beginToken.charOffset));
+      push(finishSend(receiver, typeArguments, arguments, beginToken.charOffset,
+          isTypeArgumentsInForest: isInForest));
     }
+    assert(checkState(beginToken, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.Initializer,
+        ValueKinds.ProblemBuilder
+      ])
+    ]));
   }
 
   @override
-  finishSend(Object receiver, Arguments arguments, int charOffset) {
+  finishSend(Object receiver, List<UnresolvedType> typeArguments,
+      Arguments arguments, int charOffset,
+      {bool isTypeArgumentsInForest = false}) {
     if (receiver is Generator) {
-      return receiver.doInvocation(charOffset, arguments);
-    } else if (receiver is ParserRecovery) {
-      return new ParserErrorGenerator(this, null, fasta.messageSyntheticToken);
+      return receiver.doInvocation(charOffset, typeArguments, arguments,
+          isTypeArgumentsInForest: isTypeArgumentsInForest);
     } else {
       return forest.createExpressionInvocation(
           charOffset, toValue(receiver), arguments);
@@ -1562,8 +1608,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Expression expression = popForValue();
     if (expression is Cascade) {
       push(expression);
-      push(_createReadOnlyVariableAccess(
-          expression.variable, token, expression.fileOffset, null));
+      push(_createReadOnlyVariableAccess(expression.variable, token,
+          expression.fileOffset, null, ReadOnlyAccessKind.LetVariable));
     } else {
       bool isNullAware = optional('?..', token);
       if (isNullAware && !libraryBuilder.isNonNullableByDefault) {
@@ -1573,8 +1619,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           forest.createVariableDeclarationForValue(expression);
       push(new Cascade(variable, isNullAware: isNullAware)
         ..fileOffset = expression.fileOffset);
-      push(_createReadOnlyVariableAccess(
-          variable, token, expression.fileOffset, null));
+      push(_createReadOnlyVariableAccess(variable, token, expression.fileOffset,
+          null, ReadOnlyAccessKind.LetVariable));
     }
   }
 
@@ -1631,8 +1677,16 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   void doBinaryExpression(Token token) {
     assert(checkState(token, <ValueKind>[
-      unionOfKinds([ValueKinds.Expression, ValueKinds.Generator]),
-      unionOfKinds([ValueKinds.Expression, ValueKinds.Generator]),
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+      ]),
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+      ]),
     ]));
     Expression right = popForValue();
     Object left = pop();
@@ -1643,6 +1697,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       if (left is Generator) {
         push(left.buildEqualsOperation(token, right, isNot: isNot));
       } else {
+        if (left is ProblemBuilder) {
+          ProblemBuilder problem = left;
+          left = buildProblem(problem.message, problem.charOffset, noLength);
+        }
         assert(left is Expression);
         push(forest.createEquals(fileOffset, left, right, isNot: isNot));
       }
@@ -1909,9 +1967,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   /// using [token] and [charOffset] for offset information and [name]
   /// for `ExpressionGenerator._plainNameForRead`.
   ReadOnlyAccessGenerator _createReadOnlyVariableAccess(
-      VariableDeclaration variable, Token token, int charOffset, String name) {
+      VariableDeclaration variable,
+      Token token,
+      int charOffset,
+      String name,
+      ReadOnlyAccessKind kind) {
     return new ReadOnlyAccessGenerator(
-        this, token, createVariableGet(variable, charOffset), name);
+        this, token, createVariableGet(variable, charOffset), name, kind);
   }
 
   /// Look up [name] in [scope] using [token] as location information (both to
@@ -1994,7 +2056,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
       VariableDeclaration variable = variableBuilder.variable;
       if (!variableBuilder.isAssignable) {
-        return _createReadOnlyVariableAccess(variable, token, charOffset, name);
+        return _createReadOnlyVariableAccess(
+            variable,
+            token,
+            charOffset,
+            name,
+            variableBuilder.isConst
+                ? ReadOnlyAccessKind.ConstVariable
+                : ReadOnlyAccessKind.FinalVariable);
       } else {
         return new VariableUseGenerator(this, token, variable);
       }
@@ -2820,7 +2889,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         typeArgument = const InvalidType();
       } else {
         typeArgument = buildDartType(typeArguments.single);
-        typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass);
+        typeArgument = instantiateToBounds(
+            typeArgument, coreTypes.objectClass, libraryBuilder.library);
       }
     } else {
       typeArgument = implicitTypeArgument;
@@ -2843,7 +2913,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     DartType typeArgument;
     if (typeArguments != null) {
       typeArgument = buildDartType(typeArguments.single);
-      typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass);
+      typeArgument = instantiateToBounds(
+          typeArgument, coreTypes.objectClass, libraryBuilder.library);
     } else {
       typeArgument = implicitTypeArgument;
     }
@@ -2978,8 +3049,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       } else {
         keyType = buildDartType(typeArguments[0]);
         valueType = buildDartType(typeArguments[1]);
-        keyType = instantiateToBounds(keyType, coreTypes.objectClass);
-        valueType = instantiateToBounds(valueType, coreTypes.objectClass);
+        keyType = instantiateToBounds(
+            keyType, coreTypes.objectClass, libraryBuilder.library);
+        valueType = instantiateToBounds(
+            valueType, coreTypes.objectClass, libraryBuilder.library);
       }
     } else {
       DartType implicitTypeArgument = this.implicitTypeArgument;
@@ -3049,20 +3122,18 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleNonNullAssertExpression(Token bang) {
     assert(checkState(bang, [
-      unionOfKinds([ValueKinds.Expression, ValueKinds.Generator])
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.Initializer,
+        ValueKinds.ProblemBuilder
+      ])
     ]));
     if (!libraryBuilder.isNonNullableByDefault) {
       reportNonNullAssertExpressionNotEnabled(bang);
     }
-    Object operand = pop();
-    Expression expression;
-    if (operand is Generator) {
-      expression = operand.buildSimpleRead();
-    } else {
-      assert(operand is Expression);
-      expression = operand;
-    }
-    push(forest.createNullCheck(offsetForToken(bang), expression));
+    Expression operand = popForValue();
+    push(forest.createNullCheck(offsetForToken(bang), operand));
   }
 
   @override
@@ -3202,9 +3273,20 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
+  void beginAsOperatorType(Token operator) {
+    _isOrAsOperatorTypeState = _isOrAsOperatorTypeState.prepend(true);
+  }
+
+  @override
+  void endAsOperatorType(Token operator) {
+    _isOrAsOperatorTypeState = _isOrAsOperatorTypeState.tail;
+  }
+
+  @override
   void handleAsOperator(Token operator) {
     debugEvent("AsOperator");
-    DartType type = buildDartType(pop());
+    DartType type = buildDartType(pop(),
+        allowPotentiallyConstantType: libraryBuilder.isNonNullableByDefault);
     libraryBuilder.checkBoundsInType(
         type, typeEnvironment, uri, operator.charOffset);
     Expression expression = popForValue();
@@ -3215,9 +3297,20 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
+  void beginIsOperatorType(Token operator) {
+    _isOrAsOperatorTypeState = _isOrAsOperatorTypeState.prepend(true);
+  }
+
+  @override
+  void endIsOperatorType(Token operator) {
+    _isOrAsOperatorTypeState = _isOrAsOperatorTypeState.tail;
+  }
+
+  @override
   void handleIsOperator(Token isOperator, Token not) {
     debugEvent("IsOperator");
-    DartType type = buildDartType(pop());
+    DartType type = buildDartType(pop(),
+        allowPotentiallyConstantType: libraryBuilder.isNonNullableByDefault);
     Expression operand = popForValue();
     bool isInverted = not != null;
     Expression isExpression = forest.createIsExpression(
@@ -3514,8 +3607,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       exitLocalScope();
     }
     FormalParameters catchParameters = popIfNotNull(catchKeyword);
-    DartType exceptionType =
-        buildDartType(popIfNotNull(onKeyword)) ?? const DynamicType();
+    DartType exceptionType = buildDartType(popIfNotNull(onKeyword)) ??
+        (libraryBuilder.isNonNullableByDefault
+            ? coreTypes.objectNonNullableRawType
+            : const DynamicType());
     FormalParameterBuilder exception;
     FormalParameterBuilder stackTrace;
     List<Statement> compileTimeErrors;
@@ -3642,6 +3737,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       unionOfKinds(<ValueKind>[
         ValueKinds.Expression,
         ValueKinds.Generator,
+        ValueKinds.ProblemBuilder
       ]),
     ]));
     debugEvent("UnaryPrefixExpression");
@@ -3924,17 +4020,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         Set<String> argumentNames = new Set.from(named.map((a) => a.name));
         for (VariableDeclaration parameter in function.namedParameters) {
           if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
-            if (libraryBuilder.loader.nnbdMode == NnbdMode.Weak) {
-              addProblem(
-                  fasta.templateValueForRequiredParameterNotProvidedWarning
-                      .withArguments(parameter.name),
-                  arguments.fileOffset,
-                  fasta.noLength);
-            } else {
-              return fasta.templateValueForRequiredParameterNotProvidedError
-                  .withArguments(parameter.name)
-                  .withLocation(uri, arguments.fileOffset, fasta.noLength);
-            }
+            return fasta.templateValueForRequiredParameterNotProvidedError
+                .withArguments(parameter.name)
+                .withLocation(uri, arguments.fileOffset, fasta.noLength);
           }
         }
       }
@@ -3991,17 +4079,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         Set<String> argumentNames = new Set.from(named.map((a) => a.name));
         for (NamedType parameter in function.namedParameters) {
           if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
-            if (libraryBuilder.loader.nnbdMode == NnbdMode.Weak) {
-              addProblem(
-                  fasta.templateValueForRequiredParameterNotProvidedWarning
-                      .withArguments(parameter.name),
-                  arguments.fileOffset,
-                  fasta.noLength);
-            } else {
-              return fasta.templateValueForRequiredParameterNotProvidedError
-                  .withArguments(parameter.name)
-                  .withLocation(uri, arguments.fileOffset, fasta.noLength);
-            }
+            return fasta.templateValueForRequiredParameterNotProvidedError
+                .withArguments(parameter.name)
+                .withLocation(uri, arguments.fileOffset, fasta.noLength);
           }
         }
       }
@@ -4111,7 +4191,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void endImplicitCreationExpression(Token token) {
     debugEvent("ImplicitCreationExpression");
     _buildConstructorReferenceInvocation(
-        token, token.offset, Constness.implicit);
+        token.next, token.offset, Constness.implicit);
   }
 
   @override
@@ -4123,7 +4203,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       String name,
       List<UnresolvedType> typeArguments,
       int charOffset,
-      Constness constness) {
+      Constness constness,
+      {bool isTypeArgumentsInForest = false}) {
     if (arguments == null) {
       return buildProblem(fasta.messageMissingArgumentList,
           nameToken.charOffset, nameToken.length);
@@ -4134,19 +4215,103 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           nameToken.charOffset, nameToken.length);
     }
 
-    if (typeArguments != null) {
-      assert(forest.argumentsTypeArguments(arguments).isEmpty);
-      forest.argumentsSetTypeArguments(
-          arguments, buildDartTypeArguments(typeArguments));
-    }
-
     String errorName;
     LocatedMessage message;
 
     if (type is TypeAliasBuilder) {
       errorName = debugName(type.name, name);
       TypeAliasBuilder aliasBuilder = type;
-      type = aliasBuilder.unaliasDeclaration;
+      int numberOfTypeParameters = aliasBuilder.typeVariables?.length ?? 0;
+      int numberOfTypeArguments = typeArguments?.length ?? 0;
+      if (typeArguments != null &&
+          numberOfTypeParameters != numberOfTypeArguments) {
+        // TODO(eernst): Use position of type arguments, not nameToken.
+        return evaluateArgumentsBefore(
+            arguments,
+            buildProblem(
+                fasta.templateTypeArgumentMismatch
+                    .withArguments(numberOfTypeParameters),
+                charOffset,
+                noLength));
+      }
+      type = aliasBuilder.unaliasDeclaration(null,
+          isInvocation: true,
+          invocationCharOffset: nameToken.charOffset,
+          invocationFileUri: uri);
+      List<TypeBuilder> typeArgumentBuilders = [];
+      if (typeArguments != null) {
+        for (UnresolvedType unresolvedType in typeArguments) {
+          typeArgumentBuilders.add(unresolvedType?.builder);
+        }
+      } else {
+        if (aliasBuilder.typeVariables?.isNotEmpty ?? false) {
+          // No type arguments provided to alias, but it is generic.
+          typeArgumentBuilders = new List<TypeBuilder>.filled(
+              aliasBuilder.typeVariables.length, null,
+              growable: true);
+          for (int i = 0; i < typeArgumentBuilders.length; ++i) {
+            // TODO(eernst): We must use inferred types, for now use defaults.
+            typeArgumentBuilders[i] = aliasBuilder.typeVariables[i].defaultType;
+          }
+        }
+      }
+      if (type is ClassBuilder) {
+        if (typeArguments != null) {
+          int numberOfTypeParameters = aliasBuilder.typeVariables?.length ?? 0;
+          if (numberOfTypeParameters != typeArgumentBuilders.length) {
+            // TODO(eernst): Use position of type arguments, not nameToken.
+            return evaluateArgumentsBefore(
+                arguments,
+                buildProblem(
+                    fasta.templateTypeArgumentMismatch
+                        .withArguments(numberOfTypeParameters),
+                    nameToken.charOffset,
+                    nameToken.length));
+          }
+          List<TypeBuilder> unaliasedTypeArgumentBuilders =
+              aliasBuilder.unaliasTypeArguments(typeArgumentBuilders);
+          if (unaliasedTypeArgumentBuilders == null) {
+            // TODO(eernst): This is a wrong number of type arguments,
+            // occurring indirectly (in an alias of an alias, etc.).
+            return evaluateArgumentsBefore(
+                arguments,
+                buildProblem(
+                    fasta.templateTypeArgumentMismatch
+                        .withArguments(numberOfTypeParameters),
+                    nameToken.charOffset,
+                    nameToken.length,
+                    suppressMessage: true));
+          }
+          List<DartType> dartTypeArguments = [];
+          for (TypeBuilder typeBuilder in unaliasedTypeArgumentBuilders) {
+            dartTypeArguments.add(typeBuilder.build(libraryBuilder));
+          }
+          assert(forest.argumentsTypeArguments(arguments).isEmpty);
+          forest.argumentsSetTypeArguments(arguments, dartTypeArguments);
+        } else {
+          if (type.typeVariables?.isEmpty ?? true) {
+            assert(forest.argumentsTypeArguments(arguments).isEmpty);
+            forest.argumentsSetTypeArguments(arguments, []);
+          } else {
+            // No type arguments provided to unaliased class, use defaults.
+            List<DartType> result = new List<DartType>.filled(
+                type.typeVariables.length, null,
+                growable: true);
+            for (int i = 0; i < result.length; ++i) {
+              result[i] =
+                  type.typeVariables[i].defaultType?.build(type.library);
+            }
+            assert(forest.argumentsTypeArguments(arguments).isEmpty);
+            forest.argumentsSetTypeArguments(arguments, result);
+          }
+        }
+      }
+    } else {
+      if (typeArguments != null && !isTypeArgumentsInForest) {
+        assert(forest.argumentsTypeArguments(arguments).isEmpty);
+        forest.argumentsSetTypeArguments(
+            arguments, buildDartTypeArguments(typeArguments));
+      }
     }
     if (type is ClassBuilder) {
       if (type is EnumBuilder) {
@@ -4352,8 +4517,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("ThisExpression");
     if (context.isScopeReference && isDeclarationInstanceContext) {
       if (extensionThis != null) {
-        push(_createReadOnlyVariableAccess(
-            extensionThis, token, offsetForToken(token), 'this'));
+        push(_createReadOnlyVariableAccess(extensionThis, token,
+            offsetForToken(token), 'this', ReadOnlyAccessKind.ExtensionThis));
       } else {
         push(new ThisAccessGenerator(this, token, inInitializer,
             inFieldInitializer, inLateFieldInitializer));
@@ -5369,7 +5534,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     List<TypeBuilder> calculatedBounds = calculateBounds(
         typeVariables,
         libraryBuilder.loader.target.dynamicType,
-        libraryBuilder.loader.target.bottomType,
+        libraryBuilder.loader.target.nullType,
         libraryBuilder.loader.target.objectClassBuilder);
     for (int i = 0; i < typeVariables.length; ++i) {
       typeVariables[i].defaultType = calculatedBounds[i];
@@ -5689,14 +5854,17 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  UnresolvedType validateTypeUse(
-      UnresolvedType unresolved, bool nonInstanceAccessIsError) {
+  UnresolvedType validateTypeUse(UnresolvedType unresolved,
+      {bool nonInstanceAccessIsError, bool allowPotentiallyConstantType}) {
+    assert(nonInstanceAccessIsError != null);
+    assert(allowPotentiallyConstantType != null);
     TypeBuilder builder = unresolved.builder;
     if (builder is NamedTypeBuilder && builder.declaration.isTypeVariable) {
       TypeVariableBuilder typeParameterBuilder = builder.declaration;
       TypeParameter typeParameter = typeParameterBuilder.parameter;
       LocatedMessage message = _validateTypeUseIsInternal(
-          builder, unresolved.fileUri, unresolved.charOffset);
+          builder, unresolved.fileUri, unresolved.charOffset,
+          allowPotentiallyConstantType: allowPotentiallyConstantType);
       if (message == null) return unresolved;
       return new UnresolvedType(
           new NamedTypeBuilder(
@@ -5707,7 +5875,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           unresolved.fileUri);
     } else if (builder is FunctionTypeBuilder) {
       LocatedMessage message = _validateTypeUseIsInternal(
-          builder, unresolved.fileUri, unresolved.charOffset);
+          builder, unresolved.fileUri, unresolved.charOffset,
+          allowPotentiallyConstantType: allowPotentiallyConstantType);
       if (message == null) return unresolved;
       // TODO(CFE Team): This should probably be some kind of InvalidType
       // instead of null.
@@ -5718,7 +5887,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   LocatedMessage _validateTypeUseIsInternal(
-      TypeBuilder builder, Uri fileUri, int charOffset) {
+      TypeBuilder builder, Uri fileUri, int charOffset,
+      {bool allowPotentiallyConstantType}) {
+    assert(allowPotentiallyConstantType != null);
     if (builder is NamedTypeBuilder && builder.declaration.isTypeVariable) {
       TypeVariableBuilder typeParameterBuilder = builder.declaration;
       TypeParameter typeParameter = typeParameterBuilder.parameter;
@@ -5732,7 +5903,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             builder.fileUri ?? fileUri,
             builder.charOffset ?? charOffset,
             typeParameter.name.length);
-      } else if (constantContext == ConstantContext.inferred) {
+      } else if (constantContext == ConstantContext.inferred &&
+          !allowPotentiallyConstantType) {
         message = fasta.messageTypeVariableInConstantContext
             .withLocation(fileUri, charOffset, typeParameter.name.length);
       } else {
@@ -5741,15 +5913,17 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       addProblem(message.messageObject, message.charOffset, message.length);
       return message;
     } else if (builder is FunctionTypeBuilder) {
-      LocatedMessage result =
-          _validateTypeUseIsInternal(builder.returnType, fileUri, charOffset);
+      LocatedMessage result = _validateTypeUseIsInternal(
+          builder.returnType, fileUri, charOffset,
+          allowPotentiallyConstantType: allowPotentiallyConstantType);
       if (result != null) {
         return result;
       }
       if (builder.formals != null) {
         for (FormalParameterBuilder formalParameterBuilder in builder.formals) {
           result = _validateTypeUseIsInternal(
-              formalParameterBuilder.type, fileUri, charOffset);
+              formalParameterBuilder.type, fileUri, charOffset,
+              allowPotentiallyConstantType: allowPotentiallyConstantType);
           if (result != null) {
             return result;
           }
@@ -5920,9 +6094,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   DartType buildDartType(UnresolvedType unresolvedType,
-      {bool nonInstanceAccessIsError: false}) {
+      {bool nonInstanceAccessIsError: false,
+      bool allowPotentiallyConstantType: false}) {
     if (unresolvedType == null) return null;
-    return validateTypeUse(unresolvedType, nonInstanceAccessIsError)
+    return validateTypeUse(unresolvedType,
+            nonInstanceAccessIsError: nonInstanceAccessIsError,
+            allowPotentiallyConstantType: allowPotentiallyConstantType)
         .builder
         ?.build(libraryBuilder);
   }

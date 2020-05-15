@@ -3,13 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'test_helper.dart';
 
 class _TestClass {
   _TestClass(this.x, this.y);
+  // Make sure these fields are not removed by the tree shaker.
+  @pragma("vm:entry-point")
   var x;
+  @pragma("vm:entry-point")
   var y;
 }
 

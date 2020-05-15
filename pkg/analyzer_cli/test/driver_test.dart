@@ -47,12 +47,12 @@ class AbstractBuildModeTest extends BaseTest {
     var optionsFileName = AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
     var options = _p('data/options_tests_project/' + optionsFileName);
 
-    List<String> args = <String>[];
+    var args = <String>[];
     if (dartSdkSummaryPath != null) {
       args.add('--dart-sdk-summary');
       args.add(dartSdkSummaryPath);
     } else {
-      String sdkPath = _findSdkDirForSummaries();
+      var sdkPath = _findSdkDirForSummaries();
       args.add('--dart-sdk');
       args.add(sdkPath);
     }
@@ -61,7 +61,7 @@ class AbstractBuildModeTest extends BaseTest {
     args.addAll(additionalArgs);
 
     uri ??= 'file:///test_file.dart';
-    String source = '$uri|$path';
+    var source = '$uri|$path';
 
     await drive(source, args: args, options: options);
   }
@@ -69,7 +69,7 @@ class AbstractBuildModeTest extends BaseTest {
   /// Try to find a appropriate directory to pass to "--dart-sdk" that will
   /// allow summaries to be found.
   String _findSdkDirForSummaries() {
-    Set<String> triedDirectories = <String>{};
+    var triedDirectories = <String>{};
     bool isSuitable(String sdkDir) {
       triedDirectories.add(sdkDir);
       return File(path.join(sdkDir, 'lib', '_internal', 'strong.sum'))
@@ -84,8 +84,8 @@ class AbstractBuildModeTest extends BaseTest {
 
     // Usually the sdk directory is the parent of the parent of the "dart"
     // executable.
-    Directory executableParent = File(Platform.executable).parent;
-    Directory executableGrandparent = executableParent.parent;
+    var executableParent = File(Platform.executable).parent;
+    var executableGrandparent = executableParent.parent;
     if (isSuitable(executableGrandparent.path)) {
       return makeAbsoluteAndNormalized(executableGrandparent.path);
     }
@@ -97,14 +97,14 @@ class AbstractBuildModeTest extends BaseTest {
     // If neither of those are suitable, assume we are running locally within the
     // SDK project (e.g. within an IDE). Find the build output directory and
     // search all built configurations.
-    Directory sdkRootDir =
+    var sdkRootDir =
         File(Platform.script.toFilePath()).parent.parent.parent.parent;
-    for (String outDirName in ['out', 'xcodebuild']) {
-      Directory outDir = Directory(path.join(sdkRootDir.path, outDirName));
+    for (var outDirName in ['out', 'xcodebuild']) {
+      var outDir = Directory(path.join(sdkRootDir.path, outDirName));
       if (outDir.existsSync()) {
-        for (FileSystemEntity subdir in outDir.listSync()) {
+        for (var subdir in outDir.listSync()) {
           if (subdir is Directory) {
-            String candidateSdkDir = path.join(subdir.path, 'dart-sdk');
+            var candidateSdkDir = path.join(subdir.path, 'dart-sdk');
             if (isSuitable(candidateSdkDir)) {
               return makeAbsoluteAndNormalized(candidateSdkDir);
             }
@@ -191,9 +191,9 @@ class BaseTest {
   /// Convert a file specification from a relative path to an absolute path.
   /// Handles the case where the file specification is of the form "$uri|$path".
   String _adjustFileSpec(String fileSpec) {
-    int uriPrefixLength = fileSpec.indexOf('|') + 1;
-    String uriPrefix = fileSpec.substring(0, uriPrefixLength);
-    String relativePath = fileSpec.substring(uriPrefixLength);
+    var uriPrefixLength = fileSpec.indexOf('|') + 1;
+    var uriPrefix = fileSpec.substring(0, uriPrefixLength);
+    var relativePath = fileSpec.substring(uriPrefixLength);
     return '$uriPrefix${path.join(testDirectory, relativePath)}';
   }
 
@@ -310,8 +310,8 @@ var x = B();
 ''', [b]);
 
       // We perform full analysis, and check that `new B()` is assignable
-      // to `B x`. While doing this, we ask for `B` supertype.
-      // So, dependency on "a".
+      // to `B x`. This is trivially true, we don't need the supertype of `B`.
+      // So, no dependency on "a".
       await _assertDependencies(
         'c',
         [a, b],
@@ -319,7 +319,7 @@ var x = B();
 import 'package:b/b.dart';
 var x = B();
 ''',
-        [a, b],
+        [b],
         summaryOnly: false,
       );
     });
@@ -483,8 +483,7 @@ class BuildModeTest extends AbstractBuildModeTest {
       ]);
       var output = File(outputPath);
       expect(output.existsSync(), isTrue);
-      PackageBundle bundle =
-          PackageBundle.fromBuffer(await output.readAsBytes());
+      var bundle = PackageBundle.fromBuffer(await output.readAsBytes());
       var testFileUri = 'file:///test_file.dart';
 
       var bundle2 = bundle.bundle2;
@@ -602,8 +601,8 @@ var b = new B();
 
   Future<void> test_dartSdkSummaryPath_strong() async {
     await withTempDirAsync((tempDir) async {
-      String sdkPath = _findSdkDirForSummaries();
-      String strongSummaryPath =
+      var sdkPath = _findSdkDirForSummaries();
+      var strongSummaryPath =
           path.join(sdkPath, 'lib', '_internal', 'strong.sum');
 
       var testDart = path.join(tempDir, 'test.dart');
@@ -694,13 +693,13 @@ class ExitCodesTest extends BaseTest {
     // Copy to temp dir so that existing analysis options
     // in the test directory hierarchy do not interfere
     await withTempDirAsync((String tempDirPath) async {
-      String dartSdkPath = path.absolute(getSdkPath());
+      var dartSdkPath = path.absolute(getSdkPath());
       await recursiveCopy(
           Directory(path.join(testDirectory, 'data', 'bazel')), tempDirPath);
-      Directory origWorkingDir = Directory.current;
+      var origWorkingDir = Directory.current;
       try {
         Directory.current = path.join(tempDirPath, 'proj');
-        Driver driver = Driver(isTesting: true);
+        var driver = Driver(isTesting: true);
         try {
           await driver.start([
             path.join('lib', 'file.dart'),
@@ -776,7 +775,7 @@ class ExitCodesTest extends BaseTest {
   }
 
   Future<void> test_partFile_reversed() async {
-    Driver driver = Driver(isTesting: true);
+    var driver = Driver(isTesting: true);
     await driver.start([
       path.join(testDirectory, 'data/library_and_parts/part1.dart'),
       path.join(testDirectory, 'data/library_and_parts/lib.dart')
@@ -796,7 +795,7 @@ class LinterTest extends BaseTest {
   String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
 
   Future<void> test_containsLintRuleEntry() async {
-    YamlMap options = _parseOptions('''
+    var options = _parseOptions('''
 linter:
   rules:
     - foo
@@ -897,7 +896,7 @@ class LinterTest_PreviewDart2 extends LinterTest {
 class NonDartFilesTest extends BaseTest {
   Future<void> test_analysisOptionsYaml() async {
     await withTempDirAsync((tempDir) async {
-      String filePath =
+      var filePath =
           path.join(tempDir, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
       File(filePath).writeAsStringSync('''
 analyzer:
@@ -914,14 +913,14 @@ analyzer:
 
   Future<void> test_manifestFileChecks() async {
     await withTempDirAsync((tempDir) async {
-      String filePath =
+      var filePath =
           path.join(tempDir, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
       File(filePath).writeAsStringSync('''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks: true
 ''');
-      String manifestPath =
+      var manifestPath =
           path.join(tempDir, AnalysisEngine.ANDROID_MANIFEST_FILE);
       File(manifestPath).writeAsStringSync('''
 <manifest
@@ -941,7 +940,7 @@ analyzer:
 
   Future<void> test_pubspecYaml() async {
     await withTempDirAsync((tempDir) async {
-      String filePath = path.join(tempDir, AnalysisEngine.PUBSPEC_YAML_FILE);
+      var filePath = path.join(tempDir, AnalysisEngine.PUBSPEC_YAML_FILE);
       File(filePath).writeAsStringSync('''
 name: foo
 flutter:
@@ -1029,7 +1028,7 @@ class OptionsTest extends BaseTest {
   }
 
   Future<void> test_includeDirective() async {
-    String testDir = path.join(
+    var testDir = path.join(
         testDirectory, 'data', 'options_include_directive_tests_project');
     await drive(
       path.join(testDir, 'lib', 'test_file.dart'),

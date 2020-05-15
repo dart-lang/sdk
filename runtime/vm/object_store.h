@@ -34,6 +34,9 @@ class ObjectPointerVisitor;
 // TODO(liama): Once NNBD is enabled, *_type will be deleted and all uses will
 // be replaced with *_type_non_nullable. Later, once we drop support for opted
 // out code, *_type_legacy will be deleted.
+//
+// R_ - needs getter only
+// RW - needs getter and setter
 #define OBJECT_STORE_FIELD_LIST(R_, RW)                                        \
   RW(Class, object_class)                                                      \
   RW(Type, object_type)                                                        \
@@ -42,6 +45,8 @@ class ObjectPointerVisitor;
   RW(Type, nullable_object_type)                                               \
   RW(Class, null_class)                                                        \
   RW(Type, null_type)                                                          \
+  RW(Class, never_class)                                                       \
+  RW(Type, never_type)                                                         \
   RW(Type, function_type)                                                      \
   RW(Type, legacy_function_type)                                               \
   RW(Type, non_nullable_function_type)                                         \
@@ -53,6 +58,7 @@ class ObjectPointerVisitor;
   RW(Type, int_type)                                                           \
   RW(Type, legacy_int_type)                                                    \
   RW(Type, non_nullable_int_type)                                              \
+  RW(Type, nullable_int_type)                                                  \
   RW(Class, integer_implementation_class)                                      \
   RW(Type, int64_type)                                                         \
   RW(Class, smi_class)                                                         \
@@ -67,6 +73,7 @@ class ObjectPointerVisitor;
   RW(Type, double_type)                                                        \
   RW(Type, legacy_double_type)                                                 \
   RW(Type, non_nullable_double_type)                                           \
+  RW(Type, nullable_double_type)                                               \
   RW(Type, float32x4_type)                                                     \
   RW(Type, int32x4_type)                                                       \
   RW(Type, float64x2_type)                                                     \
@@ -145,13 +152,8 @@ class ObjectPointerVisitor;
   RW(Array, libraries_map)                                                     \
   RW(GrowableObjectArray, closure_functions)                                   \
   RW(GrowableObjectArray, pending_classes)                                     \
-  R_(GrowableObjectArray, resume_capabilities)                                 \
-  R_(GrowableObjectArray, exit_listeners)                                      \
-  R_(GrowableObjectArray, error_listeners)                                     \
   RW(Instance, stack_overflow)                                                 \
   RW(Instance, out_of_memory)                                                  \
-  RW(UnhandledException, preallocated_unhandled_exception)                     \
-  RW(StackTrace, preallocated_stack_trace)                                     \
   RW(Function, lookup_port_handler)                                            \
   RW(Function, handle_message_function)                                        \
   RW(Function, growable_list_factory)                                          \
@@ -164,7 +166,6 @@ class ObjectPointerVisitor;
   RW(Function, complete_on_async_return)                                       \
   RW(Class, async_star_stream_controller)                                      \
   RW(Array, bytecode_attributes)                                               \
-  RW(Array, saved_unlinked_calls)                                              \
   RW(GrowableObjectArray, llvm_constant_pool)                                  \
   RW(GrowableObjectArray, llvm_function_pool)                                  \
   RW(Array, llvm_constant_hash_table)                                          \
@@ -178,14 +179,35 @@ class ObjectPointerVisitor;
   RW(Code, null_error_stub_without_fpu_regs_stub)                              \
   RW(Code, null_arg_error_stub_with_fpu_regs_stub)                             \
   RW(Code, null_arg_error_stub_without_fpu_regs_stub)                          \
+  RW(Code, range_error_stub_with_fpu_regs_stub)                                \
+  RW(Code, range_error_stub_without_fpu_regs_stub)                             \
   RW(Code, allocate_mint_with_fpu_regs_stub)                                   \
   RW(Code, allocate_mint_without_fpu_regs_stub)                                \
   RW(Code, stack_overflow_stub_with_fpu_regs_stub)                             \
   RW(Code, stack_overflow_stub_without_fpu_regs_stub)                          \
+  RW(Code, allocate_array_stub)                                                \
+  RW(Code, allocate_context_stub)                                              \
+  RW(Code, allocate_object_stub)                                               \
+  RW(Code, allocate_object_parametrized_stub)                                  \
+  RW(Code, clone_context_stub)                                                 \
   RW(Code, write_barrier_wrappers_stub)                                        \
   RW(Code, array_write_barrier_stub)                                           \
-  R_(Code, megamorphic_miss_code)                                              \
-  R_(Function, megamorphic_miss_function)                                      \
+  RW(Code, throw_stub)                                                         \
+  RW(Code, re_throw_stub)                                                      \
+  RW(Code, assert_boolean_stub)                                                \
+  RW(Code, instance_of_stub)                                                   \
+  RW(Code, init_static_field_stub)                                             \
+  RW(Code, init_instance_field_stub)                                           \
+  RW(Code, init_late_instance_field_stub)                                      \
+  RW(Code, init_late_final_instance_field_stub)                                \
+  RW(Code, call_closure_no_such_method_stub)                                   \
+  RW(Code, default_tts_stub)                                                   \
+  RW(Code, default_nullable_tts_stub)                                          \
+  RW(Code, top_type_tts_stub)                                                  \
+  RW(Code, unreachable_tts_stub)                                               \
+  RW(Code, slow_tts_stub)                                                      \
+  R_(Code, megamorphic_call_miss_code)                                         \
+  R_(Function, megamorphic_call_miss_function)                                 \
   RW(Array, dispatch_table_code_entries)                                       \
   RW(Array, code_order_table)                                                  \
   RW(Array, obfuscation_map)                                                   \
@@ -193,10 +215,118 @@ class ObjectPointerVisitor;
   RW(Class, ffi_native_type_class)                                             \
   RW(Class, ffi_struct_class)                                                  \
   RW(Object, ffi_as_function_internal)                                         \
+  // Please remember the last entry must be referred in the 'to' function below.
+
+#define OBJECT_STORE_STUB_CODE_LIST(DO)                                        \
+  DO(dispatch_table_null_error_stub, DispatchTableNullError)                   \
+  DO(null_error_stub_with_fpu_regs_stub, NullErrorSharedWithFPURegs)           \
+  DO(null_error_stub_without_fpu_regs_stub, NullErrorSharedWithoutFPURegs)     \
+  DO(null_arg_error_stub_with_fpu_regs_stub, NullArgErrorSharedWithFPURegs)    \
+  DO(null_arg_error_stub_without_fpu_regs_stub,                                \
+     NullArgErrorSharedWithoutFPURegs)                                         \
+  DO(range_error_stub_with_fpu_regs_stub, RangeErrorSharedWithFPURegs)         \
+  DO(range_error_stub_without_fpu_regs_stub, RangeErrorSharedWithoutFPURegs)   \
+  DO(allocate_mint_with_fpu_regs_stub, AllocateMintSharedWithFPURegs)          \
+  DO(allocate_mint_without_fpu_regs_stub, AllocateMintSharedWithoutFPURegs)    \
+  DO(stack_overflow_stub_with_fpu_regs_stub, StackOverflowSharedWithFPURegs)   \
+  DO(stack_overflow_stub_without_fpu_regs_stub,                                \
+     StackOverflowSharedWithoutFPURegs)                                        \
+  DO(allocate_array_stub, AllocateArray)                                       \
+  DO(allocate_context_stub, AllocateContext)                                   \
+  DO(allocate_object_stub, AllocateObject)                                     \
+  DO(allocate_object_parametrized_stub, AllocateObjectParameterized)           \
+  DO(clone_context_stub, CloneContext)                                         \
+  DO(call_closure_no_such_method_stub, CallClosureNoSuchMethod)                \
+  DO(default_tts_stub, DefaultTypeTest)                                        \
+  DO(default_nullable_tts_stub, DefaultNullableTypeTest)                       \
+  DO(top_type_tts_stub, TopTypeTypeTest)                                       \
+  DO(unreachable_tts_stub, UnreachableTypeTest)                                \
+  DO(slow_tts_stub, SlowTypeTest)                                              \
+  DO(write_barrier_wrappers_stub, WriteBarrierWrappers)                        \
+  DO(array_write_barrier_stub, ArrayWriteBarrier)                              \
+  DO(throw_stub, Throw)                                                        \
+  DO(re_throw_stub, ReThrow)                                                   \
+  DO(assert_boolean_stub, AssertBoolean)                                       \
+  DO(init_static_field_stub, InitStaticField)                                  \
+  DO(init_instance_field_stub, InitInstanceField)                              \
+  DO(init_late_instance_field_stub, InitLateInstanceField)                     \
+  DO(init_late_final_instance_field_stub, InitLateFinalInstanceField)          \
+  DO(instance_of_stub, InstanceOf)
+
+#define ISOLATE_OBJECT_STORE_FIELD_LIST(R_, RW)                                \
+  RW(UnhandledException, preallocated_unhandled_exception)                     \
+  RW(StackTrace, preallocated_stack_trace)                                     \
+  R_(GrowableObjectArray, resume_capabilities)                                 \
+  R_(GrowableObjectArray, exit_listeners)                                      \
+  R_(GrowableObjectArray, error_listeners)
 // Please remember the last entry must be referred in the 'to' function below.
 
-// The object store is a per isolate instance which stores references to
-// objects used by the VM.
+class IsolateObjectStore {
+ public:
+  explicit IsolateObjectStore(ObjectStore* object_store);
+  ~IsolateObjectStore();
+
+#define DECLARE_GETTER(Type, name)                                             \
+  Type##Ptr name() const { return name##_; }                                   \
+  static intptr_t name##_offset() {                                            \
+    return OFFSET_OF(IsolateObjectStore, name##_);                             \
+  }
+
+#define DECLARE_GETTER_AND_SETTER(Type, name)                                  \
+  DECLARE_GETTER(Type, name)                                                   \
+  void set_##name(const Type& value) { name##_ = value.raw(); }
+  ISOLATE_OBJECT_STORE_FIELD_LIST(DECLARE_GETTER, DECLARE_GETTER_AND_SETTER)
+#undef DECLARE_GETTER
+#undef DECLARE_GETTER_AND_SETTER
+
+  // Visit all object pointers.
+  void VisitObjectPointers(ObjectPointerVisitor* visitor);
+
+  // Called to initialize objects required by the vm but which invoke
+  // dart code.  If an error occurs the error object is returned otherwise
+  // a null object is returned.
+  ErrorPtr PreallocateObjects();
+
+  void Init();
+  void PostLoad();
+
+  ObjectStore* object_store() const { return object_store_; }
+  void set_object_store(ObjectStore* object_store) {
+    ASSERT(object_store_ == nullptr);
+    object_store_ = object_store;
+  }
+
+  static intptr_t object_store_offset() {
+    return OFFSET_OF(IsolateObjectStore, object_store_);
+  }
+
+#ifndef PRODUCT
+  void PrintToJSONObject(JSONObject* jsobj);
+#endif
+
+ private:
+  // Finds a core library private method in Object.
+  FunctionPtr PrivateObjectLookup(const String& name);
+
+  ObjectPtr* from() {
+    return reinterpret_cast<ObjectPtr*>(&preallocated_unhandled_exception_);
+  }
+#define DECLARE_OBJECT_STORE_FIELD(type, name) type##Ptr name##_;
+  ISOLATE_OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD,
+                                  DECLARE_OBJECT_STORE_FIELD)
+#undef DECLARE_OBJECT_STORE_FIELD
+  ObjectPtr* to() { return reinterpret_cast<ObjectPtr*>(&error_listeners_); }
+
+  ObjectStore* object_store_;
+
+  friend class Serializer;
+  friend class Deserializer;
+
+  DISALLOW_COPY_AND_ASSIGN(IsolateObjectStore);
+};
+
+// The object store is a per isolate group instance which stores references to
+// objects used by the VM shared by all isolates in a group.
 class ObjectStore {
  public:
   enum BootstrapLibraryId {
@@ -206,10 +336,11 @@ class ObjectStore {
 #undef MAKE_ID
   };
 
+  ObjectStore();
   ~ObjectStore();
 
 #define DECLARE_GETTER(Type, name)                                             \
-  Raw##Type* name() const { return name##_; }                                  \
+  Type##Ptr name() const { return name##_; }                                   \
   static intptr_t name##_offset() { return OFFSET_OF(ObjectStore, name##_); }
 #define DECLARE_GETTER_AND_SETTER(Type, name)                                  \
   DECLARE_GETTER(Type, name)                                                   \
@@ -218,7 +349,7 @@ class ObjectStore {
 #undef DECLARE_GETTER
 #undef DECLARE_GETTER_AND_SETTER
 
-  RawLibrary* bootstrap_library(BootstrapLibraryId index) {
+  LibraryPtr bootstrap_library(BootstrapLibraryId index) {
     switch (index) {
 #define MAKE_CASE(CamelName, name)                                             \
   case k##CamelName:                                                           \
@@ -247,10 +378,10 @@ class ObjectStore {
     }
   }
 
-  void SetMegamorphicMissHandler(const Code& code, const Function& func) {
+  void SetMegamorphicCallMissHandler(const Code& code, const Function& func) {
     // Hold onto the code so it is traced and not detached from the function.
-    megamorphic_miss_code_ = code.raw();
-    megamorphic_miss_function_ = func.raw();
+    megamorphic_call_miss_code_ = code.raw();
+    megamorphic_call_miss_function_ = func.raw();
   }
 
   // Visit all object pointers.
@@ -259,37 +390,35 @@ class ObjectStore {
   // Called to initialize objects required by the vm but which invoke
   // dart code.  If an error occurs the error object is returned otherwise
   // a null object is returned.
-  RawError* PreallocateObjects();
+  ErrorPtr PreallocateObjects();
 
   void InitKnownObjects();
 
-  static void Init(Isolate* isolate);
+  void InitStubs();
 
 #ifndef PRODUCT
   void PrintToJSONObject(JSONObject* jsobj);
 #endif
 
  private:
-  ObjectStore();
-
   // Finds a core library private method in Object.
-  RawFunction* PrivateObjectLookup(const String& name);
+  FunctionPtr PrivateObjectLookup(const String& name);
 
-  RawObject** from() { return reinterpret_cast<RawObject**>(&object_class_); }
-#define DECLARE_OBJECT_STORE_FIELD(type, name) Raw##type* name##_;
+  ObjectPtr* from() { return reinterpret_cast<ObjectPtr*>(&object_class_); }
+#define DECLARE_OBJECT_STORE_FIELD(type, name) type##Ptr name##_;
   OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD,
                           DECLARE_OBJECT_STORE_FIELD)
 #undef DECLARE_OBJECT_STORE_FIELD
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ffi_as_function_internal_);
+  ObjectPtr* to() {
+    return reinterpret_cast<ObjectPtr*>(&ffi_as_function_internal_);
   }
-  RawObject** to_snapshot(Snapshot::Kind kind) {
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFull:
-        return reinterpret_cast<RawObject**>(&global_object_pool_);
+        return reinterpret_cast<ObjectPtr*>(&global_object_pool_);
       case Snapshot::kFullJIT:
       case Snapshot::kFullAOT:
-        return reinterpret_cast<RawObject**>(&megamorphic_miss_function_);
+        return reinterpret_cast<ObjectPtr*>(&megamorphic_call_miss_function_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:

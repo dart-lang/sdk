@@ -1,0 +1,12 @@
+// @dart = 2.6
+class A<T extends num> {
+  void Function<S extends T>(S x) foo() {}
+}
+
+class B<T extends num> {
+  void Function(T x) foo() {}
+}
+
+A<num> a = new A<int>();
+B<num> b = new B<int>();
+main() {}

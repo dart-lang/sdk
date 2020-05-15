@@ -7,11 +7,11 @@
 
 #include "include/dart_api.h"
 #include "vm/allocation.h"
+#include "vm/tagged_pointer.h"
 
 namespace dart {
 
 // Forward declarations.
-class RawError;
 namespace kernel {
 class Program;
 }
@@ -24,8 +24,8 @@ class Bootstrap : public AllStatic {
   // bootstrapping.
   // The caller of this function is responsible for managing the kernel
   // program's memory.
-  static RawError* DoBootstrapping(const uint8_t* kernel_buffer,
-                                   intptr_t kernel_buffer_size);
+  static ErrorPtr DoBootstrapping(const uint8_t* kernel_buffer,
+                                  intptr_t kernel_buffer_size);
 
   static void SetupNativeResolver();
   static bool IsBootstrapResolver(Dart_NativeEntryResolver resolver);

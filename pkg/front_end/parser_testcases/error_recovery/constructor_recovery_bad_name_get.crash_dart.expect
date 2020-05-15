@@ -1,0 +1,121 @@
+Problems reported:
+
+parser/error_recovery/constructor_recovery_bad_name_get.crash:2:7: The name of a constructor must match the name of the enclosing class.
+  get foo.x() {
+      ^^^
+
+parser/error_recovery/constructor_recovery_bad_name_get.crash:2:3: Constructors can't be a getter.
+  get foo.x() {
+  ^^^
+
+parser/error_recovery/constructor_recovery_bad_name_get.crash:5:7: The name of a constructor must match the name of the enclosing class.
+  get foo.x() : initializer = true {
+      ^^^
+
+parser/error_recovery/constructor_recovery_bad_name_get.crash:5:3: Constructors can't be a getter.
+  get foo.x() : initializer = true {
+  ^^^
+
+parser/error_recovery/constructor_recovery_bad_name_get.crash:8:10: A getter can't have formal parameters.
+  get foo() : initializer = true {
+         ^
+
+parser/error_recovery/constructor_recovery_bad_name_get.crash:8:7: The name of a constructor must match the name of the enclosing class.
+  get foo() : initializer = true {
+      ^^^
+
+parser/error_recovery/constructor_recovery_bad_name_get.crash:8:3: Constructors can't be a getter.
+  get foo() : initializer = true {
+  ^^^
+
+beginCompilationUnit(class)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrNamedMixinApplicationPrelude(class)
+    handleIdentifier(Foo, classOrMixinDeclaration)
+    handleNoTypeVariables({)
+    beginClassDeclaration(class, null, Foo)
+      handleNoType(Foo)
+      handleClassExtends(null)
+      handleClassNoWithClause()
+      handleClassOrMixinImplements(null, 0)
+      handleClassHeader(class, class, null)
+      beginClassOrMixinBody(DeclarationKind.Class, {)
+        beginMetadataStar(get)
+        endMetadataStar(0)
+        beginMember()
+          beginMethod(null, null, null, null, get, foo)
+            handleNoType({)
+            handleIdentifier(foo, methodDeclaration)
+            handleIdentifier(x, methodDeclarationContinuation)
+            handleQualified(.)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            beginBlockFunctionBody({)
+            endBlockFunctionBody(0, {, })
+            handleRecoverableError(ConstructorWithWrongName, foo, foo)
+            handleRecoverableError(GetterConstructor, get, get)
+          endClassConstructor(get, get, (, null, })
+        endMember()
+        beginMetadataStar(get)
+        endMetadataStar(0)
+        beginMember()
+          beginMethod(null, null, null, null, get, foo)
+            handleNoType(})
+            handleIdentifier(foo, methodDeclaration)
+            handleIdentifier(x, methodDeclarationContinuation)
+            handleQualified(.)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+            beginInitializers(:)
+              beginInitializer(initializer)
+                handleIdentifier(initializer, expression)
+                handleNoTypeArguments(=)
+                handleNoArguments(=)
+                handleSend(initializer, =)
+                handleLiteralBool(true)
+                handleAssignmentExpression(=)
+              endInitializer({)
+            endInitializers(1, :, {)
+            handleAsyncModifier(null, null)
+            beginBlockFunctionBody({)
+            endBlockFunctionBody(0, {, })
+            handleRecoverableError(ConstructorWithWrongName, foo, foo)
+            handleRecoverableError(GetterConstructor, get, get)
+          endClassConstructor(get, get, (, :, })
+        endMember()
+        beginMetadataStar(get)
+        endMetadataStar(0)
+        beginMember()
+          beginMethod(null, null, null, null, get, foo)
+            handleNoType(})
+            handleIdentifier(foo, methodDeclaration)
+            handleNoTypeVariables(()
+            handleRecoverableError(GetterWithFormals, (, ()
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+            beginInitializers(:)
+              beginInitializer(initializer)
+                handleIdentifier(initializer, expression)
+                handleNoTypeArguments(=)
+                handleNoArguments(=)
+                handleSend(initializer, =)
+                handleLiteralBool(true)
+                handleAssignmentExpression(=)
+              endInitializer({)
+            endInitializers(1, :, {)
+            handleAsyncModifier(null, null)
+            beginBlockFunctionBody({)
+            endBlockFunctionBody(0, {, })
+            handleRecoverableError(ConstructorWithWrongName, foo, foo)
+            handleRecoverableError(GetterConstructor, get, get)
+          endClassConstructor(get, get, (, :, })
+        endMember()
+      endClassOrMixinBody(DeclarationKind.Class, 3, {, })
+    endClassDeclaration(class, })
+  endTopLevelDeclaration()
+endCompilationUnit(1, )

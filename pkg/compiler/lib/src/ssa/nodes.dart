@@ -341,7 +341,7 @@ class HGraph {
   HConstant addConstantUnreachable(JClosedWorld closedWorld) {
     // A constant with an empty type used as the HInstruction of an expression
     // in an unreachable context.
-    return addConstant(const UnreachableConstantValue(), closedWorld);
+    return addConstant(UnreachableConstantValue(), closedWorld);
   }
 
   void finalize(AbstractValueDomain domain) {
@@ -4608,6 +4608,7 @@ AbstractBool _isTestResult(
 
   if (useNullSafety &&
       expression.isNull(abstractValueDomain).isDefinitelyTrue) {
+    if (dartType.isObject) return AbstractBool.False;
     if (closedWorld.dartTypes.isTopType(dartType) ||
         dartType is NullableType ||
         dartType.isNull) {
@@ -4636,8 +4637,19 @@ AbstractBool _isTestResult(
   // is definitely false, so we reuse some of the case-by-case logic from the
   // old [HIs] optimization.
   if (closedWorld.dartTypes.isTopType(dartType)) return AbstractBool.True;
-  if (dartType is! InterfaceType) return AbstractBool.Maybe;
-  InterfaceType type = dartType;
+
+  InterfaceType type;
+  if (dartType is InterfaceType) {
+    type = dartType;
+  } else if (dartType is LegacyType) {
+    DartType base = dartType.baseType;
+    if (base is! InterfaceType) return AbstractBool.Maybe;
+    assert(!base.isObject); // Top type handled above;
+    type = base;
+  } else {
+    return AbstractBool.Maybe;
+  }
+
   ClassEntity element = type.element;
   if (type.typeArguments.isNotEmpty) return AbstractBool.Maybe;
   JCommonElements commonElements = closedWorld.commonElements;

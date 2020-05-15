@@ -16,6 +16,7 @@
 #include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/jit/jit_call_specializer.h"
+#include "vm/flags.h"
 #include "vm/log.h"
 #include "vm/object.h"
 #include "vm/parser.h"
@@ -270,7 +271,7 @@ static void TestAliasingViaRedefinition(
       Function::ZoneHandle(GetFunction(lib, "blackhole"));
 
   using compiler::BlockBuilder;
-  CompilerState S(thread);
+  CompilerState S(thread, /*is_aot=*/false);
   FlowGraphBuilderHelper H;
 
   // We are going to build the following graph:
@@ -360,10 +361,11 @@ static Definition* MakeRedefinition(CompilerState* S,
 static Definition* MakeAssertAssignable(CompilerState* S,
                                         FlowGraph* flow_graph,
                                         Definition* defn) {
+  const auto& dst_type = AbstractType::ZoneHandle(Type::ObjectType());
   return new AssertAssignableInstr(TokenPosition::kNoSource, new Value(defn),
+                                   new Value(flow_graph->GetConstant(dst_type)),
                                    new Value(flow_graph->constant_null()),
                                    new Value(flow_graph->constant_null()),
-                                   AbstractType::ZoneHandle(Type::ObjectType()),
                                    Symbols::Empty(), S->GetNextDeoptId());
 }
 
@@ -432,7 +434,7 @@ static void TestAliasingViaStore(
       Function::ZoneHandle(GetFunction(lib, "blackhole"));
 
   using compiler::BlockBuilder;
-  CompilerState S(thread);
+  CompilerState S(thread, /*is_aot=*/false);
   FlowGraphBuilderHelper H;
 
   // We are going to build the following graph:
@@ -587,7 +589,7 @@ ISOLATE_UNIT_TEST_CASE(
 // https://github.com/flutter/flutter/issues/48114.
 ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaTypedDataAndUntaggedTypedData) {
   using compiler::BlockBuilder;
-  CompilerState S(thread);
+  CompilerState S(thread, /*is_aot=*/false);
   FlowGraphBuilderHelper H;
 
   const auto& lib = Library::Handle(Library::TypedDataLibrary());
@@ -951,6 +953,46 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantStoresAndLoads) {
   CountLoadsStores(flow_graph, &aft_loads, &aft_stores);
   EXPECT_EQ(0, aft_loads);
   EXPECT_EQ(1, aft_stores);
+}
+
+ISOLATE_UNIT_TEST_CASE(CSE_RedundantInitStaticField) {
+  const char* kScript = R"(
+    int getX() => 2;
+    int x = getX();
+
+    foo() => x + x;
+
+    main() {
+      foo();
+    }
+  )";
+
+  // Make sure InitStaticField is not removed because
+  // field is already initialized.
+  SetFlagScope<bool> sfs(&FLAG_fields_may_be_reset, true);
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  Invoke(root_library, "main");
+  const auto& function = Function::Handle(GetFunction(root_library, "foo"));
+  TestPipeline pipeline(function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+  ASSERT(flow_graph != nullptr);
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  EXPECT(entry != nullptr);
+
+  ILMatcher cursor(flow_graph, entry);
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMatchAndMoveFunctionEntry,
+      kMatchAndMoveCheckStackOverflow,
+      kMatchAndMoveInitStaticField,
+      kMatchAndMoveLoadStaticField,
+      kMatchAndMoveCheckSmi,
+      kMoveParallelMoves,
+      kMatchAndMoveBinarySmiOp,
+      kMoveParallelMoves,
+      kMatchReturn,
+  }));
 }
 
 }  // namespace dart

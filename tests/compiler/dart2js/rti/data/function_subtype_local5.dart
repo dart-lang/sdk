@@ -1,6 +1,8 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// @dart = 2.7
 // Dart test program for constructors and initializers.
 
 // Check function subtyping for local functions on generic type against generic
@@ -14,17 +16,16 @@ typedef int Baz<T>(T a, {String b});
 typedef int Boz<T>(T a);
 typedef int Biz<T>(T a, int b);
 
-/*class: C:direct,explicit=[int Function(C.T),int Function(C.T,[String]),int Function(C.T,int),int Function(C.T,{,b:String})],needsArgs*/
+/*spec:nnbd-off|prod:nnbd-off.class: C:direct,explicit=[int Function(C.T),int Function(C.T,[String]),int Function(C.T,int),int Function(C.T,{,b:String})],needsArgs*/
+/*spec:nnbd-sdk|prod:nnbd-sdk.class: C:direct,explicit=[int* Function(C.T*)*,int* Function(C.T*,[String*])*,int* Function(C.T*,int*)*,int* Function(C.T*,{,b:String*})*],needsArgs*/
 class C<T> {
   void test(String nameOfT, bool expectedResult) {
     // TODO(johnniwinther): Optimize local function type signature need.
 
-    /*strong.needsSignature*/
-    /*omit.needsSignature*/
+    /*needsSignature*/
     int foo(bool a, [String b]) => null;
 
-    /*strong.needsSignature*/
-    /*omit.needsSignature*/
+    /*needsSignature*/
     int baz(bool a, {String b}) => null;
 
     Expect.equals(expectedResult, foo is Foo<T>, 'foo is Foo<$nameOfT>');

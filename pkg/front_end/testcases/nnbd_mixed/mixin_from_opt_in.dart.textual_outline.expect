@@ -1,0 +1,6 @@
+// @dart = 2.6
+import 'mixin_from_opt_in_lib.dart';
+
+class Class extends Object with Mixin {}
+
+main() {}

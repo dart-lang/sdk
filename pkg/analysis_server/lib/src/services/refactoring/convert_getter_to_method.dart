@@ -15,7 +15,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// [ConvertMethodToGetterRefactoring] implementation.
@@ -35,20 +34,18 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
 
   @override
   Future<RefactoringStatus> checkFinalConditions() {
-    RefactoringStatus result = RefactoringStatus();
+    var result = RefactoringStatus();
     return Future.value(result);
   }
 
   @override
   Future<RefactoringStatus> checkInitialConditions() {
-    RefactoringStatus result = _checkInitialConditions();
+    var result = _checkInitialConditions();
     return Future.value(result);
   }
 
   @override
   Future<SourceChange> createChange() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     change = SourceChange(refactoringName);
     // function
     if (element.enclosingElement is CompilationUnitElement) {
@@ -58,13 +55,10 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
     // method
     if (element.enclosingElement is ClassElement) {
       FieldElement field = element.variable;
-      Set<ClassMemberElement> elements =
-          await getHierarchyMembers(searchEngine, field);
+      var elements = await getHierarchyMembers(searchEngine, field);
       await Future.forEach(elements, (ClassMemberElement member) async {
-        // TODO(brianwilkerson) Determine whether this await is necessary.
-        await null;
         if (member is FieldElement) {
-          PropertyAccessorElement getter = member.getter;
+          var getter = member.getter;
           if (!getter.isSynthetic) {
             await _updateElementDeclaration(getter);
             return _updateElementReferences(getter);
@@ -86,8 +80,6 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
 
   Future<void> _updateElementDeclaration(
       PropertyAccessorElement element) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     // prepare "get" keyword
     Token getKeyword;
     {
@@ -104,26 +96,24 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
     }
     // remove "get "
     if (getKeyword != null) {
-      SourceRange getRange =
+      var getRange =
           range.startOffsetEndOffset(getKeyword.offset, element.nameOffset);
-      SourceEdit edit = newSourceEdit_range(getRange, '');
+      var edit = newSourceEdit_range(getRange, '');
       doSourceChange_addElementEdit(change, element, edit);
     }
     // add parameters "()"
     {
-      SourceEdit edit = SourceEdit(range.elementName(element).end, 0, '()');
+      var edit = SourceEdit(range.elementName(element).end, 0, '()');
       doSourceChange_addElementEdit(change, element, edit);
     }
   }
 
   Future _updateElementReferences(Element element) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    List<SearchMatch> matches = await searchEngine.searchReferences(element);
-    List<SourceReference> references = getSourceReferences(matches);
-    for (SourceReference reference in references) {
-      Element refElement = reference.element;
-      SourceRange refRange = reference.range;
+    var matches = await searchEngine.searchReferences(element);
+    var references = getSourceReferences(matches);
+    for (var reference in references) {
+      var refElement = reference.element;
+      var refRange = reference.range;
       // insert "()"
       var edit = SourceEdit(refRange.end, 0, '()');
       doSourceChange_addElementEdit(change, refElement, edit);

@@ -14,10 +14,67 @@ import '../../../generated/resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(CompilationUnitImplTest);
     defineReflectiveTests(ExpressionImplTest);
     defineReflectiveTests(InstanceCreationExpressionImplTest);
     defineReflectiveTests(IntegerLiteralImplTest);
   });
+}
+
+@reflectiveTest
+class CompilationUnitImplTest extends ParserTestCase {
+  String testSource;
+  CompilationUnitImpl testUnit;
+
+  void parse(String source) {
+    testSource = source;
+    testUnit = parseCompilationUnit(source);
+  }
+
+  test_languageVersionComment_none() {
+    parse('''
+void main() {}
+''');
+    expect(testUnit.languageVersionToken, null);
+  }
+
+  test_languageVersionComment_none_onlyNormalComment() {
+    parse('''
+// A normal comment.
+void main() {}
+''');
+    expect(testUnit.languageVersionToken, null);
+  }
+
+  test_languageVersionComment_firstComment() {
+    parse('''
+// @dart=2.6
+void main() {}
+''');
+    expect(
+        testUnit.languageVersionToken, testUnit.beginToken.precedingComments);
+  }
+
+  test_languageVersionComment_secondComment() {
+    parse('''
+// A normal comment.
+// @dart=2.6
+void main() {}
+''');
+    expect(testUnit.languageVersionToken,
+        testUnit.beginToken.precedingComments.next);
+  }
+
+  test_languageVersionComment_thirdComment() {
+    parse('''
+// A normal comment.
+// Another normal comment.
+// @dart=2.6
+void main() {}
+''');
+    expect(testUnit.languageVersionToken,
+        testUnit.beginToken.precedingComments.next.next);
+  }
 }
 
 @reflectiveTest

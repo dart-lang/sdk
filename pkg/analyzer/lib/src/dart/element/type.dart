@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -293,15 +294,9 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     var substitution = Substitution.fromPairs(typeFormals, argumentTypes);
 
     ParameterElement transformParameter(ParameterElement p) {
-      var type = p.type;
-      var newType = substitution.substituteType(type);
-      if (identical(newType, type)) return p;
-      return ParameterElementImpl.synthetic(
-          p.name,
-          newType,
-          // ignore: deprecated_member_use_from_same_package
-          p.parameterKind)
-        ..isExplicitlyCovariant = p.isCovariant;
+      return p.copyWith(
+        type: substitution.substituteType(p.type),
+      );
     }
 
     return FunctionTypeImpl(
@@ -319,14 +314,11 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         .replaceTopAndBottom(typeProvider, isCovariant: isCovariant);
     ParameterElement transformParameter(ParameterElement p) {
       TypeImpl type = p.type;
-      var newType =
-          type.replaceTopAndBottom(typeProvider, isCovariant: !isCovariant);
-      if (identical(newType, type)) return p;
-      return ParameterElementImpl.synthetic(
-          p.name,
-          newType,
-          // ignore: deprecated_member_use_from_same_package
-          p.parameterKind);
+      var newType = type.replaceTopAndBottom(
+        typeProvider,
+        isCovariant: !isCovariant,
+      );
+      return p.copyWith(type: newType);
     }
 
     var parameters = _transformOrShare(this.parameters, transformParameter);
@@ -416,7 +408,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     } else if (identical(t, other) ||
         other.isDynamic ||
         other.isDartCoreFunction ||
-        other.isObject) {
+        other.isDartCoreObject) {
       return true;
     } else if (other is! FunctionType) {
       return false;
@@ -752,10 +744,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   int get hashCode {
-    ClassElement element = this.element;
-    if (element == null) {
-      return 0;
-    }
     return element.hashCode;
   }
 
@@ -766,130 +754,80 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   bool get isDartAsyncFuture {
-    ClassElement element = this.element;
-    if (element == null) {
-      return false;
-    }
     return element.name == "Future" && element.library.isDartAsync;
   }
 
   @override
   bool get isDartAsyncFutureOr {
-    ClassElement element = this.element;
-    if (element == null) {
-      return false;
-    }
     return element.name == "FutureOr" && element.library.isDartAsync;
   }
 
   @override
   bool get isDartCoreBool {
-    ClassElement element = this.element;
-    if (element == null) {
-      return false;
-    }
     return element.name == "bool" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreDouble {
-    ClassElement element = this.element;
-    if (element == null) {
-      return false;
-    }
     return element.name == "double" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreFunction {
-    ClassElement element = this.element;
-    if (element == null) {
-      return false;
-    }
     return element.name == "Function" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreInt {
-    ClassElement element = this.element;
-    if (element == null) {
-      return false;
-    }
     return element.name == "int" && element.library.isDartCore;
   }
 
   @override
+  bool get isDartCoreIterable {
+    return element.name == "Iterable" && element.library.isDartCore;
+  }
+
+  @override
   bool get isDartCoreList {
-    ClassElement element = this.element;
-    if (element == null) {
-      return false;
-    }
     return element.name == "List" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreMap {
-    ClassElement element = this.element;
-    if (element == null) {
-      return false;
-    }
     return element.name == "Map" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreNull {
-    ClassElement element = this.element;
-    if (element == null) {
-      return false;
-    }
     return element.name == "Null" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreNum {
-    ClassElement element = this.element;
-    if (element == null) {
-      return false;
-    }
     return element.name == "num" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreObject {
-    ClassElement element = this.element;
-    if (element == null) {
-      return false;
-    }
     return element.name == "Object" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreSet {
-    ClassElement element = this.element;
-    if (element == null) {
-      return false;
-    }
     return element.name == "Set" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreString {
-    ClassElement element = this.element;
-    if (element == null) {
-      return false;
-    }
     return element.name == "String" && element.library.isDartCore;
   }
 
   @override
   bool get isDartCoreSymbol {
-    ClassElement element = this.element;
-    if (element == null) {
-      return false;
-    }
     return element.name == "Symbol" && element.library.isDartCore;
   }
 
+  @Deprecated('Use isDartCoreObject')
   @override
   bool get isObject => element.supertype == null && !element.isMixin;
 
@@ -977,7 +915,18 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * return the type `A<String>`.
    */
   InterfaceType asInstanceOf(ClassElement targetElement) {
-    return _asInstanceOf(targetElement, <ClassElement>{});
+    if (element == targetElement) {
+      return this;
+    }
+
+    for (var rawInterface in element.allSupertypes) {
+      if (rawInterface.element == targetElement) {
+        var substitution = Substitution.fromInterfaceType(this);
+        return substitution.substituteType(rawInterface);
+      }
+    }
+
+    return null;
   }
 
   @override
@@ -1499,43 +1448,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     );
   }
 
-  /**
-   * Return  either this type or a supertype of this type that is defined by the
-   * [targetElement], or `null` if such a type does not exist. The set of
-   * [visitedClasses] is used to prevent infinite recursion.
-   */
-  InterfaceType _asInstanceOf(
-      ClassElement targetElement, Set<ClassElement> visitedClasses) {
-    ClassElement thisElement = element;
-    if (thisElement == targetElement) {
-      return this;
-    } else if (visitedClasses.add(thisElement)) {
-      InterfaceType type;
-      for (InterfaceType mixin in mixins) {
-        type = (mixin as InterfaceTypeImpl)
-            ._asInstanceOf(targetElement, visitedClasses);
-        if (type != null) {
-          return type;
-        }
-      }
-      if (superclass != null) {
-        type = (superclass as InterfaceTypeImpl)
-            ._asInstanceOf(targetElement, visitedClasses);
-        if (type != null) {
-          return type;
-        }
-      }
-      for (InterfaceType interface in interfaces) {
-        type = (interface as InterfaceTypeImpl)
-            ._asInstanceOf(targetElement, visitedClasses);
-        if (type != null) {
-          return type;
-        }
-      }
-    }
-    return null;
-  }
-
   List<InterfaceType> _instantiateSuperTypes(List<InterfaceType> defined) {
     if (defined.isEmpty) return defined;
 
@@ -1897,6 +1809,9 @@ abstract class TypeImpl implements DartType {
   bool get isDartCoreInt => false;
 
   @override
+  bool get isDartCoreIterable => false;
+
+  @override
   bool get isDartCoreList => false;
 
   @override
@@ -1923,6 +1838,7 @@ abstract class TypeImpl implements DartType {
   @override
   bool get isDynamic => false;
 
+  @Deprecated('Use isDartCoreObject')
   @override
   bool get isObject => false;
 

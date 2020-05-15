@@ -109,6 +109,11 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _TYPE_PARAMETER_ON_CONSTRUCTOR,
   _VOID_WITH_TYPE_ARGUMENTS,
   _FINAL_AND_COVARIANT_LATE_WITH_INITIALIZER,
+  _INVALID_CONSTRUCTOR_NAME,
+  _GETTER_CONSTRUCTOR,
+  _SETTER_CONSTRUCTOR,
+  _MEMBER_WITH_CLASS_NAME,
+  _EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = ParserErrorCode(
@@ -241,9 +246,9 @@ const ParserErrorCode _EXPECTED_INSTEAD =
 
 const ParserErrorCode _EXPERIMENT_NOT_ENABLED = ParserErrorCode(
     'EXPERIMENT_NOT_ENABLED',
-    r"This requires the '#string' experiment to be enabled.",
+    r"This requires the '#string' language feature to be enabled.",
     correction:
-        "Try enabling this experiment by adding it to the command line when compiling and running.");
+        "Try updating your pubspec.yaml to set the minimum SDK constraint to #string2 or higher, and running 'pub get'.");
 
 const ParserErrorCode _EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE = ParserErrorCode(
     'EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE',
@@ -277,6 +282,10 @@ const ParserErrorCode _EXTERNAL_CONSTRUCTOR_WITH_BODY = ParserErrorCode(
     r"External constructors can't have a body.",
     correction:
         "Try removing the body of the constructor, or removing the keyword 'external'.");
+
+const ParserErrorCode _EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER = ParserErrorCode(
+    'EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER',
+    r"An external constructor can't have any initializers.");
 
 const ParserErrorCode _EXTERNAL_ENUM = ParserErrorCode(
     'EXTERNAL_ENUM', r"Enums can't be declared to be 'external'.",
@@ -339,6 +348,10 @@ const ParserErrorCode _FINAL_AND_VAR = ParserErrorCode(
     'FINAL_AND_VAR', r"Members can't be declared to be both 'final' and 'var'.",
     correction: "Try removing the keyword 'var'.");
 
+const ParserErrorCode _GETTER_CONSTRUCTOR = ParserErrorCode(
+    'GETTER_CONSTRUCTOR', r"Constructors can't be a getter.",
+    correction: "Try removing 'get'.");
+
 const ParserErrorCode _ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE = ParserErrorCode(
     'ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE',
     r"Illegal assignment to non-assignable expression.");
@@ -373,6 +386,10 @@ const ParserErrorCode _INVALID_AWAIT_IN_FOR = ParserErrorCode(
     'INVALID_AWAIT_IN_FOR',
     r"The keyword 'await' isn't allowed for a normal 'for' statement.",
     correction: "Try removing the keyword, or use a for-each statement.");
+
+const ParserErrorCode _INVALID_CONSTRUCTOR_NAME = ParserErrorCode(
+    'INVALID_CONSTRUCTOR_NAME',
+    r"The name of a constructor must match the name of the enclosing class.");
 
 const ParserErrorCode _INVALID_HEX_ESCAPE = ParserErrorCode(
     'INVALID_HEX_ESCAPE',
@@ -413,6 +430,11 @@ const ParserErrorCode _LIBRARY_DIRECTIVE_NOT_FIRST = ParserErrorCode(
     r"The library directive must appear before all other directives.",
     correction:
         "Try moving the library directive before any other directives.");
+
+const ParserErrorCode _MEMBER_WITH_CLASS_NAME = ParserErrorCode(
+    'MEMBER_WITH_CLASS_NAME',
+    r"A class member can't have the same name as the enclosing class.",
+    correction: "Try renaming the member.");
 
 const ParserErrorCode _MISSING_ASSIGNABLE_SELECTOR = ParserErrorCode(
     'MISSING_ASSIGNABLE_SELECTOR',
@@ -524,6 +546,10 @@ const ParserErrorCode _REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR = ParserErrorCode(
     r"Only factory constructor can specify '=' redirection.",
     correction:
         "Try making this a factory constructor, or remove the redirection.");
+
+const ParserErrorCode _SETTER_CONSTRUCTOR = ParserErrorCode(
+    'SETTER_CONSTRUCTOR', r"Constructors can't be a setter.",
+    correction: "Try removing 'set'.");
 
 const ParserErrorCode _STACK_OVERFLOW = ParserErrorCode('STACK_OVERFLOW',
     r"The file has too many nested expressions or statements.",

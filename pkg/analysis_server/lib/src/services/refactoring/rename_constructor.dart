@@ -40,13 +40,13 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<RefactoringStatus> checkFinalConditions() {
-    RefactoringStatus result = RefactoringStatus();
+    var result = RefactoringStatus();
     return Future.value(result);
   }
 
   @override
   RefactoringStatus checkNewName() {
-    RefactoringStatus result = super.checkNewName();
+    var result = super.checkNewName();
     result.addStatus(validateConstructorName(newName));
     if (newName != null) {
       _analyzePossibleConflicts(result);
@@ -56,11 +56,9 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<void> fillChange() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     // prepare references
-    List<SearchMatch> matches = await searchEngine.searchReferences(element);
-    List<SourceReference> references = getSourceReferences(matches);
+    var matches = await searchEngine.searchReferences(element);
+    var references = getSourceReferences(matches);
     // append declaration
     if (element.isSynthetic) {
       await _replaceSynthetic();
@@ -68,33 +66,30 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
       references.add(_createDeclarationReference());
     }
     // update references
-    String replacement = newName.isEmpty ? '' : '.$newName';
-    for (SourceReference reference in references) {
+    var replacement = newName.isEmpty ? '' : '.$newName';
+    for (var reference in references) {
       reference.addEdit(change, replacement);
     }
   }
 
   void _analyzePossibleConflicts(RefactoringStatus result) {
-    ClassElement parentClass = element.enclosingElement;
+    var parentClass = element.enclosingElement;
     // Check if the "newName" is the name of the enclosing class.
     if (parentClass.name == newName) {
       result.addError('The constructor should not have the same name '
           'as the name of the enclosing class.');
     }
     // check if there are members with "newName" in the same ClassElement
-    for (Element newNameMember in getChildren(parentClass, newName)) {
-      String message = format(
-          "Class '{0}' already declares {1} with name '{2}'.",
-          parentClass.displayName,
-          getElementKindName(newNameMember),
-          newName);
+    for (var newNameMember in getChildren(parentClass, newName)) {
+      var message = format("Class '{0}' already declares {1} with name '{2}'.",
+          parentClass.displayName, getElementKindName(newNameMember), newName);
       result.addError(message, newLocation_fromElement(newNameMember));
     }
   }
 
   SourceReference _createDeclarationReference() {
     SourceRange sourceRange;
-    int offset = element.periodOffset;
+    var offset = element.periodOffset;
     if (offset != null) {
       sourceRange = range.startOffsetEndOffset(offset, element.nameEnd);
     } else {
@@ -113,9 +108,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   }
 
   Future<void> _replaceSynthetic() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    ClassElement classElement = element.enclosingElement;
+    var classElement = element.enclosingElement;
 
     var result = await AnalysisSessionHelper(session)
         .getElementDeclaration(classElement);

@@ -6,9 +6,6 @@
 // VMOptions=--no-enable-isolate-groups
 
 // Test properties of ports.
-// Note: unittest.dart depends on ports, in particular on the behaviour tested
-// here. To keep things simple, we don't use the unittest library here.
-
 library PortTest;
 
 import "package:expect/expect.dart";

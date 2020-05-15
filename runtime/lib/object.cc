@@ -93,10 +93,10 @@ DEFINE_NATIVE_ENTRY(Object_haveSameRuntimeType, 0, 2) {
   const intptr_t right_cid = right.GetClassId();
 
   if (left_cid != right_cid) {
-    if (RawObject::IsIntegerClassId(left_cid)) {
-      return Bool::Get(RawObject::IsIntegerClassId(right_cid)).raw();
-    } else if (RawObject::IsStringClassId(right_cid)) {
-      return Bool::Get(RawObject::IsStringClassId(right_cid)).raw();
+    if (IsIntegerClassId(left_cid)) {
+      return Bool::Get(IsIntegerClassId(right_cid)).raw();
+    } else if (IsStringClassId(right_cid)) {
+      return Bool::Get(IsStringClassId(right_cid)).raw();
     } else {
       return Bool::False().raw();
     }
@@ -207,6 +207,10 @@ DEFINE_NATIVE_ENTRY(Internal_inquireIs64Bit, 0, 0) {
 DEFINE_NATIVE_ENTRY(Internal_unsafeCast, 0, 1) {
   UNREACHABLE();  // Should be erased at Kernel translation time.
   return arguments->NativeArgAt(0);
+}
+
+DEFINE_NATIVE_ENTRY(Internal_reachabilityFence, 0, 1) {
+  return Object::null();
 }
 
 static bool ExtractInterfaceTypeArgs(Zone* zone,

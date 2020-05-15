@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
 var tests = <IsolateTest>[
@@ -37,4 +37,11 @@ var tests = <IsolateTest>[
   },
 ];
 
-main(args) => runIsolateTests(args, tests);
+main(args) => runIsolateTests(
+      args,
+      tests,
+      // This test hangs with DDS as package:json_rpc_2 can't parse the JSON
+      // response and is unable to determine the request ID, so the malformed
+      // JSON request will never complete.
+      enableDds: false,
+    );

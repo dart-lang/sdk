@@ -38,11 +38,11 @@ class ObjectIdRingTestHelper {
     EXPECT_EQ(-1, ring->IdOfIndex(index));
   }
 
-  static RawObject* MakeString(const char* s) {
+  static ObjectPtr MakeString(const char* s) {
     return Symbols::New(Thread::Current(), s);
   }
 
-  static void ExpectString(RawObject* obj, const char* s) {
+  static void ExpectString(ObjectPtr obj, const char* s) {
     String& str = String::Handle();
     str ^= obj;
     EXPECT(str.Equals(s));
@@ -52,7 +52,7 @@ class ObjectIdRingTestHelper {
 // Test that serial number wrapping works.
 ISOLATE_UNIT_TEST_CASE(ObjectIdRingSerialWrapTest) {
   Isolate* isolate = Isolate::Current();
-  ObjectIdRing* ring = isolate->object_id_ring();
+  ObjectIdRing* ring = isolate->EnsureObjectIdRing();
   ObjectIdRingTestHelper::SetCapacityAndMaxSerial(ring, 2, 4);
   intptr_t id;
   ObjectIdRing::LookupResult kind = ObjectIdRing::kInvalid;
@@ -137,12 +137,12 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
   EXPECT_EQ(3, list_length);
 
   Isolate* isolate = thread->isolate();
-  ObjectIdRing* ring = isolate->object_id_ring();
+  ObjectIdRing* ring = isolate->EnsureObjectIdRing();
   ObjectIdRing::LookupResult kind = ObjectIdRing::kInvalid;
 
   {
     TransitionNativeToVM to_vm(thread);
-    RawObject* raw_obj = Api::UnwrapHandle(result);
+    ObjectPtr raw_obj = Api::UnwrapHandle(result);
     // Located in new heap.
     EXPECT(raw_obj->IsNewObject());
     EXPECT_NE(Object::null(), raw_obj);
@@ -157,29 +157,29 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
     // Get id 0 again.
     EXPECT_EQ(raw_obj_id1,
               ring->GetIdForObject(raw_obj, ObjectIdRing::kReuseId));
-    RawObject* raw_obj1 = ring->GetObjectForId(raw_obj_id1, &kind);
+    ObjectPtr raw_obj1 = ring->GetObjectForId(raw_obj_id1, &kind);
     EXPECT_EQ(ObjectIdRing::kValid, kind);
-    RawObject* raw_obj2 = ring->GetObjectForId(raw_obj_id2, &kind);
+    ObjectPtr raw_obj2 = ring->GetObjectForId(raw_obj_id2, &kind);
     EXPECT_EQ(ObjectIdRing::kValid, kind);
     EXPECT_NE(Object::null(), raw_obj1);
     EXPECT_NE(Object::null(), raw_obj2);
-    EXPECT_EQ(RawObject::ToAddr(raw_obj), RawObject::ToAddr(raw_obj1));
-    EXPECT_EQ(RawObject::ToAddr(raw_obj), RawObject::ToAddr(raw_obj2));
+    EXPECT_EQ(ObjectLayout::ToAddr(raw_obj), ObjectLayout::ToAddr(raw_obj1));
+    EXPECT_EQ(ObjectLayout::ToAddr(raw_obj), ObjectLayout::ToAddr(raw_obj2));
     // Force a scavenge.
     GCTestHelper::CollectNewSpace();
-    RawObject* raw_object_moved1 = ring->GetObjectForId(raw_obj_id1, &kind);
+    ObjectPtr raw_object_moved1 = ring->GetObjectForId(raw_obj_id1, &kind);
     EXPECT_EQ(ObjectIdRing::kValid, kind);
-    RawObject* raw_object_moved2 = ring->GetObjectForId(raw_obj_id2, &kind);
+    ObjectPtr raw_object_moved2 = ring->GetObjectForId(raw_obj_id2, &kind);
     EXPECT_EQ(ObjectIdRing::kValid, kind);
     EXPECT_NE(Object::null(), raw_object_moved1);
     EXPECT_NE(Object::null(), raw_object_moved2);
-    EXPECT_EQ(RawObject::ToAddr(raw_object_moved1),
-              RawObject::ToAddr(raw_object_moved2));
+    EXPECT_EQ(ObjectLayout::ToAddr(raw_object_moved1),
+              ObjectLayout::ToAddr(raw_object_moved2));
     // Test that objects have moved.
-    EXPECT_NE(RawObject::ToAddr(raw_obj1),
-              RawObject::ToAddr(raw_object_moved1));
-    EXPECT_NE(RawObject::ToAddr(raw_obj2),
-              RawObject::ToAddr(raw_object_moved2));
+    EXPECT_NE(ObjectLayout::ToAddr(raw_obj1),
+              ObjectLayout::ToAddr(raw_object_moved1));
+    EXPECT_NE(ObjectLayout::ToAddr(raw_obj2),
+              ObjectLayout::ToAddr(raw_object_moved2));
     // Test that we still point at the same list.
     moved_handle = Api::NewHandle(thread, raw_object_moved1);
     // Test id reuse.
@@ -196,7 +196,7 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
 // Test that the ring table is updated with nulls when the old GC collects.
 ISOLATE_UNIT_TEST_CASE(ObjectIdRingOldGCTest) {
   Isolate* isolate = thread->isolate();
-  ObjectIdRing* ring = isolate->object_id_ring();
+  ObjectIdRing* ring = isolate->EnsureObjectIdRing();
 
   ObjectIdRing::LookupResult kind = ObjectIdRing::kInvalid;
   intptr_t raw_obj_id1 = -1;
@@ -207,7 +207,7 @@ ISOLATE_UNIT_TEST_CASE(ObjectIdRingOldGCTest) {
     EXPECT(!str.IsNull());
     EXPECT_EQ(3, str.Length());
 
-    RawObject* raw_obj = Object::RawCast(str.raw());
+    ObjectPtr raw_obj = Object::RawCast(str.raw());
     // Verify that it is located in old heap.
     EXPECT(raw_obj->IsOldObject());
     EXPECT_NE(Object::null(), raw_obj);
@@ -215,24 +215,24 @@ ISOLATE_UNIT_TEST_CASE(ObjectIdRingOldGCTest) {
     EXPECT_EQ(0, raw_obj_id1);
     raw_obj_id2 = ring->GetIdForObject(raw_obj);
     EXPECT_EQ(1, raw_obj_id2);
-    RawObject* raw_obj1 = ring->GetObjectForId(raw_obj_id1, &kind);
+    ObjectPtr raw_obj1 = ring->GetObjectForId(raw_obj_id1, &kind);
     EXPECT_EQ(ObjectIdRing::kValid, kind);
-    RawObject* raw_obj2 = ring->GetObjectForId(raw_obj_id2, &kind);
+    ObjectPtr raw_obj2 = ring->GetObjectForId(raw_obj_id2, &kind);
     EXPECT_EQ(ObjectIdRing::kValid, kind);
     EXPECT_NE(Object::null(), raw_obj1);
     EXPECT_NE(Object::null(), raw_obj2);
-    EXPECT_EQ(RawObject::ToAddr(raw_obj), RawObject::ToAddr(raw_obj1));
-    EXPECT_EQ(RawObject::ToAddr(raw_obj), RawObject::ToAddr(raw_obj2));
+    EXPECT_EQ(ObjectLayout::ToAddr(raw_obj), ObjectLayout::ToAddr(raw_obj1));
+    EXPECT_EQ(ObjectLayout::ToAddr(raw_obj), ObjectLayout::ToAddr(raw_obj2));
     // Exit scope. Freeing String handle.
   }
   // Force a GC. No reference exist to the old string anymore. It should be
   // collected and the object id ring will now return the null object for
   // those ids.
   GCTestHelper::CollectOldSpace();
-  RawObject* raw_object_moved1 = ring->GetObjectForId(raw_obj_id1, &kind);
+  ObjectPtr raw_object_moved1 = ring->GetObjectForId(raw_obj_id1, &kind);
   EXPECT_EQ(ObjectIdRing::kCollected, kind);
   EXPECT_EQ(Object::null(), raw_object_moved1);
-  RawObject* raw_object_moved2 = ring->GetObjectForId(raw_obj_id2, &kind);
+  ObjectPtr raw_object_moved2 = ring->GetObjectForId(raw_obj_id2, &kind);
   EXPECT_EQ(ObjectIdRing::kCollected, kind);
   EXPECT_EQ(Object::null(), raw_object_moved2);
 }
@@ -241,13 +241,13 @@ ISOLATE_UNIT_TEST_CASE(ObjectIdRingOldGCTest) {
 // overridden by new entries.
 ISOLATE_UNIT_TEST_CASE(ObjectIdRingExpiredEntryTest) {
   Isolate* isolate = Isolate::Current();
-  ObjectIdRing* ring = isolate->object_id_ring();
+  ObjectIdRing* ring = isolate->EnsureObjectIdRing();
 
   // Insert an object and check we can look it up.
   String& obj = String::Handle(String::New("I will expire"));
   intptr_t obj_id = ring->GetIdForObject(obj.raw());
   ObjectIdRing::LookupResult kind = ObjectIdRing::kInvalid;
-  RawObject* obj_lookup = ring->GetObjectForId(obj_id, &kind);
+  ObjectPtr obj_lookup = ring->GetObjectForId(obj_id, &kind);
   EXPECT_EQ(ObjectIdRing::kValid, kind);
   EXPECT_EQ(obj.raw(), obj_lookup);
 
@@ -257,7 +257,7 @@ ISOLATE_UNIT_TEST_CASE(ObjectIdRingExpiredEntryTest) {
     new_obj = String::New("Bump");
     intptr_t new_obj_id = ring->GetIdForObject(new_obj.raw());
     ObjectIdRing::LookupResult kind = ObjectIdRing::kInvalid;
-    RawObject* new_obj_lookup = ring->GetObjectForId(new_obj_id, &kind);
+    ObjectPtr new_obj_lookup = ring->GetObjectForId(new_obj_id, &kind);
     EXPECT_EQ(ObjectIdRing::kValid, kind);
     EXPECT_EQ(new_obj.raw(), new_obj_lookup);
   }

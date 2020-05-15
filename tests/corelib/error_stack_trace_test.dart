@@ -58,7 +58,7 @@ main() {
     bool hasThrown = false;
     try {
       f();
-    } catch (e) {
+    } on Error catch (e) {
       hasThrown = true;
       Expect.isTrue(
           e.stackTrace is StackTrace, "$e doesn't have a non-null stack trace");

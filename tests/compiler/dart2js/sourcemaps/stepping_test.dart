@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'dart:async';
 import 'dart:io';
 
@@ -13,6 +15,8 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/dart2js.dart' as entry;
 import 'package:expect/expect.dart';
 import 'package:sourcemap_testing/src/stepping_helper.dart';
+
+import '../helpers/memory_compiler.dart';
 
 void main(List<String> args) {
   ArgParser argParser = new ArgParser(allowTrailingOptions: true);
@@ -63,8 +67,9 @@ Future runTest(AnnotatedCode annotatedCode, String config,
     bool verbose: false,
     List<String> options: const <String>[]}) async {
   Directory dir = Directory.systemTemp.createTempSync('stepping_test');
+  String testFileName = 'test.dart';
   String path = dir.path;
-  String inputFile = '$path/test.dart';
+  String inputFile = '$path/$testFileName';
   new File(inputFile).writeAsStringSync(annotatedCode.sourceCode);
   String outputFile = '$path/js.js';
   List<String> arguments = <String>[
@@ -75,10 +80,11 @@ Future runTest(AnnotatedCode annotatedCode, String config,
   CompilationResult compilationResult = await entry.internalMain(arguments);
   Expect.isTrue(compilationResult.isSuccess);
   List<String> scriptD8Command = [
-    'sdk/lib/_internal/js_runtime/lib/preambles/d8.js',
+    '$sdkPath/_internal/js_runtime/lib/preambles/d8.js',
     outputFile
   ];
-  ProcessResult result = runD8AndStep(dir.path, annotatedCode, scriptD8Command);
+  ProcessResult result =
+      runD8AndStep(dir.path, testFileName, annotatedCode, scriptD8Command);
   List<String> d8output = result.stdout.split("\n");
   if (verbose) {
     d8output.forEach(print);

@@ -1,0 +1,3 @@
+Never throwing() => throw '';
+void main() {}
+void errors() async {}

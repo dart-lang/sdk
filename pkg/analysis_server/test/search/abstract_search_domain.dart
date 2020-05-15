@@ -20,21 +20,21 @@ class AbstractSearchDomainTest extends AbstractAnalysisTest {
   SearchResult result;
 
   void assertHasResult(SearchResultKind kind, String search, [int length]) {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     length ??= findIdentifierLength(search);
     findResult(kind, testFile, offset, length, true);
   }
 
   void assertNoResult(SearchResultKind kind, String search, [int length]) {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     length ??= findIdentifierLength(search);
     findResult(kind, testFile, offset, length, false);
   }
 
   void findResult(SearchResultKind kind, String file, int offset, int length,
       bool expected) {
-    for (SearchResult result in results) {
-      Location location = result.location;
+    for (var result in results) {
+      var location = result.location;
       if (result.kind == kind &&
           location.file == file &&
           location.offset == offset &&
@@ -55,8 +55,8 @@ class AbstractSearchDomainTest extends AbstractAnalysisTest {
 
   String getPathString(List<Element> path) {
     return path.map((Element element) {
-      String kindName = element.kind.name;
-      String name = element.name;
+      var kindName = element.kind.name;
+      var name = element.name;
       if (name.isEmpty) {
         return kindName;
       } else {
@@ -70,8 +70,8 @@ class AbstractSearchDomainTest extends AbstractAnalysisTest {
     super.processNotification(notification);
     if (notification.event == SEARCH_NOTIFICATION_RESULTS) {
       var params = SearchResultsParams.fromNotification(notification);
-      String id = params.id;
-      _ResultSet resultSet = resultSets[id];
+      var id = params.id;
+      var resultSet = resultSets[id];
       if (resultSet == null) {
         resultSet = _ResultSet(id);
         resultSets[id] = resultSet;
@@ -91,7 +91,7 @@ class AbstractSearchDomainTest extends AbstractAnalysisTest {
   }
 
   Future waitForSearchResults() {
-    _ResultSet resultSet = resultSets[searchId];
+    var resultSet = resultSets[searchId];
     if (resultSet != null && resultSet.done) {
       results = resultSet.results;
       return Future.value();

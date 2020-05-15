@@ -153,7 +153,7 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
 
   @override
   void visitRequest(Request request) {
-    String methodName = '${request.domainName}_${request.method}';
+    var methodName = '${request.domainName}_${request.method}';
     publicMethod(methodName, () {
       docComment(toHtmlVisitor.collectHtml(() {
         toHtmlVisitor.write('{@code ${request.longMethod}}');
@@ -164,9 +164,9 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
         }
       }));
       write('public void $methodName(');
-      List<String> arguments = [];
+      var arguments = <String>[];
       if (request.params != null) {
-        for (TypeObjectField field in request.params.fields) {
+        for (var field in request.params.fields) {
           arguments.add('${javaType(field.type)} ${javaName(field.name)}');
         }
       }

@@ -1,0 +1,18 @@
+class Class {
+  int nonNullableField = 0;
+  int? nullableField;
+  int operator [](int key) => key;
+  void operator []=(int key, int value) {}
+  Class get nonNullableClass => this;
+  Class call() => this;
+  NullableIndexClass get nonNullableNullableIndexClass => NullableIndexClass();
+}
+
+class NullableIndexClass {
+  int? operator [](int key) => key;
+  void operator []=(int key, int value) {}
+}
+
+main() {}
+errors(Class? nullableClass, Class nonNullableClass, int? nullableInt,
+    int nonNullableInt, NullableIndexClass? nullableNullableIndexClass) {}

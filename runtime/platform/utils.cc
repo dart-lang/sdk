@@ -176,7 +176,7 @@ void Utils::CalculateMagicAndShiftForDivRem(int64_t divisor,
   const uint64_t exp = 1LL << 63;
 
   // Initialize the computations.
-  uint64_t abs_d = (divisor >= 0) ? divisor : -divisor;
+  uint64_t abs_d = (divisor >= 0) ? divisor : -static_cast<uint64_t>(divisor);
   uint64_t sign_bit = static_cast<uint64_t>(divisor) >> 63;
   uint64_t tmp = exp + sign_bit;
   uint64_t abs_nc = tmp - 1 - (tmp % abs_d);

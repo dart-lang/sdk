@@ -1,0 +1,39 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41496.dart:7:11: Error: Field 'f1' should be initialized because its type 'void Function()' doesn't allow null.
+// LegacyFoo f1;
+//           ^^
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41496.dart:10:20: Error: Field 'f2' should be initialized because its type 'void Function()' doesn't allow null.
+//   static LegacyFoo f2;
+//                    ^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///issue41496_lib.dart";
+
+class C extends core::Object {
+  static field () → void f2;
+  synthetic constructor •() → self::C
+    ;
+}
+static field () → void f1;
+static method main() → dynamic
+  ;
+
+library opted_out_lib /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41496_lib.dart:5:1: Error: A library can't opt out of non-nullable by default, when in nnbd-strong mode.
+// // @dart=2.6
+// ^^^^^^^^^^^^
+//
+import self as self2;
+
+typedef LegacyFoo = () → void;
+static method test(() → void f) → dynamic
+  ;

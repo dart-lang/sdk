@@ -28,7 +28,7 @@ final _nullFailedSet = JS('!', 'new Set()');
 // Run-time null safety assertion per:
 // https://github.com/dart-lang/language/blob/master/accepted/future-releases/nnbd/feature-specification.md#automatic-debug-assertion-insertion
 nullFailed(String? fileUri, int? line, int? column, String? variable) {
-  if (_strictSubtypeChecks) {
+  if (strictNullSafety) {
     throw AssertionErrorImpl(
         'A null value was passed into a non-nullable parameter $variable',
         fileUri,
@@ -56,30 +56,30 @@ throwNullValueError() {
   throw NoSuchMethodError(null, Symbol('<Unexpected Null Value>'), null, null);
 }
 
-castError(obj, expectedType, [@notNull bool isImplicit = false]) {
+castError(obj, expectedType) {
   var actualType = getReifiedType(obj);
   var message = _castErrorMessage(actualType, expectedType);
-  var error = isImplicit ? TypeErrorImpl(message) : CastErrorImpl(message);
-  throw error;
+  throw TypeErrorImpl(message);
 }
 
 String _castErrorMessage(from, to) {
   // If both types are generic classes, see if we can infer generic type
   // arguments for `from` that would allow the subtype relation to work.
-  var fromClass = getGenericClass(from);
-  if (fromClass != null) {
-    var fromTypeFormals = getGenericTypeFormals(fromClass);
-    var fromType = instantiateClass(fromClass, fromTypeFormals);
-    var inferrer = _TypeInferrer(fromTypeFormals);
-    if (inferrer.trySubtypeMatch(fromType, to)) {
-      var inferredTypes = inferrer.getInferredTypes();
-      if (inferredTypes != null) {
-        var inferred = instantiateClass(fromClass, inferredTypes);
-        return "Type '${typeName(from)}' should be '${typeName(inferred)}' "
-            "to implement expected type '${typeName(to)}'.";
-      }
-    }
-  }
+  // TODO(#40326) Fix suggested type or remove this code if no longer needed.
+  // var fromClass = getGenericClass(from);
+  // if (fromClass != null) {
+  //   var fromTypeFormals = getGenericTypeFormals(fromClass);
+  //   var fromType = instantiateClass(fromClass, fromTypeFormals);
+  //   var inferrer = _TypeInferrer(fromTypeFormals);
+  //   if (inferrer.trySubtypeMatch(fromType, to)) {
+  //     var inferredTypes = inferrer.getInferredTypes();
+  //     if (inferredTypes != null) {
+  //       var inferred = instantiateClass(fromClass, inferredTypes);
+  //       return "Type '${typeName(from)}' should be '${typeName(inferred)}' "
+  //           "to implement expected type '${typeName(to)}'.";
+  //     }
+  //   }
+  // }
   return "Expected a value of type '${typeName(to)}', "
       "but got one of type '${typeName(from)}'";
 }

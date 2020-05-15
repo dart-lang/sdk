@@ -1,0 +1,13 @@
+Errors: {
+}
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
+  return block {
+    final dart.core::List<dart.core::String*>* #t1 = <dart.core::String*>[];
+    {
+      dart.core::Iterator<dart.core::String*>* :sync-for-iterator = main::listOfStrings.{dart.core::Iterable::iterator};
+      for (; :sync-for-iterator.{dart.core::Iterator::moveNext}(); ) {
+        final dart.core::String* #t2 = :sync-for-iterator.{dart.core::Iterator::current};
+        #t1.{dart.core::List::add}(#t2);
+      }
+    }
+  } =>#t1;

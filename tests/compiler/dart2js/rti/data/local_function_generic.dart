@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'package:expect/expect.dart';
 
 method1() {
-  /*strong.direct,explicit=[local.T],needsArgs,needsSignature*/
-  /*omit.needsSignature*/
-  T local<T>(T t) => t;
+  /*spec:nnbd-off.direct,explicit=[local.T],needsArgs,needsSignature*/
+  /*prod:nnbd-off|prod:nnbd-sdk.needsSignature*/
+  /*spec:nnbd-sdk.direct,explicit=[local.T*],needsArgs,needsSignature*/ T
+      local<T>(T t) => t;
   return local;
 }
 

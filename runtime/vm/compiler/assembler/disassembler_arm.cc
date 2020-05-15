@@ -186,9 +186,9 @@ void ARMDecoder::PrintShiftRm(Instr* instr) {
 // Print the immediate operand for the instruction. Generally used for data
 // processing instructions.
 void ARMDecoder::PrintShiftImm(Instr* instr) {
-  int rotate = instr->RotateField() * 2;
-  int immed8 = instr->Immed8Field();
-  int imm = (immed8 >> rotate) | (immed8 << (32 - rotate));
+  uint8_t rotate = instr->RotateField() * 2;
+  int32_t immed8 = instr->Immed8Field();
+  int32_t imm = Utils::RotateRight(immed8, rotate);
   buffer_pos_ += Utils::SNPrint(current_position_in_buffer(),
                                 remaining_size_in_buffer(), "#%d", imm);
 }
@@ -403,7 +403,8 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
     case 'd': {
       if (format[1] == 'e') {  // 'dest: branch destination
         ASSERT(STRING_STARTS_WITH(format, "dest"));
-        const int32_t off = (instr->SImmed24Field() << 2) + 8;
+        const int32_t off =
+            (static_cast<uint32_t>(instr->SImmed24Field()) << 2) + 8;
         if (FLAG_disassemble_relative) {
           buffer_pos_ +=
               Utils::SNPrint(current_position_in_buffer(),
@@ -570,7 +571,7 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
     }
     case 't': {  // 'target: target of branch instructions.
       ASSERT(STRING_STARTS_WITH(format, "target"));
-      int off = (instr->SImmed24Field() << 2) + 8;
+      int32_t off = (static_cast<uint32_t>(instr->SImmed24Field()) << 2) + 8;
       buffer_pos_ += Utils::SNPrint(current_position_in_buffer(),
                                     remaining_size_in_buffer(), "%+d", off);
       return 6;

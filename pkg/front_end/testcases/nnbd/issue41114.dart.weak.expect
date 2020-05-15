@@ -1,0 +1,10 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic async {
+  core::List<core::String>? a = <core::String>[];
+  core::Iterable<core::String>? b = let final core::List<core::String>? #t1 = a in #t1.{core::List::==}(null) ?{core::Iterable<core::String>?} null : #t1{core::List<core::String>}.{core::Iterable::map}<core::String>((core::String e) → core::String => e);
+  core::Iterable<core::String>? i = let final core::Iterable<core::String>? #t2 = b in #t2.{core::Object::==}(null) ?{core::Iterable<core::String>?} a : #t2{core::Iterable<core::String>};
+  core::print(i);
+}

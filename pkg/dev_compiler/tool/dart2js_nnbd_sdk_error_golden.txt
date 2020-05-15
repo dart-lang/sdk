@@ -1,21 +1,10 @@
-ERROR|COMPILE_TIME_ERROR|BODY_MIGHT_COMPLETE_NORMALLY|lib/_internal/js_runtime/lib/js_helper.dart|2689|17|17|The body might complete normally, which would cause 'null' to be returned, but the return type is a potentially non-nullable type.
-ERROR|COMPILE_TIME_ERROR|BODY_MIGHT_COMPLETE_NORMALLY|lib/_internal/js_runtime/lib/js_helper.dart|3629|5|11|The body might complete normally, which would cause 'null' to be returned, but the return type is a potentially non-nullable type.
-ERROR|COMPILE_TIME_ERROR|BODY_MIGHT_COMPLETE_NORMALLY|lib/_internal/js_runtime/lib/js_helper.dart|3657|5|6|The body might complete normally, which would cause 'null' to be returned, but the return type is a potentially non-nullable type.
-ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1637|7|5|Superinterfaces don't have a valid override for '&': int.& (int Function(int)), JSNumber.& (num Function(num)).
-ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1637|7|5|Superinterfaces don't have a valid override for '<<': int.<< (int Function(int)), JSNumber.<< (num Function(num)).
-ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1637|7|5|Superinterfaces don't have a valid override for '>>': int.>> (int Function(int)), JSNumber.>> (num Function(num)).
-ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1637|7|5|Superinterfaces don't have a valid override for '\|': int.\| (int Function(int)), JSNumber.\| (num Function(num)).
-ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1637|7|5|Superinterfaces don't have a valid override for '^': int.^ (int Function(int)), JSNumber.^ (num Function(num)).
-ERROR|COMPILE_TIME_ERROR|NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD|lib/_http/http.dart|1004|10|5|Non-nullable instance field 'value' must be initialized.
-ERROR|COMPILE_TIME_ERROR|NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD|lib/_http/http.dart|1030|8|6|Non-nullable instance field 'secure' must be initialized.
-ERROR|COMPILE_TIME_ERROR|NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD|lib/_http/http.dart|1036|8|8|Non-nullable instance field 'httpOnly' must be initialized.
-ERROR|COMPILE_TIME_ERROR|NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD|lib/_http/http.dart|1493|12|11|Non-nullable instance field 'idleTimeout' must be initialized.
-ERROR|COMPILE_TIME_ERROR|NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD|lib/_http/http.dart|1543|8|14|Non-nullable instance field 'autoUncompress' must be initialized.
-ERROR|COMPILE_TIME_ERROR|NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD|lib/_http/http.dart|172|8|12|Non-nullable instance field 'autoCompress' must be initialized.
-ERROR|COMPILE_TIME_ERROR|NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD|lib/_http/http.dart|991|10|4|Non-nullable instance field 'name' must be initialized.
-ERROR|COMPILE_TIME_ERROR|NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD|lib/io/io.dart|5589|12|8|Non-nullable instance field 'encoding' must be initialized.
-ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1654|28|1|The operator '&' isn't defined for the type 'JSInt'.
-ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1656|27|1|The operator '&' isn't defined for the type 'JSInt'.
-ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1659|17|1|The operator '&' isn't defined for the type 'JSInt'.
-ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1664|18|1|The operator '&' isn't defined for the type 'JSInt'.
-ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1664|44|1|The operator '&' isn't defined for the type 'JSInt'.
+ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1634|7|5|Superinterfaces don't have a valid override for '&': JSNumber.& (num Function(num)), int.& (int Function(int)).
+ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1634|7|5|Superinterfaces don't have a valid override for '<<': JSNumber.<< (num Function(num)), int.<< (int Function(int)).
+ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1634|7|5|Superinterfaces don't have a valid override for '>>': JSNumber.>> (num Function(num)), int.>> (int Function(int)).
+ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1634|7|5|Superinterfaces don't have a valid override for '\|': JSNumber.\| (num Function(num)), int.\| (int Function(int)).
+ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1634|7|5|Superinterfaces don't have a valid override for '^': JSNumber.^ (num Function(num)), int.^ (int Function(int)).
+ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1651|28|1|The operator '&' isn't defined for the type 'JSInt'.
+ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1653|27|1|The operator '&' isn't defined for the type 'JSInt'.
+ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1656|17|1|The operator '&' isn't defined for the type 'JSInt'.
+ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1661|18|1|The operator '&' isn't defined for the type 'JSInt'.
+ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1661|44|1|The operator '&' isn't defined for the type 'JSInt'.

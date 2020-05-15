@@ -1330,7 +1330,7 @@ class _ParameterMirror extends _VariableMirror implements ParameterMirror {
   final int _position;
   final bool isOptional;
   final bool isNamed;
-  final List _unmirroredMetadata;
+  final List? _unmirroredMetadata;
 
   _ParameterMirror._(
       reflectee,

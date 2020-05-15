@@ -42,24 +42,29 @@ class DuplicateDefinitionVerifier {
     Map<String, Element> instanceGetters = HashMap<String, Element>();
     Map<String, Element> staticGetters = HashMap<String, Element>();
 
-    String indexName = 'index';
-    String valuesName = 'values';
-    instanceGetters[indexName] = element.getGetter(indexName);
-    staticGetters[valuesName] = element.getGetter(valuesName);
+    instanceGetters['index'] = element.getGetter('index');
+    instanceGetters['toString'] = element.getMethod('toString');
+    staticGetters['values'] = element.getGetter('values');
 
     for (EnumConstantDeclaration constant in node.constants) {
       _checkDuplicateIdentifier(staticGetters, constant.name);
     }
 
+    String enumName = element.name;
     for (EnumConstantDeclaration constant in node.constants) {
       SimpleIdentifier identifier = constant.name;
       String name = identifier.name;
-      if (instanceGetters.containsKey(name)) {
-        String enumName = element.displayName;
+      if (name == enumName) {
         _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
-            identifier,
-            [enumName, name, enumName]);
+          CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING,
+          identifier,
+        );
+      } else if (instanceGetters.containsKey(name)) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
+          identifier,
+          [enumName, name, enumName],
+        );
       }
     }
   }

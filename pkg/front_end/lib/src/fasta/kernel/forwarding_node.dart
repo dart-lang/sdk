@@ -346,8 +346,15 @@ class ForwardingNode {
         parameterIndex < interfaceTypeParameters.length;
         parameterIndex++) {
       TypeParameter typeParameter = interfaceTypeParameters[parameterIndex];
-      bool isGenericCovariantImpl = typeParameter.isGenericCovariantImpl ||
-          needsCheck(typeParameter.bound);
+      DartType parameterBound =
+          substitution.substituteType(typeParameter.bound);
+      DartType bound = initialType(_combinedMemberIndex, parameterBound);
+      DartType parameterDefaultType =
+          substitution.substituteType(typeParameter.defaultType);
+      DartType defaultType =
+          initialType(_combinedMemberIndex, parameterDefaultType);
+      bool isGenericCovariantImpl =
+          typeParameter.isGenericCovariantImpl || needsCheck(parameterBound);
       TypeParameter superTypeParameter = typeParameter;
       for (int candidateIndex = 0;
           candidateIndex < _candidates.length;
@@ -373,6 +380,14 @@ class ForwardingNode {
           stub.function.typeParameters[parameterIndex].isGenericCovariantImpl =
               true;
         }
+      }
+      if (bound != null && bound != parameterBound) {
+        createStubIfNeeded(forMemberSignature: true);
+        stub.function.typeParameters[parameterIndex].bound = bound;
+      }
+      if (defaultType != null && defaultType != parameterDefaultType) {
+        createStubIfNeeded(forMemberSignature: true);
+        stub.function.typeParameters[parameterIndex].defaultType = defaultType;
       }
     }
     DartType returnType =
@@ -412,7 +427,8 @@ class ForwardingNode {
         superclass, procedure.name, kind == ProcedureKind.Setter);
     if (superTarget == null) return;
     if (superTarget is Procedure && superTarget.isForwardingStub) {
-      superTarget = _getForwardingStubSuperTarget(superTarget);
+      Procedure superProcedure = superTarget;
+      superTarget = superProcedure.forwardingStubSuperTarget;
     }
     procedure.isAbstract = false;
     if (!procedure.isForwardingStub) {
@@ -485,6 +501,8 @@ class ForwardingNode {
       for (int i = 0; i < typeParameters.length; i++) {
         typeParameters[i].bound =
             substitution.substituteType(targetTypeParameters[i].bound);
+        typeParameters[i].defaultType =
+            substitution.substituteType(targetTypeParameters[i].defaultType);
       }
     }
     List<VariableDeclaration> positionalParameters =
@@ -533,29 +551,15 @@ class ForwardingNode {
     return candidate.getMember(hierarchy);
   }
 
-  static Member _getForwardingStubSuperTarget(Procedure forwardingStub) {
-    // TODO(paulberry): when dartbug.com/31562 is fixed, this should become
-    // easier.
-    ReturnStatement body = forwardingStub.function.body;
-    Expression expression = body.expression;
-    if (expression is SuperMethodInvocation) {
-      return expression.interfaceTarget;
-    } else if (expression is SuperPropertySet) {
-      return expression.interfaceTarget;
-    } else {
-      return unhandled('${expression.runtimeType}',
-          '_getForwardingStubSuperTarget', -1, null);
-    }
-  }
-
   Substitution _substitutionFor(
       List<TypeParameter> stubTypeParameters, Member candidate, Class class_) {
     Substitution substitution = Substitution.fromInterfaceType(
-        hierarchy.getKernelTypeAsInstanceOf(
+        hierarchy.getTypeAsInstanceOf(
             hierarchy.coreTypes
                 .thisInterfaceType(class_, class_.enclosingLibrary.nonNullable),
             candidate.enclosingClass,
-            class_.enclosingLibrary));
+            class_.enclosingLibrary,
+            hierarchy.coreTypes));
     if (stubTypeParameters != null) {
       // If the stub is generic ensure that type parameters are alpha renamed
       // to the [stubTypeParameters].

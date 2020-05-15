@@ -73,8 +73,8 @@ class Required {
   }
 
   Source addSource(String path, String content, [Uri uri]) {
-    File file = newFile(path, content: content);
-    Source source = file.createSource(uri);
+    var file = newFile(path, content: content);
+    var source = file.createSource(uri);
     driver.addFile(file.path);
     driver.changeFile(file.path);
     return source;

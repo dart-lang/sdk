@@ -48,7 +48,7 @@ class ThreadInterrupter : public AllStatic {
         }
         new_value = old_value + 1;
       } while (!sample_buffer_lock_.compare_exchange_weak(
-          old_value, new_value, std::memory_order_relaxed));
+          old_value, new_value, std::memory_order_acquire));
       entered_lock_ = true;
     }
 
@@ -138,7 +138,7 @@ class ThreadInterrupter : public AllStatic {
       ASSERT(old_value < 0);
       new_value = old_value + 1;
     } while (!sample_buffer_lock_.compare_exchange_weak(
-        old_value, new_value, std::memory_order_relaxed));
+        old_value, new_value, std::memory_order_release));
   }
 
   friend class ThreadInterrupterVisitIsolates;

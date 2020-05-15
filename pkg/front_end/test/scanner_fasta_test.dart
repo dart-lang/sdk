@@ -755,10 +755,10 @@ class ScannerTest_Fasta_Direct_UTF8 extends ScannerTest_Fasta_Direct {
 /// Scanner tests that exercise the Fasta scanner directly.
 @reflectiveTest
 class ScannerTest_Fasta_Direct extends ScannerTest_Fasta_Base {
-  LanguageVersionToken languageVersion;
+  fasta.LanguageVersionToken languageVersion;
 
   void languageVersionChanged(
-      Scanner scanner, LanguageVersionToken languageVersion) {
+      Scanner scanner, fasta.LanguageVersionToken languageVersion) {
     this.languageVersion = languageVersion;
   }
 
@@ -972,11 +972,11 @@ main() {}
     token = token.precedingComments;
     while (token != null) {
       if (index == versionIndex) {
-        if (token is! LanguageVersionToken) {
+        if (token is! fasta.LanguageVersionToken) {
           fail('Expected version comment at index $index');
         }
       } else {
-        if (token is LanguageVersionToken) {
+        if (token is fasta.LanguageVersionToken) {
           fail('Did not expect version comment at index $index');
         }
       }

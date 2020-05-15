@@ -84,6 +84,26 @@ main() {
 ''');
   }
 
+  Future<void> test_setterOnDirective() async {
+    addSource('/home/test/lib/a.dart', r'''
+void set setter(int i) {}
+''');
+    await resolveTestUnit('''
+import 'a.dart';
+
+main() {
+  setter = 42;
+}
+''');
+    await assertHasAssistAt('import ', '''
+import 'a.dart' show setter;
+
+main() {
+  setter = 42;
+}
+''');
+  }
+
   Future<void> test_unresolvedUri() async {
     verifyNoTestUnitErrors = false;
     await resolveTestUnit('''

@@ -96,12 +96,12 @@ test(MirrorSystem mirrors) {
   TypeMirror IntGenRef = (IntGen as TypedefMirror).referent;
   TypeMirror DubGenRef = (DubGen as TypedefMirror).referent;
 
-  Expect.isFalse(Func.isSubclassOf(NumPredRef));
-  Expect.isFalse(Func.isSubclassOf(IntPredRef));
-  Expect.isFalse(Func.isSubclassOf(DubPredRef));
-  Expect.isFalse(Func.isSubclassOf(NumGenRef));
-  Expect.isFalse(Func.isSubclassOf(IntGenRef));
-  Expect.isFalse(Func.isSubclassOf(DubGenRef));
+  Expect.isFalse(Func.isSubclassOf(NumPredRef as ClassMirror));
+  Expect.isFalse(Func.isSubclassOf(IntPredRef as ClassMirror));
+  Expect.isFalse(Func.isSubclassOf(DubPredRef as ClassMirror));
+  Expect.isFalse(Func.isSubclassOf(NumGenRef as ClassMirror));
+  Expect.isFalse(Func.isSubclassOf(IntGenRef as ClassMirror));
+  Expect.isFalse(Func.isSubclassOf(DubGenRef as ClassMirror));
 
   // The spec doesn't require these to be either value, only that they implement
   // Function.

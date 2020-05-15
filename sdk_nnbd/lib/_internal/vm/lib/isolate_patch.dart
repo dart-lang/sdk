@@ -14,6 +14,7 @@ import "dart:async"
 
 import "dart:collection" show HashMap;
 import "dart:typed_data" show ByteBuffer, TypedData, Uint8List;
+import "dart:_internal" show spawnFunction;
 
 /// These are the additional parts of this patch library:
 // part "timer_impl.dart";
@@ -272,7 +273,7 @@ void _startIsolate(
       // current isolate's control port and capabilities.
       //
       // TODO(floitsch): Send an error message if we can't find the entry point.
-      var readyMessage = new List<Object?>.filled(2, null);
+      final readyMessage = List<Object?>.filled(2, null);
       readyMessage[0] = controlPort.sendPort;
       readyMessage[1] = capabilities;
 
@@ -319,12 +320,12 @@ class Isolate {
   String get debugName => _getDebugName(controlPort);
 
   @patch
-  static Future<Uri> get packageRoot {
+  static Future<Uri?> get packageRoot {
     return Future.value(null);
   }
 
   @patch
-  static Future<Uri> get packageConfig {
+  static Future<Uri?> get packageConfig {
     var hook = VMLibraryHooks.packageConfigUriFuture;
     if (hook == null) {
       throw new UnsupportedError("Isolate.packageConfig");
@@ -342,7 +343,6 @@ class Isolate {
   }
 
   static bool _packageSupported() =>
-      (VMLibraryHooks.packageRootUriFuture != null) &&
       (VMLibraryHooks.packageConfigUriFuture != null) &&
       (VMLibraryHooks.resolvePackageUriFuture != null);
 
@@ -374,9 +374,10 @@ class Isolate {
       script = await Isolate.resolvePackageUri(script);
     }
 
+    const bool newIsolateGroup = false;
     final RawReceivePort readyPort = new RawReceivePort();
     try {
-      _spawnFunction(
+      spawnFunction(
           readyPort.sendPort,
           script.toString(),
           entryPoint,
@@ -385,8 +386,8 @@ class Isolate {
           errorsAreFatal,
           onExit,
           onError,
-          null,
           packageConfig,
+          newIsolateGroup,
           debugName);
       return await _spawnCommon(readyPort);
     } catch (e, st) {
@@ -430,24 +431,17 @@ class Isolate {
       }
     }
     // Resolve the uri against the current isolate's root Uri first.
-    var spawnedUri = _rootUri!.resolveUri(uri);
+    final Uri spawnedUri = _rootUri!.resolveUri(uri);
 
     // Inherit this isolate's package resolution setup if not overridden.
-    if (!automaticPackageResolution &&
-        (packageRoot == null) &&
-        (packageConfig == null)) {
+    if (!automaticPackageResolution && packageConfig == null) {
       if (Isolate._packageSupported()) {
-        packageRoot = await Isolate.packageRoot;
         packageConfig = await Isolate.packageConfig;
       }
     }
 
     // Ensure to resolve package: URIs being handed in as parameters.
-    if (packageRoot != null) {
-      // `packages/` directory is no longer supported. Force it null.
-      // TODO(mfairhurst) Should this throw an exception?
-      packageRoot = null;
-    } else if (packageConfig != null) {
+    if (packageConfig != null) {
       // Avoid calling resolvePackageUri if not strictly necessary in case
       // the API is not supported.
       if (packageConfig.isScheme("package")) {
@@ -456,8 +450,7 @@ class Isolate {
     }
 
     // The VM will invoke [_startIsolate] and not `main`.
-    var packageRootString = packageRoot?.toString();
-    var packageConfigString = packageConfig?.toString();
+    final packageConfigString = packageConfig?.toString();
 
     final RawReceivePort readyPort = new RawReceivePort();
     try {
@@ -473,7 +466,6 @@ class Isolate {
           checked,
           null,
           /* environment */
-          packageRootString,
           packageConfigString,
           debugName);
       return await _spawnCommon(readyPort);
@@ -520,18 +512,7 @@ class Isolate {
   static const _DEL_ERROR = 8;
   static const _ERROR_FATAL = 9;
 
-  static void _spawnFunction(
-      SendPort readyPort,
-      String uri,
-      Function topLevelFunction,
-      var message,
-      bool paused,
-      bool errorsAreFatal,
-      SendPort? onExit,
-      SendPort? onError,
-      String? packageRoot,
-      String? packageConfig,
-      String? debugName) native "Isolate_spawnFunction";
+  // For 'spawnFunction' see internal_patch.dart.
 
   static void _spawnUri(
       SendPort readyPort,
@@ -544,7 +525,6 @@ class Isolate {
       bool errorsAreFatal,
       bool? checked,
       List? environment,
-      String? packageRoot,
       String? packageConfig,
       String? debugName) native "Isolate_spawnUri";
 

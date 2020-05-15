@@ -15,9 +15,6 @@ namespace dart {
 // Forward declarations.
 class Isolate;
 class IsolateGroup;
-class RawObject;
-class RawFunction;
-class RawTypedDataView;
 
 // An object pointer visitor interface.
 class ObjectPointerVisitor {
@@ -30,21 +27,21 @@ class ObjectPointerVisitor {
   // Visit pointers inside the given typed data [view].
   //
   // Range of pointers to visit 'first' <= pointer <= 'last'.
-  virtual void VisitTypedDataViewPointers(RawTypedDataView* view,
-                                          RawObject** first,
-                                          RawObject** last) {
+  virtual void VisitTypedDataViewPointers(TypedDataViewPtr view,
+                                          ObjectPtr* first,
+                                          ObjectPtr* last) {
     VisitPointers(first, last);
   }
 
   // Range of pointers to visit 'first' <= pointer <= 'last'.
-  virtual void VisitPointers(RawObject** first, RawObject** last) = 0;
+  virtual void VisitPointers(ObjectPtr* first, ObjectPtr* last) = 0;
 
   // len argument is the number of pointers to visit starting from 'p'.
-  void VisitPointers(RawObject** p, intptr_t len) {
+  void VisitPointers(ObjectPtr* p, intptr_t len) {
     VisitPointers(p, (p + len - 1));
   }
 
-  void VisitPointer(RawObject** p) { VisitPointers(p, p); }
+  void VisitPointer(ObjectPtr* p) { VisitPointers(p, p); }
 
   const char* gc_root_type() const { return gc_root_type_; }
   void set_gc_root_type(const char* gc_root_type) {
@@ -75,7 +72,7 @@ class ObjectVisitor {
   virtual ~ObjectVisitor() {}
 
   // Invoked for each object.
-  virtual void VisitObject(RawObject* obj) = 0;
+  virtual void VisitObject(ObjectPtr obj) = 0;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(ObjectVisitor);
@@ -95,7 +92,7 @@ class FindObjectVisitor {
   }
 
   // Check if object matches find condition.
-  virtual bool FindObject(RawObject* obj) const = 0;
+  virtual bool FindObject(ObjectPtr obj) const = 0;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(FindObjectVisitor);

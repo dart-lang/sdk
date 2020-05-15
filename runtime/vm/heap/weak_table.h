@@ -49,12 +49,12 @@ class WeakTable {
 
   // The following methods can be called concurrently and are guarded by a lock.
 
-  intptr_t GetValue(RawObject* key) {
+  intptr_t GetValue(ObjectPtr key) {
     MutexLocker ml(&mutex_);
     return GetValueExclusive(key);
   }
 
-  void SetValue(RawObject* key, intptr_t val) {
+  void SetValue(ObjectPtr key, intptr_t val) {
     MutexLocker ml(&mutex_);
     return SetValueExclusive(key, val);
   }
@@ -66,9 +66,9 @@ class WeakTable {
 
   bool IsValidEntryAtExclusive(intptr_t i) const {
     ASSERT((ValueAtExclusive(i) == 0 &&
-            (ObjectAtExclusive(i) == NULL ||
+            (ObjectAtExclusive(i) == nullptr ||
              data_[ObjectIndex(i)] == kDeletedEntry)) ||
-           (ValueAtExclusive(i) != 0 && ObjectAtExclusive(i) != NULL &&
+           (ValueAtExclusive(i) != 0 && ObjectAtExclusive(i) != nullptr &&
             data_[ObjectIndex(i)] != kDeletedEntry));
     return (data_[ValueIndex(i)] != 0);
   }
@@ -78,10 +78,10 @@ class WeakTable {
     SetValueAt(i, 0);
   }
 
-  RawObject* ObjectAtExclusive(intptr_t i) const {
+  ObjectPtr ObjectAtExclusive(intptr_t i) const {
     ASSERT(i >= 0);
     ASSERT(i < size());
-    return reinterpret_cast<RawObject*>(data_[ObjectIndex(i)]);
+    return static_cast<ObjectPtr>(data_[ObjectIndex(i)]);
   }
 
   intptr_t ValueAtExclusive(intptr_t i) const {
@@ -90,13 +90,13 @@ class WeakTable {
     return data_[ValueIndex(i)];
   }
 
-  void SetValueExclusive(RawObject* key, intptr_t val);
+  void SetValueExclusive(ObjectPtr key, intptr_t val);
 
-  intptr_t GetValueExclusive(RawObject* key) const {
+  intptr_t GetValueExclusive(ObjectPtr key) const {
     intptr_t mask = size() - 1;
     intptr_t idx = Hash(key) & mask;
-    RawObject* obj = ObjectAtExclusive(idx);
-    while (obj != NULL) {
+    ObjectPtr obj = ObjectAtExclusive(idx);
+    while (obj != nullptr) {
       if (obj == key) {
         return ValueAtExclusive(idx);
       }
@@ -109,11 +109,11 @@ class WeakTable {
 
   // Removes and returns the value associated with |key|. Returns 0 if there is
   // no value associated with |key|.
-  intptr_t RemoveValueExclusive(RawObject* key) {
+  intptr_t RemoveValueExclusive(ObjectPtr key) {
     intptr_t mask = size() - 1;
     intptr_t idx = Hash(key) & mask;
-    RawObject* obj = ObjectAtExclusive(idx);
-    while (obj != NULL) {
+    ObjectPtr obj = ObjectAtExclusive(idx);
+    while (obj != nullptr) {
       if (obj == key) {
         intptr_t result = ValueAtExclusive(idx);
         InvalidateAtExclusive(idx);
@@ -166,16 +166,16 @@ class WeakTable {
 
   intptr_t ValueIndex(intptr_t i) const { return index(i) + kValueOffset; }
 
-  RawObject** ObjectPointerAt(intptr_t i) const {
+  ObjectPtr* ObjectPointerAt(intptr_t i) const {
     ASSERT(i >= 0);
     ASSERT(i < size());
-    return reinterpret_cast<RawObject**>(&data_[ObjectIndex(i)]);
+    return reinterpret_cast<ObjectPtr*>(&data_[ObjectIndex(i)]);
   }
 
-  void SetObjectAt(intptr_t i, RawObject* key) {
+  void SetObjectAt(intptr_t i, ObjectPtr key) {
     ASSERT(i >= 0);
     ASSERT(i < size());
-    data_[ObjectIndex(i)] = reinterpret_cast<intptr_t>(key);
+    data_[ObjectIndex(i)] = static_cast<intptr_t>(key);
   }
 
   void SetValueAt(intptr_t i, intptr_t val) {
@@ -191,8 +191,8 @@ class WeakTable {
 
   void Rehash();
 
-  static intptr_t Hash(RawObject* key) {
-    return reinterpret_cast<uintptr_t>(key) * 92821;
+  static intptr_t Hash(ObjectPtr key) {
+    return static_cast<uintptr_t>(key) * 92821;
   }
 
   Mutex mutex_;

@@ -34,8 +34,8 @@ int levenshtein(String s, String t, int threshold,
     t = t.toLowerCase();
   }
 
-  int s_len = s.length;
-  int t_len = t.length;
+  var s_len = s.length;
+  var t_len = t.length;
 
   // if one string is empty,
   // the edit distance is necessarily the length of the other
@@ -52,7 +52,7 @@ int levenshtein(String s, String t, int threshold,
 
   // swap the two strings to consume less memory
   if (s_len > t_len) {
-    String tmp = s;
+    var tmp = s;
     s = t;
     t = tmp;
     s_len = t_len;
@@ -60,15 +60,15 @@ int levenshtein(String s, String t, int threshold,
   }
 
   // 'previous' cost array, horizontally
-  List<int> p = List<int>.filled(s_len + 1, 0);
+  var p = List<int>.filled(s_len + 1, 0);
   // cost array, horizontally
-  List<int> d = List<int>.filled(s_len + 1, 0);
+  var d = List<int>.filled(s_len + 1, 0);
   // placeholder to assist in swapping p and d
   List<int> _d;
 
   // fill in starting table values
-  int boundary = math.min(s_len, threshold) + 1;
-  for (int i = 0; i < boundary; i++) {
+  var boundary = math.min(s_len, threshold) + 1;
+  for (var i = 0; i < boundary; i++) {
     p[i] = i;
   }
 
@@ -78,14 +78,14 @@ int levenshtein(String s, String t, int threshold,
   _setRange(d, 0, d.length, _MAX_VALUE);
 
   // iterates through t
-  for (int j = 1; j <= t_len; j++) {
+  for (var j = 1; j <= t_len; j++) {
     // jth character of t
-    int t_j = t.codeUnitAt(j - 1);
+    var t_j = t.codeUnitAt(j - 1);
     d[0] = j;
 
     // compute stripe indices, constrain to array size
-    int min = math.max(1, j - threshold);
-    int max = math.min(s_len, j + threshold);
+    var min = math.max(1, j - threshold);
+    var max = math.min(s_len, j + threshold);
 
     // the stripe may lead off of the table if s and t are of different sizes
     if (min > max) {
@@ -98,7 +98,7 @@ int levenshtein(String s, String t, int threshold,
     }
 
     // iterates through [min, max] in s
-    for (int i = min; i <= max; i++) {
+    for (var i = min; i <= max; i++) {
       if (s.codeUnitAt(i - 1) == t_j) {
         // diagonally left and up
         d[i] = p[i - 1];
@@ -124,7 +124,7 @@ int levenshtein(String s, String t, int threshold,
 }
 
 void _setRange(List<int> a, int start, int end, int value) {
-  for (int i = start; i < end; i++) {
+  for (var i = start; i < end; i++) {
     a[i] = value;
   }
 }

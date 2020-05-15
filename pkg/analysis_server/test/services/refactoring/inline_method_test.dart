@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/inline_method.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -129,7 +128,7 @@ main() {
 ''');
     _createRefactoring('test() {');
     // error
-    RefactoringStatus status = await refactoring.checkAllConditions();
+    var status = await refactoring.checkAllConditions();
     var location = SourceRange(findOffset('..test()'), '..test()'.length);
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: 'Cannot inline cascade invocation.',
@@ -159,7 +158,7 @@ main() {
 ''');
     _createRefactoring('test(1, 2)');
     // initial conditions
-    RefactoringStatus status = await refactoring.checkInitialConditions();
+    var status = await refactoring.checkInitialConditions();
     assertRefactoringStatusOK(status);
     refactoring.deleteSource = true;
     refactoring.inlineAll = false;
@@ -1438,7 +1437,7 @@ main() {
 ''');
     _createRefactoring('test();');
     // error
-    RefactoringStatus status = await refactoring.checkAllConditions();
+    var status = await refactoring.checkAllConditions();
     var location = SourceRange(findOffset('test();'), 'test()'.length);
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: 'No argument for the parameter "a".',
@@ -1744,13 +1743,13 @@ main(bool p, bool p2, bool p3) {
   }
 
   Future _assertConditionsError(String message) async {
-    RefactoringStatus status = await refactoring.checkAllConditions();
+    var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: message);
   }
 
   Future _assertConditionsFatal(String message) async {
-    RefactoringStatus status = await refactoring.checkAllConditions();
+    var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedMessage: message);
   }
@@ -1761,7 +1760,7 @@ main(bool p, bool p2, bool p3) {
   }
 
   Future _assertSuccessfulRefactoring(String expectedCode) async {
-    RefactoringStatus status = await refactoring.checkInitialConditions();
+    var status = await refactoring.checkInitialConditions();
     assertRefactoringStatusOK(status);
     // configure
     if (deleteSource != null) {
@@ -1774,13 +1773,13 @@ main(bool p, bool p2, bool p3) {
     status = await refactoring.checkFinalConditions();
     assertRefactoringStatusOK(status);
     // change
-    SourceChange change = await refactoring.createChange();
+    var change = await refactoring.createChange();
     refactoringChange = change;
     assertTestChangeResult(expectedCode);
   }
 
   void _createRefactoring(String search) {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     refactoring = InlineMethodRefactoring(
       searchEngine,
       testAnalysisResult,

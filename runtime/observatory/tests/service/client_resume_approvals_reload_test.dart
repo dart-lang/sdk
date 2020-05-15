@@ -5,7 +5,7 @@
 import 'dart:async';
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'client_resume_approvals_common.dart';
 import 'service_test_common.dart';
@@ -60,5 +60,9 @@ final hotReloadTest = <IsolateTest>[
   },
 ];
 
-Future<void> main(args) => runIsolateTests(args, hotReloadTest,
-    testeeConcurrent: fooBar, pause_on_start: true);
+Future<void> main(args) => runIsolateTests(
+      args,
+      hotReloadTest,
+      testeeConcurrent: fooBar,
+      pause_on_start: true,
+    );

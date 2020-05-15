@@ -1,0 +1,144 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue41210b/issue41210.dart:7:7: Error: Applying the mixin 'B' to 'Object with A' introduces an erroneous override of 'method'.
+// class C with A, B {} // error
+//       ^
+// pkg/front_end/testcases/general/issue41210b/issue41210_lib.dart:18:10: Context: The method 'B.method' has fewer named arguments than those of overridden method 'A.method'.
+//   String method(num i);
+//          ^
+// pkg/front_end/testcases/general/issue41210b/issue41210_lib.dart:14:10: Context: This is the overridden method ('method').
+//   String method(num i, {String s = "hello"}) => s;
+//          ^
+//
+import self as self;
+import "dart:core" as core;
+import "issue41210_lib.dart" as iss;
+
+import "org-dartlang-testcase:///issue41210_lib.dart";
+
+abstract class _C&Object&A = core::Object with iss::A /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C&Object&A*
+    : super core::Object::•()
+    ;
+}
+abstract class _C&Object&A&B = self::_C&Object&A with iss::B /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C&Object&A&B*
+    : super self::_C&Object&A::•()
+    ;
+  abstract forwarding-stub method method(core::num* i, {core::String* s = #C1}) → core::String*;
+}
+class C extends self::_C&Object&A&B {
+  synthetic constructor •() → self::C*
+    : super self::_C&Object&A&B::•()
+    ;
+  abstract forwarding-stub method method(core::num* i, {core::String* s = #C1}) → core::String*;
+}
+abstract class _E&Object&A = core::Object with iss::A /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_E&Object&A*
+    : super core::Object::•()
+    ;
+}
+abstract class _E&Object&A&D = self::_E&Object&A with iss::D /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_E&Object&A&D*
+    : super self::_E&Object&A::•()
+    ;
+  abstract forwarding-stub method method(covariant core::num* i, {core::String* s = #C1}) → core::String*;
+}
+class E extends self::_E&Object&A&D {
+  synthetic constructor •() → self::E*
+    : super self::_E&Object&A&D::•()
+    ;
+  abstract forwarding-stub method method(covariant core::num* i, {core::String* s = #C1}) → core::String*;
+}
+static method main() → dynamic {
+  core::print(new self::C::•().{self::C::method}(0));
+}
+
+library;
+import self as iss;
+import "dart:core" as core;
+
+abstract class Interface extends core::Object {
+  synthetic constructor •() → iss::Interface*
+    : super core::Object::•()
+    ;
+  abstract method method(core::num* i) → core::String*;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
+abstract class Interface2 extends core::Object {
+  synthetic constructor •() → iss::Interface2*
+    : super core::Object::•()
+    ;
+  abstract method method(covariant core::int* i) → core::String*;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
+abstract class A extends core::Object implements iss::Interface /*isMixinDeclaration*/  {
+  method method(core::num* i, {core::String* s = #C1}) → core::String*
+    return s;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
+abstract class B extends core::Object implements iss::Interface {
+  synthetic constructor •() → iss::B*
+    : super core::Object::•()
+    ;
+  abstract method method(core::num* i) → core::String*;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
+abstract class D extends core::Object implements iss::Interface, iss::Interface2 {
+  synthetic constructor •() → iss::D*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+  abstract forwarding-stub method method(covariant core::num* i) → core::String*;
+}
+
+constants  {
+  #C1 = "hello"
+}

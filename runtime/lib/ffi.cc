@@ -8,11 +8,7 @@
 #include "vm/bootstrap_natives.h"
 #include "vm/class_finalizer.h"
 #include "vm/class_id.h"
-#include "vm/compiler/assembler/assembler.h"
-#include "vm/compiler/ffi/call.h"
-#include "vm/compiler/ffi/callback.h"
 #include "vm/compiler/ffi/native_type.h"
-#include "vm/compiler/jit/compiler.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
 #include "vm/log.h"
@@ -22,6 +18,13 @@
 #include "vm/object_store.h"
 #include "vm/symbols.h"
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/ffi/call.h"
+#include "vm/compiler/ffi/callback.h"
+#include "vm/compiler/jit/compiler.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 namespace dart {
 
 // The following functions are runtime checks on type arguments.
@@ -30,14 +33,13 @@ namespace dart {
 // throw ArgumentExceptions.
 
 static bool IsPointerType(const AbstractType& type) {
-  return RawObject::IsFfiPointerClassId(type.type_class_id());
+  return IsFfiPointerClassId(type.type_class_id());
 }
 
 static void CheckSized(const AbstractType& type_arg) {
   const classid_t type_cid = type_arg.type_class_id();
-  if (RawObject::IsFfiNativeTypeTypeClassId(type_cid) ||
-      RawObject::IsFfiTypeVoidClassId(type_cid) ||
-      RawObject::IsFfiTypeNativeFunctionClassId(type_cid)) {
+  if (IsFfiNativeTypeTypeClassId(type_cid) || IsFfiTypeVoidClassId(type_cid) ||
+      IsFfiTypeNativeFunctionClassId(type_cid)) {
     const String& error = String::Handle(String::NewFormatted(
         "%s does not have a predefined size (@unsized). "
         "Unsized NativeTypes do not support [sizeOf] because their size "
@@ -69,12 +71,12 @@ static const Double& AsDouble(const Instance& instance) {
   return Double::Cast(instance);
 }
 
-// Calcuate the size of a native type.
+// Calculate the size of a native type.
 //
 // You must check [IsConcreteNativeType] and [CheckSized] first to verify that
 // this type has a defined size.
 static size_t SizeOf(const AbstractType& type, Zone* zone) {
-  if (RawObject::IsFfiTypeClassId(type.type_class_id())) {
+  if (IsFfiTypeClassId(type.type_class_id())) {
     return compiler::ffi::NativeType::FromAbstractType(type, zone)
         .SizeInBytes();
   } else {
@@ -101,10 +103,10 @@ DEFINE_NATIVE_ENTRY(Ffi_address, 0, 1) {
   return Integer::New(pointer.NativeAddress());
 }
 
-static RawObject* LoadValueNumeric(Zone* zone,
-                                   const Pointer& target,
-                                   classid_t type_cid,
-                                   const Integer& offset) {
+static ObjectPtr LoadValueNumeric(Zone* zone,
+                                  const Pointer& target,
+                                  classid_t type_cid,
+                                  const Integer& offset) {
   // TODO(36370): Make representation consistent with kUnboxedFfiIntPtr.
   const size_t address =
       target.NativeAddress() + static_cast<intptr_t>(offset.AsInt64Value());
@@ -162,9 +164,9 @@ DEFINE_NATIVE_ENTRY(Ffi_loadPointer, 1, 2) {
   return Pointer::New(type_arg, *reinterpret_cast<uword*>(address));
 }
 
-static RawObject* LoadValueStruct(Zone* zone,
-                                  const Pointer& target,
-                                  const AbstractType& instance_type_arg) {
+static ObjectPtr LoadValueStruct(Zone* zone,
+                                 const Pointer& target,
+                                 const AbstractType& instance_type_arg) {
   // Result is a struct class -- find <class name>.#fromPointer
   // constructor and call it.
   const Class& cls = Class::Handle(zone, instance_type_arg.type_class());

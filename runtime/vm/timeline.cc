@@ -9,6 +9,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+
 #include <cstdlib>
 
 #include "platform/atomic.h"
@@ -263,6 +264,15 @@ void Timeline::ReclaimCachedBlocksFromThreads() {
 }
 
 #ifndef PRODUCT
+void Timeline::PrintFlagsToJSONArray(JSONArray* arr) {
+#define ADD_RECORDED_STREAM_NAME(name, fuchsia_name)                           \
+  if (stream_##name##_.enabled()) {                                            \
+    arr->AddValue(#name);                                                      \
+  }
+  TIMELINE_STREAM_LIST(ADD_RECORDED_STREAM_NAME);
+#undef ADD_RECORDED_STREAM_NAME
+}
+
 void Timeline::PrintFlagsToJSON(JSONStream* js) {
   JSONObject obj(js);
   obj.AddProperty("type", "TimelineFlags");
@@ -1321,13 +1331,13 @@ void TimelineEventPlatformRecorder::CompleteEvent(TimelineEvent* event) {
 }
 
 TimelineEventEndlessRecorder::TimelineEventEndlessRecorder()
-    : head_(NULL), block_index_(0) {}
+    : head_(nullptr), tail_(nullptr), block_index_(0) {}
 
 TimelineEventEndlessRecorder::~TimelineEventEndlessRecorder() {
   TimelineEventBlock* current = head_;
-  head_ = NULL;
+  head_ = tail_ = nullptr;
 
-  while (current != NULL) {
+  while (current != nullptr) {
     TimelineEventBlock* next = current->next();
     delete current;
     current = next;
@@ -1374,45 +1384,30 @@ void TimelineEventEndlessRecorder::CompleteEvent(TimelineEvent* event) {
 
 TimelineEventBlock* TimelineEventEndlessRecorder::GetNewBlockLocked() {
   TimelineEventBlock* block = new TimelineEventBlock(block_index_++);
-  block->set_next(head_);
   block->Open();
-  head_ = block;
+  if (head_ == nullptr) {
+    head_ = tail_ = block;
+  } else {
+    tail_->set_next(block);
+    tail_ = block;
+  }
   if (FLAG_trace_timeline) {
     OS::PrintErr("Created new block %p\n", block);
   }
-  return head_;
+  return block;
 }
 
 #ifndef PRODUCT
-static int TimelineEventBlockCompare(TimelineEventBlock* const* a,
-                                     TimelineEventBlock* const* b) {
-  return (*a)->LowerTimeBound() - (*b)->LowerTimeBound();
-}
-
 void TimelineEventEndlessRecorder::PrintJSONEvents(
     JSONArray* events,
     TimelineEventFilter* filter) {
   MutexLocker ml(&lock_);
   ResetTimeTracking();
-  // Collect all interesting blocks.
-  MallocGrowableArray<TimelineEventBlock*> blocks(8);
-  TimelineEventBlock* current = head_;
-  while (current != NULL) {
-    if (filter->IncludeBlock(current)) {
-      blocks.Add(current);
+  for (TimelineEventBlock* current = head_; current != nullptr;
+       current = current->next()) {
+    if (!filter->IncludeBlock(current)) {
+      continue;
     }
-    current = current->next();
-  }
-  // Bail early.
-  if (blocks.length() == 0) {
-    return;
-  }
-  // Sort the interesting blocks so that blocks with earlier events are
-  // outputted first.
-  blocks.Sort(TimelineEventBlockCompare);
-  // Output blocks in sorted order.
-  for (intptr_t block_idx = 0; block_idx < blocks.length(); block_idx++) {
-    current = blocks[block_idx];
     intptr_t length = current->length();
     for (intptr_t i = 0; i < length; i++) {
       TimelineEvent* event = current->At(i);

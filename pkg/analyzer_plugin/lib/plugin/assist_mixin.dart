@@ -4,14 +4,12 @@
 
 import 'dart:async';
 
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/plugin/plugin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/src/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/generator.dart';
 
 /// A mixin that can be used when creating a subclass of [ServerPlugin] to
 /// provide most of the implementation for handling assist requests.
@@ -34,11 +32,10 @@ mixin AssistsMixin implements ServerPlugin {
       EditGetAssistsParams parameters) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    String path = parameters.file;
-    AssistRequest request = await getAssistRequest(parameters);
-    AssistGenerator generator = AssistGenerator(getAssistContributors(path));
-    GeneratorResult<EditGetAssistsResult> result =
-        generator.generateAssistsResponse(request);
+    var path = parameters.file;
+    var request = await getAssistRequest(parameters);
+    var generator = AssistGenerator(getAssistContributors(path));
+    var result = generator.generateAssistsResponse(request);
     result.sendNotifications(channel);
     return result.result;
   }
@@ -57,8 +54,8 @@ abstract class DartAssistsMixin implements AssistsMixin {
       EditGetAssistsParams parameters) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    String path = parameters.file;
-    ResolvedUnitResult result = await getResolvedUnitResult(path);
+    var path = parameters.file;
+    var result = await getResolvedUnitResult(path);
     return DartAssistRequestImpl(
         resourceProvider, parameters.offset, parameters.length, result);
   }

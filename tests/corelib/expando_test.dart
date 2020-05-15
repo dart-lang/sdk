@@ -10,7 +10,7 @@ class ExpandoTest {
   static testMain() {
     var legal = [
       new Object(),
-      new List(),
+      new List.filled(0, null),
       [1, 2, 3],
       const [1, 2, 3],
       new Map(),
@@ -31,7 +31,7 @@ class ExpandoTest {
   }
 
   static visit(object) {
-    int count = visits[object]!;
+    int? count = visits[object];
     count = (count == null) ? 1 : count + 1;
     visits[object] = count;
   }

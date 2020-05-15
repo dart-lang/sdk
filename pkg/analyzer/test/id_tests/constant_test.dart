@@ -11,7 +11,9 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 
 import '../util/id_testing_helper.dart';
@@ -36,6 +38,18 @@ class ConstantsDataComputer extends DataComputer<String> {
   DataInterpreter<String> get dataValidator => const StringDataInterpreter();
 
   @override
+  bool get supportsErrors => true;
+
+  @override
+  String computeErrorData(TestConfig config, TestingData testingData, Id id,
+      List<AnalysisError> errors) {
+    var errorCodes = errors.map((e) => e.errorCode).where((errorCode) =>
+        errorCode !=
+        CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
+    return errorCodes.isNotEmpty ? errorCodes.join(',') : null;
+  }
+
+  @override
   void computeUnitData(TestingData testingData, CompilationUnit unit,
       Map<Id, ActualData<String>> actualMap) {
     ConstantsDataExtractor(unit.declaredElement.source.uri, actualMap)
@@ -54,7 +68,7 @@ class ConstantsDataExtractor extends AstDataExtractor<String> {
       if (element is PropertyAccessorElement && element.isSynthetic) {
         var variable = element.variable;
         if (!variable.isSynthetic && variable.isConst) {
-          var value = variable.constantValue;
+          var value = variable.computeConstantValue();
           if (value != null) return _stringify(value);
         }
       }

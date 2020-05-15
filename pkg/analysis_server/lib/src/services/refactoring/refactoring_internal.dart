@@ -22,9 +22,9 @@ SourceReference getSourceReference(SearchMatch match) {
 /// refactorings we want to update each [Source] only once.
 List<SourceReference> getSourceReferences(List<SearchMatch> matches) {
   var uniqueReferences = HashMap<SourceReference, SourceReference>();
-  for (SearchMatch match in matches) {
-    SourceReference newReference = getSourceReference(match);
-    SourceReference oldReference = uniqueReferences[newReference];
+  for (var match in matches) {
+    var newReference = getSourceReference(match);
+    var oldReference = uniqueReferences[newReference];
     if (oldReference == null) {
       uniqueReferences[newReference] = newReference;
       oldReference = newReference;
@@ -40,9 +40,7 @@ abstract class RefactoringImpl implements Refactoring {
 
   @override
   Future<RefactoringStatus> checkAllConditions() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    RefactoringStatus result = RefactoringStatus();
+    var result = RefactoringStatus();
     result.addStatus(await checkInitialConditions());
     if (result.hasFatalError) {
       return result;
@@ -67,7 +65,7 @@ class SourceReference {
 
   @override
   int get hashCode {
-    int hash = file.hashCode;
+    var hash = file.hashCode;
     hash = ((hash << 16) & 0xFFFFFFFF) + range.hashCode;
     return hash;
   }
@@ -91,7 +89,7 @@ class SourceReference {
 
   /// Adds the [SourceEdit] to replace this reference.
   void addEdit(SourceChange change, String newText, {String id}) {
-    SourceEdit edit = createEdit(newText, id: id);
+    var edit = createEdit(newText, id: id);
     doSourceChange_addSourceEdit(change, unitSource, edit);
   }
 

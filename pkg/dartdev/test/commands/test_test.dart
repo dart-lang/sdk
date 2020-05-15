@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 import '../utils.dart';
 
 void main() {
-  group('test', defineTest);
+  group('test', defineTest, timeout: longTimeout);
 }
 
 void defineTest() {
@@ -41,12 +41,6 @@ void defineTest() {
       result.stdout,
       contains(
         'In order to run tests, you need to add a dependency on package:test',
-      ),
-    );
-    expect(
-      result.stdout,
-      contains(
-        'dev_dependencies:\n  test: any',
       ),
     );
   }, skip: 'https://github.com/dart-lang/sdk/issues/40854');

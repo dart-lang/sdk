@@ -8,7 +8,7 @@
 // (i.e. not actual) positions in this file.
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 import 'service_test_common.dart';
 import 'dart:developer';

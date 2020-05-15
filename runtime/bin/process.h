@@ -147,6 +147,7 @@ class Process {
   // isolate. When 'port' is ILLEGAL_PORT, this clears all signal handlers for
   // 'signal' for all Isolates.
   static void ClearSignalHandler(intptr_t signal, Dart_Port port);
+  static void ClearSignalHandlerByFd(intptr_t fd, Dart_Port port);
   static void ClearAllSignalHandlers();
 
   static Dart_Handle GetProcessIdNativeField(Dart_Handle process,

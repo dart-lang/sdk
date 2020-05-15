@@ -129,6 +129,16 @@ class RedirectingFactoryBody extends ExpressionStatement {
     }
     return result;
   }
+
+  @override
+  String toString() {
+    return "RedirectingFactoryBody(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
 }
 
 bool isRedirectingFactory(Member member, {EnsureLoaded helper}) {

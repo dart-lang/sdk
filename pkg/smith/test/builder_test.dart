@@ -31,6 +31,16 @@ void main() {
       expect(step.isTestStep, isTrue);
       expect(step.testedConfiguration.name, "foo-x64-none-debug-d8-linux");
     });
+    test("custom test runner step", () {
+      var step = Step.parse({
+        "name": "foo",
+        "script": "foo.py",
+        "testRunner": true,
+        "arguments": ["-nfoo-x64-none-debug-d8-linux"]
+      }, {}, configurations);
+      expect(step.isTestStep, isTrue);
+      expect(step.testedConfiguration.name, "foo-x64-none-debug-d8-linux");
+    });
     test("implicit test step", () {
       var step = Step.parse({
         "name": "foo",

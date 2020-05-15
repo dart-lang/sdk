@@ -60,15 +60,18 @@ abstract class GenericInterfacesInfo {
 
 abstract class TypesBuilder {
   final CoreTypes coreTypes;
+  final bool nullSafety;
 
-  TypesBuilder(this.coreTypes);
+  TypesBuilder(this.coreTypes, this.nullSafety);
 
   /// Return [TFClass] corresponding to the given [classNode].
   TFClass getTFClass(Class classNode);
 
   /// Create a Type which corresponds to a set of instances constrained by
   /// Dart type annotation [dartType].
-  Type fromStaticType(DartType type, bool isNullable) {
+  /// [canBeNull] can be set to false to further constrain the resulting
+  /// type if value cannot be null.
+  Type fromStaticType(DartType type, bool canBeNull) {
     Type result;
     if (type is InterfaceType) {
       final cls = type.classNode;
@@ -90,12 +93,15 @@ abstract class TypesBuilder {
       if (bound is TypeParameterType) {
         result = const AnyType();
       } else {
-        return fromStaticType(bound, isNullable);
+        result = fromStaticType(bound, canBeNull);
       }
     } else {
       throw 'Unexpected type ${type.runtimeType} $type';
     }
-    if (isNullable) {
+    if (nullSafety && type.nullability == Nullability.nonNullable) {
+      canBeNull = false;
+    }
+    if (canBeNull && result is! NullableType) {
       result = new Type.nullable(result);
     }
     return result;
@@ -109,7 +115,8 @@ abstract class RuntimeTypeTranslator {
 /// Abstract interface to type hierarchy information used by types.
 abstract class TypeHierarchy extends TypesBuilder
     implements GenericInterfacesInfo {
-  TypeHierarchy(CoreTypes coreTypes) : super(coreTypes);
+  TypeHierarchy(CoreTypes coreTypes, bool nullSafety)
+      : super(coreTypes, nullSafety);
 
   /// Test if [sub] is a subtype of [sup].
   bool isSubtype(Class sub, Class sup);
@@ -179,6 +186,7 @@ abstract class Type extends TypeExpr {
 /// Order of precedence between types for evaluation of union/intersection.
 enum TypeOrder {
   RuntimeType,
+  Unknown,
   Empty,
   Nullable,
   Any,
@@ -239,8 +247,13 @@ class NullableType extends Type {
   bool isSubtypeOf(TypeHierarchy typeHierarchy, Class cls) =>
       baseType.isSubtypeOf(typeHierarchy, cls);
 
-  bool isSubtypeOfRuntimeType(TypeHierarchy typeHierarchy, RuntimeType other) =>
-      baseType.isSubtypeOfRuntimeType(typeHierarchy, other);
+  bool isSubtypeOfRuntimeType(TypeHierarchy typeHierarchy, RuntimeType other) {
+    if (typeHierarchy.nullSafety &&
+        other.nullability == Nullability.nonNullable) {
+      return false;
+    }
+    return baseType.isSubtypeOfRuntimeType(typeHierarchy, other);
+  }
 
   @override
   int get order => TypeOrder.Nullable.index;
@@ -281,7 +294,6 @@ class NullableType extends Type {
 
 /// Type representing any instance except `null`.
 /// Semantically equivalent to ConeType of Object, but more efficient.
-/// Can also represent a set of types, the set of all types.
 class AnyType extends Type {
   const AnyType();
 
@@ -600,7 +612,7 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
   int _hashCode;
 
   // May be null if there are no type arguments constraints. The type arguments
-  // should represent type sets, i.e. `AnyType` or `RuntimeType`. The type
+  // should represent type sets, i.e. `UnknownType` or `RuntimeType`. The type
   // arguments vector is factored against the generic interfaces implemented by
   // the class (see [TypeHierarchy.flattenedTypeArgumentsFor]).
   //
@@ -652,9 +664,9 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
 
       if (rhs.typeArguments.isEmpty) return true;
       if (rhs.classNode == typeHierarchy.coreTypes.futureOrClass) {
+        assertx(cls.classNode != typeHierarchy.coreTypes.futureOrClass);
         if (typeHierarchy.isSubtype(
-                cls.classNode, typeHierarchy.coreTypes.futureClass) ||
-            cls.classNode == typeHierarchy.coreTypes.futureOrClass) {
+            cls.classNode, typeHierarchy.coreTypes.futureClass)) {
           final RuntimeType lhs =
               typeArgs == null ? RuntimeType(DynamicType(), null) : typeArgs[0];
           return lhs.isSubtypeOfRuntimeType(
@@ -681,11 +693,13 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
           runtimeType.numImmediateTypeArgs);
 
       for (int i = 0; i < runtimeType.numImmediateTypeArgs; ++i) {
-        if (usableTypeArgs[i + interfaceOffset] == const AnyType())
+        final ta = usableTypeArgs[i + interfaceOffset];
+        if (ta is UnknownType) {
           return false;
-        assertx(usableTypeArgs[i + interfaceOffset] is RuntimeType);
-        if (!usableTypeArgs[i + interfaceOffset]
-            .isSubtypeOfRuntimeType(typeHierarchy, runtimeType.typeArgs[i])) {
+        }
+        assertx(ta is RuntimeType);
+        if (!ta.isSubtypeOfRuntimeType(
+            typeHierarchy, runtimeType.typeArgs[i])) {
           return false;
         }
       }
@@ -852,7 +866,7 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
 //   class A<T> extends Comparable<A<T>> {}
 //
 // To avoid these cycles, we approximate generic super-bounded types (the second
-// case), so the representation for 'A<String>' would be simply 'AnyType'.
+// case), so the representation for 'A<String>' would be simply 'UnknownType'.
 // However, approximating non-generic types like 'int' and 'num' (the first
 // case) would be too coarse, so we leave an null 'typeArgs' field for these
 // types. As a result, when doing an 'isSubtypeOfRuntimeType' against
@@ -884,18 +898,24 @@ class RuntimeType extends Type {
 
   int get order => TypeOrder.RuntimeType.index;
 
+  Nullability get nullability => _type.nullability;
+
+  RuntimeType withNullability(Nullability n) =>
+      RuntimeType(_type.withDeclaredNullability(n), typeArgs);
+
   DartType get representedTypeRaw => _type;
 
   DartType get representedType {
-    if (_type is InterfaceType && typeArgs != null) {
-      final klass = (_type as InterfaceType).classNode;
+    final type = _type;
+    if (type is InterfaceType && typeArgs != null) {
+      final klass = type.classNode;
       final typeArguments = typeArgs
           .take(klass.typeParameters.length)
           .map((pt) => pt.representedType)
           .toList();
-      return new InterfaceType(klass, Nullability.legacy, typeArguments);
+      return new InterfaceType(klass, type.nullability, typeArguments);
     } else {
-      return _type;
+      return type;
     }
   }
 
@@ -926,10 +946,11 @@ class RuntimeType extends Type {
     final head = _type is InterfaceType
         ? "${(_type as InterfaceType).classNode}"
         : "$_type";
-    if (numImmediateTypeArgs == 0) return head;
-    final typeArgsStrs =
-        typeArgs.take(numImmediateTypeArgs).map((t) => "$t").join(", ");
-    return "_TS {$head<$typeArgsStrs>}";
+    final typeArgsStrs = (numImmediateTypeArgs == 0)
+        ? ""
+        : "<${typeArgs.take(numImmediateTypeArgs).map((t) => "$t").join(", ")}>";
+    final nullability = _type.nullability.suffix;
+    return "$head$typeArgsStrs$nullability";
   }
 
   @override
@@ -944,11 +965,11 @@ class RuntimeType extends Type {
   Type union(Type other, TypeHierarchy typeHierarchy) =>
       throw "ERROR: RuntimeType does not support union.";
 
-  // This only works between "type-set" representations ('AnyType' and
+  // This only works between "type-set" representations ('UnknownType' and
   // 'RuntimeType') and is used when merging type arguments.
   @override
   Type intersection(Type other, TypeHierarchy typeHierarchy) {
-    if (other is AnyType) {
+    if (other is UnknownType) {
       return this;
     } else if (other is RuntimeType) {
       return this == other ? this : const EmptyType();
@@ -967,6 +988,11 @@ class RuntimeType extends Type {
   bool isSubtypeOfRuntimeType(
       TypeHierarchy typeHierarchy, RuntimeType runtimeType) {
     final rhs = runtimeType._type;
+    if (typeHierarchy.nullSafety &&
+        _type.nullability == Nullability.nullable &&
+        rhs.nullability == Nullability.nonNullable) {
+      return false;
+    }
     if (rhs is DynamicType ||
         rhs is VoidType ||
         _type is BottomType ||
@@ -1017,5 +1043,54 @@ class RuntimeType extends Type {
       }
     }
     return true;
+  }
+}
+
+/// Type which is not known at compile time.
+/// It is used as the right-hand-side of type tests.
+class UnknownType extends Type {
+  const UnknownType();
+
+  @override
+  int get hashCode => 1019;
+
+  @override
+  bool operator ==(other) => (other is UnknownType);
+
+  @override
+  String toString() => "UNKNOWN";
+
+  @override
+  int get order => TypeOrder.Unknown.index;
+
+  @override
+  bool isSubtypeOf(TypeHierarchy typeHierarchy, Class cls) =>
+      throw "ERROR: UnknownType does not support isSubtypeOf.";
+
+  @override
+  Type union(Type other, TypeHierarchy typeHierarchy) {
+    if (other is UnknownType || other is RuntimeType) {
+      return this;
+    }
+    throw "ERROR: UnknownType does not support union with ${other.runtimeType}";
+  }
+
+  // This only works between "type-set" representations ('UnknownType' and
+  // 'RuntimeType') and is used when merging type arguments.
+  @override
+  Type intersection(Type other, TypeHierarchy typeHierarchy) {
+    if (other is UnknownType || other is RuntimeType) {
+      return other;
+    }
+    throw "ERROR: UnknownType does not support intersection with ${other.runtimeType}";
+  }
+
+  bool isSubtypeOfRuntimeType(TypeHierarchy typeHierarchy, RuntimeType other) {
+    final rhs = other._type;
+    return (rhs is DynamicType) ||
+        (rhs is VoidType) ||
+        (rhs is InterfaceType &&
+            rhs.classNode == typeHierarchy.coreTypes.objectClass &&
+            rhs.nullability != Nullability.nonNullable);
   }
 }

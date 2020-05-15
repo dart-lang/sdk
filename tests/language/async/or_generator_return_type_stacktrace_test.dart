@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 
-int badReturnTypeAsync() async {}
+int badReturnTypeAsync() async => 0;
 // [error line 7, column 1, length 3]
 // [analyzer] STATIC_TYPE_WARNING.ILLEGAL_ASYNC_RETURN_TYPE
 //  ^

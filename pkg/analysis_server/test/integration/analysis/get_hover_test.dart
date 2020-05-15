@@ -67,10 +67,10 @@ main() {
     bool isLiteral = false,
     List<String> parameterRegexps,
   }) {
-    int offset = text.indexOf(target);
+    var offset = text.indexOf(target);
     return sendAnalysisGetHover(pathname, offset).then((result) async {
       expect(result.hovers, hasLength(1));
-      HoverInformation info = result.hovers[0];
+      var info = result.hovers[0];
       expect(info.offset, equals(offset));
       expect(info.length, equals(length));
       if (isCore) {
@@ -92,7 +92,7 @@ main() {
         expect(info.elementDescription, isNull);
       } else {
         expect(info.elementDescription, isString);
-        for (String descriptionRegexp in descriptionRegexps) {
+        for (var descriptionRegexp in descriptionRegexps) {
           expect(info.elementDescription, matches(descriptionRegexp));
         }
       }
@@ -101,7 +101,7 @@ main() {
         expect(info.parameter, isNull);
       } else {
         expect(info.parameter, isString);
-        for (String parameterRegexp in parameterRegexps) {
+        for (var parameterRegexp in parameterRegexps) {
           expect(info.parameter, matches(parameterRegexp));
         }
       }
@@ -109,7 +109,7 @@ main() {
         expect(info.staticType, isNull);
       } else {
         expect(info.staticType, isString);
-        for (String staticTypeRegexp in staticTypeRegexps) {
+        for (var staticTypeRegexp in staticTypeRegexps) {
           expect(info.staticType, matches(staticTypeRegexp));
         }
       }
@@ -120,7 +120,7 @@ main() {
   /// Check that a getHover request on the substring [target] produces no
   /// results.
   Future checkNoHover(String target) {
-    int offset = text.indexOf(target);
+    var offset = text.indexOf(target);
     return sendAnalysisGetHover(pathname, offset).then((result) {
       expect(result.hovers, hasLength(0));
     });
@@ -141,7 +141,7 @@ main() {
     // returns the latest results that are available at the time that the
     // request is made.  So wait for analysis to finish before testing anything.
     return analysisFinished.then((_) {
-      List<Future> tests = [];
+      var tests = <Future>[];
       tests.add(checkHover('topLevelVar;', 11, ['List', 'topLevelVar'],
           'top level variable', ['List']));
       tests.add(checkHover(

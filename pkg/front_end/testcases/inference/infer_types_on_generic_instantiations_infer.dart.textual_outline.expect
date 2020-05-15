@@ -1,0 +1,12 @@
+library test;
+
+class A<T> {
+  final T x = null;
+}
+
+class B implements A<int> {
+  dynamic get x => 3;
+}
+
+foo() {}
+main() {}

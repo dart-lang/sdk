@@ -1,8 +1,31 @@
 # Changelog
 
+## 4.0.4
+- Update to version `3.34.0` of the spec.
+- Fixed issue where `TimelineEvents` was not a valid service event kind.
+- Fixed issue where invoking a service extension with no arguments would result
+  in a TypeError during request routing.
+- Added `TimelineStreamSubscriptionsUpdate` event, which is broadcast when
+  `setVMTimelineFlags` is used to change the set of currently recording timeline
+  streams.
+
+## 4.0.3
+- Update to version `3.33.0` of the spec.
+- Add static error code constants to `RPCError`.
+- Update the toString() method or `RPCError` and add a toMap() method.
+
+## 4.0.2
+- Fixed issue where RPC format did not conform to the JSON-RPC 2.0
+  specification.
+- Added `getClassList` RPC.
+
+## 4.0.1
+- Improved documentation.
+- Fixed analysis issues.
+
 ## 4.0.0
-- **breaking**: RPCs which can return a `Sentinel` will now throw the `Sentinel`
-  it is received as a response.
+- **breaking**: RPCs which can return a `Sentinel` will now throw a `SentinelException`
+  if a `Sential` is received as a response.
 - **breaking**: RPCs which can return multiple values now return
   `Future<Response>` rather than `Future<dynamic>`.
 - `RPCError` now implements `Exception`.

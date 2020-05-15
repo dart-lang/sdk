@@ -1,0 +1,5 @@
+// @dart = 2.6
+import 'deferred_lib.dart' deferred as lib;
+
+main() {}
+test() async {}

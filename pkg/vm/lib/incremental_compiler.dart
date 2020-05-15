@@ -78,12 +78,14 @@ class IncrementalCompiler {
 
   _combinePendingDeltas(bool includePlatform) {
     Procedure mainMethod;
+    NonNullableByDefaultCompiledMode compilationMode;
     Map<Uri, Library> combined = <Uri, Library>{};
     Map<Uri, Source> uriToSource = new Map<Uri, Source>();
     for (Component delta in _pendingDeltas) {
       if (delta.mainMethod != null) {
         mainMethod = delta.mainMethod;
       }
+      compilationMode = delta.mode;
       uriToSource.addAll(delta.uriToSource);
       for (Library library in delta.libraries) {
         bool isPlatform =
@@ -96,7 +98,7 @@ class IncrementalCompiler {
     // TODO(vegorov) this needs to merge metadata repositories from deltas.
     return new Component(
         libraries: combined.values.toList(), uriToSource: uriToSource)
-      ..mainMethod = mainMethod;
+      ..setMainMethodAndMode(mainMethod?.reference, true, compilationMode);
   }
 
   CoreTypes getCoreTypes() => _generator.getCoreTypes();
@@ -131,7 +133,8 @@ class IncrementalCompiler {
     _lastKnownGood = new Component(
       libraries: combined.values.toList(),
       uriToSource: uriToSource,
-    )..mainMethod = candidate.mainMethod;
+    )..setMainMethodAndMode(
+        candidate.mainMethod?.reference, true, candidate.mode);
     for (final repo in candidate.metadata.values) {
       _lastKnownGood.addMetadataRepository(repo);
     }

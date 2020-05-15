@@ -6,8 +6,6 @@
 #if defined(TARGET_ARCH_X64)
 
 #include "vm/code_patcher.h"
-#include "vm/compiler/assembler/assembler.h"
-#include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/instructions.h"
@@ -77,7 +75,7 @@ class UnoptimizedCall : public ValueObject {
 
   intptr_t argument_index() const { return argument_index_; }
 
-  RawCode* target() const {
+  CodePtr target() const {
     Code& code = Code::Handle();
     code ^= object_pool_.ObjectAt(code_index_);
     return code.raw();
@@ -130,7 +128,7 @@ class InstanceCall : public UnoptimizedCall {
 #endif  // DEBUG
   }
 
-  RawObject* data() const { return object_pool_.ObjectAt(argument_index()); }
+  ObjectPtr data() const { return object_pool_.ObjectAt(argument_index()); }
   void set_data(const Object& data) const {
     ASSERT(data.IsArray() || data.IsICData() || data.IsMegamorphicCache());
     object_pool_.SetObjectAt(argument_index(), data);
@@ -151,7 +149,7 @@ class UnoptimizedStaticCall : public UnoptimizedCall {
 #endif  // DEBUG
   }
 
-  RawObject* ic_data() const { return object_pool_.ObjectAt(argument_index()); }
+  ObjectPtr ic_data() const { return object_pool_.ObjectAt(argument_index()); }
 
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(UnoptimizedStaticCall);
@@ -196,7 +194,7 @@ class PoolPointerCall : public ValueObject {
     ASSERT(Object::Handle(object_pool_.ObjectAt(code_index_)).IsCode());
   }
 
-  RawCode* Target() const {
+  CodePtr Target() const {
     Code& code = Code::Handle();
     code ^= object_pool_.ObjectAt(code_index_);
     return code.raw();
@@ -230,7 +228,7 @@ class SwitchableCallBase : public ValueObject {
   intptr_t data_index() const { return data_index_; }
   intptr_t target_index() const { return target_index_; }
 
-  RawObject* data() const { return object_pool_.ObjectAt(data_index()); }
+  ObjectPtr data() const { return object_pool_.ObjectAt(data_index()); }
 
   void SetData(const Object& data) const {
     ASSERT(!Object::Handle(object_pool_.ObjectAt(data_index())).IsCode());
@@ -323,8 +321,8 @@ class SwitchableCall : public SwitchableCallBase {
     // No need to flush the instruction cache, since the code is not modified.
   }
 
-  RawCode* target() const {
-    return reinterpret_cast<RawCode*>(object_pool_.ObjectAt(target_index()));
+  CodePtr target() const {
+    return static_cast<CodePtr>(object_pool_.ObjectAt(target_index()));
   }
 };
 
@@ -397,13 +395,13 @@ class BareSwitchableCall : public SwitchableCallBase {
     object_pool_.SetRawValueAt(target_index(), target.MonomorphicEntryPoint());
   }
 
-  RawCode* target() const {
+  CodePtr target() const {
     const uword pc = object_pool_.RawValueAt(target_index());
-    auto rct = Isolate::Current()->reverse_pc_lookup_cache();
+    auto rct = IsolateGroup::Current()->reverse_pc_lookup_cache();
     if (rct->Contains(pc)) {
       return rct->Lookup(pc);
     }
-    rct = Dart::vm_isolate()->reverse_pc_lookup_cache();
+    rct = Dart::vm_isolate()->group()->reverse_pc_lookup_cache();
     if (rct->Contains(pc)) {
       return rct->Lookup(pc);
     }
@@ -411,8 +409,8 @@ class BareSwitchableCall : public SwitchableCallBase {
   }
 };
 
-RawCode* CodePatcher::GetStaticCallTargetAt(uword return_address,
-                                            const Code& code) {
+CodePtr CodePatcher::GetStaticCallTargetAt(uword return_address,
+                                           const Code& code) {
   ASSERT(code.ContainsInstructionAt(return_address));
   PoolPointerCall call(return_address, code);
   return call.Target();
@@ -432,9 +430,9 @@ void CodePatcher::PatchPoolPointerCallAt(uword return_address,
   call.SetTarget(new_target);
 }
 
-RawCode* CodePatcher::GetInstanceCallAt(uword return_address,
-                                        const Code& caller_code,
-                                        Object* data) {
+CodePtr CodePatcher::GetInstanceCallAt(uword return_address,
+                                       const Code& caller_code,
+                                       Object* data) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
   InstanceCall call(return_address, caller_code);
   if (data != NULL) {
@@ -447,6 +445,19 @@ void CodePatcher::PatchInstanceCallAt(uword return_address,
                                       const Code& caller_code,
                                       const Object& data,
                                       const Code& target) {
+  auto thread = Thread::Current();
+  thread->isolate_group()->RunWithStoppedMutators([&]() {
+    PatchInstanceCallAtWithMutatorsStopped(thread, return_address, caller_code,
+                                           data, target);
+  });
+}
+
+void CodePatcher::PatchInstanceCallAtWithMutatorsStopped(
+    Thread* thread,
+    uword return_address,
+    const Code& caller_code,
+    const Object& data,
+    const Code& target) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
   InstanceCall call(return_address, caller_code);
   call.set_data(data);
@@ -457,9 +468,9 @@ void CodePatcher::InsertDeoptimizationCallAt(uword start) {
   UNREACHABLE();
 }
 
-RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
-                                                     const Code& caller_code,
-                                                     ICData* ic_data_result) {
+FunctionPtr CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
+                                                    const Code& caller_code,
+                                                    ICData* ic_data_result) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
   UnoptimizedStaticCall static_call(return_address, caller_code);
   ICData& ic_data = ICData::Handle();
@@ -474,6 +485,20 @@ void CodePatcher::PatchSwitchableCallAt(uword return_address,
                                         const Code& caller_code,
                                         const Object& data,
                                         const Code& target) {
+  auto thread = Thread::Current();
+  // Ensure all threads are suspended as we update data and target pair.
+  thread->isolate_group()->RunWithStoppedMutators([&]() {
+    PatchSwitchableCallAtWithMutatorsStopped(thread, return_address,
+                                             caller_code, data, target);
+  });
+}
+
+void CodePatcher::PatchSwitchableCallAtWithMutatorsStopped(
+    Thread* thread,
+    uword return_address,
+    const Code& caller_code,
+    const Object& data,
+    const Code& target) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     BareSwitchableCall call(return_address, caller_code);
@@ -486,8 +511,8 @@ void CodePatcher::PatchSwitchableCallAt(uword return_address,
   }
 }
 
-RawCode* CodePatcher::GetSwitchableCallTargetAt(uword return_address,
-                                                const Code& caller_code) {
+CodePtr CodePatcher::GetSwitchableCallTargetAt(uword return_address,
+                                               const Code& caller_code) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     BareSwitchableCall call(return_address, caller_code);
@@ -498,8 +523,8 @@ RawCode* CodePatcher::GetSwitchableCallTargetAt(uword return_address,
   }
 }
 
-RawObject* CodePatcher::GetSwitchableCallDataAt(uword return_address,
-                                                const Code& caller_code) {
+ObjectPtr CodePatcher::GetSwitchableCallDataAt(uword return_address,
+                                               const Code& caller_code) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     BareSwitchableCall call(return_address, caller_code);
@@ -514,15 +539,17 @@ void CodePatcher::PatchNativeCallAt(uword return_address,
                                     const Code& caller_code,
                                     NativeFunction target,
                                     const Code& trampoline) {
-  ASSERT(caller_code.ContainsInstructionAt(return_address));
-  NativeCall call(return_address, caller_code);
-  call.set_target(trampoline);
-  call.set_native_function(target);
+  Thread::Current()->isolate_group()->RunWithStoppedMutators([&]() {
+    ASSERT(caller_code.ContainsInstructionAt(return_address));
+    NativeCall call(return_address, caller_code);
+    call.set_target(trampoline);
+    call.set_native_function(target);
+  });
 }
 
-RawCode* CodePatcher::GetNativeCallAt(uword return_address,
-                                      const Code& caller_code,
-                                      NativeFunction* target) {
+CodePtr CodePatcher::GetNativeCallAt(uword return_address,
+                                     const Code& caller_code,
+                                     NativeFunction* target) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
   NativeCall call(return_address, caller_code);
   *target = call.native_function();

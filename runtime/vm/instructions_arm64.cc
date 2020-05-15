@@ -8,7 +8,6 @@
 #include "vm/instructions.h"
 #include "vm/instructions_arm64.h"
 
-#include "vm/compiler/assembler/assembler.h"
 #include "vm/constants.h"
 #include "vm/cpu.h"
 #include "vm/object.h"
@@ -66,9 +65,8 @@ NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
   ASSERT(reg == R5);
 }
 
-RawCode* NativeCallPattern::target() const {
-  return reinterpret_cast<RawCode*>(
-      object_pool_.ObjectAt(target_code_pool_index_));
+CodePtr NativeCallPattern::target() const {
+  return static_cast<CodePtr>(object_pool_.ObjectAt(target_code_pool_index_));
 }
 
 void NativeCallPattern::set_target(const Code& target) const {
@@ -109,7 +107,7 @@ uword InstructionPattern::DecodeLoadObject(uword end,
     // Case 2.
     intptr_t value = 0;
     start = DecodeLoadWordImmediate(end, reg, &value);
-    *obj = reinterpret_cast<RawObject*>(value);
+    *obj = static_cast<ObjectPtr>(value);
   }
   return start;
 }
@@ -332,6 +330,10 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
     if (instr->RnField() == PP) {
       // PP is untagged on ARM64.
       ASSERT(Utils::IsAligned(offset, 8));
+      // A code object may have an object pool attached in bare instructions
+      // mode if the v8 snapshot profile writer is active, but this pool cannot
+      // be used for object loading.
+      if (FLAG_use_bare_instructions) return false;
       intptr_t index = ObjectPool::IndexFromOffset(offset - kHeapObjectTag);
       const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
       if (!pool.IsNull()) {
@@ -369,9 +371,8 @@ void InstructionPattern::EncodeLoadWordFromPoolFixed(uword end,
   instr->SetInstructionBits(instr->InstructionBits() | B22);
 }
 
-RawCode* CallPattern::TargetCode() const {
-  return reinterpret_cast<RawCode*>(
-      object_pool_.ObjectAt(target_code_pool_index_));
+CodePtr CallPattern::TargetCode() const {
+  return static_cast<CodePtr>(object_pool_.ObjectAt(target_code_pool_index_));
 }
 
 void CallPattern::SetTargetCode(const Code& target) const {
@@ -379,7 +380,7 @@ void CallPattern::SetTargetCode(const Code& target) const {
   // No need to flush the instruction cache, since the code is not modified.
 }
 
-RawObject* ICCallPattern::Data() const {
+ObjectPtr ICCallPattern::Data() const {
   return object_pool_.ObjectAt(data_pool_index_);
 }
 
@@ -388,8 +389,8 @@ void ICCallPattern::SetData(const Object& data) const {
   object_pool_.SetObjectAt(data_pool_index_, data);
 }
 
-RawCode* ICCallPattern::TargetCode() const {
-  return reinterpret_cast<RawCode*>(object_pool_.ObjectAt(target_pool_index_));
+CodePtr ICCallPattern::TargetCode() const {
+  return static_cast<CodePtr>(object_pool_.ObjectAt(target_pool_index_));
 }
 
 void ICCallPattern::SetTargetCode(const Code& target) const {
@@ -402,7 +403,7 @@ SwitchableCallPatternBase::SwitchableCallPatternBase(const Code& code)
       data_pool_index_(-1),
       target_pool_index_(-1) {}
 
-RawObject* SwitchableCallPatternBase::data() const {
+ObjectPtr SwitchableCallPatternBase::data() const {
   return object_pool_.ObjectAt(data_pool_index_);
 }
 
@@ -428,8 +429,8 @@ SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
   target_pool_index_ = pool_index + 1;
 }
 
-RawCode* SwitchableCallPattern::target() const {
-  return reinterpret_cast<RawCode*>(object_pool_.ObjectAt(target_pool_index_));
+CodePtr SwitchableCallPattern::target() const {
+  return static_cast<CodePtr>(object_pool_.ObjectAt(target_pool_index_));
 }
 
 void SwitchableCallPattern::SetTarget(const Code& target) const {
@@ -454,13 +455,13 @@ BareSwitchableCallPattern::BareSwitchableCallPattern(uword pc, const Code& code)
   target_pool_index_ = pool_index + 1;
 }
 
-RawCode* BareSwitchableCallPattern::target() const {
+CodePtr BareSwitchableCallPattern::target() const {
   const uword pc = object_pool_.RawValueAt(target_pool_index_);
-  auto rct = Isolate::Current()->reverse_pc_lookup_cache();
+  auto rct = IsolateGroup::Current()->reverse_pc_lookup_cache();
   if (rct->Contains(pc)) {
     return rct->Lookup(pc);
   }
-  rct = Dart::vm_isolate()->reverse_pc_lookup_cache();
+  rct = Dart::vm_isolate()->group()->reverse_pc_lookup_cache();
   if (rct->Contains(pc)) {
     return rct->Lookup(pc);
   }
@@ -487,6 +488,13 @@ bool PcRelativeCallPattern::IsValid() const {
   // bl <offset>
   const uint32_t word = *reinterpret_cast<uint32_t*>(pc_);
   const uint32_t branch_link = 0x25;
+  return (word >> 26) == branch_link;
+}
+
+bool PcRelativeTailCallPattern::IsValid() const {
+  // b <offset>
+  const uint32_t word = *reinterpret_cast<uint32_t*>(pc_);
+  const uint32_t branch_link = 0x5;
   return (word >> 26) == branch_link;
 }
 
@@ -547,13 +555,23 @@ bool PcRelativeTrampolineJumpPattern::IsValid() const {
 
 intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {
   // Calls to the type testing stubs look like:
+  //   ldr R9, ...
   //   ldr R3, [PP+idx]
   //   blr R9
+  // or
+  //   ldr R3, [PP+idx]
+  //   blr pc+<offset>
 
   // Ensure the caller of the type testing stub (whose return address is [pc_])
-  // branched via the `blr R9` instruction.
-  ASSERT(*reinterpret_cast<uint32_t*>(pc_ - Instr::kInstrSize) == 0xd63f0120);
-  const uword load_instr_end = pc_ - Instr::kInstrSize;
+  // branched via `blr R9` or a pc-relative call.
+  uword pc = pc_ - Instr::kInstrSize;
+  const uword blr_r9 = 0xd63f0120;
+  if (*reinterpret_cast<uint32_t*>(pc) != blr_r9) {
+    PcRelativeCallPattern pattern(pc);
+    RELEASE_ASSERT(pattern.IsValid());
+  }
+
+  const uword load_instr_end = pc;
 
   Register reg;
   intptr_t pool_index = -1;

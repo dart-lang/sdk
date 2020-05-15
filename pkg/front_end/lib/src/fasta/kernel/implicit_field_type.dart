@@ -29,6 +29,10 @@ abstract class ImplicitFieldType extends DartType {
       _ImplicitFieldTypeRoot;
 
   @override
+  Nullability get declaredNullability => unsupported(
+      "declaredNullability", fieldBuilder.charOffset, fieldBuilder.fileUri);
+
+  @override
   Nullability get nullability =>
       unsupported("nullability", fieldBuilder.charOffset, fieldBuilder.fileUri);
 
@@ -48,7 +52,7 @@ abstract class ImplicitFieldType extends DartType {
   }
 
   @override
-  ImplicitFieldType withNullability(Nullability nullability) {
+  ImplicitFieldType withDeclaredNullability(Nullability nullability) {
     return unsupported(
         "withNullability", fieldBuilder.charOffset, fieldBuilder.fileUri);
   }
@@ -113,12 +117,11 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
       }
       return inferredType;
     } else if (initializerToken != null) {
-      InterfaceType enclosingClassThisType =
-          fieldBuilder.field.enclosingClass == null
-              ? null
-              : fieldBuilder.library.loader.typeInferenceEngine.coreTypes
-                  .thisInterfaceType(fieldBuilder.field.enclosingClass,
-                      fieldBuilder.field.enclosingLibrary.nonNullable);
+      InterfaceType enclosingClassThisType = fieldBuilder.classBuilder == null
+          ? null
+          : fieldBuilder.library.loader.typeInferenceEngine.coreTypes
+              .thisInterfaceType(fieldBuilder.classBuilder.cls,
+                  fieldBuilder.library.library.nonNullable);
       TypeInferrerImpl typeInferrer = fieldBuilder
           .library.loader.typeInferenceEngine
           .createTopLevelTypeInferrer(
@@ -174,5 +177,8 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
   }
 
   @override
-  String toString() => 'ImplicitFieldType($fieldBuilder)';
+  String toString() => 'ImplicitFieldType(${toStringInternal()})';
+
+  @override
+  String toStringInternal() => '$fieldBuilder';
 }

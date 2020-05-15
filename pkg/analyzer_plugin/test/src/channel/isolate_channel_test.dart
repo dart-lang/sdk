@@ -38,7 +38,7 @@ class PluginIsolateChannelTest {
 
   @failingTest
   Future<void> test_close() async {
-    bool done = false;
+    var done = false;
     channel.listen((Request request) {}, onDone: () {
       done = true;
     });
@@ -50,7 +50,7 @@ class PluginIsolateChannelTest {
   }
 
   Future<void> test_listen() async {
-    Request sentRequest = PluginShutdownParams().toRequest('5');
+    var sentRequest = PluginShutdownParams().toRequest('5');
     Request receivedRequest;
     channel.listen((Request request) {
       receivedRequest = request;
@@ -61,15 +61,14 @@ class PluginIsolateChannelTest {
   }
 
   void test_sendNotification() {
-    Notification notification =
-        PluginErrorParams(false, '', '').toNotification();
+    var notification = PluginErrorParams(false, '', '').toNotification();
     channel.sendNotification(notification);
     expect(sendPort.sentMessages, hasLength(1));
     expect(sendPort.sentMessages[0], notification.toJson());
   }
 
   void test_sendResponse() {
-    Response response = PluginShutdownResult().toResponse('3', 1);
+    var response = PluginShutdownResult().toResponse('3', 1);
     channel.sendResponse(response);
     expect(sendPort.sentMessages, hasLength(1));
     expect(sendPort.sentMessages[0], response.toJson());

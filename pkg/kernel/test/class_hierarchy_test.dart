@@ -9,6 +9,7 @@ import "package:kernel/class_hierarchy.dart";
 import "package:kernel/core_types.dart";
 import "package:kernel/testing/mock_sdk_component.dart";
 import "package:kernel/text/ast_to_text.dart";
+import "package:kernel/src/text_util.dart";
 
 main() {
   new ClosedWorldClassHierarchyTest().test_applyTreeChanges();
@@ -117,7 +118,7 @@ class B extends test::A {}
 ''');
 
     // No updated classes, the same hierarchy.
-    expect(hierarchy.applyTreeChanges([], []), same(hierarchy));
+    expect(hierarchy.applyTreeChanges([], [], []), same(hierarchy));
 
     // Has updated classes, still the same hierarchy (instance). Can answer
     // queries about the new classes.
@@ -128,12 +129,13 @@ class B extends test::A {}
     component.libraries.add(libWithC);
     libWithC.addClass(c);
 
-    expect(hierarchy.applyTreeChanges([libWithB], [libWithC]), same(hierarchy));
+    expect(hierarchy.applyTreeChanges([libWithB], [libWithC], []),
+        same(hierarchy));
     expect(hierarchy.isSubclassOf(a, c), false);
     expect(hierarchy.isSubclassOf(c, a), true);
 
     // Remove so A should no longer be a super of anything.
-    expect(hierarchy.applyTreeChanges([libWithC], []), same(hierarchy));
+    expect(hierarchy.applyTreeChanges([libWithC], [], []), same(hierarchy));
   }
 
   void test_applyMemberChanges() {
@@ -1226,8 +1228,12 @@ class B<T*> extends self::A<self::B::T*, core::bool*> {}
     void callback(
         Member declaredMember, Member interfaceMember, bool isSetter) {
       var suffix = isSetter ? '=' : '';
-      String declaredName = '$declaredMember$suffix';
-      String interfaceName = '$interfaceMember$suffix';
+      String declaredName =
+          '${qualifiedMemberNameToString(declaredMember, includeLibraryName: true)}'
+          '$suffix';
+      String interfaceName =
+          '${qualifiedMemberNameToString(interfaceMember, includeLibraryName: true)}'
+          '$suffix';
       var desc = '$declaredName overrides $interfaceName';
       overrideDescriptions.add(desc);
     }

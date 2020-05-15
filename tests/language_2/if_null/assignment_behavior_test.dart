@@ -164,11 +164,11 @@ main() {
   { final l = 1; l ??= null; }
   //             ^
   // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_LOCAL
-  // [cfe] Setter not found: 'l'.
+  // [cfe] Can't assign to the final variable 'l'.
   C ??= null;
 //^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_TYPE
-// [cfe] Setter not found: 'C'.
+// [cfe] Can't assign to a type literal.
   h ??= null;
 //^
 // [analyzer] COMPILE_TIME_ERROR.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT

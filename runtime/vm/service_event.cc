@@ -7,6 +7,7 @@
 #include "vm/debugger.h"
 #include "vm/message_handler.h"
 #include "vm/service_isolate.h"
+#include "vm/timeline.h"
 
 namespace dart {
 
@@ -69,8 +70,6 @@ const char* ServiceEvent::KindAsCString() const {
       return "ServiceExtensionAdded";
     case kIsolateReload:
       return "IsolateReload";
-    case kIsolateSpawn:
-      return "IsolateSpawn";
     case kPauseStart:
       return "PauseStart";
     case kPauseExit:
@@ -109,6 +108,8 @@ const char* ServiceEvent::KindAsCString() const {
       return "Extension";
     case kTimelineEvents:
       return "TimelineEvents";
+    case kTimelineStreamSubscriptionsUpdate:
+      return "TimelineStreamSubscriptionsUpdate";
     default:
       UNREACHABLE();
       return "Unknown";
@@ -126,7 +127,6 @@ const StreamInfo* ServiceEvent::stream_info() const {
     case kIsolateExit:
     case kIsolateUpdate:
     case kIsolateReload:
-    case kIsolateSpawn:
     case kServiceExtensionAdded:
       return &Service::isolate_stream;
 
@@ -155,6 +155,7 @@ const StreamInfo* ServiceEvent::stream_info() const {
       return &Service::extension_stream;
 
     case kTimelineEvents:
+    case kTimelineStreamSubscriptionsUpdate:
       return &Service::timeline_stream;
 
     case kEmbedder:
@@ -195,16 +196,6 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
       jsobj.AddProperty("reloadError", *(reload_error()));
     }
   }
-  if (kind() == kIsolateSpawn) {
-    ASSERT(spawn_token() != NULL);
-    jsobj.AddPropertyStr("spawnToken", *(spawn_token()));
-    if (spawn_error_ == NULL) {
-      jsobj.AddProperty("status", "success");
-    } else {
-      jsobj.AddProperty("status", "failure");
-      jsobj.AddPropertyStr("spawnError", *(spawn_error()));
-    }
-  }
   if (kind() == kServiceExtensionAdded) {
     ASSERT(extension_rpc_ != NULL);
     jsobj.AddProperty("extensionRPC", extension_rpc_->ToCString());
@@ -223,6 +214,10 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
   }
   if (kind() == kTimelineEvents) {
     jsobj.AddProperty("timelineEvents", timeline_event_block_);
+  }
+  if (kind() == kTimelineStreamSubscriptionsUpdate) {
+    JSONArray arr(&jsobj, "updatedStreams");
+    Timeline::PrintFlagsToJSONArray(&arr);
   }
   if (kind() == kDebuggerSettingsUpdate) {
     JSONObject jssettings(&jsobj, "_debuggerSettings");

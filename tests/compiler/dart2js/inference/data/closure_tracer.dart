@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /*member: testFunctionStatement:[null|exact=JSUInt31]*/
 testFunctionStatement() {
   var res;
@@ -45,7 +47,7 @@ testStoredInInstance() {
   var res;
   /*[exact=JSUInt31]*/ closure(/*[exact=JSUInt31]*/ a) => res = a;
   var a = new A(closure);
-  a. /*invoke: [exact=A]*/ field(42);
+  a.field /*invoke: [exact=A]*/ (42);
   return res;
 }
 

@@ -2,18 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'dart:convert';
 import 'package:expect/expect.dart';
 import 'package:source_maps/source_maps.dart';
 import 'tools/load.dart';
 import 'tools/save.dart';
+import '../helpers/memory_compiler.dart';
 
-const String SOURCEMAP = '''
+String SOURCEMAP = '''
 {
   "version": 3,
   "file": "out.js",
   "sourceRoot": "",
-  "sources": ["sdk/lib/_internal/compiler/js_lib/js_primitives.dart","hello_world.dart","sdk/lib/_internal/compiler/js_lib/internal_patch.dart"],
+  "sources":
+      ["$sdkPath/_internal/compiler/js_lib/js_primitives.dart","hello_world.dart","$sdkPath/_internal/compiler/js_lib/internal_patch.dart"],
   "names": ["printString","main","printToConsole"],
   "mappings": "A;A;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;C;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;A;;eAoBAA;;;AAIIA;;;;AAOAA;;;AAKAA;;;AAMAA;;;GAOJA;;sC;;QC5CAC;;ICYEC;GDRFD;;;;A;A;A;;;A;;;A;A;A;A;A;A;A;;;;;;A;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;A;C;;;;;;;;;;;;;;;;;;;;;;;;;;;;A"
 }''';

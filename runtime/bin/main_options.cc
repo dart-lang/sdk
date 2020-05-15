@@ -35,6 +35,7 @@ static const char* kSnapshotKindNames[] = {
 };
 
 SnapshotKind Options::gen_snapshot_kind_ = kNone;
+bool Options::enable_vm_service_ = false;
 
 #define OPTION_FIELD(variable) Options::variable##_
 
@@ -152,7 +153,7 @@ void Options::PrintUsage() {
 "      --warn-on-pause-with-no-debugger\n"
 "  This set is subject to change.\n"
 "  Please see these options (--help --verbose) for further documentation.\n"
-"--write-service-info=<file_name>\n"
+"--write-service-info=<file_uri>\n"
 "  Outputs information necessary to connect to the VM service to the\n"
 "  specified file in JSON format. Useful for clients which are unable to\n"
 "  listen to stdout for the Observatory listening message.\n"
@@ -187,7 +188,7 @@ void Options::PrintUsage() {
 "      --warn-on-pause-with-no-debugger\n"
 "  This set is subject to change.\n"
 "  Please see these options for further documentation.\n"
-"--write-service-info=<file_name>\n"
+"--write-service-info=<file_uri>\n"
 "  Outputs information necessary to connect to the VM service to the\n"
 "  specified file in JSON format. Useful for clients which are unable to\n"
 "  listen to stdout for the Observatory listening message.\n"
@@ -298,9 +299,10 @@ bool Options::ExtractPortAndAddress(const char* option_value,
 
 static const char* DEFAULT_VM_SERVICE_SERVER_IP = "localhost";
 static const int DEFAULT_VM_SERVICE_SERVER_PORT = 8181;
+static const int INVALID_VM_SERVICE_SERVER_PORT = -1;
 
 const char* Options::vm_service_server_ip_ = DEFAULT_VM_SERVICE_SERVER_IP;
-int Options::vm_service_server_port_ = -1;
+int Options::vm_service_server_port_ = INVALID_VM_SERVICE_SERVER_PORT;
 bool Options::ProcessEnableVmServiceOption(const char* arg,
                                            CommandLineOptions* vm_options) {
   const char* value =
@@ -319,7 +321,7 @@ bool Options::ProcessEnableVmServiceOption(const char* arg,
 #if !defined(DART_PRECOMPILED_RUNTIME)
   dfe()->set_use_incremental_compiler(true);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
+  enable_vm_service_ = true;
   return true;
 }
 
@@ -346,6 +348,7 @@ bool Options::ProcessObserveOption(const char* arg,
 #if !defined(DART_PRECOMPILED_RUNTIME)
   dfe()->set_use_incremental_compiler(true);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  enable_vm_service_ = true;
   return true;
 }
 
@@ -393,9 +396,11 @@ int Options::ParseArguments(int argc,
   // Start the rest after the executable name.
   int i = 1;
 
+  CommandLineOptions temp_vm_options(vm_options->max_count());
+
   // Parse out the vm options.
   while (i < argc) {
-    if (OptionProcessor::TryProcess(argv[i], vm_options)) {
+    if (OptionProcessor::TryProcess(argv[i], &temp_vm_options)) {
       i++;
     } else {
       // Check if this flag is a potentially valid VM flag.
@@ -417,9 +422,18 @@ int Options::ParseArguments(int argc,
                   0)) {
         *verbose_debug_seen = true;
       }
-      vm_options->AddArgument(argv[i]);
+      temp_vm_options.AddArgument(argv[i]);
       i++;
     }
+  }
+
+  if (!Options::disable_dart_dev()) {
+    // Don't start the VM service for the DartDev process. Without doing a
+    // second pass over the argument list to explicitly check for
+    // --disable-dart-dev, this is the earliest we can assume we know whether
+    // or not we're running with DartDev enabled.
+    vm_service_server_port_ = INVALID_VM_SERVICE_SERVER_PORT;
+    vm_service_server_ip_ = DEFAULT_VM_SERVICE_SERVER_IP;
   }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -427,7 +441,7 @@ int Options::ParseArguments(int argc,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   if (Options::deterministic()) {
     // Both an embedder and VM flag.
-    vm_options->AddArgument("--deterministic");
+    temp_vm_options.AddArgument("--deterministic");
   }
 
   Socket::set_short_socket_read(Options::short_socket_read());
@@ -440,22 +454,76 @@ int Options::ParseArguments(int argc,
   // The arguments to the VM are at positions 1 through i-1 in argv.
   Platform::SetExecutableArguments(i, argv);
 
+  bool implicitly_use_dart_dev = false;
+  bool run_script = false;
+  int script_or_cmd_index = -1;
   // Get the script name.
   if (i < argc) {
-    // If the script name isn't a valid file or a URL, this might be a DartDev
-    // command. Try to find the DartDev snapshot so we can forward the command
-    // and its arguments.
-    if (!DartDevUtils::ShouldParseCommand(argv[i])) {
+    // If the script name is a valid file or a URL, we'll run the script
+    // directly. Otherwise, this might be a DartDev command and we need to try
+    // to find the DartDev snapshot so we can forward the command and its
+    // arguments.
+    bool is_potential_file_path = !DartDevUtils::ShouldParseCommand(argv[i]);
+    script_or_cmd_index = i;
+    if (Options::disable_dart_dev() ||
+        (is_potential_file_path && !enable_vm_service_)) {
       *script_name = strdup(argv[i]);
+      run_script = true;
       i++;
     } else if (!DartDevUtils::TryResolveDartDevSnapshotPath(script_name)) {
       Syslog::PrintErr(
-          "Could not find DartDev snapshot and '%s' is not a valid script.",
+          "Could not find DartDev snapshot and '%s' is not a valid script.\n",
           argv[i]);
       Platform::Exit(kErrorExitCode);
     }
+    // Handle the special case where the user is running a Dart program without
+    // using a DartDev command and wants to use the VM service. Here we'll run
+    // the program using DartDev as it's used to spawn a DDS instance
+    if (!Options::disable_dart_dev() && is_potential_file_path &&
+        enable_vm_service_) {
+      implicitly_use_dart_dev = true;
+      dart_options->AddArgument("run");
+    }
+  } else if (!Options::disable_dart_dev() &&
+             ((Options::help_option() && !Options::verbose_option()) ||
+              (argc == 1)) &&
+             DartDevUtils::TryResolveDartDevSnapshotPath(script_name)) {
+    // Let DartDev handle the default help message.
+    dart_options->AddArgument("help");
+    return 0;
   } else {
     return -1;
+  }
+
+  const char** vm_argv = temp_vm_options.arguments();
+  int vm_argc = temp_vm_options.count();
+
+  if (Options::disable_dart_dev() || run_script) {
+    // Only populate the VM options if we're not running with DartDev.
+    vm_options->AddArguments(vm_argv, vm_argc);
+  } else if (implicitly_use_dart_dev) {
+    // If we're using DartDev implicitly (e.g., dart --observe foo.dart), we
+    // want to forward all the VM arguments to the spawned process to ensure
+    // the program behaves as the user expects even though we're running
+    // through DartDev without their knowledge.
+    dart_options->AddArguments(const_cast<const char**>(argv + 1),
+                               script_or_cmd_index - 1);
+  } else if (i > 1) {
+    // If we're running with DartDev, we're going to ignore the VM options for
+    // this VM instance and print a warning.
+    Syslog::PrintErr(
+        "Warning: The following flags were passed as VM options and are being "
+        "ignored: ");
+    for (int j = 1; j < script_or_cmd_index; ++j) {
+      Syslog::PrintErr("%s", argv[j]);
+      if (j + 1 < script_or_cmd_index) {
+        Syslog::PrintErr(", ");
+      }
+    }
+    Syslog::PrintErr(
+        "\nThese flags should be passed after the dart command (e.g., 'dart "
+        "run --enable-asserts foo.dart' instead of 'dart --enable-asserts run "
+        "foo.dart').\n");
   }
 
   // Parse out options to be passed to dart main.

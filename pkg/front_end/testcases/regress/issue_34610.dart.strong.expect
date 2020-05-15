@@ -2,22 +2,15 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/regress/issue_34610.dart:5:16: Error: Expected '{' before this.
-// class A { get A.named => null; get bar => 1; }
-//                ^
-//
-// pkg/front_end/testcases/regress/issue_34610.dart:5:15: Error: A class member can't have the same name as the enclosing class.
+// pkg/front_end/testcases/regress/issue_34610.dart:5:15: Error: A method declaration needs an explicit list of parameters.
+// Try adding a parameter list to the method declaration.
 // class A { get A.named => null; get bar => 1; }
 //               ^
 //
-// pkg/front_end/testcases/regress/issue_34610.dart:5:16: Error: Expected a class member, but got '.'.
+// pkg/front_end/testcases/regress/issue_34610.dart:5:11: Error: Constructors can't be a getter.
+// Try removing 'get'.
 // class A { get A.named => null; get bar => 1; }
-//                ^
-//
-// pkg/front_end/testcases/regress/issue_34610.dart:5:17: Error: A method declaration needs an explicit list of parameters.
-// Try adding a parameter list to the method declaration.
-// class A { get A.named => null; get bar => 1; }
-//                 ^^^^^
+//           ^^^
 //
 // pkg/front_end/testcases/regress/issue_34610.dart:7:11: Error: A method declaration needs an explicit list of parameters.
 // Try adding a parameter list to the method declaration.
@@ -29,6 +22,11 @@ library;
 // class C { C.named => null; get bar => 1; }
 //           ^
 //
+// pkg/front_end/testcases/regress/issue_34610.dart:5:26: Error: Constructors can't have a return type.
+// Try removing the return type.
+// class A { get A.named => null; get bar => 1; }
+//                          ^
+//
 // pkg/front_end/testcases/regress/issue_34610.dart:9:22: Error: Constructors can't have a return type.
 // Try removing the return type.
 // class C { C.named => null; get bar => 1; }
@@ -38,14 +36,24 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  synthetic constructor •() → self::A*
+  constructor named() → self::A*
     : super core::Object::•()
-    ;
-  get A() → dynamic {}
-  method named() → dynamic
-    return null;
+    invalid-expression "pkg/front_end/testcases/regress/issue_34610.dart:5:26: Error: Constructors can't have a return type.
+Try removing the return type.
+class A { get A.named => null; get bar => 1; }
+                         ^";
   get bar() → dynamic
     return 1;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class B extends core::Object {
   constructor named() → self::B*
@@ -53,6 +61,16 @@ class B extends core::Object {
     ;
   get bar() → dynamic
     return 1;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class C extends core::Object {
   constructor named() → self::C*
@@ -63,9 +81,24 @@ class C { C.named => null; get bar => 1; }
                      ^";
   get bar() → dynamic
     return 1;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method main() → dynamic {
-  core::print(new self::A::•().{self::A::bar});
+  try {
+    core::print(new self::A::named().{self::A::bar});
+    throw "expected exception";
+  }
+  on dynamic catch(final dynamic e) {
+  }
   core::print(new self::B::named().{self::B::bar});
   try {
     core::print(new self::C::named().{self::C::bar});

@@ -300,11 +300,11 @@ class FunctionTypeTest with ElementsTypesMixin {
   test_synthetic_instantiate() {
     // T Function<T>(T x)
     var t = typeParameter('T');
-    var x = requiredParameter(name: 'x', type: typeParameterType(t));
+    var x = requiredParameter(name: 'x', type: typeParameterTypeNone(t));
     FunctionType f = FunctionTypeImpl(
       typeFormals: [t],
       parameters: [x],
-      returnType: typeParameterType(t),
+      returnType: typeParameterTypeNone(t),
       nullabilitySuffix: NullabilitySuffix.star,
     );
     FunctionType instantiated = f.instantiate([objectType]);
@@ -337,26 +337,6 @@ class FunctionTypeTest with ElementsTypesMixin {
       nullabilitySuffix: NullabilitySuffix.star,
     );
     expect(f.instantiate([]), same(f));
-  }
-
-  test_synthetic_instantiate_share_parameters() {
-    // T Function<T>(int x)
-    var t = typeParameter('T');
-    var x = requiredParameter(name: 'x', type: intType);
-    FunctionType f = FunctionTypeImpl(
-      typeFormals: [t],
-      parameters: [x],
-      returnType: typeParameterType(t),
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-    FunctionType instantiated = f.instantiate([objectType]);
-    basicChecks(instantiated,
-        element: isNull,
-        displayName: 'Object Function(int)',
-        returnType: same(objectType),
-        normalParameterNames: ['x'],
-        normalParameterTypes: [same(intType)],
-        parameters: same(f.parameters));
   }
 
   test_synthetic_namedParameter() {
@@ -432,24 +412,24 @@ class FunctionTypeTest with ElementsTypesMixin {
   test_synthetic_substitute() {
     // Map<T, U> Function<U extends T>(T x, U y)
     var t = typeParameter('T');
-    var u = typeParameter('U', bound: typeParameterType(t));
-    var x = requiredParameter(name: 'x', type: typeParameterType(t));
-    var y = requiredParameter(name: 'y', type: typeParameterType(u));
+    var u = typeParameter('U', bound: typeParameterTypeNone(t));
+    var x = requiredParameter(name: 'x', type: typeParameterTypeNone(t));
+    var y = requiredParameter(name: 'y', type: typeParameterTypeNone(u));
     FunctionType f = FunctionTypeImpl.synthetic(
-        mapOf(typeParameterType(t), typeParameterType(u)), [u], [x, y],
+        mapOf(typeParameterTypeNone(t), typeParameterTypeNone(u)), [u], [x, y],
         nullabilitySuffix: NullabilitySuffix.star);
     FunctionType substituted =
-        f.substitute2([objectType], [typeParameterType(t)]);
+        f.substitute2([objectType], [typeParameterTypeNone(t)]);
     var uSubstituted = substituted.typeFormals[0];
     basicChecks(substituted,
         element: isNull,
         displayName: 'Map<Object, U> Function<U extends Object>(Object, U)',
-        returnType: mapOf(objectType, typeParameterType(uSubstituted)),
+        returnType: mapOf(objectType, typeParameterTypeNone(uSubstituted)),
         typeFormals: [uSubstituted],
         normalParameterNames: ['x', 'y'],
         normalParameterTypes: [
           same(objectType),
-          typeParameterType(uSubstituted)
+          typeParameterTypeNone(uSubstituted)
         ],
         parameters: hasLength(2));
   }
@@ -460,7 +440,7 @@ class FunctionTypeTest with ElementsTypesMixin {
     var t = typeParameter('T');
     FunctionType f = FunctionTypeImpl.synthetic(dynamicType, [], [],
         nullabilitySuffix: NullabilitySuffix.star);
-    expect(() => f.substitute2([], [typeParameterType(t)]),
+    expect(() => f.substitute2([], [typeParameterTypeStar(t)]),
         throwsA(TypeMatcher<ArgumentError>()));
   }
 
@@ -469,11 +449,11 @@ class FunctionTypeTest with ElementsTypesMixin {
     // dynamic Function<U>(U x)
     var t = typeParameter('T');
     var u = typeParameter('U');
-    var x = requiredParameter(name: 'x', type: typeParameterType(u));
+    var x = requiredParameter(name: 'x', type: typeParameterTypeStar(u));
     FunctionType f = FunctionTypeImpl.synthetic(dynamicType, [u], [x],
         nullabilitySuffix: NullabilitySuffix.star);
     FunctionType substituted =
-        f.substitute2([objectType], [typeParameterType(t)]);
+        f.substitute2([objectType], [typeParameterTypeStar(t)]);
     expect(substituted, same(f));
   }
 
@@ -482,13 +462,13 @@ class FunctionTypeTest with ElementsTypesMixin {
     FunctionType f = FunctionTypeImpl(
       typeFormals: [t],
       parameters: const [],
-      returnType: typeParameterType(t),
+      returnType: typeParameterTypeStar(t),
       nullabilitySuffix: NullabilitySuffix.star,
     );
     basicChecks(f,
         element: isNull,
         displayName: 'T Function<T>()',
-        returnType: typeParameterType(t),
+        returnType: typeParameterTypeStar(t),
         typeFormals: [same(t)]);
   }
 }

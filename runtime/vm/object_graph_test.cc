@@ -14,18 +14,18 @@ class CounterVisitor : public ObjectGraph::Visitor {
  public:
   // Records the number of objects and total size visited, excluding 'skip'
   // and any objects only reachable through 'skip'.
-  CounterVisitor(RawObject* skip, RawObject* expected_parent)
+  CounterVisitor(ObjectPtr skip, ObjectPtr expected_parent)
       : count_(0), size_(0), skip_(skip), expected_parent_(expected_parent) {}
 
   virtual Direction VisitObject(ObjectGraph::StackIterator* it) {
-    RawObject* obj = it->Get();
+    ObjectPtr obj = it->Get();
     if (obj == skip_) {
       EXPECT(it->MoveToParent());
       EXPECT_EQ(expected_parent_, it->Get());
       return kBacktrack;
     }
     ++count_;
-    size_ += obj->HeapSize();
+    size_ += obj->ptr()->HeapSize();
     return kProceed;
   }
 
@@ -35,8 +35,8 @@ class CounterVisitor : public ObjectGraph::Visitor {
  private:
   int count_;
   intptr_t size_;
-  RawObject* skip_;
-  RawObject* expected_parent_;
+  ObjectPtr skip_;
+  ObjectPtr expected_parent_;
 };
 
 ISOLATE_UNIT_TEST_CASE(ObjectGraph) {
@@ -54,14 +54,14 @@ ISOLATE_UNIT_TEST_CASE(ObjectGraph) {
   b.SetAt(0, c);
   b.SetAt(1, d);
   a.SetAt(11, d);
-  intptr_t a_size = a.raw()->HeapSize();
-  intptr_t b_size = b.raw()->HeapSize();
-  intptr_t c_size = c.raw()->HeapSize();
-  intptr_t d_size = d.raw()->HeapSize();
+  intptr_t a_size = a.raw()->ptr()->HeapSize();
+  intptr_t b_size = b.raw()->ptr()->HeapSize();
+  intptr_t c_size = c.raw()->ptr()->HeapSize();
+  intptr_t d_size = d.raw()->ptr()->HeapSize();
   {
     // No more allocation; raw pointers ahead.
     SafepointOperationScope safepoint(thread);
-    RawObject* b_raw = b.raw();
+    ObjectPtr b_raw = b.raw();
     // Clear handles to cut unintended retained paths.
     b = Array::null();
     c = Array::null();

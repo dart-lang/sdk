@@ -131,6 +131,13 @@ ${ownType} is not a subtype of ${superType}
   /// but it additionally accounts for parameter covariance.
   String _checkFunctionOverride(
       Class host, Member ownMember, Member superMember) {
+    if (ownMember is Procedure &&
+        (ownMember.isMemberSignature ||
+            (ownMember.isForwardingStub && !ownMember.isForwardingSemiStub))) {
+      // Synthesized members are not obligated to override super members.
+      return null;
+    }
+
     final FunctionNode ownFunction = ownMember.function;
     final FunctionNode superFunction = superMember.function;
     Substitution ownSubstitution = _makeSubstitutionForMember(host, ownMember);
@@ -249,6 +256,12 @@ super method declares ${superParameter.type}
   @override
   void checkUnresolvedInvocation(DartType receiver, TreeNode where) {
     if (receiver is DynamicType) {
+      return;
+    }
+    if (receiver is InvalidType) {
+      return;
+    }
+    if (receiver is BottomType) {
       return;
     }
     if (receiver is NeverType &&

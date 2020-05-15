@@ -128,11 +128,11 @@ class ApiMessageReader : public BaseReader {
     return reinterpret_cast<Dart_CObject_Internal*>(object);
   }
 
-  RawObject* VmIsolateSnapshotObject(intptr_t index) const {
+  ObjectPtr VmIsolateSnapshotObject(intptr_t index) const {
     return Object::vm_isolate_snapshot_object_table().At(index);
   }
 
-  Dart_CObject* CreateDartCObjectString(RawObject* raw);
+  Dart_CObject* CreateDartCObjectString(ObjectPtr raw);
   Dart_CObject* GetCanonicalMintObject(Dart_CObject_Type type, int64_t value64);
 
   uint8_t* allocator(intptr_t size) {
@@ -148,8 +148,6 @@ class ApiMessageReader : public BaseReader {
   Dart_CObject dynamic_type_marker;
 
   MessageFinalizableData* finalizable_data_;
-
-  static _Dart_CObject* singleton_uint32_typed_data_;
 };
 
 class ApiMessageWriter : public BaseWriter {
@@ -203,13 +201,13 @@ class ApiMessageWriter : public BaseWriter {
 // as well.
 class ApiObjectConverter : public AllStatic {
  public:
-  static bool CanConvert(const RawObject* raw_obj) {
+  static bool CanConvert(const ObjectPtr raw_obj) {
     return !raw_obj->IsHeapObject() || (raw_obj == Object::null());
   }
 
-  static bool Convert(const RawObject* raw_obj, Dart_CObject* c_obj) {
+  static bool Convert(const ObjectPtr raw_obj, Dart_CObject* c_obj) {
     if (!raw_obj->IsHeapObject()) {
-      ConvertSmi(reinterpret_cast<const RawSmi*>(raw_obj), c_obj);
+      ConvertSmi(static_cast<const SmiPtr>(raw_obj), c_obj);
     } else if (raw_obj == Object::null()) {
       ConvertNull(c_obj);
     } else {
@@ -219,7 +217,7 @@ class ApiObjectConverter : public AllStatic {
   }
 
  private:
-  static void ConvertSmi(const RawSmi* raw_smi, Dart_CObject* c_obj) {
+  static void ConvertSmi(const SmiPtr raw_smi, Dart_CObject* c_obj) {
     ASSERT(!raw_smi->IsHeapObject());
     intptr_t value = Smi::Value(raw_smi);
     if (Utils::IsInt(31, value)) {

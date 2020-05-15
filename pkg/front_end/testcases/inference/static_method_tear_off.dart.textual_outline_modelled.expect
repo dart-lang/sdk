@@ -1,0 +1,8 @@
+library test;
+
+class C {
+  static int f(String s) => null;
+}
+
+const v = C.f;
+main() {}

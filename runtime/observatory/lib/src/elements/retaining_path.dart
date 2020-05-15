@@ -87,7 +87,7 @@ class RetainingPathElement extends CustomElement implements Renderable {
       return [new SpanElement()..text = 'Loading'];
     }
 
-    var elements = new List<Element>();
+    var elements = <Element>[];
     bool first = true;
     for (var item in _path.elements) {
       elements.add(_createItem(item, first));

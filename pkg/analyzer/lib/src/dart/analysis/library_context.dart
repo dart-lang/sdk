@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart'
     show CompilationUnitElement, LibraryElement;
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -13,7 +13,6 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptions;
 import 'package:analyzer/src/generated/source.dart';
@@ -43,7 +42,7 @@ class LibraryContext {
 
   final PerformanceLog logger;
   final ByteStore byteStore;
-  final AnalysisSession analysisSession;
+  final AnalysisSessionImpl analysisSession;
   final SummaryDataStore externalSummaries;
   final SummaryDataStore store = SummaryDataStore([]);
 
@@ -54,15 +53,13 @@ class LibraryContext {
 
   AnalysisContextImpl analysisContext;
   LinkedElementFactory elementFactory;
-  InheritanceManager3 inheritanceManager;
 
   var loadedBundles = Set<LibraryCycle>.identity();
 
   LibraryContext({
-    @required AnalysisSession session,
+    @required AnalysisSessionImpl session,
     @required PerformanceLog logger,
     @required ByteStore byteStore,
-    @required FileSystemState fsState,
     @required AnalysisOptions analysisOptions,
     @required DeclaredVariables declaredVariables,
     @required SourceFactory sourceFactory,
@@ -77,8 +74,6 @@ class LibraryContext {
 
     _createElementFactory();
     load2(targetLibrary);
-
-    inheritanceManager = InheritanceManager3();
   }
 
   /**
@@ -160,6 +155,26 @@ class LibraryContext {
                 unit,
               ),
             );
+
+            // TODO(scheglov) remove after fixing linking issues
+            {
+              var existingLibraryReference =
+                  elementFactory.rootReference[libraryFile.uriStr];
+              if (existingLibraryReference != null) {
+                var existingElement = existingLibraryReference.element;
+                if (existingElement != null) {
+                  var existingSource = existingElement?.source;
+                  throw StateError(
+                    '[The library is already loaded]'
+                    '[oldUri: ${existingSource.uri}]'
+                    '[oldPath: ${existingSource.fullName}]'
+                    '[newUri: ${libraryFile.uriStr}]'
+                    '[newPath: ${libraryFile.path}]'
+                    '[cycle: $cycle]',
+                  );
+                }
+              }
+            }
           }
 
           inputLibraries.add(
@@ -169,11 +184,16 @@ class LibraryContext {
         inputsTimer.stop();
         timerInputLibraries.stop();
 
-        timerLinking.start();
-        var linkResult = link2.link(elementFactory, inputLibraries);
-        librariesLinked += cycle.libraries.length;
-        counterLinkedLibraries += linkResult.bundle.libraries.length;
-        timerLinking.stop();
+        link2.LinkResult linkResult;
+        try {
+          timerLinking.start();
+          linkResult = link2.link(elementFactory, inputLibraries);
+          librariesLinked += cycle.libraries.length;
+          counterLinkedLibraries += linkResult.bundle.libraries.length;
+          timerLinking.stop();
+        } catch (exception, stackTrace) {
+          _throwLibraryCycleLinkException(cycle, exception, stackTrace);
+        }
 
         timerBundleToBytes.start();
         bytes = linkResult.bundle.toBuffer();
@@ -273,4 +293,34 @@ class LibraryContext {
       elementFactory.createTypeProviders(dartCore, dartAsync);
     }
   }
+
+  /// The [exception] was caught during the [cycle] linking.
+  ///
+  /// Throw another exception that wraps the given one, with more information.
+  @alwaysThrows
+  void _throwLibraryCycleLinkException(
+    LibraryCycle cycle,
+    Object exception,
+    StackTrace stackTrace,
+  ) {
+    var fileContentMap = <String, String>{};
+    for (var libraryFile in cycle.libraries) {
+      for (var file in libraryFile.libraryFiles) {
+        fileContentMap[file.path] = file.content;
+      }
+    }
+    throw LibraryCycleLinkException(exception, stackTrace, fileContentMap);
+  }
+}
+
+/// Exception that wraps another exception that happened during linking, and
+/// includes the content of all files of the library cycle.
+class LibraryCycleLinkException extends CaughtException {
+  final Map<String, String> fileContentMap;
+
+  LibraryCycleLinkException(
+    Object exception,
+    StackTrace stackTrace,
+    this.fileContentMap,
+  ) : super(exception, stackTrace);
 }

@@ -49,10 +49,8 @@ import 'package:kernel/ast.dart'
         TypeParameterType,
         Typedef,
         VariableDeclaration,
+        Version,
         VoidType;
-
-import 'package:kernel/default_language_version.dart' as kernel
-    show defaultLanguageVersionMajor, defaultLanguageVersionMinor;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -133,7 +131,7 @@ import '../kernel/metadata_collector.dart';
 import '../kernel/type_algorithms.dart'
     show
         calculateBounds,
-        computeVariance,
+        computeTypeVariableBuilderVariance,
         findGenericFunctionTypes,
         getNonSimplicityIssuesForDeclaration,
         getNonSimplicityIssuesForTypeVariables,
@@ -169,7 +167,7 @@ import 'source_extension_builder.dart' show SourceExtensionBuilder;
 import 'source_loader.dart' show SourceLoader;
 
 import '../../api_prototype/experimental_flags.dart'
-    show enableNonNullableMajorVersion, enableNonNullableMinorVersion;
+    show enableNonNullableVersion;
 
 class SourceLibraryBuilder extends LibraryBuilderImpl {
   static const String MALFORMED_URI_SCHEME = "org-dartlang-malformed-uri";
@@ -272,7 +270,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   List<FieldBuilder> _implicitlyTypedFields;
 
-  LanguageVersion _languageVersion = const ImplicitLanguageVersion();
+  LanguageVersion _languageVersion;
 
   bool postponedProblemsIssued = false;
   List<PostponedProblem> postponedProblems;
@@ -312,7 +310,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       this.library,
       this._nameOrigin,
       this.referencesFrom)
-      : currentTypeParameterScopeBuilder = libraryDeclaration,
+      : _languageVersion = new ImplicitLanguageVersion(library.languageVersion),
+        currentTypeParameterScopeBuilder = libraryDeclaration,
         referencesFromIndexed =
             referencesFrom == null ? null : new IndexedLibrary(referencesFrom),
         super(
@@ -362,8 +361,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                         reference: referenceIsPartOwner == true
                             ? null
                             : referencesFrom?.reference)
-                  ..setLanguageVersion(loader.target.currentSdkVersionMajor,
-                      loader.target.currentSdkVersionMinor)),
+                  ..setLanguageVersion(loader.target.currentSdkVersion)),
             nameOrigin,
             referencesFrom,
             referenceIsPartOwner);
@@ -385,70 +383,85 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   bool get isNonNullableByDefault =>
       loader.target.enableNonNullable &&
-      languageVersion.major >= enableNonNullableMajorVersion &&
-      languageVersion.minor >= enableNonNullableMinorVersion &&
+      languageVersion.version >= enableNonNullableVersion &&
       !isOptOutTest(library.importUri);
 
-  bool isOptOutTest(Uri uri) {
+  static bool isOptOutTest(Uri uri) {
     String path = uri.path;
     for (String testDir in ['/tests/', '/generated_tests/']) {
       int start = path.indexOf(testDir);
       if (start == -1) continue;
-      int end = path.indexOf('/', start + testDir.length + 1);
-      if (end == -1) continue;
-      return optOutTestPaths.contains(path.substring(start, end));
+      String rest = path.substring(start + testDir.length);
+      return optOutTestPaths.any(rest.startsWith);
     }
     return false;
   }
 
-  static final Set<String> optOutTestPaths = {
-    '/tests/co19_2',
-    '/tests/corelib_2',
-    '/tests/language_2',
-    '/tests/lib_2',
-    '/tests/standalone_2',
-    '/generated_tests/co19_2',
-    '/generated_tests/corelib_2',
-    '/generated_tests/language_2',
-    '/generated_tests/lib_2',
-    '/generated_tests/standalone_2',
-  };
+  static const List<String> optOutTestPaths = [
+    'co19_2/',
+    'compiler/dart2js/',
+    'compiler/dart2js_extra/',
+    'compiler/dart2js_native/',
+    'corelib_2/',
+    'ffi_2',
+    'language_2/',
+    'lib_2/',
+    'standalone_2/',
+    'vm/dart/', // in runtime/tests
+  ];
 
   LanguageVersion get languageVersion => _languageVersion;
 
   @override
-  void setLanguageVersion(int major, int minor,
+  void setLanguageVersion(Version version,
       {int offset: 0, int length: noLength, bool explicit: false}) {
     if (languageVersion.isExplicit) return;
 
-    if (major == null || minor == null) {
+    if (version == null) {
       addPostponedProblem(
           messageLanguageVersionInvalidInDotPackages, offset, length, fileUri);
-      _languageVersion =
-          new InvalidLanguageVersion(fileUri, offset, length, explicit);
+      if (_languageVersion is ImplicitLanguageVersion) {
+        _languageVersion = new InvalidLanguageVersion(
+            fileUri, offset, length, explicit, loader.target.currentSdkVersion);
+        library.setLanguageVersion(_languageVersion.version);
+      }
       return;
     }
 
     // If trying to set a language version that is higher than the current sdk
     // version it's an error.
-    if (major > loader.target.currentSdkVersionMajor ||
-        (major == loader.target.currentSdkVersionMajor &&
-            minor > loader.target.currentSdkVersionMinor)) {
+    if (version > loader.target.currentSdkVersion) {
       addPostponedProblem(
           templateLanguageVersionTooHigh.withArguments(
-              loader.target.currentSdkVersionMajor,
-              loader.target.currentSdkVersionMinor),
+              loader.target.currentSdkVersion.major,
+              loader.target.currentSdkVersion.minor),
           offset,
           length,
           fileUri);
-      _languageVersion =
-          new InvalidLanguageVersion(fileUri, offset, length, explicit);
+      if (_languageVersion is ImplicitLanguageVersion) {
+        _languageVersion = new InvalidLanguageVersion(
+            fileUri, offset, length, explicit, loader.target.currentSdkVersion);
+        library.setLanguageVersion(_languageVersion.version);
+      }
       return;
     }
 
     _languageVersion =
-        new LanguageVersion(major, minor, fileUri, offset, length, explicit);
-    library.setLanguageVersion(major, minor);
+        new LanguageVersion(version, fileUri, offset, length, explicit);
+    library.setLanguageVersion(version);
+
+    if (loader.target.enableNonNullable &&
+        (loader.nnbdMode == NnbdMode.Strong ||
+            loader.nnbdMode == NnbdMode.Agnostic)) {
+      // In strong and agnostic mode, the language version is not allowed to
+      // opt a library out of nnbd.
+      if (!isNonNullableByDefault) {
+        addPostponedProblem(
+            messageStrongModeNNBDButOptOut, offset, length, fileUri);
+        _languageVersion = new InvalidLanguageVersion(
+            fileUri, offset, length, explicit, loader.target.currentSdkVersion);
+      }
+    }
   }
 
   ConstructorReferenceBuilder addConstructorReference(Object name,
@@ -579,7 +592,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       LibraryBuilder coreLibrary = loader.read(
           resolve(this.importUri,
               new Uri(scheme: "dart", path: "core").toString(), -1),
-          -1);
+          -1,
+          accessor: loader.first);
       imported = coreLibrary
           .loader.builders[new Uri(scheme: 'dart', path: dottedName)];
     }
@@ -803,13 +817,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (existing.isSetter && other.isGetter) return false;
     } else {
       if (next is ClassBuilder && !next.isMixinApplication) return true;
-      if (next is TypeAliasBuilder) {
-        TypeDeclarationBuilder aliasedBuilder = next.unaliasDeclaration;
-        if (aliasedBuilder is ClassBuilder &&
-            !aliasedBuilder.isMixinApplication) {
-          return true;
-        }
-      }
     }
     if (existing is ClassBuilder && other is ClassBuilder) {
       // We allow multiple mixin applications with the same name. An
@@ -1827,7 +1834,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           charEndOffset,
           referencesFromClass,
           referencesFromIndexedClass,
-          mixedInType: isMixinDeclaration ? null : mixin,
+          mixedInTypeBuilder: isMixinDeclaration ? null : mixin,
         );
         if (isNamedMixinApplication) {
           loader.target.metadataCollector
@@ -2720,8 +2727,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (declaration is TypeAliasBuilder &&
           declaration.typeVariablesCount > 0) {
         for (TypeVariableBuilder typeParameter in declaration.typeVariables) {
-          typeParameter.variance =
-              computeVariance(typeParameter, declaration.type, this);
+          typeParameter.variance = computeTypeVariableBuilderVariance(
+              typeParameter, declaration.type, this);
           ++count;
         }
       }
@@ -2729,8 +2736,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return count;
   }
 
-  int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder bottomType,
-      ClassBuilder objectClass) {
+  int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder nullType,
+      TypeBuilder bottomType, ClassBuilder objectClass) {
     int count = 0;
 
     int computeDefaultTypesForVariables(List<TypeVariableBuilder> variables,
@@ -2752,8 +2759,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
 
         if (!haveErroneousBounds) {
-          List<TypeBuilder> calculatedBounds =
-              calculateBounds(variables, dynamicType, bottomType, objectClass);
+          List<TypeBuilder> calculatedBounds = calculateBounds(
+              variables,
+              dynamicType,
+              isNonNullableByDefault ? bottomType : nullType,
+              objectClass);
           for (int i = 0; i < variables.length; ++i) {
             variables[i].defaultType = calculatedBounds[i];
           }
@@ -2926,8 +2936,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       {bool inferred,
       TypeArgumentsInfo typeArgumentsInfo,
       DartType targetReceiver,
-      String targetName,
-      bool areWarnings = false}) {
+      String targetName}) {
     for (TypeArgumentIssue issue in issues) {
       DartType argument = issue.argument;
       TypeParameter typeParameter = issue.typeParameter;
@@ -2949,27 +2958,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       } else {
         if (issue.enclosingType == null && targetReceiver != null) {
           if (issueInferred) {
-            Template<
-                    Message Function(
-                        DartType, DartType, String, DartType, String, bool)>
-                template = areWarnings
-                    ? templateIncorrectTypeArgumentQualifiedInferredWarning
-                    : templateIncorrectTypeArgumentQualifiedInferred;
-            message = template.withArguments(
-                argument,
-                typeParameter.bound,
-                typeParameter.name,
-                targetReceiver,
-                targetName,
-                isNonNullableByDefault);
+            message =
+                templateIncorrectTypeArgumentQualifiedInferred.withArguments(
+                    argument,
+                    typeParameter.bound,
+                    typeParameter.name,
+                    targetReceiver,
+                    targetName,
+                    isNonNullableByDefault);
           } else {
-            Template<
-                    Message Function(
-                        DartType, DartType, String, DartType, String, bool)>
-                template = areWarnings
-                    ? templateIncorrectTypeArgumentQualifiedWarning
-                    : templateIncorrectTypeArgumentQualified;
-            message = template.withArguments(
+            message = templateIncorrectTypeArgumentQualified.withArguments(
                 argument,
                 typeParameter.bound,
                 typeParameter.name,
@@ -2983,19 +2981,19 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               : getGenericTypeName(issue.enclosingType);
           assert(enclosingName != null);
           if (issueInferred) {
-            Template<Message Function(DartType, DartType, String, String, bool)>
-                template = areWarnings
-                    ? templateIncorrectTypeArgumentInferredWarning
-                    : templateIncorrectTypeArgumentInferred;
-            message = template.withArguments(argument, typeParameter.bound,
-                typeParameter.name, enclosingName, isNonNullableByDefault);
+            message = templateIncorrectTypeArgumentInferred.withArguments(
+                argument,
+                typeParameter.bound,
+                typeParameter.name,
+                enclosingName,
+                isNonNullableByDefault);
           } else {
-            Template<Message Function(DartType, DartType, String, String, bool)>
-                template = areWarnings
-                    ? templateIncorrectTypeArgumentWarning
-                    : templateIncorrectTypeArgument;
-            message = template.withArguments(argument, typeParameter.bound,
-                typeParameter.name, enclosingName, isNonNullableByDefault);
+            message = templateIncorrectTypeArgument.withArguments(
+                argument,
+                typeParameter.bound,
+                typeParameter.name,
+                enclosingName,
+                isNonNullableByDefault);
           }
         }
       }
@@ -3021,8 +3019,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void checkTypesInField(
       FieldBuilder fieldBuilder, TypeEnvironment typeEnvironment) {
     // Check the bounds in the field's type.
-    checkBoundsInType(fieldBuilder.field.type, typeEnvironment,
-        fieldBuilder.fileUri, fieldBuilder.field.fileOffset,
+    checkBoundsInType(fieldBuilder.fieldType, typeEnvironment,
+        fieldBuilder.fileUri, fieldBuilder.charOffset,
         allowSuperBounded: true);
 
     // Check that the field has an initializer if its type is potentially
@@ -3030,31 +3028,21 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (isNonNullableByDefault) {
       // Only static and top-level fields are checked here.  Instance fields are
       // checked elsewhere.
-      DartType fieldType = fieldBuilder.field.type;
+      DartType fieldType = fieldBuilder.fieldType;
       if (!fieldBuilder.isDeclarationInstanceMember &&
-          !fieldBuilder.field.isLate &&
+          !fieldBuilder.isLate &&
+          !fieldBuilder.isExternal &&
           fieldType is! InvalidType &&
           isPotentiallyNonNullable(fieldType, typeEnvironment.futureOrClass) &&
           !fieldBuilder.hasInitializer) {
-        if (loader.nnbdMode == NnbdMode.Weak) {
-          addProblem(
-              templateFieldNonNullableWithoutInitializerWarning.withArguments(
-                  fieldBuilder.name,
-                  fieldBuilder.field.type,
-                  isNonNullableByDefault),
-              fieldBuilder.charOffset,
-              fieldBuilder.name.length,
-              fileUri);
-        } else {
-          addProblem(
-              templateFieldNonNullableWithoutInitializerError.withArguments(
-                  fieldBuilder.name,
-                  fieldBuilder.field.type,
-                  isNonNullableByDefault),
-              fieldBuilder.charOffset,
-              fieldBuilder.name.length,
-              fileUri);
-        }
+        addProblem(
+            templateFieldNonNullableWithoutInitializerError.withArguments(
+                fieldBuilder.name,
+                fieldBuilder.fieldType,
+                isNonNullableByDefault),
+            fieldBuilder.charOffset,
+            fieldBuilder.name.length,
+            fileUri);
       }
     }
   }
@@ -3071,22 +3059,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           isPotentiallyNonNullable(
               formal.variable.type, typeEnvironment.futureOrClass) &&
           !formal.hasDeclaredInitializer) {
-        if (loader.nnbdMode == NnbdMode.Weak) {
-          addProblem(
-              templateOptionalNonNullableWithoutInitializerWarning
-                  .withArguments(formal.name, formal.variable.type,
-                      isNonNullableByDefault),
-              formal.charOffset,
-              formal.name.length,
-              formal.fileUri);
-        } else {
-          addProblem(
-              templateOptionalNonNullableWithoutInitializerError.withArguments(
-                  formal.name, formal.variable.type, isNonNullableByDefault),
-              formal.charOffset,
-              formal.name.length,
-              formal.fileUri);
-        }
+        addProblem(
+            templateOptionalNonNullableWithoutInitializerError.withArguments(
+                formal.name, formal.variable.type, isNonNullableByDefault),
+            formal.charOffset,
+            formal.name.length,
+            formal.fileUri);
       }
     }
   }
@@ -3122,64 +3100,44 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
     if (returnType != null) {
-      Set<TypeArgumentIssue> legacyIssues = findTypeArgumentIssues(returnType,
-              typeEnvironment, SubtypeCheckMode.ignoringNullabilities,
-              allowSuperBounded: true)
-          ?.toSet();
-      Set<TypeArgumentIssue> nnbdIssues = isNonNullableByDefault
-          ? findTypeArgumentIssues(returnType, typeEnvironment,
-                  SubtypeCheckMode.withNullabilities)
-              ?.toSet()
-          : null;
-      if (legacyIssues != null || nnbdIssues != null) {
-        Set<TypeArgumentIssue> mergedIssues = legacyIssues ?? {};
-        if (nnbdIssues != null) {
-          nnbdIssues = nnbdIssues
-              .where((issue) =>
-                  legacyIssues == null || !legacyIssues.contains(issue))
-              .toSet();
-          mergedIssues.addAll(nnbdIssues);
-        }
-        int offset = fileOffset;
-        for (TypeArgumentIssue issue in mergedIssues) {
-          DartType argument = issue.argument;
-          TypeParameter typeParameter = issue.typeParameter;
+      final DartType bottomType = isNonNullableByDefault
+          ? const NeverType(Nullability.nonNullable)
+          : typeEnvironment.nullType;
+      Set<TypeArgumentIssue> issues = {};
+      issues.addAll(findTypeArgumentIssues(library, returnType, typeEnvironment,
+              SubtypeCheckMode.ignoringNullabilities, bottomType,
+              allowSuperBounded: true) ??
+          const []);
+      if (isNonNullableByDefault) {
+        issues.addAll(findTypeArgumentIssues(library, returnType,
+                typeEnvironment, SubtypeCheckMode.withNullabilities, bottomType,
+                allowSuperBounded: true) ??
+            const []);
+      }
+      for (TypeArgumentIssue issue in issues) {
+        DartType argument = issue.argument;
+        TypeParameter typeParameter = issue.typeParameter;
 
-          // We don't need to check if [argument] was inferred or specified
-          // here, because inference in return types boils down to instantiate-
-          // -to-bound, and it can't provide a type that violates the bound.
-          if (argument is FunctionType && argument.typeParameters.length > 0) {
-            reportTypeArgumentIssue(
-                messageGenericFunctionTypeUsedAsActualTypeArgument,
-                fileUri,
-                offset,
-                null);
-          } else {
-            void reportProblem(
-                Template<
-                        Message Function(
-                            DartType, DartType, String, String, bool)>
-                    template) {
-              reportTypeArgumentIssue(
-                  template.withArguments(
-                      argument,
-                      typeParameter.bound,
-                      typeParameter.name,
-                      getGenericTypeName(issue.enclosingType),
-                      isNonNullableByDefault),
-                  fileUri,
-                  offset,
-                  typeParameter);
-            }
-
-            nnbdIssues ??= const {};
-            if (nnbdIssues.contains(issue) &&
-                loader.nnbdMode == NnbdMode.Weak) {
-              reportProblem(templateIncorrectTypeArgumentInReturnTypeWarning);
-            } else {
-              reportProblem(templateIncorrectTypeArgumentInReturnType);
-            }
-          }
+        // We don't need to check if [argument] was inferred or specified
+        // here, because inference in return types boils down to instantiate-
+        // -to-bound, and it can't provide a type that violates the bound.
+        if (argument is FunctionType && argument.typeParameters.length > 0) {
+          reportTypeArgumentIssue(
+              messageGenericFunctionTypeUsedAsActualTypeArgument,
+              fileUri,
+              fileOffset,
+              null);
+        } else {
+          reportTypeArgumentIssue(
+              templateIncorrectTypeArgumentInReturnType.withArguments(
+                  argument,
+                  typeParameter.bound,
+                  typeParameter.name,
+                  getGenericTypeName(issue.enclosingType),
+                  isNonNullableByDefault),
+              fileUri,
+              fileOffset,
+              typeParameter);
         }
       }
     }
@@ -3224,28 +3182,21 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void checkBoundsInType(
       DartType type, TypeEnvironment typeEnvironment, Uri fileUri, int offset,
       {bool inferred, bool allowSuperBounded = true}) {
-    Set<TypeArgumentIssue> legacyIssues = findTypeArgumentIssues(
-            type, typeEnvironment, SubtypeCheckMode.ignoringNullabilities,
-            allowSuperBounded: allowSuperBounded)
-        ?.toSet();
-    Set<TypeArgumentIssue> nnbdIssues = isNonNullableByDefault
-        ? findTypeArgumentIssues(
-                type, typeEnvironment, SubtypeCheckMode.withNullabilities,
-                allowSuperBounded: allowSuperBounded)
-            ?.toSet()
-        : null;
-    if (legacyIssues != null) {
-      reportTypeArgumentIssues(legacyIssues, fileUri, offset,
-          inferred: inferred);
+    final DartType bottomType = isNonNullableByDefault
+        ? const NeverType(Nullability.nonNullable)
+        : typeEnvironment.nullType;
+    Set<TypeArgumentIssue> issues = {};
+    issues.addAll(findTypeArgumentIssues(library, type, typeEnvironment,
+            SubtypeCheckMode.ignoringNullabilities, bottomType,
+            allowSuperBounded: allowSuperBounded) ??
+        const []);
+    if (isNonNullableByDefault) {
+      issues.addAll(findTypeArgumentIssues(library, type, typeEnvironment,
+              SubtypeCheckMode.withNullabilities, bottomType,
+              allowSuperBounded: allowSuperBounded) ??
+          const []);
     }
-    if (nnbdIssues != null) {
-      if (legacyIssues != null) {
-        nnbdIssues =
-            nnbdIssues.where((issue) => !legacyIssues.contains(issue)).toSet();
-      }
-      reportTypeArgumentIssues(nnbdIssues, fileUri, offset,
-          inferred: inferred, areWarnings: loader.nnbdMode == NnbdMode.Weak);
-    }
+    reportTypeArgumentIssues(issues, fileUri, offset, inferred: inferred);
   }
 
   void checkBoundsInVariableDeclaration(
@@ -3297,45 +3248,40 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     List<DartType> arguments = node.arguments.types;
     // The following error is to be reported elsewhere.
     if (parameters.length != arguments.length) return;
-    Set<TypeArgumentIssue> legacyIssues = findTypeArgumentIssuesForInvocation(
+
+    final DartType bottomType = isNonNullableByDefault
+        ? const NeverType(Nullability.nonNullable)
+        : typeEnvironment.nullType;
+    Set<TypeArgumentIssue> issues = {};
+    issues.addAll(findTypeArgumentIssuesForInvocation(
+            library,
             parameters,
             arguments,
             typeEnvironment,
-            SubtypeCheckMode.ignoringNullabilities)
-        ?.toSet();
-    Set<TypeArgumentIssue> nnbdIssues = isNonNullableByDefault
-        ? findTypeArgumentIssuesForInvocation(parameters, arguments,
-                typeEnvironment, SubtypeCheckMode.withNullabilities)
-            ?.toSet()
-        : null;
-    if (legacyIssues != null) {
+            SubtypeCheckMode.ignoringNullabilities,
+            bottomType) ??
+        const []);
+    if (isNonNullableByDefault) {
+      issues.addAll(findTypeArgumentIssuesForInvocation(
+              library,
+              parameters,
+              arguments,
+              typeEnvironment,
+              SubtypeCheckMode.withNullabilities,
+              bottomType) ??
+          const []);
+    }
+    if (issues.isNotEmpty) {
       DartType targetReceiver;
       if (klass != null) {
         targetReceiver =
             new InterfaceType(klass, klass.enclosingLibrary.nonNullable);
       }
       String targetName = node.target.name.name;
-      reportTypeArgumentIssues(legacyIssues, fileUri, node.fileOffset,
+      reportTypeArgumentIssues(issues, fileUri, node.fileOffset,
           typeArgumentsInfo: typeArgumentsInfo,
           targetReceiver: targetReceiver,
           targetName: targetName);
-    }
-    if (nnbdIssues != null) {
-      DartType targetReceiver;
-      if (klass != null) {
-        targetReceiver =
-            new InterfaceType(klass, klass.enclosingLibrary.nonNullable);
-      }
-      String targetName = node.target.name.name;
-      if (legacyIssues != null) {
-        nnbdIssues =
-            nnbdIssues.where((issue) => !legacyIssues.contains(issue)).toSet();
-      }
-      reportTypeArgumentIssues(nnbdIssues, fileUri, node.fileOffset,
-          typeArgumentsInfo: typeArgumentsInfo,
-          targetReceiver: targetReceiver,
-          targetName: targetName,
-          areWarnings: loader.nnbdMode == NnbdMode.Weak);
     }
   }
 
@@ -3389,37 +3335,33 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       instantiatedMethodParameters[i].bound =
           substitute(methodParameters[i].bound, substitutionMap);
     }
-    Set<TypeArgumentIssue> legacyIssues = findTypeArgumentIssuesForInvocation(
+
+    final DartType bottomType = isNonNullableByDefault
+        ? const NeverType(Nullability.nonNullable)
+        : typeEnvironment.nullType;
+    Set<TypeArgumentIssue> issues = {};
+    issues.addAll(findTypeArgumentIssuesForInvocation(
+            library,
             instantiatedMethodParameters,
             arguments.types,
             typeEnvironment,
-            SubtypeCheckMode.ignoringNullabilities)
-        ?.toSet();
-    Set<TypeArgumentIssue> nnbdIssues = isNonNullableByDefault
-        ? findTypeArgumentIssuesForInvocation(
-                instantiatedMethodParameters,
-                arguments.types,
-                typeEnvironment,
-                SubtypeCheckMode.withNullabilities)
-            ?.toSet()
-        : null;
-    if (legacyIssues != null) {
-      reportTypeArgumentIssues(legacyIssues, fileUri, offset,
-          typeArgumentsInfo: getTypeArgumentsInfo(arguments),
-          targetReceiver: receiverType,
-          targetName: name.name);
+            SubtypeCheckMode.ignoringNullabilities,
+            bottomType) ??
+        const []);
+    if (isNonNullableByDefault) {
+      issues.addAll(findTypeArgumentIssuesForInvocation(
+              library,
+              instantiatedMethodParameters,
+              arguments.types,
+              typeEnvironment,
+              SubtypeCheckMode.withNullabilities,
+              bottomType) ??
+          const []);
     }
-    if (nnbdIssues != null) {
-      if (legacyIssues != null) {
-        nnbdIssues =
-            nnbdIssues.where((issue) => !legacyIssues.contains(issue)).toSet();
-      }
-      reportTypeArgumentIssues(nnbdIssues, fileUri, offset,
-          typeArgumentsInfo: getTypeArgumentsInfo(arguments),
-          targetReceiver: receiverType,
-          targetName: name.name,
-          areWarnings: loader.nnbdMode == NnbdMode.Weak);
-    }
+    reportTypeArgumentIssues(issues, fileUri, offset,
+        typeArgumentsInfo: getTypeArgumentsInfo(arguments),
+        targetReceiver: receiverType,
+        targetName: name.name);
   }
 
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {
@@ -3434,7 +3376,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         if (declaration.formals != null) {
           checkInitializersInFormals(declaration.formals, typeEnvironment);
         }
-      } else if (declaration is ClassBuilder) {
+      } else if (declaration is SourceClassBuilder) {
         declaration.checkTypesInOutline(typeEnvironment);
       }
     }
@@ -3799,31 +3741,28 @@ class PostponedProblem {
 }
 
 class LanguageVersion {
-  final int major;
-  final int minor;
+  final Version version;
   final Uri fileUri;
   final int charOffset;
   final int charCount;
   final bool isExplicit;
 
-  LanguageVersion(this.major, this.minor, this.fileUri, this.charOffset,
-      this.charCount, this.isExplicit);
+  LanguageVersion(this.version, this.fileUri, this.charOffset, this.charCount,
+      this.isExplicit);
 
   bool get valid => true;
 
-  int get hashCode =>
-      major.hashCode * 13 + minor.hashCode * 17 + isExplicit.hashCode * 19;
+  int get hashCode => version.hashCode * 13 + isExplicit.hashCode * 19;
 
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is LanguageVersion &&
-        major == other.major &&
-        minor == other.minor &&
+        version == other.version &&
         isExplicit == other.isExplicit;
   }
 
   String toString() {
-    return 'LanguageVersion(major=$major,minor=$minor,isExplicit=$isExplicit,'
+    return 'LanguageVersion(version=$version,isExplicit=$isExplicit,'
         'fileUri=$fileUri,charOffset=$charOffset,charCount=$charCount)';
   }
 }
@@ -3833,15 +3772,10 @@ class InvalidLanguageVersion implements LanguageVersion {
   final int charOffset;
   final int charCount;
   final bool isExplicit;
+  final Version version;
 
-  InvalidLanguageVersion(
-      this.fileUri, this.charOffset, this.charCount, this.isExplicit);
-
-  @override
-  int get major => kernel.defaultLanguageVersionMajor;
-
-  @override
-  int get minor => kernel.defaultLanguageVersionMinor;
+  InvalidLanguageVersion(this.fileUri, this.charOffset, this.charCount,
+      this.isExplicit, this.version);
 
   @override
   bool get valid => false;
@@ -3860,13 +3794,10 @@ class InvalidLanguageVersion implements LanguageVersion {
 }
 
 class ImplicitLanguageVersion implements LanguageVersion {
-  const ImplicitLanguageVersion();
-
   @override
-  int get major => kernel.defaultLanguageVersionMajor;
+  final Version version;
 
-  @override
-  int get minor => kernel.defaultLanguageVersionMinor;
+  ImplicitLanguageVersion(this.version);
 
   @override
   bool get valid => true;
@@ -3883,6 +3814,13 @@ class ImplicitLanguageVersion implements LanguageVersion {
   @override
   bool get isExplicit => false;
 
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is ImplicitLanguageVersion && version == other.version;
+  }
+
   @override
-  String toString() => 'ImplicitLanguageVersion()';
+  String toString() {
+    return 'ImplicitLanguageVersion(version=$version)';
+  }
 }

@@ -23,8 +23,11 @@ class _BroadcastSubscription<T> extends _ControllerSubscription<T> {
   _BroadcastSubscription<T>? _next;
   _BroadcastSubscription<T>? _previous;
 
-  _BroadcastSubscription(_StreamControllerLifecycle<T> controller,
-      void onData(T data)?, Function? onError, void onDone()?,
+  _BroadcastSubscription(
+      _StreamControllerLifecycle<T> controller,
+      void onData(T data)?,
+      Function? onError,
+      void onDone()?,
       bool cancelOnError)
       : super(controller, onData, onError, onDone, cancelOnError) {
     _next = _previous = this;
@@ -255,7 +258,10 @@ abstract class _BroadcastStreamController<T>
     if (replacement != null) {
       error = replacement.error;
       stackTrace = replacement.stackTrace;
+    } else {
+      stackTrace ??= AsyncError.defaultStackTrace(error);
     }
+    if (stackTrace == null) throw "unreachable"; // TODO(40088)
     _sendError(error, stackTrace);
   }
 
@@ -287,7 +293,7 @@ abstract class _BroadcastStreamController<T>
     _sendData(data);
   }
 
-  void _addError(Object error, StackTrace? stackTrace) {
+  void _addError(Object error, StackTrace stackTrace) {
     _sendError(error, stackTrace);
   }
 
@@ -374,7 +380,9 @@ class _SyncBroadcastStreamController<T> extends _BroadcastStreamController<T>
     if (_isEmpty) return;
     if (_hasOneListener) {
       _state |= _BroadcastStreamController._STATE_FIRING;
-      (_firstSubscription as _BroadcastSubscription<T>)._add(data);
+      _BroadcastSubscription<T> firstSubscription =
+          _firstSubscription as dynamic;
+      firstSubscription._add(data);
       _state &= ~_BroadcastStreamController._STATE_FIRING;
       if (_isEmpty) {
         _callOnCancel();
@@ -386,7 +394,7 @@ class _SyncBroadcastStreamController<T> extends _BroadcastStreamController<T>
     });
   }
 
-  void _sendError(Object error, StackTrace? stackTrace) {
+  void _sendError(Object error, StackTrace stackTrace) {
     if (_isEmpty) return;
     _forEachListener((_BufferingStreamSubscription<T> subscription) {
       subscription._addError(error, stackTrace);
@@ -419,7 +427,7 @@ class _AsyncBroadcastStreamController<T> extends _BroadcastStreamController<T> {
     }
   }
 
-  void _sendError(Object error, StackTrace? stackTrace) {
+  void _sendError(Object error, StackTrace stackTrace) {
     for (var subscription = _firstSubscription;
         subscription != null;
         subscription = subscription._next) {
@@ -480,6 +488,7 @@ class _AsBroadcastStreamController<T> extends _SyncBroadcastStreamController<T>
   void addError(Object error, [StackTrace? stackTrace]) {
     // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(error, "error");
+    stackTrace ??= AsyncError.defaultStackTrace(error);
     if (!isClosed && _isFiring) {
       _addPendingEvent(new _DelayedError(error, stackTrace));
       return;

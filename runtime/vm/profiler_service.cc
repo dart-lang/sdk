@@ -345,10 +345,9 @@ void ProfileCode::SetName(const char* name) {
   if (name == NULL) {
     name_ = NULL;
   }
-  intptr_t len = strlen(name);
-  name_ = Thread::Current()->zone()->Alloc<char>(len + 1);
+  intptr_t len = strlen(name) + 1;
+  name_ = Thread::Current()->zone()->Alloc<char>(len);
   strncpy(name_, name, len);
-  name_[len] = '\0';
 }
 
 void ProfileCode::GenerateAndSetSymbolName(const char* prefix) {
@@ -650,6 +649,7 @@ ProfileFunction* ProfileCode::SetFunctionAndName(ProfileFunctionTable* table) {
         uword dso_offset = start() - dso_base;
         Utils::SNPrint(&buff[0], kBuffSize - 1, "[Native] %s+0x%" Px, dso_name,
                        dso_offset);
+        NativeSymbolResolver::FreeSymbolName(dso_name);
       } else {
         Utils::SNPrint(&buff[0], kBuffSize - 1, "[Native] %" Px, start());
       }
@@ -1424,7 +1424,7 @@ class ProfileBuilder : public ValueObject {
     // We haven't seen this pc yet.
 
     // Check NativeSymbolResolver for pc.
-    uintptr_t native_start = 0;
+    uword native_start = 0;
     char* native_name =
         NativeSymbolResolver::LookupSymbolName(pc, &native_start);
     if (native_name == NULL) {

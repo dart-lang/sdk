@@ -4,7 +4,7 @@
 
 import 'dart:convert';
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
 var tests = <VMTest>[

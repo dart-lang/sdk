@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 import 'dart:io' show WebSocket;
 import 'dart:convert' show jsonDecode, jsonEncode;
@@ -135,7 +135,8 @@ var tests = <IsolateTest>[
               'id': request['id'],
               'error': {
                 'code': errorCode + iteration,
-                'data': {errorKey + end: errorValue + end}
+                'data': {errorKey + end: errorValue + end},
+                'message': 'error message',
               }
             });
       }).toList();
@@ -164,4 +165,7 @@ var tests = <IsolateTest>[
   },
 ];
 
-main(args) => runIsolateTests(args, tests);
+main(args) => runIsolateTests(
+      args,
+      tests,
+    );

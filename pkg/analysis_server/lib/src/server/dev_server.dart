@@ -39,16 +39,16 @@ class DevAnalysisServer {
   /// Return a future that will be completed with an exit code when analysis
   /// finishes.
   Future<int> processDirectories(List<String> directories) async {
-    final String bold = _terminalSupportsAnsi ? '\u001b[1m' : '';
-    final String none = _terminalSupportsAnsi ? '\u001b[0m' : '';
+    var bold = _terminalSupportsAnsi ? '\u001b[1m' : '';
+    var none = _terminalSupportsAnsi ? '\u001b[0m' : '';
 
     print('Analyzing ${directories.join(', ')}...');
 
-    Stopwatch timer = Stopwatch()..start();
+    var timer = Stopwatch()..start();
 
-    Completer<int> whenComplete = Completer();
+    var whenComplete = Completer<int>();
 
-    int exitCode = 0;
+    var exitCode = 0;
 
     void handleStatusNotification(Notification notification) {
       Map<String, dynamic> params = notification.params;
@@ -56,7 +56,7 @@ class DevAnalysisServer {
         bool isAnalyzing = params['analysis']['isAnalyzing'];
         if (!isAnalyzing) {
           timer.stop();
-          double seconds = timer.elapsedMilliseconds / 1000.0;
+          var seconds = timer.elapsedMilliseconds / 1000.0;
           print('Completed in ${seconds.toStringAsFixed(1)}s.');
           whenComplete.complete(exitCode);
         }
@@ -73,7 +73,7 @@ class DevAnalysisServer {
 
       filePath = path.relative(filePath);
 
-      for (Map error in errors) {
+      for (var error in errors) {
         if (error['type'] == 'TODO') {
           continue;
         }
@@ -115,7 +115,7 @@ class DevAnalysisServer {
       whenComplete.completeError(message);
     }
 
-    StreamSubscription<Notification> notificationSubscriptions =
+    var notificationSubscriptions =
         _channel.onNotification.listen((Notification notification) {
       if (notification.event == 'server.status') {
         handleStatusNotification(notification);
@@ -186,7 +186,7 @@ class DevChannel implements ServerCommunicationChannel {
   }
 
   Future<Response> sendRequest(Request request) {
-    Completer<Response> completer = Completer();
+    var completer = Completer<Response>();
     _responseCompleters[request.id] = completer;
     _requestController.add(request);
     return completer.future;
@@ -194,7 +194,7 @@ class DevChannel implements ServerCommunicationChannel {
 
   @override
   void sendResponse(Response response) {
-    Completer<Response> completer = _responseCompleters.remove(response.id);
+    var completer = _responseCompleters.remove(response.id);
     completer?.complete(response);
   }
 }

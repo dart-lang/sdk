@@ -1,0 +1,10 @@
+// @dart = 2.6
+abstract class I {
+  void call();
+}
+
+class C implements I {
+  void call([int x]) {}
+}
+
+main() {}

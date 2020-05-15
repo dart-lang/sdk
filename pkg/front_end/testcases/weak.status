@@ -13,12 +13,10 @@ extensions/static_access_of_instance: RuntimeError
 general_nnbd_opt_out/abstract_members: TypeCheckError
 general_nnbd_opt_out/accessors: RuntimeError
 general_nnbd_opt_out/ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
-general_nnbd_opt_out/argument_mismatch: InstrumentationMismatch # Test assumes Dart 1.0 semantics
 general_nnbd_opt_out/await_in_non_async: RuntimeError # Expected.
 general_nnbd_opt_out/bug21938: TypeCheckError
 general_nnbd_opt_out/bug30695: TypeCheckError
 general_nnbd_opt_out/bug31124: RuntimeError # Test has no main method (and we shouldn't add one).
-general_nnbd_opt_out/bug32629: InstrumentationMismatch # Test has an intentional error
 general_nnbd_opt_out/call: TypeCheckError
 general_nnbd_opt_out/candidate_found: TypeCheckError
 general_nnbd_opt_out/cascade: RuntimeError
@@ -26,7 +24,6 @@ general_nnbd_opt_out/constructor_initializer_invalid: RuntimeError # Fails execu
 general_nnbd_opt_out/covariant_generic: RuntimeError
 general_nnbd_opt_out/duplicated_declarations: TypeCheckError
 general_nnbd_opt_out/duplicated_field_initializer: RuntimeError
-general_nnbd_opt_out/dynamic_and_void: InstrumentationMismatch # Test assumes Dart 1.0 semantics
 general_nnbd_opt_out/error_locations/error_location_01: RuntimeError
 general_nnbd_opt_out/error_locations/error_location_02: RuntimeError
 general_nnbd_opt_out/error_locations/error_location_03: RuntimeError
@@ -35,7 +32,6 @@ general_nnbd_opt_out/error_locations/error_location_06: RuntimeError
 general_nnbd_opt_out/expressions: RuntimeError
 general_nnbd_opt_out/external_import: RuntimeError # The native extension to import doesn't exist. This is ok.
 general_nnbd_opt_out/incomplete_field_formal_parameter: RuntimeError
-general_nnbd_opt_out/invalid_type: TypeCheckError
 general_nnbd_opt_out/invocations: RuntimeError
 general_nnbd_opt_out/issue37776: RuntimeError
 general_nnbd_opt_out/issue38938: RuntimeError # no main and compile time errors.
@@ -62,8 +58,13 @@ general_nnbd_opt_out/type_variable_as_super: RuntimeError
 general_nnbd_opt_out/type_variable_bound_access: TypeCheckError
 general_nnbd_opt_out/unsound_promotion: TypeCheckError
 general_nnbd_opt_out/void_methods: RuntimeError
-general_nnbd_opt_out/warn_unresolved_sends: InstrumentationMismatch # Test assumes Dart 1.0 semantics
-nnbd/inheritance_from_opt_in: TypeCheckError
-nnbd/messages_with_types_opt_in: TypeCheckError
-nnbd/messages_with_types_opt_out: TypeCheckError
-nnbd/never_opt_out: TypeCheckError
+late_lowering/covariant_late_field: TypeCheckError
+nnbd/covariant_late_field: TypeCheckError
+nnbd/nullable_object_access: TypeCheckError
+nnbd/nullable_receiver: TypeCheckError
+nnbd/potentially_nullable_access: TypeCheckError
+nnbd_mixed/inheritance_from_opt_in: TypeCheckError
+nnbd_mixed/issue41567: TypeCheckError
+nnbd_mixed/messages_with_types_opt_in: TypeCheckError
+nnbd_mixed/messages_with_types_opt_out: TypeCheckError
+nnbd_mixed/never_opt_out: TypeCheckError

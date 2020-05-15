@@ -131,7 +131,7 @@ IsolateTest stoppedAtLine(int line) {
 
     // Make sure that the isolate has stopped.
     final isolate = await service.getIsolate(isolateRef.id);
-    expect(isolate.pauseEvent != EventKind.kResume, isTrue);
+    expect(isolate.pauseEvent.kind != EventKind.kResume, isTrue);
 
     final stack = await service.getStack(isolateRef.id);
 

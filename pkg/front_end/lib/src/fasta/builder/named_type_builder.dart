@@ -11,6 +11,7 @@ import 'package:kernel/ast.dart'
         Class,
         DartType,
         Extension,
+        InterfaceType,
         InvalidType,
         Supertype,
         TreeNode,
@@ -25,6 +26,7 @@ import '../fasta_codes.dart'
         Template,
         messageNotATypeContext,
         messageTypeVariableInStaticContext,
+        messageTypedefCause,
         noLength,
         templateExtendingRestricted,
         templateMissingExplicitTypeArguments,
@@ -220,17 +222,29 @@ class NamedTypeBuilder extends TypeBuilder {
         context: context);
   }
 
-  Supertype handleInvalidSupertype(
-      LibraryBuilder library, int charOffset, Uri fileUri) {
+  Supertype handleInvalidSupertype(LibraryBuilder library, int charOffset,
+      Uri fileUri, TypeAliasBuilder aliasBuilder) {
     Template<Message Function(String name)> template =
         declaration.isTypeVariable
             ? templateSupertypeIsTypeVariable
             : templateSupertypeIsIllegal;
-    library.addProblem(
-        template.withArguments(flattenName(name, charOffset, fileUri)),
-        charOffset,
-        noLength,
-        fileUri);
+    if (aliasBuilder != null) {
+      library.addProblem(
+          template.withArguments(flattenName(name, charOffset, fileUri)),
+          charOffset,
+          noLength,
+          fileUri,
+          context: [
+            messageTypedefCause.withLocation(
+                aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
+          ]);
+    } else {
+      library.addProblem(
+          template.withArguments(flattenName(name, charOffset, fileUri)),
+          charOffset,
+          noLength,
+          fileUri);
+    }
     return null;
   }
 
@@ -259,6 +273,7 @@ class NamedTypeBuilder extends TypeBuilder {
   Supertype buildSupertype(
       LibraryBuilder library, int charOffset, Uri fileUri) {
     TypeDeclarationBuilder declaration = this.declaration;
+    TypeAliasBuilder aliasBuilder; // Non-null if a type alias is used.
     if (declaration is ClassBuilder) {
       if (declaration.isNullClass && !library.mayImplementRestrictedTypes) {
         library.addProblem(
@@ -269,10 +284,11 @@ class NamedTypeBuilder extends TypeBuilder {
       }
       return declaration.buildSupertype(library, arguments);
     } else if (declaration is TypeAliasBuilder) {
-      TypeDeclarationBuilder declarationBuilder =
-          declaration.unaliasDeclaration;
-      if (declarationBuilder is ClassBuilder) {
-        return declarationBuilder.buildSupertype(library, arguments);
+      aliasBuilder = declaration;
+      DartType type =
+          declaration.buildType(library, library.nonNullableBuilder, arguments);
+      if (type is InterfaceType) {
+        return new Supertype(type.classNode, type.typeArguments);
       }
     } else if (declaration is InvalidTypeDeclarationBuilder) {
       library.addProblem(
@@ -283,18 +299,22 @@ class NamedTypeBuilder extends TypeBuilder {
           severity: Severity.error);
       return null;
     }
-    return handleInvalidSupertype(library, charOffset, fileUri);
+    return handleInvalidSupertype(library, charOffset, fileUri, aliasBuilder);
   }
 
   Supertype buildMixedInType(
       LibraryBuilder library, int charOffset, Uri fileUri) {
     TypeDeclarationBuilder declaration = this.declaration;
-    if (declaration is TypeAliasBuilder) {
-      TypeAliasBuilder aliasBuilder = declaration;
-      declaration = aliasBuilder.unaliasDeclaration;
-    }
+    TypeAliasBuilder aliasBuilder; // Non-null if a type alias is used.
     if (declaration is ClassBuilder) {
       return declaration.buildMixedInType(library, arguments);
+    } else if (declaration is TypeAliasBuilder) {
+      aliasBuilder = declaration;
+      DartType type =
+          declaration.buildType(library, library.nonNullableBuilder, arguments);
+      if (type is InterfaceType) {
+        return new Supertype(type.classNode, type.typeArguments);
+      }
     } else if (declaration is InvalidTypeDeclarationBuilder) {
       library.addProblem(
           declaration.message.messageObject,
@@ -303,9 +323,8 @@ class NamedTypeBuilder extends TypeBuilder {
           declaration.message.uri,
           severity: Severity.error);
       return null;
-    } else {
-      return handleInvalidSupertype(library, charOffset, fileUri);
     }
+    return handleInvalidSupertype(library, charOffset, fileUri, aliasBuilder);
   }
 
   TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution) {

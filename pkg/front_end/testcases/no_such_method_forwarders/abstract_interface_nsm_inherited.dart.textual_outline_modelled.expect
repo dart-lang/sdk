@@ -1,0 +1,11 @@
+abstract class I {
+  void foo();
+}
+
+class A {
+  dynamic noSuchMethod(Invocation i) {}
+}
+
+class B extends A implements I {}
+
+main() {}

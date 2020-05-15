@@ -223,9 +223,8 @@ abstract class Future<T> {
       if (result is Future<T>) {
         return result;
       } else {
-        if (result is! T)
-          throw "unreachable"; // TODO(lrn): Remove when type promotion works.
-        return new _Future<T>.value(result);
+        // TODO(40014): Remove cast when type promotion works.
+        return new _Future<T>.value(result as dynamic);
       }
     } catch (error, stackTrace) {
       var future = new _Future<T>();
@@ -257,8 +256,9 @@ abstract class Future<T> {
    *
    * Use [Completer] to create a future and complete it later.
    */
+  @pragma("vm:entry-point")
   factory Future.value([FutureOr<T>? value]) {
-    return new _Future<T>.immediate(value as FutureOr<T>);
+    return new _Future<T>.immediate(value == null ? value as dynamic : value);
   }
 
   /**
@@ -281,6 +281,7 @@ abstract class Future<T> {
         stackTrace = replacement.stackTrace;
       }
     }
+    stackTrace ??= AsyncError.defaultStackTrace(error);
     return new _Future<T>.immediateError(error, stackTrace);
   }
 
@@ -310,7 +311,7 @@ abstract class Future<T> {
    * later time that isn't necessarily after a known fixed duration.
    */
   factory Future.delayed(Duration duration, [FutureOr<T> computation()?]) {
-    if (computation == null && null is! T) {
+    if (computation == null && !typeAcceptsNull<T>()) {
       throw ArgumentError.value(
           null, "computation", "The type parameter is not nullable");
     }
@@ -363,13 +364,11 @@ abstract class Future<T> {
     final _Future<List<T>> result = new _Future<List<T>>();
     List<T?>? values; // Collects the values. Set to null on error.
     int remaining = 0; // How many futures are we waiting for.
-    Object? error; // The first error from a future.
-    StackTrace? stackTrace; // The stackTrace that came with the error.
+    late Object error; // The first error from a future.
+    late StackTrace stackTrace; // The stackTrace that came with the error.
 
     // Handle an error from any of the futures.
-    // TODO(jmesserly): use `void` return type once it can be inferred for the
-    // `then` call below.
-    handleError(theError, StackTrace? theStackTrace) {
+    void handleError(Object theError, StackTrace theStackTrace) {
       remaining--;
       List<T?>? valueList = values;
       if (valueList != null) {
@@ -392,7 +391,7 @@ abstract class Future<T> {
           stackTrace = theStackTrace;
         }
       } else if (remaining == 0 && !eagerError) {
-        result._completeError(error!, stackTrace);
+        result._completeError(error, stackTrace);
       }
     }
 
@@ -410,8 +409,6 @@ abstract class Future<T> {
               result._completeWithValue(List<T>.from(valueList));
             }
           } else {
-            // An error has occurred earlier.
-            assert(error != null);
             if (cleanUp != null && value != null) {
               // Ensure errors from cleanUp are uncaught.
               new Future.sync(() {
@@ -419,7 +416,9 @@ abstract class Future<T> {
               });
             }
             if (remaining == 0 && !eagerError) {
-              result._completeError(error!, stackTrace);
+              // If eagerError is false, and valueList is null, then
+              // error and stackTrace have been set in handleError above.
+              result._completeError(error, stackTrace);
             }
           }
         }, onError: handleError);
@@ -469,12 +468,14 @@ abstract class Future<T> {
    */
   static Future<T> any<T>(Iterable<Future<T>> futures) {
     var completer = new Completer<T>.sync();
-    var onValue = (T value) {
+    void onValue(T value) {
       if (!completer.isCompleted) completer.complete(value);
-    };
-    var onError = (Object error, StackTrace? stack) {
+    }
+
+    void onError(Object error, StackTrace stack) {
       if (!completer.isCompleted) completer.completeError(error, stack);
-    };
+    }
+
     for (var future in futures) {
       future.then(onValue, onError: onError);
     }
@@ -556,6 +557,7 @@ abstract class Future<T> {
           result.then(nextIteration, onError: doneSignal._completeError);
           return;
         }
+        // TODO(40014): Remove cast when type promotion works.
         keepGoing = result as bool;
       }
       doneSignal._complete(null);
@@ -648,7 +650,7 @@ abstract class Future<T> {
    */
   // The `Function` below stands for one of two types:
   // - (dynamic) -> FutureOr<T>
-  // - (dynamic, StackTrace?) -> FutureOr<T>
+  // - (dynamic, StackTrace) -> FutureOr<T>
   // Given that there is a `test` function that is usually used to do an
   // `isCheck` we should also expect functions that take a specific argument.
   Future<T> catchError(Function onError, {bool test(Object error)?});
@@ -918,14 +920,17 @@ abstract class Completer<T> {
 }
 
 // Helper function completing a _Future with error, but checking the zone
-// for error replacement first.
+// for error replacement and missing stack trace first.
 void _completeWithErrorCallback(
     _Future result, Object error, StackTrace? stackTrace) {
   AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
   if (replacement != null) {
     error = replacement.error;
     stackTrace = replacement.stackTrace;
+  } else {
+    stackTrace ??= AsyncError.defaultStackTrace(error);
   }
+  if (stackTrace == null) throw "unreachable"; // TODO(40088).
   result._completeError(error, stackTrace);
 }
 
@@ -936,6 +941,11 @@ void _asyncCompleteWithErrorCallback(
   if (replacement != null) {
     error = replacement.error;
     stackTrace = replacement.stackTrace;
+  } else {
+    stackTrace ??= AsyncError.defaultStackTrace(error);
+  }
+  if (stackTrace == null) {
+    throw "unreachable"; // TODO(lrn): Remove when type promotion works.
   }
   result._asyncCompleteError(error, stackTrace);
 }

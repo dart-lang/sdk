@@ -42,7 +42,7 @@ class FlutterNotificationOutlineTest extends AbstractAnalysisTest {
     }
     files.add(file);
     // set subscriptions
-    Request request =
+    var request =
         FlutterSetSubscriptionsParams(flutterSubscriptions).toRequest('0');
     handleSuccessfulRequest(request, handler: flutterHandler);
   }
@@ -93,27 +93,27 @@ class MyWidget extends StatelessWidget {
 ''';
     addTestFile(code);
     await prepareOutline();
-    FlutterOutline unitOutline = outline;
+    var unitOutline = outline;
 
-    FlutterOutline myWidgetOutline = unitOutline.children[0];
+    var myWidgetOutline = unitOutline.children[0];
     expect(myWidgetOutline.kind, FlutterOutlineKind.DART_ELEMENT);
     expect(myWidgetOutline.dartElement.name, 'MyWidget');
 
-    FlutterOutline buildOutline = myWidgetOutline.children[0];
+    var buildOutline = myWidgetOutline.children[0];
     expect(buildOutline.kind, FlutterOutlineKind.DART_ELEMENT);
     expect(buildOutline.dartElement.name, 'build');
 
-    FlutterOutline columnOutline = buildOutline.children[0];
+    var columnOutline = buildOutline.children[0];
     expect(columnOutline.kind, FlutterOutlineKind.NEW_INSTANCE);
     expect(columnOutline.className, 'Column');
     expect(columnOutline.children, hasLength(2));
 
-    FlutterOutline textOutlineA = columnOutline.children[0];
+    var textOutlineA = columnOutline.children[0];
     expect(textOutlineA.kind, FlutterOutlineKind.NEW_INSTANCE);
     expect(textOutlineA.className, 'Text');
     expect(textOutlineA.offset, code.indexOf("const Text('aaa')"));
 
-    FlutterOutline textOutlineB = columnOutline.children[1];
+    var textOutlineB = columnOutline.children[1];
     expect(textOutlineB.kind, FlutterOutlineKind.NEW_INSTANCE);
     expect(textOutlineB.className, 'Text');
     expect(textOutlineB.offset, code.indexOf("const Text('bbb')"));

@@ -1,0 +1,58 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/ambiguous_builder_01.dart:5:1: Error: A function declaration needs an explicit list of parameters.
+// Try adding a parameter list to the function declaration.
+// x.y = 42;
+// ^
+//
+// pkg/front_end/testcases/regress/ambiguous_builder_01.dart:5:2: Error: Expected '{' before this.
+// x.y = 42;
+//  ^
+//
+// pkg/front_end/testcases/regress/ambiguous_builder_01.dart:5:2: Error: Expected a declaration, but got '.'.
+// x.y = 42;
+//  ^
+//
+// pkg/front_end/testcases/regress/ambiguous_builder_01.dart:5:3: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// x.y = 42;
+//   ^
+//
+// pkg/front_end/testcases/regress/ambiguous_builder_01.dart:6:1: Error: A function declaration needs an explicit list of parameters.
+// Try adding a parameter list to the function declaration.
+// x.z = true;
+// ^
+//
+// pkg/front_end/testcases/regress/ambiguous_builder_01.dart:6:2: Error: Expected '{' before this.
+// x.z = true;
+//  ^
+//
+// pkg/front_end/testcases/regress/ambiguous_builder_01.dart:6:1: Error: 'x' is already declared in this scope.
+// x.z = true;
+// ^
+// pkg/front_end/testcases/regress/ambiguous_builder_01.dart:5:1: Context: Previous declaration of 'x'.
+// x.y = 42;
+// ^
+//
+// pkg/front_end/testcases/regress/ambiguous_builder_01.dart:6:2: Error: Expected a declaration, but got '.'.
+// x.z = true;
+//  ^
+//
+// pkg/front_end/testcases/regress/ambiguous_builder_01.dart:6:3: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// x.z = true;
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+
+static field core::int* y;
+static field core::bool* z;
+static method x() → dynamic
+  ;
+static method foo() → void
+  ;
+static method main() → dynamic
+  ;

@@ -8,7 +8,6 @@
 #include "vm/cpu.h"
 #include "vm/cpu_arm.h"
 
-#include "vm/compiler/assembler/assembler.h"
 #include "vm/cpuinfo.h"
 #include "vm/heap/heap.h"
 #include "vm/isolate.h"
@@ -200,6 +199,8 @@ void HostCPUFeatures::Init() {
   bool is_krait = CpuInfo::FieldContains(kCpuInfoHardware, "QCT APQ8064");
   bool is_armada_370xp =
       CpuInfo::FieldContains(kCpuInfoHardware, "Marvell Armada 370/XP");
+  bool is_virtual_machine =
+      CpuInfo::FieldContains(kCpuInfoHardware, "Dummy Virtual Machine");
 #if defined(HOST_OS_ANDROID)
   bool is_android = true;
 #else
@@ -216,6 +217,10 @@ void HostCPUFeatures::Init() {
     // TODO(29270): /proc/self/auxv might be more reliable here.
     integer_division_supported_ = false;
   } else if (is_armada_370xp) {
+    integer_division_supported_ = false;
+  } else if (is_android && !is_arm64 && is_virtual_machine) {
+    // Some Android ARM emulators claim support for integer division in
+    // /proc/cpuinfo but do not actually support it.
     integer_division_supported_ = false;
   } else {
     integer_division_supported_ =

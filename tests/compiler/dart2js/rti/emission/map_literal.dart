@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*strong.class: global#Map:instance*/
+// @dart = 2.7
+
+/*spec:nnbd-off.class: global#Map:instance*/
 
 /*class: global#LinkedHashMap:*/
 /*class: global#JsLinkedHashMap:checks=[],instance*/
 
-/*strong.class: global#double:checkedInstance,checks=[],instance,typeArgument*/
+/*spec:nnbd-off.class: global#double:checkedInstance,checks=[],instance,typeArgument*/
 
 /*class: global#JSDouble:checks=[],instance*/
 

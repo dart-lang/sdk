@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /// Test that the expected output targets are generated for various compiler
 /// options.
 
@@ -19,6 +21,8 @@ import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:compiler/src/inferrer/debug.dart' show PRINT_GRAPH;
 import 'package:compiler/src/tracer.dart' show TRACE_FILTER_PATTERN_FOR_TEST;
 import 'package:expect/expect.dart';
+
+import '../helpers/memory_compiler.dart';
 
 class TestRandomAccessFileOutputProvider implements CompilerOutput {
   final RandomAccessFileOutputProvider provider;
@@ -42,7 +46,8 @@ CompileFunc oldCompileFunc;
 Future<Null> test(List<String> arguments, List<String> expectedOutput,
     {List<String> groupOutputs: const <String>[]}) async {
   List<String> options = new List<String>.from(arguments)
-    ..add("--libraries-spec=${Uri.base.resolve('sdk/lib/libraries.json')}");
+    ..add("--platform-binaries=$sdkPlatformBinariesPath")
+    ..add("--libraries-spec=$sdkLibrariesSpecificationUri");
   print('--------------------------------------------------------------------');
   print('dart2js ${options.join(' ')}');
   TestRandomAccessFileOutputProvider outputProvider;
@@ -88,7 +93,7 @@ main() {
       'custom.js_1.part.js', 'custom.js_1.part.js.map',
       'def/deferred.json', // From --deferred-map
       'custom.js.info.json', // From --dump-info
-      'dart.cfg', // From TRACE_FILTER_PATTERN_FOR_TEST
+      'custom.js.cfg', // From TRACE_FILTER_PATTERN_FOR_TEST
     ], groupOutputs: [
       '.dot', // From PRINT_GRAPH
     ]);

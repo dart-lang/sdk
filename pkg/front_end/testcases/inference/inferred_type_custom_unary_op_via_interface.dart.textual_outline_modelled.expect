@@ -1,0 +1,12 @@
+library test;
+
+C c;
+
+abstract class C implements I {}
+
+class I {
+  bool operator -() => true;
+}
+
+main() {}
+var x = -c;

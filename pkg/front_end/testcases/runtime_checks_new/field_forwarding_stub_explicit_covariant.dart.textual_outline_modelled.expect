@@ -1,0 +1,13 @@
+library test;
+
+class B {
+  covariant num x;
+}
+
+class C {
+  int x;
+}
+
+class D extends C implements B {}
+
+void main() {}

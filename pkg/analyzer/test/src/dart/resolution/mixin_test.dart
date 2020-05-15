@@ -144,7 +144,7 @@ mixin M {}
     expect(element.isEnum, isFalse);
     expect(element.isMixin, isTrue);
     expect(element.isMixinApplication, isFalse);
-    expect(interfaceTypeStar(element).isObject, isFalse);
+    expect(interfaceTypeStar(element).isDartCoreObject, isFalse);
     expect(element.isDartCoreObject, isFalse);
 
     assertElementTypes(element.superclassConstraints, [objectType]);
@@ -369,7 +369,7 @@ mixin M {
   int get M => 0;
 }
 ''', [
-      error(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, 20, 1),
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 20, 1),
     ]);
   }
 
@@ -379,7 +379,7 @@ mixin M {
   static int get M => 0;
 }
 ''', [
-      error(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, 27, 1),
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 27, 1),
     ]);
   }
 
@@ -389,7 +389,7 @@ mixin M {
   void set M(_) {}
 }
 ''', [
-      error(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, 21, 1),
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 21, 1),
     ]);
   }
 
@@ -399,7 +399,7 @@ mixin M {
   static void set M(_) {}
 }
 ''', [
-      error(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, 28, 1),
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 28, 1),
     ]);
   }
 
@@ -1024,150 +1024,6 @@ mixin M implements A, B {} // M
 
     var bRef = findNode.typeName('B {} // M');
     assertTypeName(bRef, findElement.class_('B'), 'B');
-  }
-
-  test_inconsistentInheritance_implements_parameterType() async {
-    await assertErrorsInCode(r'''
-abstract class A {
-  x(int i);
-}
-abstract class B {
-  x(String s);
-}
-mixin M implements A, B {}
-''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 75, 1),
-    ]);
-  }
-
-  test_inconsistentInheritance_implements_requiredParameters() async {
-    await assertErrorsInCode(r'''
-abstract class A {
-  x();
-}
-abstract class B {
-  x(int y);
-}
-mixin M implements A, B {}
-''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 67, 1),
-    ]);
-  }
-
-  test_inconsistentInheritance_implements_returnType() async {
-    await assertErrorsInCode(r'''
-abstract class A {
-  int x();
-}
-abstract class B {
-  String x();
-}
-mixin M implements A, B {}
-''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 73, 1),
-    ]);
-  }
-
-  test_inconsistentInheritance_on_parameterType() async {
-    await assertErrorsInCode(r'''
-abstract class A {
-  x(int i);
-}
-abstract class B {
-  x(String s);
-}
-mixin M on A, B {}
-''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 75, 1),
-    ]);
-  }
-
-  test_inconsistentInheritance_on_requiredParameters() async {
-    await assertErrorsInCode(r'''
-abstract class A {
-  x();
-}
-abstract class B {
-  x(int y);
-}
-mixin M on A, B {}
-''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 67, 1),
-    ]);
-  }
-
-  test_inconsistentInheritance_on_returnType() async {
-    await assertErrorsInCode(r'''
-abstract class A {
-  int x();
-}
-abstract class B {
-  String x();
-}
-mixin M on A, B {}
-''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 73, 1),
-    ]);
-  }
-
-  test_inconsistentInheritanceGetterAndMethod_implements_getter_method() async {
-    await assertErrorsInCode(r'''
-abstract class A {
-  int get x;
-}
-abstract class B {
-  int x();
-}
-mixin M implements A, B {}
-''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD, 72,
-          1),
-    ]);
-  }
-
-  test_inconsistentInheritanceGetterAndMethod_implements_method_getter() async {
-    await assertErrorsInCode(r'''
-abstract class A {
-  int x();
-}
-abstract class B {
-  int get x;
-}
-mixin M implements A, B {}
-''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD, 72,
-          1),
-    ]);
-  }
-
-  test_inconsistentInheritanceGetterAndMethod_on_getter_method() async {
-    await assertErrorsInCode(r'''
-abstract class A {
-  int get x;
-}
-abstract class B {
-  int x();
-}
-mixin M implements A, B {}
-''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD, 72,
-          1),
-    ]);
-  }
-
-  test_inconsistentInheritanceGetterAndMethod_on_method_getter() async {
-    await assertErrorsInCode(r'''
-abstract class A {
-  int x();
-}
-abstract class B {
-  int get x;
-}
-mixin M implements A, B {}
-''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD, 72,
-          1),
-    ]);
   }
 
   test_invalid_unresolved_before_mixin() async {

@@ -20,11 +20,11 @@ class A<X> {
 }
 
 class C<T> {
-  FutureOr<T> baz<X extends FutureOr<T>>(FutureOr<T> x) {}
+  FutureOr<T> baz<X extends FutureOr<T>>(FutureOr<T> x) => x;
 }
 
 class D<T> extends C<T> {
-  FutureOr<T> baz<X extends FutureOr<T>>(FutureOr<T> x) {}
+  FutureOr<T> baz<X extends FutureOr<T>>(FutureOr<T> x) => x;
 }
 
 main() {}

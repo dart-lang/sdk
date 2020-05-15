@@ -1,0 +1,5 @@
+library test;
+
+String f() => null;
+var g = f;
+main() {}

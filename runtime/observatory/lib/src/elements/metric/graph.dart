@@ -5,7 +5,6 @@
 import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M;
-import 'package:charted/charted.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 
@@ -54,11 +53,6 @@ class MetricGraphElement extends CustomElement implements Renderable {
     children = <Element>[];
     _timer.cancel();
   }
-
-  final _columns = [
-    new ChartColumnSpec(label: 'Time', type: ChartColumnSpec.TYPE_TIMESTAMP),
-    new ChartColumnSpec(label: 'Value', formatter: (v) => v.toString())
-  ];
 
   void render() {
     final min = _metrics.getMinValue(_isolate, _metric);
@@ -117,18 +111,9 @@ class MetricGraphElement extends CustomElement implements Renderable {
                       ..text = '$max'
                   ]
         ],
-      new DivElement()
-        ..classes = ['graph']
-        ..children = <Element>[host]
     ];
     if (rows.length <= 1) {
       return;
     }
-    final rect = host.getBoundingClientRect();
-    var series = new ChartSeries("one", [1], new LineChartRenderer());
-    var config = new ChartConfig([series], [0]);
-    config.minimumSize = new Rect(rect.width, rect.height);
-    final data = new ChartData(_columns, rows);
-    new CartesianArea(host, data, config, state: new ChartState()).draw();
   }
 }

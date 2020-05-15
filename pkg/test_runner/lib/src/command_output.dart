@@ -8,13 +8,16 @@ import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:status_file/expectation.dart';
+import 'package:test_runner/src/repository.dart';
 import 'package:test_runner/src/static_error.dart';
 import 'package:dart2js_tools/deobfuscate_stack_trace.dart';
 
 import 'browser_controller.dart';
 import 'command.dart';
 import 'configuration.dart';
+import 'path.dart';
 import 'process_queue.dart';
+import 'terminal.dart';
 import 'test_case.dart';
 import 'test_progress.dart';
 import 'utils.dart';
@@ -448,52 +451,114 @@ class BrowserCommandOutput extends CommandOutput
   }
 }
 
+/// A parsed analyzer error diagnostic.
+class AnalyzerError implements Comparable<AnalyzerError> {
+  /// Parses all errors from analyzer [stderr] output.
+  static Iterable<AnalyzerError> parseStderr(String stderr) sync* {
+    for (var outputLine in stderr.split("\n")) {
+      var error = _tryParse(outputLine);
+      if (error != null) yield error;
+    }
+  }
+
+  static AnalyzerError _tryParse(String line) {
+    if (line.isEmpty) return null;
+
+    // Split and unescape the fields.
+    // The escaping is implemented in:
+    // pkg/analyzer_cli/lib/src/error_formatter.dart#L392
+    var fields = <String>[];
+    var field = StringBuffer();
+    var inEscape = false;
+    for (var i = 0; i < line.length; i++) {
+      var c = line[i];
+
+      if (inEscape) {
+        switch (c) {
+          case '\\':
+            field.write('\\');
+            break;
+          case '|':
+            field.write('|');
+            break;
+          case 'n':
+            field.write('\n');
+            break;
+          // TODO(rnystrom): Are there other escapes?
+          default:
+            field.write(c);
+            break;
+        }
+
+        inEscape = false;
+      } else if (c == '\\') {
+        inEscape = true;
+      } else if (c == '|') {
+        fields.add(field.toString());
+        field = StringBuffer();
+      } else {
+        field.write(c);
+      }
+    }
+
+    // Add the last field.
+    fields.add(field.toString());
+
+    // Lines without enough fields are other output we don't care about.
+    if (fields.length < 8) return null;
+
+    return AnalyzerError._(
+        severity: fields[0],
+        errorCode: "${fields[1]}.${fields[2]}",
+        file: fields[3],
+        message: fields[7],
+        line: int.parse(fields[4]),
+        column: int.parse(fields[5]),
+        length: int.parse(fields[6]));
+  }
+
+  final String severity;
+  final String errorCode;
+  final String file;
+  final String message;
+  final int line;
+  final int column;
+  final int length;
+
+  AnalyzerError._(
+      {this.severity,
+      this.errorCode,
+      this.file,
+      this.message,
+      this.line,
+      this.column,
+      this.length});
+
+  @override
+  int compareTo(AnalyzerError other) {
+    if (severity != other.severity) return severity.compareTo(other.severity);
+    if (file != other.file) return file.compareTo(other.file);
+    if (line != other.line) return line.compareTo(other.line);
+    if (column != other.column) return column.compareTo(other.column);
+    if (length != other.length) return length.compareTo(other.length);
+    if (errorCode != other.errorCode) {
+      return errorCode.compareTo(other.errorCode);
+    }
+    return message.compareTo(other.message);
+  }
+}
+
 class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
   static void parseErrors(String stderr, List<StaticError> errors,
       [List<StaticError> warnings]) {
-    List<String> splitMachineError(String line) {
-      var field = StringBuffer();
-      var result = <String>[];
-      var escaped = false;
-      for (var i = 0; i < line.length; i++) {
-        var c = line[i];
-        if (!escaped && c == '\\') {
-          escaped = true;
-          continue;
-        }
-        escaped = false;
-        if (c == '|') {
-          result.add(field.toString());
-          field = StringBuffer();
-          continue;
-        }
-        field.write(c);
-      }
-      result.add(field.toString());
-      return result;
-    }
+    for (var error in AnalyzerError.parseStderr(stderr)) {
+      var staticError = StaticError({ErrorSource.analyzer: error.errorCode},
+          line: error.line, column: error.column, length: error.length);
 
-    for (var line in stderr.split("\n")) {
-      if (line.isEmpty) continue;
-
-      var fields = splitMachineError(line);
-
-      // Lines without enough fields are other output we don't care about.
-      if (fields.length >= 8) {
-        var severity = fields[0];
-        var errorCode = "${fields[1]}.${fields[2]}";
-        var line = int.parse(fields[4]);
-        var column = int.parse(fields[5]);
-        var length = int.parse(fields[6]);
-
-        var error = StaticError(
-            line: line, column: column, length: length, code: errorCode);
-
-        if (severity == 'ERROR') {
-          errors.add(error);
-        } else if (severity == 'WARNING') {
-          warnings?.add(error);
-        }
+      if (error.severity == 'ERROR') {
+        errors.add(staticError);
+      } else if (error.severity == 'WARNING') {
+        warnings?.add(staticError);
       }
     }
   }
@@ -575,6 +640,44 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
       return Expectation.staticWarning;
     }
     return Expectation.pass;
+  }
+
+  @override
+  void describe(TestCase testCase, Progress progress, OutputWriter output) {
+    // Handle static error test output specially. We don't want to show the raw
+    // stdout if we can give the user the parsed expectations instead.
+    if (testCase.testFile.isStaticErrorTest || hasCrashed || hasTimedOut) {
+      super.describe(testCase, progress, output);
+    } else {
+      output.subsection("unexpected analysis errors");
+
+      var errorsByFile = <String, List<AnalyzerError>>{};
+
+      // Parse and sort the errors.
+      for (var error in AnalyzerError.parseStderr(decodeUtf8(stderr))) {
+        errorsByFile.putIfAbsent(error.file, () => []).add(error);
+      }
+
+      var files = errorsByFile.keys.toList();
+      files.sort();
+
+      for (var file in files) {
+        var path = Path(file).relativeTo(Repository.dir).toString();
+        output.write("In $path:");
+
+        var errors = errorsByFile[file];
+        errors.sort();
+
+        for (var error in errors) {
+          var line = error.line.toString();
+          var column = error.column.toString();
+          var message = wordWrap(error.message.trim(), prefix: "  ");
+          output.write("- Line $line, column $column: ${error.errorCode}");
+          output.write("  $message");
+          output.separator();
+        }
+      }
+    }
   }
 
   /// Parses the machine-readable output of analyzer, which looks like:
@@ -696,6 +799,7 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
   static const _compileErrorExitCode = 254;
   static const _uncaughtExceptionExitCode = 255;
   static const _adbInfraFailureCodes = [10];
+  static const _ubsanFailureExitCode = 1;
 
   VMCommandOutput(Command command, int exitCode, bool timedOut,
       List<int> stdout, List<int> stderr, Duration time, int pid)
@@ -751,6 +855,10 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
     // The actual outcome depends on the exitCode.
     if (exitCode == _compileErrorExitCode) return Expectation.compileTimeError;
     if (exitCode == _uncaughtExceptionExitCode) return Expectation.runtimeError;
+    if ((exitCode == _ubsanFailureExitCode) &&
+        (testCase.configuration.sanitizer == Sanitizer.ubsan)) {
+      return Expectation.fail;
+    }
     if (exitCode != 0) {
       var ourExit = 5;
       // Unknown nonzero exit code from vm command.
@@ -1074,7 +1182,8 @@ class FastaCommandOutput extends CompilationCommandOutput
       var line = int.parse(match.group(2));
       var column = int.parse(match.group(3));
       var message = match.group(4);
-      errors.add(StaticError(line: line, column: column, message: message));
+      errors.add(
+          StaticError({ErrorSource.cfe: message}, line: line, column: column));
     }
   }
 
@@ -1201,10 +1310,11 @@ mixin _StaticErrorOutput on CommandOutput {
   Expectation _validateExpectedErrors(TestCase testCase,
       [OutputWriter writer]) {
     // Filter out errors that aren't for this configuration.
-    var expected = testCase.testFile.expectedErrors.where((error) =>
-        testCase.configuration.compiler == Compiler.dart2analyzer
-            ? error.isAnalyzer
-            : error.isCfe);
+    var errorSource = testCase.configuration.compiler == Compiler.dart2analyzer
+        ? ErrorSource.analyzer
+        : ErrorSource.cfe;
+    var expected = testCase.testFile.expectedErrors
+        .where((error) => error.hasError(errorSource));
 
     var validation = StaticError.validateExpectations(
       expected,

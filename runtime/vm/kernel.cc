@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/kernel.h"
 
 #include "vm/bit_vector.h"
@@ -14,7 +16,6 @@
 #include "vm/parser.h"  // For Parser::kParameter* constants.
 #include "vm/stack_frame.h"
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 namespace kernel {
@@ -204,7 +205,7 @@ static int LowestFirst(const intptr_t* a, const intptr_t* b) {
  * possibly contain duplicate and unsorted data at the end.
  * Otherwise (when sublist doesn't exist in list) return new empty array.
  */
-static RawArray* AsSortedDuplicateFreeArray(GrowableArray<intptr_t>* source) {
+static ArrayPtr AsSortedDuplicateFreeArray(GrowableArray<intptr_t>* source) {
   intptr_t size = source->length();
   if (size == 0) {
     return Object::empty_array().raw();
@@ -299,7 +300,7 @@ static void CollectBytecodeFunctionTokenPositions(
       object = pool.ObjectAt(i);
       if (object.IsFunction()) {
         closure ^= object.raw();
-        if (closure.kind() == RawFunction::kClosureFunction &&
+        if (closure.kind() == FunctionLayout::kClosureFunction &&
             closure.IsLocalFunction()) {
           CollectTokenPosition(closure.token_pos(), token_positions);
           CollectTokenPosition(closure.end_token_pos(), token_positions);
@@ -491,8 +492,8 @@ class MetadataEvaluator : public KernelReaderHelper {
                            data_program_offset),
         constant_reader_(this, active_class) {}
 
-  RawObject* EvaluateMetadata(intptr_t kernel_offset,
-                              bool is_annotations_offset) {
+  ObjectPtr EvaluateMetadata(intptr_t kernel_offset,
+                             bool is_annotations_offset) {
     SetOffset(kernel_offset);
 
     // Library and LibraryDependency objects do not have a tag in kernel binary.
@@ -527,8 +528,8 @@ class MetadataEvaluator : public KernelReaderHelper {
   DISALLOW_COPY_AND_ASSIGN(MetadataEvaluator);
 };
 
-RawObject* EvaluateMetadata(const Field& metadata_field,
-                            bool is_annotations_offset) {
+ObjectPtr EvaluateMetadata(const Field& metadata_field,
+                           bool is_annotations_offset) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     Thread* thread = Thread::Current();
@@ -569,7 +570,7 @@ class ParameterDescriptorBuilder : public KernelReaderHelper {
                            data_program_offset),
         constant_reader_(this, active_class) {}
 
-  RawObject* BuildParameterDescriptor(const Function& function);
+  ObjectPtr BuildParameterDescriptor(const Function& function);
 
  private:
   ConstantReader constant_reader_;
@@ -577,7 +578,7 @@ class ParameterDescriptorBuilder : public KernelReaderHelper {
   DISALLOW_COPY_AND_ASSIGN(ParameterDescriptorBuilder);
 };
 
-RawObject* ParameterDescriptorBuilder::BuildParameterDescriptor(
+ObjectPtr ParameterDescriptorBuilder::BuildParameterDescriptor(
     const Function& function) {
   SetOffset(function.kernel_offset());
   ReadUntilFunctionNode();
@@ -637,7 +638,7 @@ RawObject* ParameterDescriptorBuilder::BuildParameterDescriptor(
   return param_descriptor.raw();
 }
 
-RawObject* BuildParameterDescriptor(const Function& function) {
+ObjectPtr BuildParameterDescriptor(const Function& function) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     Thread* thread = Thread::Current();
@@ -756,7 +757,8 @@ bool NeedsDynamicInvocationForwarder(const Function& function) {
     for (intptr_t i = 0, n = type_params.Length(); i < n; ++i) {
       type_param ^= type_params.TypeAt(i);
       bound = type_param.bound();
-      if (!bound.IsTopType() && !type_param.IsGenericCovariantImpl()) {
+      if (!bound.IsTopTypeForSubtyping() &&
+          !type_param.IsGenericCovariantImpl()) {
         return true;
       }
     }
@@ -770,7 +772,7 @@ bool NeedsDynamicInvocationForwarder(const Function& function) {
   auto& type = AbstractType::Handle(zone);
   for (intptr_t i = function.NumImplicitParameters(); i < num_params; ++i) {
     type = function.ParameterTypeAt(i);
-    if (!type.IsTopTypeForAssignability() &&
+    if (!type.IsTopTypeForSubtyping() &&
         !is_generic_covariant_impl.Contains(i) && !is_covariant.Contains(i)) {
       return true;
     }

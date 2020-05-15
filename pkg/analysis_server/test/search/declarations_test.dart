@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -136,7 +135,7 @@ mixin M {
     expect(declarationsResult.files, contains(b));
 
     {
-      ElementDeclaration declaration =
+      var declaration =
           declarationsResult.declarations.singleWhere((d) => d.name == 'A');
       expect(declaration.name, 'A');
       expect(declaration.kind, ElementKind.CLASS);
@@ -147,7 +146,7 @@ mixin M {
     }
 
     {
-      ElementDeclaration declaration =
+      var declaration =
           declarationsResult.declarations.singleWhere((d) => d.name == 'B');
       expect(declaration.name, 'B');
       expect(declaration.kind, ElementKind.CLASS);
@@ -176,7 +175,7 @@ void f(bool a, String b) {}
 ''');
     await _getDeclarations();
 
-    ElementDeclaration declaration = assertHas('f', ElementKind.FUNCTION);
+    var declaration = assertHas('f', ElementKind.FUNCTION);
     expect(declaration.parameters, '(bool a, String b)');
   }
 
@@ -216,10 +215,10 @@ typedef tf2<T> = int Function<S>(T tp, S sp);
 
   Future<void> _getDeclarations(
       {String file, String pattern, int maxResults}) async {
-    Request request = SearchGetElementDeclarationsParams(
+    var request = SearchGetElementDeclarationsParams(
             file: file, pattern: pattern, maxResults: maxResults)
         .toRequest('0');
-    Response response = await waitResponse(request);
+    var response = await waitResponse(request);
 
     declarationsResult =
         SearchGetElementDeclarationsResult.fromResponse(response);

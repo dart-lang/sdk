@@ -22,18 +22,18 @@ library;
 // type T = Map<A, B>
 //              ^
 //
-// pkg/front_end/testcases/regress/issue_31188.dart:7:13: Error: The method '<' isn't defined for the class 'Type'.
+// pkg/front_end/testcases/regress/issue_31188.dart:7:13: Error: The operator '<' isn't defined for the class 'Type'.
 //  - 'Type' is from 'dart:core'.
-// Try correcting the name to the name of an existing method, or defining a method named '<'.
+// Try correcting the operator to an existing operator, or defining a '<' operator.
 // type T = Map<A, B>
 //             ^
 //
 import self as self;
 
-static field invalid-type T = invalid-expression "pkg/front_end/testcases/regress/issue_31188.dart:7:13: Error: The method '<' isn't defined for the class 'Type'.
+static field invalid-type T = invalid-expression "pkg/front_end/testcases/regress/issue_31188.dart:7:13: Error: The operator '<' isn't defined for the class 'Type'.
  - 'Type' is from 'dart:core'.
-Try correcting the name to the name of an existing method, or defining a method named '<'.
+Try correcting the operator to an existing operator, or defining a '<' operator.
 type T = Map<A, B>
-            ^" as{TypeError,ForDynamic} invalid-type;
+            ^";
 static field invalid-type B;
 static method main() → dynamic {}

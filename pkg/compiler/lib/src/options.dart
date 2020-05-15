@@ -42,11 +42,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// The entry point of the application that is being compiled.
   Uri entryPoint;
 
-  /// Package root location.
-  ///
-  /// If not null then [packageConfig] should be null.
-  Uri packageRoot;
-
   /// Location of the package configuration file.
   ///
   /// If not null then [packageRoot] should be null.
@@ -204,6 +199,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// after a transitional period.
   bool useDumpInfoBinaryFormat = false;
 
+  /// If set, SSA intermediate form is dumped for methods with names matching
+  /// this RegExp pattern.
+  String dumpSsaPattern = null;
+
   /// Whether we allow passing an extra argument to `assert`, containing a
   /// reason for why an assertion fails. (experimental)
   ///
@@ -263,6 +262,14 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to omit class type arguments only needed for `toString` on
   /// `Object.runtimeType`.
   bool laxRuntimeTypeToString = false;
+
+  /// Whether to restrict the generated JavaScript to features that work on the
+  /// oldest supported versions of JavaScript. This currently means IE11. If
+  /// `true`, the generated code runs on the legacy JavaScript platform. If
+  /// `false`, the code will fail on the legacy JavaScript platform.
+  bool legacyJavaScript = true; // default value.
+  bool _legacyJavaScript = false;
+  bool _noLegacyJavaScript = false;
 
   /// What should the compiler do with parameter type assertions.
   ///
@@ -327,21 +334,24 @@ class CompilerOptions implements DiagnosticOptions {
   bool experimentCallInstrumentation = false;
 
   /// Whether to use the new RTI representation (default).
-  bool useNewRti = true;
+  final bool useNewRti = true;
 
-  /// Whether null-safety (non-nullable types) are enabled.
-  bool get useNullSafety =>
-      languageExperiments[fe.ExperimentalFlag.nonNullable];
+  /// Whether null-safety (non-nullable types) are enabled in the sdk.
+  ///
+  /// This may be true either when `--enable-experiment=non-nullable` is
+  /// provided on the command-line, or when the provided .dill file for the sdk
+  /// was built with null-safety enabled.
+  bool useNullSafety = false;
 
   /// When null-safety is enabled, whether the compiler should emit code with
   /// weak or strong semantics.
-  bool _useWeakNullSafetySemantics = true;
+  bool useWeakNullSafetySemantics = true;
 
   /// Whether to use legacy subtype semantics rather than null-safe semantics.
   /// This is `true` if null-safety is disabled, i.e. all code is legacy code,
   /// or if weak null-safety semantics are being used, since we do not emit
   /// warnings.
-  bool get useLegacySubtyping => !useNullSafety || _useWeakNullSafetySemantics;
+  bool get useLegacySubtyping => !useNullSafety || useWeakNullSafetySemantics;
 
   /// The path to the file that contains the profiled allocations.
   ///
@@ -373,22 +383,11 @@ class CompilerOptions implements DiagnosticOptions {
       void Function(String) onWarning}) {
     Map<fe.ExperimentalFlag, bool> languageExperiments =
         _extractExperiments(options, onError: onError, onWarning: onWarning);
-    if (equalMaps(languageExperiments, fe.defaultExperimentalFlags)) {
-      platformBinaries ??= fe.computePlatformBinariesLocation();
-    } else {
-      // TODO(sigmund): change these defaults before we unfork the sdk.
-      // To unfork the plan is to accept the same platform files regardless of
-      // the experiment flag (it will be enabled in the sdk regardless).
-      if (_hasOption(options, Flags.testMode) &&
-          languageExperiments[fe.ExperimentalFlag.nonNullable]) {
-        var experimentWithoutNullability = Map.of(languageExperiments);
-        experimentWithoutNullability[fe.ExperimentalFlag.nonNullable] = false;
-        if (equalMaps(
-            experimentWithoutNullability, fe.defaultExperimentalFlags)) {
-          platformBinaries ??= fe.computePlatformBinariesLocation();
-        }
-      }
-    }
+
+    // The null safety experiment can result in requiring different experiments
+    // for compiling user code vs. the sdk. To simplify things, we prebuild the
+    // sdk with the correct flags.
+    platformBinaries ??= fe.computePlatformBinariesLocation();
     return new CompilerOptions()
       ..librariesSpecificationUri = librariesSpecificationUri
       ..allowMockCompilation = _hasOption(options, Flags.allowMockCompilation)
@@ -420,6 +419,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..dumpInfo = _hasOption(options, Flags.dumpInfo)
       ..useDumpInfoBinaryFormat =
           _hasOption(options, "${Flags.dumpInfo}=binary")
+      ..dumpSsaPattern =
+          _extractStringOption(options, '${Flags.dumpSsa}=', null)
       ..enableMinification = _hasOption(options, Flags.minify)
       .._disableMinification = _hasOption(options, Flags.noMinify)
       ..enableNativeLiveTypeAnalysis =
@@ -435,17 +436,17 @@ class CompilerOptions implements DiagnosticOptions {
       ..experimentToBoolean = _hasOption(options, Flags.experimentToBoolean)
       ..experimentCallInstrumentation =
           _hasOption(options, Flags.experimentCallInstrumentation)
-      ..useNewRti = !_hasOption(options, Flags.useOldRti)
       ..generateSourceMap = !_hasOption(options, Flags.noSourceMaps)
       ..outputUri = _extractUriOption(options, '--out=')
-      ..platformBinaries =
-          platformBinaries ?? _extractUriOption(options, '--platform-binaries=')
+      ..platformBinaries = platformBinaries
       ..printLegacyStars = _hasOption(options, Flags.printLegacyStars)
       ..sourceMapUri = _extractUriOption(options, '--source-map=')
       ..omitImplicitChecks = _hasOption(options, Flags.omitImplicitChecks)
       ..omitAsCasts = _hasOption(options, Flags.omitAsCasts)
       ..laxRuntimeTypeToString =
           _hasOption(options, Flags.laxRuntimeTypeToString)
+      .._legacyJavaScript = _hasOption(options, Flags.legacyJavaScript)
+      .._noLegacyJavaScript = _hasOption(options, Flags.noLegacyJavaScript)
       ..testMode = _hasOption(options, Flags.testMode)
       ..trustJSInteropTypeAnnotations =
           _hasOption(options, Flags.trustJSInteropTypeAnnotations)
@@ -468,7 +469,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..codegenShards = _extractIntOption(options, '${Flags.codegenShards}=')
       ..cfeOnly = _hasOption(options, Flags.cfeOnly)
       ..debugGlobalInference = _hasOption(options, Flags.debugGlobalInference)
-      .._useWeakNullSafetySemantics = !_hasOption(options, Flags.nullSafety);
+      ..useWeakNullSafetySemantics = !_hasOption(options, Flags.nullSafety);
   }
 
   void validate() {
@@ -482,16 +483,13 @@ class CompilerOptions implements DiagnosticOptions {
       throw new ArgumentError(
           "[librariesSpecificationUri] should be a file: $librariesSpecificationUri");
     }
-    if (packageRoot != null && packageConfig != null) {
-      throw new ArgumentError("Only one of [packageRoot] or [packageConfig] "
-          "may be given.");
-    }
-    if (packageRoot != null && !packageRoot.path.endsWith("/")) {
-      throw new ArgumentError("[packageRoot] must end with a /");
-    }
     if (platformBinaries == null &&
         equalMaps(languageExperiments, fe.defaultExperimentalFlags)) {
       throw new ArgumentError("Missing required ${Flags.platformBinaries}");
+    }
+    if (_legacyJavaScript && _noLegacyJavaScript) {
+      throw ArgumentError("'${Flags.legacyJavaScript}' incompatible with "
+          "'${Flags.noLegacyJavaScript}'");
     }
   }
 
@@ -502,10 +500,15 @@ class CompilerOptions implements DiagnosticOptions {
     }
 
     if (benchmarkingExperiment) {
-      // TODO(sra): Set flags implied by '--benchmarking-x'. At this time we
-      // use it to run the old-rti to continue comparing data with new-rti, but
-      // we should remove it once we start benchmarking NNBD.
-      useNewRti = false;
+      // Set flags implied by '--benchmarking-x'.
+      // TODO(sra): Use this for some NNBD variant.
+    }
+
+    if (_noLegacyJavaScript) legacyJavaScript = false;
+    if (_legacyJavaScript) legacyJavaScript = true;
+
+    if (languageExperiments[fe.ExperimentalFlag.nonNullable]) {
+      useNullSafety = true;
     }
 
     if (optimizationLevel != null) {

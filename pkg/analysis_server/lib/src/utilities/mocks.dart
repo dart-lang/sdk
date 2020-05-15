@@ -112,8 +112,8 @@ class MockServerChannel implements ServerCommunicationChannel {
       {bool throwOnError = true}) {
     // TODO(brianwilkerson) Attempt to remove the `throwOnError` parameter and
     // have the default behavior be the only behavior.
-    String id = request.id;
-    Future<Response> response =
+    var id = request.id;
+    var response =
         responseController.stream.firstWhere((response) => response.id == id);
     if (throwOnError) {
       errorCompleter = Completer<Response>();
@@ -148,6 +148,12 @@ class TestPluginManager implements PluginManager {
   Map<PluginInfo, Future<plugin.Response>> broadcastResults;
 
   @override
+  List<PluginInfo> plugins = [];
+
+  StreamController<void> pluginsChangedController =
+      StreamController.broadcast();
+
+  @override
   String get byteStorePath {
     fail('Unexpected invocation of byteStorePath');
   }
@@ -163,9 +169,7 @@ class TestPluginManager implements PluginManager {
   }
 
   @override
-  List<PluginInfo> get plugins {
-    fail('Unexpected invocation of plugins');
-  }
+  Stream<void> get pluginsChanged => pluginsChangedController.stream;
 
   @override
   ResourceProvider get resourceProvider {

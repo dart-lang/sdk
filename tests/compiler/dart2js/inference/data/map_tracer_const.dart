@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /*member: closure:[exact=JSUInt31]*/
 int closure(
     int
-        /*strong.Union([exact=JSDouble], [exact=JSUInt31])*/
-        /*omit.[exact=JSUInt31]*/
+        /*spec:nnbd-off|spec:nnbd-sdk.Union([exact=JSDouble], [exact=JSUInt31])*/
+        /*prod:nnbd-off|prod:nnbd-sdk.[exact=JSUInt31]*/
         x) {
   return x;
 }

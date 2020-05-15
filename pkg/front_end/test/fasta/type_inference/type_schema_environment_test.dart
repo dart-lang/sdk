@@ -26,8 +26,6 @@ class TypeSchemaEnvironmentTest {
 
   static const VoidType voidType = const VoidType();
 
-  static const BottomType bottomType = const BottomType();
-
   final testLib = new Library(Uri.parse('org-dartlang:///test.dart'));
 
   Component component;
@@ -60,6 +58,8 @@ class TypeSchemaEnvironmentTest {
 
   InterfaceType get objectType => coreTypes.objectLegacyRawType;
 
+  DartType get bottomType => nullType;
+
   void test_addLowerBound() {
     var A = coreTypes.legacyRawType(_addClass(_class('A')));
     var B = coreTypes.legacyRawType(
@@ -91,14 +91,16 @@ class TypeSchemaEnvironmentTest {
     env.addUpperBound(typeConstraint, B, testLib);
     expect(typeConstraint.upper, same(B));
     env.addUpperBound(typeConstraint, C, testLib);
-    expect(typeConstraint.upper, same(bottomType));
+    expect(typeConstraint.upper, new BottomType());
   }
 
   void test_glb_bottom() {
     var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
     var env = _makeEnv();
-    expect(env.getStandardLowerBound(bottomType, A, testLib), same(bottomType));
-    expect(env.getStandardLowerBound(A, bottomType, testLib), same(bottomType));
+    expect(env.getStandardLowerBound(new BottomType(), A, testLib),
+        new BottomType());
+    expect(env.getStandardLowerBound(A, new BottomType(), testLib),
+        new BottomType());
   }
 
   void test_glb_function() {
@@ -229,7 +231,7 @@ class TypeSchemaEnvironmentTest {
                 namedParameters: [new NamedType('a', A)]),
             new FunctionType([B], voidType, Nullability.legacy),
             testLib),
-        same(bottomType));
+        new BottomType());
     // GLB(({a: A}) -> void, ([B]) -> void) = bottom
     expect(
         env.getStandardLowerBound(
@@ -238,7 +240,7 @@ class TypeSchemaEnvironmentTest {
             new FunctionType([B], voidType, Nullability.legacy,
                 requiredParameterCount: 0),
             testLib),
-        same(bottomType));
+        new BottomType());
   }
 
   void test_glb_identical() {
@@ -283,7 +285,7 @@ class TypeSchemaEnvironmentTest {
     var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
     var B = coreTypes.rawType(_addClass(_class('B')), Nullability.legacy);
     var env = _makeEnv();
-    expect(env.getStandardLowerBound(A, B, testLib), same(bottomType));
+    expect(env.getStandardLowerBound(A, B, testLib), new BottomType());
   }
 
   void test_inferGenericFunctionOrType() {
@@ -605,14 +607,14 @@ class TypeSchemaEnvironmentTest {
     var T = new TypeParameterType(new TypeParameter('T'), Nullability.legacy);
     T.parameter.bound = _list(T);
     var U = new TypeParameterType(new TypeParameter('U'), Nullability.legacy);
-    U.parameter.bound = _list(bottomType);
+    U.parameter.bound = _list(new BottomType());
     var env = _makeEnv();
     // LUB(T, T) = T
     expect(env.getStandardUpperBound(T, T, testLib), same(T));
     // LUB(T, List<Bottom>) = LUB(List<Object>, List<Bottom>) = List<Object>
-    expect(env.getStandardUpperBound(T, _list(bottomType), testLib),
+    expect(env.getStandardUpperBound(T, _list(new BottomType()), testLib),
         _list(objectType));
-    expect(env.getStandardUpperBound(_list(bottomType), T, testLib),
+    expect(env.getStandardUpperBound(_list(new BottomType()), T, testLib),
         _list(objectType));
     // LUB(T, U) = LUB(List<Object>, U) = LUB(List<Object>, List<Bottom>)
     // = List<Object>
@@ -634,20 +636,26 @@ class TypeSchemaEnvironmentTest {
         Nullability.legacy);
     var env = _makeEnv();
     // Solve(? <: T <: ?) => ?
-    expect(env.solveTypeConstraint(_makeConstraint()), same(unknownType));
+    expect(env.solveTypeConstraint(_makeConstraint(), bottomType),
+        same(unknownType));
     // Solve(? <: T <: ?, grounded) => dynamic
-    expect(env.solveTypeConstraint(_makeConstraint(), grounded: true),
+    expect(
+        env.solveTypeConstraint(_makeConstraint(), bottomType, grounded: true),
         dynamicType);
     // Solve(A <: T <: ?) => A
-    expect(env.solveTypeConstraint(_makeConstraint(lower: A)), A);
+    expect(env.solveTypeConstraint(_makeConstraint(lower: A), bottomType), A);
     // Solve(A <: T <: ?, grounded) => A
     expect(
-        env.solveTypeConstraint(_makeConstraint(lower: A), grounded: true), A);
+        env.solveTypeConstraint(_makeConstraint(lower: A), bottomType,
+            grounded: true),
+        A);
     // Solve(A<?> <: T <: ?) => A<?>
     expect(
-        env.solveTypeConstraint(_makeConstraint(
-            lower: new InterfaceType(
-                A.classNode, Nullability.legacy, [unknownType]))),
+        env.solveTypeConstraint(
+            _makeConstraint(
+                lower: new InterfaceType(
+                    A.classNode, Nullability.legacy, [unknownType])),
+            bottomType),
         new InterfaceType(A.classNode, Nullability.legacy, [unknownType]));
     // Solve(A<?> <: T <: ?, grounded) => A<Null>
     expect(
@@ -655,18 +663,23 @@ class TypeSchemaEnvironmentTest {
             _makeConstraint(
                 lower: new InterfaceType(
                     A.classNode, Nullability.legacy, [unknownType])),
+            bottomType,
             grounded: true),
         new InterfaceType(A.classNode, Nullability.legacy, [nullType]));
     // Solve(? <: T <: A) => A
-    expect(env.solveTypeConstraint(_makeConstraint(upper: A)), A);
+    expect(env.solveTypeConstraint(_makeConstraint(upper: A), bottomType), A);
     // Solve(? <: T <: A, grounded) => A
     expect(
-        env.solveTypeConstraint(_makeConstraint(upper: A), grounded: true), A);
+        env.solveTypeConstraint(_makeConstraint(upper: A), bottomType,
+            grounded: true),
+        A);
     // Solve(? <: T <: A<?>) => A<?>
     expect(
-        env.solveTypeConstraint(_makeConstraint(
-            upper: new InterfaceType(
-                A.classNode, Nullability.legacy, [unknownType]))),
+        env.solveTypeConstraint(
+            _makeConstraint(
+                upper: new InterfaceType(
+                    A.classNode, Nullability.legacy, [unknownType])),
+            bottomType),
         new InterfaceType(A.classNode, Nullability.legacy, [unknownType]));
     // Solve(? <: T <: A<?>, grounded) => A<dynamic>
     expect(
@@ -674,21 +687,27 @@ class TypeSchemaEnvironmentTest {
             _makeConstraint(
                 upper: new InterfaceType(
                     A.classNode, Nullability.legacy, [unknownType])),
+            bottomType,
             grounded: true),
         new InterfaceType(A.classNode, Nullability.legacy, [dynamicType]));
     // Solve(B <: T <: A) => B
-    expect(env.solveTypeConstraint(_makeConstraint(lower: B, upper: A)), B);
+    expect(
+        env.solveTypeConstraint(
+            _makeConstraint(lower: B, upper: A), bottomType),
+        B);
     // Solve(B <: T <: A, grounded) => B
     expect(
-        env.solveTypeConstraint(_makeConstraint(lower: B, upper: A),
+        env.solveTypeConstraint(_makeConstraint(lower: B, upper: A), bottomType,
             grounded: true),
         B);
     // Solve(B<?> <: T <: A) => A
     expect(
-        env.solveTypeConstraint(_makeConstraint(
-            lower: new InterfaceType(
-                B.classNode, Nullability.legacy, [unknownType]),
-            upper: A)),
+        env.solveTypeConstraint(
+            _makeConstraint(
+                lower: new InterfaceType(
+                    B.classNode, Nullability.legacy, [unknownType]),
+                upper: A),
+            bottomType),
         A);
     // Solve(B<?> <: T <: A, grounded) => A
     expect(
@@ -697,14 +716,17 @@ class TypeSchemaEnvironmentTest {
                 lower: new InterfaceType(
                     B.classNode, Nullability.legacy, [unknownType]),
                 upper: A),
+            bottomType,
             grounded: true),
         A);
     // Solve(B <: T <: A<?>) => B
     expect(
-        env.solveTypeConstraint(_makeConstraint(
-            lower: B,
-            upper: new InterfaceType(
-                A.classNode, Nullability.legacy, [unknownType]))),
+        env.solveTypeConstraint(
+            _makeConstraint(
+                lower: B,
+                upper: new InterfaceType(
+                    A.classNode, Nullability.legacy, [unknownType])),
+            bottomType),
         B);
     // Solve(B <: T <: A<?>, grounded) => B
     expect(
@@ -713,15 +735,18 @@ class TypeSchemaEnvironmentTest {
                 lower: B,
                 upper: new InterfaceType(
                     A.classNode, Nullability.legacy, [unknownType])),
+            bottomType,
             grounded: true),
         B);
     // Solve(B<?> <: T <: A<?>) => B<?>
     expect(
-        env.solveTypeConstraint(_makeConstraint(
-            lower: new InterfaceType(
-                B.classNode, Nullability.legacy, [unknownType]),
-            upper: new InterfaceType(
-                A.classNode, Nullability.legacy, [unknownType]))),
+        env.solveTypeConstraint(
+            _makeConstraint(
+                lower: new InterfaceType(
+                    B.classNode, Nullability.legacy, [unknownType]),
+                upper: new InterfaceType(
+                    A.classNode, Nullability.legacy, [unknownType])),
+            bottomType),
         new InterfaceType(B.classNode, Nullability.legacy, [unknownType]));
     // Solve(B<?> <: T <: A<?>) => B<Null>
     expect(
@@ -731,6 +756,7 @@ class TypeSchemaEnvironmentTest {
                     B.classNode, Nullability.legacy, [unknownType]),
                 upper: new InterfaceType(
                     A.classNode, Nullability.legacy, [unknownType])),
+            bottomType,
             grounded: true),
         new InterfaceType(B.classNode, Nullability.legacy, [nullType]));
   }

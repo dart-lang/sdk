@@ -19,7 +19,7 @@ class CompletionTestCase extends CompletionDomainHandlerListTokenDetailsTest {
       .toList();
 
   void assertHasCompletion(String completion) {
-    int expectedOffset = completion.indexOf(CURSOR_MARKER);
+    var expectedOffset = completion.indexOf(CURSOR_MARKER);
     if (expectedOffset >= 0) {
       if (completion.contains(CURSOR_MARKER, expectedOffset + 1)) {
         fail(
@@ -65,7 +65,7 @@ class CompletionTestCase extends CompletionDomainHandlerListTokenDetailsTest {
   /// Discard any results that do not start with the characters the user has
   /// "already typed".
   void filterResults(String content) {
-    String charsAlreadyTyped =
+    var charsAlreadyTyped =
         content.substring(replacementOffset, completionOffset).toLowerCase();
     suggestions = suggestions
         .where((CompletionSuggestion suggestion) =>
@@ -76,7 +76,7 @@ class CompletionTestCase extends CompletionDomainHandlerListTokenDetailsTest {
   Future runTest(LocationSpec spec, [Map<String, String> extraFiles]) {
     super.setUp();
     return Future(() {
-      String content = spec.source;
+      var content = spec.source;
       newFile(testFile, content: content);
       testCode = content;
       completionOffset = spec.testLocation;
@@ -87,10 +87,10 @@ class CompletionTestCase extends CompletionDomainHandlerListTokenDetailsTest {
       }
     }).then((_) => getSuggestions()).then((_) {
       filterResults(spec.source);
-      for (String result in spec.positiveResults) {
+      for (var result in spec.positiveResults) {
         assertHasCompletion(result);
       }
-      for (String result in spec.negativeResults) {
+      for (var result in spec.negativeResults) {
         assertHasNoCompletion(result);
       }
     }).whenComplete(() {
@@ -127,18 +127,18 @@ class LocationSpec {
   static List<LocationSpec> from(
       String originalSource, List<String> validationStrings) {
     Map<String, LocationSpec> tests = HashMap<String, LocationSpec>();
-    String modifiedSource = originalSource;
-    int modifiedPosition = 0;
+    var modifiedSource = originalSource;
+    var modifiedPosition = 0;
     while (true) {
-      int index = modifiedSource.indexOf('!', modifiedPosition);
+      var index = modifiedSource.indexOf('!', modifiedPosition);
       if (index < 0) {
         break;
       }
-      int n = 1; // only delete one char for double-bangs
-      String id = modifiedSource.substring(index + 1, index + 2);
+      var n = 1; // only delete one char for double-bangs
+      var id = modifiedSource.substring(index + 1, index + 2);
       if (id != '!') {
         n = 2;
-        LocationSpec test = LocationSpec(id);
+        var test = LocationSpec(id);
         tests[id] = test;
         test.testLocation = index;
       } else {
@@ -150,14 +150,14 @@ class LocationSpec {
     if (modifiedSource == originalSource) {
       throw StateError('No tests in source: ' + originalSource);
     }
-    for (String result in validationStrings) {
+    for (var result in validationStrings) {
       if (result.length < 3) {
         throw StateError('Invalid location result: ' + result);
       }
-      String id = result.substring(0, 1);
-      String sign = result.substring(1, 2);
-      String value = result.substring(2);
-      LocationSpec test = tests[id];
+      var id = result.substring(0, 1);
+      var sign = result.substring(1, 2);
+      var value = result.substring(2);
+      var test = tests[id];
       if (test == null) {
         throw StateError('Invalid location result id: $id for: $result');
       }
@@ -167,13 +167,13 @@ class LocationSpec {
       } else if (sign == '-') {
         test.negativeResults.add(value);
       } else {
-        String err = 'Invalid location result sign: $sign for: $result';
+        var err = 'Invalid location result sign: $sign for: $result';
         throw StateError(err);
       }
     }
-    List<String> badPoints = <String>[];
-    List<String> badResults = <String>[];
-    for (LocationSpec test in tests.values) {
+    var badPoints = <String>[];
+    var badResults = <String>[];
+    for (var test in tests.values) {
       if (test.testLocation == -1) {
         badPoints.add(test.id);
       }
@@ -182,17 +182,17 @@ class LocationSpec {
       }
     }
     if (!(badPoints.isEmpty && badResults.isEmpty)) {
-      StringBuffer err = StringBuffer();
+      var err = StringBuffer();
       if (badPoints.isNotEmpty) {
         err.write('No test location for tests:');
-        for (String ch in badPoints) {
+        for (var ch in badPoints) {
           err..write(' ')..write(ch);
         }
         err.write(' ');
       }
       if (badResults.isNotEmpty) {
         err.write('No results for tests:');
-        for (String ch in badResults) {
+        for (var ch in badResults) {
           err..write(' ')..write(ch);
         }
       }

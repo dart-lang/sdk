@@ -196,6 +196,14 @@ lsp.CompletionItem declarationToCompletionItem(
     case DeclarationKind.ENUM_CONSTANT:
       label = '${declaration.parent.name}.${declaration.name}';
       break;
+    case DeclarationKind.GETTER:
+    case DeclarationKind.FIELD:
+      label = declaration.parent != null &&
+              declaration.parent.name != null &&
+              declaration.parent.name.isNotEmpty
+          ? '${declaration.parent.name}.${declaration.name}'
+          : declaration.name;
+      break;
     case DeclarationKind.CONSTRUCTOR:
       label = declaration.parent.name;
       if (declaration.name.isNotEmpty) {
@@ -466,7 +474,7 @@ String getDeclarationCompletionDetail(
     // appear in the completion list, so displaying them as setters is misleading.
     // To avoid this, always show only the return type, whether it's a getter
     // or a setter.
-    String suffix = '';
+    var suffix = '';
     if (declaration.kind == dec.DeclarationKind.GETTER) {
       suffix = declaration.returnType;
     } else {
@@ -605,6 +613,20 @@ lsp.ClosingLabel toClosingLabel(
     lsp.ClosingLabel(
         toRange(lineInfo, label.offset, label.length), label.label);
 
+CodeActionKind toCodeActionKind(String id, lsp.CodeActionKind fallback) {
+  if (id == null) {
+    return fallback;
+  }
+  // Dart fixes and assists start with "dart.assist." and "dart.fix." but in LSP
+  // we want to use the predefined prefixes for CodeActions.
+  final newId = id
+      .replaceAll('dart.assist', CodeActionKind.Refactor.toString())
+      .replaceAll('dart.fix', CodeActionKind.QuickFix.toString())
+      .replaceAll('analysisOptions.assist', CodeActionKind.Refactor.toString())
+      .replaceAll('analysisOptions.fix', CodeActionKind.QuickFix.toString());
+  return CodeActionKind(newId);
+}
+
 lsp.CompletionItem toCompletionItem(
   lsp.TextDocumentClientCapabilitiesCompletion completionCapabilities,
   HashSet<lsp.CompletionItemKind> supportedCompletionItemKinds,
@@ -616,9 +638,9 @@ lsp.CompletionItem toCompletionItem(
   // Build display labels and text to insert. insertText and filterText may
   // differ from label (for ex. if the label includes things like (…)). If
   // either are missing then label will be used by the client.
-  String label = suggestion.displayText ?? suggestion.completion;
-  String insertText = suggestion.completion;
-  String filterText = suggestion.completion;
+  var label = suggestion.displayText ?? suggestion.completion;
+  var insertText = suggestion.completion;
+  var filterText = suggestion.completion;
 
   // Trim any trailing comma from the (displayed) label.
   if (label.endsWith(',')) {
@@ -647,7 +669,7 @@ lsp.CompletionItem toCompletionItem(
       : suggestionKindToCompletionItemKind(
           supportedCompletionItemKinds, suggestion.kind, label);
 
-  lsp.InsertTextFormat insertTextFormat = lsp.InsertTextFormat.PlainText;
+  var insertTextFormat = lsp.InsertTextFormat.PlainText;
   if (supportsSnippets && suggestion.selectionOffset != 0) {
     insertTextFormat = lsp.InsertTextFormat.Snippet;
     insertText = buildSnippetStringWithSelection(
@@ -692,7 +714,7 @@ lsp.CompletionItem toCompletionItem(
 lsp.Diagnostic toDiagnostic(
     server.ResolvedUnitResult result, server.AnalysisError error,
     [server.ErrorSeverity errorSeverity]) {
-  server.ErrorCode errorCode = error.errorCode;
+  var errorCode = error.errorCode;
 
   // Default to the error's severity if none is specified.
   errorSeverity ??= errorCode.errorSeverity;
@@ -704,7 +726,7 @@ lsp.Diagnostic toDiagnostic(
         .toList();
   }
 
-  String message = error.message;
+  var message = error.message;
   if (error.correctionMessage != null) {
     message = '$message\n${error.correctionMessage}';
   }
@@ -721,8 +743,8 @@ lsp.Diagnostic toDiagnostic(
 
 lsp.DiagnosticRelatedInformation toDiagnosticRelatedInformation(
     server.ResolvedUnitResult result, analyzer.DiagnosticMessage message) {
-  String file = message.filePath;
-  server.LineInfo lineInfo = result.session.getFile(file).lineInfo;
+  var file = message.filePath;
+  var lineInfo = result.session.getFile(file).lineInfo;
   return lsp.DiagnosticRelatedInformation(
       lsp.Location(
         Uri.file(file).toString(),

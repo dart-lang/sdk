@@ -26,7 +26,6 @@ void main() {
   testParsePackages();
   testParseExperiments();
   testParseMultitest();
-  testParseMultiHtmltest();
   testParseErrorFlags();
   testParseErrorExpectations();
   testName();
@@ -246,31 +245,6 @@ void testParseMultitest() {
   Expect.isTrue(file.isMultitest);
 }
 
-void testParseMultiHtmltest() {
-  // Not present.
-  var file = parseTestFile("");
-  Expect.isFalse(file.isMultiHtmlTest);
-  Expect.listEquals(<String>[], file.subtestNames);
-
-  // Present.
-  // Note: the "${''}" is to prevent the test runner running *this* test file
-  // from parsing it as a multi-HTML test.
-  file = parseTestFile("""
-  main() {
-    useHtml\IndividualConfiguration();
-    group('pixel_manipulation', () {
-    });
-    group('arc', () {
-    });
-    group('drawImage_image_element', () {
-    });
-  }
-  """);
-  Expect.isTrue(file.isMultiHtmlTest);
-  Expect.listEquals(["pixel_manipulation", "arc", "drawImage_image_element"],
-      file.subtestNames);
-}
-
 void testParseErrorFlags() {
   // Not present.
   var file = parseTestFile("");
@@ -324,24 +298,28 @@ int i = "s";
 /\/      ^^^
 /\/ [analyzer] CompileTimeErrorCode.WRONG_TYPE
 /\/ [cfe] Error: Can't assign a string to an int.
+/\/ [web] Web-specific error.
 
 num j = "str";
   /\/    ^^^^^
 /\/ [analyzer] CompileTimeErrorCode.ALSO_WRONG_TYPE
     /\/ [cfe] Error: Can't assign a string to a num.
+/\/ [web] Another web error.
 """, [
-    StaticError(
+    makeError(
         line: 1,
         column: 9,
         length: 3,
-        code: "CompileTimeErrorCode.WRONG_TYPE",
-        message: "Error: Can't assign a string to an int."),
-    StaticError(
-        line: 6,
+        analyzerError: "CompileTimeErrorCode.WRONG_TYPE",
+        cfeError: "Error: Can't assign a string to an int.",
+        webError: "Web-specific error."),
+    makeError(
+        line: 7,
         column: 9,
         length: 5,
-        code: "CompileTimeErrorCode.ALSO_WRONG_TYPE",
-        message: "Error: Can't assign a string to a num.")
+        analyzerError: "CompileTimeErrorCode.ALSO_WRONG_TYPE",
+        cfeError: "Error: Can't assign a string to a num.",
+        webError: "Another web error.")
   ]);
 
   // Explicit error location.
@@ -352,25 +330,27 @@ num j = "str";
   /\/   [ error line   23  ,  column   5  ,  length   78  ]
 /\/ [analyzer] CompileTimeErrorCode.SECOND
 /\/ [cfe] Second error.
+/\/ [web] Second web error.
 /\/[error line 9,column 8,length 7]
 /\/ [cfe] Third.
 /\/[error line 10,column 9]
 /\/ [cfe] No length.
 """, [
-    StaticError(
+    makeError(
         line: 123,
         column: 45,
         length: 678,
-        code: "CompileTimeErrorCode.FIRST",
-        message: "First error."),
-    StaticError(
+        analyzerError: "CompileTimeErrorCode.FIRST",
+        cfeError: "First error."),
+    makeError(
         line: 23,
         column: 5,
         length: 78,
-        code: "CompileTimeErrorCode.SECOND",
-        message: "Second error."),
-    StaticError(line: 9, column: 8, length: 7, message: "Third."),
-    StaticError(line: 10, column: 9, message: "No length.")
+        analyzerError: "CompileTimeErrorCode.SECOND",
+        cfeError: "Second error.",
+        webError: "Second web error."),
+    makeError(line: 9, column: 8, length: 7, cfeError: "Third."),
+    makeError(line: 10, column: 9, cfeError: "No length.")
   ]);
 
   // Multi-line error message.
@@ -381,15 +361,19 @@ int i = "s";
 /\/ [cfe] First line.
 /\/Second line.
     /\/     Third line.
+/\/ [web] Web first line.
+/\/Web second line.
+    /\/     Web third line.
 
 /\/ The preceding blank line ends the message.
 """, [
-    StaticError(
+    makeError(
         line: 1,
         column: 9,
         length: 3,
-        code: "CompileTimeErrorCode.WRONG_TYPE",
-        message: "First line.\nSecond line.\nThird line.")
+        analyzerError: "CompileTimeErrorCode.WRONG_TYPE",
+        cfeError: "First line.\nSecond line.\nThird line.",
+        webError: "Web first line.\nWeb second line.\nWeb third line.")
   ]);
 
   // Multiple errors attached to same line.
@@ -403,9 +387,9 @@ int i = "s";
 /\/  ^^^^^^^
 /\/ [cfe] Third error.
 """, [
-    StaticError(line: 2, column: 9, length: 3, message: "First error."),
-    StaticError(line: 2, column: 7, length: 1, code: "ErrorCode.second"),
-    StaticError(line: 2, column: 5, length: 7, message: "Third error."),
+    makeError(line: 2, column: 9, length: 3, cfeError: "First error."),
+    makeError(line: 2, column: 7, length: 1, analyzerError: "ErrorCode.second"),
+    makeError(line: 2, column: 5, length: 7, cfeError: "Third error."),
   ]);
 
   // Unspecified errors.
@@ -414,6 +398,7 @@ int i = "s";
 /\/     ^^^
 // [analyzer] unspecified
 // [cfe] unspecified
+// [web] unspecified
 int j = "s";
 /\/     ^^^
 // [analyzer] unspecified
@@ -428,27 +413,32 @@ int l = "s";
 int m = "s";
 /\/     ^^^
 // [cfe] unspecified
+int n = "s";
+/\/     ^^^
+// [web] unspecified
 """, [
-    StaticError(
+    makeError(
         line: 1,
         column: 8,
         length: 3,
-        code: "unspecified",
-        message: "unspecified"),
-    StaticError(
-        line: 5,
+        analyzerError: "unspecified",
+        cfeError: "unspecified",
+        webError: "unspecified"),
+    makeError(
+        line: 6,
         column: 8,
         length: 3,
-        code: "unspecified",
-        message: "Message."),
-    StaticError(
-        line: 9,
+        analyzerError: "unspecified",
+        cfeError: "Message."),
+    makeError(
+        line: 10,
         column: 8,
         length: 3,
-        code: "Error.CODE",
-        message: "unspecified"),
-    StaticError(line: 13, column: 8, length: 3, code: "unspecified"),
-    StaticError(line: 16, column: 8, length: 3, message: "unspecified"),
+        analyzerError: "Error.CODE",
+        cfeError: "unspecified"),
+    makeError(line: 14, column: 8, length: 3, analyzerError: "unspecified"),
+    makeError(line: 17, column: 8, length: 3, cfeError: "unspecified"),
+    makeError(line: 20, column: 8, length: 3, webError: "unspecified"),
   ]);
 
   // Ignore multitest markers.
@@ -461,16 +451,16 @@ int i = "s";
 /\/ [error line 12, column 34, length 56]  /\/# 3: continued
 /\/ [cfe] Message.
 """, [
-    StaticError(
+    makeError(
         line: 1,
         column: 9,
         length: 3,
-        code: "ErrorCode.BAD_THING",
-        message: "Message.\nMore message."),
-    StaticError(line: 12, column: 34, length: 56, message: "Message."),
+        analyzerError: "ErrorCode.BAD_THING",
+        cfeError: "Message.\nMore message."),
+    makeError(line: 12, column: 34, length: 56, cfeError: "Message."),
   ]);
 
-  // Must have either a code or a message.
+  // Must have at least one error message.
   expectFormatError("""
 int i = "s";
 /\/      ^^^
@@ -486,18 +476,37 @@ var wrong;
 /\/ [cfe] This doesn't make sense.
 """);
 
-  // Location at end without code or message.
+  // Location at end without message.
   expectFormatError("""
 int i = "s";
 /\/ ^^^
 """);
 
-  // Code cannot follow message.
+  // Must recognize the front end.
+  expectFormatError("""
+int i = "s";
+/\/ ^^^
+/\/ [wat] Error message.
+""");
+
+  // Front ends must be ordered.
   expectFormatError("""
 int i = "s";
 /\/      ^^^
 /\/ [cfe] Error message.
 /\/ [analyzer] ErrorCode.BAD_THING
+""");
+  expectFormatError("""
+int i = "s";
+/\/      ^^^
+/\/ [web] Error message.
+/\/ [analyzer] ErrorCode.BAD_THING
+""");
+  expectFormatError("""
+int i = "s";
+/\/      ^^^
+/\/ [web] Error message.
+/\/ [cfe] Error message
 """);
 
   // Analyzer error must look like an error code.
@@ -517,11 +526,47 @@ int j = "s";
 /\/      ^
 /\/ [analyzer] Error.BAD
 /\/ [cfe] Message.
+
+int j = "s";
+/\/      ^
+/\/ [cfe] Message.
+/\/ [web] Web message.
 """, [
-    StaticError(line: 1, column: 9, length: null, message: "Message."),
-    StaticError(
-        line: 5, column: 9, length: 1, code: "Error.BAD", message: "Message."),
+    makeError(line: 1, column: 9, length: null, cfeError: "Message."),
+    makeError(
+        line: 5,
+        column: 9,
+        length: 1,
+        analyzerError: "Error.BAD",
+        cfeError: "Message."),
+    makeError(
+      line: 10,
+      column: 9,
+      length: 1,
+      cfeError: "Message.",
+      webError: "Web message.",
+    ),
   ]);
+
+  // Cannot have the same front end more than once.
+  expectFormatError("""
+int i = "s";
+/\/      ^^^
+/\/ [analyzer] ErrorCode.BAD_THING
+/\/ [analyzer] ErrorCode.ANOTHER_THING
+""");
+  expectFormatError("""
+int i = "s";
+/\/      ^^^
+/\/ [cfe] Message 1.
+/\/ [cfe] Message 2.
+""");
+  expectFormatError("""
+int i = "s";
+/\/      ^^^
+/\/ [web] Web 1.
+/\/ [web] Web 2.
+""");
 }
 
 void testName() {

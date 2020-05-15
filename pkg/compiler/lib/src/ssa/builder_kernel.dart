@@ -391,6 +391,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         return options.useNullSafety;
       case 'LEGACY':
         return options.useLegacySubtyping;
+      case 'LEGACY_JAVASCRIPT':
+        return options.legacyJavaScript;
       case 'PRINT_LEGACY_STARS':
         return options.printLegacyStars;
       default:
@@ -703,22 +705,29 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     for (TypeVariableType typeVariable
         in _elementEnvironment.getFunctionTypeVariables(function)) {
       HInstruction param;
+      bool erased = false;
       if (elideTypeParameters) {
         // Add elided type parameters.
         param = _computeTypeArgumentDefaultValue(function, typeVariable);
+        erased = true;
       } else if (needsTypeArguments) {
         param = addParameter(
             typeVariable.element, _abstractValueDomain.nonNullType);
       } else {
-        // Unused, so bind to `dynamic`.
-        param = graph.addConstantNull(closedWorld);
+        // Unused, so bind to bound.
+        param = _computeTypeArgumentDefaultValue(function, typeVariable);
+        erased = true;
       }
       Local local = localsHandler.getTypeVariableAsLocal(typeVariable);
       localsHandler.directLocals[local] = param;
-      _functionTypeParameterLocals.add(local);
+      if (!erased) {
+        _functionTypeParameterLocals.add(local);
+      }
     }
   }
 
+  // Locals for function type parameters that can be forwarded, in argument
+  // position order.
   List<Local> _functionTypeParameterLocals = <Local>[];
 
   /// Builds a generative constructor.
@@ -1390,6 +1399,9 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     DartType elementType = _elementEnvironment.getAsyncOrSyncStarElementType(
         function.asyncMarker, _returnType);
 
+    // TODO(sra): [elementType] can contain free type variables that are erased
+    // due to no rtiNeed. We will get getter code if these type variables are
+    // substituted with an <any> or <erased> type.
     if (elementType.containsFreeTypeVariables) {
       // Type must be computed in the entry function, where the type variables
       // are in scope, and passed to the body function.
@@ -1492,7 +1504,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         newParameter = _typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
             targetElement, newParameter, type);
       } else {
-        newParameter = _typeBuilder.trustTypeOfParameter(newParameter, type);
+        newParameter = _typeBuilder.trustTypeOfParameter(
+            targetElement, newParameter, type);
       }
 
       localsHandler.directLocals[local] = newParameter;
@@ -1742,7 +1755,11 @@ class KernelSsaGraphBuilder extends ir.Visitor {
   @override
   void visitBlock(ir.Block block) {
     assert(!isAborted());
-    if (!_isReachable) return; // This can only happen when inlining.
+    // [block] can be unreachable at the beginning of a block if an
+    // ir.BlockExpression that is a subexpression of an expression that contains
+    // a throwing prior subexpression, e.g. `[throw e, {...[]}]`.
+    if (!_isReachable) return;
+
     for (ir.Statement statement in block.statements) {
       statement.accept(this);
       if (!_isReachable) {
@@ -3104,14 +3121,14 @@ class KernelSsaGraphBuilder extends ir.Visitor {
   /// Set the runtime type information if necessary.
   HInstruction _setListRuntimeTypeInfoIfNeeded(HInstruction object,
       InterfaceType type, SourceInformation sourceInformation) {
+    // [type] could be `List<T>`, so ensure it is `JSArray<T>`.
+    InterfaceType arrayType = dartTypes.interfaceType(
+        _commonElements.jsArrayClass, type.typeArguments);
     if (!_rtiNeed.classNeedsTypeArguments(type.element) ||
-        dartTypes.treatAsRawType(type)) {
+        _equivalentToMissingRti(arrayType)) {
       return object;
     }
     if (options.useNewRti) {
-      // [type] could be `List<T>`, so ensure it is `JSArray<T>`.
-      InterfaceType arrayType = dartTypes.interfaceType(
-          _commonElements.jsArrayClass, type.typeArguments);
       HInstruction rti =
           _typeBuilder.analyzeTypeArgumentNewRti(arrayType, sourceElement);
 
@@ -3604,7 +3621,13 @@ class KernelSsaGraphBuilder extends ir.Visitor {
   @override
   void visitBlockExpression(ir.BlockExpression node) {
     node.body.accept(this);
-    node.value.accept(this);
+    // Body can be partially generated due to an exception exit and be missing
+    // bindings referenced in the value.
+    if (!_isReachable) {
+      stack.add(graph.addConstantUnreachable(closedWorld));
+    } else {
+      node.value.accept(this);
+    }
   }
 
   /// Extracts the list of instructions for the positional subset of arguments.
@@ -4038,8 +4061,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
     // The type should be a single type name.
     ir.DartType type = types.first;
-    DartType typeValue = localsHandler
-        .substInContext(_elementMap.getDartType(type).withoutNullability);
+    DartType typeValue = dartTypes.eraseLegacy(
+        localsHandler.substInContext(_elementMap.getDartType(type)));
     if (typeValue is! InterfaceType) return false;
     InterfaceType interfaceType = typeValue;
     if (!dartTypes.treatAsRawType(interfaceType)) return false;
@@ -4727,6 +4750,15 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         HLoadType.type(interopType, _abstractValueDomain.dynamicType)
           ..sourceInformation = sourceInformation;
     push(rti);
+  }
+
+  bool _equivalentToMissingRti(InterfaceType type) {
+    assert(type.element == _commonElements.jsArrayClass);
+    if (dartTypes.useNullSafety) {
+      return dartTypes.isStrongTopType(type.typeArguments.single);
+    } else {
+      return dartTypes.treatAsRawType(type);
+    }
   }
 
   void _handleForeignJs(ir.StaticInvocation invocation) {
@@ -5452,11 +5484,6 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     DartType typeValue =
         localsHandler.substInContext(_elementMap.getDartType(type));
 
-    if (dartTypes.isTopType(typeValue)) {
-      stack.add(graph.addConstantBool(true, closedWorld));
-      return;
-    }
-
     if (options.useNewRti) {
       HInstruction rti =
           _typeBuilder.analyzeTypeArgumentNewRti(typeValue, sourceElement);
@@ -5466,6 +5493,11 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       push(HIsTest(typeValue, checkedType, expression, rti,
           _abstractValueDomain.boolType)
         ..sourceInformation = sourceInformation);
+      return;
+    }
+
+    if (dartTypes.isTopType(typeValue)) {
+      stack.add(graph.addConstantBool(true, closedWorld));
       return;
     }
 
@@ -5934,7 +5966,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       _enterInlinedMethod(function, compiledArguments, instanceType);
       _inlinedFrom(function, sourceInformation, () {
         if (!_isReachable) {
-          _emitReturn(graph.addConstantNull(closedWorld), sourceInformation);
+          _emitReturn(
+              graph.addConstantUnreachable(closedWorld), sourceInformation);
         } else {
           _doInline(function);
         }
@@ -6324,7 +6357,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       DartType type = localsMap.getLocalType(_elementMap, parameter);
       HInstruction checkedOrTrusted;
       if (trusted) {
-        checkedOrTrusted = _typeBuilder.trustTypeOfParameter(argument, type);
+        checkedOrTrusted =
+            _typeBuilder.trustTypeOfParameter(function, argument, type);
       } else {
         checkedOrTrusted = _typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
             function, argument, type);
@@ -6548,11 +6582,19 @@ class TryCatchFinallyBuilder {
     HInstruction oldRethrowableException = kernelBuilder._rethrowableException;
     kernelBuilder._rethrowableException = exception;
 
+    AbstractValue unwrappedType = kernelBuilder._typeInferenceMap
+        .getReturnTypeOf(kernelBuilder._commonElements.exceptionUnwrapper);
+    if (!kernelBuilder.options.useLegacySubtyping) {
+      // Global type analysis does not currently understand that strong mode
+      // `Object` is not nullable, so is imprecise in the return type of the
+      // unwrapper, which leads to unnecessary checks for 'on Object'.
+      unwrappedType =
+          kernelBuilder._abstractValueDomain.excludeNull(unwrappedType);
+    }
     kernelBuilder._pushStaticInvocation(
         kernelBuilder._commonElements.exceptionUnwrapper,
         [exception],
-        kernelBuilder._typeInferenceMap
-            .getReturnTypeOf(kernelBuilder._commonElements.exceptionUnwrapper),
+        unwrappedType,
         const <DartType>[],
         sourceInformation: trySourceInformation);
     HInvokeStatic unwrappedException = kernelBuilder.pop();

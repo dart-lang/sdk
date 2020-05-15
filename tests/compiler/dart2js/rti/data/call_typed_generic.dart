@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'package:expect/expect.dart';
 
-/*strong.class: A:direct,explicit=[A.T],needsArgs*/
-/*omit.class: A:*/
+/*spec:nnbd-off.class: A:direct,explicit=[A.T],needsArgs*/
+/*spec:nnbd-sdk.class: A:direct,explicit=[A.T*],needsArgs*/
 class A<T> {
-  /*strong.member: A.call:*/
-  /*omit.member: A.call:*/
+  /*spec:nnbd-off|prod:nnbd-off.member: A.call:*/
   call(T t) {}
 }
 

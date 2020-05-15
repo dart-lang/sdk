@@ -6,8 +6,5 @@ description: >
  Third parties are discouraged from using this, and should use
  the expect() function in the unit test library instead for
  test assertions.
-environment:
-  sdk: ">=2.0.0 <3.0.0"
-
 dependencies:
   meta: any

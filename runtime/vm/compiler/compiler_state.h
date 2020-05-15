@@ -5,60 +5,38 @@
 #ifndef RUNTIME_VM_COMPILER_COMPILER_STATE_H_
 #define RUNTIME_VM_COMPILER_COMPILER_STATE_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
+#include "vm/compiler/api/deopt_id.h"
 #include "vm/compiler/cha.h"
 #include "vm/heap/safepoint.h"
 #include "vm/thread.h"
 
 namespace dart {
 
+class Function;
 class LocalScope;
 class LocalVariable;
 class SlotCache;
 class Slot;
 
-// Deoptimization Id logic.
-//
-// Deoptimization ids are used to refer to deoptimization points, at which
-// control can enter unoptimized code from the optimized version of the code.
-//
-// Note: any instruction that does a call has two deoptimization points,
-// one before the call and one after the call - so that we could deoptimize
-// to either before or after the call depending on whether the same call
-// already occured in the optimized code (and potentially produced
-// observable side-effects) or not.
-//
-// To simplify implementation we always allocate two deopt ids (one for before
-// point and one for the after point).
-class DeoptId : public AllStatic {
- public:
-  static constexpr intptr_t kNone = -1;
-
-  static inline intptr_t Next(intptr_t deopt_id) { return deopt_id + kStep; }
-
-  static inline intptr_t ToDeoptAfter(intptr_t deopt_id) {
-    ASSERT(IsDeoptBefore(deopt_id));
-    return deopt_id + kAfterOffset;
-  }
-
-  static inline bool IsDeoptBefore(intptr_t deopt_id) {
-    return (deopt_id % kStep) == kBeforeOffset;
-  }
-
-  static inline bool IsDeoptAfter(intptr_t deopt_id) {
-    return (deopt_id % kStep) == kAfterOffset;
-  }
-
- private:
-  static constexpr intptr_t kStep = 2;
-  static constexpr intptr_t kBeforeOffset = 0;
-  static constexpr intptr_t kAfterOffset = 1;
+enum class CompilerTracing {
+  kOn,
+  kOff,
 };
 
 // Global compiler state attached to the thread.
 class CompilerState : public ThreadStackResource {
  public:
-  explicit CompilerState(Thread* thread)
-      : ThreadStackResource(thread), cha_(thread) {
+  CompilerState(Thread* thread,
+                bool is_aot,
+                CompilerTracing tracing = CompilerTracing::kOn)
+      : ThreadStackResource(thread),
+        cha_(thread),
+        is_aot_(is_aot),
+        tracing_(tracing) {
     previous_ = thread->SetCompilerState(this);
   }
 
@@ -119,6 +97,14 @@ class CompilerState : public ThreadStackResource {
   // share id 255.
   LocalVariable* GetDummyCapturedVariable(intptr_t context_id, intptr_t index);
 
+  bool is_aot() const { return is_aot_; }
+
+  bool should_trace() const { return tracing_ == CompilerTracing::kOn; }
+
+  static bool ShouldTrace() { return Current().should_trace(); }
+
+  static CompilerTracing ShouldTrace(const Function& func);
+
  private:
   CHA cha_;
   intptr_t deopt_id_ = 0;
@@ -130,6 +116,10 @@ class CompilerState : public ThreadStackResource {
   // to IL translation.
   ZoneGrowableArray<ZoneGrowableArray<const Slot*>*>* dummy_slots_ = nullptr;
   ZoneGrowableArray<LocalVariable*>* dummy_captured_vars_ = nullptr;
+
+  const bool is_aot_;
+
+  const CompilerTracing tracing_;
 
   CompilerState* previous_;
 };

@@ -529,8 +529,11 @@ gen_snapshot_action("generate_snapshot_bin") {
     isolate_snapshot_instructions,
   ]
   args = []
-  if (use_nnbd) {
-    args += [ "--enable-experiment=non-nullable" ]
+  if (!dont_use_nnbd) {
+    args += [
+      "--enable-experiment=non-nullable",
+      "--null-safety",
+    ]
   }
   args += [
     "--deterministic",

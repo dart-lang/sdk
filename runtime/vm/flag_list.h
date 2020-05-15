@@ -59,9 +59,8 @@ constexpr bool kDartUseBackgroundCompilation = true;
 // The syntax used is the same as that for FLAG_LIST below, as these flags are
 // automatically included in FLAG_LIST.
 #define VM_GLOBAL_FLAG_LIST(P, R, C, D)                                        \
-  P(dwarf_stack_traces, bool, false,                                           \
-    "Emit DWARF line number and inlining info"                                 \
-    "in dylib snapshots and don't symbolize stack traces.")                    \
+  P(dwarf_stack_traces_mode, bool, false,                                      \
+    "Use --[no-]dwarf-stack-traces instead.")                                  \
   P(causal_async_stacks, bool, !USING_PRODUCT, "Improved async stacks")        \
   P(lazy_async_stacks, bool, false, "Reconstruct async stacks from listeners") \
   P(use_bare_instructions, bool, true, "Enable bare instructions mode.")       \
@@ -86,9 +85,6 @@ constexpr bool kDartUseBackgroundCompilation = true;
 #define FLAG_LIST(P, R, C, D)                                                  \
   VM_GLOBAL_FLAG_LIST(P, R, C, D)                                              \
   DISASSEMBLE_FLAGS(P, R, C, D)                                                \
-  P(experimental_unsafe_mode_use_at_your_own_risk, bool, false,                \
-    "Omit runtime strong mode type checks and disable optimizations based on " \
-    "types.")                                                                  \
   P(abort_on_oom, bool, false,                                                 \
     "Abort if memory allocation fails - use only with --old-gen-heap-size")    \
   C(async_debugger, false, false, bool, true,                                  \
@@ -143,6 +139,9 @@ constexpr bool kDartUseBackgroundCompilation = true;
   P(link_natives_lazily, bool, false, "Link native calls lazily")              \
   R(log_marker_tasks, false, bool, false,                                      \
     "Log debugging information for old gen GC marking tasks.")                 \
+  P(scavenger_tasks, int, 2,                                                   \
+    "The number of tasks to spawn during scavenging (0 means "                 \
+    "perform all marking on main thread).")                                    \
   P(marker_tasks, int, 2,                                                      \
     "The number of tasks to spawn during old gen GC marking (0 means "         \
     "perform all marking on main thread).")                                    \
@@ -189,9 +188,10 @@ constexpr bool kDartUseBackgroundCompilation = true;
   P(reorder_basic_blocks, bool, true, "Reorder basic blocks")                  \
   C(stress_async_stacks, false, false, bool, false,                            \
     "Stress test async stack traces")                                          \
-  P(null_safety, bool, false,                                                  \
-    "Respect the nullability of types in casts and instance checks.")          \
   P(use_table_dispatch, bool, true, "Enable dispatch table based calls.")      \
+  P(retain_function_objects, bool, true,                                       \
+    "Serialize function objects for all code objects even if not otherwise "   \
+    "needed in the precompiled runtime.")                                      \
   P(enable_isolate_groups, bool, false, "Enable isolate group support.")       \
   P(show_invisible_frames, bool, false,                                        \
     "Show invisible frames in stack traces.")                                  \
@@ -214,7 +214,8 @@ constexpr bool kDartUseBackgroundCompilation = true;
   R(trace_profiler, false, bool, false, "Profiler trace")                      \
   D(trace_profiler_verbose, bool, false, "Verbose profiler trace")             \
   D(trace_runtime_calls, bool, false, "Trace runtime calls.")                  \
-  D(trace_ssa_allocator, bool, false, "Trace register allocation over SSA.")   \
+  R(trace_ssa_allocator, false, bool, false,                                   \
+    "Trace register allocation over SSA.")                                     \
   P(trace_strong_mode_types, bool, false,                                      \
     "Trace optimizations based on strong mode types.")                         \
   D(trace_type_checks, bool, false, "Trace runtime type checks.")              \
@@ -230,7 +231,6 @@ constexpr bool kDartUseBackgroundCompilation = true;
     "Use class hierarchy analysis even if it can cause deoptimization.")       \
   P(use_field_guards, bool, true, "Use field guards and track field types")    \
   C(use_osr, false, true, bool, true, "Use OSR")                               \
-  P(use_strong_mode_types, bool, true, "Optimize based on strong mode types.") \
   R(verbose_gc, false, bool, false, "Enables verbose GC.")                     \
   R(verbose_gc_hdr, 40, int, 40, "Print verbose GC header interval.")          \
   R(verify_after_gc, false, bool, false,                                       \

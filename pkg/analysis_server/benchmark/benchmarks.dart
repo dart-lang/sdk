@@ -17,13 +17,13 @@ import 'perf/benchmarks_impl.dart';
 import 'perf/flutter_analyze_benchmark.dart';
 
 Future main(List<String> args) async {
-  final List<Benchmark> benchmarks = [
+  var benchmarks = <Benchmark>[
     ColdAnalysisBenchmark(),
     AnalysisBenchmark(),
     FlutterAnalyzeBenchmark(),
   ];
 
-  CommandRunner runner =
+  var runner =
       CommandRunner('benchmark', 'A benchmark runner for the analysis server.');
   runner.addCommand(ListCommand(benchmarks));
   runner.addCommand(RunCommand(benchmarks));
@@ -31,15 +31,15 @@ Future main(List<String> args) async {
 }
 
 String get analysisServerSrcPath {
-  String script = Platform.script.toFilePath(windows: Platform.isWindows);
-  String pkgPath = path.normalize(path.join(path.dirname(script), '..', '..'));
+  var script = Platform.script.toFilePath(windows: Platform.isWindows);
+  var pkgPath = path.normalize(path.join(path.dirname(script), '..', '..'));
   return path.join(pkgPath, 'analysis_server');
 }
 
 void deleteServerCache() {
   // ~/.dartServer/.analysis-driver/
   ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
-  Folder stateLocation = resourceProvider.getStateLocation('.analysis-driver');
+  var stateLocation = resourceProvider.getStateLocation('.analysis-driver');
   try {
     if (stateLocation.exists) {
       stateLocation.delete();
@@ -50,8 +50,8 @@ void deleteServerCache() {
 }
 
 List<String> getProjectRoots({bool quick = false}) {
-  String script = Platform.script.toFilePath(windows: Platform.isWindows);
-  String pkgPath = path.normalize(path.join(path.dirname(script), '..', '..'));
+  var script = Platform.script.toFilePath(windows: Platform.isWindows);
+  var pkgPath = path.normalize(path.join(path.dirname(script), '..', '..'));
   return <String>[path.join(pkgPath, quick ? 'meta' : 'analysis_server')];
 }
 
@@ -125,13 +125,13 @@ class CompoundBenchMarkResult extends BenchMarkResult {
       return a.combine(b);
     }
 
-    CompoundBenchMarkResult o = other as CompoundBenchMarkResult;
+    var o = other as CompoundBenchMarkResult;
 
-    CompoundBenchMarkResult combined = CompoundBenchMarkResult(name);
-    List<String> keys =
+    var combined = CompoundBenchMarkResult(name);
+    var keys =
         (<String>{}..addAll(results.keys)..addAll(o.results.keys)).toList();
 
-    for (String key in keys) {
+    for (var key in keys) {
       combined.add(key, _combine(results[key], o.results[key]));
     }
 
@@ -140,8 +140,8 @@ class CompoundBenchMarkResult extends BenchMarkResult {
 
   @override
   Map toJson() {
-    Map m = {};
-    for (String key in results.keys) {
+    var m = <String, dynamic>{};
+    for (var key in results.keys) {
       m['$name-$key'] = results[key].toJson();
     }
     return m;
@@ -171,12 +171,12 @@ class ListCommand extends Command {
   @override
   void run() {
     if (argResults['machine'] as bool) {
-      final Map map = {
+      var map = <String, dynamic>{
         'benchmarks': benchmarks.map((b) => b.toJson()).toList()
       };
       print(JsonEncoder.withIndent('  ').convert(map));
     } else {
-      for (Benchmark benchmark in benchmarks) {
+      for (var benchmark in benchmarks) {
         print('${benchmark.id}: ${benchmark.description}');
       }
     }
@@ -215,12 +215,12 @@ class RunCommand extends Command {
       exit(1);
     }
 
-    final String benchmarkId = argResults.rest.first;
-    final int repeatCount = int.parse(argResults['repeat'] as String);
-    final bool quick = argResults['quick'];
-    final bool verbose = argResults['verbose'];
+    var benchmarkId = argResults.rest.first;
+    var repeatCount = int.parse(argResults['repeat'] as String);
+    var quick = argResults['quick'];
+    var verbose = argResults['verbose'];
 
-    final Benchmark benchmark =
+    var benchmark =
         benchmarks.firstWhere((b) => b.id == benchmarkId, orElse: () {
       print("Benchmark '$benchmarkId' not found.");
       exit(1);
@@ -228,7 +228,7 @@ class RunCommand extends Command {
       return null;
     });
 
-    int actualIterations = repeatCount;
+    var actualIterations = repeatCount;
     if (benchmark.maxIterations > 0) {
       actualIterations = math.min(benchmark.maxIterations, repeatCount);
     }
@@ -240,11 +240,11 @@ class RunCommand extends Command {
 
     try {
       BenchMarkResult result;
-      Stopwatch time = Stopwatch()..start();
+      var time = Stopwatch()..start();
       print('Running $benchmarkId $actualIterations times...');
 
-      for (int iteration = 0; iteration < actualIterations; iteration++) {
-        BenchMarkResult newResult = await benchmark.run(
+      for (var iteration = 0; iteration < actualIterations; iteration++) {
+        var newResult = await benchmark.run(
           quick: quick,
           verbose: verbose,
         );
@@ -254,7 +254,10 @@ class RunCommand extends Command {
 
       time.stop();
       print('Finished in ${time.elapsed.inSeconds} seconds.\n');
-      Map m = {'benchmark': benchmarkId, 'result': result.toJson()};
+      var m = <String, dynamic>{
+        'benchmark': benchmarkId,
+        'result': result.toJson()
+      };
       print(json.encode(m));
 
       await benchmark.oneTimeCleanup();

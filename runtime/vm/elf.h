@@ -13,6 +13,7 @@
 
 namespace dart {
 
+class DynamicSegment;
 class DynamicTable;
 class Section;
 class StringTable;
@@ -21,19 +22,32 @@ class SymbolTable;
 
 class Elf : public ZoneAllocated {
  public:
-  Elf(Zone* zone, StreamingWriteStream* stream);
+  Elf(Zone* zone, StreamingWriteStream* stream, bool strip = false);
 
   static const intptr_t kPageSize = 4096;
 
-  intptr_t NextMemoryOffset() const;
-  intptr_t NextSectionIndex() const;
+  // Used by the non-symbolic stack frame printer to calculate the relocated
+  // base address of the loaded ELF snapshot given the start of the VM
+  // instructions. Only works for ELF snapshots written by Dart, not those
+  // compiled from assembly.
+  static uword SnapshotRelocatedBaseAddress(uword vm_start);
+
+  intptr_t NextMemoryOffset() const { return memory_offset_; }
+  intptr_t NextSectionIndex() const { return sections_.length(); }
   intptr_t AddText(const char* name, const uint8_t* bytes, intptr_t size);
   intptr_t AddROData(const char* name, const uint8_t* bytes, intptr_t size);
   intptr_t AddBSSData(const char* name, intptr_t size);
   void AddDebug(const char* name, const uint8_t* bytes, intptr_t size);
-  void AddStaticSymbol(intptr_t section,
-                       const char* name,
-                       size_t memory_offset);
+  void AddCodeSymbol(const char* name,
+                     intptr_t section,
+                     intptr_t address,
+                     intptr_t size);
+
+  // Returns whether the symbol was found. If found, sets the contents of
+  // offset and size appropriately if either or both are not nullptr.
+  bool FindDynamicSymbol(const char* name,
+                         intptr_t* offset,
+                         intptr_t* size) const;
 
   void Finalize();
 
@@ -64,11 +78,22 @@ class Elf : public ZoneAllocated {
 
  private:
   void AddSection(Section* section, const char* name);
-  intptr_t AddSectionSymbol(const Section* section,
-                            const char* name,
-                            intptr_t size);
+  intptr_t AddSegmentSymbol(const Section* section, const char* name);
+  void AddStaticSymbol(const char* name,
+                       intptr_t info,
+                       intptr_t section_index,
+                       intptr_t address,
+                       intptr_t size);
+  void AddDynamicSymbol(const char* name,
+                        intptr_t info,
+                        intptr_t section_index,
+                        intptr_t address,
+                        intptr_t size);
 
+  void FinalizeProgramTable();
   void ComputeFileOffsets();
+  bool VerifySegmentOrder();
+
   void WriteHeader();
   void WriteSectionTable();
   void WriteProgramTable();
@@ -76,6 +101,9 @@ class Elf : public ZoneAllocated {
 
   Zone* const zone_;
   StreamingWriteStream* const stream_;
+  // Whether the ELF file should be stripped of static information like
+  // the static symbol table (and its corresponding string table).
+  const bool strip_;
 
   // All our strings would fit in a single page. However, we use separate
   // .shstrtab and .dynstr to work around a bug in Android's strip utility.
@@ -85,6 +113,7 @@ class Elf : public ZoneAllocated {
 
   // Can only be created once the dynamic symbol table is complete.
   DynamicTable* dynamic_ = nullptr;
+  DynamicSegment* dynamic_segment_ = nullptr;
 
   // The static tables are lazily created when static symbols are added.
   StringTable* strtab_ = nullptr;

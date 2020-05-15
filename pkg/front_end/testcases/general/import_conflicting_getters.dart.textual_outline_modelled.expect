@@ -1,0 +1,5 @@
+import 'import_conflicting_getters_lib1.dart';
+import 'import_conflicting_getters_lib2.dart';
+
+errors() {}
+main() {}

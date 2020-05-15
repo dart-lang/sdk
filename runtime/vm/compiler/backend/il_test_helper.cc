@@ -21,9 +21,11 @@
 
 namespace dart {
 
-RawLibrary* LoadTestScript(const char* script,
-                           Dart_NativeEntryResolver resolver,
-                           const char* lib_uri) {
+Definition* const FlowGraphBuilderHelper::kPhiSelfReference = nullptr;
+
+LibraryPtr LoadTestScript(const char* script,
+                          Dart_NativeEntryResolver resolver,
+                          const char* lib_uri) {
   Dart_Handle api_lib;
   {
     TransitionVMToNative transition(Thread::Current());
@@ -36,7 +38,7 @@ RawLibrary* LoadTestScript(const char* script,
   return lib.raw();
 }
 
-RawFunction* GetFunction(const Library& lib, const char* name) {
+FunctionPtr GetFunction(const Library& lib, const char* name) {
   Thread* thread = Thread::Current();
   const auto& func = Function::Handle(lib.LookupFunctionAllowPrivate(
       String::Handle(Symbols::New(thread, name))));
@@ -44,7 +46,7 @@ RawFunction* GetFunction(const Library& lib, const char* name) {
   return func.raw();
 }
 
-RawClass* GetClass(const Library& lib, const char* name) {
+ClassPtr GetClass(const Library& lib, const char* name) {
   Thread* thread = Thread::Current();
   const auto& cls = Class::Handle(
       lib.LookupClassAllowPrivate(String::Handle(Symbols::New(thread, name))));
@@ -52,15 +54,15 @@ RawClass* GetClass(const Library& lib, const char* name) {
   return cls.raw();
 }
 
-RawTypeParameter* GetClassTypeParameter(const Class& klass, const char* name) {
+TypeParameterPtr GetClassTypeParameter(const Class& klass, const char* name) {
   const auto& param = TypeParameter::Handle(
       klass.LookupTypeParameter(String::Handle(String::New(name))));
   EXPECT(!param.IsNull());
   return param.raw();
 }
 
-RawTypeParameter* GetFunctionTypeParameter(const Function& fun,
-                                           const char* name) {
+TypeParameterPtr GetFunctionTypeParameter(const Function& fun,
+                                          const char* name) {
   intptr_t fun_level = 0;
   const auto& param = TypeParameter::Handle(
       fun.LookupTypeParameter(String::Handle(String::New(name)), &fun_level));
@@ -68,7 +70,7 @@ RawTypeParameter* GetFunctionTypeParameter(const Function& fun,
   return param.raw();
 }
 
-RawObject* Invoke(const Library& lib, const char* name) {
+ObjectPtr Invoke(const Library& lib, const char* name) {
   // These tests rely on running unoptimized code to collect type feedback. The
   // interpreter does not collect type feedback for interface calls, so set
   // compilation threshold to 0 in order to compile invoked function

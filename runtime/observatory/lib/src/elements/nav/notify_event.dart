@@ -17,7 +17,7 @@ class EventDeleteEvent {
 class NavNotifyEventElement extends CustomElement implements Renderable {
   static const tag = const Tag<NavNotifyEventElement>('nav-event');
 
-  RenderingScheduler _r;
+  RenderingScheduler<NavNotifyEventElement> _r;
 
   Stream<RenderedEvent<NavNotifyEventElement>> get onRendered => _r.onRendered;
 

@@ -44,12 +44,12 @@ class B extends A {
 ''');
     {
       ClassElement classA = findElement('A');
-      List<Element> members = getClassMembers(classA);
+      var members = getClassMembers(classA);
       expect(members.map((e) => e.name), unorderedEquals(['ma1', 'ma2']));
     }
     {
       ClassElement classB = findElement('B');
-      List<Element> members = getClassMembers(classB);
+      var members = getClassMembers(classB);
       expect(members.map((e) => e.name), unorderedEquals(['mb1', 'mb2']));
     }
   }
@@ -133,18 +133,15 @@ class C extends B {
     ClassMemberElement memberB = classB.fields[0];
     ClassMemberElement memberC = classC.fields[0];
     {
-      Set<ClassMemberElement> members =
-          await getHierarchyMembers(searchEngine, memberA);
+      var members = await getHierarchyMembers(searchEngine, memberA);
       expect(members, unorderedEquals([memberA]));
     }
     {
-      Set<ClassMemberElement> members =
-          await getHierarchyMembers(searchEngine, memberB);
+      var members = await getHierarchyMembers(searchEngine, memberB);
       expect(members, unorderedEquals([memberB]));
     }
     {
-      Set<ClassMemberElement> members =
-          await getHierarchyMembers(searchEngine, memberC);
+      var members = await getHierarchyMembers(searchEngine, memberC);
       expect(members, unorderedEquals([memberC]));
     }
   }
@@ -209,13 +206,11 @@ class B extends A {
     ClassMemberElement memberA = classA.methods[0];
     ClassMemberElement memberB = classB.methods[0];
     {
-      Set<ClassMemberElement> members =
-          await getHierarchyMembers(searchEngine, memberA);
+      var members = await getHierarchyMembers(searchEngine, memberA);
       expect(members, unorderedEquals([memberA]));
     }
     {
-      Set<ClassMemberElement> members =
-          await getHierarchyMembers(searchEngine, memberB);
+      var members = await getHierarchyMembers(searchEngine, memberB);
       expect(members, unorderedEquals([memberB]));
     }
   }
@@ -278,11 +273,11 @@ class E extends D {
     ClassElement classC = findElement('C');
     ClassElement classD = findElement('D');
     ClassElement classE = findElement('E');
-    ParameterElement parameterA = classA.methods[0].parameters[0];
-    ParameterElement parameterB = classB.methods[0].parameters[0];
-    ParameterElement parameterC = classC.methods[0].parameters[0];
-    ParameterElement parameterD = classD.methods[0].parameters[0];
-    ParameterElement parameterE = classE.methods[0].parameters[0];
+    var parameterA = classA.methods[0].parameters[0];
+    var parameterB = classB.methods[0].parameters[0];
+    var parameterC = classC.methods[0].parameters[0];
+    var parameterD = classD.methods[0].parameters[0];
+    var parameterE = classE.methods[0].parameters[0];
 
     {
       var result = await getHierarchyNamedParameters(searchEngine, parameterA);
@@ -321,7 +316,7 @@ class B extends A {
 }
 ''');
     ClassElement classA = findElement('A');
-    ParameterElement parameterA = classA.methods[0].parameters[0];
+    var parameterA = classA.methods[0].parameters[0];
 
     var result = await getHierarchyNamedParameters(searchEngine, parameterA);
     expect(result, unorderedEquals([parameterA]));
@@ -338,7 +333,7 @@ class B extends A {
 }
 ''');
     ClassElement classA = findElement('A');
-    ParameterElement parameterA = classA.methods[0].parameters[0];
+    var parameterA = classA.methods[0].parameters[0];
 
     var result = await getHierarchyNamedParameters(searchEngine, parameterA);
     expect(result, unorderedEquals([parameterA]));
@@ -360,7 +355,7 @@ class B extends A {
 ''');
     {
       ClassElement classA = findElement('A');
-      List<Element> members = getMembers(classA);
+      var members = getMembers(classA);
       expect(
           members.map((e) => e.name),
           unorderedEquals([
@@ -375,7 +370,7 @@ class B extends A {
     }
     {
       ClassElement classB = findElement('B');
-      List<Element> members = getMembers(classB);
+      var members = getMembers(classB);
       expect(
           members.map((e) => e.name),
           unorderedEquals([
@@ -408,40 +403,40 @@ class F implements A {}
     ClassElement classD = findElement('D');
     ClassElement classE = findElement('E');
     ClassElement classF = findElement('F');
-    ClassElement objectElement = classA.supertype.element;
+    var objectElement = classA.supertype.element;
     // Object
     {
-      Set<ClassElement> supers = getSuperClasses(objectElement);
+      var supers = getSuperClasses(objectElement);
       expect(supers, isEmpty);
     }
     // A
     {
-      Set<ClassElement> supers = getSuperClasses(classA);
+      var supers = getSuperClasses(classA);
       expect(supers, unorderedEquals([objectElement]));
     }
     // B
     {
-      Set<ClassElement> supers = getSuperClasses(classB);
+      var supers = getSuperClasses(classB);
       expect(supers, unorderedEquals([objectElement, classA]));
     }
     // C
     {
-      Set<ClassElement> supers = getSuperClasses(classC);
+      var supers = getSuperClasses(classC);
       expect(supers, unorderedEquals([objectElement, classA, classB]));
     }
     // D
     {
-      Set<ClassElement> supers = getSuperClasses(classD);
+      var supers = getSuperClasses(classD);
       expect(supers, unorderedEquals([objectElement, classA, classB]));
     }
     // E
     {
-      Set<ClassElement> supers = getSuperClasses(classE);
+      var supers = getSuperClasses(classE);
       expect(supers, unorderedEquals([objectElement, classA]));
     }
     // F
     {
-      Set<ClassElement> supers = getSuperClasses(classF);
+      var supers = getSuperClasses(classF);
       expect(supers, unorderedEquals([objectElement, classA]));
     }
   }
@@ -466,7 +461,7 @@ mixin M5 on A, C {}
     ClassElement m3 = findElement('M3');
     ClassElement m4 = findElement('M4');
     ClassElement m5 = findElement('M5');
-    ClassElement object = a.supertype.element;
+    var object = a.supertype.element;
 
     _assertSuperClasses(object, []);
     _assertSuperClasses(a, [object]);

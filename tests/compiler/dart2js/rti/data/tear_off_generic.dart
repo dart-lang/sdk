@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*strong.class: A:direct,explicit=[A.T],needsArgs*/
-/*omit.class: A:*/
+// @dart = 2.7
+
+/*spec:nnbd-off.class: A:direct,explicit=[A.T],needsArgs*/
+/*spec:nnbd-sdk.class: A:direct,explicit=[A.T*],needsArgs*/
 class A<T> {
-  /*strong.member: A.m:*/
-  /*omit.member: A.m:*/
+  /*spec:nnbd-off|prod:nnbd-off.member: A.m:*/
   void m(T t) {}
 
   /*member: A.f:*/

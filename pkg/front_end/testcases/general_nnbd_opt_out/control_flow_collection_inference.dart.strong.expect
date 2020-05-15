@@ -180,15 +180,15 @@ library;
 //   Map<int, String> map41 = <int, String>{if (oracle("foo")) 42: true else 42: 42};
 //                                                                               ^
 //
-// pkg/front_end/testcases/general_nnbd_opt_out/control_flow_collection_inference.dart:232:14: Error: Setter not found: 'i'.
+// pkg/front_end/testcases/general_nnbd_opt_out/control_flow_collection_inference.dart:232:14: Error: Can't assign to the final variable 'i'.
 //   <int>[for (i in <int>[1]) i];
 //              ^
 //
-// pkg/front_end/testcases/general_nnbd_opt_out/control_flow_collection_inference.dart:233:14: Error: Setter not found: 'i'.
+// pkg/front_end/testcases/general_nnbd_opt_out/control_flow_collection_inference.dart:233:14: Error: Can't assign to the final variable 'i'.
 //   <int>{for (i in <int>[1]) i, null};
 //              ^
 //
-// pkg/front_end/testcases/general_nnbd_opt_out/control_flow_collection_inference.dart:234:21: Error: Setter not found: 'i'.
+// pkg/front_end/testcases/general_nnbd_opt_out/control_flow_collection_inference.dart:234:21: Error: Can't assign to the final variable 'i'.
 // 	<String, int>{for (i in <int>[1]) "bar": i, "baz": null};
 // 	                   ^
 //
@@ -430,6 +430,16 @@ class A extends core::Object {
   synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class B extends self::A {
   synthetic constructor •() → self::B*
@@ -1991,7 +2001,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   block {
     final core::List<core::int*>* #t376 = <core::int*>[];
     for (final core::int* #t377 in <core::int*>[1]) {
-      invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/control_flow_collection_inference.dart:232:14: Error: Setter not found: 'i'.
+      invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/control_flow_collection_inference.dart:232:14: Error: Can't assign to the final variable 'i'.
   <int>[for (i in <int>[1]) i];
              ^";
       #t376.{core::List::add}(i);
@@ -2000,7 +2010,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   block {
     final core::Set<core::int*>* #t378 = col::LinkedHashSet::•<core::int*>();
     for (final core::int* #t379 in <core::int*>[1]) {
-      invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/control_flow_collection_inference.dart:233:14: Error: Setter not found: 'i'.
+      invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/control_flow_collection_inference.dart:233:14: Error: Can't assign to the final variable 'i'.
   <int>{for (i in <int>[1]) i, null};
              ^";
       #t378.{core::Set::add}(i);
@@ -2010,7 +2020,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   block {
     final core::Map<core::String*, core::int*>* #t380 = <core::String*, core::int*>{};
     for (final core::int* #t381 in <core::int*>[1]) {
-      invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/control_flow_collection_inference.dart:234:21: Error: Setter not found: 'i'.
+      invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/control_flow_collection_inference.dart:234:21: Error: Can't assign to the final variable 'i'.
 \t<String, int>{for (i in <int>[1]) \"bar\": i, \"baz\": null};
 \t                   ^";
       #t380.{core::Map::[]=}("bar", i);

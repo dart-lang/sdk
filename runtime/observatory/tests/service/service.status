@@ -2,6 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 # Flaky failures
+dds_log_history_size_gigantic_test: Pass, Slow # Involves processing lots of logs
 field_script_test: Pass, RuntimeError
 get_allocation_samples_test: Pass, RuntimeError # Inconsistent stack trace
 get_isolate_rpc_test: Pass, RuntimeError # Issue 29324
@@ -29,6 +30,7 @@ get_isolate_after_language_error_test: SkipByDesign
 *: SkipByDesign
 
 [ $system == windows ]
+*: Slow
 async_generator_breakpoint_test: Skip # Issue 29145
 dev_fs_http_put_weird_char_test: Skip # Windows disallows carriage returns in paths
 dev_fs_weird_char_test: Skip # Windows disallows question mark in paths
@@ -39,6 +41,9 @@ evaluate_activation_test/scope: RuntimeError # http://dartbug.com/20047
 
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.
+
+[ $mode == debug && $system == windows ]
+dds_log_history_size_gigantic_test: Skip # Too slow: dartbug.com/41825
 
 [ $mode == debug && $system == windows && $checked ]
 async_scope_test: Pass, Slow

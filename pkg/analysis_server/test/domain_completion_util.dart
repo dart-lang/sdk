@@ -34,7 +34,7 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
       return super.addTestFile(content);
     }
     expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
-    int nextOffset = content.indexOf('^', completionOffset + 1);
+    var nextOffset = content.indexOf('^', completionOffset + 1);
     expect(nextOffset, equals(-1), reason: 'too many ^');
     return super.addTestFile(content.substring(0, completionOffset) +
         content.substring(completionOffset + 1));
@@ -62,7 +62,7 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
     if (cs == null) {
       var completions = suggestions.map((s) => s.completion).toList();
 
-      String expectationText = '"$completion"';
+      var expectationText = '"$completion"';
       if (elementKind != null) {
         expectationText += ' ($elementKind)';
       }
@@ -93,9 +93,9 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
   Future getSuggestions() async {
     await waitForTasksFinished();
 
-    Request request = CompletionGetSuggestionsParams(testFile, completionOffset)
+    var request = CompletionGetSuggestionsParams(testFile, completionOffset)
         .toRequest('0');
-    Response response = await waitResponse(request);
+    var response = await waitResponse(request);
     var result = CompletionGetSuggestionsResult.fromResponse(response);
     completionId = result.id;
     assertValidId(completionId);
@@ -107,7 +107,7 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
   Future<void> processNotification(Notification notification) async {
     if (notification.event == COMPLETION_RESULTS) {
       var params = CompletionResultsParams.fromNotification(notification);
-      String id = params.id;
+      var id = params.id;
       assertValidId(id);
       replacementOffset = params.replacementOffset;
       replacementLength = params.replacementLength;
