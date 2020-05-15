@@ -129,7 +129,7 @@ abstract class DeferredLoadTask extends CompilerTask {
       <ImportEntity, ImportDescription>{};
 
   /// A lattice to compactly represent multiple subsets of imports.
-  final ImportSetLattice importSets = new ImportSetLattice();
+  ImportSetLattice importSets = ImportSetLattice();
 
   final Compiler compiler;
 
@@ -828,6 +828,7 @@ abstract class DeferredLoadTask extends CompilerTask {
     _memberToSet = null;
     _localFunctionToSet = null;
     _constantToSet = null;
+    importSets = null;
     cleanup();
     return new OutputUnitData(
         this.isProgramSplit && !disableProgramSplit,
