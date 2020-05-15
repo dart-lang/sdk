@@ -596,6 +596,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     debugPrint(
         "===== ${member}${fieldSummaryType == FieldSummaryType.kFieldGuard ? " (guard)" : ""} =====");
     assertx(!member.isAbstract);
+    assertx(!(member is Procedure && member.isRedirectingFactoryConstructor));
 
     _staticTypeContext = new StaticTypeContext(member, _environment);
     _variablesInfo = new _VariablesInfoCollector(member);
