@@ -637,7 +637,7 @@
           "non-nullable"
         ],
         "dart2js-options": [
-          "--no-null-safety"
+          "--no-sound-null-safety"
         ],
         "use-sdk": true
       }
@@ -708,7 +708,7 @@
           "non-nullable"
         ],
         "dart2js-options": [
-          "--no-null-safety",
+          "--no-sound-null-safety",
           "--libraries-spec=sdk_nnbd/lib/libraries.json",
           "--platform-binaries=out/ReleaseX64/"
         ],
@@ -723,7 +723,7 @@
           "non-nullable"
         ],
         "dart2js-options": [
-          "--no-null-safety",
+          "--no-sound-null-safety",
           "--libraries-spec=sdk_nnbd/lib/libraries.json",
           "--platform-binaries=xcodebuild/ReleaseX64/"
         ],
@@ -738,7 +738,7 @@
           "non-nullable"
         ],
         "dart2js-options": [
-          "--null-safety",
+          "--sound-null-safety",
           "--libraries-spec=sdk_nnbd/lib/libraries.json",
           "--platform-binaries=out/ReleaseX64/"
         ],
@@ -753,7 +753,7 @@
           "non-nullable"
         ],
         "dart2js-options": [
-          "--null-safety",
+          "--sound-null-safety",
           "--libraries-spec=sdk_nnbd/lib/libraries.json",
           "--platform-binaries=xcodebuild/ReleaseX64/"
         ],
