@@ -100,6 +100,142 @@ static inline void objcpy(void* dst, const void* src, size_t size) {
   } while (size > 0);
 }
 
+static constexpr intptr_t kNewPageSize = 512 * KB;
+static constexpr intptr_t kNewPageSizeInWords = kNewPageSize / kWordSize;
+static constexpr intptr_t kNewPageMask = ~(kNewPageSize - 1);
+
+// A page containing new generation objects.
+class NewPage {
+ public:
+  static NewPage* Allocate();
+  void Deallocate();
+
+  uword start() const { return memory_->start(); }
+  uword end() const { return memory_->end(); }
+  bool Contains(uword addr) const { return memory_->Contains(addr); }
+  void WriteProtect(bool read_only) {
+    memory_->Protect(read_only ? VirtualMemory::kReadOnly
+                               : VirtualMemory::kReadWrite);
+  }
+
+  NewPage* next() const { return next_; }
+  void set_next(NewPage* next) { next_ = next; }
+
+  Thread* owner() const { return owner_; }
+
+  uword object_start() const { return start() + ObjectStartOffset(); }
+  uword object_end() const { return owner_ != nullptr ? owner_->top() : top_; }
+  void VisitObjects(ObjectVisitor* visitor) const {
+    uword addr = object_start();
+    uword end = object_end();
+    while (addr < end) {
+      ObjectPtr obj = ObjectLayout::FromAddr(addr);
+      visitor->VisitObject(obj);
+      addr += obj->ptr()->HeapSize();
+    }
+  }
+  void VisitObjectPointers(ObjectPointerVisitor* visitor) const {
+    uword addr = object_start();
+    uword end = object_end();
+    while (addr < end) {
+      ObjectPtr obj = ObjectLayout::FromAddr(addr);
+      intptr_t size = obj->ptr()->VisitPointers(visitor);
+      addr += size;
+    }
+  }
+
+  static intptr_t ObjectStartOffset() {
+    return Utils::RoundUp(sizeof(NewPage), kObjectAlignment) +
+           kNewObjectAlignmentOffset;
+  }
+
+  static NewPage* Of(ObjectPtr obj) {
+    ASSERT(obj->IsHeapObject());
+    ASSERT(obj->IsNewObject());
+    return Of(static_cast<uword>(obj));
+  }
+  static NewPage* Of(uword addr) {
+    return reinterpret_cast<NewPage*>(addr & kNewPageMask);
+  }
+
+  // Remember the limit to which objects have been copied.
+  void RecordSurvivors() { survivor_end_ = object_end(); }
+
+  // Move survivor end to the end of the to_ space, making all surviving
+  // objects candidates for promotion next time.
+  void EarlyTenure() { survivor_end_ = end_; }
+
+  uword promo_candidate_words() const {
+    return (survivor_end_ - object_start()) / kWordSize;
+  }
+
+  void Acquire(Thread* thread) {
+    ASSERT(owner_ == nullptr);
+    owner_ = thread;
+    thread->set_top(top_);
+    thread->set_end(end_);
+  }
+  void Release(Thread* thread) {
+    ASSERT(owner_ == thread);
+    owner_ = nullptr;
+    top_ = thread->top();
+    thread->set_top(0);
+    thread->set_end(0);
+  }
+  void Release() {
+    if (owner_ != nullptr) {
+      Release(owner_);
+    }
+  }
+
+  uword TryAllocateGC(intptr_t size) {
+    ASSERT(owner_ == nullptr);
+    uword result = top_;
+    uword new_top = result + size;
+    if (LIKELY(new_top < end_)) {
+      top_ = new_top;
+      return result;
+    }
+    return 0;
+  }
+
+  void Unallocate(uword addr, intptr_t size) {
+    ASSERT((addr + size) == top_);
+    top_ -= size;
+  }
+
+  bool IsSurvivor(uword raw_addr) const { return raw_addr < survivor_end_; }
+  bool IsResolved() const { return top_ == resolved_top_; }
+
+ private:
+  VirtualMemory* memory_;
+  NewPage* next_;
+
+  // The thread using this page for allocation, otherwise NULL.
+  Thread* owner_;
+
+  // The address of the next allocation. If owner is non-NULL, this value is
+  // stale and the current value is at owner->top_. Called "NEXT" in the
+  // original Cheney paper.
+  uword top_;
+
+  // The address after the last allocatable byte in this page.
+  uword end_;
+
+  // Objects below this address have survived a scavenge.
+  uword survivor_end_;
+
+  // A pointer to the first unprocessed object. Resolution completes when this
+  // value meets the allocation top. Called "SCAN" in the original Cheney paper.
+  uword resolved_top_;
+
+  template <bool>
+  friend class ScavengerVisitorBase;
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_IMPLICIT_CONSTRUCTORS(NewPage);
+};
+
 template <bool parallel>
 class ScavengerVisitorBase : public ObjectPointerVisitor {
  public:

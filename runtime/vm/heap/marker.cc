@@ -332,11 +332,11 @@ void GCMarker::Epilogue() {}
 
 enum RootSlices {
   kIsolate = 0,
-  kNumRootSlices = 1,
+  kNewSpace = 1,
+  kNumRootSlices = 2,
 };
 
 void GCMarker::ResetSlices() {
-  new_page_ = heap_->new_space()->head();
   root_slices_started_ = 0;
   root_slices_finished_ = 0;
   weak_slices_started_ = 0;
@@ -344,26 +344,9 @@ void GCMarker::ResetSlices() {
 
 void GCMarker::IterateRoots(ObjectPointerVisitor* visitor) {
   for (;;) {
-    NewPage* page;
-    {
-      MonitorLocker ml(&root_slices_monitor_);
-      page = new_page_;
-      if (page != nullptr) {
-        new_page_ = page->next();
-      }
-    }
-    if (page == nullptr) {
-      break;  // Finished visiting new space.
-    }
-
-    TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ProcessNewSpace");
-    page->VisitObjectPointers(visitor);
-  }
-
-  for (;;) {
     intptr_t slice = root_slices_started_.fetch_add(1);
     if (slice >= kNumRootSlices) {
-      break;  // No more slices.
+      return;  // No more slices.
     }
 
     switch (slice) {
@@ -372,6 +355,11 @@ void GCMarker::IterateRoots(ObjectPointerVisitor* visitor) {
                                       "ProcessIsolateGroupRoots");
         isolate_group_->VisitObjectPointers(
             visitor, ValidationPolicy::kDontValidateFrames);
+        break;
+      }
+      case kNewSpace: {
+        TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ProcessNewSpace");
+        heap_->new_space()->VisitObjectPointers(visitor);
         break;
       }
       default:
