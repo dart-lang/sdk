@@ -619,11 +619,15 @@ copy("copy_dart2js_dill_files") {
   deps = [
     ":copy_libraries",
     "../utils/compiler:compile_dart2js_platform",
+    "../utils/compiler:compile_dart2js_nnbd_strong_platform",
     "../utils/compiler:compile_dart2js_server_platform",
+    "../utils/compiler:compile_dart2js_server_nnbd_strong_platform",
   ]
   sources = [
     "$root_out_dir/dart2js_platform.dill",
+    "$root_out_dir/dart2js_nnbd_strong_platform.dill",
     "$root_out_dir/dart2js_server_platform.dill",
+    "$root_out_dir/dart2js_server_nnbd_strong_platform.dill",
   ]
   outputs = [ "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}" ]
 }

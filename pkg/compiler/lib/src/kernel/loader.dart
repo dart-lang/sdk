@@ -59,7 +59,11 @@ class KernelLoaderTask extends CompilerTask {
     return measure(() async {
       String targetName =
           _options.compileForServer ? "dart2js_server" : "dart2js";
-      String platform = '${targetName}_platform.dill';
+      String platform = targetName;
+      if (_options.useNullSafety && !_options.useWeakNullSafetySemantics) {
+        platform += "_nnbd_strong";
+      }
+      platform += "_platform.dill";
       var isDill = resolvedUri.path.endsWith('.dill');
       ir.Component component;
       if (isDill) {

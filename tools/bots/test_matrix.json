@@ -203,6 +203,7 @@
       ".dart_tool/package_config.json",
       "out/ReleaseX64/dart",
       "out/ReleaseX64/dart2js_platform.dill",
+      "out/ReleaseX64/dart2js_nnbd_strong_platform.dill",
       "out/ReleaseX64/dart2js_platform_strong.dill",
       "pkg/",
       "runtime/tests/",
@@ -234,6 +235,7 @@
       "tools/",
       "xcodebuild/ReleaseX64/dart",
       "xcodebuild/ReleaseX64/dart2js_platform.dill",
+      "xcodebuild/ReleaseX64/dart2js_nnbd_strong_platform.dill",
       "xcodebuild/ReleaseX64/dart2js_platform_strong.dill"
     ],
     "front-end": [
