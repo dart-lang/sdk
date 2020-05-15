@@ -118,6 +118,10 @@ abstract class DartDevelopmentService {
   /// Set to `true` if this instance of [DartDevelopmentService] is accepting
   /// requests.
   bool get isRunning;
+
+  /// The version of the DDS protocol supported by this [DartDevelopmentService]
+  /// instance.
+  static const String protocolVersion = '1.1';
 }
 
 class DartDevelopmentServiceException implements Exception {

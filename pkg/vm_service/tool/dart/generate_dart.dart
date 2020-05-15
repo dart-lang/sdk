@@ -1016,6 +1016,7 @@ vms.Event assertIsolateEvent(vms.Event event) {
             'LibraryDependency',
             'Message',
             'ProfileFunction',
+            'Protocol',
             'RetainingObject',
             'SourceReportRange',
             'TimelineEvent',
