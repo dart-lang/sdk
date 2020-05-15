@@ -773,9 +773,8 @@ void _populateEditTraces(
               try {
                 await doPost(pathWithQueryParameters('/apply-hint', {}),
                     hintAction.toJson());
-                // TODO(mfairhurst): Reloading the page entirely loses the stack
-                // trace view. Filed at dartbug.com/41872
-                window.location.reload();
+                loadFile(link.path, null, link.line, false);
+                document.body.classes.add('needs-rerun');
               } catch (e, st) {
                 handleError("Could not apply hint", e, st);
               }
