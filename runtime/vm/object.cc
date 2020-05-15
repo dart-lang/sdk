@@ -17601,6 +17601,7 @@ uint32_t Instance::CanonicalizeHash() const {
   if (hash != 0) {
     return hash;
   }
+  const Class& cls = Class::Handle(clazz());
   NoSafepointScope no_safepoint(thread);
   const intptr_t instance_size = SizeFromClass();
   ASSERT(instance_size != 0);
@@ -17612,11 +17613,18 @@ uint32_t Instance::CanonicalizeHash() const {
       thread->isolate()->group()->shared_class_table()->GetUnboxedFieldsMapAt(
           GetClassId());
 
-  for (intptr_t offset = Instance::NextFieldOffset(); offset < instance_size;
-       offset += kWordSize) {
+  for (intptr_t offset = Instance::NextFieldOffset();
+       offset < cls.host_next_field_offset(); offset += kWordSize) {
     if (unboxed_fields_bitmap.Get(offset / kWordSize)) {
-      hash =
-          CombineHashes(hash, *reinterpret_cast<intptr_t*>(this_addr + offset));
+      if (kWordSize == 8) {
+        hash = CombineHashes(hash,
+                             *reinterpret_cast<uint32_t*>(this_addr + offset));
+        hash = CombineHashes(
+            hash, *reinterpret_cast<uint32_t*>(this_addr + offset + 4));
+      } else {
+        hash = CombineHashes(hash,
+                             *reinterpret_cast<uint32_t*>(this_addr + offset));
+      }
     } else {
       member ^= *reinterpret_cast<ObjectPtr*>(this_addr + offset);
       hash = CombineHashes(hash, member.CanonicalizeHash());
