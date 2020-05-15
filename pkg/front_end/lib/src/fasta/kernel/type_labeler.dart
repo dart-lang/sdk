@@ -180,7 +180,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
         node.parameter.name,
         enclosingLibrary == null ? unknownUri : enclosingLibrary.importUri,
         enclosingLibrary == null ? unknownUri : enclosingLibrary.fileUri));
-    addNullability(node.typeParameterTypeNullability);
+    addNullability(node.declaredNullability);
   }
 
   void visitFunctionType(FunctionType node) {

@@ -3435,7 +3435,8 @@ class InferenceVisitor
     DartType rightType =
         inferrer.getPositionalParameterTypeForTarget(equalsTarget, leftType, 0);
     right = inferrer.ensureAssignableResult(
-        rightType.withNullability(inferrer.library.nullable), rightResult,
+        rightType.withDeclaredNullability(inferrer.library.nullable),
+        rightResult,
         errorTemplate: templateArgumentTypeNotAssignable);
 
     Expression equals = new MethodInvocation(

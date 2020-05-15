@@ -2119,7 +2119,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitTypeParameterType(TypeParameterType node) {
     writeByte(Tag.TypeParameterType);
-    writeByte(node.typeParameterTypeNullability.index);
+    writeByte(node.declaredNullability.index);
     writeUInt30(_typeParameterIndexer[node.parameter]);
     writeOptionalNode(node.promotedBound);
   }

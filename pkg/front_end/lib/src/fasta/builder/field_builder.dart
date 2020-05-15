@@ -762,7 +762,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
     if (needsPromotion) {
       VariableDeclaration variable = new VariableDeclaration.forValue(
           _createFieldGet(_field),
-          type: _type.withNullability(Nullability.nullable))
+          type: _type.withDeclaredNullability(Nullability.nullable))
         ..fileOffset = fileOffset;
       return new Let(
           variable, new VariableGet(variable, _type)..fileOffset = fileOffset);
@@ -825,7 +825,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         "Type has already been computed for field $name.");
     _type = value;
     if (value is! ImplicitFieldType) {
-      _field.type = value.withNullability(Nullability.nullable);
+      _field.type = value.withDeclaredNullability(Nullability.nullable);
       _lateGetter.function.returnType = value;
       if (_lateSetter != null) {
         _lateSetter.function.positionalParameters.single.type = value;

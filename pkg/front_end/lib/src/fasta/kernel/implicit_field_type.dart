@@ -29,6 +29,10 @@ abstract class ImplicitFieldType extends DartType {
       _ImplicitFieldTypeRoot;
 
   @override
+  Nullability get declaredNullability => unsupported(
+      "declaredNullability", fieldBuilder.charOffset, fieldBuilder.fileUri);
+
+  @override
   Nullability get nullability =>
       unsupported("nullability", fieldBuilder.charOffset, fieldBuilder.fileUri);
 
@@ -48,7 +52,7 @@ abstract class ImplicitFieldType extends DartType {
   }
 
   @override
-  ImplicitFieldType withNullability(Nullability nullability) {
+  ImplicitFieldType withDeclaredNullability(Nullability nullability) {
     return unsupported(
         "withNullability", fieldBuilder.charOffset, fieldBuilder.fileUri);
   }

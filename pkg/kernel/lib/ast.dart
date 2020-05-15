@@ -4674,7 +4674,7 @@ class NullCheck extends Expression {
     DartType operandType = operand.getStaticType(context);
     return operandType == context.typeEnvironment.nullType
         ? const NeverType(Nullability.nonNullable)
-        : operandType.withNullability(Nullability.nonNullable);
+        : operandType.withDeclaredNullability(Nullability.nonNullable);
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitNullCheck(this);
@@ -6642,6 +6642,24 @@ abstract class DartType extends Node {
   @override
   bool operator ==(Object other);
 
+  /// The nullability declared on the type.
+  ///
+  /// For example, the declared nullability of `FutureOr<int?>` is
+  /// [Nullability.nonNullable], the declared nullability of `dynamic` is
+  /// [Nullability.nullable], the declared nullability of `int*` is
+  /// [Nullability.legacy], the declared nullability of the promoted type `X &
+  /// int` where `X extends Object?`
+  /// is [Nullability.undetermined].
+  Nullability get declaredNullability;
+
+  /// The nullability of the type as the property to contain null.
+  ///
+  /// For example, nullability-as-property of FutureOr<int?> is
+  /// [Nullability.nullable], nullability-as-property of dynamic is
+  /// [Nullability.nullable], nullability-as-property of int* is
+  /// [Nullability.legacy], nullability-as-property of the promoted type `X &
+  /// int` where `X extends Object?`
+  /// is [Nullability.nonNullable].
   Nullability get nullability;
 
   /// If this is a typedef type, repeatedly unfolds its type definition until
@@ -6654,11 +6672,11 @@ abstract class DartType extends Node {
   /// returns the type itself.
   DartType get unaliasOnce => this;
 
-  /// Creates a copy of the type with the given [nullability] if possible.
+  /// Creates a copy of the type with the given [declaredNullability].
   ///
   /// Some types have fixed nullabilities, such as `dynamic`, `invalid-type`,
   /// `void`, or `bottom`.
-  DartType withNullability(Nullability nullability);
+  DartType withDeclaredNullability(Nullability declaredNullability);
 
   /// Checks if the type is potentially nullable.
   ///
@@ -6708,10 +6726,15 @@ class InvalidType extends DartType {
   bool equals(Object other, Assumptions assumptions) => other is InvalidType;
 
   @override
-  Nullability get nullability => throw "InvalidType doesn't have nullability";
+  Nullability get declaredNullability {
+    throw "InvalidType doesn't have nullability.";
+  }
 
   @override
-  InvalidType withNullability(Nullability nullability) => this;
+  Nullability get nullability => throw "InvalidType doesn't have nullability.";
+
+  @override
+  InvalidType withDeclaredNullability(Nullability declaredNullability) => this;
 
   @override
   String toString() {
@@ -6747,10 +6770,13 @@ class DynamicType extends DartType {
   bool equals(Object other, Assumptions assumptions) => other is DynamicType;
 
   @override
+  Nullability get declaredNullability => Nullability.nullable;
+
+  @override
   Nullability get nullability => Nullability.nullable;
 
   @override
-  DynamicType withNullability(Nullability nullability) => this;
+  DynamicType withDeclaredNullability(Nullability declaredNullability) => this;
 
   @override
   String toString() {
@@ -6786,10 +6812,13 @@ class VoidType extends DartType {
   bool equals(Object other, Assumptions assumptions) => other is VoidType;
 
   @override
+  Nullability get declaredNullability => Nullability.nullable;
+
+  @override
   Nullability get nullability => Nullability.nullable;
 
   @override
-  VoidType withNullability(Nullability nullability) => this;
+  VoidType withDeclaredNullability(Nullability declaredNullability) => this;
 
   @override
   String toString() {
@@ -6804,9 +6833,12 @@ class VoidType extends DartType {
 
 class NeverType extends DartType {
   @override
-  final Nullability nullability;
+  final Nullability declaredNullability;
 
-  const NeverType(this.nullability);
+  const NeverType(this.declaredNullability);
+
+  @override
+  Nullability get nullability => declaredNullability;
 
   @override
   int get hashCode {
@@ -6831,8 +6863,10 @@ class NeverType extends DartType {
       other is NeverType && nullability == other.nullability;
 
   @override
-  NeverType withNullability(Nullability nullability) {
-    return this.nullability == nullability ? this : new NeverType(nullability);
+  NeverType withDeclaredNullability(Nullability declaredNullability) {
+    return this.declaredNullability == declaredNullability
+        ? this
+        : new NeverType(declaredNullability);
   }
 
   @override
@@ -6842,7 +6876,7 @@ class NeverType extends DartType {
 
   @override
   String toStringInternal() {
-    return "";
+    return "${nullabilityToString(nullability)}";
   }
 }
 
@@ -6869,10 +6903,13 @@ class BottomType extends DartType {
   bool equals(Object other, Assumptions assumptions) => other is BottomType;
 
   @override
+  Nullability get declaredNullability => Nullability.nonNullable;
+
+  @override
   Nullability get nullability => Nullability.nonNullable;
 
   @override
-  BottomType withNullability(Nullability nullability) => this;
+  BottomType withDeclaredNullability(Nullability declaredNullability) => this;
 
   @override
   String toString() {
@@ -6889,22 +6926,25 @@ class InterfaceType extends DartType {
   Reference className;
 
   @override
-  final Nullability nullability;
+  final Nullability declaredNullability;
 
   final List<DartType> typeArguments;
 
   /// The [typeArguments] list must not be modified after this call. If the
   /// list is omitted, 'dynamic' type arguments are filled in.
-  InterfaceType(Class classNode, Nullability nullability,
+  InterfaceType(Class classNode, Nullability declaredNullability,
       [List<DartType> typeArguments])
-      : this.byReference(getClassReference(classNode), nullability,
+      : this.byReference(getClassReference(classNode), declaredNullability,
             typeArguments ?? _defaultTypeArguments(classNode));
 
   InterfaceType.byReference(
-      this.className, this.nullability, this.typeArguments)
-      : assert(nullability != null);
+      this.className, this.declaredNullability, this.typeArguments)
+      : assert(declaredNullability != null);
 
   Class get classNode => className.asClass;
+
+  @override
+  Nullability get nullability => declaredNullability;
 
   static List<DartType> _defaultTypeArguments(Class classNode) {
     if (classNode.typeParameters.length == 0) {
@@ -6962,10 +7002,11 @@ class InterfaceType extends DartType {
   }
 
   @override
-  InterfaceType withNullability(Nullability nullability) {
-    return nullability == this.nullability
+  InterfaceType withDeclaredNullability(Nullability declaredNullability) {
+    return declaredNullability == this.declaredNullability
         ? this
-        : new InterfaceType.byReference(className, nullability, typeArguments);
+        : new InterfaceType.byReference(
+            className, declaredNullability, typeArguments);
   }
 
   @override
@@ -7002,7 +7043,9 @@ class FunctionType extends DartType {
   final int requiredParameterCount;
   final List<DartType> positionalParameters;
   final List<NamedType> namedParameters; // Must be sorted.
-  final Nullability nullability;
+
+  @override
+  final Nullability declaredNullability;
 
   /// The [Typedef] this function type is created for.
   final TypedefType typedefType;
@@ -7010,8 +7053,8 @@ class FunctionType extends DartType {
   final DartType returnType;
   int _hashCode;
 
-  FunctionType(
-      List<DartType> positionalParameters, this.returnType, this.nullability,
+  FunctionType(List<DartType> positionalParameters, this.returnType,
+      this.declaredNullability,
       {this.namedParameters: const <NamedType>[],
       this.typeParameters: const <TypeParameter>[],
       int requiredParameterCount,
@@ -7023,6 +7066,9 @@ class FunctionType extends DartType {
   Reference get typedefReference => typedefType?.typedefReference;
 
   Typedef get typedef => typedefReference?.asTypedef;
+
+  @override
+  Nullability get nullability => declaredNullability;
 
   @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitFunctionType(this);
@@ -7153,14 +7199,14 @@ class FunctionType extends DartType {
   }
 
   @override
-  FunctionType withNullability(Nullability nullability) {
-    if (nullability == this.nullability) return this;
+  FunctionType withDeclaredNullability(Nullability declaredNullability) {
+    if (declaredNullability == this.declaredNullability) return this;
     FunctionType result = FunctionType(
-        positionalParameters, returnType, nullability,
+        positionalParameters, returnType, declaredNullability,
         namedParameters: namedParameters,
         typeParameters: typeParameters,
         requiredParameterCount: requiredParameterCount,
-        typedefType: typedefType?.withNullability(nullability));
+        typedefType: typedefType?.withDeclaredNullability(declaredNullability));
     if (typeParameters.isEmpty) return result;
     return getFreshTypeParameters(typeParameters).applyToFunctionType(result);
   }
@@ -7216,7 +7262,7 @@ class FunctionType extends DartType {
 ///
 /// The underlying type can be extracted using [unalias].
 class TypedefType extends DartType {
-  final Nullability nullability;
+  final Nullability declaredNullability;
   final Reference typedefReference;
   final List<DartType> typeArguments;
 
@@ -7226,9 +7272,14 @@ class TypedefType extends DartType {
             typeArguments ?? const <DartType>[]);
 
   TypedefType.byReference(
-      this.typedefReference, this.nullability, this.typeArguments);
+      this.typedefReference, this.declaredNullability, this.typeArguments);
 
   Typedef get typedefNode => typedefReference.asTypedef;
+
+  // TODO(dmitryas): Replace with uniteNullabilities(declaredNullability,
+  // typedefNode.type.nullability).
+  @override
+  Nullability get nullability => declaredNullability;
 
   @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitTypedefType(this);
@@ -7247,7 +7298,7 @@ class TypedefType extends DartType {
   DartType get unaliasOnce {
     DartType result =
         Substitution.fromTypedefType(this).substituteType(typedefNode.type);
-    return result.withNullability(
+    return result.withDeclaredNullability(
         combineNullabilitiesForSubstitution(result.nullability, nullability));
   }
 
@@ -7292,11 +7343,11 @@ class TypedefType extends DartType {
   }
 
   @override
-  TypedefType withNullability(Nullability nullability) {
-    return nullability == this.nullability
+  TypedefType withDeclaredNullability(Nullability declaredNullability) {
+    return declaredNullability == this.declaredNullability
         ? this
         : new TypedefType.byReference(
-            typedefReference, nullability, typeArguments);
+            typedefReference, declaredNullability, typeArguments);
   }
 
   @override
@@ -7382,17 +7433,11 @@ class NamedType extends Node implements Comparable<NamedType> {
 /// viewed as representing an intersection type between the type-parameter type
 /// and the promoted bound.
 class TypeParameterType extends DartType {
-  /// Nullability of the type-parameter type or of its part of the intersection.
+  /// The declared nullability of a type-parameter type.
   ///
-  /// Declarations of type-parameter types can set the nullability of a
-  /// type-parameter type to [Nullability.nullable] (if the `?` marker is used)
-  /// or [Nullability.legacy] (if the type comes from a library opted out from
-  /// NNBD).  Otherwise, it's defined indirectly via the nullability of the
-  /// bound of [parameter].  In cases when the [TypeParameterType] represents an
-  /// intersection between a type-parameter type and [promotedBound],
-  /// [typeParameterTypeNullability] represents the nullability of the left-hand
-  /// side of the intersection.
-  Nullability typeParameterTypeNullability;
+  /// When a [TypeParameterType] represents an intersection, [declaredNullability] is the nullability of the left-hand side.
+  @override
+  Nullability declaredNullability;
 
   TypeParameter parameter;
 
@@ -7402,12 +7447,12 @@ class TypeParameterType extends DartType {
   /// is therefore the same as the bound of [parameter].
   DartType promotedBound;
 
-  TypeParameterType(this.parameter, this.typeParameterTypeNullability,
+  TypeParameterType(this.parameter, this.declaredNullability,
       [this.promotedBound]);
 
   /// Creates an intersection type between a type parameter and [promotedBound].
   TypeParameterType.intersection(
-      this.parameter, this.typeParameterTypeNullability, this.promotedBound);
+      this.parameter, this.declaredNullability, this.promotedBound);
 
   /// Creates a type-parameter type to be used in alpha-renaming.
   ///
@@ -7429,7 +7474,7 @@ class TypeParameterType extends DartType {
   /// the bound of [parameter].
   TypeParameterType.withDefaultNullabilityForLibrary(
       this.parameter, Library library) {
-    typeParameterTypeNullability = library.isNonNullableByDefault
+    declaredNullability = library.isNonNullableByDefault
         ? computeNullabilityFromBound(parameter)
         : Nullability.legacy;
   }
@@ -7517,24 +7562,24 @@ class TypeParameterType extends DartType {
   @override
   Nullability get nullability {
     return getNullability(
-        typeParameterTypeNullability ?? computeNullabilityFromBound(parameter),
+        declaredNullability ?? computeNullabilityFromBound(parameter),
         promotedBound);
   }
 
   /// Gets a new [TypeParameterType] with given [typeParameterTypeNullability].
   ///
-  /// In contrast with other types, [TypeParameterType.withNullability] doesn't
-  /// set the overall nullability of the returned type but sets that of the
-  /// left-hand side of the intersection type.  In case [promotedBound] is null,
-  /// it is an equivalent of setting the overall nullability.
+  /// In contrast with other types, [TypeParameterType.withDeclaredNullability]
+  /// doesn't set the overall nullability of the returned type but sets that of
+  /// the left-hand side of the intersection type.  In case [promotedBound] is
+  /// null, it is an equivalent of setting the overall nullability.
   @override
-  TypeParameterType withNullability(Nullability typeParameterTypeNullability) {
+  TypeParameterType withDeclaredNullability(Nullability declaredNullability) {
+    // TODO(dmitryas): Consider removing the assert.
     assert(promotedBound == null,
         "Can't change the nullability attribute of an intersection type.");
-    return typeParameterTypeNullability == this.typeParameterTypeNullability
+    return declaredNullability == this.declaredNullability
         ? this
-        : new TypeParameterType(
-            parameter, typeParameterTypeNullability, promotedBound);
+        : new TypeParameterType(parameter, declaredNullability, promotedBound);
   }
 
   /// Gets the nullability of a type-parameter type based on the bound.
@@ -7551,6 +7596,30 @@ class TypeParameterType extends DartType {
     if (bound == null) {
       throw new StateError("Can't compute nullability from an absent bound.");
     }
+
+    // If a type parameter's nullability depends on itself, it is deemed 'undetermined'.
+    // Currently, it's possible if the type parameter has a possibly nested FutureOr containing that type parameter.
+    // If there are other ways for such a dependency to exist, they should be checked here.
+    bool nullabilityDependsOnItself = false;
+    {
+      DartType type = typeParameter.bound;
+      while (type is InterfaceType &&
+          type.classNode.name == "FutureOr" &&
+          type.classNode.enclosingLibrary.importUri.scheme == "dart" &&
+          type.classNode.enclosingLibrary.importUri.path == "async") {
+        type = (type as InterfaceType).typeArguments.single;
+      }
+      if (type is TypeParameterType && type.parameter == typeParameter) {
+        // Intersection types can't appear in the bound.
+        assert(type.promotedBound == null);
+
+        nullabilityDependsOnItself = true;
+      }
+    }
+    if (nullabilityDependsOnItself) {
+      return Nullability.undetermined;
+    }
+
     Nullability boundNullability =
         bound is InvalidType ? Nullability.undetermined : bound.nullability;
     return boundNullability == Nullability.nullable ||
@@ -7652,12 +7721,12 @@ class TypeParameterType extends DartType {
     StringBuffer sb = new StringBuffer();
     sb.write(qualifiedTypeParameterNameToString(parameter,
         includeLibraryName: _verboseTypeToString));
-    sb.write(nullabilityToString(typeParameterTypeNullability));
+    sb.write(nullabilityToString(declaredNullability));
     if (promotedBound != null) {
       sb.write(" & ");
       sb.write(promotedBound.toStringInternal());
       sb.write(" /* '");
-      sb.write(nullabilityToString(typeParameterTypeNullability));
+      sb.write(nullabilityToString(declaredNullability));
       sb.write("' & '");
       if (promotedBound is InvalidType) {
         sb.write(nullabilityToString(Nullability.undetermined));

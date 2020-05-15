@@ -48,7 +48,7 @@ Nullability computeNullabilityOfFutureOr(
     DartType promotedBound = argument.promotedBound;
     if (_isFutureOr(promotedBound, futureOrClass)) {
       return uniteNullabilities(
-          intersectNullabilities(argument.typeParameterTypeNullability,
+          intersectNullabilities(argument.declaredNullability,
               computeNullabilityOfFutureOr(promotedBound, futureOrClass)),
           futureOr.nullability);
     }

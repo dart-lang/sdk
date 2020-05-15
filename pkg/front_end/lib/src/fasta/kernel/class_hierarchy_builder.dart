@@ -500,7 +500,7 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
     }
     return asSupertypeOf(type, superclass)
         .asInterfaceType
-        .withNullability(type.nullability);
+        .withDeclaredNullability(type.nullability);
   }
 
   List<DartType> getTypeArgumentsAsInstanceOf(
@@ -563,7 +563,7 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
       if (node.maxInheritancePath != common[i + 1].maxInheritancePath) {
         return getTypeAsInstanceOf(
                 type1, node.classBuilder.cls, clientLibrary, coreTypes)
-            .withNullability(
+            .withDeclaredNullability(
                 uniteNullabilities(type1.nullability, type2.nullability));
       } else {
         do {

@@ -204,8 +204,8 @@ class MergeVisitor implements DartTypeVisitor1<DartType, DartType> {
   @override
   DartType visitTypeParameterType(TypeParameterType a, DartType b) {
     if (b is TypeParameterType && a.parameter == b.parameter) {
-      Nullability nullability = mergeNullability(
-          a.typeParameterTypeNullability, b.typeParameterTypeNullability);
+      Nullability nullability =
+          mergeNullability(a.declaredNullability, b.declaredNullability);
       if (nullability == null) {
         return null;
       }

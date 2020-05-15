@@ -2214,13 +2214,13 @@ class Printer extends Visitor<Null> {
 
   visitTypeParameterType(TypeParameterType node) {
     writeTypeParameterReference(node.parameter);
-    writeNullability(node.typeParameterTypeNullability);
+    writeNullability(node.declaredNullability);
     if (node.promotedBound != null) {
       writeSpaced('&');
       writeType(node.promotedBound);
 
       writeWord("/* '");
-      writeNullability(node.typeParameterTypeNullability, inComment: true);
+      writeNullability(node.declaredNullability, inComment: true);
       writeWord("' & '");
       writeDartTypeNullability(node.promotedBound, inComment: true);
       writeWord("' = '");

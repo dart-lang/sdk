@@ -2456,7 +2456,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var lazy = topLevel && !_canEmitTypeAtTopLevel(type);
     var typeRep = visitFunctionType(
         // Avoid tagging a closure as Function? or Function*
-        type.withNullability(Nullability.nonNullable),
+        type.withDeclaredNullability(Nullability.nonNullable),
         lazy: lazy);
     return runtimeCall(lazy ? 'lazyFn(#, #)' : 'fn(#, #)', [fn, typeRep]);
   }
@@ -2547,7 +2547,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var nullability = nullable
           ? Nullability.nullable
           : legacy ? Nullability.legacy : Nullability.nonNullable;
-      normalizedType = typeArgument.withNullability(nullability);
+      normalizedType = typeArgument.withDeclaredNullability(nullability);
     } else if (typeArgument is NeverType) {
       // FutureOr<Never> --> Future<Never>
       normalizedType = InterfaceType(
@@ -2560,7 +2560,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     } else if (futureOr.nullability == Nullability.nullable &&
         typeArgument.nullability == Nullability.nullable) {
       // FutureOr<T?>? --> FutureOr<T?>
-      normalizedType = futureOr.withNullability(Nullability.nonNullable);
+      normalizedType =
+          futureOr.withDeclaredNullability(Nullability.nonNullable);
     }
     return _emitInterfaceType(normalizedType);
   }
@@ -2616,10 +2617,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // Forward-defined types will only have nullability wrappers around
       // their type arguments (not the generic type itself).
       typeRep = _emitGenericClassType(
-          type.withNullability(Nullability.nonNullable), jsArgs);
+          type.withDeclaredNullability(Nullability.nonNullable), jsArgs);
       if (_cacheTypes) {
         typeRep = _typeTable.nameType(
-            type.withNullability(Nullability.nonNullable), typeRep);
+            type.withDeclaredNullability(Nullability.nonNullable), typeRep);
       }
     }
 
@@ -2782,7 +2783,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // reused by the nullable and legacy versions.
     typeRep = _cacheTypes
         ? _typeTable.nameFunctionType(
-            type.withNullability(Nullability.nonNullable), typeRep,
+            type.withDeclaredNullability(Nullability.nonNullable), typeRep,
             lazy: lazy)
         : typeRep;
 
@@ -4755,8 +4756,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           return _emitType(node.arguments.types.single);
         }
         if (name == 'legacyTypeRep') {
-          return _emitType(
-              node.arguments.types.single.withNullability(Nullability.legacy));
+          return _emitType(node.arguments.types.single
+              .withDeclaredNullability(Nullability.legacy));
         }
       } else if (node.arguments.positional.length == 1) {
         var firstArg = node.arguments.positional[0];
@@ -4778,14 +4779,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         if (name == '_jsInstanceOf' && secondArg is TypeLiteral) {
           return js.call('# instanceof #', [
             _visitExpression(firstArg),
-            _emitType(secondArg.type.withNullability(Nullability.nonNullable))
+            _emitType(
+                secondArg.type.withDeclaredNullability(Nullability.nonNullable))
           ]);
         }
 
         if (name == '_equalType' && secondArg is TypeLiteral) {
           return js.call('# === #', [
             _visitExpression(firstArg),
-            _emitType(secondArg.type.withNullability(Nullability.nonNullable))
+            _emitType(
+                secondArg.type.withDeclaredNullability(Nullability.nonNullable))
           ]);
         }
       }
@@ -5252,7 +5255,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     if (!isTypeError &&
-        from.withNullability(Nullability.nonNullable) == to &&
+        from.withDeclaredNullability(Nullability.nonNullable) == to &&
         _mustBeNonNullable(to)) {
       // If the underlying type is the same, we only need a null check.
       return runtimeCall('nullCast(#, #)', [jsFrom, _emitType(to)]);

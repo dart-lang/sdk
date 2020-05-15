@@ -19,6 +19,10 @@ class ImplicitTypeArgument extends DartType {
   const ImplicitTypeArgument();
 
   @override
+  Nullability get declaredNullability =>
+      unsupported("declaredNullability", -1, null);
+
+  @override
   Nullability get nullability => unsupported("nullability", -1, null);
 
   @override
@@ -37,7 +41,7 @@ class ImplicitTypeArgument extends DartType {
   }
 
   @override
-  ImplicitTypeArgument withNullability(Nullability nullability) {
+  ImplicitTypeArgument withDeclaredNullability(Nullability nullability) {
     return unsupported("withNullability", -1, null);
   }
 

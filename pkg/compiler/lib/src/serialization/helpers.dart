@@ -230,13 +230,13 @@ class DartTypeNodeWriter
     if (index != -1) {
       _sink.writeEnum(DartTypeNodeKind.functionTypeVariable);
       _sink.writeInt(index);
-      _sink.writeEnum(node.typeParameterTypeNullability);
+      _sink.writeEnum(node.declaredNullability);
       _sink._writeDartTypeNode(node.promotedBound, functionTypeVariables,
           allowNull: true);
     } else {
       _sink.writeEnum(DartTypeNodeKind.typeParameterType);
       _sink.writeTypeParameterNode(node.parameter);
-      _sink.writeEnum(node.typeParameterTypeNullability);
+      _sink.writeEnum(node.declaredNullability);
       _sink._writeDartTypeNode(node.promotedBound, functionTypeVariables,
           allowNull: true);
     }

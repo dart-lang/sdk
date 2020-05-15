@@ -17,7 +17,7 @@ DartType factorType(TypeEnvironment typeEnvironment, DartType T, DartType S) {
   // * Else if T is R? and Null <: S then factor(R, S)
   // * Else if T is R? then factor(R, S)?
   if (T.nullability == Nullability.nullable) {
-    DartType R = T.withNullability(Nullability.nonNullable);
+    DartType R = T.withDeclaredNullability(Nullability.nonNullable);
     if (identical(R, T)) {
       return T;
     }
@@ -26,20 +26,20 @@ DartType factorType(TypeEnvironment typeEnvironment, DartType T, DartType S) {
         typeEnvironment.nullType, S, SubtypeCheckMode.withNullabilities)) {
       return factor_RS;
     } else {
-      return factor_RS.withNullability(Nullability.nullable);
+      return factor_RS.withDeclaredNullability(Nullability.nullable);
     }
   }
 
   // * Else if T is R* and Null <: S then factor(R, S)
   // * Else if T is R* then factor(R, S)*
   if (T.nullability == Nullability.legacy) {
-    DartType R = T.withNullability(Nullability.nonNullable);
+    DartType R = T.withDeclaredNullability(Nullability.nonNullable);
     DartType factor_RS = factorType(typeEnvironment, R, S);
     if (typeEnvironment.isSubtypeOf(
         typeEnvironment.nullType, S, SubtypeCheckMode.withNullabilities)) {
       return factor_RS;
     } else {
-      return factor_RS.withNullability(Nullability.legacy);
+      return factor_RS.withDeclaredNullability(Nullability.legacy);
     }
   }
 

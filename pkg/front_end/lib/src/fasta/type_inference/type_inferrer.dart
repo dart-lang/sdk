@@ -625,7 +625,7 @@ class TypeInferrerImpl implements TypeInferrer {
     if (type == coreTypes.nullType || type is NeverType) {
       return coreTypes.nullType;
     }
-    return type.withNullability(library.nullable);
+    return type.withDeclaredNullability(library.nullable);
   }
 
   DartType computeNonNullable(DartType type) {
@@ -638,7 +638,7 @@ class TypeInferrerImpl implements TypeInferrer {
       return new TypeParameterType(type.parameter, Nullability.nonNullable,
           computeNonNullable(type.promotedBound));
     }
-    return type.withNullability(library.nonNullable);
+    return type.withDeclaredNullability(library.nonNullable);
   }
 
   void registerIfUnreachableForTesting(TreeNode node, {bool isReachable}) {
@@ -917,7 +917,7 @@ class TypeInferrerImpl implements TypeInferrer {
           ..fileOffset = fileOffset;
     DartType tearoffType =
         getGetterTypeForMemberTarget(callMember, expressionType)
-            .withNullability(expressionType.nullability);
+            .withDeclaredNullability(expressionType.nullability);
     ConditionalExpression conditional = new ConditionalExpression(nullCheck,
         new NullLiteral()..fileOffset = fileOffset, tearOff, tearoffType);
     return new TypedTearoff(
@@ -953,7 +953,7 @@ class TypeInferrerImpl implements TypeInferrer {
           }
           expressionType =
               getGetterTypeForMemberTarget(callMember, expressionType)
-                  .withNullability(expressionType.nullability);
+                  .withDeclaredNullability(expressionType.nullability);
         }
       }
     }
