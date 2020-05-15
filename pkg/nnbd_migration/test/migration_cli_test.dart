@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart' as mock_sdk;
@@ -15,6 +14,7 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/migration_cli.dart';
+import 'package:nnbd_migration/src/front_end/non_nullable_fix.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';

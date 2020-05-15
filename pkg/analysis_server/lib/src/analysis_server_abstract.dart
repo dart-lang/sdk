@@ -7,6 +7,7 @@ import 'dart:core';
 import 'dart:io' as io;
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/api_for_nnbd_migration.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
@@ -47,7 +48,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/util/glob.dart';
-import 'package:nnbd_migration/api_for_analysis_server/driver_provider.dart';
 
 /// Implementations of [AbstractAnalysisServer] implement a server that listens
 /// on a [CommunicationChannel] for analysis messages and process them.

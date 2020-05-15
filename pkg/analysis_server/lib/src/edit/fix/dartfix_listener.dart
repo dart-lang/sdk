@@ -4,12 +4,12 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/api_for_nnbd_migration.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show Location, SourceChange, SourceEdit, SourceFileEdit;
-import 'package:nnbd_migration/api_for_analysis_server/dartfix_listener_interface.dart';
 
 /// Tasks use this API to report results.
 class DartFixListener implements DartFixListenerInterface {
@@ -99,16 +99,5 @@ class DartFixListener implements DartFixListenerInterface {
     final location = Location(
         result.path, offset, length, locInfo.lineNumber, locInfo.columnNumber);
     return location;
-  }
-
-  /// Reset this listener so that it can accrue a new set of changes.
-  void reset() {
-    suggestions.clear();
-    otherSuggestions.clear();
-    sourceChange
-      ..edits.clear()
-      ..linkedEditGroups.clear()
-      ..selection = null
-      ..id = null;
   }
 }

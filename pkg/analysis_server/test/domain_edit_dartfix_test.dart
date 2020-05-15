@@ -68,7 +68,6 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
 
     var fix = EditDartFix(server, request);
     final response = await fix.compute();
-    fix.nonNullableFixTask?.shutdownServer();
     expect(response.id, id);
     return response;
   }
@@ -159,91 +158,6 @@ const double myDouble = 42.0;
 
     final result = await performFixRaw(includedFixes: ['not_a_fix']);
     expect(result.error, isNotNull);
-  }
-
-  Future<void> test_nonNullable() async {
-    createAnalysisOptionsFile(experiments: ['non-nullable']);
-    addTestFile('''
-int f(int i) => 0;
-int g(int i) => f(i);
-void test() {
-  g(null);
-}
-''');
-    createProject();
-    expectLater(() async => await performFix(includedFixes: ['non-nullable']),
-        throwsA(TypeMatcher<StateError>()));
-  }
-
-  Future<void> test_nonNullable_pubspec_environmentAdded() async {
-    var originalContent = '''
-name: foo
-''';
-    newFile('/project/pubspec.yaml', content: originalContent);
-    createProject();
-    var result = await performFix(includedFixes: ['non-nullable']);
-    expect(result.suggestions.length, greaterThanOrEqualTo(1));
-    expect(result.hasErrors, isFalse);
-    expect(result.edits, hasLength(1));
-    expectFileEdits(originalContent, result.edits[0], '''
-environment:
-  sdk: '>=2.9.0 <2.10.0'
-
-name: foo
-''');
-  }
-
-  Future<void> test_nonNullable_pubspec_sdkAdded() async {
-    var originalContent = '''
-name: foo
-environment:
-  x: y
-''';
-    newFile('/project/pubspec.yaml', content: originalContent);
-    createProject();
-    var result = await performFix(includedFixes: ['non-nullable']);
-    expect(result.suggestions.length, greaterThanOrEqualTo(1));
-    expect(result.hasErrors, isFalse);
-    expect(result.edits, hasLength(1));
-    expectFileEdits(originalContent, result.edits[0], '''
-name: foo
-environment:
-  x: y
-  sdk: '>=2.9.0 <2.10.0'
-''');
-  }
-
-  Future<void> test_nonNullable_pubspec_sdkNotUpdated() async {
-    var originalContent = '''
-name: foo
-environment:
-  sdk: '>=2.9.0 <2.10.0'
-''';
-    newFile('/project/pubspec.yaml', content: originalContent);
-    createProject();
-    var result = await performFix(includedFixes: ['non-nullable']);
-    expect(result.suggestions, isEmpty);
-    expect(result.hasErrors, isFalse);
-    expect(result.edits, isEmpty);
-  }
-
-  Future<void> test_nonNullable_pubspec_sdkUpdated() async {
-    var originalContent = '''
-name: foo
-environment:
-  sdk: '>=2.7.0 <3.0.0'
-''';
-    newFile('/project/pubspec.yaml', content: originalContent);
-    createProject();
-    var result = await performFix(includedFixes: ['non-nullable']);
-    expect(result.suggestions.length, greaterThanOrEqualTo(1));
-    expect(result.hasErrors, isFalse);
-    expect(result.edits, hasLength(1));
-    expectFileEdits(originalContent, result.edits[0], '''
-name: foo
-environment:
-  sdk: '>=2.9.0 <2.10.0'
-''');
   }
 
   Future<void> test_partFile() async {

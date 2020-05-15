@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
-import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:meta/meta.dart';
@@ -12,6 +11,7 @@ import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/front_end/info_builder.dart';
 import 'package:nnbd_migration/src/front_end/instrumentation_listener.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
+import 'package:nnbd_migration/src/front_end/non_nullable_fix.dart';
 import 'package:nnbd_migration/src/front_end/offset_mapper.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -157,7 +157,8 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
         removeViaComments: removeViaComments, warnOnWeakCode: warnOnWeakCode);
     // Ignore info for dart:core.
     var filteredInfos = [
-      for (var info in infos) if (!info.path.contains('core.dart')) info
+      for (var info in infos)
+        if (!info.path.contains('core.dart')) info
     ];
     expect(filteredInfos, hasLength(1));
     var unit = filteredInfos[0];
@@ -180,7 +181,8 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     await _buildMigrationInfo(testPaths, includedRoot: includedRoot);
     // Ignore info for dart:core.
     var filteredInfos = [
-      for (var info in infos) if (!info.path.contains('core.dart')) info
+      for (var info in infos)
+        if (!info.path.contains('core.dart')) info
     ];
     return filteredInfos;
   }

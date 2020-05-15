@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:analysis_server/src/api_for_nnbd_migration.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -13,8 +14,6 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
 import 'package:meta/meta.dart';
-import 'package:nnbd_migration/api_for_analysis_server/dartfix_listener_interface.dart';
-import 'package:nnbd_migration/api_for_analysis_server/driver_provider.dart';
 import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';

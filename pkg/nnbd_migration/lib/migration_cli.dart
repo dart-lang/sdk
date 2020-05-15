@@ -5,8 +5,8 @@
 import 'dart:async';
 import 'dart:io' hide File;
 
+import 'package:analysis_server/src/api_for_nnbd_migration.dart';
 import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
-import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -26,9 +26,8 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:meta/meta.dart';
-import 'package:nnbd_migration/api_for_analysis_server/dartfix_listener_interface.dart';
-import 'package:nnbd_migration/api_for_analysis_server/driver_provider.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
+import 'package:nnbd_migration/src/front_end/non_nullable_fix.dart';
 import 'package:nnbd_migration/src/utilities/source_edit_diff_formatter.dart';
 import 'package:path/path.dart' show Context;
 
@@ -274,6 +273,7 @@ class MigrationCli {
           summaryPath: options.summary);
       nonNullableFix.rerunFunction = _rerunFunction;
       _fixCodeProcessor.registerCodeTask(nonNullableFix);
+      _fixCodeProcessor.nonNullableFixTask = nonNullableFix;
 
       try {
         await _fixCodeProcessor.runFirstPhase();
@@ -659,6 +659,9 @@ class _FixCodeProcessor extends Object with FixCodeProcessor {
   _ProgressBar _progressBar;
 
   final MigrationCli _migrationCli;
+
+  /// The task used to migrate to NNBD.
+  NonNullableFix nonNullableFixTask;
 
   _FixCodeProcessor(this.context, this._migrationCli)
       : pathsToProcess = _computePathsToProcess(context);

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analysis_server/src/api_for_nnbd_migration.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
 import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
@@ -13,7 +14,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:charcode/charcode.dart';
 import 'package:meta/meta.dart';
-import 'package:nnbd_migration/api_for_analysis_server/dartfix_listener_interface.dart';
 import 'package:nnbd_migration/api_for_analysis_server/http_preview_server.dart';
 import 'package:nnbd_migration/api_for_analysis_server/instrumentation_listener.dart';
 import 'package:nnbd_migration/api_for_analysis_server/migration_state.dart';
@@ -147,7 +147,7 @@ class NonNullableFix extends FixCodeTask {
       return;
     }
     try {
-      pubspecMap = loadYaml(pubspecContent);
+      pubspecMap = loadYaml(pubspecContent) as YamlNode;
     } on YamlException catch (e) {
       processYamlException('parse', pubspecFile.path, e);
       return;
@@ -207,7 +207,7 @@ environment:
   sdk: '$_intendedSdkVersionConstraint'""";
         insertAfterParent(environmentOptions.span, content);
       } else if (sdk is YamlScalar) {
-        var currentConstraint = VersionConstraint.parse(sdk.value);
+        var currentConstraint = VersionConstraint.parse(sdk.value as String);
         var minimumVersion = Version.parse(_intendedMinimumSdkVersion);
         if (currentConstraint is VersionRange &&
             currentConstraint.min >= minimumVersion) {

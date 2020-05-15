@@ -16,7 +16,6 @@ dependencies:
   linter: any
   logging: any
   meta: any
-  nnbd_migration: any
   pub_semver: any
   source_span: any
   stream_channel: any

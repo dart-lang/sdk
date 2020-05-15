@@ -2,10 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:nnbd_migration/api_for_analysis_server/driver_provider.dart';
 
+/// Abstract interface formerly used by NNBD migration to report changes to the
+/// analysis server.  Now that the analysis server no longer integrates with
+/// NNBD migration, this exists only to support some tests that haven't yet been
+/// modified to use the new NNBD migration infrastructure.
+///
+/// TODO(paulberry): remove this interface once it's no longer needed.
 abstract class DartFixListenerInterface {
   DriverProvider get server;
 
@@ -33,4 +40,18 @@ abstract class DartFixListenerInterface {
   /// The associated edits should be separately added by calling
   /// [addEditWithoutRecommendation].
   void addSuggestion(String description, Location location);
+}
+
+/// Abstract interface formerly used by NNBD migration to access the resource
+/// provider and the analysis session.  Now that the analysis server no longer
+/// integrates with NNBD migration, this exists only to support some tests that
+/// haven't yet been modified to use the new NNBD migration infrastructure.
+///
+/// TODO(paulberry): remove this interface once it's no longer needed.
+abstract class DriverProvider {
+  ResourceProvider get resourceProvider;
+
+  /// Return the appropriate analysis session for the file with the given
+  /// [path].
+  AnalysisSession getAnalysisSession(String path);
 }
