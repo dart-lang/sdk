@@ -53,7 +53,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     Map<String, String> environmentDefines: const {},
     bool outlineOnly,
     bool omitPlatform: false,
-    bool trackNeededDillLibraries: false}) async {
+    bool trackNeededDillLibraries: false,
+    bool verbose: false}) async {
   bool isRetry = false;
   while (true) {
     try {
@@ -98,7 +99,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
           ..fileSystem = fileSystem
           ..omitPlatform = omitPlatform
           ..environmentDefines = environmentDefines
-          ..experimentalFlags = experimentalFlags;
+          ..experimentalFlags = experimentalFlags
+          ..verbose = verbose;
 
         processedOpts = new ProcessedOptions(options: options);
         cachedSdkInput = new WorkerInputComponent(
