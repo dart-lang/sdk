@@ -64,7 +64,7 @@ popd
 mkdir flutter_patched_sdk
 
 $checkout/tools/sdks/dart-sdk/bin/dart --packages=$checkout/.packages $checkout/pkg/front_end/tool/_fasta/compile_platform.dart dart:core -Ddart.vm.product=false -Ddart.developer.causal_async_stacks=true -Ddart.isVM=true --enable-experiment=non-nullable --nnbd-agnostic --single-root-scheme=org-dartlang-sdk --single-root-base=$checkout/ org-dartlang-sdk:///sdk_nnbd/lib/libraries.json vm_outline_strong.dill vm_platform_strong.dill vm_outline_strong.dill
-$checkout/tools/sdks/dart-sdk/bin/dart --packages=$checkout/.packages $checkout/pkg/front_end/tool/_fasta/compile_platform.dart --enable-experiment=non-nullable --nnbd-agnostic --target=flutter dart:core --single-root-scheme=org-dartlang-sdk --single-root-base=src org-dartlang-sdk:///flutter/lib/snapshot/libraries.json vm_outline_strong.dill flutter_patched_sdk/platform_strong.dill flutter_patched_sdk/outline_strong.dill
+$checkout/tools/sdks/dart-sdk/bin/dart --packages=$checkout/.packages $checkout/pkg/front_end/tool/_fasta/compile_platform.dart --enable-experiment=non-nullable --nnbd-weak --target=flutter dart:core --single-root-scheme=org-dartlang-sdk --single-root-base=src org-dartlang-sdk:///flutter/lib/snapshot/libraries.json vm_outline_strong.dill flutter_patched_sdk/platform_strong.dill flutter_patched_sdk/outline_strong.dill
 
 popd
 
