@@ -5484,11 +5484,6 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     DartType typeValue =
         localsHandler.substInContext(_elementMap.getDartType(type));
 
-    if (dartTypes.isTopType(typeValue)) {
-      stack.add(graph.addConstantBool(true, closedWorld));
-      return;
-    }
-
     if (options.useNewRti) {
       HInstruction rti =
           _typeBuilder.analyzeTypeArgumentNewRti(typeValue, sourceElement);
@@ -5498,6 +5493,11 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       push(HIsTest(typeValue, checkedType, expression, rti,
           _abstractValueDomain.boolType)
         ..sourceInformation = sourceInformation);
+      return;
+    }
+
+    if (dartTypes.isTopType(typeValue)) {
+      stack.add(graph.addConstantBool(true, closedWorld));
       return;
     }
 
