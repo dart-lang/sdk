@@ -3456,37 +3456,33 @@ class UnboxedConstantInstr : public ConstantInstr {
 // Checks that one type is a subtype of another (e.g. for type parameter bounds
 // checking). Throws a TypeError otherwise. Both types are instantiated at
 // runtime as necessary.
-class AssertSubtypeInstr : public TemplateInstruction<2, Throws, Pure> {
+class AssertSubtypeInstr : public TemplateInstruction<4, Throws, Pure> {
  public:
   AssertSubtypeInstr(TokenPosition token_pos,
                      Value* instantiator_type_arguments,
                      Value* function_type_arguments,
-                     const AbstractType& sub_type,
-                     const AbstractType& super_type,
+                     Value* sub_type,
+                     Value* super_type,
                      const String& dst_name,
                      intptr_t deopt_id)
       : TemplateInstruction(deopt_id),
         token_pos_(token_pos),
-        sub_type_(AbstractType::ZoneHandle(sub_type.raw())),
-        super_type_(AbstractType::ZoneHandle(super_type.raw())),
         dst_name_(String::ZoneHandle(dst_name.raw())) {
-    ASSERT(!super_type.IsNull());
-    ASSERT(!super_type.IsTypeRef());
-    ASSERT(!sub_type.IsNull());
-    ASSERT(!sub_type.IsTypeRef());
     ASSERT(!dst_name.IsNull());
     SetInputAt(0, instantiator_type_arguments);
     SetInputAt(1, function_type_arguments);
+    SetInputAt(2, sub_type);
+    SetInputAt(3, super_type);
   }
 
   DECLARE_INSTRUCTION(AssertSubtype);
 
   Value* instantiator_type_arguments() const { return inputs_[0]; }
   Value* function_type_arguments() const { return inputs_[1]; }
+  Value* sub_type() const { return inputs_[2]; }
+  Value* super_type() const { return inputs_[3]; }
 
   virtual TokenPosition token_pos() const { return token_pos_; }
-  const AbstractType& super_type() const { return super_type_; }
-  const AbstractType& sub_type() const { return sub_type_; }
   const String& dst_name() const { return dst_name_; }
 
   virtual bool ComputeCanDeoptimize() const {
@@ -3497,14 +3493,12 @@ class AssertSubtypeInstr : public TemplateInstruction<2, Throws, Pure> {
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
-  virtual bool AttributesEqual(Instruction* other) const;
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
   const TokenPosition token_pos_;
-  AbstractType& sub_type_;
-  AbstractType& super_type_;
   const String& dst_name_;
 
   DISALLOW_COPY_AND_ASSIGN(AssertSubtypeInstr);

@@ -975,44 +975,36 @@ bool GuardFieldTypeInstr::AttributesEqual(Instruction* other) const {
 }
 
 Instruction* AssertSubtypeInstr::Canonicalize(FlowGraph* flow_graph) {
-  // If all values for type parameters are known (i.e. from instantiator and
-  // function) we can instantiate the sub and super type and remove this
-  // instruction if the subtype test succeeds.
-  ConstantInstr* constant_instantiator_type_args =
-      instantiator_type_arguments()->definition()->AsConstant();
-  ConstantInstr* constant_function_type_args =
-      function_type_arguments()->definition()->AsConstant();
-  if ((constant_instantiator_type_args != NULL) &&
-      (constant_function_type_args != NULL)) {
-    ASSERT(constant_instantiator_type_args->value().IsNull() ||
-           constant_instantiator_type_args->value().IsTypeArguments());
-    ASSERT(constant_function_type_args->value().IsNull() ||
-           constant_function_type_args->value().IsTypeArguments());
+  // If all inputs are constant, we can instantiate the sub and super type and
+  // remove this instruction if the subtype test succeeds.
+  if (super_type()->BindsToConstant() && sub_type()->BindsToConstant() &&
+      instantiator_type_arguments()->BindsToConstant() &&
+      function_type_arguments()->BindsToConstant()) {
+    auto Z = Thread::Current()->zone();
+    const auto& constant_instantiator_type_args =
+        instantiator_type_arguments()->BoundConstant().IsNull()
+            ? TypeArguments::null_type_arguments()
+            : TypeArguments::Cast(
+                  instantiator_type_arguments()->BoundConstant());
+    const auto& constant_function_type_args =
+        function_type_arguments()->BoundConstant().IsNull()
+            ? TypeArguments::null_type_arguments()
+            : TypeArguments::Cast(function_type_arguments()->BoundConstant());
+    auto& constant_sub_type = AbstractType::Handle(
+        Z, AbstractType::Cast(sub_type()->BoundConstant()).raw());
+    auto& constant_super_type = AbstractType::Handle(
+        Z, AbstractType::Cast(super_type()->BoundConstant()).raw());
 
-    Zone* Z = Thread::Current()->zone();
-    const TypeArguments& instantiator_type_args = TypeArguments::Handle(
-        Z,
-        TypeArguments::RawCast(constant_instantiator_type_args->value().raw()));
+    ASSERT(!constant_super_type.IsTypeRef());
+    ASSERT(!constant_sub_type.IsTypeRef());
 
-    const TypeArguments& function_type_args = TypeArguments::Handle(
-        Z, TypeArguments::RawCast(constant_function_type_args->value().raw()));
-
-    AbstractType& sub_type = AbstractType::Handle(Z, sub_type_.raw());
-    AbstractType& super_type = AbstractType::Handle(Z, super_type_.raw());
-    if (AbstractType::InstantiateAndTestSubtype(&sub_type, &super_type,
-                                                instantiator_type_args,
-                                                function_type_args)) {
-      return NULL;
+    if (AbstractType::InstantiateAndTestSubtype(
+            &constant_sub_type, &constant_super_type,
+            constant_instantiator_type_args, constant_function_type_args)) {
+      return nullptr;
     }
   }
   return this;
-}
-
-bool AssertSubtypeInstr::AttributesEqual(Instruction* other) const {
-  AssertSubtypeInstr* other_assert = other->AsAssertSubtype();
-  ASSERT(other_assert != NULL);
-  return super_type().raw() == other_assert->super_type().raw() &&
-         sub_type().raw() == other_assert->sub_type().raw();
 }
 
 bool StrictCompareInstr::AttributesEqual(Instruction* other) const {
@@ -5052,14 +5044,32 @@ void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(0).reg() == locs()->out(0).reg());
 }
 
-void AssertSubtypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(sub_type().IsFinalized());
-  ASSERT(super_type().IsFinalized());
+LocationSummary* AssertSubtypeInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
+  if (!sub_type()->BindsToConstant() || !super_type()->BindsToConstant()) {
+    // TODO(dartbug.com/40813): Handle setting up the non-constant case.
+    UNREACHABLE();
+  }
+  const intptr_t kNumInputs = 4;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  summary->set_in(0, Location::RegisterLocation(
+                         TypeTestABI::kInstantiatorTypeArgumentsReg));
+  summary->set_in(
+      1, Location::RegisterLocation(TypeTestABI::kFunctionTypeArgumentsReg));
+  summary->set_in(2,
+                  Location::Constant(sub_type()->definition()->AsConstant()));
+  summary->set_in(3,
+                  Location::Constant(super_type()->definition()->AsConstant()));
+  return summary;
+}
 
+void AssertSubtypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PushRegister(locs()->in(0).reg());
   __ PushRegister(locs()->in(1).reg());
-  __ PushObject(sub_type());
-  __ PushObject(super_type());
+  __ PushObject(locs()->in(2).constant());
+  __ PushObject(locs()->in(3).constant());
   __ PushObject(dst_name());
 
   compiler->GenerateRuntimeCall(token_pos(), deopt_id(),

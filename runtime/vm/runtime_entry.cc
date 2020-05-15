@@ -446,8 +446,8 @@ DEFINE_RUNTIME_ENTRY(SubtypeCheck, 5) {
       AbstractType::CheckedHandle(zone, arguments.ArgAt(3));
   const String& dst_name = String::CheckedHandle(zone, arguments.ArgAt(4));
 
-  ASSERT(!subtype.IsNull());
-  ASSERT(!supertype.IsNull());
+  ASSERT(!subtype.IsNull() && !subtype.IsTypeRef());
+  ASSERT(!supertype.IsNull() && !supertype.IsTypeRef());
 
   // The supertype or subtype may not be instantiated.
   if (AbstractType::InstantiateAndTestSubtype(

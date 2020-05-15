@@ -1587,15 +1587,20 @@ Fragment FlowGraphBuilder::AssertAssignableLoadTypeArguments(
 }
 
 Fragment FlowGraphBuilder::AssertSubtype(TokenPosition position,
-                                         const AbstractType& sub_type,
-                                         const AbstractType& super_type,
+                                         const AbstractType& sub_type_value,
+                                         const AbstractType& super_type_value,
                                          const String& dst_name) {
   Fragment instructions;
 
   instructions += LoadInstantiatorTypeArguments();
-  Value* instantiator_type_args = Pop();
   instructions += LoadFunctionTypeArguments();
+  instructions += Constant(AbstractType::ZoneHandle(sub_type_value.raw()));
+  instructions += Constant(AbstractType::ZoneHandle(super_type_value.raw()));
+
+  Value* super_type = Pop();
+  Value* sub_type = Pop();
   Value* function_type_args = Pop();
+  Value* instantiator_type_args = Pop();
 
   AssertSubtypeInstr* instr = new (Z)
       AssertSubtypeInstr(position, instantiator_type_args, function_type_args,

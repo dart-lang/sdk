@@ -415,10 +415,6 @@ void DropTempsInstr::PrintOperandsTo(BufferFormatter* f) const {
   }
 }
 
-static const char* TypeToUserVisibleName(const AbstractType& type) {
-  return String::Handle(type.UserVisibleName()).ToCString();
-}
-
 void AssertAssignableInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
   f->Print(", ");
@@ -432,8 +428,10 @@ void AssertAssignableInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 void AssertSubtypeInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s, %s, '%s',", TypeToUserVisibleName(sub_type()),
-           TypeToUserVisibleName(super_type()), dst_name().ToCString());
+  sub_type()->PrintTo(f);
+  f->Print(", ");
+  super_type()->PrintTo(f);
+  f->Print(", '%s', ", dst_name().ToCString());
   f->Print(" instantiator_type_args(");
   instantiator_type_arguments()->PrintTo(f);
   f->Print("), function_type_args(");
