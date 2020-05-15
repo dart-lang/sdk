@@ -366,6 +366,7 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
     _overrideChecks.clear();
     _delayedTypeComputations.clear();
     inheritanceConflictCache.clear();
+    _delayedMemberChecks.clear();
   }
 
   void registerDelayedTypeComputation(DelayedTypeComputation computation) {
