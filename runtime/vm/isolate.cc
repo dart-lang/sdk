@@ -2597,7 +2597,8 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
   delete isolate;
 
   // Run isolate specific cleanup function for all non "vm-isolate's.
-  if (Dart::vm_isolate() != isolate) {
+  const bool is_vm_isolate = Dart::vm_isolate() == isolate;
+  if (!is_vm_isolate) {
     if (cleanup != nullptr) {
       cleanup(isolate_group->embedder_data(), callback_data);
     }
@@ -2606,7 +2607,10 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
   const bool shutdown_group =
       isolate_group->UnregisterIsolateDecrementCount(isolate);
   if (shutdown_group) {
-    if (!isolate_group->thread_pool()->CurrentThreadIsWorker()) {
+    // The "vm-isolate" does not have a thread pool.
+    ASSERT(is_vm_isolate == (isolate_group->thread_pool() == nullptr));
+    if (is_vm_isolate ||
+        !isolate_group->thread_pool()->CurrentThreadIsWorker()) {
       isolate_group->Shutdown();
     } else {
       class ShutdownGroupTask : public ThreadPool::Task {
