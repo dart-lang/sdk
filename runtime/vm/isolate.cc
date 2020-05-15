@@ -595,6 +595,30 @@ void IsolateGroup::UnscheduleThread(Thread* thread,
   UnscheduleThreadLocked(&ml, thread, is_mutator, bypass_safepoint);
 }
 
+void IsolateGroup::IncreaseMutatorCount(Isolate* mutator) {
+  ASSERT(mutator->group() == this);
+
+  // If the mutator was temporarily blocked on a worker thread, we have to
+  // unblock the worker thread again.
+  Thread* mutator_thread = mutator->mutator_thread();
+  if (mutator_thread != nullptr && mutator_thread->top_exit_frame_info() != 0) {
+    thread_pool()->MarkCurrentWorkerAsUnBlocked();
+  }
+}
+
+void IsolateGroup::DecreaseMutatorCount(Isolate* mutator) {
+  ASSERT(mutator->group() == this);
+
+  // If the mutator thread has an active stack and runs on our thread pool we
+  // will mark the worker as blocked, thereby possibly spawning a new worker for
+  // pending tasks (if there are any).
+  Thread* mutator_thread = mutator->mutator_thread();
+  ASSERT(mutator_thread != nullptr);
+  if (mutator_thread->top_exit_frame_info() != 0) {
+    thread_pool()->MarkCurrentWorkerAsBlocked();
+  }
+}
+
 #ifndef PRODUCT
 void IsolateGroup::PrintJSON(JSONStream* stream, bool ref) {
   JSONObject jsobj(stream);
@@ -2544,7 +2568,7 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
   const bool shutdown_group =
       isolate_group->UnregisterIsolateDecrementCount(isolate);
   if (shutdown_group) {
-    if (!OSThread::CurrentThreadRunsOn(isolate_group->thread_pool())) {
+    if (!isolate_group->thread_pool()->CurrentThreadIsWorker()) {
       isolate_group->Shutdown();
     } else {
       class ShutdownGroupTask : public ThreadPool::Task {
@@ -3614,6 +3638,10 @@ Monitor* IsolateGroup::threads_lock() const {
 }
 
 Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
+  if (is_mutator) {
+    group()->IncreaseMutatorCount(this);
+  }
+
   // We are about to associate the thread with an isolate group and it would
   // not be possible to correctly track no_safepoint_scope_depth for the
   // thread in the constructor/destructor of MonitorLocker,
@@ -3658,31 +3686,36 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
 void Isolate::UnscheduleThread(Thread* thread,
                                bool is_mutator,
                                bool bypass_safepoint) {
-  // Disassociate the 'Thread' structure and unschedule the thread
-  // from this isolate.
-  // We are disassociating the thread from an isolate and it would
-  // not be possible to correctly track no_safepoint_scope_depth for the
-  // thread in the constructor/destructor of MonitorLocker,
-  // so we create a MonitorLocker object which does not do any
-  // no_safepoint_scope_depth increments/decrements.
-  MonitorLocker ml(group()->threads_lock(), false);
+  {
+    // Disassociate the 'Thread' structure and unschedule the thread
+    // from this isolate.
+    // We are disassociating the thread from an isolate and it would
+    // not be possible to correctly track no_safepoint_scope_depth for the
+    // thread in the constructor/destructor of MonitorLocker,
+    // so we create a MonitorLocker object which does not do any
+    // no_safepoint_scope_depth increments/decrements.
+    MonitorLocker ml(group()->threads_lock(), false);
 
-  if (is_mutator) {
-    if (thread->sticky_error() != Error::null()) {
-      ASSERT(sticky_error_ == Error::null());
-      sticky_error_ = thread->StealStickyError();
+    if (is_mutator) {
+      if (thread->sticky_error() != Error::null()) {
+        ASSERT(sticky_error_ == Error::null());
+        sticky_error_ = thread->StealStickyError();
+      }
+      ASSERT(mutator_thread_ == thread);
+      ASSERT(mutator_thread_ == scheduled_mutator_thread_);
+      scheduled_mutator_thread_ = nullptr;
+    } else {
+      // We only reset the isolate pointer for non-mutator threads, since
+      // mutator threads can still be visited during GC even if unscheduled.
+      // See also IsolateGroup::UnscheduleThreadLocked`
+      thread->isolate_ = nullptr;
     }
-    ASSERT(mutator_thread_ == thread);
-    ASSERT(mutator_thread_ == scheduled_mutator_thread_);
-    scheduled_mutator_thread_ = nullptr;
-  } else {
-    // We only reset the isolate pointer for non-mutator threads, since mutator
-    // threads can still be visited during GC even if unscheduled.
-    // See also IsolateGroup::UnscheduleThreadLocked`
-    thread->isolate_ = nullptr;
+    thread->field_table_values_ = nullptr;
+    group()->UnscheduleThreadLocked(&ml, thread, is_mutator, bypass_safepoint);
   }
-  thread->field_table_values_ = nullptr;
-  group()->UnscheduleThreadLocked(&ml, thread, is_mutator, bypass_safepoint);
+  if (is_mutator) {
+    group()->DecreaseMutatorCount(this);
+  }
 }
 
 static const char* NewConstChar(const char* chars) {

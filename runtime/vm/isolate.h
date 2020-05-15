@@ -385,6 +385,9 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
                         bool is_mutator,
                         bool bypass_safepoint = false);
 
+  void IncreaseMutatorCount(Isolate* mutator);
+  void DecreaseMutatorCount(Isolate* mutator);
+
   Dart_LibraryTagHandler library_tag_handler() const {
     return library_tag_handler_;
   }
@@ -631,7 +634,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   ReversePcLookupCache* reverse_pc_lookup_cache_ = nullptr;
   ArrayPtr saved_unlinked_calls_;
   std::shared_ptr<FieldTable> saved_initial_field_table_;
-
   uint32_t isolate_group_flags_ = 0;
 };
 

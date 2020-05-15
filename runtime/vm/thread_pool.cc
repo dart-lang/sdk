@@ -96,6 +96,53 @@ bool ThreadPool::RunImpl(std::unique_ptr<Task> task) {
   return true;
 }
 
+bool ThreadPool::CurrentThreadIsWorker() {
+  auto worker =
+      static_cast<Worker*>(OSThread::Current()->owning_thread_pool_worker_);
+  return worker != nullptr && worker->pool_ == this;
+}
+
+void ThreadPool::MarkCurrentWorkerAsBlocked() {
+  auto worker =
+      static_cast<Worker*>(OSThread::Current()->owning_thread_pool_worker_);
+  Worker* new_worker = nullptr;
+  if (worker != nullptr) {
+    MonitorLocker ml(&pool_monitor_);
+    ASSERT(!worker->is_blocked_);
+    worker->is_blocked_ = true;
+    if (max_pool_size_ > 0) {
+      ++max_pool_size_;
+      // This thread is blocked and therefore no longer usable as a worker.
+      // If we have pending tasks and there are no idle workers, we will spawn a
+      // new thread (temporarily allow exceeding the maximum pool size) to
+      // handle the pending tasks.
+      if (idle_workers_.IsEmpty() && pending_tasks_ > 0) {
+        new_worker = new Worker(this);
+        idle_workers_.Append(new_worker);
+        count_idle_++;
+      }
+    }
+  }
+  if (new_worker != nullptr) {
+    new_worker->StartThread();
+  }
+}
+
+void ThreadPool::MarkCurrentWorkerAsUnBlocked() {
+  auto worker =
+      static_cast<Worker*>(OSThread::Current()->owning_thread_pool_worker_);
+  if (worker != nullptr) {
+    MonitorLocker ml(&pool_monitor_);
+    if (worker->is_blocked_) {
+      worker->is_blocked_ = false;
+      if (max_pool_size_ > 0) {
+        --max_pool_size_;
+        ASSERT(max_pool_size_ > 0);
+      }
+    }
+  }
+}
+
 void ThreadPool::WorkerLoop(Worker* worker) {
   WorkerList dead_workers_to_join;
 
@@ -260,7 +307,8 @@ void ThreadPool::Worker::Main(uword args) {
   Worker* worker = reinterpret_cast<Worker*>(args);
   ThreadPool* pool = worker->pool_;
 
-  os_thread->owning_thread_pool_ = pool;
+  os_thread->owning_thread_pool_worker_ = worker;
+  worker->os_thread_ = os_thread;
 
   // Once the worker quits it needs to be joined.
   worker->join_id_ = OSThread::GetCurrentThreadJoinId(os_thread);
@@ -274,7 +322,8 @@ void ThreadPool::Worker::Main(uword args) {
 
   pool->WorkerLoop(worker);
 
-  os_thread->owning_thread_pool_ = nullptr;
+  worker->os_thread_ = nullptr;
+  os_thread->owning_thread_pool_worker_ = nullptr;
 
   // Call the thread exit hook here to notify the embedder that the
   // thread pool thread is exiting.

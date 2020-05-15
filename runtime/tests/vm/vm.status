@@ -33,6 +33,10 @@ dart/isolates/sum_recursive_call_ig_test: Skip # Only AOT has lightweight enough
 dart/isolates/sum_recursive_call_test: Skip # Only AOT has lightweight enough isolates to run those tests.
 dart/isolates/sum_recursive_tail_call_ig_test: Skip # Only AOT has lightweight enough isolates to run those tests.
 dart/isolates/sum_recursive_tail_call_test: Skip # Only AOT has lightweight enough isolates to run those tests.
+dart/isolates/thread_pool_test: Skip # Only AOT has lightweight enough isolates to run those tests.
+
+[ $arch == simarm || $arch == simarm64 ]
+dart/isolates/thread_pool_test: SkipByDesign # Test uses dart:ffi which is not supported on simulators.
 
 [ $builder_tag == asan ]
 dart/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188
