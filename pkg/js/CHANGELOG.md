@@ -1,3 +1,7 @@
+## 0.6.4
+
+* Opt in to null safety.
+
 ## 0.6.3
 
 * Added promiseToFuture function.
