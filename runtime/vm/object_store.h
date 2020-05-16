@@ -254,6 +254,8 @@ class ObjectPointerVisitor;
 #define ISOLATE_OBJECT_STORE_FIELD_LIST(R_, RW)                                \
   RW(UnhandledException, preallocated_unhandled_exception)                     \
   RW(StackTrace, preallocated_stack_trace)                                     \
+  RW(Array, dart_args_1)                                                       \
+  RW(Array, dart_args_2)                                                       \
   R_(GrowableObjectArray, resume_capabilities)                                 \
   R_(GrowableObjectArray, exit_listeners)                                      \
   R_(GrowableObjectArray, error_listeners)
