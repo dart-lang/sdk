@@ -10,7 +10,6 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart'
     show SuggestionBuilder;
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
@@ -24,8 +23,6 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
 
   final OpType opType;
 
-  DartType contextType;
-
   CompletionSuggestionKind kind;
 
   final String prefix;
@@ -35,8 +32,6 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
 
   LibraryElementSuggestionBuilder(this.request, this.builder, [this.prefix])
       : opType = request.opType {
-    contextType = request.featureComputer
-        .computeContextType(request.target.containingNode);
     kind = request.target.isFunctionalArgument()
         ? CompletionSuggestionKind.IDENTIFIER
         : opType.suggestKind;

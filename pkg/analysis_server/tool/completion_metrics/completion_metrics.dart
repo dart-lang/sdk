@@ -217,6 +217,13 @@ class CompletionMetrics {
   ArithmeticMeanComputer insertionLengthTheoretical =
       ArithmeticMeanComputer('insertion_length_theoretical');
 
+  /// The places in which a completion location was requested when none was
+  /// available.
+  Set<String> missingCompletionLocations = {};
+
+  /// The completion locations for which no relevance table was available.
+  Set<String> missingCompletionLocationTables = {};
+
   /// A list of the top [maxWorstResults] completion results with the highest
   /// (worst) ranks for completing to instance members.
   List<CompletionResult> instanceMemberWorstResults = [];
@@ -250,6 +257,21 @@ class CompletionMetrics {
     _recordMmr(result);
     _recordWorstResult(result);
     _recordSlowestResult(result);
+    _recordMissingInformation(result);
+  }
+
+  /// If the completion location was requested but missing when computing the
+  /// [result], then record where that happened.
+  void _recordMissingInformation(CompletionResult result) {
+    var location = result.listener?.missingCompletionLocation;
+    if (location != null) {
+      missingCompletionLocations.add(location);
+    } else {
+      location = result.listener?.missingCompletionLocationTable;
+      if (location != null) {
+        missingCompletionLocationTables.add(location);
+      }
+    }
   }
 
   /// Record the MMR for the [result].
@@ -381,6 +403,7 @@ class CompletionMetricsComputer {
     if (verbose) {
       printWorstResults(metricsNewMode);
       printSlowestResults(metricsNewMode);
+      printMissingInformation(metricsNewMode);
     }
     return resultCode;
   }
@@ -486,6 +509,28 @@ class CompletionMetricsComputer {
     metrics.meanCompletionMS.printMean();
     metrics.completionCounter.printCounterValues();
     print('====================');
+  }
+
+  void printMissingInformation(CompletionMetrics metrics) {
+    var locations = metrics.missingCompletionLocations;
+    if (locations.isNotEmpty) {
+      print('');
+      print('====================');
+      print('Missing completion location in the following places:');
+      for (var location in locations.toList()..sort()) {
+        print('  $location');
+      }
+    }
+
+    var tables = metrics.missingCompletionLocationTables;
+    if (tables.isNotEmpty) {
+      print('');
+      print('====================');
+      print('Missing tables for the following completion locations:');
+      for (var table in tables.toList()..sort()) {
+        print('  $table');
+      }
+    }
   }
 
   void printSlowestResults(CompletionMetrics metrics) {
@@ -814,10 +859,10 @@ class CompletionMetricsComputer {
       var suggestions = result.suggestions;
       var suggestion = suggestions[rank - 1];
 
-      var features = result.listener.featureMap[suggestion];
-      var topTenFeatures = suggestions
-          .sublist(0, math.min(10, suggestions.length))
-          .map((e) => result.listener.featureMap[suggestion]);
+      var features = result.listener?.featureMap[suggestion];
+      var topSuggestions =
+          suggestions.sublist(0, math.min(10, suggestions.length));
+      var topSuggestionCount = topSuggestions.length;
 
       var preceding = <int, int>{};
       for (var i = 0; i < rank - 1; i++) {
@@ -832,12 +877,17 @@ class CompletionMetricsComputer {
       print('  Location: ${expected.location}');
       print('  Suggestion: $suggestion');
       print('  Features: $features');
-      print('  Features of top ${topTenFeatures.length} suggestions:');
-      for (var feature in topTenFeatures) {
-        if (feature.isEmpty) {
-          print('    <none>');
-        } else {
-          print('    $feature');
+      print('  Top $topSuggestionCount suggestions:');
+      for (var i = 0; i < topSuggestionCount; i++) {
+        var topSuggestion = topSuggestions[i];
+        print('  $i Suggestion: $topSuggestion');
+        if (result.listener != null) {
+          var feature = result.listener.featureMap[topSuggestion];
+          if (feature.isEmpty) {
+            print('    Features: <none>');
+          } else {
+            print('    Features: $feature');
+          }
         }
       }
       print('  Preceding relevance scores and counts:');
@@ -937,6 +987,9 @@ class MetricsSuggestionListener implements SuggestionListener {
 
   String cachedFeatures = '';
 
+  String missingCompletionLocation;
+  String missingCompletionLocationTable;
+
   @override
   void builtSuggestion(protocol.CompletionSuggestion suggestion) {
     featureMap[suggestion] = cachedFeatures;
@@ -972,6 +1025,28 @@ class MetricsSuggestionListener implements SuggestionListener {
     needsComma = write('startsWithDollar', startsWithDollar, needsComma);
     needsComma = write('superMatches', superMatches, needsComma);
     cachedFeatures = buffer.toString();
+  }
+
+  @override
+  void missingCompletionLocationAt(AstNode parent, SyntacticEntity child) {
+    if (missingCompletionLocation == null) {
+      String className(SyntacticEntity entity) {
+        var className = entity.runtimeType.toString();
+        if (className.endsWith('Impl')) {
+          className = className.substring(0, className.length - 4);
+        }
+        return className;
+      }
+
+      var parentClass = className(parent);
+      var childClass = className(child);
+      missingCompletionLocation = '$parentClass/$childClass';
+    }
+  }
+
+  @override
+  void missingElementKindTableFor(String completionLocation) {
+    missingCompletionLocationTable = completionLocation;
   }
 }
 

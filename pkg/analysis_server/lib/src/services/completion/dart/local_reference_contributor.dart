@@ -11,7 +11,6 @@ import 'package:analysis_server/src/services/completion/dart/suggestion_builder.
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart'
@@ -92,10 +91,6 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   final Map<String, CompletionSuggestion> suggestionMap =
       <String, CompletionSuggestion>{};
 
-  /// The context type of the completion offset, or `null` if there is no
-  /// context type at that location.
-  DartType contextType;
-
   /// Only used when [useNewRelevance] is `false`.
   int privateMemberRelevance = DART_RELEVANCE_DEFAULT;
 
@@ -106,10 +101,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         super(request.offset) {
     // Suggestions for inherited members are provided by
     // InheritedReferenceContributor.
-    if (useNewRelevance) {
-      contextType = request.featureComputer
-          .computeContextType(request.target.containingNode);
-    } else {
+    if (!useNewRelevance) {
       // If the user typed an identifier starting with '_' then do not suppress
       // the relevance of private members.
       var data = request.result != null

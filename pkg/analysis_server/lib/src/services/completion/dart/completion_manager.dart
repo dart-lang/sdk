@@ -425,7 +425,10 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   @override
   DartType get contextType {
     if (!_hasComputedContextType) {
-      _contextType = featureComputer.computeContextType(target.containingNode);
+      var entity = target.entity;
+      if (entity is AstNode) {
+        _contextType = featureComputer.computeContextType(entity);
+      }
       _hasComputedContextType = true;
     }
     return _contextType;

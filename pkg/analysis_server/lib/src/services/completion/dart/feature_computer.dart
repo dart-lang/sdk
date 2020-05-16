@@ -7,17 +7,18 @@
 import 'dart:math' as math;
 
 import 'package:analysis_server/src/protocol_server.dart'
-    show convertElementToElementKind;
+    show ElementKind, convertElementToElementKind;
 import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart'
-    show ClassElement, Element, FieldElement;
+    show ClassElement, Element, FieldElement, LibraryElement;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 
 /// Convert a relevance score (assumed to be between `0.0` and `1.0` inclusive)
 /// to a relevance value between `0` and `1000`. If the score is outside that
@@ -107,7 +108,12 @@ class FeatureComputer {
     if (locationTable == null) {
       return -1.0;
     }
-    var kind = convertElementToElementKind(element);
+    ElementKind kind;
+    if (element is LibraryElement) {
+      kind = ElementKind.PREFIX;
+    } else {
+      kind = convertElementToElementKind(element);
+    }
     var range = locationTable[kind];
     if (range == null) {
       return 0.0;
@@ -199,7 +205,10 @@ class FeatureComputer {
   }
 }
 
-/// An object used to compute metrics for a single file or directory.
+/// An visitor used to compute the required type of an expression or identifier
+/// based on its context. The visitor should be initialized with the node whose
+/// context type is to be computed and the parent of that node should be
+/// visited.
 class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   final TypeProvider typeProvider;
 
@@ -266,6 +275,15 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   }
 
   @override
+  DartType visitConditionalExpression(ConditionalExpression node) {
+    if (childNode == node.condition) {
+      return typeProvider.boolType;
+    } else {
+      return _visitParent(node);
+    }
+  }
+
+  @override
   DartType visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     if (childNode == node.expression) {
       var element = node.fieldName.staticElement;
@@ -288,6 +306,23 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   DartType visitDoStatement(DoStatement node) {
     if (childNode == node.condition) {
       return typeProvider.boolType;
+    }
+    return null;
+  }
+
+  @override
+  DartType visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    if (childNode == node.expression) {
+      var parent = node.parent;
+      if (parent is MethodDeclaration) {
+        return BodyInferenceContext.of(parent.body).contextType;
+      } else if (parent is FunctionExpression) {
+        var grandparent = parent.parent;
+        if (grandparent is FunctionDeclaration) {
+          return BodyInferenceContext.of(parent.body).contextType;
+        }
+        return _visitParent(parent);
+      }
     }
     return null;
   }
@@ -363,7 +398,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   DartType visitIndexExpression(IndexExpression node) {
     if (childNode == node.index) {
       var parameters = node.staticElement?.parameters;
-      if (parameters != null && parameters.length == 1) {
+      if (parameters != null && parameters.isNotEmpty) {
         return parameters[0].type;
       }
     }
@@ -395,7 +430,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
 
   @override
   DartType visitMethodInvocation(MethodInvocation node) {
-    if (childNode == node.target) {
+    if (childNode == node.target || childNode == node.methodName) {
       return _visitParent(node);
     }
     return null;
@@ -412,22 +447,28 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   }
 
   @override
+  DartType visitPrefixedIdentifier(PrefixedIdentifier node) {
+    return _visitParent(node);
+  }
+
+  @override
   DartType visitPrefixExpression(PrefixExpression node) {
     return (childNode as Expression).staticParameterElement?.type;
   }
 
   @override
   DartType visitPropertyAccess(PropertyAccess node) {
-    if (childNode == node.target) {
-      return _visitParent(node);
-    }
-    return null;
+    return _visitParent(node);
   }
 
   @override
   DartType visitReturnStatement(ReturnStatement node) {
     if (childNode == node.expression) {
-      return _returnType(node);
+      var functionBody = node.thisOrAncestorOfType<FunctionBody>();
+      if (functionBody != null) {
+        return BodyInferenceContext.of(functionBody).contextType;
+      }
+//      return _returnType(node);
     }
     return null;
   }
@@ -467,8 +508,8 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   DartType visitVariableDeclaration(VariableDeclaration node) {
     if (childNode == node.initializer) {
       var parent = node.parent;
-      if (parent is VariableDeclarationList && parent.type != null) {
-        return parent.type.type;
+      if (parent is VariableDeclarationList) {
+        return parent.type?.type;
       }
     }
     return null;
@@ -485,7 +526,11 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   @override
   DartType visitYieldStatement(YieldStatement node) {
     if (childNode == node.expression) {
-      return _returnType(node);
+      var functionBody = node.thisOrAncestorOfType<FunctionBody>();
+      if (functionBody != null) {
+        return BodyInferenceContext.of(functionBody).contextType;
+      }
+//      return _returnType(node);
     }
     return null;
   }
@@ -532,11 +577,15 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
     return null;
   }
 
+  /// Return the result of visiting the parent of the [node] after setting the
+  /// [childNode] to the [node]. Note that this method is destructive in that it
+  /// does not reset the [childNode] before returning.
   DartType _visitParent(AstNode node) {
-    if (node.parent != null) {
-      childNode = node;
-      return node.parent.accept(this);
+    var parent = node.parent;
+    if (parent == null) {
+      return null;
     }
-    return null;
+    childNode = node;
+    return parent.accept(this);
   }
 }

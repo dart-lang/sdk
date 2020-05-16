@@ -89,5 +89,5 @@ abstract class Relevance {
   static const int requiredNamedArgument = 950;
 
   /// The relevance used when suggesting a type parameter.
-  static const int typeParameter = 900;
+  static const int typeParameter = 500;
 }
