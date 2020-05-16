@@ -115,8 +115,8 @@ class HtmlElement extends Element implements NoncedElement {
   HtmlElement.created() : super.created();
 
   // From NoncedElement
-  String get nonce native;
-  set nonce(String value) native;
+  String? get nonce native;
+  set nonce(String? value) native;
 }
 
 /**
@@ -22629,7 +22629,7 @@ class Navigator extends NavigatorConcurrentHardware
 
   _Clipboard get clipboard native;
 
-  NetworkInformation get connection native;
+  NetworkInformation? get connection native;
 
   CredentialsContainer get credentials native;
 
@@ -22908,7 +22908,7 @@ class NetworkInformation extends EventTarget {
   static const EventStreamProvider<Event> changeEvent =
       const EventStreamProvider<Event>('change');
 
-  num get downlink native;
+  num? get downlink native;
 
   num get downlinkMax native;
 
@@ -23619,9 +23619,9 @@ class NoncedElement extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String get nonce native;
+  String? get nonce native;
 
-  set nonce(String value) native;
+  set nonce(String? value) native;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25059,7 +25059,7 @@ class Performance extends EventTarget {
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.performance)');
 
-  MemoryInfo get memory native;
+  MemoryInfo? get memory native;
 
   PerformanceNavigation get navigation native;
 
