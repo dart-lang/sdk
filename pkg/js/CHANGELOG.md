@@ -1,13 +1,6 @@
-## 0.6.4
+## 0.6.2-dev
 
 * Opt in to null safety.
-
-## 0.6.3
-
-* Added promiseToFuture function.
-
-## 0.6.2
-
 * Improved documentation.
 
 ## 0.6.1+1
