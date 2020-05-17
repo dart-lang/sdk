@@ -25,6 +25,7 @@ import 'package:analysis_server/src/services/correction/dart/add_required_keywor
 import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/add_static.dart';
 import 'package:analysis_server/src/services/correction/dart/add_type_annotation.dart';
+import 'package:analysis_server/src/services/correction/dart/change_argument_name.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_add_all_to_spread.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_conditional_expression_to_if_element.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_documentation_into_line.dart';
@@ -99,6 +100,9 @@ import 'package:path/path.dart';
 
 /// A predicate is a one-argument function that returns a boolean value.
 typedef ElementPredicate = bool Function(Element argument);
+
+/// A function that can be executed to create a multi-correction producer.
+typedef MultiProducerGenerator = MultiCorrectionProducer Function();
 
 /// A function that can be executed to create a correction producer.
 typedef ProducerGenerator = CorrectionProducer Function();
@@ -347,6 +351,16 @@ class FixProcessor extends BaseProcessor {
       ConvertToGenericFunctionSyntax.newInstance,
     ],
 //    LintNames.use_rethrow_when_possible : [],
+  };
+
+  /// A map from error codes to a list of generators used to create multiple
+  /// correction producers used to build fixes for those diagnostics. The
+  /// generators used for lint rules are in the [lintMultiProducerMap].
+  static const Map<ErrorCode, List<MultiProducerGenerator>>
+      nonLintMultiProducerMap = {
+    CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER: [
+      ChangeArgumentName.newInstance
+    ],
   };
 
   /// A map from error codes to a list of generators used to create the
@@ -802,7 +816,6 @@ class FixProcessor extends BaseProcessor {
     }
     if (errorCode == CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER) {
       await _addFix_addMissingParameterNamed();
-      await _addFix_changeArgumentName();
     }
     if (errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE) {
       await _addFix_illegalAsyncReturnType();
@@ -1214,57 +1227,6 @@ class FixProcessor extends BaseProcessor {
         }
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_WITH_NULL_AWARE);
-    }
-  }
-
-  Future<void> _addFix_changeArgumentName() async {
-    const maxDistance = 4;
-
-    List<String> getNamedParameterNames() {
-      var namedExpression = node?.parent?.parent;
-      if (node is SimpleIdentifier &&
-          namedExpression is NamedExpression &&
-          namedExpression.name == node.parent &&
-          namedExpression.parent is ArgumentList) {
-        var parameters = _ExecutableParameters(
-          sessionHelper,
-          namedExpression.parent.parent,
-        );
-        return parameters?.namedNames;
-      }
-      return null;
-    }
-
-    int computeDistance(String current, String proposal) {
-      if ((current == 'child' && proposal == 'children') ||
-          (current == 'children' && proposal == 'child')) {
-        // Special case handling for 'child' and 'children' is unnecessary if
-        // `maxDistance >= 3`, but is included to prevent regression in case the
-        // value is changed to improve results.
-        return 1;
-      }
-      return levenshtein(current, proposal, maxDistance, caseSensitive: false);
-    }
-
-    var names = getNamedParameterNames();
-    if (names == null || names.isEmpty) {
-      return;
-    }
-
-    SimpleIdentifier argumentName = node;
-    var invalidName = argumentName.name;
-    for (var proposedName in names) {
-      var distance = computeDistance(invalidName, proposedName);
-      if (distance <= maxDistance) {
-        var changeBuilder = _newDartChangeBuilder();
-        await changeBuilder.addFileEdit(file, (builder) {
-          builder.addSimpleReplacement(range.node(argumentName), proposedName);
-        });
-        // TODO(brianwilkerson) Create a way to use the distance as part of the
-        //  computation of the priority (so that closer names sort first).
-        _addFixFromBuilder(changeBuilder, DartFixKind.CHANGE_ARGUMENT_NAME,
-            args: [proposedName]);
-      }
     }
   }
 
@@ -4271,10 +4233,8 @@ class FixProcessor extends BaseProcessor {
 
     Future<void> compute(CorrectionProducer producer) async {
       producer.configure(context);
-
       var builder = _newDartChangeBuilder();
       await producer.compute(builder);
-
       _addFixFromBuilder(builder, producer.fixKind,
           args: producer.fixArguments);
     }
@@ -4292,6 +4252,16 @@ class FixProcessor extends BaseProcessor {
       if (generators != null) {
         for (var generator in generators) {
           await compute(generator());
+        }
+      }
+      var multiGenerators = nonLintMultiProducerMap[errorCode];
+      if (multiGenerators != null) {
+        for (var multiGenerator in multiGenerators) {
+          var multiProducer = multiGenerator();
+          multiProducer.configure(context);
+          for (var producer in multiProducer.producers) {
+            await compute(producer);
+          }
         }
       }
     }
