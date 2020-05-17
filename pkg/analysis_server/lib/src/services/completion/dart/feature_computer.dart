@@ -17,7 +17,6 @@ import 'package:analyzer/dart/element/element.dart'
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 
 /// Convert a relevance score (assumed to be between `0.0` and `1.0` inclusive)
@@ -468,7 +467,6 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
       if (functionBody != null) {
         return BodyInferenceContext.of(functionBody).contextType;
       }
-//      return _returnType(node);
     }
     return null;
   }
@@ -530,49 +528,6 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
       if (functionBody != null) {
         return BodyInferenceContext.of(functionBody).contextType;
       }
-//      return _returnType(node);
-    }
-    return null;
-  }
-
-  DartType _returnType(AstNode node) {
-    DartType unwrap(DartType returnType, FunctionBody body) {
-      if (returnType is InterfaceTypeImpl) {
-        DartType unwrapAs(ClassElement superclass) {
-          var convertedType = returnType.asInstanceOf(superclass);
-          if (convertedType != null) {
-            return convertedType.typeArguments[0];
-          }
-          return null;
-        }
-
-        if (body.isAsynchronous) {
-          if (body.isGenerator) {
-            // async* implies Stream<T>
-            return unwrapAs(typeProvider.streamElement);
-          } else {
-            // async implies Future<T>
-            return unwrapAs(typeProvider.futureElement);
-          }
-        } else if (body.isGenerator) {
-          // sync* implies Iterable<T>
-          return unwrapAs(typeProvider.iterableElement);
-        }
-      }
-      return returnType;
-    }
-
-    var parent = node.parent;
-    while (parent != null) {
-      if (parent is MethodDeclaration) {
-        return unwrap(parent.declaredElement.returnType, parent.body);
-      } else if (parent is ConstructorDeclaration) {
-        return parent.declaredElement.returnType;
-      } else if (parent is FunctionDeclaration) {
-        return unwrap(
-            parent.declaredElement.returnType, parent.functionExpression.body);
-      }
-      parent = parent.parent;
     }
     return null;
   }
