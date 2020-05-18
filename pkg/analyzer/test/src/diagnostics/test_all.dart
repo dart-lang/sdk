@@ -181,6 +181,8 @@ import 'inference_failure_on_untyped_parameter_test.dart'
     as inference_failure_on_untyped_parameter;
 import 'instance_access_to_static_member_test.dart'
     as instance_access_to_static_member;
+import 'instance_member_access_from_static_test.dart'
+    as instance_member_access_from_static;
 import 'instantiate_abstract_class_test.dart' as instantiate_abstract_class;
 import 'invalid_annotation_from_deferred_library_test.dart'
     as invalid_annotation_from_deferred_library;
@@ -630,6 +632,7 @@ main() {
     inference_failure_on_uninitialized_variable.main();
     inference_failure_on_untyped_parameter.main();
     instance_access_to_static_member.main();
+    instance_member_access_from_static.main();
     instantiate_abstract_class.main();
     invalid_annotation.main();
     invalid_annotation_from_deferred_library.main();

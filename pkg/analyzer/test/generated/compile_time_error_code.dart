@@ -1312,45 +1312,6 @@ class A {
     ]);
   }
 
-  test_instanceMemberAccessFromStatic_field() async {
-    await assertErrorsInCode(r'''
-class A {
-  int f;
-  static foo() {
-    f;
-  }
-}
-''', [
-      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 40, 1),
-    ]);
-  }
-
-  test_instanceMemberAccessFromStatic_getter() async {
-    await assertErrorsInCode(r'''
-class A {
-  get g => null;
-  static foo() {
-    g;
-  }
-}
-''', [
-      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 48, 1),
-    ]);
-  }
-
-  test_instanceMemberAccessFromStatic_method() async {
-    await assertErrorsInCode(r'''
-class A {
-  m() {}
-  static foo() {
-    m();
-  }
-}
-''', [
-      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 40, 1),
-    ]);
-  }
-
   test_instantiateEnum_const() async {
     await assertErrorsInCode(r'''
 enum E { ONE }
