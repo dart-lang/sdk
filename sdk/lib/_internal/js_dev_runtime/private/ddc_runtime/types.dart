@@ -7,6 +7,10 @@
 /// This library defines the representation of runtime types.
 part of dart._runtime;
 
+_throwNullSafetyWarningError() => throw UnsupportedError(
+    'Null safety errors cannot be shown as warnings when running with sound '
+    'null safety.');
+
 @notNull
 bool _setNullSafety = false;
 
@@ -17,13 +21,30 @@ bool strictNullSafety = false;
 ///
 /// Changing the mode after the application has started running is not
 /// supported.
-void nullSafety(bool flag) {
+void nullSafety(bool soundNullSafety) {
   if (_setNullSafety) {
     throw UnsupportedError('The Null Safety mode can only be set once.');
   }
 
-  strictNullSafety = flag;
+  if (soundNullSafety && _weakNullSafetyWarnings)
+    _throwNullSafetyWarningError();
+
+  strictNullSafety = soundNullSafety;
   _setNullSafety = true;
+}
+
+@notNull
+bool _weakNullSafetyWarnings = false;
+
+/// Sets the runtime mode to show warnings when running with weak null safety.
+///
+/// These are warnings for issues that will become errors when sound null safety
+/// is enabled. Showing warnings while running with sound null safety is not
+/// supported (they will be errors).
+void weakNullSafetyWarnings(bool showWarnings) {
+  if (showWarnings && strictNullSafety) _throwNullSafetyWarningError();
+
+  _weakNullSafetyWarnings = showWarnings;
 }
 
 final metadata = JS('', 'Symbol("metadata")');
@@ -221,8 +242,10 @@ void _warn(arg) {
 }
 
 void _nullWarn(arg) {
-  _warn('$arg\n'
-      'This will become a failure when runtime null safety is enabled.');
+  if (_weakNullSafetyWarnings) {
+    _warn('$arg\n'
+        'This will become a failure when runtime null safety is enabled.');
+  }
 }
 
 /// Tracks objects that have been compared against null (i.e., null is Type).
