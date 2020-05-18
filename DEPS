@@ -91,7 +91,7 @@ vars = {
   "dart_style_tag": "1.3.6",  # Please see the note above before updating.
 
   "dartdoc_tag" : "v0.31.0",
-  "ffi_tag": "4cc14129e81f8804e73321f0ccf5484397a5ddce",
+  "ffi_tag": "454ab0f9ea6bd06942a983238d8a6818b1357edb",
   "fixnum_tag": "eb3748663dc979271ff6a3d014fbe522543b1d91",
   "glob_tag": "e9f4e6b7ae8abe5071461cf8f47191bb19cf7ef6",
   "html_tag": "083a36cd801a4b787ba156b7c6e4c8b2e2daed4a",
