@@ -75,7 +75,7 @@ class EnclosingExecutableContext {
 
   static bool _isStaticMethod(ExecutableElement element) {
     var enclosing = element?.enclosingElement;
-    if (enclosing is ClassElement) {
+    if (enclosing is ClassElement || enclosing is ExtensionElement) {
       return element.isStatic;
     }
     return false;
@@ -2769,7 +2769,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
     // not a class member
     Element enclosingElement = element.enclosingElement;
-    if (enclosingElement is! ClassElement) {
+    if (enclosingElement is! ClassElement &&
+        enclosingElement is! ExtensionElement) {
       return;
     }
     // qualified method invocation

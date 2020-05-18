@@ -70,4 +70,94 @@ class A {
       error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 57, 3),
     ]);
   }
+
+  test_extension_external_getter() async {
+    await assertErrorsInCode(r'''
+extension E on A {
+  int get foo => 0;
+}
+
+class A {
+  static void bar() {
+    foo;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 78, 3),
+    ]);
+  }
+
+  test_extension_external_method() async {
+    await assertErrorsInCode(r'''
+extension E on A {
+  void foo() {}
+}
+
+class A {
+  static void bar() {
+    foo();
+  }
+}
+''', [
+      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 74, 3),
+    ]);
+  }
+
+  test_extension_external_setter() async {
+    await assertErrorsInCode(r'''
+extension E on A {
+  set foo(int _) {}
+}
+
+class A {
+  static void bar() {
+    foo = 0;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 78, 3),
+    ]);
+  }
+
+  test_extension_internal_getter() async {
+    await assertErrorsInCode(r'''
+extension E on int {
+  int get foo => 0;
+
+  static void bar() {
+    foo;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 68, 3),
+    ]);
+  }
+
+  test_extension_internal_method() async {
+    await assertErrorsInCode(r'''
+extension E on int {
+  void foo() {}
+
+  static void bar() {
+    foo();
+  }
+}
+''', [
+      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 64, 3),
+    ]);
+  }
+
+  test_extension_internal_setter() async {
+    await assertErrorsInCode(r'''
+extension E on int {
+  set foo(int _) {}
+
+  static void bar() {
+    foo = 0;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 68, 3),
+    ]);
+  }
 }
