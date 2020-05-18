@@ -34,6 +34,8 @@ class _BinaryCompatiblePeer extends json_rpc.Peer {
               ),
             ),
           ),
+          // Allow for requests without the jsonrpc parameter.
+          strictProtocolChecks: false,
         );
 
   static void _transformStream(
