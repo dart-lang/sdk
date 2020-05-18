@@ -891,6 +891,7 @@ dart_ci_sandbox_builder(
 
 # Try only builders
 dart_try_builder("benchmark-linux", on_cq=True)
+dart_try_builder("vm-kernel-gcc-linux")
 
 
 def add_postponed_alt_console_entries():
