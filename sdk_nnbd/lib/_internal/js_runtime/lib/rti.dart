@@ -933,9 +933,7 @@ bool _generalIsTestImplementation(Object? object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _Utils.asRti(JS('', 'this'));
-  if (JS_GET_FLAG('NNBD') && object == null) {
-    return _nullIs(testRti);
-  }
+  if (object == null) return _nullIs(testRti);
   Rti objectRti = instanceOrFunctionType(object, testRti);
   return isSubtype(_theUniverse(), objectRti, testRti);
 }
@@ -960,9 +958,7 @@ bool _isTestViaProperty(Object? object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _Utils.asRti(JS('', 'this'));
-  if (JS_GET_FLAG('NNBD') && object == null) {
-    return _nullIs(testRti);
-  }
+  if (object == null) return _nullIs(testRti);
   var tag = Rti._getSpecializedTestResource(testRti);
 
   // This test is redundant with getInterceptor below, but getInterceptor does
@@ -984,9 +980,7 @@ Object? _generalAsCheckImplementation(Object? object) {
   Rti testRti = _Utils.asRti(JS('', 'this'));
   if (object == null) {
     if (JS_GET_FLAG('LEGACY') || isNullable(testRti)) return object;
-  } else {
-    if (Rti._isCheck(testRti, object)) return object;
-  }
+  } else if (Rti._isCheck(testRti, object)) return object;
   _failedAsCheck(object, testRti);
 }
 
@@ -996,8 +990,9 @@ Object? _generalNullableAsCheckImplementation(Object? object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _Utils.asRti(JS('', 'this'));
-  if (object == null) return object;
-  if (Rti._isCheck(testRti, object)) return object;
+  if (object == null) {
+    return object;
+  } else if (Rti._isCheck(testRti, object)) return object;
   _failedAsCheck(object, testRti);
 }
 
