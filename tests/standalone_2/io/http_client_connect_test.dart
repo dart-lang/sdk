@@ -283,6 +283,21 @@ void testMaxConnectionsPerHost(int connectionCap, int connections) {
   });
 }
 
+void testMaxConnectionsWithFailure() async {
+  var client = new HttpClient();
+  client.maxConnectionsPerHost = 1;
+  try {
+    await client.getUrl(Uri.parse('http://mydomainismissing'));
+  } catch (e) {}
+  try {
+    await client.getUrl(Uri.parse('http://mydomainismissing'));
+  } catch (e) {
+    return;
+  }
+
+  Expect.fail('second call should also fail');
+}
+
 void main() {
   testGetEmptyRequest();
   testGetDataRequest();
@@ -298,4 +313,5 @@ void main() {
   testMaxConnectionsPerHost(1, 10);
   testMaxConnectionsPerHost(5, 10);
   testMaxConnectionsPerHost(10, 50);
+  testMaxConnectionsWithFailure();
 }
