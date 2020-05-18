@@ -90,6 +90,7 @@ class ReturnTypeVerifier {
       StaticTypeWarningCode errorCode,
     ) {
       if (!_isLegalReturnType(expectedElement)) {
+        enclosingExecutable.hasLegalReturnType = false;
         _errorReporter.reportErrorForNode(errorCode, returnType);
       }
     }
@@ -117,14 +118,12 @@ class ReturnTypeVerifier {
   /// Check that a type mismatch between the type of the [expression] and
   /// the expected return type of the enclosing executable.
   void _checkReturnExpression(Expression expression) {
-    if (enclosingExecutable.isAsynchronous) {
-      if (!_isLegalReturnType(_typeProvider.futureElement)) {
-        // ILLEGAL_ASYNC_RETURN_TYPE has already been reported, meaning the
-        // _declared_ return type is illegal; don't confuse by also reporting
-        // that the type being returned here does not match that illegal return
-        // type.
-        return;
-      }
+    if (!enclosingExecutable.hasLegalReturnType) {
+      // ILLEGAL_ASYNC_RETURN_TYPE has already been reported, meaning the
+      // _declared_ return type is illegal; don't confuse by also reporting
+      // that the type being returned here does not match that illegal return
+      // type.
+      return;
     }
 
     // `T` is the declared return type.

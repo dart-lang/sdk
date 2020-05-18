@@ -55,6 +55,10 @@ class EnclosingExecutableContext {
   /// The return statements that do not have a value.
   final List<ReturnStatement> _returnsWithout = [];
 
+  /// This flag is set to `false` when the declared return type is not legal
+  /// for the kind of the function body, e.g. not `Future` for `async`.
+  bool hasLegalReturnType = true;
+
   EnclosingExecutableContext(this.element)
       : isAsynchronous = element != null && element.isAsynchronous,
         isConstConstructor = element is ConstructorElement && element.isConst,
