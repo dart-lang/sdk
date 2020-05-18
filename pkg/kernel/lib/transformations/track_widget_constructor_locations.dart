@@ -441,6 +441,17 @@ class WidgetCreatorTracker {
   }
 
   /// Transform the given [libraries].
+  ///
+  /// The libraries from [module] is searched for the Widget class,
+  /// the _Location class and the _HasCreationLocation class.
+  /// If the component does not contain them, the ones from a previous run is
+  /// used (if any), otherwise no transformation is performed.
+  ///
+  /// Upon transformation the [changedStructureNotifier] (if provided) is used
+  /// to notify the listener that  that class hierarchy of certain classes has
+  /// changed. This is neccesary for instance when doing an incremental
+  /// compilation where the class hierarchy is kept between compiles and thus
+  /// has to be kept up to date.
   void transform(Component module, List<Library> libraries,
       ChangedStructureNotifier changedStructureNotifier) {
     if (libraries.isEmpty) {
