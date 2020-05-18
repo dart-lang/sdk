@@ -503,10 +503,6 @@ class Api extends Member with ApiParseUtil {
   }
 
   void generate(DartGenerator gen) {
-    // Set default value for unspecified property
-    setDefaultValue('Instance', 'valueAsStringIsTruncated', 'false');
-    setDefaultValue('InstanceRef', 'valueAsStringIsTruncated', 'false');
-
     gen.out(_headerCode);
     gen.writeln("const String vmServiceVersion = '${serviceVersion}';");
     gen.writeln();
