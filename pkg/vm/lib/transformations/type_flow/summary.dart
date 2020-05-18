@@ -192,7 +192,8 @@ class Join extends Statement {
   void accept(StatementVisitor visitor) => visitor.visitJoin(this);
 
   @override
-  String dump() => "$label = _Join [$staticType] (${values.join(", ")})";
+  String dump() => "$label = _Join [${staticType.toTypeText(verbose: true)}]"
+      " (${values.join(", ")})";
 
   @override
   Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,

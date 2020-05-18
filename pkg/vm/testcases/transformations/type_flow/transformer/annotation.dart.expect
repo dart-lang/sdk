@@ -30,11 +30,11 @@ class B extends core::Object {
 }
 [@vm.unboxing-info.metadata=(b)->i]static method foo([@vm.inferred-type.metadata=dart.core::Null? (value: null)] (core::List<core::int*>*) →* void a) → core::int* {
   @#C9 core::int* x = 2;
-  return [@vm.direct-call.metadata=_IntegerImplementation::+] [@vm.inferred-type.metadata=int (skip check)] x.{core::num::+}(2);
+  return [@vm.direct-call.metadata=_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] x.{core::num::+}(2);
 }
 @#C11
 static method main(core::List<core::String*>* args) → dynamic {
   self::A::staticMethod();
-  [@vm.direct-call.metadata=B::instanceMethod] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•().{self::B::instanceMethod}();
+  [@vm.direct-call.metadata=B.instanceMethod] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•().{self::B::instanceMethod}();
   self::foo(null);
 }

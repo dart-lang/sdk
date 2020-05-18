@@ -11,5 +11,5 @@ class C {
 
 main() {
   var /*@ type=double* */ y =
-      new C(). /*@ typeArgs=double* */ /*@target=C::m*/ m(1, 'bbb', 2.0);
+      new C(). /*@ typeArgs=double* */ /*@target=C.m*/ m(1, 'bbb', 2.0);
 }

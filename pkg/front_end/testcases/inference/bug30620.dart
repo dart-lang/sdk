@@ -12,10 +12,10 @@ class A {
 
   bool operator ==(Object other) =>
       other is A && /*@ promotedType=A* */ other
-              . /*@target=A::foo*/ foo /*@target=String::==*/ ==
-          this. /*@target=A::foo*/ foo;
+              . /*@target=A.foo*/ foo /*@target=String.==*/ ==
+          this. /*@target=A.foo*/ foo;
 }
 
 main() {
-  print(new A("hello") /*@target=A::==*/ == new A("hello"));
+  print(new A("hello") /*@target=A.==*/ == new A("hello"));
 }

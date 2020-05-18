@@ -16,7 +16,7 @@ class B {
 class C extends B {
   int operator [](Object x) => null;
   void h() {
-    var /*@ type=num* */ x = super /*@target=B::[]*/ [/*@ typeArgs=int* */ f()];
+    var /*@ type=num* */ x = super /*@target=B.[]*/ [/*@ typeArgs=int* */ f()];
   }
 }
 

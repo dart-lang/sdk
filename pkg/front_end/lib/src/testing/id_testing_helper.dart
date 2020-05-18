@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:_fe_analyzer_shared/src/testing/id.dart'
     show ActualData, ClassId, Id, IdKind, IdValue, MemberId, NodeId;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
+import 'package:front_end/src/base/nnbd_mode.dart';
 import 'package:kernel/ast.dart';
 import '../api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
@@ -45,11 +46,13 @@ class TestConfig {
   // TODO(johnniwinther): Tailor support to redefine selected platform
   // classes/members only.
   final bool compileSdk;
+  final NnbdMode nnbdMode;
 
   const TestConfig(this.marker, this.name,
       {this.experimentalFlags = const {},
       this.librariesSpecificationUri,
-      this.compileSdk: false});
+      this.compileSdk: false,
+      this.nnbdMode: NnbdMode.Weak});
 
   void customizeCompilerOptions(CompilerOptions options, TestData testData) {}
 }
@@ -291,6 +294,7 @@ Future<TestResult<T>> runTestForConfig<T>(
   };
   options.debugDump = printCode;
   options.experimentalFlags.addAll(config.experimentalFlags);
+  options.nnbdMode = config.nnbdMode;
   if (config.librariesSpecificationUri != null) {
     Set<Uri> testFiles =
         testData.memorySourceFiles.keys.map(createUriForFileName).toSet();

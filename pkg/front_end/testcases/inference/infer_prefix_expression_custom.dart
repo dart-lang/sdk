@@ -12,8 +12,8 @@ class A {
 }
 
 var a = new A();
-var v_complement = /*@target=A::~*/ ~a;
-var v_negate = /*@target=A::unary-*/ -a;
+var v_complement = /*@target=A.~*/ ~a;
+var v_negate = /*@target=A.unary-*/ -a;
 
 main() {
   a;

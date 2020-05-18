@@ -505,13 +505,13 @@ Future expectNotNull(String code, String expectedNotNull) async {
             // Print integer values as integers
             return BigInt.from(c.value).toString();
           }
-          return c.toString();
+          return c.toConstantText();
         }
         return e.leakingDebugToString();
       })
       // Filter out our own NotNull annotations.  The library prefix changes
       // per test, so just filter on the suffix.
-      .where((s) => !s.endsWith('::_NotNull {}'))
+      .where((s) => !s.endsWith('_NotNull{}'))
       .join(', ');
   expect(actualNotNull, equals(expectedNotNull));
 }

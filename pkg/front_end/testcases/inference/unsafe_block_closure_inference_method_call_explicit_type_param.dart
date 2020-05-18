@@ -11,7 +11,7 @@ class C {
 
 main() {
   var /*@ type=List<int*>* */ v =
-      new C(). /*@target=C::f*/ f<int>(/*@ returnType=int* */ () {
+      new C(). /*@target=C.f*/ f<int>(/*@ returnType=int* */ () {
     return 1;
   });
 }

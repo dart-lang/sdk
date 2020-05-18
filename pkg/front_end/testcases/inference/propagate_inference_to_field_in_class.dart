@@ -12,7 +12,7 @@ class A {
 main() {
   var /*@ type=A* */ a = new A();
   A b = a; // doesn't require down cast
-  print(a. /*@target=A::x*/ x); // doesn't require dynamic invoke
-  print(a. /*@target=A::x*/ x /*@target=num::+*/ +
+  print(a. /*@target=A.x*/ x); // doesn't require dynamic invoke
+  print(a. /*@target=A.x*/ x /*@target=num.+*/ +
       2); // ok to use in bigger expression
 }

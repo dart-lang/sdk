@@ -57,6 +57,11 @@ abstract class ImplicitFieldType extends DartType {
         "withNullability", fieldBuilder.charOffset, fieldBuilder.fileUri);
   }
 
+  @override
+  void toTypeTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write('<implicit-field-type:$fieldBuilder>');
+  }
+
   void addOverride(ImplicitFieldType other);
 
   DartType checkInferred(DartType type);
@@ -178,7 +183,4 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
 
   @override
   String toString() => 'ImplicitFieldType(${toStringInternal()})';
-
-  @override
-  String toStringInternal() => '$fieldBuilder';
 }

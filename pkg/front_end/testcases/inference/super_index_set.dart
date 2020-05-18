@@ -16,7 +16,7 @@ class B {
 class C extends B {
   void operator []=(Object x, Object y) {}
   void h() {
-    super /*@target=B::[]=*/ [
+    super /*@target=B.[]=*/ [
         /*@ typeArgs=int* */ f()] = /*@ typeArgs=String* */ f();
   }
 }

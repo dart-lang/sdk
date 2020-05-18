@@ -91,13 +91,13 @@ class UnknownType extends DartType {
   UnknownType withDeclaredNullability(Nullability nullability) => this;
 
   @override
-  String toString() {
-    return "UnknownType(${toStringInternal()})";
+  void toTypeTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write('?');
   }
 
   @override
-  String toStringInternal() {
-    return "<unknown-type>";
+  String toString() {
+    return "UnknownType(${toStringInternal()})";
   }
 }
 

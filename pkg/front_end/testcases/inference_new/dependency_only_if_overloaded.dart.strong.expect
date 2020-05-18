@@ -4,7 +4,7 @@ library test;
 //
 // pkg/front_end/testcases/inference_new/dependency_only_if_overloaded.dart:15:5: Error: Can't infer the type of 'a': circularity found during type inference.
 // Specify the type explicitly.
-// var a = /*@ returnType=num* */ () => intValue /*@target=num::+*/ + b;
+// var a = /*@ returnType=num* */ () => intValue /*@target=num.+*/ + b;
 //     ^
 //
 import self as self;

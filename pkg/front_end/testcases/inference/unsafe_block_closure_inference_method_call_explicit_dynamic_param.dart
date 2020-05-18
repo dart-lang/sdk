@@ -11,7 +11,7 @@ class C {
 
 main() {
   var /*@ type=List<dynamic>* */ v =
-      new C(). /*@target=C::f*/ f<dynamic>(/*@ returnType=int* */ () {
+      new C(). /*@target=C.f*/ f<dynamic>(/*@ returnType=int* */ () {
     return 1;
   });
 }

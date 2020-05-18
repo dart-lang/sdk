@@ -63,9 +63,9 @@ static method main() → void {
   self::testAOfNullableNum(new self::B::•<core::int?>());
   self::testNullableAOfNum(null);
   self::testNullableAOfNullableNum(new self::B::•<core::int?>());
-  [@vm.direct-call.metadata=B::testT1] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testT1}(42);
-  [@vm.direct-call.metadata=B::testT2] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testT2}(null);
-  [@vm.direct-call.metadata=B::testT3] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int?>().{self::B::testT3}(null);
-  [@vm.direct-call.metadata=B::testNullableT1] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testNullableT1}(42);
-  [@vm.direct-call.metadata=B::testNullableT2] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testNullableT2}(null);
+  [@vm.direct-call.metadata=B.testT1] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testT1}(42);
+  [@vm.direct-call.metadata=B.testT2] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testT2}(null);
+  [@vm.direct-call.metadata=B.testT3] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int?>().{self::B::testT3}(null);
+  [@vm.direct-call.metadata=B.testNullableT1] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testNullableT1}(42);
+  [@vm.direct-call.metadata=B.testNullableT2] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testNullableT2}(null);
 }
