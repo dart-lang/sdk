@@ -124,6 +124,10 @@ class C {
 //  ^^^^^^^^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL
 // [cfe] The setter 'finalOne' isn't defined for the class 'C'.
+//               ^^^^
+// [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+//               ^^^^
+// [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
     yGetValue = 1;
   }
 }
@@ -160,15 +164,25 @@ main() {
   h.xGetValue = 1; check(1, () => h.x ??= bad(), ['h.x']);
   yGetValue = 1; check(1, () => h.x ??= y, ['h.x', 'y', 'h.x=1']);
   { var l = 1; check(1, () => l ??= bad(), []); }
+  //                                ^^^^^
+  // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
   { var l; yGetValue = 1; check(1, () => l ??= y, ['y']); Expect.equals(1, l); }
   { final l = 1; l ??= null; }
   //             ^
   // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_LOCAL
   // [cfe] Can't assign to the final variable 'l'.
+  //                   ^^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  //                   ^^^^
+  // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
   C ??= null;
 //^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_TYPE
 // [cfe] Can't assign to a type literal.
+//      ^^^^
+// [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+//      ^^^^
+// [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
   h ??= null;
 //^
 // [analyzer] COMPILE_TIME_ERROR.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT
