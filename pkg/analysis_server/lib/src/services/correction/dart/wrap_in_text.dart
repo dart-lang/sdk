@@ -50,17 +50,11 @@ class WrapInText extends CorrectionProducer {
   /// corresponding parameter to [_parameterElement]. Leave the fields `null`
   /// if not a named argument, or not a `String` typed expression.
   void _extractContextInformation(AstNode node) {
-    if (node is SimpleIdentifier) {
-      var label = node.parent;
-      if (label is Label) {
-        var namedExpression = label.parent;
-        if (namedExpression is NamedExpression) {
-          var expression = namedExpression.expression;
-          if (expression.staticType.isDartCoreString) {
-            _parameterElement = node.staticElement;
-            _stringExpression = expression;
-          }
-        }
+    if (node is NamedExpression) {
+      var expression = node.expression;
+      if (expression.staticType.isDartCoreString) {
+        _parameterElement = node.name.label.staticElement;
+        _stringExpression = expression;
       }
     }
   }

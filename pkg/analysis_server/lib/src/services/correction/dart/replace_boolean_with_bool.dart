@@ -4,30 +4,21 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class RemoveQuestionMark extends CorrectionProducer {
+class ReplaceBooleanWithBool extends CorrectionProducer {
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_QUESTION_MARK;
+  FixKind get fixKind => DartFixKind.REPLACE_BOOLEAN_WITH_BOOL;
 
   @override
   Future<void> compute(DartChangeBuilder builder) async {
-    if (node is! TypeName) {
-      return;
-    }
-    var typeName = node as TypeName;
-    var questionMark = typeName.question;
-    if (questionMark == null) {
-      return;
-    }
     await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addDeletion(range.token(questionMark));
+      builder.addSimpleReplacement(range.error(diagnostic), 'bool');
     });
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static RemoveQuestionMark newInstance() => RemoveQuestionMark();
+  static ReplaceBooleanWithBool newInstance() => ReplaceBooleanWithBool();
 }

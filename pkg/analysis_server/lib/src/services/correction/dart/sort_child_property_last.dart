@@ -21,8 +21,7 @@ class SortChildPropertyLast extends CorrectionProducer {
 
   @override
   Future<void> compute(DartChangeBuilder builder) async {
-    var childProp = flutter.findNamedExpression(node, 'child');
-    childProp ??= flutter.findNamedExpression(node, 'children');
+    var childProp = _findNamedExpression(node);
     if (childProp == null) {
       return;
     }
@@ -53,6 +52,19 @@ class SortChildPropertyLast extends CorrectionProducer {
 
       builder.setSelection(Position(file, last.end + 1));
     });
+  }
+
+  /// Using the [node] as the starting point, find the named expression that is
+  /// for either the `child` or `children` parameter.
+  NamedExpression _findNamedExpression(AstNode node) {
+    if (node is NamedExpression) {
+      var name = node.name.label.name;
+      if (name == 'child' || name == 'children') {
+        return node;
+      }
+    }
+    return flutter.findNamedExpression(node, 'child') ??
+        flutter.findNamedExpression(node, 'children');
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
