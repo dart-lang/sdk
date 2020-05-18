@@ -579,16 +579,18 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
   }
 
-  /// Collect non-empty metadata repositories associated with the component.
+  /// Collect metadata repositories associated with the component.
   void _collectMetadata(Component component) {
-    component.metadata.forEach((tag, repository) {
-      if (repository.mapping.isEmpty) {
-        return;
-      }
-
-      _metadataSubsections ??= <_MetadataSubsection>[];
-      _metadataSubsections.add(new _MetadataSubsection(repository));
-    });
+    if (component.metadata.isNotEmpty) {
+      // Component might be loaded lazily - meaning that we can't
+      // just skip empty repositories here, they might be populated by
+      // the serialization process. Instead we will filter empty repositories
+      // later before writing the section out.
+      _metadataSubsections = component.metadata.values
+          .map((MetadataRepository repository) =>
+              new _MetadataSubsection(repository))
+          .toList();
+    }
   }
 
   /// Writes metadata associated with the given [Node].
@@ -668,8 +670,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
 
     _binaryOffsetForMetadataPayloads = getBufferOffset();
+    _metadataSubsections
+        ?.removeWhere((_MetadataSubsection s) => s.metadataMapping.isEmpty);
 
-    if (_metadataSubsections == null) {
+    if (_metadataSubsections == null || _metadataSubsections.isEmpty) {
       _binaryOffsetForMetadataMappings = getBufferOffset();
       writeUInt32(0); // Empty section.
       return;
