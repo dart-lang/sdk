@@ -20,7 +20,7 @@ import 'dart:_foreign_helper'
         LEGACY_TYPE_REF;
 
 import 'dart:_interceptors'
-    show JavaScriptFunction, JSArray, JSUnmodifiableArray;
+    show JavaScriptFunction, JSArray, JSNull, JSUnmodifiableArray;
 
 import 'dart:_js_names' show unmangleGlobalNameIfPreservedAnyways;
 
@@ -3038,7 +3038,9 @@ bool isObjectType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Object>());
 bool isLegacyObjectType(Rti t) =>
     _Utils.isIdentical(t, LEGACY_TYPE_REF<Object>());
 bool isNullableObjectType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Object?>());
-bool isNullType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Null>());
+bool isNullType(Rti t) =>
+    _Utils.isIdentical(t, TYPE_REF<Null>()) ||
+    _Utils.isIdentical(t, TYPE_REF<JSNull>());
 bool isFunctionType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Function>());
 bool isJsFunctionType(Rti t) =>
     _Utils.isIdentical(t, TYPE_REF<JavaScriptFunction>());
