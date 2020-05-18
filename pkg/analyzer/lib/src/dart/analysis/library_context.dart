@@ -54,7 +54,7 @@ class LibraryContext {
   AnalysisContextImpl analysisContext;
   LinkedElementFactory elementFactory;
 
-  var loadedBundles = Set<LibraryCycle>.identity();
+  Set<LibraryCycle> loadedBundles = Set<LibraryCycle>.identity();
 
   LibraryContext({
     @required AnalysisSessionImpl session,
@@ -164,13 +164,17 @@ class LibraryContext {
                 var existingElement = existingLibraryReference.element;
                 if (existingElement != null) {
                   var existingSource = existingElement?.source;
+                  var libraryRefs = elementFactory.rootReference.children;
+                  var libraryUriList = libraryRefs.map((e) => e.name).toList();
                   throw StateError(
                     '[The library is already loaded]'
                     '[oldUri: ${existingSource.uri}]'
                     '[oldPath: ${existingSource.fullName}]'
                     '[newUri: ${libraryFile.uriStr}]'
                     '[newPath: ${libraryFile.path}]'
-                    '[cycle: $cycle]',
+                    '[cycle: $cycle]'
+                    '[loadedBundles: ${loadedBundles.toList()}]'
+                    '[elementFactory.libraries: $libraryUriList]',
                   );
                 }
               }
