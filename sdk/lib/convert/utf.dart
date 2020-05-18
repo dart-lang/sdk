@@ -84,6 +84,9 @@ class Utf8Encoder extends Converter<String, List<int>> {
   ///
   /// If [start] and [end] are provided, only the substring
   /// `string.substring(start, end)` is converted.
+  ///
+  /// Any unpaired surrogate character (`U+D800`-`U+DFFF`) in the input string
+  /// is encoded as a Unicode Replacement character `U+FFFD` (�).
   Uint8List convert(String string, [int start = 0, int end]) {
     var stringLength = string.length;
     end = RangeError.checkValidRange(start, end, stringLength);
@@ -100,10 +103,8 @@ class Utf8Encoder extends Converter<String, List<int>> {
       // Force encoding of the lead surrogate by itself.
       var lastCodeUnit = string.codeUnitAt(end - 1);
       assert(_isLeadSurrogate(lastCodeUnit));
-      // We use a non-surrogate as `nextUnit` so that _writeSurrogate just
-      // writes the lead-surrogate.
-      var wasCombined = encoder._writeSurrogate(lastCodeUnit, 0);
-      assert(!wasCombined);
+      // Write a replacement character to represent the unpaired surrogate.
+      encoder._writeReplacementCharacter();
     }
     return encoder._buffer.sublist(0, encoder._bufferIndex);
   }
@@ -264,11 +265,9 @@ class _Utf8EncoderSink extends _Utf8Encoder with StringConversionSinkMixin {
       var isLastSlice = isLast && (start == end);
       if (start == end - 1 && _isLeadSurrogate(str.codeUnitAt(start))) {
         if (isLast && _bufferIndex < _buffer.length - 3) {
-          // There is still space for the last incomplete surrogate.
-          // We use a non-surrogate as second argument. This way the
-          // function will just add the surrogate-half to the buffer.
-          var hasBeenCombined = _writeSurrogate(str.codeUnitAt(start), 0);
-          assert(!hasBeenCombined);
+          // There is still space for the replacement character to represent
+          // the last incomplete surrogate.
+          _writeReplacementCharacter();
         } else {
           // Otherwise store it in the carry. If isLast is true, then
           // close will flush the last carry.
