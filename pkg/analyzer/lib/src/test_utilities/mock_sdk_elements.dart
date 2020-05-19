@@ -943,7 +943,7 @@ class _MockSdkElementsBuilder {
     List<ParameterElement> parameters = const [],
   }) {
     var element = ConstructorElementImpl(name, 0);
-    element.factory = isFactory;
+    element.isFactory = isFactory;
     element.isConst = isConst;
     element.parameters = parameters;
     return element;
@@ -996,7 +996,7 @@ class _MockSdkElementsBuilder {
     field.type = type;
 
     var getter = PropertyAccessorElementImpl(name, 0);
-    getter.getter = true;
+    getter.isGetter = true;
     getter.isStatic = isStatic;
     getter.isSynthetic = false;
     getter.returnType = type;

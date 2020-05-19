@@ -739,7 +739,7 @@ class InheritanceManager3 {
       var firstAccessor = first as PropertyAccessorElement;
       var result = PropertyAccessorElementImpl(firstAccessor.name, -1);
       result.enclosingElement = targetClass;
-      result.getter = firstAccessor.isGetter;
+      result.isGetter = firstAccessor.isGetter;
       result.returnType = resultType.returnType;
       result.parameters = resultType.parameters;
       return result;
