@@ -738,7 +738,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   static intptr_t cached_object_store_offset() {
     return OFFSET_OF(Isolate, cached_object_store_);
   }
-  SafepointRwLock* symbols_lock() { return symbols_lock_.get(); }
 
   FieldTable* field_table() const { return field_table_; }
   void set_field_table(Thread* T, FieldTable* field_table) {
@@ -1473,8 +1472,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   Random random_;
   Simulator* simulator_ = nullptr;
   Mutex mutex_;          // Protects compiler stats.
-  std::unique_ptr<SafepointRwLock>
-      symbols_lock_;  // Protects concurrent access to the symbol table.
   Mutex type_canonicalization_mutex_;      // Protects type canonicalization.
   Mutex constant_canonicalization_mutex_;  // Protects const canonicalization.
   Mutex megamorphic_mutex_;  // Protects the table of megamorphic caches and

@@ -7,6 +7,7 @@
 #include "platform/unicode.h"
 #include "vm/handles.h"
 #include "vm/hash_table.h"
+#include "vm/heap/safepoint.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -581,29 +582,65 @@ StringPtr Symbols::NewSymbol(Thread* thread, const StringType& str) {
   if (symbol.IsNull()) {
     IsolateGroup* group = thread->isolate_group();
     Isolate* isolate = thread->isolate();
-    // in JIT object_store lives on isolate, not on isolate group.
+    // In JIT object_store lives on isolate, not on isolate group.
     ObjectStore* object_store = group->object_store() == nullptr
                                     ? isolate->object_store()
                                     : group->object_store();
-    // in AOT no need to worry about background compiler, only about
-    // other mutators.
-#if defined(DART_PRECOMPILED_RUNTIME)
-    group->RunWithStoppedMutators(
-        [&]() {
-#else
-    SafepointRwLock* symbols_lock = group->object_store() == nullptr
-                                        ? isolate->symbols_lock()
-                                        : group->symbols_lock();
-    SafepointWriteRwLocker sl(thread, symbols_lock);
-#endif
+    if (thread->IsAtSafepoint()) {
+      // There are two cases where we can cause symbol allocation while holding
+      // a safepoint:
+      //    - FLAG_enable_isolate_groups in AOT due to the usage of
+      //      `RunWithStoppedMutators` in SwitchableCall runtime entry.
+      //    - non-PRODUCT mode where the vm-service uses a HeapIterationScope
+      //      while building instances
+      // Ideally we should get rid of both cases to avoid this unsafe usage of
+      // the symbol table (we are assuming here that no other thread holds the
+      // symbols_lock).
+      // TODO(https://dartbug.com/41943): Get rid of the symbol table accesses
+      // within safepoint operation scope.
+      RELEASE_ASSERT(group->safepoint_handler()->IsOwnedByTheThread(thread));
+      RELEASE_ASSERT(FLAG_enable_isolate_groups || !USING_PRODUCT);
+
+      // Uncommon case: We are at a safepoint, all mutators are stopped and we
+      // have therefore exclusive access to the symbol table.
+      data = object_store->symbol_table();
+      SymbolTable table(&key, &value, &data);
+      symbol ^= table.InsertNewOrGet(str);
+      object_store->set_symbol_table(table.Release());
+    } else {
+      // Most common case: We are not at a safepoint and the symbol is available
+      // in the symbol table: We require only read access.
+      {
+        SafepointReadRwLocker sl(thread, group->symbols_lock());
+        data = object_store->symbol_table();
+        SymbolTable table(&key, &value, &data);
+        symbol ^= table.GetOrNull(str);
+        table.Release();
+      }
+      // Second common case: We are not at a safepoint and the symbol is not
+      // available in the symbol table: We require only exclusive access.
+      if (symbol.IsNull()) {
+        auto insert_or_get = [&]() {
           data = object_store->symbol_table();
           SymbolTable table(&key, &value, &data);
           symbol ^= table.InsertNewOrGet(str);
           object_store->set_symbol_table(table.Release());
-#if defined(DART_PRECOMPILED_RUNTIME)
-        },
-        /*use_force_growth=*/true);
-#endif
+        };
+
+        SafepointWriteRwLocker sl(thread, group->symbols_lock());
+        if (FLAG_enable_isolate_groups || !USING_PRODUCT) {
+          // NOTE: Strictly speaking we should use a safepoint operation scope
+          // here to ensure the lock-free usage inside safepoint operations (see
+          // above) is safe. Though this would really kill the performance.
+          // TODO(https://dartbug.com/41943): Get rid of the symbol table
+          // accesses within safepoint operation scope.
+          group->RunWithStoppedMutators(insert_or_get,
+                                        /*force_heap_growth=*/true);
+        } else {
+          insert_or_get();
+        }
+      }
+    }
   }
   ASSERT(symbol.IsSymbol());
   ASSERT(symbol.HasHash());
@@ -629,22 +666,30 @@ StringPtr Symbols::Lookup(Thread* thread, const StringType& str) {
   if (symbol.IsNull()) {
     IsolateGroup* group = thread->isolate_group();
     Isolate* isolate = thread->isolate();
-    // in JIT object_store lives on isolate, not on isolate group.
+    // In JIT object_store lives on isolate, not on isolate group.
     ObjectStore* object_store = group->object_store() == nullptr
                                     ? isolate->object_store()
                                     : group->object_store();
-    // in AOT no need to worry about background compiler, only about
-    // other mutators.
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    SafepointRwLock* symbols_lock = group->object_store() == nullptr
-                                        ? isolate->symbols_lock()
-                                        : group->symbols_lock();
-    SafepointReadRwLocker sl(thread, symbols_lock);
+    // See `Symbols::NewSymbol` for more information why we separate the two
+    // cases.
+    if (thread->IsAtSafepoint()) {
+      RELEASE_ASSERT(group->safepoint_handler()->IsOwnedByTheThread(thread));
+      // In DEBUG mode the snapshot writer also calls this method inside a
+      // safepoint.
+#if !defined(DEBUG)
+      RELEASE_ASSERT(FLAG_enable_isolate_groups || !USING_PRODUCT);
 #endif
-    data = object_store->symbol_table();
-    SymbolTable table(&key, &value, &data);
-    symbol ^= table.GetOrNull(str);
-    table.Release();
+      data = object_store->symbol_table();
+      SymbolTable table(&key, &value, &data);
+      symbol ^= table.GetOrNull(str);
+      table.Release();
+    } else {
+      SafepointReadRwLocker sl(thread, group->symbols_lock());
+      data = object_store->symbol_table();
+      SymbolTable table(&key, &value, &data);
+      symbol ^= table.GetOrNull(str);
+      table.Release();
+    }
   }
   ASSERT(symbol.IsNull() || symbol.IsSymbol());
   ASSERT(symbol.IsNull() || symbol.HasHash());
