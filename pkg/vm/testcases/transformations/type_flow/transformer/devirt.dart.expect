@@ -58,7 +58,7 @@ static method main(core::List<core::String*>* args) → dynamic {
   self::callerA1(new self::B::•());
   self::callerA1(new self::C::•());
   self::callerA2(new self::B::•());
-  let self::C* #arg1 = new self::C::•() in self::callerA3(#arg1);
+  let self::C* #t1 = new self::C::•() in self::callerA3(#t1);
   self::callerA4([@vm.inferred-type.metadata=#lib::D?] self::dd);
   self::dd = new self::D::•();
   self::callerE1("abc");

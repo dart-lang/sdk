@@ -665,6 +665,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   void endTopLevelFields(
+      Token externalToken,
       Token staticToken,
       Token covariantToken,
       Token lateToken,
@@ -675,16 +676,31 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("TopLevelFields");
     if (!libraryBuilder.isNonNullableByDefault) {
       reportNonNullableModifierError(lateToken);
+      if (externalToken != null) {
+        handleRecoverableError(
+            fasta.messageExternalField, externalToken, externalToken);
+      }
     }
     push(count);
   }
 
   @override
-  void endClassFields(Token staticToken, Token covariantToken, Token lateToken,
-      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+  void endClassFields(
+      Token externalToken,
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
     debugEvent("Fields");
     if (!libraryBuilder.isNonNullableByDefault) {
       reportNonNullableModifierError(lateToken);
+      if (externalToken != null) {
+        handleRecoverableError(
+            fasta.messageExternalField, externalToken, externalToken);
+      }
     }
     push(count);
   }
@@ -1661,8 +1677,16 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   void doBinaryExpression(Token token) {
     assert(checkState(token, <ValueKind>[
-      unionOfKinds([ValueKinds.Expression, ValueKinds.Generator]),
-      unionOfKinds([ValueKinds.Expression, ValueKinds.Generator]),
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+      ]),
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+      ]),
     ]));
     Expression right = popForValue();
     Object left = pop();
@@ -1673,6 +1697,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       if (left is Generator) {
         push(left.buildEqualsOperation(token, right, isNot: isNot));
       } else {
+        if (left is ProblemBuilder) {
+          ProblemBuilder problem = left;
+          left = buildProblem(problem.message, problem.charOffset, noLength);
+        }
         assert(left is Expression);
         push(forest.createEquals(fileOffset, left, right, isNot: isNot));
       }
@@ -3579,8 +3607,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       exitLocalScope();
     }
     FormalParameters catchParameters = popIfNotNull(catchKeyword);
-    DartType exceptionType =
-        buildDartType(popIfNotNull(onKeyword)) ?? const DynamicType();
+    DartType exceptionType = buildDartType(popIfNotNull(onKeyword)) ??
+        (libraryBuilder.isNonNullableByDefault
+            ? coreTypes.objectNonNullableRawType
+            : const DynamicType());
     FormalParameterBuilder exception;
     FormalParameterBuilder stackTrace;
     List<Statement> compileTimeErrors;

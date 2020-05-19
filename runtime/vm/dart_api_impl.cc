@@ -5435,18 +5435,7 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* buffer,
   if (program == nullptr) {
     return Api::NewError("Can't load Kernel binary: %s.", error);
   }
-  if (I->is_service_isolate() || I->is_kernel_isolate()) {
-    // For now the service isolate and kernel isolate will be running in
-    // weak mode and we assert for that here.
-    ASSERT(!I->null_safety());
-  } else {
-    // If null safety is not specified on the command line we use the value
-    // from the dill file that the CFE has computed based on how it was invoked.
-    if (FLAG_null_safety == kNullSafetyOptionUnspecified) {
-      I->set_null_safety(program->compilation_mode() ==
-                         NNBDCompiledMode::kStrong);
-    }
-  }
+  program->AutoDetectNullSafety(I);
   const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program.get());
   program.reset();
 
@@ -5764,18 +5753,7 @@ DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* buffer,
   if (program == nullptr) {
     return Api::NewError("Can't load Kernel binary: %s.", error);
   }
-  if (I->is_service_isolate() || I->is_kernel_isolate()) {
-    // For now the service isolate and kernel isolate will be running in
-    // weak mode and we assert for that here.
-    ASSERT(!I->null_safety());
-  } else {
-    // If null safety is not specified on the command line we use the value
-    // from the dill file that the CFE has computed based on how it was invoked.
-    if (FLAG_null_safety == kNullSafetyOptionUnspecified) {
-      I->set_null_safety(program->compilation_mode() ==
-                         NNBDCompiledMode::kStrong);
-    }
-  }
+  program->AutoDetectNullSafety(I);
   const Object& result =
       kernel::KernelLoader::LoadEntireProgram(program.get(), false);
   program.reset();
@@ -6536,7 +6514,7 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
   StreamingWriteStream debug_stream(generate_debug ? kInitialDebugSize : 0,
                                     callback, debug_callback_data);
 
-  Elf* elf = new (Z) Elf(Z, &elf_stream);
+  Elf* elf = new (Z) Elf(Z, &elf_stream, strip);
   Dwarf* elf_dwarf = strip ? nullptr : new (Z) Dwarf(Z, nullptr, elf);
   Elf* debug_elf = generate_debug ? new (Z) Elf(Z, &debug_stream) : nullptr;
   Dwarf* debug_dwarf =
@@ -6565,9 +6543,9 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
                             &vm_image_writer, &isolate_image_writer);
 
   writer.WriteFullSnapshot();
-  elf->AddROData("_kDartVmSnapshotData", vm_snapshot_data_buffer,
+  elf->AddROData(kVmSnapshotDataAsmSymbol, vm_snapshot_data_buffer,
                  writer.VmIsolateSnapshotSize());
-  elf->AddROData("_kDartIsolateSnapshotData", isolate_snapshot_data_buffer,
+  elf->AddROData(kIsolateSnapshotDataAsmSymbol, isolate_snapshot_data_buffer,
                  writer.IsolateSnapshotSize());
 
   if (elf_dwarf != nullptr) {

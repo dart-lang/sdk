@@ -757,4 +757,37 @@ DART_EXPORT void StopWorkSimulator2() {
   SimulateWork2::StopWorkSimulator();
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Helpers used for lightweight isolate tests.
+////////////////////////////////////////////////////////////////////////////////
+
+DART_EXPORT void ThreadPoolTest_BarrierSync(
+    Dart_Isolate (*dart_current_isolate)(),
+    void (*dart_enter_isolate)(Dart_Isolate),
+    void (*dart_exit_isolate)(),
+    intptr_t num_threads) {
+  // Guaranteed to be initialized exactly once (no race between multiple
+  // threads).
+  static std::mutex mutex;
+  static std::condition_variable cvar;
+  static intptr_t thread_count = 0;
+
+  const Dart_Isolate isolate = dart_current_isolate();
+  dart_exit_isolate();
+  {
+    std::unique_lock<std::mutex> lock(mutex);
+
+    ++thread_count;
+    if (thread_count < num_threads) {
+      while (thread_count < num_threads) {
+        cvar.wait(lock);
+      }
+    } else {
+      if (thread_count != num_threads) FATAL("bug");
+      cvar.notify_all();
+    }
+  }
+  dart_enter_isolate(isolate);
+}
+
 }  // namespace dart

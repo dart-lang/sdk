@@ -351,8 +351,10 @@ def SanitizerEnvironmentVariables():
         if symbolizer_path:
             symbolizer_path = str(os.path.join(DART_ROOT, symbolizer_path))
             env['ASAN_SYMBOLIZER_PATH'] = symbolizer_path
+            env['LSAN_SYMBOLIZER_PATH'] = symbolizer_path
             env['MSAN_SYMBOLIZER_PATH'] = symbolizer_path
             env['TSAN_SYMBOLIZER_PATH'] = symbolizer_path
+            env['UBSAN_SYMBOLIZER_PATH'] = symbolizer_path
         return env
 
 

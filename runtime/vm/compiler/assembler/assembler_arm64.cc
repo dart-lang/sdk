@@ -782,8 +782,8 @@ void Assembler::CompareImmediate(Register rn, int64_t imm) {
   Operand op;
   if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
     cmp(rn, op);
-  } else if (Operand::CanHold(-imm, kXRegSizeInBits, &op) ==
-             Operand::Immediate) {
+  } else if (Operand::CanHold(-static_cast<uint64_t>(imm), kXRegSizeInBits,
+                              &op) == Operand::Immediate) {
     cmn(rn, op);
   } else {
     ASSERT(rn != TMP2);

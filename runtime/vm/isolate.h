@@ -309,6 +309,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   IdleTimeHandler* idle_time_handler() { return &idle_time_handler_; }
 
+  // Returns true if this is the first isolate registered.
   void RegisterIsolate(Isolate* isolate);
   void RegisterIsolateLocked(Isolate* isolate);
   void UnregisterIsolate(Isolate* isolate);
@@ -383,6 +384,9 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void UnscheduleThread(Thread* thread,
                         bool is_mutator,
                         bool bypass_safepoint = false);
+
+  void IncreaseMutatorCount(Isolate* mutator);
+  void DecreaseMutatorCount(Isolate* mutator);
 
   Dart_LibraryTagHandler library_tag_handler() const {
     return library_tag_handler_;
@@ -488,6 +492,10 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   // Manage list of existing isolate groups.
   static void RegisterIsolateGroup(IsolateGroup* isolate_group);
   static void UnregisterIsolateGroup(IsolateGroup* isolate_group);
+
+  static bool HasApplicationIsolateGroups();
+  static bool HasOnlyVMIsolateGroup();
+  static bool IsVMInternalIsolate(const IsolateGroup* group);
 
   int64_t UptimeMicros() const;
 
@@ -626,8 +634,13 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   ReversePcLookupCache* reverse_pc_lookup_cache_ = nullptr;
   ArrayPtr saved_unlinked_calls_;
   std::shared_ptr<FieldTable> saved_initial_field_table_;
-
   uint32_t isolate_group_flags_ = 0;
+
+  // Allow us to ensure the number of active mutators is limited by a maximum.
+  std::unique_ptr<Monitor> active_mutators_monitor_;
+  intptr_t active_mutators_ = 0;
+  intptr_t waiting_mutators_ = 0;
+  intptr_t max_active_mutators_ = 0;
 };
 
 // When an isolate sends-and-exits this class represent things that it passed
@@ -1244,7 +1257,9 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   static void DisableIsolateCreation();
   static void EnableIsolateCreation();
   static bool IsolateCreationEnabled();
-  static bool IsVMInternalIsolate(const Isolate* isolate);
+  static bool IsVMInternalIsolate(const Isolate* isolate) {
+    return IsolateGroup::IsVMInternalIsolate(isolate->group());
+  }
 
 #if !defined(PRODUCT)
   intptr_t reload_every_n_stack_overflow_checks() const {
@@ -1522,17 +1537,14 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   // Manage list of existing isolates.
   static bool TryMarkIsolateReady(Isolate* isolate);
   static void UnMarkIsolateReady(Isolate* isolate);
-  static void MarkIsolateDead(bool is_application_isolate);
+  static void MaybeNotifyVMShutdown();
   bool AcceptsMessagesLocked() {
     ASSERT(isolate_creation_monitor_->IsOwnedByCurrentThread());
     return accepts_messages_;
   }
 
-  // This monitor protects application_isolates_count_, total_isolates_count_,
-  // creation_enabled_.
+  // This monitor protects [creation_enabled_].
   static Monitor* isolate_creation_monitor_;
-  static intptr_t application_isolates_count_;
-  static intptr_t total_isolates_count_;
   static bool creation_enabled_;
 
 #define REUSABLE_FRIEND_DECLARATION(name)                                      \

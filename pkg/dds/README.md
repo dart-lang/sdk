@@ -1,5 +1,3 @@
-_This package is a work in-progress and the API may not be stable. Stay tuned for updates._
-
 A package used to spawn the Dart Developer Service (DDS), which is used to communicate with a Dart VM Service instance and provide extended functionality to the core VM Service Protocol.
 
 # Functionality

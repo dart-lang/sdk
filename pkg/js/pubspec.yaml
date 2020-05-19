@@ -1,8 +1,7 @@
 name: js
-version: 0.6.3
-author: Dart Team <misc@dartlang.org>
-description: Access JavaScript from Dart.
+version: 0.6.2-dev
+description: Annotations to create Dart interfaces for JavaScript APIs.
 homepage: https://github.com/dart-lang/sdk/tree/master/pkg/js
 
 environment:
-  sdk: '>=2.0.0 <3.0.0'
+  sdk: '>=2.9.0 <3.0.0'

@@ -4,13 +4,13 @@ import "dart:core" as core;
 import "dart:_internal" as _in;
 
 class C extends core::Object {
-  covariant field core::int? _#C#x = null;
+  field core::int? _#C#x = null;
   synthetic constructor •() → self::C
     : super core::Object::•()
     ;
   get x() → core::int
     return let final core::int? #t1 = this.{self::C::_#C#x} in #t1.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'x' has not been initialized.") : #t1{core::int};
-  set x(core::int #t2) → void
+  set x(covariant core::int #t2) → void
     if(this.{self::C::_#C#x}.==(null))
       this.{self::C::_#C#x} = #t2;
     else
@@ -20,7 +20,7 @@ class D extends self::C {
   synthetic constructor •() → self::D
     : super self::C::•()
     ;
-  set x(core::num value) → void {
+  set x(covariant core::num value) → void {
     super.{self::C::x} = value.{core::num::toInt}();
   }
 }

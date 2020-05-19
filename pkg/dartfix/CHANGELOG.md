@@ -1,5 +1,7 @@
 # 0.1.7
 * Improve experimental non-nullable migration support.
+* Extract some nnbd migration implementation components from the dartfix
+  package.
 
 # 0.1.6
 * Improve experimental non-nullable migration support.

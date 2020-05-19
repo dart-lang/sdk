@@ -96,6 +96,7 @@ import '../messages.dart'
         messageConstConstructorNonFinalField,
         messageConstConstructorNonFinalFieldCause,
         messageConstConstructorRedirectionToNonConst,
+        messageStrongModeNNBDButOptOut,
         noLength,
         templateFieldNonNullableNotInitializedByConstructorError,
         templateFieldNonNullableWithoutInitializerError,
@@ -249,6 +250,13 @@ class KernelTarget extends TargetImplementation {
     if (dillTarget.isLoaded) {
       LibraryBuilder builder = dillTarget.loader.builders[uri];
       if (builder != null) {
+        if (enableNonNullable &&
+            (loader.nnbdMode == NnbdMode.Strong ||
+                loader.nnbdMode == NnbdMode.Agnostic)) {
+          if (!builder.isNonNullableByDefault) {
+            loader.addProblem(messageStrongModeNNBDButOptOut, -1, 1, fileUri);
+          }
+        }
         return builder;
       }
     }
@@ -321,10 +329,10 @@ class KernelTarget extends TargetImplementation {
       loader.checkTypes();
       loader.checkOverrides(myClasses);
       loader.checkAbstractMembers(myClasses);
-      loader.checkRedirectingFactories(myClasses);
       loader.addNoSuchMethodForwarders(myClasses);
       loader.checkMixins(myClasses);
       loader.buildOutlineExpressions(loader.coreTypes);
+      loader.checkRedirectingFactories(myClasses);
       _updateDelayedParameterTypes();
       installAllComponentProblems(loader.allComponentProblems);
       loader.allComponentProblems.clear();
@@ -758,6 +766,11 @@ class KernelTarget extends TargetImplementation {
     List<FieldBuilder> lateFinalFields = <FieldBuilder>[];
 
     builder.forEachDeclaredField((String name, FieldBuilder fieldBuilder) {
+      if (fieldBuilder.isExternal) {
+        // Skip external fields. These are external getters/setters and have
+        // no initialization.
+        return;
+      }
       if (fieldBuilder.isDeclarationInstanceMember && !fieldBuilder.isFinal) {
         nonFinalFields.add(fieldBuilder);
       }
@@ -957,16 +970,16 @@ class KernelTarget extends TargetImplementation {
                   fieldBuilder.name.length,
                   fieldBuilder.fileUri);
             }
-          } else if (fieldBuilder.field.type is! InvalidType &&
+          } else if (fieldBuilder.fieldType is! InvalidType &&
               isPotentiallyNonNullable(
-                  fieldBuilder.field.type, loader.coreTypes.futureOrClass) &&
+                  fieldBuilder.fieldType, loader.coreTypes.futureOrClass) &&
               (cls.constructors.isNotEmpty || cls.isMixinDeclaration)) {
             SourceLibraryBuilder library = builder.library;
             if (library.isNonNullableByDefault) {
               library.addProblem(
                   templateFieldNonNullableWithoutInitializerError.withArguments(
                       fieldBuilder.name,
-                      fieldBuilder.field.type,
+                      fieldBuilder.fieldType,
                       library.isNonNullableByDefault),
                   fieldBuilder.charOffset,
                   fieldBuilder.name.length,

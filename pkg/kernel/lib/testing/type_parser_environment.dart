@@ -269,7 +269,7 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
       // the bound because it's not yet available, it will be set to null.  In
       // that case, put it to the list to be updated later, when the bound is
       // available.
-      if (type.typeParameterTypeNullability == null) {
+      if (type.declaredNullability == null) {
         environment.pendingNullabilities.add(type);
       }
       return type;
@@ -444,7 +444,7 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
     }
 
     for (TypeParameterType type in nestedEnvironment.pendingNullabilities) {
-      type.typeParameterTypeNullability =
+      type.declaredNullability =
           TypeParameterType.computeNullabilityFromBound(type.parameter);
     }
     nestedEnvironment.pendingNullabilities.clear();

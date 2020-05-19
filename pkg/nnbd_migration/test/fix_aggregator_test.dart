@@ -866,6 +866,96 @@ f(Object o) => o as a.Future<Null>;
     expect(previewInfo.applyTo(code), 'f(a) => a..b!.c;');
   }
 
+  Future<void> test_parameter_addExplicitType_annotated() async {
+    await analyze('f({@deprecated x = 0}) {}');
+    var previewInfo = run({
+      findNode.simpleParameter('x'): NodeChangeForSimpleFormalParameter()
+        ..addExplicitType = nnbdTypeProvider.intType
+    });
+    expect(previewInfo.applyTo(code), 'f({@deprecated int x = 0}) {}');
+  }
+
+  Future<void> test_parameter_addExplicitType_declared_with_covariant() async {
+    await analyze('''
+class C {
+  m({num x}) {}
+}
+class D extends C {
+  m({covariant x = 3}) {}
+}
+''');
+    var previewInfo = run({
+      findNode.simpleParameter('x = 3'): NodeChangeForSimpleFormalParameter()
+        ..addExplicitType = nnbdTypeProvider.intType
+    });
+    expect(previewInfo.applyTo(code), '''
+class C {
+  m({num x}) {}
+}
+class D extends C {
+  m({covariant int x = 3}) {}
+}
+''');
+  }
+
+  Future<void> test_parameter_addExplicitType_declared_with_final() async {
+    await analyze('f({final x = 0}) {}');
+    var previewInfo = run({
+      findNode.simpleParameter('x'): NodeChangeForSimpleFormalParameter()
+        ..addExplicitType = nnbdTypeProvider.intType
+    });
+    expect(previewInfo.applyTo(code), 'f({final int x = 0}) {}');
+  }
+
+  Future<void> test_parameter_addExplicitType_declared_with_var() async {
+    await analyze('f({var x = 0}) {}');
+    var previewInfo = run({
+      findNode.simpleParameter('x'): NodeChangeForSimpleFormalParameter()
+        ..addExplicitType = nnbdTypeProvider.intType
+    });
+    expect(previewInfo.applyTo(code), 'f({int x = 0}) {}');
+  }
+
+  Future<void> test_parameter_addExplicitType_named() async {
+    await analyze('f({x = 0}) {}');
+    var previewInfo = run({
+      findNode.simpleParameter('x'): NodeChangeForSimpleFormalParameter()
+        ..addExplicitType = nnbdTypeProvider.intType
+    });
+    expect(previewInfo.applyTo(code), 'f({int x = 0}) {}');
+  }
+
+  Future<void> test_parameter_addExplicitType_no() async {
+    await analyze('f([x = 0]) {}');
+    var previewInfo = run(
+        {findNode.simpleParameter('x'): NodeChangeForSimpleFormalParameter()});
+    expect(previewInfo, isNull);
+  }
+
+  Future<void> test_parameter_addExplicitType_optional_insert() async {
+    await analyze('f([x = 0]) {}');
+    var previewInfo = run({
+      findNode.simpleParameter('x'): NodeChangeForSimpleFormalParameter()
+        ..addExplicitType = nnbdTypeProvider.intType
+    });
+    expect(previewInfo.applyTo(code), 'f([int x = 0]) {}');
+  }
+
+  Future<void> test_parameter_addExplicitType_prefixed_type() async {
+    await analyze('''
+import 'dart:core' as core;
+f({x = 0}) {}
+''');
+    var previewInfo = run({
+      findNode.simpleParameter('x'): NodeChangeForSimpleFormalParameter()
+        ..addExplicitType = nnbdTypeProvider.intType
+    });
+    expect(previewInfo.applyTo(code), '''
+import 'dart:core' as core;
+f({core.int x = 0}) {}
+''');
+  }
+
   Future<void> test_post_increment_add_null_check() async {
     var content = 'f(int x) => x++;';
     await analyze(content);
@@ -1319,10 +1409,19 @@ f({required int x}) {}
     var previewInfo = run({
       findNode.variableDeclarationList('final'):
           NodeChangeForVariableDeclarationList()
-            ..addExplicitType =
-                MockDartType(toStringValueWithNullability: 'int')
+            ..addExplicitType = nnbdTypeProvider.intType
     });
     expect(previewInfo.applyTo(code), 'final int x = 0;');
+  }
+
+  Future<void> test_variableDeclarationList_addExplicitType_metadata() async {
+    await analyze('@deprecated var x = 0;');
+    var previewInfo = run({
+      findNode.variableDeclarationList('var'):
+          NodeChangeForVariableDeclarationList()
+            ..addExplicitType = nnbdTypeProvider.intType
+    });
+    expect(previewInfo.applyTo(code), '@deprecated int x = 0;');
   }
 
   Future<void> test_variableDeclarationList_addExplicitType_no() async {
@@ -1339,12 +1438,27 @@ f({required int x}) {}
     var previewInfo = run({
       findNode.variableDeclarationList('var'):
           NodeChangeForVariableDeclarationList()
-            ..addExplicitType =
-                MockDartType(toStringValueWithNullability: 'int'),
+            ..addExplicitType = nnbdTypeProvider.intType,
       findNode.integerLiteral('0'): NodeChangeForExpression()
         ..addNullCheck(_MockInfo())
     });
     expect(previewInfo.applyTo(code), 'int x = 0!;');
+  }
+
+  Future<void> test_variableDeclarationList_addExplicitType_prefixed() async {
+    await analyze('''
+import 'dart:core' as core;
+final x = 0;
+''');
+    var previewInfo = run({
+      findNode.variableDeclarationList('final'):
+          NodeChangeForVariableDeclarationList()
+            ..addExplicitType = nnbdTypeProvider.intType
+    });
+    expect(previewInfo.applyTo(code), '''
+import 'dart:core' as core;
+final core.int x = 0;
+''');
   }
 
   Future<void> test_variableDeclarationList_addExplicitType_replaceVar() async {
@@ -1352,8 +1466,7 @@ f({required int x}) {}
     var previewInfo = run({
       findNode.variableDeclarationList('var'):
           NodeChangeForVariableDeclarationList()
-            ..addExplicitType =
-                MockDartType(toStringValueWithNullability: 'int')
+            ..addExplicitType = nnbdTypeProvider.intType
     });
     expect(previewInfo.applyTo(code), 'int x = 0;');
   }

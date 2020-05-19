@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.5
+
+- Use virtual addresses in non-symbolic stack frames as a fallback if we cannot
+  retrieve an appropriate offset from the instructions section otherwise.
+
 ## 0.3.4
 
 - Decoded Dart calls are now never considered internal, only VM stub calls.

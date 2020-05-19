@@ -22,8 +22,8 @@ main() {
       }
       """, testBackendWorld: true);
     JClosedWorld world = env.jClosedWorld;
-    FlatTypeMask mask1 = new FlatTypeMask.exact(env.getClass('A'));
-    FlatTypeMask mask2 = new FlatTypeMask.exact(env.getClass('B'));
+    FlatTypeMask mask1 = new FlatTypeMask.exact(env.getClass('A'), world);
+    FlatTypeMask mask2 = new FlatTypeMask.exact(env.getClass('B'), world);
     UnionTypeMask union1 = mask1.nonNullable().union(mask2, world);
     UnionTypeMask union2 = mask2.nonNullable().union(mask1, world);
     Expect.equals(union1, union2);

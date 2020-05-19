@@ -578,7 +578,7 @@ static void StreamingWriteCallback(void* callback_data,
                                    const uint8_t* buffer,
                                    intptr_t size) {
   File* file = reinterpret_cast<File*>(callback_data);
-  if (!file->WriteFully(buffer, size)) {
+  if ((file != nullptr) && !file->WriteFully(buffer, size)) {
     Syslog::PrintErr("Error: Unable to write snapshot file\n\n");
     Dart_ExitScope();
     Dart_ShutdownIsolate();

@@ -120,6 +120,35 @@ void main() {
         ]
       });
     });
+
+    test("a configuration is tested on more than one builder", () {
+      expectJsonError(
+          'Configuration "fasta-linux" is tested on both '
+          '"test-fasta-2" and "test-fasta-1"',
+          {
+            "configurations": {"fasta-linux": {}},
+            "builder_configurations": [
+              {
+                "builders": ["test-fasta-1"],
+                "steps": [
+                  {
+                    "name": "fasta1",
+                    "arguments": [r"-nfasta-linux"],
+                  },
+                ],
+              },
+              {
+                "builders": ["test-fasta-2"],
+                "steps": [
+                  {
+                    "name": "fasta2",
+                    "arguments": [r"-nfasta-linux"],
+                  },
+                ],
+              },
+            ]
+          });
+    });
   });
 
   test("a list of branches is parsed", () {

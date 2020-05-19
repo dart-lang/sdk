@@ -124,12 +124,12 @@ abstract class TypeMask implements AbstractValue {
             base ?? CURRENT_ELEMENT_SPANNABLE,
             "Cannot create exact type mask for uninstantiated "
             "class $base.\n${closedWorld.classHierarchy.dump(base)}"));
-    return new FlatTypeMask.exact(base);
+    return new FlatTypeMask.exact(base, closedWorld);
   }
 
   factory TypeMask.exactOrEmpty(ClassEntity base, JClosedWorld closedWorld) {
     if (closedWorld.classHierarchy.isInstantiated(base))
-      return new FlatTypeMask.exact(base);
+      return new FlatTypeMask.exact(base, closedWorld);
     return const TypeMask.empty();
   }
 
@@ -144,7 +144,7 @@ abstract class TypeMask implements AbstractValue {
     if (topmost == null) {
       return new TypeMask.empty();
     } else if (closedWorld.classHierarchy.hasAnyStrictSubclass(topmost)) {
-      return new FlatTypeMask.subclass(topmost);
+      return new FlatTypeMask.subclass(topmost, closedWorld);
     } else {
       return new TypeMask.exact(topmost, closedWorld);
     }
@@ -159,7 +159,7 @@ abstract class TypeMask implements AbstractValue {
       return new TypeMask.subclass(topmost, closedWorld);
     }
     if (closedWorld.classHierarchy.hasAnyStrictSubtype(topmost)) {
-      return new FlatTypeMask.subtype(topmost);
+      return new FlatTypeMask.subtype(topmost, closedWorld);
     } else {
       return new TypeMask.exact(topmost, closedWorld);
     }
@@ -174,13 +174,13 @@ abstract class TypeMask implements AbstractValue {
             base ?? CURRENT_ELEMENT_SPANNABLE,
             "Cannot create exact type mask for uninstantiated "
             "class $base.\n${closedWorld.classHierarchy.dump(base)}"));
-    return new FlatTypeMask.nonNullExact(base);
+    return new FlatTypeMask.nonNullExact(base, closedWorld);
   }
 
   factory TypeMask.nonNullExactOrEmpty(
       ClassEntity base, JClosedWorld closedWorld) {
     if (closedWorld.classHierarchy.isInstantiated(base)) {
-      return new FlatTypeMask.nonNullExact(base);
+      return new FlatTypeMask.nonNullExact(base, closedWorld);
     }
     return const TypeMask.nonNullEmpty();
   }
@@ -196,7 +196,7 @@ abstract class TypeMask implements AbstractValue {
     if (topmost == null) {
       return new TypeMask.nonNullEmpty();
     } else if (closedWorld.classHierarchy.hasAnyStrictSubclass(topmost)) {
-      return new FlatTypeMask.nonNullSubclass(topmost);
+      return new FlatTypeMask.nonNullSubclass(topmost, closedWorld);
     } else {
       return new TypeMask.nonNullExact(topmost, closedWorld);
     }
@@ -211,7 +211,7 @@ abstract class TypeMask implements AbstractValue {
       return new TypeMask.nonNullSubclass(topmost, closedWorld);
     }
     if (closedWorld.classHierarchy.hasAnyStrictSubtype(topmost)) {
-      return new FlatTypeMask.nonNullSubtype(topmost);
+      return new FlatTypeMask.nonNullSubtype(topmost, closedWorld);
     } else {
       return new TypeMask.nonNullExact(topmost, closedWorld);
     }
@@ -273,6 +273,9 @@ abstract class TypeMask implements AbstractValue {
     mask = nonForwardingMask(mask);
     if (mask is FlatTypeMask) {
       if (mask.isEmptyOrNull) return null;
+      if (mask.base == closedWorld.commonElements.nullClass) {
+        return 'The class ${mask.base} is not canonicalized.';
+      }
       if (mask.isExact) {
         if (!closedWorld.classHierarchy.isInstantiated(mask.base)) {
           return 'Exact ${mask.base} is not instantiated.';

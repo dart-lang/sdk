@@ -671,7 +671,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
             : Substitution.fromInterfaceType(type2).substituteType(
                 info2.genericSuperType[next.classNode].asInterfaceType);
         if (superType1 == superType2) {
-          candidate = superType1.withNullability(
+          candidate = superType1.withDeclaredNullability(
               uniteNullabilities(type1.nullability, type2.nullability));
           ++numCandidatesAtThisDepth;
         }

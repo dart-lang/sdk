@@ -6,6 +6,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
@@ -37,7 +38,7 @@ class SubtypeHelper {
       return true;
     }
 
-    // `?` is treated as a top and a bottom type during inference.
+    // `_` is treated as a top and a bottom type during inference.
     if (identical(_T0, UnknownInferredType.instance) ||
         identical(_T1, UnknownInferredType.instance)) {
       return true;
@@ -445,12 +446,12 @@ class SubtypeHelper {
     // Note: we should never reach `_isInterfaceSubtypeOf` with `i2 == Object`,
     // because top types are eliminated before `isSubtypeOf` calls this.
     // TODO(scheglov) Replace with assert().
-    if (identical(subType, superType) || superType.isObject) {
+    if (identical(subType, superType) || superType.isDartCoreObject) {
       return true;
     }
 
     // Object cannot subtype anything but itself (handled above).
-    if (subType.isObject) {
+    if (subType.isDartCoreObject) {
       return false;
     }
 
@@ -485,10 +486,8 @@ class SubtypeHelper {
       typeFormals: type.typeFormals,
       parameters: type.parameters.map((e) {
         if (e.isNamed) {
-          return ParameterElementImpl.synthetic(
-            e.name,
-            e.type,
-            ParameterKind.NAMED_REQUIRED,
+          return e.copyWith(
+            kind: ParameterKind.NAMED_REQUIRED,
           );
         } else {
           return e;

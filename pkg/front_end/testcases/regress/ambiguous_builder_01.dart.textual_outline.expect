@@ -5,3 +5,4 @@ x( ){ }
 .
 z = true;
 void foo() { }
+main() { }

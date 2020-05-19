@@ -9,6 +9,7 @@
 #include <utility>
 
 #include "platform/assert.h"
+#include "platform/utils.h"
 #include "vm/allocation.h"
 #include "vm/compiler/runtime_api.h"
 #include "vm/datastream.h"
@@ -45,16 +46,40 @@ class Image : ValueObject {
     return snapshot_size - kHeaderSize;
   }
 
-  uword bss_offset() const {
-    return *(reinterpret_cast<const uword*>(raw_memory_) + 1);
+  // Returns the offset of the BSS section from this image. Only has meaning for
+  // instructions images.
+  word bss_offset() const {
+    auto const raw_value = *(reinterpret_cast<const word*>(raw_memory_) + 1);
+    return Utils::RoundDown(raw_value, kBssAlignment);
   }
 
-  static constexpr intptr_t kHeaderFields = 2;
-  static constexpr intptr_t kHeaderSize = kMaxObjectAlignment;
-  COMPILE_ASSERT((kHeaderFields * compiler::target::kWordSize) <= kHeaderSize);
+  // Returns true if the image was compiled directly to ELF. Only has meaning
+  // for instructions images.
+  bool compiled_to_elf() const {
+    auto const raw_value = *(reinterpret_cast<const word*>(raw_memory_) + 1);
+    return (raw_value & 0x1) == 0x1;
+  }
 
  private:
+  static constexpr intptr_t kHeaderFields = 2;
+  static constexpr intptr_t kHeaderSize = kMaxObjectAlignment;
+  // Explicitly double-checking kHeaderSize is never changed. Increasing the
+  // Image header size would mean objects would not start at a place expected
+  // by parts of the VM (like the GC) that use Image pages as HeapPages.
+  static_assert(kHeaderSize == kMaxObjectAlignment,
+                "Image page cannot be used as HeapPage");
+
+  // Determines how many bits we have for encoding any extra information in
+  // the BSS offset.
+  static constexpr intptr_t kBssAlignment = compiler::target::kWordSize;
+
   const void* raw_memory_;  // The symbol kInstructionsSnapshot.
+
+  // For access to private constants.
+  friend class AssemblyImageWriter;
+  friend class BlobImageWriter;
+  friend class ImageWriter;
+  friend class Elf;
 
   DISALLOW_COPY_AND_ASSIGN(Image);
 };
@@ -375,13 +400,14 @@ class AssemblyImageWriter : public ImageWriter {
   const char* kLiteralPrefix = ".long";
 #endif
 
-  void WriteWordLiteralText(compiler::target::uword value) {
+  intptr_t WriteWordLiteralText(compiler::target::uword value) {
     // Padding is helpful for comparing the .S with --disassemble.
 #if defined(TARGET_ARCH_IS_64_BIT)
     assembly_stream_.Print(".quad 0x%0.16" Px "\n", value);
 #else
     assembly_stream_.Print(".long 0x%0.8" Px "\n", value);
 #endif
+    return compiler::target::kWordSize;
   }
 
   StreamingWriteStream assembly_stream_;

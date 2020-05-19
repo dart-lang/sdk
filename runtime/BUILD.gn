@@ -155,9 +155,10 @@ config("dart_config") {
       "-ggdb3",
       "-fno-rtti",
       "-fno-exceptions",
-      "-Wimplicit-fallthrough",
     ]
-    if (!is_clang) {
+    if (is_clang) {
+      cflags += [ "-Wimplicit-fallthrough" ]
+    } else {
       cflags += [ "-Wno-cast-function-type" ]
     }
 
@@ -222,7 +223,7 @@ library_for_all_configs("libdart") {
     } else {
       extra_deps += [
         "//zircon/public/lib/fbl",
-        "//zircon/public/lib/trace-engine",
+        "//zircon/system/ulib/trace-engine",
       ]
     }
   }

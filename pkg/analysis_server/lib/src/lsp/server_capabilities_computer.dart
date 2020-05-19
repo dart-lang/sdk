@@ -243,7 +243,7 @@ class ServerCapabilitiesComputer {
         dartCompletionTriggerCharacters,
         null,
         true,
-        [dartFiles],
+        allTypes,
       ),
     );
     register(

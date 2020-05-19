@@ -7,6 +7,7 @@
 #include "vm/debugger.h"
 #include "vm/message_handler.h"
 #include "vm/service_isolate.h"
+#include "vm/timeline.h"
 
 namespace dart {
 
@@ -107,6 +108,8 @@ const char* ServiceEvent::KindAsCString() const {
       return "Extension";
     case kTimelineEvents:
       return "TimelineEvents";
+    case kTimelineStreamSubscriptionsUpdate:
+      return "TimelineStreamSubscriptionsUpdate";
     default:
       UNREACHABLE();
       return "Unknown";
@@ -152,6 +155,7 @@ const StreamInfo* ServiceEvent::stream_info() const {
       return &Service::extension_stream;
 
     case kTimelineEvents:
+    case kTimelineStreamSubscriptionsUpdate:
       return &Service::timeline_stream;
 
     case kEmbedder:
@@ -210,6 +214,10 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
   }
   if (kind() == kTimelineEvents) {
     jsobj.AddProperty("timelineEvents", timeline_event_block_);
+  }
+  if (kind() == kTimelineStreamSubscriptionsUpdate) {
+    JSONArray arr(&jsobj, "updatedStreams");
+    Timeline::PrintFlagsToJSONArray(&arr);
   }
   if (kind() == kDebuggerSettingsUpdate) {
     JSONObject jssettings(&jsobj, "_debuggerSettings");

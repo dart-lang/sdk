@@ -1373,18 +1373,22 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringInterpolation) {
     EXPECT_EQ(1, profile.sample_count());
     ProfileStackWalker walker(&profile);
 
-    EXPECT_STREQ("OneByteString_allocate", walker.VMTagName());
+    EXPECT_STREQ("Internal_allocateOneByteString", walker.VMTagName());
     if (FLAG_enable_interpreter) {
-      EXPECT_STREQ("[Bytecode] _OneByteString._allocate", walker.CurrentName());
+      EXPECT_STREQ("Internal_allocateOneByteString", walker.VMTagName());
       EXPECT(walker.Down());
-      EXPECT_STREQ("[Bytecode] _OneByteString._concatAll",
+      EXPECT_STREQ("[Unoptimized] String._allocate", walker.CurrentName());
+      EXPECT(walker.Down());
+      EXPECT_STREQ("[Unoptimized] String._concatAll", walker.CurrentName());
+      EXPECT(walker.Down());
+      EXPECT_STREQ("[Unoptimized] _StringBase._interpolate",
                    walker.CurrentName());
-      EXPECT(walker.Down());
-      EXPECT_STREQ("[Bytecode] _StringBase._interpolate", walker.CurrentName());
       EXPECT(walker.Down());
       EXPECT_STREQ("[Bytecode] foo", walker.CurrentName());
       EXPECT(!walker.Down());
     } else {
+      EXPECT_STREQ("Internal_allocateOneByteString", walker.VMTagName());
+      EXPECT(walker.Down());
       EXPECT_STREQ("[Unoptimized] String._allocate", walker.CurrentName());
       EXPECT(walker.Down());
       EXPECT_STREQ("[Unoptimized] String._concatAll", walker.CurrentName());

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:meta/meta.dart';
+import 'package:nnbd_migration/src/front_end/migration_info.dart';
 
 /// Information about what should be populated into the "Edit Details" view of
 /// the migration preview tool.
@@ -143,17 +144,32 @@ class TraceEntry {
   /// code location is known.
   final TargetLink link;
 
-  TraceEntry({@required this.description, this.function, this.link});
+  /// The hint actions available to affect this entry of the trace, or `[]` if
+  /// none.
+  final List<HintAction> hintActions;
+
+  TraceEntry(
+      {@required this.description,
+      this.function,
+      this.link,
+      this.hintActions = const []});
 
   TraceEntry.fromJson(dynamic json)
       : description = json['description'] as String,
         function = json['function'] as String,
-        link = _decodeLink(json['link']);
+        link = _decodeLink(json['link']),
+        hintActions = (json['hintActions'] as List)
+                ?.map((value) =>
+                    HintAction.fromJson(value as Map<String, Object>))
+                ?.toList() ??
+            const [];
 
   Map<String, Object> toJson() => {
         'description': description,
         if (function != null) 'function': function,
-        if (link != null) 'link': link.toJson()
+        if (link != null) 'link': link.toJson(),
+        if (!hintActions.isEmpty)
+          'hintActions': hintActions.map((action) => action.toJson()).toList()
       };
 
   static TargetLink _decodeLink(dynamic json) =>

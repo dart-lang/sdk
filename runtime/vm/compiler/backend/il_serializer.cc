@@ -907,7 +907,6 @@ void AssertAssignableInstr::AddExtraInfoToSExpression(
     SExpList* sexp,
     FlowGraphSerializer* s) const {
   Instruction::AddExtraInfoToSExpression(sexp, s);
-  sexp->AddExtra("type", s->DartValueToSExp(dst_type()));
   sexp->AddExtra("name", s->DartValueToSExp(dst_name()));
 }
 

@@ -519,21 +519,26 @@ void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
+  auto const dst_type_loc =
+      LocationFixedRegisterOrConstant(dst_type(), TypeTestABI::kDstTypeReg);
+
   // When using a type testing stub, we want to prevent spilling of the
   // function/instantiator type argument vectors, since stub preserves them. So
   // we make this a `kNoCall` summary, even though most other registers can be
   // modified by the stub. To tell the register allocator about it, we reserve
   // all the other registers as temporary registers.
   // TODO(http://dartbug.com/32788): Simplify this.
-  const bool using_stub =
-      FlowGraphCompiler::ShouldUseTypeTestingStubFor(opt, dst_type());
+  const bool using_stub = dst_type_loc.IsConstant() &&
+                          FlowGraphCompiler::ShouldUseTypeTestingStubFor(
+                              opt, AbstractType::Cast(dst_type_loc.constant()));
 
   const intptr_t kNonChangeableInputRegs =
       (1 << TypeTestABI::kInstanceReg) |
+      ((dst_type_loc.IsRegister() ? 1 : 0) << TypeTestABI::kDstTypeReg) |
       (1 << TypeTestABI::kInstantiatorTypeArgumentsReg) |
       (1 << TypeTestABI::kFunctionTypeArgumentsReg);
 
-  const intptr_t kNumInputs = 3;
+  const intptr_t kNumInputs = 4;
 
   // We invoke a stub that can potentially clobber any CPU register
   // but can only clobber FPU registers on the slow path when
@@ -554,14 +559,12 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
       zone, kNumInputs, kNumTemps,
       using_stub ? LocationSummary::kCallCalleeSafe : LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(TypeTestABI::kInstanceReg));
-  summary->set_in(1, Location::RegisterLocation(
+  summary->set_in(1, dst_type_loc);
+  summary->set_in(2, Location::RegisterLocation(
                          TypeTestABI::kInstantiatorTypeArgumentsReg));
   summary->set_in(
-      2, Location::RegisterLocation(TypeTestABI::kFunctionTypeArgumentsReg));
-
-  // TODO(http://dartbug.com/32787): Use Location::SameAsFirstInput() instead,
-  // once register allocator no longer hits assertion.
-  summary->set_out(0, Location::RegisterLocation(TypeTestABI::kInstanceReg));
+      3, Location::RegisterLocation(TypeTestABI::kFunctionTypeArgumentsReg));
+  summary->set_out(0, Location::SameAsFirstInput());
 
   if (using_stub) {
     // Let's reserve all registers except for the input ones.
@@ -583,17 +586,6 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
     }
   }
 
-  return summary;
-}
-
-LocationSummary* AssertSubtypeInstr::MakeLocationSummary(Zone* zone,
-                                                         bool opt) const {
-  const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(R2));  // Instant. type args.
-  summary->set_in(1, Location::RegisterLocation(R1));  // Function type args.
   return summary;
 }
 
@@ -1594,6 +1586,7 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
     case kArrayCid:
       return kTagged;
     case kOneByteStringCid:
+    case kTwoByteStringCid:
     case kTypedDataInt8ArrayCid:
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint8ArrayCid:
@@ -1654,6 +1647,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
     case kTypedDataUint8ArrayCid:
     case kTypedDataUint8ClampedArrayCid:
     case kOneByteStringCid:
+    case kTwoByteStringCid:
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint16ArrayCid:
     case kTypedDataInt32ArrayCid:
@@ -1760,6 +1754,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       break;
     }
+    case kTwoByteStringCid:
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint16ArrayCid: {
       ASSERT(RequiredInputRepresentation(2) == kUnboxedIntPtr);

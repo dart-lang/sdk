@@ -664,23 +664,7 @@ class LocationSummary : public ZoneAllocated {
     return &input_locations_[index];
   }
 
-  void set_in(intptr_t index, Location loc) {
-    ASSERT(index >= 0);
-    ASSERT(index < num_inputs_);
-    // See FlowGraphAllocator::ProcessOneInstruction for explanation of this
-    // restriction.
-    if (always_calls()) {
-      if (loc.IsUnallocated()) {
-        ASSERT(loc.policy() == Location::kAny);
-      } else if (loc.IsPairLocation()) {
-        ASSERT(!loc.AsPairLocation()->At(0).IsUnallocated() ||
-               loc.AsPairLocation()->At(0).policy() == Location::kAny);
-        ASSERT(!loc.AsPairLocation()->At(0).IsUnallocated() ||
-               loc.AsPairLocation()->At(0).policy() == Location::kAny);
-      }
-    }
-    input_locations_[index] = loc;
-  }
+  void set_in(intptr_t index, Location loc);
 
   intptr_t temp_count() const { return num_temps_; }
 
@@ -715,12 +699,7 @@ class LocationSummary : public ZoneAllocated {
     return &output_location_;
   }
 
-  void set_out(intptr_t index, Location loc) {
-    ASSERT(index == 0);
-    ASSERT(!always_calls() || (loc.IsMachineRegister() || loc.IsInvalid() ||
-                               loc.IsPairLocation()));
-    output_location_ = loc;
-  }
+  void set_out(intptr_t index, Location loc);
 
   BitmapBuilder* stack_bitmap() {
     if (stack_bitmap_ == NULL) {

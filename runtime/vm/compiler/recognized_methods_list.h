@@ -220,15 +220,12 @@ namespace dart {
   V(_OneByteString, get:hashCode, OneByteString_getHashCode, 0x22a75237)       \
   V(_OneByteString, _substringUncheckedNative,                                 \
     OneByteString_substringUnchecked,  0x94c41563)                             \
-  V(_OneByteString, _setAt, OneByteStringSetAt, 0xc6c7e75d)                    \
-  V(_OneByteString, _allocate, OneByteString_allocate,          0xbe472ce0)    \
   V(_OneByteString, ==, OneByteString_equality, 0xe1ea0c11)                    \
   V(_TwoByteString, ==, TwoByteString_equality, 0xe1ea0c11)                    \
   V(_Type, get:hashCode, Type_getHashCode, 0x22a75237)                         \
   V(_Type, ==, Type_equality, 0x91ead098)                                      \
   V(::, _getHash, Object_getHash, 0xb05aa13f)                                  \
   V(::, _setHash, Object_setHash, 0xcb404dd2)                                  \
-
 
 #define CORE_INTEGER_LIB_INTRINSIC_LIST(V)                                     \
   V(_IntegerImplementation, _addFromInteger, Integer_addFromInteger,           \
@@ -372,7 +369,6 @@ namespace dart {
   V(_Double, ceilToDouble, DoubleCeil, 0x25a81a9d)                             \
   V(_Double, _modulo, DoubleMod, 0x42a93471)
 
-
 #define GRAPH_INTRINSICS_LIST(V)                                               \
   GRAPH_CORE_INTRINSICS_LIST(V)                                                \
   GRAPH_TYPED_DATA_INTRINSICS_LIST(V)                                          \
@@ -388,10 +384,17 @@ namespace dart {
   V(::, _clearAsyncThreadStackTrace, ClearAsyncThreadStackTrace, 0x341efd8e)   \
   V(::, _setAsyncThreadStackTrace, SetAsyncThreadStackTrace, 0x5f29f453)       \
 
+#define INTERNAL_LIB_INTRINSIC_LIST(V)                                         \
+  V(::, allocateOneByteString, AllocateOneByteString, 0x3e7f209a)              \
+  V(::, allocateTwoByteString, AllocateTwoByteString, 0x46445c37)              \
+  V(::, writeIntoOneByteString, WriteIntoOneByteString, 0x63d30528)            \
+  V(::, writeIntoTwoByteString, WriteIntoTwoByteString, 0x5b280bf1)            \
+
 #define ALL_INTRINSICS_NO_INTEGER_LIB_LIST(V)                                  \
   ASYNC_LIB_INTRINSIC_LIST(V)                                                  \
   CORE_LIB_INTRINSIC_LIST(V)                                                   \
   DEVELOPER_LIB_INTRINSIC_LIST(V)                                              \
+  INTERNAL_LIB_INTRINSIC_LIST(V)                                               \
   MATH_LIB_INTRINSIC_LIST(V)                                                   \
   TYPED_DATA_LIB_INTRINSIC_LIST(V)                                             \
 

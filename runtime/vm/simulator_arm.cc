@@ -1175,9 +1175,9 @@ int32_t Simulator::GetShiftRm(Instr* instr, bool* carry_out) {
         if (shift_amount == 0) {
           *carry_out = c_flag_;
         } else {
-          result <<= (shift_amount - 1);
+          result = static_cast<uint32_t>(result) << (shift_amount - 1);
           *carry_out = (result < 0);
-          result <<= 1;
+          result = static_cast<uint32_t>(result) << 1;
         }
         break;
       }
@@ -1235,9 +1235,9 @@ int32_t Simulator::GetShiftRm(Instr* instr, bool* carry_out) {
         if (shift_amount == 0) {
           *carry_out = c_flag_;
         } else if (shift_amount < 32) {
-          result <<= (shift_amount - 1);
+          result = static_cast<uint32_t>(result) << (shift_amount - 1);
           *carry_out = (result < 0);
-          result <<= 1;
+          result = static_cast<uint32_t>(result) << 1;
         } else if (shift_amount == 32) {
           *carry_out = (result & 1) == 1;
           result = 0;
@@ -1285,9 +1285,9 @@ int32_t Simulator::GetShiftRm(Instr* instr, bool* carry_out) {
 // Addressing Mode 1 - Data-processing operands:
 // Get the value based on the shifter_operand with immediate.
 DART_FORCE_INLINE int32_t Simulator::GetImm(Instr* instr, bool* carry_out) {
-  int rotate = instr->RotateField() * 2;
-  int immed8 = instr->Immed8Field();
-  int imm = (immed8 >> rotate) | (immed8 << (32 - rotate));
+  uint8_t rotate = instr->RotateField() * 2;
+  int32_t immed8 = instr->Immed8Field();
+  int32_t imm = Utils::RotateRight(immed8, rotate);
   *carry_out = (rotate == 0) ? c_flag_ : (imm < 0);
   return imm;
 }
@@ -1368,8 +1368,33 @@ typedef int32_t (*SimulatorLeafRuntimeCall)(int32_t r0,
                                             int32_t r3,
                                             int32_t r4);
 
+// [target] has several different signatures that differ from
+// SimulatorLeafRuntimeCall. We can call them all from here only because in
+// IA32's calling convention a function can be called with extra arguments
+// and the callee will see the first arguments and won't unbalance the stack.
+NO_SANITIZE_UNDEFINED("function")
+static int32_t InvokeLeafRuntime(SimulatorLeafRuntimeCall target,
+                                 int32_t r0,
+                                 int32_t r1,
+                                 int32_t r2,
+                                 int32_t r3,
+                                 int32_t r4) {
+  return target(r0, r1, r2, r3, r4);
+}
+
 // Calls to leaf float Dart runtime functions are based on this interface.
 typedef double (*SimulatorLeafFloatRuntimeCall)(double d0, double d1);
+
+// [target] has several different signatures that differ from
+// SimulatorFloatLeafRuntimeCall. We can call them all from here only because
+// IA32's calling convention a function can be called with extra arguments
+// and the callee will see the first arguments and won't unbalance the stack.
+NO_SANITIZE_UNDEFINED("function")
+static double InvokeFloatLeafRuntime(SimulatorLeafFloatRuntimeCall target,
+                                     double d0,
+                                     double d1) {
+  return target(d0, d1);
+}
 
 // Calls to native Dart functions are based on this interface.
 typedef void (*SimulatorNativeCallWrapper)(Dart_NativeArguments arguments,
@@ -1410,7 +1435,7 @@ void Simulator::SupervisorCall(Instr* instr) {
           int32_t r4 = *reinterpret_cast<int32_t*>(get_register(SP));
           SimulatorLeafRuntimeCall target =
               reinterpret_cast<SimulatorLeafRuntimeCall>(external);
-          r0 = target(r0, r1, r2, r3, r4);
+          r0 = InvokeLeafRuntime(target, r0, r1, r2, r3, r4);
           set_register(R0, r0);       // Set returned result from function.
           set_register(R1, icount_);  // Zap unused result register.
         } else if (redirection->call_kind() == kLeafFloatRuntimeCall) {
@@ -1423,7 +1448,7 @@ void Simulator::SupervisorCall(Instr* instr) {
             // floating point registers.
             double d0 = get_dregister(D0);
             double d1 = get_dregister(D1);
-            d0 = target(d0, d1);
+            d0 = InvokeFloatLeafRuntime(target, d0, d1);
             set_dregister(D0, d0);
           } else {
             // If we're not doing "hardfp", we must be doing "soft" or "softfp",
@@ -1436,7 +1461,7 @@ void Simulator::SupervisorCall(Instr* instr) {
             int64_t a1 = Utils::LowHighTo64Bits(r2, r3);
             double d0 = bit_cast<double, int64_t>(a0);
             double d1 = bit_cast<double, int64_t>(a1);
-            d0 = target(d0, d1);
+            d0 = InvokeFloatLeafRuntime(target, d0, d1);
             a0 = bit_cast<int64_t, double>(d0);
             r0 = Utils::Low32Bits(a0);
             r1 = Utils::High32Bits(a0);
@@ -1568,9 +1593,9 @@ DART_FORCE_INLINE void Simulator::DecodeType01(Instr* instr) {
         Register rd = instr->RdField();
         Register rs = instr->RsField();
         Register rm = instr->RmField();
-        int32_t rm_val = get_register(rm);
-        int32_t rs_val = get_register(rs);
-        int32_t rd_val = 0;
+        uint32_t rm_val = get_register(rm);
+        uint32_t rs_val = get_register(rs);
+        uint32_t rd_val = 0;
         switch (instr->Bits(21, 3)) {
           case 1:
           // Registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
@@ -1584,7 +1609,7 @@ DART_FORCE_INLINE void Simulator::DecodeType01(Instr* instr) {
           case 0: {
             // Registers rd, rn, rm are encoded as rn, rm, rs.
             // Format(instr, "mul'cond's 'rn, 'rm, 'rs");
-            int32_t alu_out = rm_val * rs_val;
+            uint32_t alu_out = rm_val * rs_val;
             if (instr->Bits(21, 3) == 3) {  // mls
               if (TargetCPUFeatures::arm_version() != ARMv7) {
                 UnimplementedInstruction(instr);
@@ -1880,8 +1905,8 @@ DART_FORCE_INLINE void Simulator::DecodeType01(Instr* instr) {
   } else {
     Register rd = instr->RdField();
     Register rn = instr->RnField();
-    int32_t rn_val = get_register(rn);
-    int32_t shifter_operand = 0;
+    uint32_t rn_val = get_register(rn);
+    uint32_t shifter_operand = 0;
     bool shifter_carry_out = 0;
     if (instr->TypeField() == 0) {
       shifter_operand = GetShiftRm(instr, &shifter_carry_out);
@@ -1889,8 +1914,8 @@ DART_FORCE_INLINE void Simulator::DecodeType01(Instr* instr) {
       ASSERT(instr->TypeField() == 1);
       shifter_operand = GetImm(instr, &shifter_carry_out);
     }
-    int32_t carry_in;
-    int32_t alu_out;
+    uint32_t carry_in;
+    uint32_t alu_out;
 
     switch (instr->OpcodeField()) {
       case AND: {
@@ -2306,8 +2331,8 @@ void Simulator::DecodeType4(Instr* instr) {
 
 void Simulator::DecodeType5(Instr* instr) {
   // Format(instr, "b'l'cond 'target");
-  int off = (instr->SImmed24Field() << 2) + 8;
-  intptr_t pc = get_pc();
+  uint32_t off = (static_cast<uint32_t>(instr->SImmed24Field()) << 2) + 8;
+  uint32_t pc = get_pc();
   if (instr->HasLink()) {
     set_register(LR, pc + Instr::kInstrSize);
   }

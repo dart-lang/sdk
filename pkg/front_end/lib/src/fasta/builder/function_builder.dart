@@ -63,8 +63,6 @@ abstract class FunctionBuilder implements MemberBuilder {
 
   bool get isAbstract;
 
-  bool get isExternal;
-
   bool get isConstructor;
 
   bool get isRegularMethod;

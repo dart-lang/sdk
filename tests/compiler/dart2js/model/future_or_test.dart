@@ -53,14 +53,6 @@ main() {
   new C().futureOrT();
 }
 """);
-    var options = env.compiler.options;
-
-    String typeToString(DartType type) {
-      return type.toStructuredText(
-          printLegacyStars: options.printLegacyStars,
-          useLegacySubtyping: options.useLegacySubtyping);
-    }
-
     FunctionType getFunctionType(String name, String expectedType,
         [ClassEntity cls]) {
       FunctionType type = env.getMemberType(name, cls);
@@ -68,7 +60,7 @@ main() {
           "Member $name not found${cls != null ? ' in class $cls' : ''}.");
       Expect.equals(
           expectedType,
-          typeToString(type),
+          env.printType(type),
           "Unexpected type for $name"
           "${cls != null ? ' in class $cls' : ''}.");
       return type;
@@ -82,7 +74,7 @@ main() {
       DartType returnType = type.returnType.withoutNullability;
       Expect.equals(
           expectedType,
-          typeToString(returnType),
+          env.printType(returnType),
           "Unexpected return type for $name"
           "${cls != null ? ' in class $cls' : ''}.");
       return returnType;

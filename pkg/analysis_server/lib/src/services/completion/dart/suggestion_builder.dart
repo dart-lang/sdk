@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/protocol_server.dart'
@@ -14,6 +15,7 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
+import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -137,6 +139,10 @@ class SuggestionBuilder {
   /// The completion request for which suggestions are being built.
   final DartCompletionRequest request;
 
+  /// The listener to be notified at certain points in the process of building
+  /// suggestions, or `null` if no notification should occur.
+  final SuggestionListener listener;
+
   /// A map from a completion identifier to a completion suggestion.
   final Map<String, CompletionSuggestion> _suggestionMap =
       <String, CompletionSuggestion>{};
@@ -158,22 +164,13 @@ class SuggestionBuilder {
   /// computed. In the latter case, [_hasContainingMemberName] will be `false`.
   String _cachedContainingMemberName;
 
-  /// A flag indicating whether the [_cachedContextType] has been computed.
-  bool _hasContextType = false;
-
-  /// The context type associated with the completion location, or `null` if
-  /// either the location doesn't have a context type, or the context type
-  /// hasn't yet been computed. In the latter case, [_hasContextType] will be
-  /// `false`.
-  DartType _cachedContextType;
-
   /// The cached instance of the flutter utilities, or `null` if it hasn't been
   /// created yet.
   Flutter _flutter;
 
   /// Initialize a newly created suggestion builder to build suggestions for the
   /// given [request].
-  SuggestionBuilder(this.request);
+  SuggestionBuilder(this.request, {this.listener});
 
   /// Return an object that can answer questions about Flutter code based on the
   /// flavor of Flutter being used.
@@ -203,17 +200,6 @@ class SuggestionBuilder {
     return _cachedContainingMemberName;
   }
 
-  /// Return the context type associated with the completion location, or `null`
-  /// if the location doesn't have a context type.
-  DartType get _contextType {
-    if (!_hasContextType) {
-      _hasContextType = true;
-      _cachedContextType = request.featureComputer
-          .computeContextType(request.target.containingNode);
-    }
-    return _cachedContextType;
-  }
-
   /// Add a suggestion for an [accessor] declared within a class or extension.
   /// If the accessor is being invoked with a target of `super`, then the
   /// [containingMemberName] should be the name of the member containing the
@@ -241,14 +227,20 @@ class SuggestionBuilder {
         var featureComputer = request.featureComputer;
         var contextType =
             featureComputer.contextTypeFeature(request.contextType, type);
-        var elementKind = featureComputer.elementKindFeature(
-            accessor, request.opType.completionLocation);
+        var elementKind = _computeElementKind(accessor);
         var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
         var startsWithDollar =
             featureComputer.startsWithDollarFeature(accessor.name);
         var superMatches = featureComputer.superMatchesFeature(
             _containingMemberName, accessor.name);
         relevance = _computeMemberRelevance(
+            contextType: contextType,
+            elementKind: elementKind,
+            hasDeprecated: hasDeprecated,
+            inheritanceDistance: inheritanceDistance,
+            startsWithDollar: startsWithDollar,
+            superMatches: superMatches);
+        listener?.computedFeatures(
             contextType: contextType,
             elementKind: elementKind,
             hasDeprecated: hasDeprecated,
@@ -276,9 +268,12 @@ class SuggestionBuilder {
     var variableType = parameter.type;
     int relevance;
     if (request.useNewRelevance) {
-      var contextTypeFeature = request.featureComputer
-          .contextTypeFeature(_contextType, variableType);
-      relevance = toRelevance(contextTypeFeature, 800);
+      var contextType = request.featureComputer
+          .contextTypeFeature(request.contextType, variableType);
+      var elementKind = _computeElementKind(parameter);
+      relevance = toRelevance(
+          weightedAverage([contextType, elementKind], [1.0, 1.0]), 800);
+      listener?.computedFeatures(contextType: contextType);
     } else {
       relevance = _computeOldMemberRelevance(parameter);
       relevance =
@@ -381,7 +376,8 @@ class SuggestionBuilder {
     // If the class name is already in the text, then we don't support
     // prepending a prefix.
     assert(!hasClassName || prefix == null);
-    var className = constructor.enclosingElement?.name;
+    var enclosingClass = constructor.enclosingElement;
+    var className = enclosingClass?.name;
     if (className == null || className.isEmpty) {
       return;
     }
@@ -399,14 +395,16 @@ class SuggestionBuilder {
     }
 
     int relevance;
+    var returnType = _instantiateClassElement(enclosingClass);
     if (request.useNewRelevance) {
-      relevance = _computeTopLevelRelevance(constructor);
+      relevance =
+          _computeTopLevelRelevance(constructor, elementType: returnType);
     } else {
       relevance = constructor.hasOrInheritsDeprecated
           ? DART_RELEVANCE_LOW
           : DART_RELEVANCE_DEFAULT;
-      relevance = request.opType.returnValueSuggestionsFilter(
-          _instantiateClassElement(constructor.enclosingElement), relevance);
+      relevance =
+          request.opType.returnValueSuggestionsFilter(returnType, relevance);
       if (relevance == null) {
         return;
       }
@@ -500,14 +498,20 @@ class SuggestionBuilder {
       var featureComputer = request.featureComputer;
       var contextType =
           featureComputer.contextTypeFeature(request.contextType, field.type);
-      var elementKind = featureComputer.elementKindFeature(
-          field, request.opType.completionLocation);
+      var elementKind = _computeElementKind(field);
       var hasDeprecated = featureComputer.hasDeprecatedFeature(field);
       var startsWithDollar =
           featureComputer.startsWithDollarFeature(field.name);
       var superMatches = featureComputer.superMatchesFeature(
           _containingMemberName, field.name);
       relevance = _computeMemberRelevance(
+          contextType: contextType,
+          elementKind: elementKind,
+          hasDeprecated: hasDeprecated,
+          inheritanceDistance: inheritanceDistance,
+          startsWithDollar: startsWithDollar,
+          superMatches: superMatches);
+      listener?.computedFeatures(
           contextType: contextType,
           elementKind: elementKind,
           hasDeprecated: hasDeprecated,
@@ -637,9 +641,12 @@ class SuggestionBuilder {
     if (request.useNewRelevance) {
       // TODO(brianwilkerson) Use the distance to the local variable as
       //  another feature.
-      var contextTypeFeature = request.featureComputer
-          .contextTypeFeature(_contextType, variableType);
-      relevance = toRelevance(contextTypeFeature, 800);
+      var contextType = request.featureComputer
+          .contextTypeFeature(request.contextType, variableType);
+      var elementKind = _computeElementKind(variable);
+      relevance = toRelevance(
+          weightedAverage([contextType, elementKind], [1.0, 1.0]), 800);
+      listener?.computedFeatures(contextType: contextType);
     } else {
       relevance = _computeOldMemberRelevance(variable);
       relevance =
@@ -667,14 +674,20 @@ class SuggestionBuilder {
       var featureComputer = request.featureComputer;
       var contextType = featureComputer.contextTypeFeature(
           request.contextType, method.returnType);
-      var elementKind = featureComputer.elementKindFeature(
-          method, request.opType.completionLocation);
+      var elementKind = _computeElementKind(method);
       var hasDeprecated = featureComputer.hasDeprecatedFeature(method);
       var startsWithDollar =
           featureComputer.startsWithDollarFeature(method.name);
       var superMatches = featureComputer.superMatchesFeature(
           _containingMemberName, method.name);
       relevance = _computeMemberRelevance(
+          contextType: contextType,
+          elementKind: elementKind,
+          hasDeprecated: hasDeprecated,
+          inheritanceDistance: inheritanceDistance,
+          startsWithDollar: startsWithDollar,
+          superMatches: superMatches);
+      listener?.computedFeatures(
           contextType: contextType,
           elementKind: elementKind,
           hasDeprecated: hasDeprecated,
@@ -869,9 +882,12 @@ class SuggestionBuilder {
     if (request.useNewRelevance) {
       // TODO(brianwilkerson) Use the distance to the declaring function as
       //  another feature.
-      var contextTypeFeature = request.featureComputer
-          .contextTypeFeature(_contextType, variableType);
-      relevance = toRelevance(contextTypeFeature, 800);
+      var contextType = request.featureComputer
+          .contextTypeFeature(request.contextType, variableType);
+      var elementKind = _computeElementKind(parameter);
+      relevance = toRelevance(
+          weightedAverage([contextType, elementKind], [1.0, 1.0]), 800);
+      listener?.computedFeatures(contextType: contextType);
     } else {
       relevance = _computeOldMemberRelevance(parameter);
       relevance =
@@ -888,7 +904,9 @@ class SuggestionBuilder {
   void suggestPrefix(LibraryElement library, String prefix) {
     var relevance;
     if (request.useNewRelevance) {
-      relevance = Relevance.prefix;
+      var elementKind = _computeElementKind(library);
+      relevance = toRelevance(elementKind, Relevance.prefix);
+      listener?.computedFeatures(elementKind: elementKind);
     } else {
       relevance =
           library.hasDeprecated ? DART_RELEVANCE_LOW : DART_RELEVANCE_DEFAULT;
@@ -951,8 +969,7 @@ class SuggestionBuilder {
         var featureComputer = request.featureComputer;
         var contextType =
             featureComputer.contextTypeFeature(request.contextType, type);
-        var elementKind = featureComputer.elementKindFeature(
-            accessor, request.opType.completionLocation);
+        var elementKind = _computeElementKind(accessor);
         var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
         var startsWithDollar =
             featureComputer.startsWithDollarFeature(accessor.name);
@@ -963,6 +980,11 @@ class SuggestionBuilder {
             inheritanceDistance: -1.0,
             startsWithDollar: startsWithDollar,
             superMatches: -1.0);
+        listener?.computedFeatures(
+            contextType: contextType,
+            elementKind: elementKind,
+            hasDeprecated: hasDeprecated,
+            startsWithDollar: startsWithDollar);
       } else {
         relevance = accessor.hasOrInheritsDeprecated
             ? DART_RELEVANCE_LOW
@@ -1009,7 +1031,9 @@ class SuggestionBuilder {
   void suggestTypeParameter(TypeParameterElement parameter) {
     int relevance;
     if (request.useNewRelevance) {
-      relevance = Relevance.typeParameter;
+      var elementKind = _computeElementKind(parameter);
+      relevance = toRelevance(elementKind, Relevance.typeParameter);
+      listener?.computedFeatures(elementKind: elementKind);
     } else {
       relevance = _computeOldMemberRelevance(parameter);
     }
@@ -1040,12 +1064,30 @@ class SuggestionBuilder {
       if (suggestion.element?.kind == protocol.ElementKind.CONSTRUCTOR) {
         key = '$key()';
       }
+      listener?.builtSuggestion(suggestion);
       if (laterReplacesEarlier) {
         _suggestionMap[key] = suggestion;
       } else {
         _suggestionMap.putIfAbsent(key, () => suggestion);
       }
     }
+  }
+
+  /// Compute the value of the _element kind_ feature for the given [element] in
+  /// the completion context.
+  double _computeElementKind(Element element) {
+    var location = request.opType.completionLocation;
+    var elementKind =
+        request.featureComputer.elementKindFeature(element, location);
+    if (elementKind < 0.0) {
+      if (location == null) {
+        listener?.missingCompletionLocationAt(
+            request.target.containingNode, request.target.entity);
+      } else {
+        listener?.missingElementKindTableFor(location);
+      }
+    }
+    return elementKind;
   }
 
   /// Compute a relevance value from the given feature scores:
@@ -1125,21 +1167,25 @@ class SuggestionBuilder {
 
   /// Return the relevance score for a top-level [element].
   int _computeTopLevelRelevance(Element element,
-      {int defaultRelevance = 800, DartType elementType}) {
+      {int defaultRelevance = 800, @required DartType elementType}) {
     // TODO(brianwilkerson) The old relevance computation used a signal based
     //  on whether the element being suggested was from the same library in
     //  which completion is being performed. Explore whether that's a useful
     //  signal.
     var featureComputer = request.featureComputer;
-    var contextTypeFeature =
-        featureComputer.contextTypeFeature(_contextType, elementType);
-    var elementKind = featureComputer.elementKindFeature(
-        element, request.opType.completionLocation);
+    var contextType =
+        featureComputer.contextTypeFeature(request.contextType, elementType);
+    var elementKind = _computeElementKind(element);
     var hasDeprecated = featureComputer.hasDeprecatedFeature(element);
-    return toRelevance(
+    var relevance = toRelevance(
         weightedAverage(
-            [contextTypeFeature, elementKind, hasDeprecated], [1.0, 0.75, 0.2]),
+            [contextType, elementKind, hasDeprecated], [1.0, 0.75, 0.2]),
         defaultRelevance);
+    listener?.computedFeatures(
+        contextType: contextType,
+        elementKind: elementKind,
+        hasDeprecated: hasDeprecated);
+    return relevance;
   }
 
   /// Return a suggestion based on the [element], or `null` if a suggestion is
@@ -1269,4 +1315,30 @@ class SuggestionBuilder {
       suggestion.docSummary = getDartDocSummary(doc);
     }
   }
+}
+
+abstract class SuggestionListener {
+  /// Invoked when a suggestion has been built.
+  void builtSuggestion(protocol.CompletionSuggestion suggestion);
+
+  /// Invoked with the values of the features that were computed in the process
+  /// of building a suggestion. This method is only invoked when using the new
+  /// relevance computations. If invoked, it is invoked prior to invoking
+  /// [builtSuggestion].
+  void computedFeatures(
+      {double contextType,
+      double elementKind,
+      double hasDeprecated,
+      double inheritanceDistance,
+      double startsWithDollar,
+      double superMatches});
+
+  /// Invoked when an element kind feature cannot be produced because there is
+  /// no completion location label associated with the completion offset.
+  void missingCompletionLocationAt(
+      AstNode containingNode, SyntacticEntity entity);
+
+  /// Invoked when an element kind feature cannot be produced because there is
+  /// no `elementKindRelevance` table associated with the [completionLocation].
+  void missingElementKindTableFor(String completionLocation);
 }

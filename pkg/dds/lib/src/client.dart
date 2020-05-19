@@ -117,6 +117,31 @@ class _DartDevelopmentServiceClient {
       return _RPCResponses.success;
     });
 
+    _clientPeer.registerMethod('getDartDevelopmentServiceVersion',
+        (parameters) async {
+      final ddsVersion = DartDevelopmentService.protocolVersion.split('.');
+      return <String, dynamic>{
+        'type': 'Version',
+        'major': int.parse(ddsVersion[0]),
+        'minor': int.parse(ddsVersion[1]),
+      };
+    });
+
+    _clientPeer.registerMethod('getSupportedProtocols', (parameters) async {
+      final Map<String, dynamic> supportedProtocols =
+          await _vmServicePeer.sendRequest('getSupportedProtocols');
+      final ddsVersion = DartDevelopmentService.protocolVersion.split('.');
+      final ddsProtocol = {
+        'protocolName': 'DDS',
+        'major': int.parse(ddsVersion[0]),
+        'minor': int.parse(ddsVersion[1]),
+      };
+      supportedProtocols['protocols']
+          .cast<Map<String, dynamic>>()
+          .add(ddsProtocol);
+      return supportedProtocols;
+    });
+
     // When invoked within a fallback, the next fallback will start executing.
     // The final fallback forwards the request to the VM service directly.
     @alwaysThrows

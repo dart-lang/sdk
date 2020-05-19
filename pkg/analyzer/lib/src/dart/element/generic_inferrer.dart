@@ -39,7 +39,7 @@ bool _isLegacyTop(DartType t, {@required bool orTrueTop}) {
     return _isLegacyTop((t as InterfaceType).typeArguments[0],
         orTrueTop: orTrueTop);
   }
-  if (t.isObject && t.nullabilitySuffix == NullabilitySuffix.none) {
+  if (t.isDartCoreObject && t.nullabilitySuffix == NullabilitySuffix.none) {
     return true;
   }
   return orTrueTop ? _isTop(t) : false;
@@ -50,7 +50,7 @@ bool _isTop(DartType t) {
     return _isTop((t as InterfaceType).typeArguments[0]);
   }
   return t.isDynamic ||
-      (t.isObject && t.nullabilitySuffix != NullabilitySuffix.none) ||
+      (t.isDartCoreObject && t.nullabilitySuffix != NullabilitySuffix.none) ||
       t.isVoid ||
       identical(t, UnknownInferredType.instance);
 }
@@ -153,9 +153,9 @@ class GenericInferrer {
   ///
   /// If [downwardsInferPhase] is set, we are in the first pass of inference,
   /// pushing context types down. At that point we are allowed to push down
-  /// `?` to precisely represent an unknown type. If [downwardsInferPhase] is
+  /// `_` to precisely represent an unknown type. If [downwardsInferPhase] is
   /// false, we are on our final inference pass, have all available information
-  /// including argument types, and must not conclude `?` for any type formal.
+  /// including argument types, and must not conclude `_` for any type formal.
   List<DartType> infer(List<TypeParameterElement> typeFormals,
       {bool considerExtendsClause = true,
       ErrorReporter errorReporter,
@@ -164,7 +164,7 @@ class GenericInferrer {
       bool downwardsInferPhase = false}) {
     // Initialize the inferred type array.
     //
-    // In the downwards phase, they all start as `?` to offer reasonable
+    // In the downwards phase, they all start as `_` to offer reasonable
     // degradation for f-bounded type parameters.
     var inferredTypes =
         List<DartType>.filled(typeFormals.length, UnknownInferredType.instance);

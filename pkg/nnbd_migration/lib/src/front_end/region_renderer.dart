@@ -73,7 +73,8 @@ class RegionRenderer {
                   description: entry.description,
                   function: entry.function,
                   link:
-                      entry.target == null ? null : linkForTarget(entry.target))
+                      entry.target == null ? null : linkForTarget(entry.target),
+                  hintActions: entry.hintActions)
           ])
       ],
     );

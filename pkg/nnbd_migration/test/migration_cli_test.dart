@@ -6,14 +6,15 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart' as mock_sdk;
+import 'package:args/args.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/migration_cli.dart';
+import 'package:nnbd_migration/src/front_end/non_nullable_fix.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -46,9 +47,9 @@ class _MigrationCli extends MigrationCli {
   }
 
   Future<void> runWithPreviewServer(
-      List<String> args, Future<void> callback()) async {
+      ArgResults argResults, Future<void> callback()) async {
     _runWhilePreviewServerActive = callback;
-    await run(args);
+    await run(argResults);
     if (_runWhilePreviewServerActive != null) {
       fail('Preview server never started');
     }
@@ -68,6 +69,14 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
   final hasVerboseHelpMessage = contains('for verbose help output');
 
   final hasUsageText = contains('Usage: nnbd_migration');
+
+  Future<String> assertDecodeArgsFailure(List<String> args) async {
+    var cli = _createCli();
+    await cli.run(MigrationCli.createParser().parse(args));
+    var stderrText = assertErrorExit(cli);
+    expect(stderrText, isNot(contains('Exception')));
+    return stderrText;
+  }
 
   String assertErrorExit(MigrationCli cli, {bool withUsage = true}) {
     expect(cli.exitCode, isNotNull);
@@ -95,16 +104,18 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
   }
 
   Future<String> assertParseArgsFailure(List<String> args) async {
-    var cli = _createCli();
-    await cli.run(args);
-    var stderrText = assertErrorExit(cli);
-    expect(stderrText, isNot(contains('Exception')));
-    return stderrText;
+    try {
+      MigrationCli.createParser().parse(args);
+    } on FormatException catch (e) {
+      // Parsing failed, which was expected.
+      return e.message;
+    }
+    fail('Parsing was expected to fail, but did not');
   }
 
   CommandLineOptions assertParseArgsSuccess(List<String> args) {
     var cli = _createCli();
-    cli.parseCommandLineArgs(args);
+    cli.decodeCommandLineArgs(MigrationCli.createParser().parse(args));
     expect(cli.exitCode, isNull);
     var options = cli.options;
     return options;
@@ -126,22 +137,28 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
     }
   }
 
-  String createProjectDir(Map<String, String> contents) {
-    var projectPathPosix = '/test_project';
+  String createProjectDir(Map<String, String> contents,
+      {String posixPath = '/test_project'}) {
     for (var entry in contents.entries) {
       var relativePathPosix = entry.key;
       assert(!path.posix.isAbsolute(relativePathPosix));
-      var filePathPosix = path.posix.join(projectPathPosix, relativePathPosix);
+      var filePathPosix = path.posix.join(posixPath, relativePathPosix);
       resourceProvider.newFile(
           resourceProvider.convertPath(filePathPosix), entry.value);
     }
-    return resourceProvider.convertPath(projectPathPosix);
+    return resourceProvider.convertPath(posixPath);
+  }
+
+  Future<String> getSourceFromServer(Uri uri, String path) async {
+    http.Response response = await tryGetSourceFromServer(uri, path);
+    assertHttpSuccess(response);
+    return jsonDecode(response.body)['sourceCode'] as String;
   }
 
   Future<void> runWithPreviewServer(_MigrationCli cli, List<String> args,
       Future<void> Function(String) callback) async {
     String url;
-    await cli.runWithPreviewServer(args, () async {
+    await cli.runWithPreviewServer(_parseArgs(args), () async {
       // Server should be running now
       url = RegExp('http://.*', multiLine: true)
           .stringMatch(logger.stdoutBuffer.toString());
@@ -193,7 +210,7 @@ int${migrated ? '?' : ''} f() => null;
     expect(newCoreLibText, isNot(oldCoreLibText));
     coreLib.writeAsStringSync(newCoreLibText);
     var projectDir = await createProjectDir(simpleProject());
-    await cli.run([projectDir]);
+    await cli.run(MigrationCli.createParser().parse([projectDir]));
     assertErrorExit(cli, withUsage: false);
     var output = logger.stdoutBuffer.toString();
     expect(
@@ -219,7 +236,7 @@ int${migrated ? '?' : ''} f() => null;
   }
 
   test_flag_apply_changes_incompatible_with_web_preview() async {
-    expect(await assertParseArgsFailure(['--web-preview', '--apply-changes']),
+    expect(await assertDecodeArgsFailure(['--web-preview', '--apply-changes']),
         contains('--apply-changes requires --no-web-preview'));
   }
 
@@ -263,7 +280,8 @@ int${migrated ? '?' : ''} f() => null;
     var projectContents = simpleProject();
     var projectDir = await createProjectDir(projectContents);
     var cli = _createCli();
-    await cli.run(['--no-web-preview', '--apply-changes', projectDir]);
+    await cli
+        .run(_parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
     // Check that a summary was printed
     expect(logger.stdoutBuffer.toString(), contains('Applying changes'));
     // And that it refers to test.dart and pubspec.yaml
@@ -281,7 +299,7 @@ int f() => null
 ''');
     var projectDir = await createProjectDir(projectContents);
     var cli = _createCli();
-    await cli.run([projectDir]);
+    await cli.run(_parseArgs([projectDir]));
     assertErrorExit(cli, withUsage: false);
     var output = logger.stdoutBuffer.toString();
     expect(output, contains('1 analysis issue found'));
@@ -319,7 +337,7 @@ int? f() => null
     var projectContents = simpleProject();
     var projectDir = await createProjectDir(projectContents);
     var cli = _createCli();
-    await cli.run(['--no-web-preview', projectDir]);
+    await cli.run(_parseArgs(['--no-web-preview', projectDir]));
     // Check that a summary was printed
     var output = logger.stdoutBuffer.toString();
     expect(output, contains('Summary'));
@@ -386,12 +404,163 @@ int? f() => null
     });
   }
 
+  test_lifecycle_preview_rerun() async {
+    var origSourceText = 'void f() {}';
+    var projectContents = simpleProject(sourceText: origSourceText);
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await runWithPreviewServer(cli, [projectDir], (url) async {
+      await assertPreviewServerResponsive(url);
+      var uri = Uri.parse(url);
+      var testPath =
+          resourceProvider.pathContext.join(projectDir, 'lib', 'test.dart');
+      var newSourceText = 'void g() {}';
+      resourceProvider.getFile(testPath).writeAsStringSync(newSourceText);
+      // We haven't rerun, so getting the file details from the server should
+      // still yield the original source text
+      expect(await getSourceFromServer(uri, testPath), origSourceText);
+      var response = await http.post(uri.replace(path: 'rerun-migration'),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      assertHttpSuccess(response);
+      // Now that we've rerun, the server should yield the new source text
+      expect(await getSourceFromServer(uri, testPath), newSourceText);
+    });
+  }
+
+  test_lifecycle_preview_rerun_added_file() async {
+    var projectContents = simpleProject();
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await runWithPreviewServer(cli, [projectDir], (url) async {
+      await assertPreviewServerResponsive(url);
+      var uri = Uri.parse(url);
+      var test2Path =
+          resourceProvider.pathContext.join(projectDir, 'lib', 'test2.dart');
+      var newSourceText = 'void g() {}';
+      resourceProvider.getFile(test2Path).writeAsStringSync(newSourceText);
+      // We haven't rerun, so getting the file details from the server should
+      // fail
+      var response = await tryGetSourceFromServer(uri, test2Path);
+      expect(response.statusCode, 404);
+      response = await http.post(uri.replace(path: 'rerun-migration'),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      assertHttpSuccess(response);
+      // Now that we've rerun, the server should yield the new source text
+      expect(await getSourceFromServer(uri, test2Path), newSourceText);
+    });
+  }
+
+  test_lifecycle_preview_rerun_deleted_file() async {
+    var projectContents = simpleProject();
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    // Note: we use the summary to verify that the deletion was noticed
+    var summaryPath = resourceProvider.convertPath('/summary.json');
+    await runWithPreviewServer(cli, ['--summary', summaryPath, projectDir],
+        (url) async {
+      await assertPreviewServerResponsive(url);
+      // lib/test.dart should be readable from the server and appear in the
+      // summary
+      var uri = Uri.parse(url);
+      var testPath =
+          resourceProvider.pathContext.join(projectDir, 'lib', 'test.dart');
+      await getSourceFromServer(uri, testPath);
+      var summaryData =
+          jsonDecode(resourceProvider.getFile(summaryPath).readAsStringSync());
+      var separator = resourceProvider.pathContext.separator;
+      expect(summaryData['changes']['byPath'],
+          contains('lib${separator}test.dart'));
+      // Now delete the lib file and rerun
+      resourceProvider.deleteFile(testPath);
+      var response = await http.post(uri.replace(path: 'rerun-migration'),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      assertHttpSuccess(response);
+      // lib/test.dart should no longer be readable from the server and
+      // should no longer appear in the summary
+      response = await tryGetSourceFromServer(uri, testPath);
+      expect(response.statusCode, 404);
+      summaryData =
+          jsonDecode(resourceProvider.getFile(summaryPath).readAsStringSync());
+      expect(summaryData['changes']['byPath'],
+          isNot(contains('lib${separator}test.dart')));
+    });
+  }
+
+  test_lifecycle_preview_serves_only_from_project_dir() async {
+    var crazyFunctionName = 'crazyFunctionNameThatHasNeverBeenSeenBefore';
+    var projectContents =
+        simpleProject(sourceText: 'void $crazyFunctionName() {}');
+    var mainProjectDir = await createProjectDir(projectContents);
+    var otherProjectDir = await createProjectDir(projectContents,
+        posixPath: '/other_project_dir');
+    var cli = _createCli();
+    await runWithPreviewServer(cli, [mainProjectDir], (url) async {
+      await assertPreviewServerResponsive(url);
+      var uri = Uri.parse(url);
+
+      Future<http.Response> tryGetSourceFromProject(String projectDir) =>
+          tryGetSourceFromServer(
+              uri,
+              resourceProvider.pathContext
+                  .join(projectDir, 'lib', 'test.dart'));
+
+      // To verify that we're forming the request correctly, make sure that we
+      // can read a file from mainProjectDir.
+      var response = await tryGetSourceFromProject(mainProjectDir);
+      assertHttpSuccess(response);
+      // And that crazyFunctionName appears in the response
+      expect(response.body, contains(crazyFunctionName));
+      // Now verify that making the exact same request from otherProjectDir
+      // fails.
+      response = await tryGetSourceFromProject(otherProjectDir);
+      expect(response.statusCode, 404);
+      // And check that we didn't leak any info through the 404 response.
+      expect(response.body, isNot(contains(crazyFunctionName)));
+    });
+  }
+
+  test_lifecycle_preview_stack_hint_action() async {
+    var projectContents = simpleProject(sourceText: 'int x;');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await runWithPreviewServer(cli, [projectDir], (url) async {
+      expect(
+          logger.stdoutBuffer.toString(), contains('No analysis issues found'));
+      await assertPreviewServerResponsive(url);
+      var uri = Uri.parse(url);
+      var authToken = uri.queryParameters['authToken'];
+      var regionResponse = await http.get(
+          uri.replace(
+              path: resourceProvider.pathContext
+                  .toUri(resourceProvider.pathContext
+                      .join(projectDir, 'lib', 'test.dart'))
+                  .path,
+              queryParameters: {
+                'region': 'region',
+                'offset': '3',
+                'authToken': authToken
+              }),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      var regionJson = jsonDecode(regionResponse.body);
+      var response = await http.post(
+          uri.replace(
+              path: 'apply-hint', queryParameters: {'authToken': authToken}),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'},
+          body: jsonEncode(
+              regionJson['traces'][0]['entries'][0]['hintActions'][0]));
+      assertHttpSuccess(response);
+      assertProjectContents(
+          projectDir, simpleProject(sourceText: 'int/*?*/ x;'));
+    });
+  }
+
   test_lifecycle_summary() async {
     var projectContents = simpleProject();
     var projectDir = await createProjectDir(projectContents);
     var cli = _createCli();
     var summaryPath = resourceProvider.convertPath('/summary.json');
-    await cli.run(['--no-web-preview', '--summary', summaryPath, projectDir]);
+    await cli.run(
+        _parseArgs(['--no-web-preview', '--summary', summaryPath, projectDir]));
     var summaryData =
         jsonDecode(resourceProvider.getFile(summaryPath).readAsStringSync());
     expect(summaryData, TypeMatcher<Map>());
@@ -403,12 +572,45 @@ int? f() => null
     var projectDir = await createProjectDir(projectContents);
     var cli = _createCli();
     var summaryPath = resourceProvider.convertPath('/summary.json');
-    await cli.run(['--no-web-preview', '--summary', summaryPath, projectDir]);
+    await cli.run(
+        _parseArgs(['--no-web-preview', '--summary', summaryPath, projectDir]));
     var summaryData =
         jsonDecode(resourceProvider.getFile(summaryPath).readAsStringSync());
     var separator = resourceProvider.pathContext.separator;
     expect(summaryData['changes']['byPath']['lib${separator}test.dart'],
         {'makeTypeNullableDueToHint': 1});
+  }
+
+  test_lifecycle_summary_rewritten_upon_rerun() async {
+    var projectContents = simpleProject(sourceText: 'int f(int/*?*/ i) => i;');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    var summaryPath = resourceProvider.convertPath('/summary.json');
+    await runWithPreviewServer(cli, ['--summary', summaryPath, projectDir],
+        (url) async {
+      await assertPreviewServerResponsive(url);
+      var summaryData =
+          jsonDecode(resourceProvider.getFile(summaryPath).readAsStringSync());
+      var separator = resourceProvider.pathContext.separator;
+      expect(summaryData['changes']['byPath']['lib${separator}test.dart'],
+          {'makeTypeNullableDueToHint': 1, 'makeTypeNullable': 1});
+      var testPath =
+          resourceProvider.pathContext.join(projectDir, 'lib', 'test.dart');
+      var newSourceText = 'int f(int/*?*/ i) => i + 1;';
+      resourceProvider.getFile(testPath).writeAsStringSync(newSourceText);
+      // Rerunning should create a new summary
+      var uri = Uri.parse(url);
+      var response = await http.post(uri.replace(path: 'rerun-migration'),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      assertHttpSuccess(response);
+      summaryData =
+          jsonDecode(resourceProvider.getFile(summaryPath).readAsStringSync());
+      expect(summaryData['changes']['byPath']['lib${separator}test.dart'], {
+        'typeNotMadeNullable': 1,
+        'makeTypeNullableDueToHint': 1,
+        'checkExpression': 1
+      });
+    });
   }
 
   test_lifecycle_uri_error() async {
@@ -418,7 +620,7 @@ int f() => null;
 ''');
     var projectDir = await createProjectDir(projectContents);
     var cli = _createCli();
-    await cli.run([projectDir]);
+    await cli.run(_parseArgs([projectDir]));
     assertErrorExit(cli, withUsage: false);
     var output = logger.stdoutBuffer.toString();
     expect(output, contains('1 analysis issue found'));
@@ -443,12 +645,12 @@ int f() => null;
 
   test_migrate_path_file() async {
     resourceProvider.newFile(resourceProvider.pathContext.absolute('foo'), '');
-    expect(await assertParseArgsFailure(['foo']), contains('foo is a file'));
+    expect(await assertDecodeArgsFailure(['foo']), contains('foo is a file'));
   }
 
   test_migrate_path_non_existent() async {
     expect(
-        await assertParseArgsFailure(['foo']), contains('foo does not exist'));
+        await assertDecodeArgsFailure(['foo']), contains('foo does not exist'));
   }
 
   test_migrate_path_none() {
@@ -471,7 +673,7 @@ int f() => null;
 
   test_migrate_path_two() async {
     var cli = _createCli();
-    await cli.run(['foo', 'bar']);
+    await cli.run(_parseArgs(['foo', 'bar']));
     var stderrText = assertErrorExit(cli);
     expect(stderrText, contains('No more than one path may be specified'));
   }
@@ -486,7 +688,7 @@ int f() => null;
   }
 
   test_option_preview_port_format_error() async {
-    expect(await assertParseArgsFailure(['--preview-port', 'abc']),
+    expect(await assertDecodeArgsFailure(['--preview-port', 'abc']),
         contains('Invalid value for --preview-port'));
   }
 
@@ -497,7 +699,7 @@ int f() => null;
 
   test_option_sdk_default() {
     var cli = MigrationCli(binaryName: 'nnbd_migration');
-    cli.parseCommandLineArgs([]);
+    cli.decodeCommandLineArgs(_parseArgs([]));
     expect(
         File(path.join(cli.options.sdkPath, 'version')).existsSync(), isTrue);
   }
@@ -526,6 +728,15 @@ int f() => null;
     expect(cli.resourceProvider, same(PhysicalResourceProvider.INSTANCE));
   }
 
+  Future<http.Response> tryGetSourceFromServer(Uri uri, String path) async {
+    var authToken = uri.queryParameters['authToken'];
+    return await http.get(
+        uri.replace(
+            path: resourceProvider.pathContext.toUri(path).path,
+            queryParameters: {'inline': 'true', 'authToken': authToken}),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'});
+  }
+
   _MigrationCli _createCli() {
     mock_sdk.MockSdk(resourceProvider: resourceProvider);
     return _MigrationCli(this);
@@ -533,11 +744,15 @@ int f() => null;
 
   Future<String> _getHelpText({@required bool verbose}) async {
     var cli = _createCli();
-    await cli
-        .run(['--${CommandLineOptions.helpFlag}', if (verbose) '--verbose']);
+    await cli.run(_parseArgs(
+        ['--${CommandLineOptions.helpFlag}', if (verbose) '--verbose']));
     expect(cli.exitCode, 0);
     var helpText = logger.stderrBuffer.toString();
     return helpText;
+  }
+
+  ArgResults _parseArgs(List<String> args) {
+    return MigrationCli.createParser().parse(args);
   }
 }
 

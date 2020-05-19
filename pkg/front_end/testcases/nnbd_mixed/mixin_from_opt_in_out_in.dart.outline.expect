@@ -1,0 +1,304 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in.dart:21:7: Error: Applying the mixin 'Bq' to 'C0' introduces an erroneous override of 'a'.
+// class DwBq0 extends C0 with Bq {}
+//       ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:12:33: Context: The return type of the method 'Bq.a' is 'List<int? Function(int?)>', which does not match the return type, 'List<int Function(int)>', of the overridden method, 'B.a'.
+//  - 'List' is from 'dart:core'.
+// Change to a subtype of 'List<int Function(int)>'.
+//   List<int? Function(int?)> get a => [];
+//                                 ^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:6:31: Context: This is the overridden method ('a').
+//   List<int Function(int)> get a => [];
+//                               ^
+//
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in.dart:21:7: Error: Applying the mixin 'Bq' to 'C0' introduces an erroneous override of 'm'.
+// class DwBq0 extends C0 with Bq {}
+//       ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:14:23: Context: The return type of the method 'Bq.m' is 'int? Function(int?)', which does not match the return type, 'int Function(int)', of the overridden method, 'B.m'.
+// Change to a subtype of 'int Function(int)'.
+//   int? Function(int?) m(int? Function(int?) x) => x;
+//                       ^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:8:21: Context: This is the overridden method ('m').
+//   int Function(int) m(int Function(int) x) => x;
+//                     ^
+//
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in.dart:30:7: Error: Applying the mixin 'B' to 'C3' introduces an erroneous override of 'a'.
+// class DwB3 extends C3 with B {}
+//       ^^^^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:6:31: Context: The return type of the method 'B.a' is 'List<int Function(int)>', which does not match the return type, 'List<int? Function(int?)>', of the overridden method, 'Bq.a'.
+//  - 'List' is from 'dart:core'.
+// Change to a subtype of 'List<int? Function(int?)>'.
+//   List<int Function(int)> get a => [];
+//                               ^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:12:33: Context: This is the overridden method ('a').
+//   List<int? Function(int?)> get a => [];
+//                                 ^
+//
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in.dart:30:7: Error: Applying the mixin 'B' to 'C3' introduces an erroneous override of 'm'.
+// class DwB3 extends C3 with B {}
+//       ^^^^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:8:21: Context: The return type of the method 'B.m' is 'int Function(int)', which does not match the return type, 'int? Function(int?)', of the overridden method, 'Bq.m'.
+// Change to a subtype of 'int? Function(int?)'.
+//   int Function(int) m(int Function(int) x) => x;
+//                     ^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:14:23: Context: This is the overridden method ('m').
+//   int? Function(int?) m(int? Function(int?) x) => x;
+//                       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in.dart:15:7: Error: The implementation of 'a' in the non-abstract class 'DiBq0' does not conform to its interface.
+// class DiBq0 extends C0 implements Bq {}
+//       ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:6:31: Context: The return type of the method 'B.a' is 'List<int Function(int)>', which does not match the return type, 'List<int? Function(int?)>', of the overridden method, 'Bq.a'.
+//  - 'List' is from 'dart:core'.
+// Change to a subtype of 'List<int? Function(int?)>'.
+//   List<int Function(int)> get a => [];
+//                               ^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:12:33: Context: This is the overridden method ('a').
+//   List<int? Function(int?)> get a => [];
+//                                 ^
+//
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in.dart:15:7: Error: Class 'DiBq0' inherits multiple members named 'a' with incompatible signatures.
+// Try adding a declaration of 'a' to 'DiBq0'.
+// class DiBq0 extends C0 implements Bq {}
+//       ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:6:31: Context: This is one of the inherited members.
+//   List<int Function(int)> get a => [];
+//                               ^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:12:33: Context: This is one of the inherited members.
+//   List<int? Function(int?)> get a => [];
+//                                 ^
+//
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in.dart:15:7: Error: The implementation of 'm' in the non-abstract class 'DiBq0' does not conform to its interface.
+// class DiBq0 extends C0 implements Bq {}
+//       ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:8:21: Context: The return type of the method 'B.m' is 'int Function(int)', which does not match the return type, 'int? Function(int?)', of the overridden method, 'Bq.m'.
+// Change to a subtype of 'int? Function(int?)'.
+//   int Function(int) m(int Function(int) x) => x;
+//                     ^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:14:23: Context: This is the overridden method ('m').
+//   int? Function(int?) m(int? Function(int?) x) => x;
+//                       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in.dart:15:7: Error: Class 'DiBq0' inherits multiple members named 'm' with incompatible signatures.
+// Try adding a declaration of 'm' to 'DiBq0'.
+// class DiBq0 extends C0 implements Bq {}
+//       ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:8:21: Context: This is one of the inherited members.
+//   int Function(int) m(int Function(int) x) => x;
+//                     ^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:14:23: Context: This is one of the inherited members.
+//   int? Function(int?) m(int? Function(int?) x) => x;
+//                       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in.dart:21:7: Error: Class 'C0 with Bq' inherits multiple members named 'a' with incompatible signatures.
+// Try adding a declaration of 'a' to 'C0 with Bq'.
+// class DwBq0 extends C0 with Bq {}
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:12:33: Context: This is one of the inherited members.
+//   List<int? Function(int?)> get a => [];
+//                                 ^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:6:31: Context: This is one of the inherited members.
+//   List<int Function(int)> get a => [];
+//                               ^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:12:33: Context: This is one of the inherited members.
+//   List<int? Function(int?)> get a => [];
+//                                 ^
+//
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in.dart:21:7: Error: Class 'C0 with Bq' inherits multiple members named 'm' with incompatible signatures.
+// Try adding a declaration of 'm' to 'C0 with Bq'.
+// class DwBq0 extends C0 with Bq {}
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:14:23: Context: This is one of the inherited members.
+//   int? Function(int?) m(int? Function(int?) x) => x;
+//                       ^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:8:21: Context: This is one of the inherited members.
+//   int Function(int) m(int Function(int) x) => x;
+//                     ^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:14:23: Context: This is one of the inherited members.
+//   int? Function(int?) m(int? Function(int?) x) => x;
+//                       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in.dart:24:7: Error: The implementation of 'a' in the non-abstract class 'DiB3' does not conform to its interface.
+// class DiB3 extends C3 implements B {}
+//       ^^^^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:12:33: Context: The return type of the method 'Bq.a' is 'List<int? Function(int?)>', which does not match the return type, 'List<int Function(int)>', of the overridden method, 'B.a'.
+//  - 'List' is from 'dart:core'.
+// Change to a subtype of 'List<int Function(int)>'.
+//   List<int? Function(int?)> get a => [];
+//                                 ^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:6:31: Context: This is the overridden method ('a').
+//   List<int Function(int)> get a => [];
+//                               ^
+//
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in.dart:24:7: Error: Class 'DiB3' inherits multiple members named 'a' with incompatible signatures.
+// Try adding a declaration of 'a' to 'DiB3'.
+// class DiB3 extends C3 implements B {}
+//       ^^^^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:12:33: Context: This is one of the inherited members.
+//   List<int? Function(int?)> get a => [];
+//                                 ^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:6:31: Context: This is one of the inherited members.
+//   List<int Function(int)> get a => [];
+//                               ^
+//
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in.dart:24:7: Error: The implementation of 'm' in the non-abstract class 'DiB3' does not conform to its interface.
+// class DiB3 extends C3 implements B {}
+//       ^^^^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:14:23: Context: The return type of the method 'Bq.m' is 'int? Function(int?)', which does not match the return type, 'int Function(int)', of the overridden method, 'B.m'.
+// Change to a subtype of 'int Function(int)'.
+//   int? Function(int?) m(int? Function(int?) x) => x;
+//                       ^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:8:21: Context: This is the overridden method ('m').
+//   int Function(int) m(int Function(int) x) => x;
+//                     ^
+//
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in.dart:24:7: Error: Class 'DiB3' inherits multiple members named 'm' with incompatible signatures.
+// Try adding a declaration of 'm' to 'DiB3'.
+// class DiB3 extends C3 implements B {}
+//       ^^^^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:14:23: Context: This is one of the inherited members.
+//   int? Function(int?) m(int? Function(int?) x) => x;
+//                       ^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:8:21: Context: This is one of the inherited members.
+//   int Function(int) m(int Function(int) x) => x;
+//                     ^
+//
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in.dart:30:7: Error: Class 'C3 with B' inherits multiple members named 'a' with incompatible signatures.
+// Try adding a declaration of 'a' to 'C3 with B'.
+// class DwB3 extends C3 with B {}
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:6:31: Context: This is one of the inherited members.
+//   List<int Function(int)> get a => [];
+//                               ^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:12:33: Context: This is one of the inherited members.
+//   List<int? Function(int?)> get a => [];
+//                                 ^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:6:31: Context: This is one of the inherited members.
+//   List<int Function(int)> get a => [];
+//                               ^
+//
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in.dart:30:7: Error: Class 'C3 with B' inherits multiple members named 'm' with incompatible signatures.
+// Try adding a declaration of 'm' to 'C3 with B'.
+// class DwB3 extends C3 with B {}
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:8:21: Context: This is one of the inherited members.
+//   int Function(int) m(int Function(int) x) => x;
+//                     ^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:14:23: Context: This is one of the inherited members.
+//   int? Function(int?) m(int? Function(int?) x) => x;
+//                       ^
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib2.dart:8:21: Context: This is one of the inherited members.
+//   int Function(int) m(int Function(int) x) => x;
+//                     ^
+//
+import self as self;
+import "mixin_from_opt_in_out_in_lib1.dart" as mix;
+import "mixin_from_opt_in_out_in_lib2.dart" as mix2;
+
+import "org-dartlang-testcase:///mixin_from_opt_in_out_in_lib1.dart";
+import "org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart";
+
+class DiB0 extends mix::C0 implements mix2::B {
+  synthetic constructor •() → self::DiB0
+    ;
+}
+class DiBq0 extends mix::C0 implements mix2::Bq {
+  synthetic constructor •() → self::DiBq0
+    ;
+}
+abstract class _DwB0&C0&B = mix::C0 with mix2::B /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_DwB0&C0&B
+    : super mix::C0::•()
+    ;
+}
+class DwB0 extends self::_DwB0&C0&B {
+  synthetic constructor •() → self::DwB0
+    ;
+}
+abstract class _DwBq0&C0&Bq = mix::C0 with mix2::Bq /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_DwBq0&C0&Bq
+    : super mix::C0::•()
+    ;
+}
+class DwBq0 extends self::_DwBq0&C0&Bq {
+  synthetic constructor •() → self::DwBq0
+    ;
+}
+class DiB3 extends mix::C3 implements mix2::B {
+  synthetic constructor •() → self::DiB3
+    ;
+}
+class DiBq3 extends mix::C3 implements mix2::Bq {
+  synthetic constructor •() → self::DiBq3
+    ;
+}
+abstract class _DwB3&C3&B = mix::C3 with mix2::B /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_DwB3&C3&B
+    : super mix::C3::•()
+    ;
+}
+class DwB3 extends self::_DwB3&C3&B {
+  synthetic constructor •() → self::DwB3
+    ;
+}
+abstract class _DwBq3&C3&Bq = mix::C3 with mix2::Bq /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_DwBq3&C3&Bq
+    : super mix::C3::•()
+    ;
+}
+class DwBq3 extends self::_DwBq3&C3&Bq {
+  synthetic constructor •() → self::DwBq3
+    ;
+}
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in_out_in_lib1.dart:5:1: Error: A library can't opt out of non-nullable by default, when in nnbd-strong mode.
+// // @dart=2.6
+// ^^^^^^^^^^^^
+//
+import self as mix;
+import "mixin_from_opt_in_out_in_lib2.dart" as mix2;
+
+import "org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart";
+
+class C0 extends mix2::B {
+  synthetic constructor •() → mix::C0
+    ;
+}
+class C3 extends mix2::Bq {
+  synthetic constructor •() → mix::C3
+    ;
+}
+
+library /*isNonNullableByDefault*/;
+import self as mix2;
+import "dart:core" as core;
+
+class B extends core::Object {
+  synthetic constructor •() → mix2::B
+    ;
+  get a() → core::List<(core::int) → core::int>
+    ;
+  set a(core::List<(core::int) → core::int> _) → void
+    ;
+  method m((core::int) → core::int x) → (core::int) → core::int
+    ;
+}
+class Bq extends core::Object {
+  synthetic constructor •() → mix2::Bq
+    ;
+  get a() → core::List<(core::int?) → core::int?>
+    ;
+  set a(core::List<(core::int?) → core::int?> _) → void
+    ;
+  method m((core::int?) → core::int? x) → (core::int?) → core::int?
+    ;
+}

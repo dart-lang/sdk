@@ -10,6 +10,7 @@ import 'dart:typed_data';
 
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
 import 'package:nnbd_migration/src/front_end/migration_state.dart';
 import 'package:nnbd_migration/src/front_end/path_mapper.dart';
@@ -48,6 +49,8 @@ class PreviewSite extends Site
 
   static const navigationTreePath = '/_preview/navigationTree.json';
 
+  static const applyHintPath = '/apply-hint';
+
   static const applyMigrationPath = '/apply-migration';
 
   static const rerunMigrationPath = '/rerun-migration';
@@ -60,7 +63,7 @@ class PreviewSite extends Site
   final Map<String, UnitInfo> unitInfoMap = {};
 
   // A function provided by DartFix to rerun the migration.
-  final Future<MigrationState> Function([List<String>]) rerunFunction;
+  final Future<MigrationState> Function() rerunFunction;
 
   final String serviceAuthToken = _makeAuthToken();
 
@@ -142,16 +145,10 @@ class PreviewSite extends Site
       var unitInfo = unitInfoMap[decodedPath];
       if (unitInfo != null) {
         if (uri.queryParameters.containsKey('inline')) {
-          // TODO(devoncarew): Ensure that we don't serve content outside of our
-          //  project.
-
           // Note: `return await` needed due to
           // https://github.com/dart-lang/sdk/issues/39204
           return await respond(request, DartFilePage(this, unitInfo));
         } else if (uri.queryParameters.containsKey('region')) {
-          // TODO(devoncarew): Ensure that we don't serve content outside of our
-          //  project.
-
           // Note: `return await` needed due to
           // https://github.com/dart-lang/sdk/issues/39204
           return await respond(request, RegionPage(this, unitInfo));
@@ -187,6 +184,11 @@ class PreviewSite extends Site
       } else if (path == rerunMigrationPath) {
         await rerunMigration();
 
+        respondOk(request);
+        return;
+      } else if (path == applyHintPath) {
+        final hintAction = HintAction.fromJson(await requestBodyJson(request));
+        await performHintAction(hintAction);
         respondOk(request);
         return;
       } else if (uri.queryParameters.containsKey('replacement')) {
@@ -263,12 +265,53 @@ class PreviewSite extends Site
     file.writeAsStringSync(newContent);
     unitInfo.diskContent = newContent;
     if (!insertionOnly) {
-      await rerunMigration([path]);
+      await rerunMigration();
     }
   }
 
-  Future<void> rerunMigration([List<String> changedPaths]) async {
-    migrationState = await rerunFunction(changedPaths);
+  /// Perform the edit indicated by the [uri].
+  Future<void> performHintAction(HintAction hintAction) async {
+    final node = migrationState.nodeMapper.nodeForId(hintAction.nodeId);
+    final edits = node.hintActions[hintAction.kind];
+    if (edits == null) {
+      throw StateError('This edit was not available to perform.');
+    }
+    //
+    // Update the code on disk.
+    //
+    var path = node.codeReference.path;
+    var file = pathMapper.provider.getFile(path);
+    var diskContent = file.readAsStringSync();
+    if (!unitInfoMap[path].hadDiskContent(diskContent)) {
+      throw StateError('Cannot perform edit. This file has been changed since'
+          ' last migration run. Press the "rerun from sources" button and then'
+          ' try again. (Changed file path is ${file.path})');
+    }
+    final unitInfo = unitInfoMap[path];
+    final diskMapper = unitInfo.diskChangesOffsetMapper;
+    var newContent = diskContent;
+    migrationState.needsRerun = true;
+    for (final entry in edits.entries) {
+      final offset = entry.key;
+      final edits = entry.value;
+      final sourceEdit = edits.toSourceEdit(diskMapper.map(offset));
+      // TODO(mfairhurst): handle deletions
+      unitInfo.handleInsertion(sourceEdit.offset, sourceEdit.replacement);
+      newContent = sourceEdit.apply(newContent);
+    }
+    file.writeAsStringSync(newContent);
+    unitInfo.diskContent = newContent;
+  }
+
+  Future<Map<String, Object>> requestBodyJson(HttpRequest request) async =>
+      (await request
+          .map((entry) => entry.map((i) => i.toInt()).toList())
+          .transform<String>(Utf8Decoder())
+          .transform(JsonDecoder())
+          .single) as Map<String, Object>;
+
+  Future<void> rerunMigration() async {
+    migrationState = await rerunFunction();
     reset();
   }
 

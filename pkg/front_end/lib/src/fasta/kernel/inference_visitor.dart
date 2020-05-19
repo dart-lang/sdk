@@ -419,7 +419,6 @@ class InferenceVisitor
         node.target.function
             .computeThisFunctionType(inferrer.library.nonNullable),
         node.arguments,
-        node.name,
         returnType:
             computeConstructorReturnType(node.target, inferrer.coreTypes),
         isConst: node.isConst);
@@ -449,8 +448,8 @@ class InferenceVisitor
         : new FunctionType(
             [], const DynamicType(), inferrer.library.nonNullable);
     TypeArgumentsInfo typeArgumentsInfo = getTypeArgumentsInfo(node.arguments);
-    InvocationInferenceResult result = inferrer.inferInvocation(typeContext,
-        node.fileOffset, calleeType, node.arguments, node.target.name);
+    InvocationInferenceResult result = inferrer.inferInvocation(
+        typeContext, node.fileOffset, calleeType, node.arguments);
     Expression replacement = new StaticInvocation(node.target, node.arguments);
     if (!inferrer.isTopLevel && node.target != null) {
       inferrer.library.checkBoundsInStaticInvocation(
@@ -702,7 +701,6 @@ class InferenceVisitor
         node.target.function
             .computeThisFunctionType(inferrer.library.nonNullable),
         node.arguments,
-        node.name,
         returnType:
             computeConstructorReturnType(node.target, inferrer.coreTypes),
         isConst: node.isConst);
@@ -1061,7 +1059,6 @@ class InferenceVisitor
             .computeThisFunctionType(inferrer.library.nonNullable)
             .withoutTypeParameters),
         node.argumentsJudgment,
-        node.target.name,
         returnType: inferrer.thisType,
         skipTypeArgumentInference: true);
   }
@@ -3438,7 +3435,8 @@ class InferenceVisitor
     DartType rightType =
         inferrer.getPositionalParameterTypeForTarget(equalsTarget, leftType, 0);
     right = inferrer.ensureAssignableResult(
-        rightType.withNullability(inferrer.library.nullable), rightResult,
+        rightType.withDeclaredNullability(inferrer.library.nullable),
+        rightResult,
         errorTemplate: templateArgumentTypeNotAssignable);
 
     Expression equals = new MethodInvocation(
@@ -4850,7 +4848,6 @@ class InferenceVisitor
         node.target.function
             .computeThisFunctionType(inferrer.library.nonNullable),
         node.arguments,
-        node.target.name,
         returnType: inferrer.coreTypes.thisInterfaceType(
             node.target.enclosingClass, inferrer.library.nonNullable),
         skipTypeArgumentInference: true);
@@ -5014,7 +5011,7 @@ class InferenceVisitor
             [], const DynamicType(), inferrer.library.nonNullable);
     TypeArgumentsInfo typeArgumentsInfo = getTypeArgumentsInfo(node.arguments);
     InvocationInferenceResult result = inferrer.inferInvocation(
-        typeContext, node.fileOffset, calleeType, node.arguments, node.name);
+        typeContext, node.fileOffset, calleeType, node.arguments);
     if (!inferrer.isTopLevel && node.target != null) {
       inferrer.library.checkBoundsInStaticInvocation(
           node,
@@ -5061,7 +5058,6 @@ class InferenceVisitor
             .computeThisFunctionType(inferrer.library.nonNullable)
             .withoutTypeParameters),
         node.arguments,
-        node.target.name,
         returnType: inferrer.thisType,
         skipTypeArgumentInference: true);
   }
@@ -5688,7 +5684,7 @@ class InferenceVisitor
       FunctionType calleeType =
           new FunctionType([], inferredType, inferrer.library.nonNullable);
       inferrer.inferInvocation(
-          typeContext, node.fileOffset, calleeType, node.arguments, null);
+          typeContext, node.fileOffset, calleeType, node.arguments);
     }
     return new ExpressionInferenceResult(inferredType, node);
   }

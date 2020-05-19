@@ -46,6 +46,18 @@ class ThreadPool {
     return RunImpl(std::unique_ptr<Task>(new T(std::forward<Args>(args)...)));
   }
 
+  // Returns `true` if the current thread is runing on the [this] thread pool.
+  bool CurrentThreadIsWorker();
+
+  // Mark the current thread as being blocked (e.g. in native code). This might
+  // temporarily increase the max thread pool size.
+  void MarkCurrentWorkerAsBlocked();
+
+  // Mark the current thread as being unblocked. Must be called iff
+  // [MarkCurrentWorkerAsBlocked] was called before and the thread is now ready
+  // to coninue executing.
+  void MarkCurrentWorkerAsUnBlocked();
+
   // Triggers shutdown, prevents scheduling of new tasks.
   void Shutdown();
 
@@ -73,6 +85,8 @@ class ThreadPool {
     // thread.
     ThreadPool* pool_;
     ThreadJoinId join_id_;
+    OSThread* os_thread_ = nullptr;
+    bool is_blocked_ = false;
 
     DISALLOW_COPY_AND_ASSIGN(Worker);
   };

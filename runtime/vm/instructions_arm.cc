@@ -228,7 +228,9 @@ uword InstructionPattern::DecodeLoadWordFromPool(uword end,
     } else {
       ASSERT((instr & 0xffff0000) == (0xe0800000 | (PP << 16)));
       // add reg, pp, reg
-      end = DecodeLoadWordImmediate(end, reg, &offset);
+      intptr_t value = 0;
+      start = DecodeLoadWordImmediate(start, reg, &value);
+      offset += value;
     }
   }
   *index = ObjectPool::IndexFromOffset(offset);

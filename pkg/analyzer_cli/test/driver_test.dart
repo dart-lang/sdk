@@ -310,8 +310,8 @@ var x = B();
 ''', [b]);
 
       // We perform full analysis, and check that `new B()` is assignable
-      // to `B x`. While doing this, we ask for `B` supertype.
-      // So, dependency on "a".
+      // to `B x`. This is trivially true, we don't need the supertype of `B`.
+      // So, no dependency on "a".
       await _assertDependencies(
         'c',
         [a, b],
@@ -319,7 +319,7 @@ var x = B();
 import 'package:b/b.dart';
 var x = B();
 ''',
-        [a, b],
+        [b],
         summaryOnly: false,
       );
     });

@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
 
+import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/front_end/web/edit_details.dart';
 import 'package:nnbd_migration/src/front_end/web/file_details.dart';
 import 'package:nnbd_migration/src/front_end/web/navigation_tree.dart';
@@ -162,7 +163,7 @@ Future<HttpRequest> doGet(String path,
     HttpRequest.request(pathWithQueryParameters(path, queryParameters),
         requestHeaders: {'Content-Type': 'application/json; charset=UTF-8'});
 
-Future<Map<String, Object>> doPost(String path) async {
+Future<Map<String, Object>> doPost(String path, [Object body]) async {
   var completer = new Completer<HttpRequest>();
 
   var xhr = HttpRequest()
@@ -175,7 +176,7 @@ Future<Map<String, Object>> doPost(String path) async {
 
   xhr.onError.listen(completer.completeError);
 
-  xhr.send();
+  xhr.send(body == null ? null : jsonEncode(body));
 
   await completer.future;
 
@@ -716,16 +717,24 @@ AnchorElement _aElementForLink(TargetLink link, String parentDirectory) {
 }
 
 void _populateEditLinks(EditDetails response, Element editPanel) {
-  if (response.edits != null) {
-    Element editParagraph = document.createElement('p');
-    editPanel.append(editParagraph);
-    for (var edit in response.edits) {
-      Element a = document.createElement('a');
-      editParagraph.append(a);
-      a.append(Text(edit.description));
-      a.setAttribute('href', edit.href);
-      a.classes = ['add-hint-link', 'before-apply', 'button'];
-    }
+  if (response.edits == null) {
+    return;
+  }
+
+  var subheading = editPanel.append(document.createElement('p'));
+  subheading.append(document.createElement('span')
+    ..classes = ['type-description']
+    ..append(Text('Actions')));
+  subheading.append(Text(':'));
+
+  Element editParagraph = document.createElement('p');
+  editPanel.append(editParagraph);
+  for (var edit in response.edits) {
+    Element a = document.createElement('a');
+    editParagraph.append(a);
+    a.append(Text(edit.description));
+    a.setAttribute('href', edit.href);
+    a.classes = ['add-hint-link', 'before-apply', 'button'];
   }
 }
 
@@ -741,7 +750,7 @@ void _populateEditTraces(
     var ul = traceParagraph
         .append(document.createElement('ul')..classes = ['trace']);
     for (var entry in trace.entries) {
-      Element li = document.createElement('li')..innerHtml = '&#x274F; ';
+      Element li = document.createElement('li');
       ul.append(li);
       li.append(document.createElement('span')
         ..classes = ['function']
@@ -754,6 +763,25 @@ void _populateEditTraces(
       }
       li.append(Text(': '));
       li.appendTextWithBreaks(entry.description ?? 'unknown');
+
+      if (entry.hintActions.isNotEmpty) {
+        var drawer = li.append(
+            document.createElement('p')..classes = ['drawer', 'before-apply']);
+        for (final hintAction in entry.hintActions) {
+          drawer.append(ButtonElement()
+            ..onClick.listen((event) async {
+              try {
+                await doPost(pathWithQueryParameters('/apply-hint', {}),
+                    hintAction.toJson());
+                loadFile(link.path, null, link.line, false);
+                document.body.classes.add('needs-rerun');
+              } catch (e, st) {
+                handleError("Could not apply hint", e, st);
+              }
+            })
+            ..appendText(hintAction.kind.description));
+        }
+      }
     }
   }
 }

@@ -17,12 +17,14 @@ The Service Protocol uses [JSON-RPC 2.0][].
 - [Revision History](#revision-history)
 - [Public RPCs](#public-rpcs)
   - [getClientName](#getclientname)
+  - [getDartDevelopmentServiceVersion](#getdartdevelopmentserviceversion)
   - [getLogHistorySize](#getloghistorysize)
   - [requirePermissionToResume](#requirepermissiontoresume)
   - [setClientName](#setclientname)
   - [setLogHistorySize](#setloghistorysize)
 - [Public Types](#public-types)
   - [ClientName](#clientname)
+  - [DartDevelopmentServiceVersion](#dartdevelopmentserviceversion)
   - [Size](#size)
 
 ## RPCs, Requests, and Responses
@@ -60,6 +62,18 @@ connected VM service client. If no name was previously set through the
 [setClientName](#setclientname) RPC, a default name will be returned.
 
 See [ClientName](#clientname)
+
+### getDartDevelopmentServiceVersion
+
+```
+Version getDartDevelopmentServiceVersion()
+```
+
+The _getDartDevelopmentServiceVersion_ RPC is used to determine what version of
+the Dart Development Service Protocol is served by a DDS instance.
+
+See [Version](#version).
+
 
 ### getLogHistorySize
 
@@ -164,9 +178,11 @@ A simple object representing a size response.
 version | comments
 ------- | --------
 1.0 | Initial revision
+1.1 | Added `getDartDevelopmentServiceVersion` RPC.
 
 [resume]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#resume
 [success]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#success
+[version]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#version
 
 [service-protocol]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md
 [service-protocol-rpcs-requests-and-responses]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#rpcs-requests-and-responses

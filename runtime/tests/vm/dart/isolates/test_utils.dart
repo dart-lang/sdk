@@ -60,11 +60,7 @@ Future fibonacciRecursive(List args) async {
   port.send(results[0] + results[1]);
 }
 
-class Command {
-  static const int kRun = 0;
-  static const int kRunAndClose = 1;
-  static const int kClose = 2;
-}
+enum Command { kRun, kRunAndClose, kClose }
 
 abstract class RingElement {
   Future run(SendPort nextNeighbour, StreamIterator prevNeighbour);

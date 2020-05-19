@@ -323,75 +323,93 @@ class VerificationState {
   }
 
   static bool isDartTypeSupported(DartType node) =>
-      node is InvalidType ||
-      node is DynamicType ||
-      node is VoidType ||
-      node is BottomType ||
-      node is FunctionType ||
-      node is TypeParameterType ||
-      node is InterfaceType;
+      !isDartTypeNotSupported(node);
+
+  static bool isDartTypeNotSupported(DartType node) =>
+      node is TypedefType || node is NeverType;
 
   static bool isExpressionSupported(Expression node) =>
-      node is StringLiteral ||
-      node is SymbolLiteral ||
-      node is IntLiteral ||
-      node is DoubleLiteral ||
-      node is BoolLiteral ||
-      node is NullLiteral ||
-      node is ListLiteral ||
-      node is SetLiteral ||
-      node is MapLiteral ||
-      node is TypeLiteral ||
-      node is InvalidExpression ||
-      node is Not ||
-      node is LogicalExpression ||
-      node is StringConcatenation ||
-      node is ThisExpression ||
-      node is Rethrow ||
-      node is Throw ||
-      node is AwaitExpression ||
-      node is ConditionalExpression ||
-      node is IsExpression ||
-      node is AsExpression ||
-      node is Let ||
-      node is PropertyGet ||
-      node is PropertySet ||
-      node is SuperPropertyGet ||
-      node is SuperPropertySet ||
-      node is MethodInvocation ||
-      node is SuperMethodInvocation ||
-      node is VariableGet ||
-      node is VariableSet ||
-      node is StaticGet ||
-      node is StaticSet ||
-      node is DirectPropertyGet ||
-      node is DirectPropertySet ||
-      node is StaticInvocation ||
-      node is DirectMethodInvocation ||
-      node is ConstructorInvocation ||
-      node is FunctionExpression;
+      !isExpressionNotSupported(node);
+
+  static bool isExpressionNotSupported(Expression node) =>
+      node is SetConcatenation ||
+      node is MapConcatenation ||
+      node is InstanceCreation ||
+      node is FileUriExpression ||
+      node is BlockExpression ||
+      node is ListConcatenation ||
+      node is NullCheck ||
+      node is BasicLiteral ||
+      node is InvocationExpression ||
+      node is Instantiation ||
+      node is ConstantExpression ||
+      node is CheckLibraryIsLoaded ||
+      node is LoadLibrary;
 
   static bool isStatementSupported(Statement node) =>
-      node is ExpressionStatement ||
-      node is ReturnStatement && node.expression != null ||
-      node is Block ||
-      node is VariableDeclaration &&
-          node.parent is Block &&
-          node.name != null ||
-      node is YieldStatement ||
-      node is IfStatement ||
-      node is WhileStatement ||
-      node is DoStatement ||
-      node is ForStatement ||
-      node is ForInStatement && !node.isAsync;
+      !isStatementNotSupported(node);
 
-  static bool isSupported(Node node) =>
-      node is DartType && isDartTypeSupported(node) ||
-      node is Expression && isExpressionSupported(node) ||
-      node is Statement && isStatementSupported(node) ||
-      node is Arguments ||
-      node is FunctionNode && node.body != null ||
-      node is Procedure && node.isStatic && node.kind == ProcedureKind.Method;
+  static bool isStatementNotSupported(Statement node) =>
+      node is BreakStatement ||
+      node is AssertBlock ||
+      node is VariableDeclaration &&
+          (node.parent is! Block || node.name == null) ||
+      node is SwitchStatement ||
+      node is TryFinally ||
+      node is EmptyStatement ||
+      node is LabeledStatement ||
+      node is ForInStatement && node.isAsync ||
+      node is TryCatch ||
+      node is FunctionDeclaration ||
+      node is ContinueSwitchStatement ||
+      node is AssertStatement ||
+      node is ReturnStatement && node.expression == null;
+
+  static bool isSupported(Node node) => !isNotSupported(node);
+
+  static bool isNotSupported(Node node) =>
+      node is DartType && isDartTypeNotSupported(node) ||
+      node is Expression && isExpressionNotSupported(node) ||
+      node is Statement && isStatementNotSupported(node) ||
+      node is FunctionNode && node.body == null ||
+      node is Procedure &&
+          (!node.isStatic || node.kind != ProcedureKind.Method) ||
+      node is AssertInitializer ||
+      node is BoolConstant ||
+      node is Catch ||
+      node is Class ||
+      node is Combinator ||
+      node is Component ||
+      node is Constructor ||
+      node is DoubleConstant ||
+      node is Extension ||
+      node is Field ||
+      node is FieldInitializer ||
+      node is InstanceConstant ||
+      node is IntConstant ||
+      node is InvalidInitializer ||
+      node is Library ||
+      node is LibraryDependency ||
+      node is LibraryPart ||
+      node is ListConstant ||
+      node is LocalInitializer ||
+      node is MapConstant ||
+      node is Name && node.isPrivate ||
+      node is NullConstant ||
+      node is PartialInstantiationConstant ||
+      node is PrimitiveConstant ||
+      node is RedirectingFactoryConstructor ||
+      node is RedirectingInitializer ||
+      node is SetConstant ||
+      node is StringConstant ||
+      node is SuperInitializer ||
+      node is Supertype ||
+      node is SwitchCase ||
+      node is SymbolConstant ||
+      node is TearOffConstant ||
+      node is TypeLiteralConstant ||
+      node is Typedef ||
+      node is UnevaluatedConstant;
 }
 
 class TextSerializationVerifier extends RecursiveVisitor<void> {
@@ -522,6 +540,12 @@ class TextSerializationVerifier extends RecursiveVisitor<void> {
       makeRoundTrip<FunctionNode>(node, functionNodeSerializer);
     } else if (node is Procedure) {
       makeRoundTrip<Procedure>(node, procedureSerializer);
+    } else if (node is TypeParameter) {
+      makeRoundTrip<TypeParameter>(node, typeParameterSerializer);
+    } else if (node is NamedType) {
+      makeRoundTrip<NamedType>(node, namedTypeSerializer);
+    } else if (node is Name) {
+      makeRoundTrip<Name>(node, nameSerializer);
     } else {
       throw new StateError(
           "Don't know how to make a round trip for a supported node "

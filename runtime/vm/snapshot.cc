@@ -313,9 +313,6 @@ ObjectPtr SnapshotReader::ReadObject() {
   // Setup for long jump in case there is an exception while reading.
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    objects_to_rehash_ = GrowableObjectArray::New();
-    types_to_postprocess_ = GrowableObjectArray::New();
-
     PassiveObject& obj =
         PassiveObject::Handle(zone(), ReadObjectImpl(kAsInlinedObject));
     for (intptr_t i = 0; i < backward_references_->length(); i++) {
@@ -344,11 +341,14 @@ ObjectPtr SnapshotReader::ReadObject() {
 }
 
 void SnapshotReader::EnqueueTypePostprocessing(const AbstractType& type) {
+  if (types_to_postprocess_.IsNull()) {
+    types_to_postprocess_ = GrowableObjectArray::New();
+  }
   types_to_postprocess_.Add(type);
 }
 
 void SnapshotReader::RunDelayedTypePostprocessing() {
-  if (types_to_postprocess_.Length() == 0) {
+  if (types_to_postprocess_.IsNull()) {
     return;
   }
 
@@ -362,11 +362,14 @@ void SnapshotReader::RunDelayedTypePostprocessing() {
 }
 
 void SnapshotReader::EnqueueRehashingOfMap(const LinkedHashMap& map) {
+  if (objects_to_rehash_.IsNull()) {
+    objects_to_rehash_ = GrowableObjectArray::New();
+  }
   objects_to_rehash_.Add(map);
 }
 
 ObjectPtr SnapshotReader::RunDelayedRehashingOfMaps() {
-  if (objects_to_rehash_.Length() > 0) {
+  if (!objects_to_rehash_.IsNull()) {
     const Library& collections_lib =
         Library::Handle(zone_, Library::CollectionLibrary());
     const Function& rehashing_function = Function::Handle(
@@ -575,6 +578,9 @@ ObjectPtr SnapshotReader::ReadObjectImpl(intptr_t header_value,
 }
 
 void SnapshotReader::EnqueueRehashingOfSet(const Object& set) {
+  if (objects_to_rehash_.IsNull()) {
+    objects_to_rehash_ = GrowableObjectArray::New();
+  }
   objects_to_rehash_.Add(set);
 }
 

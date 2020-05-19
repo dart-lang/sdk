@@ -766,7 +766,10 @@ class Instr {
 
   // Fields used in Branch instructions
   inline int LinkField() const { return Bits(kLinkShift, kLinkBits); }
-  inline int SImmed24Field() const { return ((InstructionBits() << 8) >> 8); }
+  inline int32_t SImmed24Field() const {
+    uint32_t bits = InstructionBits();
+    return static_cast<int32_t>(bits << 8) >> 8;
+  }
 
   // Fields used in Supervisor Call instructions
   inline uint32_t SvcField() const { return Bits(0, 24); }

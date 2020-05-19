@@ -29,33 +29,95 @@ class ReturnTypeVerifier {
         _typeSystem = typeSystem,
         _errorReporter = errorReporter;
 
-  /// Check that a type mis-match between the type of the [expression] and
-  /// the [expectedReturnType] by the enclosing method or function.
-  ///
-  /// This method is called both by [_checkForAllReturnStatementErrorCodes]
-  /// and [visitExpressionFunctionBody].
-  void verifyReturnExpression(Expression expression, DartType expectedType,
-      {bool isArrowFunction = false}) {
-    if (enclosingExecutable == null) {
+  DartType get _flattenedReturnType {
+    var returnType = enclosingExecutable.returnType;
+    if (enclosingExecutable.isSynchronous) {
+      return returnType;
+    } else {
+      return _typeSystem.flatten(returnType);
+    }
+  }
+
+  void verifyExpressionFunctionBody(ExpressionFunctionBody node) {
+    // This enables concise declarations of void functions.
+    if (_flattenedReturnType.isVoid) {
       return;
     }
+
+    return _checkReturnExpression(node.expression);
+  }
+
+  void verifyReturnStatement(ReturnStatement statement) {
+    var expression = statement.expression;
+
+    if (enclosingExecutable.isGenerativeConstructor) {
+      if (expression != null) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR,
+          expression,
+        );
+      }
+      return;
+    }
+
     if (enclosingExecutable.isGenerator) {
-      // "return expression;" is disallowed in generators, but this is checked
-      // elsewhere.  Bare "return" is always allowed in generators regardless
-      // of the return type.  So no need to do any further checking.
+      if (expression != null) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.RETURN_IN_GENERATOR,
+          statement,
+          [enclosingExecutable.isAsynchronous ? 'async*' : 'sync*'],
+        );
+      }
       return;
     }
+
     if (expression == null) {
-      return; // Empty returns are handled elsewhere
+      _checkReturnWithoutValue(statement);
+      return;
     }
 
-    DartType expressionType = getStaticType(expression);
+    _checkReturnExpression(expression);
+  }
 
-    var toType = expectedType;
-    var fromType = expressionType;
+  void verifyReturnType(TypeAnnotation returnType) {
+    // If no declared type, then the type is `dynamic`, which is valid.
+    if (returnType == null) {
+      return;
+    }
+
+    void checkElement(
+      ClassElement expectedElement,
+      StaticTypeWarningCode errorCode,
+    ) {
+      if (!_isLegalReturnType(expectedElement)) {
+        _errorReporter.reportErrorForNode(errorCode, returnType);
+      }
+    }
+
     if (enclosingExecutable.isAsynchronous) {
-      toType = _typeSystem.flatten(toType);
-      fromType = _typeSystem.flatten(fromType);
+      if (enclosingExecutable.isGenerator) {
+        checkElement(
+          _typeProvider.streamElement,
+          StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE,
+        );
+      } else {
+        checkElement(
+          _typeProvider.futureElement,
+          StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE,
+        );
+      }
+    } else if (enclosingExecutable.isGenerator) {
+      checkElement(
+        _typeProvider.iterableElement,
+        StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE,
+      );
+    }
+  }
+
+  /// Check that a type mismatch between the type of the [expression] and
+  /// the expected return type of the enclosing executable.
+  void _checkReturnExpression(Expression expression) {
+    if (enclosingExecutable.isAsynchronous) {
       if (!_isLegalReturnType(_typeProvider.futureElement)) {
         // ILLEGAL_ASYNC_RETURN_TYPE has already been reported, meaning the
         // _declared_ return type is illegal; don't confuse by also reporting
@@ -65,160 +127,110 @@ class ReturnTypeVerifier {
       }
     }
 
+    // `T` is the declared return type.
+    // `S` is the static type of the expression.
+    var T = enclosingExecutable.returnType;
+    var S = getStaticType(expression);
+
     void reportTypeError() {
       String displayName = enclosingExecutable.element.displayName;
-
       if (displayName.isEmpty) {
         _errorReporter.reportErrorForNode(
-            StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
-            expression,
-            [fromType, toType]);
+          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
+          expression,
+          [S, T],
+        );
       } else if (enclosingExecutable.isMethod) {
         _errorReporter.reportErrorForNode(
-            StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
-            expression,
-            [fromType, toType, displayName]);
+          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
+          expression,
+          [S, T, displayName],
+        );
       } else {
         _errorReporter.reportErrorForNode(
-            StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
-            expression,
-            [fromType, toType, displayName]);
+          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+          expression,
+          [S, T, displayName],
+        );
       }
     }
 
-    // Anything can be returned to `void` in an arrow bodied function
-    // or to `Future<void>` in an async arrow bodied function.
-    if (isArrowFunction && toType.isVoid) {
-      return;
-    }
-
-    if (toType.isVoid) {
-      if (fromType.isVoid ||
-          fromType.isDynamic ||
-          fromType.isDartCoreNull ||
-          fromType.isBottom) {
-        return;
+    if (enclosingExecutable.isSynchronous) {
+      // It is a compile-time error if `T` is `void`,
+      // and `S` is neither `void`, `dynamic`, nor `Null`.
+      if (T.isVoid) {
+        if (!_isVoidDynamicOrNull(S)) {
+          reportTypeError();
+          return;
+        }
       }
-    } else if (fromType.isVoid) {
-      if (toType.isDynamic || toType.isDartCoreNull || toType.isBottom) {
-        return;
+      // It is a compile-time error if `S` is `void`,
+      // and `T` is neither `void`, `dynamic`, nor `Null`.
+      if (S.isVoid) {
+        if (!_isVoidDynamicOrNull(T)) {
+          reportTypeError();
+          return;
+        }
       }
-    }
-    if (!expectedType.isVoid && !fromType.isVoid) {
-      var checkWithType = !enclosingExecutable.isAsynchronous
-          ? fromType
-          : _typeProvider.futureType2(fromType);
-      if (_typeSystem.isAssignableTo2(checkWithType, expectedType)) {
-        return;
+      // It is a compile-time error if `S` is not `void`,
+      // and `S` is not assignable to `T`.
+      if (!S.isVoid) {
+        if (!_typeSystem.isAssignableTo2(S, T)) {
+          reportTypeError();
+          return;
+        }
       }
-    }
-
-    reportTypeError();
-  }
-
-  void verifyReturnStatement(ReturnStatement statement) {
-    FunctionType functionType = enclosingExecutable.element.type;
-    DartType expectedReturnType = functionType == null
-        ? DynamicTypeImpl.instance
-        : functionType.returnType;
-    Expression returnExpression = statement.expression;
-
-    // RETURN_IN_GENERATIVE_CONSTRUCTOR
-    bool isGenerativeConstructor(ExecutableElement element) =>
-        element is ConstructorElement && !element.isFactory;
-    if (isGenerativeConstructor(enclosingExecutable.element)) {
-      if (returnExpression == null) {
-        return;
-      }
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR,
-          returnExpression);
-      return;
-    }
-    // RETURN_WITHOUT_VALUE
-    if (returnExpression == null) {
-      _checkForAllEmptyReturnStatementErrorCodes(statement, expectedReturnType);
-      return;
-    } else if (enclosingExecutable.isGenerator) {
-      // RETURN_IN_GENERATOR
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.RETURN_IN_GENERATOR,
-          statement,
-          [enclosingExecutable.isAsynchronous ? "async*" : "sync*"]);
-      return;
-    }
-
-    verifyReturnExpression(returnExpression, expectedReturnType);
-  }
-
-  void verifyReturnType(TypeAnnotation returnType) {
-    // If no declared type, then the type is `dynamic`, which is valid.
-    if (returnType == null) {
+      // OK
       return;
     }
 
     if (enclosingExecutable.isAsynchronous) {
-      if (enclosingExecutable.isGenerator) {
-        _checkForIllegalReturnTypeCode(
-          returnType,
-          _typeProvider.streamElement,
-          StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE,
-        );
-      } else {
-        _checkForIllegalReturnTypeCode(
-          returnType,
-          _typeProvider.futureElement,
-          StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE,
-        );
+      var flatten_T = _typeSystem.flatten(T);
+      var flatten_S = _typeSystem.flatten(S);
+      // It is a compile-time error if `T` is `void`,
+      // and `flatten(S)` is neither `void`, `dynamic`, nor `Null`.
+      if (T.isVoid) {
+        if (!_isVoidDynamicOrNull(flatten_S)) {
+          reportTypeError();
+          return;
+        }
       }
-    } else if (enclosingExecutable.isGenerator) {
-      _checkForIllegalReturnTypeCode(
-        returnType,
-        _typeProvider.iterableElement,
-        StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE,
-      );
+      // It is a compile-time error if `flatten(S)` is `void`,
+      // and `flatten(T)` is neither `void`, `dynamic`, nor `Null`.
+      if (flatten_S.isVoid) {
+        if (!_isVoidDynamicOrNull(flatten_T)) {
+          reportTypeError();
+          return;
+        }
+      }
+      // It is a compile-time error if `flatten(S)` is not `void`,
+      // and `Future<flatten(S)>` is not assignable to `T`.
+      if (!flatten_S.isVoid) {
+        var future_flatten_S = _typeProvider.futureType2(flatten_S);
+        if (!_typeSystem.isAssignableTo2(future_flatten_S, T)) {
+          reportTypeError();
+          return;
+        }
+        // OK
+        return;
+      }
     }
   }
 
-  /// Check that return statements without expressions are not in a generative
-  /// constructor and the return type is not assignable to `null`; that is, we
-  /// don't have `return;` if the enclosing method has a non-void containing
-  /// return type.
-  void _checkForAllEmptyReturnStatementErrorCodes(
-      ReturnStatement statement, DartType expectedReturnType) {
-    if (enclosingExecutable.isGenerator) {
+  void _checkReturnWithoutValue(ReturnStatement statement) {
+    var returnType = _flattenedReturnType;
+    if (_isVoidDynamicOrNull(returnType)) {
       return;
     }
-    var returnType = enclosingExecutable.isAsynchronous
-        ? _typeSystem.flatten(expectedReturnType)
-        : expectedReturnType;
-    if (returnType.isDynamic ||
-        returnType.isDartCoreNull ||
-        returnType.isVoid) {
-      return;
-    }
-    // If we reach here, this is an invalid return
+
     _errorReporter.reportErrorForToken(
-        StaticWarningCode.RETURN_WITHOUT_VALUE, statement.returnKeyword);
-    return;
+      StaticWarningCode.RETURN_WITHOUT_VALUE,
+      statement.returnKeyword,
+    );
   }
 
-  /// If the current function is async, async*, or sync*, verify that its
-  /// declared return type is assignable to Future, Stream, or Iterable,
-  /// respectively. This is called by [_checkForIllegalReturnType] to check if
-  /// a value with the type of the declared [returnTypeName] is assignable to
-  /// [expectedElement] and if not report [errorCode].
-  void _checkForIllegalReturnTypeCode(TypeAnnotation returnTypeName,
-      ClassElement expectedElement, StaticTypeWarningCode errorCode) {
-    if (!_isLegalReturnType(expectedElement)) {
-      _errorReporter.reportErrorForNode(errorCode, returnTypeName);
-    }
-  }
-
-  /// Returns whether a value with the type of the the enclosing function's
-  /// declared return type is assignable to [expectedElement].
   bool _isLegalReturnType(ClassElement expectedElement) {
-    DartType returnType = enclosingExecutable.element.returnType;
+    DartType returnType = enclosingExecutable.returnType;
     //
     // When checking an async/sync*/async* method, we know the exact type
     // that will be returned (e.g. Future, Iterable, or Stream).
@@ -255,5 +267,9 @@ class ReturnTypeVerifier {
       return DynamicTypeImpl.instance;
     }
     return type;
+  }
+
+  static bool _isVoidDynamicOrNull(DartType type) {
+    return type.isVoid || type.isDynamic || type.isDartCoreNull;
   }
 }

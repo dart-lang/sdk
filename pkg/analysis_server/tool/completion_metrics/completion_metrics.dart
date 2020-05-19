@@ -4,16 +4,29 @@
 
 import 'dart:async';
 import 'dart:io' as io;
+import 'dart:math' as math;
 
+import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
 import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
-import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart'
+    show
+        ClassElement,
+        Element,
+        ExtensionElement,
+        ClassMemberElement,
+        ExecutableElement,
+        FieldElement,
+        VariableElement;
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart' as err;
 import 'package:analyzer/file_system/overlay_file_system.dart';
@@ -24,9 +37,9 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:args/args.dart';
+import 'package:meta/meta.dart';
 
 import 'metrics_util.dart';
-import 'utils.dart';
 import 'visitors.dart';
 
 Future<void> main(List<String> args) async {
@@ -41,9 +54,10 @@ Future<void> main(List<String> args) async {
   print('Analyzing root: "$root"');
   var stopwatch = Stopwatch()..start();
   var code = await CompletionMetricsComputer(root,
-          verbose: result['verbose'],
           availableSuggestions: result[AVAILABLE_SUGGESTIONS],
-          overlay: result[OVERLAY])
+          overlay: result[OVERLAY],
+          skipOldRelevance: result[SKIP_OLD_RELEVANCE],
+          verbose: result[VERBOSE])
       .compute();
   stopwatch.stop();
 
@@ -55,13 +69,26 @@ Future<void> main(List<String> args) async {
 
 const String AVAILABLE_SUGGESTIONS = 'available-suggestions';
 
+/// An option to control whether and how overlays should be produced.
 const String OVERLAY = 'overlay';
 
+/// A mode indicating that no overlays should be produced.
 const String OVERLAY_NONE = 'none';
 
+/// A mode indicating that everything from the completion offset to the end of
+/// the file should be removed.
 const String OVERLAY_REMOVE_REST_OF_FILE = 'remove-rest-of-file';
 
+/// A mode indicating that the token whose offset is the same as the
+/// completion offset should be removed.
 const String OVERLAY_REMOVE_TOKEN = 'remove-token';
+
+/// A flag that causes metrics using the old relevance scores to not be
+/// produced.
+const String SKIP_OLD_RELEVANCE = 'skip-old-relevance';
+
+/// A flag that causes additional output to be produced.
+const String VERBOSE = 'verbose';
 
 /// Create a parser that can be used to parse the command-line arguments.
 ArgParser createArgParser() {
@@ -72,7 +99,7 @@ ArgParser createArgParser() {
       help: 'Print this help message.',
     )
     ..addFlag(
-      'verbose',
+      VERBOSE,
       abbr: 'v',
       help: 'Print additional information about the analysis',
       negatable: false,
@@ -97,7 +124,12 @@ ArgParser createArgParser() {
             'Before attempting a completion at the location of each token, the '
             'token can be removed, or the rest of the file can be removed to test '
             'code completion with diverse methods. The default mode is to '
-            'complete at the start of the token without modifying the file.');
+            'complete at the start of the token without modifying the file.')
+    ..addFlag(SKIP_OLD_RELEVANCE,
+        help: 'Used to skip the computation of suggestions using the old '
+            'relevance scores.',
+        defaultsTo: false,
+        negatable: false);
 }
 
 /// Print usage information for this tool.
@@ -131,14 +163,18 @@ bool validArguments(ArgParser parser, ArgResults result) {
   return true;
 }
 
+/// An indication of the group in which the completion falls for the purposes of
+/// subdividing the results.
+enum CompletionGroup { instanceMember, staticMember, topLevel }
+
 /// A wrapper for the collection of [Counter] and [MeanReciprocalRankComputer]
 /// objects for a run of [CompletionMetricsComputer].
 class CompletionMetrics {
-  /// The maximum number of longest results to collect.
-  static const maxLongestResults = 10;
+  /// The maximum number of slowest results to collect.
+  static const maxSlowestResults = 5;
 
   /// The maximum number of worst results to collect.
-  static const maxWorstResults = 10;
+  static const maxWorstResults = 5;
 
   /// The name associated with this set of metrics.
   final String name;
@@ -169,7 +205,7 @@ class CompletionMetrics {
   MeanReciprocalRankComputer staticMemberMrrComputer =
       MeanReciprocalRankComputer('static member completions');
 
-  MeanReciprocalRankComputer nonTypeMemberMrrComputer =
+  MeanReciprocalRankComputer topLevelMrrComputer =
       MeanReciprocalRankComputer('non-type member completions');
 
   ArithmeticMeanComputer charsBeforeTop =
@@ -181,20 +217,126 @@ class CompletionMetrics {
   ArithmeticMeanComputer insertionLengthTheoretical =
       ArithmeticMeanComputer('insertion_length_theoretical');
 
-  /// A list of the top [maxWorstResults] completion results with the highest
-  /// (worst) ranks.
-  List<CompletionResult> worstResults = [];
+  /// The places in which a completion location was requested when none was
+  /// available.
+  Set<String> missingCompletionLocations = {};
 
-  /// A list of the top [maxLongestResults] completion results with the highest
-  /// (worst) ranks.
-  List<CompletionResult> longestResults = [];
+  /// The completion locations for which no relevance table was available.
+  Set<String> missingCompletionLocationTables = {};
+
+  /// A list of the top [maxWorstResults] completion results with the highest
+  /// (worst) ranks for completing to instance members.
+  List<CompletionResult> instanceMemberWorstResults = [];
+
+  /// A list of the top [maxWorstResults] completion results with the highest
+  /// (worst) ranks for completing to static members.
+  List<CompletionResult> staticMemberWorstResults = [];
+
+  /// A list of the top [maxWorstResults] completion results with the highest
+  /// (worst) ranks for completing to top-level declarations.
+  List<CompletionResult> topLevelWorstResults = [];
+
+  /// A list of the top [maxSlowestResults] completion results that took the
+  /// longest top compute for instance members.
+  List<CompletionResult> instanceMemberSlowestResults = [];
+
+  /// A list of the top [maxSlowestResults] completion results that took the
+  /// longest top compute for static members.
+  List<CompletionResult> staticMemberSlowestResults = [];
+
+  /// A list of the top [maxSlowestResults] completion results that took the
+  /// longest top compute for top-level declarations.
+  List<CompletionResult> topLevelSlowestResults = [];
 
   CompletionMetrics(this.name);
 
   /// Record this completion result, this method handles the worst ranked items
   /// as well as the longest sets of results to compute.
   void recordCompletionResult(CompletionResult result) {
-    // If the [result] is worse than any previously recorded results, record it.
+    _recordTime(result);
+    _recordMmr(result);
+    _recordWorstResult(result);
+    _recordSlowestResult(result);
+    _recordMissingInformation(result);
+  }
+
+  /// If the completion location was requested but missing when computing the
+  /// [result], then record where that happened.
+  void _recordMissingInformation(CompletionResult result) {
+    var location = result.listener?.missingCompletionLocation;
+    if (location != null) {
+      missingCompletionLocations.add(location);
+    } else {
+      location = result.listener?.missingCompletionLocationTable;
+      if (location != null) {
+        missingCompletionLocationTables.add(location);
+      }
+    }
+  }
+
+  /// Record the MMR for the [result].
+  void _recordMmr(CompletionResult result) {
+    var place = result.place;
+    successfulMrrComputer.addRank(place.rank);
+    switch (result.group) {
+      case CompletionGroup.instanceMember:
+        instanceMemberMrrComputer.addRank(place.rank);
+        break;
+      case CompletionGroup.staticMember:
+        staticMemberMrrComputer.addRank(place.rank);
+        break;
+      case CompletionGroup.topLevel:
+        topLevelMrrComputer.addRank(place.rank);
+        break;
+    }
+  }
+
+  /// If the [result] is took longer than any previously recorded results,
+  /// record it.
+  void _recordSlowestResult(CompletionResult result) {
+    List<CompletionResult> getSlowestResults() {
+      switch (result.group) {
+        case CompletionGroup.instanceMember:
+          return instanceMemberSlowestResults;
+        case CompletionGroup.staticMember:
+          return staticMemberSlowestResults;
+        case CompletionGroup.topLevel:
+          return topLevelSlowestResults;
+      }
+      return const <CompletionResult>[];
+    }
+
+    var slowestResults = getSlowestResults();
+    if (slowestResults.length >= maxSlowestResults) {
+      if (result.elapsedMS <= slowestResults.last.elapsedMS) {
+        return;
+      }
+      slowestResults.removeLast();
+    }
+    slowestResults.add(result);
+    slowestResults.sort((first, second) => second.elapsedMS - first.elapsedMS);
+  }
+
+  /// Record this elapsed ms count for the average ms count.
+  void _recordTime(CompletionResult result) {
+    meanCompletionMS.addValue(result.elapsedMS);
+  }
+
+  /// If the [result] is worse than any previously recorded results, record it.
+  void _recordWorstResult(CompletionResult result) {
+    List<CompletionResult> getWorstResults() {
+      switch (result.group) {
+        case CompletionGroup.instanceMember:
+          return instanceMemberWorstResults;
+        case CompletionGroup.staticMember:
+          return staticMemberWorstResults;
+        case CompletionGroup.topLevel:
+          return topLevelWorstResults;
+      }
+      return const <CompletionResult>[];
+    }
+
+    var worstResults = getWorstResults();
     if (worstResults.length >= maxWorstResults) {
       if (result.place.rank <= worstResults.last.place.rank) {
         return;
@@ -203,20 +345,6 @@ class CompletionMetrics {
     }
     worstResults.add(result);
     worstResults.sort((first, second) => second.place.rank - first.place.rank);
-
-    // Record this elapsed ms count for the average ms count.
-    meanCompletionMS.addValue(result.elapsedMS);
-
-    // If the [result] is took longer than any previously recorded results,
-    // record it.
-    if (longestResults.length >= maxLongestResults) {
-      if (result.elapsedMS <= longestResults.last.elapsedMS) {
-        return;
-      }
-      longestResults.removeLast();
-    }
-    longestResults.add(result);
-    longestResults.sort((first, second) => second.elapsedMS - first.elapsedMS);
   }
 }
 
@@ -226,11 +354,13 @@ class CompletionMetrics {
 class CompletionMetricsComputer {
   final String rootPath;
 
-  final bool verbose;
-
   final bool availableSuggestions;
 
   final String overlay;
+
+  final bool skipOldRelevance;
+
+  final bool verbose;
 
   ResolvedUnitResult _resolvedUnitResult;
 
@@ -247,7 +377,10 @@ class CompletionMetricsComputer {
   int overlayModificationStamp = 0;
 
   CompletionMetricsComputer(this.rootPath,
-      {this.verbose, this.availableSuggestions, this.overlay})
+      {@required this.availableSuggestions,
+      @required this.overlay,
+      @required this.skipOldRelevance,
+      @required this.verbose})
       : assert(overlay == OVERLAY_NONE ||
             overlay == OVERLAY_REMOVE_TOKEN ||
             overlay == OVERLAY_REMOVE_REST_OF_FILE);
@@ -263,18 +396,23 @@ class CompletionMetricsComputer {
     for (var context in collection.contexts) {
       await _computeInContext(context.contextRoot);
     }
-    printMetrics(metricsOldMode);
+    if (!skipOldRelevance) {
+      printMetrics(metricsOldMode);
+    }
     printMetrics(metricsNewMode);
     if (verbose) {
       printWorstResults(metricsNewMode);
-      printLongestResults(metricsNewMode);
+      printSlowestResults(metricsNewMode);
+      printMissingInformation(metricsNewMode);
     }
     return resultCode;
   }
 
   bool forEachExpectedCompletion(
+      CompletionRequestImpl request,
+      MetricsSuggestionListener listener,
       ExpectedCompletion expectedCompletion,
-      List<CompletionSuggestion> suggestions,
+      List<protocol.CompletionSuggestion> suggestions,
       CompletionMetrics metrics,
       int elapsedMS,
       bool doPrintMissedCompletions) {
@@ -289,20 +427,10 @@ class CompletionMetricsComputer {
     if (place.denominator != 0) {
       successfulCompletion = true;
 
-      metrics.successfulMrrComputer.addRank(place.rank);
       metrics.completionCounter.count('successful');
 
-      metrics.recordCompletionResult(
-          CompletionResult(place, suggestions, expectedCompletion, elapsedMS));
-
-      var element = getElement(expectedCompletion.syntacticEntity);
-      if (isInstanceMember(element)) {
-        metrics.instanceMemberMrrComputer.addRank(place.rank);
-      } else if (isStaticMember(element)) {
-        metrics.staticMemberMrrComputer.addRank(place.rank);
-      } else {
-        metrics.nonTypeMemberMrrComputer.addRank(place.rank);
-      }
+      metrics.recordCompletionResult(CompletionResult(place, request, listener,
+          suggestions, expectedCompletion, elapsedMS));
 
       var charsBeforeTop =
           _computeCharsBeforeTop(expectedCompletion, suggestions);
@@ -341,22 +469,6 @@ class CompletionMetricsComputer {
     return successfulCompletion;
   }
 
-  void printLongestResults(CompletionMetrics metrics) {
-    print('');
-    print('====================');
-    print('The longest completion results to compute:');
-    for (var result in metrics.longestResults) {
-      var elapsedMS = result.elapsedMS;
-      var expected = result.expectedCompletion;
-      print('');
-      print('Elapsed ms: $elapsedMS');
-      print('Completion: ${expected.completion}');
-      print('Completion kind: ${expected.kind}');
-      print('Element kind: ${expected.elementKind}');
-      print('Location: ${expected.location}');
-    }
-  }
-
   void printMetrics(CompletionMetrics metrics) {
     print('');
     print('');
@@ -385,7 +497,7 @@ class CompletionMetricsComputer {
     metrics.staticMemberMrrComputer.printMean();
     print('');
 
-    metrics.nonTypeMemberMrrComputer.printMean();
+    metrics.topLevelMrrComputer.printMean();
     print('');
 
     metrics.charsBeforeTop.printMean();
@@ -399,34 +511,49 @@ class CompletionMetricsComputer {
     print('====================');
   }
 
-  void printWorstResults(CompletionMetrics metrics) {
-    print('');
-    print('====================');
-    print('The worst completion results:');
-    for (var result in metrics.worstResults) {
-      var rank = result.place.rank;
-      var expected = result.expectedCompletion;
-      var suggestions = result.suggestions;
-      var preceeding = StringBuffer();
-      for (var i = 0; i < rank - 1; i++) {
-        if (i > 0) {
-          preceeding.write(', ');
-        }
-        preceeding.write(suggestions[i].relevance);
-      }
+  void printMissingInformation(CompletionMetrics metrics) {
+    var locations = metrics.missingCompletionLocations;
+    if (locations.isNotEmpty) {
       print('');
-      print('Rank: $rank');
-      print('Completion: ${expected.completion}');
-      print('Completion kind: ${expected.kind}');
-      print('Element kind: ${expected.elementKind}');
-      print('Location: ${expected.location}');
-      print('Preceeding: $preceeding');
-      print('Suggestion: ${suggestions[rank - 1]}');
+      print('====================');
+      print('Missing completion location in the following places:');
+      for (var location in locations.toList()..sort()) {
+        print('  $location');
+      }
+    }
+
+    var tables = metrics.missingCompletionLocationTables;
+    if (tables.isNotEmpty) {
+      print('');
+      print('====================');
+      print('Missing tables for the following completion locations:');
+      for (var table in tables.toList()..sort()) {
+        print('  $table');
+      }
     }
   }
 
-  int _computeCharsBeforeTop(
-      ExpectedCompletion target, List<CompletionSuggestion> suggestions,
+  void printSlowestResults(CompletionMetrics metrics) {
+    print('');
+    print('====================');
+    print('The slowest completion results to compute');
+    _printSlowestResults(
+        'Instance members', metrics.instanceMemberSlowestResults);
+    _printSlowestResults('Static members', metrics.staticMemberSlowestResults);
+    _printSlowestResults('Top level', metrics.topLevelSlowestResults);
+  }
+
+  void printWorstResults(CompletionMetrics metrics) {
+    print('');
+    print('====================');
+    print('The worst completion results');
+    _printWorstResults('Instance members', metrics.instanceMemberWorstResults);
+    _printWorstResults('Static members', metrics.staticMemberWorstResults);
+    _printWorstResults('Top level', metrics.topLevelWorstResults);
+  }
+
+  int _computeCharsBeforeTop(ExpectedCompletion target,
+      List<protocol.CompletionSuggestion> suggestions,
       {int minRank = 1}) {
     var rank = placementInSuggestionList(suggestions, target).rank;
     if (rank <= minRank) {
@@ -444,43 +571,35 @@ class CompletionMetricsComputer {
     return expected.length;
   }
 
-  Future<List<CompletionSuggestion>> _computeCompletionSuggestions(
-      ResolvedUnitResult resolvedUnitResult,
-      int offset,
-      CompletionMetrics metrics,
-      [bool useNewRelevance = false,
-      DeclarationsTracker declarationsTracker,
-      CompletionAvailableSuggestionsParams availableSuggestionsParams]) async {
-    var completionRequest = CompletionRequestImpl(
-      resolvedUnitResult,
-      offset,
-      useNewRelevance,
-      CompletionPerformance(),
-    );
-
+  Future<List<protocol.CompletionSuggestion>> _computeCompletionSuggestions(
+      MetricsSuggestionListener listener, CompletionRequestImpl request,
+      [DeclarationsTracker declarationsTracker,
+      protocol.CompletionAvailableSuggestionsParams
+          availableSuggestionsParams]) async {
     var suggestions;
 
     if (declarationsTracker == null) {
       // available suggestions == false
       suggestions = await DartCompletionManager(
-              dartdocDirectiveInfo: DartdocDirectiveInfo())
-          .computeSuggestions(completionRequest);
+              dartdocDirectiveInfo: DartdocDirectiveInfo(), listener: listener)
+          .computeSuggestions(request);
     } else {
       // available suggestions == true
-      var includedElementKinds = <ElementKind>{};
+      var includedElementKinds = <protocol.ElementKind>{};
       var includedElementNames = <String>{};
       var includedSuggestionRelevanceTagList =
-          <IncludedSuggestionRelevanceTag>[];
-      var includedSuggestionSetList = <IncludedSuggestionSet>[];
+          <protocol.IncludedSuggestionRelevanceTag>[];
+      var includedSuggestionSetList = <protocol.IncludedSuggestionSet>[];
       suggestions = await DartCompletionManager(
               dartdocDirectiveInfo: DartdocDirectiveInfo(),
               includedElementKinds: includedElementKinds,
               includedElementNames: includedElementNames,
               includedSuggestionRelevanceTags:
-                  includedSuggestionRelevanceTagList)
-          .computeSuggestions(completionRequest);
+                  includedSuggestionRelevanceTagList,
+              listener: listener)
+          .computeSuggestions(request);
 
-      computeIncludedSetList(declarationsTracker, resolvedUnitResult,
+      computeIncludedSetList(declarationsTracker, request.result,
           includedSuggestionSetList, includedElementNames);
 
       var includedSuggestionSetMap = {
@@ -588,7 +707,7 @@ class CompletionMetricsComputer {
           _resolvedUnitResult.unit.accept(visitor);
 
           for (var expectedCompletion in visitor.expectedCompletions) {
-            var resolvedUnitResultWithOverlay = _resolvedUnitResult;
+            var resolvedUnitResult = _resolvedUnitResult;
 
             // If an overlay option is being used, compute the overlay file, and
             // have the context reanalyze the file
@@ -602,7 +721,7 @@ class CompletionMetricsComputer {
               (context as DriverBasedAnalysisContext)
                   .driver
                   .changeFile(filePath);
-              resolvedUnitResultWithOverlay =
+              resolvedUnitResult =
                   await context.currentSession.getResolvedUnit(filePath);
             }
 
@@ -610,48 +729,54 @@ class CompletionMetricsComputer {
             // and results are collected with varying settings for
             // comparison:
 
+            Future<bool> handleExpectedCompletion(
+                {MetricsSuggestionListener listener,
+                @required CompletionMetrics metrics,
+                @required bool printMissedCompletions,
+                @required bool useNewRelevance}) async {
+              var stopwatch = Stopwatch()..start();
+              var request = CompletionRequestImpl(
+                resolvedUnitResult,
+                expectedCompletion.offset,
+                useNewRelevance,
+                CompletionPerformance(),
+              );
+              var suggestions = await _computeCompletionSuggestions(listener,
+                  request, declarationsTracker, availableSuggestionsParams);
+              stopwatch.stop();
+
+              return forEachExpectedCompletion(
+                  request,
+                  listener,
+                  expectedCompletion,
+                  suggestions,
+                  metrics,
+                  stopwatch.elapsedMilliseconds,
+                  printMissedCompletions);
+            }
+
             // First we compute the completions useNewRelevance set to
             // false:
-            var stopwatch = Stopwatch()..start();
-            var suggestions = await _computeCompletionSuggestions(
-                resolvedUnitResultWithOverlay,
-                expectedCompletion.offset,
-                metricsOldMode,
-                false,
-                declarationsTracker,
-                availableSuggestionsParams);
-            stopwatch.stop();
-
-            var successfulnessUseOldRelevance = forEachExpectedCompletion(
-                expectedCompletion,
-                suggestions,
-                metricsOldMode,
-                stopwatch.elapsedMilliseconds,
-                false);
+            var oldRelevanceSucceeded = false;
+            if (!skipOldRelevance) {
+              oldRelevanceSucceeded = await handleExpectedCompletion(
+                  metrics: metricsOldMode,
+                  printMissedCompletions: false,
+                  useNewRelevance: false);
+            }
 
             // And again here with useNewRelevance set to true:
-            stopwatch = Stopwatch()..start();
-            suggestions = await _computeCompletionSuggestions(
-                resolvedUnitResultWithOverlay,
-                expectedCompletion.offset,
-                metricsNewMode,
-                true,
-                declarationsTracker,
-                availableSuggestionsParams);
-            stopwatch.stop();
+            var listener = MetricsSuggestionListener();
+            var newRelevanceSucceeded = await handleExpectedCompletion(
+                listener: listener,
+                metrics: metricsNewMode,
+                printMissedCompletions: verbose,
+                useNewRelevance: true);
 
-            var successfulnessUseNewRelevance = forEachExpectedCompletion(
-                expectedCompletion,
-                suggestions,
-                metricsNewMode,
-                stopwatch.elapsedMilliseconds,
-                verbose);
-
-            if (verbose &&
-                successfulnessUseOldRelevance !=
-                    successfulnessUseNewRelevance) {
-              if (successfulnessUseNewRelevance &&
-                  !successfulnessUseOldRelevance) {
+            if (!skipOldRelevance &&
+                verbose &&
+                oldRelevanceSucceeded != newRelevanceSucceeded) {
+              if (newRelevanceSucceeded) {
                 print('    ===========');
                 print(
                     '    The `useNewRelevance = true` generated a completion that `useNewRelevance = false` did not:');
@@ -683,8 +808,8 @@ class CompletionMetricsComputer {
     }
   }
 
-  List<CompletionSuggestion> _filterSuggestions(
-      String prefix, List<CompletionSuggestion> suggestions) {
+  List<protocol.CompletionSuggestion> _filterSuggestions(
+      String prefix, List<protocol.CompletionSuggestion> suggestions) {
     // TODO(brianwilkerson) Replace this with a more realistic filtering algorithm.
     return suggestions
         .where((suggestion) => suggestion.completion.startsWith(prefix))
@@ -709,6 +834,69 @@ class CompletionMetricsComputer {
     }
   }
 
+  void _printSlowestResults(
+      String title, List<CompletionResult> slowestResults) {
+    print('');
+    print(title);
+    for (var result in slowestResults) {
+      var elapsedMS = result.elapsedMS;
+      var expected = result.expectedCompletion;
+      print('');
+      print('  Elapsed ms: $elapsedMS');
+      print('  Completion: ${expected.completion}');
+      print('  Completion kind: ${expected.kind}');
+      print('  Element kind: ${expected.elementKind}');
+      print('  Location: ${expected.location}');
+    }
+  }
+
+  void _printWorstResults(String title, List<CompletionResult> worstResults) {
+    print('');
+    print(title);
+    for (var result in worstResults) {
+      var rank = result.place.rank;
+      var expected = result.expectedCompletion;
+      var suggestions = result.suggestions;
+      var suggestion = suggestions[rank - 1];
+
+      var features = result.listener?.featureMap[suggestion];
+      var topSuggestions =
+          suggestions.sublist(0, math.min(10, suggestions.length));
+      var topSuggestionCount = topSuggestions.length;
+
+      var preceding = <int, int>{};
+      for (var i = 0; i < rank - 1; i++) {
+        var relevance = suggestions[i].relevance;
+        preceding[relevance] = (preceding[relevance] ?? 0) + 1;
+      }
+      var precedingRelevances = preceding.keys.toList();
+      precedingRelevances.sort();
+
+      print('');
+      print('  Rank: $rank');
+      print('  Location: ${expected.location}');
+      print('  Suggestion: $suggestion');
+      print('  Features: $features');
+      print('  Top $topSuggestionCount suggestions:');
+      for (var i = 0; i < topSuggestionCount; i++) {
+        var topSuggestion = topSuggestions[i];
+        print('  $i Suggestion: $topSuggestion');
+        if (result.listener != null) {
+          var feature = result.listener.featureMap[topSuggestion];
+          if (feature.isEmpty) {
+            print('    Features: <none>');
+          } else {
+            print('    Features: $feature');
+          }
+        }
+      }
+      print('  Preceding relevance scores and counts:');
+      for (var relevance in precedingRelevances.reversed) {
+        print('    $relevance: ${preceding[relevance]}');
+      }
+    }
+  }
+
   /// Given some [ResolvedUnitResult] return the first error of high severity
   /// if such an error exists, `null` otherwise.
   static err.AnalysisError getFirstErrorOrNull(
@@ -721,7 +909,8 @@ class CompletionMetricsComputer {
     return null;
   }
 
-  static Place placementInSuggestionList(List<CompletionSuggestion> suggestions,
+  static Place placementInSuggestionList(
+      List<protocol.CompletionSuggestion> suggestions,
       ExpectedCompletion expectedCompletion) {
     var placeCounter = 1;
     for (var completionSuggestion in suggestions) {
@@ -738,21 +927,140 @@ class CompletionMetricsComputer {
 class CompletionResult {
   final Place place;
 
-  final List<CompletionSuggestion> suggestions;
+  final CompletionRequestImpl request;
+
+  final MetricsSuggestionListener listener;
+
+  final List<protocol.CompletionSuggestion> suggestions;
 
   final ExpectedCompletion expectedCompletion;
 
   final int elapsedMS;
 
-  CompletionResult(
-      this.place, this.suggestions, this.expectedCompletion, this.elapsedMS);
+  CompletionResult(this.place, this.request, this.listener, this.suggestions,
+      this.expectedCompletion, this.elapsedMS);
+
+  /// Return `true` if the [element] is an instance member of a class or
+  /// extension.
+  CompletionGroup get group {
+    var element = _getElement(expectedCompletion.syntacticEntity);
+    if (element != null) {
+      var parent = element.enclosingElement;
+      if (parent is ClassElement || parent is ExtensionElement) {
+        if (_isStatic(element)) {
+          return CompletionGroup.staticMember;
+        } else {
+          return CompletionGroup.instanceMember;
+        }
+      }
+    }
+    return CompletionGroup.topLevel;
+  }
+
+  /// Return the element associated with the syntactic [entity], or `null` if
+  /// there is no such element.
+  Element _getElement(SyntacticEntity entity) {
+    if (entity is SimpleIdentifier) {
+      return entity.staticElement;
+    }
+    return null;
+  }
+
+  /// Return `true` if the [element] is static (either top-level or a static
+  /// member of a class or extension).
+  bool _isStatic(Element element) {
+    if (element is ClassMemberElement) {
+      return element.isStatic;
+    } else if (element is ExecutableElement) {
+      return element.isStatic;
+    } else if (element is FieldElement) {
+      return element.isStatic;
+    } else if (element is VariableElement) {
+      return element.isStatic;
+    }
+    return true;
+  }
 }
 
-extension AvailableSuggestionsExtension on AvailableSuggestion {
+class MetricsSuggestionListener implements SuggestionListener {
+  Map<protocol.CompletionSuggestion, String> featureMap = {};
+
+  String cachedFeatures = '';
+
+  String missingCompletionLocation;
+  String missingCompletionLocationTable;
+
+  @override
+  void builtSuggestion(protocol.CompletionSuggestion suggestion) {
+    featureMap[suggestion] = cachedFeatures;
+    cachedFeatures = '';
+  }
+
+  @override
+  void computedFeatures(
+      {double contextType,
+      double elementKind,
+      double hasDeprecated,
+      double inheritanceDistance,
+      double startsWithDollar,
+      double superMatches}) {
+    var buffer = StringBuffer();
+
+    bool write(String label, double value, bool needsComma) {
+      if (value != null) {
+        if (needsComma) {
+          buffer.write(', ');
+        }
+        buffer.write('$label: $value');
+        return true;
+      }
+      return needsComma;
+    }
+
+    var needsComma = false;
+    needsComma = write('contextType', contextType, needsComma);
+    needsComma = write('elementKind', elementKind, needsComma);
+    needsComma = write('hasDeprecated', hasDeprecated, needsComma);
+    needsComma = write('inheritanceDistance', inheritanceDistance, needsComma);
+    needsComma = write('startsWithDollar', startsWithDollar, needsComma);
+    needsComma = write('superMatches', superMatches, needsComma);
+    cachedFeatures = buffer.toString();
+  }
+
+  @override
+  void missingCompletionLocationAt(AstNode parent, SyntacticEntity child) {
+    if (missingCompletionLocation == null) {
+      String className(SyntacticEntity entity) {
+        var className = entity.runtimeType.toString();
+        if (className.endsWith('Impl')) {
+          className = className.substring(0, className.length - 4);
+        }
+        return className;
+      }
+
+      var parentClass = className(parent);
+      var childClass = className(child);
+      missingCompletionLocation = '$parentClass/$childClass';
+    }
+  }
+
+  @override
+  void missingElementKindTableFor(String completionLocation) {
+    missingCompletionLocationTable = completionLocation;
+  }
+}
+
+extension AvailableSuggestionsExtension on protocol.AvailableSuggestion {
   // TODO(jwren) I am not sure if we want CompletionSuggestionKind.INVOCATION in
   // call cases here, to iterate I need to figure out why this algorithm is
   // taking so much time.
-  CompletionSuggestion toCompletionSuggestion(int relevance) =>
-      CompletionSuggestion(CompletionSuggestionKind.INVOCATION, relevance,
-          label, label.length, 0, element.isDeprecated, false);
+  protocol.CompletionSuggestion toCompletionSuggestion(int relevance) =>
+      protocol.CompletionSuggestion(
+          protocol.CompletionSuggestionKind.INVOCATION,
+          relevance,
+          label,
+          label.length,
+          0,
+          element.isDeprecated,
+          false);
 }

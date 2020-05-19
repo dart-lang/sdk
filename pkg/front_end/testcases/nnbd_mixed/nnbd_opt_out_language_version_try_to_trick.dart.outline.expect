@@ -1,0 +1,54 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/nnbd_opt_out_language_version_try_to_trick.dart:1:1: Error: A library can't opt out of non-nullable by default, when in nnbd-strong mode.
+// // @dart=2.4
+// ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/nnbd_opt_out_language_version_try_to_trick.dart:4:7: Error: Can't use 'late' as a name here.
+// class late {
+//       ^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/nnbd_opt_out_language_version_try_to_trick.dart:8:7: Error: Can't use 'required' as a name here.
+// class required {
+//       ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/nnbd_opt_out_language_version_try_to_trick.dart:13:8: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//   late l = late();
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/nnbd_opt_out_language_version_try_to_trick.dart:14:3: Error: Can't have modifier 'required' here.
+// Try removing 'required'.
+//   required r = required();
+//   ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/nnbd_opt_out_language_version_try_to_trick.dart:14:12: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//   required r = required();
+//            ^
+//
+import self as self;
+import "dart:core" as core;
+
+class late extends core::Object {
+  synthetic constructor •() → self::late
+    ;
+  get g() → core::int
+    ;
+}
+class required extends core::Object {
+  synthetic constructor •() → self::required
+    ;
+  get g() → core::int
+    ;
+}
+class C extends core::Object {
+  late field self::late l;
+  field self::required r;
+  synthetic constructor •() → self::C
+    ;
+}
+static method main() → dynamic
+  ;

@@ -110,8 +110,8 @@ abstract class FactorTypeTestMixin<Type> {
   void expect(Type T, Type S, String actualResult, String expectedResult);
 
   void check(Type T, Type S, String expectedStr) {
-    var result = factor(T, S);
-    var resultStr = typeString(result);
+    Type result = factor(T, S);
+    String resultStr = typeString(result);
 
     expect(T, S, resultStr, expectedStr);
   }

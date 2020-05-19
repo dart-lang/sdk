@@ -12,7 +12,8 @@ import '../universe/class_hierarchy.dart' show ClassHierarchy;
 import '../world.dart' show JClosedWorld;
 
 enum IsTestSpecialization {
-  null_,
+  isNull,
+  notNull,
   string,
   bool,
   num,
@@ -27,8 +28,7 @@ class SpecializedChecks {
     if (dartType is LegacyType) {
       DartType base = dartType.baseType;
       // `Never*` accepts only `null`.
-      if (base is NeverType) return IsTestSpecialization.null_;
-      // TODO(sra): Handle strong checking 'x is Object' --> `x != null`.
+      if (base is NeverType) return IsTestSpecialization.isNull;
       // `Object*` is top and should be handled by constant folding.
       if (base.isObject) return null;
       return _findIsTestSpecialization(base, graph, closedWorld);
@@ -44,7 +44,7 @@ class SpecializedChecks {
 
       if (element == commonElements.nullClass ||
           element == commonElements.jsNullClass) {
-        return IsTestSpecialization.null_;
+        return IsTestSpecialization.isNull;
       }
 
       if (element == commonElements.jsStringClass ||
@@ -73,6 +73,9 @@ class SpecializedChecks {
       }
 
       DartTypes dartTypes = closedWorld.dartTypes;
+      // Top types (here it could be Object in non-NNBD mode) should be constant
+      // folded outside the specializer. This test protects logic below.
+      if (dartTypes.isTopType(dartType)) return null;
       ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
       if (!dartTypes.isSubtype(
           elementEnvironment.getClassInstantiationToBounds(element),
@@ -84,6 +87,11 @@ class SpecializedChecks {
         return IsTestSpecialization.arrayTop;
       }
 
+      if (dartType.isObject) {
+        assert(!dartTypes.isTopType(dartType)); // Checked above.
+        return IsTestSpecialization.notNull;
+      }
+
       ClassHierarchy classHierarchy = closedWorld.classHierarchy;
       InterceptorData interceptorData = closedWorld.interceptorData;
       OutputUnitData outputUnitData = closedWorld.outputUnitData;
@@ -92,6 +100,7 @@ class SpecializedChecks {
           !interceptorData.isInterceptedClass(element) &&
           outputUnitData.hasOnlyNonDeferredImportPathsToClass(
               graph.element, element)) {
+        assert(!dartType.isObject); // Checked above.
         return IsTestSpecialization.instanceof;
       }
     }

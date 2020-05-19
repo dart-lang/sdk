@@ -109,6 +109,13 @@ Future<CompilerResult> _compile(List<String> args,
         help: 'The path to the libraries.json file for the sdk.')
     ..addOption('used-inputs-file',
         help: 'If set, the file to record inputs used.', hide: true)
+    // TODO(41852) Define a process for breaking changes before graduating from
+    // experimental.
+    ..addFlag('experimental-emit-debug-metadata',
+        help: 'Experimental option for compiler development.\n'
+            'Output a metadata file for debug tools next to the .js output.',
+        defaultsTo: false,
+        hide: true)
     ..addFlag('kernel',
         abbr: 'k',
         help: 'Deprecated and ignored. To be removed in a future release.',
@@ -409,11 +416,12 @@ Future<CompilerResult> _compile(List<String> args,
     var moduleFormat = moduleFormats[i];
     var file = File(output);
     await file.parent.create(recursive: true);
+    var mapUrl = p.toUri('$output.map').toString();
     var jsCode = jsProgramToCode(jsModule, moduleFormat,
         buildSourceMap: options.sourceMap,
         inlineSourceMap: options.inlineSourceMap,
         jsUrl: p.toUri(output).toString(),
-        mapUrl: p.toUri(output + '.map').toString(),
+        mapUrl: mapUrl,
         customScheme: multiRootScheme,
         multiRootOutputPath: multiRootOutputPath,
         component: compiledLibraries);
@@ -421,7 +429,23 @@ Future<CompilerResult> _compile(List<String> args,
     outFiles.add(file.writeAsString(jsCode.code));
     if (jsCode.sourceMap != null) {
       outFiles.add(
-          File(output + '.map').writeAsString(json.encode(jsCode.sourceMap)));
+          File('$output.map').writeAsString(json.encode(jsCode.sourceMap)));
+    }
+
+    if (argResults['experimental-emit-debug-metadata'] as bool) {
+      var moduleMetadata = [
+        for (var lib in compiledLibraries.libraries)
+          {
+            'name': compiler.jsLibraryName(lib),
+            'sourceMapFileUri': mapUrl,
+            'dartFileUris': [
+              lib.fileUri.toString(),
+              ...lib.parts.map((p) => p.partUri.toString())
+            ],
+          }
+      ];
+      outFiles.add(
+          File('$output.metadata').writeAsString(json.encode(moduleMetadata)));
     }
   }
 

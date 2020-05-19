@@ -4,7 +4,6 @@
     "firefox": "67"
   },
   "branches": [
-    "analyzer-stable",
     "master"
   ],
   "filesets": {
@@ -204,6 +203,7 @@
       ".dart_tool/package_config.json",
       "out/ReleaseX64/dart",
       "out/ReleaseX64/dart2js_platform.dill",
+      "out/ReleaseX64/dart2js_nnbd_strong_platform.dill",
       "out/ReleaseX64/dart2js_platform_strong.dill",
       "pkg/",
       "runtime/tests/",
@@ -235,6 +235,7 @@
       "tools/",
       "xcodebuild/ReleaseX64/dart",
       "xcodebuild/ReleaseX64/dart2js_platform.dill",
+      "xcodebuild/ReleaseX64/dart2js_nnbd_strong_platform.dill",
       "xcodebuild/ReleaseX64/dart2js_platform_strong.dill"
     ],
     "front-end": [
@@ -636,7 +637,7 @@
           "non-nullable"
         ],
         "dart2js-options": [
-          "--no-null-safety"
+          "--no-sound-null-safety"
         ],
         "use-sdk": true
       }
@@ -707,7 +708,7 @@
           "non-nullable"
         ],
         "dart2js-options": [
-          "--no-null-safety",
+          "--no-sound-null-safety",
           "--libraries-spec=sdk_nnbd/lib/libraries.json",
           "--platform-binaries=out/ReleaseX64/"
         ],
@@ -722,7 +723,7 @@
           "non-nullable"
         ],
         "dart2js-options": [
-          "--no-null-safety",
+          "--no-sound-null-safety",
           "--libraries-spec=sdk_nnbd/lib/libraries.json",
           "--platform-binaries=xcodebuild/ReleaseX64/"
         ],
@@ -737,7 +738,7 @@
           "non-nullable"
         ],
         "dart2js-options": [
-          "--null-safety",
+          "--sound-null-safety",
           "--libraries-spec=sdk_nnbd/lib/libraries.json",
           "--platform-binaries=out/ReleaseX64/"
         ],
@@ -752,7 +753,7 @@
           "non-nullable"
         ],
         "dart2js-options": [
-          "--null-safety",
+          "--sound-null-safety",
           "--libraries-spec=sdk_nnbd/lib/libraries.json",
           "--platform-binaries=xcodebuild/ReleaseX64/"
         ],
@@ -1740,6 +1741,35 @@
     },
     {
       "builders": [
+        "vm-kernel-gcc-linux"
+      ],
+      "meta": {
+        "description": "This configuration builds the VM with GCC."
+      },
+      "steps": [
+        {
+          "name": "configure dart",
+          "script": "tools/gn.py",
+          "arguments": [
+            "--mode=all",
+            "--arch=all",
+            "--no-clang",
+            "--no-goma"
+          ]
+        },
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=all",
+            "--arch=all",
+            "runtime"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-kernel-linux-release-simarm",
         "vm-kernel-linux-release-simarm64",
         "vm-kernel-linux-release-ia32",
@@ -2122,7 +2152,16 @@
             "lib",
             "dartdevc_native"
           ],
-          "shards": 6,
+          "shards": 5,
+          "fileset": "dart2js_nnbd"
+        },
+        {
+          "name": "ddc nnbd weak co19 tests",
+          "arguments": [
+            "-ndartdevk-weak-linux-release-chrome",
+            "co19/LanguageFeatures/nnbd"
+          ],
+          "shards": 2,
           "fileset": "dart2js_nnbd"
         },
         {
@@ -2936,10 +2975,7 @@
       "builders": [
         "analyzer-linux-release",
         "analyzer-mac-release",
-        "analyzer-win-release",
-        "analyzer-linux-release-analyzer-stable",
-        "analyzer-mac-release-analyzer-stable",
-        "analyzer-win-release-analyzer-stable"
+        "analyzer-win-release"
       ],
       "meta": {
         "description": "This configuration is used by the analyzer builders."
@@ -3086,8 +3122,7 @@
     },
     {
       "builders": [
-        "analyzer-analysis-server-linux",
-        "analyzer-analysis-server-linux-analyzer-stable"
+        "analyzer-analysis-server-linux"
       ],
       "meta": {
         "description": "Analyze analyzer related packages."
@@ -3342,14 +3377,6 @@
           ]
         },
         {
-          "name": "analyze tools/gardening",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
-          "arguments": [
-            "--fatal-warnings",
-            "tools/gardening"
-          ]
-        },
-        {
           "name": "dartanalyzer --batch tests",
           "arguments": [
             "-nanalyzer-${system}"
@@ -3533,8 +3560,7 @@
     },
     {
       "builders": [
-        "flutter-analyze",
-        "flutter-analyze-analyzer-stable"
+        "flutter-analyze"
       ],
       "meta": {
         "description": "This configuration is used for analyzing flutter."

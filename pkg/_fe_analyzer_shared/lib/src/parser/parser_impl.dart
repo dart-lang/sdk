@@ -4,8 +4,6 @@
 
 library _fe_analyzer_shared.parser.parser;
 
-import '../messages/codes.dart' show Message, Template;
-
 import '../messages/codes.dart' as codes;
 
 import '../scanner/scanner.dart' show ErrorToken, Token;
@@ -1305,7 +1303,7 @@ class Parser {
 
   /// Return the message that should be produced when the formal parameters are
   /// missing.
-  Message missingParameterMessage(MemberKind kind) {
+  codes.Message missingParameterMessage(MemberKind kind) {
     if (kind == MemberKind.FunctionTypeAlias) {
       return codes.messageMissingTypedefParameters;
     } else if (kind == MemberKind.NonStaticMethod ||
@@ -2188,7 +2186,7 @@ class Parser {
   /// message based on the given [context]. Return the synthetic identifier that
   /// was inserted.
   Token insertSyntheticIdentifier(Token token, IdentifierContext context,
-      {Message message, Token messageOnToken}) {
+      {codes.Message message, Token messageOnToken}) {
     Token next = token.next;
     reportRecoverableError(messageOnToken ?? next,
         message ?? context.recoveryTemplate.withArguments(next));
@@ -2458,9 +2456,6 @@ class Parser {
       DeclarationKind kind,
       String enclosingDeclarationName,
       bool nameIsRecovered) {
-    if (externalToken != null) {
-      reportRecoverableError(externalToken, codes.messageExternalField);
-    }
     // Covariant affects only the setter and final fields do not have a setter,
     // unless it's a late field (dartbug.com/40805).
     // Field that are covariant late final with initializers are checked further
@@ -2503,12 +2498,12 @@ class Parser {
     }
 
     int fieldCount = 1;
-    token = parseFieldInitializerOpt(
-        name, name, lateToken, varFinalOrConst, kind, enclosingDeclarationName);
+    token = parseFieldInitializerOpt(name, name, lateToken, externalToken,
+        varFinalOrConst, kind, enclosingDeclarationName);
     while (optional(',', token.next)) {
       name = ensureIdentifier(token.next, context);
-      token = parseFieldInitializerOpt(name, name, lateToken, varFinalOrConst,
-          kind, enclosingDeclarationName);
+      token = parseFieldInitializerOpt(name, name, lateToken, externalToken,
+          varFinalOrConst, kind, enclosingDeclarationName);
       ++fieldCount;
     }
     Token semicolon = token.next;
@@ -2534,24 +2529,24 @@ class Parser {
     }
     switch (kind) {
       case DeclarationKind.TopLevel:
-        listener.endTopLevelFields(staticToken, covariantToken, lateToken,
-            varFinalOrConst, fieldCount, beforeStart.next, token);
+        listener.endTopLevelFields(externalToken, staticToken, covariantToken,
+            lateToken, varFinalOrConst, fieldCount, beforeStart.next, token);
         break;
       case DeclarationKind.Class:
-        listener.endClassFields(staticToken, covariantToken, lateToken,
-            varFinalOrConst, fieldCount, beforeStart.next, token);
+        listener.endClassFields(externalToken, staticToken, covariantToken,
+            lateToken, varFinalOrConst, fieldCount, beforeStart.next, token);
         break;
       case DeclarationKind.Mixin:
-        listener.endMixinFields(staticToken, covariantToken, lateToken,
-            varFinalOrConst, fieldCount, beforeStart.next, token);
+        listener.endMixinFields(externalToken, staticToken, covariantToken,
+            lateToken, varFinalOrConst, fieldCount, beforeStart.next, token);
         break;
       case DeclarationKind.Extension:
-        if (staticToken == null) {
+        if (staticToken == null && externalToken == null) {
           reportRecoverableError(
               firstName, codes.messageExtensionDeclaresInstanceField);
         }
-        listener.endExtensionFields(staticToken, covariantToken, lateToken,
-            varFinalOrConst, fieldCount, beforeStart.next, token);
+        listener.endExtensionFields(externalToken, staticToken, covariantToken,
+            lateToken, varFinalOrConst, fieldCount, beforeStart.next, token);
         break;
     }
     return token;
@@ -2624,6 +2619,7 @@ class Parser {
       Token token,
       Token name,
       Token lateToken,
+      Token externalToken,
       Token varFinalOrConst,
       DeclarationKind kind,
       String enclosingDeclarationName) {
@@ -2645,7 +2641,8 @@ class Parser {
                   .withArguments(name.lexeme));
         } else if (kind == DeclarationKind.TopLevel &&
             optional("final", varFinalOrConst) &&
-            lateToken == null) {
+            lateToken == null &&
+            externalToken == null) {
           reportRecoverableError(
               name,
               codes.templateFinalFieldWithoutInitializer
@@ -2894,7 +2891,7 @@ class Parser {
   /// a default error message instead.
   Token ensureBlock(
       Token token,
-      Template<Message Function(Token token)> template,
+      codes.Template<codes.Message Function(Token token)> template,
       String missingBlockName) {
     Token next = token.next;
     if (optional('{', next)) return next;
@@ -2956,7 +2953,7 @@ class Parser {
   Token ensureColon(Token token) {
     Token next = token.next;
     if (optional(':', next)) return next;
-    Message message = codes.templateExpectedButGot.withArguments(':');
+    codes.Message message = codes.templateExpectedButGot.withArguments(':');
     Token newToken = new SyntheticToken(TokenType.COLON, next.charOffset);
     return rewriteAndRecover(token, message, newToken);
   }
@@ -2967,7 +2964,7 @@ class Parser {
   Token ensureLiteralString(Token token) {
     Token next = token.next;
     if (!identical(next.kind, STRING_TOKEN)) {
-      Message message = codes.templateExpectedString.withArguments(next);
+      codes.Message message = codes.templateExpectedString.withArguments(next);
       Token newToken =
           new SyntheticStringToken(TokenType.STRING, '""', next.charOffset, 0);
       rewriteAndRecover(token, message, newToken);
@@ -2995,7 +2992,7 @@ class Parser {
 
   /// Report an error at the token after [token] that has the given [message].
   /// Insert the [newToken] after [token] and return [newToken].
-  Token rewriteAndRecover(Token token, Message message, Token newToken) {
+  Token rewriteAndRecover(Token token, codes.Message message, Token newToken) {
     reportRecoverableError(token.next, message);
     return rewriter.insertToken(token, newToken);
   }
@@ -4978,7 +4975,7 @@ class Parser {
         // This looks like the start of an expression.
         // Report an error, insert the comma, and continue parsing.
         SyntheticToken comma = new SyntheticToken(TokenType.COMMA, next.offset);
-        Message message = ifCount > 0
+        codes.Message message = ifCount > 0
             ? codes.messageExpectedElseOrComma
             : codes.templateExpectedButGot.withArguments(',');
         next = rewriteAndRecover(token, message, comma);
@@ -5061,7 +5058,7 @@ class Parser {
           // TODO(danrubel): Consider better error message
           SyntheticToken comma =
               new SyntheticToken(TokenType.COMMA, next.offset);
-          Message message = ifCount > 0
+          codes.Message message = ifCount > 0
               ? codes.messageExpectedElseOrComma
               : codes.templateExpectedButGot.withArguments(',');
           token = rewriteAndRecover(token, message, comma);
@@ -6962,14 +6959,14 @@ class Parser {
     return token;
   }
 
-  void reportRecoverableError(Token token, Message message) {
+  void reportRecoverableError(Token token, codes.Message message) {
     // Find a non-synthetic token on which to report the error.
     token = findNonZeroLengthToken(token);
     listener.handleRecoverableError(message, token, token);
   }
 
   void reportRecoverableErrorWithToken(
-      Token token, Template<_MessageWithArgument<Token>> template) {
+      Token token, codes.Template<_MessageWithArgument<Token>> template) {
     // Find a non-synthetic token on which to report the error.
     token = findNonZeroLengthToken(token);
     listener.handleRecoverableError(
@@ -7358,4 +7355,4 @@ class Parser {
 }
 
 // TODO(ahe): Remove when analyzer supports generalized function syntax.
-typedef _MessageWithArgument<T> = Message Function(T);
+typedef _MessageWithArgument<T> = codes.Message Function(T);

@@ -901,7 +901,7 @@ class RuntimeType extends Type {
   Nullability get nullability => _type.nullability;
 
   RuntimeType withNullability(Nullability n) =>
-      RuntimeType(_type.withNullability(n), typeArgs);
+      RuntimeType(_type.withDeclaredNullability(n), typeArgs);
 
   DartType get representedTypeRaw => _type;
 

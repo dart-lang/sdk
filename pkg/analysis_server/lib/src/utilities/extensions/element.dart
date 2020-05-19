@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/element/element.dart';
 
-/// Extensions for [ClassElement]s
 extension ClassElementExtensions on ClassElement {
   /// Return `true` if this element represents the class `Iterable` from
   /// `dart:core`.
@@ -25,7 +24,26 @@ extension ClassElementExtensions on ClassElement {
   bool get isDartCoreSet => this != null && name == 'Set' && library.isDartCore;
 }
 
-/// Extensions for [MethodElement]s
+extension ElementExtension on Element {
+  /// Return `true` if this element, the enclosing class (if there is one), or
+  /// the enclosing library, has been annotated with the `@deprecated`
+  /// annotation.
+  bool get hasOrInheritsDeprecated {
+    if (hasDeprecated) {
+      return true;
+    }
+    var ancestor = enclosingElement;
+    if (ancestor is ClassElement) {
+      if (ancestor.hasDeprecated) {
+        return true;
+      }
+      ancestor = ancestor.enclosingElement;
+    }
+    return ancestor is CompilationUnitElement &&
+        ancestor.enclosingElement.hasDeprecated;
+  }
+}
+
 extension MethodElementExtensions on MethodElement {
   /// Return `true` if this element represents the method `cast` from either
   /// `Iterable`, `List`, `Map`, or `Set`.

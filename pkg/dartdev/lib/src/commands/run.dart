@@ -60,7 +60,7 @@ Run a Dart file.''');
     // synchronization).
     if (args.any((element) => (element.startsWith('--observe') ||
         element.startsWith('--enable-vm-service')))) {
-      return await _DebuggingSession(args).start();
+      return await _DebuggingSession(this, args).start();
     }
 
     // Starting in ProcessStartMode.inheritStdio mode means the child process
@@ -73,7 +73,8 @@ Run a Dart file.''');
 }
 
 class _DebuggingSession {
-  _DebuggingSession(List<String> args) : _args = args.toList() {
+  _DebuggingSession(this._runCommand, List<String> args)
+      : _args = args.toList() {
     // Process flags that are meant to configure the VM service HTTP server or
     // dump VM service connection information to a file. Since the VM service
     // clients won't actually be connecting directly to the service, we'll make
@@ -84,28 +85,39 @@ class _DebuggingSession {
         if (isObserve) {
           _observe = true;
         }
-        // These flags can be provided by the embedder so we need to check for
-        // both `=` and `:` separators.
-        final observatoryBindInfo =
-            (arg.contains('=') ? arg.split('=') : arg.split(':'))[1].split('/');
-        _port = int.tryParse(observatoryBindInfo.first) ?? 0;
-        if (observatoryBindInfo.length > 1) {
-          try {
-            _bindAddress = Uri.http(observatoryBindInfo[1], '');
-          } on FormatException {
-            // TODO(bkonyi): log invalid parse? The VM service just ignores bad
-            // input flags.
-            // Ignore.
+        if (arg.contains('=') || arg.contains(':')) {
+          // These flags can be provided by the embedder so we need to check for
+          // both `=` and `:` separators.
+          final observatoryBindInfo =
+              (arg.contains('=') ? arg.split('=') : arg.split(':'))[1]
+                  .split('/');
+          _port = int.tryParse(observatoryBindInfo.first) ?? 0;
+          if (observatoryBindInfo.length > 1) {
+            try {
+              _bindAddress = Uri.http(observatoryBindInfo[1], '');
+            } on FormatException {
+              // TODO(bkonyi): log invalid parse? The VM service just ignores bad
+              // input flags.
+              // Ignore.
+            }
           }
         }
       } else if (arg.startsWith('--write-service-info=')) {
         try {
-          _serviceInfoUri = Uri.parse(arg.split('=')[1]);
+          final split = arg.split('=');
+          if (split[1].isNotEmpty) {
+            _serviceInfoUri = Uri.parse(split[1]);
+          } else {
+            _runCommand.usageException(
+                'Invalid URI argument to --write-service-info: "${split[1]}"');
+          }
         } on FormatException {
           // TODO(bkonyi): log invalid parse? The VM service just ignores bad
           // input flags.
           // Ignore.
         }
+      } else if (arg == '--disable-service-auth-codes') {
+        _disableServiceAuthCodes = true;
       }
     }
 
@@ -129,7 +141,7 @@ class _DebuggingSession {
     // Start using ProcessStartMode.normal and forward stdio manually as we
     // need to filter the true VM service URI and replace it with the DDS URI.
     _process = await Process.start(
-      'dart',
+      sdk.dart,
       [
         '--disable-dart-dev',
         _observe
@@ -152,7 +164,7 @@ class _DebuggingSession {
       // Shutdown DDS if it was started and wait for the process' stdio streams
       // to close so we don't truncate program output.
       await Future.wait([
-        _dds?.shutdown(),
+        if (_dds != null) _dds.shutdown(),
         _stderrDone,
         _stdoutDone,
       ]);
@@ -173,6 +185,7 @@ class _DebuggingSession {
     _dds = await DartDevelopmentService.startDartDevelopmentService(
       remoteVmServiceUri,
       serviceUri: _bindAddress.replace(port: _port),
+      enableAuthCodes: !_disableServiceAuthCodes,
     );
     if (_serviceInfoUri != null) {
       // Output the service connection information.
@@ -194,8 +207,8 @@ class _DebuggingSession {
       if (_dds == null) {
         return msg;
       }
-      if (msg.startsWith('Observatory listening on') ||
-          msg.startsWith('Connect to Observatory at')) {
+      if (msg.contains('Observatory listening on') ||
+          msg.contains('Connect to Observatory at')) {
         // Search for the VM service URI in the message and replace it.
         msg = msg.replaceFirst(
           RegExp(r'https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.'
@@ -242,9 +255,10 @@ class _DebuggingSession {
   }
 
   Uri _bindAddress = Uri.http('127.0.0.1', '');
+  bool _disableServiceAuthCodes = false;
   DartDevelopmentService _dds;
   bool _observe = false;
-  int _port;
+  int _port = 8181;
   Process _process;
   Uri _serviceInfoUri;
   Future _stderrDone;
@@ -252,4 +266,5 @@ class _DebuggingSession {
 
   final List<String> _args;
   final Completer<void> _ddsCompleter = Completer();
+  final RunCommand _runCommand;
 }

@@ -125,9 +125,7 @@ namespace dart {
   V(StringBuffer_createStringFromUint16Array, 3)                               \
   V(OneByteString_substringUnchecked, 3)                                       \
   V(OneByteString_splitWithCharCode, 2)                                        \
-  V(OneByteString_allocate, 1)                                                 \
   V(OneByteString_allocateFromOneByteList, 3)                                  \
-  V(OneByteString_setAt, 3)                                                    \
   V(TwoByteString_allocateFromTwoByteList, 3)                                  \
   V(String_getHashCode, 1)                                                     \
   V(String_getLength, 1)                                                       \
@@ -338,6 +336,10 @@ namespace dart {
   V(Internal_extractTypeArguments, 2)                                          \
   V(Internal_prependTypeArguments, 4)                                          \
   V(Internal_boundsCheckForPartialInstantiation, 2)                            \
+  V(Internal_allocateOneByteString, 1)                                         \
+  V(Internal_allocateTwoByteString, 1)                                         \
+  V(Internal_writeIntoOneByteString, 3)                                        \
+  V(Internal_writeIntoTwoByteString, 3)                                        \
   V(InvocationMirror_unpackTypeArguments, 2)                                   \
   V(NoSuchMethodError_existingMethodSignature, 3)                              \
   V(LinkedHashMap_getIndex, 1)                                                 \

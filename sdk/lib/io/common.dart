@@ -99,18 +99,17 @@ class _BufferAndStart {
 // benefit that it is faster to access from the C code as well.
 _BufferAndStart _ensureFastAndSerializableByteData(
     List<int> buffer, int start, int end) {
-  if (buffer is Uint8List || buffer is Int8List) {
+  if (_isDirectIOCapableTypedList(buffer)) {
     return new _BufferAndStart(buffer, start);
   }
   int length = end - start;
   var newBuffer = new Uint8List(length);
-  int j = start;
-  for (int i = 0; i < length; i++) {
-    newBuffer[i] = buffer[j];
-    j++;
-  }
+  newBuffer.setRange(0, length, buffer, start);
   return new _BufferAndStart(newBuffer, 0);
 }
+
+// VM will use ClassID to check whether buffer is Uint8List or Int8List.
+external bool _isDirectIOCapableTypedList(List<int> buffer);
 
 class _IOCrypto {
   external static Uint8List getRandomBytes(int count);

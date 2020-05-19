@@ -3304,9 +3304,9 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
 
   // From NoncedElement
 
-  String get nonce native;
+  String? get nonce native;
 
-  set nonce(String value) native;
+  set nonce(String? value) native;
 
   ElementStream<Event> get onAbort => abortEvent.forElement(this);
 

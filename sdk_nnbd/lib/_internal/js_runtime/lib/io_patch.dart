@@ -215,6 +215,11 @@ class _RandomAccessFileOps {
 }
 
 @patch
+bool _isDirectIOCapableTypedList(List<int> buffer) {
+  return buffer is Uint8List || buffer is Int8List;
+}
+
+@patch
 class _IOCrypto {
   @patch
   static Uint8List getRandomBytes(int count) {

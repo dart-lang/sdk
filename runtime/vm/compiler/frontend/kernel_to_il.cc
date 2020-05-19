@@ -1263,13 +1263,11 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
         const auto& pointer_type_args =
             TypeArguments::Handle(pointer_class.type_parameters());
         const auto& pointer_type_arg =
-            AbstractType::Handle(pointer_type_args.TypeAt(0));
+            AbstractType::ZoneHandle(pointer_type_args.TypeAt(0));
 
         // But we type check it as a method on a generic class at runtime.
-        body += LoadLocal(arg_value);
-        body += LoadLocal(arg_pointer);
-        body += CheckNullOptimized(TokenPosition::kNoSource,
-                                   String::ZoneHandle(Z, function.name()));
+        body += LoadLocal(arg_value);        // value.
+        body += Constant(pointer_type_arg);  // dst_type.
         // We pass the Pointer type argument as instantiator_type_args.
         //
         // Call sites to this recognized method are guaranteed to pass a
@@ -1280,11 +1278,13 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
         // The following is safe to do, as (1) we are guaranteed to have a
         // Pointer<Pointer<X>> as argument, and (2) the bound on the pointer
         // type parameter guarantees X is an interface type.
+        body += LoadLocal(arg_pointer);
+        body += CheckNullOptimized(TokenPosition::kNoSource,
+                                   String::ZoneHandle(Z, function.name()));
         body += LoadNativeField(
             Slot::GetTypeArgumentsSlotFor(thread_, pointer_class));
         body += NullConstant();  // function_type_args.
-        body += AssertAssignable(TokenPosition::kNoSource, pointer_type_arg,
-                                 Symbols::Empty());
+        body += AssertAssignable(TokenPosition::kNoSource, Symbols::Empty());
         body += Drop();
       }
 
@@ -1567,6 +1567,8 @@ Fragment FlowGraphBuilder::AssertAssignableLoadTypeArguments(
     AssertAssignableInstr::Kind kind) {
   Fragment instructions;
 
+  instructions += Constant(AbstractType::ZoneHandle(dst_type.raw()));
+
   if (!dst_type.IsInstantiated(kCurrentClass)) {
     instructions += LoadInstantiatorTypeArguments();
   } else {
@@ -1579,21 +1581,26 @@ Fragment FlowGraphBuilder::AssertAssignableLoadTypeArguments(
     instructions += NullConstant();
   }
 
-  instructions += AssertAssignable(position, dst_type, dst_name, kind);
+  instructions += AssertAssignable(position, dst_name, kind);
 
   return instructions;
 }
 
 Fragment FlowGraphBuilder::AssertSubtype(TokenPosition position,
-                                         const AbstractType& sub_type,
-                                         const AbstractType& super_type,
+                                         const AbstractType& sub_type_value,
+                                         const AbstractType& super_type_value,
                                          const String& dst_name) {
   Fragment instructions;
 
   instructions += LoadInstantiatorTypeArguments();
-  Value* instantiator_type_args = Pop();
   instructions += LoadFunctionTypeArguments();
+  instructions += Constant(AbstractType::ZoneHandle(sub_type_value.raw()));
+  instructions += Constant(AbstractType::ZoneHandle(super_type_value.raw()));
+
+  Value* super_type = Pop();
+  Value* sub_type = Pop();
   Value* function_type_args = Pop();
+  Value* instantiator_type_args = Pop();
 
   AssertSubtypeInstr* instr = new (Z)
       AssertSubtypeInstr(position, instantiator_type_args, function_type_args,

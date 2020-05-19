@@ -144,7 +144,7 @@ mixin M {}
     expect(element.isEnum, isFalse);
     expect(element.isMixin, isTrue);
     expect(element.isMixinApplication, isFalse);
-    expect(interfaceTypeStar(element).isObject, isFalse);
+    expect(interfaceTypeStar(element).isDartCoreObject, isFalse);
     expect(element.isDartCoreObject, isFalse);
 
     assertElementTypes(element.superclassConstraints, [objectType]);

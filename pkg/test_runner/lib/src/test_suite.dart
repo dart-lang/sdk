@@ -625,8 +625,8 @@ class StandardTestSuite extends TestSuite {
     var vmOptionsList = getVmOptions(testFile);
     assert(!vmOptionsList.isEmpty);
 
-    bool emitDdsTest = false;
-    for (int i = 0; i < 2; ++i) {
+    var emitDdsTest = false;
+    for (var i = 0; i < 2; ++i) {
       for (var vmOptionsVariant = 0;
           vmOptionsVariant < vmOptionsList.length;
           vmOptionsVariant++) {

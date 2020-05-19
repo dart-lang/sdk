@@ -9,7 +9,6 @@ import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
 import 'package:analysis_server/src/edit/fix/fix_error_task.dart';
 import 'package:analysis_server/src/edit/fix/fix_lint_task.dart';
-import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart';
 import 'package:analysis_server/src/edit/fix/prefer_mixin_fix.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/src/lint/registry.dart';
@@ -96,17 +95,6 @@ final allFixes = <DartFixInfo>[
   LintFixInfo.unnecessaryThis,
   LintFixInfo.useFunctionTypeSyntaxForParameters,
   LintFixInfo.useRethrowWhenPossible,
-  //
-  // Experimental fixes
-  //
-  DartFixInfo(
-    'non-nullable',
-    '''
-EXPERIMENTAL: Update sources to be non-nullable by default.
-This requires the experimental non-nullable flag to be enabled
-when running the updated application.''',
-    NonNullableFix.task,
-  ),
 ];
 
 /// [DartFixInfo] represents a fix that can be applied by [EditDartFix].

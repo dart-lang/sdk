@@ -210,11 +210,10 @@ void main(List<String> args) async {
   String sdkJsPath;
   String requirePath;
   String ddcSdk;
-  var archDir = nnbd ? 'ReleaseX64NNBD' : 'ReleaseX64';
   if (debug) {
     var sdkRoot = p.dirname(p.dirname(ddcPath));
     var buildDir = p.join(sdkRoot, Platform.isMacOS ? 'xcodebuild' : 'out');
-    dartSdk = p.join(buildDir, archDir, 'dart-sdk');
+    dartSdk = p.join(buildDir, 'ReleaseX64', 'dart-sdk');
   }
   var suffix = p.join('kernel', mod);
   sdkJsPath = p.join(dartSdk, 'lib', 'dev_compiler', suffix);

@@ -132,6 +132,9 @@ class Timeline : public AllStatic {
 #ifndef PRODUCT
   // Print information about streams to JSON.
   static void PrintFlagsToJSON(JSONStream* json);
+
+  // Output the recorded streams to a JSONS array.
+  static void PrintFlagsToJSONArray(JSONArray* arr);
 #endif
 
 #define TIMELINE_STREAM_ACCESSOR(name, fuchsia_name)                           \

@@ -7,6 +7,7 @@
 #include "platform/elf.h"
 #include "vm/cpu.h"
 #include "vm/hash_map.h"
+#include "vm/image_snapshot.h"
 #include "vm/thread.h"
 #include "vm/zone_text_buffer.h"
 
@@ -380,6 +381,10 @@ class StringTable : public Section {
     return offset;
   }
 
+  intptr_t Lookup(const char* str) const {
+    return text_indices_.LookupValue(str) - 1;
+  }
+
   const bool dynamic_;
   ZoneTextBuffer text_;
   // To avoid kNoValue for intptr_t (0), we store an index n as n + 1.
@@ -394,39 +399,40 @@ class Symbol : public ZoneAllocated {
          intptr_t section,
          intptr_t offset,
          intptr_t size)
-      : cstr_(cstr),
-        name_index_(name),
-        info_(info),
-        section_index_(section),
-        offset_(offset),
-        size_(size) {}
+      : name_index(name),
+        info(info),
+        section_index(section),
+        offset(offset),
+        size(size),
+        cstr_(cstr) {}
 
   void Write(Elf* stream) const {
-    stream->WriteWord(name_index_);
+    stream->WriteWord(name_index);
 #if defined(TARGET_ARCH_IS_32_BIT)
-    stream->WriteAddr(offset_);
-    stream->WriteWord(size_);
-    stream->WriteByte(info_);
+    stream->WriteAddr(offset);
+    stream->WriteWord(size);
+    stream->WriteByte(info);
     stream->WriteByte(0);
-    stream->WriteHalf(section_index_);
+    stream->WriteHalf(section_index);
 #else
-    stream->WriteByte(info_);
+    stream->WriteByte(info);
     stream->WriteByte(0);
-    stream->WriteHalf(section_index_);
-    stream->WriteAddr(offset_);
-    stream->WriteXWord(size_);
+    stream->WriteHalf(section_index);
+    stream->WriteAddr(offset);
+    stream->WriteXWord(size);
 #endif
   }
+
+  const intptr_t name_index;
+  const intptr_t info;
+  const intptr_t section_index;
+  const intptr_t offset;
+  const intptr_t size;
 
  private:
   friend class SymbolHashTable;  // For cstr_ access.
 
-  const char* cstr_;
-  intptr_t name_index_;
-  intptr_t info_;
-  intptr_t section_index_;
-  intptr_t offset_;
-  intptr_t size_;
+  const char* const cstr_;
 };
 
 class SymbolTable : public Section {
@@ -461,6 +467,14 @@ class SymbolTable : public Section {
   void AddSymbol(const Symbol* symbol) { symbols_.Add(symbol); }
   intptr_t Length() const { return symbols_.length(); }
   const Symbol* At(intptr_t i) const { return symbols_[i]; }
+
+  const Symbol* FindSymbolWithNameIndex(intptr_t name_index) const {
+    for (intptr_t i = 0; i < Length(); i++) {
+      auto const symbol = At(i);
+      if (symbol->name_index == name_index) return symbol;
+    }
+    return nullptr;
+  }
 
  private:
   const bool dynamic_;
@@ -610,9 +624,10 @@ class DynamicSegment : public BlobSection {
 
 static const intptr_t kProgramTableSegmentSize = Elf::kPageSize;
 
-Elf::Elf(Zone* zone, StreamingWriteStream* stream)
+Elf::Elf(Zone* zone, StreamingWriteStream* stream, bool strip)
     : zone_(zone),
       stream_(stream),
+      strip_(strip),
       shstrtab_(new (zone) StringTable(/*allocate=*/false)),
       dynstrtab_(new (zone) StringTable(/*allocate=*/true)),
       dynsym_(new (zone) SymbolTable(/*dynamic=*/true)),
@@ -625,6 +640,21 @@ Elf::Elf(Zone* zone, StreamingWriteStream* stream)
   // Go ahead and add the section header string table, since it doesn't have
   // an in-memory segment and so can be added to until we compute file offsets.
   AddSection(shstrtab_, ".shstrtab");
+}
+
+// The VM segment comes after the program header segment and BSS segments,
+// both of which are a single page.
+static constexpr uword kVmSnapshotOffset = 2 * Elf::kPageSize;
+
+// Find the relocated base of the loaded ELF snapshot. Returns 0 if there is
+// no loaded ELF snapshot.
+uword Elf::SnapshotRelocatedBaseAddress(uword vm_start) {
+  ASSERT(vm_start > kVmSnapshotOffset);
+
+  const Image vm_instructions_image(reinterpret_cast<const void*>(vm_start));
+  if (!vm_instructions_image.compiled_to_elf()) return 0;
+
+  return vm_start - kVmSnapshotOffset;
 }
 
 void Elf::AddSection(Section* section, const char* name) {
@@ -643,21 +673,15 @@ void Elf::AddSection(Section* section, const char* name) {
   }
 }
 
-intptr_t Elf::AddSectionSymbol(const Section* section,
-                               const char* name,
-                               intptr_t size) {
-  ASSERT(!dynstrtab_->HasBeenFinalized() && !dynsym_->HasBeenFinalized());
-  auto const name_index = dynstrtab_->AddString(name);
+intptr_t Elf::AddSegmentSymbol(const Section* section, const char* name) {
   auto const info = (elf::STB_GLOBAL << 4) | elf::STT_FUNC;
   auto const section_index = section->section_index();
   // For shared libraries, this is the offset from the DSO base. For static
   // libraries, this is section relative.
-  auto const memory_offset = section->memory_offset();
-  auto const symbol = new (zone_)
-      Symbol(name, name_index, info, section_index, memory_offset, size);
-  dynsym_->AddSymbol(symbol);
-
-  return memory_offset;
+  auto const address = section->memory_offset();
+  auto const size = section->MemorySize();
+  AddDynamicSymbol(name, info, section_index, address, size);
+  return address;
 }
 
 intptr_t Elf::AddText(const char* name, const uint8_t* bytes, intptr_t size) {
@@ -669,31 +693,32 @@ intptr_t Elf::AddText(const char* name, const uint8_t* bytes, intptr_t size) {
   }
   AddSection(image, ".text");
 
-  return AddSectionSymbol(image, name, size);
+  return AddSegmentSymbol(image, name);
 }
 
-void Elf::AddStaticSymbol(intptr_t section,
-                          const char* name,
-                          intptr_t address,
-                          intptr_t size) {
-  // Lazily allocate the static string and symbol tables, as we only add static
-  // symbols in unstripped ELF files.
-  if (strtab_ == nullptr) {
-    ASSERT(symtab_ == nullptr);
-    ASSERT(section_table_file_size_ < 0);
-    strtab_ = new (zone_) StringTable(/* allocate= */ false);
-    AddSection(strtab_, ".strtab");
-    symtab_ = new (zone_) SymbolTable(/*dynamic=*/false);
-    AddSection(symtab_, ".symtab");
-    symtab_->section_link = strtab_->section_index();
-  }
-
-  ASSERT(!strtab_->HasBeenFinalized() && !symtab_->HasBeenFinalized());
-  auto const name_index = strtab_->AddString(name);
+void Elf::AddCodeSymbol(const char* name,
+                        intptr_t section_index,
+                        intptr_t address,
+                        intptr_t size) {
+  ASSERT(!strip_);
   auto const info = (elf::STB_GLOBAL << 4) | elf::STT_FUNC;
-  Symbol* symbol =
-      new (zone_) Symbol(name, name_index, info, section, address, size);
-  symtab_->AddSymbol(symbol);
+  AddStaticSymbol(name, info, section_index, address, size);
+}
+
+bool Elf::FindDynamicSymbol(const char* name,
+                            intptr_t* offset,
+                            intptr_t* size) const {
+  auto const name_index = dynstrtab_->Lookup(name);
+  if (name_index < 0) return false;
+  auto const symbol = dynsym_->FindSymbolWithNameIndex(name_index);
+  if (symbol == nullptr) return false;
+  if (offset != nullptr) {
+    *offset = symbol->offset;
+  }
+  if (size != nullptr) {
+    *size = symbol->size;
+  }
+  return true;
 }
 
 intptr_t Elf::AddBSSData(const char* name, intptr_t size) {
@@ -707,9 +732,12 @@ intptr_t Elf::AddBSSData(const char* name, intptr_t size) {
 
   ProgramBits* const image =
       new (zone_) ProgramBits(true, false, true, bytes, size);
+  static_assert(Image::kBssAlignment <= kPageSize,
+                "ELF .bss section is not aligned as expected by Image class");
+  ASSERT_EQUAL(image->alignment, kPageSize);
   AddSection(image, ".bss");
 
-  return AddSectionSymbol(image, name, size);
+  return AddSegmentSymbol(image, name);
 }
 
 intptr_t Elf::AddROData(const char* name, const uint8_t* bytes, intptr_t size) {
@@ -717,14 +745,59 @@ intptr_t Elf::AddROData(const char* name, const uint8_t* bytes, intptr_t size) {
   ProgramBits* image = new (zone_) ProgramBits(true, false, false, bytes, size);
   AddSection(image, ".rodata");
 
-  return AddSectionSymbol(image, name, size);
+  return AddSegmentSymbol(image, name);
 }
 
 void Elf::AddDebug(const char* name, const uint8_t* bytes, intptr_t size) {
+  ASSERT(!strip_);
   ASSERT(bytes != nullptr);
   ProgramBits* image =
       new (zone_) ProgramBits(false, false, false, bytes, size);
   AddSection(image, name);
+}
+
+void Elf::AddDynamicSymbol(const char* name,
+                           intptr_t info,
+                           intptr_t section_index,
+                           intptr_t address,
+                           intptr_t size) {
+  ASSERT(!dynstrtab_->HasBeenFinalized() && !dynsym_->HasBeenFinalized());
+  auto const name_index = dynstrtab_->AddString(name);
+  auto const symbol =
+      new (zone_) Symbol(name, name_index, info, section_index, address, size);
+  dynsym_->AddSymbol(symbol);
+
+  // Some tools assume the static symbol table is a superset of the dynamic
+  // symbol table when it exists (see dartbug.com/41783).
+  if (!strip_) {
+    AddStaticSymbol(name, info, section_index, address, size);
+  }
+}
+
+void Elf::AddStaticSymbol(const char* name,
+                          intptr_t info,
+                          intptr_t section_index,
+                          intptr_t address,
+                          intptr_t size) {
+  ASSERT(!strip_);
+
+  // Lazily allocate the static string and symbol tables, as we only add static
+  // symbols in unstripped ELF files.
+  if (strtab_ == nullptr) {
+    ASSERT(symtab_ == nullptr);
+    ASSERT(section_table_file_size_ < 0);
+    strtab_ = new (zone_) StringTable(/* allocate= */ false);
+    AddSection(strtab_, ".strtab");
+    symtab_ = new (zone_) SymbolTable(/*dynamic=*/false);
+    AddSection(symtab_, ".symtab");
+    symtab_->section_link = strtab_->section_index();
+  }
+
+  ASSERT(!symtab_->HasBeenFinalized() && !strtab_->HasBeenFinalized());
+  auto const name_index = strtab_->AddString(name);
+  auto const symbol =
+      new (zone_) Symbol(name, name_index, info, section_index, address, size);
+  symtab_->AddSymbol(symbol);
 }
 
 void Elf::Finalize() {
@@ -749,6 +822,8 @@ void Elf::Finalize() {
   // sections and segments.
   FinalizeProgramTable();
   ComputeFileOffsets();
+
+  ASSERT(VerifySegmentOrder());
 
   // Finally, write the ELF file contents.
   WriteHeader();
@@ -813,6 +888,63 @@ void Elf::ComputeFileOffsets() {
   section_table_file_offset_ = file_offset;
   section_table_file_size_ = sections_.length() * kElfSectionTableEntrySize;
   file_offset += section_table_file_size_;
+}
+
+bool Elf::VerifySegmentOrder() {
+  // We can only verify the segment order after FinalizeProgramTable(), since
+  // we assume that all segments have been added, including the two program
+  // table segments.
+  ASSERT(program_table_file_size_ > 0);
+
+  // Find the names and symbols for the .bss and .text segments.
+  auto const bss_section_name = shstrtab_->Lookup(".bss");
+  // For separate debugging information for assembly snapshots, no .bss section
+  // is added. However, we're only interested in strict segment orders when
+  // generating ELF snapshots, so only continue when there's a .bss section.
+  if (bss_section_name == -1) return true;
+  auto const text_section_name = shstrtab_->Lookup(".text");
+  ASSERT(text_section_name != -1);
+
+  auto const bss_symbol_name = dynstrtab_->Lookup("_kDartBSSData");
+  auto const vm_symbol_name =
+      dynstrtab_->Lookup(kVmSnapshotInstructionsAsmSymbol);
+  auto const isolate_symbol_name =
+      dynstrtab_->Lookup(kIsolateSnapshotInstructionsAsmSymbol);
+  ASSERT(bss_symbol_name != -1);
+  ASSERT(vm_symbol_name != -1);
+  ASSERT(isolate_symbol_name != -1);
+
+  auto const bss_symbol = dynsym_->FindSymbolWithNameIndex(bss_symbol_name);
+  auto const vm_symbol = dynsym_->FindSymbolWithNameIndex(vm_symbol_name);
+  auto const isolate_symbol =
+      dynsym_->FindSymbolWithNameIndex(isolate_symbol_name);
+  ASSERT(bss_symbol != nullptr);
+  ASSERT(vm_symbol != nullptr);
+  ASSERT(isolate_symbol != nullptr);
+
+  // Check that the first non-program table segments are in the expected order.
+  auto const bss_segment = segments_[2];
+  ASSERT_EQUAL(bss_segment->segment_type, elf::PT_LOAD);
+  ASSERT_EQUAL(bss_segment->section_name(), bss_section_name);
+  ASSERT_EQUAL(bss_segment->memory_offset(), bss_symbol->offset);
+  ASSERT_EQUAL(bss_segment->MemorySize(), bss_symbol->size);
+  auto const vm_segment = segments_[3];
+  ASSERT_EQUAL(vm_segment->segment_type, elf::PT_LOAD);
+  ASSERT_EQUAL(vm_segment->section_name(), text_section_name);
+  ASSERT_EQUAL(vm_segment->memory_offset(), vm_symbol->offset);
+  ASSERT_EQUAL(vm_segment->MemorySize(), vm_symbol->size);
+  auto const isolate_segment = segments_[4];
+  ASSERT_EQUAL(isolate_segment->segment_type, elf::PT_LOAD);
+  ASSERT_EQUAL(isolate_segment->section_name(), text_section_name);
+  ASSERT_EQUAL(isolate_segment->memory_offset(), isolate_symbol->offset);
+  ASSERT_EQUAL(isolate_segment->MemorySize(), isolate_symbol->size);
+
+  // Also make sure that the memory offset of the VM segment is as expected.
+  ASSERT_EQUAL(bss_segment->memory_offset(), kPageSize);
+  ASSERT(bss_segment->MemorySize() <= kPageSize);
+  ASSERT_EQUAL(vm_segment->memory_offset(), kVmSnapshotOffset);
+
+  return true;
 }
 
 void Elf::WriteHeader() {

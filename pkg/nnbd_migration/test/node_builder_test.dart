@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
+import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
+import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -667,6 +669,16 @@ dynamic f() {}
     assertNoEdge(always, decoratedType.node);
   }
 
+  Future<void> test_extended_type_no_add_hint_actions() async {
+    await analyze('''
+class A extends Object {}
+''');
+    final node = decoratedTypeAnnotation('Object').node;
+    expect(
+        node.hintActions, isNot(contains(HintActionKind.addNonNullableHint)));
+    expect(node.hintActions, isNot(contains(HintActionKind.addNullableHint)));
+  }
+
   Future<void> test_field_type_implicit_dynamic() async {
     await analyze('''
 class C {
@@ -1219,6 +1231,39 @@ typedef F = int Function(String s);
         'return type of F (test.dart:1:13)');
   }
 
+  Future<void> test_implicit_type_nested_no_add_hint_actions() async {
+    await analyze('''
+var x = [1];
+''');
+    final node = variables
+        .decoratedElementType(findNode
+            .topLevelVariableDeclaration('x')
+            .variables
+            .variables[0]
+            .declaredElement)
+        .typeArguments[0]
+        .node;
+    expect(
+        node.hintActions, isNot(contains(HintActionKind.addNonNullableHint)));
+    expect(node.hintActions, isNot(contains(HintActionKind.addNullableHint)));
+  }
+
+  Future<void> test_implicit_type_no_add_hint_actions() async {
+    await analyze('''
+var x = 1;
+''');
+    final node = variables
+        .decoratedElementType(findNode
+            .topLevelVariableDeclaration('x')
+            .variables
+            .variables[0]
+            .declaredElement)
+        .node;
+    expect(
+        node.hintActions, isNot(contains(HintActionKind.addNonNullableHint)));
+    expect(node.hintActions, isNot(contains(HintActionKind.addNullableHint)));
+  }
+
   Future<void> test_interfaceType_generic_instantiate_to_dynamic() async {
     await analyze('''
 void f(List x) {}
@@ -1741,19 +1786,86 @@ var x = f();
     expect(decoratedType.node.isImmutable, false);
   }
 
+  Future<void> test_type_add_non_null_hint() async {
+    await analyze('''
+void f(int i) {}
+''');
+    final node = decoratedTypeAnnotation('int').node;
+    expect(node.hintActions, contains(HintActionKind.addNonNullableHint));
+    expect(
+        node.hintActions[HintActionKind.addNonNullableHint]
+            .applyTo(super.testCode),
+        '''
+void f(int/*!*/ i) {}
+''');
+  }
+
+  Future<void> test_type_add_null_hint() async {
+    await analyze('''
+void f(int i) {}
+''');
+    final node = decoratedTypeAnnotation('int').node;
+    expect(node.hintActions, contains(HintActionKind.addNullableHint));
+    expect(
+        node.hintActions[HintActionKind.addNullableHint]
+            .applyTo(super.testCode),
+        '''
+void f(int/*?*/ i) {}
+''');
+  }
+
   Future<void> test_type_comment_bang() async {
     await analyze('''
 void f(int/*!*/ i) {}
 ''');
-    assertEdge(decoratedTypeAnnotation('int').node, never,
-        hard: true, checkable: false);
+    final node = decoratedTypeAnnotation('int').node;
+    assertEdge(node, never, hard: true, checkable: false);
+    expect(
+        node.hintActions, isNot(contains(HintActionKind.addNonNullableHint)));
+    expect(node.hintActions, isNot(contains(HintActionKind.addNullableHint)));
+    // TODO(mfairhurst): support 'change to null hint'/'remove non-null hint'
+    // Filed as dartbug.com/41857, dartbug.com/41858
   }
 
   Future<void> test_type_comment_question() async {
     await analyze('''
 void f(int/*?*/ i) {}
 ''');
-    assertUnion(always, decoratedTypeAnnotation('int').node);
+    final node = decoratedTypeAnnotation('int').node;
+    assertUnion(always, node);
+    expect(
+        node.hintActions, isNot(contains(HintActionKind.addNonNullableHint)));
+    expect(node.hintActions, isNot(contains(HintActionKind.addNullableHint)));
+    // TODO(mfairhurst): support 'change to non-null hint'/'remove null hint'
+    // Filed as dartbug.com/41857, dartbug.com/41858
+  }
+
+  Future<void> test_type_nested_add_non_null_hint() async {
+    await analyze('''
+void f(List<int> i) {}
+''');
+    final node = decoratedTypeAnnotation('int').node;
+    expect(node.hintActions, contains(HintActionKind.addNonNullableHint));
+    expect(
+        node.hintActions[HintActionKind.addNonNullableHint]
+            .applyTo(super.testCode),
+        '''
+void f(List<int/*!*/> i) {}
+''');
+  }
+
+  Future<void> test_type_nested_add_null_hint() async {
+    await analyze('''
+void f(List<int> i) {}
+''');
+    final node = decoratedTypeAnnotation('int').node;
+    expect(node.hintActions, contains(HintActionKind.addNullableHint));
+    expect(
+        node.hintActions[HintActionKind.addNullableHint]
+            .applyTo(super.testCode),
+        '''
+void f(List<int/*?*/> i) {}
+''');
   }
 
   Future<void> test_type_parameter_explicit_bound() async {

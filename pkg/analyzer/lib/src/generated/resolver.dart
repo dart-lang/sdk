@@ -20,10 +20,10 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart'
     show ConstructorMember, Member;
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/binary_expression_resolver.dart';
+import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/for_resolver.dart';
@@ -69,93 +69,45 @@ class InferenceContext {
 
   final ResolverVisitor _resolver;
 
-  /// Type provider, needed for type matching.
-  final TypeProvider _typeProvider;
-
   /// The type system in use.
   final TypeSystemImpl _typeSystem;
 
-  /// When no context type is available, this will track the least upper bound
-  /// of all return statements in a lambda.
-  ///
-  /// This will always be kept in sync with [_returnStack].
-  final List<DartType> _inferredReturn = <DartType>[];
-
-  /// A stack of return types for all of the enclosing
-  /// functions and methods.
-  final List<DartType> _returnStack = <DartType>[];
+  /// The stack of contexts for nested function bodies.
+  final List<BodyInferenceContext> _bodyContexts = [];
 
   InferenceContext._(ResolverVisitor resolver)
       : _resolver = resolver,
-        _typeProvider = resolver.typeProvider,
         _typeSystem = resolver.typeSystem;
 
-  /// Get the return type of the current enclosing function, if any.
-  ///
-  /// The type returned for a function is the type that is expected
-  /// to be used in a return or yield context.  For ordinary functions
-  /// this is the same as the return type of the function.  For async
-  /// functions returning Future<T> and for generator functions
-  /// returning Stream<T> or Iterable<T>, this is T.
-  DartType get returnContext =>
-      _returnStack.isNotEmpty ? _returnStack.last : null;
-
-  /// Records the type of the expression of a return statement.
-  ///
-  /// This will be used for inferring a block bodied lambda, if no context
-  /// type was available.
-  void addReturnOrYieldType(DartType type) {
-    if (_returnStack.isEmpty) {
-      return;
-    }
-
-    DartType inferred = _inferredReturn.last;
-    if (inferred == null) {
-      inferred = type;
+  BodyInferenceContext get bodyContext {
+    if (_bodyContexts.isNotEmpty) {
+      return _bodyContexts.last;
     } else {
-      inferred = _typeSystem.getLeastUpperBound(type, inferred);
-      inferred = _resolver.toLegacyTypeIfOptOut(inferred);
-    }
-    _inferredReturn[_inferredReturn.length - 1] = inferred;
-  }
-
-  /// Pop a return type off of the return stack.
-  ///
-  /// Also record any inferred return type using [setType], unless this node
-  /// already has a context type. This recorded type will be the least upper
-  /// bound of all types added with [addReturnOrYieldType].
-  void popReturnContext(FunctionBody node) {
-    if (_returnStack.isNotEmpty && _inferredReturn.isNotEmpty) {
-      // If NNBD, and the function body end is reachable, infer nullable.
-      // If legacy, we consider the end as always reachable, and return Null.
-      if (!node.isGenerator) {
-        if (_resolver._isNonNullableByDefault) {
-          var flow = _resolver._flowAnalysis?.flow;
-          if (flow != null && flow.isReachable) {
-            addReturnOrYieldType(_typeProvider.nullType);
-          }
-        } else {
-          addReturnOrYieldType(_typeProvider.nullType);
-        }
-      }
-
-      DartType context = _returnStack.removeLast();
-      DartType inferred = _inferredReturn.removeLast();
-      context ??= DynamicTypeImpl.instance;
-      inferred ??= DynamicTypeImpl.instance;
-
-      if (_typeSystem.isSubtypeOf2(inferred, context)) {
-        setType(node, inferred);
-      }
-    } else {
-      assert(false);
+      return null;
     }
   }
 
-  /// Push a block function body's return type onto the return stack.
-  void pushReturnContext(FunctionBody node) {
-    _returnStack.add(getContext(node));
-    _inferredReturn.add(null);
+  void popFunctionBodyContext(FunctionBody node) {
+    var context = _bodyContexts.removeLast();
+
+    var flow = _resolver._flowAnalysis?.flow;
+
+    var resultType = context.computeInferredReturnType(
+      endOfBlockIsReachable: flow == null || flow.isReachable,
+    );
+
+    setType(node, resultType);
+  }
+
+  void pushFunctionBodyContext(FunctionBody node) {
+    var imposedType = getContext(node);
+    _bodyContexts.add(
+      BodyInferenceContext(
+        typeSystem: _typeSystem,
+        node: node,
+        imposedType: imposedType,
+      ),
+    );
   }
 
   /// Clear the type information associated with [node].
@@ -167,7 +119,7 @@ class InferenceContext {
   /// the type if found.
   ///
   /// The returned type may be partially or completely unknown, denoted with an
-  /// unknown type `?`, for example `List<?>` or `(?, int) -> void`.
+  /// unknown type `_`, for example `List<_>` or `(_, int) -> void`.
   /// You can use [TypeSystemImpl.upperBoundForType] or
   /// [TypeSystemImpl.lowerBoundForType] if you would prefer a known type
   /// that represents the bound of the context type.
@@ -474,43 +426,6 @@ class ResolverVisitor extends ScopedVisitor {
     nullSafetyDeadCodeVerifier.visitNode(node);
   }
 
-  /// Given the declared return type of a function, compute the type of the
-  /// values which should be returned or yielded as appropriate.  If a type
-  /// cannot be computed from the declared return type, return null.
-  DartType computeReturnOrYieldType(DartType declaredType) {
-    bool isGenerator = _enclosingFunction.isGenerator;
-    bool isAsynchronous = _enclosingFunction.isAsynchronous;
-
-    // Ordinary functions just return their declared types.
-    if (!isGenerator && !isAsynchronous) {
-      return declaredType;
-    }
-    if (declaredType is InterfaceType) {
-      if (isGenerator) {
-        // If it's sync* we expect Iterable<T>
-        // If it's async* we expect Stream<T>
-        // Match the types to instantiate the type arguments if possible
-        List<DartType> targs = declaredType.typeArguments;
-        if (targs.length == 1) {
-          var arg = targs[0];
-          if (isAsynchronous) {
-            if (typeProvider.streamType2(arg) == declaredType) {
-              return arg;
-            }
-          } else {
-            if (typeProvider.iterableType2(arg) == declaredType) {
-              return arg;
-            }
-          }
-        }
-      }
-      // async functions expect `Future<T> | T`
-      var futureTypeParam = typeSystem.flatten(declaredType);
-      return _createFutureOr(futureTypeParam);
-    }
-    return declaredType;
-  }
-
   /// Return the static element associated with the given expression whose type
   /// can be overridden, or `null` if there is no element whose type can be
   /// overridden.
@@ -738,10 +653,10 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
     try {
-      inferenceContext.pushReturnContext(node);
+      inferenceContext.pushFunctionBodyContext(node);
       super.visitBlockFunctionBody(node);
     } finally {
-      inferenceContext.popReturnContext(node);
+      inferenceContext.popFunctionBodyContext(node);
     }
   }
 
@@ -1041,21 +956,19 @@ class ResolverVisitor extends ScopedVisitor {
       return;
     }
     try {
-      InferenceContext.setTypeFromNode(node.expression, node);
-      inferenceContext.pushReturnContext(node);
+      inferenceContext.pushFunctionBodyContext(node);
+      InferenceContext.setType(
+        node.expression,
+        inferenceContext.bodyContext.contextType,
+      );
+
       super.visitExpressionFunctionBody(node);
 
       _flowAnalysis?.flow?.handleExit();
 
-      DartType type = node.expression.staticType;
-      if (_enclosingFunction.isAsynchronous) {
-        type = typeSystem.flatten(type);
-      }
-      if (type != null) {
-        inferenceContext.addReturnOrYieldType(type);
-      }
+      inferenceContext.bodyContext.addReturnExpression(node.expression);
     } finally {
-      inferenceContext.popReturnContext(node);
+      inferenceContext.popFunctionBodyContext(node);
     }
   }
 
@@ -1137,9 +1050,12 @@ class ResolverVisitor extends ScopedVisitor {
     super.visitFunctionDeclaration(node);
 
     if (_flowAnalysis != null) {
-      var returnType = computeReturnOrYieldType(functionType.returnType);
+      // TODO(scheglov) encapsulate
+      var bodyContext = BodyInferenceContext.of(
+        node.functionExpression.body,
+      );
       checkForBodyMayCompleteNormally(
-        returnType: returnType,
+        returnType: bodyContext?.contextType,
         body: node.functionExpression.body,
         errorNode: node.name,
       );
@@ -1367,16 +1283,16 @@ class ResolverVisitor extends ScopedVisitor {
       _promoteManager.enterFunctionBody(node.body);
     }
 
-    DartType returnType = computeReturnOrYieldType(
-      _enclosingFunction?.returnType,
-    );
+    DartType returnType = _enclosingFunction?.returnType;
     InferenceContext.setType(node.body, returnType);
 
     super.visitMethodDeclaration(node);
 
     if (_flowAnalysis != null) {
+      // TODO(scheglov) encapsulate
+      var bodyContext = BodyInferenceContext.of(node.body);
       checkForBodyMayCompleteNormally(
-        returnType: returnType,
+        returnType: bodyContext?.contextType,
         body: node.body,
         errorNode: node.name,
       );
@@ -1525,17 +1441,14 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitReturnStatement(ReturnStatement node) {
-    InferenceContext.setType(node.expression, inferenceContext.returnContext);
+    InferenceContext.setType(
+      node.expression,
+      inferenceContext.bodyContext?.contextType,
+    );
+
     super.visitReturnStatement(node);
-    DartType type = node.expression?.staticType;
-    // Generators cannot return values, so don't try to do any inference if
-    // we're processing erroneous code.
-    if (type != null && _enclosingFunction?.isGenerator == false) {
-      if (_enclosingFunction.isAsynchronous) {
-        type = typeSystem.flatten(type);
-      }
-      inferenceContext.addReturnOrYieldType(type);
-    }
+
+    inferenceContext.bodyContext?.addReturnExpression(node.expression);
     _flowAnalysis?.flow?.handleExit();
   }
 

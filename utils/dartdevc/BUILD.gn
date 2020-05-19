@@ -33,21 +33,8 @@ application_snapshot("dartdevc") {
     "-k",
     "-o",
     "dartdevc.js",
+    rebase_path("../../pkg/dev_compiler/bin/dartdevc.dart"),
   ]
-
-  if (dont_use_nnbd) {
-    training_args += [ rebase_path("../../pkg/dev_compiler/bin/dartdevc.dart") ]
-  } else {
-    training_args += [
-      "--enable-experiment=non-nullable",
-
-      # TODO(sigmund): restore training with dartdevc.dart. Currently blocked by
-      # some regressions in type-promotion in the CFE when nnbd is enabled.
-      # The following test file is pretty simple and has no imports, so it
-      # should be easier to compile while we bootstrap NNBD.
-      rebase_path("../../tests/language_2/abstract/equal_test.dart"),
-    ]
-  }
 
   deps = [
     ":dartdevc_kernel_sdk",

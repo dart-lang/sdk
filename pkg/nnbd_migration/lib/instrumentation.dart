@@ -80,8 +80,19 @@ class CodeReference {
   }
 
   static String _computeNodeDeclarationName(AstNode node) {
-    if (node is Declaration) {
-      return node.declaredElement?.name;
+    if (node is FieldDeclaration) {
+      if (node.fields.variables.length == 1) {
+        return node.fields.variables.single.declaredElement?.name;
+      } else {
+        // TODO(srawlins): Handle multiple fields declared at once; likely in
+        // caller, not here.
+        return null;
+      }
+    } else if (node is ExtensionDeclaration) {
+      return node.declaredElement?.name ?? '<unnamed extension>';
+    } else if (node is Declaration) {
+      var name = node.declaredElement?.name;
+      return name == '' ? '<unnamed>' : name;
     } else {
       return null;
     }
@@ -266,6 +277,33 @@ enum EdgeOriginKind {
 /// about a reason for a modification to the source file.
 abstract class FixReasonInfo {}
 
+/// Enum describing the possible hints that can be performed on an edge or a
+/// node.
+///
+/// Which actions are available can be built by other visitors, and the hint can
+/// be applied by visitors such as EditPlanner when the user requests it from
+/// the front end.
+enum HintActionKind {
+  /// Add a `/*?*/` hint to a type.
+  addNullableHint,
+
+  /// Add a `/*!*/` hint to a type.
+  addNonNullableHint,
+}
+
+/// Abstract interface for assigning ids numbers to nodes, and performing
+/// lookups afterwards.
+abstract class NodeMapper extends NodeToIdMapper {
+  /// Gets the node corresponding to the given [id].
+  NullabilityNodeInfo nodeForId(int id);
+}
+
+/// Abstract interface for assigning ids numbers to nodes.
+abstract class NodeToIdMapper {
+  /// Gets the id corresponding to the given [node].
+  int idForNode(NullabilityNodeInfo node);
+}
+
 /// Interface used by the migration engine to expose information to its client
 /// about the decisions made during migration, and how those decisions relate to
 /// the input source code.
@@ -358,6 +396,14 @@ abstract class NullabilityNodeInfo implements FixReasonInfo {
   /// available to query as well.
   Iterable<EdgeInfo> get downstreamEdges;
 
+  /// The hint actions users can perform on this node, indexed by the type of
+  /// hint.
+  ///
+  /// Each edit is represented as a [Map<int, List<AtomicEdit>>] as is typical
+  /// of [AtomicEdit]s since they do not have an offset. See extensions
+  /// [AtomicEditMap] and [AtomicEditList] for usage.
+  Map<HintActionKind, Map<int, List<AtomicEdit>>> get hintActions;
+
   /// After migration is complete, this getter can be used to query whether
   /// the type associated with this node was determined to be "exact nullable."
   bool get isExactNullable;
@@ -401,6 +447,26 @@ abstract class SimpleFixReasonInfo implements FixReasonInfo {
   String get description;
 }
 
+/// A simple implementation of [NodeMapper] that assigns ids to nodes as they
+/// are requested, backed by a map.
+///
+/// Be careful not to leak references to nodes by holding on to this beyond the
+/// lifetime of the nodes it maps.
+class SimpleNodeMapper extends NodeMapper {
+  final _nodeToId = <NullabilityNodeInfo, int>{};
+  final _idToNode = <int, NullabilityNodeInfo>{};
+
+  @override
+  int idForNode(NullabilityNodeInfo node) {
+    final id = _nodeToId.putIfAbsent(node, () => _nodeToId.length);
+    _idToNode.putIfAbsent(id, () => node);
+    return id;
+  }
+
+  @override
+  NullabilityNodeInfo nodeForId(int id) => _idToNode[id];
+}
+
 /// Information exposed to the migration client about a node in the nullability
 /// graph resulting from a type substitution.
 abstract class SubstitutionNodeInfo extends NullabilityNodeInfo {
@@ -422,6 +488,8 @@ abstract class SubstitutionNodeInfo extends NullabilityNodeInfo {
 /// Information about a propagation step that occurred during upstream
 /// propagation.
 abstract class UpstreamPropagationStepInfo implements PropagationStepInfo {
+  bool get isStartingPoint;
+
   /// The node whose nullability was changed.
   ///
   /// Any propagation step that took effect should have a non-null value here.
@@ -431,4 +499,20 @@ abstract class UpstreamPropagationStepInfo implements PropagationStepInfo {
   NullabilityNodeInfo get node;
 
   UpstreamPropagationStepInfo get principalCause;
+}
+
+/// Extension methods to make [HintActionKind] act as a smart enum.
+extension HintActionKindBehaviors on HintActionKind {
+  /// Get the text description of a [HintActionKind], for display to users.
+  String get description {
+    switch (this) {
+      case HintActionKind.addNullableHint:
+        return 'Add /*?*/ hint';
+      case HintActionKind.addNonNullableHint:
+        return 'Add /*!*/ hint';
+    }
+
+    assert(false);
+    return null;
+  }
 }

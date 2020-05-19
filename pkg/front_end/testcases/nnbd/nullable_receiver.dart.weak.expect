@@ -132,22 +132,22 @@ static method ok<T extends core::Object? = core::Object?>(core::String? s, self:
   try {
     s.{core::Object::noSuchMethod}(i);
   }
-  on dynamic catch(final dynamic e, final core::StackTrace t) {
+  on core::Object catch(final core::Object e, final core::StackTrace t) {
   }
   try {
     a.{core::Object::noSuchMethod}(i);
   }
-  on dynamic catch(final dynamic e, final core::StackTrace t) {
+  on core::Object catch(final core::Object e, final core::StackTrace t) {
   }
   try {
     t.{core::Object::noSuchMethod}(i);
   }
-  on dynamic catch(final dynamic e, final core::StackTrace t) {
+  on core::Object catch(final core::Object e, final core::StackTrace t) {
   }
   try {
     b.{core::Object::noSuchMethod}(i);
   }
-  on dynamic catch(final dynamic e, final core::StackTrace t) {
+  on core::Object catch(final core::Object e, final core::StackTrace t) {
   }
   s.{core::Object::runtimeType};
   a.{core::Object::runtimeType};

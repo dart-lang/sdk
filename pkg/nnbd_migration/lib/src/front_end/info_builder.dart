@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:analysis_server/src/api_for_nnbd_migration.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -13,8 +14,6 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
 import 'package:meta/meta.dart';
-import 'package:nnbd_migration/api_for_analysis_server/dartfix_listener_interface.dart';
-import 'package:nnbd_migration/api_for_analysis_server/driver_provider.dart';
 import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
@@ -25,6 +24,9 @@ import 'package:nnbd_migration/src/front_end/offset_mapper.dart';
 
 /// A builder used to build the migration information for a library.
 class InfoBuilder {
+  /// The node mapper for the migration state.
+  NodeMapper nodeMapper;
+
   /// The resource provider used to access the file system.
   ResourceProvider provider;
 
@@ -46,7 +48,7 @@ class InfoBuilder {
 
   /// Initialize a newly created builder.
   InfoBuilder(this.provider, this.includedPath, this.info, this.listener,
-      this.migration);
+      this.migration, this.nodeMapper);
 
   /// The provider used to get information about libraries.
   DriverProvider get driverProvider => listener.server;
@@ -245,7 +247,7 @@ class InfoBuilder {
       return;
     }
     assert(identical(step.node, node));
-    while (step != null) {
+    while (step != null && !step.isStartingPoint) {
       entries.add(_nodeToTraceEntry(step.node));
       if (step.codeReference != null) {
         entries.add(_stepToTraceEntry(step));
@@ -400,7 +402,8 @@ class InfoBuilder {
   }
 
   TraceEntryInfo _makeTraceEntry(
-      String description, CodeReference codeReference) {
+      String description, CodeReference codeReference,
+      {List<HintAction> hintActions = const []}) {
     var length = 1; // TODO(paulberry): figure out the correct value.
     return TraceEntryInfo(
         description,
@@ -408,13 +411,17 @@ class InfoBuilder {
         codeReference == null
             ? null
             : NavigationTarget(codeReference.path, codeReference.offset,
-                codeReference.line, length));
+                codeReference.line, length),
+        hintActions: hintActions);
   }
 
   TraceEntryInfo _nodeToTraceEntry(NullabilityNodeInfo node,
       {String description}) {
     description ??= node.toString(); // TODO(paulberry): improve this message
-    return _makeTraceEntry(description, node.codeReference);
+    return _makeTraceEntry(description, node.codeReference,
+        hintActions: node.hintActions.keys
+            .map((kind) => HintAction(kind, nodeMapper.idForNode(node)))
+            .toList());
   }
 
   TraceEntryInfo _stepToTraceEntry(PropagationStepInfo step) {

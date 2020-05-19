@@ -2611,11 +2611,12 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
     if (exactness != nullptr && exactness->is_exact) {
       exactness->emit_exactness_guard = true;
     } else {
+      auto const function_type_args = flow_graph->constant_null();
+      auto const dst_type = flow_graph->GetConstant(value_type);
       AssertAssignableInstr* assert_value = new (Z) AssertAssignableInstr(
-          token_pos, new (Z) Value(stored_value), new (Z) Value(type_args),
-          new (Z)
-              Value(flow_graph->constant_null()),  // Function type arguments.
-          value_type, Symbols::Value(), call->deopt_id());
+          token_pos, new (Z) Value(stored_value), new (Z) Value(dst_type),
+          new (Z) Value(type_args), new (Z) Value(function_type_args),
+          Symbols::Value(), call->deopt_id());
       cursor = flow_graph->AppendTo(cursor, assert_value, call->env(),
                                     FlowGraph::kValue);
     }
@@ -4146,7 +4147,8 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       return false;
     }
 
-    case MethodRecognizer::kOneByteStringSetAt: {
+    case MethodRecognizer::kWriteIntoOneByteString:
+    case MethodRecognizer::kWriteIntoTwoByteString: {
       // This is an internal method, no need to check argument types nor
       // range.
       *entry = new (Z)
@@ -4167,11 +4169,13 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       value->AsUnboxInteger()->mark_truncating();
       flow_graph->AppendTo(*entry, value, env, FlowGraph::kValue);
 
+      const bool is_onebyte = kind == MethodRecognizer::kWriteIntoOneByteString;
+      const intptr_t index_scale = is_onebyte ? 1 : 2;
+      const intptr_t cid = is_onebyte ? kOneByteStringCid : kTwoByteStringCid;
       *last = new (Z) StoreIndexedInstr(
           new (Z) Value(str), new (Z) Value(index), new (Z) Value(value),
-          kNoStoreBarrier, /*index_unboxed=*/false,
-          /*index_scale=*/1, kOneByteStringCid, kAlignedAccess,
-          call->deopt_id(), call->token_pos());
+          kNoStoreBarrier, /*index_unboxed=*/false, index_scale, cid,
+          kAlignedAccess, call->deopt_id(), call->token_pos());
       flow_graph->AppendTo(value, *last, env, FlowGraph::kEffect);
 
       // We need a return value to replace uses of the original definition.

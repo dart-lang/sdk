@@ -2176,12 +2176,17 @@ class SsaInstructionSimplifier extends HBaseVisitor
           SpecializedChecks.findIsTestSpecialization(
               dartType, _graph, _closedWorld);
 
-      if (specialization == IsTestSpecialization.null_) {
-        return HIdentity(
+      if (specialization == IsTestSpecialization.isNull ||
+          specialization == IsTestSpecialization.notNull) {
+        HInstruction nullTest = HIdentity(
             node.checkedInput,
             _graph.addConstantNull(_closedWorld),
             null,
             _abstractValueDomain.boolType);
+        if (specialization == IsTestSpecialization.isNull) return nullTest;
+        nullTest.sourceInformation = node.sourceInformation;
+        node.block.addBefore(node, nullTest);
+        return HNot(nullTest, _abstractValueDomain.boolType);
       }
 
       if (specialization != null) {

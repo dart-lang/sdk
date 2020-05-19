@@ -54,3 +54,5 @@ static method x() → dynamic
   ;
 static method foo() → void
   ;
+static method main() → dynamic
+  ;

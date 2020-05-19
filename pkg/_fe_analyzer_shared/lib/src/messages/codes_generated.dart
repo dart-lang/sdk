@@ -7844,6 +7844,15 @@ const MessageCode messageStaticOperator = const MessageCode("StaticOperator",
     tip: r"""Try removing the keyword 'static'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeStrongModeNNBDButOptOut = messageStrongModeNNBDButOptOut;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageStrongModeNNBDButOptOut = const MessageCode(
+    "StrongModeNNBDButOptOut",
+    message:
+        r"""A library can't opt out of non-nullable by default, when in nnbd-strong mode.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSuperAsExpression = messageSuperAsExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

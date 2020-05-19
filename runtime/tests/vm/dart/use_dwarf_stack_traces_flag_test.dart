@@ -106,8 +106,9 @@ main(List<String> args) async {
     // For DWARF stack traces, we can't guarantee that the stack traces are
     // textually equal on all platforms, but if we retrieve the PC offsets
     // out of the stack trace, those should be equal.
-    Expect.deepEquals(
-        collectPCOffsets(dwarfTrace1), collectPCOffsets(dwarfTrace2));
+    final tracePCOffsets1 = collectPCOffsets(dwarfTrace1);
+    final tracePCOffsets2 = collectPCOffsets(dwarfTrace2);
+    Expect.deepEquals(tracePCOffsets1, tracePCOffsets2);
 
     // Check that translating the DWARF stack trace (without internal frames)
     // matches the symbolic stack trace.
@@ -132,6 +133,17 @@ main(List<String> args) async {
     Expect.isTrue(originalStackFrames.length > 0);
 
     Expect.deepEquals(translatedStackFrames, originalStackFrames);
+
+    // Since we compiled directly to ELF, there should be 'virt' markers in the
+    // stack traces. Make sure the address following the marker matches the
+    // relocated address calculated from the PCOffset for each frame.
+    final virtTrace1 = explicitVirtualAddresses(dwarfTrace1);
+    final virtTrace2 = explicitVirtualAddresses(dwarfTrace2);
+
+    Expect.deepEquals(
+        virtTrace1, tracePCOffsets1.map((o) => o.virtualAddressIn(dwarf)));
+    Expect.deepEquals(
+        virtTrace2, tracePCOffsets2.map((o) => o.virtualAddressIn(dwarf)));
   });
 }
 
@@ -139,4 +151,15 @@ final _symbolicFrameRE = RegExp(r'^#\d+\s+');
 
 Iterable<String> onlySymbolicFrameLines(Iterable<String> lines) {
   return lines.where((line) => _symbolicFrameRE.hasMatch(line));
+}
+
+final _virtRE = RegExp(r'virt ([a-f\d]+)');
+
+Iterable<int> explicitVirtualAddresses(Iterable<String> lines) sync* {
+  for (final line in lines) {
+    final match = _virtRE.firstMatch(line);
+    if (match != null) {
+      yield int.parse(match.group(1), radix: 16);
+    }
+  }
 }

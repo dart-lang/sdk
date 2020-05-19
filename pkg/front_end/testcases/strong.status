@@ -25,6 +25,7 @@ general/callable_type_variable: TypeCheckError
 general/candidate_found: TypeCheckError
 general/cascade: RuntimeError
 general/constructor_initializer_invalid: RuntimeError # Fails execution after recovery
+general/covariant_field: TypeCheckError
 general/covariant_generic: RuntimeError
 general/duplicated_declarations: TypeCheckError
 general/duplicated_field_initializer: RuntimeError
@@ -167,15 +168,13 @@ inference_new/infer_assign_to_property_custom: TypeCheckError
 inference_new/invalid_assignment_during_toplevel_inference: TypeCheckError
 instantiate_to_bound/non_simple_class_parametrized_typedef_cycle: RuntimeError # Expected
 instantiate_to_bound/non_simple_generic_function_in_bound_regress: RuntimeError # Expected
-nnbd/inheritance_from_opt_in: TypeCheckError
+late_lowering/covariant_late_field: TypeCheckError
+nnbd/covariant_late_field: TypeCheckError
 nnbd/issue41180: RuntimeError # Strong mode runtime checking fails due to mixed strong mode.
-nnbd/issue41567: TypeCheckError
-nnbd/messages_with_types_opt_in: TypeCheckError
-nnbd/messages_with_types_opt_out: TypeCheckError
-nnbd/never_opt_out: TypeCheckError
 nnbd/nullable_object_access: TypeCheckError
 nnbd/nullable_receiver: TypeCheckError
 nnbd/potentially_nullable_access: TypeCheckError
+nnbd/strong_lib_not_ok_from_dill/strong: RuntimeError
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError
 rasta/bad_continue: RuntimeError
@@ -221,7 +220,6 @@ rasta/unresolved: RuntimeError
 rasta/unresolved_constructor: RuntimeError
 rasta/unresolved_for_in: RuntimeError
 rasta/unresolved_recovery: TypeCheckError
-regress/ambiguous_builder_01: Crash
 regress/issue_29976: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_29982: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_30836: RuntimeError # Issue 30836.

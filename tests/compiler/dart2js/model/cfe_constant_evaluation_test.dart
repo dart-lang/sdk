@@ -32,9 +32,19 @@ class TestData {
   final String declarations;
 
   /// Tested constants.
-  final List<ConstantData> constants;
+  final List<ConstantData> constantsCommon;
+  final List<ConstantData> constantsPreNnbd;
+  final List<ConstantData> constantsNnbdWeak;
+  List<ConstantData> get constants =>
+      constantsCommon +
+      (isDart2jsNnbd && constantsNnbdWeak.isNotEmpty
+          ? constantsNnbdWeak
+          : constantsPreNnbd);
 
-  const TestData(this.name, this.declarations, this.constants);
+  const TestData(this.name, this.declarations,
+      {this.constantsCommon: const [],
+      this.constantsPreNnbd: const [],
+      this.constantsNnbdWeak: const []});
 }
 
 class ConstantData {
@@ -55,7 +65,7 @@ class ConstantData {
 }
 
 const List<TestData> DATA = const [
-  const TestData('simple', '', const [
+  const TestData('simple', '', constantsCommon: const [
     const ConstantData('null', 'NullConstant'),
     const ConstantData('false', 'BoolConstant(false)'),
     const ConstantData('true', 'BoolConstant(true)'),
@@ -92,22 +102,6 @@ const List<TestData> DATA = const [
     const ConstantData('"" != proxy', 'BoolConstant(true)'),
     const ConstantData('Object', 'TypeConstant(Object)'),
     const ConstantData('null ?? 0', 'IntConstant(0)'),
-    const ConstantData(
-        'const [0, 1]', 'ListConstant(<int>[IntConstant(0), IntConstant(1)])'),
-    const ConstantData('const <int>[0, 1]',
-        'ListConstant(<int>[IntConstant(0), IntConstant(1)])'),
-    const ConstantData(
-        'const {0, 1}', 'SetConstant(<int>{IntConstant(0), IntConstant(1)})'),
-    const ConstantData('const <int>{0, 1}',
-        'SetConstant(<int>{IntConstant(0), IntConstant(1)})'),
-    const ConstantData(
-        'const {0: 1, 2: 3}',
-        'MapConstant(<int, int>{IntConstant(0): IntConstant(1), '
-            'IntConstant(2): IntConstant(3)})'),
-    const ConstantData(
-        'const <int, int>{0: 1, 2: 3}',
-        'MapConstant(<int, int>{IntConstant(0): IntConstant(1), '
-            'IntConstant(2): IntConstant(3)})'),
     const ConstantData('const <int, int>{0: 1, 0: 2}', 'NonConstant',
         expectedErrors: 'ConstEvalDuplicateKey'),
     const ConstantData(
@@ -128,6 +122,40 @@ const List<TestData> DATA = const [
           const {}: 'StringConstant("bar")',
           const {'foo': 'foo'}: 'StringConstant("foo")'
         }),
+  ], constantsPreNnbd: const [
+    const ConstantData(
+        'const [0, 1]', 'ListConstant(<int>[IntConstant(0), IntConstant(1)])'),
+    const ConstantData('const <int>[0, 1]',
+        'ListConstant(<int>[IntConstant(0), IntConstant(1)])'),
+    const ConstantData(
+        'const {0, 1}', 'SetConstant(<int>{IntConstant(0), IntConstant(1)})'),
+    const ConstantData('const <int>{0, 1}',
+        'SetConstant(<int>{IntConstant(0), IntConstant(1)})'),
+    const ConstantData(
+        'const {0: 1, 2: 3}',
+        'MapConstant(<int, int>{IntConstant(0): IntConstant(1), '
+            'IntConstant(2): IntConstant(3)})'),
+    const ConstantData(
+        'const <int, int>{0: 1, 2: 3}',
+        'MapConstant(<int, int>{IntConstant(0): IntConstant(1), '
+            'IntConstant(2): IntConstant(3)})'),
+  ], constantsNnbdWeak: const [
+    const ConstantData(
+        'const [0, 1]', 'ListConstant(<int*>[IntConstant(0), IntConstant(1)])'),
+    const ConstantData('const <int>[0, 1]',
+        'ListConstant(<int*>[IntConstant(0), IntConstant(1)])'),
+    const ConstantData(
+        'const {0, 1}', 'SetConstant(<int*>{IntConstant(0), IntConstant(1)})'),
+    const ConstantData('const <int>{0, 1}',
+        'SetConstant(<int*>{IntConstant(0), IntConstant(1)})'),
+    const ConstantData(
+        'const {0: 1, 2: 3}',
+        'MapConstant(<int*, int*>{IntConstant(0): IntConstant(1), '
+            'IntConstant(2): IntConstant(3)})'),
+    const ConstantData(
+        'const <int, int>{0: 1, 2: 3}',
+        'MapConstant(<int*, int*>{IntConstant(0): IntConstant(1), '
+            'IntConstant(2): IntConstant(3)})'),
   ]),
   const TestData('env', '''
 const a = const bool.fromEnvironment("foo", defaultValue: true);
@@ -149,7 +177,7 @@ class D extends C {
   final field3 = 99;
   const D(a, b) : super(field2: a, field1: b);
 }
-''', const [
+''', constantsCommon: const [
     const ConstantData('const Object()', 'ConstructedConstant(Object())'),
     const ConstantData('const A()', 'ConstructedConstant(A())'),
     const ConstantData(
@@ -202,9 +230,10 @@ class B<S> implements C<Null> {
 class C<U> {
   const factory C({field1}) = A<B<double>>;
 }
-''', const [
+''', constantsCommon: const [
     const ConstantData(
         'const A()', 'ConstructedConstant(A<dynamic>(field1=IntConstant(42)))'),
+  ], constantsPreNnbd: const [
     const ConstantData('const A<int>(field1: 87)',
         'ConstructedConstant(A<int>(field1=IntConstant(87)))'),
     const ConstantData('const B()',
@@ -217,6 +246,19 @@ class C<U> {
         'ConstructedConstant(A<B<double>>(field1=IntConstant(87)))'),
     const ConstantData('const B<int>.named()',
         'ConstructedConstant(A<int>(field1=IntConstant(42)))'),
+  ], constantsNnbdWeak: const [
+    const ConstantData('const A<int>(field1: 87)',
+        'ConstructedConstant(A<int*>(field1=IntConstant(87)))'),
+    const ConstantData('const B()',
+        'ConstructedConstant(A<B<dynamic>*>(field1=IntConstant(42)))'),
+    const ConstantData('const B<int>()',
+        'ConstructedConstant(A<B<int*>*>(field1=IntConstant(42)))'),
+    const ConstantData('const B<int>(field1: 87)',
+        'ConstructedConstant(A<B<int*>*>(field1=IntConstant(87)))'),
+    const ConstantData('const C<int>(field1: 87)',
+        'ConstructedConstant(A<B<double*>*>(field1=IntConstant(87)))'),
+    const ConstantData('const B<int>.named()',
+        'ConstructedConstant(A<int*>(field1=IntConstant(42)))'),
   ]),
   const TestData('env2', '''
 const c = const int.fromEnvironment("foo", defaultValue: 5);
@@ -230,7 +272,7 @@ class A {
 class B extends A {
   const B(a) : super(a, a * 2);
 }
-''', const [
+''', constantsCommon: const [
     const ConstantData('const A(c, d)', const <Map<String, String>, String>{
       const {}: 'ConstructedConstant(A(field=IntConstant(15)))',
       const {'foo': '7', 'bar': '11'}:
@@ -252,7 +294,7 @@ class B extends A {
    const A.named(z, this.t) : y = 400 + z, this.z = z, x = 3;
    const A.named2(t, z, y, x) : x = t, y = z, z = y, t = x;
  }
- ''', const [
+ ''', constantsCommon: const [
     const ConstantData(
         'const A.named(99, 100)',
         'ConstructedConstant(A('
@@ -316,7 +358,7 @@ class B extends A {
     final int field = string;
     const Class10();
  }
- ''', const [
+ ''', constantsCommon: const [
     const ConstantData(
         r'"$integer $string $boolean"', 'StringConstant("5 baz false")'),
     const ConstantData('integer ? true : false', 'NonConstant',
@@ -425,7 +467,7 @@ class B extends A {
     class E {
       const E() : assert(true_);
     }
-  ''', const [
+  ''', constantsCommon: const [
     const ConstantData(r'const A()', 'ConstructedConstant(A())'),
     const ConstantData(r'const B()', 'ConstructedConstant(B())'),
     const ConstantData(r'const D(0)',
@@ -440,8 +482,9 @@ class C<T> {
 
   const C(this.defaultValue, this.identityFunction);
 }
-  ''', const <ConstantData>[
+  ''', constantsCommon: [
     const ConstantData('identity', 'FunctionConstant(identity)'),
+  ], constantsPreNnbd: const <ConstantData>[
     const ConstantData(
         'const C<int>(0, identity)',
         'ConstructedConstant(C<int>(defaultValue=IntConstant(0),'
@@ -452,17 +495,33 @@ class C<T> {
         'ConstructedConstant(C<double>(defaultValue=DoubleConstant(0.5),'
             'identityFunction=InstantiationConstant([double],'
             'FunctionConstant(identity))))'),
+  ], constantsNnbdWeak: const <ConstantData>[
+    const ConstantData(
+        'const C<int>(0, identity)',
+        'ConstructedConstant(C<int*>(defaultValue=IntConstant(0),'
+            'identityFunction=InstantiationConstant([int*],'
+            'FunctionConstant(identity))))'),
+    const ConstantData(
+        'const C<double>(0.5, identity)',
+        'ConstructedConstant(C<double*>(defaultValue=DoubleConstant(0.5),'
+            'identityFunction=InstantiationConstant([double*],'
+            'FunctionConstant(identity))))'),
   ]),
   const TestData('generic class', '''
 class C<T> {
   const C.generative();
   const C.redirect() : this.generative();
 }
-  ''', const <ConstantData>[
+  ''', constantsPreNnbd: const <ConstantData>[
     const ConstantData(
         'const C<int>.generative()', 'ConstructedConstant(C<int>())'),
     const ConstantData(
         'const C<int>.redirect()', 'ConstructedConstant(C<int>())'),
+  ], constantsNnbdWeak: const <ConstantData>[
+    const ConstantData(
+        'const C<int>.generative()', 'ConstructedConstant(C<int*>())'),
+    const ConstantData(
+        'const C<int>.redirect()', 'ConstructedConstant(C<int*>())'),
   ]),
   const TestData('instance', '''
 const dynamic zero_ = const bool.fromEnvironment("x") ? null : 0;
@@ -470,7 +529,7 @@ class Class9 {
   final field = zero_;
   const Class9();
 }
-''', const <ConstantData>[
+''', constantsCommon: const <ConstantData>[
     const ConstantData(
         'const Class9()', 'ConstructedConstant(Class9(field=IntConstant(0)))'),
   ]),
@@ -490,13 +549,20 @@ class C2<T> {
   final T Function(T) a;
   const C2(dynamic t) : a = id; // implicit partial instantiation
 }
-''', const <ConstantData>[
+''', constantsPreNnbd: const <ConstantData>[
     const ConstantData('const C1<A>(const A())',
         'ConstructedConstant(C1<A>(a=ConstructedConstant(A())))'),
     const ConstantData(
         'const C2<A>(id)',
         'ConstructedConstant(C2<A>(a='
             'InstantiationConstant([A],FunctionConstant(id))))'),
+  ], constantsNnbdWeak: const <ConstantData>[
+    const ConstantData('const C1<A>(const A())',
+        'ConstructedConstant(C1<A*>(a=ConstructedConstant(A())))'),
+    const ConstantData(
+        'const C2<A>(id)',
+        'ConstructedConstant(C2<A*>(a='
+            'InstantiationConstant([A*],FunctionConstant(id))))'),
   ]),
   const TestData('unused-arguments', '''
 class A {
@@ -522,21 +588,31 @@ class Class<T extends A> {
 class Subclass<T extends A> extends Class<T> {
   const Subclass(dynamic t) : super(t);
 }
-''', const <ConstantData>[
-    const ConstantData(
-        'const Class<A>(const A())', 'ConstructedConstant(Class<A>())'),
-    const ConstantData('const Class<B>.redirect(const B())',
-        'ConstructedConstant(Class<B>())'),
+''', constantsCommon: [
     const ConstantData('const Class<B>.redirect(const C())', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidType'),
     const ConstantData('const Class<A>.method(const A())', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidMethodInvocation'),
+    const ConstantData('const Subclass<B>(const C())', 'NonConstant',
+        expectedErrors: 'ConstEvalInvalidType'),
+  ], constantsPreNnbd: const <ConstantData>[
+    const ConstantData(
+        'const Class<A>(const A())', 'ConstructedConstant(Class<A>())'),
+    const ConstantData('const Class<B>.redirect(const B())',
+        'ConstructedConstant(Class<B>())'),
     const ConstantData(
         'const Subclass<A>(const A())', 'ConstructedConstant(Subclass<A>())'),
     const ConstantData(
         'const Subclass<B>(const B())', 'ConstructedConstant(Subclass<B>())'),
-    const ConstantData('const Subclass<B>(const C())', 'NonConstant',
-        expectedErrors: 'ConstEvalInvalidType'),
+  ], constantsNnbdWeak: const <ConstantData>[
+    const ConstantData(
+        'const Class<A>(const A())', 'ConstructedConstant(Class<A*>())'),
+    const ConstantData('const Class<B>.redirect(const B())',
+        'ConstructedConstant(Class<B*>())'),
+    const ConstantData(
+        'const Subclass<A>(const A())', 'ConstructedConstant(Subclass<A*>())'),
+    const ConstantData(
+        'const Subclass<B>(const B())', 'ConstructedConstant(Subclass<B*>())'),
   ]),
 ];
 

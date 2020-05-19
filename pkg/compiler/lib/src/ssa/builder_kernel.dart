@@ -5484,11 +5484,6 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     DartType typeValue =
         localsHandler.substInContext(_elementMap.getDartType(type));
 
-    if (dartTypes.isTopType(typeValue)) {
-      stack.add(graph.addConstantBool(true, closedWorld));
-      return;
-    }
-
     if (options.useNewRti) {
       HInstruction rti =
           _typeBuilder.analyzeTypeArgumentNewRti(typeValue, sourceElement);
@@ -5498,6 +5493,11 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       push(HIsTest(typeValue, checkedType, expression, rti,
           _abstractValueDomain.boolType)
         ..sourceInformation = sourceInformation);
+      return;
+    }
+
+    if (dartTypes.isTopType(typeValue)) {
+      stack.add(graph.addConstantBool(true, closedWorld));
       return;
     }
 
@@ -6582,11 +6582,19 @@ class TryCatchFinallyBuilder {
     HInstruction oldRethrowableException = kernelBuilder._rethrowableException;
     kernelBuilder._rethrowableException = exception;
 
+    AbstractValue unwrappedType = kernelBuilder._typeInferenceMap
+        .getReturnTypeOf(kernelBuilder._commonElements.exceptionUnwrapper);
+    if (!kernelBuilder.options.useLegacySubtyping) {
+      // Global type analysis does not currently understand that strong mode
+      // `Object` is not nullable, so is imprecise in the return type of the
+      // unwrapper, which leads to unnecessary checks for 'on Object'.
+      unwrappedType =
+          kernelBuilder._abstractValueDomain.excludeNull(unwrappedType);
+    }
     kernelBuilder._pushStaticInvocation(
         kernelBuilder._commonElements.exceptionUnwrapper,
         [exception],
-        kernelBuilder._typeInferenceMap
-            .getReturnTypeOf(kernelBuilder._commonElements.exceptionUnwrapper),
+        unwrappedType,
         const <DartType>[],
         sourceInformation: trySourceInformation);
     HInvokeStatic unwrappedException = kernelBuilder.pop();

@@ -68,6 +68,13 @@ Updated the Linter to `0.1.115`, which includes:
 
 ### Dart VM
 
+## 2.8.2 - 2020-05-13
+
+This is a patch release that fixes an AOT compilation bug in global
+transformations which manifests as a NoSuchMethod exception
+(issue [flutter/flutter#56479][]).
+
+[flutter/flutter#56479]: https://github.com/flutter/flutter/issues/56479
 
 ## 2.8.1 - 2020-05-06
 
@@ -278,6 +285,10 @@ minor breaking changes:
     `zoneSpecification` and `onError` parameters. Use the `runZoned()` or
     `runZonedGuarded()` functions from `dart:async` directly if needing to
     specify those.
+
+*   Class `HttpClient` and `HttpServer`, when receiving `HttpRequest` or
+    `HttpClientResponse`, will now put a 8K size limit on its header fields and
+    values.
 
 [#33501]: https://github.com/dart-lang/sdk/issues/33501
 [#40702]: https://github.com/dart-lang/sdk/issues/40702

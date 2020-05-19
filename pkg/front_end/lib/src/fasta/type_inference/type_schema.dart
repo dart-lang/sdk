@@ -57,10 +57,13 @@ class TypeSchemaPrinter extends Printer {
 /// The unknown type cannot appear in programs or in final inferred types: it is
 /// purely part of the local inference process.
 class UnknownType extends DartType {
+  const UnknownType();
+
   @override
   Nullability get nullability => null;
 
-  const UnknownType();
+  @override
+  Nullability get declaredNullability => null;
 
   @override
   bool operator ==(Object other) => equals(other, null);
@@ -85,7 +88,7 @@ class UnknownType extends DartType {
   void visitChildren(Visitor<dynamic> v) {}
 
   @override
-  UnknownType withNullability(Nullability nullability) => this;
+  UnknownType withDeclaredNullability(Nullability nullability) => this;
 
   @override
   String toString() {

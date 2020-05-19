@@ -3,14 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
-import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
+import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/front_end/info_builder.dart';
 import 'package:nnbd_migration/src/front_end/instrumentation_listener.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
+import 'package:nnbd_migration/src/front_end/non_nullable_fix.dart';
 import 'package:nnbd_migration/src/front_end/offset_mapper.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -22,6 +23,12 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
   /// The information produced by the InfoBuilder, or `null` if [buildInfo] has
   /// not yet completed.
   Set<UnitInfo> infos;
+  NodeMapper nodeMapper;
+
+  void setUp() {
+    super.setUp();
+    nodeMapper = SimpleNodeMapper();
+  }
 
   /// Assert that some target in [targets] has various properties.
   void assertInTargets(
@@ -95,7 +102,8 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
   }
 
   void assertTraceEntry(UnitInfo unit, TraceEntryInfo entryInfo,
-      String function, int offset, Object descriptionMatcher) {
+      String function, int offset, Object descriptionMatcher,
+      {Set<HintActionKind> hintActions}) {
     assert(offset >= 0);
     var lineInfo = LineInfo.fromContent(unit.content);
     var expectedLocation = lineInfo.getLocation(offset);
@@ -104,6 +112,24 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     expect(unit.offsetMapper.map(entryInfo.target.offset), offset);
     expect(entryInfo.function, function);
     expect(entryInfo.description, descriptionMatcher);
+    if (hintActions != null) {
+      assertTraceHintActions(unit, entryInfo, hintActions, offset);
+    }
+  }
+
+  void assertTraceHintActions(UnitInfo unit, TraceEntryInfo traceEntry,
+      Set<HintActionKind> expectedHints, int nodeOffset) {
+    final actionsByKind = Map<HintActionKind, HintAction>.fromIterables(
+        traceEntry.hintActions.map((action) => action.kind),
+        traceEntry.hintActions);
+    expect(actionsByKind, hasLength(expectedHints.length));
+    for (final expectedHint in expectedHints) {
+      final action = actionsByKind[expectedHint];
+      expect(action, isNotNull);
+      final node = nodeMapper.nodeForId(action.nodeId);
+      expect(node, isNotNull);
+      expect(unit.offsetMapper.map(node.codeReference.offset), nodeOffset);
+    }
   }
 
   /// Uses the InfoBuilder to build information for [testFile].
@@ -131,7 +157,8 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
         removeViaComments: removeViaComments, warnOnWeakCode: warnOnWeakCode);
     // Ignore info for dart:core.
     var filteredInfos = [
-      for (var info in infos) if (!info.path.contains('core.dart')) info
+      for (var info in infos)
+        if (!info.path.contains('core.dart')) info
     ];
     expect(filteredInfos, hasLength(1));
     var unit = filteredInfos[0];
@@ -154,7 +181,8 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     await _buildMigrationInfo(testPaths, includedRoot: includedRoot);
     // Ignore info for dart:core.
     var filteredInfos = [
-      for (var info in infos) if (!info.path.contains('core.dart')) info
+      for (var info in infos)
+        if (!info.path.contains('core.dart')) info
     ];
     return filteredInfos;
   }
@@ -193,8 +221,8 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     migration.finish();
     // Build the migration info.
     var info = instrumentationListener.data;
-    var builder =
-        InfoBuilder(resourceProvider, includedRoot, info, listener, migration);
+    var builder = InfoBuilder(
+        resourceProvider, includedRoot, info, listener, migration, nodeMapper);
     infos = await builder.explainMigration();
   }
 }

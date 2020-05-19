@@ -30,7 +30,7 @@ Pubspec _findAndParsePubspec(Directory root) {
 /// A semantic representation of a Dart project.
 ///
 /// Projects provide a semantic model of a Dart project based on the
-/// [pub package layout conventions](https://www.dartlang.org/tools/pub/package-layout.html).
+/// [pub package layout conventions](https://dart.dev/tools/pub/package-layout).
 /// This model allows clients to traverse project contents in a convenient and
 /// standardized way, access global information (such as whether elements are
 /// in the "public API") and resources that have special meanings in the

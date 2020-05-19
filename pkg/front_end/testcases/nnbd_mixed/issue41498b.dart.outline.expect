@@ -1,0 +1,45 @@
+library opted_out_lib /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41498b.dart:5:1: Error: A library can't opt out of non-nullable by default, when in nnbd-strong mode.
+// // @dart=2.6
+// ^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///issue41498b_lib.dart" as opt_in;
+
+typedef LegacyFoo = () → void;
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    ;
+  static method test() → void
+    ;
+  method test2() → void
+    ;
+}
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as self2;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///issue41498b.dart";
+
+class C extends core::Object {
+  synthetic constructor •() → self2::C
+    ;
+  static method test() → void
+    ;
+  method test2() → void
+    ;
+}
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

@@ -96,10 +96,7 @@ Future<Map<String, List<_StaticError>>> _runAnalyzer(String inputDir,
       "${nnbd ? ' with NNBD' : ''}...");
   var result = await Process.run("dartanalyzer", [
     "--packages=${p.join(sdkRoot, '.packages')}",
-    if (nnbd) ...[
-      "--dart-sdk=$nnbdSdkBuildDir",
-      "--enable-experiment=non-nullable",
-    ],
+    if (nnbd) "--enable-experiment=non-nullable",
     "--format=machine",
     inputDir,
   ]);

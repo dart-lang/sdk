@@ -5,7 +5,6 @@
 #ifndef RUNTIME_VM_OS_THREAD_H_
 #define RUNTIME_VM_OS_THREAD_H_
 
-#include "platform/address_sanitizer.h"
 #include "platform/atomic.h"
 #include "platform/globals.h"
 #include "platform/safe_stack.h"
@@ -39,7 +38,6 @@ class Log;
 class Mutex;
 class ThreadState;
 class TimelineEventBlock;
-class ThreadPool;
 
 class Mutex {
  public:
@@ -237,11 +235,6 @@ class OSThread : public BaseThread {
   static void DisableOSThreadCreation();
   static void EnableOSThreadCreation();
 
-  static bool CurrentThreadRunsOn(ThreadPool* pool) {
-    auto owning_pool = OSThread::Current()->owning_thread_pool_;
-    return owning_pool != nullptr && owning_pool == pool;
-  }
-
   static const intptr_t kStackSizeBufferMax = (16 * KB * kWordSize);
   static constexpr float kStackSizeBufferFraction = 0.5;
 
@@ -301,10 +294,10 @@ class OSThread : public BaseThread {
   uword stack_limit_;
   uword stack_headroom_;
   ThreadState* thread_;
-  // The ThreadPool which owns this OSThread. If this OSThread was not started
-  // by a ThreadPool it will be nullptr. This TLS value is not protected and
-  // should only be read/written by the OSThread itself.
-  ThreadPool* owning_thread_pool_ = nullptr;
+  // The ThreadPool::Worker which owns this OSThread. If this OSThread was not
+  // started by a ThreadPool it will be nullptr. This TLS value is not
+  // protected and should only be read/written by the OSThread itself.
+  void* owning_thread_pool_worker_ = nullptr;
 
   // thread_list_lock_ cannot have a static lifetime because the order in which
   // destructors run is undefined. At the moment this lock cannot be deleted
@@ -323,7 +316,7 @@ class OSThread : public BaseThread {
   friend class OSThreadIterator;
   friend class ThreadInterrupterWin;
   friend class ThreadInterrupterFuchsia;
-  friend class ThreadPool;  // to access owning_thread_pool_
+  friend class ThreadPool;  // to access owning_thread_pool_worker_
 };
 
 // Note that this takes the thread list lock, prohibiting threads from coming

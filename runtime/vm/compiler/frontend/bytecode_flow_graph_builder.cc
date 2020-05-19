@@ -1382,12 +1382,12 @@ void BytecodeFlowGraphBuilder::BuildAssertAssignable() {
   const String& dst_name = String::Cast(PopConstant().value());
   Value* function_type_args = Pop();
   Value* instantiator_type_args = Pop();
-  code_ += B->Drop();  // dst_type
+  Value* dst_type_value = Pop();
   Value* value = Pop();
 
   AssertAssignableInstr* instr = new (Z) AssertAssignableInstr(
-      position_, value, instantiator_type_args, function_type_args, dst_type,
-      dst_name, B->GetNextDeoptId());
+      position_, value, dst_type_value, instantiator_type_args,
+      function_type_args, dst_name, B->GetNextDeoptId());
 
   code_ <<= instr;
 
@@ -1402,8 +1402,8 @@ void BytecodeFlowGraphBuilder::BuildAssertSubtype() {
   LoadStackSlots(5);
 
   const String& dst_name = String::Cast(PopConstant().value());
-  const AbstractType& super_type = AbstractType::Cast(PopConstant().value());
-  const AbstractType& sub_type = AbstractType::Cast(PopConstant().value());
+  Value* super_type = Pop();
+  Value* sub_type = Pop();
   Value* function_type_args = Pop();
   Value* instantiator_type_args = Pop();
 

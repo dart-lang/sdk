@@ -45,6 +45,7 @@ class EnclosingExecutableContext {
   final bool isAsynchronous;
   final bool isConstConstructor;
   final bool isFactoryConstructor;
+  final bool isGenerativeConstructor;
   final bool isGenerator;
   final bool isStaticMethod;
 
@@ -59,12 +60,18 @@ class EnclosingExecutableContext {
         isConstConstructor = element is ConstructorElement && element.isConst,
         isFactoryConstructor =
             element is ConstructorElement && element.isFactory,
+        isGenerativeConstructor =
+            element is ConstructorElement && !element.isFactory,
         isGenerator = element != null && element.isGenerator,
         isStaticMethod = _isStaticMethod(element);
 
   EnclosingExecutableContext.empty() : this(null);
 
   bool get isMethod => element is MethodElement;
+
+  bool get isSynchronous => !isAsynchronous;
+
+  DartType get returnType => element.returnType;
 
   static bool _isStaticMethod(ExecutableElement element) {
     var enclosing = element?.enclosingElement;
@@ -237,8 +244,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * Initialize a newly created error verifier.
    */
   ErrorVerifier(ErrorReporter errorReporter, this._currentLibrary,
-      this._typeProvider, this._inheritanceManager,
-      [@deprecated bool enableSuperMixins])
+      this._typeProvider, this._inheritanceManager)
       : _errorReporter = errorReporter,
         _uninstantiatedBoundChecker =
             _UninstantiatedBoundChecker(errorReporter),
@@ -265,13 +271,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       errorReporter: _errorReporter,
     );
   }
-
-  /**
-   * If `true`, mixins are allowed to inherit from types other than Object, and
-   * are allowed to reference `super`.
-   */
-  @deprecated
-  bool get enableSuperMixins => false;
 
   ClassElement get enclosingClass => _enclosingClass;
 
@@ -572,21 +571,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    ExecutableElement function = _enclosingExecutable.element;
-    FunctionType functionType = function?.type;
-    DartType expectedReturnType = functionType == null
-        ? DynamicTypeImpl.instance
-        : functionType.returnType;
-    bool isSetterWithImplicitReturn = function.hasImplicitReturnType &&
-        function is PropertyAccessorElement &&
-        function.isSetter;
-    if (!isSetterWithImplicitReturn) {
-      _returnTypeVerifier.verifyReturnExpression(
-        node.expression,
-        expectedReturnType,
-        isArrowFunction: true,
-      );
-    }
+    _returnTypeVerifier.verifyExpressionFunctionBody(node);
     super.visitExpressionFunctionBody(node);
   }
 
@@ -1928,7 +1913,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (supertype == null) {
       return;
     }
-    if (supertype.isObject) {
+    if (supertype.isDartCoreObject) {
       return;
     }
     ConstructorElement unnamedConstructor =
@@ -3249,7 +3234,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       TypeName mixinName, ClassElement mixinElement) {
     InterfaceType mixinSupertype = mixinElement.supertype;
     if (mixinSupertype != null) {
-      if (!mixinSupertype.isObject ||
+      if (!mixinSupertype.isDartCoreObject ||
           !mixinElement.isMixinApplication && mixinElement.mixins.isNotEmpty) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT,
@@ -5032,7 +5017,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// a method annotated with `@mustCallSuper` is implicitly annotated with
   /// `@mustCallSuper`.
   ///
-  /// [1] https://pub.dartlang.org/documentation/meta/latest/meta/mustCallSuper-constant.html
+  /// [1] https://pub.dev/documentation/meta/latest/meta/mustCallSuper-constant.html
   MethodElement _findOverriddenMemberThatMustCallSuper(MethodDeclaration node) {
     Element member = node.declaredElement;
     if (member.enclosingElement is! ClassElement) {

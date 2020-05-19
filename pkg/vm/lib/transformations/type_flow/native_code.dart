@@ -9,6 +9,8 @@ import 'dart:core' hide Type;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
+import 'package:front_end/src/api_unstable/vm.dart'
+    show getRedirectingFactoryBody;
 
 import 'calls.dart';
 import 'types.dart';
@@ -75,6 +77,27 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
     var type = _annotationsDefineRoot(proc.annotations);
     if (type == null) return;
 
+    if (proc.isRedirectingFactoryConstructor) {
+      if (type != PragmaEntryPointType.CallOnly &&
+          type != PragmaEntryPointType.Default) {
+        throw "Error: factory $proc doesn't have a setter or getter";
+      }
+      Member target = proc;
+      while (target is Procedure && target.isRedirectingFactoryConstructor) {
+        target = getRedirectingFactoryBody(target).target;
+        assertx(target != null);
+        assertx(
+            (target is Procedure && target.isFactory) || target is Constructor);
+      }
+      entryPoints
+          .addRawCall(new DirectSelector(target, callKind: CallKind.Method));
+      if (target is Constructor) {
+        entryPoints.addAllocatedClass(target.enclosingClass);
+      }
+      nativeCodeOracle.setMemberReferencedFromNativeCode(target);
+      return;
+    }
+
     void addSelector(CallKind ck) {
       entryPoints.addRawCall(proc.isInstanceMember
           ? new InterfaceSelector(proc, callKind: ck)
@@ -99,11 +122,14 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
         if (proc.isSetter) {
           throw "Error: cannot closurize a setter ($proc).";
         }
+        if (proc.isFactory) {
+          throw "Error: cannot closurize a factory ($proc).";
+        }
         addSelector(CallKind.PropertyGet);
         break;
       case PragmaEntryPointType.Default:
         addSelector(defaultCallKind);
-        if (!proc.isSetter && !proc.isGetter) {
+        if (!proc.isSetter && !proc.isGetter && !proc.isFactory) {
           addSelector(CallKind.PropertyGet);
         }
     }

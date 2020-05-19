@@ -27,6 +27,7 @@
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
 #include "vm/double_conversion.h"
+#include "vm/elf.h"
 #include "vm/exceptions.h"
 #include "vm/growable_array.h"
 #include "vm/hash.h"
@@ -4266,6 +4267,9 @@ bool Class::InjectCIDFields() const {
 #define ADD_SET_FIELD(clazz) {"cid" #clazz "View", kTypedData##clazz##ViewCid},
           CLASS_LIST_TYPED_DATA(ADD_SET_FIELD)
 #undef ADD_SET_FIELD
+#define ADD_SET_FIELD(clazz) {"cid" #clazz, kTypedData##clazz##Cid},
+              CLASS_LIST_TYPED_DATA(ADD_SET_FIELD)
+#undef ADD_SET_FIELD
 #undef CLASS_LIST_WITH_NULL
   };
 
@@ -4378,7 +4382,7 @@ ClassPtr Class::NewNativeWrapper(const Library& library,
     // Compute instance size. First word contains a pointer to a properly
     // sized typed array once the first native field has been set.
     const intptr_t host_instance_size = sizeof(InstanceLayout) + kWordSize;
-#if defined(PRECOMPILER)
+#if defined(DART_PRECOMPILER)
     const intptr_t target_instance_size =
         compiler::target::Instance::InstanceSize() +
         compiler::target::kWordSize;
@@ -7243,7 +7247,8 @@ intptr_t Function::GetRequiredFlagIndex(intptr_t index,
                                         intptr_t* flag_mask) const {
   ASSERT(index >= num_fixed_parameters());
   index -= num_fixed_parameters();
-  *flag_mask = 1 << (index % compiler::target::kNumParameterFlagsPerElement);
+  *flag_mask = 1 << (static_cast<uintptr_t>(index) %
+                     compiler::target::kNumParameterFlagsPerElement);
   return NumParameters() +
          index / compiler::target::kNumParameterFlagsPerElement;
 }
@@ -8837,10 +8842,6 @@ void Function::PrintQualifiedName(
     if (fun.IsMethodExtractor()) {
       printer->AddString("[tear-off-extractor] ");
     }
-    if (fun.IsAsyncClosure() || fun.IsAsyncGenClosure() ||
-        fun.IsGeneratorClosure()) {
-      printer->AddString("[body] ");
-    }
   }
 
   if (fun.IsClosureFunction()) {
@@ -8872,6 +8873,12 @@ void Function::PrintQualifiedName(
       } else {
         printer->AddString(fun.NameCString(name_visibility));
       }
+      // If we skipped rewritten async/async*/sync* body then append a suffix
+      // to the end of the name.
+      if (fun.raw() != raw() &&
+          name_disambiguation == NameDisambiguation::kYes) {
+        printer->AddString("{body}");
+      }
       return;
     }
   }
@@ -8889,6 +8896,12 @@ void Function::PrintQualifiedName(
   }
 
   printer->AddString(fun.NameCString(name_visibility));
+
+  // If we skipped rewritten async/async*/sync* body then append a suffix
+  // to the end of the name.
+  if (fun.raw() != raw() && name_disambiguation == NameDisambiguation::kYes) {
+    printer->AddString("{body}");
+  }
 
   // Field dispatchers are specialized for an argument descriptor so there
   // might be multiples of them with the same name but different argument
@@ -13456,6 +13469,8 @@ void Library::CheckFunctionFingerprints() {
   all_libs.Add(&Library::ZoneHandle(Library::CollectionLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::InternalLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::FfiLibrary()));
+  ASYNC_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS2);
+  INTERNAL_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS2);
   OTHER_RECOGNIZED_LIST(CHECK_FINGERPRINTS2);
   POLYMORPHIC_TARGET_LIST(CHECK_FINGERPRINTS);
 
@@ -16301,10 +16316,8 @@ void Code::GetInlinedFunctionsAtInstruction(
     GrowableArray<TokenPosition>* token_positions) const {
   const CodeSourceMap& map = CodeSourceMap::Handle(code_source_map());
   if (map.IsNull()) {
-    ASSERT(!IsFunctionCode() ||
-           (Isolate::Current()->object_store()->megamorphic_call_miss_code() ==
-            this->raw()));
-    return;  // VM stub, allocation stub, or megamorphic call miss function.
+    ASSERT(!IsFunctionCode());
+    return;  // VM stub, allocation stub, or type testing stub.
   }
   const Array& id_map = Array::Handle(inlined_id_to_function());
   const Function& root = Function::Handle(function());
@@ -16871,8 +16884,7 @@ MegamorphicCachePtr MegamorphicCache::New(const String& target_name,
   const intptr_t capacity = kInitialCapacity;
   const Array& buckets =
       Array::Handle(Array::New(kEntryLength * capacity, Heap::kOld));
-  const Function& handler =
-      Function::Handle(MegamorphicCacheTable::miss_handler(Isolate::Current()));
+  const Object& handler = Object::Handle();
   for (intptr_t i = 0; i < capacity; ++i) {
     SetEntry(buckets, i, smi_illegal_cid(), handler);
   }
@@ -16900,8 +16912,7 @@ void MegamorphicCache::EnsureCapacityLocked() const {
     const Array& new_buckets =
         Array::Handle(Array::New(kEntryLength * new_capacity));
 
-    auto& target =
-        Object::Handle(MegamorphicCacheTable::miss_handler(Isolate::Current()));
+    auto& target = Object::Handle();
     for (intptr_t i = 0; i < new_capacity; ++i) {
       SetEntry(new_buckets, i, smi_illegal_cid(), target);
     }
@@ -16960,7 +16971,7 @@ void MegamorphicCache::SwitchToBareInstructions() {
       CodePtr code = Function::CurrentCodeOf(Function::RawCast(*slot));
       *slot = Smi::FromAlignedAddress(Code::EntryPointOf(code));
     } else {
-      ASSERT(cid == kSmiCid);
+      ASSERT(cid == kSmiCid || cid == kNullCid);
     }
   }
 }
@@ -17586,6 +17597,7 @@ uint32_t Instance::CanonicalizeHash() const {
   if (hash != 0) {
     return hash;
   }
+  const Class& cls = Class::Handle(clazz());
   NoSafepointScope no_safepoint(thread);
   const intptr_t instance_size = SizeFromClass();
   ASSERT(instance_size != 0);
@@ -17597,11 +17609,18 @@ uint32_t Instance::CanonicalizeHash() const {
       thread->isolate()->group()->shared_class_table()->GetUnboxedFieldsMapAt(
           GetClassId());
 
-  for (intptr_t offset = Instance::NextFieldOffset(); offset < instance_size;
-       offset += kWordSize) {
+  for (intptr_t offset = Instance::NextFieldOffset();
+       offset < cls.host_next_field_offset(); offset += kWordSize) {
     if (unboxed_fields_bitmap.Get(offset / kWordSize)) {
-      hash =
-          CombineHashes(hash, *reinterpret_cast<intptr_t*>(this_addr + offset));
+      if (kWordSize == 8) {
+        hash = CombineHashes(hash,
+                             *reinterpret_cast<uint32_t*>(this_addr + offset));
+        hash = CombineHashes(
+            hash, *reinterpret_cast<uint32_t*>(this_addr + offset + 4));
+      } else {
+        hash = CombineHashes(hash,
+                             *reinterpret_cast<uint32_t*>(this_addr + offset));
+      }
     } else {
       member ^= *reinterpret_cast<ObjectPtr*>(this_addr + offset);
       hash = CombineHashes(hash, member.CanonicalizeHash());
@@ -23589,17 +23608,31 @@ StackTracePtr StackTrace::New(const Array& code_array,
 }
 
 #if defined(DART_PRECOMPILED_RUNTIME)
+// Prints the best representation(s) for the call address.
 static void PrintNonSymbolicStackFrameBody(ZoneTextBuffer* buffer,
                                            uword call_addr,
                                            uword isolate_instructions,
                                            uword vm_instructions) {
   const word vm_offset = call_addr - vm_instructions;
   const word isolate_offset = call_addr - isolate_instructions;
+  // If the VM instructions image was compiled directly to ELF, we can determine
+  // the base address of the snapshot shared object from the section start.
+  const uword snapshot_base =
+      Elf::SnapshotRelocatedBaseAddress(vm_instructions);
+
   // Pick the closest instructions section start before the call address.
   if (vm_offset > 0 && (isolate_offset < 0 || vm_offset < isolate_offset)) {
+    if (snapshot_base != 0) {
+      const uword relocated_section = vm_instructions - snapshot_base;
+      buffer->Printf(" virt %" Pp "", relocated_section + vm_offset);
+    }
     buffer->Printf(" %s+0x%" Px "", kVmSnapshotInstructionsAsmSymbol,
                    vm_offset);
   } else if (isolate_offset > 0) {
+    if (snapshot_base != 0) {
+      const uword relocated_section = isolate_instructions - snapshot_base;
+      buffer->Printf(" virt %" Pp "", relocated_section + isolate_offset);
+    }
     buffer->Printf(" %s+0x%" Px "", kIsolateSnapshotInstructionsAsmSymbol,
                    isolate_offset);
   } else {

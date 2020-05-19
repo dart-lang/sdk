@@ -4,6 +4,7 @@
 import 'package:test_runner/src/configuration.dart';
 import 'package:test_runner/src/options.dart';
 import 'package:test_runner/src/path.dart';
+import 'package:test_runner/src/static_error.dart';
 import 'package:test_runner/src/test_file.dart';
 import 'package:test_runner/src/test_suite.dart';
 
@@ -23,6 +24,21 @@ TestConfiguration makeConfiguration(List<String> arguments) =>
 StandardTestSuite makeTestSuite(
         TestConfiguration configuration, List<TestFile> testFiles) =>
     _MockTestSuite(configuration, testFiles);
+
+StaticError makeError(
+    {int line,
+    int column,
+    int length,
+    String analyzerError,
+    String cfeError,
+    String webError}) {
+  var errors = {
+    if (analyzerError != null) ErrorSource.analyzer: analyzerError,
+    if (cfeError != null) ErrorSource.cfe: cfeError,
+    if (webError != null) ErrorSource.web: webError,
+  };
+  return StaticError(errors, line: line, column: column, length: length);
+}
 
 class _MockTestSuite extends StandardTestSuite {
   final List<TestFile> _testFiles;

@@ -214,7 +214,7 @@ class ReplacementVisitor implements DartTypeVisitor<DartType> {
     } else {
       return new TypeParameterType(
           node.parameter,
-          newNullability ?? node.typeParameterTypeNullability,
+          newNullability ?? node.declaredNullability,
           newPromotedBound ?? node.promotedBound);
     }
   }

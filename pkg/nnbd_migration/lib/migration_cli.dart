@@ -5,8 +5,8 @@
 import 'dart:async';
 import 'dart:io' hide File;
 
+import 'package:analysis_server/src/api_for_nnbd_migration.dart';
 import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
-import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -16,17 +16,18 @@ import 'package:analyzer/file_system/file_system.dart'
     show File, ResourceProvider;
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:args/args.dart';
+import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:meta/meta.dart';
-import 'package:nnbd_migration/api_for_analysis_server/dartfix_listener_interface.dart';
-import 'package:nnbd_migration/api_for_analysis_server/driver_provider.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
+import 'package:nnbd_migration/src/front_end/non_nullable_fix.dart';
 import 'package:nnbd_migration/src/utilities/source_edit_diff_formatter.dart';
 import 'package:path/path.dart' show Context;
 
@@ -75,6 +76,36 @@ class CommandLineOptions {
       @required this.webPreview});
 }
 
+class MigrateCommand extends Command<dynamic> {
+  final bool verbose;
+
+  MigrateCommand({this.verbose = false}) {
+    MigrationCli._defineOptions(argParser, !verbose);
+  }
+
+  @override
+  String get description =>
+      'Perform a null safety migration on a project or package.'
+      '\n\nThe migrate feature is in preview and not yet complete; we welcome '
+      'feedback.\n\n'
+      'https://github.com/dart-lang/sdk/tree/master/pkg/nnbd_migration#providing-feedback';
+
+  @override
+  String get invocation {
+    return '${super.invocation} [project or directory]';
+  }
+
+  @override
+  String get name => 'migrate';
+
+  @override
+  FutureOr<int> run() async {
+    var cli = MigrationCli(binaryName: 'dart $name');
+    await cli.run(argResults, isVerbose: verbose);
+    return cli.exitCode;
+  }
+}
+
 /// Command-line API for the migration tool, with additional methods exposed for
 /// testing.
 class MigrationCli {
@@ -108,6 +139,10 @@ class MigrationCli {
 
   final Map<String, LineInfo> lineInfo = {};
 
+  _DartFixListener _dartFixListener;
+
+  _FixCodeProcessor _fixCodeProcessor;
+
   MigrationCli(
       {@required this.binaryName,
       @visibleForTesting this.loggerFactory = _defaultLoggerFactory,
@@ -135,10 +170,9 @@ class MigrationCli {
   /// If no additional work should be done (e.g. because the user asked for
   /// help, or supplied a bad option), a nonzero value is stored in [exitCode].
   @visibleForTesting
-  void parseCommandLineArgs(List<String> args) {
+  void decodeCommandLineArgs(ArgResults argResults, {bool isVerbose}) {
     try {
-      var argResults = _createParser().parse(args);
-      var isVerbose = argResults[CommandLineOptions.verboseFlag] as bool;
+      isVerbose ??= argResults[CommandLineOptions.verboseFlag] as bool;
       if (argResults[CommandLineOptions.helpFlag] as bool) {
         _showUsage(isVerbose);
         exitCode = 0;
@@ -191,25 +225,29 @@ class MigrationCli {
         logger = loggerFactory(true);
       }
     } on Object catch (exception) {
-      String message;
-      if (exception is FormatException) {
-        message = exception.message;
-      } else if (exception is _BadArgException) {
-        message = exception.message;
-      } else {
-        message =
-            'Exception occurred while parsing command-line options: $exception';
-      }
-      logger.stderr(message);
-      _showUsage(false);
-      exitCode = 1;
-      return;
+      handleArgParsingException(exception);
     }
   }
 
+  void handleArgParsingException(Object exception) {
+    String message;
+    if (exception is FormatException) {
+      message = exception.message;
+    } else if (exception is _BadArgException) {
+      message = exception.message;
+    } else {
+      message =
+          'Exception occurred while parsing command-line options: $exception';
+    }
+    logger.stderr(message);
+    _showUsage(false);
+    exitCode = 1;
+    return;
+  }
+
   /// Runs the full migration process.
-  void run(List<String> args) async {
-    parseCommandLineArgs(args);
+  void run(ArgResults argResults, {bool isVerbose}) async {
+    decodeCommandLineArgs(argResults, isVerbose: isVerbose);
     if (exitCode != null) return;
 
     logger.stdout('Migrating ${options.directory}');
@@ -217,39 +255,43 @@ class MigrationCli {
 
     List<String> previewUrls;
     NonNullableFix nonNullableFix;
-    _DartFixListener dartFixListener;
     await _withProgress(
         '${ansi.emphasized('Generating migration suggestions')}', () async {
       var contextCollection = AnalysisContextCollectionImpl(
           includedPaths: [options.directory],
           resourceProvider: resourceProvider,
           sdkPath: options.sdkPath);
-      var context = contextCollection.contexts.single;
-      var fixCodeProcessor = _FixCodeProcessor(context, this);
-      dartFixListener = _DartFixListener(
-          _DriverProvider(resourceProvider, context.currentSession));
-      nonNullableFix = NonNullableFix(dartFixListener, resourceProvider,
+      DriverBasedAnalysisContext context =
+          contextCollection.contexts.single as DriverBasedAnalysisContext;
+      _fixCodeProcessor = _FixCodeProcessor(context, this);
+      _dartFixListener =
+          _DartFixListener(_DriverProvider(resourceProvider, context));
+      nonNullableFix = NonNullableFix(_dartFixListener, resourceProvider,
           included: [options.directory],
           preferredPort: options.previewPort,
           enablePreview: options.webPreview,
           summaryPath: options.summary);
-      fixCodeProcessor.registerCodeTask(nonNullableFix);
+      nonNullableFix.rerunFunction = _rerunFunction;
+      _fixCodeProcessor.registerCodeTask(nonNullableFix);
+      _fixCodeProcessor.nonNullableFixTask = nonNullableFix;
+
       try {
-        await fixCodeProcessor.runFirstPhase();
+        await _fixCodeProcessor.runFirstPhase();
+        _fixCodeProcessor._progressBar.clear();
         _checkForErrors();
       } on StateError catch (e) {
         logger.stdout(e.toString());
         exitCode = 1;
       }
       if (exitCode != null) return;
-      previewUrls = await fixCodeProcessor.runLaterPhases();
+      previewUrls = await _fixCodeProcessor.runLaterPhases();
     });
     if (exitCode != null) return;
 
     if (options.applyChanges) {
       logger.stdout(ansi.emphasized('Applying changes:'));
 
-      var allEdits = dartFixListener.sourceChange.edits;
+      var allEdits = _dartFixListener.sourceChange.edits;
       _applyMigrationSuggestions(allEdits);
 
       logger.stdout('');
@@ -268,17 +310,13 @@ class MigrationCli {
       assert(previewUrls.length <= 1,
           'Got unexpected extra preview URLs from server');
 
-      logger.stdout(ansi.emphasized('View migration results:'));
-
-      // TODO(devoncarew): Open a browser automatically.
+      // TODO(#41809): Open a browser automatically.
       logger.stdout('''
-Visit:
-  
+View the migration suggestions by visiting:
+
   ${ansi.emphasized(url)}
 
-to see the migration results. Use the interactive web view to review, improve, or apply
-the results (alternatively, to apply the results without using the web preview, re-run
-the tool with --${CommandLineOptions.applyChangesFlag}).
+Use this interactive web view to review, improve, or apply the results.
 ''');
 
       logger.stdout('When finished with the preview, hit ctrl-c '
@@ -290,7 +328,7 @@ the tool with --${CommandLineOptions.applyChangesFlag}).
     } else {
       logger.stdout(ansi.emphasized('Summary of changes:'));
 
-      _displayChangeSummary(dartFixListener);
+      _displayChangeSummary(_dartFixListener);
 
       logger.stdout('');
       logger.stdout('To apply these changes, re-run the tool with '
@@ -374,49 +412,6 @@ the tool with --${CommandLineOptions.applyChangesFlag}).
     }
   }
 
-  ArgParser _createParser({bool hide = true}) {
-    var parser = ArgParser();
-    parser.addFlag(CommandLineOptions.applyChangesFlag,
-        defaultsTo: false,
-        negatable: false,
-        help: 'Apply the proposed null safety changes to the files on disk.');
-    parser.addFlag(CommandLineOptions.helpFlag,
-        abbr: 'h',
-        help:
-            'Display this help message. Add --verbose to show hidden options.',
-        defaultsTo: false,
-        negatable: false);
-    parser.addFlag(
-      CommandLineOptions.ignoreErrorsFlag,
-      defaultsTo: false,
-      negatable: false,
-      help: 'Attempt to perform null safety analysis even if there are '
-          'analysis errors in the project.',
-    );
-    parser.addOption(CommandLineOptions.previewPortOption,
-        help:
-            'Run the preview server on the specified port.  If not specified, '
-            'dynamically allocate a port.');
-    parser.addOption(CommandLineOptions.sdkPathOption,
-        help: 'The path to the Dart SDK.', hide: hide);
-    parser.addOption(CommandLineOptions.summaryOption,
-        help:
-            'Output path for a machine-readable summary of migration changes');
-    parser.addFlag(CommandLineOptions.verboseFlag,
-        abbr: 'v',
-        defaultsTo: false,
-        help: 'Verbose output.',
-        negatable: false);
-    parser.addFlag(CommandLineOptions.webPreviewFlag,
-        defaultsTo: true,
-        negatable: true,
-        help: 'Show an interactive preview of the proposed null safety changes '
-            'in a browser window.\n'
-            'With --no-web-preview, the proposed changes are instead printed to '
-            'the console.');
-    return parser;
-  }
-
   void _displayChangeSummary(_DartFixListener migrationResults) {
     Map<String, List<_DartFixSuggestion>> fileSuggestions = {};
     for (_DartFixSuggestion suggestion in migrationResults.suggestions) {
@@ -472,11 +467,20 @@ the tool with --${CommandLineOptions.applyChangesFlag}).
   bool _isUriError(AnalysisError error) =>
       error.errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST;
 
+  Future<void> _rerunFunction() async {
+    _dartFixListener.reset();
+    _fixCodeProcessor.prepareToRerun();
+    await _fixCodeProcessor.runFirstPhase();
+    // TODO(paulberry): check for errors (see
+    // https://github.com/dart-lang/sdk/issues/41712)
+    await _fixCodeProcessor.runLaterPhases();
+  }
+
   void _showUsage(bool isVerbose) {
     logger.stderr('Usage: $binaryName [options...] [<package directory>]');
 
     logger.stderr('');
-    logger.stderr(_createParser(hide: !isVerbose).usage);
+    logger.stderr(createParser(hide: !isVerbose).usage);
     if (!isVerbose) {
       logger.stderr('');
       logger
@@ -504,6 +508,18 @@ the tool with --${CommandLineOptions.applyChangesFlag}).
     }
   }
 
+  static ArgParser createParser({bool hide = true}) {
+    var parser = ArgParser();
+    parser.addFlag(CommandLineOptions.helpFlag,
+        abbr: 'h',
+        help:
+            'Display this help message. Add --verbose to show hidden options.',
+        defaultsTo: false,
+        negatable: false);
+    _defineOptions(parser, hide);
+    return parser;
+  }
+
   static Logger _defaultLoggerFactory(bool isVerbose) {
     var ansi = Ansi(Ansi.terminalSupportsAnsi);
     if (isVerbose) {
@@ -511,6 +527,41 @@ the tool with --${CommandLineOptions.applyChangesFlag}).
     } else {
       return Logger.standard(ansi: ansi);
     }
+  }
+
+  static void _defineOptions(ArgParser parser, bool hide) {
+    parser.addFlag(CommandLineOptions.applyChangesFlag,
+        defaultsTo: false,
+        negatable: false,
+        help: 'Apply the proposed null safety changes to the files on disk.');
+    parser.addFlag(
+      CommandLineOptions.ignoreErrorsFlag,
+      defaultsTo: false,
+      negatable: false,
+      help: 'Attempt to perform null safety analysis even if there are '
+          'analysis errors in the project.',
+    );
+    parser.addOption(CommandLineOptions.previewPortOption,
+        help:
+            'Run the preview server on the specified port.  If not specified, '
+            'dynamically allocate a port.');
+    parser.addOption(CommandLineOptions.sdkPathOption,
+        help: 'The path to the Dart SDK.', hide: hide);
+    parser.addOption(CommandLineOptions.summaryOption,
+        help:
+            'Output path for a machine-readable summary of migration changes');
+    parser.addFlag(CommandLineOptions.verboseFlag,
+        abbr: 'v',
+        defaultsTo: false,
+        help: 'Verbose output.',
+        negatable: false);
+    parser.addFlag(CommandLineOptions.webPreviewFlag,
+        defaultsTo: true,
+        negatable: true,
+        help: 'Show an interactive preview of the proposed null safety changes '
+            'in a browser window.\n'
+            'With --no-web-preview, the proposed changes are instead printed to '
+            'the console.');
   }
 
   static Map<int, List<AtomicEdit>> _sourceEditsToAtomicEdits(
@@ -567,6 +618,16 @@ class _DartFixListener implements DartFixListenerInterface {
   void addSuggestion(String description, Location location) {
     suggestions.add(_DartFixSuggestion(description, location: location));
   }
+
+  /// Reset this listener so that it can accrue a new set of changes.
+  void reset() {
+    suggestions.clear();
+    sourceChange
+      ..edits.clear()
+      ..linkedEditGroups.clear()
+      ..selection = null
+      ..id = null;
+  }
 }
 
 class _DartFixSuggestion {
@@ -581,29 +642,38 @@ class _DriverProvider implements DriverProvider {
   @override
   final ResourceProvider resourceProvider;
 
-  final AnalysisSession analysisSession;
+  final AnalysisContext analysisContext;
 
-  _DriverProvider(this.resourceProvider, this.analysisSession);
+  _DriverProvider(this.resourceProvider, this.analysisContext);
 
   @override
-  AnalysisSession getAnalysisSession(String path) => analysisSession;
+  AnalysisSession getAnalysisSession(String path) =>
+      analysisContext.currentSession;
 }
 
 class _FixCodeProcessor extends Object with FixCodeProcessor {
-  final AnalysisContext context;
+  final DriverBasedAnalysisContext context;
 
-  final Set<String> pathsToProcess;
+  Set<String> pathsToProcess;
+
+  _ProgressBar _progressBar;
 
   final MigrationCli _migrationCli;
 
+  /// The task used to migrate to NNBD.
+  NonNullableFix nonNullableFixTask;
+
   _FixCodeProcessor(this.context, this._migrationCli)
-      : pathsToProcess = context.contextRoot
-            .analyzedFiles()
-            .where((s) => s.endsWith('.dart'))
-            .toSet();
+      : pathsToProcess = _computePathsToProcess(context);
+
+  void prepareToRerun() {
+    var driver = context.driver;
+    pathsToProcess = _computePathsToProcess(context);
+    pathsToProcess.forEach(driver.changeFile);
+  }
 
   /// Call the supplied [process] function to process each compilation unit.
-  Future processResources(
+  Future<void> processResources(
       Future<void> Function(ResolvedUnitResult result) process) async {
     var driver = context.currentSession;
     var pathsProcessed = <String>{};
@@ -642,11 +712,15 @@ class _FixCodeProcessor extends Object with FixCodeProcessor {
   }
 
   Future<void> runFirstPhase() async {
+    // All tasks should be registered; [numPhases] should be finalized.
+    _progressBar = _ProgressBar(pathsToProcess.length * numPhases);
+
     // Process package
     await processPackage(context.contextRoot.root);
 
     // Process each source file.
     await processResources((ResolvedUnitResult result) async {
+      _progressBar.tick();
       List<AnalysisError> errors = result.errors
           .where((error) => error.severity == Severity.error)
           .toList();
@@ -664,13 +738,22 @@ class _FixCodeProcessor extends Object with FixCodeProcessor {
   Future<List<String>> runLaterPhases() async {
     for (var phase = 1; phase < numPhases; phase++) {
       await processResources((ResolvedUnitResult result) async {
+        _progressBar.tick();
         await processCodeTasks(phase, result);
       });
     }
     await finishCodeTasks();
+    _progressBar.complete();
 
     return nonNullableFixTask.previewUrls;
   }
+
+  static Set<String> _computePathsToProcess(
+          DriverBasedAnalysisContext context) =>
+      context.contextRoot
+          .analyzedFiles()
+          .where((s) => s.endsWith('.dart'))
+          .toSet();
 }
 
 /// Given a Logger and an analysis issue, render the issue to the logger.
@@ -710,5 +793,77 @@ class _IssueRenderer {
         return 'info';
     }
     return '???';
+  }
+}
+
+/// A facility for drawing a progress bar in the terminal.
+///
+/// The bar is instantiated with the total number of "ticks" to be completed,
+/// and progress is made by calling [tick]. The bar is drawn across one entire
+/// line, like so:
+///
+///     [----------                                                   ]
+///
+/// The hyphens represent completed progress, and the whitespace represents
+/// remaining progress.
+///
+/// If there is no terminal, the progress bar will not be drawn.
+class _ProgressBar {
+  /// Whether the progress bar should be drawn.
+  /*late*/ bool _shouldDrawProgress;
+
+  /// The width of the terminal, in terms of characters.
+  /*late*/ int _width;
+
+  /// The inner width of the terminal, in terms of characters.
+  ///
+  /// This represents the number of characters available for drawing progress.
+  /*late*/ int _innerWidth;
+
+  final int _totalTickCount;
+
+  int _tickCount = 0;
+
+  _ProgressBar(this._totalTickCount) {
+    if (!stdout.hasTerminal) {
+      _shouldDrawProgress = false;
+    } else {
+      _shouldDrawProgress = true;
+      _width = stdout.terminalColumns;
+      _innerWidth = stdout.terminalColumns - 2;
+      stdout.write('[' + ' ' * _innerWidth + ']');
+    }
+  }
+
+  /// Clear the progress bar from the terminal, allowing other logging to be
+  /// printed.
+  void clear() {
+    if (!_shouldDrawProgress) {
+      return;
+    }
+    stdout.write('\r' + ' ' * _width + '\r');
+  }
+
+  /// Draw the progress bar as complete, and print two newlines.
+  void complete() {
+    if (!_shouldDrawProgress) {
+      return;
+    }
+    stdout.write('\r[' + '-' * _innerWidth + ']\n\n');
+  }
+
+  /// Progress the bar by one tick.
+  void tick() {
+    if (!_shouldDrawProgress) {
+      return;
+    }
+    _tickCount++;
+    var fractionComplete = _tickCount * _innerWidth ~/ _totalTickCount - 1;
+    var remaining = _innerWidth - fractionComplete - 1;
+    stdout.write('\r[' + // Bring cursor back to the start of the line.
+        '-' * fractionComplete + // Print complete work.
+        AnsiProgress.kAnimationItems[_tickCount % 4] + // Print spinner.
+        ' ' * remaining + // Print remaining work.
+        ']');
   }
 }

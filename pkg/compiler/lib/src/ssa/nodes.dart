@@ -4608,6 +4608,7 @@ AbstractBool _isTestResult(
 
   if (useNullSafety &&
       expression.isNull(abstractValueDomain).isDefinitelyTrue) {
+    if (dartType.isObject) return AbstractBool.False;
     if (closedWorld.dartTypes.isTopType(dartType) ||
         dartType is NullableType ||
         dartType.isNull) {

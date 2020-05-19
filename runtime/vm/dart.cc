@@ -437,7 +437,7 @@ void Dart::WaitForApplicationIsolateShutdown() {
   ASSERT(!Isolate::creation_enabled_);
   MonitorLocker ml(Isolate::isolate_creation_monitor_);
   intptr_t num_attempts = 0;
-  while (Isolate::application_isolates_count_ > 0) {
+  while (IsolateGroup::HasApplicationIsolateGroups()) {
     Monitor::WaitResult retval = ml.Wait(1000);
     if (retval == Monitor::kTimedOut) {
       num_attempts += 1;
@@ -453,7 +453,7 @@ void Dart::WaitForIsolateShutdown() {
   ASSERT(!Isolate::creation_enabled_);
   MonitorLocker ml(Isolate::isolate_creation_monitor_);
   intptr_t num_attempts = 0;
-  while (Isolate::total_isolates_count_ > 1) {
+  while (!IsolateGroup::HasOnlyVMIsolateGroup()) {
     Monitor::WaitResult retval = ml.Wait(1000);
     if (retval == Monitor::kTimedOut) {
       num_attempts += 1;
@@ -830,18 +830,11 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
   DEBUG_ONLY(I->heap()->Verify(kForbidMarked));
 
 #if defined(DART_PRECOMPILED_RUNTIME)
-  // AOT: The megamorphic miss function and code come from the snapshot.
-  ASSERT(I->object_store()->megamorphic_call_miss_code() != Code::null());
   ASSERT(I->object_store()->build_method_extractor_code() != Code::null());
   if (FLAG_print_llvm_constant_pool) {
     PrintLLVMConstantPool(T, I);
   }
 #else
-  // JIT: The megamorphic call miss function and code come from the snapshot in
-  // JIT app snapshot, otherwise create them.
-  if (I->object_store()->megamorphic_call_miss_code() == Code::null()) {
-    MegamorphicCacheTable::InitMissHandler(I);
-  }
 #if !defined(TARGET_ARCH_IA32)
   if (I != Dart::vm_isolate()) {
     I->object_store()->set_build_method_extractor_code(

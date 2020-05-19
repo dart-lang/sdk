@@ -1017,9 +1017,9 @@ static inline uint64_t RotateRight(uint64_t value,
                                    uint8_t rotate,
                                    uint8_t width) {
   ASSERT(width <= 64);
-  rotate &= 63;
-  return ((value & ((1ULL << rotate) - 1ULL)) << (width - rotate)) |
-         (value >> rotate);
+  uint8_t right = rotate & 63;
+  uint8_t left = (width - rotate) & 63;
+  return ((value & ((1ULL << right) - 1ULL)) << left) | (value >> right);
 }
 
 static inline uint64_t RepeatBitsAcrossReg(uint8_t reg_size,

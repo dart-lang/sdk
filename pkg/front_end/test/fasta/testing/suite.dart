@@ -181,13 +181,12 @@ class TestOptions {
 
 class LinkDependenciesOptions {
   final Set<Uri> content;
-  final bool nnbdAgnosticMode;
+  final NnbdMode nnbdMode;
   Component component;
   List<Iterable<String>> errors;
 
-  LinkDependenciesOptions(this.content, {this.nnbdAgnosticMode})
-      : assert(content != null),
-        assert(nnbdAgnosticMode != null);
+  LinkDependenciesOptions(this.content, {this.nnbdMode})
+      : assert(content != null);
 }
 
 class FastaContext extends ChainContext with MatchContext {
@@ -408,13 +407,29 @@ class FastaContext extends ChainContext with MatchContext {
       File optionsFile =
           new File.fromUri(directory.uri.resolve('link.options'));
       Set<Uri> content = new Set<Uri>();
-      bool nnbdAgnosticMode = false;
+      NnbdMode nnbdMode;
       if (optionsFile.existsSync()) {
         for (String line in optionsFile.readAsStringSync().split('\n')) {
           line = line.trim();
           if (line.isEmpty) continue;
           if (line.startsWith(Flags.nnbdAgnosticMode)) {
-            nnbdAgnosticMode = true;
+            if (nnbdMode != null) {
+              throw new UnsupportedError(
+                  'Nnbd mode $nnbdMode already specified.');
+            }
+            nnbdMode = NnbdMode.Agnostic;
+          } else if (line.startsWith(Flags.nnbdStrongMode)) {
+            if (nnbdMode != null) {
+              throw new UnsupportedError(
+                  'Nnbd mode $nnbdMode already specified.');
+            }
+            nnbdMode = NnbdMode.Strong;
+          } else if (line.startsWith(Flags.nnbdWeakMode)) {
+            if (nnbdMode != null) {
+              throw new UnsupportedError(
+                  'Nnbd mode $nnbdMode already specified.');
+            }
+            nnbdMode = NnbdMode.Weak;
           } else {
             File f = new File.fromUri(description.uri.resolve(line));
             if (!f.existsSync()) {
@@ -424,8 +439,8 @@ class FastaContext extends ChainContext with MatchContext {
           }
         }
       }
-      linkDependenciesOptions = new LinkDependenciesOptions(content,
-          nnbdAgnosticMode: nnbdAgnosticMode);
+      linkDependenciesOptions =
+          new LinkDependenciesOptions(content, nnbdMode: nnbdMode);
       _linkDependencies[directory.uri] = linkDependenciesOptions;
     }
     return linkDependenciesOptions;
@@ -633,8 +648,8 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
         linkDependenciesOptions.component == null) {
       // Compile linked dependency.
       ProcessedOptions linkOptions = options;
-      if (linkDependenciesOptions.nnbdAgnosticMode) {
-        linkOptions = createProcessedOptions(NnbdMode.Agnostic);
+      if (linkDependenciesOptions.nnbdMode != null) {
+        linkOptions = createProcessedOptions(linkDependenciesOptions.nnbdMode);
       }
       await CompilerContext.runWithOptions(linkOptions, (_) async {
         KernelTarget sourceTarget = await outlineInitialization(context,

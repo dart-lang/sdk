@@ -186,7 +186,7 @@ class OpType {
     if (_requiredType == null) {
       return;
     }
-    if (_requiredType.isDynamic || _requiredType.isObject) {
+    if (_requiredType.isDynamic || _requiredType.isDartCoreObject) {
       _requiredType = null;
       return;
     }
@@ -645,6 +645,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
+    if (entity == node.fields) {
+      optype.completionLocation = 'FieldDeclaration_fields';
+    }
     if (offset <= node.semicolon.offset) {
       optype.includeVarNameSuggestions = true;
     }
@@ -706,6 +709,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     // In theory it is possible to specify any expression in initializer,
     // but for any practical use we need only types.
     if (entity == node.forLoopParts) {
+      optype.completionLocation = 'ForElement_forLoopParts';
       optype.includeTypeNameSuggestions = true;
     } else if (entity == node.body) {
       optype.completionLocation = 'ForElement_body';
@@ -787,9 +791,10 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     // In theory it is possible to specify any expression in initializer,
     // but for any practical use we need only types.
     if (entity == node.forLoopParts) {
+      optype.completionLocation = 'ForStatement_forLoopParts';
       optype.includeTypeNameSuggestions = true;
     } else if (entity == node.body) {
-      optype.completionLocation = 'ForElement_body';
+      optype.completionLocation = 'ForStatement_body';
     }
   }
 
@@ -797,6 +802,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   void visitFunctionDeclaration(FunctionDeclaration node) {
     if (identical(entity, node.returnType) ||
         identical(entity, node.name) && node.returnType == null) {
+      optype.completionLocation = 'FunctionDeclaration_returnType';
       optype.includeTypeNameSuggestions = true;
     }
   }
@@ -858,12 +864,12 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     } else if (identical(entity, node.thenStatement)) {
-      optype.completionLocation = 'IfStatement_thenElement';
+      optype.completionLocation = 'IfStatement_thenStatement';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
       optype.includeVoidReturnSuggestions = true;
     } else if (identical(entity, node.elseStatement)) {
-      optype.completionLocation = 'IfStatement_elseElement';
+      optype.completionLocation = 'IfStatement_elseStatement';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
       optype.includeVoidReturnSuggestions = true;
@@ -886,6 +892,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (identical(entity, node.constructorName)) {
+      optype.completionLocation = 'InstanceCreationExpression_constructorName';
       optype.includeConstructorSuggestions = true;
     }
   }
@@ -947,6 +954,12 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
+    if (identical(entity, node.returnType) ||
+        identical(entity, node.name) && node.returnType == null) {
+      optype.completionLocation = 'MethodDeclaration_returnType';
+    }
+    // TODO(brianwilkerson) In visitFunctionDeclaration, this is conditional. It
+    //  seems like it should be the same in both places.
     optype.includeTypeNameSuggestions = true;
   }
 
@@ -962,13 +975,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       optype.isPrefixed = true;
     } else if (identical(entity, node.methodName)) {
       optype.includeReturnValueSuggestions = true;
-      optype.includeTypeNameSuggestions = !isThis;
+//      optype.includeTypeNameSuggestions = !isThis;
       optype.includeVoidReturnSuggestions = true;
       optype.isPrefixed = true;
     } else if (identical(entity, node.argumentList)) {
       // Note that when the cursor is in a type argument list (f<^>()), the
       // entity is (surprisingly) the invocation's argumentList (and not it's
       // typeArgumentList as you'd expect).
+      optype.completionLocation = 'MethodInvocation_argumentList';
       optype.includeTypeNameSuggestions = true;
     }
   }
@@ -1217,7 +1231,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     } else if (node.statements.contains(entity)) {
-      optype.completionLocation = 'SwitchCase_statement';
+      optype.completionLocation = 'SwitchMember_statement';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
       optype.includeVoidReturnSuggestions = true;
@@ -1320,6 +1334,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   void visitVariableDeclarationList(VariableDeclarationList node) {
     if (node.keyword == null || node.keyword.lexeme != 'var') {
       if (node.type == null || identical(entity, node.type)) {
+        optype.completionLocation = 'VariableDeclarationList_type';
         optype.includeTypeNameSuggestions = true;
       } else if (node.type != null && entity is VariableDeclaration) {
         optype.includeVarNameSuggestions = true;

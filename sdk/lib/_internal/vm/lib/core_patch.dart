@@ -13,6 +13,8 @@ import "dart:_internal" as internal show Symbol;
 
 import "dart:_internal"
     show
+        allocateOneByteString,
+        allocateTwoByteString,
         ClassID,
         CodeUnits,
         EfficientLengthIterable,
@@ -27,7 +29,9 @@ import "dart:_internal"
         makeFixedListUnmodifiable,
         makeListFixedLength,
         patch,
-        unsafeCast;
+        unsafeCast,
+        writeIntoOneByteString,
+        writeIntoTwoByteString;
 
 import "dart:async" show Completer, Future, Timer;
 

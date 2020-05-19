@@ -96,11 +96,6 @@ class TestProject {
     return path.join(sdkRootPath, 'pkg', 'dartdev', 'bin', 'dartdev.dart');
   }
 
-  String get absolutePathToAnalysisServerFile {
-    return path.join(
-        sdkRootPath, 'pkg', 'analysis_server', 'bin', 'server.dart');
-  }
-
   File findFile(String name) {
     var file = File(path.join(dir.path, name));
     return file.existsSync() ? file : null;

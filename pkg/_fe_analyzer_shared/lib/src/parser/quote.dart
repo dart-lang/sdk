@@ -52,7 +52,7 @@ Quote analyzeQuote(String first) {
   if (first.startsWith('r"')) return Quote.RawDouble;
   if (first.startsWith("'")) return Quote.Single;
   if (first.startsWith("r'")) return Quote.RawSingle;
-  return throw UnsupportedError("'$first' in analyzeQuote");
+  return throw new UnsupportedError("'$first' in analyzeQuote");
 }
 
 // Note: based on [StringValidator.quotingFromString]
@@ -102,7 +102,7 @@ int firstQuoteLength(String first, Quote quote) {
     case Quote.RawMultiLineDouble:
       return lengthOfOptionalWhitespacePrefix(first, 4);
   }
-  return throw UnsupportedError("'$quote' in  firstQuoteLength");
+  return throw new UnsupportedError("'$quote' in  firstQuoteLength");
 }
 
 int lastQuoteLength(Quote quote) {
@@ -119,7 +119,7 @@ int lastQuoteLength(Quote quote) {
     case Quote.RawMultiLineDouble:
       return 3;
   }
-  return throw UnsupportedError("'$quote' in lastQuoteLength");
+  return throw new UnsupportedError("'$quote' in lastQuoteLength");
 }
 
 String unescapeFirstStringPart(String first, Quote quote, Object location,

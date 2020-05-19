@@ -1232,7 +1232,8 @@ class CoreTypes {
           getAsTypeArguments(klass.typeParameters, klass.enclosingLibrary));
     }
     if (result.nullability != nullability) {
-      return _thisInterfaceTypes[klass] = result.withNullability(nullability);
+      return _thisInterfaceTypes[klass] =
+          result.withDeclaredNullability(nullability);
     }
     return result;
   }
@@ -1244,7 +1245,8 @@ class CoreTypes {
           getAsTypeArguments(typedef.typeParameters, typedef.enclosingLibrary));
     }
     if (result.nullability != nullability) {
-      return _thisTypedefTypes[typedef] = result.withNullability(nullability);
+      return _thisTypedefTypes[typedef] =
+          result.withDeclaredNullability(nullability);
     }
     return result;
   }
@@ -1264,7 +1266,8 @@ class CoreTypes {
               klass.typeParameters.length, const BottomType()));
     }
     if (result.nullability != nullability) {
-      return _bottomInterfaceTypes[klass] = result.withNullability(nullability);
+      return _bottomInterfaceTypes[klass] =
+          result.withDeclaredNullability(nullability);
     }
     return result;
   }
@@ -1286,7 +1289,8 @@ class CoreTypes {
     // TOP(T*) is true iff TOP(T) or OBJECT(T).
     if (type.nullability == Nullability.nullable ||
         type.nullability == Nullability.legacy) {
-      DartType nonNullableType = type.withNullability(Nullability.nonNullable);
+      DartType nonNullableType =
+          type.withDeclaredNullability(Nullability.nonNullable);
       assert(type != nonNullableType);
       return isTop(nonNullableType) || isObject(nonNullableType);
     }
@@ -1367,7 +1371,8 @@ class CoreTypes {
     // NULL(T*) is true iff NULL(T) or BOTTOM(T).
     if (type.nullability == Nullability.nullable ||
         type.nullability == Nullability.legacy) {
-      DartType nonNullableType = type.withNullability(Nullability.nonNullable);
+      DartType nonNullableType =
+          type.withDeclaredNullability(Nullability.nonNullable);
       return isBottom(nonNullableType);
     }
 

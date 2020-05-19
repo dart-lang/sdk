@@ -14,7 +14,6 @@ import 'package:analysis_server/src/edit/fix/fix_lint_task.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart' show SourceKind;
 
@@ -122,9 +121,6 @@ class EditDartFix
       };
     });
 
-    // Set up the rerun function on the NNBD migration for interactivity.
-    nonNullableFixTask?.rerunFunction = rerunTasks;
-
     bool hasErrors;
     try {
       hasErrors = await runAllTasks();
@@ -148,7 +144,6 @@ class EditDartFix
       hasErrors,
       listener.sourceChange.edits,
       details: listener.details,
-      urls: nonNullableFixTask?.previewUrls,
     ).toResponse(request.id);
   }
 
@@ -248,26 +243,6 @@ class EditDartFix
       }
       await process(result);
     }
-  }
-
-  Future<bool> rerunTasks([List<String> changedPaths]) async {
-    listener.reset();
-    if (changedPaths == null) {
-      final drivers = <AnalysisDriver>{};
-      for (var path in getPathsToProcess()) {
-        drivers.add(server.getAnalysisDriver(path));
-      }
-      for (final driver in drivers) {
-        driver.knownFiles.forEach(driver.changeFile);
-      }
-    } else {
-      for (var path in changedPaths) {
-        var driver = server.getAnalysisDriver(path);
-        driver.changeFile(path);
-      }
-    }
-
-    return await runAllTasks();
   }
 
   Future<bool> runAllTasks() async {

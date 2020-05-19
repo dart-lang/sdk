@@ -35,15 +35,13 @@ class PreviewSiteTest with ResourceProviderMixin, PreviewSiteTestMixin {
   }
 
   void setUp() {
-    reranPaths = null;
     dartfixListener = DartFixListener(null);
     resourceProvider = MemoryResourceProvider();
     final migrationInfo = MigrationInfo({}, {}, null, null);
     state = MigrationState(null, null, dartfixListener, null);
     state.pathMapper = PathMapper(resourceProvider);
     state.migrationInfo = migrationInfo;
-    site = PreviewSite(state, ([paths]) async {
-      reranPaths = paths;
+    site = PreviewSite(state, () async {
       return state;
     });
   }
@@ -160,7 +158,6 @@ void main(List args) {
     expect(file.readAsStringSync(), 'int/*?*/ foo() {}');
     expect(state.hasBeenApplied, false);
     expect(state.needsRerun, true);
-    expect(reranPaths, null);
     expect(unitInfo.content, 'int/*?*/ foo() {}');
   }
 
@@ -181,7 +178,6 @@ mixin PreviewSiteTestMixin {
   PreviewSite site;
   DartFixListener dartfixListener;
   MigrationState state;
-  List<String> reranPaths;
 
   Future<void> performEdit(String path, int offset, String replacement) {
     final pathUri = Uri.file(path).path;
@@ -197,14 +193,13 @@ class PreviewSiteWithEngineTest extends NnbdMigrationTestBase
   @override
   void setUp() {
     super.setUp();
-    reranPaths = null;
     dartfixListener = DartFixListener(null);
     final migrationInfo = MigrationInfo({}, {}, null, null);
     state = MigrationState(null, null, dartfixListener, null);
+    nodeMapper = state.nodeMapper;
     state.pathMapper = PathMapper(resourceProvider);
     state.migrationInfo = migrationInfo;
-    site = PreviewSite(state, ([paths]) async {
-      reranPaths = paths;
+    site = PreviewSite(state, () async {
       return state;
     });
   }
@@ -256,6 +251,54 @@ int/*?*/? y = x;
         unitInfo.content.indexOf('= x;') + '= '.length, contains('data flow'));
     expect(state.hasBeenApplied, false);
     expect(state.needsRerun, true);
-    expect(reranPaths, null);
+  }
+
+  void test_applyHintAction() async {
+    final path = convertPath('/home/tests/bin/test.dart');
+    final file = getFile(path);
+    final content = r'''
+int x;
+int y = x;
+''';
+    file.writeAsStringSync(content);
+    final migratedContent = '''
+int? x;
+int? y = x;
+''';
+    final unitInfo = await buildInfoForSingleTestFile(content,
+        migratedContent: migratedContent);
+    site.unitInfoMap[path] = unitInfo;
+    await site.performHintAction(
+        unitInfo.regions[1].traces[0].entries[0].hintActions[0]);
+    await site.performHintAction(
+        unitInfo.regions[1].traces[0].entries[2].hintActions[0]);
+    expect(file.readAsStringSync(), '''
+int/*?*/ x;
+int/*?*/ y = x;
+''');
+    expect(unitInfo.content, '''
+int/*?*/? x;
+int/*?*/? y = x;
+''');
+    assertRegion(
+        region: unitInfo.regions[0], offset: unitInfo.content.indexOf('? x'));
+    assertRegion(
+        region: unitInfo.regions[1], offset: unitInfo.content.indexOf('? y'));
+    final targets = List<NavigationTarget>.from(unitInfo.targets);
+    assertInTargets(
+        targets: targets,
+        offset: unitInfo.content.indexOf('x'),
+        offsetMapper: unitInfo.offsetMapper);
+    assertInTargets(
+        targets: targets,
+        offset: unitInfo.content.indexOf('y'),
+        offsetMapper: unitInfo.offsetMapper);
+    var trace = unitInfo.regions[1].traces[0];
+    assertTraceEntry(unitInfo, trace.entries[0], null,
+        unitInfo.content.indexOf('int/*?*/? y'), contains('y (test.dart:2:1)'));
+    assertTraceEntry(unitInfo, trace.entries[1], 'y',
+        unitInfo.content.indexOf('= x;') + '= '.length, contains('data flow'));
+    expect(state.hasBeenApplied, false);
+    expect(state.needsRerun, true);
   }
 }

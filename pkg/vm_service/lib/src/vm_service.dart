@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.33.0';
+const String vmServiceVersion = '3.35.0';
 
 /// @optional
 const String optional = 'optional';
@@ -158,6 +158,8 @@ Map<String, Function> _typeFactories = {
   '@Object': ObjRef.parse,
   'Object': Obj.parse,
   'ProfileFunction': ProfileFunction.parse,
+  'ProtocolList': ProtocolList.parse,
+  'Protocol': Protocol.parse,
   'ReloadReport': ReloadReport.parse,
   'RetainingObject': RetainingObject.parse,
   'RetainingPath': RetainingPath.parse,
@@ -208,6 +210,7 @@ Map<String, List<String>> _methodReturnTypes = {
   'getObject': const ['Obj'],
   'getRetainingPath': const ['RetainingPath'],
   'getStack': const ['Stack'],
+  'getSupportedProtocols': const ['ProtocolList'],
   'getSourceReport': const ['SourceReport'],
   'getVersion': const ['Version'],
   'getVM': const ['VM'],
@@ -731,6 +734,16 @@ abstract class VmServiceInterface {
   /// returned.
   Future<Stack> getStack(String isolateId);
 
+  /// The `getSupportedProtocols` RPC is used to determine which protocols are
+  /// supported by the current server.
+  ///
+  /// The result of this call should be intercepted by any middleware that
+  /// extends the core VM service protocol and should add its own protocol to
+  /// the list of protocols before forwarding the response to the client.
+  ///
+  /// See [ProtocolList].
+  Future<ProtocolList> getSupportedProtocols();
+
   /// The `getSourceReport` RPC is used to generate a set of reports tied to
   /// source locations in an isolate.
   ///
@@ -1077,6 +1090,9 @@ abstract class VmServiceInterface {
   /// are to be enabled. Streams not explicitly specified will be disabled.
   /// Invalid stream names are ignored.
   ///
+  /// A `TimelineStreamSubscriptionsUpdate` event is sent on the `Timeline`
+  /// stream as a result of invoking this RPC.
+  ///
   /// To get the list of currently enabled timeline streams, see
   /// [getVMTimelineFlags].
   ///
@@ -1109,7 +1125,7 @@ abstract class VmServiceInterface {
   /// BreakpointResolved, BreakpointRemoved, Inspect, None
   /// GC | GC
   /// Extension | Extension
-  /// Timeline | TimelineEvents
+  /// Timeline | TimelineEvents, TimelineStreamsSubscriptionUpdate
   /// Logging | Logging
   /// Service | ServiceRegistered, ServiceUnregistered
   /// HeapSnapshot | HeapSnapshot
@@ -1347,6 +1363,9 @@ class VmServerConnection {
           response = await _serviceImplementation.getStack(
             params['isolateId'],
           );
+          break;
+        case 'getSupportedProtocols':
+          response = await _serviceImplementation.getSupportedProtocols();
           break;
         case 'getSourceReport':
           response = await _serviceImplementation.getSourceReport(
@@ -1612,7 +1631,7 @@ class VmService implements VmServiceInterface {
   // Extension
   Stream<Event> get onExtensionEvent => _getEventController('Extension').stream;
 
-  // TimelineEvents
+  // TimelineEvents, TimelineStreamsSubscriptionUpdate
   Stream<Event> get onTimelineEvent => _getEventController('Timeline').stream;
 
   // Logging
@@ -1806,6 +1825,10 @@ class VmService implements VmServiceInterface {
   @override
   Future<Stack> getStack(String isolateId) =>
       _call('getStack', {'isolateId': isolateId});
+
+  @override
+  Future<ProtocolList> getSupportedProtocols() =>
+      _call('getSupportedProtocols');
 
   @override
   Future<SourceReport> getSourceReport(
@@ -2095,7 +2118,8 @@ class VmService implements VmServiceInterface {
   }
 
   Future _processRequest(Map<String, dynamic> json) async {
-    final Map m = await _routeRequest(json['method'], json['params'] ?? {});
+    final Map m = await _routeRequest(
+        json['method'], json['params'] ?? <String, dynamic>{});
     m['id'] = json['id'];
     m['jsonrpc'] = '2.0';
     String message = jsonEncode(m);
@@ -2105,7 +2129,7 @@ class VmService implements VmServiceInterface {
 
   Future _processNotification(Map<String, dynamic> json) async {
     final String method = json['method'];
-    final Map params = json['params'] ?? {};
+    final Map params = json['params'] ?? <String, dynamic>{};
     if (method == 'streamNotify') {
       String streamId = params['streamId'];
       _getEventController(streamId)
@@ -2115,7 +2139,7 @@ class VmService implements VmServiceInterface {
     }
   }
 
-  Future<Map> _routeRequest(String method, Map params) async {
+  Future<Map> _routeRequest(String method, Map<String, dynamic> params) async {
     if (!_services.containsKey(method)) {
       RPCError error = RPCError(
           method, RPCError.kMethodNotFound, 'method not found \'$method\'');
@@ -2361,6 +2385,18 @@ class EventKind {
 
   /// Event from dart:developer.log.
   static const String kLogging = 'Logging';
+
+  /// A block of timeline events has been completed.
+  ///
+  /// This service event is not sent for individual timeline events. It is
+  /// subject to buffering, so the most recent timeline events may never be
+  /// included in any TimelineEvents event if no timeline events occur later to
+  /// complete the block.
+  static const String kTimelineEvents = 'TimelineEvents';
+
+  /// The set of active timeline streams was changed via `setVMTimelineFlags`.
+  static const String kTimelineStreamSubscriptionsUpdate =
+      'TimelineStreamSubscriptionsUpdate';
 
   /// Notification that a Service has been registered into the Service Protocol
   /// from another client.
@@ -3576,6 +3612,12 @@ class Event extends Response {
   @optional
   List<TimelineEvent> timelineEvents;
 
+  /// The new set of recorded timeline streams.
+  ///
+  /// This is provided for the TimelineStreamSubscriptionsUpdate event.
+  @optional
+  List<String> updatedStreams;
+
   /// Is the isolate paused at an await, yield, or yield* statement?
   ///
   /// This is provided for the event kinds:
@@ -3662,6 +3704,7 @@ class Event extends Response {
     this.extensionKind,
     this.extensionData,
     this.timelineEvents,
+    this.updatedStreams,
     this.atAsyncSuspension,
     this.status,
     this.logRecord,
@@ -3695,6 +3738,9 @@ class Event extends Response {
         ? null
         : List<TimelineEvent>.from(createServiceObject(
             json['timelineEvents'], const ['TimelineEvent']));
+    updatedStreams = json['updatedStreams'] == null
+        ? null
+        : List<String>.from(json['updatedStreams']);
     atAsyncSuspension = json['atAsyncSuspension'];
     status = json['status'];
     logRecord = createServiceObject(json['logRecord'], const ['LogRecord']);
@@ -3729,6 +3775,8 @@ class Event extends Response {
     _setIfNotNull(json, 'extensionData', extensionData?.data);
     _setIfNotNull(json, 'timelineEvents',
         timelineEvents?.map((f) => f?.toJson())?.toList());
+    _setIfNotNull(
+        json, 'updatedStreams', updatedStreams?.map((f) => f)?.toList());
     _setIfNotNull(json, 'atAsyncSuspension', atAsyncSuspension);
     _setIfNotNull(json, 'status', status);
     _setIfNotNull(json, 'logRecord', logRecord?.toJson());
@@ -5746,6 +5794,79 @@ class ProfileFunction {
   String toString() => '[ProfileFunction ' //
       'kind: ${kind}, inclusiveTicks: ${inclusiveTicks}, exclusiveTicks: ${exclusiveTicks}, ' //
       'resolvedUrl: ${resolvedUrl}, function: ${function}]';
+}
+
+/// A `ProtocolList` contains a list of all protocols supported by the service
+/// instance.
+///
+/// See [Protocol] and [getSupportedProtocols].
+class ProtocolList extends Response {
+  static ProtocolList parse(Map<String, dynamic> json) =>
+      json == null ? null : ProtocolList._fromJson(json);
+
+  /// A list of supported protocols provided by this service.
+  List<Protocol> protocols;
+
+  ProtocolList({
+    @required this.protocols,
+  });
+
+  ProtocolList._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
+    protocols = List<Protocol>.from(
+        createServiceObject(json['protocols'], const ['Protocol']) ?? []);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var json = <String, dynamic>{};
+    json['type'] = 'ProtocolList';
+    json.addAll({
+      'protocols': protocols.map((f) => f.toJson()).toList(),
+    });
+    return json;
+  }
+
+  String toString() => '[ProtocolList type: ${type}, protocols: ${protocols}]';
+}
+
+/// See [getSupportedProtocols].
+class Protocol {
+  static Protocol parse(Map<String, dynamic> json) =>
+      json == null ? null : Protocol._fromJson(json);
+
+  /// The name of the supported protocol.
+  String protocolName;
+
+  /// The major revision of the protocol.
+  int major;
+
+  /// The minor revision of the protocol.
+  int minor;
+
+  Protocol({
+    @required this.protocolName,
+    @required this.major,
+    @required this.minor,
+  });
+
+  Protocol._fromJson(Map<String, dynamic> json) {
+    protocolName = json['protocolName'];
+    major = json['major'];
+    minor = json['minor'];
+  }
+
+  Map<String, dynamic> toJson() {
+    var json = <String, dynamic>{};
+    json.addAll({
+      'protocolName': protocolName,
+      'major': major,
+      'minor': minor,
+    });
+    return json;
+  }
+
+  String toString() => '[Protocol ' //
+      'protocolName: ${protocolName}, major: ${major}, minor: ${minor}]';
 }
 
 class ReloadReport extends Response {

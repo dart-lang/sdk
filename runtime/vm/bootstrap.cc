@@ -105,6 +105,7 @@ static ErrorPtr BootstrapFromKernel(Thread* thread,
     const String& msg = String::Handle(String::New(message_buffer, Heap::kOld));
     return ApiError::New(msg, Heap::kOld);
   }
+  program->AutoDetectNullSafety(thread->isolate());
   kernel::KernelLoader loader(program.get(), /*uri_to_source_table=*/nullptr);
 
   Isolate* isolate = thread->isolate();

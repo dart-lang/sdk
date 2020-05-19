@@ -284,17 +284,18 @@ class TypeOperationsCfe
   @override
   DartType promoteToNonNull(DartType type) {
     if (type is TypeParameterType &&
-        type.typeParameterTypeNullability != Nullability.nullable) {
-      DartType bound = type.bound.withNullability(Nullability.nonNullable);
+        type.declaredNullability != Nullability.nullable) {
+      DartType bound =
+          type.bound.withDeclaredNullability(Nullability.nonNullable);
       if (bound != type.bound) {
         return new TypeParameterType(
-            type.parameter, type.typeParameterTypeNullability, bound);
+            type.parameter, type.declaredNullability, bound);
       }
       return type;
     } else if (type == typeEnvironment.nullType) {
       return const NeverType(Nullability.nonNullable);
     }
-    return type.withNullability(Nullability.nonNullable);
+    return type.withDeclaredNullability(Nullability.nonNullable);
   }
 
   @override
