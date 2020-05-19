@@ -19737,8 +19737,19 @@ intptr_t Type::ComputeHash() const {
   result = CombineHashes(result, static_cast<uint32_t>(type_nullability));
   result = CombineHashes(result, TypeArguments::Handle(arguments()).Hash());
   if (IsFunctionType()) {
+    AbstractType& type = AbstractType::Handle();
     const Function& sig_fun = Function::Handle(signature());
-    AbstractType& type = AbstractType::Handle(sig_fun.result_type());
+    const intptr_t num_type_params = sig_fun.NumTypeParameters();
+    if (num_type_params > 0) {
+      const TypeArguments& type_params =
+          TypeArguments::Handle(sig_fun.type_parameters());
+      for (intptr_t i = 0; i < num_type_params; i++) {
+        type = type_params.TypeAt(i);
+        type = TypeParameter::Cast(type).bound();
+        result = CombineHashes(result, type.Hash());
+      }
+    }
+    type = sig_fun.result_type();
     result = CombineHashes(result, type.Hash());
     result = CombineHashes(result, sig_fun.NumOptionalPositionalParameters());
     const intptr_t num_params = sig_fun.NumParameters();
@@ -19754,7 +19765,6 @@ intptr_t Type::ComputeHash() const {
       }
       // Required flag is not hashed, see comment above.
     }
-    // TODO(regis): Missing hash of type parameters.
   }
   result = FinalizeHash(result, kHashBits);
   SetHash(result);
