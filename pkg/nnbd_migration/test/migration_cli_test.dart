@@ -16,6 +16,7 @@ import 'package:meta/meta.dart';
 import 'package:nnbd_migration/migration_cli.dart';
 import 'package:nnbd_migration/src/front_end/non_nullable_fix.dart';
 import 'package:nnbd_migration/src/front_end/web/edit_details.dart';
+import 'package:nnbd_migration/src/front_end/web/navigation_tree.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -629,6 +630,39 @@ int? f() => null
               .replace(queryParameters: {'authToken': authToken}),
           headers: {'Content-Type': 'application/json; charset=UTF-8'});
       assertHttpSuccess(contentsResponse);
+    });
+  }
+
+  test_lifecycle_preview_navigation_tree() async {
+    var projectContents = simpleProject(sourceText: 'int x;');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await runWithPreviewServer(cli, [projectDir], (url) async {
+      expect(
+          logger.stdoutBuffer.toString(), contains('No analysis issues found'));
+      await assertPreviewServerResponsive(url);
+      var uri = Uri.parse(url);
+      var authToken = uri.queryParameters['authToken'];
+      var treeResponse = await http.get(
+          uri.replace(
+              path: '/_preview/navigationTree.json',
+              queryParameters: {'authToken': authToken}),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      var navRoots = jsonDecode(treeResponse.body);
+      for (final root in navRoots) {
+        var navTree = NavigationTreeNode.fromJson(root);
+        for (final file in navTree.subtree) {
+          if (file.href != null) {
+            print(file.href);
+            final contentsResponse = await http.get(
+                uri
+                    .resolve(file.href)
+                    .replace(queryParameters: {'authToken': authToken}),
+                headers: {'Content-Type': 'application/json; charset=UTF-8'});
+            assertHttpSuccess(contentsResponse);
+          }
+        }
+      }
     });
   }
 

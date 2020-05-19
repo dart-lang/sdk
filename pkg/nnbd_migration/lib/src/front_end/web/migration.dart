@@ -303,10 +303,6 @@ void handleNavLinkClick(
   if (path.contains('?')) {
     path = path.substring(0, path.indexOf('?'));
   }
-  // Fix-up the path - it might be relative.
-  if (relativeTo != null) {
-    path = _p.normalize(_p.join(_p.dirname(relativeTo), path));
-  }
 
   var offset = getOffset(location);
   var lineNumber = getLine(location);

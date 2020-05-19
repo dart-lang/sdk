@@ -93,15 +93,11 @@ class MigrationInfo {
     var links = <UnitLink>[];
     for (var unit in units) {
       var count = unit.fixRegions.length;
-      links.add(UnitLink(
-          _pathTo(target: unit), pathContext.split(computeName(unit)), count));
+      links.add(
+          UnitLink(unit.path, pathContext.split(computeName(unit)), count));
     }
     return links;
   }
-
-  /// The path to [target], as an HTTP URI path, using forward slash separators.
-  String _pathTo({@required UnitInfo target}) =>
-      '/' + pathContext.split(target.path).skip(1).join('/');
 }
 
 /// A location from or to which a user might want to navigate.
