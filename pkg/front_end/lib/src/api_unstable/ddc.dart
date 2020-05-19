@@ -47,6 +47,8 @@ export '../api_prototype/experimental_flags.dart'
 
 export '../api_prototype/kernel_generator.dart' show kernelForModule;
 
+export '../api_prototype/lowering_predicates.dart';
+
 export '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
 
 export '../api_prototype/standard_file_system.dart' show StandardFileSystem;

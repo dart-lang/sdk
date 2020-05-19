@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart'
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/base/nnbd_mode.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/target/targets.dart';
 import '../api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
 import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
@@ -46,12 +47,14 @@ class TestConfig {
   // TODO(johnniwinther): Tailor support to redefine selected platform
   // classes/members only.
   final bool compileSdk;
+  final TargetFlags targetFlags;
   final NnbdMode nnbdMode;
 
   const TestConfig(this.marker, this.name,
       {this.experimentalFlags = const {},
       this.librariesSpecificationUri,
       this.compileSdk: false,
+      this.targetFlags: const TargetFlags(),
       this.nnbdMode: NnbdMode.Weak});
 
   void customizeCompilerOptions(CompilerOptions options, TestData testData) {}
@@ -293,6 +296,7 @@ Future<TestResult<T>> runTestForConfig<T>(
     if (!succinct) printDiagnosticMessage(message, print);
   };
   options.debugDump = printCode;
+  options.target = new NoneTarget(config.targetFlags);
   options.experimentalFlags.addAll(config.experimentalFlags);
   options.nnbdMode = config.nnbdMode;
   if (config.librariesSpecificationUri != null) {

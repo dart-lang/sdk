@@ -406,14 +406,20 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
   @override
   List<ClassMember> get localSetters => _fieldEncoding.getLocalSetters(this);
 
-  static String createFieldName(
-      bool isInstanceMember,
+  static String createFieldName(FieldNameType type, String name,
+      {bool isInstanceMember,
       String className,
-      bool isExtensionMethod,
+      bool isExtensionMethod: false,
       String extensionName,
-      String name,
-      bool isSynthesized,
-      FieldNameType type) {
+      bool isSynthesized: false}) {
+    assert(isSynthesized || type == FieldNameType.Field,
+        "Unexpected field name type for non-synthesized field: $type");
+    assert(isExtensionMethod || isInstanceMember != null,
+        "`isInstanceMember` is null for class member.");
+    assert(!(isExtensionMethod && extensionName == null),
+        "No extension name provided for extension member.");
+    assert(isInstanceMember == null || !(isInstanceMember && className == null),
+        "No class name provided for instance member.");
     String baseName;
     if (!isExtensionMethod) {
       baseName = name;
@@ -422,10 +428,9 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
     }
 
     if (!isSynthesized) {
-      assert(type == FieldNameType.Field);
       return baseName;
     } else {
-      String namePrefix = '_#';
+      String namePrefix = late_lowering.lateFieldPrefix;
       if (isInstanceMember) {
         namePrefix = '$namePrefix${className}#';
       }
@@ -437,7 +442,7 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
         case FieldNameType.Setter:
           return baseName;
         case FieldNameType.IsSetField:
-          return "$namePrefix$baseName#isSet";
+          return "$namePrefix$baseName${late_lowering.lateIsSetSuffix}";
       }
     }
     throw new UnsupportedError("Unhandled case for field name.");
@@ -555,8 +560,9 @@ class RegularFieldEncoding implements FieldEncoding {
     String fieldName;
     if (fieldBuilder.isExtensionMember) {
       ExtensionBuilder extension = fieldBuilder.parent;
-      fieldName = SourceFieldBuilder.createFieldName(false, null, true,
-          extension.name, fieldBuilder.name, false, FieldNameType.Field);
+      fieldName = SourceFieldBuilder.createFieldName(
+          FieldNameType.Field, fieldBuilder.name,
+          isExtensionMethod: true, extensionName: extension.name);
       _field
         ..hasImplicitGetter = false
         ..hasImplicitSetter = false
@@ -568,13 +574,8 @@ class RegularFieldEncoding implements FieldEncoding {
       String className =
           isInstanceMember ? fieldBuilder.classBuilder.name : null;
       fieldName = SourceFieldBuilder.createFieldName(
-          isInstanceMember,
-          className,
-          false,
-          null,
-          fieldBuilder.name,
-          false,
-          FieldNameType.Field);
+          FieldNameType.Field, fieldBuilder.name,
+          isInstanceMember: isInstanceMember, className: className);
       _field
         ..hasImplicitGetter = isInstanceMember
         ..hasImplicitSetter = isInstanceMember &&
@@ -725,6 +726,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
     _field.initializer = new NullLiteral()..parent = _field;
     if (_lateIsSetField != null) {
       _lateIsSetField.initializer = new BoolLiteral(false)
+        ..fileOffset = fileOffset
         ..parent = _lateIsSetField;
     }
     _lateGetter.function.body = _createGetterBody(coreTypes, name, initializer)
@@ -886,25 +888,23 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
     }
     _field.name ??= new Name(
         SourceFieldBuilder.createFieldName(
-            isInstanceMember,
-            className,
-            isExtensionMember,
-            extensionName,
-            fieldBuilder.name,
-            true,
-            FieldNameType.Field),
+            FieldNameType.Field, fieldBuilder.name,
+            isInstanceMember: isInstanceMember,
+            className: className,
+            isExtensionMethod: isExtensionMember,
+            extensionName: extensionName,
+            isSynthesized: true),
         libraryBuilder.library);
     if (_lateIsSetField != null) {
       _lateIsSetField
         ..name = new Name(
             SourceFieldBuilder.createFieldName(
-                isInstanceMember,
-                className,
-                isExtensionMember,
-                extensionName,
-                fieldBuilder.name,
-                true,
-                FieldNameType.IsSetField),
+                FieldNameType.IsSetField, fieldBuilder.name,
+                isInstanceMember: isInstanceMember,
+                className: className,
+                isExtensionMethod: isExtensionMember,
+                extensionName: extensionName,
+                isSynthesized: true),
             libraryBuilder.library)
         ..isStatic = !isInstanceMember
         ..hasImplicitGetter = isInstanceMember
@@ -915,13 +915,12 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
     _lateGetter
       ..name = new Name(
           SourceFieldBuilder.createFieldName(
-              isInstanceMember,
-              className,
-              isExtensionMember,
-              extensionName,
-              fieldBuilder.name,
-              true,
-              FieldNameType.Getter),
+              FieldNameType.Getter, fieldBuilder.name,
+              isInstanceMember: isInstanceMember,
+              className: className,
+              isExtensionMethod: isExtensionMember,
+              extensionName: extensionName,
+              isSynthesized: true),
           libraryBuilder.library)
       ..isStatic = !isInstanceMember
       ..isExtensionMember = isExtensionMember;
@@ -929,13 +928,12 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       _lateSetter
         ..name = new Name(
             SourceFieldBuilder.createFieldName(
-                isInstanceMember,
-                className,
-                isExtensionMember,
-                extensionName,
-                fieldBuilder.name,
-                true,
-                FieldNameType.Setter),
+                FieldNameType.Setter, fieldBuilder.name,
+                isInstanceMember: isInstanceMember,
+                className: className,
+                isExtensionMethod: isExtensionMember,
+                extensionName: extensionName,
+                isSynthesized: true),
             libraryBuilder.library)
         ..isStatic = !isInstanceMember
         ..isExtensionMember = isExtensionMember;
@@ -1390,13 +1388,12 @@ class ExternalFieldEncoding implements FieldEncoding {
     }
     _getter..isConst = fieldBuilder.isConst;
     String getterName = SourceFieldBuilder.createFieldName(
-        isInstanceMember,
-        className,
-        isExtensionMember,
-        extensionName,
-        fieldBuilder.name,
-        true,
-        FieldNameType.Getter);
+        FieldNameType.Getter, fieldBuilder.name,
+        isInstanceMember: isInstanceMember,
+        className: className,
+        isExtensionMethod: isExtensionMember,
+        extensionName: extensionName,
+        isSynthesized: true);
     _getter
       ..isStatic = !isInstanceMember
       ..isExtensionMember = isExtensionMember
@@ -1406,13 +1403,14 @@ class ExternalFieldEncoding implements FieldEncoding {
 
     if (_setter != null) {
       String setterName = SourceFieldBuilder.createFieldName(
-          isInstanceMember,
-          className,
-          isExtensionMember,
-          extensionName,
-          fieldBuilder.name,
-          true,
-          FieldNameType.Setter);
+        FieldNameType.Setter,
+        fieldBuilder.name,
+        isInstanceMember: isInstanceMember,
+        className: className,
+        isExtensionMethod: isExtensionMember,
+        extensionName: extensionName,
+        isSynthesized: true,
+      );
       _setter
         ..isStatic = !isInstanceMember
         ..isExtensionMember = isExtensionMember

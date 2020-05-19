@@ -11,6 +11,7 @@ analyzer:
     - test/id_testing/data/**
     - test/language_versioning/data/**
     - test/patching/data/**
+    - test/predicates/data/**
     - test/static_types/data/**
     - test/text_representation/data/**
   errors:

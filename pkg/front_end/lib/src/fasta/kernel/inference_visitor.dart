@@ -5432,7 +5432,10 @@ class InferenceVisitor
 
       VariableDeclaration isSetVariable;
       if (isPotentiallyNullable(node.type, inferrer.coreTypes.futureOrClass)) {
-        isSetVariable = new VariableDeclaration('#${node.name}#isSet',
+        isSetVariable = new VariableDeclaration(
+            '${late_lowering.lateLocalPrefix}'
+            '${node.name}'
+            '${late_lowering.lateIsSetSuffix}',
             initializer: new BoolLiteral(false)..fileOffset = fileOffset,
             type: inferrer.coreTypes.boolRawType(inferrer.library.nonNullable))
           ..fileOffset = fileOffset;
@@ -5441,20 +5444,24 @@ class InferenceVisitor
 
       Expression createVariableRead({bool needsPromotion: false}) {
         if (needsPromotion) {
-          return new VariableGet(node, node.type);
+          return new VariableGet(node, node.type)..fileOffset = fileOffset;
         } else {
-          return new VariableGet(node);
+          return new VariableGet(node)..fileOffset = fileOffset;
         }
       }
 
-      Expression createIsSetRead() => new VariableGet(isSetVariable);
+      Expression createIsSetRead() =>
+          new VariableGet(isSetVariable)..fileOffset = fileOffset;
       Expression createVariableWrite(Expression value) =>
           new VariableSet(node, value);
       Expression createIsSetWrite(Expression value) =>
           new VariableSet(isSetVariable, value);
 
       VariableDeclaration getVariable =
-          new VariableDeclaration('#${node.name}#get')..fileOffset = fileOffset;
+          new VariableDeclaration('${late_lowering.lateLocalPrefix}'
+              '${node.name}'
+              '${late_lowering.lateLocalGetterSuffix}')
+            ..fileOffset = fileOffset;
       FunctionDeclaration getter = new FunctionDeclaration(
           getVariable,
           new FunctionNode(
@@ -5488,7 +5495,9 @@ class InferenceVisitor
         node.isLateFinalWithoutInitializer =
             node.isFinal && node.initializer == null;
         VariableDeclaration setVariable =
-            new VariableDeclaration('#${node.name}#set')
+            new VariableDeclaration('${late_lowering.lateLocalPrefix}'
+                '${node.name}'
+                '${late_lowering.lateLocalSetterSuffix}')
               ..fileOffset = fileOffset;
         VariableDeclaration setterParameter =
             new VariableDeclaration(null, type: node.type)

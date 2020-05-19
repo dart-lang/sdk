@@ -1049,14 +1049,13 @@ class KernelTarget extends TargetImplementation {
       Set<String> patchFieldNames = {};
       builder.forEachDeclaredField((String name, FieldBuilder fieldBuilder) {
         patchFieldNames.add(SourceFieldBuilder.createFieldName(
-            fieldBuilder.isClassInstanceMember,
-            builder.name,
-            false,
-            null,
-            name,
-            fieldBuilder.isLate &&
-                !builder.library.loader.target.backendTarget.supportsLateFields,
-            FieldNameType.Field));
+          FieldNameType.Field,
+          name,
+          isInstanceMember: fieldBuilder.isClassInstanceMember,
+          className: builder.name,
+          isSynthesized: fieldBuilder.isLate &&
+              !builder.library.loader.target.backendTarget.supportsLateFields,
+        ));
       });
       builder.forEach((String name, Builder builder) {
         if (builder is FieldBuilder) {

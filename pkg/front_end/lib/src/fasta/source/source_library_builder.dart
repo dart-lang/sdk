@@ -1915,13 +1915,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
     if (referencesFrom != null) {
       String nameToLookup = SourceFieldBuilder.createFieldName(
-          isInstanceMember,
-          className,
-          isExtension,
-          extensionName,
-          name,
-          fieldIsLateWithLowering,
-          FieldNameType.Field);
+          FieldNameType.Field, name,
+          isInstanceMember: isInstanceMember,
+          className: className,
+          isExtensionMethod: isExtension,
+          extensionName: extensionName,
+          isSynthesized: fieldIsLateWithLowering);
 
       if (_currentClassReferencesFromIndexed != null) {
         referenceFrom =
@@ -1929,62 +1928,53 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         if (fieldIsLateWithLowering) {
           lateIsSetReferenceFrom = _currentClassReferencesFromIndexed
               .lookupField(SourceFieldBuilder.createFieldName(
-                  isInstanceMember,
-                  className,
-                  isExtension,
-                  extensionName,
-                  name,
-                  fieldIsLateWithLowering,
-                  FieldNameType.IsSetField));
-          getterReferenceFrom = _currentClassReferencesFromIndexed
-              .lookupProcedureNotSetter(SourceFieldBuilder.createFieldName(
-                  isInstanceMember,
-                  className,
-                  isExtension,
-                  extensionName,
-                  name,
-                  fieldIsLateWithLowering,
-                  FieldNameType.Getter));
-          setterReferenceFrom = _currentClassReferencesFromIndexed
-              .lookupProcedureSetter(SourceFieldBuilder.createFieldName(
-                  isInstanceMember,
-                  className,
-                  isExtension,
-                  extensionName,
-                  name,
-                  fieldIsLateWithLowering,
-                  FieldNameType.Setter));
+                  FieldNameType.IsSetField, name,
+                  isInstanceMember: isInstanceMember,
+                  className: className,
+                  isExtensionMethod: isExtension,
+                  extensionName: extensionName,
+                  isSynthesized: fieldIsLateWithLowering));
+          getterReferenceFrom =
+              _currentClassReferencesFromIndexed.lookupProcedureNotSetter(
+                  SourceFieldBuilder.createFieldName(FieldNameType.Getter, name,
+                      isInstanceMember: isInstanceMember,
+                      className: className,
+                      isExtensionMethod: isExtension,
+                      extensionName: extensionName,
+                      isSynthesized: fieldIsLateWithLowering));
+          setterReferenceFrom =
+              _currentClassReferencesFromIndexed.lookupProcedureSetter(
+                  SourceFieldBuilder.createFieldName(FieldNameType.Setter, name,
+                      isInstanceMember: isInstanceMember,
+                      className: className,
+                      isExtensionMethod: isExtension,
+                      extensionName: extensionName,
+                      isSynthesized: fieldIsLateWithLowering));
         }
       } else {
         referenceFrom = referencesFromIndexed.lookupField(nameToLookup);
         if (fieldIsLateWithLowering) {
           lateIsSetReferenceFrom = referencesFromIndexed.lookupField(
-              SourceFieldBuilder.createFieldName(
-                  isInstanceMember,
-                  className,
-                  isExtension,
-                  extensionName,
-                  name,
-                  fieldIsLateWithLowering,
-                  FieldNameType.IsSetField));
+              SourceFieldBuilder.createFieldName(FieldNameType.IsSetField, name,
+                  isInstanceMember: isInstanceMember,
+                  className: className,
+                  isExtensionMethod: isExtension,
+                  extensionName: extensionName,
+                  isSynthesized: fieldIsLateWithLowering));
           getterReferenceFrom = referencesFromIndexed.lookupProcedureNotSetter(
-              SourceFieldBuilder.createFieldName(
-                  isInstanceMember,
-                  className,
-                  isExtension,
-                  extensionName,
-                  name,
-                  fieldIsLateWithLowering,
-                  FieldNameType.Getter));
+              SourceFieldBuilder.createFieldName(FieldNameType.Getter, name,
+                  isInstanceMember: isInstanceMember,
+                  className: className,
+                  isExtensionMethod: isExtension,
+                  extensionName: extensionName,
+                  isSynthesized: fieldIsLateWithLowering));
           setterReferenceFrom = referencesFromIndexed.lookupProcedureSetter(
-              SourceFieldBuilder.createFieldName(
-                  isInstanceMember,
-                  className,
-                  isExtension,
-                  extensionName,
-                  name,
-                  fieldIsLateWithLowering,
-                  FieldNameType.Setter));
+              SourceFieldBuilder.createFieldName(FieldNameType.Setter, name,
+                  isInstanceMember: isInstanceMember,
+                  className: className,
+                  isExtensionMethod: isExtension,
+                  extensionName: extensionName,
+                  isSynthesized: fieldIsLateWithLowering));
         }
       }
     }
