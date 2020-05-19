@@ -227,9 +227,7 @@ class ClassViewElement extends CustomElement implements Renderable {
             ..children = _createElements(),
           new HRElement(),
           new HeadingElement.h2()..text = 'Instances',
-          new DivElement()
-            ..children =
-                _cls.hasAllocations ? [_classInstances.element] : const [],
+          new DivElement()..children = [_classInstances.element],
           new HRElement(),
           new HeadingElement.h2()..text = 'Allocations',
           new DivElement()

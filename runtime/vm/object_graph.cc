@@ -269,12 +269,12 @@ class InstanceAccumulator : public ObjectVisitor {
 };
 
 void ObjectGraph::IterateObjectsFrom(intptr_t class_id,
+                                     HeapIterationScope* iteration,
                                      ObjectGraph::Visitor* visitor) {
-  HeapIterationScope iteration(thread());
   Stack stack(isolate_group());
 
   InstanceAccumulator accumulator(&stack, class_id);
-  iteration.IterateObjectsNoImagePages(&accumulator);
+  iteration->IterateObjectsNoImagePages(&accumulator);
 
   stack.TraverseGraph(visitor);
 }
@@ -349,7 +349,7 @@ intptr_t ObjectGraph::SizeRetainedByClass(intptr_t class_id) {
 intptr_t ObjectGraph::SizeReachableByClass(intptr_t class_id) {
   HeapIterationScope iteration_scope(Thread::Current(), true);
   SizeVisitor total;
-  IterateObjectsFrom(class_id, &total);
+  IterateObjectsFrom(class_id, &iteration_scope, &total);
   return total.size();
 }
 
