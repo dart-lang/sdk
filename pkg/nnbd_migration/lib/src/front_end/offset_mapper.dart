@@ -16,9 +16,19 @@ abstract class OffsetMapper {
   /// Return a mapper representing the file modified by an insertion at [offset]
   /// the given with [length].
   factory OffsetMapper.forInsertion(int offset, int length) =>
-      _SimpleInsertionMapper(offset, length);
+      _SimpleSourceEditMapper(offset, 0, length);
+
+  /// Return a mapper representing the file modified by an insertion at [offset]
+  /// with [replacemnet] text overwriting the given [length].
+  factory OffsetMapper.forReplacement(
+          int offset, int length, String replacement) =>
+      _SimpleSourceEditMapper(offset, length, replacement.length);
 
   /// Return a mapper representing [rebased] rebased by [rebaser].
+  ///
+  /// Warning: this does not currently handle cases where the [rebased] mapper
+  /// contains an insert or deletion in the middle of a range deleted by
+  /// [rebaser]. This is not a case that currently needs to be supported.
   factory OffsetMapper.rebase(OffsetMapper rebaser, OffsetMapper rebased) {
     return _RebasedOffsetMapper(rebaser, rebased);
   }
@@ -30,7 +40,7 @@ abstract class OffsetMapper {
   }
 
   /// Return the post-edit offset that corresponds to the given pre-edit
-  /// [offset].
+  /// [offset], or `null` when that offset has been deleted.
   int map(int offset);
 }
 
@@ -97,6 +107,9 @@ class _OffsetMapperChain implements OffsetMapper {
   int map(int offset) {
     for (final mapper in innerMappers) {
       offset = mapper.map(offset);
+      if (offset == null) {
+        break;
+      }
     }
     return offset;
   }
@@ -110,17 +123,37 @@ class _RebasedOffsetMapper implements OffsetMapper {
 
   @override
   int map(int offset) {
-    final delta = rebased.map(offset) - offset;
-    return rebaser.map(offset) + delta;
+    final rebasedOffset = rebased.map(offset);
+    final rebasingOffset = rebaser.map(offset);
+    if (rebasedOffset == null || rebasingOffset == null) {
+      return null;
+    }
+    final delta = rebasedOffset - offset;
+    return rebasingOffset + delta;
   }
 }
 
-class _SimpleInsertionMapper implements OffsetMapper {
+class _SimpleSourceEditMapper implements OffsetMapper {
+  /// The offset where the replacement begins.
   final int offset;
-  final int length;
 
-  _SimpleInsertionMapper(this.offset, this.length);
+  /// The length of text to be replaced.
+  final int replacedLength;
+
+  /// The length of text to be inserted as a replacement.
+  final int replacementLength;
+
+  _SimpleSourceEditMapper(
+      this.offset, this.replacedLength, this.replacementLength);
 
   @override
-  int map(int offset) => offset < this.offset ? offset : offset + length;
+  int map(int offset) {
+    if (offset < this.offset) {
+      return offset;
+    }
+    if (offset < this.offset + replacedLength) {
+      return null;
+    }
+    return offset + replacementLength - replacedLength;
+  }
 }

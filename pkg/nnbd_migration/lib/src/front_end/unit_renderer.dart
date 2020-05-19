@@ -111,6 +111,10 @@ class UnitRenderer {
     for (var region in unitInfo.targets) {
       if (region.length > 0) {
         var openOffset = mapper.map(region.offset);
+        if (openOffset == null) {
+          // Region has been deleted via a hint action.
+          continue;
+        }
         var openInsertion = openInsertions[openOffset] ?? '';
         openInsertion = '<span id="o${region.offset}">$openInsertion';
         openInsertions[openOffset] = openInsertion;
@@ -128,6 +132,10 @@ class UnitRenderer {
     for (var region in unitInfo.sources ?? <NavigationSource>[]) {
       if (region.length > 0) {
         var openOffset = mapper.map(region.offset);
+        if (openOffset == null) {
+          // Region has been deleted via a hint action.
+          continue;
+        }
         var target = region.target;
         if (target.filePath != unitInfo.path ||
             region.offset != target.offset) {

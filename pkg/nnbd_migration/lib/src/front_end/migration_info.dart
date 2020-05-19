@@ -303,6 +303,10 @@ class UnitInfo {
     final regionsCopy = List<RegionInfo>.from(regions);
     final length = replacement.length;
     final migratedOffset = offsetMapper.map(offset);
+    final diskOffset = diskChangesOffsetMapper.map(offset);
+    if (migratedOffset == null || diskOffset == null) {
+      throw StateError('cannot apply replacement, offset has been deleted.');
+    }
     try {
       content =
           content.replaceRange(migratedOffset, migratedOffset, replacement);
@@ -326,10 +330,8 @@ class UnitInfo {
             traces: region.traces);
       }));
 
-      diskChangesOffsetMapper = OffsetMapper.sequence(
-          diskChangesOffsetMapper,
-          OffsetMapper.forInsertion(
-              diskChangesOffsetMapper.map(offset), length));
+      diskChangesOffsetMapper = OffsetMapper.sequence(diskChangesOffsetMapper,
+          OffsetMapper.forInsertion(diskOffset, length));
     } catch (e) {
       regions.clear();
       regions.addAll(regionsCopy);

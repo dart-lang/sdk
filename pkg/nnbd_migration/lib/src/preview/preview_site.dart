@@ -255,13 +255,19 @@ class PreviewSite extends Site
     }
     final unitInfo = unitInfoMap[path];
     final diskMapper = unitInfo.diskChangesOffsetMapper;
+    final diskOffsetStart = diskMapper.map(offset);
+    final diskOffsetEnd = diskMapper.map(end);
+    if (diskOffsetStart == null || diskOffsetEnd == null) {
+      throw StateError('Cannot perform edit. Relevant code has been deleted by'
+          ' a previous hint action. Rerun the migration and try again.');
+    }
     final insertionOnly = offset == end;
     if (insertionOnly) {
       unitInfo.handleInsertion(offset, replacement);
       migrationState.needsRerun = true;
     }
-    var newContent = diskContent.replaceRange(
-        diskMapper.map(offset), diskMapper.map(end), replacement);
+    var newContent =
+        diskContent.replaceRange(diskOffsetStart, diskOffsetEnd, replacement);
     file.writeAsStringSync(newContent);
     unitInfo.diskContent = newContent;
     if (!insertionOnly) {
@@ -294,7 +300,13 @@ class PreviewSite extends Site
     for (final entry in edits.entries) {
       final offset = entry.key;
       final edits = entry.value;
-      final sourceEdit = edits.toSourceEdit(diskMapper.map(offset));
+      final diskOffset = diskMapper.map(offset);
+      if (diskOffset == null) {
+        throw StateError(
+            'Cannot perform edit. Relevant code has been deleted by'
+            ' a previous hint action. Rerun the migration and try again.');
+      }
+      final sourceEdit = edits.toSourceEdit(diskOffset);
       // TODO(mfairhurst): handle deletions
       unitInfo.handleInsertion(sourceEdit.offset, sourceEdit.replacement);
       newContent = sourceEdit.apply(newContent);
