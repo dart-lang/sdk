@@ -1817,13 +1817,20 @@ void f(int/*!*/ i) {}
     expect(
         node.hintActions, isNot(contains(HintActionKind.addNonNullableHint)));
     expect(node.hintActions, isNot(contains(HintActionKind.addNullableHint)));
+    expect(node.hintActions,
+        isNot(contains(HintActionKind.changeToNonNullableHint)));
     expect(
         node.hintActions[HintActionKind.removeNonNullableHint]
             .applyTo(super.testCode),
         '''
 void f(int i) {}
 ''');
-    // TODO(mfairhurst): 'change to nullable hint'. Filed as dartbug.com/41857
+    expect(
+        node.hintActions[HintActionKind.changeToNullableHint]
+            .applyTo(super.testCode),
+        '''
+void f(int/*?*/ i) {}
+''');
   }
 
   Future<void> test_type_comment_question() async {
@@ -1836,12 +1843,19 @@ void f(int/*?*/ i) {}
         node.hintActions, isNot(contains(HintActionKind.addNonNullableHint)));
     expect(node.hintActions, isNot(contains(HintActionKind.addNullableHint)));
     expect(
+        node.hintActions, isNot(contains(HintActionKind.changeToNullableHint)));
+    expect(
         node.hintActions[HintActionKind.removeNullableHint]
             .applyTo(super.testCode),
         '''
 void f(int i) {}
 ''');
-    // TODO(mfairhurst): 'change to non-null hint'. Filed as dartbug.com/41857
+    expect(
+        node.hintActions[HintActionKind.changeToNonNullableHint]
+            .applyTo(super.testCode),
+        '''
+void f(int/*!*/ i) {}
+''');
   }
 
   Future<void> test_type_nested_add_non_null_hint() async {

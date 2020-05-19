@@ -290,6 +290,12 @@ enum HintActionKind {
   /// Add a `/*!*/` hint to a type.
   addNonNullableHint,
 
+  /// Change a `/*!*/` hint to a `/*?*/` hint.
+  changeToNullableHint,
+
+  /// Change a `/*?*/` hint to a `/*!*/` hint.
+  changeToNonNullableHint,
+
   /// Remove a `/*?*/` hint.
   removeNullableHint,
 
@@ -520,6 +526,10 @@ extension HintActionKindBehaviors on HintActionKind {
         return 'Remove /*?*/ hint';
       case HintActionKind.removeNonNullableHint:
         return 'Remove /*!*/ hint';
+      case HintActionKind.changeToNullableHint:
+        return 'Change to /*?*/ hint';
+      case HintActionKind.changeToNonNullableHint:
+        return 'Change to /*!*/ hint';
     }
 
     assert(false);

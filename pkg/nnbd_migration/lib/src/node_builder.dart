@@ -783,6 +783,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
           _variables.recordNullabilityHint(source, node, hint);
           decoratedType.node.hintActions[HintActionKind.removeNonNullableHint] =
               hint.changesToRemove(source.contents.data);
+          decoratedType.node.hintActions[HintActionKind.changeToNullableHint] =
+              hint.changesToReplace(source.contents.data, '/*?*/');
           break;
         case HintCommentKind.question:
           _graph.makeNullableUnion(
@@ -790,6 +792,9 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
           _variables.recordNullabilityHint(source, node, hint);
           decoratedType.node.hintActions[HintActionKind.removeNullableHint] =
               hint.changesToRemove(source.contents.data);
+          decoratedType
+                  .node.hintActions[HintActionKind.changeToNonNullableHint] =
+              hint.changesToReplace(source.contents.data, '/*!*/');
           break;
         default:
           break;
