@@ -2,33 +2,72 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This tool compares two JSON size reports produced by
-// --print-instructions-sizes-to and reports which symbols increased in size
-// and which symbols decreased in size.
+/// This tool compares two JSON size reports produced by
+/// --print-instructions-sizes-to and reports which symbols increased in size
+/// and which symbols decreased in size.
+library vm.snapshot.compare;
 
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
-bool limitWidth = false;
+import 'package:args/command_runner.dart';
 
-void main(List<String> args) {
-  if (args.length == 3 && args[2] == 'narrow') {
-    limitWidth = true;
-  } else if (args.length != 2) {
-    print("""
-Usage: dart ${Platform.script} <old.json> <new.json> [narrow]
+class CompareCommand extends Command<void> {
+  @override
+  final String name = 'compare';
+
+  @override
+  final String description = '''
+Compare two instruction size outputs and report which symbols changed in size.
 
 This tool compares two JSON size reports produced by
---print-instructions-sizes-to and reports which symbols increased in size
-and which symbols decreased in size. The optional 'narrow' parameter limits
-the colunm widths.
-""");
-    exit(-1);
+--print-instructions-sizes-to and reports which symbols
+changed in size.
+
+Use --narrow flag to limit column widths.''';
+
+  @override
+  String get invocation =>
+      super.invocation.replaceAll('[arguments]', '<old.json> <new.json>');
+
+  CompareCommand() {
+    argParser.addOption('column-width',
+        help: 'Truncate column content to the given width'
+            ' (${AsciiTable.unlimitedWidth} means do not truncate).',
+        defaultsTo: AsciiTable.unlimitedWidth.toString());
   }
 
-  final oldSizes = loadSymbolSizes(args[0]);
-  final newSizes = loadSymbolSizes(args[1]);
+  @override
+  Future<void> run() async {
+    if (argResults.rest.length != 2) {
+      usageException('Need to provide path to old.json and new.json reports.');
+    }
+
+    final columnWidth = argResults['column-width'];
+    final maxWidth = int.tryParse(columnWidth);
+    if (maxWidth == null) {
+      usageException(
+          'Specified column width (${columnWidth}) is not an integer');
+    }
+
+    final oldJsonPath = _checkExists(argResults.rest[0]);
+    final newJsonPath = _checkExists(argResults.rest[1]);
+    printComparison(oldJsonPath, newJsonPath, maxWidth: maxWidth);
+  }
+
+  String _checkExists(String path) {
+    if (!File(path).existsSync()) {
+      usageException('File $path does not exist!');
+    }
+    return path;
+  }
+}
+
+void printComparison(String oldJsonPath, String newJsonPath,
+    {int maxWidth: 0}) {
+  final oldSizes = loadSymbolSizes(oldJsonPath);
+  final newSizes = loadSymbolSizes(newJsonPath);
 
   var totalOld = 0;
   var totalNew = 0;
@@ -59,7 +98,7 @@ the colunm widths.
     Text.left('Library'),
     Text.left('Method'),
     Text.right('Diff (Bytes)')
-  ]);
+  ], maxWidth: maxWidth);
 
   // Report [numLargerSymbolsToReport] symbols that increased in size most.
   for (var key in changedSymbolsBySize
@@ -82,7 +121,7 @@ the colunm widths.
   table.addSeparator();
 
   table.render();
-  print('Comparing ${args[0]} (old) to ${args[1]} (new)');
+  print('Comparing ${oldJsonPath} (old) to ${newJsonPath} (new)');
   print('Old   : ${totalOld} bytes.');
   print('New   : ${totalNew} bytes.');
   print('Change: ${totalDiff > 0 ? '+' : ''}${totalDiff} bytes.');
@@ -217,8 +256,13 @@ class Text {
 }
 
 class AsciiTable {
+  static const int unlimitedWidth = 0;
+
+  final int maxWidth;
+
   final List<Row> rows = <Row>[];
-  AsciiTable({List<dynamic> header}) {
+
+  AsciiTable({List<dynamic> header, this.maxWidth: unlimitedWidth}) {
     if (header != null) {
       addSeparator();
       addRow(header);
@@ -251,9 +295,9 @@ class AsciiTable {
       }
     }
 
-    if (limitWidth) {
+    if (maxWidth > 0) {
       for (var i = 0; i < widths.length; i++) {
-        widths[i] = math.min(widths[i], 25);
+        widths[i] = math.min(widths[i], maxWidth);
       }
     }
 
