@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/api_for_nnbd_migration.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -12,14 +11,12 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show Location, SourceChange, SourceEdit, SourceFileEdit;
 
 /// Tasks use this API to report results.
-class DartFixListener implements DartFixListenerInterface {
-  @override
+class DartFixListener {
   final AnalysisServer server;
 
   final List<DartFixSuggestion> suggestions = <DartFixSuggestion>[];
   final List<DartFixSuggestion> otherSuggestions = <DartFixSuggestion>[];
 
-  @override
   final SourceChange sourceChange = SourceChange('dartfix');
 
   /// The details to be returned to the client.
@@ -31,7 +28,6 @@ class DartFixListener implements DartFixListenerInterface {
 
   /// Add the given [detail] to the list of details to be returned to the
   /// client.
-  @override
   void addDetail(String detail) {
     if (details.length < 200) {
       details.add(detail);
@@ -42,13 +38,11 @@ class DartFixListener implements DartFixListenerInterface {
   ///
   /// The associated suggestion should be separately added by calling
   /// [addSuggestion].
-  @override
   void addEditWithoutSuggestion(Source source, SourceEdit edit) {
     sourceChange.addEdit(source.fullName, -1, edit);
   }
 
   /// Record a recommendation to be sent to the client.
-  @override
   void addRecommendation(String description, [Location location]) {
     otherSuggestions.add(DartFixSuggestion(description, location: location));
   }
@@ -74,7 +68,6 @@ class DartFixListener implements DartFixListenerInterface {
   }
 
   /// Record a source change to be sent to the client.
-  @override
   void addSourceFileEdit(
       String description, Location location, SourceFileEdit fileEdit) {
     suggestions.add(DartFixSuggestion(description, location: location));
@@ -87,7 +80,6 @@ class DartFixListener implements DartFixListenerInterface {
   ///
   /// The associated edits should be separately added by calling
   /// [addEditWithoutRecommendation].
-  @override
   void addSuggestion(String description, Location location) {
     suggestions.add(DartFixSuggestion(description, location: location));
   }

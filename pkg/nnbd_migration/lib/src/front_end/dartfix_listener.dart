@@ -2,39 +2,41 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/api_for_nnbd_migration.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:meta/meta.dart';
+import 'package:nnbd_migration/src/front_end/driver_provider_impl.dart';
 
-class DartFixListener implements DartFixListenerInterface {
-  @override
-  final DriverProvider server;
+class DartFixListener {
+  final DriverProviderImpl server;
 
-  @override
   final SourceChange sourceChange = SourceChange('null safety migration');
 
   final List<DartFixSuggestion> suggestions = [];
 
   DartFixListener(this.server);
 
-  @override
+  /// Add the given [detail] to the list of details to be returned to the
+  /// client.
   void addDetail(String detail) {
     throw UnimplementedError('TODO(paulberry)');
   }
 
-  @override
+  /// Record an edit to be sent to the client.
+  ///
+  /// The associated suggestion should be separately added by calling
+  /// [addSuggestion].
   void addEditWithoutSuggestion(Source source, SourceEdit edit) {
     sourceChange.addEdit(source.fullName, -1, edit);
   }
 
-  @override
+  /// Record a recommendation to be sent to the client.
   void addRecommendation(String description, [Location location]) {
     throw UnimplementedError('TODO(paulberry)');
   }
 
-  @override
+  /// Record a source change to be sent to the client.
   void addSourceFileEdit(
       String description, Location location, SourceFileEdit fileEdit) {
     suggestions.add(DartFixSuggestion(description, location: location));
@@ -43,7 +45,10 @@ class DartFixListener implements DartFixListenerInterface {
     }
   }
 
-  @override
+  /// Record a suggestion to be sent to the client.
+  ///
+  /// The associated edits should be separately added by calling
+  /// [addEditWithoutRecommendation].
   void addSuggestion(String description, Location location) {
     suggestions.add(DartFixSuggestion(description, location: location));
   }

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/api_for_nnbd_migration.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -11,6 +10,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:charcode/charcode.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
+import 'package:nnbd_migration/src/front_end/dartfix_listener.dart';
 import 'package:nnbd_migration/src/front_end/instrumentation_listener.dart';
 import 'package:nnbd_migration/src/front_end/migration_state.dart';
 import 'package:nnbd_migration/src/front_end/migration_summary.dart';
@@ -38,7 +38,7 @@ class NonNullableFix {
 
   final int preferredPort;
 
-  final DartFixListenerInterface listener;
+  final DartFixListener listener;
 
   /// The root of the included paths.
   ///
@@ -316,7 +316,7 @@ environment:
 }
 
 class NullabilityMigrationAdapter implements NullabilityMigrationListener {
-  final DartFixListenerInterface listener;
+  final DartFixListener listener;
 
   NullabilityMigrationAdapter(this.listener);
 
