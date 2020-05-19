@@ -13,14 +13,17 @@ class A extends core::Object {
     ;
   @#C1
   external get instanceField() → core::int;
+  @#C1
   external set instanceField(core::int #t1) → void;
   @#C1
   external get finalInstanceField() → core::int;
   @#C1
   external get covariantInstanceField() → core::num;
+  @#C1
   external set covariantInstanceField(covariant core::num #t2) → void;
   @#C1
   external static get staticField() → core::int;
+  @#C1
   external static set staticField(core::int #t3) → void;
   @#C1
   external static get finalStaticField() → core::int;
@@ -36,14 +39,17 @@ class A extends core::Object {
 abstract class B extends core::Object /*isMixinDeclaration*/  {
   @#C1
   external get instanceField() → core::int;
+  @#C1
   external set instanceField(core::int #t7) → void;
   @#C1
   external get finalInstanceField() → core::int;
   @#C1
   external get covariantInstanceField() → core::num;
+  @#C1
   external set covariantInstanceField(covariant core::num #t8) → void;
   @#C1
   external static get staticField() → core::int;
+  @#C1
   external static set staticField(core::int #t9) → void;
   @#C1
   external static get finalStaticField() → core::int;
@@ -87,6 +93,7 @@ extension Extension on self::A {
 }
 @#C1
 external static get topLevelField() → core::int;
+@#C1
 external static set topLevelField(core::int #t17) → void;
 @#C1
 external static get finalTopLevelField() → core::int;
@@ -95,11 +102,13 @@ external static set untypedTopLevelField(dynamic #t18) → void;
 external static get untypedFinalTopLevelField() → dynamic;
 @#C1
 external static get Extension|extensionInstanceField() → core::int;
+@#C1
 external static set Extension|extensionInstanceField(core::int #t19) → void;
 @#C1
 external static get Extension|finalExtensionInstanceField() → core::int;
 @#C1
 external static get Extension|extensionStaticField() → core::int;
+@#C1
 external static set Extension|extensionStaticField(core::int #t20) → void;
 @#C1
 external static get Extension|finalExtensionStaticField() → core::int;

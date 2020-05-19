@@ -137,6 +137,7 @@ ancillary
 and
 angle
 annotatable
+annotatables
 annotated
 annotating
 annotation

@@ -296,8 +296,10 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
     _fieldEncoding.completeSignature(coreTypes);
 
     ClassBuilder classBuilder = isClassMember ? parent : null;
-    MetadataBuilder.buildAnnotations(
-        _fieldEncoding.annotatable, metadata, library, classBuilder, this);
+    for (Annotatable annotatable in _fieldEncoding.annotatables) {
+      MetadataBuilder.buildAnnotations(
+          annotatable, metadata, library, classBuilder, this);
+    }
 
     // For modular compilation we need to include initializers of all const
     // fields and all non-static final fields in classes with const constructors
@@ -476,8 +478,8 @@ abstract class FieldEncoding {
   /// Returns the field that holds the field value at runtime.
   Field get field;
 
-  /// Returns the member that holds the field annotations.
-  Annotatable get annotatable;
+  /// Returns the members that holds the field annotations.
+  Iterable<Annotatable> get annotatables;
 
   /// Returns the member used to read the field value.
   Member get readTarget;
@@ -611,7 +613,7 @@ class RegularFieldEncoding implements FieldEncoding {
   Field get field => _field;
 
   @override
-  Annotatable get annotatable => _field;
+  Iterable<Annotatable> get annotatables => [_field];
 
   @override
   Member get readTarget => _field;
@@ -851,7 +853,13 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   Field get field => _field;
 
   @override
-  Annotatable get annotatable => _field;
+  Iterable<Annotatable> get annotatables {
+    List<Annotatable> list = [_lateGetter];
+    if (_lateSetter != null) {
+      list.add(_lateSetter);
+    }
+    return list;
+  }
 
   @override
   Member get readTarget => _lateGetter;
@@ -1450,7 +1458,13 @@ class ExternalFieldEncoding implements FieldEncoding {
   }
 
   @override
-  Annotatable get annotatable => _getter;
+  Iterable<Annotatable> get annotatables {
+    List<Annotatable> list = [_getter];
+    if (_setter != null) {
+      list.add(_setter);
+    }
+    return list;
+  }
 
   @override
   Member get readTarget => _getter;
