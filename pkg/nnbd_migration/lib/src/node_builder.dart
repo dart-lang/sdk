@@ -781,11 +781,15 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
           _graph.makeNonNullableUnion(decoratedType.node,
               NullabilityCommentOrigin(source, node, false));
           _variables.recordNullabilityHint(source, node, hint);
+          decoratedType.node.hintActions[HintActionKind.removeNonNullableHint] =
+              hint.changesToRemove(source.contents.data);
           break;
         case HintCommentKind.question:
           _graph.makeNullableUnion(
               decoratedType.node, NullabilityCommentOrigin(source, node, true));
           _variables.recordNullabilityHint(source, node, hint);
+          decoratedType.node.hintActions[HintActionKind.removeNullableHint] =
+              hint.changesToRemove(source.contents.data);
           break;
         default:
           break;

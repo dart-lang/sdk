@@ -289,6 +289,12 @@ enum HintActionKind {
 
   /// Add a `/*!*/` hint to a type.
   addNonNullableHint,
+
+  /// Remove a `/*?*/` hint.
+  removeNullableHint,
+
+  /// Remove a `/*!*/` hint.
+  removeNonNullableHint,
 }
 
 /// Abstract interface for assigning ids numbers to nodes, and performing
@@ -510,6 +516,10 @@ extension HintActionKindBehaviors on HintActionKind {
         return 'Add /*?*/ hint';
       case HintActionKind.addNonNullableHint:
         return 'Add /*!*/ hint';
+      case HintActionKind.removeNullableHint:
+        return 'Remove /*?*/ hint';
+      case HintActionKind.removeNonNullableHint:
+        return 'Remove /*!*/ hint';
     }
 
     assert(false);
