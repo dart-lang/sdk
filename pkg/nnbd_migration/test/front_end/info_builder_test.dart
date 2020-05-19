@@ -25,12 +25,7 @@ void main() {
 @reflectiveTest
 class BuildEnclosingMemberDescriptionTest extends AbstractAnalysisTest {
   Future<ResolvedUnitResult> resolveTestFile() async {
-    var includedRoot = resourceProvider.pathContext.dirname(testFile);
-    server.setAnalysisRoots('0', [includedRoot], [], {});
-    return await server
-        .getAnalysisDriver(testFile)
-        .currentSession
-        .getResolvedUnit(testFile);
+    return await session.getResolvedUnit(testFile);
   }
 
   Future<void> test_classConstructor_named() async {
