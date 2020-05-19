@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:io' hide File;
 
-import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
@@ -578,8 +577,10 @@ class _BadArgException implements Exception {
   _BadArgException(this.message);
 }
 
-class _FixCodeProcessor extends Object with FixCodeProcessor {
+class _FixCodeProcessor extends Object {
   final DriverBasedAnalysisContext context;
+
+  NonNullableFix _task;
 
   Set<String> pathsToProcess;
 
@@ -638,12 +639,16 @@ class _FixCodeProcessor extends Object with FixCodeProcessor {
     }
   }
 
+  void registerCodeTask(NonNullableFix task) {
+    _task = task;
+  }
+
   Future<void> runFirstPhase() async {
     // All tasks should be registered; [numPhases] should be finalized.
-    _progressBar = _ProgressBar(pathsToProcess.length * numPhases);
+    _progressBar = _ProgressBar(pathsToProcess.length * _task.numPhases);
 
     // Process package
-    await processPackage(context.contextRoot.root);
+    await _task.processPackage(context.contextRoot.root);
 
     // Process each source file.
     await processResources((ResolvedUnitResult result) async {
@@ -657,19 +662,19 @@ class _FixCodeProcessor extends Object with FixCodeProcessor {
       }
       if (_migrationCli.options.ignoreErrors ||
           _migrationCli.fileErrors.isEmpty) {
-        await processCodeTasks(0, result);
+        await _task.processUnit(0, result);
       }
     });
   }
 
   Future<List<String>> runLaterPhases() async {
-    for (var phase = 1; phase < numPhases; phase++) {
+    for (var phase = 1; phase < _task.numPhases; phase++) {
       await processResources((ResolvedUnitResult result) async {
         _progressBar.tick();
-        await processCodeTasks(phase, result);
+        await _task.processUnit(phase, result);
       });
     }
-    await finishCodeTasks();
+    await _task.finish();
     _progressBar.complete();
 
     return nonNullableFixTask.previewUrls;
