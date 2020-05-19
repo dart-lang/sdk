@@ -442,16 +442,10 @@ class ProgramBuilder {
 
   List<StaticField> _buildStaticLazilyInitializedFields(
       LibrariesMap librariesMap) {
-    List<FieldEntity> lazyFields = [];
-    _codegenWorld.forEachStaticField((FieldEntity field) {
-      if (_closedWorld.fieldAnalysis.getFieldData(field).isLazy &&
-          _outputUnitData.outputUnitForMember(field) ==
-              librariesMap.outputUnit) {
-        lazyFields.add(field);
-      }
-    });
-    return _sorter
-        .sortMembers(lazyFields)
+    List<FieldEntity> lazyFields =
+        collector.outputLazyStaticFieldLists[librariesMap.outputUnit];
+    if (lazyFields == null) return const [];
+    return lazyFields
         .map(_buildLazyField)
         .where((field) => field != null) // Happens when the field was unused.
         .toList(growable: false);
