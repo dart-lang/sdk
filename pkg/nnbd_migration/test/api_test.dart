@@ -484,6 +484,37 @@ class D = C with M;
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void>
+      test_class_alias_synthetic_constructor_with_parameters_and_subclass() async {
+    var content = '''
+void main() {
+  E e = E(null);
+}
+class C {
+  C(int i);
+}
+mixin M {}
+class D = C with M;
+class E extends D {
+  E(int i) : super(i);
+}
+''';
+    var expected = '''
+void main() {
+  E e = E(null);
+}
+class C {
+  C(int? i);
+}
+mixin M {}
+class D = C with M;
+class E extends D {
+  E(int? i) : super(i);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_class_with_default_constructor() async {
     var content = '''
 void main() => f(Foo());
