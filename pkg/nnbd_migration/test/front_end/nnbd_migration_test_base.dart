@@ -6,8 +6,8 @@ import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:meta/meta.dart';
-import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/instrumentation.dart';
+import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/front_end/info_builder.dart';
 import 'package:nnbd_migration/src/front_end/instrumentation_listener.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
@@ -24,11 +24,6 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
   /// not yet completed.
   Set<UnitInfo> infos;
   NodeMapper nodeMapper;
-
-  void setUp() {
-    super.setUp();
-    nodeMapper = SimpleNodeMapper();
-  }
 
   /// Assert that some target in [targets] has various properties.
   void assertInTargets(
@@ -185,6 +180,11 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
         if (!info.path.contains('core.dart')) info
     ];
     return filteredInfos;
+  }
+
+  void setUp() {
+    super.setUp();
+    nodeMapper = SimpleNodeMapper();
   }
 
   /// Uses the InfoBuilder to build information for files at [testPaths], which
