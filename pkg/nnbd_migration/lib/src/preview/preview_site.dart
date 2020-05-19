@@ -8,7 +8,6 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
@@ -22,6 +21,7 @@ import 'package:nnbd_migration/src/preview/http_preview_server.dart';
 import 'package:nnbd_migration/src/preview/index_file_page.dart';
 import 'package:nnbd_migration/src/preview/navigation_tree_page.dart';
 import 'package:nnbd_migration/src/preview/not_found_page.dart';
+import 'package:nnbd_migration/src/preview/pages.dart';
 import 'package:nnbd_migration/src/preview/preview_page.dart';
 import 'package:nnbd_migration/src/preview/region_page.dart';
 import 'package:nnbd_migration/src/preview/unauthorized_page.dart';
