@@ -667,6 +667,11 @@ void testForEach() {
   headers.add('HEADER1', 'value 3', preserveHeaderCase: true);
   headers.add('HEADER3', 'value 4', preserveHeaderCase: true);
 
+  BytesBuilder builder = BytesBuilder();
+  headers._build(builder);
+
+  Expect.isTrue(utf8.decode(builder.toBytes()).contains('HEADER1'));
+
   bool myHeader1 = false;
   bool myHeader2 = false;
   bool myHeader3 = false;
