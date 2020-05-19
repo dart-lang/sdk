@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'constant_null_is_lib.dart';
 
 class Class<T> {
   const Class.constructor1(value) : field = value is T;

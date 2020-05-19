@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'constant_null_is_lib.dart';
 
 final bool isWeakMode = const <Null>[] is List<Object>;
 
@@ -87,7 +86,6 @@ main() {
       "Class<int?>.constructor4(null).field");
   expect(new Class<Null>.constructor4(null).field, e12.field,
       "Class<Null>.constructor4(null).field");
-  test();
 }
 
 expect(expected, actual, String message) {

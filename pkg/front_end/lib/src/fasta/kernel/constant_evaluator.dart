@@ -2122,15 +2122,70 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
             ..fileOffset = node.fileOffset
             ..flags = node.flags);
     }
-    if (constant is NullConstant && !node.isForNonNullableByDefault) {
-      DartType nodeType = node.type;
-      return makeBoolConstant(nodeType == typeEnvironment.nullType ||
-          nodeType is InterfaceType &&
-              nodeType.classNode == typeEnvironment.coreTypes.objectClass ||
-          node.type is DynamicType);
+
+    DartType type = evaluateDartType(node, node.type);
+
+    bool performIs(Constant constant, {bool strongMode}) {
+      assert(strongMode != null);
+      if (strongMode) {
+        // In strong checking mode: if e evaluates to a value v and v has
+        // runtime type S, an instance check e is T occurring in a legacy
+        // library or an opted-in library is evaluated as follows:
+        //
+        //    If v is null and T is a legacy type,
+        //       return LEGACY_SUBTYPE(T, NULL) || LEGACY_SUBTYPE(Object, T)
+        //    Otherwise return NNBD_SUBTYPE(S, T)
+        if (constant is NullConstant &&
+            type.nullability == Nullability.legacy) {
+          return typeEnvironment.isSubtypeOf(type, typeEnvironment.nullType,
+                  SubtypeCheckMode.ignoringNullabilities) ||
+              typeEnvironment.isSubtypeOf(typeEnvironment.objectLegacyRawType,
+                  type, SubtypeCheckMode.ignoringNullabilities);
+        }
+        return isSubtype(constant, type, SubtypeCheckMode.withNullabilities);
+      } else {
+        // In weak checking mode: if e evaluates to a value v and v has runtime
+        // type S, an instance check e is T occurring in a legacy library or an
+        // opted-in library is evaluated as follows:
+        //
+        //    If v is null and T is a legacy type,
+        //       return LEGACY_SUBTYPE(T, NULL) || LEGACY_SUBTYPE(Object, T)
+        //    If v is null and T is not a legacy type,
+        //       return NNBD_SUBTYPE(NULL, T)
+        //    Otherwise return LEGACY_SUBTYPE(S, T)
+        if (constant is NullConstant) {
+          if (type.nullability == Nullability.legacy) {
+            // `null is Null` is handled below.
+            return typeEnvironment.isSubtypeOf(type, typeEnvironment.nullType,
+                    SubtypeCheckMode.ignoringNullabilities) ||
+                typeEnvironment.isSubtypeOf(typeEnvironment.objectLegacyRawType,
+                    type, SubtypeCheckMode.ignoringNullabilities);
+          } else {
+            return typeEnvironment.isSubtypeOf(typeEnvironment.nullType, type,
+                SubtypeCheckMode.withNullabilities);
+          }
+        }
+        return isSubtype(
+            constant, type, SubtypeCheckMode.ignoringNullabilities);
+      }
     }
-    return makeBoolConstant(
-        isSubtype(constant, evaluateDartType(node, node.type)));
+
+    switch (evaluationMode) {
+      case EvaluationMode.strong:
+        return makeBoolConstant(performIs(constant, strongMode: true));
+      case EvaluationMode.agnostic:
+        bool strongResult = performIs(constant, strongMode: true);
+        Constant weakConstant = _weakener.visitConstant(constant) ?? constant;
+        bool weakResult = performIs(weakConstant, strongMode: false);
+        if (strongResult != weakResult) {
+          return report(node, messageNonAgnosticConstant);
+        }
+        return makeBoolConstant(strongResult);
+      case EvaluationMode.weak:
+      case EvaluationMode.legacy:
+        return makeBoolConstant(performIs(constant, strongMode: false));
+    }
+    throw new UnsupportedError("Unexpected evaluation mode $evaluationMode");
   }
 
   @override
@@ -2230,10 +2285,9 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   BoolConstant makeBoolConstant(bool value) =>
       value ? trueConstant : falseConstant;
 
-  bool isSubtype(Constant constant, DartType type) {
+  bool isSubtype(Constant constant, DartType type, SubtypeCheckMode mode) {
     DartType constantType = constant.getType(_staticTypeContext);
-    bool result = typeEnvironment.isSubtypeOf(
-        constantType, type, SubtypeCheckMode.withNullabilities);
+    bool result = typeEnvironment.isSubtypeOf(constantType, type, mode);
     if (targetingJavaScript && !result) {
       if (constantType is InterfaceType &&
           constantType.classNode == typeEnvironment.coreTypes.intClass) {
@@ -2242,22 +2296,43 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
             new InterfaceType(typeEnvironment.coreTypes.doubleClass,
                 constantType.nullability, const <DartType>[]),
             type,
-            SubtypeCheckMode.withNullabilities);
+            mode);
       } else if (intFolder.isInt(constant)) {
         // With JS semantics, an integer valued double is also an int.
         result = typeEnvironment.isSubtypeOf(
             new InterfaceType(typeEnvironment.coreTypes.intClass,
                 constantType.nullability, const <DartType>[]),
             type,
-            SubtypeCheckMode.withNullabilities);
+            mode);
       }
     }
-
     return result;
   }
 
   Constant ensureIsSubtype(Constant constant, DartType type, TreeNode node) {
-    if (!isSubtype(constant, type)) {
+    bool result;
+    switch (evaluationMode) {
+      case EvaluationMode.strong:
+        result = isSubtype(constant, type, SubtypeCheckMode.withNullabilities);
+        break;
+      case EvaluationMode.agnostic:
+        bool strongResult =
+            isSubtype(constant, type, SubtypeCheckMode.withNullabilities);
+        Constant weakConstant = _weakener.visitConstant(constant) ?? constant;
+        bool weakResult = isSubtype(
+            weakConstant, type, SubtypeCheckMode.ignoringNullabilities);
+        if (strongResult != weakResult) {
+          return report(node, messageNonAgnosticConstant);
+        }
+        result = strongResult;
+        break;
+      case EvaluationMode.weak:
+      case EvaluationMode.legacy:
+        result =
+            isSubtype(constant, type, SubtypeCheckMode.ignoringNullabilities);
+        break;
+    }
+    if (!result) {
       return report(
           node,
           templateConstEvalInvalidType.withArguments(constant, type,

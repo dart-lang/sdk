@@ -1,0 +1,11 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static const field core::bool a = #C1;
+static const field core::bool b = #C1;
+static method main() → void {}
+
+constants  {
+  #C1 = true
+}

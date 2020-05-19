@@ -485,6 +485,10 @@ subcommand
 subdir
 subtool
 subtools
+subtyping1a
+subtyping1b
+subtyping2a
+subtyping2b
 suite
 summarization
 summarized

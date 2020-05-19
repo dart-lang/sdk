@@ -1,0 +1,10 @@
+const assertLegacySubtyping1b = const <Null>[] as List<int>;
+const assertLegacySubtyping2b = const <int?>[] as List<int>;
+const isLegacySubtyping1b = const <Null>[] is List<int>;
+const isLegacySubtyping2b = const <int?>[] is List<int>;
+expect(expected, actual) {}
+final assertLegacySubtyping1a = const <Null>[] as List<int>;
+final assertLegacySubtyping2a = const <int?>[] as List<int>;
+final isLegacySubtyping1a = const <Null>[] is List<int>;
+final isLegacySubtyping2a = const <int?>[] is List<int>;
+void main() {}

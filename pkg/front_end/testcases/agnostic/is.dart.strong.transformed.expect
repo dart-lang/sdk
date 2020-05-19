@@ -1,0 +1,30 @@
+//
+// Problems in component:
+//
+// pkg/front_end/testcases/agnostic/is.dart:5:20: Error: Constant evaluation error:
+// const a = <Null>[] is List<int>;
+//                    ^
+// pkg/front_end/testcases/agnostic/is.dart:5:20: Context: Constant value is not strong/weak mode agnostic.
+// const a = <Null>[] is List<int>;
+//                    ^
+// pkg/front_end/testcases/agnostic/is.dart:5:7: Context: While analyzing:
+// const a = <Null>[] is List<int>;
+//       ^
+//
+// pkg/front_end/testcases/agnostic/is.dart:6:20: Error: Constant evaluation error:
+// const b = <int?>[] is List<int>;
+//                    ^
+// pkg/front_end/testcases/agnostic/is.dart:6:20: Context: Constant value is not strong/weak mode agnostic.
+// const b = <int?>[] is List<int>;
+//                    ^
+// pkg/front_end/testcases/agnostic/is.dart:6:7: Context: While analyzing:
+// const b = <int?>[] is List<int>;
+//       ^
+//
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static const field core::bool a = invalid-expression "Constant value is not strong/weak mode agnostic.";
+static const field core::bool b = invalid-expression "Constant value is not strong/weak mode agnostic.";
+static method main() → void {}
