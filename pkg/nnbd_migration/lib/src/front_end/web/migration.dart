@@ -525,19 +525,20 @@ void populateEditDetails([EditDetails response]) {
     return;
   }
 
-  var filePath = response.path;
-  var parentDirectory = _p.dirname(filePath);
+  var fileDisplayPath = response.displayPath;
+  var parentDirectory = _p.dirname(fileDisplayPath);
 
   // 'Changed ... at foo.dart:12.'
   var explanationMessage = response.explanation;
-  var relPath = _p.relative(filePath, from: rootPath);
+  var relPath = _p.relative(fileDisplayPath, from: rootPath);
   var line = response.line;
   Element explanation = document.createElement('p');
   editPanel.append(explanation);
   explanation
     ..appendText('$explanationMessage at ')
     ..append(AnchorElement(
-        href: pathWithQueryParameters(filePath, {'line': line.toString()}))
+        href: pathWithQueryParameters(
+            response.uriPath, {'line': line.toString()}))
       ..appendText('$relPath:$line.'));
   explanation.scrollIntoView();
   _populateEditTraces(response, editPanel, parentDirectory);

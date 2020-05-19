@@ -57,7 +57,8 @@ class RegionRenderer {
             }).toString());
 
     var response = EditDetails(
-      path: unitInfo.path,
+      displayPath: unitInfo.path,
+      uriPath: pathMapper.map(unitInfo.path),
       line: region.lineNumber,
       explanation: region.explanation,
       edits: supportsIncrementalWorkflow

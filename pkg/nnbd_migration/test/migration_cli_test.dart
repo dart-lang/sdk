@@ -15,6 +15,7 @@ import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/migration_cli.dart';
 import 'package:nnbd_migration/src/front_end/non_nullable_fix.dart';
+import 'package:nnbd_migration/src/front_end/web/edit_details.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -401,6 +402,47 @@ int? f() => null
       var uri = Uri.parse(url);
       await assertPreviewServerResponsive(
           uri.replace(path: uri.path + '/').toString());
+    });
+  }
+
+  test_lifecycle_preview_region_link() async {
+    var projectContents = simpleProject(sourceText: 'int x;');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await runWithPreviewServer(cli, [projectDir], (url) async {
+      expect(
+          logger.stdoutBuffer.toString(), contains('No analysis issues found'));
+      await assertPreviewServerResponsive(url);
+      var uri = Uri.parse(url);
+      var authToken = uri.queryParameters['authToken'];
+      var regionResponse = await http.get(
+          uri.replace(
+              path: resourceProvider.pathContext
+                  .toUri(resourceProvider.pathContext
+                      .join(projectDir, 'lib', 'test.dart'))
+                  .path,
+              queryParameters: {
+                'region': 'region',
+                'offset': '3',
+                'authToken': authToken
+              }),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      var regionJson = EditDetails.fromJson(jsonDecode(regionResponse.body));
+      final displayPath = regionJson.displayPath;
+      final uriPath = regionJson.uriPath;
+      // uriPath should be a working URI
+      final contentsResponse = await http.get(
+          uri.replace(
+              path: uriPath,
+              queryParameters: {'inline': 'true', 'authToken': authToken}),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      assertHttpSuccess(contentsResponse);
+
+      // Display path should be the actual windows path
+      final file = resourceProvider
+          .getFolder(projectDir)
+          .getChildAssumingFile(displayPath);
+      expect(file.exists, isTrue);
     });
   }
 
