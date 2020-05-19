@@ -22,6 +22,30 @@ class StaticMemberContributorTest extends DartCompletionContributorTest {
     return StaticMemberContributor();
   }
 
+  Future<void> test_class_static_notPrivate() async {
+    addSource('/home/test/lib/a.dart', '''
+class A {
+  static int _f;
+  static String get _g => '';
+  static int _m() {}
+  static set _s(v) {}
+  A._();
+}
+''');
+    addTestSource('''
+import 'a.dart';
+void f() {
+  A.^;
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('_f');
+    assertNotSuggested('_g');
+    assertNotSuggested('_m');
+    assertNotSuggested('_s');
+    assertNotSuggested('A._');
+  }
+
   Future<void> test_enumConst() async {
     addTestSource('enum E { one, two } main() {E.^}');
     await computeSuggestions();
@@ -106,6 +130,28 @@ main() {E.^}
     assertNotSuggested('E');
     assertSuggestField('i', 'int');
     assertSuggestField('s', 'String');
+  }
+
+  Future<void> test_extension_static_notPrivate() async {
+    addSource('/home/test/lib/a.dart', '''
+extension E {
+  static int _f;
+  static String get _g => '';
+  static int _m() {}
+  static set _s(v) {}
+}
+''');
+    addTestSource('''
+import 'a.dart';
+void f() {
+  E.^;
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('_f');
+    assertNotSuggested('_g');
+    assertNotSuggested('_m');
+    assertNotSuggested('_s');
   }
 
   Future<void> test_implicitCreation() async {
