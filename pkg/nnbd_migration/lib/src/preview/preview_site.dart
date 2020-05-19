@@ -263,7 +263,7 @@ class PreviewSite extends Site
     }
     final insertionOnly = offset == end;
     if (insertionOnly) {
-      unitInfo.handleInsertion(offset, replacement);
+      unitInfo.handleSourceEdit(SourceEdit(offset, 0, replacement));
       migrationState.needsRerun = true;
     }
     var newContent =
@@ -306,10 +306,10 @@ class PreviewSite extends Site
             'Cannot perform edit. Relevant code has been deleted by'
             ' a previous hint action. Rerun the migration and try again.');
       }
-      final sourceEdit = edits.toSourceEdit(diskOffset);
-      // TODO(mfairhurst): handle deletions
-      unitInfo.handleInsertion(sourceEdit.offset, sourceEdit.replacement);
-      newContent = sourceEdit.apply(newContent);
+      final unmappedSourceEdit = edits.toSourceEdit(offset);
+      final diskSourceEdit = edits.toSourceEdit(diskMapper.map(offset));
+      unitInfo.handleSourceEdit(unmappedSourceEdit);
+      newContent = diskSourceEdit.apply(newContent);
     }
     file.writeAsStringSync(newContent);
     unitInfo.diskContent = newContent;

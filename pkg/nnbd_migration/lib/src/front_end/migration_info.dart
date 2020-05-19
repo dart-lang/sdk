@@ -298,40 +298,42 @@ class UnitInfo {
         _diskContentHash, md5.convert((checkContent ?? '').codeUnits).bytes);
   }
 
-  void handleInsertion(int offset, String replacement) {
+  void handleSourceEdit(SourceEdit sourceEdit) {
     final contentCopy = content;
     final regionsCopy = List<RegionInfo>.from(regions);
-    final length = replacement.length;
-    final migratedOffset = offsetMapper.map(offset);
-    final diskOffset = diskChangesOffsetMapper.map(offset);
+    final insertLength = sourceEdit.replacement.length;
+    final deleteLength = sourceEdit.length;
+    final migratedOffset = offsetMapper.map(sourceEdit.offset);
+    final diskOffset = diskChangesOffsetMapper.map(sourceEdit.offset);
     if (migratedOffset == null || diskOffset == null) {
       throw StateError('cannot apply replacement, offset has been deleted.');
     }
     try {
-      content =
-          content.replaceRange(migratedOffset, migratedOffset, replacement);
+      content = content.replaceRange(migratedOffset,
+          migratedOffset + deleteLength, sourceEdit.replacement);
       regions.clear();
-      regions.addAll(regionsCopy.map((region) {
-        if (region.offset < migratedOffset) {
-          return region;
-        }
-        // TODO: perhaps this should be handled by offset mapper instead, since
-        // offset mapper handles navigation, edits, and traces, and this is the
-        // odd ball out.
-        return RegionInfo(
-            region.regionType,
-            region.offset + length,
-            region.length,
-            region.lineNumber,
-            region.explanation,
-            region.kind,
-            region.isCounted,
-            edits: region.edits,
-            traces: region.traces);
-      }));
+      regions.addAll(regionsCopy
+          .where((region) => region.offset + region.length <= migratedOffset));
+      regions.addAll(regionsCopy
+          .where((region) => region.offset >= migratedOffset + deleteLength)
+          .map((region) => RegionInfo(
+              region.regionType,
+              // TODO: perhaps this should be handled by offset mapper instead,
+              // since offset mapper handles navigation, edits, and traces, and
+              // this is the odd ball out.
+              region.offset + insertLength - deleteLength,
+              region.length,
+              region.lineNumber,
+              region.explanation,
+              region.kind,
+              region.isCounted,
+              edits: region.edits,
+              traces: region.traces)));
 
-      diskChangesOffsetMapper = OffsetMapper.sequence(diskChangesOffsetMapper,
-          OffsetMapper.forInsertion(diskOffset, length));
+      diskChangesOffsetMapper = OffsetMapper.sequence(
+          diskChangesOffsetMapper,
+          OffsetMapper.forReplacement(
+              diskOffset, deleteLength, sourceEdit.replacement));
     } catch (e) {
       regions.clear();
       regions.addAll(regionsCopy);

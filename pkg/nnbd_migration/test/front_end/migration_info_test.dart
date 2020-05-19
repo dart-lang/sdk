@@ -65,12 +65,12 @@ class UnitInfoTest {
     expect(() => unitInfo.hadDiskContent(''), throwsA(isA<AssertionError>()));
   }
 
-  void test_handleInsertion() {
+  void test_handleSourceEdit() {
     final unitInfo = UnitInfo('/foo.dart');
     unitInfo.content = 'int  x;';
     unitInfo.migrationOffsetMapper =
         OffsetMapper.forEdits([SourceEdit('int'.length, 0, ' ')]);
-    unitInfo.handleInsertion('int'.length, '/*?*/');
+    unitInfo.handleSourceEdit(SourceEdit('int'.length, 0, '/*?*/'));
     expect(unitInfo.content, 'int/*?*/  x;');
     expect(unitInfo.offsetMapper.map('in'.length), 'in'.length);
     expect(unitInfo.offsetMapper.map('int'.length), 'int/*?*/'.length);
@@ -82,7 +82,27 @@ class UnitInfoTest {
         'int/*?*/ x'.length);
   }
 
-  void test_handleInsertion_regression_41894() {
+  void test_handleSourceEdit_deletion() {
+    final unitInfo = UnitInfo('/foo.dart');
+    unitInfo.content = 'int/*!*/ x = null!;';
+    unitInfo.migrationOffsetMapper =
+        OffsetMapper.forEdits([SourceEdit('int/*!*/ x = null'.length, 0, '!')]);
+    unitInfo.handleSourceEdit(SourceEdit('int'.length, '/*!*/'.length, ''));
+    expect(unitInfo.content, 'int x = null!;');
+    expect(unitInfo.offsetMapper.map('in'.length), 'in'.length);
+    expect(unitInfo.offsetMapper.map('int/*!*/ x'.length), 'int x'.length);
+    expect(unitInfo.offsetMapper.map('int/*!*/ x = null'.length),
+        'int x = null'.length);
+    expect(unitInfo.offsetMapper.map('int/*!*/ x = null;'.length),
+        'int x = null!;'.length);
+    expect(unitInfo.diskChangesOffsetMapper.map('in'.length), 'in'.length);
+    expect(
+        unitInfo.diskChangesOffsetMapper.map('int/*!*/'.length), 'int'.length);
+    expect(unitInfo.diskChangesOffsetMapper.map('int/*!*/ x'.length),
+        'int x'.length);
+  }
+
+  void test_handleSourceEdit_regression_41894() {
     final unitInfo = UnitInfo('/foo.dart');
     unitInfo.content = 'C<C<C<T > > >  x;';
     unitInfo.migrationOffsetMapper = OffsetMapper.forEdits([
@@ -91,10 +111,10 @@ class UnitInfoTest {
       SourceEdit('C<C<C<T>>'.length, 0, ' '),
       SourceEdit('C<C<C<T>>>'.length, 0, ' ')
     ]);
-    unitInfo.handleInsertion('C<C<C<T'.length, '/*?*/');
-    unitInfo.handleInsertion('C<C<C<T>'.length, '/*?*/');
-    unitInfo.handleInsertion('C<C<C<T>>'.length, '/*?*/');
-    unitInfo.handleInsertion('C<C<C<T>>>'.length, '/*?*/');
+    unitInfo.handleSourceEdit(SourceEdit('C<C<C<T'.length, 0, '/*?*/'));
+    unitInfo.handleSourceEdit(SourceEdit('C<C<C<T>'.length, 0, '/*?*/'));
+    unitInfo.handleSourceEdit(SourceEdit('C<C<C<T>>'.length, 0, '/*?*/'));
+    unitInfo.handleSourceEdit(SourceEdit('C<C<C<T>>>'.length, 0, '/*?*/'));
 
     // Before 41894 was fixed, this would produce:
     //
