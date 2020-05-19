@@ -3300,7 +3300,10 @@ void TypeTranslator::LoadAndSetupTypeParameters(
     const Tag tag = helper_->PeekTag();  // peek ith bound type.
     if (tag == kDynamicType) {
       helper_->SkipDartType();  // read ith bound.
-      parameter.set_bound(Type::Handle(Z, I->object_store()->object_type()));
+      parameter.set_bound(
+          Type::Handle(Z, nnbd_mode == NNBDMode::kOptedInLib
+                              ? I->object_store()->nullable_object_type()
+                              : I->object_store()->legacy_object_type()));
     } else {
       AbstractType& bound = BuildTypeWithoutFinalization();  // read ith bound.
       parameter.set_bound(bound);

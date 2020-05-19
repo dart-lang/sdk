@@ -697,12 +697,14 @@ void BytecodeReaderHelper::ReadTypeParametersDeclaration(
   for (intptr_t i = 0; i < num_type_params; ++i) {
     parameter ^= type_parameters.TypeAt(i);
     bound ^= ReadObject();
-    // Convert dynamic to Object in bounds of type parameters so
+    // Convert dynamic to Object? or Object* in bounds of type parameters so
     // they are equivalent when doing subtype checks for function types.
     // TODO(https://github.com/dart-lang/language/issues/495): revise this
     // when function subtyping is fixed.
     if (bound.IsDynamicType()) {
-      bound = I->object_store()->object_type();
+      bound = nnbd_mode == NNBDMode::kOptedInLib
+                  ? I->object_store()->nullable_object_type()
+                  : I->object_store()->legacy_object_type();
     }
     parameter.set_bound(bound);
   }
