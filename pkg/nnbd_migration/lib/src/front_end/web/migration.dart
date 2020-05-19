@@ -708,11 +708,7 @@ AnchorElement _aElementForLink(TargetLink link, String parentDirectory) {
   var targetLine = link.line;
   AnchorElement a = AnchorElement();
   a.append(Text('${link.path}:$targetLine'));
-
-  var relLink = link.href;
-  var fullPath = _p.normalize(_p.join(parentDirectory, relLink));
-
-  a.setAttribute('href', fullPath);
+  a.setAttribute('href', link.href);
   a.classes.add('nav-link');
   return a;
 }

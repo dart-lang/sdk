@@ -596,6 +596,42 @@ int? f() => null
     });
   }
 
+  test_lifecycle_preview_stacktrace_link() async {
+    var projectContents = simpleProject(sourceText: 'int x;');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await runWithPreviewServer(cli, [projectDir], (url) async {
+      expect(
+          logger.stdoutBuffer.toString(), contains('No analysis issues found'));
+      await assertPreviewServerResponsive(url);
+      var uri = Uri.parse(url);
+      var authToken = uri.queryParameters['authToken'];
+      var regionUri = uri.replace(
+          path: resourceProvider.pathContext
+              .toUri(resourceProvider.pathContext
+                  .join(projectDir, 'lib', 'test.dart'))
+              .path,
+          queryParameters: {
+            'region': 'region',
+            'offset': '3',
+            'authToken': authToken
+          });
+      var regionResponse = await http.get(regionUri,
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      var regionJson = EditDetails.fromJson(jsonDecode(regionResponse.body));
+      final traceEntry = regionJson.traces[0].entries[0];
+      final displayPath = traceEntry.link.path;
+      final uriPath = traceEntry.link.href;
+      // uriPath should be a working URI
+      final contentsResponse = await http.get(
+          regionUri
+              .resolve(uriPath)
+              .replace(queryParameters: {'authToken': authToken}),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      assertHttpSuccess(contentsResponse);
+    });
+  }
+
   test_lifecycle_summary() async {
     var projectContents = simpleProject();
     var projectDir = await createProjectDir(projectContents);
