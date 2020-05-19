@@ -34,9 +34,9 @@ static method testNullableInt2([@vm.inferred-type.metadata=dart.core::Null? (val
 static method testDynamic([@vm.inferred-type.metadata=dart.core::_OneByteString (value: hi)] dynamic x) → dynamic
   return _in::unsafeCast<dynamic>(x);
 static method testObject([@vm.inferred-type.metadata=dart.core::Null? (value: null)] dynamic x) → dynamic
-  return _in::unsafeCast<core::Object>(x);
+  return x;
 static method testNullableObject([@vm.inferred-type.metadata=dart.core::Null? (value: null)] dynamic x) → dynamic
-  return _in::unsafeCast<core::Object?>(x);
+  return x;
 static method testAOfNum1([@vm.inferred-type.metadata=#lib::B<InterfaceType(int)>] dynamic x) → dynamic
   return _in::unsafeCast<self::A<core::num>>(x);
 static method testAOfNum2([@vm.inferred-type.metadata=#lib::B<InterfaceType(int?)>] dynamic x) → dynamic

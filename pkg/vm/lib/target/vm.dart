@@ -22,10 +22,7 @@ import 'package:kernel/vm/constants_native_effects.dart'
 
 import '../metadata/binary_cache.dart' show BinaryCacheMetadataRepository;
 import '../transformations/call_site_annotator.dart' as callSiteAnnotator;
-import '../transformations/late_var_init_transformer.dart'
-    as lateVarInitTransformer;
-import '../transformations/list_factory_specializer.dart'
-    as listFactorySpecializer;
+import '../transformations/lowering.dart' as lowering show transformLibraries;
 import '../transformations/ffi.dart' as transformFfi show ReplacedMembers;
 import '../transformations/ffi_definitions.dart' as transformFfiDefinitions
     show transformLibraries;
@@ -173,11 +170,9 @@ class VmTarget extends Target {
         productMode: productMode);
     logger?.call("Transformed async methods");
 
-    listFactorySpecializer.transformLibraries(libraries, coreTypes);
-    logger?.call("Specialized list factories");
-
-    lateVarInitTransformer.transformLibraries(libraries);
-    logger?.call("Transformed late variable initializers");
+    lowering.transformLibraries(
+        libraries, coreTypes, hierarchy, flags.enableNullSafety);
+    logger?.call("Lowering transformations performed");
 
     callSiteAnnotator.transformLibraries(
         component, libraries, coreTypes, hierarchy);

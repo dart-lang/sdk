@@ -193,7 +193,7 @@ static method fisk() → dynamic /* originally async */ {
         function #s1#initializer() → core::String
           return invalid-expression "pkg/front_end/testcases/nnbd/later.dart:38:20: Error: `await` expressions are not supported in late local initializers.
   late String s1 = await hest();
-                   ^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} core::String;
+                   ^^^^^";
         late core::String s1 = #s1#initializer.call();
         function #s2#initializer() → core::String
           return "${#C1}${invalid-expression "pkg/front_end/testcases/nnbd/later.dart:39:30: Error: `await` expressions are not supported in late local initializers.

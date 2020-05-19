@@ -729,9 +729,11 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
     UriTranslator uriTranslator =
         await context.computeUriTranslator(description);
     TargetFlags targetFlags = new TargetFlags(
-        forceLateLoweringForTesting: testOptions.forceLateLowering,
-        forceNoExplicitGetterCallsForTesting:
-            testOptions.forceNoExplicitGetterCalls);
+      forceLateLoweringForTesting: testOptions.forceLateLowering,
+      forceNoExplicitGetterCallsForTesting:
+          testOptions.forceNoExplicitGetterCalls,
+      enableNullSafety: !context.weak,
+    );
     Target target;
     switch (testOptions.target) {
       case "vm":
