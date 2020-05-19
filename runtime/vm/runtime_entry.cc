@@ -325,14 +325,14 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 2) {
 }
 
 DEFINE_LEAF_RUNTIME_ENTRY(uword /*ObjectPtr*/,
-                          AddAllocatedObjectToRememberedSet,
+                          EnsureRememberedAndMarkingDeferred,
                           2,
                           uword /*ObjectPtr*/ object_in,
                           Thread* thread) {
   ObjectPtr object = static_cast<ObjectPtr>(object_in);
-  // The allocation stubs in will call this leaf method for newly allocated
+  // The allocation stubs will call this leaf method for newly allocated
   // old space objects.
-  RELEASE_ASSERT(object->IsOldObject() && !object->ptr()->IsRemembered());
+  RELEASE_ASSERT(object->IsOldObject());
 
   // If we eliminate a generational write barriers on allocations of an object
   // we need to ensure it's either a new-space object or it has been added to
@@ -344,7 +344,13 @@ DEFINE_LEAF_RUNTIME_ENTRY(uword /*ObjectPtr*/,
   // outermost runtime code (to which the genenerated Dart code might not return
   // in a long time).
   bool add_to_remembered_set = true;
-  if (object->IsArray()) {
+  if (object->ptr()->IsRemembered()) {
+    // Objects must not be added to the remembered set twice because the
+    // scavenger's visitor is not idempotent.
+    // Might already be remembered because of type argument store in
+    // AllocateArray or any field in CloneContext.
+    add_to_remembered_set = false;
+  } else if (object->IsArray()) {
     const intptr_t length = Array::LengthOf(static_cast<ArrayPtr>(object));
     add_to_remembered_set =
         compiler::target::WillAllocateNewOrRememberedArray(length);

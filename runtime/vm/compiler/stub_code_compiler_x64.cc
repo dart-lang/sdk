@@ -57,7 +57,7 @@ static void EnsureIsNewOrRemembered(Assembler* assembler,
   }
   __ movq(CallingConventions::kArg1Reg, RAX);
   __ movq(CallingConventions::kArg2Reg, THR);
-  __ CallRuntime(kAddAllocatedObjectToRememberedSetRuntimeEntry, 2);
+  __ CallRuntime(kEnsureRememberedAndMarkingDeferredRuntimeEntry, 2);
   if (preserve_registers) {
     __ LeaveCallRuntimeFrame();
   }
