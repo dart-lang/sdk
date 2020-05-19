@@ -320,13 +320,13 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 2) {
 }
 
 DEFINE_LEAF_RUNTIME_ENTRY(RawObject*,
-                          AddAllocatedObjectToRememberedSet,
+                          EnsureRememberedAndMarkingDeferred,
                           2,
                           RawObject* object,
                           Thread* thread) {
-  // The allocation stubs in will call this leaf method for newly allocated
+  // The allocation stubs will call this leaf method for newly allocated
   // old space objects.
-  RELEASE_ASSERT(object->IsOldObject() && !object->IsRemembered());
+  RELEASE_ASSERT(object->IsOldObject());
 
   // If we eliminate a generational write barriers on allocations of an object
   // we need to ensure it's either a new-space object or it has been added to
@@ -338,7 +338,13 @@ DEFINE_LEAF_RUNTIME_ENTRY(RawObject*,
   // outermost runtime code (to which the genenerated Dart code might not return
   // in a long time).
   bool add_to_remembered_set = true;
-  if (object->IsArray()) {
+  if (object->IsRemembered()) {
+    // Objects must not be added to the remembered set twice because the
+    // scavenger's visitor is not idempotent.
+    // Might already be remembered because of type argument store in
+    // AllocateArray or any field in CloneContext.
+    add_to_remembered_set = false;
+  } else if (object->IsArray()) {
     const intptr_t length =
         Array::LengthOf(reinterpret_cast<RawArray*>(object));
     add_to_remembered_set =
