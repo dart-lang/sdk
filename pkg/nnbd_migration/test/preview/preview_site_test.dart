@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide NavigationTarget;
 import 'package:nnbd_migration/nnbd_migration.dart';
+import 'package:nnbd_migration/src/front_end/dartfix_listener.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
 import 'package:nnbd_migration/src/front_end/migration_state.dart';
 import 'package:nnbd_migration/src/front_end/offset_mapper.dart';
@@ -57,13 +57,11 @@ class PreviewSiteTest with ResourceProviderMixin, PreviewSiteTestMixin {
     file.writeAsStringSync(content);
     site.unitInfoMap[path] = UnitInfo(path)..diskContent = content;
     // Add a source change for analysis_options, which has no UnitInfo.
-    dartfixListener.addSourceChange(
+    dartfixListener.addSourceFileEdit(
         'enable experiment',
         Location(analysisOptionsPath, 9, 0, 1, 9),
-        SourceChange('enable experiment', edits: [
-          SourceFileEdit(analysisOptionsPath, 0, edits: [
-            SourceEdit(9, 0, '\n  enable-experiment:\n  - non-nullable')
-          ])
+        SourceFileEdit(analysisOptionsPath, 0, edits: [
+          SourceEdit(9, 0, '\n  enable-experiment:\n  - non-nullable')
         ]));
     // This should not crash.
     site.performApply();
@@ -94,12 +92,10 @@ analyzer:
       ..diskContent = '// different content';
     final currentContent = 'void main() {}';
     file.writeAsStringSync(currentContent);
-    dartfixListener.addSourceChange(
+    dartfixListener.addSourceFileEdit(
         'test change',
         Location(path, 10, 0, 1, 10),
-        SourceChange('test change', edits: [
-          SourceFileEdit(path, 0, edits: [SourceEdit(10, 0, 'List args')])
-        ]));
+        SourceFileEdit(path, 0, edits: [SourceEdit(10, 0, 'List args')]));
     expect(() => site.performApply(), throwsA(isA<StateError>()));
     expect(file.readAsStringSync(), currentContent);
     expect(state.hasBeenApplied, false);
@@ -111,14 +107,12 @@ analyzer:
     final content = 'void main() {}';
     file.writeAsStringSync(content);
     site.unitInfoMap[path] = UnitInfo(path)..diskContent = content;
-    dartfixListener.addSourceChange(
+    dartfixListener.addSourceFileEdit(
         'test change',
         Location(path, 10, 0, 1, 10),
-        SourceChange('test change', edits: [
-          SourceFileEdit(path, 0, edits: [
-            SourceEdit(10, 0, 'List args'),
-            SourceEdit(13, 0, '\n  print(args);\n')
-          ])
+        SourceFileEdit(path, 0, edits: [
+          SourceEdit(10, 0, 'List args'),
+          SourceEdit(13, 0, '\n  print(args);\n')
         ]));
     site.performApply();
     expect(file.readAsStringSync(), '''
@@ -134,12 +128,10 @@ void main(List args) {
     final content = 'void main() {}';
     file.writeAsStringSync(content);
     site.unitInfoMap[path] = UnitInfo(path)..diskContent = content;
-    dartfixListener.addSourceChange(
+    dartfixListener.addSourceFileEdit(
         'test change',
         Location(path, 10, 0, 1, 10),
-        SourceChange('test change', edits: [
-          SourceFileEdit(path, 0, edits: [SourceEdit(10, 0, 'List args')])
-        ]));
+        SourceFileEdit(path, 0, edits: [SourceEdit(10, 0, 'List args')]));
     site.performApply();
     expect(file.readAsStringSync(), 'void main(List args) {}');
     expect(state.hasBeenApplied, true);
@@ -205,8 +197,8 @@ class PreviewSiteWithEngineTest extends NnbdMigrationTestBase
     });
   }
 
-  void test_performEdit_multiple() async {
-    final path = convertPath('/test.dart');
+  void test_applyHintAction() async {
+    final path = convertPath('/home/tests/bin/test.dart');
     final file = getFile(path);
     final content = r'''
 int x;
@@ -220,10 +212,10 @@ int? y = x;
     final unitInfo = await buildInfoForSingleTestFile(content,
         migratedContent: migratedContent);
     site.unitInfoMap[path] = unitInfo;
-    final firstEditOffset = unitInfo.regions[0].edits[0].offset;
-    performEdit(path, firstEditOffset, '/*?*/');
-    final secondEditOffset = unitInfo.regions[1].edits[0].offset;
-    performEdit(path, secondEditOffset, '/*?*/');
+    await site.performHintAction(
+        unitInfo.regions[1].traces[0].entries[0].hintActions[0]);
+    await site.performHintAction(
+        unitInfo.regions[1].traces[0].entries[2].hintActions[0]);
     expect(file.readAsStringSync(), '''
 int/*?*/ x;
 int/*?*/ y = x;
@@ -254,8 +246,8 @@ int/*?*/? y = x;
     expect(state.needsRerun, true);
   }
 
-  void test_applyHintAction() async {
-    final path = convertPath('/home/tests/bin/test.dart');
+  void test_performEdit_multiple() async {
+    final path = convertPath('/test.dart');
     final file = getFile(path);
     final content = r'''
 int x;
@@ -269,10 +261,10 @@ int? y = x;
     final unitInfo = await buildInfoForSingleTestFile(content,
         migratedContent: migratedContent);
     site.unitInfoMap[path] = unitInfo;
-    await site.performHintAction(
-        unitInfo.regions[1].traces[0].entries[0].hintActions[0]);
-    await site.performHintAction(
-        unitInfo.regions[1].traces[0].entries[2].hintActions[0]);
+    final firstEditOffset = unitInfo.regions[0].edits[0].offset;
+    performEdit(path, firstEditOffset, '/*?*/');
+    final secondEditOffset = unitInfo.regions[1].edits[0].offset;
+    performEdit(path, secondEditOffset, '/*?*/');
     expect(file.readAsStringSync(), '''
 int/*?*/ x;
 int/*?*/ y = x;
