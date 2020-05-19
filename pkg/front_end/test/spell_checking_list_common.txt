@@ -1160,6 +1160,7 @@ finalizes
 finalizing
 finally
 find
+finder
 finding
 finds
 fine
@@ -2308,6 +2309,7 @@ quote
 quotes
 quoting
 raise
+raising
 random
 range
 rare

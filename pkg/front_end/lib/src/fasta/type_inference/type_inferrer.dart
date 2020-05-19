@@ -50,6 +50,8 @@ import '../kernel/internal_ast.dart'
 
 import '../kernel/inference_visitor.dart';
 
+import '../kernel/invalid_type.dart';
+
 import '../kernel/type_algorithms.dart' show hasAnyTypeVariables;
 
 import '../names.dart';
@@ -415,8 +417,9 @@ class ClosureContext {
       returnType = inferrer.typeSchemaEnvironment.unfutureType(returnType);
     }
     if (inferrer.library.isNonNullableByDefault &&
-        isPotentiallyNonNullable(
-            returnType, inferrer.coreTypes.futureOrClass) &&
+        (containsInvalidType(returnType) ||
+            isPotentiallyNonNullable(
+                returnType, inferrer.coreTypes.futureOrClass)) &&
         inferrer.flowAnalysis.isReachable) {
       Statement resultStatement =
           inferenceResult.hasChanged ? inferenceResult.statement : body;
