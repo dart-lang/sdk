@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:expect/expect.dart';
 
@@ -137,6 +138,31 @@ Future testSourceAddressConnect(String name) async {
   await server.close();
 }
 
+Future testAbstractAddress() async {
+  if (!Platform.isLinux && !Platform.isAndroid) {
+    return;
+  }
+  var serverAddress =
+      InternetAddress('@temp.sock', type: InternetAddressType.unix);
+  ServerSocket server = await ServerSocket.bind(serverAddress, 0);
+  final completer = Completer<void>();
+  final content = 'random string';
+  server.listen((Socket socket) {
+    socket.listen((data) {
+      Expect.equals(content, utf8.decode(data));
+      socket.close();
+      server.close();
+      completer.complete();
+    });
+  });
+
+  Socket client = await Socket.connect(serverAddress, 0);
+  client.write(content);
+  await client.drain();
+  await client.close();
+  await completer.future;
+}
+
 // Create socket in temp directory
 Future withTempDir(String prefix, Future<void> test(Directory dir)) async {
   var tempDir = Directory.systemTemp.createTempSync(prefix);
@@ -164,6 +190,7 @@ void main() async {
     await withTempDir('unix_socket_test', (Directory dir) async {
       await testSourceAddressConnect('${dir.path}');
     });
+    await testAbstractAddress();
   } catch (e) {
     if (Platform.isMacOS || Platform.isLinux || Platform.isAndroid) {
       Expect.fail("Unexpected exceptions are thrown");

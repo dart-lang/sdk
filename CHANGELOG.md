@@ -40,6 +40,11 @@
 *   Class `OSError` now implements `Exception`. This change means `OSError` will
     now be caught in catch clauses catching `Exception`s.
 *   Added `InternetAddress.tryParse`.
+*   [Abstract Unix Domain Socket][] is supported on Linux/Android now. Using an
+    `InternetAddress` with `address` starting with '@' and type being
+    `InternetAddressType.Unix` will create an abstract Unix Domain Socket.
+
+[Abstract Unix Domain Socket]: http://man7.org/linux/man-pages/man7/unix.7.html
 
 ### Tools
 
