@@ -406,22 +406,21 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
 
   @override
   DartType visitListLiteral(ListLiteral node) {
-    var typeArguments = node.typeArguments?.arguments;
-    if (typeArguments != null && typeArguments.length == 1) {
-      return typeArguments[0].type;
+    if (node.elements.contains(childNode)) {
+      return (node.staticType as InterfaceType).typeArguments[0];
     }
     return null;
   }
 
   @override
   DartType visitMapLiteralEntry(MapLiteralEntry node) {
-    var typeArguments =
-        node.thisOrAncestorOfType<SetOrMapLiteral>()?.typeArguments;
-    if (typeArguments != null && typeArguments.length == 2) {
+    var literal = node.thisOrAncestorOfType<SetOrMapLiteral>();
+    if (literal != null && literal.staticType.isDartCoreMap) {
+      var typeArguments = (literal.staticType as InterfaceType).typeArguments;
       if (childNode == node.key) {
-        return typeArguments.arguments[0].type;
+        return typeArguments[0];
       } else {
-        return typeArguments.arguments[1].type;
+        return typeArguments[1];
       }
     }
     return null;
@@ -433,6 +432,14 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
       return _visitParent(node);
     }
     return null;
+  }
+
+  @override
+  DartType visitNamedExpression(NamedExpression node) {
+    if (childNode == node.expression) {
+      return _visitParent(node);
+    }
+    return super.visitNamedExpression(node);
   }
 
   @override
@@ -473,11 +480,10 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
 
   @override
   DartType visitSetOrMapLiteral(SetOrMapLiteral node) {
-    if (node.isSet) {
-      var typeArguments = node.typeArguments?.arguments;
-      if (typeArguments != null && typeArguments.length == 1) {
-        return typeArguments[0].type;
-      }
+    var type = node.staticType;
+    if (node.elements.contains(childNode) &&
+        (type.isDartCoreMap || type.isDartCoreSet)) {
+      return (type as InterfaceType).typeArguments[0];
     }
     return null;
   }
