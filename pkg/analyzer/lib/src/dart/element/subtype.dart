@@ -81,11 +81,10 @@ class SubtypeHelper {
       if (T0_nullability == NullabilitySuffix.none &&
           T0 is TypeParameterTypeImpl) {
         var S = T0.promotedBound;
-        var B = T0.element.bound;
-        if (S == null && B != null) {
+        if (S == null) {
+          var B = T0.element.bound ?? _objectQuestion;
           return isSubtypeOf(B, _objectNone);
-        }
-        if (S != null) {
+        } else {
           return isSubtypeOf(S, _objectNone);
         }
       }

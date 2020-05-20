@@ -576,7 +576,9 @@ class GenericInferrer {
       var constraints = this.constraints[t1.element];
       if (constraints != null) {
         if (!identical(t2, UnknownInferredType.instance)) {
-          if (t1.nullabilitySuffix == NullabilitySuffix.question) {
+          if (t1.nullabilitySuffix == NullabilitySuffix.question &&
+              t2.nullabilitySuffix == NullabilitySuffix.question) {
+            t1 = _typeSystem.promoteToNonNull(t1);
             t2 = _typeSystem.promoteToNonNull(t2);
           }
           var constraint = _TypeConstraint(origin, t1.element, upper: t2);
@@ -590,8 +592,10 @@ class GenericInferrer {
       var constraints = this.constraints[t2.element];
       if (constraints != null) {
         if (!identical(t1, UnknownInferredType.instance)) {
-          if (t2.nullabilitySuffix == NullabilitySuffix.question) {
+          if (t1.nullabilitySuffix == NullabilitySuffix.question &&
+              t2.nullabilitySuffix == NullabilitySuffix.question) {
             t1 = _typeSystem.promoteToNonNull(t1);
+            t2 = _typeSystem.promoteToNonNull(t2);
           }
           var constraint = _TypeConstraint(origin, t2.element, lower: t1);
           constraints.add(constraint);
