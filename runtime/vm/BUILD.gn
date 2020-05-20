@@ -115,7 +115,7 @@ library_for_all_configs_with_compiler("libdart_compiler") {
     } else {
       extra_deps = [
         "//zircon/public/lib/fbl",
-        "//zircon/public/lib/trace-engine",
+        "//zircon/system/ulib/trace-engine",
       ]
     }
   }
