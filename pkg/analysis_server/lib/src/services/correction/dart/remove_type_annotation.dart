@@ -20,12 +20,12 @@ class RemoveTypeAnnotation extends CorrectionProducer {
 
   @override
   Future<void> compute(DartChangeBuilder builder) async {
-    if (node is SimpleFormalParameter) {
-      var type = (node as SimpleFormalParameter).type;
+    var parameter = node.thisOrAncestorOfType<FormalParameter>();
+    if (parameter is SimpleFormalParameter) {
+      var type = parameter.type;
       if (type != null) {
         return _removeTypeAnnotation(builder, type);
       }
-      return;
     }
     var declarationList = node.thisOrAncestorOfType<VariableDeclarationList>();
     if (declarationList != null) {

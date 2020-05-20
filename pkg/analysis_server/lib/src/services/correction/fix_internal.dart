@@ -82,6 +82,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_null_with_c
 import 'package:analysis_server/src/services/correction/dart/replace_with_brackets.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_conditional_assignment.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_eight_digit_hex.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_identifier.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_interpolation.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_is_empty.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_null_aware.dart';
@@ -288,7 +289,10 @@ class FixProcessor extends BaseProcessor {
     LintNames.avoid_types_as_parameter_names: [
       ConvertToOnType.newInstance,
     ],
-//    LintNames.avoid_types_on_closure_parameters : [],
+    LintNames.avoid_types_on_closure_parameters: [
+      ReplaceWithIdentifier.newInstance,
+      RemoveTypeAnnotation.newInstance,
+    ],
     LintNames.await_only_futures: [
       RemoveAwait.newInstance,
     ],
@@ -1013,14 +1017,6 @@ class FixProcessor extends BaseProcessor {
       //  method or setter. The existing _addFix methods would need to be
       //  updated so that only the appropriate subset is generated.
     }
-    // lints
-    if (errorCode is LintCode) {
-      var name = errorCode.name;
-      if (name == LintNames.avoid_types_on_closure_parameters) {
-        await _addFix_replaceWithIdentifier();
-      }
-    }
-
     await _addFromProducers();
 
     // done
@@ -2875,17 +2871,6 @@ class FixProcessor extends BaseProcessor {
     }
   }
 
-  Future<void> _addFix_removeTypeAnnotation() async {
-    var type = node.thisOrAncestorOfType<TypeAnnotation>();
-    if (type != null) {
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addDeletion(range.startStart(type, type.endToken.next));
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_TYPE_ANNOTATION);
-    }
-  }
-
   Future<void> _addFix_removeTypeArguments() async {
     if (coveredNode is TypeArgumentList) {
       TypeArgumentList typeArguments = coveredNode;
@@ -3019,24 +3004,6 @@ class FixProcessor extends BaseProcessor {
     });
     _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_WITH_EXTENSION_NAME,
         args: [override.extensionName.name]);
-  }
-
-  Future<void> _addFix_replaceWithIdentifier() async {
-    var functionTyped =
-        node.thisOrAncestorOfType<FunctionTypedFormalParameter>();
-    if (functionTyped != null) {
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addSimpleReplacement(range.node(functionTyped),
-            utils.getNodeText(functionTyped.identifier));
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_WITH_IDENTIFIER);
-    } else {
-      // TODO(brianwilkerson) Convert to use RemoveTypeAnnotation, possibly by
-      //  just running both producers and letting the user choose between the
-      //  available options.
-      await _addFix_removeTypeAnnotation();
-    }
   }
 
   Future<void> _addFix_undefinedClass_useSimilar() async {
