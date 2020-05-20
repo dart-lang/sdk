@@ -10,8 +10,8 @@
 #include <errno.h>     // NOLINT
 #include <sys/stat.h>  // NOLINT
 
-#include "bin/dartutils.h"
 #include "bin/crypto.h"
+#include "bin/dartutils.h"
 #include "bin/file.h"
 #include "bin/namespace.h"
 #include "bin/utils.h"
@@ -450,8 +450,8 @@ const char* Directory::CreateTemp(Namespace* namespc, const char* prefix) {
   // a uuid.
   uint32_t suffix_bytes = 0;
   const int kSuffixSize = sizeof(suffix_bytes);
-  if (!Crypto::GetRandomBytes(
-      kSuffixSize, reinterpret_cast<uint8_t*>(&suffix_bytes))) {
+  if (!Crypto::GetRandomBytes(kSuffixSize,
+                              reinterpret_cast<uint8_t*>(&suffix_bytes))) {
     // Getting random bytes failed, maybe the UUID will work?
     return CreateTempFromUUID(prefix);
   }
