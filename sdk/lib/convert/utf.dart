@@ -493,6 +493,7 @@ class _Utf8Decoder {
   static const int errorSurrogate = E6;
   static const int errorUnfinished = E7;
 
+  @pragma("vm:prefer-inline")
   static bool isErrorState(int state) => (state & 1) != 0;
 
   static String errorDescription(int state) {
