@@ -897,20 +897,20 @@ class PropertyAccessorMember extends ExecutableMember
 
   @override
   PropertyAccessorElement get correspondingGetter {
-    return PropertyAccessorMember(
-      declaration.correspondingGetter,
-      _substitution,
-      isLegacy,
-    );
+    var baseGetter = declaration.correspondingGetter;
+    if (baseGetter == null) {
+      return null;
+    }
+    return PropertyAccessorMember(baseGetter, _substitution, isLegacy);
   }
 
   @override
   PropertyAccessorElement get correspondingSetter {
-    return PropertyAccessorMember(
-      declaration.correspondingSetter,
-      _substitution,
-      isLegacy,
-    );
+    var baseSetter = declaration.correspondingSetter;
+    if (baseSetter == null) {
+      return null;
+    }
+    return PropertyAccessorMember(baseSetter, _substitution, isLegacy);
   }
 
   @override
