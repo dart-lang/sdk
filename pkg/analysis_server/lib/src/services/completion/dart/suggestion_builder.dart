@@ -229,6 +229,9 @@ class SuggestionBuilder {
             featureComputer.contextTypeFeature(request.contextType, type);
         var elementKind = _computeElementKind(accessor);
         var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
+        var isConstant = request.inConstantContext
+            ? featureComputer.isConstantFeature(accessor)
+            : -1.0;
         var startsWithDollar =
             featureComputer.startsWithDollarFeature(accessor.name);
         var superMatches = featureComputer.superMatchesFeature(
@@ -238,6 +241,7 @@ class SuggestionBuilder {
             elementKind: elementKind,
             hasDeprecated: hasDeprecated,
             inheritanceDistance: inheritanceDistance,
+            isConstant: isConstant,
             startsWithDollar: startsWithDollar,
             superMatches: superMatches);
         listener?.computedFeatures(
@@ -271,8 +275,13 @@ class SuggestionBuilder {
       var contextType = request.featureComputer
           .contextTypeFeature(request.contextType, variableType);
       var elementKind = _computeElementKind(parameter);
+      var isConstant = request.inConstantContext
+          ? request.featureComputer.isConstantFeature(parameter)
+          : -1.0;
       relevance = toRelevance(
-          weightedAverage([contextType, elementKind], [1.0, 1.0]), 800);
+          weightedAverage(
+              [contextType, elementKind, isConstant], [1.0, 1.0, 1.0]),
+          800);
       listener?.computedFeatures(contextType: contextType);
     } else {
       relevance = _computeOldMemberRelevance(parameter);
@@ -500,6 +509,9 @@ class SuggestionBuilder {
           featureComputer.contextTypeFeature(request.contextType, field.type);
       var elementKind = _computeElementKind(field);
       var hasDeprecated = featureComputer.hasDeprecatedFeature(field);
+      var isConstant = request.inConstantContext
+          ? featureComputer.isConstantFeature(field)
+          : -1.0;
       var startsWithDollar =
           featureComputer.startsWithDollarFeature(field.name);
       var superMatches = featureComputer.superMatchesFeature(
@@ -509,6 +521,7 @@ class SuggestionBuilder {
           elementKind: elementKind,
           hasDeprecated: hasDeprecated,
           inheritanceDistance: inheritanceDistance,
+          isConstant: isConstant,
           startsWithDollar: startsWithDollar,
           superMatches: superMatches);
       listener?.computedFeatures(
@@ -644,8 +657,13 @@ class SuggestionBuilder {
       var contextType = request.featureComputer
           .contextTypeFeature(request.contextType, variableType);
       var elementKind = _computeElementKind(variable);
+      var isConstant = request.inConstantContext
+          ? request.featureComputer.isConstantFeature(variable)
+          : -1.0;
       relevance = toRelevance(
-          weightedAverage([contextType, elementKind], [1.0, 1.0]), 800);
+          weightedAverage(
+              [contextType, elementKind, isConstant], [1.0, 1.0, 1.0]),
+          800);
       listener?.computedFeatures(contextType: contextType);
     } else {
       relevance = _computeOldMemberRelevance(variable);
@@ -676,6 +694,9 @@ class SuggestionBuilder {
           request.contextType, method.returnType);
       var elementKind = _computeElementKind(method);
       var hasDeprecated = featureComputer.hasDeprecatedFeature(method);
+      var isConstant = request.inConstantContext
+          ? featureComputer.isConstantFeature(method)
+          : -1.0;
       var startsWithDollar =
           featureComputer.startsWithDollarFeature(method.name);
       var superMatches = featureComputer.superMatchesFeature(
@@ -685,6 +706,7 @@ class SuggestionBuilder {
           elementKind: elementKind,
           hasDeprecated: hasDeprecated,
           inheritanceDistance: inheritanceDistance,
+          isConstant: isConstant,
           startsWithDollar: startsWithDollar,
           superMatches: superMatches);
       listener?.computedFeatures(
@@ -885,8 +907,13 @@ class SuggestionBuilder {
       var contextType = request.featureComputer
           .contextTypeFeature(request.contextType, variableType);
       var elementKind = _computeElementKind(parameter);
+      var isConstant = request.inConstantContext
+          ? request.featureComputer.isConstantFeature(parameter)
+          : -1.0;
       relevance = toRelevance(
-          weightedAverage([contextType, elementKind], [1.0, 1.0]), 800);
+          weightedAverage(
+              [contextType, elementKind, isConstant], [1.0, 1.0, 1.0]),
+          800);
       listener?.computedFeatures(contextType: contextType);
     } else {
       relevance = _computeOldMemberRelevance(parameter);
@@ -905,6 +932,9 @@ class SuggestionBuilder {
     var relevance;
     if (request.useNewRelevance) {
       var elementKind = _computeElementKind(library);
+      // TODO(brianwilkerson) If we are in a constant context it would be nice
+      //  to promote prefixes for libraries that define constants, but that
+      //  might be more work than it's worth.
       relevance = toRelevance(elementKind, Relevance.prefix);
       listener?.computedFeatures(elementKind: elementKind);
     } else {
@@ -971,6 +1001,9 @@ class SuggestionBuilder {
             featureComputer.contextTypeFeature(request.contextType, type);
         var elementKind = _computeElementKind(accessor);
         var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
+        var isConstant = request.inConstantContext
+            ? featureComputer.isConstantFeature(accessor)
+            : -1.0;
         var startsWithDollar =
             featureComputer.startsWithDollarFeature(accessor.name);
         relevance = _computeMemberRelevance(
@@ -978,6 +1011,7 @@ class SuggestionBuilder {
             elementKind: elementKind,
             hasDeprecated: hasDeprecated,
             inheritanceDistance: -1.0,
+            isConstant: isConstant,
             startsWithDollar: startsWithDollar,
             superMatches: -1.0);
         listener?.computedFeatures(
@@ -1032,7 +1066,12 @@ class SuggestionBuilder {
     int relevance;
     if (request.useNewRelevance) {
       var elementKind = _computeElementKind(parameter);
-      relevance = toRelevance(elementKind, Relevance.typeParameter);
+      var isConstant = request.inConstantContext
+          ? request.featureComputer.isConstantFeature(parameter)
+          : -1.0;
+      relevance = toRelevance(
+          weightedAverage([elementKind, isConstant], [1.0, 1.0]),
+          Relevance.typeParameter);
       listener?.computedFeatures(elementKind: elementKind);
     } else {
       relevance = _computeOldMemberRelevance(parameter);
@@ -1105,6 +1144,7 @@ class SuggestionBuilder {
       @required double elementKind,
       @required double hasDeprecated,
       @required double inheritanceDistance,
+      @required double isConstant,
       @required double startsWithDollar,
       @required double superMatches}) {
     var score = weightedAverage([
@@ -1112,15 +1152,17 @@ class SuggestionBuilder {
       elementKind,
       hasDeprecated,
       inheritanceDistance,
+      isConstant,
       startsWithDollar,
       superMatches
     ], [
-      1.0,
-      0.75,
-      0.5,
-      1.0,
-      0.5,
-      1.0
+      1.00, // contextType
+      0.75, // elementKind
+      0.50, // hasDeprecated
+      1.00, // inheritanceDistance
+      1.00, // isConstant
+      0.50, // startsWithDollar
+      1.00, // superMatches
     ]);
     return toRelevance(score, Relevance.member);
   }
@@ -1177,9 +1219,12 @@ class SuggestionBuilder {
         featureComputer.contextTypeFeature(request.contextType, elementType);
     var elementKind = _computeElementKind(element);
     var hasDeprecated = featureComputer.hasDeprecatedFeature(element);
+    var isConstant = request.inConstantContext
+        ? featureComputer.isConstantFeature(element)
+        : -1.0;
     var relevance = toRelevance(
-        weightedAverage(
-            [contextType, elementKind, hasDeprecated], [1.0, 0.75, 0.2]),
+        weightedAverage([contextType, elementKind, hasDeprecated, isConstant],
+            [1.0, 0.75, 0.2, 1.0]),
         defaultRelevance);
     listener?.computedFeatures(
         contextType: contextType,

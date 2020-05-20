@@ -13,7 +13,14 @@ import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart'
-    show ClassElement, Element, FieldElement, LibraryElement;
+    show
+        ClassElement,
+        ConstructorElement,
+        Element,
+        FieldElement,
+        LibraryElement,
+        PropertyAccessorElement,
+        TopLevelVariableElement;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
@@ -150,6 +157,23 @@ class FeatureComputer {
       return 0.0;
     }
     return _distanceToPercent(distance);
+  }
+
+  /// Return the value of the _is constant_ feature for the given [element].
+  double isConstantFeature(Element element) {
+    if (element is ConstructorElement && element.isConst) {
+      return 1.0;
+    } else if (element is FieldElement && element.isStatic && element.isConst) {
+      return 1.0;
+    } else if (element is TopLevelVariableElement && element.isConst) {
+      return 1.0;
+    } else if (element is PropertyAccessorElement &&
+        element.isSynthetic &&
+        element.variable.isStatic &&
+        element.variable.isConst) {
+      return 1.0;
+    }
+    return 0.0;
   }
 
   /// Return the value of the _starts with dollar_ feature.
