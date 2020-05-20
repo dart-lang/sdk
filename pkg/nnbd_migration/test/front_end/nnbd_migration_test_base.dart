@@ -100,12 +100,16 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
   void assertTraceEntry(UnitInfo unit, TraceEntryInfo entryInfo,
       String function, int offset, Object descriptionMatcher,
       {Set<HintActionKind> hintActions}) {
-    assert(offset >= 0);
-    var lineInfo = LineInfo.fromContent(unit.content);
-    var expectedLocation = lineInfo.getLocation(offset);
-    expect(entryInfo.target.filePath, unit.path);
-    expect(entryInfo.target.line, expectedLocation.lineNumber);
-    expect(unit.offsetMapper.map(entryInfo.target.offset), offset);
+    if (offset == null) {
+      expect(entryInfo.target, isNull);
+    } else {
+      assert(offset >= 0);
+      var lineInfo = LineInfo.fromContent(unit.content);
+      var expectedLocation = lineInfo.getLocation(offset);
+      expect(entryInfo.target.filePath, unit.path);
+      expect(entryInfo.target.line, expectedLocation.lineNumber);
+      expect(unit.offsetMapper.map(entryInfo.target.offset), offset);
+    }
     expect(entryInfo.function, function);
     expect(entryInfo.description, descriptionMatcher);
     if (hintActions != null) {

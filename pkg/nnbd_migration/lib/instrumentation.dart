@@ -72,6 +72,8 @@ class CodeReference {
       var nodeName = _computeNodeDeclarationName(node);
       if (nodeName != null) {
         parts.add(nodeName);
+      } else if (parts.isEmpty && node is VariableDeclarationList) {
+        parts.add(node.variables.first.declaredElement.name);
       }
       node = node.parent;
     }
@@ -80,15 +82,7 @@ class CodeReference {
   }
 
   static String _computeNodeDeclarationName(AstNode node) {
-    if (node is FieldDeclaration) {
-      if (node.fields.variables.length == 1) {
-        return node.fields.variables.single.declaredElement?.name;
-      } else {
-        // TODO(srawlins): Handle multiple fields declared at once; likely in
-        // caller, not here.
-        return null;
-      }
-    } else if (node is ExtensionDeclaration) {
+    if (node is ExtensionDeclaration) {
       return node.declaredElement?.name ?? '<unnamed extension>';
     } else if (node is Declaration) {
       var name = node.declaredElement?.name;

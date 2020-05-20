@@ -238,7 +238,7 @@ int/*?*/? y = x;
         offset: unitInfo.content.indexOf('y'),
         offsetMapper: unitInfo.offsetMapper);
     var trace = unitInfo.regions[1].traces[0];
-    assertTraceEntry(unitInfo, trace.entries[0], null,
+    assertTraceEntry(unitInfo, trace.entries[0], 'y',
         unitInfo.content.indexOf('int/*?*/? y'), contains('y (test.dart:2:1)'));
     assertTraceEntry(unitInfo, trace.entries[1], 'y',
         unitInfo.content.indexOf('= x;') + '= '.length, contains('data flow'));
@@ -287,7 +287,7 @@ int/*?*/? y = x;
         offset: unitInfo.content.indexOf('y'),
         offsetMapper: unitInfo.offsetMapper);
     var trace = unitInfo.regions[1].traces[0];
-    assertTraceEntry(unitInfo, trace.entries[0], null,
+    assertTraceEntry(unitInfo, trace.entries[0], 'y',
         unitInfo.content.indexOf('int/*?*/? y'), contains('y (test.dart:2:1)'));
     assertTraceEntry(unitInfo, trace.entries[1], 'y',
         unitInfo.content.indexOf('= x;') + '= '.length, contains('data flow'));
