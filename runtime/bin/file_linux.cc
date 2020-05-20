@@ -649,10 +649,7 @@ const char* File::ReadLink(const char* pathname) {
   return target_name;
 }
 
-const char* File::GetCanonicalPath(Namespace* namespc,
-                                   const char* name,
-                                   char* dest,
-                                   int dest_size) {
+const char* File::GetCanonicalPath(Namespace* namespc, const char* name) {
   if (name == NULL) {
     return NULL;
   }
@@ -663,17 +660,13 @@ const char* File::GetCanonicalPath(Namespace* namespc,
     return name;
   }
   char* abs_path;
-  if (dest == NULL) {
-    dest = DartUtils::ScopedCString(PATH_MAX + 1);
-  } else {
-    ASSERT(dest_size >= PATH_MAX);
-  }
-  ASSERT(dest != NULL);
+  char* resolved_path = DartUtils::ScopedCString(PATH_MAX + 1);
+  ASSERT(resolved_path != NULL);
   do {
-    abs_path = realpath(name, dest);
+    abs_path = realpath(name, resolved_path);
   } while ((abs_path == NULL) && (errno == EINTR));
   ASSERT(abs_path == NULL || IsAbsolutePath(abs_path));
-  ASSERT(abs_path == NULL || (abs_path == dest));
+  ASSERT(abs_path == NULL || (abs_path == resolved_path));
   return abs_path;
 }
 

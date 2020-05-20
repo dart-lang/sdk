@@ -573,25 +573,19 @@ bool File::IsAbsolutePath(const char* pathname) {
   return (pathname != NULL && pathname[0] == '/');
 }
 
-const char* File::GetCanonicalPath(Namespace* namespc,
-                                   const char* pathname,
-                                   char* dest,
-                                   int dest_size) {
+const char* File::GetCanonicalPath(Namespace* namespc, const char* pathname) {
   char* abs_path = NULL;
   if (pathname != NULL) {
     // On some older MacOs versions the default behaviour of realpath allocating
-    // space for the dest when a NULL is passed in does not seem to work, so we
-    // explicitly allocate space.
-    if (dest == NULL) {
-      dest = DartUtils::ScopedCString(PATH_MAX + 1);
-    } else {
-      ASSERT(dest_size >= PATH_MAX);
-    }
+    // space for the resolved_path when a NULL is passed in does not seem to
+    // work, so we explicitly allocate space.
+    char* resolved_path = DartUtils::ScopedCString(PATH_MAX + 1);
+    ASSERT(resolved_path != NULL);
     do {
-      abs_path = realpath(pathname, dest);
+      abs_path = realpath(pathname, resolved_path);
     } while ((abs_path == NULL) && (errno == EINTR));
     ASSERT((abs_path == NULL) || IsAbsolutePath(abs_path));
-    ASSERT((abs_path == NULL) || (abs_path == dest));
+    ASSERT((abs_path == NULL) || (abs_path == resolved_path));
   }
   return abs_path;
 }

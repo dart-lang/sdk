@@ -678,10 +678,7 @@ bool File::IsAbsolutePath(const char* pathname) {
           ((pathname[2] == '\\') || (pathname[2] == '/')));
 }
 
-const char* File::GetCanonicalPath(Namespace* namespc,
-                                   const char* pathname,
-                                   char* dest,
-                                   int dest_size) {
+const char* File::GetCanonicalPath(Namespace* namespc, const char* pathname) {
   Utf8ToWideScope system_name(pathname);
   HANDLE file_handle =
       CreateFileW(system_name.wide(), 0, FILE_SHARE_READ, NULL, OPEN_EXISTING,
@@ -698,34 +695,23 @@ const char* File::GetCanonicalPath(Namespace* namespc,
     SetLastError(error);
     return NULL;
   }
-  auto path = std::unique_ptr<wchar_t[]>(new wchar_t[required_size]);
-  int result_size = GetFinalPathNameByHandle(file_handle, path.get(),
-                                             required_size, VOLUME_NAME_DOS);
+  wchar_t* path;
+  path = reinterpret_cast<wchar_t*>(
+      Dart_ScopeAllocate(required_size * sizeof(*path)));
+  int result_size = GetFinalPathNameByHandle(file_handle, path, required_size,
+                                             VOLUME_NAME_DOS);
   ASSERT(result_size <= required_size - 1);
-  CloseHandle(file_handle);
-
   // Remove leading \\?\ if possible, unless input used it.
-  int offset = 0;
   char* result;
   if ((result_size < MAX_PATH - 1 + 4) && (result_size > 4) &&
-      (wcsncmp(path.get(), L"\\\\?\\", 4) == 0) &&
+      (wcsncmp(path, L"\\\\?\\", 4) == 0) &&
       (wcsncmp(system_name.wide(), L"\\\\?\\", 4) != 0)) {
-    offset = 4;
-    result_size -= 4;
+    result = StringUtilsWin::WideToUtf8(path + 4);
+  } else {
+    result = StringUtilsWin::WideToUtf8(path);
   }
-  if (dest == NULL) {
-    dest = DartUtils::ScopedCString(result_size + 1);
-    dest_size = result_size + 1;
-  }
-  if (dest_size != 0) {
-    ASSERT(result_size <= dest_size);
-  }
-  if (0 == WideCharToMultiByte(CP_UTF8, 0, path.get() + offset, result_size,
-                               dest, dest_size, NULL, NULL)) {
-    return NULL;
-  }
-  dest[result_size] = '\0';
-  return dest;
+  CloseHandle(file_handle);
+  return result;
 }
 
 const char* File::PathSeparator() {
