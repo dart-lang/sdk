@@ -37,6 +37,8 @@ class CompilationModeError {
   final String message;
 
   CompilationModeError(this.message);
+
+  String toString() => "CompilationModeError[$message]";
 }
 
 class CanonicalNameError {
