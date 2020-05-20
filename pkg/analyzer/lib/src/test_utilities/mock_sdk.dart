@@ -1174,7 +1174,10 @@ class MockSdk implements DartSdk {
     return _analysisContext;
   }
 
-  Folder get directory => resourceProvider.getFolder(sdkRoot);
+  Folder get directory {
+    var convertedRoot = resourceProvider.convertPath(sdkRoot);
+    return resourceProvider.getFolder(convertedRoot);
+  }
 
   @override
   String get sdkVersion => throw UnimplementedError();
