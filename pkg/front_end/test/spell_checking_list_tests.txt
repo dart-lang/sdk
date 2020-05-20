@@ -120,6 +120,7 @@ dadd
 daemon
 dartanalyzer
 dartfile
+dartfmt
 dash
 dashes
 day
@@ -415,6 +416,7 @@ quot
 r"
 r"\s
 r"k
+r"tools
 rd
 reachability
 reality
