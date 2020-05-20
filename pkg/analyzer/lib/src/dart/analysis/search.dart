@@ -812,8 +812,14 @@ class _IndexRequest {
    */
   int getElementUnitMemberId(Element element) {
     for (; element != null; element = element.enclosingElement) {
-      if (element.enclosingElement is CompilationUnitElement) {
-        return getStringId(element.name);
+      var enclosingElement = element.enclosingElement;
+      if (enclosingElement is CompilationUnitElement) {
+        var name = element.name;
+        if (element is ExtensionElement && name == null) {
+          var index = enclosingElement.extensions.indexOf(element);
+          name = 'extension-$index';
+        }
+        return getStringId(name);
       }
     }
     return index.nullStringId;

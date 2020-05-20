@@ -444,10 +444,14 @@ class _IndexAssembler {
       nameIdClassMember = _getStringInfo(element.name);
       element = element.enclosingElement;
     }
-    if (element?.enclosingElement is CompilationUnitElement) {
-      // Unnamed extensions have a null `name`, but _StringInfo instances must
-      // have non-null values.
-      nameIdUnitMember = _getStringInfo(element.name ?? '');
+    if (element.enclosingElement is CompilationUnitElement) {
+      var nameUnitMember = element.name;
+      if (element is ExtensionElement && nameUnitMember == null) {
+        var enclosingUnit = element.enclosingElement as CompilationUnitElement;
+        var indexOf = enclosingUnit.extensions.indexOf(element);
+        nameUnitMember = 'extension-$indexOf';
+      }
+      nameIdUnitMember = _getStringInfo(nameUnitMember);
     }
     return _ElementInfo(unitId, nameIdUnitMember, nameIdClassMember,
         nameIdParameter, info.kind);
