@@ -1,0 +1,51 @@
+library;
+import self as self;
+import "call_opt_in_through_opt_out_lib.dart" as cal;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///call_opt_in_through_opt_out_lib.dart";
+
+static method test() → dynamic {
+  cal::applyTakesNever(#C1);
+  cal::applyTakesNever(#C2);
+  cal::applyTakesNull(#C1);
+  cal::applyTakesNull(#C2);
+  cal::applyTakesNeverNamed(f: #C1);
+  cal::applyTakesNeverNamed(f: #C2);
+  cal::applyTakesNullNamed(f: #C1);
+  cal::applyTakesNullNamed(f: #C2);
+  cal::applyTakesNonNullable(#C3);
+  cal::applyTakesNonNullable(#C4);
+  cal::applyTakesNullable(#C3);
+  cal::applyTakesNullable(#C4);
+  cal::applyTakesNonNullableNamed(f: #C3);
+  cal::applyTakesNonNullableNamed(f: #C4);
+  cal::applyTakesNullableNamed(f: #C3);
+  cal::applyTakesNullableNamed(f: #C4);
+}
+static method main() → dynamic {}
+
+library /*isNonNullableByDefault*/;
+import self as cal;
+import "dart:core" as core;
+
+static method takesNull(core::Null? n) → void {}
+static method takesNever(Never n) → void {}
+static method applyTakesNull((core::Null?) → void f) → dynamic {}
+static method applyTakesNever((Never) → void f) → dynamic {}
+static method applyTakesNullNamed({required (core::Null?) → void f = #C5}) → dynamic {}
+static method applyTakesNeverNamed({required (Never) → void f = #C5}) → dynamic {}
+static method takesNullable(core::int? i) → void {}
+static method takesNonNullable(core::int i) → void {}
+static method applyTakesNullable((core::int?) → void f) → dynamic {}
+static method applyTakesNonNullable((core::int) → void f) → dynamic {}
+static method applyTakesNullableNamed({required (core::int?) → void f = #C5}) → dynamic {}
+static method applyTakesNonNullableNamed({required (core::int) → void f = #C5}) → dynamic {}
+
+constants  {
+  #C1 = tearoff cal::takesNever
+  #C2 = tearoff cal::takesNull
+  #C3 = tearoff cal::takesNonNullable
+  #C4 = tearoff cal::takesNullable
+  #C5 = null
+}

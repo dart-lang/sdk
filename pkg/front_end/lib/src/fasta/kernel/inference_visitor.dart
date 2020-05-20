@@ -3424,7 +3424,7 @@ class InferenceVisitor
         right, const UnknownType(), typeNeeded,
         isVoidAllowed: false);
 
-    assert(equalsTarget.isInstanceMember);
+    assert(equalsTarget.isInstanceMember || equalsTarget.isNever);
     if (inferrer.instrumentation != null && leftType == const DynamicType()) {
       inferrer.instrumentation.record(
           inferrer.uriForInstrumentation,
@@ -3453,7 +3453,10 @@ class InferenceVisitor
     }
     inferrer.flowAnalysis.equalityOp_end(equals, right, notEqual: isNot);
     return new ExpressionInferenceResult(
-        inferrer.coreTypes.boolRawType(inferrer.library.nonNullable), equals);
+        equalsTarget.isNever
+            ? const NeverType(Nullability.nonNullable)
+            : inferrer.coreTypes.boolRawType(inferrer.library.nonNullable),
+        equals);
   }
 
   /// Creates a binary expression of the binary operator with [binaryName] using
