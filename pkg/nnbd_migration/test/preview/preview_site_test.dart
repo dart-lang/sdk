@@ -309,7 +309,7 @@ int  y = x;
 ''';
     final unitInfo = await buildInfoForSingleTestFile(content,
         migratedContent: migratedContent);
-    site.unitInfoMap[this.state.pathMapper.map(path)] = unitInfo;
+    site.unitInfoMap[path] = unitInfo;
     await site.performHintAction(
         unitInfo.regions[0].traces[0].entries[0].hintActions[0]);
     expect(file.readAsStringSync(), '''
