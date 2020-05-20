@@ -82,7 +82,10 @@ class TypeMemberContributor extends DartCompletionContributor {
       superclassConstraints = (type as InterfaceType).superclassConstraints;
       type = (type as InterfaceType).superclass;
     }
-    if (type == null || type.isDynamic) {
+    if (type is FunctionType) {
+      builder.suggestFunctionCall();
+      type = request.objectType;
+    } else if (type == null || type.isDynamic) {
       // Suggest members from object if target is "dynamic".
       type = request.objectType;
     }
@@ -92,8 +95,6 @@ class TypeMemberContributor extends DartCompletionContributor {
       var memberBuilder = _SuggestionBuilder(request, builder);
       memberBuilder.buildSuggestions(type,
           mixins: mixins, superclassConstraints: superclassConstraints);
-    } else if (type is FunctionType) {
-      builder.suggestFunctionCall();
     }
 
     return const <CompletionSuggestion>[];

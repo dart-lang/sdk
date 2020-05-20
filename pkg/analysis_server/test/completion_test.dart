@@ -314,9 +314,6 @@ void r() {
         <String>['1+v', '2+void'],
         failingTests: '2');
 
-    buildTests('testCommentSnippets059', '''
-f(){((int x) => x+4).!1call(1);}''', <String>['1-call']);
-
     buildTests('testCommentSnippets060', '''
 class Map{}
 abstract class MM extends Map{factory MM() => new Map();}

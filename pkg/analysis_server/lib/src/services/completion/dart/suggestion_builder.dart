@@ -557,12 +557,12 @@ class SuggestionBuilder {
 
   /// Add a suggestion for the `call` method defined on functions.
   void suggestFunctionCall() {
-    const callString = 'call()';
+    const callString = 'call';
     final element = protocol.Element(
         protocol.ElementKind.METHOD, callString, protocol.Element.makeFlags(),
         location: null,
         typeParameters: null,
-        parameters: null,
+        parameters: '()',
         returnType: 'void');
     _add(CompletionSuggestion(
       CompletionSuggestionKind.INVOCATION,
@@ -572,9 +572,13 @@ class SuggestionBuilder {
       0,
       false,
       false,
-      displayText: callString,
+      displayText: 'call()',
       element: element,
       returnType: 'void',
+      parameterNames: [],
+      parameterTypes: [],
+      requiredParameterCount: 0,
+      hasNamedParameters: false,
     ));
   }
 
