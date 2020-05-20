@@ -1497,7 +1497,8 @@ class KernelProgramInfoDeserializationCluster : public DeserializationCluster {
 
 class CodeSerializationCluster : public SerializationCluster {
  public:
-  CodeSerializationCluster() : SerializationCluster("Code") {}
+  explicit CodeSerializationCluster(Heap* heap)
+      : SerializationCluster("Code") {}
   ~CodeSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -1631,6 +1632,24 @@ class CodeSerializationCluster : public SerializationCluster {
   }
 
   GrowableArray<CodePtr>* discovered_objects() { return &objects_; }
+
+  // Some code objects would have their owners dropped from the snapshot,
+  // which makes it is impossible to recover program structure when
+  // analysing snapshot profile. To facilitate analysis of snapshot profiles
+  // we include artificial nodes into profile representing such dropped
+  // owners.
+  void WriteDroppedOwnersIntoProfile(Serializer* s) {
+    ASSERT(s->profile_writer() != nullptr);
+
+    for (auto code : objects_) {
+      ObjectPtr owner = WeakSerializationReference::Unwrap(code->ptr()->owner_);
+      if (s->CreateArtificalNodeIfNeeded(owner)) {
+        AutoTraceObject(code);
+        s->AttributePropertyRef(owner, ":owner_",
+                                /*permit_artificial_ref=*/true);
+      }
+    }
+  }
 
  private:
   GrowableArray<CodePtr> objects_;
@@ -2025,7 +2044,7 @@ class WeakSerializationReferenceSerializationCluster
       ASSERT(Serializer::IsReachableReference(heap_->GetObjectId(ref)));
       if (ShouldDrop(ref)) {
         // For dropped references, reset their ID to be the unreachable
-        // reference value, so WriteRefId retrieves the target ID instead.
+        // reference value, so RefId retrieves the target ID instead.
         heap_->SetObjectId(ref, Serializer::kUnreachableReference);
         continue;
       }
@@ -4734,6 +4753,9 @@ void Serializer::TraceStartWritingObject(const char* type,
     id = smi_ids_.Lookup(Smi::RawCast(obj))->id_;
     cid = Smi::kClassId;
   }
+  if (IsArtificialReference(id)) {
+    id = -id;
+  }
   ASSERT(IsAllocatedReference(id));
 
   const char* name_str = nullptr;
@@ -4759,6 +4781,67 @@ void Serializer::TraceEndWritingObject() {
         stream_.Position() - object_currently_writing_.stream_start_);
     object_currently_writing_ = ProfilingObject();
   }
+}
+
+bool Serializer::CreateArtificalNodeIfNeeded(ObjectPtr obj) {
+  ASSERT(profile_writer() != nullptr);
+
+  intptr_t id = heap_->GetObjectId(obj);
+  if (Serializer::IsAllocatedReference(id)) {
+    return false;
+  }
+  if (Serializer::IsArtificialReference(id)) {
+    return true;
+  }
+  ASSERT(id == Serializer::kUnreachableReference);
+  id = AssignArtificialRef(obj);
+
+  const char* type = nullptr;
+  StringPtr name = nullptr;
+  ObjectPtr owner = nullptr;
+  const char* owner_ref_name = nullptr;
+  switch (obj->GetClassId()) {
+    case kFunctionCid: {
+      FunctionPtr func = static_cast<FunctionPtr>(obj);
+      type = "Function";
+      name = func->ptr()->name_;
+      owner_ref_name = "owner_";
+      owner = func->ptr()->owner_;
+      break;
+    }
+    case kClassCid: {
+      ClassPtr cls = static_cast<ClassPtr>(obj);
+      type = "Class";
+      name = cls->ptr()->name_;
+      owner_ref_name = "library_";
+      owner = cls->ptr()->library_;
+      break;
+    }
+    case kPatchClassCid: {
+      PatchClassPtr patch_cls = static_cast<PatchClassPtr>(obj);
+      type = "PatchClass";
+      owner_ref_name = "patched_class_";
+      owner = patch_cls->ptr()->patched_class_;
+      break;
+    }
+    case kLibraryCid: {
+      LibraryPtr lib = static_cast<LibraryPtr>(obj);
+      type = "Library";
+      name = lib->ptr()->url_;
+      break;
+    }
+    default:
+      UNREACHABLE();
+  }
+
+  TraceStartWritingObject(type, obj, name);
+  if (owner != nullptr) {
+    CreateArtificalNodeIfNeeded(owner);
+    AttributePropertyRef(owner, owner_ref_name,
+                         /*permit_artificial_ref=*/true);
+  }
+  TraceEndWritingObject();
+  return true;
 }
 
 const char* Serializer::ReadOnlyObjectType(intptr_t cid) {
@@ -4832,7 +4915,7 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
     case kKernelProgramInfoCid:
       return new (Z) KernelProgramInfoSerializationCluster();
     case kCodeCid:
-      return new (Z) CodeSerializationCluster();
+      return new (Z) CodeSerializationCluster(heap_);
     case kBytecodeCid:
       return new (Z) BytecodeSerializationCluster();
     case kObjectPoolCid:
@@ -5224,6 +5307,16 @@ void Serializer::Serialize() {
   // We should have assigned a ref to every object we pushed.
   ASSERT((next_ref_index_ - 1) == num_objects);
 
+#if defined(DART_PRECOMPILER)
+  // When writing snapshot profile, we want to retain some of the program
+  // structure information (e.g. information about libraries, classes and
+  // functions - even if it was dropped when writing snapshot itself).
+  if (FLAG_write_v8_snapshot_profile_to != nullptr) {
+    static_cast<CodeSerializationCluster*>(clusters_by_cid_[kCodeCid])
+        ->WriteDroppedOwnersIntoProfile(this);
+  }
+#endif
+
   for (intptr_t cid = 1; cid < num_cids_; cid++) {
     SerializationCluster* cluster = clusters_by_cid_[cid];
     if (cluster != NULL) {
@@ -5279,7 +5372,7 @@ void Serializer::WriteDispatchTable(const Array& entries) {
   // Reference IDs in a cluster are allocated sequentially, so we can use the
   // first code object's reference ID to calculate the cluster index.
   const intptr_t first_code_id =
-      WriteRefId(code_cluster->discovered_objects()->At(0));
+      RefId(code_cluster->discovered_objects()->At(0));
   // The first object in the code cluster must have its reference ID allocated.
   ASSERT(IsAllocatedReference(first_code_id));
 
@@ -5339,7 +5432,7 @@ void Serializer::WriteDispatchTable(const Array& entries) {
     }
     // We have a non-repeated, non-recent entry, so encode the reference ID of
     // the code object and emit that.
-    auto const object_id = WriteRefId(code);
+    auto const object_id = RefId(code);
     // Make sure that this code object has an allocated reference ID.
     ASSERT(IsAllocatedReference(object_id));
     // Use the index in the code cluster, not in the snapshot..
@@ -5598,7 +5691,7 @@ void Serializer::WriteProgramSnapshot(intptr_t num_base_objects,
         auto const code = Code::RawCast(dispatch_table_entries.At(i));
         if (code == Code::null()) continue;
         const V8SnapshotProfileWriter::ObjectId code_id(
-            V8SnapshotProfileWriter::kSnapshot, WriteRefId(code));
+            V8SnapshotProfileWriter::kSnapshot, RefId(code));
         profile_writer_->AttributeReferenceTo(
             dispatch_table_snapshot_id,
             {code_id, V8SnapshotProfileWriter::Reference::kElement, i});
