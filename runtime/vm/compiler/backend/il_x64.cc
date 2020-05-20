@@ -4194,6 +4194,8 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!ValueFitsSmi()) {
     const Register temp = locs()->temp(0).reg();
     compiler::Label done;
+    // If the value doesn't fit in a smi, the tagging changes the sign,
+    // which causes the overflow flag to be set.
     __ j(NO_OVERFLOW, &done);
     BoxAllocationSlowPath::Allocate(compiler, this, compiler->mint_class(), out,
                                     temp);

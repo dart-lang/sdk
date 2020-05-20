@@ -374,6 +374,8 @@ enum Condition {
   UNSIGNED_LESS_EQUAL = LS,
   UNSIGNED_GREATER = HI,
   UNSIGNED_GREATER_EQUAL = CS,
+  OVERFLOW = VS,
+  NO_OVERFLOW = VC,
 
   kInvalidCondition = 16
 };

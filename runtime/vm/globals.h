@@ -17,9 +17,6 @@
 #undef near
 #endif  // defined(_WIN32)
 
-// The following #defines are invalidated.
-#undef OVERFLOW  // From math.h conflicts in constants_ia32.h
-
 namespace dart {
 // Smi value range is from -(2^N) to (2^N)-1.
 // N=30 (32-bit build) or N=62 (64-bit build).
