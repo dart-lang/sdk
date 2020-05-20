@@ -640,10 +640,50 @@ class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
 }
 
 /// Implementation of [NodeChange] specialized for operating on
-/// [FieldFormalParameter] nodes which are function-typed formal parameters.
+/// [FieldFormalParameter] nodes.
 class NodeChangeForFieldFormalParameter
     extends NodeChangeForType<FieldFormalParameter> {
+  /// If not `null`, an explicit type annotation that should be added to the
+  /// parameter.
+  DartType addExplicitType;
+
   NodeChangeForFieldFormalParameter() : super._();
+
+  @override
+  Iterable<String> get _toStringParts =>
+      [if (addExplicitType != null) 'addExplicitType'];
+
+  @override
+  EditPlan _apply(FieldFormalParameter node, FixAggregator aggregator) {
+    if (addExplicitType != null) {
+      var typeText = aggregator.typeToCode(addExplicitType);
+      // Even a field formal parameter can use `var`, `final`.
+      if (node.keyword?.keyword == Keyword.VAR) {
+        // TODO(srawlins): Test instrumentation info.
+        var info =
+            AtomicEditInfo(NullabilityFixDescription.replaceVar(typeText), {});
+        return aggregator.planner.passThrough(node, innerPlans: [
+          aggregator.planner
+              .replaceToken(node, node.keyword, typeText, info: info),
+          ...aggregator.innerPlansForNode(node),
+        ]);
+      } else {
+        // TODO(srawlins): Test instrumentation info.
+        var info =
+            AtomicEditInfo(NullabilityFixDescription.addType(typeText), {});
+        var offset = node.thisKeyword.offset;
+        return aggregator.planner.passThrough(node, innerPlans: [
+          aggregator.planner.insertText(node, offset, [
+            AtomicEdit.insert(typeText, info: info),
+            AtomicEdit.insert(' ')
+          ]),
+          ...aggregator.innerPlansForNode(node),
+        ]);
+      }
+    } else {
+      return super._apply(node, aggregator);
+    }
+  }
 }
 
 /// Implementation of [NodeChange] specialized for operating on
