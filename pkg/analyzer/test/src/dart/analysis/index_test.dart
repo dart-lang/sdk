@@ -1333,36 +1333,18 @@ main() {
    * Return the [element] identifier in [index] or fail.
    */
   int _findElementId(Element element) {
-    int unitId = _getUnitId(element);
+    var unitId = _getUnitId(element);
+
     // Prepare the element that was put into the index.
     IndexElementInfo info = IndexElementInfo(element);
     element = info.element;
+
     // Prepare element's name components.
-    int unitMemberId = index.nullStringId;
-    int classMemberId = index.nullStringId;
-    int parameterId = index.nullStringId;
-    for (Element e = element; e != null; e = e.enclosingElement) {
-      var enclosingElement = e.enclosingElement;
-      if (enclosingElement is CompilationUnitElement) {
-        var unitMemberName = e.name;
-        if (e is ExtensionElement && unitMemberName == null) {
-          var indexOf = enclosingElement.extensions.indexOf(e);
-          unitMemberName = 'extension-$indexOf';
-        }
-        unitMemberId = _getStringId(unitMemberName);
-        break;
-      }
-    }
-    for (Element e = element; e != null; e = e.enclosingElement) {
-      if (e.enclosingElement is ClassElement ||
-          e.enclosingElement is ExtensionElement) {
-        classMemberId = _getStringId(e.name);
-        break;
-      }
-    }
-    if (element is ParameterElement) {
-      parameterId = _getStringId(element.name);
-    }
+    var components = ElementNameComponents(element);
+    var unitMemberId = _getStringId(components.unitMemberName);
+    var classMemberId = _getStringId(components.classMemberName);
+    var parameterId = _getStringId(components.parameterName);
+
     // Find the element's id.
     for (int elementId = 0;
         elementId < index.elementUnits.length;
@@ -1398,6 +1380,10 @@ main() {
   }
 
   int _getStringId(String str) {
+    if (str == null) {
+      return index.nullStringId;
+    }
+
     int id = index.strings.indexOf(str);
     if (id < 0) {
       _failWithIndexDump('String "$str" is not referenced');
