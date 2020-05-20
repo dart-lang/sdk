@@ -437,11 +437,8 @@ error.name + ": " + error.message;
 
     // 2. compile kernel AST to JS ast
 
-    _kernel2jsCompiler.setIncrementalCompilationScope(scope.library, scope.cls);
-    _kernel2jsCompiler.runtimeModule = js_ast.Identifier('dart');
-
-    var jsFun = _kernel2jsCompiler.emitFunction(
-        procedure.function, '$debugProcedureName');
+    var jsFun = _kernel2jsCompiler.emitFunctionIncremental(
+        scope.library, scope.cls, procedure.function, '$debugProcedureName');
 
     // 3. apply temporary workarounds for what ideally
     // needs to be done in the compiler
