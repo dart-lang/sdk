@@ -7,7 +7,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:path/path.dart' as path;
-import 'package:quiver/check.dart';
 import 'package:tflite_native/tflite.dart' as tfl;
 
 /// Interface to TensorFlow-based Dart language model for next-token prediction.
@@ -41,9 +40,10 @@ class LanguageModel {
 
     // Get lookback size from model input tensor shape.
     final tensorShape = interpreter.getInputTensors().single.shape;
-    checkArgument(tensorShape.length == 2 && tensorShape.first == 1,
-        message:
-            'tensor shape $tensorShape does not match the expected [1, X]');
+    if (tensorShape.length != 2 || tensorShape.first != 1) {
+      throw ArgumentError(
+          'tensor shape $tensorShape does not match the expected [1, X]');
+    }
     final lookback = tensorShape.last;
 
     return LanguageModel._(interpreter, word2idx, idx2word, lookback);
