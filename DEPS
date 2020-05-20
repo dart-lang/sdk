@@ -90,7 +90,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_tag": "1.3.6",  # Please see the note above before updating.
 
-  "dartdoc_tag" : "v0.31.0",
+  "dartdoc_tag" : "v0.32.0",
   "ffi_tag": "454ab0f9ea6bd06942a983238d8a6818b1357edb",
   "fixnum_tag": "eb3748663dc979271ff6a3d014fbe522543b1d91",
   "glob_tag": "e9f4e6b7ae8abe5071461cf8f47191bb19cf7ef6",
