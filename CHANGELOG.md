@@ -73,6 +73,19 @@ Updated the Linter to `0.1.115`, which includes:
 
 ### Dart VM
 
+### Pub
+* Introduce `pub outdated --mode=null-safety` that will report which of your
+  dependencies you can upgrade to fully support null safety.
+* Fix `pub run` precompilation with relative `PUB_CACHE` paths (#2486)
+* Warn at publishing first time a package version opts in to null-safety.
+* Preserve Windows line endings in pubspec.lock if they are already there (#2489)
+* Better terminal color-detection. Use colors in terminals on Windows.
+* `pub outdated`: If the current version of a dependency is a prerelease 
+  version, use prereleases for latest if no newer stable.
+* `pub outdated` now works without a lockfile. In that case the 'Current'
+  column will be empty.
+* `pub upgrade`: Show summary count of outdated packages after running.
+
 ## 2.8.2 - 2020-05-13
 
 This is a patch release that fixes an AOT compilation bug in global
