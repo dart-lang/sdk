@@ -155,24 +155,46 @@ class DartUnitHoverComputer {
       // parameter for a field that does not exist.
       return null;
     }
-    // The documentation of the element itself.
-    if (element.documentationComment != null) {
-      return dartdocInfo.processDartdoc(element.documentationComment);
-    }
-    // Look for documentation comments of overridden members.
+
+    Element documentedElement;
+    Element documentedGetter;
+
+    // Look for documentation comments of overridden members
     var overridden = findOverriddenElements(element);
-    for (var superElement in [
+    for (var candidate in [
+      element,
       ...overridden.superElements,
       ...overridden.interfaceElements
     ]) {
-      var rawDoc = superElement.documentationComment;
-      if (rawDoc != null) {
-        var interfaceClass = superElement.enclosingElement;
-        return dartdocInfo.processDartdoc(rawDoc) +
-            '\n\nCopied from `${interfaceClass.displayName}`.';
+      if (candidate.documentationComment != null) {
+        documentedElement = candidate;
+        break;
+      }
+      if (documentedGetter == null &&
+          candidate is PropertyAccessorElement &&
+          candidate.isSetter) {
+        var getter = candidate.correspondingGetter;
+        if (getter != null && getter.documentationComment != null) {
+          documentedGetter = getter;
+        }
       }
     }
-    return null;
+
+    // Use documentation of a corresponding getter if setters don't have it
+    documentedElement ??= documentedGetter;
+    if (documentedElement == null) {
+      return null;
+    }
+
+    var rawDoc = documentedElement.documentationComment;
+    var result = dartdocInfo.processDartdoc(rawDoc);
+
+    var documentedElementClass = documentedElement.enclosingElement;
+    if (documentedElementClass != element.enclosingElement) {
+      result += '\n\nCopied from `${documentedElementClass.displayName}`.';
+    }
+
+    return result;
   }
 
   static DartType _getTypeOfDeclarationOrReference(Expression node) {
