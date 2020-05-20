@@ -139,8 +139,12 @@ bool NativeSymbolResolver::LookupSharedObject(uword pc,
   if (r == 0) {
     return false;
   }
-  *dso_base = reinterpret_cast<uword>(info.dli_fbase);
-  *dso_name = strdup(info.dli_fname);
+  if (dso_base != nullptr) {
+    *dso_base = reinterpret_cast<uword>(info.dli_fbase);
+  }
+  if (dso_name != nullptr) {
+    *dso_name = strdup(info.dli_fname);
+  }
   return true;
 }
 
