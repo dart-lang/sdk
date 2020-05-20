@@ -12,7 +12,10 @@ class _DartDevelopmentServiceClient {
     this.ws,
     json_rpc.Peer vmServicePeer,
   ) : _vmServicePeer = vmServicePeer {
-    _clientPeer = json_rpc.Peer(ws.cast<String>());
+    _clientPeer = json_rpc.Peer(
+      ws.cast<String>(),
+      strictProtocolChecks: false,
+    );
     _registerJsonRpcMethods();
   }
 
