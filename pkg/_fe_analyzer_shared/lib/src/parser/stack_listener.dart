@@ -91,8 +91,8 @@ abstract class StackListener extends Listener {
       if (token != null) {
         // If offset is available report and internal problem to show the
         // parsed code in the output.
-        throw internalProblem(
-            new Message(null, message: message), token.charOffset, uri);
+        throw internalProblem(new Message(/* code = */ null, message: message),
+            token.charOffset, uri);
       } else {
         throw message;
       }
@@ -191,8 +191,8 @@ abstract class StackListener extends Listener {
       if (token != null) {
         // If offset is available report and internal problem to show the
         // parsed code in the output.
-        throw internalProblem(
-            new Message(null, message: message), token.charOffset, uri);
+        throw internalProblem(new Message(/* code = */ null, message: message),
+            token.charOffset, uri);
       } else {
         throw message;
       }
@@ -213,7 +213,7 @@ abstract class StackListener extends Listener {
     if (node == null) {
       internalProblem(
           templateInternalProblemUnhandled.withArguments("null", "push"),
-          -1,
+          /* charOffset = */ -1,
           uri);
     }
     stack.push(node);
@@ -243,7 +243,7 @@ abstract class StackListener extends Listener {
       String s = "  $o";
       int index = s.indexOf("\n");
       if (index != -1) {
-        s = s.substring(0, index) + "...";
+        s = s.substring(/* startIndex = */ 0, index) + "...";
       }
       print(s);
     }
@@ -255,7 +255,7 @@ abstract class StackListener extends Listener {
     printEvent(name);
     internalProblem(
         templateInternalProblemUnhandled.withArguments(name, "$runtimeType"),
-        -1,
+        /* charOffset = */ -1,
         uri);
   }
 
@@ -518,7 +518,7 @@ abstract class Stack {
 }
 
 class StackImpl implements Stack {
-  List<Object> array = new List<Object>(8);
+  List<Object> array = new List<Object>(/* length = */ 8);
   int arrayLength = 0;
 
   bool get isNotEmpty => arrayLength > 0;
@@ -582,14 +582,14 @@ class StackImpl implements Stack {
   List<Object> get values {
     final int length = arrayLength;
     final List<Object> list = new List<Object>(length);
-    list.setRange(0, length, array);
+    list.setRange(/* start = */ 0, length, array);
     return list;
   }
 
   void _grow() {
     final int length = array.length;
     final List<Object> newArray = new List<Object>(length * 2);
-    newArray.setRange(0, length, array, 0);
+    newArray.setRange(/* start = */ 0, length, array, /* skipCount = */ 0);
     array = newArray;
   }
 }
@@ -624,7 +624,7 @@ class DebugStack implements Stack {
   Object pop(NullValue nullValue) {
     Object result = realStack.pop(nullValue);
     latestStacktraces.clear();
-    latestStacktraces.add(stackTraceStack.pop(null));
+    latestStacktraces.add(stackTraceStack.pop(/* nullValue = */ null));
     return result;
   }
 
@@ -632,7 +632,7 @@ class DebugStack implements Stack {
   List<Object> popList(int count, List<Object> list, NullValue nullValue) {
     List<Object> result = realStack.popList(count, list, nullValue);
     latestStacktraces.length = count;
-    stackTraceStack.popList(count, latestStacktraces, null);
+    stackTraceStack.popList(count, latestStacktraces, /* nullValue = */ null);
     return result;
   }
 
@@ -671,7 +671,9 @@ class GrowableList<T> {
 
   List<T> pop(Stack stack, int count, [NullValue nullValue]) {
     return stack.popList(
-        count, new List<T>.filled(count, null, growable: true), nullValue);
+        count,
+        new List<T>.filled(count, /* fill = */ null, growable: true),
+        nullValue);
   }
 }
 

@@ -33,7 +33,7 @@ class DebugListener extends Listener {
 mainEntryPoint(List<String> arguments) async {
   for (String argument in arguments) {
     if (argument.startsWith("@")) {
-      Uri uri = Uri.base.resolve(argument.substring(1));
+      Uri uri = Uri.base.resolve(argument.substring(/* startIndex = */ 1));
       await for (String file in new File.fromUri(uri)
           .openRead()
           .cast<List<int>>()

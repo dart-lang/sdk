@@ -91,7 +91,7 @@ class Utf8BytesScanner extends AbstractScanner {
             numberOfBytesHint: bytes.length) {
     assert(bytes.last == 0);
     // Skip a leading BOM.
-    if (containsBomAt(0)) {
+    if (containsBomAt(/* offset = */ 0)) {
       byteOffset += 3;
       utf8Slack += 3;
     }
@@ -165,7 +165,7 @@ class Utf8BytesScanner extends AbstractScanner {
       utf8Slack += (numBytes - 1);
       scanSlack = numBytes - 1;
       scanSlackOffset = byteOffset;
-      return codePoint.codeUnitAt(0);
+      return codePoint.codeUnitAt(/* index = */ 0);
     } else if (codePoint.length == 2) {
       utf8Slack += (numBytes - 2);
       scanSlack = numBytes - 1;
