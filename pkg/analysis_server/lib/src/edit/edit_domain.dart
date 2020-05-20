@@ -41,6 +41,8 @@ import 'package:analyzer/file_system/file_system.dart';
 // ignore: deprecated_member_use
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/dart/analysis/library_context.dart'
+    show LibraryCycleLinkException;
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart' as engine;
@@ -599,7 +601,23 @@ class EditDomainHandler extends AbstractRequestHandler {
               name,
             );
           });
-          var fixes = await DartFixContributor().computeFixes(context);
+
+          List<Fix> fixes;
+          try {
+            fixes = await DartFixContributor().computeFixes(context);
+          } catch (exception, stackTrace) {
+            var parametersFile = '''
+offset: $offset
+error: $error
+error.errorCode: ${error.errorCode}
+''';
+            // TODO(scheglov) Use CaughtExceptionWithFiles when patch changed.
+            throw LibraryCycleLinkException(exception, stackTrace, {
+              file: result.content,
+              'parameters': parametersFile,
+            });
+          }
+
           if (fixes.isNotEmpty) {
             fixes.sort(Fix.SORT_BY_RELEVANCE);
             var serverError = newAnalysisError_fromEngine(result, error);

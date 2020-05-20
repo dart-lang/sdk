@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/element/element.dart'
     show CompilationUnitElement, LibraryElement;
-import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -13,6 +12,7 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
+import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptions;
 import 'package:analyzer/src/generated/source.dart';
@@ -317,14 +317,11 @@ class LibraryContext {
   }
 }
 
-/// Exception that wraps another exception that happened during linking, and
-/// includes the content of all files of the library cycle.
-class LibraryCycleLinkException extends CaughtException {
-  final Map<String, String> fileContentMap;
-
+/// TODO(scheglov) replace in the internal patch
+class LibraryCycleLinkException extends CaughtExceptionWithFiles {
   LibraryCycleLinkException(
     Object exception,
     StackTrace stackTrace,
-    this.fileContentMap,
-  ) : super(exception, stackTrace);
+    Map<String, String> fileContentMap,
+  ) : super(exception, stackTrace, fileContentMap);
 }
