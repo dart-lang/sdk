@@ -1480,7 +1480,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _fillSalt();
 
     var featureSetProvider = FeatureSetProvider.build(
-      resourceProvider: resourceProvider,
+      sourceFactory: sourceFactory,
       packages: _packages,
       packageDefaultFeatureSet: _analysisOptions.contextFeatures,
       nonPackageDefaultFeatureSet: _analysisOptions.nonPackageFeatureSet,

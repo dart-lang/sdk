@@ -36,53 +36,62 @@ class FeatureSetProviderTest with ResourceProviderMixin {
     _createSourceFactory();
   }
 
-  test_nested() {
+  test_packages_allowedExperiments() {
     var packages = Packages(
       {
         'aaa': Package(
           name: 'aaa',
-          rootFolder: getFolder('/packages/aaa'),
-          libFolder: getFolder('/packages/aaa/lib'),
-          languageVersion: Version.parse('2.5.0'),
+          rootFolder: newFolder('/packages/aaa'),
+          libFolder: newFolder('/packages/aaa/lib'),
+          languageVersion: Version(2, 7, 0),
         ),
         'bbb': Package(
           name: 'bbb',
-          rootFolder: getFolder('/packages/aaa/bbb'),
-          libFolder: getFolder('/packages/aaa/bbb/lib'),
-          languageVersion: Version.parse('2.6.0'),
-        ),
-        'ccc': Package(
-          name: 'ccc',
-          rootFolder: getFolder('/packages/ccc'),
-          libFolder: getFolder('/packages/ccc/lib'),
-          languageVersion: Version.parse('2.7.0'),
+          rootFolder: newFolder('/packages/bbb'),
+          libFolder: newFolder('/packages/bbb/lib'),
+          languageVersion: Version(2, 7, 0),
         ),
       },
     );
 
+    _createSourceFactory(
+      packageUriResolver: _createPackageMapUriResolver(packages),
+    );
+
+    _newSdkExperimentsFile(r'''
+{
+  "version": 1,
+  "experimentSets": {
+    "nullSafety": ["non-nullable"]
+  },
+  "sdk": {
+    "default": {
+      "experimentSet": "nullSafety"
+    }
+  },
+  "packages": {
+    "aaa": {
+      "experimentSet": "nullSafety"
+    }
+  }
+}
+''');
+
     provider = FeatureSetProvider.build(
-      resourceProvider: resourceProvider,
+      sourceFactory: sourceFactory,
       packages: packages,
       packageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
       nonPackageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
     );
 
-    void check(String posixPath, Version expected) {
-      var path = convertPath(posixPath);
-      var uri = Uri.parse('package:aaa/a.dart');
-      expect(
-        provider.getLanguageVersion(path, uri),
-        expected,
-      );
-    }
+    _assertNonNullableForPath('/packages/aaa/lib/a.dart', true);
 
-    check('/packages/aaa/a.dart', Version.parse('2.5.0'));
-    check('/packages/aaa/bbb/b.dart', Version.parse('2.6.0'));
-    check('/packages/ccc/c.dart', Version.parse('2.7.0'));
-    check('/packages/ddd/d.dart', ExperimentStatus.currentVersion);
+    _assertNonNullableForPath('/packages/bbb/lib/b.dart', false);
+
+    _assertNonNullableForPath('/other/file.dart', false);
   }
 
-  test_packages() {
+  test_packages_contextExperiments_empty() {
     var packages = Packages(
       {
         'aaa': Package(
@@ -111,7 +120,7 @@ class FeatureSetProviderTest with ResourceProviderMixin {
     );
 
     provider = FeatureSetProvider.build(
-      resourceProvider: resourceProvider,
+      sourceFactory: sourceFactory,
       packages: packages,
       packageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
       nonPackageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
@@ -132,7 +141,53 @@ class FeatureSetProviderTest with ResourceProviderMixin {
     _assertNonNullableForPath('/other/file.dart', false);
   }
 
-  test_packages_enabledExperiment_nonNullable() {
+  test_packages_contextExperiments_nested() {
+    var packages = Packages(
+      {
+        'aaa': Package(
+          name: 'aaa',
+          rootFolder: getFolder('/packages/aaa'),
+          libFolder: getFolder('/packages/aaa/lib'),
+          languageVersion: Version.parse('2.5.0'),
+        ),
+        'bbb': Package(
+          name: 'bbb',
+          rootFolder: getFolder('/packages/aaa/bbb'),
+          libFolder: getFolder('/packages/aaa/bbb/lib'),
+          languageVersion: Version.parse('2.6.0'),
+        ),
+        'ccc': Package(
+          name: 'ccc',
+          rootFolder: getFolder('/packages/ccc'),
+          libFolder: getFolder('/packages/ccc/lib'),
+          languageVersion: Version.parse('2.7.0'),
+        ),
+      },
+    );
+
+    provider = FeatureSetProvider.build(
+      sourceFactory: sourceFactory,
+      packages: packages,
+      packageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
+      nonPackageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
+    );
+
+    void check(String posixPath, Version expected) {
+      var path = convertPath(posixPath);
+      var uri = Uri.parse('package:aaa/a.dart');
+      expect(
+        provider.getLanguageVersion(path, uri),
+        expected,
+      );
+    }
+
+    check('/packages/aaa/a.dart', Version.parse('2.5.0'));
+    check('/packages/aaa/bbb/b.dart', Version.parse('2.6.0'));
+    check('/packages/ccc/c.dart', Version.parse('2.7.0'));
+    check('/packages/ddd/d.dart', ExperimentStatus.currentVersion);
+  }
+
+  test_packages_contextExperiments_nonNullable() {
     var packages = Packages(
       {
         'aaa': Package(
@@ -161,7 +216,7 @@ class FeatureSetProviderTest with ResourceProviderMixin {
     );
 
     provider = FeatureSetProvider.build(
-      resourceProvider: resourceProvider,
+      sourceFactory: sourceFactory,
       packages: packages,
       packageDefaultFeatureSet: FeatureSet.fromEnableFlags(['non-nullable']),
       nonPackageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
@@ -182,33 +237,81 @@ class FeatureSetProviderTest with ResourceProviderMixin {
     _assertNonNullableForPath('/other/file.dart', false);
   }
 
-  test_sdk() {
-    _buildProvider([]);
+  test_sdk_allowedExperiments_default() {
+    _newSdkExperimentsFile(r'''
+{
+  "version": 1,
+  "experimentSets": {
+    "nullSafety": ["non-nullable"]
+  },
+  "sdk": {
+    "default": {
+      "experimentSet": "nullSafety"
+    }
+  }
+}
+''');
 
-    var featureSet = _getSdkFeatureSet();
+    provider = FeatureSetProvider.build(
+      sourceFactory: sourceFactory,
+      packages: findPackagesFrom(resourceProvider, getFolder('/test')),
+      packageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
+      nonPackageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
+    );
+
+    var featureSet = _getSdkFeatureSet('dart:math');
     expect(featureSet.isEnabled(Feature.non_nullable), isTrue);
   }
 
-  test_sdk_enabledExperiment_nonNullable() {
-    _buildProvider(['non-nullable']);
+  test_sdk_allowedExperiments_library() {
+    _newSdkExperimentsFile(r'''
+{
+  "version": 1,
+  "experimentSets": {
+    "none": [],
+    "nullSafety": ["non-nullable"]
+  },
+  "sdk": {
+    "default": {
+      "experimentSet": "none"
+    },
+    "libraries": {
+      "math": {
+        "experimentSet": "nullSafety"
+      }
+    }
+  }
+}
+''');
+    provider = FeatureSetProvider.build(
+      sourceFactory: sourceFactory,
+      packages: findPackagesFrom(resourceProvider, getFolder('/test')),
+      packageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
+      nonPackageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
+    );
 
-    var featureSet = _getSdkFeatureSet();
+    var core_featureSet = _getSdkFeatureSet('dart:core');
+    expect(core_featureSet.isEnabled(Feature.non_nullable), isFalse);
+
+    var math_featureSet = _getSdkFeatureSet('dart:math');
+    expect(math_featureSet.isEnabled(Feature.non_nullable), isTrue);
+  }
+
+  test_sdk_allowedExperiments_mockDefault() {
+    provider = FeatureSetProvider.build(
+      sourceFactory: sourceFactory,
+      packages: findPackagesFrom(resourceProvider, getFolder('/test')),
+      packageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
+      nonPackageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
+    );
+
+    var featureSet = _getSdkFeatureSet('dart:math');
     expect(featureSet.isEnabled(Feature.non_nullable), isTrue);
   }
 
   void _assertNonNullableForPath(String path, bool expected) {
     var featureSet = _getPathFeatureSet(path);
     expect(featureSet.isEnabled(Feature.non_nullable), expected);
-  }
-
-  void _buildProvider(List<String> enabledExperiments) {
-    var featureSet = FeatureSet.fromEnableFlags(enabledExperiments);
-    provider = FeatureSetProvider.build(
-      resourceProvider: resourceProvider,
-      packages: findPackagesFrom(resourceProvider, getFolder('/test')),
-      packageDefaultFeatureSet: featureSet,
-      nonPackageDefaultFeatureSet: featureSet,
-    );
   }
 
   PackageMapUriResolver _createPackageMapUriResolver(Packages packages) {
@@ -239,9 +342,14 @@ class FeatureSetProviderTest with ResourceProviderMixin {
     return provider.getFeatureSet(path, uri);
   }
 
-  FeatureSet _getSdkFeatureSet() {
-    var mathUri = Uri.parse('dart:math');
-    var mathPath = sourceFactory.forUri2(mathUri).fullName;
-    return provider.getFeatureSet(mathPath, mathUri);
+  FeatureSet _getSdkFeatureSet(String uriStr) {
+    var uri = Uri.parse(uriStr);
+    var path = sourceFactory.forUri2(uri).fullName;
+    return provider.getFeatureSet(path, uri);
+  }
+
+  void _newSdkExperimentsFile(String content) {
+    newFile('$sdkRoot/lib/_internal/allowed_experiments.json',
+        content: content);
   }
 }

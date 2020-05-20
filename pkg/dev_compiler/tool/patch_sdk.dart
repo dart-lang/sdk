@@ -106,6 +106,12 @@ void main(List<String> argv) {
       outLibRoot.resolve('_internal/sdk_library_metadata/lib/libraries.dart');
   _writeSync(outLibrariesDart,
       _generateLibrariesDart(libRoot, specification, useNnbd));
+
+  var experimentsPath = '_internal/allowed_experiments.json';
+  _writeSync(
+    outLibRoot.resolve(experimentsPath),
+    File.fromUri(libRoot.resolve(experimentsPath)).readAsStringSync(),
+  );
 }
 
 /// Writes a file, creating the directory if needed.

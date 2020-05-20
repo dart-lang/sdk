@@ -1139,6 +1139,25 @@ class MockSdk implements DartSdk {
       );
     }
 
+    resourceProvider.newFile(
+      resourceProvider.convertPath(
+        '$sdkRoot/lib/_internal/allowed_experiments.json',
+      ),
+      r'''
+{
+  "version": 1,
+  "experimentSets": {
+    "nullSafety": ["non-nullable"]
+  },
+  "sdk": {
+    "default": {
+      "experimentSet": "nullSafety"
+    }
+  }
+}
+''',
+    );
+
     if (generateSummaryFiles) {
       List<int> bytes = _computeLinkedBundleBytes();
       resourceProvider.newFileWithBytes(
@@ -1154,6 +1173,8 @@ class MockSdk implements DartSdk {
     }
     return _analysisContext;
   }
+
+  Folder get directory => resourceProvider.getFolder(sdkRoot);
 
   @override
   String get sdkVersion => throw UnimplementedError();
