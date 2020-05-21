@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert' show jsonDecode;
 import 'dart:io' hide File;
 
 import 'package:analyzer/dart/analysis/results.dart';
@@ -46,6 +47,7 @@ class CommandLineOptions {
   static const ignoreErrorsFlag = 'ignore-errors';
   static const previewPortOption = 'preview-port';
   static const sdkPathOption = 'sdk-path';
+  static const skipPubOutdatedFlag = 'skip-pub-outdated';
   static const summaryOption = 'summary';
   static const verboseFlag = 'verbose';
   static const webPreviewFlag = 'web-preview';
@@ -60,6 +62,8 @@ class CommandLineOptions {
 
   final String sdkPath;
 
+  final bool skipPubOutdated;
+
   final String summary;
 
   final bool webPreview;
@@ -70,8 +74,101 @@ class CommandLineOptions {
       @required this.ignoreErrors,
       @required this.previewPort,
       @required this.sdkPath,
+      @required this.skipPubOutdated,
       @required this.summary,
       @required this.webPreview});
+}
+
+@visibleForTesting
+class DependencyChecker {
+  final Context _pathContext;
+  final Logger _logger;
+  final ProcessManager _processManager;
+
+  DependencyChecker(this._pathContext, this._logger, this._processManager);
+
+  bool check() {
+    var pubPath = _pathContext.join(getSdkPath(), 'bin', 'pub');
+    var result = _processManager
+        .runSync(pubPath, ['outdated', '--mode=null-safety', '--json']);
+
+    var preNullSafetyPackages = <String, String>{};
+    try {
+      if ((result.stderr as String).isNotEmpty) {
+        throw FormatException(
+            '`pub outdated --mode=null-safety` exited with exit code '
+            '${result.exitCode} and stderr:\n\n${result.stderr}');
+      }
+      var outdatedOutput = jsonDecode(result.stdout as String);
+      var outdatedMap = _expectType<Map>(outdatedOutput, 'root');
+      var packageList = _expectType<List>(outdatedMap['packages'], 'packages');
+      for (var package_ in packageList) {
+        var package = _expectType<Map>(package_, '');
+        var current_ = _expectKey(package, 'current');
+        if (current_ == null) {
+          continue;
+        }
+        var current = _expectType<Map>(current_, 'current');
+        if (_expectType<bool>(current['nullSafety'], 'nullSafety')) {
+          // For whatever reason, there is no "current" version of this package.
+          // TODO(srawlins): We may want to report this to the user. But it may
+          // be inconsequential.
+          continue;
+        }
+
+        _expectKey(package, 'package');
+        _expectKey(current, 'version');
+        var name = _expectType<String>(package['package'], 'package');
+        // A version will be given, even if a package was provided with a local
+        // or git path.
+        var version = _expectType<String>(current['version'], 'version');
+        preNullSafetyPackages[name] = version;
+      }
+    } on FormatException catch (e) {
+      _logger.stderr('Warning: ${e.message}');
+      // Allow the program to continue; users should be allowed to attempt to
+      // migrate when `pub outdated` is misbehaving, or if there is a bug above.
+    }
+    if (preNullSafetyPackages.isNotEmpty) {
+      _logger.stderr(
+          'Warning: dependencies are outdated. The version(s) of one or more '
+          'packages currently checked out have not yet migrated to the Null '
+          'Safety feature.');
+      _logger.stderr('');
+      for (var package in preNullSafetyPackages.entries) {
+        _logger.stderr(
+            '    ${package.key}, currently at version ${package.value}');
+      }
+      _logger.stderr('');
+      _logger.stderr('It is highly recommended to upgrade all dependencies to '
+          'versions which have migrated. Use `pub outdated --mode=null-safety` '
+          'to check the status of dependencies. Visit '
+          'https://dart.dev/tools/pub/cmd/pub-outdated for more information.');
+      _logger.stderr('');
+      _logger.stderr('Force migration with --skip-outdated-dependencies-check '
+          '(not recommended)');
+      return false;
+    }
+    return true;
+  }
+
+  dynamic _expectKey(Map<Object, Object> map, String key) {
+    if (map.containsKey(key)) {
+      return map[key];
+    }
+    throw FormatException(
+        'Unexpected `pub outdated` JSON output: missing key ($key)', map);
+  }
+
+  T _expectType<T>(Object object, String errorKey) {
+    if (object is T) {
+      return object;
+    }
+    throw FormatException(
+        'Unexpected `pub outdated` JSON output: expected a '
+        '$T at "$errorKey", but got a ${object.runtimeType}',
+        object);
+  }
 }
 
 class MigrateCommand extends Command<dynamic> {
@@ -118,6 +215,11 @@ class MigrationCli {
   /// user.  Used in testing to allow user feedback messages to be tested.
   final Logger Function(bool isVerbose) loggerFactory;
 
+  /// Process manager that should be used to run processes. Used in testing to
+  /// redirect to mock processes.
+  @visibleForTesting
+  final ProcessManager processManager;
+
   /// Resource provider that should be used to access the filesystem.  Used in
   /// testing to redirect to an in-memory filesystem.
   final ResourceProvider resourceProvider;
@@ -145,7 +247,8 @@ class MigrationCli {
       {@required this.binaryName,
       @visibleForTesting this.loggerFactory = _defaultLoggerFactory,
       @visibleForTesting this.defaultSdkPathOverride,
-      @visibleForTesting ResourceProvider resourceProvider})
+      @visibleForTesting ResourceProvider resourceProvider,
+      @visibleForTesting this.processManager = const ProcessManager.system()})
       : logger = loggerFactory(false),
         resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE;
@@ -217,6 +320,8 @@ class MigrationCli {
           sdkPath: argResults[CommandLineOptions.sdkPathOption] as String ??
               defaultSdkPathOverride ??
               getSdkPath(),
+          skipPubOutdated:
+              argResults[CommandLineOptions.skipPubOutdatedFlag] as bool,
           summary: argResults[CommandLineOptions.summaryOption] as String,
           webPreview: webPreview);
       if (isVerbose) {
@@ -246,6 +351,10 @@ class MigrationCli {
   /// Runs the full migration process.
   void run(ArgResults argResults, {bool isVerbose}) async {
     decodeCommandLineArgs(argResults, isVerbose: isVerbose);
+    if (exitCode != null) return;
+    if (!options.skipPubOutdated) {
+      _checkDependencies();
+    }
     if (exitCode != null) return;
 
     logger.stdout('Migrating ${options.directory}');
@@ -367,6 +476,14 @@ Use this interactive web view to review, improve, or apply the results.
           logger.stdout('    Unable to write source for file: $e');
         }
       }
+    }
+  }
+
+  void _checkDependencies() {
+    var successful =
+        DependencyChecker(pathContext, logger, processManager).check();
+    if (!successful) {
+      exitCode = 1;
     }
   }
 
@@ -545,6 +662,12 @@ Use this interactive web view to review, improve, or apply the results.
             'dynamically allocate a port.');
     parser.addOption(CommandLineOptions.sdkPathOption,
         help: 'The path to the Dart SDK.', hide: hide);
+    parser.addFlag(
+      CommandLineOptions.skipPubOutdatedFlag,
+      defaultsTo: false,
+      negatable: false,
+      help: 'Skip the `pub outdated --mode=null-safety` check.',
+    );
     parser.addOption(CommandLineOptions.summaryOption,
         help:
             'Output path for a machine-readable summary of migration changes');
@@ -569,6 +692,25 @@ Use this interactive web view to review, improve, or apply the results.
         edit.offset: [AtomicEdit.replace(edit.length, edit.replacement)]
     };
   }
+}
+
+/// An abstraction over the static methods on [Process].
+///
+/// Used in tests to run mock processes.
+abstract class ProcessManager {
+  const factory ProcessManager.system() = SystemProcessManager;
+
+  /// Run a process synchronously, as in [Process.runSync].
+  ProcessResult runSync(String executable, List<String> arguments);
+}
+
+/// A [ProcessManager] that directs all method calls to static methods of
+/// [Process], in order to run real processes.
+class SystemProcessManager implements ProcessManager {
+  const SystemProcessManager();
+
+  ProcessResult runSync(String executable, List<String> arguments) =>
+      Process.runSync(executable, arguments);
 }
 
 class _BadArgException implements Exception {

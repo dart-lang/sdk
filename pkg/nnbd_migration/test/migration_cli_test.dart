@@ -37,7 +37,8 @@ class _MigrationCli extends MigrationCli {
             loggerFactory: (isVerbose) => test.logger = _TestLogger(isVerbose),
             defaultSdkPathOverride:
                 test.resourceProvider.convertPath(mock_sdk.sdkRoot),
-            resourceProvider: test.resourceProvider);
+            resourceProvider: test.resourceProvider,
+            processManager: test.processManager);
 
   @override
   Future<void> blockUntilSignalInterrupt() async {
@@ -60,6 +61,8 @@ class _MigrationCli extends MigrationCli {
 
 abstract class _MigrationCliTestBase {
   void set logger(_TestLogger logger);
+
+  _MockProcessManager get processManager;
 
   MemoryResourceProvider get resourceProvider;
 }
@@ -137,6 +140,32 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
       expect(
           resourceProvider.getFile(filePath).readAsStringSync(), entry.value);
     }
+  }
+
+  void assertPubOutdatedFailure(
+      {int pubOutdatedExitCode = 0,
+      String pubOutdatedStdout = '',
+      String pubOutdatedStderr = ''}) {
+    processManager._mockResult = ProcessResult(123 /* pid */,
+        pubOutdatedExitCode, pubOutdatedStdout, pubOutdatedStderr);
+    logger = _TestLogger(true);
+    var success =
+        DependencyChecker(resourceProvider.pathContext, logger, processManager)
+            .check();
+    expect(success, isFalse);
+  }
+
+  void assertPubOutdatedSuccess(
+      {int pubOutdatedExitCode = 0,
+      String pubOutdatedStdout = '',
+      String pubOutdatedStderr = ''}) {
+    processManager._mockResult = ProcessResult(123 /* pid */,
+        pubOutdatedExitCode, pubOutdatedStdout, pubOutdatedStderr);
+    logger = _TestLogger(true);
+    var success =
+        DependencyChecker(resourceProvider.pathContext, logger, processManager)
+            .check();
+    expect(success, isTrue);
   }
 
   String createProjectDir(Map<String, String> contents,
@@ -264,6 +293,20 @@ int${migrated ? '?' : ''} f() => null;
 
   test_flag_ignore_errors_enable() {
     expect(assertParseArgsSuccess(['--ignore-errors']).ignoreErrors, isTrue);
+  }
+
+  test_flag_skip_pub_outdated_default() {
+    expect(assertParseArgsSuccess([]).skipPubOutdated, isFalse);
+  }
+
+  test_flag_skip_pub_outdated_disable() async {
+    // "--no-skip-pub-outdated" is not an option.
+    await assertParseArgsFailure(['--no-skip-pub-outdated']);
+  }
+
+  test_flag_skip_pub_outdated_enable() {
+    expect(assertParseArgsSuccess(['--skip-pub-outdated']).skipPubOutdated,
+        isTrue);
   }
 
   test_flag_web_preview_default() {
@@ -403,6 +446,39 @@ int? f() => null
       var uri = Uri.parse(url);
       await assertPreviewServerResponsive(
           uri.replace(path: uri.path + '/').toString());
+    });
+  }
+
+  test_lifecycle_preview_navigation_tree() async {
+    var projectContents = simpleProject(sourceText: 'int x;');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await runWithPreviewServer(cli, [projectDir], (url) async {
+      expect(
+          logger.stdoutBuffer.toString(), contains('No analysis issues found'));
+      await assertPreviewServerResponsive(url);
+      var uri = Uri.parse(url);
+      var authToken = uri.queryParameters['authToken'];
+      var treeResponse = await http.get(
+          uri.replace(
+              path: '/_preview/navigationTree.json',
+              queryParameters: {'authToken': authToken}),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      var navRoots = jsonDecode(treeResponse.body);
+      for (final root in navRoots) {
+        var navTree = NavigationTreeNode.fromJson(root);
+        for (final file in navTree.subtree) {
+          if (file.href != null) {
+            print(file.href);
+            final contentsResponse = await http.get(
+                uri
+                    .resolve(file.href)
+                    .replace(queryParameters: {'authToken': authToken}),
+                headers: {'Content-Type': 'application/json; charset=UTF-8'});
+            assertHttpSuccess(contentsResponse);
+          }
+        }
+      }
     });
   }
 
@@ -621,7 +697,6 @@ int? f() => null
           headers: {'Content-Type': 'application/json; charset=UTF-8'});
       var regionJson = EditDetails.fromJson(jsonDecode(regionResponse.body));
       final traceEntry = regionJson.traces[0].entries[0];
-      final displayPath = traceEntry.link.path;
       final uriPath = traceEntry.link.href;
       // uriPath should be a working URI
       final contentsResponse = await http.get(
@@ -633,36 +708,49 @@ int? f() => null
     });
   }
 
-  test_lifecycle_preview_navigation_tree() async {
-    var projectContents = simpleProject(sourceText: 'int x;');
+  test_lifecycle_skip_pub_outdated_disable() async {
+    var projectContents = simpleProject(sourceText: '''
+int f() => null;
+''');
     var projectDir = await createProjectDir(projectContents);
+    processManager._mockResult = ProcessResult(
+        123 /* pid */,
+        0 /* exitCode */,
+        '''
+{ "packages":
+  [
+    { "package": "abc", "current": { "version": "1.0.0", "nullSafety": false } }
+  ]
+}
+''' /* stdout */,
+        '' /* stderr */);
     var cli = _createCli();
-    await runWithPreviewServer(cli, [projectDir], (url) async {
-      expect(
-          logger.stdoutBuffer.toString(), contains('No analysis issues found'));
+    await cli.run(_parseArgs([projectDir]));
+    var output = logger.stderrBuffer.toString();
+    expect(output, contains('Warning: dependencies are outdated.'));
+    expect(cli.exitCode, 1);
+  }
+
+  test_lifecycle_skip_pub_outdated_enable() async {
+    var projectContents = simpleProject(sourceText: '''
+int f() => null;
+''');
+    var projectDir = await createProjectDir(projectContents);
+    processManager._mockResult = ProcessResult(
+        123 /* pid */,
+        0 /* exitCode */,
+        '''
+{ "packages":
+  [
+    { "package": "abc", "current": { "version": "1.0.0", "nullSafety": false } }
+  ]
+}
+''' /* stdout */,
+        '' /* stderr */);
+    var cli = _createCli();
+    await runWithPreviewServer(cli, ['--skip-pub-outdated', projectDir],
+        (url) async {
       await assertPreviewServerResponsive(url);
-      var uri = Uri.parse(url);
-      var authToken = uri.queryParameters['authToken'];
-      var treeResponse = await http.get(
-          uri.replace(
-              path: '/_preview/navigationTree.json',
-              queryParameters: {'authToken': authToken}),
-          headers: {'Content-Type': 'application/json; charset=UTF-8'});
-      var navRoots = jsonDecode(treeResponse.body);
-      for (final root in navRoots) {
-        var navTree = NavigationTreeNode.fromJson(root);
-        for (final file in navTree.subtree) {
-          if (file.href != null) {
-            print(file.href);
-            final contentsResponse = await http.get(
-                uri
-                    .resolve(file.href)
-                    .replace(queryParameters: {'authToken': authToken}),
-                headers: {'Content-Type': 'application/json; charset=UTF-8'});
-            assertHttpSuccess(contentsResponse);
-          }
-        }
-      }
     });
   }
 
@@ -835,6 +923,134 @@ int f() => null;
             'Could not find an option named "this-option-does-not-exist"'));
   }
 
+  test_pub_outdated_has_malformed_json() {
+    assertPubOutdatedSuccess(pubOutdatedStdout: '{ "packages": }');
+    expect(logger.stderrBuffer.toString(), startsWith('Warning:'));
+  }
+
+  test_pub_outdated_has_no_packages() {
+    assertPubOutdatedSuccess(pubOutdatedStdout: '{}');
+    expect(logger.stderrBuffer.toString(), startsWith('Warning:'));
+  }
+
+  test_pub_outdated_has_no_pre_null_safety_packages() {
+    assertPubOutdatedSuccess(pubOutdatedStdout: '''
+{
+  "packages": [
+    {
+      "package": "abc",
+      "current": { "version": "1.0.0", "nullSafety": true }
+    },
+    {
+      "package": "def",
+      "current": { "version": "2.0.0", "nullSafety": true }
+    }
+  ]
+}
+''');
+  }
+
+  test_pub_outdated_has_one_pre_null_safety_package() {
+    assertPubOutdatedFailure(pubOutdatedStdout: '''
+{
+  "packages": [
+    {
+      "package": "abc",
+      "current": { "version": "1.0.0", "nullSafety": false }
+    },
+    {
+      "package": "def",
+      "current": { "version": "2.0.0", "nullSafety": true }
+    }
+  ]
+}
+''');
+    var stderrText = logger.stderrBuffer.toString();
+    expect(stderrText, contains('Warning:'));
+    expect(stderrText, contains('abc'));
+    expect(stderrText, contains('1.0.0'));
+  }
+
+  test_pub_outdated_has_package_with_missing_current() {
+    assertPubOutdatedSuccess(pubOutdatedStdout: '''
+{
+  "packages": [
+    {
+      "package": "abc"
+    }
+  ]
+}
+''');
+    expect(logger.stderrBuffer.toString(), startsWith('Warning:'));
+  }
+
+  test_pub_outdated_has_package_with_missing_name() {
+    assertPubOutdatedSuccess(pubOutdatedStdout: '''
+{
+  "packages": [
+    {
+      "current": {
+        "version": "1.0.0",
+        "nullSafety": false
+      }
+    }
+  ]
+}
+''');
+    expect(logger.stderrBuffer.toString(), startsWith('Warning:'));
+  }
+
+  test_pub_outdated_has_package_with_missing_nullSafety() {
+    assertPubOutdatedSuccess(pubOutdatedStdout: '''
+{
+  "packages": [
+    {
+      "package": "abc",
+      "current": {
+        "version": "1.0.0"
+      }
+    }
+  ]
+}
+''');
+    expect(logger.stderrBuffer.toString(), startsWith('Warning:'));
+  }
+
+  test_pub_outdated_has_package_with_missing_version() {
+    assertPubOutdatedSuccess(pubOutdatedStdout: '''
+{
+  "packages": [
+    {
+      "package": "abc",
+      "current": {
+        "nullSafety": false
+      }
+    }
+  ]
+}
+''');
+    expect(logger.stderrBuffer.toString(), startsWith('Warning:'));
+  }
+
+  test_pub_outdated_has_package_with_null_current() {
+    assertPubOutdatedSuccess(pubOutdatedStdout: '''
+{
+  "packages": [
+    {
+      "package": "abc",
+      "current": null
+    }
+  ]
+}
+''');
+    expect(logger.stderrBuffer.toString(), isEmpty);
+  }
+
+  test_pub_outdated_has_stderr() {
+    assertPubOutdatedSuccess(pubOutdatedStderr: 'anything');
+    expect(logger.stderrBuffer.toString(), startsWith('Warning:'));
+  }
+
   test_uses_physical_resource_provider_by_default() {
     var cli = MigrationCli(binaryName: 'nnbd_migration');
     expect(cli.resourceProvider, same(PhysicalResourceProvider.INSTANCE));
@@ -874,12 +1090,16 @@ class _MigrationCliTestPosix extends _MigrationCliTestBase
   @override
   final resourceProvider;
 
+  @override
+  final processManager;
+
   _MigrationCliTestPosix()
       : resourceProvider = MemoryResourceProvider(
             context: path.style == path.Style.posix
                 ? null
                 : path.Context(
-                    style: path.Style.posix, current: '/working_dir'));
+                    style: path.Style.posix, current: '/working_dir')),
+        processManager = _MockProcessManager();
 }
 
 @reflectiveTest
@@ -888,12 +1108,31 @@ class _MigrationCliTestWindows extends _MigrationCliTestBase
   @override
   final resourceProvider;
 
+  @override
+  final processManager;
+
   _MigrationCliTestWindows()
       : resourceProvider = MemoryResourceProvider(
             context: path.style == path.Style.windows
                 ? null
                 : path.Context(
-                    style: path.Style.windows, current: 'C:\\working_dir'));
+                    style: path.Style.windows, current: 'C:\\working_dir')),
+        processManager = _MockProcessManager();
+}
+
+class _MockProcessManager implements ProcessManager {
+  ProcessResult _mockResult;
+
+  dynamic noSuchMethod(Invocation invocation) {}
+
+  ProcessResult runSync(String executable, List<String> arguments) =>
+      _mockResult ??
+      ProcessResult(
+        123 /* pid */,
+        0 /* exitCode */,
+        '' /* stdout */,
+        '' /* stderr */,
+      );
 }
 
 /// TODO(paulberry): move into cli_util
