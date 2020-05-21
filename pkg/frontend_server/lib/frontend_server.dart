@@ -60,7 +60,7 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
       defaultsTo: false)
   ..addFlag('tree-shake-write-only-fields',
       help: 'Enable tree shaking of fields which are only written in AOT mode.',
-      defaultsTo: false)
+      defaultsTo: true)
   ..addFlag('protobuf-tree-shaker',
       help: 'Enable protobuf tree shaker transformation in AOT mode.',
       defaultsTo: false)
