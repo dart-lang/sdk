@@ -5,6 +5,9 @@
 // Opt out of Null Safety:
 // @dart = 2.6
 
+// Can't run in strong mode since it contains a legacy library.
+// Requirements=nnbd-weak
+
 import 'dart:async';
 
 import 'package:expect/expect.dart';
