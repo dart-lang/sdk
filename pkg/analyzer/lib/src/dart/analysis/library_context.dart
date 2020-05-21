@@ -166,15 +166,18 @@ class LibraryContext {
                   var existingSource = existingElement?.source;
                   var libraryRefs = elementFactory.rootReference.children;
                   var libraryUriList = libraryRefs.map((e) => e.name).toList();
-                  throw StateError(
-                    '[The library is already loaded]'
-                    '[oldUri: ${existingSource.uri}]'
-                    '[oldPath: ${existingSource.fullName}]'
-                    '[newUri: ${libraryFile.uriStr}]'
-                    '[newPath: ${libraryFile.path}]'
-                    '[cycle: $cycle]'
-                    '[loadedBundles: ${loadedBundles.toList()}]'
-                    '[elementFactory.libraries: $libraryUriList]',
+                  var statusText = '[The library is already loaded]'
+                      '[oldUri: ${existingSource.uri}]'
+                      '[oldPath: ${existingSource.fullName}]'
+                      '[newUri: ${libraryFile.uriStr}]'
+                      '[newPath: ${libraryFile.path}]'
+                      '[cycle: $cycle]'
+                      '[loadedBundles: ${loadedBundles.toList()}]'
+                      '[elementFactory.libraries: $libraryUriList]';
+                  throw LibraryCycleLinkException(
+                    'Cycle loading state error',
+                    StackTrace.current,
+                    {'status': statusText},
                   );
                 }
               }
