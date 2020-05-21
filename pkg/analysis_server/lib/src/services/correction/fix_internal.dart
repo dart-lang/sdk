@@ -385,6 +385,7 @@ class FixProcessor extends BaseProcessor {
       ConvertToIfNull.newInstance,
     ],
     LintNames.prefer_inlined_adds: [
+      ConvertAddAllToSpread.newInstance,
       InlineInvocation.newInstance,
     ],
     LintNames.prefer_int_literals: [
