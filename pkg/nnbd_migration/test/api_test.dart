@@ -3371,6 +3371,22 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_is_promotion_implies_non_nullable_generic() async {
+    var content = '''
+int f<T>(T o) => o is List ? o.length : 0;
+main() {
+  f(null);
+}
+''';
+    var expected = '''
+int f<T>(T o) => o is List ? o.length : 0;
+main() {
+  f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_isExpression_typeName_typeArguments() async {
     var content = '''
 bool f(a) => a is List<int>;

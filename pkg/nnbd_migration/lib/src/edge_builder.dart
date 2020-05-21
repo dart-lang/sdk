@@ -226,7 +226,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (targetType != null) {
       var enclosingElement = baseElement.enclosingElement;
       if (enclosingElement is ClassElement) {
-        if (enclosingElement.typeParameters.isNotEmpty) {
+        if (targetType.type.resolveToBound(typeProvider.dynamicType)
+                is InterfaceType &&
+            enclosingElement.typeParameters.isNotEmpty) {
           substitution = _decoratedClassHierarchy
               .asInstanceOf(targetType, enclosingElement)
               .asSubstitution;
