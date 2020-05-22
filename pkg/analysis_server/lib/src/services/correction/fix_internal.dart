@@ -49,6 +49,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_package_
 import 'package:analysis_server/src/services/correction/dart/convert_to_relative_import.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_where_type.dart';
+import 'package:analysis_server/src/services/correction/dart/create_class.dart';
 import 'package:analysis_server/src/services/correction/dart/create_method.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_invocation.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_typedef.dart';
@@ -492,7 +493,9 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE: [
       ChangeToNearestPreciseValue.newInstance,
     ],
-//    CompileTimeErrorCode.INVALID_ANNOTATION : [],
+    CompileTimeErrorCode.INVALID_ANNOTATION: [
+      CreateClass.newInstance,
+    ],
     CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER: [
       AddRequiredKeyword.newInstance,
     ],
@@ -511,8 +514,12 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE: [
       RemoveQuestionMark.newInstance,
     ],
-//    CompileTimeErrorCode.UNDEFINED_ANNOTATION : [],
-//    CompileTimeErrorCode.UNDEFINED_CLASS : [],
+    CompileTimeErrorCode.UNDEFINED_ANNOTATION: [
+      CreateClass.newInstance,
+    ],
+    CompileTimeErrorCode.UNDEFINED_CLASS: [
+      CreateClass.newInstance,
+    ],
 //    CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT : [],
 //    CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER : [],
 //    CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD : [],
@@ -598,10 +605,18 @@ class FixProcessor extends BaseProcessor {
     ],
 //    StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION : [],
 //    StaticTypeWarningCode.NON_BOOL_CONDITION : [],
-//    StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT : [],
-//    StaticTypeWarningCode.UNDEFINED_FUNCTION : [],
-//    StaticTypeWarningCode.UNDEFINED_GETTER : [],
-//    StaticTypeWarningCode.UNDEFINED_METHOD : [],
+    StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT: [
+      CreateClass.newInstance,
+    ],
+    StaticTypeWarningCode.UNDEFINED_FUNCTION: [
+      CreateClass.newInstance,
+    ],
+    StaticTypeWarningCode.UNDEFINED_GETTER: [
+      CreateClass.newInstance,
+    ],
+    StaticTypeWarningCode.UNDEFINED_METHOD: [
+      CreateClass.newInstance,
+    ],
 //    StaticTypeWarningCode.UNDEFINED_SETTER : [],
 //    StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR : [],
 //    StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER : [],
@@ -611,7 +626,9 @@ class FixProcessor extends BaseProcessor {
     StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [
       WrapInText.newInstance,
     ],
-//    StaticWarningCode.CAST_TO_NON_TYPE : [],
+    StaticWarningCode.CAST_TO_NON_TYPE: [
+      CreateClass.newInstance,
+    ],
 //    StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER : [],
     StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION: [
       RemoveDeadIfNull.newInstance,
@@ -636,12 +653,18 @@ class FixProcessor extends BaseProcessor {
 //    StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE : [],
 //    StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO : [],
 //    StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE : [],
-//    StaticWarningCode.NOT_A_TYPE : [],
-//    StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME : [],
+    StaticWarningCode.NOT_A_TYPE: [
+      CreateClass.newInstance,
+    ],
+    StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME: [
+      CreateClass.newInstance,
+    ],
     StaticWarningCode.UNDEFINED_CLASS_BOOLEAN: [
       ReplaceBooleanWithBool.newInstance
     ],
-//    StaticWarningCode.UNDEFINED_IDENTIFIER : [],
+    StaticWarningCode.UNDEFINED_IDENTIFIER: [
+      CreateClass.newInstance,
+    ],
     StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT: [
       AddSync.newInstance,
     ],
@@ -712,7 +735,6 @@ class FixProcessor extends BaseProcessor {
             await _addFix_importLibrary_withTopLevelVariable();
           } else {
             await _addFix_importLibrary_withType();
-            await _addFix_createClass();
             await _addFix_undefinedClass_useSimilar();
           }
         }
@@ -893,7 +915,6 @@ class FixProcessor extends BaseProcessor {
         errorCode == StaticWarningCode.NOT_A_TYPE ||
         errorCode == StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME) {
       await _addFix_importLibrary_withType();
-      await _addFix_createClass();
       await _addFix_createMixin();
       await _addFix_undefinedClass_useSimilar();
     }
@@ -905,7 +926,6 @@ class FixProcessor extends BaseProcessor {
     }
     if (errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER) {
       await _addFix_undefinedClassAccessor_useSimilar();
-      await _addFix_createClass();
       await _addFix_createField();
       await _addFix_createGetter();
       await _addFix_createFunction_forFunctionType();
@@ -936,11 +956,9 @@ class FixProcessor extends BaseProcessor {
     }
     if (errorCode == StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT) {
       await _addFix_importLibrary_withType();
-      await _addFix_createClass();
       await _addFix_createMixin();
     }
     if (errorCode == StaticTypeWarningCode.UNDEFINED_FUNCTION) {
-      await _addFix_createClass();
       await _addFix_importLibrary_withExtension();
       await _addFix_importLibrary_withFunction();
       await _addFix_importLibrary_withType();
@@ -952,9 +970,6 @@ class FixProcessor extends BaseProcessor {
       await _addFix_createField();
       await _addFix_createGetter();
       await _addFix_createFunction_forFunctionType();
-      // TODO(brianwilkerson) The following were added because fasta produces
-      // UNDEFINED_GETTER in places where analyzer produced UNDEFINED_IDENTIFIER
-      await _addFix_createClass();
       await _addFix_createMixin();
       await _addFix_createLocalVariable();
       await _addFix_importLibrary_withTopLevelVariable();
@@ -965,7 +980,6 @@ class FixProcessor extends BaseProcessor {
       await _addFix_createGetter();
     }
     if (errorCode == StaticTypeWarningCode.UNDEFINED_METHOD) {
-      await _addFix_createClass();
       await _addFix_importLibrary_withFunction();
       await _addFix_importLibrary_withType();
       await _addFix_undefinedMethod_useSimilar();
@@ -1154,85 +1168,6 @@ class FixProcessor extends BaseProcessor {
       var parameterList = await context.getParameterList();
       await addParameter(parameterList?.leftParenthesis?.end, '{', '}');
     }
-  }
-
-  Future<void> _addFix_createClass() async {
-    Element prefixElement;
-    String name;
-    SimpleIdentifier nameNode;
-    if (node is SimpleIdentifier) {
-      var parent = node.parent;
-      if (parent is PrefixedIdentifier) {
-        PrefixedIdentifier prefixedIdentifier = parent;
-        prefixElement = prefixedIdentifier.prefix.staticElement;
-        if (prefixElement == null) {
-          return;
-        }
-        parent = prefixedIdentifier.parent;
-        nameNode = prefixedIdentifier.identifier;
-        name = prefixedIdentifier.identifier.name;
-      } else {
-        nameNode = node;
-        name = nameNode.name;
-      }
-      if (!_mayBeTypeIdentifier(nameNode)) {
-        return;
-      }
-    } else {
-      return;
-    }
-    // prepare environment
-    Element targetUnit;
-    var prefix = '';
-    var suffix = '';
-    var offset = -1;
-    String filePath;
-    if (prefixElement == null) {
-      targetUnit = unit.declaredElement;
-      var enclosingMember = node.thisOrAncestorMatching((node) =>
-          node is CompilationUnitMember && node.parent is CompilationUnit);
-      if (enclosingMember == null) {
-        return;
-      }
-      offset = enclosingMember.end;
-      filePath = file;
-      prefix = '$eol$eol';
-    } else {
-      for (var import in unitLibraryElement.imports) {
-        if (prefixElement is PrefixElement && import.prefix == prefixElement) {
-          var library = import.importedLibrary;
-          if (library != null) {
-            targetUnit = library.definingCompilationUnit;
-            var targetSource = targetUnit.source;
-            try {
-              offset = targetSource.contents.data.length;
-              filePath = targetSource.fullName;
-              prefix = '$eol';
-              suffix = '$eol';
-            } on FileSystemException {
-              // If we can't read the file to get the offset, then we can't
-              // create a fix.
-            }
-            break;
-          }
-        }
-      }
-    }
-    if (offset < 0) {
-      return;
-    }
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(filePath, (DartFileEditBuilder builder) {
-      builder.addInsertion(offset, (DartEditBuilder builder) {
-        builder.write(prefix);
-        builder.writeClassDeclaration(name, nameGroupName: 'NAME');
-        builder.write(suffix);
-      });
-      if (prefixElement == null) {
-        builder.addLinkedPosition(range.node(node), 'NAME');
-      }
-    });
-    _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_CLASS, args: [name]);
   }
 
   /// Here we handle cases when there are no constructors in a class, and the

@@ -9,6 +9,7 @@ import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
@@ -41,6 +42,30 @@ abstract class CorrectionProducer extends _AbstractCorrectionProducer {
   FixKind get fixKind => null;
 
   Future<void> compute(DartChangeBuilder builder);
+
+  /// Return `true` if the [node] might be a type name.
+  bool mightBeTypeIdentifier(AstNode node) {
+    if (node is SimpleIdentifier) {
+      var parent = node.parent;
+      if (parent is TypeName) {
+        return true;
+      }
+      return _isNameOfType(node.name);
+    }
+    return false;
+  }
+
+  /// Return `true` if the [name] is capitalized.
+  bool _isNameOfType(String name) {
+    if (name.isEmpty) {
+      return false;
+    }
+    var firstLetter = name.substring(0, 1);
+    if (firstLetter.toUpperCase() != firstLetter) {
+      return false;
+    }
+    return true;
+  }
 }
 
 class CorrectionProducerContext {
@@ -144,6 +169,10 @@ abstract class _AbstractCorrectionProducer {
   String get file => _context.file;
 
   Flutter get flutter => _context.flutter;
+
+  /// Return the library element for the library in which a correction is being
+  /// produced.
+  LibraryElement get libraryElement => resolvedResult.libraryElement;
 
   AstNode get node => _context.node;
 
