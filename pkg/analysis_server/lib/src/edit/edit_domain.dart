@@ -202,8 +202,14 @@ class EditDomainHandler extends AbstractRequestHandler {
         length,
       );
       try {
-        var processor = AssistProcessor(context);
-        var assists = await processor.compute();
+        List<Assist> assists;
+        try {
+          var processor = AssistProcessor(context);
+          assists = await processor.compute();
+        } on InconsistentAnalysisException {
+          assists = [];
+        }
+
         assists.sort(Assist.SORT_BY_RELEVANCE);
         for (var assist in assists) {
           changes.add(assist.change);
@@ -605,6 +611,8 @@ class EditDomainHandler extends AbstractRequestHandler {
           List<Fix> fixes;
           try {
             fixes = await DartFixContributor().computeFixes(context);
+          } on InconsistentAnalysisException {
+            fixes = [];
           } catch (exception, stackTrace) {
             var parametersFile = '''
 offset: $offset
