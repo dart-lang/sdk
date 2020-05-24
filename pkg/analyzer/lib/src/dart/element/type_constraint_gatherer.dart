@@ -21,6 +21,11 @@ class TypeConstraint {
 
   TypeConstraint._(this.parameter, this.lower, this.upper);
 
+  bool get isEmpty {
+    return identical(lower, UnknownInferredType.instance) &&
+        identical(upper, UnknownInferredType.instance);
+  }
+
   @override
   String toString() {
     var lowerStr = lower.getDisplayString(withNullability: true);
@@ -162,8 +167,8 @@ class TypeConstraintGatherer {
       // Or if `P` is a subtype match for `Future<Q0>` under non-empty
       // constraint set `C`.
       var futureQ0 = _futureNone(Q0);
-      if (trySubtypeMatch(P, futureQ0, leftSchema) &&
-          _constraints.length != rewind) {
+      var P_matches_FutureQ0 = trySubtypeMatch(P, futureQ0, leftSchema);
+      if (P_matches_FutureQ0 && _constraints.length != rewind) {
         return true;
       }
       _constraints.length = rewind;
@@ -173,6 +178,12 @@ class TypeConstraintGatherer {
         return true;
       }
       _constraints.length = rewind;
+
+      // Or if `P` is a subtype match for `Future<Q0>` under empty
+      // constraint set `C`.
+      if (P_matches_FutureQ0) {
+        return true;
+      }
     }
 
     // If `Q` is `Q0?` the match holds under constraint set `C`:
@@ -192,7 +203,8 @@ class TypeConstraintGatherer {
 
       // Or if `P` is a subtype match for `Q0` under non-empty
       // constraint set `C`.
-      if (trySubtypeMatch(P, Q0, leftSchema) && _constraints.length != rewind) {
+      var P_matches_Q0 = trySubtypeMatch(P, Q0, leftSchema);
+      if (P_matches_Q0 && _constraints.length != rewind) {
         return true;
       }
       _constraints.length = rewind;
@@ -202,6 +214,12 @@ class TypeConstraintGatherer {
         return true;
       }
       _constraints.length = rewind;
+
+      // Or if `P` is a subtype match for `Q0` under empty
+      // constraint set `C`.
+      if (P_matches_Q0) {
+        return true;
+      }
     }
 
     // If `P` is `FutureOr<P0>` the match holds under constraint set `C1 + C2`:

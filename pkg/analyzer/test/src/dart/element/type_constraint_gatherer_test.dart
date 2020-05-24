@@ -660,15 +660,100 @@ class TypeConstraintGathererTest extends AbstractTypeSystemNullSafetyTest {
       true,
       ['int <: T <: _'],
     );
+    _checkMatch(
+      [T],
+      listNone(intNone),
+      iterableStar(T_none),
+      true,
+      ['int <: T <: _'],
+    );
 
     _checkNotMatch([T], listNone(intNone), iterableNone(stringNone), true);
+  }
+
+  void test_interfaceType_topMerge() {
+    var testClassIndex = 0;
+
+    void check1(
+      DartType extendsTypeArgument,
+      DartType implementsTypeArgument,
+      String expectedConstraint,
+    ) {
+      var library = library_(
+        uriStr: 'package:test/test.dart',
+        analysisSession: analysisContext.analysisSession,
+        typeSystem: typeSystem,
+      );
+
+      // class A<T> {}
+      var A = class_(name: 'A', typeParameters: [
+        typeParameter('T'),
+      ]);
+      A.enclosingElement = library.definingCompilationUnit;
+
+      // class B<T> extends A<T> {}
+      var B_T = typeParameter('T');
+      var B_T_none = typeParameterTypeNone(B_T);
+      var B = class_(
+        name: 'B',
+        typeParameters: [B_T],
+        superType: interfaceTypeNone(A, typeArguments: [B_T_none]),
+      );
+      B.enclosingElement = library.definingCompilationUnit;
+
+      // class Cx extends A<> implements B<> {}
+      var C = class_(
+        name: 'C${testClassIndex++}',
+        superType: interfaceTypeNone(
+          A,
+          typeArguments: [extendsTypeArgument],
+        ),
+        interfaces: [
+          interfaceTypeNone(
+            B,
+            typeArguments: [implementsTypeArgument],
+          )
+        ],
+      );
+      C.enclosingElement = library.definingCompilationUnit;
+
+      _checkMatch(
+        [T],
+        interfaceTypeNone(C),
+        interfaceTypeNone(A, typeArguments: [T_none]),
+        true,
+        [expectedConstraint],
+      );
+    }
+
+    void check(
+      DartType typeArgument1,
+      DartType typeArgument2,
+      String expectedConstraint,
+    ) {
+      check1(typeArgument1, typeArgument2, expectedConstraint);
+      check1(typeArgument2, typeArgument1, expectedConstraint);
+    }
+
+    check(objectQuestion, dynamicNone, 'Object? <: T <: _');
+    check(objectStar, dynamicNone, 'Object? <: T <: _');
+    check(voidNone, objectQuestion, 'Object? <: T <: _');
+    check(voidNone, objectStar, 'Object? <: T <: _');
   }
 
   /// If `P` is `FutureOr<P0>` the match holds under constraint set `C1 + C2`:
   ///   If `Future<P0>` is a subtype match for `Q` under constraint set `C1`.
   ///   And if `P0` is a subtype match for `Q` under constraint set `C2`.
   test_left_futureOr() {
-    // TODO(scheglov) any better test case?
+    _checkMatch(
+      [T],
+      futureOrNone(T_none),
+      futureOrNone(intNone),
+      false,
+      ['_ <: T <: int'],
+    );
+
+    // This is 'T <: int' and 'T <: Future<int>'.
     _checkMatch(
       [T],
       futureOrNone(T_none),
@@ -688,8 +773,43 @@ class TypeConstraintGathererTest extends AbstractTypeSystemNullSafetyTest {
   /// If `P` is `Null`, then the match holds under no constraints:
   ///  Only if `Q` is nullable.
   test_left_null() {
-    // TODO(scheglov) any positive test case?
     _checkNotMatch([T], nullNone, intNone, true);
+
+    _checkMatch(
+      [T],
+      nullNone,
+      T_none,
+      true,
+      ['Null <: T <: _'],
+    );
+
+    _checkMatch(
+      [T],
+      nullNone,
+      futureOrNone(T_none),
+      true,
+      ['Null <: T <: _'],
+    );
+
+    void matchNoConstraints(DartType Q) {
+      _checkMatch(
+        [T],
+        nullNone,
+        Q,
+        true,
+        ['_ <: T <: _'],
+      );
+    }
+
+    matchNoConstraints(listQuestion(T_none));
+    matchNoConstraints(stringQuestion);
+    matchNoConstraints(voidNone);
+    matchNoConstraints(dynamicNone);
+    matchNoConstraints(objectQuestion);
+    matchNoConstraints(nullNone);
+    matchNoConstraints(
+      functionTypeQuestion(returnType: voidNone),
+    );
   }
 
   /// If `P` is `P0?` the match holds under constraint set `C1 + C2`:
@@ -825,6 +945,13 @@ class TypeConstraintGathererTest extends AbstractTypeSystemNullSafetyTest {
       true,
       ['int <: T <: _'],
     );
+    _checkMatch(
+      [T],
+      futureNone(intNone),
+      futureOrNone(objectNone),
+      true,
+      ['_ <: T <: _'],
+    );
     _checkNotMatch(
       [T],
       futureNone(stringNone),
@@ -833,13 +960,37 @@ class TypeConstraintGathererTest extends AbstractTypeSystemNullSafetyTest {
     );
 
     // Or if `P` is a subtype match for `Q0` under constraint set `C`.
-    // TODO(scheglov) any better test case?
+    _checkMatch(
+      [T],
+      listNone(T_none),
+      futureOrNone(listNone(intNone)),
+      false,
+      ['_ <: T <: int'],
+    );
     _checkMatch(
       [T],
       neverNone,
       futureOrNone(T_none),
       true,
       ['Never <: T <: _'],
+    );
+
+    // Or if `P` is a subtype match for `Future<Q0>` under empty
+    // constraint set `C`.
+    _checkMatch(
+      [T],
+      futureNone(intNone),
+      futureOrNone(numNone),
+      false,
+      ['_ <: T <: _'],
+    );
+
+    // Otherwise.
+    _checkNotMatch(
+      [T],
+      listNone(T_none),
+      futureOrNone(intNone),
+      false,
     );
   }
 
@@ -876,6 +1027,10 @@ class TypeConstraintGathererTest extends AbstractTypeSystemNullSafetyTest {
 
     // Or if `P` is a subtype match for `Null` under constraint set `C`.
     _checkMatch([T], nullNone, intQuestion, true, ['_ <: T <: _']);
+
+    // Or if `P` is a subtype match for `Q0` under empty
+    // constraint set `C`.
+    _checkMatch([T], intNone, intQuestion, true, ['_ <: T <: _']);
 
     _checkNotMatch([T], intNone, stringQuestion, true);
     _checkNotMatch([T], intQuestion, stringQuestion, true);
