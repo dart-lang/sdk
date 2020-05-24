@@ -1276,7 +1276,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// identifier that is a child of the [node].
   ElementKind _leftMostKind(AstNode node) {
     if (node is InstanceCreationExpression) {
-      return convertElementToElementKind(node.staticElement);
+      return featureComputer.computeElementKind(node.staticElement);
     }
     var element = _leftMostElement(node);
     if (element == null) {
@@ -1288,7 +1288,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
         element = parent.element;
       }
     }
-    return convertElementToElementKind(element);
+    return featureComputer.computeElementKind(element);
   }
 
   /// Return the left-most token that is a child of the [node].

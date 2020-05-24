@@ -106,18 +106,7 @@ ElementKind convertElementToElementKind(engine.Element element) {
       return ElementKind.MIXIN;
     }
   }
-  if (element is engine.FieldElement &&
-      element.isEnumConstant &&
-      // MyEnum.values and MyEnum.one.index return isEnumConstant = true
-      // so these additional checks are necessary.
-      // TODO(danrubel) MyEnum.values is constant, but is a list
-      // so should it return isEnumConstant = true?
-      // MyEnum.one.index is final but *not* constant
-      // so should it return isEnumConstant = true?
-      // Or should we return ElementKind.ENUM_CONSTANT here
-      // in either or both of these cases?
-      element.type != null &&
-      element.type.element == element.enclosingElement) {
+  if (element is engine.FieldElement && element.isEnumConstant) {
     return ElementKind.ENUM_CONSTANT;
   }
   return convertElementKind(element.kind);
