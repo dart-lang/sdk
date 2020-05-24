@@ -85,6 +85,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_type_annotat
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_new.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_local_variable.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unused_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/rename_to_camel_case.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_boolean_with_bool.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_colon_with_equals.dart';
@@ -304,6 +305,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.avoid_types_on_closure_parameters: [
       ReplaceWithIdentifier.newInstance,
       RemoveTypeAnnotation.newInstance,
+    ],
+    LintNames.avoid_unused_constructor_parameters: [
+      RemoveUnusedParameter.newInstance,
     ],
     LintNames.await_only_futures: [
       RemoveAwait.newInstance,
