@@ -46,15 +46,15 @@ main() {
           53, 5),
     ]);
 
-    // TODO(brianwilkerson) Test this more carefully after we can re-write the
-    // AST to reflect the expected structure.
-//    var creation = findNode.instanceCreation('Foo.bar<int>');
-//    assertInstanceCreation(
-//      creation,
-//      findElement.class_('Foo'),
-//      'Foo',
-//      constructorName: 'bar',
-//    );
+    var creation = findNode.instanceCreation('Foo.bar<int>');
+    assertInstanceCreation(
+      creation,
+      findElement.class_('Foo'),
+      'Foo<dynamic>',
+      constructorName: 'bar',
+      expectedConstructorMember: true,
+      expectedSubstitution: {'X': 'dynamic'},
+    );
   }
 
   test_error_wrongNumberOfTypeArgumentsConstructor_explicitNew_prefix() async {

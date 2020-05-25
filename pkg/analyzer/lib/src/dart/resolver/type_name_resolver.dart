@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
@@ -160,74 +159,8 @@ class TypeNameResolver {
     }
 
     if (element == null) {
-      if (errorHelper.checkNullOrNonTypeElement(node, element)) {
-        _setElement(typeName, element);
-        node.type = dynamicType;
-        return;
-      }
-
-      if (typeName is PrefixedIdentifier &&
-          node.parent is ConstructorName &&
-          argumentList != null) {
-        SimpleIdentifier prefix = (typeName as PrefixedIdentifier).prefix;
-        SimpleIdentifier identifier =
-            (typeName as PrefixedIdentifier).identifier;
-        Element prefixElement = nameScope.lookup(prefix, definingLibrary);
-        ClassElement classElement;
-        ConstructorElement constructorElement;
-        if (prefixElement is ClassElement) {
-          classElement = prefixElement;
-          constructorElement =
-              prefixElement.getNamedConstructor(identifier.name);
-        }
-        if (constructorElement != null) {
-          errorReporter.reportErrorForNode(
-            StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-            argumentList,
-            [prefix.name, identifier.name],
-          );
-          prefix.staticElement = prefixElement;
-          identifier.staticElement = constructorElement;
-          AstNode grandParent = node.parent.parent;
-          if (grandParent is InstanceCreationExpressionImpl) {
-            var instanceType = classElement.instantiate(
-              typeArguments: List.filled(
-                classElement.typeParameters.length,
-                dynamicType,
-              ),
-              nullabilitySuffix: _noneOrStarSuffix,
-            );
-            grandParent.staticElement = constructorElement;
-            grandParent.staticType = instanceType;
-            //
-            // Re-write the AST to reflect the resolution.
-            //
-            TypeName newTypeName = astFactory.typeName(prefix, null);
-            newTypeName.type = instanceType;
-            ConstructorName newConstructorName = astFactory.constructorName(
-                newTypeName,
-                (typeName as PrefixedIdentifier).period,
-                identifier);
-            newConstructorName.staticElement = constructorElement;
-            NodeReplacer.replace(node.parent, newConstructorName);
-            grandParent.typeArguments = node.typeArguments;
-            // Re-assign local variables that have effectively changed.
-            node = newTypeName;
-            typeName = prefix;
-            element = prefixElement;
-            argumentList = null;
-            rewriteResult = newConstructorName;
-          }
-        } else {
-          errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.UNDEFINED_CLASS,
-            typeName,
-            [typeName.name],
-          );
-        }
-      } else {
-        errorHelper.reportUnresolvedElement(node);
-      }
+      _reportNullElement(node, errorHelper);
+      return;
     }
 
     _setElement(typeName, element);
@@ -408,6 +341,79 @@ class TypeNameResolver {
         typeName,
       );
     }
+  }
+
+  /// We identified that [node] does resolve to any element, report this.
+  void _reportNullElement(TypeName node, _ErrorHelper errorHelper) {
+    if (errorHelper.checkNullOrNonTypeElement(node, null)) {
+      node.type = dynamicType;
+      return;
+    }
+
+    // `new Class.constructor<A, B>()`, i.e. when type arguments are specified
+    // after the constructor name, is parsed as `new prefix.Class<A, B>()`.
+    // But here, during resolution, we can see that `prefix` is actually the
+    // name of a class, and type arguments are mistakenly specified after the
+    // constructor name.
+    var typeIdentifier = node.name;
+    var argumentList = node.typeArguments;
+    var constructorName = node.parent;
+    var instanceCreation = constructorName.parent;
+    if (typeIdentifier is PrefixedIdentifier &&
+        argumentList != null &&
+        constructorName is ConstructorName &&
+        instanceCreation is InstanceCreationExpressionImpl) {
+      var classIdentifier = typeIdentifier.prefix;
+      var constructorIdentifier = typeIdentifier.identifier;
+
+      ClassElement classElement;
+      ConstructorElement constructorElement;
+      var prefixElement = nameScope.lookup(classIdentifier, definingLibrary);
+      if (prefixElement is ClassElement) {
+        classElement = prefixElement;
+        constructorElement = classElement.getNamedConstructor(
+          constructorIdentifier.name,
+        );
+      }
+
+      if (constructorElement != null) {
+        errorReporter.reportErrorForNode(
+          StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          argumentList,
+          [classIdentifier.name, constructorIdentifier.name],
+        );
+
+        classIdentifier.staticElement = classElement;
+        constructorIdentifier.staticElement = constructorElement;
+
+        var instanceType = classElement.instantiate(
+          typeArguments: List.filled(
+            classElement.typeParameters.length,
+            dynamicType,
+          ),
+          nullabilitySuffix: _noneOrStarSuffix,
+        );
+        // TODO(scheglov) We already have element in ConstructorName.
+        instanceCreation.staticElement = constructorElement;
+        instanceCreation.staticType = instanceType;
+
+        var newTypeName = astFactory.typeName(classIdentifier, null);
+        newTypeName.type = instanceType;
+
+        var newConstructorName = astFactory.constructorName(
+          newTypeName,
+          typeIdentifier.period,
+          constructorIdentifier,
+        );
+        instanceCreation.constructorName = newConstructorName;
+
+        // TODO(scheglov) Why don't we move them to TypeName?
+        instanceCreation.typeArguments = node.typeArguments;
+        return;
+      }
+    }
+
+    errorHelper.reportUnresolvedElement(node);
   }
 
   /// Records the new Element for a TypeName's Identifier.
