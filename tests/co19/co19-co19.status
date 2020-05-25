@@ -6,8 +6,6 @@ Language/Classes/*: Skip # Not migrated to NNBD
 Language/Classes/Abstract_Instance_Members/*: Skip # Not migrated to NNBD
 Language/Classes/Class_Member_Conflicts/*: Skip # Not migrated to NNBD
 Language/Classes/Constructors/*: Skip # Not migrated to NNBD
-Language/Classes/Constructors/Constant_Constructors/*: Skip # Not migrated to NNBD
-Language/Classes/Constructors/Factories/*: Skip # Not migrated to NNBD
 Language/Classes/Constructors/Generative_Constructors/*: Skip # Not migrated to NNBD
 Language/Classes/Getters/*: Skip # Not migrated to NNBD
 Language/Classes/Instance_Methods/*: Skip # Not migrated to NNBD
