@@ -61,9 +61,15 @@
 
 #### Linter
 
-Updated the Linter to `0.1.115`, which includes:
+Updated the Linter to `0.1.116`, which includes:
 
-* Updated `avoid_types_as_parameter_names` to check catch-clauses.
+* New lint: `no_default_cases` (experimental).
+* New lint: `exhaustive_cases`.
+* Updated `type_annotate_public_apis` to allow inferred types in final field assignments.
+* Updated `prefer_mixin` to allow "legacy" SDK abstract class mixins.
+* New lint: `use_is_even_rather_than_modulo`.
+* Updated `unsafe_html` to use a `SecurityLintCode` (making it un-ignorable).
+* Improved `sized_box_for_whitespace` to address false-positives.
 * Fixed `unsafe_html` to check attributes and methods on extensions.
 * Extended `unsafe_html` to include `Window.open`, `Element.html` and
   `DocumentFragment.html` in unsafe API checks.
