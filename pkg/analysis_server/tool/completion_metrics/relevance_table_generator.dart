@@ -6,8 +6,7 @@ import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
-import 'package:analysis_server/src/protocol_server.dart'
-    show convertElementToElementKind, ElementKind;
+import 'package:analysis_server/src/protocol_server.dart' show ElementKind;
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analysis_tool/tools.dart';
