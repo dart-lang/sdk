@@ -310,11 +310,17 @@ void ImageWriter::DumpInstructionsSizes() {
   auto& owner = Object::Handle(zone);
   auto& url = String::Handle(zone);
   auto& name = String::Handle(zone);
+  intptr_t trampolines_total_size = 0;
 
   JSONWriter js;
   js.OpenArray();
   for (intptr_t i = 0; i < instructions_.length(); i++) {
     auto& data = instructions_[i];
+    const bool is_trampoline = data.code_ == nullptr;
+    if (is_trampoline) {
+      trampolines_total_size += data.trampoline_length;
+      continue;
+    }
     owner = WeakSerializationReference::Unwrap(data.code_->owner());
     js.OpenObject();
     if (owner.IsFunction()) {
@@ -335,6 +341,12 @@ void ImageWriter::DumpInstructionsSizes() {
         "n", data.code_->QualifiedName(Object::kInternalName,
                                        Object::NameDisambiguation::kYes));
     js.PrintProperty("s", SizeInSnapshot(data.insns_->raw()));
+    js.CloseObject();
+  }
+  if (trampolines_total_size != 0) {
+    js.OpenObject();
+    js.PrintProperty("n", "[Stub] Trampoline");
+    js.PrintProperty("s", trampolines_total_size);
     js.CloseObject();
   }
   js.CloseArray();
