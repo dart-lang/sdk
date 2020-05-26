@@ -119,8 +119,8 @@ static method method6() → asy::FutureOr<core::int?>?
   return null;
 static get field1() → asy::FutureOr<dynamic> {
   if(!self::_#field1#isSet) {
-    self::_#field1#isSet = true;
     self::_#field1 = self::method1();
+    self::_#field1#isSet = true;
   }
   return self::_#field1;
 }
@@ -130,8 +130,8 @@ static set field1(asy::FutureOr<dynamic> #t12) → void {
 }
 static get field2() → asy::FutureOr<dynamic>? {
   if(!self::_#field2#isSet) {
-    self::_#field2#isSet = true;
     self::_#field2 = self::method2();
+    self::_#field2#isSet = true;
   }
   return self::_#field2;
 }
@@ -141,8 +141,8 @@ static set field2(asy::FutureOr<dynamic>? #t13) → void {
 }
 static get field3() → asy::FutureOr<dynamic> {
   if(!self::_#field3#isSet) {
-    self::_#field3#isSet = true;
     self::_#field3 = self::method3();
+    self::_#field3#isSet = true;
   }
   return self::_#field3;
 }
@@ -156,8 +156,8 @@ static set field4(asy::FutureOr<core::int> #t16) → void
   self::_#field4 = #t16;
 static get field5() → asy::FutureOr<core::int?> {
   if(!self::_#field5#isSet) {
-    self::_#field5#isSet = true;
     self::_#field5 = self::method5();
+    self::_#field5#isSet = true;
   }
   return self::_#field5;
 }
@@ -167,8 +167,8 @@ static set field5(asy::FutureOr<core::int?> #t17) → void {
 }
 static get field6() → asy::FutureOr<core::int?>? {
   if(!self::_#field6#isSet) {
-    self::_#field6#isSet = true;
     self::_#field6 = self::method6();
+    self::_#field6#isSet = true;
   }
   return self::_#field6;
 }

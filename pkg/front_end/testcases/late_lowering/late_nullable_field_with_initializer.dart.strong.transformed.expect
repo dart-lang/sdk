@@ -19,8 +19,8 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     return 87;
   static get lateStaticField1() → core::int? {
     if(!self::Class::_#lateStaticField1#isSet) {
-      self::Class::_#lateStaticField1#isSet = true;
       self::Class::_#lateStaticField1 = self::Class::lateStaticField1Init();
+      self::Class::_#lateStaticField1#isSet = true;
     }
     return self::Class::_#lateStaticField1;
   }
@@ -32,8 +32,8 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     return 42;
   static get lateStaticField2() → core::int? {
     if(!self::Class::_#lateStaticField2#isSet) {
-      self::Class::_#lateStaticField2#isSet = true;
       self::Class::_#lateStaticField2 = self::Class::lateStaticField2Init();
+      self::Class::_#lateStaticField2#isSet = true;
     }
     return self::Class::_#lateStaticField2;
   }
@@ -50,8 +50,8 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     return 16;
   get lateInstanceField() → core::int? {
     if(!this.{self::Class::_#Class#lateInstanceField#isSet}) {
-      this.{self::Class::_#Class#lateInstanceField#isSet} = true;
       this.{self::Class::_#Class#lateInstanceField} = this.{self::Class::lateInstanceFieldInit}();
+      this.{self::Class::_#Class#lateInstanceField#isSet} = true;
     }
     return this.{self::Class::_#Class#lateInstanceField};
   }
@@ -63,8 +63,8 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     return this.{self::Class::field};
   get lateGenericInstanceField() → self::Class::T? {
     if(!this.{self::Class::_#Class#lateGenericInstanceField#isSet}) {
-      this.{self::Class::_#Class#lateGenericInstanceField#isSet} = true;
       this.{self::Class::_#Class#lateGenericInstanceField} = this.{self::Class::lateGenericInstanceFieldInit}();
+      this.{self::Class::_#Class#lateGenericInstanceField#isSet} = true;
     }
     return this.{self::Class::_#Class#lateGenericInstanceField};
   }
@@ -104,8 +104,8 @@ static method lateTopLevelField1Init() → core::int?
   return 123;
 static get lateTopLevelField1() → core::int? {
   if(!self::_#lateTopLevelField1#isSet) {
-    self::_#lateTopLevelField1#isSet = true;
     self::_#lateTopLevelField1 = self::lateTopLevelField1Init();
+    self::_#lateTopLevelField1#isSet = true;
   }
   return self::_#lateTopLevelField1;
 }
@@ -117,8 +117,8 @@ static method Extension|lateExtensionField1Init() → core::int?
   return 87;
 static get Extension|lateExtensionField1() → core::int? {
   if(!self::_#Extension|lateExtensionField1#isSet) {
-    self::_#Extension|lateExtensionField1#isSet = true;
     self::_#Extension|lateExtensionField1 = self::Extension|lateExtensionField1Init();
+    self::_#Extension|lateExtensionField1#isSet = true;
   }
   return self::_#Extension|lateExtensionField1;
 }
@@ -130,8 +130,8 @@ static method Extension|lateExtensionField2Init() → core::int?
   return 42;
 static get Extension|lateExtensionField2() → core::int? {
   if(!self::_#Extension|lateExtensionField2#isSet) {
-    self::_#Extension|lateExtensionField2#isSet = true;
     self::_#Extension|lateExtensionField2 = self::Extension|lateExtensionField2Init();
+    self::_#Extension|lateExtensionField2#isSet = true;
   }
   return self::_#Extension|lateExtensionField2;
 }
