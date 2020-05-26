@@ -1465,7 +1465,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else if (staticElement is ExtensionElement) {
       result = _makeNonNullLiteralType(node);
     } else if (staticElement == null) {
-      assert(node.toString() == 'void');
+      assert(node.toString() == 'void', "${node.toString()} != 'void'");
       result = _makeNullableVoidType(node);
     } else if (staticElement.enclosingElement is ClassElement &&
         (staticElement.enclosingElement as ClassElement).isEnum) {
@@ -2724,10 +2724,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         method.enclosingElement is ExtensionElement) {
       // Extension methods can be called on a `null` target, when the `on` type
       // of the extension is nullable.
-      _handleAssignment(target,
+      return _handleAssignment(target,
           destinationType:
               _variables.decoratedElementType(method.enclosingElement));
-      return _dispatch(target);
     } else {
       return _checkExpressionNotNull(target);
     }

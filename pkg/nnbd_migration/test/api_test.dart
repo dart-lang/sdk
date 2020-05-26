@@ -3885,6 +3885,28 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_methodInvocation_extension_invocation() async {
+    var content = '''
+extension on bool {
+  void f() {}
+}
+bool g<T>(T x) => true;
+void main() {
+  g<int>(null).f();
+}
+''';
+    var expected = '''
+extension on bool {
+  void f() {}
+}
+bool g<T>(T x) => true;
+void main() {
+  g<int?>(null).f();
+}
+''';
+    await _checkSingleFileChanges(content, expected, warnOnWeakCode: true);
+  }
+
   Future<void> test_methodInvocation_typeArguments_explicit() async {
     var content = '''
 T f<T>(T t) => t;
