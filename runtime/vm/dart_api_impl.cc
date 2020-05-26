@@ -3033,12 +3033,17 @@ static TypeArgumentsPtr TypeArgumentsForElementType(
       return store->type_argument_legacy_string();
   }
   UNREACHABLE();
-  return NULL;
+  return TypeArguments::null();
 }
 
 DART_EXPORT Dart_Handle Dart_NewListOf(Dart_CoreType_Id element_type_id,
                                        intptr_t length) {
   DARTSCOPE(Thread::Current());
+  if (T->isolate()->null_safety() && element_type_id != Dart_CoreType_Dynamic) {
+    return Api::NewError(
+        "Cannot use legacy types with --null-safety enabled. "
+        "Use Dart_NewListOfType or Dart_NewListOfTypeFilled instead.");
+  }
   CHECK_LENGTH(length, Array::kMaxElements);
   CHECK_CALLBACK_STATE(T);
   const Array& arr = Array::Handle(Z, Array::New(length));
@@ -5584,6 +5589,11 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
                                      Dart_Handle class_name,
                                      intptr_t number_of_type_arguments,
                                      Dart_Handle* type_arguments) {
+  if (Thread::Current()->isolate()->null_safety()) {
+    return Api::NewError(
+        "Cannot use legacy types with --null-safety enabled. "
+        "Use Dart_GetNullableType or Dart_GetNonNullableType instead.");
+  }
   return GetTypeCommon(library, class_name, number_of_type_arguments,
                        type_arguments, Nullability::kLegacy);
 }

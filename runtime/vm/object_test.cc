@@ -1814,8 +1814,8 @@ static void TestIllegalArrayLength(intptr_t length) {
   char buffer[1024];
   Utils::SNPrint(buffer, sizeof(buffer),
                  "main() {\n"
-                 "  new List(%" Pd
-                 ");\n"
+                 "  List.filled(%" Pd
+                 ", null);\n"
                  "}\n",
                  length);
   Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
@@ -1843,8 +1843,8 @@ TEST_CASE(ArrayLengthOneTooMany) {
   char buffer[1024];
   Utils::SNPrint(buffer, sizeof(buffer),
                  "main() {\n"
-                 "  return new List(%" Pd
-                 ");\n"
+                 "  return List.filled(%" Pd
+                 ", null);\n"
                  "}\n",
                  kOneTooMany);
   Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
@@ -1857,8 +1857,8 @@ TEST_CASE(ArrayLengthMaxElements) {
   char buffer[1024];
   Utils::SNPrint(buffer, sizeof(buffer),
                  "main() {\n"
-                 "  return new List(%" Pd
-                 ");\n"
+                 "  return List.filled(%" Pd
+                 ", null);\n"
                  "}\n",
                  Array::kMaxElements);
   Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
@@ -3748,39 +3748,45 @@ static void PrintMetadata(const char* name, const Object& data) {
 }
 
 TEST_CASE(Metadata) {
-  const char* kScriptChars =
-      "@metafoo                       \n"
-      "class Meta {                   \n"
-      "  final m;                     \n"
-      "  const Meta(this.m);          \n"
-      "}                              \n"
-      "                               \n"
-      "const metafoo = 'metafoo';     \n"
-      "const metabar = 'meta' 'bar';  \n"
-      "                               \n"
-      "@metafoo                       \n"
-      "@Meta(0) String gVar;          \n"
-      "                               \n"
-      "@metafoo                       \n"
-      "get tlGetter => gVar;          \n"
-      "                               \n"
-      "@metabar                       \n"
-      "class A {                      \n"
-      "  @metafoo                     \n"
-      "  @metabar                     \n"
-      "  @Meta('baz')                 \n"
-      "  var aField;                  \n"
-      "                               \n"
-      "  @metabar @Meta('baa')        \n"
-      "  int aFunc(a,b) => a + b;     \n"
-      "}                              \n"
-      "                               \n"
-      "@Meta('main')                  \n"
-      "A main() {                     \n"
-      "  return new A();              \n"
-      "}                              \n";
+  bool nullSafety = (FLAG_null_safety == kNullSafetyOptionStrong);
+  const char* nullableTag = nullSafety ? "?" : "";
+  // clang-format off
+  auto kScriptChars =
+      Utils::CStringUniquePtr(OS::SCreate(nullptr,
+        "@metafoo                       \n"
+        "class Meta {                   \n"
+        "  final m;                     \n"
+        "  const Meta(this.m);          \n"
+        "}                              \n"
+        "                               \n"
+        "const metafoo = 'metafoo';     \n"
+        "const metabar = 'meta' 'bar';  \n"
+        "                               \n"
+        "@metafoo                       \n"
+        "@Meta(0) String%s gVar;        \n"
+        "                               \n"
+        "@metafoo                       \n"
+        "get tlGetter => gVar;          \n"
+        "                               \n"
+        "@metabar                       \n"
+        "class A {                      \n"
+        "  @metafoo                     \n"
+        "  @metabar                     \n"
+        "  @Meta('baz')                 \n"
+        "  var aField;                  \n"
+        "                               \n"
+        "  @metabar @Meta('baa')        \n"
+        "  int aFunc(a,b) => a + b;     \n"
+        "}                              \n"
+        "                               \n"
+        "@Meta('main')                  \n"
+        "A main() {                     \n"
+        "  return A();                  \n"
+        "}                              \n",
+        nullableTag), std::free);
+  // clang-format on
 
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars.get(), NULL);
   EXPECT_VALID(h_lib);
   Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
@@ -4412,8 +4418,8 @@ TEST_CASE(LinkedHashMap) {
   const char* kScript =
       "import 'dart:collection';\n"
       "makeMap() {\n"
-      "  Function eq = (a, b) => true;\n"
-      "  Function hc = (a) => 42;\n"
+      "  bool Function(dynamic, dynamic) eq = (a, b) => true;\n"
+      "  int Function(dynamic) hc = (a) => 42;\n"
       "  return new LinkedHashMap(equals: eq, hashCode: hc);\n"
       "}";
   Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);

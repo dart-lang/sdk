@@ -268,12 +268,12 @@ BENCHMARK(UseDartApi) {
   const char* kScriptChars =
       "import 'dart:nativewrappers';\n"
       "class Class extends NativeFieldWrapperClass1 {\n"
-      "  int init() native 'init';\n"
+      "  void init() native 'init';\n"
       "  int method(int param1, int param2) native 'method';\n"
       "}\n"
       "\n"
       "void benchmark(int count) {\n"
-      "  Class c = new Class();\n"
+      "  Class c = Class();\n"
       "  c.init();\n"
       "  for (int i = 0; i < count; i++) {\n"
       "    c.method(i,7);\n"
@@ -359,6 +359,10 @@ static Dart_NativeFunction NativeResolver(Dart_Handle name,
 // Measure compile of all kernel Service(CFE) functions.
 //
 BENCHMARK(KernelServiceCompileAll) {
+  if (FLAG_null_safety == kNullSafetyOptionStrong) {
+    // TODO(bkonyi): remove this check when we build the CFE in strong mode.
+    return;
+  }
   bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
