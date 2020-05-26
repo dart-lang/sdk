@@ -856,7 +856,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   void removeContext(Folder folder, List<String> flushedFiles) {
     sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
     var driver = analysisServer.driverMap.remove(folder);
-    driver.dispose();
+    driver?.dispose();
   }
 
   List<HighlightRegion> _computeHighlightRegions(CompilationUnit unit) {
