@@ -15,6 +15,6 @@ class A {
 main() {
   print(new A()(499));
   //        ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
+  // [analyzer] STATIC_WARNING.NEW_WITH_NON_TYPE
   // [cfe] Method not found: 'A'.
 }

@@ -967,8 +967,11 @@ class FixProcessor extends BaseProcessor {
     if (errorCode == StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR) {
       await _addFix_createConstructor_named();
     }
-    if (errorCode == CompileTimeErrorCode.UNDEFINED_CLASS ||
+    if (errorCode == CompileTimeErrorCode.CONST_WITH_NON_TYPE ||
+        errorCode == CompileTimeErrorCode.MIXIN_OF_NON_CLASS ||
+        errorCode == CompileTimeErrorCode.UNDEFINED_CLASS ||
         errorCode == StaticWarningCode.CAST_TO_NON_TYPE ||
+        errorCode == StaticWarningCode.NEW_WITH_NON_TYPE ||
         errorCode == StaticWarningCode.NOT_A_TYPE ||
         errorCode == StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME) {
       await _addFix_importLibrary_withType();

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -68,103 +67,44 @@ class TypeNameResolver {
   void resolveTypeName(TypeName node) {
     rewriteResult = null;
 
-    Identifier typeName = node.name;
+    var typeIdentifier = node.name;
 
-    if (typeName is SimpleIdentifier && typeName.name == 'void') {
+    if (typeIdentifier is SimpleIdentifier && typeIdentifier.name == 'void') {
       node.type = VoidTypeImpl.instance;
       return;
     }
 
-    _setElement(typeName, null); // Clear old Elements from previous run.
-
-    TypeArgumentList argumentList = node.typeArguments;
-    Element element = nameScope.lookup(typeName, definingLibrary);
-    if (element == null) {
-      node.type = dynamicType;
-      if (nameScope.shouldIgnoreUndefined(typeName)) {
-        return;
-      }
-      //
-      // If not, the look to see whether we might have created the wrong AST
-      // structure for a constructor name. If so, fix the AST structure and then
-      // proceed.
-      //
-      AstNode parent = node.parent;
-      if (typeName is PrefixedIdentifier &&
-          parent is ConstructorName &&
-          argumentList == null) {
-        ConstructorName name = parent;
-        if (name.name == null) {
-          PrefixedIdentifier prefixedIdentifier =
-              typeName as PrefixedIdentifier;
-          SimpleIdentifier prefix = prefixedIdentifier.prefix;
-          element = nameScope.lookup(prefix, definingLibrary);
-          if (element is PrefixElement) {
-            if (nameScope.shouldIgnoreUndefined(typeName)) {
-              return;
-            }
-            AstNode grandParent = parent.parent;
-            if (grandParent is InstanceCreationExpression &&
-                grandParent.isConst) {
-              // If, if this is a const expression, then generate a
-              // CompileTimeErrorCode.CONST_WITH_NON_TYPE error.
-              errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.CONST_WITH_NON_TYPE,
-                prefixedIdentifier.identifier,
-                [prefixedIdentifier.identifier.name],
-              );
-            } else {
-              // Else, if this expression is a new expression, report a
-              // NEW_WITH_NON_TYPE warning.
-              errorReporter.reportErrorForNode(
-                StaticWarningCode.NEW_WITH_NON_TYPE,
-                prefixedIdentifier.identifier,
-                [prefixedIdentifier.identifier.name],
-              );
-            }
-            _setElement(prefix, element);
-            return;
-          } else if (element != null) {
-            //
-            // Rewrite the constructor name. The parser, when it sees a
-            // constructor named "a.b", cannot tell whether "a" is a prefix and
-            // "b" is a class name, or whether "a" is a class name and "b" is a
-            // constructor name. It arbitrarily chooses the former, but in this
-            // case was wrong.
-            //
-            name.name = prefixedIdentifier.identifier;
-            name.period = prefixedIdentifier.period;
-            node.name = prefix;
-            typeName = prefix;
-            rewriteResult = parent;
-          }
-        }
-      }
-      if (nameScope.shouldIgnoreUndefined(typeName)) {
-        return;
-      }
-    }
+    var element = nameScope.lookup(typeIdentifier, definingLibrary);
 
     if (element is MultiplyDefinedElement) {
-      _setElement(typeName, element);
+      _setElement(typeIdentifier, element);
       node.type = dynamicType;
       return;
     }
 
-    var errorHelper = _ErrorHelper(errorReporter);
-    if (errorHelper.checkNewWithNonType(node, element)) {
-      _setElement(typeName, element);
-      node.type = dynamicType;
+    if (element != null) {
+      _setElement(typeIdentifier, element);
+      node.type = _instantiateElement(node, element);
       return;
     }
 
-    if (element == null) {
-      _reportNullElement(node, errorHelper);
+    if (_rewriteToConstructorName(node)) {
       return;
     }
 
-    _setElement(typeName, element);
-    node.type = _instantiateElement(node, element);
+    // Full `prefix.Name` cannot be resolved, try to resolve 'prefix' alone.
+    if (typeIdentifier is PrefixedIdentifier) {
+      var prefixIdentifier = typeIdentifier.prefix;
+      var prefixElement = nameScope.lookup(prefixIdentifier, definingLibrary);
+      prefixIdentifier.staticElement = prefixElement;
+    }
+
+    node.type = dynamicType;
+    if (nameScope.shouldIgnoreUndefined(typeIdentifier)) {
+      return;
+    }
+
+    _ErrorHelper(errorReporter).reportNullOrNonTypeElement(node, null);
   }
 
   /// Return type arguments, exactly [parameterCount].
@@ -248,6 +188,9 @@ class TypeNameResolver {
           typeArguments: typeArguments,
           nullabilitySuffix: nullability,
         );
+      } else if (_isInstanceCreation(node)) {
+        _ErrorHelper(errorReporter).reportNewWithNonType(node);
+        return dynamicType;
       } else if (element is DynamicElementImpl) {
         _buildTypeArguments(node, 0);
         return DynamicTypeImpl.instance;
@@ -273,7 +216,7 @@ class TypeNameResolver {
           nullabilitySuffix: nullability,
         );
       } else {
-        _ErrorHelper(errorReporter).checkNullOrNonTypeElement(node, element);
+        _ErrorHelper(errorReporter).reportNullOrNonTypeElement(node, element);
         return dynamicType;
       }
     }
@@ -295,6 +238,9 @@ class TypeNameResolver {
         classElement: element,
         nullabilitySuffix: nullability,
       );
+    } else if (_isInstanceCreation(node)) {
+      _ErrorHelper(errorReporter).reportNewWithNonType(node);
+      return dynamicType;
     } else if (element is DynamicElementImpl) {
       return DynamicTypeImpl.instance;
     } else if (element is FunctionTypeAliasElement) {
@@ -311,7 +257,7 @@ class TypeNameResolver {
         nullabilitySuffix: nullability,
       );
     } else {
-      _ErrorHelper(errorReporter).checkNullOrNonTypeElement(node, element);
+      _ErrorHelper(errorReporter).reportNullOrNonTypeElement(node, element);
       return dynamicType;
     }
   }
@@ -343,77 +289,47 @@ class TypeNameResolver {
     }
   }
 
-  /// We identified that [node] does resolve to any element, report this.
-  void _reportNullElement(TypeName node, _ErrorHelper errorHelper) {
-    if (errorHelper.checkNullOrNonTypeElement(node, null)) {
-      node.type = dynamicType;
-      return;
-    }
-
-    // `new Class.constructor<A, B>()`, i.e. when type arguments are specified
-    // after the constructor name, is parsed as `new prefix.Class<A, B>()`.
-    // But here, during resolution, we can see that `prefix` is actually the
-    // name of a class, and type arguments are mistakenly specified after the
-    // constructor name.
+  /// We parse `foo.bar` as `prefix.Name` with the expectation that `prefix`
+  /// will be a [PrefixElement]. But we checked and found that `foo.bar` is
+  /// not in the scope, so try to see if it is `Class.constructor`.
+  ///
+  /// Return `true` if the node was rewritten as `Class.constructor`.
+  bool _rewriteToConstructorName(TypeName node) {
     var typeIdentifier = node.name;
-    var argumentList = node.typeArguments;
     var constructorName = node.parent;
-    var instanceCreation = constructorName.parent;
     if (typeIdentifier is PrefixedIdentifier &&
-        argumentList != null &&
         constructorName is ConstructorName &&
-        instanceCreation is InstanceCreationExpressionImpl) {
+        constructorName.name == null) {
       var classIdentifier = typeIdentifier.prefix;
-      var constructorIdentifier = typeIdentifier.identifier;
+      var classElement = nameScope.lookup(classIdentifier, definingLibrary);
+      if (classElement is ClassElement) {
+        var constructorIdentifier = typeIdentifier.identifier;
 
-      ClassElement classElement;
-      ConstructorElement constructorElement;
-      var prefixElement = nameScope.lookup(classIdentifier, definingLibrary);
-      if (prefixElement is ClassElement) {
-        classElement = prefixElement;
-        constructorElement = classElement.getNamedConstructor(
-          constructorIdentifier.name,
-        );
-      }
+        var typeArguments = node.typeArguments;
+        if (typeArguments != null) {
+          errorReporter.reportErrorForNode(
+            StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+            typeArguments,
+            [classIdentifier.name, constructorIdentifier.name],
+          );
+          var instanceCreation = constructorName.parent;
+          if (instanceCreation is InstanceCreationExpressionImpl) {
+            instanceCreation.typeArguments = typeArguments;
+          }
+        }
 
-      if (constructorElement != null) {
-        errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-          argumentList,
-          [classIdentifier.name, constructorIdentifier.name],
-        );
+        node.name = classIdentifier;
+        node.typeArguments = null;
 
-        classIdentifier.staticElement = classElement;
-        constructorIdentifier.staticElement = constructorElement;
+        constructorName.period = typeIdentifier.period;
+        constructorName.name = constructorIdentifier;
 
-        var instanceType = classElement.instantiate(
-          typeArguments: List.filled(
-            classElement.typeParameters.length,
-            dynamicType,
-          ),
-          nullabilitySuffix: _noneOrStarSuffix,
-        );
-        // TODO(scheglov) We already have element in ConstructorName.
-        instanceCreation.staticElement = constructorElement;
-        instanceCreation.staticType = instanceType;
-
-        var newTypeName = astFactory.typeName(classIdentifier, null);
-        newTypeName.type = instanceType;
-
-        var newConstructorName = astFactory.constructorName(
-          newTypeName,
-          typeIdentifier.period,
-          constructorIdentifier,
-        );
-        instanceCreation.constructorName = newConstructorName;
-
-        // TODO(scheglov) Why don't we move them to TypeName?
-        instanceCreation.typeArguments = node.typeArguments;
-        return;
+        rewriteResult = constructorName;
+        return true;
       }
     }
 
-    errorHelper.reportUnresolvedElement(node);
+    return false;
   }
 
   /// Records the new Element for a TypeName's Identifier.
@@ -430,6 +346,11 @@ class TypeNameResolver {
       prefix.staticElement = nameScope.lookup(prefix, definingLibrary);
     }
   }
+
+  static bool _isInstanceCreation(TypeName node) {
+    return node.parent is ConstructorName &&
+        node.parent.parent is InstanceCreationExpression;
+  }
 }
 
 /// Helper for reporting errors during type name resolution.
@@ -438,148 +359,156 @@ class _ErrorHelper {
 
   _ErrorHelper(this.errorReporter);
 
-  bool checkNewWithNonType(TypeName node, Element element) {
-    if (element != null && element is! ClassElement) {
-      var constructorName = node.parent;
-      if (constructorName is ConstructorName) {
-        var instanceCreation = constructorName.parent;
-        if (instanceCreation is InstanceCreationExpression) {
-          var identifier = node.name;
-          var simpleIdentifier = _getSimpleIdentifier(identifier);
-          if (instanceCreation.isConst) {
-            errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.CONST_WITH_NON_TYPE,
-              simpleIdentifier,
-              [identifier],
-            );
-          } else {
-            errorReporter.reportErrorForNode(
-              StaticWarningCode.NEW_WITH_NON_TYPE,
-              simpleIdentifier,
-              [identifier],
-            );
-          }
-          return true;
-        }
+  bool reportNewWithNonType(TypeName node) {
+    var constructorName = node.parent;
+    if (constructorName is ConstructorName) {
+      var instanceCreation = constructorName.parent;
+      if (instanceCreation is InstanceCreationExpression) {
+        var identifier = node.name;
+        var errorNode = _getErrorNode(node);
+        errorReporter.reportErrorForNode(
+          instanceCreation.isConst
+              ? CompileTimeErrorCode.CONST_WITH_NON_TYPE
+              : StaticWarningCode.NEW_WITH_NON_TYPE,
+          errorNode,
+          [identifier.name],
+        );
+        return true;
       }
     }
-
     return false;
   }
 
-  bool checkNullOrNonTypeElement(TypeName node, Element element) {
-    var typeName = node.name;
-    SimpleIdentifier typeNameSimple = _getSimpleIdentifier(typeName);
-    if (typeNameSimple.name == "boolean") {
+  void reportNullOrNonTypeElement(TypeName node, Element element) {
+    var identifier = node.name;
+    var errorNode = _getErrorNode(node);
+
+    if (errorNode.name == 'boolean') {
       errorReporter.reportErrorForNode(
         StaticWarningCode.UNDEFINED_CLASS_BOOLEAN,
-        typeNameSimple,
+        errorNode,
       );
-      return true;
-    } else if (_isTypeInCatchClause(node)) {
+      return;
+    }
+
+    if (_isTypeInCatchClause(node)) {
       errorReporter.reportErrorForNode(
         StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE,
-        typeName,
-        [typeName.name],
+        identifier,
+        [identifier.name],
       );
-      return true;
-    } else if (_isTypeInAsExpression(node)) {
+      return;
+    }
+
+    if (_isTypeInAsExpression(node)) {
       errorReporter.reportErrorForNode(
         StaticWarningCode.CAST_TO_NON_TYPE,
-        typeName,
-        [typeName.name],
+        identifier,
+        [identifier.name],
       );
-      return true;
-    } else if (_isTypeInIsExpression(node)) {
+      return;
+    }
+
+    if (_isTypeInIsExpression(node)) {
       if (element != null) {
         errorReporter.reportErrorForNode(
           StaticWarningCode.TYPE_TEST_WITH_NON_TYPE,
-          typeName,
-          [typeName.name],
+          identifier,
+          [identifier.name],
         );
       } else {
         errorReporter.reportErrorForNode(
           StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME,
-          typeName,
-          [typeName.name],
+          identifier,
+          [identifier.name],
         );
       }
-      return true;
-    } else if (_isRedirectingConstructor(node)) {
+      return;
+    }
+
+    if (_isRedirectingConstructor(node)) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.REDIRECT_TO_NON_CLASS,
-        typeName,
-        [typeName.name],
+        identifier,
+        [identifier.name],
       );
-      return true;
-    } else if (_isTypeInTypeArgumentList(node)) {
+      return;
+    }
+
+    if (_isTypeInTypeArgumentList(node)) {
       errorReporter.reportErrorForNode(
         StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
-        typeName,
-        [typeName.name],
+        identifier,
+        [identifier.name],
       );
-      return true;
-    } else if (element != null) {
-      var parent = node.parent;
-      if (parent is ExtendsClause ||
-          parent is ImplementsClause ||
-          parent is WithClause ||
-          parent is ClassTypeAlias) {
-        // Ignored. The error will be reported elsewhere.
-      } else if (element is LocalVariableElement ||
-          (element is FunctionElement &&
-              element.enclosingElement is ExecutableElement)) {
-        errorReporter.reportError(
-          DiagnosticFactory().referencedBeforeDeclaration(
-            errorReporter.source,
-            typeName,
-            element: element,
-          ),
-        );
-      } else {
-        errorReporter.reportErrorForNode(
-          StaticWarningCode.NOT_A_TYPE,
-          typeName,
-          [typeName.name],
-        );
-      }
-      return true;
+      return;
     }
-    return false;
-  }
 
-  void reportUnresolvedElement(TypeName node) {
-    var identifier = node.name;
+    if (reportNewWithNonType(node)) {
+      return;
+    }
+
+    var parent = node.parent;
+    if (parent is ExtendsClause ||
+        parent is ImplementsClause ||
+        parent is WithClause ||
+        parent is ClassTypeAlias) {
+      // Ignored. The error will be reported elsewhere.
+      return;
+    }
+
+    if (element is LocalVariableElement ||
+        (element is FunctionElement &&
+            element.enclosingElement is ExecutableElement)) {
+      errorReporter.reportError(
+        DiagnosticFactory().referencedBeforeDeclaration(
+          errorReporter.source,
+          identifier,
+          element: element,
+        ),
+      );
+      return;
+    }
+
+    if (element != null) {
+      errorReporter.reportErrorForNode(
+        StaticWarningCode.NOT_A_TYPE,
+        identifier,
+        [identifier.name],
+      );
+      return;
+    }
+
     if (identifier is SimpleIdentifier && identifier.name == 'await') {
       errorReporter.reportErrorForNode(
         StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT,
         node,
       );
-    } else {
-      errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.UNDEFINED_CLASS,
-        identifier,
-        [identifier.name],
-      );
+      return;
     }
+
+    errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.UNDEFINED_CLASS,
+      identifier,
+      [identifier.name],
+    );
   }
 
   /// Returns the simple identifier of the given (maybe prefixed) identifier.
-  static SimpleIdentifier _getSimpleIdentifier(Identifier identifier) {
-    if (identifier is SimpleIdentifier) {
-      return identifier;
-    } else {
-      PrefixedIdentifier prefixed = identifier;
-      SimpleIdentifier prefix = prefixed.prefix;
+  static Identifier _getErrorNode(TypeName node) {
+    Identifier identifier = node.name;
+    if (identifier is PrefixedIdentifier) {
       // The prefixed identifier can be:
       // 1. new importPrefix.TypeName()
       // 2. new TypeName.constructorName()
       // 3. new unresolved.Unresolved()
-      if (prefix.staticElement is PrefixElement) {
-        return prefixed.identifier;
+      if (identifier.prefix.staticElement is PrefixElement) {
+        return identifier.identifier;
       } else {
-        return prefix;
+        return identifier;
       }
+    } else {
+      return identifier;
     }
   }
 
