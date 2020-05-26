@@ -1094,9 +1094,7 @@ class AstCloner implements AstVisitor<AstNode> {
     }
 
     token = nonComment(token);
-    if (_lastCloned == null) {
-      _lastCloned = Token.eof(-1);
-    }
+    _lastCloned ??= Token.eof(-1);
     while (token != null) {
       Token clone = token.copy();
       {

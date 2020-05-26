@@ -1607,9 +1607,7 @@ class NoMatchABCDEF {}
       Element enclosingElement, SearchResultKind kind, String search,
       {int length, bool isResolved = true, bool isQualified = false}) {
     int offset = findOffset(search);
-    if (length == null) {
-      length = getLeadingIdentifierLength(search);
-    }
+    length ??= getLeadingIdentifierLength(search);
     return ExpectedResult(enclosingElement, kind, offset, length,
         isResolved: isResolved, isQualified: isQualified);
   }

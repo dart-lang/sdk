@@ -806,9 +806,7 @@ abstract class AstNodeImpl implements AstNode {
         }
       }
     } else {
-      if (_propertyMap == null) {
-        _propertyMap = HashMap<String, Object>();
-      }
+      _propertyMap ??= HashMap<String, Object>();
       _propertyMap[name] = value;
     }
   }

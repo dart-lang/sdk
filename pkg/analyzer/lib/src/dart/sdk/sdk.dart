@@ -479,25 +479,19 @@ class FolderBasedDartSdk extends AbstractDartSdk {
    * Return the directory within the SDK directory that contains the libraries.
    */
   Folder get libraryDirectory {
-    if (_libraryDirectory == null) {
-      _libraryDirectory =
-          _sdkDirectory.getChildAssumingFolder(_LIB_DIRECTORY_NAME);
-    }
-    return _libraryDirectory;
+    return _libraryDirectory ??=
+        _sdkDirectory.getChildAssumingFolder(_LIB_DIRECTORY_NAME);
   }
 
   /**
    * Return the file containing the Pub executable, or `null` if it does not exist.
    */
   File get pubExecutable {
-    if (_pubExecutable == null) {
-      _pubExecutable = _sdkDirectory
-          .getChildAssumingFolder(_BIN_DIRECTORY_NAME)
-          .getChildAssumingFile(OSUtilities.isWindows()
-              ? _PUB_EXECUTABLE_NAME_WIN
-              : _PUB_EXECUTABLE_NAME);
-    }
-    return _pubExecutable;
+    return _pubExecutable ??= _sdkDirectory
+        .getChildAssumingFolder(_BIN_DIRECTORY_NAME)
+        .getChildAssumingFile(OSUtilities.isWindows()
+            ? _PUB_EXECUTABLE_NAME_WIN
+            : _PUB_EXECUTABLE_NAME);
   }
 
   /**

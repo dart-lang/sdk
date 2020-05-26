@@ -369,19 +369,16 @@ class TypeProviderImpl extends TypeProviderBase {
   @deprecated
   @override
   DartObjectImpl get nullObject {
-    if (_nullObject == null) {
-      _nullObject = DartObjectImpl(
-        TypeSystemImpl(
-          implicitCasts: false,
-          isNonNullableByDefault: false,
-          strictInference: false,
-          typeProvider: this,
-        ),
-        nullType,
-        NullState.NULL_STATE,
-      );
-    }
-    return _nullObject;
+    return _nullObject ??= DartObjectImpl(
+      TypeSystemImpl(
+        implicitCasts: false,
+        isNonNullableByDefault: false,
+        strictInference: false,
+        typeProvider: this,
+      ),
+      nullType,
+      NullState.NULL_STATE,
+    );
   }
 
   InterfaceTypeImpl get nullStar {

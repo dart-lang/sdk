@@ -664,15 +664,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   void _analyzeLeastUpperBoundTypes(
       Expression node, DartType staticType1, DartType staticType2) {
-    if (staticType1 == null) {
-      // TODO(brianwilkerson) Determine whether this can still happen.
-      staticType1 = _dynamicType;
-    }
+    // TODO(brianwilkerson) Determine whether this can still happen.
+    staticType1 ??= _dynamicType;
 
-    if (staticType2 == null) {
-      // TODO(brianwilkerson) Determine whether this can still happen.
-      staticType2 = _dynamicType;
-    }
+    // TODO(brianwilkerson) Determine whether this can still happen.
+    staticType2 ??= _dynamicType;
 
     DartType staticType =
         _typeSystem.getLeastUpperBound(staticType1, staticType2) ??

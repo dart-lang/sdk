@@ -331,9 +331,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     for (SimpleIdentifier name in names) {
       String nameStr = name.name;
       Element element = namespace.get(nameStr);
-      if (element == null) {
-        element = namespace.get("$nameStr=");
-      }
+      element ??= namespace.get("$nameStr=");
       if (element == null) {
         _errorReporter
             .reportErrorForNode(hintCode, name, [library.identifier, nameStr]);

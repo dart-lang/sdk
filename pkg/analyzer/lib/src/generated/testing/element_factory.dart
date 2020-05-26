@@ -36,10 +36,7 @@ class ElementFactory {
   static InterfaceType _objectType;
 
   static ClassElementImpl get object {
-    if (_objectElement == null) {
-      _objectElement = classElement("Object", null);
-    }
-    return _objectElement;
+    return _objectElement ??= classElement("Object", null);
   }
 
   static InterfaceType get objectType {
@@ -103,9 +100,7 @@ class ElementFactory {
         NonExistingSource(fileName, toUri(fileName), UriKind.FILE_URI);
     CompilationUnitElementImpl unit = CompilationUnitElementImpl();
     unit.source = source;
-    if (librarySource == null) {
-      librarySource = source;
-    }
+    librarySource ??= source;
     unit.librarySource = librarySource;
     return unit;
   }
@@ -402,8 +397,7 @@ class ElementFactory {
   static FunctionElementImpl functionElementWithParameters(String functionName,
       DartType returnType, List<ParameterElement> parameters) {
     FunctionElementImpl functionElement = FunctionElementImpl(functionName, 0);
-    functionElement.returnType =
-        returnType == null ? VoidTypeImpl.instance : returnType;
+    functionElement.returnType = returnType ?? VoidTypeImpl.instance;
     functionElement.parameters = parameters;
     return functionElement;
   }
