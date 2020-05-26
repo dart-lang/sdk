@@ -25,7 +25,8 @@ class C extends core::Object {
         {
           final core::List<core::int*>* #t1 = <core::int*>[];
           [yield] let dynamic #t2 = asy::_awaitHelper(this.{self::C::_m}(), :async_op_then, :async_op_error, :async_op) in null;
-          :return_value = let final void #t3 = #t1.{core::List::add}(_in::unsafeCast<core::int*>(:result)) in #t1;
+          #t1.{core::List::add}(_in::unsafeCast<core::int*>(:result));
+          :return_value = block {} =>#t1;
           break #L1;
         }
         asy::_completeOnAsyncReturn(:async_completer, :return_value);
@@ -91,7 +92,7 @@ static method main() → dynamic /* originally async */ {
     try {
       #L3:
       {
-        [yield] let dynamic #t4 = asy::_awaitHelper(new self::C::•().{self::C::m}(), :async_op_then, :async_op_error, :async_op) in null;
+        [yield] let dynamic #t3 = asy::_awaitHelper(new self::C::•().{self::C::m}(), :async_op_then, :async_op_error, :async_op) in null;
         self::expect(42, _in::unsafeCast<core::List<core::int*>*>(:result).{core::Iterable::first});
       }
       asy::_completeOnAsyncReturn(:async_completer, :return_value);

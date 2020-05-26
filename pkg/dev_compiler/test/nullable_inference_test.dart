@@ -253,7 +253,7 @@ void main() {
         '() → dart.core::Null? => null, f');
   });
 
-  test('cascades (kernel let)', () async {
+  test('cascades (kernel BlockExpression)', () async {
     // `null..toString()` evaluates to `null` so it is nullable.
     await expectNotNull('main() { null..toString(); }', '');
     await expectAllNotNull('main() { 1..toString(); }');
