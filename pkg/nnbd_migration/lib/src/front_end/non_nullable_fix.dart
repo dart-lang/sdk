@@ -2,11 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/api_for_nnbd_migration.dart';
-import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
-import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
-import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -15,6 +10,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:charcode/charcode.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
+import 'package:nnbd_migration/src/front_end/dartfix_listener.dart';
 import 'package:nnbd_migration/src/front_end/instrumentation_listener.dart';
 import 'package:nnbd_migration/src/front_end/migration_state.dart';
 import 'package:nnbd_migration/src/front_end/migration_summary.dart';
@@ -26,7 +22,7 @@ import 'package:yaml/yaml.dart';
 /// [NonNullableFix] visits each named type in a resolved compilation unit
 /// and determines whether the associated variable or parameter can be null
 /// then adds or removes a '?' trailing the named type as appropriate.
-class NonNullableFix extends FixCodeTask {
+class NonNullableFix {
   /// TODO(paulberry): stop using permissive mode once the migration logic is
   /// mature enough.
   static const bool _usePermissiveMode = true;
@@ -42,7 +38,7 @@ class NonNullableFix extends FixCodeTask {
 
   final int preferredPort;
 
-  final DartFixListenerInterface listener;
+  final DartFixListener listener;
 
   /// The root of the included paths.
   ///
@@ -95,10 +91,8 @@ class NonNullableFix extends FixCodeTask {
     reset();
   }
 
-  @override
   int get numPhases => 3;
 
-  @override
   Future<void> finish() async {
     migration.finish();
     final state = MigrationState(
@@ -126,7 +120,6 @@ class NonNullableFix extends FixCodeTask {
 
   /// Update the pubspec.yaml file to specify a minimum Dart SDK version which
   /// enables the Null Safety feature.
-  @override
   Future<void> processPackage(Folder pkgFolder) async {
     if (!_packageIsNNBD) {
       return;
@@ -223,7 +216,6 @@ environment:
     }
   }
 
-  @override
   Future<void> processUnit(int phase, ResolvedUnitResult result) async {
     if (!_packageIsNNBD) {
       return;
@@ -293,13 +285,6 @@ environment:
     _allServers.clear();
   }
 
-  static void task(DartFixRegistrar registrar, DartFixListener listener,
-      EditDartfixParams params) {
-    registrar.registerCodeTask(NonNullableFix(
-        listener, listener.resourceProvider,
-        included: params.included, preferredPort: params.port));
-  }
-
   /// Get the "root" of all [included] paths. See [includedRoot] for its
   /// definition.
   static String _getIncludedRoot(
@@ -331,7 +316,7 @@ environment:
 }
 
 class NullabilityMigrationAdapter implements NullabilityMigrationListener {
-  final DartFixListenerInterface listener;
+  final DartFixListener listener;
 
   NullabilityMigrationAdapter(this.listener);
 

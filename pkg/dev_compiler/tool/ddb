@@ -269,6 +269,7 @@ void main(List<String> args) async {
     'use strict';
     if ($nnbd) {
       sdk.dart.nullSafety($isNnbdStrong);
+      sdk.dart.weakNullSafetyWarnings(!$isNnbdStrong);
     }
     sdk._debugger.registerDevtoolsFormatter();
     app.$libname.main();
@@ -301,6 +302,7 @@ let main = require(\"./$basename\").$libname.main;
 try {
   if ($nnbd) {
     sdk.dart.nullSafety($isNnbdStrong);
+    sdk.dart.weakNullSafetyWarnings(!$isNnbdStrong);
   }
   sdk._isolate_helper.startRootIsolate(main, []);
 } catch(e) {
@@ -334,6 +336,7 @@ let main = $libname.main;
 try {
   if ($nnbd) {
     dart.nullSafety($isNnbdStrong);
+    dart.weakNullSafetyWarnings(!$isNnbdStrong);
   }
   _isolate_helper.startRootIsolate(() => {}, []);
   main();

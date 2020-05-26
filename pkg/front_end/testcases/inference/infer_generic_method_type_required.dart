@@ -10,5 +10,5 @@ class C {
 }
 
 main() {
-  var /*@ type=int* */ y = new C(). /*@ typeArgs=int* */ /*@target=C::m*/ m(42);
+  var /*@ type=int* */ y = new C(). /*@ typeArgs=int* */ /*@target=C.m*/ m(42);
 }

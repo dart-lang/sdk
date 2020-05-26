@@ -674,9 +674,7 @@ dynamic f() {}
 class A extends Object {}
 ''');
     final node = decoratedTypeAnnotation('Object').node;
-    expect(
-        node.hintActions, isNot(contains(HintActionKind.addNonNullableHint)));
-    expect(node.hintActions, isNot(contains(HintActionKind.addNullableHint)));
+    expect(node.hintActions, isEmpty);
   }
 
   Future<void> test_field_type_implicit_dynamic() async {
@@ -1243,9 +1241,7 @@ var x = [1];
             .declaredElement)
         .typeArguments[0]
         .node;
-    expect(
-        node.hintActions, isNot(contains(HintActionKind.addNonNullableHint)));
-    expect(node.hintActions, isNot(contains(HintActionKind.addNullableHint)));
+    expect(node.hintActions, isEmpty);
   }
 
   Future<void> test_implicit_type_no_add_hint_actions() async {
@@ -1259,9 +1255,7 @@ var x = 1;
             .variables[0]
             .declaredElement)
         .node;
-    expect(
-        node.hintActions, isNot(contains(HintActionKind.addNonNullableHint)));
-    expect(node.hintActions, isNot(contains(HintActionKind.addNullableHint)));
+    expect(node.hintActions, isEmpty);
   }
 
   Future<void> test_interfaceType_generic_instantiate_to_dynamic() async {
@@ -1823,8 +1817,20 @@ void f(int/*!*/ i) {}
     expect(
         node.hintActions, isNot(contains(HintActionKind.addNonNullableHint)));
     expect(node.hintActions, isNot(contains(HintActionKind.addNullableHint)));
-    // TODO(mfairhurst): support 'change to null hint'/'remove non-null hint'
-    // Filed as dartbug.com/41857, dartbug.com/41858
+    expect(node.hintActions,
+        isNot(contains(HintActionKind.changeToNonNullableHint)));
+    expect(
+        node.hintActions[HintActionKind.removeNonNullableHint]
+            .applyTo(super.testCode),
+        '''
+void f(int i) {}
+''');
+    expect(
+        node.hintActions[HintActionKind.changeToNullableHint]
+            .applyTo(super.testCode),
+        '''
+void f(int/*?*/ i) {}
+''');
   }
 
   Future<void> test_type_comment_question() async {
@@ -1836,8 +1842,20 @@ void f(int/*?*/ i) {}
     expect(
         node.hintActions, isNot(contains(HintActionKind.addNonNullableHint)));
     expect(node.hintActions, isNot(contains(HintActionKind.addNullableHint)));
-    // TODO(mfairhurst): support 'change to non-null hint'/'remove null hint'
-    // Filed as dartbug.com/41857, dartbug.com/41858
+    expect(
+        node.hintActions, isNot(contains(HintActionKind.changeToNullableHint)));
+    expect(
+        node.hintActions[HintActionKind.removeNullableHint]
+            .applyTo(super.testCode),
+        '''
+void f(int i) {}
+''');
+    expect(
+        node.hintActions[HintActionKind.changeToNonNullableHint]
+            .applyTo(super.testCode),
+        '''
+void f(int/*!*/ i) {}
+''');
   }
 
   Future<void> test_type_nested_add_non_null_hint() async {

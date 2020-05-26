@@ -93,15 +93,11 @@ class MigrationInfo {
     var links = <UnitLink>[];
     for (var unit in units) {
       var count = unit.fixRegions.length;
-      links.add(UnitLink(
-          _pathTo(target: unit), pathContext.split(computeName(unit)), count));
+      links.add(
+          UnitLink(unit.path, pathContext.split(computeName(unit)), count));
     }
     return links;
   }
-
-  /// The path to [target], as an HTTP URI path, using forward slash separators.
-  String _pathTo({@required UnitInfo target}) =>
-      '/' + pathContext.split(target.path).skip(1).join('/');
 }
 
 /// A location from or to which a user might want to navigate.
@@ -298,38 +294,42 @@ class UnitInfo {
         _diskContentHash, md5.convert((checkContent ?? '').codeUnits).bytes);
   }
 
-  void handleInsertion(int offset, String replacement) {
+  void handleSourceEdit(SourceEdit sourceEdit) {
     final contentCopy = content;
     final regionsCopy = List<RegionInfo>.from(regions);
-    final length = replacement.length;
-    final migratedOffset = offsetMapper.map(offset);
+    final insertLength = sourceEdit.replacement.length;
+    final deleteLength = sourceEdit.length;
+    final migratedOffset = offsetMapper.map(sourceEdit.offset);
+    final diskOffset = diskChangesOffsetMapper.map(sourceEdit.offset);
+    if (migratedOffset == null || diskOffset == null) {
+      throw StateError('cannot apply replacement, offset has been deleted.');
+    }
     try {
-      content =
-          content.replaceRange(migratedOffset, migratedOffset, replacement);
+      content = content.replaceRange(migratedOffset,
+          migratedOffset + deleteLength, sourceEdit.replacement);
       regions.clear();
-      regions.addAll(regionsCopy.map((region) {
-        if (region.offset < migratedOffset) {
-          return region;
-        }
-        // TODO: perhaps this should be handled by offset mapper instead, since
-        // offset mapper handles navigation, edits, and traces, and this is the
-        // odd ball out.
-        return RegionInfo(
-            region.regionType,
-            region.offset + length,
-            region.length,
-            region.lineNumber,
-            region.explanation,
-            region.kind,
-            region.isCounted,
-            edits: region.edits,
-            traces: region.traces);
-      }));
+      regions.addAll(regionsCopy
+          .where((region) => region.offset + region.length <= migratedOffset));
+      regions.addAll(regionsCopy
+          .where((region) => region.offset >= migratedOffset + deleteLength)
+          .map((region) => RegionInfo(
+              region.regionType,
+              // TODO: perhaps this should be handled by offset mapper instead,
+              // since offset mapper handles navigation, edits, and traces, and
+              // this is the odd ball out.
+              region.offset + insertLength - deleteLength,
+              region.length,
+              region.lineNumber,
+              region.explanation,
+              region.kind,
+              region.isCounted,
+              edits: region.edits,
+              traces: region.traces)));
 
       diskChangesOffsetMapper = OffsetMapper.sequence(
           diskChangesOffsetMapper,
-          OffsetMapper.forInsertion(
-              diskChangesOffsetMapper.map(offset), length));
+          OffsetMapper.forReplacement(
+              diskOffset, deleteLength, sourceEdit.replacement));
     } catch (e) {
       regions.clear();
       regions.addAll(regionsCopy);

@@ -2,40 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
-import 'package:analysis_server/protocol/protocol.dart';
-import 'package:analysis_server/protocol/protocol_constants.dart';
-import 'package:analysis_server/protocol/protocol_generated.dart'
-    hide AnalysisOptions;
-import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/domain_analysis.dart';
-import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
-import 'package:analysis_server/src/utilities/mocks.dart';
-import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 
 import '../abstract_context.dart';
-import 'mocks.dart';
 
 /// An abstract base for all 'analysis' domain tests.
 class AbstractAnalysisTest extends AbstractContextTest
     with ResourceProviderMixin {
   bool generateSummaryFiles = false;
-  MockServerChannel serverChannel;
-  TestPluginManager pluginManager;
-  AnalysisServer server;
-  RequestHandler handler;
-
-  final List<GeneralAnalysisService> generalServices =
-      <GeneralAnalysisService>[];
-  final Map<AnalysisService, List<String>> analysisSubscriptions = {};
-
   String projectPath;
   String testFolder;
   String testFile;
@@ -43,39 +18,10 @@ class AbstractAnalysisTest extends AbstractContextTest
 
   AbstractAnalysisTest();
 
-  AnalysisDomainHandler get analysisHandler =>
-      server.handlers.singleWhere((handler) => handler is AnalysisDomainHandler)
-          as AnalysisDomainHandler;
-
-  AnalysisOptions get analysisOptions => testDiver.analysisOptions;
-
-  AnalysisDriver get testDiver => server.getAnalysisDriver(testFile);
-
   void addAnalysisOptionsFile(String content) {
     newFile(
         resourceProvider.pathContext.join(projectPath, 'analysis_options.yaml'),
         content: content);
-  }
-
-  void addAnalysisSubscription(AnalysisService service, String file) {
-    // add file to subscription
-    var files = analysisSubscriptions[service];
-    if (files == null) {
-      files = <String>[];
-      analysisSubscriptions[service] = files;
-    }
-    files.add(file);
-    // set subscriptions
-    var request =
-        AnalysisSetSubscriptionsParams(analysisSubscriptions).toRequest('0');
-    handleSuccessfulRequest(request);
-  }
-
-  void addGeneralAnalysisSubscription(GeneralAnalysisService service) {
-    generalServices.add(service);
-    var request =
-        AnalysisSetGeneralSubscriptionsParams(generalServices).toRequest('0');
-    handleSuccessfulRequest(request);
   }
 
   String addTestFile(String content) {
@@ -97,39 +43,9 @@ class AbstractAnalysisTest extends AbstractContextTest
     addAnalysisOptionsFile(buffer.toString());
   }
 
-  AnalysisServer createAnalysisServer() {
-    //
-    // Create an SDK in the mock file system.
-    //
-    MockSdk(
-        generateSummaryFiles: generateSummaryFiles,
-        resourceProvider: resourceProvider);
-    //
-    // Create server
-    //
-    var options = AnalysisServerOptions();
-    return AnalysisServer(
-        serverChannel,
-        resourceProvider,
-        options,
-        DartSdkManager(resourceProvider.convertPath('/sdk'), true),
-        CrashReportingAttachmentsBuilder.empty,
-        InstrumentationService.NULL_SERVICE);
-  }
-
   /// Creates a project [projectPath].
   void createProject({Map<String, String> packageRoots}) {
     newFolder(projectPath);
-    var request = AnalysisSetAnalysisRootsParams([projectPath], [],
-            packageRoots: packageRoots)
-        .toRequest('0');
-    handleSuccessfulRequest(request, handler: analysisHandler);
-  }
-
-  void doAllDeclarationsTrackerWork() {
-    while (server.declarationsTracker.hasWork) {
-      server.declarationsTracker.doWork();
-    }
   }
 
   /// Returns the offset of [search] in the file at the given [path].
@@ -150,71 +66,16 @@ class AbstractAnalysisTest extends AbstractContextTest
     return offset;
   }
 
-  /// Validates that the given [request] is handled successfully.
-  Response handleSuccessfulRequest(Request request, {RequestHandler handler}) {
-    handler ??= this.handler;
-    var response = handler.handleRequest(request);
-    expect(response, isResponseSuccess(request.id));
-    return response;
-  }
-
   String modifyTestFile(String content) {
     modifyFile(testFile, content);
     testCode = content;
     return testFile;
   }
 
-  void processNotification(Notification notification) {
-    if (notification.event == SERVER_NOTIFICATION_ERROR) {
-      fail('${notification.toJson()}');
-    }
-  }
-
-  void removeGeneralAnalysisSubscription(GeneralAnalysisService service) {
-    generalServices.remove(service);
-    var request =
-        AnalysisSetGeneralSubscriptionsParams(generalServices).toRequest('0');
-    handleSuccessfulRequest(request);
-  }
-
-  void setPriorityFiles(List<String> files) {
-    var request = AnalysisSetPriorityFilesParams(files).toRequest('0');
-    handleSuccessfulRequest(request);
-  }
-
   void setUp() {
     super.setUp();
-    serverChannel = MockServerChannel();
     projectPath = convertPath(AbstractContextTest.testsPath);
     testFolder = convertPath('${AbstractContextTest.testsPath}/bin');
     testFile = convertPath('${AbstractContextTest.testsPath}/bin/test.dart');
-    pluginManager = TestPluginManager();
-    server = createAnalysisServer();
-    server.pluginManager = pluginManager;
-    handler = analysisHandler;
-    // listen for notifications
-    var notificationStream = serverChannel.notificationController.stream;
-    notificationStream.listen((Notification notification) {
-      processNotification(notification);
-    });
-  }
-
-  void tearDown() {
-    server.done();
-    handler = null;
-    server = null;
-    serverChannel = null;
-  }
-
-  /// Returns a [Future] that completes when the server's analysis is complete.
-  Future waitForTasksFinished() {
-    return server.onAnalysisComplete;
-  }
-
-  /// Completes with a successful [Response] for the given [request].
-  /// Otherwise fails.
-  Future<Response> waitResponse(Request request,
-      {bool throwOnError = true}) async {
-    return serverChannel.sendRequest(request, throwOnError: throwOnError);
   }
 }

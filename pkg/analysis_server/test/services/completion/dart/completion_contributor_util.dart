@@ -219,7 +219,8 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
       String paramType,
       String defaultArgListString = _UNCHECKED,
       List<int> defaultArgumentListTextRanges,
-      bool isSynthetic = false}) {
+      bool isSynthetic = false,
+      bool skipLocationCheck = false}) {
     var cs =
         getSuggest(completion: completion, csKind: csKind, elemKind: elemKind);
     if (cs == null) {
@@ -235,7 +236,7 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
     expect(cs.selectionLength, equals(0));
     expect(cs.isDeprecated, equals(isDeprecated));
     expect(cs.isPotential, equals(isPotential));
-    if (!isSynthetic && cs.element != null) {
+    if (!isSynthetic && cs.element != null && !skipLocationCheck) {
       expect(cs.element.location, isNotNull);
       expect(cs.element.location.file, isNotNull);
       expect(cs.element.location.offset, isNotNull);
@@ -466,13 +467,15 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
       CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
       bool isDeprecated = false,
       String defaultArgListString = _UNCHECKED,
-      List<int> defaultArgumentListTextRanges}) {
+      List<int> defaultArgumentListTextRanges,
+      bool skipLocationCheck = false}) {
     var cs = assertSuggest(name,
         csKind: kind,
         relevance: relevance,
         isDeprecated: isDeprecated,
         defaultArgListString: defaultArgListString,
-        defaultArgumentListTextRanges: defaultArgumentListTextRanges);
+        defaultArgumentListTextRanges: defaultArgumentListTextRanges,
+        skipLocationCheck: skipLocationCheck);
     expect(cs.declaringType, equals(declaringType));
     expect(cs.returnType, returnType ?? 'dynamic');
     var element = cs.element;

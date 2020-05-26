@@ -164,6 +164,11 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
           _typeProvider, constructorElement.type, _graph.never, _graph, target,
           returnType: decoratedReturnType);
       _variables.recordDecoratedElementType(constructorElement, functionType);
+      for (var parameter in constructorElement.parameters) {
+        var parameterType = DecoratedType.forImplicitType(
+            _typeProvider, parameter.type, _graph, target);
+        _variables.recordDecoratedElementType(parameter, parameterType);
+      }
     }
     return null;
   }
@@ -781,11 +786,20 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
           _graph.makeNonNullableUnion(decoratedType.node,
               NullabilityCommentOrigin(source, node, false));
           _variables.recordNullabilityHint(source, node, hint);
+          decoratedType.node.hintActions[HintActionKind.removeNonNullableHint] =
+              hint.changesToRemove(source.contents.data);
+          decoratedType.node.hintActions[HintActionKind.changeToNullableHint] =
+              hint.changesToReplace(source.contents.data, '/*?*/');
           break;
         case HintCommentKind.question:
           _graph.makeNullableUnion(
               decoratedType.node, NullabilityCommentOrigin(source, node, true));
           _variables.recordNullabilityHint(source, node, hint);
+          decoratedType.node.hintActions[HintActionKind.removeNullableHint] =
+              hint.changesToRemove(source.contents.data);
+          decoratedType
+                  .node.hintActions[HintActionKind.changeToNonNullableHint] =
+              hint.changesToReplace(source.contents.data, '/*!*/');
           break;
         default:
           break;

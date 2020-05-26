@@ -17,6 +17,7 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "issue41501_lib.dart" as opt;
 import "dart:async" as asy;
+import "dart:core" as core;
 
 import "dart:async";
 import "org-dartlang-testcase:///issue41501_lib.dart";
@@ -28,13 +29,13 @@ static method test() → dynamic {
  - 'FutureOr' is from 'dart:async'.
  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue41501_lib.dart'.
   FutureOr<AAlias> foLegacyNonNullable = null; // error
-                                         ^" in null as{TypeError,ForNonNullableByDefault} asy::FutureOr<opt::A>;
+                                         ^" in let core::Null? #t2 = null in #t2.==(null) ?{asy::FutureOr<opt::A>} #t2 as{TypeError,ForNonNullableByDefault} asy::FutureOr<opt::A> : #t2{asy::FutureOr<opt::A>};
   asy::FutureOr<opt::A?> foLegacyNullable = null;
-  asy::FutureOr<opt::A> foNonNullable = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/issue41501.dart:15:47: Error: A value of type 'Null' can't be assigned to a variable of type 'FutureOr<A>'.
+  asy::FutureOr<opt::A> foNonNullable = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/issue41501.dart:15:47: Error: A value of type 'Null?' can't be assigned to a variable of type 'FutureOr<A>'.
  - 'FutureOr' is from 'dart:async'.
  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue41501_lib.dart'.
   FutureOr<AAliasNonNullable> foNonNullable = null; // error
-                                              ^" in null as{TypeError,ForNonNullableByDefault} asy::FutureOr<opt::A>;
+                                              ^" in let core::Null? #t4 = null in #t4.==(null) ?{asy::FutureOr<opt::A>} #t4 as{TypeError,ForNonNullableByDefault} asy::FutureOr<opt::A> : #t4{asy::FutureOr<opt::A>};
   asy::FutureOr<opt::A?> foNullable = null;
   asy::FutureOr<opt::A?> foNonNullableNullable = null;
   asy::FutureOr<opt::A?> foNullableNullable = null;

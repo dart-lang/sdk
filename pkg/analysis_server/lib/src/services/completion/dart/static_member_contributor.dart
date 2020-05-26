@@ -19,48 +19,58 @@ class StaticMemberContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request, SuggestionBuilder builder) async {
-    if (request.libraryElement == null) {
+    var library = request.libraryElement;
+    if (library == null) {
       // Gracefully degrade if the library could not be determined, such as a
       // detached part file or source change.
       // TODO(brianwilkerson) Consider testing for this before invoking _any_ of
       //  the contributors.
       return const <CompletionSuggestion>[];
     }
+    bool isVisible(Element element) => element.isAccessibleIn(library);
     var targetId = request.dotTarget;
     if (targetId is Identifier && !request.target.isCascade) {
       var element = targetId.staticElement;
       if (element is ClassElement) {
         for (var accessor in element.accessors) {
-          if (accessor.isStatic) {
+          if (accessor.isStatic &&
+              !accessor.isSynthetic &&
+              isVisible(accessor)) {
             builder.suggestAccessor(accessor, inheritanceDistance: -1.0);
           }
         }
         for (var constructor in element.constructors) {
-          builder.suggestConstructor(constructor, hasClassName: true);
+          if (isVisible(constructor)) {
+            builder.suggestConstructor(constructor, hasClassName: true);
+          }
         }
         for (var field in element.fields) {
-          if (field.isStatic && (!field.isSynthetic || element.isEnum)) {
+          if (field.isStatic &&
+              (!field.isSynthetic || element.isEnum) &&
+              isVisible(field)) {
             builder.suggestField(field, inheritanceDistance: -1.0);
           }
         }
         for (var method in element.methods) {
-          if (method.isStatic) {
+          if (method.isStatic && isVisible(method)) {
             builder.suggestMethod(method, inheritanceDistance: -1.0);
           }
         }
       } else if (element is ExtensionElement) {
         for (var accessor in element.accessors) {
-          if (accessor.isStatic) {
+          if (accessor.isStatic &&
+              !accessor.isSynthetic &&
+              isVisible(accessor)) {
             builder.suggestAccessor(accessor, inheritanceDistance: -1.0);
           }
         }
         for (var field in element.fields) {
-          if (field.isStatic) {
+          if (field.isStatic && !field.isSynthetic && isVisible(field)) {
             builder.suggestField(field, inheritanceDistance: -1.0);
           }
         }
         for (var method in element.methods) {
-          if (method.isStatic) {
+          if (method.isStatic && isVisible(method)) {
             builder.suggestMethod(method, inheritanceDistance: -1.0);
           }
         }

@@ -6,9 +6,9 @@ library test;
 //   get w => /*error:RETURN_OF_INVALID_TYPE*/ "hello";
 //                                             ^
 //
-// pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_3.dart:19:69: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
-//   String y = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::x*/ x;
-//                                                                     ^
+// pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_3.dart:19:68: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+//   String y = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B.x*/ x;
+//                                                                    ^
 //
 import self as self;
 import "dart:core" as core;
@@ -52,9 +52,9 @@ class B extends core::Object implements self::A<core::int*> {
   abstract member-signature get runtimeType() → core::Type*;
 }
 static method foo() → dynamic {
-  core::String* y = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_3.dart:19:69: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
-  String y = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::x*/ x;
-                                                                    ^" in new self::B::•().{self::B::x} as{TypeError} core::String*;
+  core::String* y = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_3.dart:19:68: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+  String y = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B.x*/ x;
+                                                                   ^" in new self::B::•().{self::B::x} as{TypeError} core::String*;
   core::int* z = new self::B::•().{self::B::x};
 }
 static method main() → dynamic {}

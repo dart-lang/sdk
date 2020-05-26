@@ -47,6 +47,7 @@ class NavigationTreeRenderer {
     var linksGroupedByDirectory = _groupBy(
         links.where((link) => link.depth > depth),
         (UnitLink link) => link.pathParts[depth]);
+
     return [
       for (var entry in linksGroupedByDirectory.entries)
         NavigationTreeNode.directory(
@@ -57,7 +58,7 @@ class NavigationTreeRenderer {
         NavigationTreeNode.file(
           name: link.fileName,
           path: pathContext.joinAll(link.pathParts),
-          href: link.url,
+          href: pathMapper.map(link.fullPath),
           editCount: link.editCount,
         ),
     ];

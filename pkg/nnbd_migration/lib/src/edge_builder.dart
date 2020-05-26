@@ -757,6 +757,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var origin = FieldFormalParameterOrigin(source, node);
     if (node.type == null) {
       _linkDecoratedTypes(parameterType, fieldType, origin, isUnion: false);
+      _checkAssignment(origin, FixReasonTarget.root,
+          source: fieldType, destination: parameterType, hard: false);
     } else {
       _dispatch(node.type);
       _checkAssignment(origin, FixReasonTarget.root,
@@ -2967,9 +2969,7 @@ mixin _AssignmentChecker {
   /// [destination].  [origin] should be used as the origin for any edges
   /// created.  [hard] indicates whether a hard edge should be created.
   /// [sourceIsFunctionLiteral] indicates whether the source of the assignment
-  /// is a function literal expression. [sourceIsSetupCall] indicates whether
-  /// the source of the assignment is a function literal passed to the test
-  /// package's `setUp` function.
+  /// is a function literal expression.
   void _checkAssignment(EdgeOrigin origin, FixReasonTarget edgeTarget,
       {@required DecoratedType source,
       @required DecoratedType destination,

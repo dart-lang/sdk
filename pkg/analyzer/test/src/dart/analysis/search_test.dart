@@ -756,7 +756,7 @@ main() {
     await _verifyReferences(element, expected);
   }
 
-  test_searchReferences_MethodElement() async {
+  test_searchReferences_MethodElement_class() async {
     await _resolveTestUnit('''
 class A {
   m() {}
@@ -779,7 +779,55 @@ class A {
     await _verifyReferences(method, expected);
   }
 
-  test_searchReferences_MethodMember() async {
+  test_searchReferences_MethodElement_extension_named() async {
+    await _resolveTestUnit('''
+extension E on int {
+  void foo() {}
+
+  void bar() {
+    foo(); // 1
+    this.foo(); // 2
+    print(foo); // 3
+    print(this.foo); // 4
+  }
+}
+''');
+    MethodElement method = _findElement('foo');
+    Element mainElement = _findElement('bar');
+    var expected = [
+      _expectId(mainElement, SearchResultKind.INVOCATION, 'foo(); // 1'),
+      _expectIdQ(mainElement, SearchResultKind.INVOCATION, 'foo(); // 2'),
+      _expectId(mainElement, SearchResultKind.REFERENCE, 'foo); // 3'),
+      _expectIdQ(mainElement, SearchResultKind.REFERENCE, 'foo); // 4')
+    ];
+    await _verifyReferences(method, expected);
+  }
+
+  test_searchReferences_MethodElement_extension_unnamed() async {
+    await _resolveTestUnit('''
+extension on int {
+  void foo() {}
+
+  void bar() {
+    foo(); // 1
+    this.foo(); // 2
+    print(foo); // 3
+    print(this.foo); // 4
+  }
+}
+''');
+    MethodElement method = _findElement('foo');
+    Element mainElement = _findElement('bar');
+    var expected = [
+      _expectId(mainElement, SearchResultKind.INVOCATION, 'foo(); // 1'),
+      _expectIdQ(mainElement, SearchResultKind.INVOCATION, 'foo(); // 2'),
+      _expectId(mainElement, SearchResultKind.REFERENCE, 'foo); // 3'),
+      _expectIdQ(mainElement, SearchResultKind.REFERENCE, 'foo); // 4')
+    ];
+    await _verifyReferences(method, expected);
+  }
+
+  test_searchReferences_MethodMember_class() async {
     await _resolveTestUnit('''
 class A<T> {
   T m() => null;

@@ -101,12 +101,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   FunctionNode _currentFunction;
 
-  void setIncrementalCompilationScope(Library library, Class cls) {
-    _currentLibrary = library;
-    _staticTypeContext.enterLibrary(_currentLibrary);
-    _currentClass = cls;
-  }
-
   /// Whether we are currently generating code for the body of a `JS()` call.
   bool _isInForeignJS = false;
 
@@ -2356,7 +2350,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var c = classes.removeFirst();
       var classesToCheck = [
         if (c.supertype != null) c.supertype.classNode,
-        for (var t in c.implementedTypes) if (t.classNode != null) t.classNode,
+        for (var t in c.implementedTypes)
+          if (t.classNode != null) t.classNode,
       ];
       classes.addAll(classesToCheck);
       for (var procedure in c.procedures) {
@@ -2856,8 +2851,28 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitTypedefType(TypedefType type) =>
       visitFunctionType(type.unalias as FunctionType);
 
-  js_ast.Fun emitFunction(FunctionNode f, String name) =>
-      _emitFunction(f, name);
+  /// Emits function after initial compilation.
+  ///
+  /// Emits function from kernel [functionNode] with name [name] in the context
+  /// of [library] and [cls], after the initial compilation of the module is
+  /// finished. For example, this happens in expression compilation during
+  /// expression evaluation initiated by the user from the IDE and coordinated
+  /// by the debugger.
+  js_ast.Fun emitFunctionIncremental(
+      Library library, Class cls, FunctionNode functionNode, String name) {
+    // setup context
+    _currentLibrary = library;
+    _staticTypeContext.enterLibrary(_currentLibrary);
+    _currentClass = cls;
+
+    // emit function with additional information,
+    // such as types that are used in the expression
+    var fun = _emitFunction(functionNode, name);
+    var items = _typeTable.discharge();
+    var body = js_ast.Block([...items, ...fun.body.statements]);
+
+    return js_ast.Fun(fun.params, body);
+  }
 
   js_ast.Fun _emitFunction(FunctionNode f, String name) {
     // normal function (sync), vs (sync*, async, async*)
@@ -4873,7 +4888,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     types = types && _reifyGenericFunction(target);
     final isJsInterop = target != null && isJsMember(target);
     return [
-      if (types) for (var typeArg in node.types) _emitType(typeArg),
+      if (types)
+        for (var typeArg in node.types) _emitType(typeArg),
       for (var arg in node.positional)
         if (arg is StaticInvocation &&
             isJSSpreadInvocation(arg.target) &&

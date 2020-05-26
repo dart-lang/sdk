@@ -1669,11 +1669,11 @@ class Dart2JSBackend(HtmlDartGenerator):
         return resultType
 
     def _zeroArgs(self, argsNames):
-        return 'JS("", "#.$NAME()", this)'
+        return 'JS("", "#.$JSNAME()", this)'
 
     def _manyArgs(self, numberArgs, argsNames):
         argsPound = "#" if numberArgs == 1 else ("#, " * numberArgs)[:-2]
-        return '    JS("", "#.$NAME(%s)", this, %s)' % (argsPound, argsNames)
+        return '    JS("", "#.$JSNAME(%s)", this, %s)' % (argsPound, argsNames)
 
     """ If argument conversionsMapToDictionary is a list first entry is argument
       name and second entry signals if argument is optional (True). """
@@ -1787,6 +1787,7 @@ class Dart2JSBackend(HtmlDartGenerator):
                 TYPE=promiseType,
                 PROMISE_CALL=promiseCall,
                 NAME=html_name,
+                JSNAME=info.declared_name,
                 PARAMS=info.ParametersAsDeclaration(self._NarrowInputType,
                                                     force_optional))
         else:

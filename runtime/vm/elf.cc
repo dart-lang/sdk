@@ -649,7 +649,8 @@ static constexpr uword kVmSnapshotOffset = 2 * Elf::kPageSize;
 // Find the relocated base of the loaded ELF snapshot. Returns 0 if there is
 // no loaded ELF snapshot.
 uword Elf::SnapshotRelocatedBaseAddress(uword vm_start) {
-  ASSERT(vm_start > kVmSnapshotOffset);
+  // We can't running from a loaded ELF snapshot if this is the case.
+  if (vm_start < kVmSnapshotOffset) return 0;
 
   const Image vm_instructions_image(reinterpret_cast<const void*>(vm_start));
   if (!vm_instructions_image.compiled_to_elf()) return 0;

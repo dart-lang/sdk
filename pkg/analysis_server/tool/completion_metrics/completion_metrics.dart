@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:math' as math;
 
@@ -875,12 +876,12 @@ class CompletionMetricsComputer {
       print('');
       print('  Rank: $rank');
       print('  Location: ${expected.location}');
-      print('  Suggestion: $suggestion');
+      print('  Suggestion: ${suggestion.description}');
       print('  Features: $features');
       print('  Top $topSuggestionCount suggestions:');
       for (var i = 0; i < topSuggestionCount; i++) {
         var topSuggestion = topSuggestions[i];
-        print('  $i Suggestion: $topSuggestion');
+        print('  $i Suggestion: ${topSuggestion.description}');
         if (result.listener != null) {
           var feature = result.listener.featureMap[topSuggestion];
           if (feature.isEmpty) {
@@ -1048,6 +1049,12 @@ class MetricsSuggestionListener implements SuggestionListener {
   void missingElementKindTableFor(String completionLocation) {
     missingCompletionLocationTable = completionLocation;
   }
+}
+
+extension on protocol.CompletionSuggestion {
+  /// A shorter description of the suggestion than [toString] provides.
+  String get description =>
+      json.encode(toJson()..remove('docSummary')..remove('docComplete'));
 }
 
 extension AvailableSuggestionsExtension on protocol.AvailableSuggestion {

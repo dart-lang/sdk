@@ -260,7 +260,7 @@ class FileResolver {
 
     if (fsState == null) {
       var featureSetProvider = FeatureSetProvider.build(
-        resourceProvider: resourceProvider,
+        sourceFactory: sourceFactory,
         packages: Packages.empty,
         packageDefaultFeatureSet: analysisOptions.contextFeatures,
         nonPackageDefaultFeatureSet: analysisOptions.nonPackageFeatureSet,

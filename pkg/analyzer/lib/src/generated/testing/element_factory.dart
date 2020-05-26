@@ -89,7 +89,7 @@ class ElementFactory {
       [List<String> parameterNames]) {
     ClassElementImpl element =
         classElement(typeName, superclassType, parameterNames);
-    element.mixinApplication = true;
+    element.isMixinApplication = true;
     return element;
   }
 
@@ -426,7 +426,7 @@ class ElementFactory {
     field.isFinal = true;
     PropertyAccessorElementImpl getter = PropertyAccessorElementImpl(name, 0);
     getter.isSynthetic = false;
-    getter.getter = true;
+    getter.isGetter = true;
     getter.variable = field;
     getter.returnType = type;
     getter.isStatic = isStatic;
@@ -577,13 +577,13 @@ class ElementFactory {
     field.isSynthetic = true;
     field.type = type;
     PropertyAccessorElementImpl getter = PropertyAccessorElementImpl(name, -1);
-    getter.getter = true;
+    getter.isGetter = true;
     getter.variable = field;
     getter.returnType = type;
     field.getter = getter;
     ParameterElementImpl parameter = requiredParameter2("a", type);
     PropertyAccessorElementImpl setter = PropertyAccessorElementImpl(name, -1);
-    setter.setter = true;
+    setter.isSetter = true;
     setter.isSynthetic = true;
     setter.variable = field;
     setter.parameters = <ParameterElement>[parameter];

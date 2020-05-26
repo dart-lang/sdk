@@ -4328,7 +4328,7 @@ class InstanceRef extends ObjRef {
     kind = json['kind'];
     classRef = createServiceObject(json['class'], const ['ClassRef']);
     valueAsString = json['valueAsString'];
-    valueAsStringIsTruncated = json['valueAsStringIsTruncated'] ?? false;
+    valueAsStringIsTruncated = json['valueAsStringIsTruncated'];
     length = json['length'];
     name = json['name'];
     typeClass = createServiceObject(json['typeClass'], const ['ClassRef']);
@@ -4350,8 +4350,7 @@ class InstanceRef extends ObjRef {
       'class': classRef.toJson(),
     });
     _setIfNotNull(json, 'valueAsString', valueAsString);
-    _setIfNotNull(
-        json, 'valueAsStringIsTruncated', valueAsStringIsTruncated ?? false);
+    _setIfNotNull(json, 'valueAsStringIsTruncated', valueAsStringIsTruncated);
     _setIfNotNull(json, 'length', length);
     _setIfNotNull(json, 'name', name);
     _setIfNotNull(json, 'typeClass', typeClass?.toJson());
@@ -4658,7 +4657,7 @@ class Instance extends Obj implements InstanceRef {
     kind = json['kind'];
     classRef = createServiceObject(json['class'], const ['ClassRef']);
     valueAsString = json['valueAsString'];
-    valueAsStringIsTruncated = json['valueAsStringIsTruncated'] ?? false;
+    valueAsStringIsTruncated = json['valueAsStringIsTruncated'];
     length = json['length'];
     offset = json['offset'];
     count = json['count'];
@@ -4708,8 +4707,7 @@ class Instance extends Obj implements InstanceRef {
       'class': classRef.toJson(),
     });
     _setIfNotNull(json, 'valueAsString', valueAsString);
-    _setIfNotNull(
-        json, 'valueAsStringIsTruncated', valueAsStringIsTruncated ?? false);
+    _setIfNotNull(json, 'valueAsStringIsTruncated', valueAsStringIsTruncated);
     _setIfNotNull(json, 'length', length);
     _setIfNotNull(json, 'offset', offset);
     _setIfNotNull(json, 'count', count);

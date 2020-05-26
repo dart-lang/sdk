@@ -14,9 +14,9 @@ import 'types.dart';
 DynamicLibrary openSsl() {
   // Force load crypto.
   dlopenPlatformSpecific("crypto",
-      path: Platform.script.resolve("native/out/").path);
+      path: Platform.script.resolve("../native/out/").path);
   DynamicLibrary ssl = dlopenPlatformSpecific("ssl",
-      path: Platform.script.resolve("native/out/").path);
+      path: Platform.script.resolve("../native/out/").path);
   return ssl;
 }
 

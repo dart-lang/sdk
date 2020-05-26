@@ -747,18 +747,20 @@ class _IndexRequest {
       return -1;
     }
     // Prepare information about the element.
-    int unitMemberId = getElementUnitMemberId(element);
+    var components = ElementNameComponents(element);
+    int unitMemberId = getStringId(components.unitMemberName);
     if (unitMemberId == -1) {
       return -1;
     }
-    int classMemberId = getElementClassMemberId(element);
+    int classMemberId = getStringId(components.classMemberName);
     if (classMemberId == -1) {
       return -1;
     }
-    int parameterId = getElementParameterId(element);
+    int parameterId = getStringId(components.parameterName);
     if (parameterId == -1) {
       return -1;
     }
+
     // Try to find the element id using classMemberId, parameterId, and kind.
     int elementId =
         _findFirstOccurrence(index.elementNameUnitMemberIds, unitMemberId);
@@ -777,46 +779,6 @@ class _IndexRequest {
       }
     }
     return -1;
-  }
-
-  /**
-   * Return the [element]'s class member name identifier, `null` is not a class
-   * member, or `-1` if the [element] is not referenced in the [index].
-   */
-  int getElementClassMemberId(Element element) {
-    for (; element != null; element = element.enclosingElement) {
-      if (element.enclosingElement is ClassElement ||
-          element.enclosingElement is ExtensionElement) {
-        return getStringId(element.name);
-      }
-    }
-    return index.nullStringId;
-  }
-
-  /**
-   * Return the [element]'s class member name identifier, `null` is not a class
-   * member, or `-1` if the [element] is not referenced in the [index].
-   */
-  int getElementParameterId(Element element) {
-    for (; element != null; element = element.enclosingElement) {
-      if (element is ParameterElement) {
-        return getStringId(element.name);
-      }
-    }
-    return index.nullStringId;
-  }
-
-  /**
-   * Return the [element]'s top-level name identifier, `0` is the unit, or
-   * `-1` if the [element] is not referenced in the [index].
-   */
-  int getElementUnitMemberId(Element element) {
-    for (; element != null; element = element.enclosingElement) {
-      if (element.enclosingElement is CompilationUnitElement) {
-        return getStringId(element.name);
-      }
-    }
-    return index.nullStringId;
   }
 
   /**
@@ -868,6 +830,10 @@ class _IndexRequest {
    * used in the [index].
    */
   int getStringId(String str) {
+    if (str == null) {
+      return index.nullStringId;
+    }
+
     return binarySearch(index.strings, str);
   }
 

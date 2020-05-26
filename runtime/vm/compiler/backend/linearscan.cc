@@ -276,6 +276,10 @@ void SSALivenessAnalysis::ComputeInitialSets() {
         const intptr_t vreg = def->ssa_temp_index();
         kill_[entry->postorder_number()]->Add(vreg);
         live_in_[entry->postorder_number()]->Remove(vreg);
+        if (def->HasPairRepresentation()) {
+          kill_[entry->postorder_number()]->Add(ToSecondPairVreg((vreg)));
+          live_in_[entry->postorder_number()]->Remove(ToSecondPairVreg(vreg));
+        }
       }
     }
   }

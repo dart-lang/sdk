@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
 import 'package:nnbd_migration/src/front_end/navigation_tree_renderer.dart';
 import 'package:nnbd_migration/src/front_end/path_mapper.dart';
 import 'package:nnbd_migration/src/front_end/web/navigation_tree.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+import 'package:path/path.dart' as path;
 
 import 'nnbd_migration_test_base.dart';
 
@@ -21,6 +23,8 @@ const isNavigationTreeNode = TypeMatcher<NavigationTreeNode>();
 
 @reflectiveTest
 class NavigationTreeRendererTest extends NnbdMigrationTestBase {
+  PathMapper pathMapper;
+
   /// Render the navigation tree view for [files].
   Future<List<NavigationTreeNode>> renderNavigationTree(
       Map<String, String> files) async {
@@ -28,8 +32,8 @@ class NavigationTreeRendererTest extends NnbdMigrationTestBase {
     await buildInfoForTestFiles(files, includedRoot: packageRoot);
     var migrationInfo =
         MigrationInfo(infos, {}, resourceProvider.pathContext, packageRoot);
-    return NavigationTreeRenderer(migrationInfo, PathMapper(resourceProvider))
-        .render();
+    pathMapper = PathMapper(resourceProvider);
+    return NavigationTreeRenderer(migrationInfo, pathMapper).render();
   }
 
   Future<void> test_containsEditCounts() async {
@@ -60,13 +64,15 @@ class NavigationTreeRendererTest extends NnbdMigrationTestBase {
     expect(
         libNode,
         isNavigationTreeNode.named('lib').havingSubtree([
-          isNavigationTreeNode.named('src').havingSubtree(
-              [isNavigationTreeNode.havingHref('/project/lib/src/b.dart')]),
-          isNavigationTreeNode.havingHref('/project/lib/a.dart')
+          isNavigationTreeNode.named('src').havingSubtree([
+            isNavigationTreeNode.havingHref(
+                '/project/lib/src/b.dart', pathMapper)
+          ]),
+          isNavigationTreeNode.havingHref('/project/lib/a.dart', pathMapper)
         ]));
 
     var toolNode = response[1];
-    expect(toolNode.href, '/project/tool.dart');
+    expect(toolNode.href, pathMapper.map(convertPath('/project/tool.dart')));
   }
 
   Future<void> test_containsMultipleLinks_multipleDepths() async {
@@ -123,11 +129,11 @@ class NavigationTreeRendererTest extends NnbdMigrationTestBase {
           isNavigationTreeNode
               .named('a.dart')
               .havingPath(convertPath('lib/a.dart'))
-              .havingHref('/project/lib/a.dart'),
+              .havingHref('/project/lib/a.dart', pathMapper),
           isNavigationTreeNode
               .named('b.dart')
               .havingPath(convertPath('lib/b.dart'))
-              .havingHref('/project/lib/b.dart')
+              .havingHref('/project/lib/b.dart', pathMapper)
         ]));
   }
 
@@ -165,7 +171,7 @@ class NavigationTreeRendererTest extends NnbdMigrationTestBase {
             isNavigationTreeNode
                 .named('a.dart')
                 .havingPath(convertPath('lib/src/a.dart'))
-                .havingHref('/project/lib/src/a.dart')
+                .havingHref('/project/lib/src/a.dart', pathMapper)
           ])
         ]));
   }
@@ -179,7 +185,7 @@ class NavigationTreeRendererTest extends NnbdMigrationTestBase {
     var aNode = response[0];
     expect(aNode.name, 'a.dart');
     expect(aNode.path, 'a.dart');
-    expect(aNode.href, '/project/a.dart');
+    expect(aNode.href, pathMapper.map(convertPath('/project/a.dart')));
   }
 }
 
@@ -193,8 +199,9 @@ extension on TypeMatcher<NavigationTreeNode> {
   TypeMatcher<NavigationTreeNode> named(dynamic matcher) =>
       having((node) => node.name, 'name', matcher);
 
-  TypeMatcher<NavigationTreeNode> havingHref(dynamic matcher) =>
-      having((node) => node.href, 'href', matcher);
+  TypeMatcher<NavigationTreeNode> havingHref(
+          String path, PathMapper pathMapper) =>
+      having((node) => node.href, 'href', pathMapper.map(path));
 
   TypeMatcher<NavigationTreeNode> havingPath(dynamic matcher) =>
       having((node) => node.path, 'path', matcher);

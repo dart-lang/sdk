@@ -13,7 +13,14 @@ import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart'
-    show ClassElement, Element, FieldElement, LibraryElement;
+    show
+        ClassElement,
+        ConstructorElement,
+        Element,
+        FieldElement,
+        LibraryElement,
+        PropertyAccessorElement,
+        TopLevelVariableElement;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
@@ -150,6 +157,23 @@ class FeatureComputer {
       return 0.0;
     }
     return _distanceToPercent(distance);
+  }
+
+  /// Return the value of the _is constant_ feature for the given [element].
+  double isConstantFeature(Element element) {
+    if (element is ConstructorElement && element.isConst) {
+      return 1.0;
+    } else if (element is FieldElement && element.isStatic && element.isConst) {
+      return 1.0;
+    } else if (element is TopLevelVariableElement && element.isConst) {
+      return 1.0;
+    } else if (element is PropertyAccessorElement &&
+        element.isSynthetic &&
+        element.variable.isStatic &&
+        element.variable.isConst) {
+      return 1.0;
+    }
+    return 0.0;
   }
 
   /// Return the value of the _starts with dollar_ feature.
@@ -406,22 +430,21 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
 
   @override
   DartType visitListLiteral(ListLiteral node) {
-    var typeArguments = node.typeArguments?.arguments;
-    if (typeArguments != null && typeArguments.length == 1) {
-      return typeArguments[0].type;
+    if (node.elements.contains(childNode)) {
+      return (node.staticType as InterfaceType).typeArguments[0];
     }
     return null;
   }
 
   @override
   DartType visitMapLiteralEntry(MapLiteralEntry node) {
-    var typeArguments =
-        node.thisOrAncestorOfType<SetOrMapLiteral>()?.typeArguments;
-    if (typeArguments != null && typeArguments.length == 2) {
+    var literal = node.thisOrAncestorOfType<SetOrMapLiteral>();
+    if (literal != null && literal.staticType.isDartCoreMap) {
+      var typeArguments = (literal.staticType as InterfaceType).typeArguments;
       if (childNode == node.key) {
-        return typeArguments.arguments[0].type;
+        return typeArguments[0];
       } else {
-        return typeArguments.arguments[1].type;
+        return typeArguments[1];
       }
     }
     return null;
@@ -433,6 +456,14 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
       return _visitParent(node);
     }
     return null;
+  }
+
+  @override
+  DartType visitNamedExpression(NamedExpression node) {
+    if (childNode == node.expression) {
+      return _visitParent(node);
+    }
+    return super.visitNamedExpression(node);
   }
 
   @override
@@ -473,11 +504,10 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
 
   @override
   DartType visitSetOrMapLiteral(SetOrMapLiteral node) {
-    if (node.isSet) {
-      var typeArguments = node.typeArguments?.arguments;
-      if (typeArguments != null && typeArguments.length == 1) {
-        return typeArguments[0].type;
-      }
+    var type = node.staticType;
+    if (node.elements.contains(childNode) &&
+        (type.isDartCoreMap || type.isDartCoreSet)) {
+      return (type as InterfaceType).typeArguments[0];
     }
     return null;
   }

@@ -166,13 +166,6 @@ group("dartdevc_test_local") {
   ]
 }
 
-group("dartdevc_test_kernel_local") {
-  deps = [
-    ":dartdevc_kernel_sdk",
-    ":dartdevc_test_kernel_pkg",
-  ]
-}
-
 create_timestamp_file("dartdevc_files_stamp") {
   path = rebase_path("../../pkg/dev_compiler/lib")
   output = "$target_gen_dir/dartdevc_files.stamp"

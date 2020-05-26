@@ -6697,6 +6697,22 @@ abstract class DartType extends Node {
   }
 
   bool equals(Object other, Assumptions assumptions);
+
+  @override
+  String toStringInternal() {
+    return toTypeText(verbose: _verboseTypeToString);
+  }
+
+  /// Returns a textual representation of the this type.
+  ///
+  /// If [verbose] is `true`, qualified names will include the library name/uri.
+  String toTypeText({bool verbose: false}) {
+    StringBuffer sb = new StringBuffer();
+    toTypeTextInternal(sb, verbose: verbose);
+    return sb.toString();
+  }
+
+  void toTypeTextInternal(StringBuffer sb, {bool verbose: false});
 }
 
 /// The type arising from invalid type annotations.
@@ -6742,8 +6758,8 @@ class InvalidType extends DartType {
   }
 
   @override
-  String toStringInternal() {
-    return "invalid-type";
+  void toTypeTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write("<invalid>");
   }
 }
 
@@ -6784,8 +6800,8 @@ class DynamicType extends DartType {
   }
 
   @override
-  String toStringInternal() {
-    return "dynamic";
+  void toTypeTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write("dynamic");
   }
 }
 
@@ -6826,8 +6842,8 @@ class VoidType extends DartType {
   }
 
   @override
-  String toStringInternal() {
-    return "void";
+  void toTypeTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write("void");
   }
 }
 
@@ -6875,8 +6891,9 @@ class NeverType extends DartType {
   }
 
   @override
-  String toStringInternal() {
-    return "${nullabilityToString(nullability)}";
+  void toTypeTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write("Never");
+    sb.write(nullabilityToString(nullability));
   }
 }
 
@@ -6917,8 +6934,8 @@ class BottomType extends DartType {
   }
 
   @override
-  String toStringInternal() {
-    return "<BottomType>";
+  void toTypeTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write("<bottom>");
   }
 }
 
@@ -7015,7 +7032,25 @@ class InterfaceType extends DartType {
   }
 
   @override
+  void toTypeTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write(
+        qualifiedClassNameToString(classNode, includeLibraryName: verbose));
+    if (typeArguments.isNotEmpty) {
+      sb.write("<");
+      String comma = "";
+      for (DartType typeArgument in typeArguments) {
+        sb.write(comma);
+        typeArgument.toTypeTextInternal(sb, verbose: verbose);
+        comma = ", ";
+      }
+      sb.write(">");
+    }
+    sb.write(nullabilityToString(nullability));
+  }
+
+  @override
   String toStringInternal() {
+    // TODO(johnniwinther): Unify this with [toTypeTextInternal].
     StringBuffer sb = new StringBuffer();
     if (_verboseTypeToString) {
       sb.write(className.toStringInternal());
@@ -7217,26 +7252,44 @@ class FunctionType extends DartType {
   }
 
   @override
-  String toStringInternal() {
-    StringBuffer sb = new StringBuffer();
-    sb.write(returnType.toStringInternal());
+  void toTypeTextInternal(StringBuffer sb, {bool verbose: false}) {
+    returnType.toTypeTextInternal(sb, verbose: verbose);
     sb.write(" Function");
     if (typeParameters.isNotEmpty) {
       sb.write("<");
       String comma = "";
       for (TypeParameter typeParameter in typeParameters) {
         sb.write(comma);
-        sb.write(typeParameter.toStringInternal());
+        sb.write(typeParameter.name);
+        DartType bound = typeParameter.bound;
+
+        bool isTopObject(DartType type) {
+          if (type is InterfaceType &&
+              type.className.node != null &&
+              type.classNode.name == 'Object') {
+            Uri uri = type.classNode.enclosingLibrary?.importUri;
+            return uri?.scheme == 'dart' &&
+                uri?.path == 'core' &&
+                (type.nullability == Nullability.legacy ||
+                    type.nullability == Nullability.nullable);
+          }
+          return false;
+        }
+
+        if (!isTopObject(bound) || isTopObject(typeParameter.defaultType)) {
+          // Include explicit bounds only.
+          sb.write(' extends ');
+          bound.toTypeTextInternal(sb, verbose: verbose);
+        }
         comma = ", ";
       }
       sb.write(">");
     }
-
     sb.write("(");
     for (int i = 0; i < positionalParameters.length; i++) {
       if (i > 0) sb.write(", ");
       if (i == requiredParameterCount) sb.write("[");
-      sb.write(positionalParameters[i].toStringInternal());
+      positionalParameters[i].toTypeTextInternal(sb, verbose: verbose);
     }
     if (requiredParameterCount < positionalParameters.length) sb.write("]");
 
@@ -7247,14 +7300,12 @@ class FunctionType extends DartType {
       sb.write("{");
       for (int i = 0; i < namedParameters.length; i++) {
         if (i > 0) sb.write(", ");
-        sb.write(namedParameters[i].toStringInternal());
+        namedParameters[i].toTypeTextInternal(sb, includeLibraryName: verbose);
       }
       sb.write("}");
     }
     sb.write(")");
     sb.write(nullabilityToString(nullability));
-
-    return sb.toString();
   }
 }
 
@@ -7356,20 +7407,20 @@ class TypedefType extends DartType {
   }
 
   @override
-  String toStringInternal() {
-    StringBuffer sb = new StringBuffer();
-    sb.write(typedefNode.toStringInternal());
+  void toTypeTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write(
+        qualifiedTypedefNameToString(typedefNode, includeLibraryName: verbose));
     if (typeArguments.isNotEmpty) {
       sb.write("<");
       String comma = "";
       for (DartType typeArgument in typeArguments) {
         sb.write(comma);
-        sb.write(typeArgument.toStringInternal());
+        typeArgument.toTypeTextInternal(sb, verbose: verbose);
         comma = ", ";
       }
       sb.write(">");
     }
-    return sb.toString();
+    sb.write(nullabilityToString(nullability));
   }
 }
 
@@ -7415,11 +7466,15 @@ class NamedType extends Node implements Comparable<NamedType> {
     return "NamedType(${toStringInternal()})";
   }
 
+  void toTypeTextInternal(StringBuffer sb, {bool includeLibraryName: false}) {
+    if (isRequired) sb.write("required ");
+    sb.write("$name: ${type.toStringInternal()}");
+  }
+
   @override
   String toStringInternal() {
     StringBuffer sb = new StringBuffer();
-    if (isRequired) sb.write("required ");
-    sb.write("$name: ${type.toStringInternal()}");
+    toTypeTextInternal(sb, includeLibraryName: _verboseTypeToString);
     return sb.toString();
   }
 }
@@ -7717,10 +7772,9 @@ class TypeParameterType extends DartType {
   }
 
   @override
-  String toStringInternal() {
-    StringBuffer sb = new StringBuffer();
+  void toTypeTextInternal(StringBuffer sb, {bool verbose: false}) {
     sb.write(qualifiedTypeParameterNameToString(parameter,
-        includeLibraryName: _verboseTypeToString));
+        includeLibraryName: verbose));
     sb.write(nullabilityToString(declaredNullability));
     if (promotedBound != null) {
       sb.write(" & ");
@@ -7737,8 +7791,6 @@ class TypeParameterType extends DartType {
       sb.write(nullabilityToString(nullability));
       sb.write("' */");
     }
-
-    return sb.toString();
   }
 }
 
@@ -8048,6 +8100,17 @@ abstract class Constant extends Node {
   int get hashCode;
   bool operator ==(Object other);
 
+  /// Returns a textual representation of the this constant.
+  ///
+  /// If [verbose] is `true`, qualified names will include the library name/uri.
+  String toConstantText({bool verbose: false}) {
+    StringBuffer sb = new StringBuffer();
+    toConstantTextInternal(sb, verbose: verbose);
+    return sb.toString();
+  }
+
+  void toConstantTextInternal(StringBuffer sb, {bool verbose: false});
+
   /// Gets the type of this constant.
   DartType getType(StaticTypeContext context);
 
@@ -8068,6 +8131,11 @@ abstract class PrimitiveConstant<T> extends Constant {
 
   bool operator ==(Object other) =>
       other is PrimitiveConstant<T> && other.value == value;
+
+  @override
+  void toConstantTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write(value);
+  }
 }
 
 class NullConstant extends PrimitiveConstant<Null> {
@@ -8162,6 +8230,16 @@ class SymbolConstant extends Constant {
 
   DartType getType(StaticTypeContext context) =>
       context.typeEnvironment.coreTypes.symbolRawType(context.nonNullable);
+
+  @override
+  void toConstantTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write('#');
+    if (verbose && libraryReference != null) {
+      sb.write(libraryNameToString(libraryReference.asLibrary));
+      sb.write('::');
+    }
+    sb.write(name);
+  }
 }
 
 class MapConstant extends Constant {
@@ -8182,6 +8260,22 @@ class MapConstant extends Constant {
 
   R accept<R>(ConstantVisitor<R> v) => v.visitMapConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitMapConstantReference(this);
+
+  @override
+  void toConstantTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write('<');
+    keyType.toTypeTextInternal(sb, verbose: verbose);
+    sb.write(', ');
+    valueType.toTypeTextInternal(sb, verbose: verbose);
+    sb.write('>{');
+    for (int i = 0; i < entries.length; i++) {
+      if (i > 0) {
+        sb.write(', ');
+      }
+      entries[i].toConstantTextInternal(sb, includeLibraryName: verbose);
+    }
+    sb.write('}');
+  }
 
   String toString() => toStringInternal();
   String toStringInternal() {
@@ -8217,6 +8311,13 @@ class ConstantMapEntry {
 
   bool operator ==(Object other) =>
       other is ConstantMapEntry && other.key == key && other.value == value;
+
+  void toConstantTextInternal(StringBuffer sb,
+      {bool includeLibraryName: false}) {
+    key.toConstantTextInternal(sb, verbose: includeLibraryName);
+    sb.write(': ');
+    value.toConstantTextInternal(sb, verbose: includeLibraryName);
+  }
 }
 
 class ListConstant extends Constant {
@@ -8234,6 +8335,20 @@ class ListConstant extends Constant {
 
   R accept<R>(ConstantVisitor<R> v) => v.visitListConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitListConstantReference(this);
+
+  @override
+  void toConstantTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write('<');
+    typeArgument.toTypeTextInternal(sb, verbose: verbose);
+    sb.write('>[');
+    for (int i = 0; i < entries.length; i++) {
+      if (i > 0) {
+        sb.write(', ');
+      }
+      entries[i].toConstantTextInternal(sb, verbose: verbose);
+    }
+    sb.write(']');
+  }
 
   String toString() => toStringInternal();
   String toStringInternal() {
@@ -8271,6 +8386,20 @@ class SetConstant extends Constant {
 
   R accept<R>(ConstantVisitor<R> v) => v.visitSetConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitSetConstantReference(this);
+
+  @override
+  void toConstantTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write('<');
+    typeArgument.toTypeTextInternal(sb, verbose: verbose);
+    sb.write('>{');
+    for (int i = 0; i < entries.length; i++) {
+      if (i > 0) {
+        sb.write(', ');
+      }
+      entries[i].toConstantTextInternal(sb, verbose: verbose);
+    }
+    sb.write('}');
+  }
 
   String toString() => toStringInternal();
   String toStringInternal() {
@@ -8315,6 +8444,32 @@ class InstanceConstant extends Constant {
 
   R accept<R>(ConstantVisitor<R> v) => v.visitInstanceConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitInstanceConstantReference(this);
+
+  @override
+  void toConstantTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write(
+        qualifiedClassNameToString(classNode, includeLibraryName: verbose));
+    if (typeArguments.isNotEmpty) {
+      sb.write('<');
+      for (int i = 0; i < typeArguments.length; i++) {
+        if (i > 0) {
+          sb.write(', ');
+        }
+        typeArguments[i].toTypeTextInternal(sb, verbose: verbose);
+      }
+      sb.write('>');
+    }
+    sb.write('{');
+    String comma = '';
+    fieldValues.forEach((Reference fieldRef, Constant constant) {
+      sb.write(comma);
+      sb.write(qualifiedMemberNameToString(fieldRef.asField));
+      sb.write(': ');
+      constant.toConstantTextInternal(sb, verbose: verbose);
+      comma = ', ';
+    });
+    sb.write('}');
+  }
 
   String toString() => toStringInternal();
   String toStringInternal() {
@@ -8369,6 +8524,19 @@ class PartialInstantiationConstant extends Constant {
   R acceptReference<R>(Visitor<R> v) =>
       v.visitPartialInstantiationConstantReference(this);
 
+  @override
+  void toConstantTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write('<');
+    for (int i = 0; i < types.length; i++) {
+      if (i > 0) {
+        sb.write(',');
+      }
+      types[i].toTypeTextInternal(sb, verbose: verbose);
+    }
+    sb.write('>');
+    tearOffConstant.toConstantTextInternal(sb, verbose: verbose);
+  }
+
   String toString() => toStringInternal();
   String toStringInternal() {
     return '${runtimeType}(${tearOffConstant.procedure}<'
@@ -8413,6 +8581,12 @@ class TearOffConstant extends Constant {
   R accept<R>(ConstantVisitor<R> v) => v.visitTearOffConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitTearOffConstantReference(this);
 
+  @override
+  void toConstantTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write(
+        qualifiedMemberNameToString(procedure, includeLibraryName: verbose));
+  }
+
   String toString() => toStringInternal();
   String toStringInternal() {
     return '${runtimeType}(${procedure})';
@@ -8442,6 +8616,11 @@ class TypeLiteralConstant extends Constant {
   R accept<R>(ConstantVisitor<R> v) => v.visitTypeLiteralConstant(this);
   R acceptReference<R>(Visitor<R> v) =>
       v.visitTypeLiteralConstantReference(this);
+
+  @override
+  void toConstantTextInternal(StringBuffer sb, {bool verbose: false}) {
+    type.toTypeTextInternal(sb, verbose: verbose);
+  }
 
   String toString() => toStringInternal();
   String toStringInternal() => '${runtimeType}(${type})';
@@ -8476,6 +8655,13 @@ class UnevaluatedConstant extends Constant {
 
   @override
   Expression asExpression() => expression;
+
+  @override
+  void toConstantTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write('unevaluated{');
+    sb.write(expression);
+    sb.write('}');
+  }
 
   @override
   String toString() {

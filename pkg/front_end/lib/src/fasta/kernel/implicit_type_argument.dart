@@ -49,12 +49,12 @@ class ImplicitTypeArgument extends DartType {
   bool equals(Object other, Assumptions assumptions) => this == other;
 
   @override
-  String toString() {
-    return "ImplicitTypeArgument(${toStringInternal()})";
+  void toTypeTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write('<implicit-type-argument>');
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  String toString() {
+    return "ImplicitTypeArgument(${toStringInternal()})";
   }
 }

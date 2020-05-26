@@ -79,7 +79,7 @@ String qualifiedMemberNameToString(Member node,
   if (node.enclosingClass != null) {
     return qualifiedClassNameToString(node.enclosingClass,
             includeLibraryName: includeLibraryName) +
-        '::' +
+        '.' +
         memberNameToString(node);
   } else if (includeLibraryName) {
     return libraryNameToString(node.enclosingLibrary) +
@@ -101,17 +101,17 @@ String qualifiedTypeParameterNameToString(TypeParameter node,
   if (parent is Class) {
     return qualifiedClassNameToString(parent,
             includeLibraryName: includeLibraryName) +
-        '::' +
+        '.' +
         typeParameterNameToString(node);
   } else if (parent is Extension) {
     return qualifiedExtensionNameToString(parent,
             includeLibraryName: includeLibraryName) +
-        '::' +
+        '.' +
         typeParameterNameToString(node);
   } else if (parent is Member) {
     return qualifiedMemberNameToString(parent,
             includeLibraryName: includeLibraryName) +
-        '::' +
+        '.' +
         typeParameterNameToString(node);
   }
   return typeParameterNameToString(node);

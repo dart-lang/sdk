@@ -120,6 +120,7 @@ dadd
 daemon
 dartanalyzer
 dartfile
+dartfmt
 dash
 dashes
 day
@@ -415,6 +416,7 @@ quot
 r"
 r"\s
 r"k
+r"tools
 rd
 reachability
 reality
@@ -485,6 +487,10 @@ subcommand
 subdir
 subtool
 subtools
+subtyping1a
+subtyping1b
+subtyping2a
+subtyping2b
 suite
 summarization
 summarized

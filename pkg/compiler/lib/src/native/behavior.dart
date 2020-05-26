@@ -849,9 +849,14 @@ abstract class BehaviorBuilder {
 
     // Breakdown nullable type into TypeWithoutNullability|Null.
     // Pre-nnbd Declared types are nullable, so we also add null in that case.
+    // TODO(41960): Remove check for legacy subtyping. This was added as a
+    // temporary workaround to unblock the null-safe unfork. At this time some
+    // native APIs are typed unsoundly because they don't consider browser
+    // compatibility or conditional support by context.
     if (type is NullableType ||
         type is LegacyType ||
-        (!options.useNullSafety && type is! VoidType)) {
+        ((!options.useNullSafety || options.useLegacySubtyping) &&
+            type is! VoidType)) {
       _behavior.typesReturned.add(commonElements.nullType);
     }
   }

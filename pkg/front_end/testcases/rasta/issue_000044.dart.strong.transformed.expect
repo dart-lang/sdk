@@ -80,7 +80,7 @@ Try removing the return type.
  - 'C' is from 'pkg/front_end/testcases/rasta/issue_000044.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'h'.
   C notEvenAConstructor(a) = h;
-                             ^" as{TypeError,ForDynamic} self::C*;
+                             ^";
   abstract member-signature get _identityHashCode() → core::int*;
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;

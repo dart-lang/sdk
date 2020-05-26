@@ -9,25 +9,32 @@
 import 'package:expect/expect.dart';
 import 'dart:_runtime' as dart;
 
+late double l;
+
 class Lates {
-  late String s;
+  static late String s;
 }
 
 main() {
-  var l = Lates();
-
-  Expect.throws(() => l.s);
-  l.s = "set";
-  Expect.equals(l.s, "set");
-
-  dart.hotRestart();
-
-  Expect.throws(() => l.s);
-  l.s = "set";
-  Expect.equals(l.s, "set");
+  Expect.throws(() => Lates.s);
+  Expect.throws(() => l);
+  Lates.s = "set";
+  l = 1.62;
+  Expect.equals(Lates.s, "set");
+  Expect.equals(l, 1.62);
 
   dart.hotRestart();
+
+  Expect.throws(() => Lates.s);
+  Expect.throws(() => l);
+  Lates.s = "set";
+  Expect.equals(Lates.s, "set");
+  l = 1.62;
+  Expect.equals(l, 1.62);
+
+  dart.hotRestart();
   dart.hotRestart();
 
-  Expect.throws(() => l.s);
+  Expect.throws(() => Lates.s);
+  Expect.throws(() => l);
 }

@@ -158,18 +158,32 @@ void addClickHandlers(String selector, bool clearEditDetails) {
   });
 }
 
-Future<HttpRequest> doGet(String path,
+/// Perform a GET request on the path, return the json decoded response.
+///
+/// Returns a T so that the various json objects can be requested (lists, maps,
+/// etc.).
+Future<T> doGet<T>(String path,
         {Map<String, String> queryParameters = const {}}) =>
-    HttpRequest.request(pathWithQueryParameters(path, queryParameters),
-        requestHeaders: {'Content-Type': 'application/json; charset=UTF-8'});
+    doRequest(HttpRequest()
+      ..open('GET', pathWithQueryParameters(path, queryParameters), async: true)
+      ..setRequestHeader('Content-Type', 'application/json; charset=UTF-8'));
 
-Future<Map<String, Object>> doPost(String path, [Object body]) async {
+/// Perform a GET request on the path, return the json decoded response.
+Future<Map<String, Object>> doPost(String path, [Object body]) => doRequest(
+    HttpRequest()
+      ..open('POST', pathWithQueryParameters(path, {}), async: true)
+      ..setRequestHeader('Content-Type', 'application/json; charset=UTF-8'),
+    body);
+
+/// Execute the [HttpRequest], handle its error codes, and return or throw the
+/// response.
+///
+/// This is preferable over helper methods on [HttpRequest] because they ignore
+/// the response body on a non-200 code. We want to get that response body in
+/// that case, though, because it may be an error response from the server with
+/// useful debugging information (stack trace etc).
+Future<T> doRequest<T>(HttpRequest xhr, [Object body]) async {
   var completer = new Completer<HttpRequest>();
-
-  var xhr = HttpRequest()
-    ..open('POST', pathWithQueryParameters(path, {}), async: true)
-    ..setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-
   xhr.onLoad.listen((e) {
     completer.complete(xhr);
   });
@@ -178,12 +192,17 @@ Future<Map<String, Object>> doPost(String path, [Object body]) async {
 
   xhr.send(body == null ? null : jsonEncode(body));
 
-  await completer.future;
+  try {
+    await completer.future;
+  } catch (e, st) {
+    // Handle refused connection and make it user-presentable.
+    throw AsyncError('Error reaching migration preview server.', st);
+  }
 
   final json = jsonDecode(xhr.responseText);
   if (xhr.status == 200) {
     // Request OK.
-    return json as Map<String, Object>;
+    return json as T;
   } else {
     throw json;
   }
@@ -303,10 +322,6 @@ void handleNavLinkClick(
   if (path.contains('?')) {
     path = path.substring(0, path.indexOf('?'));
   }
-  // Fix-up the path - it might be relative.
-  if (relativeTo != null) {
-    path = _p.normalize(_p.join(_p.dirname(relativeTo), path));
-  }
 
   var offset = getOffset(location);
   var lineNumber = getLine(location);
@@ -329,23 +344,17 @@ void highlightAllCode() {
 }
 
 /// Loads the explanation for [region], into the ".panel-content" div.
-void loadAndPopulateEditDetails(String path, int offset, int line) {
-  // Request the region, then do work with the response.
-  doGet(path, queryParameters: {'region': 'region', 'offset': '$offset'})
-      .then((HttpRequest xhr) {
-    if (xhr.status == 200) {
-      var response = EditDetails.fromJson(jsonDecode(xhr.responseText));
-      populateEditDetails(response);
-      pushState(path, offset, line);
-      addClickHandlers('.edit-panel .panel-content', false);
-    } else {
-      window.alert('Request failed; status of ${xhr.status}');
-    }
-  }).catchError((e, st) {
-    logError('loadRegionExplanation: $e', st);
-
-    window.alert('Could not load $path ($e).');
-  });
+void loadAndPopulateEditDetails(String path, int offset, int line) async {
+  try {
+    final responseJson = await doGet<Map<String, Object>>(path,
+        queryParameters: {'region': 'region', 'offset': '$offset'});
+    var response = EditDetails.fromJson(responseJson);
+    populateEditDetails(response);
+    pushState(path, offset, line);
+    addClickHandlers('.edit-panel .panel-content', false);
+  } catch (e, st) {
+    handleError('Could not load edit details', e, st);
+  }
 }
 
 /// Load the file at [path] from the server, optionally scrolling [offset] into
@@ -356,7 +365,7 @@ void loadFile(
   int line,
   bool clearEditDetails, {
   VoidCallback callback,
-}) {
+}) async {
   // Handle the case where we're requesting a directory.
   if (!path.endsWith('.dart')) {
     writeCodeAndRegions(path, FileDetails.empty(), clearEditDetails);
@@ -368,50 +377,36 @@ void loadFile(
     return;
   }
 
-  // Navigating to another file; request it, then do work with the response.
-  doGet(path, queryParameters: {'inline': 'true'}).then((HttpRequest xhr) {
-    if (xhr.status == 200) {
-      Map<String, dynamic> response =
-          jsonDecode(xhr.responseText) as Map<String, dynamic>;
-      writeCodeAndRegions(
-          path, FileDetails.fromJson(response), clearEditDetails);
-      maybeScrollToAndHighlight(offset, line);
-      var filePathPart =
-          path.contains('?') ? path.substring(0, path.indexOf('?')) : path;
-      updatePage(filePathPart, offset);
-      if (callback != null) {
-        callback();
-      }
-    } else {
-      window.alert('Request failed; status of ${xhr.status}');
+  try {
+    // Navigating to another file; request it, then do work with the response.
+    final response = await doGet<Map<String, Object>>(path,
+        queryParameters: {'inline': 'true'});
+    writeCodeAndRegions(path, FileDetails.fromJson(response), clearEditDetails);
+    maybeScrollToAndHighlight(offset, line);
+    var filePathPart =
+        path.contains('?') ? path.substring(0, path.indexOf('?')) : path;
+    updatePage(filePathPart, offset);
+    if (callback != null) {
+      callback();
     }
-  }).catchError((e, st) {
-    logError('loadFile: $e', st);
-
-    window.alert('Could not load $path ($e).');
-  });
+  } catch (e, st) {
+    handleError('Could not load dart file $path', e, st);
+  }
 }
 
 /// Load the navigation tree into the ".nav-tree" div.
-void loadNavigationTree() {
+void loadNavigationTree() async {
   var path = '/_preview/navigationTree.json';
 
   // Request the navigation tree, then do work with the response.
-  doGet(path).then((HttpRequest xhr) {
-    if (xhr.status == 200) {
-      dynamic response = jsonDecode(xhr.responseText);
-      var navTree = document.querySelector('.nav-tree');
-      navTree.innerHtml = '';
-      writeNavigationSubtree(
-          navTree, NavigationTreeNode.listFromJson(response));
-    } else {
-      window.alert('Request failed; status of ${xhr.status}');
-    }
-  }).catchError((e, st) {
-    logError('loadNavigationTree: $e', st);
-
-    window.alert('Could not load $path ($e).');
-  });
+  try {
+    final response = await doGet<List<Object>>(path);
+    var navTree = document.querySelector('.nav-tree');
+    navTree.innerHtml = '';
+    writeNavigationSubtree(navTree, NavigationTreeNode.listFromJson(response));
+  } catch (e, st) {
+    handleError('Could not load navigation tree', e, st);
+  }
 }
 
 void logError(e, st) {
@@ -525,19 +520,20 @@ void populateEditDetails([EditDetails response]) {
     return;
   }
 
-  var filePath = response.path;
-  var parentDirectory = _p.dirname(filePath);
+  var fileDisplayPath = response.displayPath;
+  var parentDirectory = _p.dirname(fileDisplayPath);
 
   // 'Changed ... at foo.dart:12.'
   var explanationMessage = response.explanation;
-  var relPath = _p.relative(filePath, from: rootPath);
+  var relPath = _p.relative(fileDisplayPath, from: rootPath);
   var line = response.line;
   Element explanation = document.createElement('p');
   editPanel.append(explanation);
   explanation
     ..appendText('$explanationMessage at ')
     ..append(AnchorElement(
-        href: pathWithQueryParameters(filePath, {'line': line.toString()}))
+        href: pathWithQueryParameters(
+            response.uriPath, {'line': line.toString()}))
       ..appendText('$relPath:$line.'));
   explanation.scrollIntoView();
   _populateEditTraces(response, editPanel, parentDirectory);
@@ -707,11 +703,7 @@ AnchorElement _aElementForLink(TargetLink link, String parentDirectory) {
   var targetLine = link.line;
   AnchorElement a = AnchorElement();
   a.append(Text('${link.path}:$targetLine'));
-
-  var relLink = link.href;
-  var fullPath = _p.normalize(_p.join(parentDirectory, relLink));
-
-  a.setAttribute('href', fullPath);
+  a.setAttribute('href', link.href);
   a.classes.add('nav-link');
   return a;
 }

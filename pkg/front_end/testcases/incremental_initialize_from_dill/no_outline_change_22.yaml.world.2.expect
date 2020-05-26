@@ -294,7 +294,7 @@ library from "org-dartlang-test:///main.dart" as main {
       }
     }
     method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ fillRange(dart.core::int start, dart.core::int end, [generic-covariant-impl dart.core::int? fill = #C2]) → void {
-      dart.core::int* value = fill as{ForNonNullableByDefault} dart.core::int*;
+      dart.core::int* value = let dart.core::int? #t7 = fill in #t7.==(null) ?{dart.core::int*} #t7 : #t7{dart.core::int*};
       dart.core::RangeError::checkValidRange(start, end, this.{dart.core::List::length});
       for (dart.core::int i = start; i.{dart.core::num::<}(end); i = i.{dart.core::num::+}(1)) {
         this.{dart.core::List::[]=}(i, value);
@@ -473,7 +473,7 @@ library from "org-dartlang-test:///main.dart" as main {
           for (; :sync-for-iterator.{dart.core::Iterator::moveNext}(); ) {
             dart.core::int* element = :sync-for-iterator.{dart.core::Iterator::current};
             {
-              this.{dart.core::List::[]=}(let final dart.core::int #t7 = index in let final dart.core::int #t8 = index = #t7.{dart.core::num::+}(1) in #t7, element);
+              this.{dart.core::List::[]=}(let final dart.core::int #t8 = index in let final dart.core::int #t9 = index = #t8.{dart.core::num::+}(1) in #t8, element);
             }
           }
         }
@@ -521,7 +521,7 @@ library from "org-dartlang-test:///main.dart" as main {
       return this.{dart.core::List::[]}(0);
     }
     method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ add(generic-covariant-impl dart.core::int* element) → void {
-      this.{dart.core::List::[]=}(let final dart.core::int #t9 = this.{dart.core::List::length} in let final dart.core::int #t10 = this.{dart.core::List::length} = #t9.{dart.core::num::+}(1) in #t9, element);
+      this.{dart.core::List::[]=}(let final dart.core::int #t10 = this.{dart.core::List::length} in let final dart.core::int #t11 = this.{dart.core::List::length} = #t10.{dart.core::num::+}(1) in #t10, element);
     }
     method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ clear() → void {
       this.{dart.core::List::length} = 0;

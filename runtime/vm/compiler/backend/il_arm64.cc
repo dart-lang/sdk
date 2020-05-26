@@ -3984,10 +3984,11 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
   ASSERT(kSmiTag == 0);
-  __ LslImmediate(out, in, kSmiTagSize);
+  __ adds(out, in, compiler::Operand(in));  // SmiTag
   compiler::Label done;
-  __ cmp(in, compiler::Operand(out, ASR, kSmiTagSize));
-  __ b(&done, EQ);
+  // If the value doesn't fit in a smi, the tagging changes the sign,
+  // which causes the overflow flag to be set.
+  __ b(&done, NO_OVERFLOW);
 
   Register temp = locs()->temp(0).reg();
 

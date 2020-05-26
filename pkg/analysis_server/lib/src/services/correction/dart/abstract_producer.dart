@@ -81,7 +81,7 @@ class CorrectionProducerContext {
 
   AstNode get node => _node;
 
-  /// Return `true` the lint with the given [name] is enabled.
+  /// Return `true` if the lint with the given [name] is enabled.
   bool isLintEnabled(String name) {
     var analysisOptions = session.analysisContext.analysisOptions;
     return analysisOptions.isLintEnabled(name);
@@ -156,6 +156,10 @@ abstract class _AbstractCorrectionProducer {
   AnalysisSessionHelper get sessionHelper => _context.sessionHelper;
 
   TypeProvider get typeProvider => _context.typeProvider;
+
+  /// Return the type system appropriate to the library in which the correction
+  /// was requested.
+  TypeSystem get typeSystem => _context.resolvedResult.typeSystem;
 
   CompilationUnit get unit => _context.unit;
 

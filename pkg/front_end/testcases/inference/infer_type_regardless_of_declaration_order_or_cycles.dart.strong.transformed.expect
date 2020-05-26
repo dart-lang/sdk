@@ -2,9 +2,9 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/infer_type_regardless_of_declaration_order_or_cycles.dart:20:69: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
-//   String z = /*error:INVALID_ASSIGNMENT*/ new C(). /*@target=C::x*/ x;
-//                                                                     ^
+// pkg/front_end/testcases/inference/infer_type_regardless_of_declaration_order_or_cycles.dart:20:68: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+//   String z = /*error:INVALID_ASSIGNMENT*/ new C(). /*@target=C.x*/ x;
+//                                                                    ^
 //
 import self as self;
 import "infer_type_regardless_of_declaration_order_or_cycles_b.dart" as inf;
@@ -38,9 +38,9 @@ class A extends core::Object {
 }
 static method foo() → dynamic {
   core::int* y = new self::C::•().{self::C::x};
-  core::String* z = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/infer_type_regardless_of_declaration_order_or_cycles.dart:20:69: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
-  String z = /*error:INVALID_ASSIGNMENT*/ new C(). /*@target=C::x*/ x;
-                                                                    ^" in new self::C::•().{self::C::x} as{TypeError} core::String*;
+  core::String* z = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/infer_type_regardless_of_declaration_order_or_cycles.dart:20:68: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+  String z = /*error:INVALID_ASSIGNMENT*/ new C(). /*@target=C.x*/ x;
+                                                                   ^" in new self::C::•().{self::C::x} as{TypeError} core::String*;
 }
 static method main() → dynamic {
   self::foo();

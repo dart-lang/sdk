@@ -723,4 +723,108 @@ main() {
     expect(hover.elementKind, 'parameter');
     expect(hover.staticType, 'int');
   }
+
+  Future<void> test_setter_hasDocumentation() async {
+    addTestFile('''
+class A {
+  /// getting
+  int get foo => 42;
+  /// setting
+  set foo(int x) {}
+}
+main(A a) {
+  a.foo = 123;
+}
+''');
+    var hover = await prepareHover('foo = ');
+    expect(hover.containingClassDescription, 'A');
+    expect(hover.dartdoc, '''setting''');
+    expect(hover.elementDescription, 'void set foo(int x)');
+    expect(hover.elementKind, 'setter');
+  }
+
+  Future<void> test_setter_noDocumentation() async {
+    addTestFile('''
+class A {
+  /// getting
+  int get foo => 42;
+  set foo(int x) {}
+}
+main(A a) {
+  a.foo = 123;
+}
+''');
+    var hover = await prepareHover('foo = ');
+    expect(hover.containingClassDescription, 'A');
+    expect(hover.dartdoc, '''getting''');
+    expect(hover.elementDescription, 'void set foo(int x)');
+    expect(hover.elementKind, 'setter');
+  }
+
+  Future<void> test_setter_super_hasDocumentation() async {
+    addTestFile('''
+class A {
+  /// pgetting
+  int get foo => 42;
+  /// psetting
+  set foo(int x) {}
+}
+class B extends A {
+  /// getting
+  int get foo => 42;
+  set foo(int x) {}
+}
+main(B b) {
+  b.foo = 123;
+}
+''');
+    var hover = await prepareHover('foo = ');
+    expect(hover.containingClassDescription, 'B');
+    expect(hover.dartdoc, '''psetting\n\nCopied from `A`.''');
+    expect(hover.elementDescription, 'void set foo(int x)');
+    expect(hover.elementKind, 'setter');
+  }
+
+  Future<void> test_setter_super_noDocumentation() async {
+    addTestFile('''
+class A {
+  /// pgetting
+  int get foo => 42;
+  set foo(int x) {}
+}
+class B extends A {
+  int get foo => 42;
+  set foo(int x) {}
+}
+main(B b) {
+  b.foo = 123;
+}
+''');
+    var hover = await prepareHover('foo = ');
+    expect(hover.containingClassDescription, 'B');
+    expect(hover.dartdoc, '''pgetting\n\nCopied from `A`.''');
+    expect(hover.elementDescription, 'void set foo(int x)');
+    expect(hover.elementKind, 'setter');
+  }
+
+  @failingTest
+  Future<void> test_setter_super_noSetter() async {
+    addTestFile('''
+class A {
+  /// pgetting
+  int get foo => 42;
+}
+class B extends A {
+  set foo(int x) {}
+}
+main(B b) {
+  b.foo = 123;
+}
+''');
+    var hover = await prepareHover('foo = ');
+    expect(hover.containingClassDescription, 'B');
+    expect(hover.dartdoc, '''pgetting''');
+    expect(hover.elementDescription, 'void set foo(int x)');
+    expect(hover.elementKind, 'setter');
+  }
 }

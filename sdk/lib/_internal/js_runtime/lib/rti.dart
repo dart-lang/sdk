@@ -21,7 +21,7 @@ import 'dart:_foreign_helper'
         LEGACY_TYPE_REF;
 
 import 'dart:_interceptors'
-    show JavaScriptFunction, JSArray, JSUnmodifiableArray;
+    show JavaScriptFunction, JSArray, JSNull, JSUnmodifiableArray;
 
 import 'dart:_js_names' show unmangleGlobalNameIfPreservedAnyways;
 
@@ -870,9 +870,7 @@ bool _generalIsTestImplementation(object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _castToRti(JS('', 'this'));
-  if (JS_GET_FLAG('NNBD') && object == null) {
-    return _nullIs(testRti);
-  }
+  if (object == null) return _nullIs(testRti);
   Rti objectRti = instanceOrFunctionType(object, testRti);
   return isSubtype(_theUniverse(), objectRti, testRti);
 }
@@ -882,9 +880,7 @@ bool _isTestViaProperty(object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _castToRti(JS('', 'this'));
-  if (JS_GET_FLAG('NNBD') && object == null) {
-    return _nullIs(testRti);
-  }
+  if (object == null) return _nullIs(testRti);
   var tag = Rti._getSpecializedTestResource(testRti);
 
   // This test is redundant with getInterceptor below, but getInterceptor does
@@ -905,9 +901,7 @@ _generalAsCheckImplementation(object) {
   Rti testRti = _castToRti(JS('', 'this'));
   if (object == null) {
     if (JS_GET_FLAG('LEGACY') || isNullable(testRti)) return object;
-  } else {
-    if (Rti._isCheck(testRti, object)) return object;
-  }
+  } else if (Rti._isCheck(testRti, object)) return object;
 
   Rti objectRti = instanceOrFunctionType(object, testRti);
   String message =
@@ -2902,7 +2896,9 @@ bool isLegacyObjectType(Rti t) =>
 bool isNullableObjectType(Rti t) =>
     Rti._getKind(t) == Rti.kindQuestion &&
     isObjectType(Rti._getQuestionArgument(t));
-bool isNullType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Null>());
+bool isNullType(Rti t) =>
+    _Utils.isIdentical(t, TYPE_REF<Null>()) ||
+    _Utils.isIdentical(t, TYPE_REF<JSNull>());
 bool isFunctionType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Function>());
 bool isJsFunctionType(Rti t) =>
     _Utils.isIdentical(t, TYPE_REF<JavaScriptFunction>());

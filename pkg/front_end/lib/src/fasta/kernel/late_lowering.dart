@@ -8,6 +8,12 @@ import 'package:kernel/src/future_or.dart';
 
 import '../names.dart';
 
+const String lateFieldPrefix = '_#';
+const String lateIsSetSuffix = '#isSet';
+const String lateLocalPrefix = '#';
+const String lateLocalGetterSuffix = '#get';
+const String lateLocalSetterSuffix = '#set';
+
 /// Creates the body for the synthesized getter used to encode the lowering
 /// of a late non-final field with an initializer or a late local with an
 /// initializer.

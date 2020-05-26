@@ -10,7 +10,7 @@ class A {
 }
 
 void f(A a) {
-  var /*@ type=int* */ x = a. /*@target=A::x*/ x = 0;
+  var /*@ type=int* */ x = a. /*@target=A.x*/ x = 0;
 }
 
 main() {}

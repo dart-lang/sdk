@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:meta/meta.dart';
 
 Element declaredParameterElement(
   SimpleIdentifier node,
@@ -76,6 +77,49 @@ CompilationUnitElement getUnitElement(Element element) {
  */
 AnalysisDriverUnitIndexBuilder indexUnit(CompilationUnit unit) {
   return _IndexAssembler().assemble(unit);
+}
+
+class ElementNameComponents {
+  final String parameterName;
+  final String classMemberName;
+  final String unitMemberName;
+
+  factory ElementNameComponents(Element element) {
+    String parameterName;
+    if (element is ParameterElement) {
+      parameterName = element.name;
+      element = element.enclosingElement;
+    }
+
+    String classMemberName;
+    if (element.enclosingElement is ClassElement ||
+        element.enclosingElement is ExtensionElement) {
+      classMemberName = element.name;
+      element = element.enclosingElement;
+    }
+
+    String unitMemberName;
+    if (element.enclosingElement is CompilationUnitElement) {
+      unitMemberName = element.name;
+      if (element is ExtensionElement && unitMemberName == null) {
+        var enclosingUnit = element.enclosingElement as CompilationUnitElement;
+        var indexOf = enclosingUnit.extensions.indexOf(element);
+        unitMemberName = 'extension-$indexOf';
+      }
+    }
+
+    return ElementNameComponents._(
+      parameterName: parameterName,
+      classMemberName: classMemberName,
+      unitMemberName: unitMemberName,
+    );
+  }
+
+  ElementNameComponents._({
+    @required this.parameterName,
+    @required this.classMemberName,
+    @required this.unitMemberName,
+  });
 }
 
 /**
@@ -395,6 +439,10 @@ class _IndexAssembler {
    * field [_StringInfo.id] is filled by [assemble] during final sorting.
    */
   _StringInfo _getStringInfo(String string) {
+    if (string == null) {
+      return nullString;
+    }
+
     return stringMap.putIfAbsent(string, () {
       return _StringInfo(string);
     });
@@ -431,26 +479,15 @@ class _IndexAssembler {
   _ElementInfo _newElementInfo(int unitId, Element element) {
     IndexElementInfo info = IndexElementInfo(element);
     element = info.element;
-    // Prepare name identifiers.
-    _StringInfo nameIdParameter = nullString;
-    _StringInfo nameIdClassMember = nullString;
-    _StringInfo nameIdUnitMember = nullString;
-    if (element is ParameterElement) {
-      nameIdParameter = _getStringInfo(element.name);
-      element = element.enclosingElement;
-    }
-    if (element?.enclosingElement is ClassElement ||
-        element?.enclosingElement is ExtensionElement) {
-      nameIdClassMember = _getStringInfo(element.name);
-      element = element.enclosingElement;
-    }
-    if (element?.enclosingElement is CompilationUnitElement) {
-      // Unnamed extensions have a null `name`, but _StringInfo instances must
-      // have non-null values.
-      nameIdUnitMember = _getStringInfo(element.name ?? '');
-    }
-    return _ElementInfo(unitId, nameIdUnitMember, nameIdClassMember,
-        nameIdParameter, info.kind);
+
+    var components = ElementNameComponents(element);
+    return _ElementInfo(
+      unitId,
+      _getStringInfo(components.unitMemberName),
+      _getStringInfo(components.classMemberName),
+      _getStringInfo(components.parameterName),
+      info.kind,
+    );
   }
 }
 

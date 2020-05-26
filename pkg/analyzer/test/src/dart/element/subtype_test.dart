@@ -5399,6 +5399,17 @@ class SubtypeTest extends _SubtypingTestBase {
     );
   }
 
+  test_typeParameter_43() {
+    var T = typeParameter('T');
+
+    isNotSubtype(
+      typeParameterTypeNone(T),
+      objectNone,
+      strT0: 'T',
+      strT1: 'Object',
+    );
+  }
+
   void _defineType(String str, DartType type) {
     for (var key in _types.keys) {
       if (key == 'Never' || _typeStr(type) == 'Never') {

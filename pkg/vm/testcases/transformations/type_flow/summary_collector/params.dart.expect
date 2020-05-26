@@ -123,18 +123,18 @@ RESULT: t16
 %x7 = _Parameter #6 [_T ANY?]
 %x8 = _Parameter #7 [_T ANY?]
 %x9 = _Parameter #8 [_T ANY?]
-t9 = _Call direct [t1] (%x1, %x2, %x3)
-t10 = _Call direct [t2] (%x1, %x2, %x3)
-t11 = _Call direct [t3] (%x1, %x2, %x3)
-t12 = _Call direct [t3] (%x1, %x2, %x3, %x4)
-t13 = _Call direct [t4] (%x1, %x2, %x3, %x4, %x5)
-t14 = _Call direct [t5] (%x1, %x2, %x3)
-t15 = _Call direct [t5] (%x1, %x2, %x3, a4: %x4)
-t16 = _Call direct [t5] (%x1, %x2, %x3, a5: %x4)
-t17 = _Call direct [t5] (%x1, %x2, %x3, a5: %x5, a6: %x4)
-t18 = _Call direct [t6] (%x1, %x2, %x3, a4: %x4, a6: %x5)
-t19 = _Call direct [t6] (%x1, %x2, %x3, a4: %x4, a5: %x5, a6: %x6)
-t20 = _Call direct [t7] (%x1, %x2, %x3, a4: %x4, a5: %x6, a6: %x5)
+t9 = _Call direct [#lib::t1] (%x1, %x2, %x3)
+t10 = _Call direct [#lib::t2] (%x1, %x2, %x3)
+t11 = _Call direct [#lib::t3] (%x1, %x2, %x3)
+t12 = _Call direct [#lib::t3] (%x1, %x2, %x3, %x4)
+t13 = _Call direct [#lib::t4] (%x1, %x2, %x3, %x4, %x5)
+t14 = _Call direct [#lib::t5] (%x1, %x2, %x3)
+t15 = _Call direct [#lib::t5] (%x1, %x2, %x3, a4: %x4)
+t16 = _Call direct [#lib::t5] (%x1, %x2, %x3, a5: %x4)
+t17 = _Call direct [#lib::t5] (%x1, %x2, %x3, a5: %x5, a6: %x4)
+t18 = _Call direct [#lib::t6] (%x1, %x2, %x3, a4: %x4, a6: %x5)
+t19 = _Call direct [#lib::t6] (%x1, %x2, %x3, a4: %x4, a5: %x5, a6: %x6)
+t20 = _Call direct [#lib::t7] (%x1, %x2, %x3, a4: %x4, a5: %x6, a6: %x5)
 RESULT: _T {}?
 ------------ main ------------
 

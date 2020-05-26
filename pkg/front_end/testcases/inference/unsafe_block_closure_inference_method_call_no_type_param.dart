@@ -9,7 +9,7 @@ class C {
   double f(x) => 1.0;
 }
 
-var v = new C(). /*@target=C::f*/ f(/*@ returnType=int* */ () {
+var v = new C(). /*@target=C.f*/ f(/*@ returnType=int* */ () {
   return 1;
 });
 

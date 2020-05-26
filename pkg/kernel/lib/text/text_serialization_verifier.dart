@@ -322,12 +322,6 @@ class VerificationState {
     }
   }
 
-  static bool isDartTypeSupported(DartType node) =>
-      !isDartTypeNotSupported(node);
-
-  static bool isDartTypeNotSupported(DartType node) =>
-      node is TypedefType || node is NeverType;
-
   static bool isExpressionSupported(Expression node) =>
       !isExpressionNotSupported(node);
 
@@ -368,7 +362,6 @@ class VerificationState {
   static bool isSupported(Node node) => !isNotSupported(node);
 
   static bool isNotSupported(Node node) =>
-      node is DartType && isDartTypeNotSupported(node) ||
       node is Expression && isExpressionNotSupported(node) ||
       node is Statement && isStatementNotSupported(node) ||
       node is FunctionNode && node.body == null ||

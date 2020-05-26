@@ -16,15 +16,15 @@ var a = new A();
 // c is required to infer b, and vice versa.
 
 var b = /*@ returnType=() ->* invalid-type */ () =>
-    a. /*@ typeArgs=() ->* invalid-type */ /*@target=A::f*/ f(c);
+    a. /*@ typeArgs=() ->* invalid-type */ /*@target=A.f*/ f(c);
 var c = /*@ returnType=invalid-type */ () =>
-    a. /*@ typeArgs=invalid-type */ /*@target=A::f*/ f(b);
+    a. /*@ typeArgs=invalid-type */ /*@target=A.f*/ f(b);
 
 // e's use of a.g breaks the circularity, because a.g is not generic, therefore
 // the type of e does not depend on the type of d.
 
 var d = /*@ returnType=() ->* int* */ () =>
-    a. /*@ typeArgs=() ->* int* */ /*@target=A::f*/ f(e);
-var e = /*@ returnType=int* */ () => a. /*@target=A::g*/ g(d);
+    a. /*@ typeArgs=() ->* int* */ /*@target=A.f*/ f(e);
+var e = /*@ returnType=int* */ () => a. /*@target=A.g*/ g(d);
 
 main() {}

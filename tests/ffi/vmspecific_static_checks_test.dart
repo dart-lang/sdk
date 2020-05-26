@@ -309,9 +309,9 @@ void testNativeFunctionSignatureInvalidOptionalPositional() {
 // error on missing field annotation
 class TestStruct extends Struct {
   @Double()
-  double x;
+  external double x;
 
-  double y; //# 50: compile-time error
+  external double y; //# 50: compile-time error
 }
 
 // Cannot extend structs.
@@ -321,25 +321,25 @@ class TestStruct3 extends TestStruct {} //# 52: compile-time error
 class TestStruct4 extends Struct {
   @Double()
   @Double() //# 53: compile-time error
-  double z;
+  external double z;
 }
 
 // error on annotation not matching up
 class TestStruct5 extends Struct {
   @Int64() //# 54: compile-time error
-  double z; //# 54: compile-time error
+  external double z; //# 54: compile-time error
 }
 
 // error on annotation not matching up
 class TestStruct6 extends Struct {
   @Void() //# 55: compile-time error
-  double z; //# 55: compile-time error
+  external double z; //# 55: compile-time error
 }
 
 // error on annotation not matching up
 class TestStruct7 extends Struct {
   @NativeType() //# 56: compile-time error
-  double z; //# 56: compile-time error
+  external double z; //# 56: compile-time error
 }
 
 // error on field initializer on field
@@ -350,8 +350,8 @@ class TestStruct8 extends Struct {
 
 // error on field initializer in constructor
 class TestStruct9 extends Struct {
-  @Double()
-  double z;
+  @Double() //# 58: compile-time error
+  double z; //# 58: compile-time error
 
   TestStruct9() : z = 0.0 {} //# 58: compile-time error
 }
@@ -364,7 +364,7 @@ class TestStruct11<T> extends //# 60: compile-time error
 // annotation).
 class TestStruct12 extends Struct {
   @Pointer //# 61: compile-time error
-  TestStruct9 struct; //# 61: compile-time error
+  external TestStruct9 struct; //# 61: compile-time error
 }
 
 class DummyAnnotation {
@@ -375,7 +375,7 @@ class DummyAnnotation {
 class TestStruct13 extends Struct {
   @DummyAnnotation()
   @Double()
-  double z;
+  external double z;
 }
 
 // Cannot extend native types.

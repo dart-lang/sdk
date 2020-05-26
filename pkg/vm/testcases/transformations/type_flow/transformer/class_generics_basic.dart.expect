@@ -63,14 +63,14 @@ class C2<T extends core::Object* = dynamic> extends core::Object {
     return x;
 }
 static method main() → dynamic {
-  core::print([@vm.direct-call.metadata=C::foo] [@vm.inferred-type.metadata=#lib::D<InterfaceType(int*)> (skip check)] new self::C::•<core::int*>().{self::C::foo}());
-  core::print([@vm.direct-call.metadata=E::foo] [@vm.inferred-type.metadata=#lib::D<InterfaceType(String*)> (skip check)] new self::E::•<core::int*, core::String*>().{self::E::foo}());
-  core::print([@vm.direct-call.metadata=E::bar] [@vm.inferred-type.metadata=#lib::D<InterfaceType(int*)> (skip check)] new self::E::•<core::int*, core::String*>().{self::E::bar}());
-  core::print([@vm.direct-call.metadata=E::baz] [@vm.inferred-type.metadata=#lib::D<InterfaceType(String*)> (skip check)] new self::E::•<core::int*, core::String*>().{self::E::baz}());
+  core::print([@vm.direct-call.metadata=C.foo] [@vm.inferred-type.metadata=#lib::D<InterfaceType(int*)> (skip check)] new self::C::•<core::int*>().{self::C::foo}());
+  core::print([@vm.direct-call.metadata=E.foo] [@vm.inferred-type.metadata=#lib::D<InterfaceType(String*)> (skip check)] new self::E::•<core::int*, core::String*>().{self::E::foo}());
+  core::print([@vm.direct-call.metadata=E.bar] [@vm.inferred-type.metadata=#lib::D<InterfaceType(int*)> (skip check)] new self::E::•<core::int*, core::String*>().{self::E::bar}());
+  core::print([@vm.direct-call.metadata=E.baz] [@vm.inferred-type.metadata=#lib::D<InterfaceType(String*)> (skip check)] new self::E::•<core::int*, core::String*>().{self::E::baz}());
   self::C<self::X*>* c = new self::C::•<self::Y*>();
-  [@vm.call-site-attributes.metadata=receiverType:InterfaceType(C<X*>*)] [@vm.direct-call.metadata=C::id1] [@vm.inferred-type.metadata=!? (skip check)] c.{self::C::id1}(new self::Y::•());
-  [@vm.call-site-attributes.metadata=receiverType:InterfaceType(C<X*>*)] [@vm.direct-call.metadata=C::id2] c.{self::C::id2}(new self::Z::•());
+  [@vm.call-site-attributes.metadata=receiverType:InterfaceType(C<X*>*)] [@vm.direct-call.metadata=C.id1] [@vm.inferred-type.metadata=!? (skip check)] c.{self::C::id1}(new self::Y::•());
+  [@vm.call-site-attributes.metadata=receiverType:InterfaceType(C<X*>*)] [@vm.direct-call.metadata=C.id2] c.{self::C::id2}(new self::Z::•());
   self::C2<core::num*>* c2 = new self::C2::•<core::num*>();
-  [@vm.call-site-attributes.metadata=receiverType:InterfaceType(C2<num*>*)] [@vm.direct-call.metadata=C2::id3] [@vm.inferred-type.metadata=!? (skip check)] c2.{self::C2::id3}(3.0);
-  [@vm.call-site-attributes.metadata=receiverType:InterfaceType(C2<num*>*)] [@vm.direct-call.metadata=C2::id4] [@vm.inferred-type.metadata=!? (skip check)] c2.{self::C2::id4}(new self::K::•<self::J*>());
+  [@vm.call-site-attributes.metadata=receiverType:InterfaceType(C2<num*>*)] [@vm.direct-call.metadata=C2.id3] [@vm.inferred-type.metadata=!? (skip check)] c2.{self::C2::id3}(3.0);
+  [@vm.call-site-attributes.metadata=receiverType:InterfaceType(C2<num*>*)] [@vm.direct-call.metadata=C2.id4] [@vm.inferred-type.metadata=!? (skip check)] c2.{self::C2::id4}(new self::K::•<self::J*>());
 }

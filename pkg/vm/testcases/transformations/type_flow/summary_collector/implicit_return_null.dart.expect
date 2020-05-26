@@ -1,6 +1,6 @@
------------- T:: ------------
+------------ T. ------------
 %this = _Parameter #0 [_T (#lib::T)+]
-t1 = _Call direct [Object::] (%this)
+t1 = _Call direct [dart.core::Object.] (%this)
 RESULT: _T {}?
 ------------ empty1 ------------
 
@@ -15,34 +15,34 @@ RESULT: _T {}?
 
 RESULT: _T {}?
 ------------ return1 ------------
-t0 = _Call direct [T::] (_T (#lib::T))
+t0 = _Call direct [#lib::T.] (_T (#lib::T))
 RESULT: _T (#lib::T)
 ------------ return2 ------------
 %i = _Parameter #0 [_T (dart.core::int)+?]
-t1* = _Call [num::-] (%i, _T (dart.core::_Smi, 1))
-t2* = _Call direct [return2] (t1)
+t1* = _Call [dart.core::num.-] (%i, _T (dart.core::_Smi, 1))
+t2* = _Call direct [#lib::return2] (t1)
 RESULT: t2
 ------------ return3 ------------
-t0 = _Call direct [T::] (_T (#lib::T))
+t0 = _Call direct [#lib::T.] (_T (#lib::T))
 RESULT: _T (#lib::T)
 ------------ return4 ------------
 
 RESULT: _T {}?
 ------------ expr1 ------------
-t0 = _Call direct [T::] (_T (#lib::T))
+t0 = _Call direct [#lib::T.] (_T (#lib::T))
 RESULT: _T {}?
 ------------ expr2 ------------
 %c = _Parameter #0 [_T (dart.core::bool)+?]
-t1 = _Call direct [T::] (_T (#lib::T))
-t2 = _Call direct [T::] (_T (#lib::T))
-%result = _Join [DynamicType(dynamic)] (_T (#lib::T), _T {}?)
+t1 = _Call direct [#lib::T.] (_T (#lib::T))
+t2 = _Call direct [#lib::T.] (_T (#lib::T))
+%result = _Join [dynamic] (_T (#lib::T), _T {}?)
 RESULT: %result
 ------------ expr3 ------------
 %c = _Parameter #0 [_T (dart.core::bool)+?]
 %x = _Parameter #1 [_T (dart.core::Object)+?]
-t2 = _Call direct [T::] (_T (#lib::T))
-t3 = _Call [Object::toString] (%x)
-%result = _Join [DynamicType(dynamic)] (_T (#lib::T), _T {}?)
+t2 = _Call direct [#lib::T.] (_T (#lib::T))
+t3 = _Call [dart.core::Object.toString] (%x)
+%result = _Join [dynamic] (_T (#lib::T), _T {}?)
 RESULT: %result
 ------------ throw1 ------------
 %c = _Parameter #0 [_T (dart.core::bool)+?]
@@ -51,7 +51,7 @@ RESULT: _T {}
 ------------ throw2 ------------
 %c = _Parameter #0 [_T (dart.core::bool)+?]
 %x = _Parameter #1 [_T (dart.core::Object)+?]
-t2 = _Call direct [T::] (_T (#lib::T))
+t2 = _Call direct [#lib::T.] (_T (#lib::T))
 RESULT: _T (#lib::T)
 ------------ loop1 ------------
 %c = _Parameter #0 [_T (dart.core::bool)+?]
@@ -60,29 +60,29 @@ RESULT: _T {}?
 ------------ loop2 ------------
 %c = _Parameter #0 [_T (dart.core::bool)+?]
 %x = _Parameter #1 [_T (dart.core::Object)+?]
-t2 = _Call direct [T::] (_T (#lib::T))
-%result = _Join [DynamicType(dynamic)] (_T (#lib::T), _T {}?)
+t2 = _Call direct [#lib::T.] (_T (#lib::T))
+%result = _Join [dynamic] (_T (#lib::T), _T {}?)
 RESULT: %result
 ------------ loop3 ------------
 %c = _Parameter #0 [_T (dart.core::bool)+?]
 %x = _Parameter #1 [_T (dart.core::Object)+?]
-t2 = _Call direct [T::] (_T (#lib::T))
-%result = _Join [DynamicType(dynamic)] (_T (#lib::T), _T {}?)
+t2 = _Call direct [#lib::T.] (_T (#lib::T))
+%result = _Join [dynamic] (_T (#lib::T), _T {}?)
 RESULT: %result
 ------------ switch_ ------------
 %c = _Parameter #0 [_T (dart.core::bool)+?]
 %i = _Parameter #1 [_T (dart.core::int)+?]
-t2 = _Call direct [T::] (_T (#lib::T))
-%result = _Join [DynamicType(dynamic)] (_T (#lib::T), _T {}?)
+t2 = _Call direct [#lib::T.] (_T (#lib::T))
+%result = _Join [dynamic] (_T (#lib::T), _T {}?)
 RESULT: %result
 ------------ if1 ------------
 %c = _Parameter #0 [_T (dart.core::bool)+?]
-t1 = _Call direct [T::] (_T (#lib::T))
+t1 = _Call direct [#lib::T.] (_T (#lib::T))
 RESULT: _T (#lib::T)
 ------------ if2 ------------
 %c = _Parameter #0 [_T (dart.core::bool)+?]
-t1 = _Call direct [T::] (_T (#lib::T))
-%result = _Join [DynamicType(dynamic)] (_T (#lib::T), _T {}?)
+t1 = _Call direct [#lib::T.] (_T (#lib::T))
+%result = _Join [dynamic] (_T (#lib::T), _T {}?)
 RESULT: %result
 ------------ if3 ------------
 %c = _Parameter #0 [_T (dart.core::bool)+?]
@@ -92,41 +92,41 @@ RESULT: _T {}?
 RESULT: _T {}?
 ------------ if5 ------------
 %c = _Parameter #0 [_T (dart.core::bool)+?]
-t1* = _Call direct [if5] (_T (dart.core::bool, true))
-t2* = _Call direct [if5] (_T (dart.core::bool))
-%result = _Join [VoidType(void)] (t1, t2, _T {}?)
+t1* = _Call direct [#lib::if5] (_T (dart.core::bool, true))
+t2* = _Call direct [#lib::if5] (_T (dart.core::bool))
+%result = _Join [void] (t1, t2, _T {}?)
 RESULT: %result
 ------------ label1 ------------
 %c = _Parameter #0 [_T (dart.core::bool)+?]
-t1 = _Call direct [T::] (_T (#lib::T))
-%result = _Join [DynamicType(dynamic)] (_T (#lib::T), _T {}?)
+t1 = _Call direct [#lib::T.] (_T (#lib::T))
+%result = _Join [dynamic] (_T (#lib::T), _T {}?)
 RESULT: %result
 ------------ try1 ------------
 %c = _Parameter #0 [_T (dart.core::bool)+?]
-t1 = _Call direct [T::] (_T (#lib::T))
-%result = _Join [DynamicType(dynamic)] (_T (#lib::T), _T {}?)
+t1 = _Call direct [#lib::T.] (_T (#lib::T))
+%result = _Join [dynamic] (_T (#lib::T), _T {}?)
 RESULT: %result
 ------------ try2 ------------
-t0 = _Call direct [T::] (_T (#lib::T))
-%result = _Join [DynamicType(dynamic)] (_T (#lib::T), _T {}?)
+t0 = _Call direct [#lib::T.] (_T (#lib::T))
+%result = _Join [dynamic] (_T (#lib::T), _T {}?)
 RESULT: %result
 ------------ try3 ------------
-t0 = _Call direct [T::] (_T (#lib::T))
+t0 = _Call direct [#lib::T.] (_T (#lib::T))
 RESULT: _T (#lib::T)
 ------------ try4 ------------
 %c = _Parameter #0 [_T (dart.core::bool)+?]
-t1 = _Call direct [T::] (_T (#lib::T))
-%result = _Join [DynamicType(dynamic)] (_T (#lib::T), _T {}?)
+t1 = _Call direct [#lib::T.] (_T (#lib::T))
+%result = _Join [dynamic] (_T (#lib::T), _T {}?)
 RESULT: %result
 ------------ try5 ------------
-t0 = _Call direct [T::] (_T (#lib::T))
+t0 = _Call direct [#lib::T.] (_T (#lib::T))
 RESULT: _T (#lib::T)
 ------------ try6 ------------
-t0 = _Call direct [T::] (_T (#lib::T))
+t0 = _Call direct [#lib::T.] (_T (#lib::T))
 RESULT: _T (#lib::T)
 ------------ try7 ------------
 %c = _Parameter #0 [_T (dart.core::bool)+?]
-t1 = _Call direct [T::] (_T (#lib::T))
+t1 = _Call direct [#lib::T.] (_T (#lib::T))
 RESULT: _T (#lib::T)
 ------------ main ------------
 

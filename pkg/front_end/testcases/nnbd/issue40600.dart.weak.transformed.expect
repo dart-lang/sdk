@@ -18,7 +18,7 @@ class A<X extends core::Object? = dynamic> extends core::Object {
     ;
   method foo([generic-covariant-impl asy::FutureOr<self::A::X%>? x = #C1]) → dynamic {
     if(x is{ForNonNullableByDefault} asy::Future<self::A::X%>) {
-      this.{self::A::b}.{self::B::bar}(x{asy::Future<self::A::X%>} as{ForNonNullableByDefault} asy::FutureOr<self::A::X%>);
+      this.{self::A::b}.{self::B::bar}(x{asy::Future<self::A::X%>});
     }
   }
 }

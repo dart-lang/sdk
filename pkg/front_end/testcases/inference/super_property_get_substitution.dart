@@ -19,7 +19,7 @@ class C<U> extends B<Future<U>> {
   E<Future<U>> get x => null;
   void set x(Object x) {}
   void g() {
-    var /*@ type=D<Future<C::U*>*>* */ y = super. /*@target=B::x*/ x;
+    var /*@ type=D<Future<C::U*>*>* */ y = super. /*@target=B.x*/ x;
   }
 }
 

@@ -20,6 +20,8 @@ void main() {
 
 @reflectiveTest
 class RegionRendererTest extends NnbdMigrationTestBase {
+  PathMapper pathMapper;
+
   /// Render the region at [offset], using a [MigrationInfo] which knows only
   /// about the library at `infos.single`.
   EditDetails renderRegion(int offset) {
@@ -28,9 +30,8 @@ class RegionRendererTest extends NnbdMigrationTestBase {
         MigrationInfo(infos, {}, resourceProvider.pathContext, packageRoot);
     var unitInfo = infos.single;
     var region = unitInfo.regionAt(offset);
-    return RegionRenderer(
-            region, unitInfo, migrationInfo, PathMapper(resourceProvider))
-        .render();
+    pathMapper = PathMapper(resourceProvider);
+    return RegionRenderer(region, unitInfo, migrationInfo, pathMapper).render();
   }
 
   Future<void> test_modifiedOutput_containsExplanation() async {
@@ -44,8 +45,12 @@ class RegionRendererTest extends NnbdMigrationTestBase {
     await buildInfoForSingleTestFile('int a = null;',
         migratedContent: 'int? a = null;');
     var response = renderRegion(3);
-    expect(response.path,
+    expect(response.displayPath,
         equals(convertPath('${AbstractContextTest.testsPath}/bin/test.dart')));
+    expect(
+        response.uriPath,
+        equals(pathMapper.map(
+            convertPath('${AbstractContextTest.testsPath}/bin/test.dart'))));
     expect(response.line, equals(1));
   }
 
@@ -60,8 +65,12 @@ class RegionRendererTest extends NnbdMigrationTestBase {
     await buildInfoForSingleTestFile('f(int a) => a.isEven;',
         migratedContent: 'f(int  a) => a.isEven;');
     var response = renderRegion(5);
-    expect(response.path,
+    expect(response.displayPath,
         equals(convertPath('${AbstractContextTest.testsPath}/bin/test.dart')));
+    expect(
+        response.uriPath,
+        equals(pathMapper.map(
+            convertPath('${AbstractContextTest.testsPath}/bin/test.dart'))));
     expect(response.line, equals(1));
   }
 }

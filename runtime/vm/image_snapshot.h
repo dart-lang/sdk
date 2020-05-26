@@ -46,6 +46,11 @@ class Image : ValueObject {
     return snapshot_size - kHeaderSize;
   }
 
+  bool contains(uword address) const {
+    uword start = reinterpret_cast<uword>(object_start());
+    return address >= start && (address - start < object_size());
+  }
+
   // Returns the offset of the BSS section from this image. Only has meaning for
   // instructions images.
   word bss_offset() const {

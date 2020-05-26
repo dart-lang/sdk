@@ -219,8 +219,7 @@
     {
       "name": "ffi",
       "rootUri": "../third_party/pkg/ffi",
-      "packageUri": "lib/",
-      "languageVersion": "2.6"
+      "packageUri": "lib/"
     },
     {
       "name": "fixnum",

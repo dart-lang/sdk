@@ -34,7 +34,7 @@ static method main() → dynamic /* originally async */ {
         {
           asy::Stream<dynamic>* :stream = invalid-expression "pkg/front_end/testcases/general/error_recovery/empty_await_for.dart:2:14: Error: This couldn't be parsed.
   await for () {}
-             ^" as{TypeError,ForDynamic} asy::Stream<dynamic>*;
+             ^";
           asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
           try

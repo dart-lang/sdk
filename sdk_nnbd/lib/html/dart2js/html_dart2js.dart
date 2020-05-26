@@ -22721,7 +22721,7 @@ class Navigator extends NavigatorConcurrentHardware
       options_dict = convertDartToNative_Dictionary(options);
     }
     return promiseToFuture(
-        JS("", "#.requestMidiAccess(#)", this, options_dict));
+        JS("", "#.requestMIDIAccess(#)", this, options_dict));
   }
 
   Future requestMediaKeySystemAccess(

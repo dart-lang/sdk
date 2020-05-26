@@ -144,7 +144,8 @@ abstract class Compiler {
 
     options = new CompilerOptions()
       ..fileSystem = fileSystem
-      ..target = new VmTarget(new TargetFlags())
+      ..target = new VmTarget(new TargetFlags(
+          enableNullSafety: nullSafety == kNullSafetyOptionStrong))
       ..packagesFileUri = packagesUri
       ..sdkSummary = platformKernelPath
       ..verbose = verbose
@@ -354,6 +355,9 @@ class IncrementalCompilerWrapper extends Compiler {
       if ((nullSafety == kNullSafetyOptionUnspecified) &&
           options.experimentalFlags[ExperimentalFlag.nonNullable]) {
         await autoDetectNullSafetyMode(script, options);
+        // Reinitialize target to set correct null safety mode.
+        options.target = new VmTarget(new TargetFlags(
+            enableNullSafety: options.nnbdMode == NnbdMode.Strong));
       }
       generator = new IncrementalCompiler(options, script);
     }
@@ -419,6 +423,9 @@ class SingleShotCompilerWrapper extends Compiler {
     if ((nullSafety == kNullSafetyOptionUnspecified) &&
         options.experimentalFlags[ExperimentalFlag.nonNullable]) {
       await autoDetectNullSafetyMode(script, options);
+      // Reinitialize target to set correct null safety mode.
+      options.target = new VmTarget(new TargetFlags(
+          enableNullSafety: options.nnbdMode == NnbdMode.Strong));
     }
     fe.CompilerResult compilerResult = requireMain
         ? await kernelForProgram(script, options)

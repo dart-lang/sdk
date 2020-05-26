@@ -570,11 +570,10 @@ DART_EXPORT void Dart_IsolateFlagsInitialize(Dart_IsolateFlags* flags);
  *   improve debugging messages.  The main function is not invoked by
  *   this function.
  * \param package_root Ignored.
- * \param package_map The package map for this isolate to resolve package
- *   imports against. The array contains alternating keys and values,
- *   terminated by a NULL key. Only one of package_root and package_map
- *   parameters is non-NULL. If neither parameter is passed the package
- *   resolution of the parent isolate should be used.
+ * \param package_config Uri of the package configuration file (either in format
+ *   of .packages or .dart_tool/package_config.json) for this isolate
+ *   to resolve package imports against. If this parameter is not passed the
+ *   package resolution of the parent isolate should be used.
  * \param flags Default flags for this isolate being spawned. Either inherited
  *   from the spawning isolate or passed as parameters when spawning the
  *   isolate from Dart code.

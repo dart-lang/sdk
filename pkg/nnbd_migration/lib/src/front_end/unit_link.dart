@@ -4,8 +4,7 @@
 
 /// Information about a link to a compilation unit.
 class UnitLink {
-  /// The relative URL of this compilation unit on the preview server.
-  final String url;
+  final String fullPath;
   final List<String> pathParts;
   final int editCount;
 
@@ -14,7 +13,7 @@ class UnitLink {
   /// A compilation unit in the root has a depth of 0.
   final int depth;
 
-  UnitLink(this.url, this.pathParts, this.editCount)
+  UnitLink(this.fullPath, this.pathParts, this.editCount)
       : depth = pathParts.length - 1;
 
   String get fileName => pathParts.last;

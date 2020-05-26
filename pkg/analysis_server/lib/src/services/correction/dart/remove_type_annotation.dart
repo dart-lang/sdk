@@ -20,13 +20,24 @@ class RemoveTypeAnnotation extends CorrectionProducer {
 
   @override
   Future<void> compute(DartChangeBuilder builder) async {
-    // todo (pq): unify w/ fix (and then add a guard to not assist on lints:
-    //  avoid_return_types_on_setters, type_init_formals)
+    var parameter = node.thisOrAncestorOfType<FormalParameter>();
+    if (parameter is SimpleFormalParameter) {
+      var type = parameter.type;
+      if (type != null) {
+        return _removeTypeAnnotation(builder, type);
+      }
+    }
     var declarationList = node.thisOrAncestorOfType<VariableDeclarationList>();
-    if (declarationList == null) {
-      await _removeFromDeclaredIdentifier(builder);
-    } else {
-      await _removeFromDeclarationList(builder, declarationList);
+    if (declarationList != null) {
+      return _removeFromDeclarationList(builder, declarationList);
+    }
+    var declaredIdentifier = node.thisOrAncestorOfType<DeclaredIdentifier>();
+    if (declaredIdentifier != null) {
+      return _removeFromDeclaredIdentifier(builder, declaredIdentifier);
+    }
+    var type = node.thisOrAncestorOfType<TypeAnnotation>();
+    if (type != null) {
+      return _removeTypeAnnotation(builder, type);
     }
   }
 
@@ -63,11 +74,8 @@ class RemoveTypeAnnotation extends CorrectionProducer {
     });
   }
 
-  Future<void> _removeFromDeclaredIdentifier(DartChangeBuilder builder) async {
-    var declaration = node.thisOrAncestorOfType<DeclaredIdentifier>();
-    if (declaration == null) {
-      return;
-    }
+  Future<void> _removeFromDeclaredIdentifier(
+      DartChangeBuilder builder, DeclaredIdentifier declaration) async {
     var typeNode = declaration.type;
     if (typeNode == null) {
       return;
@@ -83,4 +91,14 @@ class RemoveTypeAnnotation extends CorrectionProducer {
       }
     });
   }
+
+  Future<void> _removeTypeAnnotation(
+      DartChangeBuilder builder, TypeAnnotation type) async {
+    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addDeletion(range.startStart(type, type.endToken.next));
+    });
+  }
+
+  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
+  static RemoveTypeAnnotation newInstance() => RemoveTypeAnnotation();
 }

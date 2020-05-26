@@ -112,6 +112,14 @@ Dart_Handle SocketAddress::GetUnixDomainSockAddr(const char* path,
 #if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
   NamespaceScope ns(namespc, path);
   path = ns.path();
+  bool is_abstract = (path[0] == '@');
+  if (is_abstract) {
+    // The following 107 bytes after the leading null byte represents the name
+    // of unix domain socket. Without reseting, even users provide the same path
+    // for bind and connect, they actually represent two different address and
+    // connection will be rejected.
+    bzero(addr->un.sun_path, sizeof(addr->un.sun_path));
+  }
 #endif  // defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
   if (sizeof(path) > sizeof(addr->un.sun_path)) {
     OSError os_error(-1,
@@ -122,6 +130,12 @@ Dart_Handle SocketAddress::GetUnixDomainSockAddr(const char* path,
   }
   addr->un.sun_family = AF_UNIX;
   Utils::SNPrint(addr->un.sun_path, sizeof(addr->un.sun_path), "%s", path);
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
+  // In case of abstract namespace, transfer the leading '@' into a null byte.
+  if (is_abstract) {
+    addr->un.sun_path[0] = '\0';
+  }
+#endif  // defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
   return Dart_Null();
 }
 

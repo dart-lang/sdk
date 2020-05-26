@@ -40,6 +40,11 @@
 *   Class `OSError` now implements `Exception`. This change means `OSError` will
     now be caught in catch clauses catching `Exception`s.
 *   Added `InternetAddress.tryParse`.
+*   [Abstract Unix Domain Socket][] is supported on Linux/Android now. Using an
+    `InternetAddress` with `address` starting with '@' and type being
+    `InternetAddressType.Unix` will create an abstract Unix Domain Socket.
+
+[Abstract Unix Domain Socket]: http://man7.org/linux/man-pages/man7/unix.7.html
 
 ### Tools
 
@@ -67,6 +72,19 @@ Updated the Linter to `0.1.115`, which includes:
 * New lint: `sized_box_for_whitespace`.
 
 ### Dart VM
+
+### Pub
+* Introduce `pub outdated --mode=null-safety` that will report which of your
+  dependencies you can upgrade to fully support null safety.
+* Fix `pub run` precompilation with relative `PUB_CACHE` paths (#2486)
+* Warn at publishing first time a package version opts in to null-safety.
+* Preserve Windows line endings in pubspec.lock if they are already there (#2489)
+* Better terminal color-detection. Use colors in terminals on Windows.
+* `pub outdated`: If the current version of a dependency is a prerelease 
+  version, use prereleases for latest if no newer stable.
+* `pub outdated` now works without a lockfile. In that case the 'Current'
+  column will be empty.
+* `pub upgrade`: Show summary count of outdated packages after running.
 
 ## 2.8.2 - 2020-05-13
 

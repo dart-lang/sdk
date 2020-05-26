@@ -956,6 +956,82 @@ f({core.int x = 0}) {}
 ''');
   }
 
+  Future<void> test_parameter_field_formal_addExplicitType() async {
+    await analyze('''
+class C {
+  int x;
+  C(this.x) {}
+}
+''');
+    var previewInfo = run({
+      findNode.fieldFormalParameter('this.x'):
+          NodeChangeForFieldFormalParameter()
+            ..addExplicitType = nnbdTypeProvider.intType
+    });
+    expect(previewInfo.applyTo(code), '''
+class C {
+  int x;
+  C(int this.x) {}
+}
+''');
+  }
+
+  Future<void>
+      test_parameter_field_formal_addExplicitType_declared_with_final() async {
+    await analyze('''
+class C {
+  int x;
+  C(final this.x) {}
+}
+''');
+    var previewInfo = run({
+      findNode.fieldFormalParameter('this.x'):
+          NodeChangeForFieldFormalParameter()
+            ..addExplicitType = nnbdTypeProvider.intType
+    });
+    expect(previewInfo.applyTo(code), '''
+class C {
+  int x;
+  C(final int this.x) {}
+}
+''');
+  }
+
+  Future<void>
+      test_parameter_field_formal_addExplicitType_declared_with_var() async {
+    await analyze('''
+class C {
+  int x;
+  C(var this.x) {}
+}
+''');
+    var previewInfo = run({
+      findNode.fieldFormalParameter('this.x'):
+          NodeChangeForFieldFormalParameter()
+            ..addExplicitType = nnbdTypeProvider.intType
+    });
+    expect(previewInfo.applyTo(code), '''
+class C {
+  int x;
+  C(int this.x) {}
+}
+''');
+  }
+
+  Future<void> test_parameter_field_formal_addExplicitType_no() async {
+    await analyze('''
+class C {
+  int x;
+  C(this.x) {}
+}
+''');
+    var previewInfo = run({
+      findNode.fieldFormalParameter('this.x'):
+          NodeChangeForFieldFormalParameter()
+    });
+    expect(previewInfo, isNull);
+  }
+
   Future<void> test_post_increment_add_null_check() async {
     var content = 'f(int x) => x++;';
     await analyze(content);

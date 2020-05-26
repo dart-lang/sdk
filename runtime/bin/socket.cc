@@ -201,13 +201,25 @@ Dart_Handle ListeningSocketRegistry::CreateUnixDomainBindListen(
     bool shared) {
   MutexLocker ml(&mutex_);
 
-  if (unix_domain_sockets_ != NULL && File::Exists(namespc, path)) {
+  RawAddr addr;
+  Dart_Handle result =
+      SocketAddress::GetUnixDomainSockAddr(path, namespc, &addr);
+  if (!Dart_IsNull(result)) {
+    return result;
+  }
+
+  if (unix_domain_sockets_ != NULL &&
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
+      // Abstract unix domain socket doesn't exist in file system.
+      path[0] != '@' &&
+#endif  // defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
+      File::Exists(namespc, addr.un.sun_path)) {
     // If there is a socket listening on this file. Ensure
     // that it was created with `shared` mode and current `shared`
     // is also true.
     OSSocket* os_socket = unix_domain_sockets_;
     OSSocket* os_socket_same_addr =
-        FindOSSocketWithPath(os_socket, namespc, path);
+        FindOSSocketWithPath(os_socket, namespc, addr.un.sun_path);
     if (os_socket_same_addr != NULL) {
       if (!os_socket_same_addr->shared || !shared) {
         OSError os_error(-1,
@@ -230,13 +242,6 @@ Dart_Handle ListeningSocketRegistry::CreateUnixDomainBindListen(
       InsertByFd(socketfd, os_socket);
       return Dart_True();
     }
-  }
-
-  RawAddr addr;
-  Dart_Handle result =
-      SocketAddress::GetUnixDomainSockAddr(path, namespc, &addr);
-  if (!Dart_IsNull(result)) {
-    return result;
   }
 
   // There is no socket listening on that path, so we create new one.
@@ -272,7 +277,15 @@ bool ListeningSocketRegistry::CloseOneSafe(OSSocket* os_socket,
   }
   // Unlink the socket file, if os_socket contains unix domain sockets.
   if (os_socket->address.addr.sa_family == AF_UNIX) {
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
+    // If the socket is abstract, which has a path starting with a null byte,
+    // unlink() is not necessary because the file doesn't exist.
+    if (os_socket->address.un.sun_path[0] != '\0') {
+      unlink(os_socket->address.un.sun_path);
+    }
+#else
     unlink(os_socket->address.un.sun_path);
+#endif  // defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
     delete os_socket;
     return true;
   }

@@ -43,7 +43,7 @@ vars = {
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "f65f3578f95415c9a2f3ad002aac7b507549e64a",
+  "co19_rev": "9dacb12cf963ce92fb056b7f2fb87096fd576e9a",
   "co19_2_rev": "ef2cb6474595d3ed60870e1a26e8913a980d6d59",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
@@ -90,8 +90,8 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_tag": "1.3.6",  # Please see the note above before updating.
 
-  "dartdoc_tag" : "v0.31.0",
-  "ffi_tag": "4cc14129e81f8804e73321f0ccf5484397a5ddce",
+  "dartdoc_tag" : "v0.32.0",
+  "ffi_tag": "454ab0f9ea6bd06942a983238d8a6818b1357edb",
   "fixnum_tag": "eb3748663dc979271ff6a3d014fbe522543b1d91",
   "glob_tag": "e9f4e6b7ae8abe5071461cf8f47191bb19cf7ef6",
   "html_tag": "083a36cd801a4b787ba156b7c6e4c8b2e2daed4a",
@@ -105,7 +105,7 @@ vars = {
   "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
   "intl_tag": "0.16.1",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
-  "json_rpc_2_tag": "eec10819a40e7bf2e401f2b97368776a90cc5550",
+  "json_rpc_2_tag": "d589e635d8ccb7cda6a804bd571f88abbabab146",
   "linter_tag": "0.1.115",
   "logging_tag": "9561ba016ae607747ae69b846c0e10958ca58ed4",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
@@ -121,7 +121,7 @@ vars = {
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "86fbb2cde9bbc66c8d159909d2f65a5981ea5b50",
   "protobuf_rev": "3746c8fd3f2b0147623a8e3db89c3ff4330de760",
-  "pub_rev": "3606265962da4248d34d352aa3d170aae4496a90",
+  "pub_rev": "a4bc2dd08630f85a94f506eab037fcaaedb42222",
   "pub_semver_tag": "v1.4.4",
   "quiver-dart_tag": "2.0.0+1",
   "resource_rev": "f8e37558a1c4f54550aa463b88a6a831e3e33cd6",
@@ -477,7 +477,7 @@ deps = {
 
   # TODO(37531): Remove these cipd packages and build with sdk instead when
   # benchmark runner gets support for that.
-  Var("dart_root") + "/benchmarks/FfiBoringssl/dart/native/out/": {
+  Var("dart_root") + "/benchmarks/FfiBoringssl/native/out/": {
       "packages": [
           {
               "package": "dart/benchmarks/ffiboringssl",

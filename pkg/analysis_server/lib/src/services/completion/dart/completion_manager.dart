@@ -44,6 +44,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -441,6 +442,12 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   @override
   bool get includeIdentifiers {
     return opType.includeIdentifiers;
+  }
+
+  @override
+  bool get inConstantContext {
+    var entity = target.entity;
+    return entity is ExpressionImpl && entity.inConstantContext;
   }
 
   @override

@@ -1568,7 +1568,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       start_time_micros_(OS::GetCurrentMonotonicMicros()),
       random_(),
       mutex_(NOT_IN_PRODUCT("Isolate::mutex_")),
-      symbols_lock_(new SafepointRwLock()),
       type_canonicalization_mutex_(
           NOT_IN_PRODUCT("Isolate::type_canonicalization_mutex_")),
       constant_canonicalization_mutex_(
@@ -2800,8 +2799,8 @@ void IsolateGroup::RunWithStoppedMutators(
     return;
   }
 
-  if (thread->IsAtSafepoint() &&
-      safepoint_handler()->IsOwnedByTheThread(thread)) {
+  if (thread->IsAtSafepoint()) {
+    RELEASE_ASSERT(safepoint_handler()->IsOwnedByTheThread(thread));
     single_current_mutator();
     return;
   }

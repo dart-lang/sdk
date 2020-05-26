@@ -26,43 +26,79 @@ import 'package:analysis_server/src/services/correction/dart/add_return_type.dar
 import 'package:analysis_server/src/services/correction/dart/add_static.dart';
 import 'package:analysis_server/src/services/correction/dart/add_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/change_argument_name.dart';
+import 'package:analysis_server/src/services/correction/dart/change_to_nearest_precise_value.dart';
+import 'package:analysis_server/src/services/correction/dart/change_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_add_all_to_spread.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_conditional_expression_to_if_element.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_documentation_into_line.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_flutter_child.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_flutter_children.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_map_from_iterable_to_for_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_quotes.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_expression_function_body.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_generic_function_syntax.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_if_null.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_int_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_list_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_named_arguments.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_on_type.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_package_import.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_relative_import.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_where_type.dart';
+import 'package:analysis_server/src/services/correction/dart/create_method.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_invocation.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_typedef.dart';
+import 'package:analysis_server/src/services/correction/dart/make_final.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_argument.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_await.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_const.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_dead_if_null.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_duplicate_case.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_empty_catch.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_empty_constructor_body.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_empty_else.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_empty_statement.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_if_null_operator.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_initializer.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_interpolation_braces.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_method_declaration.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_operator.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_question_mark.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_this_expression.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_new.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_local_variable.dart';
+import 'package:analysis_server/src/services/correction/dart/rename_to_camel_case.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_boolean_with_bool.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_colon_with_equals.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_final_with_const.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_new_with_const.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_null_with_closure.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_brackets.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_conditional_assignment.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_eight_digit_hex.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_identifier.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_interpolation.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_is_empty.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_null_aware.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_tear_off.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_child_property_last.dart';
+import 'package:analysis_server/src/services/correction/dart/sort_directives.dart';
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
+import 'package:analysis_server/src/services/correction/dart/use_is_not_empty.dart';
+import 'package:analysis_server/src/services/correction/dart/use_rethrow.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_future.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_text.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
-import 'package:analysis_server/src/services/correction/organize_directives.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
@@ -225,17 +261,27 @@ class FixProcessor extends BaseProcessor {
     LintNames.annotate_overrides: [
       AddOverride.newInstance,
     ],
-//    LintNames.avoid_annotating_with_dynamic : [],
-//    LintNames.avoid_empty_else : [],
-//    LintNames.avoid_init_to_null : [],
+    LintNames.avoid_annotating_with_dynamic: [
+      RemoveTypeAnnotation.newInstance,
+    ],
+    LintNames.avoid_empty_else: [
+      RemoveEmptyElse.newInstance,
+    ],
+    LintNames.avoid_init_to_null: [
+      RemoveInitializer.newInstance,
+    ],
     LintNames.avoid_private_typedef_functions: [
       InlineTypedef.newInstance,
     ],
-//    LintNames.avoid_redundant_argument_values : [],
+    LintNames.avoid_redundant_argument_values: [
+      RemoveArgument.newInstance,
+    ],
     LintNames.avoid_relative_lib_imports: [
       ConvertToPackageImport.newInstance,
     ],
-//    LintNames.avoid_return_types_on_setters : [],
+    LintNames.avoid_return_types_on_setters: [
+      RemoveTypeAnnotation.newInstance,
+    ],
     LintNames.avoid_returning_null_for_future: [
       AddSync.newInstance,
       WrapInFuture.newInstance,
@@ -243,32 +289,58 @@ class FixProcessor extends BaseProcessor {
     LintNames.avoid_types_as_parameter_names: [
       ConvertToOnType.newInstance,
     ],
-//    LintNames.avoid_types_on_closure_parameters : [],
-//    LintNames.await_only_futures : [],
+    LintNames.avoid_types_on_closure_parameters: [
+      ReplaceWithIdentifier.newInstance,
+      RemoveTypeAnnotation.newInstance,
+    ],
+    LintNames.await_only_futures: [
+      RemoveAwait.newInstance,
+    ],
     LintNames.curly_braces_in_flow_control_structures: [
       UseCurlyBraces.newInstance,
     ],
     LintNames.diagnostic_describe_all_properties: [
       AddDiagnosticPropertyReference.newInstance,
     ],
-//    LintNames.directives_ordering : [],
-//    LintNames.empty_catches : [],
-//    LintNames.empty_constructor_bodies : [],
-//    LintNames.empty_statements : [],
-//    LintNames.hash_and_equals : [],
-//    LintNames.no_duplicate_case_values : [],
-//    LintNames.non_constant_identifier_names : [],
-//    LintNames.null_closures : [],
+    LintNames.directives_ordering: [
+      SortDirectives.newInstance,
+    ],
+    LintNames.empty_catches: [
+      RemoveEmptyCatch.newInstance,
+    ],
+    LintNames.empty_constructor_bodies: [
+      RemoveEmptyConstructorBody.newInstance,
+    ],
+    LintNames.empty_statements: [
+      RemoveEmptyStatement.newInstance,
+      ReplaceWithBrackets.newInstance,
+    ],
+    LintNames.hash_and_equals: [
+      CreateMethod.newInstance,
+    ],
+    LintNames.no_duplicate_case_values: [
+      RemoveDuplicateCase.newInstance,
+    ],
+    LintNames.non_constant_identifier_names: [
+      RenameToCamelCase.newInstance,
+    ],
+    LintNames.null_closures: [
+      ReplaceNullWithClosure.newInstance,
+    ],
     LintNames.omit_local_variable_types: [
       ReplaceWithVar.newInstance,
     ],
-//    LintNames.prefer_adjacent_string_concatenation : [],
+    LintNames.prefer_adjacent_string_concatenation: [
+      RemoveOperator.newInstance,
+    ],
     LintNames.prefer_collection_literals: [
       ConvertToListLiteral.newInstance,
       ConvertToMapLiteral.newInstance,
       ConvertToSetLiteral.newInstance,
     ],
-//    LintNames.prefer_conditional_assignment : [],
+    LintNames.prefer_conditional_assignment: [
+      ReplaceWithConditionalAssignment.newInstance,
+    ],
     LintNames.prefer_const_constructors: [
       AddConst.newInstance,
       ReplaceNewWithConst.newInstance,
@@ -276,16 +348,24 @@ class FixProcessor extends BaseProcessor {
     LintNames.prefer_const_constructors_in_immutables: [
       AddConst.newInstance,
     ],
-//    LintNames.prefer_const_declarations : [],
+    LintNames.prefer_const_declarations: [
+      ReplaceFinalWithConst.newInstance,
+    ],
     LintNames.prefer_contains: [
       ConvertToContains.newInstance,
     ],
-//    LintNames.prefer_equal_for_default_values : [],
+    LintNames.prefer_equal_for_default_values: [
+      ReplaceColonWithEquals.newInstance,
+    ],
     LintNames.prefer_expression_function_bodies: [
       ConvertToExpressionFunctionBody.newInstance,
     ],
-//    LintNames.prefer_final_fields : [],
-//    LintNames.prefer_final_locals : [],
+    LintNames.prefer_final_fields: [
+      MakeFinal.newInstance,
+    ],
+    LintNames.prefer_final_locals: [
+      MakeFinal.newInstance,
+    ],
     LintNames.prefer_for_elements_to_map_fromIterable: [
       ConvertMapFromIterableToForLiteral.newInstance,
     ],
@@ -295,9 +375,15 @@ class FixProcessor extends BaseProcessor {
     LintNames.prefer_if_elements_to_conditional_expressions: [
       ConvertConditionalExpressionToIfElement.newInstance,
     ],
-//    LintNames.prefer_is_empty : [],
-//    LintNames.prefer_is_not_empty : [],
-//    LintNames.prefer_if_null_operators : [],
+    LintNames.prefer_is_empty: [
+      ReplaceWithIsEmpty.newInstance,
+    ],
+    LintNames.prefer_is_not_empty: [
+      UesIsNotEmpty.newInstance,
+    ],
+    LintNames.prefer_if_null_operators: [
+      ConvertToIfNull.newInstance,
+    ],
     LintNames.prefer_inlined_adds: [
       InlineInvocation.newInstance,
     ],
@@ -331,26 +417,42 @@ class FixProcessor extends BaseProcessor {
     LintNames.type_annotate_public_apis: [
       AddTypeAnnotation.newInstance,
     ],
-//    LintNames.type_init_formals : [],
+    LintNames.type_init_formals: [
+      RemoveTypeAnnotation.newInstance,
+    ],
     LintNames.unawaited_futures: [
       AddAwait.newInstance,
     ],
-//    LintNames.unnecessary_brace_in_string_interps : [],
-//    LintNames.unnecessary_const : [],
-//    LintNames.unnecessary_lambdas : [],
-//    LintNames.unnecessary_new : [],
+    LintNames.unnecessary_brace_in_string_interps: [
+      RemoveInterpolationBraces.newInstance,
+    ],
+    LintNames.unnecessary_const: [
+      RemoveUnnecesaryConst.newInstance,
+    ],
+    LintNames.unnecessary_lambdas: [
+      ReplaceWithTearOff.newInstance,
+    ],
+    LintNames.unnecessary_new: [
+      RemoveUnnecessaryNew.newInstance,
+    ],
     LintNames.unnecessary_null_in_if_null_operators: [
       RemoveIfNullOperator.newInstance,
     ],
-//    LintNames.unnecessary_overrides : [],
-//    LintNames.unnecessary_this : [],
+    LintNames.unnecessary_overrides: [
+      RemoveMethodDeclaration.newInstance,
+    ],
+    LintNames.unnecessary_this: [
+      RemoveThisExpression.newInstance,
+    ],
     LintNames.use_full_hex_values_for_flutter_colors: [
       ReplaceWithEightDigitHex.newInstance,
     ],
     LintNames.use_function_type_syntax_for_parameters: [
       ConvertToGenericFunctionSyntax.newInstance,
     ],
-//    LintNames.use_rethrow_when_possible : [],
+    LintNames.use_rethrow_when_possible: [
+      UseRethrow.newInstance,
+    ],
   };
 
   /// A map from error codes to a list of generators used to create multiple
@@ -377,12 +479,18 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.CONST_INSTANCE_FIELD: [
       AddStatic.newInstance,
     ],
-//    CompileTimeErrorCode.CONST_WITH_NON_CONST : [],
+    CompileTimeErrorCode.CONST_WITH_NON_CONST: [
+      RemoveConst.newInstance,
+    ],
 //    CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER : [],
 //    CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS : [],
-//    CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED : [],
+    CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED: [
+      ConvertToNamedArguments.newInstance,
+    ],
 //    CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD : [],
-//    CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE : [],
+    CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE: [
+      ChangeToNearestPreciseValue.newInstance,
+    ],
 //    CompileTimeErrorCode.INVALID_ANNOTATION : [],
     CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER: [
       AddRequiredKeyword.newInstance,
@@ -408,11 +516,16 @@ class FixProcessor extends BaseProcessor {
 //    CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER : [],
 //    CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD : [],
 //    CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER : [],
-//    CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER : [],
+    CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER: [
+      ConvertFlutterChild.newInstance,
+      ConvertFlutterChildren.newInstance,
+    ],
 //    CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE : [],
 //    CompileTimeErrorCode.URI_DOES_NOT_EXIST : [],
 
-//    HintCode.CAN_BE_NULL_AFTER_NULL_AWARE : [],
+    HintCode.CAN_BE_NULL_AFTER_NULL_AWARE: [
+      ReplaceWithNullAware.newInstance,
+    ],
 //    HintCode.DEAD_CODE : [],
 //    HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH : [],
 //    HintCode.DEAD_CODE_ON_CATCH_SUBTYPE : [],
@@ -480,6 +593,7 @@ class FixProcessor extends BaseProcessor {
 //    StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER : [],
     StaticTypeWarningCode.INVALID_ASSIGNMENT: [
       AddExplicitCast.newInstance,
+      ChangeTypeAnnotation.newInstance,
     ],
 //    StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION : [],
 //    StaticTypeWarningCode.NON_BOOL_CONDITION : [],
@@ -523,7 +637,9 @@ class FixProcessor extends BaseProcessor {
 //    StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE : [],
 //    StaticWarningCode.NOT_A_TYPE : [],
 //    StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME : [],
-//    StaticWarningCode.UNDEFINED_CLASS_BOOLEAN : [],
+    StaticWarningCode.UNDEFINED_CLASS_BOOLEAN: [
+      ReplaceBooleanWithBool.newInstance
+    ],
 //    StaticWarningCode.UNDEFINED_IDENTIFIER : [],
     StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT: [
       AddSync.newInstance,
@@ -580,17 +696,10 @@ class FixProcessor extends BaseProcessor {
 
     // analyze ErrorCode
     var errorCode = error.errorCode;
-    if (errorCode == StaticWarningCode.UNDEFINED_CLASS_BOOLEAN) {
-      await _addFix_boolInsteadOfBoolean();
-    }
     if (errorCode ==
         CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE) {
       await _addFix_replaceWithConstInstanceCreation();
     }
-    if (errorCode == CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE) {
-      await _addFix_changeToNearestPreciseValue();
-    }
-
     if (errorCode == CompileTimeErrorCode.INVALID_ANNOTATION ||
         errorCode == CompileTimeErrorCode.UNDEFINED_ANNOTATION) {
       if (node is Annotation) {
@@ -627,9 +736,6 @@ class FixProcessor extends BaseProcessor {
     if (errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST) {
       await _addFix_createImportUri();
       await _addFix_createPartUri();
-    }
-    if (errorCode == HintCode.CAN_BE_NULL_AFTER_NULL_AWARE) {
-      await _addFix_canBeNullAfterNullAware();
     }
     if (errorCode == HintCode.DEAD_CODE) {
       await _addFix_removeDeadCode();
@@ -793,10 +899,6 @@ class FixProcessor extends BaseProcessor {
     if (errorCode == StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE) {
       await _addFix_importLibrary_withType();
     }
-    if (errorCode ==
-        CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED) {
-      await _addFix_convertToNamedArgument();
-    }
     if (errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED) {
       await _addFix_createConstructor_forUninitializedFinalFields();
     }
@@ -824,9 +926,6 @@ class FixProcessor extends BaseProcessor {
       await _addFix_useStaticAccess_method();
       await _addFix_useStaticAccess_property();
     }
-    if (errorCode == StaticTypeWarningCode.INVALID_ASSIGNMENT) {
-      await _addFix_changeTypeAnnotation();
-    }
     if (errorCode ==
         StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION) {
       await _addFix_removeParentheses_inGetterInvocation();
@@ -838,9 +937,6 @@ class FixProcessor extends BaseProcessor {
       await _addFix_importLibrary_withType();
       await _addFix_createClass();
       await _addFix_createMixin();
-    }
-    if (errorCode == CompileTimeErrorCode.CONST_WITH_NON_CONST) {
-      await _addFix_removeConstKeyword(DartFixKind.REMOVE_CONST);
     }
     if (errorCode == StaticTypeWarningCode.UNDEFINED_FUNCTION) {
       await _addFix_createClass();
@@ -888,10 +984,6 @@ class FixProcessor extends BaseProcessor {
       await _addFix_undefinedClassAccessor_useSimilar();
       await _addFix_createSetter();
     }
-    if (errorCode == CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER) {
-      await _addFix_convertFlutterChild();
-      await _addFix_convertFlutterChildren();
-    }
     if (errorCode ==
         CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD) {
       await _addFix_createField_initializingFormal();
@@ -925,107 +1017,6 @@ class FixProcessor extends BaseProcessor {
       //  method or setter. The existing _addFix methods would need to be
       //  updated so that only the appropriate subset is generated.
     }
-    // lints
-    if (errorCode is LintCode) {
-      var name = errorCode.name;
-      if (name == LintNames.avoid_annotating_with_dynamic) {
-        await _addFix_removeTypeAnnotation();
-      }
-      if (name == LintNames.avoid_empty_else) {
-        await _addFix_removeEmptyElse();
-      }
-      if (name == LintNames.avoid_init_to_null) {
-        await _addFix_removeInitializer();
-      }
-      if (name == LintNames.avoid_redundant_argument_values) {
-        await _addFix_removeArgument();
-      }
-      if (name == LintNames.avoid_return_types_on_setters) {
-        await _addFix_removeTypeAnnotation();
-      }
-      if (name == LintNames.avoid_types_on_closure_parameters) {
-        await _addFix_replaceWithIdentifier();
-      }
-      if (name == LintNames.await_only_futures) {
-        await _addFix_removeAwait();
-      }
-      if (name == LintNames.directives_ordering) {
-        await _addFix_sortDirectives();
-      }
-      if (name == LintNames.empty_catches) {
-        await _addFix_removeEmptyCatch();
-      }
-      if (name == LintNames.empty_constructor_bodies) {
-        await _addFix_removeEmptyConstructorBody();
-      }
-      if (name == LintNames.empty_statements) {
-        await _addFix_removeEmptyStatement();
-      }
-      if (name == LintNames.hash_and_equals) {
-        await _addFix_addMissingHashOrEquals();
-      }
-      if (name == LintNames.no_duplicate_case_values) {
-        await _addFix_removeCaseStatement();
-      }
-      if (name == LintNames.non_constant_identifier_names) {
-        await _addFix_renameToCamelCase();
-      }
-      if (name == LintNames.null_closures) {
-        await _addFix_replaceNullWithClosure();
-      }
-      if (name == LintNames.prefer_adjacent_string_concatenation) {
-        await _addFix_removeOperator();
-      }
-      if (name == LintNames.prefer_conditional_assignment) {
-        await _addFix_replaceWithConditionalAssignment();
-      }
-      if (errorCode.name == LintNames.prefer_const_declarations) {
-        await _addFix_replaceFinalWithConst();
-      }
-      if (errorCode.name == LintNames.prefer_equal_for_default_values) {
-        await _addFix_replaceColonWithEquals();
-      }
-      if (name == LintNames.prefer_final_fields) {
-        await _addFix_makeVariableFinal();
-      }
-      if (name == LintNames.prefer_final_locals) {
-        await _addFix_makeVariableFinal();
-      }
-      if (name == LintNames.prefer_is_empty) {
-        await _addFix_replaceWithIsEmpty();
-      }
-      if (name == LintNames.prefer_is_not_empty) {
-        await _addFix_isNotEmpty();
-      }
-      if (errorCode.name == LintNames.prefer_if_null_operators) {
-        await _addFix_convertToIfNullOperator();
-      }
-      if (name == LintNames.type_init_formals) {
-        await _addFix_removeTypeAnnotation();
-      }
-      if (name == LintNames.unnecessary_brace_in_string_interps) {
-        await _addFix_removeInterpolationBraces();
-      }
-      if (name == LintNames.unnecessary_const) {
-        await _addFix_removeConstKeyword(DartFixKind.REMOVE_UNNECESSARY_CONST);
-      }
-      if (name == LintNames.unnecessary_lambdas) {
-        await _addFix_replaceWithTearOff();
-      }
-      if (name == LintNames.unnecessary_new) {
-        await _addFix_removeNewKeyword();
-      }
-      if (name == LintNames.unnecessary_overrides) {
-        await _addFix_removeMethodDeclaration();
-      }
-      if (name == LintNames.unnecessary_this) {
-        await _addFix_removeThisExpression();
-      }
-      if (name == LintNames.use_rethrow_when_possible) {
-        await _addFix_replaceWithRethrow();
-      }
-    }
-
     await _addFromProducers();
 
     // done
@@ -1036,42 +1027,6 @@ class FixProcessor extends BaseProcessor {
     var fixes = await compute();
     fixes.sort(Fix.SORT_BY_RELEVANCE);
     return fixes.isNotEmpty ? fixes.first : null;
-  }
-
-  Future<void> _addFix_addMissingHashOrEquals() async {
-    final methodDecl = node.thisOrAncestorOfType<MethodDeclaration>();
-    final classDecl = node.thisOrAncestorOfType<ClassDeclaration>();
-    if (methodDecl != null && classDecl != null) {
-      final classElement = classDecl.declaredElement;
-
-      var element;
-      var memberName;
-      if (methodDecl.name.name == 'hashCode') {
-        memberName = '==';
-        element = classElement.lookUpInheritedMethod(
-            memberName, classElement.library);
-      } else {
-        memberName = 'hashCode';
-        element = classElement.lookUpInheritedConcreteGetter(
-            memberName, classElement.library);
-      }
-
-      final location =
-          utils.prepareNewClassMemberLocation(classDecl, (_) => true);
-
-      final changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (fileBuilder) {
-        fileBuilder.addInsertion(location.offset, (builder) {
-          builder.write(location.prefix);
-          builder.writeOverride(element, invokeSuper: true);
-          builder.write(location.suffix);
-        });
-      });
-
-      changeBuilder.setSelection(Position(file, location.offset));
-      _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_METHOD,
-          args: [memberName]);
-    }
   }
 
   Future<void> _addFix_addMissingParameter() async {
@@ -1197,253 +1152,6 @@ class FixProcessor extends BaseProcessor {
     } else {
       var parameterList = await context.getParameterList();
       await addParameter(parameterList?.leftParenthesis?.end, '{', '}');
-    }
-  }
-
-  Future<void> _addFix_boolInsteadOfBoolean() async {
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addSimpleReplacement(range.error(error), 'bool');
-    });
-    _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_BOOLEAN_WITH_BOOL);
-  }
-
-  Future<void> _addFix_canBeNullAfterNullAware() async {
-    var node = coveredNode;
-    if (node is Expression) {
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        var parent = node.parent;
-        while (parent != null) {
-          if (parent is MethodInvocation && parent.target == node) {
-            builder.addSimpleReplacement(range.token(parent.operator), '?.');
-          } else if (parent is PropertyAccess && parent.target == node) {
-            builder.addSimpleReplacement(range.token(parent.operator), '?.');
-          } else {
-            break;
-          }
-          node = parent;
-          parent = node.parent;
-        }
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_WITH_NULL_AWARE);
-    }
-  }
-
-  Future<void> _addFix_changeToNearestPreciseValue() async {
-    IntegerLiteral integer = node;
-    var lexeme = integer.literal.lexeme;
-    var precise = BigInt.from(IntegerLiteralImpl.nearestValidDouble(lexeme));
-    var correction = lexeme.toLowerCase().contains('x')
-        ? '0x${precise.toRadixString(16).toUpperCase()}'
-        : precise.toString();
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addSimpleReplacement(range.node(integer), correction);
-    });
-    _addFixFromBuilder(
-        changeBuilder, DartFixKind.CHANGE_TO_NEAREST_PRECISE_VALUE,
-        args: [correction]);
-  }
-
-  Future<void> _addFix_changeTypeAnnotation() async {
-    var declaration = coveredNode.parent;
-    if (declaration is VariableDeclaration &&
-        declaration.initializer == coveredNode) {
-      var variableList = declaration.parent;
-      if (variableList is VariableDeclarationList &&
-          variableList.variables.length == 1) {
-        var typeNode = variableList.type;
-        if (typeNode != null) {
-          Expression initializer = coveredNode;
-          var newType = initializer.staticType;
-          if (newType is InterfaceType || newType is FunctionType) {
-            var changeBuilder = _newDartChangeBuilder();
-            await changeBuilder.addFileEdit(file,
-                (DartFileEditBuilder builder) {
-              builder.addReplacement(range.node(typeNode),
-                  (DartEditBuilder builder) {
-                builder.writeType(newType);
-              });
-            });
-            _addFixFromBuilder(
-              changeBuilder,
-              DartFixKind.CHANGE_TYPE_ANNOTATION,
-              args: [
-                typeNode.type.getDisplayString(withNullability: false),
-                newType.getDisplayString(withNullability: false),
-              ],
-            );
-          }
-        }
-      }
-    }
-  }
-
-  Future<void> _addFix_convertFlutterChild() async {
-    var named = flutter.findNamedExpression(node, 'child');
-    if (named == null) {
-      return;
-    }
-
-    // child: widget
-    var expression = named.expression;
-    if (flutter.isWidgetExpression(expression)) {
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        flutter.convertChildToChildren2(
-            builder,
-            expression,
-            named,
-            eol,
-            utils.getNodeText,
-            utils.getLinePrefix,
-            utils.getIndent,
-            utils.getText,
-            range.node);
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_FLUTTER_CHILD);
-      return;
-    }
-
-    // child: [widget1, widget2]
-    if (expression is ListLiteral &&
-        expression.elements.every(flutter.isWidgetExpression)) {
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addSimpleReplacement(range.node(named.name), 'children:');
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_FLUTTER_CHILD);
-    }
-  }
-
-  Future<void> _addFix_convertFlutterChildren() async {
-    var node = this.node;
-    if (node is SimpleIdentifier &&
-        node.name == 'children' &&
-        node.parent?.parent is NamedExpression) {
-      NamedExpression named = node.parent?.parent;
-      var expression = named.expression;
-      if (expression is ListLiteral && expression.elements.length == 1) {
-        var widget = expression.elements[0];
-        if (flutter.isWidgetExpression(widget)) {
-          var widgetText = utils.getNodeText(widget);
-          var indentOld = utils.getLinePrefix(widget.offset);
-          var indentNew = utils.getLinePrefix(named.offset);
-          widgetText = _replaceSourceIndent(widgetText, indentOld, indentNew);
-
-          var builder = _newDartChangeBuilder();
-          await builder.addFileEdit(file, (builder) {
-            builder.addReplacement(range.node(named), (builder) {
-              builder.write('child: ');
-              builder.write(widgetText);
-            });
-          });
-          _addFixFromBuilder(builder, DartFixKind.CONVERT_FLUTTER_CHILDREN);
-        }
-      }
-    }
-  }
-
-  Future<void> _addFix_convertToIfNullOperator() async {
-    var conditional = node.thisOrAncestorOfType<ConditionalExpression>();
-    if (conditional == null) {
-      return;
-    }
-    var condition = conditional.condition as BinaryExpression;
-    Expression nullableExpression;
-    Expression defaultExpression;
-    if (condition.operator.type == TokenType.EQ_EQ) {
-      nullableExpression = conditional.elseExpression;
-      defaultExpression = conditional.thenExpression;
-    } else {
-      nullableExpression = conditional.thenExpression;
-      defaultExpression = conditional.elseExpression;
-    }
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(range.node(conditional), (builder) {
-        builder.write(utils.getNodeText(nullableExpression));
-        builder.write(' ?? ');
-        builder.write(utils.getNodeText(defaultExpression));
-      });
-    });
-    _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_IF_NULL);
-  }
-
-  Future<void> _addFix_convertToNamedArgument() async {
-    var argumentList = node;
-    if (argumentList is ArgumentList) {
-      // Prepare parameters.
-      List<ParameterElement> parameters;
-      var parent = argumentList.parent;
-      if (parent is FunctionExpressionInvocation) {
-        var invokeType = parent.staticInvokeType;
-        if (invokeType is FunctionType) {
-          parameters = invokeType.parameters;
-        }
-      } else if (parent is InstanceCreationExpression) {
-        parameters = parent.staticElement?.parameters;
-      } else if (parent is MethodInvocation) {
-        var invokeType = parent.staticInvokeType;
-        if (invokeType is FunctionType) {
-          parameters = invokeType.parameters;
-        }
-      }
-      if (parameters == null) {
-        return;
-      }
-
-      // Prepare named parameters.
-      var numberOfPositionalParameters = 0;
-      var namedParameters = <ParameterElement>[];
-      for (var parameter in parameters) {
-        if (parameter.isNamed) {
-          namedParameters.add(parameter);
-        } else {
-          numberOfPositionalParameters++;
-        }
-      }
-      if (argumentList.arguments.length <= numberOfPositionalParameters) {
-        return;
-      }
-
-      // Find named parameters for extra arguments.
-      var argumentToParameter = <Expression, ParameterElement>{};
-      var extraArguments =
-          argumentList.arguments.skip(numberOfPositionalParameters);
-      for (var argument in extraArguments) {
-        if (argument is! NamedExpression) {
-          ParameterElement uniqueNamedParameter;
-          for (var namedParameter in namedParameters) {
-            if (typeSystem.isSubtypeOf(
-                argument.staticType, namedParameter.type)) {
-              if (uniqueNamedParameter == null) {
-                uniqueNamedParameter = namedParameter;
-              } else {
-                uniqueNamedParameter = null;
-                break;
-              }
-            }
-          }
-          if (uniqueNamedParameter != null) {
-            argumentToParameter[argument] = uniqueNamedParameter;
-            namedParameters.remove(uniqueNamedParameter);
-          }
-        }
-      }
-      if (argumentToParameter.isEmpty) {
-        return;
-      }
-
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        for (var argument in argumentToParameter.keys) {
-          var parameter = argumentToParameter[argument];
-          builder.addSimpleInsertion(argument.offset, '${parameter.name}: ');
-        }
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_NAMED_ARGUMENTS);
     }
   }
 
@@ -2782,32 +2490,6 @@ class FixProcessor extends BaseProcessor {
     }
   }
 
-  Future<void> _addFix_isNotEmpty() async {
-    if (node is! PrefixExpression) {
-      return;
-    }
-    PrefixExpression prefixExpression = node;
-    var negation = prefixExpression.operator;
-    if (negation.type != TokenType.BANG) {
-      return;
-    }
-    SimpleIdentifier identifier;
-    var expression = prefixExpression.operand;
-    if (expression is PrefixedIdentifier) {
-      identifier = expression.identifier;
-    } else if (expression is PropertyAccess) {
-      identifier = expression.propertyName;
-    } else {
-      return;
-    }
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addDeletion(range.token(negation));
-      builder.addSimpleReplacement(range.node(identifier), 'isNotEmpty');
-    });
-    _addFixFromBuilder(changeBuilder, DartFixKind.USE_IS_NOT_EMPTY);
-  }
-
   Future<void> _addFix_isNotNull() async {
     if (coveredNode is IsExpression) {
       var isExpression = coveredNode as IsExpression;
@@ -2892,25 +2574,6 @@ class FixProcessor extends BaseProcessor {
                 args: [fieldName]);
           }
         }
-      }
-    }
-  }
-
-  Future<void> _addFix_makeVariableFinal() async {
-    var node = this.node;
-    if (node is SimpleIdentifier && node.parent is VariableDeclaration) {
-      VariableDeclaration declaration = node.parent;
-      VariableDeclarationList list = declaration.parent;
-      if (list.variables.length == 1) {
-        var changeBuilder = _newDartChangeBuilder();
-        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-          if (list.keyword == null) {
-            builder.addSimpleInsertion(list.offset, 'final ');
-          } else if (list.keyword.keyword == Keyword.VAR) {
-            builder.addSimpleReplacement(range.token(list.keyword), 'final');
-          }
-        });
-        _addFixFromBuilder(changeBuilder, DartFixKind.MAKE_FINAL);
       }
     }
   }
@@ -3055,64 +2718,6 @@ class FixProcessor extends BaseProcessor {
     }
   }
 
-  Future<void> _addFix_removeArgument() async {
-    var arg = node;
-    if (arg.parent is NamedExpression) {
-      arg = arg.parent;
-    }
-
-    var argumentList = arg.parent.thisOrAncestorOfType<ArgumentList>();
-    if (argumentList != null) {
-      final changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (builder) {
-        final sourceRange = range.nodeInList(argumentList.arguments, arg);
-        builder.addDeletion(sourceRange);
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_ARGUMENT);
-    }
-  }
-
-  Future<void> _addFix_removeAwait() async {
-    final awaitExpression = node;
-    if (awaitExpression is AwaitExpression) {
-      final awaitToken = awaitExpression.awaitKeyword;
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addDeletion(range.startStart(awaitToken, awaitToken.next));
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_AWAIT);
-    }
-  }
-
-  Future<void> _addFix_removeCaseStatement() async {
-    if (coveredNode is SwitchCase) {
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addDeletion(utils.getLinesRange(range.node(coveredNode)));
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_DUPLICATE_CASE);
-    }
-  }
-
-  Future<void> _addFix_removeConstKeyword(FixKind kind) async {
-    final expression = node;
-    if (expression is InstanceCreationExpression) {
-      final constToken = expression.keyword;
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addDeletion(range.startStart(constToken, constToken.next));
-      });
-      _addFixFromBuilder(changeBuilder, kind);
-    } else if (expression is TypedLiteralImpl) {
-      final constToken = expression.constKeyword;
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addDeletion(range.startStart(constToken, constToken.next));
-      });
-      _addFixFromBuilder(changeBuilder, kind);
-    }
-  }
-
   Future<void> _addFix_removeDeadCode() async {
     var coveringNode = coveredNode;
     if (coveringNode is Expression) {
@@ -3161,117 +2766,6 @@ class FixProcessor extends BaseProcessor {
         builder.addDeletion(range.endEnd(previous, coveringNode));
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_DEAD_CODE);
-    }
-  }
-
-  Future<void> _addFix_removeEmptyCatch() async {
-    if (node.parent is! CatchClause) {
-      return;
-    }
-    var catchClause = node.parent as CatchClause;
-
-    var tryStatement = catchClause.parent as TryStatement;
-    if (tryStatement.catchClauses.length == 1 &&
-        tryStatement.finallyBlock == null) {
-      return;
-    }
-
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addDeletion(utils.getLinesRange(range.node(catchClause)));
-    });
-    _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_EMPTY_CATCH);
-  }
-
-  Future<void> _addFix_removeEmptyConstructorBody() async {
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addSimpleReplacement(
-          utils.getLinesRange(range.node(node.parent)), ';');
-    });
-    _addFixFromBuilder(
-        changeBuilder, DartFixKind.REMOVE_EMPTY_CONSTRUCTOR_BODY);
-  }
-
-  Future<void> _addFix_removeEmptyElse() async {
-    IfStatement ifStatement = node.parent;
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addDeletion(utils.getLinesRange(
-          range.startEnd(ifStatement.elseKeyword, ifStatement.elseStatement)));
-    });
-    _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_EMPTY_ELSE);
-  }
-
-  Future<void> _addFix_removeEmptyStatement() async {
-    EmptyStatement emptyStatement = node;
-    if (emptyStatement.parent is Block) {
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addDeletion(utils.getLinesRange(range.node(emptyStatement)));
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_EMPTY_STATEMENT);
-    } else {
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        var previous = emptyStatement.findPrevious(emptyStatement.beginToken);
-        if (previous != null) {
-          builder.addSimpleReplacement(
-              range.endEnd(previous, emptyStatement), ' {}');
-        }
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_WITH_BRACKETS);
-    }
-  }
-
-  Future<void> _addFix_removeInitializer() async {
-    // Handle formal parameters with default values.
-    var parameter = node.thisOrAncestorOfType<DefaultFormalParameter>();
-    if (parameter != null) {
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addDeletion(
-            range.endEnd(parameter.identifier, parameter.defaultValue));
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_INITIALIZER);
-      return;
-    }
-    // Handle variable declarations with default values.
-    var variable = node.thisOrAncestorOfType<VariableDeclaration>();
-    if (variable != null) {
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addDeletion(range.endEnd(variable.name, variable.initializer));
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_INITIALIZER);
-    }
-  }
-
-  Future<void> _addFix_removeInterpolationBraces() async {
-    var node = this.node;
-    if (node is InterpolationExpression) {
-      var right = node.rightBracket;
-      if (node.expression != null && right != null) {
-        var changeBuilder = _newDartChangeBuilder();
-        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-          builder.addSimpleReplacement(
-              range.startStart(node, node.expression), r'$');
-          builder.addDeletion(range.token(right));
-        });
-        _addFixFromBuilder(
-            changeBuilder, DartFixKind.REMOVE_INTERPOLATION_BRACES);
-      } else {}
-    }
-  }
-
-  Future<void> _addFix_removeMethodDeclaration() async {
-    var declaration = node.thisOrAncestorOfType<MethodDeclaration>();
-    if (declaration != null) {
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addDeletion(utils.getLinesRange(range.node(declaration)));
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_METHOD_DECLARATION);
     }
   }
 
@@ -3340,31 +2834,6 @@ class FixProcessor extends BaseProcessor {
     }
   }
 
-  Future<void> _addFix_removeNewKeyword() async {
-    final instanceCreationExpression = node;
-    if (instanceCreationExpression is InstanceCreationExpression) {
-      final newToken = instanceCreationExpression.keyword;
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addDeletion(range.startStart(newToken, newToken.next));
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_UNNECESSARY_NEW);
-    }
-  }
-
-  Future<void> _addFix_removeOperator() async {
-    if (node is BinaryExpression) {
-      var expression = node as BinaryExpression;
-      var operator = expression.operator;
-      var rightOperand = expression.rightOperand;
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addDeletion(range.startStart(operator, rightOperand));
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_OPERATOR);
-    }
-  }
-
   Future<void> _addFix_removeParameters_inGetterDeclaration() async {
     if (node is MethodDeclaration) {
       // Support for the analyzer error.
@@ -3399,50 +2868,6 @@ class FixProcessor extends BaseProcessor {
       });
       _addFixFromBuilder(
           changeBuilder, DartFixKind.REMOVE_PARENTHESIS_IN_GETTER_INVOCATION);
-    }
-  }
-
-  Future<void> _addFix_removeThisExpression() async {
-    if (node is ConstructorFieldInitializer) {
-      var initializer = node as ConstructorFieldInitializer;
-      var thisKeyword = initializer.thisKeyword;
-      if (thisKeyword != null) {
-        var changeBuilder = _newDartChangeBuilder();
-        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-          var fieldName = initializer.fieldName;
-          builder.addDeletion(range.startStart(thisKeyword, fieldName));
-        });
-        _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_THIS_EXPRESSION);
-      }
-      return;
-    }
-    final thisExpression = node is ThisExpression
-        ? node
-        : node.thisOrAncestorOfType<ThisExpression>();
-    final parent = thisExpression?.parent;
-    if (parent is PropertyAccess) {
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addDeletion(range.startEnd(parent, parent.operator));
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_THIS_EXPRESSION);
-    } else if (parent is MethodInvocation) {
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addDeletion(range.startEnd(parent, parent.operator));
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_THIS_EXPRESSION);
-    }
-  }
-
-  Future<void> _addFix_removeTypeAnnotation() async {
-    var type = node.thisOrAncestorOfType<TypeAnnotation>();
-    if (type != null) {
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addDeletion(range.startStart(type, type.endToken.next));
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_TYPE_ANNOTATION);
     }
   }
 
@@ -3532,143 +2957,12 @@ class FixProcessor extends BaseProcessor {
     }
   }
 
-  Future<void> _addFix_renameToCamelCase() async {
-    if (node is! SimpleIdentifier) {
-      return;
-    }
-    SimpleIdentifier identifier = node;
-
-    // Prepare the new name.
-    var words = identifier.name.split('_');
-    if (words.length < 2) {
-      return;
-    }
-    var newName = words.first + words.skip(1).map((w) => capitalize(w)).join();
-
-    // Find references to the identifier.
-    List<SimpleIdentifier> references;
-    var element = identifier.staticElement;
-    if (element is LocalVariableElement) {
-      AstNode root = node.thisOrAncestorOfType<Block>();
-      references = findLocalElementReferences(root, element);
-    } else if (element is ParameterElement) {
-      if (!element.isNamed) {
-        var root = node.thisOrAncestorMatching((node) =>
-            node.parent is ClassOrMixinDeclaration ||
-            node.parent is CompilationUnit);
-        references = findLocalElementReferences(root, element);
-      }
-    }
-    if (references == null) {
-      return;
-    }
-
-    // Compute the change.
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      for (var reference in references) {
-        builder.addSimpleReplacement(range.node(reference), newName);
-      }
-    });
-    _addFixFromBuilder(changeBuilder, DartFixKind.RENAME_TO_CAMEL_CASE,
-        args: [newName]);
-  }
-
-  Future<void> _addFix_replaceColonWithEquals() async {
-    if (node is DefaultFormalParameter) {
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addSimpleReplacement(
-            range.token((node as DefaultFormalParameter).separator), ' =');
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_COLON_WITH_EQUALS);
-    }
-  }
-
-  Future<void> _addFix_replaceFinalWithConst() async {
-    if (node is VariableDeclarationList) {
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addSimpleReplacement(
-            range.token((node as VariableDeclarationList).keyword), 'const');
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_FINAL_WITH_CONST);
-    }
-  }
-
-  Future<void> _addFix_replaceNullWithClosure() async {
-    var nodeToFix;
-    var parameters = const <ParameterElement>[];
-    if (coveredNode is NamedExpression) {
-      NamedExpression namedExpression = coveredNode;
-      var expression = namedExpression.expression;
-      if (expression is NullLiteral) {
-        var element = namedExpression.element;
-        if (element is ParameterElement) {
-          var type = element.type;
-          if (type is FunctionType) {
-            parameters = type.parameters;
-          }
-        }
-        nodeToFix = expression;
-      }
-    } else if (coveredNode is NullLiteral) {
-      nodeToFix = coveredNode;
-    }
-
-    if (nodeToFix != null) {
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addReplacement(range.node(nodeToFix),
-            (DartEditBuilder builder) {
-          builder.writeParameters(parameters);
-          builder.write(' => null');
-        });
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_NULL_WITH_CLOSURE);
-    }
-  }
-
   Future<void> _addFix_replaceVarWithDynamic() async {
     var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addSimpleReplacement(range.error(error), 'dynamic');
     });
     _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_VAR_WITH_DYNAMIC);
-  }
-
-  Future<void> _addFix_replaceWithConditionalAssignment() async {
-    IfStatement ifStatement =
-        node is IfStatement ? node : node.thisOrAncestorOfType<IfStatement>();
-    if (ifStatement == null) {
-      return;
-    }
-    var thenStatement = ifStatement.thenStatement;
-    Statement uniqueStatement(Statement statement) {
-      if (statement is Block) {
-        return uniqueStatement(statement.statements.first);
-      }
-      return statement;
-    }
-
-    thenStatement = uniqueStatement(thenStatement);
-    if (thenStatement is ExpressionStatement) {
-      final expression = thenStatement.expression.unParenthesized;
-      if (expression is AssignmentExpression) {
-        var changeBuilder = _newDartChangeBuilder();
-        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-          builder.addReplacement(range.node(ifStatement),
-              (DartEditBuilder builder) {
-            builder.write(utils.getNodeText(expression.leftHandSide));
-            builder.write(' ??= ');
-            builder.write(utils.getNodeText(expression.rightHandSide));
-            builder.write(';');
-          });
-        });
-        _addFixFromBuilder(
-            changeBuilder, DartFixKind.REPLACE_WITH_CONDITIONAL_ASSIGNMENT);
-      }
-    }
   }
 
   Future<void> _addFix_replaceWithConstInstanceCreation() async {
@@ -3710,175 +3004,6 @@ class FixProcessor extends BaseProcessor {
     });
     _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_WITH_EXTENSION_NAME,
         args: [override.extensionName.name]);
-  }
-
-  Future<void> _addFix_replaceWithIdentifier() async {
-    var functionTyped =
-        node.thisOrAncestorOfType<FunctionTypedFormalParameter>();
-    if (functionTyped != null) {
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addSimpleReplacement(range.node(functionTyped),
-            utils.getNodeText(functionTyped.identifier));
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_WITH_IDENTIFIER);
-    } else {
-      await _addFix_removeTypeAnnotation();
-    }
-  }
-
-  Future<void> _addFix_replaceWithIsEmpty() async {
-    /// Return the value of an integer literal or prefix expression with a
-    /// minus and then an integer literal. For anything else, returns `null`.
-    int getIntValue(Expression expressions) {
-      // Copied from package:linter/src/rules/prefer_is_empty.dart.
-      if (expressions is IntegerLiteral) {
-        return expressions.value;
-      } else if (expressions is PrefixExpression) {
-        var operand = expressions.operand;
-        if (expressions.operator.type == TokenType.MINUS &&
-            operand is IntegerLiteral) {
-          return -operand.value;
-        }
-      }
-      return null;
-    }
-
-    /// Return the expression producing the object on which `length` is being
-    /// invoked, or `null` if there is no such expression.
-    Expression getLengthTarget(Expression expression) {
-      if (expression is PropertyAccess &&
-          expression.propertyName.name == 'length') {
-        return expression.target;
-      } else if (expression is PrefixedIdentifier &&
-          expression.identifier.name == 'length') {
-        return expression.prefix;
-      }
-      return null;
-    }
-
-    var binary = node.thisOrAncestorOfType<BinaryExpression>();
-    var operator = binary.operator.type;
-    String getter;
-    FixKind kind;
-    Expression lengthTarget;
-    var rightValue = getIntValue(binary.rightOperand);
-    if (rightValue != null) {
-      lengthTarget = getLengthTarget(binary.leftOperand);
-      if (rightValue == 0) {
-        if (operator == TokenType.EQ_EQ || operator == TokenType.LT_EQ) {
-          getter = 'isEmpty';
-          kind = DartFixKind.REPLACE_WITH_IS_EMPTY;
-        } else if (operator == TokenType.GT || operator == TokenType.BANG_EQ) {
-          getter = 'isNotEmpty';
-          kind = DartFixKind.REPLACE_WITH_IS_NOT_EMPTY;
-        }
-      } else if (rightValue == 1) {
-        // 'length >= 1' is same as 'isNotEmpty',
-        // and 'length < 1' is same as 'isEmpty'
-        if (operator == TokenType.GT_EQ) {
-          getter = 'isNotEmpty';
-          kind = DartFixKind.REPLACE_WITH_IS_NOT_EMPTY;
-        } else if (operator == TokenType.LT) {
-          getter = 'isEmpty';
-          kind = DartFixKind.REPLACE_WITH_IS_EMPTY;
-        }
-      }
-    } else {
-      var leftValue = getIntValue(binary.leftOperand);
-      if (leftValue != null) {
-        lengthTarget = getLengthTarget(binary.rightOperand);
-        if (leftValue == 0) {
-          if (operator == TokenType.EQ_EQ || operator == TokenType.GT_EQ) {
-            getter = 'isEmpty';
-            kind = DartFixKind.REPLACE_WITH_IS_EMPTY;
-          } else if (operator == TokenType.LT ||
-              operator == TokenType.BANG_EQ) {
-            getter = 'isNotEmpty';
-            kind = DartFixKind.REPLACE_WITH_IS_NOT_EMPTY;
-          }
-        } else if (leftValue == 1) {
-          // '1 <= length' is same as 'isNotEmpty',
-          // and '1 > length' is same as 'isEmpty'
-          if (operator == TokenType.LT_EQ) {
-            getter = 'isNotEmpty';
-            kind = DartFixKind.REPLACE_WITH_IS_NOT_EMPTY;
-          } else if (operator == TokenType.GT) {
-            getter = 'isEmpty';
-            kind = DartFixKind.REPLACE_WITH_IS_EMPTY;
-          }
-        }
-      }
-    }
-    if (lengthTarget == null || getter == null || kind == null) {
-      return;
-    }
-    var target = utils.getNodeText(lengthTarget);
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addSimpleReplacement(range.node(binary), '$target.$getter');
-    });
-    _addFixFromBuilder(changeBuilder, kind);
-  }
-
-  Future<void> _addFix_replaceWithRethrow() async {
-    if (coveredNode is ThrowExpression) {
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addSimpleReplacement(range.node(coveredNode), 'rethrow');
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.USE_RETHROW);
-    }
-  }
-
-  Future<void> _addFix_replaceWithTearOff() async {
-    var ancestor = node.thisOrAncestorOfType<FunctionExpression>();
-    if (ancestor == null) {
-      return;
-    }
-    Future<void> addFixOfExpression(InvocationExpression expression) async {
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addReplacement(range.node(ancestor), (DartEditBuilder builder) {
-          if (expression is MethodInvocation && expression.target != null) {
-            builder.write(utils.getNodeText(expression.target));
-            builder.write('.');
-          }
-          builder.write(utils.getNodeText(expression.function));
-        });
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_WITH_TEAR_OFF);
-    }
-
-    final body = ancestor.body;
-    if (body is ExpressionFunctionBody) {
-      final expression = body.expression;
-      await addFixOfExpression(expression.unParenthesized);
-    } else if (body is BlockFunctionBody) {
-      final statement = body.block.statements.first;
-      if (statement is ExpressionStatement) {
-        final expression = statement.expression;
-        await addFixOfExpression(expression.unParenthesized);
-      } else if (statement is ReturnStatement) {
-        final expression = statement.expression;
-        await addFixOfExpression(expression.unParenthesized);
-      }
-    }
-  }
-
-  Future<void> _addFix_sortDirectives() async {
-    var organizer =
-        DirectiveOrganizer(resolvedResult.content, unit, resolvedResult.errors);
-
-    var changeBuilder = _newDartChangeBuilder();
-    // todo (pq): consider restructuring organizer to allow a passed-in change builder
-    for (var edit in organizer.organize()) {
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addSimpleReplacement(
-            SourceRange(edit.offset, edit.length), edit.replacement);
-      });
-    }
-    _addFixFromBuilder(changeBuilder, DartFixKind.SORT_DIRECTIVES);
   }
 
   Future<void> _addFix_undefinedClass_useSimilar() async {
@@ -4222,7 +3347,7 @@ class FixProcessor extends BaseProcessor {
       diagnostic: error,
       resolvedResult: resolvedResult,
       selectionOffset: errorOffset,
-      selectionLength: 0,
+      selectionLength: errorLength,
       workspace: workspace,
     );
 
@@ -4658,11 +3783,6 @@ class FixProcessor extends BaseProcessor {
       return _isNameOfType(node.name);
     }
     return false;
-  }
-
-  static String _replaceSourceIndent(
-      String source, String indentOld, String indentNew) {
-    return source.replaceAll(RegExp('^$indentOld', multiLine: true), indentNew);
   }
 }
 

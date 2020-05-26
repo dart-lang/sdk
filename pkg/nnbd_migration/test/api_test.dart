@@ -484,6 +484,37 @@ class D = C with M;
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void>
+      test_class_alias_synthetic_constructor_with_parameters_and_subclass() async {
+    var content = '''
+void main() {
+  E e = E(null);
+}
+class C {
+  C(int i);
+}
+mixin M {}
+class D = C with M;
+class E extends D {
+  E(int i) : super(i);
+}
+''';
+    var expected = '''
+void main() {
+  E e = E(null);
+}
+class C {
+  C(int? i);
+}
+mixin M {}
+class D = C with M;
+class E extends D {
+  E(int? i) : super(i);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_class_with_default_constructor() async {
     var content = '''
 void main() => f(Foo());
@@ -5092,7 +5123,7 @@ import 'package:meta/meta.dart';
 class C {
   final bool? x;
   C.one({this.x});
-  C.two({required this.x}) : assert(x != null);
+  C.two({required bool this.x}) : assert(x != null);
 }
 test() => C.one();
 ''';
@@ -6125,7 +6156,6 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38453')
   Future<void>
       test_unconditional_use_of_field_formal_param_does_not_create_hard_edge() async {
     var content = '''
@@ -6140,7 +6170,28 @@ class C {
 class C {
   int? i;
   int j;
-  C.one(this.i) : j = i! + 1;
+  C.one(int this.i) : j = i + 1;
+  C.two() : i = null, j = 0;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void>
+      test_unconditional_use_of_field_formal_param_does_not_create_hard_edge_generic() async {
+    var content = '''
+class C {
+  List<int/*?*/> i;
+  int j;
+  C.one(this.i) : j = i.length;
+  C.two() : i = null, j = 0;
+}
+''';
+    var expected = '''
+class C {
+  List<int?>? i;
+  int j;
+  C.one(List<int?> this.i) : j = i.length;
   C.two() : i = null, j = 0;
 }
 ''';

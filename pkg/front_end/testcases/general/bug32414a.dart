@@ -6,7 +6,7 @@
 
 void test() {
   dynamic a = 5;
-  var /*@ type=String* */ b = a. /*@target=Object::toString*/ toString();
+  var /*@ type=String* */ b = a. /*@target=Object.toString*/ toString();
   b = 42;
 }
 

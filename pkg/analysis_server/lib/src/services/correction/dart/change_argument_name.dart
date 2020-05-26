@@ -12,7 +12,9 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ChangeArgumentName extends MultiCorrectionProducer {
-  static const maxDistance = 4;
+  /// The maximum Levenshtein distance between the existing name and a possible
+  /// replacement before the replacement is deemed to not be worth offering.
+  static const _maxDistance = 4;
 
   @override
   Iterable<CorrectionProducer> get producers sync* {
@@ -24,7 +26,7 @@ class ChangeArgumentName extends MultiCorrectionProducer {
     var invalidName = argumentName.name;
     for (var proposedName in names) {
       var distance = _computeDistance(invalidName, proposedName);
-      if (distance <= maxDistance) {
+      if (distance <= _maxDistance) {
         // TODO(brianwilkerson) Create a way to use the distance as part of the
         //  computation of the priority (so that closer names sort first).
         yield _ChangeName(argumentName, proposedName);
@@ -40,7 +42,7 @@ class ChangeArgumentName extends MultiCorrectionProducer {
       // value is changed to improve results.
       return 1;
     }
-    return levenshtein(current, proposal, maxDistance, caseSensitive: false);
+    return levenshtein(current, proposal, _maxDistance, caseSensitive: false);
   }
 
   List<String> _getNamedParameterNames() {

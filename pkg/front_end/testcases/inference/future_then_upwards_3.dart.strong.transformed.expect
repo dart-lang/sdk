@@ -46,7 +46,7 @@ static method test() → void {
  - 'Future' is from 'dart:async'.
   Future<int> f2 = /*error:INVALID_ASSIGNMENT*/ f;
                                                 ^" in f as{TypeError} asy::Future<core::int*>*;
-  asy::Future<core::num*>* f3 = self::foo().{asy::Future::then}<core::double*>((dynamic _) → core::double* => 2.3) as asy::Future<core::double*>*;
+  asy::Future<core::num*>* f3 = self::foo().{asy::Future::then}<core::double*>((dynamic _) → core::double* => 2.3);
 }
 static method foo() → asy::Future<dynamic>*
   return asy::Future::value<core::int*>(1);

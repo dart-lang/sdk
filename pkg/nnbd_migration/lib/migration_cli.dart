@@ -5,11 +5,7 @@
 import 'dart:async';
 import 'dart:io' hide File;
 
-import 'package:analysis_server/src/api_for_nnbd_migration.dart';
-import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
-import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart'
@@ -27,6 +23,8 @@ import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
+import 'package:nnbd_migration/src/front_end/dartfix_listener.dart';
+import 'package:nnbd_migration/src/front_end/driver_provider_impl.dart';
 import 'package:nnbd_migration/src/front_end/non_nullable_fix.dart';
 import 'package:nnbd_migration/src/utilities/source_edit_diff_formatter.dart';
 import 'package:path/path.dart' show Context;
@@ -139,7 +137,7 @@ class MigrationCli {
 
   final Map<String, LineInfo> lineInfo = {};
 
-  _DartFixListener _dartFixListener;
+  DartFixListener _dartFixListener;
 
   _FixCodeProcessor _fixCodeProcessor;
 
@@ -265,7 +263,7 @@ class MigrationCli {
           contextCollection.contexts.single as DriverBasedAnalysisContext;
       _fixCodeProcessor = _FixCodeProcessor(context, this);
       _dartFixListener =
-          _DartFixListener(_DriverProvider(resourceProvider, context));
+          DartFixListener(DriverProviderImpl(resourceProvider, context));
       nonNullableFix = NonNullableFix(_dartFixListener, resourceProvider,
           included: [options.directory],
           preferredPort: options.previewPort,
@@ -412,11 +410,11 @@ Use this interactive web view to review, improve, or apply the results.
     }
   }
 
-  void _displayChangeSummary(_DartFixListener migrationResults) {
-    Map<String, List<_DartFixSuggestion>> fileSuggestions = {};
-    for (_DartFixSuggestion suggestion in migrationResults.suggestions) {
+  void _displayChangeSummary(DartFixListener migrationResults) {
+    Map<String, List<DartFixSuggestion>> fileSuggestions = {};
+    for (DartFixSuggestion suggestion in migrationResults.suggestions) {
       String file = suggestion.location.file;
-      fileSuggestions.putIfAbsent(file, () => <_DartFixSuggestion>[]);
+      fileSuggestions.putIfAbsent(file, () => <DartFixSuggestion>[]);
       fileSuggestions[file].add(suggestion);
     }
 
@@ -579,80 +577,10 @@ class _BadArgException implements Exception {
   _BadArgException(this.message);
 }
 
-class _DartFixListener implements DartFixListenerInterface {
-  @override
-  final DriverProvider server;
-
-  @override
-  final SourceChange sourceChange = SourceChange('null safety migration');
-
-  final List<_DartFixSuggestion> suggestions = [];
-
-  _DartFixListener(this.server);
-
-  @override
-  void addDetail(String detail) {
-    throw UnimplementedError('TODO(paulberry)');
-  }
-
-  @override
-  void addEditWithoutSuggestion(Source source, SourceEdit edit) {
-    sourceChange.addEdit(source.fullName, -1, edit);
-  }
-
-  @override
-  void addRecommendation(String description, [Location location]) {
-    throw UnimplementedError('TODO(paulberry)');
-  }
-
-  @override
-  void addSourceFileEdit(
-      String description, Location location, SourceFileEdit fileEdit) {
-    suggestions.add(_DartFixSuggestion(description, location: location));
-    for (var sourceEdit in fileEdit.edits) {
-      sourceChange.addEdit(fileEdit.file, fileEdit.fileStamp, sourceEdit);
-    }
-  }
-
-  @override
-  void addSuggestion(String description, Location location) {
-    suggestions.add(_DartFixSuggestion(description, location: location));
-  }
-
-  /// Reset this listener so that it can accrue a new set of changes.
-  void reset() {
-    suggestions.clear();
-    sourceChange
-      ..edits.clear()
-      ..linkedEditGroups.clear()
-      ..selection = null
-      ..id = null;
-  }
-}
-
-class _DartFixSuggestion {
-  final String description;
-
-  final Location location;
-
-  _DartFixSuggestion(this.description, {@required this.location});
-}
-
-class _DriverProvider implements DriverProvider {
-  @override
-  final ResourceProvider resourceProvider;
-
-  final AnalysisContext analysisContext;
-
-  _DriverProvider(this.resourceProvider, this.analysisContext);
-
-  @override
-  AnalysisSession getAnalysisSession(String path) =>
-      analysisContext.currentSession;
-}
-
-class _FixCodeProcessor extends Object with FixCodeProcessor {
+class _FixCodeProcessor extends Object {
   final DriverBasedAnalysisContext context;
+
+  NonNullableFix _task;
 
   Set<String> pathsToProcess;
 
@@ -711,12 +639,16 @@ class _FixCodeProcessor extends Object with FixCodeProcessor {
     }
   }
 
+  void registerCodeTask(NonNullableFix task) {
+    _task = task;
+  }
+
   Future<void> runFirstPhase() async {
     // All tasks should be registered; [numPhases] should be finalized.
-    _progressBar = _ProgressBar(pathsToProcess.length * numPhases);
+    _progressBar = _ProgressBar(pathsToProcess.length * _task.numPhases);
 
     // Process package
-    await processPackage(context.contextRoot.root);
+    await _task.processPackage(context.contextRoot.root);
 
     // Process each source file.
     await processResources((ResolvedUnitResult result) async {
@@ -730,19 +662,19 @@ class _FixCodeProcessor extends Object with FixCodeProcessor {
       }
       if (_migrationCli.options.ignoreErrors ||
           _migrationCli.fileErrors.isEmpty) {
-        await processCodeTasks(0, result);
+        await _task.processUnit(0, result);
       }
     });
   }
 
   Future<List<String>> runLaterPhases() async {
-    for (var phase = 1; phase < numPhases; phase++) {
+    for (var phase = 1; phase < _task.numPhases; phase++) {
       await processResources((ResolvedUnitResult result) async {
         _progressBar.tick();
-        await processCodeTasks(phase, result);
+        await _task.processUnit(phase, result);
       });
     }
-    await finishCodeTasks();
+    await _task.finish();
     _progressBar.complete();
 
     return nonNullableFixTask.previewUrls;

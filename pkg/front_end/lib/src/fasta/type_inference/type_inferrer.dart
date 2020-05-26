@@ -50,6 +50,8 @@ import '../kernel/internal_ast.dart'
 
 import '../kernel/inference_visitor.dart';
 
+import '../kernel/invalid_type.dart';
+
 import '../kernel/type_algorithms.dart' show hasAnyTypeVariables;
 
 import '../names.dart';
@@ -415,8 +417,9 @@ class ClosureContext {
       returnType = inferrer.typeSchemaEnvironment.unfutureType(returnType);
     }
     if (inferrer.library.isNonNullableByDefault &&
-        isPotentiallyNonNullable(
-            returnType, inferrer.coreTypes.futureOrClass) &&
+        (containsInvalidType(returnType) ||
+            isPotentiallyNonNullable(
+                returnType, inferrer.coreTypes.futureOrClass)) &&
         inferrer.flowAnalysis.isReachable) {
       Statement resultStatement =
           inferenceResult.hasChanged ? inferenceResult.statement : body;
@@ -2219,10 +2222,12 @@ class TypeInferrerImpl implements TypeInferrer {
             inferenceNeeded ||
                 isOverloadedArithmeticOperator ||
                 typeChecksNeeded);
+        inferredType = result.inferredType == null || isNonNullableByDefault
+            ? result.inferredType
+            : legacyErasure(coreTypes, result.inferredType);
         Expression expression =
-            _hoist(result.expression, result.inferredType, hoistedExpressions);
+            _hoist(result.expression, inferredType, hoistedExpressions);
         arguments.positional[position] = expression..parent = arguments;
-        inferredType = result.inferredType;
       }
       if (inferenceNeeded || typeChecksNeeded) {
         formalTypes.add(formalType);
@@ -2247,10 +2252,13 @@ class TypeInferrerImpl implements TypeInferrer {
           inferenceNeeded ||
               isOverloadedArithmeticOperator ||
               typeChecksNeeded);
+      DartType inferredType =
+          result.inferredType == null || isNonNullableByDefault
+              ? result.inferredType
+              : legacyErasure(coreTypes, result.inferredType);
       Expression expression =
-          _hoist(result.expression, result.inferredType, hoistedExpressions);
+          _hoist(result.expression, inferredType, hoistedExpressions);
       namedArgument.value = expression..parent = namedArgument;
-      DartType inferredType = result.inferredType;
       if (inferenceNeeded || typeChecksNeeded) {
         formalTypes.add(formalType);
         actualTypes.add(inferredType);
@@ -4321,8 +4329,11 @@ class ObjectAccessTarget {
   bool get isNullableCallFunction =>
       kind == ObjectAccessTargetKind.nullableCallFunction;
 
-  /// Returns `true` if this is an access on a dynamic receiver type.
+  /// Returns `true` if this is an access on a `dynamic` receiver type.
   bool get isDynamic => kind == ObjectAccessTargetKind.dynamic;
+
+  /// Returns `true` if this is an access on a `Never` receiver type.
+  bool get isNever => kind == ObjectAccessTargetKind.never;
 
   /// Returns `true` if this is an access on an invalid receiver type.
   bool get isInvalid => kind == ObjectAccessTargetKind.invalid;

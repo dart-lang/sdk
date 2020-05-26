@@ -3080,9 +3080,11 @@ static bool GetInstances(Thread* thread, JSONStream* js) {
 
   ZoneGrowableHandlePtrArray<Object> storage(thread->zone(), limit);
   GetInstancesVisitor visitor(cls, &storage, limit);
-  ObjectGraph graph(thread);
-  HeapIterationScope iteration_scope(Thread::Current(), true);
-  graph.IterateObjects(&visitor);
+  {
+    ObjectGraph graph(thread);
+    HeapIterationScope iteration_scope(Thread::Current(), true);
+    graph.IterateObjects(&visitor);
+  }
   intptr_t count = visitor.count();
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "InstanceSet");

@@ -118,7 +118,7 @@ static field dynamic i = invalid-expression "pkg/front_end/testcases/inference/i
 Try correcting the operator to an existing operator, or defining a 'unary-' operator.
 var i = /*error:UNDEFINED_OPERATOR,info:DYNAMIC_INVOKE*/ -new A();
                                                          ^";
-static field self::B* j = null as self::B*;
+static field self::B* j = null;
 static method test1() → dynamic {
   self::a = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:36:36: Error: A value of type 'String' can't be assigned to a variable of type 'A'.
  - 'A' is from 'pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart'.

@@ -55,6 +55,10 @@ class EnclosingExecutableContext {
   /// The return statements that do not have a value.
   final List<ReturnStatement> _returnsWithout = [];
 
+  /// This flag is set to `false` when the declared return type is not legal
+  /// for the kind of the function body, e.g. not `Future` for `async`.
+  bool hasLegalReturnType = true;
+
   EnclosingExecutableContext(this.element)
       : isAsynchronous = element != null && element.isAsynchronous,
         isConstConstructor = element is ConstructorElement && element.isConst,
@@ -75,7 +79,7 @@ class EnclosingExecutableContext {
 
   static bool _isStaticMethod(ExecutableElement element) {
     var enclosing = element?.enclosingElement;
-    if (enclosing is ClassElement) {
+    if (enclosing is ClassElement || enclosing is ExtensionElement) {
       return element.isStatic;
     }
     return false;
@@ -1012,7 +1016,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _checkForStaticAccessToInstanceMember(typeReference, propertyName);
     _checkForInstanceAccessToStaticMember(
         typeReference, node.target, propertyName);
-    _checkForUnnecessaryNullAware(target, node.operator);
+
+    // For `C?.x` the type of `C` is not set, because it is not an expression.
+    if (target.staticType != null) {
+      _checkForUnnecessaryNullAware(target, node.operator);
+    }
+
     super.visitPropertyAccess(node);
   }
 
@@ -2764,7 +2773,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
     // not a class member
     Element enclosingElement = element.enclosingElement;
-    if (enclosingElement is! ClassElement) {
+    if (enclosingElement is! ClassElement &&
+        enclosingElement is! ExtensionElement) {
       return;
     }
     // qualified method invocation

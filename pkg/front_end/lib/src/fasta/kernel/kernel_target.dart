@@ -30,6 +30,7 @@ import 'package:kernel/ast.dart'
         NullLiteral,
         Procedure,
         RedirectingInitializer,
+        Reference,
         Source,
         SuperInitializer,
         Supertype,
@@ -397,6 +398,26 @@ class KernelTarget extends TargetImplementation {
 
     Component component = backendTarget.configureComponent(new Component(
         nameRoot: nameRoot, libraries: libraries, uriToSource: uriToSource));
+
+    NonNullableByDefaultCompiledMode compiledMode = null;
+    if (enableNonNullable) {
+      switch (loader.nnbdMode) {
+        case NnbdMode.Weak:
+          compiledMode = NonNullableByDefaultCompiledMode.Weak;
+          break;
+        case NnbdMode.Strong:
+          compiledMode = NonNullableByDefaultCompiledMode.Strong;
+          break;
+        case NnbdMode.Agnostic:
+          compiledMode = NonNullableByDefaultCompiledMode.Agnostic;
+          break;
+      }
+    } else {
+      compiledMode = NonNullableByDefaultCompiledMode.Disabled;
+    }
+
+    Reference mainReference;
+
     if (loader.first != null) {
       // TODO(sigmund): do only for full program
       Builder declaration = loader.first.exportScope.lookup("main", -1, null);
@@ -404,32 +425,15 @@ class KernelTarget extends TargetImplementation {
         AmbiguousBuilder problem = declaration;
         declaration = problem.getFirstDeclaration();
       }
-      NonNullableByDefaultCompiledMode compiledMode = null;
-      if (enableNonNullable) {
-        switch (loader.nnbdMode) {
-          case NnbdMode.Weak:
-            compiledMode = NonNullableByDefaultCompiledMode.Weak;
-            break;
-          case NnbdMode.Strong:
-            compiledMode = NonNullableByDefaultCompiledMode.Strong;
-            break;
-          case NnbdMode.Agnostic:
-            compiledMode = NonNullableByDefaultCompiledMode.Agnostic;
-            break;
-        }
-      } else {
-        compiledMode = NonNullableByDefaultCompiledMode.Disabled;
-      }
       if (declaration is ProcedureBuilder) {
-        component.setMainMethodAndMode(
-            declaration.actualProcedure?.reference, true, compiledMode);
+        mainReference = declaration.actualProcedure?.reference;
       } else if (declaration is DillMemberBuilder) {
         if (declaration.member is Procedure) {
-          component.setMainMethodAndMode(
-              declaration.member?.reference, true, compiledMode);
+          mainReference = declaration.member?.reference;
         }
       }
     }
+    component.setMainMethodAndMode(mainReference, true, compiledMode);
 
     if (metadataCollector != null) {
       component.addMetadataRepository(metadataCollector.repository);
@@ -1049,14 +1053,13 @@ class KernelTarget extends TargetImplementation {
       Set<String> patchFieldNames = {};
       builder.forEachDeclaredField((String name, FieldBuilder fieldBuilder) {
         patchFieldNames.add(SourceFieldBuilder.createFieldName(
-            fieldBuilder.isClassInstanceMember,
-            builder.name,
-            false,
-            null,
-            name,
-            fieldBuilder.isLate &&
-                !builder.library.loader.target.backendTarget.supportsLateFields,
-            FieldNameType.Field));
+          FieldNameType.Field,
+          name,
+          isInstanceMember: fieldBuilder.isClassInstanceMember,
+          className: builder.name,
+          isSynthesized: fieldBuilder.isLate &&
+              !builder.library.loader.target.backendTarget.supportsLateFields,
+        ));
       });
       builder.forEach((String name, Builder builder) {
         if (builder is FieldBuilder) {

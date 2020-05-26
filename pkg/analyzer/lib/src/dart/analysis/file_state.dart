@@ -531,7 +531,13 @@ class FileState {
   }
 
   @override
-  String toString() => path ?? '<unresolved>';
+  String toString() {
+    if (path == null) {
+      return '<unresolved>';
+    } else {
+      return '$uri = $path';
+    }
+  }
 
   CompilationUnit _createEmptyCompilationUnit() {
     var token = Token.eof(0);

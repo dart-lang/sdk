@@ -55,7 +55,7 @@ static void EnsureIsNewOrRemembered(Assembler* assembler,
   }
   // [R0] already contains first argument.
   __ mov(R1, THR);
-  __ CallRuntime(kAddAllocatedObjectToRememberedSetRuntimeEntry, 2);
+  __ CallRuntime(kEnsureRememberedAndMarkingDeferredRuntimeEntry, 2);
   if (preserve_registers) {
     __ LeaveCallRuntimeFrame();
   }

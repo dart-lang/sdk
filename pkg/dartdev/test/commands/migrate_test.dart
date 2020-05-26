@@ -11,8 +11,6 @@ void main() {
   group('migrate', defineMigrateTests, timeout: longTimeout);
 }
 
-bool _nnbdIsEnabled = true;
-
 void defineMigrateTests() {
   final didYouForgetToRunPubGet = contains('Did you forget to run "pub get"?');
 
@@ -36,16 +34,16 @@ void defineMigrateTests() {
     p = project(mainSrc: 'int get foo => 1;\n');
     var result =
         p.runSync('migrate', ['--no-web-preview'], workingDir: p.dirPath);
-    expect(result.exitCode, _nnbdIsEnabled ? 0 : 2);
-    expect(result.stderr, _nnbdIsEnabled ? isEmpty : isNotEmpty);
+    expect(result.exitCode, 0);
+    expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Generating migration suggestions'));
   });
 
   test('directory explicit', () {
     p = project(mainSrc: 'int get foo => 1;\n');
     var result = p.runSync('migrate', ['--no-web-preview', p.dirPath]);
-    expect(result.exitCode, _nnbdIsEnabled ? 0 : 2);
-    expect(result.stderr, _nnbdIsEnabled ? isEmpty : isNotEmpty);
+    expect(result.exitCode, 0);
+    expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Generating migration suggestions'));
   });
 

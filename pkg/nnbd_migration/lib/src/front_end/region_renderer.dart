@@ -37,7 +37,7 @@ class RegionRenderer {
 
     TargetLink linkForTarget(NavigationTarget target) {
       var relativePath = _relativePathToTarget(target, unitDir);
-      var targetUri = _uriForRelativePath(relativePath, target);
+      var targetUri = _uriForPath(target.filePath, target);
       return TargetLink(
         path: relativePath,
         href: targetUri,
@@ -57,7 +57,8 @@ class RegionRenderer {
             }).toString());
 
     var response = EditDetails(
-      path: unitInfo.path,
+      displayPath: unitInfo.path,
+      uriPath: pathMapper.map(unitInfo.path),
       line: region.lineNumber,
       explanation: region.explanation,
       edits: supportsIncrementalWorkflow
@@ -92,12 +93,12 @@ class RegionRenderer {
   }
 
   /// Return the URL that will navigate to the given [target] in the file at the
-  /// given [relativePath].
-  String _uriForRelativePath(String relativePath, NavigationTarget target) {
+  /// given [path].
+  String _uriForPath(String path, NavigationTarget target) {
     var queryParams = {
       'offset': target.offset,
       if (target.line != null) 'line': target.line,
     }.entries.map((entry) => '${entry.key}=${entry.value}').join('&');
-    return '$relativePath?$queryParams';
+    return '${pathMapper.map(path)}?$queryParams';
   }
 }

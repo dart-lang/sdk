@@ -11,6 +11,8 @@ import 'package:kernel/ast.dart';
 
 import 'package:kernel/core_types.dart';
 
+import 'package:kernel/src/text_util.dart';
+
 import 'utils.dart';
 
 /// Dart class representation used in type flow analysis.
@@ -32,7 +34,8 @@ class TFClass {
   bool operator ==(other) => identical(this, other);
 
   @override
-  String toString() => classNode.toString();
+  String toString() =>
+      qualifiedClassNameToString(classNode, includeLibraryName: true);
 }
 
 abstract class GenericInterfacesInfo {

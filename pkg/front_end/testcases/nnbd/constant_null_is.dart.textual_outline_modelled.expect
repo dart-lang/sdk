@@ -1,0 +1,38 @@
+import 'dart:async';
+
+class Class<T> {
+  const Class.constructor1(value) : field = value is T;
+  const Class.constructor2(value) : field = value is T?;
+  const Class.constructor3(value) : field = value is Class<T>;
+  const Class.constructor4(value) : field = value is Class<T>?;
+  final bool field;
+}
+
+const c0 = null is int?;
+const c1 = null is int;
+const c10 = null is FutureOr<Never>;
+const c11 = null is FutureOr<Never?>;
+const c12 = null is FutureOr<Never>?;
+const c2 = null is Null;
+const c3 = null is Never?;
+const c4 = null is Never;
+const c5 = null is FutureOr<int?>;
+const c6 = null is FutureOr<int>;
+const c7 = null is FutureOr<int>?;
+const c8 = null is FutureOr<Null>;
+const c9 = null is FutureOr<Null>?;
+const e1 = const Class<int>.constructor1(null);
+const e10 = const Class<int>.constructor4(null);
+const e11 = const Class<int?>.constructor4(null);
+const e12 = const Class<Null>.constructor4(null);
+const e2 = const Class<int?>.constructor1(null);
+const e3 = const Class<Null>.constructor1(null);
+const e4 = const Class<int>.constructor2(null);
+const e5 = const Class<int?>.constructor2(null);
+const e6 = const Class<Null>.constructor2(null);
+const e7 = const Class<int>.constructor3(null);
+const e8 = const Class<int?>.constructor3(null);
+const e9 = const Class<Null>.constructor3(null);
+expect(expected, actual, String message) {}
+final bool isWeakMode = const <Null>[] is List<Object>;
+main() {}

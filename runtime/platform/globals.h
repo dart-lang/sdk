@@ -679,6 +679,9 @@ inline D bit_copy(const S& source) {
 #define PATH_MAX MAX_PATH
 #endif
 
+// Undefine math.h definition which clashes with our condition names.
+#undef OVERFLOW
+
 }  // namespace dart
 
 #endif  // RUNTIME_PLATFORM_GLOBALS_H_
