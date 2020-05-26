@@ -580,7 +580,7 @@ class _CatchClausesVerifier {
   final List<CatchClause> catchClauses;
 
   bool _done = false;
-  List<DartType> _visitedTypes = <DartType>[];
+  final List<DartType> _visitedTypes = <DartType>[];
 
   _CatchClausesVerifier(
     this._typeSystem,
