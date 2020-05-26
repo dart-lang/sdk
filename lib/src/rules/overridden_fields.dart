@@ -69,7 +69,7 @@ class LogPrintHandler implements BaseLoggingHandler {
 Iterable<InterfaceType> _findAllSupertypesAndMixins(
     InterfaceType interface, List<InterfaceType> accumulator) {
   if (interface == null ||
-      interface.isObject ||
+      interface.isDartCoreObject ||
       accumulator.contains(interface)) {
     return accumulator;
   }

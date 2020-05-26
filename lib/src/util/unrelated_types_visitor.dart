@@ -44,7 +44,7 @@ DartType _findIterableTypeArgument(
     InterfaceTypeDefinition definition, InterfaceType type,
     {List<InterfaceType> accumulator = const []}) {
   if (type == null ||
-      type.isObject ||
+      type.isDartCoreObject ||
       type.isDynamic ||
       accumulator.contains(type)) {
     return null;
