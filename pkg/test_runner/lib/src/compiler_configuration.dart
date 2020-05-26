@@ -541,10 +541,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
 
     // Link to the summaries for the available packages, so that they don't
     // get recompiled into the test's own module.
-    var packages = _configuration.nnbdMode == NnbdMode.legacy
-        ? testPackages
-        : testPackagesNnbd;
-    for (var package in packages) {
+    for (var package in testPackages) {
       args.add("-s");
 
       // Since the summaries for the packages are not near the tests, we give

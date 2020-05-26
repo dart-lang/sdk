@@ -182,13 +182,9 @@ create_timestamp_file("dartdevc_sdk_patch_stamp") {
 group("dartdevc_test_kernel_pkg") {
   deps = [
     ":async_helper_js",
-    ":collection_js",
     ":expect_js",
     ":js_js",
-    ":matcher_js",
     ":meta_js",
-    ":path_js",
-    ":stack_trace_js",
   ]
 }
 
@@ -266,10 +262,6 @@ dartdevc_kernel_compile("async_helper_js") {
   package = "async_helper"
 }
 
-dartdevc_kernel_compile("collection_js") {
-  package = "collection"
-}
-
 dartdevc_kernel_compile("expect_js") {
   package = "expect"
   extra_libraries = [ "minitest" ]
@@ -280,22 +272,8 @@ dartdevc_kernel_compile("js_js") {
   extra_libraries = [ "js_util" ]
 }
 
-dartdevc_kernel_compile("matcher_js") {
-  package = "matcher"
-  package_dependencies = [ "stack_trace" ]
-}
-
 dartdevc_kernel_compile("meta_js") {
   package = "meta"
-}
-
-dartdevc_kernel_compile("path_js") {
-  package = "path"
-}
-
-dartdevc_kernel_compile("stack_trace_js") {
-  package = "stack_trace"
-  package_dependencies = [ "path" ]
 }
 
 compile_platform("dartdevc_platform") {
