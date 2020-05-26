@@ -1736,6 +1736,10 @@ InternalProblemVerificationError:
     #string
   severity: INTERNAL_PROBLEM
 
+VerificationErrorOriginContext:
+  template: "The node most likely is taken from here by a transformer."
+  severity: CONTEXT
+
 InternalProblemDebugAbort:
   template: "Compilation aborted due to fatal '#name' at:\n#string"
   severity: INTERNAL_PROBLEM
