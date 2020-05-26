@@ -598,9 +598,6 @@ class Driver with HasContextMixin implements CommandLineStarter {
       } catch (e) {
         printAndFail('Unable to read package config data from $path: $e');
       }
-    } else if (options.packageRootPath != null) {
-      var path = normalizePath(options.packageRootPath);
-      packageMap = _PackageRootPackageMapBuilder.buildPackageMap(path);
     } else {
       var cwd = resourceProvider.getResource(path.current);
       // Look for .packages.
@@ -679,7 +676,6 @@ class Driver with HasContextMixin implements CommandLineStarter {
       CommandLineOptions previous, CommandLineOptions newOptions) {
     return previous != null &&
         newOptions != null &&
-        newOptions.packageRootPath == previous.packageRootPath &&
         newOptions.packageConfigPath == previous.packageConfigPath &&
         _equalMaps(newOptions.definedVariables, previous.definedVariables) &&
         newOptions.log == previous.log &&
@@ -734,29 +730,4 @@ class _PackageInfo {
   final Map<String, List<Folder>> packageMap;
 
   _PackageInfo(this.packages, this.packageMap);
-}
-
-class _PackageRootPackageMapBuilder {
-  /// In the case that the analyzer is invoked with a --package-root option, we
-  /// need to manually create the mapping from package name to folder.
-  ///
-  /// Given [packageRootPath], creates a simple mapping from package name
-  /// to full path on disk (resolving any symbolic links).
-  static Map<String, List<Folder>> buildPackageMap(String packageRootPath) {
-    var packageRoot = io.Directory(packageRootPath);
-    if (!packageRoot.existsSync()) {
-      throw _DriverError(
-          'Package root directory ($packageRootPath) does not exist.');
-    }
-    var packages = packageRoot.listSync(followLinks: false);
-    var result = <String, List<Folder>>{};
-    for (var package in packages) {
-      var packageName = path.basename(package.path);
-      var realPath = package.resolveSymbolicLinksSync();
-      result[packageName] = [
-        PhysicalResourceProvider.INSTANCE.getFolder(realPath)
-      ];
-    }
-    return result;
-  }
 }

@@ -706,7 +706,6 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options) {
     String defaultPackageFilePath;
-    String defaultPackagesDirectoryPath;
     var path = (analysisServer.contextManager as ContextManagerImpl)
         .normalizedPackageRoots[folder.path];
     if (path != null) {
@@ -714,8 +713,6 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
       if (resource.exists) {
         if (resource is File) {
           defaultPackageFilePath = path;
-        } else {
-          defaultPackagesDirectoryPath = path;
         }
       }
     }
@@ -723,7 +720,6 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
     var builderOptions = ContextBuilderOptions();
     builderOptions.defaultOptions = options;
     builderOptions.defaultPackageFilePath = defaultPackageFilePath;
-    builderOptions.defaultPackagesDirectoryPath = defaultPackagesDirectoryPath;
     var builder = ContextBuilder(
         resourceProvider, analysisServer.sdkManager, null,
         options: builderOptions);
