@@ -544,7 +544,7 @@ dart_ci_sandbox_builder(
     recipe="dart/flutter_engine",
     category="flutter|3H",
     channels=["try"],
-    execution_timeout=time.duration(6 * 60 * 60 * 1000),
+    execution_timeout=7 * time.hour,
     triggered_by=["dart-gitiles-trigger-flutter"],
 )
 
@@ -607,7 +607,7 @@ dart_vm_extra_builder(
     "cross-vm-linux-release-arm64",
     category="vm|kernel|cra",
     channels=RELEASE_CHANNELS,
-    properties={"shard_timeout": 5400})  # 1.5h
+    properties={"shard_timeout": (90 * time.minute) / time.second})
 
 # vm|kernel-precomp
 dart_vm_extra_builder(
@@ -627,7 +627,7 @@ dart_vm_extra_builder(
 dart_vm_extra_builder(
     "vm-kernel-precomp-linux-debug-simarm_x64",
     category="vm|kernel-precomp|adx",
-    properties={"shard_timeout": 5400})  # 1.5h
+    properties={"shard_timeout": (90 * time.minute) / time.second})
 dart_vm_extra_builder(
     "vm-kernel-precomp-linux-release-simarm_x64",
     category="vm|kernel-precomp|arx")
@@ -643,17 +643,17 @@ dart_vm_nightly_builder(
     "cross-vm-precomp-linux-release-arm64",
     category="vm|kernel-precomp|cra",
     channels=[],
-    properties={"shard_timeout": 5400})  # 1.5h
+    properties={"shard_timeout": (90 * time.minute) / time.second})
 
 # vm|kernel-precomp|android
 dart_vm_extra_builder(
     "vm-kernel-precomp-android-release-arm_x64",
     category="vm|kernel-precomp|android|a32",
-    properties={"shard_timeout": 5400})  # 1.5h
+    properties={"shard_timeout": (90 * time.minute) / time.second})
 dart_vm_extra_builder(
     "vm-kernel-precomp-android-release-arm64",
     category="vm|kernel-precomp|android|a64",
-    properties={"shard_timeout": 5400})  # 1.5h
+    properties={"shard_timeout": (90 * time.minute) / time.second})
 
 # vm|misc
 dart_vm_extra_builder(
@@ -851,9 +851,9 @@ dart_infra_builder(
 # infra
 dart_infra_builder(
     "base",
-    execution_timeout=time.duration(15 * 60 * 1000),
+    execution_timeout=15 * time.minute,
     recipe="dart/forward_branch",
-    schedule="with 10m interval",
+    schedule="with 15m interval",
     notifies=None)
 dart_infra_builder("chocolatey", recipe="dart/chocolatey", dimensions=windows())
 dart_infra_builder("co19-roller", recipe="dart/package_co19")
