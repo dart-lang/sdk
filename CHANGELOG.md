@@ -1,3 +1,15 @@
+## 2.8.3 - 2020-05-28
+
+This is a patch release that fixes the following issues:
+* crashes in Flutter apps (issue [flutter/flutter#57318][]).
+* a regression in stack traces (issue [#41907][]).
+* re-canonicalization of constants with unboxed fields (issue
+[flutter/flutter#57190][]).
+
+[flutter/flutter#57318]: https://github.com/flutter/flutter/issues/57318
+[#41907]: https://github.com/dart-lang/sdk/issues/41907
+[flutter/flutter#57190]: https://github.com/flutter/flutter/issues/57190
+
 ## 2.8.2 - 2020-05-13
 
 This is a patch release that fixes an AOT compilation bug in global
