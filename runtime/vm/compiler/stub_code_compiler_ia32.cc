@@ -54,7 +54,7 @@ static void EnsureIsNewOrRemembered(Assembler* assembler,
   }
   __ movl(Address(ESP, 1 * target::kWordSize), THR);
   __ movl(Address(ESP, 0 * target::kWordSize), EAX);
-  __ CallRuntime(kAddAllocatedObjectToRememberedSetRuntimeEntry, 2);
+  __ CallRuntime(kEnsureRememberedAndMarkingDeferredRuntimeEntry, 2);
   if (preserve_registers) {
     __ LeaveCallRuntimeFrame();
   }
