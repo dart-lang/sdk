@@ -5381,6 +5381,42 @@ void main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39387')
+  Future<void> test_this_inside_extension() async {
+    var content = '''
+class C<T> {
+  T field;
+}
+extension on C<int> {
+  f() {
+    this.field = null;
+  }
+}
+extension on C<List<int>> {
+  f() {
+    this.field = null;
+  }
+}
+''';
+    var expected = '''
+
+class C<T> {
+  T field;
+}
+extension on C<int?> {
+  f() {
+    this.field = null;
+  }
+}
+extension on C<List<int?>> {
+  f() {
+    this.field = [null];
+  }
+}
+''';
+    await _checkSingleFileChanges(content, expected, warnOnWeakCode: true);
+  }
+
   Future<void> test_topLevelFunction_parameterType_implicit_dynamic() async {
     var content = '''
 Object f(x) => x;
