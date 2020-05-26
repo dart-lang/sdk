@@ -4739,6 +4739,19 @@ Serializer::~Serializer() {
   delete[] clusters_by_cid_;
 }
 
+void Serializer::FlushBytesWrittenToRoot() {
+#if defined(DART_PRECOMPILER)
+  if (profile_writer_ != nullptr) {
+    ASSERT(object_currently_writing_.id_ == 0);
+    // All bytes between objects are attributed into root node.
+    profile_writer_->AttributeBytesTo(
+        V8SnapshotProfileWriter::ArtificialRootId(),
+        stream_.Position() - object_currently_writing_.stream_start_);
+    object_currently_writing_.stream_start_ = stream_.Position();
+  }
+#endif
+}
+
 void Serializer::TraceStartWritingObject(const char* type,
                                          ObjectPtr obj,
                                          StringPtr name) {
@@ -4765,6 +4778,7 @@ void Serializer::TraceStartWritingObject(const char* type,
     name_str = str.ToCString();
   }
 
+  FlushBytesWrittenToRoot();
   object_currently_writing_.object_ = obj;
   object_currently_writing_.id_ = id;
   object_currently_writing_.stream_start_ = stream_.Position();
@@ -4780,6 +4794,7 @@ void Serializer::TraceEndWritingObject() {
         {V8SnapshotProfileWriter::kSnapshot, object_currently_writing_.id_},
         stream_.Position() - object_currently_writing_.stream_start_);
     object_currently_writing_ = ProfilingObject();
+    object_currently_writing_.stream_start_ = stream_.Position();
   }
 }
 
@@ -5606,6 +5621,8 @@ intptr_t Serializer::WriteVMSnapshot(const Array& symbols) {
   Write<int32_t>(kSectionMarker);
 #endif
 
+  FlushBytesWrittenToRoot();
+
   PrintSnapshotSizes();
 
   // Note we are not clearing the object id table. The full ref table
@@ -5670,9 +5687,10 @@ void Serializer::WriteProgramSnapshot(intptr_t num_base_objects,
     WriteRootRef(*p, kObjectStoreFieldNames[p - from]);
   }
 
+  FlushBytesWrittenToRoot();
   // The dispatch table is serialized only for precompiled snapshots.
   WriteDispatchTable(dispatch_table_entries);
-
+  object_currently_writing_.stream_start_ = stream_.Position();
 #if defined(DART_PRECOMPILER)
   // If any bytes were written for the dispatch table, add it to the profile.
   if (dispatch_table_size_ > 0 && profile_writer_ != nullptr) {

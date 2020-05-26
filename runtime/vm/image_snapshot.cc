@@ -409,6 +409,9 @@ void ImageWriter::Write(WriteStream* clustered_stream, bool vm) {
 }
 
 void ImageWriter::WriteROData(WriteStream* stream) {
+#if defined(DART_PRECOMPILER)
+  const intptr_t start_position = stream->Position();
+#endif
   stream->Align(kMaxObjectAlignment);
 
   // Heap page starts here.
@@ -419,6 +422,14 @@ void ImageWriter::WriteROData(WriteStream* stream) {
   // Zero values for other image header fields.
   stream->Align(kMaxObjectAlignment);
   ASSERT(stream->Position() - section_start == Image::kHeaderSize);
+#if defined(DART_PRECOMPILER)
+  if (profile_writer_ != nullptr) {
+    const intptr_t end_position = stream->Position();
+    profile_writer_->AttributeBytesTo(
+        V8SnapshotProfileWriter::ArtificialRootId(),
+        end_position - start_position);
+  }
+#endif
 
   // Heap page objects start here.
 
@@ -661,6 +672,13 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
   text_offset += Align(kMaxObjectAlignment, text_offset);
   ASSERT_EQUAL(text_offset, Image::kHeaderSize);
+#if defined(DART_PRECOMPILER)
+  if (profile_writer_ != nullptr) {
+    profile_writer_->AttributeBytesTo(
+        V8SnapshotProfileWriter::ArtificialRootId(),
+        (next_text_offset_ - image_size) + Image::kHeaderSize);
+  }
+#endif
 
   // Only valid if bare_instruction_payloads is true.
   V8SnapshotProfileWriter::ObjectId instructions_section_id(offset_space_, -1);
@@ -1106,6 +1124,13 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 #endif
   instructions_blob_stream_.Align(kMaxObjectAlignment);
   ASSERT_EQUAL(instructions_blob_stream_.Position(), Image::kHeaderSize);
+#if defined(DART_PRECOMPILER)
+  if (profile_writer_ != nullptr) {
+    profile_writer_->AttributeBytesTo(
+        V8SnapshotProfileWriter::ArtificialRootId(),
+        (image_size - next_text_offset_) + Image::kHeaderSize);
+  }
+#endif
 
   // Only valid when bare_instructions_payloads is true.
   const V8SnapshotProfileWriter::ObjectId instructions_section_id(

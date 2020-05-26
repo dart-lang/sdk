@@ -253,6 +253,7 @@ class Serializer : public ThreadStackResource {
   WriteStream* stream() { return &stream_; }
   intptr_t bytes_written() { return stream_.bytes_written(); }
 
+  void FlushBytesWrittenToRoot();
   void TraceStartWritingObject(const char* type, ObjectPtr obj, StringPtr name);
   void TraceEndWritingObject();
 
