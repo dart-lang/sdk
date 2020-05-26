@@ -15,9 +15,6 @@ import 'dart:io'
         stdin,
         stdout;
 
-import 'package:_fe_analyzer_shared/src/parser/parser.dart' show Parser;
-import 'package:_fe_analyzer_shared/src/parser/forwarding_listener.dart'
-    show NullListener;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show CommentToken, Token;
@@ -88,7 +85,7 @@ Future<void> main(List<String> args) async {
 
   for (Library library in component.libraries) {
     if (library.importUri.scheme == "dart") continue;
-    // This isn't perfect because of parts, but (for now it'll do).
+    // This isn't perfect because of parts, but (for now) it'll do.
     for (Uri uri in libUris) {
       if (library.fileUri.toString().startsWith(uri.toString())) {
         library.accept(new InvocationVisitor());
@@ -241,7 +238,7 @@ class InvocationVisitor extends RecursiveVisitor<void> {
         }
       }
       if (wantComment) {
-        check(invocation, i, positionalParameters[i],
+        check(arguments.positional[i], i, positionalParameters[i], node,
             "/* ${positionalParameters[i].name} = */");
       }
     }
@@ -250,86 +247,26 @@ class InvocationVisitor extends RecursiveVisitor<void> {
 
 Map<Uri, Token> cache = {};
 
-void check(InvocationExpression invocation, int parameterNumber,
-    VariableDeclaration parameter, String expectedComment) {
-  if (invocation.name.name == "==") return;
-  if (invocation.name.name == "[]=") return;
-  if (invocation.name.name == "[]") return;
-  if (invocation.name.name == "<") return;
-  if (invocation.name.name == "<=") return;
-  if (invocation.name.name == ">") return;
-  if (invocation.name.name == ">=") return;
-  if (invocation.name.name == "+") return;
-  if (invocation.name.name == "-") return;
-  if (invocation.name.name == "*") return;
-  if (invocation.name.name == "/") return;
-  if (invocation.name.name == "<<") return;
-  if (invocation.name.name == "<<<") return;
-  if (invocation.name.name == ">>") return;
-  if (invocation.name.name == "|=") return;
-  if (invocation.name.name == "|") return;
-  if (invocation.name.name == "&") return;
-  if (invocation.name.name == "~/") return;
-  Location location = invocation.location;
+void check(
+    Expression argumentExpression,
+    int parameterNumber,
+    VariableDeclaration parameter,
+    NamedNode targetNode,
+    String expectedComment) {
+  if (targetNode is Procedure && targetNode.kind == ProcedureKind.Operator) {
+    // Operator calls doesn't look like 'regular' method calls.
+    return;
+  }
+  if (argumentExpression.fileOffset == -1) return;
+  Location location = argumentExpression.location;
   Token token = cache[location.file];
-  while (token.offset != invocation.fileOffset) {
+  while (token.offset != argumentExpression.fileOffset) {
     token = token.next;
     if (token.isEof) {
-      print("Couldn't find token for $invocation...");
-      return;
+      throw "Couldn't find token for $argumentExpression "
+          "(${argumentExpression.fileOffset}).";
     }
   }
-  if (token.lexeme != invocation.name.name) {
-    bool ignore = false;
-    // Check if the next tokens are ".<what we're looking for>".
-    if (token.next.lexeme == "." &&
-        token.next.next.lexeme == invocation.name.name) {
-      ignore = true;
-      token = token.next.next;
-    } else if (invocation is StaticInvocation) {
-      Procedure p = invocation.targetReference.node;
-      ignore = p.isFactory;
-    }
-    if (invocation is ConstructorInvocation || ignore) {
-      // ignore that... E.g. new Foo() will have name ''.
-    } else {
-      Location calculatedLocation =
-          component.getLocation(location.file, token.offset);
-      throw "Expected to find ${invocation.name.name} but "
-          "found ${token.lexeme} at $calculatedLocation "
-          "(would have checked for comment $expectedComment)";
-    }
-  }
-  token = token.next;
-  while (token.lexeme == ".") {
-    token = token.next.next;
-  }
-  if (token.lexeme == "<") {
-    if (token.endGroup != null) {
-      token = token.endGroup.next;
-    }
-  }
-  while (token.lexeme == ".") {
-    token = token.next.next;
-  }
-  if (token.lexeme != "(") {
-    Location calculatedLocation =
-        component.getLocation(location.file, token.offset);
-    throw "Expected to find ( but found ${token.lexeme} "
-        "at $calculatedLocation"
-        " (would have checked for comment $expectedComment)";
-  }
-  if (parameterNumber > 0) {
-    Parser parser = new Parser(new NullListener());
-    for (int i = 0; i < parameterNumber; i++) {
-      token = parser.parseExpression(token);
-      if (token.next.lexeme != ",") {
-        throw "Expected to find , but found ${token.next.lexeme}";
-      }
-      token = token.next;
-    }
-  }
-  token = token.next;
   bool foundComment = false;
   CommentToken commentToken = token.precedingComments;
   while (commentToken != null) {
