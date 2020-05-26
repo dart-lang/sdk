@@ -419,6 +419,9 @@ class BinaryBuilder {
     List<int> index = <int>[];
     while (_byteOffset > 0) {
       int size = readUint32();
+      if (size <= 0) {
+        throw fail("invalid size '$size' reported at offset $byteOffset");
+      }
       int start = _byteOffset - size;
       if (start < 0) {
         throw fail("indicated size does not match file size");
