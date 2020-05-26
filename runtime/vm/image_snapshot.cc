@@ -906,10 +906,10 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   Align(Image::kBssAlignment);
   assembly_stream_.Print("%s:\n", bss_symbol);
 
-  // Currently we only put one symbol in the data section, the address of
-  // DLRT_GetThreadForNativeCallback, which is populated when the snapshot is
-  // loaded.
-  WriteWordLiteralText(0);
+  auto const entry_count = vm ? BSS::kVmEntryCount : BSS::kIsolateEntryCount;
+  for (intptr_t i = 0; i < entry_count; i++) {
+    WriteWordLiteralText(0);
+  }
 #endif
 
 #if defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID) ||                  \
@@ -1095,10 +1095,12 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   instructions_blob_stream_.WriteTargetWord(image_size);
 #if defined(DART_PRECOMPILER)
   // Store the offset of the BSS section from the instructions section here.
-  // The lowest bit is set to indicate we compiled directly to ELF.
-  const word bss_offset = bss_base_ - segment_base;
+  // If not compiling to ELF (and thus no BSS segment), write 0.
+  const word bss_offset = elf_ != nullptr ? bss_base_ - segment_base : 0;
   ASSERT_EQUAL(Utils::RoundDown(bss_offset, Image::kBssAlignment), bss_offset);
-  instructions_blob_stream_.WriteTargetWord(bss_offset | 0x1);
+  // Set the lowest bit if we are compiling to ELF.
+  const word compiled_to_elf = elf_ != nullptr ? 0x1 : 0x0;
+  instructions_blob_stream_.WriteTargetWord(bss_offset | compiled_to_elf);
 #else
   instructions_blob_stream_.WriteTargetWord(0);  // No relocations.
 #endif
@@ -1277,12 +1279,12 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
             insns.PayloadStart() + reloc_offset);
 
         // Overwrite the relocation position in the instruction stream with the
-        // (positive) offset of the start of the payload from the start of the
-        // BSS segment plus the addend in the relocation.
-        instructions_blob_stream_.SetPosition(payload_offset + reloc_offset);
+        // offset of the BSS segment from the relocation position plus the
+        // addend in the relocation.
+        auto const text_offset = payload_offset + reloc_offset;
+        instructions_blob_stream_.SetPosition(text_offset);
 
-        const compiler::target::word offset =
-            bss_base_ - (segment_base + payload_offset + reloc_offset) + addend;
+        const compiler::target::word offset = bss_offset - text_offset + addend;
         instructions_blob_stream_.WriteTargetWord(offset);
       }
 

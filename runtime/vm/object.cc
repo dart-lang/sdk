@@ -23621,28 +23621,31 @@ StackTracePtr StackTrace::New(const Array& code_array,
 // Prints the best representation(s) for the call address.
 static void PrintNonSymbolicStackFrameBody(ZoneTextBuffer* buffer,
                                            uword call_addr,
-                                           uword isolate_dso_base,
                                            uword isolate_instructions,
-                                           uword vm_instructions) {
+                                           uword vm_instructions,
+                                           uword isolate_relocated_address) {
   const Image vm_image(reinterpret_cast<const void*>(vm_instructions));
   const Image isolate_image(
       reinterpret_cast<const void*>(isolate_instructions));
 
   if (isolate_image.contains(call_addr)) {
-    if (isolate_image.compiled_to_elf() && isolate_dso_base != 0) {
-      buffer->Printf(" virt %" Pp "", call_addr - isolate_dso_base);
+    auto const symbol_name = kIsolateSnapshotInstructionsAsmSymbol;
+    auto const offset = call_addr - isolate_instructions;
+    // Only print the relocated address of the call when we know the saved
+    // debugging information (if any) will have the same relocated address.
+    if (isolate_image.compiled_to_elf()) {
+      buffer->Printf(" virt %" Pp "", isolate_relocated_address + offset);
     }
-    buffer->Printf(" %s+0x%" Px "", kIsolateSnapshotInstructionsAsmSymbol,
-                   call_addr - isolate_instructions);
+    buffer->Printf(" %s+0x%" Px "", symbol_name, offset);
   } else if (vm_image.contains(call_addr)) {
+    auto const offset = call_addr - vm_instructions;
     // We currently don't print 'virt' entries for vm addresses, even if
     // they were compiled to ELF, as we should never encounter these in
     // non-symbolic stack traces (since stub addresses are stripped).
     //
     // In case they leak due to code issues elsewhere, we still print them as
     // <vm symbol>+<offset>, just to distinguish from other cases.
-    buffer->Printf(" %s+0x%" Px "", kVmSnapshotInstructionsAsmSymbol,
-                   call_addr - vm_instructions);
+    buffer->Printf(" %s+0x%" Px "", kVmSnapshotInstructionsAsmSymbol, offset);
   } else {
     // This case should never happen, since these are not addresses within the
     // VM or app isolate instructions sections, so make it easy to notice.
@@ -23703,6 +23706,16 @@ static void PrintSymbolicStackFrame(Zone* zone,
   PrintSymbolicStackFrameBody(buffer, function_name, url, line, column);
 }
 
+// Find the relocated base of the given instructions section.
+uword InstructionsRelocatedAddress(uword instructions_start) {
+  Image image(reinterpret_cast<const uint8_t*>(instructions_start));
+  auto const bss_start =
+      reinterpret_cast<const uword*>(instructions_start + image.bss_offset());
+  auto const index =
+      BSS::RelocationIndex(BSS::Relocation::InstructionsRelocatedAddress);
+  return bss_start[index];
+}
+
 const char* StackTrace::ToCString() const {
   auto const T = Thread::Current();
   auto const zone = T->zone();
@@ -23721,38 +23734,10 @@ const char* StackTrace::ToCString() const {
       T->isolate_group()->source()->snapshot_instructions);
   auto const vm_instructions = reinterpret_cast<uword>(
       Dart::vm_isolate()->group()->source()->snapshot_instructions);
-  uword isolate_dso_base;
-  if (!NativeSymbolResolver::LookupSharedObject(isolate_instructions,
-                                                &isolate_dso_base, nullptr)) {
-    // This isn't a natively loaded snapshot, so try to detect non-natively
-    // loaded compiled-to-ELF snapshots.
-    const Image vm_image(reinterpret_cast<const void*>(vm_instructions));
-    const Image isolate_image(
-        reinterpret_cast<const void*>(isolate_instructions));
-
-    if (vm_image.compiled_to_elf() && isolate_image.compiled_to_elf()) {
-      // If the VM and isolate were loaded from the same snapshot, then the
-      // isolate instructions will immediately follow the VM instructions in
-      // memory, and the VM section is always at a fixed offset from the DSO
-      // base in snapshots we generate.
-      const uword next_section_after_vm =
-          Utils::RoundUp(reinterpret_cast<uword>(vm_image.object_start()) +
-                             vm_image.object_size(),
-                         Elf::kPageSize);
-      if (isolate_instructions == next_section_after_vm) {
-        isolate_dso_base = Elf::SnapshotRelocatedBaseAddress(vm_instructions);
-      }
-      // If not, then we have no way of reverse-engineering the DSO base for
-      // the isolate without extending the embedder to return this information
-      // or encoding it somehow in the instructions image like the BSS offset.
-      //
-      // For the latter, the Image header size must match the HeapPage header
-      // size, and there's no remaining unused space in the Image header on
-      // 64-bit architectures. Thus, we'd have to increase the header size of
-      // both HeapPage and Image or create a special Object to put in the body
-      // of the Image to store extended header information.
-    }
-  }
+  auto const vm_relocated_address =
+      InstructionsRelocatedAddress(vm_instructions);
+  auto const isolate_relocated_address =
+      InstructionsRelocatedAddress(isolate_instructions);
   if (FLAG_dwarf_stack_traces_mode) {
     // The Dart standard requires the output of StackTrace.toString to include
     // all pending activations with precise source locations (i.e., to expand
@@ -23767,15 +23752,14 @@ const char* StackTrace::ToCString() const {
     OSThread* thread = OSThread::Current();
     buffer.Printf("pid: %" Pd ", tid: %" Pd ", name %s\n", OS::ProcessId(),
                   OSThread::ThreadIdToIntPtr(thread->id()), thread->name());
+    // Print the dso_base of the VM and isolate_instructions. We print both here
+    // as the VM and isolate may be loaded from different snapshot images.
+    buffer.Printf("isolate_dso_base: %" Px "",
+                  isolate_instructions - isolate_relocated_address);
+    buffer.Printf(", vm_dso_base: %" Px "\n",
+                  vm_instructions - vm_relocated_address);
     buffer.Printf("isolate_instructions: %" Px "", isolate_instructions);
-    buffer.Printf(" vm_instructions: %" Px "", vm_instructions);
-    // Print the dso_base of the isolate_instructions, since printed stack
-    // traces won't include stub frames. If VM isolates ever start including
-    // Dart code, adjust this appropriately.
-    if (isolate_dso_base != 0) {
-      buffer.Printf(" isolate_dso_base: %" Px "", isolate_dso_base);
-    }
-    buffer.Printf("\n");
+    buffer.Printf(", vm_instructions: %" Px "\n", vm_instructions);
   }
 #endif
 
@@ -23828,9 +23812,9 @@ const char* StackTrace::ToCString() const {
             // This output is formatted like Android's debuggerd. Note debuggerd
             // prints call addresses instead of return addresses.
             buffer.Printf("    #%02" Pd " abs %" Pp "", frame_index, call_addr);
-            PrintNonSymbolicStackFrameBody(&buffer, call_addr, isolate_dso_base,
-                                           isolate_instructions,
-                                           vm_instructions);
+            PrintNonSymbolicStackFrameBody(
+                &buffer, call_addr, isolate_instructions, vm_instructions,
+                isolate_relocated_address);
             frame_index++;
             continue;
           } else if (function.IsNull()) {
@@ -23838,9 +23822,9 @@ const char* StackTrace::ToCString() const {
             // retained, so instead print the static symbol + offset like the
             // non-symbolic stack traces.
             PrintSymbolicStackFrameIndex(&buffer, frame_index);
-            PrintNonSymbolicStackFrameBody(&buffer, call_addr, isolate_dso_base,
-                                           isolate_instructions,
-                                           vm_instructions);
+            PrintNonSymbolicStackFrameBody(
+                &buffer, call_addr, isolate_instructions, vm_instructions,
+                isolate_relocated_address);
             frame_index++;
             continue;
           }

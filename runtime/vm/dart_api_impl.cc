@@ -6520,24 +6520,33 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
   Dwarf* debug_dwarf =
       generate_debug ? new (Z) Dwarf(Z, nullptr, debug_elf) : nullptr;
 
+  // Here, both VM and isolate will be compiled into a single snapshot.
+  // In assembly generation, each serialized text section gets a separate
+  // pointer into the BSS segment and BSS slots are created for each, since
+  // we may not serialize both VM and isolate. Here, we always serialize both,
+  // so make a BSS segment large enough for both, with the VM entries coming
+  // first.
+  auto const isolate_offset = BSS::kVmEntryCount * compiler::target::kWordSize;
+  auto const bss_size =
+      isolate_offset + BSS::kIsolateEntryCount * compiler::target::kWordSize;
   // Note that the BSS section must come first because it cannot be placed in
   // between any two non-writable segments, due to a bug in Jelly Bean's ELF
   // loader. See also Elf::WriteProgramTable().
-  const intptr_t bss_base =
-      elf->AddBSSData("_kDartBSSData", sizeof(compiler::target::uword));
+  const intptr_t vm_bss_base = elf->AddBSSData("_kDartBSSData", bss_size);
+  const intptr_t isolate_bss_base = vm_bss_base + isolate_offset;
   // Add the BSS section to the separately saved debugging information, even
   // though there will be no code in it to relocate, since it precedes the
   // .text sections and thus affects their virtual addresses.
   if (debug_dwarf != nullptr) {
-    debug_elf->AddBSSData("_kDartBSSData", sizeof(compiler::target::uword));
+    debug_elf->AddBSSData("_kDartBSSData", bss_size);
   }
 
   BlobImageWriter vm_image_writer(T, &vm_snapshot_instructions_buffer,
                                   ApiReallocate, kInitialSize, debug_dwarf,
-                                  bss_base, elf, elf_dwarf);
+                                  vm_bss_base, elf, elf_dwarf);
   BlobImageWriter isolate_image_writer(T, &isolate_snapshot_instructions_buffer,
                                        ApiReallocate, kInitialSize, debug_dwarf,
-                                       bss_base, elf, elf_dwarf);
+                                       isolate_bss_base, elf, elf_dwarf);
   FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data_buffer,
                             &isolate_snapshot_data_buffer, ApiReallocate,
                             &vm_image_writer, &isolate_image_writer);
