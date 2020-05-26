@@ -6020,12 +6020,6 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
   /// The list of arguments to the constructor.
   ArgumentListImpl _argumentList;
 
-  /// The element associated with the constructor based on static type
-  /// information, or `null` if the AST structure has not been resolved or if
-  /// the constructor could not be resolved.
-  @override
-  ConstructorElement staticElement;
-
   /// Initialize a newly created instance creation expression.
   InstanceCreationExpressionImpl(this.keyword,
       ConstructorNameImpl constructorName, ArgumentListImpl argumentList,
@@ -6078,6 +6072,14 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
 
   @override
   Precedence get precedence => Precedence.primary;
+
+  @Deprecated('Use constructorName.staticElement')
+  @override
+  ConstructorElement get staticElement => constructorName.staticElement;
+
+  @Deprecated('Use constructorName.staticElement')
+  @override
+  set staticElement(ConstructorElement staticElement) {}
 
   /// Return the type arguments associated with the constructor, rather than
   /// with the class in which the constructor is defined. It is always an error

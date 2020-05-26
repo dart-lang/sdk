@@ -970,7 +970,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitInstanceCreationExpression(
       InstanceCreationExpression node) {
-    var callee = node.staticElement;
+    var callee = node.constructorName.staticElement;
     var typeParameters = callee.enclosingElement.typeParameters;
     Iterable<DartType> typeArgumentTypes;
     List<DecoratedType> decoratedTypeArguments;

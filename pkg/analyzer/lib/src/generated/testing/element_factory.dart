@@ -604,7 +604,6 @@ class ElementFactory {
               Keyword.CONST, AstTestFactory.typeName(type.element));
       if (type is InterfaceType) {
         ConstructorElement element = type.element.unnamedConstructor;
-        initializer.staticElement = element;
         initializer.constructorName.staticElement = element;
       }
       constant.constantInitializer = initializer;

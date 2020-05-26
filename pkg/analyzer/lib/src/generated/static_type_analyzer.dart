@@ -819,7 +819,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       );
       constructorElement = _resolver.toLegacyElement(constructorElement);
       constructor.staticElement = constructorElement;
-      node.staticElement = constructor.staticElement;
     }
   }
 

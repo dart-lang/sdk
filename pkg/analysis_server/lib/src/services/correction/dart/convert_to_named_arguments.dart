@@ -27,7 +27,7 @@ class ConvertToNamedArguments extends CorrectionProducer {
           parameters = invokeType.parameters;
         }
       } else if (parent is InstanceCreationExpression) {
-        parameters = parent.staticElement?.parameters;
+        parameters = parent.constructorName.staticElement?.parameters;
       } else if (parent is MethodInvocation) {
         var invokeType = parent.staticInvokeType;
         if (invokeType is FunctionType) {

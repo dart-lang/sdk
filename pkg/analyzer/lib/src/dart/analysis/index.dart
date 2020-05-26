@@ -42,7 +42,8 @@ Element declaredParameterElement(
       if (argumentList is ArgumentList) {
         var invocation = argumentList.parent;
         if (invocation is InstanceCreationExpression) {
-          return namedParameterElement(invocation.staticElement);
+          var executable = invocation.constructorName.staticElement;
+          return namedParameterElement(executable);
         } else if (invocation is MethodInvocation) {
           var executable = invocation.methodName.staticElement;
           if (executable is ExecutableElement) {

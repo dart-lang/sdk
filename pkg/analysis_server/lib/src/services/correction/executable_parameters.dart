@@ -25,7 +25,7 @@ class ExecutableParameters {
     if (invocation is Annotation) {
       element = invocation.element;
     } else if (invocation is InstanceCreationExpression) {
-      element = invocation.staticElement;
+      element = invocation.constructorName.staticElement;
     } else if (invocation is MethodInvocation) {
       element = invocation.methodName.staticElement;
     } else if (invocation is ConstructorReferenceNode) {

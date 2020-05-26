@@ -29,7 +29,7 @@ class ConvertMapFromIterableToForLiteral extends CorrectionProducer {
     if (creation == null) {
       return null;
     }
-    var element = creation.staticElement;
+    var element = creation.constructorName.staticElement;
     if (element == null ||
         element.name != 'fromIterable' ||
         element.enclosingElement != typeProvider.mapElement) {

@@ -520,14 +520,14 @@ class ResolutionCopierTest with ElementsTypesMixin {
             Keyword.NEW, AstTestFactory.typeName4("C"));
     ConstructorElement staticElement = ElementFactory.constructorElement2(
         ElementFactory.classElement2("C"), null);
-    fromNode.staticElement = staticElement;
+    fromNode.constructorName.staticElement = staticElement;
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     InstanceCreationExpression toNode =
         AstTestFactory.instanceCreationExpression2(
             Keyword.NEW, AstTestFactory.typeName4("C"));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.staticElement, same(staticElement));
+    expect(toNode.constructorName.staticElement, same(staticElement));
     expect(toNode.staticType, same(staticType));
   }
 

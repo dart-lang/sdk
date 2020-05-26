@@ -1168,7 +1168,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       _error(node, null);
       return null;
     }
-    ConstructorElement constructor = node.staticElement;
+    ConstructorElement constructor = node.constructorName.staticElement;
     if (constructor == null) {
       // Couldn't resolve the constructor so we can't compute a value.  No
       // problem - the error has already been reported.

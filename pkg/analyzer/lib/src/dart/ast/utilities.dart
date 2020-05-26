@@ -4853,7 +4853,6 @@ class ResolutionCopier implements AstVisitor<bool> {
         _isEqualTokens(node.keyword, toNode.keyword),
         _isEqualNodes(node.constructorName, toNode.constructorName),
         _isEqualNodes(node.argumentList, toNode.argumentList))) {
-      toNode.staticElement = node.staticElement;
       toNode.staticType = node.staticType;
       return true;
     }
