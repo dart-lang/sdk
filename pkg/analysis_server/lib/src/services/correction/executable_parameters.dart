@@ -58,7 +58,8 @@ class ExecutableParameters {
     return named.map((parameter) => parameter.name).toList();
   }
 
-  /// Return the [FormalParameterList] of the [executable], or `nul be found.
+  /// Return the [FormalParameterList] of the [executable], or `null` if it
+  /// can't be found.
   Future<FormalParameterList> getParameterList() async {
     var result = await sessionHelper.getElementDeclaration(executable);
     var targetDeclaration = result.node;

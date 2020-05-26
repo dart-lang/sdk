@@ -22,6 +22,7 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:meta/meta.dart';
 
 /// An object that can compute a correction (fix or assist).
@@ -37,6 +38,18 @@ abstract class CorrectionProducer extends _AbstractCorrectionProducer {
 
   /// Return the type for the class `bool` from `dart:core`.
   DartType get coreTypeBool => resolvedResult.typeProvider.boolType;
+
+  /// Return the length of the error message being fixed, or `null` if there is
+  /// no diagnostic.
+  int get errorLength => diagnostic?.problemMessage?.length;
+
+  /// Return the text of the error message being fixed, or `null` if there is
+  /// no diagnostic.
+  String get errorMessage => diagnostic?.problemMessage?.message;
+
+  /// Return the offset of the error message being fixed, or `null` if there is
+  /// no diagnostic.
+  int get errorOffset => diagnostic?.problemMessage?.offset;
 
   /// Return the arguments that should be used when composing the message for a
   /// fix, or `null` if the fix message has no parameters or if this producer
@@ -396,5 +409,23 @@ abstract class _AbstractCorrectionProducer {
     }
     // invalid selection (part of node, etc)
     return false;
+  }
+}
+
+extension DartFileEditBuilderExtension on DartFileEditBuilder {
+  /// Add edits to the [builder] to remove any parentheses enclosing the
+  /// [expression].
+  // TODO(brianwilkerson) Consider moving this to DartFileEditBuilder.
+  void removeEnclosingParentheses(Expression expression) {
+    var precedence = getExpressionPrecedence(expression);
+    while (expression.parent is ParenthesizedExpression) {
+      var parenthesized = expression.parent as ParenthesizedExpression;
+      if (getExpressionParentPrecedence(parenthesized) > precedence) {
+        break;
+      }
+      addDeletion(range.token(parenthesized.leftParenthesis));
+      addDeletion(range.token(parenthesized.rightParenthesis));
+      expression = parenthesized;
+    }
   }
 }

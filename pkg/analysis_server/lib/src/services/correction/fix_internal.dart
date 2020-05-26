@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:core';
-import 'dart:math' as math;
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
@@ -18,7 +17,9 @@ import 'package:analysis_server/src/services/correction/dart/add_diagnostic_prop
 import 'package:analysis_server/src/services/correction/dart/add_explicit_cast.dart';
 import 'package:analysis_server/src/services/correction/dart/add_field_formal_parameters.dart';
 import 'package:analysis_server/src/services/correction/dart/add_missing_enum_case_clauses.dart';
+import 'package:analysis_server/src/services/correction/dart/add_missing_parameter_named.dart';
 import 'package:analysis_server/src/services/correction/dart/add_missing_required_argument.dart';
+import 'package:analysis_server/src/services/correction/dart/add_ne_null.dart';
 import 'package:analysis_server/src/services/correction/dart/add_override.dart';
 import 'package:analysis_server/src/services/correction/dart/add_required.dart';
 import 'package:analysis_server/src/services/correction/dart/add_required_keyword.dart';
@@ -27,6 +28,7 @@ import 'package:analysis_server/src/services/correction/dart/add_static.dart';
 import 'package:analysis_server/src/services/correction/dart/add_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/change_argument_name.dart';
 import 'package:analysis_server/src/services/correction/dart/change_to_nearest_precise_value.dart';
+import 'package:analysis_server/src/services/correction/dart/change_to_static_access.dart';
 import 'package:analysis_server/src/services/correction/dart/change_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_add_all_to_spread.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_conditional_expression_to_if_element.dart';
@@ -65,9 +67,14 @@ import 'package:analysis_server/src/services/correction/dart/insert_semicolon.da
 import 'package:analysis_server/src/services/correction/dart/make_class_abstract.dart';
 import 'package:analysis_server/src/services/correction/dart/make_field_not_final.dart';
 import 'package:analysis_server/src/services/correction/dart/make_final.dart';
+import 'package:analysis_server/src/services/correction/dart/make_variable_not_final.dart';
+import 'package:analysis_server/src/services/correction/dart/move_type_arguments_to_class.dart';
+import 'package:analysis_server/src/services/correction/dart/qualify_reference.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_argument.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_await.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_const.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_dead_code.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_dead_if_null.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_duplicate_case.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_catch.dart';
@@ -78,12 +85,21 @@ import 'package:analysis_server/src/services/correction/dart/remove_if_null_oper
 import 'package:analysis_server/src/services/correction/dart/remove_initializer.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_interpolation_braces.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_method_declaration.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_name_from_combinator.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_operator.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_parameters_in_getter_declaration.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_parentheses_in_getter_invocation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_question_mark.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_this_expression.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_type_arguments.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_cast.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_new.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unused_catch_clause.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unused_catch_stack.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unused_import.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unused_label.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_local_variable.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/rename_to_camel_case.dart';
@@ -96,6 +112,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_return_type
 import 'package:analysis_server/src/services/correction/dart/replace_with_brackets.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_conditional_assignment.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_eight_digit_hex.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_extension_name.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_identifier.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_interpolation.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_is_empty.dart';
@@ -104,13 +121,16 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_tear_o
 import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_child_property_last.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_directives.dart';
+import 'package:analysis_server/src/services/correction/dart/use_const.dart';
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
+import 'package:analysis_server/src/services/correction/dart/use_effective_integer_division.dart';
 import 'package:analysis_server/src/services/correction/dart/use_eq_eq_null.dart';
 import 'package:analysis_server/src/services/correction/dart/use_is_not_empty.dart';
 import 'package:analysis_server/src/services/correction/dart/use_not_eq_null.dart';
 import 'package:analysis_server/src/services/correction/dart/use_rethrow.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_future.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_text.dart';
+import 'package:analysis_server/src/services/correction/executable_parameters.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
@@ -119,7 +139,6 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -127,8 +146,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/session_helper.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -492,14 +509,18 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT: [
       AddSync.newInstance,
     ],
-//    CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE : [],
+    CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE: [
+      UseConst.newInstance,
+    ],
     CompileTimeErrorCode.CONST_INSTANCE_FIELD: [
       AddStatic.newInstance,
     ],
     CompileTimeErrorCode.CONST_WITH_NON_CONST: [
       RemoveConst.newInstance,
     ],
-//    CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER : [],
+    CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER: [
+      ReplaceWithExtensionName.newInstance,
+    ],
 //    CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS : [],
     CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED: [
       ConvertToNamedArguments.newInstance,
@@ -547,29 +568,68 @@ class FixProcessor extends BaseProcessor {
       CreateSetter.newInstance,
     ],
     CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER: [
+      AddMissingParameterNamed.newInstance,
       ConvertFlutterChild.newInstance,
       ConvertFlutterChildren.newInstance,
     ],
-//    CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE : [],
+    CompileTimeErrorCode
+        .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE: [
+      // TODO(brianwilkerson) Consider adding fixes to create a field, getter,
+      //  method or setter. The existing _addFix methods would need to be
+      //  updated so that only the appropriate subset is generated.
+      QualifyReference.newInstance,
+    ],
 //    CompileTimeErrorCode.URI_DOES_NOT_EXIST : [],
 
     HintCode.CAN_BE_NULL_AFTER_NULL_AWARE: [
       ReplaceWithNullAware.newInstance,
     ],
-//    HintCode.DEAD_CODE : [],
-//    HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH : [],
-//    HintCode.DEAD_CODE_ON_CATCH_SUBTYPE : [],
-//    HintCode.DIVISION_OPTIMIZATION : [],
-//    HintCode.DUPLICATE_HIDDEN_NAME : [],
-//    HintCode.DUPLICATE_IMPORT : [],
-//    HintCode.DUPLICATE_SHOWN_NAME : [],
-//    HintCode.INVALID_FACTORY_ANNOTATION : [],
-//    HintCode.INVALID_IMMUTABLE_ANNOTATION : [],
-//    HintCode.INVALID_LITERAL_ANNOTATION : [],
-//    HintCode.INVALID_REQUIRED_NAMED_PARAM : [],
-//    HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM : [],
-//    HintCode.INVALID_REQUIRED_POSITIONAL_PARAM : [],
-//    HintCode.INVALID_SEALED_ANNOTATION : [],
+    HintCode.DEAD_CODE: [
+      RemoveDeadCode.newInstance,
+    ],
+    HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH: [
+      // TODO(brianwilkerson) Add a fix to move the unreachable catch clause to
+      //  a place where it can be reached (when possible).
+      RemoveDeadCode.newInstance,
+    ],
+    HintCode.DEAD_CODE_ON_CATCH_SUBTYPE: [
+      // TODO(brianwilkerson) Add a fix to move the unreachable catch clause to
+      //  a place where it can be reached (when possible).
+      RemoveDeadCode.newInstance,
+    ],
+    HintCode.DIVISION_OPTIMIZATION: [
+      UseEffectiveIntegerDivision.newInstance,
+    ],
+    HintCode.DUPLICATE_HIDDEN_NAME: [
+      RemoveNameFromCombinator.newInstance,
+    ],
+    HintCode.DUPLICATE_IMPORT: [
+      RemoveUnusedImport.newInstance,
+    ],
+    HintCode.DUPLICATE_SHOWN_NAME: [
+      RemoveNameFromCombinator.newInstance,
+    ],
+    HintCode.INVALID_FACTORY_ANNOTATION: [
+      RemoveAnnotation.newInstance,
+    ],
+    HintCode.INVALID_IMMUTABLE_ANNOTATION: [
+      RemoveAnnotation.newInstance,
+    ],
+    HintCode.INVALID_LITERAL_ANNOTATION: [
+      RemoveAnnotation.newInstance,
+    ],
+    HintCode.INVALID_REQUIRED_NAMED_PARAM: [
+      RemoveAnnotation.newInstance,
+    ],
+    HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM: [
+      RemoveAnnotation.newInstance,
+    ],
+    HintCode.INVALID_REQUIRED_POSITIONAL_PARAM: [
+      RemoveAnnotation.newInstance,
+    ],
+    HintCode.INVALID_SEALED_ANNOTATION: [
+      RemoveAnnotation.newInstance,
+    ],
     HintCode.MISSING_REQUIRED_PARAM: [
       AddMissingRequiredArgument.newInstance,
     ],
@@ -579,10 +639,18 @@ class FixProcessor extends BaseProcessor {
     HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE: [
       RemoveQuestionMark.newInstance,
     ],
-//    HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD : [],
-//    HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER : [],
-//    HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD : [],
-//    HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER : [],
+    HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD: [
+      RemoveAnnotation.newInstance,
+    ],
+    HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER: [
+      RemoveAnnotation.newInstance,
+    ],
+    HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
+      RemoveAnnotation.newInstance,
+    ],
+    HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER: [
+      RemoveAnnotation.newInstance,
+    ],
 //    HintCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT : [],
 //    HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE : [],
 //    HintCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT : [],
@@ -598,28 +666,46 @@ class FixProcessor extends BaseProcessor {
     HintCode.TYPE_CHECK_IS_NULL: [
       UseEqEqNull.newInstance,
     ],
-//    HintCode.UNDEFINED_HIDDEN_NAME : [],
-//    HintCode.UNDEFINED_SHOWN_NAME : [],
-//    HintCode.UNNECESSARY_CAST : [],
-//    HintCode.UNUSED_CATCH_CLAUSE : [],
-//    HintCode.UNUSED_CATCH_STACK : [],
+    HintCode.UNDEFINED_HIDDEN_NAME: [
+      RemoveNameFromCombinator.newInstance,
+    ],
+    HintCode.UNDEFINED_SHOWN_NAME: [
+      RemoveNameFromCombinator.newInstance,
+    ],
+    HintCode.UNNECESSARY_CAST: [
+      RemoveUnnecessaryCast.newInstance,
+    ],
+    HintCode.UNUSED_CATCH_CLAUSE: [
+      RemoveUnusedCatchClause.newInstance,
+    ],
+    HintCode.UNUSED_CATCH_STACK: [
+      RemoveUnusedCatchStack.newInstance,
+    ],
     HintCode.UNUSED_ELEMENT: [
       RemoveUnusedElement.newInstance,
     ],
     HintCode.UNUSED_FIELD: [
       RemoveUnusedField.newInstance,
     ],
-//    HintCode.UNUSED_IMPORT : [],
-//    HintCode.UNUSED_LABEL : [],
+    HintCode.UNUSED_IMPORT: [
+      RemoveUnusedImport.newInstance,
+    ],
+    HintCode.UNUSED_LABEL: [
+      RemoveUnusedLabel.newInstance,
+    ],
     HintCode.UNUSED_LOCAL_VARIABLE: [
       RemoveUnusedLocalVariable.newInstance,
     ],
-//    HintCode.UNUSED_SHOWN_NAME : [],
+    HintCode.UNUSED_SHOWN_NAME: [
+      RemoveNameFromCombinator.newInstance,
+    ],
 
     ParserErrorCode.EXPECTED_TOKEN: [
       InsertSemicolon.newInstance,
     ],
-//    ParserErrorCode.GETTER_WITH_PARAMETERS : [],
+    ParserErrorCode.GETTER_WITH_PARAMETERS: [
+      RemoveParametersInGetterDeclaration.newInstance,
+    ],
     ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE: [
       AddTypeAnnotation.newInstance,
     ],
@@ -628,13 +714,19 @@ class FixProcessor extends BaseProcessor {
     StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE: [
       ReplaceReturnTypeFuture.newInstance,
     ],
-//    StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER : [],
+    StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER: [
+      ChangeToStaticAccess.newInstance,
+    ],
     StaticTypeWarningCode.INVALID_ASSIGNMENT: [
       AddExplicitCast.newInstance,
       ChangeTypeAnnotation.newInstance,
     ],
-//    StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION : [],
-//    StaticTypeWarningCode.NON_BOOL_CONDITION : [],
+    StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION: [
+      RemoveParenthesesInGetterInvocation.newInstance,
+    ],
+    StaticTypeWarningCode.NON_BOOL_CONDITION: [
+      AddNeNull.newInstance,
+    ],
     StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT: [
       CreateClass.newInstance,
       CreateMixin.newInstance,
@@ -654,13 +746,23 @@ class FixProcessor extends BaseProcessor {
     StaticTypeWarningCode.UNDEFINED_SETTER: [
       CreateSetter.newInstance,
     ],
-//    StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR : [],
-//    StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER : [],
+    StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR: [
+      MoveTypeArgumentsToClass.newInstance,
+      RemoveTypeArguments.newInstance,
+    ],
+    StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER: [
+      // TODO(brianwilkerson) Consider adding fixes to create a field, getter,
+      //  method or setter. The existing _addFix methods would need to be
+      //  updated so that only the appropriate subset is generated.
+      QualifyReference.newInstance,
+    ],
 
     StaticWarningCode.ASSIGNMENT_TO_FINAL: [
       MakeFieldNotFinal.newInstance,
     ],
-//    StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL : [],
+    StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL: [
+      MakeVariableNotFinal.newInstance,
+    ],
     StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [
       WrapInText.newInstance,
     ],
@@ -756,8 +858,6 @@ class FixProcessor extends BaseProcessor {
 
   final List<Fix> fixes = <Fix>[];
 
-  AstNode coveredNode;
-
   FixProcessor(this.context)
       : resourceProvider = context.resolveResult.session.resourceProvider,
         typeSystem = context.resolveResult.typeSystem,
@@ -775,20 +875,9 @@ class FixProcessor extends BaseProcessor {
 
   Future<List<Fix>> compute() async {
     node = NodeLocator2(errorOffset).searchWithin(unit);
-    coveredNode =
-        NodeLocator2(errorOffset, math.max(errorOffset + errorLength - 1, 0))
-            .searchWithin(unit);
-    if (coveredNode == null) {
-      // TODO(brianwilkerson) Figure out why the coveredNode is sometimes null.
-      return fixes;
-    }
 
     // analyze ErrorCode
     var errorCode = error.errorCode;
-    if (errorCode ==
-        CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE) {
-      await _addFix_replaceWithConstInstanceCreation();
-    }
     if (errorCode == CompileTimeErrorCode.INVALID_ANNOTATION ||
         errorCode == CompileTimeErrorCode.UNDEFINED_ANNOTATION) {
       if (node is Annotation) {
@@ -825,50 +914,16 @@ class FixProcessor extends BaseProcessor {
       await _addFix_createImportUri();
       await _addFix_createPartUri();
     }
-    if (errorCode == HintCode.DEAD_CODE) {
-      await _addFix_removeDeadCode();
-    }
-    if (errorCode == HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH ||
-        errorCode == HintCode.DEAD_CODE_ON_CATCH_SUBTYPE) {
-      await _addFix_removeDeadCode();
-      // TODO(brianwilkerson) Add a fix to move the unreachable catch clause to
-      //  a place where it can be reached (when possible).
-    }
     // TODO(brianwilkerson) Define a syntax for deprecated members to indicate
     //  how to update the code and implement a fix to apply the update.
 //    if (errorCode == HintCode.DEPRECATED_MEMBER_USE ||
 //        errorCode == HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE) {
 //      await _addFix_replaceDeprecatedMemberUse();
 //    }
-    if (errorCode == HintCode.DIVISION_OPTIMIZATION) {
-      await _addFix_useEffectiveIntegerDivision();
-    }
-    if (errorCode == HintCode.DUPLICATE_IMPORT) {
-      await _addFix_removeUnusedImport();
-    }
-    if (errorCode == HintCode.DUPLICATE_HIDDEN_NAME ||
-        errorCode == HintCode.DUPLICATE_SHOWN_NAME) {
-      await _addFix_removeNameFromCombinator();
-    }
     // TODO(brianwilkerson) Add a fix to convert the path to a package: import.
 //    if (errorCode == HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE) {
 //      await _addFix_convertPathToPackageUri();
 //    }
-    if (errorCode == HintCode.INVALID_FACTORY_ANNOTATION ||
-        errorCode == HintCode.INVALID_IMMUTABLE_ANNOTATION ||
-        errorCode == HintCode.INVALID_LITERAL_ANNOTATION ||
-        errorCode == HintCode.INVALID_REQUIRED_NAMED_PARAM ||
-        errorCode == HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM ||
-        errorCode == HintCode.INVALID_REQUIRED_POSITIONAL_PARAM ||
-        errorCode == HintCode.INVALID_SEALED_ANNOTATION) {
-      await _addFix_removeAnnotation();
-    }
-    if (errorCode == HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER ||
-        errorCode == HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD ||
-        errorCode == HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD ||
-        errorCode == HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER) {
-      await _addFix_removeAnnotation();
-    }
     // TODO(brianwilkerson) Add a fix to normalize the path.
 //    if (errorCode == HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT) {
 //      await _addFix_normalizeUri();
@@ -891,13 +946,6 @@ class FixProcessor extends BaseProcessor {
     if (errorCode == HintCode.SDK_VERSION_EXTENSION_METHODS) {
       await _addFix_updateSdkConstraints('2.6.0');
     }
-    if (errorCode == HintCode.UNDEFINED_HIDDEN_NAME ||
-        errorCode == HintCode.UNDEFINED_SHOWN_NAME) {
-      await _addFix_removeNameFromCombinator();
-    }
-    if (errorCode == HintCode.UNNECESSARY_CAST) {
-      await _addFix_removeUnnecessaryCast();
-    }
     // TODO(brianwilkerson) Add a fix to remove the method.
 //    if (errorCode == HintCode.UNNECESSARY_NO_SUCH_METHOD) {
 //      await _addFix_removeMethodDeclaration();
@@ -907,29 +955,8 @@ class FixProcessor extends BaseProcessor {
 //        errorCode == HintCode.UNNECESSARY_TYPE_CHECK_TRUE) {
 //      await _addFix_removeUnnecessaryTypeCheck();
 //    }
-    if (errorCode == HintCode.UNUSED_CATCH_CLAUSE) {
-      await _addFix_removeUnusedCatchClause();
-    }
-    if (errorCode == HintCode.UNUSED_CATCH_STACK) {
-      await _addFix_removeUnusedCatchStack();
-    }
-    if (errorCode == HintCode.UNUSED_IMPORT) {
-      await _addFix_removeUnusedImport();
-    }
-    if (errorCode == HintCode.UNUSED_LABEL) {
-      await _addFix_removeUnusedLabel();
-    }
-    if (errorCode == HintCode.UNUSED_SHOWN_NAME) {
-      await _addFix_removeNameFromCombinator();
-    }
-    if (errorCode == ParserErrorCode.GETTER_WITH_PARAMETERS) {
-      await _addFix_removeParameters_inGetterDeclaration();
-    }
     if (errorCode == ParserErrorCode.VAR_AS_TYPE_NAME) {
       await _addFix_replaceVarWithDynamic();
-    }
-    if (errorCode == StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL) {
-      await _addFix_makeVariableNotFinal();
     }
     if (errorCode == CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS ||
         errorCode ==
@@ -958,20 +985,6 @@ class FixProcessor extends BaseProcessor {
       await _addFix_importLibrary_withExtension();
       await _addFix_importLibrary_withFunction();
       await _addFix_importLibrary_withTopLevelVariable();
-    }
-    if (errorCode == CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER) {
-      await _addFix_addMissingParameterNamed();
-    }
-    if (errorCode == StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER) {
-      await _addFix_useStaticAccess_method();
-      await _addFix_useStaticAccess_property();
-    }
-    if (errorCode ==
-        StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION) {
-      await _addFix_removeParentheses_inGetterInvocation();
-    }
-    if (errorCode == StaticTypeWarningCode.NON_BOOL_CONDITION) {
-      await _addFix_nonBoolCondition_addNotNull();
     }
     if (errorCode == StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT) {
       await _addFix_importLibrary_withType();
@@ -1015,31 +1028,6 @@ class FixProcessor extends BaseProcessor {
         CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD) {
       await _addFix_createField_initializingFormal();
     }
-    if (errorCode ==
-        StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR) {
-      await _addFix_moveTypeArgumentsToClass();
-      await _addFix_removeTypeArguments();
-    }
-    if (errorCode ==
-        CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER) {
-      await _addFix_replaceWithExtensionName();
-    }
-    if (errorCode ==
-        CompileTimeErrorCode
-            .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE) {
-      await _addFix_qualifyReference();
-      // TODO(brianwilkerson) Consider adding fixes to create a field, getter,
-      //  method or setter. The existing _addFix methods would need to be
-      //  updated so that only the appropriate subset is generated.
-    }
-    if (errorCode ==
-        StaticTypeWarningCode
-            .UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER) {
-      await _addFix_qualifyReference();
-      // TODO(brianwilkerson) Consider adding fixes to create a field, getter,
-      //  method or setter. The existing _addFix methods would need to be
-      //  updated so that only the appropriate subset is generated.
-    }
     await _addFromProducers();
 
     // done
@@ -1061,7 +1049,7 @@ class FixProcessor extends BaseProcessor {
     List<Expression> arguments = argumentList.arguments;
 
     // Prepare the invoked element.
-    var context = _ExecutableParameters(sessionHelper, node.parent);
+    var context = ExecutableParameters(sessionHelper, node.parent);
     if (context == null) {
       return;
     }
@@ -1115,66 +1103,6 @@ class FixProcessor extends BaseProcessor {
         var offset = parameterList?.leftParenthesis?.end;
         await addParameter(kind, offset, prefix, ']');
       }
-    }
-  }
-
-  Future<void> _addFix_addMissingParameterNamed() async {
-    // Prepare the name of the missing parameter.
-    if (this.node is! SimpleIdentifier) {
-      return;
-    }
-    SimpleIdentifier node = this.node;
-    var name = node.name;
-
-    // We expect that the node is part of a NamedExpression.
-    if (node.parent?.parent is! NamedExpression) {
-      return;
-    }
-    NamedExpression namedExpression = node.parent.parent;
-
-    // We should be in an ArgumentList.
-    if (namedExpression.parent is! ArgumentList) {
-      return;
-    }
-    var argumentList = namedExpression.parent;
-
-    // Prepare the invoked element.
-    var context = _ExecutableParameters(sessionHelper, argumentList.parent);
-    if (context == null) {
-      return;
-    }
-
-    // We cannot add named parameters when there are positional positional.
-    if (context.optionalPositional.isNotEmpty) {
-      return;
-    }
-
-    Future<void> addParameter(int offset, String prefix, String suffix) async {
-      if (offset != null) {
-        var changeBuilder = _newDartChangeBuilder();
-        await changeBuilder.addFileEdit(context.file, (builder) {
-          builder.addInsertion(offset, (builder) {
-            builder.write(prefix);
-            builder
-                .writeParameterMatchingArgument(namedExpression, 0, <String>{});
-            builder.write(suffix);
-          });
-        });
-        _addFixFromBuilder(
-            changeBuilder, DartFixKind.ADD_MISSING_PARAMETER_NAMED,
-            args: [name]);
-      }
-    }
-
-    if (context.named.isNotEmpty) {
-      var prevNode = await context.getParameterNode(context.named.last);
-      await addParameter(prevNode?.end, ', ', '');
-    } else if (context.required.isNotEmpty) {
-      var prevNode = await context.getParameterNode(context.required.last);
-      await addParameter(prevNode?.end, ', {', '}');
-    } else {
-      var parameterList = await context.getParameterList();
-      await addParameter(parameterList?.leftParenthesis?.end, '{', '}');
     }
   }
 
@@ -1896,432 +1824,12 @@ class FixProcessor extends BaseProcessor {
     }
   }
 
-  Future<void> _addFix_makeVariableNotFinal() async {
-    var node = this.node;
-    if (node is SimpleIdentifier &&
-        node.staticElement is LocalVariableElement) {
-      LocalVariableElement variable = node.staticElement;
-      var id = NodeLocator(variable.nameOffset).searchWithin(unit);
-      var decl = id?.parent;
-      if (decl is VariableDeclaration &&
-          decl.parent is VariableDeclarationList) {
-        VariableDeclarationList declarationList = decl.parent;
-        var keywordToken = declarationList.keyword;
-        if (declarationList.variables.length == 1 &&
-            keywordToken.keyword == Keyword.FINAL) {
-          var changeBuilder = _newDartChangeBuilder();
-          await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-            if (declarationList.type != null) {
-              builder.addDeletion(
-                  range.startStart(keywordToken, declarationList.type));
-            } else {
-              builder.addSimpleReplacement(range.token(keywordToken), 'var');
-            }
-          });
-          declarationList.variables[0].name.name;
-          var varName = declarationList.variables[0].name.name;
-          _addFixFromBuilder(changeBuilder, DartFixKind.MAKE_VARIABLE_NOT_FINAL,
-              args: [varName]);
-        }
-      }
-    }
-  }
-
-  Future<void> _addFix_moveTypeArgumentsToClass() async {
-    if (coveredNode is TypeArgumentList) {
-      TypeArgumentList typeArguments = coveredNode;
-      if (typeArguments.parent is! InstanceCreationExpression) {
-        return;
-      }
-      InstanceCreationExpression creation = typeArguments.parent;
-      var typeName = creation.constructorName.type;
-      if (typeName.typeArguments != null) {
-        return;
-      }
-      var element = typeName.type.element;
-      if (element is ClassElement &&
-          element.typeParameters != null &&
-          element.typeParameters.length == typeArguments.arguments.length) {
-        var changeBuilder = _newDartChangeBuilder();
-        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-          var argumentText = utils.getNodeText(typeArguments);
-          builder.addSimpleInsertion(typeName.end, argumentText);
-          builder.addDeletion(range.node(typeArguments));
-        });
-        _addFixFromBuilder(
-            changeBuilder, DartFixKind.MOVE_TYPE_ARGUMENTS_TO_CLASS);
-      }
-    }
-  }
-
-  Future<void> _addFix_nonBoolCondition_addNotNull() async {
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addSimpleInsertion(error.offset + error.length, ' != null');
-    });
-    _addFixFromBuilder(changeBuilder, DartFixKind.ADD_NE_NULL);
-  }
-
-  Future<void> _addFix_qualifyReference() async {
-    if (node is! SimpleIdentifier) {
-      return;
-    }
-    SimpleIdentifier memberName = node;
-    var parent = node.parent;
-    AstNode target;
-    if (parent is MethodInvocation && node == parent.methodName) {
-      target = parent.target;
-    } else if (parent is PropertyAccess && node == parent.propertyName) {
-      target = parent.target;
-    }
-    if (target != null) {
-      return;
-    }
-    var enclosingElement = memberName.staticElement.enclosingElement;
-    if (enclosingElement.library != unitLibraryElement) {
-      // TODO(brianwilkerson) Support qualifying references to members defined
-      //  in other libraries. `DartEditBuilder` currently defines the method
-      //  `writeType`, which is close, but we also need to handle extensions,
-      //  which don't have a type.
-      return;
-    }
-    var containerName = enclosingElement.name;
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addSimpleInsertion(node.offset, '$containerName.');
-    });
-    _addFixFromBuilder(changeBuilder, DartFixKind.QUALIFY_REFERENCE,
-        args: ['$containerName.${memberName.name}']);
-  }
-
-  Future<void> _addFix_removeAnnotation() async {
-    void addFix(Annotation node) async {
-      if (node == null) {
-        return;
-      }
-      var followingToken = node.endToken.next;
-      followingToken = followingToken.precedingComments ?? followingToken;
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addDeletion(range.startStart(node, followingToken));
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_ANNOTATION,
-          args: [node.name.name]);
-    }
-
-    Annotation findAnnotation(
-        NodeList<Annotation> metadata, String targetName) {
-      return metadata.firstWhere(
-          (annotation) => annotation.name.name == targetName,
-          orElse: () => null);
-    }
-
-    var node = coveredNode;
-    if (node is Annotation) {
-      await addFix(node);
-    } else if (node is DefaultFormalParameter) {
-      await addFix(findAnnotation(node.parameter.metadata, 'required'));
-    } else if (node is NormalFormalParameter) {
-      await addFix(findAnnotation(node.metadata, 'required'));
-    } else if (node is DeclaredSimpleIdentifier) {
-      var parent = node.parent;
-      if (parent is MethodDeclaration) {
-        await addFix(findAnnotation(parent.metadata, 'override'));
-      } else if (parent is VariableDeclaration) {
-        var fieldDeclaration = parent.thisOrAncestorOfType<FieldDeclaration>();
-        if (fieldDeclaration != null) {
-          await addFix(findAnnotation(fieldDeclaration.metadata, 'override'));
-        }
-      }
-    }
-  }
-
-  Future<void> _addFix_removeDeadCode() async {
-    var coveringNode = coveredNode;
-    if (coveringNode is Expression) {
-      var parent = coveredNode.parent;
-      if (parent is BinaryExpression) {
-        if (parent.rightOperand == coveredNode) {
-          var changeBuilder = _newDartChangeBuilder();
-          await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-            builder.addDeletion(range.endEnd(parent.leftOperand, coveredNode));
-          });
-          _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_DEAD_CODE);
-        }
-      }
-    } else if (coveringNode is Block) {
-      var block = coveringNode;
-      var statementsToRemove = <Statement>[];
-      var errorRange = SourceRange(errorOffset, errorLength);
-      for (var statement in block.statements) {
-        if (range.node(statement).intersects(errorRange)) {
-          statementsToRemove.add(statement);
-        }
-      }
-      if (statementsToRemove.isNotEmpty) {
-        var rangeToRemove = utils.getLinesRangeStatements(statementsToRemove);
-        var changeBuilder = _newDartChangeBuilder();
-        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-          builder.addDeletion(rangeToRemove);
-        });
-        _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_DEAD_CODE);
-      }
-    } else if (coveringNode is Statement) {
-      var rangeToRemove =
-          utils.getLinesRangeStatements(<Statement>[coveringNode]);
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addDeletion(rangeToRemove);
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_DEAD_CODE);
-    } else if (coveringNode is CatchClause) {
-      TryStatement tryStatement = coveringNode.parent;
-      var catchClauses = tryStatement.catchClauses;
-      var index = catchClauses.indexOf(coveringNode);
-      var previous = index == 0 ? tryStatement.body : catchClauses[index - 1];
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addDeletion(range.endEnd(previous, coveringNode));
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_DEAD_CODE);
-    }
-  }
-
-  Future<void> _addFix_removeNameFromCombinator() async {
-    SourceRange rangeForCombinator(Combinator combinator) {
-      var parent = combinator.parent;
-      if (parent is NamespaceDirective) {
-        var combinators = parent.combinators;
-        if (combinators.length == 1) {
-          var previousToken =
-              combinator.parent.findPrevious(combinator.beginToken);
-          if (previousToken != null) {
-            return range.endEnd(previousToken, combinator);
-          }
-          return null;
-        }
-        var index = combinators.indexOf(combinator);
-        if (index < 0) {
-          return null;
-        } else if (index == combinators.length - 1) {
-          return range.endEnd(combinators[index - 1], combinator);
-        }
-        return range.startStart(combinator, combinators[index + 1]);
-      }
-      return null;
-    }
-
-    SourceRange rangeForNameInCombinator(
-        Combinator combinator, SimpleIdentifier name) {
-      NodeList<SimpleIdentifier> names;
-      if (combinator is HideCombinator) {
-        names = combinator.hiddenNames;
-      } else if (combinator is ShowCombinator) {
-        names = combinator.shownNames;
-      } else {
-        return null;
-      }
-      if (names.length == 1) {
-        return rangeForCombinator(combinator);
-      }
-      var index = names.indexOf(name);
-      if (index < 0) {
-        return null;
-      } else if (index == names.length - 1) {
-        return range.endEnd(names[index - 1], name);
-      }
-      return range.startStart(name, names[index + 1]);
-    }
-
-    var node = coveredNode;
-    if (node is SimpleIdentifier) {
-      var parent = coveredNode.parent;
-      if (parent is Combinator) {
-        var rangeToRemove = rangeForNameInCombinator(parent, node);
-        if (rangeToRemove == null) {
-          return;
-        }
-        var changeBuilder = _newDartChangeBuilder();
-        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-          builder.addDeletion(rangeToRemove);
-        });
-        _addFixFromBuilder(
-            changeBuilder, DartFixKind.REMOVE_NAME_FROM_COMBINATOR,
-            args: [parent is HideCombinator ? 'hide' : 'show']);
-      }
-    }
-  }
-
-  Future<void> _addFix_removeParameters_inGetterDeclaration() async {
-    if (node is MethodDeclaration) {
-      // Support for the analyzer error.
-      var method = node as MethodDeclaration;
-      var name = method.name;
-      var body = method.body;
-      if (name != null && body != null) {
-        var changeBuilder = _newDartChangeBuilder();
-        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-          builder.addSimpleReplacement(range.endStart(name, body), ' ');
-        });
-        _addFixFromBuilder(
-            changeBuilder, DartFixKind.REMOVE_PARAMETERS_IN_GETTER_DECLARATION);
-      }
-    } else if (node is FormalParameterList) {
-      // Support for the fasta error.
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addDeletion(range.node(node));
-      });
-      _addFixFromBuilder(
-          changeBuilder, DartFixKind.REMOVE_PARAMETERS_IN_GETTER_DECLARATION);
-    }
-  }
-
-  Future<void> _addFix_removeParentheses_inGetterInvocation() async {
-    var invocation = coveredNode?.parent;
-    if (invocation is FunctionExpressionInvocation) {
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addDeletion(range.node(invocation.argumentList));
-      });
-      _addFixFromBuilder(
-          changeBuilder, DartFixKind.REMOVE_PARENTHESIS_IN_GETTER_INVOCATION);
-    }
-  }
-
-  Future<void> _addFix_removeTypeArguments() async {
-    if (coveredNode is TypeArgumentList) {
-      TypeArgumentList typeArguments = coveredNode;
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addDeletion(range.node(typeArguments));
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_TYPE_ARGUMENTS);
-    }
-  }
-
-  Future<void> _addFix_removeUnnecessaryCast() async {
-    if (coveredNode is! AsExpression) {
-      return;
-    }
-    var asExpression = coveredNode as AsExpression;
-    var expression = asExpression.expression;
-    var expressionPrecedence = getExpressionPrecedence(expression);
-    // remove 'as T' from 'e as T'
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addDeletion(range.endEnd(expression, asExpression));
-      _removeEnclosingParentheses(builder, asExpression, expressionPrecedence);
-    });
-    _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_UNNECESSARY_CAST);
-  }
-
-  Future<void> _addFix_removeUnusedCatchClause() async {
-    if (node is SimpleIdentifier) {
-      var catchClause = node.parent;
-      if (catchClause is CatchClause &&
-          catchClause.exceptionParameter == node) {
-        var changeBuilder = _newDartChangeBuilder();
-        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-          builder.addDeletion(
-              range.startStart(catchClause.catchKeyword, catchClause.body));
-        });
-        _addFixFromBuilder(
-            changeBuilder, DartFixKind.REMOVE_UNUSED_CATCH_CLAUSE);
-      }
-    }
-  }
-
-  Future<void> _addFix_removeUnusedCatchStack() async {
-    if (node is SimpleIdentifier) {
-      var catchClause = node.parent;
-      if (catchClause is CatchClause &&
-          catchClause.stackTraceParameter == node &&
-          catchClause.exceptionParameter != null) {
-        var changeBuilder = _newDartChangeBuilder();
-        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-          builder
-              .addDeletion(range.endEnd(catchClause.exceptionParameter, node));
-        });
-        _addFixFromBuilder(
-            changeBuilder, DartFixKind.REMOVE_UNUSED_CATCH_STACK);
-      }
-    }
-  }
-
-  Future<void> _addFix_removeUnusedImport() async {
-    // prepare ImportDirective
-    var importDirective = node.thisOrAncestorOfType<ImportDirective>();
-    if (importDirective == null) {
-      return;
-    }
-    // remove the whole line with import
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addDeletion(utils.getLinesRange(range.node(importDirective)));
-    });
-    _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_UNUSED_IMPORT);
-  }
-
-  Future<void> _addFix_removeUnusedLabel() async {
-    final parent = node.parent;
-    if (parent is Label) {
-      var nextToken = parent.endToken.next;
-      final changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addDeletion(range.startStart(parent, nextToken));
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_UNUSED_LABEL);
-    }
-  }
-
   Future<void> _addFix_replaceVarWithDynamic() async {
     var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addSimpleReplacement(range.error(error), 'dynamic');
     });
     _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_VAR_WITH_DYNAMIC);
-  }
-
-  Future<void> _addFix_replaceWithConstInstanceCreation() async {
-    if (coveredNode is InstanceCreationExpression) {
-      var instanceCreation = coveredNode as InstanceCreationExpression;
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        if (instanceCreation.keyword == null) {
-          builder.addSimpleInsertion(
-              instanceCreation.constructorName.offset, 'const');
-        } else {
-          builder.addSimpleReplacement(
-              range.token(instanceCreation.keyword), 'const');
-        }
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.USE_CONST);
-    }
-  }
-
-  Future<void> _addFix_replaceWithExtensionName() async {
-    if (node is! SimpleIdentifier) {
-      return;
-    }
-    var parent = node.parent;
-    AstNode target;
-    if (parent is MethodInvocation && node == parent.methodName) {
-      target = parent.target;
-    } else if (parent is PropertyAccess && node == parent.propertyName) {
-      target = parent.target;
-    }
-    if (target is! ExtensionOverride) {
-      return;
-    }
-    ExtensionOverride override = target;
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addSimpleReplacement(
-          range.node(override), utils.getNodeText(override.extensionName));
-    });
-    _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_WITH_EXTENSION_NAME,
-        args: [override.extensionName.name]);
   }
 
   Future<void> _addFix_undefinedClass_useSimilar() async {
@@ -2584,68 +2092,6 @@ class FixProcessor extends BaseProcessor {
       builder.addSimpleReplacement(SourceRange(offset, length), newText);
     });
     _addFixFromBuilder(changeBuilder, DartFixKind.UPDATE_SDK_CONSTRAINTS);
-  }
-
-  Future<void> _addFix_useEffectiveIntegerDivision() async {
-    for (var n = node; n != null; n = n.parent) {
-      if (n is MethodInvocation &&
-          n.offset == errorOffset &&
-          n.length == errorLength) {
-        var target = (n as MethodInvocation).target.unParenthesized;
-        var changeBuilder = _newDartChangeBuilder();
-        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-          // replace "/" with "~/"
-          var binary = target as BinaryExpression;
-          builder.addSimpleReplacement(range.token(binary.operator), '~/');
-          // remove everything before and after
-          builder.addDeletion(range.startStart(n, binary.leftOperand));
-          builder.addDeletion(range.endEnd(binary.rightOperand, n));
-        });
-        _addFixFromBuilder(
-            changeBuilder, DartFixKind.USE_EFFECTIVE_INTEGER_DIVISION);
-        // done
-        break;
-      }
-    }
-  }
-
-  /// Adds a fix that replaces [target] with a reference to the class declaring
-  /// the given [element].
-  Future<void> _addFix_useStaticAccess(AstNode target, Element element) async {
-    var declaringElement = element.enclosingElement;
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(range.node(target), (DartEditBuilder builder) {
-        builder.writeReference(declaringElement);
-      });
-    });
-    _addFixFromBuilder(
-      changeBuilder,
-      DartFixKind.CHANGE_TO_STATIC_ACCESS,
-      args: [declaringElement.name],
-    );
-  }
-
-  Future<void> _addFix_useStaticAccess_method() async {
-    if (node is SimpleIdentifier && node.parent is MethodInvocation) {
-      var invocation = node.parent as MethodInvocation;
-      if (invocation.methodName == node) {
-        var target = invocation.target;
-        var invokedElement = invocation.methodName.staticElement;
-        await _addFix_useStaticAccess(target, invokedElement);
-      }
-    }
-  }
-
-  Future<void> _addFix_useStaticAccess_property() async {
-    if (node is SimpleIdentifier && node.parent is PrefixedIdentifier) {
-      var prefixed = node.parent as PrefixedIdentifier;
-      if (prefixed.identifier == node) {
-        Expression target = prefixed.prefix;
-        var invokedElement = prefixed.identifier.staticElement;
-        await _addFix_useStaticAccess(target, invokedElement);
-      }
-    }
   }
 
   void _addFixFromBuilder(ChangeBuilder builder, FixKind kind,
@@ -3019,22 +2465,6 @@ class FixProcessor extends BaseProcessor {
     return DartChangeBuilderImpl.forWorkspace(context.workspace);
   }
 
-  /// Removes any [ParenthesizedExpression] enclosing [expr].
-  ///
-  /// [exprPrecedence] - the effective precedence of [expr].
-  void _removeEnclosingParentheses(
-      DartFileEditBuilder builder, Expression expr, Precedence exprPrecedence) {
-    while (expr.parent is ParenthesizedExpression) {
-      var parenthesized = expr.parent as ParenthesizedExpression;
-      if (getExpressionParentPrecedence(parenthesized) > exprPrecedence) {
-        break;
-      }
-      builder.addDeletion(range.token(parenthesized.leftParenthesis));
-      builder.addDeletion(range.token(parenthesized.rightParenthesis));
-      expr = parenthesized;
-    }
-  }
-
   void _updateFinderWithClassMembers(
       _ClosestElementFinder finder, ClassElement clazz) {
     if (clazz != null) {
@@ -3123,82 +2553,5 @@ class _ClosestElementFinder {
     for (var element in elements) {
       _update(element);
     }
-  }
-}
-
-/// [ExecutableElement], its parameters, and operations on them.
-class _ExecutableParameters {
-  final AnalysisSessionHelper sessionHelper;
-  final ExecutableElement executable;
-
-  final List<ParameterElement> required = [];
-  final List<ParameterElement> optionalPositional = [];
-  final List<ParameterElement> named = [];
-
-  factory _ExecutableParameters(
-      AnalysisSessionHelper sessionHelper, AstNode invocation) {
-    Element element;
-    // This doesn't handle FunctionExpressionInvocation.
-    if (invocation is Annotation) {
-      element = invocation.element;
-    } else if (invocation is InstanceCreationExpression) {
-      element = invocation.staticElement;
-    } else if (invocation is MethodInvocation) {
-      element = invocation.methodName.staticElement;
-    } else if (invocation is ConstructorReferenceNode) {
-      element = invocation.staticElement;
-    }
-    if (element is ExecutableElement && !element.isSynthetic) {
-      return _ExecutableParameters._(sessionHelper, element);
-    } else {
-      return null;
-    }
-  }
-
-  _ExecutableParameters._(this.sessionHelper, this.executable) {
-    for (var parameter in executable.parameters) {
-      if (parameter.isRequiredPositional) {
-        required.add(parameter);
-      } else if (parameter.isOptionalPositional) {
-        optionalPositional.add(parameter);
-      } else if (parameter.isNamed) {
-        named.add(parameter);
-      }
-    }
-  }
-
-  String get file => executable.source.fullName;
-
-  List<String> get namedNames {
-    return named.map((parameter) => parameter.name).toList();
-  }
-
-  /// Return the [FormalParameterList] of the [executable], or `null` is cannot
-  /// be found.
-  Future<FormalParameterList> getParameterList() async {
-    var result = await sessionHelper.getElementDeclaration(executable);
-    var targetDeclaration = result.node;
-    if (targetDeclaration is ConstructorDeclaration) {
-      return targetDeclaration.parameters;
-    } else if (targetDeclaration is FunctionDeclaration) {
-      var function = targetDeclaration.functionExpression;
-      return function.parameters;
-    } else if (targetDeclaration is MethodDeclaration) {
-      return targetDeclaration.parameters;
-    }
-    return null;
-  }
-
-  /// Return the [FormalParameter] of the [element] in [FormalParameterList],
-  /// or `null` is cannot be found.
-  Future<FormalParameter> getParameterNode(ParameterElement element) async {
-    var result = await sessionHelper.getElementDeclaration(element);
-    var declaration = result.node;
-    for (var node = declaration; node != null; node = node.parent) {
-      if (node is FormalParameter && node.parent is FormalParameterList) {
-        return node;
-      }
-    }
-    return null;
   }
 }
