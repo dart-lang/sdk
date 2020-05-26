@@ -29,7 +29,7 @@ To visualize the information emitted by the AOT compiler one can use our binary
 size analysis tool:
 
 ```
-% dart pkg/vm/bin/run_binary_size_analysis.dart hello_sizes.json hello_sizes
+% dart pkg/vm/bin/snapshot_analysis.dart treemap hello_sizes.json hello_sizes
 Generated file:///.../sdk/hello_sizes/index.html
 % chrome hello_sizes/index.html
 ```
@@ -41,7 +41,7 @@ To visualize the differences between two AOT builds one can use our binary size
 comparison tool:
 
 ```
-% dart pkg/vm/bin/compare_sizes.dart app-sizes--before.json app-sizes--after.json
+% dart pkg/vm/bin/snapshot_analysis.dart compare app-sizes--before.json app-sizes--after.json
 
 +---------+--------+--------------+
 | Library | Method | Diff (Bytes) |
