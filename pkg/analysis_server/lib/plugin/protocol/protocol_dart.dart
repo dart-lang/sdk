@@ -176,7 +176,6 @@ String _getTypeParametersString(engine.Element element) {
 }
 
 bool _isAbstract(engine.Element element) {
-  // TODO(scheglov) add isAbstract to Element API
   if (element is engine.ClassElement) {
     return element.isAbstract;
   }
@@ -190,7 +189,6 @@ bool _isAbstract(engine.Element element) {
 }
 
 bool _isConst(engine.Element element) {
-  // TODO(scheglov) add isConst to Element API
   if (element is engine.ConstructorElement) {
     return element.isConst;
   }
@@ -201,7 +199,6 @@ bool _isConst(engine.Element element) {
 }
 
 bool _isFinal(engine.Element element) {
-  // TODO(scheglov) add isFinal to Element API
   if (element is engine.VariableElement) {
     return element.isFinal;
   }
@@ -209,7 +206,6 @@ bool _isFinal(engine.Element element) {
 }
 
 bool _isStatic(engine.Element element) {
-  // TODO(scheglov) add isStatic to Element API
   if (element is engine.ExecutableElement) {
     return element.isStatic;
   }
