@@ -5,6 +5,7 @@
 // @dart = 2.7
 
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/universe/call_structure.dart';
@@ -32,7 +33,7 @@ main() {
       ${createUses(signatures, prefix: 't')}
       ${createUses(signatures, prefix: 'm')}
     }
-    """);
+    """, options: [Flags.noSoundNullSafety]);
 
     for (FunctionTypeData data in signatures) {
       DartType functionType = env.getElementType('t${data.name}');

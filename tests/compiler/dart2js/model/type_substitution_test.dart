@@ -8,6 +8,7 @@ library type_substitution_test;
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
@@ -59,7 +60,7 @@ testAsInstanceOf() async {
         new E();
         new F();
       }
-      ''');
+      ''', options: [Flags.noSoundNullSafety]);
   var types = env.types;
   ClassEntity A = env.getElement("A");
   ClassEntity B = env.getElement("B");
@@ -122,7 +123,7 @@ testTypeSubstitution() async {
       class Class<T,S> {}
 
       main() => new Class();
-      """);
+      """, options: [Flags.noSoundNullSafety]);
   var types = env.types;
   InterfaceType Class_T_S = env["Class"];
   Expect.isNotNull(Class_T_S);
