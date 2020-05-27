@@ -3919,7 +3919,7 @@ class InstanceCallBaseInstr : public TemplateDartCall<0> {
   // interface target, CompileType and hints from TFA.
   void UpdateReceiverSminess(Zone* zone);
 
-  bool HasNonSmiAssignableInterface(Zone* zone) const;
+  bool CanReceiverBeSmiBasedOnInterfaceTarget(Zone* zone) const;
 
   virtual SpeculativeMode SpeculativeModeOfInput(intptr_t idx) const {
     if (type_args_len() > 0) {
@@ -5152,11 +5152,10 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
   intptr_t OffsetInBytes() const { return slot().offset_in_bytes(); }
 
   compiler::Assembler::CanBeSmi CanValueBeSmi() const {
-    const intptr_t cid = value()->Type()->ToNullableCid();
     // Write barrier is skipped for nullable and non-nullable smis.
-    ASSERT(cid != kSmiCid);
-    return cid == kDynamicCid ? compiler::Assembler::kValueCanBeSmi
-                              : compiler::Assembler::kValueIsNotSmi;
+    ASSERT(value()->Type()->ToNullableCid() != kSmiCid);
+    return value()->Type()->CanBeSmi() ? compiler::Assembler::kValueCanBeSmi
+                                       : compiler::Assembler::kValueIsNotSmi;
   }
 
   const Slot& slot_;
@@ -5313,11 +5312,9 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
 
  private:
   compiler::Assembler::CanBeSmi CanValueBeSmi() const {
-    const intptr_t cid = value()->Type()->ToNullableCid();
-    // Write barrier is skipped for nullable and non-nullable smis.
-    ASSERT(cid != kSmiCid);
-    return cid == kDynamicCid ? compiler::Assembler::kValueCanBeSmi
-                              : compiler::Assembler::kValueIsNotSmi;
+    ASSERT(value()->Type()->ToNullableCid() != kSmiCid);
+    return value()->Type()->CanBeSmi() ? compiler::Assembler::kValueCanBeSmi
+                                       : compiler::Assembler::kValueIsNotSmi;
   }
 
   const Field& field_;
@@ -6103,9 +6100,11 @@ class LoadClassIdInstr : public TemplateDefinition<1, NoThrow, Pure> {
            other_load->input_can_be_smi_ == input_can_be_smi_;
   }
 
+  PRINT_OPERANDS_TO_SUPPORT
+
  private:
-  Representation representation_;
-  bool input_can_be_smi_;
+  const Representation representation_;
+  const bool input_can_be_smi_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadClassIdInstr);
 };
@@ -7214,7 +7213,7 @@ class CheckedSmiOpInstr : public TemplateDefinition<2, Throws> {
       : TemplateDefinition(call->deopt_id()), call_(call), op_kind_(op_kind) {
     ASSERT(call->type_args_len() == 0);
     ASSERT(!call->IsInstanceCallBase() ||
-           !call->AsInstanceCallBase()->HasNonSmiAssignableInterface(
+           call->AsInstanceCallBase()->CanReceiverBeSmiBasedOnInterfaceTarget(
                Thread::Current()->zone()));
 
     SetInputAt(0, left);
@@ -7258,7 +7257,7 @@ class CheckedSmiComparisonInstr : public TemplateComparison<2, Throws> {
         is_negated_(false) {
     ASSERT(call->type_args_len() == 0);
     ASSERT(!call->IsInstanceCallBase() ||
-           !call->AsInstanceCallBase()->HasNonSmiAssignableInterface(
+           call->AsInstanceCallBase()->CanReceiverBeSmiBasedOnInterfaceTarget(
                Thread::Current()->zone()));
 
     SetInputAt(0, left);

@@ -239,9 +239,13 @@ class CompileType : public ZoneAllocated {
     return false;
   }
 
-  bool Specialize(GrowableArray<intptr_t>* class_ids);
+  // Returns true if a value of this CompileType can contain a Smi.
+  // Note that this is not the same as calling
+  // CompileType::Smi().IsAssignableTo(this) - because this compile type
+  // can be uninstantiated.
+  bool CanBeSmi();
 
-  bool IsNotSmi();
+  bool Specialize(GrowableArray<intptr_t>* class_ids);
 
   void PrintTo(BufferFormatter* f) const;
   SExpression* ToSExpression(FlowGraphSerializer* s) const;

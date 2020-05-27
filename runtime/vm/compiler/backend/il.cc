@@ -4479,9 +4479,7 @@ LocationSummary* LoadClassIdInstr::MakeLocationSummary(Zone* zone,
 void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register object = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  const AbstractType& value_type = *this->object()->Type()->ToAbstractType();
-  if (input_can_be_smi_ && (CompileType::Smi().IsAssignableTo(value_type) ||
-                            value_type.IsTypeParameter())) {
+  if (input_can_be_smi_ && this->object()->Type()->CanBeSmi()) {
     if (representation() == kTagged) {
       __ LoadTaggedClassIdMayBeSmi(result, object);
     } else {
@@ -4516,15 +4514,20 @@ static CodePtr TwoArgsSmiOpInlineCacheEntry(Token::Kind kind) {
   }
 }
 
-bool InstanceCallBaseInstr::HasNonSmiAssignableInterface(Zone* zone) const {
+bool InstanceCallBaseInstr::CanReceiverBeSmiBasedOnInterfaceTarget(
+    Zone* zone) const {
   if (!interface_target().IsNull()) {
+    // Note: target_type is fully instantiated rare type (all type parameters
+    // are replaced with dynamic) so checking if Smi is assignable to
+    // it would compute correctly whether or not receiver can be a smi.
     const AbstractType& target_type = AbstractType::Handle(
         zone, Class::Handle(zone, interface_target().Owner()).RareType());
     if (!CompileType::Smi().IsAssignableTo(target_type)) {
-      return true;
+      return false;
     }
   }
-  return false;
+  // In all other cases conservatively assume that the receiver can be a smi.
+  return true;
 }
 
 Representation InstanceCallBaseInstr::RequiredInputRepresentation(
@@ -4557,12 +4560,8 @@ Representation InstanceCallBaseInstr::representation() const {
 
 void InstanceCallBaseInstr::UpdateReceiverSminess(Zone* zone) {
   if (CompilerState::Current().is_aot() && !receiver_is_not_smi()) {
-    if (Receiver()->Type()->IsNotSmi()) {
-      set_receiver_is_not_smi(true);
-      return;
-    }
-
-    if (HasNonSmiAssignableInterface(zone)) {
+    if (!Receiver()->Type()->CanBeSmi() ||
+        !CanReceiverBeSmiBasedOnInterfaceTarget(zone)) {
       set_receiver_is_not_smi(true);
     }
   }

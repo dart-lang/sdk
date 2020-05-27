@@ -2366,7 +2366,7 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
   if (int_type.IsSubtypeOf(dst_type, Heap::kOld)) {
     __ BranchIfSmi(TypeTestABI::kInstanceReg, done);
     is_non_smi = true;
-  } else if (receiver_type->IsNotSmi()) {
+  } else if (!receiver_type->CanBeSmi()) {
     is_non_smi = true;
   }
 
