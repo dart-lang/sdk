@@ -38,82 +38,45 @@ void main() {
 }
 
 class AbstractBuildModeTest extends BaseTest {
-  Future<void> _doDrive(String path,
-      {String uri,
-      List<String> additionalArgs = const [],
-      String dartSdkSummaryPath}) async {
-    path = _p(path);
+  Future<void> _doDrive(
+    String filePath, {
+    String fileUri,
+    List<String> additionalArgs = const [],
+  }) async {
+    filePath = _posixToPlatformPath(filePath);
 
     var optionsFileName = AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
-    var options = _p('data/options_tests_project/' + optionsFileName);
+    var options =
+        _posixToPlatformPath('data/options_tests_project/' + optionsFileName);
 
     var args = <String>[];
-    if (dartSdkSummaryPath != null) {
-      args.add('--dart-sdk-summary');
-      args.add(dartSdkSummaryPath);
-    } else {
-      var sdkPath = _findSdkDirForSummaries();
-      args.add('--dart-sdk');
-      args.add(sdkPath);
-    }
     args.add('--build-mode');
     args.add('--format=machine');
+
+    {
+      var sdkPath = path.dirname(
+        path.dirname(
+          Platform.resolvedExecutable,
+        ),
+      );
+
+      var dartSdkSummaryPath = path.join(
+        sdkPath,
+        'lib',
+        '_internal',
+        'strong.sum',
+      );
+
+      args.add('--dart-sdk-summary');
+      args.add(dartSdkSummaryPath);
+    }
+
     args.addAll(additionalArgs);
 
-    uri ??= 'file:///test_file.dart';
-    var source = '$uri|$path';
+    fileUri ??= 'file:///test_file.dart';
+    var source = '$fileUri|$filePath';
 
     await drive(source, args: args, options: options);
-  }
-
-  /// Try to find a appropriate directory to pass to "--dart-sdk" that will
-  /// allow summaries to be found.
-  String _findSdkDirForSummaries() {
-    var triedDirectories = <String>{};
-    bool isSuitable(String sdkDir) {
-      triedDirectories.add(sdkDir);
-      return File(path.join(sdkDir, 'lib', '_internal', 'strong.sum'))
-          .existsSync();
-    }
-
-    String makeAbsoluteAndNormalized(String result) {
-      result = path.absolute(result);
-      result = path.normalize(result);
-      return result;
-    }
-
-    // Usually the sdk directory is the parent of the parent of the "dart"
-    // executable.
-    var executableParent = File(Platform.executable).parent;
-    var executableGrandparent = executableParent.parent;
-    if (isSuitable(executableGrandparent.path)) {
-      return makeAbsoluteAndNormalized(executableGrandparent.path);
-    }
-    // During build bot execution, the sdk directory is simply the parent of the
-    // "dart" executable.
-    if (isSuitable(executableParent.path)) {
-      return makeAbsoluteAndNormalized(executableParent.path);
-    }
-    // If neither of those are suitable, assume we are running locally within the
-    // SDK project (e.g. within an IDE). Find the build output directory and
-    // search all built configurations.
-    var sdkRootDir =
-        File(Platform.script.toFilePath()).parent.parent.parent.parent;
-    for (var outDirName in ['out', 'xcodebuild']) {
-      var outDir = Directory(path.join(sdkRootDir.path, outDirName));
-      if (outDir.existsSync()) {
-        for (var subdir in outDir.listSync()) {
-          if (subdir is Directory) {
-            var candidateSdkDir = path.join(subdir.path, 'dart-sdk');
-            if (isSuitable(candidateSdkDir)) {
-              return makeAbsoluteAndNormalized(candidateSdkDir);
-            }
-          }
-        }
-      }
-    }
-    throw Exception('Could not find an SDK directory containing summaries.'
-        '  Tried: ${triedDirectories.toList()}');
   }
 }
 
@@ -151,7 +114,7 @@ class BaseTest {
     String options = emptyOptionsFile,
     List<String> args = const <String>[],
   }) async {
-    options = _p(options);
+    options = _posixToPlatformPath(options);
 
     driver = Driver(isTesting: true);
     var cmd = <String>[];
@@ -197,17 +160,19 @@ class BaseTest {
     return '$uriPrefix${path.join(testDirectory, relativePath)}';
   }
 
-  /// Convert the given posix [filePath] to conform to this provider's path context.
+  /// Convert the given posix [filePath] to conform to to the platform style.
   ///
   /// This is a utility method for testing; paths passed in to other methods in
   /// this class are never converted automatically.
-  String _p(String filePath) {
+  String _posixToPlatformPath(String filePath) {
     if (filePath == null) {
       return null;
     }
     if (path.style == path.windows.style) {
-      filePath =
-          filePath.replaceAll(path.posix.separator, path.windows.separator);
+      filePath = filePath.replaceAll(
+        path.posix.separator,
+        path.windows.separator,
+      );
     }
     return filePath;
   }
@@ -458,7 +423,7 @@ import 'package:b/b.dart';
     args.add('--build-summary-output=${pkg.sum}');
     args.add('--summary-deps-output=${pkg.dep}');
 
-    await _doDrive(pkg.path, uri: pkg.uri, additionalArgs: args);
+    await _doDrive(pkg.path, fileUri: pkg.uri, additionalArgs: args);
     expect(exitCode, 0);
 
     return pkg;
@@ -510,7 +475,7 @@ part '[invalid]';
 ''');
 
       await _doDrive(aDart,
-          uri: aUri, additionalArgs: ['--build-summary-output=$aSum']);
+          fileUri: aUri, additionalArgs: ['--build-summary-output=$aSum']);
       expect(exitCode, ErrorSeverity.ERROR.ordinal);
       var bytes = File(aSum).readAsBytesSync();
       var bundle = PackageBundle.fromBuffer(bytes);
@@ -560,7 +525,7 @@ var b = new B();
       // Analyze package:aaa/a.dart and compute summary.
       {
         await _doDrive(aDart,
-            uri: aUri, additionalArgs: ['--build-summary-output=$aSum']);
+            fileUri: aUri, additionalArgs: ['--build-summary-output=$aSum']);
         expect(exitCode, 0);
         var bytes = File(aSum).readAsBytesSync();
         var bundle = PackageBundle.fromBuffer(bytes);
@@ -571,7 +536,7 @@ var b = new B();
 
       // Analyze package:bbb/b.dart and compute summary.
       {
-        await _doDrive(bDart, uri: bUri, additionalArgs: [
+        await _doDrive(bDart, fileUri: bUri, additionalArgs: [
           '--build-summary-input=$aSum',
           '--build-summary-output=$bSum'
         ]);
@@ -585,7 +550,7 @@ var b = new B();
 
       // Analyze package:ccc/c.dart and compute summary.
       {
-        await _doDrive(cDart, uri: cUri, additionalArgs: [
+        await _doDrive(cDart, fileUri: cUri, additionalArgs: [
           '--build-summary-input=$aSum,$bSum',
           '--build-summary-output=$cSum'
         ]);
@@ -596,28 +561,6 @@ var b = new B();
         expect(_linkedLibraryUriList(bundle2), [cUri]);
         expect(_linkedLibraryUnitUriList(bundle2, cUri), [cUri]);
       }
-    });
-  }
-
-  Future<void> test_dartSdkSummaryPath_strong() async {
-    await withTempDirAsync((tempDir) async {
-      var sdkPath = _findSdkDirForSummaries();
-      var strongSummaryPath =
-          path.join(sdkPath, 'lib', '_internal', 'strong.sum');
-
-      var testDart = path.join(tempDir, 'test.dart');
-      var testSum = path.join(tempDir, 'test.sum');
-      File(testDart).writeAsStringSync('var v = 42;');
-
-      await _doDrive(testDart,
-          additionalArgs: [
-            '--build-summary-only',
-            '--build-summary-output=$testSum'
-          ],
-          dartSdkSummaryPath: strongSummaryPath);
-      var output = File(testSum);
-      expect(output.existsSync(), isTrue);
-      expect(exitCode, 0);
     });
   }
 
@@ -667,7 +610,7 @@ var b = new B();
 
       // Analyze b.dart (part) and then a.dart (its library).
       // No errors should be reported - the part should know its library.
-      await _doDrive(bDart, uri: bUri, additionalArgs: ['$aUri|$aDart']);
+      await _doDrive(bDart, fileUri: bUri, additionalArgs: ['$aUri|$aDart']);
       expect(errorSink, isEmpty);
     });
   }
