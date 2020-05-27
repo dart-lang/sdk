@@ -3,9 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/error/error.dart';
+import 'package:linter/src/test_utilities/annotation.dart';
 import 'package:test/test.dart';
 
-import 'annotation.dart';
+AnnotationMatcher matchesAnnotation(
+        String message, ErrorType type, int lineNumber) =>
+    AnnotationMatcher(Annotation(message, type, lineNumber));
 
 class AnnotationMatcher extends Matcher {
   final Annotation _expected;
@@ -37,7 +40,3 @@ class AnnotationMatcher extends Matcher {
         _expected.lineNumber == other.lineNumber;
   }
 }
-
-AnnotationMatcher matchesAnnotation(
-        String message, ErrorType type, int lineNumber) =>
-    AnnotationMatcher(Annotation(message, type, lineNumber));

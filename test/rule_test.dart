@@ -18,14 +18,14 @@ import 'package:linter/src/formatter.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/rules/implementation_imports.dart';
 import 'package:linter/src/rules/package_prefixed_library_names.dart';
+import 'package:linter/src/test_utilities/annotation.dart';
+import 'package:linter/src/test_utilities/test_resource_provider.dart';
 import 'package:linter/src/version.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import 'rules/experiments/experiments.dart';
-import 'util/annotation.dart';
 import 'util/annotation_matcher.dart';
-import 'util/test_resource_provider.dart';
 import 'util/test_utils.dart';
 
 void main() {

@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/error/error.dart';
+import 'package:linter/src/test_utilities/annotation.dart';
 import 'package:test/test.dart';
 
-import 'annotation.dart';
 import 'annotation_matcher.dart';
 
 void main() {
