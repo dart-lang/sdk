@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:math' as math;
 
@@ -146,23 +145,11 @@ class RelevanceData {
   /// with the same lexeme to the number of times that distance was found.
   Map<int, int> tokenDistances = {};
 
+  /// A table mapping percentage data names to the percentage data collected.
+  Map<String, _PercentageData> percentageData = {};
+
   /// Initialize a newly created set of relevance data to be empty.
   RelevanceData();
-
-  /// Initialize a newly created set of relevance data to reflect the data in
-  /// the given JSON encoded [content].
-  RelevanceData.fromJson(String content) {
-    _initializeFromJson(content);
-  }
-
-  /// Add the data from the given relevance [data] to this set of data.
-  void addDataFrom(RelevanceData data) {
-    _addToMap(byDistance, data.byDistance);
-    _addToMap(byElementKind, data.byElementKind);
-    _addToMap(byTokenType, data.byTokenType);
-    _addToMap(byTypeMatch, data.byTypeMatch);
-    _addToMap(distanceByDepthMap, distanceByDepthMap);
-  }
 
   /// Increment the count associated with the given [name] by one.
   void incrementCount(String name) {
@@ -198,6 +185,14 @@ class RelevanceData {
     identifierLengths[length] = (identifierLengths[length] ?? 0) + 1;
   }
 
+  /// Record that a data point for the percentage data with the given [name] was
+  /// found. If [wasPositive] is `true` then the data point is a positive data
+  /// point.
+  void recordPercentage(String name, bool wasPositive) {
+    var data = percentageData.putIfAbsent(name, () => _PercentageData());
+    data.addDataPoint(wasPositive);
+  }
+
   /// Record information about the distance between recurring tokens.
   void recordTokenStream(int distance) {
     tokenDistances[distance] = (tokenDistances[distance] ?? 0) + 1;
@@ -215,95 +210,6 @@ class RelevanceData {
   void recordTypeMatch(String kind, String matchKind) {
     var contextMap = byTypeMatch.putIfAbsent(kind, () => {});
     contextMap[matchKind] = (contextMap[matchKind] ?? 0) + 1;
-  }
-
-  /// Return a JSON encoded string representing the data that was collected.
-  String toJson() {
-    return json.encode({
-      'version': currentVersion,
-      'byDistance': byDistance,
-      'byElementKind': byElementKind,
-      'byTokenType': byTokenType,
-      'byTypeMatch': byTypeMatch,
-      'distanceByDepthMap': _encodeIntIntMap(distanceByDepthMap),
-    });
-  }
-
-  /// Add the data in the [source] map to the [target] map.
-  void _addToMap<K>(Map<K, Map<K, int>> target, Map<K, Map<K, int>> source) {
-    for (var outerEntry in source.entries) {
-      var innerTarget = target.putIfAbsent(outerEntry.key, () => {});
-      for (var innerEntry in outerEntry.value.entries) {
-        var innerKey = innerEntry.key;
-        innerTarget[innerKey] = (innerTarget[innerKey] ?? 0) + innerEntry.value;
-      }
-    }
-  }
-
-  Map<String, dynamic> _convert(dynamic value) {
-    if (value is Map<String, dynamic>) {
-      return value;
-    }
-    throw FormatException('Expected a JSON map.', value);
-  }
-
-  /// Decode the content of the [source] map into the [target] map, using the
-  /// [keyMapper] to map the inner keys from a string to a [T].
-  void _decodeIntIntMap(
-      Map<int, Map<int, int>> target, Map<String, dynamic> source) {
-    var outerMap = _convert(source);
-    for (var outerEntry in outerMap.entries) {
-      var outerKey = int.parse(outerEntry.key);
-      var innerMap = _convert(outerEntry.value);
-      for (var innerEntry in innerMap.entries) {
-        var innerKey = int.parse(innerEntry.key);
-        var count = innerEntry.value as int;
-        target.putIfAbsent(outerKey, () => {})[innerKey] = count;
-      }
-    }
-  }
-
-  /// Decode the content of the [source] map into the [target] map, using the
-  /// [keyMapper] to map the inner keys from a string to a [T].
-  void _decodeMap(
-      Map<String, Map<String, int>> target, Map<String, dynamic> source) {
-    var outerMap = _convert(source);
-    for (var outerEntry in outerMap.entries) {
-      var outerKey = outerEntry.key;
-      var innerMap = _convert(outerEntry.value);
-      for (var innerEntry in innerMap.entries) {
-        var innerKey = innerEntry.key;
-        var count = innerEntry.value as int;
-        target.putIfAbsent(outerKey, () => {})[innerKey] = count;
-      }
-    }
-  }
-
-  Map<String, Map<String, int>> _encodeIntIntMap(Map<int, Map<int, int>> map) {
-    var result = <String, Map<String, int>>{};
-    for (var outerEntry in map.entries) {
-      var convertedInner = <String, int>{};
-      for (var innerEntry in outerEntry.value.entries) {
-        convertedInner[innerEntry.key.toString()] = innerEntry.value;
-      }
-      result[outerEntry.key.toString()] = convertedInner;
-    }
-    return result;
-  }
-
-  /// Initialize the state of this object from the given JSON encoded [content].
-  void _initializeFromJson(String content) {
-    var contentObject = _convert(json.decode(content));
-    var version = contentObject['version'].toString();
-    if (version != currentVersion) {
-      throw StateError(
-          'Invalid version: expected $currentVersion, found $version');
-    }
-    _decodeMap(byDistance, contentObject['byDistance']);
-    _decodeMap(byElementKind, contentObject['byElementKind']);
-    _decodeMap(byTokenType, contentObject['byTokenType']);
-    _decodeMap(byTypeMatch, contentObject['byTypeMatch']);
-    _decodeIntIntMap(distanceByDepthMap, contentObject['distanceByDepthMap']);
   }
 }
 
@@ -525,6 +431,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
+    data.recordPercentage(
+        'Classes with type parameters', node.typeParameters != null);
     var context = 'name';
     if (node.extendsClause != null) {
       _recordTokenType('ClassDeclaration ($context)', node.extendsClause,
@@ -582,7 +490,11 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     inheritanceManager = InheritanceManager3();
     featureComputer = FeatureComputer(typeSystem, typeProvider);
 
+    var hasPrefix = false;
     for (var directive in node.directives) {
+      if (directive is ImportDirective && directive.prefix != null) {
+        hasPrefix = true;
+      }
       _recordTokenType('CompilationUnit (directive)', directive,
           allowedKeywords: directiveKeywords);
     }
@@ -590,6 +502,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       _recordDataForNode('CompilationUnit (declaration)', declaration,
           allowedKeywords: declarationKeywords);
     }
+    data.recordPercentage(
+        'Compilation units with at least one prefix', hasPrefix);
     super.visitCompilationUnit(node);
 
     featureComputer = null;
@@ -744,6 +658,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
+    data.recordPercentage(
+        'Extensions with type parameters', node.typeParameters != null);
     _recordDataForNode('ExtensionDeclaration (type)', node.extendedType);
     for (var member in node.members) {
       _recordDataForNode('ExtensionDeclaration (member)', member,
@@ -847,6 +763,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionExpression(FunctionExpression node) {
     // There are no completions.
+    data.recordPercentage(
+        'Functions with type parameters', node.typeParameters != null);
     super.visitFunctionExpression(node);
   }
 
@@ -1038,6 +956,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     // There are no completions.
+    data.recordPercentage(
+        'Methods with type parameters', node.typeParameters != null);
     var element = node.declaredElement;
     if (!element.isStatic && element.enclosingElement is ClassElement) {
       var overriddenMembers = inheritanceManager.getOverridden2(
@@ -1085,6 +1005,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
+    data.recordPercentage(
+        'Mixins with type parameters', node.typeParameters != null);
     var context = 'name';
     if (node.onClause != null) {
       _recordTokenType('MixinDeclaration ($context)', node.onClause,
@@ -2031,6 +1953,8 @@ class RelevanceMetricsComputer {
     sink.writeln();
     _writeCounts(sink, data.simpleCounts);
     sink.writeln();
+    _writePercentageData(sink, data.percentageData);
+    sink.writeln();
     _writeSideBySide(sink, [data.byTokenType, data.byElementKind],
         ['Token Types', 'Element Kinds']);
     sink.writeln();
@@ -2280,6 +2204,19 @@ class RelevanceMetricsComputer {
     _writeTable(sink, table);
   }
 
+  /// Write a [percentageMap] containing one kind of metric data to the [sink].
+  void _writePercentageData(
+      StringSink sink, Map<String, _PercentageData> percentageMap) {
+    var names = percentageMap.keys.toList()..sort();
+    for (var name in names) {
+      var data = percentageMap[name];
+      var total = data.total;
+      var value = data.positive;
+      var percent = total == 0 ? '  0.0' : _formatPercent(value, total);
+      sink.writeln('$name = $percent ($value / $total)');
+    }
+  }
+
   /// Write the given [maps] to the given [sink], formatting them as side-by-side
   /// columns titled by the given [columnTitles].
   void _writeSideBySide(StringSink sink,
@@ -2369,5 +2306,27 @@ class Timer {
   void stop() {
     stopwatch.stop();
     count++;
+  }
+}
+
+/// Information collected to compute a percentage of data points that were
+/// positive.
+class _PercentageData {
+  /// The total number of data points.
+  int total = 0;
+
+  /// The total number of positive data points.
+  int positive = 0;
+
+  /// Initialize a newly created keeper of percentage data.
+  _PercentageData();
+
+  /// Add a data point to the data being collected. If [wasPositive] is `true`
+  /// then the data point is a positive data point.
+  void addDataPoint(bool wasPositive) {
+    total++;
+    if (wasPositive) {
+      positive++;
+    }
   }
 }
