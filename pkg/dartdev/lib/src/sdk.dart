@@ -40,7 +40,10 @@ class Sdk {
 
   Sdk() : sdkPath = _computeSdkPath;
 
-  String get dart => path.absolute(sdkPath, 'bin', _exeName('dart'));
+  // Assume that we want to use the same Dart executable that we used to spawn
+  // DartDev. We should be able to run programs with out/ReleaseX64/dart even
+  // if the SDK isn't completely built.
+  String get dart => Platform.resolvedExecutable;
 
   String get analysis_server_snapshot => path.absolute(
       sdkPath, 'bin', 'snapshots', 'analysis_server.dart.snapshot');
