@@ -7,23 +7,27 @@ import 'dart:async';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/summary/summary_file_builder.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/glob.dart';
@@ -1897,6 +1901,11 @@ include: package:boo/other_options.yaml
     var sdkExtPath = '$projPath/sdk_ext';
     newFile('$projPath/test', content: 'test.dart');
     newFile('$sdkExtPath/entry.dart');
+    var synchronousSession = SynchronousSession(analysisOptions, null);
+    var bytes =
+        SummaryBuilder([], AnalysisContextImpl(synchronousSession, null))
+            .build(featureSet: FeatureSet.fromEnableFlags([]));
+    newFileWithBytes('$projPath/sdk.ds', bytes);
     // Setup _embedder.yaml.
     newFile('$libPath/_embedder.yaml', content: r'''
 embedded_libs:
