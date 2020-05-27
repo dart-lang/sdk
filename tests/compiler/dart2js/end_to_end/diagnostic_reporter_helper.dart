@@ -18,7 +18,7 @@ abstract class DiagnosticReporterWrapper extends DiagnosticReporter {
 
   @override
   DiagnosticMessage createMessage(Spannable spannable, MessageKind messageKind,
-      [Map arguments = const {}]) {
+      [Map<String, String> arguments = const {}]) {
     return reporter.createMessage(spannable, messageKind, arguments);
   }
 
@@ -49,7 +49,7 @@ abstract class DiagnosticReporterWrapper extends DiagnosticReporter {
 
   @override
   void reportInfo(Spannable node, MessageKind errorCode,
-      [Map arguments = const {}]) {
+      [Map<String, String> arguments = const {}]) {
     reporter.reportInfo(node, errorCode, arguments);
   }
 
