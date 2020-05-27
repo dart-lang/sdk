@@ -1918,6 +1918,10 @@ abstract class DartTypes {
   // bound?
   bool treatAsRawType(DartType t) => t._treatAsRaw(useLegacySubtyping);
 
+  /// Returns `true` if [t] is a bottom type, that is, a subtype of every type.
+  bool isBottomType(DartType t) =>
+      t is NeverType || (useLegacySubtyping && t.isNull);
+
   /// Returns `true` if [t] is a top type, that is, a supertype of every type.
   bool isTopType(DartType t) => t._isTop(useLegacySubtyping);
 
@@ -1967,11 +1971,7 @@ abstract class DartTypes {
       if (isStrongTopType(s)) return false;
 
       // Left Bottom:
-      if (useLegacySubtyping) {
-        if (s.isNull) return true;
-      } else {
-        if (s is NeverType) return true;
-      }
+      if (isBottomType(s)) return true;
 
       // Left Type Variable Bound 1:
       if (s is TypeVariableType) {
