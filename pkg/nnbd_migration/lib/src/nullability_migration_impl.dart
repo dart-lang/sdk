@@ -56,6 +56,8 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   final PostmortemFileWriter _postmortemFileWriter =
       _makePostmortemFileWriter();
 
+  final LineInfo Function(String) _getLineInfo;
+
   /// Prepares to perform nullability migration.
   ///
   /// If [permissive] is `true`, exception handling logic will try to proceed
@@ -70,15 +72,28 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   /// should be warned about or removed (in the way specified by
   /// [removeViaComments]).
   NullabilityMigrationImpl(NullabilityMigrationListener listener,
+      LineInfo Function(String) getLineInfo,
       {bool permissive: false,
       NullabilityMigrationInstrumentation instrumentation,
       bool removeViaComments = false,
       bool warnOnWeakCode = true})
-      : this._(listener, NullabilityGraph(instrumentation: instrumentation),
-            permissive, instrumentation, removeViaComments, warnOnWeakCode);
+      : this._(
+            listener,
+            NullabilityGraph(instrumentation: instrumentation),
+            permissive,
+            instrumentation,
+            removeViaComments,
+            warnOnWeakCode,
+            getLineInfo);
 
-  NullabilityMigrationImpl._(this.listener, this._graph, this._permissive,
-      this._instrumentation, this.removeViaComments, this.warnOnWeakCode) {
+  NullabilityMigrationImpl._(
+      this.listener,
+      this._graph,
+      this._permissive,
+      this._instrumentation,
+      this.removeViaComments,
+      this.warnOnWeakCode,
+      this._getLineInfo) {
     _instrumentation?.immutableNodes(_graph.never, _graph.always);
     _postmortemFileWriter?.graph = _graph;
   }
@@ -142,7 +157,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   void prepareInput(ResolvedUnitResult result) {
     _sanityCheck(result);
     if (_variables == null) {
-      _variables = Variables(_graph, result.typeProvider,
+      _variables = Variables(_graph, result.typeProvider, _getLineInfo,
           instrumentation: _instrumentation,
           postmortemFileWriter: _postmortemFileWriter);
       _decoratedClassHierarchy = DecoratedClassHierarchy(_variables, _graph);
@@ -150,8 +165,13 @@ class NullabilityMigrationImpl implements NullabilityMigration {
     var unit = result.unit;
     try {
       DecoratedTypeParameterBounds.current = _decoratedTypeParameterBounds;
-      unit.accept(NodeBuilder(_variables, unit.declaredElement.source,
-          _permissive ? listener : null, _graph, result.typeProvider,
+      unit.accept(NodeBuilder(
+          _variables,
+          unit.declaredElement.source,
+          _permissive ? listener : null,
+          _graph,
+          result.typeProvider,
+          _getLineInfo,
           instrumentation: _instrumentation));
     } finally {
       DecoratedTypeParameterBounds.current = null;

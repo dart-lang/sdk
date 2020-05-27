@@ -33,6 +33,15 @@ class CodeReference {
         location.columnNumber, _computeEnclosingName(node));
   }
 
+  factory CodeReference.fromElement(
+      Element element, LineInfo Function(String) getLineInfo) {
+    var path = element.source.fullName;
+    var offset = element.nameOffset;
+    var location = getLineInfo(path).getLocation(offset);
+    return CodeReference(path, offset, location.lineNumber,
+        location.columnNumber, _computeElementFullName(element));
+  }
+
   CodeReference.fromJson(dynamic json)
       : path = json['path'] as String,
         offset = json['offset'] as int,
@@ -64,6 +73,26 @@ class CodeReference {
   String toString() {
     var pathAsUri = Uri.file(path);
     return '${function ?? 'unknown'} ($pathAsUri:$line:$column)';
+  }
+
+  static String _computeElementFullName(Element element) {
+    List<String> parts = [];
+    while (element != null) {
+      var elementName = _computeElementName(element);
+      if (elementName != null) {
+        parts.add(elementName);
+      }
+      element = element.enclosingElement;
+    }
+    if (parts.isEmpty) return null;
+    return parts.reversed.join('.');
+  }
+
+  static String _computeElementName(Element element) {
+    if (element is CompilationUnitElement || element is LibraryElement) {
+      return null;
+    }
+    return element.name;
   }
 
   static String _computeEnclosingName(AstNode node) {

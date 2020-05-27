@@ -373,7 +373,8 @@ class MigrationCli {
       _fixCodeProcessor = _FixCodeProcessor(context, this);
       _dartFixListener =
           DartFixListener(DriverProviderImpl(resourceProvider, context));
-      nonNullableFix = NonNullableFix(_dartFixListener, resourceProvider,
+      nonNullableFix = NonNullableFix(
+          _dartFixListener, resourceProvider, _fixCodeProcessor.getLineInfo,
           included: [options.directory],
           preferredPort: options.previewPort,
           enablePreview: options.webPreview,
@@ -735,6 +736,9 @@ class _FixCodeProcessor extends Object {
 
   _FixCodeProcessor(this.context, this._migrationCli)
       : pathsToProcess = _computePathsToProcess(context);
+
+  LineInfo getLineInfo(String path) =>
+      context.currentSession.getFile(path).lineInfo;
 
   void prepareToRerun() {
     var driver = context.driver;

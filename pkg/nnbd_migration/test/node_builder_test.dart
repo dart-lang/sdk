@@ -1444,7 +1444,8 @@ main() {
 ''');
     var decoratedType =
         variables.decoratedElementType(findNode.simple('x').staticElement);
-    expect(decoratedType.returnType.node.displayName, 'return type of main.x');
+    expect(decoratedType.returnType.node.displayName,
+        'return type of main.x (test.dart:2:7)');
   }
 
   Future<void> test_localVariable_type_inferred_generic() async {
@@ -1456,9 +1457,9 @@ main() {
     var decoratedType =
         variables.decoratedElementType(findNode.simple('x').staticElement);
     expect(decoratedType.typeArguments[0].node.displayName,
-        'type argument 0 of main.x');
+        'type argument 0 of main.x (test.dart:2:7)');
     expect(decoratedType.typeArguments[1].node.displayName,
-        'type argument 1 of main.x');
+        'type argument 1 of main.x (test.dart:2:7)');
   }
 
   Future<void> test_method_generic_bounded() async {

@@ -298,8 +298,9 @@ class InstrumentedVariables extends Variables {
 
   final _expressionChecks = <Expression, ExpressionChecksOrigin>{};
 
-  InstrumentedVariables(NullabilityGraph graph, TypeProvider typeProvider)
-      : super(graph, typeProvider);
+  InstrumentedVariables(NullabilityGraph graph, TypeProvider typeProvider,
+      LineInfo Function(String) getLineInfo)
+      : super(graph, typeProvider, getLineInfo);
 
   /// Gets the [ExpressionChecks] associated with the given [expression].
   ExpressionChecksOrigin checkExpression(Expression expression) =>
@@ -363,9 +364,9 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest with EdgeTester {
 
   Future<CompilationUnit> analyze(String code) async {
     await resolveTestUnit(code);
-    variables = InstrumentedVariables(graph, typeProvider);
-    testUnit
-        .accept(NodeBuilder(variables, testSource, null, graph, typeProvider));
+    variables = InstrumentedVariables(graph, typeProvider, getLineInfo);
+    testUnit.accept(NodeBuilder(
+        variables, testSource, null, graph, typeProvider, getLineInfo));
     return testUnit;
   }
 

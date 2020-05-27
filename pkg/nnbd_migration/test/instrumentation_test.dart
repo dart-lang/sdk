@@ -143,7 +143,7 @@ abstract class _InstrumentationTestBase extends AbstractContextTest {
     var sourcePath = convertPath('/home/test/lib/test.dart');
     newFile(sourcePath, content: content);
     var listener = new TestMigrationListener();
-    var migration = NullabilityMigration(listener,
+    var migration = NullabilityMigration(listener, getLineInfo,
         instrumentation: _InstrumentationClient(this),
         removeViaComments: removeViaComments,
         warnOnWeakCode: warnOnWeakCode);

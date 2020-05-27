@@ -1384,8 +1384,8 @@ void f(int/*?*/ i) {
     assertTraceEntry(unit, entries[1], 'f.y', unit.content.indexOf('x[0]'),
         contains('data flow'));
     // Entry 2 is the nullability of the implicit list element type of x
-    assertTraceEntry(
-        unit, entries[2], null, null, contains('type argument 0 of f.x'));
+    assertTraceEntry(unit, entries[2], 'f.x', unit.content.indexOf('x ='),
+        contains('type argument 0 of f.x'));
     // Entry 3 is the edge from the explicit list element type on the RHS of x
     // to the implicit list element type on the LHS of x
     assertTraceEntry(unit, entries[3], 'f.x', unit.content.indexOf('<int?>[i]'),

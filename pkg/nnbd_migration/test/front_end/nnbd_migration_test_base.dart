@@ -204,7 +204,7 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     var listener = DartFixListener(server);
     var instrumentationListener = InstrumentationListener();
     var adapter = NullabilityMigrationAdapter(listener);
-    var migration = NullabilityMigration(adapter,
+    var migration = NullabilityMigration(adapter, getLineInfo,
         permissive: false,
         instrumentation: instrumentationListener,
         removeViaComments: removeViaComments,
