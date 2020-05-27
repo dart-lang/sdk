@@ -1824,7 +1824,7 @@ static void TestIllegalArrayLength(intptr_t length) {
   Utils::SNPrint(buffer, sizeof(buffer),
                  "Unhandled exception:\n"
                  "RangeError (length): Invalid value: "
-                 "Not in range 0..%" Pd ", inclusive: %" Pd,
+                 "Not in inclusive range 0..%" Pd ": %" Pd,
                  Array::kMaxElements, length);
   EXPECT_ERROR(result, buffer);
 }
