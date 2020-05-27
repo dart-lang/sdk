@@ -8,6 +8,7 @@ import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
@@ -94,19 +95,20 @@ main() {
   Map<String, Impact> expectedImpactMap =
       isDart2jsNnbd ? expectedImpactMapNnbdOn : expectedImpactMapNnbdOff;
   retainDataForTesting = true;
-  CompilationResult result =
-      await runCompiler(memorySourceFiles: {'main.dart': source});
+  CompilationResult result = await runCompiler(
+      memorySourceFiles: {'main.dart': source},
+      options: [Flags.printLegacyStars]);
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
   var options = compiler.options;
 
-  String printType(DartType type) {
-    return type.toStructuredText(
-        printLegacyStars: true, useLegacySubtyping: options.useLegacySubtyping);
-  }
-
   KClosedWorld closedWorld = compiler.frontendClosedWorldForTesting;
+  DartTypes types = closedWorld.dartTypes;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
+
+  String printType(DartType type) {
+    return type.toStructuredText(types, options);
+  }
 
   elementEnvironment.forEachLibraryMember(elementEnvironment.mainLibrary,
       (MemberEntity member) {

@@ -197,9 +197,7 @@ class TypeEnvironment {
     return compiler.frontendClosedWorldForTesting;
   }
 
-  String printType(DartType type) => type.toStructuredText(
-      printLegacyStars: options.printLegacyStars,
-      useLegacySubtyping: options.useLegacySubtyping);
+  String printType(DartType type) => type.toStructuredText(types, options);
 
   List<String> printTypes(List<DartType> types) =>
       types.map(printType).toList();

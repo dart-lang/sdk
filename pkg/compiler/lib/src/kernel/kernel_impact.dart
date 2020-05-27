@@ -131,9 +131,8 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   ConstantValuefier get _constantValuefier;
   ir.StaticTypeContext get staticTypeContext;
 
-  String typeToString(DartType type) => type.toStructuredText(
-      printLegacyStars: _options.printLegacyStars,
-      useLegacySubtyping: _options.useLegacySubtyping);
+  String typeToString(DartType type) =>
+      type.toStructuredText(dartTypes, _options);
 
   Object _computeReceiverConstraint(
       ir.DartType receiverType, ClassRelation relation) {

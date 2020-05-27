@@ -4,6 +4,7 @@
 
 import '../common/names.dart';
 import '../common_elements.dart';
+import '../options.dart';
 import '../serialization/serialization.dart';
 import '../util/util.dart' show equalElements, equalSets, identicalElements;
 import 'entities.dart';
@@ -91,17 +92,6 @@ abstract class DartType {
   /// returns this type otherwise.
   DartType get withoutNullability => this;
 
-  /// Is `true` if this type is a top type but not a legacy top type.
-  bool _isStrongTop(bool useLegacySubtyping) => false;
-
-  /// Is `true` if this type is a top type.
-  bool _isTop(bool useLegacySubtyping) => _isStrongTop(useLegacySubtyping);
-
-  /// Is `true` if every type argument of this type is a top type.
-  // TODO(fishythefish): Should we instead check if each type argument is at its
-  // bound?
-  bool _treatAsRaw(bool useLegacySubtyping) => true;
-
   /// Whether this type contains a type variable.
   bool get containsTypeVariables => false;
 
@@ -128,11 +118,10 @@ abstract class DartType {
   bool _equals(DartType other, _Assumptions assumptions);
 
   @override
-  String toString() => toStructuredText();
+  String toString() => toStructuredText(null, null);
 
-  String toStructuredText(
-          {bool printLegacyStars = true, bool useLegacySubtyping = false}) =>
-      _DartTypeToStringVisitor(printLegacyStars, useLegacySubtyping).run(this);
+  String toStructuredText(DartTypes dartTypes, CompilerOptions options) =>
+      _DartTypeToStringVisitor(dartTypes, options).run(this);
 }
 
 /// Pairs of [FunctionTypeVariable]s that are currently assumed to be
@@ -233,13 +222,6 @@ class LegacyType extends DartType {
   DartType get withoutNullability => baseType;
 
   @override
-  bool _isTop(bool useLegacySubtyping) => baseType.isObject;
-
-  @override
-  bool _treatAsRaw(bool useLegacySubtyping) =>
-      baseType._treatAsRaw(useLegacySubtyping);
-
-  @override
   bool get containsTypeVariables => baseType.containsTypeVariables;
 
   @override
@@ -293,13 +275,6 @@ class NullableType extends DartType {
 
   @override
   DartType get withoutNullability => baseType;
-
-  @override
-  bool _isStrongTop(bool useLegacySubtyping) => baseType.isObject;
-
-  @override
-  bool _treatAsRaw(bool useLegacySubtyping) =>
-      baseType._treatAsRaw(useLegacySubtyping);
 
   @override
   bool get containsTypeVariables => baseType.containsTypeVariables;
@@ -357,9 +332,6 @@ class InterfaceType extends DartType {
   }
 
   @override
-  bool _isTop(bool useLegacySubtyping) => useLegacySubtyping && isObject;
-
-  @override
   bool get isObject =>
       element.name == 'Object' &&
       element.library.canonicalUri == Uris.dart_core;
@@ -375,14 +347,6 @@ class InterfaceType extends DartType {
   @override
   void forEachTypeVariable(f(TypeVariableType variable)) {
     typeArguments.forEach((type) => type.forEachTypeVariable(f));
-  }
-
-  @override
-  bool _treatAsRaw(bool useLegacySubtyping) {
-    for (DartType type in typeArguments) {
-      if (!type._isTop(useLegacySubtyping)) return false;
-    }
-    return true;
   }
 
   @override
@@ -565,9 +529,6 @@ class VoidType extends DartType {
   }
 
   @override
-  bool _isStrongTop(bool useLegacySubtyping) => true;
-
-  @override
   R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
       visitor.visitVoidType(this, argument);
 
@@ -595,9 +556,6 @@ class DynamicType extends DartType {
   }
 
   @override
-  bool _isStrongTop(bool useLegacySubtyping) => true;
-
-  @override
   R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
       visitor.visitDynamicType(this, argument);
 
@@ -623,9 +581,6 @@ class ErasedType extends DartType {
       DataSink sink, List<FunctionTypeVariable> functionTypeVariables) {
     sink.writeEnum(DartTypeKind.erasedType);
   }
-
-  @override
-  bool _isStrongTop(bool useLegacySubtyping) => true;
 
   @override
   R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
@@ -664,9 +619,6 @@ class AnyType extends DartType {
       DataSink sink, List<FunctionTypeVariable> functionTypeVariables) {
     sink.writeEnum(DartTypeKind.anyType);
   }
-
-  @override
-  bool _isStrongTop(bool useLegacySubtyping) => true;
 
   @override
   R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
@@ -1525,15 +1477,15 @@ class _DeferredName {
 }
 
 class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
-  final bool _printLegacyStars;
-  final bool _useLegacySubtyping;
+  final DartTypes _dartTypes; // May be null.
+  final CompilerOptions _options; // May be null.
   final List _fragments = []; // Strings and _DeferredNames
   bool _lastIsIdentifier = false;
   List<FunctionTypeVariable> _boundVariables;
   Map<FunctionTypeVariable, _DeferredName> _variableToName;
   Set<FunctionType> _genericFunctions;
 
-  _DartTypeToStringVisitor(this._printLegacyStars, this._useLegacySubtyping);
+  _DartTypeToStringVisitor(this._dartTypes, this._options);
 
   String run(DartType type) {
     _visit(type);
@@ -1596,7 +1548,7 @@ class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
     // internal notion. The language specification does not define a '*' token
     // in the type language, and no such token should be surfaced to users.
     // For debugging, pass `--debug-print-legacy-stars` to emit the '*'.
-    if (_printLegacyStars) {
+    if (_options == null || _options.printLegacyStars) {
       _token('*');
     }
   }
@@ -1685,7 +1637,7 @@ class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
         needsComma = _comma(needsComma);
         _visit(typeVariable);
         DartType bound = typeVariable.bound;
-        if (!bound._isTop(_useLegacySubtyping)) {
+        if (_dartTypes == null || !_dartTypes.isTopType(bound)) {
           _token(' extends ');
           _visit(bound);
         }
@@ -1916,16 +1868,32 @@ abstract class DartTypes {
   /// Returns `true` if every type argument of [t] is a top type.
   // TODO(fishythefish): Should we instead check if each type argument is at its
   // bound?
-  bool treatAsRawType(DartType t) => t._treatAsRaw(useLegacySubtyping);
+  bool treatAsRawType(DartType t) {
+    t = t.withoutNullability;
+    if (t is InterfaceType) {
+      for (DartType type in t.typeArguments) {
+        if (!isTopType(type)) return false;
+      }
+    }
+    return true;
+  }
 
   /// Returns `true` if [t] is a bottom type, that is, a subtype of every type.
   bool isBottomType(DartType t) =>
       t is NeverType || (useLegacySubtyping && t.isNull);
 
   /// Returns `true` if [t] is a top type, that is, a supertype of every type.
-  bool isTopType(DartType t) => t._isTop(useLegacySubtyping);
+  bool isTopType(DartType t) =>
+      isStrongTopType(t) ||
+      t is LegacyType && t.baseType.isObject ||
+      useLegacySubtyping && t.isObject;
 
-  bool isStrongTopType(DartType t) => t._isStrongTop(useLegacySubtyping);
+  bool isStrongTopType(DartType t) =>
+      t is VoidType ||
+      t is DynamicType ||
+      t is ErasedType ||
+      t is AnyType ||
+      t is NullableType && t.baseType.isObject;
 
   /// Returns `true` if [s] is a subtype of [t].
   bool isSubtype(DartType s, DartType t) => _subtypeHelper(s, t);
