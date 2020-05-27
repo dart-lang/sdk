@@ -234,6 +234,8 @@ class LibraryAnalyzer {
       unit.accept(DeadCodeVerifier(errorReporter, typeSystem: _typeSystem));
     }
 
+    unit.accept(UnusedLabelVerifier(errorReporter));
+
     // Dart2js analysis.
     if (_analysisOptions.dart2jsHint) {
       unit.accept(Dart2JSVerifier(errorReporter));

@@ -259,7 +259,11 @@ class LibraryAnalyzer {
     AnalysisErrorListener errorListener = _getErrorListener(file);
     ErrorReporter errorReporter = _getErrorReporter(file);
 
-    unit.accept(DeadCodeVerifier(errorReporter, typeSystem: _typeSystem));
+    if (!_libraryElement.isNonNullableByDefault) {
+      unit.accept(DeadCodeVerifier(errorReporter, typeSystem: _typeSystem));
+    }
+
+    unit.accept(UnusedLabelVerifier(errorReporter));
 
     // Dart2js analysis.
     if (_analysisOptions.dart2jsHint) {

@@ -278,7 +278,7 @@ class FlowAnalysisHelper {
   /// Return the target of the `break` or `continue` statement with the
   /// [element] label. The [element] might be `null` (when the statement does
   /// not specify a label), so the default enclosing target is returned.
-  static Statement getLabelTarget(AstNode node, LabelElement element) {
+  static Statement getLabelTarget(AstNode node, Element element) {
     for (; node != null; node = node.parent) {
       if (element == null) {
         if (node is DoStatement ||
@@ -311,7 +311,7 @@ class FlowAnalysisHelper {
     return null;
   }
 
-  static bool _hasLabel(List<Label> labels, LabelElement element) {
+  static bool _hasLabel(List<Label> labels, Element element) {
     for (var nodeLabel in labels) {
       if (identical(nodeLabel.label.staticElement, element)) {
         return true;
