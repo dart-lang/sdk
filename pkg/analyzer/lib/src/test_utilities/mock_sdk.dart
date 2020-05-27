@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/context/context.dart';
@@ -1067,7 +1066,7 @@ final Map<String, String> _librariesDartEntries = {
   'ffi': 'const LibraryInfo("ffi/ffi.dart")',
   'html': 'const LibraryInfo("html/dart2js/html_dart2js.dart")',
   'io': 'const LibraryInfo("io/io.dart")',
-  'isolate': 'const LibraryInfo("io/isolate.dart")',
+  'isolate': 'const LibraryInfo("isolate/isolate.dart")',
   'math': 'const LibraryInfo("math/math.dart")',
 };
 
@@ -1262,12 +1261,9 @@ class MockSdk implements DartSdk {
 
   /// Compute the bytes of the linked bundle associated with this SDK.
   List<int> _computeLinkedBundleBytes() {
-    List<Source> librarySources = sdkLibraries
-        .map((SdkLibrary library) => mapDartUri(library.shortName))
-        .toList();
-    var featureSet = FeatureSet.fromEnableFlags(['non-nullable']);
-    return SummaryBuilder(librarySources, context).build(
-      featureSet: featureSet,
+    return buildSdkSummary(
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot,
     );
   }
 }
