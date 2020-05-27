@@ -302,10 +302,14 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
 #else
       class_table_(nullptr),
 #endif
-      symbols_lock_(new SafepointRwLock()),
       store_buffer_(new StoreBuffer()),
       heap_(nullptr),
       saved_unlinked_calls_(Array::null()),
+      symbols_lock_(new SafepointRwLock()),
+      type_canonicalization_mutex_(
+          NOT_IN_PRODUCT("IsolateGroup::type_canonicalization_mutex_")),
+      type_arguments_canonicalization_mutex_(NOT_IN_PRODUCT(
+          "IsolateGroup::type_arguments_canonicalization_mutex_")),
       active_mutators_monitor_(new Monitor()),
       max_active_mutators_(Scavenger::MaxMutatorThreadCount()) {
   const bool is_vm_isolate = Dart::VmIsolateNameEquals(source_->name);
@@ -1568,8 +1572,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       start_time_micros_(OS::GetCurrentMonotonicMicros()),
       random_(),
       mutex_(NOT_IN_PRODUCT("Isolate::mutex_")),
-      type_canonicalization_mutex_(
-          NOT_IN_PRODUCT("Isolate::type_canonicalization_mutex_")),
       constant_canonicalization_mutex_(
           NOT_IN_PRODUCT("Isolate::constant_canonicalization_mutex_")),
       megamorphic_mutex_(NOT_IN_PRODUCT("Isolate::megamorphic_mutex_")),

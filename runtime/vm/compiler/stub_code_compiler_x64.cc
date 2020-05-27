@@ -3706,14 +3706,20 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
                    InstantiationABI::kUninstantiatedTypeArgumentsReg,
                    target::TypeArguments::instantiations_offset()));
   __ leaq(RAX, compiler::FieldAddress(RAX, Array::data_offset()));
+
   // The instantiations cache is initialized with Object::zero_array() and is
   // therefore guaranteed to contain kNoInstantiator. No length check needed.
-  compiler::Label loop, next, found;
+  compiler::Label loop, next, found, call_runtime;
   __ Bind(&loop);
-  __ movq(RDI,
-          compiler::Address(
-              RAX, TypeArguments::Instantiation::kInstantiatorTypeArgsIndex *
-                       target::kWordSize));
+
+  // Use load-acquire to test for sentinel, if we found non-sentinel it is safe
+  // to access the other entries. If we found a sentinel we go to runtime.
+  __ LoadAcquire(RDI, RAX,
+                 TypeArguments::Instantiation::kInstantiatorTypeArgsIndex *
+                     target::kWordSize);
+  __ CompareImmediate(RDI, Smi::RawValue(TypeArguments::kNoInstantiator));
+  __ j(EQUAL, &call_runtime, compiler::Assembler::kNearJump);
+
   __ cmpq(RDI, InstantiationABI::kInstantiatorTypeArgumentsReg);
   __ j(NOT_EQUAL, &next, compiler::Assembler::kNearJump);
   __ movq(R10, compiler::Address(
@@ -3724,12 +3730,11 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
   __ Bind(&next);
   __ addq(RAX, compiler::Immediate(TypeArguments::Instantiation::kSizeInWords *
                                    target::kWordSize));
-  __ cmpq(RDI,
-          compiler::Immediate(Smi::RawValue(TypeArguments::kNoInstantiator)));
-  __ j(NOT_EQUAL, &loop, compiler::Assembler::kNearJump);
+  __ jmp(&loop);
 
   // Instantiate non-null type arguments.
   // A runtime call to instantiate the type arguments is required.
+  __ Bind(&call_runtime);
   __ EnterStubFrame();
   __ PushObject(Object::null_object());  // Make room for the result.
   __ pushq(InstantiationABI::kUninstantiatedTypeArgumentsReg);

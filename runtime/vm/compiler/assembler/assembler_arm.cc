@@ -529,6 +529,11 @@ void Assembler::strex(Register rd, Register rt, Register rn, Condition cond) {
   Emit(encoding);
 }
 
+void Assembler::dmb() {
+  // Emit a `dmb ish` instruction.
+  Emit(kDataMemoryBarrier);
+}
+
 void Assembler::EnterSafepoint(Register addr, Register state) {
   // We generate the same number of instructions whether or not the slow-path is
   // forced. This simplifies GenerateJitCallbackTrampolines.

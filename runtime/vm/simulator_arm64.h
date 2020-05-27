@@ -185,6 +185,12 @@ class Simulator {
   intptr_t ReadExclusiveW(uword addr, Instr* instr);
   intptr_t WriteExclusiveW(uword addr, intptr_t value, Instr* instr);
 
+  // Load Acquire & Store Release.
+  intptr_t ReadAcquire(uword addr, Instr* instr);
+  uint32_t ReadAcquireW(uword addr, Instr* instr);
+  void WriteRelease(uword addr, intptr_t value, Instr* instr);
+  void WriteReleaseW(uword addr, uint32_t value, Instr* instr);
+
   // Exclusive access reservation: address and value observed during
   // load-exclusive. Store-exclusive verifies that address is the same and
   // performs atomic compare-and-swap with remembered value to observe value

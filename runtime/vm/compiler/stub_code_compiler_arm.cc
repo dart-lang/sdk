@@ -3666,15 +3666,20 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
   __ AddImmediate(R0, compiler::target::Array::data_offset() - kHeapObjectTag);
   // The instantiations cache is initialized with Object::zero_array() and is
   // therefore guaranteed to contain kNoInstantiator. No length check needed.
-  compiler::Label loop, next, found;
+  compiler::Label loop, next, found, call_runtime;
   __ Bind(&loop);
-  __ ldr(R4, compiler::Address(
-                 R0, TypeArguments::Instantiation::kInstantiatorTypeArgsIndex *
-                         target::kWordSize));
+
+  // Use load-acquire to test for sentinel, if we found non-sentinel it is safe
+  // to access the other entries. If we found a sentinel we go to runtime.
+  __ LoadAcquire(R4, R0,
+                 TypeArguments::Instantiation::kInstantiatorTypeArgsIndex *
+                     target::kWordSize);
+  __ CompareImmediate(R4, Smi::RawValue(TypeArguments::kNoInstantiator));
+  __ b(&call_runtime, EQ);
+
   __ cmp(R4,
          compiler::Operand(InstantiationABI::kInstantiatorTypeArgumentsReg));
   __ b(&next, NE);
-  // Using IP as destination register and reading it immediately is safe.
   __ ldr(IP, compiler::Address(
                  R0, TypeArguments::Instantiation::kFunctionTypeArgsIndex *
                          target::kWordSize));
@@ -3683,11 +3688,11 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
   __ Bind(&next);
   __ AddImmediate(
       R0, TypeArguments::Instantiation::kSizeInWords * target::kWordSize);
-  __ CompareImmediate(R4, Smi::RawValue(TypeArguments::kNoInstantiator));
-  __ b(&loop, NE);
+  __ b(&loop);
 
   // Instantiate non-null type arguments.
   // A runtime call to instantiate the type arguments is required.
+  __ Bind(&call_runtime);
   __ EnterStubFrame();
   __ PushObject(Object::null_object());  // Make room for the result.
   static_assert((InstantiationABI::kUninstantiatedTypeArgumentsReg >

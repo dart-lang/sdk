@@ -585,6 +585,8 @@ enum LoadStoreExclusiveOp {
   LoadStoreExclusiveFixed = B27,
   LDXR = LoadStoreExclusiveFixed | B22,
   STXR = LoadStoreExclusiveFixed,
+  LDAR = LoadStoreExclusiveFixed | B23 | B22 | B15,
+  STLR = LoadStoreExclusiveFixed | B23 | B15,
 };
 
 // C3.3.7-10

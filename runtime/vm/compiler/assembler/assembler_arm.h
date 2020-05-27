@@ -404,6 +404,14 @@ class Assembler : public AssemblerBase {
   void LoadMemoryValue(Register dst, Register base, int32_t offset) {
     LoadFromOffset(kWord, dst, base, offset, AL);
   }
+  void LoadAcquire(Register dst, Register address, int32_t offset = 0) {
+    ldr(dst, Address(address, offset));
+    dmb();
+  }
+  void StoreRelease(Register src, Register address, int32_t offset = 0) {
+    dmb();
+    str(src, Address(address, offset));
+  }
 
   void CompareWithFieldValue(Register value, FieldAddress address) {
     CompareWithMemoryValue(value, address);
@@ -564,6 +572,8 @@ class Assembler : public AssemblerBase {
 
   void ldrex(Register rd, Register rn, Condition cond = AL);
   void strex(Register rd, Register rt, Register rn, Condition cond = AL);
+
+  void dmb();
 
   // Emit code to transition between generated and native modes.
   //

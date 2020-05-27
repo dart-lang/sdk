@@ -2932,12 +2932,17 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
   __ leal(EAX, compiler::FieldAddress(EAX, Array::data_offset()));
   // The instantiations cache is initialized with Object::zero_array() and is
   // therefore guaranteed to contain kNoInstantiator. No length check needed.
-  compiler::Label loop, next, found;
+  compiler::Label loop, next, found, call_runtime;
   __ Bind(&loop);
-  __ movl(EDI,
-          compiler::Address(
-              EAX, TypeArguments::Instantiation::kInstantiatorTypeArgsIndex *
-                       target::kWordSize));
+
+  // Use load-acquire to test for sentinel, if we found non-sentinel it is safe
+  // to access the other entries. If we found a sentinel we go to runtime.
+  __ LoadAcquire(EDI, EAX,
+                 TypeArguments::Instantiation::kInstantiatorTypeArgsIndex *
+                     target::kWordSize);
+  __ CompareImmediate(EDI, Smi::RawValue(TypeArguments::kNoInstantiator));
+  __ j(EQUAL, &call_runtime, compiler::Assembler::kNearJump);
+
   __ cmpl(EDI, InstantiationABI::kInstantiatorTypeArgumentsReg);
   __ j(NOT_EQUAL, &next, compiler::Assembler::kNearJump);
   __ movl(EBX, compiler::Address(
@@ -2948,12 +2953,11 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
   __ Bind(&next);
   __ addl(EAX, compiler::Immediate(TypeArguments::Instantiation::kSizeInWords *
                                    target::kWordSize));
-  __ cmpl(EDI,
-          compiler::Immediate(Smi::RawValue(TypeArguments::kNoInstantiator)));
-  __ j(NOT_EQUAL, &loop, compiler::Assembler::kNearJump);
+  __ jmp(&loop, compiler::Assembler::kNearJump);
 
   // Instantiate non-null type arguments.
   // A runtime call to instantiate the type arguments is required.
+  __ Bind(&call_runtime);
   __ popl(InstantiationABI::kUninstantiatedTypeArgumentsReg);  // Restore reg.
   __ EnterStubFrame();
   __ PushObject(Object::null_object());  // Make room for the result.

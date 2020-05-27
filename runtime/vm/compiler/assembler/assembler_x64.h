@@ -863,6 +863,16 @@ class Assembler : public AssemblerBase {
   void LoadMemoryValue(Register dst, Register base, int32_t offset) {
     movq(dst, Address(base, offset));
   }
+  void LoadAcquire(Register dst, Register address, int32_t offset = 0) {
+    // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
+    // with other loads).
+    movq(dst, Address(address, offset));
+  }
+  void StoreRelease(Register src, Register address, int32_t offset = 0) {
+    // On intel stores have store-release behavior (i.e. stores are not
+    // re-ordered with other stores).
+    movq(Address(address, offset), src);
+  }
 
   void CompareWithFieldValue(Register value, FieldAddress address) {
     cmpq(value, address);

@@ -425,14 +425,10 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 3) {
   // Code inlined in the caller should have optimized the case where the
   // instantiator can be reused as type argument vector.
   ASSERT(!type_arguments.IsUninstantiatedIdentity());
-  thread->isolate_group()->RunWithStoppedMutators(
-      [&]() {
-        type_arguments = type_arguments.InstantiateAndCanonicalizeFrom(
-            instantiator_type_arguments, function_type_arguments);
-        ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
-        arguments.SetReturn(type_arguments);
-      },
-      /*use_force_growth=*/true);
+  type_arguments = type_arguments.InstantiateAndCanonicalizeFrom(
+      instantiator_type_arguments, function_type_arguments);
+  ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
+  arguments.SetReturn(type_arguments);
 }
 
 // Instantiate type.
