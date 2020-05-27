@@ -169,9 +169,11 @@ class FindElement extends _FindElementBase {
     }
 
     unit.accept(
-      FunctionAstVisitor(functionDeclarationStatement: (node) {
-        var functionElement = node.functionDeclaration.declaredElement;
-        findIn(functionElement.parameters);
+      FunctionAstVisitor(functionExpression: (node, local) {
+        if (local) {
+          var functionElement = node.declaredElement;
+          findIn(functionElement.parameters);
+        }
       }),
     );
 

@@ -366,6 +366,28 @@ class FunctionExpressionWithNnbdTest extends FunctionExpressionTest {
   @override
   bool get typeToStringWithNullability => true;
 
+  test_contextFunctionType_nonNullify() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.7
+
+int Function(int a) v;
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart';
+
+T foo<T>() => throw 0;
+
+void f() {
+  v = (a) {
+    return foo();
+  };
+}
+''');
+    assertType(findElement.parameter('a').type, 'int');
+    _assertReturnType('(a) {', 'int');
+  }
+
   test_contextFunctionType_returnType_async_blockBody_objectQ() async {
     await assertNoErrorsInCode('''
 T foo<T>() => throw 0;
