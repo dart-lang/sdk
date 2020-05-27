@@ -10,7 +10,6 @@ import '../abstract_context.dart';
 /// An abstract base for all 'analysis' domain tests.
 class AbstractAnalysisTest extends AbstractContextTest
     with ResourceProviderMixin {
-  bool generateSummaryFiles = false;
   String projectPath;
   String testFolder;
   String testFile;

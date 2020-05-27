@@ -1684,7 +1684,7 @@ abstract class ContextManagerTest with ResourceProviderMixin {
     projPath = convertPath('/my/proj');
     resourceProvider.newFolder(projPath);
     // Create an SDK in the mock file system.
-    MockSdk(generateSummaryFiles: true, resourceProvider: resourceProvider);
+    MockSdk(resourceProvider: resourceProvider);
     var sdkManager = DartSdkManager(convertPath('/sdk'), true);
     manager = ContextManagerImpl(
         resourceProvider,

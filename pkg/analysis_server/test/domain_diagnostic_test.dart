@@ -19,7 +19,6 @@ void main() {
 class DiagnosticDomainTest extends AbstractAnalysisTest {
   @override
   void setUp() {
-    generateSummaryFiles = true;
     super.setUp();
     handler = DiagnosticDomainHandler(server);
     server.handlers = [handler];

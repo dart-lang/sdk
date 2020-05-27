@@ -39,7 +39,6 @@ int findIdentifierLength(String search) {
 
 /// An abstract base for all 'analysis' domain tests.
 class AbstractAnalysisTest with ResourceProviderMixin {
-  bool generateSummaryFiles = false;
   MockServerChannel serverChannel;
   TestPluginManager pluginManager;
   AnalysisServer server;
@@ -113,9 +112,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     //
     // Create an SDK in the mock file system.
     //
-    MockSdk(
-        generateSummaryFiles: generateSummaryFiles,
-        resourceProvider: resourceProvider);
+    MockSdk(resourceProvider: resourceProvider);
     //
     // Create server
     //
