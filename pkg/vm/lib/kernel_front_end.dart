@@ -274,9 +274,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   final IOSink sink = new File(outputFileName).openWrite();
   final BinaryPrinter printer = new BinaryPrinter(sink,
-      libraryFilter: minimalKernel
-          ? ((lib) => !results.loadedLibraries.contains(lib))
-          : null);
+      libraryFilter: (lib) => !results.loadedLibraries.contains(lib));
   printer.writeComponentFile(results.component);
   await sink.close();
 
