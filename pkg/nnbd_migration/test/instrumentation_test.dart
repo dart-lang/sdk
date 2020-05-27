@@ -60,6 +60,9 @@ class _InstrumentationClient implements NullabilityMigrationInstrumentation {
   }
 
   @override
+  void finished() {}
+
+  @override
   void graphEdge(EdgeInfo edge, EdgeOriginInfo originInfo) {
     if (edge.destinationNode != test.always) {
       expect(test.edgeOrigin, isNot(contains(edge)));
@@ -102,9 +105,6 @@ class _InstrumentationClient implements NullabilityMigrationInstrumentation {
   void prepareForUpdate() {
     test.changes = null;
   }
-
-  @override
-  void finished() {}
 }
 
 @reflectiveTest
