@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -322,18 +321,7 @@ class LibraryAnalyzer {
     );
     for (Linter linter in _analysisOptions.lintRules) {
       linter.reporter = errorReporter;
-      if (linter is NodeLintRule) {
-        (linter as NodeLintRule).registerNodeProcessors(nodeRegistry, context);
-      } else {
-        AstVisitor visitor = linter.getVisitor();
-        if (visitor != null) {
-          if (_analysisOptions.enableTiming) {
-            var timer = lintRegistry.getTimer(linter);
-            visitor = TimedAstVisitor(visitor, timer);
-          }
-          visitors.add(visitor);
-        }
-      }
+      linter.registerNodeProcessors(nodeRegistry, context);
     }
 
     // Run lints that handle specific node types.
