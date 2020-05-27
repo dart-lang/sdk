@@ -544,7 +544,7 @@ dart_ci_sandbox_builder(
     recipe="dart/flutter_engine",
     category="flutter|3H",
     channels=["try"],
-    execution_timeout=7 * time.hour,
+    execution_timeout=8 * time.hour,
     triggered_by=["dart-gitiles-trigger-flutter"],
 )
 
