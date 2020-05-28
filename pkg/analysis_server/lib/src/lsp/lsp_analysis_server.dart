@@ -454,7 +454,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   void setAnalysisRoots(List<String> includedPaths) {
     declarationsTracker?.discardContexts();
     final uniquePaths = HashSet<String>.of(includedPaths ?? const []);
-    contextManager.setRoots(uniquePaths.toList(), [], {});
+    contextManager.setRoots(uniquePaths.toList(), []);
     notificationManager.setAnalysisRoots(includedPaths, []);
     addContextsToDeclarationsTracker();
   }
@@ -705,21 +705,8 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options) {
-    String defaultPackageFilePath;
-    var path = (analysisServer.contextManager as ContextManagerImpl)
-        .normalizedPackageRoots[folder.path];
-    if (path != null) {
-      var resource = resourceProvider.getResource(path);
-      if (resource.exists) {
-        if (resource is File) {
-          defaultPackageFilePath = path;
-        }
-      }
-    }
-
     var builderOptions = ContextBuilderOptions();
     builderOptions.defaultOptions = options;
-    builderOptions.defaultPackageFilePath = defaultPackageFilePath;
     var builder = ContextBuilder(
         resourceProvider, analysisServer.sdkManager, null,
         options: builderOptions);
