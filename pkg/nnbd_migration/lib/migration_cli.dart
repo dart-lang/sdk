@@ -81,6 +81,7 @@ class CommandLineOptions {
 
 @visibleForTesting
 class DependencyChecker {
+  static final _pubName = Platform.isWindows ? 'pub.bat' : 'pub';
   final Context _pathContext;
   final Logger _logger;
   final ProcessManager _processManager;
@@ -88,7 +89,7 @@ class DependencyChecker {
   DependencyChecker(this._pathContext, this._logger, this._processManager);
 
   bool check() {
-    var pubPath = _pathContext.join(getSdkPath(), 'bin', 'pub');
+    var pubPath = _pathContext.join(getSdkPath(), 'bin', _pubName);
     var result = _processManager
         .runSync(pubPath, ['outdated', '--mode=null-safety', '--json']);
 
@@ -96,7 +97,7 @@ class DependencyChecker {
     try {
       if ((result.stderr as String).isNotEmpty) {
         throw FormatException(
-            '`pub outdated --mode=null-safety` exited with exit code '
+            '`$_pubName outdated --mode=null-safety` exited with exit code '
             '${result.exitCode} and stderr:\n\n${result.stderr}');
       }
       var outdatedOutput = jsonDecode(result.stdout as String);
@@ -141,8 +142,8 @@ class DependencyChecker {
       }
       _logger.stderr('');
       _logger.stderr('It is highly recommended to upgrade all dependencies to '
-          'versions which have migrated. Use `pub outdated --mode=null-safety` '
-          'to check the status of dependencies. Visit '
+          'versions which have migrated. Use `$_pubName outdated '
+          '--mode=null-safety` to check the status of dependencies. Visit '
           'https://dart.dev/tools/pub/cmd/pub-outdated for more information.');
       _logger.stderr('');
       _logger.stderr('Force migration with --skip-outdated-dependencies-check '
@@ -157,7 +158,7 @@ class DependencyChecker {
       return map[key];
     }
     throw FormatException(
-        'Unexpected `pub outdated` JSON output: missing key ($key)', map);
+        'Unexpected `$_pubName outdated` JSON output: missing key ($key)', map);
   }
 
   T _expectType<T>(Object object, String errorKey) {
@@ -165,7 +166,7 @@ class DependencyChecker {
       return object;
     }
     throw FormatException(
-        'Unexpected `pub outdated` JSON output: expected a '
+        'Unexpected `$_pubName outdated` JSON output: expected a '
         '$T at "$errorKey", but got a ${object.runtimeType}',
         object);
   }
