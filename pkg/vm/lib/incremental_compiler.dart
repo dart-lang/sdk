@@ -34,6 +34,7 @@ class IncrementalCompiler {
 
   Uri get entryPoint => _entryPoint;
   IncrementalKernelGenerator get generator => _generator;
+  Component get lastKnownGoodComponent => _lastKnownGood;
 
   IncrementalCompiler(this._compilerOptions, this._entryPoint,
       {this.initializeFromDillUri, bool incrementalSerialization: true})
