@@ -5013,29 +5013,19 @@ void Serializer::WriteInstructions(InstructionsPtr instr,
   ASSERT(code != Code::null());
 
   const intptr_t offset = image_writer_->GetTextOffsetFor(instr, code);
-  if (offset == 0) {
-    // Code should have been removed by DropCodeWithoutReusableInstructions.
-    UnexpectedObject(code, "Expected instructions to reuse");
-  }
-
-  // If offset < 0, it's pointing to a shared instruction. We don't profile
-  // references to shared text/data (since they don't consume any space). Of
-  // course, the space taken for the reference is profiled.
-  if (profile_writer_ != nullptr && offset >= 0) {
-    // Instructions cannot be roots.
+#if defined(DART_PRECOMPILER)
+  if (profile_writer_ != nullptr) {
     ASSERT(IsAllocatedReference(object_currently_writing_.id_));
-    auto offset_space = vm_ ? V8SnapshotProfileWriter::kVmText
-                            : V8SnapshotProfileWriter::kIsolateText;
-    V8SnapshotProfileWriter::ObjectId to_object = {
-        offset_space, offset < 0 ? -offset : offset};
-    V8SnapshotProfileWriter::ObjectId from_object = {
-        V8SnapshotProfileWriter::kSnapshot, object_currently_writing_.id_};
+    const auto offset_space = vm_ ? V8SnapshotProfileWriter::kVmText
+                                  : V8SnapshotProfileWriter::kIsolateText;
+    const V8SnapshotProfileWriter::ObjectId to_object(offset_space, offset);
+    const V8SnapshotProfileWriter::ObjectId from_object(
+        V8SnapshotProfileWriter::kSnapshot, object_currently_writing_.id_);
     profile_writer_->AttributeReferenceTo(
         from_object, {to_object, V8SnapshotProfileWriter::Reference::kProperty,
                       profile_writer_->EnsureString("<instructions>")});
   }
 
-#if defined(DART_PRECOMPILER)
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     static_assert(
         ImageWriter::kBareInstructionsAlignment > 1,
