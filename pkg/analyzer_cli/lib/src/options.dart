@@ -243,10 +243,26 @@ class CommandLineOptions {
     }
 
     // Build mode.
-    if (options.buildModePersistentWorker && !options.buildMode) {
-      printAndFail('The option --persistent_worker can be used only '
-          'together with --build-mode.');
-      return null; // Only reachable in testing.
+    if (options.buildMode) {
+      if (options.dartSdkSummaryPath == null) {
+        // It is OK to not specify when persistent worker.
+        // We will be given another set of options with each request.
+        if (!options.buildModePersistentWorker) {
+          printAndFail(
+            'The option --build-mode also requires --dart-sdk-summary '
+            'to be specified.',
+          );
+          return null; // Only reachable in testing.
+        }
+      }
+    } else {
+      if (options.buildModePersistentWorker) {
+        printAndFail(
+          'The option --persistent_worker can be used only '
+          'together with --build-mode.',
+        );
+        return null; // Only reachable in testing.
+      }
     }
 
     return options;

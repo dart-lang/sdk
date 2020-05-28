@@ -40,6 +40,7 @@ void main() {
 class AbstractBuildModeTest extends BaseTest {
   Future<void> _doDrive(
     String filePath, {
+    String sourceArgument,
     String fileUri,
     List<String> additionalArgs = const [],
   }) async {
@@ -73,10 +74,12 @@ class AbstractBuildModeTest extends BaseTest {
 
     args.addAll(additionalArgs);
 
-    fileUri ??= 'file:///test_file.dart';
-    var source = '$fileUri|$filePath';
+    if (sourceArgument == null) {
+      fileUri ??= 'file:///test_file.dart';
+      sourceArgument = '$fileUri|$filePath';
+    }
 
-    await drive(source, args: args, options: options);
+    await drive(sourceArgument, args: args, options: options);
   }
 }
 
@@ -570,7 +573,11 @@ var b = new B();
       File(testDart).writeAsStringSync('var v = 42;');
 
       // We pass just path, not "uri|path", this is a fatal error.
-      await drive(testDart, args: ['--build-mode', '--format=machine']);
+      await _doDrive(
+        testDart,
+        additionalArgs: ['--build-mode', '--format=machine'],
+        sourceArgument: testDart,
+      );
       expect(exitCode, ErrorSeverity.ERROR.ordinal);
     });
   }
