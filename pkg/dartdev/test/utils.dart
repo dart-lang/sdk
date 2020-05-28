@@ -58,11 +58,11 @@ class TestProject {
     var arguments = [
       absolutePathToDartdevFile,
       command,
+      if (command == 'migrate')
+        // TODO(srawlins): Enable `pub outdated` in tests.
+        '--skip-pub-outdated',
+      ...?args,
     ];
-
-    if (args != null && args.isNotEmpty) {
-      arguments.addAll(args);
-    }
 
     return Process.runSync(
       Platform.resolvedExecutable,
