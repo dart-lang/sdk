@@ -16,12 +16,6 @@ sdk_summary = "$target_gen_dir/ddc_sdk.sum"
 sdk_outline_dill = "$root_out_dir/ddc_sdk.dill"
 sdk_full_dill = "$root_out_dir/ddc_platform.dill"
 
-if (dont_use_nnbd) {
-  libraries_specification_path = "sdk/lib/libraries.json"
-} else {
-  libraries_specification_path = "sdk_nnbd/lib/libraries.json"
-}
-
 application_snapshot("dartdevc") {
   main_dart = "../../pkg/dev_compiler/bin/dartdevc.dart"
 
@@ -47,10 +41,8 @@ application_snapshot("dartdevc") {
 # TODO(#38701) Cleanup after merging the forked SDK into mainline.
 if (dont_use_nnbd) {
   sdk_root = "../../sdk"
-  libraries_specification_path = "sdk/lib/libraries.json"
 } else {
   sdk_root = "../../sdk_nnbd"
-  libraries_specification_path = "sdk_nnbd/lib/libraries.json"
 }
 
 sdk_lib_files = exec_script("../../tools/list_dart_files.py",
@@ -278,9 +270,8 @@ dartdevc_kernel_compile("meta_js") {
 
 compile_platform("dartdevc_platform") {
   single_root_scheme = "org-dartlang-sdk"
-  single_root_base = rebase_path("../../")
-  libraries_specification_uri =
-      "org-dartlang-sdk:///$libraries_specification_path"
+  single_root_base = rebase_path("$sdk_root/")
+  libraries_specification_uri = "org-dartlang-sdk:///lib/libraries.json"
 
   outputs = [
     sdk_full_dill,
@@ -329,7 +320,7 @@ prebuilt_dart_action("dartdevc_kernel_sdk") {
     "--multi-root-scheme",
     "org-dartlang-sdk",
     "--multi-root-output-path",
-    rebase_path("$target_gen_dir/../../../"),
+    rebase_path("$target_gen_dir/../../"),
     "--modules",
     "amd",
     "-o",
