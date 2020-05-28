@@ -877,7 +877,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    _recordDataForNode('MethodInvocation_argumentList', node.argumentList);
+    // There are no completions.
     super.visitMethodInvocation(node);
   }
 

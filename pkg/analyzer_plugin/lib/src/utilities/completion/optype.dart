@@ -975,14 +975,24 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       optype.isPrefixed = true;
     } else if (identical(entity, node.methodName)) {
       optype.includeReturnValueSuggestions = true;
-//      optype.includeTypeNameSuggestions = !isThis;
       optype.includeVoidReturnSuggestions = true;
       optype.isPrefixed = true;
     } else if (identical(entity, node.argumentList)) {
       // Note that when the cursor is in a type argument list (f<^>()), the
       // entity is (surprisingly) the invocation's argumentList (and not it's
       // typeArgumentList as you'd expect).
-      optype.completionLocation = 'MethodInvocation_argumentList';
+      if (offset < node.argumentList.offset) {
+        optype.completionLocation = 'TypeArgumentList_argument';
+      } else {
+        var argKind = 'unnamed';
+        var method = node.methodName.staticElement;
+        if (method is MethodElement &&
+            method.parameters.isNotEmpty &&
+            method.parameters[0].isNamed) {
+          argKind = 'named';
+        }
+        optype.completionLocation = 'ArgumentList_method_$argKind';
+      }
       optype.includeTypeNameSuggestions = true;
     }
   }
