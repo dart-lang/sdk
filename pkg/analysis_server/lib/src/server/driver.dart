@@ -403,9 +403,7 @@ class Driver implements ServerStarter {
 
     // Use sdkConfig to optionally override analytics settings.
     final crashProductId = sdkConfig.crashReportingId ?? 'Dart_analysis_server';
-    final crashReportSenderStaging =
-        CrashReportSender.staging(crashProductId, shouldSendCallback);
-    final crashReportSenderProd =
+    final crashReportSender =
         CrashReportSender.prod(crashProductId, shouldSendCallback);
     // TODO(mfairhurst): send these to prod or disable.
     final crashReportSenderAngular = CrashReportSender.staging(
@@ -461,9 +459,7 @@ class Driver implements ServerStarter {
 
     var errorNotifier = ErrorNotifier();
     allInstrumentationServices.add(CrashReportingInstrumentation(
-        crashReportSenderStaging,
-        crashReportSenderProd,
-        crashReportSenderAngular));
+        crashReportSender, crashReportSenderAngular));
     instrumentationService =
         MulticastInstrumentationService(allInstrumentationServices);
 
