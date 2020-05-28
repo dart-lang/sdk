@@ -1,0 +1,4 @@
+spec:nnbd-off=pkg/compiler/test/optimization/optimization_test.dart
+prod:nnbd-off=pkg/compiler/test/optimization/optimization_test.dart
+spec:nnbd-sdk=pkg/compiler/test/optimization/optimization_test.dart
+prod:nnbd-sdk=pkg/compiler/test/optimization/optimization_test.dart

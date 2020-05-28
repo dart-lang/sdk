@@ -1,2 +1,0 @@
-spec:nnbd-off=tests/compiler/dart2js/inference/inference_data_test.dart
-spec:nnbd-sdk=tests/compiler/dart2js/inference/inference_data_test.dart

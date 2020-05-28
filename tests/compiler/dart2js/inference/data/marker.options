@@ -1,4 +1,0 @@
-spec:nnbd-off=tests/compiler/dart2js/inference/inference_test_helper.dart
-prod:nnbd-off=tests/compiler/dart2js/inference/inference_test_helper.dart
-spec:nnbd-sdk=tests/compiler/dart2js/inference/inference_test_helper.dart
-prod:nnbd-sdk=tests/compiler/dart2js/inference/inference_test_helper.dart

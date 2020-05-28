@@ -130,7 +130,7 @@ class MessageTemplate {
   final String howToFix;
 
   ///  Examples will be checked by
-  ///  tests/compiler/dart2js/message_kind_test.dart.
+  ///  pkg/compiler/test/message_kind_test.dart.
   ///
   ///  An example is either a String containing the example source code or a Map
   ///  from filenames to source code. In the latter case, the filename for the

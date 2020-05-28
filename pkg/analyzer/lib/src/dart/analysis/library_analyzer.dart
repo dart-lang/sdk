@@ -28,6 +28,7 @@ import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/legacy_type_asserter.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
@@ -426,8 +427,11 @@ class LibraryAnalyzer {
           }
         }
 
-        if (code == CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY &&
-            file.path.contains('tests/compiler/dart2js')) {
+        if ((code == CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY ||
+                code == CompileTimeErrorCode.UNDEFINED_ANNOTATION ||
+                code == ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE) &&
+            (file.path.contains('tests/compiler/dart2js') ||
+                file.path.contains('pkg/compiler/test'))) {
           // Special case the dart2js language tests. Some of these import
           // various internal libraries.
           privileged = true;

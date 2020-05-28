@@ -9,15 +9,14 @@
     "options": "analysis_options.yaml",
 
     "uris": [
-      ".",
-      "../../tests/compiler/dart2js/"
+      "."
     ],
 
     "exclude": [
-      "^tests/compiler/dart2js/.*/data/.*",
-      "^tests/compiler/dart2js/.*/model_data/.*",
-      "^tests/compiler/dart2js/deferred_loading/libs/.*",
-      "^tests/compiler/dart2js/sourcemaps/stacktrace/extension_method.dart"
+      "^pkg/compiler/test/.*/data/.*",
+      "^pkg/compiler/test/.*/model_data/.*",
+      "^pkg/compiler/test/deferred_loading/libs/.*",
+      "^pkg/compiler/test/sourcemaps/stacktrace/extension_method.dart"
     ]
   }
 }

@@ -1,2 +1,0 @@
-spec:nnbd-off=tests/compiler/dart2js/impact/impact_test.dart
-spec:nnbd-sdk=tests/compiler/dart2js/impact/impact_test.dart
