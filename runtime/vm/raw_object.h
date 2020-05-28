@@ -1305,11 +1305,12 @@ class LibraryLayout : public ObjectLayout {
   GrowableObjectArrayPtr used_scripts_;
   ArrayPtr imports_;  // List of Namespaces imported without prefix.
   ArrayPtr exports_;  // List of re-exported Namespaces.
+  ArrayPtr dependencies_;
   ExternalTypedDataPtr kernel_data_;
   ObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
-        return reinterpret_cast<ObjectPtr*>(&exports_);
+        return reinterpret_cast<ObjectPtr*>(&dependencies_);
       case Snapshot::kFull:
       case Snapshot::kFullJIT:
         return reinterpret_cast<ObjectPtr*>(&kernel_data_);
@@ -2130,6 +2131,7 @@ class LibraryPrefixLayout : public InstanceLayout {
   }
   uint16_t num_imports_;  // Number of library entries in libraries_.
   bool is_deferred_load_;
+  bool is_loaded_;
 };
 
 class TypeArgumentsLayout : public InstanceLayout {

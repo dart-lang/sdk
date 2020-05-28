@@ -31,6 +31,8 @@ namespace dart {
   V(AbstractType_toString, 1)                                                  \
   V(Type_getHashCode, 1)                                                       \
   V(Type_equality, 2)                                                          \
+  V(LibraryPrefix_isLoaded, 1)                                                 \
+  V(LibraryPrefix_setLoaded, 1)                                                \
   V(Identical_comparison, 2)                                                   \
   V(Integer_bitAndFromInteger, 2)                                              \
   V(Integer_bitOrFromInteger, 2)                                               \
