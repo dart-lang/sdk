@@ -12,4 +12,3 @@ dependencies:
   yaml: any
 dev_dependencies:
   args: ^1.5.2
-  mockito: any
