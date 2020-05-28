@@ -45,15 +45,15 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    if (node.staticElement?.isFactory != true) {
+    var constructorNameNode = node.constructorName;
+    if (constructorNameNode.staticElement?.isFactory != true) {
       return;
     }
-
     var staticType = node.staticType;
     if (staticType == null) {
       return;
     }
-    var constructorName = node.constructorName?.name?.name;
+    var constructorName = constructorNameNode.name?.name;
     if (constructorName == null) {
       return;
     }
@@ -63,7 +63,7 @@ class _Visitor extends SimpleAstVisitor {
                 staticType.isDartCoreString) &&
             constructorName == 'fromEnvironment') ||
         (staticType.isDartCoreBool && constructorName == 'hasEnvironment')) {
-      rule.reportLint(node.constructorName);
+      rule.reportLint(constructorNameNode);
     }
   }
 }

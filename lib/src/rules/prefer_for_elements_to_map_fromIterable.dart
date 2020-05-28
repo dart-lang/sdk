@@ -56,7 +56,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression creation) {
-    final element = creation.staticElement;
+    final element = creation.constructorName.staticElement;
     if (element?.name != 'fromIterable' ||
         element.enclosingElement != context.typeProvider.mapElement) {
       return;

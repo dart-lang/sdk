@@ -61,7 +61,9 @@ class _Visitor extends RecursiveAstVisitor<void> {
     if (node.parent is ArgumentList) {
       final parentParent = node.parent.parent;
       if (parentParent is InstanceCreationExpression &&
-              parentParent.staticElement.enclosingElement.name == 'RegExp' ||
+              parentParent
+                      .constructorName.staticElement.enclosingElement.name ==
+                  'RegExp' ||
           parentParent is MethodInvocation &&
               parentParent.realTarget == null &&
               const ['RegExp', 'matches']

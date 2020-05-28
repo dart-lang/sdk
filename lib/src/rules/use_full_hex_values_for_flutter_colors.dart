@@ -54,7 +54,8 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    if (DartTypeUtilities.isConstructorElement(node.staticElement,
+    var element = node.constructorName.staticElement;
+    if (DartTypeUtilities.isConstructorElement(element,
         uriStr: 'dart.ui', className: 'Color', constructorName: '')) {
       final arguments = node.argumentList.arguments;
       if (arguments.isNotEmpty) {

@@ -76,15 +76,15 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    if (!node.isConst &&
-        node.staticElement != null &&
-        node.staticElement.isConst) {
+    var element = node.constructorName.staticElement;
+
+    if (!node.isConst && element != null && element.isConst) {
       // Handled by analyzer hint.
-      if (hasLiteralAnnotation(node.staticElement)) {
+      if (hasLiteralAnnotation(element)) {
         return;
       }
 
-      if (node.staticElement.enclosingElement.isDartCoreObject) {
+      if (element.enclosingElement.isDartCoreObject) {
         // Skip lint for `new Object()`, because it can be used for Id creation.
         return;
       }

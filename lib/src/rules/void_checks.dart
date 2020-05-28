@@ -87,7 +87,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     final args = node.argumentList.arguments;
-    final parameters = node.staticElement?.parameters;
+    final parameters = node.constructorName.staticElement?.parameters;
     if (parameters != null) {
       _checkArgs(args, parameters);
     }
