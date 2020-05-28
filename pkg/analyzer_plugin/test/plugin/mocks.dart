@@ -3,16 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisOptionsImpl, TimestampedData;
+import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/timestamped_data.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
@@ -22,30 +18,12 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 import 'package:test/test.dart';
 
-class MockAnalysisDriver extends AnalysisDriver {
+class MockAnalysisDriver implements AnalysisDriver {
   @override
-  Set<String> addedFiles = HashSet<String>();
-
-  MockAnalysisDriver()
-      : super(
-            AnalysisDriverScheduler(null),
-            null,
-            MockResourceProvider(),
-            null,
-            FileContentOverlay(),
-            null,
-            SourceFactory([]),
-            AnalysisOptionsImpl(),
-            packages: Packages.empty);
-
-  @override
-  bool get hasFilesToAnalyze => false;
+  final Set<String> addedFiles = {};
 
   @override
   set priorityFiles(List<String> priorityPaths) {}
-
-  @override
-  AnalysisDriverPriority get workPriority => AnalysisDriverPriority.nothing;
 
   @override
   void addFile(String path) {
@@ -53,10 +31,9 @@ class MockAnalysisDriver extends AnalysisDriver {
   }
 
   @override
-  void dispose() {}
-
-  @override
-  Future<Null> performWork() => Future.value(null);
+  dynamic noSuchMethod(Invocation invocation) {
+    return super.noSuchMethod(invocation);
+  }
 }
 
 class MockChannel implements PluginCommunicationChannel {
