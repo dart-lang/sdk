@@ -137,7 +137,7 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
   while (reader->offset() > 0) {
     intptr_t size = reader->ReadUInt32();
     intptr_t start = reader->offset() - size;
-    if (start < 0) {
+    if (start < 0 || size <= 0) {
       if (error != nullptr) {
         *error = kKernelInvalidSizeIndicated;
       }

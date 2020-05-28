@@ -652,8 +652,8 @@ bool DartUtils::PostInt64(Dart_Port port_id, int64_t value) {
 
 Dart_Handle DartUtils::GetDartType(const char* library_url,
                                    const char* class_name) {
-  return Dart_GetType(Dart_LookupLibrary(NewString(library_url)),
-                      NewString(class_name), 0, NULL);
+  return Dart_GetNonNullableType(Dart_LookupLibrary(NewString(library_url)),
+                                 NewString(class_name), 0, NULL);
 }
 
 Dart_Handle DartUtils::NewDartOSError() {

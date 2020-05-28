@@ -12,7 +12,6 @@ import 'package:analyzer/file_system/file_system.dart'
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -82,6 +81,7 @@ class DriverOptions {
   String packageConfigPath;
 
   /// The path to the package root.
+  @Deprecated('https://github.com/dart-lang/sdk/issues/41197')
   String packageRootPath;
 
   /// Whether to use Dart's Strong Mode analyzer.
@@ -126,24 +126,12 @@ class LintDriver {
   List<UriResolver> get resolvers {
     // TODO(brianwilkerson) Use the context builder to compute all of the resolvers.
     ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
-    ContextBuilder builder = ContextBuilder(resourceProvider, null, null);
 
     DartSdk sdk = options.mockSdk ??
         FolderBasedDartSdk(
             resourceProvider, resourceProvider.getFolder(sdkDir));
 
     List<UriResolver> resolvers = [DartUriResolver(sdk)];
-
-    if (options.packageRootPath != null) {
-      builder.builderOptions.defaultPackagesDirectoryPath =
-          options.packageRootPath;
-      var packages = builder.createPackageMap(null);
-      var packageMap = <String, List<Folder>>{};
-      for (var package in packages.packages) {
-        packageMap[package.name] = [package.libFolder];
-      }
-      resolvers.add(PackageMapUriResolver(resourceProvider, packageMap));
-    }
 
     var packageUriResolver = _getPackageUriResolver();
     if (packageUriResolver != null) {

@@ -5477,8 +5477,11 @@ bool PhiInstr::IsRedundant() const {
 }
 
 Definition* PhiInstr::GetReplacementForRedundantPhi() const {
-  ASSERT(InputCount() > 1);
   Definition* first = InputAt(0)->definition();
+  if (InputCount() == 1) {
+    return first;
+  }
+  ASSERT(InputCount() > 1);
   Definition* first_origin = first->OriginalDefinition();
   bool look_for_redefinition = false;
   for (intptr_t i = 1; i < InputCount(); ++i) {
@@ -5514,6 +5517,19 @@ Definition* PhiInstr::GetReplacementForRedundantPhi() const {
   } else {
     return first;
   }
+}
+
+Definition* PhiInstr::Canonicalize(FlowGraph* flow_graph) {
+  Definition* replacement = GetReplacementForRedundantPhi();
+  return (replacement != nullptr) ? replacement : this;
+}
+
+// Removes current phi from graph and sets current to previous phi.
+void PhiIterator::RemoveCurrentFromGraph() {
+  Current()->UnuseAllInputs();
+  (*phis_)[index_] = phis_->Last();
+  phis_->RemoveLast();
+  --index_;
 }
 
 Instruction* CheckConditionInstr::Canonicalize(FlowGraph* graph) {

@@ -824,7 +824,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options) {
     String defaultPackageFilePath;
-    String defaultPackagesDirectoryPath;
     var path = (analysisServer.contextManager as ContextManagerImpl)
         .normalizedPackageRoots[folder.path];
     if (path != null) {
@@ -832,8 +831,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       if (resource.exists) {
         if (resource is File) {
           defaultPackageFilePath = path;
-        } else {
-          defaultPackagesDirectoryPath = path;
         }
       }
     }
@@ -841,7 +838,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     var builderOptions = ContextBuilderOptions();
     builderOptions.defaultOptions = options;
     builderOptions.defaultPackageFilePath = defaultPackageFilePath;
-    builderOptions.defaultPackagesDirectoryPath = defaultPackagesDirectoryPath;
     var builder = ContextBuilder(
         resourceProvider, analysisServer.sdkManager, null,
         options: builderOptions);
@@ -856,7 +852,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   void removeContext(Folder folder, List<String> flushedFiles) {
     sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
     var driver = analysisServer.driverMap.remove(folder);
-    driver.dispose();
+    driver?.dispose();
   }
 
   List<HighlightRegion> _computeHighlightRegions(CompilationUnit unit) {

@@ -1317,9 +1317,7 @@ main() {
   ExpectedLocation _expectedLocation(String search, bool isQualified,
       {int length}) {
     int offset = findOffset(search);
-    if (length == null) {
-      length = getLeadingIdentifierLength(search);
-    }
+    length ??= getLeadingIdentifierLength(search);
     return ExpectedLocation(testUnitElement, offset, length, isQualified);
   }
 

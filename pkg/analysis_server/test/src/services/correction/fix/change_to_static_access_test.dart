@@ -10,12 +10,12 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ChangeToStaticAccessClassTest);
+    defineReflectiveTests(ChangeToStaticAccessTest);
   });
 }
 
 @reflectiveTest
-class ChangeToStaticAccessClassTest extends FixProcessorTest {
+class ChangeToStaticAccessTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CHANGE_TO_STATIC_ACCESS;
 

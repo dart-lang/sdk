@@ -1,8 +1,8 @@
 ERROR|COMPILE_TIME_ERROR|CONST_CONSTRUCTOR_THROWS_EXCEPTION|lib/core/core.dart|3719|5|94|Const constructors can't throw exceptions.
-ERROR|COMPILE_TIME_ERROR|CONST_CONSTRUCTOR_THROWS_EXCEPTION|lib/core/core.dart|7908|5|97|Const constructors can't throw exceptions.
+ERROR|COMPILE_TIME_ERROR|CONST_CONSTRUCTOR_THROWS_EXCEPTION|lib/core/core.dart|7909|5|97|Const constructors can't throw exceptions.
 ERROR|COMPILE_TIME_ERROR|CONST_CONSTRUCTOR_THROWS_EXCEPTION|lib/core/core.dart|940|5|95|Const constructors can't throw exceptions.
 ERROR|COMPILE_TIME_ERROR|CONST_CONSTRUCTOR_THROWS_EXCEPTION|lib/core/core.dart|973|5|94|Const constructors can't throw exceptions.
 ERROR|SYNTACTIC_ERROR|CONST_FACTORY|lib/core/core.dart|3717|3|5|Only redirecting factory constructors can be declared to be 'const'.
-ERROR|SYNTACTIC_ERROR|CONST_FACTORY|lib/core/core.dart|7906|3|5|Only redirecting factory constructors can be declared to be 'const'.
+ERROR|SYNTACTIC_ERROR|CONST_FACTORY|lib/core/core.dart|7907|3|5|Only redirecting factory constructors can be declared to be 'const'.
 ERROR|SYNTACTIC_ERROR|CONST_FACTORY|lib/core/core.dart|938|3|5|Only redirecting factory constructors can be declared to be 'const'.
 ERROR|SYNTACTIC_ERROR|CONST_FACTORY|lib/core/core.dart|971|3|5|Only redirecting factory constructors can be declared to be 'const'.

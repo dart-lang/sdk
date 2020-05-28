@@ -1,6 +1,6 @@
 {
   "global": {
-    "chrome": "76",
+    "chrome": "81",
     "firefox": "67"
   },
   "branches": [

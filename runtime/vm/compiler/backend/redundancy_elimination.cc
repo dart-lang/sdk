@@ -3683,14 +3683,6 @@ void DeadCodeElimination::RemoveDeadAndRedundantPhisFromTheGraph(
             if (FLAG_trace_optimization) {
               THR_Print("Removing dead phi v%" Pd "\n", phi->ssa_temp_index());
             }
-          } else if (auto* replacement = phi->GetReplacementForRedundantPhi()) {
-            phi->ReplaceUsesWith(replacement);
-            phi->UnuseAllInputs();
-            (*join->phis_)[i] = nullptr;
-            if (FLAG_trace_optimization) {
-              THR_Print("Removing redundant phi v%" Pd "\n",
-                        phi->ssa_temp_index());
-            }
           } else {
             (*join->phis_)[to_index++] = phi;
           }
@@ -3782,7 +3774,6 @@ void DeadCodeElimination::EliminateDeadCode(FlowGraph* flow_graph) {
       for (PhiIterator it(join); !it.Done(); it.Advance()) {
         PhiInstr* current = it.Current();
         if (!live.Contains(current->ssa_temp_index())) {
-          current->UnuseAllInputs();
           it.RemoveCurrentFromGraph();
         }
       }
@@ -3799,7 +3790,6 @@ void DeadCodeElimination::EliminateDeadCode(FlowGraph* flow_graph) {
           continue;
         }
       }
-      current->UnuseAllInputs();
       it.RemoveCurrentFromGraph();
     }
   }

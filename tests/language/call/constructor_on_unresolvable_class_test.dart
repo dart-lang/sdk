@@ -11,14 +11,14 @@ import 'dart:math';
 main() {
   new A();
   //  ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
+  // [analyzer] STATIC_WARNING.NEW_WITH_NON_TYPE
   // [cfe] Method not found: 'A'.
   new A.foo();
   //  ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
+  // [analyzer] STATIC_WARNING.NEW_WITH_NON_TYPE
   // [cfe] Method not found: 'A.foo'.
   new lib.A();
   //  ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
+  // [analyzer] STATIC_WARNING.NEW_WITH_NON_TYPE
   // [cfe] Method not found: 'lib.A'.
 }

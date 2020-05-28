@@ -261,6 +261,11 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   @override
+  String visitFunctionReference(HFunctionReference node) {
+    return 'FunctionReference: ${node.element}';
+  }
+
+  @override
   String visitReadModifyWrite(HReadModifyWrite node) {
     String fieldName = node.element.name;
     String receiverId = temporaryId(node.receiver);

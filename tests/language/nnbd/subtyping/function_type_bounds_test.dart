@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Requirements=nnbd
+// Can't run in strong mode since it contains a legacy library.
+// Requirements=nnbd-weak
 
 import 'package:expect/expect.dart';
 

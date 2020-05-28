@@ -32,8 +32,8 @@ Statement createGetterWithInitializer(CoreTypes coreTypes, int fileOffset,
     // Generate:
     //
     //    if (!_#isSet#field) {
-    //      _#isSet#field = true
     //      _#field = <init>;
+    //      _#isSet#field = true
     //    }
     //    return _#field;
     return new Block(<Statement>[
@@ -42,11 +42,11 @@ Statement createGetterWithInitializer(CoreTypes coreTypes, int fileOffset,
             ..fileOffset = fileOffset,
           new Block(<Statement>[
             new ExpressionStatement(
-                createIsSetWrite(new BoolLiteral(true)..fileOffset = fileOffset)
-                  ..fileOffset = fileOffset)
+                createVariableWrite(initializer)..fileOffset = fileOffset)
               ..fileOffset = fileOffset,
             new ExpressionStatement(
-                createVariableWrite(initializer)..fileOffset = fileOffset)
+                createIsSetWrite(new BoolLiteral(true)..fileOffset = fileOffset)
+                  ..fileOffset = fileOffset)
               ..fileOffset = fileOffset,
           ]),
           null)
@@ -128,8 +128,8 @@ Statement createGetterWithInitializerWithRecheck(
     //    if (!_#isSet#field) {
     //      var temp = <init>;
     //      if (_#isSet#field) throw '...'
-    //      _#isSet#field = true
     //      _#field = temp;
+    //      _#isSet#field = true
     //    }
     //    return _#field;
     return new Block(<Statement>[
@@ -144,12 +144,12 @@ Statement createGetterWithInitializerWithRecheck(
                 null)
               ..fileOffset = fileOffset,
             new ExpressionStatement(
-                createIsSetWrite(new BoolLiteral(true)..fileOffset = fileOffset)
+                createVariableWrite(
+                    new VariableGet(temp)..fileOffset = fileOffset)
                   ..fileOffset = fileOffset)
               ..fileOffset = fileOffset,
             new ExpressionStatement(
-                createVariableWrite(
-                    new VariableGet(temp)..fileOffset = fileOffset)
+                createIsSetWrite(new BoolLiteral(true)..fileOffset = fileOffset)
                   ..fileOffset = fileOffset)
               ..fileOffset = fileOffset,
           ]),

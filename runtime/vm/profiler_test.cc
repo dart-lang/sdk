@@ -936,8 +936,8 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ArrayAllocation) {
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   const char* kScript =
-      "List foo() => new List(4);\n"
-      "List bar() => new List();\n";
+      "List foo() => List.filled(4, null);\n"
+      "List bar() => List.empty(growable: true);\n";
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
   Isolate* isolate = thread->isolate();
 
@@ -2437,20 +2437,20 @@ static uword FindPCForTokenPosition(const Code& code, TokenPosition tp) {
 ISOLATE_UNIT_TEST_CASE(Profiler_GetSourceReport) {
   EnableProfiler();
   const char* kScript =
-      "doWork(i) => i * i;\n"
-      "main() {\n"
-      "  var sum = 0;\n"
-      "  for (var i = 0; i < 100; i++) {\n"
+      "int doWork(i) => i * i;\n"
+      "int main() {\n"
+      "  int sum = 0;\n"
+      "  for (int i = 0; i < 100; i++) {\n"
       "     sum += doWork(i);\n"
       "  }\n"
       "  return sum;\n"
       "}\n";
 
   // Token position of * in `i * i`.
-  const TokenPosition squarePosition = TokenPosition(15);
+  const TokenPosition squarePosition = TokenPosition(19);
 
   // Token position of the call to `doWork`.
-  const TokenPosition callPosition = TokenPosition(90);
+  const TokenPosition callPosition = TokenPosition(95);
 
   DisableNativeProfileScope dnps;
   // Disable profiling for this thread.
@@ -2542,14 +2542,14 @@ ISOLATE_UNIT_TEST_CASE(Profiler_GetSourceReport) {
   }
 
   // Verify positions in do_work.
-  EXPECT_SUBSTRING("\"positions\":[\"ControlFlow\",15]", js.ToCString());
+  EXPECT_SUBSTRING("\"positions\":[\"ControlFlow\",19]", js.ToCString());
   // Verify exclusive ticks in do_work.
   EXPECT_SUBSTRING("\"exclusiveTicks\":[1,2]", js.ToCString());
   // Verify inclusive ticks in do_work.
   EXPECT_SUBSTRING("\"inclusiveTicks\":[1,2]", js.ToCString());
 
   // Verify positions in main.
-  EXPECT_SUBSTRING("\"positions\":[90]", js.ToCString());
+  EXPECT_SUBSTRING("\"positions\":[95]", js.ToCString());
   // Verify exclusive ticks in main.
   EXPECT_SUBSTRING("\"exclusiveTicks\":[0]", js.ToCString());
   // Verify inclusive ticks in main.

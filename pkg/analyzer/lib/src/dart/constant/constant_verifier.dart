@@ -132,7 +132,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
       // We need to evaluate the constant to see if any errors occur during its
       // evaluation.
-      ConstructorElement constructor = node.staticElement;
+      ConstructorElement constructor = node.constructorName.staticElement;
       if (constructor != null) {
         ConstantVisitor constantVisitor =
             ConstantVisitor(_evaluationEngine, _errorReporter);

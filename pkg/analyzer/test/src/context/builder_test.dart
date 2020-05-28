@@ -244,52 +244,6 @@ linter:
     _expectEqualOptions(options, AnalysisOptionsImpl());
   }
 
-  void test_createPackageMap_fromPackageDirectory_explicit() {
-    // Use a package directory that is outside the project directory.
-    String rootPath = convertPath('/root');
-    String projectPath = join(rootPath, 'project');
-    String packageDirPath = join(rootPath, 'packages');
-    String fooName = 'foo';
-    String fooPath = join(packageDirPath, fooName);
-    String barName = 'bar';
-    String barPath = join(packageDirPath, barName);
-    newFolder(projectPath);
-    newFolder(fooPath);
-    newFolder(barPath);
-
-    builderOptions.defaultPackagesDirectoryPath = packageDirPath;
-
-    Packages packages = builder.createPackageMap(projectPath);
-    _assertPackages(
-      packages,
-      {
-        'foo': convertPath('/root/packages/foo/lib'),
-        'bar': convertPath('/root/packages/bar/lib'),
-      },
-    );
-  }
-
-  void test_createPackageMap_fromPackageDirectory_inRoot() {
-    // Use a package directory that is inside the project directory.
-    String projectPath = convertPath('/root/project');
-    String packageDirPath = join(projectPath, 'packages');
-    String fooName = 'foo';
-    String fooPath = join(packageDirPath, fooName);
-    String barName = 'bar';
-    String barPath = join(packageDirPath, barName);
-    newFolder(fooPath);
-    newFolder(barPath);
-
-    Packages packages = builder.createPackageMap(projectPath);
-    _assertPackages(
-      packages,
-      {
-        'foo': convertPath('/root/project/packages/foo/lib'),
-        'bar': convertPath('/root/project/packages/bar/lib'),
-      },
-    );
-  }
-
   void test_createPackageMap_fromPackageFile_explicit() {
     // Use a package file that is outside the project directory's hierarchy.
     String rootPath = convertPath('/root');

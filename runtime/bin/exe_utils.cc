@@ -67,7 +67,7 @@ static const char* GetFileNameFromPath(const char* path) {
 
 Utils::CStringUniquePtr EXEUtils::GetDirectoryPrefixFromExeName() {
   const char* name = nullptr;
-  const int kTargetSize = 4096;
+  const int kTargetSize = PATH_MAX;
   char target[kTargetSize];
   intptr_t target_size =
       Platform::ResolveExecutablePathInto(target, kTargetSize);
@@ -81,6 +81,7 @@ Utils::CStringUniquePtr EXEUtils::GetDirectoryPrefixFromExeName() {
     ASSERT(target_size < kTargetSize);
   }
   Namespace* namespc = Namespace::Create(Namespace::Default());
+  char* result;
   if (File::GetType(namespc, name, false) == File::kIsLink) {
     char dir_path[kTargetSize];
     // cwd is currently wherever we launched from, so set the cwd to the
@@ -102,11 +103,20 @@ Utils::CStringUniquePtr EXEUtils::GetDirectoryPrefixFromExeName() {
     } while (File::GetType(namespc, name, false) == File::kIsLink);
     target_size = strlen(name);
 
+    char absolute_path[kTargetSize];
+
+    // Get the absolute path after we've resolved all the symlinks and before
+    // we reset the cwd, otherwise path resolution will fail.
+    File::GetCanonicalPath(namespc, name, absolute_path, kTargetSize);
+
     // Reset cwd to the original value.
     Directory::SetCurrent(namespc, initial_dir_path.get());
+
+    result = GetDirectoryFromPath(absolute_path, nullptr);
+  } else {
+    result = GetDirectoryFromPath(target, nullptr);
   }
   namespc->Release();
-  char* result = GetDirectoryFromPath(name, nullptr);
   return Utils::CreateCStringUniquePtr(result == nullptr ? strdup("") : result);
 }
 

@@ -132,56 +132,62 @@ static method E|[](final core::String #this, core::int index) → core::int
   return 42;
 static method warning(core::String s, core::List<core::String> l, core::Map<core::String, core::int> m) → dynamic {
   let final core::String #t2 = s in #t2.{core::String::==}(null) ?{core::int?} null : #t2.{core::String::length};
-  let final core::String #t3 = s in #t3.{core::String::==}(null) ?{core::String} null : let final void #t4 = #t3.{core::String::length} in #t3;
-  let final core::String #t5 = s in #t5.{core::String::==}(null) ?{core::String} "foo" : #t5;
+  let final core::String #t3 = s in #t3.{core::String::==}(null) ?{core::String} null : block {
+    #t3.{core::String::length};
+  } =>#t3;
+  let final core::String #t4 = s in #t4.{core::String::==}(null) ?{core::String} "foo" : #t4;
   s.{core::String::==}(null) ?{core::String} s = "foo" : null;
   block {
-    final core::List<core::String> #t6 = <core::String>[];
-    final core::Iterable<core::String>? #t7 = l;
-    if(!#t7.{core::Object::==}(null))
-      for (final core::String #t8 in #t7{core::Iterable<core::String>})
-        #t6.{core::List::add}(#t8);
-  } =>#t6;
+    final core::List<core::String> #t5 = <core::String>[];
+    final core::Iterable<core::String>? #t6 = l;
+    if(!#t6.{core::Object::==}(null))
+      for (final core::String #t7 in #t6{core::Iterable<core::String>})
+        #t5.{core::List::add}(#t7);
+  } =>#t5;
   core::Set<core::String> a = block {
-    final core::Set<core::String> #t9 = col::LinkedHashSet::•<core::String>();
-    final core::Iterable<core::String>? #t10 = l;
-    if(!#t10.{core::Object::==}(null))
-      for (final dynamic #t11 in #t10{core::Iterable<core::String>}) {
-        final core::String #t12 = #t11 as{TypeError,ForNonNullableByDefault} core::String;
-        #t9.{core::Set::add}(#t12);
+    final core::Set<core::String> #t8 = col::LinkedHashSet::•<core::String>();
+    final core::Iterable<core::String>? #t9 = l;
+    if(!#t9.{core::Object::==}(null))
+      for (final dynamic #t10 in #t9{core::Iterable<core::String>}) {
+        final core::String #t11 = #t10 as{TypeError,ForNonNullableByDefault} core::String;
+        #t8.{core::Set::add}(#t11);
       }
-  } =>#t9;
+  } =>#t8;
   block {
-    final core::Set<core::String> #t13 = col::LinkedHashSet::•<core::String>();
-    final core::Iterable<core::String>? #t14 = l;
-    if(!#t14.{core::Object::==}(null))
-      for (final core::String #t15 in #t14{core::Iterable<core::String>})
-        #t13.{core::Set::add}(#t15);
-  } =>#t13;
+    final core::Set<core::String> #t12 = col::LinkedHashSet::•<core::String>();
+    final core::Iterable<core::String>? #t13 = l;
+    if(!#t13.{core::Object::==}(null))
+      for (final core::String #t14 in #t13{core::Iterable<core::String>})
+        #t12.{core::Set::add}(#t14);
+  } =>#t12;
   core::Map<core::String, core::int> b = block {
-    final core::Map<core::String, core::int> #t16 = <core::String, core::int>{};
-    final core::Map<core::String, core::int>? #t17 = m;
-    if(!#t17.{core::Object::==}(null))
-      for (final core::MapEntry<core::String, core::int> #t18 in #t17{core::Map<core::String, core::int>}.{core::Map::entries})
-        #t16.{core::Map::[]=}(#t18.{core::MapEntry::key}, #t18.{core::MapEntry::value});
-  } =>#t16;
+    final core::Map<core::String, core::int> #t15 = <core::String, core::int>{};
+    final core::Map<core::String, core::int>? #t16 = m;
+    if(!#t16.{core::Object::==}(null))
+      for (final core::MapEntry<core::String, core::int> #t17 in #t16{core::Map<core::String, core::int>}.{core::Map::entries})
+        #t15.{core::Map::[]=}(#t17.{core::MapEntry::key}, #t17.{core::MapEntry::value});
+  } =>#t15;
   block {
-    final core::Map<core::String, core::int> #t19 = <core::String, core::int>{};
-    final core::Map<core::String, core::int>? #t20 = m;
-    if(!#t20.{core::Object::==}(null))
-      for (final core::MapEntry<core::String, core::int> #t21 in #t20{core::Map<core::String, core::int>}.{core::Map::entries})
-        #t19.{core::Map::[]=}(#t21.{core::MapEntry::key}, #t21.{core::MapEntry::value});
-  } =>#t19;
+    final core::Map<core::String, core::int> #t18 = <core::String, core::int>{};
+    final core::Map<core::String, core::int>? #t19 = m;
+    if(!#t19.{core::Object::==}(null))
+      for (final core::MapEntry<core::String, core::int> #t20 in #t19{core::Map<core::String, core::int>}.{core::Map::entries})
+        #t18.{core::Map::[]=}(#t20.{core::MapEntry::key}, #t20.{core::MapEntry::value});
+  } =>#t18;
   s!;
-  let final core::String #t22 = s in #t22.{core::String::==}(null) ?{core::String?} null : #t22.{core::String::substring}(0, 0);
-  let final core::List<core::String> #t23 = l in #t23.{core::List::==}(null) ?{core::int?} null : #t23.{core::List::length} = 42;
-  let final core::List<core::String> #t24 = l in #t24.{core::List::==}(null) ?{core::int?} null : #t24.{core::List::length} = #t24.{core::List::length}.{core::num::+}(42);
-  let final core::List<core::String> #t25 = l in #t25.{core::List::==}(null) ?{core::int?} null : #t25.{core::List::length}.{core::num::==}(null) ?{core::int} #t25.{core::List::length} = 42 : null;
-  let final core::String #t26 = s in #t26.{core::String::==}(null) ?{core::int?} null : self::E|get#foo(#t26);
-  let final core::String #t27 = s in let final core::int #t28 = 42 in self::E|[](#t27, #t28).{core::num::==}(null) ?{core::int} self::E|[]=(#t27, #t28, 42) : null;
-  let final core::List<core::String> #t29 = l in let final core::int #t30 = 42 in #t29.{core::List::[]}(#t30).{core::String::==}(null) ?{core::String} #t29.{core::List::[]=}(#t30, "foo") : null;
-  let final core::List<core::String> #t31 = l in #t31.{core::List::length}.{core::num::==}(null) ?{core::int} #t31.{core::List::length} = 42 : null;
-  let final core::List<core::String> #t32 = l in #t32.{core::List::==}(null) ?{core::List<core::String>} null : let final void #t33 = #t32.{core::List::length} = 42 in #t32;
-  let final core::List<core::String> #t34 = l in #t34.{core::List::==}(null) ?{core::List<core::String>} null : let final void #t35 = let final core::List<core::String> #t36 = #t34 in #t36.{core::List::length}.{core::num::==}(null) ?{core::int} #t36.{core::List::length} = 42 : null in #t34;
+  let final core::String #t21 = s in #t21.{core::String::==}(null) ?{core::String?} null : #t21.{core::String::substring}(0, 0);
+  let final core::List<core::String> #t22 = l in #t22.{core::List::==}(null) ?{core::int?} null : #t22.{core::List::length} = 42;
+  let final core::List<core::String> #t23 = l in #t23.{core::List::==}(null) ?{core::int?} null : #t23.{core::List::length} = #t23.{core::List::length}.{core::num::+}(42);
+  let final core::List<core::String> #t24 = l in #t24.{core::List::==}(null) ?{core::int?} null : #t24.{core::List::length}.{core::num::==}(null) ?{core::int} #t24.{core::List::length} = 42 : null;
+  let final core::String #t25 = s in #t25.{core::String::==}(null) ?{core::int?} null : self::E|get#foo(#t25);
+  let final core::String #t26 = s in let final core::int #t27 = 42 in self::E|[](#t26, #t27).{core::num::==}(null) ?{core::int} self::E|[]=(#t26, #t27, 42) : null;
+  let final core::List<core::String> #t28 = l in let final core::int #t29 = 42 in #t28.{core::List::[]}(#t29).{core::String::==}(null) ?{core::String} #t28.{core::List::[]=}(#t29, "foo") : null;
+  let final core::List<core::String> #t30 = l in #t30.{core::List::length}.{core::num::==}(null) ?{core::int} #t30.{core::List::length} = 42 : null;
+  let final core::List<core::String> #t31 = l in #t31.{core::List::==}(null) ?{core::List<core::String>} null : block {
+    #t31.{core::List::length} = 42;
+  } =>#t31;
+  let final core::List<core::String> #t32 = l in #t32.{core::List::==}(null) ?{core::List<core::String>} null : block {
+    let final core::List<core::String> #t33 = #t32 in #t33.{core::List::length}.{core::num::==}(null) ?{core::int} #t33.{core::List::length} = 42 : null;
+  } =>#t32;
 }
 static method main() → dynamic {}

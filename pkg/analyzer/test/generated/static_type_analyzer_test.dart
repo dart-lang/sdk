@@ -481,7 +481,6 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
             null,
             AstTestFactory.typeName(classElement),
             [AstTestFactory.identifier3(constructorName)]);
-    node.staticElement = constructor;
     expect(_analyze(node), interfaceTypeStar(classElement));
     _listener.assertNoErrors();
   }
@@ -499,7 +498,6 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
         typeArguments: [interfaceTypeStar(elementI)]);
     InstanceCreationExpression node =
         AstTestFactory.instanceCreationExpression2(null, typeName);
-    node.staticElement = constructor;
     InterfaceType type = _analyze(node) as InterfaceType;
     List<DartType> typeArgs = type.typeArguments;
     expect(typeArgs.length, 1);
@@ -516,7 +514,6 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     InstanceCreationExpression node =
         AstTestFactory.instanceCreationExpression2(
             null, AstTestFactory.typeName(classElement));
-    node.staticElement = constructor;
     expect(_analyze(node), interfaceTypeStar(classElement));
     _listener.assertNoErrors();
   }

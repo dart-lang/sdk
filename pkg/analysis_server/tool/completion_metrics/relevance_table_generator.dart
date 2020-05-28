@@ -6,8 +6,7 @@ import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
-import 'package:analysis_server/src/protocol_server.dart'
-    show convertElementToElementKind, ElementKind;
+import 'package:analysis_server/src/protocol_server.dart' show ElementKind;
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analysis_tool/tools.dart';
@@ -1276,7 +1275,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// identifier that is a child of the [node].
   ElementKind _leftMostKind(AstNode node) {
     if (node is InstanceCreationExpression) {
-      return convertElementToElementKind(node.staticElement);
+      return featureComputer
+          .computeElementKind(node.constructorName.staticElement);
     }
     var element = _leftMostElement(node);
     if (element == null) {
@@ -1288,7 +1288,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
         element = parent.element;
       }
     }
-    return convertElementToElementKind(element);
+    return featureComputer.computeElementKind(element);
   }
 
   /// Return the left-most token that is a child of the [node].

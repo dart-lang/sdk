@@ -2018,7 +2018,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       TypeName typeName,
       InterfaceType type) {
     if (type.element.isAbstract && !type.element.isMixin) {
-      ConstructorElement element = expression.staticElement;
+      ConstructorElement element = expression.constructorName.staticElement;
       if (element != null && !element.isFactory) {
         bool isImplicit =
             (expression as InstanceCreationExpressionImpl).isImplicit;
@@ -2071,7 +2071,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * See [CompileTimeErrorCode.CONST_WITH_NON_CONST].
    */
   void _checkForConstWithNonConst(InstanceCreationExpression expression) {
-    ConstructorElement constructorElement = expression.staticElement;
+    ConstructorElement constructorElement =
+        expression.constructorName.staticElement;
     if (constructorElement != null && !constructorElement.isConst) {
       if (expression.keyword != null) {
         _errorReporter.reportErrorForToken(
@@ -2100,7 +2101,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       ConstructorName constructorName,
       TypeName typeName) {
     // OK if resolved
-    if (expression.staticElement != null) {
+    if (constructorName.staticElement != null) {
       return;
     }
     DartType type = typeName.type;
@@ -3497,7 +3498,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       ConstructorName constructorName,
       TypeName typeName) {
     // OK if resolved
-    if (expression.staticElement != null) {
+    if (constructorName.staticElement != null) {
       return;
     }
     DartType type = typeName.type;

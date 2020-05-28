@@ -19,7 +19,7 @@ main() {
 // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_FUNCTION
   new _Class();
   //  ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
+  // [analyzer] STATIC_WARNING.NEW_WITH_NON_TYPE
   // [cfe] Method not found: '_Class'.
   private._Class();
 //^

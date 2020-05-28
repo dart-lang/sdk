@@ -173,6 +173,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   void writeConstructorDeclaration(String className,
       {ArgumentList argumentList,
       void Function() bodyWriter,
+      String classNameGroupName,
       SimpleIdentifier constructorName,
       String constructorNameGroupName,
       List<String> fieldNames,
@@ -183,7 +184,11 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       write(Keyword.CONST.lexeme);
       write(' ');
     }
-    write(className);
+    if (classNameGroupName == null) {
+      write(className);
+    } else {
+      addSimpleLinkedEdit(classNameGroupName, className);
+    }
     if (constructorName != null) {
       write('.');
       if (constructorNameGroupName == null) {

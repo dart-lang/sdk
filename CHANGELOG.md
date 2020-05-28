@@ -61,9 +61,15 @@
 
 #### Linter
 
-Updated the Linter to `0.1.115`, which includes:
+Updated the Linter to `0.1.116`, which includes:
 
-* Updated `avoid_types_as_parameter_names` to check catch-clauses.
+* New lint: `no_default_cases` (experimental).
+* New lint: `exhaustive_cases`.
+* Updated `type_annotate_public_apis` to allow inferred types in final field assignments.
+* Updated `prefer_mixin` to allow "legacy" SDK abstract class mixins.
+* New lint: `use_is_even_rather_than_modulo`.
+* Updated `unsafe_html` to use a `SecurityLintCode` (making it un-ignorable).
+* Improved `sized_box_for_whitespace` to address false-positives.
 * Fixed `unsafe_html` to check attributes and methods on extensions.
 * Extended `unsafe_html` to include `Window.open`, `Element.html` and
   `DocumentFragment.html` in unsafe API checks.
@@ -85,6 +91,18 @@ Updated the Linter to `0.1.115`, which includes:
 * `pub outdated` now works without a lockfile. In that case the 'Current'
   column will be empty.
 * `pub upgrade`: Show summary count of outdated packages after running.
+
+## 2.8.3 - 2020-05-28
+
+This is a patch release that fixes the following issues:
+* crashes in Flutter apps (issue [flutter/flutter#57318][]).
+* a regression in stack traces (issue [#41907][]).
+* re-canonicalization of constants with unboxed fields (issue
+[flutter/flutter#57190][]).
+
+[flutter/flutter#57318]: https://github.com/flutter/flutter/issues/57318
+[#41907]: https://github.com/dart-lang/sdk/issues/41907
+[flutter/flutter#57190]: https://github.com/flutter/flutter/issues/57190
 
 ## 2.8.2 - 2020-05-13
 

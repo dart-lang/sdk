@@ -13,12 +13,13 @@ main(List<String> args) async {
   try {
     dynamic result = await runner.run(args);
     exit(result is int ? result : 0);
-  } catch (e) {
+  } catch (e, st) {
     if (e is UsageException) {
       stderr.writeln('$e');
       exit(64);
     } else {
       stderr.writeln('$e');
+      stderr.writeln('$st');
       exit(1);
     }
   }

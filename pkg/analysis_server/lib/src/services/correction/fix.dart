@@ -394,6 +394,8 @@ class DartFixKind {
       'dart.fix.remove.unusedLocalVariable',
       50,
       'Remove unused local variable');
+  static const REMOVE_UNUSED_PARAMETER = FixKind(
+      'dart.fix.remove.unusedParameter', 50, 'Remove the unused parameter');
   static const RENAME_TO_CAMEL_CASE =
       FixKind('dart.fix.rename.toCamelCase', 50, "Rename to '{0}'");
   static const REPLACE_BOOLEAN_WITH_BOOL = FixKind(

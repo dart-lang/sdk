@@ -20,24 +20,19 @@ class RemoveTypeAnnotation extends CorrectionProducer {
 
   @override
   Future<void> compute(DartChangeBuilder builder) async {
-    var parameter = node.thisOrAncestorOfType<FormalParameter>();
-    if (parameter is SimpleFormalParameter) {
-      var type = parameter.type;
-      if (type != null) {
-        return _removeTypeAnnotation(builder, type);
+    for (var node = this.node; node != null; node = node.parent) {
+      if (node is DeclaredIdentifier) {
+        return _removeFromDeclaredIdentifier(builder, node);
       }
-    }
-    var declarationList = node.thisOrAncestorOfType<VariableDeclarationList>();
-    if (declarationList != null) {
-      return _removeFromDeclarationList(builder, declarationList);
-    }
-    var declaredIdentifier = node.thisOrAncestorOfType<DeclaredIdentifier>();
-    if (declaredIdentifier != null) {
-      return _removeFromDeclaredIdentifier(builder, declaredIdentifier);
-    }
-    var type = node.thisOrAncestorOfType<TypeAnnotation>();
-    if (type != null) {
-      return _removeTypeAnnotation(builder, type);
+      if (node is SimpleFormalParameter) {
+        return _removeTypeAnnotation(builder, node.type);
+      }
+      if (node is TypeAnnotation && diagnostic != null) {
+        return _removeTypeAnnotation(builder, node);
+      }
+      if (node is VariableDeclarationList) {
+        return _removeFromDeclarationList(builder, node);
+      }
     }
   }
 
@@ -94,6 +89,10 @@ class RemoveTypeAnnotation extends CorrectionProducer {
 
   Future<void> _removeTypeAnnotation(
       DartChangeBuilder builder, TypeAnnotation type) async {
+    if (type == null) {
+      return;
+    }
+
     await builder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addDeletion(range.startStart(type, type.endToken.next));
     });

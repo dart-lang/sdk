@@ -1776,11 +1776,7 @@ class PhiIterator : public ValueObject {
   PhiInstr* Current() const { return (*phis_)[index_]; }
 
   // Removes current phi from graph and sets current to previous phi.
-  void RemoveCurrentFromGraph() {
-    (*phis_)[index_] = phis_->Last();
-    phis_->RemoveLast();
-    --index_;
-  }
+  void RemoveCurrentFromGraph();
 
  private:
   ZoneGrowableArray<PhiInstr*>* phis_;
@@ -2440,6 +2436,8 @@ class PhiInstr : public Definition {
   // value. Returns the replacement for this phi if it is redundant.
   // The replacement is selected among values redefined by inputs.
   Definition* GetReplacementForRedundantPhi() const;
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   PRINT_TO_SUPPORT
 

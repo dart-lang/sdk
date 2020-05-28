@@ -2231,8 +2231,26 @@ bool FlowGraph::Canonicalize() {
 
   for (BlockIterator block_it = reverse_postorder_iterator(); !block_it.Done();
        block_it.Advance()) {
-    for (ForwardInstructionIterator it(block_it.Current()); !it.Done();
-         it.Advance()) {
+    BlockEntryInstr* const block = block_it.Current();
+    if (auto join = block->AsJoinEntry()) {
+      for (PhiIterator it(join); !it.Done(); it.Advance()) {
+        PhiInstr* current = it.Current();
+        if (current->HasUnmatchedInputRepresentations()) {
+          // Can't canonicalize this instruction until all conversions for its
+          // inputs are inserted.
+          continue;
+        }
+
+        Definition* replacement = current->Canonicalize(this);
+        ASSERT(replacement != nullptr);
+        if (replacement != current) {
+          current->ReplaceUsesWith(replacement);
+          it.RemoveCurrentFromGraph();
+          changed = true;
+        }
+      }
+    }
+    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
       if (current->HasUnmatchedInputRepresentations()) {
         // Can't canonicalize this instruction until all conversions for its

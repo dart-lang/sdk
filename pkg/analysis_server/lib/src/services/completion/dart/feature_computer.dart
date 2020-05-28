@@ -6,8 +6,8 @@
 /// completion.
 import 'dart:math' as math;
 
-import 'package:analysis_server/src/protocol_server.dart'
-    show ElementKind, convertElementToElementKind;
+import 'package:analysis_server/src/protocol_server.dart' as protocol
+    show ElementKind;
 import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -17,6 +17,7 @@ import 'package:analyzer/dart/element/element.dart'
         ClassElement,
         ConstructorElement,
         Element,
+        ElementKind,
         FieldElement,
         LibraryElement,
         PropertyAccessorElement,
@@ -79,6 +80,57 @@ class FeatureComputer {
     return type;
   }
 
+  /// Return the element kind used to compute relevance for the given [element].
+  /// This differs from the kind returned to the client in that getters and
+  /// setters are always mapped into a different kind: FIELD for getters and
+  /// setters declared in a class or extension, and TOP_LEVEL_VARIABLE for
+  /// top-level getters and setters.
+  protocol.ElementKind computeElementKind(Element element) {
+    if (element is LibraryElement) {
+      return protocol.ElementKind.PREFIX;
+    } else if (element is ClassElement) {
+      if (element.isEnum) {
+        return protocol.ElementKind.ENUM;
+      } else if (element.isMixin) {
+        return protocol.ElementKind.MIXIN;
+      }
+      return protocol.ElementKind.CLASS;
+    } else if (element is FieldElement && element.isEnumConstant) {
+      return protocol.ElementKind.ENUM_CONSTANT;
+    } else if (element is PropertyAccessorElement) {
+      element = (element as PropertyAccessorElement).variable;
+    }
+    var kind = element.kind;
+    if (kind == ElementKind.CONSTRUCTOR) {
+      return protocol.ElementKind.CONSTRUCTOR;
+    } else if (kind == ElementKind.EXTENSION) {
+      return protocol.ElementKind.EXTENSION;
+    } else if (kind == ElementKind.FIELD) {
+      return protocol.ElementKind.FIELD;
+    } else if (kind == ElementKind.FUNCTION) {
+      return protocol.ElementKind.FUNCTION;
+    } else if (kind == ElementKind.FUNCTION_TYPE_ALIAS) {
+      return protocol.ElementKind.FUNCTION_TYPE_ALIAS;
+    } else if (kind == ElementKind.GENERIC_FUNCTION_TYPE) {
+      return protocol.ElementKind.FUNCTION_TYPE_ALIAS;
+    } else if (kind == ElementKind.LABEL) {
+      return protocol.ElementKind.LABEL;
+    } else if (kind == ElementKind.LOCAL_VARIABLE) {
+      return protocol.ElementKind.LOCAL_VARIABLE;
+    } else if (kind == ElementKind.METHOD) {
+      return protocol.ElementKind.METHOD;
+    } else if (kind == ElementKind.PARAMETER) {
+      return protocol.ElementKind.PARAMETER;
+    } else if (kind == ElementKind.PREFIX) {
+      return protocol.ElementKind.PREFIX;
+    } else if (kind == ElementKind.TOP_LEVEL_VARIABLE) {
+      return protocol.ElementKind.TOP_LEVEL_VARIABLE;
+    } else if (kind == ElementKind.TYPE_PARAMETER) {
+      return protocol.ElementKind.TYPE_PARAMETER;
+    }
+    return protocol.ElementKind.UNKNOWN;
+  }
+
   /// Return the value of the _context type_ feature for an element with the
   /// given [elementType] when completing in a location with the given
   /// [contextType].
@@ -114,13 +166,7 @@ class FeatureComputer {
     if (locationTable == null) {
       return -1.0;
     }
-    ElementKind kind;
-    if (element is LibraryElement) {
-      kind = ElementKind.PREFIX;
-    } else {
-      kind = convertElementToElementKind(element);
-    }
-    var range = locationTable[kind];
+    var range = locationTable[computeElementKind(element)];
     if (range == null) {
       return 0.0;
     }

@@ -287,6 +287,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitConstructorName(ConstructorName node) {
+    _checkForDeprecatedMemberUse(node.staticElement, node);
+    super.visitConstructorName(node);
+  }
+
+  @override
   void visitExportDirective(ExportDirective node) {
     _checkForDeprecatedMemberUse(node.uriElement, node);
     super.visitExportDirective(node);
@@ -445,7 +451,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    _checkForDeprecatedMemberUse(node.staticElement, node);
     _checkForLiteralConstructorUse(node);
     super.visitInstanceCreationExpression(node);
   }

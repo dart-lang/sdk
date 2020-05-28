@@ -1516,7 +1516,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// identifier that is a child of the [node].
   ElementKind _leftMostKind(AstNode node) {
     if (node is InstanceCreationExpression) {
-      return convertElementToElementKind(node.staticElement);
+      return convertElementToElementKind(node.constructorName.staticElement);
     }
     var element = _leftMostElement(node);
     if (element == null) {

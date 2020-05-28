@@ -16,7 +16,11 @@ class Coordinate extends ffi::Struct {
     : super ffi::Struct::_fromPointer(#pointer)
     ;
   static factory allocate(core::double* x, core::double* y, ffi::Pointer<self::Coordinate*>* next) → self::Coordinate* {
-    return let final self::Coordinate* #t1 = ffi::StructPointer|get#ref<self::Coordinate*>(all::allocate<self::Coordinate*>()) in let final void #t2 = #t1.{self::Coordinate::x} = x in let final void #t3 = #t1.{self::Coordinate::y} = y in let final void #t4 = #t1.{self::Coordinate::next} = next in #t1;
+    return let final self::Coordinate* #t1 = ffi::StructPointer|get#ref<self::Coordinate*>(all::allocate<self::Coordinate*>()) in block {
+      #t1.{self::Coordinate::x} = x;
+      #t1.{self::Coordinate::y} = y;
+      #t1.{self::Coordinate::next} = next;
+    } =>#t1;
   }
   abstract member-signature get _addressOf() → ffi::Pointer<ffi::Struct*>*;
   abstract member-signature get _identityHashCode() → core::int*;

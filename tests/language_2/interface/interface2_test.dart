@@ -8,8 +8,6 @@ class Interface2NegativeTest implements BooHoo {}
 //                                      ^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.IMPLEMENTS_NON_CLASS
 // [cfe] Type 'BooHoo' not found.
-//                                      ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 
 main() {
   Interface2NegativeTest();

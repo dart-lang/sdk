@@ -12,8 +12,6 @@ class C
     //      ^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.EXTENDS_NON_CLASS
     // [cfe] Type 'Unresolved' not found.
-    //      ^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
     {
 }
 
@@ -32,8 +30,6 @@ class C2
     //                  ^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.MIXIN_OF_NON_CLASS
     // [cfe] Type 'Unresolved' not found.
-    //                  ^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
     {
 }
 
@@ -50,8 +46,6 @@ class C4
     //         ^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.IMPLEMENTS_NON_CLASS
     // [cfe] Type 'Unresolved' not found.
-    //         ^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
     {
 }
 

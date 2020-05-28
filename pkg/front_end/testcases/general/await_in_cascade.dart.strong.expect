@@ -10,7 +10,9 @@ class C extends core::Object {
     : super core::Object::•()
     ;
   method m() → asy::Future<core::List<core::int*>*>* async 
-    return let final core::List<core::int*>* #t1 = <core::int*>[] in let final void #t2 = #t1.{core::List::add}(await this.{self::C::_m}()) in #t1;
+    return let final core::List<core::int*>* #t1 = <core::int*>[] in block {
+      #t1.{core::List::add}(await this.{self::C::_m}());
+    } =>#t1;
   method _m() → asy::Future<core::int*>* async 
     return 42;
   abstract member-signature get _identityHashCode() → core::int*;

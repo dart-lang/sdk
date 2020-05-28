@@ -356,12 +356,13 @@ class InferenceVisitor
           expression, const UnknownType(), !inferrer.isTopLevel,
           isVoidAllowed: true));
     }
-    Expression replacement = createVariableGet(node.variable);
-    for (int index = expressionResults.length - 1; index >= 0; index--) {
-      replacement = createLet(
-          createVariable(expressionResults[index].expression, const VoidType()),
-          replacement);
+    List<Statement> body = [];
+    for (int index = 0; index < expressionResults.length; index++) {
+      body.add(_createExpressionStatement(expressionResults[index].expression));
     }
+
+    Expression replacement = _createBlockExpression(node.variable.fileOffset,
+        _createBlock(body), createVariableGet(node.variable));
 
     if (node.isNullAware) {
       replacement =
@@ -371,6 +372,24 @@ class InferenceVisitor
         ..fileOffset = node.fileOffset;
     }
     return new ExpressionInferenceResult(result.inferredType, replacement);
+  }
+
+  Block _createBlock(List<Statement> statements) {
+    return new Block(statements);
+  }
+
+  BlockExpression _createBlockExpression(
+      int fileOffset, Block body, Expression value) {
+    assert(fileOffset != null);
+    assert(fileOffset != TreeNode.noOffset);
+    return new BlockExpression(body, value)..fileOffset = fileOffset;
+  }
+
+  ExpressionStatement _createExpressionStatement(Expression expression) {
+    assert(expression != null);
+    assert(expression.fileOffset != TreeNode.noOffset);
+    return new ExpressionStatement(expression)
+      ..fileOffset = expression.fileOffset;
   }
 
   @override
@@ -2593,7 +2612,8 @@ class InferenceVisitor
           inferredType)
         ..fileOffset = node.fileOffset;
       replacement =
-          new Let(node.variable, conditional..fileOffset = node.fileOffset);
+          new Let(node.variable, conditional..fileOffset = node.fileOffset)
+            ..fileOffset = node.fileOffset;
     } else {
       // Encode `o.a ??= b` as:
       //

@@ -41,8 +41,11 @@ mirrors/native_class_test: Slow, Pass
 
 [ $runtime == chrome && $system == macos ]
 convert/streamed_conversion_utf8_encode_test: SkipSlow # Times out. Issue 22050
-html/canvasrenderingcontext2d_test/drawImage_video_element: Skip # Times out. Please triage this failure.
-html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip # Times out. Please triage this failure.
+html/canvasrendering/arc_test: Skip # Issue 42048
+html/canvasrendering/draw_image_canvas_element_test: Skip # Issue 42048
+html/canvasrendering/fill_text_test: Skip # Issue 42048
+html/canvasrendering/image_element_test: Skip # Issue 42048
+html/canvasrendering/pixel_manipulation_test: Skip # Issue 42048
 html/request_animation_frame_test: Skip # Times out. Issue 22167
 html/transition_event_test: Skip # Times out. Issue 22167
 

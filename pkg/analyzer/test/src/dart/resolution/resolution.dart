@@ -726,7 +726,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else if (node is IndexExpression) {
       return node.staticElement;
     } else if (node is InstanceCreationExpression) {
-      return node.staticElement;
+      return node.constructorName.staticElement;
     } else if (node is MethodInvocation) {
       return node.methodName.staticElement;
     } else if (node is PostfixExpression) {

@@ -107,15 +107,11 @@ class AssignmentExpressionResolver {
    */
   void _analyzeLeastUpperBoundTypes(
       Expression node, DartType staticType1, DartType staticType2) {
-    if (staticType1 == null) {
-      // TODO(brianwilkerson) Determine whether this can still happen.
-      staticType1 = DynamicTypeImpl.instance;
-    }
+    // TODO(brianwilkerson) Determine whether this can still happen.
+    staticType1 ??= DynamicTypeImpl.instance;
 
-    if (staticType2 == null) {
-      // TODO(brianwilkerson) Determine whether this can still happen.
-      staticType2 = DynamicTypeImpl.instance;
-    }
+    // TODO(brianwilkerson) Determine whether this can still happen.
+    staticType2 ??= DynamicTypeImpl.instance;
 
     DartType staticType =
         _typeSystem.getLeastUpperBound(staticType1, staticType2) ??

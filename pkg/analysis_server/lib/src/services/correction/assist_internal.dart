@@ -36,11 +36,11 @@ import 'package:analysis_server/src/services/correction/dart/shadow_field.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_child_property_last.dart';
 import 'package:analysis_server/src/services/correction/dart/split_and_condition.dart';
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
 import 'package:analysis_server/src/services/correction/statement_analyzer.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
-import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
@@ -65,7 +65,43 @@ typedef _SimpleIdentifierVisitor = void Function(SimpleIdentifier node);
 
 /// The computer for Dart assists.
 class AssistProcessor extends BaseProcessor {
+  /// A map that can be used to look up the names of the lints for which a given
+  /// [CorrectionProducer] will be used.
+  static final Map<ProducerGenerator, Set<String>> lintRuleMap =
+      createLintRuleMap();
+
+  /// A list of the generators used to produce assists.
+  static const List<ProducerGenerator> generators = [
+    AddDiagnosticPropertyReference.newInstance,
+    AddReturnType.newInstance,
+    AddTypeAnnotation.newInstance,
+    ConvertAddAllToSpread.newInstance,
+    ConvertConditionalExpressionToIfElement.newInstance,
+    ConvertDocumentationIntoLine.newInstance,
+    ConvertMapFromIterableToForLiteral.newInstance,
+    ConvertToDoubleQuotes.newInstance,
+    ConvertToSingleQuotes.newInstance,
+    ConvertToExpressionFunctionBody.newInstance,
+    ConvertToGenericFunctionSyntax.newInstance,
+    ConvertToIntLiteral.newInstance,
+    ConvertToListLiteral.newInstance,
+    ConvertToMapLiteral.newInstance,
+    ConvertToNullAware.newInstance,
+    ConvertToPackageImport.newInstance,
+    ConvertToRelativeImport.newInstance,
+    ConvertToSetLiteral.newInstance,
+    ExchangeOperands.newInstance,
+    InlineInvocation.newInstance,
+    RemoveTypeAnnotation.newInstance,
+    ReplaceWithVar.newInstance,
+    ShadowField.newInstance,
+    SortChildPropertyLast.newInstance,
+    SplitAndCondition.newInstance,
+    UseCurlyBraces.newInstance,
+  ];
+
   final DartAssistContext context;
+
   final List<Assist> assists = <Assist>[];
 
   AssistProcessor(this.context)
@@ -194,115 +230,19 @@ class AssistProcessor extends BaseProcessor {
     if (!setupSuccess) {
       return;
     }
+    for (var generator in generators) {
+      var ruleNames = lintRuleMap[generator] ?? {};
+      if (!_containsErrorCode(ruleNames)) {
+        var producer = generator();
+        producer.configure(context);
 
-    Future<void> compute(CorrectionProducer producer) async {
-      producer.configure(context);
+        var builder = _newDartChangeBuilder();
+        await producer.compute(builder);
 
-      var builder = _newDartChangeBuilder();
-      await producer.compute(builder);
-
-      _addAssistFromBuilder(builder, producer.assistKind,
-          args: producer.assistArguments);
-    }
-
-    Future<void> computeIfNotErrorCode(
-      CorrectionProducer producer,
-      Set<String> errorCodes,
-    ) async {
-      if (!_containsErrorCode(errorCodes)) {
-        await compute(producer);
+        _addAssistFromBuilder(builder, producer.assistKind,
+            args: producer.assistArguments);
       }
     }
-
-    await computeIfNotErrorCode(
-      AddReturnType(),
-      {LintNames.always_declare_return_types},
-    );
-    await computeIfNotErrorCode(
-      AddDiagnosticPropertyReference(),
-      {LintNames.diagnostic_describe_all_properties},
-    );
-    await computeIfNotErrorCode(
-      AddTypeAnnotation(),
-      {LintNames.always_specify_types, LintNames.type_annotate_public_apis},
-    );
-    await computeIfNotErrorCode(
-      ConvertConditionalExpressionToIfElement(),
-      {LintNames.prefer_if_elements_to_conditional_expressions},
-    );
-    await computeIfNotErrorCode(
-      ConvertDocumentationIntoLine(),
-      {LintNames.slash_for_doc_comments},
-    );
-    await computeIfNotErrorCode(
-      ConvertMapFromIterableToForLiteral(),
-      {LintNames.prefer_for_elements_to_map_fromIterable},
-    );
-    await compute(ConvertToDoubleQuotes());
-    await computeIfNotErrorCode(
-      ConvertToSingleQuotes(),
-      {LintNames.prefer_single_quotes},
-    );
-    await computeIfNotErrorCode(
-      ConvertToExpressionFunctionBody(),
-      {LintNames.prefer_expression_function_bodies},
-    );
-    await computeIfNotErrorCode(
-      ConvertToGenericFunctionSyntax(),
-      {LintNames.prefer_generic_function_type_aliases},
-    );
-    await computeIfNotErrorCode(
-      ConvertToIntLiteral(),
-      {LintNames.prefer_int_literals},
-    );
-    await computeIfNotErrorCode(
-      ConvertToListLiteral(),
-      {LintNames.prefer_collection_literals},
-    );
-    await computeIfNotErrorCode(
-      ConvertToMapLiteral(),
-      {LintNames.prefer_collection_literals},
-    );
-    await computeIfNotErrorCode(
-      ConvertToNullAware(),
-      {LintNames.prefer_null_aware_operators},
-    );
-    await computeIfNotErrorCode(
-      ConvertToPackageImport(),
-      {LintNames.avoid_relative_lib_imports},
-    );
-    await computeIfNotErrorCode(
-      ConvertToRelativeImport(),
-      {LintNames.prefer_relative_imports},
-    );
-    await computeIfNotErrorCode(
-      ConvertToSetLiteral(),
-      {LintNames.prefer_collection_literals},
-    );
-    await compute(ExchangeOperands());
-    await computeIfNotErrorCode(
-      InlineInvocation(),
-      {LintNames.prefer_inlined_adds},
-    );
-    await compute(RemoveTypeAnnotation());
-    await computeIfNotErrorCode(
-      ReplaceWithVar(),
-      {LintNames.omit_local_variable_types},
-    );
-    await compute(ShadowField());
-    await computeIfNotErrorCode(
-      SortChildPropertyLast(),
-      {LintNames.sort_child_properties_last},
-    );
-    await compute(SplitAndCondition());
-    await computeIfNotErrorCode(
-      UseCurlyBraces(),
-      {LintNames.curly_braces_in_flow_control_structures},
-    );
-    await computeIfNotErrorCode(
-      ConvertAddAllToSpread(),
-      {LintNames.prefer_inlined_adds, LintNames.prefer_spread_collections},
-    );
   }
 
   Future<void> _addProposal_addNotNullAssert() async {
@@ -2888,6 +2828,21 @@ class AssistProcessor extends BaseProcessor {
       });
     });
     _addAssistFromBuilder(changeBuilder, kind);
+  }
+
+  /// Create and return a map that can be used to look up the names of the lints
+  /// for which a given `CorrectionProducer` will be used. This allows us to
+  /// ensure that we do not also offer the change as an assist when it's already
+  /// being offered as a fix.
+  static Map<ProducerGenerator, Set<String>> createLintRuleMap() {
+    var map = <ProducerGenerator, Set<String>>{};
+    for (var entry in FixProcessor.lintProducerMap.entries) {
+      var lintName = entry.key;
+      for (var generator in entry.value) {
+        map.putIfAbsent(generator, () => <String>{}).add(lintName);
+      }
+    }
+    return map;
   }
 
   static String _replaceSourceIndent(

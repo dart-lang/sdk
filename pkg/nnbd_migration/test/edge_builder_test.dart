@@ -2907,6 +2907,31 @@ extension E on String {}
     // metadata was visited.
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39387')
+  Future<void> test_extension_on_class_with_generic_type_arguments() async {
+    await analyze('''
+class C<T> {}
+void f(C<List> x) {}
+extension E on C<List> {
+  g() => f(this);
+}
+''');
+    // No assertions yet. This test crashes. When it stops crashing, consider
+    // adding assertion(s).
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39387')
+  Future<void> test_extension_on_function_type() async {
+    await analyze('''
+extension CurryFunction<R, S, T> on R Function(S, T) {
+  /// Curry a binary function with its first argument.
+  R Function(T) curry(S first) => (T second) => this(first, second);
+}
+''');
+    // No assertions yet. This test crashes. When it stops crashing, consider
+    // adding assertion(s).
+  }
+
   Future<void> test_field_final_does_not_override_setter() async {
     await analyze('''
 abstract class A {

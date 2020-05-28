@@ -4394,13 +4394,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
           function.requiredParameterCount ==
               function.positionalParameters.length &&
           function.namedParameters.isEmpty) {
-        push(new HForeignCode(
-            js.js.expressionTemplateYielding(_emitter
-                .staticFunctionAccess(_elementMap.getMethod(procedure))),
-            _abstractValueDomain.dynamicType,
-            <HInstruction>[],
-            nativeBehavior: NativeBehavior.PURE,
-            foreignFunction: _elementMap.getMethod(procedure)));
+        push(HFunctionReference(_elementMap.getMethod(procedure),
+            _abstractValueDomain.dynamicType));
         return true;
       }
       problem = 'does not handle a closure with optional parameters';

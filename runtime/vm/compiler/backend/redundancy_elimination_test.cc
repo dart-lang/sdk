@@ -905,7 +905,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantStoresAndLoads) {
   const char* kScript = R"(
     class Bar {
       Bar() { a = null; }
-      Object a;
+      dynamic a;
     }
 
     Bar foo() {

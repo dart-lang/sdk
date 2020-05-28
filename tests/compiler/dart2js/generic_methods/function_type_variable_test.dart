@@ -94,7 +94,7 @@ main() {
       new C5<num>().F18();
     }
     """),
-        options: [Flags.printLegacyStars]);
+        options: [Flags.noSoundNullSafety, Flags.printLegacyStars]);
 
     var types = env.types;
 

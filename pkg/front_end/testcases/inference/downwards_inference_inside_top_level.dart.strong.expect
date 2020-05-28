@@ -33,6 +33,8 @@ class B<T extends core::Object* = dynamic> extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
   abstract member-signature get runtimeType() → core::Type*;
 }
-static field self::A* t1 = let final self::A* #t1 = new self::A::•() in let final void #t2 = #t1.{self::A::b} = new self::B::•<core::int*>(1) in #t1;
+static field self::A* t1 = let final self::A* #t1 = new self::A::•() in block {
+  #t1.{self::A::b} = new self::B::•<core::int*>(1);
+} =>#t1;
 static field core::List<self::B<core::int*>*>* t2 = <self::B<core::int*>*>[new self::B::•<core::int*>(2)];
 static method main() → dynamic {}

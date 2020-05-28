@@ -425,7 +425,7 @@ main() {
     assertType(instanceCreation, 'A*');
 
     _assertLegacyMember(
-      instanceCreation.staticElement,
+      instanceCreation.constructorName.staticElement,
       _import_a.unnamedConstructor('A'),
     );
   }
@@ -448,7 +448,7 @@ main() {
     assertType(instanceCreation, 'A<int*>*');
 
     _assertLegacyMember(
-      instanceCreation.staticElement,
+      instanceCreation.constructorName.staticElement,
       _import_a.unnamedConstructor('A'),
       expectedSubstitution: {'T': 'int*'},
     );

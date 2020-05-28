@@ -2735,10 +2735,7 @@ abstract class ElementImpl implements Element {
   int get hashCode {
     // TODO: We might want to re-visit this optimization in the future.
     // We cache the hash code value as this is a very frequently called method.
-    if (_cachedHashCode == null) {
-      _cachedHashCode = location.hashCode;
-    }
-    return _cachedHashCode;
+    return _cachedHashCode ??= location.hashCode;
   }
 
   @override
@@ -3060,9 +3057,7 @@ abstract class ElementImpl implements Element {
 
   @override
   String getExtendedDisplayName(String shortName) {
-    if (shortName == null) {
-      shortName = displayName;
-    }
+    shortName ??= displayName;
     Source source = this.source;
     if (source != null) {
       return "$shortName (${source.fullName})";

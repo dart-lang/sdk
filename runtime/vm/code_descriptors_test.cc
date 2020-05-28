@@ -52,7 +52,7 @@ TEST_CASE(StackMapGC) {
       "    i = 10; s1 = 'abcd'; k = 20; s2 = 'B'; s3 = 'C';"
       "    func(i, k);"
       "    return i + k; }"
-      "  static int moo() {"
+      "  static void moo() {"
       "    var i = A.foo();"
       "    if (i != 30) throw '$i != 30';"
       "  }\n"

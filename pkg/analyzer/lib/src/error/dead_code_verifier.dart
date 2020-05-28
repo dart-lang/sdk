@@ -331,9 +331,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     for (SimpleIdentifier name in names) {
       String nameStr = name.name;
       Element element = namespace.get(nameStr);
-      if (element == null) {
-        element = namespace.get("$nameStr=");
-      }
+      element ??= namespace.get("$nameStr=");
       if (element == null) {
         _errorReporter
             .reportErrorForNode(hintCode, name, [library.identifier, nameStr]);
@@ -582,7 +580,7 @@ class _CatchClausesVerifier {
   final List<CatchClause> catchClauses;
 
   bool _done = false;
-  List<DartType> _visitedTypes = <DartType>[];
+  final List<DartType> _visitedTypes = <DartType>[];
 
   _CatchClausesVerifier(
     this._typeSystem,

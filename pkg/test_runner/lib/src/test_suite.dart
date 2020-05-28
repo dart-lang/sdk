@@ -305,15 +305,16 @@ class VMTestSuite extends TestSuite {
         hasRuntimeError: testExpectation == Expectation.runtimeError,
         hasStaticWarning: false,
         hasCrash: testExpectation == Expectation.crash);
-
     var filename = configuration.architecture == Architecture.x64
         ? '$buildDir/gen/kernel-service.dart.snapshot'
         : '$buildDir/gen/kernel_service.dill';
     var dfePath = Path(filename).absolute.toNativePath();
     var args = [
-      if (expectations.contains(Expectation.crash)) '--suppress-core-dump',
       // '--dfe' has to be the first argument for run_vm_test to pick it up.
       '--dfe=$dfePath',
+      if (expectations.contains(Expectation.crash)) '--suppress-core-dump',
+      if (configuration.experiments.isNotEmpty)
+        '--enable-experiment=${configuration.experiments.join(",")}',
       ...configuration.standardOptions,
       ...configuration.vmOptions,
       test.name

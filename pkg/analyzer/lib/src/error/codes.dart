@@ -1430,7 +1430,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   static const CompileTimeErrorCode CONST_WITH_NON_TYPE = CompileTimeErrorCode(
       'CONST_WITH_NON_TYPE', "The name '{0}' isn't a class.",
-      correction: "Try correcting the name to match an existing class.");
+      correction: "Try correcting the name to match an existing class.",
+      isUnresolvedIdentifier: true);
 
   /**
    * 16.12.2 Const: If <i>T</i> is a parameterized type, it is a compile-time
@@ -2117,7 +2118,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       correction:
           "Try specifying a different superclass, or removing the extends "
           "clause.",
-      hasPublishedDocs: true);
+      hasPublishedDocs: true,
+      isUnresolvedIdentifier: true);
 
   /**
    * Parameters:
@@ -9191,7 +9193,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
    */
   static const StaticWarningCode NEW_WITH_NON_TYPE = StaticWarningCode(
       'NEW_WITH_NON_TYPE', "The name '{0}' isn't a class.",
-      correction: "Try correcting the name to match an existing class.");
+      correction: "Try correcting the name to match an existing class.",
+      isUnresolvedIdentifier: true);
 
   /**
    * 12.11.1 New: If <i>T</i> is a class or parameterized type accessible in the

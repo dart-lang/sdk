@@ -68,7 +68,7 @@ TEST_CASE(OldGC_Unsync) {
 TEST_CASE(LargeSweep) {
   const char* kScriptChars =
       "main() {\n"
-      "  return new List(8 * 1024 * 1024);\n"
+      "  return List.filled(8 * 1024 * 1024, null);\n"
       "}\n";
   NOT_IN_PRODUCT(FLAG_verbose_gc = true);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);

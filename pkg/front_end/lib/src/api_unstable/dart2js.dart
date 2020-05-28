@@ -51,6 +51,7 @@ export 'package:_fe_analyzer_shared/src/messages/codes.dart'
 export 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show
         DiagnosticMessage,
+        DiagnosticMessageHandler,
         getMessageCharOffset,
         getMessageHeaderText,
         getMessageLength,
@@ -109,6 +110,9 @@ export '../api_prototype/file_system.dart'
 
 export '../api_prototype/kernel_generator.dart' show kernelForProgram;
 
+export '../api_prototype/language_version.dart'
+    show uriUsesLegacyLanguageVersion;
+
 export '../api_prototype/standard_file_system.dart' show DataFileSystemEntity;
 
 export '../base/nnbd_mode.dart' show NnbdMode;
@@ -135,17 +139,21 @@ InitializedCompilerState initializeCompiler(
     Uri librariesSpecificationUri,
     List<Uri> additionalDills,
     Uri packagesFileUri,
-    {List<Uri> dependencies,
-    Map<ExperimentalFlag, bool> experimentalFlags,
+    {Map<ExperimentalFlag, bool> experimentalFlags,
     bool verify: false,
     NnbdMode nnbdMode}) {
   additionalDills.sort((a, b) => a.toString().compareTo(b.toString()));
 
+  // We don't check `target` because it doesn't support '==' and each
+  // compilation passes a fresh target. However, we pass a logically identical
+  // target each time, so it is safe to assume that it never changes.
   if (oldState != null &&
       oldState.options.packagesFileUri == packagesFileUri &&
       oldState.options.librariesSpecificationUri == librariesSpecificationUri &&
       equalLists(oldState.options.additionalDills, additionalDills) &&
-      equalMaps(oldState.options.experimentalFlags, experimentalFlags)) {
+      equalMaps(oldState.options.experimentalFlags, experimentalFlags) &&
+      oldState.options.verify == verify &&
+      oldState.options.nnbdMode == nnbdMode) {
     return oldState;
   }
 

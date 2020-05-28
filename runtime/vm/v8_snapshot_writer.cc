@@ -34,6 +34,16 @@ V8SnapshotProfileWriter::V8SnapshotProfileWriter(Zone* zone)
 
   strings_.Insert({"<unknown>", kUnknownString});
   strings_.Insert({"<artificial root>", kArtificialRootString});
+
+  nodes_.Insert({ArtificialRootId(),
+                 {
+                     kArtificialRoot,
+                     kArtificialRootString,
+                     ArtificialRootId(),
+                     0,
+                     nullptr,
+                     0,
+                 }});
 }
 
 void V8SnapshotProfileWriter::SetObjectTypeAndName(ObjectId object_id,
@@ -90,10 +100,9 @@ V8SnapshotProfileWriter::NodeInfo V8SnapshotProfileWriter::DefaultNode(
   };
 }
 
-V8SnapshotProfileWriter::NodeInfo V8SnapshotProfileWriter::ArtificialRoot() {
-  return {
-      kArtificialRoot, kArtificialRootString, {kArtificial, 0}, 0, nullptr, 0,
-  };
+const V8SnapshotProfileWriter::NodeInfo&
+V8SnapshotProfileWriter::ArtificialRoot() {
+  return nodes_.Lookup(ArtificialRootId())->value;
 }
 
 V8SnapshotProfileWriter::NodeInfo* V8SnapshotProfileWriter::EnsureId(
@@ -212,8 +221,7 @@ void V8SnapshotProfileWriter::Write(JSONWriter* writer) {
 
     writer->CloseObject();
 
-    writer->PrintProperty64("node_count",
-                            nodes_.Size() + 1 /* artificial root */);
+    writer->PrintProperty64("node_count", nodes_.Size());
     writer->PrintProperty64("edge_count", edge_count_ + roots_.Size());
   }
   writer->CloseObject();
@@ -227,6 +235,9 @@ void V8SnapshotProfileWriter::Write(JSONWriter* writer) {
     auto it = nodes_.GetIterator();
     while ((entry = it.Next()) != nullptr) {
       ASSERT(entry->key == entry->value.id);
+      if (entry->value.id == ArtificialRootId()) {
+        continue;  // Written separately above.
+      }
       entry->value.offset = offset;
       WriteNodeInfo(writer, entry->value);
       offset += kNumNodeFields;
@@ -250,6 +261,10 @@ void V8SnapshotProfileWriter::Write(JSONWriter* writer) {
 
     auto nodes_it = nodes_.GetIterator();
     while ((entry = nodes_it.Next()) != nullptr) {
+      if (entry->value.edges == nullptr) {
+        continue;  // Artificial root, its edges are written separately above.
+      }
+
       for (intptr_t i = 0; i < entry->value.edges->length(); ++i) {
         WriteEdgeInfo(writer, entry->value.edges->At(i));
       }

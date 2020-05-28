@@ -61,8 +61,8 @@ class FileState {
   final List<FileState> importedFiles = [];
   final List<FileState> exportedFiles = [];
   final List<FileState> partedFiles = [];
-  final Set<FileState> directReferencedFiles = Set();
-  final Set<FileState> directReferencedLibraries = Set();
+  final Set<FileState> directReferencedFiles = {};
+  final Set<FileState> directReferencedLibraries = {};
   final List<FileState> libraryFiles = [];
   FileState partOfLibrary;
 
@@ -545,7 +545,7 @@ class LibraryCycle {
   final List<FileState> libraries = [];
 
   /// The library cycles that this cycle references directly.
-  final Set<LibraryCycle> directDependencies = Set<LibraryCycle>();
+  final Set<LibraryCycle> directDependencies = <LibraryCycle>{};
 
   /// The transitive signature of this cycle.
   ///

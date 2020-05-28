@@ -41,8 +41,8 @@ library from "org-dartlang-test:///main.dart" as main {
   static field dart.core::bool _#_extension#0|field8#isSet = false;
   static get field1() → dart.core::int? {
     if(!main::_#field1#isSet) {
-      main::_#field1#isSet = true;
       main::_#field1 = 42;
+      main::_#field1#isSet = true;
     }
     return main::_#field1;
   }
@@ -61,8 +61,8 @@ library from "org-dartlang-test:///main.dart" as main {
       final dart.core::int? #t3 = 42;
       if(main::_#field3#isSet)
         throw new dart._internal::LateInitializationErrorImpl::•("Field 'field3' has been assigned during initialization.");
-      main::_#field3#isSet = true;
       main::_#field3 = #t3;
+      main::_#field3#isSet = true;
     }
     return main::_#field3;
   }
@@ -77,8 +77,8 @@ library from "org-dartlang-test:///main.dart" as main {
     }
   static get _extension#0|field5() → dart.core::int? {
     if(!main::_#_extension#0|field5#isSet) {
-      main::_#_extension#0|field5#isSet = true;
       main::_#_extension#0|field5 = 42;
+      main::_#_extension#0|field5#isSet = true;
     }
     return main::_#_extension#0|field5;
   }
@@ -97,8 +97,8 @@ library from "org-dartlang-test:///main.dart" as main {
       final dart.core::int? #t7 = 42;
       if(main::_#_extension#0|field7#isSet)
         throw new dart._internal::LateInitializationErrorImpl::•("Field 'field7' has been assigned during initialization.");
-      main::_#_extension#0|field7#isSet = true;
       main::_#_extension#0|field7 = #t7;
+      main::_#_extension#0|field7#isSet = true;
     }
     return main::_#_extension#0|field7;
   }

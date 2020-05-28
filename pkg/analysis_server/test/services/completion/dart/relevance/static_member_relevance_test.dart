@@ -54,11 +54,14 @@ void g() {
   C.^
 }
 ''');
+    // The order below is dependent on generated data, so it can validly change
+    // when the data is re-generated.
+    // Getters, setters and fields now all have the same relevance.
     assertOrder([
-      suggestionWith(completion: 'g'),
-      suggestionWith(completion: 's'),
-      suggestionWith(completion: 'm'),
+//      suggestionWith(completion: 'g'),
+//      suggestionWith(completion: 's'),
       suggestionWith(completion: 'f'),
+      suggestionWith(completion: 'm'),
     ]);
   }
 

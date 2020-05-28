@@ -233,6 +233,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   AnalysisDriverTestView _testView;
 
+  FeatureSetProvider featureSetProvider;
+
   FileSystemState _fsState;
 
   /// The [FileTracker] used by this driver.
@@ -1479,7 +1481,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   void _createFileTracker() {
     _fillSalt();
 
-    var featureSetProvider = FeatureSetProvider.build(
+    featureSetProvider = FeatureSetProvider.build(
       sourceFactory: sourceFactory,
       packages: _packages,
       packageDefaultFeatureSet: _analysisOptions.contextFeatures,

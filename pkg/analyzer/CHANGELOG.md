@@ -1,6 +1,8 @@
 ## 0.39.9-dev
 * Deprecated `DartType.isObject`, use `DartType.isDartCoreObject` for
   consistency with other similar getters.
+* Deprecated `InstanceCreationExpression.staticElement`, use
+  `constructorName.staticElement` instead, like for `MethodInvocation`.
 
 ## 0.39.8
 * Deprecated `VariableElement.constantValue`, it does not guarantee that

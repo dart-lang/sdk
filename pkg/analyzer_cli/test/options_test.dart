@@ -59,7 +59,6 @@ void main() {
         expect(options.ignoreUnrecognizedFlags, isFalse);
         expect(options.log, isFalse);
         expect(options.machineFormat, isFalse);
-        expect(options.packageRootPath, isNull);
         expect(options.batchMode, isFalse);
         expect(options.showPackageWarnings, isFalse);
         expect(options.showSdkWarnings, isFalse);
@@ -188,12 +187,6 @@ void main() {
         expect(options.lints, isTrue);
       });
 
-      test('package root', () {
-        var options = CommandLineOptions.parse(
-            ['--dart-sdk', '.', '--package-root', 'bar', 'foo.dart']);
-        expect(options.packageRootPath, equals('bar'));
-      });
-
       test('package warnings', () {
         var options = CommandLineOptions.parse(
             ['--dart-sdk', '.', '--package-warnings', 'foo.dart']);
@@ -236,15 +229,6 @@ void main() {
         var options = CommandLineOptions.parse(
             ['--dart-sdk', '.', '--fatal-lints', 'foo.dart']);
         expect(options.lintsAreFatal, isTrue);
-      });
-
-      test("can't specify package and package-root", () {
-        var failureMessage;
-        CommandLineOptions.parse(
-            ['--package-root', '.', '--packages', '.', 'foo.dart'],
-            printAndFail: (msg) => failureMessage = msg);
-        expect(failureMessage,
-            equals("Cannot specify both '--package-root' and '--packages."));
       });
 
       test('bad SDK dir', () {

@@ -72,7 +72,10 @@ void FUNCTION_NAME(Platform_ResolvedExecutableName)(Dart_NativeArguments args) {
 void FUNCTION_NAME(Platform_ExecutableArguments)(Dart_NativeArguments args) {
   int end = Platform::GetScriptIndex();
   char** argv = Platform::GetArgv();
-  Dart_Handle result = Dart_NewListOf(Dart_CoreType_String, end - 1);
+  Dart_Handle string_type = DartUtils::GetDartType("dart:core", "String");
+  ThrowIfError(string_type);
+  Dart_Handle result =
+      Dart_NewListOfTypeFilled(string_type, Dart_EmptyString(), end - 1);
   for (intptr_t i = 1; i < end; i++) {
     Dart_Handle str = DartUtils::NewString(argv[i]);
     ThrowIfError(str);

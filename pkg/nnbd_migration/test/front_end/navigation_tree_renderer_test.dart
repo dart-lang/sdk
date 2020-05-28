@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
 import 'package:nnbd_migration/src/front_end/navigation_tree_renderer.dart';
 import 'package:nnbd_migration/src/front_end/path_mapper.dart';
 import 'package:nnbd_migration/src/front_end/web/navigation_tree.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:path/path.dart' as path;
 
 import 'nnbd_migration_test_base.dart';
 

@@ -45,6 +45,7 @@ abstract class HVisitor<R> {
   R visitExitTry(HExitTry node);
   R visitFieldGet(HFieldGet node);
   R visitFieldSet(HFieldSet node);
+  R visitFunctionReference(HFunctionReference node);
   R visitInvokeExternal(HInvokeExternal node);
   R visitForeignCode(HForeignCode node);
   R visitGetLength(HGetLength node);
@@ -470,6 +471,8 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitFieldGet(HFieldGet node) => visitFieldAccess(node);
   @override
   visitFieldSet(HFieldSet node) => visitFieldAccess(node);
+  @override
+  visitFunctionReference(HFunctionReference node) => visitInstruction(node);
   @override
   visitInvokeExternal(HInvokeExternal node) => visitInstruction(node);
   @override
@@ -1083,13 +1086,14 @@ abstract class HInstruction implements Spannable {
   static const int STATIC_TYPECODE = 21;
   static const int STATIC_STORE_TYPECODE = 22;
   static const int FIELD_GET_TYPECODE = 23;
-  static const int TYPE_CONVERSION_TYPECODE = 24;
-  static const int TYPE_KNOWN_TYPECODE = 25;
-  static const int INVOKE_STATIC_TYPECODE = 26;
-  static const int INDEX_TYPECODE = 27;
-  static const int IS_TYPECODE = 28;
-  static const int INVOKE_DYNAMIC_TYPECODE = 29;
-  static const int SHIFT_RIGHT_TYPECODE = 30;
+  static const int FUNCTION_REFERENCE_TYPECODE = 24;
+  static const int TYPE_CONVERSION_TYPECODE = 25;
+  static const int TYPE_KNOWN_TYPECODE = 26;
+  static const int INVOKE_STATIC_TYPECODE = 27;
+  static const int INDEX_TYPECODE = 28;
+  static const int IS_TYPECODE = 29;
+  static const int INVOKE_DYNAMIC_TYPECODE = 30;
+  static const int SHIFT_RIGHT_TYPECODE = 31;
 
   static const int TRUNCATING_DIVIDE_TYPECODE = 36;
   static const int IS_VIA_INTERCEPTOR_TYPECODE = 37;
@@ -2166,6 +2170,28 @@ class HFieldSet extends HFieldAccess {
   String toString() => "FieldSet(element=$element,type=$instructionType)";
 }
 
+// Raw reference to a function.
+class HFunctionReference extends HInstruction {
+  FunctionEntity element;
+  HFunctionReference(this.element, AbstractValue type) : super([], type) {
+    sideEffects.clearAllSideEffects();
+    sideEffects.clearAllDependencies();
+    setUseGvn();
+  }
+
+  @override
+  accept(HVisitor visitor) => visitor.visitFunctionReference(this);
+
+  @override
+  int typeCode() => HInstruction.FUNCTION_REFERENCE_TYPECODE;
+  @override
+  bool typeEquals(other) => other is HFunctionReference;
+  @override
+  bool dataEquals(HFunctionReference other) => element == other.element;
+  @override
+  String toString() => "FunctionReference($element)";
+}
+
 class HGetLength extends HInstruction {
   final bool isAssignable;
   HGetLength(HInstruction receiver, AbstractValue type,
@@ -2412,14 +2438,12 @@ class HForeignCode extends HForeign {
   @override
   final NativeBehavior nativeBehavior;
   NativeThrowBehavior throwBehavior;
-  final FunctionEntity foreignFunction;
 
   HForeignCode(this.codeTemplate, AbstractValue type, List<HInstruction> inputs,
       {this.isStatement: false,
       SideEffects effects,
       NativeBehavior nativeBehavior,
-      NativeThrowBehavior throwBehavior,
-      this.foreignFunction})
+      NativeThrowBehavior throwBehavior})
       : this.nativeBehavior = nativeBehavior,
         this.throwBehavior = throwBehavior,
         super(type, inputs) {

@@ -9,11 +9,10 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart' hide Declaration;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
-import 'package:analyzer/src/dart/ast/element_locator.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/testing/element_search.dart';
+import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -77,6 +76,9 @@ class SearchTest extends BaseAnalysisDriverTest {
   CompilationUnitElement testUnitElement;
   LibraryElement testLibraryElement;
 
+  FindNode findNode;
+  FindElement findElement;
+
   test_classMembers_class() async {
     await _resolveTestUnit('''
 class A {
@@ -90,8 +92,8 @@ class B {
   }
 }
 ''');
-    ClassElement a = _findElement('A');
-    ClassElement b = _findElement('B');
+    var a = findElement.class_('A');
+    var b = findElement.class_('B');
     expect(await driver.search.classMembers('test'),
         unorderedEquals([a.methods[0], b.fields[0]]));
   }
@@ -116,8 +118,8 @@ mixin B {
   }
 }
 ''');
-    ClassElement a = _findElement('A');
-    ClassElement b = _findElement('B');
+    var a = findElement.mixin('A');
+    var b = findElement.mixin('B');
     expect(await driver.search.classMembers('test'),
         unorderedEquals([a.methods[0], b.fields[0]]));
   }
@@ -146,7 +148,7 @@ main(p) {
   p.test();
 }
 ''');
-    Element main = _findElement('main');
+    var main = findElement.function('main');
     await _verifyNameReferences('test', <ExpectedResult>[
       _expectIdQU(main, SearchResultKind.READ, 'test);'),
       _expectIdQU(main, SearchResultKind.WRITE, 'test = 1;'),
@@ -181,7 +183,7 @@ class C {
   }
 }
 ''');
-    Element main = _findElement('main');
+    var main = findElement.method('main');
     await _verifyNameReferences('test', <ExpectedResult>[
       _expectIdU(main, SearchResultKind.READ, 'test);'),
       _expectIdU(main, SearchResultKind.WRITE, 'test = 1;'),
@@ -206,8 +208,8 @@ Random v2;
       randomElement = result.unit.declaredElement.getType('Random');
     }
 
-    Element v1 = _findElement('v1');
-    Element v2 = _findElement('v2');
+    var v1 = findElement.topVar('v1');
+    var v2 = findElement.topVar('v2');
     var expected = [
       _expectId(v1, SearchResultKind.REFERENCE, 'Random v1;'),
       _expectId(v2, SearchResultKind.REFERENCE, 'Random v2;'),
@@ -222,8 +224,8 @@ Random v1;
 Random v2;
 ''');
 
-    var v1 = _findElement('v1') as VariableElement;
-    var v2 = _findElement('v2') as VariableElement;
+    var v1 = findElement.topVar('v1');
+    var v2 = findElement.topVar('v2');
     var randomElement = v1.type.element as ClassElement;
     var expected = [
       _expectId(v1, SearchResultKind.REFERENCE, 'Random v1;'),
@@ -243,13 +245,13 @@ class B2 implements A {} // implements
 class B3 extends Object with A {} // with
 List<A> v2 = null;
 ''');
-    ClassElement element = _findElementAtString('A {}');
-    Element p = _findElement('p');
-    Element main = _findElement('main');
-    Element b1 = _findElement('B1');
-    Element b2 = _findElement('B2');
-    Element b3 = _findElement('B3');
-    Element v2 = _findElement('v2');
+    var element = findElement.class_('A');
+    var p = findElement.parameter('p');
+    var main = findElement.function('main');
+    var b1 = findElement.class_('B1');
+    var b2 = findElement.class_('B2');
+    var b3 = findElement.class_('B3');
+    var v2 = findElement.topVar('v2');
     var expected = [
       _expectId(p, SearchResultKind.REFERENCE, 'A p'),
       _expectId(main, SearchResultKind.REFERENCE, 'A v'),
@@ -271,9 +273,9 @@ main(A p) {
   A v;
 }
 ''');
-    ClassElement element = _findElementAtString('A p');
-    Element p = _findElement('p');
-    Element main = _findElement('main');
+    var element = findNode.simple('A p').staticElement;
+    var p = findElement.parameter('p');
+    var main = findElement.function('main');
     var expected = [
       _expectId(p, SearchResultKind.REFERENCE, 'A p'),
       _expectId(main, SearchResultKind.REFERENCE, 'A v')
@@ -286,8 +288,8 @@ main(A p) {
 mixin A {}
 class B extends Object with A {} // with
 ''');
-    ClassElement element = _findElementAtString('A {}');
-    Element b = _findElement('B');
+    var element = findElement.mixin('A');
+    var b = findElement.class_('B');
     var expected = [
       _expectId(b, SearchResultKind.REFERENCE, 'A {} // with'),
     ];
@@ -323,10 +325,10 @@ main() {
   new A();
 }
 ''');
-    ConstructorElement element = _findElementAtString('A() {}');
-    Element mainElement = _findElement('main');
+    var element = findElement.unnamedConstructor('A');
+    var main = findElement.function('main');
     var expected = [
-      _expectIdQ(mainElement, SearchResultKind.REFERENCE, '();', length: 0)
+      _expectIdQ(main, SearchResultKind.REFERENCE, '();', length: 0)
     ];
     await _verifyReferences(element, expected);
   }
@@ -347,7 +349,7 @@ class A {
   A() {}
 }
 ''');
-    ConstructorElement element = _findElementAtString('A() {}');
+    var element = findElement.unnamedConstructor('A');
 
     CompilationUnit otherUnit = (await driver.getResult(other)).unit;
     Element main = otherUnit.declaredElement.functions[0];
@@ -368,10 +370,10 @@ main() {
   new A.named();
 }
 ''');
-    ConstructorElement element = _findElement('named');
-    Element mainElement = _findElement('main');
+    var element = findElement.constructor('named');
+    var main = findElement.function('main');
     var expected = [
-      _expectIdQ(mainElement, SearchResultKind.REFERENCE, '.named();',
+      _expectIdQ(main, SearchResultKind.REFERENCE, '.named();',
           length: '.named'.length)
     ];
     await _verifyReferences(element, expected);
@@ -385,11 +387,10 @@ main() {
   new A();
 }
 ''');
-    ClassElement classElement = _findElement('A');
-    ConstructorElement element = classElement.unnamedConstructor;
-    Element mainElement = _findElement('main');
+    var element = findElement.unnamedConstructor('A');
+    var main = findElement.function('main');
     var expected = [
-      _expectIdQ(mainElement, SearchResultKind.REFERENCE, '();', length: 0)
+      _expectIdQ(main, SearchResultKind.REFERENCE, '();', length: 0)
     ];
     await _verifyReferences(element, expected);
   }
@@ -412,9 +413,9 @@ class A {
   }
 }
 ''');
-    FieldElement element = _findElement('field', ElementKind.FIELD);
-    Element main = _findElement('main');
-    Element fieldParameter = _findElement('field', ElementKind.PARAMETER);
+    var element = findElement.field('field');
+    var main = findElement.method('main');
+    var fieldParameter = findElement.parameter('field');
     var expected = [
       _expectIdQ(fieldParameter, SearchResultKind.WRITE, 'field}'),
       _expectIdQ(main, SearchResultKind.REFERENCE, 'field: 1'),
@@ -440,18 +441,18 @@ main() {
   print(MyEnum.B);
 }
 ''');
-    ClassElement enumElement = _findElement('MyEnum');
-    Element mainElement = _findElement('main');
+    var enumElement = findElement.enum_('MyEnum');
+    var main = findElement.function('main');
     await _verifyReferences(enumElement.getField('index'),
-        [_expectIdQ(mainElement, SearchResultKind.READ, 'index);')]);
+        [_expectIdQ(main, SearchResultKind.READ, 'index);')]);
     await _verifyReferences(enumElement.getField('values'),
-        [_expectIdQ(mainElement, SearchResultKind.READ, 'values);')]);
+        [_expectIdQ(main, SearchResultKind.READ, 'values);')]);
     await _verifyReferences(enumElement.getField('A'), [
-      _expectIdQ(mainElement, SearchResultKind.READ, 'A.index);'),
-      _expectIdQ(mainElement, SearchResultKind.READ, 'A);')
+      _expectIdQ(main, SearchResultKind.READ, 'A.index);'),
+      _expectIdQ(main, SearchResultKind.READ, 'A);')
     ]);
     await _verifyReferences(enumElement.getField('B'),
-        [_expectIdQ(mainElement, SearchResultKind.READ, 'B);')]);
+        [_expectIdQ(main, SearchResultKind.READ, 'B);')]);
   }
 
   test_searchReferences_FieldElement_synthetic() async {
@@ -471,8 +472,8 @@ class A {
   }
 }
 ''');
-    FieldElement element = _findElement('field', ElementKind.FIELD);
-    Element main = _findElement('main');
+    var element = findElement.field('field');
+    var main = findElement.method('main');
     var expected = [
       _expectId(main, SearchResultKind.READ, 'field); // ref-nq'),
       _expectIdQ(main, SearchResultKind.READ, 'field); // ref-q'),
@@ -492,11 +493,11 @@ main() {
   print(test);
 }
 ''');
-    FunctionElement element = _findElement('test');
-    Element mainElement = _findElement('main');
+    var element = findElement.function('test');
+    var main = findElement.function('main');
     var expected = [
-      _expectId(mainElement, SearchResultKind.INVOCATION, 'test();'),
-      _expectId(mainElement, SearchResultKind.REFERENCE, 'test);')
+      _expectId(main, SearchResultKind.INVOCATION, 'test();'),
+      _expectId(main, SearchResultKind.REFERENCE, 'test);')
     ];
     await _verifyReferences(element, expected);
   }
@@ -510,7 +511,7 @@ main() {
 }
 ''');
     FunctionElement element = findElementsByName(testUnit, 'test').single;
-    Element main = _findElement('main');
+    var main = findElement.function('main');
     var expected = [
       _expectId(main, SearchResultKind.INVOCATION, 'test();'),
       _expectId(main, SearchResultKind.REFERENCE, 'test);')
@@ -530,14 +531,14 @@ main() {
 Random bar() => null;
 ''');
     ImportElement element = testLibraryElement.imports[0];
-    Element mainElement = _findElement('main');
-    Element barElement = _findElement('bar');
+    var main = findElement.function('main');
+    var bar = findElement.function('bar');
     var kind = SearchResultKind.REFERENCE;
     var expected = [
-      _expectId(mainElement, kind, 'PI);', length: 0),
-      _expectId(mainElement, kind, 'Random()', length: 0),
-      _expectId(mainElement, kind, 'max(', length: 0),
-      _expectId(barElement, kind, 'Random bar()', length: 0),
+      _expectId(main, kind, 'PI);', length: 0),
+      _expectId(main, kind, 'Random()', length: 0),
+      _expectId(main, kind, 'max(', length: 0),
+      _expectId(bar, kind, 'Random bar()', length: 0),
     ];
     await _verifyReferences(element, expected);
   }
@@ -555,14 +556,14 @@ main() {
 Random bar() => null;
 ''', addToDriver: false);
     ImportElement element = testLibraryElement.imports[0];
-    Element mainElement = _findElement('main');
-    Element barElement = _findElement('bar');
+    var main = findElement.function('main');
+    var bar = findElement.function('bar');
     var kind = SearchResultKind.REFERENCE;
     var expected = [
-      _expectId(mainElement, kind, 'PI;', length: 0),
-      _expectId(mainElement, kind, 'Random();', length: 0),
-      _expectId(mainElement, kind, 'max(1, 2);', length: 0),
-      _expectId(barElement, kind, 'Random bar()', length: 0),
+      _expectId(main, kind, 'PI;', length: 0),
+      _expectId(main, kind, 'Random();', length: 0),
+      _expectId(main, kind, 'max(1, 2);', length: 0),
+      _expectId(bar, kind, 'Random bar()', length: 0),
     ];
     await _verifyReferences(element, expected);
   }
@@ -579,15 +580,15 @@ main() {
 math.Random bar() => null;
 ''');
     ImportElement element = testLibraryElement.imports[0];
-    Element mainElement = _findElement('main');
-    Element barElement = _findElement('bar');
+    var main = findElement.function('main');
+    var bar = findElement.function('bar');
     var kind = SearchResultKind.REFERENCE;
     var length = 'math.'.length;
     var expected = [
-      _expectId(mainElement, kind, 'math.PI);', length: length),
-      _expectId(mainElement, kind, 'math.Random()', length: length),
-      _expectId(mainElement, kind, 'math.max(', length: length),
-      _expectId(barElement, kind, 'math.Random bar()', length: length),
+      _expectId(main, kind, 'math.PI);', length: length),
+      _expectId(main, kind, 'math.Random()', length: length),
+      _expectId(main, kind, 'math.max(', length: length),
+      _expectId(bar, kind, 'math.Random bar()', length: length),
     ];
     await _verifyReferences(element, expected);
   }
@@ -601,20 +602,20 @@ main() {
   p.Future;
 }
 ''');
-    Element mainElement = _findElement('main');
+    var main = findElement.function('main');
     var kind = SearchResultKind.REFERENCE;
     var length = 'p.'.length;
     {
       ImportElement element = testLibraryElement.imports[0];
       var expected = [
-        _expectId(mainElement, kind, 'p.Future;', length: length),
+        _expectId(main, kind, 'p.Future;', length: length),
       ];
       await _verifyReferences(element, expected);
     }
     {
       ImportElement element = testLibraryElement.imports[1];
       var expected = [
-        _expectId(mainElement, kind, 'p.Random', length: length),
+        _expectId(main, kind, 'p.Random', length: length),
       ];
       await _verifyReferences(element, expected);
     }
@@ -633,7 +634,7 @@ label:
 }
 ''');
     Element element = findElementsByName(testUnit, 'label').single;
-    Element main = _findElement('main');
+    var main = findElement.function('main');
     var expected = [
       _expectId(main, SearchResultKind.REFERENCE, 'label; // 1'),
       _expectId(main, SearchResultKind.REFERENCE, 'label; // 2')
@@ -700,7 +701,7 @@ main() {
 }
 ''');
     Element element = findElementsByName(testUnit, 'v').single;
-    Element main = _findElement('main');
+    var main = findElement.function('main');
     var expected = [
       _expectId(main, SearchResultKind.WRITE, 'v = 1;'),
       _expectId(main, SearchResultKind.READ_WRITE, 'v += 2;'),
@@ -722,7 +723,7 @@ main() {
 }
 ''');
     Element element = findElementsByName(testUnit, 'v').single;
-    Element main = _findElement('main');
+    var main = findElement.function('main');
     var expected = [
       _expectId(main, SearchResultKind.WRITE, 'v = 1;'),
       _expectId(main, SearchResultKind.READ_WRITE, 'v += 2;'),
@@ -745,7 +746,7 @@ main() {
 }
 ''', addToDriver: false);
     Element element = findElementsByName(testUnit, 'v').single;
-    Element main = _findElement('main');
+    var main = findElement.function('main');
 
     var expected = [
       _expectId(main, SearchResultKind.WRITE, 'v = 1;'),
@@ -768,13 +769,13 @@ class A {
   }
 }
 ''');
-    MethodElement method = _findElement('m');
-    Element mainElement = _findElement('main');
+    var method = findElement.method('m');
+    var main = findElement.method('main');
     var expected = [
-      _expectId(mainElement, SearchResultKind.INVOCATION, 'm(); // 1'),
-      _expectIdQ(mainElement, SearchResultKind.INVOCATION, 'm(); // 2'),
-      _expectId(mainElement, SearchResultKind.REFERENCE, 'm); // 3'),
-      _expectIdQ(mainElement, SearchResultKind.REFERENCE, 'm); // 4')
+      _expectId(main, SearchResultKind.INVOCATION, 'm(); // 1'),
+      _expectIdQ(main, SearchResultKind.INVOCATION, 'm(); // 2'),
+      _expectId(main, SearchResultKind.REFERENCE, 'm); // 3'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, 'm); // 4')
     ];
     await _verifyReferences(method, expected);
   }
@@ -792,15 +793,15 @@ extension E on int {
   }
 }
 ''');
-    MethodElement method = _findElement('foo');
-    Element mainElement = _findElement('bar');
+    var foo = findElement.method('foo');
+    var bar = findElement.method('bar');
     var expected = [
-      _expectId(mainElement, SearchResultKind.INVOCATION, 'foo(); // 1'),
-      _expectIdQ(mainElement, SearchResultKind.INVOCATION, 'foo(); // 2'),
-      _expectId(mainElement, SearchResultKind.REFERENCE, 'foo); // 3'),
-      _expectIdQ(mainElement, SearchResultKind.REFERENCE, 'foo); // 4')
+      _expectId(bar, SearchResultKind.INVOCATION, 'foo(); // 1'),
+      _expectIdQ(bar, SearchResultKind.INVOCATION, 'foo(); // 2'),
+      _expectId(bar, SearchResultKind.REFERENCE, 'foo); // 3'),
+      _expectIdQ(bar, SearchResultKind.REFERENCE, 'foo); // 4')
     ];
-    await _verifyReferences(method, expected);
+    await _verifyReferences(foo, expected);
   }
 
   test_searchReferences_MethodElement_extension_unnamed() async {
@@ -816,15 +817,15 @@ extension on int {
   }
 }
 ''');
-    MethodElement method = _findElement('foo');
-    Element mainElement = _findElement('bar');
+    var foo = findElement.method('foo');
+    var bar = findElement.method('bar');
     var expected = [
-      _expectId(mainElement, SearchResultKind.INVOCATION, 'foo(); // 1'),
-      _expectIdQ(mainElement, SearchResultKind.INVOCATION, 'foo(); // 2'),
-      _expectId(mainElement, SearchResultKind.REFERENCE, 'foo); // 3'),
-      _expectIdQ(mainElement, SearchResultKind.REFERENCE, 'foo); // 4')
+      _expectId(bar, SearchResultKind.INVOCATION, 'foo(); // 1'),
+      _expectIdQ(bar, SearchResultKind.INVOCATION, 'foo(); // 2'),
+      _expectId(bar, SearchResultKind.REFERENCE, 'foo); // 3'),
+      _expectIdQ(bar, SearchResultKind.REFERENCE, 'foo); // 4')
     ];
-    await _verifyReferences(method, expected);
+    await _verifyReferences(foo, expected);
   }
 
   test_searchReferences_MethodMember_class() async {
@@ -836,10 +837,10 @@ main(A<int> a) {
   a.m(); // ref
 }
 ''');
-    MethodMember method = _findElementAtString('m(); // ref');
-    Element mainElement = _findElement('main');
+    var method = findElement.method('m');
+    var main = findElement.function('main');
     var expected = [
-      _expectIdQ(mainElement, SearchResultKind.INVOCATION, 'm(); // ref')
+      _expectIdQ(main, SearchResultKind.INVOCATION, 'm(); // ref')
     ];
     await _verifyReferences(method, expected);
   }
@@ -856,15 +857,15 @@ main() {
   foo(p: 42);
 }
 ''');
-    ParameterElement element = _findElement('p');
-    Element fooElement = _findElement('foo');
-    Element mainElement = _findElement('main');
+    var element = findElement.parameter('p');
+    var foo = findElement.function('foo');
+    var main = findElement.function('main');
     var expected = [
-      _expectId(fooElement, SearchResultKind.WRITE, 'p = 1;'),
-      _expectId(fooElement, SearchResultKind.READ_WRITE, 'p += 2;'),
-      _expectId(fooElement, SearchResultKind.READ, 'p);'),
-      _expectId(fooElement, SearchResultKind.READ, 'p();'),
-      _expectIdQ(mainElement, SearchResultKind.REFERENCE, 'p: 42')
+      _expectId(foo, SearchResultKind.WRITE, 'p = 1;'),
+      _expectId(foo, SearchResultKind.READ_WRITE, 'p += 2;'),
+      _expectId(foo, SearchResultKind.READ, 'p);'),
+      _expectId(foo, SearchResultKind.READ, 'p();'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, 'p: 42')
     ];
     await _verifyReferences(element, expected);
   }
@@ -884,15 +885,14 @@ main() {
   new C(42);
 }
 ''');
-    ParameterElement element = _findElement('p');
-    ClassElement classC = _findElement('C');
-    ConstructorElement constructorA = classC.unnamedConstructor;
+    var element = findElement.parameter('p');
+    var constructor = findElement.unnamedConstructor('C');
     var expected = [
-      _expectId(constructorA, SearchResultKind.READ, 'p + 1 {'),
-      _expectId(constructorA, SearchResultKind.WRITE, 'p = 2;'),
-      _expectId(constructorA, SearchResultKind.READ_WRITE, 'p += 3;'),
-      _expectId(constructorA, SearchResultKind.READ, 'p);'),
-      _expectId(constructorA, SearchResultKind.READ, 'p();')
+      _expectId(constructor, SearchResultKind.READ, 'p + 1 {'),
+      _expectId(constructor, SearchResultKind.WRITE, 'p = 2;'),
+      _expectId(constructor, SearchResultKind.READ_WRITE, 'p += 3;'),
+      _expectId(constructor, SearchResultKind.READ, 'p);'),
+      _expectId(constructor, SearchResultKind.READ, 'p();')
     ];
     await _verifyReferences(element, expected);
   }
@@ -909,9 +909,8 @@ main() {
   foo(42);
 }
 ''');
-    Element main = _findElement('main');
-    FunctionElement foo = findElementsByName(testUnit, 'foo').single;
-    ParameterElement element = foo.parameters.single;
+    var main = findElement.function('main');
+    var element = findElement.parameter('p');
     var expected = [
       _expectId(main, SearchResultKind.WRITE, 'p = 1;'),
       _expectId(main, SearchResultKind.READ_WRITE, 'p += 2;'),
@@ -935,13 +934,13 @@ main(C c) {
   c.foo(42);
 }
 ''');
-    ParameterElement element = _findElement('p');
-    Element fooElement = _findElement('foo');
+    var element = findElement.parameter('p');
+    var foo = findElement.method('foo');
     var expected = [
-      _expectId(fooElement, SearchResultKind.WRITE, 'p = 1;'),
-      _expectId(fooElement, SearchResultKind.READ_WRITE, 'p += 2;'),
-      _expectId(fooElement, SearchResultKind.READ, 'p);'),
-      _expectId(fooElement, SearchResultKind.READ, 'p();')
+      _expectId(foo, SearchResultKind.WRITE, 'p = 1;'),
+      _expectId(foo, SearchResultKind.READ_WRITE, 'p += 2;'),
+      _expectId(foo, SearchResultKind.READ, 'p);'),
+      _expectId(foo, SearchResultKind.READ, 'p();')
     ];
     await _verifyReferences(element, expected);
   }
@@ -958,13 +957,13 @@ main() {
   foo(42);
 }
 ''');
-    ParameterElement element = _findElement('p');
-    Element fooElement = _findElement('foo');
+    var element = findElement.parameter('p');
+    var foo = findElement.function('foo');
     var expected = [
-      _expectId(fooElement, SearchResultKind.WRITE, 'p = 1;'),
-      _expectId(fooElement, SearchResultKind.READ_WRITE, 'p += 2;'),
-      _expectId(fooElement, SearchResultKind.READ, 'p);'),
-      _expectId(fooElement, SearchResultKind.READ, 'p();')
+      _expectId(foo, SearchResultKind.WRITE, 'p = 1;'),
+      _expectId(foo, SearchResultKind.READ_WRITE, 'p += 2;'),
+      _expectId(foo, SearchResultKind.READ, 'p);'),
+      _expectId(foo, SearchResultKind.READ, 'p();')
     ];
     await _verifyReferences(element, expected);
   }
@@ -981,15 +980,15 @@ main() {
   foo(42);
 }
 ''');
-    ParameterElement element = _findElement('p');
-    Element fooElement = _findElement('foo');
-    Element mainElement = _findElement('main');
+    var element = findElement.parameter('p');
+    var foo = findElement.function('foo');
+    var main = findElement.function('main');
     var expected = [
-      _expectId(fooElement, SearchResultKind.WRITE, 'p = 1;'),
-      _expectId(fooElement, SearchResultKind.READ_WRITE, 'p += 2;'),
-      _expectId(fooElement, SearchResultKind.READ, 'p);'),
-      _expectId(fooElement, SearchResultKind.READ, 'p();'),
-      _expectIdQ(mainElement, SearchResultKind.REFERENCE, '42', length: 0)
+      _expectId(foo, SearchResultKind.WRITE, 'p = 1;'),
+      _expectId(foo, SearchResultKind.READ_WRITE, 'p += 2;'),
+      _expectId(foo, SearchResultKind.READ, 'p);'),
+      _expectId(foo, SearchResultKind.READ, 'p();'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, '42', length: 0)
     ];
     await _verifyReferences(element, expected);
   }
@@ -1009,8 +1008,8 @@ main() {
   ppp.Stream b;
 }
 ''');
-    PrefixElement element = _findElementAtString('ppp;');
-    Element main = _findElement('main');
+    var element = findElement.prefix('ppp');
+    var main = findElement.function('main');
     Element c = findChildElement(testLibraryElement, 'c');
     var expected = [
       _expectId(main, SearchResultKind.REFERENCE, 'ppp.Future'),
@@ -1039,8 +1038,8 @@ main() {
   ppp.Stream b;
 }
 ''', addToDriver: false);
-    PrefixElement element = _findElementAtString('ppp;');
-    Element main = _findElement('main');
+    var element = findElement.prefix('ppp');
+    var main = findElement.function('main');
     Element c = findChildElement(testLibraryElement, 'c');
     var expected = [
       _expectId(main, SearchResultKind.REFERENCE, 'ppp.Future'),
@@ -1073,7 +1072,7 @@ part 'part3.dart';
 class _C {}
 _C v;
 ''');
-    ClassElement element = _findElementAtString('_C {}');
+    var element = findElement.class_('_C');
     Element v = testUnitElement.topLevelVariables[0];
     Element v1 = testLibraryElement.parts[0].topLevelVariables[0];
     Element v2 = testLibraryElement.parts[1].topLevelVariables[0];
@@ -1178,8 +1177,8 @@ class A {
   }
 }
 ''');
-    PropertyAccessorElement element = _findElement('ggg', ElementKind.GETTER);
-    Element main = _findElement('main');
+    var element = findElement.getter('ggg');
+    var main = findElement.method('main');
     var expected = [
       _expectId(main, SearchResultKind.REFERENCE, 'ggg); // ref-nq'),
       _expectIdQ(main, SearchResultKind.REFERENCE, 'ggg); // ref-q'),
@@ -1199,11 +1198,11 @@ class A {
   }
 }
 ''');
-    PropertyAccessorElement element = _findElement('s=');
-    Element mainElement = _findElement('main');
+    var element = findElement.setter('s');
+    var main = findElement.method('main');
     var expected = [
-      _expectId(mainElement, SearchResultKind.REFERENCE, 's = 1'),
-      _expectIdQ(mainElement, SearchResultKind.REFERENCE, 's = 2')
+      _expectId(main, SearchResultKind.REFERENCE, 's = 1'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, 's = 2')
     ];
     await _verifyReferences(element, expected);
   }
@@ -1229,7 +1228,7 @@ main() {
     CompilationUnitElement impUnit =
         importElement.importedLibrary.definingCompilationUnit;
     TopLevelVariableElement variable = impUnit.topLevelVariables[0];
-    Element main = _findElement('main');
+    var main = findElement.function('main');
     var expected = [
       _expectIdQ(testUnitElement, SearchResultKind.REFERENCE, 'V; // imp'),
       _expectIdQ(main, SearchResultKind.WRITE, 'V = 1; // q'),
@@ -1249,9 +1248,9 @@ class A<T> {
   bar(T b) {}
 }
 ''');
-    TypeParameterElement element = _findElement('T');
-    Element a = _findElement('a');
-    Element b = _findElement('b');
+    var element = findElement.typeParameter('T');
+    var a = findElement.parameter('a');
+    var b = findElement.parameter('b');
     var expected = [
       _expectId(a, SearchResultKind.REFERENCE, 'T a'),
       _expectId(b, SearchResultKind.REFERENCE, 'T b'),
@@ -1267,9 +1266,9 @@ main() {
   }
 }
 ''');
-    Element main = _findElement('main');
-    FunctionElement foo = findElementsByName(testUnit, 'foo').single;
-    TypeParameterElement element = foo.typeParameters.single;
+    var main = findElement.function('main');
+    var foo = findElement.localFunction('foo');
+    var element = foo.typeParameters.single;
     var expected = [
       _expectId(main, SearchResultKind.REFERENCE, 'T a'),
       _expectId(main, SearchResultKind.REFERENCE, 'T b'),
@@ -1283,8 +1282,8 @@ class A {
   foo<T>(T p) {}
 }
 ''');
-    TypeParameterElement element = _findElement('T');
-    Element p = _findElement('p');
+    var element = findElement.typeParameter('T');
+    var p = findElement.parameter('p');
     var expected = [
       _expectId(p, SearchResultKind.REFERENCE, 'T p'),
     ];
@@ -1297,9 +1296,9 @@ foo<T>(T a) {
   bar(T b) {}
 }
 ''');
-    FunctionElement foo = _findElement('foo');
-    TypeParameterElement element = _findElement('T');
-    Element a = _findElement('a');
+    var foo = findElement.function('foo');
+    var element = findElement.typeParameter('T');
+    var a = findElement.parameter('a');
     var expected = [
       _expectId(a, SearchResultKind.REFERENCE, 'T a'),
       _expectId(foo, SearchResultKind.REFERENCE, 'T b'),
@@ -1314,10 +1313,10 @@ class A extends T {} // A
 class B = Object with T; // B
 class C implements T {} // C
 ''');
-    ClassElement element = _findElement('T');
-    ClassElement a = _findElement('A');
-    ClassElement b = _findElement('B');
-    ClassElement c = _findElement('C');
+    var element = findElement.class_('T');
+    var a = findElement.class_('A');
+    var b = findElement.class_('B');
+    var c = findElement.class_('C');
     var expected = [
       _expectId(a, SearchResultKind.REFERENCE, 'T {} // A'),
       _expectId(b, SearchResultKind.REFERENCE, 'T; // B'),
@@ -1332,9 +1331,9 @@ class T {}
 mixin A on T {} // A
 mixin B implements T {} // B
 ''');
-    ClassElement element = _findElement('T');
-    ClassElement a = _findElement('A');
-    ClassElement b = _findElement('B');
+    var element = findElement.class_('T');
+    var a = findElement.mixin('A');
+    var b = findElement.mixin('B');
     var expected = [
       _expectId(a, SearchResultKind.REFERENCE, 'T {} // A'),
       _expectId(b, SearchResultKind.REFERENCE, 'T {} // B'),
@@ -1364,7 +1363,7 @@ class E extends B {
 
 class F {}
 ''');
-    ClassElement a = _findElement('A');
+    var a = findElement.class_('A');
 
     // Search by 'type'.
     List<SubtypeResult> subtypes =
@@ -1509,7 +1508,7 @@ class D {}
     await _resolveTestUnit('''
 class A {}
 ''');
-    ClassElement a = _findElement('A');
+    var a = findElement.class_('A');
 
     driver.addFile(pathB);
     driver.addFile(pathC);
@@ -1541,8 +1540,8 @@ mixin M on A, B {
   void methodM() {}
 }
 ''');
-    ClassElement a = _findElement('A');
-    ClassElement b = _findElement('B');
+    var a = findElement.class_('A');
+    var b = findElement.class_('B');
 
     {
       var subtypes = await driver.search.subtypes(SearchedFiles(), type: a);
@@ -1572,7 +1571,7 @@ part of lib;
 class A {}
 class B extends A {}
 ''');
-    ClassElement a = _findElement('A');
+    var a = findElement.class_('A');
 
     List<SubtypeResult> subtypes =
         await driver.search.subtypes(SearchedFiles(), type: a);
@@ -1593,12 +1592,12 @@ e() {}
 var f = null;
 class NoMatchABCDEF {}
 ''');
-    Element a = _findElement('A');
-    Element b = _findElement('B');
-    Element c = _findElement('C');
-    Element d = _findElement('D');
-    Element e = _findElement('e');
-    Element f = _findElement('f');
+    var a = findElement.class_('A');
+    var b = findElement.class_('B');
+    var c = findElement.mixin('C');
+    var d = findElement.functionTypeAlias('D');
+    var e = findElement.function('e');
+    var f = findElement.topVar('f');
     RegExp regExp = RegExp(r'^[ABCDef]$');
     expect(await driver.search.topLevelElements(regExp),
         unorderedEquals([a, b, c, d, e, f]));
@@ -1608,9 +1607,7 @@ class NoMatchABCDEF {}
       Element enclosingElement, SearchResultKind kind, String search,
       {int length, bool isResolved = true, bool isQualified = false}) {
     int offset = findOffset(search);
-    if (length == null) {
-      length = getLeadingIdentifierLength(search);
-    }
+    length ??= getLeadingIdentifierLength(search);
     return ExpectedResult(enclosingElement, kind, offset, length,
         isResolved: isResolved, isQualified: isQualified);
   }
@@ -1644,16 +1641,6 @@ class NoMatchABCDEF {}
         isQualified: false, isResolved: false, length: length);
   }
 
-  Element _findElement(String name, [ElementKind kind]) {
-    return findChildElement(testUnit.declaredElement, name, kind);
-  }
-
-  Element _findElementAtString(String search) {
-    int offset = findOffset(search);
-    AstNode node = NodeLocator(offset).searchWithin(testUnit);
-    return ElementLocator.locate(node);
-  }
-
   Future<void> _resolveTestUnit(String code, {bool addToDriver = true}) async {
     if (addToDriver) {
       addTestFile(code);
@@ -1666,6 +1653,9 @@ class NoMatchABCDEF {}
       testUnit = result.unit;
       testUnitElement = testUnit.declaredElement;
       testLibraryElement = testUnitElement.library;
+
+      findNode = FindNode(result.content, result.unit);
+      findElement = FindElement(result.unit);
     }
   }
 
@@ -1711,8 +1701,8 @@ main() {
   E.bar();
 }
 ''');
-    var element = _findElement('E');
-    var main = _findElement('main');
+    var element = findElement.extension_('E');
+    var main = findElement.function('main');
     var expected = [
       _expectId(main, SearchResultKind.REFERENCE, 'E(0)'),
       _expectId(main, SearchResultKind.REFERENCE, 'E.bar()'),
@@ -1740,9 +1730,9 @@ main() {
   0.foo; // 8
 }
 ''');
-    var element = _findElement('foo');
-    var bar = _findElement('bar');
-    var main = _findElement('main');
+    var element = findElement.method('foo');
+    var bar = findElement.method('bar');
+    var main = findElement.function('main');
     var expected = [
       _expectId(bar, SearchResultKind.INVOCATION, 'foo(); // 1'),
       _expectIdQ(bar, SearchResultKind.INVOCATION, 'foo(); // 2'),
@@ -1772,9 +1762,9 @@ main() {
   E.foo; // 4
 }
 ''');
-    var element = _findElement('foo');
-    var bar = _findElement('bar');
-    var main = _findElement('main');
+    var element = findElement.method('foo');
+    var bar = findElement.method('bar');
+    var main = findElement.function('main');
     var expected = [
       _expectId(bar, SearchResultKind.INVOCATION, 'foo(); // 1'),
       _expectId(bar, SearchResultKind.REFERENCE, 'foo; // 2'),
@@ -1800,9 +1790,9 @@ main() {
   0.foo; // 4
 }
 ''');
-    var element = _findElement('foo', ElementKind.GETTER);
-    var bar = _findElement('bar');
-    var main = _findElement('main');
+    var element = findElement.getter('foo');
+    var bar = findElement.method('bar');
+    var main = findElement.function('main');
     var expected = [
       _expectId(bar, SearchResultKind.REFERENCE, 'foo; // 1'),
       _expectIdQ(bar, SearchResultKind.REFERENCE, 'foo; // 2'),
@@ -1828,9 +1818,9 @@ main() {
   0.foo = 4;
 }
 ''');
-    var element = _findElement('foo=');
-    var bar = _findElement('bar');
-    var main = _findElement('main');
+    var element = findElement.setter('foo');
+    var bar = findElement.method('bar');
+    var main = findElement.function('main');
     var expected = [
       _expectId(bar, SearchResultKind.REFERENCE, 'foo = 1;'),
       _expectIdQ(bar, SearchResultKind.REFERENCE, 'foo = 2;'),
@@ -1868,13 +1858,13 @@ main() {
 }
 ''');
     ImportElement element = testLibraryElement.imports[0];
-    Element mainElement = _findElement('main');
+    var main = findElement.function('main');
     var kind = SearchResultKind.REFERENCE;
     var expected = [
-      _expectId(mainElement, kind, 'N1;', length: 0),
-      _expectId(mainElement, kind, 'N2();', length: 0),
-      _expectId(mainElement, kind, 'N3;', length: 0),
-      _expectId(mainElement, kind, 'N4 =', length: 0),
+      _expectId(main, kind, 'N1;', length: 0),
+      _expectId(main, kind, 'N2();', length: 0),
+      _expectId(main, kind, 'N3;', length: 0),
+      _expectId(main, kind, 'N4 =', length: 0),
     ];
     await _verifyReferences(element, expected);
   }
@@ -1899,14 +1889,14 @@ main() {
 }
 ''');
     ImportElement element = testLibraryElement.imports[0];
-    Element mainElement = _findElement('main');
+    var main = findElement.function('main');
     var kind = SearchResultKind.REFERENCE;
     var length = 'a.'.length;
     var expected = [
-      _expectId(mainElement, kind, 'a.N1;', length: length),
-      _expectId(mainElement, kind, 'a.N2()', length: length),
-      _expectId(mainElement, kind, 'a.N3', length: length),
-      _expectId(mainElement, kind, 'a.N4', length: length),
+      _expectId(main, kind, 'a.N1;', length: length),
+      _expectId(main, kind, 'a.N2()', length: length),
+      _expectId(main, kind, 'a.N3', length: length),
+      _expectId(main, kind, 'a.N4', length: length),
     ];
     await _verifyReferences(element, expected);
   }

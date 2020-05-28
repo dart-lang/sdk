@@ -1794,7 +1794,6 @@ class ResolverVisitor extends ScopedVisitor {
         );
         constructorElement = toLegacyElement(constructorElement);
         constructor.staticElement = constructorElement;
-        node.staticElement = constructor.staticElement;
       }
     }
 

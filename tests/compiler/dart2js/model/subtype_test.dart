@@ -8,6 +8,7 @@ library subtype_test;
 
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart' show ClassEntity;
 import 'package:compiler/src/elements/types.dart';
 import 'package:expect/expect.dart';
@@ -60,7 +61,8 @@ Future testInterfaceSubtype() async {
       main() {
         new C();
       }
-      """, expectNoErrors: true).then((env) {
+      """, options: [Flags.noSoundNullSafety], expectNoErrors: true)
+      .then((env) {
     void expect(bool expectSubtype, DartType T, DartType S) {
       testTypes(env, T, S, expectSubtype);
     }
@@ -318,7 +320,8 @@ Future testCallableSubtype() async {
         a.m4(null, null);
         a.m5(null, null);
       }
-      """, expectNoErrors: true).then((env) {
+      """, options: [Flags.noSoundNullSafety], expectNoErrors: true)
+      .then((env) {
     void expect(bool expectSubtype, DartType T, DartType S) {
       testTypes(env, T, S, expectSubtype);
     }
@@ -371,6 +374,7 @@ Future testFunctionSubtyping() async {
     ${createUses(functionTypesData)}
   }
   """),
+          options: [Flags.noSoundNullSafety],
           expectNoErrors: true)
       .then(functionSubtypingHelper);
 }
@@ -382,6 +386,7 @@ Future testTypedefSubtyping() async {
     ${createUses(functionTypesData)}
   }
   """),
+          options: [Flags.noSoundNullSafety],
           expectNoErrors: true)
       .then(functionSubtypingHelper);
 }
@@ -464,6 +469,7 @@ Future testFunctionSubtypingOptional() async {
     ${createUses(optionalFunctionTypesData)}
   }
   """),
+          options: [Flags.noSoundNullSafety],
           expectNoErrors: true)
       .then((env) => functionSubtypingOptionalHelper(env));
 }
@@ -475,6 +481,7 @@ Future testTypedefSubtypingOptional() async {
     ${createUses(optionalFunctionTypesData)}
   }
   """),
+          options: [Flags.noSoundNullSafety],
           expectNoErrors: true)
       .then((env) => functionSubtypingOptionalHelper(env));
 }
@@ -545,6 +552,7 @@ Future testFunctionSubtypingNamed() async {
     ${createUses(namedFunctionTypesData)}
   }
   """),
+          options: [Flags.noSoundNullSafety],
           expectNoErrors: true)
       .then((env) => functionSubtypingNamedHelper(env));
 }
@@ -556,6 +564,7 @@ Future testTypedefSubtypingNamed() async {
     ${createUses(namedFunctionTypesData)}
   }
   """),
+          options: [Flags.noSoundNullSafety],
           expectNoErrors: true)
       .then((env) => functionSubtypingNamedHelper(env));
 }
@@ -612,7 +621,8 @@ Future testTypeVariableSubtype() async {
         new E<int, num>();
         new F();
       }
-      """, expectNoErrors: true).then((env) {
+      """, options: [Flags.noSoundNullSafety], expectNoErrors: true)
+      .then((env) {
     void expect(bool expectSubtype, DartType T, DartType S) {
       testTypes(env, T, S, expectSubtype);
     }
@@ -745,7 +755,8 @@ Future testStrongModeSubtyping() async {
         takeVoid(null);
         takeObject(null);
       }
-      """, expectNoErrors: true).then((env) {
+      """, options: [Flags.noSoundNullSafety], expectNoErrors: true)
+      .then((env) {
     void expect(bool expectSubtype, DartType T, DartType S) {
       Expect.equals(expectSubtype, env.isSubtype(T, S), '$T <: $S');
       if (expectSubtype) {

@@ -1399,7 +1399,11 @@ class Type extends Member {
     gen.writeln();
     if (docs != null) gen.writeDocs(docs);
     gen.write('class ${name} ');
-    if (superName != null) gen.write('extends ${superName} ');
+    Type superType;
+    if (superName != null) {
+      superType = parent.getType(superName);
+      gen.write('extends ${superName} ');
+    }
     if (parent.getType('${name}Ref') != null) {
       gen.write('implements ${name}Ref ');
     }
@@ -1422,6 +1426,8 @@ class Type extends Member {
 
     // ctors
 
+    bool hasRequiredParentFields = superType != null &&
+        (superType.name == 'ObjRef' || superType.name == 'Obj');
     // Default
     gen.write('${name}(');
     if (fields.isNotEmpty) {
@@ -1429,12 +1435,25 @@ class Type extends Member {
       fields
           .where((field) => !field.optional)
           .forEach((field) => field.generateNamedParameter(gen));
+      if (hasRequiredParentFields) {
+        superType.fields.where((field) => !field.optional).forEach(
+            (field) => field.generateNamedParameter(gen, fromParent: true));
+      }
       fields
           .where((field) => field.optional)
           .forEach((field) => field.generateNamedParameter(gen));
       gen.write('}');
     }
-    gen.writeln(');');
+    gen.write(')');
+    if (hasRequiredParentFields) {
+      gen.write(' : super(');
+      superType.fields.where((field) => !field.optional).forEach((field) {
+        String name = field.generatableName;
+        gen.write('$name: $name');
+      });
+      gen.write(')');
+    }
+    gen.writeln(';');
 
     // Build from JSON.
     gen.writeln();
@@ -1833,11 +1852,17 @@ class TypeField extends Member {
     if (parent.fields.any((field) => field.hasDocs)) gen.writeln();
   }
 
-  void generateNamedParameter(DartGenerator gen) {
+  void generateNamedParameter(DartGenerator gen, {bool fromParent = false}) {
     if (!optional) {
       gen.write('@required ');
     }
-    gen.writeStatement('this.${generatableName},');
+    if (fromParent) {
+      String typeName =
+          api.isEnumName(type.name) ? '/*${type.name}*/ String' : type.name;
+      gen.writeStatement('$typeName ${generatableName},');
+    } else {
+      gen.writeStatement('this.${generatableName},');
+    }
   }
 }
 

@@ -1582,7 +1582,6 @@ void ConstantPropagator::Transform() {
       for (PhiIterator it(join); !it.Done(); it.Advance()) {
         auto phi = it.Current();
         if (TransformDefinition(phi)) {
-          phi->UnuseAllInputs();
           it.RemoveCurrentFromGraph();
         }
       }

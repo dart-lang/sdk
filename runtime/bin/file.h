@@ -261,9 +261,12 @@ class File : public ReferenceCounted<File> {
   // The result will be populated into dest.
   static const char* LinkTarget(Namespace* namespc,
                                 const char* pathname,
-                                char* dest = NULL,
+                                char* dest = nullptr,
                                 int dest_size = 0);
-  static const char* GetCanonicalPath(Namespace* namespc, const char* path);
+  static const char* GetCanonicalPath(Namespace* namespc,
+                                      const char* path,
+                                      char* dest = nullptr,
+                                      int dest_size = 0);
   // Link LinkTarget, but pathname must be absolute.
   static const char* ReadLink(const char* pathname);
   static intptr_t ReadLinkInto(const char* pathname,

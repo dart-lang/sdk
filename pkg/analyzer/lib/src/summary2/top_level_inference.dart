@@ -231,7 +231,7 @@ class _InferenceDependenciesCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    var element = node.staticElement?.declaration;
+    var element = node.constructorName.staticElement?.declaration;
     if (element == null) return;
 
     _set.add(element);
