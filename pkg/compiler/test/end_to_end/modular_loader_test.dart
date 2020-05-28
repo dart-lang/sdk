@@ -13,6 +13,8 @@ import 'package:compiler/src/elements/entities.dart'
 import 'package:compiler/src/kernel/dart2js_target.dart';
 import 'package:compiler/src/kernel/loader.dart';
 import 'package:expect/expect.dart';
+import 'package:front_end/src/api_prototype/experimental_flags.dart'
+    show ExperimentalFlag;
 import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/api_prototype/standard_file_system.dart';
@@ -80,7 +82,8 @@ Future<List<int>> compileUnit(List<String> inputs, Map<String, dynamic> sources,
     ..target = new Dart2jsTarget("dart2js", new TargetFlags())
     ..fileSystem = new TestFileSystem(fs)
     ..additionalDills = additionalDills
-    ..packagesFileUri = toTestUri('.packages');
+    ..packagesFileUri = toTestUri('.packages')
+    ..experimentalFlags = {ExperimentalFlag.nonNullable: true};
   var inputUris = inputs.map(toTestUri).toList();
   var inputUriSet = inputUris.toSet();
   var component = (await kernelForModule(inputUris, options)).component;
@@ -112,12 +115,14 @@ class TestFileSystem implements FileSystem {
 }
 
 const sourceA = '''
+// @dart=2.7
 class A0 {
   StringBuffer buffer = new StringBuffer();
 }
 ''';
 
 const sourceB = '''
+// @dart=2.7
 import 'a0.dart';
 
 class B1 extends A0 {
@@ -128,6 +133,7 @@ A0 createA0() => new A0();
 ''';
 
 const sourceC = '''
+// @dart=2.7
 import 'b1.dart';
 
 class C2 extends B1 {
