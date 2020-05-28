@@ -87,7 +87,7 @@ class FormatTest extends AbstractLspAnalysisServerTest {
 
     await expectLater(
       // Add some invalid path characters to the end of a valid file:// URI.
-      formatDocument(mainFileUri.toString() + '***'),
+      formatDocument(mainFileUri.toString() + '***.dart'),
       throwsA(isResponseError(ServerErrorCodes.InvalidFilePath)),
     );
   }
@@ -96,7 +96,7 @@ class FormatTest extends AbstractLspAnalysisServerTest {
     await initialize();
 
     await expectLater(
-      formatDocument('a:/a.a'),
+      formatDocument('a:/a.dart'),
       throwsA(isResponseError(ServerErrorCodes.InvalidFilePath)),
     );
   }
