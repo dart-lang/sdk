@@ -2267,17 +2267,6 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
   return op;
 }
 
-Definition* BinaryIntegerOpInstr::CreateConstantResult(FlowGraph* flow_graph,
-                                                       const Integer& result) {
-  Definition* result_defn = flow_graph->GetConstant(result);
-  if (representation() != kTagged) {
-    result_defn = UnboxInstr::Create(representation(), new Value(result_defn),
-                                     GetDeoptId());
-    flow_graph->InsertBefore(this, result_defn, env(), FlowGraph::kValue);
-  }
-  return result_defn;
-}
-
 Definition* CheckedSmiOpInstr::Canonicalize(FlowGraph* flow_graph) {
   if ((left()->Type()->ToCid() == kSmiCid) &&
       (right()->Type()->ToCid() == kSmiCid)) {
@@ -2363,7 +2352,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
         is_truncating(), representation(), Thread::Current()));
 
     if (!result.IsNull()) {
-      return CreateConstantResult(flow_graph, result);
+      return flow_graph->TryCreateConstantReplacementFor(this, result);
     }
   }
 
@@ -2478,7 +2467,8 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
 
     case Token::kMOD:
       if (std::abs(rhs) == 1) {
-        return CreateConstantResult(flow_graph, Object::smi_zero());
+        return flow_graph->TryCreateConstantReplacementFor(this,
+                                                           Object::smi_zero());
       }
       break;
 
@@ -2497,7 +2487,8 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
             new DeoptimizeInstr(ICData::kDeoptBinarySmiOp, GetDeoptId());
         flow_graph->InsertBefore(this, deopt, env(), FlowGraph::kEffect);
         // Replace with zero since it always throws.
-        return CreateConstantResult(flow_graph, Object::smi_zero());
+        return flow_graph->TryCreateConstantReplacementFor(this,
+                                                           Object::smi_zero());
       }
       break;
 
@@ -2507,7 +2498,8 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
         return left()->definition();
       } else if ((rhs >= kBitsPerInt64) ||
                  ((rhs >= result_bits) && is_truncating())) {
-        return CreateConstantResult(flow_graph, Object::smi_zero());
+        return flow_graph->TryCreateConstantReplacementFor(this,
+                                                           Object::smi_zero());
       } else if ((rhs < 0) || ((rhs >= result_bits) && !is_truncating())) {
         // Instruction will always throw on negative rhs operand or
         // deoptimize on large rhs operand.
@@ -2521,7 +2513,8 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
             new DeoptimizeInstr(ICData::kDeoptBinarySmiOp, GetDeoptId());
         flow_graph->InsertBefore(this, deopt, env(), FlowGraph::kEffect);
         // Replace with zero since it overshifted or always throws.
-        return CreateConstantResult(flow_graph, Object::smi_zero());
+        return flow_graph->TryCreateConstantReplacementFor(this,
+                                                           Object::smi_zero());
       }
       break;
     }
@@ -3070,14 +3063,20 @@ Definition* UnboxInstr::Canonicalize(FlowGraph* flow_graph) {
 Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!HasUses() && !CanDeoptimize()) return NULL;
 
+  // Do not attempt to fold this instruction if we have not matched
+  // input/output representations yet.
+  if (HasUnmatchedInputRepresentations()) {
+    return this;
+  }
+
   // Fold away UnboxInteger<rep_to>(BoxInteger<rep_from>(v)).
   BoxIntegerInstr* box_defn = value()->definition()->AsBoxInteger();
-  if (box_defn != NULL) {
+  if (box_defn != NULL && !box_defn->HasUnmatchedInputRepresentations()) {
     Representation from_representation =
         box_defn->value()->definition()->representation();
     if (from_representation == representation()) {
       return box_defn->value()->definition();
-    } else if (from_representation != kTagged) {
+    } else {
       // Only operate on explicit unboxed operands.
       IntConverterInstr* converter = new IntConverterInstr(
           from_representation, representation(),

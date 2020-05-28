@@ -6,31 +6,6 @@
 
 namespace dart {
 
-static bool IsRepresentable(const Integer& value, Representation rep) {
-  switch (rep) {
-    case kTagged:  // Smi case.
-      return value.IsSmi();
-
-    case kUnboxedInt32:
-      if (value.IsSmi() || value.IsMint()) {
-        return Utils::IsInt(32, value.AsInt64Value());
-      }
-      return false;
-
-    case kUnboxedInt64:
-      return value.IsSmi() || value.IsMint();
-
-    case kUnboxedUint32:
-      if (value.IsSmi() || value.IsMint()) {
-        return Utils::IsUint(32, value.AsInt64Value());
-      }
-      return false;
-
-    default:
-      UNREACHABLE();
-  }
-}
-
 static IntegerPtr BinaryIntegerEvaluateRaw(const Integer& left,
                                            const Integer& right,
                                            Token::Kind token_kind) {
@@ -130,8 +105,10 @@ IntegerPtr Evaluator::BinaryIntegerEvaluate(const Object& left,
       const int64_t truncated =
           TruncateTo(result.AsTruncatedInt64Value(), representation);
       result = Integer::New(truncated, Heap::kOld);
-      ASSERT(IsRepresentable(result, representation));
-    } else if (!IsRepresentable(result, representation)) {
+      ASSERT(FlowGraph::IsConstantRepresentable(
+          result, representation, /*tagged_value_must_be_smi=*/true));
+    } else if (!FlowGraph::IsConstantRepresentable(
+                   result, representation, /*tagged_value_must_be_smi=*/true)) {
       // If this operation is not truncating it would deoptimize on overflow.
       // Check that we match this behavior and don't produce a value that is
       // larger than something this operation can produce. We could have
@@ -161,7 +138,9 @@ IntegerPtr Evaluator::UnaryIntegerEvaluate(const Object& value,
       zone, UnaryIntegerEvaluateRaw(value_int, token_kind, zone));
 
   if (!result.IsNull()) {
-    if (!IsRepresentable(result, representation)) {
+    if (!FlowGraph::IsConstantRepresentable(
+            result, representation,
+            /*tagged_value_must_be_smi=*/true)) {
       // If this operation is not truncating it would deoptimize on overflow.
       // Check that we match this behavior and don't produce a value that is
       // larger than something this operation can produce. We could have
