@@ -37,6 +37,8 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:args/args.dart';
 import 'package:meta/meta.dart';
 
+import 'output_utilities.dart';
+
 /// Compute metrics to determine whether they should be used to compute a
 /// relevance score for completion suggestions.
 Future<void> main(List<String> args) async {
@@ -1971,38 +1973,6 @@ class RelevanceMetricsComputer {
     _writeTokenData(sink, data.tokenDistances);
   }
 
-  /// Return the minimum widths for each of the columns in the given [table].
-  ///
-  /// The table is represented as a list or rows, where each row is a list of
-  /// the contents of the cells in that row.
-  ///
-  /// Throws an [ArgumentError] if the table is empty or if the rows do not
-  /// contain the same number of cells.
-  List<int> _computeColumnWidths(List<List<String>> table) {
-    if (table.isEmpty) {
-      throw ArgumentError('table cannot be empty');
-    }
-    var columnCount = table[0].length;
-    if (columnCount == 0) {
-      throw ArgumentError('rows cannot be empty');
-    }
-    var columnWidths = List<int>.filled(columnCount, 0);
-    for (var row in table) {
-      var rowLength = row.length;
-      if (rowLength > 0) {
-        if (rowLength != columnCount) {
-          throw ArgumentError(
-              'non-empty rows must contain the same number of columns');
-        }
-        for (var i = 0; i < rowLength; i++) {
-          var cellWidth = row[i].length;
-          columnWidths[i] = math.max(columnWidths[i], cellWidth);
-        }
-      }
-    }
-    return columnWidths;
-  }
-
   /// Compute the metrics for the files in the context [root], creating a
   /// separate context collection to prevent accumulating memory. The metrics
   /// should be captured in the [collector]. Include additional details in the
@@ -2163,7 +2133,7 @@ class RelevanceMetricsComputer {
     sink.writeln();
     var column = _convertMap('identifier lengths', lengths);
     var table = _convertColumnsToRows([column]).toList();
-    _writeTable(sink, table);
+    sink.writeTable(table);
   }
 
   /// Write the given [matrix] to the [sink]. The keys of the outer map will be
@@ -2201,7 +2171,7 @@ class RelevanceMetricsComputer {
       }
       table.add(row);
     }
-    _writeTable(sink, table);
+    sink.writeTable(table);
   }
 
   /// Write a [percentageMap] containing one kind of metric data to the [sink].
@@ -2222,37 +2192,7 @@ class RelevanceMetricsComputer {
   void _writeSideBySide(StringSink sink,
       List<Map<String, Map<String, int>>> maps, List<String> columnTitles) {
     var table = _createTable(maps, columnTitles);
-    _writeTable(sink, table);
-  }
-
-  /// Write the given [table] to the [sink].
-  ///
-  /// The table is represented as a list or rows, where each row is a list of the
-  /// contents of the cells in that row.
-  ///
-  /// Throws an [ArgumentError] if the table is empty or if the rows do not
-  /// contain the same number of cells.
-  void _writeTable(StringSink sink, List<List<String>> table) {
-    var columnWidths = _computeColumnWidths(table);
-    for (var row in table) {
-      var lastNonEmpty = row.length - 1;
-      while (lastNonEmpty > 0) {
-        if (row[lastNonEmpty].isNotEmpty) {
-          break;
-        }
-        lastNonEmpty--;
-      }
-      for (var i = 0; i <= lastNonEmpty; i++) {
-        var cellContent = row[i];
-        var columnWidth = columnWidths[i];
-        var padding = columnWidth - cellContent.length;
-        sink.write(cellContent);
-        if (i < lastNonEmpty) {
-          sink.write(' ' * (padding + 2));
-        }
-      }
-      sink.writeln();
-    }
+    sink.writeTable(table);
   }
 
   /// Write information about the number of identifiers that occur within a
@@ -2274,7 +2214,7 @@ class RelevanceMetricsComputer {
     sink.writeln();
     sink.writeln('Token stream analysis');
     var table = _convertColumnsToRows([firstColumn, secondColumn]).toList();
-    _writeTable(sink, table);
+    sink.writeTable(table);
   }
 
   /// Return `true` if the [result] contains an error.
