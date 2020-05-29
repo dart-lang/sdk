@@ -9,7 +9,7 @@ import 'dart:async';
  * and `flatten(S)` is `void` or `void*`.
  */
 
-Future<void> v = Future.value(null);
+Future<void> v = Future.value("Hello");
 
 FutureOr<Null> test1() async {
   return v;
@@ -18,6 +18,7 @@ FutureOr<Null> test1() async {
   // [cfe] unspecified
 }
 
+// Inferred return type of function literal is `Future<Null>`.
 FutureOr<Null> Function() test2 = () async {
   return v;
   //     ^
