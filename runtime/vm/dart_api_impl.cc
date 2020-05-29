@@ -5999,37 +5999,6 @@ Dart_CompileToKernel(const char* script_uri,
   return result;
 }
 
-DART_EXPORT Dart_KernelCompilationResult
-Dart_CompileSourcesToKernel(const char* script_uri,
-                            const uint8_t* platform_kernel,
-                            intptr_t platform_kernel_size,
-                            int source_files_count,
-                            Dart_SourceFile sources[],
-                            bool incremental_compile,
-                            const char* package_config,
-                            const char* multiroot_filepaths,
-                            const char* multiroot_scheme) {
-  Dart_KernelCompilationResult result = {};
-#if defined(DART_PRECOMPILED_RUNTIME)
-  result.status = Dart_KernelCompilationStatus_Unknown;
-  result.error = strdup("Dart_CompileSourcesToKernel is unsupported.");
-#else
-  result = KernelIsolate::CompileToKernel(
-      script_uri, platform_kernel, platform_kernel_size, source_files_count,
-      sources, incremental_compile, package_config, multiroot_filepaths,
-      multiroot_scheme);
-  if (result.status == Dart_KernelCompilationStatus_Ok) {
-    if (KernelIsolate::AcceptCompilation().status !=
-        Dart_KernelCompilationStatus_Ok) {
-      FATAL(
-          "An error occurred in the CFE while accepting the most recent"
-          " compilation results.");
-    }
-  }
-#endif
-  return result;
-}
-
 DART_EXPORT Dart_KernelCompilationResult Dart_KernelListDependencies() {
   Dart_KernelCompilationResult result = {};
 #if defined(DART_PRECOMPILED_RUNTIME)

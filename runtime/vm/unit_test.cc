@@ -320,10 +320,18 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
                                          const char* multiroot_filepaths,
                                          const char* multiroot_scheme) {
   Zone* zone = Thread::Current()->zone();
-  Dart_KernelCompilationResult compilation_result = Dart_CompileSourcesToKernel(
+  Dart_KernelCompilationResult result = KernelIsolate::CompileToKernel(
       url, platform_strong_dill, platform_strong_dill_size, sourcefiles_count,
       sourcefiles, incrementally, NULL, multiroot_filepaths, multiroot_scheme);
-  return ValidateCompilationResult(zone, compilation_result, kernel_buffer,
+  if (result.status == Dart_KernelCompilationStatus_Ok) {
+    if (KernelIsolate::AcceptCompilation().status !=
+        Dart_KernelCompilationStatus_Ok) {
+      FATAL(
+          "An error occurred in the CFE while accepting the most recent"
+          " compilation results.");
+    }
+  }
+  return ValidateCompilationResult(zone, result, kernel_buffer,
                                    kernel_buffer_size, allow_compile_errors);
 }
 
