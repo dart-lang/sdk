@@ -157,6 +157,7 @@ LanguageFeatures/Simple-bounds/dynamic/type-aliases/*: Skip # Not migrated to NN
 LanguageFeatures/Simple-bounds/static/*: Skip # Not migrated to NNBD
 LanguageFeatures/Simple-bounds/static/type-aliases/*: Skip # Not migrated to NNBD
 LanguageFeatures/Spread-collections/*: Skip # Not migrated to NNBD
+LanguageFeatures/Subtyping/*: Skip # Not migrated to NNBD
 LanguageFeatures/Super-bounded-types/*: Skip # Not migrated to NNBD
 LanguageFeatures/Super-mixins/*: Skip # Not migrated to NNBD
 LanguageFeatures/Triple-Shift/*: Skip # Not migrated to NNBD
@@ -362,6 +363,7 @@ LibTest/typed_data/Uint32List/*: Skip # Not migrated to NNBD
 LibTest/typed_data/Uint64List/*: Skip # Not migrated to NNBD
 LibTest/typed_data/Uint8ClampedList/*: Skip # Not migrated to NNBD
 LibTest/typed_data/Uint8List/*: Skip # Not migrated to NNBD
+Utils/tests/Expect/*: Skip # Not migrated to NNBD
 
 [ $compiler != fasta ]
 Language/Classes/Abstract_Instance_Members/inherited_t13: Skip # github.com/dart-lang/language/issues/115
@@ -624,4 +626,3 @@ LanguageFeatures/Simple-bounds/static/typedef1_typedef_l1_t07: Skip # github.com
 LanguageFeatures/Simple-bounds/static/typedef1_typedef_l1_t08: Skip # github.com/dart-lang/language/issues/115
 LanguageFeatures/regression/32903_t02: Skip # github.com/dart-lang/language/issues/115
 LanguageFeatures/regression/34560_t02: Skip # github.com/dart-lang/language/issues/115
-
