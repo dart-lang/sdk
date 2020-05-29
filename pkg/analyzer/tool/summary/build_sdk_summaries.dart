@@ -7,7 +7,6 @@ import 'dart:io';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/summary/summary_file_builder.dart';
-import 'package:meta/meta.dart';
 
 void main(List<String> args) {
   String command;
@@ -41,12 +40,8 @@ void main(List<String> args) {
   //
   // Handle commands.
   //
-  if (command == 'build-strong') {
-    _buildSummary(
-      sdkPath,
-      outFilePath,
-      title: 'legacy',
-    );
+  if (command == 'build' || command == 'build-strong') {
+    _buildSummary(sdkPath, outFilePath);
   } else {
     _printUsage();
     return;
@@ -58,12 +53,8 @@ void main(List<String> args) {
  */
 const BINARY_NAME = "build_sdk_summaries";
 
-void _buildSummary(
-  String sdkPath,
-  String outPath, {
-  @required String title,
-}) {
-  print('Generating $title summary.');
+void _buildSummary(String sdkPath, String outPath) {
+  print('Generating summary.');
   Stopwatch sw = Stopwatch()..start();
   List<int> bytes = buildSdkSummary(
     resourceProvider: PhysicalResourceProvider.INSTANCE,
@@ -79,8 +70,6 @@ void _buildSummary(
 void _printUsage() {
   print('Usage: $BINARY_NAME command arguments');
   print('Where command can be one of the following:');
-  print('  build-non-nullable output_file [sdk_path]');
-  print('    Generate non-nullable summary file.');
-  print('  build-legacy output_file [sdk_path]');
-  print('    Generate legacy summary file.');
+  print('  build output_file [sdk_path]');
+  print('    Generate summary file.');
 }
