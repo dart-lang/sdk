@@ -25,8 +25,125 @@ typedef _CatchClausesVerifierReporter = void Function(
   List<Object> arguments,
 );
 
-/// A visitor that finds dead code.
+/// A visitor that finds dead code, other than unreachable code that is
+/// handled in [NullSafetyDeadCodeVerifier] or [LegacyDeadCodeVerifier].
 class DeadCodeVerifier extends RecursiveAstVisitor<void> {
+  /// The error reporter by which errors will be reported.
+  final ErrorReporter _errorReporter;
+
+  /// The object used to track the usage of labels within a given label scope.
+  _LabelTracker labelTracker;
+
+  DeadCodeVerifier(this._errorReporter);
+
+  @override
+  void visitBreakStatement(BreakStatement node) {
+    labelTracker?.recordUsage(node.label?.name);
+  }
+
+  @override
+  void visitContinueStatement(ContinueStatement node) {
+    labelTracker?.recordUsage(node.label?.name);
+  }
+
+  @override
+  void visitExportDirective(ExportDirective node) {
+    ExportElement exportElement = node.element;
+    if (exportElement != null) {
+      // The element is null when the URI is invalid.
+      LibraryElement library = exportElement.exportedLibrary;
+      if (library != null && !library.isSynthetic) {
+        for (Combinator combinator in node.combinators) {
+          _checkCombinator(library, combinator);
+        }
+      }
+    }
+    super.visitExportDirective(node);
+  }
+
+  @override
+  void visitImportDirective(ImportDirective node) {
+    ImportElement importElement = node.element;
+    if (importElement != null) {
+      // The element is null when the URI is invalid, but not when the URI is
+      // valid but refers to a non-existent file.
+      LibraryElement library = importElement.importedLibrary;
+      if (library != null && !library.isSynthetic) {
+        for (Combinator combinator in node.combinators) {
+          _checkCombinator(library, combinator);
+        }
+      }
+    }
+    super.visitImportDirective(node);
+  }
+
+  @override
+  void visitLabeledStatement(LabeledStatement node) {
+    _pushLabels(node.labels);
+    try {
+      super.visitLabeledStatement(node);
+    } finally {
+      _popLabels();
+    }
+  }
+
+  @override
+  void visitSwitchStatement(SwitchStatement node) {
+    List<Label> labels = <Label>[];
+    for (SwitchMember member in node.members) {
+      labels.addAll(member.labels);
+    }
+    _pushLabels(labels);
+    try {
+      super.visitSwitchStatement(node);
+    } finally {
+      _popLabels();
+    }
+  }
+
+  /// Resolve the names in the given [combinator] in the scope of the given
+  /// [library].
+  void _checkCombinator(LibraryElement library, Combinator combinator) {
+    Namespace namespace =
+        NamespaceBuilder().createExportNamespaceForLibrary(library);
+    NodeList<SimpleIdentifier> names;
+    ErrorCode hintCode;
+    if (combinator is HideCombinator) {
+      names = combinator.hiddenNames;
+      hintCode = HintCode.UNDEFINED_HIDDEN_NAME;
+    } else {
+      names = (combinator as ShowCombinator).shownNames;
+      hintCode = HintCode.UNDEFINED_SHOWN_NAME;
+    }
+    for (SimpleIdentifier name in names) {
+      String nameStr = name.name;
+      Element element = namespace.get(nameStr);
+      element ??= namespace.get("$nameStr=");
+      if (element == null) {
+        _errorReporter
+            .reportErrorForNode(hintCode, name, [library.identifier, nameStr]);
+      }
+    }
+  }
+
+  /// Exit the most recently entered label scope after reporting any labels that
+  /// were not referenced within that scope.
+  void _popLabels() {
+    for (Label label in labelTracker.unusedLabels()) {
+      _errorReporter
+          .reportErrorForNode(HintCode.UNUSED_LABEL, label, [label.label.name]);
+    }
+    labelTracker = labelTracker.outerTracker;
+  }
+
+  /// Enter a new label scope in which the given [labels] are defined.
+  void _pushLabels(List<Label> labels) {
+    labelTracker = _LabelTracker(labelTracker, labels);
+  }
+}
+
+/// A visitor that finds dead code.
+class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// The error reporter by which errors will be reported.
   final ErrorReporter _errorReporter;
 
@@ -36,7 +153,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// Initialize a newly created dead code verifier that will report dead code
   /// to the given [errorReporter] and will use the given [typeSystem] if one is
   /// provided.
-  DeadCodeVerifier(this._errorReporter, {TypeSystemImpl typeSystem})
+  LegacyDeadCodeVerifier(this._errorReporter, {TypeSystemImpl typeSystem})
       : this._typeSystem = typeSystem ??
             TypeSystemImpl(
               implicitCasts: true,
@@ -132,21 +249,6 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitExportDirective(ExportDirective node) {
-    ExportElement exportElement = node.element;
-    if (exportElement != null) {
-      // The element is null when the URI is invalid.
-      LibraryElement library = exportElement.exportedLibrary;
-      if (library != null && !library.isSynthetic) {
-        for (Combinator combinator in node.combinators) {
-          _checkCombinator(library, combinator);
-        }
-      }
-    }
-    super.visitExportDirective(node);
-  }
-
-  @override
   void visitIfElement(IfElement node) {
     Expression conditionExpression = node.condition;
     conditionExpression?.accept(this);
@@ -201,22 +303,6 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
       }
     }
     super.visitIfStatement(node);
-  }
-
-  @override
-  void visitImportDirective(ImportDirective node) {
-    ImportElement importElement = node.element;
-    if (importElement != null) {
-      // The element is null when the URI is invalid, but not when the URI is
-      // valid but refers to a non-existent file.
-      LibraryElement library = importElement.importedLibrary;
-      if (library != null && !library.isSynthetic) {
-        for (Combinator combinator in node.combinators) {
-          _checkCombinator(library, combinator);
-        }
-      }
-    }
-    super.visitImportDirective(node);
   }
 
   @override
@@ -275,31 +361,6 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
       }
     }
     node.body?.accept(this);
-  }
-
-  /// Resolve the names in the given [combinator] in the scope of the given
-  /// [library].
-  void _checkCombinator(LibraryElement library, Combinator combinator) {
-    Namespace namespace =
-        NamespaceBuilder().createExportNamespaceForLibrary(library);
-    NodeList<SimpleIdentifier> names;
-    ErrorCode hintCode;
-    if (combinator is HideCombinator) {
-      names = combinator.hiddenNames;
-      hintCode = HintCode.UNDEFINED_HIDDEN_NAME;
-    } else {
-      names = (combinator as ShowCombinator).shownNames;
-      hintCode = HintCode.UNDEFINED_SHOWN_NAME;
-    }
-    for (SimpleIdentifier name in names) {
-      String nameStr = name.name;
-      Element element = namespace.get(nameStr);
-      element ??= namespace.get("$nameStr=");
-      if (element == null) {
-        _errorReporter
-            .reportErrorForNode(hintCode, name, [library.identifier, nameStr]);
-      }
-    }
   }
 
   /// Given some list of [statements], loop through the list searching for dead
@@ -519,66 +580,6 @@ class NullSafetyDeadCodeVerifier {
       if (node == parent) return true;
     }
     return false;
-  }
-}
-
-/// A visitor that finds unused labels.
-class UnusedLabelVerifier extends RecursiveAstVisitor<void> {
-  /// The error reporter by which errors will be reported.
-  final ErrorReporter _errorReporter;
-
-  /// The object used to track the usage of labels within a given label scope.
-  _LabelTracker labelTracker;
-
-  UnusedLabelVerifier(this._errorReporter);
-
-  @override
-  void visitBreakStatement(BreakStatement node) {
-    labelTracker?.recordUsage(node.label?.name);
-  }
-
-  @override
-  void visitContinueStatement(ContinueStatement node) {
-    labelTracker?.recordUsage(node.label?.name);
-  }
-
-  @override
-  void visitLabeledStatement(LabeledStatement node) {
-    _pushLabels(node.labels);
-    try {
-      super.visitLabeledStatement(node);
-    } finally {
-      _popLabels();
-    }
-  }
-
-  @override
-  void visitSwitchStatement(SwitchStatement node) {
-    List<Label> labels = <Label>[];
-    for (SwitchMember member in node.members) {
-      labels.addAll(member.labels);
-    }
-    _pushLabels(labels);
-    try {
-      super.visitSwitchStatement(node);
-    } finally {
-      _popLabels();
-    }
-  }
-
-  /// Exit the most recently entered label scope after reporting any labels that
-  /// were not referenced within that scope.
-  void _popLabels() {
-    for (Label label in labelTracker.unusedLabels()) {
-      _errorReporter
-          .reportErrorForNode(HintCode.UNUSED_LABEL, label, [label.label.name]);
-    }
-    labelTracker = labelTracker.outerTracker;
-  }
-
-  /// Enter a new label scope in which the given [labels] are defined.
-  void _pushLabels(List<Label> labels) {
-    labelTracker = _LabelTracker(labelTracker, labels);
   }
 }
 

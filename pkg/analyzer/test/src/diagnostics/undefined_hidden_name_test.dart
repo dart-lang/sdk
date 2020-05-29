@@ -5,11 +5,13 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../dart/constant/potentially_constant_test.dart';
 import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UndefinedHiddenNameTest);
+    defineReflectiveTests(UndefinedHiddenNameWithNullSafetyTest);
   });
 }
 
@@ -34,3 +36,7 @@ import 'lib1.dart' hide a;
     ]);
   }
 }
+
+@reflectiveTest
+class UndefinedHiddenNameWithNullSafetyTest extends UndefinedHiddenNameTest
+    with WithNullSafetyMixin {}
