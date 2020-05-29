@@ -25,6 +25,7 @@ import 'package:analysis_server/src/services/correction/dart/add_required.dart';
 import 'package:analysis_server/src/services/correction/dart/add_required_keyword.dart';
 import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/add_static.dart';
+import 'package:analysis_server/src/services/correction/dart/add_super_constructor_invocation.dart';
 import 'package:analysis_server/src/services/correction/dart/add_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/change_argument_name.dart';
 import 'package:analysis_server/src/services/correction/dart/change_to_nearest_precise_value.dart';
@@ -53,6 +54,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_set_lite
 import 'package:analysis_server/src/services/correction/dart/convert_to_where_type.dart';
 import 'package:analysis_server/src/services/correction/dart/create_class.dart';
 import 'package:analysis_server/src/services/correction/dart/create_constructor_for_final_fields.dart';
+import 'package:analysis_server/src/services/correction/dart/create_constructor_super.dart';
 import 'package:analysis_server/src/services/correction/dart/create_getter.dart';
 import 'package:analysis_server/src/services/correction/dart/create_local_variable.dart';
 import 'package:analysis_server/src/services/correction/dart/create_method.dart';
@@ -157,7 +159,6 @@ import 'package:analyzer/src/hint/sdk_constraint_extractor.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError, Element, ElementKind;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
-import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart' hide FixContributor;
@@ -494,8 +495,18 @@ class FixProcessor extends BaseProcessor {
   /// generators used for lint rules are in the [lintMultiProducerMap].
   static const Map<ErrorCode, List<MultiProducerGenerator>>
       nonLintMultiProducerMap = {
+    CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT: [
+      AddSuperConstructorInvocation.newInstance,
+    ],
+    CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT: [
+      AddSuperConstructorInvocation.newInstance,
+      CreateConstructorSuper.newInstance,
+    ],
+    CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT: [
+      AddSuperConstructorInvocation.newInstance,
+    ],
     CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER: [
-      ChangeArgumentName.newInstance
+      ChangeArgumentName.newInstance,
     ],
   };
 
@@ -539,7 +550,6 @@ class FixProcessor extends BaseProcessor {
       ExtendClassForMixin.newInstance,
     ],
 //    CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT : [],
-//    CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT : [],
     CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE: [
       RemoveQuestionMark.newInstance,
     ],
@@ -559,7 +569,6 @@ class FixProcessor extends BaseProcessor {
       CreateClass.newInstance,
       CreateMixin.newInstance,
     ],
-//    CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT : [],
     CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER: [
       CreateGetter.newInstance,
     ],
@@ -894,22 +903,6 @@ class FixProcessor extends BaseProcessor {
         }
       }
     }
-    if (errorCode ==
-        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT) {
-      await _addFix_createConstructorSuperExplicit();
-    }
-    if (errorCode ==
-        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT) {
-      await _addFix_createConstructorSuperImplicit();
-      // TODO(brianwilkerson) The following was added because fasta produces
-      // NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT in places where analyzer produced
-      // NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT
-      await _addFix_createConstructorSuperExplicit();
-    }
-    if (errorCode ==
-        CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT) {
-      await _addFix_createConstructorSuperExplicit();
-    }
     if (errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST) {
       await _addFix_createImportUri();
       await _addFix_createPartUri();
@@ -1218,136 +1211,6 @@ class FixProcessor extends BaseProcessor {
     });
     _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_CONSTRUCTOR,
         args: [constructorName]);
-  }
-
-  Future<void> _addFix_createConstructorSuperExplicit() async {
-    if (node.parent is! ConstructorDeclaration ||
-        node.parent.parent is! ClassDeclaration) {
-      return;
-    }
-    var targetConstructor = node.parent as ConstructorDeclaration;
-    var targetClassNode = targetConstructor.parent as ClassDeclaration;
-    var targetClassElement = targetClassNode.declaredElement;
-    var superType = targetClassElement.supertype;
-    // add proposals for all super constructors
-    for (var superConstructor in superType.constructors) {
-      var constructorName = superConstructor.name;
-      // skip private
-      if (Identifier.isPrivateName(constructorName)) {
-        continue;
-      }
-      List<ConstructorInitializer> initializers =
-          targetConstructor.initializers;
-      int insertOffset;
-      String prefix;
-      if (initializers.isEmpty) {
-        insertOffset = targetConstructor.parameters.end;
-        prefix = ' : ';
-      } else {
-        var lastInitializer = initializers[initializers.length - 1];
-        insertOffset = lastInitializer.end;
-        prefix = ', ';
-      }
-      var proposalName = _getConstructorProposalName(superConstructor);
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addInsertion(insertOffset, (DartEditBuilder builder) {
-          builder.write(prefix);
-          // add super constructor name
-          builder.write('super');
-          if (!isEmpty(constructorName)) {
-            builder.write('.');
-            builder.addSimpleLinkedEdit('NAME', constructorName);
-          }
-          // add arguments
-          builder.write('(');
-          var firstParameter = true;
-          for (var parameter in superConstructor.parameters) {
-            // skip non-required parameters
-            if (parameter.isOptional) {
-              break;
-            }
-            // comma
-            if (firstParameter) {
-              firstParameter = false;
-            } else {
-              builder.write(', ');
-            }
-            // default value
-            builder.addSimpleLinkedEdit(
-                parameter.name, getDefaultValueCode(parameter.type));
-          }
-          builder.write(')');
-        });
-      });
-      _addFixFromBuilder(
-          changeBuilder, DartFixKind.ADD_SUPER_CONSTRUCTOR_INVOCATION,
-          args: [proposalName]);
-    }
-  }
-
-  Future<void> _addFix_createConstructorSuperImplicit() async {
-    var targetClassNode = node.thisOrAncestorOfType<ClassDeclaration>();
-    var targetClassElement = targetClassNode.declaredElement;
-    var superType = targetClassElement.supertype;
-    var targetClassName = targetClassElement.name;
-    // add proposals for all super constructors
-    for (var superConstructor in superType.constructors) {
-      var constructorName = superConstructor.name;
-      // skip private
-      if (Identifier.isPrivateName(constructorName)) {
-        continue;
-      }
-      // prepare parameters and arguments
-      var requiredParameters = superConstructor.parameters
-          .where((parameter) => parameter.isRequiredPositional);
-      // add proposal
-      var targetLocation = utils.prepareNewConstructorLocation(targetClassNode);
-      var proposalName = _getConstructorProposalName(superConstructor);
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addInsertion(targetLocation.offset, (DartEditBuilder builder) {
-          void writeParameters(bool includeType) {
-            var firstParameter = true;
-            for (var parameter in requiredParameters) {
-              if (firstParameter) {
-                firstParameter = false;
-              } else {
-                builder.write(', ');
-              }
-              var parameterName = parameter.displayName;
-              if (parameterName.length > 1 && parameterName.startsWith('_')) {
-                parameterName = parameterName.substring(1);
-              }
-              if (includeType && builder.writeType(parameter.type)) {
-                builder.write(' ');
-              }
-              builder.write(parameterName);
-            }
-          }
-
-          builder.write(targetLocation.prefix);
-          builder.write(targetClassName);
-          if (constructorName.isNotEmpty) {
-            builder.write('.');
-            builder.addSimpleLinkedEdit('NAME', constructorName);
-          }
-          builder.write('(');
-          writeParameters(true);
-          builder.write(') : super');
-          if (constructorName.isNotEmpty) {
-            builder.write('.');
-            builder.addSimpleLinkedEdit('NAME', constructorName);
-          }
-          builder.write('(');
-          writeParameters(false);
-          builder.write(');');
-          builder.write(targetLocation.suffix);
-        });
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_CONSTRUCTOR_SUPER,
-          args: [proposalName]);
-    }
   }
 
   Future<void> _addFix_createField() async {
@@ -2271,20 +2134,6 @@ class FixProcessor extends BaseProcessor {
       return result.node;
     }
     return null;
-  }
-
-  /// Return the string to display as the name of the given constructor in a
-  /// proposal name.
-  String _getConstructorProposalName(ConstructorElement constructor) {
-    var buffer = StringBuffer();
-    buffer.write('super');
-    var constructorName = constructor.displayName;
-    if (constructorName.isNotEmpty) {
-      buffer.write('.');
-      buffer.write(constructorName);
-    }
-    buffer.write('(...)');
-    return buffer.toString();
   }
 
   /// Return the extension declaration for the given [element].
