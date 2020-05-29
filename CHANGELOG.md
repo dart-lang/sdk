@@ -4,6 +4,13 @@
 
 ### Core libraries
 
+#### `dart:io`
+
+*   [#42006][]: The signature of `exit` has been changed to return the
+    `Never`type instead of `void`. since no code will run after it,
+
+[#42006]: https://github.com/dart-lang/sdk/issues/42006
+
 #### `dart:convert`
 
 *   **Breaking Change** [#41100][]: When encoding a string containing unpaired

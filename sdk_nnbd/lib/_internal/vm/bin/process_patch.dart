@@ -135,7 +135,7 @@ Function _getWatchSignalInternal() => _ProcessUtils._watchSignalInternal;
 @patch
 class _ProcessUtils {
   @patch
-  static void _exit(int status) native "Process_Exit";
+  static Never _exit(int status) native "Process_Exit";
   @patch
   static void _setExitCode(int status) native "Process_SetExitCode";
   @patch

@@ -7,7 +7,7 @@ part of dart.io;
 // TODO(ager): The only reason for this class is that we
 // cannot patch a top-level at this point.
 class _ProcessUtils {
-  external static void _exit(int status);
+  external static Never _exit(int status);
   external static void _setExitCode(int status);
   external static int _getExitCode();
   external static void _sleep(int millis);
@@ -49,7 +49,7 @@ class _ProcessUtils {
  * program to the surrounding environment. This will avoid any
  * cross-platform issues.
  */
-void exit(int code) {
+Never exit(int code) {
   ArgumentError.checkNotNull(code, "code");
   if (!_EmbedderConfig._mayExit) {
     throw new UnsupportedError(
