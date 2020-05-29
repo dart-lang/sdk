@@ -11,32 +11,7 @@ class _LibraryPrefix {
     throw "Unreachable";
   }
 
-  bool _isLoaded() native "LibraryPrefix_isLoaded";
-  void _setLoaded() native "LibraryPrefix_setLoaded";
-}
+  bool isLoaded() => true;
 
-class _DeferredNotLoadedError extends Error implements NoSuchMethodError {
-  _LibraryPrefix prefix;
-
-  _DeferredNotLoadedError(this.prefix);
-
-  String toString() {
-    return "Deferred library $prefix was not loaded.";
-  }
-}
-
-@pragma("vm:entry-point")
-@pragma("vm:never-inline")
-Future<void> _loadLibrary(_LibraryPrefix prefix) {
-  return new Future<void>(() {
-    prefix._setLoaded();
-  });
-}
-
-@pragma("vm:entry-point")
-@pragma("vm:never-inline")
-void _checkLoaded(_LibraryPrefix prefix) {
-  if (!prefix._isLoaded()) {
-    throw new _DeferredNotLoadedError(prefix);
-  }
+  loadLibrary() => new Future.value(true);
 }

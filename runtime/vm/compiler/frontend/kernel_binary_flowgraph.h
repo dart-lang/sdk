@@ -335,8 +335,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildFutureNullValue(TokenPosition* position);
   Fragment BuildConstantExpression(TokenPosition* position, Tag tag);
   Fragment BuildPartialTearoffInstantiation(TokenPosition* position);
-  Fragment BuildLibraryPrefixAction(TokenPosition* position,
-                                    const String& selector);
 
   Fragment BuildExpressionStatement();
   Fragment BuildBlock();

@@ -1363,9 +1363,9 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
     case kInstantiation:
       return BuildPartialTearoffInstantiation(position);
     case kLoadLibrary:
-      return BuildLibraryPrefixAction(position, Symbols::LoadLibrary());
     case kCheckLibraryIsLoaded:
-      return BuildLibraryPrefixAction(position, Symbols::CheckLoaded());
+      ReadUInt();  // skip library index
+      return BuildFutureNullValue(position);
     case kConstStaticInvocation:
     case kConstConstructorInvocation:
     case kConstListLiteral:
@@ -4064,26 +4064,6 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
 
   instructions += DropTempsPreserveTop(1);  // Drop old closure.
 
-  return instructions;
-}
-
-Fragment StreamingFlowGraphBuilder::BuildLibraryPrefixAction(
-    TokenPosition* position,
-    const String& selector) {
-  const intptr_t dependency_index = ReadUInt();
-  const Library& current_library = Library::Handle(
-      Z, Class::Handle(Z, parsed_function()->function().Owner()).library());
-  const Array& dependencies = Array::Handle(Z, current_library.dependencies());
-  const LibraryPrefix& prefix =
-      LibraryPrefix::CheckedZoneHandle(Z, dependencies.At(dependency_index));
-  const Function& function =
-      Function::ZoneHandle(Z, Library::Handle(Z, Library::CoreLibrary())
-                                  .LookupFunctionAllowPrivate(selector));
-  ASSERT(!function.IsNull());
-  Fragment instructions;
-  instructions += Constant(prefix);
-  instructions +=
-      StaticCall(TokenPosition::kNoSource, function, 1, ICData::kStatic);
   return instructions;
 }
 
