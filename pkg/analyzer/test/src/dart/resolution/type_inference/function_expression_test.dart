@@ -50,11 +50,24 @@ T foo<T>() => throw 0;
 
 Object Function() v = () async => foo();
 ''');
+
     assertTypeArgumentTypes(
       findNode.methodInvocation('foo();'),
-      ['FutureOr<Object>'],
+      [
+        typeStringByNullability(
+          nullable: 'FutureOr<Object?>',
+          legacy: 'FutureOr<Object>',
+        ),
+      ],
     );
-    _assertReturnType('() async => foo', 'Future<Object>');
+
+    _assertReturnType(
+      '() async => foo',
+      typeStringByNullability(
+        nullable: 'Future<Object?>',
+        legacy: 'Future<Object>',
+      ),
+    );
   }
 
   test_contextFunctionType_returnType_asyncStar_blockBody() async {

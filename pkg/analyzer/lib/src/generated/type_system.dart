@@ -655,6 +655,11 @@ class TypeSystemImpl extends TypeSystem {
       }
     }
 
+    // futureValueType(`dynamic`) = `dynamic`.
+    if (identical(T, DynamicTypeImpl.instance)) {
+      return T;
+    }
+
     // futureValueType(`void`) = `void`.
     if (identical(T, VoidTypeImpl.instance)) {
       return T;

@@ -142,8 +142,6 @@ int main() async {
 library main;
 Future<int> main() async {
 }
-''', errorFilter: (error) {
-      return error.errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE;
-    });
+''');
   }
 }

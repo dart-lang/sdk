@@ -5,11 +5,13 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../dart/constant/potentially_constant_test.dart';
 import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReturnOfInvalidTypeTest);
+    defineReflectiveTests(ReturnOfInvalidTypeWithNullSafetyTest);
   });
 }
 
@@ -78,14 +80,6 @@ Future<String> f() async {
 ''', [
       error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 36, 1),
     ]);
-  }
-
-  test_function_async_block_int__to_Future_void() async {
-    await assertNoErrorsInCode(r'''
-Future<void> f() async {
-  return 0;
-}
-''');
   }
 
   test_function_async_block_int__to_void() async {
@@ -167,11 +161,14 @@ void f() {
   }
 
   test_function_sync_block_num__to_int() async {
-    await assertNoErrorsInCode(r'''
+    var expectedErrors = expectedErrorsByNullability(nullable: [
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 24, 1),
+    ], legacy: []);
+    await assertErrorsInCode(r'''
 int f(num a) {
   return a;
 }
-''');
+''', expectedErrors);
   }
 
   test_function_sync_block_String__to_int() async {
@@ -202,12 +199,11 @@ class Foo<T> {
 ''');
   }
 
-  test_function_sync_block_void() async {
+  test_function_sync_block_void__to_dynamic() async {
     await assertNoErrorsInCode('''
-void a;
-void f1() { return a; }
-dynamic f2() { return a; }
-Null f3() { return a; }
+dynamic f(void a) {
+  return a;
+}
 ''');
   }
 
@@ -219,6 +215,25 @@ int f(void a) {
 ''', [
       error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 25, 1),
     ]);
+  }
+
+  test_function_sync_block_void__to_Null() async {
+    var expectedErrors = expectedErrorsByNullability(nullable: [
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 26, 1),
+    ], legacy: []);
+    await assertErrorsInCode('''
+Null f(void a) {
+  return a;
+}
+''', expectedErrors);
+  }
+
+  test_function_sync_block_void__to_void() async {
+    await assertNoErrorsInCode('''
+void f(void a) {
+  return a;
+}
+''');
   }
 
   test_function_sync_expression_int__to_void() async {
@@ -281,6 +296,10 @@ class A {
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38162')
   test_method_async_block_callable_class() async {
+    if (isNullSafetySdkAndLegacyLibrary) {
+      throw 'Make it fail for Null Safety as well, for now.';
+    }
+
     await assertNoErrorsInCode(r'''
 typedef Fn = void Function(String s);
 
@@ -326,5 +345,69 @@ class A {
 ''', [
       error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 23, 3),
     ]);
+  }
+}
+
+@reflectiveTest
+class ReturnOfInvalidTypeWithNullSafetyTest extends ReturnOfInvalidTypeTest
+    with WithNullSafetyMixin {
+  test_function_async_block_int__to_Future_void() async {
+    await assertErrorsInCode(r'''
+Future<void> f() async {
+  return 0;
+}
+''', [
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 34, 1),
+    ]);
+  }
+
+  test_function_async_expression_dynamic__to_Future_int() async {
+    await assertNoErrorsInCode(r'''
+Future<int> f(dynamic a) async => a; 
+''');
+  }
+
+  test_function_async_void__to_FutureOr_ObjectQ() async {
+    await assertErrorsInCode(r'''
+import 'dart:async';
+
+FutureOr<Object?> f(void a) async {
+  return a;
+}
+''', [
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 67, 1),
+    ]);
+  }
+
+  test_functionExpression_async_futureOr_void__to_Object() async {
+    await assertNoErrorsInCode(r'''
+void a = null;
+
+Object Function() f = () async {
+  return a;
+};
+''');
+  }
+
+  test_functionExpression_async_futureQ_void__to_Object() async {
+    await assertNoErrorsInCode(r'''
+Future<void>? a = (throw 0);
+
+Object Function() f = () async {
+  return a;
+};
+''');
+  }
+
+  test_functionExpression_async_void__to_FutureOr_ObjectQ() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:async';
+
+void a = (throw 0);
+
+FutureOr<Object?> Function() f = () async {
+  return a;
+};
+''');
   }
 }
