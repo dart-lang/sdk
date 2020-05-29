@@ -356,10 +356,14 @@ intptr_t FactoryRecognizer::GetResultCidOfListFactory(Zone* zone,
     return kDynamicCid;
   }
 
-  if ((owner.Name() == Symbols::List().raw()) &&
-      (function.name() == Symbols::ListFactory().raw())) {
-    ASSERT(argument_count == 1 || argument_count == 2);
-    return (argument_count == 1) ? kGrowableObjectArrayCid : kArrayCid;
+  if (owner.Name() == Symbols::List().raw()) {
+    if (function.name() == Symbols::ListFactory().raw()) {
+      ASSERT(argument_count == 1 || argument_count == 2);
+      return (argument_count == 1) ? kGrowableObjectArrayCid : kArrayCid;
+    } else if (function.name() == Symbols::ListFilledFactory().raw()) {
+      ASSERT(argument_count == 3 || argument_count == 4);
+      return (argument_count == 3) ? kArrayCid : kDynamicCid;
+    }
   }
 
   return ResultCid(function);

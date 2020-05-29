@@ -291,7 +291,7 @@ ISOLATE_UNIT_TEST_CASE(BCEListNamedAndPlainLength) {
         foo(100);
       }
     )";
-  TestScriptJIT(kScriptChars, 2, 1);
+  TestScriptJIT(kScriptChars, 2, 0);
 }
 
 }  // namespace dart
