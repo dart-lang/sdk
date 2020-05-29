@@ -146,11 +146,13 @@ group("dartdevc_test") {
     ":dartdevc_sound_sdk",
     ":dartdevc_test_kernel_pkg",
     "../..:create_sdk",
-
-    # TODO(nshahan) Temporarily here until we decide if we are going to include
-    # in the create_sdk target.
-    "../../sdk_nnbd:copy_dev_compiler_outline_sound",
   ]
+
+  # TODO(nshahan) Temporarily here until we decide if we are going to include
+  # in the create_sdk target.
+  if (!dont_use_nnbd) {
+    deps += [ "../../sdk_nnbd:copy_dev_compiler_outline_sound" ]
+  }
 }
 
 # Builds everything needed to run dartdevc tests locally using test.dart without

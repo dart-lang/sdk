@@ -628,15 +628,15 @@ copy("copy_dart2js_dill_files") {
   outputs = [ "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}" ]
 }
 
-# This rule copies ddc summaries to lib/_internal
-copy("copy_dev_compiler_summary") {
+# Copies DDC's SDK outline .dill to lib/_internal
+copy("copy_dev_compiler_outline") {
   visibility = [ ":copy_dev_compiler_sdk" ]
   deps = [
     ":copy_libraries",
     "../utils/dartdevc:dartdevc_platform",
   ]
-  sources = [ "$root_out_dir/ddc_sdk.dill" ]
-  outputs = [ "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}" ]
+  sources = [ "$root_out_dir/ddc_outline.dill" ]
+  outputs = [ "$root_out_dir/dart-sdk/lib/_internal/ddc_sdk.dill" ]
 }
 
 # This rule copies DDK's JS SDK and require.js to lib/dev_compiler/kernel/amd.
@@ -716,7 +716,7 @@ group("copy_dev_compiler_sdk") {
   visibility = [ ":create_full_sdk" ]
   public_deps = [
     ":copy_dev_compiler_js",
-    ":copy_dev_compiler_summary",
+    ":copy_dev_compiler_outline",
     ":copy_dev_compiler_tools",
   ]
 }
