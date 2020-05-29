@@ -264,8 +264,14 @@ class AnalysisServer extends AbstractAnalysisServer {
       });
     }, (exception, stackTrace) {
       AnalysisEngine.instance.instrumentationService.logException(
-          FatalException('Failed to handle request: ${request.method}',
-              exception, stackTrace));
+        FatalException(
+          'Failed to handle request: ${request.method}',
+          exception,
+          stackTrace,
+        ),
+        null,
+        crashReportingAttachmentsBuilder.forException(exception),
+      );
     });
   }
 
@@ -394,13 +400,13 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// So, we can start working in parallel on adding services and improving
   /// projects/contexts support.
   void setAnalysisRoots(String requestId, List<String> includedPaths,
-      List<String> excludedPaths, Map<String, String> packageRoots) {
+      List<String> excludedPaths) {
     declarationsTracker?.discardContexts();
     if (notificationManager != null) {
       notificationManager.setAnalysisRoots(includedPaths, excludedPaths);
     }
     try {
-      contextManager.setRoots(includedPaths, excludedPaths, packageRoots);
+      contextManager.setRoots(includedPaths, excludedPaths);
     } on UnimplementedError catch (e) {
       throw RequestFailure(Response.unsupportedFeature(requestId, e.message));
     }
@@ -823,21 +829,8 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options) {
-    String defaultPackageFilePath;
-    var path = (analysisServer.contextManager as ContextManagerImpl)
-        .normalizedPackageRoots[folder.path];
-    if (path != null) {
-      var resource = resourceProvider.getResource(path);
-      if (resource.exists) {
-        if (resource is File) {
-          defaultPackageFilePath = path;
-        }
-      }
-    }
-
     var builderOptions = ContextBuilderOptions();
     builderOptions.defaultOptions = options;
-    builderOptions.defaultPackageFilePath = defaultPackageFilePath;
     var builder = ContextBuilder(
         resourceProvider, analysisServer.sdkManager, null,
         options: builderOptions);

@@ -5190,16 +5190,19 @@ class ObjectPool : public Object {
     StoreNonPointer(&raw_ptr()->entry_bits()[index], bits);
   }
 
+  template <std::memory_order order = std::memory_order_relaxed>
   ObjectPtr ObjectAt(intptr_t index) const {
     ASSERT((TypeAt(index) == EntryType::kTaggedObject) ||
            (TypeAt(index) == EntryType::kNativeEntryData));
-    return EntryAddr(index)->raw_obj_;
+    return LoadPointer<ObjectPtr, order>(&(EntryAddr(index)->raw_obj_));
   }
+
+  template <std::memory_order order = std::memory_order_relaxed>
   void SetObjectAt(intptr_t index, const Object& obj) const {
     ASSERT((TypeAt(index) == EntryType::kTaggedObject) ||
            (TypeAt(index) == EntryType::kNativeEntryData) ||
            (TypeAt(index) == EntryType::kImmediate && obj.IsSmi()));
-    StorePointer(&EntryAddr(index)->raw_obj_, obj.raw());
+    StorePointer<ObjectPtr, order>(&EntryAddr(index)->raw_obj_, obj.raw());
   }
 
   uword RawValueAt(intptr_t index) const {
@@ -6921,7 +6924,7 @@ class SubtypeTestCache : public Object {
   static void Init();
   static void Cleanup();
 
-  ArrayPtr cache() const { return raw_ptr()->cache_; }
+  ArrayPtr cache() const;
 
  private:
   // A VM heap allocated preinitialized empty subtype entry array.
@@ -9329,20 +9332,22 @@ class Array : public Instance {
 
   static ObjectPtr* DataOf(ArrayPtr array) { return array->ptr()->data(); }
 
-  ObjectPtr At(intptr_t index) const { return *ObjectAddr(index); }
+  template <std::memory_order order = std::memory_order_relaxed>
+  ObjectPtr At(intptr_t index) const {
+    return LoadPointer<ObjectPtr, order>(ObjectAddr(index));
+  }
+  template <std::memory_order order = std::memory_order_relaxed>
   void SetAt(intptr_t index, const Object& value) const {
     // TODO(iposva): Add storing NoSafepointScope.
-    StoreArrayPointer(ObjectAddr(index), value.raw());
+    StoreArrayPointer<ObjectPtr, order>(ObjectAddr(index), value.raw());
   }
 
   // Access to the array with acquire release semantics.
   ObjectPtr AtAcquire(intptr_t index) const {
-    return LoadPointer<ObjectPtr, std::memory_order_acquire>(ObjectAddr(index));
+    return At<std::memory_order_acquire>(index);
   }
   void SetAtRelease(intptr_t index, const Object& value) const {
-    // TODO(iposva): Add storing NoSafepointScope.
-    StoreArrayPointer<ObjectPtr, std::memory_order_release>(ObjectAddr(index),
-                                                            value.raw());
+    SetAt<std::memory_order_release>(index, value);
   }
 
   bool IsImmutable() const { return raw()->GetClassId() == kImmutableArrayCid; }
@@ -11171,17 +11176,19 @@ class ArrayOfTuplesView {
     TupleView(const Array& array, intptr_t index)
         : array_(array), index_(index) {}
 
-    template <EnumType kElement>
+    template <EnumType kElement,
+              std::memory_order order = std::memory_order_relaxed>
     typename std::tuple_element<kElement, TupleT>::type::ObjectPtrType Get()
         const {
       using object_type = typename std::tuple_element<kElement, TupleT>::type;
-      return object_type::RawCast(array_.At(index_ + kElement));
+      return object_type::RawCast(array_.At<order>(index_ + kElement));
     }
 
-    template <EnumType kElement>
+    template <EnumType kElement,
+              std::memory_order order = std::memory_order_relaxed>
     void Set(const typename std::tuple_element<kElement, TupleT>::type& value)
         const {
-      array_.SetAt(index_ + kElement, value);
+      array_.SetAt<order>(index_ + kElement, value);
     }
 
     intptr_t index() const { return (index_ - kStartOffset) / EntrySize; }

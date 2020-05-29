@@ -19,7 +19,6 @@ void main() {
 class DiagnosticDomainTest extends AbstractAnalysisTest {
   @override
   void setUp() {
-    generateSummaryFiles = true;
     super.setUp();
     handler = DiagnosticDomainHandler(server);
     server.handlers = [handler];
@@ -29,7 +28,7 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
     newFile('/project/pubspec.yaml', content: 'name: project');
     newFile('/project/bin/test.dart', content: 'main() {}');
 
-    server.setAnalysisRoots('0', [convertPath('/project')], [], {});
+    server.setAnalysisRoots('0', [convertPath('/project')], []);
 
     await server.onAnalysisComplete;
 

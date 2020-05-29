@@ -6,6 +6,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
@@ -50,7 +51,8 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
 
   _AlreadyMigratedCodeDecoratorTestBase._(
       this.suffix, this.graph, this.typeProvider)
-      : decorator = AlreadyMigratedCodeDecorator(graph, typeProvider);
+      : decorator =
+            AlreadyMigratedCodeDecorator(graph, typeProvider, _getLineInfo);
 
   NullabilityNode get always => graph.always;
 
@@ -383,16 +385,21 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
     var decoratedSupertypes = decorator.getImmediateSupertypes(class_).toList();
     var typeParam = class_.typeParameters[0];
     expect(decoratedSupertypes, hasLength(2));
-    checkObject(decoratedSupertypes[0], checkExplicitlyNonNullable, 'Future');
+    // Note: the bogus location `async:1:1` is because we're using a
+    // TestTypeProvider.
+    checkObject(decoratedSupertypes[0], checkExplicitlyNonNullable,
+        'Future (async:1:1)');
     // Since Future<T> is a subtype of FutureOr<T>, we consider FutureOr<T> to
     // be an immediate supertype, even though the class declaration for Future
     // doesn't mention FutureOr.
+    // Note: the bogus location `async:1:1` is because we're using a
+    // TestTypeProvider.
     checkFutureOr(
         decoratedSupertypes[1],
         checkExplicitlyNonNullable,
         (t, displayName) => checkTypeParameter(
             t, checkExplicitlyNonNullable, typeParam, displayName),
-        'Future');
+        'Future (async:1:1)');
   }
 
   void test_getImmediateSupertypes_generic() {
@@ -404,6 +411,7 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
         t.instantiate(nullabilitySuffix: suffix),
       ),
     );
+    class_.enclosingElement = ElementFactory.compilationUnit('test.dart');
     var decoratedSupertypes = decorator.getImmediateSupertypes(class_).toList();
     expect(decoratedSupertypes, hasLength(1));
     checkIterable(
@@ -411,45 +419,57 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
         checkExplicitlyNonNullable,
         (type, displayName) => checkTypeParameter(
             type, checkExplicitlyNonNullable, t, displayName),
-        'C');
+        'C (test.dart:1:1)');
   }
 
   void test_getImmediateSupertypes_interface() {
     var class_ =
         element = ElementFactory.classElement('C', typeProvider.objectType);
     class_.interfaces = [typeProvider.numType];
+    class_.enclosingElement = ElementFactory.compilationUnit('test.dart');
     var decoratedSupertypes = decorator.getImmediateSupertypes(class_).toList();
     expect(decoratedSupertypes, hasLength(2));
-    checkObject(decoratedSupertypes[0], checkExplicitlyNonNullable, 'C');
-    checkNum(decoratedSupertypes[1], checkExplicitlyNonNullable, 'C');
+    checkObject(decoratedSupertypes[0], checkExplicitlyNonNullable,
+        'C (test.dart:1:1)');
+    checkNum(decoratedSupertypes[1], checkExplicitlyNonNullable,
+        'C (test.dart:1:1)');
   }
 
   void test_getImmediateSupertypes_mixin() {
     var class_ =
         element = ElementFactory.classElement('C', typeProvider.objectType);
     class_.mixins = [typeProvider.numType];
+    class_.enclosingElement = ElementFactory.compilationUnit('test.dart');
     var decoratedSupertypes = decorator.getImmediateSupertypes(class_).toList();
     expect(decoratedSupertypes, hasLength(2));
-    checkObject(decoratedSupertypes[0], checkExplicitlyNonNullable, 'C');
-    checkNum(decoratedSupertypes[1], checkExplicitlyNonNullable, 'C');
+    checkObject(decoratedSupertypes[0], checkExplicitlyNonNullable,
+        'C (test.dart:1:1)');
+    checkNum(decoratedSupertypes[1], checkExplicitlyNonNullable,
+        'C (test.dart:1:1)');
   }
 
   void test_getImmediateSupertypes_superclassConstraint() {
     var class_ = element = ElementFactory.mixinElement(
         name: 'C', constraints: [typeProvider.numType]);
+    class_.enclosingElement = ElementFactory.compilationUnit('test.dart');
     var decoratedSupertypes = decorator.getImmediateSupertypes(class_).toList();
     expect(decoratedSupertypes, hasLength(1));
-    checkNum(decoratedSupertypes[0], checkExplicitlyNonNullable, 'C');
+    checkNum(decoratedSupertypes[0], checkExplicitlyNonNullable,
+        'C (test.dart:1:1)');
   }
 
   void test_getImmediateSupertypes_supertype() {
     var class_ =
         element = ElementFactory.classElement('C', typeProvider.objectType);
+    class_.enclosingElement = ElementFactory.compilationUnit('test.dart');
     var decoratedSupertypes = decorator.getImmediateSupertypes(class_).toList();
     expect(decoratedSupertypes, hasLength(1));
     // TODO(paulberry): displayName should be 'Object supertype of C'
-    checkObject(decoratedSupertypes[0], checkExplicitlyNonNullable, 'C');
+    checkObject(decoratedSupertypes[0], checkExplicitlyNonNullable,
+        'C (test.dart:1:1)');
   }
+
+  static LineInfo _getLineInfo(String path) => LineInfo([0]);
 }
 
 /// Specialization of [_AlreadyMigratedCodeDecoratorTestBase] for testing the

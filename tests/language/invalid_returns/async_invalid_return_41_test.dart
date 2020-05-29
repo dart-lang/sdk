@@ -9,7 +9,7 @@ import 'dart:async';
  * `flatten(S)` is not a subtype of `Tv`.
  */
 
-Future<Future<String>> v = Future.value(Future.value(''));
+Future<Future<String>> v = Future.value(Future<String>.value(''));
 
 Future<String> test1() async {
   return v;

@@ -32,11 +32,9 @@ FutureOr<Object> Function() test3 = () async {
   // [cfe] unspecified
 };
 
+// Inferred return type of function literal is `Future<void>`, no error.
 FutureOr<Object?> Function() test4 = () async {
   return v;
-  //     ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
 };
 
 void main() {

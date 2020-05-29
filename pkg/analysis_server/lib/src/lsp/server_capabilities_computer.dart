@@ -201,12 +201,18 @@ class ServerCapabilitiesComputer {
         // folders as well.
         .map((glob) => DocumentFilter(null, 'file', '**/$glob'));
 
-    final allTypes = [
-      dartFiles,
+    final allTypes = {dartFiles, ...pluginTypes}.toList();
+
+    // Add pubspec + analysis options only for synchronisation. We do not support
+    // things like hovers/formatting/etc. for these files so there's no point
+    // in having the client send those requests (plus, for things like formatting
+    // this could result in the editor reporting "multiple formatters installed"
+    // and prevent a built-in YAML formatter from being selected).
+    final allSynchronisedTypes = {
+      ...allTypes,
       pubspecFile,
       analysisOptionsFile,
-      ...pluginTypes
-    ];
+    }.toList();
 
     final registrations = <Registration>[];
 
@@ -223,18 +229,18 @@ class ServerCapabilitiesComputer {
     register(
       textCapabilities?.synchronization?.dynamicRegistration,
       Method.textDocument_didOpen,
-      TextDocumentRegistrationOptions(allTypes),
+      TextDocumentRegistrationOptions(allSynchronisedTypes),
     );
     register(
       textCapabilities?.synchronization?.dynamicRegistration,
       Method.textDocument_didClose,
-      TextDocumentRegistrationOptions(allTypes),
+      TextDocumentRegistrationOptions(allSynchronisedTypes),
     );
     register(
       textCapabilities?.synchronization?.dynamicRegistration,
       Method.textDocument_didChange,
       TextDocumentChangeRegistrationOptions(
-          TextDocumentSyncKind.Incremental, allTypes),
+          TextDocumentSyncKind.Incremental, allSynchronisedTypes),
     );
     register(
       _server.clientCapabilities?.textDocument?.completion?.dynamicRegistration,
@@ -249,33 +255,33 @@ class ServerCapabilitiesComputer {
     register(
       textCapabilities?.hover?.dynamicRegistration,
       Method.textDocument_hover,
-      TextDocumentRegistrationOptions([dartFiles]),
+      TextDocumentRegistrationOptions(allTypes),
     );
     register(
       textCapabilities?.signatureHelp?.dynamicRegistration,
       Method.textDocument_signatureHelp,
       SignatureHelpRegistrationOptions(
-          dartSignatureHelpTriggerCharacters, [dartFiles]),
+          dartSignatureHelpTriggerCharacters, allTypes),
     );
     register(
       _server.clientCapabilities?.textDocument?.references?.dynamicRegistration,
       Method.textDocument_references,
-      TextDocumentRegistrationOptions([dartFiles]),
+      TextDocumentRegistrationOptions(allTypes),
     );
     register(
       textCapabilities?.documentHighlight?.dynamicRegistration,
       Method.textDocument_documentHighlight,
-      TextDocumentRegistrationOptions([dartFiles]),
+      TextDocumentRegistrationOptions(allTypes),
     );
     register(
       textCapabilities?.documentSymbol?.dynamicRegistration,
       Method.textDocument_documentSymbol,
-      TextDocumentRegistrationOptions([dartFiles]),
+      TextDocumentRegistrationOptions(allTypes),
     );
     register(
       _server.clientCapabilities?.textDocument?.formatting?.dynamicRegistration,
       Method.textDocument_formatting,
-      TextDocumentRegistrationOptions([dartFiles]),
+      TextDocumentRegistrationOptions(allTypes),
     );
     register(
       textCapabilities?.onTypeFormatting?.dynamicRegistration,
@@ -283,29 +289,29 @@ class ServerCapabilitiesComputer {
       DocumentOnTypeFormattingRegistrationOptions(
         dartTypeFormattingCharacters.first,
         dartTypeFormattingCharacters.skip(1).toList(),
-        [dartFiles],
+        [dartFiles], // This one is currently Dart-specific
       ),
     );
     register(
       _server.clientCapabilities?.textDocument?.definition?.dynamicRegistration,
       Method.textDocument_definition,
-      TextDocumentRegistrationOptions([dartFiles]),
+      TextDocumentRegistrationOptions(allTypes),
     );
     register(
       textCapabilities?.implementation?.dynamicRegistration,
       Method.textDocument_implementation,
-      TextDocumentRegistrationOptions([dartFiles]),
+      TextDocumentRegistrationOptions(allTypes),
     );
     register(
       _server.clientCapabilities?.textDocument?.codeAction?.dynamicRegistration,
       Method.textDocument_codeAction,
       CodeActionRegistrationOptions(
-          [dartFiles], DartCodeActionKind.serverSupportedKinds),
+          allTypes, DartCodeActionKind.serverSupportedKinds),
     );
     register(
       textCapabilities?.rename?.dynamicRegistration,
       Method.textDocument_rename,
-      RenameRegistrationOptions(true, [dartFiles]),
+      RenameRegistrationOptions(true, allTypes),
     );
     register(
       textCapabilities?.foldingRange?.dynamicRegistration,

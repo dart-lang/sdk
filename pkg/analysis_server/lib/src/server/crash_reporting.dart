@@ -11,17 +11,13 @@ import 'package:telemetry/crash_reporting.dart';
 const _angularPluginName = 'Angular Analysis Plugin';
 
 class CrashReportingInstrumentation extends NoopInstrumentationService {
-  // A staging reporter, that we are in the process of phasing out.
-  final CrashReportSender stagingReporter;
-
-  // A prod reporter, that we are in the process of phasing in.
-  final CrashReportSender prodReporter;
+  // A prod reporter, for analysis server crashes.
+  final CrashReportSender serverReporter;
 
   // The angular plugin crash reporter.
   final CrashReportSender angularReporter;
 
-  CrashReportingInstrumentation(
-      this.stagingReporter, this.prodReporter, this.angularReporter);
+  CrashReportingInstrumentation(this.serverReporter, this.angularReporter);
 
   @override
   void logException(dynamic exception,
@@ -64,13 +60,7 @@ class CrashReportingInstrumentation extends NoopInstrumentationService {
 
   void _sendServerReport(Object exception, Object stackTrace,
       {String comment, List<CrashReportAttachment> attachments}) {
-    stagingReporter
-        .sendReport(exception, stackTrace,
-            attachments: attachments, comment: comment)
-        .catchError((error) {
-      // We silently ignore errors sending crash reports (network issues, ...).
-    });
-    prodReporter
+    serverReporter
         .sendReport(exception, stackTrace,
             attachments: attachments, comment: comment)
         .catchError((error) {

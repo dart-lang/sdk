@@ -204,7 +204,8 @@ Future<CompilerResult> _compile(List<String> args,
   var sdkSummaryPath = argResults['dart-sdk-summary'] as String;
   var librarySpecPath = argResults['libraries-file'] as String;
   if (sdkSummaryPath == null) {
-    sdkSummaryPath = defaultSdkSummaryPath;
+    sdkSummaryPath =
+        defaultSdkSummaryPath(soundNullSafety: options.soundNullSafety);
     librarySpecPath ??= defaultLibrarySpecPath;
   }
   var invalidSummary = summaryPaths.any((s) => !s.endsWith('.dill')) ||
@@ -281,7 +282,9 @@ Future<CompilerResult> _compile(List<String> args,
             enableNullSafety: options.enableNullSafety)),
         fileSystem: fileSystem,
         experiments: experiments,
-        environmentDefines: declaredVariables);
+        environmentDefines: declaredVariables,
+        nnbdMode:
+            options.soundNullSafety ? fe.NnbdMode.Strong : fe.NnbdMode.Weak);
   } else {
     // If digests weren't given and if not in worker mode, create fake data and
     // ensure we don't have a previous state (as that wouldn't be safe with
@@ -319,7 +322,9 @@ Future<CompilerResult> _compile(List<String> args,
         fileSystem: fileSystem,
         experiments: experiments,
         environmentDefines: declaredVariables,
-        trackNeededDillLibraries: recordUsedInputs);
+        trackNeededDillLibraries: recordUsedInputs,
+        nnbdMode:
+            options.soundNullSafety ? fe.NnbdMode.Strong : fe.NnbdMode.Weak);
     incrementalCompiler = compilerState.incrementalCompiler;
     cachedSdkInput =
         compilerState.workerInputCache[sourcePathToUri(sdkSummaryPath)];
@@ -692,9 +697,12 @@ Map<String, String> parseAndRemoveDeclaredVariables(List<String> args) {
   return declaredVariables;
 }
 
-/// The default path of the kernel summary for the Dart SDK.
-final defaultSdkSummaryPath =
-    p.join(getSdkPath(), 'lib', '_internal', 'ddc_sdk.dill');
+/// The default path of the kernel summary for the Dart SDK given the
+/// [soundNullSafety] mode.
+String defaultSdkSummaryPath({bool soundNullSafety}) {
+  var outlineDill = soundNullSafety ? 'ddc_outline_sound.dill' : 'ddc_sdk.dill';
+  return p.join(getSdkPath(), 'lib', '_internal', outlineDill);
+}
 
 final defaultLibrarySpecPath = p.join(getSdkPath(), 'lib', 'libraries.json');
 

@@ -16,6 +16,7 @@ import 'package:meta/meta.dart';
 import 'package:nnbd_migration/migration_cli.dart';
 import 'package:nnbd_migration/src/front_end/non_nullable_fix.dart';
 import 'package:nnbd_migration/src/front_end/web/edit_details.dart';
+import 'package:nnbd_migration/src/front_end/web/file_details.dart';
 import 'package:nnbd_migration/src/front_end/web/navigation_tree.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -149,9 +150,11 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
     processManager._mockResult = ProcessResult(123 /* pid */,
         pubOutdatedExitCode, pubOutdatedStdout, pubOutdatedStderr);
     logger = _TestLogger(true);
-    var success =
-        DependencyChecker(resourceProvider.pathContext, logger, processManager)
-            .check();
+    var projectContents = simpleProject(sourceText: 'int x;');
+    var projectDir = createProjectDir(projectContents);
+    var success = DependencyChecker(
+            projectDir, resourceProvider.pathContext, logger, processManager)
+        .check();
     expect(success, isFalse);
   }
 
@@ -162,9 +165,11 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
     processManager._mockResult = ProcessResult(123 /* pid */,
         pubOutdatedExitCode, pubOutdatedStdout, pubOutdatedStderr);
     logger = _TestLogger(true);
-    var success =
-        DependencyChecker(resourceProvider.pathContext, logger, processManager)
-            .check();
+    var projectContents = simpleProject(sourceText: 'int x;');
+    var projectDir = createProjectDir(projectContents);
+    var success = DependencyChecker(
+            projectDir, resourceProvider.pathContext, logger, processManager)
+        .check();
     expect(success, isTrue);
   }
 
@@ -446,6 +451,41 @@ int? f() => null
       var uri = Uri.parse(url);
       await assertPreviewServerResponsive(
           uri.replace(path: uri.path + '/').toString());
+    });
+  }
+
+  test_lifecycle_preview_navigation_links() async {
+    var projectContents = simpleProject(sourceText: 'int x;');
+    projectContents['lib/src/test.dart'] = 'import "../test.dart"; int y = x;';
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await runWithPreviewServer(cli, [projectDir], (url) async {
+      expect(
+          logger.stdoutBuffer.toString(), contains('No analysis issues found'));
+      await assertPreviewServerResponsive(url);
+      final uri = Uri.parse(url);
+      final authToken = uri.queryParameters['authToken'];
+      final fileResponse = await http.get(
+          uri.replace(
+              path: resourceProvider.pathContext
+                  .toUri(resourceProvider.pathContext
+                      .join(projectDir, 'lib', 'src', 'test.dart'))
+                  .path,
+              queryParameters: {'inline': 'true', 'authToken': authToken}),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      final fileJson = FileDetails.fromJson(jsonDecode(fileResponse.body));
+      final navigation = fileJson.navigationContent;
+      final aLink = RegExp(r'<a href="([^"]+)" class="nav-link">');
+      for (final match in aLink.allMatches(navigation)) {
+        var href = match.group(1);
+        print(href);
+        final contentsResponse = await http.get(
+            uri.replace(
+                path: Uri.parse(href).path,
+                queryParameters: {'inline': 'true', 'authToken': authToken}),
+            headers: {'Content-Type': 'application/json; charset=UTF-8'});
+        assertHttpSuccess(contentsResponse);
+      }
     });
   }
 
@@ -1125,7 +1165,8 @@ class _MockProcessManager implements ProcessManager {
 
   dynamic noSuchMethod(Invocation invocation) {}
 
-  ProcessResult runSync(String executable, List<String> arguments) =>
+  ProcessResult runSync(String executable, List<String> arguments,
+          {String workingDirectory}) =>
       _mockResult ??
       ProcessResult(
         123 /* pid */,

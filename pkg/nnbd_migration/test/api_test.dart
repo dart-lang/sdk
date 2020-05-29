@@ -50,7 +50,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
       driver.getFileSync(newFile(path, content: input[path]).path);
     }
     var listener = new TestMigrationListener();
-    var migration = NullabilityMigration(listener,
+    var migration = NullabilityMigration(listener, getLineInfo,
         permissive: _usePermissiveMode,
         removeViaComments: removeViaComments,
         warnOnWeakCode: warnOnWeakCode);

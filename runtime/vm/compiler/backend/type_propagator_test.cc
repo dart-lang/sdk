@@ -396,4 +396,83 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_Regress36156) {
                   it.IsObjectType() || it.IsNumberType());
 }
 
+ISOLATE_UNIT_TEST_CASE(CompileType_CanBeSmi) {
+  CompilerState S(thread, /*is_aot=*/false);
+
+  const auto& lib = Library::Handle(LoadTestScript(R"(
+import 'dart:async';
+
+class G<T> {}
+
+class C<NoBound,
+        NumBound extends num,
+        ComparableBound extends Comparable,
+        StringBound extends String> {
+  // Simple instantiated types.
+  @pragma('vm-test:can-be-smi') int t1;
+  @pragma('vm-test:can-be-smi') num t2;
+  @pragma('vm-test:can-be-smi') Object t3;
+  String t4;
+
+  // Type parameters.
+  @pragma('vm-test:can-be-smi') NoBound tp1;
+  @pragma('vm-test:can-be-smi') NumBound tp2;
+  @pragma('vm-test:can-be-smi') ComparableBound tp3;
+  StringBound tp4;
+
+  // Comparable<T> instantiations.
+  @pragma('vm-test:can-be-smi') Comparable c1;
+  Comparable<String> c2;
+  @pragma('vm-test:can-be-smi') Comparable<num> c3;
+  Comparable<int> c4;  // int is not a subtype of Comparable<int>.
+  @pragma('vm-test:can-be-smi') Comparable<NoBound> c5;
+  @pragma('vm-test:can-be-smi') Comparable<NumBound> c6;
+  @pragma('vm-test:can-be-smi') Comparable<ComparableBound> c7;
+  Comparable<StringBound> c8;
+
+  // FutureOr<T> instantiations.
+  @pragma('vm-test:can-be-smi') FutureOr fo1;
+  FutureOr<String> fo2;
+  @pragma('vm-test:can-be-smi') FutureOr<num> fo3;
+  @pragma('vm-test:can-be-smi') FutureOr<int> fo4;
+  @pragma('vm-test:can-be-smi') FutureOr<NoBound> fo5;
+  @pragma('vm-test:can-be-smi') FutureOr<NumBound> fo6;
+  @pragma('vm-test:can-be-smi') FutureOr<ComparableBound> fo7;
+  FutureOr<StringBound> fo8;
+
+  // Other generic classes.
+  G<int> g1;
+  G<NoBound> g2;
+}
+)"));
+
+  const auto& pragma_can_be_smi =
+      String::Handle(Symbols::New(thread, "vm-test:can-be-smi"));
+  auto expected_can_be_smi = [&](const Field& f) {
+    auto& options = Object::Handle();
+    return lib.FindPragma(thread, /*only_core=*/false, f, pragma_can_be_smi,
+                          &options);
+  };
+
+  const auto& cls = Class::Handle(GetClass(lib, "C"));
+  const auto& err = Error::Handle(cls.EnsureIsFinalized(thread));
+  EXPECT(err.IsNull());
+  const auto& fields = Array::Handle(cls.fields());
+
+  auto& field = Field::Handle();
+  auto& type = AbstractType::Handle();
+  for (intptr_t i = 0; i < fields.Length(); i++) {
+    field ^= fields.At(i);
+    type = field.type();
+
+    auto compile_type = CompileType::FromAbstractType(type);
+    if (compile_type.CanBeSmi() != expected_can_be_smi(field)) {
+      dart::Expect(__FILE__, __LINE__)
+          .Fail("expected that CanBeSmi() returns %s for compile type %s\n",
+                expected_can_be_smi(field) ? "true" : "false",
+                compile_type.ToCString());
+    }
+  }
+}
+
 }  // namespace dart

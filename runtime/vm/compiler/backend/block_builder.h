@@ -23,7 +23,10 @@ class BlockBuilder : public ValueObject {
         entry_(entry),
         current_(entry),
         dummy_env_(
-            new Environment(0, 0, flow_graph->parsed_function(), nullptr)) {}
+            new Environment(0, 0, flow_graph->parsed_function(), nullptr)) {
+    // Some graph transformations use environments from block entries.
+    entry->SetEnvironment(dummy_env_);
+  }
 
   Definition* AddToInitialDefinitions(Definition* def) {
     def->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
@@ -44,7 +47,8 @@ class BlockBuilder : public ValueObject {
 
   template <typename T>
   T* AddInstruction(T* instr) {
-    if (instr->ComputeCanDeoptimize()) {
+    if (instr->ComputeCanDeoptimize() ||
+        instr->CanBecomeDeoptimizationTarget()) {
       // All instructions that can deoptimize must have an environment attached
       // to them.
       instr->SetEnvironment(dummy_env_);
@@ -55,15 +59,15 @@ class BlockBuilder : public ValueObject {
 
   const Function& function() const { return flow_graph_->function(); }
 
-  void AddReturn(Value* value) {
+  ReturnInstr* AddReturn(Value* value) {
     const auto& function = flow_graph_->function();
     const auto representation = FlowGraph::ReturnRepresentationOf(function);
-
     ReturnInstr* instr = new ReturnInstr(
         TokenPos(), value, CompilerState::Current().GetNextDeoptId(),
         PcDescriptorsLayout::kInvalidYieldIndex, representation);
     AddInstruction(instr);
     entry_->set_last_instruction(instr);
+    return instr;
   }
 
   Definition* AddParameter(intptr_t index, bool with_frame) {
@@ -114,6 +118,8 @@ class BlockBuilder : public ValueObject {
                          TargetEntryInstr* false_successor) {
     auto branch =
         new BranchInstr(comp, CompilerState::Current().GetNextDeoptId());
+    // Some graph transformations use environments from branches.
+    branch->SetEnvironment(dummy_env_);
     current_->AppendInstruction(branch);
     current_ = nullptr;
 

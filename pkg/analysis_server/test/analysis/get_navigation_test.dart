@@ -24,7 +24,6 @@ class GetNavigationTest extends AbstractNavigationTest {
 
   @override
   void setUp() {
-    generateSummaryFiles = true;
     super.setUp();
     server.handlers = [
       AnalysisDomainHandler(server),

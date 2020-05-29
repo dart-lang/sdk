@@ -508,6 +508,8 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
       ...testFile.ddcOptions,
+      if (_configuration.nnbdMode == NnbdMode.strong)
+        '--sound-null-safety',
       // The file being compiled is the last argument.
       args.last
     ];
@@ -521,7 +523,9 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       //
       // For local development we don't have a built SDK yet, so point directly
       // at the built summary file location.
-      var sdkSummaryFile = 'ddc_sdk.dill';
+      var sdkSummaryFile = _configuration.nnbdMode == NnbdMode.strong
+          ? 'ddc_outline_sound.dill'
+          : 'ddc_outline.dill';
       var sdkSummary = Path(_configuration.buildDirectory)
           .append(sdkSummaryFile)
           .absolute
@@ -541,6 +545,8 @@ class DevCompilerConfiguration extends CompilerConfiguration {
 
     // Link to the summaries for the available packages, so that they don't
     // get recompiled into the test's own module.
+    var packageSummaryDir =
+        _configuration.nnbdMode == NnbdMode.strong ? 'pkg_sound' : 'pkg_kernel';
     for (var package in testPackages) {
       args.add("-s");
 
@@ -548,7 +554,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       // dartdevc explicit module paths for each one. When the test is run, we
       // will tell require.js where to find each package's compiled JS.
       var summary = Path(_configuration.buildDirectory)
-          .append("/gen/utils/dartdevc/pkg_kernel/$package.dill")
+          .append("/gen/utils/dartdevc/$packageSummaryDir/$package.dill")
           .absolute
           .toNativePath();
       args.add("$summary=$package");

@@ -1427,6 +1427,9 @@ void ARMDecoder::InstructionDecode(uword pc) {
   if (instr->ConditionField() == kSpecialCondition) {
     if (instr->InstructionBits() == static_cast<int32_t>(0xf57ff01f)) {
       Format(instr, "clrex");
+    } else if (instr->InstructionBits() ==
+               static_cast<int32_t>(kDataMemoryBarrier)) {
+      Format(instr, "dmb ish");
     } else {
       if (instr->IsSIMDDataProcessing()) {
         DecodeSIMDDataProcessing(instr);

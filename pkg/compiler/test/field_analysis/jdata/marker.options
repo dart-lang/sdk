@@ -1,0 +1,4 @@
+spec:nnbd-off=pkg/compiler/test/field_analysis/jfield_analysis_test.dart
+prod:nnbd-off=pkg/compiler/test/field_analysis/jfield_analysis_test.dart
+spec:nnbd-sdk=pkg/compiler/test/field_analysis/jfield_analysis_test.dart
+prod:nnbd-sdk=pkg/compiler/test/field_analysis/jfield_analysis_test.dart

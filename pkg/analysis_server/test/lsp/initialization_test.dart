@@ -219,15 +219,6 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
           .having((r) => r.method, 'method', 'textDocument/foldingRange')
           .having((r) => r.id, 'id', registrationIdForFolding)),
     );
-
-    // Renaming documents is a Dart-specific service that should not have been
-    // affected by the plugin change.
-    final registrationIdForRename =
-        registrations.singleWhere((r) => r.method == 'textDocument/rename').id;
-    expect(
-        unregistrations,
-        isNot(contains(isA<Unregistration>()
-            .having((r) => r.id, 'id', registrationIdForRename))));
   }
 
   Future<void> test_dynamicRegistration_updatesWithPlugins() async {

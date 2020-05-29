@@ -19,10 +19,8 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
-import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/source/source_resource.dart';
@@ -391,6 +389,12 @@ class BuildMode with HasContextMixin {
       return bundle;
     }
 
+    SummaryBasedDartSdk sdk;
+    logger.run('Add SDK bundle', () {
+      sdk = SummaryBasedDartSdk(options.dartSdkSummaryPath, true);
+      summaryDataStore.addBundle(null, sdk.bundle);
+    });
+
     var numInputs = options.buildSummaryInputs.length;
     logger.run('Add $numInputs input summaries', () {
       for (var path in options.buildSummaryInputs) {
@@ -400,26 +404,6 @@ class BuildMode with HasContextMixin {
 
     var rootPath =
         options.sourceFiles.isEmpty ? null : options.sourceFiles.first;
-    DartSdk sdk;
-    logger.run('Add SDK bundle', () {
-      PackageBundle sdkBundle;
-      if (options.dartSdkSummaryPath != null) {
-        var summarySdk = SummaryBasedDartSdk(options.dartSdkSummaryPath, true);
-        sdk = summarySdk;
-        sdkBundle = summarySdk.bundle;
-      } else {
-        var dartSdk = FolderBasedDartSdk(
-            resourceProvider, resourceProvider.getFolder(options.dartSdkPath));
-        dartSdk.analysisOptions =
-            createAnalysisOptionsForCommandLineOptions(options, rootPath);
-        dartSdk.useSummary = !options.buildSummaryOnly;
-        sdk = dartSdk;
-        sdkBundle = dartSdk.getSummarySdkBundle();
-      }
-
-      // Include SDK bundle to avoid parsing SDK sources.
-      summaryDataStore.addBundle(null, sdkBundle);
-    });
 
     var packages = _findPackages(rootPath);
 

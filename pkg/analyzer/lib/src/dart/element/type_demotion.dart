@@ -30,7 +30,7 @@ bool hasPromotedTypeVariable(DartType type) {
 /// Returns [type] in which all legacy types have been replaced with
 /// non-nullable types.
 DartType nonNullifyType(LibraryElement library, DartType type) {
-  if (library.isNonNullableByDefault) {
+  if (library.isNonNullableByDefault && type != null) {
     var visitor = const _DemotionNonNullification(demoteTypeVariables: false);
     return visitor.visit(type) ?? type;
   }

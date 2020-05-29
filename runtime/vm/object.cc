@@ -5929,12 +5929,18 @@ intptr_t TypeArguments::NumInstantiations() const {
 }
 
 ArrayPtr TypeArguments::instantiations() const {
+  // We rely on the fact that any loads from the array are dependent loads and
+  // avoid the load-acquire barrier here.
   return raw_ptr()->instantiations_;
 }
 
 void TypeArguments::set_instantiations(const Array& value) const {
+  // We have to ensure that initializing stores to the array are available
+  // when releasing the pointer to the array pointer.
+  // => We have to use store-release here.
   ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->instantiations_, value.raw());
+  StorePointer<ArrayPtr, std::memory_order_release>(&raw_ptr()->instantiations_,
+                                                    value.raw());
 }
 
 intptr_t TypeArguments::Length() const {
@@ -6211,13 +6217,18 @@ TypeArgumentsPtr TypeArguments::InstantiateFrom(
 TypeArgumentsPtr TypeArguments::InstantiateAndCanonicalizeFrom(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments) const {
+  auto thread = Thread::Current();
+  auto zone = thread->zone();
+  SafepointMutexLocker ml(
+      thread->isolate_group()->type_arguments_canonicalization_mutex());
+
   ASSERT(!IsInstantiated());
   ASSERT(instantiator_type_arguments.IsNull() ||
          instantiator_type_arguments.IsCanonical());
   ASSERT(function_type_arguments.IsNull() ||
          function_type_arguments.IsCanonical());
   // Lookup instantiators and if found, return instantiated result.
-  Array& prior_instantiations = Array::Handle(instantiations());
+  Array& prior_instantiations = Array::Handle(zone, instantiations());
   ASSERT(!prior_instantiations.IsNull() && prior_instantiations.IsArray());
   // The instantiations cache is initialized with Object::zero_array() and is
   // therefore guaranteed to contain kNoInstantiator. No length check needed.
@@ -6241,7 +6252,7 @@ TypeArgumentsPtr TypeArguments::InstantiateAndCanonicalizeFrom(
     index += TypeArguments::Instantiation::kSizeInWords;
   }
   // Cache lookup failed. Instantiate the type arguments.
-  TypeArguments& result = TypeArguments::Handle();
+  TypeArguments& result = TypeArguments::Handle(zone);
   result = InstantiateFrom(instantiator_type_arguments, function_type_arguments,
                            kAllFree, NULL, Heap::kOld);
   // Canonicalize type arguments.
@@ -6264,18 +6275,28 @@ TypeArgumentsPtr TypeArguments::InstantiateAndCanonicalizeFrom(
     set_instantiations(prior_instantiations);
     ASSERT((index + TypeArguments::Instantiation::kSizeInWords) < length);
   }
+
+  // Set sentinel marker at next position.
   prior_instantiations.SetAt(
-      index + TypeArguments::Instantiation::kInstantiatorTypeArgsIndex,
-      instantiator_type_arguments);
+      index + TypeArguments::Instantiation::kSizeInWords +
+          TypeArguments::Instantiation::kInstantiatorTypeArgsIndex,
+      Smi::Handle(zone, Smi::New(TypeArguments::kNoInstantiator)));
+
   prior_instantiations.SetAt(
       index + TypeArguments::Instantiation::kFunctionTypeArgsIndex,
       function_type_arguments);
   prior_instantiations.SetAt(
       index + TypeArguments::Instantiation::kInstantiatedTypeArgsIndex, result);
-  prior_instantiations.SetAt(
-      index + TypeArguments::Instantiation::kSizeInWords +
-          TypeArguments::Instantiation::kInstantiatorTypeArgsIndex,
-      Smi::Handle(Smi::New(TypeArguments::kNoInstantiator)));
+
+  // We let any concurrently running mutator thread now see the new entry by
+  // using a store-release barrier.
+  ASSERT(
+      prior_instantiations.At(
+          index + TypeArguments::Instantiation::kInstantiatorTypeArgsIndex) ==
+      Smi::New(TypeArguments::kNoInstantiator));
+  prior_instantiations.SetAtRelease(
+      index + TypeArguments::Instantiation::kInstantiatorTypeArgsIndex,
+      instantiator_type_arguments);
   return result.raw();
 }
 
@@ -6329,7 +6350,7 @@ TypeArgumentsPtr TypeArguments::Canonicalize(TrailPtr trail) const {
   ObjectStore* object_store = isolate->object_store();
   TypeArguments& result = TypeArguments::Handle(zone);
   {
-    SafepointMutexLocker ml(isolate->type_canonicalization_mutex());
+    SafepointMutexLocker ml(isolate->group()->type_canonicalization_mutex());
     CanonicalTypeArgumentsSet table(zone,
                                     object_store->canonical_type_arguments());
     result ^= table.GetOrNull(CanonicalTypeArgumentsKey(*this));
@@ -6353,7 +6374,7 @@ TypeArgumentsPtr TypeArguments::Canonicalize(TrailPtr trail) const {
     if (IsRecursive()) {
       SetHash(0);
     }
-    SafepointMutexLocker ml(isolate->type_canonicalization_mutex());
+    SafepointMutexLocker ml(isolate->group()->type_canonicalization_mutex());
     CanonicalTypeArgumentsSet table(zone,
                                     object_store->canonical_type_arguments());
     // Since we canonicalized some type arguments above we need to lookup
@@ -17000,8 +17021,18 @@ SubtypeTestCachePtr SubtypeTestCache::New() {
   return result.raw();
 }
 
+ArrayPtr SubtypeTestCache::cache() const {
+  // We rely on the fact that any loads from the array are dependent loads and
+  // avoid the load-acquire barrier here.
+  return raw_ptr()->cache_;
+}
+
 void SubtypeTestCache::set_cache(const Array& value) const {
-  StorePointer(&raw_ptr()->cache_, value.raw());
+  // We have to ensure that initializing stores to the array are available
+  // when releasing the pointer to the array pointer.
+  // => We have to use store-release here.
+  StorePointer<ArrayPtr, std::memory_order_release>(&raw_ptr()->cache_,
+                                                    value.raw());
 }
 
 intptr_t SubtypeTestCache::NumberOfChecks() const {
@@ -17018,14 +17049,19 @@ void SubtypeTestCache::AddCheck(
     const TypeArguments& instance_parent_function_type_arguments,
     const TypeArguments& instance_delayed_type_arguments,
     const Bool& test_result) const {
+  ASSERT(Thread::Current()
+             ->isolate_group()
+             ->subtype_test_cache_mutex()
+             ->IsOwnedByCurrentThread());
+
   intptr_t old_num = NumberOfChecks();
   Array& data = Array::Handle(cache());
   intptr_t new_len = data.Length() + kTestEntryLength;
   data = Array::Grow(data, new_len);
-  set_cache(data);
 
   SubtypeTestCacheTable entries(data);
   auto entry = entries[old_num];
+  ASSERT(entry.Get<kInstanceClassIdOrFunction>() == Object::null());
   entry.Set<kInstanceClassIdOrFunction>(instance_class_id_or_function);
   entry.Set<kInstanceTypeArguments>(instance_type_arguments);
   entry.Set<kInstantiatorTypeArguments>(instantiator_type_arguments);
@@ -17035,6 +17071,10 @@ void SubtypeTestCache::AddCheck(
   entry.Set<kInstanceDelayedFunctionTypeArguments>(
       instance_delayed_type_arguments);
   entry.Set<kTestResult>(test_result);
+
+  // We let any concurrently running mutator thread now see the new entry (the
+  // `set_cache()` uses a store-release barrier).
+  set_cache(data);
 }
 
 void SubtypeTestCache::GetCheck(
@@ -17046,6 +17086,11 @@ void SubtypeTestCache::GetCheck(
     TypeArguments* instance_parent_function_type_arguments,
     TypeArguments* instance_delayed_type_arguments,
     Bool* test_result) const {
+  ASSERT(Thread::Current()
+             ->isolate_group()
+             ->subtype_test_cache_mutex()
+             ->IsOwnedByCurrentThread());
+
   Array& data = Array::Handle(cache());
   SubtypeTestCacheTable entries(data);
   auto entry = entries[ix];
@@ -19563,7 +19608,8 @@ AbstractTypePtr Type::Canonicalize(TrailPtr trail) const {
       type = cls.declaration_type();
       // May be set while canonicalizing type args.
       if (type.IsNull()) {
-        SafepointMutexLocker ml(isolate->type_canonicalization_mutex());
+        SafepointMutexLocker ml(
+            isolate->group()->type_canonicalization_mutex());
         // Recheck if type exists.
         type = cls.declaration_type();
         if (type.IsNull()) {
@@ -19589,7 +19635,7 @@ AbstractTypePtr Type::Canonicalize(TrailPtr trail) const {
   AbstractType& type = Type::Handle(zone);
   ObjectStore* object_store = isolate->object_store();
   {
-    SafepointMutexLocker ml(isolate->type_canonicalization_mutex());
+    SafepointMutexLocker ml(isolate->group()->type_canonicalization_mutex());
     CanonicalTypeSet table(zone, object_store->canonical_types());
     type ^= table.GetOrNull(CanonicalTypeKey(*this));
     ASSERT(object_store->canonical_types() == table.Release().raw());
@@ -19637,7 +19683,7 @@ AbstractTypePtr Type::Canonicalize(TrailPtr trail) const {
 
     // Check to see if the type got added to canonical list as part of the
     // type arguments canonicalization.
-    SafepointMutexLocker ml(isolate->type_canonicalization_mutex());
+    SafepointMutexLocker ml(isolate->group()->type_canonicalization_mutex());
     CanonicalTypeSet table(zone, object_store->canonical_types());
     type ^= table.GetOrNull(CanonicalTypeKey(*this));
     if (type.IsNull()) {
@@ -19684,7 +19730,7 @@ bool Type::CheckIsCanonical(Thread* thread) const {
 
   ObjectStore* object_store = isolate->object_store();
   {
-    SafepointMutexLocker ml(isolate->type_canonicalization_mutex());
+    SafepointMutexLocker ml(isolate->group()->type_canonicalization_mutex());
     CanonicalTypeSet table(zone, object_store->canonical_types());
     type ^= table.GetOrNull(CanonicalTypeKey(*this));
     object_store->set_canonical_types(table.Release());

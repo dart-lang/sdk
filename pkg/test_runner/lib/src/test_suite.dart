@@ -867,11 +867,6 @@ class StandardTestSuite extends TestSuite {
     if (configuration.compiler == Compiler.dart2analyzer) {
       args.add('--format=machine');
       args.add('--no-hints');
-
-      if (testFile.path.filename.contains("dart2js") ||
-          testFile.path.directoryPath.segments().last.contains('html_common')) {
-        args.add("--use-dart2js-libraries");
-      }
     }
 
     args.add(testFile.path.toNativePath());

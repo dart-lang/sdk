@@ -1090,7 +1090,6 @@ class MockSdk implements DartSdk {
   /// Optional [additionalLibraries] should have unique URIs, and paths in
   /// their units are relative (will be put into `sdkRoot/lib`).
   MockSdk({
-    bool generateSummaryFiles = false,
     @required this.resourceProvider,
     AnalysisOptionsImpl analysisOptions,
     List<MockSdkLibrary> additionalLibraries = const [],
@@ -1157,12 +1156,6 @@ class MockSdk implements DartSdk {
 }
 ''',
     );
-
-    if (generateSummaryFiles) {
-      List<int> bytes = _computeLinkedBundleBytes();
-      resourceProvider.newFileWithBytes(
-          resourceProvider.convertPath('/lib/_internal/strong.sum'), bytes);
-    }
   }
 
   @override

@@ -41,6 +41,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   final Source source;
 
+  final LineInfo Function(String) _getLineInfo;
+
   /// If the parameters of a function or method are being visited, the
   /// [DecoratedType]s of the function's named parameters that have been seen so
   /// far.  Otherwise `null`.
@@ -65,7 +67,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   final TypeProvider _typeProvider;
 
   NodeBuilder(this._variables, this.source, this.listener, this._graph,
-      this._typeProvider,
+      this._typeProvider, this._getLineInfo,
       {this.instrumentation});
 
   NullabilityNodeTarget get safeTarget {
@@ -88,7 +90,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var exceptionElement = node.exceptionParameter?.staticElement;
     var target = exceptionElement == null
         ? NullabilityNodeTarget.text('exception type')
-        : NullabilityNodeTarget.element(exceptionElement);
+        : NullabilityNodeTarget.element(exceptionElement, _getLineInfo);
     DecoratedType exceptionType = _pushNullabilityNodeTarget(
         target, () => node.exceptionType?.accept(this));
     if (node.exceptionParameter != null) {
@@ -159,7 +161,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       assert(constructorElement.isSynthetic);
       var decoratedReturnType =
           _createDecoratedTypeForClass(classElement, node);
-      var target = NullabilityNodeTarget.element(constructorElement);
+      var target =
+          NullabilityNodeTarget.element(constructorElement, _getLineInfo);
       var functionType = DecoratedType.forImplicitFunction(
           _typeProvider, constructorElement.type, _graph.never, _graph, target,
           returnType: decoratedReturnType);
@@ -207,7 +210,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitDeclaredIdentifier(DeclaredIdentifier node) {
     node.metadata.accept(this);
     var declaredElement = node.declaredElement;
-    var target = NullabilityNodeTarget.element(declaredElement);
+    var target = NullabilityNodeTarget.element(declaredElement, _getLineInfo);
     DecoratedType type =
         _pushNullabilityNodeTarget(target, () => node.type?.accept(this));
     if (node.identifier != null) {
@@ -256,12 +259,13 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
     for (var item in node.constants) {
       var declaredElement = item.declaredElement;
-      var target = NullabilityNodeTarget.element(declaredElement);
+      var target = NullabilityNodeTarget.element(declaredElement, _getLineInfo);
       _variables.recordDecoratedElementType(declaredElement,
           DecoratedType(classElement.thisType, makeNonNullNode(target, item)));
     }
     final valuesGetter = classElement.getGetter('values');
-    var valuesTarget = NullabilityNodeTarget.element(valuesGetter);
+    var valuesTarget =
+        NullabilityNodeTarget.element(valuesGetter, _getLineInfo);
     _variables.recordDecoratedElementType(
         valuesGetter,
         DecoratedType(valuesGetter.type, makeNonNullNode(valuesTarget),
@@ -272,14 +276,14 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
                       makeNonNullNode(valuesTarget.typeArgument(0)))
                 ])));
     final indexGetter = classElement.getGetter('index');
-    var indexTarget = NullabilityNodeTarget.element(indexGetter);
+    var indexTarget = NullabilityNodeTarget.element(indexGetter, _getLineInfo);
     _variables.recordDecoratedElementType(
         indexGetter,
         DecoratedType(indexGetter.type, makeNonNullNode(indexTarget),
             returnType: DecoratedType(indexGetter.returnType,
                 makeNonNullNode(indexTarget.returnType()))));
     final toString = classElement.getMethod('toString');
-    var toStringTarget = NullabilityNodeTarget.element(toString);
+    var toStringTarget = NullabilityNodeTarget.element(toString, _getLineInfo);
     _variables.recordDecoratedElementType(
         toString,
         DecoratedType(toString.type, makeNonNullNode(toStringTarget),
@@ -361,7 +365,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var functionType = declaredElement.function.type;
     var returnType = node.returnType;
     DecoratedType decoratedReturnType;
-    var target = NullabilityNodeTarget.element(declaredElement);
+    var target = NullabilityNodeTarget.element(declaredElement, _getLineInfo);
     if (returnType != null) {
       _pushNullabilityNodeTarget(target.returnType(), () {
         decoratedReturnType = returnType.accept(this);
@@ -408,7 +412,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     node.metadata.accept(this);
     DecoratedType decoratedFunctionType;
     node.typeParameters?.accept(this);
-    var target = NullabilityNodeTarget.element(node.declaredElement);
+    var target =
+        NullabilityNodeTarget.element(node.declaredElement, _getLineInfo);
     _pushNullabilityNodeTarget(target, () {
       decoratedFunctionType = node.functionType.accept(this);
     });
@@ -621,7 +626,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     node.metadata.accept(this);
     var typeAnnotation = node.type;
     var type = _pushNullabilityNodeTarget(
-        NullabilityNodeTarget.element(node.variables.first.declaredElement),
+        NullabilityNodeTarget.element(
+            node.variables.first.declaredElement, _getLineInfo),
         () => typeAnnotation?.accept(this));
     var hint = getPrefixHint(node.firstTokenAfterCommentAndMetadata);
     if (hint != null && hint.kind == HintCommentKind.late_) {
@@ -631,7 +637,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       variable.metadata.accept(this);
       var declaredElement = variable.declaredElement;
       if (type == null) {
-        var target = NullabilityNodeTarget.element(declaredElement);
+        var target =
+            NullabilityNodeTarget.element(declaredElement, _getLineInfo);
         type = DecoratedType.forImplicitType(
             _typeProvider, declaredElement.type, _graph, target);
         instrumentation?.implicitType(source, node, type);
@@ -673,7 +680,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     metadata?.accept(this);
     var functionType = declaredElement.type;
     DecoratedType decoratedReturnType;
-    var target = NullabilityNodeTarget.element(declaredElement);
+    var target = NullabilityNodeTarget.element(declaredElement, _getLineInfo);
     if (returnType != null) {
       _pushNullabilityNodeTarget(target.returnType(), () {
         decoratedReturnType = returnType.accept(this);
@@ -831,7 +838,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
     var decoratedSupertypes = <ClassElement, DecoratedType>{};
     _pushNullabilityNodeTarget(
-        NullabilityNodeTarget.element(declaredElement).supertype, () {
+        NullabilityNodeTarget.element(declaredElement, _getLineInfo).supertype,
+        () {
       for (var supertype in supertypes) {
         DecoratedType decoratedSupertype;
         if (supertype == null) {

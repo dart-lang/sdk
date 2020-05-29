@@ -1669,9 +1669,12 @@ bool ConstantPropagator::TransformDefinition(Definition* defn) {
     if (auto call = defn->AsStaticCall()) {
       ASSERT(!call->HasPushArguments());
     }
-    ConstantInstr* constant = graph_->GetConstant(constant_value_);
-    defn->ReplaceUsesWith(constant);
-    return true;
+    Definition* replacement =
+        graph_->TryCreateConstantReplacementFor(defn, constant_value_);
+    if (replacement != defn) {
+      defn->ReplaceUsesWith(replacement);
+      return true;
+    }
   }
   return false;
 }

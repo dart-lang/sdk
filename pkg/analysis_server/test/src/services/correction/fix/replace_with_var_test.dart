@@ -57,6 +57,23 @@ void f(List<int> list) {
 ''');
   }
 
+  Future<void> test_forEach_final() async {
+    await resolveTestUnit('''
+void f(List<int> list) {
+  for (final int i in list) {
+    print(i);
+  }
+}
+''');
+    await assertHasFix('''
+void f(List<int> list) {
+  for (final i in list) {
+    print(i);
+  }
+}
+''');
+  }
+
   Future<void> test_generic_instanceCreation_withArguments() async {
     await resolveTestUnit('''
 C<int> f() {
@@ -156,6 +173,36 @@ String f() {
     await assertHasFix('''
 String f() {
   var s = '';
+  return s;
+}
+''');
+  }
+
+  Future<void> test_simple_const() async {
+    await resolveTestUnit('''
+String f() {
+  const String s = '';
+  return s;
+}
+''');
+    await assertHasFix('''
+String f() {
+  const s = '';
+  return s;
+}
+''');
+  }
+
+  Future<void> test_simple_final() async {
+    await resolveTestUnit('''
+String f() {
+  final String s = '';
+  return s;
+}
+''');
+    await assertHasFix('''
+String f() {
+  final s = '';
   return s;
 }
 ''');

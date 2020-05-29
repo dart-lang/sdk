@@ -6,6 +6,7 @@
 
 #include <functional>
 
+#include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/slot.h"
 #include "vm/growable_array.h"
@@ -74,6 +75,27 @@ const ZoneGrowableArray<const Slot*>& CompilerState::GetDummyContextSlots(
 CompilerTracing CompilerState::ShouldTrace(const Function& func) {
   return FlowGraphPrinter::ShouldPrint(func) ? CompilerTracing::kOn
                                              : CompilerTracing::kOff;
+}
+
+const Class& CompilerState::ComparableClass() {
+  if (comparable_class_ == nullptr) {
+    Thread* thread = Thread::Current();
+    Zone* zone = thread->zone();
+
+    // When obfuscation is enabled we need to obfuscate the name of the
+    // class before looking it up.
+    String& name = String::Handle(zone, Symbols::New(thread, "Comparable"));
+    if (thread->isolate()->obfuscate()) {
+      Obfuscator obfuscator(thread, Object::null_string());
+      name = obfuscator.Rename(name);
+    }
+
+    const Library& lib = Library::Handle(zone, Library::CoreLibrary());
+    const Class& cls = Class::ZoneHandle(zone, lib.LookupClass(name));
+    ASSERT(!cls.IsNull());
+    comparable_class_ = &cls;
+  }
+  return *comparable_class_;
 }
 
 }  // namespace dart

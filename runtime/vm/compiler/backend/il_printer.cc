@@ -774,6 +774,13 @@ void UnaryDoubleOpInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
 }
 
+void LoadClassIdInstr::PrintOperandsTo(BufferFormatter* f) const {
+  if (!input_can_be_smi_) {
+    f->Print("<non-smi> ");
+  }
+  object()->PrintTo(f);
+}
+
 void CheckClassIdInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
 

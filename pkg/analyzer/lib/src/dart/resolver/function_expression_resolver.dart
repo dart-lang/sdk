@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_demotion.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
@@ -50,6 +51,8 @@ class FunctionExpressionResolver {
     }
 
     var contextType = InferenceContext.getContext(node);
+    contextType = nonNullifyType(_resolver.definingLibrary, contextType);
+
     if (contextType is FunctionType) {
       contextType = _matchFunctionTypeParameters(
         node.typeParameters,

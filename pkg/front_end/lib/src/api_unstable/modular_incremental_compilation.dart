@@ -14,6 +14,8 @@ import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 
 import '../api_prototype/file_system.dart' show FileSystem;
 
+import '../base/nnbd_mode.dart' show NnbdMode;
+
 import '../base/processed_options.dart' show ProcessedOptions;
 
 import '../fasta/compiler_context.dart' show CompilerContext;
@@ -54,7 +56,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     bool outlineOnly,
     bool omitPlatform: false,
     bool trackNeededDillLibraries: false,
-    bool verbose: false}) async {
+    bool verbose: false,
+    NnbdMode nnbdMode: NnbdMode.Weak}) async {
   bool isRetry = false;
   while (true) {
     try {
@@ -78,6 +81,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
           oldState.incrementalCompiler == null ||
           oldState.options.compileSdk != compileSdk ||
           oldState.incrementalCompiler.outlineOnly != outlineOnly ||
+          oldState.options.nnbdMode != nnbdMode ||
           !equalMaps(oldState.options.experimentalFlags, experimentalFlags) ||
           !equalMaps(oldState.options.environmentDefines, environmentDefines) ||
           !equalSets(oldState.tags, tags) ||
@@ -100,7 +104,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
           ..omitPlatform = omitPlatform
           ..environmentDefines = environmentDefines
           ..experimentalFlags = experimentalFlags
-          ..verbose = verbose;
+          ..verbose = verbose
+          ..nnbdMode = nnbdMode;
 
         processedOpts = new ProcessedOptions(options: options);
         cachedSdkInput = new WorkerInputComponent(

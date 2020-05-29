@@ -38,7 +38,7 @@ vars = {
 
   # Checked-in SDK version. The checked-in SDK is a Dart SDK distribution in a
   # cipd package used to run Dart scripts in the build and test infrastructure.
-  "sdk_tag": "version:2.9.0-4.0.dev",
+  "sdk_tag": "version:2.9.0-10.0.dev",
 
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
@@ -67,6 +67,7 @@ vars = {
   "boolean_selector_tag": "1309eabed510cc3b7536fd4367d39b97ebee3d69",
   "boringssl_gen_rev": "b9e27cff1ff0803e97ab1f88764a83be4aa94a6d",
   "boringssl_rev" : "4dfd5af70191b068aebe567b8e29ce108cee85ce",
+  "browser-compat-data_tag": "v1.0.22",
   "charcode_tag": "9085e6b6127f084d66c0a94810a808121459012a",
   "chrome_rev" : "19997",
   "cli_util_tag" : "0.1.4",
@@ -90,7 +91,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_tag": "1.3.6",  # Please see the note above before updating.
 
-  "dartdoc_tag" : "v0.32.0",
+  "dartdoc_tag" : "v0.32.1",
   "ffi_tag": "454ab0f9ea6bd06942a983238d8a6818b1357edb",
   "fixnum_tag": "eb3748663dc979271ff6a3d014fbe522543b1d91",
   "glob_tag": "e9f4e6b7ae8abe5071461cf8f47191bb19cf7ef6",
@@ -255,6 +256,10 @@ deps = {
 
   Var("dart_root") + "/third_party/WebCore":
       Var("dart_git") + "webcore.git" + "@" + Var("WebCore_rev"),
+
+  Var("dart_root") + "/third_party/mdn/browser-compat-data":
+      Var('chromium_git') + '/external/github.com/mdn/browser-compat-data' +
+      "@" + Var("browser-compat-data_tag"),
 
   Var("dart_root") + "/third_party/tcmalloc/gperftools":
       Var('chromium_git') + '/external/github.com/gperftools/gperftools.git' +

@@ -35,6 +35,10 @@ class FormatOnTypeHandler
   @override
   Future<ErrorOr<List<TextEdit>>> handle(
       DocumentOnTypeFormattingParams params, CancellationToken token) async {
+    if (!isDartDocument(params.textDocument)) {
+      return success(null);
+    }
+
     final path = pathOfDoc(params.textDocument);
     return path.mapResult((path) => formatFile(path));
   }

@@ -394,7 +394,7 @@ class RangeError extends ArgumentError {
     } else if (end == null) {
       explanation = ": Not greater than or equal to $start";
     } else if (end > start) {
-      explanation = ": Not in range $start..$end, inclusive";
+      explanation = ": Not in inclusive range $start..$end";
     } else if (end < start) {
       explanation = ": Valid value range is empty";
     } else {

@@ -381,10 +381,9 @@ class Driver implements ServerStarter {
     );
     analysisServerOptions.analytics = analytics;
 
-    if (analysisServerOptions.clientId != null) {
-      // Record the client name as the application installer ID.
-      analytics.setSessionValue('aiid', analysisServerOptions.clientId);
-    }
+    // Record the client name as the application installer ID.
+    analytics.setSessionValue(
+        'aiid', analysisServerOptions.clientId ?? 'not-set');
     if (analysisServerOptions.clientVersion != null) {
       analytics.setSessionValue('cd1', analysisServerOptions.clientVersion);
     }
@@ -403,9 +402,7 @@ class Driver implements ServerStarter {
 
     // Use sdkConfig to optionally override analytics settings.
     final crashProductId = sdkConfig.crashReportingId ?? 'Dart_analysis_server';
-    final crashReportSenderStaging =
-        CrashReportSender.staging(crashProductId, shouldSendCallback);
-    final crashReportSenderProd =
+    final crashReportSender =
         CrashReportSender.prod(crashProductId, shouldSendCallback);
     // TODO(mfairhurst): send these to prod or disable.
     final crashReportSenderAngular = CrashReportSender.staging(
@@ -461,9 +458,7 @@ class Driver implements ServerStarter {
 
     var errorNotifier = ErrorNotifier();
     allInstrumentationServices.add(CrashReportingInstrumentation(
-        crashReportSenderStaging,
-        crashReportSenderProd,
-        crashReportSenderAngular));
+        crashReportSender, crashReportSenderAngular));
     instrumentationService =
         MulticastInstrumentationService(allInstrumentationServices);
 

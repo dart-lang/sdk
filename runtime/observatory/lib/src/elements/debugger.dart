@@ -422,13 +422,15 @@ class RewindCommand extends DebuggerCommand {
     try {
       int count = 1;
       if (args.length == 1) {
-        count = int.parse(args[0]);
+        count = int.tryParse(args[0]);
+        if (count == null || count < 1 || count >= debugger.stackDepth) {
+          debugger.console.print(
+              'Frame must be an int in bounds [1..${debugger.stackDepth - 1}]:'
+              ' saw ${args[0]}');
+          return;
+        }
       } else if (args.length > 1) {
         debugger.console.print('rewind expects 0 or 1 argument');
-        return;
-      } else if (count < 1 || count > debugger.stackDepth) {
-        debugger.console
-            .print('frame must be in range [1..${debugger.stackDepth - 1}]');
         return;
       }
       await debugger.rewind(count);

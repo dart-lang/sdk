@@ -25,18 +25,14 @@ Object? test2() async {
   // [cfe] unspecified
 }
 
+// Inferred return type of function literal is `Future<void>`, no error.
 Object Function() test3 = () async {
   return v;
-  //     ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
 };
 
+// Inferred return type of function literal is `Future<void>`, no error.
 Object? Function() test4 = () async {
   return v;
-  //     ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
 };
 
 void main() {

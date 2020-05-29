@@ -71,10 +71,12 @@ class Variables {
 
   final PostmortemFileWriter postmortemFileWriter;
 
-  Variables(this._graph, this._typeProvider,
+  final LineInfo Function(String) _getLineInfo;
+
+  Variables(this._graph, this._typeProvider, this._getLineInfo,
       {this.instrumentation, this.postmortemFileWriter})
       : _alreadyMigratedCodeDecorator =
-            AlreadyMigratedCodeDecorator(_graph, _typeProvider);
+            AlreadyMigratedCodeDecorator(_graph, _typeProvider, _getLineInfo);
 
   /// Given a [class_], gets the decorated type information for the superclasses
   /// it directly implements/extends/etc.
@@ -380,7 +382,7 @@ class Variables {
       element = (element as FunctionTypeAliasElement).function;
     }
 
-    var target = NullabilityNodeTarget.element(element);
+    var target = NullabilityNodeTarget.element(element, _getLineInfo);
     if (element is FunctionTypedElement) {
       decoratedType = _alreadyMigratedCodeDecorator.decorate(
           element.preMigrationType, element, target);

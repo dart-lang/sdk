@@ -11,6 +11,7 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol
 import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart'
     show
@@ -299,6 +300,14 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   }
 
   @override
+  DartType visitAsExpression(AsExpression node) {
+    if (childNode == node.type) {
+      return node.expression.staticType;
+    }
+    return null;
+  }
+
+  @override
   DartType visitAssertInitializer(AssertInitializer node) {
     if (childNode == node.condition) {
       return typeProvider.boolType;
@@ -317,7 +326,16 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   @override
   DartType visitAssignmentExpression(AssignmentExpression node) {
     if (childNode == node.rightHandSide) {
-      return node.leftHandSide.staticType;
+      if (node.operator.type == TokenType.EQ) {
+        return node.leftHandSide.staticType;
+      }
+      var method = node.staticElement;
+      if (method != null) {
+        var parameters = method.parameters;
+        if (parameters != null && parameters.isNotEmpty) {
+          return parameters[0].type;
+        }
+      }
     }
     return null;
   }
@@ -475,6 +493,14 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   }
 
   @override
+  DartType visitIsExpression(IsExpression node) {
+    if (childNode == node.type) {
+      return node.expression.staticType;
+    }
+    return null;
+  }
+
+  @override
   DartType visitListLiteral(ListLiteral node) {
     if (node.elements.contains(childNode)) {
       return (node.staticType as InterfaceType).typeArguments[0];
@@ -576,6 +602,17 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
       }
     }
     return null;
+  }
+
+  @override
+  DartType visitSwitchCase(SwitchCase node) {
+    if (childNode == node.expression) {
+      var parent = node.parent;
+      if (parent is SwitchStatement) {
+        return parent.expression?.staticType;
+      }
+    }
+    return super.visitSwitchCase(node);
   }
 
   @override

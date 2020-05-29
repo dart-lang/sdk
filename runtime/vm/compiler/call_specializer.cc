@@ -116,7 +116,7 @@ bool CallSpecializer::TryCreateICData(InstanceCallInstr* call) {
       // In precompiler speculate that both sides of bitwise operation
       // are Smi-s.
       if (Token::IsBinaryBitwiseOperator(op_kind) &&
-          !call->HasNonSmiAssignableInterface(zone())) {
+          call->CanReceiverBeSmiBasedOnInterfaceTarget(zone())) {
         class_ids[0] = kSmiCid;
         class_ids[1] = kSmiCid;
       }
@@ -127,7 +127,7 @@ bool CallSpecializer::TryCreateICData(InstanceCallInstr* call) {
       // Guess cid: if one of the inputs is a number assume that the other
       // is a number of same type, unless the interface target tells us this
       // is impossible.
-      if (!call->HasNonSmiAssignableInterface(zone())) {
+      if (call->CanReceiverBeSmiBasedOnInterfaceTarget(zone())) {
         const intptr_t cid_0 = class_ids[0];
         const intptr_t cid_1 = class_ids[1];
         if ((cid_0 == kDynamicCid) && (IsNumberCid(cid_1))) {

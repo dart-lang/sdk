@@ -15,7 +15,6 @@ import 'edge_builder_test.dart' as edge_builder_test;
 import 'edit_plan_test.dart' as edit_plan_test;
 import 'edit_planner_pass_through_merging_test.dart'
     as edit_planner_pass_through_merging_test;
-import 'fantasyland/test_all.dart' as fantasyland;
 import 'fix_aggregator_test.dart' as fix_aggregator_test;
 import 'fix_builder_test.dart' as fix_builder_test;
 import 'fix_reason_target_test.dart' as fix_reason_target_test;
@@ -37,7 +36,6 @@ main() {
     edge_builder_test.main();
     edit_plan_test.main();
     edit_planner_pass_through_merging_test.main();
-    fantasyland.main();
     fix_aggregator_test.main();
     fix_builder_test.main();
     fix_reason_target_test.main();

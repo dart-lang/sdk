@@ -11,7 +11,6 @@
       ".packages",
       ".dart_tool/package_config.json",
       "pkg/",
-      "tests/compiler/dart2js/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
       "tools/",
@@ -1208,7 +1207,7 @@
           "name": "weak co19 tests",
           "arguments": [
             "-ncfe-weak-${system}",
-            "co19/LanguageFeatures/nnbd"
+            "co19"
           ]
         },
         {
@@ -1225,7 +1224,7 @@
           "name": "strong co19 tests",
           "arguments": [
             "-ncfe-strong-${system}",
-            "co19/LanguageFeatures/nnbd"
+            "co19"
           ]
         }
       ]
@@ -1442,6 +1441,24 @@
           ]
         },
         {
+          "name": "co19 nnbd tests in weak mode with asserts",
+          "arguments": [
+            "-ndartkp-weak-asserts-${system}-${mode}-${arch}",
+            "co19"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 1
+        },
+        {
+          "name": "co19 nnbd tests in strong mode",
+          "arguments": [
+            "-ndartkp-strong-${system}-${mode}-${arch}",
+            "co19"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 1
+        },
+        {
           "name": "vm nnbd tests in weak mode with asserts",
           "arguments": [
             "-ndartkp-weak-asserts-${system}-${mode}-${arch}",
@@ -1449,7 +1466,6 @@
             "ffi",
             "language",
             "lib",
-	    "co19/LanguageFeatures/nnbd",
             "standalone/io"
           ]
         },
@@ -1461,7 +1477,6 @@
             "ffi",
             "language",
             "lib",
-	    "co19/LanguageFeatures/nnbd",
             "standalone/io"
           ]
         }
@@ -1825,7 +1840,7 @@
             "ffi",
             "language",
             "lib",
-	    "co19/LanguageFeatures/nnbd",
+            "co19",
             "standalone/io"
           ]
         },
@@ -1837,7 +1852,7 @@
             "ffi",
             "language",
             "lib",
-	    "co19/LanguageFeatures/nnbd",
+            "co19",
             "standalone/io"
           ]
         }
@@ -2159,7 +2174,7 @@
           "name": "ddc nnbd weak co19 tests",
           "arguments": [
             "-ndartdevk-weak-linux-release-chrome",
-            "co19/LanguageFeatures/nnbd"
+            "co19"
           ],
           "shards": 2,
           "fileset": "dart2js_nnbd"
@@ -2178,7 +2193,7 @@
           "name": "ddc nnbd strong co19 tests",
           "arguments": [
             "-ndartdevk-strong-linux-release-chrome",
-            "co19/LanguageFeatures/nnbd"
+            "co19"
           ]
         }
       ]
@@ -2366,7 +2381,6 @@
           "name": "dart2js unit tests",
           "arguments": [
             "-nunittest-asserts-no-sdk-linux",
-            "dart2js",
             "pkg//compiler/"
           ]
         }
@@ -2755,7 +2769,7 @@
           "arguments": [
             "-ndart2js-hostasserts-strong-linux-x64-chrome",
             "--dart2js-batch",
-            "co19/LanguageFeatures/nnbd"
+            "co19"
           ],
           "shards": 6,
           "fileset": "dart2js_hostasserts_nnbd"
@@ -3108,14 +3122,14 @@
           "name": "analyze nnbd strong co19 tests",
           "arguments": [
             "-nanalyzer-asserts-strong-${system}",
-            "co19/LanguageFeatures/nnbd"
+            "co19"
           ]
         },
         {
           "name": "analyze nnbd weak co19 tests",
           "arguments": [
             "-nanalyzer-asserts-weak-${system}",
-            "co19/LanguageFeatures/nnbd"
+            "co19"
           ]
         }
       ]
@@ -3412,7 +3426,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|front_end|kernel|nnbd_migration)/)"
+            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|front_end|kernel|nnbd_migration)/)"
           ]
         },
         {
@@ -3450,7 +3464,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|front_end|kernel|nnbd_migration)/)"
+            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|front_end|kernel|nnbd_migration)/)"
           ]
         },
         {

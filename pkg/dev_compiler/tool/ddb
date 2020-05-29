@@ -207,18 +207,19 @@ void main(List<String> args) async {
       break;
   }
 
-  String sdkJsPath;
-  String requirePath;
   String ddcSdk;
   if (debug) {
     var sdkRoot = p.dirname(p.dirname(ddcPath));
     var buildDir = p.join(sdkRoot, Platform.isMacOS ? 'xcodebuild' : 'out');
     dartSdk = p.join(buildDir, 'ReleaseX64', 'dart-sdk');
+    ddcSdk = p.join(buildDir, 'ReleaseX64',
+        isNnbdStrong ? 'ddc_outline_sound.dill' : 'ddc_outline.dill');
+  } else {
+    ddcSdk = p.join(dartSdk, 'lib', '_internal', 'ddc_sdk.dill');
   }
   var suffix = p.join('kernel', mod);
-  sdkJsPath = p.join(dartSdk, 'lib', 'dev_compiler', suffix);
-  requirePath = sdkJsPath;
-  ddcSdk = p.join(dartSdk, 'lib', '_internal', 'ddc_sdk.dill');
+  var sdkJsPath = p.join(dartSdk, 'lib', 'dev_compiler', suffix);
+  var requirePath = sdkJsPath;
 
   // Print an initial empty line to separate the invocation from the output.
   print('');
@@ -231,6 +232,7 @@ void main(List<String> args) async {
       '--dart-sdk-summary=$ddcSdk',
       for (var summary in summaries) '--summary=$summary',
       for (var experiment in experiments) '--enable-experiment=$experiment',
+      if (isNnbdStrong) '--sound-null-safety',
       if (options['packages'] != null) '--packages=${options['packages']}',
       '-o',
       out,

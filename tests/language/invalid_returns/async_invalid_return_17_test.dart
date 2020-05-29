@@ -18,11 +18,9 @@ void test1() async {
   // [cfe] unspecified
 }
 
+// Inferred return type of function literal is `Future<Object>`, no error.
 void Function() test2 = () async {
   return v;
-  //     ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
 };
 
 void main() {

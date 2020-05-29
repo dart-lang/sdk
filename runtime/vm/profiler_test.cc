@@ -937,7 +937,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ArrayAllocation) {
   DisableBackgroundCompilationScope dbcs;
   const char* kScript =
       "List foo() => List.filled(4, null);\n"
-      "List bar() => List.empty(growable: true);\n";
+      "List bar() => List.filled(0, null, growable: true);\n";
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
   Isolate* isolate = thread->isolate();
 

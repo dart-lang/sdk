@@ -226,7 +226,8 @@ static bool HasLikelySmiOperand(InstanceCallInstr* instr) {
 
   // If Smi is not assignable to the interface target of the call, the receiver
   // is definitely not a Smi.
-  if (instr->HasNonSmiAssignableInterface(Thread::Current()->zone())) {
+  if (!instr->CanReceiverBeSmiBasedOnInterfaceTarget(
+          Thread::Current()->zone())) {
     return false;
   }
 
@@ -478,7 +479,7 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
         left_type->IsNullableInt() && right_type->IsNullableInt();
 
     if (auto* call = instr->AsInstanceCall()) {
-      if (call->HasNonSmiAssignableInterface(zone())) {
+      if (!call->CanReceiverBeSmiBasedOnInterfaceTarget(zone())) {
         has_nullable_int_args = false;
       }
     }
@@ -1300,10 +1301,8 @@ void AotCallSpecializer::TryReplaceWithDispatchTableCall(
     return;
   }
 
-  const AbstractType& target_type =
-      AbstractType::Handle(Class::Handle(interface_target.Owner()).RareType());
   const bool receiver_can_be_smi =
-      CompileType::Smi().IsAssignableTo(target_type);
+      call->CanReceiverBeSmiBasedOnInterfaceTarget(zone());
   auto load_cid = new (Z) LoadClassIdInstr(receiver->CopyWithType(Z), kUntagged,
                                            receiver_can_be_smi);
   InsertBefore(call, load_cid, call->env(), FlowGraph::kValue);

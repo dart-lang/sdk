@@ -25,16 +25,13 @@ typedef _CatchClausesVerifierReporter = void Function(
   List<Object> arguments,
 );
 
-/// A visitor that finds dead code and unused labels.
+/// A visitor that finds dead code.
 class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// The error reporter by which errors will be reported.
   final ErrorReporter _errorReporter;
 
   ///  The type system for this visitor
   final TypeSystemImpl _typeSystem;
-
-  /// The object used to track the usage of labels within a given label scope.
-  _LabelTracker labelTracker;
 
   /// Initialize a newly created dead code verifier that will report dead code
   /// to the given [errorReporter] and will use the given [typeSystem] if one is
@@ -109,11 +106,6 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitBreakStatement(BreakStatement node) {
-    labelTracker?.recordUsage(node.label?.name);
-  }
-
-  @override
   void visitConditionalExpression(ConditionalExpression node) {
     Expression conditionExpression = node.condition;
     conditionExpression?.accept(this);
@@ -137,11 +129,6 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
       }
     }
     super.visitConditionalExpression(node);
-  }
-
-  @override
-  void visitContinueStatement(ContinueStatement node) {
-    labelTracker?.recordUsage(node.label?.name);
   }
 
   @override
@@ -233,16 +220,6 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitLabeledStatement(LabeledStatement node) {
-    _pushLabels(node.labels);
-    try {
-      super.visitLabeledStatement(node);
-    } finally {
-      _popLabels();
-    }
-  }
-
-  @override
   void visitSwitchCase(SwitchCase node) {
     _checkForDeadStatementsInNodeList(node.statements, allowMandated: true);
     super.visitSwitchCase(node);
@@ -252,20 +229,6 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   void visitSwitchDefault(SwitchDefault node) {
     _checkForDeadStatementsInNodeList(node.statements, allowMandated: true);
     super.visitSwitchDefault(node);
-  }
-
-  @override
-  void visitSwitchStatement(SwitchStatement node) {
-    List<Label> labels = <Label>[];
-    for (SwitchMember member in node.members) {
-      labels.addAll(member.labels);
-    }
-    _pushLabels(labels);
-    try {
-      super.visitSwitchStatement(node);
-    } finally {
-      _popLabels();
-    }
   }
 
   @override
@@ -420,21 +383,6 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     }
     return false;
   }
-
-  /// Exit the most recently entered label scope after reporting any labels that
-  /// were not referenced within that scope.
-  void _popLabels() {
-    for (Label label in labelTracker.unusedLabels()) {
-      _errorReporter
-          .reportErrorForNode(HintCode.UNUSED_LABEL, label, [label.label.name]);
-    }
-    labelTracker = labelTracker.outerTracker;
-  }
-
-  /// Enter a new label scope in which the given [labels] are defined.
-  void _pushLabels(List<Label> labels) {
-    labelTracker = _LabelTracker(labelTracker, labels);
-  }
 }
 
 /// Helper for tracking dead code - [CatchClause]s and unreachable code.
@@ -571,6 +519,66 @@ class NullSafetyDeadCodeVerifier {
       if (node == parent) return true;
     }
     return false;
+  }
+}
+
+/// A visitor that finds unused labels.
+class UnusedLabelVerifier extends RecursiveAstVisitor<void> {
+  /// The error reporter by which errors will be reported.
+  final ErrorReporter _errorReporter;
+
+  /// The object used to track the usage of labels within a given label scope.
+  _LabelTracker labelTracker;
+
+  UnusedLabelVerifier(this._errorReporter);
+
+  @override
+  void visitBreakStatement(BreakStatement node) {
+    labelTracker?.recordUsage(node.label?.name);
+  }
+
+  @override
+  void visitContinueStatement(ContinueStatement node) {
+    labelTracker?.recordUsage(node.label?.name);
+  }
+
+  @override
+  void visitLabeledStatement(LabeledStatement node) {
+    _pushLabels(node.labels);
+    try {
+      super.visitLabeledStatement(node);
+    } finally {
+      _popLabels();
+    }
+  }
+
+  @override
+  void visitSwitchStatement(SwitchStatement node) {
+    List<Label> labels = <Label>[];
+    for (SwitchMember member in node.members) {
+      labels.addAll(member.labels);
+    }
+    _pushLabels(labels);
+    try {
+      super.visitSwitchStatement(node);
+    } finally {
+      _popLabels();
+    }
+  }
+
+  /// Exit the most recently entered label scope after reporting any labels that
+  /// were not referenced within that scope.
+  void _popLabels() {
+    for (Label label in labelTracker.unusedLabels()) {
+      _errorReporter
+          .reportErrorForNode(HintCode.UNUSED_LABEL, label, [label.label.name]);
+    }
+    labelTracker = labelTracker.outerTracker;
+  }
+
+  /// Enter a new label scope in which the given [labels] are defined.
+  void _pushLabels(List<Label> labels) {
+    labelTracker = _LabelTracker(labelTracker, labels);
   }
 }
 

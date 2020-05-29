@@ -98,7 +98,7 @@ void main(List<String> arguments) async {
       "--mode=release",
       if (!isLegacy) ...[
         "--enable-experiment=non-nullable",
-        "--nnbd=strong",
+        "--nnbd=${isStrong ? 'strong' : 'weak'}",
       ],
       "--compiler=${compilerNames[compiler]}",
       testDir,

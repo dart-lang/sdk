@@ -38,6 +38,10 @@ dart/isolates/thread_pool_test: Skip # Only AOT has lightweight enough isolates 
 
 [ $arch == simarm || $arch == simarm64 ]
 dart/isolates/thread_pool_test: SkipByDesign # Test uses dart:ffi which is not supported on simulators.
+dart/unboxed_param_args_descriptor_test: SkipByDesign # FFI helper not supported on simulator
+dart/unboxed_param_tear_off_test: SkipByDesign # FFI helper not supported on simulator
+dart/unboxed_param_test: SkipByDesign # FFI helper not supported on simulator
+dart/regress_41971_test: SkipByDesign # dart:ffi is not supported on simulator
 
 [ $builder_tag == asan ]
 dart/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188
@@ -272,11 +276,6 @@ dart/run_appended_aot_snapshot_test: SkipByDesign # Tests the precompiled runtim
 
 [ $compiler == dart2analyzer || $compiler == dart2js ]
 dart/data_uri*test: Skip # Data uri's not supported by dart2js or the analyzer.
-
-[ $arch == simarm || $arch == simarm64 ]
-dart/unboxed_param_args_descriptor_test: SkipByDesign # FFI helper not supported on simulator
-dart/unboxed_param_tear_off_test: SkipByDesign # FFI helper not supported on simulator
-dart/unboxed_param_test: SkipByDesign # FFI helper not supported on simulator
 
 [ $compiler == dartk || $compiler == dartkb ]
 cc/DartAPI_New: Fail # Issue #33041

@@ -963,6 +963,7 @@ float ReciprocalSqrtEstimate(float op);
 float ReciprocalSqrtStep(float op1, float op2);
 
 constexpr uword kBreakInstructionFiller = 0xE1200070;  // bkpt #0
+constexpr uword kDataMemoryBarrier = 0xf57ff050 | 0xb;  // dmb ish
 
 }  // namespace dart
 

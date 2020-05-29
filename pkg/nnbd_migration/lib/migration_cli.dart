@@ -81,22 +81,28 @@ class CommandLineOptions {
 
 @visibleForTesting
 class DependencyChecker {
+  static final _pubName = Platform.isWindows ? 'pub.bat' : 'pub';
+
+  /// The directory which contains the package being migrated.
+  final String _directory;
   final Context _pathContext;
   final Logger _logger;
   final ProcessManager _processManager;
 
-  DependencyChecker(this._pathContext, this._logger, this._processManager);
+  DependencyChecker(
+      this._directory, this._pathContext, this._logger, this._processManager);
 
   bool check() {
-    var pubPath = _pathContext.join(getSdkPath(), 'bin', 'pub');
-    var result = _processManager
-        .runSync(pubPath, ['outdated', '--mode=null-safety', '--json']);
+    var pubPath = _pathContext.join(getSdkPath(), 'bin', _pubName);
+    var result = _processManager.runSync(
+        pubPath, ['outdated', '--mode=null-safety', '--json'],
+        workingDirectory: _directory);
 
     var preNullSafetyPackages = <String, String>{};
     try {
       if ((result.stderr as String).isNotEmpty) {
         throw FormatException(
-            '`pub outdated --mode=null-safety` exited with exit code '
+            '`$_pubName outdated --mode=null-safety` exited with exit code '
             '${result.exitCode} and stderr:\n\n${result.stderr}');
       }
       var outdatedOutput = jsonDecode(result.stdout as String);
@@ -141,8 +147,8 @@ class DependencyChecker {
       }
       _logger.stderr('');
       _logger.stderr('It is highly recommended to upgrade all dependencies to '
-          'versions which have migrated. Use `pub outdated --mode=null-safety` '
-          'to check the status of dependencies. Visit '
+          'versions which have migrated. Use `$_pubName outdated '
+          '--mode=null-safety` to check the status of dependencies. Visit '
           'https://dart.dev/tools/pub/cmd/pub-outdated for more information.');
       _logger.stderr('');
       _logger.stderr('Force migration with --skip-outdated-dependencies-check '
@@ -157,7 +163,7 @@ class DependencyChecker {
       return map[key];
     }
     throw FormatException(
-        'Unexpected `pub outdated` JSON output: missing key ($key)', map);
+        'Unexpected `$_pubName outdated` JSON output: missing key ($key)', map);
   }
 
   T _expectType<T>(Object object, String errorKey) {
@@ -165,7 +171,7 @@ class DependencyChecker {
       return object;
     }
     throw FormatException(
-        'Unexpected `pub outdated` JSON output: expected a '
+        'Unexpected `$_pubName outdated` JSON output: expected a '
         '$T at "$errorKey", but got a ${object.runtimeType}',
         object);
   }
@@ -373,7 +379,8 @@ class MigrationCli {
       _fixCodeProcessor = _FixCodeProcessor(context, this);
       _dartFixListener =
           DartFixListener(DriverProviderImpl(resourceProvider, context));
-      nonNullableFix = NonNullableFix(_dartFixListener, resourceProvider,
+      nonNullableFix = NonNullableFix(
+          _dartFixListener, resourceProvider, _fixCodeProcessor.getLineInfo,
           included: [options.directory],
           preferredPort: options.previewPort,
           enablePreview: options.webPreview,
@@ -480,8 +487,9 @@ Use this interactive web view to review, improve, or apply the results.
   }
 
   void _checkDependencies() {
-    var successful =
-        DependencyChecker(pathContext, logger, processManager).check();
+    var successful = DependencyChecker(
+            options.directory, pathContext, logger, processManager)
+        .check();
     if (!successful) {
       exitCode = 1;
     }
@@ -701,7 +709,8 @@ abstract class ProcessManager {
   const factory ProcessManager.system() = SystemProcessManager;
 
   /// Run a process synchronously, as in [Process.runSync].
-  ProcessResult runSync(String executable, List<String> arguments);
+  ProcessResult runSync(String executable, List<String> arguments,
+      {String workingDirectory});
 }
 
 /// A [ProcessManager] that directs all method calls to static methods of
@@ -709,8 +718,10 @@ abstract class ProcessManager {
 class SystemProcessManager implements ProcessManager {
   const SystemProcessManager();
 
-  ProcessResult runSync(String executable, List<String> arguments) =>
-      Process.runSync(executable, arguments);
+  ProcessResult runSync(String executable, List<String> arguments,
+          {String workingDirectory}) =>
+      Process.runSync(executable, arguments,
+          workingDirectory: workingDirectory ?? Directory.current.path);
 }
 
 class _BadArgException implements Exception {
@@ -735,6 +746,9 @@ class _FixCodeProcessor extends Object {
 
   _FixCodeProcessor(this.context, this._migrationCli)
       : pathsToProcess = _computePathsToProcess(context);
+
+  LineInfo getLineInfo(String path) =>
+      context.currentSession.getFile(path).lineInfo;
 
   void prepareToRerun() {
     var driver = context.driver;

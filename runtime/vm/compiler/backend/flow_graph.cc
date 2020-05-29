@@ -189,6 +189,56 @@ ConstantInstr* FlowGraph::GetConstant(const Object& object) {
   return constant;
 }
 
+bool FlowGraph::IsConstantRepresentable(const Object& value,
+                                        Representation target_rep,
+                                        bool tagged_value_must_be_smi) {
+  switch (target_rep) {
+    case kTagged:
+      return !tagged_value_must_be_smi || value.IsSmi();
+
+    case kUnboxedInt32:
+      if (value.IsInteger()) {
+        return Utils::IsInt(32, Integer::Cast(value).AsInt64Value());
+      }
+      return false;
+
+    case kUnboxedUint32:
+      if (value.IsInteger()) {
+        return Utils::IsUint(32, Integer::Cast(value).AsInt64Value());
+      }
+      return false;
+
+    case kUnboxedInt64:
+      return value.IsInteger();
+
+    case kUnboxedDouble:
+      return value.IsInteger() || value.IsDouble();
+
+    default:
+      return false;
+  }
+}
+
+Definition* FlowGraph::TryCreateConstantReplacementFor(Definition* op,
+                                                       const Object& value) {
+  // Check that representation of the constant matches expected representation.
+  if (!IsConstantRepresentable(
+          value, op->representation(),
+          /*tagged_value_must_be_smi=*/op->Type()->IsNullableSmi())) {
+    return op;
+  }
+
+  Definition* result = GetConstant(value);
+  if (op->representation() != kTagged) {
+    // We checked above that constant can be safely unboxed.
+    result = UnboxInstr::Create(op->representation(), new Value(result),
+                                DeoptId::kNone, Instruction::kNotSpeculative);
+    InsertBefore(op, result, nullptr, FlowGraph::kValue);
+  }
+
+  return result;
+}
+
 void FlowGraph::AddToGraphInitialDefinitions(Definition* defn) {
   defn->set_previous(graph_entry_);
   graph_entry_->initial_definitions()->Add(defn);

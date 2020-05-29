@@ -190,10 +190,8 @@ class DdcModuleBuilder extends _ModuleBuilder {
       }
     }
 
-    var functionName =
-        'load__' + pathToJSIdentifier(module.name.replaceAll('.', '_'));
     var resultModule = NamedFunction(
-        Identifier(functionName),
+        loadFunctionName(module.name),
         js.fun("function(#) { 'use strict'; #; }", [parameters, statements]),
         true);
 
@@ -300,11 +298,12 @@ class AmdModuleBuilder extends _ModuleBuilder {
       statements.add(js.comment('Exports:'));
       statements.add(Return(ObjectInitializer(exportedProps, multiline: true)));
     }
-
-    // TODO(vsm): Consider using an immediately invoked named function pattern
-    // (see ddc module code above).
-    var block = js.statement("define(#, function(#) { 'use strict'; #; });",
-        [ArrayInitializer(dependencies), fnParams, statements]);
+    var resultModule = NamedFunction(
+        loadFunctionName(module.name),
+        js.fun("function(#) { 'use strict'; #; }", [fnParams, statements]),
+        true);
+    var block = js.statement(
+        'define(#, #);', [ArrayInitializer(dependencies), resultModule]);
 
     return Program([block]);
   }
@@ -327,6 +326,10 @@ String pathToJSIdentifier(String path) {
       .replaceAll('..', '__')
       .replaceAll('-', '_'));
 }
+
+/// Creates function name identifier given [moduleName].
+Identifier loadFunctionName(String moduleName) =>
+    Identifier('load__' + pathToJSIdentifier(moduleName.replaceAll('.', '_')));
 
 // Replacement string for path separators (i.e., '/', '\', '..').
 final encodedSeparator = '__';

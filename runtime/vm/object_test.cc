@@ -1824,7 +1824,7 @@ static void TestIllegalArrayLength(intptr_t length) {
   Utils::SNPrint(buffer, sizeof(buffer),
                  "Unhandled exception:\n"
                  "RangeError (length): Invalid value: "
-                 "Not in range 0..%" Pd ", inclusive: %" Pd,
+                 "Not in inclusive range 0..%" Pd ": %" Pd,
                  Array::kMaxElements, length);
   EXPECT_ERROR(result, buffer);
 }
@@ -2973,6 +2973,8 @@ ISOLATE_UNIT_TEST_CASE(ICData) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SubtypeTestCache) {
+  SafepointMutexLocker ml(thread->isolate_group()->subtype_test_cache_mutex());
+
   String& class_name = String::Handle(Symbols::New(thread, "EmptyClass"));
   Script& script = Script::Handle();
   const Class& empty_class =

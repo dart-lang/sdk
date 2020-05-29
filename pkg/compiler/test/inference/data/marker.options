@@ -1,0 +1,4 @@
+spec:nnbd-off=pkg/compiler/test/inference/inference_test_helper.dart
+prod:nnbd-off=pkg/compiler/test/inference/inference_test_helper.dart
+spec:nnbd-sdk=pkg/compiler/test/inference/inference_test_helper.dart
+prod:nnbd-sdk=pkg/compiler/test/inference/inference_test_helper.dart

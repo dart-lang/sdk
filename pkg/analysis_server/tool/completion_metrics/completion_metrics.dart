@@ -37,10 +37,12 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
+import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 import 'package:args/args.dart';
 import 'package:meta/meta.dart';
 
 import 'metrics_util.dart';
+import 'output_utilities.dart';
 import 'visitors.dart';
 
 Future<void> main(List<String> args) async {
@@ -209,6 +211,8 @@ class CompletionMetrics {
   MeanReciprocalRankComputer topLevelMrrComputer =
       MeanReciprocalRankComputer('non-type member completions');
 
+  Map<String, MeanReciprocalRankComputer> locationMmrComputers = {};
+
   ArithmeticMeanComputer charsBeforeTop =
       ArithmeticMeanComputer('chars_before_top');
 
@@ -277,18 +281,27 @@ class CompletionMetrics {
 
   /// Record the MMR for the [result].
   void _recordMmr(CompletionResult result) {
-    var place = result.place;
-    successfulMrrComputer.addRank(place.rank);
+    var rank = result.place.rank;
+    // Record globally.
+    successfulMrrComputer.addRank(rank);
+    // Record by group.
     switch (result.group) {
       case CompletionGroup.instanceMember:
-        instanceMemberMrrComputer.addRank(place.rank);
+        instanceMemberMrrComputer.addRank(rank);
         break;
       case CompletionGroup.staticMember:
-        staticMemberMrrComputer.addRank(place.rank);
+        staticMemberMrrComputer.addRank(rank);
         break;
       case CompletionGroup.topLevel:
-        topLevelMrrComputer.addRank(place.rank);
+        topLevelMrrComputer.addRank(rank);
         break;
+    }
+    // Record by completion location.
+    var location = result.completionLocation;
+    if (location != null) {
+      var computer = locationMmrComputers.putIfAbsent(
+          location, () => MeanReciprocalRankComputer(location));
+      computer.addRank(rank);
     }
   }
 
@@ -413,6 +426,7 @@ class CompletionMetricsComputer {
       CompletionRequestImpl request,
       MetricsSuggestionListener listener,
       ExpectedCompletion expectedCompletion,
+      String completionLocation,
       List<protocol.CompletionSuggestion> suggestions,
       CompletionMetrics metrics,
       int elapsedMS,
@@ -431,7 +445,7 @@ class CompletionMetricsComputer {
       metrics.completionCounter.count('successful');
 
       metrics.recordCompletionResult(CompletionResult(place, request, listener,
-          suggestions, expectedCompletion, elapsedMS));
+          suggestions, expectedCompletion, completionLocation, elapsedMS));
 
       var charsBeforeTop =
           _computeCharsBeforeTop(expectedCompletion, suggestions);
@@ -499,6 +513,21 @@ class CompletionMetricsComputer {
     print('');
 
     metrics.topLevelMrrComputer.printMean();
+    print('');
+
+    var table = <List<String>>[];
+    var computerMap = metrics.locationMmrComputers;
+    var locations = computerMap.keys.toList()..sort();
+    table.add(['Location', 'count', 'mmr', 'mmr_5']);
+    for (var location in locations) {
+      var computer = computerMap[location];
+      var mmr = (1 / computer.mrr).toStringAsFixed(3);
+      var mrr_5 = (1 / computer.mrr_5).toStringAsFixed(3);
+      table.add([computer.name, computer.count.toString(), mmr, mrr_5]);
+    }
+    var buffer = StringBuffer();
+    buffer.writeTable(table);
+    print(buffer.toString());
     print('');
 
     metrics.charsBeforeTop.printMean();
@@ -742,6 +771,11 @@ class CompletionMetricsComputer {
                 useNewRelevance,
                 CompletionPerformance(),
               );
+              var directiveInfo = DartdocDirectiveInfo();
+              var dartRequest =
+                  await DartCompletionRequestImpl.from(request, directiveInfo);
+              var opType =
+                  OpType.forCompletion(dartRequest.target, request.offset);
               var suggestions = await _computeCompletionSuggestions(listener,
                   request, declarationsTracker, availableSuggestionsParams);
               stopwatch.stop();
@@ -750,6 +784,7 @@ class CompletionMetricsComputer {
                   request,
                   listener,
                   expectedCompletion,
+                  opType.completionLocation,
                   suggestions,
                   metrics,
                   stopwatch.elapsedMilliseconds,
@@ -936,13 +971,15 @@ class CompletionResult {
 
   final ExpectedCompletion expectedCompletion;
 
+  final String completionLocation;
+
   final int elapsedMS;
 
   CompletionResult(this.place, this.request, this.listener, this.suggestions,
-      this.expectedCompletion, this.elapsedMS);
+      this.expectedCompletion, this.completionLocation, this.elapsedMS);
 
-  /// Return `true` if the [element] is an instance member of a class or
-  /// extension.
+  /// Return the completion group for the location at which completion was
+  /// requested.
   CompletionGroup get group {
     var element = _getElement(expectedCompletion.syntacticEntity);
     if (element != null) {

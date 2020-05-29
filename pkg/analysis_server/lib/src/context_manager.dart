@@ -17,7 +17,6 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -80,9 +79,6 @@ class ContextInfo {
   /// The enclosed pubspec-based contexts.
   final List<ContextInfo> children = <ContextInfo>[];
 
-  /// The package root for this context, or null if there is no package root.
-  String packageRoot;
-
   /// The [ContextInfo] that encloses this one, or `null` if this is the virtual
   /// [ContextInfo] object that acts as the ancestor of all other [ContextInfo]
   /// objects.
@@ -109,7 +105,7 @@ class ContextInfo {
   Map<String, Source> sources = HashMap<String, Source>();
 
   ContextInfo(ContextManagerImpl contextManager, this.parent, Folder folder,
-      File packagespecFile, this.packageRoot, this.disposition)
+      File packagespecFile, this.disposition)
       : folder = folder,
         pathFilter = PathFilter(
             folder.path, null, contextManager.resourceProvider.pathContext) {
@@ -122,7 +118,6 @@ class ContextInfo {
   ContextInfo._root()
       : folder = null,
         pathFilter = null,
-        packageRoot = null,
         disposition = null;
 
   /// Iterate through all [children] and their children, recursively.
@@ -281,8 +276,7 @@ abstract class ContextManager {
 
   /// Change the set of paths which should be used as starting points to
   /// determine the context directories.
-  void setRoots(List<String> includedPaths, List<String> excludedPaths,
-      Map<String, String> packageRoots);
+  void setRoots(List<String> includedPaths, List<String> excludedPaths);
 }
 
 /// Callback interface used by [ContextManager] to (a) request that contexts be
@@ -373,13 +367,6 @@ class ContextManagerImpl implements ContextManager {
   /// [setRoots].
   @override
   List<String> includedPaths = <String>[];
-
-  /// The map of package roots most recently passed to [setRoots].
-  Map<String, String> packageRoots = <String, String>{};
-
-  /// Same as [packageRoots], except that source folders have been normalized
-  /// and non-folders have been removed.
-  Map<String, String> normalizedPackageRoots = <String, String>{};
 
   /// A list of the globs used to determine which files should be analyzed.
   final List<Glob> analyzedFilesGlobs;
@@ -562,7 +549,7 @@ class ContextManagerImpl implements ContextManager {
     }
 
     // Rebuild contexts based on the data last sent to setRoots().
-    setRoots(includedPaths, excludedPaths, packageRoots);
+    setRoots(includedPaths, excludedPaths);
   }
 
   /// Sets the [ignorePatterns] for the context having info [info].
@@ -572,20 +559,7 @@ class ContextManagerImpl implements ContextManager {
   }
 
   @override
-  void setRoots(List<String> includedPaths, List<String> excludedPaths,
-      Map<String, String> packageRoots) {
-    this.packageRoots = packageRoots;
-
-    // Normalize all package root sources by mapping them to folders on the
-    // filesystem.  Ignore any package root sources that aren't folders.
-    normalizedPackageRoots = <String, String>{};
-    packageRoots.forEach((String sourcePath, String targetPath) {
-      var resource = resourceProvider.getResource(sourcePath);
-      if (resource is Folder) {
-        normalizedPackageRoots[resource.path] = targetPath;
-      }
-    });
-
+  void setRoots(List<String> includedPaths, List<String> excludedPaths) {
     var contextInfos = rootInfo.descendants.toList();
     // included
     var includedFolders = <Folder>[];
@@ -623,14 +597,6 @@ class ContextManagerImpl implements ContextManager {
       });
       if (!isIncluded) {
         _destroyContext(contextInfo);
-      }
-    }
-    // Update package roots for existing contexts
-    for (var info in rootInfo.descendants) {
-      var newPackageRoot = normalizedPackageRoots[info.folder.path];
-      if (info.packageRoot != newPackageRoot) {
-        info.packageRoot = newPackageRoot;
-        _recomputeFolderDisposition(info);
       }
     }
     // create new contexts
@@ -903,58 +869,16 @@ class ContextManagerImpl implements ContextManager {
   /// dependencies (currently we only use it to track "pub list" dependencies).
   FolderDisposition _computeFolderDisposition(Folder folder,
       void Function(String path) addDependency, File packagespecFile) {
-    var packageRoot = normalizedPackageRoots[folder.path];
-    if (packageRoot != null) {
-      // TODO(paulberry): We shouldn't be using JavaFile here because it
-      // makes the code untestable (see dartbug.com/23909).
-      var packagesDirOrFile = JavaFile(packageRoot);
-      var packageMap = <String, List<Folder>>{};
-      if (packagesDirOrFile.isDirectory()) {
-        for (var file in packagesDirOrFile.listFiles()) {
-          // Ensure symlinks in packages directory are canonicalized
-          // to prevent 'type X cannot be assigned to type X' warnings
-          String path;
-          try {
-            path = file.getCanonicalPath();
-          } catch (e, s) {
-            // Ignore packages that do not exist
-            _instrumentationService.logException(e, s);
-            continue;
-          }
-          var res = resourceProvider.getResource(path);
-          if (res is Folder) {
-            packageMap[file.getName()] = <Folder>[res];
-          }
-        }
-        return PackageMapDisposition(packageMap, packageRoot: packageRoot);
-      } else if (packagesDirOrFile.isFile()) {
-        var packageSpecFile = resourceProvider.getFile(packageRoot);
-        var packages = parsePackagesFile(
-          resourceProvider,
-          packageSpecFile,
-        );
-        if (packages != null) {
-          return PackagesFileDisposition(packages);
-        }
-      }
-      // The package root does not exist (or is not a folder).  Since
-      // [setRoots] ignores any package roots that don't exist (or aren't
-      // folders), the only way we should be able to get here is due to a race
-      // condition.  In any case, the package root folder is gone, so we can't
-      // resolve packages.
-      return NoPackageFolderDisposition(packageRoot: packageRoot);
-    } else {
-      // Try .packages first.
-      if (pathContext.basename(packagespecFile.path) == PACKAGE_SPEC_NAME) {
-        var packages = parsePackagesFile(
-          resourceProvider,
-          packagespecFile,
-        );
-        return PackagesFileDisposition(packages);
-      }
-
-      return NoPackageFolderDisposition();
+    // Try .packages first.
+    if (pathContext.basename(packagespecFile.path) == PACKAGE_SPEC_NAME) {
+      var packages = parsePackagesFile(
+        resourceProvider,
+        packagespecFile,
+      );
+      return PackagesFileDisposition(packages);
     }
+
+    return NoPackageFolderDisposition();
   }
 
   /// Compute line information for the given [content].
@@ -988,8 +912,7 @@ class ContextManagerImpl implements ContextManager {
     var dependencies = <String>[];
     var disposition =
         _computeFolderDisposition(folder, dependencies.add, packagesFile);
-    var info = ContextInfo(this, parent, folder, packagesFile,
-        normalizedPackageRoots[folder.path], disposition);
+    var info = ContextInfo(this, parent, folder, packagesFile, disposition);
 
     File optionsFile;
     YamlMap optionMap;
@@ -1554,36 +1477,6 @@ class NoPackageFolderDisposition extends FolderDisposition {
   @override
   EmbedderYamlLocator getEmbedderLocator(ResourceProvider resourceProvider) =>
       EmbedderYamlLocator(null);
-}
-
-/// Concrete [FolderDisposition] object indicating that the context for a given
-/// folder should resolve packages using a package map.
-class PackageMapDisposition extends FolderDisposition {
-  final Map<String, List<Folder>> packageMap;
-
-  EmbedderYamlLocator _embedderLocator;
-
-  @override
-  final String packageRoot;
-
-  PackageMapDisposition(this.packageMap, {this.packageRoot});
-
-  @override
-  Packages get packages => null;
-
-  @override
-  Iterable<UriResolver> createPackageUriResolvers(
-      ResourceProvider resourceProvider) {
-    return <UriResolver>[
-      PackageMapUriResolver(resourceProvider, packageMap),
-    ];
-  }
-
-  @override
-  EmbedderYamlLocator getEmbedderLocator(ResourceProvider resourceProvider) {
-    _embedderLocator ??= EmbedderYamlLocator(packageMap);
-    return _embedderLocator;
-  }
 }
 
 /// Concrete [FolderDisposition] object indicating that the context for a given

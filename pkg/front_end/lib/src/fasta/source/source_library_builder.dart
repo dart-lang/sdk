@@ -399,7 +399,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   static const List<String> optOutTestPaths = [
     'co19_2/',
-    'compiler/dart2js/',
     'compiler/dart2js_extra/',
     'compiler/dart2js_native/',
     'corelib_2/',

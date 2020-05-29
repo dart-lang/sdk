@@ -229,6 +229,7 @@ class OSThread : public BaseThread {
 
   // Called at VM startup and shutdown.
   static void Init();
+  static void Cleanup();
 
   static bool IsThreadInList(ThreadId id);
 
@@ -255,7 +256,6 @@ class OSThread : public BaseThread {
   ThreadState* thread() const { return thread_; }
   void set_thread(ThreadState* value) { thread_ = value; }
 
-  static void Cleanup();
 #ifdef SUPPORT_TIMELINE
   static ThreadId GetCurrentThreadTraceId();
 #endif  // PRODUCT
@@ -299,11 +299,8 @@ class OSThread : public BaseThread {
   // protected and should only be read/written by the OSThread itself.
   void* owning_thread_pool_worker_ = nullptr;
 
-  // thread_list_lock_ cannot have a static lifetime because the order in which
-  // destructors run is undefined. At the moment this lock cannot be deleted
-  // either since otherwise, if a thread only begins to run after we have
-  // started to run TLS destructors for a call to exit(), there will be a race
-  // on its deletion in CreateOSThread().
+  // [thread_list_lock_] cannot have a static lifetime because the order in
+  // which destructors run is undefined.
   static Mutex* thread_list_lock_;
   static OSThread* thread_list_head_;
   static bool creation_enabled_;

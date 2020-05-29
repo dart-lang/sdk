@@ -3022,6 +3022,9 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 
   // Loop initialization (moved up here to avoid having all dependent loads
   // after each other).
+
+  // We avoid a load-acquire barrier here by relying on the fact that all other
+  // loads from the array are data-dependent loads.
   __ ldr(TypeTestABI::kSubtypeTestCacheReg,
          FieldAddress(TypeTestABI::kSubtypeTestCacheReg,
                       target::SubtypeTestCache::cache_offset()));
@@ -3806,11 +3809,17 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
   __ AddImmediate(R0, Array::data_offset() - kHeapObjectTag);
   // The instantiations cache is initialized with Object::zero_array() and is
   // therefore guaranteed to contain kNoInstantiator. No length check needed.
-  compiler::Label loop, next, found;
+  compiler::Label loop, next, found, call_runtime;
   __ Bind(&loop);
-  __ LoadFromOffset(R5, R0,
-                    TypeArguments::Instantiation::kInstantiatorTypeArgsIndex *
-                        target::kWordSize);
+
+  // Use load-acquire to test for sentinel, if we found non-sentinel it is safe
+  // to access the other entries. If we found a sentinel we go to runtime.
+  __ LoadAcquire(R5, R0,
+                 TypeArguments::Instantiation::kInstantiatorTypeArgsIndex *
+                     target::kWordSize);
+  __ CompareImmediate(R5, Smi::RawValue(TypeArguments::kNoInstantiator));
+  __ b(&call_runtime, EQ);
+
   __ CompareRegisters(R5, InstantiationABI::kInstantiatorTypeArgumentsReg);
   __ b(&next, NE);
   __ LoadFromOffset(
@@ -3821,11 +3830,11 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
   __ Bind(&next);
   __ AddImmediate(
       R0, TypeArguments::Instantiation::kSizeInWords * target::kWordSize);
-  __ CompareImmediate(R5, Smi::RawValue(TypeArguments::kNoInstantiator));
-  __ b(&loop, NE);
+  __ b(&loop);
 
   // Instantiate non-null type arguments.
   // A runtime call to instantiate the type arguments is required.
+  __ Bind(&call_runtime);
   __ EnterStubFrame();
   __ PushPair(InstantiationABI::kUninstantiatedTypeArgumentsReg, NULL_REG);
   __ PushPair(InstantiationABI::kFunctionTypeArgumentsReg,

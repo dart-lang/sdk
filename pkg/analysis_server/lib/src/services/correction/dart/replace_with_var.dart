@@ -64,7 +64,11 @@ class ReplaceWithVar extends CorrectionProducer {
         return;
       }
       await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addSimpleReplacement(range.node(type), 'var');
+        if (parent.isConst || parent.isFinal) {
+          builder.addDeletion(range.startStart(type, variables[0]));
+        } else {
+          builder.addSimpleReplacement(range.node(type), 'var');
+        }
         if (typeArgumentsText != null) {
           builder.addSimpleInsertion(typeArgumentsOffset, typeArgumentsText);
         }
@@ -81,7 +85,11 @@ class ReplaceWithVar extends CorrectionProducer {
         }
       }
       await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addSimpleReplacement(range.node(type), 'var');
+        if (parent.isConst || parent.isFinal) {
+          builder.addDeletion(range.startStart(type, parent.identifier));
+        } else {
+          builder.addSimpleReplacement(range.node(type), 'var');
+        }
         if (typeArgumentsText != null) {
           builder.addSimpleInsertion(typeArgumentsOffset, typeArgumentsText);
         }

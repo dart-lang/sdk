@@ -102,7 +102,7 @@ void declareCompilerOptions(ArgParser args) {
       defaultsTo: true);
   args.addFlag('tree-shake-write-only-fields',
       help: 'Enable tree shaking of fields which are only written in AOT mode.',
-      defaultsTo: false);
+      defaultsTo: true);
   args.addFlag('protobuf-tree-shaker',
       help: 'Enable protobuf tree shaker transformation in AOT mode.',
       defaultsTo: false);
@@ -274,9 +274,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   final IOSink sink = new File(outputFileName).openWrite();
   final BinaryPrinter printer = new BinaryPrinter(sink,
-      libraryFilter: minimalKernel
-          ? ((lib) => !results.loadedLibraries.contains(lib))
-          : null);
+      libraryFilter: (lib) => !results.loadedLibraries.contains(lib));
   printer.writeComponentFile(results.component);
   await sink.close();
 

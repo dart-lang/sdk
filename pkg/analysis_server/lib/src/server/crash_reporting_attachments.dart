@@ -11,6 +11,13 @@ class CrashReportingAttachmentsBuilder {
       CrashReportingAttachmentsBuilder();
 
   /// Return attachments with information about the analysis exception.
+  List<InstrumentationServiceAttachment> forException(
+    Object exception,
+  ) {
+    return const [];
+  }
+
+  /// Return attachments with information about the analysis exception.
   List<InstrumentationServiceAttachment> forExceptionResult(
     ExceptionResult result,
   ) {

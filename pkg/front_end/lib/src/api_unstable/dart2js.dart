@@ -12,8 +12,7 @@ import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
-    show ErrorToken, StringToken, Token;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show StringToken;
 
 import 'package:kernel/kernel.dart' show Component, Statement;
 
@@ -206,19 +205,6 @@ Future<Component> compile(
   options.onDiagnostic = null;
   options.fileSystem = null;
   return compilerResult?.component;
-}
-
-Object tokenToString(Object value) {
-  // TODO(ahe): This method is most likely unnecessary. Dart2js doesn't see
-  // tokens anymore.
-  if (value is ErrorToken) {
-    // Shouldn't happen.
-    return value.assertionMessage.message;
-  } else if (value is Token) {
-    return value.lexeme;
-  } else {
-    return value;
-  }
 }
 
 /// Retrieve the name of the libraries that are supported by [target] according
