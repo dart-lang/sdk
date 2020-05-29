@@ -328,7 +328,6 @@ class FrontendCompiler implements CompilerInterface {
 
   IncrementalCompiler _generator;
   JavaScriptBundler _bundler;
-  Component _component;
 
   String _kernelBinaryFilename;
   String _kernelBinaryFilenameIncremental;
@@ -340,6 +339,30 @@ class FrontendCompiler implements CompilerInterface {
   final ProgramTransformer transformer;
 
   final List<String> errors = List<String>();
+
+  _onDiagnostic(DiagnosticMessage message) {
+    bool printMessage;
+    switch (message.severity) {
+      case Severity.error:
+      case Severity.internalProblem:
+        printMessage = true;
+        errors.addAll(message.plainTextFormatted);
+        break;
+      case Severity.warning:
+        printMessage = true;
+        break;
+      case Severity.context:
+      case Severity.ignored:
+        throw 'Unexpected severity: ${message.severity}';
+    }
+    if (printMessage) {
+      printDiagnosticMessage(message, _outputStream.writeln);
+    }
+  }
+
+  void _installDartdevcTarget() {
+    targets['dartdevc'] = (TargetFlags flags) => DevCompilerTarget(flags);
+  }
 
   @override
   Future<bool> compile(
@@ -378,25 +401,7 @@ class FrontendCompiler implements CompilerInterface {
           parseExperimentalArguments(options['enable-experiment']),
           onError: (msg) => errors.add(msg))
       ..nnbdMode = options['null-safety'] ? NnbdMode.Strong : NnbdMode.Weak
-      ..onDiagnostic = (DiagnosticMessage message) {
-        bool printMessage;
-        switch (message.severity) {
-          case Severity.error:
-          case Severity.internalProblem:
-            printMessage = true;
-            errors.addAll(message.plainTextFormatted);
-            break;
-          case Severity.warning:
-            printMessage = true;
-            break;
-          case Severity.context:
-          case Severity.ignored:
-            throw 'Unexpected severity: ${message.severity}';
-        }
-        if (printMessage) {
-          printDiagnosticMessage(message, _outputStream.writeln);
-        }
-      };
+      ..onDiagnostic = _onDiagnostic;
 
     if (options.wasParsed('libraries-spec')) {
       compilerOptions.librariesSpecificationUri =
@@ -447,7 +452,7 @@ class FrontendCompiler implements CompilerInterface {
     )..parseCommandLineFlags(options['bytecode-options']);
 
     // Initialize additional supported kernel targets.
-    targets['dartdevc'] = (TargetFlags flags) => DevCompilerTarget(flags);
+    _installDartdevcTarget();
     compilerOptions.target = createFrontEndTarget(
       options['target'],
       trackWidgetCreation: options['track-widget-creation'],
@@ -496,8 +501,6 @@ class FrontendCompiler implements CompilerInterface {
           component.uriToSource.keys);
 
       incrementalSerializer = _generator.incrementalSerializer;
-      _component = component;
-      _component.computeCanonicalNames();
     } else {
       if (options['link-platform']) {
         // TODO(aam): Remove linkedDependencies once platform is directly embedded
@@ -538,8 +541,10 @@ class FrontendCompiler implements CompilerInterface {
       }
 
       _kernelBinaryFilename = _kernelBinaryFilenameIncremental;
-    } else
+    } else {
       _outputStream.writeln(boundaryKey);
+    }
+    results = null; // Fix leak: Probably variation of http://dartbug.com/36983.
     return errors.isEmpty;
   }
 
@@ -917,8 +922,11 @@ class FrontendCompiler implements CompilerInterface {
       }
       assert(kernel2jsCompiler != null);
 
+      Component component = _generator.lastKnownGoodComponent;
+      component.computeCanonicalNames();
+
       var evaluator = new ExpressionCompiler(
-          _generator.generator, kernel2jsCompiler, _component,
+          _generator.generator, kernel2jsCompiler, component,
           verbose: _compilerOptions.verbose,
           onDiagnostic: _compilerOptions.onDiagnostic);
 
