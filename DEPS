@@ -257,7 +257,7 @@ deps = {
   Var("dart_root") + "/third_party/WebCore":
       Var("dart_git") + "webcore.git" + "@" + Var("WebCore_rev"),
 
-  Var("dart_root") + "/third_party/mdn/browser-compat-data":
+  Var("dart_root") + "/third_party/mdn/browser-compat-data/src":
       Var('chromium_git') + '/external/github.com/mdn/browser-compat-data' +
       "@" + Var("browser-compat-data_tag"),
 
