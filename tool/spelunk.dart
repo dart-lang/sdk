@@ -7,7 +7,7 @@ import 'package:linter/src/analyzer.dart';
 
 /// AST Spelunker
 void main([List<String> args]) {
-  var parser = ArgParser(allowTrailingOptions: true);
+  var parser = ArgParser();
 
   var options = parser.parse(args);
   options.rest.forEach((path) => Spelunker(path).spelunk());

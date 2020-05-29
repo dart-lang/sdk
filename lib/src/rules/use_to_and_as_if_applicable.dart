@@ -49,7 +49,7 @@ class Bar {
 ''';
 
 bool _beginsWithAsOrTo(String name) {
-  final regExp = RegExp(r'(to|as|_to|_as)[A-Z]', caseSensitive: true);
+  final regExp = RegExp(r'(to|as|_to|_as)[A-Z]');
   return regExp.matchAsPrefix(name) != null;
 }
 

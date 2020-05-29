@@ -47,8 +47,7 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
   // Force the rule registry to be populated.
   registerLintRules();
 
-  var parser = ArgParser(allowTrailingOptions: true);
-
+  var parser = ArgParser();
   parser
     ..addFlag('help',
         abbr: 'h', negatable: false, help: 'Show usage information.')
@@ -60,7 +59,6 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
     ..addFlag('quiet', abbr: 'q', help: "Don't show individual lint errors.")
     ..addFlag('machine',
         help: 'Print results in a format suitable for parsing.',
-        defaultsTo: false,
         negatable: false)
     ..addFlag('strong', help: 'Use strong-mode analyzer.')
     ..addOption('config', abbr: 'c', help: 'Use configuration from this file.')

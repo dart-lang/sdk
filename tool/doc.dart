@@ -16,7 +16,7 @@ import 'since.dart';
 
 /// Generates lint rule docs for publishing to https://dart-lang.github.io/
 void main([List<String> args]) async {
-  var parser = ArgParser(allowTrailingOptions: true)
+  var parser = ArgParser()
     ..addOption('out', abbr: 'o', help: 'Specifies output directory.');
 
   var options;

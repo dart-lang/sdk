@@ -9,7 +9,7 @@ import 'package:args/args.dart';
 /// Generates rule and rule test stub files (into `src/rules` and `test/rules`
 /// respectively), as well as the rule index (`rules.dart`).
 void main([List<String> args]) {
-  final parser = ArgParser(allowTrailingOptions: true)
+  final parser = ArgParser()
     ..addOption('out', abbr: 'o', help: 'Specifies project root.')
     ..addOption('name',
         abbr: 'n', help: 'Specifies lower_underscore rule name.');
