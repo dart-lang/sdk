@@ -150,9 +150,11 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
     processManager._mockResult = ProcessResult(123 /* pid */,
         pubOutdatedExitCode, pubOutdatedStdout, pubOutdatedStderr);
     logger = _TestLogger(true);
-    var success =
-        DependencyChecker(resourceProvider.pathContext, logger, processManager)
-            .check();
+    var projectContents = simpleProject(sourceText: 'int x;');
+    var projectDir = createProjectDir(projectContents);
+    var success = DependencyChecker(
+            projectDir, resourceProvider.pathContext, logger, processManager)
+        .check();
     expect(success, isFalse);
   }
 
@@ -163,9 +165,11 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
     processManager._mockResult = ProcessResult(123 /* pid */,
         pubOutdatedExitCode, pubOutdatedStdout, pubOutdatedStderr);
     logger = _TestLogger(true);
-    var success =
-        DependencyChecker(resourceProvider.pathContext, logger, processManager)
-            .check();
+    var projectContents = simpleProject(sourceText: 'int x;');
+    var projectDir = createProjectDir(projectContents);
+    var success = DependencyChecker(
+            projectDir, resourceProvider.pathContext, logger, processManager)
+        .check();
     expect(success, isTrue);
   }
 
@@ -1161,7 +1165,8 @@ class _MockProcessManager implements ProcessManager {
 
   dynamic noSuchMethod(Invocation invocation) {}
 
-  ProcessResult runSync(String executable, List<String> arguments) =>
+  ProcessResult runSync(String executable, List<String> arguments,
+          {String workingDirectory}) =>
       _mockResult ??
       ProcessResult(
         123 /* pid */,

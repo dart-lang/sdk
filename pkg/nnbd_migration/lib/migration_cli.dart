@@ -82,16 +82,21 @@ class CommandLineOptions {
 @visibleForTesting
 class DependencyChecker {
   static final _pubName = Platform.isWindows ? 'pub.bat' : 'pub';
+
+  /// The directory which contains the package being migrated.
+  final String _directory;
   final Context _pathContext;
   final Logger _logger;
   final ProcessManager _processManager;
 
-  DependencyChecker(this._pathContext, this._logger, this._processManager);
+  DependencyChecker(
+      this._directory, this._pathContext, this._logger, this._processManager);
 
   bool check() {
     var pubPath = _pathContext.join(getSdkPath(), 'bin', _pubName);
-    var result = _processManager
-        .runSync(pubPath, ['outdated', '--mode=null-safety', '--json']);
+    var result = _processManager.runSync(
+        pubPath, ['outdated', '--mode=null-safety', '--json'],
+        workingDirectory: _directory);
 
     var preNullSafetyPackages = <String, String>{};
     try {
@@ -482,8 +487,9 @@ Use this interactive web view to review, improve, or apply the results.
   }
 
   void _checkDependencies() {
-    var successful =
-        DependencyChecker(pathContext, logger, processManager).check();
+    var successful = DependencyChecker(
+            options.directory, pathContext, logger, processManager)
+        .check();
     if (!successful) {
       exitCode = 1;
     }
@@ -703,7 +709,8 @@ abstract class ProcessManager {
   const factory ProcessManager.system() = SystemProcessManager;
 
   /// Run a process synchronously, as in [Process.runSync].
-  ProcessResult runSync(String executable, List<String> arguments);
+  ProcessResult runSync(String executable, List<String> arguments,
+      {String workingDirectory});
 }
 
 /// A [ProcessManager] that directs all method calls to static methods of
@@ -711,8 +718,10 @@ abstract class ProcessManager {
 class SystemProcessManager implements ProcessManager {
   const SystemProcessManager();
 
-  ProcessResult runSync(String executable, List<String> arguments) =>
-      Process.runSync(executable, arguments);
+  ProcessResult runSync(String executable, List<String> arguments,
+          {String workingDirectory}) =>
+      Process.runSync(executable, arguments,
+          workingDirectory: workingDirectory ?? Directory.current.path);
 }
 
 class _BadArgException implements Exception {
