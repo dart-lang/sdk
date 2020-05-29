@@ -368,6 +368,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Mutex* type_arguments_canonicalization_mutex() {
     return &type_arguments_canonicalization_mutex_;
   }
+  Mutex* subtype_test_cache_mutex() { return &subtype_test_cache_mutex_; }
 
   static inline IsolateGroup* Current() {
     Thread* thread = Thread::Current();
@@ -639,6 +640,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   std::unique_ptr<SafepointRwLock> symbols_lock_;
   Mutex type_canonicalization_mutex_;
   Mutex type_arguments_canonicalization_mutex_;
+  Mutex subtype_test_cache_mutex_;
 
   // Allow us to ensure the number of active mutators is limited by a maximum.
   std::unique_ptr<Monitor> active_mutators_monitor_;

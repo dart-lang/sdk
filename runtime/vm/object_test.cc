@@ -2973,6 +2973,8 @@ ISOLATE_UNIT_TEST_CASE(ICData) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SubtypeTestCache) {
+  SafepointMutexLocker ml(thread->isolate_group()->subtype_test_cache_mutex());
+
   String& class_name = String::Handle(Symbols::New(thread, "EmptyClass"));
   Script& script = Script::Handle();
   const Class& empty_class =

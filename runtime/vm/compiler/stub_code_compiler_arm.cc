@@ -2895,6 +2895,9 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 
   // Loop initialization (moved up here to avoid having all dependent loads
   // after each other).
+
+  // We avoid a load-acquire barrier here by relying on the fact that all other
+  // loads from the array are data-dependent loads.
   __ ldr(TypeTestABI::kSubtypeTestCacheReg,
          FieldAddress(TypeTestABI::kSubtypeTestCacheReg,
                       target::SubtypeTestCache::cache_offset()));

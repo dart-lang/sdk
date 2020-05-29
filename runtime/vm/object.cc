@@ -17004,8 +17004,18 @@ SubtypeTestCachePtr SubtypeTestCache::New() {
   return result.raw();
 }
 
+ArrayPtr SubtypeTestCache::cache() const {
+  // We rely on the fact that any loads from the array are dependent loads and
+  // avoid the load-acquire barrier here.
+  return raw_ptr()->cache_;
+}
+
 void SubtypeTestCache::set_cache(const Array& value) const {
-  StorePointer(&raw_ptr()->cache_, value.raw());
+  // We have to ensure that initializing stores to the array are available
+  // when releasing the pointer to the array pointer.
+  // => We have to use store-release here.
+  StorePointer<ArrayPtr, std::memory_order_release>(&raw_ptr()->cache_,
+                                                    value.raw());
 }
 
 intptr_t SubtypeTestCache::NumberOfChecks() const {
@@ -17022,14 +17032,19 @@ void SubtypeTestCache::AddCheck(
     const TypeArguments& instance_parent_function_type_arguments,
     const TypeArguments& instance_delayed_type_arguments,
     const Bool& test_result) const {
+  ASSERT(Thread::Current()
+             ->isolate_group()
+             ->subtype_test_cache_mutex()
+             ->IsOwnedByCurrentThread());
+
   intptr_t old_num = NumberOfChecks();
   Array& data = Array::Handle(cache());
   intptr_t new_len = data.Length() + kTestEntryLength;
   data = Array::Grow(data, new_len);
-  set_cache(data);
 
   SubtypeTestCacheTable entries(data);
   auto entry = entries[old_num];
+  ASSERT(entry.Get<kInstanceClassIdOrFunction>() == Object::null());
   entry.Set<kInstanceClassIdOrFunction>(instance_class_id_or_function);
   entry.Set<kInstanceTypeArguments>(instance_type_arguments);
   entry.Set<kInstantiatorTypeArguments>(instantiator_type_arguments);
@@ -17039,6 +17054,10 @@ void SubtypeTestCache::AddCheck(
   entry.Set<kInstanceDelayedFunctionTypeArguments>(
       instance_delayed_type_arguments);
   entry.Set<kTestResult>(test_result);
+
+  // We let any concurrently running mutator thread now see the new entry (the
+  // `set_cache()` uses a store-release barrier).
+  set_cache(data);
 }
 
 void SubtypeTestCache::GetCheck(
@@ -17050,6 +17069,11 @@ void SubtypeTestCache::GetCheck(
     TypeArguments* instance_parent_function_type_arguments,
     TypeArguments* instance_delayed_type_arguments,
     Bool* test_result) const {
+  ASSERT(Thread::Current()
+             ->isolate_group()
+             ->subtype_test_cache_mutex()
+             ->IsOwnedByCurrentThread());
+
   Array& data = Array::Handle(cache());
   SubtypeTestCacheTable entries(data);
   auto entry = entries[ix];
