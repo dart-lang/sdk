@@ -409,6 +409,7 @@ class Heap {
   Monitor gc_in_progress_monitor_;
   bool gc_new_space_in_progress_;
   bool gc_old_space_in_progress_;
+  bool last_gc_was_old_space_;
 
   static const intptr_t kNoForcedGarbageCollection = -1;
 
