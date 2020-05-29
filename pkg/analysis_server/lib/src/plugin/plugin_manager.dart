@@ -44,7 +44,7 @@ class BuiltInPluginInfo extends PluginInfo {
   BuiltInPluginInfo(
       this.entryPoint,
       this.pluginId,
-      NotificationManager notificationManager,
+      AbstractNotificationManager notificationManager,
       InstrumentationService instrumentationService)
       : super(notificationManager, instrumentationService);
 
@@ -74,7 +74,7 @@ class DiscoveredPluginInfo extends PluginInfo {
       this.path,
       this.executionPath,
       this.packagesPath,
-      NotificationManager notificationManager,
+      AbstractNotificationManager notificationManager,
       InstrumentationService instrumentationService)
       : super(notificationManager, instrumentationService);
 
@@ -109,7 +109,7 @@ class PluginException implements Exception {
 /// Information about a single plugin.
 abstract class PluginInfo {
   /// The object used to manage the receiving and sending of notifications.
-  final NotificationManager notificationManager;
+  final AbstractNotificationManager notificationManager;
 
   /// The instrumentation service that is being used by the analysis server.
   final InstrumentationService instrumentationService;
@@ -254,7 +254,7 @@ class PluginManager {
   final String sdkPath;
 
   /// The object used to manage the receiving and sending of notifications.
-  final NotificationManager notificationManager;
+  final AbstractNotificationManager notificationManager;
 
   /// The instrumentation service that is being used by the analysis server.
   final InstrumentationService instrumentationService;

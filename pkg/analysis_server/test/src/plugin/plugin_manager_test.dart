@@ -880,7 +880,7 @@ dependencies:
   }
 }
 
-class TestNotificationManager implements NotificationManager {
+class TestNotificationManager implements AbstractNotificationManager {
   List<Notification> notifications = <Notification>[];
 
   Map<String, Map<String, List<AnalysisError>>> recordedErrors =

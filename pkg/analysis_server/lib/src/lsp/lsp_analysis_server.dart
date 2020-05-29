@@ -11,7 +11,6 @@ import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analysis_server_abstract.dart';
-import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/computer/computer_closingLabels.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
@@ -24,8 +23,8 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/notification_manager.dart';
 import 'package:analysis_server/src/lsp/server_capabilities_computer.dart';
-import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
@@ -114,11 +113,9 @@ class LspAnalysisServer extends AbstractAnalysisServer {
           crashReportingAttachmentsBuilder,
           baseResourceProvider,
           instrumentationService,
-          NotificationManager(
-            const NoOpServerCommunicationChannel(),
-            baseResourceProvider.pathContext,
-          ),
+          LspNotificationManager(channel, baseResourceProvider.pathContext),
         ) {
+    notificationManager.server = this;
     messageHandler = UninitializedStateMessageHandler(this);
     capabilitiesComputer = ServerCapabilitiesComputer(this);
 
@@ -142,6 +139,9 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// Initialization options provided by the LSP client. Allows opting in/out of
   /// specific server functionality. Will be null prior to initialization.
   LspInitializationOptions get initializationOptions => _initializationOptions;
+
+  @override
+  LspNotificationManager get notificationManager => super.notificationManager;
 
   @override
   set pluginManager(PluginManager value) {
@@ -614,7 +614,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   LspServerContextManagerCallbacks(this.analysisServer, this.resourceProvider);
 
   @override
-  NotificationManager get notificationManager =>
+  LspNotificationManager get notificationManager =>
       analysisServer.notificationManager;
 
   @override
@@ -725,21 +725,4 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
         ?.forEach((path) => analysisServer.publishDiagnostics(path, const []));
     driver.dispose();
   }
-}
-
-class NoOpServerCommunicationChannel implements ServerCommunicationChannel {
-  const NoOpServerCommunicationChannel();
-
-  @override
-  void close() {}
-
-  @override
-  void listen(void Function(protocol.Request request) onRequest,
-      {Function onError, void Function() onDone}) {}
-
-  @override
-  void sendNotification(protocol.Notification notification) {}
-
-  @override
-  void sendResponse(protocol.Response response) {}
 }

@@ -2257,7 +2257,7 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   List<WatchEvent> watchEvents = <WatchEvent>[];
 
   @override
-  NotificationManager notificationManager = TestNotificationManager();
+  AbstractNotificationManager notificationManager = TestNotificationManager();
 
   TestContextManagerCallbacks(
       this.resourceProvider, this.sdkManager, this.logger, this.scheduler);
