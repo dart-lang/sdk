@@ -2,7 +2,7 @@ Want to contribute? Great! First, read this page (including the small print at t
 
 ## Ways you can contribute
 
-You can help the Dart project in many ways, in addition to contributing code. For example, you can [report bugs](http://dartbug.com), ask and answer [Dart questions on StackOverflow](http://stackoverflow.com/questions/tagged/dart), and improve the documentation.
+You can help the Dart project in many ways, in addition to contributing code. For example, you can [report bugs](https://dartbug.com), ask and answer [Dart questions on StackOverflow](https://stackoverflow.com/questions/tagged/dart), and improve the documentation.
 
 If you'd like to improve the documentation, you have three options:
 
@@ -69,7 +69,7 @@ Upload the patch for review:
 git cl upload -s
 ```
 
-The above command returns a URL for the review. Attach this review to your issue in http://dartbug.com
+The above command returns a URL for the review. Attach this review to your issue in https://dartbug.com
 
 If you have commit access, when the review is done and the patch is good to go, submit the patch on https://dart-review.googlesource.com:
 
@@ -84,7 +84,7 @@ git cl web # opens your review on https://dart-review.googlesource.com
 
 If you do not have commit access, a Dart engineer will commit on your behalf, assuming the patch is reviewed and accepted.
 
-More detailed instructions for the `git cl` tools available on http://commondatastorage.googleapis.com/chrome-infra-docs/flat/depot_tools/docs/html/depot_tools_tutorial.html#_creating_uploading_a_cl
+More detailed instructions for the `git cl` tools available on https://commondatastorage.googleapis.com/chrome-infra-docs/flat/depot_tools/docs/html/depot_tools_tutorial.html#_creating_uploading_a_cl
 
 ## For committers: Merging external contributions
 
@@ -99,7 +99,7 @@ Once a patch gets an LGTM, it's easy for a committer to merge it in.
 The source code of Dart follows the:
 
   * [Google C++ style guide](https://google.github.io/styleguide/cppguide.html)
-  * [Dart style guide](https://www.dartlang.org/articles/style-guide/)
+  * [Dart style guide](https://dart.dev/guides/language/effective-dart/style)
 
 You should familiarize yourself with those guidelines.
 
@@ -114,6 +114,6 @@ All files in the Dart project must start with the following header. If you add a
 
 ## The small print
 
-Contributions made by corporations are covered by a different agreement than the one above, the [Software Grant and Corporate Contributor License Agreement](http://code.google.com/legal/corporate-cla-v1.0.html).
+Contributions made by corporations are covered by a different agreement than the one above, the [Software Grant and Corporate Contributor License Agreement](https://cla.developers.google.com/about/google-corporate).
 
 We pledge to maintain an open and welcoming environment. For details, see our [code of conduct](https://dart.dev/code-of-conduct).

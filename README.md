@@ -57,8 +57,8 @@ You can also contribute patches, as described in [Contributing][contrib].
 [website]: https://dart.dev
 [license]: https://github.com/dart-lang/sdk/blob/master/LICENSE
 [repo]: https://github.com/dart-lang/sdk
-[lang]: https://www.dartlang.org/docs/dart-up-and-running/ch02.html
-[tools]: https://www.dartlang.org/tools/
+[lang]: https://dart.dev/guides/language/language-tour
+[tools]: https://dart.dev/tools
 [codelab]: https://dart.dev/codelabs
 [dartbug]: http://dartbug.com
 [contrib]: https://github.com/dart-lang/sdk/blob/master/CONTRIBUTING.md

@@ -4,8 +4,8 @@
 
 The Dart SDK ships via a number of channels:
 
-- Via the [Dart SDK](https://www.dartlang.org/tools/sdk#install)
-- Via the [Flutter SDK](http://flutter.io)
+- Via the [Dart SDK](https://dart.dev/get-dart#install)
+- Via the [Flutter SDK](https://flutter.dev/)
 - Internally at Google via an internal channel
 
 Each of these channels use varying release calendars, and keeping these entirely
