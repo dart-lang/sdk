@@ -150,6 +150,13 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   }
 
   @override
+  void declaredConstructor(ConstructorDeclaration declaration) {
+    // TODO(jwren) ignored, currently handled by
+    //  local_constructor_contributor_test.dart, consider moving the
+    //  functionality into this file.
+  }
+
+  @override
   void declaredEnum(EnumDeclaration declaration) {
     if (opType.includeTypeNameSuggestions) {
       builder.suggestClass(declaration.declaredElement, kind: _defaultKind);
@@ -228,7 +235,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredLabel(Label label, bool isCaseLabel) {
-    // ignored
+    // ignored: handled by the label_contributor.dart
   }
 
   @override
