@@ -3658,6 +3658,13 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     Definition** result,
     SpeculativeInliningPolicy* policy,
     FlowGraphInliner::ExactnessInfo* exactness) {
+  if (receiver_cid == kNeverCid) {
+    // Receiver was defined in dead code and was replaced by the sentinel.
+    // Original receiver cid is lost, so don't try to inline recognized
+    // methods.
+    return false;
+  }
+
   const bool can_speculate = policy->IsAllowedForInlining(call->deopt_id());
 
   const MethodRecognizer::Kind kind = target.recognized_kind();
