@@ -81,7 +81,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
           oldState.incrementalCompiler == null ||
           oldState.options.compileSdk != compileSdk ||
           oldState.incrementalCompiler.outlineOnly != outlineOnly ||
-          oldState.options.nnbdMode != options.nnbdMode ||
+          oldState.options.nnbdMode != nnbdMode ||
           !equalMaps(oldState.options.experimentalFlags, experimentalFlags) ||
           !equalMaps(oldState.options.environmentDefines, environmentDefines) ||
           !equalSets(oldState.tags, tags) ||
