@@ -278,6 +278,11 @@ class EmbedderSdk extends AbstractDartSdk {
   }
 
   @override
+  String get allowedExperimentsJson {
+    return null;
+  }
+
+  @override
   // TODO(danrubel) Determine SDK version
   String get sdkVersion => '0';
 
@@ -462,6 +467,19 @@ class FolderBasedDartSdk extends AbstractDartSdk {
       : _sdkDirectory = sdkDirectory {
     this.resourceProvider = resourceProvider;
     libraryMap = initialLibraryMap();
+  }
+
+  @override
+  String get allowedExperimentsJson {
+    try {
+      return _sdkDirectory
+          .getChildAssumingFolder('lib')
+          .getChildAssumingFolder('_internal')
+          .getChildAssumingFile('allowed_experiments.json')
+          .readAsStringSync();
+    } catch (_) {
+      return null;
+    }
   }
 
   /**

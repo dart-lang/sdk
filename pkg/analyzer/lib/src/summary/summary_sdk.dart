@@ -43,6 +43,11 @@ class SummaryBasedDartSdk implements DartSdk {
     _bundle = bundle;
   }
 
+  @override
+  String get allowedExperimentsJson {
+    return _bundle.sdk?.allowedExperimentsJson;
+  }
+
   /**
    * Return the [PackageBundle] for this SDK, not `null`.
    */

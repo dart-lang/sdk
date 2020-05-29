@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:_fe_analyzer_shared/src/sdk/allowed_experiments.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -14,70 +15,104 @@ import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:analyzer/src/summary2/link.dart' as summary2;
 import 'package:analyzer/src/summary2/linked_element_factory.dart' as summary2;
 import 'package:analyzer/src/summary2/reference.dart' as summary2;
 import 'package:meta/meta.dart';
 
-class SummaryBuilder {
-  final Iterable<Source> librarySources;
-  final AnalysisContext context;
+List<int> buildSdkSummary({
+  @required ResourceProvider resourceProvider,
+  @required String sdkPath,
+}) {
+  //
+  // Prepare SDK.
+  //
+  FolderBasedDartSdk sdk =
+      FolderBasedDartSdk(resourceProvider, resourceProvider.getFolder(sdkPath));
+  sdk.useSummary = false;
+  sdk.analysisOptions = AnalysisOptionsImpl();
 
-  /**
-   * Create a summary builder for these [librarySources] and [context].
-   */
-  SummaryBuilder(this.librarySources, this.context);
+  //
+  // Prepare 'dart:' URIs to serialize.
+  //
+  Set<String> uriSet =
+      sdk.sdkLibraries.map((SdkLibrary library) => library.shortName).toSet();
+  // TODO(scheglov) Why do we need it?
+  uriSet.add('dart:html_common/html_common_dart2js.dart');
 
-  /**
-   * Create an SDK summary builder for the dart SDK at the given [sdkPath].
-   */
-  factory SummaryBuilder.forSdk(String sdkPath) {
-    //
-    // Prepare SDK.
-    //
-    ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
-    FolderBasedDartSdk sdk = FolderBasedDartSdk(
-        resourceProvider, resourceProvider.getFolder(sdkPath));
-    sdk.useSummary = false;
-    sdk.analysisOptions = AnalysisOptionsImpl();
-
-    //
-    // Prepare 'dart:' URIs to serialize.
-    //
-    Set<String> uriSet =
-        sdk.sdkLibraries.map((SdkLibrary library) => library.shortName).toSet();
-    uriSet.add('dart:html_common/html_common_dart2js.dart');
-
-    Set<Source> librarySources = HashSet<Source>();
-    for (String uri in uriSet) {
-      librarySources.add(sdk.mapDartUri(uri));
+  Set<Source> librarySources = HashSet<Source>();
+  for (String uri in uriSet) {
+    var source = sdk.mapDartUri(uri);
+    // TODO(scheglov) Fix the previous TODO and remove this check.
+    if (source != null) {
+      librarySources.add(source);
     }
-
-    return SummaryBuilder(librarySources, sdk.context);
   }
+
+  String allowedExperimentsJson;
+  try {
+    allowedExperimentsJson = sdk.directory
+        .getChildAssumingFolder('lib')
+        .getChildAssumingFolder('_internal')
+        .getChildAssumingFile('allowed_experiments.json')
+        .readAsStringSync();
+  } catch (_) {}
+
+  return _Builder(
+    sdk.context,
+    allowedExperimentsJson,
+    librarySources,
+  ).build();
+}
+
+@Deprecated('Use buildSdkSummary()')
+class SummaryBuilder {
+  final ResourceProvider resourceProvider;
+  final String sdkPath;
+
+  factory SummaryBuilder.forSdk(String sdkPath) {
+    return SummaryBuilder.forSdk2(
+      resourceProvider: PhysicalResourceProvider.INSTANCE,
+      sdkPath: sdkPath,
+    );
+  }
+
+  SummaryBuilder.forSdk2({
+    @required this.resourceProvider,
+    @required this.sdkPath,
+  });
 
   /**
    * Build the linked bundle and return its bytes.
    */
-  List<int> build({
-    @required FeatureSet featureSet,
-  }) {
-    return _Builder(context, featureSet, librarySources).build();
+  List<int> build() {
+    return buildSdkSummary(
+      resourceProvider: resourceProvider,
+      sdkPath: sdkPath,
+    );
   }
 }
 
 class _Builder {
   final AnalysisContext context;
-  final FeatureSet featureSet;
+  final String allowedExperimentsJson;
   final Iterable<Source> librarySources;
 
   final Set<String> libraryUris = <String>{};
   final List<summary2.LinkInputLibrary> inputLibraries = [];
 
+  AllowedExperiments allowedExperiments;
   final PackageBundleAssembler bundleAssembler = PackageBundleAssembler();
 
-  _Builder(this.context, this.featureSet, this.librarySources);
+  _Builder(
+    this.context,
+    this.allowedExperimentsJson,
+    this.librarySources,
+  ) {
+    allowedExperiments = _parseAllowedExperiments(allowedExperimentsJson);
+  }
 
   /**
    * Build the linked bundle and return its bytes.
@@ -94,7 +129,12 @@ class _Builder {
     var linkResult = summary2.link(elementFactory, inputLibraries);
     bundleAssembler.setBundle2(linkResult.bundle);
 
-    return bundleAssembler.assemble().toBuffer();
+    return PackageBundleBuilder(
+      bundle2: linkResult.bundle,
+      sdk: PackageBundleSdkBuilder(
+        allowedExperimentsJson: allowedExperimentsJson,
+      ),
+    ).toBuffer();
   }
 
   void _addLibrary(Source source) {
@@ -130,10 +170,23 @@ class _Builder {
     );
   }
 
+  /// Return the [FeatureSet] for the given [uri], must be a `dart:` URI.
+  FeatureSet _featureSet(Uri uri) {
+    if (uri.isScheme('dart')) {
+      var pathSegments = uri.pathSegments;
+      if (pathSegments.isNotEmpty) {
+        var libraryName = pathSegments.first;
+        var experiments = allowedExperiments.forSdkLibrary(libraryName);
+        return FeatureSet.fromEnableFlags(experiments);
+      }
+    }
+    throw StateError('Expected a valid dart: URI: $uri');
+  }
+
   CompilationUnit _parse(Source source) {
     var result = parseString(
       content: source.contents.data,
-      featureSet: featureSet,
+      featureSet: _featureSet(source.uri),
       throwIfDiagnostics: false,
     );
 
@@ -148,5 +201,17 @@ class _Builder {
     }
 
     return result.unit;
+  }
+
+  static AllowedExperiments _parseAllowedExperiments(String content) {
+    if (content == null) {
+      return AllowedExperiments(
+        sdkDefaultExperiments: [],
+        sdkLibraryExperiments: {},
+        packageExperiments: {},
+      );
+    }
+
+    return parseAllowedExperiments(content);
   }
 }

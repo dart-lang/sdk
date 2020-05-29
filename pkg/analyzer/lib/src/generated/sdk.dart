@@ -42,6 +42,10 @@ abstract class DartSdk {
    */
   static const String DEFAULT_VERSION = "0";
 
+  /// Return the content of the `allowed_experiments.json` file, or `null`
+  /// if the file cannot be read, e.g. does not exist.
+  String get allowedExperimentsJson;
+
   /**
    * Return the analysis context used for all of the sources in this [DartSdk].
    */

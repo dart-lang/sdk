@@ -4,7 +4,6 @@
 
 import 'dart:io';
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/summary/summary_file_builder.dart';
@@ -42,18 +41,10 @@ void main(List<String> args) {
   //
   // Handle commands.
   //
-  if (command == 'build-non-nullable') {
+  if (command == 'build-strong') {
     _buildSummary(
       sdkPath,
       outFilePath,
-      enabledExperiments: ['non-nullable'],
-      title: 'non-nullable',
-    );
-  } else if (command == 'build-legacy' || command == 'build-strong') {
-    _buildSummary(
-      sdkPath,
-      outFilePath,
-      enabledExperiments: [],
       title: 'legacy',
     );
   } else {
@@ -70,14 +61,13 @@ const BINARY_NAME = "build_sdk_summaries";
 void _buildSummary(
   String sdkPath,
   String outPath, {
-  @required List<String> enabledExperiments,
   @required String title,
 }) {
   print('Generating $title summary.');
   Stopwatch sw = Stopwatch()..start();
-  var featureSet = FeatureSet.fromEnableFlags(enabledExperiments);
-  List<int> bytes = SummaryBuilder.forSdk(sdkPath).build(
-    featureSet: featureSet,
+  List<int> bytes = buildSdkSummary(
+    resourceProvider: PhysicalResourceProvider.INSTANCE,
+    sdkPath: sdkPath,
   );
   File(outPath).writeAsBytesSync(bytes, mode: FileMode.writeOnly);
   print('\tDone in ${sw.elapsedMilliseconds} ms.');

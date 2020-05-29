@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:io' as io;
 import 'dart:isolate';
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -159,9 +158,9 @@ class Driver with HasContextMixin implements CommandLineStarter {
       final stopwatch = Stopwatch()..start();
 
       for (var i = 0; i < 3; i++) {
-        var featureSet = FeatureSet.fromEnableFlags([]);
-        SummaryBuilder.forSdk(options.dartSdkPath).build(
-          featureSet: featureSet,
+        buildSdkSummary(
+          resourceProvider: PhysicalResourceProvider.INSTANCE,
+          sdkPath: options.dartSdkPath,
         );
       }
 
