@@ -60,7 +60,6 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
     ..addFlag('machine',
         help: 'Print results in a format suitable for parsing.',
         negatable: false)
-    ..addFlag('strong', help: 'Use strong-mode analyzer.')
     ..addOption('config', abbr: 'c', help: 'Use configuration from this file.')
     ..addOption('dart-sdk', help: 'Custom path to a Dart SDK.')
     ..addMultiOption('rules',
@@ -120,11 +119,6 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
   var customSdk = options['dart-sdk'];
   if (customSdk is String) {
     lintOptions.dartSdkPath = customSdk;
-  }
-
-  var strongMode = options['strong'];
-  if (strongMode is bool) {
-    lintOptions.strongMode = strongMode;
   }
 
   var customPackageRoot = options['package-root'];
