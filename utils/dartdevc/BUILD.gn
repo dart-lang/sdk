@@ -11,10 +11,10 @@ import("../create_timestamp.gni")
 patched_sdk_dir = "$target_gen_dir/patched_sdk"
 sdk_summary = "$target_gen_dir/ddc_sdk.sum"
 
-# TODO(sigmund): rename to ddc_outline.dill to be consistent with the naming
-# convention from other tools.
-sdk_outline_dill = "$root_out_dir/ddc_sdk.dill"
+sdk_outline_dill = "$root_out_dir/ddc_outline.dill"
 sdk_full_dill = "$root_out_dir/ddc_platform.dill"
+sdk_outline_sound_dill = "$root_out_dir/ddc_outline_sound.dill"
+sdk_full_sound_dill = "$root_out_dir/ddc_platform_sound.dill"
 
 application_snapshot("dartdevc") {
   main_dart = "../../pkg/dev_compiler/bin/dartdevc.dart"
@@ -143,8 +143,13 @@ group("dartdevc_test") {
   deps = [
     ":dartdevc",
     ":dartdevc_kernel_sdk",
+    ":dartdevc_sound_sdk",
     ":dartdevc_test_kernel_pkg",
     "../..:create_sdk",
+
+    # TODO(nshahan) Temporarily here until we decide if we are going to include
+    # in the create_sdk target.
+    "../../sdk_nnbd:copy_dev_compiler_outline_sound",
   ]
 }
 
@@ -174,15 +179,31 @@ create_timestamp_file("dartdevc_sdk_patch_stamp") {
 group("dartdevc_test_kernel_pkg") {
   deps = [
     ":async_helper_js",
+    ":async_helper_sound_js",
     ":expect_js",
+    ":expect_sound_js",
     ":js_js",
+    ":js_sound_js",
     ":meta_js",
+    ":meta_sound_js",
   ]
 }
 
 template("dartdevc_kernel_compile") {
   assert(defined(invoker.package),
          "Need 'package' in $target_name (the name of the package)")
+  assert(defined(invoker.sound_null_safety),
+         "Need 'sound_null_safety' in $target_name.")
+
+  if (invoker.sound_null_safety) {
+    platform_dep = ":dartdevc_platform_sound"
+    sdk_outline = sdk_outline_sound_dill
+    js_gen_dir = "$target_gen_dir/pkg_sound"
+  } else {
+    platform_dep = ":dartdevc_platform"
+    sdk_outline = sdk_outline_dill
+    js_gen_dir = "$target_gen_dir/pkg_kernel"
+  }
 
   # Other optional invoker parameters:
   #   * extra_libraries: entrypoints to include in the module as
@@ -196,12 +217,12 @@ template("dartdevc_kernel_compile") {
   prebuilt_dart_action(target_name) {
     script = "../../pkg/dev_compiler/bin/dartdevc.dart"
     module = invoker.package
-    outdir = rebase_path("$target_gen_dir")
-    sdk_path = rebase_path(sdk_outline_dill)
+    out_dir = rebase_path("$js_gen_dir")
+    sdk_path = rebase_path(sdk_outline)
 
     deps = [
       ":dartdevc_files_stamp",
-      ":dartdevc_platform",
+      platform_dep,
 
       # TODO(sigmund): depend only on the compiler and the actual files in the
       # package
@@ -209,20 +230,20 @@ template("dartdevc_kernel_compile") {
     ]
 
     inputs = [
-      sdk_outline_dill,
+      sdk_outline,
       "$target_gen_dir/dartdevc_files.stamp",
       "$root_gen_dir/pkg_files.stamp",
     ]
 
     outputs = [
-      "$target_gen_dir/pkg_kernel/$module.dill",
-      "$target_gen_dir/pkg_kernel/$module.js",
+      "$js_gen_dir/$module.dill",
+      "$js_gen_dir/$module.js",
     ]
 
     args = [
       "-k",
       "--dart-sdk-summary=$sdk_path",
-      "-o$outdir/pkg_kernel/$module.js",
+      "-o$out_dir/$module.js",
       "package:$module/$module.dart",
     ]
 
@@ -235,7 +256,7 @@ template("dartdevc_kernel_compile") {
     if (defined(invoker.package_dependencies)) {
       foreach(dep, invoker.package_dependencies) {
         deps += [ ":${dep}_js" ]
-        args += [ "-s$outdir/pkg_kernel/$dep.dill" ]
+        args += [ "-s$out_dir/$dep.dill" ]
       }
     }
 
@@ -243,105 +264,189 @@ template("dartdevc_kernel_compile") {
       args += invoker.args
     }
 
-    # TODO(38701): Cleanup after merging the forked SDK into mainline.
-    if (!dont_use_nnbd) {
+    # TODO(38701): Cleanup don't_use_nnbd clause after merging the forked SDK
+    # into mainline.
+    if (invoker.sound_null_safety || !dont_use_nnbd) {
       args += [ "--enable-experiment=non-nullable" ]
+    }
+
+    if (invoker.sound_null_safety) {
+      args += [ "--sound-null-safety" ]
     }
   }
 }
 
 dartdevc_kernel_compile("async_helper_js") {
   package = "async_helper"
+  sound_null_safety = false
+}
+
+dartdevc_kernel_compile("async_helper_sound_js") {
+  package = "async_helper"
+  sound_null_safety = true
 }
 
 dartdevc_kernel_compile("expect_js") {
   package = "expect"
   extra_libraries = [ "minitest" ]
+  sound_null_safety = false
+}
+
+dartdevc_kernel_compile("expect_sound_js") {
+  package = "expect"
+  extra_libraries = [ "minitest" ]
+  sound_null_safety = true
 }
 
 dartdevc_kernel_compile("js_js") {
   package = "js"
   extra_libraries = [ "js_util" ]
+  sound_null_safety = false
+}
+
+dartdevc_kernel_compile("js_sound_js") {
+  package = "js"
+  extra_libraries = [ "js_util" ]
+  sound_null_safety = true
 }
 
 dartdevc_kernel_compile("meta_js") {
   package = "meta"
+  sound_null_safety = false
 }
 
-compile_platform("dartdevc_platform") {
-  single_root_scheme = "org-dartlang-sdk"
-  single_root_base = rebase_path("$sdk_root/")
-  libraries_specification_uri = "org-dartlang-sdk:///lib/libraries.json"
+dartdevc_kernel_compile("meta_sound_js") {
+  package = "meta"
+  sound_null_safety = true
+}
 
-  outputs = [
-    sdk_full_dill,
-    sdk_outline_dill,
-  ]
+template("compile_dartdevc_platform") {
+  assert(defined(invoker.sound_null_safety),
+         "Need 'sound_null_safety' in $target_name.")
 
-  args = [
-    "--target=dartdevc",
-    "dart:core",
-  ]
+  compile_platform(target_name) {
+    single_root_scheme = "org-dartlang-sdk"
+    single_root_base = rebase_path("$sdk_root/")
+    libraries_specification_uri = "org-dartlang-sdk:///lib/libraries.json"
 
-  # TODO(38701): Cleanup after merging the forked SDK into mainline.
-  if (!dont_use_nnbd) {
-    args += [ "--enable-experiment=non-nullable" ]
+    args = [
+      "--target=dartdevc",
+      "dart:core",
+    ]
+
+    if (invoker.sound_null_safety) {
+      args += [
+        "--enable-experiment=non-nullable",
+        "--nnbd-strong",
+      ]
+
+      outputs = [
+        sdk_full_sound_dill,
+        sdk_outline_sound_dill,
+      ]
+    } else {
+      # TODO(38701): Cleanup after merging the forked SDK into mainline.
+      if (!dont_use_nnbd) {
+        args += [ "--enable-experiment=non-nullable" ]
+      }
+
+      outputs = [
+        sdk_full_dill,
+        sdk_outline_dill,
+      ]
+    }
   }
 }
 
-# Compiles the DDC SDK's kernel summary and JS code.
-prebuilt_dart_action("dartdevc_kernel_sdk") {
-  deps = [
-    ":dartdevc_files_stamp",
-    ":dartdevc_platform",
-    "../../pkg:pkg_files_stamp",
-  ]
+compile_dartdevc_platform("dartdevc_platform") {
+  sound_null_safety = false
+}
 
-  inputs = [
-    "$target_gen_dir/dartdevc_files.stamp",
-    "$root_gen_dir/pkg_files.stamp",
-    sdk_full_dill,
-  ]
+compile_dartdevc_platform("dartdevc_platform_sound") {
+  sound_null_safety = true
+}
 
-  outputs = [
-    "$target_gen_dir/kernel/amd/dart_sdk.js",
-    "$target_gen_dir/kernel/amd/dart_sdk.js.map",
-    "$target_gen_dir/kernel/common/dart_sdk.js",
-    "$target_gen_dir/kernel/common/dart_sdk.js.map",
-    "$target_gen_dir/kernel/es6/dart_sdk.js",
-    "$target_gen_dir/kernel/es6/dart_sdk.js.map",
-    "$target_gen_dir/kernel/legacy/dart_sdk.js",
-    "$target_gen_dir/kernel/legacy/dart_sdk.js.map",
-  ]
+# Compiles the DDC SDK's JS code from the platform .dill.
+template("dartdevc_sdk_js") {
+  assert(defined(invoker.sound_null_safety),
+         "Need 'sound_null_safety' in $target_name.")
 
-  script = "../../pkg/dev_compiler/tool/compile_dartdevc_sdk.dart"
-
-  args = [
-    "--multi-root-scheme",
-    "org-dartlang-sdk",
-    "--multi-root-output-path",
-    rebase_path("$target_gen_dir/../../"),
-    "--modules",
-    "amd",
-    "-o",
-    rebase_path("$target_gen_dir/kernel/amd/dart_sdk.js"),
-    "--modules",
-    "common",
-    "-o",
-    rebase_path("$target_gen_dir/kernel/common/dart_sdk.js"),
-    "--modules",
-    "es6",
-    "-o",
-    rebase_path("$target_gen_dir/kernel/es6/dart_sdk.js"),
-    "--modules",
-    "legacy",
-    "-o",
-    rebase_path("$target_gen_dir/kernel/legacy/dart_sdk.js"),
-    rebase_path("$sdk_full_dill"),
-  ]
-
-  # TODO(38701): Cleanup after merging the forked SDK into mainline.
-  if (!dont_use_nnbd) {
-    args += [ "--enable-experiment=non-nullable" ]
+  if (invoker.sound_null_safety) {
+    platform_dep = ":dartdevc_platform_sound"
+    platform_input = sdk_full_sound_dill
+    js_gen_dir = "$target_gen_dir/sound"
+  } else {
+    platform_dep = ":dartdevc_platform"
+    platform_input = sdk_full_dill
+    js_gen_dir = "$target_gen_dir/kernel"
   }
+
+  prebuilt_dart_action(target_name) {
+    deps = [
+      ":dartdevc_files_stamp",
+      "../../pkg:pkg_files_stamp",
+      platform_dep,
+    ]
+
+    inputs = [
+      "$target_gen_dir/dartdevc_files.stamp",
+      "$root_gen_dir/pkg_files.stamp",
+      platform_input,
+    ]
+
+    outputs = [
+      "$js_gen_dir/amd/dart_sdk.js",
+      "$js_gen_dir/amd/dart_sdk.js.map",
+      "$js_gen_dir/common/dart_sdk.js",
+      "$js_gen_dir/common/dart_sdk.js.map",
+      "$js_gen_dir/es6/dart_sdk.js",
+      "$js_gen_dir/es6/dart_sdk.js.map",
+      "$js_gen_dir/legacy/dart_sdk.js",
+      "$js_gen_dir/legacy/dart_sdk.js.map",
+    ]
+
+    script = "../../pkg/dev_compiler/tool/compile_dartdevc_sdk.dart"
+
+    args = [
+      "--multi-root-scheme",
+      "org-dartlang-sdk",
+      "--multi-root-output-path",
+      rebase_path("$target_gen_dir/../../"),
+      "--modules",
+      "amd",
+      "-o",
+      rebase_path("$js_gen_dir/amd/dart_sdk.js"),
+      "--modules",
+      "common",
+      "-o",
+      rebase_path("$js_gen_dir/common/dart_sdk.js"),
+      "--modules",
+      "es6",
+      "-o",
+      rebase_path("$js_gen_dir/es6/dart_sdk.js"),
+      "--modules",
+      "legacy",
+      "-o",
+      rebase_path("$js_gen_dir/legacy/dart_sdk.js"),
+      rebase_path("$platform_input"),
+    ]
+
+    # TODO(38701): Cleanup don't_use_nnbd clause after merging the forked SDK
+    # into mainline.
+    if (invoker.sound_null_safety || !dont_use_nnbd) {
+      args += [ "--enable-experiment=non-nullable" ]
+    }
+
+    if (invoker.sound_null_safety) {
+      args += [ "--sound-null-safety" ]
+    }
+  }
+}
+
+dartdevc_sdk_js("dartdevc_kernel_sdk") {
+  sound_null_safety = false
+}
+
+dartdevc_sdk_js("dartdevc_sound_sdk") {
+  sound_null_safety = true
 }

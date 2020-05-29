@@ -644,7 +644,8 @@ Future<CompileResult> kernelCompile(String code) async {
   var sdkUri = Uri.file('/memory/dart_sdk.dill');
   var sdkFile = _fileSystem.entityForUri(sdkUri);
   if (!await sdkFile.exists()) {
-    sdkFile.writeAsBytesSync(File(defaultSdkSummaryPath).readAsBytesSync());
+    sdkFile.writeAsBytesSync(
+        File(defaultSdkSummaryPath(soundNullSafety: false)).readAsBytesSync());
   }
   var packagesUri = Uri.file('/memory/.packages');
   var packagesFile = _fileSystem.entityForUri(packagesUri);
