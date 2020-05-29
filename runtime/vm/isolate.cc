@@ -403,6 +403,17 @@ void IsolateGroup::CreateHeap(bool is_vm_isolate,
 }
 
 void IsolateGroup::Shutdown() {
+  // Ensure to join all threads before waiting for pending GC tasks (the thread
+  // pool can trigger idle notification, which can start new GC tasks).
+  //
+  // (The vm-isolate doesn't have a thread pool.)
+  if (!Dart::VmIsolateNameEquals(source()->name)) {
+    ASSERT(thread_pool_ != nullptr);
+    thread_pool_->Shutdown();
+    thread_pool_.reset();
+  }
+
+  // Wait for any pending GC tasks.
   if (heap_ != nullptr) {
     // Wait for any concurrent GC tasks to finish before shutting down.
     // TODO(rmacnak): Interrupt tasks for faster shutdown.
@@ -426,14 +437,6 @@ void IsolateGroup::Shutdown() {
     if (group_shutdown_callback != nullptr) {
       group_shutdown_callback(embedder_data());
     }
-  }
-
-  // Ensure to join all threads before starting to delete the members.
-  // (for vm-isolate we don't have a thread pool)
-  if (!Dart::VmIsolateNameEquals(source()->name)) {
-    ASSERT(thread_pool_ != nullptr);
-    thread_pool_->Shutdown();
-    thread_pool_.reset();
   }
 
   delete this;
