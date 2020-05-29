@@ -1,9 +1,14 @@
+## 0.2.4
+- Exposed method `AnalyzerConverter.locationFromElement` (was previously
+  private).
+
 ## 0.2.3
 - Added class `Relevance`.
 - Removed `FixKind.name`, replaced with `FixKind.id`.  Technically this is a
   breaking change but we believe that in practice it is benign, since
   `FixKind.name` was only used for debugging.
 - Added function `computeDartNavigation`.
+- Note: never published (had problematic imports of package:analysis_server).
 
 ## 0.2.2
 - Change supported analyzer version to `^0.39.0`
