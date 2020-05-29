@@ -738,10 +738,21 @@ class BinaryBuilder {
           NonNullableByDefaultCompiledMode.Agnostic) {
         // Keep as-is.
       } else {
-        // Mixed mode where agnostic isn't involved.
-        throw new CompilationModeError(
-            "Mixed compilation mode found: $compilationMode "
-            "and ${index.compiledMode}.");
+        if ((compilationMode == NonNullableByDefaultCompiledMode.Disabled ||
+                index.compiledMode ==
+                    NonNullableByDefaultCompiledMode.Disabled) &&
+            (compilationMode == NonNullableByDefaultCompiledMode.Weak ||
+                index.compiledMode == NonNullableByDefaultCompiledMode.Weak)) {
+          // One is disabled and one is weak.
+          // => We allow that and "merge" them as disabled.
+          compilationMode = NonNullableByDefaultCompiledMode.Disabled;
+        } else {
+          // Mixed mode where agnostic isn't involved and it's not
+          // disabled + weak.
+          throw new CompilationModeError(
+              "Mixed compilation mode found: $compilationMode "
+              "and ${index.compiledMode}.");
+        }
       }
     }
 
