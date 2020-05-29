@@ -381,10 +381,9 @@ class Driver implements ServerStarter {
     );
     analysisServerOptions.analytics = analytics;
 
-    if (analysisServerOptions.clientId != null) {
-      // Record the client name as the application installer ID.
-      analytics.setSessionValue('aiid', analysisServerOptions.clientId);
-    }
+    // Record the client name as the application installer ID.
+    analytics.setSessionValue(
+        'aiid', analysisServerOptions.clientId ?? 'not-set');
     if (analysisServerOptions.clientVersion != null) {
       analytics.setSessionValue('cd1', analysisServerOptions.clientVersion);
     }
