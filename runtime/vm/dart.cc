@@ -617,12 +617,7 @@ char* Dart::Cleanup() {
   Timeline::Cleanup();
 #endif
   Zone::Cleanup();
-  // Delete the current thread's TLS and set it's TLS to null.
-  // If it is the last thread then the destructor would call
-  // OSThread::Cleanup.
-  OSThread* os_thread = OSThread::Current();
-  OSThread::SetCurrent(NULL);
-  delete os_thread;
+  OSThread::Cleanup();
   if (FLAG_trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Deleted os_thread\n",
                  UptimeMillis());

@@ -25,10 +25,17 @@ static void MallocHookTestBufferInitializer(volatile char* buffer,
   }
 }
 
+// Only to be used in UNIT_TEST_CASE which runs without active VM.
+class OSThreadSupport : public ValueObject {
+ public:
+  OSThreadSupport() { OSThread::Init(); }
+
+  ~OSThreadSupport() { OSThread::Cleanup(); }
+};
+
 class EnableMallocHooksScope : public ValueObject {
  public:
   EnableMallocHooksScope() {
-    OSThread::Current();  // Ensure not allocated during test.
     saved_enable_malloc_hooks_ = FLAG_profiler_native_memory;
     FLAG_profiler_native_memory = true;
     MallocHooks::Init();
@@ -66,6 +73,7 @@ class EnableMallocHooksAndStacksScope : public EnableMallocHooksScope {
 };
 
 UNIT_TEST_CASE(BasicMallocHookTest) {
+  OSThreadSupport os_thread_support;
   EnableMallocHooksScope scope;
 
   EXPECT_EQ(0L, MallocHooks::allocation_count());
@@ -84,6 +92,7 @@ UNIT_TEST_CASE(BasicMallocHookTest) {
 }
 
 UNIT_TEST_CASE(FreeUnseenMemoryMallocHookTest) {
+  OSThreadSupport os_thread_support;
   EnableMallocHooksScope scope;
 
   const intptr_t pre_hook_buffer_size = 3;
