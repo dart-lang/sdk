@@ -20,7 +20,7 @@ main() {
       const bool.fromEnvironment("dart.library._internal",
           defaultValue: NOT_PRESENT));
 
-  bool hasHtmlSupport;
+  bool? hasHtmlSupport;
   hasHtmlSupport = true; //# has_html_support: ok
   hasHtmlSupport = false; //# has_no_html_support: ok
 
@@ -53,7 +53,7 @@ main() {
             defaultValue: NOT_PRESENT));
   }
 
-  bool hasIoSupport;
+  bool? hasIoSupport;
   hasIoSupport = true; //# has_io_support: ok
   hasIoSupport = false; //# has_no_io_support: ok
 
@@ -65,7 +65,7 @@ main() {
         const bool.fromEnvironment("dart.library.io", defaultValue: false));
   }
 
-  bool hasMirrorSupport;
+  bool? hasMirrorSupport;
   hasMirrorSupport = true; //# has_mirror_support: ok
   hasMirrorSupport = false; //# has_no_mirror_support: ok
 
