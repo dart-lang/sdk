@@ -19,7 +19,7 @@ main() {
 @reflectiveTest
 class DartSdkManagerTest with ResourceProviderMixin {
   void test_anySdk() {
-    DartSdkManager manager = DartSdkManager('/a/b/c', false);
+    DartSdkManager manager = DartSdkManager('/a/b/c');
     expect(manager.anySdk, isNull);
 
     AnalysisOptions options = AnalysisOptionsImpl();
@@ -30,7 +30,7 @@ class DartSdkManagerTest with ResourceProviderMixin {
   }
 
   void test_getSdk_differentDescriptors() {
-    DartSdkManager manager = DartSdkManager('/a/b/c', false);
+    DartSdkManager manager = DartSdkManager('/a/b/c');
     AnalysisOptions options = AnalysisOptionsImpl();
     SdkDescription description1 = SdkDescription(<String>['/c/d'], options);
     DartSdk sdk1 = MockSdk(resourceProvider: resourceProvider);
@@ -46,7 +46,7 @@ class DartSdkManagerTest with ResourceProviderMixin {
   }
 
   void test_getSdk_sameDescriptor() {
-    DartSdkManager manager = DartSdkManager('/a/b/c', false);
+    DartSdkManager manager = DartSdkManager('/a/b/c');
     AnalysisOptions options = AnalysisOptionsImpl();
     SdkDescription description = SdkDescription(<String>['/c/d'], options);
     DartSdk sdk = MockSdk(resourceProvider: resourceProvider);

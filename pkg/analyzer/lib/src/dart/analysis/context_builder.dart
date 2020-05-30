@@ -68,7 +68,7 @@ class ContextBuilderImpl implements ContextBuilder {
     if (sdkPath == null) {
       throw ArgumentError('Cannot find path to the SDK');
     }
-    DartSdkManager sdkManager = DartSdkManager(sdkPath, true);
+    DartSdkManager sdkManager = DartSdkManager(sdkPath);
 
     if (scheduler == null) {
       scheduler = AnalysisDriverScheduler(performanceLog);

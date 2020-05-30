@@ -53,7 +53,6 @@ void main() {
 
       var sdk = driver.sdk;
       expect(sdk, const TypeMatcher<FolderBasedDartSdk>());
-      expect((sdk as FolderBasedDartSdk).useSummary, isFalse);
     }));
   });
 }

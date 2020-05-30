@@ -10,7 +10,6 @@ import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:args/args.dart';
-import 'package:path/path.dart';
 
 const String analysisOptionsFileOption = 'options';
 const String defineVariableOption = 'D';
@@ -103,22 +102,15 @@ ContextBuilderOptions createContextBuilderOptions(ArgResults args) {
 
 /**
  * Use the given [resourceProvider] and command-line [args] to create a Dart SDK
- * manager. The manager will use summary information if [useSummaries] is `true`
- * and if the summary information exists.
+ * manager.
  */
 DartSdkManager createDartSdkManager(
-    ResourceProvider resourceProvider, bool useSummaries, ArgResults args) {
+    ResourceProvider resourceProvider, ArgResults args) {
   String sdkPath = args[sdkPathOption];
 
-  bool canUseSummaries = useSummaries &&
-      args.rest.every((String sourcePath) {
-        sourcePath = context.absolute(sourcePath);
-        sourcePath = context.normalize(sourcePath);
-        return !context.isWithin(sdkPath, sourcePath);
-      });
   return DartSdkManager(
-      sdkPath ?? FolderBasedDartSdk.defaultSdkDirectory(resourceProvider)?.path,
-      canUseSummaries);
+    sdkPath ?? FolderBasedDartSdk.defaultSdkDirectory(resourceProvider)?.path,
+  );
 }
 
 /**

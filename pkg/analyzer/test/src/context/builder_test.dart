@@ -86,14 +86,14 @@ const Map<String, LibraryInfo> libraries = const {
   "core": const LibraryInfo("core/core.dart"),
 };
 ''');
-    sdkManager = DartSdkManager(defaultSdkPath, false);
+    sdkManager = DartSdkManager(defaultSdkPath);
     builder = ContextBuilder(resourceProvider, sdkManager, contentCache,
         options: builderOptions);
   }
 
   void setUp() {
     MockSdk(resourceProvider: resourceProvider);
-    sdkManager = DartSdkManager(convertPath('/sdk'), false);
+    sdkManager = DartSdkManager(convertPath('/sdk'));
     contentCache = ContentCache();
     builder = ContextBuilder(
       resourceProvider,
