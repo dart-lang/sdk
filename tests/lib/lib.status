@@ -35,6 +35,8 @@ html/xhr_test/xhr: Skip # Times out.  Issue 21527
 
 [ $csp ]
 isolate/deferred_in_isolate2_test: Skip # Issue 16898. Deferred loading does not work from an isolate in CSP-mode
+js/instanceof_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/parameters_test: SkipByDesign # Issue 42085.
 
 [ $runtime == chrome && $system == linux ]
 mirrors/native_class_test: Slow, Pass
