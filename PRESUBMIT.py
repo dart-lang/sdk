@@ -67,7 +67,7 @@ def _CheckNnbdTestSync(input_api, output_api):
     a test, the test's counterpart (if it exists at all) should be in the CL
     too.
     """
-    DIRS = ["co19", "corelib", "language", "lib", "standalone"]
+    DIRS = ["co19", "corelib", "ffi", "language", "lib", "standalone"]
 
     files = [git_file.LocalPath() for git_file in input_api.AffectedTextFiles()]
     unsynchronized = []
@@ -83,18 +83,13 @@ def _CheckNnbdTestSync(input_api, output_api):
                 counterpart = file.replace(nnbd_dir, legacy_dir)
 
             if counterpart:
-                # Changed one file with a potential counterpart. If it exists
-                # on disc, make sure it is also in the CL.
-                if counterpart not in files and os.path.exists(counterpart):
-                    unsynchronized.append("- {} -> {}".format(
-                        file, counterpart))
+                # Changed one file with a potential counterpart.
+                if counterpart not in files:
+                    missing = '' if os.path.exists(
+                        counterpart) else ' (missing)'
+                    unsynchronized.append("- {} -> {}{}".format(
+                        file, counterpart, missing))
                 break
-
-    # TODO(rnystrom): Currently, we only warn if a test does exist in both
-    # places on disc but only one is touched by a CL. We don't warn for files
-    # that only exist on one side because the migration isn't complete and the
-    # CL may be migrating. Once the migration is complete, consider making
-    # these checks more rigorous.
 
     if unsynchronized:
         return [
