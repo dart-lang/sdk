@@ -95,3 +95,7 @@ two forms:
 - Experiments affecting launch/run behavior, can be enabled in the IDE specific
   run Configuration, by passing the same `--enable-experiment` flag as listed in
   the CLI section.
+
+The current set of experiment flags is defined in a YAML file which the various
+tools access:
+[experimental_features.yaml](../../tools/experimental_features.yaml).
