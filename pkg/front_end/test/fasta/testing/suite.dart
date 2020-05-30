@@ -617,7 +617,8 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
     TestOptions testOptions = context.computeTestOptions(description);
     Map<ExperimentalFlag, bool> experimentalFlags =
         testOptions.computeExperimentalFlags(context.experimentalFlags);
-    NnbdMode nnbdMode = context.weak
+    NnbdMode nnbdMode = context.weak ||
+            !experimentalFlags[ExperimentalFlag.nonNullable]
         ? NnbdMode.Weak
         : (testOptions.nnbdAgnosticMode ? NnbdMode.Agnostic : NnbdMode.Strong);
     List<Uri> inputs = <Uri>[description.uri];

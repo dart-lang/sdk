@@ -128,7 +128,6 @@ void transformLibraries(
 }
 
 enum EvaluationMode {
-  legacy,
   weak,
   agnostic,
   strong,
@@ -764,7 +763,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       {this.desugarSets = false,
       this.enableTripleShift = false,
       this.errorOnUnevaluatedConstant = false,
-      this.evaluationMode: EvaluationMode.legacy})
+      this.evaluationMode: EvaluationMode.weak})
       : numberSemantics = backend.numberSemantics,
         coreTypes = typeEnvironment.coreTypes,
         canonicalizationCache = <Constant, Constant>{},
@@ -799,7 +798,6 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   DartType convertType(DartType type) {
     switch (evaluationMode) {
-      case EvaluationMode.legacy:
       case EvaluationMode.strong:
       case EvaluationMode.agnostic:
         return type;
@@ -812,7 +810,6 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   List<DartType> convertTypes(List<DartType> types) {
     switch (evaluationMode) {
-      case EvaluationMode.legacy:
       case EvaluationMode.strong:
       case EvaluationMode.agnostic:
         return types;
@@ -2182,7 +2179,6 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         }
         return makeBoolConstant(strongResult);
       case EvaluationMode.weak:
-      case EvaluationMode.legacy:
         return makeBoolConstant(performIs(constant, strongMode: false));
     }
     throw new UnsupportedError("Unexpected evaluation mode $evaluationMode");
@@ -2327,7 +2323,6 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         result = strongResult;
         break;
       case EvaluationMode.weak:
-      case EvaluationMode.legacy:
         result =
             isSubtype(constant, type, SubtypeCheckMode.ignoringNullabilities);
         break;

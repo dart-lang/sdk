@@ -4,6 +4,7 @@
 
 library dart2js.kernel.element_map;
 
+import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
 import 'package:js_runtime/shared/embedded_names.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -817,7 +818,10 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     },
         environment: _environment.toMap(),
         enableTripleShift:
-            options.languageExperiments[ir.ExperimentalFlag.tripleShift]);
+            options.languageExperiments[ir.ExperimentalFlag.tripleShift],
+        evaluationMode: options.nullSafetyMode == NullSafetyMode.sound
+            ? ir.EvaluationMode.strong
+            : ir.EvaluationMode.weak);
   }
 
   @override

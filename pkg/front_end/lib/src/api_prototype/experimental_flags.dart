@@ -5,8 +5,9 @@
 // NOTE: THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'tools/experimental_features.yaml' and run
-// 'pkg/front_end/tool/fasta generate-experimental-flags' to update.
+// 'dart pkg/front_end/tool/fasta.dart generate-experimental-flags' to update.
 
+import 'package:_fe_analyzer_shared/src/sdk/allowed_experiments.dart';
 import 'package:kernel/kernel.dart' show Version;
 
 enum ExperimentalFlag {
@@ -78,3 +79,8 @@ const Map<ExperimentalFlag, bool> expiredExperimentalFlags = {
   ExperimentalFlag.tripleShift: false,
   ExperimentalFlag.variance: false,
 };
+
+const AllowedExperiments allowedExperiments =
+    const AllowedExperiments(sdkDefaultExperiments: [
+  "non-nullable",
+], sdkLibraryExperiments: {}, packageExperiments: {});

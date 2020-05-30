@@ -1095,20 +1095,23 @@ class KernelTarget extends TargetImplementation {
     TypeEnvironment environment =
         new TypeEnvironment(loader.coreTypes, loader.hierarchy);
     constants.EvaluationMode evaluationMode;
-    if (enableNonNullable) {
-      switch (loader.nnbdMode) {
-        case NnbdMode.Weak:
-          evaluationMode = constants.EvaluationMode.weak;
-          break;
-        case NnbdMode.Strong:
-          evaluationMode = constants.EvaluationMode.strong;
-          break;
-        case NnbdMode.Agnostic:
-          evaluationMode = constants.EvaluationMode.agnostic;
-          break;
-      }
-    } else {
-      evaluationMode = constants.EvaluationMode.legacy;
+    // If nnbd is not enabled we will use weak evaluation mode. This is needed
+    // because the SDK might be agnostic and therefore needs to be weakened
+    // for legacy mode.
+    assert(
+        enableNonNullable || loader.nnbdMode == NnbdMode.Weak,
+        "Non-weak nnbd mode found without experiment enabled: "
+        "${loader.nnbdMode}.");
+    switch (loader.nnbdMode) {
+      case NnbdMode.Weak:
+        evaluationMode = constants.EvaluationMode.weak;
+        break;
+      case NnbdMode.Strong:
+        evaluationMode = constants.EvaluationMode.strong;
+        break;
+      case NnbdMode.Agnostic:
+        evaluationMode = constants.EvaluationMode.agnostic;
+        break;
     }
 
     constants.transformLibraries(
