@@ -7,9 +7,6 @@
 
 // Test least upper bound through type checking of conditionals.
 
-// [NNBD non-migrated]: This test relies on implicit downcasts, so isn't
-// meaningful under NNBD.
-
 class A {
   var a;
 }
@@ -61,7 +58,7 @@ void testAB(A a, B b) {
 void testBC(B b, C c) {
 
 
-
+  (true ? b : c).b = 0;
 
   var a = null;
 
@@ -72,7 +69,7 @@ void testBC(B b, C c) {
 
 void testCD(C c, D d) {
 
-  D r2 = false ? c : d;
+
 
 
 
