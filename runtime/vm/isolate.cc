@@ -747,7 +747,7 @@ void IsolateGroup::UnregisterIsolateGroup(IsolateGroup* isolate_group) {
 bool IsolateGroup::HasApplicationIsolateGroups() {
   ReadRwLocker wl(ThreadState::Current(), isolate_groups_rwlock_);
   for (auto group : *isolate_groups_) {
-    if (!IsolateGroup::IsVMInternalIsolate(group)) {
+    if (!IsolateGroup::IsVMInternalIsolateGroup(group)) {
       return true;
     }
   }
@@ -3564,7 +3564,7 @@ bool Isolate::IsolateCreationEnabled() {
   return creation_enabled_;
 }
 
-bool IsolateGroup::IsVMInternalIsolate(const IsolateGroup* group) {
+bool IsolateGroup::IsVMInternalIsolateGroup(const IsolateGroup* group) {
   // We use a name comparison here because this method can be called during
   // shutdown, where the actual isolate pointers might've already been cleared.
   const char* name = group->source()->name;

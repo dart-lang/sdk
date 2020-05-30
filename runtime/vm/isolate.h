@@ -500,7 +500,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   static bool HasApplicationIsolateGroups();
   static bool HasOnlyVMIsolateGroup();
-  static bool IsVMInternalIsolate(const IsolateGroup* group);
+  static bool IsVMInternalIsolateGroup(const IsolateGroup* group);
 
   int64_t UptimeMicros() const;
 
@@ -1262,7 +1262,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   static void EnableIsolateCreation();
   static bool IsolateCreationEnabled();
   static bool IsVMInternalIsolate(const Isolate* isolate) {
-    return IsolateGroup::IsVMInternalIsolate(isolate->group());
+    return IsolateGroup::IsVMInternalIsolateGroup(isolate->group());
   }
 
 #if !defined(PRODUCT)
