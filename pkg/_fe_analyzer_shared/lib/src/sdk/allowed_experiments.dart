@@ -27,7 +27,7 @@ class AllowedExperiments {
   /// are enabled for all files of this package.
   final Map<String, List<String>> packageExperiments;
 
-  const AllowedExperiments({
+  AllowedExperiments({
     @required this.sdkDefaultExperiments,
     @required this.sdkLibraryExperiments,
     @required this.packageExperiments,

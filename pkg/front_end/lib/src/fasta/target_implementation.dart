@@ -48,27 +48,22 @@ abstract class TargetImplementation extends Target {
   MemberBuilder cachedDuplicatedFieldInitializerError;
   MemberBuilder cachedNativeAnnotation;
 
-  bool enableExtensionMethods;
-  bool enableNonNullable;
-  bool enableTripleShift;
-  bool enableVariance;
-  bool enableNonfunctionTypeAliases;
+  final ProcessedOptions _options;
 
   TargetImplementation(Ticker ticker, this.uriTranslator, this.backendTarget)
       : assert(ticker != null),
         assert(uriTranslator != null),
         assert(backendTarget != null),
-        enableExtensionMethods = CompilerContext.current.options
-            .isExperimentEnabled(ExperimentalFlag.extensionMethods),
-        enableNonNullable = CompilerContext.current.options
-            .isExperimentEnabled(ExperimentalFlag.nonNullable),
-        enableTripleShift = CompilerContext.current.options
-            .isExperimentEnabled(ExperimentalFlag.tripleShift),
-        enableVariance = CompilerContext.current.options
-            .isExperimentEnabled(ExperimentalFlag.variance),
-        enableNonfunctionTypeAliases = CompilerContext.current.options
-            .isExperimentEnabled(ExperimentalFlag.nonfunctionTypeAliases),
+        _options = CompilerContext.current.options,
         super(ticker);
+
+  bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri importUri) {
+    return _options.isExperimentEnabledInLibrary(flag, importUri);
+  }
+
+  bool isExperimentEnabledGlobally(ExperimentalFlag flag) {
+    return _options.isExperimentEnabledGlobally(flag);
+  }
 
   /// Creates a [LibraryBuilder] corresponding to [uri], if one doesn't exist
   /// already.

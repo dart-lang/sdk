@@ -116,6 +116,7 @@ Future<InitializedCompilerState> initializeCompiler(
     Map<ExperimentalFlag, bool> experiments,
     Map<String, String> environmentDefines,
     NnbdMode nnbdMode}) async {
+  assert(nnbdMode != null, "No NnbdMode provided.");
   additionalDills.sort((a, b) => a.toString().compareTo(b.toString()));
 
   if (oldState != null &&
