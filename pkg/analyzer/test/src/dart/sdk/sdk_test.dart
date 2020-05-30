@@ -9,7 +9,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -53,26 +52,6 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
     expectSource('$foxLib/slippy.dart', 'dart:fox');
     expectSource('$foxLib/deep/directory/file.dart', 'dart:deep');
     expectSource('$foxLib/deep/directory/part.dart', 'dart:deep/part.dart');
-  }
-
-  void test_getLinkedBundle_noBundle() {
-    EmbedderYamlLocator locator = EmbedderYamlLocator({
-      'fox': <Folder>[pathTranslator.getResource(foxLib)]
-    });
-    EmbedderSdk sdk = EmbedderSdk(resourceProvider, locator.embedderYamls);
-    expect(sdk.getLinkedBundle(), isNull);
-  }
-
-  void test_getLinkedBundle_strong() {
-    pathTranslator.newFileWithBytes(
-        '$foxPath/strong.sum', PackageBundleAssembler().assemble().toBuffer());
-    EmbedderYamlLocator locator = EmbedderYamlLocator({
-      'fox': <Folder>[pathTranslator.getResource(foxLib)]
-    });
-    EmbedderSdk sdk = EmbedderSdk(resourceProvider, locator.embedderYamls);
-    sdk.analysisOptions = AnalysisOptionsImpl();
-    sdk.useSummary = true;
-    expect(sdk.getLinkedBundle(), isNotNull);
   }
 
   void test_getSdkLibrary() {

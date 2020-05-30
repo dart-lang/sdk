@@ -51,9 +51,6 @@ class EmbedderSdk extends AbstractDartSdk {
   Map<String, String> get urlMappings => _urlMappings;
 
   @override
-  PackageBundle getLinkedBundle() => null;
-
-  @override
   String getRelativePathFromFile(JavaFile file) => file.getAbsolutePath();
 
   @deprecated

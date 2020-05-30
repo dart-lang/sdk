@@ -554,11 +554,6 @@ class Driver with HasContextMixin implements CommandLineStarter {
     // Once options and embedders are processed, setup the SDK.
     _setupSdk(options, useSummaries, analysisOptions);
 
-    var sdkBundle = sdk.getLinkedBundle();
-    if (sdkBundle != null) {
-      summaryDataStore.addBundle(null, sdkBundle);
-    }
-
     // Choose a package resolution policy and a diet parsing policy based on
     // the command-line options.
     var sourceFactory = _chooseUriResolutionPolicy(options, embedderMap,

@@ -8,8 +8,6 @@ import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
-import 'package:analyzer/src/summary/summary_file_builder.dart';
 import 'package:meta/meta.dart';
 
 const String sdkRoot = '/sdk';
@@ -1083,9 +1081,6 @@ class MockSdk implements DartSdk {
   @override
   final List<SdkLibrary> sdkLibraries = [];
 
-  /// The cached linked bundle of the SDK.
-  PackageBundle _bundle;
-
   /// Optional [additionalLibraries] should have unique URIs, and paths in
   /// their units are relative (will be put into `sdkRoot/lib`).
   MockSdk({
@@ -1224,22 +1219,6 @@ class MockSdk implements DartSdk {
   }
 
   @override
-  PackageBundle getLinkedBundle() {
-    if (_bundle == null) {
-      File summaryFile = resourceProvider
-          .getFile(resourceProvider.convertPath('/lib/_internal/strong.sum'));
-      List<int> bytes;
-      if (summaryFile.exists) {
-        bytes = summaryFile.readAsBytesSync();
-      } else {
-        bytes = _computeLinkedBundleBytes();
-      }
-      _bundle = PackageBundle.fromBuffer(bytes);
-    }
-    return _bundle;
-  }
-
-  @override
   SdkLibrary getSdkLibrary(String dartUri) {
     for (SdkLibrary library in _LIBRARIES) {
       if (library.shortName == dartUri) {
@@ -1260,14 +1239,6 @@ class MockSdk implements DartSdk {
     // If we reach here then we tried to use a dartUri that's not in the
     // table above.
     return null;
-  }
-
-  /// Compute the bytes of the linked bundle associated with this SDK.
-  List<int> _computeLinkedBundleBytes() {
-    return buildSdkSummary(
-      resourceProvider: resourceProvider,
-      sdkPath: sdkRoot,
-    );
   }
 }
 

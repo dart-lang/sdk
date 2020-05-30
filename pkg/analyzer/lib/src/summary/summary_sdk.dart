@@ -86,9 +86,6 @@ class SummaryBasedDartSdk implements DartSdk {
   }
 
   @override
-  PackageBundle getLinkedBundle() => _bundle;
-
-  @override
   SdkLibrary getSdkLibrary(String uri) {
     // This is not quite correct, but currently it's used only in
     // to report errors on importing or exporting of internal libraries.
