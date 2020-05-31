@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=extension-methods
-
 // Tests that errors are given for internal name conflicts in extension methods.
 
 // It is an error to have duplicate type parameter names.

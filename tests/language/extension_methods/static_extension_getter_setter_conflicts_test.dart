@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=extension-methods
-
 // Tests interactions between getters and setters where there is a conflict.
 
 // Conflicting class declarations.
@@ -194,7 +192,7 @@ void test1() {
 // [cfe] The operator '[]=' is defined in multiple extensions for 'C1<Object?>' and neither is more specific.
 
   C1<Object> c1c = C1<Object>(); // E1A is more specific.
-  
+
   c1c.m1 = 0;
   //  ^^
   // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_LOCAL
