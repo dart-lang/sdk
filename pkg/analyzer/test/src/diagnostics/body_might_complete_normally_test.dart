@@ -64,6 +64,89 @@ Iterable<int> foo() sync* {}
 ''');
   }
 
+  test_function_nonNullable_blockBody_switchStatement_notNullable_exhaustive() async {
+    await assertNoErrorsInCode(r'''
+enum Foo { a, b }
+
+int f(Foo foo) {
+  switch (foo) {
+    case Foo.a:
+      return 0;
+    case Foo.b:
+      return 1;
+  }
+}
+''');
+  }
+
+  test_function_nonNullable_blockBody_switchStatement_notNullable_notExhaustive() async {
+    await assertErrorsInCode(r'''
+enum Foo { a, b }
+
+int f(Foo foo) {
+  switch (foo) {
+    case Foo.a:
+      return 0;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 23, 1),
+      error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 38, 12),
+    ]);
+  }
+
+  test_function_nonNullable_blockBody_switchStatement_nullable_exhaustive_default() async {
+    await assertNoErrorsInCode(r'''
+enum Foo { a, b }
+
+int f(Foo? foo) {
+  switch (foo) {
+    case Foo.a:
+      return 0;
+    case Foo.b:
+      return 1;
+    default:
+      return 2;
+  }
+}
+''');
+  }
+
+  test_function_nonNullable_blockBody_switchStatement_nullable_exhaustive_null() async {
+    await assertNoErrorsInCode(r'''
+enum Foo { a, b }
+
+int f(Foo? foo) {
+  switch (foo) {
+    case null:
+      return 0;
+    case Foo.a:
+      return 1;
+    case Foo.b:
+      return 2;
+  }
+}
+''');
+  }
+
+  test_function_nonNullable_blockBody_switchStatement_nullable_notExhaustive_null() async {
+    await assertErrorsInCode(r'''
+enum Foo { a, b }
+
+int f(Foo? foo) {
+  switch (foo) {
+    case Foo.a:
+      return 0;
+    case Foo.b:
+      return 1;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 23, 1),
+      error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 39, 12),
+    ]);
+  }
+
   test_function_nullable_blockBody() async {
     await assertNoErrorsInCode(r'''
 int foo() {
