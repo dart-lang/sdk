@@ -7255,6 +7255,25 @@ dynamic f<T>() {}
 ''');
   }
 
+  test_inferred_type_functionExpressionInvocation_oppositeOrder() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary('''
+class A {
+  static final foo = bar(1.2);
+  static final bar = baz();
+
+  static int Function(double) baz() => (throw 0);
+}
+''');
+    checkElementText(library, r'''
+class A {
+  static final int foo;
+  static final int Function(double) bar;
+  static int Function(double) baz() {}
+}
+''');
+  }
+
   test_inferred_type_initializer_cycle() async {
     var library = await checkLibrary(r'''
 var a = b + 1;
