@@ -5,12 +5,10 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
@@ -22,7 +20,6 @@ import 'base.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IndexTest);
-    defineReflectiveTests(IndexWithExtensionMethodsTest);
   });
 }
 
@@ -293,6 +290,60 @@ class A {
       ..isInvokedAt('foo(); // nq', false);
   }
 
+  test_isInvokedBy_MethodElement_ofNamedExtension_instance() async {
+    await _indexTestUnit('''
+extension E on int {
+  void foo() {}
+}
+
+main() {
+  0.foo();
+}
+''');
+    MethodElement element = findElement('foo');
+    assertThat(element)..isInvokedAt('foo();', true);
+  }
+
+  test_isInvokedBy_MethodElement_ofNamedExtension_static() async {
+    await _indexTestUnit('''
+extension E on int {
+  static void foo() {}
+}
+
+main() {
+  E.foo();
+}
+''');
+    MethodElement element = findElement('foo');
+    assertThat(element)..isInvokedAt('foo();', true);
+  }
+
+  test_isInvokedBy_MethodElement_ofUnnamedExtension_instance() async {
+    await _indexTestUnit('''
+extension on int {
+  void foo() {} // int
+}
+
+extension on double {
+  void foo() {} // double
+}
+
+main() {
+  0.foo(); // int ref
+  (1.2).foo(); // double ref
+}
+''');
+    var findNode = FindNode(testCode, testUnit);
+
+    var intMethod = findNode.methodDeclaration('foo() {} // int');
+    assertThat(intMethod.declaredElement)
+      ..isInvokedAt('foo(); // int ref', true);
+
+    var doubleMethod = findNode.methodDeclaration('foo() {} // double');
+    assertThat(doubleMethod.declaredElement)
+      ..isInvokedAt('foo(); // double ref', true);
+  }
+
   test_isInvokedBy_MethodElement_propagatedType() async {
     await _indexTestUnit('''
 class A {
@@ -458,6 +509,16 @@ main(A p) {
       ..isReferencedAt('A(); // 2', false)
       ..isReferencedAt('A.field = 1;', false)
       ..isReferencedAt('A.field); // 3', false);
+  }
+
+  test_isReferencedBy_ClassElement_fromExtension() async {
+    await _indexTestUnit('''
+class A<T> {}
+
+extension E on A<int> {}
+''');
+    ClassElement element = findElement('A');
+    assertThat(element)..isReferencedAt('A<int>', false);
   }
 
   test_isReferencedBy_ClassElement_invocation() async {
@@ -674,6 +735,20 @@ main() {
 dynamic f() {
 }''');
     expect(index.usedElementOffsets, isEmpty);
+  }
+
+  test_isReferencedBy_ExtensionElement() async {
+    await _indexTestUnit('''
+extension E on int {
+  void foo() {}
+}
+
+main() {
+  E(0).foo();
+}
+''');
+    ExtensionElement element = findElement('E');
+    assertThat(element)..isReferencedAt('E(0).foo()', false);
   }
 
   test_isReferencedBy_FieldElement() async {
@@ -978,6 +1053,78 @@ main() {
     assertThat(element)
       ..hasRelationCount(1)
       ..isReferencedAt('1); // 2', true, length: 0);
+  }
+
+  test_isReferencedBy_PropertyAccessor_ofNamedExtension_instance() async {
+    await _indexTestUnit('''
+extension E on int {
+  int get foo => 0;
+  void set foo(int _) {}
+}
+
+main() {
+  0.foo;
+  0.foo = 0;
+}
+''');
+    PropertyAccessorElement getter = findElement('foo', ElementKind.GETTER);
+    PropertyAccessorElement setter = findElement('foo=');
+    assertThat(getter)..isReferencedAt('foo;', true);
+    assertThat(setter)..isReferencedAt('foo = 0;', true);
+  }
+
+  test_isReferencedBy_PropertyAccessor_ofNamedExtension_static() async {
+    await _indexTestUnit('''
+extension E on int {
+  static int get foo => 0;
+  static void set foo(int _) {}
+}
+
+main() {
+  0.foo;
+  0.foo = 0;
+}
+''');
+    PropertyAccessorElement getter = findElement('foo', ElementKind.GETTER);
+    PropertyAccessorElement setter = findElement('foo=');
+    assertThat(getter)..isReferencedAt('foo;', true);
+    assertThat(setter)..isReferencedAt('foo = 0;', true);
+  }
+
+  test_isReferencedBy_PropertyAccessor_ofUnnamedExtension_instance() async {
+    await _indexTestUnit('''
+extension on int {
+  int get foo => 0; // int getter
+  void set foo(int _) {} // int setter
+}
+
+extension on double {
+  int get foo => 0; // double getter
+  void set foo(int _) {} // double setter
+}
+
+main() {
+  0.foo; // int getter ref
+  0.foo = 0; // int setter ref
+  (1.2).foo; // double getter ref
+  (1.2).foo = 0; // double setter ref
+}
+''');
+    var findNode = FindNode(testCode, testUnit);
+
+    var intGetter = findNode.methodDeclaration('0; // int getter');
+    var intSetter = findNode.methodDeclaration('{} // int setter');
+    assertThat(intGetter.declaredElement)
+      ..isReferencedAt('foo; // int getter ref', true);
+    assertThat(intSetter.declaredElement)
+      ..isReferencedAt('foo = 0; // int setter ref', true);
+
+    var doubleGetter = findNode.methodDeclaration('0; // double getter');
+    var doubleSetter = findNode.methodDeclaration('{} // double setter');
+    assertThat(doubleGetter.declaredElement)
+      ..isReferencedAt('foo; // double getter ref', true);
+    assertThat(doubleSetter.declaredElement)
+      ..isReferencedAt('foo = 0; // double setter ref', true);
   }
 
   test_isReferencedBy_synthetic_leastUpperBound() async {
@@ -1420,164 +1567,6 @@ main() {
     AnalysisDriverUnitIndexBuilder indexBuilder = indexUnit(testUnit);
     List<int> indexBytes = indexBuilder.toBuffer();
     index = AnalysisDriverUnitIndex.fromBuffer(indexBytes);
-  }
-}
-
-@reflectiveTest
-class IndexWithExtensionMethodsTest extends IndexTest {
-  @override
-  AnalysisOptionsImpl createAnalysisOptions() => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
-
-  test_isInvokedBy_MethodElement_ofNamedExtension_instance() async {
-    await _indexTestUnit('''
-extension E on int {
-  void foo() {}
-}
-
-main() {
-  0.foo();
-}
-''');
-    MethodElement element = findElement('foo');
-    assertThat(element)..isInvokedAt('foo();', true);
-  }
-
-  test_isInvokedBy_MethodElement_ofNamedExtension_static() async {
-    await _indexTestUnit('''
-extension E on int {
-  static void foo() {}
-}
-
-main() {
-  E.foo();
-}
-''');
-    MethodElement element = findElement('foo');
-    assertThat(element)..isInvokedAt('foo();', true);
-  }
-
-  test_isInvokedBy_MethodElement_ofUnnamedExtension_instance() async {
-    await _indexTestUnit('''
-extension on int {
-  void foo() {} // int
-}
-
-extension on double {
-  void foo() {} // double
-}
-
-main() {
-  0.foo(); // int ref
-  (1.2).foo(); // double ref
-}
-''');
-    var findNode = FindNode(testCode, testUnit);
-
-    var intMethod = findNode.methodDeclaration('foo() {} // int');
-    assertThat(intMethod.declaredElement)
-      ..isInvokedAt('foo(); // int ref', true);
-
-    var doubleMethod = findNode.methodDeclaration('foo() {} // double');
-    assertThat(doubleMethod.declaredElement)
-      ..isInvokedAt('foo(); // double ref', true);
-  }
-
-  test_isReferencedBy_ClassElement_fromExtension() async {
-    await _indexTestUnit('''
-class A<T> {}
-
-extension E on A<int> {}
-''');
-    ClassElement element = findElement('A');
-    assertThat(element)..isReferencedAt('A<int>', false);
-  }
-
-  test_isReferencedBy_ExtensionElement() async {
-    await _indexTestUnit('''
-extension E on int {
-  void foo() {}
-}
-
-main() {
-  E(0).foo();
-}
-''');
-    ExtensionElement element = findElement('E');
-    assertThat(element)..isReferencedAt('E(0).foo()', false);
-  }
-
-  test_isReferencedBy_PropertyAccessor_ofNamedExtension_instance() async {
-    await _indexTestUnit('''
-extension E on int {
-  int get foo => 0;
-  void set foo(int _) {}
-}
-
-main() {
-  0.foo;
-  0.foo = 0;
-}
-''');
-    PropertyAccessorElement getter = findElement('foo', ElementKind.GETTER);
-    PropertyAccessorElement setter = findElement('foo=');
-    assertThat(getter)..isReferencedAt('foo;', true);
-    assertThat(setter)..isReferencedAt('foo = 0;', true);
-  }
-
-  test_isReferencedBy_PropertyAccessor_ofNamedExtension_static() async {
-    await _indexTestUnit('''
-extension E on int {
-  static int get foo => 0;
-  static void set foo(int _) {}
-}
-
-main() {
-  0.foo;
-  0.foo = 0;
-}
-''');
-    PropertyAccessorElement getter = findElement('foo', ElementKind.GETTER);
-    PropertyAccessorElement setter = findElement('foo=');
-    assertThat(getter)..isReferencedAt('foo;', true);
-    assertThat(setter)..isReferencedAt('foo = 0;', true);
-  }
-
-  test_isReferencedBy_PropertyAccessor_ofUnnamedExtension_instance() async {
-    await _indexTestUnit('''
-extension on int {
-  int get foo => 0; // int getter
-  void set foo(int _) {} // int setter
-}
-
-extension on double {
-  int get foo => 0; // double getter
-  void set foo(int _) {} // double setter
-}
-
-main() {
-  0.foo; // int getter ref
-  0.foo = 0; // int setter ref
-  (1.2).foo; // double getter ref
-  (1.2).foo = 0; // double setter ref
-}
-''');
-    var findNode = FindNode(testCode, testUnit);
-
-    var intGetter = findNode.methodDeclaration('0; // int getter');
-    var intSetter = findNode.methodDeclaration('{} // int setter');
-    assertThat(intGetter.declaredElement)
-      ..isReferencedAt('foo; // int getter ref', true);
-    assertThat(intSetter.declaredElement)
-      ..isReferencedAt('foo = 0; // int setter ref', true);
-
-    var doubleGetter = findNode.methodDeclaration('0; // double getter');
-    var doubleSetter = findNode.methodDeclaration('{} // double setter');
-    assertThat(doubleGetter.declaredElement)
-      ..isReferencedAt('foo; // double getter ref', true);
-    assertThat(doubleSetter.declaredElement)
-      ..isReferencedAt('foo = 0; // double setter ref', true);
   }
 }
 

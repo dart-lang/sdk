@@ -82,9 +82,6 @@ abstract class AbstractResynthesizeTest with ResourceProviderMixin {
 mixin ResynthesizeTestCases implements ResynthesizeTestHelpers {
   FeatureSet get disableNnbd => FeatureSet.forTesting(sdkVersion: '2.2.2');
 
-  FeatureSet get enableExtensionMethods =>
-      FeatureSet.forTesting(additionalFeatures: [Feature.extension_methods]);
-
   FeatureSet get enableNnbd =>
       FeatureSet.forTesting(additionalFeatures: [Feature.non_nullable]);
 
@@ -2031,7 +2028,6 @@ enum E/*codeOffset=0, codeLength=26*/ {
   }
 
   test_codeRange_extensions() async {
-    featureSet = enableExtensionMethods;
     var library = await checkLibrary('''
 class A {}
 
@@ -3530,7 +3526,6 @@ const int Function(int, String) V =
   }
 
   test_const_reference_staticMethod_ofExtension() async {
-    featureSet = enableExtensionMethods;
     var library = await checkLibrary('''
 class A {}
 extension E on A {
@@ -5075,7 +5070,6 @@ class B {
   }
 
   test_defaultValue_refersToExtension_method_inside() async {
-    featureSet = enableExtensionMethods;
     var library = await checkLibrary('''
 class A {}
 extension E on A {
@@ -5325,7 +5319,6 @@ enum E {
   }
 
   test_duplicateDeclaration_extension() async {
-    featureSet = enableExtensionMethods;
     var library = await checkLibrary(r'''
 class A {}
 extension E on A {}
@@ -5982,7 +5975,6 @@ class C<T> {
   }
 
   test_extension_documented_tripleSlash() async {
-    featureSet = enableExtensionMethods;
     var library = await checkLibrary('''
 /// aaa
 /// bbbb
@@ -5998,7 +5990,6 @@ extension E on int {
   }
 
   test_extension_field_inferredType_const() async {
-    featureSet = enableExtensionMethods;
     var library = await checkLibrary('''
 extension E on int {
   static const x = 0;
@@ -8579,7 +8570,6 @@ const dynamic a = null;
   }
 
   test_metadata_extension_scope() async {
-    featureSet = enableExtensionMethods;
     var library = await checkLibrary(r'''
 const foo = 0;
 
@@ -8636,7 +8626,6 @@ const int foo;
   }
 
   test_metadata_extensionDeclaration() async {
-    featureSet = enableExtensionMethods;
     var library = await checkLibrary(r'''
 const a = null;
 class A {}
@@ -11401,7 +11390,6 @@ final int v;
   }
 
   test_variable_initializer_staticMethod_ofExtension() async {
-    featureSet = enableExtensionMethods;
     var library = await checkLibrary('''
 class A {}
 extension E on A {

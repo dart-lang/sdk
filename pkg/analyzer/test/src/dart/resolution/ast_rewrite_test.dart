@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -17,7 +15,6 @@ import 'driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AstRewriteMethodInvocationTest);
-    defineReflectiveTests(AstRewriteMethodInvocationWithExtensionMethodsTest);
   });
 }
 
@@ -58,6 +55,28 @@ f() {
       expectedSubstitution: {'T': 'int', 'U': 'String'},
     );
     _assertArgumentList(creation.argumentList, ['0']);
+  }
+
+  test_targetNull_extension() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+
+extension E<T> on A {
+  void foo() {}
+}
+
+f(A a) {
+  E<int>(a).foo();
+}
+''');
+
+    var override = findNode.extensionOverride('E<int>(a)');
+    _assertExtensionOverride(
+      override,
+      expectedElement: findElement.extension_('E'),
+      expectedTypeArguments: ['int'],
+      expectedExtendedType: 'A',
+    );
   }
 
   test_targetNull_function() async {
@@ -272,6 +291,35 @@ f() {
     _assertArgumentList(creation.argumentList, ['0']);
   }
 
+  test_targetSimpleIdentifier_prefix_extension() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {}
+
+extension E<T> on A {
+  void foo() {}
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart' as prefix;
+
+f(prefix.A a) {
+  prefix.E<int>(a).foo();
+}
+''');
+
+    var importFind = findElement.importFind('package:test/a.dart');
+
+    var override = findNode.extensionOverride('E<int>(a)');
+    _assertExtensionOverride(
+      override,
+      expectedElement: importFind.extension_('E'),
+      expectedTypeArguments: ['int'],
+      expectedExtendedType: 'A',
+    );
+    assertImportPrefix(findNode.simple('prefix.E'), importFind.prefix);
+  }
+
   test_targetSimpleIdentifier_prefix_function() async {
     newFile('/test/lib/a.dart', content: r'''
 void A<T, U>(int a) {}
@@ -303,78 +351,6 @@ f() {
     expect(argumentStrings, expectedArguments);
   }
 
-  void _assertTypeArgumentList(
-    TypeArgumentList argumentList,
-    List<String> expectedArguments,
-  ) {
-    var argumentStrings = argumentList.arguments
-        .map((e) => result.content.substring(e.offset, e.end))
-        .toList();
-    expect(argumentStrings, expectedArguments);
-  }
-}
-
-@reflectiveTest
-class AstRewriteMethodInvocationWithExtensionMethodsTest
-    extends AstRewriteMethodInvocationTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-      sdkVersion: '2.3.0',
-      additionalFeatures: [Feature.extension_methods],
-    );
-
-  test_targetNull_extension() async {
-    await assertNoErrorsInCode(r'''
-class A {}
-
-extension E<T> on A {
-  void foo() {}
-}
-
-f(A a) {
-  E<int>(a).foo();
-}
-''');
-
-    var override = findNode.extensionOverride('E<int>(a)');
-    _assertExtensionOverride(
-      override,
-      expectedElement: findElement.extension_('E'),
-      expectedTypeArguments: ['int'],
-      expectedExtendedType: 'A',
-    );
-  }
-
-  test_targetSimpleIdentifier_prefix_extension() async {
-    newFile('/test/lib/a.dart', content: r'''
-class A {}
-
-extension E<T> on A {
-  void foo() {}
-}
-''');
-
-    await assertNoErrorsInCode(r'''
-import 'a.dart' as prefix;
-
-f(prefix.A a) {
-  prefix.E<int>(a).foo();
-}
-''');
-
-    var importFind = findElement.importFind('package:test/a.dart');
-
-    var override = findNode.extensionOverride('E<int>(a)');
-    _assertExtensionOverride(
-      override,
-      expectedElement: importFind.extension_('E'),
-      expectedTypeArguments: ['int'],
-      expectedExtendedType: 'A',
-    );
-    assertImportPrefix(findNode.simple('prefix.E'), importFind.prefix);
-  }
-
   void _assertExtensionOverride(
     ExtensionOverride override, {
     @required ExtensionElement expectedElement,
@@ -391,5 +367,15 @@ f(prefix.A a) {
       expectedTypeArguments,
     );
     assertType(override.extendedType, expectedExtendedType);
+  }
+
+  void _assertTypeArgumentList(
+    TypeArgumentList argumentList,
+    List<String> expectedArguments,
+  ) {
+    var argumentStrings = argumentList.arguments
+        .map((e) => result.content.substring(e.offset, e.end))
+        .toList();
+    expect(argumentStrings, expectedArguments);
   }
 }

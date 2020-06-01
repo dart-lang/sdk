@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/extension_method_test.dart';
+import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class BuiltinIdentifierAsExtensionNameTest extends BaseExtensionMethodsTest {
+class BuiltinIdentifierAsExtensionNameTest extends DriverResolutionTest {
   test_error_builtInIdentifierAsExtensionName() async {
     await assertErrorsInCode(
       r'''

@@ -21,7 +21,6 @@ import 'base.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SearchTest);
-    defineReflectiveTests(SearchWithExtensionMethodsTest);
     defineReflectiveTests(SearchWithNnbdTest);
   });
 }
@@ -391,6 +390,27 @@ main() {
     var main = findElement.function('main');
     var expected = [
       _expectIdQ(main, SearchResultKind.REFERENCE, '();', length: 0)
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ExtensionElement() async {
+    await _resolveTestUnit('''
+extension E on int {
+  void foo() {}
+  static void bar() {}
+}
+
+main() {
+  E(0).foo();
+  E.bar();
+}
+''');
+    var element = findElement.extension_('E');
+    var main = findElement.function('main');
+    var expected = [
+      _expectId(main, SearchResultKind.REFERENCE, 'E(0)'),
+      _expectId(main, SearchResultKind.REFERENCE, 'E.bar()'),
     ];
     await _verifyReferences(element, expected);
   }
@@ -828,6 +848,70 @@ extension on int {
     await _verifyReferences(foo, expected);
   }
 
+  test_searchReferences_MethodElement_ofExtension_instance() async {
+    await _resolveTestUnit('''
+extension E on int {
+  void foo() {}
+
+  void bar() {
+    foo(); // 1
+    this.foo(); // 2
+    foo; // 3
+    this.foo; // 4
+  }
+}
+
+main() {
+  E(0).foo(); // 5
+  0.foo(); // 6
+  E(0).foo; // 7
+  0.foo; // 8
+}
+''');
+    var element = findElement.method('foo');
+    var bar = findElement.method('bar');
+    var main = findElement.function('main');
+    var expected = [
+      _expectId(bar, SearchResultKind.INVOCATION, 'foo(); // 1'),
+      _expectIdQ(bar, SearchResultKind.INVOCATION, 'foo(); // 2'),
+      _expectId(bar, SearchResultKind.REFERENCE, 'foo; // 3'),
+      _expectIdQ(bar, SearchResultKind.REFERENCE, 'foo; // 4'),
+      _expectIdQ(main, SearchResultKind.INVOCATION, 'foo(); // 5'),
+      _expectIdQ(main, SearchResultKind.INVOCATION, 'foo(); // 6'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, 'foo; // 7'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, 'foo; // 8'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_MethodElement_ofExtension_static() async {
+    await _resolveTestUnit('''
+extension E on int {
+  static void foo() {}
+
+  static void bar() {
+    foo(); // 1
+    foo; // 2
+  }
+}
+
+main() {
+  E.foo(); // 3
+  E.foo; // 4
+}
+''');
+    var element = findElement.method('foo');
+    var bar = findElement.method('bar');
+    var main = findElement.function('main');
+    var expected = [
+      _expectId(bar, SearchResultKind.INVOCATION, 'foo(); // 1'),
+      _expectId(bar, SearchResultKind.REFERENCE, 'foo; // 2'),
+      _expectIdQ(main, SearchResultKind.INVOCATION, 'foo(); // 3'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, 'foo; // 4'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
   test_searchReferences_MethodMember_class() async {
     await _resolveTestUnit('''
 class A<T> {
@@ -1161,6 +1245,62 @@ _C v;
           v1, SearchResultKind.REFERENCE, code1.indexOf('_C v1;'), 2),
       ExpectedResult(
           v2, SearchResultKind.REFERENCE, code2.indexOf('_C v2;'), 2),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_PropertyAccessor_getter_ofExtension_instance() async {
+    await _resolveTestUnit('''
+extension E on int {
+  int get foo => 0;
+
+  void bar() {
+    foo; // 1
+    this.foo; // 2
+  }
+}
+
+main() {
+  E(0).foo; // 3
+  0.foo; // 4
+}
+''');
+    var element = findElement.getter('foo');
+    var bar = findElement.method('bar');
+    var main = findElement.function('main');
+    var expected = [
+      _expectId(bar, SearchResultKind.REFERENCE, 'foo; // 1'),
+      _expectIdQ(bar, SearchResultKind.REFERENCE, 'foo; // 2'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, 'foo; // 3'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, 'foo; // 4'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_PropertyAccessor_setter_ofExtension_instance() async {
+    await _resolveTestUnit('''
+extension E on int {
+  set foo(int _) {}
+
+  void bar() {
+    foo = 1;
+    this.foo = 2;
+  }
+}
+
+main() {
+  E(0).foo = 3;
+  0.foo = 4;
+}
+''');
+    var element = findElement.setter('foo');
+    var bar = findElement.method('bar');
+    var main = findElement.function('main');
+    var expected = [
+      _expectId(bar, SearchResultKind.REFERENCE, 'foo = 1;'),
+      _expectIdQ(bar, SearchResultKind.REFERENCE, 'foo = 2;'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, 'foo = 3;'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, 'foo = 4;'),
     ];
     await _verifyReferences(element, expected);
   }
@@ -1679,155 +1819,6 @@ class NoMatchABCDEF {}
   static void _assertResults(
       List<SearchResult> matches, List<ExpectedResult> expectedMatches) {
     expect(matches, unorderedEquals(expectedMatches));
-  }
-}
-
-@reflectiveTest
-class SearchWithExtensionMethodsTest extends SearchTest {
-  @override
-  AnalysisOptionsImpl createAnalysisOptions() => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
-
-  test_searchReferences_ExtensionElement() async {
-    await _resolveTestUnit('''
-extension E on int {
-  void foo() {}
-  static void bar() {}
-}
-
-main() {
-  E(0).foo();
-  E.bar();
-}
-''');
-    var element = findElement.extension_('E');
-    var main = findElement.function('main');
-    var expected = [
-      _expectId(main, SearchResultKind.REFERENCE, 'E(0)'),
-      _expectId(main, SearchResultKind.REFERENCE, 'E.bar()'),
-    ];
-    await _verifyReferences(element, expected);
-  }
-
-  test_searchReferences_MethodElement_ofExtension_instance() async {
-    await _resolveTestUnit('''
-extension E on int {
-  void foo() {}
-
-  void bar() {
-    foo(); // 1
-    this.foo(); // 2
-    foo; // 3
-    this.foo; // 4
-  }
-}
-
-main() {
-  E(0).foo(); // 5
-  0.foo(); // 6
-  E(0).foo; // 7
-  0.foo; // 8
-}
-''');
-    var element = findElement.method('foo');
-    var bar = findElement.method('bar');
-    var main = findElement.function('main');
-    var expected = [
-      _expectId(bar, SearchResultKind.INVOCATION, 'foo(); // 1'),
-      _expectIdQ(bar, SearchResultKind.INVOCATION, 'foo(); // 2'),
-      _expectId(bar, SearchResultKind.REFERENCE, 'foo; // 3'),
-      _expectIdQ(bar, SearchResultKind.REFERENCE, 'foo; // 4'),
-      _expectIdQ(main, SearchResultKind.INVOCATION, 'foo(); // 5'),
-      _expectIdQ(main, SearchResultKind.INVOCATION, 'foo(); // 6'),
-      _expectIdQ(main, SearchResultKind.REFERENCE, 'foo; // 7'),
-      _expectIdQ(main, SearchResultKind.REFERENCE, 'foo; // 8'),
-    ];
-    await _verifyReferences(element, expected);
-  }
-
-  test_searchReferences_MethodElement_ofExtension_static() async {
-    await _resolveTestUnit('''
-extension E on int {
-  static void foo() {}
-
-  static void bar() {
-    foo(); // 1
-    foo; // 2
-  }
-}
-
-main() {
-  E.foo(); // 3
-  E.foo; // 4
-}
-''');
-    var element = findElement.method('foo');
-    var bar = findElement.method('bar');
-    var main = findElement.function('main');
-    var expected = [
-      _expectId(bar, SearchResultKind.INVOCATION, 'foo(); // 1'),
-      _expectId(bar, SearchResultKind.REFERENCE, 'foo; // 2'),
-      _expectIdQ(main, SearchResultKind.INVOCATION, 'foo(); // 3'),
-      _expectIdQ(main, SearchResultKind.REFERENCE, 'foo; // 4'),
-    ];
-    await _verifyReferences(element, expected);
-  }
-
-  test_searchReferences_PropertyAccessor_getter_ofExtension_instance() async {
-    await _resolveTestUnit('''
-extension E on int {
-  int get foo => 0;
-
-  void bar() {
-    foo; // 1
-    this.foo; // 2
-  }
-}
-
-main() {
-  E(0).foo; // 3
-  0.foo; // 4
-}
-''');
-    var element = findElement.getter('foo');
-    var bar = findElement.method('bar');
-    var main = findElement.function('main');
-    var expected = [
-      _expectId(bar, SearchResultKind.REFERENCE, 'foo; // 1'),
-      _expectIdQ(bar, SearchResultKind.REFERENCE, 'foo; // 2'),
-      _expectIdQ(main, SearchResultKind.REFERENCE, 'foo; // 3'),
-      _expectIdQ(main, SearchResultKind.REFERENCE, 'foo; // 4'),
-    ];
-    await _verifyReferences(element, expected);
-  }
-
-  test_searchReferences_PropertyAccessor_setter_ofExtension_instance() async {
-    await _resolveTestUnit('''
-extension E on int {
-  set foo(int _) {}
-
-  void bar() {
-    foo = 1;
-    this.foo = 2;
-  }
-}
-
-main() {
-  E(0).foo = 3;
-  0.foo = 4;
-}
-''');
-    var element = findElement.setter('foo');
-    var bar = findElement.method('bar');
-    var main = findElement.function('main');
-    var expected = [
-      _expectId(bar, SearchResultKind.REFERENCE, 'foo = 1;'),
-      _expectIdQ(bar, SearchResultKind.REFERENCE, 'foo = 2;'),
-      _expectIdQ(main, SearchResultKind.REFERENCE, 'foo = 3;'),
-      _expectIdQ(main, SearchResultKind.REFERENCE, 'foo = 4;'),
-    ];
-    await _verifyReferences(element, expected);
   }
 }
 

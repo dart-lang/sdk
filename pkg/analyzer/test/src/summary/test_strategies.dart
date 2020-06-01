@@ -72,7 +72,7 @@ abstract class ResynthesizeTestStrategy {
 class ResynthesizeTestStrategyTwoPhase extends AbstractResynthesizeTest
     implements ResynthesizeTestStrategy {
   @override
-  FeatureSet featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
+  FeatureSet featureSet = FeatureSet.forTesting(sdkVersion: '2.7.0');
 
   final Set<Source> serializedSources = <Source>{};
 
