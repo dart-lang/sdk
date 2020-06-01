@@ -421,7 +421,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     'language_2/',
     'lib_2/',
     'standalone_2/',
-    'vm/dart/', // in runtime/tests
+    'vm/dart_2/', // in runtime/tests
   ];
 
   LanguageVersion get languageVersion => _languageVersion;

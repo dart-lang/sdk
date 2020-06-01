@@ -845,7 +845,8 @@
         "enable-asserts": true,
 	"vm-options": [
           "--no-null-safety"
-        ]
+        ],
+        "builder-tag": "vm_nnbd"
       }
     },
     "dartkp-weak-asserts-win-(debug|product|release)-x64": {
@@ -860,7 +861,8 @@
         "use-elf": true,
 	"vm-options": [
           "--no-null-safety"
-        ]
+        ],
+        "builder-tag": "vm_nnbd"
       }
     },
     "dartk-weak-asserts-(linux|mac|win)-(debug|product|release)-x64": {
@@ -871,7 +873,8 @@
         "enable-asserts": true,
 	"vm-options": [
           "--no-null-safety"
-        ]
+        ],
+        "builder-tag": "vm_nnbd"
       }
     },
     "dartk-strong-(linux|mac|win)-(debug|product|release)-x64": {
@@ -881,7 +884,8 @@
         ],
         "vm-options": [
           "--null-safety"
-        ]
+        ],
+        "builder-tag": "vm_nnbd"
       }
     },
     "dartkp-strong-(linux|mac)-(debug|product|release)-x64": {
@@ -894,7 +898,8 @@
         ],
         "vm-options": [
           "--null-safety"
-        ]
+        ],
+        "builder-tag": "vm_nnbd"
       }
     },
     "dartkp-strong-win-(debug|product|release)-x64": {
@@ -908,7 +913,8 @@
         ],
         "vm-options": [
           "--null-safety"
-        ]
+        ],
+        "builder-tag": "vm_nnbd"
       }
     },
     "dartk-(linux|mac|win)-(debug|product|release)-(ia32|simarm|simarm64|x64)-ast": {
