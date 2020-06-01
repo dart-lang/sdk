@@ -63,18 +63,18 @@ vars = {
   "args_tag": "1.6.0",
   "async_tag": "2.4.1",
   "bazel_worker_tag": "v0.1.22",
-  "benchmark_harness_tag": "81641290dea44c34138a109a37e215482f405f81",
-  "boolean_selector_tag": "1309eabed510cc3b7536fd4367d39b97ebee3d69",
+  "benchmark_harness_rev": "81641290dea44c34138a109a37e215482f405f81",
+  "boolean_selector_rev": "1309eabed510cc3b7536fd4367d39b97ebee3d69",
   "boringssl_gen_rev": "b9e27cff1ff0803e97ab1f88764a83be4aa94a6d",
   "boringssl_rev" : "4dfd5af70191b068aebe567b8e29ce108cee85ce",
   "browser-compat-data_tag": "v1.0.22",
-  "charcode_tag": "9085e6b6127f084d66c0a94810a808121459012a",
+  "charcode_rev": "9085e6b6127f084d66c0a94810a808121459012a",
   "chrome_rev" : "19997",
   "cli_util_tag" : "0.1.4",
-  "collection_tag": "7be42e03d427cc19571cd7f9fc628a5913a6b757",
-  "convert_tag": "49bde5b371eb5c2c8e721557cf762f17c75e49fc",
-  "crypto_tag": "7422fb2f6584fe1839eb30bc4ca56e9f9760b801",
-  "csslib_tag": "bf372d4fdc6dfa232ad93f77a0a3de0891edd04c",
+  "collection_rev": "7be42e03d427cc19571cd7f9fc628a5913a6b757",
+  "convert_rev": "49bde5b371eb5c2c8e721557cf762f17c75e49fc",
+  "crypto_rev": "7422fb2f6584fe1839eb30bc4ca56e9f9760b801",
+  "csslib_rev": "bf372d4fdc6dfa232ad93f77a0a3de0891edd04c",
   "dart2js_info_tag" : "0.6.0",
 
   # Note: Updates to dart_style have to be coordinated with the infrastructure
@@ -92,35 +92,35 @@ vars = {
   "dart_style_tag": "1.3.6",  # Please see the note above before updating.
 
   "dartdoc_tag" : "v0.32.1",
-  "ffi_tag": "454ab0f9ea6bd06942a983238d8a6818b1357edb",
-  "fixnum_tag": "eb3748663dc979271ff6a3d014fbe522543b1d91",
-  "glob_tag": "e9f4e6b7ae8abe5071461cf8f47191bb19cf7ef6",
-  "html_tag": "083a36cd801a4b787ba156b7c6e4c8b2e2daed4a",
+  "ffi_rev": "454ab0f9ea6bd06942a983238d8a6818b1357edb",
+  "fixnum_rev": "eb3748663dc979271ff6a3d014fbe522543b1d91",
+  "glob_rev": "e9f4e6b7ae8abe5071461cf8f47191bb19cf7ef6",
+  "html_rev": "083a36cd801a4b787ba156b7c6e4c8b2e2daed4a",
   "http_io_rev": "2fa188caf7937e313026557713f7feffedd4978b",
   "http_multi_server_rev" : "ea269f79321d659208402088f3297e8920a88ee6",
-  "http_parser_tag": "6e63a97b5aaa2b4d1215fe01683e51fb73258e54",
+  "http_parser_rev": "6e63a97b5aaa2b4d1215fe01683e51fb73258e54",
   "http_retry_tag": "0.1.1",
-  "http_tag": "a131e563c09349f624d5421237183a06fb10552d",
+  "http_rev": "a131e563c09349f624d5421237183a06fb10552d",
   "http_throttle_tag" : "1.0.2",
   "icu_rev" : "5005010d694e16571b8dfbf07d70817841f80a69",
   "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
   "intl_tag": "0.16.1",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
-  "json_rpc_2_tag": "d589e635d8ccb7cda6a804bd571f88abbabab146",
+  "json_rpc_2_rev": "d589e635d8ccb7cda6a804bd571f88abbabab146",
   "linter_tag": "0.1.116",
-  "logging_tag": "9561ba016ae607747ae69b846c0e10958ca58ed4",
+  "logging_rev": "9561ba016ae607747ae69b846c0e10958ca58ed4",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
-  "markdown_tag": "dd150bb64c5f3b41d31f20f399ae2a855f7f8c00",
-  "matcher_tag": "af4fe7daf8e94a46981e4f072872be550a6969e9",
-  "mime_tag": "179b5e6a88f4b63f36dc1b8fcbc1e83e5e0cd3a7",
-  "mockito_tag": "d39ac507483b9891165e422ec98d9fb480037c8b",
-  "mustache_tag": "664737ecad027e6b96d0d1e627257efa0e46fcb1",
+  "markdown_rev": "dd150bb64c5f3b41d31f20f399ae2a855f7f8c00",
+  "matcher_rev": "af4fe7daf8e94a46981e4f072872be550a6969e9",
+  "mime_rev": "179b5e6a88f4b63f36dc1b8fcbc1e83e5e0cd3a7",
+  "mockito_rev": "d39ac507483b9891165e422ec98d9fb480037c8b",
+  "mustache_rev": "664737ecad027e6b96d0d1e627257efa0e46fcb1",
   "oauth2_tag": "1.6.0",
-  "package_config_tag": "9c586d04bd26fef01215fd10e7ab96a3050cfa64",
-  "path_tag": "4b8c83cd5ccfcc8101acd2940ffb5a44d24ec57e",
+  "package_config_rev": "9c586d04bd26fef01215fd10e7ab96a3050cfa64",
+  "path_rev": "4b8c83cd5ccfcc8101acd2940ffb5a44d24ec57e",
   "pedantic_tag": "v1.9.0",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
-  "pool_tag": "86fbb2cde9bbc66c8d159909d2f65a5981ea5b50",
+  "pool_rev": "86fbb2cde9bbc66c8d159909d2f65a5981ea5b50",
   "protobuf_rev": "3746c8fd3f2b0147623a8e3db89c3ff4330de760",
   "pub_rev": "a4bc2dd08630f85a94f506eab037fcaaedb42222",
   "pub_semver_tag": "v1.4.4",
@@ -135,25 +135,25 @@ vars = {
   "shelf_web_socket_tag": "0.2.2+3",
   "source_map_stack_trace_tag": "2.0.0",
   "source_maps-0.9.4_rev": "38524",
-  "source_maps_tag": "87b4fd9027378bbd51b02e9d7df794eee8a82b7a",
+  "source_maps_rev": "87b4fd9027378bbd51b02e9d7df794eee8a82b7a",
   "source_span_tag": "1.7.0",
   "stack_trace_tag": "1.9.3",
   "stagehand_tag": "v3.3.7",
   "stream_channel_tag": "2.0.0",
-  "string_scanner_tag": "a918e7371af6b6e73bfd534ff9da6084741c1f99",
+  "string_scanner_rev": "a918e7371af6b6e73bfd534ff9da6084741c1f99",
   "test_descriptor_tag": "1.1.1",
   "test_process_tag": "1.0.3",
-  "term_glyph_tag": "b3da31e9684a99cfe5f192b89914492018b44da7",
+  "term_glyph_rev": "b3da31e9684a99cfe5f192b89914492018b44da7",
   "test_reflective_loader_tag": "0.1.9",
-  "test_tag": "988e38ff3051f24607ad0aaf4e780835785f2ab5",
+  "test_rev": "988e38ff3051f24607ad0aaf4e780835785f2ab5",
   "tflite_native_rev": "3c777c40608a2a9f1427bfe0028ab48e7116b4c1",
   "typed_data_tag": "1.1.6",
   "usage_tag": "3.4.0",
   "watcher_rev": "fc3c9aae5d31d707b3013b42634dde8d8a1161b4",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
-  "web_socket_channel_tag": "490061ef0e22d3c8460ad2802f9948219365ad6b",
+  "web_socket_channel_rev": "490061ef0e22d3c8460ad2802f9948219365ad6b",
   "WebCore_rev": "fb11e887f77919450e497344da570d780e078bc8",
-  "yaml_tag": "62e9f6b3a933b1f76dd3007d1a5ce0be8e429b2d",
+  "yaml_rev": "62e9f6b3a933b1f76dd3007d1a5ce0be8e429b2d",
   "zlib_rev": "c44fb7248079cc3d5563b14b3f758aee60d6b415",
   "crashpad_rev": "bf327d8ceb6a669607b0dbab5a83a275d03f99ed",
   "minichromium_rev": "8d641e30a8b12088649606b912c2bc4947419ccc",
@@ -273,22 +273,22 @@ deps = {
       Var("dart_git") + "bazel_worker.git" + "@" + Var("bazel_worker_tag"),
   Var("dart_root") + "/third_party/pkg/benchmark_harness":
       Var("dart_git") + "benchmark_harness.git" + "@" +
-      Var("benchmark_harness_tag"),
+      Var("benchmark_harness_rev"),
   Var("dart_root") + "/third_party/pkg/boolean_selector":
       Var("dart_git") + "boolean_selector.git" +
-      "@" + Var("boolean_selector_tag"),
+      "@" + Var("boolean_selector_rev"),
   Var("dart_root") + "/third_party/pkg/charcode":
-      Var("dart_git") + "charcode.git" + "@" + Var("charcode_tag"),
+      Var("dart_git") + "charcode.git" + "@" + Var("charcode_rev"),
   Var("dart_root") + "/third_party/pkg/cli_util":
       Var("dart_git") + "cli_util.git" + "@" + Var("cli_util_tag"),
   Var("dart_root") + "/third_party/pkg/collection":
-      Var("dart_git") + "collection.git" + "@" + Var("collection_tag"),
+      Var("dart_git") + "collection.git" + "@" + Var("collection_rev"),
   Var("dart_root") + "/third_party/pkg/convert":
-      Var("dart_git") + "convert.git" + "@" + Var("convert_tag"),
+      Var("dart_git") + "convert.git" + "@" + Var("convert_rev"),
   Var("dart_root") + "/third_party/pkg/crypto":
-      Var("dart_git") + "crypto.git" + "@" + Var("crypto_tag"),
+      Var("dart_git") + "crypto.git" + "@" + Var("crypto_rev"),
   Var("dart_root") + "/third_party/pkg/csslib":
-      Var("dart_git") + "csslib.git" + "@" + Var("csslib_tag"),
+      Var("dart_git") + "csslib.git" + "@" + Var("csslib_rev"),
   Var("dart_root") + "/third_party/pkg_tested/dart_style":
       Var("dart_git") + "dart_style.git" + "@" + Var("dart_style_tag"),
   Var("dart_root") + "/third_party/pkg/dart2js_info":
@@ -296,22 +296,22 @@ deps = {
   Var("dart_root") + "/third_party/pkg/dartdoc":
       Var("dart_git") + "dartdoc.git" + "@" + Var("dartdoc_tag"),
   Var("dart_root") + "/third_party/pkg/ffi":
-      Var("dart_git") + "ffi.git" + "@" + Var("ffi_tag"),
+      Var("dart_git") + "ffi.git" + "@" + Var("ffi_rev"),
   Var("dart_root") + "/third_party/pkg/fixnum":
-      Var("dart_git") + "fixnum.git" + "@" + Var("fixnum_tag"),
+      Var("dart_git") + "fixnum.git" + "@" + Var("fixnum_rev"),
   Var("dart_root") + "/third_party/pkg/glob":
-      Var("dart_git") + "glob.git" + "@" + Var("glob_tag"),
+      Var("dart_git") + "glob.git" + "@" + Var("glob_rev"),
   Var("dart_root") + "/third_party/pkg/html":
-      Var("dart_git") + "html.git" + "@" + Var("html_tag"),
+      Var("dart_git") + "html.git" + "@" + Var("html_rev"),
   Var("dart_root") + "/third_party/pkg/http":
-      Var("dart_git") + "http.git" + "@" + Var("http_tag"),
+      Var("dart_git") + "http.git" + "@" + Var("http_rev"),
   Var("dart_root") + "/third_party/pkg_tested/http_io":
     Var("dart_git") + "http_io.git" + "@" + Var("http_io_rev"),
   Var("dart_root") + "/third_party/pkg/http_multi_server":
       Var("dart_git") + "http_multi_server.git" +
       "@" + Var("http_multi_server_rev"),
   Var("dart_root") + "/third_party/pkg/http_parser":
-      Var("dart_git") + "http_parser.git" + "@" + Var("http_parser_tag"),
+      Var("dart_git") + "http_parser.git" + "@" + Var("http_parser_rev"),
   Var("dart_root") + "/third_party/pkg/http_retry":
       Var("dart_git") + "http_retry.git" +
       "@" + Var("http_retry_tag"),
@@ -321,34 +321,34 @@ deps = {
   Var("dart_root") + "/third_party/pkg/intl":
       Var("dart_git") + "intl.git" + "@" + Var("intl_tag"),
   Var("dart_root") + "/third_party/pkg/json_rpc_2":
-      Var("dart_git") + "json_rpc_2.git" + "@" + Var("json_rpc_2_tag"),
+      Var("dart_git") + "json_rpc_2.git" + "@" + Var("json_rpc_2_rev"),
   Var("dart_root") + "/third_party/pkg/linter":
       Var("dart_git") + "linter.git" + "@" + Var("linter_tag"),
   Var("dart_root") + "/third_party/pkg/logging":
-      Var("dart_git") + "logging.git" + "@" + Var("logging_tag"),
+      Var("dart_git") + "logging.git" + "@" + Var("logging_rev"),
   Var("dart_root") + "/third_party/pkg/markdown":
-      Var("dart_git") + "markdown.git" + "@" + Var("markdown_tag"),
+      Var("dart_git") + "markdown.git" + "@" + Var("markdown_rev"),
   Var("dart_root") + "/third_party/pkg/matcher":
-      Var("dart_git") + "matcher.git" + "@" + Var("matcher_tag"),
+      Var("dart_git") + "matcher.git" + "@" + Var("matcher_rev"),
   Var("dart_root") + "/third_party/pkg/mime":
-      Var("dart_git") + "mime.git" + "@" + Var("mime_tag"),
+      Var("dart_git") + "mime.git" + "@" + Var("mime_rev"),
   Var("dart_root") + "/third_party/pkg/mockito":
-      Var("dart_git") + "mockito.git" + "@" + Var("mockito_tag"),
+      Var("dart_git") + "mockito.git" + "@" + Var("mockito_rev"),
   Var("dart_root") + "/third_party/pkg/mustache":
       Var("dart_git")
       + "external/github.com/xxgreg/mustache"
-      + "@" + Var("mustache_tag"),
+      + "@" + Var("mustache_rev"),
   Var("dart_root") + "/third_party/pkg/oauth2":
       Var("dart_git") + "oauth2.git" + "@" + Var("oauth2_tag"),
   Var("dart_root") + "/third_party/pkg_tested/package_config":
       Var("dart_git") + "package_config.git" +
-      "@" + Var("package_config_tag"),
+      "@" + Var("package_config_rev"),
   Var("dart_root") + "/third_party/pkg/path":
-      Var("dart_git") + "path.git" + "@" + Var("path_tag"),
+      Var("dart_git") + "path.git" + "@" + Var("path_rev"),
   Var("dart_root") + "/third_party/pkg/pedantic":
       Var("dart_git") + "pedantic.git" + "@" + Var("pedantic_tag"),
   Var("dart_root") + "/third_party/pkg/pool":
-      Var("dart_git") + "pool.git" + "@" + Var("pool_tag"),
+      Var("dart_git") + "pool.git" + "@" + Var("pool_rev"),
   Var("dart_root") + "/third_party/pkg/protobuf":
        Var("dart_git") + "protobuf.git" + "@" + Var("protobuf_rev"),
   Var("dart_root") + "/third_party/pkg/pub_semver":
@@ -374,7 +374,7 @@ deps = {
       Var("dart_git") + "shelf_web_socket.git" +
       "@" + Var("shelf_web_socket_tag"),
   Var("dart_root") + "/third_party/pkg/source_maps":
-      Var("dart_git") + "source_maps.git" + "@" + Var("source_maps_tag"),
+      Var("dart_git") + "source_maps.git" + "@" + Var("source_maps_rev"),
   Var("dart_root") + "/third_party/pkg/source_span":
       Var("dart_git") + "source_span.git" + "@" + Var("source_span_tag"),
   Var("dart_root") + "/third_party/pkg/source_map_stack_trace":
@@ -389,11 +389,11 @@ deps = {
       "@" + Var("stream_channel_tag"),
   Var("dart_root") + "/third_party/pkg/string_scanner":
       Var("dart_git") + "string_scanner.git" +
-      "@" + Var("string_scanner_tag"),
+      "@" + Var("string_scanner_rev"),
   Var("dart_root") + "/third_party/pkg/term_glyph":
-      Var("dart_git") + "term_glyph.git" + "@" + Var("term_glyph_tag"),
+      Var("dart_git") + "term_glyph.git" + "@" + Var("term_glyph_rev"),
   Var("dart_root") + "/third_party/pkg/test":
-      Var("dart_git") + "test.git" + "@" + Var("test_tag"),
+      Var("dart_git") + "test.git" + "@" + Var("test_rev"),
   Var("dart_root") + "/third_party/pkg/tflite_native":
       Var("dart_git") + "tflite_native.git" + "@" + Var("tflite_native_rev"),
   Var("dart_root") + "/third_party/pkg/test_descriptor":
@@ -414,9 +414,9 @@ deps = {
       "@" + Var("web_components_rev"),
   Var("dart_root") + "/third_party/pkg/web_socket_channel":
       Var("dart_git") + "web_socket_channel.git" +
-      "@" + Var("web_socket_channel_tag"),
+      "@" + Var("web_socket_channel_rev"),
   Var("dart_root") + "/third_party/pkg/yaml":
-      Var("dart_git") + "yaml.git" + "@" + Var("yaml_tag"),
+      Var("dart_git") + "yaml.git" + "@" + Var("yaml_rev"),
 
   Var("dart_root") + "/buildtools/" + Var("host_os") + "-" + Var("host_cpu") + "/clang": {
       "packages": [
