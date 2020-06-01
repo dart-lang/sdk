@@ -244,7 +244,7 @@ enum ScaleFactor {
 
 class CallingConventions {
  public:
-#if defined(_WIN64)
+#if defined(TARGET_OS_WINDOWS)
   static const Register kArg1Reg = RCX;
   static const Register kArg2Reg = RDX;
   static const Register kArg3Reg = R8;

@@ -124,7 +124,7 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
           Immediate(1 * target::kWordSize));  // Retval is next to 1st argument.
   __ movq(Address(RSP, retval_offset),
           RAX);  // Set retval in target::NativeArguments.
-#if defined(_WIN64)
+#if defined(TARGET_OS_WINDOWS)
   ASSERT(target::NativeArguments::StructSize() >
          CallingConventions::kRegisterTransferLimit);
   __ movq(CallingConventions::kArg1Reg, RSP);
@@ -542,7 +542,7 @@ void StubCodeCompiler::GenerateStackOverflowSharedWithFPURegsStub(
 void StubCodeCompiler::GeneratePrintStopMessageStub(Assembler* assembler) {
   __ EnterCallRuntimeFrame(0);
 // Call the runtime leaf function. RDI already contains the parameter.
-#if defined(_WIN64)
+#if defined(TARGET_OS_WINDOWS)
   __ movq(CallingConventions::kArg1Reg, RDI);
 #endif
   __ CallRuntime(kPrintStopMessageRuntimeEntry, 1);
@@ -2810,7 +2810,7 @@ void StubCodeCompiler::GenerateInterpretCallStub(Assembler* assembler) {
   __ movq(CallingConventions::kArg3Reg, R11);         // Negative argc.
   __ movq(CallingConventions::kArg4Reg, R12);         // Argv.
 
-#if defined(_WIN64)
+#if defined(TARGET_OS_WINDOWS)
   __ movq(Address(RSP, 0 * target::kWordSize), THR);  // Thread.
 #else
   __ movq(CallingConventions::kArg5Reg, THR);  // Thread.
