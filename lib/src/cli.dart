@@ -67,10 +67,7 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
             'avoid_as,annotate_overrides')
     ..addOption('packages',
         help: 'Path to the package resolution configuration file, which\n'
-            'supplies a mapping of package names to paths.  This option\n'
-            'cannot be used with --package-root.')
-    ..addOption('package-root',
-        abbr: 'p', help: 'Custom package root. (Discouraged.)');
+            'supplies a mapping of package names to paths.');
 
   ArgResults options;
   try {
@@ -121,18 +118,7 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
     lintOptions.dartSdkPath = customSdk;
   }
 
-  var customPackageRoot = options['package-root'];
-  if (customPackageRoot is String) {
-    lintOptions.packageRootPath = customPackageRoot;
-  }
-
   var packageConfigFile = options['packages'] as String;
-
-  if (customPackageRoot != null && packageConfigFile != null) {
-    errorSink.write("Cannot specify both '--package-root' and '--packages'.");
-    exitCode = unableToProcessExitCode;
-    return;
-  }
 
   var stats = options['stats'] as bool;
   var benchmark = options['benchmark'] as bool;

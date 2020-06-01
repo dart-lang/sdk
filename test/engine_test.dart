@@ -141,14 +141,6 @@ void defineLinterEngineTests() {
         await cli.run(['--dart-sdk', sdk, firstRuleTest.path]);
         expect(cli.isLinterErrorCode(exitCode), isFalse);
       });
-      test('custom package root', () async {
-        // Smoke test to ensure a custom package root doesn't sink the ship
-        final firstRuleTest =
-            Directory(ruleDir).listSync().firstWhere(isDartFile);
-        var packageDir = Directory('.').path;
-        await cli.run(['--package-root', packageDir, firstRuleTest.path]);
-        expect(cli.isLinterErrorCode(exitCode), isFalse);
-      });
     });
 
     group('dtos', () {
