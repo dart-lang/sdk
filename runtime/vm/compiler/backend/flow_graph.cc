@@ -1284,10 +1284,10 @@ void FlowGraph::AttachEnvironment(Instruction* instr,
                                   GrowableArray<Definition*>* env) {
   Environment* deopt_env =
       Environment::From(zone(), *env, num_direct_parameters_, parsed_function_);
-  if (instr->IsClosureCall() || instr->IsInitInstanceField()) {
-    // Trim extra inputs of ClosureCall and InitInstanceField instructions.
-    // Inputs of those instructions are not pushed onto the stack at the
-    // point where deoptimization can occur.
+  if (instr->IsClosureCall() || instr->IsLoadField()) {
+    // Trim extra inputs of ClosureCall and LoadField instructions from
+    // the environment. Inputs of those instructions are not pushed onto
+    // the stack at the point where deoptimization can occur.
     deopt_env =
         deopt_env->DeepCopy(zone(), deopt_env->Length() - instr->InputCount() +
                                         instr->ArgumentCount());

@@ -1035,34 +1035,27 @@ bool LoadFieldInstr::AttributesEqual(Instruction* other) const {
   return &this->slot_ == &other_load->slot_;
 }
 
-Instruction* InitInstanceFieldInstr::Canonicalize(FlowGraph* flow_graph) {
-  return this;
+bool LoadStaticFieldInstr::AttributesEqual(Instruction* other) const {
+  ASSERT(IsFieldInitialized());
+  return field().raw() == other->AsLoadStaticField()->field().raw();
 }
 
-Instruction* InitStaticFieldInstr::Canonicalize(FlowGraph* flow_graph) {
-  const bool is_initialized =
-      (field_.StaticValue() != Object::sentinel().raw()) &&
-      (field_.StaticValue() != Object::transition_sentinel().raw());
+bool LoadStaticFieldInstr::IsFieldInitialized() const {
+  const Field& field = this->field();
+  return (field.StaticValue() != Object::sentinel().raw()) &&
+         (field.StaticValue() != Object::transition_sentinel().raw());
+}
+
+Definition* LoadStaticFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   // When precompiling, the fact that a field is currently initialized does not
   // make it safe to omit code that checks if the field needs initialization
   // because the field will be reset so it starts uninitialized in the process
   // running the precompiled code. We must be prepared to reinitialize fields.
-  return is_initialized && !FLAG_fields_may_be_reset ? NULL : this;
-}
-
-bool LoadStaticFieldInstr::AttributesEqual(Instruction* other) const {
-  LoadStaticFieldInstr* other_load = other->AsLoadStaticField();
-  ASSERT(other_load != NULL);
-  // Assert that the field is initialized.
-  ASSERT(StaticField().StaticValue() != Object::sentinel().raw());
-  ASSERT(StaticField().StaticValue() != Object::transition_sentinel().raw());
-  return StaticField().raw() == other_load->StaticField().raw();
-}
-
-bool LoadStaticFieldInstr::IsFieldInitialized() const {
-  const Field& field = StaticField();
-  return (field.StaticValue() != Object::sentinel().raw()) &&
-         (field.StaticValue() != Object::transition_sentinel().raw());
+  if (calls_initializer() && !FLAG_fields_may_be_reset &&
+      IsFieldInitialized()) {
+    set_calls_initializer(false);
+  }
+  return this;
 }
 
 ConstantInstr::ConstantInstr(const Object& value, TokenPosition token_pos)
@@ -2704,9 +2697,10 @@ bool LoadFieldInstr::Evaluate(const Object& instance, Object* result) {
 }
 
 Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
-  if (!HasUses()) return nullptr;
+  if (!HasUses() && !calls_initializer()) return nullptr;
 
   if (IsImmutableLengthLoad()) {
+    ASSERT(!calls_initializer());
     Definition* array = instance()->definition()->OriginalDefinition();
     if (StaticCallInstr* call = array->AsStaticCall()) {
       // For fixed length arrays if the array is the result of a known
@@ -2749,6 +2743,7 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   } else if (slot().kind() == Slot::Kind::kTypedDataView_data) {
     // This case cover the first explicit argument to typed data view
     // factories, the data (buffer).
+    ASSERT(!calls_initializer());
     Definition* array = instance()->definition()->OriginalDefinition();
     if (StaticCallInstr* call = array->AsStaticCall()) {
       if (IsTypedDataViewFactory(call->function())) {
@@ -2758,6 +2753,7 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   } else if (slot().kind() == Slot::Kind::kTypedDataView_offset_in_bytes) {
     // This case cover the second explicit argument to typed data view
     // factories, the offset into the buffer.
+    ASSERT(!calls_initializer());
     Definition* array = instance()->definition()->OriginalDefinition();
     if (StaticCallInstr* call = array->AsStaticCall()) {
       if (IsTypedDataViewFactory(call->function())) {
@@ -2770,6 +2766,7 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
       }
     }
   } else if (slot().IsTypeArguments()) {
+    ASSERT(!calls_initializer());
     Definition* array = instance()->definition()->OriginalDefinition();
     if (StaticCallInstr* call = array->AsStaticCall()) {
       if (call->is_known_list_constructor()) {
@@ -4033,86 +4030,86 @@ void IndirectEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   JoinEntryInstr::EmitNativeCode(compiler);
 }
 
-LocationSummary* InitStaticFieldInstr::MakeLocationSummary(Zone* zone,
+LocationSummary* LoadStaticFieldInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = 0;
   const intptr_t kNumTemps = 0;
-  LocationSummary* locs = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  LocationSummary* locs = new (zone) LocationSummary(
+      zone, kNumInputs, kNumTemps,
+      calls_initializer() ? LocationSummary::kCall : LocationSummary::kNoCall);
+  locs->set_out(0, calls_initializer() ? Location::RegisterLocation(
+                                             InitStaticFieldABI::kResultReg)
+                                       : Location::RequiresRegister());
   return locs;
 }
 
-void InitStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register result = locs()->out(0).reg();
+
+  compiler->used_static_fields().Add(&field());
+
   // Note: static fields ids won't be changed by hot-reload.
   const intptr_t field_table_offset =
       compiler::target::Thread::field_table_values_offset();
   const intptr_t field_offset = compiler::target::FieldTable::OffsetOf(field());
 
-  auto object_store = compiler->isolate()->object_store();
-  const auto& init_static_field_stub = Code::ZoneHandle(
-      compiler->zone(), object_store->init_static_field_stub());
+  __ LoadMemoryValue(result, THR, static_cast<int32_t>(field_table_offset));
+  __ LoadMemoryValue(result, result, static_cast<int32_t>(field_offset));
 
-  const Register temp = InitStaticFieldABI::kFieldReg;
-  __ LoadMemoryValue(temp, THR, static_cast<int32_t>(field_table_offset));
-  __ LoadMemoryValue(temp, temp, static_cast<int32_t>(field_offset));
+  if (calls_initializer()) {
+    compiler::Label call_runtime, no_call;
+    __ CompareObject(result, Object::sentinel());
 
-  compiler::Label call_runtime, no_call;
-  __ CompareObject(temp, Object::sentinel());
+    if (!field().is_late()) {
+      __ BranchIf(EQUAL, &call_runtime);
+      __ CompareObject(result, Object::transition_sentinel());
+    }
 
-  if (!field().is_late()) {
-    __ BranchIf(EQUAL, &call_runtime);
-    __ CompareObject(temp, Object::transition_sentinel());
+    __ BranchIf(NOT_EQUAL, &no_call);
+
+    __ Bind(&call_runtime);
+    __ LoadObject(InitStaticFieldABI::kFieldReg,
+                  Field::ZoneHandle(field().Original()));
+
+    auto object_store = compiler->isolate()->object_store();
+    const auto& init_static_field_stub = Code::ZoneHandle(
+        compiler->zone(), object_store->init_static_field_stub());
+    compiler->GenerateStubCall(token_pos(), init_static_field_stub,
+                               /*kind=*/PcDescriptorsLayout::kOther, locs(),
+                               deopt_id());
+    __ Bind(&no_call);
   }
-
-  __ BranchIf(NOT_EQUAL, &no_call);
-
-  __ Bind(&call_runtime);
-  __ LoadObject(InitStaticFieldABI::kFieldReg,
-                Field::ZoneHandle(field().Original()));
-  compiler->GenerateStubCall(token_pos(), init_static_field_stub,
-                             /*kind=*/PcDescriptorsLayout::kOther, locs(),
-                             deopt_id());
-  __ Bind(&no_call);
 }
 
-LocationSummary* InitInstanceFieldInstr::MakeLocationSummary(Zone* zone,
-                                                             bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  auto const locs = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0,
-               Location::RegisterLocation(InitInstanceFieldABI::kInstanceReg));
-  return locs;
-}
-
-void InitInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register temp = InitInstanceFieldABI::kFieldReg;
-
-  __ LoadField(temp, compiler::FieldAddress(InitInstanceFieldABI::kInstanceReg,
-                                            field().TargetOffset()));
+void LoadFieldInstr::EmitNativeCodeForInitializerCall(
+    FlowGraphCompiler* compiler) {
+  ASSERT(calls_initializer());
+  ASSERT(locs()->in(0).reg() == InitInstanceFieldABI::kInstanceReg);
+  ASSERT(locs()->out(0).reg() == InitInstanceFieldABI::kResultReg);
+  ASSERT(slot().IsDartField());
+  const Field& field = slot().field();
 
   compiler::Label no_call;
-  __ CompareObject(temp, Object::sentinel());
+  __ CompareObject(InitInstanceFieldABI::kResultReg, Object::sentinel());
   __ BranchIf(NOT_EQUAL, &no_call);
 
   __ LoadObject(InitInstanceFieldABI::kFieldReg,
-                Field::ZoneHandle(field().Original()));
+                Field::ZoneHandle(field.Original()));
 
   auto object_store = compiler->isolate()->object_store();
   auto& stub = Code::ZoneHandle(compiler->zone());
-  if (field().needs_load_guard()) {
+  if (field.needs_load_guard()) {
     stub = object_store->init_instance_field_stub();
-  } else if (field().is_late()) {
-    if (!field().has_nontrivial_initializer()) {
+  } else if (field.is_late()) {
+    if (!field.has_nontrivial_initializer()) {
       // Common stub calls runtime which will throw an exception.
       stub = object_store->init_instance_field_stub();
     } else {
       // Stubs for late field initialization call initializer
       // function directly, so make sure one is created.
-      field().EnsureInitializerFunction();
+      field.EnsureInitializerFunction();
 
-      if (field().is_final()) {
+      if (field.is_final()) {
         stub = object_store->init_late_final_instance_field_stub();
       } else {
         stub = object_store->init_late_instance_field_stub();

@@ -2840,38 +2840,6 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&skip_store);
 }
 
-LocationSummary* LoadStaticFieldInstr::MakeLocationSummary(Zone* zone,
-                                                           bool opt) const {
-  const intptr_t kNumInputs = 0;
-  const intptr_t kNumTemps = 1;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_out(0, Location::RequiresRegister());
-  summary->set_temp(0, Location::RequiresRegister());
-  return summary;
-}
-
-// When the parser is building an implicit static getter for optimization,
-// it can generate a function body where deoptimization ids do not line up
-// with the unoptimized code.
-//
-// This is safe only so long as LoadStaticFieldInstr cannot deoptimize.
-void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register result = locs()->out(0).reg();
-  const Register temp = locs()->temp(0).reg();
-
-  compiler->used_static_fields().Add(&StaticField());
-
-  __ LoadFromOffset(kWord, temp, THR,
-                    compiler::target::Thread::field_table_values_offset());
-  // Hot-reload has to guarantee that static fields will never change their
-  // "id", so we can embed the offset directly in the unoptimized code.
-  // The hot-reload code seems to maintain this guarantee only for non-enum
-  // classes.
-  __ LoadFromOffset(kWord, result, temp,
-                    compiler::target::FieldTable::OffsetOf(StaticField()));
-}
-
 LocationSummary* StoreStaticFieldInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -3041,14 +3009,23 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
                                  ? (FLAG_precompiled_mode ? 0 : 1)
                                  : (IsPotentialUnboxedLoad() ? 3 : 0);
 
-  LocationSummary* locs = new (zone) LocationSummary(
-      zone, kNumInputs, kNumTemps,
-      (opt && !IsPotentialUnboxedLoad()) ? LocationSummary::kNoCall
-                                         : LocationSummary::kCallOnSlowPath);
+  const auto contains_call =
+      (IsUnboxedLoad() && opt)
+          ? LocationSummary::kNoCall
+          : (IsPotentialUnboxedLoad()
+                 ? LocationSummary::kCallOnSlowPath
+                 : (calls_initializer() ? LocationSummary::kCall
+                                        : LocationSummary::kNoCall));
 
-  locs->set_in(0, Location::RequiresRegister());
+  LocationSummary* locs =
+      new (zone) LocationSummary(zone, kNumInputs, kNumTemps, contains_call);
+
+  locs->set_in(0, calls_initializer() ? Location::RegisterLocation(
+                                            InitInstanceFieldABI::kInstanceReg)
+                                      : Location::RequiresRegister());
 
   if (IsUnboxedLoad() && opt) {
+    ASSERT(!calls_initializer());
     if (!FLAG_precompiled_mode) {
       locs->set_temp(0, Location::RequiresRegister());
     }
@@ -3060,11 +3037,15 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
       locs->set_out(0, Location::RequiresFpuRegister());
     }
   } else if (IsPotentialUnboxedLoad()) {
+    ASSERT(!calls_initializer());
     locs->set_temp(0, opt ? Location::RequiresFpuRegister()
                           : Location::FpuRegisterLocation(Q1));
     locs->set_temp(1, Location::RequiresRegister());
     locs->set_temp(2, Location::RequiresRegister());
     locs->set_out(0, Location::RequiresRegister());
+  } else if (calls_initializer()) {
+    locs->set_out(0,
+                  Location::RegisterLocation(InitInstanceFieldABI::kResultReg));
   } else {
     locs->set_out(0, Location::RequiresRegister());
   }
@@ -3076,6 +3057,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   const Register instance_reg = locs()->in(0).reg();
   if (IsUnboxedLoad() && compiler->is_optimizing()) {
+    ASSERT(!calls_initializer());
     if (slot().field().is_non_nullable_integer()) {
       const PairLocation* out_pair = locs()->out(0).AsPairLocation();
       const Register out_lo = out_pair->At(0).reg();
@@ -3144,6 +3126,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler::Label done;
   const Register result_reg = locs()->out(0).reg();
   if (IsPotentialUnboxedLoad()) {
+    ASSERT(!calls_initializer());
     const DRegister value = EvenDRegisterOf(locs()->temp(0).fpu_reg());
     const Register temp = locs()->temp(1).reg();
     const Register temp2 = locs()->temp(2).reg();
@@ -3212,7 +3195,13 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     __ Bind(&load_pointer);
   }
+
   __ LoadFieldFromOffset(kWord, result_reg, instance_reg, OffsetInBytes());
+
+  if (calls_initializer()) {
+    EmitNativeCodeForInitializerCall(compiler);
+  }
+
   __ Bind(&done);
 }
 

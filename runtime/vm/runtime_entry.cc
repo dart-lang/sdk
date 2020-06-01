@@ -3145,14 +3145,22 @@ DEFINE_RUNTIME_ENTRY(UpdateFieldCid, 2) {
 DEFINE_RUNTIME_ENTRY(InitInstanceField, 2) {
   const Instance& instance = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   const Field& field = Field::CheckedHandle(zone, arguments.ArgAt(1));
-  const Error& result = Error::Handle(zone, field.InitializeInstance(instance));
+  Object& result = Object::Handle(zone, field.InitializeInstance(instance));
   ThrowIfError(result);
+  result = instance.GetField(field);
+  ASSERT((result.raw() != Object::sentinel().raw()) &&
+         (result.raw() != Object::transition_sentinel().raw()));
+  arguments.SetReturn(result);
 }
 
 DEFINE_RUNTIME_ENTRY(InitStaticField, 1) {
   const Field& field = Field::CheckedHandle(zone, arguments.ArgAt(0));
-  const Error& result = Error::Handle(zone, field.InitializeStatic());
+  Object& result = Object::Handle(zone, field.InitializeStatic());
   ThrowIfError(result);
+  result = field.StaticValue();
+  ASSERT((result.raw() != Object::sentinel().raw()) &&
+         (result.raw() != Object::transition_sentinel().raw()));
+  arguments.SetReturn(result);
 }
 
 DEFINE_RUNTIME_ENTRY(LateInitializationError, 1) {

@@ -426,13 +426,17 @@ Fragment BaseFlowGraphBuilder::DoubleToFloat() {
   return Fragment(instr);
 }
 
-Fragment BaseFlowGraphBuilder::LoadField(const Field& field) {
-  return LoadNativeField(Slot::Get(MayCloneField(field), parsed_function_));
+Fragment BaseFlowGraphBuilder::LoadField(const Field& field,
+                                         bool calls_initializer) {
+  return LoadNativeField(Slot::Get(MayCloneField(field), parsed_function_),
+                         calls_initializer);
 }
 
-Fragment BaseFlowGraphBuilder::LoadNativeField(const Slot& native_field) {
-  LoadFieldInstr* load =
-      new (Z) LoadFieldInstr(Pop(), native_field, TokenPosition::kNoSource);
+Fragment BaseFlowGraphBuilder::LoadNativeField(const Slot& native_field,
+                                               bool calls_initializer) {
+  LoadFieldInstr* load = new (Z) LoadFieldInstr(
+      Pop(), native_field, TokenPosition::kNoSource, calls_initializer,
+      calls_initializer ? GetNextDeoptId() : DeoptId::kNone);
   Push(load);
   return Fragment(load);
 }
@@ -538,9 +542,11 @@ Fragment BaseFlowGraphBuilder::StoreInstanceFieldGuarded(
   return instructions;
 }
 
-Fragment BaseFlowGraphBuilder::LoadStaticField(const Field& field) {
-  LoadStaticFieldInstr* load =
-      new (Z) LoadStaticFieldInstr(field, TokenPosition::kNoSource);
+Fragment BaseFlowGraphBuilder::LoadStaticField(const Field& field,
+                                               bool calls_initializer) {
+  LoadStaticFieldInstr* load = new (Z) LoadStaticFieldInstr(
+      field, TokenPosition::kNoSource, calls_initializer,
+      calls_initializer ? GetNextDeoptId() : DeoptId::kNone);
   Push(load);
   return Fragment(load);
 }

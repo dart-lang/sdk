@@ -10281,6 +10281,8 @@ StaticTypeExactnessState StaticTypeExactnessState::Compute(
     const Instance& value,
     bool print_trace /* = false */) {
   ASSERT(!value.IsNull());  // Should be handled by the caller.
+  ASSERT(value.raw() != Object::sentinel().raw());
+  ASSERT(value.raw() != Object::transition_sentinel().raw());
 
   const TypeArguments& static_type_args =
       TypeArguments::Handle(static_type.arguments());
