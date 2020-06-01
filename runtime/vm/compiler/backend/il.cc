@@ -600,11 +600,15 @@ static int OrderById(CidRange* const* a, CidRange* const* b) {
   return (*a)->cid_start - (*b)->cid_start;
 }
 
-static int OrderByFrequency(CidRange* const* a, CidRange* const* b) {
+static int OrderByFrequencyThenId(CidRange* const* a, CidRange* const* b) {
   const TargetInfo* target_info_a = static_cast<const TargetInfo*>(*a);
   const TargetInfo* target_info_b = static_cast<const TargetInfo*>(*b);
   // Negative if 'a' should sort before 'b'.
-  return target_info_b->count - target_info_a->count;
+  if (target_info_b->count != target_info_a->count) {
+    return (target_info_b->count - target_info_a->count);
+  } else {
+    return (*a)->cid_start - (*b)->cid_start;
+  }
 }
 
 bool Cids::Equals(const Cids& other) const {
@@ -3824,7 +3828,7 @@ void CallTargets::MergeIntoRanges() {
     }
   }
   SetLength(dest + 1);
-  Sort(OrderByFrequency);
+  Sort(OrderByFrequencyThenId);
 }
 
 void CallTargets::Print() const {
