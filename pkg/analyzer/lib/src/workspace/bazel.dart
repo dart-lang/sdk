@@ -407,13 +407,6 @@ class BazelWorkspace extends Workspace
   ///
   /// If no "bin" folder is found in any of those locations, `null` is returned.
   static List<String> _findBinFolderPaths(Folder root) {
-    // This is a symlink to the real, singular "bin" folder, but it is the
-    // easiest and cheapest to search for.
-    Folder symlink = _firstExistingFolder(root, ['blaze-bin', 'bazel-bin']);
-    if (symlink != null) {
-      return [symlink.path];
-    }
-
     Folder out = _firstExistingFolder(root, ['blaze-out', 'bazel-out']);
     if (out == null) {
       return null;
