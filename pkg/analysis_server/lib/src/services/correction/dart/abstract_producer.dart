@@ -13,6 +13,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -76,6 +77,21 @@ abstract class CorrectionProducer extends _AbstractCorrectionProducer {
   }
 
   Future<void> compute(DartChangeBuilder builder);
+
+  /// Return the class element associated with the [target], or `null` if there
+  /// is no such class element.
+  ClassElement getTargetClassElement(Expression target) {
+    var type = target.staticType;
+    if (type is InterfaceType) {
+      return type.element;
+    } else if (target is Identifier) {
+      var element = target.staticElement;
+      if (element is ClassElement) {
+        return element;
+      }
+    }
+    return null;
+  }
 
   /// Returns an expected [DartType] of [expression], may be `null` if cannot be
   /// inferred.
@@ -335,6 +351,10 @@ abstract class _AbstractCorrectionProducer {
   AstNode get node => _context.node;
 
   ResolvedUnitResult get resolvedResult => _context.resolvedResult;
+
+  /// Return the resource provider used to access the file system.
+  ResourceProvider get resourceProvider =>
+      resolvedResult.session.resourceProvider;
 
   int get selectionLength => _context.selectionLength;
 
