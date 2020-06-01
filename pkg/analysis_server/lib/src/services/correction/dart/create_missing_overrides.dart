@@ -13,10 +13,10 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class CreateMissingOverrides extends CorrectionProducer {
-  int numElements;
+  int _numElements;
 
   @override
-  List<Object> get fixArguments => [numElements];
+  List<Object> get fixArguments => [_numElements];
 
   @override
   FixKind get fixKind => DartFixKind.CREATE_MISSING_OVERRIDES;
@@ -42,7 +42,7 @@ class CreateMissingOverrides extends CorrectionProducer {
       }
       return 1;
     });
-    numElements = signatures.length;
+    _numElements = signatures.length;
 
     var location =
         utils.prepareNewClassMemberLocation(targetClass, (_) => true);
@@ -73,7 +73,7 @@ class CreateMissingOverrides extends CorrectionProducer {
               signatures.removeAt(i + 1);
               signatures.removeAt(i);
               i--;
-              numElements--;
+              _numElements--;
               // separator
               addSeparatorBetweenDeclarations();
               // @override

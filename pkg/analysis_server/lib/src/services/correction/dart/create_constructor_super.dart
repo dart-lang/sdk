@@ -36,22 +36,22 @@ class CreateConstructorSuper extends MultiCorrectionProducer {
 /// the [CreateConstructorSuper] producer.
 class _CreateConstructor extends CorrectionProducer {
   /// The constructor to be invoked.
-  final ConstructorElement constructor;
+  final ConstructorElement _constructor;
 
   /// An indication of where the new constructor should be added.
-  final ClassMemberLocation targetLocation;
+  final ClassMemberLocation _targetLocation;
 
   /// The name of the class in which the constructor will be added.
-  final String targetClassName;
+  final String _targetClassName;
 
   _CreateConstructor(
-      this.constructor, this.targetLocation, this.targetClassName);
+      this._constructor, this._targetLocation, this._targetClassName);
 
   @override
   List<Object> get fixArguments {
     var buffer = StringBuffer();
     buffer.write('super');
-    var constructorName = constructor.displayName;
+    var constructorName = _constructor.displayName;
     if (constructorName.isNotEmpty) {
       buffer.write('.');
       buffer.write(constructorName);
@@ -65,11 +65,11 @@ class _CreateConstructor extends CorrectionProducer {
 
   @override
   Future<void> compute(DartChangeBuilder builder) async {
-    var constructorName = constructor.name;
-    var requiredParameters = constructor.parameters
+    var constructorName = _constructor.name;
+    var requiredParameters = _constructor.parameters
         .where((parameter) => parameter.isRequiredPositional);
     await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addInsertion(targetLocation.offset, (DartEditBuilder builder) {
+      builder.addInsertion(_targetLocation.offset, (DartEditBuilder builder) {
         void writeParameters(bool includeType) {
           var firstParameter = true;
           for (var parameter in requiredParameters) {
@@ -89,8 +89,8 @@ class _CreateConstructor extends CorrectionProducer {
           }
         }
 
-        builder.write(targetLocation.prefix);
-        builder.write(targetClassName);
+        builder.write(_targetLocation.prefix);
+        builder.write(_targetClassName);
         if (constructorName.isNotEmpty) {
           builder.write('.');
           builder.addSimpleLinkedEdit('NAME', constructorName);
@@ -105,7 +105,7 @@ class _CreateConstructor extends CorrectionProducer {
         builder.write('(');
         writeParameters(false);
         builder.write(');');
-        builder.write(targetLocation.suffix);
+        builder.write(_targetLocation.suffix);
       });
     });
   }

@@ -10,10 +10,10 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class CreateMethod extends CorrectionProducer {
-  String memberName;
+  String _memberName;
 
   @override
-  List<Object> get fixArguments => [memberName];
+  List<Object> get fixArguments => [_memberName];
 
   @override
   FixKind get fixKind => DartFixKind.CREATE_METHOD;
@@ -27,13 +27,13 @@ class CreateMethod extends CorrectionProducer {
 
       var element;
       if (methodDecl.name.name == 'hashCode') {
-        memberName = '==';
+        _memberName = '==';
         element = classElement.lookUpInheritedMethod(
-            memberName, classElement.library);
+            _memberName, classElement.library);
       } else {
-        memberName = 'hashCode';
+        _memberName = 'hashCode';
         element = classElement.lookUpInheritedConcreteGetter(
-            memberName, classElement.library);
+            _memberName, classElement.library);
       }
 
       final location =

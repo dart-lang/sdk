@@ -50,21 +50,21 @@ class AddSuperConstructorInvocation extends MultiCorrectionProducer {
 /// the [AddSuperConstructorInvocation] producer.
 class _AddInvocation extends CorrectionProducer {
   /// The constructor to be invoked.
-  final ConstructorElement constructor;
+  final ConstructorElement _constructor;
 
   /// The offset at which the initializer is to be inserted.
-  final int insertOffset;
+  final int _insertOffset;
 
   /// The prefix to be added before the actual invocation.
-  final String prefix;
+  final String _prefix;
 
-  _AddInvocation(this.constructor, this.insertOffset, this.prefix);
+  _AddInvocation(this._constructor, this._insertOffset, this._prefix);
 
   @override
   List<Object> get fixArguments {
     var buffer = StringBuffer();
     buffer.write('super');
-    var constructorName = constructor.displayName;
+    var constructorName = _constructor.displayName;
     if (constructorName.isNotEmpty) {
       buffer.write('.');
       buffer.write(constructorName);
@@ -78,10 +78,10 @@ class _AddInvocation extends CorrectionProducer {
 
   @override
   Future<void> compute(DartChangeBuilder builder) async {
-    var constructorName = constructor.displayName;
+    var constructorName = _constructor.displayName;
     await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addInsertion(insertOffset, (DartEditBuilder builder) {
-        builder.write(prefix);
+      builder.addInsertion(_insertOffset, (DartEditBuilder builder) {
+        builder.write(_prefix);
         // add super constructor name
         builder.write('super');
         if (!isEmpty(constructorName)) {
@@ -91,7 +91,7 @@ class _AddInvocation extends CorrectionProducer {
         // add arguments
         builder.write('(');
         var firstParameter = true;
-        for (var parameter in constructor.parameters) {
+        for (var parameter in _constructor.parameters) {
           // skip non-required parameters
           if (parameter.isOptional) {
             break;

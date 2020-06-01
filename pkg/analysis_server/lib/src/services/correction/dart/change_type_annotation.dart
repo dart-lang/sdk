@@ -11,12 +11,12 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ChangeTypeAnnotation extends CorrectionProducer {
-  String oldAnnotation = '';
+  String _oldAnnotation = '';
 
-  String newAnnotation = '';
+  String _newAnnotation = '';
 
   @override
-  List<Object> get fixArguments => [oldAnnotation, newAnnotation];
+  List<Object> get fixArguments => [_oldAnnotation, _newAnnotation];
 
   @override
   FixKind get fixKind => DartFixKind.CHANGE_TYPE_ANNOTATION;
@@ -34,9 +34,9 @@ class ChangeTypeAnnotation extends CorrectionProducer {
           Expression initializer = coveredNode;
           var newType = initializer.staticType;
           if (newType is InterfaceType || newType is FunctionType) {
-            oldAnnotation =
+            _oldAnnotation =
                 typeNode.type.getDisplayString(withNullability: false);
-            newAnnotation = newType.getDisplayString(withNullability: false);
+            _newAnnotation = newType.getDisplayString(withNullability: false);
             await builder.addFileEdit(file, (DartFileEditBuilder builder) {
               builder.addReplacement(range.node(typeNode),
                   (DartEditBuilder builder) {

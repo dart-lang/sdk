@@ -9,10 +9,10 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class ExtendClassForMixin extends CorrectionProducer {
-  String typeName;
+  String _typeName;
 
   @override
-  List<Object> get fixArguments => [typeName];
+  List<Object> get fixArguments => [_typeName];
 
   @override
   FixKind get fixKind => DartFixKind.EXTEND_CLASS_FOR_MIXIN;
@@ -26,11 +26,11 @@ class ExtendClassForMixin extends CorrectionProducer {
       var message = diagnostic.problemMessage.message;
       var endIndex = message.lastIndexOf("'");
       var startIndex = message.lastIndexOf("'", endIndex - 1) + 1;
-      typeName = message.substring(startIndex, endIndex);
+      _typeName = message.substring(startIndex, endIndex);
       await builder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addSimpleInsertion(
             declaration.typeParameters?.end ?? declaration.name.end,
-            ' extends $typeName');
+            ' extends $_typeName');
       });
     }
   }

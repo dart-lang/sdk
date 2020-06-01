@@ -12,10 +12,10 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class MakeFieldNotFinal extends CorrectionProducer {
-  String fieldName;
+  String _fieldName;
 
   @override
-  List<Object> get fixArguments => [fieldName];
+  List<Object> get fixArguments => [_fieldName];
 
   @override
   FixKind get fixKind => DartFixKind.MAKE_FIELD_NOT_FINAL;
@@ -53,7 +53,7 @@ class MakeFieldNotFinal extends CorrectionProducer {
                 });
               }
             });
-            fieldName = getter.variable.displayName;
+            _fieldName = getter.variable.displayName;
           }
         }
       }

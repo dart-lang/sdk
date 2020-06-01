@@ -16,14 +16,14 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ChangeTo extends CorrectionProducer {
   /// The kind of elements that should be proposed.
-  final _ReplacementKind kind;
+  final _ReplacementKind _kind;
 
   /// The name to which the undefined name will be changed.
   String _proposedName;
 
   /// Initialize a newly created instance that will propose elements of the
-  /// given [kind].
-  ChangeTo(this.kind);
+  /// given [_kind].
+  ChangeTo(this._kind);
 
   @override
   List<Object> get fixArguments => [_proposedName];
@@ -37,15 +37,15 @@ class ChangeTo extends CorrectionProducer {
     //  reasonably possible.
     // TODO(brianwilkerson) Consider proposing all of the names within a
     //  reasonable distance, rather than just the first near match we find.
-    if (kind == _ReplacementKind.annotation) {
+    if (_kind == _ReplacementKind.annotation) {
       await _proposeAnnotation(builder);
-    } else if (kind == _ReplacementKind.classOrMixin) {
+    } else if (_kind == _ReplacementKind.classOrMixin) {
       await _proposeClassOrMixin(builder, node);
-    } else if (kind == _ReplacementKind.function) {
+    } else if (_kind == _ReplacementKind.function) {
       await _proposeFunction(builder);
-    } else if (kind == _ReplacementKind.getterOrSetter) {
+    } else if (_kind == _ReplacementKind.getterOrSetter) {
       await _proposeGetterOrSetter(builder);
-    } else if (kind == _ReplacementKind.method) {
+    } else if (_kind == _ReplacementKind.method) {
       await _proposeMethod(builder);
     }
   }

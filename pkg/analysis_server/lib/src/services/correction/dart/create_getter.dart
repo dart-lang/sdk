@@ -12,10 +12,10 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class CreateGetter extends CorrectionProducer {
-  String getterName;
+  String _getterName;
 
   @override
-  List<Object> get fixArguments => [getterName];
+  List<Object> get fixArguments => [_getterName];
 
   @override
   FixKind get fixKind => DartFixKind.CREATE_GETTER;
@@ -26,7 +26,7 @@ class CreateGetter extends CorrectionProducer {
       return;
     }
     SimpleIdentifier nameNode = node;
-    getterName = nameNode.name;
+    _getterName = nameNode.name;
     if (!nameNode.inGetterContext()) {
       return;
     }
@@ -95,7 +95,7 @@ class CreateGetter extends CorrectionProducer {
         var fieldTypeNode = climbPropertyAccess(nameNode);
         var fieldType = inferUndefinedExpressionType(fieldTypeNode);
         builder.write(targetLocation.prefix);
-        builder.writeGetterDeclaration(getterName,
+        builder.writeGetterDeclaration(_getterName,
             isStatic: staticModifier,
             nameGroupName: 'NAME',
             returnType: fieldType,
