@@ -13,7 +13,6 @@ import 'package_prefix_test.dart' as package_prefix;
 import 'perf_report_test.dart' as perf_report;
 import 'reporter_test.dart' as reporter;
 import 'strong_mode_test.dart' as strong_mode;
-import 'verify_sorted_test.dart' as verify_sorted;
 
 void main() {
   analysis_options.main();
@@ -27,5 +26,4 @@ void main() {
   perf_report.main();
   reporter.main();
   strong_mode.main();
-  verify_sorted.main();
 }
