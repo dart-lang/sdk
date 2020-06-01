@@ -361,13 +361,17 @@ Future<void> f() async {
     ]);
   }
 
-  test_function_async_expression_dynamic__to_Future_int() async {
-    await assertNoErrorsInCode(r'''
-Future<int> f(dynamic a) async => a; 
-''');
+  test_function_async_block_void__to_Future_Null() async {
+    await assertErrorsInCode(r'''
+Future<Null> f(void a) async {
+  return a;
+}
+''', [
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 40, 1),
+    ]);
   }
 
-  test_function_async_void__to_FutureOr_ObjectQ() async {
+  test_function_async_block_void__to_FutureOr_ObjectQ() async {
     await assertErrorsInCode(r'''
 import 'dart:async';
 
@@ -377,6 +381,12 @@ FutureOr<Object?> f(void a) async {
 ''', [
       error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 67, 1),
     ]);
+  }
+
+  test_function_async_expression_dynamic__to_Future_int() async {
+    await assertNoErrorsInCode(r'''
+Future<int> f(dynamic a) async => a; 
+''');
   }
 
   test_functionExpression_async_futureOr_void__to_Object() async {
