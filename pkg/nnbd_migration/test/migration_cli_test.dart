@@ -208,9 +208,11 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
     resourceProvider.newFolder(resourceProvider.pathContext.current);
   }
 
-  Map<String, String> simpleProject({bool migrated: false, String sourceText}) {
+  Map<String, String> simpleProject(
+      {bool migrated: false, String sourceText, String pubspecText}) {
     return {
-      'pubspec.yaml': '''
+      'pubspec.yaml': pubspecText ??
+          '''
 name: test
 environment:
   sdk: '${migrated ? '>=2.9.0 <2.10.0' : '>=2.6.0 <3.0.0'}'
@@ -1089,6 +1091,97 @@ int f() => null;
   test_pub_outdated_has_stderr() {
     assertPubOutdatedSuccess(pubOutdatedStderr: 'anything');
     expect(logger.stderrBuffer.toString(), startsWith('Warning:'));
+  }
+
+  test_pubspec_does_not_exist() async {
+    var projectContents = simpleProject()..remove('pubspec.yaml');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await cli
+        .run(_parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir, simpleProject(migrated: true)..remove('pubspec.yaml'));
+  }
+
+  test_pubspec_environment_is_missing_sdk() async {
+    var projectContents = simpleProject(pubspecText: '''
+name: test
+environment:
+  foo: 1
+''');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await cli
+        .run(_parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir, simpleProject(migrated: true, pubspecText: '''
+name: test
+environment:
+  foo: 1
+  sdk: '>=2.9.0 <2.10.0'
+'''));
+  }
+
+  test_pubspec_environment_is_not_a_map() async {
+    var pubspecText = '''
+name: test
+environment: 1
+''';
+    var projectContents = simpleProject(pubspecText: pubspecText);
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await cli
+        .run(_parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir, simpleProject(migrated: true, pubspecText: pubspecText));
+  }
+
+  test_pubspec_environment_sdk_is_not_string() async {
+    var pubspecText = '''
+name: test
+environment:
+  sdk: 1
+''';
+    var projectContents = simpleProject(pubspecText: pubspecText);
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await cli
+        .run(_parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir, simpleProject(migrated: true, pubspecText: pubspecText));
+  }
+
+  test_pubspec_is_missing_environment() async {
+    var projectContents = simpleProject(pubspecText: '''
+name: test
+''');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await cli
+        .run(_parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    // The Dart source code should still be migrated.
+    assertProjectContents(projectDir, simpleProject(migrated: true, pubspecText:
+        // This is strange-looking, but valid.
+        '''
+environment:
+  sdk: '>=2.9.0 <2.10.0'
+
+name: test
+'''));
+  }
+
+  test_pubspec_is_not_a_map() async {
+    var projectContents = simpleProject(pubspecText: 'not-a-map');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    expect(
+        () async => await cli.run(
+            _parseArgs(['--no-web-preview', '--apply-changes', projectDir])),
+        throwsUnsupportedError);
   }
 
   test_uses_physical_resource_provider_by_default() {

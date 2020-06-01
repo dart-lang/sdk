@@ -122,7 +122,7 @@ class NonNullableFix {
 
   /// Update the pubspec.yaml file to specify a minimum Dart SDK version which
   /// enables the Null Safety feature.
-  Future<void> processPackage(Folder pkgFolder) async {
+  void processPackage(Folder pkgFolder) {
     if (!_packageIsNNBD) {
       return;
     }
@@ -137,14 +137,17 @@ class NonNullableFix {
 
     try {
       pubspecContent = pubspecFile.readAsStringSync();
+      var pubspecYaml = loadYaml(pubspecContent);
+      if (pubspecYaml is YamlMap) {
+        pubspecMap = pubspecYaml;
+      } else {
+        throw FormatException('pubspec.yaml file is not a YAML map');
+      }
     } on FileSystemException catch (e) {
-      processYamlException('read', pubspecFile.path, e);
+      _processPubspecException('read', pubspecFile.path, e);
       return;
-    }
-    try {
-      pubspecMap = loadYaml(pubspecContent) as YamlNode;
-    } on YamlException catch (e) {
-      processYamlException('parse', pubspecFile.path, e);
+    } on FormatException catch (e) {
+      _processPubspecException('parse', pubspecFile.path, e);
       return;
     }
 
@@ -202,17 +205,25 @@ environment:
   sdk: '$_intendedSdkVersionConstraint'""";
         insertAfterParent(environmentOptions.span, content);
       } else if (sdk is YamlScalar) {
-        var currentConstraint = VersionConstraint.parse(sdk.value as String);
-        var minimumVersion = Version.parse(_intendedMinimumSdkVersion);
-        if (currentConstraint is VersionRange &&
-            currentConstraint.min >= minimumVersion) {
-          // The current SDK version constraint already enables Null Safety.
-          return;
+        VersionConstraint currentConstraint;
+        if (sdk.value is String) {
+          currentConstraint = VersionConstraint.parse(sdk.value as String);
+          var minimumVersion = Version.parse(_intendedMinimumSdkVersion);
+          if (currentConstraint is VersionRange &&
+              currentConstraint.min >= minimumVersion) {
+            // The current SDK version constraint already enables Null Safety.
+            // Do not edit pubspec.yaml.
+            return;
+          } else {
+            // TODO(srawlins): This overwrites the current maximum version. In
+            // the uncommon situation that the maximum is not '<3.0.0', it
+            // should not.
+            replaceSpan(sdk.span, "'$_intendedSdkVersionConstraint'");
+          }
         } else {
-          // TODO(srawlins): This overwrites the current maximum version. In
-          // the uncommon situation that the maximum is not '<3.0.0', it should
-          // not.
-          replaceSpan(sdk.span, "'$_intendedSdkVersionConstraint'");
+          // Something is odd with the SDK constraint we've found in
+          // pubspec.yaml; Best to leave it alone.
+          return;
         }
       }
     }
@@ -237,20 +248,6 @@ environment:
     }
   }
 
-  void processYamlException(String action, String optionsFilePath, error) {
-    listener.addRecommendation('''Failed to $action options file
-  $optionsFilePath
-  $error
-
-  Manually update this file to enable the Null Safety language feature by
-  adding:
-
-    environment:
-      sdk: '$_intendedSdkVersionConstraint';
-''');
-    _packageIsNNBD = false;
-  }
-
   Future<MigrationState> rerun() async {
     reset();
     await rerunFunction();
@@ -273,6 +270,20 @@ environment:
 
   void shutdownServer() {
     _server?.close();
+  }
+
+  void _processPubspecException(String action, String pubspecPath, error) {
+    listener.addRecommendation('''Failed to $action pubspec file
+  $pubspecPath
+  $error
+
+  Manually update this file to enable the Null Safety language feature by
+  adding:
+
+    environment:
+      sdk: '$_intendedSdkVersionConstraint';
+''');
+    _packageIsNNBD = false;
   }
 
   /// Allows unit tests to shut down any rogue servers that have been started,
