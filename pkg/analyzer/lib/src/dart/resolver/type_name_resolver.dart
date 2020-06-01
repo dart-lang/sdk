@@ -207,9 +207,7 @@ class TypeNameResolver {
         return type;
       } else if (element is NeverElementImpl) {
         _buildTypeArguments(node, 0);
-        return element.instantiate(
-          nullabilitySuffix: nullability,
-        );
+        return _instantiateElementNever(nullability);
       } else if (element is TypeParameterElement) {
         _buildTypeArguments(node, 0);
         return element.instantiate(
@@ -249,9 +247,7 @@ class TypeNameResolver {
         nullabilitySuffix: nullability,
       );
     } else if (element is NeverElementImpl) {
-      return element.instantiate(
-        nullabilitySuffix: nullability,
-      );
+      return _instantiateElementNever(nullability);
     } else if (element is TypeParameterElement) {
       return element.instantiate(
         nullabilitySuffix: nullability,
@@ -259,6 +255,14 @@ class TypeNameResolver {
     } else {
       _ErrorHelper(errorReporter).reportNullOrNonTypeElement(node, element);
       return dynamicType;
+    }
+  }
+
+  DartType _instantiateElementNever(NullabilitySuffix nullability) {
+    if (isNonNullableByDefault) {
+      return NeverTypeImpl.instance.withNullability(nullability);
+    } else {
+      return typeSystem.typeProvider.nullType;
     }
   }
 

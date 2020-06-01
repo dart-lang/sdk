@@ -250,7 +250,7 @@ f(Never a) {}
     assertTypeName(
       findNode.typeName('Never a'),
       neverElement,
-      typeStr('Never', 'Never*'),
+      typeStr('Never', 'Null*'),
     );
   }
 }

@@ -10301,7 +10301,7 @@ dynamic v;
     checkElementText(
         library,
         r'''
-Never* d;
+Null* d;
 ''',
         annotateNullability: true);
   }
