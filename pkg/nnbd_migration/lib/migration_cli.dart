@@ -148,11 +148,13 @@ class DependencyChecker {
       _logger.stderr('');
       _logger.stderr('It is highly recommended to upgrade all dependencies to '
           'versions which have migrated. Use `$_pubName outdated '
-          '--mode=null-safety` to check the status of dependencies. Visit '
-          'https://dart.dev/tools/pub/cmd/pub-outdated for more information.');
+          '--mode=null-safety` to check the status of dependencies.');
       _logger.stderr('');
-      _logger.stderr('Force migration with --skip-outdated-dependencies-check '
-          '(not recommended)');
+      _logger.stderr('Visit https://dart.dev/tools/pub/cmd/pub-outdated for '
+          'more information.');
+      _logger.stderr('');
+      _logger.stderr('Force migration with '
+          '--${CommandLineOptions.skipPubOutdatedFlag} (not recommended)');
       return false;
     }
     return true;
