@@ -106,7 +106,7 @@ _BufferAndStart _ensureFastAndSerializableByteData(
   return new _BufferAndStart(newBuffer, 0);
 }
 
-// The VM will use ClassID to check whether buffer is Uint8List or Int8List.
+// VM will use ClassID to check whether buffer is Uint8List or Int8List.
 external bool _isDirectIOCapableTypedList(List<int> buffer);
 
 class _IOCrypto {

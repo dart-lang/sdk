@@ -4270,10 +4270,6 @@ bool Class::InjectCIDFields() const {
 #define ADD_SET_FIELD(clazz) {"cid" #clazz, kTypedData##clazz##Cid},
               CLASS_LIST_TYPED_DATA(ADD_SET_FIELD)
 #undef ADD_SET_FIELD
-#define ADD_SET_FIELD(clazz)                                                   \
-  {"cidExternal" #clazz, kExternalTypedData##clazz##Cid},
-                  CLASS_LIST_TYPED_DATA(ADD_SET_FIELD)
-#undef ADD_SET_FIELD
 #undef CLASS_LIST_WITH_NULL
   };
 

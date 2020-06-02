@@ -216,7 +216,7 @@ class _RandomAccessFileOps {
 
 @patch
 bool _isDirectIOCapableTypedList(List<int> buffer) {
-  return false;
+  return buffer is Uint8List || buffer is Int8List;
 }
 
 @patch
