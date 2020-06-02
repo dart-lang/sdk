@@ -28,13 +28,11 @@ main(List<String> args) async {
       runTest: runTestFor(const PatchingDataComputer(), [
         new TestConfigWithLanguageVersion(
             cfeMarker, 'cfe with libraries specification',
-            librariesSpecificationUri: createUriForFileName('libraries.json'),
-            allowedExperimentalFlags: const AllowedExperimentalFlags()),
+            librariesSpecificationUri: createUriForFileName('libraries.json')),
         new TestConfigWithLanguageVersion(cfeWithNnbdMarker,
             'cfe with libraries specification and non-nullable',
             librariesSpecificationUri: createUriForFileName('libraries.json'),
-            experimentalFlags: {ExperimentalFlag.nonNullable: true},
-            allowedExperimentalFlags: const AllowedExperimentalFlags())
+            experimentalFlags: {ExperimentalFlag.nonNullable: true})
       ]),
       skipMap: {
         cfeMarker: [
@@ -49,12 +47,10 @@ main(List<String> args) async {
 class TestConfigWithLanguageVersion extends TestConfig {
   TestConfigWithLanguageVersion(String marker, String name,
       {Uri librariesSpecificationUri,
-      Map<ExperimentalFlag, bool> experimentalFlags = const {},
-      AllowedExperimentalFlags allowedExperimentalFlags})
+      Map<ExperimentalFlag, bool> experimentalFlags = const {}})
       : super(marker, name,
             librariesSpecificationUri: librariesSpecificationUri,
-            experimentalFlags: experimentalFlags,
-            allowedExperimentalFlags: allowedExperimentalFlags);
+            experimentalFlags: experimentalFlags);
 
   @override
   void customizeCompilerOptions(CompilerOptions options, TestData testData) {

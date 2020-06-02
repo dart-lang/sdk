@@ -22,7 +22,8 @@ import 'package:package_config/package_config.dart';
 import '../api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
 
-import '../api_prototype/experimental_flags.dart' as flags;
+import '../api_prototype/experimental_flags.dart'
+    show defaultExperimentalFlags, ExperimentalFlag, expiredExperimentalFlags;
 
 import '../api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
@@ -324,27 +325,15 @@ class ProcessedOptions {
   Target get target =>
       _target ??= _raw.target ?? new NoneTarget(new TargetFlags());
 
-  /// Returns `true` if the [flag] is enabled globally.
-  ///
-  /// This is `true` either if the [flag] is passed through an explicit
-  /// `--enable-experiment` option or if the [flag] is expired and on by
-  /// default.
-  bool isExperimentEnabledGlobally(flags.ExperimentalFlag flag) {
-    return flags.isExperimentEnabled(flag,
-        experimentalFlags: _raw.experimentalFlags);
-  }
-
-  /// Returns `true` if the [flag] is enabled in the library with the given
-  /// [importUri].
-  ///
-  /// This is `true` either if the [flag] is enabled globally as defined
-  /// by [isExperimentEnabledGlobally] or is explicitly enabled through
-  /// the 'allowed_experiments.json' file for this library.
-  bool isExperimentEnabledInLibrary(
-      flags.ExperimentalFlag flag, Uri importUri) {
-    return flags.isExperimentEnabledInLibrary(flag, importUri,
-        experimentalFlags: _raw.experimentalFlags,
-        allowedExperimentalFlags: _raw.allowedExperimentalFlags);
+  bool isExperimentEnabled(ExperimentalFlag flag) {
+    assert(defaultExperimentalFlags.containsKey(flag),
+        "No default value for $flag.");
+    assert(expiredExperimentalFlags.containsKey(flag),
+        "No expired value for $flag.");
+    if (expiredExperimentalFlags[flag]) {
+      return defaultExperimentalFlags[flag];
+    }
+    return _raw.experimentalFlags[flag] ?? defaultExperimentalFlags[flag];
   }
 
   /// Get an outline component that summarizes the SDK, if any.

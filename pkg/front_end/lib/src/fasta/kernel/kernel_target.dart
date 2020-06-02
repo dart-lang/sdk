@@ -6,7 +6,6 @@ library fasta.kernel_target;
 
 import 'dart:async' show Future;
 
-import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:kernel/ast.dart'
     show
         Arguments,
@@ -252,8 +251,9 @@ class KernelTarget extends TargetImplementation {
     if (dillTarget.isLoaded) {
       LibraryBuilder builder = dillTarget.loader.builders[uri];
       if (builder != null) {
-        if (loader.nnbdMode == NnbdMode.Strong ||
-            loader.nnbdMode == NnbdMode.Agnostic) {
+        if (enableNonNullable &&
+            (loader.nnbdMode == NnbdMode.Strong ||
+                loader.nnbdMode == NnbdMode.Agnostic)) {
           if (!builder.isNonNullableByDefault) {
             loader.addProblem(messageStrongModeNNBDButOptOut, -1, 1, fileUri);
           }
@@ -400,7 +400,7 @@ class KernelTarget extends TargetImplementation {
         nameRoot: nameRoot, libraries: libraries, uriToSource: uriToSource));
 
     NonNullableByDefaultCompiledMode compiledMode = null;
-    if (isExperimentEnabledGlobally(ExperimentalFlag.nonNullable)) {
+    if (enableNonNullable) {
       switch (loader.nnbdMode) {
         case NnbdMode.Weak:
           compiledMode = NonNullableByDefaultCompiledMode.Weak;
@@ -1099,8 +1099,7 @@ class KernelTarget extends TargetImplementation {
     // because the SDK might be agnostic and therefore needs to be weakened
     // for legacy mode.
     assert(
-        isExperimentEnabledGlobally(ExperimentalFlag.nonNullable) ||
-            loader.nnbdMode == NnbdMode.Weak,
+        enableNonNullable || loader.nnbdMode == NnbdMode.Weak,
         "Non-weak nnbd mode found without experiment enabled: "
         "${loader.nnbdMode}.");
     switch (loader.nnbdMode) {
@@ -1123,8 +1122,7 @@ class KernelTarget extends TargetImplementation {
         new KernelConstantErrorReporter(loader),
         evaluationMode,
         desugarSets: !backendTarget.supportsSetLiterals,
-        enableTripleShift:
-            isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
+        enableTripleShift: enableTripleShift,
         errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
     ticker.logMs("Evaluated constants");
 

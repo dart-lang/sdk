@@ -73,7 +73,6 @@ import 'package:kernel/type_algebra.dart' show substitute;
 import 'package:kernel/type_environment.dart'
     show SubtypeCheckMode, TypeEnvironment;
 
-import '../../api_prototype/experimental_flags.dart';
 import '../../base/nnbd_mode.dart';
 
 import '../builder/builder.dart';
@@ -166,6 +165,9 @@ import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_extension_builder.dart' show SourceExtensionBuilder;
 
 import 'source_loader.dart' show SourceLoader;
+
+import '../../api_prototype/experimental_flags.dart'
+    show enableNonNullableVersion;
 
 class SourceLibraryBuilder extends LibraryBuilderImpl {
   static const String MALFORMED_URI_SCHEME = "org-dartlang-malformed-uri";
@@ -317,26 +319,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     updateLibraryNNBDSettings();
   }
 
-  bool get enableVarianceInLibrary => loader.target
-      .isExperimentEnabledInLibrary(ExperimentalFlag.variance, importUri);
-
-  bool get enableNonfunctionTypeAliasesInLibrary =>
-      loader.target.isExperimentEnabledInLibrary(
-          ExperimentalFlag.nonfunctionTypeAliases, importUri);
-
-  bool get enableNonNullableInLibrary => loader.target
-      .isExperimentEnabledInLibrary(ExperimentalFlag.nonNullable, importUri);
-
-  bool get enableTripleShiftInLibrary => loader.target
-      .isExperimentEnabledInLibrary(ExperimentalFlag.tripleShift, importUri);
-
-  bool get enableExtensionMethodsInLibrary =>
-      loader.target.isExperimentEnabledInLibrary(
-          ExperimentalFlag.extensionMethods, importUri);
-
   void updateLibraryNNBDSettings() {
     library.isNonNullableByDefault = isNonNullableByDefault;
-    if (enableNonNullableInLibrary) {
+    if (loader.target.enableNonNullable) {
       switch (loader.nnbdMode) {
         case NnbdMode.Weak:
           library.nonNullableByDefaultCompiledMode =
@@ -397,7 +382,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   bool get isNonNullableByDefault =>
-      enableNonNullableInLibrary &&
+      loader.target.enableNonNullable &&
       languageVersion.version >= enableNonNullableVersion &&
       !isOptOutTest(library.importUri);
 
@@ -464,7 +449,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         new LanguageVersion(version, fileUri, offset, length, explicit);
     library.setLanguageVersion(version);
 
-    if (enableNonNullableInLibrary &&
+    if (loader.target.enableNonNullable &&
         (loader.nnbdMode == NnbdMode.Strong ||
             loader.nnbdMode == NnbdMode.Agnostic)) {
       // In strong and agnostic mode, the language version is not allowed to

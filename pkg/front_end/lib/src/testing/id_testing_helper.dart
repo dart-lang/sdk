@@ -11,8 +11,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/target/targets.dart';
 import '../api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
-import '../api_prototype/experimental_flags.dart'
-    show AllowedExperimentalFlags, ExperimentalFlag;
+import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 import '../api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
 import '../base/common.dart';
@@ -44,7 +43,6 @@ class TestConfig {
   final String marker;
   final String name;
   final Map<ExperimentalFlag, bool> experimentalFlags;
-  final AllowedExperimentalFlags allowedExperimentalFlags;
   final Uri librariesSpecificationUri;
   // TODO(johnniwinther): Tailor support to redefine selected platform
   // classes/members only.
@@ -54,7 +52,6 @@ class TestConfig {
 
   const TestConfig(this.marker, this.name,
       {this.experimentalFlags = const {},
-      this.allowedExperimentalFlags,
       this.librariesSpecificationUri,
       this.compileSdk: false,
       this.targetFlags: const TargetFlags(),
@@ -301,7 +298,6 @@ Future<TestResult<T>> runTestForConfig<T>(
   options.debugDump = printCode;
   options.target = new NoneTarget(config.targetFlags);
   options.experimentalFlags.addAll(config.experimentalFlags);
-  options.allowedExperimentalFlags = config.allowedExperimentalFlags;
   options.nnbdMode = config.nnbdMode;
   if (config.librariesSpecificationUri != null) {
     Set<Uri> testFiles =

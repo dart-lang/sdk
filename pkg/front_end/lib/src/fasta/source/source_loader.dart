@@ -256,16 +256,16 @@ class SourceLoader extends Loader {
     ScannerResult result = scan(bytes,
         includeComments: includeComments,
         configuration: new ScannerConfiguration(
-            enableTripleShift: library.enableTripleShiftInLibrary,
-            enableExtensionMethods: library.enableExtensionMethodsInLibrary,
+            enableTripleShift: target.enableTripleShift,
+            enableExtensionMethods: target.enableExtensionMethods,
             enableNonNullable: library.isNonNullableByDefault),
         languageVersionChanged:
             (Scanner scanner, LanguageVersionToken version) {
       library.setLanguageVersion(new Version(version.major, version.minor),
           offset: version.offset, length: version.length, explicit: true);
       scanner.configuration = new ScannerConfiguration(
-          enableTripleShift: library.enableTripleShiftInLibrary,
-          enableExtensionMethods: library.enableExtensionMethodsInLibrary,
+          enableTripleShift: target.enableTripleShift,
+          enableExtensionMethods: target.enableExtensionMethods,
           enableNonNullable: library.isNonNullableByDefault);
     });
     Token token = result.tokens;

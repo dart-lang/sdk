@@ -5,7 +5,6 @@
 import 'dart:io' show Directory, Platform;
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
-import 'package:front_end/src/api_prototype/experimental_flags.dart';
 
 import 'package:front_end/src/fasta/builder/class_builder.dart';
 import 'package:front_end/src/fasta/builder/extension_builder.dart';
@@ -29,8 +28,7 @@ main(List<String> args) async {
       onFailure: onFailure,
       runTest: runTestFor(const ExtensionsDataComputer(), [
         new TestConfig(cfeMarker, 'cfe',
-            librariesSpecificationUri: createUriForFileName('libraries.json'),
-            allowedExperimentalFlags: const AllowedExperimentalFlags())
+            librariesSpecificationUri: createUriForFileName('libraries.json'))
       ]));
 }
 

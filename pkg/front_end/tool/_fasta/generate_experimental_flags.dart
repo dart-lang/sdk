@@ -22,7 +22,7 @@ main(List<String> arguments) {
 
 Uri computeCfeGeneratedFile() {
   return Platform.script
-      .resolve("../../lib/src/api_prototype/experimental_flags_generated.dart");
+      .resolve("../../lib/src/api_prototype/experimental_flags.dart");
 }
 
 Uri computeKernelGeneratedFile() {
@@ -91,7 +91,7 @@ String generateCfeFile() {
   StringBuffer sb = new StringBuffer();
 
   sb.write('''
-// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -100,7 +100,8 @@ String generateCfeFile() {
 // Instead modify 'tools/experimental_features.yaml' and run
 // 'dart pkg/front_end/tool/fasta.dart generate-experimental-flags' to update.
 
-part of 'experimental_flags.dart';
+import 'package:_fe_analyzer_shared/src/sdk/allowed_experiments.dart';
+import 'package:kernel/kernel.dart' show Version;
 ''');
 
   Map<dynamic, dynamic> features = yaml['features'];
@@ -181,33 +182,32 @@ const Map<ExperimentalFlag, bool> expiredExperimentalFlags = {
       new File.fromUri(allowListFile).readAsStringSync());
 
   sb.write('''
-const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
-    const AllowedExperimentalFlags(
+const AllowedExperiments allowedExperiments = const AllowedExperiments(
 ''');
-  sb.writeln('sdkDefaultExperiments: {');
+  sb.writeln('sdkDefaultExperiments: [');
   for (String sdkDefaultExperiment
       in allowedExperiments.sdkDefaultExperiments) {
-    sb.writeln('ExperimentalFlag.${keyToIdentifier(sdkDefaultExperiment)},');
+    sb.writeln('"$sdkDefaultExperiment",');
   }
-  sb.writeln('},');
+  sb.writeln('],');
   sb.writeln('sdkLibraryExperiments: {');
   allowedExperiments.sdkLibraryExperiments
       .forEach((String library, List<String> experiments) {
-    sb.writeln('"$library": {');
+    sb.writeln('"$library": [');
     for (String experiment in experiments) {
-      sb.writeln('ExperimentalFlag.${keyToIdentifier(experiment)},');
+      sb.writeln('"$experiment",');
     }
-    sb.writeln('},');
+    sb.writeln('],');
   });
   sb.writeln('},');
   sb.writeln('packageExperiments: {');
   allowedExperiments.packageExperiments
       .forEach((String package, List<String> experiments) {
-    sb.writeln('"$package": {');
+    sb.writeln('"$package": [');
     for (String experiment in experiments) {
-      sb.writeln('ExperimentalFlag.${keyToIdentifier(experiment)},');
+      sb.writeln('"$experiment",');
     }
-    sb.writeln('},');
+    sb.writeln('],');
   });
   sb.writeln('});');
 

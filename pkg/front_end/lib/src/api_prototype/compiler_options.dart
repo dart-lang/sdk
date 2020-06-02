@@ -16,7 +16,6 @@ import '../base/nnbd_mode.dart';
 
 import 'experimental_flags.dart'
     show
-        AllowedExperimentalFlags,
         defaultExperimentalFlags,
         ExperimentalFlag,
         expiredExperimentalFlags,
@@ -129,8 +128,6 @@ class CompilerOptions {
   /// explicitly enabled. Features mapping to `false` are explicitly disabled.
   /// Features not mentioned in the map will have their default value.
   Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{};
-
-  AllowedExperimentalFlags allowedExperimentalFlags;
 
   /// Environment map used when evaluating `bool.fromEnvironment`,
   /// `int.fromEnvironment` and `String.fromEnvironment` during constant
