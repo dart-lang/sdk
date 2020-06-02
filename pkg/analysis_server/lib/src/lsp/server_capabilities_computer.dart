@@ -323,6 +323,10 @@ class ServerCapabilitiesComputer {
       Method.textDocument_foldingRange,
       TextDocumentRegistrationOptions(allTypes),
     );
+    register(
+      dynamicRegistrations.didChangeConfiguration,
+      Method.workspace_didChangeConfiguration,
+    );
 
     await _applyRegistrations(registrations);
   }

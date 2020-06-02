@@ -46,10 +46,11 @@ Below is a list of LSP methods and their implementation status.
 | window/logMessage | ✅ | | | |
 | telemetry/event | | | | |
 | client/registerCapability | ✅ | ✅ | ✅ | ✅ |
-| client/unregisterCapability | ✅ | ✅ | ✅ | | Capabilities only change when using analyzer plugins
+| client/unregisterCapability | ✅ | ✅ | ✅ | ✅ |
 | workspace/workspaceFolders | | | | |
 | workspace/didChangeWorkspaceFolders | ✅ | ✅ | ✅ | ✅ |
-| workspace/configuration | | | | |
+| workspace/didChangeConfiguration | ✅ | ✅ | ✅ | ✅ |
+| workspace/configuration | ✅ | ✅ | ✅ | ✅ |
 | workspace/didChangeWatchedFiles | | | | | unused, server does own watching |
 | workspace/symbol | ✅ | ✅ | ✅ | ✅ |
 | workspace/executeCommand | ✅ | ✅ | ✅ | ✅ |

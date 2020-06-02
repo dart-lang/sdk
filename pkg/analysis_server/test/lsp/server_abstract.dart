@@ -278,6 +278,20 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
+  WorkspaceClientCapabilities withConfigurationSupport(
+    WorkspaceClientCapabilities source,
+  ) {
+    return extendWorkspaceCapabilities(source, {'configuration': true});
+  }
+
+  WorkspaceClientCapabilities withDidChangeConfigurationDynamicRegistration(
+    WorkspaceClientCapabilities source,
+  ) {
+    return extendWorkspaceCapabilities(source, {
+      'didChangeConfiguration': {'dynamicRegistration': true}
+    });
+  }
+
   WorkspaceClientCapabilities withDocumentChangesSupport(
     WorkspaceClientCapabilities source,
   ) {
@@ -961,6 +975,18 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return expectSuccessfulResponseTo<RangeAndPlaceholder>(request);
   }
 
+  /// Calls the supplied function and responds to any `workspace/configuration`
+  /// request with the supplied config.
+  Future<ResponseMessage> provideConfig(
+      Future<ResponseMessage> Function() f, Map<String, dynamic> config) {
+    return handleExpectedRequest<ResponseMessage, ConfigurationParams,
+        List<Map<String, dynamic>>>(
+      Method.workspace_configuration,
+      f,
+      handler: (configurationParams) => [config],
+    );
+  }
+
   /// Returns the range surrounded by `[[markers]]` in the provided string,
   /// excluding the markers themselves (as well as position markers `^` from
   /// the offsets).
@@ -1055,6 +1081,14 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         ResponseMessage(request.id, responseParams, null, jsonRpcVersion));
   }
 
+  Future<ResponseMessage> sendDidChangeConfiguration() {
+    final request = makeRequest(
+      Method.workspace_didChangeConfiguration,
+      DidChangeConfigurationParams(null),
+    );
+    return sendRequestToServer(request);
+  }
+
   void sendExit() {
     final request = makeRequest(Method.exit, null);
     sendRequestToServer(request);
@@ -1073,6 +1107,15 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   WorkspaceFolder toWorkspaceFolder(Uri uri) {
     return WorkspaceFolder(uri.toString(), path.basename(uri.toFilePath()));
+  }
+
+  /// Tells the server the config has changed, and provides the supplied config
+  /// when it requests the updated config.
+  Future<ResponseMessage> updateConfig(Map<String, dynamic> config) {
+    return provideConfig(
+      sendDidChangeConfiguration,
+      config,
+    );
   }
 
   Future<AnalyzerStatusParams> waitForAnalysisComplete() =>

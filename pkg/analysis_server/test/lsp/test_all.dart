@@ -14,6 +14,7 @@ import 'code_actions_fixes_test.dart' as code_actions_fixes;
 import 'code_actions_refactor_test.dart' as code_actions_refactor;
 import 'code_actions_source_test.dart' as code_actions_source;
 import 'completion_test.dart' as completion;
+import 'configuration_test.dart' as configuration;
 import 'definition_test.dart' as definition;
 import 'diagnostic_test.dart' as diagnostic;
 import 'document_changes_test.dart' as document_changes;
@@ -47,6 +48,7 @@ void main() {
     code_actions_source.main();
     code_actions_refactor.main();
     completion.main();
+    configuration.main();
     definition.main();
     diagnostic.main();
     document_changes.main();
