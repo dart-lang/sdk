@@ -44,7 +44,7 @@ vars = {
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
   "co19_rev": "9dacb12cf963ce92fb056b7f2fb87096fd576e9a",
-  "co19_2_rev": "ef2cb6474595d3ed60870e1a26e8913a980d6d59",
+  "co19_2_rev": "620c1148c8b7a3d7f74afacf348c46f109eb64f2",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
   # should be kept up to date with the revisions pulled by the Flutter engine.
