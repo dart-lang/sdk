@@ -187,7 +187,7 @@ class _DartDevelopmentServiceClient {
     // Unless otherwise specified, the request is forwarded to the VM service.
     // NOTE: This must be the last fallback registered.
     _clientPeer.registerFallback((parameters) async =>
-        await _vmServicePeer.sendRequest(parameters.method, parameters.asMap));
+        await _vmServicePeer.sendRequest(parameters.method, parameters.value));
   }
 
   static int _idCounter = 0;
