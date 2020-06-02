@@ -48,6 +48,10 @@ class ClientDynamicRegistrations {
   bool get definition =>
       _capabilities.textDocument?.definition?.dynamicRegistration ?? false;
 
+  bool get didChangeConfiguration =>
+      _capabilities.workspace?.didChangeConfiguration?.dynamicRegistration ??
+      false;
+
   bool get documentHighlights =>
       _capabilities.textDocument?.documentHighlight?.dynamicRegistration ??
       false;
@@ -224,26 +228,27 @@ class ServerCapabilitiesComputer {
       }
     }
 
-    final textCapabilities = _server.clientCapabilities?.textDocument;
+    final dynamicRegistrations =
+        ClientDynamicRegistrations(_server.clientCapabilities);
 
     register(
-      textCapabilities?.synchronization?.dynamicRegistration,
+      dynamicRegistrations.textSync,
       Method.textDocument_didOpen,
       TextDocumentRegistrationOptions(allSynchronisedTypes),
     );
     register(
-      textCapabilities?.synchronization?.dynamicRegistration,
+      dynamicRegistrations.textSync,
       Method.textDocument_didClose,
       TextDocumentRegistrationOptions(allSynchronisedTypes),
     );
     register(
-      textCapabilities?.synchronization?.dynamicRegistration,
+      dynamicRegistrations.textSync,
       Method.textDocument_didChange,
       TextDocumentChangeRegistrationOptions(
           TextDocumentSyncKind.Incremental, allSynchronisedTypes),
     );
     register(
-      _server.clientCapabilities?.textDocument?.completion?.dynamicRegistration,
+      dynamicRegistrations.completion,
       Method.textDocument_completion,
       CompletionRegistrationOptions(
         dartCompletionTriggerCharacters,
@@ -253,38 +258,38 @@ class ServerCapabilitiesComputer {
       ),
     );
     register(
-      textCapabilities?.hover?.dynamicRegistration,
+      dynamicRegistrations.hover,
       Method.textDocument_hover,
       TextDocumentRegistrationOptions(allTypes),
     );
     register(
-      textCapabilities?.signatureHelp?.dynamicRegistration,
+      dynamicRegistrations.signatureHelp,
       Method.textDocument_signatureHelp,
       SignatureHelpRegistrationOptions(
           dartSignatureHelpTriggerCharacters, allTypes),
     );
     register(
-      _server.clientCapabilities?.textDocument?.references?.dynamicRegistration,
+      dynamicRegistrations.references,
       Method.textDocument_references,
       TextDocumentRegistrationOptions(allTypes),
     );
     register(
-      textCapabilities?.documentHighlight?.dynamicRegistration,
+      dynamicRegistrations.documentHighlights,
       Method.textDocument_documentHighlight,
       TextDocumentRegistrationOptions(allTypes),
     );
     register(
-      textCapabilities?.documentSymbol?.dynamicRegistration,
+      dynamicRegistrations.documentSymbol,
       Method.textDocument_documentSymbol,
       TextDocumentRegistrationOptions(allTypes),
     );
     register(
-      _server.clientCapabilities?.textDocument?.formatting?.dynamicRegistration,
+      dynamicRegistrations.formatting,
       Method.textDocument_formatting,
       TextDocumentRegistrationOptions(allTypes),
     );
     register(
-      textCapabilities?.onTypeFormatting?.dynamicRegistration,
+      dynamicRegistrations.typeFormatting,
       Method.textDocument_onTypeFormatting,
       DocumentOnTypeFormattingRegistrationOptions(
         dartTypeFormattingCharacters.first,
@@ -293,28 +298,28 @@ class ServerCapabilitiesComputer {
       ),
     );
     register(
-      _server.clientCapabilities?.textDocument?.definition?.dynamicRegistration,
+      dynamicRegistrations.definition,
       Method.textDocument_definition,
       TextDocumentRegistrationOptions(allTypes),
     );
     register(
-      textCapabilities?.implementation?.dynamicRegistration,
+      dynamicRegistrations.implementation,
       Method.textDocument_implementation,
       TextDocumentRegistrationOptions(allTypes),
     );
     register(
-      _server.clientCapabilities?.textDocument?.codeAction?.dynamicRegistration,
+      dynamicRegistrations.codeActions,
       Method.textDocument_codeAction,
       CodeActionRegistrationOptions(
           allTypes, DartCodeActionKind.serverSupportedKinds),
     );
     register(
-      textCapabilities?.rename?.dynamicRegistration,
+      dynamicRegistrations.rename,
       Method.textDocument_rename,
       RenameRegistrationOptions(true, allTypes),
     );
     register(
-      textCapabilities?.foldingRange?.dynamicRegistration,
+      dynamicRegistrations.folding,
       Method.textDocument_foldingRange,
       TextDocumentRegistrationOptions(allTypes),
     );

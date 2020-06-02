@@ -82,6 +82,15 @@ abstract class AbstractLspAnalysisServerTest
     }
   }
 
+  /// Finds the registration for a given LSP method.
+  Registration registrationFor(
+    List<Registration> registrations,
+    Method method,
+  ) {
+    return registrations.singleWhere((r) => r.method == method.toJson(),
+        orElse: () => null);
+  }
+
   @override
   Future sendNotificationToServer(NotificationMessage notification) async {
     channel.sendNotificationToServer(notification);
@@ -896,6 +905,21 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   RequestMessage makeRequest(Method method, ToJsonable params) {
     final id = Either2<num, String>.t1(_id++);
     return RequestMessage(id, method, params, jsonRpcVersion);
+  }
+
+  /// Watches for `client/registerCapability` requests and updates
+  /// `registrations`.
+  Future<ResponseMessage> monitorDynamicRegistrations(
+    List<Registration> registrations,
+    Future<ResponseMessage> Function() f,
+  ) {
+    return handleExpectedRequest<ResponseMessage, RegistrationParams, void>(
+      Method.client_registerCapability,
+      f,
+      handler: (registrationParams) {
+        registrations.addAll(registrationParams.registrations);
+      },
+    );
   }
 
   Future openFile(Uri uri, String content, {num version = 1}) async {
