@@ -27,5 +27,15 @@ class ClassID {
   @pragma("vm:entry-point")
   static final int cidUint8Array = 0;
   @pragma("vm:entry-point")
+  static final int cidInt8ArrayView = 0;
+  @pragma("vm:entry-point")
   static final int cidInt8Array = 0;
+  @pragma("vm:entry-point")
+  static final int cidExternalUint8Array = 0;
+  @pragma("vm:entry-point")
+  static final int cidExternalInt8Array = 0;
+  @pragma("vm:entry-point")
+  static final int cidUint8ClampedArray = 0;
+  @pragma("vm:entry-point")
+  static final int cidExternalUint8ClampedArray = 0;
 }
