@@ -4,17 +4,34 @@
 
 // test w/ `pub run test -N prefer_is_empty`
 
+const l = '';
+const bool empty = l.length == 0; //OK
+
+class A {
+  final List<String> a;
+  const A(this.a) : assert(a.length > 0); //OK
+}
+
+class B {
+  final String b;
+  const B(this.b) : assert(b.length > 0); //OK
+}
+
+class C {
+  final bool empty;
+  const C(dynamic l) : this.empty = l.length == 0; //OK
+}
+
+
 const int zero = 0;
 Iterable<int> list = [];
 Map map = {};
 
 Iterable get iterable => [];
 
-typedef Iterable F();
+typedef F = Iterable Function();
 
-F a() {
-  return () => [];
-}
+F a() => () => [];
 
 bool le = list.length > 0; //LINT
 bool le2 = [].length > 0; //LINT
@@ -30,14 +47,14 @@ bool mixed = list.length + map.length > 0; //OK
 Iterable length = [];
 bool ok = length.first > 0; // OK
 
-condition() {
+void condition() {
   final int a = list.length > 0 ? list.first : 0; //LINT
   list..length;
 }
 
 bool le7 = [].length > 1; //OK
 
-testOperators() {
+void testOperators() {
   [].length == 0; // LINT
   [].length != 0; // LINT
   [].length > 0; // LINT
