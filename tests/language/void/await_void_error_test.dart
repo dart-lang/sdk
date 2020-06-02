@@ -14,23 +14,24 @@ void main() async {
   await print('');
   //    ^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  // [cfe] This expression has type 'void' and can't be used.
 
   await v;
   //    ^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  // [cfe] This expression has type 'void' and can't be used.
 
   await vs[0];
   //    ^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  //      ^
+  // [cfe] This expression has type 'void' and can't be used.
 
   var v2 = vs[0];
   await v2;
   //    ^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  // [cfe] This expression has type 'void' and can't be used.
 
   // A `FutureOr<void>` can be awaited.
   await fov;

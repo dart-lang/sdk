@@ -1,0 +1,5 @@
+Future<void> returnFutureOfVoid() async {}
+void returnVoid() {}
+void returnVoidAsync() async {}
+test() async {}
+main() async {}
