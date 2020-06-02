@@ -15,14 +15,14 @@ class NavIsolateMenuElement extends CustomElement implements Renderable {
   static const tag = const Tag<NavIsolateMenuElement>('nav-isolate-menu',
       dependencies: const [NavMenuItemElement.tag]);
 
-  late RenderingScheduler<NavIsolateMenuElement> _r;
+  RenderingScheduler<NavIsolateMenuElement> _r;
 
   Stream<RenderedEvent<NavIsolateMenuElement>> get onRendered => _r.onRendered;
 
-  late M.IsolateRef _isolate;
-  late M.EventRepository _events;
-  StreamSubscription? _updatesSubscription;
-  late Iterable<Element> _content = const [];
+  M.IsolateRef _isolate;
+  M.EventRepository _events;
+  StreamSubscription _updatesSubscription;
+  Iterable<Element> _content = const [];
 
   M.IsolateRef get isolate => _isolate;
   Iterable<Element> get content => _content;
@@ -33,7 +33,7 @@ class NavIsolateMenuElement extends CustomElement implements Renderable {
   }
 
   factory NavIsolateMenuElement(M.IsolateRef isolate, M.EventRepository events,
-      {RenderingQueue? queue}) {
+      {RenderingQueue queue}) {
     assert(isolate != null);
     assert(events != null);
     NavIsolateMenuElement e = new NavIsolateMenuElement.created();
@@ -63,7 +63,7 @@ class NavIsolateMenuElement extends CustomElement implements Renderable {
     children = <Element>[];
     _r.disable(notify: true);
     assert(_updatesSubscription != null);
-    _updatesSubscription!.cancel();
+    _updatesSubscription.cancel();
     _updatesSubscription = null;
   }
 
@@ -104,7 +104,7 @@ class NavIsolateMenuElement extends CustomElement implements Renderable {
           .element,
     ]..addAll(_content);
     children = <Element>[
-      navMenu(isolate.name!, content: content, link: Uris.inspect(isolate))
+      navMenu(isolate.name, content: content, link: Uris.inspect(isolate))
     ];
   }
 }

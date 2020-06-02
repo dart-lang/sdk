@@ -1,10 +1,7 @@
 analyzer:
-  enable-experiment:
-    - non-nullable
   errors:
     dead_code: ignore
     unused_local_variable: ignore
-    getter_not_subtype_setter_types: ignore
   exclude:
     - tests/service/bad_reload/v2/main.dart
     - tests/service/complex_reload/v2/main.dart

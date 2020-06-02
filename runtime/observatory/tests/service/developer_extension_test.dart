@@ -16,7 +16,7 @@ Future<ServiceExtensionResponse> Handler(String method, Map paremeters) {
   print('Invoked extension: $method');
   switch (method) {
     case 'ext..delay':
-      var c = new Completer<ServiceExtensionResponse>();
+      Completer c = new Completer<ServiceExtensionResponse>();
       new Timer(new Duration(seconds: 1), () {
         c.complete(new ServiceExtensionResponse.result(jsonEncode({
           'type': '_delayedType',
@@ -39,7 +39,6 @@ Future<ServiceExtensionResponse> Handler(String method, Map paremeters) {
         'parameters': paremeters,
       })));
   }
-  throw "Unknown extension: $method";
 }
 
 void test() {
@@ -75,7 +74,7 @@ var tests = <IsolateTest>[
     expect(event.kind, equals(ServiceEvent.kExtension));
     expect(event.extensionKind, equals('ALPHA'));
     expect(event.extensionData, new isInstanceOf<Map>());
-    expect(event.extensionData!['cat'], equals('dog'));
+    expect(event.extensionData['cat'], equals('dog'));
   }),
   hasStoppedAtBreakpoint,
   resumeIsolateAndAwaitEvent(VM.kIsolateStream, (ServiceEvent event) {

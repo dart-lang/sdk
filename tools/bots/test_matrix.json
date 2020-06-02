@@ -1206,8 +1206,7 @@
             "corelib",
             "ffi",
             "language",
-            "lib",
-            "service"
+            "lib"
           ]
         },
         {
@@ -1473,8 +1472,7 @@
             "ffi",
             "language",
             "lib",
-            "standalone/io",
-            "service"
+            "standalone/io"
           ]
         },
         {
@@ -1664,8 +1662,7 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-ndartk-${sanitizer}-${system}-${mode}-${arch}",
-            "--exclude_suite=service"
+            "-ndartk-${sanitizer}-${system}-${mode}-${arch}"
           ]
         }
       ]
@@ -1817,8 +1814,7 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-ndartk-${system}-${mode}-${arch}",
-            "--exclude_suite=service"
+            "-ndartk-${system}-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
           "shards": 10
@@ -1851,7 +1847,6 @@
             "language",
             "lib",
             "co19",
-            "service",
             "standalone/io"
           ]
         },
@@ -1893,8 +1888,7 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-ndartk-${system}-${mode}-${arch}",
-            "--exclude_suite=service"
+            "-ndartk-${system}-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
           "shards": 10
@@ -1928,8 +1922,7 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-ndartk-checked-linux-release-x64",
-            "--exclude_suite=service"
+            "-ndartk-checked-linux-release-x64"
           ],
           "fileset": "vm-kernel",
           "shards": 10
@@ -1954,8 +1947,7 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-ndartk-${system}-${mode}-${arch}",
-            "--exclude_suite=service"
+            "-ndartk-${system}-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
           "shards": 1
@@ -2306,8 +2298,7 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-ndartk-optcounter-linux-release-${arch}",
-            "--exclude_suite=service"
+            "-ndartk-optcounter-linux-release-${arch}"
           ],
           "fileset": "vm-kernel",
           "shards": 10
@@ -2333,8 +2324,7 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-ndartk-reload-${system}-${mode}-${arch}",
-            "--exclude_suite=service"
+            "-ndartk-reload-${system}-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
           "shards": 10
@@ -2360,8 +2350,7 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-ndartk-reload-rollback-linux-${mode}-x64",
-            "--exclude_suite=service"
+            "-ndartk-reload-rollback-linux-${mode}-x64"
           ],
           "fileset": "vm-kernel",
           "shards": 10
@@ -2451,8 +2440,6 @@
           "arguments": [
             "-ndart2js-hostasserts-linux-ia32-d8",
             "--dart2js-batch",
-            "--enable-experiment=non-nullable",
-            "--dart2js-options=--no-sound-null-safety",
             "observatory_ui"
           ]
         },
@@ -2558,8 +2545,6 @@
             "-ndart2js-${system}-${runtime}",
             "--dart2js-batch",
             "--reset-browser-configuration",
-            "--enable-experiment=non-nullable",
-            "--dart2js-options=--no-sound-null-safety",
             "observatory_ui"
           ]
         },
@@ -2613,8 +2598,6 @@
           "arguments": [
             "-ndart2js-minified-linux-d8",
             "--dart2js-batch",
-            "--enable-experiment=non-nullable",
-            "--dart2js-options=--no-sound-null-safety",
             "observatory_ui"
           ]
         },
@@ -2689,8 +2672,6 @@
             "-ndart2js-minified-csp-linux-chrome",
             "--dart2js-batch",
             "--reset-browser-configuration",
-            "--enable-experiment=non-nullable",
-            "--dart2js-options=--no-sound-null-safety",
             "observatory_ui"
           ]
         },
@@ -3048,8 +3029,7 @@
         {
           "name": "analyze tests enable-asserts",
           "arguments": [
-            "-nanalyzer-asserts-${system}",
-            "--exclude-suite=service"
+            "-nanalyzer-asserts-${system}"
           ]
         },
         {
@@ -3141,7 +3121,6 @@
             "ffi",
             "language",
             "lib",
-            "service",
             "standalone"
           ]
         },
@@ -3413,15 +3392,14 @@
           "name": "analyze runtime/observatory",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": [
-            "--enable-experiment=non-nullable",
+            "--fatal-warnings",
             "runtime/observatory"
           ]
         },
         {
           "name": "dartanalyzer --batch tests",
           "arguments": [
-            "-nanalyzer-${system}",
-            "--exclude-suite=service"
+            "-nanalyzer-${system}"
           ]
         },
         {

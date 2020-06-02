@@ -14,20 +14,20 @@ class MegamorphicCacheRefElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<MegamorphicCacheRefElement>('megamorphic-cache-ref');
 
-  late RenderingScheduler<MegamorphicCacheRefElement> _r;
+  RenderingScheduler<MegamorphicCacheRefElement> _r;
 
   Stream<RenderedEvent<MegamorphicCacheRefElement>> get onRendered =>
       _r.onRendered;
 
-  late M.IsolateRef _isolate;
-  late M.MegamorphicCacheRef _cache;
+  M.IsolateRef _isolate;
+  M.MegamorphicCacheRef _cache;
 
   M.IsolateRef get isolate => _isolate;
   M.MegamorphicCacheRef get cache => _cache;
 
   factory MegamorphicCacheRefElement(
       M.IsolateRef isolate, M.MegamorphicCacheRef cache,
-      {RenderingQueue? queue}) {
+      {RenderingQueue queue}) {
     assert(isolate != null);
     assert(cache != null);
     MegamorphicCacheRefElement e = new MegamorphicCacheRefElement.created();

@@ -29,7 +29,7 @@ class Utils {
   static String zeroPad(int value, int pad) {
     String prefix = "";
     while (pad > 1) {
-      int pow10 = pow(10, pad - 1) as int;
+      int pow10 = pow(10, pad - 1);
       if (value < pow10) {
         prefix = prefix + "0";
       }
@@ -289,7 +289,7 @@ class Utils {
 
 /// A [Task] that can be scheduled on the Dart event queue.
 class Task {
-  Timer? _timer;
+  Timer _timer;
   final Function callback;
 
   Task(this.callback);

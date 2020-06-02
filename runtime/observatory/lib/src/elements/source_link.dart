@@ -16,21 +16,21 @@ import 'package:observatory/src/elements/helpers/uris.dart';
 class SourceLinkElement extends CustomElement implements Renderable {
   static const tag = const Tag<SourceLinkElement>('source-link');
 
-  late RenderingScheduler<SourceLinkElement> _r;
+  RenderingScheduler<SourceLinkElement> _r;
 
   Stream<RenderedEvent<SourceLinkElement>> get onRendered => _r.onRendered;
 
-  late IsolateRef _isolate;
-  late SourceLocation _location;
-  Script? _script;
-  late ScriptRepository _repository;
+  IsolateRef _isolate;
+  SourceLocation _location;
+  Script _script;
+  ScriptRepository _repository;
 
   IsolateRef get isolate => _isolate;
   SourceLocation get location => _location;
 
   factory SourceLinkElement(
       IsolateRef isolate, SourceLocation location, ScriptRepository repository,
-      {RenderingQueue? queue}) {
+      {RenderingQueue queue}) {
     assert(isolate != null);
     assert(location != null);
     SourceLinkElement e = new SourceLinkElement.created();
@@ -46,7 +46,7 @@ class SourceLinkElement extends CustomElement implements Renderable {
   @override
   void attached() {
     super.attached();
-    _repository.get(_isolate, _location.script.id!).then((script) {
+    _repository.get(_isolate, _location.script.id).then((script) {
       _script = script;
       _r.dirty();
     }, onError: (e) {
@@ -77,14 +77,14 @@ class SourceLinkElement extends CustomElement implements Renderable {
     if (_script == null) {
       children = <Element>[new SpanElement()..text = '<LOADING>'];
     } else {
-      String label = _script!.uri!.split('/').last;
-      int? token = _location.tokenPos;
-      int? line = _script!.tokenToLine(token);
-      int? column = _script!.tokenToCol(token);
+      String label = _script.uri.split('/').last;
+      int token = _location.tokenPos;
+      int line = _script.tokenToLine(token);
+      int column = _script.tokenToCol(token);
       children = <Element>[
         new AnchorElement(
-            href: Uris.inspect(isolate, object: _script!, pos: token))
-          ..title = _script!.uri!
+            href: Uris.inspect(isolate, object: _script, pos: token))
+          ..title = _script.uri
           ..text = '${label}:${line}:${column}'
       ];
     }

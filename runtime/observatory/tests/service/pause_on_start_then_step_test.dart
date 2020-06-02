@@ -41,13 +41,13 @@ var tests = <IsolateTest>[
     print('Done waiting for pause event.');
 
     // Grab the timestamp.
-    var pausetime1 = isolate.pauseEvent!.timestamp;
+    var pausetime1 = isolate.pauseEvent.timestamp;
     expect(pausetime1, isNotNull);
     // Reload the isolate.
     await isolate.reload();
     // Verify that it is the same.
     expect(pausetime1.millisecondsSinceEpoch,
-        equals(isolate.pauseEvent!.timestamp.millisecondsSinceEpoch));
+        equals(isolate.pauseEvent.timestamp.millisecondsSinceEpoch));
 
     completer = new Completer();
     stream = await isolate.vm.getEventStream(VM.kDebugStream);
@@ -69,7 +69,7 @@ var tests = <IsolateTest>[
 
     // Grab the timestamp.
     print('Getting pausevent timestamp');
-    var pausetime2 = isolate.pauseEvent!.timestamp;
+    var pausetime2 = isolate.pauseEvent.timestamp;
     expect(pausetime2, isNotNull);
     // Reload the isolate.
     print('Reloading isolate');
@@ -77,7 +77,7 @@ var tests = <IsolateTest>[
     print('Reload finished');
     // Verify that it is the same.
     expect(pausetime2.millisecondsSinceEpoch,
-        equals(isolate.pauseEvent!.timestamp.millisecondsSinceEpoch));
+        equals(isolate.pauseEvent.timestamp.millisecondsSinceEpoch));
 
     expect(pausetime2.millisecondsSinceEpoch,
         greaterThan(pausetime1.millisecondsSinceEpoch));

@@ -14,7 +14,7 @@ class ObservatoryApplicationElement extends CustomElement {
   static const tag =
       const Tag<ObservatoryApplicationElement>('observatory-application');
 
-  late ObservatoryApplication app;
+  ObservatoryApplication app;
 
   ObservatoryApplicationElement.created() : super.created(tag);
 

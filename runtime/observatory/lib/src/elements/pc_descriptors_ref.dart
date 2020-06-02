@@ -12,20 +12,20 @@ import 'package:observatory/src/elements/helpers/uris.dart';
 class PcDescriptorsRefElement extends CustomElement implements Renderable {
   static const tag = const Tag<PcDescriptorsRefElement>('pc-ref');
 
-  late RenderingScheduler<PcDescriptorsRefElement> _r;
+  RenderingScheduler<PcDescriptorsRefElement> _r;
 
   Stream<RenderedEvent<PcDescriptorsRefElement>> get onRendered =>
       _r.onRendered;
 
-  late M.IsolateRef _isolate;
-  late M.PcDescriptorsRef _descriptors;
+  M.IsolateRef _isolate;
+  M.PcDescriptorsRef _descriptors;
 
   M.IsolateRef get isolate => _isolate;
   M.PcDescriptorsRef get descriptors => _descriptors;
 
   factory PcDescriptorsRefElement(
       M.IsolateRef isolate, M.PcDescriptorsRef descriptors,
-      {RenderingQueue? queue}) {
+      {RenderingQueue queue}) {
     assert(isolate != null);
     assert(descriptors != null);
     PcDescriptorsRefElement e = new PcDescriptorsRefElement.created();

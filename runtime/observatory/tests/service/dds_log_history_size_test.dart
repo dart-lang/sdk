@@ -33,7 +33,7 @@ Future setLogHistorySize(Isolate isolate, int size) async {
 Future<int> getLogHistorySize(Isolate isolate) async {
   final result = await isolate.invokeRpcNoUpgrade('getLogHistorySize', {});
   expect(result['type'], 'Size');
-  return result['size'] as int;
+  return result['size'];
 }
 
 var tests = <IsolateTest>[
@@ -59,7 +59,7 @@ var tests = <IsolateTest>[
     // With the log history set to 20, the first log message should be 'log11'
     int i = 11;
     await subscribeToStream(isolate.vm, 'Logging', (event) async {
-      expect(event.logRecord!['message'].valueAsString, 'log$i');
+      expect(event.logRecord['message'].valueAsString, 'log$i');
       i++;
 
       if (i == 30) {

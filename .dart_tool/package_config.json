@@ -427,12 +427,12 @@
       "name": "observatory",
       "rootUri": "../runtime/observatory",
       "packageUri": "lib/",
-      "languageVersion": "2.9"
+      "languageVersion": "2.2"
     },
     {
       "name": "observatory_test_package",
       "rootUri": "../runtime/observatory/tests/service/observatory_test_package",
-      "languageVersion": "2.9"
+      "languageVersion": "2.7"
     },
     {
       "name": "package_config",

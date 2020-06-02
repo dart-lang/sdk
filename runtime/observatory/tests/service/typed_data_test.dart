@@ -78,18 +78,18 @@ void script() {
 var tests = <IsolateTest>[
   (Isolate isolate) async {
     script();
-    Library lib = await isolate.rootLibrary.load() as Library;
+    Library lib = await isolate.rootLibrary.load();
 
     // Pre-load all the fields so we don't use await below and get better
     // stacktraces.
     for (var v in lib.variables) {
       await v.load();
-      await v.staticValue!.load();
+      await v.staticValue.load();
     }
 
     expectTypedData(name, expectedValue) {
       var variable = lib.variables.singleWhere((v) => v.name == name);
-      var actualValue = (variable.staticValue as Instance).typedElements!;
+      var actualValue = (variable.staticValue as Instance).typedElements;
       if (expectedValue is Int32x4List) {
         expect(actualValue.length, equals(expectedValue.length));
         for (var i = 0; i < actualValue.length; i++) {

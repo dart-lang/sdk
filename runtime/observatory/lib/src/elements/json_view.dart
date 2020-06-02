@@ -22,18 +22,18 @@ class JSONViewElement extends CustomElement implements Renderable {
         ViewFooterElement.tag
       ]);
 
-  late RenderingScheduler<JSONViewElement> _r;
+  RenderingScheduler<JSONViewElement> _r;
 
   Stream<RenderedEvent<JSONViewElement>> get onRendered => _r.onRendered;
 
-  late M.NotificationRepository _notifications;
-  late Map _map;
+  M.NotificationRepository _notifications;
+  Map _map;
 
   M.NotificationRepository get notifications => _notifications;
   Map get map => _map;
 
   factory JSONViewElement(Map map, M.NotificationRepository notifications,
-      {RenderingQueue? queue}) {
+      {RenderingQueue queue}) {
     assert(notifications != null);
     assert(map != null);
     JSONViewElement e = new JSONViewElement.created();

@@ -47,7 +47,7 @@ class NotificationRepository implements M.NotificationRepository {
     if (_list.length != length) _notify();
   }
 
-  void deletePauseEvents({M.Isolate? isolate}) {
+  void deletePauseEvents({M.Isolate isolate}) {
     if (isolate == null) {
       deleteWhere((notification) {
         return notification is M.EventNotification &&

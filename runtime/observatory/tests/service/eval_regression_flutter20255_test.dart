@@ -36,7 +36,7 @@ class ISub<T> implements Base<T> {
 }
 
 class Box<T> {
-  late T value;
+  T value;
 
   @pragma('vm:never-inline')
   void setValue(T value) {

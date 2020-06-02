@@ -12,15 +12,14 @@ testeeMain() {}
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {
-    Library lib = await isolate.rootLibrary.load() as Library;
+    Library lib = await isolate.rootLibrary.load();
 
-    Instance result =
-        await lib.evaluate("escapedClosure = (x, y) => x + y") as Instance;
+    Instance result = await lib.evaluate("escapedClosure = (x, y) => x + y");
     print(result);
-    expect(result.clazz!.name, startsWith('_Closure'));
+    expect(result.clazz.name, startsWith('_Closure'));
 
     for (var i = 0; i < 100; i++) {
-      result = await lib.evaluate("escapedClosure(3, 4)") as Instance;
+      result = await lib.evaluate("escapedClosure(3, 4)");
       print(result);
       expect(result.valueAsString, equals('7'));
     }

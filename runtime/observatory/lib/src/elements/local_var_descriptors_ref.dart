@@ -14,20 +14,20 @@ class LocalVarDescriptorsRefElement extends CustomElement
     implements Renderable {
   static const tag = const Tag<LocalVarDescriptorsRefElement>('var-ref');
 
-  late RenderingScheduler<LocalVarDescriptorsRefElement> _r;
+  RenderingScheduler<LocalVarDescriptorsRefElement> _r;
 
   Stream<RenderedEvent<LocalVarDescriptorsRefElement>> get onRendered =>
       _r.onRendered;
 
-  late M.IsolateRef _isolate;
-  late M.LocalVarDescriptorsRef _localVar;
+  M.IsolateRef _isolate;
+  M.LocalVarDescriptorsRef _localVar;
 
   M.IsolateRef get isolate => _isolate;
   M.LocalVarDescriptorsRef get localVar => _localVar;
 
   factory LocalVarDescriptorsRefElement(
       M.IsolateRef isolate, M.LocalVarDescriptorsRef localVar,
-      {RenderingQueue? queue}) {
+      {RenderingQueue queue}) {
     assert(isolate != null);
     assert(localVar != null);
     LocalVarDescriptorsRefElement e =

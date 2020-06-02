@@ -14,19 +14,19 @@ class IsolateLocationElement extends CustomElement implements Renderable {
   static const tag = const Tag<IsolateLocationElement>('isolate-location',
       dependencies: const [FunctionRefElement.tag, SourceLinkElement.tag]);
 
-  late RenderingScheduler<IsolateLocationElement> _r;
+  RenderingScheduler<IsolateLocationElement> _r;
 
   Stream<RenderedEvent<IsolateLocationElement>> get onRendered => _r.onRendered;
 
-  late M.Isolate _isolate;
-  late M.EventRepository _events;
-  late M.ScriptRepository _scripts;
-  late StreamSubscription _debugSubscription;
-  late StreamSubscription _isolateSubscription;
+  M.Isolate _isolate;
+  M.EventRepository _events;
+  M.ScriptRepository _scripts;
+  StreamSubscription _debugSubscription;
+  StreamSubscription _isolateSubscription;
 
   factory IsolateLocationElement(
       M.Isolate isolate, M.EventRepository events, M.ScriptRepository scripts,
-      {RenderingQueue? queue}) {
+      {RenderingQueue queue}) {
     assert(isolate != null);
     assert(events != null);
     assert(scripts != null);
@@ -66,12 +66,12 @@ class IsolateLocationElement extends CustomElement implements Renderable {
         children = <Element>[
           new SpanElement()..text = 'at ',
           new FunctionRefElement(
-                  _isolate, M.topFrame(_isolate.pauseEvent)!.function!,
+                  _isolate, M.topFrame(_isolate.pauseEvent).function,
                   queue: _r.queue)
               .element,
           new SpanElement()..text = ' (',
-          new SourceLinkElement(_isolate,
-                  M.topFrame(_isolate.pauseEvent)!.location!, _scripts,
+          new SourceLinkElement(
+                  _isolate, M.topFrame(_isolate.pauseEvent).location, _scripts,
                   queue: _r.queue)
               .element,
           new SpanElement()..text = ') '
@@ -95,12 +95,12 @@ class IsolateLocationElement extends CustomElement implements Renderable {
             content.addAll([
               new SpanElement()..text = ' at ',
               new FunctionRefElement(
-                      _isolate, M.topFrame(_isolate.pauseEvent)!.function!,
+                      _isolate, M.topFrame(_isolate.pauseEvent).function,
                       queue: _r.queue)
                   .element,
               new SpanElement()..text = ' (',
               new SourceLinkElement(_isolate,
-                      M.topFrame(_isolate.pauseEvent)!.location!, _scripts,
+                      M.topFrame(_isolate.pauseEvent).location, _scripts,
                       queue: _r.queue)
                   .element,
               new SpanElement()..text = ') '

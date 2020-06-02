@@ -13,13 +13,13 @@ import 'package:observatory/utils.dart';
 class LoggingListElement extends CustomElement implements Renderable {
   static const tag = const Tag<LoggingListElement>('logging-list');
 
-  late RenderingScheduler<LoggingListElement> _r;
+  RenderingScheduler<LoggingListElement> _r;
 
   Stream<RenderedEvent<LoggingListElement>> get onRendered => _r.onRendered;
 
-  late M.IsolateRef _isolate;
-  late M.EventRepository _events;
-  late StreamSubscription _subscription;
+  M.IsolateRef _isolate;
+  M.EventRepository _events;
+  StreamSubscription _subscription;
   Level _level = Level.ALL;
   final _logs = <Map>[];
 
@@ -29,7 +29,7 @@ class LoggingListElement extends CustomElement implements Renderable {
   set level(Level value) => _level = _r.checkAndReact(_level, value);
 
   factory LoggingListElement(M.IsolateRef isolate, M.EventRepository events,
-      {RenderingQueue? queue}) {
+      {RenderingQueue queue}) {
     assert(isolate != null);
     assert(events != null);
     LoggingListElement e = new LoggingListElement.created();

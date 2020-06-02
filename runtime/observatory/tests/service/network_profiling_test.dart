@@ -32,14 +32,14 @@ Future<void> socketTest() async {
   var socket = await io.Socket.connect(localhost, serverSocket.port);
   socket.write(content);
   await socket.flush();
-  socket.destroy();
+  await socket.destroy();
 
   // rawDatagram
   final doneCompleter = Completer<void>();
   var server = await io.RawDatagramSocket.bind(localhost, 0);
   server.listen((io.RawSocketEvent event) {
     if (event == io.RawSocketEvent.read) {
-      io.Datagram dg = server.receive()!;
+      io.Datagram dg = server.receive();
       if (!doneCompleter.isCompleted) {
         doneCompleter.complete();
       }
@@ -56,11 +56,11 @@ Future<void> socketTest() async {
   postEvent('socketTest', {'socket': 'test'});
 }
 
-void checkFinishEvent(ServiceEvent event) {
+Future<void> checkFinishEvent(ServiceEvent event) {
   expect(event.kind, equals(ServiceEvent.kExtension));
   expect(event.extensionKind, equals('socketTest'));
   expect(event.extensionData, isInstanceOf<Map>());
-  expect(event.extensionData!['socket'], equals('test'));
+  expect(event.extensionData['socket'], equals('test'));
 }
 
 var tests = <IsolateTest>[

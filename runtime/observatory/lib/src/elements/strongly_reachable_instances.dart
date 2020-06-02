@@ -17,16 +17,16 @@ class StronglyReachableInstancesElement extends CustomElement
       'strongly-reachable-instances',
       dependencies: const [CurlyBlockElement.tag, InstanceRefElement.tag]);
 
-  late RenderingScheduler<StronglyReachableInstancesElement> _r;
+  RenderingScheduler<StronglyReachableInstancesElement> _r;
 
   Stream<RenderedEvent<StronglyReachableInstancesElement>> get onRendered =>
       _r.onRendered;
 
-  late M.IsolateRef _isolate;
-  late M.ClassRef _cls;
-  late M.StronglyReachableInstancesRepository _stronglyReachableInstances;
-  late M.ObjectRepository _objects;
-  M.InstanceSet? _result;
+  M.IsolateRef _isolate;
+  M.ClassRef _cls;
+  M.StronglyReachableInstancesRepository _stronglyReachableInstances;
+  M.ObjectRepository _objects;
+  M.InstanceSet _result;
   bool _expanded = false;
 
   M.IsolateRef get isolate => _isolate;
@@ -37,7 +37,7 @@ class StronglyReachableInstancesElement extends CustomElement
       M.ClassRef cls,
       M.StronglyReachableInstancesRepository stronglyReachable,
       M.ObjectRepository objects,
-      {RenderingQueue? queue}) {
+      {RenderingQueue queue}) {
     assert(isolate != null);
     assert(cls != null);
     assert(stronglyReachable != null);
@@ -92,7 +92,7 @@ class StronglyReachableInstancesElement extends CustomElement
     if (_result == null) {
       return [new SpanElement()..text = 'Loading...'];
     }
-    final content = _result!.instances!
+    final content = _result.instances
         .map<Element>((sample) => new DivElement()
           ..children = <Element>[
             anyRef(_isolate, sample, _objects, queue: _r.queue)
@@ -101,13 +101,13 @@ class StronglyReachableInstancesElement extends CustomElement
     content.add(new DivElement()
       ..children = ([]
         ..addAll(_createShowMoreButton())
-        ..add(new SpanElement()..text = ' of total ${_result!.count}')));
+        ..add(new SpanElement()..text = ' of total ${_result.count}')));
     return content;
   }
 
   List<Element> _createShowMoreButton() {
-    final samples = _result!.instances!.toList();
-    if (samples.length == _result!.count) {
+    final samples = _result.instances.toList();
+    if (samples.length == _result.count) {
       return [];
     }
     final count = samples.length;

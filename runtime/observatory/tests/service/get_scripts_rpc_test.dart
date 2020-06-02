@@ -22,7 +22,7 @@ var tests = <VMTest>[
     var params = {
       'isolateId': 'badid',
     };
-    bool caughtException = false;
+    bool caughtException;
     try {
       await vm.invokeRpcNoUpgrade('getScripts', params);
       expect(false, isTrue, reason: 'Unreachable');

@@ -41,42 +41,42 @@ Future testerDo(Isolate isolate) async {
 
   Instance result;
 
-  result = await isolate.evalFrame(topFrame, '_local') as Instance;
+  result = await isolate.evalFrame(topFrame, '_local');
   print(result);
   expect(result.valueAsString, equals('Klass'));
 
-  result = await isolate.evalFrame(topFrame, '_instVar') as Instance;
+  result = await isolate.evalFrame(topFrame, '_instVar');
   print(result);
   expect(result.valueAsString, equals('Klass'));
 
-  result = await isolate.evalFrame(topFrame, 'instVar') as Instance;
+  result = await isolate.evalFrame(topFrame, 'instVar');
   print(result);
   expect(result.valueAsString, equals('Subclass'));
 
-  result = await isolate.evalFrame(topFrame, 'method()') as Instance;
+  result = await isolate.evalFrame(topFrame, 'method()');
   print(result);
   expect(result.valueAsString, equals('Subclass'));
 
-  result = await isolate.evalFrame(topFrame, 'super._instVar') as Instance;
+  result = await isolate.evalFrame(topFrame, 'super._instVar');
   print(result);
   expect(result.valueAsString, equals('Superclass'));
 
-  result = await isolate.evalFrame(topFrame, 'super.instVar') as Instance;
+  result = await isolate.evalFrame(topFrame, 'super.instVar');
   print(result);
   expect(result.valueAsString, equals('Superclass'));
 
-  result = await isolate.evalFrame(topFrame, 'super.method()') as Instance;
+  result = await isolate.evalFrame(topFrame, 'super.method()');
   print(result);
   expect(result.valueAsString, equals('Superclass'));
 
-  result = await isolate.evalFrame(topFrame, 'staticMethod()') as Instance;
+  result = await isolate.evalFrame(topFrame, 'staticMethod()');
   print(result);
   expect(result.valueAsString, equals('Klass'));
 
   // function.Owner verus function.Origin
   // The mixin of Superclass is in _other.dart and the mixin
   // application is in _test.dart.
-  result = await isolate.evalFrame(topFrame, 'topLevel') as Instance;
+  result = await isolate.evalFrame(topFrame, 'topLevel');
   print(result);
   expect(result.valueAsString, equals('OtherLibrary'));
 }

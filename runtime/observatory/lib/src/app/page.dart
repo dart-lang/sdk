@@ -55,7 +55,7 @@ RetainingPathRepository _retainingPathRepository =
 abstract class Page {
   final ObservatoryApplication app;
   final Map<String, String> internalArguments = <String, String>{};
-  HtmlElement? element;
+  HtmlElement element;
 
   Page(this.app);
 
@@ -70,7 +70,7 @@ abstract class Page {
   }
 
   /// Called when the page should update its state based on [uri].
-  void visit(Uri uri, Map<String, String> internalArguments) {
+  void visit(Uri uri, Map internalArguments) {
     this.internalArguments.clear();
     this.internalArguments.addAll(internalArguments);
     Analytics.reportPageView(uri);
@@ -96,7 +96,7 @@ abstract class MatchingPage extends Page {
 
   Future<Isolate> getIsolate(Uri uri) {
     var isolateId = uri.queryParameters['isolateId'];
-    return app.vm.getIsolate(isolateId!).then((isolate) {
+    return app.vm.getIsolate(isolateId).then((isolate) {
       if (isolate == null) {
         throw new IsolateNotFound(isolateId);
       }
@@ -107,6 +107,7 @@ abstract class MatchingPage extends Page {
   EditorRepository getEditor(Uri uri) {
     final editor = uri.queryParameters['editor'];
     return new EditorRepository(app.vm, editor: editor);
+    return null;
   }
 
   bool canVisit(Uri uri) => uri.path == path;
@@ -119,7 +120,7 @@ class SimplePage extends MatchingPage {
 
   void onInstall() {
     if (element == null) {
-      element = new Element.tag(elementTagName) as HtmlElement;
+      element = new Element.tag(elementTagName);
     }
   }
 }
@@ -169,7 +170,7 @@ class VMPage extends MatchingPage {
       return;
     }
     app.vm.reload().then((serviceObject) {
-      VM vm = serviceObject as VM;
+      VM vm = serviceObject;
       container.children = <Element>[
         new VMViewElement(
                 vm,
@@ -257,7 +258,7 @@ class InspectPage extends MatchingPage {
       container.children = <Element>[
         new ClassViewElement(
                 app.vm,
-                obj.isolate as Isolate,
+                obj.isolate,
                 obj,
                 app.events,
                 app.notifications,
@@ -280,7 +281,7 @@ class InspectPage extends MatchingPage {
       container.children = <Element>[
         new CodeViewElement(
                 app.vm,
-                obj.isolate as Isolate,
+                obj.isolate,
                 obj,
                 app.events,
                 app.notifications,
@@ -296,7 +297,7 @@ class InspectPage extends MatchingPage {
       container.children = <Element>[
         new ContextViewElement(
                 app.vm,
-                obj.isolate as Isolate,
+                obj.isolate,
                 obj,
                 app.events,
                 app.notifications,
@@ -317,7 +318,7 @@ class InspectPage extends MatchingPage {
       container.children = <Element>[
         new FieldViewElement(
                 app.vm,
-                obj.isolate as Isolate,
+                obj.isolate,
                 obj,
                 app.events,
                 app.notifications,
@@ -336,7 +337,7 @@ class InspectPage extends MatchingPage {
       container.children = <Element>[
         new InstanceViewElement(
                 app.vm,
-                obj.isolate as Isolate,
+                obj.isolate,
                 obj,
                 app.events,
                 app.notifications,
@@ -374,7 +375,7 @@ class InspectPage extends MatchingPage {
       container.children = <Element>[
         new FunctionViewElement(
                 app.vm,
-                obj.isolate as Isolate,
+                obj.isolate,
                 obj,
                 app.events,
                 app.notifications,
@@ -393,7 +394,7 @@ class InspectPage extends MatchingPage {
       container.children = <Element>[
         new ICDataViewElement(
                 app.vm,
-                obj.isolate as Isolate,
+                obj.isolate,
                 obj,
                 app.events,
                 app.notifications,
@@ -410,7 +411,7 @@ class InspectPage extends MatchingPage {
       container.children = <Element>[
         new SingleTargetCacheViewElement(
                 app.vm,
-                obj.isolate as Isolate,
+                obj.isolate,
                 obj,
                 app.events,
                 app.notifications,
@@ -427,7 +428,7 @@ class InspectPage extends MatchingPage {
       container.children = <Element>[
         new SubtypeTestCacheViewElement(
                 app.vm,
-                obj.isolate as Isolate,
+                obj.isolate,
                 obj,
                 app.events,
                 app.notifications,
@@ -444,7 +445,7 @@ class InspectPage extends MatchingPage {
       container.children = <Element>[
         new UnlinkedCallViewElement(
                 app.vm,
-                obj.isolate as Isolate,
+                obj.isolate,
                 obj,
                 app.events,
                 app.notifications,
@@ -461,7 +462,7 @@ class InspectPage extends MatchingPage {
       container.children = <Element>[
         new LibraryViewElement(
                 app.vm,
-                obj.isolate as Isolate,
+                obj.isolate,
                 obj,
                 app.events,
                 app.notifications,
@@ -481,7 +482,7 @@ class InspectPage extends MatchingPage {
       container.children = <Element>[
         new MegamorphicCacheViewElement(
                 app.vm,
-                obj.isolate as Isolate,
+                obj.isolate,
                 obj,
                 app.events,
                 app.notifications,
@@ -498,7 +499,7 @@ class InspectPage extends MatchingPage {
       container.children = <Element>[
         new ObjectPoolViewElement(
                 app.vm,
-                obj.isolate as Isolate,
+                obj.isolate,
                 obj,
                 app.events,
                 app.notifications,
@@ -515,13 +516,13 @@ class InspectPage extends MatchingPage {
       var pos;
       if (app.locationManager.internalArguments['pos'] != null) {
         try {
-          pos = int.parse(app.locationManager.internalArguments['pos']!);
+          pos = int.parse(app.locationManager.internalArguments['pos']);
         } catch (_) {}
       }
       container.children = <Element>[
         new ScriptViewElement(
                 app.vm,
-                obj.isolate as Isolate,
+                obj.isolate,
                 obj,
                 app.events,
                 app.notifications,
@@ -539,7 +540,7 @@ class InspectPage extends MatchingPage {
       container.children = <Element>[
         new ObjectViewElement(
                 app.vm,
-                obj.isolate as Isolate,
+                obj.isolate,
                 obj,
                 app.events,
                 app.notifications,
@@ -553,8 +554,8 @@ class InspectPage extends MatchingPage {
       ];
     } else if (obj is Sentinel) {
       container.children = <Element>[
-        new SentinelViewElement(app.vm, obj.isolate as Isolate, obj, app.events,
-                app.notifications,
+        new SentinelViewElement(
+                app.vm, obj.isolate, obj, app.events, app.notifications,
                 queue: app.queue)
             .element
       ];
@@ -911,8 +912,8 @@ class IsolateReconnectPage extends Page {
               app.vm,
               app.events,
               app.notifications,
-              uri.queryParameters['isolateId']!,
-              Uri.parse(uri.queryParameters['originalUri']!))
+              uri.queryParameters['isolateId'],
+              Uri.parse(uri.queryParameters['originalUri']))
           .element
     ];
     assert(element != null);
@@ -927,7 +928,7 @@ class MetricsPage extends MatchingPage {
 
   final DivElement container = new DivElement();
 
-  Isolate? lastIsolate;
+  Isolate lastIsolate;
 
   void _visit(Uri uri) {
     super._visit(uri);
@@ -953,7 +954,7 @@ class MetricsPage extends MatchingPage {
   @override
   void onUninstall() {
     super.onUninstall();
-    _metricRepository.stopSampling(lastIsolate!);
+    _metricRepository.stopSampling(lastIsolate);
     container.children = const [];
   }
 }

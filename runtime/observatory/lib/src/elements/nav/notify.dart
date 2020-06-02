@@ -17,14 +17,14 @@ class NavNotifyElement extends CustomElement implements Renderable {
         NavNotifyExceptionElement.tag
       ]);
 
-  late RenderingScheduler<NavNotifyElement> _r;
+  RenderingScheduler<NavNotifyElement> _r;
 
   Stream<RenderedEvent<NavNotifyElement>> get onRendered => _r.onRendered;
 
-  late M.NotificationRepository _repository;
-  StreamSubscription? _subscription;
+  M.NotificationRepository _repository;
+  StreamSubscription _subscription;
 
-  late bool _notifyOnPause;
+  bool _notifyOnPause;
 
   bool get notifyOnPause => _notifyOnPause;
 
@@ -32,7 +32,7 @@ class NavNotifyElement extends CustomElement implements Renderable {
       _notifyOnPause = _r.checkAndReact(_notifyOnPause, value);
 
   factory NavNotifyElement(M.NotificationRepository repository,
-      {bool notifyOnPause: true, RenderingQueue? queue}) {
+      {bool notifyOnPause: true, RenderingQueue queue}) {
     assert(repository != null);
     assert(notifyOnPause != null);
     NavNotifyElement e = new NavNotifyElement.created();
@@ -56,7 +56,7 @@ class NavNotifyElement extends CustomElement implements Renderable {
     super.detached();
     children = <Element>[];
     _r.disable(notify: true);
-    _subscription!.cancel();
+    _subscription.cancel();
   }
 
   void render() {

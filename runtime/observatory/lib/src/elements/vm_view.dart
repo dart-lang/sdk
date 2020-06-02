@@ -29,20 +29,20 @@ class VMViewElement extends CustomElement implements Renderable {
     ViewFooterElement.tag
   ]);
 
-  late RenderingScheduler<VMViewElement> _r;
+  RenderingScheduler<VMViewElement> _r;
 
   Stream<RenderedEvent<VMViewElement>> get onRendered => _r.onRendered;
 
-  late M.VM _vm;
-  late M.VMRepository _vms;
-  late M.EventRepository _events;
-  late M.NotificationRepository _notifications;
-  late M.IsolateRepository _isolates;
-  late M.IsolateGroupRepository _isolateGroups;
-  late M.ScriptRepository _scripts;
-  late StreamSubscription _vmSubscription;
-  late StreamSubscription _startSubscription;
-  late StreamSubscription _exitSubscription;
+  M.VM _vm;
+  M.VMRepository _vms;
+  M.EventRepository _events;
+  M.NotificationRepository _notifications;
+  M.IsolateRepository _isolates;
+  M.IsolateGroupRepository _isolateGroups;
+  M.ScriptRepository _scripts;
+  StreamSubscription _vmSubscription;
+  StreamSubscription _startSubscription;
+  StreamSubscription _exitSubscription;
 
   M.VMRef get vm => _vm;
   M.NotificationRepository get notifications => _notifications;
@@ -55,7 +55,7 @@ class VMViewElement extends CustomElement implements Renderable {
       M.IsolateRepository isolates,
       M.IsolateGroupRepository isolateGroups,
       M.ScriptRepository scripts,
-      {RenderingQueue? queue}) {
+      {RenderingQueue queue}) {
     assert(vm != null);
     assert(vms != null);
     assert(events != null);
@@ -81,7 +81,7 @@ class VMViewElement extends CustomElement implements Renderable {
     super.attached();
     _r.enable();
     _vmSubscription = _events.onVMUpdate.listen((e) {
-      _vm = e.vm as M.VM;
+      _vm = e.vm;
       _r.dirty();
     });
     _startSubscription = _events.onIsolateStart.listen((_) => _r.dirty());
@@ -128,7 +128,7 @@ class VMViewElement extends CustomElement implements Renderable {
   }
 
   Element describeVM() {
-    final uptime = new DateTime.now().difference(_vm.startTime!);
+    final uptime = new DateTime.now().difference(_vm.startTime);
     return new DivElement()
       ..classes = ['content-centered-big']
       ..children = <HtmlElement>[
@@ -164,7 +164,7 @@ class VMViewElement extends CustomElement implements Renderable {
                   ..text = 'embedder',
                 new DivElement()
                   ..classes = ['memberValue']
-                  ..text = _vm.embedder
+                  ..text = _vm.embedder ?? "UNKNOWN"
               ],
             new DivElement()
               ..classes = ['memberItem']
@@ -254,7 +254,7 @@ class VMViewElement extends CustomElement implements Renderable {
                       : 'unavailable'
                   ..title = _vm.heapAllocatedMemoryUsage != null
                       ? '${_vm.heapAllocatedMemoryUsage} bytes'
-                      : 'unavailable'
+                      : null
               ],
             new DivElement()
               ..classes = ['memberItem']
@@ -308,7 +308,7 @@ class VMViewElement extends CustomElement implements Renderable {
   }
 
   Element describeIsolateGroup(M.IsolateGroupRef group) {
-    final isolates = (group as M.IsolateGroup).isolates!;
+    final isolates = (group as M.IsolateGroup).isolates;
     return new DivElement()
       ..classes = ['content-centered-big']
       ..children = <Element>[

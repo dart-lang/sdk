@@ -25,8 +25,8 @@ void verifyHelper(var root, bool exclusive) {
   int exclusiveAllocations = 0;
 
   for (int i = 0; i < root.children.length; i++) {
-    inclusiveAllocations += root.children[i].inclusiveNativeAllocations as int;
-    exclusiveAllocations += root.children[i].exclusiveNativeAllocations as int;
+    inclusiveAllocations += root.children[i].inclusiveNativeAllocations;
+    exclusiveAllocations += root.children[i].exclusiveNativeAllocations;
   }
 
   int rootMemory;
@@ -57,8 +57,7 @@ var tests = <VMTest>[
   // Verify inclusive tries.
   (VM vm) async {
     var response =
-        await vm.invokeRpc('_getNativeAllocationSamples', {'_code': true})
-            as ServiceMap;
+        await vm.invokeRpc('_getNativeAllocationSamples', {'_code': true});
     SampleProfile cpuProfile = new SampleProfile();
     await cpuProfile.load(vm, response);
     var codeTree = cpuProfile.loadCodeTree(M.ProfileTreeDirection.inclusive);
@@ -70,8 +69,7 @@ var tests = <VMTest>[
   // Verify exclusive tries.
   (VM vm) async {
     var response =
-        await vm.invokeRpc('_getNativeAllocationSamples', {'_code': true})
-            as ServiceMap;
+        await vm.invokeRpc('_getNativeAllocationSamples', {'_code': true});
     SampleProfile cpuProfile = new SampleProfile();
     await cpuProfile.load(vm, response);
     var codeTreeExclusive =

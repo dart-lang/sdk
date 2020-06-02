@@ -17,8 +17,8 @@ var tests = <VMTest>[
     var subscription;
     subscription = stream.listen((ServiceEvent event) {
       if (event.kind == ServiceEvent.kVMUpdate) {
-        expect(event.owner!.type, equals('VM'));
-        expect(event.owner!.name, equals('Barbara'));
+        expect(event.owner.type, equals('VM'));
+        expect(event.owner.name, equals('Barbara'));
         subscription.cancel();
         completer.complete();
       }

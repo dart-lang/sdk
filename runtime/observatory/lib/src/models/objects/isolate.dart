@@ -7,13 +7,13 @@ part of models;
 abstract class IsolateRef {
   /// The id which is passed to the getIsolate RPC to reload this
   /// isolate.
-  String? get id;
+  String get id;
 
   /// A numeric id for this isolate, represented as a string. Unique.
-  int? get number;
+  int get number;
 
   /// A name identifying this isolate. Not guaranteed to be unique.
-  String? get name;
+  String get name;
 
   /// Trigger a full GC, collecting all unreachable or weakly reachable objects.
   Future collectAllGarbage();
@@ -23,7 +23,7 @@ enum IsolateStatus { loading, idle, running, paused }
 
 abstract class Isolate extends IsolateRef {
   /// The time that the VM started in milliseconds since the epoch.
-  DateTime? get startTime;
+  DateTime get startTime;
 
   /// Is the isolate in a runnable state?
   bool get runnable;
@@ -36,51 +36,51 @@ abstract class Isolate extends IsolateRef {
 
   /// The last pause event delivered to the isolate. If the isolate is
   /// running, this will be a resume event.
-  Event? get pauseEvent;
+  Event get pauseEvent;
 
   /// [optional] The root library for this isolate.
   ///
   /// Guaranteed to be initialized when the IsolateRunnable event fires.
-  LibraryRef? get rootLibrary;
+  LibraryRef get rootLibrary;
 
   /// A list of all libraries for this isolate.
   ///
   /// Guaranteed to be initialized when the IsolateRunnable event fires.
-  Iterable<LibraryRef>? get libraries;
+  Iterable<LibraryRef> get libraries;
 
   /// A list of all breakpoints for this isolate.
   //Iterable<Breakpoint> get breakpoints;
 
   /// [optional] The error that is causing this isolate to exit, if applicable.
-  Error? get error;
+  Error get error;
 
   /// The list of threads associated with this isolate.
-  Iterable<Thread>? get threads;
+  Iterable<Thread> get threads;
 
   /// The maximum amount of zone memory in bytes allocated by the isolate in
   /// all threads at a given time. Calculated using the high watermarks of each
   /// thread alive when a thread is unscheduled.
-  int? get zoneHighWatermark;
+  int get zoneHighWatermark;
 
   /// The number of zone handles currently held by this isolate.
-  int? get numZoneHandles;
+  int get numZoneHandles;
 
   /// The number of scoped handles currently held by this isolate.
-  int? get numScopedHandles;
+  int get numScopedHandles;
 
   /// The current pause on exception mode for this isolate.
   //ExceptionPauseMode get exceptionPauseMode;
 
   /// [optional] The list of service extension RPCs that are registered for this
   /// isolate, if any.
-  Iterable<String>? get extensionRPCs;
+  Iterable<String> get extensionRPCs;
 
-  Map? get counters;
-  HeapSpace? get newSpace;
-  HeapSpace? get oldSpace;
+  Map get counters;
+  HeapSpace get newSpace;
+  HeapSpace get oldSpace;
 
-  IsolateStatus? get status;
+  IsolateStatus get status;
 
   /// [optional]
-  FunctionRef? get entry;
+  FunctionRef get entry;
 }

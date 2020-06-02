@@ -7,7 +7,7 @@ import 'package:observatory/models.dart' as M;
 /// Utility class for URIs generation.
 abstract class Uris {
   static String _isolatePage(String path, M.IsolateRef isolate,
-      {M.ObjectRef? object}) {
+      {M.ObjectRef object}) {
     final parameters = {'isolateId': isolate.id};
     if (object != null) parameters['objectId'] = object.id;
     return '#' + new Uri(path: path, queryParameters: parameters).toString();
@@ -28,7 +28,7 @@ abstract class Uris {
       _isolatePage('/heap-map', isolate);
   static String heapSnapshot(M.IsolateRef isolate) =>
       _isolatePage('/heap-snapshot', isolate);
-  static String inspect(M.IsolateRef isolate, {M.ObjectRef? object, int? pos}) {
+  static String inspect(M.IsolateRef isolate, {M.ObjectRef object, int pos}) {
     if (pos == null) {
       return _isolatePage('/inspect', isolate, object: object);
     }

@@ -20,7 +20,7 @@ class TargetRepository implements M.TargetRepository {
   final SettingsRepository _settings = new SettingsRepository('targetManager');
 
   final List<SC.WebSocketVMTarget> _list = <SC.WebSocketVMTarget>[];
-  SC.WebSocketVMTarget? current;
+  SC.WebSocketVMTarget current;
   final IsConnectedVMTargetDelegate _isConnectedVMTarget;
 
   factory TargetRepository(IsConnectedVMTargetDelegate isConnectedVMTarget) {
@@ -59,7 +59,7 @@ class TargetRepository implements M.TargetRepository {
       return;
     }
     current = target;
-    current!.lastConnectionTime = new DateTime.now().millisecondsSinceEpoch;
+    current.lastConnectionTime = new DateTime.now().millisecondsSinceEpoch;
     _onChange.add(new TargetChangeEvent(this));
     _store();
   }
@@ -99,7 +99,7 @@ class TargetRepository implements M.TargetRepository {
   }
 
   /// Find by networkAddress.
-  SC.WebSocketVMTarget? find(String networkAddress) {
+  SC.WebSocketVMTarget find(String networkAddress) {
     for (SC.WebSocketVMTarget item in _list) {
       if (item.networkAddress == networkAddress) {
         return item;
@@ -114,8 +114,8 @@ class TargetRepository implements M.TargetRepository {
     // http://localhost:8080?override-port=8181
     // http://localhost:8080?override-port=8181&override-host=10.0.0.2
     final Uri serverAddress = Uri.parse(window.location.toString());
-    final String? port = serverAddress.queryParameters['override-port'];
-    final String? host = serverAddress.queryParameters['override-host'];
+    final String port = serverAddress.queryParameters['override-port'];
+    final String host = serverAddress.queryParameters['override-host'];
     final Uri wsAddress = new Uri(
       scheme: 'ws',
       host: host ?? serverAddress.host,

@@ -9,8 +9,7 @@ HtmlElement element(CustomElement e) => e.element;
 
 class CustomElement {
   static Expando reverseElements = new Expando();
-  static CustomElement reverse(HtmlElement element) =>
-      reverseElements[element] as CustomElement;
+  static CustomElement reverse(HtmlElement element) => reverseElements[element];
 
   static List<CustomElement> toBeAttached = <CustomElement>[];
   static void drainAttached() {
@@ -47,8 +46,7 @@ class CustomElement {
   }
 
   final HtmlElement element;
-  CustomElement.created(Tag tag)
-      : element = document.createElement("shadow") as HtmlElement {
+  CustomElement.created(Tag tag) : element = document.createElement("shadow") {
     reverseElements[element] = this;
     element.classes = [tag.name];
 
@@ -61,7 +59,7 @@ class CustomElement {
   void attached() {}
   void detached() {}
 
-  Element? get parent => element.parent;
+  Element get parent => element.parent;
 
   List<Element> get children => element.children;
   set children(List<Element> c) => element.children = c;
@@ -72,7 +70,7 @@ class CustomElement {
   String get title => element.title;
   set title(String t) => element.title = t;
 
-  String? get text => element.text;
+  String get text => element.text;
   set text(String t) => element.text = t;
 
   CssStyleDeclaration get style => element.style;

@@ -14,20 +14,20 @@ class SingleTargetCacheRefElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<SingleTargetCacheRefElement>('singletargetcache-ref');
 
-  late RenderingScheduler<SingleTargetCacheRefElement> _r;
+  RenderingScheduler<SingleTargetCacheRefElement> _r;
 
   Stream<RenderedEvent<SingleTargetCacheRefElement>> get onRendered =>
       _r.onRendered;
 
-  late M.IsolateRef _isolate;
-  late M.SingleTargetCacheRef _singleTargetCache;
+  M.IsolateRef _isolate;
+  M.SingleTargetCacheRef _singleTargetCache;
 
   M.IsolateRef get isolate => _isolate;
   M.SingleTargetCacheRef get singleTargetCache => _singleTargetCache;
 
   factory SingleTargetCacheRefElement(
       M.IsolateRef isolate, M.SingleTargetCacheRef singleTargetCache,
-      {RenderingQueue? queue}) {
+      {RenderingQueue queue}) {
     assert(isolate != null);
     assert(singleTargetCache != null);
     SingleTargetCacheRefElement e = new SingleTargetCacheRefElement.created();
@@ -60,7 +60,7 @@ class SingleTargetCacheRefElement extends CustomElement implements Renderable {
           new SpanElement()
             ..classes = ['emphasize']
             ..text = 'SingleTargetCache',
-          new SpanElement()..text = ' (${_singleTargetCache.target!.name})'
+          new SpanElement()..text = ' (${_singleTargetCache.target.name})'
         ]
     ];
   }

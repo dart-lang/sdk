@@ -16,18 +16,18 @@ class EvalBoxElement extends CustomElement implements Renderable {
   static const tag = const Tag<EvalBoxElement>('eval-box',
       dependencies: const [InstanceRefElement.tag]);
 
-  late RenderingScheduler<EvalBoxElement> _r;
+  RenderingScheduler<EvalBoxElement> _r;
 
   Stream<RenderedEvent<EvalBoxElement>> get onRendered => _r.onRendered;
 
-  late M.IsolateRef _isolate;
-  late M.ObjectRef _context;
-  late M.ObjectRepository _objects;
-  late M.EvalRepository _eval;
+  M.IsolateRef _isolate;
+  M.ObjectRef _context;
+  M.ObjectRepository _objects;
+  M.EvalRepository _eval;
   final _results = <_ExpressionDescription>[];
-  String? _expression = '';
-  late bool _multiline;
-  late Iterable<String> _quickExpressions;
+  String _expression = '';
+  bool _multiline;
+  Iterable<String> _quickExpressions;
 
   M.IsolateRef get isolate => _isolate;
   M.ObjectRef get context => _context;
@@ -36,7 +36,7 @@ class EvalBoxElement extends CustomElement implements Renderable {
       M.ObjectRepository objects, M.EvalRepository eval,
       {bool multiline: false,
       Iterable<String> quickExpressions: const [],
-      RenderingQueue? queue}) {
+      RenderingQueue queue}) {
     assert(isolate != null);
     assert(context != null);
     assert(objects != null);
@@ -139,7 +139,7 @@ class EvalBoxElement extends CustomElement implements Renderable {
     var area = new TextAreaElement()
       ..classes = ['textbox']
       ..placeholder = 'evaluate an expression'
-      ..value = _expression!
+      ..value = _expression
       ..onKeyUp.where((e) => e.key == '\n').listen((e) {
         e.preventDefault();
         _run();
@@ -155,7 +155,7 @@ class EvalBoxElement extends CustomElement implements Renderable {
     var textbox = new TextInputElement()
       ..classes = ['textbox']
       ..placeholder = 'evaluate an expression'
-      ..value = _expression!
+      ..value = _expression
       ..onKeyUp.where((e) => e.key == '\n').listen((e) {
         e.preventDefault();
         _run();
@@ -187,8 +187,8 @@ class EvalBoxElement extends CustomElement implements Renderable {
   }
 
   Future _run() async {
+    if (_expression == null || _expression.isEmpty) return;
     final expression = _expression;
-    if (expression == null || expression!.isEmpty) return;
     _expression = null;
     final result = new _ExpressionDescription.pending(expression);
     _results.add(result);
@@ -202,7 +202,7 @@ class EvalBoxElement extends CustomElement implements Renderable {
 
 class _ExpressionDescription {
   final String expression;
-  final M.ObjectRef? value;
+  final M.ObjectRef value;
   bool get isPending => value == null;
 
   _ExpressionDescription(this.expression, this.value);

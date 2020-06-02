@@ -16,7 +16,7 @@ var tests = <IsolateTest>[
   (Isolate isolate) async {
     await isolate.reload();
     expect(isolate.error, isNotNull);
-    expect(isolate.error!.message!.contains('oh no'), isTrue);
+    expect(isolate.error.message.contains('oh no'), isTrue);
   }
 ];
 

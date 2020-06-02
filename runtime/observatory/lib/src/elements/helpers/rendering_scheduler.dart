@@ -54,7 +54,7 @@ class RenderingScheduler<T extends Renderable> implements RenderingTask {
 
   /// Creates a new scheduler for an element.
   /// If no queue is provided it will create a new default configured queue.
-  factory RenderingScheduler(T element, {RenderingQueue? queue}) {
+  factory RenderingScheduler(T element, {RenderingQueue queue}) {
     assert(element != null);
     if (queue == null) {
       queue = new RenderingQueue();

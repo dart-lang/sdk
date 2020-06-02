@@ -22,7 +22,7 @@ class StackTraceTreeConfigElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<StackTraceTreeConfigElement>('stack-trace-tree-config');
 
-  late RenderingScheduler<StackTraceTreeConfigElement> _r;
+  RenderingScheduler<StackTraceTreeConfigElement> _r;
 
   Stream<RenderedEvent<StackTraceTreeConfigElement>> get onRendered =>
       _r.onRendered;
@@ -40,12 +40,12 @@ class StackTraceTreeConfigElement extends CustomElement implements Renderable {
   Stream<StackTraceTreeConfigChangedEvent> get onFilterChange =>
       _onFilterChange.stream;
 
-  late bool _showMode;
-  late bool _showDirection;
-  late bool _showFilter;
-  late ProfileTreeMode _mode;
-  late M.ProfileTreeDirection _direction;
-  late String _filter;
+  bool _showMode;
+  bool _showDirection;
+  bool _showFilter;
+  ProfileTreeMode _mode;
+  M.ProfileTreeDirection _direction;
+  String _filter;
 
   bool get showMode => _showMode;
   bool get showDirection => _showDirection;
@@ -71,7 +71,7 @@ class StackTraceTreeConfigElement extends CustomElement implements Renderable {
       String filter: '',
       ProfileTreeMode mode: ProfileTreeMode.function,
       M.ProfileTreeDirection direction: M.ProfileTreeDirection.exclusive,
-      RenderingQueue? queue}) {
+      RenderingQueue queue}) {
     assert(showMode != null);
     assert(showDirection != null);
     assert(showFilter != null);

@@ -16,7 +16,7 @@ int LINE_D = 43;
 int global = 0;
 
 @pragma('vm:never-inline')
-b3(int x) {
+b3(x) {
   int sum = 0;
   try {
     for (int i = 0; i < x; i++) {
@@ -49,13 +49,13 @@ var tests = <IsolateTest>[
   stoppedAtLine(LINE_A),
   (Isolate isolate) async {
     // We are at our breakpoint with global=100.
-    Instance result = await isolate.rootLibrary.evaluate('global') as Instance;
+    Instance result = await isolate.rootLibrary.evaluate('global');
     print('global is $result');
     expect(result.type, equals('Instance'));
     expect(result.valueAsString, equals('100'));
 
     // Rewind the top stack frame.
-    bool caughtException = false;
+    bool caughtException;
     try {
       result = await isolate.rewind(1);
       expect(false, isTrue, reason: 'Unreachable');

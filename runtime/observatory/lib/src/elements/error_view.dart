@@ -22,18 +22,18 @@ class ErrorViewElement extends CustomElement implements Renderable {
         ViewFooterElement.tag
       ]);
 
-  late RenderingScheduler<ErrorViewElement> _r;
+  RenderingScheduler<ErrorViewElement> _r;
 
   Stream<RenderedEvent<ErrorViewElement>> get onRendered => _r.onRendered;
 
-  late M.Error _error;
-  late M.NotificationRepository _notifications;
+  M.Error _error;
+  M.NotificationRepository _notifications;
 
   M.Error get error => _error;
 
   factory ErrorViewElement(
       M.NotificationRepository notifications, M.Error error,
-      {RenderingQueue? queue}) {
+      {RenderingQueue queue}) {
     assert(error != null);
     assert(notifications != null);
     ErrorViewElement e = new ErrorViewElement.created();
@@ -78,7 +78,7 @@ class ErrorViewElement extends CustomElement implements Renderable {
     ];
   }
 
-  static String _kindToString(M.ErrorKind? kind) {
+  static String _kindToString(M.ErrorKind kind) {
     switch (kind) {
       case M.ErrorKind.unhandledException:
         return 'Unhandled Exception';

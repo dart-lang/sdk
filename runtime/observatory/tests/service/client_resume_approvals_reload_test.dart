@@ -19,22 +19,22 @@ void fooBar() {
   print(i);
 }
 
-late WebSocketVM client1;
-late WebSocketVM client2;
+WebSocketVM client1;
+WebSocketVM client2;
 
 final hotReloadTest = <IsolateTest>[
   // Multiple clients, hot reload approval.
   (Isolate isolate) async {
     final resumeFuture = waitForResume(isolate);
 
-    client1 = await createClient(isolate.owner as WebSocketVM);
+    client1 = await createClient(isolate.owner);
     await setRequireApprovalForResume(
       client1,
       isolate,
       pauseOnReload: true,
     );
     client2 = await createClient(
-      isolate.owner as WebSocketVM,
+      isolate.owner,
       clientName: otherClientName,
     );
     await setRequireApprovalForResume(

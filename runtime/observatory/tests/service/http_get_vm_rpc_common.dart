@@ -19,14 +19,14 @@ Future<Null> testeeBefore() async {
   var httpClient = new io.HttpClient();
 
   // Build the request.
-  final pathSegments = <String>[]..addAll(info.serverUri!.pathSegments);
+  final pathSegments = <String>[]..addAll(info.serverUri.pathSegments);
   String method = 'getVM';
   if (pathSegments.isNotEmpty) {
     pathSegments[pathSegments.length - 1] = method;
   } else {
     pathSegments.add(method);
   }
-  final requestUri = info.serverUri!.replace(pathSegments: pathSegments);
+  final requestUri = info.serverUri.replace(pathSegments: pathSegments);
 
   try {
     var request = await httpClient.getUrl(requestUri);
@@ -34,7 +34,7 @@ Future<Null> testeeBefore() async {
         .cast<List<int>>()
         .transform(utf8.decoder)
         .transform(json.decoder)
-        .first as Map;
+        .first;
     Map result = response['result'];
     Expect.equals(result['type'], 'VM');
     Expect.equals(result['name'], 'vm');

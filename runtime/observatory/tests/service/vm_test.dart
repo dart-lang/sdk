@@ -7,8 +7,8 @@ import 'package:test/test.dart';
 import 'test_helper.dart';
 
 var tests = <IsolateTest>[
-  (Isolate isolate) async {
-    VM vm = isolate.owner as VM;
+  (Isolate isolate) {
+    VM vm = isolate.owner;
     expect(vm.targetCPU, isNotNull);
     expect(vm.architectureBits == 32 || vm.architectureBits == 64, isTrue);
     expect(vm.embedder, equals("Dart VM"));

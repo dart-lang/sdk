@@ -43,7 +43,7 @@ bool mapContains(Map map, Map submap) {
   return true;
 }
 
-bool eventsContains(List events, String phase, String name, [Map? arguments]) {
+bool eventsContains(List events, String phase, String name, [Map arguments]) {
   for (Map event in events) {
     if ((event['ph'] == phase) && (event['name'] == name)) {
       if (arguments == null) {

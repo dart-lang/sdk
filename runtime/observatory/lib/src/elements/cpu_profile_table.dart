@@ -44,17 +44,17 @@ class CpuProfileTableElement extends CustomElement implements Renderable {
         VirtualCollectionElement.tag
       ]);
 
-  late RenderingScheduler<CpuProfileTableElement> _r;
+  RenderingScheduler<CpuProfileTableElement> _r;
 
   Stream<RenderedEvent<CpuProfileTableElement>> get onRendered => _r.onRendered;
 
-  late M.VM _vm;
-  late M.IsolateRef _isolate;
-  late M.EventRepository _events;
-  late M.NotificationRepository _notifications;
-  late M.IsolateSampleProfileRepository _profiles;
-  late Stream<M.SampleProfileLoadingProgressEvent> _progressStream;
-  M.SampleProfileLoadingProgress? _progress;
+  M.VM _vm;
+  M.IsolateRef _isolate;
+  M.EventRepository _events;
+  M.NotificationRepository _notifications;
+  M.IsolateSampleProfileRepository _profiles;
+  Stream<M.SampleProfileLoadingProgressEvent> _progressStream;
+  M.SampleProfileLoadingProgress _progress;
   final _sortingField = <_Table, _SortingField>{
     _Table.functions: _SortingField.exclusive,
     _Table.caller: _SortingField.caller,
@@ -78,7 +78,7 @@ class CpuProfileTableElement extends CustomElement implements Renderable {
       M.EventRepository events,
       M.NotificationRepository notifications,
       M.IsolateSampleProfileRepository profiles,
-      {RenderingQueue? queue}) {
+      {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -129,10 +129,10 @@ class CpuProfileTableElement extends CustomElement implements Renderable {
       children = content;
       return;
     }
-    content.add(new SampleBufferControlElement(_vm, _progress!, _progressStream,
+    content.add(new SampleBufferControlElement(_vm, _progress, _progressStream,
             showTag: false, queue: _r.queue)
         .element);
-    if (_progress!.status == M.SampleProfileLoadingStatus.loaded) {
+    if (_progress.status == M.SampleProfileLoadingStatus.loaded) {
       content.add(new BRElement());
       content.addAll(_createTables());
       content.add(new BRElement());
@@ -141,10 +141,10 @@ class CpuProfileTableElement extends CustomElement implements Renderable {
     children = content;
   }
 
-  M.ProfileFunction? _selected;
-  VirtualCollectionElement? _functions;
-  VirtualCollectionElement? _callers;
-  VirtualCollectionElement? _callees;
+  M.ProfileFunction _selected;
+  VirtualCollectionElement _functions;
+  VirtualCollectionElement _callers;
+  VirtualCollectionElement _callees;
 
   List<Element> _createTables() {
     _functions = _functions ??
@@ -153,11 +153,11 @@ class CpuProfileTableElement extends CustomElement implements Renderable {
             search: _searchFunction,
             queue: _r.queue);
     // If there's no samples, don't populate the function list.
-    _functions!.items = (_progress!.profile.sampleCount != 0)
-        ? _progress!.profile.functions.toList()
+    _functions.items = (_progress.profile.sampleCount != 0)
+        ? _progress.profile.functions.toList()
         : []
       ..sort(_createSorter(_Table.functions));
-    _functions!.takeIntoView(_selected);
+    _functions.takeIntoView(_selected);
     _callers = _callers ??
         new VirtualCollectionElement(_createCaller, _updateCaller,
             createHeader: _createCallerHeader,
@@ -169,13 +169,13 @@ class CpuProfileTableElement extends CustomElement implements Renderable {
             search: _searchFunction,
             queue: _r.queue);
     if (_selected != null) {
-      _callers!.items = _selected!.callers.keys.toList()
+      _callers.items = _selected.callers.keys.toList()
         ..sort(_createSorter(_Table.caller));
-      _callees!.items = _selected!.callees.keys.toList()
+      _callees.items = _selected.callees.keys.toList()
         ..sort(_createSorter(_Table.callee));
     } else {
-      _callers!.items = const [];
-      _callees!.items = const [];
+      _callers.items = const [];
+      _callees.items = const [];
     }
     return <Element>[
       new DivElement()
@@ -183,25 +183,25 @@ class CpuProfileTableElement extends CustomElement implements Renderable {
         ..children = <Element>[
           new DivElement()
             ..classes = ['profile-trees-all']
-            ..children = <Element>[_functions!.element],
+            ..children = <Element>[_functions.element],
           new DivElement()
             ..classes = ['profile-trees-current']
             ..children = <Element>[
               new DivElement()
                 ..classes = ['profile-trees-caller']
-                ..children = <Element>[_callers!.element],
+                ..children = <Element>[_callers.element],
               new DivElement()
                 ..classes = ['profile-trees-selected']
                 ..children = _selected == null
                     ? [new SpanElement()..text = 'No element selected']
                     : [
-                        new FunctionRefElement(_isolate, _selected!.function!,
+                        new FunctionRefElement(_isolate, _selected.function,
                                 queue: _r.queue)
                             .element
                       ],
               new DivElement()
                 ..classes = ['profile-trees-callee']
-                ..children = <Element>[_callees!.element]
+                ..children = <Element>[_callees.element]
             ]
         ]
     ];
@@ -223,7 +223,7 @@ class CpuProfileTableElement extends CustomElement implements Renderable {
       if (e.target is AnchorElement) {
         return;
       }
-      _selected = _functions!.getItemFromElement(element);
+      _selected = _functions.getItemFromElement(element);
       _r.dirty();
     });
     return element;
@@ -238,7 +238,7 @@ class CpuProfileTableElement extends CustomElement implements Renderable {
     }
     e.children[0].text = Utils.formatPercentNormalized(_getExclusiveT(item));
     e.children[1].text = Utils.formatPercentNormalized(_getInclusiveT(item));
-    e.children[2].text = M.getFunctionFullName(item.function!);
+    e.children[2].text = M.getFunctionFullName(item.function);
   }
 
   List<HtmlElement> _createFunctionHeader() => [
@@ -264,7 +264,7 @@ class CpuProfileTableElement extends CustomElement implements Renderable {
 
   bool _searchFunction(Pattern pattern, itemDynamic) {
     M.ProfileFunction item = itemDynamic;
-    return M.getFunctionFullName(item.function!).contains(pattern);
+    return M.getFunctionFullName(item.function).contains(pattern);
   }
 
   void _setSorting(
@@ -298,7 +298,7 @@ class CpuProfileTableElement extends CustomElement implements Renderable {
       if (e.target is AnchorElement) {
         return;
       }
-      _selected = _callees!.getItemFromElement(element);
+      _selected = _callees.getItemFromElement(element);
       _r.dirty();
     });
     return element;
@@ -337,7 +337,7 @@ class CpuProfileTableElement extends CustomElement implements Renderable {
       if (e.target is AnchorElement) {
         return;
       }
-      _selected = _callers!.getItemFromElement(element);
+      _selected = _callers.getItemFromElement(element);
       _r.dirty();
     });
     return element;
@@ -375,7 +375,7 @@ class CpuProfileTableElement extends CustomElement implements Renderable {
         ..onClick.listen((_) => _setSorting(table, field, direction));
 
   List<Element> _createTree() {
-    late CpuProfileVirtualTreeElement tree;
+    CpuProfileVirtualTreeElement tree;
     return [
       (new StackTraceTreeConfigElement(
               showMode: false,
@@ -397,7 +397,7 @@ class CpuProfileTableElement extends CustomElement implements Renderable {
             }))
           .element,
       new BRElement(),
-      (tree = new CpuProfileVirtualTreeElement(_isolate, _progress!.profile,
+      (tree = new CpuProfileVirtualTreeElement(_isolate, _progress.profile,
               mode: ProfileTreeMode.function,
               direction: M.ProfileTreeDirection.exclusive,
               queue: _r.queue)
@@ -425,7 +425,7 @@ class CpuProfileTableElement extends CustomElement implements Renderable {
     _r.dirty();
     _progress = (await _progressStream.first).progress;
     _r.dirty();
-    if (M.isSampleProcessRunning(_progress!.status)) {
+    if (M.isSampleProcessRunning(_progress.status)) {
       _progress = (await _progressStream.last).progress;
       _r.dirty();
     }
@@ -459,7 +459,7 @@ class CpuProfileTableElement extends CustomElement implements Renderable {
         getter = _getCallerT;
         break;
       case _SortingField.method:
-        getter = (M.ProfileFunction s) => M.getFunctionFullName(s.function!);
+        getter = (M.ProfileFunction s) => M.getFunctionFullName(s.function);
         break;
     }
     switch (_sortingDirection[table]) {
@@ -481,9 +481,7 @@ class CpuProfileTableElement extends CustomElement implements Renderable {
   static double _getInclusiveT(M.ProfileFunction f) =>
       f.normalizedInclusiveTicks;
   double _getCalleeT(M.ProfileFunction f) =>
-      _selected!.callees[f]! /
-      _selected!.callees.values.reduce((a, b) => a + b);
+      _selected.callees[f] / _selected.callees.values.reduce((a, b) => a + b);
   double _getCallerT(M.ProfileFunction f) =>
-      _selected!.callers[f]! /
-      _selected!.callers.values.reduce((a, b) => a + b);
+      _selected.callers[f] / _selected.callers.values.reduce((a, b) => a + b);
 }

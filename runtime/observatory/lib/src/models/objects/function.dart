@@ -28,7 +28,7 @@ enum FunctionKind {
   dynamicInvocationForwarder
 }
 
-bool isSyntheticFunction(FunctionKind? kind) {
+bool isSyntheticFunction(FunctionKind kind) {
   switch (kind) {
     case FunctionKind.collected:
     case FunctionKind.native:
@@ -40,64 +40,64 @@ bool isSyntheticFunction(FunctionKind? kind) {
   }
 }
 
-bool isDartFunction(FunctionKind? kind) => !isSyntheticFunction(kind);
-bool isStubFunction(FunctionKind? kind) => kind == FunctionKind.stub;
-bool hasDartCode(FunctionKind? kind) =>
+bool isDartFunction(FunctionKind kind) => !isSyntheticFunction(kind);
+bool isStubFunction(FunctionKind kind) => kind == FunctionKind.stub;
+bool hasDartCode(FunctionKind kind) =>
     isDartFunction(kind) || isStubFunction(kind);
 
 String getFunctionFullName(FunctionRef function) {
-  String content = function.name!;
-  ObjectRef? owner = function.dartOwner;
+  var content = <String>[function.name];
+  ObjectRef owner = function.dartOwner;
   while (owner is FunctionRef) {
     FunctionRef function = (owner as FunctionRef);
-    content = "${function.name!}.${content}";
-    owner = function.dartOwner!;
+    content.add(function.name);
+    owner = function.dartOwner;
   }
   if (owner is ClassRef) {
-    content = "${owner.name!}.${content}";
+    content.add(owner.name);
   }
-  return content;
+  return content.reversed.join('.');
 }
 
 abstract class FunctionRef extends ObjectRef {
   /// The name of this class.
-  String? get name;
+  String get name;
 
   /// The owner of this function, which can be a LibraryRef, ClassRef,
   /// or a FunctionRef.
-  ObjectRef? get dartOwner; // owner
+  ObjectRef get dartOwner; // owner
 
   /// Is this function static?
-  bool? get isStatic;
+  bool get isStatic;
 
   /// Is this function const?
-  bool? get isConst;
+  bool get isConst;
 
   /// The kind of the function.
-  FunctionKind? get kind;
+  FunctionKind get kind;
 }
 
 abstract class ServiceFunction extends Object implements FunctionRef {
   /// The location of this function in the source code. [optional]
-  SourceLocation? get location;
+  SourceLocation get location;
 
   /// The compiled code associated with this function. [optional]
-  CodeRef? get code;
+  CodeRef get code;
 
   /// [optional]
-  CodeRef? get unoptimizedCode;
+  CodeRef get unoptimizedCode;
 
   /// [optional]
-  CodeRef? get bytecode;
+  CodeRef get bytecode;
 
   /// [optional]
-  FieldRef? get field;
-  int? get usageCounter;
-  InstanceRef? get icDataArray;
-  int? get deoptimizations;
-  bool? get isOptimizable;
-  bool? get isInlinable;
-  bool? get hasIntrinsic;
-  bool? get isRecognized;
-  bool? get isNative;
+  FieldRef get field;
+  int get usageCounter;
+  InstanceRef get icDataArray;
+  int get deoptimizations;
+  bool get isOptimizable;
+  bool get isInlinable;
+  bool get hasIntrinsic;
+  bool get isRecognized;
+  bool get isNative;
 }

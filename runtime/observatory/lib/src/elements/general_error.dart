@@ -17,19 +17,19 @@ class GeneralErrorElement extends CustomElement implements Renderable {
   static const tag = const Tag<GeneralErrorElement>('general-error',
       dependencies: const [NavTopMenuElement.tag, NavNotifyElement.tag]);
 
-  late RenderingScheduler<GeneralErrorElement> _r;
+  RenderingScheduler<GeneralErrorElement> _r;
 
   Stream<RenderedEvent<GeneralErrorElement>> get onRendered => _r.onRendered;
 
-  late M.NotificationRepository _notifications;
-  late String _message;
+  M.NotificationRepository _notifications;
+  String _message;
 
   String get message => _message;
 
   set message(String value) => _message = _r.checkAndReact(_message, value);
 
   factory GeneralErrorElement(M.NotificationRepository notifications,
-      {String message: '', RenderingQueue? queue}) {
+      {String message: '', RenderingQueue queue}) {
     assert(notifications != null);
     assert(message != null);
     GeneralErrorElement e = new GeneralErrorElement.created();

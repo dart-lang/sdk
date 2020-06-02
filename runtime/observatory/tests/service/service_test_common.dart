@@ -29,7 +29,7 @@ Future subscribeToStream(
 }
 
 Future cancelStreamSubscription(String streamName) async {
-  StreamSubscription subscription = streamSubscriptions[streamName]!;
+  StreamSubscription subscription = streamSubscriptions[streamName];
   subscription.cancel();
   streamSubscriptions.remove(streamName);
 }
@@ -73,12 +73,12 @@ Future syncNext(Isolate isolate) async {
 
 Future asyncStepOver(Isolate isolate) async {
   final Completer pausedAtSyntheticBreakpoint = new Completer();
-  StreamSubscription? subscription;
+  StreamSubscription subscription;
 
   // Cancel the subscription.
   cancelSubscription() {
     if (subscription != null) {
-      subscription!.cancel();
+      subscription.cancel();
       subscription = null;
     }
   }
@@ -99,13 +99,13 @@ Future asyncStepOver(Isolate isolate) async {
     return pausedAtSyntheticBreakpoint.future;
   }
 
-  Breakpoint? syntheticBreakpoint;
+  Breakpoint syntheticBreakpoint;
 
   subscription = stream.listen((ServiceEvent event) async {
     // Synthetic breakpoint add event. This is the first event we will
     // receive.
     bool isAdd = (event.kind == ServiceEvent.kBreakpointAdded) &&
-        (event.breakpoint!.isSyntheticAsyncContinuation!) &&
+        (event.breakpoint.isSyntheticAsyncContinuation) &&
         (event.owner == isolate);
     // Resume after synthetic breakpoint added. This is the second event
     // we will receive.
@@ -140,7 +140,7 @@ Future asyncStepOver(Isolate isolate) async {
   return pausedAtSyntheticBreakpoint.future;
 }
 
-bool isEventOfKind(M.Event? event, String kind) {
+bool isEventOfKind(M.Event event, String kind) {
   switch (kind) {
     case ServiceEvent.kPauseBreakpoint:
       return event is M.PauseBreakpointEvent;
@@ -159,7 +159,7 @@ bool isEventOfKind(M.Event? event, String kind) {
 
 Future hasPausedFor(Isolate isolate, String kind) {
   // Set up a listener to wait for breakpoint events.
-  Completer? completer = new Completer();
+  Completer completer = new Completer();
   isolate.vm.getEventStream(VM.kDebugStream).then((stream) {
     var subscription;
     subscription = stream.listen((ServiceEvent event) {
@@ -168,7 +168,7 @@ Future hasPausedFor(Isolate isolate, String kind) {
           // Reload to update isolate.pauseEvent.
           print('Paused with $kind');
           subscription.cancel();
-          completer!.complete(isolate.reload());
+          completer.complete(isolate.reload());
           completer = null;
         }
       }
@@ -177,19 +177,19 @@ Future hasPausedFor(Isolate isolate, String kind) {
     // Pause may have happened before we subscribed.
     isolate.reload().then((_) {
       if ((isolate.pauseEvent != null) &&
-          isEventOfKind(isolate.pauseEvent!, kind)) {
+          isEventOfKind(isolate.pauseEvent, kind)) {
         // Already waiting at a breakpoint.
         if (completer != null) {
           print('Paused with $kind');
           subscription.cancel();
-          completer!.complete(isolate);
+          completer.complete(isolate);
           completer = null;
         }
       }
     });
   });
 
-  return completer!.future; // Will complete when breakpoint hit.
+  return completer.future; // Will complete when breakpoint hit.
 }
 
 Future hasStoppedAtBreakpoint(Isolate isolate) {
@@ -216,12 +216,13 @@ Future markDartColonLibrariesDebuggable(Isolate isolate) async {
   await isolate.reload();
   for (Library lib in isolate.libraries) {
     await lib.load();
-    if (lib.uri!.startsWith('dart:') && !lib.uri!.startsWith('dart:_')) {
+    if (lib.uri.startsWith('dart:') && !lib.uri.startsWith('dart:_')) {
       var setDebugParams = {
         'libraryId': lib.id,
         'isDebuggable': true,
       };
-      await isolate.invokeRpcNoUpgrade('setLibraryDebuggable', setDebugParams);
+      Map<String, dynamic> result = await isolate.invokeRpcNoUpgrade(
+          'setLibraryDebuggable', setDebugParams);
     }
   }
   return isolate;
@@ -241,7 +242,7 @@ IsolateTest reloadSources([bool pause = false]) {
 IsolateTest setBreakpointAtLine(int line) {
   return (Isolate isolate) async {
     print("Setting breakpoint for line $line");
-    Library lib = await isolate.rootLibrary.load() as Library;
+    Library lib = await isolate.rootLibrary.load();
     Script script = lib.scripts.firstWhere((s) => s.uri == lib.uri);
 
     Breakpoint bpt = await isolate.addBreakpoint(script, line);
@@ -254,7 +255,7 @@ IsolateTest setBreakpointAtLine(int line) {
 IsolateTest setBreakpointAtLineColumn(int line, int column) {
   return (Isolate isolate) async {
     print("Setting breakpoint for line $line column $column");
-    Library lib = await isolate.rootLibrary.load() as Library;
+    Library lib = await isolate.rootLibrary.load();
     Script script = lib.scripts.firstWhere((s) => s.uri == lib.uri);
 
     Breakpoint bpt = await isolate.addBreakpoint(script, line, column);
@@ -289,14 +290,14 @@ IsolateTest stoppedAtLine(int line) {
     expect(frames.length, greaterThanOrEqualTo(1));
 
     Frame top = frames[0];
-    Script script = await top.location!.script.load() as Script;
-    int? actualLine = script.tokenToLine(top.location!.tokenPos);
+    Script script = await top.location.script.load();
+    int actualLine = script.tokenToLine(top.location.tokenPos);
     if (actualLine != line) {
       StringBuffer sb = new StringBuffer();
       sb.write("Expected to be at line $line but actually at line $actualLine");
       sb.write("\nFull stack trace:\n");
       for (Frame f in stack['frames']) {
-        sb.write(" $f [${await f.location!.getLine()}]\n");
+        sb.write(" $f [${await f.location.getLine()}]\n");
       }
       throw sb.toString();
     } else {
@@ -317,12 +318,11 @@ IsolateTest stoppedInFunction(String functionName,
     expect(frames.length, greaterThanOrEqualTo(1));
 
     Frame topFrame = frames[0];
-    ServiceFunction function =
-        await topFrame.function!.load() as ServiceFunction;
-    String name = function.name!;
+    ServiceFunction function = await topFrame.function.load();
+    String name = function.name;
     if (includeOwner) {
       ServiceFunction owner =
-          await (function.dartOwner as ServiceObject).load() as ServiceFunction;
+          await (function.dartOwner as ServiceObject).load();
       name = '${owner.name}.$name';
     }
     final bool matches =
@@ -333,10 +333,10 @@ IsolateTest stoppedInFunction(String functionName,
           "actually in function $name");
       sb.write("\nFull stack trace:\n");
       for (Frame f in frames) {
-        await f.function!.load();
-        await (f.function!.dartOwner as ServiceObject).load();
-        String name = f.function!.name!;
-        String ownerName = (f.function!.dartOwner as ServiceObject).name!;
+        await f.function.load();
+        await (f.function.dartOwner as ServiceObject).load();
+        String name = f.function.name;
+        String ownerName = (f.function.dartOwner as ServiceObject).name;
         sb.write(" $f [$name] [$ownerName]\n");
       }
       throw sb.toString();
@@ -402,8 +402,8 @@ Future isolateIsRunning(Isolate isolate) async {
   expect(isolate.running, true);
 }
 
-Future<Class?> getClassFromRootLib(Isolate isolate, String className) async {
-  Library rootLib = await isolate.rootLibrary.load() as Library;
+Future<Class> getClassFromRootLib(Isolate isolate, String className) async {
+  Library rootLib = await isolate.rootLibrary.load();
   for (Class cls in rootLib.classes) {
     if (cls.name == className) {
       return cls;
@@ -414,10 +414,10 @@ Future<Class?> getClassFromRootLib(Isolate isolate, String className) async {
 
 Future<Instance> rootLibraryFieldValue(
     Isolate isolate, String fieldName) async {
-  Library rootLib = await isolate.rootLibrary.load() as Library;
+  Library rootLib = await isolate.rootLibrary.load();
   Field field = rootLib.variables.singleWhere((v) => v.name == fieldName);
   await field.load();
-  Instance value = field.staticValue as Instance;
+  Instance value = field.staticValue;
   await value.load();
   return value;
 }
@@ -431,9 +431,9 @@ IsolateTest runStepThroughProgramRecordingStops(List<String> recordStops) {
       if (event.kind == ServiceEvent.kPauseBreakpoint) {
         await isolate.reload();
         // We are paused: Step further.
-        Frame frame = isolate.topFrame!;
-        recordStops.add(await frame.location!.toUserString());
-        if (event.atAsyncSuspension!) {
+        Frame frame = isolate.topFrame;
+        recordStops.add(await frame.location.toUserString());
+        if (event.atAsyncSuspension) {
           isolate.stepOverAsyncSuspension();
         } else {
           isolate.stepOver();
@@ -464,10 +464,10 @@ IsolateTest resumeProgramRecordingStops(
         List frames = stack['frames'];
         expect(frames.length, greaterThanOrEqualTo(2));
         Frame frame = frames[0];
-        String brokeAt = await frame.location!.toUserString();
+        String brokeAt = await frame.location.toUserString();
         if (includeCaller) {
           frame = frames[1];
-          String calledFrom = await frame.location!.toUserString();
+          String calledFrom = await frame.location.toUserString();
           recordStops.add("$brokeAt ($calledFrom)");
         } else {
           recordStops.add(brokeAt);
@@ -495,8 +495,8 @@ IsolateTest runStepIntoThroughProgramRecordingStops(List<String> recordStops) {
       if (event.kind == ServiceEvent.kPauseBreakpoint) {
         await isolate.reload();
         // We are paused: Step into further.
-        Frame frame = isolate.topFrame!;
-        recordStops.add(await frame.location!.toUserString());
+        Frame frame = isolate.topFrame;
+        recordStops.add(await frame.location.toUserString());
         isolate.stepInto();
       } else if (event.kind == ServiceEvent.kPauseExit) {
         // We are at the exit: The test is done.
@@ -513,8 +513,8 @@ IsolateTest checkRecordedStops(
     List<String> recordStops, List<String> expectedStops,
     {bool removeDuplicates = false,
     bool debugPrint = false,
-    String? debugPrintFile,
-    int? debugPrintLine}) {
+    String debugPrintFile,
+    int debugPrintLine}) {
   return (Isolate isolate) async {
     if (debugPrint) {
       for (int i = 0; i < recordStops.length; i++) {
@@ -574,7 +574,7 @@ IsolateTest checkRecordedStops(
 
 List<String> removeAdjacentDuplicates(List<String> fromList) {
   List<String> result = <String>[];
-  String? latestLine;
+  String latestLine;
   for (String s in fromList) {
     if (s == latestLine) continue;
     latestLine = s;

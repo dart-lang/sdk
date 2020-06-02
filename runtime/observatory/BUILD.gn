@@ -37,7 +37,6 @@ prebuilt_dart2js_action("build_observatory") {
     "-o",
     rebase_path(output),
     "--packages=" + rebase_path("../../.packages"),
-    "--enable-experiment=non-nullable",
   ]
   if (is_debug) {
     args += [ "--enable-asserts" ]

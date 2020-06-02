@@ -28,7 +28,7 @@ import 'package:observatory/src/elements/unknown_ref.dart';
 import 'package:observatory/src/elements/unlinkedcall_ref.dart';
 
 Element anyRef(M.IsolateRef isolate, ref, M.ObjectRepository objects,
-    {RenderingQueue? queue, bool expandable: true}) {
+    {RenderingQueue queue, bool expandable: true}) {
   if (ref == null) {
     return new SpanElement()..text = "???";
   }

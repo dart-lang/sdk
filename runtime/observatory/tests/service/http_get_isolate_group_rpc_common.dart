@@ -26,9 +26,9 @@ Future<String> getIsolateGroupId(
       .cast<List<int>>()
       .transform(utf8.decoder)
       .transform(json.decoder)
-      .first as Map;
+      .first;
   final result = response['result'];
-  return result['isolateGroups'][0]['id'] as String;
+  return result['isolateGroups'][0]['id'];
 }
 
 Future<Null> testeeBefore() async {
@@ -41,17 +41,17 @@ Future<Null> testeeBefore() async {
 
   // Build the request.
   final params = <String, String>{
-    'isolateGroupId': await getIsolateGroupId(httpClient, info.serverUri!),
+    'isolateGroupId': await getIsolateGroupId(httpClient, info.serverUri),
   };
 
   const method = 'getIsolateGroup';
-  final pathSegments = <String>[]..addAll(info.serverUri!.pathSegments);
+  final pathSegments = <String>[]..addAll(info.serverUri.pathSegments);
   if (pathSegments.isNotEmpty) {
     pathSegments[pathSegments.length - 1] = method;
   } else {
     pathSegments.add(method);
   }
-  final requestUri = info.serverUri!
+  final requestUri = info.serverUri
       .replace(pathSegments: pathSegments, queryParameters: params);
 
   try {
@@ -61,7 +61,7 @@ Future<Null> testeeBefore() async {
         .cast<List<int>>()
         .transform(utf8.decoder)
         .transform(json.decoder)
-        .first as Map;
+        .first;
     final result = jsonResponse['result'];
     Expect.equals(result['type'], 'IsolateGroup');
     Expect.isTrue(result['id'].startsWith('isolateGroups/'));

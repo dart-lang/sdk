@@ -34,7 +34,7 @@ var tests = <IsolateTest>[
     expect(stack['frames'][0].function.name, equals('testFunction'));
 
     final List<Script> scripts = await isolate.getScripts();
-    Script? foundScript;
+    Script foundScript;
     for (Script script in scripts) {
       if (script.uri.contains(lib1Filename)) {
         foundScript = script;
@@ -58,7 +58,7 @@ var tests = <IsolateTest>[
       // Now get report for the lib1 only.
       final Map<String, Object> params = {
         'reports': ['Coverage'],
-        'scriptId': foundScript!.id!
+        'scriptId': foundScript.id
       };
       final coverage =
           await isolate.invokeRpcNoUpgrade('getSourceReport', params);

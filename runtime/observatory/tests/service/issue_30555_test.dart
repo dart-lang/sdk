@@ -38,36 +38,36 @@ var tests = <IsolateTest>[
     var sub;
     final Isolate firstIsolate = isolate;
     print("First isolate is: ${firstIsolate.id}");
-    Isolate? secondIsolate;
+    Isolate secondIsolate;
     sub = await isolate.vm.listenEventStream(VM.kDebugStream, (ServiceEvent c) {
-      print("Event ${c.kind} on ${c.isolate!.id}");
+      print("Event ${c.kind} on ${c.isolate.id}");
       switch (step) {
         case 0:
           expect(c.kind, equals(ServiceEvent.kResume),
               reason: "First isolate should resume");
-          expect(c.isolate!.id, equals(firstIsolate.id),
+          expect(c.isolate.id, equals(firstIsolate.id),
               reason: "First isolate should resume");
           break;
         case 1:
           expect(c.kind, equals(ServiceEvent.kPauseStart),
               reason: "Second isolate should pause on start");
-          expect(c.isolate!.id, equals(isolate.vm.isolates[1].id),
+          expect(c.isolate.id, equals(isolate.vm.isolates[1].id),
               reason: "Second isolate should pause on start");
-          secondIsolate = c.isolate!;
-          print("Second isolate is: ${secondIsolate!.id}");
+          secondIsolate = c.isolate;
+          print("Second isolate is: ${secondIsolate.id}");
           print("Resuming second isolate");
-          secondIsolate!.resume();
+          secondIsolate.resume();
           break;
         case 2:
           expect(c.kind, equals(ServiceEvent.kResume),
               reason: "Second isolate should resume");
-          expect(c.isolate!.id, equals(secondIsolate!.id),
+          expect(c.isolate.id, equals(secondIsolate.id),
               reason: "Second isolate should resume");
           break;
         case 3:
           expect(c.kind, equals(ServiceEvent.kPauseBreakpoint),
               reason: "First isolate should stop at debugger()");
-          expect(c.isolate!.id, equals(firstIsolate.id),
+          expect(c.isolate.id, equals(firstIsolate.id),
               reason: "First isolate should stop at debugger()");
           print("Resuming first isolate");
           firstIsolate.resume();
@@ -75,7 +75,7 @@ var tests = <IsolateTest>[
         case 4:
           expect(c.kind, equals(ServiceEvent.kResume),
               reason: "First isolate should resume (1)");
-          expect(c.isolate!.id, equals(firstIsolate.id),
+          expect(c.isolate.id, equals(firstIsolate.id),
               reason: "First isolate should resume (1)");
           break;
         case 5:
@@ -86,18 +86,18 @@ var tests = <IsolateTest>[
           expect(c.kind, equals(ServiceEvent.kPauseBreakpoint),
               reason: "First & Second isolate should stop at debugger()");
           print("Resuming second isolate");
-          secondIsolate!.resume();
+          secondIsolate.resume();
           break;
         case 7:
           expect(c.kind, equals(ServiceEvent.kResume),
               reason: "Second isolate should resume before the exception");
-          expect(c.isolate!.id, equals(secondIsolate!.id),
+          expect(c.isolate.id, equals(secondIsolate.id),
               reason: "Second isolate should resume before the exception");
           break;
         case 8:
           expect(c.kind, equals(ServiceEvent.kPauseExit),
               reason: "Second isolate should exit at the exception");
-          expect(c.isolate!.id, equals(secondIsolate!.id),
+          expect(c.isolate.id, equals(secondIsolate.id),
               reason: "Second isolate should exit at the exception");
           print("Resuming first isolate");
           firstIsolate.resume();
@@ -105,11 +105,11 @@ var tests = <IsolateTest>[
         case 9:
           expect(c.kind, equals(ServiceEvent.kResume),
               reason: "First isolate should resume after the exception");
-          expect(c.isolate!.id, equals(firstIsolate.id),
+          expect(c.isolate.id, equals(firstIsolate.id),
               reason: "First isolate should resume after the exception");
           break;
         case 10:
-          expect(c.isolate!.id, equals(firstIsolate.id),
+          expect(c.isolate.id, equals(firstIsolate.id),
               reason: "First "
                   "isolate should stop at debugger() after exception.\n"
                   "Probably the second resumed even though it was not expect "

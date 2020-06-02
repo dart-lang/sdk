@@ -11,15 +11,15 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 class SentinelValueElement extends CustomElement implements Renderable {
   static const tag = const Tag<SentinelValueElement>('sentinel-value');
 
-  late RenderingScheduler<SentinelValueElement> _r;
+  RenderingScheduler<SentinelValueElement> _r;
 
   Stream<RenderedEvent<SentinelValueElement>> get onRendered => _r.onRendered;
 
-  late M.Sentinel _sentinel;
+  M.Sentinel _sentinel;
 
   M.Sentinel get sentinel => _sentinel;
 
-  factory SentinelValueElement(M.Sentinel sentinel, {RenderingQueue? queue}) {
+  factory SentinelValueElement(M.Sentinel sentinel, {RenderingQueue queue}) {
     assert(sentinel != null);
     SentinelValueElement e = new SentinelValueElement.created();
     e._r = new RenderingScheduler<SentinelValueElement>(e, queue: queue);

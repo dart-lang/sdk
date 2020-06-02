@@ -25,12 +25,12 @@ var tests = <IsolateTest>[
   (Isolate isolate) async {
     var params = {'metricId': 'metrics/a.b.c'};
     ServiceMetric counter =
-        await isolate.invokeRpc('_getIsolateMetric', params) as ServiceMetric;
+        await isolate.invokeRpc('_getIsolateMetric', params);
     expect(counter.name, equals('a.b.c'));
     expect(counter.value, equals(1234.5));
   },
   (Isolate isolate) async {
-    bool caughtException = false;
+    bool caughtException;
     try {
       await isolate
           .invokeRpc('_getIsolateMetric', {'metricId': 'metrics/a.b.d'});
