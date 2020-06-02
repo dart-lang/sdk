@@ -24,7 +24,11 @@ class W<T> {
 
 @pragma('vm:never-inline')
 FutureOr<int> make(int v) {
-  return v > 0 ? v : Future.value(v);
+  if (v > 0) {
+    return v;
+  } else {
+    return Future.value(v);
+  }
 }
 
 void main(List<String> args) {

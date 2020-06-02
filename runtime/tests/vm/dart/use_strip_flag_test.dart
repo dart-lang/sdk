@@ -90,7 +90,8 @@ main(List<String> args) async {
   });
 }
 
-void compareStrippedAndUnstripped({String stripped, String unstripped}) {
+void compareStrippedAndUnstripped(
+    {required String stripped, required String unstripped}) {
   final strippedSize = File(stripped).lengthSync();
   final unstrippedSize = File(unstripped).lengthSync();
   print("File size for stripped file $stripped: $strippedSize");

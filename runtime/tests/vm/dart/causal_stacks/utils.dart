@@ -155,7 +155,7 @@ Future<void> customErrorZone() async {
 final _lineRE = RegExp(r'^(?:#(?<number>\d+)|<asynchronous suspension>)');
 
 void assertStack(List<String> expects, StackTrace stackTrace,
-    [String debugInfoFilename]) async {
+    [String? debugInfoFilename]) async {
   final original = await Stream.value(stackTrace.toString())
       .transform(const LineSplitter())
       .toList();
@@ -166,7 +166,7 @@ void assertStack(List<String> expects, StackTrace stackTrace,
   final decodeTrace = frames.first.startsWith('Warning:');
   if (decodeTrace) {
     Expect.isNotNull(debugInfoFilename);
-    final dwarf = Dwarf.fromFile(debugInfoFilename);
+    final dwarf = Dwarf.fromFile(debugInfoFilename!);
     frames = await Stream.fromIterable(original)
         .transform(DwarfStackTraceDecoder(dwarf))
         .where(_lineRE.hasMatch)
@@ -218,7 +218,7 @@ void assertStack(List<String> expects, StackTrace stackTrace,
 }
 
 Future<void> doTestAwait(Future f(), List<String> expectedStack,
-    [String debugInfoFilename]) async {
+    [String? debugInfoFilename]) async {
   // Caller catches exception.
   try {
     await f();
@@ -229,7 +229,7 @@ Future<void> doTestAwait(Future f(), List<String> expectedStack,
 }
 
 Future<void> doTestAwaitThen(Future f(), List<String> expectedStack,
-    [String debugInfoFilename]) async {
+    [String? debugInfoFilename]) async {
   // Caller catches but a then is set.
   try {
     await f().then((e) {
@@ -242,9 +242,9 @@ Future<void> doTestAwaitThen(Future f(), List<String> expectedStack,
 }
 
 Future<void> doTestAwaitCatchError(Future f(), List<String> expectedStack,
-    [String debugInfoFilename]) async {
+    [String? debugInfoFilename]) async {
   // Caller doesn't catch, but we have a catchError set.
-  StackTrace stackTrace;
+  late StackTrace stackTrace;
   await f().catchError((e, s) {
     stackTrace = s;
   });
@@ -256,7 +256,7 @@ Future<void> doTestAwaitCatchError(Future f(), List<String> expectedStack,
 // ----
 
 // For: --causal-async-stacks
-Future<void> doTestsCausal([String debugInfoFilename]) async {
+Future<void> doTestsCausal([String? debugInfoFilename]) async {
   final allYieldExpected = const <String>[
     r'^#0      throwSync \(.*/utils.dart:16(:3)?\)$',
     r'^#1      allYield3 \(.*/utils.dart:39(:3)?\)$',
@@ -641,7 +641,7 @@ Future<void> doTestsCausal([String debugInfoFilename]) async {
 }
 
 // For: --no-causal-async-stacks --no-lazy-async-stacks
-Future<void> doTestsNoCausalNoLazy([String debugInfoFilename]) async {
+Future<void> doTestsNoCausalNoLazy([String? debugInfoFilename]) async {
   final allYieldExpected = const <String>[
     r'^#0      throwSync \(.*/utils.dart:16(:3)?\)$',
     r'^#1      allYield3 \(.*/utils.dart:39(:3)?\)$',
@@ -960,7 +960,7 @@ Future<void> doTestsNoCausalNoLazy([String debugInfoFilename]) async {
 }
 
 // For: --lazy-async-stacks
-Future<void> doTestsLazy([String debugInfoFilename]) async {
+Future<void> doTestsLazy([String? debugInfoFilename]) async {
   final allYieldExpected = const <String>[
     r'^#0      throwSync \(.*/utils.dart:16(:3)?\)$',
     r'^#1      allYield3 \(.*/utils.dart:39(:3)?\)$',

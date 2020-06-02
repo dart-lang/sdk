@@ -80,7 +80,7 @@ String foo0() {
                     var7[-12],
                     ((((27 + var1)).isInfinite
                             ? var3
-                            : (var3 ? (var9[var7[-88]]).isEmpty : var3))
+                            : (var3 ? (var9[var7[-88]])!.isEmpty : var3))
                         ? -4294934528
                         : var1),
                     -40,
@@ -257,7 +257,7 @@ String foo2(Map<int, String> par1, bool par2) {
        */
       var7 ??= (((((-(var7[-2]))).toString() ?? foo0()) ??
               (true
-                  ? (par1[(-57 + (var7[52] | -91))] + var9[57])
+                  ? (par1[(-57 + (var7[52] | -91))]! + var9[57]!)
                   : Uri.decodeFull((false
                       ? '17'
                       : (8).toStringAsExponential(var7[var7[8]]))))))
@@ -397,7 +397,7 @@ String foo2(Map<int, String> par1, bool par2) {
             (-54).abs(),
             ((var3 ? true : (!(var3)))
                 ? (!((Uri.encodeFull('aILQc')).endsWith('+7o0Q6b')))
-                : ((true ? ('bEIx').endsWith(par1[var2]) : par2)
+                : ((true ? ('bEIx').endsWith(par1[var2]!) : par2)
                     ? false
                     : ({
                           -77,
@@ -415,7 +415,7 @@ String foo2(Map<int, String> par1, bool par2) {
         try {
           var6 ??= par1[(('R12').isNotEmpty
               ? (par2 ? 4294967396 : var2)
-              : (((var0).isEmpty ? true : par2) ? var4 : var2))];
+              : (((var0).isEmpty ? true : par2) ? var4 : var2))]!;
           var8 ??= (var8 ??
               {
                 (~(((var7[var2] ?? 86) >>
@@ -427,8 +427,8 @@ String foo2(Map<int, String> par1, bool par2) {
         } catch (exception, stackTrace) {
           var9 = (Map.of({
                 59: var6,
-                3: var0[DateTime.may],
-                49: par1[var2],
+                3: var0[DateTime.may]!,
+                49: par1[var2]!,
                 71: '6',
                 77: ((!(true)) ? ('QB\u2665OU6' ?? 'r-\u2665') : foo0()),
                 88: foo0()

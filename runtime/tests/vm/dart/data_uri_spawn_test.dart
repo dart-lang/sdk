@@ -20,7 +20,7 @@ replyPort.send(42);
 }
 """;
 
-  RawReceivePort receivePort;
+  late RawReceivePort receivePort;
   asyncStart();
   receivePort = new RawReceivePort((message) {
     Expect.equals(message, 42);

@@ -1472,7 +1472,8 @@
             "ffi",
             "language",
             "lib",
-            "standalone/io"
+            "standalone/io",
+            "vm/dart"
           ]
         },
         {
@@ -1483,7 +1484,8 @@
             "ffi",
             "language",
             "lib",
-            "standalone/io"
+            "standalone/io",
+            "vm/dart"
           ]
         }
       ]
@@ -1847,7 +1849,8 @@
             "language",
             "lib",
             "co19",
-            "standalone/io"
+            "standalone/io",
+            "vm/dart"
           ]
         },
         {
@@ -1859,7 +1862,8 @@
             "language",
             "lib",
             "co19",
-            "standalone/io"
+            "standalone/io",
+            "vm/dart"
           ]
         }
       ]

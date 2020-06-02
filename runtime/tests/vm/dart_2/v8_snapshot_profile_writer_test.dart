@@ -213,7 +213,7 @@ main() async {
 
   await withTempDir('v8-snapshot-profile-writer', (String tempDir) async {
     // We only need to generate the dill file once.
-    final _thisTestPath = path.join(sdkDir, 'runtime', 'tests', 'vm', 'dart',
+    final _thisTestPath = path.join(sdkDir, 'runtime', 'tests', 'vm', 'dart_2',
         'v8_snapshot_profile_writer_test.dart');
     final dillPath = path.join(tempDir, 'test.dill');
     await run(genKernel, <String>[

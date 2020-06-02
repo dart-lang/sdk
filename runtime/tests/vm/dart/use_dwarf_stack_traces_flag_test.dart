@@ -179,7 +179,7 @@ Iterable<int> parseUsingAddressRegExp(RegExp re, Iterable<String> lines) sync* {
   for (final line in lines) {
     final match = re.firstMatch(line);
     if (match != null) {
-      yield int.parse(match.group(1), radix: 16);
+      yield int.parse(match.group(1)!, radix: 16);
     }
   }
 }

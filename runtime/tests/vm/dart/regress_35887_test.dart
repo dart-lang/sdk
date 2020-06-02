@@ -20,7 +20,7 @@ class Value {
 
 const int limit = 50;
 
-Value maybeWrap(int i) => i < limit ? new Value(i) : null;
+dynamic maybeWrap(int i) => i < limit ? new Value(i) : null;
 
 Future<void> test() async {
   for (int i = 0; i < 60; ++i) {

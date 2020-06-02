@@ -18,8 +18,8 @@ Future<void> main(List<String> args) async {
     return;
   }
 
-  final String sourcePath = path.join(
-      'runtime', 'tests', 'vm', 'dart', 'run_appended_aot_snapshot_test.dart');
+  final String sourcePath = path.join('runtime', 'tests', 'vm', 'dart_2',
+      'run_appended_aot_snapshot_test.dart');
 
   await withTempDir((String tmp) async {
     final String exeName = 'test.exe';
