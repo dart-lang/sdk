@@ -1049,7 +1049,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantInitializerCallAfterIf) {
 }
 
 ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantInitializerCallInLoop) {
-  if (!KernelIsolate::GetExperimentalFlag("non-nullable")) {
+  if (!TestCase::IsNNBD()) {
     return;
   }
 

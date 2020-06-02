@@ -218,6 +218,10 @@ const char* TestCase::GetTestLib(const char* url) {
   return NULL;
 }
 
+bool TestCase::IsNNBD() {
+  return KernelIsolate::GetExperimentalFlag("non-nullable");
+}
+
 #ifndef PRODUCT
 static const char* kIsolateReloadTestLibSource =
     "void reloadTest() native 'Test_Reload';\n"

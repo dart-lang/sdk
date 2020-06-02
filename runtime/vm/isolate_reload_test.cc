@@ -274,8 +274,7 @@ TEST_CASE(IsolateReload_KernelIncrementalCompileGenerics) {
 }
 
 TEST_CASE(IsolateReload_KernelIncrementalCompileBaseClass) {
-  const bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* nullableTag = null_safety ? "?" : "";
+  const char* nullable_tag = TestCase::NullableTag();
   // clang-format off
   auto kSourceFile1 =
       Utils::CStringUniquePtr(OS::SCreate(nullptr,
@@ -287,7 +286,7 @@ TEST_CASE(IsolateReload_KernelIncrementalCompileBaseClass) {
                                 "    u = l[1] is U ? l[1] : null;\n"
                                 "  }\n"
                                 "}\n",
-                                nullableTag, nullableTag),
+                                nullable_tag, nullable_tag),
                               std::free);
   Dart_SourceFile sourcefiles[3] = {
       {
@@ -334,7 +333,7 @@ TEST_CASE(IsolateReload_KernelIncrementalCompileBaseClass) {
                                           "    u = l[1] is U ? l[1] : null;\n"
                                           "  }\n"
                                           "}\n",
-                                          nullableTag, nullableTag),
+                                          nullable_tag, nullable_tag),
                               std::free);
   Dart_SourceFile updated_sourcefiles[1] = {{
       "file:///test-lib.dart",
@@ -727,8 +726,7 @@ TEST_CASE(IsolateReload_ImplicitConstructorChanged) {
 }
 
 TEST_CASE(IsolateReload_ConstructorChanged) {
-  const bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* lateTag = null_safety ? "late" : "";
+  const char* late_tag = TestCase::LateTag();
   // clang-format off
   auto kScript = Utils::CStringUniquePtr(
       OS::SCreate(nullptr,
@@ -741,7 +739,7 @@ TEST_CASE(IsolateReload_ConstructorChanged) {
                   "  var newA = A();\n"
                   "  return 'saved:${savedA.field} new:${newA.field}';\n"
                   "}\n",
-                  lateTag),
+                  late_tag),
       std::free);
   // clang-format on
 
@@ -762,7 +760,7 @@ TEST_CASE(IsolateReload_ConstructorChanged) {
                   "  var newA = A();\n"
                   "  return 'saved:${savedA.field} new:${newA.field}';\n"
                   "}\n",
-                  lateTag),
+                  late_tag),
       std::free);
   // clang-format on
 
@@ -3445,8 +3443,7 @@ TEST_CASE(IsolateReload_ConstFieldUpdate) {
 }
 
 TEST_CASE(IsolateReload_RunNewFieldInitializers) {
-  const bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* lateTag = null_safety ? "late" : "";
+  const char* late_tag = TestCase::LateTag();
   // clang-format off
   auto kScript = Utils::CStringUniquePtr(OS::SCreate(nullptr,
                                             "class Foo {\n"
@@ -3457,7 +3454,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializers) {
                                             "  value = Foo();\n"
                                             "  return value.x;\n"
                                             "}\n",
-                                            lateTag),
+                                            late_tag),
                                          std::free);
   // clang-format on
 
@@ -3476,7 +3473,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializers) {
                                                   "main() {\n"
                                                   "  return value.y;\n"
                                                   "}\n",
-                                                  lateTag),
+                                                  late_tag),
                                                std::free);
   // clang-format on
 
@@ -3487,8 +3484,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializers) {
 }
 
 TEST_CASE(IsolateReload_RunNewFieldInitializersReferenceStaticField) {
-  const bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* lateTag = null_safety ? "late" : "";
+  const char* late_tag = TestCase::LateTag();
   // clang-format off
   auto kScript =
       Utils::CStringUniquePtr(OS::SCreate(nullptr,
@@ -3501,7 +3497,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersReferenceStaticField) {
                                           "  value = Foo();\n"
                                           "  return value.x;\n"
                                           "}\n",
-                                          lateTag),
+                                          late_tag),
                               std::free);
   // clang-format on
 
@@ -3522,7 +3518,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersReferenceStaticField) {
                                           "main() {\n"
                                           "  return value.y;\n"
                                           "}\n",
-                                          lateTag),
+                                          late_tag),
                               std::free);
   // clang-format on
 
@@ -3533,8 +3529,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersReferenceStaticField) {
 }
 
 TEST_CASE(IsolateReload_RunNewFieldInitializersLazy) {
-  const bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* lateTag = null_safety ? "late" : "";
+  const char* late_tag = TestCase::LateTag();
   // clang-format off
   auto kScript =
       Utils::CStringUniquePtr(OS::SCreate(nullptr,
@@ -3549,7 +3544,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersLazy) {
                                 "  value1 = Foo();\n"
                                 "  return value.x;\n"
                                 "}\n",
-                                lateTag, lateTag),
+                                late_tag, late_tag),
                               std::free);
   // clang-format on
 
@@ -3572,7 +3567,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersLazy) {
                   "  return '${myInitialValue} ${value.y} ${value1.y} "
                   "${myInitialValue}';\n"
                   "}\n",
-                  lateTag, lateTag),
+                  late_tag, late_tag),
       std::free);
   // clang-format on
 
@@ -3583,8 +3578,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersLazy) {
 }
 
 TEST_CASE(IsolateReload_RunNewFieldInitializersLazyConst) {
-  const bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* lateTag = null_safety ? "late" : "";
+  const char* late_tag = TestCase::LateTag();
   // clang-format off
   auto kScript = Utils::CStringUniquePtr(OS::SCreate(nullptr,
                                             "class Foo {\n"
@@ -3595,7 +3589,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersLazyConst) {
                                             "  value = Foo();\n"
                                             "  return value.x;\n"
                                             "}\n",
-                                            lateTag),
+                                            late_tag),
                                          std::free);
   // clang-format on
 
@@ -3617,7 +3611,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersLazyConst) {
                                                   "main() {\n"
                                                   "  return 0;\n"
                                                   "}\n",
-                                                  lateTag),
+                                                  late_tag),
                                                std::free);
   // clang-format on
 
@@ -3636,7 +3630,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersLazyConst) {
                                           "main() {\n"
                                           "  return value.y;\n"
                                           "}\n",
-                                          lateTag),
+                                          late_tag),
                               std::free);
 
   lib = TestCase::ReloadTestScript(kReloadScript2.get());
@@ -3645,8 +3639,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersLazyConst) {
 }
 
 TEST_CASE(IsolateReload_RunNewFieldInitializersLazyTransitive) {
-  const bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* lateTag = null_safety ? "late" : "";
+  const char* late_tag = TestCase::LateTag();
   // clang-format off
   auto kScript =
       Utils::CStringUniquePtr(OS::SCreate(nullptr,
@@ -3661,7 +3654,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersLazyTransitive) {
                                 "  value1 = Foo();\n"
                                 "  return value.x;\n"
                                 "}\n",
-                                lateTag, lateTag),
+                                late_tag, late_tag),
                               std::free);
   // clang-format on
 
@@ -3683,7 +3676,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersLazyTransitive) {
                                 "main() {\n"
                                 "  return '${myInitialValue}';\n"
                                 "}\n",
-                                lateTag, lateTag),
+                                late_tag, late_tag),
                               std::free);
   // clang-format on
 
@@ -3707,7 +3700,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersLazyTransitive) {
                   "  return '${myInitialValue} ${value.y} ${value1.y} "
                   "${myInitialValue}';\n"
                   "}\n",
-                  lateTag, lateTag),
+                  late_tag, late_tag),
       std::free);
   // clang-format on
 
@@ -3718,8 +3711,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersLazyTransitive) {
 }
 
 TEST_CASE(IsolateReload_RunNewFieldInitializersThrows) {
-  const bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* lateTag = null_safety ? "late" : "";
+  const char* late_tag = TestCase::LateTag();
   // clang-format off
   auto kScript = Utils::CStringUniquePtr(OS::SCreate(nullptr,
                                             "class Foo {\n"
@@ -3730,7 +3722,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersThrows) {
                                             "  value = Foo();\n"
                                             "  return value.x;\n"
                                             "}\n",
-                                            lateTag),
+                                            late_tag),
                                          std::free);
   // clang-format on
 
@@ -3754,7 +3746,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersThrows) {
                                 "    return e.toString();\n"
                                 "  }\n"
                                 "}\n",
-                                lateTag),
+                                late_tag),
                               std::free);
   // clang-format on
 
@@ -3765,8 +3757,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersThrows) {
 }
 
 TEST_CASE(IsolateReload_RunNewFieldInitializersCyclicInitialization) {
-  const bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* lateTag = null_safety ? "late" : "";
+  const char* late_tag = TestCase::LateTag();
   // clang-format off
   auto kScript = Utils::CStringUniquePtr(OS::SCreate(nullptr,
                                           "class Foo {\n"
@@ -3777,7 +3768,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersCyclicInitialization) {
                                             "  value = Foo();\n"
                                             "  return value.x;\n"
                                             "}\n",
-                                            lateTag),
+                                            late_tag),
                                          std::free);
   // clang-format on
 
@@ -3801,7 +3792,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersCyclicInitialization) {
                                 "    return e.toString();\n"
                                 "  }\n"
                                 "}\n",
-                                lateTag),
+                                late_tag),
                               std::free);
   // clang-format on
   lib = TestCase::ReloadTestScript(kReloadScript.get());
@@ -3812,8 +3803,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersCyclicInitialization) {
 // When an initializer expression has a syntax error, we detect it at reload
 // time.
 TEST_CASE(IsolateReload_RunNewFieldInitializersSyntaxError) {
-  const bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* lateTag = null_safety ? "late" : "";
+  const char* late_tag = TestCase::LateTag();
   // clang-format off
   auto kScript = Utils::CStringUniquePtr(OS::SCreate(nullptr,
                                             "class Foo {\n"
@@ -3824,7 +3814,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersSyntaxError) {
                                             "  value = Foo();\n"
                                             "  return value.x;\n"
                                             "}\n",
-                                            lateTag),
+                                            late_tag),
                                          std::free);
   // clang-format on
 
@@ -3844,7 +3834,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersSyntaxError) {
                                 "main() {\n"
                                 "  return '${value.y == null}';"
                                 "}\n",
-                                lateTag),
+                                late_tag),
                               std::free);
   // clang-format on
 
@@ -3857,8 +3847,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersSyntaxError) {
 // When an initializer expression has a syntax error, we detect it at reload
 // time.
 TEST_CASE(IsolateReload_RunNewFieldInitializersSyntaxError2) {
-  const bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* lateTag = null_safety ? "late" : "";
+  const char* late_tag = TestCase::LateTag();
   // clang-format off
   auto kScript = Utils::CStringUniquePtr(
       OS::SCreate(nullptr,
@@ -3871,7 +3860,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersSyntaxError2) {
                   "  value = Foo();\n"
                   "  return value.x;\n"
                   "}\n",
-                  lateTag),
+                  late_tag),
       std::free);
   // clang-format on
 
@@ -3892,7 +3881,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersSyntaxError2) {
                   "main() {\n"
                   "  return '${value.y == null}';"
                   "}\n",
-                  lateTag),
+                  late_tag),
       std::free);
   // clang-format on
 
@@ -3905,8 +3894,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersSyntaxError2) {
 // When an initializer expression has a syntax error, we detect it at reload
 // time.
 TEST_CASE(IsolateReload_RunNewFieldInitializersSyntaxError3) {
-  const bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* lateTag = null_safety ? "late" : "";
+  const char* late_tag = TestCase::LateTag();
   // clang-format off
   auto kScript = Utils::CStringUniquePtr(
       OS::SCreate(nullptr,
@@ -3919,7 +3907,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersSyntaxError3) {
                   "  value = Foo();\n"
                   "  return value.x;\n"
                   "}\n",
-                  lateTag),
+                  late_tag),
       std::free);
   // clang-format on
 
@@ -3940,7 +3928,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersSyntaxError3) {
                   "main() {\n"
                   "  return '${value.y == null}';"
                   "}\n",
-                  lateTag),
+                  late_tag),
       std::free);
   // clang-format on
 
@@ -3951,8 +3939,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersSyntaxError3) {
 }
 
 TEST_CASE(IsolateReload_RunNewFieldInitializersSuperClass) {
-  const bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* lateTag = null_safety ? "late" : "";
+  const char* late_tag = TestCase::LateTag();
   // clang-format off
   auto kScript =
       Utils::CStringUniquePtr(OS::SCreate(nullptr,
@@ -3969,7 +3956,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersSuperClass) {
                                 "  value = Foo();\n"
                                 "  return 0;\n"
                                 "}\n",
-                                lateTag),
+                                late_tag),
                               std::free);
   // clang-format on
 
@@ -3991,7 +3978,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersSuperClass) {
                                           "main() {\n"
                                           "  return value.newField;\n"
                                           "}\n",
-                                          lateTag),
+                                          late_tag),
                               std::free);
   // clang-format off
 
@@ -4007,8 +3994,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersSuperClass) {
 }
 
 TEST_CASE(IsolateReload_RunNewFieldInitializersWithConsts) {
-  const bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* lateTag = null_safety ? "late" : "";
+  const char* late_tag = TestCase::LateTag();
   // clang-format off
   auto kScript =
       Utils::CStringUniquePtr(OS::SCreate(nullptr,
@@ -4028,7 +4014,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersWithConsts) {
                                 "  a; b; c; d;\n"
                                 "  return 'Okay';\n"
                                 "}\n",
-                                lateTag),
+                                late_tag),
                               std::free);
   // clang-format on
 
@@ -4059,7 +4045,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersWithConsts) {
           "  return '${identical(a, value.a)} ${identical(b, value.b)}'"
           "      ' ${identical(c, value.c)} ${identical(d, value.d)}';\n"
           "}\n",
-          lateTag),
+          late_tag),
       std::free);
   // clang-format on
   lib = TestCase::ReloadTestScript(kReloadScript.get());
@@ -4070,9 +4056,8 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersWithConsts) {
 }
 
 TEST_CASE(IsolateReload_RunNewFieldInitializersWithGenerics) {
-  const bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* nullableTag = null_safety ? "?" : "";
-  const char* lateTag = null_safety ? "late" : "";
+  const char* nullable_tag = TestCase::NullableTag();
+  const char* late_tag = TestCase::LateTag();
   // clang-format off
   auto kScript =
       Utils::CStringUniquePtr(OS::SCreate(nullptr,
@@ -4086,7 +4071,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersWithGenerics) {
                                 "  value2 = Foo<int>();\n"
                                 "  return 'Okay';\n"
                                 "}\n",
-                                nullableTag, lateTag, lateTag),
+                                nullable_tag, late_tag, late_tag),
                               std::free);
   // clang-format on
 
@@ -4108,7 +4093,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersWithGenerics) {
                   "  return '${value1.y.runtimeType} ${value1.z.runtimeType}'"
                   "      ' ${value2.y.runtimeType} ${value2.z.runtimeType}';\n"
                   "}\n",
-                  nullableTag, lateTag, lateTag),
+                  nullable_tag, late_tag, late_tag),
       std::free);
   // clang-format on
 
@@ -4247,8 +4232,7 @@ TEST_CASE(IsolateReload_DeleteStaticField) {
 }
 
 TEST_CASE(IsolateReload_ExistingFieldChangesType) {
-  const bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* lateTag = null_safety ? "late" : "";
+  const char* late_tag = TestCase::LateTag();
   // clang-format off
   auto kScript = Utils::CStringUniquePtr(OS::SCreate(nullptr,
                                                      R"(
@@ -4261,7 +4245,7 @@ TEST_CASE(IsolateReload_ExistingFieldChangesType) {
       return 'Okay';
     }
   )",
-  lateTag), std::free);
+  late_tag), std::free);
   // clang-format on
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript.get(), NULL);
@@ -4282,7 +4266,7 @@ TEST_CASE(IsolateReload_ExistingFieldChangesType) {
       }
     }
   )",
-  lateTag), std::free);
+  late_tag), std::free);
   // clang-format on
 
   lib = TestCase::ReloadTestScript(kReloadScript.get());
@@ -4325,8 +4309,7 @@ TEST_CASE(IsolateReload_ExistingStaticFieldChangesType) {
 }
 
 TEST_CASE(IsolateReload_ExistingFieldChangesTypeIndirect) {
-  const bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* lateTag = null_safety ? "late" : "";
+  const char* late_tag = TestCase::LateTag();
   // clang-format off
   auto kScript = Utils::CStringUniquePtr(OS::SCreate(nullptr, R"(
     class A {}
@@ -4340,7 +4323,7 @@ TEST_CASE(IsolateReload_ExistingFieldChangesTypeIndirect) {
       value = Foo(B());
       return 'Okay';
     }
-  )", lateTag), std::free);
+  )", late_tag), std::free);
   // clang-format on
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript.get(), NULL);
@@ -4364,7 +4347,7 @@ TEST_CASE(IsolateReload_ExistingFieldChangesTypeIndirect) {
         return e.toString();
       }
     }
-  )", lateTag), std::free);
+  )", late_tag), std::free);
   // clang-format on
 
   lib = TestCase::ReloadTestScript(kReloadScript.get());
@@ -4410,8 +4393,7 @@ TEST_CASE(IsolateReload_ExistingStaticFieldChangesTypeIndirect) {
 }
 
 TEST_CASE(IsolateReload_ExistingFieldChangesTypeIndirectGeneric) {
-  const bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* lateTag = null_safety ? "late" : "";
+  const char* late_tag = TestCase::LateTag();
   // clang-format off
   auto kScript = Utils::CStringUniquePtr(OS::SCreate(nullptr, R"(
     class A {}
@@ -4425,7 +4407,7 @@ TEST_CASE(IsolateReload_ExistingFieldChangesTypeIndirectGeneric) {
       value = Foo(List<B>.empty());
       return 'Okay';
     }
-  )", lateTag), std::free);
+  )", late_tag), std::free);
   // clang-format on
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript.get(), NULL);
@@ -4449,7 +4431,7 @@ TEST_CASE(IsolateReload_ExistingFieldChangesTypeIndirectGeneric) {
         return e.toString();
       }
     }
-  )", lateTag), std::free);
+  )", late_tag), std::free);
   // clang-format on
 
   lib = TestCase::ReloadTestScript(kReloadScript.get());
@@ -4497,9 +4479,7 @@ TEST_CASE(IsolateReload_ExistingStaticFieldChangesTypeIndirectGeneric) {
 }
 
 TEST_CASE(IsolateReload_ExistingFieldChangesTypeIndirectFunction) {
-  const bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* lateTag = null_safety ? "late" : "";
-
+  const char* late_tag = TestCase::LateTag();
   // clang-format off
   auto kScript = Utils::CStringUniquePtr(OS::SCreate(nullptr, R"(
     class A {}
@@ -4514,7 +4494,7 @@ TEST_CASE(IsolateReload_ExistingFieldChangesTypeIndirectFunction) {
       value = Foo((A a) => true);
       return 'Okay';
     }
-  )", lateTag), std::free);
+  )", late_tag), std::free);
   // clang-format on
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript.get(), NULL);
@@ -4539,7 +4519,7 @@ TEST_CASE(IsolateReload_ExistingFieldChangesTypeIndirectFunction) {
         return e.toString();
       }
     }
-  )", lateTag), std::free);
+  )", late_tag), std::free);
   // clang-format on
 
   lib = TestCase::ReloadTestScript(kReloadScript.get());

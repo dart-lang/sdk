@@ -4034,7 +4034,7 @@ TEST_CASE(DartAPI_TypeGetParameterizedTypes) {
   EXPECT_VALID(double_type);
   EXPECT_VALID(Dart_ListSetAt(type_args, 1, double_type));
   Dart_Handle myclass0_type =
-      (FLAG_null_safety == kNullSafetyOptionStrong)
+      TestCase::IsNNBD()
           ? Dart_GetNonNullableType(lib, NewString("MyClass0"), 2, &type_args)
           : Dart_GetType(lib, NewString("MyClass0"), 2, &type_args);
   EXPECT_VALID(myclass0_type);
@@ -4048,7 +4048,7 @@ TEST_CASE(DartAPI_TypeGetParameterizedTypes) {
   EXPECT_VALID(list_type);
   EXPECT_VALID(Dart_ListSetAt(type_args, 1, list_type));
   Dart_Handle myclass1_type =
-      (FLAG_null_safety == kNullSafetyOptionStrong)
+      TestCase::IsNNBD()
           ? Dart_GetNonNullableType(lib, NewString("MyClass1"), 2, &type_args)
           : Dart_GetType(lib, NewString("MyClass1"), 2, &type_args);
   EXPECT_VALID(myclass1_type);
@@ -4417,9 +4417,8 @@ TEST_CASE(DartAPI_SetField_FunnyValue) {
 }
 
 TEST_CASE(DartAPI_SetField_BadType) {
-  const char* kScriptChars = (FLAG_null_safety == kNullSafetyOptionStrong)
-                                 ? "late int foo;\n"
-                                 : "int foo;\n";
+  const char* kScriptChars =
+      TestCase::IsNNBD() ? "late int foo;\n" : "int foo;\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_Handle name = NewString("foo");
   Dart_Handle result = Dart_SetField(lib, name, Dart_True());
@@ -4441,8 +4440,6 @@ static Dart_NativeFunction native_field_lookup(Dart_Handle name,
 }
 
 TEST_CASE(DartAPI_InjectNativeFields2) {
-  bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* nullableTag = null_safety ? "?" : "";
   // clang-format off
   auto kScriptChars = Utils::CStringUniquePtr(
       OS::SCreate(nullptr,
@@ -4457,7 +4454,7 @@ TEST_CASE(DartAPI_InjectNativeFields2) {
                   "  NativeFields obj = new NativeFields(10, 20);\n"
                   "  return obj;\n"
                   "}\n",
-                  nullableTag), std::free);
+                  TestCase::NullableTag()), std::free);
   // clang-format on
 
   Dart_Handle result;
@@ -4475,8 +4472,6 @@ TEST_CASE(DartAPI_InjectNativeFields2) {
 }
 
 TEST_CASE(DartAPI_InjectNativeFields3) {
-  bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* nullableTag = null_safety ? "?" : "";
   // clang-format off
   auto kScriptChars = Utils::CStringUniquePtr(
       OS::SCreate(nullptr,
@@ -4492,7 +4487,7 @@ TEST_CASE(DartAPI_InjectNativeFields3) {
                   "  NativeFields obj = new NativeFields(10, 20);\n"
                   "  return obj;\n"
                   "}\n",
-                  nullableTag), std::free);
+                  TestCase::NullableTag()), std::free);
   // clang-format on
   Dart_Handle result;
   const int kNumNativeFields = 2;
@@ -4524,8 +4519,6 @@ TEST_CASE(DartAPI_InjectNativeFields3) {
 }
 
 TEST_CASE(DartAPI_InjectNativeFields4) {
-  bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* nullableTag = null_safety ? "?" : "";
   // clang-format off
   auto kScriptChars = Utils::CStringUniquePtr(
       OS::SCreate(nullptr,
@@ -4540,7 +4533,7 @@ TEST_CASE(DartAPI_InjectNativeFields4) {
                   "  NativeFields obj = new NativeFields(10, 20);\n"
                   "  return obj;\n"
                   "}\n",
-                  nullableTag), std::free);
+                  TestCase::NullableTag()), std::free);
   // clang-format on
   Dart_Handle result;
   // Load up a test script in the test library.
@@ -4610,8 +4603,7 @@ static Dart_NativeFunction TestNativeFieldsAccess_lookup(Dart_Handle name,
 }
 
 TEST_CASE(DartAPI_TestNativeFieldsAccess) {
-  bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* nullableTag = null_safety ? "?" : "";
+  const char* nullable_tag = TestCase::NullableTag();
   // clang-format off
   auto kScriptChars = Utils::CStringUniquePtr(
       OS::SCreate(
@@ -4633,7 +4625,7 @@ TEST_CASE(DartAPI_TestNativeFieldsAccess) {
           "  obj.accessNativeFlds(null);\n"
           "  return obj;\n"
           "}\n",
-          nullableTag, nullableTag, nullableTag, nullableTag),
+          nullable_tag, nullable_tag, nullable_tag, nullable_tag),
       std::free);
   // clang-format on
 
@@ -4751,8 +4743,7 @@ static void TestNativeFields(Dart_Handle retobj) {
 }
 
 TEST_CASE(DartAPI_ImplicitNativeFieldAccess) {
-  bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* nullableTag = null_safety ? "?" : "";
+  const char* nullable_tag = TestCase::NullableTag();
   // clang-format off
   auto kScriptChars = Utils::CStringUniquePtr(
       OS::SCreate(nullptr,
@@ -4769,7 +4760,7 @@ TEST_CASE(DartAPI_ImplicitNativeFieldAccess) {
                   "  NativeFields obj = new NativeFields(10, 20);\n"
                   "  return obj;\n"
                   "}\n",
-                  nullableTag, nullableTag),
+                  nullable_tag, nullable_tag),
       std::free);
   // clang-format on
   // Load up a test script in the test library.
@@ -4785,8 +4776,6 @@ TEST_CASE(DartAPI_ImplicitNativeFieldAccess) {
 }
 
 TEST_CASE(DartAPI_NegativeNativeFieldAccess) {
-  bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* nullableTag = null_safety ? "?" : "";
   // clang-format off
   auto kScriptChars = Utils::CStringUniquePtr(
       OS::SCreate(nullptr,
@@ -4805,7 +4794,7 @@ TEST_CASE(DartAPI_NegativeNativeFieldAccess) {
                   "Function testMain2() {\n"
                   "  return () {};\n"
                   "}\n",
-                  nullableTag),
+                  TestCase::NullableTag()),
       std::free);
   // clang-format on
 

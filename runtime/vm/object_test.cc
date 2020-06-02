@@ -3750,8 +3750,6 @@ static void PrintMetadata(const char* name, const Object& data) {
 }
 
 TEST_CASE(Metadata) {
-  bool nullSafety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* nullableTag = nullSafety ? "?" : "";
   // clang-format off
   auto kScriptChars =
       Utils::CStringUniquePtr(OS::SCreate(nullptr,
@@ -3785,7 +3783,7 @@ TEST_CASE(Metadata) {
         "A main() {                     \n"
         "  return A();                  \n"
         "}                              \n",
-        nullableTag), std::free);
+        TestCase::NullableTag()), std::free);
   // clang-format on
 
   Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars.get(), NULL);
