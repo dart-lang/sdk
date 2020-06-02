@@ -11,15 +11,15 @@ class IsolateCounterChartElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<IsolateCounterChartElement>('isolate-counter-chart');
 
-  RenderingScheduler<IsolateCounterChartElement> _r;
+  late RenderingScheduler<IsolateCounterChartElement> _r;
 
   Stream<RenderedEvent<IsolateCounterChartElement>> get onRendered =>
       _r.onRendered;
 
-  Map _counters;
-  StreamSubscription _subscription;
+  late Map _counters;
+  late StreamSubscription _subscription;
 
-  factory IsolateCounterChartElement(Map counters, {RenderingQueue queue}) {
+  factory IsolateCounterChartElement(Map counters, {RenderingQueue? queue}) {
     assert(counters != null);
     IsolateCounterChartElement e = new IsolateCounterChartElement.created();
     e._r = new RenderingScheduler<IsolateCounterChartElement>(e, queue: queue);

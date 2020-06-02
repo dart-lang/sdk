@@ -14,16 +14,16 @@ void testFunction() {
   debugger();
 }
 
-Future validateLocation(Location location, Object object) async {
+Future validateLocation(Location? location, Object object) async {
   if (location == null) return;
-  if (location.tokenPos < 0) return;
+  if (location.tokenPos! < 0) return;
   if (location.script.uri == 'dart:_internal-patch/class_id_fasta.dart') {
     // Injected fields from this script cannot be reloaded.
     return;
   }
 
   // Ensure the script is loaded.
-  final Script script = await location.script.load();
+  final Script script = await location.script.load() as Script;
 
   // Use the more low-level functions.
   final line = script.tokenToLine(location.tokenPos);
@@ -39,17 +39,17 @@ Future validateLocation(Location location, Object object) async {
 }
 
 Future validateFieldLocation(Field field) async {
-  field = await field.load();
+  field = await field.load() as Field;
   await validateLocation(field.location, field);
 }
 
 Future validateFunctionLocation(ServiceFunction fun) async {
-  fun = await fun.load();
+  fun = await fun.load() as ServiceFunction;
   await validateLocation(fun.location, fun);
 }
 
 Future validateClassLocation(Class klass) async {
-  klass = await klass.load();
+  klass = await klass.load() as Class;
   await validateLocation(klass.location, klass);
 
   for (Field field in klass.fields) {
@@ -72,7 +72,7 @@ var tests = <IsolateTest>[
 
     // Loop over all libraries, classes, functions and fields to ensure .
     for (Library lib in isolate.libraries) {
-      lib = await lib.load();
+      lib = await lib.load() as Library;
 
       for (Field field in lib.variables) {
         await validateFieldLocation(field);

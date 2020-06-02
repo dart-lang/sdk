@@ -22,19 +22,19 @@ class ClassInstancesElement extends CustomElement implements Renderable {
     RetainingPathElement.tag,
   ]);
 
-  RenderingScheduler<ClassInstancesElement> _r;
+  late RenderingScheduler<ClassInstancesElement> _r;
 
   Stream<RenderedEvent<ClassInstancesElement>> get onRendered => _r.onRendered;
 
-  M.IsolateRef _isolate;
-  M.Class _cls;
-  M.RetainedSizeRepository _retainedSizes;
-  M.ReachableSizeRepository _reachableSizes;
-  M.StronglyReachableInstancesRepository _stronglyReachableInstances;
-  M.ObjectRepository _objects;
-  M.Guarded<M.Instance> _retainedSize = null;
+  late M.IsolateRef _isolate;
+  late M.Class _cls;
+  late M.RetainedSizeRepository _retainedSizes;
+  late M.ReachableSizeRepository _reachableSizes;
+  late M.StronglyReachableInstancesRepository _stronglyReachableInstances;
+  late M.ObjectRepository _objects;
+  M.Guarded<M.Instance>? _retainedSize = null;
   bool _loadingRetainedBytes = false;
-  M.Guarded<M.Instance> _reachableSize = null;
+  M.Guarded<M.Instance>? _reachableSize = null;
   bool _loadingReachableBytes = false;
 
   M.IsolateRef get isolate => _isolate;
@@ -47,7 +47,7 @@ class ClassInstancesElement extends CustomElement implements Renderable {
       M.ReachableSizeRepository reachableSizes,
       M.StronglyReachableInstancesRepository stronglyReachableInstances,
       M.ObjectRepository objects,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(isolate != null);
     assert(cls != null);
     assert(retainedSizes != null);
@@ -80,15 +80,15 @@ class ClassInstancesElement extends CustomElement implements Renderable {
     children = <Element>[];
   }
 
-  StronglyReachableInstancesElement _strong;
+  StronglyReachableInstancesElement? _strong;
 
   void render() {
     _strong = _strong ??
         new StronglyReachableInstancesElement(
             _isolate, _cls, _stronglyReachableInstances, _objects,
             queue: _r.queue);
-    final instanceCount = _cls.newSpace.instances + _cls.oldSpace.instances;
-    final size = Utils.formatSize(_cls.newSpace.size + _cls.oldSpace.size);
+    final instanceCount = _cls.newSpace!.instances + _cls.oldSpace!.instances;
+    final size = Utils.formatSize(_cls.newSpace!.size + _cls.oldSpace!.size);
     children = <Element>[
       new DivElement()
         ..classes = ['memberList']
@@ -111,7 +111,7 @@ class ClassInstancesElement extends CustomElement implements Renderable {
                 ..text = 'strongly reachable ',
               new DivElement()
                 ..classes = ['memberValue']
-                ..children = <Element>[_strong.element]
+                ..children = <Element>[_strong!.element]
             ],
           new DivElement()
             ..classes = ['memberItem']
@@ -144,14 +144,14 @@ class ClassInstancesElement extends CustomElement implements Renderable {
   List<Element> _createReachableSizeValue() {
     final content = <Element>[];
     if (_reachableSize != null) {
-      if (_reachableSize.isSentinel) {
-        content.add(
-            new SentinelValueElement(_reachableSize.asSentinel, queue: _r.queue)
-                .element);
+      if (_reachableSize!.isSentinel) {
+        content.add(new SentinelValueElement(_reachableSize!.asSentinel!,
+                queue: _r.queue)
+            .element);
       } else {
         content.add(new SpanElement()
           ..text = Utils.formatSize(
-              int.parse(_reachableSize.asValue.valueAsString)));
+              int.parse(_reachableSize!.asValue!.valueAsString!)));
       }
     } else {
       content.add(new SpanElement()..text = '...');
@@ -163,7 +163,7 @@ class ClassInstancesElement extends CustomElement implements Renderable {
     button.onClick.listen((_) async {
       button.disabled = true;
       _loadingReachableBytes = true;
-      _reachableSize = await _reachableSizes.get(_isolate, _cls.id);
+      _reachableSize = await _reachableSizes.get(_isolate, _cls.id!);
       _r.dirty();
     });
     content.add(button);
@@ -173,14 +173,14 @@ class ClassInstancesElement extends CustomElement implements Renderable {
   List<Element> _createRetainedSizeValue() {
     final content = <Element>[];
     if (_retainedSize != null) {
-      if (_retainedSize.isSentinel) {
-        content.add(
-            new SentinelValueElement(_retainedSize.asSentinel, queue: _r.queue)
-                .element);
+      if (_retainedSize!.isSentinel) {
+        content.add(new SentinelValueElement(_retainedSize!.asSentinel!,
+                queue: _r.queue)
+            .element);
       } else {
         content.add(new SpanElement()
-          ..text =
-              Utils.formatSize(int.parse(_retainedSize.asValue.valueAsString)));
+          ..text = Utils.formatSize(
+              int.parse(_retainedSize!.asValue!.valueAsString!)));
       }
     } else {
       content.add(new SpanElement()..text = '...');
@@ -192,7 +192,7 @@ class ClassInstancesElement extends CustomElement implements Renderable {
     button.onClick.listen((_) async {
       button.disabled = true;
       _loadingRetainedBytes = true;
-      _retainedSize = await _retainedSizes.get(_isolate, _cls.id);
+      _retainedSize = await _retainedSizes.get(_isolate, _cls.id!);
       _r.dirty();
     });
     content.add(button);

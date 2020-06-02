@@ -26,15 +26,15 @@ List filterEvents(List events, filter) {
   return events.where(filter).toList();
 }
 
-Completer completer;
-int eventCount;
+late Completer<void> completer;
+int eventCount = 0;
 
 onTimelineEvent(ServiceEvent event) {
   if (event.kind != ServiceEvent.kTimelineEvents) {
     return;
   }
   eventCount++;
-  expect(filterEvents(event.timelineEvents, isDart).length, greaterThan(0));
+  expect(filterEvents(event.timelineEvents!, isDart).length, greaterThan(0));
   if (eventCount == 5) {
     completer.complete(eventCount);
   }

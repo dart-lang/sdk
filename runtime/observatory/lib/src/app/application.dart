@@ -7,30 +7,30 @@ part of app;
 /// The observatory application. Instances of this are created and owned
 /// by the observatory_application custom element.
 class ObservatoryApplication {
-  static ObservatoryApplication app;
+  static late ObservatoryApplication app;
   final RenderingQueue queue = new RenderingQueue();
   final TargetRepository targets = new TargetRepository(isConnectedVMTarget);
   final EventRepository events = new EventRepository();
   final NotificationRepository notifications = new NotificationRepository();
   final _pageRegistry = <Page>[];
-  LocationManager _locationManager;
+  late LocationManager _locationManager;
   LocationManager get locationManager => _locationManager;
-  Page currentPage;
+  Page? currentPage;
   bool _vmConnected = false;
-  VM _vm;
-  VM get vm => _vm;
+  VM? _vm;
+  VM get vm => _vm!;
 
   static bool isConnectedVMTarget(M.Target target) {
     if (app._vm is CommonWebSocketVM) {
       if ((app._vm as CommonWebSocketVM).target == target) {
-        return app._vm.isConnected;
+        return app._vm!.isConnected;
       }
     }
     return false;
   }
 
-  _switchVM(VM newVM) {
-    final VM oldVM = _vm;
+  _switchVM(VM? newVM) {
+    final VM? oldVM = _vm;
 
     Logger.root.info('_switchVM from:${oldVM} to:${newVM}');
 
@@ -89,14 +89,14 @@ class ObservatoryApplication {
     _vm = newVM;
   }
 
-  StreamSubscription _gcSubscription;
-  StreamSubscription _loggingSubscription;
+  StreamSubscription? _gcSubscription;
+  StreamSubscription? _loggingSubscription;
 
   Future startGCEventListener() async {
     if (_gcSubscription != null || _vm == null) {
       return;
     }
-    _gcSubscription = await _vm.listenEventStream(VM.kGCStream, _onEvent);
+    _gcSubscription = await _vm!.listenEventStream(VM.kGCStream, _onEvent);
   }
 
   Future startLoggingEventListener() async {
@@ -104,14 +104,14 @@ class ObservatoryApplication {
       return;
     }
     _loggingSubscription =
-        await _vm.listenEventStream(Isolate.kLoggingStream, _onEvent);
+        await _vm!.listenEventStream(Isolate.kLoggingStream, _onEvent);
   }
 
   Future stopGCEventListener() async {
     if (_gcSubscription == null) {
       return;
     }
-    _gcSubscription.cancel();
+    _gcSubscription!.cancel();
     _gcSubscription = null;
   }
 
@@ -119,16 +119,15 @@ class ObservatoryApplication {
     if (_loggingSubscription == null) {
       return;
     }
-    _loggingSubscription.cancel();
+    _loggingSubscription!.cancel();
     _loggingSubscription = null;
   }
 
   final ObservatoryApplicationElement rootElement;
 
-  ServiceObject lastErrorOrException;
+  ServiceObject? lastErrorOrException;
 
   void _initOnce() {
-    assert(app == null);
     app = this;
     _registerPages();
     Analytics.initialize();
@@ -146,7 +145,7 @@ class ObservatoryApplication {
 
   void _onEvent(ServiceEvent event) {
     assert(event.kind != ServiceEvent.kNone);
-    M.Event e = createEventFromServiceEvent(event);
+    M.Event? e = createEventFromServiceEvent(event);
     if (e != null) {
       events.add(e);
     }
@@ -179,7 +178,7 @@ class ObservatoryApplication {
     _pageRegistry.add(new ErrorPage(this));
   }
 
-  void _visit(Uri uri, Map internalArguments) {
+  void _visit(Uri uri, Map<String, String> internalArguments) {
     if (internalArguments['trace'] != null) {
       var traceArg = internalArguments['trace'];
       if (traceArg == 'on') {
@@ -189,7 +188,7 @@ class ObservatoryApplication {
       }
     }
     if (Tracer.current != null) {
-      Tracer.current.reset();
+      Tracer.current!.reset();
     }
     for (var i = 0; i < _pageRegistry.length; i++) {
       var page = _pageRegistry[i];
@@ -211,7 +210,7 @@ class ObservatoryApplication {
     }
     if (currentPage != null) {
       Logger.root.info('Uninstalling page: $currentPage');
-      currentPage.onUninstall();
+      currentPage!.onUninstall();
       // Clear children.
       rootElement.children.clear();
     }
@@ -222,7 +221,7 @@ class ObservatoryApplication {
       Logger.root.severe('Failed to install page: $e');
     }
     // Add new page.
-    rootElement.children.add(page.element);
+    rootElement.children.add(page.element!);
 
     // Remember page.
     currentPage = page;
@@ -239,22 +238,22 @@ class ObservatoryApplication {
         _switchVM(null);
       } else {
         final bool currentTarget =
-            (_vm as WebSocketVM)?.target == targets.current;
-        final bool currentTargetConnected = (_vm != null) && _vm.isConnected;
+            (_vm as WebSocketVM?)?.target == targets.current;
+        final bool currentTargetConnected = (_vm != null) && _vm!.isConnected;
         if (!currentTarget || !currentTargetConnected) {
-          _switchVM(new WebSocketVM(targets.current));
-          _vm.onConnect.then((_) {
+          _switchVM(new WebSocketVM(targets.current!));
+          _vm!.onConnect.then((_) {
             app.locationManager.go(Uris.vm());
           });
-          _vm.load();
+          _vm!.load();
         } else if (currentTargetConnected) {
           app.locationManager.go(Uris.vm());
         }
       }
     });
 
-    Logger.root.info('Setting initial target to ${targets.current.name}');
-    _switchVM(new WebSocketVM(targets.current));
+    Logger.root.info('Setting initial target to ${targets.current!.name}');
+    _switchVM(new WebSocketVM(targets.current!));
     _initOnce();
 
     // delete pause events.

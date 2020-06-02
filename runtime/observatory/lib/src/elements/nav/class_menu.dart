@@ -13,17 +13,17 @@ import 'package:observatory/src/elements/helpers/uris.dart';
 class NavClassMenuElement extends CustomElement implements Renderable {
   static const tag = const Tag<NavClassMenuElement>('nav-class-menu');
 
-  RenderingScheduler<NavClassMenuElement> _r;
+  late RenderingScheduler<NavClassMenuElement> _r;
 
   Stream<RenderedEvent<NavClassMenuElement>> get onRendered => _r.onRendered;
 
-  M.IsolateRef _isolate;
-  M.ClassRef _cls;
-  Iterable<Element> _content = const [];
+  late M.IsolateRef _isolate;
+  late M.ClassRef _cls;
+  List<Element> _content = const [];
 
   M.IsolateRef get isolate => _isolate;
   M.ClassRef get cls => _cls;
-  Iterable<Element> get content => _content;
+  List<Element> get content => _content;
 
   set content(Iterable<Element> value) {
     _content = value.toList();
@@ -31,7 +31,7 @@ class NavClassMenuElement extends CustomElement implements Renderable {
   }
 
   factory NavClassMenuElement(M.IsolateRef isolate, M.ClassRef cls,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(isolate != null);
     assert(cls != null);
     NavClassMenuElement e = new NavClassMenuElement.created();
@@ -58,7 +58,7 @@ class NavClassMenuElement extends CustomElement implements Renderable {
 
   void render() {
     children = <Element>[
-      navMenu(cls.name,
+      navMenu(cls.name!,
           content: _content, link: Uris.inspect(isolate, object: cls))
     ];
   }

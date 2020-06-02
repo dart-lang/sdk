@@ -54,29 +54,29 @@ class InstanceViewElement extends CustomElement implements Renderable {
     ViewFooterElement.tag
   ]);
 
-  RenderingScheduler<InstanceViewElement> _r;
+  late RenderingScheduler<InstanceViewElement> _r;
 
   Stream<RenderedEvent<InstanceViewElement>> get onRendered => _r.onRendered;
 
-  M.VM _vm;
-  M.IsolateRef _isolate;
-  M.EventRepository _events;
-  M.NotificationRepository _notifications;
-  M.Instance _instance;
-  M.LibraryRef _library;
-  M.ObjectRepository _objects;
-  M.ClassRepository _classes;
-  M.RetainedSizeRepository _retainedSizes;
-  M.ReachableSizeRepository _reachableSizes;
-  M.InboundReferencesRepository _references;
-  M.RetainingPathRepository _retainingPaths;
-  M.ScriptRepository _scripts;
-  M.EvalRepository _eval;
-  M.TypeArguments _typeArguments;
-  M.TypeArgumentsRepository _arguments;
-  M.BreakpointRepository _breakpoints;
-  M.FunctionRepository _functions;
-  M.SourceLocation _location;
+  late M.VM _vm;
+  late M.IsolateRef _isolate;
+  late M.EventRepository _events;
+  late M.NotificationRepository _notifications;
+  late M.Instance _instance;
+  M.LibraryRef? _library;
+  late M.ObjectRepository _objects;
+  late M.ClassRepository _classes;
+  late M.RetainedSizeRepository _retainedSizes;
+  late M.ReachableSizeRepository _reachableSizes;
+  late M.InboundReferencesRepository _references;
+  late M.RetainingPathRepository _retainingPaths;
+  late M.ScriptRepository _scripts;
+  late M.EvalRepository _eval;
+  M.TypeArguments? _typeArguments;
+  late M.TypeArgumentsRepository _arguments;
+  late M.BreakpointRepository _breakpoints;
+  late M.FunctionRepository _functions;
+  M.SourceLocation? _location;
 
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
@@ -100,7 +100,7 @@ class InstanceViewElement extends CustomElement implements Renderable {
       M.TypeArgumentsRepository arguments,
       M.BreakpointRepository breakpoints,
       M.FunctionRepository functions,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -159,7 +159,7 @@ class InstanceViewElement extends CustomElement implements Renderable {
       new HeadingElement.h2()
         ..text = M.isAbstractType(_instance.kind)
             ? 'type ${_instance.name}'
-            : 'instance of ${_instance.clazz.name}',
+            : 'instance of ${_instance.clazz!.name}',
       new HRElement(),
       new ObjectCommonElement(_isolate, _instance, _retainedSizes,
               _reachableSizes, _references, _retainingPaths, _objects,
@@ -178,7 +178,8 @@ class InstanceViewElement extends CustomElement implements Renderable {
     if (_location != null) {
       content.addAll([
         new HRElement(),
-        new SourceInsetElement(_isolate, _location, _scripts, _objects, _events,
+        new SourceInsetElement(
+                _isolate, _location!, _scripts, _objects, _events,
                 queue: _r.queue)
             .element
       ]);
@@ -200,11 +201,11 @@ class InstanceViewElement extends CustomElement implements Renderable {
       new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element
     ];
     if (_library != null) {
-      menu.add(new NavLibraryMenuElement(_isolate, _library, queue: _r.queue)
+      menu.add(new NavLibraryMenuElement(_isolate, _library!, queue: _r.queue)
           .element);
     }
     menu.addAll(<Element>[
-      new NavClassMenuElement(_isolate, _instance.clazz, queue: _r.queue)
+      new NavClassMenuElement(_isolate, _instance.clazz!, queue: _r.queue)
           .element,
       navMenu('instance'),
       (new NavRefreshElement(queue: _r.queue)
@@ -245,8 +246,8 @@ class InstanceViewElement extends CustomElement implements Renderable {
       if (_instance.kind == M.InstanceKind.string) {
         members.add(member(
             'value as literal',
-            Utils.formatStringAsLiteral(
-                _instance.valueAsString, _instance.valueAsStringIsTruncated)));
+            Utils.formatStringAsLiteral(_instance.valueAsString!,
+                _instance.valueAsStringIsTruncated!)));
       } else {
         members.add(member('value', _instance.valueAsString));
       }
@@ -254,7 +255,7 @@ class InstanceViewElement extends CustomElement implements Renderable {
     if (_instance.typeClass != null) {
       members.add(member('type class', _instance.typeClass));
     }
-    if (_typeArguments != null && _typeArguments.types.isNotEmpty) {
+    if (_typeArguments != null && _typeArguments!.types!.isNotEmpty) {
       members.add(new DivElement()
         ..classes = ['memberItem']
         ..children = <Element>[
@@ -264,7 +265,7 @@ class InstanceViewElement extends CustomElement implements Renderable {
           new DivElement()
             ..classes = ['memberValue']
             ..children = ([new SpanElement()..text = '< ']
-              ..addAll(_typeArguments.types.expand((type) => [
+              ..addAll(_typeArguments!.types!.expand((type) => [
                     new InstanceRefElement(_isolate, type, _objects,
                             queue: _r.queue)
                         .element,
@@ -293,7 +294,7 @@ class InstanceViewElement extends CustomElement implements Renderable {
       members.add(member('closure context', _instance.closureContext));
     }
     if (_instance.kind == M.InstanceKind.closure) {
-      ButtonElement btn;
+      late ButtonElement btn;
       members.add(new DivElement()
         ..classes = ['memberItem']
         ..children = <Element>[
@@ -315,24 +316,24 @@ class InstanceViewElement extends CustomElement implements Renderable {
         ]);
     }
 
-    if (_instance.nativeFields != null && _instance.nativeFields.isNotEmpty) {
+    if (_instance.nativeFields != null && _instance.nativeFields!.isNotEmpty) {
       int i = 0;
       members.add(new DivElement()
         ..classes = ['memberItem']
         ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
-            ..text = 'native fields (${_instance.nativeFields.length})',
+            ..text = 'native fields (${_instance.nativeFields!.length})',
           new DivElement()
             ..classes = ['memberName']
             ..children = <Element>[
               (new CurlyBlockElement(
-                      expanded: _instance.nativeFields.length <= 100,
+                      expanded: _instance.nativeFields!.length <= 100,
                       queue: _r.queue)
                     ..content = <Element>[
                       new DivElement()
                         ..classes = ['memberList']
-                        ..children = _instance.nativeFields
+                        ..children = _instance.nativeFields!
                             .map<Element>(
                                 (f) => member('[ ${i++} ]', '[ ${f.value} ]'))
                             .toList()
@@ -342,8 +343,8 @@ class InstanceViewElement extends CustomElement implements Renderable {
         ]);
     }
 
-    if (_instance.fields != null && _instance.fields.isNotEmpty) {
-      final fields = _instance.fields.toList();
+    if (_instance.fields != null && _instance.fields!.isNotEmpty) {
+      final fields = _instance.fields!.toList();
       members.add(new DivElement()
         ..classes = ['memberItem']
         ..children = <Element>[
@@ -367,8 +368,8 @@ class InstanceViewElement extends CustomElement implements Renderable {
         ]);
     }
 
-    if (_instance.elements != null && _instance.elements.isNotEmpty) {
-      final elements = _instance.elements.toList();
+    if (_instance.elements != null && _instance.elements!.isNotEmpty) {
+      final elements = _instance.elements!.toList();
       int i = 0;
       members.add(new DivElement()
         ..classes = ['memberItem']
@@ -394,12 +395,12 @@ class InstanceViewElement extends CustomElement implements Renderable {
         ]);
       if (_instance.length != elements.length) {
         members.add(member(
-            '...', '${_instance.length - elements.length} omitted elements'));
+            '...', '${_instance.length! - elements.length} omitted elements'));
       }
     }
 
-    if (_instance.associations != null && _instance.associations.isNotEmpty) {
-      final associations = _instance.associations.toList();
+    if (_instance.associations != null && _instance.associations!.isNotEmpty) {
+      final associations = _instance.associations!.toList();
       members.add(new DivElement()
         ..classes = ['memberItem']
         ..children = <Element>[
@@ -440,12 +441,13 @@ class InstanceViewElement extends CustomElement implements Renderable {
         ]);
       if (_instance.length != associations.length) {
         members.add(member('...',
-            '${_instance.length - associations.length} omitted elements'));
+            '${_instance.length! - associations.length} omitted elements'));
       }
     }
 
-    if (_instance.typedElements != null && _instance.typedElements.isNotEmpty) {
-      final typedElements = _instance.typedElements.toList();
+    if (_instance.typedElements != null &&
+        _instance.typedElements!.isNotEmpty) {
+      final typedElements = _instance.typedElements!.toList();
       int i = 0;
       members.add(new DivElement()
         ..classes = ['memberItem']
@@ -470,15 +472,15 @@ class InstanceViewElement extends CustomElement implements Renderable {
         ]);
       if (_instance.length != typedElements.length) {
         members.add(member('...',
-            '${_instance.length - typedElements.length} omitted elements'));
+            '${_instance.length! - typedElements.length} omitted elements'));
       }
     }
 
     if (_instance.kind == M.InstanceKind.regExp) {
       members.add(member('pattern', _instance.pattern));
       members.add(
-          member('isCaseSensitive', _instance.isCaseSensitive ? 'yes' : 'no'));
-      members.add(member('isMultiLine', _instance.isMultiLine ? 'yes' : 'no'));
+          member('isCaseSensitive', _instance.isCaseSensitive! ? 'yes' : 'no'));
+      members.add(member('isMultiLine', _instance.isMultiLine! ? 'yes' : 'no'));
       if (_instance.oneByteFunction != null) {
         members.add(member('oneByteFunction', _instance.oneByteFunction));
       }
@@ -514,25 +516,26 @@ class InstanceViewElement extends CustomElement implements Renderable {
   }
 
   Future _refresh() async {
-    _instance = await _objects.get(_isolate, _instance.id);
+    _instance = await _objects.get(_isolate, _instance.id!) as M.Instance;
     await _loadExtraData();
     _r.dirty();
   }
 
   Future _loadExtraData() async {
-    _library = (await _classes.get(_isolate, _instance.clazz.id)).library;
+    _library = (await _classes.get(_isolate, _instance.clazz!.id!)).library!;
     if (_instance.typeArguments != null) {
       _typeArguments =
-          await _arguments.get(_isolate, _instance.typeArguments.id);
+          await _arguments.get(_isolate, _instance.typeArguments!.id!);
     } else {
       _typeArguments = null;
     }
     if (_instance.closureFunction != null) {
-      _location = (await _functions.get(_isolate, _instance.closureFunction.id))
-          .location;
+      _location =
+          (await _functions.get(_isolate, _instance.closureFunction!.id!))
+              .location;
     } else if (_instance.typeClass != null) {
       _location =
-          (await _classes.get(_isolate, _instance.typeClass.id)).location;
+          (await _classes.get(_isolate, _instance.typeClass!.id!)).location;
     }
     _r.dirty();
   }
@@ -541,7 +544,7 @@ class InstanceViewElement extends CustomElement implements Renderable {
     if (_instance.activationBreakpoint == null) {
       await _breakpoints.addOnActivation(_isolate, _instance);
     } else {
-      await _breakpoints.remove(_isolate, _instance.activationBreakpoint);
+      await _breakpoints.remove(_isolate, _instance.activationBreakpoint!);
     }
     await _refresh();
   }

@@ -22,14 +22,14 @@ Future<SnapshotGraph> load(String uri) async {
 
   reader.onProgress.listen(print);
 
-  ws.listen((dynamic response) {
-    if (response is String) {
-      response = json.decode(response);
+  ws.listen((dynamic dynResponse) {
+    if (dynResponse is String) {
+      final response = json.decode(dynResponse);
       if (response['id'] == 1) {
         getVM.complete(response['result']['isolates'][0]['id']);
       }
-    } else if (response is List<int>) {
-      response = new Uint8List.fromList(response);
+    } else if (dynResponse is List<int>) {
+      final response = new Uint8List.fromList(dynResponse);
       final dataOffset =
           new ByteData.view(response.buffer).getUint32(0, Endian.little);
       dynamic metadata = new Uint8List.view(response.buffer, 4, dataOffset - 4);

@@ -26,14 +26,14 @@ class MetricRepository implements M.MetricRepository {
       <S.Isolate, Map<Metric, int>>{};
   final Map<S.Isolate, Map<Metric, int>> _sizes =
       <S.Isolate, Map<Metric, int>>{};
-  Timer _timer;
+  Timer? _timer;
   int count = 0;
 
   Future<Iterable<Metric>> list(M.IsolateRef i) async {
     S.Isolate isolate = i as S.Isolate;
     assert(isolate != null);
     if (_samples.containsKey(isolate)) {
-      return _samples[isolate].keys;
+      return _samples[isolate]!.keys;
     }
     return const [];
   }
@@ -71,14 +71,14 @@ class MetricRepository implements M.MetricRepository {
       _rates.remove(isolate);
       _sizes.remove(isolate);
       if (_samples.isEmpty) {
-        _timer.cancel();
+        _timer!.cancel();
       }
     }
   }
 
   M.MetricSamplingRate getSamplingRate(M.IsolateRef i, M.Metric m) {
     if (_rates.containsKey(i)) {
-      final metrics = _rates[i];
+      final metrics = _rates[i]!;
       if (metrics.containsKey(m)) {
         switch (metrics[m]) {
           case 0:
@@ -101,9 +101,9 @@ class MetricRepository implements M.MetricRepository {
 
   void setSamplingRate(M.IsolateRef i, M.Metric m, M.MetricSamplingRate r) {
     if (_rates.containsKey(i)) {
-      final metrics = _rates[i];
+      final metrics = _rates[i]!;
       if (metrics.containsKey(m)) {
-        metrics[m] = _rateToInteger(r);
+        metrics[m as Metric] = _rateToInteger(r);
       }
     } else {
       throw new Exception('Sampling for isolate ${i.id} is not started');
@@ -112,7 +112,7 @@ class MetricRepository implements M.MetricRepository {
 
   M.MetricBufferSize getBufferSize(M.IsolateRef i, M.Metric m) {
     if (_sizes.containsKey(i)) {
-      final metrics = _sizes[i];
+      final metrics = _sizes[i]!;
       if (metrics.containsKey(m)) {
         switch (metrics[m]) {
           case 10:
@@ -129,9 +129,9 @@ class MetricRepository implements M.MetricRepository {
 
   void setBufferSize(M.IsolateRef i, M.Metric m, M.MetricBufferSize s) {
     if (_sizes.containsKey(i)) {
-      final metrics = _sizes[i];
+      final metrics = _sizes[i]!;
       if (metrics.containsKey(m)) {
-        metrics[m] = _sizeToInteger(s);
+        metrics[m as Metric] = _sizeToInteger(s);
       }
     } else {
       throw new Exception('Sampling for isolate ${i.id} is not started');
@@ -168,9 +168,9 @@ class MetricRepository implements M.MetricRepository {
     throw new Exception('Unknown MetricBufferSize ($s)');
   }
 
-  Iterable<M.MetricSample> getSamples(M.IsolateRef i, M.Metric m) {
+  Iterable<M.MetricSample>? getSamples(M.IsolateRef i, M.Metric m) {
     if (_samples.containsKey(i)) {
-      final metrics = _samples[i];
+      final metrics = _samples[i]!;
       if (metrics.containsKey(m)) {
         return metrics[m];
       }
@@ -192,12 +192,12 @@ class MetricRepository implements M.MetricRepository {
 
   void _update(_) {
     for (final isolate in _rates.keys) {
-      final metrics = _rates[isolate];
+      final metrics = _rates[isolate]!;
       for (final metric in metrics.keys) {
-        final rate = metrics[metric];
+        final rate = metrics[metric]!;
         if (rate != 0 && count % rate == 0) {
-          final size = _sizes[isolate][metric];
-          final samples = _samples[isolate][metric];
+          final size = _sizes[isolate]![metric]!;
+          final samples = _samples[isolate]![metric]!;
           metric.internal.reload().then((m) {
             if (samples.length >= size) {
               samples.removeRange(0, samples.length - size + 1);

@@ -33,22 +33,22 @@ class SubtypeTestCacheViewElement extends CustomElement implements Renderable {
         ViewFooterElement.tag
       ]);
 
-  RenderingScheduler<SubtypeTestCacheViewElement> _r;
+  late RenderingScheduler<SubtypeTestCacheViewElement> _r;
 
   Stream<RenderedEvent<SubtypeTestCacheViewElement>> get onRendered =>
       _r.onRendered;
 
-  M.VM _vm;
-  M.IsolateRef _isolate;
-  M.EventRepository _events;
-  M.NotificationRepository _notifications;
-  M.SubtypeTestCache _subtypeTestCache;
-  M.SubtypeTestCacheRepository _subtypeTestCaches;
-  M.RetainedSizeRepository _retainedSizes;
-  M.ReachableSizeRepository _reachableSizes;
-  M.InboundReferencesRepository _references;
-  M.RetainingPathRepository _retainingPaths;
-  M.ObjectRepository _objects;
+  late M.VM _vm;
+  late M.IsolateRef _isolate;
+  late M.EventRepository _events;
+  late M.NotificationRepository _notifications;
+  late M.SubtypeTestCache _subtypeTestCache;
+  late M.SubtypeTestCacheRepository _subtypeTestCaches;
+  late M.RetainedSizeRepository _retainedSizes;
+  late M.ReachableSizeRepository _reachableSizes;
+  late M.InboundReferencesRepository _references;
+  late M.RetainingPathRepository _retainingPaths;
+  late M.ObjectRepository _objects;
 
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
@@ -67,7 +67,7 @@ class SubtypeTestCacheViewElement extends CustomElement implements Renderable {
       M.InboundReferencesRepository references,
       M.RetainingPathRepository retainingPaths,
       M.ObjectRepository objects,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -121,7 +121,7 @@ class SubtypeTestCacheViewElement extends CustomElement implements Renderable {
               ..onRefresh.listen((e) async {
                 e.element.disabled = true;
                 _subtypeTestCache = await _subtypeTestCaches.get(
-                    _isolate, _subtypeTestCache.id);
+                    _isolate, _subtypeTestCache.id!);
                 _r.dirty();
               }))
             .element,

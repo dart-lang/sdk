@@ -50,12 +50,12 @@ class DebuggerLocation {
         new DebuggerLocation.error("Invalid source location '${locDesc}'"));
   }
 
-  static Future<Frame> _currentFrame(Debugger debugger) async {
-    ServiceMap stack = debugger.stack;
+  static Future<Frame?> _currentFrame(Debugger debugger) async {
+    ServiceMap? stack = debugger.stack;
     if (stack == null || stack['frames'].length == 0) {
       return null;
     }
-    return stack['frames'][debugger.currentFrame];
+    return stack['frames'][debugger.currentFrame] as Frame?;
   }
 
   static Future<DebuggerLocation> _currentLocation(Debugger debugger) async {
@@ -64,10 +64,10 @@ class DebuggerLocation {
       return new DebuggerLocation.error(
           'A script must be provided when the stack is empty');
     }
-    Script script = frame.location.script;
+    Script script = frame.location!.script;
     await script.load();
-    var line = script.tokenToLine(frame.location.tokenPos);
-    var col = script.tokenToCol(frame.location.tokenPos);
+    var line = script.tokenToLine(frame.location!.tokenPos);
+    var col = script.tokenToCol(frame.location!.tokenPos);
     return new DebuggerLocation.file(script, line, col);
   }
 
@@ -87,7 +87,7 @@ class DebuggerLocation {
     if (colStr != null) {
       colStr = colStr.substring(1);
     }
-    var line = int.tryParse(lineStr) ?? -1;
+    var line = int.tryParse(lineStr!) ?? -1;
     var col = (colStr != null ? int.tryParse(colStr) ?? -1 : null);
     if (line == -1) {
       return new Future.value(
@@ -121,7 +121,7 @@ class DebuggerLocation {
         return new Future.value(new DebuggerLocation.error(
             'A script must be provided when the stack is empty'));
       }
-      Script script = frame.location.script;
+      Script script = frame.location!.script;
       await script.load();
       return new DebuggerLocation.file(script, line, col);
     }
@@ -139,7 +139,7 @@ class DebuggerLocation {
       var matches = <Script>{};
       for (var lib in isolate.libraries) {
         for (var script in lib.scripts) {
-          final String haystack = useUri ? script.uri : script.name;
+          final String haystack = useUri ? script.uri : script.name!;
           if (allowPrefix) {
             if (haystack.startsWith(name)) {
               matches.add(script);
@@ -162,7 +162,7 @@ class DebuggerLocation {
       assert(lib.loaded);
       for (var function in lib.functions) {
         if (allowPrefix) {
-          if (function.name.startsWith(name)) {
+          if (function.name!.startsWith(name)) {
             matches.add(function);
           }
         } else {
@@ -194,7 +194,7 @@ class DebuggerLocation {
     for (var lib in isolate.libraries) {
       for (var cls in lib.classes) {
         if (allowPrefix) {
-          if (cls.name.startsWith(name)) {
+          if (cls.name!.startsWith(name)) {
             matches.add(cls);
           }
         } else {
@@ -207,7 +207,7 @@ class DebuggerLocation {
     return matches;
   }
 
-  static ServiceFunction _getConstructor(Class cls, String name) {
+  static ServiceFunction? _getConstructor(Class cls, String name) {
     for (var function in cls.functions) {
       assert(cls.loaded);
       if (name == function.name) {
@@ -222,7 +222,7 @@ class DebuggerLocation {
   static Future<DebuggerLocation> _parseFunction(
       Debugger debugger, Match match) {
     Isolate isolate = debugger.isolate;
-    var base = match.group(1);
+    var base = match.group(1)!;
     var qualifier = match.group(2);
     assert(base != null);
 
@@ -234,7 +234,7 @@ class DebuggerLocation {
 
         for (var cls in classes) {
           // Look for a self-named constructor.
-          var constructor = _getConstructor(cls, cls.name);
+          var constructor = _getConstructor(cls, cls.name!);
           if (constructor != null) {
             functions.add(constructor);
           }
@@ -300,9 +300,8 @@ class DebuggerLocation {
   static Future<List<String>> _completeFunction(
       Debugger debugger, Match match) {
     Isolate isolate = debugger.isolate;
-    var base = match.group(1);
+    var base = match.group(1) ?? '';
     var qualifier = match.group(2);
-    base = (base == null ? '' : base);
 
     if (qualifier == null) {
       return _lookupClass(isolate, base, allowPrefix: true).then((classes) {
@@ -310,12 +309,12 @@ class DebuggerLocation {
 
         // Complete top-level function names.
         var functions = _lookupFunction(isolate, base, allowPrefix: true);
-        var funcNames = functions.map((f) => f.name).toList();
+        var funcNames = functions.map((f) => f.name!).toList();
         funcNames.sort();
         completions.addAll(funcNames);
 
         // Complete class names.
-        var classNames = classes.map((f) => f.name).toList();
+        var classNames = classes.map((f) => f.name!).toList();
         classNames.sort();
         completions.addAll(classNames);
 
@@ -327,12 +326,12 @@ class DebuggerLocation {
         for (var cls in classes) {
           for (var function in cls.functions) {
             if (function.kind == M.FunctionKind.constructor) {
-              if (function.name.startsWith(match.group(0))) {
-                completions.add(function.name);
+              if (function.name!.startsWith(match.group(0)!)) {
+                completions.add(function.name!);
               }
             } else {
-              if (function.qualifiedName.startsWith(match.group(0))) {
-                completions.add(function.qualifiedName);
+              if (function.qualifiedName!.startsWith(match.group(0)!)) {
+                completions.add(function.qualifiedName!);
               }
             }
           }
@@ -354,34 +353,29 @@ class DebuggerLocation {
     var lineStr;
     var lineStrComplete = false;
     var colStr;
-    if (_startsWithDigit(match.group(1))) {
+    if (_startsWithDigit(match.group(1)!)) {
       // CASE 1: We have matched a prefix of (lineStr:)(colStr)
       var frame = await _currentFrame(debugger);
       if (frame == null) {
         return [];
       }
-      scriptName = frame.location.script.name;
+      scriptName = frame.location!.script.name;
       scriptNameComplete = true;
-      lineStr = match.group(1);
-      lineStr = (lineStr == null ? '' : lineStr);
+      lineStr = match.group(1) ?? '';
       if (lineStr.endsWith(':')) {
         lineStr = lineStr.substring(0, lineStr.length - 1);
         lineStrComplete = true;
       }
-      colStr = match.group(2);
-      colStr = (colStr == null ? '' : colStr);
+      colStr = match.group(2) ?? '';
     } else {
       // CASE 2: We have matched a prefix of (scriptName:)(lineStr)(:colStr)
-      scriptName = match.group(1);
-      scriptName = (scriptName == null ? '' : scriptName);
+      scriptName = match.group(1) ?? '';
       if (scriptName.endsWith(':')) {
         scriptName = scriptName.substring(0, scriptName.length - 1);
         scriptNameComplete = true;
       }
-      lineStr = match.group(2);
-      lineStr = (lineStr == null ? '' : lineStr);
-      colStr = match.group(3);
-      colStr = (colStr == null ? '' : colStr);
+      lineStr = match.group(2) ?? '';
+      colStr = match.group(3) ?? '';
       if (colStr.startsWith(':')) {
         lineStrComplete = true;
         colStr = colStr.substring(1);
@@ -394,7 +388,7 @@ class DebuggerLocation {
           await _lookupScript(debugger.isolate, scriptName, allowPrefix: true);
       var completions = <String>[];
       for (var script in scripts) {
-        completions.add(script.name + ':');
+        completions.add(script.name! + ':');
       }
       completions.sort();
       return completions;
@@ -411,8 +405,8 @@ class DebuggerLocation {
         // Complete the line.
         var sharedPrefix = '${script.name}:';
         var completions = <String>[];
-        var report = await script.isolate
-            .getSourceReport([Isolate.kPossibleBreakpointsReport], script);
+        var report = await script.isolate!.getSourceReport(
+            [Isolate.kPossibleBreakpointsReport], script) as ServiceMap;
         Set<int> possibleBpts = getPossibleBreakpointLines(report, script);
         for (var line in possibleBpts) {
           var currentLineStr = line.toString();
@@ -425,7 +419,7 @@ class DebuggerLocation {
       } else {
         // Complete the column.
         int lineNum = int.parse(lineStr);
-        var scriptLine = script.getLine(lineNum);
+        var scriptLine = script.getLine(lineNum)!;
         var sharedPrefix = '${script.name}:${lineStr}:';
         var completions = <String>[];
         int maxCol = scriptLine.text.trimRight().runes.length;
@@ -443,20 +437,20 @@ class DebuggerLocation {
   String toString() {
     if (valid) {
       if (function != null) {
-        return '${function.qualifiedName}';
+        return '${function!.qualifiedName}';
       } else if (col != null) {
-        return '${script.name}:${line}:${col}';
+        return '${script!.name}:${line}:${col}';
       } else {
-        return '${script.name}:${line}';
+        return '${script!.name}:${line}';
       }
     }
     return 'invalid source location (${errorMessage})';
   }
 
-  Script script;
-  int line;
-  int col;
-  ServiceFunction function;
-  String errorMessage;
+  Script? script;
+  int? line;
+  int? col;
+  ServiceFunction? function;
+  String? errorMessage;
   bool get valid => (errorMessage == null);
 }

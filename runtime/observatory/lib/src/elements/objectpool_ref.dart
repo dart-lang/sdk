@@ -12,18 +12,18 @@ import 'package:observatory/src/elements/helpers/uris.dart';
 class ObjectPoolRefElement extends CustomElement implements Renderable {
   static const tag = const Tag<ObjectPoolRefElement>('object-pool-ref');
 
-  RenderingScheduler<ObjectPoolRefElement> _r;
+  late RenderingScheduler<ObjectPoolRefElement> _r;
 
   Stream<RenderedEvent<ObjectPoolRefElement>> get onRendered => _r.onRendered;
 
-  M.IsolateRef _isolate;
-  M.ObjectPoolRef _pool;
+  late M.IsolateRef _isolate;
+  late M.ObjectPoolRef _pool;
 
   M.IsolateRef get isolate => _isolate;
   M.ObjectPoolRef get pool => _pool;
 
   factory ObjectPoolRefElement(M.IsolateRef isolate, M.ObjectPoolRef pool,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(isolate != null);
     assert(pool != null);
     ObjectPoolRefElement e = new ObjectPoolRefElement.created();

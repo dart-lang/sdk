@@ -84,7 +84,7 @@ var tests = <IsolateTest>[
     expect(msgHandlerObjectId, isNotNull);
 
     // Get object.
-    Instance object = await isolate.getObject(msgHandlerObjectId);
+    Instance object = await isolate.getObject(msgHandlerObjectId) as Instance;
     expect(object.valueAsString, equals('34'));
   }
 ];

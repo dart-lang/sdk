@@ -14,7 +14,7 @@ main() async {
       print('${rec.level.name}: ${rec.time}: ${rec.message}');
     });
     Logger.root.info('Starting Observatory');
-    document.body.children
+    document.body!.children
         .insert(0, new ObservatoryApplicationElement.created().element);
   });
 }

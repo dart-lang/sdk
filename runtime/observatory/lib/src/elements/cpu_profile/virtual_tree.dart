@@ -22,24 +22,24 @@ class CpuProfileVirtualTreeElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<CpuProfileVirtualTreeElement>('cpu-profile-virtual-tree');
 
-  RenderingScheduler<CpuProfileVirtualTreeElement> _r;
+  late RenderingScheduler<CpuProfileVirtualTreeElement> _r;
 
   Stream<RenderedEvent<CpuProfileVirtualTreeElement>> get onRendered =>
       _r.onRendered;
 
-  M.ProfileTreeDirection _direction;
-  ProfileTreeMode _mode;
-  M.SampleProfileType _type;
-  M.IsolateRef _isolate;
-  M.SampleProfile _profile;
-  Iterable<M.CallTreeNodeFilter> _filters;
+  late M.ProfileTreeDirection _direction;
+  late ProfileTreeMode _mode;
+  late M.SampleProfileType _type;
+  late M.IsolateRef _isolate;
+  late M.SampleProfile _profile;
+  Iterable<M.CallTreeNodeFilter>? _filters;
 
   M.ProfileTreeDirection get direction => _direction;
   ProfileTreeMode get mode => _mode;
   M.SampleProfileType get type => _type;
   M.IsolateRef get isolate => _isolate;
   M.SampleProfile get profile => _profile;
-  Iterable<M.CallTreeNodeFilter> get filters => _filters;
+  Iterable<M.CallTreeNodeFilter>? get filters => _filters;
 
   set direction(M.ProfileTreeDirection value) =>
       _direction = _r.checkAndReact(_direction, value);
@@ -49,18 +49,18 @@ class CpuProfileVirtualTreeElement extends CustomElement implements Renderable {
     _r.dirty();
   }
 
-  factory CpuProfileVirtualTreeElement(Object owner, M.SampleProfile profile,
+  factory CpuProfileVirtualTreeElement(Object? owner, M.SampleProfile profile,
       {ProfileTreeMode mode: ProfileTreeMode.function,
       M.SampleProfileType type: M.SampleProfileType.cpu,
       M.ProfileTreeDirection direction: M.ProfileTreeDirection.exclusive,
-      RenderingQueue queue}) {
+      RenderingQueue? queue}) {
     assert(profile != null);
     assert(mode != null);
     assert(direction != null);
     CpuProfileVirtualTreeElement e = new CpuProfileVirtualTreeElement.created();
     e._r =
         new RenderingScheduler<CpuProfileVirtualTreeElement>(e, queue: queue);
-    e._isolate = owner;
+    e._isolate = owner as M.Isolate;
     e._profile = profile;
     e._mode = mode;
     e._type = type;
@@ -83,7 +83,7 @@ class CpuProfileVirtualTreeElement extends CustomElement implements Renderable {
     children = <Element>[];
   }
 
-  VirtualTreeElement _tree;
+  VirtualTreeElement? _tree;
 
   void render() {
     var tree;
@@ -123,7 +123,7 @@ class CpuProfileVirtualTreeElement extends CustomElement implements Renderable {
         throw new Exception('Unknown SampleProfileType: $type');
     }
     if (filters != null) {
-      tree = filters.fold(tree, (tree, filter) {
+      tree = filters!.fold(tree, (dynamic tree, filter) {
         return tree?.filtered(filter);
       });
     }
@@ -141,9 +141,9 @@ class CpuProfileVirtualTreeElement extends CustomElement implements Renderable {
       ];
       return;
     } else if (tree.root.children.length == 1) {
-      _tree.expand(tree.root.children.first, autoExpandSingleChildNodes: true);
+      _tree!.expand(tree.root.children.first, autoExpandSingleChildNodes: true);
     }
-    children = <Element>[_tree.element];
+    children = <Element>[_tree!.element];
   }
 
   static HtmlElement _createCpuRow(toggle) {
@@ -205,13 +205,13 @@ class CpuProfileVirtualTreeElement extends CustomElement implements Renderable {
     _updateLines(element.children[2].children, depth);
     if (item.children.isNotEmpty) {
       element.children[3].text =
-          _tree.isExpanded(item) ? _expandedIcon : _collapsedIcon;
+          _tree!.isExpanded(item) ? _expandedIcon : _collapsedIcon;
     } else {
       element.children[3].text = '';
     }
     element.children[4].text = Utils.formatPercentNormalized(item.percentage);
     element.children[5] = (new FunctionRefElement(
-            _isolate, item.profileFunction.function,
+            _isolate, item.profileFunction.function!,
             queue: _r.queue)
           ..classes = ['name'])
         .element;
@@ -230,13 +230,13 @@ class CpuProfileVirtualTreeElement extends CustomElement implements Renderable {
     _updateLines(element.children[2].children, depth);
     if (item.children.isNotEmpty) {
       element.children[3].text =
-          _tree.isExpanded(item) ? _expandedIcon : _collapsedIcon;
+          _tree!.isExpanded(item) ? _expandedIcon : _collapsedIcon;
     } else {
       element.children[3].text = '';
     }
     element.children[4].text = Utils.formatPercentNormalized(item.percentage);
     element.children[5] = (new FunctionRefElement(
-            null, item.profileFunction.function,
+            null, item.profileFunction.function!,
             queue: _r.queue)
           ..classes = ['name'])
         .element;
@@ -245,7 +245,7 @@ class CpuProfileVirtualTreeElement extends CustomElement implements Renderable {
   bool _searchFunction(Pattern pattern, itemDynamic) {
     M.FunctionCallTreeNode item = itemDynamic;
     return M
-        .getFunctionFullName(item.profileFunction.function)
+        .getFunctionFullName(item.profileFunction.function!)
         .contains(pattern);
   }
 
@@ -258,13 +258,13 @@ class CpuProfileVirtualTreeElement extends CustomElement implements Renderable {
     _updateLines(element.children[2].children, depth);
     if (item.children.isNotEmpty) {
       element.children[3].text =
-          _tree.isExpanded(item) ? _expandedIcon : _collapsedIcon;
+          _tree!.isExpanded(item) ? _expandedIcon : _collapsedIcon;
     } else {
       element.children[3].text = '';
     }
     element.children[4].text = Utils.formatPercentNormalized(item.percentage);
     element.children[5] =
-        (new CodeRefElement(_isolate, item.profileCode.code, queue: _r.queue)
+        (new CodeRefElement(_isolate, item.profileCode.code!, queue: _r.queue)
               ..classes = ['name'])
             .element;
   }
@@ -282,20 +282,20 @@ class CpuProfileVirtualTreeElement extends CustomElement implements Renderable {
     _updateLines(element.children[2].children, depth);
     if (item.children.isNotEmpty) {
       element.children[3].text =
-          _tree.isExpanded(item) ? _expandedIcon : _collapsedIcon;
+          _tree!.isExpanded(item) ? _expandedIcon : _collapsedIcon;
     } else {
       element.children[3].text = '';
     }
     element.children[4].text = Utils.formatPercentNormalized(item.percentage);
     element.children[5] =
-        (new CodeRefElement(null, item.profileCode.code, queue: _r.queue)
+        (new CodeRefElement(null, item.profileCode.code!, queue: _r.queue)
               ..classes = ['name'])
             .element;
   }
 
   bool _searchCode(Pattern pattern, itemDynamic) {
     M.CodeCallTreeNode item = itemDynamic;
-    return item.profileCode.code.name.contains(pattern);
+    return item.profileCode.code!.name!.contains(pattern);
   }
 
   static _updateLines(List<Element> lines, int n) {

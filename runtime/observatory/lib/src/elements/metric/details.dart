@@ -11,20 +11,20 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 class MetricDetailsElement extends CustomElement implements Renderable {
   static const tag = const Tag<MetricDetailsElement>('metric-details');
 
-  RenderingScheduler<MetricDetailsElement> _r;
+  late RenderingScheduler<MetricDetailsElement> _r;
 
   Stream<RenderedEvent<MetricDetailsElement>> get onRendered => _r.onRendered;
 
-  M.IsolateRef _isolate;
-  M.Metric _metric;
-  M.MetricRepository _metrics;
+  late M.IsolateRef _isolate;
+  late M.Metric _metric;
+  late M.MetricRepository _metrics;
 
   M.IsolateRef get isolate => _isolate;
   M.Metric get metric => _metric;
 
   factory MetricDetailsElement(
       M.IsolateRef isolate, M.Metric metric, M.MetricRepository metrics,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(isolate != null);
     assert(metric != null);
     assert(metrics != null);

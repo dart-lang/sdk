@@ -33,8 +33,8 @@ var tests = <IsolateTest>[
     var futureBpt = await isolate.addBreakpoint(script, LINE);
     expect(futureBpt.number, 1);
     expect(futureBpt.resolved, isFalse);
-    expect(await futureBpt.location.getLine(), LINE);
-    expect(await futureBpt.location.getColumn(), null);
+    expect(await futureBpt.location!.getLine(), LINE);
+    expect(await futureBpt.location!.getColumn(), null);
 
     var stream = await isolate.vm.getEventStream(VM.kDebugStream);
     Completer completer = new Completer();
@@ -55,8 +55,8 @@ var tests = <IsolateTest>[
     // After resolution the breakpoints have assigned line & column.
     expect(resolvedCount, 1);
     expect(futureBpt.resolved, isTrue);
-    expect(await futureBpt.location.getLine(), LINE);
-    expect(await futureBpt.location.getColumn(), 7);
+    expect(await futureBpt.location!.getLine(), LINE);
+    expect(await futureBpt.location!.getColumn(), 7);
 
     // Remove the breakpoints.
     expect((await isolate.removeBreakpoint(futureBpt)).type, 'Success');

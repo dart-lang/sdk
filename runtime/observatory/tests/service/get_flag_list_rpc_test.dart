@@ -85,7 +85,7 @@ var tests = <VMTest>[
     var subscription;
     subscription = stream.listen((ServiceEvent event) {
       if (event.kind == ServiceEvent.kVMFlagUpdate) {
-        expect(event.owner.type, 'VM');
+        expect(event.owner!.type, 'VM');
         expect(event.flag, kProfilePeriod);
         expect(event.newValue, kValue.toString());
         subscription.cancel();

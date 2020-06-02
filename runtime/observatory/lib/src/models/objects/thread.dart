@@ -15,17 +15,17 @@ enum ThreadKind {
 
 abstract class Thread {
   /// The id associated with the thread on creation.
-  String get id;
+  String? get id;
 
   /// The task type associated with the thread.
-  ThreadKind get kind;
+  ThreadKind? get kind;
 
-  String get kindString;
+  String? get kindString;
 
   /// The maximum amount of zone memory in bytes allocated by a thread at a
   /// given time throughout the entire life of the thread.
-  int get zoneHighWatermark;
+  int? get zoneHighWatermark;
 
   /// The current Zone capacity available to this thread.
-  int get zoneCapacity;
+  int? get zoneCapacity;
 }

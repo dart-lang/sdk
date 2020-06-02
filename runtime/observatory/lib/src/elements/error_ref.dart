@@ -13,15 +13,15 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 class ErrorRefElement extends CustomElement implements Renderable {
   static const tag = const Tag<ErrorRefElement>('error-ref');
 
-  RenderingScheduler<ErrorRefElement> _r;
+  late RenderingScheduler<ErrorRefElement> _r;
 
   Stream<RenderedEvent<ErrorRefElement>> get onRendered => _r.onRendered;
 
-  ErrorRef _error;
+  late ErrorRef _error;
 
   ErrorRef get error => _error;
 
-  factory ErrorRefElement(ErrorRef error, {RenderingQueue queue}) {
+  factory ErrorRefElement(ErrorRef error, {RenderingQueue? queue}) {
     assert(error != null);
     ErrorRefElement e = new ErrorRefElement.created();
     e._r = new RenderingScheduler<ErrorRefElement>(e, queue: queue);

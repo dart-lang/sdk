@@ -14,21 +14,21 @@ class FieldRefElement extends CustomElement implements Renderable {
   static const tag = const Tag<FieldRefElement>('field-ref',
       dependencies: const [InstanceRefElement.tag]);
 
-  RenderingScheduler<FieldRefElement> _r;
+  late RenderingScheduler<FieldRefElement> _r;
 
   Stream<RenderedEvent<FieldRefElement>> get onRendered => _r.onRendered;
 
-  M.IsolateRef _isolate;
-  M.FieldRef _field;
-  M.ObjectRepository _objects;
-  bool _expandable;
+  late M.IsolateRef _isolate;
+  late M.FieldRef _field;
+  late M.ObjectRepository _objects;
+  late bool _expandable;
 
   M.IsolateRef get isolate => _isolate;
   M.FieldRef get field => _field;
 
   factory FieldRefElement(
       M.IsolateRef isolate, M.FieldRef field, M.ObjectRepository objects,
-      {RenderingQueue queue, bool expandable: true}) {
+      {RenderingQueue? queue, bool expandable: true}) {
     assert(isolate != null);
     assert(field != null);
     assert(objects != null);
@@ -58,21 +58,21 @@ class FieldRefElement extends CustomElement implements Renderable {
 
   void render() {
     var header = '';
-    if (_field.isStatic) {
+    if (_field.isStatic!) {
       if (_field.dartOwner is M.ClassRef) {
         header += 'static ';
       } else {
         header += 'top-level ';
       }
     }
-    if (_field.isFinal) {
+    if (_field.isFinal!) {
       header += 'final ';
-    } else if (_field.isConst) {
+    } else if (_field.isConst!) {
       header += 'const ';
-    } else if (_field.declaredType.name == 'dynamic') {
+    } else if (_field.declaredType!.name == 'dynamic') {
       header += 'var ';
     }
-    if (_field.declaredType.name == 'dynamic') {
+    if (_field.declaredType!.name == 'dynamic') {
       children = <Element>[
         new SpanElement()..text = header,
         new AnchorElement(href: Uris.inspect(_isolate, object: _field))
@@ -81,7 +81,7 @@ class FieldRefElement extends CustomElement implements Renderable {
     } else {
       children = <Element>[
         new SpanElement()..text = header,
-        new InstanceRefElement(_isolate, _field.declaredType, _objects,
+        new InstanceRefElement(_isolate, _field.declaredType!, _objects,
                 queue: _r.queue, expandable: _expandable)
             .element,
         new SpanElement()..text = ' ',

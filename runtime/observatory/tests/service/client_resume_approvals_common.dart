@@ -81,5 +81,5 @@ Future<void> waitForResume(Isolate isolate) async {
       }
     });
   });
-  return completer.future;
+  await completer.future;
 }

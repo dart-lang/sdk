@@ -5,11 +5,11 @@
 part of models;
 
 abstract class ICDataRef extends ObjectRef {
-  String get selector;
+  String? get selector;
 }
 
 abstract class ICData extends Object implements ICDataRef {
-  ObjectRef get dartOwner;
-  InstanceRef get argumentsDescriptor;
-  InstanceRef get entries;
+  ObjectRef? get dartOwner;
+  InstanceRef? get argumentsDescriptor;
+  InstanceRef? get entries;
 }

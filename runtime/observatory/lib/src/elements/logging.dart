@@ -34,15 +34,15 @@ class LoggingPageElement extends CustomElement implements Renderable {
     ViewFooterElement.tag
   ]);
 
-  RenderingScheduler<LoggingPageElement> _r;
+  late RenderingScheduler<LoggingPageElement> _r;
 
   Stream<RenderedEvent<LoggingPageElement>> get onRendered => _r.onRendered;
 
-  M.VM _vm;
-  M.IsolateRef _isolate;
-  M.EventRepository _events;
-  M.NotificationRepository _notifications;
-  Level _level = Level.ALL;
+  late M.VM _vm;
+  late M.IsolateRef _isolate;
+  late M.EventRepository _events;
+  late M.NotificationRepository _notifications;
+  late Level _level = Level.ALL;
 
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
@@ -50,7 +50,7 @@ class LoggingPageElement extends CustomElement implements Renderable {
 
   factory LoggingPageElement(M.VM vm, M.IsolateRef isolate,
       M.EventRepository events, M.NotificationRepository notifications,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -79,11 +79,11 @@ class LoggingPageElement extends CustomElement implements Renderable {
     children = <Element>[];
   }
 
-  LoggingListElement _logs;
+  LoggingListElement? _logs;
 
   void render() {
     _logs = _logs ?? new LoggingListElement(_isolate, _events);
-    _logs.level = _level;
+    _logs!.level = _level;
     children = <Element>[
       navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue).element,
@@ -106,7 +106,7 @@ class LoggingPageElement extends CustomElement implements Renderable {
           new SpanElement()..text = 'Show messages with severity ',
           _createLevelSelector(),
           new HRElement(),
-          _logs.element
+          _logs!.element
         ]
     ];
   }

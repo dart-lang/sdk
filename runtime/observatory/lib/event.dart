@@ -108,7 +108,7 @@ class PauseBreakpointEvent implements M.PauseBreakpointEvent {
   final bool atAsyncSuspension;
 
   /// [optional]
-  final M.Breakpoint breakpoint;
+  final M.Breakpoint? breakpoint;
   PauseBreakpointEvent(
       this.timestamp,
       this.isolate,
@@ -128,7 +128,7 @@ class PauseBreakpointEvent implements M.PauseBreakpointEvent {
 class PauseInterruptedEvent implements M.PauseInterruptedEvent {
   final DateTime timestamp;
   final M.IsolateRef isolate;
-  final M.Frame topFrame;
+  final M.Frame? topFrame;
   final bool atAsyncSuspension;
   PauseInterruptedEvent(
       this.timestamp, this.isolate, this.topFrame, this.atAsyncSuspension) {
@@ -141,7 +141,7 @@ class PauseInterruptedEvent implements M.PauseInterruptedEvent {
 class PausePostRequestEvent implements M.PausePostRequestEvent {
   final DateTime timestamp;
   final M.IsolateRef isolate;
-  final M.Frame topFrame;
+  final M.Frame? topFrame;
   final bool atAsyncSuspension;
   PausePostRequestEvent(
       this.timestamp, this.isolate, this.topFrame, this.atAsyncSuspension) {
@@ -168,7 +168,7 @@ class PauseExceptionEvent implements M.PauseExceptionEvent {
 class ResumeEvent implements M.ResumeEvent {
   final DateTime timestamp;
   final M.IsolateRef isolate;
-  final M.Frame topFrame;
+  final M.Frame? topFrame;
   ResumeEvent(this.timestamp, this.isolate, this.topFrame) {
     assert(timestamp != null);
     assert(isolate != null);
@@ -309,69 +309,71 @@ class ServiceUnregisteredEvent implements M.ServiceUnregisteredEvent {
   }
 }
 
-M.Event createEventFromServiceEvent(S.ServiceEvent event) {
+M.Event? createEventFromServiceEvent(S.ServiceEvent event) {
   switch (event.kind) {
     case S.ServiceEvent.kVMUpdate:
-      return new VMUpdateEvent(event.timestamp, event.vm);
+      return new VMUpdateEvent(event.timestamp!, event.vm);
     case S.ServiceEvent.kIsolateStart:
-      return new IsolateStartEvent(event.timestamp, event.isolate);
+      return new IsolateStartEvent(event.timestamp!, event.isolate!);
     case S.ServiceEvent.kIsolateRunnable:
-      return new IsolateRunnableEvent(event.timestamp, event.isolate);
+      return new IsolateRunnableEvent(event.timestamp!, event.isolate!);
     case S.ServiceEvent.kIsolateUpdate:
-      return new IsolateUpdateEvent(event.timestamp, event.isolate);
+      return new IsolateUpdateEvent(event.timestamp!, event.isolate!);
     case S.ServiceEvent.kIsolateReload:
       return new IsolateReloadEvent(
-          event.timestamp, event.isolate, event.error);
+          event.timestamp!, event.isolate!, event.error!);
     case S.ServiceEvent.kIsolateExit:
-      return new IsolateExitEvent(event.timestamp, event.isolate);
+      return new IsolateExitEvent(event.timestamp!, event.isolate!);
     case S.ServiceEvent.kBreakpointAdded:
       return new BreakpointAddedEvent(
-          event.timestamp, event.isolate, event.breakpoint);
+          event.timestamp!, event.isolate!, event.breakpoint!);
     case S.ServiceEvent.kBreakpointResolved:
       return new BreakpointResolvedEvent(
-          event.timestamp, event.isolate, event.breakpoint);
+          event.timestamp!, event.isolate!, event.breakpoint!);
     case S.ServiceEvent.kBreakpointRemoved:
       return new BreakpointRemovedEvent(
-          event.timestamp, event.isolate, event.breakpoint);
+          event.timestamp!, event.isolate!, event.breakpoint!);
     case S.ServiceEvent.kDebuggerSettingsUpdate:
-      return new DebuggerSettingsUpdateEvent(event.timestamp, event.isolate);
+      return new DebuggerSettingsUpdateEvent(event.timestamp!, event.isolate!);
     case S.ServiceEvent.kResume:
-      return new ResumeEvent(event.timestamp, event.isolate, event.topFrame);
+      return new ResumeEvent(event.timestamp!, event.isolate!, event.topFrame);
     case S.ServiceEvent.kPauseStart:
-      return new PauseStartEvent(event.timestamp, event.isolate);
+      return new PauseStartEvent(event.timestamp!, event.isolate!);
     case S.ServiceEvent.kPauseExit:
-      return new PauseExitEvent(event.timestamp, event.isolate);
+      return new PauseExitEvent(event.timestamp!, event.isolate!);
     case S.ServiceEvent.kPausePostRequest:
-      return new PausePostRequestEvent(event.timestamp, event.isolate,
-          event.topFrame, event.atAsyncSuspension);
+      return new PausePostRequestEvent(event.timestamp!, event.isolate!,
+          event.topFrame, event.atAsyncSuspension!);
     case S.ServiceEvent.kPauseBreakpoint:
       return new PauseBreakpointEvent(
-          event.timestamp,
-          event.isolate,
-          event.pauseBreakpoints,
-          event.topFrame,
-          event.atAsyncSuspension,
+          event.timestamp!,
+          event.isolate!,
+          event.pauseBreakpoints!,
+          event.topFrame!,
+          event.atAsyncSuspension!,
           event.breakpoint);
     case S.Isolate.kLoggingStream:
-      return new LoggingEvent(event.timestamp, event.isolate, event.logRecord);
+      return new LoggingEvent(
+          event.timestamp!, event.isolate!, event.logRecord!);
     case S.ServiceEvent.kPauseInterrupted:
-      return new PauseInterruptedEvent(event.timestamp, event.isolate,
-          event.topFrame, event.atAsyncSuspension);
+      return new PauseInterruptedEvent(event.timestamp!, event.isolate!,
+          event.topFrame, event.atAsyncSuspension!);
     case S.ServiceEvent.kPauseException:
       return new PauseExceptionEvent(
-          event.timestamp, event.isolate, event.topFrame, event.exception);
+          event.timestamp!, event.isolate!, event.topFrame!, event.exception!);
     case S.ServiceEvent.kInspect:
-      return new InspectEvent(event.timestamp, event.isolate, event.inspectee);
+      return new InspectEvent(
+          event.timestamp!, event.isolate!, event.inspectee!);
     case S.ServiceEvent.kGC:
-      return new GCEvent(event.timestamp, event.isolate);
+      return new GCEvent(event.timestamp!, event.isolate!);
     case S.ServiceEvent.kServiceRegistered:
       return new ServiceRegisteredEvent(
-          event.timestamp, event.service, event.method, event.alias);
+          event.timestamp!, event.service!, event.method!, event.alias!);
     case S.ServiceEvent.kServiceUnregistered:
       return new ServiceUnregisteredEvent(
-          event.timestamp, event.service, event.method);
+          event.timestamp!, event.service!, event.method!);
     case S.ServiceEvent.kNone:
-      return new NoneEvent(event.timestamp, event.isolate);
+      return new NoneEvent(event.timestamp!, event.isolate!);
     default:
       // Ignore unrecognized events.
       Logger.root.severe('Unrecognized event: $event');

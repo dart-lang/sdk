@@ -18,7 +18,7 @@ class ReloadEvent {
 class NavReloadElement extends CustomElement implements Renderable {
   static const tag = const Tag<NavReloadElement>('nav-reload');
 
-  RenderingScheduler<NavReloadElement> _r;
+  late RenderingScheduler<NavReloadElement> _r;
 
   Stream<RenderedEvent<NavReloadElement>> get onRendered => _r.onRendered;
 
@@ -26,15 +26,15 @@ class NavReloadElement extends CustomElement implements Renderable {
       new StreamController<ReloadEvent>.broadcast();
   Stream<ReloadEvent> get onReload => _onReload.stream;
 
-  M.IsolateRef _isolate;
-  M.IsolateRepository _isolates;
-  M.EventRepository _events;
-  StreamSubscription _sub;
+  late M.IsolateRef _isolate;
+  late M.IsolateRepository _isolates;
+  late M.EventRepository _events;
+  StreamSubscription? _sub;
   bool _disabled = false;
 
   factory NavReloadElement(M.IsolateRef isolate, M.IsolateRepository isolates,
       M.EventRepository events,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(isolate != null);
     assert(isolates != null);
     assert(events != null);
@@ -59,7 +59,7 @@ class NavReloadElement extends CustomElement implements Renderable {
   void detached() {
     super.detached();
     children = <Element>[];
-    _sub.cancel();
+    _sub!.cancel();
     _sub = null;
     _r.disable(notify: true);
   }
@@ -84,13 +84,15 @@ class NavReloadElement extends CustomElement implements Renderable {
                 .listen((_) => _reload(_isolates.reloadSourcesServices.single))
         ]);
     } else {
-      final content = _isolates.reloadSourcesServices.map((s) => new LIElement()
-        ..children = <Element>[
-          new ButtonElement()
-            ..text = s.alias
-            ..disabled = _disabled
-            ..onClick.listen((_) => _reload(s))
-        ]);
+      final content = _isolates.reloadSourcesServices
+          .map((s) => new LIElement()
+            ..children = <Element>[
+              new ButtonElement()
+                ..text = s.alias
+                ..disabled = _disabled
+                ..onClick.listen((_) => _reload(s))
+            ])
+          .toList();
       children.add(navMenu('Reload Source', content: content));
     }
     this.children = children;

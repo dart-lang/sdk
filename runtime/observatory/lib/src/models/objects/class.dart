@@ -6,68 +6,68 @@ part of models;
 
 abstract class ClassRef extends ObjectRef {
   /// The name of this class.
-  String get name;
+  String? get name;
 }
 
 abstract class Class extends Object implements ClassRef {
   /// The error which occurred during class finalization, if it exists.
   /// [optional]
-  ErrorRef get error;
+  ErrorRef? get error;
 
   /// Is this an abstract class?
-  bool get isAbstract;
+  bool? get isAbstract;
 
   /// Is this a const class?
-  bool get isConst;
+  bool? get isConst;
 
   /// [internal]
-  bool get isPatch;
+  bool? get isPatch;
 
   /// [optional] The library which contains this class.
-  LibraryRef get library;
+  LibraryRef? get library;
 
   /// [optional] The location of this class in the source code.
-  SourceLocation get location;
+  SourceLocation? get location;
 
   /// [optional] The superclass of this class, if any.
-  ClassRef get superclass;
+  ClassRef? get superclass;
 
   /// [optional]The supertype for this class, if any.
   ///
   /// The value will be of the kind: Type.
-  InstanceRef get superType;
+  InstanceRef? get superType;
 
   /// A list of interface types for this class.
   ///
   /// The values will be of the kind: Type.
-  Iterable<InstanceRef> get interfaces;
+  Iterable<InstanceRef>? get interfaces;
 
   /// The mixin type for this class, if any.
   ///
   /// [optional] The value will be of the kind: Type.
-  InstanceRef get mixin;
+  InstanceRef? get mixin;
 
   /// A list of fields in this class. Does not include fields from
   /// superclasses.
-  Iterable<FieldRef> get fields;
+  Iterable<FieldRef>? get fields;
 
   /// A list of functions in this class. Does not include functions
   /// from superclasses.
-  Iterable<FunctionRef> get functions;
+  Iterable<FunctionRef>? get functions;
 
   // A list of subclasses of this class.
-  Iterable<ClassRef> get subclasses;
+  Iterable<ClassRef>? get subclasses;
 
-  bool get hasAllocations;
-  bool get hasNoAllocations;
+  bool? get hasAllocations;
+  bool? get hasNoAllocations;
 
-  Allocations get newSpace;
-  Allocations get oldSpace;
+  Allocations? get newSpace;
+  Allocations? get oldSpace;
 
-  bool get traceAllocations;
+  bool? get traceAllocations;
 }
 
 abstract class InstanceSet {
-  int get count;
-  Iterable<ObjectRef> get instances;
+  int? get count;
+  Iterable<ObjectRef>? get instances;
 }

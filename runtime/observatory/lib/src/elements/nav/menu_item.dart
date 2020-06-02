@@ -10,17 +10,17 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 class NavMenuItemElement extends CustomElement implements Renderable {
   static const tag = const Tag<NavMenuItemElement>('nav-menu-item');
 
-  RenderingScheduler<NavMenuItemElement> _r;
+  late RenderingScheduler<NavMenuItemElement> _r;
 
   Stream<RenderedEvent<NavMenuItemElement>> get onRendered => _r.onRendered;
 
-  String _label;
-  String _link;
-  Iterable<Element> _content = const <Element>[];
+  late String _label;
+  late String _link;
+  List<Element> _content = const <Element>[];
 
   String get label => _label;
   String get link => _link;
-  Iterable<Element> get content => _content;
+  List<Element> get content => _content;
 
   set label(String value) => _label = _r.checkAndReact(_label, value);
   set link(String value) => _link = _r.checkAndReact(_link, value);
@@ -30,7 +30,7 @@ class NavMenuItemElement extends CustomElement implements Renderable {
   }
 
   factory NavMenuItemElement(String label,
-      {String link, RenderingQueue queue}) {
+      {String link = '', RenderingQueue? queue}) {
     assert(label != null);
     NavMenuItemElement e = new NavMenuItemElement.created();
     e._r = new RenderingScheduler<NavMenuItemElement>(e, queue: queue);

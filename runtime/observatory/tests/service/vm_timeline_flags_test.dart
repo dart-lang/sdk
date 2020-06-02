@@ -26,7 +26,7 @@ List filterEvents(List events, filter) {
   return events.where(filter).toList();
 }
 
-int dartEventCount;
+int dartEventCount = 0;
 
 var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
@@ -51,8 +51,8 @@ var tests = <IsolateTest>[
     final completer = Completer<void>();
     await subscribeToStream(isolate.vm, 'Timeline', (event) async {
       expect(event.kind, ServiceEvent.kTimelineStreamSubscriptionsUpdate);
-      expect(event.updatedStreams.length, 1);
-      expect(event.updatedStreams.first, 'Dart');
+      expect(event.updatedStreams!.length, 1);
+      expect(event.updatedStreams!.first, 'Dart');
       await cancelStreamSubscription('Timeline');
       completer.complete();
     });
@@ -90,7 +90,7 @@ var tests = <IsolateTest>[
     final completer = Completer<void>();
     await subscribeToStream(isolate.vm, 'Timeline', (event) async {
       expect(event.kind, ServiceEvent.kTimelineStreamSubscriptionsUpdate);
-      expect(event.updatedStreams.length, 0);
+      expect(event.updatedStreams!.length, 0);
       await cancelStreamSubscription('Timeline');
       completer.complete();
     });

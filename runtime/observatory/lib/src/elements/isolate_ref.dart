@@ -14,18 +14,18 @@ import 'package:observatory/src/elements/helpers/uris.dart';
 class IsolateRefElement extends CustomElement implements Renderable {
   static const tag = const Tag<IsolateRefElement>('isolate-ref');
 
-  RenderingScheduler<IsolateRefElement> _r;
+  late RenderingScheduler<IsolateRefElement> _r;
 
   Stream<RenderedEvent<IsolateRefElement>> get onRendered => _r.onRendered;
 
-  M.IsolateRef _isolate;
-  M.EventRepository _events;
-  StreamSubscription _updatesSubscription;
+  late M.IsolateRef _isolate;
+  late M.EventRepository _events;
+  late StreamSubscription _updatesSubscription;
 
   M.IsolateRef get isolate => _isolate;
 
   factory IsolateRefElement(M.IsolateRef isolate, M.EventRepository events,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(isolate != null);
     assert(events != null);
     IsolateRefElement e = new IsolateRefElement.created();

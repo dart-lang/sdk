@@ -32,7 +32,7 @@ var tests = <IsolateTest>[
 
 // Add breakpoint
   (Isolate isolate) async {
-    Library rootLib = await isolate.rootLibrary.load();
+    Library rootLib = await isolate.rootLibrary.load() as Library;
     var function =
         rootLib.functions.singleWhere((f) => f.name == 'testFunction');
 

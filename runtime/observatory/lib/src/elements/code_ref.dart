@@ -15,18 +15,18 @@ import 'package:observatory/src/elements/helpers/uris.dart';
 class CodeRefElement extends CustomElement implements Renderable {
   static const tag = const Tag<CodeRefElement>('code-ref');
 
-  RenderingScheduler<CodeRefElement> _r;
+  late RenderingScheduler<CodeRefElement> _r;
 
   Stream<RenderedEvent<CodeRefElement>> get onRendered => _r.onRendered;
 
-  M.IsolateRef _isolate;
-  M.CodeRef _code;
+  M.IsolateRef? _isolate;
+  late M.CodeRef _code;
 
-  M.IsolateRef get isolate => _isolate;
+  M.IsolateRef get isolate => _isolate!;
   M.CodeRef get code => _code;
 
-  factory CodeRefElement(M.IsolateRef isolate, M.CodeRef code,
-      {RenderingQueue queue}) {
+  factory CodeRefElement(M.IsolateRef? isolate, M.CodeRef code,
+      {RenderingQueue? queue}) {
     assert(code != null);
     CodeRefElement e = new CodeRefElement.created();
     e._r = new RenderingScheduler<CodeRefElement>(e, queue: queue);
@@ -55,7 +55,7 @@ class CodeRefElement extends CustomElement implements Renderable {
       new AnchorElement(
           href: ((M.isSyntheticCode(_code.kind)) || (_isolate == null))
               ? null
-              : Uris.inspect(_isolate, object: _code))
+              : Uris.inspect(_isolate!, object: _code))
         ..text = _code.name
     ];
   }

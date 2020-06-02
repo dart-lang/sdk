@@ -33,21 +33,21 @@ class NativeMemoryProfileElement extends CustomElement implements Renderable {
         CpuProfileVirtualTreeElement.tag,
       ]);
 
-  RenderingScheduler<NativeMemoryProfileElement> _r;
+  late RenderingScheduler<NativeMemoryProfileElement> _r;
 
   Stream<RenderedEvent<NativeMemoryProfileElement>> get onRendered =>
       _r.onRendered;
 
-  M.VM _vm;
-  M.EventRepository _events;
-  M.NotificationRepository _notifications;
-  M.NativeMemorySampleProfileRepository _profiles;
-  Stream<M.SampleProfileLoadingProgressEvent> _progressStream;
-  M.SampleProfileLoadingProgress _progress;
-  M.SampleProfileTag _tag = M.SampleProfileTag.none;
-  ProfileTreeMode _mode = ProfileTreeMode.function;
-  M.ProfileTreeDirection _direction = M.ProfileTreeDirection.exclusive;
-  String _filter = '';
+  late M.VM _vm;
+  late M.EventRepository _events;
+  late M.NotificationRepository _notifications;
+  late M.NativeMemorySampleProfileRepository _profiles;
+  Stream<M.SampleProfileLoadingProgressEvent>? _progressStream;
+  M.SampleProfileLoadingProgress? _progress;
+  late M.SampleProfileTag _tag = M.SampleProfileTag.none;
+  late ProfileTreeMode _mode = ProfileTreeMode.function;
+  late M.ProfileTreeDirection _direction = M.ProfileTreeDirection.exclusive;
+  late String _filter = '';
 
   M.NotificationRepository get notifications => _notifications;
   M.NativeMemorySampleProfileRepository get profiles => _profiles;
@@ -57,7 +57,7 @@ class NativeMemoryProfileElement extends CustomElement implements Renderable {
       M.EventRepository events,
       M.NotificationRepository notifications,
       M.NativeMemorySampleProfileRepository profiles,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(vm != null);
     assert(events != null);
     assert(notifications != null);
@@ -102,15 +102,16 @@ class NativeMemoryProfileElement extends CustomElement implements Renderable {
       children = content;
       return;
     }
-    content.add((new SampleBufferControlElement(_vm, _progress, _progressStream,
+    content.add((new SampleBufferControlElement(
+            _vm, _progress!, _progressStream!,
             selectedTag: _tag, queue: _r.queue)
           ..onTagChange.listen((e) {
             _tag = e.element.selectedTag;
             _request();
           }))
         .element);
-    if (_progress.status == M.SampleProfileLoadingStatus.loaded) {
-      CpuProfileVirtualTreeElement tree;
+    if (_progress!.status == M.SampleProfileLoadingStatus.loaded) {
+      late CpuProfileVirtualTreeElement tree;
       content.addAll([
         new BRElement(),
         (new StackTraceTreeConfigElement(
@@ -136,7 +137,7 @@ class NativeMemoryProfileElement extends CustomElement implements Renderable {
               }))
             .element,
         new BRElement(),
-        (tree = new CpuProfileVirtualTreeElement(null, _progress.profile,
+        (tree = new CpuProfileVirtualTreeElement(null, _progress!.profile,
                 queue: _r.queue, type: M.SampleProfileType.memory))
             .element,
       ]);
@@ -146,17 +147,17 @@ class NativeMemoryProfileElement extends CustomElement implements Renderable {
 
   Future _request({bool forceFetch: false}) async {
     if (forceFetch) {
-      for (M.Isolate isolate in _vm.isolates) {
+      for (M.IsolateRef isolate in _vm.isolates) {
         await isolate.collectAllGarbage();
       }
     }
     _progress = null;
     _progressStream = _profiles.get(_vm, _tag, forceFetch: forceFetch);
     _r.dirty();
-    _progress = (await _progressStream.first).progress;
+    _progress = (await _progressStream!.first).progress;
     _r.dirty();
-    if (M.isSampleProcessRunning(_progress.status)) {
-      _progress = (await _progressStream.last).progress;
+    if (M.isSampleProcessRunning(_progress!.status)) {
+      _progress = (await _progressStream!.last).progress;
       _r.dirty();
     }
   }

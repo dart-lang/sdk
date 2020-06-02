@@ -17,23 +17,23 @@ class InstanceRefElement extends CustomElement implements Renderable {
   static const tag = const Tag<InstanceRefElement>('instance-ref',
       dependencies: const [CurlyBlockElement.tag]);
 
-  RenderingScheduler<InstanceRefElement> _r;
+  late RenderingScheduler<InstanceRefElement> _r;
 
   Stream<RenderedEvent<InstanceRefElement>> get onRendered => _r.onRendered;
 
-  M.IsolateRef _isolate;
-  M.InstanceRef _instance;
-  M.ObjectRepository _objects;
-  M.Instance _loadedInstance;
-  bool _expandable;
-  bool _expanded = false;
+  late M.IsolateRef _isolate;
+  late M.InstanceRef _instance;
+  late M.ObjectRepository _objects;
+  M.Instance? _loadedInstance;
+  late bool _expandable;
+  late bool _expanded = false;
 
   M.IsolateRef get isolate => _isolate;
   M.InstanceRef get instance => _instance;
 
   factory InstanceRefElement(
       M.IsolateRef isolate, M.InstanceRef instance, M.ObjectRepository objects,
-      {RenderingQueue queue, bool expandable: true}) {
+      {RenderingQueue? queue, bool expandable: true}) {
     assert(isolate != null);
     assert(instance != null);
     assert(objects != null);
@@ -89,19 +89,20 @@ class InstanceRefElement extends CustomElement implements Renderable {
   }
 
   Future _refresh() async {
-    _loadedInstance = await _objects.get(_isolate, _instance.id);
+    _loadedInstance = await _objects.get(_isolate, _instance.id!) as M.Instance;
     _r.dirty();
   }
 
   List<Element> _createShowMoreButton() {
-    if (_loadedInstance.count == null) {
+    if (_loadedInstance!.count == null) {
       return [];
     }
-    final count = _loadedInstance.count;
+    final count = _loadedInstance!.count;
     final button = new ButtonElement()..text = 'show next ${count}';
     button.onClick.listen((_) async {
       button.disabled = true;
-      _loadedInstance = await _objects.get(_isolate, _instance.id);
+      _loadedInstance =
+          await _objects.get(_isolate, _instance.id!) as M.Instance;
       _r.dirty();
     });
     return [button];
@@ -124,7 +125,7 @@ class InstanceRefElement extends CustomElement implements Renderable {
         return [
           new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
             ..text = Utils.formatStringAsLiteral(
-                _instance.valueAsString, _instance.valueAsStringIsTruncated)
+                _instance.valueAsString!, _instance.valueAsStringIsTruncated!)
         ];
       case M.InstanceKind.type:
       case M.InstanceKind.typeRef:
@@ -140,7 +141,7 @@ class InstanceRefElement extends CustomElement implements Renderable {
               new SpanElement()
                 ..classes = ['emphasize']
                 ..text = 'Closure',
-              new SpanElement()..text = ' (${_instance.closureFunction.name})'
+              new SpanElement()..text = ' (${_instance.closureFunction!.name})'
             ]
         ];
       case M.InstanceKind.regExp:
@@ -149,8 +150,8 @@ class InstanceRefElement extends CustomElement implements Renderable {
             ..children = <Element>[
               new SpanElement()
                 ..classes = ['emphasize']
-                ..text = _instance.clazz.name,
-              new SpanElement()..text = ' (${_instance.pattern.valueAsString})'
+                ..text = _instance.clazz!.name,
+              new SpanElement()..text = ' (${_instance.pattern!.valueAsString})'
             ]
         ];
       case M.InstanceKind.stackTrace:
@@ -159,14 +160,14 @@ class InstanceRefElement extends CustomElement implements Renderable {
             ..children = <Element>[
               new SpanElement()
                 ..classes = ['emphasize']
-                ..text = _instance.clazz.name,
+                ..text = _instance.clazz!.name,
             ]
         ];
       case M.InstanceKind.plainInstance:
         return [
           new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
             ..classes = ['emphasize']
-            ..text = _instance.clazz.name
+            ..text = _instance.clazz!.name
         ];
       case M.InstanceKind.list:
       case M.InstanceKind.map:
@@ -189,7 +190,7 @@ class InstanceRefElement extends CustomElement implements Renderable {
             ..children = <Element>[
               new SpanElement()
                 ..classes = ['emphasize']
-                ..text = _instance.clazz.name,
+                ..text = _instance.clazz!.name,
               new SpanElement()..text = ' (${_instance.length})'
             ]
         ];
@@ -197,13 +198,13 @@ class InstanceRefElement extends CustomElement implements Renderable {
         return [
           new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
             ..classes = ['emphasize']
-            ..text = _instance.clazz.name
+            ..text = _instance.clazz!.name
         ];
       case M.InstanceKind.weakProperty:
         return [
           new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
             ..classes = ['emphasize']
-            ..text = _instance.clazz.name
+            ..text = _instance.clazz!.name
         ];
     }
     throw new Exception('Unknown InstanceKind: ${_instance.kind}');
@@ -233,7 +234,7 @@ class InstanceRefElement extends CustomElement implements Renderable {
       case M.InstanceKind.int32x4List:
       case M.InstanceKind.float32x4List:
       case M.InstanceKind.float64x2List:
-        return _instance.length > 0;
+        return _instance.length! > 0;
       default:
         return false;
     }
@@ -247,29 +248,30 @@ class InstanceRefElement extends CustomElement implements Renderable {
       case M.InstanceKind.closure:
         {
           var members = <Element>[];
-          if (_loadedInstance.closureFunction != null) {
+          if (_loadedInstance!.closureFunction != null) {
             members.add(new DivElement()
               ..children = <Element>[
                 new SpanElement()..text = 'function = ',
-                anyRef(_isolate, _loadedInstance.closureFunction, _objects,
+                anyRef(_isolate, _loadedInstance!.closureFunction, _objects,
                     queue: _r.queue)
               ]);
           }
-          if (_loadedInstance.closureContext != null) {
+          if (_loadedInstance!.closureContext != null) {
             members.add(new DivElement()
               ..children = <Element>[
                 new SpanElement()..text = 'context = ',
-                anyRef(_isolate, _loadedInstance.closureContext, _objects,
+                anyRef(_isolate, _loadedInstance!.closureContext, _objects,
                     queue: _r.queue)
               ]);
           }
           return members;
         }
       case M.InstanceKind.plainInstance:
-        return _loadedInstance.fields
+        return _loadedInstance!.fields!
             .map<Element>((f) => new DivElement()
               ..children = <Element>[
-                new FieldRefElement(_isolate, f.decl, _objects, queue: _r.queue)
+                new FieldRefElement(_isolate, f.decl!, _objects,
+                        queue: _r.queue)
                     .element,
                 new SpanElement()..text = ' = ',
                 anyRef(_isolate, f.value, _objects, queue: _r.queue)
@@ -277,7 +279,7 @@ class InstanceRefElement extends CustomElement implements Renderable {
             .toList();
       case M.InstanceKind.list:
         var index = 0;
-        return _loadedInstance.elements
+        return _loadedInstance!.elements!
             .map<Element>((element) => new DivElement()
               ..children = <Element>[
                 new SpanElement()..text = '[ ${index++} ] : ',
@@ -286,7 +288,7 @@ class InstanceRefElement extends CustomElement implements Renderable {
             .toList()
               ..addAll(_createShowMoreButton());
       case M.InstanceKind.map:
-        return _loadedInstance.associations
+        return _loadedInstance!.associations!
             .map<Element>((association) => new DivElement()
               ..children = <Element>[
                 new SpanElement()..text = '[ ',
@@ -311,14 +313,14 @@ class InstanceRefElement extends CustomElement implements Renderable {
       case M.InstanceKind.float32x4List:
       case M.InstanceKind.float64x2List:
         var index = 0;
-        return _loadedInstance.typedElements
+        return _loadedInstance!.typedElements!
             .map<Element>((e) => new DivElement()..text = '[ ${index++} ] : $e')
             .toList()
               ..addAll(_createShowMoreButton());
       case M.InstanceKind.mirrorReference:
         return [
           new SpanElement()..text = '<referent> : ',
-          anyRef(_isolate, _loadedInstance.referent, _objects, queue: _r.queue)
+          anyRef(_isolate, _loadedInstance!.referent, _objects, queue: _r.queue)
         ];
       case M.InstanceKind.stackTrace:
         return [
@@ -329,12 +331,12 @@ class InstanceRefElement extends CustomElement implements Renderable {
       case M.InstanceKind.weakProperty:
         return [
           new SpanElement()..text = '<key> : ',
-          new InstanceRefElement(_isolate, _loadedInstance.key, _objects,
+          new InstanceRefElement(_isolate, _loadedInstance!.key!, _objects,
                   queue: _r.queue)
               .element,
           new BRElement(),
           new SpanElement()..text = '<value> : ',
-          new InstanceRefElement(_isolate, _loadedInstance.value, _objects,
+          new InstanceRefElement(_isolate, _loadedInstance!.value!, _objects,
                   queue: _r.queue)
               .element,
         ];

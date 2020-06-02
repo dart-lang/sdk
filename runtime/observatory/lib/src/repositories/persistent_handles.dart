@@ -9,6 +9,6 @@ class PersistentHandlesRepository implements M.PersistentHandlesRepository {
     S.Isolate isolate = i as S.Isolate;
     assert(isolate != null);
     final response = await isolate.invokeRpc('_getPersistentHandles', {});
-    return new S.PersistentHandles(response);
+    return new S.PersistentHandles(response as S.ServiceMap);
   }
 }

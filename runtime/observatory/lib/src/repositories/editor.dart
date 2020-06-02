@@ -6,24 +6,24 @@ part of repositories;
 
 class EditorRepository extends M.EditorRepository {
   final S.VM _vm;
-  final String _editor;
+  final String? _editor;
 
   bool get isAvailable => _getService() != null;
 
-  EditorRepository(S.VM vm, {String editor})
+  EditorRepository(S.VM vm, {String? editor})
       : _vm = vm,
         _editor = editor {
     assert(_vm != null);
   }
 
-  S.Service _getService() {
+  S.Service? _getService() {
     Iterable<M.Service> services =
         _vm.services.where((s) => s.service == 'openSourceLocation');
     if (_editor != null) {
       services = services.where((s) => s.alias == _editor);
     }
     if (services.isNotEmpty) {
-      return services.first;
+      return services.first as S.Service;
     }
     return null;
   }
@@ -70,7 +70,7 @@ class EditorRepository extends M.EditorRepository {
       return await openClass(i, o);
     }
     if (o is M.InstanceRef) {
-      return await openClass(i, o.clazz);
+      return await openClass(i, o.clazz!);
     }
     if (o is M.FieldRef) {
       return await openField(i, o);
@@ -80,18 +80,18 @@ class EditorRepository extends M.EditorRepository {
     }
     if (o is M.InstanceRef) {
       if (o.closureFunction != null) {
-        return await openFunction(i, o.closureFunction);
+        return await openFunction(i, o.closureFunction!);
       }
-      return await openClass(i, o.clazz);
+      return await openClass(i, o.clazz!);
     }
     return new Future.value();
   }
 
-  Future openSourceLocation(M.IsolateRef i, M.SourceLocation l) async {
+  Future openSourceLocation(M.IsolateRef i, M.SourceLocation? l) async {
     final isolate = i as S.Isolate;
     assert(isolate != null);
     assert(l != null);
-    return await isolate.invokeRpc(_getService().method,
-        {'scriptId': l.script.id, 'tokenPos': l.tokenPos});
+    return await isolate.invokeRpc(_getService()!.method,
+        {'scriptId': l!.script.id!, 'tokenPos': l.tokenPos});
   }
 }

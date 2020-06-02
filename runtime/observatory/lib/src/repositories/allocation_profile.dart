@@ -22,7 +22,7 @@ class AllocationProfileRepository implements M.AllocationProfileRepository {
       params['reset'] = true;
     }
     final dynamic response = await isolate.invokeRpc(_api, params);
-    Map defaults;
+    Map? defaults;
     if (combine) {
       defaults = await isolate.vm.invokeRpcNoUpgrade(_defaultsApi, {});
       defaults = defaults['map'];

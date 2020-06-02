@@ -6,7 +6,10 @@ part of models;
 
 enum CodeKind { dart, native, stub, tag, collected }
 
-bool isSyntheticCode(CodeKind kind) {
+bool isSyntheticCode(CodeKind? kind) {
+  if (kind == null) {
+    return false;
+  }
   switch (kind) {
     case CodeKind.collected:
     case CodeKind.native:
@@ -17,20 +20,25 @@ bool isSyntheticCode(CodeKind kind) {
   }
 }
 
-bool isDartCode(CodeKind kind) => !isSyntheticCode(kind);
+bool isDartCode(CodeKind? kind) {
+  if (kind == null) {
+    return false;
+  }
+  return !isSyntheticCode(kind);
+}
 
 abstract class CodeRef extends ObjectRef {
   /// The name of this class.
-  String get name;
+  String? get name;
 
   // What kind of code object is this?
-  CodeKind get kind;
+  CodeKind? get kind;
 
-  bool get isOptimized;
+  bool? get isOptimized;
 }
 
 abstract class Code extends Object implements CodeRef {
-  FunctionRef get function;
-  ObjectPoolRef get objectPool;
-  Iterable<FunctionRef> get inlinedFunctions;
+  FunctionRef? get function;
+  ObjectPoolRef? get objectPool;
+  Iterable<FunctionRef>? get inlinedFunctions;
 }

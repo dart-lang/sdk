@@ -29,21 +29,21 @@ class HeapMapElement extends CustomElement implements Renderable {
     NavNotifyElement.tag,
   ]);
 
-  RenderingScheduler<HeapMapElement> _r;
+  late RenderingScheduler<HeapMapElement> _r;
 
   Stream<RenderedEvent<HeapMapElement>> get onRendered => _r.onRendered;
 
-  M.VM _vm;
-  M.IsolateRef _isolate;
-  M.EventRepository _events;
-  M.NotificationRepository _notifications;
+  late M.VM _vm;
+  late M.IsolateRef _isolate;
+  late M.EventRepository _events;
+  late M.NotificationRepository _notifications;
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
   M.NotificationRepository get notifications => _notifications;
 
   factory HeapMapElement(M.VM vm, M.IsolateRef isolate,
       M.EventRepository events, M.NotificationRepository notifications,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -73,9 +73,9 @@ class HeapMapElement extends CustomElement implements Renderable {
     children = <Element>[];
   }
 
-  CanvasElement _canvas;
-  var _fragmentationData;
-  double _pageHeight;
+  CanvasElement? _canvas;
+  dynamic _fragmentationData;
+  int? _pageHeight;
   final _classIdToColor = {};
   final _colorToClassId = {};
   final _classIdToName = {};
@@ -87,8 +87,8 @@ class HeapMapElement extends CustomElement implements Renderable {
   // TODO(koda): Improve interface for huge heaps.
   static const _MAX_CANVAS_HEIGHT = 6000;
 
-  String _status;
-  S.ServiceMap _fragmentation;
+  String _status = 'Loading';
+  S.ServiceMap? _fragmentation;
 
   void render() {
     if (_canvas == null) {
@@ -99,7 +99,7 @@ class HeapMapElement extends CustomElement implements Renderable {
     }
 
     // Set hover text to describe the object under the cursor.
-    _canvas.title = _status;
+    _canvas!.title = _status;
 
     children = <Element>[
       navBar(<Element>[
@@ -129,7 +129,7 @@ class HeapMapElement extends CustomElement implements Renderable {
         ],
       new DivElement()
         ..classes = ['flex-row']
-        ..children = <Element>[_canvas]
+        ..children = <Element>[_canvas!]
     ];
   }
 
@@ -158,9 +158,9 @@ class HeapMapElement extends CustomElement implements Renderable {
         print('Ignoring non-class in class list');
         continue;
       }
-      var classId = int.parse(member.id.split('/').last);
+      var classId = int.parse(member.id!.split('/').last);
       var color = _classIdToRGBA(classId);
-      _addClass(classId, member.name, color);
+      _addClass(classId, member.name!, color);
     }
     _addClass(freeClassId, 'Free', _freeColor);
     _addClass(0, '', _pageSeparationColor);
@@ -177,15 +177,15 @@ class HeapMapElement extends CustomElement implements Renderable {
     return _classIdToName[_colorToClassId[_packColor(color)]];
   }
 
-  ObjectInfo _objectAt(Point<num> point) {
+  ObjectInfo? _objectAt(Point<num> point) {
     if (_fragmentation == null || _canvas == null) {
       return null;
     }
-    var pagePixels = _pageHeight * _fragmentationData.width;
+    var pagePixels = _pageHeight! * _fragmentationData.width;
     var index = new PixelReference(_fragmentationData, point).index;
     var pageIndex = index ~/ pagePixels;
     num pageOffset = index % pagePixels;
-    var pages = _fragmentation['pages'];
+    var pages = _fragmentation!['pages'];
     if (pageIndex < 0 || pageIndex >= pages.length) {
       return null;
     }
@@ -204,8 +204,8 @@ class HeapMapElement extends CustomElement implements Renderable {
     }
     return new ObjectInfo(
         int.parse(page['objectStart']) +
-            pageOffset * _fragmentation['unitSizeBytes'],
-        size * _fragmentation['unitSizeBytes']);
+            pageOffset * _fragmentation!['unitSizeBytes'],
+        size * _fragmentation!['unitSizeBytes']);
   }
 
   void _handleMouseMove(MouseEvent event) {
@@ -226,28 +226,28 @@ class HeapMapElement extends CustomElement implements Renderable {
       return;
     }
     _updateClassList(
-        _fragmentation['classList'], _fragmentation['freeClassId']);
-    var pages = _fragmentation['pages'];
-    var width = max(_canvas.parent.client.width, 1);
+        _fragmentation!['classList'], _fragmentation!['freeClassId']);
+    var pages = _fragmentation!['pages'];
+    var width = max(_canvas!.parent!.client.width, 1) as int;
     _pageHeight = _PAGE_SEPARATION_HEIGHT +
-        _fragmentation['pageSizeBytes'] ~/
-            _fragmentation['unitSizeBytes'] ~/
+        (_fragmentation!['pageSizeBytes'] as int) ~/
+            (_fragmentation!['unitSizeBytes'] as int) ~/
             width;
-    var height = min(_pageHeight * pages.length, _MAX_CANVAS_HEIGHT);
-    _fragmentationData = _canvas.context2D.createImageData(width, height);
-    _canvas.width = _fragmentationData.width;
-    _canvas.height = _fragmentationData.height;
+    var height = min(_pageHeight! * pages.length, _MAX_CANVAS_HEIGHT) as int;
+    _fragmentationData = _canvas!.context2D.createImageData(width, height);
+    _canvas!.width = _fragmentationData.width;
+    _canvas!.height = _fragmentationData.height;
     _renderPages(0);
   }
 
   // Renders and draws asynchronously, one page at a time to avoid
   // blocking the UI.
   void _renderPages(int startPage) {
-    var pages = _fragmentation['pages'];
+    var pages = _fragmentation!['pages'];
     _status = 'Loaded $startPage of ${pages.length} pages';
     _r.dirty();
-    var startY = (startPage * _pageHeight).round();
-    var endY = startY + _pageHeight.round();
+    var startY = (startPage * _pageHeight!).round();
+    var endY = startY + _pageHeight!.round();
     if (startPage >= pages.length || endY > _fragmentationData.height) {
       return;
     }
@@ -266,7 +266,7 @@ class HeapMapElement extends CustomElement implements Renderable {
       pixel.color = _pageSeparationColor;
       pixel = pixel.next();
     }
-    _canvas.context2D.putImageData(
+    _canvas!.context2D.putImageData(
         _fragmentationData, 0, 0, 0, startY, _fragmentationData.width, endY);
     // Continue with the next page, asynchronously.
     new Future(() {
@@ -274,14 +274,14 @@ class HeapMapElement extends CustomElement implements Renderable {
     });
   }
 
-  Future _refresh({String gc}) {
+  Future _refresh({String? gc}) {
     final isolate = _isolate as S.Isolate;
     var params = {};
     if (gc != null) {
       params['gc'] = gc;
     }
     return isolate.invokeRpc('_getHeapMap', params).then((serviceObject) {
-      S.ServiceMap response = serviceObject;
+      S.ServiceMap response = serviceObject as S.ServiceMap;
       assert(response['type'] == 'HeapMap');
       _fragmentation = response;
       _updateFragmentationData();

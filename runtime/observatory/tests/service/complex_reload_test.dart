@@ -34,9 +34,9 @@ Future<String> invokeTest(Isolate isolate) async {
   await isolate.reload();
   Library lib = isolate.rootLibrary;
   await lib.load();
-  Instance result = await lib.evaluate('test()');
+  Instance result = await lib.evaluate('test()') as Instance;
   expect(result.isString, isTrue);
-  return result.valueAsString;
+  return result.valueAsString as String;
 }
 
 var tests = <IsolateTest>[

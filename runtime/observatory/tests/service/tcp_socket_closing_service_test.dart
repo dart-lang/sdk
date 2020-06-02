@@ -36,7 +36,7 @@ Future setup() async {
   var server = await io.RawDatagramSocket.bind('127.0.0.1', 0);
   server.listen((io.RawSocketEvent event) {
     if (event == io.RawSocketEvent.read) {
-      io.Datagram dg = server.receive();
+      io.Datagram dg = server.receive()!;
       dg.data.forEach((x) => true);
       server.close();
     }
