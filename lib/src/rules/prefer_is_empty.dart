@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/dart/ast/ast.dart' show ExpressionImpl;
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -130,20 +128,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     final binaryExpression = search as BinaryExpression;
-
-    // Don't lint if we're in an assert initializer.
-    final assertInitializer =
-        search.parent.thisOrAncestorOfType<AssertInitializer>();
-    if (assertInitializer != null) {
-      return;
-    }
-
-    // Or in a const context.
-    // See: https://github.com/dart-lang/linter/issues/1719
-    final impl = binaryExpression as ExpressionImpl;
-    if (impl.inConstantContext) {
-      return;
-    }
 
     final operator = binaryExpression.operator;
 
