@@ -363,6 +363,7 @@ naturally
 negatable
 newest
 newworld
+nil
 ninja
 nondefault
 nonexisting
@@ -472,6 +473,7 @@ spelling
 spent
 splay
 splitting
+spurious
 sqrt
 squared
 sssp
