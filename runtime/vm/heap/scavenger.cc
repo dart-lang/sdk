@@ -1545,17 +1545,6 @@ void Scavenger::PrintToJSONObject(JSONObject* object) const {
 }
 #endif  // !PRODUCT
 
-void Scavenger::AllocateExternal(intptr_t cid, intptr_t size) {
-  ASSERT(size >= 0);
-  external_size_ += size;
-}
-
-void Scavenger::FreeExternal(intptr_t size) {
-  ASSERT(size >= 0);
-  external_size_ -= size;
-  ASSERT(external_size_ >= 0);
-}
-
 void Scavenger::Evacuate() {
   // We need a safepoint here to prevent allocation right before or right after
   // the scavenge.

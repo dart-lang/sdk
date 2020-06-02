@@ -314,8 +314,16 @@ class Scavenger {
   void PrintToJSONObject(JSONObject* object) const;
 #endif  // !PRODUCT
 
-  void AllocateExternal(intptr_t cid, intptr_t size);
-  void FreeExternal(intptr_t size);
+  void AllocatedExternal(intptr_t size) {
+    ASSERT(size >= 0);
+    external_size_ += size;
+    ASSERT(external_size_ >= 0);
+  }
+  void FreedExternal(intptr_t size) {
+    ASSERT(size >= 0);
+    external_size_ -= size;
+    ASSERT(external_size_ >= 0);
+  }
 
   void MakeNewSpaceIterable();
   int64_t FreeSpaceInWords(Isolate* isolate) const;

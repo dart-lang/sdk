@@ -1000,6 +1000,18 @@ Dart_NewWeakPersistentHandle(Dart_Handle object,
                                    external_allocation_size, callback);
 }
 
+DART_EXPORT void Dart_UpdateExternalSize(Dart_WeakPersistentHandle object,
+                                         intptr_t external_size) {
+  IsolateGroup* isolate_group = IsolateGroup::Current();
+  CHECK_ISOLATE_GROUP(isolate_group);
+  NoSafepointScope no_safepoint_scope;
+  ApiState* state = isolate_group->api_state();
+  ASSERT(state != NULL);
+  ASSERT(state->IsActiveWeakPersistentHandle(object));
+  auto weak_ref = FinalizablePersistentHandle::Cast(object);
+  weak_ref->UpdateExternalSize(external_size, isolate_group);
+}
+
 DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object) {
   IsolateGroup* isolate_group = IsolateGroup::Current();
   CHECK_ISOLATE_GROUP(isolate_group);
@@ -1023,7 +1035,7 @@ DART_EXPORT void Dart_DeleteWeakPersistentHandle(
   ASSERT(state != NULL);
   ASSERT(state->IsActiveWeakPersistentHandle(object));
   auto weak_ref = FinalizablePersistentHandle::Cast(object);
-  weak_ref->EnsureFreeExternal(isolate_group);
+  weak_ref->EnsureFreedExternal(isolate_group);
   state->FreeWeakPersistentHandle(weak_ref);
 }
 

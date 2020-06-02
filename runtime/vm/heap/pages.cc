@@ -569,21 +569,6 @@ void PageSpace::ReleaseLock(FreeList* freelist) {
   freelist->mutex()->Unlock();
 }
 
-void PageSpace::AllocateExternal(intptr_t cid, intptr_t size) {
-  intptr_t size_in_words = size >> kWordSizeLog2;
-  usage_.external_in_words += size_in_words;
-}
-
-void PageSpace::PromoteExternal(intptr_t cid, intptr_t size) {
-  intptr_t size_in_words = size >> kWordSizeLog2;
-  usage_.external_in_words += size_in_words;
-}
-
-void PageSpace::FreeExternal(intptr_t size) {
-  intptr_t size_in_words = size >> kWordSizeLog2;
-  usage_.external_in_words -= size_in_words;
-}
-
 class BasePageIterator : ValueObject {
  public:
   explicit BasePageIterator(const PageSpace* space) : space_(space) {}

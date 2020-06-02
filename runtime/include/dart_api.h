@@ -489,6 +489,9 @@ Dart_NewWeakPersistentHandle(Dart_Handle object,
 DART_EXPORT void Dart_DeleteWeakPersistentHandle(
     Dart_WeakPersistentHandle object);
 
+DART_EXPORT void Dart_UpdateExternalSize(Dart_WeakPersistentHandle object,
+                                         intptr_t external_allocation_size);
+
 /*
  * ==========================
  * Initialization and Globals

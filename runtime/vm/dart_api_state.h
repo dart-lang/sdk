@@ -219,29 +219,39 @@ class FinalizablePersistentHandle {
     if (SpaceForExternal() == Heap::kNew) {
       SetExternalNewSpaceBit();
     }
-    isolate_group->heap()->AllocateExternal(
-        raw()->GetClassIdMayBeSmi(), external_size(), SpaceForExternal());
+    isolate_group->heap()->AllocatedExternal(external_size(),
+                                             SpaceForExternal());
+  }
+  void UpdateExternalSize(intptr_t size, IsolateGroup* isolate_group) {
+    ASSERT(size >= 0);
+    intptr_t old_size = external_size();
+    set_external_size(size);
+    if (size > old_size) {
+      isolate_group->heap()->AllocatedExternal(size - old_size,
+                                               SpaceForExternal());
+    } else {
+      isolate_group->heap()->FreedExternal(old_size - size, SpaceForExternal());
+    }
   }
 
   // Called when the referent becomes unreachable.
   void UpdateUnreachable(IsolateGroup* isolate_group) {
-    EnsureFreeExternal(isolate_group);
+    EnsureFreedExternal(isolate_group);
     Finalize(isolate_group, this);
   }
 
   // Called when the referent has moved, potentially between generations.
   void UpdateRelocated(IsolateGroup* isolate_group) {
     if (IsSetNewSpaceBit() && (SpaceForExternal() == Heap::kOld)) {
-      isolate_group->heap()->PromoteExternal(raw()->GetClassIdMayBeSmi(),
-                                             external_size());
+      isolate_group->heap()->PromotedExternal(external_size());
       ClearExternalNewSpaceBit();
     }
   }
 
   // Idempotent. Called when the handle is explicitly deleted or the
   // referent becomes unreachable.
-  void EnsureFreeExternal(IsolateGroup* isolate_group) {
-    isolate_group->heap()->FreeExternal(external_size(), SpaceForExternal());
+  void EnsureFreedExternal(IsolateGroup* isolate_group) {
+    isolate_group->heap()->FreedExternal(external_size(), SpaceForExternal());
     set_external_size(0);
   }
 

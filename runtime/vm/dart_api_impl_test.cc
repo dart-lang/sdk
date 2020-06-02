@@ -3512,6 +3512,125 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSizeOddReferents) {
   }
 }
 
+#define EXAMPLE_RESOURCE_NATIVE_LIST(V)                                        \
+  V(ExampleResource_Allocate, 1)                                               \
+  V(ExampleResource_Use, 1)                                                    \
+  V(ExampleResource_Dispose, 1)
+
+EXAMPLE_RESOURCE_NATIVE_LIST(DECLARE_FUNCTION);
+
+static struct NativeEntries {
+  const char* name_;
+  Dart_NativeFunction function_;
+  int argument_count_;
+} ExampleResourceEntries[] = {EXAMPLE_RESOURCE_NATIVE_LIST(REGISTER_FUNCTION)};
+
+static Dart_NativeFunction ExampleResourceNativeResolver(
+    Dart_Handle name,
+    int argument_count,
+    bool* auto_setup_scope) {
+  const char* function_name = nullptr;
+  Dart_Handle result = Dart_StringToCString(name, &function_name);
+  ASSERT(!Dart_IsError(result));
+  ASSERT(function_name != nullptr);
+  ASSERT(auto_setup_scope != nullptr);
+  *auto_setup_scope = true;
+  int num_entries =
+      sizeof(ExampleResourceEntries) / sizeof(struct NativeEntries);
+  for (int i = 0; i < num_entries; i++) {
+    struct NativeEntries* entry = &(ExampleResourceEntries[i]);
+    if ((strcmp(function_name, entry->name_) == 0) &&
+        (entry->argument_count_ == argument_count)) {
+      return reinterpret_cast<Dart_NativeFunction>(entry->function_);
+    }
+  }
+  return nullptr;
+}
+
+struct ExampleResource {
+  Dart_WeakPersistentHandle self;
+  void* lots_of_memory;
+};
+
+void ExampleResourceFinalizer(void* isolate_peer,
+                              Dart_WeakPersistentHandle handle,
+                              void* peer) {
+  ExampleResource* resource = reinterpret_cast<ExampleResource*>(peer);
+  free(resource->lots_of_memory);
+  delete resource;
+}
+
+void FUNCTION_NAME(ExampleResource_Allocate)(Dart_NativeArguments native_args) {
+  Dart_Handle receiver = Dart_GetNativeArgument(native_args, 0);
+  intptr_t external_size = 10 * MB;
+  ExampleResource* resource = new ExampleResource();
+  resource->lots_of_memory = malloc(external_size);
+  resource->self = Dart_NewWeakPersistentHandle(
+      receiver, resource, external_size, ExampleResourceFinalizer);
+  EXPECT_VALID(Dart_SetNativeInstanceField(
+      receiver, 0, reinterpret_cast<intptr_t>(resource)));
+  // Some pretend resource initialization.
+  *reinterpret_cast<uint8_t*>(resource->lots_of_memory) = 123;
+}
+
+void FUNCTION_NAME(ExampleResource_Use)(Dart_NativeArguments native_args) {
+  Dart_Handle receiver = Dart_GetNativeArgument(native_args, 0);
+  intptr_t native_field = 0;
+  EXPECT_VALID(Dart_GetNativeInstanceField(receiver, 0, &native_field));
+  ExampleResource* resource = reinterpret_cast<ExampleResource*>(native_field);
+  if (resource->lots_of_memory == nullptr) {
+    Dart_ThrowException(Dart_NewStringFromCString(
+        "Attempt to use a disposed ExampleResource!"));
+    UNREACHABLE();
+  } else {
+    // Some pretend resource use.
+    EXPECT_EQ(123, *reinterpret_cast<uint8_t*>(resource->lots_of_memory));
+  }
+}
+
+void FUNCTION_NAME(ExampleResource_Dispose)(Dart_NativeArguments native_args) {
+  Dart_Handle receiver = Dart_GetNativeArgument(native_args, 0);
+  intptr_t native_field = 0;
+  EXPECT_VALID(Dart_GetNativeInstanceField(receiver, 0, &native_field));
+  ExampleResource* resource = reinterpret_cast<ExampleResource*>(native_field);
+  if (resource->lots_of_memory != nullptr) {
+    free(resource->lots_of_memory);
+    resource->lots_of_memory = nullptr;
+    Dart_UpdateExternalSize(resource->self, 0);
+  }
+}
+
+TEST_CASE(DartAPI_WeakPersistentHandleUpdateSize) {
+  const char* kScriptChars = R"(
+    import "dart:nativewrappers";
+    class ExampleResource extends NativeFieldWrapperClass1 {
+      ExampleResource() { _allocate(); }
+      void _allocate() native "ExampleResource_Allocate";
+      void use() native "ExampleResource_Use";
+      void dispose() native "ExampleResource_Dispose";
+    }
+    main() {
+      var res = new ExampleResource();
+      res.use();
+      res.dispose();
+      res.dispose();  // Idempotent
+      bool threw = false;
+      try {
+        res.use();
+      } catch (_) {
+        threw = true;
+      }
+      if (!threw) {
+        throw "Exception expected";
+      }
+    }
+  )";
+
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars, ExampleResourceNativeResolver);
+  EXPECT_VALID(Dart_Invoke(lib, NewString("main"), 0, NULL));
+}
+
 static Dart_WeakPersistentHandle weak1 = NULL;
 static Dart_WeakPersistentHandle weak2 = NULL;
 static Dart_WeakPersistentHandle weak3 = NULL;
@@ -5845,8 +5964,7 @@ TEST_CASE(DartAPI_ThrowException) {
   Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
 
   // Load up a test script which extends the native wrapper class.
-  Dart_Handle lib = TestCase::LoadTestScript(
-      kScriptChars, reinterpret_cast<Dart_NativeEntryResolver>(native_lookup));
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, native_lookup);
 
   // Throwing an exception here should result in an error.
   result = Dart_ThrowException(NewString("This doesn't work"));
@@ -6032,9 +6150,7 @@ TEST_CASE(DartAPI_GetNativeArguments) {
       "                           obj2);"
       "}";
 
-  Dart_Handle lib = TestCase::LoadTestScript(
-      kScriptChars,
-      reinterpret_cast<Dart_NativeEntryResolver>(native_args_lookup));
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, native_args_lookup);
 
   const char* ascii_str = "string";
   intptr_t ascii_str_length = strlen(ascii_str);
@@ -6075,8 +6191,7 @@ TEST_CASE(DartAPI_GetNativeArgumentCount) {
       "  return obj.method1(77, 125);"
       "}";
 
-  Dart_Handle lib = TestCase::LoadTestScript(
-      kScriptChars, reinterpret_cast<Dart_NativeEntryResolver>(gnac_lookup));
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, gnac_lookup);
 
   Dart_Handle result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
   EXPECT_VALID(result);

@@ -409,9 +409,16 @@ class PageSpace {
     allocated_black_in_words_.fetch_add(size >> kWordSizeLog2);
   }
 
-  void AllocateExternal(intptr_t cid, intptr_t size);
-  void PromoteExternal(intptr_t cid, intptr_t size);
-  void FreeExternal(intptr_t size);
+  void AllocatedExternal(intptr_t size) {
+    ASSERT(size >= 0);
+    intptr_t size_in_words = size >> kWordSizeLog2;
+    usage_.external_in_words += size_in_words;
+  }
+  void FreedExternal(intptr_t size) {
+    ASSERT(size >= 0);
+    intptr_t size_in_words = size >> kWordSizeLog2;
+    usage_.external_in_words -= size_in_words;
+  }
 
   // Bulk data allocation.
   FreeList* DataFreeList(intptr_t i = 0) {

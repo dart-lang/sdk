@@ -158,11 +158,11 @@ uword Heap::AllocateOld(intptr_t size, OldPage::PageType type) {
   return 0;
 }
 
-void Heap::AllocateExternal(intptr_t cid, intptr_t size, Space space) {
+void Heap::AllocatedExternal(intptr_t size, Space space) {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
   if (space == kNew) {
     Isolate::Current()->AssertCurrentThreadIsMutator();
-    new_space_.AllocateExternal(cid, size);
+    new_space_.AllocatedExternal(size);
     if (new_space_.ExternalInWords() <= (4 * new_space_.CapacityInWords())) {
       return;
     }
@@ -173,7 +173,7 @@ void Heap::AllocateExternal(intptr_t cid, intptr_t size, Space space) {
     // space GC check.
   } else {
     ASSERT(space == kOld);
-    old_space_.AllocateExternal(cid, size);
+    old_space_.AllocatedExternal(size);
   }
 
   if (old_space_.NeedsGarbageCollection()) {
@@ -183,18 +183,18 @@ void Heap::AllocateExternal(intptr_t cid, intptr_t size, Space space) {
   }
 }
 
-void Heap::FreeExternal(intptr_t size, Space space) {
+void Heap::FreedExternal(intptr_t size, Space space) {
   if (space == kNew) {
-    new_space_.FreeExternal(size);
+    new_space_.FreedExternal(size);
   } else {
     ASSERT(space == kOld);
-    old_space_.FreeExternal(size);
+    old_space_.FreedExternal(size);
   }
 }
 
-void Heap::PromoteExternal(intptr_t cid, intptr_t size) {
-  new_space_.FreeExternal(size);
-  old_space_.PromoteExternal(cid, size);
+void Heap::PromotedExternal(intptr_t size) {
+  new_space_.FreedExternal(size);
+  old_space_.AllocatedExternal(size);
 }
 
 bool Heap::Contains(uword addr) const {
