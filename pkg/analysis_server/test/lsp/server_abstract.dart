@@ -116,7 +116,7 @@ abstract class AbstractLspAnalysisServerTest
         channel,
         resourceProvider,
         AnalysisServerOptions(),
-        DartSdkManager(convertPath('/sdk')),
+        DartSdkManager(convertPath('/sdk'), false),
         CrashReportingAttachmentsBuilder.empty,
         InstrumentationService.NULL_SERVICE);
     server.pluginManager = pluginManager;

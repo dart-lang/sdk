@@ -412,7 +412,7 @@ abstract class ServerPlugin {
         FileByteStore(byteStorePath,
             tempNameSuffix: DateTime.now().millisecondsSinceEpoch.toString()),
         64 * M);
-    _sdkManager = DartSdkManager(sdkPath);
+    _sdkManager = DartSdkManager(sdkPath, true);
     return PluginVersionCheckResult(
         isCompatibleWith(serverVersion), name, version, fileGlobsToAnalyze,
         contactInfo: contactInfo);

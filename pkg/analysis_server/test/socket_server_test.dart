@@ -105,7 +105,7 @@ class SocketServerTest {
     final errorNotifier = ErrorNotifier();
     final server = SocketServer(
         AnalysisServerOptions(),
-        DartSdkManager(''),
+        DartSdkManager('', false),
         CrashReportingAttachmentsBuilder.empty,
         errorNotifier,
         null,

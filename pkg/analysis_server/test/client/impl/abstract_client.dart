@@ -111,7 +111,7 @@ abstract class AbstractClient {
         serverChannel,
         resourceProvider,
         serverOptions,
-        DartSdkManager(sdkPath),
+        DartSdkManager(sdkPath, true),
         CrashReportingAttachmentsBuilder.empty,
         InstrumentationService.NULL_SERVICE);
   }

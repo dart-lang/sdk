@@ -31,6 +31,7 @@ List<int> buildSdkSummary({
   //
   FolderBasedDartSdk sdk =
       FolderBasedDartSdk(resourceProvider, resourceProvider.getFolder(sdkPath));
+  sdk.useSummary = false;
   sdk.analysisOptions = AnalysisOptionsImpl();
 
   //

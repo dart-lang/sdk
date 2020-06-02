@@ -437,12 +437,12 @@ class Driver implements ServerStarter {
     }
 
     final defaultSdkPath = _getSdkPath(results);
-    final dartSdkManager = DartSdkManager(defaultSdkPath);
+    final dartSdkManager = DartSdkManager(defaultSdkPath, true);
 
     // TODO(brianwilkerson) It would be nice to avoid creating an SDK that
     // cannot be re-used, but the SDK is needed to create a package map provider
     // in the case where we need to run `pub` in order to get the package map.
-    var defaultSdk = _createDefaultSdk(defaultSdkPath);
+    var defaultSdk = _createDefaultSdk(defaultSdkPath, true);
     //
     // Initialize the instrumentation service.
     //
@@ -825,12 +825,12 @@ class Driver implements ServerStarter {
     return parser;
   }
 
-  DartSdk _createDefaultSdk(String defaultSdkPath) {
+  DartSdk _createDefaultSdk(String defaultSdkPath, bool useSummaries) {
     var resourceProvider = PhysicalResourceProvider.INSTANCE;
-    return FolderBasedDartSdk(
-      resourceProvider,
-      resourceProvider.getFolder(defaultSdkPath),
-    );
+    var sdk = FolderBasedDartSdk(
+        resourceProvider, resourceProvider.getFolder(defaultSdkPath));
+    sdk.useSummary = useSummaries;
+    return sdk;
   }
 
   /// Constructs a uuid combining the current date and a random integer.

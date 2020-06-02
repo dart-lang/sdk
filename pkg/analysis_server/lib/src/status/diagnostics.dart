@@ -516,6 +516,10 @@ class ContextsPage extends DiagnosticPageWithNav {
     if (sdkOptions != null) {
       h3('SDK analysis options');
       p(describe(sdkOptions), raw: true);
+
+      if (sdk is FolderBasedDartSdk) {
+        p(writeOption('Use summaries', sdk.useSummary), raw: true);
+      }
     }
 
     buf.writeln('</div>');

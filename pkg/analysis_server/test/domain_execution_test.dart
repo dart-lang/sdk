@@ -31,7 +31,7 @@ void main() {
           MockServerChannel(),
           provider,
           AnalysisServerOptions(),
-          DartSdkManager(''),
+          DartSdkManager('', false),
           CrashReportingAttachmentsBuilder.empty,
           InstrumentationService.NULL_SERVICE);
       handler = ExecutionDomainHandler(server);

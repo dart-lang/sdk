@@ -363,7 +363,7 @@ class AnalysisTestHelper with ResourceProviderMixin {
         serverChannel,
         resourceProvider,
         AnalysisServerOptions(),
-        DartSdkManager(convertPath('/sdk')),
+        DartSdkManager(convertPath('/sdk'), false),
         CrashReportingAttachmentsBuilder.empty,
         InstrumentationService.NULL_SERVICE);
     handler = AnalysisDomainHandler(server);

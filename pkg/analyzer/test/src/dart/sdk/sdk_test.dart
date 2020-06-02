@@ -216,6 +216,20 @@ class FolderBasedDartSdkTest with ResourceProviderMixin {
     expect(partSource, normalSource);
   }
 
+  void test_useSummary_afterContextCreation() {
+    FolderBasedDartSdk sdk = _createDartSdk();
+    sdk.context;
+    expect(() {
+      sdk.useSummary = true;
+    }, throwsStateError);
+  }
+
+  void test_useSummary_beforeContextCreation() {
+    FolderBasedDartSdk sdk = _createDartSdk();
+    sdk.useSummary = true;
+    sdk.context;
+  }
+
   FolderBasedDartSdk _createDartSdk() {
     Folder sdkDirectory = getFolder('/sdk');
     _createFile(sdkDirectory,

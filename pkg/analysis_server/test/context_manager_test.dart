@@ -1591,7 +1591,7 @@ abstract class ContextManagerTest with ResourceProviderMixin {
     resourceProvider.newFolder(projPath);
     // Create an SDK in the mock file system.
     MockSdk(resourceProvider: resourceProvider);
-    var sdkManager = DartSdkManager(convertPath('/sdk'));
+    var sdkManager = DartSdkManager(convertPath('/sdk'), true);
     manager = ContextManagerImpl(
         resourceProvider,
         sdkManager,
@@ -2290,7 +2290,7 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
     expect(contextRoot.root, path);
     currentContextTimestamps[path] = now;
 
-    var builder = createContextBuilder(folder, options);
+    var builder = createContextBuilder(folder, options, useSummaries: true);
     builder.analysisDriverScheduler = scheduler;
     builder.byteStore = MemoryByteStore();
     builder.performanceLog = logger;
@@ -2347,7 +2347,8 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
-  ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options) {
+  ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options,
+      {bool useSummaries = false}) {
     var builderOptions = ContextBuilderOptions();
     builderOptions.defaultOptions = options;
     var builder = ContextBuilder(resourceProvider, sdkManager, null,

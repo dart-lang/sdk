@@ -29,7 +29,7 @@ void main() {
         serverChannel,
         resourceProvider,
         AnalysisServerOptions(),
-        DartSdkManager(''),
+        DartSdkManager('', false),
         CrashReportingAttachmentsBuilder.empty,
         InstrumentationService.NULL_SERVICE);
     handler = ServerDomainHandler(server);

@@ -98,6 +98,12 @@ class DartSdkManager {
   final String defaultSdkDirectory;
 
   /**
+   * A flag indicating whether it is acceptable to use summaries when they are
+   * available.
+   */
+  final bool canUseSummaries;
+
+  /**
    * A table mapping (an encoding of) analysis options and SDK locations to the
    * DartSdk from that location that has been configured with those options.
    */
@@ -106,7 +112,7 @@ class DartSdkManager {
   /**
    * Initialize a newly created manager.
    */
-  DartSdkManager(this.defaultSdkDirectory);
+  DartSdkManager(this.defaultSdkDirectory, this.canUseSummaries);
 
   /**
    * Return any SDK that has been created, or `null` if no SDKs have been

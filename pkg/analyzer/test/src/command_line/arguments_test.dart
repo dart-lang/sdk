@@ -71,25 +71,55 @@ class ArgumentsTest with ResourceProviderMixin {
     expect(defaultOptions.implicitDynamic, true);
   }
 
-  void test_createDartSdkManager_noPath() {
+  void test_createDartSdkManager_noPath_noSummaries() {
     ArgParser parser = ArgParser();
     defineAnalysisArguments(parser);
     List<String> args = [];
     ArgResults result = parse(resourceProvider, parser, args);
-    DartSdkManager manager = createDartSdkManager(resourceProvider, result);
+    DartSdkManager manager =
+        createDartSdkManager(resourceProvider, false, result);
     expect(manager, isNotNull);
     expect(manager.defaultSdkDirectory,
         FolderBasedDartSdk.defaultSdkDirectory(resourceProvider)?.path);
+    expect(manager.canUseSummaries, false);
   }
 
-  void test_createDartSdkManager_path() {
+  void test_createDartSdkManager_noPath_summaries() {
+    ArgParser parser = ArgParser();
+    defineAnalysisArguments(parser);
+    List<String> args = [];
+    ArgResults result = parse(resourceProvider, parser, args);
+    DartSdkManager manager =
+        createDartSdkManager(resourceProvider, true, result);
+    expect(manager, isNotNull);
+
+    expect(manager.defaultSdkDirectory,
+        FolderBasedDartSdk.defaultSdkDirectory(resourceProvider)?.path);
+    expect(manager.canUseSummaries, true);
+  }
+
+  void test_createDartSdkManager_path_noSummaries() {
     ArgParser parser = ArgParser();
     defineAnalysisArguments(parser);
     List<String> args = ['--dart-sdk=x'];
     ArgResults result = parse(resourceProvider, parser, args);
-    DartSdkManager manager = createDartSdkManager(resourceProvider, result);
+    DartSdkManager manager =
+        createDartSdkManager(resourceProvider, false, result);
     expect(manager, isNotNull);
     expect(manager.defaultSdkDirectory, 'x');
+    expect(manager.canUseSummaries, false);
+  }
+
+  void test_createDartSdkManager_path_summaries() {
+    ArgParser parser = ArgParser();
+    defineAnalysisArguments(parser);
+    List<String> args = ['--dart-sdk=y'];
+    ArgResults result = parse(resourceProvider, parser, args);
+    DartSdkManager manager =
+        createDartSdkManager(resourceProvider, true, result);
+    expect(manager, isNotNull);
+    expect(manager.defaultSdkDirectory, 'y');
+    expect(manager.canUseSummaries, true);
   }
 
   void test_defineAnalysisArguments() {
