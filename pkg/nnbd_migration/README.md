@@ -70,7 +70,7 @@ adding a single `/*!*/` hint.
 
 ```dart
 List<int?> ints = const [0, null];
-int/*?*/ zero = ints[0]!; // Just add /*?*/ here, the migration tool does the rest!
+int/*!*/ zero = ints[0]!; // Just add /*!*/ here, the migration tool does the rest!
 int one = zero + 1;
 List<int> zeroOne = <int>[zero, one];
 ```
