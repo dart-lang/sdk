@@ -209,13 +209,30 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
   }
 
   Map<String, String> simpleProject(
-      {bool migrated: false, String sourceText, String pubspecText}) {
+      {bool migrated: false,
+      String sourceText,
+      String pubspecText,
+      String packageConfigText}) {
     return {
       'pubspec.yaml': pubspecText ??
           '''
 name: test
 environment:
   sdk: '${migrated ? '>=2.9.0 <2.10.0' : '>=2.6.0 <3.0.0'}'
+''',
+      '.dart_tool/package_config.json': packageConfigText ??
+          '''
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "test",
+      "rootUri": "../",
+      "packageUri": "lib/",
+      "languageVersion": "${migrated ? '2.9' : '2.6'}"
+    }
+  ]
+}
 ''',
       'lib/test.dart': sourceText ??
           '''
@@ -965,6 +982,85 @@ int f() => null;
             'Could not find an option named "this-option-does-not-exist"'));
   }
 
+  test_package_config_does_not_exist() async {
+    var projectContents = simpleProject()
+      ..remove('.dart_tool/package_config.json');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await cli
+        .run(_parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir,
+        simpleProject(migrated: true)
+          ..remove('.dart_tool/package_config.json'));
+  }
+
+  test_package_config_is_missing_languageVersion() async {
+    var packageConfigText = '''
+{
+  "configVersion": 3,
+  "packages": [
+    {
+      "name": "test",
+      "rootUri": "../",
+      "packageUri": "lib/"
+    }
+  ]
+}
+''';
+    var projectContents = simpleProject(packageConfigText: packageConfigText);
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await cli
+        .run(_parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    // The Dart source code should still be migrated.
+    assertProjectContents(projectDir,
+        simpleProject(migrated: true, packageConfigText: packageConfigText));
+  }
+
+  test_package_config_is_missing_this_package() async {
+    var packageConfigText = '''
+{
+  "configVersion": 3,
+  "packages": [
+  ]
+}
+''';
+    var projectContents = simpleProject(packageConfigText: packageConfigText);
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await cli
+        .run(_parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    // The Dart source code should still be migrated.
+    assertProjectContents(projectDir,
+        simpleProject(migrated: true, packageConfigText: packageConfigText));
+  }
+
+  test_package_config_is_wrong_version() async {
+    var packageConfigText = '''
+{
+  "configVersion": 3,
+  "packages": [
+    {
+      "name": "test",
+      "rootUri": "../",
+      "packageUri": "lib/",
+      "languageVersion": "2.6"
+    }
+  ]
+}
+''';
+    var projectContents = simpleProject(packageConfigText: packageConfigText);
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await cli
+        .run(_parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    // The Dart source code should still be migrated.
+    assertProjectContents(projectDir,
+        simpleProject(migrated: true, packageConfigText: packageConfigText));
+  }
+
   test_pub_outdated_has_malformed_json() {
     assertPubOutdatedSuccess(pubOutdatedStdout: '{ "packages": }');
     expect(logger.stderrBuffer.toString(), startsWith('Warning:'));
@@ -1094,14 +1190,19 @@ int f() => null;
   }
 
   test_pubspec_does_not_exist() async {
-    var projectContents = simpleProject()..remove('pubspec.yaml');
+    var projectContents = simpleProject()
+      ..remove('pubspec.yaml')
+      ..remove('.dart_tool/package_config.json');
     var projectDir = await createProjectDir(projectContents);
     var cli = _createCli();
     await cli
         .run(_parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
     // The Dart source code should still be migrated.
     assertProjectContents(
-        projectDir, simpleProject(migrated: true)..remove('pubspec.yaml'));
+        projectDir,
+        simpleProject(migrated: true)
+          ..remove('pubspec.yaml')
+          ..remove('.dart_tool/package_config.json'));
   }
 
   test_pubspec_environment_is_missing_sdk() async {
@@ -1145,14 +1246,17 @@ name: test
 environment:
   sdk: 1
 ''';
-    var projectContents = simpleProject(pubspecText: pubspecText);
+    var projectContents = simpleProject(pubspecText: pubspecText)
+      ..remove('.dart_tool/package_config.json');
     var projectDir = await createProjectDir(projectContents);
     var cli = _createCli();
     await cli
         .run(_parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
     // The Dart source code should still be migrated.
     assertProjectContents(
-        projectDir, simpleProject(migrated: true, pubspecText: pubspecText));
+        projectDir,
+        simpleProject(migrated: true, pubspecText: pubspecText)
+          ..remove('.dart_tool/package_config.json'));
   }
 
   test_pubspec_is_missing_environment() async {

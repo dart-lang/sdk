@@ -124,8 +124,9 @@ browser to view, analyze, and improve the proposed null-safe migration.
        * Note: In addition to making edits to the Dart source code in
          the package, applying the migration edits the package's `pubspec.yaml`
          file, in order to change the Dart SDK version constraints, under the
-         `environment` field.
-    2. Rerun the migration by clicking the `Apply Migration` button in the
+         `environment` field, and the "Package Config" file, located in the
+         package's `.dart_tool` directory, named `package_config.json`.
+    2. Apply the migration by clicking the `Apply Migration` button in the
        interface.
     3. Tip: leaving the web UI open may help you if you later have test failures
        or analysis errors.
