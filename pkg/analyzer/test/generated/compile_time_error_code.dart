@@ -116,25 +116,6 @@ class B {
     ]);
   }
 
-  test_builtInIdentifierAsMixinName_classTypeAlias() async {
-    await assertErrorsInCode(r'''
-class A {}
-class B {}
-class as = A with B;
-''', [
-      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 28, 2),
-    ]);
-  }
-
-  test_builtInIdentifierAsPrefixName() async {
-    await assertErrorsInCode('''
-import 'dart:async' as abstract;
-''', [
-      error(HintCode.UNUSED_IMPORT, 7, 12),
-      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME, 23, 8),
-    ]);
-  }
-
   test_builtInIdentifierAsType_formalParameter_field() async {
     await assertErrorsInCode(r'''
 class A {
@@ -164,31 +145,6 @@ f() {
       error(ParserErrorCode.EXPECTED_TOKEN, 8, 7),
       error(StaticWarningCode.UNDEFINED_IDENTIFIER, 8, 7),
       error(StaticWarningCode.UNDEFINED_IDENTIFIER, 16, 1),
-    ]);
-  }
-
-  test_builtInIdentifierAsTypedefName_functionTypeAlias() async {
-    await assertErrorsInCode('''
-typedef bool as();
-''', [
-      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 13, 2),
-    ]);
-  }
-
-  test_builtInIdentifierAsTypeName() async {
-    await assertErrorsInCode('''
-class as {}
-''', [
-      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 2),
-    ]);
-  }
-
-  test_builtInIdentifierAsTypeParameterName() async {
-    await assertErrorsInCode('''
-class A<as> {}
-''', [
-      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME, 8,
-          2),
     ]);
   }
 

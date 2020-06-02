@@ -9,12 +9,12 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(BuiltinIdentifierAsExtensionNameTest);
+    defineReflectiveTests(BuiltInIdentifierAsExtensionNameTest);
   });
 }
 
 @reflectiveTest
-class BuiltinIdentifierAsExtensionNameTest extends DriverResolutionTest {
+class BuiltInIdentifierAsExtensionNameTest extends DriverResolutionTest {
   test_error_builtInIdentifierAsExtensionName() async {
     await assertErrorsInCode(
       r'''
