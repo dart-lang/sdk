@@ -19,7 +19,12 @@ DECLARE_FLAG(int, worker_timeout_millis);
   UNIT_TEST_CASE(name) {                                                       \
     OSThread::Init();                                                          \
     name##helper();                                                            \
-    OSThread::Cleanup();                                                       \
+    /* Delete the current thread's TLS and set it's TLS to null. */            \
+    /* If it is the last thread then the destructor would call */              \
+    /* OSThread::Cleanup. */                                                   \
+    OSThread* os_thread = OSThread::Current();                                 \
+    OSThread::SetCurrent(nullptr);                                             \
+    delete os_thread;                                                          \
   }                                                                            \
   void name##helper()
 
