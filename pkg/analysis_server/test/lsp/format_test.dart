@@ -30,6 +30,49 @@ class FormatTest extends AbstractLspAnalysisServerTest {
     expect(formatEdits, isNull);
   }
 
+  /// Ensures we use the same registration ID when unregistering even if the
+  /// server has regenerated registrations multiple times.
+  Future<void> test_dynamicRegistration_correctIdAfterMultipleChanges() async {
+    final registrations = <Registration>[];
+    // Provide empty config and collect dynamic registrations during
+    // initialization.
+    await provideConfig(
+      () => monitorDynamicRegistrations(
+        registrations,
+        () => initialize(
+            textDocumentCapabilities: withDocumentFormattingDynamicRegistration(
+                emptyTextDocumentClientCapabilities),
+            workspaceCapabilities:
+                withDidChangeConfigurationDynamicRegistration(
+                    withConfigurationSupport(
+                        emptyWorkspaceClientCapabilities))),
+      ),
+      {},
+    );
+
+    Registration registration(Method method) =>
+        registrationFor(registrations, method);
+
+    // By default, the formatters should have been registered.
+    expect(registration(Method.textDocument_formatting), isNotNull);
+    expect(registration(Method.textDocument_onTypeFormatting), isNotNull);
+
+    // Sending config updates causes the server to rebuild its list of registrations
+    // which exposes a previous bug where we'd retain newly-built registrations
+    // that may not have been sent to the client (because they had previously
+    // been sent), resulting in the wrong ID being used for unregistration.
+    await updateConfig({'foo1': true});
+    await updateConfig({'foo1': null});
+
+    // They should be unregistered if we change the config to disabled.
+    await monitorDynamicUnregistrations(
+      registrations,
+      () => updateConfig({'enableSdkFormatter': false}),
+    );
+    expect(registration(Method.textDocument_formatting), isNull);
+    expect(registration(Method.textDocument_onTypeFormatting), isNull);
+  }
+
   Future<void> test_dynamicRegistration_forConfiguration() async {
     final registrations = <Registration>[];
     // Provide empty config and collect dynamic registrations during

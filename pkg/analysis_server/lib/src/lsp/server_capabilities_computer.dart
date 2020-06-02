@@ -361,6 +361,10 @@ class ServerCapabilitiesComputer {
         removedRegistrations
             .add(Unregistration(registration.id, registration.method));
       } else {
+        // Replace the registration in our new set with the original registration
+        // so that we retain the original ID sent to the client (otherwise we
+        // will try to unregister using an ID the client was never sent).
+        newRegistrationsByMethod[method] = registration;
         additionalRegistrations.remove(newRegistrationForMethod);
       }
     }
