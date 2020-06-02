@@ -300,6 +300,15 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
+  TextDocumentClientCapabilities withDocumentFormattingDynamicRegistration(
+    TextDocumentClientCapabilities source,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'formatting': {'dynamicRegistration': true},
+      'onTypeFormatting': {'dynamicRegistration': true},
+    });
+  }
+
   TextDocumentClientCapabilities withHierarchicalDocumentSymbolSupport(
     TextDocumentClientCapabilities source,
   ) {
@@ -932,6 +941,23 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       f,
       handler: (registrationParams) {
         registrations.addAll(registrationParams.registrations);
+      },
+    );
+  }
+
+  /// Watches for `client/unregisterCapability` requests and updates
+  /// `registrations`.
+  Future<ResponseMessage> monitorDynamicUnregistrations(
+    List<Registration> registrations,
+    Future<ResponseMessage> Function() f,
+  ) {
+    return handleExpectedRequest<ResponseMessage, UnregistrationParams, void>(
+      Method.client_unregisterCapability,
+      f,
+      handler: (unregistrationParams) {
+        registrations.removeWhere((element) => unregistrationParams
+            .unregisterations
+            .any((u) => u.id == element.id));
       },
     );
   }

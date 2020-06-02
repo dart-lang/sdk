@@ -105,6 +105,8 @@ class ServerCapabilitiesComputer {
     final renameOptionsSupport =
         clientCapabilities.textDocument?.rename?.prepareSupport ?? false;
 
+    final enableFormatter = _server.clientConfiguration.enableSdkFormatter;
+
     final dynamicRegistrations = ClientDynamicRegistrations(clientCapabilities);
 
     // When adding new capabilities to the server that may apply to specific file
@@ -163,13 +165,15 @@ class ServerCapabilitiesComputer {
         null,
         dynamicRegistrations.formatting
             ? null
-            : true, // documentFormattingProvider
+            : enableFormatter, // documentFormattingProvider
         false, // documentRangeFormattingProvider
         dynamicRegistrations.typeFormatting
             ? null
-            : DocumentOnTypeFormattingOptions(
-                dartTypeFormattingCharacters.first,
-                dartTypeFormattingCharacters.skip(1).toList()),
+            : enableFormatter
+                ? DocumentOnTypeFormattingOptions(
+                    dartTypeFormattingCharacters.first,
+                    dartTypeFormattingCharacters.skip(1).toList())
+                : null,
         dynamicRegistrations.rename
             ? null
             : renameOptionsSupport
@@ -219,6 +223,8 @@ class ServerCapabilitiesComputer {
     }.toList();
 
     final registrations = <Registration>[];
+
+    final enableFormatter = _server.clientConfiguration.enableSdkFormatter;
 
     /// Helper for creating registrations with IDs.
     void register(bool condition, Method method, [ToJsonable options]) {
@@ -284,12 +290,12 @@ class ServerCapabilitiesComputer {
       TextDocumentRegistrationOptions(allTypes),
     );
     register(
-      dynamicRegistrations.formatting,
+      enableFormatter && dynamicRegistrations.formatting,
       Method.textDocument_formatting,
       TextDocumentRegistrationOptions(allTypes),
     );
     register(
-      dynamicRegistrations.typeFormatting,
+      enableFormatter && dynamicRegistrations.typeFormatting,
       Method.textDocument_onTypeFormatting,
       DocumentOnTypeFormattingRegistrationOptions(
         dartTypeFormattingCharacters.first,

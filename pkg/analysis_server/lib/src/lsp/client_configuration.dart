@@ -7,12 +7,11 @@
 class LspClientConfiguration {
   final Map<String, dynamic> _settings = <String, dynamic>{};
 
+  bool get enableSdkFormatter => _settings['enableSdkFormatter'] ?? true;
+
   void replace(Map<String, dynamic> newConfig) {
     _settings
       ..clear()
       ..addAll(newConfig);
   }
-
-  // Typed getters that handle default settings will be added like this.
-  // bool get enableSdkFormatter => _settings['enableSdkFormatter'] ?? true;
 }

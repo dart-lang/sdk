@@ -24,6 +24,12 @@ Note: In LSP the client makes the first request so there is no obvious confirmat
 - `outline`: When set to `true`, `dart/textDocument/publishOutline` notifications will be sent with outline information for open files.
 - `flutterOutline`: When set to `true`, `dart/textDocument/publishFlutterOutline` notifications will be sent with Flutter outline information for open files.
 
+## Client Workspace Configuration
+
+Client workspace settings are requested with `workspace/configuration` during initialization and re-requested whenever the client notifies the server with `workspace/didChangeConfiguration`. This allows the settings to take effect without restarting the server.
+
+- `dart.enableSdkFormatter`: When set to `false`, prevents registration (or unregisters) the SDK formatter. When set to `true` or not supplied, will register/reregister the SDK formatter.
+
 ## Method Status
 
 Below is a list of LSP methods and their implementation status.
