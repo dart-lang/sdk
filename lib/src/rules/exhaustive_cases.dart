@@ -134,12 +134,11 @@ class _Visitor extends SimpleAstVisitor {
         // Use the same offset as MISSING_ENUM_CONSTANT_IN_SWITCH
         var offset = statement.offset;
         var end = statement.rightParenthesis.end;
-        // todo (pq): update to use reportLintForOffset when published (> 0.39.8)
-        rule.reporter.reportErrorForOffset(
-          lintCode,
+        rule.reportLintForOffset(
           offset,
           end - offset,
-          [constantName],
+          arguments: [constantName],
+          errorCode: lintCode,
         );
       }
     }
