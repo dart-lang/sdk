@@ -11,6 +11,7 @@ allowed_hosts = [
   'chrome-infra-packages.appspot.com',
   'chromium.googlesource.com',
   'dart.googlesource.com',
+  'dart-internal.googlesource.com',
   'fuchsia.googlesource.com',
 ]
 
@@ -25,8 +26,8 @@ vars = {
   # We mirror our github repos on Dart's git servers.
   # DO NOT use this var if you don't see a mirror here:
   #   https://dart.googlesource.com/
-  "dart_git":
-      "https://dart.googlesource.com/",
+  "dart_git": "https://dart.googlesource.com/",
+  "dart_internal_git": "https://dart-internal.googlesource.com",
   # If the repo you want to use is at github.com/dart-lang, but not at
   # dart.googlesource.com, please file an issue
   # on github and add the label 'area-infrastructure'.
@@ -45,6 +46,10 @@ vars = {
   # has.
   "co19_rev": "9dacb12cf963ce92fb056b7f2fb87096fd576e9a",
   "co19_2_rev": "620c1148c8b7a3d7f74afacf348c46f109eb64f2",
+
+  # The internal benchmarks to use. See go/dart-benchmarks-internal
+  "benchmarks_internal_rev": "f40aeb69509e77f8ed04096a0a6ea1feca5ff9e1",
+  "checkout_benchmarks_internal": False,
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
   # should be kept up to date with the revisions pulled by the Flutter engine.
@@ -178,6 +183,11 @@ deps = {
     Var("chromium_git") + "/chromium/llvm-project/cfe/tools/clang-format.git" +
     "@" + Var("clang_format_scripts_rev"),
 
+  Var("dart_root") + "/benchmarks-internal": {
+    "url": Var("dart_internal_git") + "/benchmarks-internal.git" +
+           "@" + Var("benchmarks_internal_rev"),
+    "condition": "checkout_benchmarks_internal",
+  },
   Var("dart_root") + "/tools/sdks": {
       "packages": [{
           "package": "dart/dart-sdk/${{platform}}",
