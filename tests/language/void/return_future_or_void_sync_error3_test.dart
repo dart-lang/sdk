@@ -4,11 +4,13 @@
 
 import 'dart:async';
 
+void voidValue = null;
+
 void main() {
   test();
 }
 
-// Testing that a block bodied async function may not have an empty return
-Future<FutureOr<void>> test() async {
-  return; //# none: compile-time error
+// Testing that a block bodied function may not return void
+FutureOr<void> test() {
+  return /*@compile-error=unspecified*/ voidValue;
 }

@@ -8,7 +8,8 @@ void main() {
   test();
 }
 
-// Testing that a block bodied async function may not have an empty return
-Future<FutureOr<void>> test() async {
-  return; //# none: compile-time error
+// Testing that a block bodied async function may not return non-void Future
+// values
+void test() async {
+  return /*@compile-error=unspecified*/ null as Future<int>;
 }

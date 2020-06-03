@@ -8,7 +8,7 @@ void main() {
   test();
 }
 
-// Testing that a block bodied async function may not have an empty return
-Future<FutureOr<void>> test() async {
+// Can only `return;` if the return type is `void`, `Future` or `Null`.
+FutureOr<FutureOr<void>> test() {
   return; //# none: compile-time error
 }

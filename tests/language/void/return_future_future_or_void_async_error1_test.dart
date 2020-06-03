@@ -8,7 +8,8 @@ void main() {
   test();
 }
 
-// Testing that a block bodied async function may not have an empty return
+// Can only have `return;` if future value type is `void`, `dynamic` or `Null`.
+// Here it's `FutureOr<void>` which is equivalent to `void`, but is not `void`.
 Future<FutureOr<void>> test() async {
   return; //# none: compile-time error
 }
