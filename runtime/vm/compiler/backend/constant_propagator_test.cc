@@ -110,26 +110,43 @@ static void ConstantPropagatorUnboxedOpTest(
     int64_t lhs,
     int64_t rhs,
     std::function<Definition*(Definition*, Definition*, intptr_t)> make_op,
+    bool redundant_phi,
     FoldingResult expected) {
   using compiler::BlockBuilder;
 
   CompilerState S(thread, /*is_aot=*/false);
   FlowGraphBuilderHelper H;
 
+  // Add a variable into the scope which would provide static type for the
+  // parameter.
+  LocalVariable* v0_var =
+      new LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
+                        String::Handle(Symbols::New(thread, "v0")),
+                        AbstractType::ZoneHandle(Type::IntType()));
+  v0_var->set_type_check_mode(LocalVariable::kTypeCheckedByCaller);
+  H.flow_graph()->parsed_function().scope()->AddVariable(v0_var);
+
   // We are going to build the following graph:
   //
   // B0[graph_entry]
   // B1[function_entry]:
-  //   if 1 == 1 then B2 else B3
+  //   v0 <- Parameter(0)
+  //   if 1 == ${redundant_phi ? 1 : v0} then B2 else B3
   // B2:
   //   goto B4
   // B3:
   //   goto B4
   // B4:
-  //   v1 <- Phi(lhs, -1) repr
+  //   v1 <- Phi(lhs, ${redundant_phi ? -1 : lhs}) repr
   //   v2 <- Constant(rhs)
   //   v3 <- make_op(v1, v2)
   //   Return(v3)
+  //
+  // Note that we test both the case when v1 is fully redundant (has a single
+  // live predecessor) and when it is not redundant but has a constant value.
+  // These two cases are handled by different code paths - so we need to cover
+  // them both to ensure that we properly insert any unbox operations
+  // which are needed.
 
   auto b1 = H.flow_graph()->graph_entry()->normal_entry();
   auto b2 = H.TargetEntry();
@@ -139,12 +156,14 @@ static void ConstantPropagatorUnboxedOpTest(
 
   {
     BlockBuilder builder(H.flow_graph(), b1);
-    builder.AddBranch(
-        new StrictCompareInstr(
-            TokenPosition::kNoSource, Token::kEQ_STRICT,
-            new Value(H.IntConstant(1)), new Value(H.IntConstant(1)),
-            /*needs_number_check=*/false, S.GetNextDeoptId()),
-        b2, b3);
+    auto v0 = builder.AddParameter(/*index=*/0, /*param_offset=*/0,
+                                   /*with_frame=*/true, kTagged);
+    builder.AddBranch(new StrictCompareInstr(
+                          TokenPosition::kNoSource, Token::kEQ_STRICT,
+                          new Value(H.IntConstant(1)),
+                          new Value(redundant_phi ? H.IntConstant(1) : v0),
+                          /*needs_number_check=*/false, S.GetNextDeoptId()),
+                      b2, b3);
   }
 
   {
@@ -161,7 +180,8 @@ static void ConstantPropagatorUnboxedOpTest(
   Definition* op;
   {
     BlockBuilder builder(H.flow_graph(), b4);
-    v1 = H.Phi(b4, {{b2, H.IntConstant(lhs)}, {b3, H.IntConstant(-1)}});
+    v1 = H.Phi(b4, {{b2, H.IntConstant(lhs)},
+                    {b3, H.IntConstant(redundant_phi ? -1 : lhs)}});
     builder.AddPhi(v1);
     op = builder.AddDefinition(
         make_op(v1, H.IntConstant(rhs), S.GetNextDeoptId()));
@@ -209,6 +229,19 @@ static void ConstantPropagatorUnboxedOpTest(
     }
   }
 }
+
+void ConstantPropagatorUnboxedOpTest(
+    Thread* thread,
+    int64_t lhs,
+    int64_t rhs,
+    std::function<Definition*(Definition*, Definition*, intptr_t)> make_op,
+    FoldingResult expected) {
+  ConstantPropagatorUnboxedOpTest(thread, lhs, rhs, make_op,
+                                  /*redundant_phi=*/false, expected);
+  ConstantPropagatorUnboxedOpTest(thread, lhs, rhs, make_op,
+                                  /*redundant_phi=*/true, expected);
+}
+
 }  // namespace
 
 // This test verifies that constant propagation respects representations when
@@ -246,7 +279,8 @@ ISOLATE_UNIT_TEST_CASE(ConstantPropagator_Regress35371) {
                                   make_int32_add,
                                   FoldingResult::FoldsTo(kMaxInt32));
 
-  // Overflow of int32 representation and operation is not marked as truncating.
+  // Overflow of int32 representation and operation is not marked as
+  // truncating.
   ConstantPropagatorUnboxedOpTest(thread, /*lhs=*/kMaxInt32, /*lhs=*/1,
                                   make_int32_add, FoldingResult::NoFold());
 
