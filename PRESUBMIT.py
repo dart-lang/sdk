@@ -72,6 +72,8 @@ def _CheckNnbdTestSync(input_api, output_api):
     files = [git_file.LocalPath() for git_file in input_api.AffectedTextFiles()]
     unsynchronized = []
     for file in files:
+        if file.endswith('.status'): continue
+
         for dir in DIRS:
             legacy_dir = "tests/{}_2/".format(dir)
             nnbd_dir = "tests/{}/".format(dir)
