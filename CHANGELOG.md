@@ -87,6 +87,10 @@ Updated the Linter to `0.1.116`, which includes:
 ### Dart VM
 
 ### Pub
+* `pub run` and `pub global run` accepts a `--enable-experiment` flag enabling
+  experiments in the Dart VM (and language).
+* Publishing Flutter plugins using the old plugin format is no longer allowed.
+  Plugins using the old plugin format can still be consumed.
 * Introduce `pub outdated --mode=null-safety` that will report which of your
   dependencies you can upgrade to fully support null safety.
 * Fix `pub run` precompilation with relative `PUB_CACHE` paths (#2486)
