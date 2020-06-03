@@ -26,7 +26,6 @@ import 'package:meta/meta.dart';
 /// example types and elements.
 class CiderCompletionCache {
   final Map<String, _CiderImportedLibrarySuggestions> _importedLibraries = {};
-  _LastCompletionResult _lastResult;
 }
 
 class CiderCompletionComputer {
@@ -56,30 +55,23 @@ class CiderCompletionComputer {
     @required int line,
     @required int column,
   }) async {
+    var getFileTimer = Stopwatch()..start();
     var fileContext = _logger.run('Get file $path', () {
-      return _fileResolver.getFileContext(path);
+      try {
+        return _fileResolver.getFileContext(path);
+      } finally {
+        getFileTimer.stop();
+      }
     });
 
     var file = fileContext.file;
 
-    var resolvedSignature = _logger.run('Get signature', () {
-      return file.resolvedSignature;
-    });
-
     var lineInfo = file.lineInfo;
     var offset = lineInfo.getOffsetOfLine(line) + column;
 
-    // If the same file, in the same state as the last time, reuse the result.
-    var lastResult = _cache._lastResult;
-    if (lastResult != null &&
-        lastResult.path == path &&
-        lastResult.signature == resolvedSignature &&
-        lastResult.offset == offset) {
-      _logger.writeln('Use the last completion result.');
-      return lastResult.result;
-    }
-
+    var resolutionTimer = Stopwatch()..start();
     var resolvedUnit = _fileResolver.resolve(path);
+    resolutionTimer.stop();
 
     var completionRequest = CompletionRequestImpl(
       resolvedUnit,
@@ -129,10 +121,13 @@ class CiderCompletionComputer {
     });
 
     var result = CiderCompletionResult._(
-        suggestions, CiderPosition(line, column - filter._pattern.length));
-
-    _cache._lastResult =
-        _LastCompletionResult(path, resolvedSignature, offset, result);
+      suggestions: suggestions,
+      performance: CiderCompletionPerformance(
+        file: getFileTimer.elapsed,
+        resolution: resolutionTimer.elapsed,
+      ),
+      prefixStart: CiderPosition(line, column - filter._pattern.length),
+    );
 
     return result;
   }
@@ -196,15 +191,34 @@ class CiderCompletionComputer {
   }
 }
 
+class CiderCompletionPerformance {
+  /// The elapsed time for file access.
+  final Duration file;
+
+  /// The elapsed time for resolution.
+  final Duration resolution;
+
+  CiderCompletionPerformance({
+    @required this.file,
+    @required this.resolution,
+  });
+}
+
 class CiderCompletionResult {
   final List<CompletionSuggestion> suggestions;
+
+  final CiderCompletionPerformance performance;
 
   /// The start of the range that should be replaced with the suggestion. This
   /// position always precedes or is the same as the cursor provided in the
   /// completion request.
   final CiderPosition prefixStart;
 
-  CiderCompletionResult._(this.suggestions, this.prefixStart);
+  CiderCompletionResult._({
+    @required this.suggestions,
+    @required this.performance,
+    @required this.prefixStart,
+  });
 }
 
 class CiderPosition {
@@ -288,13 +302,4 @@ class _FuzzyScoredSuggestion {
   final double score;
 
   _FuzzyScoredSuggestion(this.suggestion, this.score);
-}
-
-class _LastCompletionResult {
-  final String path;
-  final String signature;
-  final int offset;
-  final CiderCompletionResult result;
-
-  _LastCompletionResult(this.path, this.signature, this.offset, this.result);
 }

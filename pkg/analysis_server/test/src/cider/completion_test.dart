@@ -75,21 +75,6 @@ import 'dart:math';
     expect(_completionResult.prefixStart.column, 0);
   }
 
-  Future<void> test_compute_sameSignature_sameResult() async {
-    await _compute(r'''
-var a = ^;
-''');
-    var lastResult = _completionResult;
-
-    // Ask for completion using new resolver and computer.
-    // But the file signature is the same, so the same result.
-    _createFileResolver();
-    await _compute(r'''
-var a = ^;
-''');
-    expect(_completionResult, same(lastResult));
-  }
-
   Future<void> test_compute_updateImportedLibrary() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
     newFile(aPath, content: r'''
