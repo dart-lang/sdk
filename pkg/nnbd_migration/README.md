@@ -27,7 +27,7 @@ nullable -- because they really were nullable before.
 
 Nulls are traced through your program as far as they can go, and types are
 marked nullable in this process. If the tool makes a single mistake or choice
-you disagree with, it can lead many excess nullable types.
+you disagree with, it can lead to many excess nullable types.
 
 ### Interactive feedback to the tool
 
@@ -70,7 +70,7 @@ adding a single `/*!*/` hint.
 
 ```dart
 List<int?> ints = const [0, null];
-int/*?*/ zero = ints[0]!; // Just add /*?*/ here, the migration tool does the rest!
+int/*!*/ zero = ints[0]!; // Just add /*!*/ here, the migration tool does the rest!
 int one = zero + 1;
 List<int> zeroOne = <int>[zero, one];
 ```
