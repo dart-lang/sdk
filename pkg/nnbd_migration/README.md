@@ -1,9 +1,13 @@
 # Null Safety Migration Tooling
 
-Note: the null safety migration tooling is in an early state and may have bugs
-and other issues.
+**Note**:
 
-For best results, use SDK version 2.9.0-10.0.dev or higher.
+  * The null safety migration tooling is in an early state and may have bugs and
+    other issues.    
+  * As null safety is still in preview, we recommend only doing trial
+    migrations. The final migration of apps and packages, should not be done
+    until the feature is more complete.
+  * For best results, use SDK version 2.9.0-10.0.dev or higher.
 
 ## How Migration Works
 
