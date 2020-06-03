@@ -1,3 +1,8 @@
+## 0.39.10
+* Restored the default constructor in internal `SummaryBuilder`,
+  and the `featureSet` named parameter in `build`, for `build_resolvers`
+  compatibility.
+
 ## 0.39.9
 * Deprecated `DartType.isObject`, use `DartType.isDartCoreObject` for
   consistency with other similar getters.

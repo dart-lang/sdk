@@ -72,6 +72,25 @@ class SummaryBuilder {
   final ResourceProvider resourceProvider;
   final String sdkPath;
 
+  /// The list of SDK summaries, might also include Flutter libraries.
+  /// Used for backward compatibility with `build_resolvers`.
+  /// TODO(scheglov) Create a better API for this, and remove it.
+  Iterable<Source> _librarySources;
+
+  /// The formal analysis context.
+  /// Used for backward compatibility with `build_resolvers`.
+  /// TODO(scheglov) Remove it.
+  AnalysisContext _context;
+
+  /**
+   * Create a summary builder for these [librarySources] and [context].
+   */
+  SummaryBuilder(Iterable<Source> librarySources, AnalysisContext context)
+      : _librarySources = librarySources,
+        _context = context,
+        resourceProvider = PhysicalResourceProvider.INSTANCE,
+        sdkPath = null;
+
   factory SummaryBuilder.forSdk(String sdkPath) {
     return SummaryBuilder.forSdk2(
       resourceProvider: PhysicalResourceProvider.INSTANCE,
@@ -87,11 +106,38 @@ class SummaryBuilder {
   /**
    * Build the linked bundle and return its bytes.
    */
-  List<int> build() {
+  List<int> build({@deprecated FeatureSet featureSet}) {
+    if (_librarySources != null) {
+      return _build();
+    }
+
     return buildSdkSummary(
       resourceProvider: resourceProvider,
       sdkPath: sdkPath,
     );
+  }
+
+  /// The implementation that provides backward compatibility for
+  /// `build_resolvers`.
+  List<int> _build() {
+    var dartCorePath = _librarySources
+        .singleWhere((element) => '${element.uri}' == 'dart:core')
+        .fullName;
+    var sdkLib = resourceProvider.getFile(dartCorePath).parent.parent;
+
+    String allowedExperimentsJson;
+    try {
+      allowedExperimentsJson = sdkLib
+          .getChildAssumingFolder('_internal')
+          .getChildAssumingFile('allowed_experiments.json')
+          .readAsStringSync();
+    } catch (_) {}
+
+    return _Builder(
+      _context,
+      allowedExperimentsJson,
+      _librarySources,
+    ).build();
   }
 }
 
