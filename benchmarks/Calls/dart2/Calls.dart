@@ -86,17 +86,17 @@ main() async {
           () => performAwaitForIterationPolymorphic(generateNumbersManualAsync))
       .report();
 
-  await SyncCallBenchmark('Calls.SyncCall', performSyncCalls).report();
-  await SyncCallBenchmark('Calls.SyncCallClosureTarget',
+  SyncCallBenchmark('Calls.SyncCall', performSyncCalls).report();
+  SyncCallBenchmark('Calls.SyncCallClosureTarget',
       () => performSyncCallsClosureTarget(returnSync)).report();
-  await SyncCallBenchmark('Calls.SyncCallInstanceTargetPolymorphic',
+  SyncCallBenchmark('Calls.SyncCallInstanceTargetPolymorphic',
       () => performSyncCallsInstanceTargetPolymorphic(target)).report();
 
-  await SyncCallBenchmark('Calls.IterableSyncStarIterablePolymorphic',
+  SyncCallBenchmark('Calls.IterableSyncStarIterablePolymorphic',
       () => performSyncIterationPolymorphic(generateNumbersSyncStar)).report();
-  await SyncCallBenchmark('Calls.IterableManualIterablePolymorphic',
+  SyncCallBenchmark('Calls.IterableManualIterablePolymorphic',
       () => performSyncIterationPolymorphic(generateNumbersManual)).report();
-  await SyncCallBenchmark(
+  SyncCallBenchmark(
       'Calls.IterableManualIterablePolymorphicManyYields',
       () => performSyncIterationPolymorphic(
           generateNumbersSyncStarManyYields)).report();
