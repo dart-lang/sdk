@@ -875,7 +875,7 @@ Supported options:
     Display verbose information.
 
   -D<name>=<value>
-    Define an environment variable.
+    Define an environment declaration.
 
   --version
     Display version information.
