@@ -362,39 +362,6 @@ int${migrated ? '?' : ''} f() => null;
     assertProjectContents(projectDir, simpleProject(migrated: true));
   }
 
-  test_lifecycle_contextdiscovery_handles_multiple() async {
-    var projectContents = simpleProject();
-    var subProject = simpleProject();
-    for (var filePath in subProject.keys) {
-      projectContents['example/$filePath'] = subProject[filePath];
-    }
-    projectContents['example/analysis_options.yaml'] = '''
-analyzer:
-  strong-mode:
-    implicit-casts: false
-linter:
-  rules:
-    - empty_constructor_bodies
-''';
-
-    var projectDir = await createProjectDir(projectContents);
-    var cli = _createCli();
-    await cli.run(_parseArgs(['--no-web-preview', projectDir]));
-    expect(cli.hasMultipleAnalysisContext, true);
-    expect(cli.analysisContext, isNotNull);
-    var output = logger.stdoutBuffer.toString();
-    expect(output, contains('more than one project found'));
-  }
-
-  test_lifecycle_contextdiscovery_handles_single() async {
-    var projectContents = simpleProject();
-    var projectDir = await createProjectDir(projectContents);
-    var cli = _createCli();
-    await cli.run(_parseArgs(['--no-web-preview', projectDir]));
-    expect(cli.hasMultipleAnalysisContext, false);
-    expect(cli.analysisContext, isNotNull);
-  }
-
   test_lifecycle_ignore_errors_disable() async {
     var projectContents = simpleProject(sourceText: '''
 int f() => null
@@ -983,7 +950,7 @@ int f() => null;
   }
 
   test_migrate_path_normalized() {
-    expect(assertParseArgsSuccess(['foo/..']).directory, isNot(contains('..')));
+    expect(assertParseArgsSuccess(['..']).directory, isNot(contains('..')));
   }
 
   test_migrate_path_one() {

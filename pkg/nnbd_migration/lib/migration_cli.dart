@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:convert' show jsonDecode;
 import 'dart:io' hide File;
 
-import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
@@ -156,8 +155,8 @@ class DependencyChecker {
       _logger.stderr('Visit https://dart.dev/tools/pub/cmd/pub-outdated for '
           'more information.');
       _logger.stderr('');
-      _logger.stderr('You can force migration with '
-          "'--${CommandLineOptions.skipPubOutdatedFlag}' (not recommended).");
+      _logger.stderr('Force migration with '
+          '--${CommandLineOptions.skipPubOutdatedFlag} (not recommended)');
       return false;
     }
     return true;
@@ -235,8 +234,6 @@ class MigrationCli {
   DartFixListener _dartFixListener;
 
   _FixCodeProcessor _fixCodeProcessor;
-
-  AnalysisContextCollection _contextCollection;
 
   MigrationCli(
       {@required this.binaryName,
@@ -319,12 +316,6 @@ class MigrationCli {
               argResults[CommandLineOptions.skipPubOutdatedFlag] as bool,
           summary: argResults[CommandLineOptions.summaryOption] as String,
           webPreview: webPreview);
-
-      _contextCollection = AnalysisContextCollectionImpl(
-          includedPaths: [options.directory],
-          resourceProvider: resourceProvider,
-          sdkPath: pathContext.normalize(options.sdkPath));
-
       if (isVerbose) {
         logger = loggerFactory(true);
       }
@@ -361,19 +352,16 @@ class MigrationCli {
     logger.stdout('Migrating ${options.directory}');
     logger.stdout('');
 
-    if (hasMultipleAnalysisContext) {
-      logger.stdout(
-          'Note: more than one project found; migrating the top-level project.');
-      logger.stdout('');
-    }
-
-    DriverBasedAnalysisContext context = analysisContext;
-
     List<String> previewUrls;
     NonNullableFix nonNullableFix;
-
     await _withProgress(
         '${ansi.emphasized('Generating migration suggestions')}', () async {
+      var contextCollection = AnalysisContextCollectionImpl(
+          includedPaths: [options.directory],
+          resourceProvider: resourceProvider,
+          sdkPath: options.sdkPath);
+      DriverBasedAnalysisContext context =
+          contextCollection.contexts.single as DriverBasedAnalysisContext;
       _fixCodeProcessor = _FixCodeProcessor(context, this);
       _dartFixListener =
           DartFixListener(DriverProviderImpl(resourceProvider, context));
@@ -388,8 +376,6 @@ class MigrationCli {
       _fixCodeProcessor.nonNullableFixTask = nonNullableFix;
 
       try {
-        // TODO(devoncarew): The progress written by the fix processor conflicts
-        // with the progress written by the ansi logger above.
         await _fixCodeProcessor.runFirstPhase();
         _fixCodeProcessor._progressBar.clear();
         _checkForErrors();
@@ -449,23 +435,6 @@ Use this interactive web view to review, improve, or apply the results.
           '--${CommandLineOptions.applyChangesFlag}.');
     }
     exitCode = 0;
-  }
-
-  @visibleForTesting
-  DriverBasedAnalysisContext get analysisContext {
-    // Handle the case of more than one analysis context being found (typically,
-    // the current directory and one or more sub-directories).
-    if (hasMultipleAnalysisContext) {
-      return _contextCollection.contextFor(options.directory)
-          as DriverBasedAnalysisContext;
-    } else {
-      return _contextCollection.contexts.single as DriverBasedAnalysisContext;
-    }
-  }
-
-  @visibleForTesting
-  bool get hasMultipleAnalysisContext {
-    return _contextCollection.contexts.length > 1;
   }
 
   /// Perform the indicated source edits to the given source, returning the
