@@ -1,12 +1,12 @@
 name: nnbd_migration
-publish_to: none
+description: Null Safety Migration Tooling
+homepage: https://github.com/dart-lang/sdk/blob/master/pkg/nnbd_migration/README.md
+version: 0.1.0
 environment:
   sdk: '>=2.6.0 <3.0.0'
 dependencies:
-  # TODO(paulberry): fix _fe_analyzer_shared and analyzer deps once new versions
-  # are published.
-  _fe_analyzer_shared: ^3.0.0 # Actually need next version after this
-  analyzer: ^0.39.8 # Actually need next version after this
+  _fe_analyzer_shared: ^4.0.0
+  analyzer: ^0.39.9
   analyzer_plugin: ^0.2.4
   args: ^1.4.4
   charcode: ^1.1.2
