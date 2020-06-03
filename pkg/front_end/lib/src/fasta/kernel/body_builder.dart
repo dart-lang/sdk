@@ -5518,7 +5518,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     TypeVariableBuilder variable = typeVariables[index];
     variable.bound = bound?.builder;
     if (variance != null) {
-      if (!libraryBuilder.loader.target.enableVariance) {
+      if (!libraryBuilder.enableVarianceInLibrary) {
         reportVarianceModifierNotEnabled(variance);
       }
       variable.variance = Variance.fromString(variance.lexeme);
