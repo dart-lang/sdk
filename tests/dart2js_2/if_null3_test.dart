@@ -4,14 +4,13 @@
 
 // @dart = 2.7
 
-/// Regression for #24134: inference was not tracking ??= correctly.
-library tests.compiler.dart2js_extra.if_null2_test;
+/// Regression for #24135: inference was not tracking `[]??=` correctly.
+library dart2js_2.if_null3_test;
 
 import "package:expect/expect.dart";
 
-main() {
+void main() {
   var map;
-  map ??= {};
-  Expect.equals(0, map.length);
-  Expect.isTrue(map.length == 0);
+  (((map ??= {})['key1'] ??= {})['key2'] ??= {})['key3'] = 'value';
+  Expect.equals('{key1: {key2: {key3: value}}}', '$map');
 }

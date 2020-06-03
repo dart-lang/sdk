@@ -916,7 +916,8 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       var mainUri = elementEnvironment.mainLibrary.canonicalUri;
       // Tests permit lookup outside of dart: libraries.
       return mainUri.path.contains('tests/compiler/dart2js_native') ||
-          mainUri.path.contains('tests/compiler/dart2js_extra');
+          mainUri.path.contains(RegExp(r'(?<!generated_)tests/dart2js_2/internal')) ||
+          mainUri.path.contains(RegExp(r'(?<!generated_)tests/dart2js_2/native'));
     }
 
     DartType lookup(String typeName, {bool required}) {

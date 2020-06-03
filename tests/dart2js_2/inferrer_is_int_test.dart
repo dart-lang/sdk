@@ -8,7 +8,7 @@
 // literal might become an int at runtime.
 
 import "package:expect/expect.dart";
-import '../../language_2/compiler_annotations.dart';
+import '../language_2/compiler_annotations.dart';
 
 @DontInline()
 callWithStringAndDouble(value) {

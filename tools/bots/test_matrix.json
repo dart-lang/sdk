@@ -2452,7 +2452,7 @@
           "arguments": [
             "-ndart2js-hostasserts-linux-ia32-d8",
             "--dart2js-batch",
-            "dart2js_extra",
+            "dart2js_2",
             "dart2js_native"
           ]
         }
@@ -2482,8 +2482,8 @@
             "--dart2js-batch",
             "language_2",
             "corelib_2",
-            "dart2js_native",
-            "dart2js_extra"
+            "dart2js_2",
+            "dart2js_native"
           ],
           "shards": 6,
           "fileset": "dart2js_hostasserts_prennbd"
@@ -2558,7 +2558,7 @@
             "-ndart2js-${system}-${runtime}",
             "--dart2js-batch",
             "--reset-browser-configuration",
-            "dart2js_extra",
+            "dart2js_2",
             "dart2js_native"
           ]
         }
@@ -2610,7 +2610,7 @@
           "arguments": [
             "-ndart2js-minified-linux-d8",
             "--dart2js-batch",
-            "dart2js_extra",
+            "dart2js_2",
             "dart2js_native"
           ]
         },
@@ -2629,7 +2629,7 @@
           "arguments": [
             "-ndart2js-production-linux-d8",
             "--dart2js-batch",
-            "dart2js_extra",
+            "dart2js_2",
             "dart2js_native"
           ]
         }
@@ -2684,7 +2684,7 @@
           "arguments": [
             "-ndart2js-minified-csp-linux-chrome",
             "--dart2js-batch",
-            "dart2js_extra",
+            "dart2js_2",
             "dart2js_native"
           ]
         }
@@ -2723,7 +2723,7 @@
             "--dart2js-batch",
             "language",
             "corelib",
-            "dart2js_extra",
+            "dart2js_2",
             "dart2js_native",
             "kernel"
           ],
@@ -2757,7 +2757,7 @@
             "--dart2js-batch",
             "language",
             "corelib",
-            "dart2js_extra",
+            "dart2js_2",
             "dart2js_native",
             "kernel"
           ],
@@ -2788,7 +2788,7 @@
           "name": "dart2js nnbd unit tests",
           "arguments": [
             "-nunittest-weak-asserts-no-sdk-linux",
-            "dart2js",
+            "dart2js_2",
             "pkg//compiler/"
           ]
         }
