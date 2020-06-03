@@ -278,7 +278,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
           // To-space was exhausted by fragmentation and old-space could not
           // grow.
           if (UNLIKELY(new_addr == 0)) {
-            FATAL("Failed to allocate during scavenge");
+            OUT_OF_MEMORY();
           }
         }
       }
