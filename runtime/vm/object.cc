@@ -5691,6 +5691,7 @@ bool Class::RequireLegacyErasureOfConstants(Zone* zone) const {
       type = type_arguments.TypeAt(from_index + i);
       if (!type.IsLegacy() && !type.IsVoidType() && !type.IsDynamicType() &&
           !type.IsNullType()) {
+        set.Release();
         return true;
       }
       // It is not possible for a legacy type to have non-legacy type

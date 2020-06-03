@@ -386,12 +386,7 @@ dart_2/data_uri*test: Skip # Data uri's not supported by dart2js or the analyzer
 
 [ $compiler == dartk || $compiler == dartkb ]
 cc/DartAPI_New: Fail # Issue #33041
-cc/DartGeneratedArrayLiteralMessages: Crash # Issue 32190
-cc/FullSnapshot1: Crash # Issue 32190
 cc/IsolateReload_LibraryLookup: Fail, Crash # Issue 32190
-cc/MismatchedSnapshotKinds: Fail, Crash, OK # Script snapshots not supported in Dart 2
-cc/ScriptSnapshot1: Fail, Crash, OK # Script snapshots not supported in Dart 2
-cc/ScriptSnapshotsUpdateSubclasses: Fail, Crash, OK # Script snapshots not supported in Dart 2
 dart/redirection_type_shuffling_test/00: RuntimeError, Pass
 dart/redirection_type_shuffling_test/none: RuntimeError
 dart_2/redirection_type_shuffling_test/00: RuntimeError, Pass

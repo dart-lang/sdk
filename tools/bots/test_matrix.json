@@ -1473,7 +1473,7 @@
             "language",
             "lib",
             "standalone/io",
-            "vm/dart"
+            "vm"
           ]
         },
         {
@@ -1485,7 +1485,7 @@
             "language",
             "lib",
             "standalone/io",
-            "vm/dart"
+            "vm"
           ]
         }
       ]
@@ -1850,7 +1850,7 @@
             "lib",
             "co19",
             "standalone/io",
-            "vm/dart"
+            "vm"
           ]
         },
         {
@@ -1863,7 +1863,7 @@
             "lib",
             "co19",
             "standalone/io",
-            "vm/dart"
+            "vm"
           ]
         }
       ]
