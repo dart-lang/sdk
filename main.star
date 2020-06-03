@@ -923,6 +923,27 @@ luci.console_view_entry(
     console_view="flutter-hhh",
 )
 
+# Rolls dart recipe dependencies.
+dart_infra_builder(
+    name="recipe-deps-roller",
+    executable=luci.recipe(
+        name="recipe_autoroller",
+        cipd_package=
+        "infra/recipe_bundles/chromium.googlesource.com/infra/infra",
+        cipd_version="git_revision:647d5e58ec508f13ccd054f1516e78d7ca3bd540"
+    ),
+    execution_timeout=20 * time.minute,
+    expiration_timeout=time.day,
+    priority=LOW,
+    properties={
+        "db_gcs_bucket": "dart-recipe-roller-db",
+        "projects": {
+            "dart": "https://dart.googlesource.com/recipes",
+        }.items(), # recipe_autoroller expects a list of tuples.
+    },
+    schedule="with 1h interval",
+)
+
 dart_infra_builder(
     name="recipe-bundler",
     executable=luci.recipe(
