@@ -615,6 +615,38 @@ int? f() => null
     });
   }
 
+  test_lifecycle_preview_region_table_path() async {
+    var projectContents = simpleProject(sourceText: 'int x;');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await runWithPreviewServer(cli, [projectDir], (url) async {
+      expect(
+          logger.stdoutBuffer.toString(), contains('No analysis issues found'));
+      await assertPreviewServerResponsive(url);
+      final uri = Uri.parse(url);
+      final authToken = uri.queryParameters['authToken'];
+      final fileResponse = await http.get(
+          uri.replace(
+              path: resourceProvider.pathContext
+                  .toUri(resourceProvider.pathContext
+                      .join(projectDir, 'lib', 'test.dart'))
+                  .path,
+              queryParameters: {'inline': 'true', 'authToken': authToken}),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      final fileJson = FileDetails.fromJson(jsonDecode(fileResponse.body));
+      final regions = fileJson.regions;
+      final regionsPathRegex = RegExp(r'<table data-path="([^"]+)">');
+      expect(regionsPathRegex.hasMatch(regions), true);
+      final regionsPath = regionsPathRegex.matchAsPrefix(regions).group(1);
+      final contentsResponse = await http.get(
+          uri.replace(
+              path: Uri.parse(regionsPath).path,
+              queryParameters: {'inline': 'true', 'authToken': authToken}),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      assertHttpSuccess(contentsResponse);
+    });
+  }
+
   test_lifecycle_preview_rerun() async {
     var origSourceText = 'void f() {}';
     var projectContents = simpleProject(sourceText: origSourceText);
