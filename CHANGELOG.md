@@ -1,3 +1,11 @@
+## 2.8.4 - 2020-06-04
+
+This is a patch release that fixes potential memory leaks in the Dart front-end
+(issues [#42111][] and [#42112][]).
+
+[#42111]: https://github.com/dart-lang/sdk/issues/42111
+[#42112]: https://github.com/dart-lang/sdk/issues/42112
+
 ## 2.8.3 - 2020-05-28
 
 This is a patch release that fixes the following issues:
