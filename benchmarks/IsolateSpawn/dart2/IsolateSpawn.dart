@@ -147,7 +147,7 @@ Future<void> isolateCompiler(StartMessageLatency start) async {
   final DateTime timeRunningCodeUs = DateTime.now();
   await runZoned(
       () => dart2js_main.internalMain(<String>[
-            "benchmarks/IsolateSpawn/dart/helloworld.dart",
+            "benchmarks/IsolateSpawn/dart2/helloworld.dart",
             '--libraries-spec=sdk/lib/libraries.json'
           ]),
       zoneSpecification: ZoneSpecification(

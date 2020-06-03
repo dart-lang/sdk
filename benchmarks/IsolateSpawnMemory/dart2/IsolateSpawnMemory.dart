@@ -117,7 +117,7 @@ Future<void> isolateCompiler(StartMessage startMessage) async {
 
   await runZoned(
       () => dart2js_main.internalMain(<String>[
-            "benchmarks/IsolateSpawnMemory/dart/helloworld.dart",
+            "benchmarks/IsolateSpawnMemory/dart2/helloworld.dart",
             '--libraries-spec=sdk/lib/libraries.json'
           ]),
       zoneSpecification: ZoneSpecification(
