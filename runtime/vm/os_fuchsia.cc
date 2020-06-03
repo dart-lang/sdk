@@ -287,6 +287,13 @@ int64_t OS::GetCurrentThreadCPUMicros() {
   return now / kNanosecondsPerMicrosecond;
 }
 
+// On Fuchsia, thread timestamp values are not used in the tracing/timeline
+// integration. Because of this, we try to avoid querying them, since doing so
+// has both a runtime and trace buffer storage cost.
+int64_t OS::GetCurrentThreadCPUMicrosForTimeline() {
+  return -1;
+}
+
 // TODO(5411554):  May need to hoist these architecture dependent code
 // into a architecture specific file e.g: os_ia32_fuchsia.cc
 intptr_t OS::ActivationFrameAlignment() {
