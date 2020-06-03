@@ -280,17 +280,23 @@ class DartCompletionManager implements CompletionContributor {
         var element = type.element;
         var tag = '${element.librarySource.uri}::${element.name}';
         if (element.isEnum) {
+          var relevance = request.useNewRelevance
+              ? RelevanceBoost.availableEnumConstant
+              : DART_RELEVANCE_BOOST_AVAILABLE_ENUM;
           includedSuggestionRelevanceTags.add(
             IncludedSuggestionRelevanceTag(
               tag,
-              DART_RELEVANCE_BOOST_AVAILABLE_ENUM,
+              relevance,
             ),
           );
         } else {
+          var relevance = request.useNewRelevance
+              ? RelevanceBoost.availableDeclaration
+              : DART_RELEVANCE_BOOST_AVAILABLE_DECLARATION;
           includedSuggestionRelevanceTags.add(
             IncludedSuggestionRelevanceTag(
               tag,
-              DART_RELEVANCE_BOOST_AVAILABLE_DECLARATION,
+              relevance,
             ),
           );
         }
