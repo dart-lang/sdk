@@ -122,7 +122,7 @@ vars = {
   "mustache_rev": "664737ecad027e6b96d0d1e627257efa0e46fcb1",
   "oauth2_tag": "1.6.0",
   "package_config_rev": "9c586d04bd26fef01215fd10e7ab96a3050cfa64",
-  "path_rev": "4b8c83cd5ccfcc8101acd2940ffb5a44d24ec57e",
+  "path_rev": "4f3bb71843fe5493ba490828a1721821d7b33746",
   "pedantic_tag": "v1.9.0",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "86fbb2cde9bbc66c8d159909d2f65a5981ea5b50",
