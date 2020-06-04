@@ -293,7 +293,18 @@ class _FilterSort {
     return '';
   }
 
-  double _score(CompletionSuggestion e) => _matcher.score(e.completion);
+  double _score(CompletionSuggestion e) {
+    var suggestionTextToMatch = e.completion;
+
+    if (e.kind == CompletionSuggestionKind.NAMED_ARGUMENT) {
+      var index = suggestionTextToMatch.indexOf(':');
+      if (index != -1) {
+        suggestionTextToMatch = suggestionTextToMatch.substring(0, index);
+      }
+    }
+
+    return _matcher.score(suggestionTextToMatch);
+  }
 }
 
 /// [CompletionSuggestion] scored using [FuzzyMatcher].

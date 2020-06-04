@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/cider/completion.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
-    show CompletionSuggestion, ElementKind;
+    show CompletionSuggestion, CompletionSuggestionKind, ElementKind;
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -214,6 +214,32 @@ var a = Fo^;
     ]);
   }
 
+  Future<void> test_filterSort_namedArgument_hasPrefix() async {
+    await _compute(r'''
+void foo({int aaa, int bbb});
+
+void f() {
+  foo(a^);
+}
+''');
+
+    _assertHasNamedArgument(name: 'aaa');
+    _assertNoNamedArgument(name: 'bbb');
+  }
+
+  Future<void> test_filterSort_namedArgument_noPrefix() async {
+    await _compute(r'''
+void foo({int aaa, int bbb});
+
+void f() {
+  foo(^);
+}
+''');
+
+    _assertHasNamedArgument(name: 'aaa');
+    _assertHasNamedArgument(name: 'bbb');
+  }
+
   Future<void> test_filterSort_preferLocal() async {
     await _compute(r'''
 var a = 0;
@@ -288,6 +314,12 @@ main() {
     return matching.single;
   }
 
+  CompletionSuggestion _assertHasNamedArgument({@required String name}) {
+    var matching = _matchingNamedArgumentSuggestions(name: name);
+    expect(matching, hasLength(1), reason: 'Expected exactly one completion');
+    return matching.single;
+  }
+
   CompletionSuggestion _assertHasTopLevelVariable({@required String text}) {
     var matching = _matchingCompletions(
       text: text,
@@ -306,6 +338,11 @@ main() {
       text: text,
       elementKind: ElementKind.CLASS,
     );
+    expect(matching, isEmpty, reason: 'Expected zero completions');
+  }
+
+  void _assertNoNamedArgument({@required String name}) {
+    var matching = _matchingNamedArgumentSuggestions(name: name);
     expect(matching, isEmpty, reason: 'Expected zero completions');
   }
 
@@ -345,6 +382,22 @@ main() {
       }
 
       if (elementKind != null && e.element.kind != elementKind) {
+        return false;
+      }
+
+      return true;
+    }).toList();
+  }
+
+  List<CompletionSuggestion> _matchingNamedArgumentSuggestions({
+    @required String name,
+  }) {
+    return _suggestions.where((e) {
+      if (e.kind != CompletionSuggestionKind.NAMED_ARGUMENT) {
+        return false;
+      }
+
+      if (!e.completion.startsWith('$name:')) {
         return false;
       }
 
