@@ -501,7 +501,7 @@ deps = {
       ],
       "dep_type": "cipd",
   },
-  Var("dart_root") + "/benchmarks/FfiCall/dart/native/out/": {
+  Var("dart_root") + "/benchmarks/FfiCall/native/out/": {
       "packages": [
           {
               "package": "dart/benchmarks/fficall",
