@@ -255,6 +255,17 @@ class EmbedderSdk extends AbstractDartSdk {
 
   @override
   String get allowedExperimentsJson {
+    var coreSource = mapDartUri('dart:core');
+    if (coreSource != null) {
+      var coreFile = resourceProvider.getFile(coreSource.fullName);
+      var embeddedFolder = coreFile.parent.parent;
+      try {
+        return embeddedFolder
+            .getChildAssumingFolder('_internal')
+            .getChildAssumingFile('allowed_experiments.json')
+            .readAsStringSync();
+      } catch (_) {}
+    }
     return null;
   }
 

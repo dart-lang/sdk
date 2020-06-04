@@ -26,6 +26,21 @@ main() {
 
 @reflectiveTest
 class EmbedderSdkTest extends EmbedderRelatedTest {
+  void test_allowedExperimentsJson() {
+    EmbedderYamlLocator locator = EmbedderYamlLocator({
+      'fox': <Folder>[pathTranslator.getResource(foxLib)]
+    });
+    EmbedderSdk sdk = EmbedderSdk(resourceProvider, locator.embedderYamls);
+
+    expect(sdk.allowedExperimentsJson, isNull);
+
+    pathTranslator.newFile(
+      '$foxLib/_internal/allowed_experiments.json',
+      'foo bar',
+    );
+    expect(sdk.allowedExperimentsJson, 'foo bar');
+  }
+
   void test_creation() {
     EmbedderYamlLocator locator = EmbedderYamlLocator({
       'fox': <Folder>[pathTranslator.getResource(foxLib)]
@@ -79,7 +94,7 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
       expect(source.fullName, posixToOSPath(posixPath));
     }
 
-    expectSource('dart:core', '$foxLib/core.dart');
+    expectSource('dart:core', '$foxLib/core/core.dart');
     expectSource('dart:fox', '$foxLib/slippy.dart');
     expectSource('dart:deep', '$foxLib/deep/directory/file.dart');
     expectSource('dart:deep/part.dart', '$foxLib/deep/directory/part.dart');
