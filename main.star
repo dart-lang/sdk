@@ -675,10 +675,18 @@ dart_vm_extra_builder(
     category="vm|kernel-precomp|android|a64",
     properties={"shard_timeout": (90 * time.minute) / time.second})
 
+# vm|product
+dart_vm_extra_builder(
+    "vm-kernel-linux-product-x64", category="vm|product|l", on_cq=True)
+dart_ci_sandbox_builder(
+    "vm-kernel-mac-product-x64", category="vm|product|m", dimensions=mac())
+dart_ci_sandbox_builder(
+    "vm-kernel-win-product-x64", category="vm|product|w", dimensions=windows())
+
 # vm|misc
-dart_vm_extra_builder(
+dart_vm_low_priority_builder(
     "vm-kernel-optcounter-threshold-linux-release-ia32", category="vm|misc|o32")
-dart_vm_extra_builder(
+dart_vm_low_priority_builder(
     "vm-kernel-optcounter-threshold-linux-release-x64", category="vm|misc|o64")
 dart_vm_low_priority_builder(
     "vm-kernel-asan-linux-release-x64", category="vm|misc|a")
@@ -696,26 +704,14 @@ dart_vm_low_priority_builder(
     "vm-kernel-precomp-tsan-linux-release-x64", category="vm|misc|aot|t")
 dart_vm_low_priority_builder(
     "vm-kernel-precomp-ubsan-linux-release-x64", category="vm|misc|aot|u")
-
-# vm|product
-dart_vm_extra_builder(
-    "vm-kernel-linux-product-x64", category="vm|product|l", on_cq=True)
-dart_ci_sandbox_builder(
-    "vm-kernel-mac-product-x64", category="vm|product|m", dimensions=mac())
-dart_ci_sandbox_builder(
-    "vm-kernel-win-product-x64", category="vm|product|w", dimensions=windows())
-
-# vm|reload-kernel
-dart_vm_extra_builder(
-    "vm-kernel-reload-linux-debug-x64", category="vm|reload-kernel|d")
-dart_vm_extra_builder(
-    "vm-kernel-reload-linux-release-x64", category="vm|reload-kernel|r")
-dart_vm_extra_builder(
-    "vm-kernel-reload-rollback-linux-debug-x64",
-    category="vm|reload-kernel|drb")
-dart_vm_extra_builder(
-    "vm-kernel-reload-rollback-linux-release-x64",
-    category="vm|reload-kernel|rrb")
+dart_vm_low_priority_builder(
+    "vm-kernel-reload-linux-debug-x64", category="vm|misc|reload|d")
+dart_vm_low_priority_builder(
+    "vm-kernel-reload-linux-release-x64", category="vm|misc|reload|r")
+dart_vm_low_priority_builder(
+    "vm-kernel-reload-rollback-linux-debug-x64", category="vm|misc|reload|drb")
+dart_vm_low_priority_builder(
+    "vm-kernel-reload-rollback-linux-release-x64", category="vm|misc|reload|rrb")
 
 # vm|ffi
 dart_vm_extra_builder("vm-ffi-android-debug-arm", category="vm|ffi|d32")
