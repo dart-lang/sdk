@@ -12,7 +12,7 @@
 load("//defaults.star", "defaults")
 
 DART_GIT = "https://dart.googlesource.com/sdk"
-DART_GERRIT = "https://dart-review.googlesource.com/sdk"
+DART_GERRIT = "https://dart-review.googlesource.com/"
 
 GOMA_RBE = {
     "enable_ats": True,
@@ -293,7 +293,27 @@ luci.cq(
 luci.cq_group(
     name="sdk",
     watch=cq.refset(
-        DART_GERRIT, refs=["refs/heads/%s" % branch for branch in BRANCHES]),
+        DART_GERRIT + "sdk", refs=["refs/heads/%s" % branch for branch in BRANCHES]),
+    allow_submit_with_open_deps=True,
+    tree_status_host="dart-status.appspot.com",
+    retry_config=cq.RETRY_NONE,
+    verifiers=None,
+)
+
+luci.cq_group(
+    name="recipes",
+    watch=cq.refset(
+        DART_GERRIT + "recipes", refs=["refs/heads/master"]),
+    allow_submit_with_open_deps=True,
+    tree_status_host="dart-status.appspot.com",
+    retry_config=cq.RETRY_NONE,
+    verifiers=None,
+)
+
+luci.cq_group(
+    name="dart_ci",
+    watch=cq.refset(
+        DART_GERRIT + "dart_ci", refs=["refs/heads/master"]),
     allow_submit_with_open_deps=True,
     tree_status_host="dart-status.appspot.com",
     retry_config=cq.RETRY_NONE,
