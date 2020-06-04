@@ -786,6 +786,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
+    _checkForBuiltInIdentifierAsName(
+        node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     _checkForTypeAliasCannotReferenceItself(node, node.declaredElement);
     super.visitGenericTypeAlias(node);
   }
