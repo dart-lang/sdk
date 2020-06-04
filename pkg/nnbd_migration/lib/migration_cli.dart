@@ -257,6 +257,19 @@ class MigrationCli {
     return stream.first;
   }
 
+  NonNullableFix createNonNullableFix(DartFixListener listener,
+      ResourceProvider resourceProvider, LineInfo getLineInfo(String path),
+      {List<String> included = const <String>[],
+      int preferredPort,
+      bool enablePreview = true,
+      String summaryPath}) {
+    return NonNullableFix(listener, resourceProvider, getLineInfo,
+        included: included,
+        preferredPort: preferredPort,
+        enablePreview: enablePreview,
+        summaryPath: summaryPath);
+  }
+
   /// Parses and validates command-line arguments, and stores the results in
   /// [options].
   ///
@@ -365,7 +378,7 @@ class MigrationCli {
       _fixCodeProcessor = _FixCodeProcessor(context, this);
       _dartFixListener =
           DartFixListener(DriverProviderImpl(resourceProvider, context));
-      nonNullableFix = NonNullableFix(
+      nonNullableFix = createNonNullableFix(
           _dartFixListener, resourceProvider, _fixCodeProcessor.getLineInfo,
           included: [options.directory],
           preferredPort: options.previewPort,

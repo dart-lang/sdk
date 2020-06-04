@@ -26,9 +26,8 @@ import 'package:yaml/yaml.dart';
 /// and determines whether the associated variable or parameter can be null
 /// then adds or removes a '?' trailing the named type as appropriate.
 class NonNullableFix {
-  /// TODO(paulberry): stop using permissive mode once the migration logic is
-  /// mature enough.
-  static const bool _usePermissiveMode = true;
+  /// TODO(paulberry): allow this to be controlled by a command-line parameter.
+  static const bool _usePermissiveMode = false;
 
   // TODO(srawlins): Refactor to use
   //  `Feature.non_nullable.firstSupportedVersion` when this becomes non-null.
@@ -100,6 +99,10 @@ class NonNullableFix {
   }
 
   int get numPhases => 3;
+
+  InstrumentationListener createInstrumentationListener(
+          {MigrationSummary migrationSummary}) =>
+      InstrumentationListener(migrationSummary: migrationSummary);
 
   Future<void> finish() async {
     migration.finish();
@@ -188,7 +191,7 @@ class NonNullableFix {
   }
 
   void reset() {
-    instrumentationListener = InstrumentationListener(
+    instrumentationListener = createInstrumentationListener(
         migrationSummary: summaryPath == null
             ? null
             : MigrationSummary(summaryPath, resourceProvider, includedRoot));
