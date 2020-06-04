@@ -559,21 +559,21 @@ hooks = [
     ],
   },
   {
-    # Pull Debian wheezy sysroot for i386 Linux
+    # Pull Debian sysroot for i386 Linux
     'name': 'sysroot_i386',
     'pattern': '.',
     'action': ['python', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
                '--arch', 'i386'],
   },
   {
-    # Pull Debian wheezy sysroot for amd64 Linux
+    # Pull Debian sysroot for amd64 Linux
     'name': 'sysroot_amd64',
     'pattern': '.',
     'action': ['python', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
                '--arch', 'amd64'],
   },
   {
-    # Pull Debian wheezy sysroot for arm Linux
+    # Pull Debian sysroot for arm Linux
     'name': 'sysroot_amd64',
     'pattern': '.',
     'action': ['python', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',

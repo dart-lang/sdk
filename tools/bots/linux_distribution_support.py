@@ -136,10 +136,6 @@ def SrcSteps(build_info):
         # run as root)
         Run(['cp', '/usr/bin/dart', 'out/ReleaseX64/dart'])
 
-        # We currently can't run the testing script on wheezy since the checked in
-        # binary is built on precise, see issue 18742
-        # TODO(18742): Run './tools/test.py' '-mrelease' 'standalone'
-
         # Sanity check dart2js and the analyzer against a hello world program
         with utils.TempDir() as temp_dir:
             test_file = CreateDartTestFile(temp_dir)
