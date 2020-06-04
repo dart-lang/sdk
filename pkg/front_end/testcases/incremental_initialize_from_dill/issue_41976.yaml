@@ -30,6 +30,9 @@ worlds:
         }
     expectedLibraryCount: 1
     expressionCompilation:
-      uri: foo.dart
-      expression: Key('t')
-      errors: false
+      - uri: foo.dart
+        expression: Key('t')
+        errors: false
+      - uri: foo.dart
+        expression: () { var x = new Key('t'); return x.hashCode; }()
+        errors: false

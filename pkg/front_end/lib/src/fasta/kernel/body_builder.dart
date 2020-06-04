@@ -1306,6 +1306,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   Expression parseSingleExpression(
       Parser parser, Token token, FunctionNode parameters) {
+    assert(redirectingFactoryInvocations.isEmpty);
     int fileOffset = offsetForToken(token);
     List<TypeVariableBuilder> typeParameterBuilders;
     for (TypeParameter typeParameter in parameters.typeParameters) {
@@ -1351,6 +1352,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         fakeReturn == inferredStatement,
         "Previously implicit assumption about inferFunctionBody "
         "not returning anything different.");
+
+    resolveRedirectingFactoryTargets();
     libraryBuilder.loader.transformPostInference(fakeReturn,
         transformSetLiterals, transformCollections, libraryBuilder.library);
 
