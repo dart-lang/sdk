@@ -10,7 +10,7 @@ import 'native_testing.dart';
 
 @Native("HTMLElement")
 class Element {
-  String dartMethod(int x) => 'dartMethod(${nativeMethod(x+1)})';
+  String dartMethod(int x) => 'dartMethod(${nativeMethod(x + 1)})';
   String nativeMethod(int x) native;
 }
 

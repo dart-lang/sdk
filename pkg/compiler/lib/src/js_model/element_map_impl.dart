@@ -1331,9 +1331,10 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     bool mayLookupInMain() {
       var mainUri = elementEnvironment.mainLibrary.canonicalUri;
       // Tests permit lookup outside of dart: libraries.
-      return mainUri.path.contains('tests/compiler/dart2js_native') ||
-          mainUri.path.contains(RegExp(r'(?<!generated_)tests/dart2js_2/internal')) ||
-          mainUri.path.contains(RegExp(r'(?<!generated_)tests/dart2js_2/native'));
+      return mainUri.path
+              .contains(RegExp(r'(?<!generated_)tests/dart2js_2/internal')) ||
+          mainUri.path
+              .contains(RegExp(r'(?<!generated_)tests/dart2js_2/native'));
     }
 
     DartType lookup(String typeName, {bool required}) {

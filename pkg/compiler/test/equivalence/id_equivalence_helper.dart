@@ -481,7 +481,7 @@ Future<void> checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
 Uri createUriForFileName(String fileName) {
   // Pretend this is a dart2js_native test to allow use of 'native'
   // keyword and import of private libraries.
-  return Uri.parse('memory:sdk/tests/compiler/dart2js_native/$fileName');
+  return Uri.parse('memory:sdk/tests/dart2js_2/native/$fileName');
 }
 
 Future<TestResult<T>> runTestForConfiguration<T>(TestConfig testConfiguration,
