@@ -67,6 +67,16 @@ DDC_PATHS = CFE_PATHS + [
     "pkg/(js|modular_test|sourcemap_testing)/.+",
 ]
 
+ANALYZER_NNBD_PATHS = STANDARD_PATHS + [
+    # analyzer sources
+    "pkg/(analyzer|analyzer_cli|_fe_analyzer_shared)/.+",
+]
+
+ANALYZER_PATHS = STANDARD_PATHS + [
+    # "analyzer" bots analyze everything under pkg
+    "pkg/.+",
+]
+
 # Priorities used by the swarming scheduler. The higher the number, the lower
 # the priority.
 LOW = 70  # Used for "FYI" post-submit builds.
@@ -798,16 +808,17 @@ dart_ci_sandbox_builder(
 dart_ci_sandbox_builder(
     "analyzer-analysis-server-linux",
     category="analyzer|as",
-    channels=CHANNELS,
-    on_cq=True)
+    location_regexp=to_location_regexp(ANALYZER_PATHS),
+    channels=CHANNELS)
 dart_ci_sandbox_builder(
     "analyzer-linux-release",
     category="analyzer|l",
-    on_cq=True,
+    location_regexp=to_location_regexp(ANALYZER_PATHS),
     channels=CHANNELS)
 dart_ci_sandbox_builder(
     "analyzer-nnbd-linux-release",
     category="analyzer|nn",
+    location_regexp=to_location_regexp(ANALYZER_NNBD_PATHS),
     channels=CHANNELS)
 dart_ci_sandbox_builder(
     "analyzer-mac-release",
