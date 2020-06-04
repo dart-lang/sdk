@@ -18,6 +18,10 @@ class RemoveUnusedParameter extends CorrectionProducer {
   Future<void> compute(DartChangeBuilder builder) async {
     if (node is FormalParameter) {
       var parameter = node as FormalParameter;
+      if (parameter.parent is DefaultFormalParameter) {
+        parameter = parameter.parent;
+      }
+
       var parameterList = parameter.parent as FormalParameterList;
       var parameters = parameterList.parameters;
       var index = parameters.indexOf(parameter);
