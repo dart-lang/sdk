@@ -457,17 +457,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   }
 
   @override
-  LibraryElement get libraryElement {
-    //TODO(danrubel) build the library element rather than all the declarations
-    var unit = target.unit;
-    if (unit != null) {
-      var elem = unit.declaredElement;
-      if (elem != null) {
-        return elem.library;
-      }
-    }
-    return null;
-  }
+  LibraryElement get libraryElement => result.libraryElement;
 
   @override
   OpType get opType {
