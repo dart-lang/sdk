@@ -2325,6 +2325,24 @@ main() {
     assertSuggestEnumConst('F.four');
   }
 
+  Future<void> test_enum_shadowed() async {
+    addTestSource('''
+enum E { one, two }
+main() {
+  int E = 0;
+  ^
+}
+''');
+    await computeSuggestions();
+
+    assertSuggest('E', elemKind: ElementKind.LOCAL_VARIABLE);
+
+    // Enum and all its constants are shadowed by the local variable.
+    assertNotSuggested('E', elemKind: ElementKind.ENUM);
+    assertNotSuggested('E.one', elemKind: ElementKind.ENUM_CONSTANT);
+    assertNotSuggested('E.two', elemKind: ElementKind.ENUM_CONSTANT);
+  }
+
   Future<void> test_expression_localVariable() async {
     addTestSource('''
 void f() {
@@ -3813,7 +3831,7 @@ abstract class A {
   }
 }''');
     await computeSuggestions();
-    assertNotSuggested('A', elementKind: ElementKind.CONSTRUCTOR);
+    assertNotSuggested('A', elemKind: ElementKind.CONSTRUCTOR);
   }
 
   Future<void> test_localConstructor_defaultConstructor() async {
@@ -3867,9 +3885,9 @@ main() {
     assertSuggest('A');
 
     // Class and all its constructors are shadowed by the local variable.
-    assertNotSuggested('A', elementKind: ElementKind.CLASS);
-    assertNotSuggested('A', elementKind: ElementKind.CONSTRUCTOR);
-    assertNotSuggested('A.named', elementKind: ElementKind.CONSTRUCTOR);
+    assertNotSuggested('A', elemKind: ElementKind.CLASS);
+    assertNotSuggested('A', elemKind: ElementKind.CONSTRUCTOR);
+    assertNotSuggested('A.named', elemKind: ElementKind.CONSTRUCTOR);
   }
 
   Future<void> test_localVariableDeclarationName() async {

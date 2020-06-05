@@ -197,12 +197,12 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
     }
   }
 
-  void assertNotSuggested(String completion, {ElementKind elementKind}) {
+  void assertNotSuggested(String completion, {ElementKind elemKind}) {
     var suggestion = suggestions.firstWhere((CompletionSuggestion cs) {
-      if (elementKind == null) {
+      if (elemKind == null) {
         return cs.completion == completion;
       } else {
-        return cs.completion == completion && cs.element.kind == elementKind;
+        return cs.completion == completion && cs.element.kind == elemKind;
       }
     }, orElse: () => null);
     if (suggestion != null) {

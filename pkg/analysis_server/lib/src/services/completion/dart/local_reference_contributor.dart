@@ -148,7 +148,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         builder.suggestClass(classElt, kind: _defaultKind);
       }
 
-      // Generate the suggestion for the constructors we are required to loop
+      // Generate the suggestions for the constructors. We are required to loop
       // through elements here instead of using declaredConstructor() due to
       // implicit constructors (i.e. there is no AstNode for an implicit
       // constructor)
@@ -176,7 +176,8 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredEnum(EnumDeclaration declaration) {
-    if (opType.includeTypeNameSuggestions) {
+    if (shouldSuggest(declaration.declaredElement) &&
+        opType.includeTypeNameSuggestions) {
       builder.suggestClass(declaration.declaredElement, kind: _defaultKind);
       for (var enumConstant in declaration.constants) {
         if (!enumConstant.isSynthetic) {
