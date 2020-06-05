@@ -4312,8 +4312,7 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
       // We do not support generic constructors.
       ASSERT(redirect_type.IsInstantiated(kFunctions));
       redirect_type ^= redirect_type.InstantiateFrom(
-          type_arguments, Object::null_type_arguments(), kNoneFree, NULL,
-          Heap::kNew);
+          type_arguments, Object::null_type_arguments(), kNoneFree, Heap::kNew);
       redirect_type ^= redirect_type.Canonicalize();
     }
 

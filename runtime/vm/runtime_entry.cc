@@ -393,9 +393,8 @@ DEFINE_RUNTIME_ENTRY(InstantiateType, 3) {
          instantiator_type_arguments.IsInstantiated());
   ASSERT(function_type_arguments.IsNull() ||
          function_type_arguments.IsInstantiated());
-  type =
-      type.InstantiateFrom(instantiator_type_arguments, function_type_arguments,
-                           kAllFree, NULL, Heap::kOld);
+  type = type.InstantiateFrom(instantiator_type_arguments,
+                              function_type_arguments, kAllFree, Heap::kOld);
   if (type.IsTypeRef()) {
     type = TypeRef::Cast(type).type();
     ASSERT(!type.IsTypeRef());
@@ -581,10 +580,9 @@ static void PrintTypeCheck(const char* message,
                  Class::Handle(type.type_class()).id(), caller_frame->pc());
   } else {
     // Instantiate type before printing.
-    const AbstractType& instantiated_type =
-        AbstractType::Handle(type.InstantiateFrom(instantiator_type_arguments,
-                                                  function_type_arguments,
-                                                  kAllFree, NULL, Heap::kOld));
+    const AbstractType& instantiated_type = AbstractType::Handle(
+        type.InstantiateFrom(instantiator_type_arguments,
+                             function_type_arguments, kAllFree, Heap::kOld));
     OS::PrintErr("%s: '%s' %s '%s' instantiated from '%s' (pc: %#" Px ").\n",
                  message, String::Handle(instance_type.Name()).ToCString(),
                  (result.raw() == Bool::True().raw()) ? "is" : "is !",
@@ -702,9 +700,9 @@ static void UpdateTypeTestCache(
     if (FLAG_trace_type_checks) {
       AbstractType& test_type = AbstractType::Handle(zone, type.raw());
       if (!test_type.IsInstantiated()) {
-        test_type = type.InstantiateFrom(instantiator_type_arguments,
-                                         function_type_arguments, kAllFree,
-                                         NULL, Heap::kNew);
+        test_type =
+            type.InstantiateFrom(instantiator_type_arguments,
+                                 function_type_arguments, kAllFree, Heap::kNew);
       }
       const auto& type_class = Class::Handle(zone, test_type.type_class());
       const auto& instance_class_name =
@@ -833,7 +831,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
       // Instantiate dst_type before reporting the error.
       dst_type = dst_type.InstantiateFrom(instantiator_type_arguments,
                                           function_type_arguments, kAllFree,
-                                          NULL, Heap::kNew);
+                                          Heap::kNew);
     }
     if (dst_name.IsNull()) {
 #if !defined(TARGET_ARCH_IA32)

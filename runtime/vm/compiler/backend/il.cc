@@ -2913,9 +2913,8 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
 
   if ((instantiator_type_args != nullptr) && (function_type_args != nullptr)) {
     AbstractType& new_dst_type = AbstractType::Handle(
-        Z,
-        abs_type.InstantiateFrom(*instantiator_type_args, *function_type_args,
-                                 kAllFree, nullptr, Heap::kOld));
+        Z, abs_type.InstantiateFrom(*instantiator_type_args,
+                                    *function_type_args, kAllFree, Heap::kOld));
     if (new_dst_type.IsNull()) {
       // Failed instantiation in dead code.
       return this;

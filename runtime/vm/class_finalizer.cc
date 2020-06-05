@@ -392,12 +392,12 @@ void ClassFinalizer::CheckRecursiveType(const Class& cls,
         const TypeArguments& instantiated_arguments = TypeArguments::Handle(
             zone, arguments.InstantiateFrom(Object::null_type_arguments(),
                                             Object::null_type_arguments(),
-                                            kNoneFree, NULL, Heap::kNew));
+                                            kNoneFree, Heap::kNew));
         const TypeArguments& instantiated_pending_arguments =
             TypeArguments::Handle(zone, pending_arguments.InstantiateFrom(
                                             Object::null_type_arguments(),
                                             Object::null_type_arguments(),
-                                            kNoneFree, NULL, Heap::kNew));
+                                            kNoneFree, Heap::kNew));
         // By using TypeEquality::kInSubtypeTest, we throw a wider net than
         // using canonical or syntactical equality and may reject more
         // problematic declarations.
@@ -499,9 +499,9 @@ intptr_t ClassFinalizer::ExpandAndFinalizeTypeArguments(
         }
       }
       if (offset > 0) {
-        TrailPtr instantiation_trail = new Trail(zone, 4);
+        TrailPtr trail = new Trail(zone, 4);
         FinalizeTypeArguments(type_class, full_arguments, offset, pending_types,
-                              instantiation_trail);
+                              trail);
       }
       if (full_arguments.IsRaw(0, num_type_arguments)) {
         // The parameterized_type is raw. Set its argument vector to null, which
@@ -556,7 +556,7 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
                                            const TypeArguments& arguments,
                                            intptr_t num_uninitialized_arguments,
                                            PendingTypes* pending_types,
-                                           TrailPtr instantiation_trail) {
+                                           TrailPtr trail) {
   ASSERT(arguments.Length() >= cls.NumTypeArguments());
   if (!cls.is_type_finalized()) {
     FinalizeTypeParameters(cls, pending_types);
@@ -623,8 +623,8 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
             continue;
           }
           super_type_arg = super_type_arg.InstantiateFrom(
-              arguments, Object::null_type_arguments(), kNoneFree,
-              instantiation_trail, Heap::kOld);
+              arguments, Object::null_type_arguments(), kNoneFree, Heap::kOld,
+              trail);
           if (super_type_arg.IsBeingFinalized()) {
             // The super_type_arg was instantiated from a type being finalized.
             // We need to finish finalizing its type arguments.
@@ -652,7 +652,7 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
             FinalizeTypeArguments(
                 super_cls, super_args,
                 super_cls.NumTypeArguments() - super_cls.NumTypeParameters(),
-                pending_types, instantiation_trail);
+                pending_types, trail);
             if (FLAG_trace_type_finalization) {
               THR_Print("Finalized instantiated TypeRef '%s': '%s'\n",
                         String::Handle(super_type_arg.Name()).ToCString(),
@@ -664,7 +664,7 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
       arguments.SetTypeAt(i, super_type_arg);
     }
     FinalizeTypeArguments(super_class, arguments, super_offset, pending_types,
-                          instantiation_trail);
+                          trail);
   }
 }
 

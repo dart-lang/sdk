@@ -1000,9 +1000,8 @@ void ConstantPropagator::VisitInstantiateType(InstantiateTypeInstr* instr) {
     }
   }
   AbstractType& result = AbstractType::Handle(
-      Z,
-      instr->type().InstantiateFrom(instantiator_type_args, function_type_args,
-                                    kAllFree, nullptr, Heap::kOld));
+      Z, instr->type().InstantiateFrom(
+             instantiator_type_args, function_type_args, kAllFree, Heap::kOld));
   ASSERT(result.IsInstantiated());
   result = result.Canonicalize();
   SetValue(instr, result);
@@ -1050,10 +1049,9 @@ void ConstantPropagator::VisitInstantiateTypeArguments(
       return;
     }
   }
-  TypeArguments& result =
-      TypeArguments::Handle(Z, instr->type_arguments().InstantiateFrom(
-                                   instantiator_type_args, function_type_args,
-                                   kAllFree, nullptr, Heap::kOld));
+  TypeArguments& result = TypeArguments::Handle(
+      Z, instr->type_arguments().InstantiateFrom(
+             instantiator_type_args, function_type_args, kAllFree, Heap::kOld));
   ASSERT(result.IsInstantiated());
   result = result.Canonicalize();
   SetValue(instr, result);
