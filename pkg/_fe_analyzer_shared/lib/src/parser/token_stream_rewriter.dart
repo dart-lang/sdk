@@ -28,7 +28,9 @@ abstract class TokenStreamRewriter with _TokenStreamMixin {
         next = new SyntheticBeginToken(TokenType.OPEN_PAREN, offset);
     if (includeIdentifier) {
       next = _setNext(
-          next, new SyntheticStringToken(TokenType.IDENTIFIER, '', offset, 0));
+          next,
+          new SyntheticStringToken(
+              TokenType.IDENTIFIER, '', offset, /* _length = */ 0));
     }
     next = _setNext(next, new SyntheticToken(TokenType.CLOSE_PAREN, offset));
     _setEndGroup(leftParen, next);
@@ -175,8 +177,8 @@ class TokenStreamGhostWriter
     BeginToken leftParen =
         next = new SyntheticBeginToken(TokenType.OPEN_PAREN, offset);
     if (includeIdentifier) {
-      Token identifier =
-          new SyntheticStringToken(TokenType.IDENTIFIER, '', offset, 0);
+      Token identifier = new SyntheticStringToken(
+          TokenType.IDENTIFIER, '', offset, /* _length = */ 0);
       next.next = identifier;
       next = identifier;
     }
@@ -253,8 +255,8 @@ mixin _TokenStreamMixin {
   Token insertSyntheticIdentifier(Token token, [String value]) {
     return insertToken(
         token,
-        new SyntheticStringToken(
-            TokenType.IDENTIFIER, value ?? '', token.next.charOffset, 0));
+        new SyntheticStringToken(TokenType.IDENTIFIER, value ?? '',
+            token.next.charOffset, /* _length = */ 0));
   }
 
   /// Insert a new synthetic [keyword] after [token] and return the new token.

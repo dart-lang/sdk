@@ -34,16 +34,6 @@ String foo2(String s, {int opt1 = 0}) => '$s $opt1';
 String foo3(String s, {int opt1 = 0, required int req1}) => '$s $req1 $opt1';
 Never foo4() => throw 'never';
 
-// TODO(sra): Use 'isStrongMode' from package:expect.
-final bool strong = () {
-  try {
-    int i = null as dynamic;
-    return false;
-  } catch (e) {
-    return true;
-  }
-}();
-
 void test() {
   var items = [foo1, foo2, foo3, foo4, Thingy(), Generic<F1>()];
 
@@ -52,8 +42,9 @@ void test() {
     for (int i = 0; i < items.length; i++) {
       var item = items[i];
       String code = answers[i];
-      bool expected =
-          code == 'T' || (code == 'S' && strong) || (code == 'W' && !strong);
+      bool expected = code == 'T' ||
+          (code == 'S' && isStrongMode) ||
+          (code == 'W' && isWeakMode);
       Expect.equals(expected, predicate(item), "$predicate '$code' $item");
     }
   }

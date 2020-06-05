@@ -5691,6 +5691,7 @@ bool Class::RequireLegacyErasureOfConstants(Zone* zone) const {
       type = type_arguments.TypeAt(from_index + i);
       if (!type.IsLegacy() && !type.IsVoidType() && !type.IsDynamicType() &&
           !type.IsNullType()) {
+        set.Release();
         return true;
       }
       // It is not possible for a legacy type to have non-legacy type
@@ -5929,12 +5930,18 @@ intptr_t TypeArguments::NumInstantiations() const {
 }
 
 ArrayPtr TypeArguments::instantiations() const {
+  // We rely on the fact that any loads from the array are dependent loads and
+  // avoid the load-acquire barrier here.
   return raw_ptr()->instantiations_;
 }
 
 void TypeArguments::set_instantiations(const Array& value) const {
+  // We have to ensure that initializing stores to the array are available
+  // when releasing the pointer to the array pointer.
+  // => We have to use store-release here.
   ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->instantiations_, value.raw());
+  StorePointer<ArrayPtr, std::memory_order_release>(&raw_ptr()->instantiations_,
+                                                    value.raw());
 }
 
 intptr_t TypeArguments::Length() const {
@@ -6211,13 +6218,18 @@ TypeArgumentsPtr TypeArguments::InstantiateFrom(
 TypeArgumentsPtr TypeArguments::InstantiateAndCanonicalizeFrom(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments) const {
+  auto thread = Thread::Current();
+  auto zone = thread->zone();
+  SafepointMutexLocker ml(
+      thread->isolate_group()->type_arguments_canonicalization_mutex());
+
   ASSERT(!IsInstantiated());
   ASSERT(instantiator_type_arguments.IsNull() ||
          instantiator_type_arguments.IsCanonical());
   ASSERT(function_type_arguments.IsNull() ||
          function_type_arguments.IsCanonical());
   // Lookup instantiators and if found, return instantiated result.
-  Array& prior_instantiations = Array::Handle(instantiations());
+  Array& prior_instantiations = Array::Handle(zone, instantiations());
   ASSERT(!prior_instantiations.IsNull() && prior_instantiations.IsArray());
   // The instantiations cache is initialized with Object::zero_array() and is
   // therefore guaranteed to contain kNoInstantiator. No length check needed.
@@ -6241,7 +6253,7 @@ TypeArgumentsPtr TypeArguments::InstantiateAndCanonicalizeFrom(
     index += TypeArguments::Instantiation::kSizeInWords;
   }
   // Cache lookup failed. Instantiate the type arguments.
-  TypeArguments& result = TypeArguments::Handle();
+  TypeArguments& result = TypeArguments::Handle(zone);
   result = InstantiateFrom(instantiator_type_arguments, function_type_arguments,
                            kAllFree, NULL, Heap::kOld);
   // Canonicalize type arguments.
@@ -6264,18 +6276,28 @@ TypeArgumentsPtr TypeArguments::InstantiateAndCanonicalizeFrom(
     set_instantiations(prior_instantiations);
     ASSERT((index + TypeArguments::Instantiation::kSizeInWords) < length);
   }
+
+  // Set sentinel marker at next position.
   prior_instantiations.SetAt(
-      index + TypeArguments::Instantiation::kInstantiatorTypeArgsIndex,
-      instantiator_type_arguments);
+      index + TypeArguments::Instantiation::kSizeInWords +
+          TypeArguments::Instantiation::kInstantiatorTypeArgsIndex,
+      Smi::Handle(zone, Smi::New(TypeArguments::kNoInstantiator)));
+
   prior_instantiations.SetAt(
       index + TypeArguments::Instantiation::kFunctionTypeArgsIndex,
       function_type_arguments);
   prior_instantiations.SetAt(
       index + TypeArguments::Instantiation::kInstantiatedTypeArgsIndex, result);
-  prior_instantiations.SetAt(
-      index + TypeArguments::Instantiation::kSizeInWords +
-          TypeArguments::Instantiation::kInstantiatorTypeArgsIndex,
-      Smi::Handle(Smi::New(TypeArguments::kNoInstantiator)));
+
+  // We let any concurrently running mutator thread now see the new entry by
+  // using a store-release barrier.
+  ASSERT(
+      prior_instantiations.At(
+          index + TypeArguments::Instantiation::kInstantiatorTypeArgsIndex) ==
+      Smi::New(TypeArguments::kNoInstantiator));
+  prior_instantiations.SetAtRelease(
+      index + TypeArguments::Instantiation::kInstantiatorTypeArgsIndex,
+      instantiator_type_arguments);
   return result.raw();
 }
 
@@ -6329,7 +6351,7 @@ TypeArgumentsPtr TypeArguments::Canonicalize(TrailPtr trail) const {
   ObjectStore* object_store = isolate->object_store();
   TypeArguments& result = TypeArguments::Handle(zone);
   {
-    SafepointMutexLocker ml(isolate->type_canonicalization_mutex());
+    SafepointMutexLocker ml(isolate->group()->type_canonicalization_mutex());
     CanonicalTypeArgumentsSet table(zone,
                                     object_store->canonical_type_arguments());
     result ^= table.GetOrNull(CanonicalTypeArgumentsKey(*this));
@@ -6353,7 +6375,7 @@ TypeArgumentsPtr TypeArguments::Canonicalize(TrailPtr trail) const {
     if (IsRecursive()) {
       SetHash(0);
     }
-    SafepointMutexLocker ml(isolate->type_canonicalization_mutex());
+    SafepointMutexLocker ml(isolate->group()->type_canonicalization_mutex());
     CanonicalTypeArgumentsSet table(zone,
                                     object_store->canonical_type_arguments());
     // Since we canonicalized some type arguments above we need to lookup
@@ -10260,6 +10282,8 @@ StaticTypeExactnessState StaticTypeExactnessState::Compute(
     const Instance& value,
     bool print_trace /* = false */) {
   ASSERT(!value.IsNull());  // Should be handled by the caller.
+  ASSERT(value.raw() != Object::sentinel().raw());
+  ASSERT(value.raw() != Object::transition_sentinel().raw());
 
   const TypeArguments& static_type_args =
       TypeArguments::Handle(static_type.arguments());
@@ -16316,10 +16340,8 @@ void Code::GetInlinedFunctionsAtInstruction(
     GrowableArray<TokenPosition>* token_positions) const {
   const CodeSourceMap& map = CodeSourceMap::Handle(code_source_map());
   if (map.IsNull()) {
-    ASSERT(!IsFunctionCode() ||
-           (Isolate::Current()->object_store()->megamorphic_call_miss_code() ==
-            this->raw()));
-    return;  // VM stub, allocation stub, or megamorphic call miss function.
+    ASSERT(!IsFunctionCode());
+    return;  // VM stub, allocation stub, or type testing stub.
   }
   const Array& id_map = Array::Handle(inlined_id_to_function());
   const Function& root = Function::Handle(function());
@@ -16886,8 +16908,7 @@ MegamorphicCachePtr MegamorphicCache::New(const String& target_name,
   const intptr_t capacity = kInitialCapacity;
   const Array& buckets =
       Array::Handle(Array::New(kEntryLength * capacity, Heap::kOld));
-  const Function& handler =
-      Function::Handle(MegamorphicCacheTable::miss_handler(Isolate::Current()));
+  const Object& handler = Object::Handle();
   for (intptr_t i = 0; i < capacity; ++i) {
     SetEntry(buckets, i, smi_illegal_cid(), handler);
   }
@@ -16915,8 +16936,7 @@ void MegamorphicCache::EnsureCapacityLocked() const {
     const Array& new_buckets =
         Array::Handle(Array::New(kEntryLength * new_capacity));
 
-    auto& target =
-        Object::Handle(MegamorphicCacheTable::miss_handler(Isolate::Current()));
+    auto& target = Object::Handle();
     for (intptr_t i = 0; i < new_capacity; ++i) {
       SetEntry(new_buckets, i, smi_illegal_cid(), target);
     }
@@ -16975,7 +16995,7 @@ void MegamorphicCache::SwitchToBareInstructions() {
       CodePtr code = Function::CurrentCodeOf(Function::RawCast(*slot));
       *slot = Smi::FromAlignedAddress(Code::EntryPointOf(code));
     } else {
-      ASSERT(cid == kSmiCid);
+      ASSERT(cid == kSmiCid || cid == kNullCid);
     }
   }
 }
@@ -17004,8 +17024,18 @@ SubtypeTestCachePtr SubtypeTestCache::New() {
   return result.raw();
 }
 
+ArrayPtr SubtypeTestCache::cache() const {
+  // We rely on the fact that any loads from the array are dependent loads and
+  // avoid the load-acquire barrier here.
+  return raw_ptr()->cache_;
+}
+
 void SubtypeTestCache::set_cache(const Array& value) const {
-  StorePointer(&raw_ptr()->cache_, value.raw());
+  // We have to ensure that initializing stores to the array are available
+  // when releasing the pointer to the array pointer.
+  // => We have to use store-release here.
+  StorePointer<ArrayPtr, std::memory_order_release>(&raw_ptr()->cache_,
+                                                    value.raw());
 }
 
 intptr_t SubtypeTestCache::NumberOfChecks() const {
@@ -17022,14 +17052,19 @@ void SubtypeTestCache::AddCheck(
     const TypeArguments& instance_parent_function_type_arguments,
     const TypeArguments& instance_delayed_type_arguments,
     const Bool& test_result) const {
+  ASSERT(Thread::Current()
+             ->isolate_group()
+             ->subtype_test_cache_mutex()
+             ->IsOwnedByCurrentThread());
+
   intptr_t old_num = NumberOfChecks();
   Array& data = Array::Handle(cache());
   intptr_t new_len = data.Length() + kTestEntryLength;
   data = Array::Grow(data, new_len);
-  set_cache(data);
 
   SubtypeTestCacheTable entries(data);
   auto entry = entries[old_num];
+  ASSERT(entry.Get<kInstanceClassIdOrFunction>() == Object::null());
   entry.Set<kInstanceClassIdOrFunction>(instance_class_id_or_function);
   entry.Set<kInstanceTypeArguments>(instance_type_arguments);
   entry.Set<kInstantiatorTypeArguments>(instantiator_type_arguments);
@@ -17039,6 +17074,10 @@ void SubtypeTestCache::AddCheck(
   entry.Set<kInstanceDelayedFunctionTypeArguments>(
       instance_delayed_type_arguments);
   entry.Set<kTestResult>(test_result);
+
+  // We let any concurrently running mutator thread now see the new entry (the
+  // `set_cache()` uses a store-release barrier).
+  set_cache(data);
 }
 
 void SubtypeTestCache::GetCheck(
@@ -17050,6 +17089,11 @@ void SubtypeTestCache::GetCheck(
     TypeArguments* instance_parent_function_type_arguments,
     TypeArguments* instance_delayed_type_arguments,
     Bool* test_result) const {
+  ASSERT(Thread::Current()
+             ->isolate_group()
+             ->subtype_test_cache_mutex()
+             ->IsOwnedByCurrentThread());
+
   Array& data = Array::Handle(cache());
   SubtypeTestCacheTable entries(data);
   auto entry = entries[ix];
@@ -19567,7 +19611,8 @@ AbstractTypePtr Type::Canonicalize(TrailPtr trail) const {
       type = cls.declaration_type();
       // May be set while canonicalizing type args.
       if (type.IsNull()) {
-        SafepointMutexLocker ml(isolate->type_canonicalization_mutex());
+        SafepointMutexLocker ml(
+            isolate->group()->type_canonicalization_mutex());
         // Recheck if type exists.
         type = cls.declaration_type();
         if (type.IsNull()) {
@@ -19593,7 +19638,7 @@ AbstractTypePtr Type::Canonicalize(TrailPtr trail) const {
   AbstractType& type = Type::Handle(zone);
   ObjectStore* object_store = isolate->object_store();
   {
-    SafepointMutexLocker ml(isolate->type_canonicalization_mutex());
+    SafepointMutexLocker ml(isolate->group()->type_canonicalization_mutex());
     CanonicalTypeSet table(zone, object_store->canonical_types());
     type ^= table.GetOrNull(CanonicalTypeKey(*this));
     ASSERT(object_store->canonical_types() == table.Release().raw());
@@ -19641,7 +19686,7 @@ AbstractTypePtr Type::Canonicalize(TrailPtr trail) const {
 
     // Check to see if the type got added to canonical list as part of the
     // type arguments canonicalization.
-    SafepointMutexLocker ml(isolate->type_canonicalization_mutex());
+    SafepointMutexLocker ml(isolate->group()->type_canonicalization_mutex());
     CanonicalTypeSet table(zone, object_store->canonical_types());
     type ^= table.GetOrNull(CanonicalTypeKey(*this));
     if (type.IsNull()) {
@@ -19688,7 +19733,7 @@ bool Type::CheckIsCanonical(Thread* thread) const {
 
   ObjectStore* object_store = isolate->object_store();
   {
-    SafepointMutexLocker ml(isolate->type_canonicalization_mutex());
+    SafepointMutexLocker ml(isolate->group()->type_canonicalization_mutex());
     CanonicalTypeSet table(zone, object_store->canonical_types());
     type ^= table.GetOrNull(CanonicalTypeKey(*this));
     object_store->set_canonical_types(table.Release());
@@ -19741,8 +19786,19 @@ intptr_t Type::ComputeHash() const {
   result = CombineHashes(result, static_cast<uint32_t>(type_nullability));
   result = CombineHashes(result, TypeArguments::Handle(arguments()).Hash());
   if (IsFunctionType()) {
+    AbstractType& type = AbstractType::Handle();
     const Function& sig_fun = Function::Handle(signature());
-    AbstractType& type = AbstractType::Handle(sig_fun.result_type());
+    const intptr_t num_type_params = sig_fun.NumTypeParameters();
+    if (num_type_params > 0) {
+      const TypeArguments& type_params =
+          TypeArguments::Handle(sig_fun.type_parameters());
+      for (intptr_t i = 0; i < num_type_params; i++) {
+        type = type_params.TypeAt(i);
+        type = TypeParameter::Cast(type).bound();
+        result = CombineHashes(result, type.Hash());
+      }
+    }
+    type = sig_fun.result_type();
     result = CombineHashes(result, type.Hash());
     result = CombineHashes(result, sig_fun.NumOptionalPositionalParameters());
     const intptr_t num_params = sig_fun.NumParameters();
@@ -19758,7 +19814,6 @@ intptr_t Type::ComputeHash() const {
       }
       // Required flag is not hashed, see comment above.
     }
-    // TODO(regis): Missing hash of type parameters.
   }
   result = FinalizeHash(result, kHashBits);
   SetHash(result);
@@ -23616,39 +23671,34 @@ StackTracePtr StackTrace::New(const Array& code_array,
 static void PrintNonSymbolicStackFrameBody(ZoneTextBuffer* buffer,
                                            uword call_addr,
                                            uword isolate_instructions,
-                                           uword vm_instructions) {
-  const word vm_offset = call_addr - vm_instructions;
-  const word isolate_offset = call_addr - isolate_instructions;
-  // If the VM instructions image was compiled directly to ELF, we can determine
-  // the base address of the snapshot shared object from the section start.
-  const uword snapshot_base =
-      Elf::SnapshotRelocatedBaseAddress(vm_instructions);
+                                           uword vm_instructions,
+                                           uword isolate_relocated_address) {
+  const Image vm_image(reinterpret_cast<const void*>(vm_instructions));
+  const Image isolate_image(
+      reinterpret_cast<const void*>(isolate_instructions));
 
-  // Pick the closest instructions section start before the call address.
-  if (vm_offset > 0 && (isolate_offset < 0 || vm_offset < isolate_offset)) {
-    if (snapshot_base != 0) {
-      const uword relocated_section = vm_instructions - snapshot_base;
-      buffer->Printf(" virt %" Pp "", relocated_section + vm_offset);
+  if (isolate_image.contains(call_addr)) {
+    auto const symbol_name = kIsolateSnapshotInstructionsAsmSymbol;
+    auto const offset = call_addr - isolate_instructions;
+    // Only print the relocated address of the call when we know the saved
+    // debugging information (if any) will have the same relocated address.
+    if (isolate_image.compiled_to_elf()) {
+      buffer->Printf(" virt %" Pp "", isolate_relocated_address + offset);
     }
-    buffer->Printf(" %s+0x%" Px "", kVmSnapshotInstructionsAsmSymbol,
-                   vm_offset);
-  } else if (isolate_offset > 0) {
-    if (snapshot_base != 0) {
-      const uword relocated_section = isolate_instructions - snapshot_base;
-      buffer->Printf(" virt %" Pp "", relocated_section + isolate_offset);
-    }
-    buffer->Printf(" %s+0x%" Px "", kIsolateSnapshotInstructionsAsmSymbol,
-                   isolate_offset);
+    buffer->Printf(" %s+0x%" Px "", symbol_name, offset);
+  } else if (vm_image.contains(call_addr)) {
+    auto const offset = call_addr - vm_instructions;
+    // We currently don't print 'virt' entries for vm addresses, even if
+    // they were compiled to ELF, as we should never encounter these in
+    // non-symbolic stack traces (since stub addresses are stripped).
+    //
+    // In case they leak due to code issues elsewhere, we still print them as
+    // <vm symbol>+<offset>, just to distinguish from other cases.
+    buffer->Printf(" %s+0x%" Px "", kVmSnapshotInstructionsAsmSymbol, offset);
   } else {
-    uword dso_base;
-    char* dso_name;
-    if (NativeSymbolResolver::LookupSharedObject(call_addr, &dso_base,
-                                                 &dso_name)) {
-      buffer->Printf(" %s", dso_name);
-      NativeSymbolResolver::FreeSymbolName(dso_name);
-    } else {
-      buffer->Printf(" <unknown>");
-    }
+    // This case should never happen, since these are not addresses within the
+    // VM or app isolate instructions sections, so make it easy to notice.
+    buffer->Printf(" <invalid Dart instruction address>");
   }
   buffer->Printf("\n");
 }
@@ -23705,6 +23755,16 @@ static void PrintSymbolicStackFrame(Zone* zone,
   PrintSymbolicStackFrameBody(buffer, function_name, url, line, column);
 }
 
+// Find the relocated base of the given instructions section.
+uword InstructionsRelocatedAddress(uword instructions_start) {
+  Image image(reinterpret_cast<const uint8_t*>(instructions_start));
+  auto const bss_start =
+      reinterpret_cast<const uword*>(instructions_start + image.bss_offset());
+  auto const index =
+      BSS::RelocationIndex(BSS::Relocation::InstructionsRelocatedAddress);
+  return bss_start[index];
+}
+
 const char* StackTrace::ToCString() const {
   auto const T = Thread::Current();
   auto const zone = T->zone();
@@ -23723,6 +23783,10 @@ const char* StackTrace::ToCString() const {
       T->isolate_group()->source()->snapshot_instructions);
   auto const vm_instructions = reinterpret_cast<uword>(
       Dart::vm_isolate()->group()->source()->snapshot_instructions);
+  auto const vm_relocated_address =
+      InstructionsRelocatedAddress(vm_instructions);
+  auto const isolate_relocated_address =
+      InstructionsRelocatedAddress(isolate_instructions);
   if (FLAG_dwarf_stack_traces_mode) {
     // The Dart standard requires the output of StackTrace.toString to include
     // all pending activations with precise source locations (i.e., to expand
@@ -23737,8 +23801,14 @@ const char* StackTrace::ToCString() const {
     OSThread* thread = OSThread::Current();
     buffer.Printf("pid: %" Pd ", tid: %" Pd ", name %s\n", OS::ProcessId(),
                   OSThread::ThreadIdToIntPtr(thread->id()), thread->name());
+    // Print the dso_base of the VM and isolate_instructions. We print both here
+    // as the VM and isolate may be loaded from different snapshot images.
+    buffer.Printf("isolate_dso_base: %" Px "",
+                  isolate_instructions - isolate_relocated_address);
+    buffer.Printf(", vm_dso_base: %" Px "\n",
+                  vm_instructions - vm_relocated_address);
     buffer.Printf("isolate_instructions: %" Px "", isolate_instructions);
-    buffer.Printf(" vm_instructions: %" Px "\n", vm_instructions);
+    buffer.Printf(", vm_instructions: %" Px "\n", vm_instructions);
   }
 #endif
 
@@ -23792,7 +23862,8 @@ const char* StackTrace::ToCString() const {
             // prints call addresses instead of return addresses.
             buffer.Printf("    #%02" Pd " abs %" Pp "", frame_index, call_addr);
             PrintNonSymbolicStackFrameBody(
-                &buffer, call_addr, isolate_instructions, vm_instructions);
+                &buffer, call_addr, isolate_instructions, vm_instructions,
+                isolate_relocated_address);
             frame_index++;
             continue;
           } else if (function.IsNull()) {
@@ -23801,7 +23872,8 @@ const char* StackTrace::ToCString() const {
             // non-symbolic stack traces.
             PrintSymbolicStackFrameIndex(&buffer, frame_index);
             PrintNonSymbolicStackFrameBody(
-                &buffer, call_addr, isolate_instructions, vm_instructions);
+                &buffer, call_addr, isolate_instructions, vm_instructions,
+                isolate_relocated_address);
             frame_index++;
             continue;
           }

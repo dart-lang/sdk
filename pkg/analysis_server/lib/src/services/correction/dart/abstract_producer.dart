@@ -9,26 +9,25 @@ import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:meta/meta.dart';
 
-abstract class CorrectionProducer {
-  CorrectionProducerContext _context;
-
-  /// The most deeply nested node that completely covers the highlight region of
-  /// the diagnostic, or `null` if there is no diagnostic, such a node does not
-  /// exist, or if it hasn't been computed yet. Use [coveredNode] to access this
-  /// field.
-  AstNode _coveredNode;
-
+/// An object that can compute a correction (fix or assist).
+abstract class CorrectionProducer extends _AbstractCorrectionProducer {
   /// Return the arguments that should be used when composing the message for an
   /// assist, or `null` if the assist message has no parameters or if this
   /// producer doesn't support assists.
@@ -37,6 +36,283 @@ abstract class CorrectionProducer {
   /// Return the assist kind that should be used to build an assist, or `null`
   /// if this producer doesn't support assists.
   AssistKind get assistKind => null;
+
+  /// Return the type for the class `bool` from `dart:core`.
+  DartType get coreTypeBool => resolvedResult.typeProvider.boolType;
+
+  /// Return the length of the error message being fixed, or `null` if there is
+  /// no diagnostic.
+  int get errorLength => diagnostic?.problemMessage?.length;
+
+  /// Return the text of the error message being fixed, or `null` if there is
+  /// no diagnostic.
+  String get errorMessage => diagnostic?.problemMessage?.message;
+
+  /// Return the offset of the error message being fixed, or `null` if there is
+  /// no diagnostic.
+  int get errorOffset => diagnostic?.problemMessage?.offset;
+
+  /// Return the arguments that should be used when composing the message for a
+  /// fix, or `null` if the fix message has no parameters or if this producer
+  /// doesn't support fixes.
+  List<Object> get fixArguments => null;
+
+  /// Return the fix kind that should be used to build a fix, or `null` if this
+  /// producer doesn't support fixes.
+  FixKind get fixKind => null;
+
+  /// Returns `true` if [node] is in a static context.
+  bool get inStaticContext {
+    // constructor initializer cannot reference "this"
+    if (node.thisOrAncestorOfType<ConstructorInitializer>() != null) {
+      return true;
+    }
+    // field initializer cannot reference "this"
+    if (node.thisOrAncestorOfType<FieldDeclaration>() != null) {
+      return true;
+    }
+    // static method
+    var method = node.thisOrAncestorOfType<MethodDeclaration>();
+    return method != null && method.isStatic;
+  }
+
+  Future<void> compute(DartChangeBuilder builder);
+
+  /// Return the class element associated with the [target], or `null` if there
+  /// is no such class element.
+  ClassElement getTargetClassElement(Expression target) {
+    var type = target.staticType;
+    if (type is InterfaceType) {
+      return type.element;
+    } else if (target is Identifier) {
+      var element = target.staticElement;
+      if (element is ClassElement) {
+        return element;
+      }
+    }
+    return null;
+  }
+
+  /// Returns an expected [DartType] of [expression], may be `null` if cannot be
+  /// inferred.
+  DartType inferUndefinedExpressionType(Expression expression) {
+    var parent = expression.parent;
+    // myFunction();
+    if (parent is ExpressionStatement) {
+      if (expression is MethodInvocation) {
+        return VoidTypeImpl.instance;
+      }
+    }
+    // return myFunction();
+    if (parent is ReturnStatement) {
+      var executable = getEnclosingExecutableElement(expression);
+      return executable?.returnType;
+    }
+    // int v = myFunction();
+    if (parent is VariableDeclaration) {
+      var variableDeclaration = parent;
+      if (variableDeclaration.initializer == expression) {
+        var variableElement = variableDeclaration.declaredElement;
+        if (variableElement != null) {
+          return variableElement.type;
+        }
+      }
+    }
+    // myField = 42;
+    if (parent is AssignmentExpression) {
+      var assignment = parent;
+      if (assignment.leftHandSide == expression) {
+        var rhs = assignment.rightHandSide;
+        if (rhs != null) {
+          return rhs.staticType;
+        }
+      }
+    }
+    // v = myFunction();
+    if (parent is AssignmentExpression) {
+      var assignment = parent;
+      if (assignment.rightHandSide == expression) {
+        if (assignment.operator.type == TokenType.EQ) {
+          // v = myFunction();
+          var lhs = assignment.leftHandSide;
+          if (lhs != null) {
+            return lhs.staticType;
+          }
+        } else {
+          // v += myFunction();
+          var method = assignment.staticElement;
+          if (method != null) {
+            var parameters = method.parameters;
+            if (parameters.length == 1) {
+              return parameters[0].type;
+            }
+          }
+        }
+      }
+    }
+    // v + myFunction();
+    if (parent is BinaryExpression) {
+      var binary = parent;
+      var method = binary.staticElement;
+      if (method != null) {
+        if (binary.rightOperand == expression) {
+          var parameters = method.parameters;
+          return parameters.length == 1 ? parameters[0].type : null;
+        }
+      }
+    }
+    // foo( myFunction() );
+    if (parent is ArgumentList) {
+      var parameter = expression.staticParameterElement;
+      return parameter?.type;
+    }
+    // bool
+    {
+      // assert( myFunction() );
+      if (parent is AssertStatement) {
+        var statement = parent;
+        if (statement.condition == expression) {
+          return coreTypeBool;
+        }
+      }
+      // if ( myFunction() ) {}
+      if (parent is IfStatement) {
+        var statement = parent;
+        if (statement.condition == expression) {
+          return coreTypeBool;
+        }
+      }
+      // while ( myFunction() ) {}
+      if (parent is WhileStatement) {
+        var statement = parent;
+        if (statement.condition == expression) {
+          return coreTypeBool;
+        }
+      }
+      // do {} while ( myFunction() );
+      if (parent is DoStatement) {
+        var statement = parent;
+        if (statement.condition == expression) {
+          return coreTypeBool;
+        }
+      }
+      // !myFunction()
+      if (parent is PrefixExpression) {
+        var prefixExpression = parent;
+        if (prefixExpression.operator.type == TokenType.BANG) {
+          return coreTypeBool;
+        }
+      }
+      // binary expression '&&' or '||'
+      if (parent is BinaryExpression) {
+        var binaryExpression = parent;
+        var operatorType = binaryExpression.operator.type;
+        if (operatorType == TokenType.AMPERSAND_AMPERSAND ||
+            operatorType == TokenType.BAR_BAR) {
+          return coreTypeBool;
+        }
+      }
+    }
+    // we don't know
+    return null;
+  }
+
+  /// Return `true` if the [node] might be a type name.
+  bool mightBeTypeIdentifier(AstNode node) {
+    if (node is SimpleIdentifier) {
+      var parent = node.parent;
+      if (parent is TypeName) {
+        return true;
+      }
+      return _isNameOfType(node.name);
+    }
+    return false;
+  }
+
+  /// Return `true` if the [name] is capitalized.
+  bool _isNameOfType(String name) {
+    if (name.isEmpty) {
+      return false;
+    }
+    var firstLetter = name.substring(0, 1);
+    if (firstLetter.toUpperCase() != firstLetter) {
+      return false;
+    }
+    return true;
+  }
+}
+
+class CorrectionProducerContext {
+  final int selectionOffset;
+  final int selectionLength;
+  final int selectionEnd;
+
+  final CompilationUnit unit;
+  final CorrectionUtils utils;
+  final String file;
+
+  final TypeProvider typeProvider;
+  final Flutter flutter;
+
+  final AnalysisSession session;
+  final AnalysisSessionHelper sessionHelper;
+  final ResolvedUnitResult resolvedResult;
+  final ChangeWorkspace workspace;
+
+  final Diagnostic diagnostic;
+
+  AstNode _node;
+
+  CorrectionProducerContext({
+    @required this.resolvedResult,
+    @required this.workspace,
+    this.diagnostic,
+    this.selectionOffset = -1,
+    this.selectionLength = 0,
+  })  : file = resolvedResult.path,
+        flutter = Flutter.of(resolvedResult),
+        session = resolvedResult.session,
+        sessionHelper = AnalysisSessionHelper(resolvedResult.session),
+        typeProvider = resolvedResult.typeProvider,
+        selectionEnd = (selectionOffset ?? 0) + (selectionLength ?? 0),
+        unit = resolvedResult.unit,
+        utils = CorrectionUtils(resolvedResult);
+
+  AstNode get node => _node;
+
+  /// Return `true` if the lint with the given [name] is enabled.
+  bool isLintEnabled(String name) {
+    var analysisOptions = session.analysisContext.analysisOptions;
+    return analysisOptions.isLintEnabled(name);
+  }
+
+  bool setupCompute() {
+    final locator = NodeLocator(selectionOffset, selectionEnd);
+    _node = locator.searchWithin(resolvedResult.unit);
+    return _node != null;
+  }
+}
+
+/// An object that can dynamically compute multiple corrections (fixes or
+/// assists).
+abstract class MultiCorrectionProducer extends _AbstractCorrectionProducer {
+  /// Return each of the individual producers generated by this producer.
+  Iterable<CorrectionProducer> get producers;
+}
+
+/// The behavior shared by [CorrectionProducer] and [MultiCorrectionProducer].
+abstract class _AbstractCorrectionProducer {
+  /// The context used to produce corrections.
+  CorrectionProducerContext _context;
+
+  /// The most deeply nested node that completely covers the highlight region of
+  /// the diagnostic, or `null` if there is no diagnostic, such a node does not
+  /// exist, or if it hasn't been computed yet. Use [coveredNode] to access this
+  /// field.
+  AstNode _coveredNode;
+
+  /// Initialize a newly created producer.
+  _AbstractCorrectionProducer();
 
   /// The most deeply nested node that completely covers the highlight region of
   /// the diagnostic, or `null` if there is no diagnostic or if such a node does
@@ -66,33 +342,37 @@ abstract class CorrectionProducer {
 
   String get file => _context.file;
 
-  /// Return the arguments that should be used when composing the message for a
-  /// fix, or `null` if the fix message has no parameters or if this producer
-  /// doesn't support fixes.
-  List<Object> get fixArguments => null;
-
-  /// Return the fix kind that should be used to build a fix, or `null` if this
-  /// producer doesn't support fixes.
-  FixKind get fixKind => null;
-
   Flutter get flutter => _context.flutter;
+
+  /// Return the library element for the library in which a correction is being
+  /// produced.
+  LibraryElement get libraryElement => resolvedResult.libraryElement;
 
   AstNode get node => _context.node;
 
   ResolvedUnitResult get resolvedResult => _context.resolvedResult;
 
+  /// Return the resource provider used to access the file system.
+  ResourceProvider get resourceProvider =>
+      resolvedResult.session.resourceProvider;
+
   int get selectionLength => _context.selectionLength;
 
   int get selectionOffset => _context.selectionOffset;
 
+  AnalysisSessionHelper get sessionHelper => _context.sessionHelper;
+
   TypeProvider get typeProvider => _context.typeProvider;
+
+  /// Return the type system appropriate to the library in which the correction
+  /// was requested.
+  TypeSystem get typeSystem => _context.resolvedResult.typeSystem;
 
   CompilationUnit get unit => _context.unit;
 
   CorrectionUtils get utils => _context.utils;
 
-  Future<void> compute(DartChangeBuilder builder);
-
+  /// Configure this producer based on the [context].
   void configure(CorrectionProducerContext context) {
     _context = context;
   }
@@ -152,53 +432,20 @@ abstract class CorrectionProducer {
   }
 }
 
-class CorrectionProducerContext {
-  final int selectionOffset;
-  final int selectionLength;
-  final int selectionEnd;
-
-  final CompilationUnit unit;
-  final CorrectionUtils utils;
-  final String file;
-
-  final TypeProvider typeProvider;
-  final Flutter flutter;
-
-  final AnalysisSession session;
-  final AnalysisSessionHelper sessionHelper;
-  final ResolvedUnitResult resolvedResult;
-  final ChangeWorkspace workspace;
-
-  final Diagnostic diagnostic;
-
-  AstNode _node;
-
-  CorrectionProducerContext({
-    @required this.resolvedResult,
-    @required this.workspace,
-    this.diagnostic,
-    this.selectionOffset = -1,
-    this.selectionLength = 0,
-  })  : file = resolvedResult.path,
-        flutter = Flutter.of(resolvedResult),
-        session = resolvedResult.session,
-        sessionHelper = AnalysisSessionHelper(resolvedResult.session),
-        typeProvider = resolvedResult.typeProvider,
-        selectionEnd = (selectionOffset ?? 0) + (selectionLength ?? 0),
-        unit = resolvedResult.unit,
-        utils = CorrectionUtils(resolvedResult);
-
-  AstNode get node => _node;
-
-  /// Return `true` the lint with the given [name] is enabled.
-  bool isLintEnabled(String name) {
-    var analysisOptions = session.analysisContext.analysisOptions;
-    return analysisOptions.isLintEnabled(name);
-  }
-
-  bool setupCompute() {
-    final locator = NodeLocator(selectionOffset, selectionEnd);
-    _node = locator.searchWithin(resolvedResult.unit);
-    return _node != null;
+extension DartFileEditBuilderExtension on DartFileEditBuilder {
+  /// Add edits to the [builder] to remove any parentheses enclosing the
+  /// [expression].
+  // TODO(brianwilkerson) Consider moving this to DartFileEditBuilder.
+  void removeEnclosingParentheses(Expression expression) {
+    var precedence = getExpressionPrecedence(expression);
+    while (expression.parent is ParenthesizedExpression) {
+      var parenthesized = expression.parent as ParenthesizedExpression;
+      if (getExpressionParentPrecedence(parenthesized) > precedence) {
+        break;
+      }
+      addDeletion(range.token(parenthesized.leftParenthesis));
+      addDeletion(range.token(parenthesized.rightParenthesis));
+      expression = parenthesized;
+    }
   }
 }

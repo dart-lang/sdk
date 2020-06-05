@@ -1,4 +1,4 @@
-include: package:pedantic/analysis_options.1.8.0.yaml
+include: package:pedantic/analysis_options.1.9.0.yaml
 
 analyzer:
   # This currently finds ~4,500 implicit-casts issues when enabled.
@@ -29,5 +29,3 @@ linter:
     - avoid_unused_constructor_parameters
     - empty_statements
     - unnecessary_brace_in_string_interps
-    - # TODO(scheglov) Remove these when pedantic is updated to include them
-    - annotate_overrides

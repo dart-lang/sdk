@@ -3,24 +3,22 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/token.dart' show Keyword;
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 
 /// A type that is being inferred but is not currently known.
 ///
 /// This type will only appear in a downward inference context for type
-/// parameters that we do not know yet. Notationally it is written `?`, for
-/// example `List<?>`. This is distinct from `List<dynamic>`. These types will
+/// parameters that we do not know yet. Notationally it is written `_`, for
+/// example `List<_>`. This is distinct from `List<dynamic>`. These types will
 /// never appear in the final resolved AST.
 class UnknownInferredType extends TypeImpl {
   static final UnknownInferredType instance = UnknownInferredType._();
 
-  UnknownInferredType._() : super(UnknownInferredTypeElement.instance);
+  UnknownInferredType._() : super(null);
 
   @override
   int get hashCode => 1;
@@ -51,7 +49,7 @@ class UnknownInferredType extends TypeImpl {
     // types, or types produced by mixin inference or instantiate-to-bounds, and
     // the unknown type can't occur in any of those cases.
     assert(
-        false, 'Attempted to check super-boundedness of a type including "?"');
+        false, 'Attempted to check super-boundedness of a type including "_"');
     // But just in case it does, behave similar to `dynamic`.
     if (isCovariant) {
       return typeProvider.nullType;
@@ -75,10 +73,10 @@ class UnknownInferredType extends TypeImpl {
   @override
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) => this;
 
-  /// Given a [type] T, return true if it does not have an unknown type `?`.
+  /// Given a [type] T, return true if it does not have an unknown type `_`.
   static bool isKnown(DartType type) => !isUnknown(type);
 
-  /// Given a [type] T, return true if it has an unknown type `?`.
+  /// Given a [type] T, return true if it has an unknown type `_`.
   static bool isUnknown(DartType type) {
     if (identical(type, UnknownInferredType.instance)) {
       return true;
@@ -92,24 +90,4 @@ class UnknownInferredType extends TypeImpl {
     }
     return false;
   }
-}
-
-/// The synthetic element for [UnknownInferredType].
-class UnknownInferredTypeElement extends ElementImpl
-    implements TypeDefiningElement {
-  static final UnknownInferredTypeElement instance =
-      UnknownInferredTypeElement._();
-
-  UnknownInferredTypeElement._() : super(Keyword.DYNAMIC.lexeme, -1) {
-    setModifier(Modifier.SYNTHETIC, true);
-  }
-
-  @override
-  ElementKind get kind => ElementKind.DYNAMIC;
-
-  @override
-  UnknownInferredType get type => UnknownInferredType.instance;
-
-  @override
-  T accept<T>(ElementVisitor visitor) => null;
 }

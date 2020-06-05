@@ -364,6 +364,11 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   ClassTable* class_table() const { return class_table_.get(); }
   ObjectStore* object_store() const { return object_store_.get(); }
   SafepointRwLock* symbols_lock() { return symbols_lock_.get(); }
+  Mutex* type_canonicalization_mutex() { return &type_canonicalization_mutex_; }
+  Mutex* type_arguments_canonicalization_mutex() {
+    return &type_arguments_canonicalization_mutex_;
+  }
+  Mutex* subtype_test_cache_mutex() { return &subtype_test_cache_mutex_; }
 
   static inline IsolateGroup* Current() {
     Thread* thread = Thread::Current();
@@ -495,7 +500,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   static bool HasApplicationIsolateGroups();
   static bool HasOnlyVMIsolateGroup();
-  static bool IsVMInternalIsolate(const IsolateGroup* group);
+  static bool IsVMInternalIsolateGroup(const IsolateGroup* group);
 
   int64_t UptimeMicros() const;
 
@@ -624,10 +629,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   std::unique_ptr<SharedClassTable> shared_class_table_;
   std::shared_ptr<ObjectStore> object_store_;  // nullptr in JIT mode
   std::shared_ptr<ClassTable> class_table_;    // nullptr in JIT mode
-  // This symbols_mutex_ on Isolate is only used when IsolateGroup does not
-  // have object_store.
-  std::unique_ptr<SafepointRwLock>
-      symbols_lock_;  // Protects concurrent access to the symbol table.
   std::unique_ptr<StoreBuffer> store_buffer_;
   std::unique_ptr<Heap> heap_;
   std::unique_ptr<DispatchTable> dispatch_table_;
@@ -635,6 +636,11 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   ArrayPtr saved_unlinked_calls_;
   std::shared_ptr<FieldTable> saved_initial_field_table_;
   uint32_t isolate_group_flags_ = 0;
+
+  std::unique_ptr<SafepointRwLock> symbols_lock_;
+  Mutex type_canonicalization_mutex_;
+  Mutex type_arguments_canonicalization_mutex_;
+  Mutex subtype_test_cache_mutex_;
 
   // Allow us to ensure the number of active mutators is limited by a maximum.
   std::unique_ptr<Monitor> active_mutators_monitor_;
@@ -738,7 +744,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   static intptr_t cached_object_store_offset() {
     return OFFSET_OF(Isolate, cached_object_store_);
   }
-  SafepointRwLock* symbols_lock() { return symbols_lock_.get(); }
 
   FieldTable* field_table() const { return field_table_; }
   void set_field_table(Thread* T, FieldTable* field_table) {
@@ -849,7 +854,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   }
 
   Mutex* mutex() { return &mutex_; }
-  Mutex* type_canonicalization_mutex() { return &type_canonicalization_mutex_; }
   Mutex* constant_canonicalization_mutex() {
     return &constant_canonicalization_mutex_;
   }
@@ -1258,7 +1262,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   static void EnableIsolateCreation();
   static bool IsolateCreationEnabled();
   static bool IsVMInternalIsolate(const Isolate* isolate) {
-    return IsolateGroup::IsVMInternalIsolate(isolate->group());
+    return IsolateGroup::IsVMInternalIsolateGroup(isolate->group());
   }
 
 #if !defined(PRODUCT)
@@ -1473,9 +1477,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   Random random_;
   Simulator* simulator_ = nullptr;
   Mutex mutex_;          // Protects compiler stats.
-  std::unique_ptr<SafepointRwLock>
-      symbols_lock_;  // Protects concurrent access to the symbol table.
-  Mutex type_canonicalization_mutex_;      // Protects type canonicalization.
   Mutex constant_canonicalization_mutex_;  // Protects const canonicalization.
   Mutex megamorphic_mutex_;  // Protects the table of megamorphic caches and
                              // their entries.

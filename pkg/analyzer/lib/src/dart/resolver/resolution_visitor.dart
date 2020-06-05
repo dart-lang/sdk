@@ -525,11 +525,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
       FunctionBody body = node.functionExpression.body;
       if (node.externalKeyword != null || body is NativeFunctionBody) {
-        element.external = true;
+        element.isExternal = true;
       }
 
-      element.asynchronous = body.isAsynchronous;
-      element.generator = body.isGenerator;
+      element.isAsynchronous = body.isAsynchronous;
+      element.isGenerator = body.isGenerator;
       if (node.returnType == null) {
         element.hasImplicitReturnType = true;
       }
@@ -591,8 +591,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     element.hasImplicitReturnType = true;
 
     FunctionBody body = node.body;
-    element.asynchronous = body.isAsynchronous;
-    element.generator = body.isGenerator;
+    element.isAsynchronous = body.isAsynchronous;
+    element.isGenerator = body.isGenerator;
 
     var holder = ElementHolder(element);
     _withElementHolder(holder, () {

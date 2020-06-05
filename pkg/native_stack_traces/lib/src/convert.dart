@@ -16,8 +16,12 @@ String _stackTracePiece(CallInfo call, int depth) =>
 // Currently, this happens to include the only pieces of information from the
 // stack trace header we need: the absolute addresses during program
 // execution of the start of the isolate and VM instructions.
-final _headerEndRE =
-    RegExp(r'isolate_instructions: ([\da-f]+) vm_instructions: ([\da-f]+)$');
+//
+// This RegExp has been adjusted to parse the header line found in
+// non-symbolic stack traces and the modified version in signal handler stack
+// traces.
+final _headerEndRE = RegExp(r'isolate_instructions(?:=|: )([\da-f]+),? '
+    r'vm_instructions(?:=|: )([\da-f]+)');
 
 // Parses instructions section information into a new [StackTraceHeader].
 //

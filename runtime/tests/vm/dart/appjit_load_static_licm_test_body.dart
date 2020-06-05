@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Verify that LoadStaticField IL instruction can't be hoisted above
-// InitStaticField instruction.
+// Verify that field load can't be hoisted above field initialization.
 
 import 'package:expect/expect.dart';
 

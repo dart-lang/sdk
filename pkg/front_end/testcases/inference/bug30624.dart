@@ -9,35 +9,35 @@ void foo<E>(C<E> c, int cmp(E a, E b)) {}
 
 class C<E> {
   void barA([int cmp(E a, E b)]) {
-    /*@ typeArgs=C::E* */ foo(this, cmp /*@ target=Object::== */ ?? _default);
+    /*@ typeArgs=C::E* */ foo(this, cmp /*@target=Object.==*/ ?? _default);
   }
 
   void barB([int cmp(E a, E b)]) {
     /*@ typeArgs=C::E* */ foo(
-        this, cmp /*@ target=Object::== */ ?? (_default as int Function(E, E)));
+        this, cmp /*@target=Object.==*/ ?? (_default as int Function(E, E)));
   }
 
   void barC([int cmp(E a, E b)]) {
     int Function(E, E) v = _default;
-    /*@ typeArgs=C::E* */ foo(this, cmp /*@ target=Object::== */ ?? v);
+    /*@ typeArgs=C::E* */ foo(this, cmp /*@target=Object.==*/ ?? v);
   }
 
   void barD([int cmp(E a, E b)]) {
-    foo<E>(this, cmp /*@ target=Object::== */ ?? _default);
+    foo<E>(this, cmp /*@target=Object.==*/ ?? _default);
   }
 
   void barE([int cmp(E a, E b)]) {
     /*@ typeArgs=C::E* */ foo(
-        this, cmp /*@target=Object::==*/ == null ? _default : cmp);
+        this, cmp /*@target=Object.==*/ == null ? _default : cmp);
   }
 
   void barF([int cmp(E a, E b)]) {
     /*@ typeArgs=C::E* */ foo(
-        this, cmp /*@target=Object::==*/ != null ? cmp : _default);
+        this, cmp /*@target=Object.==*/ != null ? cmp : _default);
   }
 
   static int _default(a, b) {
-    return /*@target=int::unary-*/ -1;
+    return /*@target=int.unary-*/ -1;
   }
 }
 

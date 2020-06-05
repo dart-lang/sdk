@@ -468,13 +468,11 @@ class ConstantEvaluationEngine {
     namedNodes ??= const {};
     namedValues ??= const {};
 
-    if (invocation == null) {
-      invocation = ConstructorInvocation(
-        constructor,
-        argumentValues,
-        namedValues,
-      );
-    }
+    invocation ??= ConstructorInvocation(
+      constructor,
+      argumentValues,
+      namedValues,
+    );
 
     constructor = followConstantRedirectionChain(constructor);
     InterfaceType definingClass = constructor.returnType as InterfaceType;
@@ -603,12 +601,10 @@ class ConstantEvaluationEngine {
         argumentValue = argumentValues[i];
         errorTarget = arguments[i];
       }
-      if (errorTarget == null) {
-        // No argument node that we can direct error messages to, because we
-        // are handling an optional parameter that wasn't specified.  So just
-        // direct error messages to the constructor call.
-        errorTarget = node;
-      }
+      // No argument node that we can direct error messages to, because we
+      // are handling an optional parameter that wasn't specified.  So just
+      // direct error messages to the constructor call.
+      errorTarget ??= node;
       if (argumentValue == null && baseParameter is ParameterElementImpl) {
         // The parameter is an optional positional parameter for which no value
         // was provided, so use the default value.
@@ -740,9 +736,7 @@ class ConstantEvaluationEngine {
       ConstructorElement superConstructor =
           superclass.lookUpConstructor(superName, constructor.library);
       if (superConstructor != null) {
-        if (superArguments == null) {
-          superArguments = astFactory.nodeList<Expression>(null);
-        }
+        superArguments ??= astFactory.nodeList<Expression>(null);
 
         evaluateSuperConstructorCall(node, fieldMap, superConstructor,
             superArguments, initializerVisitor, externalErrorReporter);
@@ -1174,7 +1168,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       _error(node, null);
       return null;
     }
-    ConstructorElement constructor = node.staticElement;
+    ConstructorElement constructor = node.constructorName.staticElement;
     if (constructor == null) {
       // Couldn't resolve the constructor so we can't compute a value.  No
       // problem - the error has already been reported.

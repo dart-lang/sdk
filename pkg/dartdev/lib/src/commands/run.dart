@@ -8,9 +8,11 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:dds/dds.dart';
+import 'package:path/path.dart';
 
 import '../core.dart';
 import '../sdk.dart';
+import '../utils.dart';
 
 class RunCommand extends DartdevCommand<int> {
   final ArgParser argParser = ArgParser.allowAnything();
@@ -50,8 +52,47 @@ Run a Dart file.''');
 
   @override
   FutureOr<int> run() async {
-    // the command line arguments after 'run'
-    final args = argResults.arguments;
+    // The command line arguments after 'run'
+    final args = argResults.arguments.toList();
+
+    var argsContainFileOrHelp = false;
+    for (var arg in args) {
+      // The arg.contains('.') matches a file name pattern, i.e. some 'foo.dart'
+      if (arg.contains('.') ||
+          arg == '--help' ||
+          arg == '-h' ||
+          arg == 'help') {
+        argsContainFileOrHelp = true;
+        break;
+      }
+    }
+
+    final cwd = Directory.current;
+    if (!argsContainFileOrHelp && cwd.existsSync()) {
+      var foundImplicitFileToRun = false;
+      var cwdName = cwd.name;
+      for (var entity in cwd.listSync(followLinks: false)) {
+        if (entity is Directory && entity.name == 'bin') {
+          var filesInBin =
+              entity.listSync(followLinks: false).whereType<File>();
+
+          // Search for a dart file in bin/ with the pattern foo/bin/foo.dart
+          for (var fileInBin in filesInBin) {
+            if (fileInBin.isDartFile && fileInBin.name == '$cwdName.dart') {
+              args.add('bin/${fileInBin.name}');
+              foundImplicitFileToRun = true;
+              break;
+            }
+          }
+          // break here, no actions taken on any entities that are not bin/
+          break;
+        }
+      }
+      if (!foundImplicitFileToRun) {
+        log.stderr(
+            'Could not find the implicit file to run: bin$separator$cwdName.dart.');
+      }
+    }
 
     // If the user wants to start a debugging session we need to do some extra
     // work and spawn a Dart Development Service (DDS) instance. DDS is a VM
@@ -144,9 +185,8 @@ class _DebuggingSession {
       sdk.dart,
       [
         '--disable-dart-dev',
-        _observe
-            ? '--observe=0'
-            : '--enable-vm-service=0', // We don't care which port the VM service binds to.
+        // We don't care which port the VM service binds to.
+        _observe ? '--observe=0' : '--enable-vm-service=0',
         '--write-service-info=$serviceInfoUri',
         ..._args,
       ],

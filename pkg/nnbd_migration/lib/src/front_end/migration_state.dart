@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/api_for_nnbd_migration.dart';
-import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/instrumentation.dart';
+import 'package:nnbd_migration/nnbd_migration.dart';
+import 'package:nnbd_migration/src/front_end/dartfix_listener.dart';
 import 'package:nnbd_migration/src/front_end/info_builder.dart';
 import 'package:nnbd_migration/src/front_end/instrumentation_listener.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
@@ -24,7 +24,7 @@ class MigrationState {
   final NodeMapper nodeMapper = SimpleNodeMapper();
 
   /// The listener used to collect fixes.
-  final DartFixListenerInterface listener;
+  final DartFixListener listener;
 
   /// The listener that collected information during the migration.
   final InstrumentationListener instrumentationListener;

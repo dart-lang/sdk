@@ -536,11 +536,11 @@ class AnalyzerError implements Comparable<AnalyzerError> {
 
   @override
   int compareTo(AnalyzerError other) {
-    if (severity != other.severity) return severity.compareTo(other.severity);
     if (file != other.file) return file.compareTo(other.file);
     if (line != other.line) return line.compareTo(other.line);
     if (column != other.column) return column.compareTo(other.column);
     if (length != other.length) return length.compareTo(other.length);
+    if (severity != other.severity) return severity.compareTo(other.severity);
     if (errorCode != other.errorCode) {
       return errorCode.compareTo(other.errorCode);
     }

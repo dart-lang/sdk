@@ -426,9 +426,9 @@ class CodeChecker extends RecursiveAstVisitor {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     var arguments = node.argumentList;
-    var element = node.staticElement;
+    var element = node.constructorName.staticElement;
     if (element != null) {
-      var type = _elementType(node.staticElement);
+      var type = _elementType(element);
       checkArgumentList(arguments, type);
     }
     node.visitChildren(this);
@@ -966,7 +966,7 @@ class CodeChecker extends RecursiveAstVisitor {
       }
 
       if (expr is InstanceCreationExpression) {
-        ConstructorElement e = expr.staticElement;
+        ConstructorElement e = expr.constructorName.staticElement;
         if (e == null || !e.isFactory) {
           // fromT should be an exact type - this will almost certainly fail at
           // runtime.
@@ -1193,7 +1193,7 @@ class _TopLevelInitializerValidator extends RecursiveAstVisitor<void> {
 
   @override
   visitInstanceCreationExpression(InstanceCreationExpression node) {
-    var constructor = node.staticElement;
+    var constructor = node.constructorName.staticElement;
     ClassElement class_ = constructor?.enclosingElement;
     if (node.constructorName.type.typeArguments == null &&
         class_ != null &&

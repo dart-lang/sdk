@@ -36,10 +36,7 @@ class ElementFactory {
   static InterfaceType _objectType;
 
   static ClassElementImpl get object {
-    if (_objectElement == null) {
-      _objectElement = classElement("Object", null);
-    }
-    return _objectElement;
+    return _objectElement ??= classElement("Object", null);
   }
 
   static InterfaceType get objectType {
@@ -89,7 +86,7 @@ class ElementFactory {
       [List<String> parameterNames]) {
     ClassElementImpl element =
         classElement(typeName, superclassType, parameterNames);
-    element.mixinApplication = true;
+    element.isMixinApplication = true;
     return element;
   }
 
@@ -103,9 +100,7 @@ class ElementFactory {
         NonExistingSource(fileName, toUri(fileName), UriKind.FILE_URI);
     CompilationUnitElementImpl unit = CompilationUnitElementImpl();
     unit.source = source;
-    if (librarySource == null) {
-      librarySource = source;
-    }
+    librarySource ??= source;
     unit.librarySource = librarySource;
     return unit;
   }
@@ -402,8 +397,7 @@ class ElementFactory {
   static FunctionElementImpl functionElementWithParameters(String functionName,
       DartType returnType, List<ParameterElement> parameters) {
     FunctionElementImpl functionElement = FunctionElementImpl(functionName, 0);
-    functionElement.returnType =
-        returnType == null ? VoidTypeImpl.instance : returnType;
+    functionElement.returnType = returnType ?? VoidTypeImpl.instance;
     functionElement.parameters = parameters;
     return functionElement;
   }
@@ -426,7 +420,7 @@ class ElementFactory {
     field.isFinal = true;
     PropertyAccessorElementImpl getter = PropertyAccessorElementImpl(name, 0);
     getter.isSynthetic = false;
-    getter.getter = true;
+    getter.isGetter = true;
     getter.variable = field;
     getter.returnType = type;
     getter.isStatic = isStatic;
@@ -577,13 +571,13 @@ class ElementFactory {
     field.isSynthetic = true;
     field.type = type;
     PropertyAccessorElementImpl getter = PropertyAccessorElementImpl(name, -1);
-    getter.getter = true;
+    getter.isGetter = true;
     getter.variable = field;
     getter.returnType = type;
     field.getter = getter;
     ParameterElementImpl parameter = requiredParameter2("a", type);
     PropertyAccessorElementImpl setter = PropertyAccessorElementImpl(name, -1);
-    setter.setter = true;
+    setter.isSetter = true;
     setter.isSynthetic = true;
     setter.variable = field;
     setter.parameters = <ParameterElement>[parameter];
@@ -610,7 +604,6 @@ class ElementFactory {
               Keyword.CONST, AstTestFactory.typeName(type.element));
       if (type is InterfaceType) {
         ConstructorElement element = type.element.unnamedConstructor;
-        initializer.staticElement = element;
         initializer.constructorName.staticElement = element;
       }
       constant.constantInitializer = initializer;

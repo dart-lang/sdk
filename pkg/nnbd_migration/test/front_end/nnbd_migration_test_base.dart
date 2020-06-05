@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:meta/meta.dart';
-import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/instrumentation.dart';
+import 'package:nnbd_migration/nnbd_migration.dart';
+import 'package:nnbd_migration/src/front_end/dartfix_listener.dart';
+import 'package:nnbd_migration/src/front_end/driver_provider_impl.dart';
 import 'package:nnbd_migration/src/front_end/info_builder.dart';
 import 'package:nnbd_migration/src/front_end/instrumentation_listener.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
@@ -24,11 +25,6 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
   /// not yet completed.
   Set<UnitInfo> infos;
   NodeMapper nodeMapper;
-
-  void setUp() {
-    super.setUp();
-    nodeMapper = SimpleNodeMapper();
-  }
 
   /// Assert that some target in [targets] has various properties.
   void assertInTargets(
@@ -104,12 +100,16 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
   void assertTraceEntry(UnitInfo unit, TraceEntryInfo entryInfo,
       String function, int offset, Object descriptionMatcher,
       {Set<HintActionKind> hintActions}) {
-    assert(offset >= 0);
-    var lineInfo = LineInfo.fromContent(unit.content);
-    var expectedLocation = lineInfo.getLocation(offset);
-    expect(entryInfo.target.filePath, unit.path);
-    expect(entryInfo.target.line, expectedLocation.lineNumber);
-    expect(unit.offsetMapper.map(entryInfo.target.offset), offset);
+    if (offset == null) {
+      expect(entryInfo.target, isNull);
+    } else {
+      assert(offset >= 0);
+      var lineInfo = LineInfo.fromContent(unit.content);
+      var expectedLocation = lineInfo.getLocation(offset);
+      expect(entryInfo.target.filePath, unit.path);
+      expect(entryInfo.target.line, expectedLocation.lineNumber);
+      expect(unit.offsetMapper.map(entryInfo.target.offset), offset);
+    }
     expect(entryInfo.function, function);
     expect(entryInfo.description, descriptionMatcher);
     if (hintActions != null) {
@@ -187,6 +187,11 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     return filteredInfos;
   }
 
+  void setUp() {
+    super.setUp();
+    nodeMapper = SimpleNodeMapper();
+  }
+
   /// Uses the InfoBuilder to build information for files at [testPaths], which
   /// should all share a common parent directory, [includedRoot].
   Future<void> _buildMigrationInfo(List<String> testPaths,
@@ -194,12 +199,12 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
       bool removeViaComments = true,
       bool warnOnWeakCode = false}) async {
     // Compute the analysis results.
-    server.setAnalysisRoots('0', [includedRoot], [], {});
+    var server = DriverProviderImpl(resourceProvider, driver.analysisContext);
     // Run the migration engine.
     var listener = DartFixListener(server);
     var instrumentationListener = InstrumentationListener();
     var adapter = NullabilityMigrationAdapter(listener);
-    var migration = NullabilityMigration(adapter,
+    var migration = NullabilityMigration(adapter, getLineInfo,
         permissive: false,
         instrumentation: instrumentationListener,
         removeViaComments: removeViaComments,
@@ -207,10 +212,7 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     Future<void> _forEachPath(
         void Function(ResolvedUnitResult) callback) async {
       for (var testPath in testPaths) {
-        var result = await server
-            .getAnalysisDriver(testPath)
-            .currentSession
-            .getResolvedUnit(testPath);
+        var result = await driver.currentSession.getResolvedUnit(testPath);
         callback(result);
       }
     }

@@ -8,7 +8,8 @@ import 'dart:async';
  * and `T` is not `void` or `dynamic`.
  */
 
-void v = null;
+void v = 42;
+
 Null test() {
   return v;
   //     ^

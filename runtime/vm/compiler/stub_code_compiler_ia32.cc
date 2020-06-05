@@ -55,7 +55,7 @@ static void EnsureIsNewOrRemembered(Assembler* assembler,
   }
   __ movl(Address(ESP, 1 * target::kWordSize), THR);
   __ movl(Address(ESP, 0 * target::kWordSize), EAX);
-  __ CallRuntime(kAddAllocatedObjectToRememberedSetRuntimeEntry, 2);
+  __ CallRuntime(kEnsureRememberedAndMarkingDeferredRuntimeEntry, 2);
   if (preserve_registers) {
     __ LeaveCallRuntimeFrame();
   }
@@ -2398,6 +2398,8 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // Loop initialization (moved up here to avoid having all dependent loads
   // after each other)
   __ movl(EDX, Address(ESP, kCacheOffsetInBytes));
+  // We avoid a load-acquire barrier here by relying on the fact that all other
+  // loads from the array are data-dependent loads.
   __ movl(EDX, FieldAddress(EDX, target::SubtypeTestCache::cache_offset()));
   __ addl(EDX, Immediate(target::Array::data_offset() - kHeapObjectTag));
 
@@ -2854,7 +2856,8 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   // Probe failed, check if it is a miss.
   __ cmpl(FieldAddress(EDI, EDX, TIMES_4, base),
           Immediate(target::ToRawSmi(kIllegalCid)));
-  __ j(ZERO, &load_target, Assembler::kNearJump);
+  Label miss;
+  __ j(ZERO, &miss, Assembler::kNearJump);
 
   // Try next entry in the table.
   __ AddImmediate(EDX, Immediate(target::ToRawSmi(1)));
@@ -2864,6 +2867,10 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ Bind(&smi_case);
   __ movl(EAX, Immediate(kSmiCid));
   __ jmp(&cid_loaded);
+
+  __ Bind(&miss);
+  __ popl(EBX);  // restore receiver
+  GenerateSwitchableCallMissStub(assembler);
 }
 
 void StubCodeCompiler::GenerateICCallThroughCodeStub(Assembler* assembler) {
@@ -2899,15 +2906,6 @@ void StubCodeCompiler::GenerateSwitchableCallMissStub(Assembler* assembler) {
   __ jmp(EAX);
 }
 
-// Called from megamorphic call sites and from megamorphic miss handlers.
-//  EBX: receiver
-//  EDX: arguments descriptor(or zero if invoked from unlinked/monomorphic call)
-void StubCodeCompiler::GenerateMegamorphicCallMissStub(Assembler* assembler) {
-  // On ia32 there is no need to load receiver from the actual arguments using
-  // arg descriptor because (unlike on arm, arm64) receiver is always available.
-  GenerateSwitchableCallMissStub(assembler);
-}
-
 void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
   __ int3();  // AOT only.
 }
@@ -2936,12 +2934,17 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
   __ leal(EAX, compiler::FieldAddress(EAX, Array::data_offset()));
   // The instantiations cache is initialized with Object::zero_array() and is
   // therefore guaranteed to contain kNoInstantiator. No length check needed.
-  compiler::Label loop, next, found;
+  compiler::Label loop, next, found, call_runtime;
   __ Bind(&loop);
-  __ movl(EDI,
-          compiler::Address(
-              EAX, TypeArguments::Instantiation::kInstantiatorTypeArgsIndex *
-                       target::kWordSize));
+
+  // Use load-acquire to test for sentinel, if we found non-sentinel it is safe
+  // to access the other entries. If we found a sentinel we go to runtime.
+  __ LoadAcquire(EDI, EAX,
+                 TypeArguments::Instantiation::kInstantiatorTypeArgsIndex *
+                     target::kWordSize);
+  __ CompareImmediate(EDI, Smi::RawValue(TypeArguments::kNoInstantiator));
+  __ j(EQUAL, &call_runtime, compiler::Assembler::kNearJump);
+
   __ cmpl(EDI, InstantiationABI::kInstantiatorTypeArgumentsReg);
   __ j(NOT_EQUAL, &next, compiler::Assembler::kNearJump);
   __ movl(EBX, compiler::Address(
@@ -2952,12 +2955,11 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
   __ Bind(&next);
   __ addl(EAX, compiler::Immediate(TypeArguments::Instantiation::kSizeInWords *
                                    target::kWordSize));
-  __ cmpl(EDI,
-          compiler::Immediate(Smi::RawValue(TypeArguments::kNoInstantiator)));
-  __ j(NOT_EQUAL, &loop, compiler::Assembler::kNearJump);
+  __ jmp(&loop, compiler::Assembler::kNearJump);
 
   // Instantiate non-null type arguments.
   // A runtime call to instantiate the type arguments is required.
+  __ Bind(&call_runtime);
   __ popl(InstantiationABI::kUninstantiatedTypeArgumentsReg);  // Restore reg.
   __ EnterStubFrame();
   __ PushObject(Object::null_object());  // Make room for the result.

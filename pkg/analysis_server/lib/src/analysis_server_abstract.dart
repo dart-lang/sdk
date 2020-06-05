@@ -7,7 +7,6 @@ import 'dart:core';
 import 'dart:io' as io;
 
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/api_for_nnbd_migration.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
@@ -51,7 +50,7 @@ import 'package:analyzer/src/util/glob.dart';
 
 /// Implementations of [AbstractAnalysisServer] implement a server that listens
 /// on a [CommunicationChannel] for analysis messages and process them.
-abstract class AbstractAnalysisServer implements DriverProvider {
+abstract class AbstractAnalysisServer {
   /// The options of this server instance.
   AnalysisServerOptions options;
 
@@ -69,7 +68,7 @@ abstract class AbstractAnalysisServer implements DriverProvider {
   /// The object used to manage sending a subset of notifications to the client.
   /// The subset of notifications are those to which plugins may contribute.
   /// This field is `null` when the new plugin support is disabled.
-  NotificationManager notificationManager;
+  AbstractNotificationManager notificationManager;
 
   /// The object used to manage the execution of plugins.
   PluginManager pluginManager;
@@ -128,7 +127,6 @@ abstract class AbstractAnalysisServer implements DriverProvider {
   ];
 
   /// The [ResourceProvider] using which paths are converted into [Resource]s.
-  @override
   final OverlayResourceProvider resourceProvider;
 
   /// The next modification stamp for a changed file in the [resourceProvider].
@@ -284,7 +282,8 @@ abstract class AbstractAnalysisServer implements DriverProvider {
     return null;
   }
 
-  @override
+  /// Return the appropriate analysis session for the file with the given
+  /// [path].
   AnalysisSession getAnalysisSession(String path) =>
       getAnalysisDriver(path).currentSession;
 

@@ -15,7 +15,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
 import 'package:path/path.dart' as pathos;
 import 'package:yaml/yaml.dart';
 
@@ -55,8 +54,6 @@ abstract class AbstractDartSdk implements DartSdk {
    * The mapping from Dart URI's to the corresponding sources.
    */
   final Map<String, Source> _uriToSourceMap = HashMap<String, Source>();
-
-  PackageBundle _sdkBundle;
 
   /**
    * Return the analysis options for this SDK analysis context.
@@ -152,26 +149,10 @@ abstract class AbstractDartSdk implements DartSdk {
     return null;
   }
 
-  @override
-  PackageBundle getLinkedBundle() {
-    if (_useSummary) {
-      _sdkBundle ??= getSummarySdkBundle();
-      return _sdkBundle;
-    }
-    return null;
-  }
-
   String getRelativePathFromFile(File file);
 
   @override
   SdkLibrary getSdkLibrary(String dartUri) => libraryMap.getLibrary(dartUri);
-
-  /**
-   * Return the [PackageBundle] for this SDK, if it exists, or `null` otherwise.
-   * This method should not be used outside of `analyzer` and `analyzer_cli`
-   * packages.
-   */
-  PackageBundle getSummarySdkBundle();
 
   Source internalMapDartUri(String dartUri) {
     // TODO(brianwilkerson) Figure out how to unify the implementations in the
@@ -266,15 +247,26 @@ class EmbedderSdk extends AbstractDartSdk {
   static const String _EMBEDDED_LIB_MAP_KEY = 'embedded_libs';
   final Map<String, String> _urlMappings = HashMap<String, String>();
 
-  Folder _embedderYamlLibFolder;
-
   EmbedderSdk(
       ResourceProvider resourceProvider, Map<Folder, YamlMap> embedderYamls) {
     this.resourceProvider = resourceProvider;
     embedderYamls?.forEach(_processEmbedderYaml);
-    if (embedderYamls?.length == 1) {
-      _embedderYamlLibFolder = embedderYamls.keys.first;
+  }
+
+  @override
+  String get allowedExperimentsJson {
+    var coreSource = mapDartUri('dart:core');
+    if (coreSource != null) {
+      var coreFile = resourceProvider.getFile(coreSource.fullName);
+      var embeddedFolder = coreFile.parent.parent;
+      try {
+        return embeddedFolder
+            .getChildAssumingFolder('_internal')
+            .getChildAssumingFile('allowed_experiments.json')
+            .readAsStringSync();
+      } catch (_) {}
     }
+    return null;
   }
 
   @override
@@ -288,25 +280,6 @@ class EmbedderSdk extends AbstractDartSdk {
 
   @override
   String getRelativePathFromFile(File file) => file.path;
-
-  @override
-  PackageBundle getSummarySdkBundle() {
-    String name = 'strong.sum';
-    File file = _embedderYamlLibFolder.parent.getChildAssumingFile(name);
-    try {
-      if (file.exists) {
-        List<int> bytes = file.readAsBytesSync();
-        return PackageBundle.fromBuffer(bytes);
-      }
-    } catch (exception, stackTrace) {
-      AnalysisEngine.instance.instrumentationService.logException(
-          CaughtException.withMessage(
-              'Failed to load SDK analysis summary from $file',
-              exception,
-              stackTrace));
-    }
-    return null;
-  }
 
   @override
   Source internalMapDartUri(String dartUri) {
@@ -464,6 +437,19 @@ class FolderBasedDartSdk extends AbstractDartSdk {
     libraryMap = initialLibraryMap();
   }
 
+  @override
+  String get allowedExperimentsJson {
+    try {
+      return _sdkDirectory
+          .getChildAssumingFolder('lib')
+          .getChildAssumingFolder('_internal')
+          .getChildAssumingFile('allowed_experiments.json')
+          .readAsStringSync();
+    } catch (_) {
+      return null;
+    }
+  }
+
   /**
    * Return the directory containing the SDK.
    */
@@ -479,25 +465,19 @@ class FolderBasedDartSdk extends AbstractDartSdk {
    * Return the directory within the SDK directory that contains the libraries.
    */
   Folder get libraryDirectory {
-    if (_libraryDirectory == null) {
-      _libraryDirectory =
-          _sdkDirectory.getChildAssumingFolder(_LIB_DIRECTORY_NAME);
-    }
-    return _libraryDirectory;
+    return _libraryDirectory ??=
+        _sdkDirectory.getChildAssumingFolder(_LIB_DIRECTORY_NAME);
   }
 
   /**
    * Return the file containing the Pub executable, or `null` if it does not exist.
    */
   File get pubExecutable {
-    if (_pubExecutable == null) {
-      _pubExecutable = _sdkDirectory
-          .getChildAssumingFolder(_BIN_DIRECTORY_NAME)
-          .getChildAssumingFile(OSUtilities.isWindows()
-              ? _PUB_EXECUTABLE_NAME_WIN
-              : _PUB_EXECUTABLE_NAME);
-    }
-    return _pubExecutable;
+    return _pubExecutable ??= _sdkDirectory
+        .getChildAssumingFolder(_BIN_DIRECTORY_NAME)
+        .getChildAssumingFile(OSUtilities.isWindows()
+            ? _PUB_EXECUTABLE_NAME_WIN
+            : _PUB_EXECUTABLE_NAME);
   }
 
   /**
@@ -554,33 +534,6 @@ class FolderBasedDartSdk extends AbstractDartSdk {
       return null;
     }
     return filePath.substring(libPath.length + 1);
-  }
-
-  /**
-   * Return the [PackageBundle] for this SDK, if it exists, or `null` otherwise.
-   * This method should not be used outside of `analyzer` and `analyzer_cli`
-   * packages.
-   */
-  @override
-  PackageBundle getSummarySdkBundle() {
-    String rootPath = directory.path;
-    String name = 'strong.sum';
-    String path =
-        resourceProvider.pathContext.join(rootPath, 'lib', '_internal', name);
-    try {
-      File file = resourceProvider.getFile(path);
-      if (file.exists) {
-        List<int> bytes = file.readAsBytesSync();
-        return PackageBundle.fromBuffer(bytes);
-      }
-    } catch (exception, stackTrace) {
-      AnalysisEngine.instance.instrumentationService.logException(
-          CaughtException.withMessage(
-              'Failed to load SDK analysis summary from $path',
-              exception,
-              stackTrace));
-    }
-    return null;
   }
 
   /**

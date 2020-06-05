@@ -119,6 +119,8 @@ export 'package:test_core/test_core.dart';
     return context.driver;
   }
 
+  LineInfo getLineInfo(String path) => session.getFile(path).lineInfo;
+
   void setUp() {
     setupResourceProvider();
     overlayResourceProvider = OverlayResourceProvider(resourceProvider);

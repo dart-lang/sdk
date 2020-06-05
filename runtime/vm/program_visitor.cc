@@ -425,8 +425,7 @@ void ProgramVisitor::ShareMegamorphicBuckets(Zone* zone, Isolate* isolate) {
   const intptr_t capacity = 1;
   const Array& buckets = Array::Handle(
       zone, Array::New(MegamorphicCache::kEntryLength * capacity, Heap::kOld));
-  const Function& handler =
-      Function::Handle(zone, MegamorphicCacheTable::miss_handler(isolate));
+  const Function& handler = Function::Handle(zone);
   MegamorphicCache::SetEntry(buckets, 0, Object::smi_illegal_cid(), handler);
 
   for (intptr_t i = 0; i < table.Length(); i++) {

@@ -16,6 +16,11 @@ main() {
 
 @reflectiveTest
 class FutureValueTypeTest extends AbstractTypeSystemNullSafetyTest {
+  /// futureValueType(`dynamic`) = `dynamic`.
+  test_dynamic() {
+    _check(dynamicNone, 'dynamic');
+  }
+
   /// futureValueType(Future<`S`>) = `S`, for all `S`.
   test_future() {
     void check(DartType S, String expected) {

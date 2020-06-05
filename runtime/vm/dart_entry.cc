@@ -658,7 +658,12 @@ ObjectPtr DartLibraryCalls::LookupHandler(Dart_Port port_id) {
     ASSERT(!function.IsNull());
     thread->isolate()->object_store()->set_lookup_port_handler(function);
   }
-  const Array& args = Array::Handle(zone, Array::New(kNumArguments));
+  Array& args = Array::Handle(
+      zone, thread->isolate()->isolate_object_store()->dart_args_1());
+  if (args.IsNull()) {
+    args = Array::New(kNumArguments);
+    thread->isolate()->isolate_object_store()->set_dart_args_1(args);
+  }
   args.SetAt(0, Integer::Handle(zone, Integer::New(port_id)));
   const Object& result =
       Object::Handle(zone, DartEntry::InvokeFunction(function, args));
@@ -687,7 +692,12 @@ ObjectPtr DartLibraryCalls::HandleMessage(const Object& handler,
     ASSERT(!function.IsNull());
     isolate->object_store()->set_handle_message_function(function);
   }
-  const Array& args = Array::Handle(zone, Array::New(kNumArguments));
+  Array& args = Array::Handle(
+      zone, thread->isolate()->isolate_object_store()->dart_args_2());
+  if (args.IsNull()) {
+    args = Array::New(kNumArguments);
+    thread->isolate()->isolate_object_store()->set_dart_args_2(args);
+  }
   args.SetAt(0, handler);
   args.SetAt(1, message);
 #if !defined(PRODUCT)

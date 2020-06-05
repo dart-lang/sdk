@@ -232,6 +232,15 @@ void KernelIsolate::InitializeState() {
 }
 
 bool KernelIsolate::Start() {
+  if (create_group_callback_ == nullptr) {
+    if (FLAG_trace_kernel) {
+      OS::PrintErr(DART_KERNEL_ISOLATE_NAME
+                   ": Attempted to start kernel isolate without setting "
+                   "Dart_InitializeParams property 'start_kernel_isolate' "
+                   "to true\n");
+    }
+    return false;
+  }
   bool start_task = false;
   {
     MonitorLocker ml(monitor_);

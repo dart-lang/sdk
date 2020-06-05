@@ -62,6 +62,9 @@ class _MockSource implements Source {
   String get encoding => '$uri';
 
   @override
+  String get fullName => uri.path;
+
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 

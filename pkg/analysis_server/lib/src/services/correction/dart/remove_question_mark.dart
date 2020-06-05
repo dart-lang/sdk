@@ -15,10 +15,10 @@ class RemoveQuestionMark extends CorrectionProducer {
 
   @override
   Future<void> compute(DartChangeBuilder builder) async {
-    if (node is! SimpleIdentifier || node.parent is! TypeName) {
+    if (node is! TypeName) {
       return;
     }
-    var typeName = node.parent as TypeName;
+    var typeName = node as TypeName;
     var questionMark = typeName.question;
     if (questionMark == null) {
       return;

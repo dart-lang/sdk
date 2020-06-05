@@ -56,6 +56,9 @@ abstract class DartCompletionRequest extends CompletionRequest {
   /// Return `true` if free standing identifiers should be suggested
   bool get includeIdentifiers;
 
+  /// Return `true` if the completion is occurring in a constant context.
+  bool get inConstantContext;
+
   /// Return the library element which contains the unit in which the completion
   /// is occurring. This may return `null` if the library cannot be determined
   /// (e.g. unlinked part file).

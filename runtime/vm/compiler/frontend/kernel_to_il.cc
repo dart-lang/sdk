@@ -469,10 +469,10 @@ Fragment FlowGraphBuilder::StoreLateField(const Field& field,
   if (is_final) {
     // Check whether the field has been initialized already.
     if (is_static) {
-      instructions += LoadStaticField(field);
+      instructions += LoadStaticField(field, /*calls_initializer=*/false);
     } else {
       instructions += LoadLocal(instance);
-      instructions += LoadField(field);
+      instructions += LoadField(field, /*calls_initializer=*/false);
     }
     instructions += Constant(Object::sentinel());
     instructions += BranchIfStrictEqual(&is_uninitialized, &is_initialized);
@@ -506,20 +506,6 @@ Fragment FlowGraphBuilder::StoreLateField(const Field& field,
   }
 
   return instructions;
-}
-
-Fragment FlowGraphBuilder::InitInstanceField(const Field& field) {
-  ASSERT(field.is_instance());
-  ASSERT(field.NeedsInitializationCheckOnLoad());
-  InitInstanceFieldInstr* init = new (Z)
-      InitInstanceFieldInstr(Pop(), MayCloneField(field), GetNextDeoptId());
-  return Fragment(init);
-}
-
-Fragment FlowGraphBuilder::InitStaticField(const Field& field) {
-  InitStaticFieldInstr* init =
-      new (Z) InitStaticFieldInstr(MayCloneField(field), GetNextDeoptId());
-  return Fragment(init);
 }
 
 Fragment FlowGraphBuilder::NativeCall(const String* name,
@@ -2577,13 +2563,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
   } else if (is_method) {
     ASSERT(!field.needs_load_guard()
                 NOT_IN_PRODUCT(|| I->HasAttemptedReload()));
-    if (field.NeedsInitializationCheckOnLoad()) {
-      body += LoadLocal(parsed_function_->ParameterVariable(0));
-      body += InitInstanceField(field);
-    }
-
     body += LoadLocal(parsed_function_->ParameterVariable(0));
-    body += LoadField(field);
+    body += LoadField(
+        field, /*calls_initializer=*/field.NeedsInitializationCheckOnLoad());
     if (field.needs_load_guard()) {
 #if defined(PRODUCT)
       UNREACHABLE();
@@ -2593,12 +2575,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
 #endif
     }
   } else if (field.is_const()) {
-    // If the parser needs to know the value of an uninitialized constant field
-    // it will set the value to the transition sentinel (used to detect circular
-    // initialization) and then call the implicit getter.  Thus, the getter
-    // cannot contain the InitStaticField instruction that normal static getters
-    // contain because it would detect spurious circular initialization when it
-    // checks for the transition sentinel.
     ASSERT(!field.IsUninitialized());
     body += Constant(Instance::ZoneHandle(Z, field.StaticValue()));
   } else {
@@ -2611,8 +2587,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
     // to make sure they are already initialized.
     ASSERT(field.has_nontrivial_initializer() ||
            (field.is_late() && !field.has_initializer()));
-    body += InitStaticField(field);
-    body += LoadStaticField(field);
+    body += LoadStaticField(field, /*calls_initializer=*/true);
     if (field.needs_load_guard()) {
 #if defined(PRODUCT)
       UNREACHABLE();

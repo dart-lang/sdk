@@ -114,8 +114,7 @@ TEST_CASE(UnhandledExceptions) {
       "  UnhandledExceptions.equals(2, Second.method1(1));\n"
       "  UnhandledExceptions.equals(3, Second.method3(1));\n"
       "}";
-  Dart_Handle lib = TestCase::LoadTestScript(
-      kScriptChars, reinterpret_cast<Dart_NativeEntryResolver>(native_lookup));
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, native_lookup);
   EXPECT_VALID(Dart_Invoke(lib, NewString("testMain"), 0, NULL));
 }
 

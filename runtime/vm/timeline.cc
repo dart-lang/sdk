@@ -1581,7 +1581,7 @@ void DartTimelineEventHelpers::ReportTaskEvent(Thread* thread,
          (phase[0] == 'B') || (phase[0] == 'E'));
   ASSERT(phase[1] == '\0');
   const int64_t start = OS::GetCurrentMonotonicMicros();
-  const int64_t start_cpu = OS::GetCurrentThreadCPUMicros();
+  const int64_t start_cpu = OS::GetCurrentThreadCPUMicrosForTimeline();
   switch (phase[0]) {
     case 'n':
       event->AsyncInstant(name, id, start);

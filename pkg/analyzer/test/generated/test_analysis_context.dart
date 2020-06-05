@@ -18,7 +18,7 @@ class TestAnalysisContext implements AnalysisContext {
   @override
   final SourceFactory sourceFactory = _MockSourceFactory();
 
-  _MockAnalysisSession _analysisSession = _MockAnalysisSession();
+  final _MockAnalysisSession _analysisSession = _MockAnalysisSession();
   AnalysisOptionsImpl _analysisOptions;
 
   TypeProvider _typeProviderLegacy;

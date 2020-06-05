@@ -877,6 +877,8 @@ class DartTypeTagger extends DartTypeVisitor<String>
   String visitFunctionType(FunctionType _) => "->";
   String visitTypeParameterType(TypeParameterType _) => "par";
   String visitInterfaceType(InterfaceType _) => "interface";
+  String visitNeverType(NeverType _) => "never";
+  String visitTypedefType(TypedefType _) => "typedef";
 }
 
 const TextSerializer<InvalidType> invalidTypeSerializer =
@@ -906,6 +908,13 @@ const TextSerializer<BottomType> bottomTypeSerializer =
 void unwrapBottomType(BottomType type) {}
 
 BottomType wrapBottomType(void ignored) => const BottomType();
+
+const TextSerializer<NeverType> neverTypeSerializer =
+    const Wrapped(unwrapNeverType, wrapNeverType, const Nothing());
+
+void unwrapNeverType(NeverType type) {}
+
+NeverType wrapNeverType(void ignored) => const NeverType(Nullability.legacy);
 
 // TODO(dmitryas):  Also handle nameParameters, and typedefType.
 TextSerializer<FunctionType> functionTypeSerializer = new Wrapped(
@@ -980,6 +989,21 @@ Tuple2<CanonicalName, List<DartType>> unwrapInterfaceType(InterfaceType node) {
 
 InterfaceType wrapInterfaceType(Tuple2<CanonicalName, List<DartType>> tuple) {
   return new InterfaceType.byReference(
+      tuple.first.reference, Nullability.legacy, tuple.second);
+}
+
+TextSerializer<TypedefType> typedefTypeSerializer = new Wrapped(
+    unwrapTypedefType,
+    wrapTypedefType,
+    Tuple2Serializer(const CanonicalNameSerializer(),
+        new ListSerializer(dartTypeSerializer)));
+
+Tuple2<CanonicalName, List<DartType>> unwrapTypedefType(TypedefType node) {
+  return new Tuple2(node.typedefReference.canonicalName, node.typeArguments);
+}
+
+TypedefType wrapTypedefType(Tuple2<CanonicalName, List<DartType>> tuple) {
+  return new TypedefType.byReference(
       tuple.first.reference, Nullability.legacy, tuple.second);
 }
 
@@ -1503,6 +1527,8 @@ void initializeSerializers() {
     "->": functionTypeSerializer,
     "par": typeParameterTypeSerializer,
     "interface": interfaceTypeSerializer,
+    "never": neverTypeSerializer,
+    "typedef": typedefTypeSerializer,
   });
   statementSerializer.registerTags({
     "expr": expressionStatementSerializer,

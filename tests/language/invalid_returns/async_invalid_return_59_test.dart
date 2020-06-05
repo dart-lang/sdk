@@ -5,8 +5,8 @@
 import 'dart:async';
 
 /* `return exp;` where `exp` has static type `S` is an error if the future
- * value type of the function is neither `void` nor `dynamic`,
- * and `flatten(S)` is `void` or `void*`.
+ * value type of the function is `void` and `flatten(S)` is not
+ * `void`, `dynamic`, `Null`, `void*`, `dynamic*`, or `Null*`.
  */
 
 Future<int> v = Future.value(0);
@@ -18,11 +18,9 @@ FutureOr<void> test1() async {
   // [cfe] unspecified
 }
 
+// Inferred return type of function literal is `Future<int>`, no error.
 FutureOr<void> Function() test2 = () async {
   return v;
-  //     ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
 };
 
 void main() {

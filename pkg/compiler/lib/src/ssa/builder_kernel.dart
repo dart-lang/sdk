@@ -230,7 +230,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
   /// Pushes a boolean checking [expression] against null.
   pushCheckNull(HInstruction expression) {
-    push(new HIdentity(expression, graph.addConstantNull(closedWorld), null,
+    push(new HIdentity(expression, graph.addConstantNull(closedWorld),
         _abstractValueDomain.boolType));
   }
 
@@ -1322,7 +1322,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
             visitCondition: () {
               HParameterValue parameter = parameters.values.first;
               push(new HIdentity(parameter, graph.addConstantNull(closedWorld),
-                  null, _abstractValueDomain.boolType));
+                  _abstractValueDomain.boolType));
             },
             visitThen: () {
               _closeAndGotoExit(HReturn(
@@ -1954,8 +1954,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       SourceInformation sourceInformation =
           _sourceInformationBuilder.buildForInMoveNext(node);
       HInstruction length = buildGetLength(sourceInformation);
-      push(new HIdentity(
-          length, originalLength, null, _abstractValueDomain.boolType)
+      push(new HIdentity(length, originalLength, _abstractValueDomain.boolType)
         ..sourceInformation = sourceInformation);
       _pushStaticInvocation(
           _commonElements.checkConcurrentModificationError,
@@ -1989,7 +1988,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
           sourceInformation: sourceInformation);
       HInstruction length = buildGetLength(sourceInformation);
       HInstruction compare =
-          new HLess(index, length, null, _abstractValueDomain.boolType)
+          new HLess(index, length, _abstractValueDomain.boolType)
             ..sourceInformation = sourceInformation;
       add(compare);
       return compare;
@@ -2012,7 +2011,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
           _sourceInformationBuilder.buildForInCurrent(node);
       HInstruction index = localsHandler.readLocal(indexVariable,
           sourceInformation: sourceInformation);
-      HInstruction value = new HIndex(array, index, null, type)
+      HInstruction value = new HIndex(array, index, type)
         ..sourceInformation = sourceInformation;
       add(value);
 
@@ -2041,7 +2040,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
           sourceInformation: sourceInformation);
       HInstruction one = graph.addConstantInt(1, closedWorld);
       HInstruction addInstruction =
-          new HAdd(index, one, null, _abstractValueDomain.positiveIntType)
+          new HAdd(index, one, _abstractValueDomain.positiveIntType)
             ..sourceInformation = sourceInformation;
       add(addInstruction);
       localsHandler.updateLocal(indexVariable, addInstruction,
@@ -4394,13 +4393,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
           function.requiredParameterCount ==
               function.positionalParameters.length &&
           function.namedParameters.isEmpty) {
-        push(new HForeignCode(
-            js.js.expressionTemplateYielding(_emitter
-                .staticFunctionAccess(_elementMap.getMethod(procedure))),
-            _abstractValueDomain.dynamicType,
-            <HInstruction>[],
-            nativeBehavior: NativeBehavior.PURE,
-            foreignFunction: _elementMap.getMethod(procedure)));
+        push(HFunctionReference(_elementMap.getMethod(procedure),
+            _abstractValueDomain.dynamicType));
         return true;
       }
       problem = 'does not handle a closure with optional parameters';

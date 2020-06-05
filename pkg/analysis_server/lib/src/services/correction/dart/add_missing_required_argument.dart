@@ -36,7 +36,7 @@ class AddMissingRequiredArgument extends CorrectionProducer {
         creation =
             invocation.thisOrAncestorOfType<InstanceCreationExpression>();
         if (creation != null) {
-          targetElement = creation.staticElement;
+          targetElement = creation.constructorName.staticElement;
           argumentList = creation.argumentList;
         }
       }

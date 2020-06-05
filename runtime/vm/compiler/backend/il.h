@@ -411,15 +411,13 @@ struct InstrAttrs {
   M(LoadCodeUnits, kNoGC)                                                      \
   M(StoreIndexed, kNoGC)                                                       \
   M(StoreInstanceField, _)                                                     \
-  M(InitInstanceField, _)                                                      \
-  M(InitStaticField, _)                                                        \
-  M(LoadStaticField, kNoGC)                                                    \
+  M(LoadStaticField, _)                                                        \
   M(StoreStaticField, kNoGC)                                                   \
   M(BooleanNegate, kNoGC)                                                      \
   M(InstanceOf, _)                                                             \
   M(CreateArray, _)                                                            \
   M(AllocateObject, _)                                                         \
-  M(LoadField, kNoGC)                                                          \
+  M(LoadField, _)                                                              \
   M(LoadUntagged, kNoGC)                                                       \
   M(StoreUntagged, kNoGC)                                                      \
   M(LoadClassId, kNoGC)                                                        \
@@ -1776,11 +1774,7 @@ class PhiIterator : public ValueObject {
   PhiInstr* Current() const { return (*phis_)[index_]; }
 
   // Removes current phi from graph and sets current to previous phi.
-  void RemoveCurrentFromGraph() {
-    (*phis_)[index_] = phis_->Last();
-    phis_->RemoveLast();
-    --index_;
-  }
+  void RemoveCurrentFromGraph();
 
  private:
   ZoneGrowableArray<PhiInstr*>* phis_;
@@ -2440,6 +2434,8 @@ class PhiInstr : public Definition {
   // value. Returns the replacement for this phi if it is redundant.
   // The replacement is selected among values redefined by inputs.
   Definition* GetReplacementForRedundantPhi() const;
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   PRINT_TO_SUPPORT
 
@@ -3921,7 +3917,7 @@ class InstanceCallBaseInstr : public TemplateDartCall<0> {
   // interface target, CompileType and hints from TFA.
   void UpdateReceiverSminess(Zone* zone);
 
-  bool HasNonSmiAssignableInterface(Zone* zone) const;
+  bool CanReceiverBeSmiBasedOnInterfaceTarget(Zone* zone) const;
 
   virtual SpeculativeMode SpeculativeModeOfInput(intptr_t idx) const {
     if (type_args_len() > 0) {
@@ -5154,11 +5150,10 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
   intptr_t OffsetInBytes() const { return slot().offset_in_bytes(); }
 
   compiler::Assembler::CanBeSmi CanValueBeSmi() const {
-    const intptr_t cid = value()->Type()->ToNullableCid();
     // Write barrier is skipped for nullable and non-nullable smis.
-    ASSERT(cid != kSmiCid);
-    return cid == kDynamicCid ? compiler::Assembler::kValueCanBeSmi
-                              : compiler::Assembler::kValueIsNotSmi;
+    ASSERT(value()->Type()->ToNullableCid() != kSmiCid);
+    return value()->Type()->CanBeSmi() ? compiler::Assembler::kValueCanBeSmi
+                                       : compiler::Assembler::kValueIsNotSmi;
   }
 
   const Slot& slot_;
@@ -5253,23 +5248,39 @@ class GuardFieldTypeInstr : public GuardFieldInstr {
   DISALLOW_COPY_AND_ASSIGN(GuardFieldTypeInstr);
 };
 
-class LoadStaticFieldInstr : public TemplateDefinition<0, NoThrow> {
+class LoadStaticFieldInstr : public TemplateDefinition<0, Throws> {
  public:
-  LoadStaticFieldInstr(const Field& field, TokenPosition token_pos)
-      : field_(field), token_pos_(token_pos) {}
+  LoadStaticFieldInstr(const Field& field,
+                       TokenPosition token_pos,
+                       bool calls_initializer = false,
+                       intptr_t deopt_id = DeoptId::kNone)
+      : TemplateDefinition(deopt_id),
+        field_(field),
+        token_pos_(token_pos),
+        calls_initializer_(calls_initializer) {
+    ASSERT(!calls_initializer || (deopt_id != DeoptId::kNone));
+  }
 
   DECLARE_INSTRUCTION(LoadStaticField)
+
   virtual CompileType ComputeType() const;
 
-  const Field& StaticField() const { return field_; }
+  const Field& field() const { return field_; }
   bool IsFieldInitialized() const;
 
-  virtual bool ComputeCanDeoptimize() const { return false; }
+  bool calls_initializer() const { return calls_initializer_; }
+  void set_calls_initializer(bool value) { calls_initializer_ = value; }
 
   virtual bool AllowsCSE() const {
-    return StaticField().is_final() && !FLAG_fields_may_be_reset;
+    return field().is_final() && !FLAG_fields_may_be_reset;
   }
-  virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual bool ComputeCanDeoptimize() const { return calls_initializer(); }
+  virtual bool HasUnknownSideEffects() const { return calls_initializer(); }
+  virtual bool CanTriggerGC() const { return calls_initializer(); }
+  virtual bool MayThrow() const { return calls_initializer(); }
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool AttributesEqual(Instruction* other) const;
 
@@ -5280,6 +5291,7 @@ class LoadStaticFieldInstr : public TemplateDefinition<0, NoThrow> {
  private:
   const Field& field_;
   const TokenPosition token_pos_;
+  bool calls_initializer_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadStaticFieldInstr);
 };
@@ -5315,11 +5327,9 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
 
  private:
   compiler::Assembler::CanBeSmi CanValueBeSmi() const {
-    const intptr_t cid = value()->Type()->ToNullableCid();
-    // Write barrier is skipped for nullable and non-nullable smis.
-    ASSERT(cid != kSmiCid);
-    return cid == kDynamicCid ? compiler::Assembler::kValueCanBeSmi
-                              : compiler::Assembler::kValueIsNotSmi;
+    ASSERT(value()->Type()->ToNullableCid() != kSmiCid);
+    return value()->Type()->CanBeSmi() ? compiler::Assembler::kValueCanBeSmi
+                                       : compiler::Assembler::kValueIsNotSmi;
   }
 
   const Field& field_;
@@ -6105,23 +6115,35 @@ class LoadClassIdInstr : public TemplateDefinition<1, NoThrow, Pure> {
            other_load->input_can_be_smi_ == input_can_be_smi_;
   }
 
+  PRINT_OPERANDS_TO_SUPPORT
+
  private:
-  Representation representation_;
-  bool input_can_be_smi_;
+  const Representation representation_;
+  const bool input_can_be_smi_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadClassIdInstr);
 };
 
 // LoadFieldInstr represents a load from the given [slot] in the given
-// [instance].
+// [instance]. If calls_initializer(), then LoadFieldInstr also calls field
+// initializer if field is not initialized yet (contains sentinel value).
 //
 // Note: if slot was a subject of the field unboxing optimization then this load
 // would both load the box stored in the field and then load the content of
 // the box.
-class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
+class LoadFieldInstr : public TemplateDefinition<1, Throws> {
  public:
-  LoadFieldInstr(Value* instance, const Slot& slot, TokenPosition token_pos)
-      : slot_(slot), token_pos_(token_pos) {
+  LoadFieldInstr(Value* instance,
+                 const Slot& slot,
+                 TokenPosition token_pos,
+                 bool calls_initializer = false,
+                 intptr_t deopt_id = DeoptId::kNone)
+      : TemplateDefinition(deopt_id),
+        slot_(slot),
+        token_pos_(token_pos),
+        calls_initializer_(calls_initializer) {
+    ASSERT(!calls_initializer || (deopt_id != DeoptId::kNone));
+    ASSERT(!calls_initializer || slot.IsDartField());
     SetInputAt(0, instance);
   }
 
@@ -6129,6 +6151,9 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
   const Slot& slot() const { return slot_; }
 
   virtual TokenPosition token_pos() const { return token_pos_; }
+
+  bool calls_initializer() const { return calls_initializer_; }
+  void set_calls_initializer(bool value) { calls_initializer_ = value; }
 
   virtual Representation representation() const;
 
@@ -6138,7 +6163,10 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
   DECLARE_INSTRUCTION(LoadField)
   virtual CompileType ComputeType() const;
 
-  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return calls_initializer(); }
+  virtual bool HasUnknownSideEffects() const { return calls_initializer(); }
+  virtual bool CanTriggerGC() const { return calls_initializer(); }
+  virtual bool MayThrow() const { return calls_initializer(); }
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
@@ -6165,18 +6193,23 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
   static bool IsTypedDataViewFactory(const Function& function);
 
   virtual bool AllowsCSE() const { return slot_.is_immutable(); }
-  virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool AttributesEqual(Instruction* other) const;
 
   PRINT_OPERANDS_TO_SUPPORT
   ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
+  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   intptr_t OffsetInBytes() const { return slot().offset_in_bytes(); }
 
+  // Generate code which checks if field is initialized and
+  // calls initializer if it is not. Field value is already loaded.
+  void EmitNativeCodeForInitializerCall(FlowGraphCompiler* compiler);
+
   const Slot& slot_;
   const TokenPosition token_pos_;
+  bool calls_initializer_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadFieldInstr);
 };
@@ -6313,67 +6346,6 @@ class AllocateContextInstr : public TemplateAllocation<0, NoThrow> {
   const ZoneGrowableArray<const Slot*>& context_slots_;
 
   DISALLOW_COPY_AND_ASSIGN(AllocateContextInstr);
-};
-
-class InitInstanceFieldInstr : public TemplateInstruction<1, Throws> {
- public:
-  InitInstanceFieldInstr(Value* input, const Field& field, intptr_t deopt_id)
-      : TemplateInstruction(deopt_id), field_(field) {
-    SetInputAt(0, input);
-    CheckField(field);
-  }
-
-  virtual TokenPosition token_pos() const { return field_.token_pos(); }
-  const Field& field() const { return field_; }
-
-  DECLARE_INSTRUCTION(InitInstanceField)
-
-  virtual bool ComputeCanDeoptimize() const {
-    return !CompilerState::Current().is_aot();
-  }
-  virtual bool HasUnknownSideEffects() const { return true; }
-  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
-
-  virtual bool AllowsCSE() const { return true; }
-  virtual bool AttributesEqual(Instruction* other) const {
-    return other->AsInitInstanceField()->field().raw() == field().raw();
-  }
-
- private:
-  const Field& field_;
-
-  DISALLOW_COPY_AND_ASSIGN(InitInstanceFieldInstr);
-};
-
-class InitStaticFieldInstr : public TemplateInstruction<0, Throws> {
- public:
-  InitStaticFieldInstr(const Field& field, intptr_t deopt_id)
-      : TemplateInstruction(deopt_id), field_(field) {
-    CheckField(field);
-  }
-
-  virtual TokenPosition token_pos() const { return field_.token_pos(); }
-  const Field& field() const { return field_; }
-
-  DECLARE_INSTRUCTION(InitStaticField)
-
-  virtual bool ComputeCanDeoptimize() const {
-    return !CompilerState::Current().is_aot();
-  }
-  virtual bool HasUnknownSideEffects() const { return true; }
-  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
-
-  // Two InitStaticField instructions can be canonicalized into one
-  // instruction if both are initializing the same field.
-  virtual bool AllowsCSE() const { return true; }
-  virtual bool AttributesEqual(Instruction* other) const {
-    return other->AsInitStaticField()->field().raw() == field().raw();
-  }
-
- private:
-  const Field& field_;
-
-  DISALLOW_COPY_AND_ASSIGN(InitStaticFieldInstr);
 };
 
 // [CloneContext] instruction clones the given Context object assuming that
@@ -7216,7 +7188,7 @@ class CheckedSmiOpInstr : public TemplateDefinition<2, Throws> {
       : TemplateDefinition(call->deopt_id()), call_(call), op_kind_(op_kind) {
     ASSERT(call->type_args_len() == 0);
     ASSERT(!call->IsInstanceCallBase() ||
-           !call->AsInstanceCallBase()->HasNonSmiAssignableInterface(
+           call->AsInstanceCallBase()->CanReceiverBeSmiBasedOnInterfaceTarget(
                Thread::Current()->zone()));
 
     SetInputAt(0, left);
@@ -7260,7 +7232,7 @@ class CheckedSmiComparisonInstr : public TemplateComparison<2, Throws> {
         is_negated_(false) {
     ASSERT(call->type_args_len() == 0);
     ASSERT(!call->IsInstanceCallBase() ||
-           !call->AsInstanceCallBase()->HasNonSmiAssignableInterface(
+           call->AsInstanceCallBase()->CanReceiverBeSmiBasedOnInterfaceTarget(
                Thread::Current()->zone()));
 
     SetInputAt(0, left);

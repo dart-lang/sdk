@@ -15,6 +15,7 @@ namespace dart {
 
 class DynamicSegment;
 class DynamicTable;
+class ElfWriteStream;
 class Section;
 class StringTable;
 class Symbol;
@@ -25,12 +26,6 @@ class Elf : public ZoneAllocated {
   Elf(Zone* zone, StreamingWriteStream* stream, bool strip = false);
 
   static const intptr_t kPageSize = 4096;
-
-  // Used by the non-symbolic stack frame printer to calculate the relocated
-  // base address of the loaded ELF snapshot given the start of the VM
-  // instructions. Only works for ELF snapshots written by Dart, not those
-  // compiled from assembly.
-  static uword SnapshotRelocatedBaseAddress(uword vm_start);
 
   intptr_t NextMemoryOffset() const { return memory_offset_; }
   intptr_t NextSectionIndex() const { return sections_.length(); }
@@ -51,31 +46,6 @@ class Elf : public ZoneAllocated {
 
   void Finalize();
 
-  intptr_t position() const { return stream_->position(); }
-  void WriteBytes(const uint8_t* b, intptr_t size) {
-    stream_->WriteBytes(b, size);
-  }
-  void WriteByte(uint8_t value) {
-    stream_->WriteBytes(reinterpret_cast<uint8_t*>(&value), sizeof(value));
-  }
-  void WriteHalf(uint16_t value) {
-    stream_->WriteBytes(reinterpret_cast<uint8_t*>(&value), sizeof(value));
-  }
-  void WriteWord(uint32_t value) {
-    stream_->WriteBytes(reinterpret_cast<uint8_t*>(&value), sizeof(value));
-  }
-  void WriteAddr(compiler::target::uword value) {
-    stream_->WriteBytes(reinterpret_cast<uint8_t*>(&value), sizeof(value));
-  }
-  void WriteOff(compiler::target::uword value) {
-    stream_->WriteBytes(reinterpret_cast<uint8_t*>(&value), sizeof(value));
-  }
-#if defined(TARGET_ARCH_IS_64_BIT)
-  void WriteXWord(uint64_t value) {
-    stream_->WriteBytes(reinterpret_cast<uint8_t*>(&value), sizeof(value));
-  }
-#endif
-
  private:
   void AddSection(Section* section, const char* name);
   intptr_t AddSegmentSymbol(const Section* section, const char* name);
@@ -92,15 +62,14 @@ class Elf : public ZoneAllocated {
 
   void FinalizeProgramTable();
   void ComputeFileOffsets();
-  bool VerifySegmentOrder();
 
-  void WriteHeader();
-  void WriteSectionTable();
-  void WriteProgramTable();
-  void WriteSections();
+  void WriteHeader(ElfWriteStream* stream);
+  void WriteSectionTable(ElfWriteStream* stream);
+  void WriteProgramTable(ElfWriteStream* stream);
+  void WriteSections(ElfWriteStream* stream);
 
   Zone* const zone_;
-  StreamingWriteStream* const stream_;
+  StreamingWriteStream* const unwrapped_stream_;
   // Whether the ELF file should be stripped of static information like
   // the static symbol table (and its corresponding string table).
   const bool strip_;

@@ -226,7 +226,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (targetType != null) {
       var enclosingElement = baseElement.enclosingElement;
       if (enclosingElement is ClassElement) {
-        if (enclosingElement.typeParameters.isNotEmpty) {
+        if (targetType.type.resolveToBound(typeProvider.dynamicType)
+                is InterfaceType &&
+            enclosingElement.typeParameters.isNotEmpty) {
           substitution = _decoratedClassHierarchy
               .asInstanceOf(targetType, enclosingElement)
               .asSubstitution;
@@ -757,6 +759,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var origin = FieldFormalParameterOrigin(source, node);
     if (node.type == null) {
       _linkDecoratedTypes(parameterType, fieldType, origin, isUnion: false);
+      _checkAssignment(origin, FixReasonTarget.root,
+          source: fieldType, destination: parameterType, hard: false);
     } else {
       _dispatch(node.type);
       _checkAssignment(origin, FixReasonTarget.root,
@@ -966,7 +970,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitInstanceCreationExpression(
       InstanceCreationExpression node) {
-    var callee = node.staticElement;
+    var callee = node.constructorName.staticElement;
     var typeParameters = callee.enclosingElement.typeParameters;
     Iterable<DartType> typeArgumentTypes;
     List<DecoratedType> decoratedTypeArguments;
@@ -1461,7 +1465,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else if (staticElement is ExtensionElement) {
       result = _makeNonNullLiteralType(node);
     } else if (staticElement == null) {
-      assert(node.toString() == 'void');
+      assert(node.toString() == 'void', "${node.toString()} != 'void'");
       result = _makeNullableVoidType(node);
     } else if (staticElement.enclosingElement is ClassElement &&
         (staticElement.enclosingElement as ClassElement).isEnum) {
@@ -2720,10 +2724,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         method.enclosingElement is ExtensionElement) {
       // Extension methods can be called on a `null` target, when the `on` type
       // of the extension is nullable.
-      _handleAssignment(target,
+      return _handleAssignment(target,
           destinationType:
               _variables.decoratedElementType(method.enclosingElement));
-      return _dispatch(target);
     } else {
       return _checkExpressionNotNull(target);
     }
@@ -2967,9 +2970,7 @@ mixin _AssignmentChecker {
   /// [destination].  [origin] should be used as the origin for any edges
   /// created.  [hard] indicates whether a hard edge should be created.
   /// [sourceIsFunctionLiteral] indicates whether the source of the assignment
-  /// is a function literal expression. [sourceIsSetupCall] indicates whether
-  /// the source of the assignment is a function literal passed to the test
-  /// package's `setUp` function.
+  /// is a function literal expression.
   void _checkAssignment(EdgeOrigin origin, FixReasonTarget edgeTarget,
       {@required DecoratedType source,
       @required DecoratedType destination,

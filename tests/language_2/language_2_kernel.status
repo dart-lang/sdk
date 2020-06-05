@@ -14,6 +14,9 @@ number/web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript t
 [ $compiler == fasta ]
 number/web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
+[ ($hot_reload || $hot_reload_rollback) && $mode == debug ]
+regress/regress41983_test: Pass, Slow
+
 [ $fasta ]
 nnbd/*: Skip
 superinterface_variance/abstract_class_error_test/27: Crash # Issue dart-lang/language#113

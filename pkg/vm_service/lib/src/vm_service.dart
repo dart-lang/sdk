@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.33.0';
+const String vmServiceVersion = '3.35.0';
 
 /// @optional
 const String optional = 'optional';
@@ -158,6 +158,8 @@ Map<String, Function> _typeFactories = {
   '@Object': ObjRef.parse,
   'Object': Obj.parse,
   'ProfileFunction': ProfileFunction.parse,
+  'ProtocolList': ProtocolList.parse,
+  'Protocol': Protocol.parse,
   'ReloadReport': ReloadReport.parse,
   'RetainingObject': RetainingObject.parse,
   'RetainingPath': RetainingPath.parse,
@@ -208,6 +210,7 @@ Map<String, List<String>> _methodReturnTypes = {
   'getObject': const ['Obj'],
   'getRetainingPath': const ['RetainingPath'],
   'getStack': const ['Stack'],
+  'getSupportedProtocols': const ['ProtocolList'],
   'getSourceReport': const ['SourceReport'],
   'getVersion': const ['Version'],
   'getVM': const ['VM'],
@@ -730,6 +733,16 @@ abstract class VmServiceInterface {
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
   Future<Stack> getStack(String isolateId);
+
+  /// The `getSupportedProtocols` RPC is used to determine which protocols are
+  /// supported by the current server.
+  ///
+  /// The result of this call should be intercepted by any middleware that
+  /// extends the core VM service protocol and should add its own protocol to
+  /// the list of protocols before forwarding the response to the client.
+  ///
+  /// See [ProtocolList].
+  Future<ProtocolList> getSupportedProtocols();
 
   /// The `getSourceReport` RPC is used to generate a set of reports tied to
   /// source locations in an isolate.
@@ -1351,6 +1364,9 @@ class VmServerConnection {
             params['isolateId'],
           );
           break;
+        case 'getSupportedProtocols':
+          response = await _serviceImplementation.getSupportedProtocols();
+          break;
         case 'getSourceReport':
           response = await _serviceImplementation.getSourceReport(
             params['isolateId'],
@@ -1809,6 +1825,10 @@ class VmService implements VmServiceInterface {
   @override
   Future<Stack> getStack(String isolateId) =>
       _call('getStack', {'isolateId': isolateId});
+
+  @override
+  Future<ProtocolList> getSupportedProtocols() =>
+      _call('getSupportedProtocols');
 
   @override
   Future<SourceReport> getSourceReport(
@@ -2736,8 +2756,9 @@ class Breakpoint extends Obj {
     @required this.breakpointNumber,
     @required this.resolved,
     @required this.location,
+    @required String id,
     this.isSyntheticAsyncContinuation,
-  });
+  }) : super(id: id);
 
   Breakpoint._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     breakpointNumber = json['breakpointNumber'];
@@ -2780,7 +2801,8 @@ class ClassRef extends ObjRef {
 
   ClassRef({
     @required this.name,
-  });
+    @required String id,
+  }) : super(id: id);
 
   ClassRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
@@ -2868,12 +2890,13 @@ class Class extends Obj implements ClassRef {
     @required this.fields,
     @required this.functions,
     @required this.subclasses,
+    @required String id,
     this.error,
     this.location,
     this.superClass,
     this.superType,
     this.mixin,
-  });
+  }) : super(id: id);
 
   Class._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
@@ -3051,7 +3074,8 @@ class CodeRef extends ObjRef {
   CodeRef({
     @required this.name,
     @required this.kind,
-  });
+    @required String id,
+  }) : super(id: id);
 
   CodeRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
@@ -3091,7 +3115,8 @@ class Code extends ObjRef implements CodeRef {
   Code({
     @required this.name,
     @required this.kind,
-  });
+    @required String id,
+  }) : super(id: id);
 
   Code._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
@@ -3126,7 +3151,8 @@ class ContextRef extends ObjRef {
 
   ContextRef({
     @required this.length,
-  });
+    @required String id,
+  }) : super(id: id);
 
   ContextRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     length = json['length'];
@@ -3169,8 +3195,9 @@ class Context extends Obj implements ContextRef {
   Context({
     @required this.length,
     @required this.variables,
+    @required String id,
     this.parent,
-  });
+  }) : super(id: id);
 
   Context._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     length = json['length'];
@@ -3396,7 +3423,8 @@ class ErrorRef extends ObjRef {
   ErrorRef({
     @required this.kind,
     @required this.message,
-  });
+    @required String id,
+  }) : super(id: id);
 
   ErrorRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'];
@@ -3447,9 +3475,10 @@ class Error extends Obj implements ErrorRef {
   Error({
     @required this.kind,
     @required this.message,
+    @required String id,
     this.exception,
     this.stacktrace,
-  });
+  }) : super(id: id);
 
   Error._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'];
@@ -3807,7 +3836,8 @@ class FieldRef extends ObjRef {
     @required this.isConst,
     @required this.isFinal,
     @required this.isStatic,
-  });
+    @required String id,
+  }) : super(id: id);
 
   FieldRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
@@ -3882,9 +3912,10 @@ class Field extends Obj implements FieldRef {
     @required this.isConst,
     @required this.isFinal,
     @required this.isStatic,
+    @required String id,
     this.staticValue,
     this.location,
-  });
+  }) : super(id: id);
 
   Field._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
@@ -4087,7 +4118,8 @@ class FuncRef extends ObjRef {
     @required this.owner,
     @required this.isStatic,
     @required this.isConst,
-  });
+    @required String id,
+  }) : super(id: id);
 
   FuncRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
@@ -4151,9 +4183,10 @@ class Func extends Obj implements FuncRef {
     @required this.owner,
     @required this.isStatic,
     @required this.isConst,
+    @required String id,
     this.location,
     this.code,
-  });
+  }) : super(id: id);
 
   Func._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
@@ -4293,6 +4326,7 @@ class InstanceRef extends ObjRef {
   InstanceRef({
     @required this.kind,
     @required this.classRef,
+    @required String id,
     this.valueAsString,
     this.valueAsStringIsTruncated,
     this.length,
@@ -4302,13 +4336,13 @@ class InstanceRef extends ObjRef {
     this.pattern,
     this.closureFunction,
     this.closureContext,
-  });
+  }) : super(id: id);
 
   InstanceRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'];
     classRef = createServiceObject(json['class'], const ['ClassRef']);
     valueAsString = json['valueAsString'];
-    valueAsStringIsTruncated = json['valueAsStringIsTruncated'] ?? false;
+    valueAsStringIsTruncated = json['valueAsStringIsTruncated'];
     length = json['length'];
     name = json['name'];
     typeClass = createServiceObject(json['typeClass'], const ['ClassRef']);
@@ -4330,8 +4364,7 @@ class InstanceRef extends ObjRef {
       'class': classRef.toJson(),
     });
     _setIfNotNull(json, 'valueAsString', valueAsString);
-    _setIfNotNull(
-        json, 'valueAsStringIsTruncated', valueAsStringIsTruncated ?? false);
+    _setIfNotNull(json, 'valueAsStringIsTruncated', valueAsStringIsTruncated);
     _setIfNotNull(json, 'length', length);
     _setIfNotNull(json, 'name', name);
     _setIfNotNull(json, 'typeClass', typeClass?.toJson());
@@ -4608,6 +4641,7 @@ class Instance extends Obj implements InstanceRef {
   Instance({
     @required this.kind,
     @required this.classRef,
+    @required String id,
     this.valueAsString,
     this.valueAsStringIsTruncated,
     this.length,
@@ -4632,13 +4666,13 @@ class Instance extends Obj implements InstanceRef {
     this.parameterIndex,
     this.targetType,
     this.bound,
-  });
+  }) : super(id: id);
 
   Instance._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'];
     classRef = createServiceObject(json['class'], const ['ClassRef']);
     valueAsString = json['valueAsString'];
-    valueAsStringIsTruncated = json['valueAsStringIsTruncated'] ?? false;
+    valueAsStringIsTruncated = json['valueAsStringIsTruncated'];
     length = json['length'];
     offset = json['offset'];
     count = json['count'];
@@ -4688,8 +4722,7 @@ class Instance extends Obj implements InstanceRef {
       'class': classRef.toJson(),
     });
     _setIfNotNull(json, 'valueAsString', valueAsString);
-    _setIfNotNull(
-        json, 'valueAsStringIsTruncated', valueAsStringIsTruncated ?? false);
+    _setIfNotNull(json, 'valueAsStringIsTruncated', valueAsStringIsTruncated);
     _setIfNotNull(json, 'length', length);
     _setIfNotNull(json, 'offset', offset);
     _setIfNotNull(json, 'count', count);
@@ -5126,7 +5159,8 @@ class LibraryRef extends ObjRef {
   LibraryRef({
     @required this.name,
     @required this.uri,
-  });
+    @required String id,
+  }) : super(id: id);
 
   LibraryRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
@@ -5192,7 +5226,8 @@ class Library extends Obj implements LibraryRef {
     @required this.variables,
     @required this.functions,
     @required this.classes,
-  });
+    @required String id,
+  }) : super(id: id);
 
   Library._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
@@ -5776,6 +5811,79 @@ class ProfileFunction {
       'resolvedUrl: ${resolvedUrl}, function: ${function}]';
 }
 
+/// A `ProtocolList` contains a list of all protocols supported by the service
+/// instance.
+///
+/// See [Protocol] and [getSupportedProtocols].
+class ProtocolList extends Response {
+  static ProtocolList parse(Map<String, dynamic> json) =>
+      json == null ? null : ProtocolList._fromJson(json);
+
+  /// A list of supported protocols provided by this service.
+  List<Protocol> protocols;
+
+  ProtocolList({
+    @required this.protocols,
+  });
+
+  ProtocolList._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
+    protocols = List<Protocol>.from(
+        createServiceObject(json['protocols'], const ['Protocol']) ?? []);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var json = <String, dynamic>{};
+    json['type'] = 'ProtocolList';
+    json.addAll({
+      'protocols': protocols.map((f) => f.toJson()).toList(),
+    });
+    return json;
+  }
+
+  String toString() => '[ProtocolList type: ${type}, protocols: ${protocols}]';
+}
+
+/// See [getSupportedProtocols].
+class Protocol {
+  static Protocol parse(Map<String, dynamic> json) =>
+      json == null ? null : Protocol._fromJson(json);
+
+  /// The name of the supported protocol.
+  String protocolName;
+
+  /// The major revision of the protocol.
+  int major;
+
+  /// The minor revision of the protocol.
+  int minor;
+
+  Protocol({
+    @required this.protocolName,
+    @required this.major,
+    @required this.minor,
+  });
+
+  Protocol._fromJson(Map<String, dynamic> json) {
+    protocolName = json['protocolName'];
+    major = json['major'];
+    minor = json['minor'];
+  }
+
+  Map<String, dynamic> toJson() {
+    var json = <String, dynamic>{};
+    json.addAll({
+      'protocolName': protocolName,
+      'major': major,
+      'minor': minor,
+    });
+    return json;
+  }
+
+  String toString() => '[Protocol ' //
+      'protocolName: ${protocolName}, major: ${major}, minor: ${minor}]';
+}
+
 class ReloadReport extends Response {
   static ReloadReport parse(Map<String, dynamic> json) =>
       json == null ? null : ReloadReport._fromJson(json);
@@ -5977,7 +6085,8 @@ class ScriptRef extends ObjRef {
 
   ScriptRef({
     @required this.uri,
-  });
+    @required String id,
+  }) : super(id: id);
 
   ScriptRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     uri = json['uri'];
@@ -6062,11 +6171,12 @@ class Script extends Obj implements ScriptRef {
   Script({
     @required this.uri,
     @required this.library,
+    @required String id,
     this.lineOffset,
     this.columnOffset,
     this.source,
     this.tokenPosTable,
-  });
+  }) : super(id: id);
 
   Script._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     uri = json['uri'];
@@ -6597,7 +6707,8 @@ class TypeArgumentsRef extends ObjRef {
 
   TypeArgumentsRef({
     @required this.name,
-  });
+    @required String id,
+  }) : super(id: id);
 
   TypeArgumentsRef._fromJson(Map<String, dynamic> json)
       : super._fromJson(json) {
@@ -6640,7 +6751,8 @@ class TypeArguments extends Obj implements TypeArgumentsRef {
   TypeArguments({
     @required this.name,
     @required this.types,
-  });
+    @required String id,
+  }) : super(id: id);
 
   TypeArguments._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];

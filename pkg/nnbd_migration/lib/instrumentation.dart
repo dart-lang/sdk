@@ -33,6 +33,15 @@ class CodeReference {
         location.columnNumber, _computeEnclosingName(node));
   }
 
+  factory CodeReference.fromElement(
+      Element element, LineInfo Function(String) getLineInfo) {
+    var path = element.source.fullName;
+    var offset = element.nameOffset;
+    var location = getLineInfo(path).getLocation(offset);
+    return CodeReference(path, offset, location.lineNumber,
+        location.columnNumber, _computeElementFullName(element));
+  }
+
   CodeReference.fromJson(dynamic json)
       : path = json['path'] as String,
         offset = json['offset'] as int,
@@ -66,12 +75,34 @@ class CodeReference {
     return '${function ?? 'unknown'} ($pathAsUri:$line:$column)';
   }
 
+  static String _computeElementFullName(Element element) {
+    List<String> parts = [];
+    while (element != null) {
+      var elementName = _computeElementName(element);
+      if (elementName != null) {
+        parts.add(elementName);
+      }
+      element = element.enclosingElement;
+    }
+    if (parts.isEmpty) return null;
+    return parts.reversed.join('.');
+  }
+
+  static String _computeElementName(Element element) {
+    if (element is CompilationUnitElement || element is LibraryElement) {
+      return null;
+    }
+    return element.name;
+  }
+
   static String _computeEnclosingName(AstNode node) {
     List<String> parts = [];
     while (node != null) {
       var nodeName = _computeNodeDeclarationName(node);
       if (nodeName != null) {
         parts.add(nodeName);
+      } else if (parts.isEmpty && node is VariableDeclarationList) {
+        parts.add(node.variables.first.declaredElement.name);
       }
       node = node.parent;
     }
@@ -80,15 +111,7 @@ class CodeReference {
   }
 
   static String _computeNodeDeclarationName(AstNode node) {
-    if (node is FieldDeclaration) {
-      if (node.fields.variables.length == 1) {
-        return node.fields.variables.single.declaredElement?.name;
-      } else {
-        // TODO(srawlins): Handle multiple fields declared at once; likely in
-        // caller, not here.
-        return null;
-      }
-    } else if (node is ExtensionDeclaration) {
+    if (node is ExtensionDeclaration) {
       return node.declaredElement?.name ?? '<unnamed extension>';
     } else if (node is Declaration) {
       var name = node.declaredElement?.name;
@@ -289,6 +312,18 @@ enum HintActionKind {
 
   /// Add a `/*!*/` hint to a type.
   addNonNullableHint,
+
+  /// Change a `/*!*/` hint to a `/*?*/` hint.
+  changeToNullableHint,
+
+  /// Change a `/*?*/` hint to a `/*!*/` hint.
+  changeToNonNullableHint,
+
+  /// Remove a `/*?*/` hint.
+  removeNullableHint,
+
+  /// Remove a `/*!*/` hint.
+  removeNonNullableHint,
 }
 
 /// Abstract interface for assigning ids numbers to nodes, and performing
@@ -510,6 +545,14 @@ extension HintActionKindBehaviors on HintActionKind {
         return 'Add /*?*/ hint';
       case HintActionKind.addNonNullableHint:
         return 'Add /*!*/ hint';
+      case HintActionKind.removeNullableHint:
+        return 'Remove /*?*/ hint';
+      case HintActionKind.removeNonNullableHint:
+        return 'Remove /*!*/ hint';
+      case HintActionKind.changeToNullableHint:
+        return 'Change to /*?*/ hint';
+      case HintActionKind.changeToNonNullableHint:
+        return 'Change to /*!*/ hint';
     }
 
     assert(false);

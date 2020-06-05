@@ -655,7 +655,7 @@ class VMService extends MessageRouter {
     return encodeSuccess(message);
   }
 
-  void _sendServiceRegisteredEvent(Client client, String service,
+  Future<void> _sendServiceRegisteredEvent(Client client, String service,
       {Client? target}) async {
     final namespace = clients.keyOf(client);
     final alias = client.services[service];
@@ -706,6 +706,25 @@ class VMService extends MessageRouter {
         details: 'Unknown service: ${message.method}');
   }
 
+  Future<String> _getSupportedProtocols(Message message) async {
+    final version = json.decode(
+      utf8.decode(
+        (await Message.forMethod('getVersion').sendToVM()).payload,
+      ),
+    )['result'];
+    final protocols = {
+      'type': 'ProtocolList',
+      'protocols': [
+        {
+          'protocolName': 'VM Service',
+          'major': version['major'],
+          'minor': version['minor'],
+        },
+      ],
+    };
+    return encodeResult(message, protocols);
+  }
+
   Future<Response?> routeRequest(VMService _, Message message) async {
     final response = await _routeRequestImpl(message);
     if (response == null) {
@@ -741,6 +760,9 @@ class VMService extends MessageRouter {
       }
       if (message.method == 'requirePermissionToResume') {
         return _requirePermissionToResume(message);
+      }
+      if (message.method == 'getSupportedProtocols') {
+        return await _getSupportedProtocols(message);
       }
       if (devfs.shouldHandleMessage(message)) {
         return await devfs.handleMessage(message);

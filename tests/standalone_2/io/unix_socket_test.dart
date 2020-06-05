@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:expect/expect.dart';
 
@@ -137,6 +138,48 @@ Future testSourceAddressConnect(String name) async {
   await server.close();
 }
 
+Future testAbstractAddress() async {
+  if (!Platform.isLinux && !Platform.isAndroid) {
+    return;
+  }
+  var serverAddress =
+      InternetAddress('@temp.sock', type: InternetAddressType.unix);
+  ServerSocket server = await ServerSocket.bind(serverAddress, 0);
+  final completer = Completer<void>();
+  final content = 'random string';
+  server.listen((Socket socket) {
+    socket.listen((data) {
+      Expect.equals(content, utf8.decode(data));
+      socket.close();
+      server.close();
+      completer.complete();
+    });
+  });
+
+  Socket client = await Socket.connect(serverAddress, 0);
+  client.write(content);
+  await client.drain();
+  await client.close();
+  await completer.future;
+}
+
+Future testExistingFile(String name) async {
+  // Test that a leftover file(In case of previous process being killed and
+  // finalizer doesn't clean up the file) will be cleaned up and bind() should
+  // be able to bind to the socket.
+  var address = InternetAddress('$name/sock', type: InternetAddressType.unix);
+  // Create a file with the same name
+  File(address.address).createSync();
+  try {
+    ServerSocket server = await ServerSocket.bind(address, 0);
+    server.close();
+  } catch (e) {
+    Expect.type<SocketException>(e);
+    return;
+  }
+  Expect.fail("bind should fail with existing file");
+}
+
 // Create socket in temp directory
 Future withTempDir(String prefix, Future<void> test(Directory dir)) async {
   var tempDir = Directory.systemTemp.createTempSync(prefix);
@@ -164,9 +207,13 @@ void main() async {
     await withTempDir('unix_socket_test', (Directory dir) async {
       await testSourceAddressConnect('${dir.path}');
     });
+    await testAbstractAddress();
+    await withTempDir('unix_socket_test', (Directory dir) async {
+      await testExistingFile('${dir.path}');
+    });
   } catch (e) {
     if (Platform.isMacOS || Platform.isLinux || Platform.isAndroid) {
-      Expect.fail("Unexpected exceptions are thrown");
+      Expect.fail("Unexpected exception $e is thrown");
     } else {
       Expect.isTrue(e is SocketException);
     }

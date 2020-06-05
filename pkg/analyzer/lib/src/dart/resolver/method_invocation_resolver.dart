@@ -308,12 +308,8 @@ class MethodInvocationResolver {
     if (propertyName.inSetterContext()) {
       element = classElement.getSetter(name);
     }
-    if (element == null) {
-      element = classElement.getGetter(name);
-    }
-    if (element == null) {
-      element = classElement.getMethod(name);
-    }
+    element ??= classElement.getGetter(name);
+    element ??= classElement.getMethod(name);
     if (element != null && element.isAccessibleIn(_definingLibrary)) {
       return element;
     }

@@ -44,6 +44,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -279,17 +280,23 @@ class DartCompletionManager implements CompletionContributor {
         var element = type.element;
         var tag = '${element.librarySource.uri}::${element.name}';
         if (element.isEnum) {
+          var relevance = request.useNewRelevance
+              ? RelevanceBoost.availableEnumConstant
+              : DART_RELEVANCE_BOOST_AVAILABLE_ENUM;
           includedSuggestionRelevanceTags.add(
             IncludedSuggestionRelevanceTag(
               tag,
-              DART_RELEVANCE_BOOST_AVAILABLE_ENUM,
+              relevance,
             ),
           );
         } else {
+          var relevance = request.useNewRelevance
+              ? RelevanceBoost.availableDeclaration
+              : DART_RELEVANCE_BOOST_AVAILABLE_DECLARATION;
           includedSuggestionRelevanceTags.add(
             IncludedSuggestionRelevanceTag(
               tag,
-              DART_RELEVANCE_BOOST_AVAILABLE_DECLARATION,
+              relevance,
             ),
           );
         }
@@ -425,7 +432,10 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   @override
   DartType get contextType {
     if (!_hasComputedContextType) {
-      _contextType = featureComputer.computeContextType(target.containingNode);
+      var entity = target.entity;
+      if (entity is AstNode) {
+        _contextType = featureComputer.computeContextType(entity);
+      }
       _hasComputedContextType = true;
     }
     return _contextType;
@@ -438,6 +448,12 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   @override
   bool get includeIdentifiers {
     return opType.includeIdentifiers;
+  }
+
+  @override
+  bool get inConstantContext {
+    var entity = target.entity;
+    return entity is ExpressionImpl && entity.inConstantContext;
   }
 
   @override

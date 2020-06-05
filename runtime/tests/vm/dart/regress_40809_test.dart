@@ -17,7 +17,7 @@ class X {
   // We use toString as a selector here to make sure that it is not eligible
   // for any potential transformations which remove named parameters.
   @pragma('vm:never-inline')
-  String toString({String prefix}) {
+  String toString({required String prefix}) {
     f = () => this.field;
     try {
       return int.parse(prefix + this.field).toString();

@@ -349,7 +349,6 @@ class Server {
       // Redirect to the same URI with the trailing '/' to correctly serve
       // index.html.
       request.response.redirect(result);
-      request.response.close();
       return;
     }
 
@@ -362,11 +361,8 @@ class Server {
           WebSocketClient(webSocket, _service);
         });
       } else {
-        request.response.statusCode = HttpStatus.forbidden;
-        request.response.write('Cannot connect directly to the VM service as '
-            'a Dart Development Service (DDS) instance has taken control and '
-            'can be found at ${_service.ddsUri}.');
-        request.response.close();
+        // Forward the websocket connection request to DDS.
+        request.response.redirect(_service.ddsUri);
       }
       return;
     }

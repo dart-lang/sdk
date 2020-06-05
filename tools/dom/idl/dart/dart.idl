@@ -320,11 +320,15 @@ interface Navigator {
   [DartSuppress] void getUserMedia(MediaStreamConstraints constraints,
                                    NavigatorUserMediaSuccessCallback successCallback,
                                    NavigatorUserMediaErrorCallback errorCallback);
-  // deviceMemory is only available on some browsers so it is nullable.
+  // Marked as nullable to address browser compatibility. See 41905.
   [DartSuppress, MeasureAs=NavigatorDeviceMemory,RuntimeEnabled=NavigatorDeviceMemory,SecureContext]
   readonly attribute float deviceMemory;
   [MeasureAs=NavigatorDeviceMemory,RuntimeEnabled=NavigatorDeviceMemory,SecureContext]
   readonly attribute float? deviceMemory;
+  // Defined as part of NavigatorNetworkInformation. Marked as nullable to
+  // address browser compatibility. See 41905.
+  [DartSuppress, MeasureAs=NetInfo] readonly attribute NetworkInformation connection;
+  [MeasureAs=NetInfo] readonly attribute NetworkInformation? connection;
 };
 
 [DartSupplemental,
@@ -576,6 +580,9 @@ interface Performance {
     [DartSuppress] void webkitClearResourceTimings();
     [DartSuppress] void webkitSetResourceTimingBufferSize(unsigned long maxSize);
     [DartSuppress] attribute EventHandler onwebkitresourcetimingbufferfull;
+    // Marked as nullable to address browser compatibility. See 41905.
+    [DartSuppress, Measure] readonly attribute MemoryInfo memory;
+    [Measure] readonly attribute MemoryInfo? memory;
 };
 
 [DartSupplemental]
@@ -627,4 +634,17 @@ interface EventTarget {
     [DartSuppress] void removeEventListener(DOMString type, EventListener? listener, optional (EventListenerOptions or boolean) options);
     [Custom] void addEventListener(DOMString type, EventListener? listener, optional boolean options);
     [Custom] void removeEventListener(DOMString type, EventListener? listener, optional boolean options);
+};
+
+[DartSupplemental]
+interface NetworkInformation : EventTarget {
+    // Marked as nullable to address browser compatibility. See 41905.
+    [DartSuppress, RuntimeEnabled=NetInfoDownlink, MeasureAs=NetInfoDownlink] readonly attribute unrestricted double downlink;
+    [RuntimeEnabled=NetInfoDownlink, MeasureAs=NetInfoDownlink] readonly attribute unrestricted double? downlink;
+};
+
+interface NoncedElement {
+    // Marked as nullable to address browser compatibility. See 41905.
+    [DartSuppress, CEReactions] attribute DOMString nonce;
+    [CEReactions] attribute DOMString? nonce;
 };

@@ -1000,6 +1000,18 @@ Dart_NewWeakPersistentHandle(Dart_Handle object,
                                    external_allocation_size, callback);
 }
 
+DART_EXPORT void Dart_UpdateExternalSize(Dart_WeakPersistentHandle object,
+                                         intptr_t external_size) {
+  IsolateGroup* isolate_group = IsolateGroup::Current();
+  CHECK_ISOLATE_GROUP(isolate_group);
+  NoSafepointScope no_safepoint_scope;
+  ApiState* state = isolate_group->api_state();
+  ASSERT(state != NULL);
+  ASSERT(state->IsActiveWeakPersistentHandle(object));
+  auto weak_ref = FinalizablePersistentHandle::Cast(object);
+  weak_ref->UpdateExternalSize(external_size, isolate_group);
+}
+
 DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object) {
   IsolateGroup* isolate_group = IsolateGroup::Current();
   CHECK_ISOLATE_GROUP(isolate_group);
@@ -1023,7 +1035,7 @@ DART_EXPORT void Dart_DeleteWeakPersistentHandle(
   ASSERT(state != NULL);
   ASSERT(state->IsActiveWeakPersistentHandle(object));
   auto weak_ref = FinalizablePersistentHandle::Cast(object);
-  weak_ref->EnsureFreeExternal(isolate_group);
+  weak_ref->EnsureFreedExternal(isolate_group);
   state->FreeWeakPersistentHandle(weak_ref);
 }
 
@@ -3033,12 +3045,17 @@ static TypeArgumentsPtr TypeArgumentsForElementType(
       return store->type_argument_legacy_string();
   }
   UNREACHABLE();
-  return NULL;
+  return TypeArguments::null();
 }
 
 DART_EXPORT Dart_Handle Dart_NewListOf(Dart_CoreType_Id element_type_id,
                                        intptr_t length) {
   DARTSCOPE(Thread::Current());
+  if (T->isolate()->null_safety() && element_type_id != Dart_CoreType_Dynamic) {
+    return Api::NewError(
+        "Cannot use legacy types with --null-safety enabled. "
+        "Use Dart_NewListOfType or Dart_NewListOfTypeFilled instead.");
+  }
   CHECK_LENGTH(length, Array::kMaxElements);
   CHECK_CALLBACK_STATE(T);
   const Array& arr = Array::Handle(Z, Array::New(length));
@@ -5584,6 +5601,11 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
                                      Dart_Handle class_name,
                                      intptr_t number_of_type_arguments,
                                      Dart_Handle* type_arguments) {
+  if (Thread::Current()->isolate()->null_safety()) {
+    return Api::NewError(
+        "Cannot use legacy types with --null-safety enabled. "
+        "Use Dart_GetNullableType or Dart_GetNonNullableType instead.");
+  }
   return GetTypeCommon(library, class_name, number_of_type_arguments,
                        type_arguments, Nullability::kLegacy);
 }
@@ -5983,37 +6005,6 @@ Dart_CompileToKernel(const char* script_uri,
           "An error occurred in the CFE while accepting the most recent"
           " compilation results: %s",
           accept_result.error);
-    }
-  }
-#endif
-  return result;
-}
-
-DART_EXPORT Dart_KernelCompilationResult
-Dart_CompileSourcesToKernel(const char* script_uri,
-                            const uint8_t* platform_kernel,
-                            intptr_t platform_kernel_size,
-                            int source_files_count,
-                            Dart_SourceFile sources[],
-                            bool incremental_compile,
-                            const char* package_config,
-                            const char* multiroot_filepaths,
-                            const char* multiroot_scheme) {
-  Dart_KernelCompilationResult result = {};
-#if defined(DART_PRECOMPILED_RUNTIME)
-  result.status = Dart_KernelCompilationStatus_Unknown;
-  result.error = strdup("Dart_CompileSourcesToKernel is unsupported.");
-#else
-  result = KernelIsolate::CompileToKernel(
-      script_uri, platform_kernel, platform_kernel_size, source_files_count,
-      sources, incremental_compile, package_config, multiroot_filepaths,
-      multiroot_scheme);
-  if (result.status == Dart_KernelCompilationStatus_Ok) {
-    if (KernelIsolate::AcceptCompilation().status !=
-        Dart_KernelCompilationStatus_Ok) {
-      FATAL(
-          "An error occurred in the CFE while accepting the most recent"
-          " compilation results.");
     }
   }
 #endif
@@ -6520,24 +6511,33 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
   Dwarf* debug_dwarf =
       generate_debug ? new (Z) Dwarf(Z, nullptr, debug_elf) : nullptr;
 
+  // Here, both VM and isolate will be compiled into a single snapshot.
+  // In assembly generation, each serialized text section gets a separate
+  // pointer into the BSS segment and BSS slots are created for each, since
+  // we may not serialize both VM and isolate. Here, we always serialize both,
+  // so make a BSS segment large enough for both, with the VM entries coming
+  // first.
+  auto const isolate_offset = BSS::kVmEntryCount * compiler::target::kWordSize;
+  auto const bss_size =
+      isolate_offset + BSS::kIsolateEntryCount * compiler::target::kWordSize;
   // Note that the BSS section must come first because it cannot be placed in
   // between any two non-writable segments, due to a bug in Jelly Bean's ELF
   // loader. See also Elf::WriteProgramTable().
-  const intptr_t bss_base =
-      elf->AddBSSData("_kDartBSSData", sizeof(compiler::target::uword));
+  const intptr_t vm_bss_base = elf->AddBSSData("_kDartBSSData", bss_size);
+  const intptr_t isolate_bss_base = vm_bss_base + isolate_offset;
   // Add the BSS section to the separately saved debugging information, even
   // though there will be no code in it to relocate, since it precedes the
   // .text sections and thus affects their virtual addresses.
   if (debug_dwarf != nullptr) {
-    debug_elf->AddBSSData("_kDartBSSData", sizeof(compiler::target::uword));
+    debug_elf->AddBSSData("_kDartBSSData", bss_size);
   }
 
   BlobImageWriter vm_image_writer(T, &vm_snapshot_instructions_buffer,
                                   ApiReallocate, kInitialSize, debug_dwarf,
-                                  bss_base, elf, elf_dwarf);
+                                  vm_bss_base, elf, elf_dwarf);
   BlobImageWriter isolate_image_writer(T, &isolate_snapshot_instructions_buffer,
                                        ApiReallocate, kInitialSize, debug_dwarf,
-                                       bss_base, elf, elf_dwarf);
+                                       isolate_bss_base, elf, elf_dwarf);
   FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data_buffer,
                             &isolate_snapshot_data_buffer, ApiReallocate,
                             &vm_image_writer, &isolate_image_writer);

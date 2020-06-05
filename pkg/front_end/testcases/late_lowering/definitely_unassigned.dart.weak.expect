@@ -123,8 +123,8 @@ static field <T extends core::Object? = dynamic>(T%) → core::Null? fieldDirect
   core::bool #local7#isSet = false;
   function #local7#get() → T% {
     if(!#local7#isSet) {
-      #local7#isSet = true;
       local7 = value;
+      #local7#isSet = true;
     }
     return local7{T%};
   }
@@ -178,8 +178,8 @@ static field <T extends core::Object? = dynamic>(core::bool, T%) → core::Null?
   core::bool #local7#isSet = false;
   function #local7#get() → T% {
     if(!#local7#isSet) {
-      #local7#isSet = true;
       local7 = value;
+      #local7#isSet = true;
     }
     return local7{T%};
   }
@@ -250,8 +250,8 @@ static method methodDirect<T extends core::Object? = dynamic>(self::methodDirect
   core::bool #local7#isSet = false;
   function #local7#get() → self::methodDirect::T% {
     if(!#local7#isSet) {
-      #local7#isSet = true;
       local7 = value;
+      #local7#isSet = true;
     }
     return local7{self::methodDirect::T%};
   }
@@ -305,8 +305,8 @@ static method methodConditional<T extends core::Object? = dynamic>(core::bool b,
   core::bool #local7#isSet = false;
   function #local7#get() → self::methodConditional::T% {
     if(!#local7#isSet) {
-      #local7#isSet = true;
       local7 = value;
+      #local7#isSet = true;
     }
     return local7{self::methodConditional::T%};
   }

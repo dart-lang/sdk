@@ -740,7 +740,7 @@ void ARM64Decoder::DecodeLoadRegLiteral(Instr* instr) {
 }
 
 void ARM64Decoder::DecodeLoadStoreExclusive(Instr* instr) {
-  if ((instr->Bit(23) != 0) || (instr->Bit(21) != 0) || (instr->Bit(15) != 0)) {
+  if (instr->Bit(21) != 0 || instr->Bit(23) != instr->Bit(15)) {
     Unknown(instr);
   }
   const int32_t size = instr->Bits(30, 2);
@@ -749,10 +749,22 @@ void ARM64Decoder::DecodeLoadStoreExclusive(Instr* instr) {
   }
 
   const bool is_load = instr->Bit(22) == 1;
+  const bool is_exclusive = instr->Bit(23) == 0;
+  const bool is_ordered = instr->Bit(15) == 1;
   if (is_load) {
-    Format(instr, "ldxr 'rt, 'rn");
+    const bool is_load_acquire = !is_exclusive && is_ordered;
+    if (is_load_acquire) {
+      Format(instr, "ldar 'rt, 'rn");
+    } else {
+      Format(instr, "ldxr 'rt, 'rn");
+    }
   } else {
-    Format(instr, "stxr 'rs, 'rt, 'rn");
+    const bool is_store_release = !is_exclusive && is_ordered;
+    if (is_store_release) {
+      Format(instr, "stlr 'rt, 'rn");
+    } else {
+      Format(instr, "stxr 'rs, 'rt, 'rn");
+    }
   }
 }
 

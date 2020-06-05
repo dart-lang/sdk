@@ -7,7 +7,7 @@
 
 import "package:expect/expect.dart";
 
-bool ok;
+bool ok = false;
 
 class T1 {
   // Should be reachable.
@@ -17,7 +17,7 @@ class T1 {
 }
 
 class A1 {
-  T1 foo;
+  late T1 foo;
 
   void call([a1, a2, a3, a4, a5]) {
     foo = a5;

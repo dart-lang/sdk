@@ -47,7 +47,7 @@ class GnWorkspace extends Workspace {
   /**
    * The map from a package name to the list of its `lib/` folders.
    */
-  Map<String, List<Folder>> _packageMap;
+  final Map<String, List<Folder>> _packageMap;
 
   GnWorkspace._(this.provider, this.root, this._packageMap);
 

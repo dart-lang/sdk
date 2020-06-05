@@ -25,9 +25,9 @@ class A {
   }
 }
 
-A myNull;
-double doubleNull;
-int intNull;
+dynamic myNull;
+dynamic doubleNull;
+dynamic intNull;
 
 main(List<String> args) {
   // Make sure value of `myNull` is not a compile-time null and
@@ -64,7 +64,13 @@ main(List<String> args) {
       (e) =>
           e is NoSuchMethodError &&
           e.toString().startsWith(
-              'NoSuchMethodError: The getter \'bar\' was called on null.'));
+              'NoSuchMethodError: The method \'bar\' was called on null.'));
+
+  Expect.throws(
+      () => myNull!,
+      (e) =>
+          e is TypeError &&
+          e.toString().contains('Null check operator used on a null value'));
 
   Expect.throws(() {
     myNull.bazz = 3;
@@ -83,14 +89,15 @@ main(List<String> args) {
 
   Expect.throws(
       () => 9.81 - doubleNull,
-      (e) =>
-          e is NoSuchMethodError &&
-          // If '-' is specialized.
-          (e.toString().startsWith(
-                  'NoSuchMethodError: The method \'-\' was called on null.') ||
-              // If '-' is not specialized, it calls toDouble() internally.
-              e.toString().startsWith(
-                  'NoSuchMethodError: The method \'toDouble\' was called on null.')));
+      (e) => isWeakMode
+          ? (e is NoSuchMethodError &&
+              // If '-' is specialized.
+              (e.toString().startsWith(
+                      'NoSuchMethodError: The method \'-\' was called on null.') ||
+                  // If '-' is not specialized, it calls toDouble() internally.
+                  e.toString().startsWith(
+                      'NoSuchMethodError: The method \'toDouble\' was called on null.')))
+          : (e is TypeError));
 
   Expect.throws(
       () => intNull * 7,

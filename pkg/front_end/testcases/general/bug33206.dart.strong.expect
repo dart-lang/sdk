@@ -48,7 +48,10 @@ static method f3() → asy::Future<core::Object*>* async {
   return 3;
 }
 static method foo() → asy::Future<self::X*>* async {
-  return new self::X::•(let final self::Y* #t1 = new self::Y::•() in let final void #t2 = #t1.{self::Y::f}(await self::f1()) in let final void #t3 = #t1.{self::Y::f}(self::f2()) in #t1, await self::f3());
+  return new self::X::•(let final self::Y* #t1 = new self::Y::•() in block {
+    #t1.{self::Y::f}(await self::f1());
+    #t1.{self::Y::f}(self::f2());
+  } =>#t1, await self::f3());
 }
 static method main() → asy::Future<void>* async {
   core::print(await self::foo());

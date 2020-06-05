@@ -976,6 +976,14 @@ void LoadFieldInstr::AddOperandsToSExpression(SExpList* sexp,
   sexp->Add(s->SlotToSExp(slot()));
 }
 
+void LoadFieldInstr::AddExtraInfoToSExpression(SExpList* sexp,
+                                               FlowGraphSerializer* s) const {
+  Instruction::AddExtraInfoToSExpression(sexp, s);
+  if (calls_initializer() || FLAG_verbose_flow_graph_serialization) {
+    s->AddExtraBool(sexp, "calls_initializer", calls_initializer());
+  }
+}
+
 void StoreInstanceFieldInstr::AddOperandsToSExpression(
     SExpList* sexp,
     FlowGraphSerializer* s) const {

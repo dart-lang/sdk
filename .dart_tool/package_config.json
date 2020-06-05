@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2020-05-12T10:16:07.605273",
+  "generated": "2020-05-15T15:16:14.438097",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -219,8 +219,7 @@
     {
       "name": "ffi",
       "rootUri": "../third_party/pkg/ffi",
-      "packageUri": "lib/",
-      "languageVersion": "2.6"
+      "packageUri": "lib/"
     },
     {
       "name": "fixnum",
@@ -327,8 +326,7 @@
     {
       "name": "js",
       "rootUri": "../pkg/js",
-      "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "packageUri": "lib/"
     },
     {
       "name": "js_ast",

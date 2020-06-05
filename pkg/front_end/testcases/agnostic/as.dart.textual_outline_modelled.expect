@@ -1,0 +1,3 @@
+const a = <Null>[] as List<int>;
+const b = <int?>[] as List<int>;
+void main() {}

@@ -89,5 +89,17 @@ abstract class Relevance {
   static const int requiredNamedArgument = 950;
 
   /// The relevance used when suggesting a type parameter.
-  static const int typeParameter = 900;
+  static const int typeParameter = 500;
+}
+
+/// A name scope for constants that are related to the relevance of completion
+/// suggestions. The values are required to be in the range [0, 1000].
+abstract class RelevanceBoost {
+  /// The relevance boost used when suggesting anything other than an enum
+  /// constant from an available declaration set.
+  static const int availableDeclaration = 10;
+
+  /// The relevance boost used when suggesting an enum constant from an
+  /// available declaration set.
+  static const int availableEnumConstant = 100;
 }

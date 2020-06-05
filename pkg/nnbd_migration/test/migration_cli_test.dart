@@ -6,15 +6,25 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart' as mock_sdk;
 import 'package:args/args.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
+import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/migration_cli.dart';
+import 'package:nnbd_migration/src/front_end/dartfix_listener.dart';
+import 'package:nnbd_migration/src/front_end/instrumentation_listener.dart';
+import 'package:nnbd_migration/src/front_end/migration_summary.dart';
 import 'package:nnbd_migration/src/front_end/non_nullable_fix.dart';
+import 'package:nnbd_migration/src/front_end/web/edit_details.dart';
+import 'package:nnbd_migration/src/front_end/web/file_details.dart';
+import 'package:nnbd_migration/src/front_end/web/navigation_tree.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -26,16 +36,61 @@ main() {
   });
 }
 
+/// Specialization of [InstrumentationListener] that generates artificial
+/// exceptions, so that we can test they are properly propagated to top level.
+class _ExceptionGeneratingInstrumentationListener
+    extends InstrumentationListener {
+  _ExceptionGeneratingInstrumentationListener(
+      {MigrationSummary migrationSummary})
+      : super(migrationSummary: migrationSummary);
+
+  @override
+  void externalDecoratedType(Element element, DecoratedTypeInfo decoratedType) {
+    if (element.name == 'print') {
+      throw StateError('Artificial exception triggered');
+    }
+    super.externalDecoratedType(element, decoratedType);
+  }
+}
+
+/// Specialization of [NonNullableFix] that generates artificial exceptions, so
+/// that we can test they are properly propagated to top level.
+class _ExceptionGeneratingNonNullableFix extends NonNullableFix {
+  _ExceptionGeneratingNonNullableFix(DartFixListener listener,
+      ResourceProvider resourceProvider, LineInfo Function(String) getLineInfo,
+      {List<String> included = const <String>[],
+      int preferredPort,
+      bool enablePreview = true,
+      String summaryPath})
+      : super(listener, resourceProvider, getLineInfo,
+            included: included,
+            preferredPort: preferredPort,
+            enablePreview: enablePreview,
+            summaryPath: summaryPath);
+
+  @override
+  InstrumentationListener createInstrumentationListener(
+          {MigrationSummary migrationSummary}) =>
+      _ExceptionGeneratingInstrumentationListener(
+          migrationSummary: migrationSummary);
+}
+
 class _MigrationCli extends MigrationCli {
+  /// If `true`, then an artifical exception should be generated when migration
+  /// encounters a reference to the `print` function.
+  final bool injectArtificialException;
+
   Future<void> Function() _runWhilePreviewServerActive;
 
-  _MigrationCli(_MigrationCliTestBase test)
+  _MigrationCli(_MigrationCliTestBase test,
+      {this.injectArtificialException = false})
       : super(
             binaryName: 'nnbd_migration',
             loggerFactory: (isVerbose) => test.logger = _TestLogger(isVerbose),
             defaultSdkPathOverride:
                 test.resourceProvider.convertPath(mock_sdk.sdkRoot),
-            resourceProvider: test.resourceProvider);
+            resourceProvider: test.resourceProvider,
+            processManager: test.processManager);
 
   @override
   Future<void> blockUntilSignalInterrupt() async {
@@ -44,6 +99,29 @@ class _MigrationCli extends MigrationCli {
     }
     await _runWhilePreviewServerActive.call();
     _runWhilePreviewServerActive = null;
+  }
+
+  @override
+  NonNullableFix createNonNullableFix(DartFixListener listener,
+      ResourceProvider resourceProvider, LineInfo getLineInfo(String path),
+      {List<String> included = const <String>[],
+      int preferredPort,
+      bool enablePreview = true,
+      String summaryPath}) {
+    if (injectArtificialException) {
+      return _ExceptionGeneratingNonNullableFix(
+          listener, resourceProvider, getLineInfo,
+          included: included,
+          preferredPort: preferredPort,
+          enablePreview: enablePreview,
+          summaryPath: summaryPath);
+    } else {
+      return super.createNonNullableFix(listener, resourceProvider, getLineInfo,
+          included: included,
+          preferredPort: preferredPort,
+          enablePreview: enablePreview,
+          summaryPath: summaryPath);
+    }
   }
 
   Future<void> runWithPreviewServer(
@@ -58,6 +136,8 @@ class _MigrationCli extends MigrationCli {
 
 abstract class _MigrationCliTestBase {
   void set logger(_TestLogger logger);
+
+  _MockProcessManager get processManager;
 
   MemoryResourceProvider get resourceProvider;
 }
@@ -137,6 +217,36 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
     }
   }
 
+  void assertPubOutdatedFailure(
+      {int pubOutdatedExitCode = 0,
+      String pubOutdatedStdout = '',
+      String pubOutdatedStderr = ''}) {
+    processManager._mockResult = ProcessResult(123 /* pid */,
+        pubOutdatedExitCode, pubOutdatedStdout, pubOutdatedStderr);
+    logger = _TestLogger(true);
+    var projectContents = simpleProject(sourceText: 'int x;');
+    var projectDir = createProjectDir(projectContents);
+    var success = DependencyChecker(
+            projectDir, resourceProvider.pathContext, logger, processManager)
+        .check();
+    expect(success, isFalse);
+  }
+
+  void assertPubOutdatedSuccess(
+      {int pubOutdatedExitCode = 0,
+      String pubOutdatedStdout = '',
+      String pubOutdatedStderr = ''}) {
+    processManager._mockResult = ProcessResult(123 /* pid */,
+        pubOutdatedExitCode, pubOutdatedStdout, pubOutdatedStderr);
+    logger = _TestLogger(true);
+    var projectContents = simpleProject(sourceText: 'int x;');
+    var projectDir = createProjectDir(projectContents);
+    var success = DependencyChecker(
+            projectDir, resourceProvider.pathContext, logger, processManager)
+        .check();
+    expect(success, isTrue);
+  }
+
   String createProjectDir(Map<String, String> contents,
       {String posixPath = '/test_project'}) {
     for (var entry in contents.entries) {
@@ -172,12 +282,31 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
     resourceProvider.newFolder(resourceProvider.pathContext.current);
   }
 
-  Map<String, String> simpleProject({bool migrated: false, String sourceText}) {
+  Map<String, String> simpleProject(
+      {bool migrated: false,
+      String sourceText,
+      String pubspecText,
+      String packageConfigText}) {
     return {
-      'pubspec.yaml': '''
+      'pubspec.yaml': pubspecText ??
+          '''
 name: test
 environment:
   sdk: '${migrated ? '>=2.9.0 <2.10.0' : '>=2.6.0 <3.0.0'}'
+''',
+      '.dart_tool/package_config.json': packageConfigText ??
+          '''
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "test",
+      "rootUri": "../",
+      "packageUri": "lib/",
+      "languageVersion": "${migrated ? '2.9' : '2.6'}"
+    }
+  ]
+}
 ''',
       'lib/test.dart': sourceText ??
           '''
@@ -264,6 +393,20 @@ int${migrated ? '?' : ''} f() => null;
     expect(assertParseArgsSuccess(['--ignore-errors']).ignoreErrors, isTrue);
   }
 
+  test_flag_skip_pub_outdated_default() {
+    expect(assertParseArgsSuccess([]).skipPubOutdated, isFalse);
+  }
+
+  test_flag_skip_pub_outdated_disable() async {
+    // "--no-skip-pub-outdated" is not an option.
+    await assertParseArgsFailure(['--no-skip-pub-outdated']);
+  }
+
+  test_flag_skip_pub_outdated_enable() {
+    expect(assertParseArgsSuccess(['--skip-pub-outdated']).skipPubOutdated,
+        isTrue);
+  }
+
   test_flag_web_preview_default() {
     expect(assertParseArgsSuccess([]).webPreview, isTrue);
   }
@@ -291,6 +434,49 @@ int${migrated ? '?' : ''} f() => null;
     expect(logger.stdoutBuffer.toString(), isNot(contains('--apply-changes')));
     // Changes should have been made
     assertProjectContents(projectDir, simpleProject(migrated: true));
+  }
+
+  test_lifecycle_contextdiscovery_handles_multiple() async {
+    var projectContents = simpleProject();
+    var subProject = simpleProject();
+    for (var filePath in subProject.keys) {
+      projectContents['example/$filePath'] = subProject[filePath];
+    }
+    projectContents['example/analysis_options.yaml'] = '''
+analyzer:
+  strong-mode:
+    implicit-casts: false
+linter:
+  rules:
+    - empty_constructor_bodies
+''';
+
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await cli.run(_parseArgs(['--no-web-preview', projectDir]));
+    expect(cli.hasMultipleAnalysisContext, true);
+    expect(cli.analysisContext, isNotNull);
+    var output = logger.stdoutBuffer.toString();
+    expect(output, contains('more than one project found'));
+  }
+
+  test_lifecycle_contextdiscovery_handles_single() async {
+    var projectContents = simpleProject();
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await cli.run(_parseArgs(['--no-web-preview', projectDir]));
+    expect(cli.hasMultipleAnalysisContext, false);
+    expect(cli.analysisContext, isNotNull);
+  }
+
+  test_lifecycle_exception_handling() async {
+    var projectContents = simpleProject(sourceText: 'main() { print(0); }');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli(injectArtificialException: true);
+    expect(
+        () async => runWithPreviewServer(cli, [projectDir], (url) async {}),
+        throwsA(TypeMatcher<Error>().having((e) => e.toString(), 'toString',
+            contains('Artificial exception triggered'))));
   }
 
   test_lifecycle_ignore_errors_disable() async {
@@ -401,6 +587,147 @@ int? f() => null
       var uri = Uri.parse(url);
       await assertPreviewServerResponsive(
           uri.replace(path: uri.path + '/').toString());
+    });
+  }
+
+  test_lifecycle_preview_navigation_links() async {
+    var projectContents = simpleProject(sourceText: 'int x;');
+    projectContents['lib/src/test.dart'] = 'import "../test.dart"; int y = x;';
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await runWithPreviewServer(cli, [projectDir], (url) async {
+      expect(
+          logger.stdoutBuffer.toString(), contains('No analysis issues found'));
+      await assertPreviewServerResponsive(url);
+      final uri = Uri.parse(url);
+      final authToken = uri.queryParameters['authToken'];
+      final fileResponse = await http.get(
+          uri.replace(
+              path: resourceProvider.pathContext
+                  .toUri(resourceProvider.pathContext
+                      .join(projectDir, 'lib', 'src', 'test.dart'))
+                  .path,
+              queryParameters: {'inline': 'true', 'authToken': authToken}),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      final fileJson = FileDetails.fromJson(jsonDecode(fileResponse.body));
+      final navigation = fileJson.navigationContent;
+      final aLink = RegExp(r'<a href="([^"]+)" class="nav-link">');
+      for (final match in aLink.allMatches(navigation)) {
+        var href = match.group(1);
+        print(href);
+        final contentsResponse = await http.get(
+            uri.replace(
+                path: Uri.parse(href).path,
+                queryParameters: {'inline': 'true', 'authToken': authToken}),
+            headers: {'Content-Type': 'application/json; charset=UTF-8'});
+        assertHttpSuccess(contentsResponse);
+      }
+    });
+  }
+
+  test_lifecycle_preview_navigation_tree() async {
+    var projectContents = simpleProject(sourceText: 'int x;');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await runWithPreviewServer(cli, [projectDir], (url) async {
+      expect(
+          logger.stdoutBuffer.toString(), contains('No analysis issues found'));
+      await assertPreviewServerResponsive(url);
+      var uri = Uri.parse(url);
+      var authToken = uri.queryParameters['authToken'];
+      var treeResponse = await http.get(
+          uri.replace(
+              path: '/_preview/navigationTree.json',
+              queryParameters: {'authToken': authToken}),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      var navRoots = jsonDecode(treeResponse.body);
+      for (final root in navRoots) {
+        var navTree = NavigationTreeNode.fromJson(root);
+        for (final file in navTree.subtree) {
+          if (file.href != null) {
+            print(file.href);
+            final contentsResponse = await http.get(
+                uri
+                    .resolve(file.href)
+                    .replace(queryParameters: {'authToken': authToken}),
+                headers: {'Content-Type': 'application/json; charset=UTF-8'});
+            assertHttpSuccess(contentsResponse);
+          }
+        }
+      }
+    });
+  }
+
+  test_lifecycle_preview_region_link() async {
+    var projectContents = simpleProject(sourceText: 'int x;');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await runWithPreviewServer(cli, [projectDir], (url) async {
+      expect(
+          logger.stdoutBuffer.toString(), contains('No analysis issues found'));
+      await assertPreviewServerResponsive(url);
+      var uri = Uri.parse(url);
+      var authToken = uri.queryParameters['authToken'];
+      var regionResponse = await http.get(
+          uri.replace(
+              path: resourceProvider.pathContext
+                  .toUri(resourceProvider.pathContext
+                      .join(projectDir, 'lib', 'test.dart'))
+                  .path,
+              queryParameters: {
+                'region': 'region',
+                'offset': '3',
+                'authToken': authToken
+              }),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      var regionJson = EditDetails.fromJson(jsonDecode(regionResponse.body));
+      final displayPath = regionJson.displayPath;
+      final uriPath = regionJson.uriPath;
+      // uriPath should be a working URI
+      final contentsResponse = await http.get(
+          uri.replace(
+              path: uriPath,
+              queryParameters: {'inline': 'true', 'authToken': authToken}),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      assertHttpSuccess(contentsResponse);
+
+      // Display path should be the actual windows path
+      final file = resourceProvider
+          .getFolder(projectDir)
+          .getChildAssumingFile(displayPath);
+      expect(file.exists, isTrue);
+    });
+  }
+
+  test_lifecycle_preview_region_table_path() async {
+    var projectContents = simpleProject(sourceText: 'int x;');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await runWithPreviewServer(cli, [projectDir], (url) async {
+      expect(
+          logger.stdoutBuffer.toString(), contains('No analysis issues found'));
+      await assertPreviewServerResponsive(url);
+      final uri = Uri.parse(url);
+      final authToken = uri.queryParameters['authToken'];
+      final fileResponse = await http.get(
+          uri.replace(
+              path: resourceProvider.pathContext
+                  .toUri(resourceProvider.pathContext
+                      .join(projectDir, 'lib', 'test.dart'))
+                  .path,
+              queryParameters: {'inline': 'true', 'authToken': authToken}),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      final fileJson = FileDetails.fromJson(jsonDecode(fileResponse.body));
+      final regions = fileJson.regions;
+      final regionsPathRegex = RegExp(r'<table data-path="([^"]+)">');
+      expect(regionsPathRegex.hasMatch(regions), true);
+      final regionsPath = regionsPathRegex.matchAsPrefix(regions).group(1);
+      final contentsResponse = await http.get(
+          uri.replace(
+              path: Uri.parse(regionsPath).path,
+              queryParameters: {'inline': 'true', 'authToken': authToken}),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      assertHttpSuccess(contentsResponse);
     });
   }
 
@@ -554,6 +881,87 @@ int? f() => null
     });
   }
 
+  test_lifecycle_preview_stacktrace_link() async {
+    var projectContents = simpleProject(sourceText: 'int x;');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await runWithPreviewServer(cli, [projectDir], (url) async {
+      expect(
+          logger.stdoutBuffer.toString(), contains('No analysis issues found'));
+      await assertPreviewServerResponsive(url);
+      var uri = Uri.parse(url);
+      var authToken = uri.queryParameters['authToken'];
+      var regionUri = uri.replace(
+          path: resourceProvider.pathContext
+              .toUri(resourceProvider.pathContext
+                  .join(projectDir, 'lib', 'test.dart'))
+              .path,
+          queryParameters: {
+            'region': 'region',
+            'offset': '3',
+            'authToken': authToken
+          });
+      var regionResponse = await http.get(regionUri,
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      var regionJson = EditDetails.fromJson(jsonDecode(regionResponse.body));
+      final traceEntry = regionJson.traces[0].entries[0];
+      final uriPath = traceEntry.link.href;
+      // uriPath should be a working URI
+      final contentsResponse = await http.get(
+          regionUri
+              .resolve(uriPath)
+              .replace(queryParameters: {'authToken': authToken}),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      assertHttpSuccess(contentsResponse);
+    });
+  }
+
+  test_lifecycle_skip_pub_outdated_disable() async {
+    var projectContents = simpleProject(sourceText: '''
+int f() => null;
+''');
+    var projectDir = await createProjectDir(projectContents);
+    processManager._mockResult = ProcessResult(
+        123 /* pid */,
+        0 /* exitCode */,
+        '''
+{ "packages":
+  [
+    { "package": "abc", "current": { "version": "1.0.0", "nullSafety": false } }
+  ]
+}
+''' /* stdout */,
+        '' /* stderr */);
+    var cli = _createCli();
+    await cli.run(_parseArgs([projectDir]));
+    var output = logger.stderrBuffer.toString();
+    expect(output, contains('Warning: dependencies are outdated.'));
+    expect(cli.exitCode, 1);
+  }
+
+  test_lifecycle_skip_pub_outdated_enable() async {
+    var projectContents = simpleProject(sourceText: '''
+int f() => null;
+''');
+    var projectDir = await createProjectDir(projectContents);
+    processManager._mockResult = ProcessResult(
+        123 /* pid */,
+        0 /* exitCode */,
+        '''
+{ "packages":
+  [
+    { "package": "abc", "current": { "version": "1.0.0", "nullSafety": false } }
+  ]
+}
+''' /* stdout */,
+        '' /* stderr */);
+    var cli = _createCli();
+    await runWithPreviewServer(cli, ['--skip-pub-outdated', projectDir],
+        (url) async {
+      await assertPreviewServerResponsive(url);
+    });
+  }
+
   test_lifecycle_summary() async {
     var projectContents = simpleProject();
     var projectDir = await createProjectDir(projectContents);
@@ -659,7 +1067,7 @@ int f() => null;
   }
 
   test_migrate_path_normalized() {
-    expect(assertParseArgsSuccess(['..']).directory, isNot(contains('..')));
+    expect(assertParseArgsSuccess(['foo/..']).directory, isNot(contains('..')));
   }
 
   test_migrate_path_one() {
@@ -723,6 +1131,312 @@ int f() => null;
             'Could not find an option named "this-option-does-not-exist"'));
   }
 
+  test_package_config_does_not_exist() async {
+    var projectContents = simpleProject()
+      ..remove('.dart_tool/package_config.json');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await cli
+        .run(_parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir,
+        simpleProject(migrated: true)
+          ..remove('.dart_tool/package_config.json'));
+  }
+
+  test_package_config_is_missing_languageVersion() async {
+    var packageConfigText = '''
+{
+  "configVersion": 3,
+  "packages": [
+    {
+      "name": "test",
+      "rootUri": "../",
+      "packageUri": "lib/"
+    }
+  ]
+}
+''';
+    var projectContents = simpleProject(packageConfigText: packageConfigText);
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await cli
+        .run(_parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    // The Dart source code should still be migrated.
+    assertProjectContents(projectDir,
+        simpleProject(migrated: true, packageConfigText: packageConfigText));
+  }
+
+  test_package_config_is_missing_this_package() async {
+    var packageConfigText = '''
+{
+  "configVersion": 3,
+  "packages": [
+  ]
+}
+''';
+    var projectContents = simpleProject(packageConfigText: packageConfigText);
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await cli
+        .run(_parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    // The Dart source code should still be migrated.
+    assertProjectContents(projectDir,
+        simpleProject(migrated: true, packageConfigText: packageConfigText));
+  }
+
+  test_package_config_is_wrong_version() async {
+    var packageConfigText = '''
+{
+  "configVersion": 3,
+  "packages": [
+    {
+      "name": "test",
+      "rootUri": "../",
+      "packageUri": "lib/",
+      "languageVersion": "2.6"
+    }
+  ]
+}
+''';
+    var projectContents = simpleProject(packageConfigText: packageConfigText);
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await cli
+        .run(_parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    // The Dart source code should still be migrated.
+    assertProjectContents(projectDir,
+        simpleProject(migrated: true, packageConfigText: packageConfigText));
+  }
+
+  test_pub_outdated_has_malformed_json() {
+    assertPubOutdatedSuccess(pubOutdatedStdout: '{ "packages": }');
+    expect(logger.stderrBuffer.toString(), startsWith('Warning:'));
+  }
+
+  test_pub_outdated_has_no_packages() {
+    assertPubOutdatedSuccess(pubOutdatedStdout: '{}');
+    expect(logger.stderrBuffer.toString(), startsWith('Warning:'));
+  }
+
+  test_pub_outdated_has_no_pre_null_safety_packages() {
+    assertPubOutdatedSuccess(pubOutdatedStdout: '''
+{
+  "packages": [
+    {
+      "package": "abc",
+      "current": { "version": "1.0.0", "nullSafety": true }
+    },
+    {
+      "package": "def",
+      "current": { "version": "2.0.0", "nullSafety": true }
+    }
+  ]
+}
+''');
+  }
+
+  test_pub_outdated_has_one_pre_null_safety_package() {
+    assertPubOutdatedFailure(pubOutdatedStdout: '''
+{
+  "packages": [
+    {
+      "package": "abc",
+      "current": { "version": "1.0.0", "nullSafety": false }
+    },
+    {
+      "package": "def",
+      "current": { "version": "2.0.0", "nullSafety": true }
+    }
+  ]
+}
+''');
+    var stderrText = logger.stderrBuffer.toString();
+    expect(stderrText, contains('Warning:'));
+    expect(stderrText, contains('abc'));
+    expect(stderrText, contains('1.0.0'));
+  }
+
+  test_pub_outdated_has_package_with_missing_current() {
+    assertPubOutdatedSuccess(pubOutdatedStdout: '''
+{
+  "packages": [
+    {
+      "package": "abc"
+    }
+  ]
+}
+''');
+    expect(logger.stderrBuffer.toString(), startsWith('Warning:'));
+  }
+
+  test_pub_outdated_has_package_with_missing_name() {
+    assertPubOutdatedSuccess(pubOutdatedStdout: '''
+{
+  "packages": [
+    {
+      "current": {
+        "version": "1.0.0",
+        "nullSafety": false
+      }
+    }
+  ]
+}
+''');
+    expect(logger.stderrBuffer.toString(), startsWith('Warning:'));
+  }
+
+  test_pub_outdated_has_package_with_missing_nullSafety() {
+    assertPubOutdatedSuccess(pubOutdatedStdout: '''
+{
+  "packages": [
+    {
+      "package": "abc",
+      "current": {
+        "version": "1.0.0"
+      }
+    }
+  ]
+}
+''');
+    expect(logger.stderrBuffer.toString(), startsWith('Warning:'));
+  }
+
+  test_pub_outdated_has_package_with_missing_version() {
+    assertPubOutdatedSuccess(pubOutdatedStdout: '''
+{
+  "packages": [
+    {
+      "package": "abc",
+      "current": {
+        "nullSafety": false
+      }
+    }
+  ]
+}
+''');
+    expect(logger.stderrBuffer.toString(), startsWith('Warning:'));
+  }
+
+  test_pub_outdated_has_package_with_null_current() {
+    assertPubOutdatedSuccess(pubOutdatedStdout: '''
+{
+  "packages": [
+    {
+      "package": "abc",
+      "current": null
+    }
+  ]
+}
+''');
+    expect(logger.stderrBuffer.toString(), isEmpty);
+  }
+
+  test_pub_outdated_has_stderr() {
+    assertPubOutdatedSuccess(pubOutdatedStderr: 'anything');
+    expect(logger.stderrBuffer.toString(), startsWith('Warning:'));
+  }
+
+  test_pubspec_does_not_exist() async {
+    var projectContents = simpleProject()
+      ..remove('pubspec.yaml')
+      ..remove('.dart_tool/package_config.json');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await cli
+        .run(_parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir,
+        simpleProject(migrated: true)
+          ..remove('pubspec.yaml')
+          ..remove('.dart_tool/package_config.json'));
+  }
+
+  test_pubspec_environment_is_missing_sdk() async {
+    var projectContents = simpleProject(pubspecText: '''
+name: test
+environment:
+  foo: 1
+''');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await cli
+        .run(_parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir, simpleProject(migrated: true, pubspecText: '''
+name: test
+environment:
+  foo: 1
+  sdk: '>=2.9.0 <2.10.0'
+'''));
+  }
+
+  test_pubspec_environment_is_not_a_map() async {
+    var pubspecText = '''
+name: test
+environment: 1
+''';
+    var projectContents = simpleProject(pubspecText: pubspecText);
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await cli
+        .run(_parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir, simpleProject(migrated: true, pubspecText: pubspecText));
+  }
+
+  test_pubspec_environment_sdk_is_not_string() async {
+    var pubspecText = '''
+name: test
+environment:
+  sdk: 1
+''';
+    var projectContents = simpleProject(pubspecText: pubspecText)
+      ..remove('.dart_tool/package_config.json');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await cli
+        .run(_parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir,
+        simpleProject(migrated: true, pubspecText: pubspecText)
+          ..remove('.dart_tool/package_config.json'));
+  }
+
+  test_pubspec_is_missing_environment() async {
+    var projectContents = simpleProject(pubspecText: '''
+name: test
+''');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await cli
+        .run(_parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    // The Dart source code should still be migrated.
+    assertProjectContents(projectDir, simpleProject(migrated: true, pubspecText:
+        // This is strange-looking, but valid.
+        '''
+environment:
+  sdk: '>=2.9.0 <2.10.0'
+
+name: test
+'''));
+  }
+
+  test_pubspec_is_not_a_map() async {
+    var projectContents = simpleProject(pubspecText: 'not-a-map');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    expect(
+        () async => await cli.run(
+            _parseArgs(['--no-web-preview', '--apply-changes', projectDir])),
+        throwsUnsupportedError);
+  }
+
   test_uses_physical_resource_provider_by_default() {
     var cli = MigrationCli(binaryName: 'nnbd_migration');
     expect(cli.resourceProvider, same(PhysicalResourceProvider.INSTANCE));
@@ -737,9 +1451,10 @@ int f() => null;
         headers: {'Content-Type': 'application/json; charset=UTF-8'});
   }
 
-  _MigrationCli _createCli() {
+  _MigrationCli _createCli({bool injectArtificialException = false}) {
     mock_sdk.MockSdk(resourceProvider: resourceProvider);
-    return _MigrationCli(this);
+    return _MigrationCli(this,
+        injectArtificialException: injectArtificialException);
   }
 
   Future<String> _getHelpText({@required bool verbose}) async {
@@ -762,12 +1477,16 @@ class _MigrationCliTestPosix extends _MigrationCliTestBase
   @override
   final resourceProvider;
 
+  @override
+  final processManager;
+
   _MigrationCliTestPosix()
       : resourceProvider = MemoryResourceProvider(
             context: path.style == path.Style.posix
                 ? null
                 : path.Context(
-                    style: path.Style.posix, current: '/working_dir'));
+                    style: path.Style.posix, current: '/working_dir')),
+        processManager = _MockProcessManager();
 }
 
 @reflectiveTest
@@ -776,12 +1495,32 @@ class _MigrationCliTestWindows extends _MigrationCliTestBase
   @override
   final resourceProvider;
 
+  @override
+  final processManager;
+
   _MigrationCliTestWindows()
       : resourceProvider = MemoryResourceProvider(
             context: path.style == path.Style.windows
                 ? null
                 : path.Context(
-                    style: path.Style.windows, current: 'C:\\working_dir'));
+                    style: path.Style.windows, current: 'C:\\working_dir')),
+        processManager = _MockProcessManager();
+}
+
+class _MockProcessManager implements ProcessManager {
+  ProcessResult _mockResult;
+
+  dynamic noSuchMethod(Invocation invocation) {}
+
+  ProcessResult runSync(String executable, List<String> arguments,
+          {String workingDirectory}) =>
+      _mockResult ??
+      ProcessResult(
+        123 /* pid */,
+        0 /* exitCode */,
+        '' /* stdout */,
+        '' /* stderr */,
+      );
 }
 
 /// TODO(paulberry): move into cli_util

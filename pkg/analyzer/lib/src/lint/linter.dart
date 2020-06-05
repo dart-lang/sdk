@@ -417,7 +417,7 @@ class LinterContextImpl implements LinterContext {
     //
     // Verify that the invoked constructor is a const constructor.
     //
-    ConstructorElement element = node.staticElement;
+    ConstructorElement element = node.constructorName.staticElement;
     if (element == null || !element.isConst) {
       return false;
     }

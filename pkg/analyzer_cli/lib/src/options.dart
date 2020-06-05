@@ -203,10 +203,6 @@ class CommandLineOptions {
   /// The path to a `.packages` configuration file
   String get packageConfigPath => contextBuilderOptions.defaultPackageFilePath;
 
-  /// The path to the package root
-  String get packageRootPath =>
-      contextBuilderOptions.defaultPackagesDirectoryPath;
-
   /// The source files to analyze
   List<String> get sourceFiles => _sourceFiles;
 
@@ -246,20 +242,27 @@ class CommandLineOptions {
       }
     }
 
-    // Check package config.
-    {
-      if (options.packageRootPath != null &&
-          options.packageConfigPath != null) {
-        printAndFail("Cannot specify both '--package-root' and '--packages.");
+    // Build mode.
+    if (options.buildMode) {
+      if (options.dartSdkSummaryPath == null) {
+        // It is OK to not specify when persistent worker.
+        // We will be given another set of options with each request.
+        if (!options.buildModePersistentWorker) {
+          printAndFail(
+            'The option --build-mode also requires --dart-sdk-summary '
+            'to be specified.',
+          );
+          return null; // Only reachable in testing.
+        }
+      }
+    } else {
+      if (options.buildModePersistentWorker) {
+        printAndFail(
+          'The option --persistent_worker can be used only '
+          'together with --build-mode.',
+        );
         return null; // Only reachable in testing.
       }
-    }
-
-    // Build mode.
-    if (options.buildModePersistentWorker && !options.buildMode) {
-      printAndFail('The option --persisten_worker can be used only '
-          'together with --build-mode.');
-      return null; // Only reachable in testing.
     }
 
     return options;

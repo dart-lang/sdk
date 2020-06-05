@@ -2032,8 +2032,8 @@ void f() {
 
     await computeSuggestions();
     assertSuggest(
-      'call()',
-      selectionOffset: 6,
+      'call',
+      selectionOffset: 4,
       elemKind: ElementKind.METHOD,
       isSynthetic: true,
     );
@@ -2265,8 +2265,8 @@ void f() {
 
     await computeSuggestions();
     assertSuggest(
-      'call()',
-      selectionOffset: 6,
+      'call',
+      selectionOffset: 4,
       elemKind: ElementKind.METHOD,
       isSynthetic: true,
     );
@@ -2283,6 +2283,7 @@ void f() {
 
     await computeSuggestions();
     assertNotSuggested('call');
+    assertNotSuggested('call()');
   }
 
   Future<void> test_InterfaceType_Function_implemented_call() async {
@@ -2296,6 +2297,7 @@ void f() {
 
     await computeSuggestions();
     assertNotSuggested('call');
+    assertNotSuggested('call()');
   }
 
   Future<void> test_InterpolationExpression() async {
@@ -4163,6 +4165,29 @@ class C with M {
     expect(replacementLength, 1);
     assertNotSuggested('C1');
     assertNotSuggested('C2');
+  }
+
+  Future<void> test_Typedef_members() async {
+    addTestSource('''
+        typedef Object Func();
+        class A  {
+          Func f;
+          void a() => f.^;
+        }
+        main() {}''');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertNotSuggested('a()');
+    assertNotSuggested('Func()');
+    assertSuggestMethod('call', null, 'void', skipLocationCheck: true);
+    assertSuggestGetter('hashCode', 'int');
+    assertSuggestGetter('runtimeType', 'Type');
+    assertSuggestMethod('toString', 'Object', 'String');
+    assertSuggestMethod('noSuchMethod', 'Object', 'dynamic');
+    assertNotSuggested('Object');
+    assertNotSuggested('A');
+    assertNotSuggested('==');
   }
 
   Future<void> test_VariableDeclaration_name() async {

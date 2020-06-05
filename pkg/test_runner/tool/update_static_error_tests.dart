@@ -223,8 +223,9 @@ Future<List<StaticError>> runAnalyzer(String path, List<String> options) async {
   }
 
   var errors = <StaticError>[];
-  AnalysisCommandOutput.parseErrors(result.stderr as String, errors);
-  return errors;
+  var warnings = <StaticError>[];
+  AnalysisCommandOutput.parseErrors(result.stderr as String, errors, warnings);
+  return [...errors, ...warnings];
 }
 
 /// Invoke CFE on [path] and gather all static errors it reports.

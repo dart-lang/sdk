@@ -296,8 +296,10 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
     _fieldEncoding.completeSignature(coreTypes);
 
     ClassBuilder classBuilder = isClassMember ? parent : null;
-    MetadataBuilder.buildAnnotations(
-        _fieldEncoding.annotatable, metadata, library, classBuilder, this);
+    for (Annotatable annotatable in _fieldEncoding.annotatables) {
+      MetadataBuilder.buildAnnotations(
+          annotatable, metadata, library, classBuilder, this);
+    }
 
     // For modular compilation we need to include initializers of all const
     // fields and all non-static final fields in classes with const constructors
@@ -406,14 +408,20 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
   @override
   List<ClassMember> get localSetters => _fieldEncoding.getLocalSetters(this);
 
-  static String createFieldName(
-      bool isInstanceMember,
+  static String createFieldName(FieldNameType type, String name,
+      {bool isInstanceMember,
       String className,
-      bool isExtensionMethod,
+      bool isExtensionMethod: false,
       String extensionName,
-      String name,
-      bool isSynthesized,
-      FieldNameType type) {
+      bool isSynthesized: false}) {
+    assert(isSynthesized || type == FieldNameType.Field,
+        "Unexpected field name type for non-synthesized field: $type");
+    assert(isExtensionMethod || isInstanceMember != null,
+        "`isInstanceMember` is null for class member.");
+    assert(!(isExtensionMethod && extensionName == null),
+        "No extension name provided for extension member.");
+    assert(isInstanceMember == null || !(isInstanceMember && className == null),
+        "No class name provided for instance member.");
     String baseName;
     if (!isExtensionMethod) {
       baseName = name;
@@ -422,10 +430,9 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
     }
 
     if (!isSynthesized) {
-      assert(type == FieldNameType.Field);
       return baseName;
     } else {
-      String namePrefix = '_#';
+      String namePrefix = late_lowering.lateFieldPrefix;
       if (isInstanceMember) {
         namePrefix = '$namePrefix${className}#';
       }
@@ -437,7 +444,7 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
         case FieldNameType.Setter:
           return baseName;
         case FieldNameType.IsSetField:
-          return "$namePrefix$baseName#isSet";
+          return "$namePrefix$baseName${late_lowering.lateIsSetSuffix}";
       }
     }
     throw new UnsupportedError("Unhandled case for field name.");
@@ -471,8 +478,8 @@ abstract class FieldEncoding {
   /// Returns the field that holds the field value at runtime.
   Field get field;
 
-  /// Returns the member that holds the field annotations.
-  Annotatable get annotatable;
+  /// Returns the members that holds the field annotations.
+  Iterable<Annotatable> get annotatables;
 
   /// Returns the member used to read the field value.
   Member get readTarget;
@@ -555,8 +562,9 @@ class RegularFieldEncoding implements FieldEncoding {
     String fieldName;
     if (fieldBuilder.isExtensionMember) {
       ExtensionBuilder extension = fieldBuilder.parent;
-      fieldName = SourceFieldBuilder.createFieldName(false, null, true,
-          extension.name, fieldBuilder.name, false, FieldNameType.Field);
+      fieldName = SourceFieldBuilder.createFieldName(
+          FieldNameType.Field, fieldBuilder.name,
+          isExtensionMethod: true, extensionName: extension.name);
       _field
         ..hasImplicitGetter = false
         ..hasImplicitSetter = false
@@ -568,13 +576,8 @@ class RegularFieldEncoding implements FieldEncoding {
       String className =
           isInstanceMember ? fieldBuilder.classBuilder.name : null;
       fieldName = SourceFieldBuilder.createFieldName(
-          isInstanceMember,
-          className,
-          false,
-          null,
-          fieldBuilder.name,
-          false,
-          FieldNameType.Field);
+          FieldNameType.Field, fieldBuilder.name,
+          isInstanceMember: isInstanceMember, className: className);
       _field
         ..hasImplicitGetter = isInstanceMember
         ..hasImplicitSetter = isInstanceMember &&
@@ -610,7 +613,7 @@ class RegularFieldEncoding implements FieldEncoding {
   Field get field => _field;
 
   @override
-  Annotatable get annotatable => _field;
+  Iterable<Annotatable> get annotatables => [_field];
 
   @override
   Member get readTarget => _field;
@@ -725,6 +728,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
     _field.initializer = new NullLiteral()..parent = _field;
     if (_lateIsSetField != null) {
       _lateIsSetField.initializer = new BoolLiteral(false)
+        ..fileOffset = fileOffset
         ..parent = _lateIsSetField;
     }
     _lateGetter.function.body = _createGetterBody(coreTypes, name, initializer)
@@ -849,7 +853,13 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   Field get field => _field;
 
   @override
-  Annotatable get annotatable => _field;
+  Iterable<Annotatable> get annotatables {
+    List<Annotatable> list = [_lateGetter];
+    if (_lateSetter != null) {
+      list.add(_lateSetter);
+    }
+    return list;
+  }
 
   @override
   Member get readTarget => _lateGetter;
@@ -886,25 +896,23 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
     }
     _field.name ??= new Name(
         SourceFieldBuilder.createFieldName(
-            isInstanceMember,
-            className,
-            isExtensionMember,
-            extensionName,
-            fieldBuilder.name,
-            true,
-            FieldNameType.Field),
+            FieldNameType.Field, fieldBuilder.name,
+            isInstanceMember: isInstanceMember,
+            className: className,
+            isExtensionMethod: isExtensionMember,
+            extensionName: extensionName,
+            isSynthesized: true),
         libraryBuilder.library);
     if (_lateIsSetField != null) {
       _lateIsSetField
         ..name = new Name(
             SourceFieldBuilder.createFieldName(
-                isInstanceMember,
-                className,
-                isExtensionMember,
-                extensionName,
-                fieldBuilder.name,
-                true,
-                FieldNameType.IsSetField),
+                FieldNameType.IsSetField, fieldBuilder.name,
+                isInstanceMember: isInstanceMember,
+                className: className,
+                isExtensionMethod: isExtensionMember,
+                extensionName: extensionName,
+                isSynthesized: true),
             libraryBuilder.library)
         ..isStatic = !isInstanceMember
         ..hasImplicitGetter = isInstanceMember
@@ -915,13 +923,12 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
     _lateGetter
       ..name = new Name(
           SourceFieldBuilder.createFieldName(
-              isInstanceMember,
-              className,
-              isExtensionMember,
-              extensionName,
-              fieldBuilder.name,
-              true,
-              FieldNameType.Getter),
+              FieldNameType.Getter, fieldBuilder.name,
+              isInstanceMember: isInstanceMember,
+              className: className,
+              isExtensionMethod: isExtensionMember,
+              extensionName: extensionName,
+              isSynthesized: true),
           libraryBuilder.library)
       ..isStatic = !isInstanceMember
       ..isExtensionMember = isExtensionMember;
@@ -929,13 +936,12 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       _lateSetter
         ..name = new Name(
             SourceFieldBuilder.createFieldName(
-                isInstanceMember,
-                className,
-                isExtensionMember,
-                extensionName,
-                fieldBuilder.name,
-                true,
-                FieldNameType.Setter),
+                FieldNameType.Setter, fieldBuilder.name,
+                isInstanceMember: isInstanceMember,
+                className: className,
+                isExtensionMethod: isExtensionMember,
+                extensionName: extensionName,
+                isSynthesized: true),
             libraryBuilder.library)
         ..isStatic = !isInstanceMember
         ..isExtensionMember = isExtensionMember;
@@ -1390,13 +1396,12 @@ class ExternalFieldEncoding implements FieldEncoding {
     }
     _getter..isConst = fieldBuilder.isConst;
     String getterName = SourceFieldBuilder.createFieldName(
-        isInstanceMember,
-        className,
-        isExtensionMember,
-        extensionName,
-        fieldBuilder.name,
-        true,
-        FieldNameType.Getter);
+        FieldNameType.Getter, fieldBuilder.name,
+        isInstanceMember: isInstanceMember,
+        className: className,
+        isExtensionMethod: isExtensionMember,
+        extensionName: extensionName,
+        isSynthesized: true);
     _getter
       ..isStatic = !isInstanceMember
       ..isExtensionMember = isExtensionMember
@@ -1406,13 +1411,14 @@ class ExternalFieldEncoding implements FieldEncoding {
 
     if (_setter != null) {
       String setterName = SourceFieldBuilder.createFieldName(
-          isInstanceMember,
-          className,
-          isExtensionMember,
-          extensionName,
-          fieldBuilder.name,
-          true,
-          FieldNameType.Setter);
+        FieldNameType.Setter,
+        fieldBuilder.name,
+        isInstanceMember: isInstanceMember,
+        className: className,
+        isExtensionMethod: isExtensionMember,
+        extensionName: extensionName,
+        isSynthesized: true,
+      );
       _setter
         ..isStatic = !isInstanceMember
         ..isExtensionMember = isExtensionMember
@@ -1452,7 +1458,13 @@ class ExternalFieldEncoding implements FieldEncoding {
   }
 
   @override
-  Annotatable get annotatable => _getter;
+  Iterable<Annotatable> get annotatables {
+    List<Annotatable> list = [_getter];
+    if (_setter != null) {
+      list.add(_setter);
+    }
+    return list;
+  }
 
   @override
   Member get readTarget => _getter;

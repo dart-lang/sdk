@@ -21,36 +21,38 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   LocalDeclarationVisitor(this.offset);
 
-  void declaredClass(ClassDeclaration declaration);
+  void declaredClass(ClassDeclaration declaration) {}
 
-  void declaredClassTypeAlias(ClassTypeAlias declaration);
+  void declaredClassTypeAlias(ClassTypeAlias declaration) {}
+
+  void declaredConstructor(ConstructorDeclaration declaration) {}
 
   void declaredEnum(EnumDeclaration declaration) {}
 
-  void declaredExtension(ExtensionDeclaration declaration);
+  void declaredExtension(ExtensionDeclaration declaration) {}
 
-  void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl);
+  void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {}
 
-  void declaredFunction(FunctionDeclaration declaration);
+  void declaredFunction(FunctionDeclaration declaration) {}
 
-  void declaredFunctionTypeAlias(FunctionTypeAlias declaration);
+  void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {}
 
-  void declaredGenericTypeAlias(GenericTypeAlias declaration);
+  void declaredGenericTypeAlias(GenericTypeAlias declaration) {}
 
-  void declaredLabel(Label label, bool isCaseLabel);
+  void declaredLabel(Label label, bool isCaseLabel) {}
 
-  void declaredLocalVar(SimpleIdentifier name, TypeAnnotation type);
+  void declaredLocalVar(SimpleIdentifier name, TypeAnnotation type) {}
 
-  void declaredMethod(MethodDeclaration declaration);
+  void declaredMethod(MethodDeclaration declaration) {}
 
   void declaredMixin(MixinDeclaration declaration) {}
 
-  void declaredParam(SimpleIdentifier name, TypeAnnotation type);
+  void declaredParam(SimpleIdentifier name, TypeAnnotation type) {}
 
   void declaredTopLevelVar(
-      VariableDeclarationList varList, VariableDeclaration varDecl);
+      VariableDeclarationList varList, VariableDeclaration varDecl) {}
 
-  void declaredTypeParameter(TypeParameter node) {}
+  void declaredTypeParameter(TypeParameter declaration) {}
 
   /// Throw an exception indicating that [LocalDeclarationVisitor] should
   /// stop visiting. This is caught in [visit] which then exits normally.
@@ -141,6 +143,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
+    declaredConstructor(node);
     _visitParamList(node.parameters);
     visitNode(node);
   }

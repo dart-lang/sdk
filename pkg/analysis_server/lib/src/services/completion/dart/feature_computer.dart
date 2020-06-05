@@ -6,18 +6,27 @@
 /// completion.
 import 'dart:math' as math;
 
-import 'package:analysis_server/src/protocol_server.dart'
-    show convertElementToElementKind;
+import 'package:analysis_server/src/protocol_server.dart' as protocol
+    show ElementKind;
 import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart'
-    show ClassElement, Element, FieldElement;
+    show
+        ClassElement,
+        ConstructorElement,
+        Element,
+        ElementKind,
+        FieldElement,
+        LibraryElement,
+        PropertyAccessorElement,
+        TopLevelVariableElement;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 
 /// Convert a relevance score (assumed to be between `0.0` and `1.0` inclusive)
 /// to a relevance value between `0` and `1000`. If the score is outside that
@@ -72,6 +81,57 @@ class FeatureComputer {
     return type;
   }
 
+  /// Return the element kind used to compute relevance for the given [element].
+  /// This differs from the kind returned to the client in that getters and
+  /// setters are always mapped into a different kind: FIELD for getters and
+  /// setters declared in a class or extension, and TOP_LEVEL_VARIABLE for
+  /// top-level getters and setters.
+  protocol.ElementKind computeElementKind(Element element) {
+    if (element is LibraryElement) {
+      return protocol.ElementKind.PREFIX;
+    } else if (element is ClassElement) {
+      if (element.isEnum) {
+        return protocol.ElementKind.ENUM;
+      } else if (element.isMixin) {
+        return protocol.ElementKind.MIXIN;
+      }
+      return protocol.ElementKind.CLASS;
+    } else if (element is FieldElement && element.isEnumConstant) {
+      return protocol.ElementKind.ENUM_CONSTANT;
+    } else if (element is PropertyAccessorElement) {
+      element = (element as PropertyAccessorElement).variable;
+    }
+    var kind = element.kind;
+    if (kind == ElementKind.CONSTRUCTOR) {
+      return protocol.ElementKind.CONSTRUCTOR;
+    } else if (kind == ElementKind.EXTENSION) {
+      return protocol.ElementKind.EXTENSION;
+    } else if (kind == ElementKind.FIELD) {
+      return protocol.ElementKind.FIELD;
+    } else if (kind == ElementKind.FUNCTION) {
+      return protocol.ElementKind.FUNCTION;
+    } else if (kind == ElementKind.FUNCTION_TYPE_ALIAS) {
+      return protocol.ElementKind.FUNCTION_TYPE_ALIAS;
+    } else if (kind == ElementKind.GENERIC_FUNCTION_TYPE) {
+      return protocol.ElementKind.FUNCTION_TYPE_ALIAS;
+    } else if (kind == ElementKind.LABEL) {
+      return protocol.ElementKind.LABEL;
+    } else if (kind == ElementKind.LOCAL_VARIABLE) {
+      return protocol.ElementKind.LOCAL_VARIABLE;
+    } else if (kind == ElementKind.METHOD) {
+      return protocol.ElementKind.METHOD;
+    } else if (kind == ElementKind.PARAMETER) {
+      return protocol.ElementKind.PARAMETER;
+    } else if (kind == ElementKind.PREFIX) {
+      return protocol.ElementKind.PREFIX;
+    } else if (kind == ElementKind.TOP_LEVEL_VARIABLE) {
+      return protocol.ElementKind.TOP_LEVEL_VARIABLE;
+    } else if (kind == ElementKind.TYPE_PARAMETER) {
+      return protocol.ElementKind.TYPE_PARAMETER;
+    }
+    return protocol.ElementKind.UNKNOWN;
+  }
+
   /// Return the value of the _context type_ feature for an element with the
   /// given [elementType] when completing in a location with the given
   /// [contextType].
@@ -107,8 +167,7 @@ class FeatureComputer {
     if (locationTable == null) {
       return -1.0;
     }
-    var kind = convertElementToElementKind(element);
-    var range = locationTable[kind];
+    var range = locationTable[computeElementKind(element)];
     if (range == null) {
       return 0.0;
     }
@@ -145,6 +204,23 @@ class FeatureComputer {
       return 0.0;
     }
     return _distanceToPercent(distance);
+  }
+
+  /// Return the value of the _is constant_ feature for the given [element].
+  double isConstantFeature(Element element) {
+    if (element is ConstructorElement && element.isConst) {
+      return 1.0;
+    } else if (element is FieldElement && element.isStatic && element.isConst) {
+      return 1.0;
+    } else if (element is TopLevelVariableElement && element.isConst) {
+      return 1.0;
+    } else if (element is PropertyAccessorElement &&
+        element.isSynthetic &&
+        element.variable.isStatic &&
+        element.variable.isConst) {
+      return 1.0;
+    }
+    return 0.0;
   }
 
   /// Return the value of the _starts with dollar_ feature.
@@ -199,7 +275,10 @@ class FeatureComputer {
   }
 }
 
-/// An object used to compute metrics for a single file or directory.
+/// An visitor used to compute the required type of an expression or identifier
+/// based on its context. The visitor should be initialized with the node whose
+/// context type is to be computed and the parent of that node should be
+/// visited.
 class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   final TypeProvider typeProvider;
 
@@ -221,6 +300,14 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   }
 
   @override
+  DartType visitAsExpression(AsExpression node) {
+    if (childNode == node.type) {
+      return node.expression.staticType;
+    }
+    return null;
+  }
+
+  @override
   DartType visitAssertInitializer(AssertInitializer node) {
     if (childNode == node.condition) {
       return typeProvider.boolType;
@@ -239,7 +326,16 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   @override
   DartType visitAssignmentExpression(AssignmentExpression node) {
     if (childNode == node.rightHandSide) {
-      return node.leftHandSide.staticType;
+      if (node.operator.type == TokenType.EQ) {
+        return node.leftHandSide.staticType;
+      }
+      var method = node.staticElement;
+      if (method != null) {
+        var parameters = method.parameters;
+        if (parameters != null && parameters.isNotEmpty) {
+          return parameters[0].type;
+        }
+      }
     }
     return null;
   }
@@ -266,6 +362,15 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   }
 
   @override
+  DartType visitConditionalExpression(ConditionalExpression node) {
+    if (childNode == node.condition) {
+      return typeProvider.boolType;
+    } else {
+      return _visitParent(node);
+    }
+  }
+
+  @override
   DartType visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     if (childNode == node.expression) {
       var element = node.fieldName.staticElement;
@@ -288,6 +393,23 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   DartType visitDoStatement(DoStatement node) {
     if (childNode == node.condition) {
       return typeProvider.boolType;
+    }
+    return null;
+  }
+
+  @override
+  DartType visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    if (childNode == node.expression) {
+      var parent = node.parent;
+      if (parent is MethodDeclaration) {
+        return BodyInferenceContext.of(parent.body).contextType;
+      } else if (parent is FunctionExpression) {
+        var grandparent = parent.parent;
+        if (grandparent is FunctionDeclaration) {
+          return BodyInferenceContext.of(parent.body).contextType;
+        }
+        return _visitParent(parent);
+      }
     }
     return null;
   }
@@ -363,7 +485,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   DartType visitIndexExpression(IndexExpression node) {
     if (childNode == node.index) {
       var parameters = node.staticElement?.parameters;
-      if (parameters != null && parameters.length == 1) {
+      if (parameters != null && parameters.isNotEmpty) {
         return parameters[0].type;
       }
     }
@@ -371,23 +493,30 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   }
 
   @override
+  DartType visitIsExpression(IsExpression node) {
+    if (childNode == node.type) {
+      return node.expression.staticType;
+    }
+    return null;
+  }
+
+  @override
   DartType visitListLiteral(ListLiteral node) {
-    var typeArguments = node.typeArguments?.arguments;
-    if (typeArguments != null && typeArguments.length == 1) {
-      return typeArguments[0].type;
+    if (node.elements.contains(childNode)) {
+      return (node.staticType as InterfaceType).typeArguments[0];
     }
     return null;
   }
 
   @override
   DartType visitMapLiteralEntry(MapLiteralEntry node) {
-    var typeArguments =
-        node.thisOrAncestorOfType<SetOrMapLiteral>()?.typeArguments;
-    if (typeArguments != null && typeArguments.length == 2) {
+    var literal = node.thisOrAncestorOfType<SetOrMapLiteral>();
+    if (literal != null && literal.staticType.isDartCoreMap) {
+      var typeArguments = (literal.staticType as InterfaceType).typeArguments;
       if (childNode == node.key) {
-        return typeArguments.arguments[0].type;
+        return typeArguments[0];
       } else {
-        return typeArguments.arguments[1].type;
+        return typeArguments[1];
       }
     }
     return null;
@@ -395,10 +524,18 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
 
   @override
   DartType visitMethodInvocation(MethodInvocation node) {
-    if (childNode == node.target) {
+    if (childNode == node.target || childNode == node.methodName) {
       return _visitParent(node);
     }
     return null;
+  }
+
+  @override
+  DartType visitNamedExpression(NamedExpression node) {
+    if (childNode == node.expression) {
+      return _visitParent(node);
+    }
+    return super.visitNamedExpression(node);
   }
 
   @override
@@ -412,33 +549,37 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   }
 
   @override
+  DartType visitPrefixedIdentifier(PrefixedIdentifier node) {
+    return _visitParent(node);
+  }
+
+  @override
   DartType visitPrefixExpression(PrefixExpression node) {
     return (childNode as Expression).staticParameterElement?.type;
   }
 
   @override
   DartType visitPropertyAccess(PropertyAccess node) {
-    if (childNode == node.target) {
-      return _visitParent(node);
-    }
-    return null;
+    return _visitParent(node);
   }
 
   @override
   DartType visitReturnStatement(ReturnStatement node) {
     if (childNode == node.expression) {
-      return _returnType(node);
+      var functionBody = node.thisOrAncestorOfType<FunctionBody>();
+      if (functionBody != null) {
+        return BodyInferenceContext.of(functionBody).contextType;
+      }
     }
     return null;
   }
 
   @override
   DartType visitSetOrMapLiteral(SetOrMapLiteral node) {
-    if (node.isSet) {
-      var typeArguments = node.typeArguments?.arguments;
-      if (typeArguments != null && typeArguments.length == 1) {
-        return typeArguments[0].type;
-      }
+    var type = node.staticType;
+    if (node.elements.contains(childNode) &&
+        (type.isDartCoreMap || type.isDartCoreSet)) {
+      return (type as InterfaceType).typeArguments[0];
     }
     return null;
   }
@@ -464,11 +605,22 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   }
 
   @override
+  DartType visitSwitchCase(SwitchCase node) {
+    if (childNode == node.expression) {
+      var parent = node.parent;
+      if (parent is SwitchStatement) {
+        return parent.expression?.staticType;
+      }
+    }
+    return super.visitSwitchCase(node);
+  }
+
+  @override
   DartType visitVariableDeclaration(VariableDeclaration node) {
     if (childNode == node.initializer) {
       var parent = node.parent;
-      if (parent is VariableDeclarationList && parent.type != null) {
-        return parent.type.type;
+      if (parent is VariableDeclarationList) {
+        return parent.type?.type;
       }
     }
     return null;
@@ -485,58 +637,23 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   @override
   DartType visitYieldStatement(YieldStatement node) {
     if (childNode == node.expression) {
-      return _returnType(node);
+      var functionBody = node.thisOrAncestorOfType<FunctionBody>();
+      if (functionBody != null) {
+        return BodyInferenceContext.of(functionBody).contextType;
+      }
     }
     return null;
   }
 
-  DartType _returnType(AstNode node) {
-    DartType unwrap(DartType returnType, FunctionBody body) {
-      if (returnType is InterfaceTypeImpl) {
-        DartType unwrapAs(ClassElement superclass) {
-          var convertedType = returnType.asInstanceOf(superclass);
-          if (convertedType != null) {
-            return convertedType.typeArguments[0];
-          }
-          return null;
-        }
-
-        if (body.isAsynchronous) {
-          if (body.isGenerator) {
-            // async* implies Stream<T>
-            return unwrapAs(typeProvider.streamElement);
-          } else {
-            // async implies Future<T>
-            return unwrapAs(typeProvider.futureElement);
-          }
-        } else if (body.isGenerator) {
-          // sync* implies Iterable<T>
-          return unwrapAs(typeProvider.iterableElement);
-        }
-      }
-      return returnType;
-    }
-
-    var parent = node.parent;
-    while (parent != null) {
-      if (parent is MethodDeclaration) {
-        return unwrap(parent.declaredElement.returnType, parent.body);
-      } else if (parent is ConstructorDeclaration) {
-        return parent.declaredElement.returnType;
-      } else if (parent is FunctionDeclaration) {
-        return unwrap(
-            parent.declaredElement.returnType, parent.functionExpression.body);
-      }
-      parent = parent.parent;
-    }
-    return null;
-  }
-
+  /// Return the result of visiting the parent of the [node] after setting the
+  /// [childNode] to the [node]. Note that this method is destructive in that it
+  /// does not reset the [childNode] before returning.
   DartType _visitParent(AstNode node) {
-    if (node.parent != null) {
-      childNode = node;
-      return node.parent.accept(this);
+    var parent = node.parent;
+    if (parent == null) {
+      return null;
     }
-    return null;
+    childNode = node;
+    return parent.accept(this);
   }
 }

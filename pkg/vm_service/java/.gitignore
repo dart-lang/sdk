@@ -26,6 +26,7 @@ src/org/dartlang/vm/service/consumer/GetStackConsumer.java
 src/org/dartlang/vm/service/consumer/InvokeConsumer.java
 src/org/dartlang/vm/service/consumer/KillConsumer.java
 src/org/dartlang/vm/service/consumer/PauseConsumer.java
+src/org/dartlang/vm/service/consumer/ProtocolListConsumer.java
 src/org/dartlang/vm/service/consumer/ReloadSourcesConsumer.java
 src/org/dartlang/vm/service/consumer/RemoveBreakpointConsumer.java
 src/org/dartlang/vm/service/consumer/RequestHeapSnapshotConsumer.java
@@ -95,6 +96,8 @@ src/org/dartlang/vm/service/element/NullRef.java
 src/org/dartlang/vm/service/element/Obj.java
 src/org/dartlang/vm/service/element/ObjRef.java
 src/org/dartlang/vm/service/element/ProfileFunction.java
+src/org/dartlang/vm/service/element/Protocol.java
+src/org/dartlang/vm/service/element/ProtocolList.java
 src/org/dartlang/vm/service/element/ReloadReport.java
 src/org/dartlang/vm/service/element/Response.java
 src/org/dartlang/vm/service/element/RetainingObject.java

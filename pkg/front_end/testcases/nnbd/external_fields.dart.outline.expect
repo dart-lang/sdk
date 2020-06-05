@@ -12,14 +12,17 @@ class A extends core::Object {
     ;
   @self::Annotation::•()
   external get instanceField() → core::int;
+  @self::Annotation::•()
   external set instanceField(core::int #t1) → void;
   @self::Annotation::•()
   external get finalInstanceField() → core::int;
   @self::Annotation::•()
   external get covariantInstanceField() → core::num;
+  @self::Annotation::•()
   external set covariantInstanceField(covariant core::num #t2) → void;
   @self::Annotation::•()
   external static get staticField() → core::int;
+  @self::Annotation::•()
   external static set staticField(core::int #t3) → void;
   @self::Annotation::•()
   external static get finalStaticField() → core::int;
@@ -35,14 +38,17 @@ class A extends core::Object {
 abstract class B extends core::Object /*isMixinDeclaration*/  {
   @self::Annotation::•()
   external get instanceField() → core::int;
+  @self::Annotation::•()
   external set instanceField(core::int #t7) → void;
   @self::Annotation::•()
   external get finalInstanceField() → core::int;
   @self::Annotation::•()
   external get covariantInstanceField() → core::num;
+  @self::Annotation::•()
   external set covariantInstanceField(covariant core::num #t8) → void;
   @self::Annotation::•()
   external static get staticField() → core::int;
+  @self::Annotation::•()
   external static set staticField(core::int #t9) → void;
   @self::Annotation::•()
   external static get finalStaticField() → core::int;
@@ -85,6 +91,7 @@ extension Extension on self::A {
 }
 @self::Annotation::•()
 external static get topLevelField() → core::int;
+@self::Annotation::•()
 external static set topLevelField(core::int #t17) → void;
 @self::Annotation::•()
 external static get finalTopLevelField() → core::int;
@@ -93,11 +100,13 @@ external static set untypedTopLevelField(dynamic #t18) → void;
 external static get untypedFinalTopLevelField() → dynamic;
 @self::Annotation::•()
 external static get Extension|extensionInstanceField() → core::int;
+@self::Annotation::•()
 external static set Extension|extensionInstanceField(core::int #t19) → void;
 @self::Annotation::•()
 external static get Extension|finalExtensionInstanceField() → core::int;
 @self::Annotation::•()
 external static get Extension|extensionStaticField() → core::int;
+@self::Annotation::•()
 external static set Extension|extensionStaticField(core::int #t20) → void;
 @self::Annotation::•()
 external static get Extension|finalExtensionStaticField() → core::int;

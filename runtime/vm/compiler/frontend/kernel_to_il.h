@@ -139,8 +139,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment StoreLateField(const Field& field,
                           LocalVariable* instance,
                           LocalVariable* setter_value);
-  Fragment InitInstanceField(const Field& field);
-  Fragment InitStaticField(const Field& field);
   Fragment NativeCall(const String* name, const Function* function);
   Fragment Return(
       TokenPosition position,

@@ -59,7 +59,7 @@ static method main() → dynamic {
       print(\"Hello, World!\") +
       ^" in core::print("Hello, World!")).{core::num::+}(invalid-expression "pkg/front_end/testcases/general/invocations.dart:14:7: Error: Method not found: 'z'.
       z(\"Hello, World!\") +
-      ^" as{TypeError,ForDynamic} core::num).{core::num::+}(invalid-expression "pkg/front_end/testcases/general/invocations.dart:15:7: Error: Getter not found: 'z'.
+      ^").{core::num::+}(invalid-expression "pkg/front_end/testcases/general/invocations.dart:15:7: Error: Getter not found: 'z'.
       z.print(\"Hello, World!\") +
       ^".print("Hello, World!") as{TypeError,ForDynamic} core::num).{core::num::+}(invalid-expression "pkg/front_end/testcases/general/invocations.dart:16:7: Error: Getter not found: 'y'.
       y.z.print(\"Hello, World!\") +

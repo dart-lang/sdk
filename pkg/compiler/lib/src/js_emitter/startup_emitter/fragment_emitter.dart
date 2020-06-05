@@ -1831,12 +1831,12 @@ class FragmentEmitter {
         }
         indexes.add(js.number(index));
       }
-      libraryPartsMapEntries.add(
-          new js.Property(js.string(loadId), new js.ArrayInitializer(indexes)));
+      libraryPartsMapEntries
+          .add(js.Property(js.string(loadId), js.ArrayInitializer(indexes)));
     });
 
-    deferredLoadingState.deferredLibraryParts
-        .setValue(new js.ObjectInitializer(libraryPartsMapEntries));
+    deferredLoadingState.deferredLibraryParts.setValue(
+        js.ObjectInitializer(libraryPartsMapEntries, isOneLiner: false));
     deferredLoadingState.deferredPartUris
         .setValue(js.stringArray(fragmentUris));
     deferredLoadingState.deferredPartHashes

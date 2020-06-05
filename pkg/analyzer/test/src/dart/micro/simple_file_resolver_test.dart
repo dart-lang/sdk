@@ -401,4 +401,12 @@ void func() {
 }
 ''');
   }
+
+  test_unknown_uri() async {
+    await assertErrorsInCode(r'''
+import 'foo:bar';
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 9),
+    ]);
+  }
 }

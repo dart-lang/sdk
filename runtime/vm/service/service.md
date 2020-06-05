@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.33
+# Dart VM Service Protocol 3.35
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.33_ of the Dart VM Service Protocol. This
+This document describes of _version 3.35_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -27,7 +27,9 @@ The Service Protocol uses [JSON-RPC 2.0][].
 - [IDs and Names](#ids-and-names)
 - [Versioning](#versioning)
 - [Private RPCs, Types, and Properties](#private-rpcs-types-and-properties)
-- [Single Client Mode](#single-client-mode)
+- [Middleware Support](#middleware-support)
+  - [Single Client Mode](#single-client-mode)
+  - [Protocol Extensions](#protocol-extensions)
 - [Public RPCs](#public-rpcs)
   - [addBreakpoint](#addbreakpoint)
   - [addBreakpointWithScriptUri](#addbreakpointwithscripturi)
@@ -50,6 +52,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [getScripts](#getscripts)
   - [getSourceReport](#getsourcereport)
   - [getStack](#getstack)
+  - [getSupportedProtocols](#getsupportedprotocols)
   - [getVersion](#getversion)
   - [getVM](#getvm)
   - [getVMTimeline](#getvmtimeline)
@@ -406,16 +409,27 @@ become stable. Some private types and properties expose VM specific
 implementation state and will never be appropriate to add to
 the public api.
 
-## Single Client Mode
+## Middleware Support
+
+### Single Client Mode
 
 The VM service allows for an extended feature set via the Dart Development
 Service (DDS) that forward all core VM service RPCs described in this
 document to the true VM service.
 
 When DDS connects to the VM service, the VM service enters single client
-mode and will no longer accept incoming web socket connections. If DDS
-disconnects from the VM service, the VM service will once again start accepting
-incoming web socket connections.
+mode and will no longer accept incoming web socket connections, instead forwarding
+the web socket connection request to DDS. If DDS disconnects from the VM service,
+the VM service will once again start accepting incoming web socket connections.
+
+### Protocol Extensions
+
+Middleware like the Dart Development Service have the option of providing
+functionality which builds on or extends the VM service protocol. Middleware
+which offer protocol extensions should intercept calls to
+[getSupportedProtocols](#getsupportedprotocols) and modify the resulting
+[ProtocolList](#protocolist) to include their own [Protocol](#protocol)
+information before responding to the requesting client.
 
 ## Public RPCs
 
@@ -978,6 +992,21 @@ If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
 
 See [Stack](#stack).
+
+### getSupportedProtocols
+
+```
+ProtocolList getSupportedProtocols()
+```
+
+The _getSupportedProtocols_ RPC is used to determine which protocols are
+supported by the current server.
+
+The result of this call should be intercepted by any middleware that extends
+the core VM service protocol and should add its own protocol to the list of
+protocols before forwarding the response to the client.
+
+See [ProtocolList](#protocollist).
 
 ### getSourceReport
 
@@ -3215,6 +3244,37 @@ function.
 
 See [CpuSamples](#cpusamples).
 
+### ProtocolList
+
+```
+class ProtocolList extends Response {
+  // A list of supported protocols provided by this service.
+  Protocol[] protocols;
+}
+```
+
+A _ProtocolList_ contains a list of all protocols supported by the service
+instance.
+
+See [Protocol](#protocol) and [getSupportedProtocols](#getsupportedprotocols).
+
+### Protocol
+
+```
+class Protocol {
+  // The name of the supported protocol.
+  string protocolName;
+
+  // The major revision of the protocol.
+  int major;
+
+  // The minor revision of the protocol.
+  int minor;
+}
+```
+
+See [getSupportedProtocols](#getsupportedprotocols).
+
 ### ReloadReport
 
 ```
@@ -3787,5 +3847,6 @@ the VM service.
 3.32 | Added `getClassList` RPC and `ClassList` object.
 3.33 | Added deprecation notice for `getClientName`, `setClientName`, `requireResumeApproval`, and `ClientName`. These RPCs are moving to the DDS protocol and will be removed in v4.0 of the VM service protocol.
 3.34 | Added `TimelineStreamSubscriptionsUpdate` event which is sent when `setVMTimelineFlags` is invoked.
+3.35 | Added `getSupportedProtocols` RPC and `ProtocolList`, `Protocol` objects.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

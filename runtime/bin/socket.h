@@ -262,10 +262,25 @@ class ListeningSocketRegistry {
                                  const char* path) {
     while (current != NULL) {
       ASSERT(current->address.addr.sa_family == AF_UNIX);
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
+      bool condition;
+      if (path[0] == '\0') {
+        condition = current->address.un.sun_path[0] == '\0' &&
+                    strcmp(&(current->address.un.sun_path[1]), path + 1) == 0;
+      } else {
+        condition =
+            File::AreIdentical(current->namespc, current->address.un.sun_path,
+                               namespc, path) == File::kIdentical;
+      }
+      if (condition) {
+        return current;
+      }
+#else
       if (File::AreIdentical(current->namespc, current->address.un.sun_path,
                              namespc, path) == File::kIdentical) {
         return current;
       }
+#endif  // defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
       current = current->next;
     }
     return NULL;

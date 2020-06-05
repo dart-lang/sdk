@@ -643,7 +643,6 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     InstanceCreationExpression creation =
         AstTestFactory.instanceCreationExpression(Keyword.NEW, name);
     _resolveNode(creation);
-    expect(creation.staticElement, same(constructor));
     _listener.assertNoErrors();
   }
 
@@ -659,7 +658,6 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     InstanceCreationExpression creation =
         AstTestFactory.instanceCreationExpression(Keyword.NEW, name);
     _resolveNode(creation);
-    expect(creation.staticElement, same(constructor));
     _listener.assertNoErrors();
   }
 
@@ -681,7 +679,6 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
       AstTestFactory.namedExpression2(parameterName, AstTestFactory.integer(0))
     ]);
     _resolveNode(creation);
-    expect(creation.staticElement, same(constructor));
     expect(
         (creation.argumentList.arguments[0] as NamedExpression)
             .name

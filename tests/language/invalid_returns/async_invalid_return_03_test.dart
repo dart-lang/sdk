@@ -15,11 +15,9 @@ Future<Object?> test1() async {
 // [cfe] unspecified
 }
 
+// Inferred return type of function literal is `Future<Null>`, no error.
 Future<Object?> Function() test2 = () async {
   return;
-//^
-// [analyzer] unspecified
-// [cfe] unspecified
 };
 
 void main() {

@@ -461,8 +461,8 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.noLegacyJavaScript, passThrough),
     new OptionHandler(Flags.benchmarkingProduction, passThrough),
     new OptionHandler(Flags.benchmarkingExperiment, passThrough),
-    new OptionHandler(Flags.nullSafety, setNullSafetyMode),
-    new OptionHandler(Flags.noNullSafety, setNullSafetyMode),
+    new OptionHandler(Flags.soundNullSafety, setNullSafetyMode),
+    new OptionHandler(Flags.noSoundNullSafety, setNullSafetyMode),
 
     // TODO(floitsch): remove conditional directives flag.
     // We don't provide the info-message yet, since we haven't publicly
@@ -875,7 +875,7 @@ Supported options:
     Display verbose information.
 
   -D<name>=<value>
-    Define an environment variable.
+    Define an environment declaration.
 
   --version
     Display version information.

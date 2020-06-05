@@ -20,13 +20,19 @@ class RemoveTypeAnnotation extends CorrectionProducer {
 
   @override
   Future<void> compute(DartChangeBuilder builder) async {
-    // todo (pq): unify w/ fix (and then add a guard to not assist on lints:
-    //  avoid_return_types_on_setters, type_init_formals)
-    var declarationList = node.thisOrAncestorOfType<VariableDeclarationList>();
-    if (declarationList == null) {
-      await _removeFromDeclaredIdentifier(builder);
-    } else {
-      await _removeFromDeclarationList(builder, declarationList);
+    for (var node = this.node; node != null; node = node.parent) {
+      if (node is DeclaredIdentifier) {
+        return _removeFromDeclaredIdentifier(builder, node);
+      }
+      if (node is SimpleFormalParameter) {
+        return _removeTypeAnnotation(builder, node.type);
+      }
+      if (node is TypeAnnotation && diagnostic != null) {
+        return _removeTypeAnnotation(builder, node);
+      }
+      if (node is VariableDeclarationList) {
+        return _removeFromDeclarationList(builder, node);
+      }
     }
   }
 
@@ -63,11 +69,8 @@ class RemoveTypeAnnotation extends CorrectionProducer {
     });
   }
 
-  Future<void> _removeFromDeclaredIdentifier(DartChangeBuilder builder) async {
-    var declaration = node.thisOrAncestorOfType<DeclaredIdentifier>();
-    if (declaration == null) {
-      return;
-    }
+  Future<void> _removeFromDeclaredIdentifier(
+      DartChangeBuilder builder, DeclaredIdentifier declaration) async {
     var typeNode = declaration.type;
     if (typeNode == null) {
       return;
@@ -83,4 +86,18 @@ class RemoveTypeAnnotation extends CorrectionProducer {
       }
     });
   }
+
+  Future<void> _removeTypeAnnotation(
+      DartChangeBuilder builder, TypeAnnotation type) async {
+    if (type == null) {
+      return;
+    }
+
+    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addDeletion(range.startStart(type, type.endToken.next));
+    });
+  }
+
+  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
+  static RemoveTypeAnnotation newInstance() => RemoveTypeAnnotation();
 }

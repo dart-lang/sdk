@@ -32,8 +32,8 @@ typedef AnalyzeFunctionBodiesPredicate = bool Function(Source source);
 
 /// A context in which a single analysis can be performed and incrementally
 /// maintained. The context includes such information as the version of the SDK
-/// being analyzed against as well as the package-root used to resolve 'package:'
-/// URI's. (Both of which are known indirectly through the [SourceFactory].)
+/// being analyzed against, and how to resolve 'package:' URI's. (Both of which
+/// are known indirectly through the [SourceFactory].)
 ///
 /// An analysis context also represents the state of the analysis, which includes
 /// knowing which sources have been included in the analysis (either directly or

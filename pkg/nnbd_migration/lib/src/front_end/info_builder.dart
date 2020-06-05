@@ -4,7 +4,6 @@
 
 import 'dart:collection';
 
-import 'package:analysis_server/src/api_for_nnbd_migration.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -18,6 +17,8 @@ import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
+import 'package:nnbd_migration/src/front_end/dartfix_listener.dart';
+import 'package:nnbd_migration/src/front_end/driver_provider_impl.dart';
 import 'package:nnbd_migration/src/front_end/instrumentation_information.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
 import 'package:nnbd_migration/src/front_end/offset_mapper.dart';
@@ -37,7 +38,7 @@ class InfoBuilder {
   final InstrumentationInformation info;
 
   /// The listener used to gather the changes to be applied.
-  final DartFixListenerInterface listener;
+  final DartFixListener listener;
 
   /// The [NullabilityMigration] instance for this migration.
   final NullabilityMigration migration;
@@ -51,7 +52,7 @@ class InfoBuilder {
       this.migration, this.nodeMapper);
 
   /// The provider used to get information about libraries.
-  DriverProvider get driverProvider => listener.server;
+  DriverProviderImpl get driverProvider => listener.server;
 
   /// Return the migration information for all of the libraries that were
   /// migrated.

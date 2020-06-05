@@ -17,6 +17,10 @@ import 'package:kernel/target/targets.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
+// TODO(annagrin): Replace javascript matching in tests below with evaluating
+// the javascript and checking the result.
+// See https://github.com/dart-lang/sdk/issues/41959
+
 class DevelopmentIncrementalCompiler extends IncrementalCompiler {
   Uri entryPoint;
 
@@ -1095,6 +1099,107 @@ int main() {
           ))
           ''');
     });
+  });
+
+  group('Expression compiler tests in method with no type use', () {
+    const String source = '''
+      abstract class Key {
+        const factory Key(String value) = ValueKey;
+        const Key.empty();
+      }
+
+      abstract class LocalKey extends Key {
+        const LocalKey() : super.empty();
+      }
+
+      class ValueKey implements LocalKey {
+        const ValueKey(this.value);
+        final String value;
+      }
+
+      class MyClass {
+        const MyClass(this._t);
+        final int _t;
+      }
+
+      int bar(int p){
+        return p;
+      }
+      void main() {
+        var k = Key('t');
+        MyClass c = MyClass(0);
+        int p = 1;
+
+        /* evaluation placeholder */
+        print('\$c, \$k');
+      }
+      ''';
+
+    TestDriver driver;
+    setUp(() {
+      driver = TestDriver(options, source);
+    });
+
+    tearDown(() {
+      driver.delete();
+    });
+
+    test('call function using type', () async {
+      await driver.check(
+          scope: <String, String>{'p': '1'},
+          expression: 'bar(p)',
+          expectedResult: '''
+          (function(p) {
+            var intL = () => (intL = dart.constFn(dart.legacy(core.int)))();
+            return foo.bar(intL().as(p));
+          }(
+          1
+          ))
+          ''');
+    });
+
+    test('evaluate const expression', () async {
+      await driver.check(
+          scope: <String, String>{'p': '1'},
+          expression: 'const MyClass(1)',
+          expectedResult: '''
+          (function(p) {
+            return dart.const(new foo.MyClass.new(1));
+          }(
+          1
+          ))
+          ''');
+    });
+
+    test('evaluate factory constructor call', () async {
+      await driver.check(
+          scope: <String, String>{'p': '1'},
+          expression: "Key('t')",
+          expectedResult: '''
+          (function(p) {
+            return new foo.ValueKey.new("t");
+          }(
+          1
+          ))
+          ''');
+    },
+        skip:
+            'Incorrect kernel for factory constructor call'); // https://github.com/dart-lang/sdk/issues/41976
+
+    test('evaluate const factory constructor call', () async {
+      await driver.check(
+          scope: <String, String>{'p': '1'},
+          expression: "const Key('t')",
+          expectedResult: '''
+          (function(p) {
+            return dart.const(new foo.ValueKey.new("t"));
+          }(
+          1
+          ))
+          ''');
+    },
+        skip:
+            'Incorrect kernel for factory constructor call'); // https://github.com/dart-lang/sdk/issues/41976
   });
 
   return 0;

@@ -780,21 +780,6 @@ const AbstractType* CompileType::ToAbstractType() {
   return type_;
 }
 
-bool CompileType::IsNotSmi() {
-  if (cid_ != kIllegalCid && cid_ != kDynamicCid && cid_ != kSmiCid) {
-    return true;
-  }
-  const AbstractType* type = ToAbstractType();
-  if (type->IsTypeParameter()) {
-    type = &AbstractType::Handle(TypeParameter::Cast(*type).bound());
-  }
-
-  // TODO(sjindel): Use instantiate-to-bounds instead.
-  if (!type->IsInstantiated()) return false;
-  const AbstractType& smi = AbstractType::Handle(Type::SmiType());
-  return !smi.IsSubtypeOf(*type, Heap::Space::kNew);
-}
-
 bool CompileType::IsSubtypeOf(const AbstractType& other) {
   if (other.IsTopTypeForSubtyping()) {
     return true;
@@ -847,6 +832,49 @@ bool CompileType::Specialize(GrowableArray<intptr_t>* class_ids) {
     }
   }
   return false;
+}
+
+// For the given type conservatively computes whether Smi can potentially
+// appear in a location of this type.
+//
+// If recurse is false this function will not call itself recursively
+// to prevent infinite recursion when traversing a cycle in type parameter
+// bounds.
+static bool CanPotentiallyBeSmi(const AbstractType& type, bool recurse) {
+  if (type.IsInstantiated()) {
+    return CompileType::Smi().IsAssignableTo(type);
+  } else if (type.IsTypeParameter()) {
+    // For type parameters look at their bounds (if recurse allows us).
+    const auto& param = TypeParameter::Cast(type);
+    return !recurse || CanPotentiallyBeSmi(AbstractType::Handle(param.bound()),
+                                           /*recurse=*/false);
+  } else if (type.HasTypeClass()) {
+    // If this is an unstantiated type then it can only potentially be a super
+    // type of a Smi if it is either FutureOr<...> or Comparable<...>.
+    // In which case we need to look at the type argument to determine whether
+    // this location can contain a smi.
+    //
+    // Note: we are making a simplification here. This approach will yield
+    // true for Comparable<T> where T extends int - while in reality Smi is
+    // *not* assignable to it (because int implements Comparable<num> and not
+    // Comparable<int>).
+    if (type.IsFutureOrType() ||
+        type.type_class() == CompilerState::Current().ComparableClass().raw()) {
+      const auto& args = TypeArguments::Handle(Type::Cast(type).arguments());
+      const auto& arg0 = AbstractType::Handle(args.TypeAt(0));
+      return !recurse || CanPotentiallyBeSmi(arg0, /*recurse=*/true);
+    }
+    return false;
+  }
+  return false;
+}
+
+bool CompileType::CanBeSmi() {
+  // Fast path for known cid.
+  if (cid_ != kIllegalCid && cid_ != kDynamicCid) {
+    return cid_ == kSmiCid;
+  }
+  return CanPotentiallyBeSmi(*ToAbstractType(), /*recurse=*/true);
 }
 
 void CompileType::PrintTo(BufferFormatter* f) const {
@@ -1372,7 +1400,7 @@ CompileType StringInterpolateInstr::ComputeType() const {
 }
 
 CompileType LoadStaticFieldInstr::ComputeType() const {
-  const Field& field = this->StaticField();
+  const Field& field = this->field();
   bool is_nullable = CompileType::kNullable;
   intptr_t cid = kIllegalCid;  // Abstract type is known, calculate cid lazily.
   AbstractType* abstract_type = &AbstractType::ZoneHandle(field.type());

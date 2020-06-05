@@ -17,15 +17,15 @@ foo() {
   String s;
   int i;
 
-  s = /*info:DYNAMIC_CAST*/ new B(). /*@target=B::x*/ x;
-  s = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::y*/ y;
-  s = new B(). /*@target=B::z*/ z;
-  s = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::w*/ w;
+  s = /*info:DYNAMIC_CAST*/ new B(). /*@target=B.x*/ x;
+  s = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B.y*/ y;
+  s = new B(). /*@target=B.z*/ z;
+  s = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B.w*/ w;
 
-  i = /*info:DYNAMIC_CAST*/ new B(). /*@target=B::x*/ x;
-  i = new B(). /*@target=B::y*/ y;
-  i = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::z*/ z;
-  i = new B(). /*@target=B::w*/ w;
+  i = /*info:DYNAMIC_CAST*/ new B(). /*@target=B.x*/ x;
+  i = new B(). /*@target=B.y*/ y;
+  i = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B.z*/ z;
+  i = new B(). /*@target=B.w*/ w;
 }
 
 main() {}

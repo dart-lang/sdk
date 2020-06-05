@@ -122,11 +122,15 @@ class _SyncIterator<T> implements Iterator<T> {
   _SyncGeneratorCallback<T>? _moveNextFn;
   Iterator<T>? _yieldEachIterator;
 
+  // Stack of suspended _moveNextFn.
+  List<_SyncGeneratorCallback<T>>? _stack;
+
   // These two fields are set by generated code for the yield and yield*
   // statement.
   T? _current;
   Iterable<T>? _yieldEachIterable;
 
+  @override
   T get current {
     final iterator = _yieldEachIterator;
     if (iterator != null) {
@@ -139,11 +143,15 @@ class _SyncIterator<T> implements Iterator<T> {
 
   _SyncIterator(this._moveNextFn);
 
+  @override
   bool moveNext() {
     if (_moveNextFn == null) {
       return false;
     }
+
     while (true) {
+      // If the active iterator isn't a nested _SyncIterator, we have to
+      // delegate downwards from the immediate iterator.
       final iterator = _yieldEachIterator;
       if (iterator != null) {
         if (iterator.moveNext()) {
@@ -151,22 +159,41 @@ class _SyncIterator<T> implements Iterator<T> {
         }
         _yieldEachIterator = null;
       }
-      // _moveNextFn() will update the values of _yieldEachIterable
-      //  and _current.
-      if (!_moveNextFn!(this)) {
+
+      final stack = _stack;
+      if (!_moveNextFn!.call(this)) {
         _moveNextFn = null;
         _current = null;
+        // If we have any suspended parent generators, continue next one up:
+        if (stack != null && stack.isNotEmpty) {
+          _moveNextFn = stack.removeLast();
+          continue;
+        }
         return false;
       }
-      final yieldEachIterable = _yieldEachIterable;
-      if (yieldEachIterable != null) {
-        // Spec mandates: it is a dynamic error if the class of [the object
-        // returned by yield*] does not implement Iterable.
-        _yieldEachIterator = yieldEachIterable.iterator;
+
+      final iterable = _yieldEachIterable;
+      if (iterable != null) {
+        if (iterable is _SyncIterable) {
+          // We got a recursive yield* of sync* function. Instead of creating
+          // a new iterator we replace our _moveNextFn (remembering the
+          // current _moveNextFn for later resumption).
+          if (stack == null) {
+            _stack = [];
+          }
+          _stack!.add(_moveNextFn!);
+          final typedIterable = unsafeCast<_SyncIterable<T>>(iterable);
+          _moveNextFn = typedIterable._moveNextFnMaker();
+        } else {
+          _yieldEachIterator = iterable.iterator;
+        }
         _yieldEachIterable = null;
         _current = null;
+
+        // Fetch the next item.
         continue;
       }
+
       return true;
     }
   }

@@ -1208,7 +1208,7 @@ void BytecodeFlowGraphBuilder::BuildLoadFieldTOS() {
     // Loads from _Closure fields are lower-level.
     code_ += B->LoadNativeField(ClosureSlotByField(field));
   } else {
-    code_ += B->LoadField(field);
+    code_ += B->LoadField(field, /*calls_initializer=*/false);
   }
 }
 
@@ -1319,7 +1319,7 @@ void BytecodeFlowGraphBuilder::BuildLoadStatic() {
     code_ += B->Constant(value);
     return;
   }
-  code_ += B->LoadStaticField(field);
+  code_ += B->LoadStaticField(field, /*calls_initializer=*/false);
 }
 
 void BytecodeFlowGraphBuilder::BuildStoreIndexedTOS() {

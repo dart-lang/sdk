@@ -1132,19 +1132,24 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
     }
   }
 
-  OS::PrintErr("version=%s\n", Version::String());
-  OSThread* os_thread = OSThread::Current();
-  ASSERT(os_thread != NULL);
-  Isolate* isolate = Isolate::Current();
-  const char* name = isolate == NULL ? "(nil)" : isolate->name();
-  OS::PrintErr("pid=%" Pd ", thread=%" Pd ", isolate=%s(%p)\n",
-               static_cast<intptr_t>(OS::ProcessId()),
-               OSThread::ThreadIdToIntPtr(os_thread->trace_id()), name,
-               isolate);
-  const IsolateGroupSource* source =
-      isolate == nullptr ? nullptr : isolate->source();
-  const IsolateGroupSource* vm_source =
+  auto os_thread = OSThread::Current();
+  ASSERT(os_thread != nullptr);
+  auto thread = Thread::Current();  // NULL if no current isolate.
+  auto isolate = thread == nullptr ? nullptr : thread->isolate();
+  auto isolate_group = thread == nullptr ? nullptr : thread->isolate_group();
+  auto source = isolate_group == nullptr ? nullptr : isolate_group->source();
+  auto vm_source =
       Dart::vm_isolate() == nullptr ? nullptr : Dart::vm_isolate()->source();
+  const char* isolate_group_name =
+      isolate_group == nullptr ? "(nil)" : isolate_group->source()->name;
+  const char* isolate_name = isolate == nullptr ? "(nil)" : isolate->name();
+
+  OS::PrintErr("version=%s\n", Version::String());
+  OS::PrintErr("pid=%" Pd ", thread=%" Pd
+               ", isolate_group=%s(%p), isolate=%s(%p)\n",
+               static_cast<intptr_t>(OS::ProcessId()),
+               OSThread::ThreadIdToIntPtr(os_thread->trace_id()),
+               isolate_group_name, isolate_group, isolate_name, isolate);
   OS::PrintErr("isolate_instructions=%" Px ", vm_instructions=%" Px "\n",
                source == nullptr
                    ? 0
@@ -1158,7 +1163,6 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
     return;
   }
 
-  Thread* thread = Thread::Current();  // NULL if no current isolate.
   uword stack_lower = 0;
   uword stack_upper = 0;
   if (!GetAndValidateThreadStackBounds(os_thread, thread, fp, sp, &stack_lower,

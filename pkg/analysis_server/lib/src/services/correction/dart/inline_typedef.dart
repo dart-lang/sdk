@@ -12,10 +12,10 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class InlineTypedef extends CorrectionProducer {
-  String name;
+  String _name;
 
   @override
-  List<Object> get fixArguments => [name];
+  List<Object> get fixArguments => [_name];
 
   @override
   FixKind get fixKind => DartFixKind.INLINE_TYPEDEF;
@@ -31,7 +31,7 @@ class InlineTypedef extends CorrectionProducer {
     var parent = node.parent;
     if (parent is FunctionTypeAlias) {
       returnType = parent.returnType;
-      name = parent.name.name;
+      _name = parent.name.name;
       typeParameters = parent.typeParameters;
       parameters = parent.parameters.parameters;
     } else if (parent is GenericTypeAlias) {
@@ -40,14 +40,14 @@ class InlineTypedef extends CorrectionProducer {
       }
       var functionType = parent.functionType;
       returnType = functionType.returnType;
-      name = parent.name.name;
+      _name = parent.name.name;
       typeParameters = functionType.typeParameters;
       parameters = functionType.parameters.parameters;
     } else {
       return;
     }
     // TODO(brianwilkerson) Handle parts.
-    var finder = _ReferenceFinder(name);
+    var finder = _ReferenceFinder(_name);
     resolvedResult.unit.accept(finder);
     if (finder.count != 1) {
       return;

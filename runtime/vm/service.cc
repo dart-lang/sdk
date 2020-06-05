@@ -2809,14 +2809,10 @@ static bool CompileExpression(Thread* thread, JSONStream* js) {
   }
 
   if (!KernelIsolate::IsRunning() && !KernelIsolate::Start()) {
-    // Assume we are in dart1 mode where separate compilation is not required.
-    // 0-length kernelBytes signals that we should evaluate expression in dart1
-    // mode.
-    // TODO(aam): When dart1 is no longer supported we need to return error
-    // here.
-    JSONObject report(js);
-    const uint8_t kernel_bytes[] = {0};
-    report.AddPropertyBase64("kernelBytes", kernel_bytes, 0);
+    js->PrintError(
+        kExpressionCompilationError,
+        "%s: No compilation service available; cannot evaluate from source.",
+        js->method());
     return true;
   }
 
@@ -3080,9 +3076,11 @@ static bool GetInstances(Thread* thread, JSONStream* js) {
 
   ZoneGrowableHandlePtrArray<Object> storage(thread->zone(), limit);
   GetInstancesVisitor visitor(cls, &storage, limit);
-  ObjectGraph graph(thread);
-  HeapIterationScope iteration_scope(Thread::Current(), true);
-  graph.IterateObjects(&visitor);
+  {
+    ObjectGraph graph(thread);
+    HeapIterationScope iteration_scope(Thread::Current(), true);
+    graph.IterateObjects(&visitor);
+  }
   intptr_t count = visitor.count();
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "InstanceSet");

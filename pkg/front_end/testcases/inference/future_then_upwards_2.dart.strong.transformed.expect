@@ -46,7 +46,7 @@ static method main() → void {
  - 'MyFuture' is from 'pkg/front_end/testcases/inference/future_then_upwards_2.dart'.
   MyFuture<int> f2 = /*error:INVALID_ASSIGNMENT*/ f;
                                                   ^" in f as{TypeError} self::MyFuture<core::int*>*;
-  self::MyFuture<core::num*>* f3 = self::foo().{self::MyFuture::then}<core::double*>((dynamic _) → core::double* => 2.3) as self::MyFuture<core::double*>*;
+  self::MyFuture<core::num*>* f3 = self::foo().{self::MyFuture::then}<core::double*>((dynamic _) → core::double* => 2.3);
 }
 static method foo() → self::MyFuture<dynamic>*
   return new self::MyFuture::value<core::int*>(1);

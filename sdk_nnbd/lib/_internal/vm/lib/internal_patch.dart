@@ -170,3 +170,9 @@ void spawnFunction(
     String? packageConfig,
     bool newIsolateGroup,
     String? debugName) native "Isolate_spawnFunction";
+
+// Collection of functions which should only be used for testing purposes.
+abstract class VMInternalsForTesting {
+  // This function can be used by tests to enforce garbage collection.
+  static void collectAllGarbage() native "Internal_collectAllGarbage";
+}

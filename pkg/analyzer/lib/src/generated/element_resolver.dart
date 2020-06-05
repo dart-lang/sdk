@@ -455,7 +455,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     ConstructorElement invokedConstructor = node.constructorName.staticElement;
-    node.staticElement = invokedConstructor;
     ArgumentList argumentList = node.argumentList;
     List<ParameterElement> parameters =
         _resolveArgumentsToFunction(argumentList, invokedConstructor);

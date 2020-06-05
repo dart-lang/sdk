@@ -112,11 +112,7 @@ class MemoryResourceProvider implements ResourceProvider {
   @override
   Resource getResource(String path) {
     _ensureAbsoluteAndNormalized(path);
-    Resource resource = _pathToResource[path];
-    if (resource == null) {
-      resource = _MemoryFile(this, path);
-    }
-    return resource;
+    return _pathToResource[path] ?? _MemoryFile(this, path);
   }
 
   @override
@@ -517,11 +513,8 @@ class _MemoryFolder extends _MemoryResource implements Folder {
   @override
   Resource getChild(String relPath) {
     String childPath = canonicalizePath(relPath);
-    _MemoryResource resource = _provider._pathToResource[childPath];
-    if (resource == null) {
-      resource = _MemoryFile(_provider, childPath);
-    }
-    return resource;
+    return _provider._pathToResource[childPath] ??
+        _MemoryFile(_provider, childPath);
   }
 
   @override

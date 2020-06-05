@@ -68,7 +68,7 @@ TEST_CASE(OldGC_Unsync) {
 TEST_CASE(LargeSweep) {
   const char* kScriptChars =
       "main() {\n"
-      "  return new List(8 * 1024 * 1024);\n"
+      "  return List.filled(8 * 1024 * 1024, null);\n"
       "}\n";
   NOT_IN_PRODUCT(FLAG_verbose_gc = true);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
@@ -111,6 +111,11 @@ TEST_CASE(ClassHeapStats) {
   Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Isolate* isolate = Isolate::Current();
   ClassTable* class_table = isolate->class_table();
+  {
+    // GC before main so allocations during the tests don't cause unexpected GC.
+    TransitionNativeToVM transition(thread);
+    GCTestHelper::CollectAllGarbage();
+  }
   Dart_EnterScope();
   Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);

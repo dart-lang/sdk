@@ -682,6 +682,62 @@ ASSEMBLER_TEST_RUN(FailedSemaphore32, test) {
             EXECUTE_TEST_CODE_INT64(FailedSemaphore32, test->entry()));
 }
 
+ASSEMBLER_TEST_GENERATE(LoadAcquireStoreRelease, assembler) {
+  // We cannot really test that ldar/stlr have the barrier behavior, but at
+  // least we can test that the load/store behavior is correct.
+  Label failed, done;
+
+  __ SetupDartSP();
+  __ EnterFrame(0);
+
+  // Test 64-bit ladr.
+  __ PushImmediate(0x1122334455667788);
+  __ ldar(R1, SP, kDoubleWord);
+  __ CompareImmediate(R1, 0x1122334455667788);
+  __ BranchIf(NOT_EQUAL, &failed);
+  __ Drop(1);
+
+  // Test 32-bit ladr - must zero extend.
+  __ PushImmediate(0x1122334455667788);
+  __ ldar(R1, SP, kWord);
+  __ CompareImmediate(R1, 0x55667788);
+  __ BranchIf(NOT_EQUAL, &failed);
+  __ Drop(1);
+
+  // Test 64-bit stlr.
+  __ PushImmediate(0);
+  __ LoadImmediate(R1, 0x1122334455667788);
+  __ stlr(R1, SP, kDoubleWord);
+  __ Pop(R1);
+  __ CompareImmediate(R1, 0x1122334455667788);
+  __ BranchIf(NOT_EQUAL, &failed);
+
+  // Test 32-bit stlr.
+  __ PushImmediate(0);
+  __ LoadImmediate(R1, 0x1122334455667788);
+  __ stlr(R1, SP, kWord);
+  __ Pop(R1);
+  __ CompareImmediate(R1, 0x55667788);
+  __ BranchIf(NOT_EQUAL, &failed);
+
+  __ LoadImmediate(R0, 0x42);
+  __ b(&done);
+
+  __ Bind(&failed);
+  __ LoadImmediate(R0, 0x84);
+
+  __ Bind(&done);
+  __ LeaveFrame();
+  __ RestoreCSP();
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(LoadAcquireStoreRelease, test) {
+  typedef intptr_t (*LoadAcquireStoreRelease)() DART_UNUSED;
+  EXPECT_EQ(0x42,
+            EXECUTE_TEST_CODE_INT64(LoadAcquireStoreRelease, test->entry()));
+}
+
 // Logical register operations.
 ASSEMBLER_TEST_GENERATE(AndRegs, assembler) {
   __ movz(R1, Immediate(43), 0);

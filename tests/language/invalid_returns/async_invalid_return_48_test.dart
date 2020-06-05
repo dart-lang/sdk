@@ -18,6 +18,7 @@ Future<Null> test1() async {
   // [cfe] unspecified
 }
 
+// Inferred return type of function literal is `Future<Null>`.
 Future<Null> Function() test2 = () async {
   return v;
   //     ^

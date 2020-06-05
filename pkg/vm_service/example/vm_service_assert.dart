@@ -918,6 +918,28 @@ List<vms.ProfileFunction> assertListOfProfileFunction(
   return list;
 }
 
+vms.ProtocolList assertProtocolList(vms.ProtocolList obj) {
+  assertNotNull(obj);
+  assertString(obj.type);
+  assertListOfProtocol(obj.protocols);
+  return obj;
+}
+
+vms.Protocol assertProtocol(vms.Protocol obj) {
+  assertNotNull(obj);
+  assertString(obj.protocolName);
+  assertInt(obj.major);
+  assertInt(obj.minor);
+  return obj;
+}
+
+List<vms.Protocol> assertListOfProtocol(List<vms.Protocol> list) {
+  for (vms.Protocol elem in list) {
+    assertProtocol(elem);
+  }
+  return list;
+}
+
 vms.ReloadReport assertReloadReport(vms.ReloadReport obj) {
   assertNotNull(obj);
   assertString(obj.type);

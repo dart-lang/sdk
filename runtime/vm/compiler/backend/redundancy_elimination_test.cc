@@ -17,6 +17,7 @@
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/jit/jit_call_specializer.h"
 #include "vm/flags.h"
+#include "vm/kernel_isolate.h"
 #include "vm/log.h"
 #include "vm/object.h"
 #include "vm/parser.h"
@@ -905,7 +906,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantStoresAndLoads) {
   const char* kScript = R"(
     class Bar {
       Bar() { a = null; }
-      Object a;
+      dynamic a;
     }
 
     Bar foo() {
@@ -955,7 +956,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantStoresAndLoads) {
   EXPECT_EQ(1, aft_stores);
 }
 
-ISOLATE_UNIT_TEST_CASE(CSE_RedundantInitStaticField) {
+ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantStaticFieldInitialization) {
   const char* kScript = R"(
     int getX() => 2;
     int x = getX();
@@ -967,7 +968,7 @@ ISOLATE_UNIT_TEST_CASE(CSE_RedundantInitStaticField) {
     }
   )";
 
-  // Make sure InitStaticField is not removed because
+  // Make sure static field initialization is not removed because
   // field is already initialized.
   SetFlagScope<bool> sfs(&FLAG_fields_may_be_reset, true);
 
@@ -985,14 +986,132 @@ ISOLATE_UNIT_TEST_CASE(CSE_RedundantInitStaticField) {
   RELEASE_ASSERT(cursor.TryMatch({
       kMatchAndMoveFunctionEntry,
       kMatchAndMoveCheckStackOverflow,
-      kMatchAndMoveInitStaticField,
       kMatchAndMoveLoadStaticField,
+      kMoveParallelMoves,
       kMatchAndMoveCheckSmi,
       kMoveParallelMoves,
       kMatchAndMoveBinarySmiOp,
       kMoveParallelMoves,
       kMatchReturn,
   }));
+}
+
+ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantInitializerCallAfterIf) {
+  const char* kScript = R"(
+    int x = int.parse('1');
+
+    @pragma('vm:never-inline')
+    use(int arg) {}
+
+    foo(bool condition) {
+      if (condition) {
+        x = 3;
+      } else {
+        use(x);
+      }
+      use(x);
+    }
+
+    main() {
+      foo(true);
+    }
+  )";
+
+  // Make sure static field initialization is not removed because
+  // field is already initialized.
+  SetFlagScope<bool> sfs(&FLAG_fields_may_be_reset, true);
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  Invoke(root_library, "main");
+  const auto& function = Function::Handle(GetFunction(root_library, "foo"));
+  TestPipeline pipeline(function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+  ASSERT(flow_graph != nullptr);
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  EXPECT(entry != nullptr);
+
+  LoadStaticFieldInstr* load_static_after_if = nullptr;
+
+  ILMatcher cursor(flow_graph, entry);
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMoveGlob,
+      kMatchAndMoveBranchTrue,
+      kMoveGlob,
+      kMatchAndMoveGoto,
+      kMatchAndMoveJoinEntry,
+      kMoveParallelMoves,
+      {kMatchAndMoveLoadStaticField, &load_static_after_if},
+      kMoveGlob,
+      kMatchReturn,
+  }));
+  EXPECT(!load_static_after_if->calls_initializer());
+}
+
+ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantInitializerCallInLoop) {
+  if (!TestCase::IsNNBD()) {
+    return;
+  }
+
+  const char* kScript = R"(
+    class A {
+      late int x = int.parse('1');
+      A? next;
+    }
+
+    @pragma('vm:never-inline')
+    use(int arg) {}
+
+    foo(A obj) {
+      use(obj.x);
+      for (;;) {
+        use(obj.x);
+        final next = obj.next;
+        if (next == null) {
+          break;
+        }
+        obj = next;
+        use(obj.x);
+      }
+    }
+
+    main() {
+      foo(A()..next = A());
+    }
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  Invoke(root_library, "main");
+  const auto& function = Function::Handle(GetFunction(root_library, "foo"));
+  TestPipeline pipeline(function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+  ASSERT(flow_graph != nullptr);
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  EXPECT(entry != nullptr);
+
+  LoadFieldInstr* load_field_before_loop = nullptr;
+  LoadFieldInstr* load_field_in_loop1 = nullptr;
+  LoadFieldInstr* load_field_in_loop2 = nullptr;
+
+  ILMatcher cursor(flow_graph, entry);
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMoveGlob,
+      {kMatchAndMoveLoadField, &load_field_before_loop},
+      kMoveGlob,
+      kMatchAndMoveGoto,
+      kMatchAndMoveJoinEntry,
+      kMoveGlob,
+      {kMatchAndMoveLoadField, &load_field_in_loop1},
+      kMoveGlob,
+      kMatchAndMoveBranchFalse,
+      kMoveGlob,
+      {kMatchAndMoveLoadField, &load_field_in_loop2},
+  }));
+
+  EXPECT(load_field_before_loop->calls_initializer());
+  EXPECT(!load_field_in_loop1->calls_initializer());
+  EXPECT(load_field_in_loop2->calls_initializer());
 }
 
 }  // namespace dart

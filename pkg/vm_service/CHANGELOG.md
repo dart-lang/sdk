@@ -1,5 +1,8 @@
 # Changelog
 
+## 4.1.0
+- Expose more `@required` parameters on the named constructors of VM service objects.
+
 ## 4.0.4
 - Update to version `3.34.0` of the spec.
 - Fixed issue where `TimelineEvents` was not a valid service event kind.

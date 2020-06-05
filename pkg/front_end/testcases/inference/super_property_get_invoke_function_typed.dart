@@ -11,7 +11,7 @@ class C {
 
 class D extends C {
   void g() {
-    var /*@ type=int* */ y = super. /*@target=C::f*/ f();
+    var /*@ type=int* */ y = super. /*@target=C.f*/ f();
   }
 }
 

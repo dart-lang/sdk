@@ -487,6 +487,22 @@ class Assembler : public AssemblerBase {
   void LoadMemoryValue(Register dst, Register base, int32_t offset) {
     LoadFromOffset(dst, base, offset, kDoubleWord);
   }
+  void LoadAcquire(Register dst, Register address, int32_t offset = 0) {
+    if (offset != 0) {
+      AddImmediate(TMP2, address, offset);
+      ldar(dst, TMP2);
+    } else {
+      ldar(dst, address);
+    }
+  }
+  void StoreRelease(Register src, Register address, int32_t offset = 0) {
+    if (offset != 0) {
+      AddImmediate(TMP2, address, offset);
+      stlr(src, TMP2);
+    } else {
+      stlr(src, address);
+    }
+  }
 
   void CompareWithFieldValue(Register value, FieldAddress address) {
     CompareWithMemoryValue(value, address);
@@ -952,6 +968,14 @@ class Assembler : public AssemblerBase {
   void clrex() {
     const int32_t encoding = static_cast<int32_t>(CLREX);
     Emit(encoding);
+  }
+
+  void ldar(Register rt, Register rn, OperandSize sz = kDoubleWord) {
+    EmitLoadStoreExclusive(LDAR, R31, rn, rt, sz);
+  }
+
+  void stlr(Register rt, Register rn, OperandSize sz = kDoubleWord) {
+    EmitLoadStoreExclusive(STLR, R31, rn, rt, sz);
   }
 
   // Conditional select.

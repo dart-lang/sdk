@@ -72,7 +72,7 @@ ForceGrowthSafepointOperationScope::~ForceGrowthSafepointOperationScope() {
   if (current_growth_controller_state_) {
     ASSERT(T->CanCollectGarbage());
     // Check if we passed the growth limit during the scope.
-    if (heap->old_space()->NeedsGarbageCollection()) {
+    if (heap->old_space()->ReachedHardThreshold()) {
       heap->CollectGarbage(Heap::kMarkSweep, Heap::kOldSpace);
     } else {
       heap->CheckStartConcurrentMarking(T, Heap::kOldSpace);

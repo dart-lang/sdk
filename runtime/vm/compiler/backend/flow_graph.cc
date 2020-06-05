@@ -189,6 +189,63 @@ ConstantInstr* FlowGraph::GetConstant(const Object& object) {
   return constant;
 }
 
+bool FlowGraph::IsConstantRepresentable(const Object& value,
+                                        Representation target_rep,
+                                        bool tagged_value_must_be_smi) {
+  switch (target_rep) {
+    case kTagged:
+      return !tagged_value_must_be_smi || value.IsSmi();
+
+    case kUnboxedInt32:
+      if (value.IsInteger()) {
+        return Utils::IsInt(32, Integer::Cast(value).AsInt64Value());
+      }
+      return false;
+
+    case kUnboxedUint32:
+      if (value.IsInteger()) {
+        return Utils::IsUint(32, Integer::Cast(value).AsInt64Value());
+      }
+      return false;
+
+    case kUnboxedInt64:
+      return value.IsInteger();
+
+    case kUnboxedDouble:
+      return value.IsInteger() || value.IsDouble();
+
+    default:
+      return false;
+  }
+}
+
+Definition* FlowGraph::TryCreateConstantReplacementFor(Definition* op,
+                                                       const Object& value) {
+  // Check that representation of the constant matches expected representation.
+  if (!IsConstantRepresentable(
+          value, op->representation(),
+          /*tagged_value_must_be_smi=*/op->Type()->IsNullableSmi())) {
+    return op;
+  }
+
+  Definition* result = GetConstant(value);
+  if (op->representation() != kTagged) {
+    // We checked above that constant can be safely unboxed.
+    result = UnboxInstr::Create(op->representation(), new Value(result),
+                                DeoptId::kNone, Instruction::kNotSpeculative);
+    // If the current instruction is a phi we need to insert the replacement
+    // into the block which contains this phi - because phis exist separately
+    // from all other instructions.
+    if (auto phi = op->AsPhi()) {
+      InsertAfter(phi->GetBlock(), result, nullptr, FlowGraph::kValue);
+    } else {
+      InsertBefore(op, result, nullptr, FlowGraph::kValue);
+    }
+  }
+
+  return result;
+}
+
 void FlowGraph::AddToGraphInitialDefinitions(Definition* defn) {
   defn->set_previous(graph_entry_);
   graph_entry_->initial_definitions()->Add(defn);
@@ -1234,10 +1291,10 @@ void FlowGraph::AttachEnvironment(Instruction* instr,
                                   GrowableArray<Definition*>* env) {
   Environment* deopt_env =
       Environment::From(zone(), *env, num_direct_parameters_, parsed_function_);
-  if (instr->IsClosureCall() || instr->IsInitInstanceField()) {
-    // Trim extra inputs of ClosureCall and InitInstanceField instructions.
-    // Inputs of those instructions are not pushed onto the stack at the
-    // point where deoptimization can occur.
+  if (instr->IsClosureCall() || instr->IsLoadField()) {
+    // Trim extra inputs of ClosureCall and LoadField instructions from
+    // the environment. Inputs of those instructions are not pushed onto
+    // the stack at the point where deoptimization can occur.
     deopt_env =
         deopt_env->DeepCopy(zone(), deopt_env->Length() - instr->InputCount() +
                                         instr->ArgumentCount());
@@ -2231,8 +2288,26 @@ bool FlowGraph::Canonicalize() {
 
   for (BlockIterator block_it = reverse_postorder_iterator(); !block_it.Done();
        block_it.Advance()) {
-    for (ForwardInstructionIterator it(block_it.Current()); !it.Done();
-         it.Advance()) {
+    BlockEntryInstr* const block = block_it.Current();
+    if (auto join = block->AsJoinEntry()) {
+      for (PhiIterator it(join); !it.Done(); it.Advance()) {
+        PhiInstr* current = it.Current();
+        if (current->HasUnmatchedInputRepresentations()) {
+          // Can't canonicalize this instruction until all conversions for its
+          // inputs are inserted.
+          continue;
+        }
+
+        Definition* replacement = current->Canonicalize(this);
+        ASSERT(replacement != nullptr);
+        if (replacement != current) {
+          current->ReplaceUsesWith(replacement);
+          it.RemoveCurrentFromGraph();
+          changed = true;
+        }
+      }
+    }
+    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
       if (current->HasUnmatchedInputRepresentations()) {
         // Can't canonicalize this instruction until all conversions for its

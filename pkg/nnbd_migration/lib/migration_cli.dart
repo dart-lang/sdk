@@ -3,13 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert' show jsonDecode;
 import 'dart:io' hide File;
 
-import 'package:analysis_server/src/api_for_nnbd_migration.dart';
-import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
-import 'package:analyzer/dart/analysis/analysis_context.dart';
+import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart'
@@ -27,7 +25,10 @@ import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
+import 'package:nnbd_migration/src/front_end/dartfix_listener.dart';
+import 'package:nnbd_migration/src/front_end/driver_provider_impl.dart';
 import 'package:nnbd_migration/src/front_end/non_nullable_fix.dart';
+import 'package:nnbd_migration/src/utilities/json.dart' as json;
 import 'package:nnbd_migration/src/utilities/source_edit_diff_formatter.dart';
 import 'package:path/path.dart' show Context;
 
@@ -48,6 +49,7 @@ class CommandLineOptions {
   static const ignoreErrorsFlag = 'ignore-errors';
   static const previewPortOption = 'preview-port';
   static const sdkPathOption = 'sdk-path';
+  static const skipPubOutdatedFlag = 'skip-pub-outdated';
   static const summaryOption = 'summary';
   static const verboseFlag = 'verbose';
   static const webPreviewFlag = 'web-preview';
@@ -62,6 +64,8 @@ class CommandLineOptions {
 
   final String sdkPath;
 
+  final bool skipPubOutdated;
+
   final String summary;
 
   final bool webPreview;
@@ -72,8 +76,92 @@ class CommandLineOptions {
       @required this.ignoreErrors,
       @required this.previewPort,
       @required this.sdkPath,
+      @required this.skipPubOutdated,
       @required this.summary,
       @required this.webPreview});
+}
+
+@visibleForTesting
+class DependencyChecker {
+  static final _pubName = Platform.isWindows ? 'pub.bat' : 'pub';
+
+  /// The directory which contains the package being migrated.
+  final String _directory;
+  final Context _pathContext;
+  final Logger _logger;
+  final ProcessManager _processManager;
+
+  DependencyChecker(
+      this._directory, this._pathContext, this._logger, this._processManager);
+
+  bool check() {
+    var pubPath = _pathContext.join(getSdkPath(), 'bin', _pubName);
+    var result = _processManager.runSync(
+        pubPath, ['outdated', '--mode=null-safety', '--json'],
+        workingDirectory: _directory);
+
+    var preNullSafetyPackages = <String, String>{};
+    try {
+      if ((result.stderr as String).isNotEmpty) {
+        throw FormatException(
+            '`pub outdated --mode=null-safety` exited with exit code '
+            '${result.exitCode} and stderr:\n\n${result.stderr}');
+      }
+      var outdatedOutput = jsonDecode(result.stdout as String);
+      var outdatedMap = json.expectType<Map>(outdatedOutput, 'root');
+      var packageList =
+          json.expectType<List>(outdatedMap['packages'], 'packages');
+      for (var package_ in packageList) {
+        var package = json.expectType<Map>(package_, '');
+        var current_ = json.expectKey(package, 'current');
+        if (current_ == null) {
+          continue;
+        }
+        var current = json.expectType<Map>(current_, 'current');
+        if (json.expectType<bool>(current['nullSafety'], 'nullSafety')) {
+          // For whatever reason, there is no "current" version of this package.
+          // TODO(srawlins): We may want to report this to the user. But it may
+          // be inconsequential.
+          continue;
+        }
+
+        json.expectKey(package, 'package');
+        json.expectKey(current, 'version');
+        var name = json.expectType<String>(package['package'], 'package');
+        // A version will be given, even if a package was provided with a local
+        // or git path.
+        var version = json.expectType<String>(current['version'], 'version');
+        preNullSafetyPackages[name] = version;
+      }
+    } on FormatException catch (e) {
+      _logger.stderr('Warning: ${e.message}');
+      // Allow the program to continue; users should be allowed to attempt to
+      // migrate when `pub outdated` is misbehaving, or if there is a bug above.
+    }
+    if (preNullSafetyPackages.isNotEmpty) {
+      _logger.stderr(
+          'Warning: dependencies are outdated. The version(s) of one or more '
+          'packages currently checked out have not yet migrated to the Null '
+          'Safety feature.');
+      _logger.stderr('');
+      for (var package in preNullSafetyPackages.entries) {
+        _logger.stderr(
+            '    ${package.key}, currently at version ${package.value}');
+      }
+      _logger.stderr('');
+      _logger.stderr('It is highly recommended to upgrade all dependencies to '
+          'versions which have migrated. Use `$_pubName outdated '
+          '--mode=null-safety` to check the status of dependencies.');
+      _logger.stderr('');
+      _logger.stderr('Visit https://dart.dev/tools/pub/cmd/pub-outdated for '
+          'more information.');
+      _logger.stderr('');
+      _logger.stderr('You can force migration with '
+          "'--${CommandLineOptions.skipPubOutdatedFlag}' (not recommended).");
+      return false;
+    }
+    return true;
+  }
 }
 
 class MigrateCommand extends Command<dynamic> {
@@ -120,6 +208,11 @@ class MigrationCli {
   /// user.  Used in testing to allow user feedback messages to be tested.
   final Logger Function(bool isVerbose) loggerFactory;
 
+  /// Process manager that should be used to run processes. Used in testing to
+  /// redirect to mock processes.
+  @visibleForTesting
+  final ProcessManager processManager;
+
   /// Resource provider that should be used to access the filesystem.  Used in
   /// testing to redirect to an in-memory filesystem.
   final ResourceProvider resourceProvider;
@@ -139,15 +232,18 @@ class MigrationCli {
 
   final Map<String, LineInfo> lineInfo = {};
 
-  _DartFixListener _dartFixListener;
+  DartFixListener _dartFixListener;
 
   _FixCodeProcessor _fixCodeProcessor;
+
+  AnalysisContextCollection _contextCollection;
 
   MigrationCli(
       {@required this.binaryName,
       @visibleForTesting this.loggerFactory = _defaultLoggerFactory,
       @visibleForTesting this.defaultSdkPathOverride,
-      @visibleForTesting ResourceProvider resourceProvider})
+      @visibleForTesting ResourceProvider resourceProvider,
+      @visibleForTesting this.processManager = const ProcessManager.system()})
       : logger = loggerFactory(false),
         resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE;
@@ -162,6 +258,19 @@ class MigrationCli {
   Future<void> blockUntilSignalInterrupt() {
     Stream<ProcessSignal> stream = ProcessSignal.sigint.watch();
     return stream.first;
+  }
+
+  NonNullableFix createNonNullableFix(DartFixListener listener,
+      ResourceProvider resourceProvider, LineInfo getLineInfo(String path),
+      {List<String> included = const <String>[],
+      int preferredPort,
+      bool enablePreview = true,
+      String summaryPath}) {
+    return NonNullableFix(listener, resourceProvider, getLineInfo,
+        included: included,
+        preferredPort: preferredPort,
+        enablePreview: enablePreview,
+        summaryPath: summaryPath);
   }
 
   /// Parses and validates command-line arguments, and stores the results in
@@ -219,8 +328,11 @@ class MigrationCli {
           sdkPath: argResults[CommandLineOptions.sdkPathOption] as String ??
               defaultSdkPathOverride ??
               getSdkPath(),
+          skipPubOutdated:
+              argResults[CommandLineOptions.skipPubOutdatedFlag] as bool,
           summary: argResults[CommandLineOptions.summaryOption] as String,
           webPreview: webPreview);
+
       if (isVerbose) {
         logger = loggerFactory(true);
       }
@@ -249,24 +361,32 @@ class MigrationCli {
   void run(ArgResults argResults, {bool isVerbose}) async {
     decodeCommandLineArgs(argResults, isVerbose: isVerbose);
     if (exitCode != null) return;
+    if (!options.skipPubOutdated) {
+      _checkDependencies();
+    }
+    if (exitCode != null) return;
 
     logger.stdout('Migrating ${options.directory}');
     logger.stdout('');
 
+    if (hasMultipleAnalysisContext) {
+      logger.stdout(
+          'Note: more than one project found; migrating the top-level project.');
+      logger.stdout('');
+    }
+
+    DriverBasedAnalysisContext context = analysisContext;
+
     List<String> previewUrls;
     NonNullableFix nonNullableFix;
+
     await _withProgress(
         '${ansi.emphasized('Generating migration suggestions')}', () async {
-      var contextCollection = AnalysisContextCollectionImpl(
-          includedPaths: [options.directory],
-          resourceProvider: resourceProvider,
-          sdkPath: options.sdkPath);
-      DriverBasedAnalysisContext context =
-          contextCollection.contexts.single as DriverBasedAnalysisContext;
       _fixCodeProcessor = _FixCodeProcessor(context, this);
       _dartFixListener =
-          _DartFixListener(_DriverProvider(resourceProvider, context));
-      nonNullableFix = NonNullableFix(_dartFixListener, resourceProvider,
+          DartFixListener(DriverProviderImpl(resourceProvider, context));
+      nonNullableFix = createNonNullableFix(
+          _dartFixListener, resourceProvider, _fixCodeProcessor.getLineInfo,
           included: [options.directory],
           preferredPort: options.previewPort,
           enablePreview: options.webPreview,
@@ -276,6 +396,8 @@ class MigrationCli {
       _fixCodeProcessor.nonNullableFixTask = nonNullableFix;
 
       try {
+        // TODO(devoncarew): The progress written by the fix processor conflicts
+        // with the progress written by the ansi logger above.
         await _fixCodeProcessor.runFirstPhase();
         _fixCodeProcessor._progressBar.clear();
         _checkForErrors();
@@ -337,6 +459,31 @@ Use this interactive web view to review, improve, or apply the results.
     exitCode = 0;
   }
 
+  AnalysisContextCollection get contextCollection {
+    _contextCollection ??= AnalysisContextCollectionImpl(
+        includedPaths: [options.directory],
+        resourceProvider: resourceProvider,
+        sdkPath: pathContext.normalize(options.sdkPath));
+    return _contextCollection;
+  }
+
+  @visibleForTesting
+  DriverBasedAnalysisContext get analysisContext {
+    // Handle the case of more than one analysis context being found (typically,
+    // the current directory and one or more sub-directories).
+    if (hasMultipleAnalysisContext) {
+      return contextCollection.contextFor(options.directory)
+          as DriverBasedAnalysisContext;
+    } else {
+      return contextCollection.contexts.single as DriverBasedAnalysisContext;
+    }
+  }
+
+  @visibleForTesting
+  bool get hasMultipleAnalysisContext {
+    return contextCollection.contexts.length > 1;
+  }
+
   /// Perform the indicated source edits to the given source, returning the
   /// resulting transformed text.
   String _applyEdits(SourceFileEdit sourceFileEdit, String source) {
@@ -369,6 +516,15 @@ Use this interactive web view to review, improve, or apply the results.
           logger.stdout('    Unable to write source for file: $e');
         }
       }
+    }
+  }
+
+  void _checkDependencies() {
+    var successful = DependencyChecker(
+            options.directory, pathContext, logger, processManager)
+        .check();
+    if (!successful) {
+      exitCode = 1;
     }
   }
 
@@ -412,11 +568,11 @@ Use this interactive web view to review, improve, or apply the results.
     }
   }
 
-  void _displayChangeSummary(_DartFixListener migrationResults) {
-    Map<String, List<_DartFixSuggestion>> fileSuggestions = {};
-    for (_DartFixSuggestion suggestion in migrationResults.suggestions) {
+  void _displayChangeSummary(DartFixListener migrationResults) {
+    Map<String, List<DartFixSuggestion>> fileSuggestions = {};
+    for (DartFixSuggestion suggestion in migrationResults.suggestions) {
       String file = suggestion.location.file;
-      fileSuggestions.putIfAbsent(file, () => <_DartFixSuggestion>[]);
+      fileSuggestions.putIfAbsent(file, () => <DartFixSuggestion>[]);
       fileSuggestions[file].add(suggestion);
     }
 
@@ -547,6 +703,12 @@ Use this interactive web view to review, improve, or apply the results.
             'dynamically allocate a port.');
     parser.addOption(CommandLineOptions.sdkPathOption,
         help: 'The path to the Dart SDK.', hide: hide);
+    parser.addFlag(
+      CommandLineOptions.skipPubOutdatedFlag,
+      defaultsTo: false,
+      negatable: false,
+      help: 'Skip the `pub outdated --mode=null-safety` check.',
+    );
     parser.addOption(CommandLineOptions.summaryOption,
         help:
             'Output path for a machine-readable summary of migration changes');
@@ -573,86 +735,38 @@ Use this interactive web view to review, improve, or apply the results.
   }
 }
 
+/// An abstraction over the static methods on [Process].
+///
+/// Used in tests to run mock processes.
+abstract class ProcessManager {
+  const factory ProcessManager.system() = SystemProcessManager;
+
+  /// Run a process synchronously, as in [Process.runSync].
+  ProcessResult runSync(String executable, List<String> arguments,
+      {String workingDirectory});
+}
+
+/// A [ProcessManager] that directs all method calls to static methods of
+/// [Process], in order to run real processes.
+class SystemProcessManager implements ProcessManager {
+  const SystemProcessManager();
+
+  ProcessResult runSync(String executable, List<String> arguments,
+          {String workingDirectory}) =>
+      Process.runSync(executable, arguments,
+          workingDirectory: workingDirectory ?? Directory.current.path);
+}
+
 class _BadArgException implements Exception {
   final String message;
 
   _BadArgException(this.message);
 }
 
-class _DartFixListener implements DartFixListenerInterface {
-  @override
-  final DriverProvider server;
-
-  @override
-  final SourceChange sourceChange = SourceChange('null safety migration');
-
-  final List<_DartFixSuggestion> suggestions = [];
-
-  _DartFixListener(this.server);
-
-  @override
-  void addDetail(String detail) {
-    throw UnimplementedError('TODO(paulberry)');
-  }
-
-  @override
-  void addEditWithoutSuggestion(Source source, SourceEdit edit) {
-    sourceChange.addEdit(source.fullName, -1, edit);
-  }
-
-  @override
-  void addRecommendation(String description, [Location location]) {
-    throw UnimplementedError('TODO(paulberry)');
-  }
-
-  @override
-  void addSourceFileEdit(
-      String description, Location location, SourceFileEdit fileEdit) {
-    suggestions.add(_DartFixSuggestion(description, location: location));
-    for (var sourceEdit in fileEdit.edits) {
-      sourceChange.addEdit(fileEdit.file, fileEdit.fileStamp, sourceEdit);
-    }
-  }
-
-  @override
-  void addSuggestion(String description, Location location) {
-    suggestions.add(_DartFixSuggestion(description, location: location));
-  }
-
-  /// Reset this listener so that it can accrue a new set of changes.
-  void reset() {
-    suggestions.clear();
-    sourceChange
-      ..edits.clear()
-      ..linkedEditGroups.clear()
-      ..selection = null
-      ..id = null;
-  }
-}
-
-class _DartFixSuggestion {
-  final String description;
-
-  final Location location;
-
-  _DartFixSuggestion(this.description, {@required this.location});
-}
-
-class _DriverProvider implements DriverProvider {
-  @override
-  final ResourceProvider resourceProvider;
-
-  final AnalysisContext analysisContext;
-
-  _DriverProvider(this.resourceProvider, this.analysisContext);
-
-  @override
-  AnalysisSession getAnalysisSession(String path) =>
-      analysisContext.currentSession;
-}
-
-class _FixCodeProcessor extends Object with FixCodeProcessor {
+class _FixCodeProcessor extends Object {
   final DriverBasedAnalysisContext context;
+
+  NonNullableFix _task;
 
   Set<String> pathsToProcess;
 
@@ -665,6 +779,9 @@ class _FixCodeProcessor extends Object with FixCodeProcessor {
 
   _FixCodeProcessor(this.context, this._migrationCli)
       : pathsToProcess = _computePathsToProcess(context);
+
+  LineInfo getLineInfo(String path) =>
+      context.currentSession.getFile(path).lineInfo;
 
   void prepareToRerun() {
     var driver = context.driver;
@@ -711,12 +828,16 @@ class _FixCodeProcessor extends Object with FixCodeProcessor {
     }
   }
 
+  void registerCodeTask(NonNullableFix task) {
+    _task = task;
+  }
+
   Future<void> runFirstPhase() async {
     // All tasks should be registered; [numPhases] should be finalized.
-    _progressBar = _ProgressBar(pathsToProcess.length * numPhases);
+    _progressBar = _ProgressBar(pathsToProcess.length * _task.numPhases);
 
     // Process package
-    await processPackage(context.contextRoot.root);
+    _task.processPackage(context.contextRoot.root);
 
     // Process each source file.
     await processResources((ResolvedUnitResult result) async {
@@ -730,19 +851,19 @@ class _FixCodeProcessor extends Object with FixCodeProcessor {
       }
       if (_migrationCli.options.ignoreErrors ||
           _migrationCli.fileErrors.isEmpty) {
-        await processCodeTasks(0, result);
+        await _task.processUnit(0, result);
       }
     });
   }
 
   Future<List<String>> runLaterPhases() async {
-    for (var phase = 1; phase < numPhases; phase++) {
+    for (var phase = 1; phase < _task.numPhases; phase++) {
       await processResources((ResolvedUnitResult result) async {
         _progressBar.tick();
-        await processCodeTasks(phase, result);
+        await _task.processUnit(phase, result);
       });
     }
-    await finishCodeTasks();
+    await _task.finish();
     _progressBar.complete();
 
     return nonNullableFixTask.previewUrls;

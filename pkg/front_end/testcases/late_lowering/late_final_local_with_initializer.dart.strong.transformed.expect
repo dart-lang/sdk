@@ -22,8 +22,8 @@ static method main() → dynamic {
     core::bool #lateGenericLocal#isSet = false;
     function #lateGenericLocal#get() → T% {
       if(!#lateGenericLocal#isSet) {
-        #lateGenericLocal#isSet = true;
         lateGenericLocal = initLateGenericLocal.call(value);
+        #lateGenericLocal#isSet = true;
       }
       return lateGenericLocal{T%};
     }

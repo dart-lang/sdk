@@ -19,8 +19,18 @@ static method Extension|get#extensionMethod(final self::Class #this) → () → 
   return () → self::Class => self::Extension|extensionMethod(#this);
 static method main() → dynamic {
   self::Class? c;
-  let final self::Class? #t1 = c in #t1.{core::Object::==}(null) ?{self::Class?} null : let final void #t2 = #t1{self::Class}.{self::Class::method}() in #t1;
-  let final self::Class? #t3 = c in #t3.{core::Object::==}(null) ?{self::Class?} null : let final void #t4 = #t3{self::Class}.{self::Class::method}() in let final void #t5 = #t3{self::Class}.{self::Class::method}() in #t3;
-  let final self::Class? #t6 = c in #t6.{core::Object::==}(null) ?{self::Class?} null : let final void #t7 = self::Extension|extensionMethod(#t6{self::Class}) in #t6;
-  let final self::Class? #t8 = c in #t8.{core::Object::==}(null) ?{self::Class?} null : let final void #t9 = self::Extension|extensionMethod(#t8{self::Class}) in let final void #t10 = self::Extension|extensionMethod(#t8{self::Class}) in #t8;
+  let final self::Class? #t1 = c in #t1.{core::Object::==}(null) ?{self::Class?} null : block {
+    #t1{self::Class}.{self::Class::method}();
+  } =>#t1;
+  let final self::Class? #t2 = c in #t2.{core::Object::==}(null) ?{self::Class?} null : block {
+    #t2{self::Class}.{self::Class::method}();
+    #t2{self::Class}.{self::Class::method}();
+  } =>#t2;
+  let final self::Class? #t3 = c in #t3.{core::Object::==}(null) ?{self::Class?} null : block {
+    self::Extension|extensionMethod(#t3{self::Class});
+  } =>#t3;
+  let final self::Class? #t4 = c in #t4.{core::Object::==}(null) ?{self::Class?} null : block {
+    self::Extension|extensionMethod(#t4{self::Class});
+    self::Extension|extensionMethod(#t4{self::Class});
+  } =>#t4;
 }

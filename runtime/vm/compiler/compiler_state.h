@@ -93,7 +93,7 @@ class CompilerState : public ThreadStackResource {
   // same index.
   //
   // TODO(vegorov): disambiguate slots for different context IDs.
-  // Beware that context_id is satured at 8-bits, so multiple contexts may
+  // Beware that context_id is saturated at 8-bits, so multiple contexts may
   // share id 255.
   LocalVariable* GetDummyCapturedVariable(intptr_t context_id, intptr_t index);
 
@@ -104,6 +104,9 @@ class CompilerState : public ThreadStackResource {
   static bool ShouldTrace() { return Current().should_trace(); }
 
   static CompilerTracing ShouldTrace(const Function& func);
+
+  // Returns class Comparable<T> from dart:core.
+  const Class& ComparableClass();
 
  private:
   CHA cha_;
@@ -120,6 +123,10 @@ class CompilerState : public ThreadStackResource {
   const bool is_aot_;
 
   const CompilerTracing tracing_;
+
+  // Lookup cache for various classes (to avoid polluting object store with
+  // compiler specific classes).
+  const Class* comparable_class_ = nullptr;
 
   CompilerState* previous_;
 };

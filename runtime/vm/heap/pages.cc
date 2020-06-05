@@ -477,7 +477,7 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
   // Can we grow by one page?
   after_allocation.capacity_in_words += kOldPageSizeInWords;
   if (growth_policy == kForceGrowth ||
-      !page_space_controller_.NeedsGarbageCollection(after_allocation)) {
+      !page_space_controller_.ReachedHardThreshold(after_allocation)) {
     OldPage* page = AllocatePage(type);
     if (page == NULL) {
       return 0;
@@ -518,7 +518,7 @@ uword PageSpace::TryAllocateInFreshLargePage(intptr_t size,
   after_allocation.used_in_words += size >> kWordSizeLog2;
   after_allocation.capacity_in_words += page_size_in_words;
   if (growth_policy == kForceGrowth ||
-      !page_space_controller_.NeedsGarbageCollection(after_allocation)) {
+      !page_space_controller_.ReachedHardThreshold(after_allocation)) {
     OldPage* page = AllocateLargePage(size, type);
     if (page != NULL) {
       result = page->object_start();
@@ -567,21 +567,6 @@ void PageSpace::ReleaseLock(FreeList* freelist) {
   intptr_t size = freelist->TakeUnaccountedSizeLocked();
   usage_.used_in_words += (size >> kWordSizeLog2);
   freelist->mutex()->Unlock();
-}
-
-void PageSpace::AllocateExternal(intptr_t cid, intptr_t size) {
-  intptr_t size_in_words = size >> kWordSizeLog2;
-  usage_.external_in_words += size_in_words;
-}
-
-void PageSpace::PromoteExternal(intptr_t cid, intptr_t size) {
-  intptr_t size_in_words = size >> kWordSizeLog2;
-  usage_.external_in_words += size_in_words;
-}
-
-void PageSpace::FreeExternal(intptr_t size) {
-  intptr_t size_in_words = size >> kWordSizeLog2;
-  usage_.external_in_words -= size_in_words;
 }
 
 class BasePageIterator : ValueObject {
@@ -973,7 +958,7 @@ bool PageSpace::ShouldStartIdleMarkSweep(int64_t deadline) {
   // middle of deciding whether to perform an idle GC.
   NoSafepointScope no_safepoint;
 
-  if (!page_space_controller_.NeedsIdleGarbageCollection(usage_)) {
+  if (!page_space_controller_.ReachedIdleThreshold(usage_)) {
     return false;
   }
 
@@ -1008,8 +993,7 @@ bool PageSpace::ShouldPerformIdleMarkCompact(int64_t deadline) {
                               static_cast<double>(usage_.capacity_in_words);
   const bool fragmented = excess_ratio > 0.05;
 
-  if (!fragmented &&
-      !page_space_controller_.NeedsIdleGarbageCollection(usage_)) {
+  if (!fragmented && !page_space_controller_.ReachedIdleThreshold(usage_)) {
     return false;
   }
 
@@ -1520,7 +1504,7 @@ PageSpaceController::PageSpaceController(Heap* heap,
 
 PageSpaceController::~PageSpaceController() {}
 
-bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
+bool PageSpaceController::ReachedHardThreshold(SpaceUsage after) const {
   if (!is_enabled_) {
     return false;
   }
@@ -1530,7 +1514,7 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
   return after.CombinedUsedInWords() > hard_gc_threshold_in_words_;
 }
 
-bool PageSpaceController::AlmostNeedsGarbageCollection(SpaceUsage after) const {
+bool PageSpaceController::ReachedSoftThreshold(SpaceUsage after) const {
   if (!is_enabled_) {
     return false;
   }
@@ -1540,7 +1524,7 @@ bool PageSpaceController::AlmostNeedsGarbageCollection(SpaceUsage after) const {
   return after.CombinedUsedInWords() > soft_gc_threshold_in_words_;
 }
 
-bool PageSpaceController::NeedsIdleGarbageCollection(SpaceUsage current) const {
+bool PageSpaceController::ReachedIdleThreshold(SpaceUsage current) const {
   if (!is_enabled_) {
     return false;
   }

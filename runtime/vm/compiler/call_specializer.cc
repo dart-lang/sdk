@@ -116,7 +116,7 @@ bool CallSpecializer::TryCreateICData(InstanceCallInstr* call) {
       // In precompiler speculate that both sides of bitwise operation
       // are Smi-s.
       if (Token::IsBinaryBitwiseOperator(op_kind) &&
-          !call->HasNonSmiAssignableInterface(zone())) {
+          call->CanReceiverBeSmiBasedOnInterfaceTarget(zone())) {
         class_ids[0] = kSmiCid;
         class_ids[1] = kSmiCid;
       }
@@ -127,7 +127,7 @@ bool CallSpecializer::TryCreateICData(InstanceCallInstr* call) {
       // Guess cid: if one of the inputs is a number assume that the other
       // is a number of same type, unless the interface target tells us this
       // is impossible.
-      if (!call->HasNonSmiAssignableInterface(zone())) {
+      if (call->CanReceiverBeSmiBasedOnInterfaceTarget(zone())) {
         const intptr_t cid_0 = class_ids[0];
         const intptr_t cid_1 = class_ids[1];
         if ((cid_0 == kDynamicCid) && (IsNumberCid(cid_1))) {
@@ -768,21 +768,24 @@ void CallSpecializer::InlineImplicitInstanceGetter(Definition* call,
   ASSERT(field.is_instance());
   Definition* receiver = call->ArgumentAt(0);
 
-  if (field.NeedsInitializationCheckOnLoad()) {
-    InsertBefore(call,
-                 new (Z) InitInstanceFieldInstr(new (Z) Value(receiver), field,
-                                                call->deopt_id()),
-                 call->env(), FlowGraph::kEffect);
-  }
-
+  const bool calls_initializer = field.NeedsInitializationCheckOnLoad();
   const Slot& slot = Slot::Get(field, &flow_graph()->parsed_function());
-  LoadFieldInstr* load =
-      new (Z) LoadFieldInstr(new (Z) Value(receiver), slot, call->token_pos());
+  LoadFieldInstr* load = new (Z) LoadFieldInstr(
+      new (Z) Value(receiver), slot, call->token_pos(), calls_initializer,
+      calls_initializer ? call->deopt_id() : DeoptId::kNone);
 
-  // Discard the environment from the original instruction because the load
-  // can't deoptimize.
+  Environment* load_env = nullptr;
+  if (calls_initializer) {
+    // Drop getter argument from the environment as it is not
+    // pushed on the stack when initializer is called.
+    load_env =
+        call->env()->DeepCopy(Z, call->env()->Length() - call->ArgumentCount());
+  }
   call->RemoveEnvironment();
   ReplaceCall(call, load);
+  if (calls_initializer) {
+    load_env->DeepCopyTo(Z, load);
+  }
 
   if (load->slot().nullable_cid() != kDynamicCid) {
     // Reset value types if we know concrete cid.

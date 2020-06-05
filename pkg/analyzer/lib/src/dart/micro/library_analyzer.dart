@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -90,9 +89,9 @@ class LibraryAnalyzer {
    *
    * TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/31925
    */
-  final Set<ConstantEvaluationTarget> _libraryConstants = Set();
+  final Set<ConstantEvaluationTarget> _libraryConstants = {};
 
-  final Set<ConstantEvaluationTarget> _constants = Set();
+  final Set<ConstantEvaluationTarget> _constants = {};
 
   final String Function(String path) getFileContent;
 
@@ -260,7 +259,16 @@ class LibraryAnalyzer {
     AnalysisErrorListener errorListener = _getErrorListener(file);
     ErrorReporter errorReporter = _getErrorReporter(file);
 
-    unit.accept(DeadCodeVerifier(errorReporter, typeSystem: _typeSystem));
+    if (!_libraryElement.isNonNullableByDefault) {
+      unit.accept(
+        LegacyDeadCodeVerifier(
+          errorReporter,
+          typeSystem: _typeSystem,
+        ),
+      );
+    }
+
+    unit.accept(DeadCodeVerifier(errorReporter));
 
     // Dart2js analysis.
     if (_analysisOptions.dart2jsHint) {
@@ -346,18 +354,7 @@ class LibraryAnalyzer {
         workspacePackage);
     for (Linter linter in _analysisOptions.lintRules) {
       linter.reporter = errorReporter;
-      if (linter is NodeLintRule) {
-        (linter as NodeLintRule).registerNodeProcessors(nodeRegistry, context);
-      } else {
-        AstVisitor visitor = linter.getVisitor();
-        if (visitor != null) {
-          if (_analysisOptions.enableTiming) {
-            var timer = lintRegistry.getTimer(linter);
-            visitor = TimedAstVisitor(visitor, timer);
-          }
-          visitors.add(visitor);
-        }
-      }
+      linter.registerNodeProcessors(nodeRegistry, context);
     }
 
     // Run lints that handle specific node types.
@@ -547,7 +544,7 @@ class LibraryAnalyzer {
     ErrorReporter libraryErrorReporter = _getErrorReporter(_library);
 
     LibraryIdentifier libraryNameNode;
-    var seenPartSources = Set<Source>();
+    var seenPartSources = <Source>{};
     var directivesToResolve = <Directive>[];
     int partIndex = 0;
     for (Directive directive in definingCompilationUnit.directives) {

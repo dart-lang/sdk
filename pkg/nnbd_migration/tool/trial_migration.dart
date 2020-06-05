@@ -64,9 +64,12 @@ main(List<String> args) async {
       var localFiles =
           context.contextRoot.analyzedFiles().where((s) => s.endsWith('.dart'));
       files.addAll(localFiles);
-      var migration = NullabilityMigration(listener, permissive: true);
+      var session = context.currentSession;
+      LineInfo getLineInfo(String path) => session.getFile(path).lineInfo;
+      var migration =
+          NullabilityMigration(listener, getLineInfo, permissive: true);
       for (var file in localFiles) {
-        var resolvedUnit = await context.currentSession.getResolvedUnit(file);
+        var resolvedUnit = await session.getResolvedUnit(file);
         if (!resolvedUnit.errors.any((e) => e.severity == Severity.error)) {
           migration.prepareInput(resolvedUnit);
         } else {
@@ -74,13 +77,13 @@ main(List<String> args) async {
         }
       }
       for (var file in localFiles) {
-        var resolvedUnit = await context.currentSession.getResolvedUnit(file);
+        var resolvedUnit = await session.getResolvedUnit(file);
         if (!resolvedUnit.errors.any((e) => e.severity == Severity.error)) {
           migration.processInput(resolvedUnit);
         }
       }
       for (var file in localFiles) {
-        var resolvedUnit = await context.currentSession.getResolvedUnit(file);
+        var resolvedUnit = await session.getResolvedUnit(file);
         if (!resolvedUnit.errors.any((e) => e.severity == Severity.error)) {
           migration.finalizeInput(resolvedUnit);
         }

@@ -50,7 +50,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
       driver.getFileSync(newFile(path, content: input[path]).path);
     }
     var listener = new TestMigrationListener();
-    var migration = NullabilityMigration(listener,
+    var migration = NullabilityMigration(listener, getLineInfo,
         permissive: _usePermissiveMode,
         removeViaComments: removeViaComments,
         warnOnWeakCode: warnOnWeakCode);
@@ -480,6 +480,37 @@ class C {
 }
 mixin M {}
 class D = C with M;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void>
+      test_class_alias_synthetic_constructor_with_parameters_and_subclass() async {
+    var content = '''
+void main() {
+  E e = E(null);
+}
+class C {
+  C(int i);
+}
+mixin M {}
+class D = C with M;
+class E extends D {
+  E(int i) : super(i);
+}
+''';
+    var expected = '''
+void main() {
+  E e = E(null);
+}
+class C {
+  C(int? i);
+}
+mixin M {}
+class D = C with M;
+class E extends D {
+  E(int? i) : super(i);
+}
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -3340,6 +3371,22 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_is_promotion_implies_non_nullable_generic() async {
+    var content = '''
+int f<T>(T o) => o is List ? o.length : 0;
+main() {
+  f(null);
+}
+''';
+    var expected = '''
+int f<T>(T o) => o is List ? o.length : 0;
+main() {
+  f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_isExpression_typeName_typeArguments() async {
     var content = '''
 bool f(a) => a is List<int>;
@@ -3836,6 +3883,28 @@ main() {
 }
 ''';
     await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_methodInvocation_extension_invocation() async {
+    var content = '''
+extension on bool {
+  void f() {}
+}
+bool g<T>(T x) => true;
+void main() {
+  g<int>(null).f();
+}
+''';
+    var expected = '''
+extension on bool {
+  void f() {}
+}
+bool g<T>(T x) => true;
+void main() {
+  g<int?>(null).f();
+}
+''';
+    await _checkSingleFileChanges(content, expected, warnOnWeakCode: true);
   }
 
   Future<void> test_methodInvocation_typeArguments_explicit() async {
@@ -5092,7 +5161,7 @@ import 'package:meta/meta.dart';
 class C {
   final bool? x;
   C.one({this.x});
-  C.two({required this.x}) : assert(x != null);
+  C.two({required bool this.x}) : assert(x != null);
 }
 test() => C.one();
 ''';
@@ -5310,6 +5379,42 @@ void main() {
 }
 ''';
     await _checkSingleFileChanges(content, expected);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39387')
+  Future<void> test_this_inside_extension() async {
+    var content = '''
+class C<T> {
+  T field;
+}
+extension on C<int> {
+  f() {
+    this.field = null;
+  }
+}
+extension on C<List<int>> {
+  f() {
+    this.field = null;
+  }
+}
+''';
+    var expected = '''
+
+class C<T> {
+  T field;
+}
+extension on C<int?> {
+  f() {
+    this.field = null;
+  }
+}
+extension on C<List<int?>> {
+  f() {
+    this.field = [null];
+  }
+}
+''';
+    await _checkSingleFileChanges(content, expected, warnOnWeakCode: true);
   }
 
   Future<void> test_topLevelFunction_parameterType_implicit_dynamic() async {
@@ -6125,7 +6230,6 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38453')
   Future<void>
       test_unconditional_use_of_field_formal_param_does_not_create_hard_edge() async {
     var content = '''
@@ -6140,7 +6244,28 @@ class C {
 class C {
   int? i;
   int j;
-  C.one(this.i) : j = i! + 1;
+  C.one(int this.i) : j = i + 1;
+  C.two() : i = null, j = 0;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void>
+      test_unconditional_use_of_field_formal_param_does_not_create_hard_edge_generic() async {
+    var content = '''
+class C {
+  List<int/*?*/> i;
+  int j;
+  C.one(this.i) : j = i.length;
+  C.two() : i = null, j = 0;
+}
+''';
+    var expected = '''
+class C {
+  List<int?>? i;
+  int j;
+  C.one(List<int?> this.i) : j = i.length;
   C.two() : i = null, j = 0;
 }
 ''';

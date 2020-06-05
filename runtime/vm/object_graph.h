@@ -82,7 +82,9 @@ class ObjectGraph : public ThreadStackResource {
   // Like 'IterateObjects', but restricted to objects reachable from 'root'
   // (including 'root' itself).
   void IterateObjectsFrom(const Object& root, Visitor* visitor);
-  void IterateObjectsFrom(intptr_t class_id, Visitor* visitor);
+  void IterateObjectsFrom(intptr_t class_id,
+                          HeapIterationScope* iteration,
+                          Visitor* visitor);
 
   // The number of bytes retained by 'obj'.
   intptr_t SizeRetainedByInstance(const Object& obj);

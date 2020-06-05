@@ -97,6 +97,7 @@ part of dart.core;
  *   for String examples and recipes.
  * * [Dart Up and Running](https://www.dartlang.org/docs/dart-up-and-running/ch03.html#strings-and-regular-expressions)
  */
+@pragma('vm:entry-point')
 abstract class String implements Comparable<String>, Pattern {
   /**
    * Allocates a new String for the specified [charCodes].

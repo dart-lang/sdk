@@ -40,13 +40,15 @@ class EmbedderSdk extends AbstractDartSdk {
 
   // TODO(danrubel) Determine SDK version
   @override
+  String get allowedExperimentsJson {
+    return null;
+  }
+
+  @override
   String get sdkVersion => '0';
 
   /// The url mappings for this SDK.
   Map<String, String> get urlMappings => _urlMappings;
-
-  @override
-  PackageBundle getLinkedBundle() => null;
 
   @override
   String getRelativePathFromFile(JavaFile file) => file.getAbsolutePath();

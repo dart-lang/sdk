@@ -302,10 +302,14 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
 #else
       class_table_(nullptr),
 #endif
-      symbols_lock_(new SafepointRwLock()),
       store_buffer_(new StoreBuffer()),
       heap_(nullptr),
       saved_unlinked_calls_(Array::null()),
+      symbols_lock_(new SafepointRwLock()),
+      type_canonicalization_mutex_(
+          NOT_IN_PRODUCT("IsolateGroup::type_canonicalization_mutex_")),
+      type_arguments_canonicalization_mutex_(NOT_IN_PRODUCT(
+          "IsolateGroup::type_arguments_canonicalization_mutex_")),
       active_mutators_monitor_(new Monitor()),
       max_active_mutators_(Scavenger::MaxMutatorThreadCount()) {
   const bool is_vm_isolate = Dart::VmIsolateNameEquals(source_->name);
@@ -399,6 +403,17 @@ void IsolateGroup::CreateHeap(bool is_vm_isolate,
 }
 
 void IsolateGroup::Shutdown() {
+  // Ensure to join all threads before waiting for pending GC tasks (the thread
+  // pool can trigger idle notification, which can start new GC tasks).
+  //
+  // (The vm-isolate doesn't have a thread pool.)
+  if (!Dart::VmIsolateNameEquals(source()->name)) {
+    ASSERT(thread_pool_ != nullptr);
+    thread_pool_->Shutdown();
+    thread_pool_.reset();
+  }
+
+  // Wait for any pending GC tasks.
   if (heap_ != nullptr) {
     // Wait for any concurrent GC tasks to finish before shutting down.
     // TODO(rmacnak): Interrupt tasks for faster shutdown.
@@ -422,14 +437,6 @@ void IsolateGroup::Shutdown() {
     if (group_shutdown_callback != nullptr) {
       group_shutdown_callback(embedder_data());
     }
-  }
-
-  // Ensure to join all threads before starting to delete the members.
-  // (for vm-isolate we don't have a thread pool)
-  if (!Dart::VmIsolateNameEquals(source()->name)) {
-    ASSERT(thread_pool_ != nullptr);
-    thread_pool_->Shutdown();
-    thread_pool_.reset();
   }
 
   delete this;
@@ -740,7 +747,7 @@ void IsolateGroup::UnregisterIsolateGroup(IsolateGroup* isolate_group) {
 bool IsolateGroup::HasApplicationIsolateGroups() {
   ReadRwLocker wl(ThreadState::Current(), isolate_groups_rwlock_);
   for (auto group : *isolate_groups_) {
-    if (!IsolateGroup::IsVMInternalIsolate(group)) {
+    if (!IsolateGroup::IsVMInternalIsolateGroup(group)) {
       return true;
     }
   }
@@ -1568,9 +1575,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       start_time_micros_(OS::GetCurrentMonotonicMicros()),
       random_(),
       mutex_(NOT_IN_PRODUCT("Isolate::mutex_")),
-      symbols_lock_(new SafepointRwLock()),
-      type_canonicalization_mutex_(
-          NOT_IN_PRODUCT("Isolate::type_canonicalization_mutex_")),
       constant_canonicalization_mutex_(
           NOT_IN_PRODUCT("Isolate::constant_canonicalization_mutex_")),
       megamorphic_mutex_(NOT_IN_PRODUCT("Isolate::megamorphic_mutex_")),
@@ -2800,8 +2804,8 @@ void IsolateGroup::RunWithStoppedMutators(
     return;
   }
 
-  if (thread->IsAtSafepoint() &&
-      safepoint_handler()->IsOwnedByTheThread(thread)) {
+  if (thread->IsAtSafepoint()) {
+    RELEASE_ASSERT(safepoint_handler()->IsOwnedByTheThread(thread));
     single_current_mutator();
     return;
   }
@@ -3560,7 +3564,7 @@ bool Isolate::IsolateCreationEnabled() {
   return creation_enabled_;
 }
 
-bool IsolateGroup::IsVMInternalIsolate(const IsolateGroup* group) {
+bool IsolateGroup::IsVMInternalIsolateGroup(const IsolateGroup* group) {
   // We use a name comparison here because this method can be called during
   // shutdown, where the actual isolate pointers might've already been cleared.
   const char* name = group->source()->name;

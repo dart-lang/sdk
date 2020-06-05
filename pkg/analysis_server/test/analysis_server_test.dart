@@ -39,7 +39,7 @@ class AnalysisServerTest with ResourceProviderMixin {
     newFolder('/bar');
     newFile('/foo/foo.dart', content: 'import "../bar/bar.dart";');
     var bar = newFile('/bar/bar.dart', content: 'library bar;');
-    server.setAnalysisRoots('0', ['/foo', '/bar'], [], {});
+    server.setAnalysisRoots('0', ['/foo', '/bar'], []);
     var subscriptions = <AnalysisService, Set<String>>{};
     for (var service in AnalysisService.VALUES) {
       subscriptions[service] = <String>{bar.path};
@@ -104,7 +104,7 @@ class AnalysisServerTest with ResourceProviderMixin {
     newFile('/test/lib/a.dart', content: r'''
 class A {}
 ''');
-    server.setAnalysisRoots('0', [convertPath('/test')], [], {});
+    server.setAnalysisRoots('0', [convertPath('/test')], []);
 
     // Pump the event queue, so that the server has finished any analysis.
     await pumpEventQueue(times: 5000);
@@ -133,7 +133,7 @@ class A {}
     server.serverServices.add(ServerService.STATUS);
 
     newFolder('/test');
-    server.setAnalysisRoots('0', [convertPath('/test')], [], {});
+    server.setAnalysisRoots('0', [convertPath('/test')], []);
 
     // Pump the event queue, so that the server has finished any analysis.
     await pumpEventQueue(times: 5000);
@@ -167,7 +167,7 @@ analyzer:
   exclude:
     - 'samples/**'
 ''');
-    server.setAnalysisRoots('0', [convertPath('/project')], [], {});
+    server.setAnalysisRoots('0', [convertPath('/project')], []);
     server.setAnalysisSubscriptions(<AnalysisService, Set<String>>{
       AnalysisService.NAVIGATION: <String>{path}
     });
@@ -188,7 +188,7 @@ analyzer:
   exclude:
     - 'samples/**'
 ''');
-    server.setAnalysisRoots('0', [convertPath('/project')], [], {});
+    server.setAnalysisRoots('0', [convertPath('/project')], []);
     server.setAnalysisSubscriptions(<AnalysisService, Set<String>>{
       AnalysisService.NAVIGATION: <String>{path}
     });

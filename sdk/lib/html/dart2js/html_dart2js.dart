@@ -3387,7 +3387,7 @@ class Css extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  _Worklet get paintWorklet native;
+  static _Worklet get paintWorklet native;
 
   static CssUnitValue Hz(num value) native;
 
@@ -22682,7 +22682,7 @@ class Navigator extends NavigatorConcurrentHardware
       options_dict = convertDartToNative_Dictionary(options);
     }
     return promiseToFuture(
-        JS("", "#.requestMidiAccess(#)", this, options_dict));
+        JS("", "#.requestMIDIAccess(#)", this, options_dict));
   }
 
   Future requestMediaKeySystemAccess(
@@ -23675,9 +23675,9 @@ class Notification extends EventTarget {
 
   String get lang native;
 
-  int get maxActions native;
+  static int get maxActions native;
 
-  String get permission native;
+  static String get permission native;
 
   bool get renotify native;
 
@@ -26004,7 +26004,7 @@ class PushManager extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  List<String> get supportedContentEncodings native;
+  static List<String> get supportedContentEncodings native;
 
   Future<PushSubscription> getSubscription() =>
       promiseToFuture<PushSubscription>(JS("", "#.getSubscription()", this));

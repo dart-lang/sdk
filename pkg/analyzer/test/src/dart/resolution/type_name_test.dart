@@ -232,7 +232,7 @@ main() {
   new A();
 }
 ''', [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 15, 1),
+      error(StaticWarningCode.NEW_WITH_NON_TYPE, 15, 1),
     ]);
 
     assertTypeName(
@@ -250,7 +250,7 @@ f(Never a) {}
     assertTypeName(
       findNode.typeName('Never a'),
       neverElement,
-      typeStr('Never', 'Never*'),
+      typeStr('Never', 'Null*'),
     );
   }
 }

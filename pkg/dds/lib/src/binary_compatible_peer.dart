@@ -34,6 +34,8 @@ class _BinaryCompatiblePeer extends json_rpc.Peer {
               ),
             ),
           ),
+          // Allow for requests without the jsonrpc parameter.
+          strictProtocolChecks: false,
         );
 
   static void _transformStream(
@@ -49,10 +51,8 @@ class _BinaryCompatiblePeer extends json_rpc.Peer {
       const metadataOffset = 4;
       final dataOffset = bytesView.getUint32(0, Endian.little);
       final metadataLength = dataOffset - metadataOffset;
-      final metadata = Utf8Decoder().convert(new Uint8List.view(
-          bytesView.buffer,
-          bytesView.offsetInBytes + metadataOffset,
-          metadataLength));
+      final metadata = Utf8Decoder().convert(Uint8List.view(bytesView.buffer,
+          bytesView.offsetInBytes + metadataOffset, metadataLength));
       final decodedMetadata = json.decode(metadata);
       streamManager.streamNotify(decodedMetadata['params']['streamId'], data);
     }

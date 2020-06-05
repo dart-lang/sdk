@@ -2285,6 +2285,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   @override
+  visitFunctionReference(HFunctionReference node) {
+    FunctionEntity element = node.element;
+    _registry.registerStaticUse(StaticUse.implicitInvoke(element));
+    push(_emitter.staticFunctionAccess(element));
+  }
+
+  @override
   visitLocalGet(HLocalGet node) {
     use(node.receiver);
   }
@@ -2409,11 +2416,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     // TODO(sra): Tell world.nativeEnqueuer about the types created here.
     registerForeignTypes(node);
-
-    if (node.foreignFunction != null) {
-      _registry?.registerStaticUse(
-          new StaticUse.implicitInvoke(node.foreignFunction));
-    }
   }
 
   @override

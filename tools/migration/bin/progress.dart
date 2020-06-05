@@ -29,6 +29,8 @@ void main(List<String> arguments) {
   var totalLines = 0;
   var totalMigratedFiles = 0;
   var totalMigratedLines = 0;
+  var languageDirs = 0;
+  var migratedLanguageDirs = 0;
 
   var skipCompleteSubfolders = arguments.contains("--incomplete");
 
@@ -68,12 +70,21 @@ void main(List<String> arguments) {
       totalLines += lines;
       totalMigratedFiles += migratedFiles;
       totalMigratedLines += migratedLines;
+
+      if (dir.startsWith("language_2/")) {
+        languageDirs++;
+        if (migratedLines == lines) {
+          migratedLanguageDirs++;
+        }
+      }
     }
   }
 
   print("");
   _show(
       "total", totalMigratedFiles, totalFiles, totalMigratedLines, totalLines);
+  print("");
+  print("Finished $migratedLanguageDirs/$languageDirs language directories.");
 }
 
 void _show(

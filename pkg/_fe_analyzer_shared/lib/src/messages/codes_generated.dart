@@ -8793,6 +8793,16 @@ const MessageCode messageVarReturnType = const MessageCode("VarReturnType",
         r"""Try removing the keyword 'var', or replacing it with the name of the return type.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeVerificationErrorOriginContext =
+    messageVerificationErrorOriginContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageVerificationErrorOriginContext = const MessageCode(
+    "VerificationErrorOriginContext",
+    severity: Severity.context,
+    message: r"""The node most likely is taken from here by a transformer.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeVoidExpression = messageVoidExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

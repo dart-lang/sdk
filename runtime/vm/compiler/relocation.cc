@@ -20,12 +20,9 @@ DEFINE_FLAG(bool,
             false,
             "Generate always trampolines (for testing purposes).");
 
-// The trampolines will be disguised as FreeListElement objects, with a 1-word
-// object header in front of the jump code.
-const intptr_t kOffsetInTrampoline = kWordSize;
-const intptr_t kTrampolineSize = Utils::RoundUp(
-    kOffsetInTrampoline + PcRelativeTrampolineJumpPattern::kLengthInBytes,
-    kObjectAlignment);
+const intptr_t kTrampolineSize =
+    Utils::RoundUp(PcRelativeTrampolineJumpPattern::kLengthInBytes,
+                   ImageWriter::kBareInstructionsAlignment);
 
 CodeRelocator::CodeRelocator(Thread* thread,
                              GrowableArray<CodePtr>* code_objects,
@@ -402,8 +399,7 @@ void CodeRelocator::ResolveTrampoline(
       FindDestinationInText(callee, unresolved_trampoline->offset_into_target);
   const int32_t distance = destination_text - trampoline_text_offset;
 
-  PcRelativeTrampolineJumpPattern pattern(trampoline_start +
-                                          kOffsetInTrampoline);
+  PcRelativeTrampolineJumpPattern pattern(trampoline_start);
   pattern.Initialize();
   pattern.set_distance(distance);
   ASSERT(pattern.distance() == distance);
@@ -467,25 +463,6 @@ CodePtr CodeRelocator::GetTarget(const StaticCallsTableEntry& call) {
   return destination_.raw();
 }
 
-static void MarkAsFreeListElement(uint8_t* trampoline_bytes,
-                                  intptr_t trampoline_length) {
-  uint32_t tags = 0;
-#if defined(IS_SIMARM_X64)
-  // Account for difference in kObjectAlignment between host and target.
-  tags = ObjectLayout::SizeTag::update(trampoline_length * 2, tags);
-#else
-  tags = ObjectLayout::SizeTag::update(trampoline_length, tags);
-#endif
-  tags = ObjectLayout::ClassIdTag::update(kFreeListElement, tags);
-  tags = ObjectLayout::OldBit::update(true, tags);
-  tags = ObjectLayout::OldAndNotMarkedBit::update(true, tags);
-  tags = ObjectLayout::OldAndNotRememberedBit::update(true, tags);
-  tags = ObjectLayout::NewBit::update(false, tags);
-
-  auto header_word = reinterpret_cast<uintptr_t*>(trampoline_bytes);
-  *header_word = tags;
-}
-
 void CodeRelocator::BuildTrampolinesForAlmostOutOfRangeCalls() {
   while (!all_unresolved_calls_.IsEmpty()) {
     UnresolvedCall* unresolved_call = all_unresolved_calls_.First();
@@ -497,8 +474,7 @@ void CodeRelocator::BuildTrampolinesForAlmostOutOfRangeCalls() {
     const intptr_t future_boundary =
         next_text_offset_ + max_instructions_size_ +
         kTrampolineSize *
-            (unresolved_calls_by_destination_.Length() + max_calls_) +
-        kOffsetInTrampoline;
+            (unresolved_calls_by_destination_.Length() + max_calls_);
     if (IsTargetInRangeFor(unresolved_call, future_boundary) &&
         !FLAG_always_generate_trampolines_for_testing) {
       break;
@@ -530,14 +506,19 @@ void CodeRelocator::BuildTrampolinesForAlmostOutOfRangeCalls() {
       // [ImageWriter], which will eventually write out the bytes and delete the
       // buffer.
       auto trampoline_bytes = new uint8_t[kTrampolineSize];
-      memset(trampoline_bytes, 0x00, kTrampolineSize);
+      ASSERT((kTrampolineSize % compiler::target::kWordSize) == 0);
+      for (uint8_t* cur = trampoline_bytes;
+           cur < trampoline_bytes + kTrampolineSize;
+           cur += compiler::target::kWordSize) {
+        *reinterpret_cast<compiler::target::uword*>(cur) =
+            kBreakInstructionFiller;
+      }
       auto unresolved_trampoline = new UnresolvedTrampoline{
           unresolved_call->callee,
           unresolved_call->offset_into_target,
           trampoline_bytes,
-          next_text_offset_ + kOffsetInTrampoline,
+          next_text_offset_,
       };
-      MarkAsFreeListElement(trampoline_bytes, kTrampolineSize);
       AddTrampolineToText(callee, trampoline_bytes, kTrampolineSize);
       EnqueueUnresolvedTrampoline(unresolved_trampoline);
       trampoline_text_offset = unresolved_trampoline->text_offset;

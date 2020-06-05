@@ -100,7 +100,6 @@ class UnitRenderer {
   /// The content of the file (not including added links and anchors) will be
   /// HTML-escaped.
   String _computeNavigationContent() {
-    var unitDir = pathContext.dirname(pathMapper.map(unitInfo.path));
     var content = unitInfo.content;
     var mapper = unitInfo.offsetMapper;
     var openInsertions = <int, String>{};
@@ -111,6 +110,10 @@ class UnitRenderer {
     for (var region in unitInfo.targets) {
       if (region.length > 0) {
         var openOffset = mapper.map(region.offset);
+        if (openOffset == null) {
+          // Region has been deleted via a hint action.
+          continue;
+        }
         var openInsertion = openInsertions[openOffset] ?? '';
         openInsertion = '<span id="o${region.offset}">$openInsertion';
         openInsertions[openOffset] = openInsertion;
@@ -128,13 +131,15 @@ class UnitRenderer {
     for (var region in unitInfo.sources ?? <NavigationSource>[]) {
       if (region.length > 0) {
         var openOffset = mapper.map(region.offset);
+        if (openOffset == null) {
+          // Region has been deleted via a hint action.
+          continue;
+        }
         var target = region.target;
         if (target.filePath != unitInfo.path ||
             region.offset != target.offset) {
           var openInsertion = openInsertions[openOffset] ?? '';
-          var unitPath = pathContext.relative(pathMapper.map(target.filePath),
-              from: unitDir);
-          var targetUri = _uriForRelativePath(unitPath, target);
+          var targetUri = _uriForPath(pathMapper.map(target.filePath), target);
           openInsertion =
               '<a href="$targetUri" class="nav-link">$openInsertion';
           openInsertions[openOffset] = openInsertion;
@@ -222,7 +227,7 @@ class UnitRenderer {
     }
 
     var previousOffset = 0;
-    regions.write('<table data-path="${unit.path}"><tbody>');
+    regions.write('<table data-path="${pathMapper.map(unit.path)}"><tbody>');
     regions.write('<tr><td class="line-no">$lineNumber</td><td>');
     for (var region in unitInfo.regions) {
       var offset = region.offset;
@@ -308,11 +313,11 @@ class UnitRenderer {
 
   /// Returns the URL that will navigate to the given [target] in the file at
   /// the given [relativePath].
-  String _uriForRelativePath(String relativePath, NavigationTarget target) {
+  String _uriForPath(String path, NavigationTarget target) {
     var queryParams = {
       'offset': target.offset,
       if (target.line != null) 'line': target.line,
     }.entries.map((entry) => '${entry.key}=${entry.value}').join('&');
-    return '$relativePath?$queryParams';
+    return '$path?$queryParams';
   }
 }

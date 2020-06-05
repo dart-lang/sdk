@@ -310,11 +310,17 @@ void ImageWriter::DumpInstructionsSizes() {
   auto& owner = Object::Handle(zone);
   auto& url = String::Handle(zone);
   auto& name = String::Handle(zone);
+  intptr_t trampolines_total_size = 0;
 
   JSONWriter js;
   js.OpenArray();
   for (intptr_t i = 0; i < instructions_.length(); i++) {
     auto& data = instructions_[i];
+    const bool is_trampoline = data.code_ == nullptr;
+    if (is_trampoline) {
+      trampolines_total_size += data.trampoline_length;
+      continue;
+    }
     owner = WeakSerializationReference::Unwrap(data.code_->owner());
     js.OpenObject();
     if (owner.IsFunction()) {
@@ -335,6 +341,12 @@ void ImageWriter::DumpInstructionsSizes() {
         "n", data.code_->QualifiedName(Object::kInternalName,
                                        Object::NameDisambiguation::kYes));
     js.PrintProperty("s", SizeInSnapshot(data.insns_->raw()));
+    js.CloseObject();
+  }
+  if (trampolines_total_size != 0) {
+    js.OpenObject();
+    js.PrintProperty("n", "[Stub] Trampoline");
+    js.PrintProperty("s", trampolines_total_size);
     js.CloseObject();
   }
   js.CloseArray();
@@ -409,6 +421,9 @@ void ImageWriter::Write(WriteStream* clustered_stream, bool vm) {
 }
 
 void ImageWriter::WriteROData(WriteStream* stream) {
+#if defined(DART_PRECOMPILER)
+  const intptr_t start_position = stream->Position();
+#endif
   stream->Align(kMaxObjectAlignment);
 
   // Heap page starts here.
@@ -419,6 +434,14 @@ void ImageWriter::WriteROData(WriteStream* stream) {
   // Zero values for other image header fields.
   stream->Align(kMaxObjectAlignment);
   ASSERT(stream->Position() - section_start == Image::kHeaderSize);
+#if defined(DART_PRECOMPILER)
+  if (profile_writer_ != nullptr) {
+    const intptr_t end_position = stream->Position();
+    profile_writer_->AttributeBytesTo(
+        V8SnapshotProfileWriter::ArtificialRootId(),
+        end_position - start_position);
+  }
+#endif
 
   // Heap page objects start here.
 
@@ -661,6 +684,13 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
   text_offset += Align(kMaxObjectAlignment, text_offset);
   ASSERT_EQUAL(text_offset, Image::kHeaderSize);
+#if defined(DART_PRECOMPILER)
+  if (profile_writer_ != nullptr) {
+    profile_writer_->AttributeBytesTo(
+        V8SnapshotProfileWriter::ArtificialRootId(),
+        (next_text_offset_ - image_size) + Image::kHeaderSize);
+  }
+#endif
 
   // Only valid if bare_instruction_payloads is true.
   V8SnapshotProfileWriter::ObjectId instructions_section_id(offset_space_, -1);
@@ -906,10 +936,10 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   Align(Image::kBssAlignment);
   assembly_stream_.Print("%s:\n", bss_symbol);
 
-  // Currently we only put one symbol in the data section, the address of
-  // DLRT_GetThreadForNativeCallback, which is populated when the snapshot is
-  // loaded.
-  WriteWordLiteralText(0);
+  auto const entry_count = vm ? BSS::kVmEntryCount : BSS::kIsolateEntryCount;
+  for (intptr_t i = 0; i < entry_count; i++) {
+    WriteWordLiteralText(0);
+  }
 #endif
 
 #if defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID) ||                  \
@@ -1095,15 +1125,24 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   instructions_blob_stream_.WriteTargetWord(image_size);
 #if defined(DART_PRECOMPILER)
   // Store the offset of the BSS section from the instructions section here.
-  // The lowest bit is set to indicate we compiled directly to ELF.
-  const word bss_offset = bss_base_ - segment_base;
+  // If not compiling to ELF (and thus no BSS segment), write 0.
+  const word bss_offset = elf_ != nullptr ? bss_base_ - segment_base : 0;
   ASSERT_EQUAL(Utils::RoundDown(bss_offset, Image::kBssAlignment), bss_offset);
-  instructions_blob_stream_.WriteTargetWord(bss_offset | 0x1);
+  // Set the lowest bit if we are compiling to ELF.
+  const word compiled_to_elf = elf_ != nullptr ? 0x1 : 0x0;
+  instructions_blob_stream_.WriteTargetWord(bss_offset | compiled_to_elf);
 #else
   instructions_blob_stream_.WriteTargetWord(0);  // No relocations.
 #endif
   instructions_blob_stream_.Align(kMaxObjectAlignment);
   ASSERT_EQUAL(instructions_blob_stream_.Position(), Image::kHeaderSize);
+#if defined(DART_PRECOMPILER)
+  if (profile_writer_ != nullptr) {
+    profile_writer_->AttributeBytesTo(
+        V8SnapshotProfileWriter::ArtificialRootId(),
+        (image_size - next_text_offset_) + Image::kHeaderSize);
+  }
+#endif
 
   // Only valid when bare_instructions_payloads is true.
   const V8SnapshotProfileWriter::ObjectId instructions_section_id(
@@ -1277,12 +1316,12 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
             insns.PayloadStart() + reloc_offset);
 
         // Overwrite the relocation position in the instruction stream with the
-        // (positive) offset of the start of the payload from the start of the
-        // BSS segment plus the addend in the relocation.
-        instructions_blob_stream_.SetPosition(payload_offset + reloc_offset);
+        // offset of the BSS segment from the relocation position plus the
+        // addend in the relocation.
+        auto const text_offset = payload_offset + reloc_offset;
+        instructions_blob_stream_.SetPosition(text_offset);
 
-        const compiler::target::word offset =
-            bss_base_ - (segment_base + payload_offset + reloc_offset) + addend;
+        const compiler::target::word offset = bss_offset - text_offset + addend;
         instructions_blob_stream_.WriteTargetWord(offset);
       }
 

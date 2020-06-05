@@ -14,12 +14,8 @@
 /// location of the existing element.
 library dart2js.messages;
 
-import 'package:front_end/src/api_unstable/dart2js.dart' show tokenToString;
-
 import 'generated/shared_messages.dart' as shared_messages;
-import '../constants/values.dart' show ConstantValue;
 import '../commandline_options.dart';
-import '../elements/types.dart';
 import '../options.dart';
 import 'invariant.dart' show failedAt;
 import 'spannable.dart' show CURRENT_ELEMENT_SPANNABLE;
@@ -134,7 +130,7 @@ class MessageTemplate {
   final String howToFix;
 
   ///  Examples will be checked by
-  ///  tests/compiler/dart2js/message_kind_test.dart.
+  ///  pkg/compiler/test/message_kind_test.dart.
   ///
   ///  An example is either a String containing the example source code or a Map
   ///  from filenames to source code. In the latter case, the filename for the
@@ -650,7 +646,7 @@ become a compile-time error in the future."""),
   @override
   String toString() => template;
 
-  Message message(Map arguments, CompilerOptions options) {
+  Message message(Map<String, String> arguments, CompilerOptions options) {
     return new Message(this, arguments, options);
   }
 
@@ -659,11 +655,9 @@ become a compile-time error in the future."""),
 
 class Message {
   final MessageTemplate template;
-  final Map arguments;
+  final Map<String, String> arguments;
   final CompilerOptions _options;
   bool get terse => _options?.terseDiagnostics ?? false;
-  bool get _printLegacyStars => _options?.printLegacyStars ?? false;
-  bool get _useLegacySubtyping => _options?.useLegacySubtyping ?? false;
   String message;
 
   Message(this.template, this.arguments, this._options) {
@@ -678,8 +672,8 @@ class Message {
   String computeMessage() {
     if (message == null) {
       message = template.template;
-      arguments.forEach((key, value) {
-        message = message.replaceAll('#{${key}}', convertToString(value));
+      arguments.forEach((String key, String value) {
+        message = message.replaceAll('#{$key}', value);
       });
       assert(
           kind == MessageKind.GENERIC ||
@@ -688,8 +682,8 @@ class Message {
               'Missing arguments in error message: "$message"'));
       if (!terse && template.hasHowToFix) {
         String howToFix = template.howToFix;
-        arguments.forEach((key, value) {
-          howToFix = howToFix.replaceAll('#{${key}}', convertToString(value));
+        arguments.forEach((String key, String value) {
+          howToFix = howToFix.replaceAll('#{$key}', value);
         });
         message = '$message\n$howToFix';
       }
@@ -710,17 +704,4 @@ class Message {
 
   @override
   int get hashCode => throw new UnsupportedError('Message.hashCode');
-
-  String convertToString(value) {
-    if (value is DartType) {
-      value = value.toStructuredText(
-          printLegacyStars: _printLegacyStars,
-          useLegacySubtyping: _useLegacySubtyping);
-    } else if (value is ConstantValue) {
-      value = value.toDartText();
-    } else {
-      value = tokenToString(value);
-    }
-    return '$value';
-  }
 }

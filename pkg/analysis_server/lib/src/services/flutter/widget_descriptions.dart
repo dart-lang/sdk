@@ -152,7 +152,7 @@ class _WidgetDescriptionComputer {
       return null;
     }
 
-    var constructorElement = instanceCreation.staticElement;
+    var constructorElement = instanceCreation.constructorName.staticElement;
     if (constructorElement == null) {
       return null;
     }
@@ -267,7 +267,7 @@ class _WidgetDescriptionComputer {
     InstanceCreationExpression instanceCreation,
     ConstructorElement constructorElement,
   }) {
-    constructorElement ??= instanceCreation?.staticElement;
+    constructorElement ??= instanceCreation?.constructorName?.staticElement;
     constructorElement ??= classDescription?.constructor;
     if (constructorElement == null) return;
 

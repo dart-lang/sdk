@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=extension-methods
-
 // Tests resolution of identifiers inside of extension methods
 
 // Test an extension MyExt with members whose names overlap with names from the

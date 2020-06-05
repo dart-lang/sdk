@@ -830,18 +830,11 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
   DEBUG_ONLY(I->heap()->Verify(kForbidMarked));
 
 #if defined(DART_PRECOMPILED_RUNTIME)
-  // AOT: The megamorphic miss function and code come from the snapshot.
-  ASSERT(I->object_store()->megamorphic_call_miss_code() != Code::null());
   ASSERT(I->object_store()->build_method_extractor_code() != Code::null());
   if (FLAG_print_llvm_constant_pool) {
     PrintLLVMConstantPool(T, I);
   }
 #else
-  // JIT: The megamorphic call miss function and code come from the snapshot in
-  // JIT app snapshot, otherwise create them.
-  if (I->object_store()->megamorphic_call_miss_code() == Code::null()) {
-    MegamorphicCacheTable::InitMissHandler(I);
-  }
 #if !defined(TARGET_ARCH_IA32)
   if (I != Dart::vm_isolate()) {
     I->object_store()->set_build_method_extractor_code(

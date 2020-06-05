@@ -105,16 +105,19 @@ static method foo() → asy::Future<self::X*>* /* originally async */ {
   core::int* :await_jump_var = 0;
   dynamic :await_ctx_var;
   dynamic :saved_try_context_var0;
+  dynamic :async_temporary_0;
   function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
     try {
       #L3:
       {
         final self::Y* #t1 = new self::Y::•();
         [yield] let dynamic #t2 = asy::_awaitHelper(self::f1(), :async_op_then, :async_op_error, :async_op) in null;
-        final void #t3 = #t1.{self::Y::f}(_in::unsafeCast<core::List<core::Object*>*>(:result));
-        final void #t4 = #t1.{self::Y::f}(self::f2());
-        [yield] let dynamic #t5 = asy::_awaitHelper(self::f3(), :async_op_then, :async_op_error, :async_op) in null;
-        :return_value = new self::X::•(#t1, _in::unsafeCast<core::Object*>(:result));
+        #t1.{self::Y::f}(_in::unsafeCast<core::List<core::Object*>*>(:result));
+        :async_temporary_0 = block {
+          #t1.{self::Y::f}(self::f2());
+        } =>#t1;
+        [yield] let dynamic #t3 = asy::_awaitHelper(self::f3(), :async_op_then, :async_op_error, :async_op) in null;
+        :return_value = new self::X::•(_in::unsafeCast<self::Y*>(:async_temporary_0), _in::unsafeCast<core::Object*>(:result));
         break #L3;
       }
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
@@ -142,7 +145,7 @@ static method main() → asy::Future<void>* /* originally async */ {
     try {
       #L4:
       {
-        [yield] let dynamic #t6 = asy::_awaitHelper(self::foo(), :async_op_then, :async_op_error, :async_op) in null;
+        [yield] let dynamic #t4 = asy::_awaitHelper(self::foo(), :async_op_then, :async_op_error, :async_op) in null;
         core::print(_in::unsafeCast<self::X*>(:result));
       }
       asy::_completeOnAsyncReturn(:async_completer, :return_value);

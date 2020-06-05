@@ -25,12 +25,7 @@ void main() {
 @reflectiveTest
 class BuildEnclosingMemberDescriptionTest extends AbstractAnalysisTest {
   Future<ResolvedUnitResult> resolveTestFile() async {
-    var includedRoot = resourceProvider.pathContext.dirname(testFile);
-    server.setAnalysisRoots('0', [includedRoot], [], {});
-    return await server
-        .getAnalysisDriver(testFile)
-        .currentSession
-        .getResolvedUnit(testFile);
+    return await session.getResolvedUnit(testFile);
   }
 
   Future<void> test_classConstructor_named() async {
@@ -1361,6 +1356,54 @@ void h(int/*?*/ i) {
         unit.content.indexOf('i/*!*/'), 'Null check hint');
   }
 
+  Future<void> test_trace_refers_to_variable_initializer() async {
+    var unit = await buildInfoForSingleTestFile('''
+void f(int/*?*/ i) {
+  var x = <int>[i];
+  int y = x[0];
+}
+''', migratedContent: '''
+void f(int/*?*/ i) {
+  var x = <int?>[i];
+  int? y = x[0];
+}
+''');
+    var region = unit.regions
+        .where((regionInfo) => regionInfo.offset == unit.content.indexOf('? y'))
+        .single;
+    expect(region.traces, hasLength(1));
+    var trace = region.traces.single;
+    expect(trace.description, 'Nullability reason');
+    var entries = trace.entries;
+    expect(entries, hasLength(8));
+    // Entry 0 is the nullability of y
+    assertTraceEntry(unit, entries[0], 'f.y', unit.content.indexOf('int? y'),
+        contains('f.y'));
+    // Entry 1 is the edge from the list element type of x to y, due to array
+    // indexing.
+    assertTraceEntry(unit, entries[1], 'f.y', unit.content.indexOf('x[0]'),
+        contains('data flow'));
+    // Entry 2 is the nullability of the implicit list element type of x
+    assertTraceEntry(unit, entries[2], 'f.x', unit.content.indexOf('x ='),
+        contains('type argument 0 of f.x'));
+    // Entry 3 is the edge from the explicit list element type on the RHS of x
+    // to the implicit list element type on the LHS of x
+    assertTraceEntry(unit, entries[3], 'f.x', unit.content.indexOf('<int?>[i]'),
+        contains('data flow'));
+    // Entry 4 is the explicit list element type on the RHS of x
+    assertTraceEntry(unit, entries[4], 'f.x', unit.content.indexOf('int?>[i]'),
+        contains('list element type'));
+    // Entry 5 is the edge from the parameter i to the list literal
+    assertTraceEntry(unit, entries[5], 'f.x', unit.content.indexOf('i]'),
+        contains('data flow'));
+    // Entry 6 is the nullability of the parameter i
+    assertTraceEntry(unit, entries[6], 'f', unit.content.indexOf('int/*?*/'),
+        contains('parameter 0 of f'));
+    // Entry 7 is the edge due to the explicit /*?*/ hint
+    assertTraceEntry(unit, entries[7], 'f', unit.content.indexOf('int/*?*/'),
+        contains('explicitly hinted to be nullable'));
+  }
+
   Future<void> test_trace_substitutionNode() async {
     var unit = await buildInfoForSingleTestFile('''
 class C<T extends Object/*!*/> {}
@@ -1451,7 +1494,7 @@ String? g() => 1 == 2 ? "Hello" : null;
     expect(trace.description, 'Non-nullability reason');
     var entries = trace.entries;
     expect(entries, hasLength(1));
-    assertTraceEntry(unit, entries[0], null, unit.content.indexOf('int'),
+    assertTraceEntry(unit, entries[0], 'i', unit.content.indexOf('int'),
         'No reason found to make nullable');
     expect(region.kind, NullabilityFixKind.typeNotMadeNullable);
   }

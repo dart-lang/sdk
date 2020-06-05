@@ -1,6 +1,6 @@
 {
   "global": {
-    "chrome": "76",
+    "chrome": "81",
     "firefox": "67"
   },
   "branches": [
@@ -11,7 +11,6 @@
       ".packages",
       ".dart_tool/package_config.json",
       "pkg/",
-      "tests/compiler/dart2js/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
       "tools/",
@@ -846,7 +845,8 @@
         "enable-asserts": true,
 	"vm-options": [
           "--no-null-safety"
-        ]
+        ],
+        "builder-tag": "vm_nnbd"
       }
     },
     "dartkp-weak-asserts-win-(debug|product|release)-x64": {
@@ -861,7 +861,8 @@
         "use-elf": true,
 	"vm-options": [
           "--no-null-safety"
-        ]
+        ],
+        "builder-tag": "vm_nnbd"
       }
     },
     "dartk-weak-asserts-(linux|mac|win)-(debug|product|release)-x64": {
@@ -872,7 +873,8 @@
         "enable-asserts": true,
 	"vm-options": [
           "--no-null-safety"
-        ]
+        ],
+        "builder-tag": "vm_nnbd"
       }
     },
     "dartk-strong-(linux|mac|win)-(debug|product|release)-x64": {
@@ -882,7 +884,8 @@
         ],
         "vm-options": [
           "--null-safety"
-        ]
+        ],
+        "builder-tag": "vm_nnbd"
       }
     },
     "dartkp-strong-(linux|mac)-(debug|product|release)-x64": {
@@ -895,7 +898,8 @@
         ],
         "vm-options": [
           "--null-safety"
-        ]
+        ],
+        "builder-tag": "vm_nnbd"
       }
     },
     "dartkp-strong-win-(debug|product|release)-x64": {
@@ -909,7 +913,8 @@
         ],
         "vm-options": [
           "--null-safety"
-        ]
+        ],
+        "builder-tag": "vm_nnbd"
       }
     },
     "dartk-(linux|mac|win)-(debug|product|release)-(ia32|simarm|simarm64|x64)-ast": {
@@ -1208,7 +1213,7 @@
           "name": "weak co19 tests",
           "arguments": [
             "-ncfe-weak-${system}",
-            "co19/LanguageFeatures/nnbd"
+            "co19"
           ]
         },
         {
@@ -1225,7 +1230,7 @@
           "name": "strong co19 tests",
           "arguments": [
             "-ncfe-strong-${system}",
-            "co19/LanguageFeatures/nnbd"
+            "co19"
           ]
         }
       ]
@@ -1442,6 +1447,24 @@
           ]
         },
         {
+          "name": "co19 nnbd tests in weak mode with asserts",
+          "arguments": [
+            "-ndartkp-weak-asserts-${system}-${mode}-${arch}",
+            "co19"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 1
+        },
+        {
+          "name": "co19 nnbd tests in strong mode",
+          "arguments": [
+            "-ndartkp-strong-${system}-${mode}-${arch}",
+            "co19"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 1
+        },
+        {
           "name": "vm nnbd tests in weak mode with asserts",
           "arguments": [
             "-ndartkp-weak-asserts-${system}-${mode}-${arch}",
@@ -1449,8 +1472,8 @@
             "ffi",
             "language",
             "lib",
-	    "co19/LanguageFeatures/nnbd",
-            "standalone/io"
+            "standalone/io",
+            "vm"
           ]
         },
         {
@@ -1461,8 +1484,8 @@
             "ffi",
             "language",
             "lib",
-	    "co19/LanguageFeatures/nnbd",
-            "standalone/io"
+            "standalone/io",
+            "vm"
           ]
         }
       ]
@@ -1741,6 +1764,35 @@
     },
     {
       "builders": [
+        "vm-kernel-gcc-linux"
+      ],
+      "meta": {
+        "description": "This configuration builds the VM with GCC."
+      },
+      "steps": [
+        {
+          "name": "configure dart",
+          "script": "tools/gn.py",
+          "arguments": [
+            "--mode=all",
+            "--arch=all",
+            "--no-clang",
+            "--no-goma"
+          ]
+        },
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=all",
+            "--arch=all",
+            "runtime"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-kernel-linux-release-simarm",
         "vm-kernel-linux-release-simarm64",
         "vm-kernel-linux-release-ia32",
@@ -1796,8 +1848,9 @@
             "ffi",
             "language",
             "lib",
-	    "co19/LanguageFeatures/nnbd",
-            "standalone/io"
+            "co19",
+            "standalone/io",
+            "vm"
           ]
         },
         {
@@ -1808,8 +1861,9 @@
             "ffi",
             "language",
             "lib",
-	    "co19/LanguageFeatures/nnbd",
-            "standalone/io"
+            "co19",
+            "standalone/io",
+            "vm"
           ]
         }
       ]
@@ -2130,7 +2184,7 @@
           "name": "ddc nnbd weak co19 tests",
           "arguments": [
             "-ndartdevk-weak-linux-release-chrome",
-            "co19/LanguageFeatures/nnbd"
+            "co19"
           ],
           "shards": 2,
           "fileset": "dart2js_nnbd"
@@ -2149,7 +2203,7 @@
           "name": "ddc nnbd strong co19 tests",
           "arguments": [
             "-ndartdevk-strong-linux-release-chrome",
-            "co19/LanguageFeatures/nnbd"
+            "co19"
           ]
         }
       ]
@@ -2337,7 +2391,6 @@
           "name": "dart2js unit tests",
           "arguments": [
             "-nunittest-asserts-no-sdk-linux",
-            "dart2js",
             "pkg//compiler/"
           ]
         }
@@ -2399,8 +2452,7 @@
           "arguments": [
             "-ndart2js-hostasserts-linux-ia32-d8",
             "--dart2js-batch",
-            "dart2js_extra",
-            "dart2js_native"
+            "dart2js_2"
           ]
         }
       ]
@@ -2429,8 +2481,7 @@
             "--dart2js-batch",
             "language_2",
             "corelib_2",
-            "dart2js_native",
-            "dart2js_extra"
+            "dart2js_2"
           ],
           "shards": 6,
           "fileset": "dart2js_hostasserts_prennbd"
@@ -2505,8 +2556,7 @@
             "-ndart2js-${system}-${runtime}",
             "--dart2js-batch",
             "--reset-browser-configuration",
-            "dart2js_extra",
-            "dart2js_native"
+            "dart2js_2"
           ]
         }
       ]
@@ -2557,8 +2607,7 @@
           "arguments": [
             "-ndart2js-minified-linux-d8",
             "--dart2js-batch",
-            "dart2js_extra",
-            "dart2js_native"
+            "dart2js_2"
           ]
         },
         {
@@ -2576,8 +2625,7 @@
           "arguments": [
             "-ndart2js-production-linux-d8",
             "--dart2js-batch",
-            "dart2js_extra",
-            "dart2js_native"
+            "dart2js_2"
           ]
         }
       ]
@@ -2631,8 +2679,7 @@
           "arguments": [
             "-ndart2js-minified-csp-linux-chrome",
             "--dart2js-batch",
-            "dart2js_extra",
-            "dart2js_native"
+            "dart2js_2"
           ]
         }
       ]
@@ -2670,8 +2717,7 @@
             "--dart2js-batch",
             "language",
             "corelib",
-            "dart2js_extra",
-            "dart2js_native",
+            "dart2js_2",
             "kernel"
           ],
           "shards": 6,
@@ -2704,8 +2750,7 @@
             "--dart2js-batch",
             "language",
             "corelib",
-            "dart2js_extra",
-            "dart2js_native",
+            "dart2js_2",
             "kernel"
           ],
           "shards": 6,
@@ -2726,7 +2771,7 @@
           "arguments": [
             "-ndart2js-hostasserts-strong-linux-x64-chrome",
             "--dart2js-batch",
-            "co19/LanguageFeatures/nnbd"
+            "co19"
           ],
           "shards": 6,
           "fileset": "dart2js_hostasserts_nnbd"
@@ -2735,7 +2780,7 @@
           "name": "dart2js nnbd unit tests",
           "arguments": [
             "-nunittest-weak-asserts-no-sdk-linux",
-            "dart2js",
+            "dart2js_2",
             "pkg//compiler/"
           ]
         }
@@ -3079,14 +3124,14 @@
           "name": "analyze nnbd strong co19 tests",
           "arguments": [
             "-nanalyzer-asserts-strong-${system}",
-            "co19/LanguageFeatures/nnbd"
+            "co19"
           ]
         },
         {
           "name": "analyze nnbd weak co19 tests",
           "arguments": [
             "-nanalyzer-asserts-weak-${system}",
-            "co19/LanguageFeatures/nnbd"
+            "co19"
           ]
         }
       ]
@@ -3383,7 +3428,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|front_end|kernel|nnbd_migration)/)"
+            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|front_end|kernel|nnbd_migration)/)"
           ]
         },
         {
@@ -3421,7 +3466,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|front_end|kernel|nnbd_migration)/)"
+            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|front_end|kernel|nnbd_migration)/)"
           ]
         },
         {

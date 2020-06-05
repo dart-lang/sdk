@@ -213,6 +213,11 @@ DEFINE_NATIVE_ENTRY(Internal_reachabilityFence, 0, 1) {
   return Object::null();
 }
 
+DEFINE_NATIVE_ENTRY(Internal_collectAllGarbage, 0, 0) {
+  isolate->heap()->CollectAllGarbage();
+  return Object::null();
+}
+
 static bool ExtractInterfaceTypeArgs(Zone* zone,
                                      const Class& instance_cls,
                                      const TypeArguments& instance_type_args,

@@ -6,6 +6,7 @@
 #include <bin/file.h>
 #include <platform/elf.h>
 #include <platform/globals.h>
+#include <vm/bss_relocs.h>
 #include <vm/cpu.h>
 #include <vm/virtual_memory.h>
 
@@ -183,6 +184,9 @@ class LoadedElf {
   /// corresponding symbol was not found, or if the dynamic symbol table could
   /// not be decoded.
   ///
+  /// Has the side effect of initializing the relocated addresses for the text
+  /// sections corresponding to non-null output parameters in the BSS segment.
+  ///
   /// On failure, the error may be retrieved by 'error()'.
   bool ResolveSymbols(const uint8_t** vm_data,
                       const uint8_t** vm_instrs,
@@ -235,6 +239,8 @@ class LoadedElf {
   const char* dynamic_string_table_ = nullptr;
   const dart::elf::Symbol* dynamic_symbol_table_ = nullptr;
   uword dynamic_symbol_count_ = 0;
+  uword* vm_bss_ = nullptr;
+  uword* isolate_bss_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(LoadedElf);
 };
@@ -462,11 +468,21 @@ bool LoadedElf::ReadSections() {
       dynamic_symbol_table_ = reinterpret_cast<const dart::elf::Symbol*>(
           base_->start() + header.memory_offset);
       dynamic_symbol_count_ = header.file_size / sizeof(dart::elf::Symbol);
+    } else if (strcmp(name, ".bss") == 0) {
+      auto const bss_size =
+          (BSS::kVmEntryCount + BSS::kIsolateEntryCount) * kWordSize;
+      CHECK_ERROR(header.memory_offset != 0, ".bss must be loaded.");
+      CHECK_ERROR(header.file_size >= bss_size,
+                  ".bss does not have enough space.");
+      vm_bss_ = reinterpret_cast<uword*>(base_->start() + header.memory_offset);
+      isolate_bss_ = vm_bss_ + BSS::kVmEntryCount;
+      // We set applicable BSS entries in ResolveSymbols().
     }
   }
 
   CHECK_ERROR(dynamic_string_table_ != nullptr, "Couldn't find .dynstr.");
   CHECK_ERROR(dynamic_symbol_table_ != nullptr, "Couldn't find .dynsym.");
+  CHECK_ERROR(vm_bss_ != nullptr, "Couldn't find .bss.");
   return true;
 }
 
@@ -488,10 +504,22 @@ bool LoadedElf::ResolveSymbols(const uint8_t** vm_data,
       output = vm_data;
     } else if (strcmp(name, kVmSnapshotInstructionsAsmSymbol) == 0) {
       output = vm_instrs;
+      if (output != nullptr) {
+        // Store the value of the symbol in the VM BSS, as it contains the
+        // address of the VM instructions section relative to the DSO base.
+        BSS::InitializeBSSEntry(BSS::Relocation::InstructionsRelocatedAddress,
+                                sym.value, vm_bss_);
+      }
     } else if (strcmp(name, kIsolateSnapshotDataAsmSymbol) == 0) {
       output = isolate_data;
     } else if (strcmp(name, kIsolateSnapshotInstructionsAsmSymbol) == 0) {
       output = isolate_instrs;
+      if (output != nullptr) {
+        // Store the value of the symbol in the isolate BSS, as it contains the
+        // address of the isolate instructions section relative to the DSO base.
+        BSS::InitializeBSSEntry(BSS::Relocation::InstructionsRelocatedAddress,
+                                sym.value, isolate_bss_);
+      }
     }
 
     if (output != nullptr) {

@@ -370,7 +370,13 @@ abstract class _PhysicalResource implements Resource {
   _PhysicalResource(this._entry);
 
   @override
-  bool get exists => _entry.existsSync();
+  bool get exists {
+    try {
+      return _entry.existsSync();
+    } on FileSystemException {
+      return false;
+    }
+  }
 
   @override
   get hashCode => path.hashCode;

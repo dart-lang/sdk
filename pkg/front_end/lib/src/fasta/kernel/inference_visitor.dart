@@ -268,8 +268,9 @@ class InferenceVisitor
     if (!inferrer.typeSchemaEnvironment.isEmptyContext(typeContext)) {
       typeContext = inferrer.wrapFutureOrType(typeContext);
     }
-    ExpressionInferenceResult operandResult = inferrer
-        .inferExpression(node.operand, typeContext, true, isVoidAllowed: true);
+    ExpressionInferenceResult operandResult = inferrer.inferExpression(
+        node.operand, typeContext, true,
+        isVoidAllowed: !inferrer.isNonNullableByDefault);
     DartType inferredType =
         inferrer.typeSchemaEnvironment.unfutureType(operandResult.inferredType);
     node.operand = operandResult.expression..parent = node;
@@ -356,12 +357,13 @@ class InferenceVisitor
           expression, const UnknownType(), !inferrer.isTopLevel,
           isVoidAllowed: true));
     }
-    Expression replacement = createVariableGet(node.variable);
-    for (int index = expressionResults.length - 1; index >= 0; index--) {
-      replacement = createLet(
-          createVariable(expressionResults[index].expression, const VoidType()),
-          replacement);
+    List<Statement> body = [];
+    for (int index = 0; index < expressionResults.length; index++) {
+      body.add(_createExpressionStatement(expressionResults[index].expression));
     }
+
+    Expression replacement = _createBlockExpression(node.variable.fileOffset,
+        _createBlock(body), createVariableGet(node.variable));
 
     if (node.isNullAware) {
       replacement =
@@ -371,6 +373,24 @@ class InferenceVisitor
         ..fileOffset = node.fileOffset;
     }
     return new ExpressionInferenceResult(result.inferredType, replacement);
+  }
+
+  Block _createBlock(List<Statement> statements) {
+    return new Block(statements);
+  }
+
+  BlockExpression _createBlockExpression(
+      int fileOffset, Block body, Expression value) {
+    assert(fileOffset != null);
+    assert(fileOffset != TreeNode.noOffset);
+    return new BlockExpression(body, value)..fileOffset = fileOffset;
+  }
+
+  ExpressionStatement _createExpressionStatement(Expression expression) {
+    assert(expression != null);
+    assert(expression.fileOffset != TreeNode.noOffset);
+    return new ExpressionStatement(expression)
+      ..fileOffset = expression.fileOffset;
   }
 
   @override
@@ -2593,7 +2613,8 @@ class InferenceVisitor
           inferredType)
         ..fileOffset = node.fileOffset;
       replacement =
-          new Let(node.variable, conditional..fileOffset = node.fileOffset);
+          new Let(node.variable, conditional..fileOffset = node.fileOffset)
+            ..fileOffset = node.fileOffset;
     } else {
       // Encode `o.a ??= b` as:
       //
@@ -3424,7 +3445,7 @@ class InferenceVisitor
         right, const UnknownType(), typeNeeded,
         isVoidAllowed: false);
 
-    assert(equalsTarget.isInstanceMember);
+    assert(equalsTarget.isInstanceMember || equalsTarget.isNever);
     if (inferrer.instrumentation != null && leftType == const DynamicType()) {
       inferrer.instrumentation.record(
           inferrer.uriForInstrumentation,
@@ -3453,7 +3474,10 @@ class InferenceVisitor
     }
     inferrer.flowAnalysis.equalityOp_end(equals, right, notEqual: isNot);
     return new ExpressionInferenceResult(
-        inferrer.coreTypes.boolRawType(inferrer.library.nonNullable), equals);
+        equalsTarget.isNever
+            ? const NeverType(Nullability.nonNullable)
+            : inferrer.coreTypes.boolRawType(inferrer.library.nonNullable),
+        equals);
   }
 
   /// Creates a binary expression of the binary operator with [binaryName] using
@@ -5432,7 +5456,10 @@ class InferenceVisitor
 
       VariableDeclaration isSetVariable;
       if (isPotentiallyNullable(node.type, inferrer.coreTypes.futureOrClass)) {
-        isSetVariable = new VariableDeclaration('#${node.name}#isSet',
+        isSetVariable = new VariableDeclaration(
+            '${late_lowering.lateLocalPrefix}'
+            '${node.name}'
+            '${late_lowering.lateIsSetSuffix}',
             initializer: new BoolLiteral(false)..fileOffset = fileOffset,
             type: inferrer.coreTypes.boolRawType(inferrer.library.nonNullable))
           ..fileOffset = fileOffset;
@@ -5441,20 +5468,24 @@ class InferenceVisitor
 
       Expression createVariableRead({bool needsPromotion: false}) {
         if (needsPromotion) {
-          return new VariableGet(node, node.type);
+          return new VariableGet(node, node.type)..fileOffset = fileOffset;
         } else {
-          return new VariableGet(node);
+          return new VariableGet(node)..fileOffset = fileOffset;
         }
       }
 
-      Expression createIsSetRead() => new VariableGet(isSetVariable);
+      Expression createIsSetRead() =>
+          new VariableGet(isSetVariable)..fileOffset = fileOffset;
       Expression createVariableWrite(Expression value) =>
           new VariableSet(node, value);
       Expression createIsSetWrite(Expression value) =>
           new VariableSet(isSetVariable, value);
 
       VariableDeclaration getVariable =
-          new VariableDeclaration('#${node.name}#get')..fileOffset = fileOffset;
+          new VariableDeclaration('${late_lowering.lateLocalPrefix}'
+              '${node.name}'
+              '${late_lowering.lateLocalGetterSuffix}')
+            ..fileOffset = fileOffset;
       FunctionDeclaration getter = new FunctionDeclaration(
           getVariable,
           new FunctionNode(
@@ -5488,7 +5519,9 @@ class InferenceVisitor
         node.isLateFinalWithoutInitializer =
             node.isFinal && node.initializer == null;
         VariableDeclaration setVariable =
-            new VariableDeclaration('#${node.name}#set')
+            new VariableDeclaration('${late_lowering.lateLocalPrefix}'
+                '${node.name}'
+                '${late_lowering.lateLocalSetterSuffix}')
               ..fileOffset = fileOffset;
         VariableDeclaration setterParameter =
             new VariableDeclaration(null, type: node.type)

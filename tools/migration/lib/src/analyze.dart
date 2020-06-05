@@ -105,6 +105,7 @@ Future<Map<String, List<_StaticError>>> _runAnalyzer(String inputDir,
   var errors = _StaticError.parse(result.stderr as String);
   var errorsByFile = <String, List<_StaticError>>{};
   for (var error in errors) {
+    if (error.code.startsWith("HINT.")) continue;
     errorsByFile.putIfAbsent(error.file, () => []).add(error);
   }
 

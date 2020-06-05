@@ -98,8 +98,8 @@ class Flags {
 
   static const String serverMode = '--server-mode';
 
-  static const String nullSafety = '--sound-null-safety';
-  static const String noNullSafety = '--no-sound-null-safety';
+  static const String soundNullSafety = '--sound-null-safety';
+  static const String noSoundNullSafety = '--no-sound-null-safety';
 
   static const String newDeferredSplit = '--new-deferred-split';
   static const String reportInvalidInferredDeferredTypes =

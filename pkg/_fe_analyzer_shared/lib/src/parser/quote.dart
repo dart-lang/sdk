@@ -92,7 +92,7 @@ int firstQuoteLength(String first, Quote quote) {
 
     case Quote.MultiLineSingle:
     case Quote.MultiLineDouble:
-      return lengthOfOptionalWhitespacePrefix(first, 3);
+      return lengthOfOptionalWhitespacePrefix(first, /* start = */ 3);
 
     case Quote.RawSingle:
     case Quote.RawDouble:
@@ -100,7 +100,7 @@ int firstQuoteLength(String first, Quote quote) {
 
     case Quote.RawMultiLineSingle:
     case Quote.RawMultiLineDouble:
-      return lengthOfOptionalWhitespacePrefix(first, 4);
+      return lengthOfOptionalWhitespacePrefix(first, /* start = */ 4);
   }
   return throw new UnsupportedError("'$quote' in  firstQuoteLength");
 }
@@ -131,7 +131,8 @@ String unescapeFirstStringPart(String first, Quote quote, Object location,
 String unescapeLastStringPart(String last, Quote quote, Object location,
     bool isLastQuoteSynthetic, UnescapeErrorListener listener) {
   int end = last.length - (isLastQuoteSynthetic ? 0 : lastQuoteLength(quote));
-  return unescape(last.substring(0, end), quote, location, listener);
+  return unescape(
+      last.substring(/* startIndex = */ 0, end), quote, location, listener);
 }
 
 String unescapeString(
@@ -154,13 +155,15 @@ String unescape(String string, Quote quote, Object location,
     case Quote.Double:
       return !string.contains("\\")
           ? string
-          : unescapeCodeUnits(string.codeUnits, false, location, listener);
+          : unescapeCodeUnits(
+              string.codeUnits, /* isRaw = */ false, location, listener);
 
     case Quote.MultiLineSingle:
     case Quote.MultiLineDouble:
       return !string.contains("\\") && !string.contains("\r")
           ? string
-          : unescapeCodeUnits(string.codeUnits, false, location, listener);
+          : unescapeCodeUnits(
+              string.codeUnits, /* isRaw = */ false, location, listener);
 
     case Quote.RawSingle:
     case Quote.RawDouble:
@@ -170,7 +173,8 @@ String unescape(String string, Quote quote, Object location,
     case Quote.RawMultiLineDouble:
       return !string.contains("\r")
           ? string
-          : unescapeCodeUnits(string.codeUnits, true, location, listener);
+          : unescapeCodeUnits(
+              string.codeUnits, /* isRaw = */ true, location, listener);
   }
   return throw new UnsupportedError("'$quote' in unescape");
 }
@@ -193,7 +197,7 @@ String unescapeCodeUnits(List<int> codeUnits, bool isRaw, Object location,
     } else if (!isRaw && code == $BACKSLASH) {
       if (codeUnits.length == ++i) {
         listener.handleUnescapeError(
-            codes.messageInvalidUnicodeEscape, location, i, 1);
+            codes.messageInvalidUnicodeEscape, location, i, /* length = */ 1);
         return new String.fromCharCodes(codeUnits);
       }
       code = codeUnits[i];
@@ -296,5 +300,5 @@ String unescapeCodeUnits(List<int> codeUnits, bool isRaw, Object location,
     }
     result[resultOffset++] = code;
   }
-  return new String.fromCharCodes(result, 0, resultOffset);
+  return new String.fromCharCodes(result, /* start = */ 0, resultOffset);
 }

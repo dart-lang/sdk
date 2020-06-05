@@ -2350,6 +2350,7 @@ void IsolateReloadContext::InvalidateFields(
     const GrowableArray<const Field*>& fields,
     const GrowableArray<const Instance*>& instances) {
   TIMELINE_SCOPE(InvalidateFields);
+  SafepointMutexLocker ml(isolate()->group()->subtype_test_cache_mutex());
   FieldInvalidator invalidator(zone);
   invalidator.CheckStatics(fields);
   invalidator.CheckInstances(instances);

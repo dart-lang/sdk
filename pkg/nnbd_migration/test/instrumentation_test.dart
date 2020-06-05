@@ -60,6 +60,9 @@ class _InstrumentationClient implements NullabilityMigrationInstrumentation {
   }
 
   @override
+  void finished() {}
+
+  @override
   void graphEdge(EdgeInfo edge, EdgeOriginInfo originInfo) {
     if (edge.destinationNode != test.always) {
       expect(test.edgeOrigin, isNot(contains(edge)));
@@ -102,9 +105,6 @@ class _InstrumentationClient implements NullabilityMigrationInstrumentation {
   void prepareForUpdate() {
     test.changes = null;
   }
-
-  @override
-  void finished() {}
 }
 
 @reflectiveTest
@@ -143,7 +143,7 @@ abstract class _InstrumentationTestBase extends AbstractContextTest {
     var sourcePath = convertPath('/home/test/lib/test.dart');
     newFile(sourcePath, content: content);
     var listener = new TestMigrationListener();
-    var migration = NullabilityMigration(listener,
+    var migration = NullabilityMigration(listener, getLineInfo,
         instrumentation: _InstrumentationClient(this),
         removeViaComments: removeViaComments,
         warnOnWeakCode: warnOnWeakCode);

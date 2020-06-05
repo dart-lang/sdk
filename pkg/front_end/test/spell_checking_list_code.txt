@@ -845,6 +845,7 @@ recalculation
 recall
 received
 recheck
+recognizing
 recompiled
 recompiling
 recompute
@@ -1204,6 +1205,7 @@ watch
 watcher
 wb
 wc
+weakened
 weakener
 weird
 weren't

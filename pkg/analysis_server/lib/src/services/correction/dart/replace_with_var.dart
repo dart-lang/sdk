@@ -21,7 +21,7 @@ class ReplaceWithVar extends CorrectionProducer {
 
   @override
   Future<void> compute(DartChangeBuilder builder) async {
-    var type = node.thisOrAncestorOfType<TypeAnnotation>();
+    var type = _findType(node);
     if (type == null) {
       return;
     }
@@ -64,7 +64,11 @@ class ReplaceWithVar extends CorrectionProducer {
         return;
       }
       await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addSimpleReplacement(range.node(type), 'var');
+        if (parent.isConst || parent.isFinal) {
+          builder.addDeletion(range.startStart(type, variables[0]));
+        } else {
+          builder.addSimpleReplacement(range.node(type), 'var');
+        }
         if (typeArgumentsText != null) {
           builder.addSimpleInsertion(typeArgumentsOffset, typeArgumentsText);
         }
@@ -81,7 +85,11 @@ class ReplaceWithVar extends CorrectionProducer {
         }
       }
       await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addSimpleReplacement(range.node(type), 'var');
+        if (parent.isConst || parent.isFinal) {
+          builder.addDeletion(range.startStart(type, parent.identifier));
+        } else {
+          builder.addSimpleReplacement(range.node(type), 'var');
+        }
         if (typeArgumentsText != null) {
           builder.addSimpleInsertion(typeArgumentsOffset, typeArgumentsText);
         }
@@ -131,6 +139,15 @@ class ReplaceWithVar extends CorrectionProducer {
       parent = parent.parent;
     }
     return false;
+  }
+
+  /// Using the [node] as a starting point, return the type annotation that is
+  /// to be replaced, or `null` if there is no type annotation.
+  TypeAnnotation _findType(AstNode node) {
+    if (node is VariableDeclarationList) {
+      return node.type;
+    }
+    return node.thisOrAncestorOfType<TypeAnnotation>();
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.

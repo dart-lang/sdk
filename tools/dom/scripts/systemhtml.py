@@ -1501,7 +1501,6 @@ class Dart2JSBackend(HtmlDartGenerator):
                     PROMISE_CALL=promiseCall,
                     NAME=html_name)
             else:
-                template = '\n  $RENAME$(ANNOTATIONS)$STATIC final $TYPE $NAME;\n'
                 # Need to use a getter for list.length properties so we can
                 # add a setter which throws an exception, satisfying List
                 # API.
@@ -1541,11 +1540,12 @@ class Dart2JSBackend(HtmlDartGenerator):
         self._members_emitter.Emit(
             '\n  $RENAME'
             '\n  $METADATA'
-            '\n  $TYPE get $HTML_NAME native;'
+            '\n  $STATIC $TYPE get $HTML_NAME native;'
             '\n',
             RENAME=rename if rename else '',
             METADATA=metadata if metadata else '',
             HTML_NAME=html_name,
+            STATIC='static' if attr.is_static else '',
             TYPE=return_type)
 
     def _AddRenamingSetter(self, attr, html_name, rename):
@@ -1561,10 +1561,11 @@ class Dart2JSBackend(HtmlDartGenerator):
             nullable_type = True
         self._members_emitter.Emit(
             '\n  $RENAME'
-            '\n  set $HTML_NAME($TYPE value) native;'
+            '\n  $STATIC set $HTML_NAME($TYPE value) native;'
             '\n',
             RENAME=rename if rename else '',
             HTML_NAME=html_name,
+            STATIC='static ' if attr.is_static else '',
             TYPE=self.SecureOutputType(attr.type.id, nullable=nullable_type))
 
     def _AddConvertingGetter(self, attr, html_name, conversion):
@@ -1668,11 +1669,11 @@ class Dart2JSBackend(HtmlDartGenerator):
         return resultType
 
     def _zeroArgs(self, argsNames):
-        return 'JS("", "#.$NAME()", this)'
+        return 'JS("", "#.$JSNAME()", this)'
 
     def _manyArgs(self, numberArgs, argsNames):
         argsPound = "#" if numberArgs == 1 else ("#, " * numberArgs)[:-2]
-        return '    JS("", "#.$NAME(%s)", this, %s)' % (argsPound, argsNames)
+        return '    JS("", "#.$JSNAME(%s)", this, %s)' % (argsPound, argsNames)
 
     """ If argument conversionsMapToDictionary is a list first entry is argument
       name and second entry signals if argument is optional (True). """
@@ -1786,6 +1787,7 @@ class Dart2JSBackend(HtmlDartGenerator):
                 TYPE=promiseType,
                 PROMISE_CALL=promiseCall,
                 NAME=html_name,
+                JSNAME=info.declared_name,
                 PARAMS=info.ParametersAsDeclaration(self._NarrowInputType,
                                                     force_optional))
         else:

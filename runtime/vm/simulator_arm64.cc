@@ -1179,6 +1179,42 @@ intptr_t Simulator::WriteExclusiveW(uword addr, intptr_t value, Instr* instr) {
   return 1;  // Failure.
 }
 
+intptr_t Simulator::ReadAcquire(uword addr, Instr* instr) {
+  // TODO(42074): Once we switch to C++20 we should change this to use use
+  // `std::atomic_ref<T>` which supports performing atomic operations on
+  // non-atomic data.
+  COMPILE_ASSERT(sizeof(std::atomic<intptr_t>) == sizeof(intptr_t));
+  return reinterpret_cast<std::atomic<intptr_t>*>(addr)->load(
+      std::memory_order_acquire);
+}
+
+uint32_t Simulator::ReadAcquireW(uword addr, Instr* instr) {
+  // TODO(42074): Once we switch to C++20 we should change this to use use
+  // `std::atomic_ref<T>` which supports performing atomic operations on
+  // non-atomic data.
+  COMPILE_ASSERT(sizeof(std::atomic<intptr_t>) == sizeof(intptr_t));
+  return reinterpret_cast<std::atomic<uint32_t>*>(addr)->load(
+      std::memory_order_acquire);
+}
+
+void Simulator::WriteRelease(uword addr, intptr_t value, Instr* instr) {
+  // TODO(42074): Once we switch to C++20 we should change this to use use
+  // `std::atomic_ref<T>` which supports performing atomic operations on
+  // non-atomic data.
+  COMPILE_ASSERT(sizeof(std::atomic<intptr_t>) == sizeof(intptr_t));
+  reinterpret_cast<std::atomic<intptr_t>*>(addr)->store(
+      value, std::memory_order_release);
+}
+
+void Simulator::WriteReleaseW(uword addr, uint32_t value, Instr* instr) {
+  // TODO(42074): Once we switch to C++20 we should change this to use use
+  // `std::atomic_ref<T>` which supports performing atomic operations on
+  // non-atomic data.
+  COMPILE_ASSERT(sizeof(std::atomic<intptr_t>) == sizeof(intptr_t));
+  reinterpret_cast<std::atomic<uint32_t>*>(addr)->store(
+      value, std::memory_order_release);
+}
+
 // Unsupported instructions use Format to print an error and stop execution.
 void Simulator::Format(Instr* instr, const char* format) {
   OS::PrintErr("Simulator found unsupported instruction:\n 0x%p: %s\n", instr,
@@ -2127,7 +2163,7 @@ void Simulator::DecodeLoadRegLiteral(Instr* instr) {
 }
 
 void Simulator::DecodeLoadStoreExclusive(Instr* instr) {
-  if ((instr->Bit(23) != 0) || (instr->Bit(21) != 0) || (instr->Bit(15) != 0)) {
+  if (instr->Bit(21) != 0 || instr->Bit(23) != instr->Bit(15)) {
     UNIMPLEMENTED();
   }
   const int32_t size = instr->Bits(30, 2);
@@ -2139,29 +2175,45 @@ void Simulator::DecodeLoadStoreExclusive(Instr* instr) {
   const Register rt = instr->RtField();
   ASSERT(instr->Rt2Field() == R31);  // Should-Be-One
   const bool is_load = instr->Bit(22) == 1;
+  const bool is_exclusive = instr->Bit(23) == 0;
+  const bool is_ordered = instr->Bit(15) == 1;
   if (is_load) {
-    ASSERT(rs == R31);  // Should-Be-One
-    // Format(instr, "ldxr 'rt, 'rn");
-    if (size == 3) {
+    const bool is_load_acquire = !is_exclusive && is_ordered;
+    if (is_load_acquire) {
+      ASSERT(rs == R31);  // Should-Be-One
+      // Format(instr, "ldar 'rt, 'rn");
       const int64_t addr = get_register(rn, R31IsSP);
-      intptr_t value = ReadExclusiveX(addr, instr);
+      const intptr_t value =
+          (size == 3) ? ReadAcquire(addr, instr) : ReadAcquireW(addr, instr);
       set_register(instr, rt, value, R31IsSP);
     } else {
+      ASSERT(rs == R31);  // Should-Be-One
+      // Format(instr, "ldxr 'rt, 'rn");
       const int64_t addr = get_register(rn, R31IsSP);
-      intptr_t value = ReadExclusiveW(addr, instr);
+      const intptr_t value = (size == 3) ? ReadExclusiveX(addr, instr)
+                                         : ReadExclusiveW(addr, instr);
       set_register(instr, rt, value, R31IsSP);
     }
   } else {
-    // Format(instr, "stxr 'rs, 'rt, 'rn");
-    if (size == 3) {
-      uword value = get_register(rt, R31IsSP);
-      uword addr = get_register(rn, R31IsSP);
-      intptr_t status = WriteExclusiveX(addr, value, instr);
-      set_register(instr, rs, status, R31IsSP);
+    const bool is_store_release = !is_exclusive && is_ordered;
+    if (is_store_release) {
+      ASSERT(rs == R31);  // Should-Be-One
+      // Format(instr, "stlr 'rt, 'rn");
+      const uword value = get_register(rt, R31IsSP);
+      const uword addr = get_register(rn, R31IsSP);
+      if (size == 3) {
+        WriteRelease(addr, value, instr);
+      } else {
+        WriteReleaseW(addr, static_cast<uint32_t>(value), instr);
+      }
     } else {
-      uint32_t value = get_register(rt, R31IsSP);
-      uword addr = get_register(rn, R31IsSP);
-      intptr_t status = WriteExclusiveW(addr, value, instr);
+      // Format(instr, "stxr 'rs, 'rt, 'rn");
+      const uword value = get_register(rt, R31IsSP);
+      const uword addr = get_register(rn, R31IsSP);
+      const intptr_t status =
+          (size == 3)
+              ? WriteExclusiveX(addr, value, instr)
+              : WriteExclusiveW(addr, static_cast<uint32_t>(value), instr);
       set_register(instr, rs, status, R31IsSP);
     }
   }

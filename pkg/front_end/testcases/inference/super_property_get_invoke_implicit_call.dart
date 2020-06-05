@@ -16,7 +16,7 @@ class C {
 class D extends C {
   void g() {
     var /*@ type=int* */ y =
-        super. /*@target=C::f*/ f /*@target=CallableClass::call*/ ();
+        super. /*@target=C.f*/ f /*@target=CallableClass.call*/ ();
   }
 }
 

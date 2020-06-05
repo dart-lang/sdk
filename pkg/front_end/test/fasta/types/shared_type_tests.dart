@@ -983,7 +983,7 @@ abstract class SubtypeTest<T, E> {
     isNotSubtype('void', 'Id<Null>*');
 
     // The following function type tests are derived from
-    // ../../../../../tests/compiler/dart2js/model/subtype_test.dart.
+    // ../../../../../pkg/compiler/test/model/subtype_test.dart.
     isSubtype("() ->* int*", 'Function*');
     isNotSubtype('Function*', "() ->* int*");
 

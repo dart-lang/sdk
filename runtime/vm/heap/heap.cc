@@ -67,6 +67,7 @@ Heap::Heap(IsolateGroup* isolate_group,
       read_only_(false),
       gc_new_space_in_progress_(false),
       gc_old_space_in_progress_(false),
+      last_gc_was_old_space_(false),
       gc_on_nth_allocation_(kNoForcedGarbageCollection) {
   UpdateGlobalMaxUsed();
   for (int sel = 0; sel < kNumWeakSelectors; sel++) {
@@ -157,11 +158,11 @@ uword Heap::AllocateOld(intptr_t size, OldPage::PageType type) {
   return 0;
 }
 
-void Heap::AllocateExternal(intptr_t cid, intptr_t size, Space space) {
+void Heap::AllocatedExternal(intptr_t size, Space space) {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
   if (space == kNew) {
     Isolate::Current()->AssertCurrentThreadIsMutator();
-    new_space_.AllocateExternal(cid, size);
+    new_space_.AllocatedExternal(size);
     if (new_space_.ExternalInWords() <= (4 * new_space_.CapacityInWords())) {
       return;
     }
@@ -172,28 +173,28 @@ void Heap::AllocateExternal(intptr_t cid, intptr_t size, Space space) {
     // space GC check.
   } else {
     ASSERT(space == kOld);
-    old_space_.AllocateExternal(cid, size);
+    old_space_.AllocatedExternal(size);
   }
 
-  if (old_space_.NeedsGarbageCollection()) {
+  if (old_space_.ReachedHardThreshold()) {
     CollectGarbage(kMarkSweep, kExternal);
   } else {
     CheckStartConcurrentMarking(Thread::Current(), kExternal);
   }
 }
 
-void Heap::FreeExternal(intptr_t size, Space space) {
+void Heap::FreedExternal(intptr_t size, Space space) {
   if (space == kNew) {
-    new_space_.FreeExternal(size);
+    new_space_.FreedExternal(size);
   } else {
     ASSERT(space == kOld);
-    old_space_.FreeExternal(size);
+    old_space_.FreedExternal(size);
   }
 }
 
-void Heap::PromoteExternal(intptr_t cid, intptr_t size) {
-  new_space_.FreeExternal(size);
-  old_space_.PromoteExternal(cid, size);
+void Heap::PromotedExternal(intptr_t size) {
+  new_space_.FreedExternal(size);
+  old_space_.AllocatedExternal(size);
 }
 
 bool Heap::Contains(uword addr) const {
@@ -376,6 +377,7 @@ void Heap::EndNewSpaceGC() {
   MonitorLocker ml(&gc_in_progress_monitor_);
   ASSERT(gc_new_space_in_progress_);
   gc_new_space_in_progress_ = false;
+  last_gc_was_old_space_ = false;
   ml.NotifyAll();
 }
 
@@ -397,6 +399,7 @@ void Heap::EndOldSpaceGC() {
   MonitorLocker ml(&gc_in_progress_monitor_);
   ASSERT(gc_old_space_in_progress_);
   gc_old_space_in_progress_ = false;
+  last_gc_was_old_space_ = true;
   ml.NotifyAll();
 }
 
@@ -425,7 +428,7 @@ void Heap::NotifyIdle(int64_t deadline) {
       TIMELINE_FUNCTION_GC_DURATION(thread, "IdleGC");
       StartConcurrentMarking(thread);
     }
-  } else if (old_space_.NeedsGarbageCollection()) {
+  } else if (old_space_.ReachedHardThreshold()) {
     // Even though the following GC may exceed our idle deadline, we need to
     // ensure than that promotions during idle scavenges do not lead to
     // unbounded growth of old space. If a program is allocating only in new
@@ -487,7 +490,7 @@ void Heap::CollectNewSpaceGarbage(Thread* thread, GCReason reason) {
       EndNewSpaceGC();
     }
     if (reason == kNewSpace) {
-      if (old_space_.NeedsGarbageCollection()) {
+      if (old_space_.ReachedHardThreshold()) {
         CollectOldSpaceGarbage(thread, kMarkSweep, kPromotion);
       } else {
         CheckStartConcurrentMarking(thread, kPromotion);
@@ -589,7 +592,20 @@ void Heap::CheckStartConcurrentMarking(Thread* thread, GCReason reason) {
     }
   }
 
-  if (old_space_.AlmostNeedsGarbageCollection()) {
+  if (old_space_.ReachedSoftThreshold()) {
+    // New-space objects are roots during old-space GC. This means that even
+    // unreachable new-space objects prevent old-space objects they reference
+    // from being collected during an old-space GC. Normally this is not an
+    // issue because new-space GCs run much more frequently than old-space GCs.
+    // If new-space allocation is low and direct old-space allocation is high,
+    // which can happen in a program that allocates large objects and little
+    // else, old-space can fill up with unreachable objects until the next
+    // new-space GC. This check is the concurrent-marking equivalent to the
+    // new-space GC before synchronous-marking in CollectMostGarbage.
+    if (last_gc_was_old_space_) {
+      CollectNewSpaceGarbage(thread, kFull);
+    }
+
     StartConcurrentMarking(thread);
   }
 }

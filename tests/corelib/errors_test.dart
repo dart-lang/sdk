@@ -39,15 +39,14 @@ main() {
   Expect.equals("RangeError: message: 42",
       new RangeError.value(42, null, "message").toString());
 
-  Expect.equals("RangeError: Invalid value: Not in range 2..9, inclusive: 42",
+  Expect.equals("RangeError: Invalid value: Not in inclusive range 2..9: 42",
       new RangeError.range(42, 2, 9).toString());
   Expect.equals(
-      "RangeError (foo): Invalid value: Not in range 2..9, "
-      "inclusive: 42",
+      "RangeError (foo): Invalid value: Not in inclusive range 2..9: 42",
       new RangeError.range(42, 2, 9, "foo").toString());
-  Expect.equals("RangeError (foo): message: Not in range 2..9, inclusive: 42",
+  Expect.equals("RangeError (foo): message: Not in inclusive range 2..9: 42",
       new RangeError.range(42, 2, 9, "foo", "message").toString());
-  Expect.equals("RangeError: message: Not in range 2..9, inclusive: 42",
+  Expect.equals("RangeError: message: Not in inclusive range 2..9: 42",
       new RangeError.range(42, 2, 9, null, "message").toString());
 
   Expect.equals(

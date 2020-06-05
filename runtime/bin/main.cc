@@ -76,8 +76,12 @@ static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size);
 
 static Dart_Handle CreateRuntimeOptions(CommandLineOptions* options) {
   int options_count = options->count();
+  Dart_Handle string_type = DartUtils::GetDartType("dart:core", "String");
+  if (Dart_IsError(string_type)) {
+    return string_type;
+  }
   Dart_Handle dart_arguments =
-      Dart_NewListOf(Dart_CoreType_String, options_count);
+      Dart_NewListOfTypeFilled(string_type, Dart_EmptyString(), options_count);
   if (Dart_IsError(dart_arguments)) {
     return dart_arguments;
   }

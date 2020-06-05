@@ -6675,7 +6675,7 @@ class FoldingRange implements ToJsonable {
   /// The zero-based line number where the folded range ends.
   final num endLine;
 
-  /// Describes the kind of the folding range such as `comment' or 'region'. The
+  /// Describes the kind of the folding range such as `comment` or `region`. The
   /// kind is used to categorize folding ranges and used by commands like 'Fold
   /// all comments'. See [FoldingRangeKind] for an enumeration of standardized
   /// kinds.
@@ -8237,6 +8237,10 @@ class Method {
   static const workspace_didChangeWorkspaceFolders =
       Method(r'workspace/didChangeWorkspaceFolders');
 
+  /// Constant for the 'workspace/didChangeConfiguration' method.
+  static const workspace_didChangeConfiguration =
+      Method(r'workspace/didChangeConfiguration');
+
   /// Constant for the 'workspace/configuration' method.
   static const workspace_configuration = Method(r'workspace/configuration');
 
@@ -8336,6 +8340,10 @@ class Method {
 
   /// Constant for the 'textDocument/formatting' method.
   static const textDocument_formatting = Method(r'textDocument/formatting');
+
+  /// Constant for the 'textDocument/rangeFormatting' method.
+  static const textDocument_rangeFormatting =
+      Method(r'textDocument/rangeFormatting');
 
   /// Constant for the 'textDocument/onTypeFormatting' method.
   static const textDocument_onTypeFormatting =

@@ -1048,7 +1048,6 @@ class AstBinaryReader {
       ),
       typeArguments: _readNode(data.instanceCreationExpression_typeArguments),
     );
-    node.staticElement = node.constructorName.staticElement;
     node.staticType = _readType(data.expression_type);
     return node;
   }

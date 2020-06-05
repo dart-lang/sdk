@@ -9,7 +9,7 @@ Map<String, num> map = {'a': 1};
 main() {
   var exception;
   try {
-    print((map['b'] > 82) ? 'x' : 'y');
+    print(((map['b'] as dynamic) > 82) ? 'x' : 'y');
   } catch (e, s) {
     exception = e;
   }

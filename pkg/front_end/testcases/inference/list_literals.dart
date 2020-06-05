@@ -7,16 +7,16 @@ library test;
 
 test1() {
   var /*@ type=List<int*>* */ x = /*@ typeArgs=int* */ [1, 2, 3];
-  x. /*@target=List::add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi');
-  x. /*@target=List::add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 4.0);
-  x. /*@target=List::add*/ add(4);
+  x. /*@target=List.add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi');
+  x. /*@target=List.add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 4.0);
+  x. /*@target=List.add*/ add(4);
   List<num> y = x;
 }
 
 test2() {
   var /*@ type=List<num*>* */ x = /*@ typeArgs=num* */ [1, 2.0, 3];
-  x. /*@target=List::add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi');
-  x. /*@target=List::add*/ add(4.0);
+  x. /*@target=List.add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi');
+  x. /*@target=List.add*/ add(4.0);
   List<int> y = /*info:ASSIGNMENT_CAST*/ x;
 }
 

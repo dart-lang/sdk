@@ -85,7 +85,7 @@ library_for_all_configs("libdart_vm") {
         "//sdk/lib/sys/cpp",
         "//sdk/lib/sys/inspect/cpp",
         "//zircon/public/lib/fbl",
-        "//zircon/public/lib/trace-engine",
+        "//zircon/system/ulib/trace-engine",
       ]
     }
   }
@@ -115,7 +115,7 @@ library_for_all_configs_with_compiler("libdart_compiler") {
     } else {
       extra_deps = [
         "//zircon/public/lib/fbl",
-        "//zircon/public/lib/trace-engine",
+        "//zircon/system/ulib/trace-engine",
       ]
     }
   }
@@ -129,7 +129,7 @@ library_for_all_configs("libdart_lib") {
     } else {
       extra_deps = [
         "//zircon/public/lib/fbl",
-        "//zircon/public/lib/trace-engine",
+        "//zircon/system/ulib/trace-engine",
       ]
     }
   }

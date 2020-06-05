@@ -128,6 +128,12 @@ bool isOK(NonNullableByDefaultCompiledMode c1Mode,
   if (c1Mode == c2Mode) return true;
   if (c1Mode == NonNullableByDefaultCompiledMode.Agnostic) return true;
   if (c2Mode == NonNullableByDefaultCompiledMode.Agnostic) return true;
+  if ((c1Mode == NonNullableByDefaultCompiledMode.Disabled ||
+          c1Mode == NonNullableByDefaultCompiledMode.Weak) &&
+      (c2Mode == NonNullableByDefaultCompiledMode.Disabled ||
+          c2Mode == NonNullableByDefaultCompiledMode.Weak)) {
+    return true;
+  }
   return false;
 }
 
@@ -136,6 +142,9 @@ NonNullableByDefaultCompiledMode verifyOK(
     NonNullableByDefaultCompiledMode c2Mode) {
   if (isOK(c1Mode, c2Mode)) {
     if (c1Mode == NonNullableByDefaultCompiledMode.Agnostic) return c2Mode;
+    if (c2Mode == NonNullableByDefaultCompiledMode.Agnostic) return c1Mode;
+    if (c1Mode == NonNullableByDefaultCompiledMode.Disabled) return c1Mode;
+    if (c2Mode == NonNullableByDefaultCompiledMode.Disabled) return c2Mode;
     return c1Mode;
   }
   throw "Not OK combination: $c1Mode and $c2Mode";

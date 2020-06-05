@@ -6,8 +6,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(__GNUC__) || defined(__Clang__)
+#if defined(__has_feature)
+#if __has_feature(undefined_behavior_sanitizer)
 __attribute__((no_sanitize("undefined")))
+#endif
 #endif
 void Crash() {
   int* segfault = NULL;

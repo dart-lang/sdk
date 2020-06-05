@@ -1040,10 +1040,8 @@ mixin M on A {
 
 abstract class X extends A with U1, U2, M {}
 ''', [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 121, 2),
       error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 121, 2),
       error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 125, 2),
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 125, 2),
       error(
           CompileTimeErrorCode
               .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,

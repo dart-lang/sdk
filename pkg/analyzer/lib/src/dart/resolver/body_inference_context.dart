@@ -188,10 +188,10 @@ class BodyInferenceContext {
       }
     }
 
-    // Otherwise the context type is `FutureOr<flatten(T)>` where `T` is the
-    // imposed return type.
+    // Otherwise the context type is `FutureOr<futureValueTypeSchema(S)>`,
+    // where `S` is the imposed return type.
     return typeSystem.typeProvider.futureOrType2(
-      typeSystem.flatten(imposedType),
+      typeSystem.futureValueType(imposedType),
     );
   }
 }

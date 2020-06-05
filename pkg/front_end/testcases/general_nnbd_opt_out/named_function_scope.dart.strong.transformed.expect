@@ -147,7 +147,7 @@ static method test() → dynamic {
   {
     self::V* V = invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/named_function_scope.dart:49:7: Error: Can't declare 'V' because it was already used in this scope.
     V V;
-      ^" as{TypeError,ForDynamic} self::V*;
+      ^";
   }
   {
     <T extends core::Object* = dynamic>() →* core::Null? x = let final dynamic #t3 = invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/named_function_scope.dart:54:13: Error: 'T' is already declared in this scope.

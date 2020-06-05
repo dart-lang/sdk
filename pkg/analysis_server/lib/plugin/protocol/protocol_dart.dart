@@ -106,18 +106,7 @@ ElementKind convertElementToElementKind(engine.Element element) {
       return ElementKind.MIXIN;
     }
   }
-  if (element is engine.FieldElement &&
-      element.isEnumConstant &&
-      // MyEnum.values and MyEnum.one.index return isEnumConstant = true
-      // so these additional checks are necessary.
-      // TODO(danrubel) MyEnum.values is constant, but is a list
-      // so should it return isEnumConstant = true?
-      // MyEnum.one.index is final but *not* constant
-      // so should it return isEnumConstant = true?
-      // Or should we return ElementKind.ENUM_CONSTANT here
-      // in either or both of these cases?
-      element.type != null &&
-      element.type.element == element.enclosingElement) {
+  if (element is engine.FieldElement && element.isEnumConstant) {
     return ElementKind.ENUM_CONSTANT;
   }
   return convertElementKind(element.kind);
@@ -187,7 +176,6 @@ String _getTypeParametersString(engine.Element element) {
 }
 
 bool _isAbstract(engine.Element element) {
-  // TODO(scheglov) add isAbstract to Element API
   if (element is engine.ClassElement) {
     return element.isAbstract;
   }
@@ -201,7 +189,6 @@ bool _isAbstract(engine.Element element) {
 }
 
 bool _isConst(engine.Element element) {
-  // TODO(scheglov) add isConst to Element API
   if (element is engine.ConstructorElement) {
     return element.isConst;
   }
@@ -212,7 +199,6 @@ bool _isConst(engine.Element element) {
 }
 
 bool _isFinal(engine.Element element) {
-  // TODO(scheglov) add isFinal to Element API
   if (element is engine.VariableElement) {
     return element.isFinal;
   }
@@ -220,7 +206,6 @@ bool _isFinal(engine.Element element) {
 }
 
 bool _isStatic(engine.Element element) {
-  // TODO(scheglov) add isStatic to Element API
   if (element is engine.ExecutableElement) {
     return element.isStatic;
   }

@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:io' as io;
 import 'dart:isolate';
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -159,9 +158,9 @@ class Driver with HasContextMixin implements CommandLineStarter {
       final stopwatch = Stopwatch()..start();
 
       for (var i = 0; i < 3; i++) {
-        var featureSet = FeatureSet.fromEnableFlags([]);
-        SummaryBuilder.forSdk(options.dartSdkPath).build(
-          featureSet: featureSet,
+        buildSdkSummary(
+          resourceProvider: PhysicalResourceProvider.INSTANCE,
+          sdkPath: options.dartSdkPath,
         );
       }
 
@@ -555,11 +554,6 @@ class Driver with HasContextMixin implements CommandLineStarter {
     // Once options and embedders are processed, setup the SDK.
     _setupSdk(options, useSummaries, analysisOptions);
 
-    var sdkBundle = sdk.getLinkedBundle();
-    if (sdkBundle != null) {
-      summaryDataStore.addBundle(null, sdkBundle);
-    }
-
     // Choose a package resolution policy and a diet parsing policy based on
     // the command-line options.
     var sourceFactory = _chooseUriResolutionPolicy(options, embedderMap,
@@ -598,9 +592,6 @@ class Driver with HasContextMixin implements CommandLineStarter {
       } catch (e) {
         printAndFail('Unable to read package config data from $path: $e');
       }
-    } else if (options.packageRootPath != null) {
-      var path = normalizePath(options.packageRootPath);
-      packageMap = _PackageRootPackageMapBuilder.buildPackageMap(path);
     } else {
       var cwd = resourceProvider.getResource(path.current);
       // Look for .packages.
@@ -679,7 +670,6 @@ class Driver with HasContextMixin implements CommandLineStarter {
       CommandLineOptions previous, CommandLineOptions newOptions) {
     return previous != null &&
         newOptions != null &&
-        newOptions.packageRootPath == previous.packageRootPath &&
         newOptions.packageConfigPath == previous.packageConfigPath &&
         _equalMaps(newOptions.definedVariables, previous.definedVariables) &&
         newOptions.log == previous.log &&
@@ -734,29 +724,4 @@ class _PackageInfo {
   final Map<String, List<Folder>> packageMap;
 
   _PackageInfo(this.packages, this.packageMap);
-}
-
-class _PackageRootPackageMapBuilder {
-  /// In the case that the analyzer is invoked with a --package-root option, we
-  /// need to manually create the mapping from package name to folder.
-  ///
-  /// Given [packageRootPath], creates a simple mapping from package name
-  /// to full path on disk (resolving any symbolic links).
-  static Map<String, List<Folder>> buildPackageMap(String packageRootPath) {
-    var packageRoot = io.Directory(packageRootPath);
-    if (!packageRoot.existsSync()) {
-      throw _DriverError(
-          'Package root directory ($packageRootPath) does not exist.');
-    }
-    var packages = packageRoot.listSync(followLinks: false);
-    var result = <String, List<Folder>>{};
-    for (var package in packages) {
-      var packageName = path.basename(package.path);
-      var realPath = package.resolveSymbolicLinksSync();
-      result[packageName] = [
-        PhysicalResourceProvider.INSTANCE.getFolder(realPath)
-      ];
-    }
-    return result;
-  }
 }

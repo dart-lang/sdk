@@ -24,7 +24,6 @@ class ArgumentsTest with ResourceProviderMixin {
     String dartSdkSummaryPath = 'a';
     String defaultAnalysisOptionsFilePath = 'b';
     String defaultPackageFilePath = 'c';
-    String defaultPackagesDirectoryPath = 'd';
     ArgParser parser = ArgParser();
     defineAnalysisArguments(parser);
     List<String> args = [
@@ -35,7 +34,6 @@ class ArgumentsTest with ResourceProviderMixin {
       '--no-implicit-dynamic',
       '--options=$defaultAnalysisOptionsFilePath',
       '--packages=$defaultPackageFilePath',
-      '--package-root=$defaultPackagesDirectoryPath',
     ];
     ArgResults result = parse(resourceProvider, parser, args);
     ContextBuilderOptions options = createContextBuilderOptions(result);
@@ -48,7 +46,6 @@ class ArgumentsTest with ResourceProviderMixin {
     expect(
         options.defaultAnalysisOptionsFilePath, defaultAnalysisOptionsFilePath);
     expect(options.defaultPackageFilePath, defaultPackageFilePath);
-    expect(options.defaultPackagesDirectoryPath, defaultPackagesDirectoryPath);
     AnalysisOptionsImpl defaultOptions = options.defaultOptions;
     expect(defaultOptions, isNotNull);
     expect(defaultOptions.strongMode, true);
@@ -67,7 +64,6 @@ class ArgumentsTest with ResourceProviderMixin {
     expect(options.declaredVariables, isEmpty);
     expect(options.defaultAnalysisOptionsFilePath, isNull);
     expect(options.defaultPackageFilePath, isNull);
-    expect(options.defaultPackagesDirectoryPath, isNull);
     AnalysisOptionsImpl defaultOptions = options.defaultOptions;
     expect(defaultOptions, isNotNull);
     expect(defaultOptions.strongMode, true);
@@ -129,7 +125,7 @@ class ArgumentsTest with ResourceProviderMixin {
   void test_defineAnalysisArguments() {
     ArgParser parser = ArgParser();
     defineAnalysisArguments(parser);
-    expect(parser.options, hasLength(12));
+    expect(parser.options, hasLength(11));
   }
 
   void test_extractDefinedVariables() {

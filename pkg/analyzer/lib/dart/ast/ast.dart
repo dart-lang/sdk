@@ -3291,6 +3291,14 @@ abstract class InstanceCreationExpression
   /// Set the 'new' or 'const' keyword used to indicate how an object should be
   /// created to the given [token].
   set keyword(Token token);
+
+  @Deprecated('Use constructorName.staticElement')
+  @override
+  ConstructorElement get staticElement;
+
+  @Deprecated('Use constructorName.staticElement')
+  @override
+  set staticElement(ConstructorElement staticElement);
 }
 
 /// An integer literal expression.

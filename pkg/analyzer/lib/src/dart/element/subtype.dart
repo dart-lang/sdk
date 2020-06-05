@@ -38,7 +38,7 @@ class SubtypeHelper {
       return true;
     }
 
-    // `?` is treated as a top and a bottom type during inference.
+    // `_` is treated as a top and a bottom type during inference.
     if (identical(_T0, UnknownInferredType.instance) ||
         identical(_T1, UnknownInferredType.instance)) {
       return true;
@@ -81,11 +81,10 @@ class SubtypeHelper {
       if (T0_nullability == NullabilitySuffix.none &&
           T0 is TypeParameterTypeImpl) {
         var S = T0.promotedBound;
-        var B = T0.element.bound;
-        if (S == null && B != null) {
+        if (S == null) {
+          var B = T0.element.bound ?? _objectQuestion;
           return isSubtypeOf(B, _objectNone);
-        }
-        if (S != null) {
+        } else {
           return isSubtypeOf(S, _objectNone);
         }
       }

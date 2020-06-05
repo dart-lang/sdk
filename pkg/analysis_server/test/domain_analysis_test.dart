@@ -266,7 +266,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
     // TODO(brianwilkerson) Re-enable this test if we re-enable the
     // analysis.getReachableSources request.
     newFile('/project/a.dart', content: 'import "b.dart";');
-    server.setAnalysisRoots('0', ['/project/'], [], {});
+    server.setAnalysisRoots('0', ['/project/'], []);
 
     await server.onAnalysisComplete;
 
@@ -284,7 +284,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
     var fileA = newFile('/project/a.dart', content: 'import "b.dart";').path;
     newFile('/project/b.dart');
 
-    server.setAnalysisRoots('0', ['/project/'], [], {});
+    server.setAnalysisRoots('0', ['/project/'], []);
 
     await server.onAnalysisComplete;
 

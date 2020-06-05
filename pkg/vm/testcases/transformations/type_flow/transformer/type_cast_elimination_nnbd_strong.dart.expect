@@ -34,9 +34,9 @@ static method testNullableInt2([@vm.inferred-type.metadata=dart.core::Null? (val
 static method testDynamic([@vm.inferred-type.metadata=dart.core::_OneByteString (value: hi)] dynamic x) → dynamic
   return _in::unsafeCast<dynamic>(x);
 static method testObjectNegative([@vm.inferred-type.metadata=dart.core::Null? (value: null)] dynamic x) → dynamic
-  return x as{ForNonNullableByDefault} core::Object;
+  return let dynamic #t1 = x in true ?{core::Object} #t1 as{ForNonNullableByDefault} core::Object : #t1{core::Object};
 static method testNullableObject([@vm.inferred-type.metadata=dart.core::Null? (value: null)] dynamic x) → dynamic
-  return _in::unsafeCast<core::Object?>(x);
+  return x;
 static method testAOfNum1([@vm.inferred-type.metadata=#lib::B<InterfaceType(int)>] dynamic x) → dynamic
   return _in::unsafeCast<self::A<core::num>>(x);
 static method testAOfNum2negative([@vm.inferred-type.metadata=#lib::B<InterfaceType(int?)>] dynamic x) → dynamic
@@ -66,9 +66,9 @@ static method main() → void {
   self::testNullableAOfNum(null);
   self::testNullableAOfNumNegative(new self::B::•<core::int?>());
   self::testNullableAOfNullableNum(new self::B::•<core::int?>());
-  [@vm.direct-call.metadata=B::testT1] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testT1}(42);
-  [@vm.direct-call.metadata=B::testT2negative] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testT2negative}(null);
-  [@vm.direct-call.metadata=B::testT3] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int?>().{self::B::testT3}(null);
-  [@vm.direct-call.metadata=B::testNullableT1] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testNullableT1}(42);
-  [@vm.direct-call.metadata=B::testNullableT2] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testNullableT2}(null);
+  [@vm.direct-call.metadata=B.testT1] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testT1}(42);
+  [@vm.direct-call.metadata=B.testT2negative] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testT2negative}(null);
+  [@vm.direct-call.metadata=B.testT3] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int?>().{self::B::testT3}(null);
+  [@vm.direct-call.metadata=B.testNullableT1] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testNullableT1}(42);
+  [@vm.direct-call.metadata=B.testNullableT2] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testNullableT2}(null);
 }

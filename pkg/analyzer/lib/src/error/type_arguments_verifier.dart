@@ -360,7 +360,7 @@ class TypeArgumentsVerifier {
   /// This function will return false if any of the following are true:
   ///
   /// - [inferenceContextNode] has an inference context type that does not
-  ///   contain `?`
+  ///   contain `_`
   /// - [type] does not have any `dynamic` type arguments.
   /// - the element is marked with `@optionalTypeArgs` from "package:meta".
   bool _isMissingTypeArguments(AstNode node, DartType type, Element element,

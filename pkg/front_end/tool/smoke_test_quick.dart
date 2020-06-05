@@ -26,6 +26,9 @@ main(List<String> args) async {
   futures.add(
       run("pkg/front_end/test/lint_suite.dart", ["--", "lint/front_end/..."]));
   futures.add(run("pkg/front_end/test/deps_test.dart", [], filter: false));
+  futures.add(run(
+      "pkg/front_end/tool/_fasta/generate_experimental_flags_test.dart", [],
+      filter: false));
   await Future.wait(futures);
   print("\n-----------------------\n");
   print("Done with exitcode $exitCode in ${stopwatch.elapsedMilliseconds} ms");

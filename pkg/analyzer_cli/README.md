@@ -24,7 +24,6 @@ The following are the most commonly used options for dartanalyzer:
   Specify the path to the package resolution configuration file.
   For more information see
   [Package Resolution Configuration File](https://github.com/lrhn/dep-pkgspec/blob/master/DEP-pkgspec.md).
-  This option cannot be used with `--package-root`.
 
 * `--package-warnings`
 
@@ -78,10 +77,3 @@ The following are advanced options to use with dartanalyzer:
 * `--url-mapping=libraryUri,/path/to/library.dart`
 
   Use the specified library as the source for that particular import.
-
-The following options are deprecated:
-
-* `--package-root=`<br>
-  **Deprecated.** Specify the directory to search for any libraries that are
-  imported using `package:`. _This option is replaced as of Dart 1.12 with
-  `--packages`._

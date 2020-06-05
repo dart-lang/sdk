@@ -132,13 +132,18 @@ class SourceToDillStep implements IOModularStep {
         return;
       }
       sources = ['dart:core'];
-      extraArgs = ['--libraries-file', '$rootScheme:///sdk/lib/libraries.json'];
+      extraArgs = [
+        '--libraries-file',
+        '$rootScheme:///sdk_nnbd/lib/libraries.json'
+      ];
       assert(transitiveDependencies.isEmpty);
     } else {
       sources = module.sources.map(sourceToImportUri).toList();
       extraArgs = ['--packages-file', '$rootScheme:/.packages'];
     }
 
+    // TODO(joshualitt): Ensure the kernel worker has some way to specify
+    // --no-sound-null-safety
     List<String> args = [
       _kernelWorkerScript,
       '--no-summary-only',
@@ -155,6 +160,7 @@ class SourceToDillStep implements IOModularStep {
           .expand((m) => ['--input-linked', '${toUri(m, dillId)}'])),
       ...(sources.expand((String uri) => ['--source', uri])),
       ...(flags.expand((String flag) => ['--enable-experiment', flag])),
+      '--enable-experiment=non-nullable',
     ];
 
     var result =
@@ -197,8 +203,7 @@ class GlobalAnalysisStep implements IOModularStep {
       '--packages=${sdkRoot.toFilePath()}/.packages',
       _dart2jsScript,
       // TODO(sigmund): remove this dependency on libraries.json
-      if (_options.useSdk)
-        '--libraries-spec=$_librarySpecForSnapshot',
+      if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
       '${toUri(module, dillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
       '${Flags.dillDependencies}=${dillDependencies.join(',')}',
@@ -337,7 +342,7 @@ class RunD8 implements IOModularStep {
     if (_options.verbose) print("\nstep: d8 on $module");
     List<String> d8Args = [
       sdkRoot
-          .resolve('sdk/lib/_internal/js_runtime/lib/preambles/d8.js')
+          .resolve('sdk_nnbd/lib/_internal/js_runtime/lib/preambles/d8.js')
           .toFilePath(),
       root.resolveUri(toUri(module, jsId)).toFilePath(),
     ];

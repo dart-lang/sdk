@@ -19,8 +19,11 @@ class EditDetails {
   /// The line number of the edit.
   final int line;
 
-  /// The path of the file that was edited.
-  final String path;
+  /// The path of the file that was edited, to be shown to the user.
+  final String displayPath;
+
+  /// The path of the file that was edited, as a URI.
+  final String uriPath;
 
   /// A list of traces representing stacktrace-like views of why the change was
   /// made, or the empty list if there are no traces for this change.
@@ -30,21 +33,24 @@ class EditDetails {
       {this.edits,
       @required this.explanation,
       @required this.line,
-      @required this.path,
+      @required this.displayPath,
+      @required this.uriPath,
       this.traces = const []});
 
   EditDetails.fromJson(dynamic json)
       : edits = _decodeEdits(json['edits']),
         explanation = json['explanation'] as String,
         line = json['line'] as int,
-        path = json['path'] as String,
+        displayPath = json['displayPath'] as String,
+        uriPath = json['uriPath'] as String,
         traces = _decodeTraces(json['traces']);
 
   Map<String, Object> toJson() => {
         if (edits != null) 'edits': [for (var edit in edits) edit.toJson()],
         'explanation': explanation,
         'line': line,
-        'path': path,
+        'displayPath': displayPath,
+        'uriPath': uriPath,
         if (traces != null)
           'traces': [for (var trace in traces) trace.toJson()],
       };

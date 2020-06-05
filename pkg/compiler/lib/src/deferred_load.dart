@@ -95,7 +95,7 @@ abstract class DeferredLoadTask extends CompilerTask {
 
   /// A set containing (eventually) all output units that will result from the
   /// program.
-  final List<OutputUnit> _allOutputUnits = new List<OutputUnit>();
+  final List<OutputUnit> _allOutputUnits = [];
 
   /// Will be `true` if the program contains deferred libraries.
   bool isProgramSplit = false;
@@ -104,29 +104,26 @@ abstract class DeferredLoadTask extends CompilerTask {
 
   /// A cache of the result of calling `computeImportDeferName` on the keys of
   /// this map.
-  final Map<ImportEntity, String> _importDeferName = <ImportEntity, String>{};
+  final Map<ImportEntity, String> _importDeferName = {};
 
   /// A mapping from classes to their import set.
-  Map<ClassEntity, ImportSet> _classToSet = new Map<ClassEntity, ImportSet>();
+  Map<ClassEntity, ImportSet> _classToSet = {};
 
   /// A mapping from members to their import set.
-  Map<MemberEntity, ImportSet> _memberToSet =
-      new Map<MemberEntity, ImportSet>();
+  Map<MemberEntity, ImportSet> _memberToSet = {};
 
   /// A mapping from local functions to their import set.
-  Map<Local, ImportSet> _localFunctionToSet = new Map<Local, ImportSet>();
+  Map<Local, ImportSet> _localFunctionToSet = {};
 
   /// A mapping from constants to their import set.
-  Map<ConstantValue, ImportSet> _constantToSet =
-      new Map<ConstantValue, ImportSet>();
+  Map<ConstantValue, ImportSet> _constantToSet = {};
 
   Iterable<ImportEntity> get _allDeferredImports =>
       _deferredImportDescriptions.keys;
 
   /// Because the token-stream is forgotten later in the program, we cache a
   /// description of each deferred import.
-  final Map<ImportEntity, ImportDescription> _deferredImportDescriptions =
-      <ImportEntity, ImportDescription>{};
+  final Map<ImportEntity, ImportDescription> _deferredImportDescriptions = {};
 
   /// A lattice to compactly represent multiple subsets of imports.
   ImportSetLattice importSets = ImportSetLattice();
@@ -139,7 +136,7 @@ abstract class DeferredLoadTask extends CompilerTask {
       compiler.options.reportInvalidInferredDeferredTypes;
 
   DeferredLoadTask(this.compiler) : super(compiler.measurer) {
-    _mainOutputUnit = new OutputUnit(true, 'main', new Set<ImportEntity>());
+    _mainOutputUnit = OutputUnit(true, 'main', <ImportEntity>{});
     importSets.mainSet.unit = _mainOutputUnit;
     _allOutputUnits.add(_mainOutputUnit);
   }
@@ -256,14 +253,14 @@ abstract class DeferredLoadTask extends CompilerTask {
   /// Recursively collects all the dependencies of [type].
   void _collectTypeDependencies(DartType type, Dependencies dependencies,
       [ImportEntity import]) {
-    new TypeDependencyVisitor(dependencies, import, commonElements).visit(type);
+    TypeDependencyVisitor(dependencies, import, commonElements).visit(type);
   }
 
   void _collectTypeArgumentDependencies(
       Iterable<DartType> typeArguments, Dependencies dependencies,
       [ImportEntity import]) {
     if (typeArguments == null) return;
-    new TypeDependencyVisitor(dependencies, import, commonElements)
+    TypeDependencyVisitor(dependencies, import, commonElements)
         .visitList(typeArguments);
   }
 
@@ -274,7 +271,7 @@ abstract class DeferredLoadTask extends CompilerTask {
     compiler.impactStrategy.visitImpact(
         element,
         worldImpact,
-        new WorldImpactVisitorImpl(
+        WorldImpactVisitorImpl(
             visitStaticUse: (MemberEntity member, StaticUse staticUse) {
           Entity usedEntity = staticUse.element;
           if (usedEntity is MemberEntity) {
@@ -437,7 +434,7 @@ abstract class DeferredLoadTask extends CompilerTask {
       // Continue recursively updating from [oldSet] to [newSet].
       _classToSet[element] = newSet;
 
-      Dependencies dependencies = new Dependencies();
+      Dependencies dependencies = Dependencies();
       _collectAllElementsAndConstantsResolvedFromClass(
           closedWorld, element, dependencies);
       LibraryEntity library = element.library;
@@ -465,7 +462,7 @@ abstract class DeferredLoadTask extends CompilerTask {
       // Continue recursively updating from [oldSet] to [newSet].
       _memberToSet[element] = newSet;
 
-      Dependencies dependencies = new Dependencies();
+      Dependencies dependencies = Dependencies();
       _collectAllElementsAndConstantsResolvedFromMember(
           closedWorld, element, dependencies);
 
@@ -617,8 +614,8 @@ abstract class DeferredLoadTask extends CompilerTask {
     int counter = 1;
     void addUnit(ImportSet importSet) {
       if (importSet.unit != null) return;
-      var unit = new OutputUnit(false, '$counter',
-          importSet._imports.map((i) => i.declaration).toSet());
+      var unit = OutputUnit(false, '$counter',
+          importSet._collectImports().map((i) => i.declaration).toSet());
       counter++;
       importSet.unit = unit;
       _allOutputUnits.add(unit);
@@ -637,7 +634,7 @@ abstract class DeferredLoadTask extends CompilerTask {
 
   Map<String, List<OutputUnit>> _setupHunksToLoad() {
     Map<String, List<OutputUnit>> hunksToLoad = {};
-    Set<String> usedImportNames = new Set<String>();
+    Set<String> usedImportNames = {};
 
     for (ImportEntity import in _allDeferredImports) {
       String result = computeImportDeferName(import, compiler);
@@ -667,7 +664,7 @@ abstract class DeferredLoadTask extends CompilerTask {
       // We expect to find an entry for any call to `loadLibrary`, even if
       // there is no code to load. In that case, the entry will be an empty
       // list.
-      hunksToLoad[_importDeferName[import]] = new List<OutputUnit>();
+      hunksToLoad[_importDeferName[import]] = [];
       for (OutputUnit outputUnit in sortedOutputUnits) {
         if (outputUnit == _mainOutputUnit) continue;
         if (outputUnit._imports.contains(import)) {
@@ -773,7 +770,7 @@ abstract class DeferredLoadTask extends CompilerTask {
     }
 
     work() {
-      var queue = new WorkQueue(this.importSets);
+      var queue = WorkQueue(this.importSets);
 
       // Add `main` and their recursive dependencies to the main output unit.
       // We do this upfront to avoid wasting time visiting these elements when
@@ -814,10 +811,10 @@ abstract class DeferredLoadTask extends CompilerTask {
   OutputUnitData _buildResult() {
     _createOutputUnits();
     Map<String, List<OutputUnit>> hunksToLoad = _setupHunksToLoad();
-    Map<ClassEntity, OutputUnit> classMap = <ClassEntity, OutputUnit>{};
-    Map<MemberEntity, OutputUnit> memberMap = <MemberEntity, OutputUnit>{};
-    Map<Local, OutputUnit> localFunctionMap = <Local, OutputUnit>{};
-    Map<ConstantValue, OutputUnit> constantMap = <ConstantValue, OutputUnit>{};
+    Map<ClassEntity, OutputUnit> classMap = {};
+    Map<MemberEntity, OutputUnit> memberMap = {};
+    Map<Local, OutputUnit> localFunctionMap = {};
+    Map<ConstantValue, OutputUnit> constantMap = {};
     _classToSet.forEach((cls, s) => classMap[cls] = s.unit);
     _memberToSet.forEach((member, s) => memberMap[member] = s.unit);
     _localFunctionToSet.forEach(
@@ -830,7 +827,7 @@ abstract class DeferredLoadTask extends CompilerTask {
     _constantToSet = null;
     importSets = null;
     cleanup();
-    return new OutputUnitData(
+    return OutputUnitData(
         this.isProgramSplit && !disableProgramSplit,
         this._mainOutputUnit,
         classMap,
@@ -855,7 +852,7 @@ abstract class DeferredLoadTask extends CompilerTask {
           for (ImportEntity import in elementEnvironment.getImports(library)) {
             if (import.isDeferred) {
               _deferredImportDescriptions[import] =
-                  new ImportDescription(import, library, rootLibraryUri);
+                  ImportDescription(import, library, rootLibraryUri);
               isProgramSplit = true;
             }
           }
@@ -875,8 +872,8 @@ abstract class DeferredLoadTask extends CompilerTask {
 
   /// Creates a textual representation of the output unit content.
   String dump() {
-    Map<OutputUnit, List<String>> elementMap = <OutputUnit, List<String>>{};
-    Map<OutputUnit, List<String>> constantMap = <OutputUnit, List<String>>{};
+    Map<OutputUnit, List<String>> elementMap = {};
+    Map<OutputUnit, List<String>> constantMap = {};
     _classToSet.forEach((ClassEntity element, ImportSet importSet) {
       if (ignoreEntityInDump(element)) return;
       var elements = elementMap.putIfAbsent(importSet.unit, () => <String>[]);
@@ -915,7 +912,7 @@ abstract class DeferredLoadTask extends CompilerTask {
 
     Map<OutputUnit, String> text = {};
     for (OutputUnit outputUnit in _allOutputUnits) {
-      StringBuffer unitText = new StringBuffer();
+      StringBuffer unitText = StringBuffer();
       if (outputUnit.isMainOutput) {
         unitText.write(' <MAIN UNIT>');
       } else {
@@ -944,7 +941,7 @@ abstract class DeferredLoadTask extends CompilerTask {
       text[outputUnit] = '$unitText';
     }
 
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     for (OutputUnit outputUnit in _allOutputUnits.toList()
       ..sort((a, b) => text[a].compareTo(text[b]))) {
       sb.write('\n\n-------------------------------\n');
@@ -1005,7 +1002,7 @@ class ImportSetLattice {
   Map<ImportEntity, _DeferredImport> _importIndex = {};
 
   /// The canonical instance representing the empty import set.
-  ImportSet _emptySet = new ImportSet();
+  ImportSet _emptySet = ImportSet.empty();
 
   /// The import set representing the main output unit, which happens to be
   /// implemented as an empty set in our algorithm.
@@ -1019,84 +1016,107 @@ class ImportSetLattice {
 
   /// Get the import set that includes the union of [a] and [b].
   ImportSet union(ImportSet a, ImportSet b) {
-    if (a == null || a == _emptySet) return b;
-    if (b == null || b == _emptySet) return a;
+    if (a == null || a.isEmpty) return b;
+    if (b == null || b.isEmpty) return a;
 
-    // We create the union by merging the imports in canonical order first, and
-    // then getting (or creating) the canonical sets by adding an import at a
-    // time.
-    List<_DeferredImport> aImports = a._imports;
-    List<_DeferredImport> bImports = b._imports;
-    int i = 0, j = 0, lastAIndex = 0, lastBIndex = 0;
-    var result = _emptySet;
-    while (i < aImports.length && j < bImports.length) {
-      var importA = aImports[i];
-      var importB = bImports[j];
-      assert(lastAIndex <= importA.index);
-      assert(lastBIndex <= importB.index);
-      if (importA.index < importB.index) {
-        result = result._add(importA);
-        i++;
+    // Create the union by merging the imports in canonical order. The sets are
+    // basically lists linked by the `_previous` field in reverse order. We do a
+    // merge-like scan 'backwards' removing the biggest element until we hit an
+    // empty set or a common prefix, and the add the 'merge-sorted' elements
+    // back onto the prefix.
+    ImportSet result;
+    // 'removed' imports in decreasing canonical order.
+    List<_DeferredImport> imports = [];
+
+    while (true) {
+      if (a.isEmpty) {
+        result = b;
+        break;
+      }
+      if (b.isEmpty || identical(a, b)) {
+        result = a;
+        break;
+      }
+      if (a._import.index > b._import.index) {
+        imports.add(a._import);
+        a = a._previous;
+      } else if (b._import.index > a._import.index) {
+        imports.add(b._import);
+        b = b._previous;
       } else {
-        result = result._add(importB);
-        j++;
+        assert(identical(a._import, b._import));
+        imports.add(a._import);
+        a = a._previous;
+        b = b._previous;
       }
     }
-    for (; i < aImports.length; i++) {
-      result = result._add(aImports[i]);
+    while (imports.isNotEmpty) {
+      result = result._add(imports.removeLast());
     }
-    for (; j < bImports.length; j++) {
-      result = result._add(bImports[j]);
-    }
-
     return result;
   }
 
   /// Get the index for an [import] according to the canonical order.
   _DeferredImport _wrap(ImportEntity import) {
-    return _importIndex.putIfAbsent(
-        import, () => new _DeferredImport(import, _importIndex.length));
+    return _importIndex[import] ??=
+        _DeferredImport(import, _importIndex.length);
   }
 }
 
 /// A canonical set of deferred imports.
 class ImportSet {
-  /// Imports that are part of this set.
+  /// Last element added to set.
   ///
-  /// Invariant: the order in which elements are added must respect the
-  /// canonical order of all imports in [ImportSetLattice].
-  final List<_DeferredImport> _imports;
+  /// This set comprises [_import] appended onto [_previous]. *Note*: [_import]
+  /// is the last element in the set in the canonical order imposed by
+  /// [ImportSetLattice].
+  final _DeferredImport _import; // `null` for empty ImportSet
+  /// The set containing all previous elements.
+  final ImportSet _previous;
+  final int length;
+
+  bool get isEmpty => _import == null;
+  bool get isNotEmpty => _import != null;
+
+  /// Returns an iterable over the imports in this set in canonical order.
+  Iterable<_DeferredImport> _collectImports() {
+    List<_DeferredImport> result = [];
+    ImportSet current = this;
+    while (current.isNotEmpty) {
+      result.add(current._import);
+      current = current._previous;
+    }
+    assert(result.length == this.length);
+    return result.reversed;
+  }
 
   /// Links to other import sets in the lattice by adding one import.
-  final Map<_DeferredImport, ImportSet> _transitions =
-      <_DeferredImport, ImportSet>{};
+  final Map<_DeferredImport, ImportSet> _transitions = {};
 
-  ImportSet([this._imports = const <_DeferredImport>[]]);
+  ImportSet.empty()
+      : _import = null,
+        _previous = null,
+        length = 0;
+
+  ImportSet(this._import, this._previous, this.length);
 
   /// The output unit corresponding to this set of imports, if any.
   OutputUnit unit;
-
-  int get length => _imports.length;
 
   /// Create an import set that adds [import] to all the imports on this set.
   /// This assumes that import's canonical order comes after all imports in
   /// this current set. This should only be called from [ImportSetLattice],
   /// since it is where we preserve this invariant.
   ImportSet _add(_DeferredImport import) {
-    ImportSet result = _transitions[import];
-    if (result == null) {
-      result = new ImportSet(new List.from(_imports)..add(import));
-      result._transitions[import] = result;
-      _transitions[import] = result;
-    }
-    return result;
+    assert(_import == null || import.index > _import.index);
+    return _transitions[import] ??= ImportSet(import, this, length + 1);
   }
 
   @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('ImportSet(size: $length, ');
-    for (var import in _imports) {
+    for (var import in _collectImports()) {
       sb.write('${import.declaration.name} ');
     }
     sb.write(')');
@@ -1107,17 +1127,16 @@ class ImportSet {
 /// The algorithm work queue.
 class WorkQueue {
   /// The actual queue of work that needs to be done.
-  final Queue<WorkItem> queue = new Queue<WorkItem>();
+  final Queue<WorkItem> queue = Queue();
 
   /// An index to find work items in the queue corresponding to a class.
-  final Map<ClassEntity, WorkItem> pendingClasses = <ClassEntity, WorkItem>{};
+  final Map<ClassEntity, WorkItem> pendingClasses = {};
 
   /// An index to find work items in the queue corresponding to a member.
-  final Map<MemberEntity, WorkItem> pendingMembers = <MemberEntity, WorkItem>{};
+  final Map<MemberEntity, WorkItem> pendingMembers = {};
 
   /// An index to find work items in the queue corresponding to a constant.
-  final Map<ConstantValue, WorkItem> pendingConstants =
-      <ConstantValue, WorkItem>{};
+  final Map<ConstantValue, WorkItem> pendingConstants = {};
 
   /// Lattice used to compute unions of [ImportSet]s.
   final ImportSetLattice _importSets;
@@ -1140,7 +1159,7 @@ class WorkQueue {
   void addClass(ClassEntity element, ImportSet importSet) {
     var item = pendingClasses[element];
     if (item == null) {
-      item = new ClassWorkItem(element, importSet);
+      item = ClassWorkItem(element, importSet);
       pendingClasses[element] = item;
       queue.add(item);
     } else {
@@ -1155,7 +1174,7 @@ class WorkQueue {
   void addMember(MemberEntity element, ImportSet importSet) {
     var item = pendingMembers[element];
     if (item == null) {
-      item = new MemberWorkItem(element, importSet);
+      item = MemberWorkItem(element, importSet);
       pendingMembers[element] = item;
       queue.add(item);
     } else {
@@ -1170,7 +1189,7 @@ class WorkQueue {
   void addConstant(ConstantValue constant, ImportSet importSet) {
     var item = pendingConstants[constant];
     if (item == null) {
-      item = new ConstantWorkItem(constant, importSet);
+      item = ConstantWorkItem(constant, importSet);
       pendingConstants[constant] = item;
       queue.add(item);
     } else {
@@ -1328,13 +1347,13 @@ class OutputUnitData {
     Map<ImportEntity, ImportDescription> deferredImportDescriptions = {};
     other._deferredImportDescriptions
         .forEach((ImportEntity import, ImportDescription description) {
-      deferredImportDescriptions[import] = new ImportDescription.internal(
+      deferredImportDescriptions[import] = ImportDescription.internal(
           description.importingUri,
           description.prefix,
           convertLibrary(description._importingLibrary));
     });
 
-    return new OutputUnitData(
+    return OutputUnitData(
         other.isProgramSplit,
         other.mainOutputUnit,
         classToUnit,
@@ -1356,7 +1375,7 @@ class OutputUnitData {
       bool isMainOutput = source.readBool();
       String name = source.readString();
       Set<ImportEntity> importSet = source.readImports().toSet();
-      return new OutputUnit(isMainOutput, name, importSet);
+      return OutputUnit(isMainOutput, name, importSet);
     });
     OutputUnit mainOutputUnit = outputUnits[source.readInt()];
 
@@ -1382,11 +1401,10 @@ class OutputUnitData {
       String importingUri = source.readString();
       String prefix = source.readString();
       LibraryEntity importingLibrary = source.readLibrary();
-      return new ImportDescription.internal(
-          importingUri, prefix, importingLibrary);
+      return ImportDescription.internal(importingUri, prefix, importingLibrary);
     });
     source.end(tag);
-    return new OutputUnitData(
+    return OutputUnitData(
         isProgramSplit,
         mainOutputUnit,
         classToUnit,
@@ -1538,8 +1556,7 @@ class OutputUnitData {
   String getImportDeferName(Spannable node, ImportEntity import) {
     String name = _importDeferName[import];
     if (name == null) {
-      throw new SpannableAssertionFailure(
-          node, "No deferred name for $import.");
+      throw SpannableAssertionFailure(node, "No deferred name for $import.");
     }
     return name;
   }
@@ -1609,19 +1626,19 @@ String deferredPartFileName(CompilerOptions options, String name,
 class Dependencies {
   final Map<ClassEntity, DependencyInfo> classes = {};
   final Map<MemberEntity, DependencyInfo> members = {};
-  final Set<Local> localFunctions = new Set<Local>();
+  final Set<Local> localFunctions = {};
   final Map<ConstantValue, DependencyInfo> constants = {};
 
   void addClass(ClassEntity cls, [ImportEntity import]) {
-    (classes[cls] ??= new DependencyInfo()).registerImport(import);
+    (classes[cls] ??= DependencyInfo()).registerImport(import);
   }
 
   void addMember(MemberEntity m, [ImportEntity import]) {
-    (members[m] ??= new DependencyInfo()).registerImport(import);
+    (members[m] ??= DependencyInfo()).registerImport(import);
   }
 
   void addConstant(ConstantValue c, [ImportEntity import]) {
-    (constants[c] ??= new DependencyInfo()).registerImport(import);
+    (constants[c] ??= DependencyInfo()).registerImport(import);
   }
 }
 

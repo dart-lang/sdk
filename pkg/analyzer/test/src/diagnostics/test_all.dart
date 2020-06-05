@@ -28,8 +28,15 @@ import 'async_keyword_used_as_identifier_test.dart'
 import 'await_in_late_local_variable_initializer_test.dart'
     as await_in_late_local_variable_initializer;
 import 'body_might_complete_normally_test.dart' as body_might_complete_normally;
-import 'builtin_identifier_as_extension_name_test.dart'
-    as builtin_as_extension_name;
+import 'built_in_identifier_as_extension_name_test.dart'
+    as built_in_as_extension_name;
+import 'built_in_identifier_as_prefix_name_test.dart'
+    as built_in_as_prefix_name;
+import 'built_in_identifier_as_type_name_test.dart' as built_in_as_type_name;
+import 'built_in_identifier_as_type_parameter_name_test.dart'
+    as built_in_as_type_parameter_name;
+import 'built_in_identifier_as_typedef_name_test.dart'
+    as built_in_as_typedef_name;
 import 'can_be_null_after_null_aware_test.dart' as can_be_null_after_null_aware;
 import 'case_block_not_terminated_test.dart' as case_block_not_terminated;
 import 'case_expression_type_implements_equals_test.dart'
@@ -181,6 +188,8 @@ import 'inference_failure_on_untyped_parameter_test.dart'
     as inference_failure_on_untyped_parameter;
 import 'instance_access_to_static_member_test.dart'
     as instance_access_to_static_member;
+import 'instance_member_access_from_static_test.dart'
+    as instance_member_access_from_static;
 import 'instantiate_abstract_class_test.dart' as instantiate_abstract_class;
 import 'invalid_annotation_from_deferred_library_test.dart'
     as invalid_annotation_from_deferred_library;
@@ -531,7 +540,11 @@ main() {
     async_keyword_used_as_identifier.main();
     await_in_late_local_variable_initializer.main();
     body_might_complete_normally.main();
-    builtin_as_extension_name.main();
+    built_in_as_extension_name.main();
+    built_in_as_prefix_name.main();
+    built_in_as_type_name.main();
+    built_in_as_type_parameter_name.main();
+    built_in_as_typedef_name.main();
     can_be_null_after_null_aware.main();
     case_block_not_terminated.main();
     case_expression_type_implements_equals.main();
@@ -630,6 +643,7 @@ main() {
     inference_failure_on_uninitialized_variable.main();
     inference_failure_on_untyped_parameter.main();
     instance_access_to_static_member.main();
+    instance_member_access_from_static.main();
     instantiate_abstract_class.main();
     invalid_annotation.main();
     invalid_annotation_from_deferred_library.main();

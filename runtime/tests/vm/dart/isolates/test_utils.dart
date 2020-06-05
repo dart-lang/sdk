@@ -179,8 +179,8 @@ class Ring {
 
 class Tree {
   final int value;
-  final Tree left;
-  final Tree right;
+  final Tree? left;
+  final Tree? right;
 
   Tree(this.value, this.left, this.right);
 

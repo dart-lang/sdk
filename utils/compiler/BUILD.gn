@@ -47,15 +47,15 @@ prebuilt_dart_action("dart2js_create_snapshot_entry") {
 }
 
 if (dont_use_nnbd) {
-  libraries_specification_path = "sdk/lib/libraries.json"
+  sdk_root = "../../sdk"
 } else {
-  libraries_specification_path = "sdk_nnbd/lib/libraries.json"
+  sdk_root = "../../sdk_nnbd"
 }
 
 application_snapshot("dart2js") {
   deps = [
-    ":compile_dart2js_platform",
     ":compile_dart2js_nnbd_strong_platform",
+    ":compile_dart2js_platform",
     ":dart2js_create_snapshot_entry",
   ]
   inputs = [
@@ -68,7 +68,7 @@ application_snapshot("dart2js") {
   main_dart = "$target_gen_dir/dart2js.dart"
   training_args = [
     "--packages=" + rebase_path("../../.packages"),
-    "--libraries-spec=" + rebase_path("../../$libraries_specification_path"),
+    "--libraries-spec=" + rebase_path("$sdk_root/lib/libraries.json"),
 
     # Specifying the platform explicitly elides running the CFE on the sdk
     # sources.
@@ -79,9 +79,8 @@ application_snapshot("dart2js") {
 
 compile_platform("compile_dart2js_platform") {
   single_root_scheme = "org-dartlang-sdk"
-  single_root_base = rebase_path("../../")
-  libraries_specification_uri =
-      "org-dartlang-sdk:///$libraries_specification_path"
+  single_root_base = rebase_path("$sdk_root/")
+  libraries_specification_uri = "org-dartlang-sdk:///lib/libraries.json"
 
   outputs = [
     "$root_out_dir/dart2js_platform.dill",
@@ -100,9 +99,8 @@ compile_platform("compile_dart2js_platform") {
 }
 compile_platform("compile_dart2js_nnbd_strong_platform") {
   single_root_scheme = "org-dartlang-sdk"
-  single_root_base = rebase_path("../../")
-  libraries_specification_uri =
-      "org-dartlang-sdk:///$libraries_specification_path"
+  single_root_base = rebase_path("$sdk_root/")
+  libraries_specification_uri = "org-dartlang-sdk:///lib/libraries.json"
 
   outputs = [
     "$root_out_dir/dart2js_nnbd_strong_platform.dill",
@@ -124,9 +122,8 @@ compile_platform("compile_dart2js_nnbd_strong_platform") {
 }
 compile_platform("compile_dart2js_server_platform") {
   single_root_scheme = "org-dartlang-sdk"
-  single_root_base = rebase_path("../../")
-  libraries_specification_uri =
-      "org-dartlang-sdk:///$libraries_specification_path"
+  single_root_base = rebase_path("$sdk_root/")
+  libraries_specification_uri = "org-dartlang-sdk:///lib/libraries.json"
 
   outputs = [
     "$root_out_dir/dart2js_server_platform.dill",
@@ -145,9 +142,8 @@ compile_platform("compile_dart2js_server_platform") {
 }
 compile_platform("compile_dart2js_server_nnbd_strong_platform") {
   single_root_scheme = "org-dartlang-sdk"
-  single_root_base = rebase_path("../../")
-  libraries_specification_uri =
-      "org-dartlang-sdk:///$libraries_specification_path"
+  single_root_base = rebase_path("$sdk_root/")
+  libraries_specification_uri = "org-dartlang-sdk:///lib/libraries.json"
 
   outputs = [
     "$root_out_dir/dart2js_server_nnbd_strong_platform.dill",

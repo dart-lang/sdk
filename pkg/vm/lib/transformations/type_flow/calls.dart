@@ -8,6 +8,7 @@ library vm.transformations.type_flow.calls;
 import 'dart:core' hide Type;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/src/text_util.dart';
 
 import 'types.dart';
 import 'utils.dart';
@@ -116,7 +117,8 @@ class DirectSelector extends Selector {
       other is DirectSelector && super == (other) && other.member == member;
 
   @override
-  String toString() => 'direct ${_callKindPrefix}[$member]';
+  String toString() => 'direct ${_callKindPrefix}'
+      '[${qualifiedMemberNameToString(member, includeLibraryName: true)}]';
 }
 
 /// Interface call via known interface target [member].
@@ -135,7 +137,8 @@ class InterfaceSelector extends Selector {
       other is InterfaceSelector && super == (other) && other.member == member;
 
   @override
-  String toString() => '${_callKindPrefix}[$member]';
+  String toString() => '${_callKindPrefix}'
+      '[${qualifiedMemberNameToString(member, includeLibraryName: true)}]';
 }
 
 /// Virtual call (using 'this' as a receiver).
@@ -151,7 +154,8 @@ class VirtualSelector extends InterfaceSelector {
       identical(this, other) || other is VirtualSelector && super == (other);
 
   @override
-  String toString() => 'virtual ${_callKindPrefix}[$member]';
+  String toString() => 'virtual ${_callKindPrefix}'
+      '[${qualifiedMemberNameToString(member, includeLibraryName: true)}]';
 }
 
 /// Dynamic call.

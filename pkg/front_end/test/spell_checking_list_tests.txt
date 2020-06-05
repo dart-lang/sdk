@@ -23,6 +23,7 @@ albeit
 allocations
 alt
 amortized
+analyses
 anon
 aoo
 approval
@@ -120,6 +121,7 @@ dadd
 daemon
 dartanalyzer
 dartfile
+dartfmt
 dash
 dashes
 day
@@ -179,6 +181,7 @@ epoch
 err
 everytime
 evicting
+exceed
 excess
 exe
 execute
@@ -361,6 +364,7 @@ naturally
 negatable
 newest
 newworld
+nil
 ninja
 nondefault
 nonexisting
@@ -415,6 +419,7 @@ quot
 r"
 r"\s
 r"k
+r"tools
 rd
 reachability
 reality
@@ -469,6 +474,7 @@ spelling
 spent
 splay
 splitting
+spurious
 sqrt
 squared
 sssp
@@ -485,6 +491,10 @@ subcommand
 subdir
 subtool
 subtools
+subtyping1a
+subtyping1b
+subtyping2a
+subtyping2b
 suite
 summarization
 summarized

@@ -134,6 +134,7 @@ static const intptr_t PF_X = 1;
 static const intptr_t PF_W = 2;
 static const intptr_t PF_R = 4;
 
+static const intptr_t SHT_NULL = 0;
 static const intptr_t SHT_PROGBITS = 1;
 static const intptr_t SHT_SYMTAB = 2;
 static const intptr_t SHT_STRTAB = 3;
@@ -150,6 +151,7 @@ static const intptr_t SHN_UNDEF = 0;
 
 static const intptr_t STN_UNDEF = 0;
 
+static const intptr_t PT_NULL = 0;
 static const intptr_t PT_LOAD = 1;
 static const intptr_t PT_DYNAMIC = 2;
 static const intptr_t PT_PHDR = 6;

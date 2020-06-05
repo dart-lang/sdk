@@ -38,7 +38,7 @@ class NullSafetyUnderstandingFlag {
 
   /// Code that understands nullability should be run using this method,
   /// otherwise all type operations will treat all nullabilities as star.
-  static R enableNullSafetyTypes<R>(R body()) {
+  static R enableNullSafetyTypes<R>(R Function() body) {
     return runZoned<R>(body, zoneValues: {_zoneKey: true});
   }
 }

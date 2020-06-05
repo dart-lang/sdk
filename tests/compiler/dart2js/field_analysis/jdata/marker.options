@@ -1,4 +1,0 @@
-spec:nnbd-off=tests/compiler/dart2js/field_analysis/jfield_analysis_test.dart
-prod:nnbd-off=tests/compiler/dart2js/field_analysis/jfield_analysis_test.dart
-spec:nnbd-sdk=tests/compiler/dart2js/field_analysis/jfield_analysis_test.dart
-prod:nnbd-sdk=tests/compiler/dart2js/field_analysis/jfield_analysis_test.dart

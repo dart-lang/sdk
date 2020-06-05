@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.6
+
+- Adjusts RegExp for stack trace header line to be more flexible in what it
+  permits to allow additional information to be added in the Dart VM.
+
 ## 0.3.5
 
 - Use virtual addresses in non-symbolic stack frames as a fallback if we cannot

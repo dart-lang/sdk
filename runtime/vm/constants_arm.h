@@ -348,20 +348,19 @@ struct TTSInternalRegs {
 // ABI for InitStaticFieldStub.
 struct InitStaticFieldABI {
   static const Register kFieldReg = R0;
+  static const Register kResultReg = R0;
 };
 
 // ABI for InitInstanceFieldStub.
 struct InitInstanceFieldABI {
-  static const Register kInstanceReg = R0;
-  static const Register kFieldReg = R1;
+  static const Register kInstanceReg = R1;
+  static const Register kFieldReg = R2;
+  static const Register kResultReg = R0;
 };
 
 // Registers used inside the implementation of InitLateInstanceFieldStub.
 struct InitLateInstanceFieldInternalRegs {
   static const Register kFunctionReg = R0;
-  static const Register kInitializerResultReg = R0;
-  static const Register kInstanceReg = R1;
-  static const Register kFieldReg = R2;
   static const Register kAddressReg = R3;
   static const Register kScratchReg = R4;
 };
@@ -524,6 +523,8 @@ enum Condition {
   UNSIGNED_LESS_EQUAL = LS,
   UNSIGNED_GREATER = HI,
   UNSIGNED_GREATER_EQUAL = CS,
+  OVERFLOW = VS,
+  NO_OVERFLOW = VC,
 
   kInvalidCondition = 16
 };
@@ -961,6 +962,7 @@ float ReciprocalSqrtEstimate(float op);
 float ReciprocalSqrtStep(float op1, float op2);
 
 constexpr uword kBreakInstructionFiller = 0xE1200070;  // bkpt #0
+constexpr uword kDataMemoryBarrier = 0xf57ff050 | 0xb;  // dmb ish
 
 }  // namespace dart
 

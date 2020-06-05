@@ -55,6 +55,7 @@ class InvocationInferenceHelper {
       DartType uninstantiatedType, TypeArgumentList typeArguments,
       {AstNode errorNode, bool isConst = false}) {
     errorNode ??= inferenceNode;
+    uninstantiatedType = _getFreshType(uninstantiatedType);
     if (typeArguments == null &&
         uninstantiatedType is FunctionType &&
         uninstantiatedType.typeFormals.isNotEmpty) {
@@ -295,6 +296,8 @@ class InvocationInferenceHelper {
     @required bool isConst,
     @required AstNode errorNode,
   }) {
+    rawType = _getFreshType(rawType);
+
     // Get the parameters that correspond to the uninstantiated generic.
     List<ParameterElement> rawParameters =
         ResolverVisitor.resolveArgumentsToParameters(

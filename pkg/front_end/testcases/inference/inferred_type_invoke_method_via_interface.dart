@@ -12,6 +12,6 @@ class I {
 abstract class C implements I {}
 
 C f() => null;
-var x = f(). /*@target=I::g*/ g();
+var x = f(). /*@target=I.g*/ g();
 
 main() {}

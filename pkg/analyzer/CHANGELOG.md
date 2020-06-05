@@ -1,6 +1,17 @@
-## 0.39.9-dev
+## 0.39.10
+* Restored the default constructor in internal `SummaryBuilder`,
+  and the `featureSet` named parameter in `build`, for `build_resolvers`
+  compatibility.  See #42163.
+
+## 0.39.9
 * Deprecated `DartType.isObject`, use `DartType.isDartCoreObject` for
   consistency with other similar getters.
+* Deprecated `InstanceCreationExpression.staticElement`, use
+  `constructorName.staticElement` instead, like for `MethodInvocation`.
+* Added new error code: REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR.
+* Bug fixes: #34370, #35710, #37552, #38676, #38799, #39644, #41151, #41592,
+  #41614, #41724, #41741, #41797, #41803, #41844, #41997, #42077, #42093,
+  and #42122.
 
 ## 0.39.8
 * Deprecated `VariableElement.constantValue`, it does not guarantee that
@@ -17,7 +28,7 @@
 * Added new error codes: ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING and
   THROW_OF_INVALID_TYPE.
 * Changed error code NULLABLE_TYPE_IN_CATCH_CLAUSE to a hint.
-* Bug fixes: #40554, #41378, #41399, #41412, and, #41470.
+* Bug fixes: #40554, #41378, #41399, #41412, and #41470.
 
 ## 0.39.6
 * Added Window and DocumentFragment to analyzer's mock SDK.  These are required
