@@ -216,11 +216,11 @@ class PageSpaceController {
   // Returns whether growing to 'after' should trigger a GC.
   // This method can be called before allocation (e.g., pretenuring) or after
   // (e.g., promotion), as it does not change the state of the controller.
-  bool NeedsGarbageCollection(SpaceUsage after) const;
-  bool AlmostNeedsGarbageCollection(SpaceUsage after) const;
+  bool ReachedHardThreshold(SpaceUsage after) const;
+  bool ReachedSoftThreshold(SpaceUsage after) const;
 
   // Returns whether an idle GC is worthwhile.
-  bool NeedsIdleGarbageCollection(SpaceUsage current) const;
+  bool ReachedIdleThreshold(SpaceUsage current) const;
 
   // Should be called after each collection to update the controller state.
   void EvaluateGarbageCollection(SpaceUsage before,
@@ -306,11 +306,14 @@ class PageSpace {
                                is_protected, is_locked);
   }
 
-  bool NeedsGarbageCollection() const {
-    return page_space_controller_.NeedsGarbageCollection(usage_);
+  bool ReachedHardThreshold() const {
+    return page_space_controller_.ReachedHardThreshold(usage_);
   }
-  bool AlmostNeedsGarbageCollection() const {
-    return page_space_controller_.AlmostNeedsGarbageCollection(usage_);
+  bool ReachedSoftThreshold() const {
+    return page_space_controller_.ReachedSoftThreshold(usage_);
+  }
+  bool ReachedIdleThreshold() const {
+    return page_space_controller_.ReachedIdleThreshold(usage_);
   }
   void EvaluateAfterLoading() {
     page_space_controller_.EvaluateAfterLoading(usage_);

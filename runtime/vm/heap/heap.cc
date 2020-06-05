@@ -176,7 +176,7 @@ void Heap::AllocatedExternal(intptr_t size, Space space) {
     old_space_.AllocatedExternal(size);
   }
 
-  if (old_space_.NeedsGarbageCollection()) {
+  if (old_space_.ReachedHardThreshold()) {
     CollectGarbage(kMarkSweep, kExternal);
   } else {
     CheckStartConcurrentMarking(Thread::Current(), kExternal);
@@ -428,7 +428,7 @@ void Heap::NotifyIdle(int64_t deadline) {
       TIMELINE_FUNCTION_GC_DURATION(thread, "IdleGC");
       StartConcurrentMarking(thread);
     }
-  } else if (old_space_.NeedsGarbageCollection()) {
+  } else if (old_space_.ReachedHardThreshold()) {
     // Even though the following GC may exceed our idle deadline, we need to
     // ensure than that promotions during idle scavenges do not lead to
     // unbounded growth of old space. If a program is allocating only in new
@@ -490,7 +490,7 @@ void Heap::CollectNewSpaceGarbage(Thread* thread, GCReason reason) {
       EndNewSpaceGC();
     }
     if (reason == kNewSpace) {
-      if (old_space_.NeedsGarbageCollection()) {
+      if (old_space_.ReachedHardThreshold()) {
         CollectOldSpaceGarbage(thread, kMarkSweep, kPromotion);
       } else {
         CheckStartConcurrentMarking(thread, kPromotion);
@@ -592,7 +592,7 @@ void Heap::CheckStartConcurrentMarking(Thread* thread, GCReason reason) {
     }
   }
 
-  if (old_space_.AlmostNeedsGarbageCollection()) {
+  if (old_space_.ReachedSoftThreshold()) {
     // New-space objects are roots during old-space GC. This means that even
     // unreachable new-space objects prevent old-space objects they reference
     // from being collected during an old-space GC. Normally this is not an
