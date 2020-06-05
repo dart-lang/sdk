@@ -79,7 +79,8 @@ class ClassFinalizer : public AllStatic {
 
  private:
   static void AllocateEnumValues(const Class& enum_cls);
-  static void FinalizeTypeParameters(const Class& cls);
+  static void FinalizeTypeParameters(const Class& cls,
+                                     PendingTypes* pending_types = NULL);
   static intptr_t ExpandAndFinalizeTypeArguments(const Class& cls,
                                                  const AbstractType& type,
                                                  PendingTypes* pending_types);

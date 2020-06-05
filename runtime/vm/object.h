@@ -1097,6 +1097,9 @@ class Class : public Object {
   intptr_t NumTypeParameters() const {
     return NumTypeParameters(Thread::Current());
   }
+  static intptr_t type_parameters_offset() {
+    return OFFSET_OF(ClassLayout, type_parameters_);
+  }
 
   // Return a TypeParameter if the type_name is a type parameter of this class.
   // Return null otherwise.
@@ -8173,10 +8176,12 @@ class TypeParameter : public AbstractType {
       intptr_t num_free_fun_type_params,
       Heap::Space space,
       TrailPtr trail = nullptr) const;
-  virtual AbstractTypePtr Canonicalize(TrailPtr trail = nullptr) const;
+  virtual AbstractTypePtr Canonicalize(TrailPtr trail = nullptr) const {
+    return raw();
+  }
 #if defined(DEBUG)
   // Check if type parameter is canonical.
-  virtual bool CheckIsCanonical(Thread* thread) const;
+  virtual bool CheckIsCanonical(Thread* thread) const { return true; }
 #endif  // DEBUG
   virtual void EnumerateURIs(URIs* uris) const;
 

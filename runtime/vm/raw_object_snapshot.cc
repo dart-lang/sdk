@@ -229,7 +229,6 @@ TypeParameterPtr TypeParameter::ReadFrom(SnapshotReader* reader,
   // Allocate type parameter object.
   TypeParameter& type_parameter =
       TypeParameter::ZoneHandle(reader->zone(), TypeParameter::New());
-  bool is_canonical = ObjectLayout::IsCanonical(tags);
   reader->AddBackRef(object_id, &type_parameter, kIsDeserialized);
 
   // Set all non object fields.
@@ -256,10 +255,6 @@ TypeParameterPtr TypeParameter::ReadFrom(SnapshotReader* reader,
   Code& code = *reader->CodeHandle();
   code = TypeTestingStubGenerator::DefaultCodeForType(type_parameter);
   type_parameter.SetTypeTestingStub(code);
-
-  if (is_canonical) {
-    type_parameter ^= type_parameter.Canonicalize();
-  }
 
   return type_parameter.raw();
 }

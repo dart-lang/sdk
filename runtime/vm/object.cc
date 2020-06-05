@@ -1661,12 +1661,6 @@ ErrorPtr Object::Init(Isolate* isolate,
                                               Heap::kOld);
     object_store->set_canonical_types(array);
 
-    // Initialize hash set for canonical type parameters.
-    const intptr_t kInitialCanonicalTypeParameterSize = 4;
-    array = HashTables::New<CanonicalTypeParameterSet>(
-        kInitialCanonicalTypeParameterSize, Heap::kOld);
-    object_store->set_canonical_type_parameters(array);
-
     // Initialize hash set for canonical_type_arguments_.
     const intptr_t kInitialCanonicalTypeArgumentsSize = 4;
     array = HashTables::New<CanonicalTypeArgumentsSet>(
@@ -4894,8 +4888,9 @@ TypePtr Class::DeclarationType() const {
   }
   // For efficiency, the runtimeType intrinsic returns the type cached by
   // DeclarationType without checking its nullability. Therefore, we
-  // consistently cache the kNonNullable version of the type.
-  // The exception is type Null which is stored as kNullable.
+  // consistently cache the kLegacy version of a type, unless the non-nullable
+  // experiment is enabled, in which case we store the kNonNullable version.
+  // In either cases, the exception is type Null which is stored as kNullable.
   Type& type =
       Type::Handle(Type::New(*this, TypeArguments::Handle(type_parameters()),
                              token_pos(), Nullability::kNonNullable));
@@ -7934,13 +7929,11 @@ FunctionPtr Function::InstantiateSignatureFrom(
           cls = type_param.parameterized_class();
           param_name = type_param.name();
           ASSERT(type_param.IsFinalized());
-          ASSERT(type_param.IsCanonical());
           type_param = TypeParameter::New(
               cls, sig, type_param.index(), param_name, type,
               type_param.IsGenericCovariantImpl(), type_param.nullability(),
               type_param.token_pos());
           type_param.SetIsFinalized();
-          type_param.SetCanonical();
           if (instantiated_type_params.IsNull()) {
             instantiated_type_params = TypeArguments::New(type_params.Length());
             for (intptr_t j = 0; j < i; ++j) {
@@ -19268,6 +19261,7 @@ TypePtr Type::ToNullability(Nullability value, Heap::Space space) const {
     ASSERT(!type.IsCanonical());
     type ^= type.Canonicalize();
   }
+  // TODO(regis): Should we link canonical types of different nullability?
   return type.raw();
 }
 
@@ -20116,11 +20110,7 @@ TypeParameterPtr TypeParameter::ToNullability(Nullability value,
   type_parameter.SetHash(0);
   type_parameter.SetTypeTestingStub(Code::Handle(
       TypeTestingStubGenerator::DefaultCodeForType(type_parameter)));
-  if (IsCanonical()) {
-    // Object::Clone does not clone canonical bit.
-    ASSERT(!type_parameter.IsCanonical());
-    type_parameter ^= type_parameter.Canonicalize();
-  }
+  // TODO(regis): Should we link type parameters of different nullability?
   return type_parameter.raw();
 }
 
@@ -20305,90 +20295,6 @@ AbstractTypePtr TypeParameter::InstantiateFrom(
   // early to canonicalize the returned type argument here, since instantiation
   // not only happens at run time, but also during type finalization.
 }
-
-AbstractTypePtr TypeParameter::Canonicalize(TrailPtr trail) const {
-  ASSERT(IsFinalized());
-  if (IsCanonical()) {
-    return this->raw();
-  }
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-
-  const Class& cls = Class::Handle(zone, parameterized_class());
-  const Function& function = Function::Handle(
-      zone, cls.IsNull() ? parameterized_function() : Function::null());
-  const TypeArguments& type_params = TypeArguments::Handle(
-      zone, cls.IsNull() ? function.type_parameters() : cls.type_parameters());
-  const intptr_t offset =
-      cls.IsNull() ? function.NumParentTypeParameters()
-                   : (cls.NumTypeArguments() - cls.NumTypeParameters());
-  TypeParameter& type_parameter = TypeParameter::Handle(zone);
-  type_parameter ^= type_params.TypeAt(index() - offset);
-  ASSERT(!type_parameter.IsNull());
-  if (type_parameter.nullability() == nullability()) {
-    ASSERT(this->Equals(type_parameter));
-    ASSERT(type_parameter.IsCanonical());
-    ASSERT(type_parameter.IsOld());
-    return type_parameter.raw();
-  }
-
-  ObjectStore* object_store = isolate->object_store();
-  {
-    SafepointMutexLocker ml(isolate->group()->type_canonicalization_mutex());
-    CanonicalTypeParameterSet table(zone,
-                                    object_store->canonical_type_parameters());
-    type_parameter ^= table.GetOrNull(CanonicalTypeParameterKey(*this));
-    if (type_parameter.IsNull()) {
-      // The type parameter was not found in the table. It is not canonical yet.
-      // Add this type parameter into the canonical list of type parameters.
-      if (this->IsNew()) {
-        type_parameter ^= Object::Clone(*this, Heap::kOld);
-      } else {
-        type_parameter = this->raw();
-      }
-      ASSERT(type_parameter.IsOld());
-      type_parameter.SetCanonical();  // Mark object as being canonical.
-      bool present = table.Insert(type_parameter);
-      ASSERT(!present);
-    }
-    object_store->set_canonical_type_parameters(table.Release());
-  }
-  return type_parameter.raw();
-}
-
-#if defined(DEBUG)
-bool TypeParameter::CheckIsCanonical(Thread* thread) const {
-  Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-
-  const Class& cls = Class::Handle(zone, parameterized_class());
-  const Function& function = Function::Handle(
-      zone, cls.IsNull() ? parameterized_function() : Function::null());
-  const TypeArguments& type_params = TypeArguments::Handle(
-      zone, cls.IsNull() ? function.type_parameters() : cls.type_parameters());
-  const intptr_t offset =
-      cls.IsNull() ? function.NumParentTypeParameters()
-                   : (cls.NumTypeArguments() - cls.NumTypeParameters());
-  TypeParameter& type_parameter = TypeParameter::Handle(zone);
-  type_parameter ^= type_params.TypeAt(index() - offset);
-  ASSERT(!type_parameter.IsNull());
-  if (type_parameter.nullability() == nullability()) {
-    ASSERT(type_parameter.IsCanonical());
-    return (raw() == type_parameter.raw());
-  }
-
-  ObjectStore* object_store = isolate->object_store();
-  {
-    SafepointMutexLocker ml(isolate->group()->type_canonicalization_mutex());
-    CanonicalTypeParameterSet table(zone,
-                                    object_store->canonical_type_parameters());
-    type_parameter ^= table.GetOrNull(CanonicalTypeParameterKey(*this));
-    object_store->set_canonical_type_parameters(table.Release());
-  }
-  return (raw() == type_parameter.raw());
-}
-#endif  // DEBUG
 
 void TypeParameter::EnumerateURIs(URIs* uris) const {
   Thread* thread = Thread::Current();
@@ -24362,14 +24268,6 @@ const char* UserTag::ToCString() const {
 void DumpTypeTable(Isolate* isolate) {
   OS::PrintErr("canonical types:\n");
   CanonicalTypeSet table(isolate->object_store()->canonical_types());
-  table.Dump();
-  table.Release();
-}
-
-void DumpTypeParameterTable(Isolate* isolate) {
-  OS::PrintErr("canonical type parameters (cloned from declarations):\n");
-  CanonicalTypeParameterSet table(
-      isolate->object_store()->canonical_type_parameters());
   table.Dump();
   table.Release();
 }
