@@ -17,7 +17,7 @@ export 'dart:js' show allowInterop, allowInteropCaptureThis;
 /// dart name is used. It is not valid to specify a custom [name] for class
 /// instance members.
 class JS {
-  final String name;
+  final String? name;
   const JS([this.name]);
 }
 
