@@ -312,21 +312,25 @@ void Symbols::Compact() {
   // 1. Drop the tables and do a full garbage collection.
   object_store->set_symbol_table(Object::empty_array());
   object_store->set_canonical_types(Object::empty_array());
+  object_store->set_canonical_type_parameters(Object::empty_array());
   object_store->set_canonical_type_arguments(Object::empty_array());
   thread->heap()->CollectAllGarbage();
 
   // 2. Walk the heap to find surviving canonical objects.
   GrowableArray<String*> symbols;
   GrowableArray<class Type*> types;
+  GrowableArray<class TypeParameter*> type_params;
   GrowableArray<class TypeArguments*> type_args;
   class SymbolCollector : public ObjectVisitor {
    public:
     SymbolCollector(Thread* thread,
                     GrowableArray<String*>* symbols,
                     GrowableArray<class Type*>* types,
+                    GrowableArray<class TypeParameter*>* type_params,
                     GrowableArray<class TypeArguments*>* type_args)
         : symbols_(symbols),
           types_(types),
+          type_params_(type_params),
           type_args_(type_args),
           zone_(thread->zone()) {}
 
@@ -336,6 +340,9 @@ void Symbols::Compact() {
           symbols_->Add(&String::Handle(zone_, String::RawCast(obj)));
         } else if (obj->IsType()) {
           types_->Add(&Type::Handle(zone_, Type::RawCast(obj)));
+        } else if (obj->IsTypeParameter()) {
+          type_params_->Add(
+              &TypeParameter::Handle(zone_, TypeParameter::RawCast(obj)));
         } else if (obj->IsTypeArguments()) {
           type_args_->Add(
               &TypeArguments::Handle(zone_, TypeArguments::RawCast(obj)));
@@ -346,13 +353,14 @@ void Symbols::Compact() {
    private:
     GrowableArray<String*>* symbols_;
     GrowableArray<class Type*>* types_;
+    GrowableArray<class TypeParameter*>* type_params_;
     GrowableArray<class TypeArguments*>* type_args_;
     Zone* zone_;
   };
 
   {
     HeapIterationScope iteration(thread);
-    SymbolCollector visitor(thread, &symbols, &types, &type_args);
+    SymbolCollector visitor(thread, &symbols, &types, &type_params, &type_args);
     iteration.IterateObjects(&visitor);
   }
 
@@ -385,6 +393,21 @@ void Symbols::Compact() {
       ASSERT(!present || type.IsRecursive());
     }
     object_store->set_canonical_types(table.Release());
+  }
+
+  {
+    Array& array =
+        Array::Handle(zone, HashTables::New<CanonicalTypeParameterSet>(
+                                type_params.length() * 4 / 3, Heap::kOld));
+    CanonicalTypeParameterSet table(zone, array.raw());
+    for (intptr_t i = 0; i < type_params.length(); i++) {
+      class TypeParameter& type_param = *type_params[i];
+      ASSERT(type_param.IsTypeParameter());
+      ASSERT(type_param.IsCanonical());
+      bool present = table.Insert(type_param);
+      ASSERT(!present);
+    }
+    object_store->set_canonical_type_parameters(table.Release());
   }
 
   {

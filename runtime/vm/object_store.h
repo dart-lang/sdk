@@ -130,6 +130,7 @@ class ObjectPointerVisitor;
   RW(Class, weak_property_class)                                               \
   RW(Array, symbol_table)                                                      \
   RW(Array, canonical_types)                                                   \
+  RW(Array, canonical_type_parameters)                                         \
   RW(Array, canonical_type_arguments)                                          \
   RW(Library, async_library)                                                   \
   RW(Library, builtin_library)                                                 \

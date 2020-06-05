@@ -384,6 +384,7 @@ void Precompiler::DoCompileAll() {
       DropFields();
       TraceTypesFromRetainedClasses();
       DropTypes();
+      DropTypeParameters();
       DropTypeArguments();
 
       // Clear these before dropping classes as they may hold onto otherwise
@@ -1781,6 +1782,45 @@ void Precompiler::DropTypes() {
     ASSERT(!present);
   }
   object_store->set_canonical_types(types_table.Release());
+}
+
+void Precompiler::DropTypeParameters() {
+  ObjectStore* object_store = I->object_store();
+  GrowableObjectArray& retained_typeparams =
+      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+  Array& typeparams_array = Array::Handle(Z);
+  TypeParameter& typeparam = TypeParameter::Handle(Z);
+  // First drop all the type parameters that are not referenced.
+  {
+    CanonicalTypeParameterSet typeparams_table(
+        Z, object_store->canonical_type_parameters());
+    typeparams_array = HashTables::ToArray(typeparams_table, false);
+    for (intptr_t i = 0; i < typeparams_array.Length(); i++) {
+      typeparam ^= typeparams_array.At(i);
+      bool retain = typeparams_to_retain_.HasKey(&typeparam);
+      if (retain) {
+        retained_typeparams.Add(typeparam);
+      } else {
+        typeparam.ClearCanonical();
+        dropped_typeparam_count_++;
+      }
+    }
+    typeparams_table.Release();
+  }
+
+  // Now construct a new type parameter table and save in the object store.
+  const intptr_t dict_size =
+      Utils::RoundUpToPowerOfTwo(retained_typeparams.Length() * 4 / 3);
+  typeparams_array =
+      HashTables::New<CanonicalTypeParameterSet>(dict_size, Heap::kOld);
+  CanonicalTypeParameterSet typeparams_table(Z, typeparams_array.raw());
+  bool present;
+  for (intptr_t i = 0; i < retained_typeparams.Length(); i++) {
+    typeparam ^= retained_typeparams.At(i);
+    present = typeparams_table.Insert(typeparam);
+    ASSERT(!present);
+  }
+  object_store->set_canonical_type_parameters(typeparams_table.Release());
 }
 
 void Precompiler::DropTypeArguments() {

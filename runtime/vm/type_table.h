@@ -50,6 +50,46 @@ class CanonicalTypeTraits {
 };
 typedef UnorderedHashSet<CanonicalTypeTraits> CanonicalTypeSet;
 
+class CanonicalTypeParameterKey {
+ public:
+  explicit CanonicalTypeParameterKey(const TypeParameter& key) : key_(key) {}
+  bool Matches(const TypeParameter& arg) const { return key_.Equals(arg); }
+  uword Hash() const { return key_.Hash(); }
+  const TypeParameter& key_;
+
+ private:
+  DISALLOW_ALLOCATION();
+};
+
+// Traits for looking up Canonical TypeParameter based on its hash.
+class CanonicalTypeParameterTraits {
+ public:
+  static const char* Name() { return "CanonicalTypeParameterTraits"; }
+  static bool ReportStats() { return false; }
+
+  // Called when growing the table.
+  static bool IsMatch(const Object& a, const Object& b) {
+    ASSERT(a.IsTypeParameter() && b.IsTypeParameter());
+    const TypeParameter& arg1 = TypeParameter::Cast(a);
+    const TypeParameter& arg2 = TypeParameter::Cast(b);
+    return arg1.Equals(arg2) && (arg1.Hash() == arg2.Hash());
+  }
+  static bool IsMatch(const CanonicalTypeParameterKey& a, const Object& b) {
+    ASSERT(b.IsTypeParameter());
+    return a.Matches(TypeParameter::Cast(b));
+  }
+  static uword Hash(const Object& key) {
+    ASSERT(key.IsTypeParameter());
+    return TypeParameter::Cast(key).Hash();
+  }
+  static uword Hash(const CanonicalTypeParameterKey& key) { return key.Hash(); }
+  static ObjectPtr NewKey(const CanonicalTypeParameterKey& obj) {
+    return obj.key_.raw();
+  }
+};
+typedef UnorderedHashSet<CanonicalTypeParameterTraits>
+    CanonicalTypeParameterSet;
+
 class CanonicalTypeArgumentsKey {
  public:
   explicit CanonicalTypeArgumentsKey(const TypeArguments& key) : key_(key) {}
