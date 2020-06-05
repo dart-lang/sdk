@@ -515,20 +515,36 @@ class CompletionMetricsComputer {
     metrics.topLevelMrrComputer.printMean();
     print('');
 
-    var table = <List<String>>[];
-    var computerMap = metrics.locationMmrComputers;
-    var locations = computerMap.keys.toList()..sort();
-    table.add(['Location', 'count', 'mmr', 'mmr_5']);
-    for (var location in locations) {
-      var computer = computerMap[location];
-      var mmr = (1 / computer.mrr).toStringAsFixed(3);
-      var mrr_5 = (1 / computer.mrr_5).toStringAsFixed(3);
-      table.add([computer.name, computer.count.toString(), mmr, mrr_5]);
+    if (verbose) {
+      var lines = <LocationTableLine>[];
+      for (var entry in metrics.locationMmrComputers.entries) {
+        var count = entry.value.count;
+        var mrr = (1 / entry.value.mrr);
+        var mrr_5 = (1 / entry.value.mrr_5);
+        var product = count * mrr;
+        lines.add(LocationTableLine(
+            label: entry.key,
+            product: product,
+            count: count,
+            mrr: mrr,
+            mrr_5: mrr_5));
+      }
+      lines.sort((first, second) => second.product.compareTo(first.product));
+      var table = <List<String>>[];
+      table.add(['Location', 'Product', 'Count', 'Mmr', 'Mmr_5']);
+      for (var line in lines) {
+        var location = line.label;
+        var product = line.product.truncate().toString();
+        var count = line.count.toString();
+        var mrr = line.mrr.toStringAsFixed(3);
+        var mrr_5 = line.mrr_5.toStringAsFixed(3);
+        table.add([location, product, count, mrr, mrr_5]);
+      }
+      var buffer = StringBuffer();
+      buffer.writeTable(table);
+      print(buffer.toString());
+      print('');
     }
-    var buffer = StringBuffer();
-    buffer.writeTable(table);
-    print(buffer.toString());
-    print('');
 
     metrics.charsBeforeTop.printMean();
     metrics.charsBeforeTopFive.printMean();
@@ -1018,6 +1034,23 @@ class CompletionResult {
     }
     return true;
   }
+}
+
+/// The data to be printed on a single line in the table of mmr values per
+/// completion location.
+class LocationTableLine {
+  final String label;
+  final double product;
+  final int count;
+  final double mrr;
+  final double mrr_5;
+
+  LocationTableLine(
+      {@required this.label,
+      @required this.product,
+      @required this.count,
+      @required this.mrr,
+      @required this.mrr_5});
 }
 
 class MetricsSuggestionListener implements SuggestionListener {
