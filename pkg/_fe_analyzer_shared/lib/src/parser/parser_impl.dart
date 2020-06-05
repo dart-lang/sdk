@@ -104,8 +104,7 @@ import 'type_info.dart'
         computeTypeParamOrArg,
         isValidTypeReference,
         noType,
-        noTypeParamOrArg,
-        voidType;
+        noTypeParamOrArg;
 
 import 'util.dart'
     show
