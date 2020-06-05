@@ -4092,13 +4092,13 @@ void LoadFieldInstr::EmitNativeCodeForInitializerCall(
   ASSERT(locs()->out(0).reg() == InitInstanceFieldABI::kResultReg);
   ASSERT(slot().IsDartField());
   const Field& field = slot().field();
+  const Field& original_field = Field::ZoneHandle(field.Original());
 
   compiler::Label no_call;
   __ CompareObject(InitInstanceFieldABI::kResultReg, Object::sentinel());
   __ BranchIf(NOT_EQUAL, &no_call);
 
-  __ LoadObject(InitInstanceFieldABI::kFieldReg,
-                Field::ZoneHandle(field.Original()));
+  __ LoadObject(InitInstanceFieldABI::kFieldReg, original_field);
 
   auto object_store = compiler->isolate()->object_store();
   auto& stub = Code::ZoneHandle(compiler->zone());
@@ -4111,7 +4111,7 @@ void LoadFieldInstr::EmitNativeCodeForInitializerCall(
     } else {
       // Stubs for late field initialization call initializer
       // function directly, so make sure one is created.
-      field.EnsureInitializerFunction();
+      original_field.EnsureInitializerFunction();
 
       if (field.is_final()) {
         stub = object_store->init_late_final_instance_field_stub();

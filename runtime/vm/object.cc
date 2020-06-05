@@ -9957,6 +9957,7 @@ bool Field::IsUninitialized() const {
 
 FunctionPtr Field::EnsureInitializerFunction() const {
   ASSERT(has_nontrivial_initializer());
+  ASSERT(IsOriginal());
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Function& initializer = Function::Handle(zone, InitializerFunction());
@@ -9964,16 +9965,32 @@ FunctionPtr Field::EnsureInitializerFunction() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
 #else
-    initializer = kernel::CreateFieldInitializerFunction(thread, zone, *this);
-    SetInitializerFunction(initializer);
+    SafepointMutexLocker ml(
+        thread->isolate()->group()->initializer_functions_mutex());
+    // Double check after grabbing the lock.
+    initializer = InitializerFunction();
+    if (initializer.IsNull()) {
+      initializer = kernel::CreateFieldInitializerFunction(thread, zone, *this);
+    }
 #endif
   }
   return initializer.raw();
 }
 
 void Field::SetInitializerFunction(const Function& initializer) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   ASSERT(IsOriginal());
-  StorePointer(&raw_ptr()->initializer_function_, initializer.raw());
+  ASSERT(IsolateGroup::Current()
+             ->initializer_functions_mutex()
+             ->IsOwnedByCurrentThread());
+  // We have to ensure that all stores into the initializer function object
+  // happen before releasing the pointer to the initializer as it may be
+  // accessed without grabbing the lock.
+  StorePointer<FunctionPtr, std::memory_order_release>(
+      &raw_ptr()->initializer_function_, initializer.raw());
+#endif
 }
 
 bool Field::HasInitializerFunction() const {

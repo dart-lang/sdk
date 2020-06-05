@@ -4256,6 +4256,8 @@ class Field : public Object {
 
   FunctionPtr EnsureInitializerFunction() const;
   FunctionPtr InitializerFunction() const {
+    // We rely on the fact that any loads from the initializer function
+    // are dependent loads and avoid the load-acquire barrier here.
     return raw_ptr()->initializer_function_;
   }
   void SetInitializerFunction(const Function& initializer) const;
