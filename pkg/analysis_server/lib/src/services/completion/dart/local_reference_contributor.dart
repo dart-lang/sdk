@@ -36,6 +36,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
       if (opType.includeReturnValueSuggestions ||
           opType.includeTypeNameSuggestions ||
           opType.includeVoidReturnSuggestions ||
+          opType.includeConstructorSuggestions ||
           suggestLocalFields) {
         // Do not suggest local variables within the current expression.
         while (node is Expression) {
@@ -94,6 +95,10 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   /// Only used when [useNewRelevance] is `false`.
   int privateMemberRelevance = DART_RELEVANCE_DEFAULT;
 
+  /// As elements are added locally, walking up the AST structure, we don't add
+  /// completions if we have previously see some [Element] name.
+  final Set<String> declaredNames = {};
+
   _LocalVisitor(this.request, this.builder, {@required this.suggestLocalFields})
       : opType = request.opType,
         useNewRelevance = request.useNewRelevance,
@@ -137,8 +142,23 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredClass(ClassDeclaration declaration) {
-    if (opType.includeTypeNameSuggestions) {
-      builder.suggestClass(declaration.declaredElement, kind: _defaultKind);
+    var classElt = declaration.declaredElement;
+    if (shouldSuggest(classElt)) {
+      if (opType.includeTypeNameSuggestions) {
+        builder.suggestClass(classElt, kind: _defaultKind);
+      }
+
+      // Generate the suggestion for the constructors we are required to loop
+      // through elements here instead of using declaredConstructor() due to
+      // implicit constructors (i.e. there is no AstNode for an implicit
+      // constructor)
+      if (!opType.isPrefixed && opType.includeConstructorSuggestions) {
+        for (var constructor in classElt.constructors) {
+          if (!classElt.isAbstract || constructor.isFactory) {
+            builder.suggestConstructor(constructor);
+          }
+        }
+      }
     }
   }
 
@@ -151,9 +171,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredConstructor(ConstructorDeclaration declaration) {
-    // TODO(jwren) ignored, currently handled by
-    //  local_constructor_contributor_test.dart, consider moving the
-    //  functionality into this file.
+    // ignored: constructor completions are handled in declaredClass() above
   }
 
   @override
@@ -240,7 +258,8 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredLocalVar(SimpleIdentifier id, TypeAnnotation typeName) {
-    if (opType.includeReturnValueSuggestions) {
+    if (shouldSuggest(id.staticElement) &&
+        opType.includeReturnValueSuggestions) {
       builder.suggestLocalVariable(id.staticElement as LocalVariableElement);
     }
   }
@@ -307,6 +326,12 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       builder.suggestTypeParameter(node.declaredElement);
     }
   }
+
+  /// Before completions are added by this contributor, we verify with this
+  /// method if the element has already been added, this prevents suggesting
+  /// [Element]s that are shadowed.
+  bool shouldSuggest(Element element) =>
+      element != null && declaredNames.add(element.name);
 
   /// Return `true` if the [identifier] is composed of one or more underscore
   /// characters and nothing else.

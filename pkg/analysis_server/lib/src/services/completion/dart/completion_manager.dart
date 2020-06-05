@@ -24,7 +24,6 @@ import 'package:analysis_server/src/services/completion/dart/keyword_contributor
 import 'package:analysis_server/src/services/completion/dart/label_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/library_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/library_prefix_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/local_constructor_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/local_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/named_constructor_contributor.dart';
@@ -140,7 +139,6 @@ class DartCompletionManager implements CompletionContributor {
       LabelContributor(),
       LibraryMemberContributor(),
       LibraryPrefixContributor(),
-      LocalConstructorContributor(),
       LocalLibraryContributor(),
       LocalReferenceContributor(),
       NamedConstructorContributor(),
