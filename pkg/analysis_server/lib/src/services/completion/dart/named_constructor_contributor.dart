@@ -19,13 +19,11 @@ class NamedConstructorContributor extends DartCompletionContributor {
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request, SuggestionBuilder builder) async {
     var node = request.target.containingNode;
-    var libraryElement = request.libraryElement;
-    if (libraryElement == null) {
-      return const <CompletionSuggestion>[];
-    }
-
-    // Build the list of suggestions
     if (node is ConstructorName) {
+      var libraryElement = request.libraryElement;
+      if (libraryElement == null) {
+        return const <CompletionSuggestion>[];
+      }
       var typeName = node.type;
       if (typeName != null) {
         var type = typeName.type;
