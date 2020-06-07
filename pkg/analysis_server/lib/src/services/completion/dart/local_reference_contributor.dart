@@ -214,8 +214,9 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredFunction(FunctionDeclaration declaration) {
-    if (opType.includeReturnValueSuggestions ||
-        opType.includeVoidReturnSuggestions) {
+    if (shouldSuggest(declaration.declaredElement) &&
+        (opType.includeReturnValueSuggestions ||
+            opType.includeVoidReturnSuggestions)) {
       if (declaration.isSetter) {
         if (!opType.includeVoidReturnSuggestions) {
           return;

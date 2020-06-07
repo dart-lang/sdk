@@ -3053,6 +3053,20 @@ class C2 { }
     assertNotSuggested('name');
   }
 
+  Future<void> test_FunctionDeclaration_shadowed() async {
+    // Block  BlockFunctionBody  FunctionDeclaration
+    addTestSource('''
+void bar() {
+  int bar = 1;
+  ^
+}
+''');
+    await computeSuggestions();
+
+    assertNotSuggested('bar', elemKind: ElementKind.FUNCTION);
+    assertSuggest('bar', elemKind: ElementKind.LOCAL_VARIABLE);
+  }
+
   Future<void> test_FunctionExpression_body_function() async {
     // Block  BlockFunctionBody  FunctionExpression
     addTestSource('''
