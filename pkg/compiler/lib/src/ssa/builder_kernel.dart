@@ -1494,7 +1494,13 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         // handler or check types at this point.
         return;
       }
-      HInstruction newParameter = localsHandler.directLocals[local];
+      if (elidedParameters.contains(local)) {
+        // Elided parameters are initialized to a default value that is
+        // statically checked.
+        return;
+      }
+
+      HInstruction newParameter = localsHandler.readLocal(local);
       assert(newParameter != null, "No initial instruction for ${local}.");
       DartType type = _getDartTypeIfValid(variable.type);
 
@@ -1508,7 +1514,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
             targetElement, newParameter, type);
       }
 
-      localsHandler.directLocals[local] = newParameter;
+      localsHandler.updateLocal(local, newParameter);
     }
 
     function.positionalParameters.forEach(_handleParameter);

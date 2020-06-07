@@ -2309,6 +2309,9 @@ class HLocalGet extends HLocalAccess {
   accept(HVisitor visitor) => visitor.visitLocalGet(this);
 
   HLocalValue get local => inputs[0];
+
+  @override
+  String toString() => 'HLocalGet($local).$hashCode';
 }
 
 class HLocalSet extends HLocalAccess {
