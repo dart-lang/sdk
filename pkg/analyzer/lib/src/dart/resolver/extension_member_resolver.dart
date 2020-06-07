@@ -256,24 +256,32 @@ class ExtensionMemberResolver {
 
     var instantiatedExtensions = <_InstantiatedExtension>[];
     for (var candidate in candidates) {
-      var typeParameters = candidate.extension.typeParameters;
-      var inferrer = GenericInferrer(_typeSystem, typeParameters);
+      var extension = candidate.extension;
+
+      var freshTypes = getFreshTypeParameters(extension.typeParameters);
+      var freshTypeParameters = freshTypes.freshTypeParameters;
+      var rawExtendedType = freshTypes.substitute(extension.extendedType);
+
+      var inferrer = GenericInferrer(_typeSystem, freshTypeParameters);
       inferrer.constrainArgument(
         type,
-        candidate.extension.extendedType,
+        rawExtendedType,
         'extendedType',
       );
-      var typeArguments = inferrer.infer(typeParameters, failAtError: true);
+      var typeArguments = inferrer.infer(
+        freshTypeParameters,
+        failAtError: true,
+      );
       if (typeArguments == null) {
         continue;
       }
 
       var substitution = Substitution.fromPairs(
-        typeParameters,
+        extension.typeParameters,
         typeArguments,
       );
       var extendedType = substitution.substituteType(
-        candidate.extension.extendedType,
+        extension.extendedType,
       );
       if (!_isSubtypeOf(type, extendedType)) {
         continue;
