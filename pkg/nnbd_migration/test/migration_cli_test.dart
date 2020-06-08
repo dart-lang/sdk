@@ -1109,7 +1109,7 @@ int f() => null;
     var cli = MigrationCli(binaryName: 'nnbd_migration');
     cli.decodeCommandLineArgs(_parseArgs([]));
     expect(
-        File(path.join(cli.options.sdkPath, 'version')).existsSync(), isTrue);
+        Directory(path.join(cli.options.sdkPath, 'bin')).existsSync(), isTrue);
   }
 
   test_option_sdk_hidden() async {
