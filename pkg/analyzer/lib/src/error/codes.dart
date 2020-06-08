@@ -871,11 +871,28 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: the name of the type variable
    */
   static const CompileTimeErrorCode CONFLICTING_TYPE_VARIABLE_AND_CLASS =
-      CompileTimeErrorCode(
+      CompileTimeErrorCodeWithUniqueName(
+          'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
           'CONFLICTING_TYPE_VARIABLE_AND_CLASS',
           "'{0}' can't be used to name both a type variable and the class in "
               "which the type variable is defined.",
           correction: "Try renaming either the type variable or the class.");
+
+  /**
+   * It is a compile time error if an extension declares a type parameter with
+   * the same name as the extension.
+   *
+   * Parameters:
+   * 0: the name of the type variable
+   */
+  static const CompileTimeErrorCode CONFLICTING_TYPE_VARIABLE_AND_EXTENSION =
+      CompileTimeErrorCodeWithUniqueName(
+          'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
+          'CONFLICTING_TYPE_VARIABLE_AND_EXTENSION',
+          "'{0}' can't be used to name both a type variable and the extension "
+              "in which the type variable is defined.",
+          correction:
+              "Try renaming either the type variable or the extension.");
 
   /**
    * 7. Classes: It is a compile time error if a generic class declares a type
@@ -885,11 +902,25 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the name of the type variable
    */
-  static const CompileTimeErrorCode CONFLICTING_TYPE_VARIABLE_AND_MEMBER =
-      CompileTimeErrorCode(
+  static const CompileTimeErrorCode CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS =
+      CompileTimeErrorCodeWithUniqueName(
           'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
+          'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS',
           "'{0}' can't be used to name both a type variable and a member in "
               "this class.",
+          correction: "Try renaming either the type variable or the member.");
+
+  /**
+   * It is a compile time error if a generic extension declares a member with
+   * the same basename as the name of any of the extension's type parameters.
+   */
+  static const CompileTimeErrorCode
+      CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION =
+      CompileTimeErrorCodeWithUniqueName(
+          'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
+          'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION',
+          "'{0}' can't be used to name both a type variable and a member in "
+              "this extension.",
           correction: "Try renaming either the type variable or the member.");
 
   /**

@@ -18,21 +18,6 @@ main() {
 
 @reflectiveTest
 class ConflictingGenericInterfacesTest extends DriverResolutionTest {
-  disabled_test_hierarchyLoop_infinite() async {
-    // There is an interface conflict here due to a loop in the class
-    // hierarchy leading to an infinite set of implemented types; this loop
-    // shouldn't cause non-termination.
-
-    // TODO(paulberry): this test is currently disabled due to non-termination
-    // bugs elsewhere in the analyzer.
-    await assertErrorsInCode('''
-class A<T> implements B<List<T>> {}
-class B<T> implements A<List<T>> {}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 0, 0),
-    ]);
-  }
-
   test_class_extends_implements() async {
     await assertErrorsInCode('''
 class I<T> {}
@@ -75,6 +60,15 @@ mixin M on A implements B {}
 ''', [
       error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 75, 28),
     ]);
+  }
+
+  test_noConflict() async {
+    await assertNoErrorsInCode('''
+class I<T> {}
+class A implements I<int> {}
+class B implements I<int> {}
+class C extends A implements B {}
+''');
   }
 }
 
