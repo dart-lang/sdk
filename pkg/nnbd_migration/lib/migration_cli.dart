@@ -248,7 +248,32 @@ class MigrationCli {
         resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE;
 
+  @visibleForTesting
+  DriverBasedAnalysisContext get analysisContext {
+    // Handle the case of more than one analysis context being found (typically,
+    // the current directory and one or more sub-directories).
+    if (hasMultipleAnalysisContext) {
+      return contextCollection.contextFor(options.directory)
+          as DriverBasedAnalysisContext;
+    } else {
+      return contextCollection.contexts.single as DriverBasedAnalysisContext;
+    }
+  }
+
   Ansi get ansi => logger.ansi;
+
+  AnalysisContextCollection get contextCollection {
+    _contextCollection ??= AnalysisContextCollectionImpl(
+        includedPaths: [options.directory],
+        resourceProvider: resourceProvider,
+        sdkPath: pathContext.normalize(options.sdkPath));
+    return _contextCollection;
+  }
+
+  @visibleForTesting
+  bool get hasMultipleAnalysisContext {
+    return contextCollection.contexts.length > 1;
+  }
 
   Context get pathContext => resourceProvider.pathContext;
 
@@ -457,31 +482,6 @@ Use this interactive web view to review, improve, or apply the results.
           '--${CommandLineOptions.applyChangesFlag}.');
     }
     exitCode = 0;
-  }
-
-  AnalysisContextCollection get contextCollection {
-    _contextCollection ??= AnalysisContextCollectionImpl(
-        includedPaths: [options.directory],
-        resourceProvider: resourceProvider,
-        sdkPath: pathContext.normalize(options.sdkPath));
-    return _contextCollection;
-  }
-
-  @visibleForTesting
-  DriverBasedAnalysisContext get analysisContext {
-    // Handle the case of more than one analysis context being found (typically,
-    // the current directory and one or more sub-directories).
-    if (hasMultipleAnalysisContext) {
-      return contextCollection.contextFor(options.directory)
-          as DriverBasedAnalysisContext;
-    } else {
-      return contextCollection.contexts.single as DriverBasedAnalysisContext;
-    }
-  }
-
-  @visibleForTesting
-  bool get hasMultipleAnalysisContext {
-    return contextCollection.contexts.length > 1;
   }
 
   /// Perform the indicated source edits to the given source, returning the
