@@ -24,6 +24,30 @@ class InvalidNullAwareOperatorTest extends DriverResolutionTest {
       [EnableString.non_nullable],
     );
 
+  test_getter_class() async {
+    await assertNoErrorsInCode('''
+class C {
+  static int x = 0;
+}
+
+f() {
+  C?.x;
+}
+''');
+  }
+
+  test_getter_extension() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  static int x = 0;
+}
+
+f() {
+  E?.x;
+}
+''');
+  }
+
   test_getter_legacy() async {
     newFile('/test/lib/a.dart', content: r'''
 // @dart = 2.5
@@ -36,6 +60,18 @@ import 'a.dart';
 f() {
   x?.isEven;
   x?..isEven;
+}
+''');
+  }
+
+  test_getter_mixin() async {
+    await assertNoErrorsInCode('''
+mixin M {
+  static int x = 0;
+}
+
+f() {
+  M?.x;
 }
 ''');
   }
@@ -57,18 +93,6 @@ f(int x) {
 f(int? x) {
   x?.isEven;
   x?..isEven;
-}
-''');
-  }
-
-  test_getter_Type() async {
-    await assertNoErrorsInCode('''
-class C {
-  static int x = 0;
-}
-
-f() {
-  C?.x;
 }
 ''');
   }
@@ -114,6 +138,30 @@ f(List<int>? x) {
 ''');
   }
 
+  test_method_class() async {
+    await assertNoErrorsInCode('''
+class C {
+  static void foo() {}
+}
+
+f() {
+  C?.foo();
+}
+''');
+  }
+
+  test_method_extension() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  static void foo() {}
+}
+
+f() {
+  E?.foo();
+}
+''');
+  }
+
   test_method_legacy() async {
     newFile('/test/lib/a.dart', content: r'''
 // @dart = 2.5
@@ -126,6 +174,18 @@ import 'a.dart';
 f() {
   x?.round();
   x?..round();
+}
+''');
+  }
+
+  test_method_mixin() async {
+    await assertNoErrorsInCode('''
+mixin M {
+  static void foo() {}
+}
+
+f() {
+  M?.foo();
 }
 ''');
   }
@@ -188,6 +248,42 @@ f(List<int> x) {
     await assertNoErrorsInCode('''
 f(List<int>? x) {
   [...?x];
+}
+''');
+  }
+
+  test_setter_class() async {
+    await assertNoErrorsInCode('''
+class C {
+  static int x = 0;
+}
+
+f() {
+  C?.x = 0;
+}
+''');
+  }
+
+  test_setter_extension() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  static int x = 0;
+}
+
+f() {
+  E?.x = 0;
+}
+''');
+  }
+
+  test_setter_mixin() async {
+    await assertNoErrorsInCode('''
+mixin M {
+  static int x = 0;
+}
+
+f() {
+  M?.x = 0;
 }
 ''');
   }

@@ -917,7 +917,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForStaticAccessToInstanceMember(typeReference, methodName);
       _checkForInstanceAccessToStaticMember(
           typeReference, node.target, methodName);
-      _checkForUnnecessaryNullAware(target, node.operator);
+
+      // For `C?.foo()` the type of `C` is not set, it is not an expression.
+      if (target.staticType != null) {
+        _checkForUnnecessaryNullAware(target, node.operator);
+      }
     } else {
       _checkForUnqualifiedReferenceToNonLocalStaticMember(methodName);
     }
