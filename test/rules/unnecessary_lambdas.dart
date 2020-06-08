@@ -4,7 +4,20 @@
 
 // test w/ `pub run test -N unnecessary_lambdas`
 
+// ignore_for_file: always_declare_return_types
+// ignore_for_file: omit_local_variable_types
+// ignore_for_file: prefer_expression_function_bodies
+// ignore_for_file: unused_local_variable
 
+int count(String s) => s.length;
+final strings = ['a', 'bb', 'ccc', 'dddd'];
+
+// ignore: avoid_annotating_with_dynamic
+typedef F = int Function(dynamic s);
+
+F f  = (s) => count(s); //OK
+
+final map = Map<String, int>.fromIterable(strings, value: (s) => count(s)); //OK
 
 Function stateList<T>(int finder) {
   return (int element) => _stateOf<T>(element, finder); // OK
@@ -44,15 +57,14 @@ class MyClass {
 }
 
 void main() {
+
   final List<String> finalList = [];
   List<String> nonFinalList = [];
 
   final array = <MyClass>[];
-  final x = new MyClass();
+  final x = MyClass();
 
-  // ignore: unused_local_variable
   final notRelevantQuestionPeriod = (p) => array[x?.m1].m2(p); // OK
-  // ignore: unused_local_variable
   final correctNotRelevantQuestionPeriod = array[x?.m1].m2; // OK
 
   finalList.forEach((name) { // LINT
@@ -67,16 +79,11 @@ void main() {
   finalList.where(finalList.contains); // OK
 
   // Lambdas assigned to variables.
-  // ignore: unused_local_variable
   var a = (() => finalList.removeLast()); // LINT
-  // ignore: unused_local_variable
   var b = (() => nonFinalList.removeLast()); // OK
-  // ignore: unused_local_variable
   var c = (() => finalList?.removeLast()); // OK
-// ignore: unused_local_variable
   var d = finalList.removeLast; // OK
 
-  // ignore: unused_local_variable
   var asyncLambda = (() async => finalList.removeLast()); // OK
 
   finalList.where((e) => e.contains(e)); // OK
@@ -95,7 +102,6 @@ void main() {
   finalList.where((e) => // OK
       ((a) => e?.contains(a))(e)); // OK
 
-  // ignore: unused_local_variable
   var noStatementLambda = () { // OK
     // Empty lambda
   };
@@ -105,7 +111,6 @@ void main() {
     print(name); // More than one statement
   });
 
-  // ignore: unused_local_variable
   var deeplyNestedVariable = (a, b) { // OK
     foo(foo(b)).foo(a, b);
   };
@@ -117,14 +122,11 @@ void method() {
   List<List> names = [];
   names.add(names);
 
-  // ignore: unused_local_variable
   var a = names.where((e) => ((e) => e.contains(e))(e)); // LINT
-  // ignore: unused_local_variable
   var b = names.where((e) => // LINT
       ((e) => e?.contains(e))(e));
   names.where((e) => e?.contains(e)); // OK
 
-  // ignore: unused_local_variable
   var c = names.where((e) { // LINT
     return ((e) {
       return e.contains(e);
@@ -155,8 +157,6 @@ void reportedFalsePositive() {
 
 void reportedTruePositive () {
   final f = (){ };
-  // ignore: unused_local_variable
   final lambda = () { f(); }; // LINT
-  // ignore: unused_local_variable
   final equivalent = f; // OK
 }

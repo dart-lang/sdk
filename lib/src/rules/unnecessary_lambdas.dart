@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../util/dart_type_utilities.dart';
@@ -56,7 +57,7 @@ class UnnecessaryLambdas extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    final visitor = _Visitor(this, context);
     registry.addFunctionExpression(this, visitor);
   }
 }
@@ -111,8 +112,9 @@ class _FinalExpressionChecker {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+  final LinterContext context;
 
-  _Visitor(this.rule);
+  _Visitor(this.rule, this.context);
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
@@ -145,15 +147,41 @@ class _Visitor extends SimpleAstVisitor<void> {
         node.argumentList.arguments, nodeToLint.parameters.parameters)) {
       return;
     }
+
+    bool isTearoffAssignable(DartType assignedType) {
+      if (assignedType != null) {
+        var tearoffType = node.staticInvokeType;
+        if (!context.typeSystem.isSubtypeOf(tearoffType, assignedType)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
     final parameters =
         nodeToLint.parameters.parameters.map((e) => e.declaredElement).toSet();
-
     if (node is FunctionExpressionInvocation) {
+      // todo (pq): consider checking for assignability
+      // see: https://github.com/dart-lang/linter/issues/1561
       var checker = _FinalExpressionChecker(parameters);
       if (checker.isFinalNode(node.function)) {
         rule.reportLint(nodeToLint);
       }
     } else if (node is MethodInvocation) {
+      var parent = nodeToLint.parent;
+      if (parent is NamedExpression) {
+        var argType = parent.staticType;
+        if (!isTearoffAssignable(argType)) {
+          return;
+        }
+      } else if (parent is VariableDeclaration) {
+        var variableDeclarationList = parent.parent as VariableDeclarationList;
+        var variableType = variableDeclarationList.type?.type;
+        if (!isTearoffAssignable(variableType)) {
+          return;
+        }
+      }
+
       var checker = _FinalExpressionChecker(parameters);
       if (!_containsNullAwareInvocationInChain(node) &&
           checker.isFinalNode(node.target) &&
