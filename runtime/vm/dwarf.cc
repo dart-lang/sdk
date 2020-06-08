@@ -367,34 +367,34 @@ void Dwarf::WriteCompilationUnit() {
   string("Dart VM");             // DW_AT_producer
   string("");                    // DW_AT_comp_dir
 
-  // DW_AT_low_pc
-  // The lowest instruction address in this object file that is part of our
-  // compilation unit. Dwarf consumers use this to quickly decide which
-  // compilation unit DIE to consult for a given pc.
+  // DW_AT_low_pc and DW_AT_high_pc
+  // The lowest and highest instruction addresses in this object file that are
+  // part of our compilation unit. Dwarf consumers use this to quickly decide
+  // which compilation unit DIE to consult for a given pc.
+  //
+  // Currently, we only write DWARF information for Dart code and only the
+  // isolate contains instructions compiled from Dart code. If we ever add Dart
+  // code to the VM snapshot, this will need to be adjusted.
   if (asm_stream_ != nullptr) {
+    // DW_AT_low_pc
     PrintNamedAddress(kIsolateSnapshotInstructionsAsmSymbol);
-  }
-  if (elf_ != nullptr) {
-    intptr_t offset;
-    if (!elf_->FindDynamicSymbol(kIsolateSnapshotInstructionsAsmSymbol, &offset,
-                                 nullptr)) {
-      UNREACHABLE();
-    }
-    addr(offset);
-  }
-
-  // DW_AT_high_pc
-  // The highest instruction address in this object file that is part of our
-  // compilation unit. Dwarf consumers use this to quickly decide which
-  // compilation unit DIE to consult for a given pc.
-  if (asm_stream_ != nullptr) {
+    // DW_AT_high_pc
     intptr_t last_code_index = codes_.length() - 1;
     const Code& last_code = *(codes_[last_code_index]);
     PrintNamedAddressWithOffset(
         namer.SnapshotNameFor(last_code_index, last_code), last_code.Size());
   }
   if (elf_ != nullptr) {
-    addr(elf_->NextMemoryOffset());
+    intptr_t offset;
+    intptr_t size;
+    if (!elf_->FindDynamicSymbol(kIsolateSnapshotInstructionsAsmSymbol, &offset,
+                                 &size)) {
+      UNREACHABLE();
+    }
+    // DW_AT_low_pc
+    addr(offset);
+    // DW_AT_high_pc
+    addr(offset + size);
   }
 
   // DW_AT_stmt_list (offset into .debug_line)
