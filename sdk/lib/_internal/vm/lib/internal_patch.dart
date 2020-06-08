@@ -15,7 +15,7 @@ import "dart:isolate" show SendPort;
 import "dart:typed_data" show Int32List;
 
 /// These are the additional parts of this patch library:
-// part "class_id.dart";
+// part "class_id_fasta.dart";
 // part "print_patch.dart";
 // part "symbol_patch.dart";
 
