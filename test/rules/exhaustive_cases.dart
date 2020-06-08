@@ -40,6 +40,17 @@ void ok(E e) {
   }
 }
 
+void okDefault(E e) {
+  // Missing cases w/ default is OK.
+  switch(e) { // OK
+    case E.e :
+      print('e');
+      break;
+    default :
+      print('default');
+      break;
+  }
+}
 
 // Not Enum-like
 class Subclassed {

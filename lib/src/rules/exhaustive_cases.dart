@@ -128,6 +128,9 @@ class _Visitor extends SimpleAstVisitor {
             enumConstantNames.remove(expression.propertyName.name);
           }
         }
+        if (member is SwitchDefault) {
+          return;
+        }
       }
 
       for (var constantName in enumConstantNames) {
