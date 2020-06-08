@@ -4270,6 +4270,10 @@ bool Class::InjectCIDFields() const {
 #define ADD_SET_FIELD(clazz) {"cid" #clazz, kTypedData##clazz##Cid},
               CLASS_LIST_TYPED_DATA(ADD_SET_FIELD)
 #undef ADD_SET_FIELD
+#define ADD_SET_FIELD(clazz)                                                   \
+  {"cidExternal" #clazz, kExternalTypedData##clazz##Cid},
+                  CLASS_LIST_TYPED_DATA(ADD_SET_FIELD)
+#undef ADD_SET_FIELD
 #undef CLASS_LIST_WITH_NULL
   };
 
@@ -13508,6 +13512,7 @@ void Library::CheckFunctionFingerprints() {
   all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::CollectionLibrary()));
+  all_libs.Add(&Library::ZoneHandle(Library::ConvertLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::InternalLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::FfiLibrary()));
   ASYNC_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS2);

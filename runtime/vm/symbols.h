@@ -425,6 +425,7 @@ class ObjectPointerVisitor;
   V(_Uint8ClampedList, "_Uint8ClampedList")                                    \
   V(_Uint8List, "_Uint8List")                                                  \
   V(_UserTag, "_UserTag")                                                      \
+  V(_Utf8Decoder, "_Utf8Decoder")                                              \
   V(_VariableMirror, "_VariableMirror")                                        \
   V(_WeakProperty, "_WeakProperty")                                            \
   V(_classRangeCheck, "_classRangeCheck")                                      \
@@ -441,6 +442,7 @@ class ObjectPointerVisitor;
   V(_resultOrListeners, "_resultOrListeners")                                  \
   V(_runExtension, "_runExtension")                                            \
   V(_runPendingImmediateCallback, "_runPendingImmediateCallback")              \
+  V(_scanFlags, "_scanFlags")                                                  \
   V(_setLength, "_setLength")                                                  \
   V(_simpleInstanceOf, "_simpleInstanceOf")                                    \
   V(_simpleInstanceOfFalse, "_simpleInstanceOfFalse")                          \

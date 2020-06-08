@@ -770,6 +770,10 @@ void ConstantPropagator::VisitStringInterpolate(StringInterpolateInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
+void ConstantPropagator::VisitUtf8Scan(Utf8ScanInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
 void ConstantPropagator::VisitLoadIndexed(LoadIndexedInstr* instr) {
   const Object& array_obj = instr->array()->definition()->constant_value();
   const Object& index_obj = instr->index()->definition()->constant_value();

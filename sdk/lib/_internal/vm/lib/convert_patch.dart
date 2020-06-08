@@ -16,6 +16,7 @@ import "dart:_internal"
         ClassID,
         patch,
         POWERS_OF_TEN,
+        unsafeCast,
         writeIntoOneByteString,
         writeIntoTwoByteString;
 
@@ -1669,11 +1670,51 @@ class _Utf8Decoder {
       "QQQQQQQQQQQQQQQQRRRRRbbbbbbbbbbb" // E0-FF
       ;
 
+  /// Max chunk to scan at a time. Avoids staying away from safepoints too long.
+  static const int scanChunkSize = 65536;
+
   /// Reset the decoder to a state where it is ready to decode a new string but
   /// will not skip a leading BOM. Used by the fused UTF-8 / JSON decoder.
   void reset() {
     _state = initial;
     _bomIndex = -1;
+  }
+
+  @pragma("vm:prefer-inline")
+  int scan(Uint8List bytes, int start, int end) {
+    // Assumes 0 <= start <= end <= bytes.length
+    int size = 0;
+    _scanFlags = 0;
+    int localStart = start;
+    while (end - localStart > scanChunkSize) {
+      int localEnd = localStart + scanChunkSize;
+      size += _scan(bytes, localStart, localEnd, scanTable);
+      localStart = localEnd;
+    }
+    size += _scan(bytes, localStart, end, scanTable);
+    return size;
+  }
+
+  // This method is recognized by the VM and compiled into specialized code.
+  @pragma("vm:prefer-inline")
+  int _scan(Uint8List bytes, int start, int end, String scanTable) {
+    int size = 0;
+    int flags = 0;
+    for (int i = start; i < end; i++) {
+      int t = scanTable.codeUnitAt(bytes[i]);
+      size += t & sizeMask;
+      flags |= t;
+    }
+    _scanFlags |= flags & flagsMask;
+    return size;
+  }
+
+  @pragma("vm:prefer-inline")
+  static bool _isNativeUint8List(List<int> codeUnits) {
+    final int cid = ClassID.getID(codeUnits);
+    return cid == ClassID.cidUint8ArrayView ||
+        cid == ClassID.cidUint8Array ||
+        cid == ClassID.cidExternalUint8Array;
   }
 
   // The VM decoder handles BOM explicitly instead of via the state machine.
@@ -1687,8 +1728,8 @@ class _Utf8Decoder {
     // Have bytes as Uint8List.
     Uint8List bytes;
     int errorOffset;
-    if (codeUnits is Uint8List) {
-      bytes = codeUnits;
+    if (_isNativeUint8List(codeUnits)) {
+      bytes = unsafeCast<Uint8List>(codeUnits);
       errorOffset = 0;
     } else {
       bytes = _makeUint8List(codeUnits, start, end);
@@ -1752,8 +1793,8 @@ class _Utf8Decoder {
     // Have bytes as Uint8List.
     Uint8List bytes;
     int errorOffset;
-    if (codeUnits is Uint8List) {
-      bytes = codeUnits;
+    if (_isNativeUint8List(codeUnits)) {
+      bytes = unsafeCast<Uint8List>(codeUnits);
       errorOffset = 0;
     } else {
       bytes = _makeUint8List(codeUnits, start, end);
@@ -1887,30 +1928,6 @@ class _Utf8Decoder {
     _bomIndex = -1;
     _state = initial;
     return i;
-  }
-
-  // Scanning functions to compute the size of the resulting string and flags
-  // (written to _scanFlags) indicating which decoder to use.
-  // TODO(dartbug.com/41702): Intrinsify this function.
-  int scan(Uint8List bytes, int start, int end) {
-    _scanFlags = 0;
-    for (int i = start; i < end; i++) {
-      if (bytes[i] > 127) return i - start + scan2(bytes, i, end);
-    }
-    return end - start;
-  }
-
-  int scan2(Uint8List bytes, int start, int end) {
-    final String scanTable = _Utf8Decoder.scanTable;
-    int size = 0;
-    int flags = 0;
-    for (int i = start; i < end; i++) {
-      int t = scanTable.codeUnitAt(bytes[i]);
-      size += t & sizeMask;
-      flags |= t;
-    }
-    _scanFlags = flags & flagsMask;
-    return size;
   }
 
   String decode8(Uint8List bytes, int start, int end, int size) {

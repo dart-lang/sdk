@@ -3055,14 +3055,9 @@ class Function : public Object {
   // dependencies. It will be compiled into optimized code immediately when it's
   // run.
   bool ForceOptimize() const {
-    if (IsFfiTrampoline()) {
-      return true;
-    }
-    if (IsTypedDataViewFactory() || IsFfiLoad() || IsFfiStore() ||
-        IsFfiFromAddress() || IsFfiGetAddress()) {
-      return true;
-    }
-    return false;
+    return IsFfiFromAddress() || IsFfiGetAddress() || IsFfiLoad() ||
+           IsFfiStore() || IsFfiTrampoline() || IsTypedDataViewFactory() ||
+           IsUtf8Scan();
   }
 
   bool CanBeInlined() const;
@@ -3349,6 +3344,11 @@ class Function : public Object {
   bool IsFfiGetAddress() const {
     const auto kind = recognized_kind();
     return kind == MethodRecognizer::kFfiGetAddress;
+  }
+
+  bool IsUtf8Scan() const {
+    const auto kind = recognized_kind();
+    return kind == MethodRecognizer::kUtf8DecoderScan;
   }
 
   bool IsAsyncFunction() const { return modifier() == FunctionLayout::kAsync; }

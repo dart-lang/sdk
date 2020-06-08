@@ -1003,6 +1003,14 @@ void Assembler::movmskps(Register dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst, src);
 }
 
+void Assembler::pmovmskb(Register dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0xD7);
+  EmitXmmRegisterOperand(dst, src);
+}
+
 void Assembler::sqrtsd(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF2);

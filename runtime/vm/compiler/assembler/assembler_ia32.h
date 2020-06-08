@@ -402,6 +402,7 @@ class Assembler : public AssemblerBase {
 
   void movmskpd(Register dst, XmmRegister src);
   void movmskps(Register dst, XmmRegister src);
+  void pmovmskb(Register dst, XmmRegister src);
 
   void sqrtsd(XmmRegister dst, XmmRegister src);
   void sqrtss(XmmRegister dst, XmmRegister src);

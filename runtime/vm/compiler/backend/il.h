@@ -468,6 +468,7 @@ struct InstrAttrs {
   M(StringToCharCode, kNoGC)                                                   \
   M(OneByteStringFromCharCode, kNoGC)                                          \
   M(StringInterpolate, _)                                                      \
+  M(Utf8Scan, kNoGC)                                                           \
   M(InvokeMathCFunction, _)                                                    \
   M(TruncDivMod, kNoGC)                                                        \
   /*We could be more precise about when these 2 instructions can trigger GC.*/ \
@@ -5558,6 +5559,76 @@ class StringInterpolateInstr : public TemplateDefinition<1, Throws> {
   Function& function_;
 
   DISALLOW_COPY_AND_ASSIGN(StringInterpolateInstr);
+};
+
+// Scanning instruction to compute the result size and decoding parameters
+// for the UTF-8 decoder. Equivalent to:
+//
+// int _scan(Uint8List bytes, int start, int end, _OneByteString table,
+//     _Utf8Decoder decoder) {
+//   int size = 0;
+//   int flags = 0;
+//   for (int i = start; i < end; i++) {
+//     int t = table.codeUnitAt(bytes[i]);
+//     size += t & sizeMask;
+//     flags |= t;
+//   }
+//   decoder._scanFlags |= flags & flagsMask;
+//   return size;
+// }
+//
+// under these assumptions:
+// - The start and end inputs are within the bounds of bytes and in smi range.
+// - The decoder._scanFlags field is unboxed or contains a smi.
+// - The first 128 entries of the table have the value 1.
+class Utf8ScanInstr : public TemplateDefinition<5, NoThrow> {
+ public:
+  Utf8ScanInstr(Value* decoder,
+                Value* bytes,
+                Value* start,
+                Value* end,
+                Value* table,
+                const Slot& decoder_scan_flags_field)
+      : scan_flags_field_(decoder_scan_flags_field) {
+    SetInputAt(0, decoder);
+    SetInputAt(1, bytes);
+    SetInputAt(2, start);
+    SetInputAt(3, end);
+    SetInputAt(4, table);
+  }
+
+  DECLARE_INSTRUCTION(Utf8Scan)
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx >= 0 || idx <= 4);
+    // The start and end inputs are unboxed, but in smi range.
+    if (idx == 2 || idx == 3) return kUnboxedIntPtr;
+    return kTagged;
+  }
+
+  virtual Representation representation() const { return kUnboxedIntPtr; }
+
+  virtual CompileType ComputeType() const { return CompileType::Int(); }
+  virtual bool HasUnknownSideEffects() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual intptr_t DeoptimizationTarget() const { return DeoptId::kNone; }
+
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return kNotSpeculative;
+  }
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    return scan_flags_field_.Equals(&other->AsUtf8Scan()->scan_flags_field_);
+  }
+
+  bool IsScanFlagsUnboxed() const;
+
+  PRINT_TO_SUPPORT
+
+ private:
+  const Slot& scan_flags_field_;
+
+  DISALLOW_COPY_AND_ASSIGN(Utf8ScanInstr);
 };
 
 class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {

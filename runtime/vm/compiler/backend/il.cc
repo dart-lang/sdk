@@ -5731,6 +5731,10 @@ StoreIndexedInstr::StoreIndexedInstr(Value* array,
   SetInputAt(kValuePos, value);
 }
 
+bool Utf8ScanInstr::IsScanFlagsUnboxed() const {
+  return FlowGraphCompiler::IsUnboxedField(scan_flags_field_.field());
+}
+
 InvokeMathCFunctionInstr::InvokeMathCFunctionInstr(
     ZoneGrowableArray<Value*>* inputs,
     intptr_t deopt_id,

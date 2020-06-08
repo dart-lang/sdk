@@ -565,6 +565,21 @@ Fragment BaseFlowGraphBuilder::ReachabilityFence() {
   return instructions;
 }
 
+Fragment BaseFlowGraphBuilder::Utf8Scan() {
+  Value* table = Pop();
+  Value* end = Pop();
+  Value* start = Pop();
+  Value* bytes = Pop();
+  Value* decoder = Pop();
+  const Field& scan_flags_field =
+      compiler::LookupConvertUtf8DecoderScanFlagsField();
+  auto scan = new (Z) Utf8ScanInstr(
+      decoder, bytes, start, end, table,
+      Slot::Get(MayCloneField(scan_flags_field), parsed_function_));
+  Push(scan);
+  return Fragment(scan);
+}
+
 Fragment BaseFlowGraphBuilder::StoreStaticField(TokenPosition position,
                                                 const Field& field) {
   return Fragment(
