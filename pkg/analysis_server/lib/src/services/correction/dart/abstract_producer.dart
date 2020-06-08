@@ -81,7 +81,7 @@ abstract class CorrectionProducer extends _AbstractCorrectionProducer {
   Future<void> compute(DartChangeBuilder builder);
 
   /// Return the class, enum or mixin declaration for the given [element].
-  Future<ClassOrMixinDeclaration> getClassDeclaration(
+  Future<ClassOrMixinDeclaration> getClassOrMixinDeclaration(
       ClassElement element) async {
     var result = await sessionHelper.getElementDeclaration(element);
     if (result.node is ClassOrMixinDeclaration) {

@@ -146,7 +146,7 @@ class CreateMethodOrFunction extends CorrectionProducer {
     // prepare environment
     var targetSource = targetClassElement.source;
     // prepare insert offset
-    var targetNode = await getClassDeclaration(targetClassElement);
+    var targetNode = await getClassOrMixinDeclaration(targetClassElement);
     if (targetNode == null) {
       return;
     }
