@@ -8871,7 +8871,7 @@ void Function::PrintQualifiedName(
     }
   }
 
-  if (fun.IsClosureFunction()) {
+  if (fun.IsNonImplicitClosureFunction()) {
     // Sniff the parent function.
     fun = fun.parent_function();
     ASSERT(!fun.IsNull());
