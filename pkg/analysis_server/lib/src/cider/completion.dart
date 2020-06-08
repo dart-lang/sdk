@@ -81,6 +81,7 @@ class CiderCompletionComputer {
     );
     var dartdocDirectiveInfo = DartdocDirectiveInfo();
 
+    var suggestionsTimer = Stopwatch()..start();
     var suggestions = await _logger.runAsync('Compute suggestions', () async {
       var includedElementKinds = <ElementKind>{};
       var includedElementNames = <String>{};
@@ -95,19 +96,23 @@ class CiderCompletionComputer {
 
       return await manager.computeSuggestions(completionRequest);
     });
+    suggestionsTimer.stop();
 
     _dartCompletionRequest = await DartCompletionRequestImpl.from(
       completionRequest,
       dartdocDirectiveInfo,
     );
 
+    var importsTimer = Stopwatch();
     if (_dartCompletionRequest.includeIdentifiers) {
       _logger.run('Add imported suggestions', () {
+        importsTimer.start();
         suggestions.addAll(
           _importedLibrariesSuggestions(
             resolvedUnit.libraryElement,
           ),
         );
+        importsTimer.stop();
       });
     }
 
@@ -124,7 +129,9 @@ class CiderCompletionComputer {
       suggestions: suggestions,
       performance: CiderCompletionPerformance(
         file: getFileTimer.elapsed,
+        imports: importsTimer.elapsed,
         resolution: resolutionTimer.elapsed,
+        suggestions: suggestionsTimer.elapsed,
       ),
       prefixStart: CiderPosition(line, column - filter._pattern.length),
     );
@@ -195,12 +202,20 @@ class CiderCompletionPerformance {
   /// The elapsed time for file access.
   final Duration file;
 
+  /// The elapsed time to compute import suggestions.
+  final Duration imports;
+
   /// The elapsed time for resolution.
   final Duration resolution;
 
+  /// The elapsed time to compute suggestions.
+  final Duration suggestions;
+
   CiderCompletionPerformance({
     @required this.file,
+    @required this.imports,
     @required this.resolution,
+    @required this.suggestions,
   });
 }
 
