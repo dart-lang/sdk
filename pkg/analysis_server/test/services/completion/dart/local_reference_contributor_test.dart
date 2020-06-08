@@ -2583,7 +2583,24 @@ A T;''');
     assertNotSuggested('x');
   }
 
-  Future<void> test_extensionDeclaration_unnamed() async {
+  Future<void> test_ExtensionDeclaration_shadowed() async {
+    // ExtensionDeclaration  CompilationUnit
+    addTestSource('''
+extension E on int {
+  void m() {
+    int E = 1;
+    ^
+  }
+}
+''');
+    await computeSuggestions();
+
+    assertNotSuggested('E', elemKind: ElementKind.EXTENSION);
+    assertSuggest('E', elemKind: ElementKind.LOCAL_VARIABLE);
+  }
+
+  Future<void> test_ExtensionDeclaration_unnamed() async {
+    // ExtensionDeclaration  CompilationUnit
     addTestSource('''
 extension on String {
   void something() => this.^
@@ -2615,6 +2632,23 @@ extension on String {
     await computeSuggestions();
 
     assertNoSuggestions();
+  }
+
+  Future<void> test_FieldDeclaration_shadowed() async {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // FieldDeclaration
+    addTestSource('''
+class A {
+  int foo;
+  void bar() {
+    int foo; ^
+  }
+}
+''');
+    await computeSuggestions();
+
+    assertNotSuggested('foo', elemKind: ElementKind.FIELD);
+    assertSuggest('foo', elemKind: ElementKind.LOCAL_VARIABLE);
   }
 
   Future<void> test_FieldFormalParameter_in_non_constructor() async {
@@ -4390,6 +4424,24 @@ class C2 {
     assertNotSuggested('name');
   }
 
+  Future<void> test_MethodDeclaration_shadowed() async {
+    // MethodDeclaration  ClassDeclaration  CompilationUnit
+    addTestSource('''
+class A {
+  void foo() {}
+  void bar(List list) {
+    for (var foo in list) {
+      ^
+    }
+  }
+}
+''');
+    await computeSuggestions();
+
+    assertNotSuggested('foo', elemKind: ElementKind.METHOD);
+    assertSuggest('foo', elemKind: ElementKind.LOCAL_VARIABLE);
+  }
+
   Future<void> test_MethodInvocation_no_semicolon() async {
     // MethodInvocation  ExpressionStatement  Block
     addTestSource('''
@@ -4438,7 +4490,7 @@ class X{}''');
     await computeSuggestions();
   }
 
-  Future<void> test_mixinDeclaration_body() async {
+  Future<void> test_MixinDeclaration_body() async {
     // MixinDeclaration  CompilationUnit
     addSource('/home/test/lib/b.dart', '''
 class B { }''');
@@ -4467,7 +4519,8 @@ A T;''');
     assertNotSuggested('x');
   }
 
-  Future<void> test_mixinDeclaration_method_access() async {
+  Future<void> test_MixinDeclaration_method_access() async {
+    // MixinDeclaration  CompilationUnit
     addTestSource(r'''
 class A { }
 
@@ -4480,7 +4533,8 @@ mixin X on A {
     assertSuggestMethod('_x', 'X', 'int');
   }
 
-  Future<void> test_mixinDeclaration_property_access() async {
+  Future<void> test_MixinDeclaration_property_access() async {
+    // MixinDeclaration  CompilationUnit
     addTestSource(r'''
 class A { }
 
@@ -4491,6 +4545,22 @@ mixin X on A {
 ''');
     await computeSuggestions();
     assertSuggestField('_x', 'int');
+  }
+
+  Future<void> test_MixinDeclaration_shadowed() async {
+    // MixinDeclaration  CompilationUnit
+    addTestSource('''
+mixin foo on Object {
+  void bar() {
+    int foo;
+    ^
+  }
+}
+''');
+    await computeSuggestions();
+
+    assertNotSuggested('foo', elemKind: ElementKind.MIXIN);
+    assertSuggest('foo', elemKind: ElementKind.LOCAL_VARIABLE);
   }
 
   Future<void> test_new_instance() async {
@@ -4520,6 +4590,19 @@ class B extends A {m() {^}}
 
     assertNotSuggested('int');
     assertNotSuggested('bool');
+  }
+
+  Future<void> test_parameterName_shadowed() async {
+    addTestSource('''
+foo(int bar) {
+  int bar;
+  ^
+}
+''');
+    await computeSuggestions();
+
+    assertNotSuggested('bar', elemKind: ElementKind.PARAMETER);
+    assertSuggest('bar', elemKind: ElementKind.LOCAL_VARIABLE);
   }
 
   Future<void> test_PrefixedIdentifier_class_const() async {
@@ -5213,6 +5296,22 @@ class X{}''');
     assertNotSuggested('==');
   }
 
+  Future<void> test_TopLevelVariableDeclaration_shadow() async {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // TopLevelVariableDeclaration
+    addTestSource('''
+var foo;
+void bar() {
+  var foo;
+  ^
+}
+''');
+    await computeSuggestions();
+
+    assertNotSuggested('foo', elemKind: ElementKind.TOP_LEVEL_VARIABLE);
+    assertSuggest('foo', elemKind: ElementKind.LOCAL_VARIABLE);
+  }
+
   Future<void> test_TopLevelVariableDeclaration_typed_name() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // TopLevelVariableDeclaration
@@ -5229,16 +5328,6 @@ class X{}''');
     await computeSuggestions();
 
     assertNoSuggestions();
-  }
-
-  Future<void> test_type_typeParameter_classDeclaration() async {
-    addTestSource('''
-class A<T> {
-  ^ m() {}
-}
-''');
-    await computeSuggestions();
-    assertSuggestTypeParameter('T');
   }
 
   Future<void> test_TypeArgumentList() async {
@@ -5286,6 +5375,30 @@ main() { C<C^> c; }''');
     expect(replacementLength, 1);
     assertNotSuggested('C1');
     assertSuggestClass('C2');
+  }
+
+  Future<void> test_TypeParameter_classDeclaration() async {
+    addTestSource('''
+class A<T> {
+  ^ m() {}
+}
+''');
+    await computeSuggestions();
+    assertSuggestTypeParameter('T');
+  }
+
+  Future<void> test_TypeParameter_shadowed() async {
+    addTestSource('''
+class A<T> {
+  m() {
+    int T;
+    ^
+  }
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('T', elemKind: ElementKind.TYPE_PARAMETER);
+    assertSuggest('T', elemKind: ElementKind.LOCAL_VARIABLE);
   }
 
   Future<void> test_VariableDeclaration_name() async {

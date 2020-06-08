@@ -189,17 +189,20 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredExtension(ExtensionDeclaration declaration) {
-    if (opType.includeReturnValueSuggestions && declaration.name != null) {
+    if (shouldSuggest(declaration.declaredElement) &&
+        opType.includeReturnValueSuggestions &&
+        declaration.name != null) {
       builder.suggestExtension(declaration.declaredElement, kind: _defaultKind);
     }
   }
 
   @override
   void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
-    if ((opType.includeReturnValueSuggestions &&
+    var field = varDecl.declaredElement;
+    if ((shouldSuggest(field) &&
+            opType.includeReturnValueSuggestions &&
             (!opType.inStaticMethodBody || fieldDecl.isStatic)) ||
         suggestLocalFields) {
-      var field = varDecl.declaredElement;
       var inheritanceDistance = -1.0;
       var enclosingClass = request.target.containingNode
           .thisOrAncestorOfType<ClassDeclaration>();
@@ -268,10 +271,11 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredMethod(MethodDeclaration declaration) {
-    if ((opType.includeReturnValueSuggestions ||
+    var element = declaration.declaredElement;
+    if (shouldSuggest(element) &&
+        (opType.includeReturnValueSuggestions ||
             opType.includeVoidReturnSuggestions) &&
         (!opType.inStaticMethodBody || declaration.isStatic)) {
-      var element = declaration.declaredElement;
       var inheritanceDistance = -1.0;
       var enclosingClass = request.target.containingNode
           .thisOrAncestorOfType<ClassDeclaration>();
@@ -292,18 +296,19 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredMixin(MixinDeclaration declaration) {
-    if (opType.includeTypeNameSuggestions) {
+    if (shouldSuggest(declaration.declaredElement) &&
+        opType.includeTypeNameSuggestions) {
       builder.suggestClass(declaration.declaredElement, kind: _defaultKind);
     }
   }
 
   @override
   void declaredParam(SimpleIdentifier id, TypeAnnotation typeName) {
-    if (opType.includeReturnValueSuggestions) {
+    var element = id.staticElement;
+    if (shouldSuggest(element) && opType.includeReturnValueSuggestions) {
       if (_isUnused(id.name)) {
         return;
       }
-      var element = id.staticElement;
       if (element is ParameterElement) {
         builder.suggestParameter(element);
       } else if (element is LocalVariableElement) {
@@ -315,8 +320,9 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   @override
   void declaredTopLevelVar(
       VariableDeclarationList varList, VariableDeclaration varDecl) {
-    if (opType.includeReturnValueSuggestions) {
-      var variableElement = varDecl.declaredElement;
+    var variableElement = varDecl.declaredElement;
+    if (shouldSuggest(variableElement) &&
+        opType.includeReturnValueSuggestions) {
       builder.suggestTopLevelPropertyAccessor(
           (variableElement as TopLevelVariableElement).getter);
     }
@@ -324,7 +330,8 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredTypeParameter(TypeParameter node) {
-    if (opType.includeTypeNameSuggestions) {
+    if (shouldSuggest(node.declaredElement) &&
+        opType.includeTypeNameSuggestions) {
       builder.suggestTypeParameter(node.declaredElement);
     }
   }
