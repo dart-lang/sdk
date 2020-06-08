@@ -709,7 +709,14 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   @override
-  List<InterfaceType> get interfaces {
+  List<InterfaceType> get interfaces =>
+      ElementTypeProvider.current.getClassInterfaces(this);
+
+  set interfaces(List<InterfaceType> interfaces) {
+    _interfaces = interfaces;
+  }
+
+  List<InterfaceType> get interfacesInternal {
     if (_interfaces != null) {
       return _interfaces;
     }
@@ -728,10 +735,6 @@ class ClassElementImpl extends AbstractClassElementImpl
       }
     }
     return _interfaces = const <InterfaceType>[];
-  }
-
-  set interfaces(List<InterfaceType> interfaces) {
-    _interfaces = interfaces;
   }
 
   @override
@@ -5155,8 +5158,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @override
   final LinkedUnitContext linkedContext;
 
-  @override
-  final bool isNonNullableByDefault;
+  final bool isNonNullableByDefaultInternal;
 
   /// The compilation unit that defines this library.
   CompilationUnitElement _definingCompilationUnit;
@@ -5202,7 +5204,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /// Initialize a newly created library element in the given [context] to have
   /// the given [name] and [offset].
   LibraryElementImpl(this.context, this.session, String name, int offset,
-      this.nameLength, this.isNonNullableByDefault)
+      this.nameLength, this.isNonNullableByDefaultInternal)
       : linkedContext = null,
         super(name, offset);
 
@@ -5215,7 +5217,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       this.linkedContext,
       Reference reference,
       CompilationUnit linkedNode)
-      : isNonNullableByDefault = linkedContext.isNNBD,
+      : isNonNullableByDefaultInternal = linkedContext.isNNBD,
         super.forLinkedNode(null, reference, linkedNode) {
     _name = name;
     _nameOffset = offset;
@@ -5444,6 +5446,10 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     }
     return false;
   }
+
+  @override
+  bool get isNonNullableByDefault =>
+      ElementTypeProvider.current.isLibraryNonNullableByDefault(this);
 
   /// Return `true` if the receiver directly or indirectly imports the
   /// 'dart:html' libraries.

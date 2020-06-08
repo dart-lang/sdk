@@ -82,6 +82,8 @@ class CompoundAssignmentReadNullable implements Problem {
 /// actually make the changes; it simply reports what changes are necessary
 /// through abstract methods.
 class FixBuilder {
+  final DecoratedClassHierarchy _decoratedClassHierarchy;
+
   /// The type provider providing non-nullable types.
   final TypeProvider typeProvider;
 
@@ -145,7 +147,7 @@ class FixBuilder {
   }
 
   FixBuilder._(
-      DecoratedClassHierarchy decoratedClassHierarchy,
+      this._decoratedClassHierarchy,
       this._typeSystem,
       this._variables,
       this.source,
@@ -157,7 +159,6 @@ class FixBuilder {
       this._graph)
       : typeProvider = _typeSystem.typeProvider {
     migrationResolutionHooks._fixBuilder = this;
-    // TODO(paulberry): make use of decoratedClassHierarchy
     assert(_typeSystem.isNonNullableByDefault);
     assert((typeProvider as TypeProviderImpl).isNonNullableByDefault);
     var inheritanceManager = InheritanceManager3();
@@ -313,6 +314,17 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
   }
 
   @override
+  List<InterfaceType> getClassInterfaces(ClassElementImpl element) {
+    return _wrapExceptions(
+        _fixBuilder.unit,
+        () => element.interfacesInternal,
+        () => [
+              for (var interface in element.interfacesInternal)
+                _getClassInterface(element, interface.element)
+            ]);
+  }
+
+  @override
   bool getConditionalKnownValue(AstNode node) =>
       _wrapExceptions(node, () => null, () {
         // TODO(paulberry): handle conditional expressions.
@@ -423,6 +435,12 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
   }
 
   @override
+  bool isLibraryNonNullableByDefault(LibraryElementImpl element) {
+    return _fixBuilder._graph.isBeingMigrated(element.source) ||
+        element.isNonNullableByDefaultInternal;
+  }
+
+  @override
   bool isMethodInvocationNullAware(MethodInvocation node) {
     return node.isNullAware &&
         (_shouldStayNullAware[node] ??= _fixBuilder._shouldStayNullAware(node));
@@ -519,6 +537,14 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
       }
       return node;
     }
+  }
+
+  InterfaceType _getClassInterface(
+      ClassElement class_, ClassElement superclass) {
+    var decoratedSupertype = _fixBuilder._decoratedClassHierarchy
+        .getDecoratedSupertype(class_, superclass);
+    var finalType = _fixBuilder._variables.toFinalType(decoratedSupertype);
+    return finalType as InterfaceType;
   }
 
   DartType _modifyRValueType(Expression node, DartType type,

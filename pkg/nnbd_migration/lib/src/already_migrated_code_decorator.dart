@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edge_origin.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
@@ -106,7 +107,7 @@ class AlreadyMigratedCodeDecorator {
       allSupertypes.add(supertype);
     }
     allSupertypes.addAll(class_.superclassConstraints);
-    allSupertypes.addAll(class_.interfaces);
+    allSupertypes.addAll(class_.preMigrationInterfaces);
     allSupertypes.addAll(class_.mixins);
     var type = class_.thisType;
     if (type.isDartAsyncFuture) {
@@ -117,5 +118,17 @@ class AlreadyMigratedCodeDecorator {
       for (var t in allSupertypes)
         decorate(t, class_, NullabilityNodeTarget.element(class_, _getLineInfo))
     ];
+  }
+}
+
+extension on ClassElement {
+  List<InterfaceType> get preMigrationInterfaces {
+    var previousElementTypeProvider = ElementTypeProvider.current;
+    try {
+      ElementTypeProvider.current = const ElementTypeProvider();
+      return interfaces;
+    } finally {
+      ElementTypeProvider.current = previousElementTypeProvider;
+    }
   }
 }
