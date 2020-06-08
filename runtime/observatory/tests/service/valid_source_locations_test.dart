@@ -17,7 +17,7 @@ void testFunction() {
 Future validateLocation(Location location, Object object) async {
   if (location == null) return;
   if (location.tokenPos < 0) return;
-  if (location.script.uri == 'dart:_internal-patch/class_id_fasta.dart') {
+  if (location.script.uri == 'dart:_internal-patch/class_id.dart') {
     // Injected fields from this script cannot be reloaded.
     return;
   }
