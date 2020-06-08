@@ -10,6 +10,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
@@ -252,6 +253,10 @@ class ExtensionMemberResolver {
   /// Return extensions for the [type] that match the given [name] in the
   /// current scope.
   List<_InstantiatedExtension> _getApplicable(DartType type, String name) {
+    if (identical(type, NeverTypeImpl.instance)) {
+      return const <_InstantiatedExtension>[];
+    }
+
     var candidates = _getExtensionsWithMember(name);
 
     var instantiatedExtensions = <_InstantiatedExtension>[];
