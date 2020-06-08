@@ -1,6 +1,5 @@
-## 0.6.2-dev
+## 0.6.2
 
-* Opt in to null safety.
 * Improved documentation.
 
 ## 0.6.1+1
