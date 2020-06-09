@@ -431,6 +431,16 @@ class B extends A {
 
 @reflectiveTest
 class ConflictingStaticAndInstanceEnumTest extends DriverResolutionTest {
+  test_hashCode() async {
+    await assertErrorsInCode(r'''
+enum E {
+  a, hashCode, b
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 14, 8),
+    ]);
+  }
+
   test_index() async {
     await assertErrorsInCode(r'''
 enum E {
@@ -438,6 +448,26 @@ enum E {
 }
 ''', [
       error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 14, 5),
+    ]);
+  }
+
+  test_noSuchMethod() async {
+    await assertErrorsInCode(r'''
+enum E {
+  a, noSuchMethod, b
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 14, 12),
+    ]);
+  }
+
+  test_runtimeType() async {
+    await assertErrorsInCode(r'''
+enum E {
+  a, runtimeType, b
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 14, 11),
     ]);
   }
 
