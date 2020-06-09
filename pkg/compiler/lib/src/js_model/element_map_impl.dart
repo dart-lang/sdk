@@ -138,8 +138,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     _elementEnvironment = new JsElementEnvironment(this);
     _typeConverter = new DartTypeConverter(options, this);
     _types = new KernelDartTypes(this, options);
-    _commonElements = new CommonElementsImpl(
-        _types, _elementEnvironment, _elementMap.options);
+    _commonElements = new CommonElementsImpl(_types, _elementEnvironment);
     _constantValuefier = new ConstantValuefier(this);
 
     programEnv = _elementMap.env.convert();
@@ -299,8 +298,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     _elementEnvironment = new JsElementEnvironment(this);
     _typeConverter = new DartTypeConverter(options, this);
     _types = new KernelDartTypes(this, options);
-    _commonElements =
-        new CommonElementsImpl(_types, _elementEnvironment, options);
+    _commonElements = new CommonElementsImpl(_types, _elementEnvironment);
     _constantValuefier = new ConstantValuefier(this);
 
     source.registerComponentLookup(new ComponentLookup(component));

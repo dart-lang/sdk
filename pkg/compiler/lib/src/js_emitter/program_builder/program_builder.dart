@@ -247,9 +247,7 @@ class ProgramBuilder {
 
     _markEagerClasses();
 
-    if (_options.useNewRti) {
-      associateNamedTypeVariablesNewRti();
-    }
+    associateNamedTypeVariablesNewRti();
 
     List<Holder> holders = _registry.holders.toList(growable: false);
 
@@ -982,20 +980,7 @@ class ProgramBuilder {
 
   js.Expression _generateFunctionType(ClassEntity /*?*/ enclosingClass,
           FunctionType type, OutputUnit outputUnit) =>
-      _options.useNewRti
-          ? _generateFunctionTypeNewRti(enclosingClass, type, outputUnit)
-          : _generateFunctionTypeLegacy(enclosingClass, type, outputUnit);
-
-  js.Expression _generateFunctionTypeLegacy(ClassEntity /*?*/ enclosingClass,
-      FunctionType type, OutputUnit outputUnit) {
-    if (type.containsTypeVariables) {
-      js.Expression thisAccess = js.js(r'this.$receiver');
-      return _rtiEncoder.getSignatureEncoding(
-          _namer, _task.emitter, type, thisAccess);
-    } else {
-      return _task.metadataCollector.reifyType(type, outputUnit);
-    }
-  }
+      _generateFunctionTypeNewRti(enclosingClass, type, outputUnit);
 
   js.Expression _generateFunctionTypeNewRti(ClassEntity /*?*/ enclosingClass,
       FunctionType type, OutputUnit outputUnit) {
@@ -1034,7 +1019,7 @@ class ProgramBuilder {
         _task.nativeEmitter,
         _namer,
         _rtiEncoder,
-        _options.useNewRti ? _rtiRecipeEncoder : null,
+        _rtiRecipeEncoder,
         _nativeData,
         _interceptorData,
         _codegenWorld,

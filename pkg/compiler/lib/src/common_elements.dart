@@ -15,7 +15,6 @@ import 'inferrer/abstract_value_domain.dart';
 import 'js_backend/native_data.dart' show NativeBasicData;
 import 'js_model/locals.dart';
 import 'kernel/dart2js_target.dart';
-import 'options.dart';
 import 'universe/selector.dart' show Selector;
 
 /// The common elements and types in Dart.
@@ -676,9 +675,8 @@ class CommonElementsImpl
   @override
   final DartTypes dartTypes;
   final ElementEnvironment _env;
-  final CompilerOptions _options;
 
-  CommonElementsImpl(this.dartTypes, this._env, this._options);
+  CommonElementsImpl(this.dartTypes, this._env);
 
   ClassEntity _objectClass;
   @override
@@ -1519,9 +1517,8 @@ class CommonElementsImpl
 
   ClassEntity _typeLiteralClass;
   @override
-  ClassEntity get typeLiteralClass => _typeLiteralClass ??= _options.useNewRti
-      ? _findRtiClass('_Type')
-      : _findHelperClass('TypeImpl');
+  ClassEntity get typeLiteralClass =>
+      _typeLiteralClass ??= _findRtiClass('_Type');
 
   ClassEntity _constMapLiteralClass;
   @override
@@ -1815,9 +1812,7 @@ class CommonElementsImpl
       _findHelperFunction('throwNoSuchMethod');
 
   @override
-  FunctionEntity get createRuntimeType => _options.useNewRti
-      ? _findRtiFunction('createRuntimeType')
-      : _findHelperFunction('createRuntimeType');
+  FunctionEntity get createRuntimeType => _findRtiFunction('createRuntimeType');
 
   @override
   FunctionEntity get fallThroughError =>

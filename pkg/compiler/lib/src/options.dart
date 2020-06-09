@@ -339,9 +339,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// called.
   bool experimentCallInstrumentation = false;
 
-  /// Whether to use the new RTI representation (default).
-  final bool useNewRti = true;
-
   /// Whether null-safety (non-nullable types) are enabled in the sdk.
   ///
   /// This may be true either when `--enable-experiment=non-nullable` is

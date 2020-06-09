@@ -443,9 +443,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       _registerBackendImpact(impactBuilder, _impacts.traceHelper);
     }
 
-    if (_options.useNewRti) {
-      _registerBackendImpact(impactBuilder, _impacts.rtiAddRules);
-    }
+    _registerBackendImpact(impactBuilder, _impacts.rtiAddRules);
 
     _registerBackendImpact(impactBuilder, _impacts.assertUnreachable);
     _registerCheckedModeHelpers(impactBuilder);
