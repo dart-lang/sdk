@@ -342,30 +342,6 @@ void defineTests() {
         expect(exitCode, 1);
       });
 
-      test('third_party_package_directives_before_own', () async {
-        var packagesFilePath = File('.packages').absolute.path;
-        await cli.run([
-          '--packages',
-          packagesFilePath,
-          'test/_data/directives_ordering/third_party_package_directives_before_own',
-          '--rules=directives_ordering'
-        ]);
-        expect(
-            collectingOut.trim(),
-            stringContainsInOrder([
-              "Place 'third-party' 'package:' imports before other imports.",
-              "import 'package:async/async.dart';  // LINT",
-              "Place 'third-party' 'package:' imports before other imports.",
-              "import 'package:yaml/yaml.dart';  // LINT",
-              "Place 'third-party' 'package:' exports before other exports.",
-              "export 'package:async/async.dart';  // LINT",
-              "Place 'third-party' 'package:' exports before other exports.",
-              "export 'package:yaml/yaml.dart';  // LINT",
-              '1 file analyzed, 4 issues found, in'
-            ]));
-        expect(exitCode, 1);
-      });
-
       test('export_directives_after_import_directives', () async {
         var packagesFilePath = File('.packages').absolute.path;
         await cli.run([
