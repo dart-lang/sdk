@@ -246,6 +246,45 @@ int/*?*/? y = x;
     expect(state.needsRerun, true);
   }
 
+  void test_applyHintAction_removeHint() async {
+    final path = convertPath('/home/tests/bin/test.dart');
+    final file = getFile(path);
+    final content = r'''
+int/*!*/ x;
+int y = x;
+''';
+    file.writeAsStringSync(content);
+    final migratedContent = '''
+int/*!*/ x;
+int  y = x;
+''';
+    final unitInfo = await buildInfoForSingleTestFile(content,
+        migratedContent: migratedContent);
+    site.unitInfoMap[path] = unitInfo;
+    await site.performHintAction(
+        unitInfo.regions[0].traces[0].entries[0].hintActions[0]);
+    expect(file.readAsStringSync(), '''
+int x;
+int y = x;
+''');
+    expect(unitInfo.content, '''
+int x;
+int  y = x;
+''');
+    expect(unitInfo.regions, hasLength(1));
+    assertRegion(
+        kind: NullabilityFixKind.typeNotMadeNullable,
+        region: unitInfo.regions[0],
+        offset: unitInfo.content.indexOf('  y'));
+    final targets = List<NavigationTarget>.from(unitInfo.targets);
+    assertInTargets(
+        targets: targets,
+        offset: unitInfo.content.indexOf('x'),
+        offsetMapper: unitInfo.offsetMapper);
+    expect(state.hasBeenApplied, false);
+    expect(state.needsRerun, true);
+  }
+
   void test_performEdit_multiple() async {
     final path = convertPath('/test.dart');
     final file = getFile(path);
@@ -291,45 +330,6 @@ int/*?*/? y = x;
         unitInfo.content.indexOf('int/*?*/? y'), contains('y (test.dart:2:1)'));
     assertTraceEntry(unitInfo, trace.entries[1], 'y',
         unitInfo.content.indexOf('= x;') + '= '.length, contains('data flow'));
-    expect(state.hasBeenApplied, false);
-    expect(state.needsRerun, true);
-  }
-
-  void test_applyHintAction_removeHint() async {
-    final path = convertPath('/home/tests/bin/test.dart');
-    final file = getFile(path);
-    final content = r'''
-int/*!*/ x;
-int y = x;
-''';
-    file.writeAsStringSync(content);
-    final migratedContent = '''
-int/*!*/ x;
-int  y = x;
-''';
-    final unitInfo = await buildInfoForSingleTestFile(content,
-        migratedContent: migratedContent);
-    site.unitInfoMap[path] = unitInfo;
-    await site.performHintAction(
-        unitInfo.regions[0].traces[0].entries[0].hintActions[0]);
-    expect(file.readAsStringSync(), '''
-int x;
-int y = x;
-''');
-    expect(unitInfo.content, '''
-int x;
-int  y = x;
-''');
-    expect(unitInfo.regions, hasLength(1));
-    assertRegion(
-        kind: NullabilityFixKind.typeNotMadeNullable,
-        region: unitInfo.regions[0],
-        offset: unitInfo.content.indexOf('  y'));
-    final targets = List<NavigationTarget>.from(unitInfo.targets);
-    assertInTargets(
-        targets: targets,
-        offset: unitInfo.content.indexOf('x'),
-        offsetMapper: unitInfo.offsetMapper);
     expect(state.hasBeenApplied, false);
     expect(state.needsRerun, true);
   }
