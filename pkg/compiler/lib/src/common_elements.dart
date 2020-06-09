@@ -452,24 +452,6 @@ abstract class CommonElements {
 
   FunctionEntity get getRuntimeTypeArgumentIntercepted;
 
-  FunctionEntity get assertIsSubtype;
-
-  FunctionEntity get checkSubtype;
-
-  FunctionEntity get assertSubtype;
-
-  FunctionEntity get subtypeCast;
-
-  FunctionEntity get functionTypeTest;
-
-  FunctionEntity get futureOrTest;
-
-  FunctionEntity get checkSubtypeOfRuntimeType;
-
-  FunctionEntity get assertSubtypeOfRuntimeType;
-
-  FunctionEntity get subtypeOfRuntimeTypeCast;
-
   FunctionEntity get checkDeferredIsLoaded;
 
   FunctionEntity get throwNoSuchMethod;
@@ -1836,37 +1818,6 @@ class CommonElementsImpl
   @override
   FunctionEntity get getRuntimeTypeArgumentIntercepted =>
       _findHelperFunction('getRuntimeTypeArgumentIntercepted');
-
-  @override
-  FunctionEntity get assertIsSubtype => _findHelperFunction('assertIsSubtype');
-
-  @override
-  FunctionEntity get checkSubtype => _findHelperFunction('checkSubtype');
-
-  @override
-  FunctionEntity get assertSubtype => _findHelperFunction('assertSubtype');
-
-  @override
-  FunctionEntity get subtypeCast => _findHelperFunction('subtypeCast');
-
-  @override
-  FunctionEntity get functionTypeTest =>
-      _findHelperFunction('functionTypeTest');
-
-  @override
-  FunctionEntity get futureOrTest => _findHelperFunction('futureOrTest');
-
-  @override
-  FunctionEntity get checkSubtypeOfRuntimeType =>
-      _findHelperFunction('checkSubtypeOfRuntimeType');
-
-  @override
-  FunctionEntity get assertSubtypeOfRuntimeType =>
-      _findHelperFunction('assertSubtypeOfRuntimeType');
-
-  @override
-  FunctionEntity get subtypeOfRuntimeTypeCast =>
-      _findHelperFunction('subtypeOfRuntimeTypeCast');
 
   @override
   FunctionEntity get checkDeferredIsLoaded =>
