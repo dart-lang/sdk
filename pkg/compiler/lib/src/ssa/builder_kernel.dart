@@ -340,24 +340,6 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     return new HLiteralList(inputs, _abstractValueDomain.growableListType);
   }
 
-  HInstruction _callSetRuntimeTypeInfoWithTypeArguments(
-      InterfaceType type,
-      List<HInstruction> rtiInputs,
-      HInstruction newObject,
-      SourceInformation sourceInformation) {
-    if (!_rtiNeed.classNeedsTypeArguments(type.element)) {
-      return newObject;
-    }
-
-    HInstruction typeInfo = new HTypeInfoExpression(
-        TypeInfoExpressionKind.INSTANCE,
-        closedWorld.elementEnvironment.getThisType(type.element),
-        rtiInputs,
-        _abstractValueDomain.dynamicType);
-    add(typeInfo);
-    return _callSetRuntimeTypeInfo(typeInfo, newObject, sourceInformation);
-  }
-
   /// Called when control flow is about to change, in which case we need to
   /// specify special successors if we are already in a try/catch/finally block.
   void _handleInTryStatement() {
@@ -529,11 +511,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
                 "Unexpected function signature: "
                 "$targetElement inside a non-closure: $target");
           }
-          if (options.useNewRti) {
-            _buildMethodSignatureNewRti(originalClosureNode);
-          } else {
-            _buildMethodSignature(originalClosureNode);
-          }
+          _buildMethodSignatureNewRti(originalClosureNode);
           break;
         case MemberKind.generatorBody:
           _buildGeneratorBody(
@@ -826,31 +804,11 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       bool needsTypeArguments =
           closedWorld.rtiNeed.classNeedsTypeArguments(cls);
       if (needsTypeArguments) {
-        if (options.useNewRti) {
-          InterfaceType thisType = _elementEnvironment.getThisType(cls);
-          HInstruction typeArgument = _typeBuilder.analyzeTypeArgumentNewRti(
-              thisType, sourceElement,
-              sourceInformation: sourceInformation);
-          constructorArguments.add(typeArgument);
-        } else {
-          // Read the values of the type arguments and create a
-          // HTypeInfoExpression to set on the newly created object.
-          List<HInstruction> typeArguments = <HInstruction>[];
-          InterfaceType thisType = _elementEnvironment.getThisType(cls);
-          for (DartType typeVariable in thisType.typeArguments) {
-            HInstruction argument = localsHandler
-                .readLocal(localsHandler.getTypeVariableAsLocal(typeVariable));
-            typeArguments.add(argument);
-          }
-
-          HInstruction typeInfo = new HTypeInfoExpression(
-              TypeInfoExpressionKind.INSTANCE,
-              thisType,
-              typeArguments,
-              _abstractValueDomain.dynamicType);
-          add(typeInfo);
-          constructorArguments.add(typeInfo);
-        }
+        InterfaceType thisType = _elementEnvironment.getThisType(cls);
+        HInstruction typeArgument = _typeBuilder.analyzeTypeArgumentNewRti(
+            thisType, sourceElement,
+            sourceInformation: sourceInformation);
+        constructorArguments.add(typeArgument);
       }
       newObject = new HCreate(cls, constructorArguments,
           _abstractValueDomain.createNonNullExact(cls), sourceInformation,
@@ -1243,35 +1201,6 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     localsHandler.scopeInfo = oldScopeInfo;
   }
 
-  /// Constructs a special signature function for a closure. It is unique in
-  /// that no corresponding ir.Node actually exists for it. We just use the
-  /// targetElement.
-  void _buildMethodSignature(ir.FunctionNode originalClosureNode) {
-    _openFunction(targetElement, checks: TargetChecks.none);
-    List<HInstruction> typeArguments = <HInstruction>[];
-
-    // Add function type variables.
-    FunctionType functionType =
-        _elementMap.getFunctionType(originalClosureNode);
-    functionType.forEachTypeVariable((TypeVariableType typeVariableType) {
-      DartType result = localsHandler.substInContext(typeVariableType);
-      HInstruction argument =
-          _typeBuilder.analyzeTypeArgument(result, sourceElement);
-      typeArguments.add(argument);
-    });
-    push(new HTypeInfoExpression(
-        TypeInfoExpressionKind.COMPLETE,
-        _elementMap.getFunctionType(originalClosureNode),
-        typeArguments,
-        _abstractValueDomain.functionType));
-    HInstruction value = pop();
-    close(new HReturn(_abstractValueDomain, value,
-            _sourceInformationBuilder.buildReturn(originalClosureNode)))
-        .addSuccessor(graph.exit);
-
-    _closeFunction();
-  }
-
   /// Constructs a special signature function for a closure.
   void _buildMethodSignatureNewRti(ir.FunctionNode originalClosureNode) {
     // The signature function has no corresponding ir.Node, so we just use the
@@ -1405,12 +1334,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     if (elementType.containsFreeTypeVariables) {
       // Type must be computed in the entry function, where the type variables
       // are in scope, and passed to the body function.
-      if (options.useNewRti) {
-        inputs
-            .add(_typeBuilder.analyzeTypeArgumentNewRti(elementType, function));
-      } else {
-        inputs.add(_typeBuilder.analyzeTypeArgument(elementType, function));
-      }
+      inputs.add(_typeBuilder.analyzeTypeArgumentNewRti(elementType, function));
     } else {
       // Types with no type variables can be emitted as part of the generator,
       // avoiding an extra argument.
@@ -1533,17 +1457,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         DartType bound = _getDartTypeIfValid(typeParameter.bound);
         if (!dartTypes.isTopType(bound)) {
           registry.registerTypeUse(TypeUse.typeVariableBoundCheck(bound));
-          if (options.useNewRti) {
-            // TODO(sigmund): method name here is not minified, should it be?
-            _checkTypeBound(newParameter, bound, local.name, method.name);
-          } else {
-            _assertIsType(
-                newParameter,
-                bound,
-                "The type argument '",
-                "' is not a subtype of the type variable bound '",
-                "' of type variable '${local.name}' in '${method.name}'.");
-          }
+          // TODO(sigmund): method name here is not minified, should it be?
+          _checkTypeBound(newParameter, bound, local.name, method.name);
         }
       }
     }
@@ -2474,13 +2389,9 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     }
 
     if (policy.isEmitted) {
-      HInstruction converted = _typeBuilder.buildTypeConversion(
-          expressionInstruction,
-          localsHandler.substInContext(type),
-          node.isTypeError
-              ? HTypeConversion.TYPE_CHECK
-              : HTypeConversion.CAST_CHECK,
-          sourceInformation: sourceInformation);
+      HInstruction converted = _typeBuilder.buildAsCheck(
+          expressionInstruction, localsHandler.substInContext(type),
+          isTypeError: node.isTypeError, sourceInformation: sourceInformation);
       if (converted != expressionInstruction) {
         add(converted);
       }
@@ -3133,22 +3044,12 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         _equivalentToMissingRti(arrayType)) {
       return object;
     }
-    if (options.useNewRti) {
-      HInstruction rti =
-          _typeBuilder.analyzeTypeArgumentNewRti(arrayType, sourceElement);
+    HInstruction rti =
+        _typeBuilder.analyzeTypeArgumentNewRti(arrayType, sourceElement);
 
-      // TODO(15489): Register at codegen.
-      registry?.registerInstantiation(type);
-      return _callSetRuntimeTypeInfo(rti, object, sourceInformation);
-    }
-    List<HInstruction> arguments = <HInstruction>[];
-    for (DartType argument in type.typeArguments) {
-      arguments.add(_typeBuilder.analyzeTypeArgument(argument, sourceElement));
-    }
     // TODO(15489): Register at codegen.
     registry?.registerInstantiation(type);
-    return _callSetRuntimeTypeInfoWithTypeArguments(
-        type, arguments, object, sourceInformation);
+    return _callSetRuntimeTypeInfo(rti, object, sourceInformation);
   }
 
   @override
@@ -4080,38 +3981,26 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
     HInstruction object = arguments[0];
     HInstruction closure = arguments[1];
-    HInstruction interceptor = _interceptorFor(object, sourceInformation);
 
     List<HInstruction> inputs = <HInstruction>[closure];
     List<DartType> typeArguments = <DartType>[];
 
-    if (options.useNewRti) {
-      closedWorld.registerExtractTypeArguments(cls);
-      HInstruction instanceType =
-          HInstanceEnvironment(object, _abstractValueDomain.dynamicType);
-      add(instanceType);
-      TypeEnvironmentStructure envStructure =
-          FullTypeEnvironmentStructure(classType: thisType);
+    closedWorld.registerExtractTypeArguments(cls);
+    HInstruction instanceType =
+        HInstanceEnvironment(object, _abstractValueDomain.dynamicType);
+    add(instanceType);
+    TypeEnvironmentStructure envStructure =
+        FullTypeEnvironmentStructure(classType: thisType);
 
-      thisType.typeArguments.forEach((_typeVariable) {
-        TypeVariableType variable = _typeVariable;
-        typeArguments.add(variable);
-        TypeRecipe recipe = TypeExpressionRecipe(variable);
-        HInstruction typeEval = new HTypeEval(instanceType, envStructure,
-            recipe, _abstractValueDomain.dynamicType);
-        add(typeEval);
-        inputs.add(typeEval);
-      });
-    } else {
-      thisType.typeArguments.forEach((_typeVariable) {
-        TypeVariableType variable = _typeVariable;
-        typeArguments.add(variable);
-        HInstruction readType = new HTypeInfoReadVariable.intercepted(
-            variable, interceptor, object, _abstractValueDomain.dynamicType);
-        add(readType);
-        inputs.add(readType);
-      });
-    }
+    thisType.typeArguments.forEach((_typeVariable) {
+      TypeVariableType variable = _typeVariable;
+      typeArguments.add(variable);
+      TypeRecipe recipe = TypeExpressionRecipe(variable);
+      HInstruction typeEval = new HTypeEval(
+          instanceType, envStructure, recipe, _abstractValueDomain.dynamicType);
+      add(typeEval);
+      inputs.add(typeEval);
+    });
 
     // TODO(sra): In compliance mode, insert a check that [closure] is a
     // function of N type arguments.
@@ -4734,8 +4623,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
   void _handleForeignGetJSArrayInteropRti(ir.StaticInvocation invocation) {
     if (_unexpectedForeignArguments(invocation,
-            minPositional: 0, maxPositional: 0) ||
-        !options.useNewRti) {
+        minPositional: 0, maxPositional: 0)) {
       // Result expected on stack.
       stack.add(graph.addConstantNull(closedWorld));
       return;
@@ -5366,28 +5254,6 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         sourceInformation);
   }
 
-  void _assertIsType(HInstruction subtypeInstruction, DartType supertype,
-      String prefix, String infix, String suffix) {
-    HInstruction supertypeInstruction = _typeBuilder.analyzeTypeArgument(
-        localsHandler.substInContext(supertype), sourceElement);
-    HInstruction prefixInstruction =
-        graph.addConstantString(prefix, closedWorld);
-    HInstruction infixInstruction = graph.addConstantString(infix, closedWorld);
-    HInstruction suffixInstruction =
-        graph.addConstantString(suffix, closedWorld);
-    FunctionEntity element = _commonElements.assertIsSubtype;
-    var inputs = <HInstruction>[
-      subtypeInstruction,
-      supertypeInstruction,
-      prefixInstruction,
-      infixInstruction,
-      suffixInstruction
-    ];
-    HInstruction assertIsSubtype = new HInvokeStatic(element, inputs,
-        subtypeInstruction.instructionType, const <DartType>[]);
-    add(assertIsSubtype);
-  }
-
   void _checkTypeBound(HInstruction typeInstruction, DartType bound,
       String variableName, String methodName) {
     HInstruction boundInstruction = _typeBuilder.analyzeTypeArgumentNewRti(
@@ -5484,146 +5350,14 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     DartType typeValue =
         localsHandler.substInContext(_elementMap.getDartType(type));
 
-    if (options.useNewRti) {
-      HInstruction rti =
-          _typeBuilder.analyzeTypeArgumentNewRti(typeValue, sourceElement);
-      AbstractValueWithPrecision checkedType =
-          _abstractValueDomain.createFromStaticType(typeValue, nullable: false);
+    HInstruction rti =
+        _typeBuilder.analyzeTypeArgumentNewRti(typeValue, sourceElement);
+    AbstractValueWithPrecision checkedType =
+        _abstractValueDomain.createFromStaticType(typeValue, nullable: false);
 
-      push(HIsTest(typeValue, checkedType, expression, rti,
-          _abstractValueDomain.boolType)
-        ..sourceInformation = sourceInformation);
-      return;
-    }
-
-    if (dartTypes.isTopType(typeValue)) {
-      stack.add(graph.addConstantBool(true, closedWorld));
-      return;
-    }
-
-    if (typeValue is FunctionType) {
-      HInstruction representation =
-          _typeBuilder.analyzeTypeArgument(typeValue, sourceElement);
-      List<HInstruction> inputs = <HInstruction>[
-        expression,
-        representation,
-      ];
-      _pushStaticInvocation(_commonElements.functionTypeTest, inputs,
-          _abstractValueDomain.boolType, const <DartType>[],
-          sourceInformation: sourceInformation);
-      HInstruction call = pop();
-      push(new HIs.compound(typeValue, expression, call,
-          _abstractValueDomain.boolType, sourceInformation));
-      return;
-    }
-
-    if (typeValue is FutureOrType) {
-      HInstruction representation =
-          _typeBuilder.analyzeTypeArgument(typeValue, sourceElement);
-      List<HInstruction> inputs = <HInstruction>[
-        expression,
-        representation,
-      ];
-      _pushStaticInvocation(_commonElements.futureOrTest, inputs,
-          _abstractValueDomain.boolType, const <DartType>[],
-          sourceInformation: sourceInformation);
-      HInstruction call = pop();
-      push(new HIs.compound(typeValue, expression, call,
-          _abstractValueDomain.boolType, sourceInformation));
-      return;
-    }
-
-    if (typeValue is TypeVariableType) {
-      HInstruction runtimeType =
-          _typeBuilder.addTypeVariableReference(typeValue, sourceElement);
-      _pushStaticInvocation(
-          _commonElements.checkSubtypeOfRuntimeType,
-          <HInstruction>[expression, runtimeType],
-          _abstractValueDomain.boolType,
-          const <DartType>[],
-          sourceInformation: sourceInformation);
-      push(new HIs.variable(typeValue, expression, pop(),
-          _abstractValueDomain.boolType, sourceInformation));
-      return;
-    }
-
-    if (typeValue is InterfaceType && !_canIgnoreTypeArguments(typeValue)) {
-      HInstruction representations = _typeBuilder
-          .buildTypeArgumentRepresentations(typeValue, sourceElement);
-      add(representations);
-      ClassEntity element = typeValue.element;
-      js.Name operator = _namer.operatorIs(element);
-      HInstruction isFieldName =
-          graph.addConstantStringFromName(operator, closedWorld);
-      HInstruction asFieldName =
-          closedWorld.classHierarchy.hasAnyStrictSubtype(element) ||
-                  closedWorld.nativeData.isJsInteropClass(element)
-              ? graph.addConstantStringFromName(
-                  _namer.substitutionName(element), closedWorld)
-              : graph.addConstantNull(closedWorld);
-      List<HInstruction> inputs = <HInstruction>[
-        expression,
-        isFieldName,
-        representations,
-        asFieldName
-      ];
-      _pushStaticInvocation(_commonElements.checkSubtype, inputs,
-          _abstractValueDomain.boolType, const <DartType>[],
-          sourceInformation: sourceInformation);
-      push(new HIs.compound(typeValue, expression, pop(),
-          _abstractValueDomain.boolType, sourceInformation));
-      return;
-    }
-
-    if (_hasDirectCheckFor(typeValue)) {
-      push(new HIs.direct(typeValue, expression, _abstractValueDomain.boolType,
-          sourceInformation));
-      return;
-    }
-    // The interceptor is not always needed.  It is removed by optimization
-    // when the receiver type or tested type permit.
-    push(new HIs.raw(
-        typeValue,
-        expression,
-        _interceptorFor(expression, sourceInformation),
-        _abstractValueDomain.boolType,
-        sourceInformation));
-    return;
-  }
-
-  /// Returns `true` if the checking of [type] is performed directly on the
-  /// object and not on an interceptor.
-  bool _hasDirectCheckFor(DartType type) {
-    if (type is! InterfaceType) return false;
-    InterfaceType interfaceType = type;
-    ClassEntity element = interfaceType.element;
-    return element == _commonElements.stringClass ||
-        element == _commonElements.boolClass ||
-        element == _commonElements.numClass ||
-        element == _commonElements.intClass ||
-        element == _commonElements.doubleClass ||
-        element == _commonElements.jsArrayClass ||
-        element == _commonElements.jsMutableArrayClass ||
-        element == _commonElements.jsExtendableArrayClass ||
-        element == _commonElements.jsFixedArrayClass ||
-        element == _commonElements.jsUnmodifiableArrayClass;
-  }
-
-  /// Whether an is-check for [type] can be done ignoring type-arguments.
-  /// This will be true if [type] is raw, or all its type-arguments match the
-  /// type-parameter bounds.
-  bool _canIgnoreTypeArguments(InterfaceType type) {
-    InterfaceType thisType = _elementEnvironment.getThisType(type.element);
-    List<DartType> bounds = thisType.typeArguments;
-    for (int i = 0; i < bounds.length; i++) {
-      DartType arg = type.typeArguments[i];
-      if (dartTypes.isTopType(arg)) continue;
-      TypeVariableType typeVariable = bounds[i];
-      DartType bound =
-          _elementEnvironment.getTypeVariableBound(typeVariable.element);
-      if (bound != arg) return false;
-    }
-    return true;
+    push(HIsTest(
+        typeValue, checkedType, expression, rti, _abstractValueDomain.boolType)
+      ..sourceInformation = sourceInformation);
   }
 
   @override
@@ -6116,14 +5850,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       FunctionEntity function, TypeVariableType typeVariable) {
     DartType bound =
         _elementEnvironment.getTypeVariableDefaultType(typeVariable.element);
-    if (bound.containsTypeVariables && !options.useNewRti) {
-      // TODO(33422): Support type variables in default
-      // types. Temporarily using the "any" type (encoded as -2) to
-      // avoid failing on bounds checks.
-      return graph.addConstantInt(-2, closedWorld);
-    } else {
-      return _typeBuilder.analyzeTypeArgument(bound, function);
-    }
+    return _typeBuilder.analyzeTypeArgument(bound, function);
   }
 
   /// This method is invoked before inlining the body of [function] into this

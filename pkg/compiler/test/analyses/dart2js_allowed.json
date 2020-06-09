@@ -180,9 +180,6 @@
   "third_party/pkg/dart2js_info/lib/binary_serialization.dart": {
     "Dynamic invocation of 'cast'.": 1
   },
-  "pkg/compiler/lib/src/js_backend/checked_mode_helpers.dart": {
-    "Dynamic access of 'name'.": 1
-  },
   "pkg/compiler/lib/src/universe/side_effects.dart": {
     "Dynamic access of 'universe.side_effects::_flags'.": 1
   },

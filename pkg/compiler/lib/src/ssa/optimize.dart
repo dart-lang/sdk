@@ -769,30 +769,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     node.block.addBefore(node, splitInstruction);
 
-    HInstruction typeInfo;
-    if (_options.useNewRti) {
-      typeInfo = HLoadType.type(
-          _closedWorld.elementEnvironment.createInterfaceType(
-              commonElements.jsArrayClass, [commonElements.stringType]),
-          _abstractValueDomain.dynamicType);
-      node.block.addBefore(node, typeInfo);
-    } else {
-      HInstruction stringTypeInfo = new HTypeInfoExpression(
-          TypeInfoExpressionKind.COMPLETE,
-          _closedWorld.elementEnvironment
-              .getThisType(commonElements.stringClass),
-          <HInstruction>[],
-          _abstractValueDomain.dynamicType);
-      node.block.addBefore(node, stringTypeInfo);
-
-      typeInfo = new HTypeInfoExpression(
-          TypeInfoExpressionKind.INSTANCE,
-          _closedWorld.elementEnvironment
-              .getThisType(commonElements.jsArrayClass),
-          <HInstruction>[stringTypeInfo],
-          _abstractValueDomain.dynamicType);
-      node.block.addBefore(node, typeInfo);
-    }
+    HInstruction typeInfo = HLoadType.type(
+        _closedWorld.elementEnvironment.createInterfaceType(
+            commonElements.jsArrayClass, [commonElements.stringType]),
+        _abstractValueDomain.dynamicType);
+    node.block.addBefore(node, typeInfo);
 
     HInvokeStatic tagInstruction = new HInvokeStatic(
         commonElements.setRuntimeTypeInfo,
@@ -1316,29 +1297,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   @override
-  HInstruction visitTypeConversion(HTypeConversion node) {
-    if (node.isRedundant(_closedWorld)) return node.checkedInput;
-
-    // Simplify 'as T' where T is a simple type.
-    DartType checkedType = node.typeExpression;
-    if (checkedType is TypeVariableType && node.inputs.length == 2) {
-      HInstruction rep = node.typeRepresentation;
-      if (rep is HTypeInfoExpression &&
-          rep.kind == TypeInfoExpressionKind.COMPLETE &&
-          rep.inputs.isEmpty) {
-        DartType type = rep.dartType;
-        if (type is InterfaceType &&
-            _closedWorld.dartTypes.treatAsRawType(type)) {
-          return node.checkedInput.convertType(_closedWorld, type, node.kind)
-            ..sourceInformation = node.sourceInformation;
-        }
-      }
-    }
-
-    return node;
-  }
-
-  @override
   HInstruction visitPrimitiveCheck(HPrimitiveCheck node) {
     if (node.isRedundant(_closedWorld)) return node.checkedInput;
     return node;
@@ -1582,42 +1540,20 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
       DartType fieldType = _closedWorld.elementEnvironment.getFieldType(field);
 
-      if (_options.useNewRti) {
-        AbstractValueWithPrecision checkedType = _abstractValueDomain
-            .createFromStaticType(fieldType, nullable: true);
-        if (checkedType.isPrecise &&
-            _abstractValueDomain
-                .isIn(value.instructionType, checkedType.abstractValue)
-                .isDefinitelyTrue) {
-          return assignField();
-        }
-        // TODO(sra): Implement inlining of setters with checks for new rti. The
-        // check and field assignment for the setter should inlined if this is
-        // the only call to the setter, or the current function already computes
-        // the type of the field.
-        node.needsCheck = true;
-        return node;
+      AbstractValueWithPrecision checkedType =
+          _abstractValueDomain.createFromStaticType(fieldType, nullable: true);
+      if (checkedType.isPrecise &&
+          _abstractValueDomain
+              .isIn(value.instructionType, checkedType.abstractValue)
+              .isDefinitelyTrue) {
+        return assignField();
       }
-
-      if (!_closedWorld.dartTypes.treatAsRawType(fieldType) ||
-          fieldType is TypeVariableType ||
-          fieldType is FunctionType ||
-          fieldType is FutureOrType) {
-        // We cannot generate the correct type representation here, so don't
-        // inline this access.
-        // TODO(sra): If the input is such that we don't need a type check, we
-        // can skip the test an generate the HFieldSet.
-        node.needsCheck = true;
-        return node;
-      }
-      HInstruction other = value.convertType(
-          _closedWorld, fieldType, HTypeConversion.TYPE_CHECK);
-      if (other != value) {
-        node.block.addBefore(node, other);
-        value = other;
-      }
-
-      return assignField();
+      // TODO(sra): Implement inlining of setters with checks for new rti. The
+      // check and field assignment for the setter should inlined if this is
+      // the only call to the setter, or the current function already computes
+      // the type of the field.
+      node.needsCheck = true;
+      return node;
     }
 
     if (member is FunctionEntity) {
@@ -1900,228 +1836,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
         (ClassEntity subclass) {
       return !_rtiSubstitutions.isTrivialSubstitution(subclass, cls);
     });
-  }
-
-  @override
-  HInstruction visitTypeInfoExpression(HTypeInfoExpression node) {
-    // Identify the case where the type info expression would be of the form:
-    //
-    //  [getTypeArgumentByIndex(this, 0), .., getTypeArgumentByIndex(this, k)]
-    //
-    // and k is the number of type arguments of 'this'.  We can simply copy the
-    // list from 'this'.
-    HInstruction tryCopyInfo() {
-      if (node.kind != TypeInfoExpressionKind.INSTANCE) return null;
-
-      HInstruction source;
-      int expectedIndex = 0;
-
-      for (HInstruction argument in node.inputs) {
-        if (argument is HTypeInfoReadVariable) {
-          ClassEntity context = DartTypes.getClassContext(argument.variable);
-          HInstruction nextSource = argument.object;
-          if (nextSource is HRef) {
-            HRef ref = nextSource;
-            nextSource = ref.value;
-          }
-          if (nextSource is HThis) {
-            if (source == null) {
-              source = nextSource;
-              ClassEntity thisClass = nextSource.sourceElement.enclosingClass;
-              InterfaceType thisType =
-                  _closedWorld.elementEnvironment.getThisType(thisClass);
-              if (node.inputs.length != thisType.typeArguments.length) {
-                return null;
-              }
-              if (needsSubstitutionForTypeVariableAccess(thisClass)) {
-                return null;
-              }
-              if (context != null &&
-                  !_rtiSubstitutions.isTrivialSubstitution(
-                      thisClass, context)) {
-                // If inlining, the [context] is not the same as [thisClass].
-                // If this is the case, then the substitution must be trivial.
-                // Consider this:
-                //
-                //    class A {
-                //      final Object value;
-                //      A(this.value);
-                //    }
-                //    class B<T> extends A {
-                //      B(T value) : super(value);
-                //      T get value => super.value as T;
-                //    }
-                //    class C<S> extends B<List<S>> {
-                //      C(List<S> value) : super(value);
-                //      S get first => value.first;
-                //    }
-                //
-                // If `B.value` is inlined into `C.first` the type info
-                // expression is the list `[B.T]` on a `this` of type `C<S>`.
-                // Since the substitution from C to B is not trivial
-                // (S -> List<S>) this type info expression cannot be replaced
-                // with the type arguments `C<S>` (it would yield [S] instead of
-                // [List<S>]).
-                return null;
-              }
-            }
-            if (nextSource != source) return null;
-            // Check that the index is the one we expect.
-            int index = argument.variable.element.index;
-            if (index != expectedIndex++) return null;
-          } else {
-            // TODO(sra): Handle non-this cases (i.e. inlined code). Some
-            // non-this cases will have a TypeMask that does not need
-            // substitution, even though the general case does, e.g. inlining a
-            // method on an exact class.
-            return null;
-          }
-        } else {
-          return null;
-        }
-      }
-
-      if (source == null) return null;
-      return new HTypeInfoReadRaw(source, _abstractValueDomain.dynamicType);
-    }
-
-    // TODO(sra): Consider fusing type expression trees with no type variables,
-    // as these could be represented like constants.
-
-    return tryCopyInfo() ?? node;
-  }
-
-  @override
-  HInstruction visitTypeInfoReadVariable(HTypeInfoReadVariable node) {
-    TypeVariableType variable = node.variable;
-    ClassEntity contextClass = variable.element.typeDeclaration;
-    HInstruction object = node.object;
-
-    HInstruction finishGroundType(InterfaceType groundType) {
-      InterfaceType typeAtVariable =
-          _closedWorld.dartTypes.asInstanceOf(groundType, contextClass);
-      if (typeAtVariable != null) {
-        int index = variable.element.index;
-        DartType typeArgument = typeAtVariable.typeArguments[index];
-        HInstruction replacement = new HTypeInfoExpression(
-            TypeInfoExpressionKind.COMPLETE,
-            typeArgument,
-            const <HInstruction>[],
-            _abstractValueDomain.dynamicType,
-            isTypeVariableReplacement: true);
-        return replacement;
-      }
-      return node;
-    }
-
-    /// Read the type variable from an allocation of type [createdClass], where
-    /// [selectTypeArgumentFromObjectCreation] extracts the type argument from
-    /// the allocation for factory constructor call.
-    HInstruction finishSubstituted(ClassEntity createdClass,
-        HInstruction selectTypeArgumentFromObjectCreation(int index)) {
-      InterfaceType thisType = _closedWorld.dartTypes.getThisType(createdClass);
-
-      HInstruction instructionForTypeVariable(TypeVariableType tv) {
-        return selectTypeArgumentFromObjectCreation(
-            thisType.typeArguments.indexOf(tv));
-      }
-
-      DartType type = _closedWorld.dartTypes
-          .asInstanceOf(thisType, contextClass)
-          .typeArguments[variable.element.index];
-      if (type is TypeVariableType) {
-        return instructionForTypeVariable(type);
-      }
-      List<HInstruction> arguments = <HInstruction>[];
-      type.forEachTypeVariable((v) {
-        arguments.add(instructionForTypeVariable(v));
-      });
-      HInstruction replacement = new HTypeInfoExpression(
-          TypeInfoExpressionKind.COMPLETE,
-          type,
-          arguments,
-          _abstractValueDomain.dynamicType,
-          isTypeVariableReplacement: true);
-      return replacement;
-    }
-
-    // Type variable evaluated in the context of a constant can be replaced with
-    // a ground term type.
-    if (object is HConstant) {
-      ConstantValue value = object.constant;
-      if (value is ConstructedConstantValue) {
-        return finishGroundType(value.type);
-      }
-      return node;
-    }
-
-    // Look for an allocation with type information and re-write type variable
-    // as a function of the type parameters of the allocation.  This effectively
-    // store-forwards a type variable read through an allocation.
-
-    // Match:
-    //
-    //     HCreate(ClassElement,
-    //       [arg_i,
-    //        ...,
-    //        HTypeInfoExpression(t_0, t_1, t_2, ...)]);
-    //
-    // The `t_i` are the values of the type parameters of ClassElement.
-
-    if (object is HCreate) {
-      void registerInstantiations() {
-        // Forwarding the type variable references might cause the HCreate to
-        // become dead. This breaks the algorithm for generating the per-type
-        // runtime type information, so we instantiate them here in case the
-        // HCreate becomes dead.
-        object.instantiatedTypes?.forEach(_registry.registerInstantiation);
-      }
-
-      if (object.hasRtiInput) {
-        HInstruction typeInfo = object.rtiInput;
-        if (typeInfo is HTypeInfoExpression) {
-          registerInstantiations();
-          return finishSubstituted(
-              object.element, (int index) => typeInfo.inputs[index]);
-        }
-      } else {
-        // Non-generic type (which extends or mixes in a generic type, for
-        // example CodeUnits extends UnmodifiableListBase<int>).  Also used for
-        // raw-type when the type parameters are elided.
-        registerInstantiations();
-        return finishSubstituted(
-            object.element,
-            // If there are type arguments, all type arguments are 'dynamic'.
-            (int i) => _graph.addConstantNull(_closedWorld));
-      }
-    }
-
-    // TODO(sra): Factory constructors pass type arguments after the value
-    // arguments. The [selectTypeArgumentFromObjectCreation] argument of
-    // [finishSubstituted] indexes into these type arguments.
-
-    // Try to remove the interceptor. The interceptor is used for accessing the
-    // substitution methods.
-    if (node.isIntercepted) {
-      // If we don't need the substitution methods then we don't need the
-      // interceptor to access them.
-      if (!needsSubstitutionForTypeVariableAccess(contextClass)) {
-        return new HTypeInfoReadVariable.noInterceptor(
-            variable, object, node.instructionType);
-      }
-      // All intercepted classes extend `Interceptor`, so if the receiver can't
-      // be a class extending `Interceptor` then the substitution methods can be
-      // called directly. (We don't care about Null since contexts reading class
-      // type variables originate from instance methods.)
-      if (_abstractValueDomain
-          .isInterceptor(object.instructionType)
-          .isDefinitelyFalse) {
-        return new HTypeInfoReadVariable.noInterceptor(
-            variable, object, node.instructionType);
-      }
-    }
-
-    return node;
   }
 
   @override
@@ -3765,12 +3479,6 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   void visitStringConcat(HStringConcat instruction) {}
   @override
   void visitTypeKnown(HTypeKnown instruction) {}
-  @override
-  void visitTypeInfoReadRaw(HTypeInfoReadRaw instruction) {}
-  @override
-  void visitTypeInfoReadVariable(HTypeInfoReadVariable instruction) {}
-  @override
-  void visitTypeInfoExpression(HTypeInfoExpression instruction) {}
 }
 
 /// A non-field based feature of an object.
@@ -4067,7 +3775,6 @@ class MemorySet {
           if (use is HFieldSet) {
             return use.value.nonCheck() != instruction;
           }
-          if (use is HTypeInfoReadVariable) return true;
           if (use is HGetLength) return true;
           if (use is HBoundsCheck) return true;
           if (use is HIndex) return true;

@@ -452,6 +452,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     return impactBuilder;
   }
 
+  // TODO(39733): Move registration of boolConversionCheck.
   void _registerCheckedModeHelpers(WorldImpactBuilder impactBuilder) {
     // We register all the _commonElements in the resolution queue.
     // TODO(13155): Find a way to register fewer _commonElements.

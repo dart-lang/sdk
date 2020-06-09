@@ -25,7 +25,6 @@ import '../js_backend/backend.dart' show CodegenInputs;
 import '../js_backend/checked_mode_helpers.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/namer.dart' show ModularNamer;
-import '../js_backend/runtime_types.dart';
 import '../js_backend/runtime_types_codegen.dart';
 import '../js_backend/runtime_types_new.dart'
     show RecipeEncoder, RecipeEncoding, indexTypeVariable;
@@ -117,9 +116,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
           this,
           _options,
           emitter,
-          codegen.checkedModeHelpers,
           codegen.rtiSubstitutions,
-          codegen.rtiEncoder,
           codegen.rtiRecipeEncoder,
           namer,
           codegen.tracer,
@@ -147,9 +144,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
           this,
           _options,
           emitter,
-          codegen.checkedModeHelpers,
           codegen.rtiSubstitutions,
-          codegen.rtiEncoder,
           codegen.rtiRecipeEncoder,
           namer,
           codegen.tracer,
@@ -185,9 +180,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   final CompilerTask _codegenTask;
   final CompilerOptions _options;
   final ModularEmitter _emitter;
-  final CheckedModeHelpers _checkedModeHelpers;
   final RuntimeTypesSubstitutions _rtiSubstitutions;
-  final RuntimeTypesEncoder _rtiEncoder;
   final RecipeEncoder _rtiRecipeEncoder;
   final ModularNamer _namer;
   final Tracer _tracer;
@@ -240,9 +233,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       this._codegenTask,
       this._options,
       this._emitter,
-      this._checkedModeHelpers,
       this._rtiSubstitutions,
-      this._rtiEncoder,
       this._rtiRecipeEncoder,
       this._namer,
       this._tracer,
@@ -704,8 +695,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // argument.
     bool needsAssignment = true;
     if (instruction is HCheck) {
-      if (instruction is HTypeConversion ||
-          instruction is HPrimitiveCheck ||
+      if (instruction is HPrimitiveCheck ||
           instruction is HAsCheck ||
           instruction is HAsCheckSimple ||
           instruction is HBoolConversion ||
@@ -3215,35 +3205,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   @override
-  void visitTypeConversion(HTypeConversion node) {
-    assert(node.isTypeCheck || node.isCastCheck);
-    DartType type = node.typeExpression;
-    assert(type is! DynamicType);
-    assert(type is! VoidType);
-    if (type is FunctionType) {
-      // TODO(5022): We currently generate $isFunction checks for
-      // function types.
-      _registry
-          .registerTypeUse(new TypeUse.isCheck(_commonElements.functionType));
-    }
-    _registry.registerTypeUse(new TypeUse.isCheck(type));
-
-    CheckedModeHelper helper = _checkedModeHelpers.getCheckedModeHelper(
-        type, _closedWorld.commonElements,
-        typeCast: node.isCastCheck);
-
-    StaticUse staticUse = helper.getStaticUse(_closedWorld.commonElements);
-    _registry.registerStaticUse(staticUse);
-    List<js.Expression> arguments = <js.Expression>[];
-    use(node.checkedInput);
-    arguments.add(pop());
-    helper.generateAdditionalArguments(this, _namer, node, arguments);
-    push(
-        new js.Call(_emitter.staticFunctionAccess(staticUse.element), arguments)
-            .withSourceInformation(node.sourceInformation));
-  }
-
-  @override
   void visitPrimitiveCheck(HPrimitiveCheck node) {
     js.Expression test = _generateReceiverOrArgumentTypeTest(node);
     js.Block oldContainer = currentContainer;
@@ -3322,129 +3283,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void visitTypeKnown(HTypeKnown node) {
     // [HTypeKnown] instructions are removed before generating code.
     assert(false);
-  }
-
-  @override
-  void visitTypeInfoReadRaw(HTypeInfoReadRaw node) {
-    use(node.inputs[0]);
-    js.Expression receiver = pop();
-    push(js.js(r'#.#', [receiver, _namer.rtiFieldJsName]));
-  }
-
-  @override
-  void visitTypeInfoReadVariable(HTypeInfoReadVariable node) {
-    TypeVariableEntity element = node.variable.element;
-    int index = element.index;
-
-    js.Expression interceptor;
-    if (node.isIntercepted) {
-      use(node.interceptor);
-      interceptor = pop();
-    }
-    HInstruction object = node.object;
-    use(object);
-    js.Expression receiver = pop();
-
-    if (typeVariableAccessNeedsSubstitution(element, object.instructionType)) {
-      js.Expression typeName =
-          js.quoteName(_namer.runtimeTypeName(element.typeDeclaration));
-      if (node.isIntercepted) {
-        FunctionEntity helperElement =
-            _commonElements.getRuntimeTypeArgumentIntercepted;
-        _registry.registerStaticUse(
-            new StaticUse.staticInvoke(helperElement, CallStructure.FOUR_ARGS));
-        js.Expression helper = _emitter.staticFunctionAccess(helperElement);
-        push(js.js(r'#(#, #, #, #)', [
-          helper,
-          interceptor,
-          receiver,
-          typeName,
-          js.js.number(index)
-        ]).withSourceInformation(node.sourceInformation));
-      } else {
-        FunctionEntity helperElement = _commonElements.getRuntimeTypeArgument;
-        _registry.registerStaticUse(new StaticUse.staticInvoke(
-            helperElement, CallStructure.THREE_ARGS));
-        js.Expression helper = _emitter.staticFunctionAccess(helperElement);
-        push(js.js(r'#(#, #, #)', [
-          helper,
-          receiver,
-          typeName,
-          js.js.number(index)
-        ]).withSourceInformation(node.sourceInformation));
-      }
-    } else {
-      FunctionEntity helperElement = _commonElements.getTypeArgumentByIndex;
-      _registry.registerStaticUse(
-          new StaticUse.staticInvoke(helperElement, CallStructure.TWO_ARGS));
-      js.Expression helper = _emitter.staticFunctionAccess(helperElement);
-      push(js.js(r'#(#, #)', [
-        helper,
-        receiver,
-        js.js.number(index)
-      ]).withSourceInformation(node.sourceInformation));
-    }
-  }
-
-  @override
-  void visitTypeInfoExpression(HTypeInfoExpression node) {
-    DartType type = node.dartType;
-    if (node.isTypeVariableReplacement) {
-      _registry.registerTypeUse(new TypeUse.typeArgument(type));
-    }
-
-    List<js.Expression> arguments = <js.Expression>[];
-    for (HInstruction input in node.inputs) {
-      use(input);
-      arguments.add(pop());
-    }
-
-    switch (node.kind) {
-      case TypeInfoExpressionKind.COMPLETE:
-        int index = 0;
-        js.Expression result = _rtiEncoder.getTypeRepresentation(
-            _emitter, type, (TypeVariableType variable) => arguments[index++]);
-        assert(
-            index == node.inputs.length,
-            "Not all input is read for type ${type}: "
-            "$index of ${node.inputs}.");
-        push(result);
-        return;
-
-      case TypeInfoExpressionKind.INSTANCE:
-        // We expect only flat types for the INSTANCE representation.
-        assert(
-            (type as InterfaceType).typeArguments.length == arguments.length);
-        _registry
-            // ignore:deprecated_member_use_from_same_package
-            .registerInstantiatedClass(_commonElements.listClass);
-        push(new js.ArrayInitializer(arguments)
-            .withSourceInformation(node.sourceInformation));
-    }
-  }
-
-  bool typeVariableAccessNeedsSubstitution(
-      TypeVariableEntity element, AbstractValue receiverMask) {
-    ClassEntity cls = element.typeDeclaration;
-
-    // See if the receiver type narrows the set of classes to ones that can be
-    // indexed.
-    // TODO(sra): Currently the only convenient query is [singleClass]. We
-    // should iterate over all the concrete classes in [receiverMask].
-    ClassEntity receiverClass =
-        _abstractValueDomain.getExactClass(receiverMask);
-    if (receiverClass != null) {
-      if (_rtiSubstitutions.isTrivialSubstitution(receiverClass, cls)) {
-        return false;
-      }
-    }
-
-    if (_closedWorld.isUsedAsMixin(cls)) return true;
-
-    return _closedWorld.classHierarchy.anyStrictSubclassOf(cls,
-        (ClassEntity subclass) {
-      return !_rtiSubstitutions.isTrivialSubstitution(subclass, cls);
-    });
   }
 
   @override
