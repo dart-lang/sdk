@@ -1,0 +1,48 @@
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $compiler != dart2js ]
+dummy_compiler_test: SkipByDesign # Issue 30773. Test should be migrated as a unit test of dart2js, is only intended to test self-hosting.
+
+[ $runtime == jsshell ]
+deferred/load_in_correct_order_test: SkipByDesign # jsshell preamble does not support this test.
+
+[ $compiler == dart2js && $mode == debug ]
+operator_test: Skip
+string_interpolation_test: Skip
+
+[ $compiler == dart2js && $runtime == chrome && $system == windows ]
+class_test: Slow, Pass # Issue 25940
+closure_capture3_test: Slow, Pass # Issue 25940
+closure_capture5_test: Slow, Pass # Issue 25940
+conditional_test: Slow, Pass # Issue 25940
+consistent_codeUnitAt_error_test: Slow, Pass # Issue 25940
+constant_javascript_semantics2_test: Slow, Pass # Issue 25940
+deferred_split_test: Slow, Pass # Issue 25940
+
+[ $compiler == dart2js && $runtime == chrome && $csp ]
+deferred/load_in_correct_order_test: SkipByDesign # Purposely uses `eval`
+
+[ $compiler == dart2js && $runtime == ff && $system == windows ]
+consistent_index_error_string_test: Slow, Pass # Issue 25940
+
+[ $compiler == dart2js && $csp ]
+deferred_custom_loader_test: SkipByDesign # Issue 25683
+deferred_fail_and_retry_test: SkipByDesign # Uses eval to simulate failed loading.
+
+[ $compiler == dart2js && !$host_checked ]
+dummy_compiler_test: Slow, Pass # Issue 32439. self-hosting doesn't work with CFE yet.
+
+[ $compiler == dart2js && $minified ]
+code_motion_exception_test: Skip # Requires unminified operator names.
+
+[ $compiler == dart2js && ($runtime == ff || $runtime == jsshell || $runtime == safari) ]
+code_motion_exception_test: Skip # Required V8 specific format of JavaScript errors.
+
+[ $compiler == dart2js && ($browser || $host_checked) ]
+dummy_compiler_test: SkipByDesign # Issue 30773. Test should be migrated as a unit test of dart2js, is only intended to test self-hosting.
+
+[ $compiler == none && $runtime == vm ]
+new_from_env_test: SkipByDesign # dart2js only test
+unconditional_dartio_import_test: SkipByDesign # dart2js only test
