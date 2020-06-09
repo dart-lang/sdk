@@ -6,6 +6,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
@@ -183,10 +184,9 @@ class ReplacementVisitor implements DartTypeVisitor<DartType> {
 
       if (newType != null || newKind != null) {
         newParameters ??= node.parameters.toList(growable: false);
-        newParameters[i] = ParameterElementImpl.synthetic(
-          parameter.name,
-          newType ?? type,
-          newKind ?? kind,
+        newParameters[i] = parameter.copyWith(
+          type: newType,
+          kind: newKind,
         );
       }
     }

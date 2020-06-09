@@ -171,10 +171,10 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
         new List<TypeParameterType>.filled(pendingNullabilities.length, null);
     int stackTop = 0;
     for (TypeParameterType type in pendingNullabilities) {
-      type.typeParameterTypeNullability = null;
+      type.declaredNullability = null;
     }
     for (TypeParameterType type in pendingNullabilities) {
-      if (type.typeParameterTypeNullability != null) {
+      if (type.declaredNullability != null) {
         // Nullability for [type] was already computed on one of the branches
         // of the depth-first search.  Continue to the next one.
         continue;
@@ -182,15 +182,15 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
       if (type.parameter.bound is TypeParameterType) {
         TypeParameterType current = type;
         TypeParameterType next = current.parameter.bound;
-        while (next != null && next.typeParameterTypeNullability == null) {
+        while (next != null && next.declaredNullability == null) {
           stack[stackTop++] = current;
-          current.typeParameterTypeNullability = marker;
+          current.declaredNullability = marker;
 
           current = next;
           if (current.parameter.bound is TypeParameterType) {
             next = current.parameter.bound;
-            if (next.typeParameterTypeNullability == marker) {
-              next.typeParameterTypeNullability = Nullability.undetermined;
+            if (next.declaredNullability == marker) {
+              next.declaredNullability = Nullability.undetermined;
               libraryBuilder.addProblem(
                   templateCycleInTypeVariables.withArguments(
                       next.parameter.name, current.parameter.name),
@@ -203,16 +203,16 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
             next = null;
           }
         }
-        current.typeParameterTypeNullability =
+        current.declaredNullability =
             TypeParameterType.computeNullabilityFromBound(current.parameter);
         while (stackTop != 0) {
           --stackTop;
           current = stack[stackTop];
-          current.typeParameterTypeNullability =
+          current.declaredNullability =
               TypeParameterType.computeNullabilityFromBound(current.parameter);
         }
       } else {
-        type.typeParameterTypeNullability =
+        type.declaredNullability =
             TypeParameterType.computeNullabilityFromBound(type.parameter);
       }
     }

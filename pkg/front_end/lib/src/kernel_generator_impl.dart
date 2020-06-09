@@ -9,7 +9,10 @@ import 'dart:async' show Future;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-import 'package:kernel/kernel.dart' show CanonicalName, Component;
+import 'package:kernel/kernel.dart'
+    show CanonicalName, Component, NonNullableByDefaultCompiledMode;
+
+import 'base/nnbd_mode.dart';
 
 import 'base/processed_options.dart' show ProcessedOptions;
 
@@ -80,11 +83,28 @@ Future<CompilerResult> generateKernelInternal(
     // sdkSummary between multiple invocations.
     CanonicalName nameRoot = sdkSummary?.root ?? new CanonicalName.root();
     if (sdkSummary != null) {
+      if (options.nnbdMode == NnbdMode.Strong &&
+          !(sdkSummary.mode == NonNullableByDefaultCompiledMode.Strong ||
+              sdkSummary.mode == NonNullableByDefaultCompiledMode.Agnostic)) {
+        throw new FormatException(
+            'Provided SDK .dill does not support sound null safety.');
+      }
       dillTarget.loader.appendLibraries(sdkSummary);
     }
 
     for (Component additionalDill
         in await options.loadAdditionalDills(nameRoot)) {
+      if (options.nnbdMode == NnbdMode.Strong &&
+          !(additionalDill.mode == NonNullableByDefaultCompiledMode.Strong ||
+              // In some VM tests the SDK dill appears as an additionalDill so
+              // allow agnostic here as well.
+              additionalDill.mode ==
+                  NonNullableByDefaultCompiledMode.Agnostic)) {
+        throw new FormatException(
+            'Provided .dill file for the following libraries does not support '
+            'sound null safety:\n'
+            '${additionalDill.libraries.join('\n')}');
+      }
       loadedComponents.add(additionalDill);
       dillTarget.loader.appendLibraries(additionalDill);
     }
@@ -121,6 +141,23 @@ Future<CompilerResult> generateKernelInternal(
                 : summaryComponent.libraries);
       trimmedSummaryComponent.metadata.addAll(summaryComponent.metadata);
       trimmedSummaryComponent.uriToSource.addAll(summaryComponent.uriToSource);
+
+      NonNullableByDefaultCompiledMode compiledMode =
+          NonNullableByDefaultCompiledMode.Disabled;
+      switch (options.nnbdMode) {
+        case NnbdMode.Weak:
+          compiledMode = NonNullableByDefaultCompiledMode.Weak;
+          break;
+        case NnbdMode.Strong:
+          compiledMode = NonNullableByDefaultCompiledMode.Strong;
+          break;
+        case NnbdMode.Agnostic:
+          compiledMode = NonNullableByDefaultCompiledMode.Agnostic;
+          break;
+      }
+
+      trimmedSummaryComponent.setMainMethodAndMode(
+          trimmedSummaryComponent.mainMethodName, false, compiledMode);
 
       // As documented, we only run outline transformations when we are building
       // summaries without building a full component (at this time, that's

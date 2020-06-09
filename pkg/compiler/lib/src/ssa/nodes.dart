@@ -45,6 +45,7 @@ abstract class HVisitor<R> {
   R visitExitTry(HExitTry node);
   R visitFieldGet(HFieldGet node);
   R visitFieldSet(HFieldSet node);
+  R visitFunctionReference(HFunctionReference node);
   R visitInvokeExternal(HInvokeExternal node);
   R visitForeignCode(HForeignCode node);
   R visitGetLength(HGetLength node);
@@ -341,7 +342,7 @@ class HGraph {
   HConstant addConstantUnreachable(JClosedWorld closedWorld) {
     // A constant with an empty type used as the HInstruction of an expression
     // in an unreachable context.
-    return addConstant(const UnreachableConstantValue(), closedWorld);
+    return addConstant(UnreachableConstantValue(), closedWorld);
   }
 
   void finalize(AbstractValueDomain domain) {
@@ -470,6 +471,8 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitFieldGet(HFieldGet node) => visitFieldAccess(node);
   @override
   visitFieldSet(HFieldSet node) => visitFieldAccess(node);
+  @override
+  visitFunctionReference(HFunctionReference node) => visitInstruction(node);
   @override
   visitInvokeExternal(HInvokeExternal node) => visitInstruction(node);
   @override
@@ -1083,13 +1086,14 @@ abstract class HInstruction implements Spannable {
   static const int STATIC_TYPECODE = 21;
   static const int STATIC_STORE_TYPECODE = 22;
   static const int FIELD_GET_TYPECODE = 23;
-  static const int TYPE_CONVERSION_TYPECODE = 24;
-  static const int TYPE_KNOWN_TYPECODE = 25;
-  static const int INVOKE_STATIC_TYPECODE = 26;
-  static const int INDEX_TYPECODE = 27;
-  static const int IS_TYPECODE = 28;
-  static const int INVOKE_DYNAMIC_TYPECODE = 29;
-  static const int SHIFT_RIGHT_TYPECODE = 30;
+  static const int FUNCTION_REFERENCE_TYPECODE = 24;
+  static const int TYPE_CONVERSION_TYPECODE = 25;
+  static const int TYPE_KNOWN_TYPECODE = 26;
+  static const int INVOKE_STATIC_TYPECODE = 27;
+  static const int INDEX_TYPECODE = 28;
+  static const int IS_TYPECODE = 29;
+  static const int INVOKE_DYNAMIC_TYPECODE = 30;
+  static const int SHIFT_RIGHT_TYPECODE = 31;
 
   static const int TRUNCATING_DIVIDE_TYPECODE = 36;
   static const int IS_VIA_INTERCEPTOR_TYPECODE = 37;
@@ -2166,6 +2170,28 @@ class HFieldSet extends HFieldAccess {
   String toString() => "FieldSet(element=$element,type=$instructionType)";
 }
 
+// Raw reference to a function.
+class HFunctionReference extends HInstruction {
+  FunctionEntity element;
+  HFunctionReference(this.element, AbstractValue type) : super([], type) {
+    sideEffects.clearAllSideEffects();
+    sideEffects.clearAllDependencies();
+    setUseGvn();
+  }
+
+  @override
+  accept(HVisitor visitor) => visitor.visitFunctionReference(this);
+
+  @override
+  int typeCode() => HInstruction.FUNCTION_REFERENCE_TYPECODE;
+  @override
+  bool typeEquals(other) => other is HFunctionReference;
+  @override
+  bool dataEquals(HFunctionReference other) => element == other.element;
+  @override
+  String toString() => "FunctionReference($element)";
+}
+
 class HGetLength extends HInstruction {
   final bool isAssignable;
   HGetLength(HInstruction receiver, AbstractValue type,
@@ -2412,14 +2438,12 @@ class HForeignCode extends HForeign {
   @override
   final NativeBehavior nativeBehavior;
   NativeThrowBehavior throwBehavior;
-  final FunctionEntity foreignFunction;
 
   HForeignCode(this.codeTemplate, AbstractValue type, List<HInstruction> inputs,
       {this.isStatement: false,
       SideEffects effects,
       NativeBehavior nativeBehavior,
-      NativeThrowBehavior throwBehavior,
-      this.foreignFunction})
+      NativeThrowBehavior throwBehavior})
       : this.nativeBehavior = nativeBehavior,
         this.throwBehavior = throwBehavior,
         super(type, inputs) {
@@ -2495,9 +2519,7 @@ class HForeignCode extends HForeign {
 }
 
 abstract class HInvokeBinary extends HInstruction {
-  final Selector selector;
-  HInvokeBinary(
-      HInstruction left, HInstruction right, this.selector, AbstractValue type)
+  HInvokeBinary(HInstruction left, HInstruction right, AbstractValue type)
       : super(<HInstruction>[left, right], type) {
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
@@ -2511,17 +2533,15 @@ abstract class HInvokeBinary extends HInstruction {
 }
 
 abstract class HBinaryArithmetic extends HInvokeBinary {
-  HBinaryArithmetic(HInstruction left, HInstruction right, Selector selector,
-      AbstractValue type)
-      : super(left, right, selector, type);
+  HBinaryArithmetic(HInstruction left, HInstruction right, AbstractValue type)
+      : super(left, right, type);
   @override
   constant_system.BinaryOperation operation();
 }
 
 class HAdd extends HBinaryArithmetic {
-  HAdd(HInstruction left, HInstruction right, Selector selector,
-      AbstractValue type)
-      : super(left, right, selector, type);
+  HAdd(HInstruction left, HInstruction right, AbstractValue type)
+      : super(left, right, type);
   @override
   accept(HVisitor visitor) => visitor.visitAdd(this);
 
@@ -2536,9 +2556,8 @@ class HAdd extends HBinaryArithmetic {
 }
 
 class HDivide extends HBinaryArithmetic {
-  HDivide(HInstruction left, HInstruction right, Selector selector,
-      AbstractValue type)
-      : super(left, right, selector, type);
+  HDivide(HInstruction left, HInstruction right, AbstractValue type)
+      : super(left, right, type);
   @override
   accept(HVisitor visitor) => visitor.visitDivide(this);
 
@@ -2553,9 +2572,8 @@ class HDivide extends HBinaryArithmetic {
 }
 
 class HMultiply extends HBinaryArithmetic {
-  HMultiply(HInstruction left, HInstruction right, Selector selector,
-      AbstractValue type)
-      : super(left, right, selector, type);
+  HMultiply(HInstruction left, HInstruction right, AbstractValue type)
+      : super(left, right, type);
   @override
   accept(HVisitor visitor) => visitor.visitMultiply(this);
 
@@ -2570,9 +2588,8 @@ class HMultiply extends HBinaryArithmetic {
 }
 
 class HSubtract extends HBinaryArithmetic {
-  HSubtract(HInstruction left, HInstruction right, Selector selector,
-      AbstractValue type)
-      : super(left, right, selector, type);
+  HSubtract(HInstruction left, HInstruction right, AbstractValue type)
+      : super(left, right, type);
   @override
   accept(HVisitor visitor) => visitor.visitSubtract(this);
 
@@ -2587,9 +2604,8 @@ class HSubtract extends HBinaryArithmetic {
 }
 
 class HTruncatingDivide extends HBinaryArithmetic {
-  HTruncatingDivide(HInstruction left, HInstruction right, Selector selector,
-      AbstractValue type)
-      : super(left, right, selector, type);
+  HTruncatingDivide(HInstruction left, HInstruction right, AbstractValue type)
+      : super(left, right, type);
   @override
   accept(HVisitor visitor) => visitor.visitTruncatingDivide(this);
 
@@ -2605,9 +2621,8 @@ class HTruncatingDivide extends HBinaryArithmetic {
 }
 
 class HRemainder extends HBinaryArithmetic {
-  HRemainder(HInstruction left, HInstruction right, Selector selector,
-      AbstractValue type)
-      : super(left, right, selector, type);
+  HRemainder(HInstruction left, HInstruction right, AbstractValue type)
+      : super(left, right, type);
   @override
   accept(HVisitor visitor) => visitor.visitRemainder(this);
 
@@ -2644,15 +2659,13 @@ class HSwitch extends HControlFlow {
 }
 
 abstract class HBinaryBitOp extends HInvokeBinary {
-  HBinaryBitOp(HInstruction left, HInstruction right, Selector selector,
-      AbstractValue type)
-      : super(left, right, selector, type);
+  HBinaryBitOp(HInstruction left, HInstruction right, AbstractValue type)
+      : super(left, right, type);
 }
 
 class HShiftLeft extends HBinaryBitOp {
-  HShiftLeft(HInstruction left, HInstruction right, Selector selector,
-      AbstractValue type)
-      : super(left, right, selector, type);
+  HShiftLeft(HInstruction left, HInstruction right, AbstractValue type)
+      : super(left, right, type);
   @override
   accept(HVisitor visitor) => visitor.visitShiftLeft(this);
 
@@ -2667,9 +2680,8 @@ class HShiftLeft extends HBinaryBitOp {
 }
 
 class HShiftRight extends HBinaryBitOp {
-  HShiftRight(HInstruction left, HInstruction right, Selector selector,
-      AbstractValue type)
-      : super(left, right, selector, type);
+  HShiftRight(HInstruction left, HInstruction right, AbstractValue type)
+      : super(left, right, type);
   @override
   accept(HVisitor visitor) => visitor.visitShiftRight(this);
 
@@ -2684,9 +2696,8 @@ class HShiftRight extends HBinaryBitOp {
 }
 
 class HBitOr extends HBinaryBitOp {
-  HBitOr(HInstruction left, HInstruction right, Selector selector,
-      AbstractValue type)
-      : super(left, right, selector, type);
+  HBitOr(HInstruction left, HInstruction right, AbstractValue type)
+      : super(left, right, type);
   @override
   accept(HVisitor visitor) => visitor.visitBitOr(this);
 
@@ -2701,9 +2712,8 @@ class HBitOr extends HBinaryBitOp {
 }
 
 class HBitAnd extends HBinaryBitOp {
-  HBitAnd(HInstruction left, HInstruction right, Selector selector,
-      AbstractValue type)
-      : super(left, right, selector, type);
+  HBitAnd(HInstruction left, HInstruction right, AbstractValue type)
+      : super(left, right, type);
   @override
   accept(HVisitor visitor) => visitor.visitBitAnd(this);
 
@@ -2718,9 +2728,8 @@ class HBitAnd extends HBinaryBitOp {
 }
 
 class HBitXor extends HBinaryBitOp {
-  HBitXor(HInstruction left, HInstruction right, Selector selector,
-      AbstractValue type)
-      : super(left, right, selector, type);
+  HBitXor(HInstruction left, HInstruction right, AbstractValue type)
+      : super(left, right, type);
   @override
   accept(HVisitor visitor) => visitor.visitBitXor(this);
 
@@ -2735,9 +2744,7 @@ class HBitXor extends HBinaryBitOp {
 }
 
 abstract class HInvokeUnary extends HInstruction {
-  final Selector selector;
-  HInvokeUnary(HInstruction input, this.selector, type)
-      : super(<HInstruction>[input], type) {
+  HInvokeUnary(HInstruction input, type) : super(<HInstruction>[input], type) {
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
     setUseGvn();
@@ -2749,8 +2756,7 @@ abstract class HInvokeUnary extends HInstruction {
 }
 
 class HNegate extends HInvokeUnary {
-  HNegate(HInstruction input, Selector selector, AbstractValue type)
-      : super(input, selector, type);
+  HNegate(HInstruction input, AbstractValue type) : super(input, type);
   @override
   accept(HVisitor visitor) => visitor.visitNegate(this);
 
@@ -2765,8 +2771,7 @@ class HNegate extends HInvokeUnary {
 }
 
 class HAbs extends HInvokeUnary {
-  HAbs(HInstruction input, Selector selector, AbstractValue type)
-      : super(input, selector, type);
+  HAbs(HInstruction input, AbstractValue type) : super(input, type);
   @override
   accept(HVisitor visitor) => visitor.visitAbs(this);
 
@@ -2781,8 +2786,7 @@ class HAbs extends HInvokeUnary {
 }
 
 class HBitNot extends HInvokeUnary {
-  HBitNot(HInstruction input, Selector selector, AbstractValue type)
-      : super(input, selector, type);
+  HBitNot(HInstruction input, AbstractValue type) : super(input, type);
   @override
   accept(HVisitor visitor) => visitor.visitBitNot(this);
 
@@ -3107,14 +3111,16 @@ class HPhi extends HInstruction {
 
 abstract class HRelational extends HInvokeBinary {
   bool usesBoolifiedInterceptor = false;
-  HRelational(left, right, selector, type) : super(left, right, selector, type);
+  HRelational(HInstruction left, HInstruction right, AbstractValue type)
+      : super(left, right, type);
 }
 
 class HIdentity extends HRelational {
   // Cached codegen decision.
   String singleComparisonOp; // null, '===', '=='
 
-  HIdentity(left, right, selector, type) : super(left, right, selector, type);
+  HIdentity(HInstruction left, HInstruction right, AbstractValue type)
+      : super(left, right, type);
   @override
   accept(HVisitor visitor) => visitor.visitIdentity(this);
 
@@ -3129,7 +3135,8 @@ class HIdentity extends HRelational {
 }
 
 class HGreater extends HRelational {
-  HGreater(left, right, selector, type) : super(left, right, selector, type);
+  HGreater(HInstruction left, HInstruction right, AbstractValue type)
+      : super(left, right, type);
   @override
   accept(HVisitor visitor) => visitor.visitGreater(this);
 
@@ -3144,8 +3151,8 @@ class HGreater extends HRelational {
 }
 
 class HGreaterEqual extends HRelational {
-  HGreaterEqual(left, right, selector, type)
-      : super(left, right, selector, type);
+  HGreaterEqual(HInstruction left, HInstruction right, AbstractValue type)
+      : super(left, right, type);
   @override
   accept(HVisitor visitor) => visitor.visitGreaterEqual(this);
 
@@ -3160,7 +3167,8 @@ class HGreaterEqual extends HRelational {
 }
 
 class HLess extends HRelational {
-  HLess(left, right, selector, type) : super(left, right, selector, type);
+  HLess(HInstruction left, HInstruction right, AbstractValue type)
+      : super(left, right, type);
   @override
   accept(HVisitor visitor) => visitor.visitLess(this);
 
@@ -3175,7 +3183,8 @@ class HLess extends HRelational {
 }
 
 class HLessEqual extends HRelational {
-  HLessEqual(left, right, selector, type) : super(left, right, selector, type);
+  HLessEqual(HInstruction left, HInstruction right, AbstractValue type)
+      : super(left, right, type);
   @override
   accept(HVisitor visitor) => visitor.visitLessEqual(this);
 
@@ -3448,9 +3457,7 @@ class HLiteralList extends HInstruction {
 /// The primitive array indexing operation. Note that this instruction
 /// does not throw because we generate the checks explicitly.
 class HIndex extends HInstruction {
-  final Selector selector;
-  HIndex(HInstruction receiver, HInstruction index, this.selector,
-      AbstractValue type)
+  HIndex(HInstruction receiver, HInstruction index, AbstractValue type)
       : super(<HInstruction>[receiver, index], type) {
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
@@ -3490,9 +3497,8 @@ class HIndex extends HInstruction {
 /// The primitive array assignment operation. Note that this instruction
 /// does not throw because we generate the checks explicitly.
 class HIndexAssign extends HInstruction {
-  final Selector selector;
   HIndexAssign(AbstractValueDomain domain, HInstruction receiver,
-      HInstruction index, HInstruction value, this.selector)
+      HInstruction index, HInstruction value)
       : super(<HInstruction>[receiver, index, value], domain.emptyType) {
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
@@ -4608,6 +4614,7 @@ AbstractBool _isTestResult(
 
   if (useNullSafety &&
       expression.isNull(abstractValueDomain).isDefinitelyTrue) {
+    if (dartType.isObject) return AbstractBool.False;
     if (closedWorld.dartTypes.isTopType(dartType) ||
         dartType is NullableType ||
         dartType.isNull) {

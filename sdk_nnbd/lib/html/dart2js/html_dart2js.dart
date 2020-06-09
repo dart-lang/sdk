@@ -115,8 +115,8 @@ class HtmlElement extends Element implements NoncedElement {
   HtmlElement.created() : super.created();
 
   // From NoncedElement
-  String get nonce native;
-  set nonce(String value) native;
+  String? get nonce native;
+  set nonce(String? value) native;
 }
 
 /**
@@ -3396,7 +3396,7 @@ class Css extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  _Worklet get paintWorklet native;
+  static _Worklet get paintWorklet native;
 
   static CssUnitValue Hz(num value) native;
 
@@ -13674,7 +13674,9 @@ class Element extends Node
     if (Range.supportsCreateContextualFragment &&
         _canBeUsedToCreateContextualFragment) {
       _parseRange!.selectNodeContents(contextElement);
-      fragment = _parseRange!.createContextualFragment(html!);
+      // createContextualFragment expects a non-nullable html string.
+      // If null is passed, it gets converted to 'null' instead.
+      fragment = _parseRange!.createContextualFragment(html ?? 'null');
     } else {
       contextElement._innerHtml = html;
 
@@ -20482,6 +20484,15 @@ class MediaDevices extends EventTarget {
 
   @JSName('getSupportedConstraints')
   _getSupportedConstraints_1() native;
+
+  Future<MediaStream> getUserMedia([Map? constraints]) {
+    var constraints_dict = null;
+    if (constraints != null) {
+      constraints_dict = convertDartToNative_Dictionary(constraints);
+    }
+    return promiseToFuture<MediaStream>(
+        JS("", "#.getUserMedia(#)", this, constraints_dict));
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22618,11 +22629,11 @@ class Navigator extends NavigatorConcurrentHardware
 
   _Clipboard get clipboard native;
 
-  NetworkInformation get connection native;
+  NetworkInformation? get connection native;
 
   CredentialsContainer get credentials native;
 
-  num get deviceMemory native;
+  num? get deviceMemory native;
 
   String? get doNotTrack native;
 
@@ -22710,7 +22721,7 @@ class Navigator extends NavigatorConcurrentHardware
       options_dict = convertDartToNative_Dictionary(options);
     }
     return promiseToFuture(
-        JS("", "#.requestMidiAccess(#)", this, options_dict));
+        JS("", "#.requestMIDIAccess(#)", this, options_dict));
   }
 
   Future requestMediaKeySystemAccess(
@@ -22897,7 +22908,7 @@ class NetworkInformation extends EventTarget {
   static const EventStreamProvider<Event> changeEvent =
       const EventStreamProvider<Event>('change');
 
-  num get downlink native;
+  num? get downlink native;
 
   num get downlinkMax native;
 
@@ -23608,9 +23619,9 @@ class NoncedElement extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String get nonce native;
+  String? get nonce native;
 
-  set nonce(String value) native;
+  set nonce(String? value) native;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23703,9 +23714,9 @@ class Notification extends EventTarget {
 
   String get lang native;
 
-  int get maxActions native;
+  static int get maxActions native;
 
-  String get permission native;
+  static String get permission native;
 
   bool get renotify native;
 
@@ -25048,7 +25059,7 @@ class Performance extends EventTarget {
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.performance)');
 
-  MemoryInfo get memory native;
+  MemoryInfo? get memory native;
 
   PerformanceNavigation get navigation native;
 
@@ -26038,7 +26049,7 @@ class PushManager extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  List<String> get supportedContentEncodings native;
+  static List<String> get supportedContentEncodings native;
 
   Future<PushSubscription> getSubscription() =>
       promiseToFuture<PushSubscription>(JS("", "#.getSubscription()", this));
@@ -37166,16 +37177,18 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   }
 
   Future cancel() {
-    // Return type cannot be null due to override, so return empty Future
-    // instead.
-    var emptyFuture = new Future<void>.value();
-    if (_canceled) return emptyFuture;
+    // Check for strong mode. This function can no longer return null in strong
+    // mode, so only return null in weak mode to preserve synchronous timing.
+    // See issue 41653 for more details.
+    dynamic emptyFuture =
+        typeAcceptsNull<Event>() ? null : Future<void>.value();
+    if (_canceled) return emptyFuture as Future;
 
     _unlisten();
     // Clear out the target to indicate this is complete.
     _target = null;
     _onData = null;
-    return emptyFuture;
+    return emptyFuture as Future;
   }
 
   bool get _canceled => _target == null;

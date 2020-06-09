@@ -336,8 +336,12 @@ footer .wide {
 }
 
 .region.informative-region {
-  background-color: #888888;
-  color: #000000;
+  background-color: #404549; /* #282b2e, lightened 10% */
+  border-bottom: solid rgba(255, 255, 0, 0.7) 1px;
+  display: inline-block;
+  height: 14px; 
+  position: relative;
+  top: 1px;
 }
 
 .target {
@@ -418,7 +422,7 @@ footer .wide {
   border-top: 2px solid black;
   border-radius: 7px;
   box-shadow: 0px 0px 20px 2px #b4bfcb22;
-  z-index: 1;
+  z-index: 400;
   background: #2b3036;
   padding: 20px;
 }
@@ -483,7 +487,7 @@ body.rerunning .rerunning-pane {
   transform: translate(-50%, -50%);
 }
 
-p.trace .type-description {
+.edit-panel .type-description {
   /* From HLJS's .hljs-keyword, .hljs-selector-tag, .hljs-deletion */
   color: #cc7832;
   font-family: monospace;
@@ -497,8 +501,6 @@ ul.trace {
 
 ul.trace li {
   color: white;
-  margin-left: 14px;
-  text-indent: -14px;
 }
 
 ul.trace li .function {
@@ -506,6 +508,15 @@ ul.trace li .function {
   color: #ffc66d;
   font-family: monospace;
   font-weight: 600;
+}
+
+ul.trace li p.drawer {
+  margin: 3px 0px;
+  padding: 0px 0px 0px 14px;
+}
+
+ul.trace li p.drawer button {
+  margin-right: 3px;
 }
 
 .elevation-z4 {
@@ -530,7 +541,9 @@ a:hover {
   margin: 3px;
 }
 
-button, a.button {
+/* Careful here. `a.button` is repetitive but required to get correct
+ * specificity */
+button, .button, a.button {
   background-color: #33ccff;
   border: 2px solid #37aedc;
   border-radius: 3px;

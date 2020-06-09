@@ -40,3 +40,60 @@ class Terminal {
     _needsNewline = false;
   }
 }
+
+/// The maximum line length for output.
+///
+/// If the test runner isn't attached to a terminal, defaults to 80 columns.
+final int _lineLength = () {
+  try {
+    return stdout.terminalColumns;
+  } on StdoutException {
+    return 80;
+  }
+}();
+
+/// Wraps [text] so that it fits within [_lineLength], if there is a line length.
+///
+/// This preserves existing newlines and only splits words on spaces, not on
+/// other sorts of whitespace or separators.
+///
+/// If [prefix] is passed, it's added at the beginning of any wrapped lines.
+String wordWrap(String text, {String prefix}) {
+  prefix ??= '';
+
+  var buffer = StringBuffer();
+  var originalLines = text.split('\n');
+  var lengthSoFar = 0;
+  var needsNewline = false;
+  var needsSpace = false;
+
+  for (var i = 0; i < originalLines.length; i++) {
+    var originalLine = originalLines[i];
+    for (var word in originalLine.split(' ')) {
+      // If this word would push us over, split before it.
+      if (lengthSoFar + 1 + word.length > _lineLength) needsNewline = true;
+
+      if (needsNewline) {
+        buffer.writeln();
+        buffer.write(prefix);
+        lengthSoFar = prefix.length;
+        needsSpace = false;
+      } else if (needsSpace) {
+        buffer.write(' ');
+        lengthSoFar++;
+      }
+
+      buffer.write(word);
+      lengthSoFar += word.length;
+
+      // If the single word fills the entire line, we need to wrap after it too.
+      needsNewline = lengthSoFar > _lineLength;
+      needsSpace = !needsNewline;
+    }
+
+    if (needsNewline) buffer.writeln();
+    needsNewline = true;
+  }
+
+  return buffer.toString();
+}

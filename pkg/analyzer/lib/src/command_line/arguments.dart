@@ -23,7 +23,6 @@ const String ignoreUnrecognizedFlagsFlag = 'ignore-unrecognized-flags';
 const String implicitCastsFlag = 'implicit-casts';
 const String lintsFlag = 'lints';
 const String noImplicitDynamicFlag = 'no-implicit-dynamic';
-const String packageRootOption = 'package-root';
 const String packagesOption = 'packages';
 const String sdkPathOption = 'dart-sdk';
 
@@ -69,7 +68,6 @@ ContextBuilderOptions createContextBuilderOptions(ArgResults args) {
   builderOptions.defaultAnalysisOptionsFilePath =
       args[analysisOptionsFileOption];
   builderOptions.defaultPackageFilePath = args[packagesOption];
-  builderOptions.defaultPackagesDirectoryPath = args[packageRootOption];
   //
   // Analysis options.
   //
@@ -137,10 +135,6 @@ void defineAnalysisArguments(ArgParser parser,
       help: 'The path to the Dart SDK.', hide: ddc && hide);
   parser.addOption(analysisOptionsFileOption,
       help: 'Path to an analysis options file.', hide: ddc && hide);
-  parser.addOption(packageRootOption,
-      help: 'The path to a package root directory (deprecated). '
-          'This option cannot be used with --packages.',
-      hide: ddc && hide);
   parser.addFlag('strong',
       help: 'Enable strong mode (deprecated); this option is now ignored.',
       defaultsTo: true,
@@ -165,13 +159,13 @@ void defineAnalysisArguments(ArgParser parser,
   //
   parser.addMultiOption(defineVariableOption,
       abbr: 'D',
-      help: 'Define environment variables. For example, "-Dfoo=bar" defines an '
-          'environment variable named "foo" whose value is "bar".',
+      help:
+          'Define an environment declaration. For example, "-Dfoo=bar" defines an '
+          'environment declaration named "foo" whose value is "bar".',
       hide: hide);
   parser.addOption(packagesOption,
       help: 'The path to the package resolution configuration file, which '
-          'supplies a mapping of package names\nto paths. This option cannot be '
-          'used with --package-root.',
+          'supplies a mapping of package names\nto paths.',
       hide: ddc);
   parser.addOption(sdkSummaryPathOption,
       help: 'The path to the Dart SDK summary file.', hide: hide);

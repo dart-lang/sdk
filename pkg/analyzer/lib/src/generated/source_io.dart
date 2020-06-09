@@ -137,18 +137,12 @@ class FileBasedSource extends Source {
 
   @override
   String get encoding {
-    if (_encoding == null) {
-      _encoding = uri.toString();
-    }
-    return _encoding;
+    return _encoding ??= uri.toString();
   }
 
   @override
   String get fullName {
-    if (_absolutePath == null) {
-      _absolutePath = file.getAbsolutePath();
-    }
-    return _absolutePath;
+    return _absolutePath ??= file.getAbsolutePath();
   }
 
   @override

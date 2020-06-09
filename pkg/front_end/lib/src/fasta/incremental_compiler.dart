@@ -685,6 +685,15 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
   }
 
+  IncrementalKernelTarget createIncrementalKernelTarget(
+      FileSystem fileSystem,
+      bool includeComments,
+      DillTarget dillTarget,
+      UriTranslator uriTranslator) {
+    return new IncrementalKernelTarget(
+        fileSystem, includeComments, dillTarget, uriTranslator);
+  }
+
   /// Create a new [userCode] object, and add the reused builders to it.
   void setupNewUserCode(
       CompilerContext c,
@@ -693,7 +702,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       List<LibraryBuilder> reusedLibraries,
       ExperimentalInvalidation experimentalInvalidation,
       Uri firstEntryPoint) {
-    userCode = new IncrementalKernelTarget(
+    userCode = createIncrementalKernelTarget(
         new HybridFileSystem(
             new MemoryFileSystem(
                 new Uri(scheme: "org-dartlang-debug", path: "/")),

@@ -87,57 +87,55 @@ class BytesBuilderSink implements Sink<List<int>> {
   void close() {}
 }
 
-/// Visitor that assigns [Metadata] object created with [Metadata.forNode] to
-/// each supported node in the component.
-class Annotator extends RecursiveVisitor<Null> {
-  final TestMetadataRepository repository;
+typedef NodePredicate = bool Function(TreeNode node);
 
-  Annotator(Component component)
-      : repository = component.metadata[TestMetadataRepository.kTag];
+/// Visitor calling [handle] function on every node which can have metadata
+/// associated with it and also satisfies the given [predicate].
+class Visitor extends RecursiveVisitor<Null> {
+  final NodePredicate predicate;
+  final void Function(TreeNode) handle;
+
+  Visitor(this.predicate, this.handle);
 
   defaultTreeNode(TreeNode node) {
     super.defaultTreeNode(node);
-    if (MetadataRepository.isSupported(node)) {
-      repository.mapping[node] = new Metadata.forNode(node);
+    if (MetadataRepository.isSupported(node) && predicate(node)) {
+      handle(node);
     }
-  }
-
-  static void annotate(Component p) {
-    globalDebuggingNames = new NameSystem();
-    p.accept(new Annotator(p));
   }
 }
 
-/// Visitor that checks that each supported node in the component has correct
-/// metadata.
-class Validator extends RecursiveVisitor<Null> {
-  final TestMetadataRepository repository;
+/// Visit the given component assigning [Metadata] object created with
+/// [Metadata.forNode] to each supported node in the component which matches
+/// [shouldAnnotate] predicate.
+void annotate(Component p, NodePredicate shouldAnnotate) {
+  globalDebuggingNames = new NameSystem();
+  final repository = p.metadata[TestMetadataRepository.kTag];
+  p.accept(new Visitor(shouldAnnotate, (node) {
+    repository.mapping[node] = new Metadata.forNode(node);
+  }));
+}
 
-  Validator(Component component)
-      : repository = component.metadata[TestMetadataRepository.kTag];
+/// Visit the given component and checks that each supported node in the
+/// component matching [shouldAnnotate] predicate has correct metadata.
+void validate(Component p, NodePredicate shouldAnnotate) {
+  globalDebuggingNames = new NameSystem();
+  final repository = p.metadata[TestMetadataRepository.kTag];
+  p.accept(new Visitor(shouldAnnotate, (node) {
+    final m = repository.mapping[node];
+    final expected = new Metadata.forNode(node);
 
-  defaultTreeNode(TreeNode node) {
-    super.defaultTreeNode(node);
-    if (MetadataRepository.isSupported(node)) {
-      final m = repository.mapping[node];
-      final expected = new Metadata.forNode(node);
-
-      expect(m.string, equals(expected.string));
-      expect(m.member, equals(expected.member));
-      expect(m.type, equals(expected.type));
-    }
-  }
-
-  static void validate(Component p) {
-    globalDebuggingNames = new NameSystem();
-    p.accept(new Validator(p));
-  }
+    expect(m, isNotNull);
+    expect(m.string, equals(expected.string));
+    expect(m.member, equals(expected.member));
+    expect(m.type, equals(expected.type));
+  }));
 }
 
 Component fromBinary(List<int> bytes) {
   var component = new Component();
   component.addMetadataRepository(new TestMetadataRepository());
-  new BinaryBuilderWithMetadata(bytes).readSingleFileComponent(component);
+  new BinaryBuilderWithMetadata(bytes).readComponent(component);
   return component;
 }
 
@@ -147,19 +145,53 @@ List<int> toBinary(Component p) {
   return sink.builder.takeBytes();
 }
 
-main() {
-  test('annotate-serialize-deserialize-validate', () async {
-    final Uri platform = computePlatformBinariesLocation(forceBuildDir: true)
-        .resolve("vm_platform_strong.dill");
-    final List<int> platformBinary =
-        await new File(platform.toFilePath()).readAsBytes();
+main() async {
+  bool anyNode(TreeNode node) => true;
+  bool onlyMethods(TreeNode node) =>
+      node is Procedure &&
+      node.kind == ProcedureKind.Method &&
+      node.enclosingClass != null;
 
+  final Uri platform = computePlatformBinariesLocation(forceBuildDir: true)
+      .resolve("vm_platform_strong.dill");
+  final List<int> platformBinary =
+      await new File(platform.toFilePath()).readAsBytes();
+
+  Future<void> testRoundTrip(List<int> Function(List<int>) binaryTransformer,
+      NodePredicate shouldAnnotate) async {
     final component = fromBinary(platformBinary);
-    Annotator.annotate(component);
-    Validator.validate(component);
+    annotate(component, shouldAnnotate);
+    validate(component, shouldAnnotate);
+    expect(component.metadata[TestMetadataRepository.kTag].mapping.length,
+        greaterThan(0));
 
-    final annotatedComponentBinary = toBinary(component);
+    final annotatedComponentBinary = binaryTransformer(toBinary(component));
     final annotatedComponentFromBinary = fromBinary(annotatedComponentBinary);
-    Validator.validate(annotatedComponentFromBinary);
+    validate(annotatedComponentFromBinary, shouldAnnotate);
+    expect(
+        annotatedComponentFromBinary
+            .metadata[TestMetadataRepository.kTag].mapping.length,
+        greaterThan(0));
+  }
+
+  test('annotate-serialize-deserialize-validate', () async {
+    await testRoundTrip((binary) => binary, anyNode);
+  });
+
+  test('annotate-serialize-deserialize-validate-only-methods', () async {
+    await testRoundTrip((binary) => binary, onlyMethods);
+  });
+
+  test('annotate-serialize-deserialize-twice-then-validate', () async {
+    // This test validates that serializing a component that was just
+    // deserialized (without visiting anything) works.
+    await testRoundTrip((binary) => toBinary(fromBinary(binary)), anyNode);
+  });
+
+  test('annotate-serialize-deserialize-twice-then-validate-only-methods',
+      () async {
+    // This test validates that serializing a component that was just
+    // deserialized (without visiting anything) works.
+    await testRoundTrip((binary) => toBinary(fromBinary(binary)), onlyMethods);
   });
 }

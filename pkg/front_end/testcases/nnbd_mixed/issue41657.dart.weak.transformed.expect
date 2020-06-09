@@ -1,0 +1,28 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static final field core::bool isLegacySubtyping1a = (#C1) is{ForNonNullableByDefault} core::List<core::int>;
+static const field core::bool isLegacySubtyping1b = #C2;
+static final field core::bool isLegacySubtyping2a = (#C3) is{ForNonNullableByDefault} core::List<core::int>;
+static const field core::bool isLegacySubtyping2b = #C2;
+static final field core::List<core::int> assertLegacySubtyping1a = #C1;
+static const field core::List<core::int> assertLegacySubtyping1b = #C1;
+static final field core::List<core::int> assertLegacySubtyping2a = #C3;
+static const field core::List<core::int> assertLegacySubtyping2b = #C3;
+static method main() → void {
+  self::expect(self::isLegacySubtyping1a, #C2);
+  self::expect(self::isLegacySubtyping2a, #C2);
+  self::expect(self::assertLegacySubtyping1a, #C1);
+  self::expect(self::assertLegacySubtyping2a, #C3);
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = <core::Null?>[]
+  #C2 = true
+  #C3 = <core::int*>[]
+}

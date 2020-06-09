@@ -25,56 +25,56 @@ class Test {
   void operator []=(Index i, B v) {}
 
   void test() {
-    this /*@target=Test::[]=*/ [
+    this /*@target=Test.[]=*/ [
         /*@ typeArgs=Index* */ f()] = /*@ typeArgs=B* */ f();
 
-    this /*@target=Test::[]*/ /*@target=Test::[]=*/ [
-            /*@ typeArgs=Index* */ f()] /*@ target=Object::== */
+    this /*@target=Test.[]*/ /*@target=Test.[]=*/ [
+            /*@ typeArgs=Index* */ f()] /*@target=A.==*/
         ??= /*@ typeArgs=B* */ f();
 
-    this /*@target=Test::[]*/ /*@target=Test::[]=*/ [
-            /*@ typeArgs=Index* */ f()] /*@ target=B::+ */
+    this /*@target=Test.[]*/ /*@target=Test.[]=*/ [
+            /*@ typeArgs=Index* */ f()] /*@target=B.+*/
         += /*@ typeArgs=C* */ f();
 
-    this /*@target=Test::[]*/ /*@target=Test::[]=*/ [
-            /*@ typeArgs=Index* */ f()] /*@ target=B::* */
+    this /*@target=Test.[]*/ /*@target=Test.[]=*/ [
+            /*@ typeArgs=Index* */ f()] /*@target=B.**/
         *= /*@ typeArgs=B* */ f();
 
-    this /*@target=Test::[]*/ /*@target=Test::[]=*/ [
-            /*@ typeArgs=Index* */ f()] /*@ target=B::& */
+    this /*@target=Test.[]*/ /*@target=Test.[]=*/ [
+            /*@ typeArgs=Index* */ f()] /*@target=B.&*/
         &= /*@ typeArgs=A* */ f();
 
-    /*@ target=B::- */ --this /*@target=Test::[]*/ /*@target=Test::[]=*/ [
+    /*@target=B.-*/ --this /*@target=Test.[]*/ /*@target=Test.[]=*/ [
         /*@ typeArgs=Index* */ f()];
 
-    this /*@target=Test::[]*/ /*@target=Test::[]=*/ [
-        /*@ typeArgs=Index* */ f()] /*@ target=B::- */ --;
+    this /*@target=Test.[]*/ /*@target=Test.[]=*/ [
+        /*@ typeArgs=Index* */ f()] /*@target=B.-*/ --;
 
-    var /*@ type=B* */ v1 = this /*@target=Test::[]=*/ [
+    var /*@ type=B* */ v1 = this /*@target=Test.[]=*/ [
         /*@ typeArgs=Index* */ f()] = /*@ typeArgs=B* */ f();
 
-    var /*@ type=B* */ v2 = this /*@target=Test::[]*/ /*@target=Test::[]=*/ [
-            /*@ typeArgs=Index* */ f()] /*@ target=Object::== */
+    var /*@ type=B* */ v2 = this /*@target=Test.[]*/ /*@target=Test.[]=*/ [
+            /*@ typeArgs=Index* */ f()] /*@target=A.==*/
         ??= /*@ typeArgs=B* */ f();
 
-    var /*@ type=A* */ v4 = this /*@target=Test::[]*/ /*@target=Test::[]=*/ [
-            /*@ typeArgs=Index* */ f()] /*@ target=B::+ */
+    var /*@ type=A* */ v4 = this /*@target=Test.[]*/ /*@target=Test.[]=*/ [
+            /*@ typeArgs=Index* */ f()] /*@target=B.+*/
         += /*@ typeArgs=C* */ f();
 
-    var /*@ type=B* */ v3 = this /*@target=Test::[]*/ /*@target=Test::[]=*/ [
-            /*@ typeArgs=Index* */ f()] /*@ target=B::* */
+    var /*@ type=B* */ v3 = this /*@target=Test.[]*/ /*@target=Test.[]=*/ [
+            /*@ typeArgs=Index* */ f()] /*@target=B.**/
         *= /*@ typeArgs=B* */ f();
 
-    var /*@ type=C* */ v5 = this /*@target=Test::[]*/ /*@target=Test::[]=*/ [
-            /*@ typeArgs=Index* */ f()] /*@ target=B::& */
+    var /*@ type=C* */ v5 = this /*@target=Test.[]*/ /*@target=Test.[]=*/ [
+            /*@ typeArgs=Index* */ f()] /*@target=B.&*/
         &= /*@ typeArgs=A* */ f();
 
-    var /*@ type=B* */ v6 = /*@ target=B::- */ --this
-        /*@target=Test::[]*/ /*@target=Test::[]=*/ [
+    var /*@ type=B* */ v6 = /*@target=B.-*/ --this
+        /*@target=Test.[]*/ /*@target=Test.[]=*/ [
         /*@ typeArgs=Index* */ f()];
 
-    var /*@ type=B* */ v7 = this /*@target=Test::[]*/ /*@target=Test::[]=*/ [
-        /*@ typeArgs=Index* */ f()] /*@ target=B::- */ --;
+    var /*@ type=B* */ v7 = this /*@target=Test.[]*/ /*@target=Test.[]=*/ [
+        /*@ typeArgs=Index* */ f()] /*@target=B.-*/ --;
   }
 }
 

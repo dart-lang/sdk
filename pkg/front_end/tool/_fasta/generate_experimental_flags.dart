@@ -7,6 +7,8 @@ import 'dart:io' show File, Platform;
 import 'package:_fe_analyzer_shared/src/scanner/characters.dart'
     show $A, $MINUS, $a, $z;
 
+import 'package:_fe_analyzer_shared/src/sdk/allowed_experiments.dart';
+
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 
 import 'package:yaml/yaml.dart' show YamlMap, loadYaml;
@@ -20,7 +22,7 @@ main(List<String> arguments) {
 
 Uri computeCfeGeneratedFile() {
   return Platform.script
-      .resolve("../../lib/src/api_prototype/experimental_flags.dart");
+      .resolve("../../lib/src/api_prototype/experimental_flags_generated.dart");
 }
 
 Uri computeKernelGeneratedFile() {
@@ -31,6 +33,11 @@ Uri computeKernelGeneratedFile() {
 Uri computeYamlFile() {
   return Platform.script
       .resolve("../../../../tools/experimental_features.yaml");
+}
+
+Uri computeAllowListFile() {
+  return Platform.script
+      .resolve("../../../../sdk_nnbd/lib/_internal/allowed_experiments.json");
 }
 
 String generateKernelFile() {
@@ -57,7 +64,7 @@ String generateKernelFile() {
 // NOTE: THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'tools/experimental_features.yaml' and run
-// 'pkg/front_end/tool/fasta generate-experimental-flags' to update.
+// 'dart pkg/front_end/tool/fasta.dart generate-experimental-flags' to update.
 
 import "ast.dart";
 
@@ -84,16 +91,16 @@ String generateCfeFile() {
   StringBuffer sb = new StringBuffer();
 
   sb.write('''
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // NOTE: THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'tools/experimental_features.yaml' and run
-// 'pkg/front_end/tool/fasta generate-experimental-flags' to update.
+// 'dart pkg/front_end/tool/fasta.dart generate-experimental-flags' to update.
 
-import 'package:kernel/kernel.dart' show Version;
+part of 'experimental_flags.dart';
 ''');
 
   Map<dynamic, dynamic> features = yaml['features'];
@@ -164,7 +171,45 @@ const Map<ExperimentalFlag, bool> expiredExperimentalFlags = {
     bool expired = (features[key] as YamlMap)['expired'] == true;
     sb.writeln('  ExperimentalFlag.${keyToIdentifier(key)}: ${expired},');
   }
-  sb.writeln('};');
+  sb.write('''
+};
+  
+''');
+
+  Uri allowListFile = computeAllowListFile();
+  AllowedExperiments allowedExperiments = parseAllowedExperiments(
+      new File.fromUri(allowListFile).readAsStringSync());
+
+  sb.write('''
+const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
+    const AllowedExperimentalFlags(
+''');
+  sb.writeln('sdkDefaultExperiments: {');
+  for (String sdkDefaultExperiment
+      in allowedExperiments.sdkDefaultExperiments) {
+    sb.writeln('ExperimentalFlag.${keyToIdentifier(sdkDefaultExperiment)},');
+  }
+  sb.writeln('},');
+  sb.writeln('sdkLibraryExperiments: {');
+  allowedExperiments.sdkLibraryExperiments
+      .forEach((String library, List<String> experiments) {
+    sb.writeln('"$library": {');
+    for (String experiment in experiments) {
+      sb.writeln('ExperimentalFlag.${keyToIdentifier(experiment)},');
+    }
+    sb.writeln('},');
+  });
+  sb.writeln('},');
+  sb.writeln('packageExperiments: {');
+  allowedExperiments.packageExperiments
+      .forEach((String package, List<String> experiments) {
+    sb.writeln('"$package": {');
+    for (String experiment in experiments) {
+      sb.writeln('ExperimentalFlag.${keyToIdentifier(experiment)},');
+    }
+    sb.writeln('},');
+  });
+  sb.writeln('});');
 
   return new DartFormatter().format("$sb");
 }

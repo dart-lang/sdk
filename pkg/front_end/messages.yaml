@@ -1185,6 +1185,9 @@ UnterminatedToken:
 Unspecified:
   template: "#string"
 
+StrongModeNNBDButOptOut:
+  template: "A library can't opt out of non-nullable by default, when in nnbd-strong mode."
+
 AbstractNotSync:
   template: "Abstract methods can't use 'async', 'async*', or 'sync*'."
   analyzerCode: NON_SYNC_ABSTRACT_METHOD
@@ -1733,6 +1736,10 @@ InternalProblemVerificationError:
     #string
   severity: INTERNAL_PROBLEM
 
+VerificationErrorOriginContext:
+  template: "The node most likely is taken from here by a transformer."
+  severity: CONTEXT
+
 InternalProblemDebugAbort:
   template: "Compilation aborted due to fatal '#name' at:\n#string"
   severity: INTERNAL_PROBLEM
@@ -2229,6 +2236,14 @@ TypedefNullableType:
   template: "Can't create typedef from nullable type."
   configuration: nnbd-strong
   script: typedef F = void Function()?;
+
+TypedefUnaliasedTypeCause:
+  template: "This is the type denoted by the type alias."
+  severity: CONTEXT
+
+TypedefCause:
+  template: "The issue arises via this type alias."
+  severity: CONTEXT
 
 LibraryDirectiveNotFirst:
   index: 37
@@ -4038,7 +4053,7 @@ NonAgnosticConstant:
 
 ExportOptOutFromOptIn:
   template: "Null safe libraries are not allowed to export declarations from of opt-out libraries."
-  configuration: nnbd-strong
+  configuration: nnbd-weak
   script:
     main.dart: |
       export 'lib.dart';

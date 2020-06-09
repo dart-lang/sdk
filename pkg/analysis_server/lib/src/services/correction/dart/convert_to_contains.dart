@@ -22,12 +22,12 @@ class ConvertToContains extends CorrectionProducer {
     }
     var leftOperand = comparison.leftOperand;
     var rightOperand = comparison.rightOperand;
-    if (leftOperand is MethodInvocation && isInteger(rightOperand)) {
-      var value = integerValue(rightOperand);
+    if (leftOperand is MethodInvocation && _isInteger(rightOperand)) {
+      var value = _integerValue(rightOperand);
       var methodName = leftOperand.methodName;
       var deletionRange = range.endEnd(leftOperand, rightOperand);
       var notOffset = -1;
-      var style = negationStyle(comparison.operator.type, value);
+      var style = _negationStyle(comparison.operator.type, value);
       if (style == NegationStyle.none) {
         return;
       } else if (style == NegationStyle.negated) {
@@ -41,13 +41,13 @@ class ConvertToContains extends CorrectionProducer {
         builder.addSimpleReplacement(range.node(methodName), 'contains');
         builder.addDeletion(deletionRange);
       });
-    } else if (isInteger(leftOperand) && rightOperand is MethodInvocation) {
-      var value = integerValue(leftOperand);
+    } else if (_isInteger(leftOperand) && rightOperand is MethodInvocation) {
+      var value = _integerValue(leftOperand);
       var methodName = rightOperand.methodName;
       var deletionRange = range.startStart(leftOperand, rightOperand);
       var notOffset = -1;
       var style =
-          negationStyle(invertedTokenType(comparison.operator.type), value);
+          _negationStyle(_invertedTokenType(comparison.operator.type), value);
       if (style == NegationStyle.none) {
         return;
       } else if (style == NegationStyle.negated) {
@@ -64,9 +64,9 @@ class ConvertToContains extends CorrectionProducer {
     }
   }
 
-  /// Return the value of the given [expression], given that [isInteger]
+  /// Return the value of the given [expression], given that [_isInteger]
   /// returned `true`.
-  int integerValue(Expression expression) {
+  int _integerValue(Expression expression) {
     if (expression is IntegerLiteral) {
       return expression.value;
     } else if (expression is PrefixExpression &&
@@ -79,7 +79,7 @@ class ConvertToContains extends CorrectionProducer {
     throw StateError('invalid integer value');
   }
 
-  TokenType invertedTokenType(TokenType type) {
+  TokenType _invertedTokenType(TokenType type) {
     switch (type) {
       case TokenType.LT_EQ:
         return TokenType.GT_EQ;
@@ -96,14 +96,14 @@ class ConvertToContains extends CorrectionProducer {
 
   /// Return `true` if the given [expression] is a literal integer, possibly
   /// prefixed by a negation operator.
-  bool isInteger(Expression expression) {
+  bool _isInteger(Expression expression) {
     return (expression is IntegerLiteral) ||
         (expression is PrefixExpression &&
             expression.operator.type == TokenType.MINUS &&
             expression.operand is IntegerLiteral);
   }
 
-  NegationStyle negationStyle(TokenType type, int value) {
+  NegationStyle _negationStyle(TokenType type, int value) {
     if (value == -1) {
       if (type == TokenType.EQ_EQ || type == TokenType.LT_EQ) {
         // `indexOf == -1` is the same as `!contains`

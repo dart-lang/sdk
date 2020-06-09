@@ -1755,11 +1755,6 @@ void ClassFinalizer::ClearAllCode(bool including_nonchanging_cids) {
     auto object_store = isolate->object_store();
     auto& null_code = Code::Handle(zone);
     object_store->set_build_method_extractor_code(null_code);
-
-    auto& miss_function =
-        Function::Handle(zone, object_store->megamorphic_call_miss_function());
-    miss_function.ClearCode();
-    object_store->SetMegamorphicCallMissHandler(null_code, miss_function);
   }
 #endif  // !DART_PRECOMPILED_RUNTIME
 }

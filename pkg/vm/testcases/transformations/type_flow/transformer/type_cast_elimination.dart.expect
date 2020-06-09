@@ -28,7 +28,7 @@ static method testInt2([@vm.inferred-type.metadata=dart.core::Null? (value: null
 static method testDynamic([@vm.inferred-type.metadata=dart.core::_OneByteString (value: hi)] dynamic x) → dynamic
   return _in::unsafeCast<dynamic>(x);
 static method testObject([@vm.inferred-type.metadata=dart.core::_OneByteString (value: bye)] dynamic x) → dynamic
-  return _in::unsafeCast<core::Object*>(x);
+  return x;
 static method testBOfInt([@vm.inferred-type.metadata=#lib::B<InterfaceType(int*)>] dynamic x) → dynamic
   return _in::unsafeCast<self::B<core::int*>*>(x);
 static method testAOfInt([@vm.inferred-type.metadata=#lib::B<InterfaceType(int*)>] dynamic x) → dynamic
@@ -49,8 +49,8 @@ static method main() → void {
   self::testAOfNum(new self::B::•<core::int*>());
   self::testAOfAOfB1(new self::A::•<self::A<self::B<dynamic>*>*>());
   self::testAOfAOfB2negative(new self::A::•<self::A<self::A<dynamic>*>*>());
-  [@vm.direct-call.metadata=B::testT1] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int*>().{self::B::testT1}(42);
-  [@vm.direct-call.metadata=B::testT2negative] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<self::A<core::int*>*>().{self::B::testT2negative}(new self::A::•<core::String*>());
-  [@vm.direct-call.metadata=B::testAOfT1] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<self::A<core::int*>*>().{self::B::testAOfT1}(new self::A::•<self::A<core::int*>*>());
-  [@vm.direct-call.metadata=B::testAOfT2negative] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<self::A<core::int*>*>().{self::B::testAOfT2negative}(new self::A::•<self::A<core::num*>*>());
+  [@vm.direct-call.metadata=B.testT1] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int*>().{self::B::testT1}(42);
+  [@vm.direct-call.metadata=B.testT2negative] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<self::A<core::int*>*>().{self::B::testT2negative}(new self::A::•<core::String*>());
+  [@vm.direct-call.metadata=B.testAOfT1] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<self::A<core::int*>*>().{self::B::testAOfT1}(new self::A::•<self::A<core::int*>*>());
+  [@vm.direct-call.metadata=B.testAOfT2negative] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<self::A<core::int*>*>().{self::B::testAOfT2negative}(new self::A::•<self::A<core::num*>*>());
 }

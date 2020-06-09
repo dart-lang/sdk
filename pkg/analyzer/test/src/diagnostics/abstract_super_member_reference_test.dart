@@ -211,6 +211,28 @@ abstract class B extends A {
     );
   }
 
+  test_propertyAccess_getter_mixin_implements() async {
+    await assertErrorsInCode(r'''
+class A {
+  int get foo => 0;
+}
+
+mixin M implements A {
+  void bar() {
+    super.foo;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 81, 3),
+    ]);
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('super.foo'),
+      element: findElement.getter('foo', of: 'A'),
+      type: 'int',
+    );
+  }
+
   test_propertyAccess_getter_mixinHasNoSuchMethod() async {
     await assertErrorsInCode('''
 class A {

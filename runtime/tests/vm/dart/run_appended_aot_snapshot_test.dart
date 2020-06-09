@@ -26,21 +26,28 @@ Future<void> main(List<String> args) async {
     final String dillPath = path.join(tmp, 'test.dill');
     final String aotPath = path.join(tmp, 'test.aot');
     final String exePath = path.join(tmp, exeName);
+    final extraGenKernelOptions = Platform.executableArguments
+        .where((arg) =>
+            arg.startsWith('--enable-experiment=') ||
+            arg == '--null-safety' ||
+            arg == '--no-null-safety')
+        .toList();
 
     {
       final result = await generateAotKernel(checkedInDartVM, genKernel,
-          platformDill, sourcePath, dillPath, null, []);
+          platformDill, sourcePath, dillPath, null, [],
+          extraGenKernelOptions: extraGenKernelOptions);
       Expect.equals(result.stderr, '');
-      Expect.equals(result.exitCode, 0);
       Expect.equals(result.stdout, '');
+      Expect.equals(result.exitCode, 0);
     }
 
     {
       final result = await generateAotSnapshot(
-          genSnapshot, dillPath, aotPath, null, false);
+          genSnapshot, dillPath, aotPath, null, false, []);
       Expect.equals(result.stderr, '');
-      Expect.equals(result.exitCode, 0);
       Expect.equals(result.stdout, '');
+      Expect.equals(result.exitCode, 0);
     }
 
     await writeAppendedExecutable(dartPrecompiledRuntime, aotPath, exePath);

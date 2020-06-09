@@ -1146,17 +1146,16 @@ class _TreeShakerPass1 extends Transformer {
     if (args.named.isEmpty) return invocation;
 
     Expression outer = invocation;
-    int argIdx = args.named.length + args.positional.length;
     for (int i = args.named.length - 1; i >= 0; --i) {
       final arg = args.named[i];
-      final variable = VariableDeclaration("#arg${argIdx--}",
+      final variable = VariableDeclaration(null,
           initializer: arg.value,
           type: arg.value.getStaticType(staticTypeContext));
       arg.value = VariableGet(variable)..parent = arg;
       outer = Let(variable, outer);
     }
     for (int i = args.positional.length - 1; i >= 0; --i) {
-      final variable = VariableDeclaration("#arg${argIdx--}",
+      final variable = VariableDeclaration(null,
           initializer: args.positional[i],
           type: args.positional[i].getStaticType(staticTypeContext));
       args.positional[i] = VariableGet(variable)..parent = args;
@@ -1168,16 +1167,15 @@ class _TreeShakerPass1 extends Transformer {
   void _fixArgumentEvaluationOrderInInitializer(Arguments args) {
     if (args.named.isEmpty) return;
 
-    int argIndex = 0;
     for (int i = 0; i < args.positional.length; ++i) {
-      final variable = VariableDeclaration("#arg${argIndex++}",
-          initializer: args.positional[i]);
+      final variable =
+          VariableDeclaration(null, initializer: args.positional[i]);
       args.positional[i] = VariableGet(variable)..parent = args;
       additionalInitializers.add(LocalInitializer(variable));
     }
     for (int i = 0; i < args.named.length; ++i) {
-      final variable = VariableDeclaration("#arg${argIndex++}",
-          initializer: args.named[i].value);
+      final variable =
+          VariableDeclaration(null, initializer: args.named[i].value);
       args.named[i].value = VariableGet(variable)..parent = args.named[i];
       additionalInitializers.add(LocalInitializer(variable));
     }

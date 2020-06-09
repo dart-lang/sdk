@@ -117,7 +117,7 @@ class YieldStatementResolver {
   }
 
   void _computeElementType(YieldStatement node) {
-    var elementType = _resolver.inferenceContext.returnContext;
+    var elementType = _resolver.inferenceContext.bodyContext?.contextType;
     if (elementType != null) {
       var contextType = elementType;
       if (node.star != null) {
@@ -138,23 +138,7 @@ class YieldStatementResolver {
       _resolver.nullableDereferenceVerifier.expression(node.expression);
     }
 
-    DartType type = node.expression?.staticType;
-    // If this just a yield, then we just pass on the element type
-    if (node.star != null) {
-      // If this is a yield*, then we unwrap the element return type
-      // If it's synchronous, we expect Iterable<T>, otherwise Stream<T>
-      if (type is InterfaceType) {
-        ClassElement wrapperElement = _enclosingFunction.isSynchronous
-            ? _typeProvider.iterableElement
-            : _typeProvider.streamElement;
-        var asInstanceType =
-            (type as InterfaceTypeImpl).asInstanceOf(wrapperElement);
-        if (asInstanceType != null) {
-          type = asInstanceType.typeArguments[0];
-        }
-      }
-    }
-    _resolver.inferenceContext.addReturnOrYieldType(type);
+    _resolver.inferenceContext.bodyContext?.addYield(node);
 
     _checkForYieldOfInvalidType(node, node.star != null);
     _checkForUseOfVoidResult(node.expression);

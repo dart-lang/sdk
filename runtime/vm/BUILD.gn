@@ -83,8 +83,9 @@ library_for_all_configs("libdart_vm") {
         # necessary.
         "//sdk/fidl/fuchsia.deprecatedtimezone",
         "//sdk/lib/sys/cpp",
+        "//sdk/lib/sys/inspect/cpp",
         "//zircon/public/lib/fbl",
-        "//zircon/public/lib/trace-engine",
+        "//zircon/system/ulib/trace-engine",
       ]
     }
   }
@@ -114,7 +115,7 @@ library_for_all_configs_with_compiler("libdart_compiler") {
     } else {
       extra_deps = [
         "//zircon/public/lib/fbl",
-        "//zircon/public/lib/trace-engine",
+        "//zircon/system/ulib/trace-engine",
       ]
     }
   }
@@ -128,7 +129,7 @@ library_for_all_configs("libdart_lib") {
     } else {
       extra_deps = [
         "//zircon/public/lib/fbl",
-        "//zircon/public/lib/trace-engine",
+        "//zircon/system/ulib/trace-engine",
       ]
     }
   }
@@ -157,7 +158,7 @@ template("gen_vm_platform") {
     }
     single_root_scheme = "org-dartlang-sdk"
     single_root_base = rebase_path("../../")
-    if (use_nnbd) {
+    if (!dont_use_nnbd) {
       libraries_specification_uri =
           "org-dartlang-sdk:///sdk_nnbd/lib/libraries.json"
     } else {
@@ -175,7 +176,7 @@ template("gen_vm_platform") {
       "-Ddart.developer.causal_async_stacks=$allow_causal_async_stacks",
       "-Ddart.isVM=true",
     ]
-    if (use_nnbd) {
+    if (!dont_use_nnbd) {
       args += [ "--enable-experiment=non-nullable" ]
       args += [ "--nnbd-agnostic" ]
     }

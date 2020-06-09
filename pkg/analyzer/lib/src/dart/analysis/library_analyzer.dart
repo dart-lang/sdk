@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -29,6 +28,7 @@ import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/legacy_type_asserter.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
@@ -211,7 +211,7 @@ class LibraryAnalyzer {
       ErrorReporter errorReporter, CompilationUnit unit) {
     ConstantVerifier constantVerifier = ConstantVerifier(
         errorReporter, _libraryElement, _declaredVariables,
-        featureSet: unit.featureSet, forAnalysisDriver: true);
+        featureSet: unit.featureSet);
     unit.accept(constantVerifier);
   }
 
@@ -232,9 +232,15 @@ class LibraryAnalyzer {
     ErrorReporter errorReporter = _getErrorReporter(file);
 
     if (!_libraryElement.isNonNullableByDefault) {
-      unit.accept(DeadCodeVerifier(errorReporter, unit.featureSet,
-          typeSystem: _typeSystem));
+      unit.accept(
+        LegacyDeadCodeVerifier(
+          errorReporter,
+          typeSystem: _typeSystem,
+        ),
+      );
     }
+
+    unit.accept(DeadCodeVerifier(errorReporter));
 
     // Dart2js analysis.
     if (_analysisOptions.dart2jsHint) {
@@ -323,18 +329,7 @@ class LibraryAnalyzer {
     );
     for (Linter linter in _analysisOptions.lintRules) {
       linter.reporter = errorReporter;
-      if (linter is NodeLintRule) {
-        (linter as NodeLintRule).registerNodeProcessors(nodeRegistry, context);
-      } else {
-        AstVisitor visitor = linter.getVisitor();
-        if (visitor != null) {
-          if (_analysisOptions.enableTiming) {
-            var timer = lintRegistry.getTimer(linter);
-            visitor = TimedAstVisitor(visitor, timer);
-          }
-          visitors.add(visitor);
-        }
-      }
+      linter.registerNodeProcessors(nodeRegistry, context);
     }
 
     // Run lints that handle specific node types.
@@ -387,7 +382,7 @@ class LibraryAnalyzer {
     // Use the ErrorVerifier to compute errors.
     //
     ErrorVerifier errorVerifier = ErrorVerifier(
-        errorReporter, _libraryElement, _typeProvider, _inheritance, false);
+        errorReporter, _libraryElement, _typeProvider, _inheritance);
     unit.accept(errorVerifier);
 
     // Verify constraints on FFI uses. The CFE enforces these constraints as
@@ -437,8 +432,11 @@ class LibraryAnalyzer {
           }
         }
 
-        if (code == CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY &&
-            file.path.contains('tests/compiler/dart2js')) {
+        if ((code == CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY ||
+                code == CompileTimeErrorCode.UNDEFINED_ANNOTATION ||
+                code == ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE) &&
+            (file.path.contains('tests/compiler/dart2js') ||
+                file.path.contains('pkg/compiler/test'))) {
           // Special case the dart2js language tests. Some of these import
           // various internal libraries.
           privileged = true;

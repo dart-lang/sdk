@@ -4,8 +4,8 @@
 
 import 'dart:async';
 
+import 'package:nnbd_migration/src/preview/pages.dart';
 import 'package:nnbd_migration/src/preview/preview_site.dart';
-import 'package:analysis_server/src/status/pages.dart';
 
 /// A page displayed on the preview site.
 abstract class PreviewPage extends Page {
@@ -14,7 +14,7 @@ abstract class PreviewPage extends Page {
 
   /// Initialize a newly created page within the given [site]. The [id] is the
   /// portion of the path to the page that follows the initial slash ('/').
-  PreviewPage(this.site, String id) : super(id, '', description: '');
+  PreviewPage(this.site, String id) : super(id);
 
   /// Whether pages of this type require authorization.
   bool get requiresAuth;

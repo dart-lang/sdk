@@ -55,7 +55,6 @@ class ConstantAstCloner extends AstCloner {
         expression.keyword = KeywordToken(Keyword.NEW, node.offset);
       }
     }
-    expression.staticElement = node.staticElement;
     return expression;
   }
 
@@ -296,7 +295,8 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.isConst) {
-      ConstructorElement constructor = node.staticElement?.declaration;
+      ConstructorElement constructor =
+          node.constructorName.staticElement?.declaration;
       if (constructor != null) {
         _callback(constructor);
       }

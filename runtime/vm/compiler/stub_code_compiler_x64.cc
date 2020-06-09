@@ -57,7 +57,7 @@ static void EnsureIsNewOrRemembered(Assembler* assembler,
   }
   __ movq(CallingConventions::kArg1Reg, RAX);
   __ movq(CallingConventions::kArg2Reg, THR);
-  __ CallRuntime(kAddAllocatedObjectToRememberedSetRuntimeEntry, 2);
+  __ CallRuntime(kEnsureRememberedAndMarkingDeferredRuntimeEntry, 2);
   if (preserve_registers) {
     __ LeaveCallRuntimeFrame();
   }
@@ -124,7 +124,7 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
           Immediate(1 * target::kWordSize));  // Retval is next to 1st argument.
   __ movq(Address(RSP, retval_offset),
           RAX);  // Set retval in target::NativeArguments.
-#if defined(_WIN64)
+#if defined(TARGET_OS_WINDOWS)
   ASSERT(target::NativeArguments::StructSize() >
          CallingConventions::kRegisterTransferLimit);
   __ movq(CallingConventions::kArg1Reg, RSP);
@@ -542,7 +542,7 @@ void StubCodeCompiler::GenerateStackOverflowSharedWithFPURegsStub(
 void StubCodeCompiler::GeneratePrintStopMessageStub(Assembler* assembler) {
   __ EnterCallRuntimeFrame(0);
 // Call the runtime leaf function. RDI already contains the parameter.
-#if defined(_WIN64)
+#if defined(TARGET_OS_WINDOWS)
   __ movq(CallingConventions::kArg1Reg, RDI);
 #endif
   __ CallRuntime(kPrintStopMessageRuntimeEntry, 1);
@@ -1852,19 +1852,18 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 
     // Get card table.
     __ Bind(&remember_card);
-    __ movq(TMP, RDX);                           // Object.
-    __ andq(TMP, Immediate(target::kPageMask));  // HeapPage.
-    __ cmpq(Address(TMP, target::HeapPage::card_table_offset()), Immediate(0));
+    __ movq(TMP, RDX);                              // Object.
+    __ andq(TMP, Immediate(target::kOldPageMask));  // OldPage.
+    __ cmpq(Address(TMP, target::OldPage::card_table_offset()), Immediate(0));
     __ j(EQUAL, &remember_card_slow, Assembler::kNearJump);
 
     // Dirty the card.
     __ subq(R13, TMP);  // Offset in page.
-    __ movq(
-        TMP,
-        Address(TMP, target::HeapPage::card_table_offset()));  // Card table.
-    __ shrq(R13,
-            Immediate(
-                target::HeapPage::kBytesPerCardLog2));  // Index in card table.
+    __ movq(TMP,
+            Address(TMP, target::OldPage::card_table_offset()));  // Card table.
+    __ shrq(
+        R13,
+        Immediate(target::OldPage::kBytesPerCardLog2));  // Index in card table.
     __ movb(Address(TMP, R13, TIMES_1, 0), Immediate(1));
     __ ret();
 
@@ -2811,7 +2810,7 @@ void StubCodeCompiler::GenerateInterpretCallStub(Assembler* assembler) {
   __ movq(CallingConventions::kArg3Reg, R11);         // Negative argc.
   __ movq(CallingConventions::kArg4Reg, R12);         // Argv.
 
-#if defined(_WIN64)
+#if defined(TARGET_OS_WINDOWS)
   __ movq(Address(RSP, 0 * target::kWordSize), THR);  // Thread.
 #else
   __ movq(CallingConventions::kArg5Reg, THR);  // Thread.
@@ -2950,6 +2949,9 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 
   // Loop initialization (moved up here to avoid having all dependent loads
   // after each other).
+
+  // We avoid a load-acquire barrier here by relying on the fact that all other
+  // loads from the array are data-dependent loads.
   __ movq(RSI, FieldAddress(TypeTestABI::kSubtypeTestCacheReg,
                             target::SubtypeTestCache::cache_offset()));
   __ addq(RSI, Immediate(target::Array::data_offset() - kHeapObjectTag));
@@ -3532,7 +3534,8 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ Bind(&probe_failed);
   __ cmpq(FieldAddress(RDI, RCX, TIMES_8, base),
           Immediate(target::ToRawSmi(kIllegalCid)));
-  __ j(ZERO, &load_target, Assembler::kNearJump);
+  Label miss;
+  __ j(ZERO, &miss, Assembler::kNearJump);
 
   // Try next entry in the table.
   __ AddImmediate(RCX, Immediate(target::ToRawSmi(1)));
@@ -3542,6 +3545,9 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ Bind(&smi_case);
   __ movq(RAX, Immediate(kSmiCid));
   __ jmp(&cid_loaded);
+
+  __ Bind(&miss);
+  GenerateSwitchableCallMissStub(assembler);
 }
 
 // Input:
@@ -3640,15 +3646,6 @@ void StubCodeCompiler::GenerateSwitchableCallMissStub(Assembler* assembler) {
   __ jmp(RCX);
 }
 
-// Called from megamorphic call sites and from megamorphic miss handlers.
-//  RDX: receiver
-//  R10: arguments descriptor
-void StubCodeCompiler::GenerateMegamorphicCallMissStub(Assembler* assembler) {
-  // On x64 there is no need to load receiver from the actual arguments using
-  // arg descriptor because (unlike on arm, arm64) receiver is always available.
-  GenerateSwitchableCallMissStub(assembler);
-}
-
 // Called from switchable IC calls.
 //  RDX: receiver
 //  RBX: SingleTargetCache
@@ -3712,14 +3709,20 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
                    InstantiationABI::kUninstantiatedTypeArgumentsReg,
                    target::TypeArguments::instantiations_offset()));
   __ leaq(RAX, compiler::FieldAddress(RAX, Array::data_offset()));
+
   // The instantiations cache is initialized with Object::zero_array() and is
   // therefore guaranteed to contain kNoInstantiator. No length check needed.
-  compiler::Label loop, next, found;
+  compiler::Label loop, next, found, call_runtime;
   __ Bind(&loop);
-  __ movq(RDI,
-          compiler::Address(
-              RAX, TypeArguments::Instantiation::kInstantiatorTypeArgsIndex *
-                       target::kWordSize));
+
+  // Use load-acquire to test for sentinel, if we found non-sentinel it is safe
+  // to access the other entries. If we found a sentinel we go to runtime.
+  __ LoadAcquire(RDI, RAX,
+                 TypeArguments::Instantiation::kInstantiatorTypeArgsIndex *
+                     target::kWordSize);
+  __ CompareImmediate(RDI, Smi::RawValue(TypeArguments::kNoInstantiator));
+  __ j(EQUAL, &call_runtime, compiler::Assembler::kNearJump);
+
   __ cmpq(RDI, InstantiationABI::kInstantiatorTypeArgumentsReg);
   __ j(NOT_EQUAL, &next, compiler::Assembler::kNearJump);
   __ movq(R10, compiler::Address(
@@ -3730,12 +3733,11 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
   __ Bind(&next);
   __ addq(RAX, compiler::Immediate(TypeArguments::Instantiation::kSizeInWords *
                                    target::kWordSize));
-  __ cmpq(RDI,
-          compiler::Immediate(Smi::RawValue(TypeArguments::kNoInstantiator)));
-  __ j(NOT_EQUAL, &loop, compiler::Assembler::kNearJump);
+  __ jmp(&loop);
 
   // Instantiate non-null type arguments.
   // A runtime call to instantiate the type arguments is required.
+  __ Bind(&call_runtime);
   __ EnterStubFrame();
   __ PushObject(Object::null_object());  // Make room for the result.
   __ pushq(InstantiationABI::kUninstantiatedTypeArgumentsReg);

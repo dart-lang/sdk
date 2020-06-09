@@ -305,10 +305,7 @@ class _AsyncStarImpl<T> {
     // already be scheduled. This will cause at least one more iteration to
     // run (adding another data item to the Stream) before actually pausing.
     // It could be fixed by moving the `isPaused` check inside `runBody`.
-    if (isScheduled ||
-        controller.isPaused ||
-        isSuspendedAtYieldStar ||
-        isSuspendedAtAwait) {
+    if (isScheduled || controller.isPaused || isSuspendedAtYieldStar) {
       return;
     }
     isScheduled = true;

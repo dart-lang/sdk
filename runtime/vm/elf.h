@@ -15,6 +15,7 @@ namespace dart {
 
 class DynamicSegment;
 class DynamicTable;
+class ElfWriteStream;
 class Section;
 class StringTable;
 class Symbol;
@@ -22,7 +23,7 @@ class SymbolTable;
 
 class Elf : public ZoneAllocated {
  public:
-  Elf(Zone* zone, StreamingWriteStream* stream);
+  Elf(Zone* zone, StreamingWriteStream* stream, bool strip = false);
 
   static const intptr_t kPageSize = 4096;
 
@@ -32,53 +33,46 @@ class Elf : public ZoneAllocated {
   intptr_t AddROData(const char* name, const uint8_t* bytes, intptr_t size);
   intptr_t AddBSSData(const char* name, intptr_t size);
   void AddDebug(const char* name, const uint8_t* bytes, intptr_t size);
-  void AddStaticSymbol(intptr_t section,
-                       const char* name,
-                       intptr_t address,
-                       intptr_t size);
+  void AddCodeSymbol(const char* name,
+                     intptr_t section,
+                     intptr_t address,
+                     intptr_t size);
+
+  // Returns whether the symbol was found. If found, sets the contents of
+  // offset and size appropriately if either or both are not nullptr.
+  bool FindDynamicSymbol(const char* name,
+                         intptr_t* offset,
+                         intptr_t* size) const;
 
   void Finalize();
 
-  intptr_t position() const { return stream_->position(); }
-  void WriteBytes(const uint8_t* b, intptr_t size) {
-    stream_->WriteBytes(b, size);
-  }
-  void WriteByte(uint8_t value) {
-    stream_->WriteBytes(reinterpret_cast<uint8_t*>(&value), sizeof(value));
-  }
-  void WriteHalf(uint16_t value) {
-    stream_->WriteBytes(reinterpret_cast<uint8_t*>(&value), sizeof(value));
-  }
-  void WriteWord(uint32_t value) {
-    stream_->WriteBytes(reinterpret_cast<uint8_t*>(&value), sizeof(value));
-  }
-  void WriteAddr(compiler::target::uword value) {
-    stream_->WriteBytes(reinterpret_cast<uint8_t*>(&value), sizeof(value));
-  }
-  void WriteOff(compiler::target::uword value) {
-    stream_->WriteBytes(reinterpret_cast<uint8_t*>(&value), sizeof(value));
-  }
-#if defined(TARGET_ARCH_IS_64_BIT)
-  void WriteXWord(uint64_t value) {
-    stream_->WriteBytes(reinterpret_cast<uint8_t*>(&value), sizeof(value));
-  }
-#endif
-
  private:
   void AddSection(Section* section, const char* name);
-  intptr_t AddSectionSymbol(const Section* section,
-                            const char* name,
-                            intptr_t size);
+  intptr_t AddSegmentSymbol(const Section* section, const char* name);
+  void AddStaticSymbol(const char* name,
+                       intptr_t info,
+                       intptr_t section_index,
+                       intptr_t address,
+                       intptr_t size);
+  void AddDynamicSymbol(const char* name,
+                        intptr_t info,
+                        intptr_t section_index,
+                        intptr_t address,
+                        intptr_t size);
 
   void FinalizeProgramTable();
   void ComputeFileOffsets();
-  void WriteHeader();
-  void WriteSectionTable();
-  void WriteProgramTable();
-  void WriteSections();
+
+  void WriteHeader(ElfWriteStream* stream);
+  void WriteSectionTable(ElfWriteStream* stream);
+  void WriteProgramTable(ElfWriteStream* stream);
+  void WriteSections(ElfWriteStream* stream);
 
   Zone* const zone_;
-  StreamingWriteStream* const stream_;
+  StreamingWriteStream* const unwrapped_stream_;
+  // Whether the ELF file should be stripped of static information like
+  // the static symbol table (and its corresponding string table).
+  const bool strip_;
 
   // All our strings would fit in a single page. However, we use separate
   // .shstrtab and .dynstr to work around a bug in Android's strip utility.

@@ -18,7 +18,6 @@ import 'package:analyzer/src/dart/analysis/driver.dart' show ErrorEncoding;
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/micro/analysis_context.dart';
 import 'package:analyzer/src/dart/micro/library_analyzer.dart';
 import 'package:analyzer/src/dart/micro/library_graph.dart';
@@ -192,8 +191,9 @@ class FileResolver {
       return logger.run('Resolve $path', () {
         var fileContext = getFileContext(path);
         var file = fileContext.file;
+        var libraryFile = file.partOfLibrary ?? file;
 
-        libraryContext.load2(file);
+        libraryContext.load2(libraryFile);
 
         testView?.addResolvedFile(path);
 
@@ -202,6 +202,7 @@ class FileResolver {
         var unit = file.parse(errorListener, content);
 
         Map<FileState, UnitAnalysisResult> results;
+
         logger.run('Compute analysis results', () {
           var libraryAnalyzer = LibraryAnalyzer(
             fileContext.analysisOptions,
@@ -210,8 +211,8 @@ class FileResolver {
             (_) => true, // _isLibraryUri
             contextObjects.analysisContext,
             libraryContext.elementFactory,
-            libraryContext.inheritanceManager,
-            file,
+            contextObjects.inheritanceManager,
+            libraryFile,
             resourceProvider,
             (String path) => resourceProvider.getFile(path).readAsStringSync(),
           );
@@ -259,7 +260,7 @@ class FileResolver {
 
     if (fsState == null) {
       var featureSetProvider = FeatureSetProvider.build(
-        resourceProvider: resourceProvider,
+        sourceFactory: sourceFactory,
         packages: Packages.empty,
         packageDefaultFeatureSet: analysisOptions.contextFeatures,
         nonPackageDefaultFeatureSet: analysisOptions.nonPackageFeatureSet,
@@ -338,7 +339,7 @@ class FileResolver {
       if (workspace is WorkspaceWithDefaultAnalysisOptions) {
         var separator = resourceProvider.pathContext.separator;
         if (path
-            .contains('${separator}third_party${separator}dart${separator}')) {
+            .contains('${separator}third_party${separator}dart$separator')) {
           source = sourceFactory
               .forUri(WorkspaceWithDefaultAnalysisOptions.thirdPartyUri);
         } else {
@@ -415,7 +416,6 @@ class _LibraryContext {
   final MicroContextObjects contextObjects;
 
   LinkedElementFactory elementFactory;
-  InheritanceManager3 inheritanceManager;
 
   Set<LibraryCycle> loadedBundles = Set.identity();
 
@@ -563,7 +563,6 @@ class _LibraryContext {
     // already include the [targetLibrary]. When this happens, [loadBundle]
     // exists without doing any work. But the type provider must be created.
     _createElementFactoryTypeProvider();
-    inheritanceManager = InheritanceManager3();
   }
 
   void _createElementFactory() {

@@ -131,6 +131,9 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   ConstantValuefier get _constantValuefier;
   ir.StaticTypeContext get staticTypeContext;
 
+  String typeToString(DartType type) =>
+      type.toStructuredText(dartTypes, _options);
+
   Object _computeReceiverConstraint(
       ir.DartType receiverType, ClassRelation relation) {
     if (receiverType is ir.InterfaceType) {
@@ -367,7 +370,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
         reporter.reportErrorMessage(
             CURRENT_ELEMENT_SPANNABLE,
             MessageKind.STRING_EXPECTED,
-            {'type': value.getType(elementMap.commonElements)});
+            {'type': typeToString(value.getType(elementMap.commonElements))});
         return;
       }
       StringConstantValue stringValue = value;
@@ -871,7 +874,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
             reporter.reportErrorMessage(
                 computeSourceSpanFromTreeNode(firstCase),
                 MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
-                {'type': type});
+                {'type': typeToString(type)});
           }
         } else {
           if (type != firstCaseType) {
@@ -879,16 +882,16 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
               error = reporter.createMessage(
                   computeSourceSpanFromTreeNode(node),
                   MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL,
-                  {'type': firstCaseType});
+                  {'type': typeToString(firstCaseType)});
               infos.add(reporter.createMessage(
                   computeSourceSpanFromTreeNode(firstCase),
                   MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE,
-                  {'type': firstCaseType}));
+                  {'type': typeToString(firstCaseType)}));
             }
             infos.add(reporter.createMessage(
                 computeSourceSpanFromTreeNode(expression),
                 MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE,
-                {'type': type}));
+                {'type': typeToString(type)}));
           }
         }
       }

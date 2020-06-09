@@ -25,6 +25,22 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
   GatherUsedLocalElementsVisitor(this._enclosingLibrary);
 
   @override
+  visitAssignmentExpression(AssignmentExpression node) {
+    var element = node.staticElement;
+    if (element != null) {
+      usedElements.members.add(element);
+    }
+    super.visitAssignmentExpression(node);
+  }
+
+  @override
+  visitBinaryExpression(BinaryExpression node) {
+    var element = node.staticElement;
+    usedElements.members.add(element);
+    super.visitBinaryExpression(node);
+  }
+
+  @override
   visitCatchClause(CatchClause node) {
     SimpleIdentifier exceptionParameter = node.exceptionParameter;
     SimpleIdentifier stackTraceParameter = node.stackTraceParameter;
@@ -73,6 +89,13 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
   }
 
   @override
+  visitIndexExpression(IndexExpression node) {
+    var element = node.staticElement;
+    usedElements.members.add(element);
+    super.visitIndexExpression(node);
+  }
+
+  @override
   visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement enclosingExecOld = _enclosingExec;
     try {
@@ -81,6 +104,20 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
     } finally {
       _enclosingExec = enclosingExecOld;
     }
+  }
+
+  @override
+  visitPostfixExpression(PostfixExpression node) {
+    var element = node.staticElement;
+    usedElements.members.add(element);
+    super.visitPostfixExpression(node);
+  }
+
+  @override
+  visitPrefixExpression(PrefixExpression node) {
+    var element = node.staticElement;
+    usedElements.members.add(element);
+    super.visitPrefixExpression(node);
   }
 
   @override
@@ -323,13 +360,18 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
     return _usedElements.elements.contains(element);
   }
 
-  bool _isUsedMember(Element element) {
+  bool _isUsedMember(ExecutableElement element) {
+    var enclosingElement = element.enclosingElement;
     if (element.isPublic) {
-      if (_isPrivateClassOrExtension(element.enclosingElement) &&
-          element is ExecutableElement &&
+      if (enclosingElement is ClassElement &&
+          enclosingElement.isPrivate &&
           element.isStatic) {
-        // Public static members of private classes, mixins, and extensions are
-        // inaccessible from outside the library in which they are declared.
+        // Public static members of private classes are inaccessible from
+        // outside the library in which they are declared.
+      } else if (enclosingElement is ExtensionElement &&
+          enclosingElement.isPrivate) {
+        // Public members of private extensions are inaccessible from outside
+        // the library in which they are declared.
       } else {
         return true;
       }
@@ -354,7 +396,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
     if (enclosingElement is ClassElement) {
       Name name = Name(_libraryUri, element.name);
       Iterable<ExecutableElement> overriddenElements = _inheritanceManager
-          .getOverridden(enclosingElement.thisType, name)
+          .getOverridden2(enclosingElement, name)
           ?.map((ExecutableElement e) =>
               (e is ExecutableMember) ? e.declaration : e);
       if (overriddenElements != null) {

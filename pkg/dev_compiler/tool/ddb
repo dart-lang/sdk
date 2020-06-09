@@ -207,19 +207,19 @@ void main(List<String> args) async {
       break;
   }
 
-  String sdkJsPath;
-  String requirePath;
   String ddcSdk;
-  var archDir = nnbd ? 'ReleaseX64NNBD' : 'ReleaseX64';
   if (debug) {
     var sdkRoot = p.dirname(p.dirname(ddcPath));
     var buildDir = p.join(sdkRoot, Platform.isMacOS ? 'xcodebuild' : 'out');
-    dartSdk = p.join(buildDir, archDir, 'dart-sdk');
+    dartSdk = p.join(buildDir, 'ReleaseX64', 'dart-sdk');
+    ddcSdk = p.join(buildDir, 'ReleaseX64',
+        isNnbdStrong ? 'ddc_outline_sound.dill' : 'ddc_outline.dill');
+  } else {
+    ddcSdk = p.join(dartSdk, 'lib', '_internal', 'ddc_sdk.dill');
   }
   var suffix = p.join('kernel', mod);
-  sdkJsPath = p.join(dartSdk, 'lib', 'dev_compiler', suffix);
-  requirePath = sdkJsPath;
-  ddcSdk = p.join(dartSdk, 'lib', '_internal', 'ddc_sdk.dill');
+  var sdkJsPath = p.join(dartSdk, 'lib', 'dev_compiler', suffix);
+  var requirePath = sdkJsPath;
 
   // Print an initial empty line to separate the invocation from the output.
   print('');
@@ -232,6 +232,7 @@ void main(List<String> args) async {
       '--dart-sdk-summary=$ddcSdk',
       for (var summary in summaries) '--summary=$summary',
       for (var experiment in experiments) '--enable-experiment=$experiment',
+      if (isNnbdStrong) '--sound-null-safety',
       if (options['packages'] != null) '--packages=${options['packages']}',
       '-o',
       out,
@@ -270,6 +271,7 @@ void main(List<String> args) async {
     'use strict';
     if ($nnbd) {
       sdk.dart.nullSafety($isNnbdStrong);
+      sdk.dart.weakNullSafetyWarnings(!$isNnbdStrong);
     }
     sdk._debugger.registerDevtoolsFormatter();
     app.$libname.main();
@@ -302,6 +304,7 @@ let main = require(\"./$basename\").$libname.main;
 try {
   if ($nnbd) {
     sdk.dart.nullSafety($isNnbdStrong);
+    sdk.dart.weakNullSafetyWarnings(!$isNnbdStrong);
   }
   sdk._isolate_helper.startRootIsolate(main, []);
 } catch(e) {
@@ -335,6 +338,7 @@ let main = $libname.main;
 try {
   if ($nnbd) {
     dart.nullSafety($isNnbdStrong);
+    dart.weakNullSafetyWarnings(!$isNnbdStrong);
   }
   _isolate_helper.startRootIsolate(() => {}, []);
   main();

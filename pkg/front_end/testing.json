@@ -75,7 +75,10 @@
         "/testcases/.*_lib[0-9]*\\.dart$",
         "/testcases/dartino/",
         "/testcases/shaker/",
-        "/testcases/expression/"
+        "/testcases/expression/",
+        "/testcases/general_nnbd_opt_out/",
+        "/testcases/nnbd_mixed/",
+        "/testcases/nonfunction_type_aliases/"
       ]
     },
     {
@@ -93,7 +96,10 @@
         "/testcases/.*_lib[0-9]*\\.dart$",
         "/testcases/dartino/",
         "/testcases/shaker/",
-        "/testcases/expression/"
+        "/testcases/expression/",
+        "/testcases/general_nnbd_opt_out/",
+        "/testcases/nnbd_mixed/",
+        "/testcases/nonfunction_type_aliases/"
       ]
     },
     {
@@ -111,7 +117,10 @@
         "/testcases/.*_lib[0-9]*\\.dart$",
         "/testcases/dartino/",
         "/testcases/shaker/",
-        "/testcases/expression/"
+        "/testcases/expression/",
+        "/testcases/general_nnbd_opt_out/",
+        "/testcases/nnbd_mixed/",
+        "/testcases/nonfunction_type_aliases/"
       ]
     },
     {
@@ -129,7 +138,10 @@
         "/testcases/.*_lib[0-9]*\\.dart$",
         "/testcases/dartino/",
         "/testcases/shaker/",
-        "/testcases/expression/"
+        "/testcases/expression/",
+        "/testcases/general_nnbd_opt_out/",
+        "/testcases/nnbd_mixed/",
+        "/testcases/nonfunction_type_aliases/"
       ]
     },
     {
@@ -262,13 +274,15 @@
       "name": "lint",
       "kind": "Chain",
       "source": "test/lint_suite.dart",
-      "path": "lib/",
+      "path": "../",
       "status": "test/lint_test.status",
       "pattern": [
-        ".*\\.dart$"
+        "_fe_analyzer_shared/lib/.*\\.dart$",
+        "front_end/lib/.*\\.dart$"
       ],
       "exclude": [
-        "src/fasta/fasta_codes_generated\\.dart$"
+        "_fe_analyzer_shared/lib/src/messages/codes_generated\\.dart$",
+        "front_end/lib/src/fasta/fasta_codes_cfe_generated\\.dart$"
       ]
     },
     {
@@ -395,7 +409,7 @@
       "command-lines": [
         "--checked dart2js",
         "-cdart2js -rd8 --exclude-suite=observatory_ui",
-        "-cdart2js -rd8 dart2js_extra dart2js_native"
+        "-cdart2js -rd8 dart2js_2 dart2js_native"
       ]
     },
     {
@@ -422,7 +436,7 @@
         "-t240 --checked pkg/(kernel|front_end|fasta) dart2js",
         "-cdartk -rvm",
         "-cdart2js -rd8 --exclude-suite=observatory_ui",
-        "-cdart2js -rd8 dart2js_extra dart2js_native"
+        "-cdart2js -rd8 dart2js_2 dart2js_native"
       ]
     },
     {
@@ -433,7 +447,7 @@
       "mode": "release",
       "common": "--dart2js-batch --time -pcolor --report -ax64 -mrelease --write-result-log",
       "command-lines": [
-        "-cdart2js -rd8 --use-sdk --minified language language_2 dart2js_extra dart2js_native corelib corelib_2"
+        "-cdart2js -rd8 --use-sdk --minified language language_2 dart2js_2 dart2js_native corelib corelib_2"
       ]
     }
   ],
@@ -463,7 +477,9 @@
       "test/id_testing/data/",
       "test/language_versioning/data/",
       "test/patching/data",
-      "test/static_types/data/"
+      "test/predicates/data",
+      "test/static_types/data/",
+      "test/text_representation/data/"
     ]
   }
 }

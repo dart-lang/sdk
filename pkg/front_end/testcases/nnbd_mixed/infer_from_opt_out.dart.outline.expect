@@ -1,0 +1,30 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///infer_from_opt_out_lib.dart";
+
+static method reify<T extends core::Object? = dynamic>(self::reify::T% arg) → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/infer_from_opt_out_lib.dart:5:1: Error: A library can't opt out of non-nullable by default, when in nnbd-strong mode.
+// // @dart = 2.6
+// ^^^^^^^^^^^^^^
+//
+import self as self2;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  synthetic constructor •() → self2::Foo
+    ;
+}
+static method createFoo() → self2::Foo
+  ;
+static method callback((self2::Foo) → self2::Foo f) → void
+  ;

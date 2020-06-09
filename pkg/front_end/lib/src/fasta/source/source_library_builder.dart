@@ -73,6 +73,7 @@ import 'package:kernel/type_algebra.dart' show substitute;
 import 'package:kernel/type_environment.dart'
     show SubtypeCheckMode, TypeEnvironment;
 
+import '../../api_prototype/experimental_flags.dart';
 import '../../base/nnbd_mode.dart';
 
 import '../builder/builder.dart';
@@ -165,9 +166,6 @@ import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_extension_builder.dart' show SourceExtensionBuilder;
 
 import 'source_loader.dart' show SourceLoader;
-
-import '../../api_prototype/experimental_flags.dart'
-    show enableNonNullableVersion;
 
 class SourceLibraryBuilder extends LibraryBuilderImpl {
   static const String MALFORMED_URI_SCHEME = "org-dartlang-malformed-uri";
@@ -319,9 +317,36 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     updateLibraryNNBDSettings();
   }
 
+  bool _enableVarianceInLibrary;
+  bool _enableNonfunctionTypeAliasesInLibrary;
+  bool _enableNonNullableInLibrary;
+  bool _enableTripleShiftInLibrary;
+  bool _enableExtensionMethodsInLibrary;
+
+  bool get enableVarianceInLibrary => _enableVarianceInLibrary ??= loader.target
+      .isExperimentEnabledInLibrary(ExperimentalFlag.variance, importUri);
+
+  bool get enableNonfunctionTypeAliasesInLibrary =>
+      _enableNonfunctionTypeAliasesInLibrary ??= loader.target
+          .isExperimentEnabledInLibrary(
+              ExperimentalFlag.nonfunctionTypeAliases, importUri);
+
+  bool get enableNonNullableInLibrary => _enableNonNullableInLibrary ??= loader
+      .target
+      .isExperimentEnabledInLibrary(ExperimentalFlag.nonNullable, importUri);
+
+  bool get enableTripleShiftInLibrary => _enableTripleShiftInLibrary ??= loader
+      .target
+      .isExperimentEnabledInLibrary(ExperimentalFlag.tripleShift, importUri);
+
+  bool get enableExtensionMethodsInLibrary =>
+      _enableExtensionMethodsInLibrary ??= loader.target
+          .isExperimentEnabledInLibrary(
+              ExperimentalFlag.extensionMethods, importUri);
+
   void updateLibraryNNBDSettings() {
     library.isNonNullableByDefault = isNonNullableByDefault;
-    if (loader.target.enableNonNullable) {
+    if (enableNonNullableInLibrary) {
       switch (loader.nnbdMode) {
         case NnbdMode.Weak:
           library.nonNullableByDefaultCompiledMode =
@@ -382,7 +407,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   bool get isNonNullableByDefault =>
-      loader.target.enableNonNullable &&
+      enableNonNullableInLibrary &&
       languageVersion.version >= enableNonNullableVersion &&
       !isOptOutTest(library.importUri);
 
@@ -399,15 +424,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   static const List<String> optOutTestPaths = [
     'co19_2/',
-    'compiler/dart2js/',
-    'compiler/dart2js_extra/',
     'compiler/dart2js_native/',
     'corelib_2/',
+    'dart2js_2/',
     'ffi_2',
     'language_2/',
     'lib_2/',
     'standalone_2/',
-    'vm/dart/', // in runtime/tests
+    'vm/dart_2/', // in runtime/tests
   ];
 
   LanguageVersion get languageVersion => _languageVersion;
@@ -449,6 +473,19 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     _languageVersion =
         new LanguageVersion(version, fileUri, offset, length, explicit);
     library.setLanguageVersion(version);
+
+    if (enableNonNullableInLibrary &&
+        (loader.nnbdMode == NnbdMode.Strong ||
+            loader.nnbdMode == NnbdMode.Agnostic)) {
+      // In strong and agnostic mode, the language version is not allowed to
+      // opt a library out of nnbd.
+      if (!isNonNullableByDefault) {
+        addPostponedProblem(
+            messageStrongModeNNBDButOptOut, offset, length, fileUri);
+        _languageVersion = new InvalidLanguageVersion(
+            fileUri, offset, length, explicit, loader.target.currentSdkVersion);
+      }
+    }
   }
 
   ConstructorReferenceBuilder addConstructorReference(Object name,
@@ -579,7 +616,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       LibraryBuilder coreLibrary = loader.read(
           resolve(this.importUri,
               new Uri(scheme: "dart", path: "core").toString(), -1),
-          -1);
+          -1,
+          accessor: loader.first);
       imported = coreLibrary
           .loader.builders[new Uri(scheme: 'dart', path: dottedName)];
     }
@@ -1901,13 +1939,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
     if (referencesFrom != null) {
       String nameToLookup = SourceFieldBuilder.createFieldName(
-          isInstanceMember,
-          className,
-          isExtension,
-          extensionName,
-          name,
-          fieldIsLateWithLowering,
-          FieldNameType.Field);
+          FieldNameType.Field, name,
+          isInstanceMember: isInstanceMember,
+          className: className,
+          isExtensionMethod: isExtension,
+          extensionName: extensionName,
+          isSynthesized: fieldIsLateWithLowering);
 
       if (_currentClassReferencesFromIndexed != null) {
         referenceFrom =
@@ -1915,62 +1952,53 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         if (fieldIsLateWithLowering) {
           lateIsSetReferenceFrom = _currentClassReferencesFromIndexed
               .lookupField(SourceFieldBuilder.createFieldName(
-                  isInstanceMember,
-                  className,
-                  isExtension,
-                  extensionName,
-                  name,
-                  fieldIsLateWithLowering,
-                  FieldNameType.IsSetField));
-          getterReferenceFrom = _currentClassReferencesFromIndexed
-              .lookupProcedureNotSetter(SourceFieldBuilder.createFieldName(
-                  isInstanceMember,
-                  className,
-                  isExtension,
-                  extensionName,
-                  name,
-                  fieldIsLateWithLowering,
-                  FieldNameType.Getter));
-          setterReferenceFrom = _currentClassReferencesFromIndexed
-              .lookupProcedureSetter(SourceFieldBuilder.createFieldName(
-                  isInstanceMember,
-                  className,
-                  isExtension,
-                  extensionName,
-                  name,
-                  fieldIsLateWithLowering,
-                  FieldNameType.Setter));
+                  FieldNameType.IsSetField, name,
+                  isInstanceMember: isInstanceMember,
+                  className: className,
+                  isExtensionMethod: isExtension,
+                  extensionName: extensionName,
+                  isSynthesized: fieldIsLateWithLowering));
+          getterReferenceFrom =
+              _currentClassReferencesFromIndexed.lookupProcedureNotSetter(
+                  SourceFieldBuilder.createFieldName(FieldNameType.Getter, name,
+                      isInstanceMember: isInstanceMember,
+                      className: className,
+                      isExtensionMethod: isExtension,
+                      extensionName: extensionName,
+                      isSynthesized: fieldIsLateWithLowering));
+          setterReferenceFrom =
+              _currentClassReferencesFromIndexed.lookupProcedureSetter(
+                  SourceFieldBuilder.createFieldName(FieldNameType.Setter, name,
+                      isInstanceMember: isInstanceMember,
+                      className: className,
+                      isExtensionMethod: isExtension,
+                      extensionName: extensionName,
+                      isSynthesized: fieldIsLateWithLowering));
         }
       } else {
         referenceFrom = referencesFromIndexed.lookupField(nameToLookup);
         if (fieldIsLateWithLowering) {
           lateIsSetReferenceFrom = referencesFromIndexed.lookupField(
-              SourceFieldBuilder.createFieldName(
-                  isInstanceMember,
-                  className,
-                  isExtension,
-                  extensionName,
-                  name,
-                  fieldIsLateWithLowering,
-                  FieldNameType.IsSetField));
+              SourceFieldBuilder.createFieldName(FieldNameType.IsSetField, name,
+                  isInstanceMember: isInstanceMember,
+                  className: className,
+                  isExtensionMethod: isExtension,
+                  extensionName: extensionName,
+                  isSynthesized: fieldIsLateWithLowering));
           getterReferenceFrom = referencesFromIndexed.lookupProcedureNotSetter(
-              SourceFieldBuilder.createFieldName(
-                  isInstanceMember,
-                  className,
-                  isExtension,
-                  extensionName,
-                  name,
-                  fieldIsLateWithLowering,
-                  FieldNameType.Getter));
+              SourceFieldBuilder.createFieldName(FieldNameType.Getter, name,
+                  isInstanceMember: isInstanceMember,
+                  className: className,
+                  isExtensionMethod: isExtension,
+                  extensionName: extensionName,
+                  isSynthesized: fieldIsLateWithLowering));
           setterReferenceFrom = referencesFromIndexed.lookupProcedureSetter(
-              SourceFieldBuilder.createFieldName(
-                  isInstanceMember,
-                  className,
-                  isExtension,
-                  extensionName,
-                  name,
-                  fieldIsLateWithLowering,
-                  FieldNameType.Setter));
+              SourceFieldBuilder.createFieldName(FieldNameType.Setter, name,
+                  isInstanceMember: isInstanceMember,
+                  className: className,
+                  isExtensionMethod: isExtension,
+                  extensionName: extensionName,
+                  isSynthesized: fieldIsLateWithLowering));
         }
       }
     }
@@ -3005,8 +3033,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void checkTypesInField(
       FieldBuilder fieldBuilder, TypeEnvironment typeEnvironment) {
     // Check the bounds in the field's type.
-    checkBoundsInType(fieldBuilder.field.type, typeEnvironment,
-        fieldBuilder.fileUri, fieldBuilder.field.fileOffset,
+    checkBoundsInType(fieldBuilder.fieldType, typeEnvironment,
+        fieldBuilder.fileUri, fieldBuilder.charOffset,
         allowSuperBounded: true);
 
     // Check that the field has an initializer if its type is potentially
@@ -3014,20 +3042,21 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (isNonNullableByDefault) {
       // Only static and top-level fields are checked here.  Instance fields are
       // checked elsewhere.
-      DartType fieldType = fieldBuilder.field.type;
+      DartType fieldType = fieldBuilder.fieldType;
       if (!fieldBuilder.isDeclarationInstanceMember &&
-          !fieldBuilder.field.isLate &&
+          !fieldBuilder.isLate &&
+          !fieldBuilder.isExternal &&
           fieldType is! InvalidType &&
           isPotentiallyNonNullable(fieldType, typeEnvironment.futureOrClass) &&
           !fieldBuilder.hasInitializer) {
         addProblem(
             templateFieldNonNullableWithoutInitializerError.withArguments(
                 fieldBuilder.name,
-                fieldBuilder.field.type,
+                fieldBuilder.fieldType,
                 isNonNullableByDefault),
             fieldBuilder.charOffset,
             fieldBuilder.name.length,
-            fileUri);
+            fieldBuilder.fileUri);
       }
     }
   }

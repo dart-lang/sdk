@@ -22,47 +22,42 @@ class Test {
   B member;
 
   static void test(Test t) {
-    t. /*@target=Test::member*/ member = /*@ typeArgs=B* */ f();
-    /*@ type=Test* */ t
-            . /*@target=Test::member*/ /*@target=Test::member*/ member
-        /*@target=Object::==*/ ??= /*@ typeArgs=B* */ f();
-    /*@ type=Test* */ t
-            . /*@target=Test::member*/ /*@target=Test::member*/ member
-        /*@ target=B::+ */ += /*@ typeArgs=C* */ f();
-    /*@ type=Test* */ t
-            . /*@target=Test::member*/ /*@target=Test::member*/ member
-        /*@ target=B::* */ *= /*@ typeArgs=B* */ f();
-    /*@ type=Test* */ t
-            . /*@target=Test::member*/ /*@target=Test::member*/ member
-        /*@ target=B::& */ &= /*@ typeArgs=A* */ f();
-    /*@ target=B::- */ -- /*@ type=Test* */ t
-        . /*@target=Test::member*/ /*@target=Test::member*/ member;
-    /*@ type=Test* */ t
-            . /*@target=Test::member*/ /*@target=Test::member*/ member
-        /*@ target=B::- */ --;
+    t. /*@target=Test.member*/ member = /*@ typeArgs=B* */ f();
+    /*@ type=Test* */ t. /*@target=Test.member*/ /*@target=Test.member*/ member
+        /*@target=A.==*/ ??= /*@ typeArgs=B* */ f();
+    /*@ type=Test* */ t. /*@target=Test.member*/ /*@target=Test.member*/ member
+        /*@target=B.+*/ += /*@ typeArgs=C* */ f();
+    /*@ type=Test* */ t. /*@target=Test.member*/ /*@target=Test.member*/ member
+        /*@target=B.**/ *= /*@ typeArgs=B* */ f();
+    /*@ type=Test* */ t. /*@target=Test.member*/ /*@target=Test.member*/ member
+        /*@target=B.&*/ &= /*@ typeArgs=A* */ f();
+    /*@target=B.-*/ -- /*@ type=Test* */ t
+        . /*@target=Test.member*/ /*@target=Test.member*/ member;
+    /*@ type=Test* */ t. /*@target=Test.member*/ /*@target=Test.member*/ member
+        /*@target=B.-*/ --;
     var /*@ type=B* */ v1 =
-        t. /*@target=Test::member*/ member = /*@ typeArgs=B* */ f();
+        t. /*@target=Test.member*/ member = /*@ typeArgs=B* */ f();
     var /*@ type=B* */ v2 =
         /*@ type=Test* */ t
-                . /*@target=Test::member*/ /*@target=Test::member*/ member
-            /*@target=Object::==*/ ??= /*@ typeArgs=B* */ f();
+                . /*@target=Test.member*/ /*@target=Test.member*/ member
+            /*@target=A.==*/ ??= /*@ typeArgs=B* */ f();
     var /*@ type=A* */ v3 =
         /*@ type=Test* */ t
-                . /*@target=Test::member*/ /*@target=Test::member*/ member
-            /*@ target=B::+ */ += /*@ typeArgs=C* */ f();
+                . /*@target=Test.member*/ /*@target=Test.member*/ member
+            /*@target=B.+*/ += /*@ typeArgs=C* */ f();
     var /*@ type=B* */ v4 =
         /*@ type=Test* */ t
-                . /*@target=Test::member*/ /*@target=Test::member*/ member
-            /*@ target=B::* */ *= /*@ typeArgs=B* */ f();
+                . /*@target=Test.member*/ /*@target=Test.member*/ member
+            /*@target=B.**/ *= /*@ typeArgs=B* */ f();
     var /*@ type=C* */ v5 =
         /*@ type=Test* */ t
-                . /*@target=Test::member*/ /*@target=Test::member*/ member
-            /*@ target=B::& */ &= /*@ typeArgs=A* */ f();
-    var /*@ type=B* */ v6 = /*@ target=B::- */ -- /*@ type=Test* */ t
-        . /*@target=Test::member*/ /*@target=Test::member*/ member;
+                . /*@target=Test.member*/ /*@target=Test.member*/ member
+            /*@target=B.&*/ &= /*@ typeArgs=A* */ f();
+    var /*@ type=B* */ v6 = /*@target=B.-*/ -- /*@ type=Test* */ t
+        . /*@target=Test.member*/ /*@target=Test.member*/ member;
     var /*@ type=B* */ v7 = /*@ type=Test* */ t
-        . /*@ type=B* */ /*@target=Test::member*/ /*@target=Test::member*/
-        /*@ type=B* */ member /*@ target=B::- */ --;
+        . /*@ type=B* */ /*@target=Test.member*/ /*@target=Test.member*/
+        /*@ type=B* */ member /*@target=B.-*/ --;
   }
 }
 

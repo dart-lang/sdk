@@ -2011,12 +2011,14 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   __ Ret();
 }
 
-// Allocates a _OneByteString. The content is not initialized.
+// Allocates a _OneByteString or _TwoByteString. The content is not initialized.
 // 'length-reg' (R2) contains the desired length as a _Smi or _Mint.
 // Returns new string as tagged pointer in R0.
-static void TryAllocateOneByteString(Assembler* assembler,
-                                     Label* ok,
-                                     Label* failure) {
+static void TryAllocateString(Assembler* assembler,
+                              classid_t cid,
+                              Label* ok,
+                              Label* failure) {
+  ASSERT(cid == kOneByteStringCid || cid == kTwoByteStringCid);
   const Register length_reg = R2;
   // _Mint length: call to runtime to produce error.
   __ BranchIfNotSmi(length_reg, failure);
@@ -2024,10 +2026,14 @@ static void TryAllocateOneByteString(Assembler* assembler,
   __ cmp(length_reg, Operand(0));
   __ b(failure, LT);
 
-  NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R0, kOneByteStringCid));
+  NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R0, cid));
   NOT_IN_PRODUCT(__ MaybeTraceAllocation(R0, failure));
   __ mov(R8, Operand(length_reg));  // Save the length register.
-  __ SmiUntag(length_reg);
+  if (cid == kOneByteStringCid) {
+    __ SmiUntag(length_reg);
+  } else {
+    // Untag length and multiply by element size -> no-op.
+  }
   const intptr_t fixed_size_plus_alignment_padding =
       target::String::InstanceSize() +
       target::ObjectAlignment::kObjectAlignment - 1;
@@ -2035,7 +2041,6 @@ static void TryAllocateOneByteString(Assembler* assembler,
   __ bic(length_reg, length_reg,
          Operand(target::ObjectAlignment::kObjectAlignment - 1));
 
-  const intptr_t cid = kOneByteStringCid;
   __ ldr(R0, Address(THR, target::Thread::top_offset()));
 
   // length_reg: allocation size.
@@ -2105,7 +2110,7 @@ void AsmIntrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
   __ b(normal_ir_body, NE);  // 'start', 'end' not Smi.
 
   __ sub(R2, R2, Operand(TMP));
-  TryAllocateOneByteString(assembler, &ok, normal_ir_body);
+  TryAllocateString(assembler, kOneByteStringCid, &ok, normal_ir_body);
   __ Bind(&ok);
   // R0: new string as tagged pointer.
   // Copy string.
@@ -2146,8 +2151,8 @@ void AsmIntrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::OneByteStringSetAt(Assembler* assembler,
-                                         Label* normal_ir_body) {
+void AsmIntrinsifier::WriteIntoOneByteString(Assembler* assembler,
+                                             Label* normal_ir_body) {
   __ ldr(R2, Address(SP, 0 * target::kWordSize));  // Value.
   __ ldr(R1, Address(SP, 1 * target::kWordSize));  // Index.
   __ ldr(R0, Address(SP, 2 * target::kWordSize));  // OneByteString.
@@ -2159,11 +2164,36 @@ void AsmIntrinsifier::OneByteStringSetAt(Assembler* assembler,
   __ Ret();
 }
 
-void AsmIntrinsifier::OneByteString_allocate(Assembler* assembler,
+void AsmIntrinsifier::WriteIntoTwoByteString(Assembler* assembler,
                                              Label* normal_ir_body) {
+  __ ldr(R2, Address(SP, 0 * target::kWordSize));  // Value.
+  __ ldr(R1, Address(SP, 1 * target::kWordSize));  // Index.
+  __ ldr(R0, Address(SP, 2 * target::kWordSize));  // TwoByteString.
+  // Untag index and multiply by element size -> no-op.
+  __ SmiUntag(R2);
+  __ AddImmediate(R3, R0,
+                  target::TwoByteString::data_offset() - kHeapObjectTag);
+  __ strh(R2, Address(R3, R1));
+  __ Ret();
+}
+
+void AsmIntrinsifier::AllocateOneByteString(Assembler* assembler,
+                                            Label* normal_ir_body) {
   __ ldr(R2, Address(SP, 0 * target::kWordSize));  // Length.
   Label ok;
-  TryAllocateOneByteString(assembler, &ok, normal_ir_body);
+  TryAllocateString(assembler, kOneByteStringCid, &ok, normal_ir_body);
+
+  __ Bind(&ok);
+  __ Ret();
+
+  __ Bind(normal_ir_body);
+}
+
+void AsmIntrinsifier::AllocateTwoByteString(Assembler* assembler,
+                                            Label* normal_ir_body) {
+  __ ldr(R2, Address(SP, 0 * target::kWordSize));  // Length.
+  Label ok;
+  TryAllocateString(assembler, kTwoByteStringCid, &ok, normal_ir_body);
 
   __ Bind(&ok);
   __ Ret();

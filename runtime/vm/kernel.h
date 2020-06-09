@@ -95,6 +95,9 @@ class Program {
   intptr_t library_count() { return library_count_; }
   NNBDCompiledMode compilation_mode() const { return compilation_mode_; }
 
+  // Detect null-safety mode from this program if it was not set yet.
+  void AutoDetectNullSafety(Isolate* isolate);
+
  private:
   Program() : typed_data_(NULL), kernel_data_(NULL), kernel_data_size_(-1) {}
 

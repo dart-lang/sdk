@@ -12,8 +12,8 @@ class Class<E extends core::Object? = dynamic> extends core::Object {
     core::bool #result#isSet = false;
     function #result#get() → self::Class::E% {
       if(!#result#isSet) {
-        #result#isSet = true;
         result = this.{self::Class::field};
+        #result#isSet = true;
       }
       return result{self::Class::E%};
     }
@@ -37,8 +37,8 @@ static method returnNullable(core::int? value) → core::int? {
   core::bool #result#isSet = false;
   function #result#get() → core::int? {
     if(!#result#isSet) {
-      #result#isSet = true;
       result = value;
+      #result#isSet = true;
     }
     return result;
   }

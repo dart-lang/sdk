@@ -10,7 +10,7 @@ import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
 testWriteAsBytesSync(dir) {
-  var f = new File('${dir.path}/bytes_sync.txt');
+  var f = new File('${dir.path}${Platform.pathSeparator}bytes_sync.txt');
   var data = [50, 50, 50];
   f.writeAsBytesSync(data);
   Expect.listEquals(data, f.readAsBytesSync());
@@ -20,7 +20,7 @@ testWriteAsBytesSync(dir) {
 }
 
 testWriteAsStringSync(dir) {
-  var f = new File('${dir.path}/string_sync.txt');
+  var f = new File('${dir.path}${Platform.pathSeparator}string_sync.txt');
   var data = 'asdf';
   f.writeAsStringSync(data);
   Expect.equals(data, f.readAsStringSync());
@@ -49,7 +49,7 @@ testWriteWithLargeList(dir) {
 
 Future testWriteAsBytes(dir) {
   var completer = new Completer();
-  var f = new File('${dir.path}/bytes.txt');
+  var f = new File('${dir.path}${Platform.pathSeparator}bytes.txt');
   var data = [50, 50, 50];
   f.writeAsBytes(data).then((file) {
     Expect.equals(f, file);
@@ -70,7 +70,7 @@ Future testWriteAsBytes(dir) {
 
 Future testWriteAsString(dir) {
   var completer = new Completer();
-  var f = new File('${dir.path}/strings.txt');
+  var f = new File('${dir.path}${Platform.pathSeparator}strings.txt');
   var data = 'asdf';
   f.writeAsString(data).then((file) {
     Expect.equals(f, file);
@@ -88,12 +88,19 @@ Future testWriteAsString(dir) {
   return completer.future;
 }
 
+testWriteAsSubtypeSync(dir) {
+  var f = new File('${dir.path}${Platform.pathSeparator}bytes_sync.txt');
+  f.writeAsBytesSync(UnmodifiableUint8ListView(Uint8List(10)));
+  Expect.equals(10, f.readAsBytesSync().length);
+}
+
 main() {
   asyncStart();
   var tempDir = Directory.systemTemp.createTempSync('dart_file_write_as');
   testWriteAsBytesSync(tempDir);
   testWriteAsStringSync(tempDir);
   testWriteWithLargeList(tempDir);
+  testWriteAsSubtypeSync(tempDir);
   testWriteAsBytes(tempDir).then((_) {
     return testWriteAsString(tempDir);
   }).then((_) {

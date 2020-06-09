@@ -14,12 +14,13 @@ import 'dart:_foreign_helper'
         JS_EMBEDDED_GLOBAL,
         JS_GET_FLAG,
         JS_GET_NAME,
+        JS_STRING_CONCAT,
         RAW_DART_FUNCTION_REF,
         TYPE_REF,
         LEGACY_TYPE_REF;
 
 import 'dart:_interceptors'
-    show JavaScriptFunction, JSArray, JSUnmodifiableArray;
+    show JavaScriptFunction, JSArray, JSNull, JSUnmodifiableArray;
 
 import 'dart:_js_names' show unmangleGlobalNameIfPreservedAnyways;
 
@@ -571,7 +572,7 @@ Object? _substituteNamed(
     Object? universe, Object? namedArray, Object? typeArguments, int depth) {
   bool changed = false;
   int length = _Utils.arrayLength(namedArray);
-  assert(length % 3 == 0);
+  assert(_Utils.isMultipleOf(length, 3));
   Object? result = JS('', '[]');
   for (int i = 0; i < length; i += 3) {
     String name = _Utils.asString(_Utils.arrayAt(namedArray, i));
@@ -932,9 +933,7 @@ bool _generalIsTestImplementation(Object? object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _Utils.asRti(JS('', 'this'));
-  if (JS_GET_FLAG('NNBD') && object == null) {
-    return _nullIs(testRti);
-  }
+  if (object == null) return _nullIs(testRti);
   Rti objectRti = instanceOrFunctionType(object, testRti);
   return isSubtype(_theUniverse(), objectRti, testRti);
 }
@@ -959,9 +958,7 @@ bool _isTestViaProperty(Object? object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _Utils.asRti(JS('', 'this'));
-  if (JS_GET_FLAG('NNBD') && object == null) {
-    return _nullIs(testRti);
-  }
+  if (object == null) return _nullIs(testRti);
   var tag = Rti._getSpecializedTestResource(testRti);
 
   // This test is redundant with getInterceptor below, but getInterceptor does
@@ -983,9 +980,7 @@ Object? _generalAsCheckImplementation(Object? object) {
   Rti testRti = _Utils.asRti(JS('', 'this'));
   if (object == null) {
     if (JS_GET_FLAG('LEGACY') || isNullable(testRti)) return object;
-  } else {
-    if (Rti._isCheck(testRti, object)) return object;
-  }
+  } else if (Rti._isCheck(testRti, object)) return object;
   _failedAsCheck(object, testRti);
 }
 
@@ -995,8 +990,9 @@ Object? _generalNullableAsCheckImplementation(Object? object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _Utils.asRti(JS('', 'this'));
-  if (object == null) return object;
-  if (Rti._isCheck(testRti, object)) return object;
+  if (object == null) {
+    return object;
+  } else if (Rti._isCheck(testRti, object)) return object;
   _failedAsCheck(object, testRti);
 }
 
@@ -1696,6 +1692,27 @@ class _Universe {
     return rti;
   }
 
+  // These helpers are used for creating canonical recipes. The key feature of
+  // the generated code is that it makes no reference to the constant pool,
+  // which does not exist when the type$ pool is created.
+  //
+  // The strange association is so that usage like
+  //
+  //     s = _recipeJoin3(s, a, b);
+  //
+  // associates as `s+=(a+b)` rather than `s=s+a+b`. As recipe fragments are
+  // small, this tends to create smaller cons-string trees.
+
+  static String _recipeJoin(String s1, String s2) => JS_STRING_CONCAT(s1, s2);
+  static String _recipeJoin3(String s1, String s2, String s3) =>
+      JS_STRING_CONCAT(s1, JS_STRING_CONCAT(s2, s3));
+  static String _recipeJoin4(String s1, String s2, String s3, String s4) =>
+      JS_STRING_CONCAT(s1, JS_STRING_CONCAT(JS_STRING_CONCAT(s2, s3), s4));
+  static String _recipeJoin5(
+          String s1, String s2, String s3, String s4, String s5) =>
+      JS_STRING_CONCAT(s1,
+          JS_STRING_CONCAT(JS_STRING_CONCAT(JS_STRING_CONCAT(s2, s3), s4), s5));
+
   // For each kind of Rti there are three methods:
   //
   // * `lookupXXX` which takes the component parts and returns an existing Rti
@@ -1714,19 +1731,19 @@ class _Universe {
   static String _canonicalRecipeOfDynamic() => Recipe.pushDynamicString;
   static String _canonicalRecipeOfVoid() => Recipe.pushVoidString;
   static String _canonicalRecipeOfNever() =>
-      Recipe.pushNeverExtensionString + Recipe.extensionOpString;
+      _recipeJoin(Recipe.pushNeverExtensionString, Recipe.extensionOpString);
   static String _canonicalRecipeOfAny() =>
-      Recipe.pushAnyExtensionString + Recipe.extensionOpString;
+      _recipeJoin(Recipe.pushAnyExtensionString, Recipe.extensionOpString);
 
   static String _canonicalRecipeOfStar(Rti baseType) =>
-      Rti._getCanonicalRecipe(baseType) + Recipe.wrapStarString;
+      _recipeJoin(Rti._getCanonicalRecipe(baseType), Recipe.wrapStarString);
   static String _canonicalRecipeOfQuestion(Rti baseType) =>
-      Rti._getCanonicalRecipe(baseType) + Recipe.wrapQuestionString;
+      _recipeJoin(Rti._getCanonicalRecipe(baseType), Recipe.wrapQuestionString);
   static String _canonicalRecipeOfFutureOr(Rti baseType) =>
-      Rti._getCanonicalRecipe(baseType) + Recipe.wrapFutureOrString;
+      _recipeJoin(Rti._getCanonicalRecipe(baseType), Recipe.wrapFutureOrString);
 
   static String _canonicalRecipeOfGenericFunctionParameter(int index) =>
-      '$index' + Recipe.genericFunctionTypeParameterIndexString;
+      _recipeJoin('$index', Recipe.genericFunctionTypeParameterIndexString);
 
   static Rti _lookupErasedRti(Object? universe) {
     return _lookupTerminalRti(
@@ -1888,7 +1905,7 @@ class _Universe {
     for (int i = 0; i < length; i++) {
       Rti argument = _Utils.asRti(_Utils.arrayAt(arguments, i));
       String subrecipe = Rti._getCanonicalRecipe(argument);
-      s += sep + subrecipe;
+      s = _recipeJoin3(s, sep, subrecipe);
       sep = Recipe.separatorString;
     }
     return s;
@@ -1897,9 +1914,8 @@ class _Universe {
   static String _canonicalRecipeJoinNamed(Object? arguments) {
     String s = '', sep = '';
     int length = _Utils.arrayLength(arguments);
-    assert(length % 3 == 0);
+    assert(_Utils.isMultipleOf(length, 3));
     for (int i = 0; i < length; i += 3) {
-      s += sep;
       String name = _Utils.asString(_Utils.arrayAt(arguments, i));
       bool isRequired = _Utils.asBool(_Utils.arrayAt(arguments, i + 1));
       String nameSep = isRequired
@@ -1907,7 +1923,7 @@ class _Universe {
           : Recipe.nameSeparatorString;
       Rti type = _Utils.asRti(_Utils.arrayAt(arguments, i + 2));
       String subrecipe = Rti._getCanonicalRecipe(type);
-      s += name + nameSep + subrecipe;
+      s = _recipeJoin5(s, sep, name, nameSep, subrecipe);
       sep = Recipe.separatorString;
     }
     return s;
@@ -1918,9 +1934,8 @@ class _Universe {
     String s = _Utils.asString(name);
     int length = _Utils.arrayLength(arguments);
     if (length != 0) {
-      s += Recipe.startTypeArgumentsString +
-          _canonicalRecipeJoin(arguments) +
-          Recipe.endTypeArgumentsString;
+      s = _recipeJoin4(s, Recipe.startTypeArgumentsString,
+          _canonicalRecipeJoin(arguments), Recipe.endTypeArgumentsString);
     }
     return s;
   }
@@ -1954,13 +1969,13 @@ class _Universe {
           JS_GET_NAME(JsGetName.FUTURE_CLASS_TYPE_NAME), JS('', '[#]', base));
 
   static String _canonicalRecipeOfBinding(Rti base, Object? arguments) {
-    String s = Rti._getCanonicalRecipe(base);
-    s += Recipe
-        .toTypeString; // TODO(sra): Omit when base encoding is Rti without ToType.
-    s += Recipe.startTypeArgumentsString +
-        _canonicalRecipeJoin(arguments) +
-        Recipe.endTypeArgumentsString;
-    return s;
+    return _recipeJoin5(
+        Rti._getCanonicalRecipe(base),
+        // TODO(sra): Omit when base encoding is Rti without ToType:
+        Recipe.toTypeString,
+        Recipe.startTypeArgumentsString,
+        _canonicalRecipeJoin(arguments),
+        Recipe.endTypeArgumentsString);
   }
 
   /// [arguments] becomes owned by the created Rti.
@@ -1992,8 +2007,8 @@ class _Universe {
 
   static String _canonicalRecipeOfFunction(
           Rti returnType, _FunctionParameters parameters) =>
-      Rti._getCanonicalRecipe(returnType) +
-      _canonicalRecipeOfFunctionParameters(parameters);
+      _recipeJoin(Rti._getCanonicalRecipe(returnType),
+          _canonicalRecipeOfFunctionParameters(parameters));
 
   static String _canonicalRecipeOfFunctionParameters(
       _FunctionParameters parameters) {
@@ -2007,26 +2022,26 @@ class _Universe {
     int namedLength = _Utils.arrayLength(named);
     assert(optionalPositionalLength == 0 || namedLength == 0);
 
-    String recipe = Recipe.startFunctionArgumentsString +
-        _canonicalRecipeJoin(requiredPositional);
+    String recipe = _recipeJoin(Recipe.startFunctionArgumentsString,
+        _canonicalRecipeJoin(requiredPositional));
 
     if (optionalPositionalLength > 0) {
       String sep = requiredPositionalLength > 0 ? Recipe.separatorString : '';
-      recipe += sep +
-          Recipe.startOptionalGroupString +
-          _canonicalRecipeJoin(optionalPositional) +
-          Recipe.endOptionalGroupString;
+      recipe = _recipeJoin5(
+          recipe,
+          sep,
+          Recipe.startOptionalGroupString,
+          _canonicalRecipeJoin(optionalPositional),
+          Recipe.endOptionalGroupString);
     }
 
     if (namedLength > 0) {
       String sep = requiredPositionalLength > 0 ? Recipe.separatorString : '';
-      recipe += sep +
-          Recipe.startNamedGroupString +
-          _canonicalRecipeJoinNamed(named) +
-          Recipe.endNamedGroupString;
+      recipe = _recipeJoin5(recipe, sep, Recipe.startNamedGroupString,
+          _canonicalRecipeJoinNamed(named), Recipe.endNamedGroupString);
     }
 
-    return recipe + Recipe.endFunctionArgumentsString;
+    return _recipeJoin(recipe, Recipe.endFunctionArgumentsString);
   }
 
   static Rti _lookupFunctionRti(
@@ -2051,10 +2066,11 @@ class _Universe {
 
   static String _canonicalRecipeOfGenericFunction(
           Rti baseFunctionType, Object? bounds) =>
-      Rti._getCanonicalRecipe(baseFunctionType) +
-      Recipe.startTypeArgumentsString +
-      _canonicalRecipeJoin(bounds) +
-      Recipe.endTypeArgumentsString;
+      _recipeJoin4(
+          Rti._getCanonicalRecipe(baseFunctionType),
+          Recipe.startTypeArgumentsString,
+          _canonicalRecipeJoin(bounds),
+          Recipe.endTypeArgumentsString);
 
   static Rti _lookupGenericFunctionRti(
       Object? universe, Rti baseFunctionType, Object? bounds, bool normalize) {
@@ -2552,7 +2568,7 @@ class _Parser {
 
   static void toTypesNamed(Object? universe, Rti environment, Object? items) {
     int length = _Utils.arrayLength(items);
-    assert(length % 3 == 0);
+    assert(_Utils.isMultipleOf(length, 3));
     for (int i = 2; i < length; i += 3) {
       var item = _Utils.arrayAt(items, i);
       Rti type = toType(universe, environment, item);
@@ -2995,6 +3011,7 @@ bool isNullable(Rti t) {
       kind == Rti.kindFutureOr && isNullable(Rti._getFutureOrArgument(t));
 }
 
+@pragma('dart2js:parameter:trust')
 bool isTopType(Rti t) =>
     isStrongTopType(t) ||
     isLegacyObjectType(t) ||
@@ -3016,7 +3033,9 @@ bool isObjectType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Object>());
 bool isLegacyObjectType(Rti t) =>
     _Utils.isIdentical(t, LEGACY_TYPE_REF<Object>());
 bool isNullableObjectType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Object?>());
-bool isNullType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Null>());
+bool isNullType(Rti t) =>
+    _Utils.isIdentical(t, TYPE_REF<Null>()) ||
+    _Utils.isIdentical(t, TYPE_REF<JSNull>());
 bool isFunctionType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Function>());
 bool isJsFunctionType(Rti t) =>
     _Utils.isIdentical(t, TYPE_REF<JavaScriptFunction>());
@@ -3039,6 +3058,8 @@ class _Utils {
   static bool isIdentical(Object? s, Object? t) => JS('bool', '# === #', s, t);
   static bool isNotIdentical(Object? s, Object? t) =>
       JS('bool', '# !== #', s, t);
+
+  static bool isMultipleOf(int n, int d) => JS('bool', '# % # === 0', n, d);
 
   static JSArray objectKeys(Object? o) =>
       JS('returns:JSArray;new:true;', 'Object.keys(#)', o);
@@ -3089,6 +3110,7 @@ class _Utils {
     JS('', '#.set(#, #)', cache, key, value);
   }
 }
+
 // -------- Entry points for testing -------------------------------------------
 
 String testingCanonicalRecipe(Rti rti) {

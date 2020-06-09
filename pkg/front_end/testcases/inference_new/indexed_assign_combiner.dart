@@ -32,23 +32,23 @@ class G {
 }
 
 void test1(G g) {
-  g /*@target=G::[]*/ /*@target=G::[]=*/ [
-      0] /*@ target=A::* */ *= /*@ typeArgs=D* */ f();
-  var /*@ type=C* */ x = g /*@target=G::[]*/ /*@target=G::[]=*/ [0]
-      /*@ target=A::* */
+  g /*@target=G.[]*/ /*@target=G.[]=*/ [
+      0] /*@target=A.**/ *= /*@ typeArgs=D* */ f();
+  var /*@ type=C* */ x = g /*@target=G.[]*/ /*@target=G.[]=*/ [0]
+      /*@target=A.**/
       *= /*@ typeArgs=D* */ f();
 }
 
 void test2(G g) {
-  /*@ target=A::+ */ ++g /*@target=G::[]*/ /*@target=G::[]=*/ [0];
-  var /*@ type=C* */ x = /*@ target=A::+ */ ++g /*@target=G::[]*/ /*@target=G::[]=*/ [
+  /*@target=A.+*/ ++g /*@target=G.[]*/ /*@target=G.[]=*/ [0];
+  var /*@ type=C* */ x = /*@target=A.+*/ ++g /*@target=G.[]*/ /*@target=G.[]=*/ [
       0];
 }
 
 void test3(G g) {
-  g /*@target=G::[] */ /*@target=G::[]=*/ [0] /*@ target=A::+ */ ++;
+  g /*@target=G.[]*/ /*@target=G.[]=*/ [0] /*@target=A.+*/ ++;
   var /*@ type=A* */ x =
-      g /*@target=G::[]*/ /*@target=G::[]=*/ [0] /*@ target=A::+ */ ++;
+      g /*@target=G.[]*/ /*@target=G.[]=*/ [0] /*@target=A.+*/ ++;
 }
 
 main() {}

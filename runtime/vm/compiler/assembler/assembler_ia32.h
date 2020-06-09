@@ -578,6 +578,16 @@ class Assembler : public AssemblerBase {
   void LoadMemoryValue(Register dst, Register base, int32_t offset) {
     movl(dst, Address(base, offset));
   }
+  void LoadAcquire(Register dst, Register address, int32_t offset = 0) {
+    // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
+    // with other loads).
+    movl(dst, Address(address, offset));
+  }
+  void StoreRelease(Register src, Register address, int32_t offset = 0) {
+    // On intel stores have store-release behavior (i.e. stores are not
+    // re-ordered with other stores).
+    movl(Address(address, offset), src);
+  }
 
   // Issues a move instruction if 'to' is not the same as 'from'.
   void MoveRegister(Register to, Register from);
@@ -598,6 +608,14 @@ class Assembler : public AssemblerBase {
 
   void CompareImmediate(Register reg, int32_t immediate) {
     cmpl(reg, Immediate(immediate));
+  }
+
+  void LoadImmediate(Register reg, int32_t immediate) {
+    if (immediate == 0) {
+      xorl(reg, reg);
+    } else {
+      movl(reg, Immediate(immediate));
+    }
   }
 
   void Drop(intptr_t stack_elements);

@@ -5,7 +5,6 @@
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/local_reference_contributor.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -14,64 +13,11 @@ import 'completion_contributor_util.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LocalReferenceContributorTest);
-    defineReflectiveTests(LocalReferenceContributorWithExtensionMethodsTest);
   });
 }
 
 @reflectiveTest
 class LocalReferenceContributorTest extends DartCompletionContributorTest {
-  CompletionSuggestion assertSuggestLocalVariable(
-      String name, String returnType,
-      {int relevance = DART_RELEVANCE_LOCAL_VARIABLE,
-      bool hasTypeBoost = false,
-      bool hasSubtypeBoost = false}) {
-    if (hasTypeBoost) {
-      relevance += DART_RELEVANCE_BOOST_TYPE;
-    } else if (hasSubtypeBoost) {
-      relevance += DART_RELEVANCE_BOOST_SUBTYPE;
-    }
-    // Local variables should only be suggested by LocalReferenceContributor
-    var cs = assertSuggest(name,
-        csKind: CompletionSuggestionKind.INVOCATION, relevance: relevance);
-    expect(cs.returnType, returnType ?? 'dynamic');
-    var element = cs.element;
-    expect(element, isNotNull);
-    expect(element.kind, equals(ElementKind.LOCAL_VARIABLE));
-    expect(element.name, equals(name));
-    expect(element.parameters, isNull);
-    expect(element.returnType, returnType ?? 'dynamic');
-    assertHasNoParameterInfo(cs);
-    return cs;
-  }
-
-  CompletionSuggestion assertSuggestParameter(String name, String returnType,
-      {int relevance = DART_RELEVANCE_PARAMETER}) {
-    var cs = assertSuggest(name,
-        csKind: CompletionSuggestionKind.INVOCATION, relevance: relevance);
-    expect(cs.returnType, returnType ?? 'dynamic');
-    var element = cs.element;
-    expect(element, isNotNull);
-    expect(element.kind, equals(ElementKind.PARAMETER));
-    expect(element.name, equals(name));
-    expect(element.parameters, isNull);
-    expect(element.returnType, equals(returnType ?? 'dynamic'));
-    return cs;
-  }
-
-  CompletionSuggestion assertSuggestTypeParameter(String name,
-      {int relevance = DART_RELEVANCE_TYPE_PARAMETER}) {
-    var cs = assertSuggest(name,
-        csKind: CompletionSuggestionKind.IDENTIFIER, relevance: relevance);
-    expect(cs.returnType, isNull);
-    var element = cs.element;
-    expect(element, isNotNull);
-    expect(element.kind, equals(ElementKind.TYPE_PARAMETER));
-    expect(element.name, equals(name));
-    expect(element.parameters, isNull);
-    expect(element.returnType, isNull);
-    return cs;
-  }
-
   @override
   DartCompletionContributor createContributor() {
     return LocalReferenceContributor();
@@ -1421,6 +1367,19 @@ class Z { }''');
     assertNotSuggested('parseHex');
   }
 
+  Future<void> test_Block_setterWithoutParameters() async {
+    addTestSource('''
+set foo() {}
+
+void main() {
+  ^
+}
+''');
+    await computeSuggestions();
+
+    assertSuggestSetter('foo', relevance: DART_RELEVANCE_LOCAL_ACCESSOR);
+  }
+
   Future<void> test_Block_unimported() async {
     addPackageFile('aaa', 'a.dart', 'class A {}');
     addTestSource('main() { ^ }');
@@ -2555,6 +2514,23 @@ extension E on ^ {}
     assertNotSuggested('E');
   }
 
+  Future<void> test_extensionDeclaration_inMethod() async {
+    // ExtensionDeclaration  CompilationUnit
+    addTestSource('''
+extension E on int {}
+class C {
+  void m() {
+    ^
+  }
+}
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggest('E');
+  }
+
   Future<void> test_ExtensionDeclaration_member() async {
     addTestSource('''
 class A {}
@@ -2562,6 +2538,41 @@ extension E on A { ^ }
 ''');
     await computeSuggestions();
     assertSuggestClass('A');
+  }
+
+  Future<void> test_extensionDeclaration_notInBody() async {
+    // ExtensionDeclaration  CompilationUnit
+    addSource('/home/test/lib/b.dart', '''
+class B { }''');
+    addTestSource('''
+import "b.dart" as x;
+extension E on int {^}
+class _B {}
+A T;''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    var suggestionB = assertSuggestClass('_B');
+    if (suggestionB != null) {
+      expect(suggestionB.element.isDeprecated, isFalse);
+      expect(suggestionB.element.isPrivate, isTrue);
+    }
+    assertNotSuggested('Object');
+    assertNotSuggested('T');
+    assertNotSuggested('E');
+    // Suggested by LibraryPrefixContributor
+    assertNotSuggested('x');
+  }
+
+  Future<void> test_extensionDeclaration_unnamed() async {
+    addTestSource('''
+extension on String {
+  void something() => this.^
+}
+''');
+    await computeSuggestions();
+    assertNoSuggestions();
   }
 
   Future<void> test_FieldDeclaration_name_typed() async {
@@ -5173,71 +5184,5 @@ void main() async* {
     await computeSuggestions();
 
     assertSuggestLocalVariable('value', null);
-  }
-}
-
-@reflectiveTest
-class LocalReferenceContributorWithExtensionMethodsTest
-    extends LocalReferenceContributorTest {
-  @override
-  void setUp() {
-    createAnalysisOptionsFile(
-      experiments: [
-        EnableString.extension_methods,
-      ],
-    );
-    super.setUp();
-  }
-
-  Future<void> test_extensionDeclaration_inMethod() async {
-    // ExtensionDeclaration  CompilationUnit
-    addTestSource('''
-extension E on int {}
-class C {
-  void m() {
-    ^
-  }
-}
-''');
-    await computeSuggestions();
-
-    expect(replacementOffset, completionOffset);
-    expect(replacementLength, 0);
-    assertSuggest('E');
-  }
-
-  Future<void> test_extensionDeclaration_notInBody() async {
-    // ExtensionDeclaration  CompilationUnit
-    addSource('/home/test/lib/b.dart', '''
-class B { }''');
-    addTestSource('''
-import "b.dart" as x;
-extension E on int {^}
-class _B {}
-A T;''');
-    await computeSuggestions();
-
-    expect(replacementOffset, completionOffset);
-    expect(replacementLength, 0);
-    var suggestionB = assertSuggestClass('_B');
-    if (suggestionB != null) {
-      expect(suggestionB.element.isDeprecated, isFalse);
-      expect(suggestionB.element.isPrivate, isTrue);
-    }
-    assertNotSuggested('Object');
-    assertNotSuggested('T');
-    assertNotSuggested('E');
-    // Suggested by LibraryPrefixContributor
-    assertNotSuggested('x');
-  }
-
-  Future<void> test_extensionDeclaration_unnamed() async {
-    addTestSource('''
-extension on String {
-  void something() => this.^
-}
-''');
-    await computeSuggestions();
-    assertNoSuggestions();
   }
 }

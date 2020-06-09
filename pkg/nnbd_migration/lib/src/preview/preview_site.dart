@@ -8,8 +8,8 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
 import 'package:nnbd_migration/src/front_end/migration_state.dart';
 import 'package:nnbd_migration/src/front_end/path_mapper.dart';
@@ -21,6 +21,7 @@ import 'package:nnbd_migration/src/preview/http_preview_server.dart';
 import 'package:nnbd_migration/src/preview/index_file_page.dart';
 import 'package:nnbd_migration/src/preview/navigation_tree_page.dart';
 import 'package:nnbd_migration/src/preview/not_found_page.dart';
+import 'package:nnbd_migration/src/preview/pages.dart';
 import 'package:nnbd_migration/src/preview/preview_page.dart';
 import 'package:nnbd_migration/src/preview/region_page.dart';
 import 'package:nnbd_migration/src/preview/unauthorized_page.dart';
@@ -48,6 +49,8 @@ class PreviewSite extends Site
 
   static const navigationTreePath = '/_preview/navigationTree.json';
 
+  static const applyHintPath = '/apply-hint';
+
   static const applyMigrationPath = '/apply-migration';
 
   static const rerunMigrationPath = '/rerun-migration';
@@ -60,7 +63,7 @@ class PreviewSite extends Site
   final Map<String, UnitInfo> unitInfoMap = {};
 
   // A function provided by DartFix to rerun the migration.
-  final Future<MigrationState> Function([List<String>]) rerunFunction;
+  final Future<MigrationState> Function() rerunFunction;
 
   final String serviceAuthToken = _makeAuthToken();
 
@@ -142,16 +145,10 @@ class PreviewSite extends Site
       var unitInfo = unitInfoMap[decodedPath];
       if (unitInfo != null) {
         if (uri.queryParameters.containsKey('inline')) {
-          // TODO(devoncarew): Ensure that we don't serve content outside of our
-          //  project.
-
           // Note: `return await` needed due to
           // https://github.com/dart-lang/sdk/issues/39204
           return await respond(request, DartFilePage(this, unitInfo));
         } else if (uri.queryParameters.containsKey('region')) {
-          // TODO(devoncarew): Ensure that we don't serve content outside of our
-          //  project.
-
           // Note: `return await` needed due to
           // https://github.com/dart-lang/sdk/issues/39204
           return await respond(request, RegionPage(this, unitInfo));
@@ -187,6 +184,11 @@ class PreviewSite extends Site
       } else if (path == rerunMigrationPath) {
         await rerunMigration();
 
+        respondOk(request);
+        return;
+      } else if (path == applyHintPath) {
+        final hintAction = HintAction.fromJson(await requestBodyJson(request));
+        await performHintAction(hintAction);
         respondOk(request);
         return;
       } else if (uri.queryParameters.containsKey('replacement')) {
@@ -240,7 +242,7 @@ class PreviewSite extends Site
     // Update the code on disk.
     //
     var params = uri.queryParameters;
-    var path = Uri.parse(uri.path).toFilePath();
+    var path = pathMapper.reverseMap(uri);
     var offset = int.parse(params['offset']);
     var end = int.parse(params['end']);
     var replacement = params['replacement'];
@@ -253,22 +255,69 @@ class PreviewSite extends Site
     }
     final unitInfo = unitInfoMap[path];
     final diskMapper = unitInfo.diskChangesOffsetMapper;
-    final insertionOnly = offset == end;
-    if (insertionOnly) {
-      unitInfo.handleInsertion(offset, replacement);
-      migrationState.needsRerun = true;
+    final diskOffsetStart = diskMapper.map(offset);
+    final diskOffsetEnd = diskMapper.map(end);
+    if (diskOffsetStart == null || diskOffsetEnd == null) {
+      throw StateError('Cannot perform edit. Relevant code has been deleted by'
+          ' a previous hint action. Rerun the migration and try again.');
     }
-    var newContent = diskContent.replaceRange(
-        diskMapper.map(offset), diskMapper.map(end), replacement);
+    unitInfo.handleSourceEdit(SourceEdit(offset, end - offset, replacement));
+    migrationState.needsRerun = true;
+    var newContent =
+        diskContent.replaceRange(diskOffsetStart, diskOffsetEnd, replacement);
     file.writeAsStringSync(newContent);
     unitInfo.diskContent = newContent;
-    if (!insertionOnly) {
-      await rerunMigration([path]);
-    }
   }
 
-  Future<void> rerunMigration([List<String> changedPaths]) async {
-    migrationState = await rerunFunction(changedPaths);
+  /// Perform the edit indicated by the [uri].
+  Future<void> performHintAction(HintAction hintAction) async {
+    final node = migrationState.nodeMapper.nodeForId(hintAction.nodeId);
+    final edits = node.hintActions[hintAction.kind];
+    if (edits == null) {
+      throw StateError('This edit was not available to perform.');
+    }
+    //
+    // Update the code on disk.
+    //
+    var path = node.codeReference.path;
+    var file = pathMapper.provider.getFile(path);
+    var diskContent = file.readAsStringSync();
+    if (!unitInfoMap[path].hadDiskContent(diskContent)) {
+      throw StateError('Cannot perform edit. This file has been changed since'
+          ' last migration run. Press the "rerun from sources" button and then'
+          ' try again. (Changed file path is ${file.path})');
+    }
+    final unitInfo = unitInfoMap[path];
+    final diskMapper = unitInfo.diskChangesOffsetMapper;
+    var newContent = diskContent;
+    migrationState.needsRerun = true;
+    for (final entry in edits.entries) {
+      final offset = entry.key;
+      final edits = entry.value;
+      final diskOffset = diskMapper.map(offset);
+      if (diskOffset == null) {
+        throw StateError(
+            'Cannot perform edit. Relevant code has been deleted by'
+            ' a previous hint action. Rerun the migration and try again.');
+      }
+      final unmappedSourceEdit = edits.toSourceEdit(offset);
+      final diskSourceEdit = edits.toSourceEdit(diskMapper.map(offset));
+      unitInfo.handleSourceEdit(unmappedSourceEdit);
+      newContent = diskSourceEdit.apply(newContent);
+    }
+    file.writeAsStringSync(newContent);
+    unitInfo.diskContent = newContent;
+  }
+
+  Future<Map<String, Object>> requestBodyJson(HttpRequest request) async =>
+      (await request
+          .map((entry) => entry.map((i) => i.toInt()).toList())
+          .transform<String>(Utf8Decoder())
+          .transform(JsonDecoder())
+          .single) as Map<String, Object>;
+
+  Future<void> rerunMigration() async {
+    migrationState = await rerunFunction();
     reset();
   }
 

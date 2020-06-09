@@ -52,11 +52,11 @@ static const int kCallerSpSlotFromFp = 2;
 static const int kLastParamSlotFromEntrySp = 1;  // Skip return address.
 
 // Entry and exit frame layout.
-#if defined(_WIN64)
+#if defined(TARGET_OS_WINDOWS)
 static const int kExitLinkSlotFromEntryFp = -32;
 #else
 static const int kExitLinkSlotFromEntryFp = -10;
-#endif  // defined(_WIN64)
+#endif  // defined(TARGET_OS_WINDOWS)
 
 // For FFI native -> Dart callbacks, the number of stack slots between arguments
 // passed on stack and arguments saved in callback prologue. 2 = return adddress

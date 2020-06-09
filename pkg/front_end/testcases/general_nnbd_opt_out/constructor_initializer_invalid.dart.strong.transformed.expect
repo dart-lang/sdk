@@ -30,14 +30,34 @@ class C1 extends core::Object {
 class C1 { int f; C1() : ; }
                          ^"
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class C2 extends core::Object {
   field core::int* f;
   constructor •() → self::C2*
     : self::C2::f = invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/constructor_initializer_invalid.dart:8:27: Error: This couldn't be parsed.
 class C2 { int f; C2() : f; }
-                          ^" as{TypeError,ForDynamic} core::int*, super core::Object::•()
+                          ^", super core::Object::•()
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class C3 extends core::Object {
   field core::int* f = null;
@@ -46,12 +66,22 @@ class C3 extends core::Object {
 class C3 { int f; C3() : f++; }
                          ^"
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method main() → dynamic {
   self::C1* c1 = new self::C1::•();
-  c1.{core::Object::toString}();
+  c1.{self::C1::toString}();
   self::C2* c2 = new self::C2::•();
-  c2.{core::Object::toString}();
+  c2.{self::C2::toString}();
   self::C3* c3 = new self::C3::•();
-  c3.{core::Object::toString}();
+  c3.{self::C3::toString}();
 }

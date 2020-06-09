@@ -6,6 +6,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(__has_feature)
+#if __has_feature(undefined_behavior_sanitizer)
+__attribute__((no_sanitize("undefined")))
+#endif
+#endif
+void Crash() {
+  int* segfault = NULL;
+  *segfault = 1;
+}
+
 /*
  * Run ./process_test <outstream> <echocount> <exitcode> <crash>
  * <outstream>: 0 = stdout, 1 = stderr, 2 = stdout and stderr
@@ -32,8 +42,7 @@ int main(int argc, char* argv[]) {
   int crash = atoi(argv[4]);
 
   if (crash == 1) {
-    int* segfault = NULL;
-    *segfault = 1;
+    Crash();
   }
 
   const int kLineSize = 128;

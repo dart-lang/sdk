@@ -9,7 +9,15 @@
 /// used by patches of that library. We plan to change this when we have a
 /// shared front end and simply use parts.
 
-import "dart:_internal" show POWERS_OF_TEN, patch, ClassID;
+import "dart:_internal"
+    show
+        allocateOneByteString,
+        allocateTwoByteString,
+        ClassID,
+        patch,
+        POWERS_OF_TEN,
+        writeIntoOneByteString,
+        writeIntoTwoByteString;
 
 import "dart:typed_data" show Uint8List, Uint16List;
 
@@ -1909,7 +1917,7 @@ class _Utf8Decoder {
     assert(start < end);
     // TODO(dartbug.com/41704): Allocate an uninitialized _OneByteString and
     // write characters to it using _setAt.
-    Uint8List chars = Uint8List(size);
+    final String result = allocateOneByteString(size);
     int i = start;
     int j = 0;
     if (_state == X1) {
@@ -1921,7 +1929,7 @@ class _Utf8Decoder {
         _charOrIndex = i - 1;
         return "";
       }
-      chars[j++] = (_charOrIndex << 6) | e;
+      writeIntoOneByteString(result, j++, (_charOrIndex << 6) | e);
       _state = accept;
     }
     assert(_state == accept);
@@ -1947,14 +1955,14 @@ class _Utf8Decoder {
         }
         byte = (byte << 6) | e;
       }
-      chars[j++] = byte;
+      writeIntoOneByteString(result, j++, byte);
     }
     // Output size must match, unless we are doing single conversion and are
     // inside an unfinished sequence (which will trigger an error later).
     assert(_bomIndex == 0 && _state != accept
         ? (j == size - 1 || j == size - 2)
         : (j == size));
-    return String.fromCharCodes(chars);
+    return result;
   }
 
   String decode16(Uint8List bytes, int start, int end, int size) {
@@ -1963,7 +1971,7 @@ class _Utf8Decoder {
     final String transitionTable = _Utf8Decoder.transitionTable;
     // TODO(dartbug.com/41704): Allocate an uninitialized _TwoByteString and
     // write characters to it using _setAt.
-    Uint16List chars = Uint16List(size);
+    final String result = allocateTwoByteString(size);
     int i = start;
     int j = 0;
     int state = _state;
@@ -1987,10 +1995,10 @@ class _Utf8Decoder {
       if (state == accept) {
         if (char >= 0x10000) {
           assert(char < 0x110000);
-          chars[j++] = 0xD7C0 + (char >> 10);
-          chars[j++] = 0xDC00 + (char & 0x3FF);
+          writeIntoTwoByteString(result, j++, 0xD7C0 + (char >> 10));
+          writeIntoTwoByteString(result, j++, 0xDC00 + (char & 0x3FF));
         } else {
-          chars[j++] = char;
+          writeIntoTwoByteString(result, j++, char);
         }
         char = byte & (shiftedByteMask >> type);
         state = transitionTable.codeUnitAt(type);
@@ -2008,10 +2016,10 @@ class _Utf8Decoder {
     if (state == accept) {
       if (char >= 0x10000) {
         assert(char < 0x110000);
-        chars[j++] = 0xD7C0 + (char >> 10);
-        chars[j++] = 0xDC00 + (char & 0x3FF);
+        writeIntoTwoByteString(result, j++, 0xD7C0 + (char >> 10));
+        writeIntoTwoByteString(result, j++, 0xDC00 + (char & 0x3FF));
       } else {
-        chars[j++] = char;
+        writeIntoTwoByteString(result, j++, char);
       }
     } else if (isErrorState(state)) {
       _state = state;
@@ -2026,6 +2034,6 @@ class _Utf8Decoder {
     assert(_bomIndex == 0 && _state != accept
         ? (j == size - 1 || j == size - 2)
         : (j == size));
-    return String.fromCharCodes(chars);
+    return result;
   }
 }

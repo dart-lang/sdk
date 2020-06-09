@@ -596,6 +596,20 @@ class Object {
     kUserVisibleName
   };
 
+  // Sometimes simple formating might produce the same name for two different
+  // entities, for example we might inject a synthetic forwarder into the
+  // class which has the same name as an already existing function, or
+  // two different types can be formatted as X<T> because T has different
+  // meaning (refers to a different type parameter) in these two types.
+  // Such ambiguity might be acceptable in some contexts but not in others, so
+  // some formatting methods have two modes - one which tries to be more
+  // user friendly, and another one which tries to avoid name conflicts by
+  // emitting longer and less user friendly names.
+  enum class NameDisambiguation {
+    kYes,
+    kNo,
+  };
+
  protected:
   // Used for extracting the C++ vtable during bringup.
   Object() : raw_(null_) {}
@@ -647,6 +661,18 @@ class Object {
     value.writeTo(const_cast<FieldType*>(addr));
   }
 
+  template <typename FieldType>
+  FieldType LoadNonPointer(const FieldType* addr) const {
+    return *const_cast<FieldType*>(addr);
+  }
+
+  template <typename FieldType, std::memory_order order>
+  FieldType LoadNonPointer(const FieldType* addr) const {
+    return reinterpret_cast<std::atomic<FieldType>*>(
+               const_cast<FieldType*>(addr))
+        ->load(order);
+  }
+
   // Needs two template arguments to allow assigning enums to fixed-size ints.
   template <typename FieldType, typename ValueType>
   void StoreNonPointer(const FieldType* addr, ValueType value) const {
@@ -661,14 +687,6 @@ class Object {
     ASSERT(reinterpret_cast<uword>(addr) >= ObjectLayout::ToAddr(raw()));
     reinterpret_cast<std::atomic<FieldType>*>(const_cast<FieldType*>(addr))
         ->store(value, order);
-  }
-
-  template <typename FieldType,
-            std::memory_order order = std::memory_order_relaxed>
-  FieldType LoadNonPointer(const FieldType* addr) const {
-    return reinterpret_cast<std::atomic<FieldType>*>(
-               const_cast<FieldType*>(addr))
-        ->load(order);
   }
 
   // Provides non-const access to non-pointer fields within the object. Such
@@ -1016,6 +1034,8 @@ class Class : public Object {
   const char* ScrubbedNameCString() const;
   StringPtr UserVisibleName() const;
   const char* UserVisibleNameCString() const;
+
+  const char* NameCString(NameVisibility name_visibility) const;
 
   // The mixin for this class if one exists. Otherwise, returns a raw pointer
   // to this class.
@@ -2412,8 +2432,12 @@ class Function : public Object {
   StringPtr UserVisibleName() const;  // Same as scrubbed name.
   const char* UserVisibleNameCString() const;
 
-  void PrintQualifiedName(NameVisibility name_visibility,
-                          ZoneTextBuffer* printer) const;
+  const char* NameCString(NameVisibility name_visibility) const;
+
+  void PrintQualifiedName(
+      NameVisibility name_visibility,
+      ZoneTextBuffer* printer,
+      NameDisambiguation name_disambiguation = NameDisambiguation::kNo) const;
   StringPtr QualifiedScrubbedName() const;
   StringPtr QualifiedUserVisibleName() const;
 
@@ -2834,17 +2858,14 @@ class Function : public Object {
   }
   bool IsInFactoryScope() const;
 
-  bool NeedsArgumentTypeChecks(Isolate* I) const {
-    if (!I->should_emit_strong_mode_checks()) {
-      return false;
-    }
+  bool NeedsArgumentTypeChecks() const {
     return IsClosureFunction() ||
            !(is_static() || (kind() == FunctionLayout::kConstructor));
   }
 
   bool NeedsMonomorphicCheckedEntry(Zone* zone) const;
 
-  bool MayHaveUncheckedEntryPoint(Isolate* I) const;
+  bool MayHaveUncheckedEntryPoint() const;
 
   TokenPosition token_pos() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -3365,6 +3386,20 @@ class Function : public Object {
 
   bool IsAsyncOrGenerator() const {
     return modifier() != FunctionLayout::kNoModifier;
+  }
+
+  // Recognise synthetic sync-yielding functions like the inner-most:
+  //   user_func /* was sync* */ {
+  //     :sync_op_gen() {
+  //        :sync_op() yielding {
+  //          // ...
+  //        }
+  //      }
+  //   }
+  bool IsSyncYielding() const {
+    return (parent_function() != Function::null())
+               ? Function::Handle(parent_function()).IsSyncGenClosure()
+               : false;
   }
 
   bool IsTypedDataViewFactory() const {
@@ -4683,18 +4718,23 @@ class Library : public Object {
 
   // Resolving native methods for script loaded in the library.
   Dart_NativeEntryResolver native_entry_resolver() const {
-    return LoadNonPointer(&raw_ptr()->native_entry_resolver_);
+    return LoadNonPointer<Dart_NativeEntryResolver, std::memory_order_relaxed>(
+        &raw_ptr()->native_entry_resolver_);
   }
   void set_native_entry_resolver(Dart_NativeEntryResolver value) const {
-    StoreNonPointer(&raw_ptr()->native_entry_resolver_, value);
+    StoreNonPointer<Dart_NativeEntryResolver, Dart_NativeEntryResolver,
+                    std::memory_order_relaxed>(
+        &raw_ptr()->native_entry_resolver_, value);
   }
   Dart_NativeEntrySymbol native_entry_symbol_resolver() const {
-    return LoadNonPointer(&raw_ptr()->native_entry_symbol_resolver_);
+    return LoadNonPointer<Dart_NativeEntrySymbol, std::memory_order_relaxed>(
+        &raw_ptr()->native_entry_symbol_resolver_);
   }
   void set_native_entry_symbol_resolver(
       Dart_NativeEntrySymbol native_symbol_resolver) const {
-    StoreNonPointer(&raw_ptr()->native_entry_symbol_resolver_,
-                    native_symbol_resolver);
+    StoreNonPointer<Dart_NativeEntrySymbol, Dart_NativeEntrySymbol,
+                    std::memory_order_relaxed>(
+        &raw_ptr()->native_entry_symbol_resolver_, native_symbol_resolver);
   }
 
   bool is_in_fullsnapshot() const {
@@ -5150,16 +5190,19 @@ class ObjectPool : public Object {
     StoreNonPointer(&raw_ptr()->entry_bits()[index], bits);
   }
 
+  template <std::memory_order order = std::memory_order_relaxed>
   ObjectPtr ObjectAt(intptr_t index) const {
     ASSERT((TypeAt(index) == EntryType::kTaggedObject) ||
            (TypeAt(index) == EntryType::kNativeEntryData));
-    return EntryAddr(index)->raw_obj_;
+    return LoadPointer<ObjectPtr, order>(&(EntryAddr(index)->raw_obj_));
   }
+
+  template <std::memory_order order = std::memory_order_relaxed>
   void SetObjectAt(intptr_t index, const Object& obj) const {
     ASSERT((TypeAt(index) == EntryType::kTaggedObject) ||
            (TypeAt(index) == EntryType::kNativeEntryData) ||
            (TypeAt(index) == EntryType::kImmediate && obj.IsSmi()));
-    StorePointer(&EntryAddr(index)->raw_obj_, obj.raw());
+    StorePointer<ObjectPtr, order>(&EntryAddr(index)->raw_obj_, obj.raw());
   }
 
   uword RawValueAt(intptr_t index) const {
@@ -6293,7 +6336,8 @@ class Code : public Object {
   intptr_t GetDeoptIdForOsr(uword pc) const;
 
   const char* Name() const;
-  const char* QualifiedName() const;
+  const char* QualifiedName(NameVisibility name_visibility,
+                            NameDisambiguation name_disambiguation) const;
 
   int64_t compile_timestamp() const {
 #if defined(PRODUCT)
@@ -6880,7 +6924,7 @@ class SubtypeTestCache : public Object {
   static void Init();
   static void Cleanup();
 
-  ArrayPtr cache() const { return raw_ptr()->cache_; }
+  ArrayPtr cache() const;
 
  private:
   // A VM heap allocated preinitialized empty subtype entry array.
@@ -7359,10 +7403,12 @@ class TypeArguments : public Instance {
 
   // Print the internal or public name of a subvector of this type argument
   // vector, e.g. "<T, dynamic, List<T>, int>".
-  void PrintSubvectorName(intptr_t from_index,
-                          intptr_t len,
-                          NameVisibility name_visibility,
-                          ZoneTextBuffer* printer) const;
+  void PrintSubvectorName(
+      intptr_t from_index,
+      intptr_t len,
+      NameVisibility name_visibility,
+      ZoneTextBuffer* printer,
+      NameDisambiguation name_disambiguation = NameDisambiguation::kNo) const;
 
   // Check if the subvector of length 'len' starting at 'from_index' of this
   // type argument vector consists solely of DynamicType.
@@ -7686,7 +7732,10 @@ class AbstractType : public Instance {
 
   // Return the internal or public name of this type, including the names of its
   // type arguments, if any.
-  void PrintName(NameVisibility visibility, ZoneTextBuffer* printer) const;
+  void PrintName(
+      NameVisibility visibility,
+      ZoneTextBuffer* printer,
+      NameDisambiguation name_disambiguation = NameDisambiguation::kNo) const;
 
   // Add the class name and URI of each occuring type to the uris
   // list and mark ambiguous triplets to be printed.
@@ -9283,20 +9332,22 @@ class Array : public Instance {
 
   static ObjectPtr* DataOf(ArrayPtr array) { return array->ptr()->data(); }
 
-  ObjectPtr At(intptr_t index) const { return *ObjectAddr(index); }
+  template <std::memory_order order = std::memory_order_relaxed>
+  ObjectPtr At(intptr_t index) const {
+    return LoadPointer<ObjectPtr, order>(ObjectAddr(index));
+  }
+  template <std::memory_order order = std::memory_order_relaxed>
   void SetAt(intptr_t index, const Object& value) const {
     // TODO(iposva): Add storing NoSafepointScope.
-    StoreArrayPointer(ObjectAddr(index), value.raw());
+    StoreArrayPointer<ObjectPtr, order>(ObjectAddr(index), value.raw());
   }
 
   // Access to the array with acquire release semantics.
   ObjectPtr AtAcquire(intptr_t index) const {
-    return LoadPointer<ObjectPtr, std::memory_order_acquire>(ObjectAddr(index));
+    return At<std::memory_order_acquire>(index);
   }
   void SetAtRelease(intptr_t index, const Object& value) const {
-    // TODO(iposva): Add storing NoSafepointScope.
-    StoreArrayPointer<ObjectPtr, std::memory_order_release>(ObjectAddr(index),
-                                                            value.raw());
+    SetAt<std::memory_order_release>(index, value);
   }
 
   bool IsImmutable() const { return raw()->GetClassId() == kImmutableArrayCid; }
@@ -9770,7 +9821,7 @@ class TypedData : public TypedDataBase {
     ASSERT((byte_offset >= 0) &&                                               \
            (byte_offset + static_cast<intptr_t>(sizeof(type)) - 1) <           \
                LengthInBytes());                                               \
-    return ReadUnaligned(ReadOnlyDataAddr<type>(byte_offset));                 \
+    return LoadUnaligned(ReadOnlyDataAddr<type>(byte_offset));                 \
   }                                                                            \
   void Set##name(intptr_t byte_offset, type value) const {                     \
     NoSafepointScope no_safepoint;                                             \
@@ -9905,7 +9956,7 @@ class ExternalTypedData : public TypedDataBase {
 
 #define TYPED_GETTER_SETTER(name, type)                                        \
   type Get##name(intptr_t byte_offset) const {                                 \
-    return ReadUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)));      \
+    return LoadUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)));      \
   }                                                                            \
   void Set##name(intptr_t byte_offset, type value) const {                     \
     StoreUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)), value);     \
@@ -10871,7 +10922,7 @@ void Object::SetRaw(ObjectPtr value) {
       uword addr = ObjectLayout::ToAddr(raw_);
       if (!isolate_heap->Contains(addr) && !vm_isolate_heap->Contains(addr)) {
         ASSERT(FLAG_write_protect_code);
-        addr = ObjectLayout::ToAddr(HeapPage::ToWritable(raw_));
+        addr = ObjectLayout::ToAddr(OldPage::ToWritable(raw_));
         ASSERT(isolate_heap->Contains(addr) || vm_isolate_heap->Contains(addr));
       }
     }
@@ -11005,7 +11056,7 @@ void MegamorphicCache::SetEntry(const Array& array,
                                 intptr_t index,
                                 const Smi& class_id,
                                 const Object& target) {
-  ASSERT(target.IsFunction() || target.IsSmi());
+  ASSERT(target.IsNull() || target.IsFunction() || target.IsSmi());
   array.SetAt((index * kEntryLength) + kClassIdIndex, class_id);
 #if defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
@@ -11125,17 +11176,19 @@ class ArrayOfTuplesView {
     TupleView(const Array& array, intptr_t index)
         : array_(array), index_(index) {}
 
-    template <EnumType kElement>
+    template <EnumType kElement,
+              std::memory_order order = std::memory_order_relaxed>
     typename std::tuple_element<kElement, TupleT>::type::ObjectPtrType Get()
         const {
       using object_type = typename std::tuple_element<kElement, TupleT>::type;
-      return object_type::RawCast(array_.At(index_ + kElement));
+      return object_type::RawCast(array_.At<order>(index_ + kElement));
     }
 
-    template <EnumType kElement>
+    template <EnumType kElement,
+              std::memory_order order = std::memory_order_relaxed>
     void Set(const typename std::tuple_element<kElement, TupleT>::type& value)
         const {
-      array_.SetAt(index_ + kElement, value);
+      array_.SetAt<order>(index_ + kElement, value);
     }
 
     intptr_t index() const { return (index_ - kStartOffset) / EntrySize; }

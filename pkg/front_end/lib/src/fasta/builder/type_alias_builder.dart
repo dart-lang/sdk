@@ -185,7 +185,7 @@ class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
     if (const DynamicType() == thisType) return thisType;
     Nullability adjustedNullability =
         isNullAlias ? Nullability.nullable : nullability;
-    DartType result = thisType.withNullability(adjustedNullability);
+    DartType result = thisType.withDeclaredNullability(adjustedNullability);
     if (typedef.typeParameters.isEmpty && arguments == null) return result;
     Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
     for (int i = 0; i < typedef.typeParameters.length; i++) {
@@ -269,7 +269,7 @@ class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
           thisType.nullability, nullabilityBuilder.build(library));
     }
     if (typedef.typeParameters.isEmpty && arguments == null) {
-      return thisType.withNullability(nullability);
+      return thisType.withDeclaredNullability(nullability);
     }
     // Otherwise, substitute.
     return buildTypesWithBuiltArguments(

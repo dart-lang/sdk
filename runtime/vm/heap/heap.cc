@@ -34,6 +34,10 @@
 namespace dart {
 
 DEFINE_FLAG(bool, write_protect_vm_isolate, true, "Write protect vm_isolate.");
+DEFINE_FLAG(bool,
+            disable_heap_verification,
+            false,
+            "Explicitly disable heap verification.");
 
 // We ensure that the GC does not use the current isolate.
 class NoActiveIsolateScope {
@@ -63,6 +67,7 @@ Heap::Heap(IsolateGroup* isolate_group,
       read_only_(false),
       gc_new_space_in_progress_(false),
       gc_old_space_in_progress_(false),
+      last_gc_was_old_space_(false),
       gc_on_nth_allocation_(kNoForcedGarbageCollection) {
   UpdateGlobalMaxUsed();
   for (int sel = 0; sel < kNumWeakSelectors; sel++) {
@@ -101,10 +106,10 @@ uword Heap::AllocateNew(intptr_t size) {
 
   // It is possible a GC doesn't clear enough space.
   // In that case, we must fall through and allocate into old space.
-  return AllocateOld(size, HeapPage::kData);
+  return AllocateOld(size, OldPage::kData);
 }
 
-uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
+uword Heap::AllocateOld(intptr_t size, OldPage::PageType type) {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
   CollectForDebugging();
   uword addr = old_space_.TryAllocate(size, type);
@@ -153,11 +158,11 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
   return 0;
 }
 
-void Heap::AllocateExternal(intptr_t cid, intptr_t size, Space space) {
+void Heap::AllocatedExternal(intptr_t size, Space space) {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
   if (space == kNew) {
     Isolate::Current()->AssertCurrentThreadIsMutator();
-    new_space_.AllocateExternal(cid, size);
+    new_space_.AllocatedExternal(size);
     if (new_space_.ExternalInWords() <= (4 * new_space_.CapacityInWords())) {
       return;
     }
@@ -168,7 +173,7 @@ void Heap::AllocateExternal(intptr_t cid, intptr_t size, Space space) {
     // space GC check.
   } else {
     ASSERT(space == kOld);
-    old_space_.AllocateExternal(cid, size);
+    old_space_.AllocatedExternal(size);
   }
 
   if (old_space_.NeedsGarbageCollection()) {
@@ -178,18 +183,18 @@ void Heap::AllocateExternal(intptr_t cid, intptr_t size, Space space) {
   }
 }
 
-void Heap::FreeExternal(intptr_t size, Space space) {
+void Heap::FreedExternal(intptr_t size, Space space) {
   if (space == kNew) {
-    new_space_.FreeExternal(size);
+    new_space_.FreedExternal(size);
   } else {
     ASSERT(space == kOld);
-    old_space_.FreeExternal(size);
+    old_space_.FreedExternal(size);
   }
 }
 
-void Heap::PromoteExternal(intptr_t cid, intptr_t size) {
-  new_space_.FreeExternal(size);
-  old_space_.PromoteExternal(cid, size);
+void Heap::PromotedExternal(intptr_t size) {
+  new_space_.FreedExternal(size);
+  old_space_.AllocatedExternal(size);
 }
 
 bool Heap::Contains(uword addr) const {
@@ -205,7 +210,7 @@ bool Heap::OldContains(uword addr) const {
 }
 
 bool Heap::CodeContains(uword addr) const {
-  return old_space_.Contains(addr, HeapPage::kExecutable);
+  return old_space_.Contains(addr, OldPage::kExecutable);
 }
 
 bool Heap::DataContains(uword addr) const {
@@ -325,14 +330,14 @@ void Heap::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 InstructionsPtr Heap::FindObjectInCodeSpace(FindObjectVisitor* visitor) const {
   // Only executable pages can have RawInstructions objects.
-  ObjectPtr raw_obj = old_space_.FindObject(visitor, HeapPage::kExecutable);
+  ObjectPtr raw_obj = old_space_.FindObject(visitor, OldPage::kExecutable);
   ASSERT((raw_obj == Object::null()) ||
          (raw_obj->GetClassId() == kInstructionsCid));
   return static_cast<InstructionsPtr>(raw_obj);
 }
 
 ObjectPtr Heap::FindOldObject(FindObjectVisitor* visitor) const {
-  return old_space_.FindObject(visitor, HeapPage::kData);
+  return old_space_.FindObject(visitor, OldPage::kData);
 }
 
 ObjectPtr Heap::FindNewObject(FindObjectVisitor* visitor) {
@@ -372,6 +377,7 @@ void Heap::EndNewSpaceGC() {
   MonitorLocker ml(&gc_in_progress_monitor_);
   ASSERT(gc_new_space_in_progress_);
   gc_new_space_in_progress_ = false;
+  last_gc_was_old_space_ = false;
   ml.NotifyAll();
 }
 
@@ -393,6 +399,7 @@ void Heap::EndOldSpaceGC() {
   MonitorLocker ml(&gc_in_progress_monitor_);
   ASSERT(gc_old_space_in_progress_);
   gc_old_space_in_progress_ = false;
+  last_gc_was_old_space_ = true;
   ml.NotifyAll();
 }
 
@@ -586,6 +593,19 @@ void Heap::CheckStartConcurrentMarking(Thread* thread, GCReason reason) {
   }
 
   if (old_space_.AlmostNeedsGarbageCollection()) {
+    // New-space objects are roots during old-space GC. This means that even
+    // unreachable new-space objects prevent old-space objects they reference
+    // from being collected during an old-space GC. Normally this is not an
+    // issue because new-space GCs run much more frequently than old-space GCs.
+    // If new-space allocation is low and direct old-space allocation is high,
+    // which can happen in a program that allocates large objects and little
+    // else, old-space can fill up with unreachable objects until the next
+    // new-space GC. This check is the concurrent-marking equivalent to the
+    // new-space GC before synchronous-marking in CollectMostGarbage.
+    if (last_gc_was_old_space_) {
+      CollectNewSpaceGarbage(thread, kFull);
+    }
+
     StartConcurrentMarking(thread);
   }
 }
@@ -641,14 +661,12 @@ void Heap::WaitForSweeperTasksAtSafepoint(Thread* thread) {
 }
 
 void Heap::UpdateGlobalMaxUsed() {
-#if !defined(PRODUCT)
   ASSERT(isolate_group_ != NULL);
   // We are accessing the used in words count for both new and old space
   // without synchronizing. The value of this metric is approximate.
   isolate_group_->GetHeapGlobalUsedMaxMetric()->SetValue(
       (UsedInWords(Heap::kNew) * kWordSize) +
       (UsedInWords(Heap::kOld) * kWordSize));
-#endif  // !defined(PRODUCT)
 }
 
 void Heap::InitGrowthControl() {
@@ -768,6 +786,9 @@ ObjectSet* Heap::CreateAllocatedObjectSet(Zone* zone,
 }
 
 bool Heap::Verify(MarkExpectation mark_expectation) {
+  if (FLAG_disable_heap_verification) {
+    return true;
+  }
   HeapIterationScope heap_iteration_scope(Thread::Current());
   return VerifyGC(mark_expectation);
 }

@@ -177,28 +177,28 @@ class _PackageConfigJsonParser {
     var name = _getRequiredField<String>(map, 'name');
 
     var rootUriStr = _getRequiredField<String>(map, 'rootUri');
-    rootUriStr = _ensureDirectoryUri(rootUriStr);
     var rootUri = uri.resolve(rootUriStr);
+    rootUri = _ensureDirectoryUri(rootUri);
 
     var packageUri = rootUri;
     var packageUriStr = _getOptionalField<String>(map, 'packageUri');
     if (packageUriStr != null) {
-      packageUriStr = _ensureDirectoryUri(packageUriStr);
-
       var packageUriRel = Uri.parse(packageUriStr);
       if (packageUriRel.isAbsolute) {
         throw FormatException(
           "The value of the field 'packageUri' must be relative, "
-          "actualy '$packageUriStr', for the package '$name'.",
+          "actually '$packageUriStr', for the package '$name'.",
           content,
         );
       }
 
       packageUri = rootUri.resolveUri(packageUriRel);
+      packageUri = _ensureDirectoryUri(packageUri);
+
       if (!_isNestedUri(packageUri, rootUri)) {
         throw FormatException(
           "The resolved 'packageUri' must be inside the rootUri, "
-          "actualy '$packageUri' is not in '$rootUri', "
+          "actually '$packageUri' is not in '$rootUri', "
           "for the package '$name'.",
           content,
         );
@@ -252,11 +252,12 @@ class _PackageConfigJsonParser {
     }
   }
 
-  static String _ensureDirectoryUri(String uriStr) {
-    if (uriStr.endsWith('/')) {
-      return uriStr;
+  static Uri _ensureDirectoryUri(Uri uri) {
+    var path = uri.path;
+    if (path.endsWith('/')) {
+      return uri;
     } else {
-      return '$uriStr/';
+      return uri.replace(path: '$path/');
     }
   }
 

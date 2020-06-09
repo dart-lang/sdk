@@ -12,16 +12,33 @@ class Thread;
 
 class BSS : public AllStatic {
  public:
+  // Entries found in both the VM and isolate BSS come first. Each has its own
+  // portion of the BSS segment, so just the indices are shared, not the values
+  // stored at the index.
   enum class Relocation : intptr_t {
-    DRT_GetThreadForNativeCallback = 0,
-    NumRelocations = 1
+    InstructionsRelocatedAddress,
+    // End of shared entries.
+    DRT_GetThreadForNativeCallback,
+    // End of isolate-only entries.
   };
 
-  static intptr_t RelocationIndex(Relocation reloc) {
+  static constexpr intptr_t kVmEntryCount =
+      static_cast<intptr_t>(Relocation::InstructionsRelocatedAddress) + 1;
+
+  static constexpr intptr_t kIsolateEntryCount =
+      static_cast<intptr_t>(Relocation::DRT_GetThreadForNativeCallback) + 1;
+
+  static constexpr intptr_t RelocationIndex(Relocation reloc) {
     return static_cast<intptr_t>(reloc);
   }
 
-  static void Initialize(Thread* current, uword* bss);
+  static void Initialize(Thread* current, uword* bss, bool vm);
+
+  // Currently only used externally by LoadedElf::ResolveSymbols() to set the
+  // relocated address without changing the embedder interface.
+  static void InitializeBSSEntry(BSS::Relocation relocation,
+                                 uword new_value,
+                                 uword* bss_start);
 };
 
 }  // namespace dart

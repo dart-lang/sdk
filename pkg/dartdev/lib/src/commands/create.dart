@@ -39,6 +39,7 @@ class CreateCommand extends DartdevCommand {
       allowed: legalTemplateIds,
       help: 'The project template to use.',
       defaultsTo: defaultTemplateId,
+      abbr: 't',
     );
     argParser.addFlag('pub',
         defaultsTo: true,

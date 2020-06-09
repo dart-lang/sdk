@@ -14,25 +14,25 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertAddAllToSpread extends CorrectionProducer {
   /// The arguments used to compose the message.
-  List<String> args;
+  List<String> _args;
 
   /// A flag indicating whether the change that was built is one that inlines
   /// the elements of another list into the target list.
-  bool isInlineInvocation = false;
+  bool _isInlineInvocation = false;
 
   @override
-  List<Object> get assistArguments => args;
+  List<Object> get assistArguments => _args;
 
   @override
-  AssistKind get assistKind => isInlineInvocation
+  AssistKind get assistKind => _isInlineInvocation
       ? DartAssistKind.INLINE_INVOCATION
       : DartAssistKind.CONVERT_TO_SPREAD;
 
   @override
-  List<Object> get fixArguments => args;
+  List<Object> get fixArguments => _args;
 
   @override
-  FixKind get fixKind => isInlineInvocation
+  FixKind get fixKind => _isInlineInvocation
       ? DartFixKind.INLINE_INVOCATION
       : DartFixKind.CONVERT_TO_SPREAD;
 
@@ -93,8 +93,8 @@ class ConvertAddAllToSpread extends CorrectionProducer {
       var startOffset = elements.first.offset;
       var endOffset = elements.last.end;
       elementText = utils.getText(startOffset, endOffset - startOffset);
-      args = ['addAll'];
-      isInlineInvocation = true;
+      _args = ['addAll'];
+      _isInlineInvocation = true;
     }
     elementText ??= '...${utils.getNodeText(argument)}';
 

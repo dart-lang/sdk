@@ -14,14 +14,23 @@ class MyFuture<T extends core::Object* = dynamic> extends core::Object implement
     ;
   method then<S extends core::Object* = dynamic>((self::MyFuture::T*) →* asy::FutureOr<self::MyFuture::then::S*>* f, {core::Function* onError}) → self::MyFuture<self::MyFuture::then::S*>*
     ;
-  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/async/future.dart */ catchError(core::Function* onError, {(core::Object*) →* core::bool* test = #C1}) → asy::Future<self::MyFuture::T*>*
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature get runtimeType() → core::Type*;
+  member-signature no-such-method-forwarder method catchError(core::Function* onError, {(core::Object*) →* core::bool* test}) → asy::Future<self::MyFuture::T*>*
     return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#catchError, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[onError]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#test: test}))) as{TypeError,ForDynamic} asy::Future<self::MyFuture::T*>*;
-  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/async/future.dart */ whenComplete(() →* asy::FutureOr<dynamic>* action) → asy::Future<self::MyFuture::T*>*
+  member-signature no-such-method-forwarder method whenComplete(() →* asy::FutureOr<void>* action) → asy::Future<self::MyFuture::T*>*
     return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#whenComplete, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[action]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))) as{TypeError,ForDynamic} asy::Future<self::MyFuture::T*>*;
-  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/async/future.dart */ timeout(core::Duration* timeLimit, {generic-covariant-impl () →* asy::FutureOr<self::MyFuture::T*>* onTimeout = #C1}) → asy::Future<self::MyFuture::T*>*
-    return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#timeout, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[timeLimit]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#onTimeout: onTimeout}))) as{TypeError,ForDynamic} asy::Future<self::MyFuture::T*>*;
-  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/async/future.dart */ asStream() → asy::Stream<self::MyFuture::T*>*
+  member-signature no-such-method-forwarder method asStream() → asy::Stream<self::MyFuture::T*>*
     return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#asStream, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))) as{TypeError,ForDynamic} asy::Stream<self::MyFuture::T*>*;
+  member-signature no-such-method-forwarder method timeout(core::Duration* timeLimit, {generic-covariant-impl () →* asy::FutureOr<self::MyFuture::T*>* onTimeout}) → asy::Future<self::MyFuture::T*>*
+    return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#timeout, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[timeLimit]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#onTimeout: onTimeout}))) as{TypeError,ForDynamic} asy::Future<self::MyFuture::T*>*;
 }
 static method test() → void
   ;
@@ -29,7 +38,3 @@ static method foo() → asy::Future<dynamic>*
   ;
 static method main() → dynamic
   ;
-
-constants  {
-  #C1 = null
-}

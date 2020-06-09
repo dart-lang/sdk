@@ -396,4 +396,93 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_Regress36156) {
                   it.IsObjectType() || it.IsNumberType());
 }
 
+ISOLATE_UNIT_TEST_CASE(CompileType_CanBeSmi) {
+  CompilerState S(thread, /*is_aot=*/false);
+
+  const char* late_tag = TestCase::LateTag();
+  auto script_chars = Utils::CStringUniquePtr(
+      OS::SCreate(nullptr, R"(
+import 'dart:async';
+
+class G<T> {}
+
+class C<NoBound,
+        NumBound extends num,
+        ComparableBound extends Comparable,
+        StringBound extends String> {
+  // Simple instantiated types.
+  @pragma('vm-test:can-be-smi') %s int t1;
+  @pragma('vm-test:can-be-smi') %s num t2;
+  @pragma('vm-test:can-be-smi') %s Object t3;
+  %s String t4;
+
+  // Type parameters.
+  @pragma('vm-test:can-be-smi') %s NoBound tp1;
+  @pragma('vm-test:can-be-smi') %s NumBound tp2;
+  @pragma('vm-test:can-be-smi') %s ComparableBound tp3;
+  %s StringBound tp4;
+
+  // Comparable<T> instantiations.
+  @pragma('vm-test:can-be-smi') %s Comparable c1;
+  %s Comparable<String> c2;
+  @pragma('vm-test:can-be-smi') %s Comparable<num> c3;
+  %s Comparable<int> c4;  // int is not a subtype of Comparable<int>.
+  @pragma('vm-test:can-be-smi') %s Comparable<NoBound> c5;
+  @pragma('vm-test:can-be-smi') %s Comparable<NumBound> c6;
+  @pragma('vm-test:can-be-smi') %s Comparable<ComparableBound> c7;
+  %s Comparable<StringBound> c8;
+
+  // FutureOr<T> instantiations.
+  @pragma('vm-test:can-be-smi') %s FutureOr fo1;
+  %s FutureOr<String> fo2;
+  @pragma('vm-test:can-be-smi') %s FutureOr<num> fo3;
+  @pragma('vm-test:can-be-smi') %s FutureOr<int> fo4;
+  @pragma('vm-test:can-be-smi') %s FutureOr<NoBound> fo5;
+  @pragma('vm-test:can-be-smi') %s FutureOr<NumBound> fo6;
+  @pragma('vm-test:can-be-smi') %s FutureOr<ComparableBound> fo7;
+  %s FutureOr<StringBound> fo8;
+
+  // Other generic classes.
+  %s G<int> g1;
+  %s G<NoBound> g2;
+}
+)",
+                  late_tag, late_tag, late_tag, late_tag, late_tag, late_tag,
+                  late_tag, late_tag, late_tag, late_tag, late_tag, late_tag,
+                  late_tag, late_tag, late_tag, late_tag, late_tag, late_tag,
+                  late_tag, late_tag, late_tag, late_tag, late_tag, late_tag,
+                  late_tag, late_tag),
+      std::free);
+
+  const auto& lib = Library::Handle(LoadTestScript(script_chars.get()));
+
+  const auto& pragma_can_be_smi =
+      String::Handle(Symbols::New(thread, "vm-test:can-be-smi"));
+  auto expected_can_be_smi = [&](const Field& f) {
+    auto& options = Object::Handle();
+    return lib.FindPragma(thread, /*only_core=*/false, f, pragma_can_be_smi,
+                          &options);
+  };
+
+  const auto& cls = Class::Handle(GetClass(lib, "C"));
+  const auto& err = Error::Handle(cls.EnsureIsFinalized(thread));
+  EXPECT(err.IsNull());
+  const auto& fields = Array::Handle(cls.fields());
+
+  auto& field = Field::Handle();
+  auto& type = AbstractType::Handle();
+  for (intptr_t i = 0; i < fields.Length(); i++) {
+    field ^= fields.At(i);
+    type = field.type();
+
+    auto compile_type = CompileType::FromAbstractType(type);
+    if (compile_type.CanBeSmi() != expected_can_be_smi(field)) {
+      dart::Expect(__FILE__, __LINE__)
+          .Fail("expected that CanBeSmi() returns %s for compile type %s\n",
+                expected_can_be_smi(field) ? "true" : "false",
+                compile_type.ToCString());
+    }
+  }
+}
+
 }  // namespace dart

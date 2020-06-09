@@ -1,0 +1,4 @@
+import "mixin_from_dill_lib1.dart" as lib1;
+import "mixin_from_dill_lib2.dart" as lib2;
+
+main() {}

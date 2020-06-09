@@ -308,11 +308,8 @@ class ErrorFilterOptionValidator extends OptionsValidator {
   Set<String> _lintCodes;
 
   Set<String> get lintCodes {
-    if (_lintCodes == null) {
-      _lintCodes = Set.from(
-          Registry.ruleRegistry.rules.map((rule) => rule.name.toUpperCase()));
-    }
-    return _lintCodes;
+    return _lintCodes ??= Set.from(
+        Registry.ruleRegistry.rules.map((rule) => rule.name.toUpperCase()));
   }
 
   @override

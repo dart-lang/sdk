@@ -392,7 +392,7 @@ Fragment FlowGraphBuilder::ThrowException(TokenPosition position) {
   instructions +=
       Fragment(new (Z) ThrowInstr(position, GetNextDeoptId(), exception))
           .closed();
-  // Use it's side effect of leaving a constant on the stack (does not change
+  // Use its side effect of leaving a constant on the stack (does not change
   // the graph).
   NullConstant();
 
@@ -408,7 +408,7 @@ Fragment FlowGraphBuilder::RethrowException(TokenPosition position,
       Fragment(new (Z) ReThrowInstr(position, catch_try_index, GetNextDeoptId(),
                                     exception, stacktrace))
           .closed();
-  // Use it's side effect of leaving a constant on the stack (does not change
+  // Use its side effect of leaving a constant on the stack (does not change
   // the graph).
   NullConstant();
 
@@ -469,10 +469,10 @@ Fragment FlowGraphBuilder::StoreLateField(const Field& field,
   if (is_final) {
     // Check whether the field has been initialized already.
     if (is_static) {
-      instructions += LoadStaticField(field);
+      instructions += LoadStaticField(field, /*calls_initializer=*/false);
     } else {
       instructions += LoadLocal(instance);
-      instructions += LoadField(field);
+      instructions += LoadField(field, /*calls_initializer=*/false);
     }
     instructions += Constant(Object::sentinel());
     instructions += BranchIfStrictEqual(&is_uninitialized, &is_initialized);
@@ -506,20 +506,6 @@ Fragment FlowGraphBuilder::StoreLateField(const Field& field,
   }
 
   return instructions;
-}
-
-Fragment FlowGraphBuilder::InitInstanceField(const Field& field) {
-  ASSERT(field.is_instance());
-  ASSERT(field.NeedsInitializationCheckOnLoad());
-  InitInstanceFieldInstr* init = new (Z)
-      InitInstanceFieldInstr(Pop(), MayCloneField(field), GetNextDeoptId());
-  return Fragment(init);
-}
-
-Fragment FlowGraphBuilder::InitStaticField(const Field& field) {
-  InitStaticFieldInstr* init =
-      new (Z) InitStaticFieldInstr(MayCloneField(field), GetNextDeoptId());
-  return Fragment(init);
 }
 
 Fragment FlowGraphBuilder::NativeCall(const String* name,
@@ -678,7 +664,7 @@ Fragment FlowGraphBuilder::ThrowTypeError() {
   return instructions;
 }
 
-Fragment FlowGraphBuilder::ThrowNoSuchMethodError() {
+Fragment FlowGraphBuilder::ThrowNoSuchMethodError(const Function& target) {
   const Class& klass = Class::ZoneHandle(
       Z, Library::LookupCoreClass(Symbols::NoSuchMethodError()));
   ASSERT(!klass.IsNull());
@@ -688,20 +674,36 @@ Fragment FlowGraphBuilder::ThrowNoSuchMethodError() {
 
   Fragment instructions;
 
-  // Call NoSuchMethodError._throwNew static function.
-  instructions += NullConstant();  // receiver
+  const Class& owner = Class::Handle(Z, target.Owner());
+  AbstractType& receiver = AbstractType::ZoneHandle();
+  InvocationMirror::Kind kind = InvocationMirror::Kind::kMethod;
+  InvocationMirror::Level level;
+  if (owner.IsTopLevel()) {
+    level = InvocationMirror::Level::kTopLevel;
+  } else {
+    receiver = owner.RareType();
+    if (target.kind() == FunctionLayout::kConstructor) {
+      level = InvocationMirror::Level::kConstructor;
+    } else {
+      level = InvocationMirror::Level::kStatic;
+    }
+  }
 
-  instructions +=
-      Constant(H.DartString("<unknown>", Heap::kOld));  // memberName
-  instructions += IntConstant(-1);                      // invocation_type
-  instructions += NullConstant();                       // type arguments
-  instructions += NullConstant();                       // arguments
-  instructions += NullConstant();                       // argumentNames
+  // Call NoSuchMethodError._throwNew static function.
+  instructions += Constant(receiver);                              // receiver
+  instructions += Constant(String::ZoneHandle(Z, target.name()));  // memberName
+  instructions += IntConstant(InvocationMirror::EncodeType(level, kind));
+  instructions += IntConstant(0);  // type arguments length
+  instructions += NullConstant();  // type arguments
+  instructions += NullConstant();  // arguments
+  instructions += NullConstant();  // argumentNames
 
   instructions += StaticCall(TokenPosition::kNoSource, throw_function,
-                             /* argument_count = */ 6, ICData::kStatic);
-  // Leave "result" on the stack since callers expect it to be there (even
-  // though the function will result in an exception).
+                             /* argument_count = */ 7, ICData::kStatic);
+
+  // Properly close graph with a ThrowInstr, although it is not executed.
+  instructions += ThrowException(TokenPosition::kNoSource);
+  instructions += Drop();
 
   return instructions;
 }
@@ -1247,13 +1249,11 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
         const auto& pointer_type_args =
             TypeArguments::Handle(pointer_class.type_parameters());
         const auto& pointer_type_arg =
-            AbstractType::Handle(pointer_type_args.TypeAt(0));
+            AbstractType::ZoneHandle(pointer_type_args.TypeAt(0));
 
         // But we type check it as a method on a generic class at runtime.
-        body += LoadLocal(arg_value);
-        body += LoadLocal(arg_pointer);
-        body += CheckNullOptimized(TokenPosition::kNoSource,
-                                   String::ZoneHandle(Z, function.name()));
+        body += LoadLocal(arg_value);        // value.
+        body += Constant(pointer_type_arg);  // dst_type.
         // We pass the Pointer type argument as instantiator_type_args.
         //
         // Call sites to this recognized method are guaranteed to pass a
@@ -1264,11 +1264,13 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
         // The following is safe to do, as (1) we are guaranteed to have a
         // Pointer<Pointer<X>> as argument, and (2) the bound on the pointer
         // type parameter guarantees X is an interface type.
+        body += LoadLocal(arg_pointer);
+        body += CheckNullOptimized(TokenPosition::kNoSource,
+                                   String::ZoneHandle(Z, function.name()));
         body += LoadNativeField(
             Slot::GetTypeArgumentsSlotFor(thread_, pointer_class));
         body += NullConstant();  // function_type_args.
-        body += AssertAssignable(TokenPosition::kNoSource, pointer_type_arg,
-                                 Symbols::Empty());
+        body += AssertAssignable(TokenPosition::kNoSource, Symbols::Empty());
         body += Drop();
       }
 
@@ -1534,9 +1536,6 @@ Fragment FlowGraphBuilder::CheckAssignable(const AbstractType& dst_type,
                                            const String& dst_name,
                                            AssertAssignableInstr::Kind kind) {
   Fragment instructions;
-  if (!I->should_emit_strong_mode_checks()) {
-    return Fragment();
-  }
   if (!dst_type.IsTopTypeForSubtyping()) {
     LocalVariable* top_of_stack = MakeTemporary();
     instructions += LoadLocal(top_of_stack);
@@ -1552,11 +1551,9 @@ Fragment FlowGraphBuilder::AssertAssignableLoadTypeArguments(
     const AbstractType& dst_type,
     const String& dst_name,
     AssertAssignableInstr::Kind kind) {
-  if (!I->should_emit_strong_mode_checks()) {
-    return Fragment();
-  }
-
   Fragment instructions;
+
+  instructions += Constant(AbstractType::ZoneHandle(dst_type.raw()));
 
   if (!dst_type.IsInstantiated(kCurrentClass)) {
     instructions += LoadInstantiatorTypeArguments();
@@ -1570,21 +1567,26 @@ Fragment FlowGraphBuilder::AssertAssignableLoadTypeArguments(
     instructions += NullConstant();
   }
 
-  instructions += AssertAssignable(position, dst_type, dst_name, kind);
+  instructions += AssertAssignable(position, dst_name, kind);
 
   return instructions;
 }
 
 Fragment FlowGraphBuilder::AssertSubtype(TokenPosition position,
-                                         const AbstractType& sub_type,
-                                         const AbstractType& super_type,
+                                         const AbstractType& sub_type_value,
+                                         const AbstractType& super_type_value,
                                          const String& dst_name) {
   Fragment instructions;
 
   instructions += LoadInstantiatorTypeArguments();
-  Value* instantiator_type_args = Pop();
   instructions += LoadFunctionTypeArguments();
+  instructions += Constant(AbstractType::ZoneHandle(sub_type_value.raw()));
+  instructions += Constant(AbstractType::ZoneHandle(super_type_value.raw()));
+
+  Value* super_type = Pop();
+  Value* sub_type = Pop();
   Value* function_type_args = Pop();
+  Value* instantiator_type_args = Pop();
 
   AssertSubtypeInstr* instr = new (Z)
       AssertSubtypeInstr(position, instantiator_type_args, function_type_args,
@@ -1599,7 +1601,6 @@ void FlowGraphBuilder::BuildArgumentTypeChecks(
     Fragment* explicit_checks,
     Fragment* implicit_checks,
     Fragment* implicit_redefinitions) {
-  if (!I->should_emit_strong_mode_checks()) return;
   const Function& dart_function = parsed_function_->function();
 
   const Function* forwarding_target = nullptr;
@@ -2033,7 +2034,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
     }
   }
 
-  if (function.NeedsArgumentTypeChecks(I)) {
+  if (function.NeedsArgumentTypeChecks()) {
     BuildArgumentTypeChecks(TypeChecksToBuild::kCheckAllTypeParameterBounds,
                             &body, &body, nullptr);
   }
@@ -2402,7 +2403,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   // We're going to throw away the explicit checks because the target will
   // always check them.
   Fragment implicit_checks;
-  if (function.NeedsArgumentTypeChecks(I)) {
+  if (function.NeedsArgumentTypeChecks()) {
     Fragment explicit_checks_unused;
     if (target.is_static()) {
       // Tearoffs of static methods needs to perform arguments checks since
@@ -2460,7 +2461,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
 
   // Setup multiple entrypoints if useful.
   FunctionEntryInstr* extra_entry = nullptr;
-  if (function.MayHaveUncheckedEntryPoint(I)) {
+  if (function.MayHaveUncheckedEntryPoint()) {
     // The prologue for a closure will always have context handling (e.g.
     // setting up the receiver variable), but we don't need it on the unchecked
     // entry because the only time we reference this is for loading the
@@ -2538,7 +2539,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
       body += LoadLocal(parsed_function_->ParameterVariable(0));
     }
     body += LoadLocal(setter_value);
-    if (I->argument_type_checks() && setter_value->needs_type_check()) {
+    if (setter_value->needs_type_check()) {
       body += CheckAssignable(setter_value->type(), setter_value->name(),
                               AssertAssignableInstr::kParameterCheck);
     }
@@ -2562,13 +2563,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
   } else if (is_method) {
     ASSERT(!field.needs_load_guard()
                 NOT_IN_PRODUCT(|| I->HasAttemptedReload()));
-    if (field.NeedsInitializationCheckOnLoad()) {
-      body += LoadLocal(parsed_function_->ParameterVariable(0));
-      body += InitInstanceField(field);
-    }
-
     body += LoadLocal(parsed_function_->ParameterVariable(0));
-    body += LoadField(field);
+    body += LoadField(
+        field, /*calls_initializer=*/field.NeedsInitializationCheckOnLoad());
     if (field.needs_load_guard()) {
 #if defined(PRODUCT)
       UNREACHABLE();
@@ -2578,12 +2575,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
 #endif
     }
   } else if (field.is_const()) {
-    // If the parser needs to know the value of an uninitialized constant field
-    // it will set the value to the transition sentinel (used to detect circular
-    // initialization) and then call the implicit getter.  Thus, the getter
-    // cannot contain the InitStaticField instruction that normal static getters
-    // contain because it would detect spurious circular initialization when it
-    // checks for the transition sentinel.
     ASSERT(!field.IsUninitialized());
     body += Constant(Instance::ZoneHandle(Z, field.StaticValue()));
   } else {
@@ -2596,8 +2587,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
     // to make sure they are already initialized.
     ASSERT(field.has_nontrivial_initializer() ||
            (field.is_late() && !field.has_initializer()));
-    body += InitStaticField(field);
-    body += LoadStaticField(field);
+    body += LoadStaticField(field, /*calls_initializer=*/true);
     if (field.needs_load_guard()) {
 #if defined(PRODUCT)
       UNREACHABLE();

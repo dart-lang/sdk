@@ -1,0 +1,9 @@
+NOTICE: Stream was rewritten by parser!
+
+void foo() {
+{[];};
+}
+
+[UnmatchedToken]void[KeywordToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+{[BeginToken][[BeginToken]][SyntheticToken];[SyntheticToken]}[SimpleToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

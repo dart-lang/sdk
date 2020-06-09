@@ -88,11 +88,31 @@ class T extends core::Object {
   synthetic constructor •() → self::T*
     : super core::Object::•()
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class V extends core::Object {
   synthetic constructor •() → self::V*
     : super core::Object::•()
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method test() → dynamic {
   self::T* t;
@@ -127,7 +147,7 @@ static method test() → dynamic {
   {
     self::V* V = invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:47:7: Error: Can't declare 'V' because it was already used in this scope.
     V V;
-      ^" as{TypeError,ForDynamic} self::V*;
+      ^";
   }
   {
     <T extends core::Object* = dynamic>() →* core::Null? x = let final dynamic #t3 = invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:52:13: Error: 'T' is already declared in this scope.

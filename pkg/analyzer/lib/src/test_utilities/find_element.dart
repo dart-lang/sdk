@@ -77,7 +77,7 @@ class FindElement extends _FindElementBase {
     unit.accept(FunctionAstVisitor(
       functionDeclarationStatement: (node) {
         var element = node.functionDeclaration.declaredElement;
-        if (element is FunctionElement) {
+        if (element is FunctionElement && element.name == name) {
           if (result != null) {
             throw StateError('Not unique: $name');
           }
@@ -169,9 +169,11 @@ class FindElement extends _FindElementBase {
     }
 
     unit.accept(
-      FunctionAstVisitor(functionDeclarationStatement: (node) {
-        var functionElement = node.functionDeclaration.declaredElement;
-        findIn(functionElement.parameters);
+      FunctionAstVisitor(functionExpression: (node, local) {
+        if (local) {
+          var functionElement = node.declaredElement;
+          findIn(functionElement.parameters);
+        }
       }),
     );
 
@@ -210,6 +212,10 @@ class FindElement extends _FindElementBase {
       for (var method in class_.methods) {
         findIn(method.typeParameters);
       }
+    }
+
+    for (var type in unitElement.functions) {
+      findIn(type.typeParameters);
     }
 
     for (var type in unitElement.functionTypeAliases) {

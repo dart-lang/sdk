@@ -80,6 +80,16 @@ class C extends core::Object {
   static factory fact2() → self::C*
     let<BottomType> #redirecting_factory = self::D::• in invalid-expression;
   static method staticFunction(core::int* i) → void {}
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class D extends self::C {
   synthetic constructor •() → self::D*
@@ -113,7 +123,7 @@ Change the type of the function expression or the context in which it is used.
   int Function(Object) d = (int i) => i;
                            ^" in (core::int* i) → core::int* => i;
   self::D* e = self::C::fact() as{TypeError} self::D*;
-  self::D* f = new self::D::•() as{TypeError} self::D*;
+  self::D* f = new self::D::•();
   self::D* g = let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/general/invalid_cast.dart:26:13: Error: The constructor returns type 'C' that isn't of expected type 'D'.
  - 'C' is from 'pkg/front_end/testcases/general/invalid_cast.dart'.
  - 'D' is from 'pkg/front_end/testcases/general/invalid_cast.dart'.
@@ -149,7 +159,7 @@ static method ok() → dynamic {
   core::Map<core::int*, core::String*>* c = <core::int*, core::String*>{};
   (core::int*) →* core::int* d = (core::int* i) → core::int* => i;
   self::D* e = self::C::fact() as{TypeError} self::D*;
-  self::D* f = new self::D::•() as{TypeError} self::D*;
+  self::D* f = new self::D::•();
   self::C* g = new self::C::nonFact();
   self::C* h = new self::C::nonFact2();
   (core::int*) →* void i = #C1;

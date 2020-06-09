@@ -14,5 +14,7 @@ import "dart:math" as math;
 static method main() → dynamic {
   let final dynamic #t1 = invalid-expression "pkg/front_end/testcases/rasta/issue_000031.dart:8:3: Error: A prefix can't be used as an expression.
   math..toString();
-  ^^^^" in let final void #t2 = #t1.{core::Object::toString}() in #t1;
+  ^^^^" in block {
+    #t1.{core::Object::toString}();
+  } =>#t1;
 }

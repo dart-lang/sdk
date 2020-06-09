@@ -43,18 +43,19 @@ class Splay extends BenchmarkBase {
   static final int kTreeModifications = 80;
   static final int kTreePayloadDepth = 5;
 
-  static SplayTree tree;
+  static SplayTree? tree;
 
   static Random rnd = new Random(12345);
 
   // Insert new node with a unique key.
   static num insertNewNode() {
     num key;
+    final localTree = tree!;
     do {
       key = rnd.nextDouble();
-    } while (tree.find(key) != null);
+    } while (localTree.find(key) != null);
     Payload payload = Payload.generate(kTreePayloadDepth, key.toString());
-    tree.insert(key, payload);
+    localTree.insert(key, payload);
     return key;
   }
 
@@ -67,7 +68,7 @@ class Splay extends BenchmarkBase {
     // Allow the garbage collector to reclaim the memory
     // used by the splay tree no matter how we exit the
     // tear down function.
-    List<num> keys = tree.exportKeys();
+    List<num> keys = tree!.exportKeys();
     tree = null;
 
     // Verify that the splay tree has the right size.
@@ -86,11 +87,15 @@ class Splay extends BenchmarkBase {
 
   void exercise() {
     // Replace a few nodes in the splay tree.
+    final localTree = tree!;
     for (int i = 0; i < kTreeModifications; i++) {
       num key = insertNewNode();
-      Node greatest = tree.findGreatestLessThan(key);
-      if (greatest == null) tree.remove(key);
-      else tree.remove(greatest.key);
+      Node? greatest = localTree.findGreatestLessThan(key);
+      if (greatest == null) {
+        localTree.remove(key);
+      } else {
+        localTree.remove(greatest.key);
+      }
     }
   }
 
@@ -103,10 +108,10 @@ class Splay extends BenchmarkBase {
 
 
 class Leaf {
-  Leaf(String tag) {
-    string = "String for key $tag in leaf node";
-    array = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ];
-  }
+  Leaf(String tag) :
+    string = "String for key $tag in leaf node",
+    array = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ]
+  {}
   String string;
   List<num> array;
 }
@@ -151,16 +156,16 @@ class SplayTree {
     // Splay on the key to move the last node on the search path for
     // the key to the root of the tree.
     splay(key);
-    if (root.key == key) return;
+    if (root!.key == key) return;
     Node node = new Node(key, value);
-    if (key > root.key) {
+    if (key > root!.key) {
       node.left = root;
-      node.right = root.right;
-      root.right = null;
+      node.right = root!.right;
+      root!.right = null;
     } else {
       node.right = root;
-      node.left = root.left;
-      root.left = null;
+      node.left = root!.left;
+      root!.left = null;
     }
     root = node;
   }
@@ -173,18 +178,18 @@ class SplayTree {
   Node remove(num key) {
     if (isEmpty) throw new Error('Key not found: $key');
     splay(key);
-    if (root.key != key) throw new Error('Key not found: $key');
-    Node removed = root;
-    if (root.left == null) {
-      root = root.right;
+    if (root!.key != key) throw new Error('Key not found: $key');
+    Node removed = root!;
+    if (root!.left == null) {
+      root = root!.right;
     } else {
-      Node right = root.right;
-      root = root.left;
+      Node? right = root!.right;
+      root = root!.left;
       // Splay to make sure that the new root has an empty right child.
       splay(key);
       // Insert the original right child as the right child of the new
       // root.
-      root.right = right;
+      root!.right = right;
     }
     return removed;
   }
@@ -193,19 +198,19 @@ class SplayTree {
    * Returns the node having the specified [key] or null if the tree doesn't
    * contain a node with the specified [key].
    */
-  Node find(num key) {
+  Node? find(num key) {
     if (isEmpty) return null;
     splay(key);
-    return root.key == key ? root : null;
+    return root!.key == key ? root : null;
   }
 
   /**
    * Returns the Node having the maximum key value.
    */
-  Node findMax([Node start]) {
+  Node? findMax([Node? start]) {
     if (isEmpty) return null;
-    Node current = null == start ? root : start;
-    while (current.right != null) current = current.right;
+    Node current = null == start ? root! : start;
+    while (current.right != null) current = current.right!;
     return current;
   }
 
@@ -213,15 +218,15 @@ class SplayTree {
    * Returns the Node having the maximum key value that
    * is less than the specified [key].
    */
-  Node findGreatestLessThan(num key) {
+  Node? findGreatestLessThan(num key) {
     if (isEmpty) return null;
     // Splay on the key to move the node with the given key or the last
     // node on the search path to the top of the tree.
     splay(key);
     // Now the result is either the root node or the greatest node in
     // the left subtree.
-    if (root.key < key) return root;
-    if (root.left != null) return findMax(root.left);
+    if (root!.key < key) return root;
+    if (root!.left != null) return findMax(root!.left);
     return null;
   }
 
@@ -239,16 +244,16 @@ class SplayTree {
     // the L tree of the algorithm.  The left child of the dummy node
     // will hold the R tree of the algorithm.  Using a dummy node, left
     // and right will always be nodes and we avoid special cases.
-    final Node dummy = new Node(null, null);
+    final Node dummy = new Node(0, null);
     Node left = dummy;
     Node right = dummy;
-    Node current = root;
+    Node current = root!;
     while (true) {
       if (key < current.key) {
         if (current.left == null) break;
-        if (key < current.left.key) {
+        if (key < current.left!.key) {
           // Rotate right.
-          Node tmp = current.left;
+          Node tmp = current.left!;
           current.left = tmp.right;
           tmp.right = current;
           current = tmp;
@@ -257,12 +262,12 @@ class SplayTree {
         // Link right.
         right.left = current;
         right = current;
-        current = current.left;
+        current = current.left!;
       } else if (key > current.key) {
         if (current.right == null) break;
-        if (key > current.right.key) {
+        if (key > current.right!.key) {
           // Rotate left.
-          Node tmp = current.right;
+          Node tmp = current.right!;
           current.right = tmp.left;
           tmp.left = current;
           current = tmp;
@@ -271,7 +276,7 @@ class SplayTree {
         // Link left.
         left.right = current;
         left = current;
-        current = current.right;
+        current = current.right!;
       } else {
         break;
       }
@@ -289,7 +294,7 @@ class SplayTree {
    */
   List<num> exportKeys() {
     List<num> result = [];
-    if (!isEmpty) root.traverse((Node node) => result.add(node.key));
+    if (!isEmpty) root!.traverse((Node node) => result.add(node.key));
     return result;
   }
 
@@ -297,24 +302,24 @@ class SplayTree {
   bool get isEmpty => null == root;
 
   // Pointer to the root node of the tree.
-  Node root;
+  Node? root;
 }
 
 
 class Node {
   Node(this.key, this.value);
   final num key;
-  final Object value;
+  final Object? value;
 
-  Node left, right;
+  Node? left, right;
 
   /**
    * Performs an ordered traversal of the subtree starting here.
    */
   void traverse(void f(Node n)) {
-    Node current = this;
+    Node? current = this;
     while (current != null) {
-      Node left = current.left;
+      Node? left = current.left;
       if (left != null) left.traverse(f);
       f(current);
       current = current.right;

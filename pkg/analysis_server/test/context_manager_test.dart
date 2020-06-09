@@ -7,27 +7,23 @@ import 'dart:async';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/context/builder.dart';
-import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
-import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/services/lint.dart';
-import 'package:analyzer/src/summary/summary_file_builder.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/glob.dart';
@@ -64,7 +60,7 @@ class AbstractContextManagerTest extends ContextManagerTest {
     resourceProvider.newFile(join(subProjPath, 'pubspec.yaml'), 'contents');
     var subProjFilePath = join(subProjPath, 'file.dart');
     resourceProvider.newFile(subProjFilePath, 'contents');
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     // Make sure that there really are contexts for both the main project and
     // the subproject.
     var projectFolder = resourceProvider.getFolder(projPath);
@@ -116,7 +112,7 @@ embedded_libs:
     // NOTE that this is Not in our package path yet.
 
     // Setup context.
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     await pumpEventQueue();
     // Confirm that one driver / context was created.
     var drivers = manager.getDriversInAnalysisRoot(projectFolder);
@@ -161,7 +157,7 @@ embedded_libs:
 sky_engine:lib/''');
     // Setup context.
 
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     await pumpEventQueue();
     // Confirm that one context was created.
     var count = manager
@@ -185,8 +181,7 @@ sky_engine:lib/''');
     // set roots
     resourceProvider.newFolder(project);
     resourceProvider.newFolder(excludedFolder);
-    manager.setRoots(
-        <String>[project], <String>[excludedFolder], <String, String>{});
+    manager.setRoots(<String>[project], <String>[excludedFolder]);
     // verify
     expect(manager.isInAnalysisRoot(convertPath('$excludedFolder/test.dart')),
         isFalse);
@@ -198,7 +193,7 @@ sky_engine:lib/''');
     resourceProvider.newFile(join(subProjPath, 'pubspec.yaml'), 'contents');
     var subProjFilePath = join(subProjPath, 'file.dart');
     resourceProvider.newFile(subProjFilePath, 'contents');
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     // Make sure that there really is a context for the subproject.
     var subProjContextInfo = manager.getContextInfoFor(subProjFolder);
     expect(subProjContextInfo, isNotNull);
@@ -208,12 +203,12 @@ sky_engine:lib/''');
   }
 
   void test_isInAnalysisRoot_inRoot() {
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     expect(manager.isInAnalysisRoot('$projPath/test.dart'), isTrue);
   }
 
   void test_isInAnalysisRoot_notInRoot() {
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     expect(manager.isInAnalysisRoot('/test.dart'), isFalse);
   }
 
@@ -224,7 +219,7 @@ sky_engine:lib/''');
     // create a file in the "packages" folder
     var filePath1 = join(projPath, 'packages', 'file1.dart');
     var file1 = resourceProvider.newFile(filePath1, 'contents');
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     expect(callbacks.currentFilePaths, unorderedEquals([file1.path]));
     var filePath2 = join(projPath, 'packages', 'file2.dart');
     var file2 = resourceProvider.newFile(filePath2, 'contents');
@@ -237,7 +232,7 @@ sky_engine:lib/''');
   Future<void> test_path_filter() async {
     // Setup context.
     var root = resourceProvider.newFolder(projPath);
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     expect(callbacks.currentFilePaths, isEmpty);
     // Set ignore patterns for context.
     var rootInfo = manager.getContextInfoFor(root);
@@ -264,7 +259,7 @@ sky_engine:lib/''');
     // create a context with a .packages file
     var packagespecFile = join(projPath, '.packages');
     resourceProvider.newFile(packagespecFile, '');
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     return pumpEventQueue().then((_) {
       expect(callbacks.currentContextRoots, unorderedEquals([projPath]));
       callbacks.now++;
@@ -288,7 +283,7 @@ sky_engine:lib/''');
     var packagespec2Path = join(subdir2Path, '.packages');
     resourceProvider.newFile(packagespec1Path, '');
     resourceProvider.newFile(packagespec2Path, '');
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     return pumpEventQueue().then((_) {
       expect(callbacks.currentContextRoots,
           unorderedEquals([subdir1Path, subdir2Path, projPath]));
@@ -308,7 +303,7 @@ sky_engine:lib/''');
     // create a context with a pubspec.yaml file
     var pubspecPath = join(projPath, 'pubspec.yaml');
     resourceProvider.newFile(pubspecPath, 'pubspec');
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     return pumpEventQueue().then((_) {
       expect(callbacks.currentContextRoots, unorderedEquals([projPath]));
       callbacks.now++;
@@ -329,7 +324,7 @@ sky_engine:lib/''');
     var pubspec2Path = join(subdir2Path, 'pubspec.yaml');
     resourceProvider.newFile(pubspec1Path, 'pubspec');
     resourceProvider.newFile(pubspec2Path, 'pubspec');
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     return pumpEventQueue().then((_) {
       expect(callbacks.currentContextRoots,
           unorderedEquals([subdir1Path, subdir2Path, projPath]));
@@ -356,7 +351,7 @@ sky_engine:lib/''');
     resourceProvider.newFile(pubspec2Path, 'pubspec2');
 
     var roots = <String>[projPath, proj2Path];
-    manager.setRoots(roots, <String>[], <String, String>{});
+    manager.setRoots(roots, <String>[]);
     return pumpEventQueue().then((_) {
       expect(callbacks.currentContextRoots, unorderedEquals(roots));
       var then = callbacks.now;
@@ -373,7 +368,7 @@ sky_engine:lib/''');
   void test_setRoots_addFolderWithDartFile() {
     var filePath = resourceProvider.pathContext.join(projPath, 'foo.dart');
     resourceProvider.newFile(filePath, 'contents');
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     // verify
     var filePaths = callbacks.currentFilePaths;
     expect(filePaths, hasLength(1));
@@ -389,7 +384,7 @@ sky_engine:lib/''');
   void test_setRoots_addFolderWithDartFileInSubfolder() {
     var filePath = join(projPath, 'foo', 'bar.dart');
     resourceProvider.newFile(filePath, 'contents');
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     // verify
     var filePaths = callbacks.currentFilePaths;
     expect(filePaths, hasLength(1));
@@ -399,7 +394,7 @@ sky_engine:lib/''');
   void test_setRoots_addFolderWithDummyLink() {
     var filePath = join(projPath, 'foo.dart');
     resourceProvider.newDummyLink(filePath);
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     // verify
     expect(callbacks.currentFilePaths, isEmpty);
   }
@@ -414,7 +409,7 @@ sky_engine:lib/''');
     newFile('$examplePath/${ContextManagerImpl.PACKAGE_SPEC_NAME}');
     newFile('$examplePath/example.dart');
 
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
 
     expect(callbacks.currentContextRoots, hasLength(2));
 
@@ -443,7 +438,7 @@ sky_engine:lib/''');
     newFile('$examplePath/${ContextManagerImpl.PUBSPEC_NAME}');
     newFile('$examplePath/example.dart');
 
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
 
     expect(callbacks.currentContextRoots, hasLength(2));
 
@@ -460,7 +455,7 @@ sky_engine:lib/''');
   }
 
   void test_setRoots_addFolderWithoutPubspec() {
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     // verify
     expect(callbacks.currentContextRoots, unorderedEquals([projPath]));
     expect(callbacks.currentFilePaths, hasLength(0));
@@ -475,7 +470,7 @@ sky_engine:lib/''');
     var mainFile = newFile('$libPath/main.dart');
     var source = mainFile.createSource();
 
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
 
     // verify
     expect(callbacks.currentContextRoots, unorderedEquals([projPath]));
@@ -488,23 +483,10 @@ sky_engine:lib/''');
     expect(resolvedSource.fullName, convertPath('$testLib/unittest.dart'));
   }
 
-  void test_setRoots_addFolderWithPackagespecAndPackageRoot() {
-    // The package root should take priority.
-    var packagespecPath = join(projPath, '.packages');
-    var testLib = convertPath('/home/somebody/.pub/cache/unittest-0.9.9/lib');
-    var testLibUri = resourceProvider.pathContext.toUri(testLib);
-    resourceProvider.newFile(packagespecPath, 'unittest:$testLibUri');
-    var packageRootPath = '/package/root/';
-    manager.setRoots(<String>[projPath], <String>[],
-        <String, String>{projPath: packageRootPath});
-    expect(callbacks.currentContextRoots, unorderedEquals([projPath]));
-    _checkPackageRoot(projPath, packageRootPath);
-  }
-
   void test_setRoots_addFolderWithPubspec() {
     var pubspecPath = join(projPath, 'pubspec.yaml');
     resourceProvider.newFile(pubspecPath, 'pubspec');
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     // verify
     expect(callbacks.currentContextRoots, unorderedEquals([projPath]));
     expect(callbacks.currentFilePaths, hasLength(0));
@@ -515,7 +497,7 @@ sky_engine:lib/''');
     var packagespecPath = join(projPath, '.packages');
     resourceProvider.newFile(pubspecPath, 'pubspec');
     resourceProvider.newFile(packagespecPath, '');
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     // verify
     callbacks.assertContextPaths([projPath]);
   }
@@ -534,7 +516,7 @@ sky_engine:lib/''');
     newFile('$srcPath/internal.dart');
     var testFilePath = newFile('$testPath/main_test.dart').path;
 
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     var sources = callbacks.currentFileSources(projPath);
 
     expect(callbacks.currentContextRoots, unorderedEquals([projPath]));
@@ -565,7 +547,7 @@ sky_engine:lib/''');
     newFile(subProjectB_file, content: 'library b;');
 
     // set roots
-    manager.setRoots(<String>[root], <String>[], <String, String>{});
+    manager.setRoots(<String>[root], <String>[]);
     callbacks.assertContextPaths([root, subProjectA, subProjectB]);
     // verify files
     callbacks.assertContextFiles(root, [rootFile]);
@@ -594,7 +576,7 @@ sky_engine:lib/''');
     resourceProvider.newFile(subProjectA_file, 'library a;');
     resourceProvider.newFile(subProjectB_file, 'library b;');
     // set roots
-    manager.setRoots(<String>[root], <String>[], <String, String>{});
+    manager.setRoots(<String>[root], <String>[]);
     callbacks.assertContextPaths([root, projectA, projectB]);
     // verify files
     callbacks.assertContextFiles(root, [rootFile]);
@@ -614,38 +596,6 @@ sky_engine:lib/''');
         }));
   }
 
-  void test_setRoots_addPackageRoot() {
-    var packagePathFoo = convertPath('/package1/foo');
-    var packageRootPath = convertPath('/package2/foo');
-    newFile('$projPath/${ContextManagerImpl.PACKAGE_SPEC_NAME}',
-        content: 'foo:${toUriStr('/package1/foo')}');
-    var packageFolder = resourceProvider.newFolder(packagePathFoo);
-    var includedPaths = <String>[projPath];
-    var excludedPaths = <String>[];
-    manager.setRoots(includedPaths, excludedPaths, <String, String>{});
-    expect(
-        _currentPackageMap,
-        equals({
-          'foo': [packageFolder]
-        }));
-    manager.setRoots(includedPaths, excludedPaths,
-        <String, String>{projPath: packageRootPath});
-    _checkPackageRoot(projPath, equals(packageRootPath));
-  }
-
-  void test_setRoots_changePackageRoot() {
-    var packageRootPath1 = '/package1';
-    var packageRootPath2 = '/package2';
-    var includedPaths = <String>[projPath];
-    var excludedPaths = <String>[];
-    manager.setRoots(includedPaths, excludedPaths,
-        <String, String>{projPath: packageRootPath1});
-    _checkPackageRoot(projPath, equals(packageRootPath1));
-    manager.setRoots(includedPaths, excludedPaths,
-        <String, String>{projPath: packageRootPath2});
-    _checkPackageRoot(projPath, equals(packageRootPath2));
-  }
-
   void test_setRoots_exclude_newRoot_withExcludedFile() {
     // prepare paths
     var project = convertPath('/project');
@@ -655,7 +605,7 @@ sky_engine:lib/''');
     resourceProvider.newFile(file1, '// 1');
     resourceProvider.newFile(file2, '// 2');
     // set roots
-    manager.setRoots(<String>[project], <String>[file1], <String, String>{});
+    manager.setRoots(<String>[project], <String>[file1]);
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [file2]);
   }
@@ -671,7 +621,7 @@ sky_engine:lib/''');
     resourceProvider.newFile(fileA, 'library a;');
     resourceProvider.newFile(fileB, 'library b;');
     // set roots
-    manager.setRoots(<String>[project], <String>[folderB], <String, String>{});
+    manager.setRoots(<String>[project], <String>[folderB]);
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [fileA]);
   }
@@ -685,11 +635,11 @@ sky_engine:lib/''');
     resourceProvider.newFile(file1, '// 1');
     resourceProvider.newFile(file2, '// 2');
     // set roots
-    manager.setRoots(<String>[project], <String>[], <String, String>{});
+    manager.setRoots(<String>[project], <String>[]);
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [file1, file2]);
     // exclude "2"
-    manager.setRoots(<String>[project], <String>[file2], <String, String>{});
+    manager.setRoots(<String>[project], <String>[file2]);
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [file1]);
   }
@@ -705,11 +655,11 @@ sky_engine:lib/''');
     resourceProvider.newFile(fileA, 'library a;');
     resourceProvider.newFile(fileB, 'library b;');
     // initially both "aaa/a" and "bbb/b" are included
-    manager.setRoots(<String>[project], <String>[], <String, String>{});
+    manager.setRoots(<String>[project], <String>[]);
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [fileA, fileB]);
     // exclude "bbb/"
-    manager.setRoots(<String>[project], <String>[folderB], <String, String>{});
+    manager.setRoots(<String>[project], <String>[folderB]);
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [fileA]);
   }
@@ -723,11 +673,11 @@ sky_engine:lib/''');
     resourceProvider.newFile(file1, '// 1');
     resourceProvider.newFile(file2, '// 2');
     // set roots
-    manager.setRoots(<String>[project], <String>[file2], <String, String>{});
+    manager.setRoots(<String>[project], <String>[file2]);
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [file1]);
     // stop excluding "2"
-    manager.setRoots(<String>[project], <String>[], <String, String>{});
+    manager.setRoots(<String>[project], <String>[]);
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [file1, file2]);
   }
@@ -741,11 +691,11 @@ sky_engine:lib/''');
     resourceProvider.newFile(file1, '// 1');
     resourceProvider.newFile(file2, '// 2');
     // set roots
-    manager.setRoots(<String>[project], <String>[file2], <String, String>{});
+    manager.setRoots(<String>[project], <String>[file2]);
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [file1]);
     // stop excluding "2"
-    manager.setRoots(<String>[project], <String>[], <String, String>{});
+    manager.setRoots(<String>[project], <String>[]);
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [file1, file2]);
   }
@@ -761,11 +711,11 @@ sky_engine:lib/''');
     resourceProvider.newFile(fileA, 'library a;');
     resourceProvider.newFile(fileB, 'library b;');
     // exclude "bbb/"
-    manager.setRoots(<String>[project], <String>[folderB], <String, String>{});
+    manager.setRoots(<String>[project], <String>[folderB]);
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [fileA]);
     // stop excluding "bbb/"
-    manager.setRoots(<String>[project], <String>[], <String, String>{});
+    manager.setRoots(<String>[project], <String>[]);
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [fileA, fileB]);
   }
@@ -778,7 +728,7 @@ sky_engine:lib/''');
     resourceProvider.newFile(fileA, '');
     resourceProvider.newFile(fileB, '');
     resourceProvider.newFile(fileC, '');
-    manager.setRoots(<String>[project], <String>[], <String, String>{});
+    manager.setRoots(<String>[project], <String>[]);
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [fileA, fileB]);
   }
@@ -791,8 +741,7 @@ sky_engine:lib/''');
     // create files
     resourceProvider.newFile(projectPubspec, 'name: project');
     resourceProvider.newFile(examplePubspec, 'name: example');
-    manager
-        .setRoots(<String>[example, project], <String>[], <String, String>{});
+    manager.setRoots(<String>[example, project], <String>[]);
     // verify
     {
       var rootInfo = manager.rootInfo;
@@ -818,8 +767,7 @@ sky_engine:lib/''');
     // create files
     resourceProvider.newFile(projectPubspec, 'name: project');
     resourceProvider.newFolder(example);
-    manager
-        .setRoots(<String>[project, example], <String>[], <String, String>{});
+    manager.setRoots(<String>[project, example], <String>[]);
     // verify
     {
       var rootInfo = manager.rootInfo;
@@ -841,8 +789,7 @@ sky_engine:lib/''');
     // create files
     resourceProvider.newFile(projectPubspec, 'name: project');
     resourceProvider.newFile(examplePubspec, 'name: example');
-    manager
-        .setRoots(<String>[project, example], <String>[], <String, String>{});
+    manager.setRoots(<String>[project, example], <String>[]);
     // verify
     {
       var rootInfo = manager.rootInfo;
@@ -861,19 +808,12 @@ sky_engine:lib/''');
     expect(callbacks.currentContextRoots, unorderedEquals([project, example]));
   }
 
-  void test_setRoots_newFolderWithPackageRoot() {
-    var packageRootPath = '/package';
-    manager.setRoots(<String>[projPath], <String>[],
-        <String, String>{projPath: packageRootPath});
-    _checkPackageRoot(projPath, equals(packageRootPath));
-  }
-
   void test_setRoots_newlyAddedFoldersGetProperPackageMap() {
     var packagePath = convertPath('/package/foo');
     newFile('$projPath/${ContextManagerImpl.PACKAGE_SPEC_NAME}',
         content: 'foo:${toUriStr('/package/foo')}');
     var packageFolder = resourceProvider.newFolder(packagePath);
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     expect(
         _currentPackageMap,
         equals({
@@ -889,15 +829,14 @@ sky_engine:lib/''');
     // create files
     resourceProvider.newFile(excludedPubspec, 'name: ignore-me');
     // set "/project", and exclude "/project/excluded"
-    manager.setRoots(
-        <String>[project], <String>[excludedFolder], <String, String>{});
+    manager.setRoots(<String>[project], <String>[excludedFolder]);
     callbacks.assertContextPaths([project]);
   }
 
   void test_setRoots_noContext_inDotFolder() {
     var pubspecPath = join(projPath, '.pub', 'pubspec.yaml');
     resourceProvider.newFile(pubspecPath, 'name: test');
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     // verify
     expect(callbacks.currentContextRoots, hasLength(1));
     expect(callbacks.currentContextRoots, contains(projPath));
@@ -909,7 +848,7 @@ sky_engine:lib/''');
     newFile('$projPath/${ContextManagerImpl.PACKAGE_SPEC_NAME}',
         content: 'foo:lib/');
     resourceProvider.newFile(filePath, 'contents');
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
 
     var drivers =
         manager.getDriversInAnalysisRoot(resourceProvider.newFolder(projPath));
@@ -922,7 +861,7 @@ sky_engine:lib/''');
   void test_setRoots_packagesFolder_hasContext() {
     var pubspecPath = join(projPath, 'packages', 'pubspec.yaml');
     resourceProvider.newFile(pubspecPath, 'name: test');
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     // verify
     expect(callbacks.currentContextRoots, hasLength(2));
     expect(callbacks.currentContextRoots, contains(projPath));
@@ -937,17 +876,17 @@ sky_engine:lib/''');
     var fileB = convertPath('$project/.pub/bar.dart');
     resourceProvider.newFile(fileA, '');
     resourceProvider.newFile(fileB, '');
-    manager.setRoots(<String>[project], <String>[], <String, String>{});
+    manager.setRoots(<String>[project], <String>[]);
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [fileA]);
   }
 
   void test_setRoots_removeFolderWithoutPubspec() {
     // add one root - there is a context
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     expect(callbacks.currentContextRoots, hasLength(1));
     // set empty roots - no contexts
-    manager.setRoots(<String>[], <String>[], <String, String>{});
+    manager.setRoots(<String>[], <String>[]);
     expect(callbacks.currentContextRoots, hasLength(0));
     expect(callbacks.currentFilePaths, hasLength(0));
   }
@@ -957,11 +896,11 @@ sky_engine:lib/''');
     var pubspecPath = join(projPath, '.packages');
     resourceProvider.newFile(pubspecPath, '');
     // add one root - there is a context
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     expect(manager.changeSubscriptions, hasLength(1));
     expect(callbacks.currentContextRoots, hasLength(1));
     // set empty roots - no contexts
-    manager.setRoots(<String>[], <String>[], <String, String>{});
+    manager.setRoots(<String>[], <String>[]);
     expect(manager.changeSubscriptions, hasLength(0));
     expect(callbacks.currentContextRoots, hasLength(0));
     expect(callbacks.currentFilePaths, hasLength(0));
@@ -987,8 +926,7 @@ sky_engine:lib/''');
     resourceProvider.newFile(subProjectA_file, '// sub-a');
     resourceProvider.newFile(subProjectB_file, '// sub-b');
     // set roots
-    manager
-        .setRoots(<String>[projectA, projectB], <String>[], <String, String>{});
+    manager.setRoots(<String>[projectA, projectB], <String>[]);
     callbacks
         .assertContextPaths([projectA, subProjectA, projectB, subProjectB]);
     callbacks.assertContextFiles(projectA, [projectA_file]);
@@ -996,7 +934,7 @@ sky_engine:lib/''');
     callbacks.assertContextFiles(subProjectA, [subProjectA_file]);
     callbacks.assertContextFiles(subProjectB, [subProjectB_file]);
     // remove "projectB"
-    manager.setRoots(<String>[projectA], <String>[], <String, String>{});
+    manager.setRoots(<String>[projectA], <String>[]);
     callbacks.assertContextPaths([projectA, subProjectA]);
     callbacks.assertContextFiles(projectA, [projectA_file]);
     callbacks.assertContextFiles(subProjectA, [subProjectA_file]);
@@ -1007,10 +945,10 @@ sky_engine:lib/''');
     var pubspecPath = join(projPath, 'pubspec.yaml');
     resourceProvider.newFile(pubspecPath, 'pubspec');
     // add one root - there is a context
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     expect(callbacks.currentContextRoots, hasLength(1));
     // set empty roots - no contexts
-    manager.setRoots(<String>[], <String>[], <String, String>{});
+    manager.setRoots(<String>[], <String>[]);
     expect(callbacks.currentContextRoots, hasLength(0));
     expect(callbacks.currentFilePaths, hasLength(0));
   }
@@ -1035,8 +973,7 @@ sky_engine:lib/''');
     resourceProvider.newFile(subProjectA_file, '// sub-a');
     resourceProvider.newFile(subProjectB_file, '// sub-b');
     // set roots
-    manager
-        .setRoots(<String>[projectA, projectB], <String>[], <String, String>{});
+    manager.setRoots(<String>[projectA, projectB], <String>[]);
     callbacks
         .assertContextPaths([projectA, subProjectA, projectB, subProjectB]);
     callbacks.assertContextFiles(projectA, [projectA_file]);
@@ -1044,29 +981,10 @@ sky_engine:lib/''');
     callbacks.assertContextFiles(subProjectA, [subProjectA_file]);
     callbacks.assertContextFiles(subProjectB, [subProjectB_file]);
     // remove "projectB"
-    manager.setRoots(<String>[projectA], <String>[], <String, String>{});
+    manager.setRoots(<String>[projectA], <String>[]);
     callbacks.assertContextPaths([projectA, subProjectA]);
     callbacks.assertContextFiles(projectA, [projectA_file]);
     callbacks.assertContextFiles(subProjectA, [subProjectA_file]);
-  }
-
-  void test_setRoots_removePackageRoot() {
-    var packagePathFoo = convertPath('/package1/foo');
-    var packageRootPath = convertPath('/package2/foo');
-    var packageFolder = resourceProvider.newFolder(packagePathFoo);
-    newFile('$projPath/${ContextManagerImpl.PACKAGE_SPEC_NAME}',
-        content: 'foo:${toUriStr('/package1/foo')}');
-    var includedPaths = <String>[projPath];
-    var excludedPaths = <String>[];
-    manager.setRoots(includedPaths, excludedPaths,
-        <String, String>{projPath: packageRootPath});
-    _checkPackageRoot(projPath, equals(packageRootPath));
-    manager.setRoots(includedPaths, excludedPaths, <String, String>{});
-    expect(
-        _currentPackageMap,
-        equals({
-          'foo': [packageFolder]
-        }));
   }
 
   void test_setRoots_rootPathContainsDotFile() {
@@ -1076,13 +994,13 @@ sky_engine:lib/''');
     var project = convertPath('/.pub/project');
     var fileA = convertPath('$project/foo.dart');
     resourceProvider.newFile(fileA, '');
-    manager.setRoots(<String>[project], <String>[], <String, String>{});
+    manager.setRoots(<String>[project], <String>[]);
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [fileA]);
   }
 
   Future<void> test_watch_addDummyLink() {
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     // empty folder initially
     expect(callbacks.currentFilePaths, isEmpty);
     // add link
@@ -1095,7 +1013,7 @@ sky_engine:lib/''');
   }
 
   Future<void> test_watch_addFile() {
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     // empty folder initially
     expect(callbacks.currentFilePaths, hasLength(0));
     // add file
@@ -1119,7 +1037,7 @@ sky_engine:lib/''');
     // create files
     resourceProvider.newFile(fileA, 'library a;');
     // set roots
-    manager.setRoots(<String>[project], <String>[folderB], <String, String>{});
+    manager.setRoots(<String>[project], <String>[folderB]);
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [fileA]);
     // add a file, ignored as excluded
@@ -1138,7 +1056,7 @@ sky_engine:lib/''');
     // create files
     resourceProvider.newFile(fileA, '');
     // set roots
-    manager.setRoots(<String>[project], <String>[], <String, String>{});
+    manager.setRoots(<String>[project], <String>[]);
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [fileA]);
     // add a "lib/doc" file, it is not ignored
@@ -1157,7 +1075,7 @@ sky_engine:lib/''');
     // create files
     resourceProvider.newFile(fileA, '');
     // set roots
-    manager.setRoots(<String>[project], <String>[], <String, String>{});
+    manager.setRoots(<String>[project], <String>[]);
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [fileA]);
     // add a "doc" file, it is ignored
@@ -1175,7 +1093,7 @@ sky_engine:lib/''');
     var fileA = convertPath('$project/foo.dart');
     var fileB = convertPath('$project/.pub/bar.dart');
     resourceProvider.newFile(fileA, '');
-    manager.setRoots(<String>[project], <String>[], <String, String>{});
+    manager.setRoots(<String>[project], <String>[]);
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [fileA]);
     resourceProvider.newFile(fileB, '');
@@ -1191,7 +1109,7 @@ sky_engine:lib/''');
     var fileA = convertPath('$project/foo.dart');
     var fileB = convertPath('$project/bar/baz.dart');
     resourceProvider.newFile(fileA, '');
-    manager.setRoots(<String>[project], <String>[], <String, String>{});
+    manager.setRoots(<String>[project], <String>[]);
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [fileA]);
     resourceProvider.newFile(fileB, '');
@@ -1201,7 +1119,7 @@ sky_engine:lib/''');
   }
 
   Future<void> test_watch_addFileInSubfolder() {
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     // empty folder initially
     expect(callbacks.currentFilePaths, hasLength(0));
     // add file in subfolder
@@ -1223,7 +1141,7 @@ sky_engine:lib/''');
     // create files
     resourceProvider.newFile(rootFile, 'library root;');
     // set roots
-    manager.setRoots(<String>[root], <String>[], <String, String>{});
+    manager.setRoots(<String>[root], <String>[]);
     callbacks.assertContextPaths([root]);
     // verify files
     callbacks.assertContextFiles(root, [rootFile]);
@@ -1248,7 +1166,7 @@ sky_engine:lib/''');
     resourceProvider.newFile(rootFile, 'library root;');
     resourceProvider.newFile(subFile, 'library a;');
     // set roots
-    manager.setRoots(<String>[root], <String>[], <String, String>{});
+    manager.setRoots(<String>[root], <String>[]);
     callbacks.assertContextPaths([root]);
     // verify files
     callbacks.assertContextFiles(root, [rootFile, subFile]);
@@ -1274,7 +1192,7 @@ sky_engine:lib/''');
     resourceProvider.newFile(subPubspec, '');
     resourceProvider.newFile(subFile, 'library sub;');
     // set roots
-    manager.setRoots(<String>[root], <String>[], <String, String>{});
+    manager.setRoots(<String>[root], <String>[]);
     callbacks.assertContextPaths([root, subProject]);
     callbacks.assertContextFiles(root, [rootFile]);
     callbacks.assertContextFiles(subProject, [subFile]);
@@ -1300,7 +1218,7 @@ sky_engine:lib/''');
     resourceProvider.newFile(rootFile, 'library root;');
     resourceProvider.newFile(subFile, 'library a;');
     // set roots
-    manager.setRoots(<String>[root], <String>[], <String, String>{});
+    manager.setRoots(<String>[root], <String>[]);
     callbacks.assertContextPaths([root, subProject]);
     // verify files
     callbacks.assertContextFiles(root, [rootFile]);
@@ -1324,7 +1242,7 @@ sky_engine:lib/''');
     // create files
     resourceProvider.newFile(rootFile, 'library root;');
     // set roots
-    manager.setRoots(<String>[root], <String>[], <String, String>{});
+    manager.setRoots(<String>[root], <String>[]);
     callbacks.assertContextPaths([root]);
     // verify files
     callbacks.assertContextFiles(root, [rootFile]);
@@ -1347,7 +1265,7 @@ sky_engine:lib/''');
     resourceProvider.newFile(rootFile, 'library root;');
     resourceProvider.newFile(subFile, 'library a;');
     // set roots
-    manager.setRoots(<String>[root], <String>[], <String, String>{});
+    manager.setRoots(<String>[root], <String>[]);
     callbacks.assertContextPaths([root]);
     // verify files
     callbacks.assertContextFiles(root, [rootFile, subFile]);
@@ -1373,7 +1291,7 @@ sky_engine:lib/''');
     resourceProvider.newFile(subPubspec, 'pubspec');
     resourceProvider.newFile(subFile, 'library sub;');
     // set roots
-    manager.setRoots(<String>[root], <String>[], <String, String>{});
+    manager.setRoots(<String>[root], <String>[]);
     callbacks.assertContextPaths([root, subProject]);
     callbacks.assertContextFiles(root, [rootFile]);
     callbacks.assertContextFiles(subProject, [subFile]);
@@ -1391,7 +1309,7 @@ sky_engine:lib/''');
     // add root with a file
     var file = resourceProvider.newFile(filePath, 'contents');
     var projFolder = file.parent;
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     // the file was added
     var filePaths = callbacks.currentFilePaths;
     expect(filePaths, hasLength(1));
@@ -1412,7 +1330,7 @@ sky_engine:lib/''');
     // add root with a file
     var file = resourceProvider.newFile(filePath, 'contents');
     var projFolder = file.parent;
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     // the file was added
     var filePaths = callbacks.currentFilePaths;
     expect(filePaths, hasLength(1));
@@ -1437,7 +1355,7 @@ sky_engine:lib/''');
     resourceProvider.newFile(rootPubspec, '');
     resourceProvider.newFile(rootFile, 'library root;');
     // set roots
-    manager.setRoots(<String>[root], <String>[], <String, String>{});
+    manager.setRoots(<String>[root], <String>[]);
     callbacks.assertContextPaths([root]);
     callbacks.assertContextFiles(root, [rootFile]);
     // delete the pubspec
@@ -1460,7 +1378,7 @@ sky_engine:lib/''');
     resourceProvider.newFile(rootFile, 'library root;');
     resourceProvider.newFile(subFile, 'library a;');
     // set roots
-    manager.setRoots(<String>[root], <String>[], <String, String>{});
+    manager.setRoots(<String>[root], <String>[]);
     callbacks.assertContextPaths([root, subProject]);
     // verify files
     callbacks.assertContextFiles(root, [rootFile]);
@@ -1497,7 +1415,7 @@ sky_engine:lib/''');
     resourceProvider.newFile(rootFile, 'library root;');
     resourceProvider.newFile(subFile, 'library a;');
     // set roots
-    manager.setRoots(<String>[root], <String>[], <String, String>{});
+    manager.setRoots(<String>[root], <String>[]);
     callbacks.assertContextPaths([root, subProject]);
     // verify files
     callbacks.assertContextFiles(root, [rootFile]);
@@ -1520,7 +1438,7 @@ sky_engine:lib/''');
     resourceProvider.newFile(rootPubspec, 'pubspec');
     resourceProvider.newFile(rootFile, 'library root;');
     // set roots
-    manager.setRoots(<String>[root], <String>[], <String, String>{});
+    manager.setRoots(<String>[root], <String>[]);
     callbacks.assertContextPaths([root]);
     callbacks.assertContextFiles(root, [rootFile]);
     // delete the pubspec
@@ -1543,7 +1461,7 @@ sky_engine:lib/''');
     resourceProvider.newFile(rootFile, 'library root;');
     resourceProvider.newFile(subFile, 'library a;');
     // set roots
-    manager.setRoots(<String>[root], <String>[], <String, String>{});
+    manager.setRoots(<String>[root], <String>[]);
     callbacks.assertContextPaths([root, subProject]);
     // verify files
     callbacks.assertContextFiles(root, [rootFile]);
@@ -1560,7 +1478,7 @@ sky_engine:lib/''');
     var filePath = join(projPath, 'foo.dart');
     // add root with a file
     resourceProvider.newFile(filePath, 'contents');
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     // the file was added
     var filePaths = callbacks.currentFilePaths;
     expect(filePaths, hasLength(1));
@@ -1581,7 +1499,7 @@ sky_engine:lib/''');
     resourceProvider.newFile(packagesPath, '');
     resourceProvider.newFile(filePath, 'library main;');
 
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
 
     var filePaths = callbacks.currentFilePaths;
     expect(filePaths, hasLength(1));
@@ -1595,18 +1513,6 @@ sky_engine:lib/''');
       // verify new package info
       expect(_currentPackageMap.keys, unorderedEquals(['main']));
     });
-  }
-
-  /// Verify that package URI's for source files in [path] will be resolved
-  /// using a package root matching [expectation].
-  void _checkPackageRoot(String path, expectation) {
-    // TODO(brianwilkerson) Figure out how to test this. Possibly by comparing
-    // the contents of the package map (although that approach doesn't work at
-    // the moment).
-//    FolderDisposition disposition = callbacks.currentContextDispositions[path];
-//    expect(disposition.packageRoot, expectation);
-    // TODO(paulberry): we should also verify that the package map itself is
-    // correct.  See dartbug.com/23909.
   }
 }
 
@@ -1684,7 +1590,7 @@ abstract class ContextManagerTest with ResourceProviderMixin {
     projPath = convertPath('/my/proj');
     resourceProvider.newFolder(projPath);
     // Create an SDK in the mock file system.
-    MockSdk(generateSummaryFiles: true, resourceProvider: resourceProvider);
+    MockSdk(resourceProvider: resourceProvider);
     var sdkManager = DartSdkManager(convertPath('/sdk'), true);
     manager = ContextManagerImpl(
         resourceProvider,
@@ -1728,7 +1634,7 @@ linter:
 ''');
 
     // Setup context.
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     await pumpEventQueue();
 
     // Verify options were set.
@@ -1776,7 +1682,7 @@ linter:
 ''');
 
     // Setup context.
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     await pumpEventQueue();
 
     // Verify options were set.
@@ -1815,7 +1721,7 @@ linter:
     - camel_case_types
 ''');
     // Setup context.
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     await pumpEventQueue();
     // Verify options were set.
     expect(errorProcessors, hasLength(1));
@@ -1848,7 +1754,7 @@ linter:
 include: package:boo/other_options.yaml
 ''');
     // Setup context.
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     await pumpEventQueue();
     // Verify options were set.
     expect(errorProcessors, hasLength(1));
@@ -1870,7 +1776,7 @@ include: package:boo/other_options.yaml
 ;
 ''').path;
     // Setup context.
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
 
     // Check that an error was produced.
     TestNotificationManager notificationManager = callbacks.notificationManager;
@@ -1883,7 +1789,7 @@ include: package:boo/other_options.yaml
     newFile('$projPath/$optionsFileName');
 
     // Add the root.
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     await pumpEventQueue();
 
     // Remove the root, with the analysis options file.
@@ -1901,11 +1807,6 @@ include: package:boo/other_options.yaml
     var sdkExtPath = '$projPath/sdk_ext';
     newFile('$projPath/test', content: 'test.dart');
     newFile('$sdkExtPath/entry.dart');
-    var synchronousSession = SynchronousSession(analysisOptions, null);
-    var bytes =
-        SummaryBuilder([], AnalysisContextImpl(synchronousSession, null))
-            .build(featureSet: FeatureSet.fromEnableFlags([]));
-    newFileWithBytes('$projPath/sdk.ds', bytes);
     // Setup _embedder.yaml.
     newFile('$libPath/_embedder.yaml', content: r'''
 embedded_libs:
@@ -1935,7 +1836,7 @@ linter:
 ''');
 
     // Setup context.
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     await pumpEventQueue();
 
     // Confirm that one context was created.
@@ -1987,7 +1888,7 @@ analyzer:
     unused_local_variable: ignore
 ''');
     // Setup context.
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
 
     // Verify filter setup.
     expect(errorProcessors, hasLength(1));
@@ -2003,7 +1904,7 @@ analyzer:
     unused_local_variable: error
 ''');
     // Setup context.
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
 
     // Verify filter setup.
     expect(errorProcessors, hasLength(2));
@@ -2021,7 +1922,7 @@ analyzer:
     ambiguous_import: false
 ''');
     // Setup context.
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
 
     // Verify filter setup.
     expect(errorProcessors, isNotNull);
@@ -2036,7 +1937,7 @@ analyzer:
 #    unused_local_variable: ignore
 ''');
     // Setup context.
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
 
     // Verify filter setup.
     expect(errorProcessors, isEmpty);
@@ -2044,7 +1945,7 @@ analyzer:
 
   Future<void> test_non_analyzable_files_not_considered() async {
     // Set up project and get a reference to the driver.
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     var projectFolder = resourceProvider.newFolder(projPath);
     var drivers = manager.getDriversInAnalysisRoot(projectFolder);
     expect(drivers, hasLength(1));
@@ -2083,7 +1984,7 @@ analyzer:
   strong-mode: false
 ''');
     // Create the context.
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     await pumpEventQueue();
 
     var result = await callbacks.currentDriver.getResult(file.path);
@@ -2136,7 +2037,7 @@ analyzer:
     - 'sdk_ext/**'
 ''');
     // Setup context.
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
 
     // Verify that analysis options was parsed and the ignore patterns applied.
     var projectFolder = resourceProvider.newFolder(projPath);
@@ -2169,7 +2070,7 @@ analyzer:
     - 'other_lib'
 ''');
     // Setup context.
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     // Verify that the context in other_lib wasn't created and that the
     // context in lib was created.
     var projectFolder = resourceProvider.newFolder(projPath);
@@ -2200,7 +2101,7 @@ analyzer:
     - 'other_lib/**'
   ''');
     // Setup context.
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
 
     // Verify that the context in other_lib wasn't created and that the
     // context in lib was created.
@@ -2231,7 +2132,7 @@ analyzer:
     - 'other_lib/*'
 ''');
     // Setup context / driver.
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
 
     var projectFolder = resourceProvider.newFolder(projPath);
     var drivers = manager.getDriversInAnalysisRoot(projectFolder);
@@ -2253,8 +2154,7 @@ analyzer:
   exclude:
     - 'example'
 ''');
-    manager
-        .setRoots(<String>[project, example], <String>[], <String, String>{});
+    manager.setRoots(<String>[project, example], <String>[]);
     // verify
     {
       var rootInfo = manager.rootInfo;
@@ -2287,7 +2187,7 @@ analyzer:
   exclude:
     - 'b**'
 ''');
-    manager.setRoots(<String>[a, c], <String>[], <String, String>{});
+    manager.setRoots(<String>[a, c], <String>[]);
     // verify
     {
       var rootInfo = manager.rootInfo;
@@ -2309,7 +2209,7 @@ analyzer:
 
   Future<void> test_watchEvents() async {
     var libPath = newFolder('$projPath/${ContextManagerTest.LIB_NAME}').path;
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    manager.setRoots(<String>[projPath], <String>[]);
     newFile('$libPath/main.dart');
     await Future.delayed(Duration(milliseconds: 1));
     expect(callbacks.watchEvents, hasLength(1));
@@ -2357,7 +2257,7 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   List<WatchEvent> watchEvents = <WatchEvent>[];
 
   @override
-  NotificationManager notificationManager = TestNotificationManager();
+  AbstractNotificationManager notificationManager = TestNotificationManager();
 
   TestContextManagerCallbacks(
       this.resourceProvider, this.sdkManager, this.logger, this.scheduler);

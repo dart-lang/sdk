@@ -1,0 +1,120 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41597.dart:8:6: Error: 'x' is already declared in this scope.
+// bool x;
+//      ^
+// pkg/front_end/testcases/nnbd_mixed/issue41597.dart:7:6: Context: Previous declaration of 'x'.
+// bool x;
+//      ^
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41597.dart:8:6: Error: Field 'x' should be initialized because its type 'bool' doesn't allow null.
+// bool x;
+//      ^
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41597.dart:7:6: Error: Field 'x' should be initialized because its type 'bool' doesn't allow null.
+// bool x;
+//      ^
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41597.dart:11:9: Error: Can't use 'x' because it is declared more than once.
+//   print(x);
+//         ^
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41597.dart:12:9: Error: Can't use 'x' because it is declared more than once.
+//   print(x!);
+//         ^
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41597.dart:13:10: Error: Can't use 'x' because it is declared more than once.
+//   print(!x);
+//          ^
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41597.dart:18:12: Error: Can't use 'super' as an expression.
+// To delegate a constructor to a super constructor, put the super call as an initializer.
+//   C.c1() : super()!;
+//            ^
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41597.dart:18:19: Error: Expected an initializer.
+//   C.c1() : super()!;
+//                   ^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///issue41597_lib.dart";
+
+class C extends core::Object {
+  constructor c0() → self::C
+    : super core::Object::•()
+    ;
+  constructor c1() → self::C
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41597.dart:18:12: Error: Can't use 'super' as an expression.
+To delegate a constructor to a super constructor, put the super call as an initializer.
+  C.c1() : super()!;
+           ^"!
+    ;
+}
+static field core::bool x;
+static method errors() → dynamic {
+  core::print(invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41597.dart:11:9: Error: Can't use 'x' because it is declared more than once.
+  print(x);
+        ^");
+  core::print(invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41597.dart:12:9: Error: Can't use 'x' because it is declared more than once.
+  print(x!);
+        ^"!);
+  core::print(!invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41597.dart:13:10: Error: Can't use 'x' because it is declared more than once.
+  print(!x);
+         ^");
+}
+static method main() → dynamic {}
+
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41597_lib.dart:8:6: Error: Expected an identifier, but got '.'.
+//   c?..f;
+//      ^
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41597_lib.dart:8:6: Error: Expected an identifier, but got ''.
+//   c?..f;
+//      ^
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41597_lib.dart:9:7: Error: Expected an identifier, but got '.'.
+//   !c?..f;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41597_lib.dart:9:7: Error: Expected an identifier, but got ''.
+//   !c?..f;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41597_lib.dart:10:6: Error: Expected an identifier, but got '.'.
+//   c?..f!;
+//      ^
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41597_lib.dart:10:6: Error: Expected an identifier, but got ''.
+//   c?..f!;
+//      ^
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41597_lib.dart:10:8: Error: Null safety features are disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version higher.
+//   c?..f!;
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/issue41597_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
+// // @dart=2.6
+// ^^^^^^^^^^^^
+//
+import self as self2;
+import "dart:core" as core;
+
+static method errors(dynamic c) → dynamic {
+  invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41597_lib.dart:8:6: Error: Expected an identifier, but got ''.
+  c?..f;
+     ^".f;
+  !(invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41597_lib.dart:9:7: Error: Expected an identifier, but got ''.
+  !c?..f;
+      ^".f as{TypeError,ForDynamic} core::bool*);
+  invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41597_lib.dart:10:6: Error: Expected an identifier, but got ''.
+  c?..f!;
+     ^".f!;
+}

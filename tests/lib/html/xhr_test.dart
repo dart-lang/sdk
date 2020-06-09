@@ -76,8 +76,8 @@ Future testRequestNoFile() async {
   try {
     await HttpRequest.request('NonExistingFile');
     fail('Request should not have succeeded.');
-  } catch (error) {
-    HttpRequest xhr = error.target;
+  } on ProgressEvent catch (error) {
+    HttpRequest xhr = error.target as HttpRequest;
     expect(xhr.readyState, HttpRequest.DONE);
     validate404(xhr);
   }
@@ -103,8 +103,8 @@ Future testRequestWithCredentialsNoFile() async {
   try {
     await HttpRequest.request('NonExistingFile', withCredentials: true);
     fail('Request should not have succeeded.');
-  } catch (error) {
-    HttpRequest xhr = error.target;
+  } on ProgressEvent catch (error) {
+    HttpRequest xhr = error.target as HttpRequest;
     expect(xhr.readyState, HttpRequest.DONE);
     validate404(xhr);
   }
@@ -126,8 +126,8 @@ Future testGetStringNoFile() async {
   try {
     await HttpRequest.getString('NonExistingFile');
     fail('Succeeded for non-existing file.');
-  } catch (error) {
-    HttpRequest xhr = error.target;
+  } on ProgressEvent catch (error) {
+    HttpRequest xhr = error.target as HttpRequest;
     expect(xhr.readyState, HttpRequest.DONE);
     validate404(xhr);
   }

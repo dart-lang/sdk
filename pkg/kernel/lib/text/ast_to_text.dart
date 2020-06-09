@@ -161,6 +161,13 @@ String debugNodeToString(Node node) {
   return '$buffer';
 }
 
+String debugLibraryToString(Library library) {
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: globalDebuggingNames)
+      .writeLibraryFile(library);
+  return '$buffer';
+}
+
 String componentToString(Component node) {
   StringBuffer buffer = new StringBuffer();
   new Printer(buffer, syntheticNames: new NameSystem())
@@ -2207,13 +2214,13 @@ class Printer extends Visitor<Null> {
 
   visitTypeParameterType(TypeParameterType node) {
     writeTypeParameterReference(node.parameter);
-    writeNullability(node.typeParameterTypeNullability);
+    writeNullability(node.declaredNullability);
     if (node.promotedBound != null) {
       writeSpaced('&');
       writeType(node.promotedBound);
 
       writeWord("/* '");
-      writeNullability(node.typeParameterTypeNullability, inComment: true);
+      writeNullability(node.declaredNullability, inComment: true);
       writeWord("' & '");
       writeDartTypeNullability(node.promotedBound, inComment: true);
       writeWord("' = '");

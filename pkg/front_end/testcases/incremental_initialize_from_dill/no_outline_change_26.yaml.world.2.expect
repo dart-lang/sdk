@@ -18,6 +18,16 @@ library from "org-dartlang-test:///main.dart" as main {
   class A1 extends dart.core::Object {
     constructor foo() → main::A1*
       : super dart.core::Object::•() {}
+    abstract member-signature get _identityHashCode() → dart.core::int*;
+    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*;
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*;
+    abstract member-signature get hashCode() → dart.core::int*;
+    abstract member-signature method toString() → dart.core::String*;
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic;
+    abstract member-signature get runtimeType() → dart.core::Type*;
   }
   static method main() → dynamic {
     invalid-expression "org-dartlang-test:///main.dart:6:7: Error: Can't use 'foo' because it is declared more than once.\n  new A1.foo();\n      ^";

@@ -16,16 +16,27 @@
 
 namespace dart {
 
+class Function;
 class LocalScope;
 class LocalVariable;
 class SlotCache;
 class Slot;
 
+enum class CompilerTracing {
+  kOn,
+  kOff,
+};
+
 // Global compiler state attached to the thread.
 class CompilerState : public ThreadStackResource {
  public:
-  CompilerState(Thread* thread, bool is_aot)
-      : ThreadStackResource(thread), cha_(thread), is_aot_(is_aot) {
+  CompilerState(Thread* thread,
+                bool is_aot,
+                CompilerTracing tracing = CompilerTracing::kOn)
+      : ThreadStackResource(thread),
+        cha_(thread),
+        is_aot_(is_aot),
+        tracing_(tracing) {
     previous_ = thread->SetCompilerState(this);
   }
 
@@ -82,11 +93,20 @@ class CompilerState : public ThreadStackResource {
   // same index.
   //
   // TODO(vegorov): disambiguate slots for different context IDs.
-  // Beware that context_id is satured at 8-bits, so multiple contexts may
+  // Beware that context_id is saturated at 8-bits, so multiple contexts may
   // share id 255.
   LocalVariable* GetDummyCapturedVariable(intptr_t context_id, intptr_t index);
 
   bool is_aot() const { return is_aot_; }
+
+  bool should_trace() const { return tracing_ == CompilerTracing::kOn; }
+
+  static bool ShouldTrace() { return Current().should_trace(); }
+
+  static CompilerTracing ShouldTrace(const Function& func);
+
+  // Returns class Comparable<T> from dart:core.
+  const Class& ComparableClass();
 
  private:
   CHA cha_;
@@ -100,7 +120,13 @@ class CompilerState : public ThreadStackResource {
   ZoneGrowableArray<ZoneGrowableArray<const Slot*>*>* dummy_slots_ = nullptr;
   ZoneGrowableArray<LocalVariable*>* dummy_captured_vars_ = nullptr;
 
-  bool is_aot_;
+  const bool is_aot_;
+
+  const CompilerTracing tracing_;
+
+  // Lookup cache for various classes (to avoid polluting object store with
+  // compiler specific classes).
+  const Class* comparable_class_ = nullptr;
 
   CompilerState* previous_;
 };

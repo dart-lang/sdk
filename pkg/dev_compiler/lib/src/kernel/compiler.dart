@@ -101,12 +101,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   FunctionNode _currentFunction;
 
-  void setIncrementalCompilationScope(Library library, Class cls) {
-    _currentLibrary = library;
-    _staticTypeContext.enterLibrary(_currentLibrary);
-    _currentClass = cls;
-  }
-
   /// Whether we are currently generating code for the body of a `JS()` call.
   bool _isInForeignJS = false;
 
@@ -2356,7 +2350,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var c = classes.removeFirst();
       var classesToCheck = [
         if (c.supertype != null) c.supertype.classNode,
-        for (var t in c.implementedTypes) if (t.classNode != null) t.classNode,
+        for (var t in c.implementedTypes)
+          if (t.classNode != null) t.classNode,
       ];
       classes.addAll(classesToCheck);
       for (var procedure in c.procedures) {
@@ -2456,7 +2451,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var lazy = topLevel && !_canEmitTypeAtTopLevel(type);
     var typeRep = visitFunctionType(
         // Avoid tagging a closure as Function? or Function*
-        type.withNullability(Nullability.nonNullable),
+        type.withDeclaredNullability(Nullability.nonNullable),
         lazy: lazy);
     return runtimeCall(lazy ? 'lazyFn(#, #)' : 'fn(#, #)', [fn, typeRep]);
   }
@@ -2547,7 +2542,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var nullability = nullable
           ? Nullability.nullable
           : legacy ? Nullability.legacy : Nullability.nonNullable;
-      normalizedType = typeArgument.withNullability(nullability);
+      normalizedType = typeArgument.withDeclaredNullability(nullability);
     } else if (typeArgument is NeverType) {
       // FutureOr<Never> --> Future<Never>
       normalizedType = InterfaceType(
@@ -2560,7 +2555,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     } else if (futureOr.nullability == Nullability.nullable &&
         typeArgument.nullability == Nullability.nullable) {
       // FutureOr<T?>? --> FutureOr<T?>
-      normalizedType = futureOr.withNullability(Nullability.nonNullable);
+      normalizedType =
+          futureOr.withDeclaredNullability(Nullability.nonNullable);
     }
     return _emitInterfaceType(normalizedType);
   }
@@ -2616,10 +2612,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // Forward-defined types will only have nullability wrappers around
       // their type arguments (not the generic type itself).
       typeRep = _emitGenericClassType(
-          type.withNullability(Nullability.nonNullable), jsArgs);
+          type.withDeclaredNullability(Nullability.nonNullable), jsArgs);
       if (_cacheTypes) {
         typeRep = _typeTable.nameType(
-            type.withNullability(Nullability.nonNullable), typeRep);
+            type.withDeclaredNullability(Nullability.nonNullable), typeRep);
       }
     }
 
@@ -2782,7 +2778,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // reused by the nullable and legacy versions.
     typeRep = _cacheTypes
         ? _typeTable.nameFunctionType(
-            type.withNullability(Nullability.nonNullable), typeRep,
+            type.withDeclaredNullability(Nullability.nonNullable), typeRep,
             lazy: lazy)
         : typeRep;
 
@@ -2855,8 +2851,28 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitTypedefType(TypedefType type) =>
       visitFunctionType(type.unalias as FunctionType);
 
-  js_ast.Fun emitFunction(FunctionNode f, String name) =>
-      _emitFunction(f, name);
+  /// Emits function after initial compilation.
+  ///
+  /// Emits function from kernel [functionNode] with name [name] in the context
+  /// of [library] and [cls], after the initial compilation of the module is
+  /// finished. For example, this happens in expression compilation during
+  /// expression evaluation initiated by the user from the IDE and coordinated
+  /// by the debugger.
+  js_ast.Fun emitFunctionIncremental(
+      Library library, Class cls, FunctionNode functionNode, String name) {
+    // setup context
+    _currentLibrary = library;
+    _staticTypeContext.enterLibrary(_currentLibrary);
+    _currentClass = cls;
+
+    // emit function with additional information,
+    // such as types that are used in the expression
+    var fun = _emitFunction(functionNode, name);
+    var items = _typeTable.discharge();
+    var body = js_ast.Block([...items, ...fun.body.statements]);
+
+    return js_ast.Fun(fun.params, body);
+  }
 
   js_ast.Fun _emitFunction(FunctionNode f, String name) {
     // normal function (sync), vs (sync*, async, async*)
@@ -3145,10 +3161,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     _emitCovarianceBoundsCheck(f.typeParameters, body);
 
     void initParameter(VariableDeclaration p, js_ast.Identifier jsParam) {
-      if (isCovariantParameter(p)) {
-        var castExpr = _emitCast(jsParam, p.type);
-        if (!identical(castExpr, jsParam)) body.add(castExpr.toStatement());
-      }
+      // When the parameter is covariant, insert the null check before the
+      // covariant cast to avoid a TypeError when testing equality with null.
       if (name == '==') {
         // In Dart `operator ==` methods are not called with a null argument.
         // This is handled before calling them. For performance reasons, we push
@@ -3158,7 +3172,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         // the Dart code already handles it (typically by an `is` check).
         // Eliminate it when possible.
         body.add(js.statement('if (# == null) return false;', [jsParam]));
-      } else if (_annotatedNullCheck(p.annotations)) {
+      }
+      if (isCovariantParameter(p)) {
+        var castExpr = _emitCast(jsParam, p.type);
+        if (!identical(castExpr, jsParam)) body.add(castExpr.toStatement());
+      }
+
+      if (name == '==') return;
+
+      if (_annotatedNullCheck(p.annotations)) {
         body.add(_nullParameterCheck(jsParam));
       } else if (_mustBeNonNullable(p.type) &&
           !_annotatedNotNull(p.annotations)) {
@@ -4749,8 +4771,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           return _emitType(node.arguments.types.single);
         }
         if (name == 'legacyTypeRep') {
-          return _emitType(
-              node.arguments.types.single.withNullability(Nullability.legacy));
+          return _emitType(node.arguments.types.single
+              .withDeclaredNullability(Nullability.legacy));
         }
       } else if (node.arguments.positional.length == 1) {
         var firstArg = node.arguments.positional[0];
@@ -4772,14 +4794,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         if (name == '_jsInstanceOf' && secondArg is TypeLiteral) {
           return js.call('# instanceof #', [
             _visitExpression(firstArg),
-            _emitType(secondArg.type.withNullability(Nullability.nonNullable))
+            _emitType(
+                secondArg.type.withDeclaredNullability(Nullability.nonNullable))
           ]);
         }
 
         if (name == '_equalType' && secondArg is TypeLiteral) {
           return js.call('# === #', [
             _visitExpression(firstArg),
-            _emitType(secondArg.type.withNullability(Nullability.nonNullable))
+            _emitType(
+                secondArg.type.withDeclaredNullability(Nullability.nonNullable))
           ]);
         }
       }
@@ -4864,7 +4888,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     types = types && _reifyGenericFunction(target);
     final isJsInterop = target != null && isJsMember(target);
     return [
-      if (types) for (var typeArg in node.types) _emitType(typeArg),
+      if (types)
+        for (var typeArg in node.types) _emitType(typeArg),
       for (var arg in node.positional)
         if (arg is StaticInvocation &&
             isJSSpreadInvocation(arg.target) &&
@@ -5246,7 +5271,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     if (!isTypeError &&
-        from.withNullability(Nullability.nonNullable) == to &&
+        from.withDeclaredNullability(Nullability.nonNullable) == to &&
         _mustBeNonNullable(to)) {
       // If the underlying type is the same, we only need a null check.
       return runtimeCall('nullCast(#, #)', [jsFrom, _emitType(to)]);

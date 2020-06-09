@@ -35,6 +35,26 @@ List<T> makeFixedListUnmodifiable<T>(List<T> fixedLengthList)
 Object extractTypeArguments<T>(T instance, Function extract)
     native "Internal_extractTypeArguments";
 
+/// The returned string is a [_OneByteString] with uninitialized content.
+@pragma("vm:entry-point", "call")
+String allocateOneByteString(int length)
+    native "Internal_allocateOneByteString";
+
+/// The [string] must be a [_OneByteString]. The [index] must be valid.
+@pragma("vm:entry-point", "call")
+void writeIntoOneByteString(String string, int index, int codePoint)
+    native "Internal_writeIntoOneByteString";
+
+/// The returned string is a [_TwoByteString] with uninitialized content.
+@pragma("vm:entry-point", "call")
+String allocateTwoByteString(int length)
+    native "Internal_allocateTwoByteString";
+
+/// The [string] must be a [_TwoByteString]. The [index] must be valid.
+@pragma("vm:entry-point", "call")
+void writeIntoTwoByteString(String string, int index, int codePoint)
+    native "Internal_writeIntoTwoByteString";
+
 class VMLibraryHooks {
   // Example: "dart:isolate _Timer._factory"
   static var timerFactory;
@@ -137,3 +157,22 @@ void reachabilityFence(Object object) native "Internal_reachabilityFence";
 
 void sendAndExit(SendPort sendPort, var message)
     native "SendPortImpl_sendAndExitInternal_";
+
+void spawnFunction(
+    SendPort readyPort,
+    String uri,
+    Function topLevelFunction,
+    var message,
+    bool paused,
+    bool errorsAreFatal,
+    SendPort? onExit,
+    SendPort? onError,
+    String? packageConfig,
+    bool newIsolateGroup,
+    String? debugName) native "Isolate_spawnFunction";
+
+// Collection of functions which should only be used for testing purposes.
+abstract class VMInternalsForTesting {
+  // This function can be used by tests to enforce garbage collection.
+  static void collectAllGarbage() native "Internal_collectAllGarbage";
+}

@@ -139,8 +139,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment StoreLateField(const Field& field,
                           LocalVariable* instance,
                           LocalVariable* setter_value);
-  Fragment InitInstanceField(const Field& field);
-  Fragment InitStaticField(const Field& field);
   Fragment NativeCall(const String* name, const Function* function);
   Fragment Return(
       TokenPosition position,
@@ -164,7 +162,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                       bool use_unchecked_entry = false);
   Fragment StringInterpolateSingle(TokenPosition position);
   Fragment ThrowTypeError();
-  Fragment ThrowNoSuchMethodError();
+  Fragment ThrowNoSuchMethodError(const Function& target);
   Fragment ThrowLateInitializationError(TokenPosition position,
                                         const String& name);
   Fragment BuildImplicitClosureCreation(const Function& target);

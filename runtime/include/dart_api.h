@@ -489,6 +489,9 @@ Dart_NewWeakPersistentHandle(Dart_Handle object,
 DART_EXPORT void Dart_DeleteWeakPersistentHandle(
     Dart_WeakPersistentHandle object);
 
+DART_EXPORT void Dart_UpdateExternalSize(Dart_WeakPersistentHandle object,
+                                         intptr_t external_allocation_size);
+
 /*
  * ==========================
  * Initialization and Globals
@@ -518,7 +521,7 @@ typedef struct {
  * for each part.
  */
 
-#define DART_FLAGS_CURRENT_VERSION (0x0000000b)
+#define DART_FLAGS_CURRENT_VERSION (0x0000000c)
 
 typedef struct {
   int32_t version;
@@ -528,7 +531,6 @@ typedef struct {
   bool obfuscate;
   Dart_QualifiedFunctionName* entry_points;
   bool load_vmservice_library;
-  bool unsafe_trust_strong_mode_types;
   bool copy_parent_code;
 } Dart_IsolateFlags;
 
@@ -571,11 +573,10 @@ DART_EXPORT void Dart_IsolateFlagsInitialize(Dart_IsolateFlags* flags);
  *   improve debugging messages.  The main function is not invoked by
  *   this function.
  * \param package_root Ignored.
- * \param package_map The package map for this isolate to resolve package
- *   imports against. The array contains alternating keys and values,
- *   terminated by a NULL key. Only one of package_root and package_map
- *   parameters is non-NULL. If neither parameter is passed the package
- *   resolution of the parent isolate should be used.
+ * \param package_config Uri of the package configuration file (either in format
+ *   of .packages or .dart_tool/package_config.json) for this isolate
+ *   to resolve package imports against. If this parameter is not passed the
+ *   package resolution of the parent isolate should be used.
  * \param flags Default flags for this isolate being spawned. Either inherited
  *   from the spawning isolate or passed as parameters when spawning the
  *   isolate from Dart code.
@@ -844,6 +845,9 @@ DART_EXPORT DART_WARN_UNUSED_RESULT char* Dart_Initialize(
  *
  * \return NULL if cleanup is successful. Returns an error message otherwise.
  *   The caller is responsible for freeing the error message.
+ *
+ * NOTE: This function must not be called on a thread that was created by the VM
+ * itself.
  */
 DART_EXPORT DART_WARN_UNUSED_RESULT char* Dart_Cleanup();
 
@@ -3350,16 +3354,6 @@ typedef struct {
   const char* uri;
   const char* source;
 } Dart_SourceFile;
-DART_EXPORT Dart_KernelCompilationResult
-Dart_CompileSourcesToKernel(const char* script_uri,
-                            const uint8_t* platform_kernel,
-                            intptr_t platform_kernel_size,
-                            int source_files_count,
-                            Dart_SourceFile source_files[],
-                            bool incremental_compile,
-                            const char* package_config,
-                            const char* multiroot_filepaths,
-                            const char* multiroot_scheme);
 
 DART_EXPORT Dart_KernelCompilationResult Dart_KernelListDependencies();
 

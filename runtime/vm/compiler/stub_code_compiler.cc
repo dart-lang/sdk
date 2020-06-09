@@ -19,42 +19,45 @@ namespace compiler {
 
 void StubCodeCompiler::GenerateInitStaticFieldStub(Assembler* assembler) {
   __ EnterStubFrame();
-  __ PushObject(NullObject());  // Make room for (unused) result.
+  __ PushObject(NullObject());  // Make room for result.
   __ PushRegister(InitStaticFieldABI::kFieldReg);
   __ CallRuntime(kInitStaticFieldRuntimeEntry, /*argument_count=*/1);
-  __ Drop(2);
+  __ Drop(1);
+  __ PopRegister(InitStaticFieldABI::kResultReg);
   __ LeaveStubFrame();
   __ Ret();
 }
 
 void StubCodeCompiler::GenerateInitInstanceFieldStub(Assembler* assembler) {
   __ EnterStubFrame();
-  __ PushObject(NullObject());  // Make room for (unused) result.
+  __ PushObject(NullObject());  // Make room for result.
   __ PushRegister(InitInstanceFieldABI::kInstanceReg);
   __ PushRegister(InitInstanceFieldABI::kFieldReg);
   __ CallRuntime(kInitInstanceFieldRuntimeEntry, /*argument_count=*/2);
-  __ Drop(3);
+  __ Drop(2);
+  __ PopRegister(InitInstanceFieldABI::kResultReg);
   __ LeaveStubFrame();
   __ Ret();
 }
 
 void StubCodeCompiler::GenerateInitLateInstanceFieldStub(Assembler* assembler,
                                                          bool is_final) {
-  __ EnterStubFrame();
-  // Save for later.
-  __ PushRegisterPair(InitInstanceFieldABI::kInstanceReg,
-                      InitInstanceFieldABI::kFieldReg);
-
-  // Call initializer function.
-  __ PushRegister(InitInstanceFieldABI::kInstanceReg);
-
   const Register kFunctionReg = InitLateInstanceFieldInternalRegs::kFunctionReg;
-  const Register kInitializerResultReg =
-      InitLateInstanceFieldInternalRegs::kInitializerResultReg;
-  const Register kInstanceReg = InitLateInstanceFieldInternalRegs::kInstanceReg;
-  const Register kFieldReg = InitLateInstanceFieldInternalRegs::kFieldReg;
+  const Register kInstanceReg = InitInstanceFieldABI::kInstanceReg;
+  const Register kFieldReg = InitInstanceFieldABI::kFieldReg;
   const Register kAddressReg = InitLateInstanceFieldInternalRegs::kAddressReg;
   const Register kScratchReg = InitLateInstanceFieldInternalRegs::kScratchReg;
+
+  __ EnterStubFrame();
+  // Save for later.
+  __ PushRegisterPair(kInstanceReg, kFieldReg);
+
+  // Call initializer function.
+  __ PushRegister(kInstanceReg);
+
+  static_assert(
+      InitInstanceFieldABI::kResultReg == CallingConventions::kReturnReg,
+      "Result is a return value from initializer");
 
   __ LoadField(kFunctionReg,
                FieldAddress(InitInstanceFieldABI::kFieldReg,
@@ -62,6 +65,14 @@ void StubCodeCompiler::GenerateInitLateInstanceFieldStub(Assembler* assembler,
   if (!FLAG_precompiled_mode || !FLAG_use_bare_instructions) {
     __ LoadField(CODE_REG,
                  FieldAddress(kFunctionReg, target::Function::code_offset()));
+    if (FLAG_enable_interpreter) {
+      // InterpretCall stub needs arguments descriptor for all function calls.
+      __ LoadObject(ARGS_DESC_REG,
+                    CastHandle<Object>(OneArgArgumentsDescriptor()));
+    } else {
+      // Load a GC-safe value for the arguments descriptor (unused but tagged).
+      __ LoadImmediate(ARGS_DESC_REG, 0);
+    }
   }
   __ Call(FieldAddress(kFunctionReg, target::Function::entry_point_offset()));
   __ Drop(1);  // Drop argument.
@@ -79,8 +90,15 @@ void StubCodeCompiler::GenerateInitLateInstanceFieldStub(Assembler* assembler,
     __ BranchIf(NOT_EQUAL, &throw_exception);
   }
 
+#if defined(TARGET_ARCH_IA32)
+  // On IA32 StoreIntoObject clobbers value register, so scratch
+  // register is used in StoreIntoObject to preserve kResultReg.
+  __ MoveRegister(kScratchReg, InitInstanceFieldABI::kResultReg);
+  __ StoreIntoObject(kInstanceReg, Address(kAddressReg, 0), kScratchReg);
+#else
   __ StoreIntoObject(kInstanceReg, Address(kAddressReg, 0),
-                     kInitializerResultReg);
+                     InitInstanceFieldABI::kResultReg);
+#endif  // defined(TARGET_ARCH_IA32)
 
   __ LeaveStubFrame();
   __ Ret();

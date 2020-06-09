@@ -11,6 +11,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageConstructorWithTypeParameters,
         messageDirectiveAfterDeclaration,
         messageExpectedStatement,
+        messageExternalField,
         messageFieldInitializerOutsideConstructor,
         messageIllegalAssignmentToNonAssignable,
         messageInterpolationInUri,
@@ -823,10 +824,22 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endClassFields(Token staticToken, Token covariantToken, Token lateToken,
-      Token varFinalOrConst, int count, Token beginToken, Token semicolon) {
+  void endClassFields(
+      Token externalToken,
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token semicolon) {
     assert(optional(';', semicolon));
     debugEvent("Fields");
+
+    if (externalToken != null) {
+      handleRecoverableError(
+          messageExternalField, externalToken, externalToken);
+    }
 
     List<VariableDeclaration> variables = popTypedList(count);
     TypeAnnotation type = pop();
@@ -1180,6 +1193,7 @@ class AstBuilder extends StackListener {
 
   @override
   void endExtensionFields(
+      Token externalToken,
       Token staticToken,
       Token covariantToken,
       Token lateToken,
@@ -1193,8 +1207,8 @@ class AstBuilder extends StackListener {
       // an error at this point, but we include them in order to get navigation,
       // search, etc.
     }
-    endClassFields(staticToken, covariantToken, lateToken, varFinalOrConst,
-        count, beginToken, endToken);
+    endClassFields(externalToken, staticToken, covariantToken, lateToken,
+        varFinalOrConst, count, beginToken, endToken);
   }
 
   @override
@@ -1811,10 +1825,17 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endMixinFields(Token staticToken, Token covariantToken, Token lateToken,
-      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
-    endClassFields(staticToken, covariantToken, lateToken, varFinalOrConst,
-        count, beginToken, endToken);
+  void endMixinFields(
+      Token externalToken,
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
+    endClassFields(externalToken, staticToken, covariantToken, lateToken,
+        varFinalOrConst, count, beginToken, endToken);
   }
 
   @override
@@ -2082,6 +2103,7 @@ class AstBuilder extends StackListener {
 
   @override
   void endTopLevelFields(
+      Token externalToken,
       Token staticToken,
       Token covariantToken,
       Token lateToken,
@@ -2091,6 +2113,11 @@ class AstBuilder extends StackListener {
       Token semicolon) {
     assert(optional(';', semicolon));
     debugEvent("TopLevelFields");
+
+    if (externalToken != null) {
+      handleRecoverableError(
+          messageExternalField, externalToken, externalToken);
+    }
 
     List<VariableDeclaration> variables = popTypedList(count);
     TypeAnnotation type = pop();

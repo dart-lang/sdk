@@ -132,6 +132,9 @@ class Timeline : public AllStatic {
 #ifndef PRODUCT
   // Print information about streams to JSON.
   static void PrintFlagsToJSON(JSONStream* json);
+
+  // Output the recorded streams to a JSONS array.
+  static void PrintFlagsToJSONArray(JSONArray* arr);
 #endif
 
 #define TIMELINE_STREAM_ACCESSOR(name, fuchsia_name)                           \
@@ -245,11 +248,13 @@ class TimelineEvent {
                 int64_t async_id,
                 int64_t micros = OS::GetCurrentMonotonicMicros());
 
-  void DurationBegin(const char* label,
-                     int64_t micros = OS::GetCurrentMonotonicMicros(),
-                     int64_t thread_micros = OS::GetCurrentThreadCPUMicros());
-  void DurationEnd(int64_t micros = OS::GetCurrentMonotonicMicros(),
-                   int64_t thread_micros = OS::GetCurrentThreadCPUMicros());
+  void DurationBegin(
+      const char* label,
+      int64_t micros = OS::GetCurrentMonotonicMicros(),
+      int64_t thread_micros = OS::GetCurrentThreadCPUMicrosForTimeline());
+  void DurationEnd(
+      int64_t micros = OS::GetCurrentMonotonicMicros(),
+      int64_t thread_micros = OS::GetCurrentThreadCPUMicrosForTimeline());
 
   void Instant(const char* label,
                int64_t micros = OS::GetCurrentMonotonicMicros());
@@ -260,13 +265,14 @@ class TimelineEvent {
                 int64_t thread_start_micros = -1,
                 int64_t thread_end_micros = -1);
 
-  void Begin(const char* label,
-             int64_t micros = OS::GetCurrentMonotonicMicros(),
-             int64_t thread_micros = OS::GetCurrentThreadCPUMicros());
+  void Begin(
+      const char* label,
+      int64_t micros = OS::GetCurrentMonotonicMicros(),
+      int64_t thread_micros = OS::GetCurrentThreadCPUMicrosForTimeline());
 
   void End(const char* label,
            int64_t micros = OS::GetCurrentMonotonicMicros(),
-           int64_t thread_micros = OS::GetCurrentThreadCPUMicros());
+           int64_t thread_micros = OS::GetCurrentThreadCPUMicrosForTimeline());
 
   void Counter(const char* label,
                int64_t micros = OS::GetCurrentMonotonicMicros());

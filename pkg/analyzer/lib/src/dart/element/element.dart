@@ -758,6 +758,11 @@ class ClassElementImpl extends AbstractClassElementImpl
     return hasModifier(Modifier.MIXIN_APPLICATION);
   }
 
+  /// Set whether this class is a mixin application.
+  set isMixinApplication(bool isMixinApplication) {
+    setModifier(Modifier.MIXIN_APPLICATION, isMixinApplication);
+  }
+
   @override
   bool get isOrInheritsProxy => false;
 
@@ -777,7 +782,7 @@ class ClassElementImpl extends AbstractClassElementImpl
     if (hasReferenceToSuper) {
       return false;
     }
-    if (!supertype.isObject) {
+    if (!supertype.isDartCoreObject) {
       return false;
     }
     for (ConstructorElement constructor in constructors) {
@@ -819,11 +824,6 @@ class ClassElementImpl extends AbstractClassElementImpl
       (method as MethodElementImpl).enclosingElement = this;
     }
     _methods = methods;
-  }
-
-  /// Set whether this class is a mixin application.
-  set mixinApplication(bool isMixinApplication) {
-    setModifier(Modifier.MIXIN_APPLICATION, isMixinApplication);
   }
 
   @override
@@ -2004,11 +2004,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
   ClassElementImpl get enclosingElement =>
       super.enclosingElement as ClassElementImpl;
 
-  /// Set whether this constructor represents a factory method.
-  set factory(bool isFactory) {
-    setModifier(Modifier.FACTORY, isFactory);
-  }
-
   @override
   bool get isConst {
     if (linkedNode != null) {
@@ -2057,6 +2052,11 @@ class ConstructorElementImpl extends ExecutableElementImpl
       return linkedNode.factoryKeyword != null;
     }
     return hasModifier(Modifier.FACTORY);
+  }
+
+  /// Set whether this constructor represents a factory method.
+  set isFactory(bool isFactory) {
+    setModifier(Modifier.FACTORY, isFactory);
   }
 
   @override
@@ -2735,10 +2735,7 @@ abstract class ElementImpl implements Element {
   int get hashCode {
     // TODO: We might want to re-visit this optimization in the future.
     // We cache the hash code value as this is a very frequently called method.
-    if (_cachedHashCode == null) {
-      _cachedHashCode = location.hashCode;
-    }
-    return _cachedHashCode;
+    return _cachedHashCode ??= location.hashCode;
   }
 
   @override
@@ -3060,9 +3057,7 @@ abstract class ElementImpl implements Element {
 
   @override
   String getExtendedDisplayName(String shortName) {
-    if (shortName == null) {
-      shortName = displayName;
-    }
+    shortName ??= displayName;
     Source source = this.source;
     if (source != null) {
       return "$shortName (${source.fullName})";
@@ -3567,11 +3562,6 @@ abstract class ExecutableElementImpl extends ElementImpl
       ElementImpl enclosing, Reference reference, AstNode linkedNode)
       : super.forLinkedNode(enclosing, reference, linkedNode);
 
-  /// Set whether this executable element's body is asynchronous.
-  set asynchronous(bool isAsynchronous) {
-    setModifier(Modifier.ASYNCHRONOUS, isAsynchronous);
-  }
-
   @override
   int get codeLength {
     if (linkedNode != null) {
@@ -3606,16 +3596,6 @@ abstract class ExecutableElementImpl extends ElementImpl
     return super.documentationComment;
   }
 
-  /// Set whether this executable element is external.
-  set external(bool isExternal) {
-    setModifier(Modifier.EXTERNAL, isExternal);
-  }
-
-  /// Set whether this method's body is a generator.
-  set generator(bool isGenerator) {
-    setModifier(Modifier.GENERATOR, isGenerator);
-  }
-
   @override
   bool get hasImplicitReturnType {
     if (linkedNode != null) {
@@ -3645,6 +3625,11 @@ abstract class ExecutableElementImpl extends ElementImpl
     return hasModifier(Modifier.ASYNCHRONOUS);
   }
 
+  /// Set whether this executable element's body is asynchronous.
+  set isAsynchronous(bool isAsynchronous) {
+    setModifier(Modifier.ASYNCHRONOUS, isAsynchronous);
+  }
+
   @override
   bool get isExternal {
     if (linkedNode != null) {
@@ -3653,12 +3638,22 @@ abstract class ExecutableElementImpl extends ElementImpl
     return hasModifier(Modifier.EXTERNAL);
   }
 
+  /// Set whether this executable element is external.
+  set isExternal(bool isExternal) {
+    setModifier(Modifier.EXTERNAL, isExternal);
+  }
+
   @override
   bool get isGenerator {
     if (linkedNode != null) {
       return enclosingUnit.linkedContext.isGenerator(linkedNode);
     }
     return hasModifier(Modifier.GENERATOR);
+  }
+
+  /// Set whether this method's body is a generator.
+  set isGenerator(bool isGenerator) {
+    setModifier(Modifier.GENERATOR, isGenerator);
   }
 
   @override
@@ -4958,11 +4953,6 @@ class ImportElementImpl extends UriReferencedElementImpl
     _combinators = combinators;
   }
 
-  /// Set whether this import is for a deferred library.
-  set deferred(bool isDeferred) {
-    setModifier(Modifier.DEFERRED, isDeferred);
-  }
-
   @override
   CompilationUnitElementImpl get enclosingUnit {
     LibraryElementImpl enclosingLibrary = enclosingElement;
@@ -4994,6 +4984,11 @@ class ImportElementImpl extends UriReferencedElementImpl
       return linkedNode.deferredKeyword != null;
     }
     return hasModifier(Modifier.DEFERRED);
+  }
+
+  /// Set whether this import is for a deferred library.
+  set isDeferred(bool isDeferred) {
+    setModifier(Modifier.DEFERRED, isDeferred);
   }
 
   @override
@@ -7022,11 +7017,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   @override
   PropertyAccessorElement get declaration => this;
 
-  /// Set whether this accessor is a getter.
-  set getter(bool isGetter) {
-    setModifier(Modifier.GETTER, isGetter);
-  }
-
   @override
   String get identifier {
     String name = displayName;
@@ -7047,12 +7037,22 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     return hasModifier(Modifier.GETTER);
   }
 
+  /// Set whether this accessor is a getter.
+  set isGetter(bool isGetter) {
+    setModifier(Modifier.GETTER, isGetter);
+  }
+
   @override
   bool get isSetter {
     if (linkedNode != null) {
       return enclosingUnit.linkedContext.isSetter(linkedNode);
     }
     return hasModifier(Modifier.SETTER);
+  }
+
+  /// Set whether this accessor is a setter.
+  set isSetter(bool isSetter) {
+    setModifier(Modifier.SETTER, isSetter);
   }
 
   @override
@@ -7089,11 +7089,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
       return "${super.name}=";
     }
     return super.name;
-  }
-
-  /// Set whether this accessor is a setter.
-  set setter(bool isSetter) {
-    setModifier(Modifier.SETTER, isSetter);
   }
 
   @override
@@ -7137,7 +7132,21 @@ class PropertyAccessorElementImpl_ImplicitGetter
   }
 
   @override
-  DartType get returnTypeInternal => variable.type;
+  DartType get returnTypeInternal {
+    var returnType = variable.type;
+
+    // While performing inference during linking, the first step is to collect
+    // dependencies. During this step we resolve the expression, but we might
+    // reference elements that don't have their types inferred yet. So, here
+    // we give some type. A better solution would be to infer recursively, but
+    // we are not doing this yet.
+    if (returnType == null) {
+      assert(linkedContext.isLinking);
+      return DynamicTypeImpl.instance;
+    }
+
+    return returnType;
+  }
 
   @override
   FunctionType get type => ElementTypeProvider.current.getExecutableType(this);

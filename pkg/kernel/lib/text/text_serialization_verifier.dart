@@ -2,56 +2,196 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert' show json;
+
 import '../ast.dart';
 
-import '../text/serializer_combinators.dart'
-    show DeserializationState, SerializationState, TextSerializer;
+import '../text/serializer_combinators.dart';
 
 import '../text/text_reader.dart' show TextIterator;
 
-import '../text/text_serializer.dart'
-    show
-        dartTypeSerializer,
-        expressionSerializer,
-        initializeSerializers,
-        statementSerializer;
+import '../text/text_serializer.dart';
 
 const Uri noUri = null;
 
 const int noOffset = -1;
 
-abstract class TextSerializationVerificationFailure {
-  /// [Uri] of the file containing the expression that produced an error during
-  /// the round trip.
-  final Uri uri;
+abstract class RoundTripStatus implements Comparable<RoundTripStatus> {
+  /// The round-trip serialization was run on that [node].
+  final Node node;
 
-  /// Offset within the file with [uri] of the expression that produced an error
-  /// during the round trip.
-  final int offset;
+  /// The context of the failure.
+  ///
+  /// The [context] node is a [TreeNode] and is set either to the node that the
+  /// round-trip serialization failed on or to the closest parent with location.
+  final TreeNode context;
 
-  TextSerializationVerificationFailure(this.uri, this.offset);
+  RoundTripStatus(this.node, {TreeNode context})
+      : context = node is TreeNode && node.location != null ? node : context;
+
+  Uri get uri => context.location.file;
+
+  int get offset => context.fileOffset;
+
+  bool get isSuccess;
+
+  bool get isFailure => !isSuccess;
+
+  String get nameForDebugging;
+
+  int compareTo(RoundTripStatus other) {
+    if (node is TreeNode && other.node is TreeNode) {
+      TreeNode thisNode = this.node;
+      TreeNode otherNode = other.node;
+      Uri thisUri = thisNode.location?.file;
+      Uri otherUri = otherNode.location?.file;
+      int thisOffset = thisNode.fileOffset;
+      int otherOffset = otherNode.fileOffset;
+
+      int compareUri;
+      if (thisUri == null && otherUri == null) {
+        compareUri = 0;
+      } else if (thisUri == null) {
+        compareUri = 1;
+      } else if (otherUri == null) {
+        compareUri = -1;
+      } else {
+        assert(thisUri != null && otherUri != null);
+        compareUri = thisUri.toString().compareTo(otherUri.toString());
+      }
+      if (compareUri != 0) return compareUri;
+
+      int compareOffset;
+      if (thisOffset == null && otherOffset == null) {
+        compareOffset = 0;
+      } else if (thisOffset == null) {
+        compareOffset = 1;
+      } else if (otherOffset == null) {
+        compareOffset = -1;
+      } else {
+        compareOffset = thisOffset = otherOffset;
+      }
+      if (compareOffset != 0) return compareOffset;
+
+      // The "success" outcome has the lowest index.  Make it so that it appears
+      // last, and the failures are at the beginning and are more visible.
+      if (isFailure && other.isSuccess) {
+        return -1;
+      }
+      if (isSuccess && other.isFailure) {
+        return 1;
+      }
+
+      return 0;
+    } else if (node is TreeNode) {
+      return -1;
+    } else {
+      return 1;
+    }
+  }
+
+  void printOn(StringBuffer sb) {
+    sb.writeln(""
+        ";; -------------------------------------"
+        "----------------------------------------");
+    sb.writeln("Status: ${nameForDebugging}");
+    sb.writeln("Node type: ${node.runtimeType}");
+    sb.writeln("Node: ${json.encode(node.leakingDebugToString())}");
+    if (node is TreeNode) {
+      TreeNode treeNode = node;
+      if (treeNode.parent != null) {
+        sb.writeln("Parent type: ${treeNode.parent.runtimeType}");
+        sb.writeln(
+            "Parent: ${json.encode(treeNode.parent.leakingDebugToString())}");
+      }
+    }
+  }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    printOn(sb);
+    return sb.toString();
+  }
 }
 
-class TextSerializationFailure extends TextSerializationVerificationFailure {
+class RoundTripSuccess extends RoundTripStatus {
+  final String serialized;
+
+  RoundTripSuccess(Node node, this.serialized, {TreeNode context})
+      : super(node, context: context);
+
+  @override
+  bool get isSuccess => true;
+
+  @override
+  String get nameForDebugging => "RoundTripSuccess";
+
+  @override
+  void printOn(StringBuffer sb) {
+    super.printOn(sb);
+    sb.writeln("Serialized: ${serialized}");
+  }
+}
+
+class RoundTripInitialSerializationFailure extends RoundTripStatus {
   final String message;
 
-  TextSerializationFailure(this.message, Uri uri, int offset)
-      : super(uri, offset);
+  RoundTripInitialSerializationFailure(Node node, this.message,
+      {TreeNode context})
+      : super(node, context: context);
+
+  @override
+  bool get isSuccess => false;
+
+  @override
+  String get nameForDebugging => "RoundTripInitialSerializationFailure";
+
+  @override
+  void printOn(StringBuffer sb) {
+    super.printOn(sb);
+    sb.writeln("Message: ${message}");
+  }
 }
 
-class TextDeserializationFailure extends TextSerializationVerificationFailure {
+class RoundTripDeserializationFailure extends RoundTripStatus {
   final String message;
 
-  TextDeserializationFailure(this.message, Uri uri, int offset)
-      : super(uri, offset);
+  RoundTripDeserializationFailure(Node node, this.message, {TreeNode context})
+      : super(node, context: context);
+
+  @override
+  bool get isSuccess => false;
+
+  @override
+  String get nameForDebugging => "RoundTripDeserializationFailure";
+
+  @override
+  void printOn(StringBuffer sb) {
+    super.printOn(sb);
+    sb.writeln("Message: ${message}");
+  }
 }
 
-class TextRoundTripFailure extends TextSerializationVerificationFailure {
+class RoundTripSecondSerializationFailure extends RoundTripStatus {
   final String initial;
   final String serialized;
 
-  TextRoundTripFailure(this.initial, this.serialized, Uri uri, int offset)
-      : super(uri, offset);
+  RoundTripSecondSerializationFailure(Node node, this.initial, this.serialized,
+      {TreeNode context})
+      : super(node, context: context);
+
+  @override
+  bool get isSuccess => false;
+
+  @override
+  String get nameForDebugging => "RoundTripSecondSerializationFailure";
+
+  @override
+  void printOn(StringBuffer sb) {
+    super.printOn(sb);
+    sb.writeln("Initial: ${initial}");
+    sb.writeln("Serialized: ${serialized}");
+  }
 }
 
 class VerificationState {
@@ -182,63 +322,87 @@ class VerificationState {
     }
   }
 
-  static bool isDartTypeSupported(DartType node) =>
-      node is InvalidType ||
-      node is DynamicType ||
-      node is VoidType ||
-      node is BottomType ||
-      node is FunctionType ||
-      node is TypeParameterType ||
-      node is InterfaceType;
-
   static bool isExpressionSupported(Expression node) =>
-      node is StringLiteral ||
-      node is SymbolLiteral ||
-      node is IntLiteral ||
-      node is DoubleLiteral ||
-      node is BoolLiteral ||
-      node is NullLiteral ||
-      node is ListLiteral ||
-      node is SetLiteral ||
-      node is MapLiteral ||
-      node is TypeLiteral ||
-      node is InvalidExpression ||
-      node is Not ||
-      node is LogicalExpression ||
-      node is StringConcatenation ||
-      node is ThisExpression ||
-      node is Rethrow ||
-      node is Throw ||
-      node is AwaitExpression ||
-      node is ConditionalExpression ||
-      node is IsExpression ||
-      node is AsExpression ||
-      node is Let ||
-      node is PropertyGet ||
-      node is PropertySet ||
-      node is SuperPropertyGet ||
-      node is SuperPropertySet ||
-      node is MethodInvocation ||
-      node is SuperMethodInvocation ||
-      node is VariableGet ||
-      node is VariableSet ||
-      node is StaticGet ||
-      node is StaticSet ||
-      node is DirectPropertyGet ||
-      node is DirectPropertySet ||
-      node is StaticInvocation ||
-      node is DirectMethodInvocation ||
-      node is ConstructorInvocation ||
-      node is FunctionExpression;
+      !isExpressionNotSupported(node);
+
+  static bool isExpressionNotSupported(Expression node) =>
+      node is SetConcatenation ||
+      node is MapConcatenation ||
+      node is InstanceCreation ||
+      node is FileUriExpression ||
+      node is BlockExpression ||
+      node is ListConcatenation ||
+      node is NullCheck ||
+      node is BasicLiteral ||
+      node is InvocationExpression ||
+      node is Instantiation ||
+      node is ConstantExpression ||
+      node is CheckLibraryIsLoaded ||
+      node is LoadLibrary;
 
   static bool isStatementSupported(Statement node) =>
-      node is ExpressionStatement ||
-      node is ReturnStatement && node.expression != null;
+      !isStatementNotSupported(node);
 
-  static bool isSupported(Node node) =>
-      node is DartType && isDartTypeSupported(node) ||
-      node is Expression && isExpressionSupported(node) ||
-      node is Statement && isStatementSupported(node);
+  static bool isStatementNotSupported(Statement node) =>
+      node is BreakStatement ||
+      node is AssertBlock ||
+      node is VariableDeclaration &&
+          (node.parent is! Block || node.name == null) ||
+      node is SwitchStatement ||
+      node is TryFinally ||
+      node is EmptyStatement ||
+      node is LabeledStatement ||
+      node is ForInStatement && node.isAsync ||
+      node is TryCatch ||
+      node is FunctionDeclaration ||
+      node is ContinueSwitchStatement ||
+      node is AssertStatement ||
+      node is ReturnStatement && node.expression == null;
+
+  static bool isSupported(Node node) => !isNotSupported(node);
+
+  static bool isNotSupported(Node node) =>
+      node is Expression && isExpressionNotSupported(node) ||
+      node is Statement && isStatementNotSupported(node) ||
+      node is FunctionNode && node.body == null ||
+      node is Procedure &&
+          (!node.isStatic || node.kind != ProcedureKind.Method) ||
+      node is AssertInitializer ||
+      node is BoolConstant ||
+      node is Catch ||
+      node is Class ||
+      node is Combinator ||
+      node is Component ||
+      node is Constructor ||
+      node is DoubleConstant ||
+      node is Extension ||
+      node is Field ||
+      node is FieldInitializer ||
+      node is InstanceConstant ||
+      node is IntConstant ||
+      node is InvalidInitializer ||
+      node is Library ||
+      node is LibraryDependency ||
+      node is LibraryPart ||
+      node is ListConstant ||
+      node is LocalInitializer ||
+      node is MapConstant ||
+      node is Name && node.isPrivate ||
+      node is NullConstant ||
+      node is PartialInstantiationConstant ||
+      node is PrimitiveConstant ||
+      node is RedirectingFactoryConstructor ||
+      node is RedirectingInitializer ||
+      node is SetConstant ||
+      node is StringConstant ||
+      node is SuperInitializer ||
+      node is Supertype ||
+      node is SwitchCase ||
+      node is SymbolConstant ||
+      node is TearOffConstant ||
+      node is TypeLiteralConstant ||
+      node is Typedef ||
+      node is UnevaluatedConstant;
 }
 
 class TextSerializationVerifier extends RecursiveVisitor<void> {
@@ -246,18 +410,10 @@ class TextSerializationVerifier extends RecursiveVisitor<void> {
       "text_serialization.showStackTrace",
       defaultValue: false);
 
-  /// List of errors produced during round trips on the visited nodes.
-  final List<TextSerializationVerificationFailure> failures =
-      <TextSerializationVerificationFailure>[];
-
   /// List of status for all round-trip serialization attempts.
-  final List<RoundTripStatus> status = <RoundTripStatus>[];
+  final List<RoundTripStatus> _status = <RoundTripStatus>[];
 
   final CanonicalName root;
-
-  Uri lastSeenUri = noUri;
-
-  int lastSeenOffset = noOffset;
 
   VerificationState _stateStackTop;
 
@@ -266,7 +422,24 @@ class TextSerializationVerifier extends RecursiveVisitor<void> {
     initializeSerializers();
   }
 
+  /// List of errors produced during round trips on the visited nodes.
+  Iterable<RoundTripStatus> get _failures => _status.where((s) => s.isFailure);
+
+  List<RoundTripStatus> get failures => _failures.toList()..sort();
+
   VerificationState get currentState => _stateStackTop;
+
+  TreeNode get lastSeenTreeNodeWithLocation {
+    VerificationState state = _stateStackTop;
+    while (state != null) {
+      Node node = state.node;
+      if (node is TreeNode && node.location != null) {
+        return node;
+      }
+      state = state.parent;
+    }
+    return null;
+  }
 
   void pushStateFor(Node node) {
     _stateStackTop = new VerificationState(_stateStackTop, node);
@@ -288,7 +461,6 @@ class TextSerializationVerifier extends RecursiveVisitor<void> {
   }
 
   void enterNode(node) {
-    storeLastSeenUriAndOffset(node);
     pushStateFor(node);
     currentState.handleDeclarations();
   }
@@ -300,168 +472,116 @@ class TextSerializationVerifier extends RecursiveVisitor<void> {
     }
     List<Node> roundTripReadyNodes = currentState.takeRoundTripReadyNodes();
     for (Node node in roundTripReadyNodes) {
-      status.add(makeRoundTripDispatch(node));
+      makeRoundTripDispatch(node);
     }
     currentState.mergeToParent();
     dropState();
   }
 
-  void storeLastSeenUriAndOffset(Node node) {
-    if (node is TreeNode) {
-      Location location = node.location;
-      if (location != null) {
-        lastSeenUri = location.file;
-        lastSeenOffset = node.fileOffset;
-      }
-    }
-  }
-
   T readNode<T extends Node>(
-      String input, TextSerializer<T> serializer, Uri uri, int offset) {
+      T node, String input, TextSerializer<T> serializer) {
     TextIterator stream = new TextIterator(input, 0);
     stream.moveNext();
     T result;
     try {
-      result =
-          serializer.readFrom(stream, new DeserializationState(null, root));
+      result = serializer.readFrom(stream,
+          new DeserializationState(new DeserializationEnvironment(null), root));
     } catch (exception, stackTrace) {
       String message =
           showStackTrace ? "${exception}\n${stackTrace}" : "${exception}";
-      failures.add(new TextDeserializationFailure(message, uri, offset));
+      _status.add(new RoundTripDeserializationFailure(node, message,
+          context: lastSeenTreeNodeWithLocation));
+      return null;
     }
     if (stream.moveNext()) {
-      failures.add(new TextDeserializationFailure(
-          "unexpected trailing text", uri, offset));
+      _status.add(new RoundTripDeserializationFailure(
+          node, "unexpected trailing text",
+          context: lastSeenTreeNodeWithLocation));
     }
     if (result == null) {
-      failures.add(new TextDeserializationFailure(
-          "Deserialization of the following returned null: '${input}'",
-          uri,
-          offset));
+      _status.add(new RoundTripDeserializationFailure(
+          node, "Deserialization of the following returned null: '${input}'",
+          context: lastSeenTreeNodeWithLocation));
     }
     return result;
   }
 
-  String writeNode<T extends Node>(
-      T node, TextSerializer<T> serializer, Uri uri, int offset) {
+  String writeNode<T extends Node>(T node, TextSerializer<T> serializer) {
     StringBuffer buffer = new StringBuffer();
     try {
-      serializer.writeTo(buffer, node, new SerializationState(null));
+      serializer.writeTo(buffer, node,
+          new SerializationState(new SerializationEnvironment(null)));
     } catch (exception, stackTrace) {
       String message =
           showStackTrace ? "${exception}\n${stackTrace}" : "${exception}";
-      failures.add(new TextSerializationFailure(message, uri, offset));
+      _status.add(new RoundTripInitialSerializationFailure(node, message,
+          context: lastSeenTreeNodeWithLocation));
     }
     return buffer.toString();
   }
 
-  RoundTripStatus makeRoundTripDispatch(Node node) {
+  void makeRoundTripDispatch(Node node) {
     if (node is DartType) {
-      return makeRoundTrip<DartType>(node, dartTypeSerializer);
+      makeRoundTrip<DartType>(node, dartTypeSerializer);
     } else if (node is Expression) {
-      return makeRoundTrip<Expression>(node, expressionSerializer);
+      makeRoundTrip<Expression>(node, expressionSerializer);
     } else if (node is Statement) {
-      return makeRoundTrip<Statement>(node, statementSerializer);
+      makeRoundTrip<Statement>(node, statementSerializer);
+    } else if (node is Arguments) {
+      makeRoundTrip<Arguments>(node, argumentsSerializer);
+    } else if (node is FunctionNode) {
+      makeRoundTrip<FunctionNode>(node, functionNodeSerializer);
+    } else if (node is Procedure) {
+      makeRoundTrip<Procedure>(node, procedureSerializer);
+    } else if (node is TypeParameter) {
+      makeRoundTrip<TypeParameter>(node, typeParameterSerializer);
+    } else if (node is NamedType) {
+      makeRoundTrip<NamedType>(node, namedTypeSerializer);
+    } else if (node is Name) {
+      makeRoundTrip<Name>(node, nameSerializer);
     } else {
       throw new StateError(
-          "Don't know how to make a round trip for a supported node '${node.runtimeType}'");
+          "Don't know how to make a round trip for a supported node "
+          "'${node.runtimeType}'");
     }
   }
 
-  RoundTripStatus makeRoundTrip<T extends Node>(
-      T node, TextSerializer<T> serializer) {
-    String initial = writeNode(node, serializer, lastSeenUri, lastSeenOffset);
+  void makeRoundTrip<T extends Node>(T node, TextSerializer<T> serializer) {
+    int failureCount = _failures.length;
+    String initial = writeNode(node, serializer);
+    if (_failures.length != failureCount) {
+      return;
+    }
 
     // Do the round trip.
-    T deserialized = readNode(initial, serializer, lastSeenUri, lastSeenOffset);
-
-    // The error is reported elsewhere for the case of null.
-    if (deserialized == null) {
-      return new RoundTripStatus(false, node, initial);
+    T deserialized = readNode(node, initial, serializer);
+    if (_failures.length != failureCount) {
+      return;
     }
 
-    String serialized =
-        writeNode(deserialized, serializer, lastSeenUri, lastSeenOffset);
+    if (deserialized == null) {
+      // The error is reported elsewhere for the case of null.
+      return;
+    }
+
+    String serialized = writeNode(deserialized, serializer);
+    if (_failures.length != failureCount) {
+      return;
+    }
 
     if (initial != serialized) {
-      failures.add(new TextRoundTripFailure(
-          initial, serialized, lastSeenUri, lastSeenOffset));
-      return new RoundTripStatus(false, node, initial);
-    }
-    return new RoundTripStatus(true, node, initial);
-  }
-}
-
-class RoundTripStatus implements Comparable<RoundTripStatus> {
-  final bool successful;
-  final Node node;
-  final String serialized;
-
-  RoundTripStatus(this.successful, this.node, this.serialized)
-      : assert(successful != null),
-        assert(node != null),
-        assert(serialized != null);
-
-  void printOn(StringBuffer sb) {
-    sb.writeln(
-        ";; -----------------------------------------------------------------------------");
-    sb.writeln("Status: ${successful ? "OK" : "ERROR"}");
-    sb.writeln("Node type: ${node.runtimeType}");
-    sb.writeln("Node: ${node.leakingDebugToString()}");
-    if (node is TreeNode) {
-      TreeNode treeNode = node;
-      sb.writeln("Parent type: ${treeNode.parent.runtimeType}");
-      sb.writeln("Parent: ${treeNode.parent.leakingDebugToString()}");
-    }
-    sb.writeln("Serialized: ${serialized}");
-    sb.writeln();
-  }
-
-  int compareTo(RoundTripStatus other) {
-    if (node is TreeNode && other.node is TreeNode) {
-      TreeNode thisNode = this.node;
-      TreeNode otherNode = other.node;
-      Uri thisUri = thisNode.location?.file;
-      Uri otherUri = otherNode.location?.file;
-      int thisOffset = thisNode.fileOffset;
-      int otherOffset = otherNode.fileOffset;
-
-      int compareUri;
-      if (thisUri == null && otherUri == null) {
-        compareUri = 0;
-      } else if (thisUri == null) {
-        compareUri = 1;
-      } else if (otherUri == null) {
-        return -1;
-      } else {
-        assert(thisUri != null && otherUri != null);
-        compareUri = thisUri.toString().compareTo(otherUri.toString());
-      }
-      if (compareUri != 0) return compareUri;
-
-      int compareOffset;
-      if (thisOffset == null && otherOffset == null) {
-        compareOffset = 0;
-      } else if (thisOffset == null) {
-        compareOffset = 1;
-      } else if (otherOffset == null) {
-        compareOffset = -1;
-      } else {
-        compareOffset = thisOffset = otherOffset;
-      }
-      if (compareOffset != 0) return compareOffset;
-
-      if (!successful && other.successful) {
-        return -1;
-      } else if (successful && !other.successful) {
-        return 1;
-      }
-
-      return serialized.compareTo(other.serialized);
-    } else if (node is TreeNode) {
-      return -1;
+      _status.add(new RoundTripSecondSerializationFailure(
+          node, initial, serialized,
+          context: lastSeenTreeNodeWithLocation));
     } else {
-      return 1;
+      _status.add(new RoundTripSuccess(node, initial,
+          context: lastSeenTreeNodeWithLocation));
     }
+  }
+
+  List<RoundTripStatus> takeStatus() {
+    List<RoundTripStatus> result = _status.toList()..sort();
+    _status.clear();
+    return result;
   }
 }

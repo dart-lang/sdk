@@ -23,7 +23,6 @@ void main(List<String> args) {
     packageDirectory('sdk/lib/_internal/sdk_library_metadata'),
     packageDirectory('sdk/lib/_internal/js_runtime'),
     packageDirectory('third_party/pkg/protobuf/protobuf'),
-    packageDirectory('tools/gardening'),
   ];
 
   var cfePackageDirs = [
@@ -31,6 +30,7 @@ void main(List<String> args) {
     packageDirectory('pkg/front_end/testcases/general_nnbd_opt_out/'),
     packageDirectory('pkg/front_end/testcases/late_lowering/'),
     packageDirectory('pkg/front_end/testcases/nnbd/'),
+    packageDirectory('pkg/front_end/testcases/nnbd_mixed/'),
     packageDirectory('pkg/front_end/testcases/nonfunction_type_aliases/'),
   ];
 
@@ -82,7 +82,9 @@ Iterable<Map<String, String>> makePackageConfigs(
 
     yield {
       'name': p.basename(packageDir),
-      'rootUri': p.relative(packageDir, from: p.dirname(configFilePath)),
+      'rootUri': p
+          .toUri(p.relative(packageDir, from: p.dirname(configFilePath)))
+          .toString(),
       if (hasLibDirectory) 'packageUri': 'lib/',
       if (version != null)
         'languageVersion': '${version.major}.${version.minor}'
@@ -97,7 +99,9 @@ Iterable<Map<String, String>> makeCfePackageConfigs(
   for (var packageDir in packageDirs) {
     yield {
       'name': 'front_end_${p.basename(packageDir)}',
-      'rootUri': p.relative(packageDir, from: p.dirname(configFilePath)),
+      'rootUri': p
+          .toUri(p.relative(packageDir, from: p.dirname(configFilePath)))
+          .toString(),
       'packageUri': '.nonexisting/',
     };
   }

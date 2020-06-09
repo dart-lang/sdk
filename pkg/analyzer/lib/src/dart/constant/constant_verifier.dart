@@ -55,8 +55,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// Initialize a newly created constant verifier.
   ConstantVerifier(ErrorReporter errorReporter, LibraryElement currentLibrary,
       DeclaredVariables declaredVariables,
-      // TODO(brianwilkerson) Remove the unused parameter `forAnalysisDriver`.
-      {bool forAnalysisDriver,
+      {
       // TODO(paulberry): make [featureSet] a required parameter.
       FeatureSet featureSet})
       : this._(
@@ -133,7 +132,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
       // We need to evaluate the constant to see if any errors occur during its
       // evaluation.
-      ConstructorElement constructor = node.staticElement;
+      ConstructorElement constructor = node.constructorName.staticElement;
       if (constructor != null) {
         ConstantVisitor constantVisitor =
             ConstantVisitor(_evaluationEngine, _errorReporter);

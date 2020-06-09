@@ -2,14 +2,14 @@
 
 Use _dartanalyzer_ to statically analyze your code at the command line,
 checking for errors and warnings that are specified in the
-[Dart Language Specification](https://www.dartlang.org/docs/spec/).
+[Dart Language Specification](https://dart.dev/guides/language/spec).
 DartPad, code editors, and IDEs such as Android Studio and VS Code
 use the same analysis engine that dartanalyzer uses.
 
 ## Basic usage
 
 Run the analyzer from the top directory of the package.
-Here's an example of testing a Dart file.
+Here's an example of analyzing a Dart file.
 
 ```
 dartanalyzer bin/test.dart
@@ -19,56 +19,61 @@ dartanalyzer bin/test.dart
 
 The following are the most commonly used options for dartanalyzer:
 
-* `--packages=`<br>
- Specify the path to the package resolution configuration file.
- For more information see
- [Package Resolution Configuration File](https://github.com/lrhn/dep-pkgspec/blob/master/DEP-pkgspec.md).
-This option cannot be used with `--package-root`.
+* `--packages=`
 
-* `--package-warnings`<br>
+  Specify the path to the package resolution configuration file.
+  For more information see
+  [Package Resolution Configuration File](https://github.com/lrhn/dep-pkgspec/blob/master/DEP-pkgspec.md).
+
+* `--package-warnings`
+
   Show warnings not only for code in the specified .dart file and
   others in its library, but also for libraries imported with `package:`.
 
-* `--options=`<br>
+* `--options=`
+
   Specify the path to an analysis options file.
 
-* `--lints`<br>
+* `--[no-]lints`
+
   Show the results from the linter.
 
-* `--no-hints`<br>
+* `--[no-]hints`
+
   Don't show hints for improving the code.
 
-* `--ignore-unrecognized-flags`<br>
-  Rather than printing the help message,
-  ignore any unrecognized command-line flags.
+* `--version`
 
-* `--version`<br>
   Show the analyzer version.
 
-* `-h` _or_ `--help`<br>
-  Show all the command-line options.
+* `-h` _or_ `--help`
+
+  Show all of the command-line options.
+
+See the[Customizing static analysis
+guide](https://dart.dev/guides/language/analysis-options) for further ways to
+customize how dartanalyzer performs static analysis, and how it reports its
+findings.
 
 The following are advanced options to use with dartanalyzer:
 
-* `-b` _or_ `--batch`<br>
-  Run in batch mode.
+* `--dart-sdk=`
 
-* `--dart-sdk=`<br>
   Specify the directory that contains the Dart SDK.
 
-* `--fatal-warnings`<br>
+* `--fatal-warnings`
+
   Except for type warnings, treat warnings as fatal.
 
-* `--format=machine`<br>
+* `--format=machine`
+
   Produce output in a format suitable for parsing.
 
-* `--url-mapping=libraryUri,/path/to/library.dart`<br>
-  Tells the analyzer to use the specified library as the source for that
-  particular import.
+* `--ignore-unrecognized-flags`
 
-The following options are deprecated:
+  Rather than printing the help message, ignore any unrecognized command-line
+  flags.
 
-* `--package-root=`<br>
-  **Deprecated.** Specify the directory to search for any libraries that are
-  imported using `package:`. _This option is replaced as of Dart 1.12 with
-  `--packages`._
+* `--url-mapping=libraryUri,/path/to/library.dart`
+
+  Use the specified library as the source for that particular import.

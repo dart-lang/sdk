@@ -26,17 +26,10 @@ main() {
   });
 }
 
-abstract class BaseExtensionMethodsTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
-}
-
 /// Tests that show that extension declarations and the members inside them are
 /// resolved correctly.
 @reflectiveTest
-class ExtensionMethodsDeclarationTest extends BaseExtensionMethodsTest {
+class ExtensionMethodsDeclarationTest extends DriverResolutionTest {
   @override
   List<MockSdkLibrary> get additionalMockSdkLibraries => [
         MockSdkLibrary([
@@ -323,7 +316,7 @@ f(p.C c) {
 /// Tests that show that extension declarations and the members inside them are
 /// resolved correctly.
 @reflectiveTest
-class ExtensionMethodsDeclarationWithNnbdTest extends BaseExtensionMethodsTest {
+class ExtensionMethodsDeclarationWithNnbdTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..contextFeatures = FeatureSet.forTesting(
@@ -369,7 +362,7 @@ extension E<T extends Object> on T {
 /// Tests that show that extension declarations support all of the possible
 /// types in the `on` clause.
 @reflectiveTest
-class ExtensionMethodsExtendedTypeTest extends BaseExtensionMethodsTest {
+class ExtensionMethodsExtendedTypeTest extends DriverResolutionTest {
   test_named_generic() async {
     await assertNoErrorsInCode('''
 class C<T> {}
@@ -504,7 +497,7 @@ class ExtensionMethodsExtendedTypeWithNnbdTest
 /// Tests that extension members can be correctly resolved when referenced
 /// by code external to the extension declaration.
 @reflectiveTest
-class ExtensionMethodsExternalReferenceTest extends BaseExtensionMethodsTest {
+class ExtensionMethodsExternalReferenceTest extends DriverResolutionTest {
   /// Corresponds to: extension_member_resolution_t07
   test_dynamicInvocation() async {
     await assertNoErrorsInCode(r'''
@@ -1414,7 +1407,7 @@ f() => E.a;
 
   test_thisAccessOnDynamic() async {
     await assertNoErrorsInCode('''
-extension on dynamic {
+extension E on dynamic {
   int get d => 3;
 
   void testDynamic() {
@@ -1427,7 +1420,7 @@ extension on dynamic {
 
   test_thisAccessOnFunction() async {
     await assertNoErrorsInCode('''
-extension on Function {
+extension E on Function {
   int get f => 4;
 
   void testFunction() {
@@ -1675,7 +1668,7 @@ f(int? a) {
 /// Tests that extension members can be correctly resolved when referenced
 /// by code internal to (within) the extension declaration.
 @reflectiveTest
-class ExtensionMethodsInternalReferenceTest extends BaseExtensionMethodsTest {
+class ExtensionMethodsInternalReferenceTest extends DriverResolutionTest {
   test_instance_call() async {
     await assertNoErrorsInCode('''
 class C {}

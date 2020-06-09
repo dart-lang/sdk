@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:meta/meta.dart';
+import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/front_end/info_builder.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
@@ -24,12 +25,7 @@ void main() {
 @reflectiveTest
 class BuildEnclosingMemberDescriptionTest extends AbstractAnalysisTest {
   Future<ResolvedUnitResult> resolveTestFile() async {
-    var includedRoot = resourceProvider.pathContext.dirname(testFile);
-    server.setAnalysisRoots('0', [includedRoot], [], {});
-    return await server
-        .getAnalysisDriver(testFile)
-        .currentSession
-        .getResolvedUnit(testFile);
+    return await session.getResolvedUnit(testFile);
   }
 
   Future<void> test_classConstructor_named() async {
@@ -694,6 +690,40 @@ String? g() => 1 == 2 ? "Hello" : null;
         explanation: "Changed type 'String' to be nullable");
   }
 
+  Future<void> test_function_typed_parameter_made_nullable_due_to_hint() async {
+    var content = 'f(void g(int i)/*?*/) {}';
+    var migratedContent = 'f(void g(int  i)/*?*/) {}';
+    var unit = await buildInfoForSingleTestFile(content,
+        migratedContent: migratedContent);
+    var regions = unit.fixRegions;
+    expect(regions, hasLength(2));
+    var textToRemove = '/*?*/';
+    assertRegionPair(regions, 0,
+        offset1: migratedContent.indexOf(textToRemove),
+        length1: 2,
+        offset2: migratedContent.indexOf(textToRemove) + 3,
+        length2: 2,
+        explanation:
+            "Changed type 'void Function(int)' to be nullable, due to a "
+            'nullability hint',
+        kind: NullabilityFixKind.makeTypeNullableDueToHint,
+        traces: isNotNull, edits: (List<EditDetail> edits) {
+      expect(edits, hasLength(2));
+      var editsByDescription = {for (var edit in edits) edit.description: edit};
+      assertEdit(
+          edit: editsByDescription['Change to /*!*/ hint'],
+          offset: content.indexOf(textToRemove),
+          length: textToRemove.length,
+          replacement: '/*!*/');
+      assertEdit(
+          edit: editsByDescription['Remove /*?*/ hint'],
+          offset: content.indexOf(textToRemove),
+          length: textToRemove.length,
+          replacement: '');
+      return true;
+    });
+  }
+
   Future<void> test_increment_nullable_result() async {
     var unit = await buildInfoForSingleTestFile('''
 abstract class C {
@@ -982,10 +1012,8 @@ void f(A  a) => a.m = null;
     expect(trace.description, 'Nullability reason');
     var entries = trace.entries;
     expect(entries, hasLength(2));
-    // Entry 0 is the nullability of the type of A.m.
-    // TODO(srawlins): "A" is probably incorrect here. Should be "A.m".
-    assertTraceEntry(unit, entries[0], 'A', unit.content.indexOf('int?'),
-        contains('explicit type'));
+    assertTraceEntry(unit, entries[0], 'A.m', unit.content.indexOf('int?'),
+        contains('A.m (test.dart:2:3)'));
   }
 
   Future<void> test_removal_handles_offsets_correctly() async {
@@ -1070,6 +1098,64 @@ int  f(Object  o) {
         edits: isEmpty);
   }
 
+  Future<void> test_trace_constructor_named() async {
+    var unit = await buildInfoForSingleTestFile('''
+class C {
+  C.named(int i) {}
+}
+void f() {
+  C.named(null);
+}
+''', migratedContent: '''
+class C {
+  C.named(int? i) {}
+}
+void f() {
+  C.named(null);
+}
+''');
+    var region = unit.regions
+        .where((info) => info.offset == unit.content.indexOf('? i) {}'))
+        .single;
+    expect(region.traces, hasLength(1));
+    var trace = region.traces.single;
+    expect(trace.description, 'Nullability reason');
+    var entries = trace.entries;
+    assertTraceEntry(unit, entries[0], 'C.named',
+        unit.content.indexOf('int? i) {}'), contains('parameter 0 of C.named'));
+  }
+
+  Future<void> test_trace_constructor_unnamed() async {
+    var unit = await buildInfoForSingleTestFile('''
+class C {
+  C(int i) {}
+}
+void f() {
+  C(null);
+}
+''', migratedContent: '''
+class C {
+  C(int? i) {}
+}
+void f() {
+  C(null);
+}
+''');
+    var region = unit.regions
+        .where((info) => info.offset == unit.content.indexOf('? i) {}'))
+        .single;
+    expect(region.traces, hasLength(1));
+    var trace = region.traces.single;
+    expect(trace.description, 'Nullability reason');
+    var entries = trace.entries;
+    assertTraceEntry(
+        unit,
+        entries[0],
+        'C.<unnamed>',
+        unit.content.indexOf('int? i) {}'),
+        contains('parameter 0 of C.<unnamed>'));
+  }
+
   Future<void> test_trace_deadCode() async {
     var unit = await buildInfoForSingleTestFile('''
 void f(int/*!*/ i) {
@@ -1088,19 +1174,44 @@ void f(int/*!*/ i) {
     var trace = region.traces.single;
     expect(trace.description, 'Non-nullability reason');
     var entries = trace.entries;
-    expect(entries, hasLength(3));
+    expect(entries, hasLength(2));
     // Entry 0 is the nullability of f's argument
     assertTraceEntry(unit, entries[0], 'f', unit.content.indexOf('int'),
         contains('parameter 0 of f'));
     // Entry 1 is the edge from f's argument to never, due to the `/*!*/` hint.
     assertTraceEntry(unit, entries[1], 'f', unit.content.indexOf('int'),
         'explicitly hinted to be non-nullable');
-    // Entry 2 is the "never" node.
-    // TODO(paulberry): this node provides no additional useful information and
-    // shouldn't be included in the trace.
-    expect(entries[2].description, 'never');
-    expect(entries[2].function, null);
-    expect(entries[2].target, null);
+  }
+
+  Future<void> test_trace_extension_unnamed() async {
+    var unit = await buildInfoForSingleTestFile('''
+extension on String {
+  m(int i) {}
+}
+void f() {
+  "".m(null);
+}
+''', migratedContent: '''
+extension on String  {
+  m(int? i) {}
+}
+void f() {
+  "".m(null);
+}
+''');
+    var region = unit.regions
+        .where((info) => info.offset == unit.content.indexOf('? i) {}'))
+        .single;
+    expect(region.traces, hasLength(1));
+    var trace = region.traces.single;
+    expect(trace.description, 'Nullability reason');
+    var entries = trace.entries;
+    assertTraceEntry(
+        unit,
+        entries[0],
+        '<unnamed extension>.m',
+        unit.content.indexOf('int? i) {}'),
+        contains('parameter 0 of <unnamed>.m'));
   }
 
   Future<void> test_trace_nullableType() async {
@@ -1132,14 +1243,23 @@ void h() {
     expect(entries, hasLength(6));
     // Entry 0 is the nullability of f's argument
     assertTraceEntry(unit, entries[0], 'f',
-        unit.content.indexOf('int? i) {} // f'), contains('parameter 0 of f'));
+        unit.content.indexOf('int? i) {} // f'), contains('parameter 0 of f'),
+        hintActions: {
+          HintActionKind.addNullableHint,
+          HintActionKind.addNonNullableHint
+        });
+
     // Entry 1 is the edge from g's argument to f's argument, due to g's call to
     // f.
     assertTraceEntry(
         unit, entries[1], 'g', unit.content.indexOf('i);'), 'data flow');
     // Entry 2 is the nullability of g's argument
     assertTraceEntry(unit, entries[2], 'g',
-        unit.content.indexOf('int? i) { // g'), contains('parameter 0 of g'));
+        unit.content.indexOf('int? i) { // g'), contains('parameter 0 of g'),
+        hintActions: {
+          HintActionKind.addNullableHint,
+          HintActionKind.addNonNullableHint
+        });
     // Entry 3 is the edge from null to g's argument, due to h's call to g.
     assertTraceEntry(
         unit, entries[3], 'h', unit.content.indexOf('null'), 'data flow');
@@ -1205,7 +1325,7 @@ void h(int/*?*/ i) {
     var trace = region.traces[1];
     expect(trace.description, 'Non-nullability reason');
     var entries = trace.entries;
-    expect(entries, hasLength(5));
+    expect(entries, hasLength(4));
     // Entry 0 is the nullability of g's argument
     assertTraceEntry(unit, entries[0], 'g',
         unit.content.indexOf('int  i) { // g'), contains('parameter 0 of g'));
@@ -1219,12 +1339,6 @@ void h(int/*?*/ i) {
     // Entry 3 is the edge f's argument to never, due to the assert.
     assertTraceEntry(unit, entries[3], 'f', unit.content.indexOf('assert'),
         'value asserted to be non-null');
-    // Entry 4 is the "never" node.
-    // TODO(paulberry): this node provides no additional useful information and
-    // shouldn't be included in the trace.
-    expect(entries[4].description, 'never');
-    expect(entries[4].function, null);
-    expect(entries[4].target, null);
   }
 
   Future<void> test_trace_nullCheckHint() async {
@@ -1240,6 +1354,54 @@ void h(int/*?*/ i) {
     expect(trace.entries, hasLength(1));
     assertTraceEntry(unit, trace.entries.single, 'f',
         unit.content.indexOf('i/*!*/'), 'Null check hint');
+  }
+
+  Future<void> test_trace_refers_to_variable_initializer() async {
+    var unit = await buildInfoForSingleTestFile('''
+void f(int/*?*/ i) {
+  var x = <int>[i];
+  int y = x[0];
+}
+''', migratedContent: '''
+void f(int/*?*/ i) {
+  var x = <int?>[i];
+  int? y = x[0];
+}
+''');
+    var region = unit.regions
+        .where((regionInfo) => regionInfo.offset == unit.content.indexOf('? y'))
+        .single;
+    expect(region.traces, hasLength(1));
+    var trace = region.traces.single;
+    expect(trace.description, 'Nullability reason');
+    var entries = trace.entries;
+    expect(entries, hasLength(8));
+    // Entry 0 is the nullability of y
+    assertTraceEntry(unit, entries[0], 'f.y', unit.content.indexOf('int? y'),
+        contains('f.y'));
+    // Entry 1 is the edge from the list element type of x to y, due to array
+    // indexing.
+    assertTraceEntry(unit, entries[1], 'f.y', unit.content.indexOf('x[0]'),
+        contains('data flow'));
+    // Entry 2 is the nullability of the implicit list element type of x
+    assertTraceEntry(unit, entries[2], 'f.x', unit.content.indexOf('x ='),
+        contains('type argument 0 of f.x'));
+    // Entry 3 is the edge from the explicit list element type on the RHS of x
+    // to the implicit list element type on the LHS of x
+    assertTraceEntry(unit, entries[3], 'f.x', unit.content.indexOf('<int?>[i]'),
+        contains('data flow'));
+    // Entry 4 is the explicit list element type on the RHS of x
+    assertTraceEntry(unit, entries[4], 'f.x', unit.content.indexOf('int?>[i]'),
+        contains('list element type'));
+    // Entry 5 is the edge from the parameter i to the list literal
+    assertTraceEntry(unit, entries[5], 'f.x', unit.content.indexOf('i]'),
+        contains('data flow'));
+    // Entry 6 is the nullability of the parameter i
+    assertTraceEntry(unit, entries[6], 'f', unit.content.indexOf('int/*?*/'),
+        contains('parameter 0 of f'));
+    // Entry 7 is the edge due to the explicit /*?*/ hint
+    assertTraceEntry(unit, entries[7], 'f', unit.content.indexOf('int/*?*/'),
+        contains('explicitly hinted to be nullable'));
   }
 
   Future<void> test_trace_substitutionNode() async {
@@ -1328,7 +1490,12 @@ String? g() => 1 == 2 ? "Hello" : null;
     expect(region.explanation, "Type 'int' was not made nullable");
     expect(region.edits.map((edit) => edit.description).toSet(),
         {'Add /*?*/ hint', 'Add /*!*/ hint'});
-    expect(region.traces, isEmpty);
+    var trace = region.traces.first;
+    expect(trace.description, 'Non-nullability reason');
+    var entries = trace.entries;
+    expect(entries, hasLength(1));
+    assertTraceEntry(unit, entries[0], 'i', unit.content.indexOf('int'),
+        'No reason found to make nullable');
     expect(region.kind, NullabilityFixKind.typeNotMadeNullable);
   }
 

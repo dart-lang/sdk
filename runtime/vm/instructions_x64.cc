@@ -5,6 +5,8 @@
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_X64.
 #if defined(TARGET_ARCH_X64)
 
+#include "platform/unaligned.h"
+
 #include "vm/code_patcher.h"
 #include "vm/instructions.h"
 #include "vm/instructions_x64.h"
@@ -22,7 +24,7 @@ intptr_t IndexFromPPLoadDisp8(uword start) {
 }
 
 intptr_t IndexFromPPLoadDisp32(uword start) {
-  int32_t offset = *reinterpret_cast<int32_t*>(start);
+  int32_t offset = LoadUnaligned(reinterpret_cast<int32_t*>(start));
   return ObjectPool::IndexFromOffset(offset);
 }
 
@@ -35,7 +37,7 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
   if ((bytes[0] == 0x49) || (bytes[0] == 0x4d)) {
     if ((bytes[1] == 0x8b) || (bytes[1] == 0x3b)) {   // movq, cmpq
       if ((bytes[2] & 0xc7) == (0x80 | (THR & 7))) {  // [r14+disp32]
-        int32_t offset = *reinterpret_cast<int32_t*>(pc + 3);
+        int32_t offset = LoadUnaligned(reinterpret_cast<int32_t*>(pc + 3));
         return Thread::ObjectAtOffset(offset, obj);
       }
       if ((bytes[2] & 0xc7) == (0x40 | (THR & 7))) {  // [r14+disp8]

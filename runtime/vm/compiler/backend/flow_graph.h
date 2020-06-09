@@ -276,6 +276,20 @@ class FlowGraph : public ZoneAllocated {
   void AddToInitialDefinitions(BlockEntryWithInitialDefs* entry,
                                Definition* defn);
 
+  // Tries to create a constant definition with the given value which can be
+  // used to replace the given operation. Ensures that the representation of
+  // the replacement matches the representation of the original definition.
+  // If the given value can't be represented using matching representation
+  // then returns op itself.
+  Definition* TryCreateConstantReplacementFor(Definition* op,
+                                              const Object& value);
+
+  // Returns true if the given constant value can be represented in the given
+  // representation.
+  static bool IsConstantRepresentable(const Object& value,
+                                      Representation target_rep,
+                                      bool tagged_value_must_be_smi);
+
   enum UseKind { kEffect, kValue };
 
   void InsertBefore(Instruction* next,

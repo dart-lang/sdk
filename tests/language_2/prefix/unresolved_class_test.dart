@@ -10,8 +10,6 @@ class Subclass
     //      ^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.EXTENDS_NON_CLASS
     // [cfe] Type 'lib12.Library13' not found.
-    //      ^^^^^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 {}
 
 class Implementer
@@ -19,8 +17,6 @@ class Implementer
     //         ^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.IMPLEMENTS_NON_CLASS
     // [cfe] Type 'lib12.Library13' not found.
-    //         ^^^^^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 {}
 
 main() {

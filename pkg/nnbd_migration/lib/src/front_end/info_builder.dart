@@ -13,18 +13,21 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
 import 'package:meta/meta.dart';
-import 'package:nnbd_migration/api_for_analysis_server/dartfix_listener_interface.dart';
-import 'package:nnbd_migration/api_for_analysis_server/driver_provider.dart';
 import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
+import 'package:nnbd_migration/src/front_end/dartfix_listener.dart';
+import 'package:nnbd_migration/src/front_end/driver_provider_impl.dart';
 import 'package:nnbd_migration/src/front_end/instrumentation_information.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
 import 'package:nnbd_migration/src/front_end/offset_mapper.dart';
 
 /// A builder used to build the migration information for a library.
 class InfoBuilder {
+  /// The node mapper for the migration state.
+  NodeMapper nodeMapper;
+
   /// The resource provider used to access the file system.
   ResourceProvider provider;
 
@@ -35,7 +38,7 @@ class InfoBuilder {
   final InstrumentationInformation info;
 
   /// The listener used to gather the changes to be applied.
-  final DartFixListenerInterface listener;
+  final DartFixListener listener;
 
   /// The [NullabilityMigration] instance for this migration.
   final NullabilityMigration migration;
@@ -46,10 +49,10 @@ class InfoBuilder {
 
   /// Initialize a newly created builder.
   InfoBuilder(this.provider, this.includedPath, this.info, this.listener,
-      this.migration);
+      this.migration, this.nodeMapper);
 
   /// The provider used to get information about libraries.
-  DriverProvider get driverProvider => listener.server;
+  DriverProviderImpl get driverProvider => listener.server;
 
   /// Return the migration information for all of the libraries that were
   /// migrated.
@@ -232,19 +235,26 @@ class InfoBuilder {
   void _computeTraceNonNullableInfo(NullabilityNodeInfo node,
       List<TraceInfo> traces, FixReasonTarget target) {
     var entries = <TraceEntryInfo>[];
+    var description = 'Non-nullability reason${target.suffix}';
     var step = node.whyNotNullable;
     if (step == null) {
+      if (node != this.info.never) {
+        // 'never' indicates we're describing an edge to never, such as a `!`.
+        traces.add(TraceInfo(description, [
+          _nodeToTraceEntry(node,
+              description: 'No reason found to make nullable')
+        ]));
+      }
       return;
     }
     assert(identical(step.node, node));
-    while (step != null) {
+    while (step != null && !step.isStartingPoint) {
       entries.add(_nodeToTraceEntry(step.node));
       if (step.codeReference != null) {
         entries.add(_stepToTraceEntry(step));
       }
       step = step.principalCause;
     }
-    var description = 'Non-nullability reason${target.suffix}';
     traces.add(TraceInfo(description, entries));
   }
 
@@ -393,7 +403,8 @@ class InfoBuilder {
   }
 
   TraceEntryInfo _makeTraceEntry(
-      String description, CodeReference codeReference) {
+      String description, CodeReference codeReference,
+      {List<HintAction> hintActions = const []}) {
     var length = 1; // TODO(paulberry): figure out the correct value.
     return TraceEntryInfo(
         description,
@@ -401,12 +412,17 @@ class InfoBuilder {
         codeReference == null
             ? null
             : NavigationTarget(codeReference.path, codeReference.offset,
-                codeReference.line, length));
+                codeReference.line, length),
+        hintActions: hintActions);
   }
 
-  TraceEntryInfo _nodeToTraceEntry(NullabilityNodeInfo node) {
-    var description = node.toString(); // TODO(paulberry): improve this message
-    return _makeTraceEntry(description, node.codeReference);
+  TraceEntryInfo _nodeToTraceEntry(NullabilityNodeInfo node,
+      {String description}) {
+    description ??= node.toString(); // TODO(paulberry): improve this message
+    return _makeTraceEntry(description, node.codeReference,
+        hintActions: node.hintActions.keys
+            .map((kind) => HintAction(kind, nodeMapper.idForNode(node)))
+            .toList());
   }
 
   TraceEntryInfo _stepToTraceEntry(PropagationStepInfo step) {

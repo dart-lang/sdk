@@ -1079,7 +1079,7 @@ TEST_CASE(DartAPI_FunctionIsStatic) {
   EXPECT_VALID(result);
   EXPECT(is_static);
 
-  Dart_Handle klass = Dart_GetType(lib, NewString("Foo"), 0, NULL);
+  Dart_Handle klass = Dart_GetNonNullableType(lib, NewString("Foo"), 0, NULL);
   EXPECT_VALID(klass);
 
   Dart_Handle instance = Dart_Allocate(klass);
@@ -1174,7 +1174,7 @@ TEST_CASE(DartAPI_GetStaticMethodClosure) {
 TEST_CASE(DartAPI_ClassLibrary) {
   Dart_Handle lib = Dart_LookupLibrary(NewString("dart:core"));
   EXPECT_VALID(lib);
-  Dart_Handle type = Dart_GetType(lib, NewString("int"), 0, NULL);
+  Dart_Handle type = Dart_GetNonNullableType(lib, NewString("int"), 0, NULL);
   EXPECT_VALID(type);
   Dart_Handle result = Dart_ClassLibrary(type);
   EXPECT_VALID(result);
@@ -1695,7 +1695,7 @@ TEST_CASE(DartAPI_ExternalTypedDataPretenure) {
 TEST_CASE(DartAPI_ListAccess) {
   const char* kScriptChars =
       "List testMain() {"
-      "  List a = new List();"
+      "  List a = List.empty(growable: true);"
       "  a.add(10);"
       "  a.add(20);"
       "  a.add(30);"
@@ -3512,6 +3512,125 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSizeOddReferents) {
   }
 }
 
+#define EXAMPLE_RESOURCE_NATIVE_LIST(V)                                        \
+  V(ExampleResource_Allocate, 1)                                               \
+  V(ExampleResource_Use, 1)                                                    \
+  V(ExampleResource_Dispose, 1)
+
+EXAMPLE_RESOURCE_NATIVE_LIST(DECLARE_FUNCTION);
+
+static struct NativeEntries {
+  const char* name_;
+  Dart_NativeFunction function_;
+  int argument_count_;
+} ExampleResourceEntries[] = {EXAMPLE_RESOURCE_NATIVE_LIST(REGISTER_FUNCTION)};
+
+static Dart_NativeFunction ExampleResourceNativeResolver(
+    Dart_Handle name,
+    int argument_count,
+    bool* auto_setup_scope) {
+  const char* function_name = nullptr;
+  Dart_Handle result = Dart_StringToCString(name, &function_name);
+  ASSERT(!Dart_IsError(result));
+  ASSERT(function_name != nullptr);
+  ASSERT(auto_setup_scope != nullptr);
+  *auto_setup_scope = true;
+  int num_entries =
+      sizeof(ExampleResourceEntries) / sizeof(struct NativeEntries);
+  for (int i = 0; i < num_entries; i++) {
+    struct NativeEntries* entry = &(ExampleResourceEntries[i]);
+    if ((strcmp(function_name, entry->name_) == 0) &&
+        (entry->argument_count_ == argument_count)) {
+      return reinterpret_cast<Dart_NativeFunction>(entry->function_);
+    }
+  }
+  return nullptr;
+}
+
+struct ExampleResource {
+  Dart_WeakPersistentHandle self;
+  void* lots_of_memory;
+};
+
+void ExampleResourceFinalizer(void* isolate_peer,
+                              Dart_WeakPersistentHandle handle,
+                              void* peer) {
+  ExampleResource* resource = reinterpret_cast<ExampleResource*>(peer);
+  free(resource->lots_of_memory);
+  delete resource;
+}
+
+void FUNCTION_NAME(ExampleResource_Allocate)(Dart_NativeArguments native_args) {
+  Dart_Handle receiver = Dart_GetNativeArgument(native_args, 0);
+  intptr_t external_size = 10 * MB;
+  ExampleResource* resource = new ExampleResource();
+  resource->lots_of_memory = malloc(external_size);
+  resource->self = Dart_NewWeakPersistentHandle(
+      receiver, resource, external_size, ExampleResourceFinalizer);
+  EXPECT_VALID(Dart_SetNativeInstanceField(
+      receiver, 0, reinterpret_cast<intptr_t>(resource)));
+  // Some pretend resource initialization.
+  *reinterpret_cast<uint8_t*>(resource->lots_of_memory) = 123;
+}
+
+void FUNCTION_NAME(ExampleResource_Use)(Dart_NativeArguments native_args) {
+  Dart_Handle receiver = Dart_GetNativeArgument(native_args, 0);
+  intptr_t native_field = 0;
+  EXPECT_VALID(Dart_GetNativeInstanceField(receiver, 0, &native_field));
+  ExampleResource* resource = reinterpret_cast<ExampleResource*>(native_field);
+  if (resource->lots_of_memory == nullptr) {
+    Dart_ThrowException(Dart_NewStringFromCString(
+        "Attempt to use a disposed ExampleResource!"));
+    UNREACHABLE();
+  } else {
+    // Some pretend resource use.
+    EXPECT_EQ(123, *reinterpret_cast<uint8_t*>(resource->lots_of_memory));
+  }
+}
+
+void FUNCTION_NAME(ExampleResource_Dispose)(Dart_NativeArguments native_args) {
+  Dart_Handle receiver = Dart_GetNativeArgument(native_args, 0);
+  intptr_t native_field = 0;
+  EXPECT_VALID(Dart_GetNativeInstanceField(receiver, 0, &native_field));
+  ExampleResource* resource = reinterpret_cast<ExampleResource*>(native_field);
+  if (resource->lots_of_memory != nullptr) {
+    free(resource->lots_of_memory);
+    resource->lots_of_memory = nullptr;
+    Dart_UpdateExternalSize(resource->self, 0);
+  }
+}
+
+TEST_CASE(DartAPI_WeakPersistentHandleUpdateSize) {
+  const char* kScriptChars = R"(
+    import "dart:nativewrappers";
+    class ExampleResource extends NativeFieldWrapperClass1 {
+      ExampleResource() { _allocate(); }
+      void _allocate() native "ExampleResource_Allocate";
+      void use() native "ExampleResource_Use";
+      void dispose() native "ExampleResource_Dispose";
+    }
+    main() {
+      var res = new ExampleResource();
+      res.use();
+      res.dispose();
+      res.dispose();  // Idempotent
+      bool threw = false;
+      try {
+        res.use();
+      } catch (_) {
+        threw = true;
+      }
+      if (!threw) {
+        throw "Exception expected";
+      }
+    }
+  )";
+
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars, ExampleResourceNativeResolver);
+  EXPECT_VALID(Dart_Invoke(lib, NewString("main"), 0, NULL));
+}
+
 static Dart_WeakPersistentHandle weak1 = NULL;
 static Dart_WeakPersistentHandle weak2 = NULL;
 static Dart_WeakPersistentHandle weak3 = NULL;
@@ -4034,7 +4153,9 @@ TEST_CASE(DartAPI_TypeGetParameterizedTypes) {
   EXPECT_VALID(double_type);
   EXPECT_VALID(Dart_ListSetAt(type_args, 1, double_type));
   Dart_Handle myclass0_type =
-      Dart_GetType(lib, NewString("MyClass0"), 2, &type_args);
+      TestCase::IsNNBD()
+          ? Dart_GetNonNullableType(lib, NewString("MyClass0"), 2, &type_args)
+          : Dart_GetType(lib, NewString("MyClass0"), 2, &type_args);
   EXPECT_VALID(myclass0_type);
 
   type_args = Dart_NewList(2);
@@ -4046,7 +4167,9 @@ TEST_CASE(DartAPI_TypeGetParameterizedTypes) {
   EXPECT_VALID(list_type);
   EXPECT_VALID(Dart_ListSetAt(type_args, 1, list_type));
   Dart_Handle myclass1_type =
-      Dart_GetType(lib, NewString("MyClass1"), 2, &type_args);
+      TestCase::IsNNBD()
+          ? Dart_GetNonNullableType(lib, NewString("MyClass1"), 2, &type_args)
+          : Dart_GetType(lib, NewString("MyClass1"), 2, &type_args);
   EXPECT_VALID(myclass1_type);
 
   // Now create objects of the type and validate the object type matches
@@ -4220,7 +4343,7 @@ TEST_CASE(DartAPI_FieldAccess) {
 
   // Shared setup.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle type = Dart_GetType(lib, NewString("Fields"), 0, NULL);
+  Dart_Handle type = Dart_GetNonNullableType(lib, NewString("Fields"), 0, NULL);
   EXPECT_VALID(type);
   Dart_Handle instance = Dart_Invoke(lib, NewString("test"), 0, NULL);
   EXPECT_VALID(instance);
@@ -4413,7 +4536,8 @@ TEST_CASE(DartAPI_SetField_FunnyValue) {
 }
 
 TEST_CASE(DartAPI_SetField_BadType) {
-  const char* kScriptChars = "int foo;\n";
+  const char* kScriptChars =
+      TestCase::IsNNBD() ? "late int foo;\n" : "int foo;\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_Handle name = NewString("foo");
   Dart_Handle result = Dart_SetField(lib, name, Dart_True());
@@ -4435,22 +4559,27 @@ static Dart_NativeFunction native_field_lookup(Dart_Handle name,
 }
 
 TEST_CASE(DartAPI_InjectNativeFields2) {
-  const char* kScriptChars =
-      "class NativeFields extends NativeFieldsWrapper {\n"
-      "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
-      "  int fld1;\n"
-      "  final int fld2;\n"
-      "  static int fld3;\n"
-      "  static const int fld4 = 10;\n"
-      "}\n"
-      "NativeFields testMain() {\n"
-      "  NativeFields obj = new NativeFields(10, 20);\n"
-      "  return obj;\n"
-      "}\n";
+  // clang-format off
+  auto kScriptChars = Utils::CStringUniquePtr(
+      OS::SCreate(nullptr,
+                  "class NativeFields extends NativeFieldsWrapper {\n"
+                  "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
+                  "  int fld1;\n"
+                  "  final int fld;\n"
+                  "  static int%s fld3;\n"
+                  "  static const int fld4 = 10;\n"
+                  "}\n"
+                  "NativeFields testMain() {\n"
+                  "  NativeFields obj = new NativeFields(10, 20);\n"
+                  "  return obj;\n"
+                  "}\n",
+                  TestCase::NullableTag()), std::free);
+  // clang-format on
+
   Dart_Handle result;
   // Create a test library and Load up a test script in it.
   Dart_Handle lib =
-      TestCase::LoadTestScript(kScriptChars, NULL, USER_TEST_URI, false);
+      TestCase::LoadTestScript(kScriptChars.get(), NULL, USER_TEST_URI, false);
 
   // Invoke a function which returns an object of type NativeFields.
   result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
@@ -4462,24 +4591,29 @@ TEST_CASE(DartAPI_InjectNativeFields2) {
 }
 
 TEST_CASE(DartAPI_InjectNativeFields3) {
-  const char* kScriptChars =
-      "import 'dart:nativewrappers';"
-      "class NativeFields extends NativeFieldWrapperClass2 {\n"
-      "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
-      "  int fld1;\n"
-      "  final int fld2;\n"
-      "  static int fld3;\n"
-      "  static const int fld4 = 10;\n"
-      "}\n"
-      "NativeFields testMain() {\n"
-      "  NativeFields obj = new NativeFields(10, 20);\n"
-      "  return obj;\n"
-      "}\n";
+  // clang-format off
+  auto kScriptChars = Utils::CStringUniquePtr(
+      OS::SCreate(nullptr,
+                  "import 'dart:nativewrappers';"
+                  "class NativeFields extends NativeFieldWrapperClass2 {\n"
+                  "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
+                  "  int fld1;\n"
+                  "  final int fld2;\n"
+                  "  static int%s fld3;\n"
+                  "  static const int fld4 = 10;\n"
+                  "}\n"
+                  "NativeFields testMain() {\n"
+                  "  NativeFields obj = new NativeFields(10, 20);\n"
+                  "  return obj;\n"
+                  "}\n",
+                  TestCase::NullableTag()), std::free);
+  // clang-format on
   Dart_Handle result;
   const int kNumNativeFields = 2;
 
   // Load up a test script in the test library.
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, native_field_lookup);
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars.get(), native_field_lookup);
 
   // Invoke a function which returns an object of type NativeFields.
   result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
@@ -4504,22 +4638,25 @@ TEST_CASE(DartAPI_InjectNativeFields3) {
 }
 
 TEST_CASE(DartAPI_InjectNativeFields4) {
-  const char* kScriptChars =
-      "import 'dart:nativewrappers';"
-      "class NativeFields extends NativeFieldWrapperClass2 {\n"
-      "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
-      "  int fld1;\n"
-      "  final int fld2;\n"
-      "  static int fld3;\n"
-      "  static const int fld4 = 10;\n"
-      "}\n"
-      "NativeFields testMain() {\n"
-      "  NativeFields obj = new NativeFields(10, 20);\n"
-      "  return obj;\n"
-      "}\n";
+  // clang-format off
+  auto kScriptChars = Utils::CStringUniquePtr(
+      OS::SCreate(nullptr,
+                  "class NativeFields extends NativeFieldsWrapperClass2 {\n"
+                  "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
+                  "  int fld1;\n"
+                  "  final int fld;\n"
+                  "  static int%s fld3;\n"
+                  "  static const int fld4 = 10;\n"
+                  "}\n"
+                  "NativeFields testMain() {\n"
+                  "  NativeFields obj = new NativeFields(10, 20);\n"
+                  "  return obj;\n"
+                  "}\n",
+                  TestCase::NullableTag()), std::free);
+  // clang-format on
   Dart_Handle result;
   // Load up a test script in the test library.
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars.get(), NULL);
 
   // Invoke a function which returns an object of type NativeFields.
   result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
@@ -4585,27 +4722,35 @@ static Dart_NativeFunction TestNativeFieldsAccess_lookup(Dart_Handle name,
 }
 
 TEST_CASE(DartAPI_TestNativeFieldsAccess) {
-  const char* kScriptChars =
-      "import 'dart:nativewrappers';"
-      "class NativeFields extends NativeFieldWrapperClass2 {\n"
-      "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
-      "  int fld1;\n"
-      "  final int fld2;\n"
-      "  static int fld3;\n"
-      "  static const int fld4 = 10;\n"
-      "  int initNativeFlds() native 'TestNativeFieldsAccess_init';\n"
-      "  int accessNativeFlds(int i) native 'TestNativeFieldsAccess_access';\n"
-      "}\n"
-      "NativeFields testMain() {\n"
-      "  NativeFields obj = new NativeFields(10, 20);\n"
-      "  obj.initNativeFlds();\n"
-      "  obj.accessNativeFlds(null);\n"
-      "  return obj;\n"
-      "}\n";
+  const char* nullable_tag = TestCase::NullableTag();
+  // clang-format off
+  auto kScriptChars = Utils::CStringUniquePtr(
+      OS::SCreate(
+          nullptr,
+          "import 'dart:nativewrappers';"
+          "class NativeFields extends NativeFieldWrapperClass2 {\n"
+          "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
+          "  int fld1;\n"
+          "  final int fld2;\n"
+          "  static int%s fld3;\n"
+          "  static const int fld4 = 10;\n"
+          "  int%s initNativeFlds() native 'TestNativeFieldsAccess_init';\n"
+          "  int%s accessNativeFlds(int%s i) native "
+          "'TestNativeFieldsAccess_access';\n"
+          "}\n"
+          "NativeFields testMain() {\n"
+          "  NativeFields obj = new NativeFields(10, 20);\n"
+          "  obj.initNativeFlds();\n"
+          "  obj.accessNativeFlds(null);\n"
+          "  return obj;\n"
+          "}\n",
+          nullable_tag, nullable_tag, nullable_tag, nullable_tag),
+      std::free);
+  // clang-format on
 
   // Load up a test script in the test library.
-  Dart_Handle lib =
-      TestCase::LoadTestScript(kScriptChars, TestNativeFieldsAccess_lookup);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars.get(),
+                                             TestNativeFieldsAccess_lookup);
 
   // Invoke a function which returns an object of type NativeFields.
   Dart_Handle result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
@@ -4717,22 +4862,29 @@ static void TestNativeFields(Dart_Handle retobj) {
 }
 
 TEST_CASE(DartAPI_ImplicitNativeFieldAccess) {
-  const char* kScriptChars =
-      "import 'dart:nativewrappers';"
-      "class NativeFields extends NativeFieldWrapperClass4 {\n"
-      "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
-      "  int fld0;\n"
-      "  int fld1;\n"
-      "  final int fld2;\n"
-      "  static int fld3;\n"
-      "  static const int fld4 = 10;\n"
-      "}\n"
-      "NativeFields testMain() {\n"
-      "  NativeFields obj = new NativeFields(10, 20);\n"
-      "  return obj;\n"
-      "}\n";
+  const char* nullable_tag = TestCase::NullableTag();
+  // clang-format off
+  auto kScriptChars = Utils::CStringUniquePtr(
+      OS::SCreate(nullptr,
+                  "import 'dart:nativewrappers';"
+                  "class NativeFields extends NativeFieldWrapperClass4 {\n"
+                  "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
+                  "  int%s fld0;\n"
+                  "  int fld1;\n"
+                  "  final int fld2;\n"
+                  "  static int%s fld3;\n"
+                  "  static const int fld4 = 10;\n"
+                  "}\n"
+                  "NativeFields testMain() {\n"
+                  "  NativeFields obj = new NativeFields(10, 20);\n"
+                  "  return obj;\n"
+                  "}\n",
+                  nullable_tag, nullable_tag),
+      std::free);
+  // clang-format on
   // Load up a test script in the test library.
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, native_field_lookup);
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars.get(), native_field_lookup);
 
   // Invoke a function which returns an object of type NativeFields.
   Dart_Handle retobj = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
@@ -4743,26 +4895,33 @@ TEST_CASE(DartAPI_ImplicitNativeFieldAccess) {
 }
 
 TEST_CASE(DartAPI_NegativeNativeFieldAccess) {
-  const char* kScriptChars =
-      "class NativeFields {\n"
-      "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
-      "  int fld1;\n"
-      "  final int fld2;\n"
-      "  static int fld3;\n"
-      "  static const int fld4 = 10;\n"
-      "}\n"
-      "NativeFields testMain1() {\n"
-      "  NativeFields obj = new NativeFields(10, 20);\n"
-      "  return obj;\n"
-      "}\n"
-      "Function testMain2() {\n"
-      "  return () {};\n"
-      "}\n";
+  // clang-format off
+  auto kScriptChars = Utils::CStringUniquePtr(
+      OS::SCreate(nullptr,
+                  "import 'dart:nativewrappers';\n"
+                  "class NativeFields {\n"
+                  "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
+                  "  int fld1;\n"
+                  "  final int fld2;\n"
+                  "  static int%s fld3;\n"
+                  "  static const int fld4 = 10;\n"
+                  "}\n"
+                  "NativeFields testMain1() {\n"
+                  "  NativeFields obj = new NativeFields(10, 20);\n"
+                  "  return obj;\n"
+                  "}\n"
+                  "Function testMain2() {\n"
+                  "  return () {};\n"
+                  "}\n",
+                  TestCase::NullableTag()),
+      std::free);
+  // clang-format on
+
   Dart_Handle result;
   CHECK_API_SCOPE(thread);
 
   // Create a test library and Load up a test script in it.
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars.get(), NULL);
 
   // Invoke a function which returns an object of type NativeFields.
   Dart_Handle retobj = Dart_Invoke(lib, NewString("testMain1"), 0, NULL);
@@ -4823,7 +4982,8 @@ TEST_CASE(DartAPI_GetStaticField_RunsInitializer) {
   Dart_Handle result;
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle type = Dart_GetType(lib, NewString("TestClass"), 0, NULL);
+  Dart_Handle type =
+      Dart_GetNonNullableType(lib, NewString("TestClass"), 0, NULL);
   EXPECT_VALID(type);
 
   // Invoke a function which returns an object.
@@ -4865,7 +5025,8 @@ TEST_CASE(DartAPI_GetField_CheckIsolate) {
 
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle type = Dart_GetType(lib, NewString("TestClass"), 0, NULL);
+  Dart_Handle type =
+      Dart_GetNonNullableType(lib, NewString("TestClass"), 0, NULL);
   EXPECT_VALID(type);
 
   result = Dart_GetField(type, NewString("fld2"));
@@ -4886,7 +5047,8 @@ TEST_CASE(DartAPI_SetField_CheckIsolate) {
 
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle type = Dart_GetType(lib, NewString("TestClass"), 0, NULL);
+  Dart_Handle type =
+      Dart_GetNonNullableType(lib, NewString("TestClass"), 0, NULL);
   EXPECT_VALID(type);
 
   result = Dart_SetField(type, NewString("fld2"), Dart_NewInteger(13));
@@ -4927,9 +5089,11 @@ TEST_CASE(DartAPI_New) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle type = Dart_GetType(lib, NewString("MyClass"), 0, NULL);
+  Dart_Handle type =
+      Dart_GetNonNullableType(lib, NewString("MyClass"), 0, NULL);
   EXPECT_VALID(type);
-  Dart_Handle intf = Dart_GetType(lib, NewString("MyInterface"), 0, NULL);
+  Dart_Handle intf =
+      Dart_GetNonNullableType(lib, NewString("MyInterface"), 0, NULL);
   EXPECT_VALID(intf);
   Dart_Handle args[1];
   args[0] = Dart_NewInteger(11);
@@ -5135,7 +5299,8 @@ TEST_CASE(DartAPI_New_Issue2971) {
   // factories.
   Dart_Handle core_lib = Dart_LookupLibrary(NewString("dart:core"));
   EXPECT_VALID(core_lib);
-  Dart_Handle list_type = Dart_GetType(core_lib, NewString("List"), 0, NULL);
+  Dart_Handle list_type =
+      Dart_GetNonNullableType(core_lib, NewString("List"), 0, NULL);
   EXPECT_VALID(list_type);
 
   const int kNumArgs = 1;
@@ -5156,16 +5321,21 @@ TEST_CASE(DartAPI_NewListOf) {
   const int kNumArgs = 1;
   Dart_Handle args[kNumArgs];
   const char* str;
-
+  Dart_Handle result;
   Dart_Handle string_list = Dart_NewListOf(Dart_CoreType_String, 1);
-  EXPECT_VALID(string_list);
-  args[0] = string_list;
-  Dart_Handle result =
-      Dart_Invoke(lib, NewString("expectListOfString"), kNumArgs, args);
-  EXPECT_VALID(result);
-  result = Dart_StringToCString(result, &str);
-  EXPECT_VALID(result);
-  EXPECT_STREQ("null", str);
+  if (!Dart_IsError(string_list)) {
+    args[0] = string_list;
+    Dart_Handle result =
+        Dart_Invoke(lib, NewString("expectListOfString"), kNumArgs, args);
+    EXPECT_VALID(result);
+    result = Dart_StringToCString(result, &str);
+    EXPECT_VALID(result);
+    EXPECT_STREQ("null", str);
+  } else {
+    EXPECT_ERROR(string_list,
+                 "Cannot use legacy types with --null-safety enabled. "
+                 "Use Dart_NewListOfType or Dart_NewListOfTypeFilled instead.");
+  }
 
   Dart_Handle dynamic_list = Dart_NewListOf(Dart_CoreType_Dynamic, 1);
   EXPECT_VALID(dynamic_list);
@@ -5176,12 +5346,17 @@ TEST_CASE(DartAPI_NewListOf) {
   EXPECT_STREQ("null", str);
 
   Dart_Handle int_list = Dart_NewListOf(Dart_CoreType_Int, 1);
-  EXPECT_VALID(int_list);
-  args[0] = int_list;
-  result = Dart_Invoke(lib, NewString("expectListOfInt"), kNumArgs, args);
-  EXPECT_VALID(result);
-  result = Dart_StringToCString(result, &str);
-  EXPECT_STREQ("null", str);
+  if (!Dart_IsError(int_list)) {
+    args[0] = int_list;
+    result = Dart_Invoke(lib, NewString("expectListOfInt"), kNumArgs, args);
+    EXPECT_VALID(result);
+    result = Dart_StringToCString(result, &str);
+    EXPECT_STREQ("null", str);
+  } else {
+    EXPECT_ERROR(int_list,
+                 "Cannot use legacy types with --null-safety enabled. "
+                 "Use Dart_NewListOfType or Dart_NewListOfTypeFilled instead.");
+  }
 }
 
 TEST_CASE(DartAPI_NewListOfType) {
@@ -5197,7 +5372,8 @@ TEST_CASE(DartAPI_NewListOfType) {
       "void expectListOfNever(List<Never> _) {}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
-  Dart_Handle zxhandle_type = Dart_GetType(lib, NewString("ZXHandle"), 0, NULL);
+  Dart_Handle zxhandle_type =
+      Dart_GetNullableType(lib, NewString("ZXHandle"), 0, NULL);
   EXPECT_VALID(zxhandle_type);
 
   Dart_Handle zxhandle = Dart_New(zxhandle_type, Dart_Null(), 0, NULL);
@@ -5209,7 +5385,7 @@ TEST_CASE(DartAPI_NewListOfType) {
   EXPECT_VALID(Dart_ListSetAt(zxhandle_list, 0, zxhandle));
 
   Dart_Handle readresult_type =
-      Dart_GetType(lib, NewString("ChannelReadResult"), 0, NULL);
+      Dart_GetNonNullableType(lib, NewString("ChannelReadResult"), 0, NULL);
   EXPECT_VALID(zxhandle_type);
 
   const int kNumArgs = 1;
@@ -5228,7 +5404,7 @@ TEST_CASE(DartAPI_NewListOfType) {
   EXPECT_VALID(dart_core);
 
   Dart_Handle string_type =
-      Dart_GetType(dart_core, NewString("String"), 0, NULL);
+      Dart_GetNonNullableType(dart_core, NewString("String"), 0, NULL);
   EXPECT_VALID(string_type);
   Dart_Handle string_list = Dart_NewListOfType(string_type, 0);
   EXPECT_VALID(string_list);
@@ -5293,7 +5469,7 @@ TEST_CASE(DartAPI_NewListOfTypeFilled) {
   EXPECT(Dart_IdentityEquals(result, zxhandle));
 
   Dart_Handle readresult_type =
-      Dart_GetType(lib, NewString("ChannelReadResult"), 0, NULL);
+      Dart_GetNonNullableType(lib, NewString("ChannelReadResult"), 0, NULL);
   EXPECT_VALID(zxhandle_type);
 
   const int kNumArgs = 1;
@@ -5355,7 +5531,8 @@ TEST_CASE(DartAPI_Invoke) {
 
   // Shared setup.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle type = Dart_GetType(lib, NewString("Methods"), 0, NULL);
+  Dart_Handle type =
+      Dart_GetNonNullableType(lib, NewString("Methods"), 0, NULL);
   EXPECT_VALID(type);
   Dart_Handle instance = Dart_Invoke(lib, NewString("test"), 0, NULL);
   EXPECT_VALID(instance);
@@ -5461,7 +5638,8 @@ TEST_CASE(DartAPI_Invoke_PrivateStatic) {
 
   // Shared setup.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle type = Dart_GetType(lib, NewString("Methods"), 0, NULL);
+  Dart_Handle type =
+      Dart_GetNonNullableType(lib, NewString("Methods"), 0, NULL);
   Dart_Handle result;
   EXPECT_VALID(type);
   Dart_Handle name = NewString("_staticMethod");
@@ -5554,7 +5732,8 @@ TEST_CASE(DartAPI_Invoke_BadArgs) {
 
   // Shared setup.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle type = Dart_GetType(lib, NewString("Methods"), 0, NULL);
+  Dart_Handle type =
+      Dart_GetNonNullableType(lib, NewString("Methods"), 0, NULL);
   EXPECT_VALID(type);
   Dart_Handle instance = Dart_Invoke(lib, NewString("test"), 0, NULL);
   EXPECT_VALID(instance);
@@ -5672,7 +5851,8 @@ TEST_CASE(DartAPI_InvokeNoSuchMethod) {
   // Create a test library and Load up a test script in it.
   // The test library must have a dart: url so it can import dart:_internal.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle type = Dart_GetType(lib, NewString("TestClass"), 0, NULL);
+  Dart_Handle type =
+      Dart_GetNonNullableType(lib, NewString("TestClass"), 0, NULL);
   EXPECT_VALID(type);
 
   // Invoke a function which returns an object.
@@ -5784,8 +5964,7 @@ TEST_CASE(DartAPI_ThrowException) {
   Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
 
   // Load up a test script which extends the native wrapper class.
-  Dart_Handle lib = TestCase::LoadTestScript(
-      kScriptChars, reinterpret_cast<Dart_NativeEntryResolver>(native_lookup));
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, native_lookup);
 
   // Throwing an exception here should result in an error.
   result = Dart_ThrowException(NewString("This doesn't work"));
@@ -5806,7 +5985,8 @@ static intptr_t kNativeArgumentNativeField2Value = 40;
 static intptr_t native_arg_str_peer = 100;
 static void NativeArgumentCreate(Dart_NativeArguments args) {
   Dart_Handle lib = Dart_LookupLibrary(NewString(TestCase::url()));
-  Dart_Handle type = Dart_GetType(lib, NewString("MyObject"), 0, NULL);
+  Dart_Handle type =
+      Dart_GetNonNullableType(lib, NewString("MyObject"), 0, NULL);
   EXPECT_VALID(type);
 
   // Allocate without a constructor.
@@ -5970,9 +6150,7 @@ TEST_CASE(DartAPI_GetNativeArguments) {
       "                           obj2);"
       "}";
 
-  Dart_Handle lib = TestCase::LoadTestScript(
-      kScriptChars,
-      reinterpret_cast<Dart_NativeEntryResolver>(native_args_lookup));
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, native_args_lookup);
 
   const char* ascii_str = "string";
   intptr_t ascii_str_length = strlen(ascii_str);
@@ -6013,8 +6191,7 @@ TEST_CASE(DartAPI_GetNativeArgumentCount) {
       "  return obj.method1(77, 125);"
       "}";
 
-  Dart_Handle lib = TestCase::LoadTestScript(
-      kScriptChars, reinterpret_cast<Dart_NativeEntryResolver>(gnac_lookup));
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, gnac_lookup);
 
   Dart_Handle result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
   EXPECT_VALID(result);
@@ -6038,92 +6215,51 @@ TEST_CASE(DartAPI_TypeToNullability) {
   const Dart_Handle name = NewString("Class");
   // Lookup the legacy type for Class.
   Dart_Handle type = Dart_GetType(lib, name, 0, NULL);
-  EXPECT_VALID(type);
-  bool result = false;
-  EXPECT_VALID(Dart_IsLegacyType(type, &result));
-  EXPECT(result);
+  Dart_Handle nonNullableType;
+  Dart_Handle nullableType;
+  if (Dart_IsError(type)) {
+    EXPECT_ERROR(
+        type,
+        "Cannot use legacy types with --null-safety enabled. "
+        "Use Dart_GetNullableType or Dart_GetNonNullableType instead.");
 
-  // Legacy -> Nullable
-  Dart_Handle nullableType = Dart_TypeToNullableType(type);
-  EXPECT_VALID(nullableType);
-  result = false;
-  EXPECT_VALID(Dart_IsNullableType(nullableType, &result));
-  EXPECT(result);
-  EXPECT(Dart_IdentityEquals(nullableType,
-                             Dart_GetNullableType(lib, name, 0, nullptr)));
+    nonNullableType = Dart_GetNonNullableType(lib, name, 0, nullptr);
+    EXPECT_VALID(nonNullableType);
+    nullableType = Dart_GetNullableType(lib, name, 0, nullptr);
+  } else {
+    EXPECT_VALID(type);
+    bool result = false;
+    EXPECT_VALID(Dart_IsLegacyType(type, &result));
+    EXPECT(result);
 
-  // Legacy -> Non-Nullable
-  Dart_Handle nonNullableType = Dart_TypeToNonNullableType(type);
-  EXPECT_VALID(nonNullableType);
-  result = false;
-  EXPECT_VALID(Dart_IsNonNullableType(nonNullableType, &result));
-  EXPECT(result);
-  EXPECT(Dart_IdentityEquals(nonNullableType,
-                             Dart_GetNonNullableType(lib, name, 0, nullptr)));
+    // Legacy -> Nullable
+    nullableType = Dart_TypeToNullableType(type);
+    EXPECT_VALID(nullableType);
+    result = false;
+    EXPECT_VALID(Dart_IsNullableType(nullableType, &result));
+    EXPECT(result);
+    EXPECT(Dart_IdentityEquals(nullableType,
+                               Dart_GetNullableType(lib, name, 0, nullptr)));
+
+    // Legacy -> Non-Nullable
+    nonNullableType = Dart_TypeToNonNullableType(type);
+    EXPECT_VALID(nonNullableType);
+    result = false;
+    EXPECT_VALID(Dart_IsNonNullableType(nonNullableType, &result));
+    EXPECT(result);
+    EXPECT(Dart_IdentityEquals(nonNullableType,
+                               Dart_GetNonNullableType(lib, name, 0, nullptr)));
+  }
 
   // Nullable -> Non-Nullable
   EXPECT(Dart_IdentityEquals(
       nonNullableType,
       Dart_TypeToNonNullableType(Dart_GetNullableType(lib, name, 0, nullptr))));
 
-  // Nullable -> Non-Nullable
+  // Non-Nullable -> Nullable
   EXPECT(Dart_IdentityEquals(
       nullableType,
       Dart_TypeToNullableType(Dart_GetNonNullableType(lib, name, 0, nullptr))));
-}
-
-TEST_CASE(DartAPI_GetType) {
-  const char* kScriptChars =
-      "library testlib;\n"
-      "class Class {\n"
-      "  static var name = 'Class';\n"
-      "}\n"
-      "\n"
-      "class _Class {\n"
-      "  static var name = '_Class';\n"
-      "}\n";
-
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-
-  // Lookup a class.
-  Dart_Handle type = Dart_GetType(lib, NewString("Class"), 0, NULL);
-  EXPECT_VALID(type);
-  bool result = false;
-  EXPECT_VALID(Dart_IsLegacyType(type, &result));
-  EXPECT(result);
-  Dart_Handle name = Dart_GetField(type, NewString("name"));
-  EXPECT_VALID(name);
-  const char* name_cstr = "";
-  EXPECT_VALID(Dart_StringToCString(name, &name_cstr));
-  EXPECT_STREQ("Class", name_cstr);
-
-  // Lookup a private class.
-  type = Dart_GetType(lib, NewString("_Class"), 0, NULL);
-  EXPECT_VALID(type);
-  result = false;
-  EXPECT_VALID(Dart_IsLegacyType(type, &result));
-  EXPECT(result);
-  name = Dart_GetField(type, NewString("name"));
-  EXPECT_VALID(name);
-  name_cstr = "";
-  EXPECT_VALID(Dart_StringToCString(name, &name_cstr));
-  EXPECT_STREQ("_Class", name_cstr);
-
-  // Lookup a class that does not exist.
-  type = Dart_GetType(lib, NewString("DoesNotExist"), 0, NULL);
-  EXPECT(Dart_IsError(type));
-  EXPECT_STREQ("Type 'DoesNotExist' not found in library 'testlib'.",
-               Dart_GetError(type));
-
-  // Lookup a class from an error library.  The error propagates.
-  type = Dart_GetType(Api::NewError("myerror"), NewString("Class"), 0, NULL);
-  EXPECT(Dart_IsError(type));
-  EXPECT_STREQ("myerror", Dart_GetError(type));
-
-  // Lookup a type using an error class name.  The error propagates.
-  type = Dart_GetType(lib, Api::NewError("myerror"), 0, NULL);
-  EXPECT(Dart_IsError(type));
-  EXPECT_STREQ("myerror", Dart_GetError(type));
 }
 
 TEST_CASE(DartAPI_GetNullableType) {
@@ -6263,7 +6399,8 @@ TEST_CASE(DartAPI_InstanceOf) {
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
   // Fetch InstanceOfTest class.
-  Dart_Handle type = Dart_GetType(lib, NewString("InstanceOfTest"), 0, NULL);
+  Dart_Handle type =
+      Dart_GetNonNullableType(lib, NewString("InstanceOfTest"), 0, NULL);
   EXPECT_VALID(type);
 
   // Invoke a function which returns an object of type InstanceOf..
@@ -6279,7 +6416,8 @@ TEST_CASE(DartAPI_InstanceOf) {
   EXPECT(is_instance);
 
   // Fetch OtherClass and check if instanceOfTestObj is instance of it.
-  Dart_Handle otherType = Dart_GetType(lib, NewString("OtherClass"), 0, NULL);
+  Dart_Handle otherType =
+      Dart_GetNonNullableType(lib, NewString("OtherClass"), 0, NULL);
   EXPECT_VALID(otherType);
 
   result = Dart_ObjectIsType(instanceOfTestObj, otherType, &is_instance);
@@ -6472,7 +6610,7 @@ TEST_CASE(DartAPI_SetNativeResolver) {
   result = Dart_FinalizeLoading(false);
   EXPECT_VALID(result);
   EXPECT(Dart_IsLibrary(lib));
-  Dart_Handle type = Dart_GetType(lib, NewString("Test"), 0, NULL);
+  Dart_Handle type = Dart_GetNonNullableType(lib, NewString("Test"), 0, NULL);
   EXPECT_VALID(type);
 
   result = Dart_SetNativeResolver(Dart_Null(), &MyNativeResolver1, NULL);
@@ -8206,9 +8344,9 @@ TEST_CASE(DartAPI_NotifyIdleShort) {
       "void main() {\n"
       "  var v;\n"
       "  for (var i = 0; i < 100; i++) {\n"
-      "    var t = new List();\n"
+      "    var t = [];\n"
       "    for (var j = 0; j < 10000; j++) {\n"
-      "      t.add(new List(100));\n"
+      "      t.add(List.filled(100, null));\n"
       "    }\n"
       "    v = t;\n"
       "    notifyIdle();\n"
@@ -8237,9 +8375,9 @@ TEST_CASE(DartAPI_NotifyIdleLong) {
       "void main() {\n"
       "  var v;\n"
       "  for (var i = 0; i < 100; i++) {\n"
-      "    var t = new List();\n"
+      "    var t = [];\n"
       "    for (var j = 0; j < 10000; j++) {\n"
-      "      t.add(new List(100));\n"
+      "      t.add(List.filled(100, null));\n"
       "    }\n"
       "    v = t;\n"
       "    notifyIdle();\n"
@@ -8269,9 +8407,9 @@ TEST_CASE(DartAPI_NotifyLowMemory) {
       "void main() {\n"
       "  var v;\n"
       "  for (var i = 0; i < 100; i++) {\n"
-      "    var t = new List();\n"
+      "    var t = [];\n"
       "    for (var j = 0; j < 10000; j++) {\n"
-      "      t.add(new List(100));\n"
+      "      t.add(List.filled(100, null));\n"
       "    }\n"
       "    v = t;\n"
       "    notifyLowMemory();\n"
@@ -8346,6 +8484,7 @@ TEST_CASE(DartAPI_InvokeVMServiceMethod) {
           if (!condition) {
             throw 'Failed to validate InvokeVMServiceMethod() response.';
           }
+          return false;
         }
         bool validateResult(Uint8List bytes) {
           final map = json.decode(utf8.decode(bytes));

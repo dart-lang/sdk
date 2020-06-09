@@ -426,13 +426,17 @@ Fragment BaseFlowGraphBuilder::DoubleToFloat() {
   return Fragment(instr);
 }
 
-Fragment BaseFlowGraphBuilder::LoadField(const Field& field) {
-  return LoadNativeField(Slot::Get(MayCloneField(field), parsed_function_));
+Fragment BaseFlowGraphBuilder::LoadField(const Field& field,
+                                         bool calls_initializer) {
+  return LoadNativeField(Slot::Get(MayCloneField(field), parsed_function_),
+                         calls_initializer);
 }
 
-Fragment BaseFlowGraphBuilder::LoadNativeField(const Slot& native_field) {
-  LoadFieldInstr* load =
-      new (Z) LoadFieldInstr(Pop(), native_field, TokenPosition::kNoSource);
+Fragment BaseFlowGraphBuilder::LoadNativeField(const Slot& native_field,
+                                               bool calls_initializer) {
+  LoadFieldInstr* load = new (Z) LoadFieldInstr(
+      Pop(), native_field, TokenPosition::kNoSource, calls_initializer,
+      calls_initializer ? GetNextDeoptId() : DeoptId::kNone);
   Push(load);
   return Fragment(load);
 }
@@ -538,9 +542,11 @@ Fragment BaseFlowGraphBuilder::StoreInstanceFieldGuarded(
   return instructions;
 }
 
-Fragment BaseFlowGraphBuilder::LoadStaticField(const Field& field) {
-  LoadStaticFieldInstr* load =
-      new (Z) LoadStaticFieldInstr(field, TokenPosition::kNoSource);
+Fragment BaseFlowGraphBuilder::LoadStaticField(const Field& field,
+                                               bool calls_initializer) {
+  LoadStaticFieldInstr* load = new (Z) LoadStaticFieldInstr(
+      field, TokenPosition::kNoSource, calls_initializer,
+      calls_initializer ? GetNextDeoptId() : DeoptId::kNone);
   Push(load);
   return Fragment(load);
 }
@@ -830,9 +836,6 @@ JoinEntryInstr* BaseFlowGraphBuilder::BuildThrowNoSuchMethod() {
 }
 
 Fragment BaseFlowGraphBuilder::AssertBool(TokenPosition position) {
-  if (!I->should_emit_strong_mode_checks()) {
-    return Fragment();
-  }
   Value* value = Pop();
   AssertBooleanInstr* instr =
       new (Z) AssertBooleanInstr(position, value, GetNextDeoptId());
@@ -1108,19 +1111,15 @@ void BaseFlowGraphBuilder::reset_context_depth_for_deopt_id(intptr_t deopt_id) {
 
 Fragment BaseFlowGraphBuilder::AssertAssignable(
     TokenPosition position,
-    const AbstractType& dst_type,
     const String& dst_name,
     AssertAssignableInstr::Kind kind) {
-  if (!I->should_emit_strong_mode_checks()) {
-    return Drop() + Drop();
-  }
-
   Value* function_type_args = Pop();
   Value* instantiator_type_args = Pop();
+  Value* dst_type = Pop();
   Value* value = Pop();
 
   AssertAssignableInstr* instr = new (Z) AssertAssignableInstr(
-      position, value, instantiator_type_args, function_type_args, dst_type,
+      position, value, dst_type, instantiator_type_args, function_type_args,
       dst_name, GetNextDeoptId(), kind);
   Push(instr);
 

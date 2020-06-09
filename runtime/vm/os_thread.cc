@@ -4,6 +4,7 @@
 
 #include "vm/os_thread.h"
 
+#include "platform/address_sanitizer.h"
 #include "platform/atomic.h"
 #include "vm/lockers.h"
 #include "vm/log.h"

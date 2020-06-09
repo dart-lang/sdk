@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "experimentSets": {
+    "nullSafety": ["non-nullable"]
+  },
+  "sdk": {
+    "default": {
+      "experimentSet": "nullSafety"
+    },
+    "_example_libraries": {
+      "ui": {
+        "experimentSet": "nullSafety"
+      }
+    }
+  },
+  "_example_packages": {
+    "collection": {
+      "experimentSet": "nullSafety"
+    }
+  }
+}

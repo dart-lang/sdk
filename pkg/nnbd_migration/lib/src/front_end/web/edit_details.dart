@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:meta/meta.dart';
+import 'package:nnbd_migration/src/front_end/migration_info.dart';
 
 /// Information about what should be populated into the "Edit Details" view of
 /// the migration preview tool.
@@ -18,8 +19,11 @@ class EditDetails {
   /// The line number of the edit.
   final int line;
 
-  /// The path of the file that was edited.
-  final String path;
+  /// The path of the file that was edited, to be shown to the user.
+  final String displayPath;
+
+  /// The path of the file that was edited, as a URI.
+  final String uriPath;
 
   /// A list of traces representing stacktrace-like views of why the change was
   /// made, or the empty list if there are no traces for this change.
@@ -29,21 +33,24 @@ class EditDetails {
       {this.edits,
       @required this.explanation,
       @required this.line,
-      @required this.path,
+      @required this.displayPath,
+      @required this.uriPath,
       this.traces = const []});
 
   EditDetails.fromJson(dynamic json)
       : edits = _decodeEdits(json['edits']),
         explanation = json['explanation'] as String,
         line = json['line'] as int,
-        path = json['path'] as String,
+        displayPath = json['displayPath'] as String,
+        uriPath = json['uriPath'] as String,
         traces = _decodeTraces(json['traces']);
 
   Map<String, Object> toJson() => {
         if (edits != null) 'edits': [for (var edit in edits) edit.toJson()],
         'explanation': explanation,
         'line': line,
-        'path': path,
+        'displayPath': displayPath,
+        'uriPath': uriPath,
         if (traces != null)
           'traces': [for (var trace in traces) trace.toJson()],
       };
@@ -143,17 +150,32 @@ class TraceEntry {
   /// code location is known.
   final TargetLink link;
 
-  TraceEntry({@required this.description, this.function, this.link});
+  /// The hint actions available to affect this entry of the trace, or `[]` if
+  /// none.
+  final List<HintAction> hintActions;
+
+  TraceEntry(
+      {@required this.description,
+      this.function,
+      this.link,
+      this.hintActions = const []});
 
   TraceEntry.fromJson(dynamic json)
       : description = json['description'] as String,
         function = json['function'] as String,
-        link = _decodeLink(json['link']);
+        link = _decodeLink(json['link']),
+        hintActions = (json['hintActions'] as List)
+                ?.map((value) =>
+                    HintAction.fromJson(value as Map<String, Object>))
+                ?.toList() ??
+            const [];
 
   Map<String, Object> toJson() => {
         'description': description,
         if (function != null) 'function': function,
-        if (link != null) 'link': link.toJson()
+        if (link != null) 'link': link.toJson(),
+        if (!hintActions.isEmpty)
+          'hintActions': hintActions.map((action) => action.toJson()).toList()
       };
 
   static TargetLink _decodeLink(dynamic json) =>

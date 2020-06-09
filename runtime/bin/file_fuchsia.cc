@@ -480,7 +480,7 @@ static int64_t TimespecToMilliseconds(const struct timespec& t) {
 static void MillisecondsToTimespec(int64_t millis, struct timespec* t) {
   ASSERT(t != NULL);
   t->tv_sec = millis / kMillisecondsPerSecond;
-  t->tv_nsec = (millis - (t->tv_sec * kMillisecondsPerSecond)) * 1000L;
+  t->tv_nsec = (millis % kMillisecondsPerSecond) * 1000L;
 }
 
 void File::Stat(Namespace* namespc, const char* name, int64_t* data) {
@@ -598,7 +598,10 @@ bool File::IsAbsolutePath(const char* pathname) {
   return ((pathname != NULL) && (pathname[0] == '/'));
 }
 
-const char* File::GetCanonicalPath(Namespace* namespc, const char* name) {
+const char* File::GetCanonicalPath(Namespace* namespc,
+                                   const char* name,
+                                   char* dest,
+                                   int dest_size) {
   if (name == NULL) {
     return NULL;
   }
@@ -609,13 +612,17 @@ const char* File::GetCanonicalPath(Namespace* namespc, const char* name) {
     return name;
   }
   char* abs_path;
-  char* resolved_path = DartUtils::ScopedCString(PATH_MAX + 1);
-  ASSERT(resolved_path != NULL);
+  if (dest == NULL) {
+    dest = DartUtils::ScopedCString(PATH_MAX + 1);
+  } else {
+    ASSERT(dest_size >= PATH_MAX);
+  }
+  ASSERT(dest != NULL);
   do {
-    abs_path = realpath(name, resolved_path);
+    abs_path = realpath(name, dest);
   } while ((abs_path == NULL) && (errno == EINTR));
   ASSERT(abs_path == NULL || IsAbsolutePath(abs_path));
-  ASSERT(abs_path == NULL || (abs_path == resolved_path));
+  ASSERT(abs_path == NULL || (abs_path == dest));
   return abs_path;
 }
 

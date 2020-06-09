@@ -180,20 +180,19 @@ struct TTSInternalRegs {
 // ABI for InitStaticFieldStub.
 struct InitStaticFieldABI {
   static const Register kFieldReg = R0;
+  static const Register kResultReg = R0;
 };
 
 // ABI for InitInstanceFieldStub.
 struct InitInstanceFieldABI {
-  static const Register kInstanceReg = R0;
-  static const Register kFieldReg = R1;
+  static const Register kInstanceReg = R1;
+  static const Register kFieldReg = R2;
+  static const Register kResultReg = R0;
 };
 
 // Registers used inside the implementation of InitLateInstanceFieldStub.
 struct InitLateInstanceFieldInternalRegs {
   static const Register kFunctionReg = R0;
-  static const Register kInitializerResultReg = R0;
-  static const Register kInstanceReg = R1;
-  static const Register kFieldReg = R2;
   static const Register kAddressReg = R3;
   static const Register kScratchReg = R4;
 };
@@ -374,6 +373,8 @@ enum Condition {
   UNSIGNED_LESS_EQUAL = LS,
   UNSIGNED_GREATER = HI,
   UNSIGNED_GREATER_EQUAL = CS,
+  OVERFLOW = VS,
+  NO_OVERFLOW = VC,
 
   kInvalidCondition = 16
 };
@@ -583,6 +584,8 @@ enum LoadStoreExclusiveOp {
   LoadStoreExclusiveFixed = B27,
   LDXR = LoadStoreExclusiveFixed | B22,
   STXR = LoadStoreExclusiveFixed,
+  LDAR = LoadStoreExclusiveFixed | B23 | B22 | B15,
+  STLR = LoadStoreExclusiveFixed | B23 | B15,
 };
 
 // C3.3.7-10
@@ -1017,9 +1020,9 @@ static inline uint64_t RotateRight(uint64_t value,
                                    uint8_t rotate,
                                    uint8_t width) {
   ASSERT(width <= 64);
-  rotate &= 63;
-  return ((value & ((1ULL << rotate) - 1ULL)) << (width - rotate)) |
-         (value >> rotate);
+  uint8_t right = rotate & 63;
+  uint8_t left = (width - rotate) & 63;
+  return ((value & ((1ULL << right) - 1ULL)) << left) | (value >> right);
 }
 
 static inline uint64_t RepeatBitsAcrossReg(uint8_t reg_size,

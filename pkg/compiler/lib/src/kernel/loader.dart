@@ -16,6 +16,7 @@ import 'package:kernel/kernel.dart' hide LibraryDependency, Combinator;
 import 'package:kernel/target/targets.dart' hide DiagnosticReporter;
 
 import '../../compiler_new.dart' as api;
+import '../commandline_options.dart' show Flags;
 import '../common/tasks.dart' show CompilerTask, Measurer;
 import '../common.dart';
 import '../options.dart';
@@ -59,9 +60,44 @@ class KernelLoaderTask extends CompilerTask {
     return measure(() async {
       String targetName =
           _options.compileForServer ? "dart2js_server" : "dart2js";
-      String platform = '${targetName}_platform.dill';
-      var isDill = resolvedUri.path.endsWith('.dill');
+
+      // We defer selecting the platform until we've resolved the NNBD mode.
+      String getPlatformFilename() {
+        String platform = targetName;
+        if ((_options.nullSafetyMode == NullSafetyMode.sound)) {
+          platform += "_nnbd_strong";
+        }
+        platform += "_platform.dill";
+        return platform;
+      }
+
       ir.Component component;
+      var isDill = resolvedUri.path.endsWith('.dill');
+
+      // TODO(sigmund): remove after we unfork the sdk, and force null-safety to
+      // always be considered to be true.
+      void inferNullSafety() {
+        if (component.libraries.any((lib) =>
+            lib.isNonNullableByDefault && lib.importUri.scheme == 'dart')) {
+          _options.useNullSafety = true;
+        }
+      }
+
+      void inferNullSafetyMode(bool isSound) {
+        if (isSound) assert(_options.useNullSafety == true);
+        if (_options.nullSafetyMode == NullSafetyMode.unspecified) {
+          _options.nullSafetyMode =
+              isSound ? NullSafetyMode.sound : NullSafetyMode.unsound;
+        }
+      }
+
+      void validateNullSafety() {
+        assert(_options.nullSafetyMode != NullSafetyMode.unspecified);
+        if (_options.nullSafetyMode == NullSafetyMode.sound) {
+          assert(_options.useNullSafety);
+        }
+      }
+
       if (isDill) {
         component = new ir.Component();
         Future<void> read(Uri uri) async {
@@ -71,11 +107,28 @@ class KernelLoaderTask extends CompilerTask {
         }
 
         await read(resolvedUri);
+
+        var isStrongDill =
+            component.mode == ir.NonNullableByDefaultCompiledMode.Strong;
+        var incompatibleNullSafetyMode =
+            isStrongDill ? NullSafetyMode.unsound : NullSafetyMode.sound;
+        if (_options.nullSafetyMode == incompatibleNullSafetyMode) {
+          var dillMode = isStrongDill ? 'sound' : 'unsound';
+          var option =
+              isStrongDill ? Flags.noSoundNullSafety : Flags.soundNullSafety;
+          throw ArgumentError("$resolvedUri was compiled with $dillMode null "
+              "safety and is incompatible with the '$option' option");
+        }
+        inferNullSafety();
+        inferNullSafetyMode(isStrongDill);
+        validateNullSafety();
+
         if (_options.dillDependencies != null) {
           // Modular compiles do not include the platform on the input dill
           // either.
           if (_options.platformBinaries != null) {
-            await read(_options.platformBinaries.resolve(platform));
+            await read(
+                _options.platformBinaries.resolve(getPlatformFilename()));
           }
           for (Uri dependency in _options.dillDependencies) {
             await read(dependency);
@@ -92,16 +145,34 @@ class KernelLoaderTask extends CompilerTask {
           return null;
         }
       } else {
+        bool verbose = false;
+        Target target = Dart2jsTarget(targetName, TargetFlags());
+        fe.FileSystem fileSystem = CompilerFileSystem(_compilerInput);
+        fe.DiagnosticMessageHandler onDiagnostic =
+            (e) => reportFrontEndMessage(_reporter, e);
+        fe.CompilerOptions options = fe.CompilerOptions()
+          ..target = target
+          ..librariesSpecificationUri = _options.librariesSpecificationUri
+          ..packagesFileUri = _options.packageConfig
+          ..experimentalFlags = _options.languageExperiments
+          ..verbose = verbose
+          ..fileSystem = fileSystem
+          ..onDiagnostic = onDiagnostic;
+        bool isLegacy =
+            await fe.uriUsesLegacyLanguageVersion(resolvedUri, options);
+        inferNullSafetyMode(_options.useNullSafety && !isLegacy);
+
         List<Uri> dependencies = [];
         if (_options.platformBinaries != null) {
-          dependencies.add(_options.platformBinaries.resolve(platform));
+          dependencies
+              .add(_options.platformBinaries.resolve(getPlatformFilename()));
         }
         if (_options.dillDependencies != null) {
           dependencies.addAll(_options.dillDependencies);
         }
         initializedCompilerState = fe.initializeCompiler(
             initializedCompilerState,
-            new Dart2jsTarget(targetName, new TargetFlags()),
+            target,
             _options.librariesSpecificationUri,
             dependencies,
             _options.packageConfig,
@@ -109,20 +180,11 @@ class KernelLoaderTask extends CompilerTask {
             nnbdMode: _options.useLegacySubtyping
                 ? fe.NnbdMode.Weak
                 : fe.NnbdMode.Strong);
-        component = await fe.compile(
-            initializedCompilerState,
-            false,
-            new CompilerFileSystem(_compilerInput),
-            (e) => reportFrontEndMessage(_reporter, e),
-            resolvedUri);
-      }
-      if (component == null) return null;
-
-      // TODO(sigmund): remove after we unfork the sdk, and force null-safety to
-      // always be considered to be true.
-      if (component.libraries.any((lib) =>
-          lib.isNonNullableByDefault && lib.importUri.scheme == 'dart')) {
-        _options.useNullSafety = true;
+        component = await fe.compile(initializedCompilerState, verbose,
+            fileSystem, onDiagnostic, resolvedUri);
+        if (component == null) return null;
+        inferNullSafety();
+        validateNullSafety();
       }
 
       if (_options.cfeOnly) {

@@ -179,7 +179,7 @@ class PatchCodeWithHandle : public AssemblerFixup {
     // Patch the handle into the code. Once the instructions are installed into
     // a raw code object and the pointer offsets are setup, the handle is
     // resolved.
-    region.Store<const Object*>(position, &object_);
+    region.StoreUnaligned<const Object*>(position, &object_);
     pointer_offsets_->Add(position);
   }
 

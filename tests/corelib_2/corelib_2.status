@@ -11,6 +11,9 @@ regexp/pcre_test: Slow, Pass # Issue 22008
 [ $runtime != none ]
 string_runes_test: Skip # See breaking change #40674
 
+[ $system == android ]
+throw_half_surrogate_pair_test/*: Skip # Issue http://dartbug.com/42094
+
 [ $arch == x64 && $system == windows ]
 stopwatch_test: Skip # Flaky test due to expected performance behaviour.
 

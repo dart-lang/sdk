@@ -11,21 +11,21 @@ import "package:expect/expect.dart";
 abstract class TestNamedOrderBase extends core::Object {
 [@vm.unboxing-info.metadata=(i)->b]  constructor •([@vm.inferred-type.metadata=int] dynamic w, [@vm.inferred-type.metadata=int] core::int* x, [@vm.inferred-type.metadata=int] core::int* y, [@vm.inferred-type.metadata=int] core::int* z) → self::TestNamedOrderBase*
     : super core::Object::•() {
-    let core::int* #arg1 = _in::unsafeCast<core::int*>(w) in let core::int* #arg2 = z in let core::int* #arg3 = y in let core::int* #arg4 = x in self::testNamedOrder(#arg1, #arg4, #arg3, #arg2);
+    let core::int* #t1 = _in::unsafeCast<core::int*>(w) in let core::int* #t2 = z in let core::int* #t3 = y in let core::int* #t4 = x in self::testNamedOrder(#t1, #t4, #t3, #t2);
   }
 }
 class TestNamedOrderSub extends self::TestNamedOrderBase {
 [@vm.inferred-type.metadata=int] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  field core::int* x;
   constructor •() → self::TestNamedOrderSub*
-    : self::TestNamedOrderSub::x = [@vm.inferred-type.metadata=int] self::dec(), dynamic #arg0 = [@vm.inferred-type.metadata=int] self::inc(), dynamic #arg1 = [@vm.inferred-type.metadata=int] self::inc(), dynamic #arg2 = [@vm.inferred-type.metadata=int] self::inc(), dynamic #arg3 = [@vm.inferred-type.metadata=int] self::dec(), super self::TestNamedOrderBase::•(#arg0, #arg3, #arg2, #arg1) {
-    exp::Expect::equals([@vm.direct-call.metadata=TestNamedOrderSub::x] [@vm.inferred-type.metadata=int] this.{self::TestNamedOrderSub::x}, 0);
+    : self::TestNamedOrderSub::x = [@vm.inferred-type.metadata=int] self::dec(), dynamic #t5 = [@vm.inferred-type.metadata=int] self::inc(), dynamic #t6 = [@vm.inferred-type.metadata=int] self::inc(), dynamic #t7 = [@vm.inferred-type.metadata=int] self::inc(), dynamic #t8 = [@vm.inferred-type.metadata=int] self::dec(), super self::TestNamedOrderBase::•(#t5, #t8, #t7, #t6) {
+    exp::Expect::equals([@vm.direct-call.metadata=TestNamedOrderSub.x] [@vm.inferred-type.metadata=int] this.{self::TestNamedOrderSub::x}, 0);
   }
 }
 [@vm.inferred-type.metadata=int?]static field core::int* global = 0;
 [@vm.unboxing-info.metadata=()->i]static method inc() → core::int*
-  return self::global = [@vm.direct-call.metadata=_IntegerImplementation::+??] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=int?] self::global.{core::num::+}(1);
+  return self::global = [@vm.direct-call.metadata=_IntegerImplementation.+??] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=int?] self::global.{core::num::+}(1);
 [@vm.unboxing-info.metadata=()->i]static method dec() → core::int*
-  return self::global = [@vm.inferred-type.metadata=int] math::max<core::int*>(0, self::global = [@vm.direct-call.metadata=_IntegerImplementation::-??] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=int?] self::global.{core::num::-}(1));
+  return self::global = [@vm.inferred-type.metadata=int] math::max<core::int*>(0, self::global = [@vm.direct-call.metadata=_IntegerImplementation.-??] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=int?] self::global.{core::num::-}(1));
 [@vm.unboxing-info.metadata=(i)->b]static method testNamedOrder([@vm.inferred-type.metadata=int] core::int* w, [@vm.inferred-type.metadata=int] core::int* x, [@vm.inferred-type.metadata=int] core::int* y, [@vm.inferred-type.metadata=int] core::int* z) → void {
   exp::Expect::equals(w, 1);
   exp::Expect::equals(z, 2);
@@ -33,7 +33,7 @@ class TestNamedOrderSub extends self::TestNamedOrderBase {
   exp::Expect::equals(x, 2);
 }
 static method main() → dynamic {
-  let core::int* #arg1 = [@vm.inferred-type.metadata=int] self::inc() in let core::int* #arg2 = [@vm.inferred-type.metadata=int] self::inc() in let core::int* #arg3 = [@vm.inferred-type.metadata=int] self::inc() in let core::int* #arg4 = [@vm.inferred-type.metadata=int] self::dec() in self::testNamedOrder(#arg1, #arg4, #arg3, #arg2);
+  let core::int* #t9 = [@vm.inferred-type.metadata=int] self::inc() in let core::int* #t10 = [@vm.inferred-type.metadata=int] self::inc() in let core::int* #t11 = [@vm.inferred-type.metadata=int] self::inc() in let core::int* #t12 = [@vm.inferred-type.metadata=int] self::dec() in self::testNamedOrder(#t9, #t12, #t11, #t10);
   self::global = 1;
   new self::TestNamedOrderSub::•();
 }

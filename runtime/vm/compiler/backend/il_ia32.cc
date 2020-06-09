@@ -363,27 +363,18 @@ void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
-  const intptr_t kNumInputs = 3;
+  const intptr_t kNumInputs = 4;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(EAX));  // Value.
-  summary->set_in(1, Location::RegisterLocation(
+  summary->set_in(0, Location::RegisterLocation(TypeTestABI::kInstanceReg));
+  summary->set_in(
+      1, LocationFixedRegisterOrConstant(dst_type(), TypeTestABI::kDstTypeReg));
+  summary->set_in(2, Location::RegisterLocation(
                          TypeTestABI::kInstantiatorTypeArgumentsReg));
   summary->set_in(
-      2, Location::RegisterLocation(TypeTestABI::kFunctionTypeArgumentsReg));
-  summary->set_out(0, Location::RegisterLocation(EAX));
-  return summary;
-}
-
-LocationSummary* AssertSubtypeInstr::MakeLocationSummary(Zone* zone,
-                                                         bool opt) const {
-  const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(EDX));  // Instant. type args.
-  summary->set_in(1, Location::RegisterLocation(ECX));  // Function type args.
+      3, Location::RegisterLocation(TypeTestABI::kFunctionTypeArgumentsReg));
+  summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
 
@@ -1353,6 +1344,7 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
     case kArrayCid:
       return kTagged;
     case kOneByteStringCid:
+    case kTwoByteStringCid:
     case kTypedDataInt8ArrayCid:
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint8ArrayCid:
@@ -1416,6 +1408,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
     case kTypedDataUint8ArrayCid:
     case kTypedDataUint8ClampedArrayCid:
     case kOneByteStringCid:
+    case kTwoByteStringCid:
       // TODO(fschneider): Add location constraint for byte registers (EAX,
       // EBX, ECX, EDX) instead of using a fixed register.
       locs->set_in(2, LocationFixedRegisterOrSmiConstant(value(), EAX));
@@ -1526,6 +1519,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       break;
     }
+    case kTwoByteStringCid:
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint16ArrayCid: {
       ASSERT(RequiredInputRepresentation(2) == kUnboxedIntPtr);
@@ -2099,37 +2093,6 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&skip_store);
 }
 
-LocationSummary* LoadStaticFieldInstr::MakeLocationSummary(Zone* zone,
-                                                           bool opt) const {
-  const intptr_t kNumInputs = 0;
-  const intptr_t kNumTemps = 1;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_temp(0, Location::RequiresRegister());
-  summary->set_out(0, Location::RequiresRegister());
-  return summary;
-}
-
-// When the parser is building an implicit static getter for optimization,
-// it can generate a function body where deoptimization ids do not line up
-// with the unoptimized code.
-//
-// This is safe only so long as LoadStaticFieldInstr cannot deoptimize.
-void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register result = locs()->out(0).reg();
-  Register temp = locs()->temp(0).reg();
-
-  compiler->used_static_fields().Add(&StaticField());
-
-  __ movl(temp,
-          compiler::Address(
-              THR, compiler::target::Thread::field_table_values_offset()));
-  // Note: static fields ids won't be changed by hot-reload.
-  __ movl(result,
-          compiler::Address(
-              temp, compiler::target::FieldTable::OffsetOf(StaticField())));
-}
-
 LocationSummary* StoreStaticFieldInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
   LocationSummary* locs =
@@ -2292,22 +2255,33 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps =
       (IsUnboxedLoad() && opt) ? 1 : ((IsPotentialUnboxedLoad()) ? 2 : 0);
+  const auto contains_call =
+      (IsUnboxedLoad() && opt)
+          ? LocationSummary::kNoCall
+          : (IsPotentialUnboxedLoad()
+                 ? LocationSummary::kCallOnSlowPath
+                 : (calls_initializer() ? LocationSummary::kCall
+                                        : LocationSummary::kNoCall));
 
-  LocationSummary* locs = new (zone) LocationSummary(
-      zone, kNumInputs, kNumTemps,
-      (opt && !IsPotentialUnboxedLoad()) ? LocationSummary::kNoCall
-                                         : LocationSummary::kCallOnSlowPath);
+  LocationSummary* locs =
+      new (zone) LocationSummary(zone, kNumInputs, kNumTemps, contains_call);
 
-  locs->set_in(0, Location::RequiresRegister());
+  locs->set_in(0, calls_initializer() ? Location::RegisterLocation(
+                                            InitInstanceFieldABI::kInstanceReg)
+                                      : Location::RequiresRegister());
 
   if (IsUnboxedLoad() && opt) {
+    ASSERT(!calls_initializer());
     locs->set_temp(0, Location::RequiresRegister());
   } else if (IsPotentialUnboxedLoad()) {
+    ASSERT(!calls_initializer());
     locs->set_temp(0, opt ? Location::RequiresFpuRegister()
                           : Location::FpuRegisterLocation(XMM1));
     locs->set_temp(1, Location::RequiresRegister());
   }
-  locs->set_out(0, Location::RequiresRegister());
+  locs->set_out(0, calls_initializer() ? Location::RegisterLocation(
+                                             InitInstanceFieldABI::kResultReg)
+                                       : Location::RequiresRegister());
   return locs;
 }
 
@@ -2316,6 +2290,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Register instance_reg = locs()->in(0).reg();
   if (IsUnboxedLoad() && compiler->is_optimizing()) {
+    ASSERT(!calls_initializer());
     XmmRegister result = locs()->out(0).fpu_reg();
     Register temp = locs()->temp(0).reg();
     __ movl(temp, compiler::FieldAddress(instance_reg, OffsetInBytes()));
@@ -2344,6 +2319,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler::Label done;
   Register result = locs()->out(0).reg();
   if (IsPotentialUnboxedLoad()) {
+    ASSERT(!calls_initializer());
     Register temp = locs()->temp(1).reg();
     XmmRegister value = locs()->temp(0).fpu_reg();
 
@@ -2412,7 +2388,13 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     __ Bind(&load_pointer);
   }
+
   __ movl(result, compiler::FieldAddress(instance_reg, OffsetInBytes()));
+
+  if (calls_initializer()) {
+    EmitNativeCodeForInitializerCall(compiler);
+  }
+
   __ Bind(&done);
 }
 

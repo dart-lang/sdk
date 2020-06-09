@@ -907,7 +907,6 @@ void AssertAssignableInstr::AddExtraInfoToSExpression(
     SExpList* sexp,
     FlowGraphSerializer* s) const {
   Instruction::AddExtraInfoToSExpression(sexp, s);
-  sexp->AddExtra("type", s->DartValueToSExp(dst_type()));
   sexp->AddExtra("name", s->DartValueToSExp(dst_name()));
 }
 
@@ -975,6 +974,14 @@ void LoadFieldInstr::AddOperandsToSExpression(SExpList* sexp,
                                               FlowGraphSerializer* s) const {
   sexp->Add(instance()->ToSExpression(s));
   sexp->Add(s->SlotToSExp(slot()));
+}
+
+void LoadFieldInstr::AddExtraInfoToSExpression(SExpList* sexp,
+                                               FlowGraphSerializer* s) const {
+  Instruction::AddExtraInfoToSExpression(sexp, s);
+  if (calls_initializer() || FLAG_verbose_flow_graph_serialization) {
+    s->AddExtraBool(sexp, "calls_initializer", calls_initializer());
+  }
 }
 
 void StoreInstanceFieldInstr::AddOperandsToSExpression(

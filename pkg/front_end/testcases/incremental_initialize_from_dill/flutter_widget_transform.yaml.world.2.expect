@@ -5,6 +5,11 @@ library from "package:flutter/src/widgets/framework.dart" as fra {
     synthetic constructor •() → fra::Bar*
       : super dart.core::Object::•()
       ;
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*;
+    abstract member-signature get hashCode() → dart.core::int*;
+    abstract member-signature method toString() → dart.core::String*;
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic;
+    abstract member-signature get runtimeType() → dart.core::Type*;
   }
   abstract class Widget extends fra::Bar implements wid::_HasCreationLocation {
     final field wid::_Location* _location /* from null */;
@@ -20,6 +25,11 @@ library from "package:flutter/src/widgets/widget_inspector.dart" as wid {
       : super dart.core::Object::•()
       ;
     abstract get _location() → wid::_Location*;
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*;
+    abstract member-signature get hashCode() → dart.core::int*;
+    abstract member-signature method toString() → dart.core::String*;
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic;
+    abstract member-signature get runtimeType() → dart.core::Type*;
   }
   class _Location extends dart.core::Object /*hasConstConstructor*/  {
     final field dart.core::String* file;
@@ -30,6 +40,11 @@ library from "package:flutter/src/widgets/widget_inspector.dart" as wid {
     const constructor •({dart.core::String* file = #C1, dart.core::int* line = #C1, dart.core::int* column = #C1, dart.core::String* name = #C1, dart.core::List<wid::_Location*>* parameterLocations = #C1}) → wid::_Location*
       : wid::_Location::file = file, wid::_Location::line = line, wid::_Location::column = column, wid::_Location::name = name, wid::_Location::parameterLocations = parameterLocations, super dart.core::Object::•()
       ;
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*;
+    abstract member-signature get hashCode() → dart.core::int*;
+    abstract member-signature method toString() → dart.core::String*;
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic;
+    abstract member-signature get runtimeType() → dart.core::Type*;
   }
 }
 library from "org-dartlang-test:///main.dart" as main {

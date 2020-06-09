@@ -11,7 +11,6 @@ import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analysis_server_abstract.dart';
-import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/computer/computer_closingLabels.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
@@ -20,12 +19,13 @@ import 'package:analysis_server/src/domain_completion.dart'
     show CompletionDomainHandler;
 import 'package:analysis_server/src/flutter/flutter_outline_computer.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
+import 'package:analysis_server/src/lsp/client_configuration.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/notification_manager.dart';
 import 'package:analysis_server/src/lsp/server_capabilities_computer.dart';
-import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
@@ -45,7 +45,9 @@ import 'package:analyzer/src/dart/analysis/file_state.dart' as nd;
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:watcher/watcher.dart';
 
 /// Instances of the class [LspAnalysisServer] implement an LSP-based server
@@ -58,6 +60,11 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// Initialization options provided by the LSP client. Allows opting in/out of
   /// specific server functionality. Will be null prior to initialization.
   LspInitializationOptions _initializationOptions;
+
+  /// Configuration for the workspace from the client. This is similar to
+  /// initializationOptions but can be updated dynamically rather than set
+  /// only when the server starts.
+  final LspClientConfiguration clientConfiguration = LspClientConfiguration();
 
   /// The channel from which messages are received and to which responses should
   /// be sent.
@@ -112,11 +119,9 @@ class LspAnalysisServer extends AbstractAnalysisServer {
           crashReportingAttachmentsBuilder,
           baseResourceProvider,
           instrumentationService,
-          NotificationManager(
-            const NoOpServerCommunicationChannel(),
-            baseResourceProvider.pathContext,
-          ),
+          LspNotificationManager(channel, baseResourceProvider.pathContext),
         ) {
+    notificationManager.server = this;
     messageHandler = UninitializedStateMessageHandler(this);
     capabilitiesComputer = ServerCapabilitiesComputer(this);
 
@@ -142,6 +147,9 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   LspInitializationOptions get initializationOptions => _initializationOptions;
 
   @override
+  LspNotificationManager get notificationManager => super.notificationManager;
+
+  @override
   set pluginManager(PluginManager value) {
     // we exchange the plugin manager in tests
     super.pluginManager = value;
@@ -164,6 +172,39 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   /// The socket from which messages are being read has been closed.
   void done() {}
+
+  /// Fetches configuration from the client (if supported) and then sends
+  /// register/unregister requests for any supported/enabled dynamic registrations.
+  Future<void> fetchClientConfigurationAndPerformDynamicRegistration() async {
+    if (clientCapabilities.workspace?.configuration ?? false) {
+      // Fetch all configuration we care about from the client. This is just
+      // "dart" for now, but in future this may be extended to include
+      // others (for example "flutter").
+      final response = await sendRequest(
+          Method.workspace_configuration,
+          ConfigurationParams([
+            ConfigurationItem(null, 'dart'),
+          ]));
+
+      final result = response.result;
+
+      // Expect the result to be a single list (to match the single
+      // ConfigurationItem we requested above) and that it should be
+      // a standard map of settings.
+      // If the above code is extended to support multiple sets of config
+      // this will need tweaking to handle each group appropriately.
+      if (result != null &&
+          result is List<dynamic> &&
+          result.length == 1 &&
+          result.first is Map<String, dynamic>) {
+        clientConfiguration.replace(result.first);
+      }
+    }
+
+    // Client config can affect capabilities, so this should only be done after
+    // we have the initial/updated config.
+    capabilitiesComputer.performDynamicRegistration();
+  }
 
   /// Return the LineInfo for the file with the given [path]. The file is
   /// analyzed in one of the analysis drivers to which the file was added,
@@ -291,6 +332,37 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       stackTrace is StackTrace ? stackTrace : null,
       false,
     ));
+  }
+
+  void onOverlayCreated(String path, String content) {
+    resourceProvider.setOverlay(path, content: content, modificationStamp: 0);
+
+    _afterOverlayChanged(path, plugin.AddContentOverlay(content));
+  }
+
+  void onOverlayDestroyed(String path) {
+    resourceProvider.removeOverlay(path);
+
+    _afterOverlayChanged(path, plugin.RemoveContentOverlay());
+  }
+
+  /// Updates an overlay on [path] by applying the [edits] to the current
+  /// overlay.
+  ///
+  /// If the result of applying the edits is already known, [newContent] can be
+  /// set to avoid doing that calculation twice.
+  void onOverlayUpdated(String path, Iterable<plugin.SourceEdit> edits,
+      {String newContent}) {
+    assert(resourceProvider.hasOverlay(path));
+    if (newContent == null) {
+      final oldContent = resourceProvider.getFile(path).readAsStringSync();
+      newContent = plugin.applySequenceOfEdits(oldContent, edits);
+    }
+
+    resourceProvider.setOverlay(path,
+        content: newContent, modificationStamp: 0);
+
+    _afterOverlayChanged(path, plugin.ChangeContentOverlay(edits));
   }
 
   void publishClosingLabels(String path, List<ClosingLabel> labels) {
@@ -421,7 +493,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   void setAnalysisRoots(List<String> includedPaths) {
     declarationsTracker?.discardContexts();
     final uniquePaths = HashSet<String>.of(includedPaths ?? const []);
-    contextManager.setRoots(uniquePaths.toList(), [], {});
+    contextManager.setRoots(uniquePaths.toList(), []);
     notificationManager.setAnalysisRoots(includedPaths, []);
     addContextsToDeclarationsTracker();
   }
@@ -504,14 +576,11 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     setAnalysisRoots(newPaths.toList());
   }
 
-  void updateOverlay(String path, String contents) {
-    if (contents != null) {
-      resourceProvider.setOverlay(path,
-          content: contents, modificationStamp: 0);
-    } else {
-      resourceProvider.removeOverlay(path);
-    }
+  void _afterOverlayChanged(String path, dynamic changeForPlugins) {
     driverMap.values.forEach((driver) => driver.changeFile(path));
+    pluginManager.setAnalysisUpdateContentParams(
+      plugin.AnalysisUpdateContentParams({path: changeForPlugins}),
+    );
 
     notifyDeclarationsTracker(path);
     notifyFlutterWidgetDescriptions(path);
@@ -584,7 +653,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   LspServerContextManagerCallbacks(this.analysisServer, this.resourceProvider);
 
   @override
-  NotificationManager get notificationManager =>
+  LspNotificationManager get notificationManager =>
       analysisServer.notificationManager;
 
   @override
@@ -675,25 +744,8 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options) {
-    String defaultPackageFilePath;
-    String defaultPackagesDirectoryPath;
-    var path = (analysisServer.contextManager as ContextManagerImpl)
-        .normalizedPackageRoots[folder.path];
-    if (path != null) {
-      var resource = resourceProvider.getResource(path);
-      if (resource.exists) {
-        if (resource is File) {
-          defaultPackageFilePath = path;
-        } else {
-          defaultPackagesDirectoryPath = path;
-        }
-      }
-    }
-
     var builderOptions = ContextBuilderOptions();
     builderOptions.defaultOptions = options;
-    builderOptions.defaultPackageFilePath = defaultPackageFilePath;
-    builderOptions.defaultPackagesDirectoryPath = defaultPackagesDirectoryPath;
     var builder = ContextBuilder(
         resourceProvider, analysisServer.sdkManager, null,
         options: builderOptions);
@@ -712,21 +764,4 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
         ?.forEach((path) => analysisServer.publishDiagnostics(path, const []));
     driver.dispose();
   }
-}
-
-class NoOpServerCommunicationChannel implements ServerCommunicationChannel {
-  const NoOpServerCommunicationChannel();
-
-  @override
-  void close() {}
-
-  @override
-  void listen(void Function(protocol.Request request) onRequest,
-      {Function onError, void Function() onDone}) {}
-
-  @override
-  void sendNotification(protocol.Notification notification) {}
-
-  @override
-  void sendResponse(protocol.Response response) {}
 }

@@ -1,0 +1,4 @@
+spec:nnbd-off=pkg/compiler/test/static_type/static_type_test.dart
+prod:nnbd-off=pkg/compiler/test/static_type/static_type_test.dart
+spec:nnbd-sdk=pkg/compiler/test/static_type/static_type_test.dart
+prod:nnbd-sdk=pkg/compiler/test/static_type/static_type_test.dart

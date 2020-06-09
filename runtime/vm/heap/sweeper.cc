@@ -15,13 +15,13 @@
 
 namespace dart {
 
-bool GCSweeper::SweepPage(HeapPage* page, FreeList* freelist, bool locked) {
+bool GCSweeper::SweepPage(OldPage* page, FreeList* freelist, bool locked) {
   ASSERT(!page->is_image_page());
 
   // Keep track whether this page is still in use.
   intptr_t used_in_bytes = 0;
 
-  bool is_executable = (page->type() == HeapPage::kExecutable);
+  bool is_executable = (page->type() == OldPage::kExecutable);
   uword start = page->object_start();
   uword end = page->object_end();
   uword current = start;
@@ -29,7 +29,7 @@ bool GCSweeper::SweepPage(HeapPage* page, FreeList* freelist, bool locked) {
   while (current < end) {
     intptr_t obj_size;
     ObjectPtr raw_obj = ObjectLayout::FromAddr(current);
-    ASSERT(HeapPage::Of(raw_obj) == page);
+    ASSERT(OldPage::Of(raw_obj) == page);
     if (raw_obj->ptr()->IsMarked()) {
       // Found marked object. Clear the mark bit and update swept bytes.
       raw_obj->ptr()->ClearMarkBit();
@@ -76,12 +76,12 @@ bool GCSweeper::SweepPage(HeapPage* page, FreeList* freelist, bool locked) {
   return used_in_bytes != 0;  // In use.
 }
 
-intptr_t GCSweeper::SweepLargePage(HeapPage* page) {
+intptr_t GCSweeper::SweepLargePage(OldPage* page) {
   ASSERT(!page->is_image_page());
 
   intptr_t words_to_end = 0;
   ObjectPtr raw_obj = ObjectLayout::FromAddr(page->object_start());
-  ASSERT(HeapPage::Of(raw_obj) == page);
+  ASSERT(OldPage::Of(raw_obj) == page);
   if (raw_obj->ptr()->IsMarked()) {
     raw_obj->ptr()->ClearMarkBit();
     words_to_end = (raw_obj->ptr()->HeapSize() >> kWordSizeLog2);
@@ -106,10 +106,10 @@ class ConcurrentSweeperTask : public ThreadPool::Task {
  public:
   ConcurrentSweeperTask(IsolateGroup* isolate_group,
                         PageSpace* old_space,
-                        HeapPage* first,
-                        HeapPage* last,
-                        HeapPage* large_first,
-                        HeapPage* large_last)
+                        OldPage* first,
+                        OldPage* last,
+                        OldPage* large_first,
+                        OldPage* large_last)
       : task_isolate_group_(isolate_group),
         old_space_(old_space),
         first_(first),
@@ -135,10 +135,10 @@ class ConcurrentSweeperTask : public ThreadPool::Task {
       TIMELINE_FUNCTION_GC_DURATION(thread, "ConcurrentSweep");
       GCSweeper sweeper;
 
-      HeapPage* page = large_first_;
-      HeapPage* prev_page = NULL;
+      OldPage* page = large_first_;
+      OldPage* prev_page = NULL;
       while (page != NULL) {
-        HeapPage* next_page;
+        OldPage* next_page;
         if (page == large_last_) {
           // Don't access page->next(), which would be a race with mutator
           // allocating new pages.
@@ -146,7 +146,7 @@ class ConcurrentSweeperTask : public ThreadPool::Task {
         } else {
           next_page = page->next();
         }
-        ASSERT(page->type() == HeapPage::kData);
+        ASSERT(page->type() == OldPage::kData);
         const intptr_t words_to_end = sweeper.SweepLargePage(page);
         if (words_to_end == 0) {
           old_space_->FreeLargePage(page, prev_page);
@@ -169,7 +169,7 @@ class ConcurrentSweeperTask : public ThreadPool::Task {
       page = first_;
       prev_page = NULL;
       while (page != NULL) {
-        HeapPage* next_page;
+        OldPage* next_page;
         if (page == last_) {
           // Don't access page->next(), which would be a race with mutator
           // allocating new pages.
@@ -177,7 +177,7 @@ class ConcurrentSweeperTask : public ThreadPool::Task {
         } else {
           next_page = page->next();
         }
-        ASSERT(page->type() == HeapPage::kData);
+        ASSERT(page->type() == OldPage::kData);
         shard = (shard + 1) % num_shards;
         bool page_in_use =
             sweeper.SweepPage(page, old_space_->DataFreeList(shard), false);
@@ -210,17 +210,17 @@ class ConcurrentSweeperTask : public ThreadPool::Task {
  private:
   IsolateGroup* task_isolate_group_;
   PageSpace* old_space_;
-  HeapPage* first_;
-  HeapPage* last_;
-  HeapPage* large_first_;
-  HeapPage* large_last_;
+  OldPage* first_;
+  OldPage* last_;
+  OldPage* large_first_;
+  OldPage* large_last_;
 };
 
 void GCSweeper::SweepConcurrent(IsolateGroup* isolate_group,
-                                HeapPage* first,
-                                HeapPage* last,
-                                HeapPage* large_first,
-                                HeapPage* large_last,
+                                OldPage* first,
+                                OldPage* last,
+                                OldPage* large_first,
+                                OldPage* large_last,
                                 FreeList* freelist) {
   bool result = Dart::thread_pool()->Run<ConcurrentSweeperTask>(
       isolate_group, isolate_group->heap()->old_space(), first, last,

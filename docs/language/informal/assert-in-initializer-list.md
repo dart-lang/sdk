@@ -7,7 +7,7 @@ Version 1.1 (2017-06-08)
 [`609d26a`](https://github.com/dart-lang/sdk/commit/609d26a2274ccde0f74725f4df7e081ebc8ea020);
 this document is now background material.
 
-(See: http://dartbug.com/24841, http://dartbug.com/27141)
+(See: https://dartbug.com/24841, https://dartbug.com/27141)
 
 In some cases, you want to validate your inputs before creating an instance, even in a const constructor. To allow that, we have tested the possibility of allowing assert statements in the initializer list of a generative constructor.
 

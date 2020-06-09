@@ -8,6 +8,12 @@ import 'package:kernel/src/future_or.dart';
 
 import '../names.dart';
 
+const String lateFieldPrefix = '_#';
+const String lateIsSetSuffix = '#isSet';
+const String lateLocalPrefix = '#';
+const String lateLocalGetterSuffix = '#get';
+const String lateLocalSetterSuffix = '#set';
+
 /// Creates the body for the synthesized getter used to encode the lowering
 /// of a late non-final field with an initializer or a late local with an
 /// initializer.
@@ -26,8 +32,8 @@ Statement createGetterWithInitializer(CoreTypes coreTypes, int fileOffset,
     // Generate:
     //
     //    if (!_#isSet#field) {
-    //      _#isSet#field = true
     //      _#field = <init>;
+    //      _#isSet#field = true
     //    }
     //    return _#field;
     return new Block(<Statement>[
@@ -36,11 +42,11 @@ Statement createGetterWithInitializer(CoreTypes coreTypes, int fileOffset,
             ..fileOffset = fileOffset,
           new Block(<Statement>[
             new ExpressionStatement(
-                createIsSetWrite(new BoolLiteral(true)..fileOffset = fileOffset)
-                  ..fileOffset = fileOffset)
+                createVariableWrite(initializer)..fileOffset = fileOffset)
               ..fileOffset = fileOffset,
             new ExpressionStatement(
-                createVariableWrite(initializer)..fileOffset = fileOffset)
+                createIsSetWrite(new BoolLiteral(true)..fileOffset = fileOffset)
+                  ..fileOffset = fileOffset)
               ..fileOffset = fileOffset,
           ]),
           null)
@@ -61,7 +67,7 @@ Statement createGetterWithInitializer(CoreTypes coreTypes, int fileOffset,
     //    return let # = _#field in # == null ? _#field = <init> : #;
     VariableDeclaration variable = new VariableDeclaration.forValue(
         createVariableRead(needsPromotion: false)..fileOffset = fileOffset,
-        type: type.withNullability(Nullability.nullable))
+        type: type.withDeclaredNullability(Nullability.nullable))
       ..fileOffset = fileOffset;
     return new ReturnStatement(
         new Let(
@@ -122,8 +128,8 @@ Statement createGetterWithInitializerWithRecheck(
     //    if (!_#isSet#field) {
     //      var temp = <init>;
     //      if (_#isSet#field) throw '...'
-    //      _#isSet#field = true
     //      _#field = temp;
+    //      _#isSet#field = true
     //    }
     //    return _#field;
     return new Block(<Statement>[
@@ -138,12 +144,12 @@ Statement createGetterWithInitializerWithRecheck(
                 null)
               ..fileOffset = fileOffset,
             new ExpressionStatement(
-                createIsSetWrite(new BoolLiteral(true)..fileOffset = fileOffset)
+                createVariableWrite(
+                    new VariableGet(temp)..fileOffset = fileOffset)
                   ..fileOffset = fileOffset)
               ..fileOffset = fileOffset,
             new ExpressionStatement(
-                createVariableWrite(
-                    new VariableGet(temp)..fileOffset = fileOffset)
+                createIsSetWrite(new BoolLiteral(true)..fileOffset = fileOffset)
                   ..fileOffset = fileOffset)
               ..fileOffset = fileOffset,
           ]),
@@ -167,7 +173,7 @@ Statement createGetterWithInitializerWithRecheck(
     //        : #1;
     VariableDeclaration variable = new VariableDeclaration.forValue(
         createVariableRead(needsPromotion: false)..fileOffset = fileOffset,
-        type: type.withNullability(Nullability.nullable))
+        type: type.withDeclaredNullability(Nullability.nullable))
       ..fileOffset = fileOffset;
     return new ReturnStatement(
         new Let(
@@ -244,7 +250,7 @@ Statement createGetterBodyWithoutInitializer(CoreTypes coreTypes,
     //    return let # = _#field in # == null ? throw '...' : #;
     VariableDeclaration variable = new VariableDeclaration.forValue(
         createVariableRead()..fileOffset = fileOffset,
-        type: type.withNullability(Nullability.nullable))
+        type: type.withDeclaredNullability(Nullability.nullable))
       ..fileOffset = fileOffset;
     return new ReturnStatement(
         new Let(

@@ -15,18 +15,13 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 /// new List.filled(n, null, growable: true) => new _GrowableList(n)
 /// new List.filled(n, null) => new _List(n)
 ///
-void transformLibraries(List<Library> libraries, CoreTypes coreTypes) {
-  final transformer = new _ListFactorySpecializer(coreTypes);
-  libraries.forEach(transformer.visitLibrary);
-}
-
-class _ListFactorySpecializer extends Transformer {
+class ListFactorySpecializer {
   final Procedure _defaultListFactory;
   final Procedure _listFilledFactory;
   final Procedure _growableListFactory;
   final Procedure _fixedListFactory;
 
-  _ListFactorySpecializer(CoreTypes coreTypes)
+  ListFactorySpecializer(CoreTypes coreTypes)
       : _defaultListFactory =
             coreTypes.index.getMember('dart:core', 'List', ''),
         _listFilledFactory =
@@ -41,10 +36,7 @@ class _ListFactorySpecializer extends Transformer {
     assert(_fixedListFactory.isFactory);
   }
 
-  @override
-  visitStaticInvocation(StaticInvocation node) {
-    super.visitStaticInvocation(node);
-
+  TreeNode transformStaticInvocation(StaticInvocation node) {
     final target = node.target;
     if (target == _defaultListFactory) {
       final args = node.arguments;

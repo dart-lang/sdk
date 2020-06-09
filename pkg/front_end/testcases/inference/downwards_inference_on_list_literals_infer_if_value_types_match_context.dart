@@ -22,13 +22,13 @@ abstract class C {
   AsserterBuilder<List<Asserter<DartType>>, DartType> get assertDOf;
 
   method(AsserterBuilder<List<Asserter<DartType>>, DartType> assertEOf) {
-    /*@target=C::assertAOf*/ assertAOf(
+    /*@target=C.assertAOf*/ assertAOf(
         /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
     assertBOf(
         /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
     assertCOf(
         /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
-    /*@target=C::assertDOf*/ assertDOf(
+    /*@target=C.assertDOf*/ assertDOf(
         /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
     assertEOf(
         /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
@@ -40,11 +40,11 @@ abstract class G<T> {
   AsserterBuilder<List<Asserter<DartType>>, DartType> get assertDOf;
 
   method(AsserterBuilder<List<Asserter<DartType>>, DartType> assertEOf) {
-    /*@target=G::assertAOf*/ assertAOf(
+    /*@target=G.assertAOf*/ assertAOf(
         /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
-    this. /*@target=G::assertAOf*/ assertAOf(
+    this. /*@target=G.assertAOf*/ assertAOf(
         /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
-    this. /*@target=G::assertDOf*/ assertDOf(
+    this. /*@target=G.assertDOf*/ assertDOf(
         /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
     assertEOf(
         /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
@@ -68,15 +68,15 @@ test() {
       /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
 
   C c;
-  c. /*@target=C::assertAOf*/ assertAOf(
+  c. /*@target=C.assertAOf*/ assertAOf(
       /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
-  c. /*@target=C::assertDOf*/ assertDOf(
+  c. /*@target=C.assertDOf*/ assertDOf(
       /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
 
   G<int> g;
-  g. /*@target=G::assertAOf*/ assertAOf(
+  g. /*@target=G.assertAOf*/ assertAOf(
       /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
-  g. /*@target=G::assertDOf*/ assertDOf(
+  g. /*@target=G.assertDOf*/ assertDOf(
       /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
 }
 

@@ -431,13 +431,15 @@ void ConstantPropagator::VisitPushArgument(PushArgumentInstr* instr) {
 }
 
 void ConstantPropagator::VisitAssertAssignable(AssertAssignableInstr* instr) {
-  const Object& value = instr->value()->definition()->constant_value();
-  if (IsNonConstant(value)) {
+  const auto& value = instr->value()->definition()->constant_value();
+  const auto& dst_type = instr->dst_type()->definition()->constant_value();
+
+  if (IsNonConstant(value) || IsNonConstant(dst_type)) {
     SetValue(instr, non_constant_);
-  } else if (IsConstant(value)) {
+  } else if (IsConstant(value) && IsConstant(dst_type)) {
     // We are ignoring the instantiator and instantiator_type_arguments, but
     // still monotonic and safe.
-    if (instr->value()->Type()->IsAssignableTo(instr->dst_type())) {
+    if (instr->value()->Type()->IsAssignableTo(AbstractType::Cast(dst_type))) {
       SetValue(instr, value);
     } else {
       SetValue(instr, non_constant_);
@@ -813,21 +815,12 @@ void ConstantPropagator::VisitLoadIndexedUnsafe(LoadIndexedUnsafeInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
-void ConstantPropagator::VisitInitInstanceField(InitInstanceFieldInstr* instr) {
-  // Nothing to do.
-}
-
-void ConstantPropagator::VisitInitStaticField(InitStaticFieldInstr* instr) {
-  // Nothing to do.
-}
-
 void ConstantPropagator::VisitLoadStaticField(LoadStaticFieldInstr* instr) {
   if (!FLAG_fields_may_be_reset) {
-    const Field& field = instr->StaticField();
+    const Field& field = instr->field();
     ASSERT(field.is_static());
-    Instance& obj = Instance::Handle(Z, field.StaticValue());
-    if (field.is_final() && (obj.raw() != Object::sentinel().raw()) &&
-        (obj.raw() != Object::transition_sentinel().raw())) {
+    if (field.is_final() && instr->IsFieldInitialized()) {
+      Instance& obj = Instance::Handle(Z, field.StaticValue());
       if (obj.IsSmi() || (obj.IsOld() && obj.IsCanonical())) {
         SetValue(instr, obj);
         return;
@@ -1580,7 +1573,6 @@ void ConstantPropagator::Transform() {
       for (PhiIterator it(join); !it.Done(); it.Advance()) {
         auto phi = it.Current();
         if (TransformDefinition(phi)) {
-          phi->UnuseAllInputs();
           it.RemoveCurrentFromGraph();
         }
       }
@@ -1668,9 +1660,12 @@ bool ConstantPropagator::TransformDefinition(Definition* defn) {
     if (auto call = defn->AsStaticCall()) {
       ASSERT(!call->HasPushArguments());
     }
-    ConstantInstr* constant = graph_->GetConstant(constant_value_);
-    defn->ReplaceUsesWith(constant);
-    return true;
+    Definition* replacement =
+        graph_->TryCreateConstantReplacementFor(defn, constant_value_);
+    if (replacement != defn) {
+      defn->ReplaceUsesWith(replacement);
+      return true;
+    }
   }
   return false;
 }

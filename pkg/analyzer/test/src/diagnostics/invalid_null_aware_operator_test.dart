@@ -61,6 +61,18 @@ f(int? x) {
 ''');
   }
 
+  test_getter_Type() async {
+    await assertNoErrorsInCode('''
+class C {
+  static int x = 0;
+}
+
+f() {
+  C?.x;
+}
+''');
+  }
+
   test_index_legacy() async {
     newFile('/test/lib/a.dart', content: r'''
 // @dart = 2.5

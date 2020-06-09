@@ -6,8 +6,7 @@ import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
-import 'package:analysis_server/src/protocol_server.dart'
-    show convertElementToElementKind, ElementKind;
+import 'package:analysis_server/src/protocol_server.dart' show ElementKind;
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analysis_tool/tools.dart';
@@ -408,13 +407,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitCommentReference(CommentReference node) {
-    void recordDataForCommentReference(String context, AstNode node) {
-      _recordElementKind(context, node);
-      _recordTokenType(context, node);
-    }
-
-    recordDataForCommentReference(
-        'CommentReference_identifier', node.identifier);
+    _recordDataForNode('CommentReference_identifier', node.identifier);
     super.visitCommentReference(node);
   }
 
@@ -606,7 +599,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    // There are no completions.
+    _recordDataForNode('FieldDeclaration_fields', node.fields);
     super.visitFieldDeclaration(node);
   }
 
@@ -636,7 +629,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitForElement(ForElement node) {
-    _recordTokenType('ForElement_parts', node.forLoopParts);
+    _recordDataForNode('ForElement_forLoopParts', node.forLoopParts);
     _recordDataForNode('ForElement_body', node.body);
     super.visitForElement(node);
   }
@@ -674,15 +667,15 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitForStatement(ForStatement node) {
-    _recordTokenType('ForElement_parts', node.forLoopParts);
-    _recordDataForNode('ForElement_body', node.body,
+    _recordDataForNode('ForStatement_forLoopParts', node.forLoopParts);
+    _recordDataForNode('ForStatement_body', node.body,
         allowedKeywords: statementKeywords);
     super.visitForStatement(node);
   }
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    // There are no completions.
+    _recordDataForNode('FunctionDeclaration_returnType', node.returnType);
     super.visitFunctionDeclaration(node);
   }
 
@@ -750,9 +743,9 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitIfStatement(IfStatement node) {
     _recordDataForNode('IfStatement_condition', node.condition,
         allowedKeywords: expressionKeywords);
-    _recordDataForNode('IfStatement_then', node.thenStatement,
+    _recordDataForNode('IfStatement_thenStatement', node.thenStatement,
         allowedKeywords: statementKeywords);
-    _recordDataForNode('IfStatement_else', node.elseStatement,
+    _recordDataForNode('IfStatement_elseStatement', node.elseStatement,
         allowedKeywords: statementKeywords);
     super.visitIfStatement(node);
   }
@@ -803,7 +796,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    // There are no completions.
+    _recordDataForNode(
+        'InstanceCreationExpression_constructorName', node.constructorName);
     super.visitInstanceCreationExpression(node);
   }
 
@@ -877,7 +871,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    // There are no completions.
+    _recordDataForNode('MethodDeclaration_returnType', node.returnType);
     super.visitMethodDeclaration(node);
   }
 
@@ -1171,7 +1165,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
-    // There are no completions.
+    _recordDataForNode('VariableDeclarationList_type', node.type);
     super.visitVariableDeclarationList(node);
   }
 
@@ -1281,7 +1275,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// identifier that is a child of the [node].
   ElementKind _leftMostKind(AstNode node) {
     if (node is InstanceCreationExpression) {
-      return convertElementToElementKind(node.staticElement);
+      return featureComputer
+          .computeElementKind(node.constructorName.staticElement);
     }
     var element = _leftMostElement(node);
     if (element == null) {
@@ -1293,7 +1288,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
         element = parent.element;
       }
     }
-    return convertElementToElementKind(element);
+    return featureComputer.computeElementKind(element);
   }
 
   /// Return the left-most token that is a child of the [node].

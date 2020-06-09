@@ -381,6 +381,7 @@ fcov
 fe
 feff
 fetched
+fewest
 ff
 fff
 ffff
@@ -711,6 +712,8 @@ oked
 op
 opt
 optimizations
+option1
+option2
 opts
 ordered
 orders
@@ -842,10 +845,12 @@ recalculation
 recall
 received
 recheck
+recognizing
 recompiled
 recompiling
 recompute
 recomputed
+recoveries
 recreate
 recursion
 red
@@ -986,6 +991,7 @@ stability
 stacktrace
 stacktraces
 stale
+starter
 statics
 stderr
 stdin
@@ -1082,6 +1088,7 @@ todo
 token's
 tokenize
 tokenized
+tokenizer
 tolerate
 tolerated
 toplevel
@@ -1198,6 +1205,7 @@ watch
 watcher
 wb
 wc
+weakened
 weakener
 weird
 weren't

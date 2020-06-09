@@ -1,0 +1,4 @@
+spec:nnbd-off=pkg/compiler/test/inference/side_effects_test.dart
+prod:nnbd-off=pkg/compiler/test/inference/side_effects_test.dart
+spec:nnbd-sdk=pkg/compiler/test/inference/side_effects_test.dart
+prod:nnbd-sdk=pkg/compiler/test/inference/side_effects_test.dart

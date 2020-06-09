@@ -1,0 +1,31 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+@#C3
+class A extends core::Object {
+  constructor •() → self::A*
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  constructor •() → self::B*
+    : super self::A::•()
+    ;
+}
+abstract class C extends core::Object {
+  constructor •() → self::C*
+    : super core::Object::•()
+    ;
+}
+abstract class D extends self::C {
+  constructor •() → self::D*
+    : super self::C::•()
+    ;
+}
+class E extends self::D {
+  constructor •() → self::E*
+    : super self::D::•()
+    ;
+}
+static method main() → void {}

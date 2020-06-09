@@ -486,8 +486,11 @@ class NullabilityCommentOrigin extends EdgeOrigin {
   /// non-nullable.
   final bool isNullable;
 
-  NullabilityCommentOrigin(Source source, TypeAnnotation node, this.isNullable)
-      : super(source, node);
+  NullabilityCommentOrigin(Source source, AstNode node, this.isNullable)
+      : assert(node is TypeAnnotation ||
+            node is FunctionTypedFormalParameter ||
+            (node is FieldFormalParameter && node.parameters != null)),
+        super(source, node);
 
   @override
   String get description =>

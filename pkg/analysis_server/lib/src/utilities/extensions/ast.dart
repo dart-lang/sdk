@@ -2,10 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 
-/// Extensions for [AstNode]s
 extension AstNodeExtensions on AstNode {
+  /// Return `true` if this node has an `override` annotation.
+  bool get hasOverride {
+    var node = this;
+    if (node is AnnotatedNode) {
+      for (var annotation in node.metadata) {
+        if (annotation.name.name == 'override' &&
+            annotation.arguments == null) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   bool get inAsyncMethodOrFunction {
     var body = thisOrAncestorOfType<FunctionBody>();
     return body != null && body.isAsynchronous && body.star == null;
@@ -45,7 +60,28 @@ extension AstNodeExtensions on AstNode {
   bool get inWhileLoop => thisOrAncestorOfType<WhileStatement>() != null;
 }
 
-/// Extensions for [FunctionBody]s
+extension ExpressionExtensions on Expression {
+  /// Return `true` if this expression is an invocation of the method `cast`
+  /// from either Iterable`, `List`, `Map`, or `Set`.
+  bool get isCastMethodInvocation {
+    if (this is MethodInvocation) {
+      var element = (this as MethodInvocation).methodName.staticElement;
+      return element is MethodElement && element.isCastMethod;
+    }
+    return false;
+  }
+
+  /// Return `true` if this expression is an invocation of the method `toList`
+  /// from either `Iterable` or `List`.
+  bool get isToListMethodInvocation {
+    if (this is MethodInvocation) {
+      var element = (this as MethodInvocation).methodName.staticElement;
+      return element is MethodElement && element.isToListMethod;
+    }
+    return false;
+  }
+}
+
 extension FunctionBodyExtensions on FunctionBody {
   bool get isEmpty =>
       this is EmptyFunctionBody ||

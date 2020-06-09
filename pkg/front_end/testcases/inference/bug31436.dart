@@ -12,7 +12,7 @@ void block_test() {
   };
   assert(g is List<Object> Function());
   assert(g is! List<int> Function());
-  g(). /*@target=List::add*/ add("hello"); // No runtime error
+  g(). /*@target=List.add*/ add("hello"); // No runtime error
   List<int> l = /*@ typeArgs=int* */ [3];
   g = /*@ returnType=List<int*>* */ () {
     return l;
@@ -20,7 +20,7 @@ void block_test() {
   assert(g is List<Object> Function());
   assert(g is List<int> Function());
   try {
-    g(). /*@target=List::add*/ add("hello"); // runtime error
+    g(). /*@target=List.add*/ add("hello"); // runtime error
     throw 'expected a runtime error';
   } on TypeError {}
   Object o = l;
@@ -43,13 +43,13 @@ void arrow_test() {
   g = /*@ returnType=List<Object*>* */ () => /*@ typeArgs=Object* */ [3];
   assert(g is List<Object> Function());
   assert(g is! List<int> Function());
-  g(). /*@target=List::add*/ add("hello"); // No runtime error
+  g(). /*@target=List.add*/ add("hello"); // No runtime error
   List<int> l = /*@ typeArgs=int* */ [3];
   g = /*@ returnType=List<int*>* */ () => l;
   assert(g is List<Object> Function());
   assert(g is List<int> Function());
   try {
-    g(). /*@target=List::add*/ add("hello"); // runtime error
+    g(). /*@target=List.add*/ add("hello"); // runtime error
     throw 'expected a runtime error';
   } on TypeError {}
   Object o = l;

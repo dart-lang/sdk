@@ -15,6 +15,9 @@ import 'package:build_integration/file_system/multi_root.dart'
 
 import 'package:crypto/crypto.dart';
 
+import 'package:front_end/src/api_prototype/language_version.dart'
+    show uriUsesLegacyLanguageVersion;
+
 import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerContext,
@@ -22,6 +25,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         CompilerResult,
         DiagnosticMessage,
         DiagnosticMessageHandler,
+        ExperimentalFlag,
         FileSystem,
         FileSystemEntity,
         FileSystemException,
@@ -98,7 +102,7 @@ void declareCompilerOptions(ArgParser args) {
       defaultsTo: true);
   args.addFlag('tree-shake-write-only-fields',
       help: 'Enable tree shaking of fields which are only written in AOT mode.',
-      defaultsTo: false);
+      defaultsTo: true);
   args.addFlag('protobuf-tree-shaker',
       help: 'Enable protobuf tree shaker transformation in AOT mode.',
       defaultsTo: false);
@@ -110,7 +114,7 @@ void declareCompilerOptions(ArgParser args) {
   args.addFlag('null-safety',
       help:
           'Respect the nullability of types at runtime in casts and instance checks.',
-      defaultsTo: false);
+      defaultsTo: null);
   args.addFlag('split-output-by-packages',
       help:
           'Split resulting kernel file into multiple files (one per package).',
@@ -200,12 +204,6 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     aot: aot,
   )..parseCommandLineFlags(options['bytecode-options']);
 
-  final target = createFrontEndTarget(targetName, nullSafety: nullSafety);
-  if (target == null) {
-    print('Failed to create front-end target $targetName.');
-    return badUsageExitCode;
-  }
-
   final fileSystem =
       createFrontEndFileSystem(fileSystemScheme, fileSystemRoots);
 
@@ -227,18 +225,29 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   final CompilerOptions compilerOptions = new CompilerOptions()
     ..sdkSummary = platformKernelUri
-    ..target = target
     ..fileSystem = fileSystem
     ..additionalDills = additionalDills
     ..packagesFileUri = packagesUri
     ..experimentalFlags = parseExperimentalFlags(
         parseExperimentalArguments(experimentalFlags),
         onError: print)
-    ..nnbdMode = nullSafety ? NnbdMode.Strong : NnbdMode.Weak
+    ..nnbdMode = (nullSafety == true) ? NnbdMode.Strong : NnbdMode.Weak
     ..onDiagnostic = (DiagnosticMessage m) {
       errorDetector(m);
     }
     ..embedSourceText = embedSources;
+
+  if (nullSafety == null &&
+      compilerOptions.experimentalFlags[ExperimentalFlag.nonNullable]) {
+    await autoDetectNullSafetyMode(mainUri, compilerOptions);
+  }
+
+  compilerOptions.target = createFrontEndTarget(targetName,
+      nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong);
+  if (compilerOptions.target == null) {
+    print('Failed to create front-end target $targetName.');
+    return badUsageExitCode;
+  }
 
   final results = await compileToKernel(mainUri, compilerOptions,
       includePlatform: additionalDills.isNotEmpty,
@@ -265,9 +274,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   final IOSink sink = new File(outputFileName).openWrite();
   final BinaryPrinter printer = new BinaryPrinter(sink,
-      libraryFilter: minimalKernel
-          ? ((lib) => !results.loadedLibraries.contains(lib))
-          : null);
+      libraryFilter: (lib) => !results.loadedLibraries.contains(lib));
   printer.writeComponentFile(results.component);
   await sink.close();
 
@@ -556,6 +563,13 @@ bool parseCommandLineDefines(
     }
   }
   return true;
+}
+
+/// Detect null safety mode from an entry point and set [options.nnbdMode].
+Future<void> autoDetectNullSafetyMode(
+    Uri script, CompilerOptions options) async {
+  var isLegacy = await uriUsesLegacyLanguageVersion(script, options);
+  options.nnbdMode = isLegacy ? NnbdMode.Weak : NnbdMode.Strong;
 }
 
 /// Create front-end target with given name.

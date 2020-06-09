@@ -415,14 +415,11 @@ void DropTempsInstr::PrintOperandsTo(BufferFormatter* f) const {
   }
 }
 
-static const char* TypeToUserVisibleName(const AbstractType& type) {
-  return String::Handle(type.UserVisibleName()).ToCString();
-}
-
 void AssertAssignableInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
-  f->Print(", %s, '%s',", TypeToUserVisibleName(dst_type()),
-           dst_name().ToCString());
+  f->Print(", ");
+  dst_type()->PrintTo(f);
+  f->Print(", '%s',", dst_name().ToCString());
   f->Print(" instantiator_type_args(");
   instantiator_type_arguments()->PrintTo(f);
   f->Print("), function_type_args(");
@@ -431,8 +428,10 @@ void AssertAssignableInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 void AssertSubtypeInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s, %s, '%s',", TypeToUserVisibleName(sub_type()),
-           TypeToUserVisibleName(super_type()), dst_name().ToCString());
+  sub_type()->PrintTo(f);
+  f->Print(", ");
+  super_type()->PrintTo(f);
+  f->Print(", '%s', ", dst_name().ToCString());
   f->Print(" instantiator_type_args(");
   instantiator_type_arguments()->PrintTo(f);
   f->Print("), function_type_args(");
@@ -596,7 +595,10 @@ void IfThenElseInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 void LoadStaticFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s", String::Handle(StaticField().name()).ToCString());
+  f->Print("%s", String::Handle(field().name()).ToCString());
+  if (calls_initializer()) {
+    f->Print(", CallsInitializer");
+  }
 }
 
 void StoreStaticFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
@@ -644,6 +646,9 @@ void MaterializeObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
 void LoadFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   instance()->PrintTo(f);
   f->Print(" . %s%s", slot().Name(), slot().is_immutable() ? " {final}" : "");
+  if (calls_initializer()) {
+    f->Print(", CallsInitializer");
+  }
 }
 
 void LoadUntaggedInstr::PrintOperandsTo(BufferFormatter* f) const {
@@ -773,6 +778,13 @@ void SimdOpInstr::PrintOperandsTo(BufferFormatter* f) const {
 void UnaryDoubleOpInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(op_kind()));
   value()->PrintTo(f);
+}
+
+void LoadClassIdInstr::PrintOperandsTo(BufferFormatter* f) const {
+  if (!input_can_be_smi_) {
+    f->Print("<non-smi> ");
+  }
+  object()->PrintTo(f);
 }
 
 void CheckClassIdInstr::PrintOperandsTo(BufferFormatter* f) const {

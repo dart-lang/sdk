@@ -37,6 +37,8 @@ class CompilationModeError {
   final String message;
 
   CompilationModeError(this.message);
+
+  String toString() => "CompilationModeError[$message]";
 }
 
 class CanonicalNameError {
@@ -464,6 +466,9 @@ class BinaryBuilder {
     List<int> index = <int>[];
     while (_byteOffset > 0) {
       int size = readUint32();
+      if (size <= 0) {
+        throw fail("invalid size '$size' reported at offset $byteOffset");
+      }
       int start = _byteOffset - size;
       if (start < 0) {
         throw fail("indicated size does not match file size");
@@ -733,10 +738,21 @@ class BinaryBuilder {
           NonNullableByDefaultCompiledMode.Agnostic) {
         // Keep as-is.
       } else {
-        // Mixed mode where agnostic isn't involved.
-        throw new CompilationModeError(
-            "Mixed compilation mode found: $compilationMode "
-            "and ${index.compiledMode}.");
+        if ((compilationMode == NonNullableByDefaultCompiledMode.Disabled ||
+                index.compiledMode ==
+                    NonNullableByDefaultCompiledMode.Disabled) &&
+            (compilationMode == NonNullableByDefaultCompiledMode.Weak ||
+                index.compiledMode == NonNullableByDefaultCompiledMode.Weak)) {
+          // One is disabled and one is weak.
+          // => We allow that and "merge" them as disabled.
+          compilationMode = NonNullableByDefaultCompiledMode.Disabled;
+        } else {
+          // Mixed mode where agnostic isn't involved and it's not
+          // disabled + weak.
+          throw new CompilationModeError(
+              "Mixed compilation mode found: $compilationMode "
+              "and ${index.compiledMode}.");
+        }
       }
     }
 

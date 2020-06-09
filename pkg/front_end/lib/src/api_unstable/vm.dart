@@ -63,7 +63,7 @@ export '../fasta/fasta_codes.dart'
 export '../fasta/hybrid_file_system.dart' show HybridFileSystem;
 
 export '../fasta/kernel/redirecting_factory_body.dart'
-    show isRedirectingFactoryField;
+    show getRedirectingFactoryBody, isRedirectingFactoryField;
 
 export '../fasta/kernel/utils.dart'
     show

@@ -5,6 +5,7 @@
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_IA32.
 #if defined(TARGET_ARCH_IA32)
 
+#include "platform/unaligned.h"
 #include "vm/code_patcher.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
@@ -89,21 +90,18 @@ class InstanceCall : public UnoptimizedCall {
 #endif  // DEBUG
   }
 
-  ObjectPtr data() const { return *reinterpret_cast<ObjectPtr*>(start_ + 1); }
+  ObjectPtr data() const {
+    return LoadUnaligned(reinterpret_cast<ObjectPtr*>(start_ + 1));
+  }
   void set_data(const Object& data) const {
-    uword* cache_addr = reinterpret_cast<uword*>(start_ + 1);
-    uword imm = static_cast<uword>(data.raw());
-    *cache_addr = imm;
+    StoreUnaligned(reinterpret_cast<ObjectPtr*>(start_ + 1), data.raw());
   }
 
   CodePtr target() const {
-    const uword imm = *reinterpret_cast<uword*>(start_ + 6);
-    return static_cast<CodePtr>(imm);
+    return LoadUnaligned(reinterpret_cast<CodePtr*>(start_ + 6));
   }
   void set_target(const Code& target) const {
-    uword* target_addr = reinterpret_cast<uword*>(start_ + 6);
-    uword imm = static_cast<uword>(target.raw());
-    *target_addr = imm;
+    StoreUnaligned(reinterpret_cast<CodePtr*>(start_ + 6), target.raw());
   }
 
  private:

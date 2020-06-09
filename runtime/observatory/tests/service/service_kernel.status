@@ -72,6 +72,7 @@ complex_reload_test: SkipByDesign
 coverage_const_field_async_closure_test: Skip, Timeout
 coverage_leaf_function_test: Skip, Timeout
 coverage_optimized_function_test: Skip, Timeout
+dds_log_history_size_*: Skip, Timeout
 debugger_inspect_test: SkipByDesign
 debugger_location_second_test: Skip, Timeout
 debugger_location_test: Skip, Timeout
@@ -193,6 +194,9 @@ eval_regression_flutter20255_test: SkipSlow # Timeout
 get_vm_timeline_rpc_test: Pass, Slow
 rewind_optimized_out_test: SkipSlow # Timeout
 
+[ $arch == ia32 && $compiler == dartk ]
+valid_source_locations_test: Skip # Issue 34736, too slow.
+
 [ $arch != simarm && $arch != simarm64 && $compiler == dartk ]
 complex_reload_test: RuntimeError
 
@@ -266,6 +270,7 @@ bad_reload_test: Skip # Times out on sim architectures, also RuntimeError.
 break_on_activation_test: RuntimeError # Issue #34736
 breakpoint_in_package_parts_class_file_uri_test: RuntimeError # Issue #34736
 complex_reload_test: Skip # Times out on sim architectures, also RuntimeError.
+dds_log_history_size_gigantic_test: SkipSlow # Involves hundreds of thousands of log messages
 debugger_inspect_test: RuntimeError, Timeout # Issue #34736
 eval_internal_class_test: RuntimeError # Issue #34736
 eval_regression_flutter20255_test: SkipByDesign # No incremental compiler available.
@@ -286,7 +291,7 @@ rewind_optimized_out_test: RuntimeError # Issue #34736
 rewind_test: Pass, RuntimeError
 set_name_rpc_test: RuntimeError # Please triage.
 simple_reload_test: RuntimeError, Timeout
-valid_source_locations_test: Pass, Slow, Timeout # Issue 34736
+valid_source_locations_test: Skip # Issue 34736, too slow.
 
 [ $compiler == dartk || $compiler == dartkb ]
 bad_reload_test: RuntimeError # Issue 34025

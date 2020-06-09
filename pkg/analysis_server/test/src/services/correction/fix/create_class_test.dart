@@ -21,6 +21,23 @@ class CreateClassTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_CLASS;
 
+  Future<void> test_annotation() async {
+    await resolveTestUnit('''
+@Test('a')
+void f() {}
+''');
+    await assertHasFix('''
+@Test('a')
+void f() {}
+
+class Test {
+  const Test(String s);
+}
+''');
+    assertLinkedGroup(
+        change.linkedEditGroups[0], ["Test('", 'Test {', 'Test(S']);
+  }
+
   Future<void> test_hasUnresolvedPrefix() async {
     await resolveTestUnit('''
 main() {

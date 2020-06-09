@@ -1208,7 +1208,7 @@ void BytecodeFlowGraphBuilder::BuildLoadFieldTOS() {
     // Loads from _Closure fields are lower-level.
     code_ += B->LoadNativeField(ClosureSlotByField(field));
   } else {
-    code_ += B->LoadField(field);
+    code_ += B->LoadField(field, /*calls_initializer=*/false);
   }
 }
 
@@ -1319,7 +1319,7 @@ void BytecodeFlowGraphBuilder::BuildLoadStatic() {
     code_ += B->Constant(value);
     return;
   }
-  code_ += B->LoadStaticField(field);
+  code_ += B->LoadStaticField(field, /*calls_initializer=*/false);
 }
 
 void BytecodeFlowGraphBuilder::BuildStoreIndexedTOS() {
@@ -1368,15 +1368,26 @@ void BytecodeFlowGraphBuilder::BuildAssertAssignable() {
 
   LoadStackSlots(5);
 
+  const AbstractType& dst_type =
+      AbstractType::Cast(B->Peek(/*depth=*/3)->AsConstant()->value());
+  if (dst_type.IsTopTypeForSubtyping()) {
+    code_ += B->Drop();  // dst_name
+    code_ += B->Drop();  // function_type_args
+    code_ += B->Drop();  // instantiator_type_args
+    code_ += B->Drop();  // dst_type
+    // Leave value on top.
+    return;
+  }
+
   const String& dst_name = String::Cast(PopConstant().value());
   Value* function_type_args = Pop();
   Value* instantiator_type_args = Pop();
-  const AbstractType& dst_type = AbstractType::Cast(PopConstant().value());
+  Value* dst_type_value = Pop();
   Value* value = Pop();
 
   AssertAssignableInstr* instr = new (Z) AssertAssignableInstr(
-      position_, value, instantiator_type_args, function_type_args, dst_type,
-      dst_name, B->GetNextDeoptId());
+      position_, value, dst_type_value, instantiator_type_args,
+      function_type_args, dst_name, B->GetNextDeoptId());
 
   code_ <<= instr;
 
@@ -1391,8 +1402,8 @@ void BytecodeFlowGraphBuilder::BuildAssertSubtype() {
   LoadStackSlots(5);
 
   const String& dst_name = String::Cast(PopConstant().value());
-  const AbstractType& super_type = AbstractType::Cast(PopConstant().value());
-  const AbstractType& sub_type = AbstractType::Cast(PopConstant().value());
+  Value* super_type = Pop();
+  Value* sub_type = Pop();
   Value* function_type_args = Pop();
   Value* instantiator_type_args = Pop();
 
@@ -2105,7 +2116,7 @@ UncheckedEntryPointStyle BytecodeFlowGraphBuilder::ChooseEntryPointStyle(
     const KBCInstr* jump_if_unchecked) {
   ASSERT(KernelBytecode::IsJumpIfUncheckedOpcode(jump_if_unchecked));
 
-  if (!function().MayHaveUncheckedEntryPoint(isolate())) {
+  if (!function().MayHaveUncheckedEntryPoint()) {
     return UncheckedEntryPointStyle::kNone;
   }
 

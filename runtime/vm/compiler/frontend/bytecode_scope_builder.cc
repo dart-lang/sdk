@@ -137,8 +137,7 @@ void BytecodeScopeBuilder::BuildScopes() {
   if (needs_expr_temp) {
     scope_->AddVariable(parsed_function_->EnsureExpressionTemp());
   }
-  if (parsed_function_->function().MayHaveUncheckedEntryPoint(
-          parsed_function_->isolate())) {
+  if (parsed_function_->function().MayHaveUncheckedEntryPoint()) {
     scope_->AddVariable(parsed_function_->EnsureEntryPointsTemp());
   }
   parsed_function_->AllocateVariables();

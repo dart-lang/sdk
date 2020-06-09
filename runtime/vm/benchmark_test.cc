@@ -268,21 +268,20 @@ BENCHMARK(UseDartApi) {
   const char* kScriptChars =
       "import 'dart:nativewrappers';\n"
       "class Class extends NativeFieldWrapperClass1 {\n"
-      "  int init() native 'init';\n"
+      "  void init() native 'init';\n"
       "  int method(int param1, int param2) native 'method';\n"
       "}\n"
       "\n"
       "void benchmark(int count) {\n"
-      "  Class c = new Class();\n"
+      "  Class c = Class();\n"
       "  c.init();\n"
       "  for (int i = 0; i < count; i++) {\n"
       "    c.method(i,7);\n"
       "  }\n"
       "}\n";
 
-  Dart_Handle lib = TestCase::LoadTestScript(
-      kScriptChars, reinterpret_cast<Dart_NativeEntryResolver>(bm_uda_lookup),
-      RESOLVED_USER_TEST_URI, false);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, bm_uda_lookup,
+                                             RESOLVED_USER_TEST_URI, false);
   Dart_Handle result = Dart_FinalizeLoading(false);
   EXPECT_VALID(result);
 
@@ -359,6 +358,10 @@ static Dart_NativeFunction NativeResolver(Dart_Handle name,
 // Measure compile of all kernel Service(CFE) functions.
 //
 BENCHMARK(KernelServiceCompileAll) {
+  if (FLAG_null_safety == kNullSafetyOptionStrong) {
+    // TODO(bkonyi): remove this check when we build the CFE in strong mode.
+    return;
+  }
   bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
@@ -377,9 +380,7 @@ BENCHMARK(KernelServiceCompileAll) {
   EXPECT_VALID(result);
   Dart_Handle service_lib = Dart_LookupLibrary(NewString("dart:vmservice_io"));
   ASSERT(!Dart_IsError(service_lib));
-  Dart_SetNativeResolver(
-      service_lib, reinterpret_cast<Dart_NativeEntryResolver>(NativeResolver),
-      NULL);
+  Dart_SetNativeResolver(service_lib, NativeResolver, NULL);
   result = Dart_FinalizeLoading(false);
   EXPECT_VALID(result);
 
@@ -487,9 +488,8 @@ BENCHMARK(FrameLookup) {
       "    return obj.method1(1);"
       "  }"
       "}";
-  Dart_Handle lib = TestCase::LoadTestScript(
-      kScriptChars,
-      reinterpret_cast<Dart_NativeEntryResolver>(StackFrameNativeResolver));
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars, StackFrameNativeResolver);
   Dart_Handle cls = Dart_GetClass(lib, NewString("StackFrameTest"));
   Dart_Handle result = Dart_Invoke(cls, NewString("testMain"), 0, NULL);
   EXPECT_VALID(result);

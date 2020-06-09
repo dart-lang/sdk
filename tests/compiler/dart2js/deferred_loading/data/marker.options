@@ -1,2 +1,0 @@
-spec:nnbd-off=tests/compiler/dart2js/deferred_loading/deferred_loading_test.dart
-spec:nnbd-sdk=tests/compiler/dart2js/deferred_loading/deferred_loading_test.dart

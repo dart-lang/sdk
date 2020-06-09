@@ -2,33 +2,33 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:90:79: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
-//       t /*@target=Test::[]*/ /*@target=Test::[]=*/ ['x'] /*@ target=num::+ */ +=
-//                                                                               ^
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:90:74: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
+//       t /*@target=Test.[]*/ /*@target=Test.[]=*/ ['x'] /*@target=num.+*/ +=
+//                                                                          ^
 //
-// pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:102:28: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
-//       /*@ target=num::+ */ ++t /*@target=Test::[]*/ /*@target=Test::[]=*/ ['x'];
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:102:25: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
+//       /*@target=num.+*/ ++t /*@target=Test.[]*/ /*@target=Test.[]=*/ ['x'];
+//                         ^
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:105:74: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
+//       t /*@target=Test.[]*/ /*@target=Test.[]=*/ ['x'] /*@target=num.+*/ ++;
+//                                                                          ^
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:211:77: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+//       t /*@target=Test.[]*/ /*@target=Test.[]=*/ ['x'] /*@target=double.+*/ +=
+//                                                                             ^
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:215:77: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+//       t /*@target=Test.[]*/ /*@target=Test.[]=*/ ['x'] /*@target=double.+*/ +=
+//                                                                             ^
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:219:28: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+//       /*@target=double.+*/ ++t
 //                            ^
 //
-// pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:105:33: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
-//       'x'] /*@ target=num::+ */ ++;
-//                                 ^
-//
-// pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:211:36: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-//       'x'] /*@ target=double::+ */ += getInt();
-//                                    ^
-//
-// pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:214:36: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-//       'x'] /*@ target=double::+ */ += getNum();
-//                                    ^
-//
-// pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:217:31: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-//       /*@ target=double::+ */ ++t
-//                               ^
-//
-// pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:221:36: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-//       'x'] /*@ target=double::+ */ ++;
-//                                    ^
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:223:77: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+//       t /*@target=Test.[]*/ /*@target=Test.[]=*/ ['x'] /*@target=double.+*/ ++;
+//                                                                             ^
 //
 import self as self;
 import "dart:core" as core;
@@ -39,6 +39,16 @@ abstract class Test<T extends core::Object* = dynamic, U extends core::Object* =
     ;
   abstract operator [](core::String* s) → self::Test::T*;
   abstract operator []=(core::String* s, generic-covariant-impl self::Test::U* v) → void;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method getInt() → core::int*
   return 0;
@@ -74,26 +84,26 @@ static method test3(self::Test<core::int*, core::double*>* t) → void {
   core::double* v3 = let final self::Test<core::int*, core::double*>* #t86 = t in let final core::String* #t87 = "x" in let final core::double* #t88 = self::getDouble() in let final void #t89 = #t86.{self::Test::[]=}(#t87, #t88) in #t88;
   core::num* v5 = let final self::Test<core::int*, core::double*>* #t90 = t in let final core::String* #t91 = "x" in let final core::int* #t92 = #t90.{self::Test::[]}(#t91) in #t92.{core::num::==}(null) ?{core::num*} let final core::num* #t93 = self::getNum() as{TypeError} core::double* in let final void #t94 = #t90.{self::Test::[]=}(#t91, #t93) in #t93 : #t92;
   core::num* v6 = let final self::Test<core::int*, core::double*>* #t95 = t in let final core::String* #t96 = "x" in let final core::int* #t97 = #t95.{self::Test::[]}(#t96) in #t97.{core::num::==}(null) ?{core::num*} let final core::double* #t98 = self::getDouble() in let final void #t99 = #t95.{self::Test::[]=}(#t96, #t98) in #t98 : #t97;
-  core::int* v7 = let final self::Test<core::int*, core::double*>* #t100 = t in let final core::String* #t101 = "x" in let final core::int* #t102 = let final<BottomType> #t103 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:90:79: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
-      t /*@target=Test::[]*/ /*@target=Test::[]=*/ ['x'] /*@ target=num::+ */ +=
-                                                                              ^" in #t100.{self::Test::[]}(#t101).{core::num::+}(self::getInt()) as{TypeError} core::double* in let final void #t104 = #t100.{self::Test::[]=}(#t101, #t102) in #t102;
+  core::int* v7 = let final self::Test<core::int*, core::double*>* #t100 = t in let final core::String* #t101 = "x" in let final core::int* #t102 = let final<BottomType> #t103 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:90:74: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
+      t /*@target=Test.[]*/ /*@target=Test.[]=*/ ['x'] /*@target=num.+*/ +=
+                                                                         ^" in #t100.{self::Test::[]}(#t101).{core::num::+}(self::getInt()) as{TypeError} core::double* in let final void #t104 = #t100.{self::Test::[]=}(#t101, #t102) in #t102;
   core::num* v8 = let final self::Test<core::int*, core::double*>* #t105 = t in let final core::String* #t106 = "x" in let final core::num* #t107 = #t105.{self::Test::[]}(#t106).{core::num::+}(self::getNum()) as{TypeError} core::double* in let final void #t108 = #t105.{self::Test::[]=}(#t106, #t107) in #t107;
   core::double* v9 = let final self::Test<core::int*, core::double*>* #t109 = t in let final core::String* #t110 = "x" in let final core::double* #t111 = #t109.{self::Test::[]}(#t110).{core::num::+}(self::getDouble()) in let final void #t112 = #t109.{self::Test::[]=}(#t110, #t111) in #t111;
-  core::int* v10 = let final self::Test<core::int*, core::double*>* #t113 = t in let final core::String* #t114 = "x" in let final core::int* #t115 = let final<BottomType> #t116 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:102:28: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
-      /*@ target=num::+ */ ++t /*@target=Test::[]*/ /*@target=Test::[]=*/ ['x'];
-                           ^" in #t113.{self::Test::[]}(#t114).{core::num::+}(1) as{TypeError} core::double* in let final void #t117 = #t113.{self::Test::[]=}(#t114, #t115) in #t115;
-  core::int* v11 = let final self::Test<core::int*, core::double*>* #t118 = t in let final core::String* #t119 = "x" in let final core::int* #t120 = #t118.{self::Test::[]}(#t119) in let final void #t121 = #t118.{self::Test::[]=}(#t119, let final<BottomType> #t122 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:105:33: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
-      'x'] /*@ target=num::+ */ ++;
-                                ^" in #t120.{core::num::+}(1) as{TypeError} core::double*) in #t120;
+  core::int* v10 = let final self::Test<core::int*, core::double*>* #t113 = t in let final core::String* #t114 = "x" in let final core::int* #t115 = let final<BottomType> #t116 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:102:25: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
+      /*@target=num.+*/ ++t /*@target=Test.[]*/ /*@target=Test.[]=*/ ['x'];
+                        ^" in #t113.{self::Test::[]}(#t114).{core::num::+}(1) as{TypeError} core::double* in let final void #t117 = #t113.{self::Test::[]=}(#t114, #t115) in #t115;
+  core::int* v11 = let final self::Test<core::int*, core::double*>* #t118 = t in let final core::String* #t119 = "x" in let final core::int* #t120 = #t118.{self::Test::[]}(#t119) in let final void #t121 = #t118.{self::Test::[]=}(#t119, let final<BottomType> #t122 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:105:74: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
+      t /*@target=Test.[]*/ /*@target=Test.[]=*/ ['x'] /*@target=num.+*/ ++;
+                                                                         ^" in #t120.{core::num::+}(1) as{TypeError} core::double*) in #t120;
 }
 static method test4(self::Test<core::num*, core::int*>* t) → void {
   core::int* v1 = let final self::Test<core::num*, core::int*>* #t123 = t in let final core::String* #t124 = "x" in let final core::int* #t125 = self::getInt() in let final void #t126 = #t123.{self::Test::[]=}(#t124, #t125) in #t125;
   core::num* v2 = let final self::Test<core::num*, core::int*>* #t127 = t in let final core::String* #t128 = "x" in let final core::num* #t129 = self::getNum() as{TypeError} core::int* in let final void #t130 = #t127.{self::Test::[]=}(#t128, #t129) in #t129;
   core::num* v4 = let final self::Test<core::num*, core::int*>* #t131 = t in let final core::String* #t132 = "x" in let final core::num* #t133 = #t131.{self::Test::[]}(#t132) in #t133.{core::num::==}(null) ?{core::num*} let final core::int* #t134 = self::getInt() in let final void #t135 = #t131.{self::Test::[]=}(#t132, #t134) in #t134 : #t133;
   core::num* v5 = let final self::Test<core::num*, core::int*>* #t136 = t in let final core::String* #t137 = "x" in let final core::num* #t138 = #t136.{self::Test::[]}(#t137) in #t138.{core::num::==}(null) ?{core::num*} let final core::num* #t139 = self::getNum() as{TypeError} core::int* in let final void #t140 = #t136.{self::Test::[]=}(#t137, #t139) in #t139 : #t138;
-  core::num* v7 = let final self::Test<core::num*, core::int*>* #t141 = t in let final core::String* #t142 = "x" in let final core::num* #t143 = #t141.{self::Test::[]}(#t142).{core::num::+}(self::getInt()) as{TypeError} core::int* in let final void #t144 = #t141.{self::Test::[]=}(#t142, #t143) in #t143;
-  core::num* v8 = let final self::Test<core::num*, core::int*>* #t145 = t in let final core::String* #t146 = "x" in let final core::num* #t147 = #t145.{self::Test::[]}(#t146).{core::num::+}(self::getNum()) as{TypeError} core::int* in let final void #t148 = #t145.{self::Test::[]=}(#t146, #t147) in #t147;
-  core::num* v10 = let final self::Test<core::num*, core::int*>* #t149 = t in let final core::String* #t150 = "x" in let final core::num* #t151 = #t149.{self::Test::[]}(#t150).{core::num::+}(1) as{TypeError} core::int* in let final void #t152 = #t149.{self::Test::[]=}(#t150, #t151) in #t151;
+  core::num* v7 = let final self::Test<core::num*, core::int*>* #t141 = t in let final core::String* #t142 = "x" in let final core::num #t143 = #t141.{self::Test::[]}(#t142).{core::num::+}(self::getInt()) as{TypeError} core::int* in let final void #t144 = #t141.{self::Test::[]=}(#t142, #t143) in #t143;
+  core::num* v8 = let final self::Test<core::num*, core::int*>* #t145 = t in let final core::String* #t146 = "x" in let final core::num #t147 = #t145.{self::Test::[]}(#t146).{core::num::+}(self::getNum()) as{TypeError} core::int* in let final void #t148 = #t145.{self::Test::[]=}(#t146, #t147) in #t147;
+  core::num* v10 = let final self::Test<core::num*, core::int*>* #t149 = t in let final core::String* #t150 = "x" in let final core::num #t151 = #t149.{self::Test::[]}(#t150).{core::num::+}(1) as{TypeError} core::int* in let final void #t152 = #t149.{self::Test::[]=}(#t150, #t151) in #t151;
   core::num* v11 = let final self::Test<core::num*, core::int*>* #t153 = t in let final core::String* #t154 = "x" in let final core::num* #t155 = #t153.{self::Test::[]}(#t154) in let final void #t156 = #t153.{self::Test::[]=}(#t154, #t155.{core::num::+}(1) as{TypeError} core::int*) in #t155;
 }
 static method test5(self::Test<core::num*, core::num*>* t) → void {
@@ -103,10 +113,10 @@ static method test5(self::Test<core::num*, core::num*>* t) → void {
   core::num* v4 = let final self::Test<core::num*, core::num*>* #t169 = t in let final core::String* #t170 = "x" in let final core::num* #t171 = #t169.{self::Test::[]}(#t170) in #t171.{core::num::==}(null) ?{core::num*} let final core::int* #t172 = self::getInt() in let final void #t173 = #t169.{self::Test::[]=}(#t170, #t172) in #t172 : #t171;
   core::num* v5 = let final self::Test<core::num*, core::num*>* #t174 = t in let final core::String* #t175 = "x" in let final core::num* #t176 = #t174.{self::Test::[]}(#t175) in #t176.{core::num::==}(null) ?{core::num*} let final core::num* #t177 = self::getNum() in let final void #t178 = #t174.{self::Test::[]=}(#t175, #t177) in #t177 : #t176;
   core::num* v6 = let final self::Test<core::num*, core::num*>* #t179 = t in let final core::String* #t180 = "x" in let final core::num* #t181 = #t179.{self::Test::[]}(#t180) in #t181.{core::num::==}(null) ?{core::num*} let final core::double* #t182 = self::getDouble() in let final void #t183 = #t179.{self::Test::[]=}(#t180, #t182) in #t182 : #t181;
-  core::num* v7 = let final self::Test<core::num*, core::num*>* #t184 = t in let final core::String* #t185 = "x" in let final core::num* #t186 = #t184.{self::Test::[]}(#t185).{core::num::+}(self::getInt()) in let final void #t187 = #t184.{self::Test::[]=}(#t185, #t186) in #t186;
-  core::num* v8 = let final self::Test<core::num*, core::num*>* #t188 = t in let final core::String* #t189 = "x" in let final core::num* #t190 = #t188.{self::Test::[]}(#t189).{core::num::+}(self::getNum()) in let final void #t191 = #t188.{self::Test::[]=}(#t189, #t190) in #t190;
-  core::num* v9 = let final self::Test<core::num*, core::num*>* #t192 = t in let final core::String* #t193 = "x" in let final core::num* #t194 = #t192.{self::Test::[]}(#t193).{core::num::+}(self::getDouble()) in let final void #t195 = #t192.{self::Test::[]=}(#t193, #t194) in #t194;
-  core::num* v10 = let final self::Test<core::num*, core::num*>* #t196 = t in let final core::String* #t197 = "x" in let final core::num* #t198 = #t196.{self::Test::[]}(#t197).{core::num::+}(1) in let final void #t199 = #t196.{self::Test::[]=}(#t197, #t198) in #t198;
+  core::num* v7 = let final self::Test<core::num*, core::num*>* #t184 = t in let final core::String* #t185 = "x" in let final core::num #t186 = #t184.{self::Test::[]}(#t185).{core::num::+}(self::getInt()) in let final void #t187 = #t184.{self::Test::[]=}(#t185, #t186) in #t186;
+  core::num* v8 = let final self::Test<core::num*, core::num*>* #t188 = t in let final core::String* #t189 = "x" in let final core::num #t190 = #t188.{self::Test::[]}(#t189).{core::num::+}(self::getNum()) in let final void #t191 = #t188.{self::Test::[]=}(#t189, #t190) in #t190;
+  core::num* v9 = let final self::Test<core::num*, core::num*>* #t192 = t in let final core::String* #t193 = "x" in let final core::num #t194 = #t192.{self::Test::[]}(#t193).{core::num::+}(self::getDouble()) in let final void #t195 = #t192.{self::Test::[]=}(#t193, #t194) in #t194;
+  core::num* v10 = let final self::Test<core::num*, core::num*>* #t196 = t in let final core::String* #t197 = "x" in let final core::num #t198 = #t196.{self::Test::[]}(#t197).{core::num::+}(1) in let final void #t199 = #t196.{self::Test::[]=}(#t197, #t198) in #t198;
   core::num* v11 = let final self::Test<core::num*, core::num*>* #t200 = t in let final core::String* #t201 = "x" in let final core::num* #t202 = #t200.{self::Test::[]}(#t201) in let final void #t203 = #t200.{self::Test::[]=}(#t201, #t202.{core::num::+}(1)) in #t202;
 }
 static method test6(self::Test<core::num*, core::double*>* t) → void {
@@ -114,10 +124,10 @@ static method test6(self::Test<core::num*, core::double*>* t) → void {
   core::double* v3 = let final self::Test<core::num*, core::double*>* #t208 = t in let final core::String* #t209 = "x" in let final core::double* #t210 = self::getDouble() in let final void #t211 = #t208.{self::Test::[]=}(#t209, #t210) in #t210;
   core::num* v5 = let final self::Test<core::num*, core::double*>* #t212 = t in let final core::String* #t213 = "x" in let final core::num* #t214 = #t212.{self::Test::[]}(#t213) in #t214.{core::num::==}(null) ?{core::num*} let final core::num* #t215 = self::getNum() as{TypeError} core::double* in let final void #t216 = #t212.{self::Test::[]=}(#t213, #t215) in #t215 : #t214;
   core::num* v6 = let final self::Test<core::num*, core::double*>* #t217 = t in let final core::String* #t218 = "x" in let final core::num* #t219 = #t217.{self::Test::[]}(#t218) in #t219.{core::num::==}(null) ?{core::num*} let final core::double* #t220 = self::getDouble() in let final void #t221 = #t217.{self::Test::[]=}(#t218, #t220) in #t220 : #t219;
-  core::num* v7 = let final self::Test<core::num*, core::double*>* #t222 = t in let final core::String* #t223 = "x" in let final core::num* #t224 = #t222.{self::Test::[]}(#t223).{core::num::+}(self::getInt()) as{TypeError} core::double* in let final void #t225 = #t222.{self::Test::[]=}(#t223, #t224) in #t224;
-  core::num* v8 = let final self::Test<core::num*, core::double*>* #t226 = t in let final core::String* #t227 = "x" in let final core::num* #t228 = #t226.{self::Test::[]}(#t227).{core::num::+}(self::getNum()) as{TypeError} core::double* in let final void #t229 = #t226.{self::Test::[]=}(#t227, #t228) in #t228;
-  core::num* v9 = let final self::Test<core::num*, core::double*>* #t230 = t in let final core::String* #t231 = "x" in let final core::num* #t232 = #t230.{self::Test::[]}(#t231).{core::num::+}(self::getDouble()) as{TypeError} core::double* in let final void #t233 = #t230.{self::Test::[]=}(#t231, #t232) in #t232;
-  core::num* v10 = let final self::Test<core::num*, core::double*>* #t234 = t in let final core::String* #t235 = "x" in let final core::num* #t236 = #t234.{self::Test::[]}(#t235).{core::num::+}(1) as{TypeError} core::double* in let final void #t237 = #t234.{self::Test::[]=}(#t235, #t236) in #t236;
+  core::num* v7 = let final self::Test<core::num*, core::double*>* #t222 = t in let final core::String* #t223 = "x" in let final core::num #t224 = #t222.{self::Test::[]}(#t223).{core::num::+}(self::getInt()) as{TypeError} core::double* in let final void #t225 = #t222.{self::Test::[]=}(#t223, #t224) in #t224;
+  core::num* v8 = let final self::Test<core::num*, core::double*>* #t226 = t in let final core::String* #t227 = "x" in let final core::num #t228 = #t226.{self::Test::[]}(#t227).{core::num::+}(self::getNum()) as{TypeError} core::double* in let final void #t229 = #t226.{self::Test::[]=}(#t227, #t228) in #t228;
+  core::num* v9 = let final self::Test<core::num*, core::double*>* #t230 = t in let final core::String* #t231 = "x" in let final core::num #t232 = #t230.{self::Test::[]}(#t231).{core::num::+}(self::getDouble()) as{TypeError} core::double* in let final void #t233 = #t230.{self::Test::[]=}(#t231, #t232) in #t232;
+  core::num* v10 = let final self::Test<core::num*, core::double*>* #t234 = t in let final core::String* #t235 = "x" in let final core::num #t236 = #t234.{self::Test::[]}(#t235).{core::num::+}(1) as{TypeError} core::double* in let final void #t237 = #t234.{self::Test::[]=}(#t235, #t236) in #t236;
   core::num* v11 = let final self::Test<core::num*, core::double*>* #t238 = t in let final core::String* #t239 = "x" in let final core::num* #t240 = #t238.{self::Test::[]}(#t239) in let final void #t241 = #t238.{self::Test::[]=}(#t239, #t240.{core::num::+}(1) as{TypeError} core::double*) in #t240;
 }
 static method test7(self::Test<core::double*, core::int*>* t) → void {
@@ -125,18 +135,18 @@ static method test7(self::Test<core::double*, core::int*>* t) → void {
   core::num* v2 = let final self::Test<core::double*, core::int*>* #t246 = t in let final core::String* #t247 = "x" in let final core::num* #t248 = self::getNum() as{TypeError} core::int* in let final void #t249 = #t246.{self::Test::[]=}(#t247, #t248) in #t248;
   core::num* v4 = let final self::Test<core::double*, core::int*>* #t250 = t in let final core::String* #t251 = "x" in let final core::double* #t252 = #t250.{self::Test::[]}(#t251) in #t252.{core::num::==}(null) ?{core::num*} let final core::int* #t253 = self::getInt() in let final void #t254 = #t250.{self::Test::[]=}(#t251, #t253) in #t253 : #t252;
   core::num* v5 = let final self::Test<core::double*, core::int*>* #t255 = t in let final core::String* #t256 = "x" in let final core::double* #t257 = #t255.{self::Test::[]}(#t256) in #t257.{core::num::==}(null) ?{core::num*} let final core::num* #t258 = self::getNum() as{TypeError} core::int* in let final void #t259 = #t255.{self::Test::[]=}(#t256, #t258) in #t258 : #t257;
-  core::double* v7 = let final self::Test<core::double*, core::int*>* #t260 = t in let final core::String* #t261 = "x" in let final core::double* #t262 = let final<BottomType> #t263 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:211:36: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-      'x'] /*@ target=double::+ */ += getInt();
-                                   ^" in #t260.{self::Test::[]}(#t261).{core::double::+}(self::getInt()) as{TypeError} core::int* in let final void #t264 = #t260.{self::Test::[]=}(#t261, #t262) in #t262;
-  core::double* v8 = let final self::Test<core::double*, core::int*>* #t265 = t in let final core::String* #t266 = "x" in let final core::double* #t267 = let final<BottomType> #t268 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:214:36: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-      'x'] /*@ target=double::+ */ += getNum();
-                                   ^" in #t265.{self::Test::[]}(#t266).{core::double::+}(self::getNum()) as{TypeError} core::int* in let final void #t269 = #t265.{self::Test::[]=}(#t266, #t267) in #t267;
-  core::double* v10 = let final self::Test<core::double*, core::int*>* #t270 = t in let final core::String* #t271 = "x" in let final core::double* #t272 = let final<BottomType> #t273 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:217:31: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-      /*@ target=double::+ */ ++t
-                              ^" in #t270.{self::Test::[]}(#t271).{core::double::+}(1) as{TypeError} core::int* in let final void #t274 = #t270.{self::Test::[]=}(#t271, #t272) in #t272;
-  core::double* v11 = let final self::Test<core::double*, core::int*>* #t275 = t in let final core::String* #t276 = "x" in let final core::double* #t277 = #t275.{self::Test::[]}(#t276) in let final void #t278 = #t275.{self::Test::[]=}(#t276, let final<BottomType> #t279 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:221:36: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-      'x'] /*@ target=double::+ */ ++;
-                                   ^" in #t277.{core::double::+}(1) as{TypeError} core::int*) in #t277;
+  core::double* v7 = let final self::Test<core::double*, core::int*>* #t260 = t in let final core::String* #t261 = "x" in let final core::double #t262 = let final<BottomType> #t263 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:211:77: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+      t /*@target=Test.[]*/ /*@target=Test.[]=*/ ['x'] /*@target=double.+*/ +=
+                                                                            ^" in #t260.{self::Test::[]}(#t261).{core::double::+}(self::getInt()) as{TypeError} core::int* in let final void #t264 = #t260.{self::Test::[]=}(#t261, #t262) in #t262;
+  core::double* v8 = let final self::Test<core::double*, core::int*>* #t265 = t in let final core::String* #t266 = "x" in let final core::double #t267 = let final<BottomType> #t268 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:215:77: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+      t /*@target=Test.[]*/ /*@target=Test.[]=*/ ['x'] /*@target=double.+*/ +=
+                                                                            ^" in #t265.{self::Test::[]}(#t266).{core::double::+}(self::getNum()) as{TypeError} core::int* in let final void #t269 = #t265.{self::Test::[]=}(#t266, #t267) in #t267;
+  core::double* v10 = let final self::Test<core::double*, core::int*>* #t270 = t in let final core::String* #t271 = "x" in let final core::double #t272 = let final<BottomType> #t273 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:219:28: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+      /*@target=double.+*/ ++t
+                           ^" in #t270.{self::Test::[]}(#t271).{core::double::+}(1) as{TypeError} core::int* in let final void #t274 = #t270.{self::Test::[]=}(#t271, #t272) in #t272;
+  core::double* v11 = let final self::Test<core::double*, core::int*>* #t275 = t in let final core::String* #t276 = "x" in let final core::double* #t277 = #t275.{self::Test::[]}(#t276) in let final void #t278 = #t275.{self::Test::[]=}(#t276, let final<BottomType> #t279 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:223:77: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+      t /*@target=Test.[]*/ /*@target=Test.[]=*/ ['x'] /*@target=double.+*/ ++;
+                                                                            ^" in #t277.{core::double::+}(1) as{TypeError} core::int*) in #t277;
 }
 static method test8(self::Test<core::double*, core::num*>* t) → void {
   core::int* v1 = let final self::Test<core::double*, core::num*>* #t280 = t in let final core::String* #t281 = "x" in let final core::int* #t282 = self::getInt() in let final void #t283 = #t280.{self::Test::[]=}(#t281, #t282) in #t282;
@@ -145,10 +155,10 @@ static method test8(self::Test<core::double*, core::num*>* t) → void {
   core::num* v4 = let final self::Test<core::double*, core::num*>* #t292 = t in let final core::String* #t293 = "x" in let final core::double* #t294 = #t292.{self::Test::[]}(#t293) in #t294.{core::num::==}(null) ?{core::num*} let final core::int* #t295 = self::getInt() in let final void #t296 = #t292.{self::Test::[]=}(#t293, #t295) in #t295 : #t294;
   core::num* v5 = let final self::Test<core::double*, core::num*>* #t297 = t in let final core::String* #t298 = "x" in let final core::double* #t299 = #t297.{self::Test::[]}(#t298) in #t299.{core::num::==}(null) ?{core::num*} let final core::num* #t300 = self::getNum() in let final void #t301 = #t297.{self::Test::[]=}(#t298, #t300) in #t300 : #t299;
   core::double* v6 = let final self::Test<core::double*, core::num*>* #t302 = t in let final core::String* #t303 = "x" in let final core::double* #t304 = #t302.{self::Test::[]}(#t303) in #t304.{core::num::==}(null) ?{core::double*} let final core::double* #t305 = self::getDouble() in let final void #t306 = #t302.{self::Test::[]=}(#t303, #t305) in #t305 : #t304;
-  core::double* v7 = let final self::Test<core::double*, core::num*>* #t307 = t in let final core::String* #t308 = "x" in let final core::double* #t309 = #t307.{self::Test::[]}(#t308).{core::double::+}(self::getInt()) in let final void #t310 = #t307.{self::Test::[]=}(#t308, #t309) in #t309;
-  core::double* v8 = let final self::Test<core::double*, core::num*>* #t311 = t in let final core::String* #t312 = "x" in let final core::double* #t313 = #t311.{self::Test::[]}(#t312).{core::double::+}(self::getNum()) in let final void #t314 = #t311.{self::Test::[]=}(#t312, #t313) in #t313;
-  core::double* v9 = let final self::Test<core::double*, core::num*>* #t315 = t in let final core::String* #t316 = "x" in let final core::double* #t317 = #t315.{self::Test::[]}(#t316).{core::double::+}(self::getDouble()) in let final void #t318 = #t315.{self::Test::[]=}(#t316, #t317) in #t317;
-  core::double* v10 = let final self::Test<core::double*, core::num*>* #t319 = t in let final core::String* #t320 = "x" in let final core::double* #t321 = #t319.{self::Test::[]}(#t320).{core::double::+}(1) in let final void #t322 = #t319.{self::Test::[]=}(#t320, #t321) in #t321;
+  core::double* v7 = let final self::Test<core::double*, core::num*>* #t307 = t in let final core::String* #t308 = "x" in let final core::double #t309 = #t307.{self::Test::[]}(#t308).{core::double::+}(self::getInt()) in let final void #t310 = #t307.{self::Test::[]=}(#t308, #t309) in #t309;
+  core::double* v8 = let final self::Test<core::double*, core::num*>* #t311 = t in let final core::String* #t312 = "x" in let final core::double #t313 = #t311.{self::Test::[]}(#t312).{core::double::+}(self::getNum()) in let final void #t314 = #t311.{self::Test::[]=}(#t312, #t313) in #t313;
+  core::double* v9 = let final self::Test<core::double*, core::num*>* #t315 = t in let final core::String* #t316 = "x" in let final core::double #t317 = #t315.{self::Test::[]}(#t316).{core::double::+}(self::getDouble()) in let final void #t318 = #t315.{self::Test::[]=}(#t316, #t317) in #t317;
+  core::double* v10 = let final self::Test<core::double*, core::num*>* #t319 = t in let final core::String* #t320 = "x" in let final core::double #t321 = #t319.{self::Test::[]}(#t320).{core::double::+}(1) in let final void #t322 = #t319.{self::Test::[]=}(#t320, #t321) in #t321;
   core::double* v11 = let final self::Test<core::double*, core::num*>* #t323 = t in let final core::String* #t324 = "x" in let final core::double* #t325 = #t323.{self::Test::[]}(#t324) in let final void #t326 = #t323.{self::Test::[]=}(#t324, #t325.{core::double::+}(1)) in #t325;
 }
 static method test9(self::Test<core::double*, core::double*>* t) → void {
@@ -156,10 +166,10 @@ static method test9(self::Test<core::double*, core::double*>* t) → void {
   core::double* v3 = let final self::Test<core::double*, core::double*>* #t331 = t in let final core::String* #t332 = "x" in let final core::double* #t333 = self::getDouble() in let final void #t334 = #t331.{self::Test::[]=}(#t332, #t333) in #t333;
   core::num* v5 = let final self::Test<core::double*, core::double*>* #t335 = t in let final core::String* #t336 = "x" in let final core::double* #t337 = #t335.{self::Test::[]}(#t336) in #t337.{core::num::==}(null) ?{core::num*} let final core::num* #t338 = self::getNum() as{TypeError} core::double* in let final void #t339 = #t335.{self::Test::[]=}(#t336, #t338) in #t338 : #t337;
   core::double* v6 = let final self::Test<core::double*, core::double*>* #t340 = t in let final core::String* #t341 = "x" in let final core::double* #t342 = #t340.{self::Test::[]}(#t341) in #t342.{core::num::==}(null) ?{core::double*} let final core::double* #t343 = self::getDouble() in let final void #t344 = #t340.{self::Test::[]=}(#t341, #t343) in #t343 : #t342;
-  core::double* v7 = let final self::Test<core::double*, core::double*>* #t345 = t in let final core::String* #t346 = "x" in let final core::double* #t347 = #t345.{self::Test::[]}(#t346).{core::double::+}(self::getInt()) in let final void #t348 = #t345.{self::Test::[]=}(#t346, #t347) in #t347;
-  core::double* v8 = let final self::Test<core::double*, core::double*>* #t349 = t in let final core::String* #t350 = "x" in let final core::double* #t351 = #t349.{self::Test::[]}(#t350).{core::double::+}(self::getNum()) in let final void #t352 = #t349.{self::Test::[]=}(#t350, #t351) in #t351;
-  core::double* v9 = let final self::Test<core::double*, core::double*>* #t353 = t in let final core::String* #t354 = "x" in let final core::double* #t355 = #t353.{self::Test::[]}(#t354).{core::double::+}(self::getDouble()) in let final void #t356 = #t353.{self::Test::[]=}(#t354, #t355) in #t355;
-  core::double* v10 = let final self::Test<core::double*, core::double*>* #t357 = t in let final core::String* #t358 = "x" in let final core::double* #t359 = #t357.{self::Test::[]}(#t358).{core::double::+}(1) in let final void #t360 = #t357.{self::Test::[]=}(#t358, #t359) in #t359;
+  core::double* v7 = let final self::Test<core::double*, core::double*>* #t345 = t in let final core::String* #t346 = "x" in let final core::double #t347 = #t345.{self::Test::[]}(#t346).{core::double::+}(self::getInt()) in let final void #t348 = #t345.{self::Test::[]=}(#t346, #t347) in #t347;
+  core::double* v8 = let final self::Test<core::double*, core::double*>* #t349 = t in let final core::String* #t350 = "x" in let final core::double #t351 = #t349.{self::Test::[]}(#t350).{core::double::+}(self::getNum()) in let final void #t352 = #t349.{self::Test::[]=}(#t350, #t351) in #t351;
+  core::double* v9 = let final self::Test<core::double*, core::double*>* #t353 = t in let final core::String* #t354 = "x" in let final core::double #t355 = #t353.{self::Test::[]}(#t354).{core::double::+}(self::getDouble()) in let final void #t356 = #t353.{self::Test::[]=}(#t354, #t355) in #t355;
+  core::double* v10 = let final self::Test<core::double*, core::double*>* #t357 = t in let final core::String* #t358 = "x" in let final core::double #t359 = #t357.{self::Test::[]}(#t358).{core::double::+}(1) in let final void #t360 = #t357.{self::Test::[]=}(#t358, #t359) in #t359;
   core::double* v11 = let final self::Test<core::double*, core::double*>* #t361 = t in let final core::String* #t362 = "x" in let final core::double* #t363 = #t361.{self::Test::[]}(#t362) in let final void #t364 = #t361.{self::Test::[]=}(#t362, #t363.{core::double::+}(1)) in #t363;
 }
 static method main() → dynamic {}

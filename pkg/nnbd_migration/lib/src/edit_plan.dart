@@ -366,12 +366,15 @@ class EditPlanner {
   /// caller.
   NodeProducingEditPlan extract(
       AstNode sourceNode, NodeProducingEditPlan innerPlan,
-      {AtomicEditInfo infoBefore, AtomicEditInfo infoAfter}) {
+      {AtomicEditInfo infoBefore,
+      AtomicEditInfo infoAfter,
+      bool alwaysDelete = false}) {
     var parent = innerPlan.sourceNode.parent;
     if (!identical(parent, sourceNode) && parent is ParenthesizedExpression) {
       innerPlan = _ProvisionalParenEditPlan(parent, innerPlan);
     }
-    return _ExtractEditPlan(sourceNode, innerPlan, this, infoBefore, infoAfter);
+    return _ExtractEditPlan(
+        sourceNode, innerPlan, this, infoBefore, infoAfter, alwaysDelete);
   }
 
   /// Converts [plan] to a representation of the concrete edits that need
@@ -424,7 +427,10 @@ class EditPlanner {
   /// made.
   NodeProducingEditPlan makeNullable(NodeProducingEditPlan innerPlan,
       {AtomicEditInfo info}) {
-    assert(innerPlan.sourceNode is TypeAnnotation);
+    var sourceNode = innerPlan.sourceNode;
+    assert(sourceNode is TypeAnnotation ||
+        sourceNode is FunctionTypedFormalParameter ||
+        (sourceNode is FieldFormalParameter && sourceNode.parameters != null));
     return surround(innerPlan, suffix: [AtomicEdit.insert('?', info: info)]);
   }
 
@@ -961,33 +967,35 @@ class _ExtractEditPlan extends _NestedEditPlan {
 
   final AtomicEditInfo _infoAfter;
 
+  /// Whether text-to-be-removed should be removed (as opposed to commented out)
+  /// even when [EditPlan.removeViaComments] is true.
+  final bool _alwaysDelete;
+
   _ExtractEditPlan(AstNode sourceNode, NodeProducingEditPlan innerPlan,
-      this._planner, this._infoBefore, this._infoAfter)
+      this._planner, this._infoBefore, this._infoAfter, this._alwaysDelete)
       : super(sourceNode, innerPlan);
 
   @override
   Map<int, List<AtomicEdit>> _getChanges(bool parens) {
-    // Get the inner changes.  If they already have provsional parens and we
+    // Get the inner changes.  If they already have provisional parens and we
     // need them, use them.
     var useInnerParens = parens && innerPlan is _ProvisionalParenEditPlan;
     var changes = innerPlan._getChanges(useInnerParens);
-    // Extract the inner expression.
     // TODO(paulberry): don't remove comments
+    _RemovalStyle leadingChangeRemovalStyle;
+    _RemovalStyle trailingChangeRemovalStyle;
+    if (_alwaysDelete || !_planner.removeViaComments) {
+      leadingChangeRemovalStyle = _RemovalStyle.delete;
+      trailingChangeRemovalStyle = _RemovalStyle.delete;
+    } else {
+      leadingChangeRemovalStyle = _RemovalStyle.commentSpace;
+      trailingChangeRemovalStyle = _RemovalStyle.spaceComment;
+    }
+    // Extract the inner expression.
     changes = _removeCode(
-            offset,
-            innerPlan.offset,
-            _planner.removeViaComments
-                ? _RemovalStyle.commentSpace
-                : _RemovalStyle.delete,
-            _infoBefore) +
+            offset, innerPlan.offset, leadingChangeRemovalStyle, _infoBefore) +
         changes +
-        _removeCode(
-            innerPlan.end,
-            end,
-            _planner.removeViaComments
-                ? _RemovalStyle.spaceComment
-                : _RemovalStyle.delete,
-            _infoAfter);
+        _removeCode(innerPlan.end, end, trailingChangeRemovalStyle, _infoAfter);
     // Apply parens if needed.
     if (parens && !useInnerParens) {
       changes = _createAddParenChanges(changes);

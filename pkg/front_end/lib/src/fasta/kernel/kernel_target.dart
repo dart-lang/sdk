@@ -6,6 +6,7 @@ library fasta.kernel_target;
 
 import 'dart:async' show Future;
 
+import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:kernel/ast.dart'
     show
         Arguments,
@@ -30,6 +31,7 @@ import 'package:kernel/ast.dart'
         NullLiteral,
         Procedure,
         RedirectingInitializer,
+        Reference,
         Source,
         SuperInitializer,
         Supertype,
@@ -96,6 +98,7 @@ import '../messages.dart'
         messageConstConstructorNonFinalField,
         messageConstConstructorNonFinalFieldCause,
         messageConstConstructorRedirectionToNonConst,
+        messageStrongModeNNBDButOptOut,
         noLength,
         templateFieldNonNullableNotInitializedByConstructorError,
         templateFieldNonNullableWithoutInitializerError,
@@ -249,6 +252,12 @@ class KernelTarget extends TargetImplementation {
     if (dillTarget.isLoaded) {
       LibraryBuilder builder = dillTarget.loader.builders[uri];
       if (builder != null) {
+        if (loader.nnbdMode == NnbdMode.Strong ||
+            loader.nnbdMode == NnbdMode.Agnostic) {
+          if (!builder.isNonNullableByDefault) {
+            loader.addProblem(messageStrongModeNNBDButOptOut, -1, 1, fileUri);
+          }
+        }
         return builder;
       }
     }
@@ -321,10 +330,10 @@ class KernelTarget extends TargetImplementation {
       loader.checkTypes();
       loader.checkOverrides(myClasses);
       loader.checkAbstractMembers(myClasses);
-      loader.checkRedirectingFactories(myClasses);
       loader.addNoSuchMethodForwarders(myClasses);
       loader.checkMixins(myClasses);
       loader.buildOutlineExpressions(loader.coreTypes);
+      loader.checkRedirectingFactories(myClasses);
       _updateDelayedParameterTypes();
       installAllComponentProblems(loader.allComponentProblems);
       loader.allComponentProblems.clear();
@@ -389,6 +398,26 @@ class KernelTarget extends TargetImplementation {
 
     Component component = backendTarget.configureComponent(new Component(
         nameRoot: nameRoot, libraries: libraries, uriToSource: uriToSource));
+
+    NonNullableByDefaultCompiledMode compiledMode = null;
+    if (isExperimentEnabledGlobally(ExperimentalFlag.nonNullable)) {
+      switch (loader.nnbdMode) {
+        case NnbdMode.Weak:
+          compiledMode = NonNullableByDefaultCompiledMode.Weak;
+          break;
+        case NnbdMode.Strong:
+          compiledMode = NonNullableByDefaultCompiledMode.Strong;
+          break;
+        case NnbdMode.Agnostic:
+          compiledMode = NonNullableByDefaultCompiledMode.Agnostic;
+          break;
+      }
+    } else {
+      compiledMode = NonNullableByDefaultCompiledMode.Disabled;
+    }
+
+    Reference mainReference;
+
     if (loader.first != null) {
       // TODO(sigmund): do only for full program
       Builder declaration = loader.first.exportScope.lookup("main", -1, null);
@@ -396,32 +425,15 @@ class KernelTarget extends TargetImplementation {
         AmbiguousBuilder problem = declaration;
         declaration = problem.getFirstDeclaration();
       }
-      NonNullableByDefaultCompiledMode compiledMode = null;
-      if (enableNonNullable) {
-        switch (loader.nnbdMode) {
-          case NnbdMode.Weak:
-            compiledMode = NonNullableByDefaultCompiledMode.Weak;
-            break;
-          case NnbdMode.Strong:
-            compiledMode = NonNullableByDefaultCompiledMode.Strong;
-            break;
-          case NnbdMode.Agnostic:
-            compiledMode = NonNullableByDefaultCompiledMode.Agnostic;
-            break;
-        }
-      } else {
-        compiledMode = NonNullableByDefaultCompiledMode.Disabled;
-      }
       if (declaration is ProcedureBuilder) {
-        component.setMainMethodAndMode(
-            declaration.actualProcedure?.reference, true, compiledMode);
+        mainReference = declaration.actualProcedure?.reference;
       } else if (declaration is DillMemberBuilder) {
         if (declaration.member is Procedure) {
-          component.setMainMethodAndMode(
-              declaration.member?.reference, true, compiledMode);
+          mainReference = declaration.member?.reference;
         }
       }
     }
+    component.setMainMethodAndMode(mainReference, true, compiledMode);
 
     if (metadataCollector != null) {
       component.addMetadataRepository(metadataCollector.repository);
@@ -758,6 +770,11 @@ class KernelTarget extends TargetImplementation {
     List<FieldBuilder> lateFinalFields = <FieldBuilder>[];
 
     builder.forEachDeclaredField((String name, FieldBuilder fieldBuilder) {
+      if (fieldBuilder.isExternal) {
+        // Skip external fields. These are external getters/setters and have
+        // no initialization.
+        return;
+      }
       if (fieldBuilder.isDeclarationInstanceMember && !fieldBuilder.isFinal) {
         nonFinalFields.add(fieldBuilder);
       }
@@ -957,16 +974,16 @@ class KernelTarget extends TargetImplementation {
                   fieldBuilder.name.length,
                   fieldBuilder.fileUri);
             }
-          } else if (fieldBuilder.field.type is! InvalidType &&
+          } else if (fieldBuilder.fieldType is! InvalidType &&
               isPotentiallyNonNullable(
-                  fieldBuilder.field.type, loader.coreTypes.futureOrClass) &&
+                  fieldBuilder.fieldType, loader.coreTypes.futureOrClass) &&
               (cls.constructors.isNotEmpty || cls.isMixinDeclaration)) {
             SourceLibraryBuilder library = builder.library;
             if (library.isNonNullableByDefault) {
               library.addProblem(
                   templateFieldNonNullableWithoutInitializerError.withArguments(
                       fieldBuilder.name,
-                      fieldBuilder.field.type,
+                      fieldBuilder.fieldType,
                       library.isNonNullableByDefault),
                   fieldBuilder.charOffset,
                   fieldBuilder.name.length,
@@ -1036,14 +1053,13 @@ class KernelTarget extends TargetImplementation {
       Set<String> patchFieldNames = {};
       builder.forEachDeclaredField((String name, FieldBuilder fieldBuilder) {
         patchFieldNames.add(SourceFieldBuilder.createFieldName(
-            fieldBuilder.isClassInstanceMember,
-            builder.name,
-            false,
-            null,
-            name,
-            fieldBuilder.isLate &&
-                !builder.library.loader.target.backendTarget.supportsLateFields,
-            FieldNameType.Field));
+          FieldNameType.Field,
+          name,
+          isInstanceMember: fieldBuilder.isClassInstanceMember,
+          className: builder.name,
+          isSynthesized: fieldBuilder.isLate &&
+              !builder.library.loader.target.backendTarget.supportsLateFields,
+        ));
       });
       builder.forEach((String name, Builder builder) {
         if (builder is FieldBuilder) {
@@ -1079,20 +1095,24 @@ class KernelTarget extends TargetImplementation {
     TypeEnvironment environment =
         new TypeEnvironment(loader.coreTypes, loader.hierarchy);
     constants.EvaluationMode evaluationMode;
-    if (enableNonNullable) {
-      switch (loader.nnbdMode) {
-        case NnbdMode.Weak:
-          evaluationMode = constants.EvaluationMode.weak;
-          break;
-        case NnbdMode.Strong:
-          evaluationMode = constants.EvaluationMode.strong;
-          break;
-        case NnbdMode.Agnostic:
-          evaluationMode = constants.EvaluationMode.agnostic;
-          break;
-      }
-    } else {
-      evaluationMode = constants.EvaluationMode.legacy;
+    // If nnbd is not enabled we will use weak evaluation mode. This is needed
+    // because the SDK might be agnostic and therefore needs to be weakened
+    // for legacy mode.
+    assert(
+        isExperimentEnabledGlobally(ExperimentalFlag.nonNullable) ||
+            loader.nnbdMode == NnbdMode.Weak,
+        "Non-weak nnbd mode found without experiment enabled: "
+        "${loader.nnbdMode}.");
+    switch (loader.nnbdMode) {
+      case NnbdMode.Weak:
+        evaluationMode = constants.EvaluationMode.weak;
+        break;
+      case NnbdMode.Strong:
+        evaluationMode = constants.EvaluationMode.strong;
+        break;
+      case NnbdMode.Agnostic:
+        evaluationMode = constants.EvaluationMode.agnostic;
+        break;
     }
 
     constants.transformLibraries(
@@ -1103,7 +1123,8 @@ class KernelTarget extends TargetImplementation {
         new KernelConstantErrorReporter(loader),
         evaluationMode,
         desugarSets: !backendTarget.supportsSetLiterals,
-        enableTripleShift: enableTripleShift,
+        enableTripleShift:
+            isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
         errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
     ticker.logMs("Evaluated constants");
 

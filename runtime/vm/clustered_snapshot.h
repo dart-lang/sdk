@@ -145,7 +145,7 @@ class Serializer : public ThreadStackResource {
   static const intptr_t kUnreachableReference = 0;
 
   static constexpr bool IsReachableReference(intptr_t ref) {
-    return ref != kUnreachableReference;
+    return ref == kUnallocatedReference || IsAllocatedReference(ref);
   }
 
   // Reference value for traced objects that have not been allocated their final
@@ -153,7 +153,11 @@ class Serializer : public ThreadStackResource {
   static const intptr_t kUnallocatedReference = -1;
 
   static constexpr bool IsAllocatedReference(intptr_t ref) {
-    return IsReachableReference(ref) && ref != kUnallocatedReference;
+    return ref > kUnreachableReference;
+  }
+
+  static constexpr bool IsArtificialReference(intptr_t ref) {
+    return ref < kUnallocatedReference;
   }
 
   intptr_t WriteVMSnapshot(const Array& symbols);
@@ -205,6 +209,15 @@ class Serializer : public ThreadStackResource {
     return next_ref_index_++;
   }
 
+  intptr_t AssignArtificialRef(ObjectPtr object) {
+    ASSERT(object.IsHeapObject());
+    const intptr_t ref = -(next_ref_index_++);
+    ASSERT(IsArtificialReference(ref));
+    heap_->SetObjectId(object, ref);
+    ASSERT(heap_->GetObjectId(object) == ref);
+    return ref;
+  }
+
   void Push(ObjectPtr object);
 
   void AddUntracedRef() { num_written_objects_++; }
@@ -240,6 +253,7 @@ class Serializer : public ThreadStackResource {
   WriteStream* stream() { return &stream_; }
   intptr_t bytes_written() { return stream_.bytes_written(); }
 
+  void FlushBytesWrittenToRoot();
   void TraceStartWritingObject(const char* type, ObjectPtr obj, StringPtr name);
   void TraceEndWritingObject();
 
@@ -262,7 +276,7 @@ class Serializer : public ThreadStackResource {
   void Align(intptr_t alignment) { stream_.Align(alignment); }
 
   void WriteRootRef(ObjectPtr object, const char* name = nullptr) {
-    intptr_t id = WriteRefId(object);
+    intptr_t id = RefId(object);
     WriteUnsigned(id);
     if (profile_writer_ != nullptr) {
       profile_writer_->AddRoot({V8SnapshotProfileWriter::kSnapshot, id}, name);
@@ -270,25 +284,15 @@ class Serializer : public ThreadStackResource {
   }
 
   void WriteElementRef(ObjectPtr object, intptr_t index) {
-    intptr_t id = WriteRefId(object);
-    WriteUnsigned(id);
-    if (profile_writer_ != nullptr) {
-      profile_writer_->AttributeReferenceTo(
-          {V8SnapshotProfileWriter::kSnapshot, object_currently_writing_.id_},
-          {{V8SnapshotProfileWriter::kSnapshot, id},
-           V8SnapshotProfileWriter::Reference::kElement,
-           index});
-    }
+    WriteUnsigned(AttributeElementRef(object, index));
   }
 
   // Record a reference from the currently written object to the given object
-  // without actually writing the reference into the snapshot.
-  // Used to create artificial connection between objects which are not
-  // explicitly connected in the heap, for example an object referenced
-  // by the global object pool is in reality referenced by the code which
-  // caused this reference to be added to the global object pool.
-  void AttributeElementRef(ObjectPtr object, intptr_t index) {
-    intptr_t id = WriteRefId(object);
+  // and return reference id for the given object.
+  intptr_t AttributeElementRef(ObjectPtr object,
+                               intptr_t index,
+                               bool permit_artificial_ref = false) {
+    intptr_t id = RefId(object, permit_artificial_ref);
     if (profile_writer_ != nullptr) {
       profile_writer_->AttributeReferenceTo(
           {V8SnapshotProfileWriter::kSnapshot, object_currently_writing_.id_},
@@ -296,11 +300,19 @@ class Serializer : public ThreadStackResource {
            V8SnapshotProfileWriter::Reference::kElement,
            index});
     }
+    return id;
   }
 
   void WritePropertyRef(ObjectPtr object, const char* property) {
-    intptr_t id = WriteRefId(object);
-    WriteUnsigned(id);
+    WriteUnsigned(AttributePropertyRef(object, property));
+  }
+
+  // Record a reference from the currently written object to the given object
+  // and return reference id for the given object.
+  intptr_t AttributePropertyRef(ObjectPtr object,
+                                const char* property,
+                                bool permit_artificial_ref = false) {
+    intptr_t id = RefId(object, permit_artificial_ref);
     if (profile_writer_ != nullptr) {
       profile_writer_->AttributeReferenceTo(
           {V8SnapshotProfileWriter::kSnapshot, object_currently_writing_.id_},
@@ -308,10 +320,11 @@ class Serializer : public ThreadStackResource {
            V8SnapshotProfileWriter::Reference::kProperty,
            profile_writer_->EnsureString(property)});
     }
+    return id;
   }
 
   void WriteOffsetRef(ObjectPtr object, intptr_t offset) {
-    intptr_t id = WriteRefId(object);
+    intptr_t id = RefId(object);
     WriteUnsigned(id);
     if (profile_writer_ != nullptr) {
       const char* property = offsets_table_->FieldNameForOffset(
@@ -375,13 +388,21 @@ class Serializer : public ThreadStackResource {
 
   void DumpCombinedCodeStatistics();
 
+  V8SnapshotProfileWriter* profile_writer() const { return profile_writer_; }
+
+  // If the given [obj] was not included into the snaposhot and have not
+  // yet gotten an artificial node created for it create an artificial node
+  // in the profile representing this object.
+  // Returns true if [obj] has an artificial profile node associated with it.
+  bool CreateArtificalNodeIfNeeded(ObjectPtr obj);
+
  private:
   static const char* ReadOnlyObjectType(intptr_t cid);
 
   // Returns the reference ID for the object. Fails for objects that have not
   // been allocated a reference ID yet, so should be used only after all
   // WriteAlloc calls.
-  intptr_t WriteRefId(ObjectPtr object) {
+  intptr_t RefId(ObjectPtr object, bool permit_artificial_ref = false) {
     if (!object->IsHeapObject()) {
       SmiPtr smi = Smi::RawCast(object);
       auto const id = smi_ids_.Lookup(smi)->id_;
@@ -392,6 +413,10 @@ class Serializer : public ThreadStackResource {
     // of ref indices.
     ASSERT(!object->IsInstructions());
     auto const id = heap_->GetObjectId(object);
+    if (permit_artificial_ref && IsArtificialReference(id)) {
+      return -id;
+    }
+    ASSERT(!IsArtificialReference(id));
     if (IsAllocatedReference(id)) return id;
     if (object->IsWeakSerializationReference()) {
       // If a reachable WSR has an object ID of 0, then its target was marked
@@ -405,11 +430,11 @@ class Serializer : public ThreadStackResource {
       return target_id;
     }
     if (object->IsCode() && !Snapshot::IncludesCode(kind_)) {
-      return WriteRefId(Object::null());
+      return RefId(Object::null());
     }
 #if !defined(DART_PRECOMPILED_RUNTIME)
     if (object->IsBytecode() && !Snapshot::IncludesBytecode(kind_)) {
-      return WriteRefId(Object::null());
+      return RefId(Object::null());
     }
 #endif  // !DART_PRECOMPILED_RUNTIME
     FATAL("Missing ref");

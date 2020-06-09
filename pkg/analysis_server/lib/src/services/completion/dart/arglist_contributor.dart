@@ -4,19 +4,15 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
-import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/util/comment.dart';
-import 'package:meta/meta.dart';
 
 /// A contributor that produces suggestions for named expression labels that
 /// correspond to named parameters when completing in argument lists.
@@ -24,13 +20,13 @@ class ArgListContributor extends DartCompletionContributor {
   /// The request that is currently being handled.
   DartCompletionRequest request;
 
+  /// The suggestion builder used to build suggestions.
+  SuggestionBuilder builder;
+
   /// The argument list that is the containing node of the target, or `null` if
   /// the containing node of the target is not an argument list (such as when
   /// it's a named expression).
   ArgumentList argumentList;
-
-  /// The list of suggestions that is currently being built.
-  List<CompletionSuggestion> suggestions;
 
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
@@ -45,9 +41,9 @@ class ArgListContributor extends DartCompletionContributor {
     }
 
     this.request = request;
-    suggestions = <CompletionSuggestion>[];
+    this.builder = builder;
     _addSuggestions(executable.parameters);
-    return suggestions;
+    return const <CompletionSuggestion>[];
   }
 
   void _addDefaultParamSuggestions(Iterable<ParameterElement> parameters,
@@ -65,64 +61,9 @@ class ArgListContributor extends DartCompletionContributor {
   void _addNamedParameterSuggestion(List<String> namedArgs,
       ParameterElement parameter, bool appendColon, bool appendComma) {
     var name = parameter.name;
-    var type = parameter.type?.getDisplayString(withNullability: false);
     if (name != null && name.isNotEmpty && !namedArgs.contains(name)) {
-      var completion = name;
-      if (appendColon) {
-        completion += ': ';
-      }
-      var selectionOffset = completion.length;
-
-      // Optionally add Flutter child widget details.
-      // todo (pq): revisit this special casing; likely it can be generalized away
-      var element = parameter.enclosingElement;
-      if (element is ConstructorElement) {
-        var flutter = Flutter.of(request.result);
-        if (flutter.isWidget(element.enclosingElement)) {
-          var defaultValue = getDefaultStringParameterValue(parameter);
-          // TODO(devoncarew): Should we remove the check here? We would then
-          // suggest values for param types like closures.
-          if (defaultValue != null && defaultValue.text == '[]') {
-            var completionLength = completion.length;
-            completion += defaultValue.text;
-            if (defaultValue.cursorPosition != null) {
-              selectionOffset = completionLength + defaultValue.cursorPosition;
-            }
-          }
-        }
-      }
-
-      if (appendComma) {
-        completion += ',';
-      }
-
-      int relevance;
-      if (parameter.isRequiredNamed || parameter.hasRequired) {
-        relevance = request.useNewRelevance
-            ? Relevance.requiredNamedArgument
-            : DART_RELEVANCE_NAMED_PARAMETER_REQUIRED;
-      } else {
-        relevance = request.useNewRelevance
-            ? Relevance.namedArgument
-            : DART_RELEVANCE_NAMED_PARAMETER;
-      }
-
-      var suggestion = CompletionSuggestion(
-          CompletionSuggestionKind.NAMED_ARGUMENT,
-          relevance,
-          completion,
-          selectionOffset,
-          0,
-          false,
-          false,
-          parameterName: name,
-          parameterType: type);
-      if (parameter is FieldFormalParameterElement) {
-        _setDocumentation(suggestion, parameter);
-        suggestion.element = convertElement(parameter);
-      }
-
-      suggestions.add(suggestion);
+      builder.suggestNamedArgument(parameter,
+          appendColon: appendColon, appendComma: appendComma);
     }
   }
 
@@ -171,56 +112,11 @@ class ArgListContributor extends DartCompletionContributor {
   }
 
   void _buildClosureSuggestions(NamedExpression argument) {
-    // TODO(brianwilkerson) Consider moving this support so that it can be used
-    //  whenever the context type is a FunctionType.
     var type = argument.staticParameterElement?.type;
     if (type is FunctionType) {
-      var indent = getRequestLineIndent(request);
-      var parametersString = buildClosureParameters(type);
-
-      var blockBuffer = StringBuffer(parametersString);
-      blockBuffer.writeln(' {');
-      blockBuffer.write('$indent  ');
-      var blockSelectionOffset = blockBuffer.length;
-      blockBuffer.writeln();
-      blockBuffer.write('$indent}');
-
-      var expressionBuffer = StringBuffer(parametersString);
-      expressionBuffer.write(' => ');
-      var expressionSelectionOffset = expressionBuffer.length;
-
-      if (argument.endToken.next?.type != TokenType.COMMA) {
-        blockBuffer.write(',');
-        expressionBuffer.write(',');
-      }
-
-      CompletionSuggestion createSuggestion({
-        @required String completion,
-        @required String displayText,
-        @required int selectionOffset,
-      }) {
-        return CompletionSuggestion(
-          CompletionSuggestionKind.INVOCATION,
-          request.useNewRelevance ? Relevance.closure : DART_RELEVANCE_HIGH,
-          completion,
-          selectionOffset,
-          0,
-          false,
-          false,
-          displayText: displayText,
-        );
-      }
-
-      suggestions.add(createSuggestion(
-        completion: blockBuffer.toString(),
-        displayText: '$parametersString {}',
-        selectionOffset: blockSelectionOffset,
-      ));
-      suggestions.add(createSuggestion(
-        completion: expressionBuffer.toString(),
-        displayText: '$parametersString =>',
-        selectionOffset: expressionSelectionOffset,
-      ));
+      builder.suggestClosure(type,
+          includeTrailingComma:
+              argument.endToken.next?.type != TokenType.COMMA);
     }
   }
 
@@ -332,16 +228,5 @@ class ArgListContributor extends DartCompletionContributor {
       }
     }
     return namedArgs;
-  }
-
-  /// If the given [comment] is not `null`, fill the [suggestion] documentation
-  /// fields.
-  void _setDocumentation(CompletionSuggestion suggestion, Element element) {
-    var doc = DartUnitHoverComputer.computeDocumentation(
-        request.dartdocDirectiveInfo, element);
-    if (doc != null) {
-      suggestion.docComplete = doc;
-      suggestion.docSummary = getDartDocSummary(doc);
-    }
   }
 }

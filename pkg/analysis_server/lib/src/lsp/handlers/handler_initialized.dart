@@ -22,12 +22,13 @@ class IntializedMessageHandler extends MessageHandler<InitializedParams, void> {
       InitializedParams.jsonHandler;
 
   @override
-  ErrorOr<void> handle(InitializedParams params, CancellationToken token) {
+  Future<ErrorOr<void>> handle(
+      InitializedParams params, CancellationToken token) async {
     server.messageHandler = InitializedStateMessageHandler(
       server,
     );
 
-    server.capabilitiesComputer.performDynamicRegistration();
+    await server.fetchClientConfigurationAndPerformDynamicRegistration();
 
     if (!server.initializationOptions.onlyAnalyzeProjectsWithOpenFiles) {
       server.setAnalysisRoots(openWorkspacePaths);

@@ -1203,10 +1203,6 @@ class FieldDeserializationCluster : public DeserializationCluster {
         field.InitializeGuardedListLengthInObjectOffset();
       }
     }
-
-    Isolate* isolate = Isolate::Current();
-    isolate->set_saved_initial_field_table(
-        std::shared_ptr<FieldTable>(isolate->field_table()->Clone()));
   }
 };
 
@@ -1501,7 +1497,8 @@ class KernelProgramInfoDeserializationCluster : public DeserializationCluster {
 
 class CodeSerializationCluster : public SerializationCluster {
  public:
-  CodeSerializationCluster() : SerializationCluster("Code") {}
+  explicit CodeSerializationCluster(Heap* heap)
+      : SerializationCluster("Code") {}
   ~CodeSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -1635,6 +1632,24 @@ class CodeSerializationCluster : public SerializationCluster {
   }
 
   GrowableArray<CodePtr>* discovered_objects() { return &objects_; }
+
+  // Some code objects would have their owners dropped from the snapshot,
+  // which makes it is impossible to recover program structure when
+  // analysing snapshot profile. To facilitate analysis of snapshot profiles
+  // we include artificial nodes into profile representing such dropped
+  // owners.
+  void WriteDroppedOwnersIntoProfile(Serializer* s) {
+    ASSERT(s->profile_writer() != nullptr);
+
+    for (auto code : objects_) {
+      ObjectPtr owner = WeakSerializationReference::Unwrap(code->ptr()->owner_);
+      if (s->CreateArtificalNodeIfNeeded(owner)) {
+        AutoTraceObject(code);
+        s->AttributePropertyRef(owner, ":owner_",
+                                /*permit_artificial_ref=*/true);
+      }
+    }
+  }
 
  private:
   GrowableArray<CodePtr> objects_;
@@ -2029,7 +2044,7 @@ class WeakSerializationReferenceSerializationCluster
       ASSERT(Serializer::IsReachableReference(heap_->GetObjectId(ref)));
       if (ShouldDrop(ref)) {
         // For dropped references, reset their ID to be the unreachable
-        // reference value, so WriteRefId retrieves the target ID instead.
+        // reference value, so RefId retrieves the target ID instead.
         heap_->SetObjectId(ref, Serializer::kUnreachableReference);
         continue;
       }
@@ -4724,6 +4739,19 @@ Serializer::~Serializer() {
   delete[] clusters_by_cid_;
 }
 
+void Serializer::FlushBytesWrittenToRoot() {
+#if defined(DART_PRECOMPILER)
+  if (profile_writer_ != nullptr) {
+    ASSERT(object_currently_writing_.id_ == 0);
+    // All bytes between objects are attributed into root node.
+    profile_writer_->AttributeBytesTo(
+        V8SnapshotProfileWriter::ArtificialRootId(),
+        stream_.Position() - object_currently_writing_.stream_start_);
+    object_currently_writing_.stream_start_ = stream_.Position();
+  }
+#endif
+}
+
 void Serializer::TraceStartWritingObject(const char* type,
                                          ObjectPtr obj,
                                          StringPtr name) {
@@ -4738,6 +4766,9 @@ void Serializer::TraceStartWritingObject(const char* type,
     id = smi_ids_.Lookup(Smi::RawCast(obj))->id_;
     cid = Smi::kClassId;
   }
+  if (IsArtificialReference(id)) {
+    id = -id;
+  }
   ASSERT(IsAllocatedReference(id));
 
   const char* name_str = nullptr;
@@ -4747,6 +4778,7 @@ void Serializer::TraceStartWritingObject(const char* type,
     name_str = str.ToCString();
   }
 
+  FlushBytesWrittenToRoot();
   object_currently_writing_.object_ = obj;
   object_currently_writing_.id_ = id;
   object_currently_writing_.stream_start_ = stream_.Position();
@@ -4762,7 +4794,69 @@ void Serializer::TraceEndWritingObject() {
         {V8SnapshotProfileWriter::kSnapshot, object_currently_writing_.id_},
         stream_.Position() - object_currently_writing_.stream_start_);
     object_currently_writing_ = ProfilingObject();
+    object_currently_writing_.stream_start_ = stream_.Position();
   }
+}
+
+bool Serializer::CreateArtificalNodeIfNeeded(ObjectPtr obj) {
+  ASSERT(profile_writer() != nullptr);
+
+  intptr_t id = heap_->GetObjectId(obj);
+  if (Serializer::IsAllocatedReference(id)) {
+    return false;
+  }
+  if (Serializer::IsArtificialReference(id)) {
+    return true;
+  }
+  ASSERT(id == Serializer::kUnreachableReference);
+  id = AssignArtificialRef(obj);
+
+  const char* type = nullptr;
+  StringPtr name = nullptr;
+  ObjectPtr owner = nullptr;
+  const char* owner_ref_name = nullptr;
+  switch (obj->GetClassId()) {
+    case kFunctionCid: {
+      FunctionPtr func = static_cast<FunctionPtr>(obj);
+      type = "Function";
+      name = func->ptr()->name_;
+      owner_ref_name = "owner_";
+      owner = func->ptr()->owner_;
+      break;
+    }
+    case kClassCid: {
+      ClassPtr cls = static_cast<ClassPtr>(obj);
+      type = "Class";
+      name = cls->ptr()->name_;
+      owner_ref_name = "library_";
+      owner = cls->ptr()->library_;
+      break;
+    }
+    case kPatchClassCid: {
+      PatchClassPtr patch_cls = static_cast<PatchClassPtr>(obj);
+      type = "PatchClass";
+      owner_ref_name = "patched_class_";
+      owner = patch_cls->ptr()->patched_class_;
+      break;
+    }
+    case kLibraryCid: {
+      LibraryPtr lib = static_cast<LibraryPtr>(obj);
+      type = "Library";
+      name = lib->ptr()->url_;
+      break;
+    }
+    default:
+      UNREACHABLE();
+  }
+
+  TraceStartWritingObject(type, obj, name);
+  if (owner != nullptr) {
+    CreateArtificalNodeIfNeeded(owner);
+    AttributePropertyRef(owner, owner_ref_name,
+                         /*permit_artificial_ref=*/true);
+  }
+  TraceEndWritingObject();
+  return true;
 }
 
 const char* Serializer::ReadOnlyObjectType(intptr_t cid) {
@@ -4836,7 +4930,7 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
     case kKernelProgramInfoCid:
       return new (Z) KernelProgramInfoSerializationCluster();
     case kCodeCid:
-      return new (Z) CodeSerializationCluster();
+      return new (Z) CodeSerializationCluster(heap_);
     case kBytecodeCid:
       return new (Z) BytecodeSerializationCluster();
     case kObjectPoolCid:
@@ -4919,29 +5013,19 @@ void Serializer::WriteInstructions(InstructionsPtr instr,
   ASSERT(code != Code::null());
 
   const intptr_t offset = image_writer_->GetTextOffsetFor(instr, code);
-  if (offset == 0) {
-    // Code should have been removed by DropCodeWithoutReusableInstructions.
-    UnexpectedObject(code, "Expected instructions to reuse");
-  }
-
-  // If offset < 0, it's pointing to a shared instruction. We don't profile
-  // references to shared text/data (since they don't consume any space). Of
-  // course, the space taken for the reference is profiled.
-  if (profile_writer_ != nullptr && offset >= 0) {
-    // Instructions cannot be roots.
+#if defined(DART_PRECOMPILER)
+  if (profile_writer_ != nullptr) {
     ASSERT(IsAllocatedReference(object_currently_writing_.id_));
-    auto offset_space = vm_ ? V8SnapshotProfileWriter::kVmText
-                            : V8SnapshotProfileWriter::kIsolateText;
-    V8SnapshotProfileWriter::ObjectId to_object = {
-        offset_space, offset < 0 ? -offset : offset};
-    V8SnapshotProfileWriter::ObjectId from_object = {
-        V8SnapshotProfileWriter::kSnapshot, object_currently_writing_.id_};
+    const auto offset_space = vm_ ? V8SnapshotProfileWriter::kVmText
+                                  : V8SnapshotProfileWriter::kIsolateText;
+    const V8SnapshotProfileWriter::ObjectId to_object(offset_space, offset);
+    const V8SnapshotProfileWriter::ObjectId from_object(
+        V8SnapshotProfileWriter::kSnapshot, object_currently_writing_.id_);
     profile_writer_->AttributeReferenceTo(
         from_object, {to_object, V8SnapshotProfileWriter::Reference::kProperty,
                       profile_writer_->EnsureString("<instructions>")});
   }
 
-#if defined(DART_PRECOMPILER)
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     static_assert(
         ImageWriter::kBareInstructionsAlignment > 1,
@@ -5228,6 +5312,16 @@ void Serializer::Serialize() {
   // We should have assigned a ref to every object we pushed.
   ASSERT((next_ref_index_ - 1) == num_objects);
 
+#if defined(DART_PRECOMPILER)
+  // When writing snapshot profile, we want to retain some of the program
+  // structure information (e.g. information about libraries, classes and
+  // functions - even if it was dropped when writing snapshot itself).
+  if (FLAG_write_v8_snapshot_profile_to != nullptr) {
+    static_cast<CodeSerializationCluster*>(clusters_by_cid_[kCodeCid])
+        ->WriteDroppedOwnersIntoProfile(this);
+  }
+#endif
+
   for (intptr_t cid = 1; cid < num_cids_; cid++) {
     SerializationCluster* cluster = clusters_by_cid_[cid];
     if (cluster != NULL) {
@@ -5283,7 +5377,7 @@ void Serializer::WriteDispatchTable(const Array& entries) {
   // Reference IDs in a cluster are allocated sequentially, so we can use the
   // first code object's reference ID to calculate the cluster index.
   const intptr_t first_code_id =
-      WriteRefId(code_cluster->discovered_objects()->At(0));
+      RefId(code_cluster->discovered_objects()->At(0));
   // The first object in the code cluster must have its reference ID allocated.
   ASSERT(IsAllocatedReference(first_code_id));
 
@@ -5343,7 +5437,7 @@ void Serializer::WriteDispatchTable(const Array& entries) {
     }
     // We have a non-repeated, non-recent entry, so encode the reference ID of
     // the code object and emit that.
-    auto const object_id = WriteRefId(code);
+    auto const object_id = RefId(code);
     // Make sure that this code object has an allocated reference ID.
     ASSERT(IsAllocatedReference(object_id));
     // Use the index in the code cluster, not in the snapshot..
@@ -5517,6 +5611,8 @@ intptr_t Serializer::WriteVMSnapshot(const Array& symbols) {
   Write<int32_t>(kSectionMarker);
 #endif
 
+  FlushBytesWrittenToRoot();
+
   PrintSnapshotSizes();
 
   // Note we are not clearing the object id table. The full ref table
@@ -5581,9 +5677,10 @@ void Serializer::WriteProgramSnapshot(intptr_t num_base_objects,
     WriteRootRef(*p, kObjectStoreFieldNames[p - from]);
   }
 
+  FlushBytesWrittenToRoot();
   // The dispatch table is serialized only for precompiled snapshots.
   WriteDispatchTable(dispatch_table_entries);
-
+  object_currently_writing_.stream_start_ = stream_.Position();
 #if defined(DART_PRECOMPILER)
   // If any bytes were written for the dispatch table, add it to the profile.
   if (dispatch_table_size_ > 0 && profile_writer_ != nullptr) {
@@ -5602,7 +5699,7 @@ void Serializer::WriteProgramSnapshot(intptr_t num_base_objects,
         auto const code = Code::RawCast(dispatch_table_entries.At(i));
         if (code == Code::null()) continue;
         const V8SnapshotProfileWriter::ObjectId code_id(
-            V8SnapshotProfileWriter::kSnapshot, WriteRefId(code));
+            V8SnapshotProfileWriter::kSnapshot, RefId(code));
         profile_writer_->AttributeReferenceTo(
             dispatch_table_snapshot_id,
             {code_id, V8SnapshotProfileWriter::Reference::kElement, i});
@@ -6511,6 +6608,19 @@ char* SnapshotHeaderReader::InitializeGlobalVMFlagsFromSnapshot(
 #undef CHECK_FLAG
 #undef SET_FLAG
 
+    if (FLAG_null_safety == kNullSafetyOptionUnspecified) {
+      if (strncmp(cursor, "null-safety", end - cursor) == 0) {
+        FLAG_null_safety = kNullSafetyOptionStrong;
+        cursor = end;
+        continue;
+      }
+      if (strncmp(cursor, "no-null-safety", end - cursor) == 0) {
+        FLAG_null_safety = kNullSafetyOptionWeak;
+        cursor = end;
+        continue;
+      }
+    }
+
     cursor = end;
   }
 
@@ -6544,6 +6654,19 @@ ApiErrorPtr FullSnapshotReader::ReadVMSnapshot() {
   }
 
   deserializer.ReadVMSnapshot();
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+  // Initialize entries in the VM portion of the BSS segment.
+  ASSERT(Snapshot::IncludesCode(kind_));
+  Image image(instructions_image_);
+  if (image.bss_offset() != 0) {
+    // The const cast is safe because we're translating from the start of the
+    // instructions (read-only) to the start of the BSS (read-write).
+    uword* const bss_start = const_cast<uword*>(reinterpret_cast<const uword*>(
+        instructions_image_ + image.bss_offset()));
+    BSS::Initialize(thread_, bss_start, /*vm=*/true);
+  }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
   return ApiError::null();
 }
@@ -6612,7 +6735,7 @@ ApiErrorPtr FullSnapshotReader::ReadProgramSnapshot() {
     }
   }
 
-  // Initialize symbols in the BSS, if present.
+  // Initialize entries in the isolate portion of the BSS segment.
   ASSERT(Snapshot::IncludesCode(kind_));
   Image image(instructions_image_);
   if (image.bss_offset() != 0) {
@@ -6620,7 +6743,7 @@ ApiErrorPtr FullSnapshotReader::ReadProgramSnapshot() {
     // instructions (read-only) to the start of the BSS (read-write).
     uword* const bss_start = const_cast<uword*>(reinterpret_cast<const uword*>(
         instructions_image_ + image.bss_offset()));
-    BSS::Initialize(thread_, bss_start);
+    BSS::Initialize(thread_, bss_start, /*vm=*/false);
   }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 

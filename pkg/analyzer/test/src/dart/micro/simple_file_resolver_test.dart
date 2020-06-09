@@ -63,6 +63,38 @@ import 'b.dart';
     _assertRefreshedFiles([aPath, cPath]);
   }
 
+  test_changePartFile_refreshedFiles() async {
+    newFile(aPath, content: r'''
+part 'b.dart';
+
+class A {}
+''');
+
+    newFile(bPath, content: r'''
+part of 'a.dart';
+
+class B extends A {}
+''');
+
+    newFile(cPath, content: r'''
+import 'a.dart';
+''');
+
+    // First time we refresh everything.
+    await fileResolver.resolve(bPath);
+    _assertRefreshedFiles([aPath, bPath], withSdk: true);
+    // Change b.dart, refresh a.dart
+    fileResolver.changeFile(bPath);
+    await fileResolver.resolve(bPath);
+    _assertRefreshedFiles([aPath, bPath]);
+    // now with c.dart
+    await fileResolver.resolve(cPath);
+    _assertRefreshedFiles([cPath]);
+    fileResolver.changeFile(bPath);
+    await fileResolver.resolve(cPath);
+    _assertRefreshedFiles([aPath, bPath, cPath]);
+  }
+
   test_changeFile_resolution() async {
     newFile(aPath, content: r'''
 class A {}
@@ -348,6 +380,33 @@ num a = 0;
 int b = a;
 ''', [
       error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 19, 1),
+    ]);
+  }
+
+  test_resolve_part_of() async {
+    newFile('/workspace/dart/test/lib/a.dart', content: r'''
+part 'test.dart';
+
+class A {
+  int m;
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+part of 'a.dart';
+
+void func() {
+  var a = A();
+  print(a.m);
+}
+''');
+  }
+
+  test_unknown_uri() async {
+    await assertErrorsInCode(r'''
+import 'foo:bar';
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 9),
     ]);
   }
 }

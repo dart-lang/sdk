@@ -92,6 +92,37 @@ class EditPlanTest extends AbstractSingleUnitTest {
         '@deprecated late int x = 0;');
   }
 
+  Future<void>
+      test_acceptNullabilityHint_function_typed_field_formal_parameter() async {
+    await analyze('''
+class C {
+  void Function(int) f;
+  C(void this.f(int i) /*?*/);
+}
+''');
+    var parameter = findNode.fieldFormalParameter('void this.f(int i)');
+    var typeName = planner.passThrough(parameter);
+    checkPlan(
+        planner.acceptNullabilityOrNullCheckHint(
+            typeName, getPostfixHint(parameter.parameters.rightParenthesis)),
+        '''
+class C {
+  void Function(int) f;
+  C(void this.f(int i)?);
+}
+''');
+  }
+
+  Future<void> test_acceptNullabilityHint_function_typed_parameter() async {
+    await analyze('f(void g(int i) /*?*/) {}');
+    var parameter = findNode.functionTypedFormalParameter('void g(int i)');
+    var typeName = planner.passThrough(parameter);
+    checkPlan(
+        planner.acceptNullabilityOrNullCheckHint(
+            typeName, getPostfixHint(parameter.parameters.rightParenthesis)),
+        'f(void g(int i)?) {}');
+  }
+
   Future<void> test_acceptNullabilityOrNullCheckHint() async {
     var code = 'int /*?*/ x = 0;';
     await analyze(code);

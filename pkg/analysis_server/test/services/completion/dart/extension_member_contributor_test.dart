@@ -21,12 +21,6 @@ class ExtensionMemberContributorTest extends DartCompletionContributorTest {
     return ExtensionMemberContributor();
   }
 
-  @override
-  void setUp() {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
-    super.setUp();
-  }
-
   Future<void> test_extended_members_inExtension_field() async {
     addTestSource('''
 class A {

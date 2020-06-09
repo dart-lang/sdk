@@ -66,6 +66,17 @@ Future<void> checkStackTrace(String rawStack, Dwarf dwarf,
   final virtualAddresses =
       pcOffsets.map((o) => dwarf.virtualAddressOf(o)).toList();
 
+  // Some double-checks using other information in the non-symbolic stack trace.
+  final dsoBase = dsoBaseAddresses(rawLines).single;
+  final absolutes = absoluteAddresses(rawLines);
+  final relocatedAddresses = absolutes.map((a) => a - dsoBase);
+  final explicits = explicitVirtualAddresses(rawLines);
+  Expect.deepEquals(relocatedAddresses, virtualAddresses);
+  // Explicits will be empty if not generating ELF snapshots directly.
+  if (explicits.isNotEmpty) {
+    Expect.deepEquals(explicits, virtualAddresses);
+  }
+
   final externalFramesInfo = <List<CallInfo>>[];
   final allFramesInfo = <List<CallInfo>>[];
 
@@ -247,3 +258,27 @@ List<String> extractCallStrings(List<List<CallInfo>> expectedCalls) {
   }
   return ret;
 }
+
+Iterable<int> parseUsingAddressRegExp(RegExp re, Iterable<String> lines) sync* {
+  for (final line in lines) {
+    final match = re.firstMatch(line);
+    if (match != null) {
+      yield int.parse(match.group(1), radix: 16);
+    }
+  }
+}
+
+final _absRE = RegExp(r'abs ([a-f\d]+)');
+
+Iterable<int> absoluteAddresses(Iterable<String> lines) =>
+    parseUsingAddressRegExp(_absRE, lines);
+
+final _virtRE = RegExp(r'virt ([a-f\d]+)');
+
+Iterable<int> explicitVirtualAddresses(Iterable<String> lines) =>
+    parseUsingAddressRegExp(_virtRE, lines);
+
+final _dsoBaseRE = RegExp(r'isolate_dso_base: ([a-f\d]+)');
+
+Iterable<int> dsoBaseAddresses(Iterable<String> lines) =>
+    parseUsingAddressRegExp(_dsoBaseRE, lines);

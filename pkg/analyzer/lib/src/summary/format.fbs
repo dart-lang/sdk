@@ -1253,6 +1253,15 @@ table LinkedNodeUnit {
 table PackageBundle {
   /// The version 2 of the summary.
   bundle2:LinkedNodeBundle (id: 0);
+
+  /// The SDK specific data, if this bundle is for SDK.
+  sdk:PackageBundleSdk (id: 1);
+}
+
+/// Summary information about a package.
+table PackageBundleSdk {
+  /// The content of the `allowed_experiments.json` from SDK.
+  allowedExperimentsJson:string (id: 0);
 }
 
 /// Summary information about a top-level type inference error.
@@ -1342,6 +1351,9 @@ table UnlinkedUnit2 {
 
   /// Offsets of the first character of each line in the source code.
   lineStarts:[uint] (id: 5);
+
+  /// URI of the `part of` directive.
+  partOfUri:string (id: 8);
 
   /// URIs of `part` directives.
   parts:[string] (id: 4);

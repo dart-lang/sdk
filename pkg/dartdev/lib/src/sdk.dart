@@ -12,7 +12,8 @@ String get _computeSdkPath {
   // The common case, and how cli_util.dart computes the Dart SDK directory,
   // path.dirname called twice on Platform.resolvedExecutable. We confirm by
   // asserting that the directory ./bin/snapshots/ exists after this directory:
-  var sdkPath = path.dirname(path.dirname(Platform.resolvedExecutable));
+  var sdkPath =
+      path.absolute(path.dirname(path.dirname(Platform.resolvedExecutable)));
   var snapshotsDir = path.join(sdkPath, 'bin', 'snapshots');
   if (Directory(snapshotsDir).existsSync()) {
     return sdkPath;
@@ -23,10 +24,10 @@ String get _computeSdkPath {
   // ./out/ReleaseX64/dart ...
   // We confirm in a similar manner with the snapshot directory existence and
   // then return the correct sdk path:
-  snapshotsDir = path.join(path.dirname(Platform.resolvedExecutable),
+  snapshotsDir = path.absolute(path.dirname(Platform.resolvedExecutable),
       'dart-sdk', 'bin', 'snapshots');
   if (Directory(snapshotsDir).existsSync()) {
-    return path.join(path.dirname(Platform.resolvedExecutable), 'dart-sdk');
+    return path.absolute(path.dirname(Platform.resolvedExecutable), 'dart-sdk');
   }
 
   // If neither returned above, we return the common case:
@@ -39,14 +40,17 @@ class Sdk {
 
   Sdk() : sdkPath = _computeSdkPath;
 
-  String get dart => path.join(sdkPath, 'bin', _exeName('dart'));
+  // Assume that we want to use the same Dart executable that we used to spawn
+  // DartDev. We should be able to run programs with out/ReleaseX64/dart even
+  // if the SDK isn't completely built.
+  String get dart => Platform.resolvedExecutable;
 
-  String get analysis_server_snapshot =>
-      path.join(sdkPath, 'bin', 'snapshots', 'analysis_server.dart.snapshot');
+  String get analysis_server_snapshot => path.absolute(
+      sdkPath, 'bin', 'snapshots', 'analysis_server.dart.snapshot');
 
-  String get dartfmt => path.join(sdkPath, 'bin', _binName('dartfmt'));
+  String get dartfmt => path.absolute(sdkPath, 'bin', _binName('dartfmt'));
 
-  String get pub => path.join(sdkPath, 'bin', _binName('pub'));
+  String get pub => path.absolute(sdkPath, 'bin', _binName('pub'));
 
   static String _binName(String base) =>
       Platform.isWindows ? '$base.bat' : base;

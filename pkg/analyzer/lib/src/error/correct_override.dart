@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -75,13 +76,10 @@ class CorrectOverrideHelper {
       var parameter = parameters[i];
       if (parameter.isCovariant) {
         newParameters ??= parameters.toList(growable: false);
-        newParameters[i] = ParameterElementImpl.synthetic(
-          parameter.name,
-          _typeSystem.isNonNullableByDefault
+        newParameters[i] = parameter.copyWith(
+          type: _typeSystem.isNonNullableByDefault
               ? _typeSystem.objectQuestion
               : _typeSystem.objectStar,
-          // ignore: deprecated_member_use_from_same_package
-          parameter.parameterKind,
         );
       }
     }

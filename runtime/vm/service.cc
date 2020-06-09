@@ -1685,8 +1685,7 @@ static ObjectPtr LookupObjectId(Thread* thread,
     return Object::null();
   }
 
-  ObjectIdRing* ring = thread->isolate()->object_id_ring();
-  ASSERT(ring != NULL);
+  ObjectIdRing* ring = thread->isolate()->EnsureObjectIdRing();
   intptr_t id = -1;
   if (!GetIntegerId(arg, &id)) {
     *kind = ObjectIdRing::kInvalid;
@@ -3081,9 +3080,11 @@ static bool GetInstances(Thread* thread, JSONStream* js) {
 
   ZoneGrowableHandlePtrArray<Object> storage(thread->zone(), limit);
   GetInstancesVisitor visitor(cls, &storage, limit);
-  ObjectGraph graph(thread);
-  HeapIterationScope iteration_scope(Thread::Current(), true);
-  graph.IterateObjects(&visitor);
+  {
+    ObjectGraph graph(thread);
+    HeapIterationScope iteration_scope(Thread::Current(), true);
+    graph.IterateObjects(&visitor);
+  }
   intptr_t count = visitor.count();
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "InstanceSet");
@@ -3647,6 +3648,12 @@ static bool SetVMTimelineFlags(Thread* thread, JSONStream* js) {
   Timeline::SetStream##name##Enabled(HasStream(recorded_streams, #name));
   TIMELINE_STREAM_LIST(SET_ENABLE_STREAM);
 #undef SET_ENABLE_STREAM
+
+  // Notify clients that the set of subscribed streams has been updated.
+  if (Service::timeline_stream.enabled()) {
+    ServiceEvent event(NULL, ServiceEvent::kTimelineStreamSubscriptionsUpdate);
+    Service::HandleEvent(&event);
+  }
 
   PrintSuccess(js);
 

@@ -105,6 +105,8 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
 
   intptr_t EnsureString(const char* str);
 
+  static ObjectId ArtificialRootId() { return {kArtificial, 0}; }
+
  private:
   static constexpr intptr_t kNumNodeFields = 5;
   static constexpr intptr_t kNumEdgeFields = 3;
@@ -145,7 +147,7 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
   };
 
   NodeInfo DefaultNode(ObjectId object_id);
-  static NodeInfo ArtificialRoot();
+  const NodeInfo& ArtificialRoot();
 
   NodeInfo* EnsureId(ObjectId object_id);
   static intptr_t NodeIdFor(ObjectId id) {

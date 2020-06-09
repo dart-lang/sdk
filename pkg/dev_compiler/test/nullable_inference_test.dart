@@ -253,7 +253,7 @@ void main() {
         '() → dart.core::Null? => null, f');
   });
 
-  test('cascades (kernel let)', () async {
+  test('cascades (kernel BlockExpression)', () async {
     // `null..toString()` evaluates to `null` so it is nullable.
     await expectNotNull('main() { null..toString(); }', '');
     await expectAllNotNull('main() { 1..toString(); }');
@@ -505,13 +505,13 @@ Future expectNotNull(String code, String expectedNotNull) async {
             // Print integer values as integers
             return BigInt.from(c.value).toString();
           }
-          return c.toString();
+          return c.toConstantText();
         }
         return e.leakingDebugToString();
       })
       // Filter out our own NotNull annotations.  The library prefix changes
       // per test, so just filter on the suffix.
-      .where((s) => !s.endsWith('::_NotNull {}'))
+      .where((s) => !s.endsWith('_NotNull{}'))
       .join(', ');
   expect(actualNotNull, equals(expectedNotNull));
 }
@@ -644,7 +644,8 @@ Future<CompileResult> kernelCompile(String code) async {
   var sdkUri = Uri.file('/memory/dart_sdk.dill');
   var sdkFile = _fileSystem.entityForUri(sdkUri);
   if (!await sdkFile.exists()) {
-    sdkFile.writeAsBytesSync(File(defaultSdkSummaryPath).readAsBytesSync());
+    sdkFile.writeAsBytesSync(
+        File(defaultSdkSummaryPath(soundNullSafety: false)).readAsBytesSync());
   }
   var packagesUri = Uri.file('/memory/.packages');
   var packagesFile = _fileSystem.entityForUri(packagesUri);
@@ -667,7 +668,8 @@ const nullCheck = const _NullCheck();
       sdkUri, packagesUri, null, [], DevCompilerTarget(TargetFlags()),
       fileSystem: _fileSystem,
       experiments: const {},
-      environmentDefines: const {});
+      environmentDefines: const {},
+      nnbdMode: fe.NnbdMode.Weak);
   if (!identical(oldCompilerState, _compilerState)) inference = null;
   var result =
       await fe.compile(_compilerState, [mainUri], diagnosticMessageHandler);

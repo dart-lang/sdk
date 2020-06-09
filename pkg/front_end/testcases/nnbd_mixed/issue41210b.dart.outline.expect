@@ -1,0 +1,65 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41210b.dart:5:1: Error: A library can't opt out of non-nullable by default, when in nnbd-strong mode.
+// // @dart=2.6
+// ^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+import "issue41210b_lib1.dart" as iss;
+
+import "org-dartlang-testcase:///issue41210b_lib1.dart";
+
+abstract class _C&Object&A = core::Object with iss::A /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C&Object&A
+    : super core::Object::•()
+    ;
+}
+abstract class _C&Object&A&B = self::_C&Object&A with iss::B /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C&Object&A&B
+    : super self::_C&Object&A::•()
+    ;
+}
+class C extends self::_C&Object&A&B {
+  synthetic constructor •() → self::C
+    ;
+}
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41210b_lib1.dart:5:1: Error: A library can't opt out of non-nullable by default, when in nnbd-strong mode.
+// // @dart=2.6
+// ^^^^^^^^^^^^
+//
+import self as iss;
+import "dart:core" as core;
+import "issue41210b_lib2.dart" as iss2;
+
+import "org-dartlang-testcase:///issue41210b_lib2.dart";
+
+abstract class A extends core::Object implements iss2::Interface /*isMixinDeclaration*/  {
+  method method({core::String s = "hello"}) → core::String
+    ;
+}
+abstract class B extends core::Object implements iss2::Interface {
+  synthetic constructor •() → iss::B
+    ;
+}
+static method main() → void
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as iss2;
+import "dart:core" as core;
+
+abstract class Interface extends core::Object {
+  synthetic constructor •() → iss2::Interface
+    ;
+  abstract method method() → core::String;
+}

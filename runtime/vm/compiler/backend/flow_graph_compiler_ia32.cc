@@ -664,6 +664,7 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
 // - Class equality (only if class is not parameterized).
 // Inputs:
 // - EAX: object.
+// - EBX: destination type (if non-constant).
 // - EDX: instantiator type arguments or raw_null.
 // - ECX: function type arguments or raw_null.
 // Returns:
@@ -673,14 +674,21 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
 void FlowGraphCompiler::GenerateAssertAssignable(CompileType* receiver_type,
                                                  TokenPosition token_pos,
                                                  intptr_t deopt_id,
-                                                 const AbstractType& dst_type,
                                                  const String& dst_name,
                                                  LocationSummary* locs) {
   ASSERT(!token_pos.IsClassifying());
-  ASSERT(!dst_type.IsNull());
+  ASSERT(CheckAssertAssignableTypeTestingABILocations(*locs));
+
+  if (!locs->in(1).IsConstant()) {
+    // TODO(dartbug.com/40813): Handle setting up the non-constant case.
+    UNREACHABLE();
+  }
+
+  ASSERT(locs->in(1).constant().IsAbstractType());
+  const auto& dst_type = AbstractType::Cast(locs->in(1).constant());
   ASSERT(dst_type.IsFinalized());
-  // Assignable check is skipped in FlowGraphBuilder, not here.
-  ASSERT(!dst_type.IsTopTypeForSubtyping());
+
+  if (dst_type.IsTopTypeForSubtyping()) return;  // No code needed.
 
   __ pushl(TypeTestABI::kInstantiatorTypeArgumentsReg);
   __ pushl(TypeTestABI::kFunctionTypeArgumentsReg);
@@ -689,7 +697,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(CompileType* receiver_type,
   if (Instance::NullIsAssignableTo(dst_type)) {
     const compiler::Immediate& raw_null =
         compiler::Immediate(static_cast<intptr_t>(Object::null()));
-    __ cmpl(EAX, raw_null);
+    __ cmpl(TypeTestABI::kInstanceReg, raw_null);
     __ j(EQUAL, &is_assignable);
   }
 
@@ -705,8 +713,13 @@ void FlowGraphCompiler::GenerateAssertAssignable(CompileType* receiver_type,
   __ movl(TypeTestABI::kFunctionTypeArgumentsReg,
           compiler::Address(ESP, 0 * kWordSize));  // Get function type args.
   __ PushObject(Object::null_object());            // Make room for the result.
-  __ pushl(EAX);                                   // Push the source object.
-  __ PushObject(dst_type);  // Push the type of the destination.
+  __ pushl(TypeTestABI::kInstanceReg);             // Push the source object.
+  if (locs->in(1).IsConstant()) {
+    __ PushObject(locs->in(1).constant());  // Push the type of the destination.
+  } else {
+    // TODO(dartbug.com/40813): Handle setting up the non-constant case.
+    UNREACHABLE();
+  }
   __ pushl(TypeTestABI::kInstantiatorTypeArgumentsReg);
   __ pushl(TypeTestABI::kFunctionTypeArgumentsReg);
   __ PushObject(dst_name);  // Push the name of the destination.
@@ -717,7 +730,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(CompileType* receiver_type,
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
   __ Drop(7);
-  __ popl(EAX);
+  __ popl(TypeTestABI::kInstanceReg);
 
   __ Bind(&is_assignable);
   __ popl(TypeTestABI::kFunctionTypeArgumentsReg);
@@ -749,21 +762,6 @@ void FlowGraphCompiler::GenerateGetterIntrinsic(intptr_t offset) {
   __ Comment("Intrinsic Getter");
   __ movl(EAX, compiler::Address(ESP, 1 * kWordSize));
   __ movl(EAX, compiler::FieldAddress(EAX, offset));
-  __ ret();
-}
-
-void FlowGraphCompiler::GenerateSetterIntrinsic(intptr_t offset) {
-  // TOS: return address.
-  // +1 : value
-  // +2 : receiver.
-  // Sequence node has one store node and one return NULL node.
-  __ Comment("Intrinsic Setter");
-  __ movl(EAX, compiler::Address(ESP, 2 * kWordSize));  // Receiver.
-  __ movl(EBX, compiler::Address(ESP, 1 * kWordSize));  // Value.
-  __ StoreIntoObject(EAX, compiler::FieldAddress(EAX, offset), EBX);
-  const compiler::Immediate& raw_null =
-      compiler::Immediate(static_cast<intptr_t>(Object::null()));
-  __ movl(EAX, raw_null);
   __ ret();
 }
 

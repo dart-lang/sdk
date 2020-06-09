@@ -109,6 +109,13 @@ Future<CompilerResult> _compile(List<String> args,
         help: 'The path to the libraries.json file for the sdk.')
     ..addOption('used-inputs-file',
         help: 'If set, the file to record inputs used.', hide: true)
+    // TODO(41852) Define a process for breaking changes before graduating from
+    // experimental.
+    ..addFlag('experimental-emit-debug-metadata',
+        help: 'Experimental option for compiler development.\n'
+            'Output a metadata file for debug tools next to the .js output.',
+        defaultsTo: false,
+        hide: true)
     ..addFlag('kernel',
         abbr: 'k',
         help: 'Deprecated and ignored. To be removed in a future release.',
@@ -197,7 +204,8 @@ Future<CompilerResult> _compile(List<String> args,
   var sdkSummaryPath = argResults['dart-sdk-summary'] as String;
   var librarySpecPath = argResults['libraries-file'] as String;
   if (sdkSummaryPath == null) {
-    sdkSummaryPath = defaultSdkSummaryPath;
+    sdkSummaryPath =
+        defaultSdkSummaryPath(soundNullSafety: options.soundNullSafety);
     librarySpecPath ??= defaultLibrarySpecPath;
   }
   var invalidSummary = summaryPaths.any((s) => !s.endsWith('.dill')) ||
@@ -274,7 +282,9 @@ Future<CompilerResult> _compile(List<String> args,
             enableNullSafety: options.enableNullSafety)),
         fileSystem: fileSystem,
         experiments: experiments,
-        environmentDefines: declaredVariables);
+        environmentDefines: declaredVariables,
+        nnbdMode:
+            options.soundNullSafety ? fe.NnbdMode.Strong : fe.NnbdMode.Weak);
   } else {
     // If digests weren't given and if not in worker mode, create fake data and
     // ensure we don't have a previous state (as that wouldn't be safe with
@@ -312,7 +322,9 @@ Future<CompilerResult> _compile(List<String> args,
         fileSystem: fileSystem,
         experiments: experiments,
         environmentDefines: declaredVariables,
-        trackNeededDillLibraries: recordUsedInputs);
+        trackNeededDillLibraries: recordUsedInputs,
+        nnbdMode:
+            options.soundNullSafety ? fe.NnbdMode.Strong : fe.NnbdMode.Weak);
     incrementalCompiler = compilerState.incrementalCompiler;
     cachedSdkInput =
         compilerState.workerInputCache[sourcePathToUri(sdkSummaryPath)];
@@ -409,11 +421,12 @@ Future<CompilerResult> _compile(List<String> args,
     var moduleFormat = moduleFormats[i];
     var file = File(output);
     await file.parent.create(recursive: true);
+    var mapUrl = p.toUri('$output.map').toString();
     var jsCode = jsProgramToCode(jsModule, moduleFormat,
         buildSourceMap: options.sourceMap,
         inlineSourceMap: options.inlineSourceMap,
         jsUrl: p.toUri(output).toString(),
-        mapUrl: p.toUri(output + '.map').toString(),
+        mapUrl: mapUrl,
         customScheme: multiRootScheme,
         multiRootOutputPath: multiRootOutputPath,
         component: compiledLibraries);
@@ -421,7 +434,23 @@ Future<CompilerResult> _compile(List<String> args,
     outFiles.add(file.writeAsString(jsCode.code));
     if (jsCode.sourceMap != null) {
       outFiles.add(
-          File(output + '.map').writeAsString(json.encode(jsCode.sourceMap)));
+          File('$output.map').writeAsString(json.encode(jsCode.sourceMap)));
+    }
+
+    if (argResults['experimental-emit-debug-metadata'] as bool) {
+      var moduleMetadata = [
+        for (var lib in compiledLibraries.libraries)
+          {
+            'name': compiler.jsLibraryName(lib),
+            'sourceMapFileUri': mapUrl,
+            'dartFileUris': [
+              lib.fileUri.toString(),
+              ...lib.parts.map((p) => p.partUri.toString())
+            ],
+          }
+      ];
+      outFiles.add(
+          File('$output.metadata').writeAsString(json.encode(moduleMetadata)));
     }
   }
 
@@ -668,9 +697,12 @@ Map<String, String> parseAndRemoveDeclaredVariables(List<String> args) {
   return declaredVariables;
 }
 
-/// The default path of the kernel summary for the Dart SDK.
-final defaultSdkSummaryPath =
-    p.join(getSdkPath(), 'lib', '_internal', 'ddc_sdk.dill');
+/// The default path of the kernel summary for the Dart SDK given the
+/// [soundNullSafety] mode.
+String defaultSdkSummaryPath({bool soundNullSafety}) {
+  var outlineDill = soundNullSafety ? 'ddc_outline_sound.dill' : 'ddc_sdk.dill';
+  return p.join(getSdkPath(), 'lib', '_internal', outlineDill);
+}
 
 final defaultLibrarySpecPath = p.join(getSdkPath(), 'lib', 'libraries.json');
 

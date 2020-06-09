@@ -14,6 +14,7 @@ import 'package:testing/testing.dart';
 class Data {
   Uri uri;
   Directory outDir;
+  String testFileName;
   AnnotatedCode code;
   List<String> d8Output;
 }
@@ -75,8 +76,8 @@ class StepWithD8 extends Step<Data, Data, ChainContext> {
   @override
   Future<Result<Data>> run(Data data, ChainContext context) async {
     var outWrapperPath = p.join(data.outDir.path, 'wrapper.js');
-    var runResult =
-        runD8AndStep(data.outDir.path, data.code, ['--module', outWrapperPath]);
+    var runResult = runD8AndStep(data.outDir.path, data.testFileName, data.code,
+        ['--module', outWrapperPath]);
     data.d8Output = (runResult.stdout as String).split('\n');
     return pass(data);
   }

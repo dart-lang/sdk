@@ -5,8 +5,6 @@
 #ifndef RUNTIME_PLATFORM_SAFE_STACK_H_
 #define RUNTIME_PLATFORM_SAFE_STACK_H_
 
-#include "platform/globals.h"
-
 #if defined(__has_feature)
 #if __has_feature(safe_stack)
 #define USING_SAFE_STACK

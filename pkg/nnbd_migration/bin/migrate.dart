@@ -4,10 +4,17 @@
 
 import 'dart:io';
 
+import 'package:args/src/arg_results.dart';
 import 'package:nnbd_migration/migration_cli.dart';
 
 main(List<String> args) async {
   var cli = MigrationCli(binaryName: 'nnbd_migration');
-  await cli.run(args);
-  exit(cli.exitCode ?? 0);
+  ArgResults argResults;
+  try {
+    argResults = MigrationCli.createParser().parse(args);
+  } on FormatException catch (e) {
+    cli.handleArgParsingException(e);
+  }
+  if (cli.exitCode == null) await cli.run(argResults);
+  exitCode = cli.exitCode;
 }

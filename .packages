@@ -44,7 +44,6 @@ ffi:third_party/pkg/ffi/lib
 fixnum:third_party/pkg/fixnum/lib
 frontend_server:pkg/frontend_server/lib
 front_end:pkg/front_end/lib
-gardening:tools/gardening/lib
 glob:third_party/pkg/glob/lib
 html:third_party/pkg/html/lib
 http:third_party/pkg/http/lib

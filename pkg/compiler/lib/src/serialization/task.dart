@@ -8,6 +8,7 @@ import 'package:kernel/binary/ast_from_binary.dart' as ir;
 import 'package:kernel/binary/ast_to_binary.dart' as ir;
 import '../../compiler_new.dart' as api;
 import '../backend_strategy.dart';
+import '../commandline_options.dart' show Flags;
 import '../common/codegen.dart';
 import '../common/tasks.dart';
 import '../diagnostics/diagnostic_listener.dart';
@@ -98,6 +99,30 @@ class SerializationTask extends CompilerTask {
       new ir.BinaryBuilder(dillInput.data).readComponent(component);
       return component;
     });
+
+    var isStrongDill =
+        component.mode == ir.NonNullableByDefaultCompiledMode.Strong;
+    var incompatibleNullSafetyMode =
+        isStrongDill ? NullSafetyMode.unsound : NullSafetyMode.sound;
+    if (_options.nullSafetyMode == incompatibleNullSafetyMode) {
+      var dillMode = isStrongDill ? 'sound' : 'unsound';
+      var option =
+          isStrongDill ? Flags.noSoundNullSafety : Flags.soundNullSafety;
+      throw ArgumentError("${_options.entryPoint} was compiled with $dillMode "
+          "null safety and is incompatible with the '$option' option");
+    }
+
+    if (component.libraries.any((lib) =>
+        lib.isNonNullableByDefault && lib.importUri.scheme == 'dart')) {
+      _options.useNullSafety = true;
+    }
+
+    if (component.mode == ir.NonNullableByDefaultCompiledMode.Strong) {
+      _options.nullSafetyMode = NullSafetyMode.sound;
+      assert(_options.useNullSafety);
+    } else {
+      _options.nullSafetyMode = NullSafetyMode.unsound;
+    }
 
     return await measureIoSubtask('deserialize data', () async {
       _reporter.log('Reading data from ${_options.readDataUri}');

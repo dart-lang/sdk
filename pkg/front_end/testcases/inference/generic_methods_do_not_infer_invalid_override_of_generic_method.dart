@@ -15,7 +15,7 @@ class D extends C {
 
 main() {
   int y = /*info:DYNAMIC_CAST*/ new D()
-      . /*error:WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD*/ /*@target=D::m*/ m<int>(
+      . /*error:WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD*/ /*@target=D.m*/ m<int>(
           42);
   print(y);
 }

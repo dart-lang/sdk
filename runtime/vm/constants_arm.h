@@ -348,20 +348,19 @@ struct TTSInternalRegs {
 // ABI for InitStaticFieldStub.
 struct InitStaticFieldABI {
   static const Register kFieldReg = R0;
+  static const Register kResultReg = R0;
 };
 
 // ABI for InitInstanceFieldStub.
 struct InitInstanceFieldABI {
-  static const Register kInstanceReg = R0;
-  static const Register kFieldReg = R1;
+  static const Register kInstanceReg = R1;
+  static const Register kFieldReg = R2;
+  static const Register kResultReg = R0;
 };
 
 // Registers used inside the implementation of InitLateInstanceFieldStub.
 struct InitLateInstanceFieldInternalRegs {
   static const Register kFunctionReg = R0;
-  static const Register kInitializerResultReg = R0;
-  static const Register kInstanceReg = R1;
-  static const Register kFieldReg = R2;
   static const Register kAddressReg = R3;
   static const Register kScratchReg = R4;
 };
@@ -524,6 +523,8 @@ enum Condition {
   UNSIGNED_LESS_EQUAL = LS,
   UNSIGNED_GREATER = HI,
   UNSIGNED_GREATER_EQUAL = CS,
+  OVERFLOW = VS,
+  NO_OVERFLOW = VC,
 
   kInvalidCondition = 16
 };
@@ -766,7 +767,10 @@ class Instr {
 
   // Fields used in Branch instructions
   inline int LinkField() const { return Bits(kLinkShift, kLinkBits); }
-  inline int SImmed24Field() const { return ((InstructionBits() << 8) >> 8); }
+  inline int32_t SImmed24Field() const {
+    uint32_t bits = InstructionBits();
+    return static_cast<int32_t>(bits << 8) >> 8;
+  }
 
   // Fields used in Supervisor Call instructions
   inline uint32_t SvcField() const { return Bits(0, 24); }
@@ -958,6 +962,7 @@ float ReciprocalSqrtEstimate(float op);
 float ReciprocalSqrtStep(float op1, float op2);
 
 constexpr uword kBreakInstructionFiller = 0xE1200070;  // bkpt #0
+constexpr uword kDataMemoryBarrier = 0xf57ff050 | 0xb;  // dmb ish
 
 }  // namespace dart
 

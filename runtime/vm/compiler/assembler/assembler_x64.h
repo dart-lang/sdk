@@ -711,6 +711,9 @@ class Assembler : public AssemblerBase {
 
   // Unlike movq this can affect the flags or use the constant pool.
   void LoadImmediate(Register reg, const Immediate& imm);
+  void LoadImmediate(Register reg, int32_t immediate) {
+    LoadImmediate(reg, Immediate(immediate));
+  }
 
   void LoadIsolate(Register dst);
   void LoadDispatchTable(Register dst);
@@ -859,6 +862,16 @@ class Assembler : public AssemblerBase {
   void LoadField(Register dst, FieldAddress address) { movq(dst, address); }
   void LoadMemoryValue(Register dst, Register base, int32_t offset) {
     movq(dst, Address(base, offset));
+  }
+  void LoadAcquire(Register dst, Register address, int32_t offset = 0) {
+    // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
+    // with other loads).
+    movq(dst, Address(address, offset));
+  }
+  void StoreRelease(Register src, Register address, int32_t offset = 0) {
+    // On intel stores have store-release behavior (i.e. stores are not
+    // re-ordered with other stores).
+    movq(Address(address, offset), src);
   }
 
   void CompareWithFieldValue(Register value, FieldAddress address) {

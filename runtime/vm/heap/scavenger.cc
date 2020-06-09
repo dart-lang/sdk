@@ -4,6 +4,7 @@
 
 #include "vm/heap/scavenger.h"
 
+#include "platform/leak_sanitizer.h"
 #include "vm/dart.h"
 #include "vm/dart_api_state.h"
 #include "vm/flag_list.h"
@@ -36,14 +37,19 @@ DEFINE_FLAG(int,
             "Grow new gen when less than this percentage is garbage.");
 DEFINE_FLAG(int, new_gen_growth_factor, 2, "Grow new gen by this factor.");
 
-// Scavenger uses ObjectLayout::kMarkBit to distinguish forwarded and
-// non-forwarded objects. The kMarkBit does not intersect with the target
-// address because of object alignment.
+// Scavenger uses the kCardRememberedBit to distinguish forwarded and
+// non-forwarded objects. We must choose a bit that is clear for all new-space
+// object headers, and which doesn't intersect with the target address because
+// of object alignment.
 enum {
-  kForwardingMask = 1 << ObjectLayout::kOldAndNotMarkedBit,
+  kForwardingMask = 1 << ObjectLayout::kCardRememberedBit,
   kNotForwarded = 0,
   kForwarded = kForwardingMask,
 };
+
+// If the forwarded bit and pointer tag bit are the same, we can avoid a few
+// conversions.
+COMPILE_ASSERT(kForwarded == kHeapObjectTag);
 
 static inline bool IsForwarding(uword header) {
   uword bits = header & kForwardingMask;
@@ -51,15 +57,15 @@ static inline bool IsForwarding(uword header) {
   return bits == kForwarded;
 }
 
-static inline uword ForwardedAddr(uword header) {
+static inline ObjectPtr ForwardedObj(uword header) {
   ASSERT(IsForwarding(header));
-  return header & ~kForwardingMask;
+  return static_cast<ObjectPtr>(header);
 }
 
-static inline uword ForwardingHeader(uword target) {
-  // Make sure forwarding can be encoded.
-  ASSERT((target & kForwardingMask) == 0);
-  return target | kForwarded;
+static inline uword ForwardingHeader(ObjectPtr target) {
+  uword result = static_cast<uword>(target);
+  ASSERT(IsForwarding(result));
+  return result;
 }
 
 // Races: The first word in the copied region is a header word that may be
@@ -93,142 +99,6 @@ static inline void objcpy(void* dst, const void* src, size_t size) {
     size -= (2 * sizeof(uword));
   } while (size > 0);
 }
-
-static const intptr_t kNewPageSize = 512 * KB;
-static const intptr_t kNewPageSizeInWords = kNewPageSize / kWordSize;
-static const intptr_t kNewPageMask = ~(kNewPageSize - 1);
-
-// A page containing new generation objects.
-class NewPage {
- public:
-  static NewPage* Allocate();
-  void Deallocate();
-
-  uword start() const { return memory_->start(); }
-  uword end() const { return memory_->end(); }
-  bool Contains(uword addr) const { return memory_->Contains(addr); }
-  void WriteProtect(bool read_only) {
-    memory_->Protect(read_only ? VirtualMemory::kReadOnly
-                               : VirtualMemory::kReadWrite);
-  }
-
-  NewPage* next() const { return next_; }
-  void set_next(NewPage* next) { next_ = next; }
-
-  Thread* owner() const { return owner_; }
-
-  uword object_start() const { return start() + ObjectStartOffset(); }
-  uword object_end() const { return owner_ != nullptr ? owner_->top() : top_; }
-  void VisitObjects(ObjectVisitor* visitor) const {
-    uword addr = object_start();
-    uword end = object_end();
-    while (addr < end) {
-      ObjectPtr obj = ObjectLayout::FromAddr(addr);
-      visitor->VisitObject(obj);
-      addr += obj->ptr()->HeapSize();
-    }
-  }
-  void VisitObjectPointers(ObjectPointerVisitor* visitor) const {
-    uword addr = object_start();
-    uword end = object_end();
-    while (addr < end) {
-      ObjectPtr obj = ObjectLayout::FromAddr(addr);
-      intptr_t size = obj->ptr()->VisitPointers(visitor);
-      addr += size;
-    }
-  }
-
-  static intptr_t ObjectStartOffset() {
-    return Utils::RoundUp(sizeof(NewPage), kObjectAlignment) +
-           kNewObjectAlignmentOffset;
-  }
-
-  static NewPage* Of(ObjectPtr obj) {
-    ASSERT(obj->IsHeapObject());
-    ASSERT(obj->IsNewObject());
-    return Of(static_cast<uword>(obj));
-  }
-  static NewPage* Of(uword addr) {
-    return reinterpret_cast<NewPage*>(addr & kNewPageMask);
-  }
-
-  // Remember the limit to which objects have been copied.
-  void RecordSurvivors() { survivor_end_ = object_end(); }
-
-  // Move survivor end to the end of the to_ space, making all surviving
-  // objects candidates for promotion next time.
-  void EarlyTenure() { survivor_end_ = end_; }
-
-  uword promo_candidate_words() const {
-    return (survivor_end_ - object_start()) / kWordSize;
-  }
-
-  void Acquire(Thread* thread) {
-    ASSERT(owner_ == nullptr);
-    owner_ = thread;
-    thread->set_top(top_);
-    thread->set_end(end_);
-  }
-  void Release(Thread* thread) {
-    ASSERT(owner_ == thread);
-    owner_ = nullptr;
-    top_ = thread->top();
-    thread->set_top(0);
-    thread->set_end(0);
-  }
-  void Release() {
-    if (owner_ != nullptr) {
-      Release(owner_);
-    }
-  }
-
-  uword TryAllocateGC(intptr_t size) {
-    ASSERT(owner_ == nullptr);
-    uword result = top_;
-    uword new_top = result + size;
-    if (LIKELY(new_top < end_)) {
-      top_ = new_top;
-      return result;
-    }
-    return 0;
-  }
-
-  void Unallocate(uword addr, intptr_t size) {
-    ASSERT((addr + size) == top_);
-    top_ -= size;
-  }
-
-  bool IsSurvivor(uword raw_addr) const { return raw_addr < survivor_end_; }
-  bool IsResolved() const { return top_ == resolved_top_; }
-
- private:
-  VirtualMemory* memory_;
-  NewPage* next_;
-
-  // The thread using this page for allocation, otherwise NULL.
-  Thread* owner_;
-
-  // The address of the next allocation. If owner is non-NULL, this value is
-  // stale and the current value is at owner->top_. Called "NEXT" in the
-  // original Cheney paper.
-  uword top_;
-
-  // The address after the last allocatable byte in this page.
-  uword end_;
-
-  // Objects below this address have survived a scavenge.
-  uword survivor_end_;
-
-  // A pointer to the first unprocessed object. Resolution completes when this
-  // value meets the allocation top. Called "SCAN" in the original Cheney paper.
-  uword resolved_top_;
-
-  template <bool>
-  friend class ScavengerVisitorBase;
-
-  DISALLOW_ALLOCATION();
-  DISALLOW_IMPLICIT_CONSTRUCTORS(NewPage);
-};
 
 template <bool parallel>
 class ScavengerVisitorBase : public ObjectPointerVisitor {
@@ -298,7 +168,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     ASSERT((obj == nullptr) || obj->IsOldObject());
     visiting_old_object_ = obj;
     if (obj != nullptr) {
-      // Card update happens in HeapPage::VisitRememberedCards.
+      // Card update happens in OldPage::VisitRememberedCards.
       ASSERT(!obj->ptr()->IsCardRemembered());
     }
   }
@@ -379,12 +249,13 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     // already been copied.
     uword header = reinterpret_cast<std::atomic<uword>*>(raw_addr)->load(
         std::memory_order_relaxed);
-    uword new_addr = 0;
+    ObjectPtr new_obj;
     if (IsForwarding(header)) {
       // Get the new location of the object.
-      new_addr = ForwardedAddr(header);
+      new_obj = ForwardedObj(header);
     } else {
       intptr_t size = raw_obj->ptr()->HeapSize(header);
+      uword new_addr = 0;
       // Check whether object should be promoted.
       if (!NewPage::Of(raw_obj)->IsSurvivor(raw_addr)) {
         // Not a survivor of a previous scavenge. Just copy the object into the
@@ -407,7 +278,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
           // To-space was exhausted by fragmentation and old-space could not
           // grow.
           if (UNLIKELY(new_addr == 0)) {
-            FATAL("Failed to allocate during scavenge");
+            OUT_OF_MEMORY();
           }
         }
       }
@@ -416,7 +287,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
       objcpy(reinterpret_cast<void*>(new_addr),
              reinterpret_cast<void*>(raw_addr), size);
 
-      ObjectPtr new_obj = ObjectLayout::FromAddr(new_addr);
+      new_obj = ObjectLayout::FromAddr(new_addr);
       if (new_obj->IsOldObject()) {
         // Promoted: update age/barrier tags.
         uint32_t tags = static_cast<uint32_t>(header);
@@ -439,7 +310,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
       }
 
       // Try to install forwarding address.
-      uword forwarding_header = ForwardingHeader(new_addr);
+      uword forwarding_header = ForwardingHeader(new_obj);
       if (!InstallForwardingPointer(raw_addr, &header, forwarding_header)) {
         ASSERT(IsForwarding(header));
         if (new_obj->IsOldObject()) {
@@ -451,12 +322,11 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
           tail_->Unallocate(new_addr, size);
         }
         // Use the winner's forwarding target.
-        new_addr = ForwardedAddr(header);
+        new_obj = ForwardedObj(header);
       }
     }
 
     // Update the reference.
-    ObjectPtr new_obj = ObjectLayout::FromAddr(new_addr);
     if (!new_obj->IsNewObject()) {
       // Setting the mark bit above must not be ordered after a publishing store
       // of this object. Note this could be a publishing store even if the
@@ -1180,8 +1050,7 @@ bool Scavenger::IsUnreachable(ObjectPtr* p) {
   }
   uword header = *reinterpret_cast<uword*>(raw_addr);
   if (IsForwarding(header)) {
-    uword new_addr = ForwardedAddr(header);
-    *p = ObjectLayout::FromAddr(new_addr);
+    *p = ForwardedObj(header);
     return false;
   }
   return true;
@@ -1269,7 +1138,6 @@ void ScavengerVisitorBase<parallel>::ProcessWeakProperties() {
 }
 
 void Scavenger::UpdateMaxHeapCapacity() {
-#if !defined(PRODUCT)
   if (heap_ == NULL) {
     // Some unit tests.
     return;
@@ -1280,11 +1148,9 @@ void Scavenger::UpdateMaxHeapCapacity() {
   ASSERT(isolate_group != NULL);
   isolate_group->GetHeapNewCapacityMaxMetric()->SetValue(
       to_->max_capacity_in_words() * kWordSize);
-#endif  // !defined(PRODUCT)
 }
 
 void Scavenger::UpdateMaxHeapUsage() {
-#if !defined(PRODUCT)
   if (heap_ == NULL) {
     // Some unit tests.
     return;
@@ -1294,7 +1160,6 @@ void Scavenger::UpdateMaxHeapUsage() {
   auto isolate_group = heap_->isolate_group();
   ASSERT(isolate_group != NULL);
   isolate_group->GetHeapNewUsedMaxMetric()->SetValue(UsedInWords() * kWordSize);
-#endif  // !defined(PRODUCT)
 }
 
 template <bool parallel>
@@ -1348,8 +1213,7 @@ void Scavenger::MournWeakTables() {
         uword header = *reinterpret_cast<uword*>(raw_addr);
         if (IsForwarding(header)) {
           // The object has survived.  Preserve its record.
-          uword new_addr = ForwardedAddr(header);
-          raw_obj = ObjectLayout::FromAddr(new_addr);
+          raw_obj = ForwardedObj(header);
           auto replacement =
               raw_obj->IsNewObject() ? replacement_new : replacement_old;
           replacement->SetValueExclusive(raw_obj, table->ValueAtExclusive(i));
@@ -1680,17 +1544,6 @@ void Scavenger::PrintToJSONObject(JSONObject* object) const {
   space.AddProperty("time", MicrosecondsToSeconds(gc_time_micros()));
 }
 #endif  // !PRODUCT
-
-void Scavenger::AllocateExternal(intptr_t cid, intptr_t size) {
-  ASSERT(size >= 0);
-  external_size_ += size;
-}
-
-void Scavenger::FreeExternal(intptr_t size) {
-  ASSERT(size >= 0);
-  external_size_ -= size;
-  ASSERT(external_size_ >= 0);
-}
 
 void Scavenger::Evacuate() {
   // We need a safepoint here to prevent allocation right before or right after

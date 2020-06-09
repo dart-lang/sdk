@@ -669,11 +669,11 @@ f() {}
     expect(atD.name.staticElement, elementD);
     expect(atD.element, constructorD);
 
-    expect(constC.staticElement, constructorC);
     expect(constC.staticType, interfaceTypeStar(elementC));
 
-    expect(constC.constructorName.staticElement, constructorC);
-    expect(constC.constructorName.type.type, interfaceTypeStar(elementC));
+    var constructorName = constC.constructorName;
+    expect(constructorName.staticElement, constructorC);
+    expect(constructorName.type.type, interfaceTypeStar(elementC));
   }
 
   test_annotation_unprefixed_topLevelVariable() async {
@@ -2039,36 +2039,36 @@ var b = new C.named();
       TopLevelVariableDeclaration aDeclaration = unit.declarations[1];
       VariableDeclaration aNode = aDeclaration.variables.variables[0];
       InstanceCreationExpression value = aNode.initializer;
-      expect(value.staticElement, defaultConstructor);
       expect(value.staticType, interfaceTypeStar(cElement));
 
-      TypeName typeName = value.constructorName.type;
+      var constructorName = value.constructorName;
+      expect(constructorName.name, isNull);
+      expect(constructorName.staticElement, defaultConstructor);
+
+      TypeName typeName = constructorName.type;
       expect(typeName.typeArguments, isNull);
 
       Identifier typeIdentifier = typeName.name;
       expect(typeIdentifier.staticElement, cElement);
       expect(typeIdentifier.staticType, isNull);
-
-      expect(value.constructorName.name, isNull);
     }
 
     {
       TopLevelVariableDeclaration bDeclaration = unit.declarations[2];
       VariableDeclaration bNode = bDeclaration.variables.variables[0];
       InstanceCreationExpression value = bNode.initializer;
-      expect(value.staticElement, namedConstructor);
       expect(value.staticType, interfaceTypeStar(cElement));
 
-      TypeName typeName = value.constructorName.type;
+      var constructorName = value.constructorName;
+      expect(constructorName.staticElement, namedConstructor);
+      expect(constructorName.name.staticType, isNull);
+
+      TypeName typeName = constructorName.type;
       expect(typeName.typeArguments, isNull);
 
       SimpleIdentifier typeIdentifier = typeName.name;
       expect(typeIdentifier.staticElement, cElement);
       expect(typeIdentifier.staticType, isNull);
-
-      SimpleIdentifier constructorName = value.constructorName.name;
-      expect(constructorName.staticElement, namedConstructor);
-      expect(constructorName.staticType, isNull);
     }
   }
 
@@ -2092,17 +2092,18 @@ var v = new X(1, b: true, c: 3.0);
 
     InstanceCreationExpression creation = vNode.initializer;
     List<Expression> arguments = creation.argumentList.arguments;
-    expect(creation.staticElement, constructorElement);
     expect(creation.staticType, interfaceTypeStar(xElement));
 
-    TypeName typeName = creation.constructorName.type;
+    var constructorName = creation.constructorName;
+    expect(constructorName.name, isNull);
+    expect(constructorName.staticElement, constructorElement);
+
+    TypeName typeName = constructorName.type;
     expect(typeName.typeArguments, isNull);
 
     Identifier typeIdentifier = typeName.name;
     expect(typeIdentifier.staticElement, xElement);
     expect(typeIdentifier.staticType, isNull);
-
-    expect(creation.constructorName.name, isNull);
 
     _assertArgumentToParameter(arguments[0], constructorElement.parameters[0]);
     _assertArgumentToParameter(arguments[1], constructorElement.parameters[1]);
@@ -2132,17 +2133,18 @@ var b = new C.named(2);
       TopLevelVariableDeclaration aDeclaration = unit.declarations[1];
       VariableDeclaration aNode = aDeclaration.variables.variables[0];
       InstanceCreationExpression value = aNode.initializer;
-      expect(value.staticElement, defaultConstructor);
       expect(value.staticType, interfaceTypeStar(cElement));
 
-      TypeName typeName = value.constructorName.type;
+      var constructorName = value.constructorName;
+      expect(constructorName.name, isNull);
+      expect(constructorName.staticElement, defaultConstructor);
+
+      TypeName typeName = constructorName.type;
       expect(typeName.typeArguments, isNull);
 
       Identifier typeIdentifier = typeName.name;
       expect(typeIdentifier.staticElement, cElement);
       expect(typeIdentifier.staticType, isNull);
-
-      expect(value.constructorName.name, isNull);
 
       Expression argument = value.argumentList.arguments[0];
       _assertArgumentToParameter(argument, defaultConstructor.parameters[0]);
@@ -2152,19 +2154,19 @@ var b = new C.named(2);
       TopLevelVariableDeclaration bDeclaration = unit.declarations[2];
       VariableDeclaration bNode = bDeclaration.variables.variables[0];
       InstanceCreationExpression value = bNode.initializer;
-      expect(value.staticElement, namedConstructor);
       expect(value.staticType, interfaceTypeStar(cElement));
 
-      TypeName typeName = value.constructorName.type;
+      var constructorName = value.constructorName;
+      expect(constructorName.staticElement, namedConstructor);
+      expect(constructorName.name.staticElement, namedConstructor);
+      expect(constructorName.name.staticType, isNull);
+
+      TypeName typeName = constructorName.type;
       expect(typeName.typeArguments, isNull);
 
       SimpleIdentifier typeIdentifier = typeName.name;
       expect(typeIdentifier.staticElement, cElement);
       expect(typeIdentifier.staticType, isNull);
-
-      SimpleIdentifier constructorName = value.constructorName.name;
-      expect(constructorName.staticElement, namedConstructor);
-      expect(constructorName.staticType, isNull);
 
       Expression argument = value.argumentList.arguments[0];
       _assertArgumentToParameter(argument, namedConstructor.parameters[0]);
@@ -2205,10 +2207,13 @@ main() {
 
       ExpressionStatement statement = statements[0];
       InstanceCreationExpression creation = statement.expression;
-      expect(creation.staticElement, defaultConstructor);
       expect(creation.staticType, cTypeInt);
 
-      TypeName typeName = creation.constructorName.type;
+      var constructorName = creation.constructorName;
+      expect(constructorName.name, isNull);
+      expect(constructorName.staticElement, defaultConstructor);
+
+      TypeName typeName = constructorName.type;
       expect(typeName.typeArguments, isNull);
 
       PrefixedIdentifier typeIdentifier = typeName.name;
@@ -2221,8 +2226,6 @@ main() {
       expect(typePrefix.staticType, isNull);
 
       expect(typeIdentifier.identifier.staticElement, same(cElement));
-
-      expect(creation.constructorName.name, isNull);
     }
 
     {
@@ -2233,10 +2236,14 @@ main() {
 
       ExpressionStatement statement = statements[1];
       InstanceCreationExpression creation = statement.expression;
-      expect(creation.staticElement, namedConstructor);
       expect(creation.staticType, cTypeDouble);
 
-      TypeName typeName = creation.constructorName.type;
+      var constructorName = creation.constructorName;
+      expect(constructorName.name.staticElement, namedConstructor);
+      expect(constructorName.name.staticType, isNull);
+      expect(constructorName.staticElement, namedConstructor);
+
+      TypeName typeName = constructorName.type;
       expect(typeName.typeArguments, isNull);
 
       PrefixedIdentifier typeIdentifier = typeName.name;
@@ -2249,10 +2256,6 @@ main() {
       expect(typePrefix.staticType, isNull);
 
       expect(typeIdentifier.identifier.staticElement, same(cElement));
-
-      SimpleIdentifier constructorName = creation.constructorName.name;
-      expect(constructorName.staticElement, namedConstructor);
-      expect(constructorName.staticType, isNull);
     }
 
     {
@@ -2263,10 +2266,14 @@ main() {
 
       ExpressionStatement statement = statements[2];
       InstanceCreationExpression creation = statement.expression;
-      expect(creation.staticElement, namedConstructor);
       expect(creation.staticType, cTypeBool);
 
-      TypeName typeName = creation.constructorName.type;
+      var constructorName = creation.constructorName;
+      expect(constructorName.name.staticElement, namedConstructor);
+      expect(constructorName.name.staticType, isNull);
+      expect(constructorName.staticElement, namedConstructor);
+
+      TypeName typeName = constructorName.type;
       expect(typeName.typeArguments.arguments, hasLength(1));
       _assertTypeNameSimple(
           typeName.typeArguments.arguments[0], typeProvider.boolType);
@@ -2281,10 +2288,6 @@ main() {
       expect(typePrefix.staticType, isNull);
 
       expect(typeIdentifier.identifier.staticElement, same(cElement));
-
-      SimpleIdentifier constructorName = creation.constructorName.name;
-      expect(constructorName.staticElement, namedConstructor);
-      expect(constructorName.staticType, isNull);
     }
   }
 
@@ -2319,17 +2322,18 @@ class C<T> {
 
       ExpressionStatement statement = statements[0];
       InstanceCreationExpression creation = statement.expression;
-      expect(creation.staticElement, defaultConstructor);
       expect(creation.staticType, cTypeInt);
 
-      TypeName typeName = creation.constructorName.type;
+      var constructorName = creation.constructorName;
+      expect(constructorName.name, isNull);
+      expect(constructorName.staticElement, defaultConstructor);
+
+      TypeName typeName = constructorName.type;
       expect(typeName.typeArguments, isNull);
 
       SimpleIdentifier typeIdentifier = typeName.name;
       expect(typeIdentifier.staticElement, same(cElement));
       expect(typeIdentifier.staticType, isNull);
-
-      expect(creation.constructorName.name, isNull);
     }
 
     {
@@ -2340,10 +2344,13 @@ class C<T> {
 
       ExpressionStatement statement = statements[1];
       InstanceCreationExpression creation = statement.expression;
-      expect(creation.staticElement, defaultConstructor);
       expect(creation.staticType, cTypeBool);
 
-      TypeName typeName = creation.constructorName.type;
+      var constructorName = creation.constructorName;
+      expect(constructorName.name, isNull);
+      expect(constructorName.staticElement, defaultConstructor);
+
+      TypeName typeName = constructorName.type;
       expect(typeName.typeArguments.arguments, hasLength(1));
       _assertTypeNameSimple(
           typeName.typeArguments.arguments[0], typeProvider.boolType);
@@ -2351,8 +2358,6 @@ class C<T> {
       SimpleIdentifier typeIdentifier = typeName.name;
       expect(typeIdentifier.staticElement, same(cElement));
       expect(typeIdentifier.staticType, isNull);
-
-      expect(creation.constructorName.name, isNull);
     }
 
     {
@@ -2363,21 +2368,19 @@ class C<T> {
 
       ExpressionStatement statement = statements[2];
       InstanceCreationExpression creation = statement.expression;
-      expect(creation.staticElement, namedConstructor);
       expect(creation.staticType, cTypeDouble);
 
-      TypeName typeName = creation.constructorName.type;
+      var constructorName = creation.constructorName;
+      expect(constructorName.name.staticElement, namedConstructor);
+      expect(constructorName.name.staticType, isNull);
+      expect(constructorName.staticElement, namedConstructor);
+
+      TypeName typeName = constructorName.type;
       expect(typeName.typeArguments, isNull);
 
       SimpleIdentifier typeIdentifier = typeName.name;
       expect(typeIdentifier.staticElement, cElement);
       expect(typeIdentifier.staticType, isNull);
-
-      expect(typeIdentifier.staticElement, same(cElement));
-
-      SimpleIdentifier constructorName = creation.constructorName.name;
-      expect(constructorName.staticElement, namedConstructor);
-      expect(constructorName.staticType, isNull);
     }
 
     {
@@ -2388,10 +2391,14 @@ class C<T> {
 
       ExpressionStatement statement = statements[3];
       InstanceCreationExpression creation = statement.expression;
-      expect(creation.staticElement, namedConstructor);
       expect(creation.staticType, cTypeBool);
 
-      TypeName typeName = creation.constructorName.type;
+      var constructorName = creation.constructorName;
+      expect(constructorName.name.staticElement, namedConstructor);
+      expect(constructorName.name.staticType, isNull);
+      expect(constructorName.staticElement, namedConstructor);
+
+      TypeName typeName = constructorName.type;
       expect(typeName.typeArguments.arguments, hasLength(1));
       _assertTypeNameSimple(
           typeName.typeArguments.arguments[0], typeProvider.boolType);
@@ -2399,10 +2406,6 @@ class C<T> {
       SimpleIdentifier typeIdentifier = typeName.name;
       expect(typeIdentifier.staticElement, cElement);
       expect(typeIdentifier.staticType, isNull);
-
-      SimpleIdentifier constructorName = creation.constructorName.name;
-      expect(constructorName.staticElement, namedConstructor);
-      expect(constructorName.staticType, isNull);
     }
   }
 
@@ -6407,7 +6410,10 @@ class C {
       expect(access.staticType, typeProvider.intType);
 
       InstanceCreationExpression newC = access.target;
-      expect(newC.staticElement, cClassElement.unnamedConstructor);
+      expect(
+        newC.constructorName.staticElement,
+        cClassElement.unnamedConstructor,
+      );
       expect(newC.staticType, interfaceTypeStar(cClassElement));
 
       expect(access.propertyName.staticElement, same(fElement.getter));
@@ -6441,7 +6447,10 @@ class C {
       expect(access.staticType, typeProvider.intType);
 
       InstanceCreationExpression newC = access.target;
-      expect(newC.staticElement, cClassElement.unnamedConstructor);
+      expect(
+        newC.constructorName.staticElement,
+        cClassElement.unnamedConstructor,
+      );
       expect(newC.staticType, interfaceTypeStar(cClassElement));
 
       expect(access.propertyName.staticElement, same(fElement.getter));

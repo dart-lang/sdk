@@ -11,6 +11,6 @@ class Class {
 
 main() {
   Class c;
-  num Function() f = /*@ target=Object::== */ /*@type=Class**/ c
-      ?. /*@ target=Class::method */ method;
+  num Function() f = /*@target=Class.==*/ /*@type=Class**/ c
+      ?. /*@target=Class.method*/ method;
 }

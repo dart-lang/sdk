@@ -23,7 +23,7 @@ f() async {
 ''');
   }
 
-  test_asyncStar() async {
+  test_asyncStar_blockBody() async {
     await assertErrorsInCode(r'''
 f() async* {
   return 0;
@@ -34,13 +34,21 @@ f() async* {
     ]);
   }
 
-  test_asyncStar_no_return_value() async {
+  test_asyncStar_blockBody_noValue() async {
     await assertNoErrorsInCode('''
 import 'dart:async';
 Stream<int> f() async* {
   return;
 }
 ''');
+  }
+
+  test_asyncStar_expressionBody() async {
+    await assertErrorsInCode(r'''
+f() async* => 0;
+''', [
+      error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 11, 2),
+    ]);
   }
 
   test_sync() async {
@@ -51,7 +59,7 @@ f() {
 ''');
   }
 
-  test_syncStar() async {
+  test_syncStar_blockBody() async {
     await assertErrorsInCode(r'''
 f() sync* {
   return 0;
@@ -62,11 +70,19 @@ f() sync* {
     ]);
   }
 
-  test_syncStar_no_return_value() async {
+  test_syncStar_blockBody_noValue() async {
     await assertNoErrorsInCode('''
 Iterable<int> f() sync* {
   return;
 }
 ''');
+  }
+
+  test_syncStar_expressionBody() async {
+    await assertErrorsInCode(r'''
+f() sync* => 0;
+''', [
+      error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 10, 2),
+    ]);
   }
 }

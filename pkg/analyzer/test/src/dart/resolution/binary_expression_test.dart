@@ -67,6 +67,9 @@ f(int a, int b) {
       element: null,
       type: 'dynamic',
     );
+
+    assertType(findNode.simple('a ==='), 'int');
+    assertType(findNode.simple('b;'), 'int');
   }
 
   test_ifNull() async {

@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
@@ -40,7 +41,7 @@ class DecoratedTypeTest extends Object
   factory DecoratedTypeTest() {
     var typeProvider = TestTypeProvider();
     var graph = NullabilityGraph();
-    var variables = Variables(graph, typeProvider);
+    var variables = Variables(graph, typeProvider, _getLineInfo);
     return DecoratedTypeTest._(graph, typeProvider, variables);
   }
 
@@ -612,6 +613,8 @@ class DecoratedTypeTest extends Object
     var decoratedType = function(dynamic_, positional: [xType], node: always);
     expect(decoratedType.toString(), 'dynamic Function([$xType])?');
   }
+
+  static LineInfo _getLineInfo(String path) => LineInfo([0]);
 }
 
 class _ElementTypeProvider extends ElementTypeProvider {

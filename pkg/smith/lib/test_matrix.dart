@@ -56,6 +56,20 @@ class TestMatrix {
     var builders = parseBuilders(builderConfigurations, configurations);
     var branches = <String>[...?json["branches"]];
 
+    // Check that each configuration is tested on at most one builder.
+    var testedOn = <Configuration, Builder>{};
+    for (var builder in builders) {
+      for (var configuration in builder.testedConfigurations) {
+        if (testedOn.containsKey(configuration)) {
+          var other = testedOn[configuration];
+          throw FormatException('Configuration "${configuration.name}" is '
+              'tested on both "${builder.name}" and "${other.name}"');
+        } else {
+          testedOn[configuration] = builder;
+        }
+      }
+    }
+
     return TestMatrix._(configurations, builders, branches);
   }
 

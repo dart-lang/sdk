@@ -55,6 +55,8 @@ class ServiceEvent {
     kExtension,
 
     kTimelineEvents,
+    // Sent when SetVMTimelineFlags is called.
+    kTimelineStreamSubscriptionsUpdate,
 
     kIllegal,
   };

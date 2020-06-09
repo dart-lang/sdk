@@ -174,6 +174,11 @@ const Class& DoubleClass() {
   return Class::Handle(object_store->double_class());
 }
 
+const Array& OneArgArgumentsDescriptor() {
+  return Array::ZoneHandle(
+      ArgumentsDescriptor::NewBoxed(/*type_args_len=*/0, /*num_arguments=*/1));
+}
+
 bool IsOriginalObject(const Object& object) {
   if (object.IsICData()) {
     return ICData::Cast(object).IsOriginal();
@@ -261,9 +266,9 @@ word RuntimeEntry::OffsetFromThread() const {
 
 namespace target {
 
-const word kPageSize = dart::kPageSize;
-const word kPageSizeInWords = dart::kPageSize / kWordSize;
-const word kPageMask = dart::kPageMask;
+const word kOldPageSize = dart::kOldPageSize;
+const word kOldPageSizeInWords = dart::kOldPageSize / kWordSize;
+const word kOldPageMask = dart::kOldPageMask;
 
 static word TranslateOffsetInWordsToHost(word offset) {
   RELEASE_ASSERT((offset % kWordSize) == 0);

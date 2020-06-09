@@ -603,10 +603,9 @@ testRename() {
   try {
     new Directory(foo).renameSync(bar);
     Expect.fail('Directory.rename should fail to rename a non-directory');
-  } catch (e) {
-    Expect.isTrue(e is FileSystemException);
+  } on FileSystemException catch (e) {
     if (Platform.isLinux || Platform.isMacOS) {
-      Expect.isTrue(e.osError.message.contains('Not a directory'));
+      Expect.isTrue(e.osError!.message.contains('Not a directory'));
     }
   }
 

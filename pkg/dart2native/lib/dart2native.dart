@@ -37,14 +37,9 @@ Future markExecutable(String outputFile) {
   return Process.run('chmod', ['+x', outputFile]);
 }
 
-Future generateAotKernel(
-    String dart,
-    String genKernel,
-    String platformDill,
-    String sourceFile,
-    String kernelFile,
-    String packages,
-    List<String> defines) {
+Future generateAotKernel(String dart, String genKernel, String platformDill,
+    String sourceFile, String kernelFile, String packages, List<String> defines,
+    {List<String> extraGenKernelOptions = const []}) {
   return Process.run(dart, [
     genKernel,
     '--platform',
@@ -55,12 +50,18 @@ Future generateAotKernel(
     if (packages != null) ...['--packages', packages],
     '-o',
     kernelFile,
+    ...extraGenKernelOptions,
     sourceFile
   ]);
 }
 
-Future generateAotSnapshot(String genSnapshot, String kernelFile,
-    String snapshotFile, String debugFile, bool enableAsserts) {
+Future generateAotSnapshot(
+    String genSnapshot,
+    String kernelFile,
+    String snapshotFile,
+    String debugFile,
+    bool enableAsserts,
+    List<String> extraGenSnapshotOptions) {
   return Process.run(genSnapshot, [
     '--snapshot-kind=app-aot-elf',
     '--elf=${snapshotFile}',
@@ -68,6 +69,7 @@ Future generateAotSnapshot(String genSnapshot, String kernelFile,
     if (debugFile != null) '--dwarf-stack-traces',
     if (debugFile != null) '--strip',
     if (enableAsserts) '--enable-asserts',
+    ...extraGenSnapshotOptions,
     kernelFile
   ]);
 }

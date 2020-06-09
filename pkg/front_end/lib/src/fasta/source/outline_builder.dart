@@ -1636,10 +1636,10 @@ class OutlineBuilder extends StackListenerImpl {
         return;
       }
       if (type is FunctionTypeBuilder &&
-          !libraryBuilder.loader.target.enableNonfunctionTypeAliases) {
+          !libraryBuilder.enableNonfunctionTypeAliasesInLibrary) {
         if (type.nullabilityBuilder.build(libraryBuilder) ==
                 Nullability.nullable &&
-            libraryBuilder.loader.target.enableNonNullable) {
+            libraryBuilder.enableNonNullableInLibrary) {
           // The error is reported when the non-nullable experiment is enabled.
           // Otherwise, the attempt to use a nullable type will be reported
           // elsewhere.
@@ -1653,7 +1653,7 @@ class OutlineBuilder extends StackListenerImpl {
           // of a generic function).
           aliasedType = type;
         }
-      } else if (libraryBuilder.loader.target.enableNonfunctionTypeAliases) {
+      } else if (libraryBuilder.enableNonfunctionTypeAliasesInLibrary) {
         if (type is TypeBuilder) {
           aliasedType = type;
         } else {
@@ -1672,6 +1672,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void endTopLevelFields(
+      Token externalToken,
       Token staticToken,
       Token covariantToken,
       Token lateToken,
@@ -1682,10 +1683,16 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("endTopLevelFields");
     if (lateToken != null && !libraryBuilder.isNonNullableByDefault) {
       reportNonNullableModifierError(lateToken);
+      if (externalToken != null) {
+        externalToken = null;
+        handleRecoverableError(
+            messageExternalField, externalToken, externalToken);
+      }
     }
     List<FieldInfo> fieldInfos = popFieldInfos(count);
     TypeBuilder type = nullIfParserRecovery(pop());
-    int modifiers = (staticToken != null ? staticMask : 0) |
+    int modifiers = (externalToken != null ? externalMask : 0) |
+        (staticToken != null ? staticMask : 0) |
         (covariantToken != null ? covariantMask : 0) |
         (lateToken != null ? lateMask : 0) |
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme);
@@ -1698,15 +1705,28 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endClassFields(Token staticToken, Token covariantToken, Token lateToken,
-      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+  void endClassFields(
+      Token externalToken,
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
     debugEvent("Fields");
     if (lateToken != null && !libraryBuilder.isNonNullableByDefault) {
       reportNonNullableModifierError(lateToken);
+      if (externalToken != null) {
+        externalToken = null;
+        handleRecoverableError(
+            messageExternalField, externalToken, externalToken);
+      }
     }
     List<FieldInfo> fieldInfos = popFieldInfos(count);
     TypeBuilder type = pop();
-    int modifiers = (staticToken != null ? staticMask : 0) |
+    int modifiers = (externalToken != null ? externalMask : 0) |
+        (staticToken != null ? staticMask : 0) |
         (covariantToken != null ? covariantMask : 0) |
         (lateToken != null ? lateMask : 0) |
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme);
@@ -1777,7 +1797,7 @@ class OutlineBuilder extends StackListenerImpl {
     if (typeParameters != null) {
       typeParameters[index].bound = bound;
       if (variance != null) {
-        if (!libraryBuilder.loader.target.enableVariance) {
+        if (!libraryBuilder.enableVarianceInLibrary) {
           reportVarianceModifierNotEnabled(variance);
         }
         typeParameters[index].variance = Variance.fromString(variance.lexeme);

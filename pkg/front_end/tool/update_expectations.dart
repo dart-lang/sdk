@@ -9,6 +9,7 @@ const List<String> standardSuites = <String>[
   'outline',
   'weak',
   'text_serialization',
+  'textual_outline',
 ];
 
 const List<String> specialSuites = <String>[
@@ -30,8 +31,7 @@ Future<void> runStandardSuites([List<String> args]) async {
       // Only update comments in the first suite. Note that this only works
       // if the first compilation is a full compilation, i.e. not outline,
       // because comments are generated during body building and inference.
-      if (first)
-        '-DupdateComments=true',
+      if (first) '-DupdateComments=true',
       '-DupdateExpectations=true'
     ]);
     first = false;

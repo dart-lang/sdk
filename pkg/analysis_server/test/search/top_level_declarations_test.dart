@@ -55,7 +55,6 @@ class TopLevelDeclarationsTest extends AbstractSearchDomainTest {
   }
 
   Future<void> test_extensionDeclaration() async {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
     addTestFile('''
 extension MyExtension on int {}
 ''');

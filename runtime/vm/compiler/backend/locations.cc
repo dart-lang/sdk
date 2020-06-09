@@ -41,7 +41,8 @@ intptr_t RegisterSet::RegisterCount(intptr_t registers) {
   intptr_t count = 0;
   while (registers != 0) {
     ++count;
-    registers &= (registers - 1);  // Clear the least significant bit set.
+    // Clear the least significant bit set.
+    registers &= (static_cast<uintptr_t>(registers) - 1);
   }
   return count;
 }
@@ -69,6 +70,7 @@ LocationSummary::LocationSummary(Zone* zone,
                                  LocationSummary::ContainsCall contains_call)
     : num_inputs_(input_count),
       num_temps_(temp_count),
+      output_location_(),  // out(0)->IsInvalid() unless later set.
       stack_bitmap_(NULL),
       contains_call_(contains_call),
       live_registers_() {
@@ -91,6 +93,42 @@ LocationSummary* LocationSummary::Make(
   }
   summary->set_out(0, out);
   return summary;
+}
+
+static bool ValidOutputForAlwaysCalls(const Location& loc) {
+  return loc.IsMachineRegister() || loc.IsInvalid() || loc.IsPairLocation();
+}
+
+void LocationSummary::set_in(intptr_t index, Location loc) {
+  ASSERT(index >= 0);
+  ASSERT(index < num_inputs_);
+#if defined(DEBUG)
+  // See FlowGraphAllocator::ProcessOneInstruction for explanation of these
+  // restrictions.
+  if (always_calls()) {
+    if (loc.IsUnallocated()) {
+      ASSERT(loc.policy() == Location::kAny);
+    } else if (loc.IsPairLocation()) {
+      ASSERT(!loc.AsPairLocation()->At(0).IsUnallocated() ||
+             loc.AsPairLocation()->At(0).policy() == Location::kAny);
+      ASSERT(!loc.AsPairLocation()->At(0).IsUnallocated() ||
+             loc.AsPairLocation()->At(0).policy() == Location::kAny);
+    }
+    if (index == 0 && out(0).IsUnallocated() &&
+        out(0).policy() == Location::kSameAsFirstInput) {
+      ASSERT(ValidOutputForAlwaysCalls(loc));
+    }
+  }
+#endif
+  input_locations_[index] = loc;
+}
+
+void LocationSummary::set_out(intptr_t index, Location loc) {
+  ASSERT(index == 0);
+  ASSERT(!always_calls() || ValidOutputForAlwaysCalls(loc) ||
+         (loc.IsUnallocated() && loc.policy() == Location::kSameAsFirstInput &&
+          num_inputs_ > 0 && ValidOutputForAlwaysCalls(in(0))));
+  output_location_ = loc;
 }
 
 Location Location::Pair(Location first, Location second) {

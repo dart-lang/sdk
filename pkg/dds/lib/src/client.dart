@@ -12,7 +12,10 @@ class _DartDevelopmentServiceClient {
     this.ws,
     json_rpc.Peer vmServicePeer,
   ) : _vmServicePeer = vmServicePeer {
-    _clientPeer = json_rpc.Peer(ws.cast<String>());
+    _clientPeer = json_rpc.Peer(
+      ws.cast<String>(),
+      strictProtocolChecks: false,
+    );
     _registerJsonRpcMethods();
   }
 
@@ -99,6 +102,49 @@ class _DartDevelopmentServiceClient {
       (parameters) => dds.isolateManager.resumeIsolate(this, parameters),
     );
 
+    _clientPeer.registerMethod(
+        'getLogHistorySize',
+        (parameters) => {
+              'type': 'Size',
+              'size': dds.loggingRepository.bufferSize,
+            });
+
+    _clientPeer.registerMethod('setLogHistorySize', (parameters) {
+      final size = parameters['size'].asInt;
+      if (size < 0) {
+        throw json_rpc.RpcException.invalidParams(
+          "'size' must be greater or equal to zero",
+        );
+      }
+      dds.loggingRepository.resize(size);
+      return _RPCResponses.success;
+    });
+
+    _clientPeer.registerMethod('getDartDevelopmentServiceVersion',
+        (parameters) async {
+      final ddsVersion = DartDevelopmentService.protocolVersion.split('.');
+      return <String, dynamic>{
+        'type': 'Version',
+        'major': int.parse(ddsVersion[0]),
+        'minor': int.parse(ddsVersion[1]),
+      };
+    });
+
+    _clientPeer.registerMethod('getSupportedProtocols', (parameters) async {
+      final Map<String, dynamic> supportedProtocols =
+          await _vmServicePeer.sendRequest('getSupportedProtocols');
+      final ddsVersion = DartDevelopmentService.protocolVersion.split('.');
+      final ddsProtocol = {
+        'protocolName': 'DDS',
+        'major': int.parse(ddsVersion[0]),
+        'minor': int.parse(ddsVersion[1]),
+      };
+      supportedProtocols['protocols']
+          .cast<Map<String, dynamic>>()
+          .add(ddsProtocol);
+      return supportedProtocols;
+    });
+
     // When invoked within a fallback, the next fallback will start executing.
     // The final fallback forwards the request to the VM service directly.
     @alwaysThrows
@@ -141,7 +187,7 @@ class _DartDevelopmentServiceClient {
     // Unless otherwise specified, the request is forwarded to the VM service.
     // NOTE: This must be the last fallback registered.
     _clientPeer.registerFallback((parameters) async =>
-        await _vmServicePeer.sendRequest(parameters.method, parameters.asMap));
+        await _vmServicePeer.sendRequest(parameters.method, parameters.value));
   }
 
   static int _idCounter = 0;

@@ -137,6 +137,7 @@ ancillary
 and
 angle
 annotatable
+annotatables
 annotated
 annotating
 annotation
@@ -179,6 +180,7 @@ are
 aren't
 argument
 arguments
+arises
 arithmetic
 arose
 around
@@ -468,6 +470,7 @@ closed
 closer
 closers
 closes
+closest
 closing
 closure
 closures
@@ -655,6 +658,7 @@ correction
 correctly
 correctness
 correspond
+correspondence
 corresponding
 corresponds
 cost
@@ -1082,6 +1086,7 @@ exporting
 exports
 exposed
 exposes
+expressed
 expression
 expressions
 extend
@@ -1155,6 +1160,7 @@ finalizes
 finalizing
 finally
 find
+finder
 finding
 finds
 fine
@@ -1516,6 +1522,7 @@ intent
 interaction
 intercept
 interceptors
+interdependent
 interest
 interesting
 interests
@@ -1731,6 +1738,7 @@ lowercase
 lowered
 lowering
 lowerings
+lowest
 machine
 made
 magenta
@@ -2301,6 +2309,7 @@ quote
 quotes
 quoting
 raise
+raising
 random
 range
 rare

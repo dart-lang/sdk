@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
-import 'package:dartfix/src/migrate/migrate.dart';
+import 'package:nnbd_migration/migration_cli.dart';
 
 import 'src/commands/analyze.dart';
 import 'src/commands/create.dart';
@@ -30,7 +32,7 @@ class DartdevRunner<int> extends CommandRunner {
     addCommand(AnalyzeCommand(verbose: verbose));
     addCommand(CreateCommand(verbose: verbose));
     addCommand(FormatCommand(verbose: verbose));
-    addCommand(MigrateCommand(logProvider: () => log, hidden: !verbose));
+    addCommand(MigrateCommand(verbose: verbose));
     addCommand(PubCommand(verbose: verbose));
     addCommand(RunCommand(verbose: verbose));
     addCommand(TestCommand(verbose: verbose));
@@ -42,6 +44,16 @@ class DartdevRunner<int> extends CommandRunner {
 
   @override
   Future<int> runCommand(ArgResults results) async {
+    if (results.command == null && results.arguments.isNotEmpty) {
+      final firstArg = results.arguments.first;
+      // If we make it this far, it means the VM couldn't find the file on disk.
+      if (firstArg.endsWith('.dart')) {
+        stderr.writeln(
+            "Error when reading '$firstArg': No such file or directory.");
+        // This is the exit code used by the frontend.
+        exit(254);
+      }
+    }
     isVerbose = results['verbose'];
 
     final Ansi ansi = Ansi(Ansi.terminalSupportsAnsi);

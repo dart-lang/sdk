@@ -81,13 +81,13 @@ class Heap {
       case kNew:
         // Do not attempt to allocate very large objects in new space.
         if (!IsAllocatableInNewSpace(size)) {
-          return AllocateOld(size, HeapPage::kData);
+          return AllocateOld(size, OldPage::kData);
         }
         return AllocateNew(size);
       case kOld:
-        return AllocateOld(size, HeapPage::kData);
+        return AllocateOld(size, OldPage::kData);
       case kCode:
-        return AllocateOld(size, HeapPage::kExecutable);
+        return AllocateOld(size, OldPage::kExecutable);
       default:
         UNREACHABLE();
     }
@@ -95,10 +95,10 @@ class Heap {
   }
 
   // Track external data.
-  void AllocateExternal(intptr_t cid, intptr_t size, Space space);
-  void FreeExternal(intptr_t size, Space space);
+  void AllocatedExternal(intptr_t size, Space space);
+  void FreedExternal(intptr_t size, Space space);
   // Move external size from new to old space. Does not by itself trigger GC.
-  void PromoteExternal(intptr_t cid, intptr_t size);
+  void PromotedExternal(intptr_t size);
 
   // Heap contains the specified address.
   bool Contains(uword addr) const;
@@ -349,7 +349,7 @@ class Heap {
        intptr_t max_old_gen_words);
 
   uword AllocateNew(intptr_t size);
-  uword AllocateOld(intptr_t size, HeapPage::PageType type);
+  uword AllocateOld(intptr_t size, OldPage::PageType type);
 
   // Visit all pointers. Caller must ensure concurrent sweeper is not running,
   // and the visitor must not allocate.
@@ -409,6 +409,7 @@ class Heap {
   Monitor gc_in_progress_monitor_;
   bool gc_new_space_in_progress_;
   bool gc_old_space_in_progress_;
+  bool last_gc_was_old_space_;
 
   static const intptr_t kNoForcedGarbageCollection = -1;
 

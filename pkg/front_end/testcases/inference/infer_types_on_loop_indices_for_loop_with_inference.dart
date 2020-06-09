@@ -7,9 +7,9 @@ library test;
 
 test() {
   for (var /*@ type=int* */ i = 0;
-      i /*@target=num::<*/ < 10;
-      i /*@ target=num::+ */ ++) {
-    int j = i /*@target=num::+*/ + 1;
+      i /*@target=num.<*/ < 10;
+      i /*@target=num.+*/ ++) {
+    int j = i /*@target=num.+*/ + 1;
   }
 }
 

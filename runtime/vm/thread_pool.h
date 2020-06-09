@@ -34,7 +34,10 @@ class ThreadPool {
     DISALLOW_COPY_AND_ASSIGN(Task);
   };
 
-  ThreadPool();
+  explicit ThreadPool(uintptr_t max_pool_size = 0);
+
+  // Prevent scheduling of new tasks, wait until all pending tasks are done
+  // and join worker threads.
   virtual ~ThreadPool();
 
   // Runs a task on the thread pool.
@@ -43,8 +46,20 @@ class ThreadPool {
     return RunImpl(std::unique_ptr<Task>(new T(std::forward<Args>(args)...)));
   }
 
-  // Trigger shutdown, prevents scheduling of new tasks.
-  void TriggerShutdown();
+  // Returns `true` if the current thread is runing on the [this] thread pool.
+  bool CurrentThreadIsWorker();
+
+  // Mark the current thread as being blocked (e.g. in native code). This might
+  // temporarily increase the max thread pool size.
+  void MarkCurrentWorkerAsBlocked();
+
+  // Mark the current thread as being unblocked. Must be called iff
+  // [MarkCurrentWorkerAsBlocked] was called before and the thread is now ready
+  // to coninue executing.
+  void MarkCurrentWorkerAsUnBlocked();
+
+  // Triggers shutdown, prevents scheduling of new tasks.
+  void Shutdown();
 
   // Exposed for unit test in thread_pool_test.cc
   uint64_t workers_started() const { return count_idle_ + count_running_; }
@@ -70,9 +85,24 @@ class ThreadPool {
     // thread.
     ThreadPool* pool_;
     ThreadJoinId join_id_;
+    OSThread* os_thread_ = nullptr;
+    bool is_blocked_ = false;
 
     DISALLOW_COPY_AND_ASSIGN(Worker);
   };
+
+ protected:
+  // Called when the thread pool turns idle.
+  //
+  // Subclasses can override this to perform some action.
+  // NOTE: While this function is running the thread pool will be locked.
+  virtual void OnEnterIdleLocked(MonitorLocker* ml) {}
+
+  // Whether a shutdown was requested.
+  bool ShuttingDownLocked() { return shutting_down_; }
+
+  // Whether new tasks are ready to be run.
+  bool TasksWaitingToRunLocked() { return !tasks_.IsEmpty(); }
 
  private:
   using TaskList = IntrusiveDList<Task>;
@@ -102,6 +132,8 @@ class ThreadPool {
 
   Monitor exit_monitor_;
   std::atomic<bool> all_workers_dead_;
+
+  uintptr_t max_pool_size_ = 0;
 
   DISALLOW_COPY_AND_ASSIGN(ThreadPool);
 };

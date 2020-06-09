@@ -7,7 +7,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:nnbd_migration/src/fantasyland/fantasy_workspace.dart';
 import 'package:nnbd_migration/src/utilities/subprocess_launcher.dart';
 import 'package:path/path.dart' as path;
 
@@ -78,26 +77,6 @@ class ManualPackage extends Package {
 
   @override
   List<String> get migrationPaths => [_packagePath];
-}
-
-/// Abstraction for a fantasy-land package.
-class FantasyLandPackage extends Package {
-  final String name;
-  final FantasyWorkspace fantasyLand;
-
-  FantasyLandPackage._(this.name, this.fantasyLand) : super('${name}__flat');
-
-  static Future<FantasyLandPackage> fantasyLandPackageFactory(
-      String name, Playground playground) async {
-    return FantasyLandPackage._(
-        name,
-        await buildFantasyLand(name, [],
-            path.join(playground.playgroundPath, '${name}__flat'), true));
-  }
-
-  @override
-  // TODO(jcollins-g): traverse [fantasyLand.subPackages] and calculate paths to migrate.
-  List<String> get migrationPaths => throw UnimplementedError;
 }
 
 /// Abstraction for a package fetched via Git.

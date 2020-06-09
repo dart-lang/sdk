@@ -53,6 +53,13 @@ abstract class Relevance {
   /// The relevance used when suggesting a field as a field formal parameter.
   static const int fieldFormalParameter = 1000;
 
+  /// The relevance used when suggesting an import of a library other than
+  /// `dart:core`.
+  static const int import = 900;
+
+  /// The relevance used when suggesting an import of `dart:core`.
+  static const int importDartCore = 100;
+
   /// The relevance used when suggesting a label.
   static const int label = 1000;
 
@@ -82,5 +89,17 @@ abstract class Relevance {
   static const int requiredNamedArgument = 950;
 
   /// The relevance used when suggesting a type parameter.
-  static const int typeParameter = 900;
+  static const int typeParameter = 500;
+}
+
+/// A name scope for constants that are related to the relevance of completion
+/// suggestions. The values are required to be in the range [0, 1000].
+abstract class RelevanceBoost {
+  /// The relevance boost used when suggesting anything other than an enum
+  /// constant from an available declaration set.
+  static const int availableDeclaration = 10;
+
+  /// The relevance boost used when suggesting an enum constant from an
+  /// available declaration set.
+  static const int availableEnumConstant = 100;
 }

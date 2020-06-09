@@ -529,7 +529,7 @@ gen_snapshot_action("generate_snapshot_bin") {
     isolate_snapshot_instructions,
   ]
   args = []
-  if (use_nnbd) {
+  if (!dont_use_nnbd) {
     args += [
       "--enable-experiment=non-nullable",
       "--null-safety",
@@ -967,7 +967,7 @@ executable("run_vm_tests") {
 
   if (is_fuchsia) {
     if (!using_fuchsia_sdk) {
-      deps += [ "//zircon/public/lib/trace" ]
+      deps += [ "//zircon/system/ulib/trace" ]
     }
   }
 

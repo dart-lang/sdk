@@ -21,6 +21,7 @@ regress/issue_39091_2: EmptyOutput
 regress/utf_16_le_content.crash: EmptyOutput
 
 rasta/issue_000032: FormatterCrash
+regress/ambiguous_builder_01: FormatterCrash
 regress/issue_34614: FormatterCrash
 extensions/ambiguous: FormatterCrash
 extensions/annotations: FormatterCrash
@@ -98,6 +99,7 @@ general/bad_setter_abstract: FormatterCrash
 general/bug31124: FormatterCrash
 general/clone_function_type: FormatterCrash
 general/constructor_initializer_invalid: FormatterCrash
+general/covariant_field: FormatterCrash
 general/duplicated_declarations: FormatterCrash
 general/error_recovery/constructor_recovery_bad_name_general.crash: FormatterCrash
 general/error_recovery/constructor_recovery_bad_name_get.crash: FormatterCrash
@@ -124,6 +126,7 @@ general/var_as_type_name: FormatterCrash
 general/well_boundness_checks_in_outline: FormatterCrash
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1: FormatterCrash
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1: FormatterCrash
+late_lowering/covariant_late_field: FormatterCrash
 late_lowering/infer_late_field_type: FormatterCrash
 late_lowering/initializer_rewrite: FormatterCrash
 late_lowering/instance_field_with_initializer: FormatterCrash
@@ -136,6 +139,8 @@ late_lowering/issue40373: FormatterCrash
 late_lowering/issue40373b: FormatterCrash
 late_lowering/issue40805: FormatterCrash
 late_lowering/issue41436b: FormatterCrash
+late_lowering/issue41922: FormatterCrash
+late_lowering/late_annotations: FormatterCrash
 late_lowering/late_field_inference: FormatterCrash
 late_lowering/late_field_with_initializer: FormatterCrash
 late_lowering/late_field_without_initializer: FormatterCrash
@@ -150,6 +155,7 @@ late_lowering/later: FormatterCrash
 late_lowering/override_getter_setter: FormatterCrash
 late_lowering/override: FormatterCrash
 late_lowering/uninitialized_non_nullable_late_fields: FormatterCrash
+nnbd/covariant_late_field: FormatterCrash
 nnbd/forbidden_supers: FormatterCrash
 nnbd/infer_if_null: FormatterCrash
 nnbd/inheritance_from_opt_in: FormatterCrash

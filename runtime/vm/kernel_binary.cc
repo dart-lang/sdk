@@ -137,7 +137,7 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
   while (reader->offset() > 0) {
     intptr_t size = reader->ReadUInt32();
     intptr_t start = reader->offset() - size;
-    if (start < 0) {
+    if (start < 0 || size <= 0) {
       if (error != nullptr) {
         *error = kKernelInvalidSizeIndicated;
       }
@@ -224,6 +224,20 @@ std::unique_ptr<Program> Program::ReadFromTypedData(
     const ExternalTypedData& typed_data, const char** error) {
   kernel::Reader reader(typed_data);
   return kernel::Program::ReadFrom(&reader, error);
+}
+
+void Program::AutoDetectNullSafety(Isolate* isolate) {
+  if (isolate->is_service_isolate() || isolate->is_kernel_isolate()) {
+    // For now the service isolate and kernel isolate will be running in
+    // weak mode and we assert for that here.
+    ASSERT(!isolate->null_safety());
+  } else {
+    // If null safety is not specified on the command line we use the value
+    // from the dill file that the CFE has computed based on how it was invoked.
+    if (FLAG_null_safety == kNullSafetyOptionUnspecified) {
+      isolate->set_null_safety(compilation_mode() == NNBDCompiledMode::kStrong);
+    }
+  }
 }
 
 }  // namespace kernel

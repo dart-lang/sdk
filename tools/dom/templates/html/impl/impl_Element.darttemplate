@@ -1374,7 +1374,9 @@ $endif
     if (Range.supportsCreateContextualFragment &&
         _canBeUsedToCreateContextualFragment) {
       _parseRange$NULLASSERT.selectNodeContents(contextElement);
-      fragment = _parseRange$NULLASSERT.createContextualFragment(html$NULLASSERT);
+      // createContextualFragment expects a non-nullable html string.
+      // If null is passed, it gets converted to 'null' instead.
+      fragment = _parseRange$NULLASSERT.createContextualFragment(html ?? 'null');
     } else {
       contextElement._innerHtml = html;
 

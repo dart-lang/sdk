@@ -2,9 +2,9 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_4.dart:18:74: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-//   int y = /*error:INVALID_ASSIGNMENT*/ new B<String>(). /*@target=B::x*/ x;
-//                                                                          ^
+// pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_4.dart:18:73: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+//   int y = /*error:INVALID_ASSIGNMENT*/ new B<String>(). /*@target=B.x*/ x;
+//                                                                         ^
 //
 import self as self;
 import "dart:core" as core;
@@ -14,6 +14,16 @@ class A<T extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::A<self::A::T*>*
     : super core::Object::•()
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class B<E extends core::Object* = dynamic> extends self::A<self::B::E*> {
   generic-covariant-impl field self::B::E* y = null;
@@ -24,9 +34,9 @@ class B<E extends core::Object* = dynamic> extends self::A<self::B::E*> {
     return this.{self::B::y};
 }
 static method foo() → dynamic {
-  core::int* y = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_4.dart:18:74: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-  int y = /*error:INVALID_ASSIGNMENT*/ new B<String>(). /*@target=B::x*/ x;
-                                                                         ^" in new self::B::•<core::String*>().{self::B::x} as{TypeError} core::int*;
+  core::int* y = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_4.dart:18:73: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  int y = /*error:INVALID_ASSIGNMENT*/ new B<String>(). /*@target=B.x*/ x;
+                                                                        ^" in new self::B::•<core::String*>().{self::B::x} as{TypeError} core::int*;
   core::String* z = new self::B::•<core::String*>().{self::B::x};
 }
 static method main() → dynamic {

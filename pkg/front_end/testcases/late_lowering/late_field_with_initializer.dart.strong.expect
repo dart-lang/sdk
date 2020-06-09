@@ -33,8 +33,8 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     this.{self::Class::_#Class#lateInstanceField} = #t6;
   get lateGenericField1() → self::Class::T% {
     if(!this.{self::Class::_#Class#lateGenericField1#isSet}) {
-      this.{self::Class::_#Class#lateGenericField1#isSet} = true;
       this.{self::Class::_#Class#lateGenericField1} = this.{self::Class::field};
+      this.{self::Class::_#Class#lateGenericField1#isSet} = true;
     }
     return let final self::Class::T? #t7 = this.{self::Class::_#Class#lateGenericField1} in #t7{self::Class::T%};
   }
@@ -44,8 +44,8 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   }
   get lateGenericField2() → self::Class::T% {
     if(!this.{self::Class::_#Class#lateGenericField2#isSet}) {
-      this.{self::Class::_#Class#lateGenericField2#isSet} = true;
       this.{self::Class::_#Class#lateGenericField2} = this.{self::Class::field};
+      this.{self::Class::_#Class#lateGenericField2#isSet} = true;
     }
     return let final self::Class::T? #t9 = this.{self::Class::_#Class#lateGenericField2} in #t9{self::Class::T%};
   }

@@ -1,0 +1,180 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/opt_out.dart:16:11: Error: Can't create typedef from nullable type.
+// typedef F = void Function()?;
+//           ^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///opt_out_lib.dart";
+
+typedef F = invalid-type;
+class A<T extends core::Object? = dynamic> extends core::Object {
+  late field core::int field = 42;
+  synthetic constructor •() → self::A<self::A::T%>
+    : super core::Object::•()
+    ;
+}
+class B extends self::A<core::String?> {
+  synthetic constructor •() → self::B
+    : super self::A::•()
+    ;
+}
+static field core::List<core::String?> l = <core::String?>[];
+static field core::String? s = null;
+static field core::String t = self::s!;
+late static field core::int field = 42;
+static method method(() →? void f, {required core::int a = #C1}) → void {}
+static method main() → dynamic {}
+static method noErrors() → dynamic {
+  late core::int local = 42;
+  core::String? s = null;
+  dynamic c;
+  let final dynamic #t1 = c in #t1.{core::Object::==}(null) ?{dynamic} null : block {
+    #t1.f;
+  } =>#t1;
+  let final dynamic #t2 = c in #t2.{core::Object::==}(null) ?{dynamic} null : #t2.[](0);
+}
+
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:18:25: Error: Null safety features are disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version higher.
+// class B extends A<String?> {}
+//                         ^
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
+// // @dart=2.5
+// ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:20:28: Error: Null safety features are disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version higher.
+// typedef F = void Function()?;
+//                            ^
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
+// // @dart=2.5
+// ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:20:11: Error: Can't create typedef from nullable type.
+// typedef F = void Function()?;
+//           ^
+//
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:22:12: Error: Null safety features are disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version higher.
+// List<String?> l = [];
+//            ^
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
+// // @dart=2.5
+// ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:23:7: Error: Null safety features are disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version higher.
+// String? s = null;
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
+// // @dart=2.5
+// ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:28:21: Error: Null safety features are disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version higher.
+// void method(void f()?, {int a}) {}
+//                     ^
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
+// // @dart=2.5
+// ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:24:10: Error: Null safety features are disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version higher.
+// var t = s!;
+//          ^
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
+// // @dart=2.5
+// ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:32:14: Error: Null safety features are disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version higher.
+//   List<String?> l = null;
+//              ^
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
+// // @dart=2.5
+// ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:33:9: Error: Null safety features are disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version higher.
+//   String? s = null;
+//         ^
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
+// // @dart=2.5
+// ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:34:12: Error: Null safety features are disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version higher.
+//   var t = s!;
+//            ^
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
+// // @dart=2.5
+// ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:36:6: Error: Expected an identifier, but got '.'.
+//   c?..f;
+//      ^
+//
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:36:6: Error: Expected an identifier, but got ''.
+//   c?..f;
+//      ^
+//
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:37:6: Error: Expected an identifier, but got '['.
+//   c?.[0];
+//      ^
+//
+import self as self2;
+import "dart:core" as core;
+
+typedef F = invalid-type;
+class A<T extends core::Object* = dynamic> extends core::Object {
+  field core::int* field = 42;
+  synthetic constructor •() → self2::A<self2::A::T*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
+class B extends self2::A<core::String?> {
+  synthetic constructor •() → self2::B*
+    : super self2::A::•()
+    ;
+}
+static field core::List<core::String?>* l = <core::String*>[];
+static field core::String? s = null;
+static field core::String* t = self2::s!;
+static field core::int* field = 42;
+static method method(() →? void f, {core::int* a = #C1}) → void {}
+static method errors() → dynamic {
+  core::int* local = 42;
+  core::List<core::String?>* l = null;
+  core::String? s = null;
+  core::String* t = s!;
+  dynamic c;
+  invalid-expression "pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:36:6: Error: Expected an identifier, but got ''.
+  c?..f;
+     ^".f;
+  invalid-expression "pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:37:6: Error: Expected an identifier, but got '['.
+  c?.[0];
+     ^";
+}
+
+constants  {
+  #C1 = null
+}

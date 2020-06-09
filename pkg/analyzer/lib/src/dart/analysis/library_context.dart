@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/element/element.dart'
     show CompilationUnitElement, LibraryElement;
-import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -13,7 +12,7 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptions;
 import 'package:analyzer/src/generated/source.dart';
@@ -54,15 +53,13 @@ class LibraryContext {
 
   AnalysisContextImpl analysisContext;
   LinkedElementFactory elementFactory;
-  InheritanceManager3 inheritanceManager;
 
-  var loadedBundles = Set<LibraryCycle>.identity();
+  Set<LibraryCycle> loadedBundles = Set<LibraryCycle>.identity();
 
   LibraryContext({
     @required AnalysisSessionImpl session,
     @required PerformanceLog logger,
     @required ByteStore byteStore,
-    @required FileSystemState fsState,
     @required AnalysisOptions analysisOptions,
     @required DeclaredVariables declaredVariables,
     @required SourceFactory sourceFactory,
@@ -77,8 +74,6 @@ class LibraryContext {
 
     _createElementFactory();
     load2(targetLibrary);
-
-    inheritanceManager = InheritanceManager3();
   }
 
   /**
@@ -160,6 +155,33 @@ class LibraryContext {
                 unit,
               ),
             );
+
+            // TODO(scheglov) remove after fixing linking issues
+            {
+              var existingLibraryReference =
+                  elementFactory.rootReference[libraryFile.uriStr];
+              if (existingLibraryReference != null) {
+                var existingElement = existingLibraryReference.element;
+                if (existingElement != null) {
+                  var existingSource = existingElement?.source;
+                  var libraryRefs = elementFactory.rootReference.children;
+                  var libraryUriList = libraryRefs.map((e) => e.name).toList();
+                  var statusText = '[The library is already loaded]'
+                      '[oldUri: ${existingSource.uri}]'
+                      '[oldPath: ${existingSource.fullName}]'
+                      '[newUri: ${libraryFile.uriStr}]'
+                      '[newPath: ${libraryFile.path}]'
+                      '[cycle: $cycle]'
+                      '[loadedBundles: ${loadedBundles.toList()}]'
+                      '[elementFactory.libraries: $libraryUriList]';
+                  throw LibraryCycleLinkException(
+                    'Cycle loading state error',
+                    StackTrace.current,
+                    {'status': statusText},
+                  );
+                }
+              }
+            }
           }
 
           inputLibraries.add(
@@ -298,14 +320,11 @@ class LibraryContext {
   }
 }
 
-/// Exception that wraps another exception that happened during linking, and
-/// includes the content of all files of the library cycle.
-class LibraryCycleLinkException extends CaughtException {
-  final Map<String, String> fileContentMap;
-
+/// TODO(scheglov) replace in the internal patch
+class LibraryCycleLinkException extends CaughtExceptionWithFiles {
   LibraryCycleLinkException(
     Object exception,
     StackTrace stackTrace,
-    this.fileContentMap,
-  ) : super(exception, stackTrace);
+    Map<String, String> fileContentMap,
+  ) : super(exception, stackTrace, fileContentMap);
 }

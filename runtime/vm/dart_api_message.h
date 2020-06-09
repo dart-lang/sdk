@@ -148,8 +148,6 @@ class ApiMessageReader : public BaseReader {
   Dart_CObject dynamic_type_marker;
 
   MessageFinalizableData* finalizable_data_;
-
-  static _Dart_CObject* singleton_uint32_typed_data_;
 };
 
 class ApiMessageWriter : public BaseWriter {

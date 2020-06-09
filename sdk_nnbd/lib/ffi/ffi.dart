@@ -101,10 +101,6 @@ extension Int8Pointer on Pointer<Int8> {
   /// being stored, and the 8-bit value is sign-extended when it is loaded.
   external int get value;
 
-  /// The 8-bit two's complement integer at [address].
-  ///
-  /// A Dart integer is truncated to 8 bits (as if by `.toSigned(8)`) before
-  /// being stored, and the 8-bit value is sign-extended when it is loaded.
   external void set value(int value);
 
   /// The 8-bit two's complement integer at `address + index`.
@@ -139,12 +135,6 @@ extension Int16Pointer on Pointer<Int16> {
   /// The [address] must be 2-byte aligned.
   external int get value;
 
-  /// The 16-bit two's complement integer at [address].
-  ///
-  /// A Dart integer is truncated to 16 bits (as if by `.toSigned(16)`) before
-  /// being stored, and the 16-bit value is sign-extended when it is loaded.
-  ///
-  /// The [address] must be 2-byte aligned.
   external void set value(int value);
 
   /// The 16-bit two's complement integer at `address + 2 * index`.
@@ -185,12 +175,6 @@ extension Int32Pointer on Pointer<Int32> {
   /// The [address] must be 4-byte aligned.
   external int get value;
 
-  /// The 32-bit two's complement integer at [address].
-  ///
-  /// A Dart integer is truncated to 32 bits (as if by `.toSigned(32)`) before
-  /// being stored, and the 32-bit value is sign-extended when it is loaded.
-  ///
-  /// The [address] must be 4-byte aligned.
   external void set value(int value);
 
   /// The 32-bit two's complement integer at `address + 4 * index`.
@@ -228,9 +212,6 @@ extension Int64Pointer on Pointer<Int64> {
   /// The [address] must be 8-byte aligned.
   external int get value;
 
-  /// The 64-bit two's complement integer at [address].
-  ///
-  /// The [address] must be 8-byte aligned.
   external void set value(int value);
 
   /// The 64-bit two's complement integer at `address + 8 * index`.
@@ -263,10 +244,6 @@ extension Uint8Pointer on Pointer<Uint8> {
   /// being stored, and the 8-bit value is zero-extended when it is loaded.
   external int get value;
 
-  /// The 8-bit unsigned integer at [address].
-  ///
-  /// A Dart integer is truncated to 8 bits (as if by `.toUnsigned(8)`) before
-  /// being stored, and the 8-bit value is zero-extended when it is loaded.
   external void set value(int value);
 
   /// The 8-bit unsigned integer at `address + index`.
@@ -301,12 +278,6 @@ extension Uint16Pointer on Pointer<Uint16> {
   /// The [address] must be 2-byte aligned.
   external int get value;
 
-  /// The 16-bit unsigned integer at [address].
-  ///
-  /// A Dart integer is truncated to 16 bits (as if by `.toUnsigned(16)`) before
-  /// being stored, and the 16-bit value is zero-extended when it is loaded.
-  ///
-  /// The [address] must be 2-byte aligned.
   external void set value(int value);
 
   /// The 16-bit unsigned integer at `address + 2 * index`.
@@ -347,12 +318,6 @@ extension Uint32Pointer on Pointer<Uint32> {
   /// The [address] must be 4-byte aligned.
   external int get value;
 
-  /// The 32-bit unsigned integer at [address].
-  ///
-  /// A Dart integer is truncated to 32 bits (as if by `.toUnsigned(32)`) before
-  /// being stored, and the 32-bit value is zero-extended when it is loaded.
-  ///
-  /// The [address] must be 4-byte aligned.
   external void set value(int value);
 
   /// The 32-bit unsigned integer at `address + 4 * index`.
@@ -390,9 +355,6 @@ extension Uint64Pointer on Pointer<Uint64> {
   /// The [address] must be 8-byte aligned.
   external int get value;
 
-  /// The 64-bit unsigned integer at [address].
-  ///
-  /// The [address] must be 8-byte aligned.
   external void set value(int value);
 
   /// The 64-bit unsigned integer at `address + 8 * index`.
@@ -432,17 +394,6 @@ extension IntPtrPointer on Pointer<IntPtr> {
   /// platforms the [address] must be 8-byte aligned.
   external int get value;
 
-  /// The 32 or 64-bit two's complement integer at [address].
-  ///
-  /// On 32-bit platforms this is a 32-bit integer, and on 64-bit platforms
-  /// this is a 64-bit integer.
-  ///
-  /// On 32-bit platforms a Dart integer is truncated to 32 bits (as if by
-  /// `.toSigned(32)`) before being stored, and the 32-bit value is
-  /// sign-extended when it is loaded.
-  ///
-  /// On 32-bit platforms the [address] must be 4-byte aligned, and on 64-bit
-  /// platforms the [address] must be 8-byte aligned.
   external void set value(int value);
 
   /// The 32 or 64-bit two's complement integer at `address + (4 or 8) * index`.
@@ -482,12 +433,6 @@ extension FloatPointer on Pointer<Float> {
   /// The [address] must be 4-byte aligned.
   external double get value;
 
-  /// The float at [address].
-  ///
-  /// A Dart double loses precision before being stored, and the float value is
-  /// converted to a double when it is loaded.
-  ///
-  /// The [address] must be 4-byte aligned.
   external void set value(double value);
 
   /// The float at `address + 4 * index`.
@@ -525,9 +470,6 @@ extension DoublePointer on Pointer<Double> {
   /// The [address] must be 8-byte aligned.
   external double get value;
 
-  /// The double at [address].
-  ///
-  /// The [address] must be 8-byte aligned.
   external void set value(double value);
 
   /// The double at `address + 8 * index`.
@@ -567,13 +509,6 @@ extension PointerPointer<T extends NativeType> on Pointer<Pointer<T>> {
   /// platforms the [address] must be 8-byte aligned.
   external Pointer<T> get value;
 
-  /// Store a Dart value into this location.
-  ///
-  /// A [Pointer] is unboxed before being stored (as if by `.address`), and the
-  /// pointer is boxed (as if by `Pointer.fromAddress`) when loaded.
-  ///
-  /// On 32-bit platforms the [address] must be 4-byte aligned, and on 64-bit
-  /// platforms the [address] must be 8-byte aligned.
   external void set value(Pointer<T> value);
 
   /// Load a Dart value from this location offset by [index].

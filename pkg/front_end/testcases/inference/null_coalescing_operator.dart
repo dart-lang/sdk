@@ -8,6 +8,6 @@ library test;
 main() {
   List<int> x;
   var /*@ type=List<int*>* */ y =
-      x /*@ target=List::== */ ?? /*@ typeArgs=int* */ [];
+      x /*@target=List.==*/ ?? /*@ typeArgs=int* */ [];
   List<int> z = y;
 }

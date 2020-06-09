@@ -6,8 +6,11 @@ import 'package:expect/expect.dart';
 
 import 'package:test_runner/src/static_error.dart';
 
+import 'utils.dart';
+
 void main() {
-  testFlags();
+  testHasError();
+  testErrorFor();
   testIsSpecifiedFor();
   testCompareTo();
   testDescribeDifferences();
@@ -15,119 +18,220 @@ void main() {
   testValidate();
 }
 
-void testFlags() {
-  var unspecified = StaticError(
+void testHasError() {
+  var analyzer =
+      makeError(line: 1, column: 2, length: 3, analyzerError: "E.CODE");
+  var cfe = makeError(line: 1, column: 2, length: 3, cfeError: "Error.");
+  var web = makeError(line: 1, column: 2, length: 3, webError: "Web.");
+  var all = makeError(
       line: 1,
       column: 2,
       length: 3,
-      code: "unspecified",
-      message: "unspecified");
-  var unspecifiedAnalyzer =
-      StaticError(line: 1, column: 2, length: 3, code: "unspecified");
-  var unspecifiedCfe =
-      StaticError(line: 1, column: 2, length: 3, message: "unspecified");
-  var noLength = StaticError(line: 1, column: 2, code: "E.CODE");
-  var analyzer = StaticError(line: 1, column: 2, length: 3, code: "E.CODE");
-  var cfe = StaticError(line: 1, column: 2, length: 3, message: "E.");
-  var both =
-      StaticError(line: 1, column: 2, length: 3, code: "E.CODE", message: "E.");
+      analyzerError: "E.CODE",
+      cfeError: "Error.",
+      webError: "Web.");
 
-  // isAnalyzer.
-  Expect.isTrue(unspecified.isAnalyzer);
-  Expect.isTrue(unspecifiedAnalyzer.isAnalyzer);
-  Expect.isFalse(unspecifiedCfe.isAnalyzer);
-  Expect.isTrue(noLength.isAnalyzer);
-  Expect.isTrue(analyzer.isAnalyzer);
-  Expect.isFalse(cfe.isAnalyzer);
-  Expect.isTrue(both.isAnalyzer);
+  Expect.isTrue(analyzer.hasError(ErrorSource.analyzer));
+  Expect.isFalse(analyzer.hasError(ErrorSource.cfe));
+  Expect.isFalse(analyzer.hasError(ErrorSource.web));
 
-  // isCfe.
-  Expect.isTrue(unspecified.isCfe);
-  Expect.isFalse(unspecifiedAnalyzer.isCfe);
-  Expect.isTrue(unspecifiedCfe.isCfe);
-  Expect.isFalse(noLength.isCfe);
-  Expect.isFalse(analyzer.isCfe);
-  Expect.isTrue(cfe.isCfe);
-  Expect.isTrue(both.isCfe);
+  Expect.isFalse(cfe.hasError(ErrorSource.analyzer));
+  Expect.isTrue(cfe.hasError(ErrorSource.cfe));
+  Expect.isFalse(cfe.hasError(ErrorSource.web));
+
+  Expect.isFalse(web.hasError(ErrorSource.analyzer));
+  Expect.isFalse(web.hasError(ErrorSource.cfe));
+  Expect.isTrue(web.hasError(ErrorSource.web));
+
+  Expect.isTrue(all.hasError(ErrorSource.analyzer));
+  Expect.isTrue(all.hasError(ErrorSource.cfe));
+  Expect.isTrue(all.hasError(ErrorSource.web));
+}
+
+void testErrorFor() {
+  var analyzer =
+      makeError(line: 1, column: 2, length: 3, analyzerError: "E.CODE");
+  var cfe = makeError(line: 1, column: 2, length: 3, cfeError: "Error.");
+  var web = makeError(line: 1, column: 2, length: 3, webError: "Web.");
+  var all = makeError(
+      line: 1,
+      column: 2,
+      length: 3,
+      analyzerError: "E.CODE",
+      cfeError: "Error.",
+      webError: "Web.");
+
+  Expect.equals("E.CODE", analyzer.errorFor(ErrorSource.analyzer));
+  Expect.isNull(analyzer.errorFor(ErrorSource.cfe));
+  Expect.isNull(analyzer.errorFor(ErrorSource.web));
+
+  Expect.isNull(cfe.errorFor(ErrorSource.analyzer));
+  Expect.equals("Error.", cfe.errorFor(ErrorSource.cfe));
+  Expect.isNull(cfe.errorFor(ErrorSource.web));
+
+  Expect.isNull(web.errorFor(ErrorSource.analyzer));
+  Expect.isNull(web.errorFor(ErrorSource.cfe));
+  Expect.equals("Web.", web.errorFor(ErrorSource.web));
+
+  Expect.equals("E.CODE", all.errorFor(ErrorSource.analyzer));
+  Expect.equals("Error.", all.errorFor(ErrorSource.cfe));
+  Expect.equals("Web.", all.errorFor(ErrorSource.web));
 }
 
 void testIsSpecifiedFor() {
-  var specifiedBoth = StaticError(
-      line: 1, column: 2, length: 3, code: "ERR.CODE", message: "Message.");
-  var unspecifiedBoth = StaticError(
+  var specifiedAll = makeError(
       line: 1,
       column: 2,
       length: 3,
-      code: "unspecified",
-      message: "unspecified");
-  var specifiedAnalyzer = StaticError(
-      line: 1, column: 2, length: 3, code: "ERR.CODE", message: "unspecified");
-  var specifiedCfe = StaticError(
-      line: 1, column: 2, length: 3, code: "unspecified", message: "Message.");
+      analyzerError: "ERR.CODE",
+      cfeError: "Message.",
+      webError: "Web.");
+  var unspecifiedAll = makeError(
+      line: 1,
+      column: 2,
+      length: 3,
+      analyzerError: "unspecified",
+      cfeError: "unspecified",
+      webError: "unspecified");
+  var specifiedAnalyzer = makeError(
+      line: 1,
+      column: 2,
+      length: 3,
+      analyzerError: "ERR.CODE",
+      cfeError: "unspecified",
+      webError: "unspecified");
+  var specifiedCfe = makeError(
+      line: 1,
+      column: 2,
+      length: 3,
+      analyzerError: "unspecified",
+      cfeError: "Message.",
+      webError: "unspecified");
+  var specifiedWeb = makeError(
+      line: 1,
+      column: 2,
+      length: 3,
+      analyzerError: "unspecified",
+      cfeError: "unspecified",
+      webError: "Web.");
 
   var specifiedAnalyzerOnly =
-      StaticError(line: 1, column: 2, length: 3, code: "ERR.CODE");
+      makeError(line: 1, column: 2, length: 3, analyzerError: "ERR.CODE");
   var specifiedCfeOnly =
-      StaticError(line: 1, column: 2, length: 3, message: "Message.");
+      makeError(line: 1, column: 2, length: 3, cfeError: "Message.");
+  var specifiedWebOnly =
+      makeError(line: 1, column: 2, length: 3, webError: "Web.");
 
   var unspecifiedAnalyzerOnly =
-      StaticError(line: 1, column: 2, length: 3, code: "unspecified");
+      makeError(line: 1, column: 2, length: 3, analyzerError: "unspecified");
   var unspecifiedCfeOnly =
-      StaticError(line: 1, column: 2, length: 3, message: "unspecified");
+      makeError(line: 1, column: 2, length: 3, cfeError: "unspecified");
+  var unspecifiedWebOnly =
+      makeError(line: 1, column: 2, length: 3, webError: "unspecified");
 
-  var analyzer = StaticError(line: 1, column: 2, length: 3, code: "E.CODE");
-  var cfe = StaticError(line: 1, column: 2, length: 3, message: "E.");
+  var analyzer =
+      makeError(line: 1, column: 2, length: 3, analyzerError: "E.CODE");
+  var cfe = makeError(line: 1, column: 2, length: 3, cfeError: "E.");
+  var web = makeError(line: 1, column: 2, length: 3, webError: "E.");
 
   // isSpecifiedFor().
-  Expect.isTrue(specifiedBoth.isSpecifiedFor(analyzer));
-  Expect.isTrue(specifiedBoth.isSpecifiedFor(cfe));
+  Expect.isTrue(specifiedAll.isSpecifiedFor(analyzer));
+  Expect.isTrue(specifiedAll.isSpecifiedFor(cfe));
+  Expect.isTrue(specifiedAll.isSpecifiedFor(web));
 
-  Expect.isFalse(unspecifiedBoth.isSpecifiedFor(analyzer));
-  Expect.isFalse(unspecifiedBoth.isSpecifiedFor(cfe));
+  Expect.isFalse(unspecifiedAll.isSpecifiedFor(analyzer));
+  Expect.isFalse(unspecifiedAll.isSpecifiedFor(cfe));
+  Expect.isFalse(unspecifiedAll.isSpecifiedFor(web));
 
   Expect.isTrue(specifiedAnalyzer.isSpecifiedFor(analyzer));
   Expect.isFalse(specifiedAnalyzer.isSpecifiedFor(cfe));
+  Expect.isFalse(specifiedAnalyzer.isSpecifiedFor(web));
 
   Expect.isFalse(specifiedCfe.isSpecifiedFor(analyzer));
   Expect.isTrue(specifiedCfe.isSpecifiedFor(cfe));
+  Expect.isFalse(specifiedCfe.isSpecifiedFor(web));
+
+  Expect.isFalse(specifiedWeb.isSpecifiedFor(analyzer));
+  Expect.isFalse(specifiedWeb.isSpecifiedFor(cfe));
+  Expect.isTrue(specifiedWeb.isSpecifiedFor(web));
 
   Expect.isTrue(specifiedAnalyzerOnly.isSpecifiedFor(analyzer));
   Expect.isFalse(specifiedAnalyzerOnly.isSpecifiedFor(cfe));
+  Expect.isFalse(specifiedAnalyzerOnly.isSpecifiedFor(web));
 
   Expect.isFalse(specifiedCfeOnly.isSpecifiedFor(analyzer));
   Expect.isTrue(specifiedCfeOnly.isSpecifiedFor(cfe));
+  Expect.isFalse(specifiedCfeOnly.isSpecifiedFor(web));
+
+  Expect.isFalse(specifiedWebOnly.isSpecifiedFor(analyzer));
+  Expect.isFalse(specifiedWebOnly.isSpecifiedFor(cfe));
+  Expect.isTrue(specifiedWebOnly.isSpecifiedFor(web));
 
   Expect.isFalse(unspecifiedAnalyzerOnly.isSpecifiedFor(analyzer));
   Expect.isFalse(unspecifiedAnalyzerOnly.isSpecifiedFor(cfe));
+  Expect.isFalse(unspecifiedAnalyzerOnly.isSpecifiedFor(web));
 
   Expect.isFalse(unspecifiedCfeOnly.isSpecifiedFor(analyzer));
   Expect.isFalse(unspecifiedCfeOnly.isSpecifiedFor(cfe));
+  Expect.isFalse(unspecifiedCfeOnly.isSpecifiedFor(web));
+
+  Expect.isFalse(unspecifiedWebOnly.isSpecifiedFor(analyzer));
+  Expect.isFalse(unspecifiedWebOnly.isSpecifiedFor(cfe));
+  Expect.isFalse(unspecifiedWebOnly.isSpecifiedFor(web));
 }
 
 void testCompareTo() {
   var errors = [
     // Order by line.
-    StaticError(line: 1, column: 2, length: 2, code: "E.CODE", message: "E."),
-    StaticError(line: 2, column: 1, length: 1, code: "E.CODE", message: "E."),
+    makeError(
+        line: 1, column: 2, length: 2, analyzerError: "E.CODE", cfeError: "E."),
+    makeError(
+        line: 2, column: 1, length: 1, analyzerError: "E.CODE", cfeError: "E."),
 
     // Then column.
-    StaticError(line: 3, column: 1, length: 2, code: "E.CODE", message: "E."),
-    StaticError(
-        line: 3, column: 2, length: 1, code: "Error.CODE", message: "E."),
+    makeError(
+        line: 3, column: 1, length: 2, analyzerError: "E.CODE", cfeError: "E."),
+    makeError(
+        line: 3,
+        column: 2,
+        length: 1,
+        analyzerError: "Error.CODE",
+        cfeError: "E."),
 
     // Then length.
-    StaticError(line: 4, column: 1, length: 1, code: "Z.CODE", message: "Z."),
-    StaticError(line: 4, column: 1, length: 2, code: "A.CODE", message: "A."),
+    makeError(
+        line: 4, column: 1, length: 1, analyzerError: "Z.CODE", cfeError: "Z."),
+    makeError(
+        line: 4, column: 1, length: 2, analyzerError: "A.CODE", cfeError: "A."),
 
-    // Then code.
-    StaticError(line: 5, column: 1, length: 1, message: "Z."),
-    StaticError(line: 5, column: 1, length: 1, code: "A.CODE", message: "Z."),
-    StaticError(line: 5, column: 1, length: 1, code: "Z.CODE", message: "Z."),
+    // Then analyzer error.
+    makeError(line: 5, column: 1, length: 1, cfeError: "Z."),
+    makeError(
+        line: 5, column: 1, length: 1, analyzerError: "A.CODE", cfeError: "Z."),
+    makeError(
+        line: 5, column: 1, length: 1, analyzerError: "Z.CODE", cfeError: "Z."),
 
-    // Then message.
-    StaticError(line: 6, column: 1, length: 1, code: "E.CODE"),
-    StaticError(line: 6, column: 1, length: 1, code: "E.CODE", message: "A."),
-    StaticError(line: 6, column: 1, length: 1, code: "E.CODE", message: "Z."),
+    // Then CFE error.
+    makeError(line: 6, column: 1, length: 1, analyzerError: "E.CODE"),
+    makeError(
+        line: 6,
+        column: 1,
+        length: 1,
+        analyzerError: "E.CODE",
+        cfeError: "A.",
+        webError: "Z."),
+    makeError(
+        line: 6,
+        column: 1,
+        length: 1,
+        analyzerError: "E.CODE",
+        cfeError: "Z.",
+        webError: "A."),
+
+    // Then web error.
+    makeError(line: 7, column: 1, length: 1, cfeError: "E."),
+    makeError(line: 7, column: 1, length: 1, cfeError: "E.", webError: "A."),
+    makeError(line: 7, column: 1, length: 1, cfeError: "E.", webError: "Z."),
   ];
 
   // Every pair of errors in the array should be ordered correctly.
@@ -141,318 +245,316 @@ void testCompareTo() {
 }
 
 void testDescribeDifferences() {
-  var precise = StaticError(
+  var precise = makeError(
       line: 2,
       column: 3,
       length: 4,
-      code: "Error.CODE",
-      message: "Error message.");
+      analyzerError: "Error.CODE",
+      cfeError: "Error message.",
+      webError: "Web error.");
 
   // Perfect match.
-  expectNoDifferences(
-      precise,
-      StaticError(
-          line: 2,
-          column: 3,
-          length: 4,
-          code: "Error.CODE",
-          message: "Error message."));
+  expectNoDifferences(precise,
+      makeError(line: 2, column: 3, length: 4, analyzerError: "Error.CODE"));
+  expectNoDifferences(precise,
+      makeError(line: 2, column: 3, length: 4, cfeError: "Error message."));
+  expectNoDifferences(precise,
+      makeError(line: 2, column: 3, length: 4, webError: "Web error."));
 
-  // Ignore null code.
+  // Ignore null analyzer error.
   expectNoDifferences(
-      StaticError(line: 2, column: 3, length: 4, message: "Error message."),
-      StaticError(
+      makeError(
           line: 2,
           column: 3,
           length: 4,
-          code: "Error.CODE",
-          message: "Error message."));
-  expectNoDifferences(
-      StaticError(
-          line: 2,
-          column: 3,
-          length: 4,
-          code: "Error.CODE",
-          message: "Error message."),
-      StaticError(line: 2, column: 3, length: 4, message: "Error message."));
+          cfeError: "Error message.",
+          webError: "Web error."),
+      makeError(line: 2, column: 3, length: 4, cfeError: "Error message."));
 
-  // Ignore null message.
+  // Ignore null CFE error.
   expectNoDifferences(
-      StaticError(line: 2, column: 3, length: 4, code: "Error.CODE"),
-      StaticError(
+      makeError(
           line: 2,
           column: 3,
           length: 4,
-          code: "Error.CODE",
-          message: "Error message."));
+          analyzerError: "Error.CODE",
+          webError: "Web error."),
+      makeError(line: 2, column: 3, length: 4, analyzerError: "Error.CODE"));
+
+  // Ignore null web error.
   expectNoDifferences(
-      StaticError(
+      makeError(
           line: 2,
           column: 3,
           length: 4,
-          code: "Error.CODE",
-          message: "Error message."),
-      StaticError(line: 2, column: 3, length: 4, code: "Error.CODE"));
+          analyzerError: "Error.CODE",
+          cfeError: "Error message."),
+      makeError(line: 2, column: 3, length: 4, cfeError: "Error message."));
 
   // Different line.
-  expectDifferences(
-      precise,
-      StaticError(
-          line: 4,
-          column: 3,
-          length: 4,
-          code: "Error.CODE",
-          message: "Error message."),
-      """
+  expectDifferences(precise,
+      makeError(line: 4, column: 3, length: 4, analyzerError: "Error.CODE"), """
   Expected on line 2 but was on 4.
   """);
 
   // Different column.
-  expectDifferences(
-      precise,
-      StaticError(
-          line: 2,
-          column: 5,
-          length: 4,
-          code: "Error.CODE",
-          message: "Error message."),
-      """
+  expectDifferences(precise,
+      makeError(line: 2, column: 5, length: 4, cfeError: "Error message."), """
   Expected on column 3 but was on 5.
   """);
 
   // Different length.
-  expectDifferences(
-      precise,
-      StaticError(
-          line: 2,
-          column: 3,
-          length: 6,
-          code: "Error.CODE",
-          message: "Error message."),
-      """
+  expectDifferences(precise,
+      makeError(line: 2, column: 3, length: 6, webError: "Web error."), """
   Expected length 4 but was 6.
   """);
 
-  // Different code.
+  // Different analyzer error.
   expectDifferences(
       precise,
-      StaticError(
-          line: 2,
-          column: 3,
-          length: 4,
-          code: "Weird.ERROR",
-          message: "Error message."),
+      makeError(line: 2, column: 3, length: 4, analyzerError: "Weird.ERROR"),
       """
-  Expected error code Error.CODE but was Weird.ERROR.
+  Expected analyzer error 'Error.CODE' but was 'Weird.ERROR'.
   """);
 
-  // Different message.
-  expectDifferences(
-      precise,
-      StaticError(
-          line: 2,
-          column: 3,
-          length: 4,
-          code: "Error.CODE",
-          message: "Funny story."),
-      """
-  Expected error message 'Error message.' but was 'Funny story.'.
+  // Different CFE error.
+  expectDifferences(precise,
+      makeError(line: 2, column: 3, length: 4, cfeError: "Funny story."), """
+  Expected CFE error 'Error message.' but was 'Funny story.'.
+  """);
+
+  // Different web error.
+  expectDifferences(precise,
+      makeError(line: 2, column: 3, length: 4, webError: "Funny story."), """
+  Expected web error 'Web error.' but was 'Funny story.'.
   """);
 
   // Multiple differences.
   expectDifferences(
       precise,
-      StaticError(
-          line: 4,
-          column: 3,
-          length: 6,
-          code: "Weird.ERROR",
-          message: "Error message."),
+      makeError(line: 4, column: 3, length: 6, analyzerError: "Weird.ERROR"),
       """
   Expected on line 2 but was on 4.
   Expected length 4 but was 6.
-  Expected error code Error.CODE but was Weird.ERROR.
+  Expected analyzer error 'Error.CODE' but was 'Weird.ERROR'.
   """);
 
   // Unspecified errors.
-  var unspecified = StaticError(
+  var unspecified = makeError(
       line: 2,
       column: 3,
       length: 4,
-      code: "unspecified",
-      message: "unspecified");
-  var specifiedAnalyzer = StaticError(
+      analyzerError: "unspecified",
+      cfeError: "unspecified",
+      webError: "unspecified");
+  var specifiedAnalyzer = makeError(
       line: 2,
       column: 3,
       length: 4,
-      code: "Error.CODE",
-      message: "unspecified");
-  var specifiedCfe = StaticError(
+      analyzerError: "Error.CODE",
+      cfeError: "unspecified",
+      webError: "unspecified");
+  var specifiedCfe = makeError(
       line: 2,
       column: 3,
       length: 4,
-      code: "unspecified",
-      message: "Error message.");
+      analyzerError: "unspecified",
+      cfeError: "Error message.",
+      webError: "unspecified");
+  var specifiedWeb = makeError(
+      line: 2,
+      column: 3,
+      length: 4,
+      analyzerError: "unspecified",
+      cfeError: "unspecified",
+      webError: "Web error.");
 
   // Matches if line is right.
-  expectNoDifferences(
-      unspecified,
-      StaticError(
-          line: 2,
-          column: 3,
-          length: 4,
-          code: "Error.CODE",
-          message: "Error message."));
+  expectNoDifferences(unspecified,
+      makeError(line: 2, column: 3, length: 4, analyzerError: "Error.CODE"));
 
   // Does not match if lines differ.
-  expectDifferences(
-      unspecified,
-      StaticError(
-          line: 3,
-          column: 3,
-          length: 4,
-          code: "Weird.ERROR",
-          message: "Error message."),
-      """
+  expectDifferences(unspecified,
+      makeError(line: 3, column: 3, length: 4, cfeError: "Error message."), """
   Expected on line 2 but was on 3.
   """);
 
-  // Ignores differences in other fields.
-  expectNoDifferences(
-      unspecified,
-      StaticError(
-          line: 2,
-          column: 333,
-          length: 4444,
-          code: "Different.CODE",
-          message: "Different message."));
-
   // If error is specified on analyzer, must match fields when actual is
   // analyzer error.
-  expectDifferences(specifiedAnalyzer,
-      StaticError(line: 2, column: 5, length: 6, code: "Weird.ERROR"), """
+  expectDifferences(
+      specifiedAnalyzer,
+      makeError(line: 2, column: 5, length: 6, analyzerError: "Weird.ERROR"),
+      """
   Expected on column 3 but was on 5.
   Expected length 4 but was 6.
-  Expected error code Error.CODE but was Weird.ERROR.
+  Expected analyzer error 'Error.CODE' but was 'Weird.ERROR'.
   """);
   expectNoDifferences(specifiedAnalyzer,
-      StaticError(line: 2, column: 333, length: 444, message: "Message."));
-  expectNoDifferences(specifiedAnalyzer,
-      StaticError(line: 2, column: 3, length: 4, code: "Error.CODE"));
+      makeError(line: 2, column: 3, length: 4, analyzerError: "Error.CODE"));
 
   // If error is specified on CFE, must match fields when actual is
   // CFE error.
   expectDifferences(
       specifiedCfe,
-      StaticError(line: 2, column: 5, length: 6, message: "Different message."),
+      makeError(line: 2, column: 5, length: 6, cfeError: "Different message."),
       """
   Expected on column 3 but was on 5.
   Expected length 4 but was 6.
-  Expected error message 'Error message.' but was 'Different message.'.
+  Expected CFE error 'Error message.' but was 'Different message.'.
   """);
   expectNoDifferences(specifiedCfe,
-      StaticError(line: 2, column: 333, length: 444, code: "Error.CODE."));
-  expectNoDifferences(specifiedCfe,
-      StaticError(line: 2, column: 3, length: 4, message: "Error message."));
+      makeError(line: 2, column: 3, length: 4, cfeError: "Error message."));
+
+  // If error is specified on web, must match fields when actual is web error.
+  expectDifferences(
+      specifiedWeb,
+      makeError(line: 2, column: 5, length: 6, webError: "Different message."),
+      """
+  Expected on column 3 but was on 5.
+  Expected length 4 but was 6.
+  Expected web error 'Web error.' but was 'Different message.'.
+  """);
+  expectNoDifferences(specifiedWeb,
+      makeError(line: 2, column: 3, length: 4, webError: "Web error."));
 }
 
 void testSimplify() {
-  // Merges errors if one has only a code and the only a message.
+  // Merges errors if each has only one error.
   expectSimplify([
-    StaticError(line: 1, column: 2, length: 3, code: "Weird.ERROR"),
-    StaticError(line: 1, column: 2, length: 3, message: "Message.")
+    makeError(line: 1, column: 2, length: 3, analyzerError: "Weird.ERROR"),
+    makeError(line: 1, column: 2, length: 3, cfeError: "Message."),
+    makeError(line: 1, column: 2, length: 3, webError: "Web.")
   ], [
-    StaticError(
-        line: 1, column: 2, length: 3, code: "Weird.ERROR", message: "Message.")
+    makeError(
+        line: 1,
+        column: 2,
+        length: 3,
+        analyzerError: "Weird.ERROR",
+        cfeError: "Message.",
+        webError: "Web.")
   ]);
 
   // Merges if length is null.
   expectSimplify([
-    StaticError(line: 1, column: 1, code: "A.ERR"),
-    StaticError(line: 1, column: 1, length: 3, message: "A."),
-    StaticError(line: 2, column: 1, length: 4, code: "B.ERR"),
-    StaticError(line: 2, column: 1, message: "B."),
-    StaticError(line: 3, column: 1, code: "C.ERR"),
-    StaticError(line: 3, column: 1, message: "C."),
+    makeError(line: 1, column: 1, analyzerError: "A.ERR"),
+    makeError(line: 1, column: 1, length: 3, cfeError: "A."),
+    makeError(line: 2, column: 1, length: 4, analyzerError: "B.ERR"),
+    makeError(line: 2, column: 1, webError: "B."),
+    makeError(line: 3, column: 1, analyzerError: "C.ERR"),
+    makeError(line: 3, column: 1, cfeError: "C."),
   ], [
-    StaticError(line: 1, column: 1, length: 3, code: "A.ERR", message: "A."),
-    StaticError(line: 2, column: 1, length: 4, code: "B.ERR", message: "B."),
-    StaticError(line: 3, column: 1, code: "C.ERR", message: "C."),
+    makeError(
+        line: 1, column: 1, length: 3, analyzerError: "A.ERR", cfeError: "A."),
+    makeError(
+        line: 2, column: 1, length: 4, analyzerError: "B.ERR", webError: "B."),
+    makeError(line: 3, column: 1, analyzerError: "C.ERR", cfeError: "C."),
   ]);
 
   // Merges multiple errors with no length with errors that have length.
   expectSimplify([
-    StaticError(line: 1, column: 2, length: 3, code: "ERROR.A"),
-    StaticError(line: 1, column: 4, length: 3, code: "ERROR.C"),
-    StaticError(line: 1, column: 2, length: 5, code: "ERROR.B"),
-    StaticError(line: 1, column: 2, message: "One."),
-    StaticError(line: 1, column: 4, message: "Three."),
-    StaticError(line: 1, column: 2, message: "Two."),
+    makeError(line: 1, column: 2, length: 3, analyzerError: "ERROR.A"),
+    makeError(line: 1, column: 4, length: 3, analyzerError: "ERROR.C"),
+    makeError(line: 1, column: 2, length: 5, analyzerError: "ERROR.B"),
+    makeError(line: 1, column: 2, cfeError: "One."),
+    makeError(line: 1, column: 4, cfeError: "Three."),
+    makeError(line: 1, column: 2, cfeError: "Two."),
+    makeError(line: 1, column: 2, webError: "Web 1."),
+    makeError(line: 1, column: 2, webError: "Web 2."),
   ], [
-    StaticError(
-        line: 1, column: 2, length: 3, code: "ERROR.A", message: "One."),
-    StaticError(
-        line: 1, column: 2, length: 5, code: "ERROR.B", message: "Two."),
-    StaticError(
-        line: 1, column: 4, length: 3, code: "ERROR.C", message: "Three."),
+    makeError(
+        line: 1,
+        column: 2,
+        length: 3,
+        analyzerError: "ERROR.A",
+        cfeError: "One.",
+        webError: "Web 1."),
+    makeError(
+        line: 1,
+        column: 2,
+        length: 5,
+        analyzerError: "ERROR.B",
+        cfeError: "Two.",
+        webError: "Web 2."),
+    makeError(
+        line: 1,
+        column: 4,
+        length: 3,
+        analyzerError: "ERROR.C",
+        cfeError: "Three."),
   ]);
 
   // Merges even if not adjacent in input array.
   expectSimplify([
-    StaticError(line: 1, column: 2, length: 3, code: "Some.ERROR"),
-    StaticError(line: 10, column: 2, length: 3, code: "Other.ERROR"),
-    StaticError(line: 1, column: 2, length: 3, message: "Message.")
+    makeError(line: 1, column: 2, length: 3, analyzerError: "Some.ERROR"),
+    makeError(line: 10, column: 2, length: 3, analyzerError: "Other.ERROR"),
+    makeError(line: 1, column: 2, length: 3, cfeError: "Message."),
+    makeError(line: 10, column: 2, length: 3, webError: "Web two."),
+    makeError(line: 1, column: 2, length: 3, webError: "Web."),
   ], [
-    StaticError(
-        line: 1, column: 2, length: 3, code: "Some.ERROR", message: "Message."),
-    StaticError(line: 10, column: 2, length: 3, code: "Other.ERROR")
+    makeError(
+        line: 1,
+        column: 2,
+        length: 3,
+        analyzerError: "Some.ERROR",
+        cfeError: "Message.",
+        webError: "Web."),
+    makeError(
+        line: 10,
+        column: 2,
+        length: 3,
+        analyzerError: "Other.ERROR",
+        webError: "Web two.")
   ]);
 
   // Does not merge if positions differ.
   expectSimplify([
-    StaticError(line: 1, column: 1, length: 1, code: "A.ERR"),
-    StaticError(line: 2, column: 1, length: 1, message: "A."),
+    makeError(line: 1, column: 1, length: 1, analyzerError: "A.ERR"),
+    makeError(line: 2, column: 1, length: 1, cfeError: "A."),
   ], [
-    StaticError(line: 1, column: 1, length: 1, code: "A.ERR"),
-    StaticError(line: 2, column: 1, length: 1, message: "A."),
+    makeError(line: 1, column: 1, length: 1, analyzerError: "A.ERR"),
+    makeError(line: 2, column: 1, length: 1, cfeError: "A."),
   ]);
   expectSimplify([
-    StaticError(line: 1, column: 1, length: 1, code: "A.ERR"),
-    StaticError(line: 1, column: 2, length: 1, message: "A."),
+    makeError(line: 1, column: 1, length: 1, analyzerError: "A.ERR"),
+    makeError(line: 1, column: 2, length: 1, webError: "A."),
   ], [
-    StaticError(line: 1, column: 1, length: 1, code: "A.ERR"),
-    StaticError(line: 1, column: 2, length: 1, message: "A."),
+    makeError(line: 1, column: 1, length: 1, analyzerError: "A.ERR"),
+    makeError(line: 1, column: 2, length: 1, webError: "A."),
   ]);
   expectSimplify([
-    StaticError(line: 1, column: 1, length: 1, code: "A.ERR"),
-    StaticError(line: 1, column: 1, length: 2, message: "A."),
+    makeError(line: 1, column: 1, length: 1, cfeError: "A."),
+    makeError(line: 1, column: 1, length: 2, webError: "W."),
   ], [
-    StaticError(line: 1, column: 1, length: 1, code: "A.ERR"),
-    StaticError(line: 1, column: 1, length: 2, message: "A."),
+    makeError(line: 1, column: 1, length: 1, cfeError: "A."),
+    makeError(line: 1, column: 1, length: 2, webError: "W."),
   ]);
 
-  // Does not merge if it would lose code or message.
+  // Does not merge if it would lose a message.
   expectSimplify([
-    StaticError(line: 1, column: 1, length: 1, code: "ERR.ONE"),
-    StaticError(line: 1, column: 1, length: 1, code: "ERR.TWO"),
-    StaticError(line: 2, column: 1, length: 1, message: "One."),
-    StaticError(line: 2, column: 1, length: 1, message: "Two."),
+    makeError(line: 1, column: 1, length: 1, analyzerError: "ERR.ONE"),
+    makeError(line: 1, column: 1, length: 1, analyzerError: "ERR.TWO"),
+    makeError(line: 2, column: 1, length: 1, cfeError: "One."),
+    makeError(line: 2, column: 1, length: 1, cfeError: "Two."),
+    makeError(line: 3, column: 1, length: 1, webError: "One."),
+    makeError(line: 3, column: 1, length: 1, webError: "Two."),
   ], [
-    StaticError(line: 1, column: 1, length: 1, code: "ERR.ONE"),
-    StaticError(line: 1, column: 1, length: 1, code: "ERR.TWO"),
-    StaticError(line: 2, column: 1, length: 1, message: "One."),
-    StaticError(line: 2, column: 1, length: 1, message: "Two."),
+    makeError(line: 1, column: 1, length: 1, analyzerError: "ERR.ONE"),
+    makeError(line: 1, column: 1, length: 1, analyzerError: "ERR.TWO"),
+    makeError(line: 2, column: 1, length: 1, cfeError: "One."),
+    makeError(line: 2, column: 1, length: 1, cfeError: "Two."),
+    makeError(line: 3, column: 1, length: 1, webError: "One."),
+    makeError(line: 3, column: 1, length: 1, webError: "Two."),
   ]);
 
   // Orders output.
   expectSimplify([
-    StaticError(line: 2, column: 1, length: 1, message: "Two."),
-    StaticError(line: 3, column: 1, length: 1, message: "Three."),
-    StaticError(line: 1, column: 1, length: 1, message: "One."),
+    makeError(line: 2, column: 1, length: 1, cfeError: "Two."),
+    makeError(line: 3, column: 1, length: 1, cfeError: "Three."),
+    makeError(line: 1, column: 1, length: 1, cfeError: "One."),
   ], [
-    StaticError(line: 1, column: 1, length: 1, message: "One."),
-    StaticError(line: 2, column: 1, length: 1, message: "Two."),
-    StaticError(line: 3, column: 1, length: 1, message: "Three."),
+    makeError(line: 1, column: 1, length: 1, cfeError: "One."),
+    makeError(line: 2, column: 1, length: 1, cfeError: "Two."),
+    makeError(line: 3, column: 1, length: 1, cfeError: "Three."),
   ]);
 }
 
@@ -462,38 +564,72 @@ void testValidate() {
 
   // Same errors.
   expectValidate([
-    StaticError(line: 1, column: 2, length: 3, code: "ERR.A", message: "One."),
-    StaticError(line: 2, column: 2, length: 3, code: "ERR.B", message: "Two."),
-    StaticError(line: 3, column: 2, length: 3, code: "ERR.C", message: "Tres."),
+    makeError(
+        line: 1,
+        column: 2,
+        length: 3,
+        analyzerError: "ERR.A",
+        cfeError: "One.",
+        webError: "Web 1."),
+    makeError(
+        line: 2,
+        column: 2,
+        length: 3,
+        analyzerError: "ERR.B",
+        cfeError: "Two.",
+        webError: "Web 2."),
+    makeError(
+        line: 3,
+        column: 2,
+        length: 3,
+        analyzerError: "ERR.C",
+        cfeError: "Tres.",
+        webError: "Web 3."),
   ], [
     // Order doesn't matter.
-    StaticError(line: 3, column: 2, length: 3, code: "ERR.C", message: "Tres."),
-    StaticError(line: 1, column: 2, length: 3, code: "ERR.A", message: "One."),
-    StaticError(line: 2, column: 2, length: 3, code: "ERR.B", message: "Two."),
+    makeError(line: 3, column: 2, length: 3, analyzerError: "ERR.C"),
+    makeError(line: 1, column: 2, length: 3, analyzerError: "ERR.A"),
+    makeError(line: 2, column: 2, length: 3, analyzerError: "ERR.B"),
   ], null);
 
   // Ignore fields that aren't in actual errors.
   expectValidate([
-    StaticError(line: 1, column: 2, length: 3, code: "ERR.A", message: "One."),
-    StaticError(line: 2, column: 2, length: 3, code: "ERR.B", message: "Two."),
-    StaticError(line: 3, column: 2, length: 3, code: "ERR.C", message: "Tres."),
+    makeError(
+        line: 1,
+        column: 2,
+        length: 3,
+        analyzerError: "ERR.A",
+        cfeError: "One.",
+        webError: "Web 1."),
+    makeError(
+        line: 2,
+        column: 2,
+        length: 3,
+        analyzerError: "ERR.B",
+        cfeError: "Two.",
+        webError: "Web 2."),
+    makeError(
+        line: 3,
+        column: 2,
+        length: 3,
+        analyzerError: "ERR.C",
+        cfeError: "Tres.",
+        webError: "Web 3."),
   ], [
-    StaticError(line: 1, column: 2, code: "ERR.A", message: "One."),
-    StaticError(line: 2, column: 2, length: 3, message: "Two."),
-    StaticError(line: 3, column: 2, length: 3, code: "ERR.C"),
+    makeError(line: 1, column: 2, cfeError: "One."),
+    makeError(line: 2, column: 2, length: 3, cfeError: "Two."),
+    makeError(line: 3, column: 2, length: 3, cfeError: "Tres."),
   ], null);
 
   // Catches differences in any field.
   expectValidate([
-    StaticError(line: 1, column: 2, length: 3, code: "ERR.A", message: "One."),
-    StaticError(line: 2, column: 2, length: 3, code: "ERR.B", message: "Two."),
-    StaticError(line: 3, column: 2, length: 3, code: "ERR.C", message: "Tres."),
-    StaticError(line: 4, column: 2, length: 3, code: "ERR.D", message: "Four."),
+    makeError(line: 1, column: 2, length: 3, analyzerError: "ERR.A"),
+    makeError(line: 2, column: 2, length: 3, analyzerError: "ERR.B"),
+    makeError(line: 3, column: 2, length: 3, analyzerError: "ERR.C"),
   ], [
-    StaticError(line: 1, column: 9, length: 3, code: "ERR.A", message: "One."),
-    StaticError(line: 2, column: 2, length: 9, code: "ERR.B", message: "Two."),
-    StaticError(line: 3, column: 2, length: 3, code: "ERR.Z", message: "Tres."),
-    StaticError(line: 4, column: 2, length: 3, code: "ERR.D", message: "Zzz."),
+    makeError(line: 1, column: 9, length: 3, analyzerError: "ERR.A"),
+    makeError(line: 2, column: 2, length: 9, analyzerError: "ERR.B"),
+    makeError(line: 3, column: 2, length: 3, analyzerError: "ERR.Z"),
   ], """
 Wrong static error at line 1, column 2, length 3:
 - Expected on column 2 but was on 9.
@@ -502,229 +638,227 @@ Wrong static error at line 2, column 2, length 3:
 - Expected length 3 but was 9.
 
 Wrong static error at line 3, column 2, length 3:
-- Expected error code ERR.C but was ERR.Z.
+- Expected analyzer error 'ERR.C' but was 'ERR.Z'.""");
 
+  expectValidate([
+    makeError(line: 4, column: 2, length: 3, cfeError: "Four."),
+  ], [
+    makeError(line: 4, column: 2, length: 3, cfeError: "Zzz."),
+  ], """
 Wrong static error at line 4, column 2, length 3:
-- Expected error message 'Four.' but was 'Zzz.'.""");
+- Expected CFE error 'Four.' but was 'Zzz.'.""");
+
+  expectValidate([
+    makeError(line: 5, column: 2, length: 3, webError: "Web 5."),
+  ], [
+    makeError(line: 5, column: 2, length: 3, webError: "Web Z."),
+  ], """
+Wrong static error at line 5, column 2, length 3:
+- Expected web error 'Web 5.' but was 'Web Z.'.""");
 
   // Unexpected errors.
   expectValidate([
-    StaticError(line: 2, column: 2, length: 3, code: "ERR.A", message: "One."),
-    StaticError(line: 4, column: 2, length: 3, code: "ERR.B", message: "Two."),
-    StaticError(line: 6, column: 2, length: 3, code: "ERR.C", message: "Tres."),
+    makeError(
+        line: 2,
+        column: 2,
+        length: 3,
+        analyzerError: "ERR.A",
+        cfeError: "One."),
+    makeError(
+        line: 4,
+        column: 2,
+        length: 3,
+        analyzerError: "ERR.B",
+        cfeError: "Two.",
+        webError: "Web 2."),
+    makeError(
+        line: 6,
+        column: 2,
+        length: 3,
+        analyzerError: "ERR.C",
+        cfeError: "Tres."),
   ], [
-    StaticError(line: 1, column: 2, length: 3, code: "ERR.W", message: "1."),
-    StaticError(line: 2, column: 2, length: 3, code: "ERR.A", message: "One."),
-    StaticError(line: 3, column: 2, length: 3, code: "ERR.X", message: "3."),
-    StaticError(line: 4, column: 2, length: 3, code: "ERR.B", message: "Two."),
-    StaticError(line: 5, column: 2, length: 3, code: "ERR.Y", message: "5."),
-    StaticError(line: 6, column: 2, length: 3, code: "ERR.C", message: "Tres."),
-    StaticError(line: 7, column: 2, length: 3, code: "ERR.Z", message: "7."),
+    makeError(line: 1, column: 2, length: 3, cfeError: "1."),
+    makeError(line: 2, column: 2, length: 3, cfeError: "One."),
+    makeError(line: 3, column: 2, length: 3, cfeError: "3."),
+    makeError(line: 4, column: 2, length: 3, cfeError: "Two."),
+    makeError(line: 5, column: 2, length: 3, cfeError: "5."),
+    makeError(line: 6, column: 2, length: 3, cfeError: "Tres."),
+    makeError(line: 7, column: 2, length: 3, cfeError: "7."),
   ], """
 Unexpected static error at line 1, column 2, length 3:
-- Had error code ERR.W.
-- Had error message '1.'.
+- Had CFE error '1.'.
 
 Unexpected static error at line 3, column 2, length 3:
-- Had error code ERR.X.
-- Had error message '3.'.
+- Had CFE error '3.'.
 
 Unexpected static error at line 5, column 2, length 3:
-- Had error code ERR.Y.
-- Had error message '5.'.
+- Had CFE error '5.'.
 
 Unexpected static error at line 7, column 2, length 3:
-- Had error code ERR.Z.
-- Had error message '7.'.""");
+- Had CFE error '7.'.""");
 
   // Missing errors.
   expectValidate([
-    StaticError(line: 1, column: 2, length: 3, code: "ERR.A", message: "1."),
-    StaticError(line: 2, column: 2, length: 3, code: "ERR.B", message: "2."),
-    StaticError(line: 3, column: 2, length: 3, code: "ERR.C", message: "3."),
-    StaticError(line: 4, column: 2, length: 3, code: "ERR.D", message: "4."),
-    StaticError(line: 5, column: 2, length: 3, code: "ERR.E", message: "5."),
-    StaticError(line: 6, column: 2, length: 3, code: "ERR.F", message: "6."),
-    StaticError(line: 7, column: 2, length: 3, code: "ERR.G", message: "7."),
+    makeError(line: 1, column: 2, length: 3, analyzerError: "ERR.A"),
+    makeError(line: 2, column: 2, length: 3, analyzerError: "ERR.B"),
+    makeError(line: 3, column: 2, length: 3, analyzerError: "ERR.C"),
+    makeError(line: 4, column: 2, length: 3, analyzerError: "ERR.D"),
+    makeError(line: 5, column: 2, length: 3, analyzerError: "ERR.E"),
   ], [
-    StaticError(line: 2, column: 2, length: 3, code: "ERR.B", message: "2."),
-    StaticError(line: 4, column: 2, length: 3, code: "ERR.D", message: "4."),
-    StaticError(line: 6, column: 2, length: 3, code: "ERR.F", message: "6."),
+    makeError(line: 2, column: 2, length: 3, analyzerError: "ERR.B"),
+    makeError(line: 4, column: 2, length: 3, analyzerError: "ERR.D"),
   ], """
 Missing static error at line 1, column 2, length 3:
-- Expected error code ERR.A.
-- Expected error message '1.'.
+- Expected analyzer error 'ERR.A'.
 
 Missing static error at line 3, column 2, length 3:
-- Expected error code ERR.C.
-- Expected error message '3.'.
+- Expected analyzer error 'ERR.C'.
 
 Missing static error at line 5, column 2, length 3:
-- Expected error code ERR.E.
-- Expected error message '5.'.
-
-Missing static error at line 7, column 2, length 3:
-- Expected error code ERR.G.
-- Expected error message '7.'.""");
+- Expected analyzer error 'ERR.E'.""");
 
   // Unspecified errors.
   expectValidate([
     // Missing.
-    StaticError(line: 1, column: 2, length: 3, code: "unspecified"),
-    StaticError(line: 2, column: 2, length: 3, message: "unspecified"),
-    StaticError(
-        line: 3,
-        column: 2,
-        length: 3,
-        code: "unspecified",
-        message: "unspecified"),
+    makeError(line: 2, column: 2, length: 3, cfeError: "unspecified"),
 
     // Right.
-    StaticError(line: 4, column: 2, length: 3, code: "unspecified"),
-    StaticError(line: 5, column: 2, length: 3, message: "unspecified"),
-    StaticError(
-        line: 6,
-        column: 2,
-        length: 3,
-        code: "unspecified",
-        message: "unspecified"),
+    makeError(line: 6, column: 2, length: 3, cfeError: "unspecified"),
   ], [
-    StaticError(line: 4, column: 2, length: 3, code: "ACT.UAL"),
-    StaticError(line: 5, column: 2, length: 3, message: "Actual."),
-    StaticError(
-        line: 6, column: 2, length: 3, code: "ACT.UAL", message: "Actual."),
+    makeError(line: 6, column: 2, length: 3, cfeError: "Actual 1."),
 
     // Unexpected.
-    StaticError(line: 7, column: 9, length: 3, code: "ACT.UAL"),
+    makeError(line: 9, column: 9, length: 3, cfeError: "Actual 2."),
   ], """
-Missing static error at line 1, column 2, length 3:
-- Expected unspecified error code.
-
 Missing static error at line 2, column 2, length 3:
-- Expected unspecified error message.
+- Expected unspecified CFE error.
 
-Missing static error at line 3, column 2, length 3:
-- Expected unspecified error code.
-- Expected unspecified error message.
-
-Unexpected static error at line 7, column 9, length 3:
-- Had error code ACT.UAL.""");
+Unexpected static error at line 9, column 9, length 3:
+- Had CFE error 'Actual 2.'.""");
 
   // Unspecified errors can match multiple errors on the same line.
+  var actualAnalyzer = [
+    makeError(line: 1, column: 1, length: 3, analyzerError: "ERROR.CODE1"),
+    makeError(line: 1, column: 2, length: 3, analyzerError: "ERROR.CODE2"),
+    makeError(line: 1, column: 3, length: 3, analyzerError: "ERROR.CODE3"),
+  ];
 
-  // Unspecified CFE-only error.
-  expectValidate([
-    StaticError(line: 2, column: 2, length: 3, message: "unspecified"),
-  ], [
-    StaticError(line: 2, column: 1, length: 3, message: "Actual 1."),
-    StaticError(line: 2, column: 2, length: 3, message: "Actual 2."),
-    StaticError(line: 2, column: 3, length: 3, message: "Actual 3."),
-  ], null);
+  var actualCfe = [
+    makeError(line: 1, column: 1, length: 3, cfeError: "Actual 1."),
+    makeError(line: 1, column: 2, length: 3, cfeError: "Actual 2."),
+    makeError(line: 1, column: 3, length: 3, cfeError: "Actual 3."),
+  ];
 
-  // Unspecified on both.
+  var actualWeb = [
+    makeError(line: 1, column: 1, length: 3, webError: "Web 1."),
+    makeError(line: 1, column: 2, length: 3, webError: "Web 2."),
+    makeError(line: 1, column: 3, length: 3, webError: "Web 3."),
+  ];
+
+  // Unspecified error specific to one front end.
   expectValidate([
-    StaticError(
-        line: 2,
+    makeError(line: 1, column: 2, length: 3, analyzerError: "unspecified"),
+  ], actualAnalyzer, null);
+
+  expectValidate([
+    makeError(line: 1, column: 2, length: 3, cfeError: "unspecified"),
+  ], actualCfe, null);
+
+  expectValidate([
+    makeError(line: 1, column: 2, length: 3, webError: "unspecified"),
+  ], actualWeb, null);
+
+  // Unspecified error on multiple front ends.
+  expectValidate([
+    makeError(
+        line: 1,
         column: 2,
         length: 3,
-        code: "unspecified",
-        message: "unspecified"),
-  ], [
-    StaticError(line: 2, column: 1, length: 3, message: "Actual 1."),
-    StaticError(line: 2, column: 2, length: 3, message: "Actual 2."),
-    StaticError(line: 2, column: 3, length: 3, message: "Actual 3."),
-  ], null);
+        analyzerError: "unspecified",
+        cfeError: "unspecified"),
+  ], actualAnalyzer, null);
 
-  // Unspecified on CFE, specified on analyzer.
   expectValidate([
-    StaticError(
-        line: 2,
+    makeError(
+        line: 1,
         column: 2,
         length: 3,
-        code: "ERR.CODE",
-        message: "unspecified"),
-  ], [
-    StaticError(line: 2, column: 1, length: 3, message: "Actual 1."),
-    StaticError(line: 2, column: 2, length: 3, message: "Actual 2."),
-    StaticError(line: 2, column: 3, length: 3, message: "Actual 3."),
-  ], null);
+        cfeError: "unspecified",
+        webError: "unspecified"),
+  ], actualCfe, null);
 
-  // Specified on CFE, unspecified on analyzer.
   expectValidate([
-    StaticError(
-        line: 2,
+    makeError(
+        line: 1,
+        column: 2,
+        length: 3,
+        analyzerError: "unspecified",
+        webError: "unspecified"),
+  ], actualWeb, null);
+
+  expectValidate([
+    makeError(
+        line: 1,
+        column: 2,
+        length: 3,
+        analyzerError: "unspecified",
+        cfeError: "unspecified",
+        webError: "unspecified"),
+  ], actualAnalyzer, null);
+
+  // Specified on one, unspecified on another, no error at all on the third.
+  var specifiedAnalyzer = [
+    makeError(
+        line: 1,
         column: 1,
         length: 3,
-        code: "unspecified",
-        message: "Actual 1."),
-  ], [
-    // These are not matched.
-    StaticError(line: 2, column: 1, length: 3, message: "Actual 1."),
-    StaticError(line: 2, column: 2, length: 3, message: "Actual 2."),
-    StaticError(line: 2, column: 3, length: 3, message: "Actual 3."),
-  ], """
-Unexpected static error at line 2, column 2, length 3:
-- Had error message 'Actual 2.'.
+        analyzerError: "ERROR.CODE1",
+        cfeError: "unspecified")
+  ];
 
-Unexpected static error at line 2, column 3, length 3:
-- Had error message 'Actual 3.'.""");
-
-  // Unspecified analyzer-only error.
-  expectValidate([
-    StaticError(line: 2, column: 1, length: 3, code: "unspecified"),
-  ], [
-    StaticError(line: 2, column: 1, length: 3, code: "ERR.CODE1"),
-    StaticError(line: 2, column: 2, length: 3, code: "ERR.CODE2"),
-    StaticError(line: 2, column: 3, length: 3, code: "ERR.CODE3"),
-  ], null);
-
-  // Unspecified on both.
-  expectValidate([
-    StaticError(
-        line: 2,
+  var specifiedCfe = [
+    makeError(
+        line: 1,
         column: 1,
         length: 3,
-        code: "unspecified",
-        message: "unspecified"),
-  ], [
-    StaticError(line: 2, column: 1, length: 3, code: "ERR.CODE1"),
-    StaticError(line: 2, column: 2, length: 3, code: "ERR.CODE2"),
-    StaticError(line: 2, column: 3, length: 3, code: "ERR.CODE3"),
-  ], null);
+        cfeError: "Actual 1.",
+        webError: "unspecified")
+  ];
 
-  // Unspecified on analyzer, specified on CFE.
-  expectValidate([
-    StaticError(
-        line: 2,
+  var specifiedWeb = [
+    makeError(
+        line: 1,
         column: 1,
         length: 3,
-        code: "unspecified",
-        message: "Message."),
-  ], [
-    StaticError(line: 2, column: 1, length: 3, code: "ERR.CODE1"),
-    StaticError(line: 2, column: 2, length: 3, code: "ERR.CODE2"),
-    StaticError(line: 2, column: 3, length: 3, code: "ERR.CODE3"),
-  ], null);
+        analyzerError: "unspecified",
+        webError: "Web 1.")
+  ];
 
-  // Specified on analyzer, unspecified on CFE.
-  expectValidate([
-    StaticError(
-        line: 2,
-        column: 1,
-        length: 3,
-        code: "ERR.CODE1",
-        message: "unspecified"),
-  ], [
-    // These are not matched.
-    StaticError(line: 2, column: 1, length: 3, code: "ERR.CODE1"),
-    StaticError(line: 2, column: 2, length: 3, code: "ERR.CODE2"),
-    StaticError(line: 2, column: 3, length: 3, code: "ERR.CODE3"),
-  ], """
-Unexpected static error at line 2, column 2, length 3:
-- Had error code ERR.CODE2.
+  expectValidate(specifiedAnalyzer, actualCfe, null);
+  expectValidate(specifiedCfe, actualWeb, null);
+  expectValidate(specifiedWeb, actualAnalyzer, null);
 
-Unexpected static error at line 2, column 3, length 3:
-- Had error code ERR.CODE3.""");
+  expectValidate(specifiedAnalyzer, actualAnalyzer, """
+Unexpected static error at line 1, column 2, length 3:
+- Had analyzer error 'ERROR.CODE2'.
+
+Unexpected static error at line 1, column 3, length 3:
+- Had analyzer error 'ERROR.CODE3'.""");
+
+  expectValidate(specifiedCfe, actualCfe, """
+Unexpected static error at line 1, column 2, length 3:
+- Had CFE error 'Actual 2.'.
+
+Unexpected static error at line 1, column 3, length 3:
+- Had CFE error 'Actual 3.'.""");
+
+  expectValidate(specifiedWeb, actualWeb, """
+Unexpected static error at line 1, column 2, length 3:
+- Had web error 'Web 2.'.
+
+Unexpected static error at line 1, column 3, length 3:
+- Had web error 'Web 3.'.""");
 }
 
 void expectNoDifferences(StaticError expectedError, StaticError actualError) {

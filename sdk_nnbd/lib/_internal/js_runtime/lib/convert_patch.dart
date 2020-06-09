@@ -377,7 +377,7 @@ class _JsonDecoderSink extends _StringSinkConversionSink<StringBuffer> {
     super.close();
     String accumulated = _stringSink.toString();
     _stringSink.clear();
-    Object decoded = _parseJson(accumulated, _reviver);
+    Object? decoded = _parseJson(accumulated, _reviver);
     _sink.add(decoded);
     _sink.close();
   }
@@ -385,6 +385,10 @@ class _JsonDecoderSink extends _StringSinkConversionSink<StringBuffer> {
 
 @patch
 class Utf8Decoder {
+  // Always fall back to the Dart implementation for strings shorter than this
+  // threshold, as there is a large, constant overhead for using TextDecoder.
+  static const int _shortInputThreshold = 15;
+
   @patch
   Converter<List<int>, T> fuse<T>(Converter<String, T> next) {
     return super.fuse(next);
@@ -399,51 +403,45 @@ class Utf8Decoder {
       // JS 'cast' to avoid a downcast equivalent to the is-check we hand-coded.
       NativeUint8List casted =
           JS<NativeUint8List>('NativeUint8List', '#', codeUnits);
-      return _convertInterceptedUint8List(allowMalformed, casted, start, end);
+      // Always use Dart implementation for short strings.
+      end ??= casted.length;
+      if (end - start < _shortInputThreshold) {
+        return null;
+      }
+      String? result =
+          _convertInterceptedUint8List(allowMalformed, casted, start, end);
+      if (result != null && allowMalformed) {
+        // In principle, TextDecoder should have provided the correct result
+        // here, but some browsers deviate from the standard as to how many
+        // replacement characters they produce. Thus, we fall back to the Dart
+        // implementation if the result contains any replacement characters.
+        if (JS<int>('int', r'#.indexOf(#)', result, '\uFFFD') >= 0) {
+          return null;
+        }
+      }
+      return result;
     }
     return null; // This call was not intercepted.
   }
 
   static String? _convertInterceptedUint8List(
-      bool allowMalformed, NativeUint8List codeUnits, int start, int? end) {
-    if (allowMalformed) {
-      // TextDecoder with option {fatal: false} does not produce the same result
-      // as [Utf8Decoder]. It disagrees on the number of `U+FFFD` (REPLACEMENT
-      // CHARACTER) generated for some malformed sequences. We could use
-      // TextDecoder with option {fatal: true}, catch the error, and re-try
-      // without acceleration. That turns out to be extremely slow (the Error
-      // captures a stack trace).
-      // TODO(31370): Bring Utf8Decoder into alignment with TextDecoder.
-      // TODO(sra): If we can't do that, can we detect valid input fast enough
-      // to use a check like the [_unsafe] check below?
-      return null;
-    }
-
-    var decoder = _decoder;
+      bool allowMalformed, NativeUint8List codeUnits, int start, int end) {
+    final decoder = allowMalformed ? _decoderNonfatal : _decoder;
     if (decoder == null) return null;
-    if (0 == start && end == null) {
-      return _useTextDecoderChecked(decoder, codeUnits);
+    if (0 == start && end == codeUnits.length) {
+      return _useTextDecoder(decoder, codeUnits);
     }
 
     int length = codeUnits.length;
     end = RangeError.checkValidRange(start, end, length);
 
-    if (0 == start && end == codeUnits.length) {
-      return _useTextDecoderChecked(decoder, codeUnits);
-    }
-
-    return _useTextDecoderChecked(
+    return _useTextDecoder(
         decoder,
         JS<NativeUint8List>(
             'NativeUint8List', '#.subarray(#, #)', codeUnits, start, end));
   }
 
-  static String? _useTextDecoderChecked(decoder, NativeUint8List codeUnits) {
-    if (_unsafe(codeUnits)) return null;
-    return _useTextDecoderUnchecked(decoder, codeUnits);
-  }
-
-  static String? _useTextDecoderUnchecked(decoder, NativeUint8List codeUnits) {
+  static String? _useTextDecoder(decoder, NativeUint8List codeUnits) {
     // If the input is malformed, catch the exception and return `null` to fall
     // back on unintercepted decoder. The fallback will either succeed in
     // decoding, or report the problem better than TextDecoder.
@@ -453,41 +451,17 @@ class Utf8Decoder {
     return null;
   }
 
-  /// Returns `true` if [codeUnits] contains problematic encodings.
-  ///
-  /// TextDecoder behaves differently to [Utf8Encoder] when the input encodes a
-  /// surrogate (U+D800 through U+DFFF). TextDecoder considers the surrogate to
-  /// be an encoding error and, depending on the `fatal` option, either throws
-  /// and Error or encodes the surrogate as U+FFFD. [Utf8Decoder] does not
-  /// consider the surrogate to be an error and returns the code unit encoded by
-  /// the surrogate.
-  ///
-  /// Throwing an `Error` captures the stack, whoch makes it so expensive that
-  /// it is worth checking the input for surrogates and avoiding TextDecoder in
-  /// this case.
-  static bool _unsafe(NativeUint8List codeUnits) {
-    // Surrogates encode as (hex) ED Ax xx or ED Bx xx.
-    int limit = codeUnits.length - 2;
-    for (int i = 0; i < limit; i++) {
-      int unit1 = codeUnits[i];
-      if (unit1 == 0xED) {
-        int unit2 = codeUnits[i + 1];
-        if ((unit2 & 0xE0) == 0xA0) return true;
-      }
-    }
-    return false;
-  }
-
-  /// TextDecoder is not defined on some browsers and on the stand-alone d8 and
-  /// jsshell engines. Use a lazy initializer to do feature detection once.
+  // TextDecoder is not defined on some browsers and on the stand-alone d8 and
+  // jsshell engines. Use a lazy initializer to do feature detection once.
   static final _decoder = () {
     try {
-      // Use `{fatal: true}`. 'fatal' does not correspond exactly to
-      // `!allowMalformed`: TextDecoder rejects unpaired surrogates which
-      // [Utf8Decoder] accepts.  In non-fatal mode, TextDecoder translates
-      // unpaired surrogates to REPLACEMENT CHARACTER (U+FFFD) whereas
-      // [Utf8Decoder] leaves the surrogate intact.
       return JS('', 'new TextDecoder("utf-8", {fatal: true})');
+    } catch (e) {}
+    return null;
+  }();
+  static final _decoderNonfatal = () {
+    try {
+      return JS('', 'new TextDecoder("utf-8", {fatal: false})');
     } catch (e) {}
     return null;
   }();

@@ -125,9 +125,7 @@ namespace dart {
   V(StringBuffer_createStringFromUint16Array, 3)                               \
   V(OneByteString_substringUnchecked, 3)                                       \
   V(OneByteString_splitWithCharCode, 2)                                        \
-  V(OneByteString_allocate, 1)                                                 \
   V(OneByteString_allocateFromOneByteList, 3)                                  \
-  V(OneByteString_setAt, 3)                                                    \
   V(TwoByteString_allocateFromTwoByteList, 3)                                  \
   V(String_getHashCode, 1)                                                     \
   V(String_getLength, 1)                                                       \
@@ -317,7 +315,7 @@ namespace dart {
   V(Int32x4_setFlagZ, 2)                                                       \
   V(Int32x4_setFlagW, 2)                                                       \
   V(Int32x4_select, 3)                                                         \
-  V(Isolate_spawnFunction, 10)                                                 \
+  V(Isolate_spawnFunction, 11)                                                 \
   V(Isolate_spawnUri, 12)                                                      \
   V(Isolate_getPortAndCapabilitiesOfCurrentIsolate, 0)                         \
   V(Isolate_getCurrentRootUriStr, 0)                                           \
@@ -332,12 +330,17 @@ namespace dart {
   V(GrowableList_setData, 2)                                                   \
   V(Internal_unsafeCast, 1)                                                    \
   V(Internal_reachabilityFence, 1)                                             \
+  V(Internal_collectAllGarbage, 0)                                             \
   V(Internal_makeListFixedLength, 1)                                           \
   V(Internal_makeFixedListUnmodifiable, 1)                                     \
   V(Internal_inquireIs64Bit, 0)                                                \
   V(Internal_extractTypeArguments, 2)                                          \
   V(Internal_prependTypeArguments, 4)                                          \
   V(Internal_boundsCheckForPartialInstantiation, 2)                            \
+  V(Internal_allocateOneByteString, 1)                                         \
+  V(Internal_allocateTwoByteString, 1)                                         \
+  V(Internal_writeIntoOneByteString, 3)                                        \
+  V(Internal_writeIntoTwoByteString, 3)                                        \
   V(InvocationMirror_unpackTypeArguments, 2)                                   \
   V(NoSuchMethodError_existingMethodSignature, 3)                              \
   V(LinkedHashMap_getIndex, 1)                                                 \
@@ -484,7 +487,7 @@ class BootstrapNatives : public AllStatic {
                                     int argument_count,
                                     bool* auto_setup_scope);
 
-  static const uint8_t* Symbol(Dart_NativeFunction* nf);
+  static const uint8_t* Symbol(Dart_NativeFunction nf);
 
 #define DECLARE_BOOTSTRAP_NATIVE(name, ignored)                                \
   static ObjectPtr DN_##name(Thread* thread, Zone* zone,                       \

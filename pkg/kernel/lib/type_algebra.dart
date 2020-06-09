@@ -573,8 +573,9 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     DartType replacement = getSubstitute(node.parameter);
     if (replacement is InvalidType) return replacement;
     if (replacement != null) {
-      return replacement.withNullability(combineNullabilitiesForSubstitution(
-          replacement.nullability, node.nullability));
+      return replacement.withDeclaredNullability(
+          combineNullabilitiesForSubstitution(
+              replacement.nullability, node.nullability));
     }
     return node;
   }
@@ -747,8 +748,7 @@ class _TypeUnification {
     if (type1 is TypeParameterType &&
         type2 is TypeParameterType &&
         type1.parameter == type2.parameter &&
-        type1.typeParameterTypeNullability ==
-            type2.typeParameterTypeNullability) {
+        type1.declaredNullability == type2.declaredNullability) {
       return true;
     }
     if (type1 is TypeParameterType &&

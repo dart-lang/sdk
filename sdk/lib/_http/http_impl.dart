@@ -2081,6 +2081,7 @@ class _ConnectionTarget {
       if (connectionTimeout != null) {
         socketFuture = socketFuture.timeout(connectionTimeout, onTimeout: () {
           _socketTasks.remove(task);
+          _connecting--;
           task.cancel();
           return null;
         });
@@ -2123,6 +2124,9 @@ class _ConnectionTarget {
         _checkPending();
         throw error;
       });
+    }, onError: (error) {
+      _connecting--;
+      throw error;
     });
   }
 }

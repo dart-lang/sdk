@@ -5,6 +5,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// [NNBD non-migrated]: This test relies on implicit downcasts which are an
+// error in NNBD, so has no version in language/.
 import "package:expect/expect.dart";
 
 // Tests classes with getters and setters that do not have the same type.

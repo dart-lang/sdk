@@ -7,6 +7,5 @@ library test;
 
 main() {
   var /*@ type=List<int*>* */ foo = /*@ typeArgs=int* */ [1, 2, 3];
-  print(/*@ target=num::- */ --foo /*@target=List::[]*/ /*@target=List::[]=*/ [
-      0]);
+  print(/*@target=num.-*/ --foo /*@target=List.[]*/ /*@target=List.[]=*/ [0]);
 }

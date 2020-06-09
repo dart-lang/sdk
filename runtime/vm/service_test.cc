@@ -186,7 +186,7 @@ ISOLATE_UNIT_TEST_CASE(Service_IsolateStickyError) {
 ISOLATE_UNIT_TEST_CASE(Service_IdZones) {
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
-  ObjectIdRing* ring = isolate->object_id_ring();
+  ObjectIdRing* ring = isolate->EnsureObjectIdRing();
 
   const String& test_a = String::Handle(zone, String::New("a"));
   const String& test_b = String::Handle(zone, String::New("b"));
@@ -384,7 +384,7 @@ ISOLATE_UNIT_TEST_CASE(Service_PcDescriptors) {
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code_c.pc_descriptors());
   EXPECT(!descriptors.IsNull());
-  ObjectIdRing* ring = isolate->object_id_ring();
+  ObjectIdRing* ring = isolate->EnsureObjectIdRing();
   intptr_t id = ring->GetIdForObject(descriptors.raw());
 
   // Build a mock message handler and wrap it in a dart port.
@@ -455,7 +455,7 @@ ISOLATE_UNIT_TEST_CASE(Service_LocalVarDescriptors) {
   const LocalVarDescriptors& descriptors =
       LocalVarDescriptors::Handle(code_c.GetLocalVarDescriptors());
   // Generate an ID for this object.
-  ObjectIdRing* ring = isolate->object_id_ring();
+  ObjectIdRing* ring = isolate->EnsureObjectIdRing();
   intptr_t id = ring->GetIdForObject(descriptors.raw());
 
   // Build a mock message handler and wrap it in a dart port.

@@ -9,7 +9,7 @@
 /// patches of that library. We plan to change this when we have a shared front
 /// end and simply use parts.
 
-import "dart:_internal" show VMLibraryHooks, patch;
+import "dart:_internal" show VMLibraryHooks, patch, ClassID;
 
 import "dart:async"
     show
@@ -50,6 +50,12 @@ import "dart:typed_data" show Uint8List;
 // part "stdio_patch.dart";
 // part "secure_socket_patch.dart";
 // part "sync_socket_patch.dart";
+
+@patch
+bool _isDirectIOCapableTypedList(List<int> buffer) {
+  int classID = ClassID.getID(buffer);
+  return classID == ClassID.cidUint8Array || classID == ClassID.cidInt8Array;
+}
 
 @patch
 class _IOCrypto {

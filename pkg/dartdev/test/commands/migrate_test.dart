@@ -11,10 +11,6 @@ void main() {
   group('migrate', defineMigrateTests, timeout: longTimeout);
 }
 
-// TODO(jcollins-g): Set to true and/or remove when when NNBD is enabled in the
-//  SDK running this test.
-bool _nnbdIsEnabled = false;
-
 void defineMigrateTests() {
   final didYouForgetToRunPubGet = contains('Did you forget to run "pub get"?');
 
@@ -36,44 +32,32 @@ void defineMigrateTests() {
 
   test('directory implicit', () {
     p = project(mainSrc: 'int get foo => 1;\n');
-    var result = p.runSync(
-        'migrate',
-        [
-          '--no-web-preview',
-          '--server-path=${p.absolutePathToAnalysisServerFile}'
-        ],
-        workingDir: p.dirPath);
-    expect(result.exitCode, _nnbdIsEnabled ? 0 : 2);
-    expect(result.stderr, _nnbdIsEnabled ? isEmpty : isNotEmpty);
+    var result =
+        p.runSync('migrate', ['--no-web-preview'], workingDir: p.dirPath);
+    expect(result.exitCode, 0);
+    expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Generating migration suggestions'));
   });
 
   test('directory explicit', () {
     p = project(mainSrc: 'int get foo => 1;\n');
-    var result = p.runSync('migrate', [
-      '--no-web-preview',
-      '--server-path=${p.absolutePathToAnalysisServerFile}',
-      p.dirPath
-    ]);
-    expect(result.exitCode, _nnbdIsEnabled ? 0 : 2);
-    expect(result.stderr, _nnbdIsEnabled ? isEmpty : isNotEmpty);
+    var result = p.runSync('migrate', ['--no-web-preview', p.dirPath]);
+    expect(result.exitCode, 0);
+    expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Generating migration suggestions'));
   });
 
   test('bad directory', () {
     p = project(mainSrc: 'int get foo => 1;\n');
-    var result = p.runSync('migrate',
-        ['--server-path=${p.absolutePathToAnalysisServerFile}', 'foo_bar_dir']);
-    expect(result.exitCode, 64);
-    expect(result.stderr,
-        contains('not found; please provide a path to a package or directory'));
+    var result = p.runSync('migrate', ['foo_bar_dir']);
+    expect(result.exitCode, 1);
+    expect(result.stderr, contains('foo_bar_dir does not exist'));
     expect(result.stdout, isEmpty);
   });
 
   test('pub get needs running', () {
     p = project(mainSrc: 'import "package:foo/foo.dart";\n');
-    var result = p.runSync('migrate',
-        ['--server-path=${p.absolutePathToAnalysisServerFile}', p.dirPath]);
+    var result = p.runSync('migrate', [p.dirPath]);
     expect(result.exitCode, 1);
     expect(result.stderr, isEmpty);
     expect(result.stdout, didYouForgetToRunPubGet);
@@ -81,8 +65,7 @@ void defineMigrateTests() {
 
   test('non-pub-related error', () {
     p = project(mainSrc: 'var missing = "semicolon"\n');
-    var result = p.runSync('migrate',
-        ['--server-path=${p.absolutePathToAnalysisServerFile}', p.dirPath]);
+    var result = p.runSync('migrate', [p.dirPath]);
     expect(result.exitCode, 1);
     expect(result.stderr, isEmpty);
     expect(result.stdout, isNot(didYouForgetToRunPubGet));

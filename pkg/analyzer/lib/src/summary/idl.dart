@@ -1888,6 +1888,17 @@ abstract class PackageBundle extends base.SummaryClass {
   /// The version 2 of the summary.
   @Id(0)
   LinkedNodeBundle get bundle2;
+
+  /// The SDK specific data, if this bundle is for SDK.
+  @Id(1)
+  PackageBundleSdk get sdk;
+}
+
+/// Summary information about a package.
+abstract class PackageBundleSdk extends base.SummaryClass {
+  /// The content of the `allowed_experiments.json` from SDK.
+  @Id(0)
+  String get allowedExperimentsJson;
 }
 
 /// Summary information about a top-level type inference error.
@@ -2255,6 +2266,10 @@ abstract class UnlinkedUnit2 extends base.SummaryClass {
   @informative
   @Id(5)
   List<int> get lineStarts;
+
+  /// URI of the `part of` directive.
+  @Id(8)
+  String get partOfUri;
 
   /// URIs of `part` directives.
   @Id(4)

@@ -640,6 +640,8 @@ class Library extends NamedNode
   Location _getLocationInEnclosingFile(int offset) {
     return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
+
+  String leakingDebugToString() => astToText.debugLibraryToString(this);
 }
 
 /// An import or export declaration in a library.
@@ -4672,7 +4674,7 @@ class NullCheck extends Expression {
     DartType operandType = operand.getStaticType(context);
     return operandType == context.typeEnvironment.nullType
         ? const NeverType(Nullability.nonNullable)
-        : operandType.withNullability(Nullability.nonNullable);
+        : operandType.withDeclaredNullability(Nullability.nonNullable);
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitNullCheck(this);
@@ -6640,6 +6642,24 @@ abstract class DartType extends Node {
   @override
   bool operator ==(Object other);
 
+  /// The nullability declared on the type.
+  ///
+  /// For example, the declared nullability of `FutureOr<int?>` is
+  /// [Nullability.nonNullable], the declared nullability of `dynamic` is
+  /// [Nullability.nullable], the declared nullability of `int*` is
+  /// [Nullability.legacy], the declared nullability of the promoted type `X &
+  /// int` where `X extends Object?`
+  /// is [Nullability.undetermined].
+  Nullability get declaredNullability;
+
+  /// The nullability of the type as the property to contain null.
+  ///
+  /// For example, nullability-as-property of FutureOr<int?> is
+  /// [Nullability.nullable], nullability-as-property of dynamic is
+  /// [Nullability.nullable], nullability-as-property of int* is
+  /// [Nullability.legacy], nullability-as-property of the promoted type `X &
+  /// int` where `X extends Object?`
+  /// is [Nullability.nonNullable].
   Nullability get nullability;
 
   /// If this is a typedef type, repeatedly unfolds its type definition until
@@ -6652,11 +6672,11 @@ abstract class DartType extends Node {
   /// returns the type itself.
   DartType get unaliasOnce => this;
 
-  /// Creates a copy of the type with the given [nullability] if possible.
+  /// Creates a copy of the type with the given [declaredNullability].
   ///
   /// Some types have fixed nullabilities, such as `dynamic`, `invalid-type`,
   /// `void`, or `bottom`.
-  DartType withNullability(Nullability nullability);
+  DartType withDeclaredNullability(Nullability declaredNullability);
 
   /// Checks if the type is potentially nullable.
   ///
@@ -6677,6 +6697,22 @@ abstract class DartType extends Node {
   }
 
   bool equals(Object other, Assumptions assumptions);
+
+  @override
+  String toStringInternal() {
+    return toTypeText(verbose: _verboseTypeToString);
+  }
+
+  /// Returns a textual representation of the this type.
+  ///
+  /// If [verbose] is `true`, qualified names will include the library name/uri.
+  String toTypeText({bool verbose: false}) {
+    StringBuffer sb = new StringBuffer();
+    toTypeTextInternal(sb, verbose: verbose);
+    return sb.toString();
+  }
+
+  void toTypeTextInternal(StringBuffer sb, {bool verbose: false});
 }
 
 /// The type arising from invalid type annotations.
@@ -6706,10 +6742,15 @@ class InvalidType extends DartType {
   bool equals(Object other, Assumptions assumptions) => other is InvalidType;
 
   @override
-  Nullability get nullability => throw "InvalidType doesn't have nullability";
+  Nullability get declaredNullability {
+    throw "InvalidType doesn't have nullability.";
+  }
 
   @override
-  InvalidType withNullability(Nullability nullability) => this;
+  Nullability get nullability => throw "InvalidType doesn't have nullability.";
+
+  @override
+  InvalidType withDeclaredNullability(Nullability declaredNullability) => this;
 
   @override
   String toString() {
@@ -6717,8 +6758,8 @@ class InvalidType extends DartType {
   }
 
   @override
-  String toStringInternal() {
-    return "invalid-type";
+  void toTypeTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write("<invalid>");
   }
 }
 
@@ -6745,10 +6786,13 @@ class DynamicType extends DartType {
   bool equals(Object other, Assumptions assumptions) => other is DynamicType;
 
   @override
+  Nullability get declaredNullability => Nullability.nullable;
+
+  @override
   Nullability get nullability => Nullability.nullable;
 
   @override
-  DynamicType withNullability(Nullability nullability) => this;
+  DynamicType withDeclaredNullability(Nullability declaredNullability) => this;
 
   @override
   String toString() {
@@ -6756,8 +6800,8 @@ class DynamicType extends DartType {
   }
 
   @override
-  String toStringInternal() {
-    return "dynamic";
+  void toTypeTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write("dynamic");
   }
 }
 
@@ -6784,10 +6828,13 @@ class VoidType extends DartType {
   bool equals(Object other, Assumptions assumptions) => other is VoidType;
 
   @override
+  Nullability get declaredNullability => Nullability.nullable;
+
+  @override
   Nullability get nullability => Nullability.nullable;
 
   @override
-  VoidType withNullability(Nullability nullability) => this;
+  VoidType withDeclaredNullability(Nullability declaredNullability) => this;
 
   @override
   String toString() {
@@ -6795,16 +6842,19 @@ class VoidType extends DartType {
   }
 
   @override
-  String toStringInternal() {
-    return "void";
+  void toTypeTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write("void");
   }
 }
 
 class NeverType extends DartType {
   @override
-  final Nullability nullability;
+  final Nullability declaredNullability;
 
-  const NeverType(this.nullability);
+  const NeverType(this.declaredNullability);
+
+  @override
+  Nullability get nullability => declaredNullability;
 
   @override
   int get hashCode {
@@ -6829,8 +6879,10 @@ class NeverType extends DartType {
       other is NeverType && nullability == other.nullability;
 
   @override
-  NeverType withNullability(Nullability nullability) {
-    return this.nullability == nullability ? this : new NeverType(nullability);
+  NeverType withDeclaredNullability(Nullability declaredNullability) {
+    return this.declaredNullability == declaredNullability
+        ? this
+        : new NeverType(declaredNullability);
   }
 
   @override
@@ -6839,8 +6891,9 @@ class NeverType extends DartType {
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  void toTypeTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write("Never");
+    sb.write(nullabilityToString(nullability));
   }
 }
 
@@ -6867,10 +6920,13 @@ class BottomType extends DartType {
   bool equals(Object other, Assumptions assumptions) => other is BottomType;
 
   @override
+  Nullability get declaredNullability => Nullability.nonNullable;
+
+  @override
   Nullability get nullability => Nullability.nonNullable;
 
   @override
-  BottomType withNullability(Nullability nullability) => this;
+  BottomType withDeclaredNullability(Nullability declaredNullability) => this;
 
   @override
   String toString() {
@@ -6878,8 +6934,8 @@ class BottomType extends DartType {
   }
 
   @override
-  String toStringInternal() {
-    return "<BottomType>";
+  void toTypeTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write("<bottom>");
   }
 }
 
@@ -6887,22 +6943,25 @@ class InterfaceType extends DartType {
   Reference className;
 
   @override
-  final Nullability nullability;
+  final Nullability declaredNullability;
 
   final List<DartType> typeArguments;
 
   /// The [typeArguments] list must not be modified after this call. If the
   /// list is omitted, 'dynamic' type arguments are filled in.
-  InterfaceType(Class classNode, Nullability nullability,
+  InterfaceType(Class classNode, Nullability declaredNullability,
       [List<DartType> typeArguments])
-      : this.byReference(getClassReference(classNode), nullability,
+      : this.byReference(getClassReference(classNode), declaredNullability,
             typeArguments ?? _defaultTypeArguments(classNode));
 
   InterfaceType.byReference(
-      this.className, this.nullability, this.typeArguments)
-      : assert(nullability != null);
+      this.className, this.declaredNullability, this.typeArguments)
+      : assert(declaredNullability != null);
 
   Class get classNode => className.asClass;
+
+  @override
+  Nullability get nullability => declaredNullability;
 
   static List<DartType> _defaultTypeArguments(Class classNode) {
     if (classNode.typeParameters.length == 0) {
@@ -6960,10 +7019,11 @@ class InterfaceType extends DartType {
   }
 
   @override
-  InterfaceType withNullability(Nullability nullability) {
-    return nullability == this.nullability
+  InterfaceType withDeclaredNullability(Nullability declaredNullability) {
+    return declaredNullability == this.declaredNullability
         ? this
-        : new InterfaceType.byReference(className, nullability, typeArguments);
+        : new InterfaceType.byReference(
+            className, declaredNullability, typeArguments);
   }
 
   @override
@@ -6972,7 +7032,25 @@ class InterfaceType extends DartType {
   }
 
   @override
+  void toTypeTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write(
+        qualifiedClassNameToString(classNode, includeLibraryName: verbose));
+    if (typeArguments.isNotEmpty) {
+      sb.write("<");
+      String comma = "";
+      for (DartType typeArgument in typeArguments) {
+        sb.write(comma);
+        typeArgument.toTypeTextInternal(sb, verbose: verbose);
+        comma = ", ";
+      }
+      sb.write(">");
+    }
+    sb.write(nullabilityToString(nullability));
+  }
+
+  @override
   String toStringInternal() {
+    // TODO(johnniwinther): Unify this with [toTypeTextInternal].
     StringBuffer sb = new StringBuffer();
     if (_verboseTypeToString) {
       sb.write(className.toStringInternal());
@@ -7000,7 +7078,9 @@ class FunctionType extends DartType {
   final int requiredParameterCount;
   final List<DartType> positionalParameters;
   final List<NamedType> namedParameters; // Must be sorted.
-  final Nullability nullability;
+
+  @override
+  final Nullability declaredNullability;
 
   /// The [Typedef] this function type is created for.
   final TypedefType typedefType;
@@ -7008,8 +7088,8 @@ class FunctionType extends DartType {
   final DartType returnType;
   int _hashCode;
 
-  FunctionType(
-      List<DartType> positionalParameters, this.returnType, this.nullability,
+  FunctionType(List<DartType> positionalParameters, this.returnType,
+      this.declaredNullability,
       {this.namedParameters: const <NamedType>[],
       this.typeParameters: const <TypeParameter>[],
       int requiredParameterCount,
@@ -7021,6 +7101,9 @@ class FunctionType extends DartType {
   Reference get typedefReference => typedefType?.typedefReference;
 
   Typedef get typedef => typedefReference?.asTypedef;
+
+  @override
+  Nullability get nullability => declaredNullability;
 
   @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitFunctionType(this);
@@ -7151,14 +7234,14 @@ class FunctionType extends DartType {
   }
 
   @override
-  FunctionType withNullability(Nullability nullability) {
-    if (nullability == this.nullability) return this;
+  FunctionType withDeclaredNullability(Nullability declaredNullability) {
+    if (declaredNullability == this.declaredNullability) return this;
     FunctionType result = FunctionType(
-        positionalParameters, returnType, nullability,
+        positionalParameters, returnType, declaredNullability,
         namedParameters: namedParameters,
         typeParameters: typeParameters,
         requiredParameterCount: requiredParameterCount,
-        typedefType: typedefType?.withNullability(nullability));
+        typedefType: typedefType?.withDeclaredNullability(declaredNullability));
     if (typeParameters.isEmpty) return result;
     return getFreshTypeParameters(typeParameters).applyToFunctionType(result);
   }
@@ -7169,26 +7252,44 @@ class FunctionType extends DartType {
   }
 
   @override
-  String toStringInternal() {
-    StringBuffer sb = new StringBuffer();
-    sb.write(returnType.toStringInternal());
+  void toTypeTextInternal(StringBuffer sb, {bool verbose: false}) {
+    returnType.toTypeTextInternal(sb, verbose: verbose);
     sb.write(" Function");
     if (typeParameters.isNotEmpty) {
       sb.write("<");
       String comma = "";
       for (TypeParameter typeParameter in typeParameters) {
         sb.write(comma);
-        sb.write(typeParameter.toStringInternal());
+        sb.write(typeParameter.name);
+        DartType bound = typeParameter.bound;
+
+        bool isTopObject(DartType type) {
+          if (type is InterfaceType &&
+              type.className.node != null &&
+              type.classNode.name == 'Object') {
+            Uri uri = type.classNode.enclosingLibrary?.importUri;
+            return uri?.scheme == 'dart' &&
+                uri?.path == 'core' &&
+                (type.nullability == Nullability.legacy ||
+                    type.nullability == Nullability.nullable);
+          }
+          return false;
+        }
+
+        if (!isTopObject(bound) || isTopObject(typeParameter.defaultType)) {
+          // Include explicit bounds only.
+          sb.write(' extends ');
+          bound.toTypeTextInternal(sb, verbose: verbose);
+        }
         comma = ", ";
       }
       sb.write(">");
     }
-
     sb.write("(");
     for (int i = 0; i < positionalParameters.length; i++) {
       if (i > 0) sb.write(", ");
       if (i == requiredParameterCount) sb.write("[");
-      sb.write(positionalParameters[i].toStringInternal());
+      positionalParameters[i].toTypeTextInternal(sb, verbose: verbose);
     }
     if (requiredParameterCount < positionalParameters.length) sb.write("]");
 
@@ -7199,14 +7300,12 @@ class FunctionType extends DartType {
       sb.write("{");
       for (int i = 0; i < namedParameters.length; i++) {
         if (i > 0) sb.write(", ");
-        sb.write(namedParameters[i].toStringInternal());
+        namedParameters[i].toTypeTextInternal(sb, includeLibraryName: verbose);
       }
       sb.write("}");
     }
     sb.write(")");
     sb.write(nullabilityToString(nullability));
-
-    return sb.toString();
   }
 }
 
@@ -7214,7 +7313,7 @@ class FunctionType extends DartType {
 ///
 /// The underlying type can be extracted using [unalias].
 class TypedefType extends DartType {
-  final Nullability nullability;
+  final Nullability declaredNullability;
   final Reference typedefReference;
   final List<DartType> typeArguments;
 
@@ -7224,9 +7323,14 @@ class TypedefType extends DartType {
             typeArguments ?? const <DartType>[]);
 
   TypedefType.byReference(
-      this.typedefReference, this.nullability, this.typeArguments);
+      this.typedefReference, this.declaredNullability, this.typeArguments);
 
   Typedef get typedefNode => typedefReference.asTypedef;
+
+  // TODO(dmitryas): Replace with uniteNullabilities(declaredNullability,
+  // typedefNode.type.nullability).
+  @override
+  Nullability get nullability => declaredNullability;
 
   @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitTypedefType(this);
@@ -7245,7 +7349,7 @@ class TypedefType extends DartType {
   DartType get unaliasOnce {
     DartType result =
         Substitution.fromTypedefType(this).substituteType(typedefNode.type);
-    return result.withNullability(
+    return result.withDeclaredNullability(
         combineNullabilitiesForSubstitution(result.nullability, nullability));
   }
 
@@ -7290,11 +7394,11 @@ class TypedefType extends DartType {
   }
 
   @override
-  TypedefType withNullability(Nullability nullability) {
-    return nullability == this.nullability
+  TypedefType withDeclaredNullability(Nullability declaredNullability) {
+    return declaredNullability == this.declaredNullability
         ? this
         : new TypedefType.byReference(
-            typedefReference, nullability, typeArguments);
+            typedefReference, declaredNullability, typeArguments);
   }
 
   @override
@@ -7303,20 +7407,20 @@ class TypedefType extends DartType {
   }
 
   @override
-  String toStringInternal() {
-    StringBuffer sb = new StringBuffer();
-    sb.write(typedefNode.toStringInternal());
+  void toTypeTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write(
+        qualifiedTypedefNameToString(typedefNode, includeLibraryName: verbose));
     if (typeArguments.isNotEmpty) {
       sb.write("<");
       String comma = "";
       for (DartType typeArgument in typeArguments) {
         sb.write(comma);
-        sb.write(typeArgument.toStringInternal());
+        typeArgument.toTypeTextInternal(sb, verbose: verbose);
         comma = ", ";
       }
       sb.write(">");
     }
-    return sb.toString();
+    sb.write(nullabilityToString(nullability));
   }
 }
 
@@ -7362,11 +7466,15 @@ class NamedType extends Node implements Comparable<NamedType> {
     return "NamedType(${toStringInternal()})";
   }
 
+  void toTypeTextInternal(StringBuffer sb, {bool includeLibraryName: false}) {
+    if (isRequired) sb.write("required ");
+    sb.write("$name: ${type.toStringInternal()}");
+  }
+
   @override
   String toStringInternal() {
     StringBuffer sb = new StringBuffer();
-    if (isRequired) sb.write("required ");
-    sb.write("$name: ${type.toStringInternal()}");
+    toTypeTextInternal(sb, includeLibraryName: _verboseTypeToString);
     return sb.toString();
   }
 }
@@ -7380,17 +7488,11 @@ class NamedType extends Node implements Comparable<NamedType> {
 /// viewed as representing an intersection type between the type-parameter type
 /// and the promoted bound.
 class TypeParameterType extends DartType {
-  /// Nullability of the type-parameter type or of its part of the intersection.
+  /// The declared nullability of a type-parameter type.
   ///
-  /// Declarations of type-parameter types can set the nullability of a
-  /// type-parameter type to [Nullability.nullable] (if the `?` marker is used)
-  /// or [Nullability.legacy] (if the type comes from a library opted out from
-  /// NNBD).  Otherwise, it's defined indirectly via the nullability of the
-  /// bound of [parameter].  In cases when the [TypeParameterType] represents an
-  /// intersection between a type-parameter type and [promotedBound],
-  /// [typeParameterTypeNullability] represents the nullability of the left-hand
-  /// side of the intersection.
-  Nullability typeParameterTypeNullability;
+  /// When a [TypeParameterType] represents an intersection, [declaredNullability] is the nullability of the left-hand side.
+  @override
+  Nullability declaredNullability;
 
   TypeParameter parameter;
 
@@ -7400,12 +7502,12 @@ class TypeParameterType extends DartType {
   /// is therefore the same as the bound of [parameter].
   DartType promotedBound;
 
-  TypeParameterType(this.parameter, this.typeParameterTypeNullability,
+  TypeParameterType(this.parameter, this.declaredNullability,
       [this.promotedBound]);
 
   /// Creates an intersection type between a type parameter and [promotedBound].
   TypeParameterType.intersection(
-      this.parameter, this.typeParameterTypeNullability, this.promotedBound);
+      this.parameter, this.declaredNullability, this.promotedBound);
 
   /// Creates a type-parameter type to be used in alpha-renaming.
   ///
@@ -7427,7 +7529,7 @@ class TypeParameterType extends DartType {
   /// the bound of [parameter].
   TypeParameterType.withDefaultNullabilityForLibrary(
       this.parameter, Library library) {
-    typeParameterTypeNullability = library.isNonNullableByDefault
+    declaredNullability = library.isNonNullableByDefault
         ? computeNullabilityFromBound(parameter)
         : Nullability.legacy;
   }
@@ -7515,24 +7617,24 @@ class TypeParameterType extends DartType {
   @override
   Nullability get nullability {
     return getNullability(
-        typeParameterTypeNullability ?? computeNullabilityFromBound(parameter),
+        declaredNullability ?? computeNullabilityFromBound(parameter),
         promotedBound);
   }
 
   /// Gets a new [TypeParameterType] with given [typeParameterTypeNullability].
   ///
-  /// In contrast with other types, [TypeParameterType.withNullability] doesn't
-  /// set the overall nullability of the returned type but sets that of the
-  /// left-hand side of the intersection type.  In case [promotedBound] is null,
-  /// it is an equivalent of setting the overall nullability.
+  /// In contrast with other types, [TypeParameterType.withDeclaredNullability]
+  /// doesn't set the overall nullability of the returned type but sets that of
+  /// the left-hand side of the intersection type.  In case [promotedBound] is
+  /// null, it is an equivalent of setting the overall nullability.
   @override
-  TypeParameterType withNullability(Nullability typeParameterTypeNullability) {
+  TypeParameterType withDeclaredNullability(Nullability declaredNullability) {
+    // TODO(dmitryas): Consider removing the assert.
     assert(promotedBound == null,
         "Can't change the nullability attribute of an intersection type.");
-    return typeParameterTypeNullability == this.typeParameterTypeNullability
+    return declaredNullability == this.declaredNullability
         ? this
-        : new TypeParameterType(
-            parameter, typeParameterTypeNullability, promotedBound);
+        : new TypeParameterType(parameter, declaredNullability, promotedBound);
   }
 
   /// Gets the nullability of a type-parameter type based on the bound.
@@ -7549,6 +7651,30 @@ class TypeParameterType extends DartType {
     if (bound == null) {
       throw new StateError("Can't compute nullability from an absent bound.");
     }
+
+    // If a type parameter's nullability depends on itself, it is deemed 'undetermined'.
+    // Currently, it's possible if the type parameter has a possibly nested FutureOr containing that type parameter.
+    // If there are other ways for such a dependency to exist, they should be checked here.
+    bool nullabilityDependsOnItself = false;
+    {
+      DartType type = typeParameter.bound;
+      while (type is InterfaceType &&
+          type.classNode.name == "FutureOr" &&
+          type.classNode.enclosingLibrary.importUri.scheme == "dart" &&
+          type.classNode.enclosingLibrary.importUri.path == "async") {
+        type = (type as InterfaceType).typeArguments.single;
+      }
+      if (type is TypeParameterType && type.parameter == typeParameter) {
+        // Intersection types can't appear in the bound.
+        assert(type.promotedBound == null);
+
+        nullabilityDependsOnItself = true;
+      }
+    }
+    if (nullabilityDependsOnItself) {
+      return Nullability.undetermined;
+    }
+
     Nullability boundNullability =
         bound is InvalidType ? Nullability.undetermined : bound.nullability;
     return boundNullability == Nullability.nullable ||
@@ -7646,16 +7772,15 @@ class TypeParameterType extends DartType {
   }
 
   @override
-  String toStringInternal() {
-    StringBuffer sb = new StringBuffer();
+  void toTypeTextInternal(StringBuffer sb, {bool verbose: false}) {
     sb.write(qualifiedTypeParameterNameToString(parameter,
-        includeLibraryName: _verboseTypeToString));
-    sb.write(nullabilityToString(typeParameterTypeNullability));
+        includeLibraryName: verbose));
+    sb.write(nullabilityToString(declaredNullability));
     if (promotedBound != null) {
       sb.write(" & ");
       sb.write(promotedBound.toStringInternal());
       sb.write(" /* '");
-      sb.write(nullabilityToString(typeParameterTypeNullability));
+      sb.write(nullabilityToString(declaredNullability));
       sb.write("' & '");
       if (promotedBound is InvalidType) {
         sb.write(nullabilityToString(Nullability.undetermined));
@@ -7666,8 +7791,6 @@ class TypeParameterType extends DartType {
       sb.write(nullabilityToString(nullability));
       sb.write("' */");
     }
-
-    return sb.toString();
   }
 }
 
@@ -7977,6 +8100,17 @@ abstract class Constant extends Node {
   int get hashCode;
   bool operator ==(Object other);
 
+  /// Returns a textual representation of the this constant.
+  ///
+  /// If [verbose] is `true`, qualified names will include the library name/uri.
+  String toConstantText({bool verbose: false}) {
+    StringBuffer sb = new StringBuffer();
+    toConstantTextInternal(sb, verbose: verbose);
+    return sb.toString();
+  }
+
+  void toConstantTextInternal(StringBuffer sb, {bool verbose: false});
+
   /// Gets the type of this constant.
   DartType getType(StaticTypeContext context);
 
@@ -7997,6 +8131,11 @@ abstract class PrimitiveConstant<T> extends Constant {
 
   bool operator ==(Object other) =>
       other is PrimitiveConstant<T> && other.value == value;
+
+  @override
+  void toConstantTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write(value);
+  }
 }
 
 class NullConstant extends PrimitiveConstant<Null> {
@@ -8091,6 +8230,16 @@ class SymbolConstant extends Constant {
 
   DartType getType(StaticTypeContext context) =>
       context.typeEnvironment.coreTypes.symbolRawType(context.nonNullable);
+
+  @override
+  void toConstantTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write('#');
+    if (verbose && libraryReference != null) {
+      sb.write(libraryNameToString(libraryReference.asLibrary));
+      sb.write('::');
+    }
+    sb.write(name);
+  }
 }
 
 class MapConstant extends Constant {
@@ -8111,6 +8260,22 @@ class MapConstant extends Constant {
 
   R accept<R>(ConstantVisitor<R> v) => v.visitMapConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitMapConstantReference(this);
+
+  @override
+  void toConstantTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write('<');
+    keyType.toTypeTextInternal(sb, verbose: verbose);
+    sb.write(', ');
+    valueType.toTypeTextInternal(sb, verbose: verbose);
+    sb.write('>{');
+    for (int i = 0; i < entries.length; i++) {
+      if (i > 0) {
+        sb.write(', ');
+      }
+      entries[i].toConstantTextInternal(sb, includeLibraryName: verbose);
+    }
+    sb.write('}');
+  }
 
   String toString() => toStringInternal();
   String toStringInternal() {
@@ -8146,6 +8311,13 @@ class ConstantMapEntry {
 
   bool operator ==(Object other) =>
       other is ConstantMapEntry && other.key == key && other.value == value;
+
+  void toConstantTextInternal(StringBuffer sb,
+      {bool includeLibraryName: false}) {
+    key.toConstantTextInternal(sb, verbose: includeLibraryName);
+    sb.write(': ');
+    value.toConstantTextInternal(sb, verbose: includeLibraryName);
+  }
 }
 
 class ListConstant extends Constant {
@@ -8163,6 +8335,20 @@ class ListConstant extends Constant {
 
   R accept<R>(ConstantVisitor<R> v) => v.visitListConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitListConstantReference(this);
+
+  @override
+  void toConstantTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write('<');
+    typeArgument.toTypeTextInternal(sb, verbose: verbose);
+    sb.write('>[');
+    for (int i = 0; i < entries.length; i++) {
+      if (i > 0) {
+        sb.write(', ');
+      }
+      entries[i].toConstantTextInternal(sb, verbose: verbose);
+    }
+    sb.write(']');
+  }
 
   String toString() => toStringInternal();
   String toStringInternal() {
@@ -8200,6 +8386,20 @@ class SetConstant extends Constant {
 
   R accept<R>(ConstantVisitor<R> v) => v.visitSetConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitSetConstantReference(this);
+
+  @override
+  void toConstantTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write('<');
+    typeArgument.toTypeTextInternal(sb, verbose: verbose);
+    sb.write('>{');
+    for (int i = 0; i < entries.length; i++) {
+      if (i > 0) {
+        sb.write(', ');
+      }
+      entries[i].toConstantTextInternal(sb, verbose: verbose);
+    }
+    sb.write('}');
+  }
 
   String toString() => toStringInternal();
   String toStringInternal() {
@@ -8244,6 +8444,32 @@ class InstanceConstant extends Constant {
 
   R accept<R>(ConstantVisitor<R> v) => v.visitInstanceConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitInstanceConstantReference(this);
+
+  @override
+  void toConstantTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write(
+        qualifiedClassNameToString(classNode, includeLibraryName: verbose));
+    if (typeArguments.isNotEmpty) {
+      sb.write('<');
+      for (int i = 0; i < typeArguments.length; i++) {
+        if (i > 0) {
+          sb.write(', ');
+        }
+        typeArguments[i].toTypeTextInternal(sb, verbose: verbose);
+      }
+      sb.write('>');
+    }
+    sb.write('{');
+    String comma = '';
+    fieldValues.forEach((Reference fieldRef, Constant constant) {
+      sb.write(comma);
+      sb.write(qualifiedMemberNameToString(fieldRef.asField));
+      sb.write(': ');
+      constant.toConstantTextInternal(sb, verbose: verbose);
+      comma = ', ';
+    });
+    sb.write('}');
+  }
 
   String toString() => toStringInternal();
   String toStringInternal() {
@@ -8298,6 +8524,19 @@ class PartialInstantiationConstant extends Constant {
   R acceptReference<R>(Visitor<R> v) =>
       v.visitPartialInstantiationConstantReference(this);
 
+  @override
+  void toConstantTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write('<');
+    for (int i = 0; i < types.length; i++) {
+      if (i > 0) {
+        sb.write(',');
+      }
+      types[i].toTypeTextInternal(sb, verbose: verbose);
+    }
+    sb.write('>');
+    tearOffConstant.toConstantTextInternal(sb, verbose: verbose);
+  }
+
   String toString() => toStringInternal();
   String toStringInternal() {
     return '${runtimeType}(${tearOffConstant.procedure}<'
@@ -8342,6 +8581,12 @@ class TearOffConstant extends Constant {
   R accept<R>(ConstantVisitor<R> v) => v.visitTearOffConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitTearOffConstantReference(this);
 
+  @override
+  void toConstantTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write(
+        qualifiedMemberNameToString(procedure, includeLibraryName: verbose));
+  }
+
   String toString() => toStringInternal();
   String toStringInternal() {
     return '${runtimeType}(${procedure})';
@@ -8371,6 +8616,11 @@ class TypeLiteralConstant extends Constant {
   R accept<R>(ConstantVisitor<R> v) => v.visitTypeLiteralConstant(this);
   R acceptReference<R>(Visitor<R> v) =>
       v.visitTypeLiteralConstantReference(this);
+
+  @override
+  void toConstantTextInternal(StringBuffer sb, {bool verbose: false}) {
+    type.toTypeTextInternal(sb, verbose: verbose);
+  }
 
   String toString() => toStringInternal();
   String toStringInternal() => '${runtimeType}(${type})';
@@ -8405,6 +8655,13 @@ class UnevaluatedConstant extends Constant {
 
   @override
   Expression asExpression() => expression;
+
+  @override
+  void toConstantTextInternal(StringBuffer sb, {bool verbose: false}) {
+    sb.write('unevaluated{');
+    sb.write(expression);
+    sb.write('}');
+  }
 
   @override
   String toString() {

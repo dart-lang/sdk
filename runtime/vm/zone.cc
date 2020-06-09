@@ -5,6 +5,7 @@
 #include "vm/zone.h"
 
 #include "platform/assert.h"
+#include "platform/leak_sanitizer.h"
 #include "platform/utils.h"
 #include "vm/dart_api_state.h"
 #include "vm/flags.h"

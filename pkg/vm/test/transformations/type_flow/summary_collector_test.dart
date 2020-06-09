@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart';
+import 'package:kernel/src/text_util.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:test/test.dart';
 import 'package:vm/transformations/pragma.dart'
@@ -84,7 +85,8 @@ class PrintSummaries extends RecursiveVisitor<Null> {
   defaultMember(Member member) {
     if (!member.isAbstract &&
         !((member is Field) && (member.initializer == null))) {
-      _buf.writeln("------------ $member ------------");
+      _buf.writeln(
+          "------------ ${qualifiedMemberNameToString(member)} ------------");
       _buf.writeln(_summaryCollector.createSummary(member));
     }
   }

@@ -32,34 +32,7 @@ class CiderCompletionComputerTest extends CiderServiceTest {
   }
 
   Future<void> test_compute() async {
-    var context = _updateFile(r'''
-class A {}
-
-int a = 0;
-
-main(int b) {
-  int c = 0;
-  ^
-}
-''');
-
-    // ignore: deprecated_member_use_from_same_package
-    _suggestions = await _newComputer().compute(
-      convertPath(testPath),
-      context.offset,
-    );
-
-    _assertHasCompletion(text: 'a');
-    _assertHasCompletion(text: 'b');
-    _assertHasCompletion(text: 'c');
-    _assertHasClass(text: 'A');
-    _assertHasClass(text: 'String');
-
-    _assertNoClass(text: 'Random');
-  }
-
-  Future<void> test_compute2() async {
-    await _compute2(r'''
+    await _compute(r'''
 class A {}
 
 int a = 0;
@@ -79,25 +52,30 @@ main(int b) {
     _assertNoClass(text: 'Random');
   }
 
-  Future<void> test_compute2_sameSignature_sameResult() async {
-    _createFileResolver();
-    await _compute2(r'''
-var a = ^;
-''');
-    var lastResult = _completionResult;
+  Future<void> test_compute_prefixStart_hasPrefix() async {
+    await _compute('''
+class A {
+  String foobar;
+}
 
-    // Ask for completion using new resolver and computer.
-    // But the file signature is the same, so the same result.
-    _createFileResolver();
-    await _compute2(r'''
-var a = ^;
+main(A a) {
+  a.foo^
+}
 ''');
-    expect(_completionResult, same(lastResult));
+    expect(_completionResult.prefixStart.line, 5);
+    expect(_completionResult.prefixStart.column, 4);
   }
 
-  Future<void> test_compute2_updateImportedLibrary() async {
-    var corePath = convertPath('/sdk/lib/core/core.dart');
+  Future<void> test_compute_prefixStart_noPrefix() async {
+    await _compute(r'''
+import 'dart:math';
+^
+''');
+    expect(_completionResult.prefixStart.line, 1);
+    expect(_completionResult.prefixStart.column, 0);
+  }
 
+  Future<void> test_compute_updateImportedLibrary() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
     newFile(aPath, content: r'''
 class A {}
@@ -108,14 +86,13 @@ import 'a.dart';
 ^
 ''';
 
-    _createFileResolver();
-    await _compute2(content);
-    _assertComputedImportedLibraries([corePath, aPath]);
+    await _compute(content);
+    _assertComputedImportedLibraries([aPath], hasCore: true);
     _assertHasClass(text: 'A');
 
     // Repeat the query, still has 'A'.
     _createFileResolver();
-    await _compute2(content);
+    await _compute(content);
     _assertComputedImportedLibraries([]);
     _assertHasClass(text: 'A');
 
@@ -124,30 +101,27 @@ import 'a.dart';
 class B {}
 ''');
     _createFileResolver();
-    await _compute2(content);
+    await _compute(content);
     _assertComputedImportedLibraries([aPath]);
     _assertHasClass(text: 'B');
     _assertNoClass(text: 'A');
   }
 
-  Future<void> test_compute2_updateImports() async {
-    var corePath = convertPath('/sdk/lib/core/core.dart');
-
+  Future<void> test_compute_updateImports() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
     newFile(aPath, content: r'''
 class A {}
 ''');
 
-    _createFileResolver();
-    await _compute2(r'''
+    await _compute(r'''
 var a = ^;
 ''');
-    _assertComputedImportedLibraries([corePath]);
+    _assertComputedImportedLibraries([], hasCore: true);
     _assertHasClass(text: 'String');
 
     // Repeat the query, still has 'A'.
     _createFileResolver();
-    await _compute2(r'''
+    await _compute(r'''
 import 'a.dart';
 var a = ^;
 ''');
@@ -157,7 +131,7 @@ var a = ^;
   }
 
   Future<void> test_filterSort_byPattern_excludeNotMatching() async {
-    await _compute2(r'''
+    await _compute(r'''
 var a = F^;
 ''');
 
@@ -166,7 +140,7 @@ var a = F^;
   }
 
   Future<void> test_filterSort_byPattern_location_beforeMethod() async {
-    await _compute2(r'''
+    await _compute(r'''
 class A {
   F^
   void foo() {}
@@ -178,7 +152,7 @@ class A {
   }
 
   Future<void> test_filterSort_byPattern_location_functionReturnType() async {
-    await _compute2(r'''
+    await _compute(r'''
 F^ foo() {}
 ''');
 
@@ -187,7 +161,7 @@ F^ foo() {}
   }
 
   Future<void> test_filterSort_byPattern_location_methodReturnType() async {
-    await _compute2(r'''
+    await _compute(r'''
 class A {
   F^ foo() {}
 }
@@ -198,7 +172,7 @@ class A {
   }
 
   Future<void> test_filterSort_byPattern_location_parameterType() async {
-    await _compute2(r'''
+    await _compute(r'''
 void foo(F^ a) {}
 ''');
 
@@ -207,7 +181,7 @@ void foo(F^ a) {}
   }
 
   Future<void> test_filterSort_byPattern_location_parameterType2() async {
-    await _compute2(r'''
+    await _compute(r'''
 void foo(^a) {}
 ''');
 
@@ -216,7 +190,7 @@ void foo(^a) {}
   }
 
   Future<void> test_filterSort_byPattern_location_statement() async {
-    await _compute2(r'''
+    await _compute(r'''
 main() {
   F^
   0;
@@ -228,7 +202,7 @@ main() {
   }
 
   Future<void> test_filterSort_byPattern_preferPrefix() async {
-    await _compute2(r'''
+    await _compute(r'''
 class Foobar {}
 class Falcon {}
 var a = Fo^;
@@ -241,7 +215,7 @@ var a = Fo^;
   }
 
   Future<void> test_filterSort_preferLocal() async {
-    await _compute2(r'''
+    await _compute(r'''
 var a = 0;
 main() {
   var b = 0;
@@ -256,7 +230,7 @@ main() {
   }
 
   Future<void> test_filterSort_sortByName() async {
-    await _compute2(r'''
+    await _compute(r'''
 main() {
   var a = 0;
   var b = 0;
@@ -270,8 +244,17 @@ main() {
     ]);
   }
 
-  void _assertComputedImportedLibraries(List<String> expected) {
+  void _assertComputedImportedLibraries(
+    List<String> expected, {
+    bool hasCore = false,
+  }) {
     expected = expected.map(convertPath).toList();
+
+    if (hasCore) {
+      var corePath = convertPath('/sdk/lib/core/core.dart');
+      expected.add(corePath);
+    }
+
     expect(
       _computer.computedImportedLibraries,
       unorderedEquals(expected),
@@ -336,10 +319,10 @@ main() {
     }
   }
 
-  Future _compute2(String content) async {
+  Future _compute(String content) async {
     var context = _updateFile(content);
 
-    _completionResult = await _newComputer().compute2(
+    _completionResult = await _newComputer().compute(
       path: convertPath(testPath),
       line: context.line,
       column: context.character,

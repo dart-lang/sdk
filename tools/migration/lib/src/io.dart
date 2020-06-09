@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
-
-import 'log.dart';
 
 /// True if the file system should be left untouched.
 bool dryRun = false;
@@ -15,21 +15,6 @@ final String sdkRoot =
     p.normalize(p.join(p.dirname(p.fromUri(Platform.script)), '../../../'));
 
 final String testRoot = p.join(sdkRoot, "tests");
-
-final String nnbdSdkBuildDir = () {
-  var buildDir = Platform.isMacOS ? "xcodebuild" : "out";
-  var path = p.join(sdkRoot, buildDir, "ReleaseX64NNBD", "dart-sdk");
-
-  if (!Directory(path).existsSync()) {
-    print(red("Could not find an NNBD SDK at $path"));
-    print(red("Please build the NNBD SDK using:"));
-    print("");
-    print(red("  ./tools/build.py -m release --nnbd create_sdk"));
-    exit(1);
-  }
-
-  return path;
-}();
 
 /// Copies the file from [from] to [to], which are both assumed to be relative
 /// paths inside "tests".
@@ -131,18 +116,32 @@ bool runProcess(String executable, List<String> arguments,
   return result.exitCode == 0;
 }
 
-Future<bool> runProcessAsync(String executable, List<String> arguments,
+Future<List<String>> runProcessAsync(String executable, List<String> arguments,
     {String workingDirectory}) async {
   if (dryRun) {
     print("Dry run: run $executable ${arguments.join(' ')}");
-    return true;
+    return [];
   }
 
   var process = await Process.start(executable, arguments);
-  process.stdout.listen(stdout.add);
+
+  // Print stdout as it comes in, but also gather up the lines.
+  var lines = <String>[];
+  var controller = StreamController<List<int>>();
+  controller.stream
+      .transform(utf8.decoder)
+      .transform(const LineSplitter())
+      .listen(lines.add);
+
+  process.stdout.listen((bytes) {
+    controller.add(bytes);
+    stdout.add(bytes);
+  });
+
   process.stderr.listen(stderr.add);
 
-  return (await process.exitCode) == 0;
+  await process.exitCode;
+  return lines;
 }
 
 /// Returns a list of the paths to all files within [dir], which is

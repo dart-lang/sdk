@@ -22,50 +22,50 @@ class Test {
   B member;
 
   void test() {
-    /*@target=Test::member*/ member = /*@ typeArgs=B* */ f();
+    /*@target=Test.member*/ member = /*@ typeArgs=B* */ f();
 
-    /*@target=Test::member*/ /*@target=Test::member*/ member
-        /*@ target=Object::== */ ??= /*@ typeArgs=B* */ f();
+    /*@target=Test.member*/ /*@target=Test.member*/ member
+        /*@target=A.==*/ ??= /*@ typeArgs=B* */ f();
 
-    /*@target=Test::member*/ /*@target=Test::member*/ member
-        /*@ target=B::+ */ += /*@ typeArgs=C* */ f();
+    /*@target=Test.member*/ /*@target=Test.member*/ member
+        /*@target=B.+*/ += /*@ typeArgs=C* */ f();
 
-    /*@target=Test::member*/ /*@target=Test::member*/ member
-        /*@ target=B::* */ *= /*@ typeArgs=B* */ f();
+    /*@target=Test.member*/ /*@target=Test.member*/ member
+        /*@target=B.**/ *= /*@ typeArgs=B* */ f();
 
-    /*@target=Test::member*/ /*@target=Test::member*/ member
-        /*@ target=B::& */ &= /*@ typeArgs=A* */ f();
+    /*@target=Test.member*/ /*@target=Test.member*/ member
+        /*@target=B.&*/ &= /*@ typeArgs=A* */ f();
 
-    /*@ target=B::- */ -- /*@target=Test::member*/ /*@target=Test::member*/
+    /*@target=B.-*/ -- /*@target=Test.member*/ /*@target=Test.member*/
         member;
 
-    /*@target=Test::member*/ /*@target=Test::member*/ member
-        /*@ target=B::- */ --;
+    /*@target=Test.member*/ /*@target=Test.member*/ member
+        /*@target=B.-*/ --;
 
-    var /*@ type=B* */ v1 = /*@target=Test::member*/ member =
+    var /*@ type=B* */ v1 = /*@target=Test.member*/ member =
         /*@ typeArgs=B* */ f();
 
-    var /*@ type=B* */ v2 = /*@target=Test::member*/ /*@target=Test::member*/
-        member /*@ target=Object::== */ ??= /*@ typeArgs=B* */ f();
+    var /*@ type=B* */ v2 = /*@target=Test.member*/ /*@target=Test.member*/
+        member /*@target=A.==*/ ??= /*@ typeArgs=B* */ f();
 
-    var /*@ type=A* */ v3 = /*@target=Test::member*/ /*@target=Test::member*/
-        member /*@ target=B::+ */ +=
+    var /*@ type=A* */ v3 = /*@target=Test.member*/ /*@target=Test.member*/
+        member /*@target=B.+*/ +=
             /*@ typeArgs=C* */ f();
 
-    var /*@ type=B* */ v4 = /*@target=Test::member*/ /*@target=Test::member*/
-        member /*@ target=B::* */ *=
+    var /*@ type=B* */ v4 = /*@target=Test.member*/ /*@target=Test.member*/
+        member /*@target=B.**/ *=
             /*@ typeArgs=B* */ f();
 
-    var /*@ type=C* */ v5 = /*@target=Test::member*/ /*@target=Test::member*/
-        member /*@ target=B::& */ &=
+    var /*@ type=C* */ v5 = /*@target=Test.member*/ /*@target=Test.member*/
+        member /*@target=B.&*/ &=
             /*@ typeArgs=A* */ f();
 
-    var /*@ type=B* */ v6 = /*@ target=B::- */ --
-        /*@target=Test::member*/ /*@target=Test::member*/ member;
+    var /*@ type=B* */ v6 = /*@target=B.-*/ --
+        /*@target=Test.member*/ /*@target=Test.member*/ member;
 
     var /*@ type=B* */ v7 =
-        /*@ type=B* */ /*@target=Test::member*/ /*@target=Test::member*/
-        /*@ type=B* */ member /*@ target=B::- */ --;
+        /*@ type=B* */ /*@target=Test.member*/ /*@target=Test.member*/
+        /*@ type=B* */ member /*@target=B.-*/ --;
   }
 }
 

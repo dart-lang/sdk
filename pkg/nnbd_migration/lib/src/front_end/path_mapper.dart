@@ -27,6 +27,6 @@ class PathMapper {
 
   /// Returns the local filesystem path corresponding to the given [uri].
   String reverseMap(Uri uri) {
-    return provider.pathContext.fromUri(uri);
+    return provider.pathContext.fromUri(uri.replace(scheme: 'file'));
   }
 }

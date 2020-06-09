@@ -12,9 +12,7 @@ import '../scanner/token.dart' show Token;
 
 import 'severity.dart' show Severity;
 
-import '../util/relativize.dart' show isWindows;
-
-import '../util/relativize.dart' as util show relativizeUri;
+import '../util/relativize.dart' as util show isWindows, relativizeUri;
 
 part 'codes_generated.dart';
 
@@ -275,7 +273,7 @@ String relativizeUri(Uri uri) {
   // (otherwise, we might get an `UNUSED_IMPORT` warning).
   //
   // 2. We can change `base` argument here if needed.
-  return uri == null ? null : util.relativizeUri(Uri.base, uri, isWindows);
+  return uri == null ? null : util.relativizeUri(Uri.base, uri, util.isWindows);
 }
 
 typedef SummaryTemplate = Message Function(int, int, num, num, num);

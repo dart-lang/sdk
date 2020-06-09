@@ -1,0 +1,14 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static final field core::bool isLegacySubtyping1a;
+static const field core::bool isLegacySubtyping1b = const <core::Null?>[] is{ForNonNullableByDefault} core::List<core::int>;
+static final field core::bool isLegacySubtyping2a;
+static const field core::bool isLegacySubtyping2b = const <core::int?>[] is{ForNonNullableByDefault} core::List<core::int>;
+static const field core::List<core::int> assertLegacySubtyping1 = const <core::Null?>[] as{ForNonNullableByDefault} core::List<core::int>;
+static const field core::List<core::int> assertLegacySubtyping2 = const <core::int?>[] as{ForNonNullableByDefault} core::List<core::int>;
+static method main() → void
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

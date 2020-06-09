@@ -1094,9 +1094,7 @@ class AstCloner implements AstVisitor<AstNode> {
     }
 
     token = nonComment(token);
-    if (_lastCloned == null) {
-      _lastCloned = Token.eof(-1);
-    }
+    _lastCloned ??= Token.eof(-1);
     while (token != null) {
       Token clone = token.copy();
       {
@@ -4855,7 +4853,6 @@ class ResolutionCopier implements AstVisitor<bool> {
         _isEqualTokens(node.keyword, toNode.keyword),
         _isEqualNodes(node.constructorName, toNode.constructorName),
         _isEqualNodes(node.argumentList, toNode.argumentList))) {
-      toNode.staticElement = node.staticElement;
       toNode.staticType = node.staticType;
       return true;
     }

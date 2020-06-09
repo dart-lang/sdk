@@ -118,62 +118,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   }
 
   /**
-   * Given a formal parameter list and a function type use the function type
-   * to infer types for any of the parameters which have implicit (missing)
-   * types.  Returns true if inference has occurred.
-   */
-  bool inferFormalParameterList(
-      FormalParameterList node, DartType functionType) {
-    bool inferred = false;
-    if (node != null && functionType is FunctionType) {
-      void inferType(ParameterElementImpl p, DartType inferredType) {
-        // Check that there is no declared type, and that we have not already
-        // inferred a type in some fashion.
-        if (p.hasImplicitType && (p.type == null || p.type.isDynamic)) {
-          inferredType = _typeSystem.greatestClosure(inferredType);
-          if (inferredType.isDartCoreNull || inferredType is NeverTypeImpl) {
-            inferredType = _isNonNullableByDefault
-                ? _typeSystem.objectQuestion
-                : _typeSystem.objectStar;
-          }
-          if (_migrationResolutionHooks != null) {
-            inferredType = _migrationResolutionHooks
-                .modifyInferredParameterType(p, inferredType);
-          }
-          if (!inferredType.isDynamic) {
-            p.type = inferredType;
-            inferred = true;
-          }
-        }
-      }
-
-      List<ParameterElement> parameters = node.parameterElements;
-      {
-        Iterator<ParameterElement> positional =
-            parameters.where((p) => p.isPositional).iterator;
-        Iterator<ParameterElement> fnPositional =
-            functionType.parameters.where((p) => p.isPositional).iterator;
-        while (positional.moveNext() && fnPositional.moveNext()) {
-          inferType(positional.current, fnPositional.current.type);
-        }
-      }
-
-      {
-        Map<String, DartType> namedParameterTypes =
-            functionType.namedParameterTypes;
-        Iterable<ParameterElement> named = parameters.where((p) => p.isNamed);
-        for (ParameterElementImpl p in named) {
-          if (!namedParameterTypes.containsKey(p.name)) {
-            continue;
-          }
-          inferType(p, namedParameterTypes[p.name]);
-        }
-      }
-    }
-    return inferred;
-  }
-
-  /**
    * Record that the static type of the given node is the given type.
    *
    * @param expression the node whose type is to be recorded
@@ -277,24 +221,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     _resolver.extensionResolver.resolveOverride(node);
   }
 
-  @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    FunctionExpression function = node.functionExpression;
-    ExecutableElementImpl functionElement =
-        node.declaredElement as ExecutableElementImpl;
-    if (node.parent is FunctionDeclarationStatement) {
-      // TypeResolverVisitor sets the return type for top-level functions, so
-      // we only need to handle local functions.
-      if (node.returnType == null) {
-        _inferLocalFunctionReturnType(node.functionExpression);
-        return;
-      }
-      functionElement.returnType =
-          _computeStaticReturnTypeOfFunctionDeclaration(node);
-    }
-    recordStaticType(function, functionElement.type);
-  }
-
   /**
    * The Dart Language Specification, 12.9: <blockquote>The static type of a function literal of the
    * form <i>(T<sub>1</sub> a<sub>1</sub>, &hellip;, T<sub>n</sub> a<sub>n</sub>, [T<sub>n+1</sub>
@@ -326,14 +252,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    * specified as dynamic.</blockquote>
    */
   @override
-  void visitFunctionExpression(FunctionExpression node) {
-    if (node.parent is FunctionDeclaration) {
-      // The function type will be resolved and set when we visit the parent
-      // node.
-      return;
-    }
-    _inferLocalFunctionReturnType(node);
-  }
+  void visitFunctionExpression(FunctionExpression node) {}
 
   /**
    * The Dart Language Specification, 12.29: <blockquote>An assignable expression of the form
@@ -745,15 +664,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   void _analyzeLeastUpperBoundTypes(
       Expression node, DartType staticType1, DartType staticType2) {
-    if (staticType1 == null) {
-      // TODO(brianwilkerson) Determine whether this can still happen.
-      staticType1 = _dynamicType;
-    }
+    // TODO(brianwilkerson) Determine whether this can still happen.
+    staticType1 ??= _dynamicType;
 
-    if (staticType2 == null) {
-      // TODO(brianwilkerson) Determine whether this can still happen.
-      staticType2 = _dynamicType;
-    }
+    // TODO(brianwilkerson) Determine whether this can still happen.
+    staticType2 ??= _dynamicType;
 
     DartType staticType =
         _typeSystem.getLeastUpperBound(staticType1, staticType2) ??
@@ -762,48 +677,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     staticType = _resolver.toLegacyTypeIfOptOut(staticType);
 
     recordStaticType(node, staticType);
-  }
-
-  /**
-   * Given a function body and its return type, compute the return type of
-   * the entire function, taking into account whether the function body
-   * is `sync*`, `async` or `async*`.
-   *
-   * See also [FunctionBody.isAsynchronous], [FunctionBody.isGenerator].
-   */
-  DartType _computeReturnTypeOfFunction(FunctionBody body, DartType type) {
-    if (body.isGenerator) {
-      InterfaceType generatedType = body.isAsynchronous
-          ? _typeProvider.streamType2(type)
-          : _typeProvider.iterableType2(type);
-      return _nonNullable(generatedType);
-    } else if (body.isAsynchronous) {
-      if (type.isDartAsyncFutureOr) {
-        type = (type as InterfaceType).typeArguments[0];
-      }
-      DartType futureType =
-          _typeProvider.futureType2(_typeSystem.flatten(type));
-      return _nonNullable(futureType);
-    } else {
-      return type;
-    }
-  }
-
-  /**
-   * Given a function declaration, compute the return static type of the function. The return type
-   * of functions with a block body is `dynamicType`, with an expression body it is the type
-   * of the expression.
-   *
-   * @param node the function expression whose static return type is to be computed
-   * @return the static return type that was computed
-   */
-  DartType _computeStaticReturnTypeOfFunctionDeclaration(
-      FunctionDeclaration node) {
-    TypeAnnotation returnType = node.returnType;
-    if (returnType == null) {
-      return _dynamicType;
-    }
-    return returnType.type;
   }
 
   /**
@@ -946,25 +819,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       );
       constructorElement = _resolver.toLegacyElement(constructorElement);
       constructor.staticElement = constructorElement;
-      node.staticElement = constructor.staticElement;
     }
-  }
-
-  /**
-   * Infers the return type of a local function, either a lambda or
-   * (in strong mode) a local function declaration.
-   */
-  void _inferLocalFunctionReturnType(FunctionExpression node) {
-    ExecutableElementImpl functionElement =
-        node.declaredElement as ExecutableElementImpl;
-
-    FunctionBody body = node.body;
-
-    DartType computedType = InferenceContext.getContext(body) ?? _dynamicType;
-
-    computedType = _computeReturnTypeOfFunction(body, computedType);
-    functionElement.returnType = computedType;
-    recordStaticType(node, functionElement.type);
   }
 
   /**

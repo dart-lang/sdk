@@ -22,7 +22,7 @@ namespace dart {
 class Bequest;
 class JSONStream;
 class PersistentHandle;
-class HeapPage;
+class OldPage;
 class WeakTable;
 class FreeList;
 

@@ -2285,6 +2285,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   @override
+  visitFunctionReference(HFunctionReference node) {
+    FunctionEntity element = node.element;
+    _registry.registerStaticUse(StaticUse.implicitInvoke(element));
+    push(_emitter.staticFunctionAccess(element));
+  }
+
+  @override
   visitLocalGet(HLocalGet node) {
     use(node.receiver);
   }
@@ -2409,11 +2416,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     // TODO(sra): Tell world.nativeEnqueuer about the types created here.
     registerForeignTypes(node);
-
-    if (node.foreignFunction != null) {
-      _registry?.registerStaticUse(
-          new StaticUse.implicitInvoke(node.foreignFunction));
-    }
   }
 
   @override
@@ -3492,9 +3494,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     js.Expression test;
     switch (node.specialization) {
-      case IsTestSpecialization.null_:
-        // This case should be lowered to [HIdentity] during optimization.
-        test = js.Binary(relation, value, js.LiteralNull());
+      case IsTestSpecialization.isNull:
+      case IsTestSpecialization.notNull:
+        // These cases should be lowered using [HIdentity] during optimization.
+        failedAt(node, 'Missing lowering');
         break;
 
       case IsTestSpecialization.string:

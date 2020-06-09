@@ -35,10 +35,10 @@ import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
 import '../fasta_codes.dart';
 
-import '../kernel/redirecting_factory_body.dart' show redirectingName;
 import '../kernel/kernel_builder.dart' show compareProcedures;
 import '../kernel/kernel_target.dart' show KernelTarget;
 import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
+import '../kernel/redirecting_factory_body.dart' show redirectingName;
 import '../kernel/type_algorithms.dart'
     show Variance, computeTypeVariableBuilderVariance;
 
@@ -47,6 +47,8 @@ import '../names.dart' show noSuchMethodName;
 import '../problems.dart' show unexpected, unhandled;
 
 import '../scope.dart';
+
+import '../type_inference/type_schema.dart';
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -312,18 +314,21 @@ class SourceClassBuilder extends ClassBuilderImpl
     return supertype;
   }
 
-  void checkVarianceInField(Field field, TypeEnvironment typeEnvironment,
-      List<TypeParameter> typeParameters) {
+  void checkVarianceInField(SourceFieldBuilder fieldBuilder,
+      TypeEnvironment typeEnvironment, List<TypeParameter> typeParameters) {
     for (TypeParameter typeParameter in typeParameters) {
-      int fieldVariance = computeVariance(typeParameter, field.type);
-      if (field.hasImplicitGetter) {
-        reportVariancePositionIfInvalid(
-            fieldVariance, typeParameter, field.fileUri, field.fileOffset);
+      int fieldVariance =
+          computeVariance(typeParameter, fieldBuilder.fieldType);
+      if (fieldBuilder.isClassInstanceMember) {
+        reportVariancePositionIfInvalid(fieldVariance, typeParameter,
+            fieldBuilder.fileUri, fieldBuilder.charOffset);
       }
-      if (field.hasImplicitSetter && !field.isCovariant) {
+      if (fieldBuilder.isClassInstanceMember &&
+          fieldBuilder.isAssignable &&
+          !fieldBuilder.isCovariant) {
         fieldVariance = Variance.combine(Variance.contravariant, fieldVariance);
-        reportVariancePositionIfInvalid(
-            fieldVariance, typeParameter, field.fileUri, field.fileOffset);
+        reportVariancePositionIfInvalid(fieldVariance, typeParameter,
+            fieldBuilder.fileUri, fieldBuilder.charOffset);
       }
     }
   }
@@ -570,9 +575,8 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     forEach((String name, Builder builder) {
       // Check fields.
-      if (builder is FieldBuilder) {
-        checkVarianceInField(
-            builder.field, typeEnvironment, cls.typeParameters);
+      if (builder is SourceFieldBuilder) {
+        checkVarianceInField(builder, typeEnvironment, cls.typeParameters);
         libraryBuilder.checkTypesInField(builder, typeEnvironment);
       }
 
@@ -616,9 +620,14 @@ class SourceClassBuilder extends ClassBuilderImpl
     return count;
   }
 
-  List<TypeDeclarationBuilder> computeDirectSupertypes(
+  /// Return a map whose keys are the supertypes of this [SourceClassBuilder]
+  /// after expansion of type aliases, if any. For each supertype key, the
+  /// corresponding value is the type alias which was unaliased in order to
+  /// find the supertype, or null if the supertype was not aliased.
+  Map<TypeDeclarationBuilder, TypeAliasBuilder> computeDirectSupertypes(
       ClassBuilder objectClass) {
-    final List<TypeDeclarationBuilder> result = <TypeDeclarationBuilder>[];
+    final Map<TypeDeclarationBuilder, TypeAliasBuilder> result =
+        <TypeDeclarationBuilder, TypeAliasBuilder>{};
     final TypeBuilder supertype = this.supertypeBuilder;
     if (supertype != null) {
       TypeDeclarationBuilder declarationBuilder = supertype.declaration;
@@ -627,10 +636,12 @@ class SourceClassBuilder extends ClassBuilderImpl
         NamedTypeBuilder namedBuilder = supertype;
         declarationBuilder =
             aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
+        result[declarationBuilder] = aliasBuilder;
+      } else {
+        result[declarationBuilder] = null;
       }
-      result.add(declarationBuilder);
     } else if (objectClass != this) {
-      result.add(objectClass);
+      result[objectClass] = null;
     }
     final List<TypeBuilder> interfaces = this.interfaceBuilders;
     if (interfaces != null) {
@@ -642,8 +653,10 @@ class SourceClassBuilder extends ClassBuilderImpl
           NamedTypeBuilder namedBuilder = interface;
           declarationBuilder =
               aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
+          result[declarationBuilder] = aliasBuilder;
+        } else {
+          result[declarationBuilder] = null;
         }
-        result.add(declarationBuilder);
       }
     }
     final TypeBuilder mixedInTypeBuilder = this.mixedInTypeBuilder;
@@ -655,8 +668,10 @@ class SourceClassBuilder extends ClassBuilderImpl
         NamedTypeBuilder namedBuilder = mixedInTypeBuilder;
         declarationBuilder =
             aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
+        result[declarationBuilder] = aliasBuilder;
+      } else {
+        result[declarationBuilder] = null;
       }
-      result.add(declarationBuilder);
     }
     return result;
   }
@@ -1043,29 +1058,19 @@ class SourceClassBuilder extends ClassBuilderImpl
                 addRedirectingConstructor(declaration, library, referenceFrom);
               }
               if (targetBuilder is FunctionBuilder) {
-                List<DartType> typeArguments = declaration.typeArguments;
-                if (typeArguments == null) {
-                  // TODO(32049) If type arguments aren't specified, they should
-                  // be inferred.  Currently, the inference is not performed.
-                  // The code below is a workaround.
-                  typeArguments = new List<DartType>.filled(
-                      targetBuilder.member.enclosingClass.typeParameters.length,
-                      const DynamicType(),
-                      growable: true);
-                }
+                List<DartType> typeArguments = declaration.typeArguments ??
+                    new List<DartType>.filled(
+                        targetBuilder
+                            .member.enclosingClass.typeParameters.length,
+                        const UnknownType());
                 declaration.setRedirectingFactoryBody(
                     targetBuilder.member, typeArguments);
               } else if (targetBuilder is DillMemberBuilder) {
-                List<DartType> typeArguments = declaration.typeArguments;
-                if (typeArguments == null) {
-                  // TODO(32049) If type arguments aren't specified, they should
-                  // be inferred.  Currently, the inference is not performed.
-                  // The code below is a workaround.
-                  typeArguments = new List<DartType>.filled(
-                      targetBuilder.member.enclosingClass.typeParameters.length,
-                      const DynamicType(),
-                      growable: true);
-                }
+                List<DartType> typeArguments = declaration.typeArguments ??
+                    new List<DartType>.filled(
+                        targetBuilder
+                            .member.enclosingClass.typeParameters.length,
+                        const UnknownType());
                 declaration.setRedirectingFactoryBody(
                     targetBuilder.member, typeArguments);
               } else if (targetBuilder is AmbiguousBuilder) {

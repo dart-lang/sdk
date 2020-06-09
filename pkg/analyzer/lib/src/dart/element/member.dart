@@ -232,26 +232,32 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
       return null;
     }
 
+    var isLegacy = false;
     var combined = substitution;
     if (element is ExecutableMember) {
       ExecutableMember member = element;
       element = member.declaration;
+
+      isLegacy = member.isLegacy;
+
       var map = <TypeParameterElement, DartType>{};
-      map.addAll(member._substitution.map);
+      for (var entry in member._substitution.map.entries) {
+        map[entry.key] = substitution.substituteType(entry.value);
+      }
       map.addAll(substitution.map);
       combined = Substitution.fromMap(map);
     }
 
-    if (combined.map.isEmpty) {
+    if (!isLegacy && combined.map.isEmpty) {
       return element;
     }
 
     if (element is ConstructorElement) {
-      return ConstructorMember(element, combined, false);
+      return ConstructorMember(element, combined, isLegacy);
     } else if (element is MethodElement) {
-      return MethodMember(element, combined, false);
+      return MethodMember(element, combined, isLegacy);
     } else if (element is PropertyAccessorElement) {
-      return PropertyAccessorMember(element, combined, false);
+      return PropertyAccessorMember(element, combined, isLegacy);
     } else {
       throw UnimplementedError('(${element.runtimeType}) $element');
     }
@@ -891,20 +897,20 @@ class PropertyAccessorMember extends ExecutableMember
 
   @override
   PropertyAccessorElement get correspondingGetter {
-    return PropertyAccessorMember(
-      declaration.correspondingGetter,
-      _substitution,
-      isLegacy,
-    );
+    var baseGetter = declaration.correspondingGetter;
+    if (baseGetter == null) {
+      return null;
+    }
+    return PropertyAccessorMember(baseGetter, _substitution, isLegacy);
   }
 
   @override
   PropertyAccessorElement get correspondingSetter {
-    return PropertyAccessorMember(
-      declaration.correspondingSetter,
-      _substitution,
-      isLegacy,
-    );
+    var baseSetter = declaration.correspondingSetter;
+    if (baseSetter == null) {
+      return null;
+    }
+    return PropertyAccessorMember(baseSetter, _substitution, isLegacy);
   }
 
   @override

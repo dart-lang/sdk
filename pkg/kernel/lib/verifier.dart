@@ -75,7 +75,7 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
 
   TreeNode currentParent;
 
-  TreeNode get context => currentMember ?? currentClass;
+  TreeNode get currentClassOrMember => currentMember ?? currentClass;
 
   static void check(Component component, {bool isOutline, bool afterConst}) {
     component.accept(
@@ -104,7 +104,7 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
   }
 
   problem(TreeNode node, String details, {TreeNode context}) {
-    context ??= this.context;
+    context ??= currentClassOrMember;
     throw new VerificationError(context, node, details);
   }
 

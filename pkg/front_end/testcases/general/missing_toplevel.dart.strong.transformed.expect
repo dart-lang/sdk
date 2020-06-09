@@ -39,18 +39,48 @@ class EmptyClass extends core::Object {
   synthetic constructor •() → self::EmptyClass*
     : super core::Object::•()
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class ClassWithProperty extends core::Object {
   field self::EmptyClass* property = null;
   synthetic constructor •() → self::ClassWithProperty*
     : super core::Object::•()
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class ClassWithIndexSet extends core::Object {
   synthetic constructor •() → self::ClassWithIndexSet*
     : super core::Object::•()
     ;
   operator []=(core::int* index, core::int* value) → void {}
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class ClassWithIndexGet extends core::Object {
   synthetic constructor •() → self::ClassWithIndexGet*
@@ -58,6 +88,16 @@ class ClassWithIndexGet extends core::Object {
     ;
   operator [](core::int* index) → core::int*
     return 42;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static field self::EmptyClass* emptyClass = new self::EmptyClass::•();
 static field self::ClassWithProperty* classWithProperty = new self::ClassWithProperty::•();
@@ -67,7 +107,7 @@ static field dynamic missingBinary = let final self::ClassWithProperty* #t1 = se
  - 'EmptyClass' is from 'pkg/front_end/testcases/general/missing_toplevel.dart'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
 var missingBinary = classWithProperty.property += 2;
-                                               ^" as{TypeError,ForDynamic} self::EmptyClass*;
+                                               ^";
 static field dynamic missingIndexGet = let final self::ClassWithIndexSet* #t2 = self::classWithIndexSet in let final core::int* #t3 = 0 in let final dynamic #t4 = invalid-expression "pkg/front_end/testcases/general/missing_toplevel.dart:28:40: Error: The operator '[]' isn't defined for the class 'ClassWithIndexSet'.
  - 'ClassWithIndexSet' is from 'pkg/front_end/testcases/general/missing_toplevel.dart'.
 Try correcting the operator to an existing operator, or defining a '[]' operator.

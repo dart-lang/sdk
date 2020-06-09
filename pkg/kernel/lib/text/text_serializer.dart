@@ -386,13 +386,8 @@ MapLiteral wrapConstMapLiteral(
       keyType: tuple.first, valueType: tuple.second, isConst: true);
 }
 
-TextSerializer<Let> letSerializer = new Wrapped(
-    unwrapLet,
-    wrapLet,
-    new Bind(
-        new Binder(variableDeclarationSerializer, getVariableDeclarationName,
-            setVariableDeclarationName),
-        expressionSerializer));
+TextSerializer<Let> letSerializer = new Wrapped(unwrapLet, wrapLet,
+    new Bind(variableDeclarationSerializer, expressionSerializer));
 
 Tuple2<VariableDeclaration, Expression> unwrapLet(Let expression) {
   return new Tuple2(expression.variable, expression.body);
@@ -816,15 +811,19 @@ VariableDeclaration wrapConstDeclaration(
   return result;
 }
 
-TextSerializer<VariableDeclaration> variableDeclarationSerializer =
+TextSerializer<VariableDeclaration> variableDeclarationSerializer = new Binder(
     new Case(const VariableDeclarationTagger(), {
-  "var": varDeclarationSerializer,
-  "final": finalDeclarationSerializer,
-  "const": constDeclarationSerializer,
-});
+      "var": varDeclarationSerializer,
+      "final": finalDeclarationSerializer,
+      "const": constDeclarationSerializer,
+    }),
+    getVariableDeclarationName,
+    setVariableDeclarationName);
 
-const TextSerializer<TypeParameter> typeParameterSerializer =
-    const Wrapped(unwrapTypeParameter, wrapTypeParameter, const DartString());
+TextSerializer<TypeParameter> typeParameterSerializer = new Binder(
+    const Wrapped(unwrapTypeParameter, wrapTypeParameter, const DartString()),
+    getTypeParameterName,
+    setTypeParameterName);
 
 String unwrapTypeParameter(TypeParameter node) => node.name;
 
@@ -833,9 +832,7 @@ TypeParameter wrapTypeParameter(String name) => new TypeParameter(name);
 TextSerializer<List<TypeParameter>> typeParametersSerializer = new Zip(
     new Rebind(
         new Zip(
-            new Rebind(
-                new ListSerializer(new Binder(typeParameterSerializer,
-                    getTypeParameterName, setTypeParameterName)),
+            new Rebind(new ListSerializer(typeParameterSerializer),
                 new ListSerializer(dartTypeSerializer)),
             zipTypeParameterBound,
             unzipTypeParameterBound),
@@ -880,6 +877,8 @@ class DartTypeTagger extends DartTypeVisitor<String>
   String visitFunctionType(FunctionType _) => "->";
   String visitTypeParameterType(TypeParameterType _) => "par";
   String visitInterfaceType(InterfaceType _) => "interface";
+  String visitNeverType(NeverType _) => "never";
+  String visitTypedefType(TypedefType _) => "typedef";
 }
 
 const TextSerializer<InvalidType> invalidTypeSerializer =
@@ -909,6 +908,13 @@ const TextSerializer<BottomType> bottomTypeSerializer =
 void unwrapBottomType(BottomType type) {}
 
 BottomType wrapBottomType(void ignored) => const BottomType();
+
+const TextSerializer<NeverType> neverTypeSerializer =
+    const Wrapped(unwrapNeverType, wrapNeverType, const Nothing());
+
+void unwrapNeverType(NeverType type) {}
+
+NeverType wrapNeverType(void ignored) => const NeverType(Nullability.legacy);
 
 // TODO(dmitryas):  Also handle nameParameters, and typedefType.
 TextSerializer<FunctionType> functionTypeSerializer = new Wrapped(
@@ -986,6 +992,21 @@ InterfaceType wrapInterfaceType(Tuple2<CanonicalName, List<DartType>> tuple) {
       tuple.first.reference, Nullability.legacy, tuple.second);
 }
 
+TextSerializer<TypedefType> typedefTypeSerializer = new Wrapped(
+    unwrapTypedefType,
+    wrapTypedefType,
+    Tuple2Serializer(const CanonicalNameSerializer(),
+        new ListSerializer(dartTypeSerializer)));
+
+Tuple2<CanonicalName, List<DartType>> unwrapTypedefType(TypedefType node) {
+  return new Tuple2(node.typedefReference.canonicalName, node.typeArguments);
+}
+
+TypedefType wrapTypedefType(Tuple2<CanonicalName, List<DartType>> tuple) {
+  return new TypedefType.byReference(
+      tuple.first.reference, Nullability.legacy, tuple.second);
+}
+
 Case<DartType> dartTypeSerializer =
     new Case.uninitialized(const DartTypeTagger());
 
@@ -997,6 +1018,18 @@ class StatementTagger extends StatementVisitor<String>
 
   String visitExpressionStatement(ExpressionStatement _) => "expr";
   String visitReturnStatement(ReturnStatement _) => "ret";
+  String visitYieldStatement(YieldStatement _) => "yield";
+  String visitBlock(Block _) => "block";
+  String visitVariableDeclaration(VariableDeclaration _) => "local";
+  String visitIfStatement(IfStatement node) {
+    return node.otherwise == null ? "if" : "if-else";
+  }
+
+  String visitEmptyStatement(EmptyStatement node) => "skip";
+  String visitWhileStatement(WhileStatement node) => "while";
+  String visitDoStatement(DoStatement node) => "do-while";
+  String visitForStatement(ForStatement node) => "for";
+  String visitForInStatement(ForInStatement node) => "for-in";
 }
 
 TextSerializer<ExpressionStatement> expressionStatementSerializer = new Wrapped(
@@ -1019,6 +1052,175 @@ Expression unwrapReturnStatement(ReturnStatement statement) {
 
 ReturnStatement wrapReturnStatement(Expression expression) {
   return new ReturnStatement(expression);
+}
+
+TextSerializer<YieldStatement> yieldStatementSerializer =
+    new Wrapped(unwrapYieldStatement, wrapYieldStatement, expressionSerializer);
+
+Expression unwrapYieldStatement(YieldStatement node) => node.expression;
+
+YieldStatement wrapYieldStatement(Expression expression) {
+  return new YieldStatement(expression);
+}
+
+TextSerializer<Block> blockSerializer =
+    new Wrapped(unwrapBlock, wrapBlock, const BlockSerializer());
+
+List<Statement> unwrapBlock(Block node) => node.statements;
+
+Block wrapBlock(List<Statement> statements) => new Block(statements);
+
+/// Serializer for [Block]s.
+///
+/// [BlockSerializer] is a combination of [ListSerializer] and [Bind].  As in
+/// the case of [ListSerializer], [BlockSerializer] is a sequence of statements.
+/// As in the case of [Bind], a statement in a block can be a
+/// [VariableDeclaration] introducing binders that are bound in the rest of the
+/// statements in the block.  Effectively, [BlockSerializer] could have been
+/// expressed in terms of [ListSerializer] and [Bind], but that would transform
+/// blocks like {stmt1; stmt2; stmt3;} into {stmt1; {stmt2; {stmt3; {}}}} via
+/// the round-trip, and an extra pass will be required to flatten the
+/// unnecessary nested blocks.  Instead, [BlockSerializer] is implemented
+/// without direct invocations of either [ListSerializer] or [Bind], but with a
+/// certain internal correspondence to how they work.
+class BlockSerializer extends TextSerializer<List<Statement>> {
+  const BlockSerializer();
+
+  List<Statement> readFrom(
+      Iterator<Object> stream, DeserializationState state) {
+    if (stream.current is! Iterator) {
+      throw StateError("Expected a list, found an atom: '${stream.current}'.");
+    }
+    Iterator<Object> list = stream.current;
+    list.moveNext();
+    List<Statement> result = [];
+    DeserializationState currentState = state;
+    while (list.current != null) {
+      currentState = new DeserializationState(
+          new DeserializationEnvironment(currentState.environment),
+          currentState.nameRoot);
+      result.add(statementSerializer.readFrom(list, currentState));
+      currentState.environment.close();
+    }
+    stream.moveNext();
+    return result;
+  }
+
+  void writeTo(StringBuffer buffer, List<Statement> statements,
+      SerializationState state) {
+    buffer.write('(');
+    SerializationState currentState = state;
+    for (int i = 0; i < statements.length; ++i) {
+      if (i != 0) buffer.write(' ');
+      currentState = new SerializationState(
+          new SerializationEnvironment(currentState.environment));
+      statementSerializer.writeTo(buffer, statements[i], currentState);
+      currentState.environment.close();
+    }
+    buffer.write(')');
+  }
+}
+
+TextSerializer<IfStatement> ifStatementSerializer = new Wrapped(
+    unwrapIfStatement,
+    wrapIfStatement,
+    Tuple2Serializer(expressionSerializer, statementSerializer));
+
+Tuple2<Expression, Statement> unwrapIfStatement(IfStatement node) {
+  return new Tuple2(node.condition, node.then);
+}
+
+IfStatement wrapIfStatement(Tuple2<Expression, Statement> tuple) {
+  return new IfStatement(tuple.first, tuple.second, null);
+}
+
+TextSerializer<IfStatement> ifElseStatementSerializer = new Wrapped(
+    unwrapIfElseStatement,
+    wrapIfElseStatement,
+    Tuple3Serializer(
+        expressionSerializer, statementSerializer, statementSerializer));
+
+Tuple3<Expression, Statement, Statement> unwrapIfElseStatement(
+    IfStatement node) {
+  return new Tuple3(node.condition, node.then, node.otherwise);
+}
+
+IfStatement wrapIfElseStatement(
+    Tuple3<Expression, Statement, Statement> tuple) {
+  return new IfStatement(tuple.first, tuple.second, tuple.third);
+}
+
+TextSerializer<EmptyStatement> emptyStatementSerializer =
+    new Wrapped(unwrapEmptyStatement, wrapEmptyStatement, const Nothing());
+
+void unwrapEmptyStatement(EmptyStatement node) {}
+
+EmptyStatement wrapEmptyStatement(void ignored) => new EmptyStatement();
+
+TextSerializer<WhileStatement> whileStatementSerializer = new Wrapped(
+    unwrapWhileStatement,
+    wrapWhileStatement,
+    new Tuple2Serializer(expressionSerializer, statementSerializer));
+
+Tuple2<Expression, Statement> unwrapWhileStatement(WhileStatement node) {
+  return new Tuple2(node.condition, node.body);
+}
+
+WhileStatement wrapWhileStatement(Tuple2<Expression, Statement> tuple) {
+  return new WhileStatement(tuple.first, tuple.second);
+}
+
+TextSerializer<DoStatement> doStatementSerializer = new Wrapped(
+    unwrapDoStatement,
+    wrapDoStatement,
+    new Tuple2Serializer(statementSerializer, expressionSerializer));
+
+Tuple2<Statement, Expression> unwrapDoStatement(DoStatement node) {
+  return new Tuple2(node.body, node.condition);
+}
+
+DoStatement wrapDoStatement(Tuple2<Statement, Expression> tuple) {
+  return new DoStatement(tuple.first, tuple.second);
+}
+
+TextSerializer<ForStatement> forStatementSerializer = new Wrapped(
+    unwrapForStatement,
+    wrapForStatement,
+    new Bind(
+        ListSerializer(variableDeclarationSerializer),
+        new Tuple3Serializer(expressionSerializer,
+            new ListSerializer(expressionSerializer), statementSerializer)));
+
+Tuple2<List<VariableDeclaration>,
+        Tuple3<Expression, List<Expression>, Statement>>
+    unwrapForStatement(ForStatement node) {
+  return new Tuple2(
+      node.variables, new Tuple3(node.condition, node.updates, node.body));
+}
+
+ForStatement wrapForStatement(
+    Tuple2<List<VariableDeclaration>,
+            Tuple3<Expression, List<Expression>, Statement>>
+        tuple) {
+  return new ForStatement(
+      tuple.first, tuple.second.first, tuple.second.second, tuple.second.third);
+}
+
+TextSerializer<ForInStatement> forInStatementSerializer = new Wrapped(
+    unwrapForInStatement,
+    wrapForInStatement,
+    new Tuple2Serializer(expressionSerializer,
+        new Bind(variableDeclarationSerializer, statementSerializer)));
+
+Tuple2<Expression, Tuple2<VariableDeclaration, Statement>> unwrapForInStatement(
+    ForInStatement node) {
+  return new Tuple2(node.iterable, new Tuple2(node.variable, node.body));
+}
+
+ForInStatement wrapForInStatement(
+    Tuple2<Expression, Tuple2<VariableDeclaration, Statement>> tuple) {
+  return new ForInStatement(
+      tuple.second.first, tuple.first, tuple.second.second);
 }
 
 Case<Statement> statementSerializer =
@@ -1051,12 +1253,9 @@ TextSerializer<FunctionNode> syncFunctionNodeSerializer = new Wrapped(
         new Rebind(
             typeParametersSerializer,
             new Tuple3Serializer(
-                new ListSerializer(new Binder(variableDeclarationSerializer,
-                    getVariableDeclarationName, setVariableDeclarationName)),
-                new ListSerializer(new Binder(variableDeclarationSerializer,
-                    getVariableDeclarationName, setVariableDeclarationName)),
-                new ListSerializer(new Binder(variableDeclarationSerializer,
-                    getVariableDeclarationName, setVariableDeclarationName)))),
+                new ListSerializer(variableDeclarationSerializer),
+                new ListSerializer(variableDeclarationSerializer),
+                new ListSerializer(variableDeclarationSerializer))),
         new Tuple2Serializer(dartTypeSerializer, statementSerializer)));
 
 Tuple2<
@@ -1100,12 +1299,9 @@ TextSerializer<FunctionNode> asyncFunctionNodeSerializer = new Wrapped(
         new Rebind(
             typeParametersSerializer,
             new Tuple3Serializer(
-                new ListSerializer(new Binder(variableDeclarationSerializer,
-                    getVariableDeclarationName, setVariableDeclarationName)),
-                new ListSerializer(new Binder(variableDeclarationSerializer,
-                    getVariableDeclarationName, setVariableDeclarationName)),
-                new ListSerializer(new Binder(variableDeclarationSerializer,
-                    getVariableDeclarationName, setVariableDeclarationName)))),
+                new ListSerializer(variableDeclarationSerializer),
+                new ListSerializer(variableDeclarationSerializer),
+                new ListSerializer(variableDeclarationSerializer))),
         new Tuple2Serializer(dartTypeSerializer, statementSerializer)));
 
 FunctionNode wrapAsyncFunctionNode(
@@ -1133,12 +1329,9 @@ TextSerializer<FunctionNode> syncStarFunctionNodeSerializer = new Wrapped(
         new Rebind(
             typeParametersSerializer,
             new Tuple3Serializer(
-                new ListSerializer(new Binder(variableDeclarationSerializer,
-                    getVariableDeclarationName, setVariableDeclarationName)),
-                new ListSerializer(new Binder(variableDeclarationSerializer,
-                    getVariableDeclarationName, setVariableDeclarationName)),
-                new ListSerializer(new Binder(variableDeclarationSerializer,
-                    getVariableDeclarationName, setVariableDeclarationName)))),
+                new ListSerializer(variableDeclarationSerializer),
+                new ListSerializer(variableDeclarationSerializer),
+                new ListSerializer(variableDeclarationSerializer))),
         new Tuple2Serializer(dartTypeSerializer, statementSerializer)));
 
 FunctionNode wrapSyncStarFunctionNode(
@@ -1166,12 +1359,9 @@ TextSerializer<FunctionNode> asyncStarFunctionNodeSerializer = new Wrapped(
         new Rebind(
             typeParametersSerializer,
             new Tuple3Serializer(
-                new ListSerializer(new Binder(variableDeclarationSerializer,
-                    getVariableDeclarationName, setVariableDeclarationName)),
-                new ListSerializer(new Binder(variableDeclarationSerializer,
-                    getVariableDeclarationName, setVariableDeclarationName)),
-                new ListSerializer(new Binder(variableDeclarationSerializer,
-                    getVariableDeclarationName, setVariableDeclarationName)))),
+                new ListSerializer(variableDeclarationSerializer),
+                new ListSerializer(variableDeclarationSerializer),
+                new ListSerializer(variableDeclarationSerializer))),
         new Tuple2Serializer(dartTypeSerializer, statementSerializer)));
 
 FunctionNode wrapAsyncStarFunctionNode(
@@ -1200,18 +1390,9 @@ TextSerializer<FunctionNode> syncYieldingStarFunctionNodeSerializer =
             new Rebind(
                 typeParametersSerializer,
                 new Tuple3Serializer(
-                    new ListSerializer(new Binder(
-                        variableDeclarationSerializer,
-                        getVariableDeclarationName,
-                        setVariableDeclarationName)),
-                    new ListSerializer(new Binder(
-                        variableDeclarationSerializer,
-                        getVariableDeclarationName,
-                        setVariableDeclarationName)),
-                    new ListSerializer(new Binder(
-                        variableDeclarationSerializer,
-                        getVariableDeclarationName,
-                        setVariableDeclarationName)))),
+                    new ListSerializer(variableDeclarationSerializer),
+                    new ListSerializer(variableDeclarationSerializer),
+                    new ListSerializer(variableDeclarationSerializer))),
             new Tuple2Serializer(dartTypeSerializer, statementSerializer)));
 
 FunctionNode wrapSyncYieldingFunctionNode(
@@ -1346,10 +1527,22 @@ void initializeSerializers() {
     "->": functionTypeSerializer,
     "par": typeParameterTypeSerializer,
     "interface": interfaceTypeSerializer,
+    "never": neverTypeSerializer,
+    "typedef": typedefTypeSerializer,
   });
   statementSerializer.registerTags({
     "expr": expressionStatementSerializer,
     "ret": returnStatementSerializer,
+    "yield": yieldStatementSerializer,
+    "block": blockSerializer,
+    "local": variableDeclarationSerializer,
+    "if": ifStatementSerializer,
+    "if-else": ifElseStatementSerializer,
+    "skip": emptyStatementSerializer,
+    "while": whileStatementSerializer,
+    "do-while": doStatementSerializer,
+    "for": forStatementSerializer,
+    "for-in": forInStatementSerializer,
   });
   functionNodeSerializer.registerTags({
     "sync": syncFunctionNodeSerializer,

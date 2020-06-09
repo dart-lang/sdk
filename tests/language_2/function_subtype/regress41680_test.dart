@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// [NNBD non-migrated]: This test is migrated to regress41680_strong_test.dart
+// and regress41680_weak_test.dart.
 import "package:expect/expect.dart";
 
 typedef dynamicToDynamic = dynamic Function(dynamic);

@@ -154,6 +154,8 @@ String assertEventKind(String obj) {
   if (obj == "ServiceExtensionAdded") return obj;
   if (obj == "ServiceRegistered") return obj;
   if (obj == "ServiceUnregistered") return obj;
+  if (obj == "TimelineEvents") return obj;
+  if (obj == "TimelineStreamSubscriptionsUpdate") return obj;
   if (obj == "VMFlagUpdate") return obj;
   if (obj == "VMUpdate") return obj;
   if (obj == "WriteEvent") return obj;
@@ -912,6 +914,28 @@ List<vms.ProfileFunction> assertListOfProfileFunction(
     List<vms.ProfileFunction> list) {
   for (vms.ProfileFunction elem in list) {
     assertProfileFunction(elem);
+  }
+  return list;
+}
+
+vms.ProtocolList assertProtocolList(vms.ProtocolList obj) {
+  assertNotNull(obj);
+  assertString(obj.type);
+  assertListOfProtocol(obj.protocols);
+  return obj;
+}
+
+vms.Protocol assertProtocol(vms.Protocol obj) {
+  assertNotNull(obj);
+  assertString(obj.protocolName);
+  assertInt(obj.major);
+  assertInt(obj.minor);
+  return obj;
+}
+
+List<vms.Protocol> assertListOfProtocol(List<vms.Protocol> list) {
+  for (vms.Protocol elem in list) {
+    assertProtocol(elem);
   }
   return list;
 }

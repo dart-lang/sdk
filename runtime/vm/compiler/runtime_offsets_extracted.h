@@ -32,7 +32,7 @@ static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetAOT = 0;
 static constexpr dart::compiler::target::word
     Instructions_kPolymorphicEntryOffsetAOT = 12;
-static constexpr dart::compiler::target::word HeapPage_kBytesPerCardLog2 = 9;
+static constexpr dart::compiler::target::word OldPage_kBytesPerCardLog2 = 9;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
@@ -128,7 +128,7 @@ static constexpr dart::compiler::target::word
     GrowableObjectArray_length_offset = 8;
 static constexpr dart::compiler::target::word
     GrowableObjectArray_type_arguments_offset = 4;
-static constexpr dart::compiler::target::word HeapPage_card_table_offset = 20;
+static constexpr dart::compiler::target::word OldPage_card_table_offset = 20;
 static constexpr dart::compiler::target::word
     CallSiteData_arguments_descriptor_offset = 8;
 static constexpr dart::compiler::target::word ICData_NumArgsTestedMask = 3;
@@ -512,7 +512,7 @@ static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetAOT = 8;
 static constexpr dart::compiler::target::word
     Instructions_kPolymorphicEntryOffsetAOT = 22;
-static constexpr dart::compiler::target::word HeapPage_kBytesPerCardLog2 = 10;
+static constexpr dart::compiler::target::word OldPage_kBytesPerCardLog2 = 10;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word String_kMaxElements =
@@ -609,7 +609,7 @@ static constexpr dart::compiler::target::word
     GrowableObjectArray_length_offset = 16;
 static constexpr dart::compiler::target::word
     GrowableObjectArray_type_arguments_offset = 8;
-static constexpr dart::compiler::target::word HeapPage_card_table_offset = 40;
+static constexpr dart::compiler::target::word OldPage_card_table_offset = 40;
 static constexpr dart::compiler::target::word
     CallSiteData_arguments_descriptor_offset = 16;
 static constexpr dart::compiler::target::word ICData_NumArgsTestedMask = 3;
@@ -997,7 +997,7 @@ static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetAOT = 0;
 static constexpr dart::compiler::target::word
     Instructions_kPolymorphicEntryOffsetAOT = 0;
-static constexpr dart::compiler::target::word HeapPage_kBytesPerCardLog2 = 9;
+static constexpr dart::compiler::target::word OldPage_kBytesPerCardLog2 = 9;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
@@ -1093,7 +1093,7 @@ static constexpr dart::compiler::target::word
     GrowableObjectArray_length_offset = 8;
 static constexpr dart::compiler::target::word
     GrowableObjectArray_type_arguments_offset = 4;
-static constexpr dart::compiler::target::word HeapPage_card_table_offset = 20;
+static constexpr dart::compiler::target::word OldPage_card_table_offset = 20;
 static constexpr dart::compiler::target::word
     CallSiteData_arguments_descriptor_offset = 8;
 static constexpr dart::compiler::target::word ICData_NumArgsTestedMask = 3;
@@ -1474,7 +1474,7 @@ static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetAOT = 8;
 static constexpr dart::compiler::target::word
     Instructions_kPolymorphicEntryOffsetAOT = 20;
-static constexpr dart::compiler::target::word HeapPage_kBytesPerCardLog2 = 10;
+static constexpr dart::compiler::target::word OldPage_kBytesPerCardLog2 = 10;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word String_kMaxElements =
@@ -1571,7 +1571,7 @@ static constexpr dart::compiler::target::word
     GrowableObjectArray_length_offset = 16;
 static constexpr dart::compiler::target::word
     GrowableObjectArray_type_arguments_offset = 8;
-static constexpr dart::compiler::target::word HeapPage_card_table_offset = 40;
+static constexpr dart::compiler::target::word OldPage_card_table_offset = 40;
 static constexpr dart::compiler::target::word
     CallSiteData_arguments_descriptor_offset = 16;
 static constexpr dart::compiler::target::word ICData_NumArgsTestedMask = 3;
@@ -1962,7 +1962,7 @@ static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetAOT = 0;
 static constexpr dart::compiler::target::word
     Instructions_kPolymorphicEntryOffsetAOT = 12;
-static constexpr dart::compiler::target::word HeapPage_kBytesPerCardLog2 = 9;
+static constexpr dart::compiler::target::word OldPage_kBytesPerCardLog2 = 9;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
@@ -2056,7 +2056,7 @@ static constexpr dart::compiler::target::word
     GrowableObjectArray_length_offset = 8;
 static constexpr dart::compiler::target::word
     GrowableObjectArray_type_arguments_offset = 4;
-static constexpr dart::compiler::target::word HeapPage_card_table_offset = 20;
+static constexpr dart::compiler::target::word OldPage_card_table_offset = 20;
 static constexpr dart::compiler::target::word
     CallSiteData_arguments_descriptor_offset = 8;
 static constexpr dart::compiler::target::word ICData_NumArgsTestedMask = 3;
@@ -2436,7 +2436,7 @@ static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetAOT = 8;
 static constexpr dart::compiler::target::word
     Instructions_kPolymorphicEntryOffsetAOT = 22;
-static constexpr dart::compiler::target::word HeapPage_kBytesPerCardLog2 = 10;
+static constexpr dart::compiler::target::word OldPage_kBytesPerCardLog2 = 10;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word String_kMaxElements =
@@ -2531,7 +2531,7 @@ static constexpr dart::compiler::target::word
     GrowableObjectArray_length_offset = 16;
 static constexpr dart::compiler::target::word
     GrowableObjectArray_type_arguments_offset = 8;
-static constexpr dart::compiler::target::word HeapPage_card_table_offset = 40;
+static constexpr dart::compiler::target::word OldPage_card_table_offset = 40;
 static constexpr dart::compiler::target::word
     CallSiteData_arguments_descriptor_offset = 16;
 static constexpr dart::compiler::target::word ICData_NumArgsTestedMask = 3;
@@ -2915,7 +2915,7 @@ static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetAOT = 0;
 static constexpr dart::compiler::target::word
     Instructions_kPolymorphicEntryOffsetAOT = 0;
-static constexpr dart::compiler::target::word HeapPage_kBytesPerCardLog2 = 9;
+static constexpr dart::compiler::target::word OldPage_kBytesPerCardLog2 = 9;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
@@ -3009,7 +3009,7 @@ static constexpr dart::compiler::target::word
     GrowableObjectArray_length_offset = 8;
 static constexpr dart::compiler::target::word
     GrowableObjectArray_type_arguments_offset = 4;
-static constexpr dart::compiler::target::word HeapPage_card_table_offset = 20;
+static constexpr dart::compiler::target::word OldPage_card_table_offset = 20;
 static constexpr dart::compiler::target::word
     CallSiteData_arguments_descriptor_offset = 8;
 static constexpr dart::compiler::target::word ICData_NumArgsTestedMask = 3;
@@ -3386,7 +3386,7 @@ static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetAOT = 8;
 static constexpr dart::compiler::target::word
     Instructions_kPolymorphicEntryOffsetAOT = 20;
-static constexpr dart::compiler::target::word HeapPage_kBytesPerCardLog2 = 10;
+static constexpr dart::compiler::target::word OldPage_kBytesPerCardLog2 = 10;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word String_kMaxElements =
@@ -3481,7 +3481,7 @@ static constexpr dart::compiler::target::word
     GrowableObjectArray_length_offset = 16;
 static constexpr dart::compiler::target::word
     GrowableObjectArray_type_arguments_offset = 8;
-static constexpr dart::compiler::target::word HeapPage_card_table_offset = 40;
+static constexpr dart::compiler::target::word OldPage_card_table_offset = 40;
 static constexpr dart::compiler::target::word
     CallSiteData_arguments_descriptor_offset = 16;
 static constexpr dart::compiler::target::word ICData_NumArgsTestedMask = 3;
@@ -3871,8 +3871,7 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kMonomorphicEntryOffsetAOT = 0;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kPolymorphicEntryOffsetAOT = 12;
-static constexpr dart::compiler::target::word AOT_HeapPage_kBytesPerCardLog2 =
-    9;
+static constexpr dart::compiler::target::word AOT_OldPage_kBytesPerCardLog2 = 9;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
@@ -3963,7 +3962,7 @@ static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_length_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_type_arguments_offset = 4;
-static constexpr dart::compiler::target::word AOT_HeapPage_card_table_offset =
+static constexpr dart::compiler::target::word AOT_OldPage_card_table_offset =
     20;
 static constexpr dart::compiler::target::word
     AOT_CallSiteData_arguments_descriptor_offset = 8;
@@ -4394,7 +4393,7 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kMonomorphicEntryOffsetAOT = 8;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kPolymorphicEntryOffsetAOT = 22;
-static constexpr dart::compiler::target::word AOT_HeapPage_kBytesPerCardLog2 =
+static constexpr dart::compiler::target::word AOT_OldPage_kBytesPerCardLog2 =
     10;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
@@ -4486,7 +4485,7 @@ static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_length_offset = 16;
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_type_arguments_offset = 8;
-static constexpr dart::compiler::target::word AOT_HeapPage_card_table_offset =
+static constexpr dart::compiler::target::word AOT_OldPage_card_table_offset =
     40;
 static constexpr dart::compiler::target::word
     AOT_CallSiteData_arguments_descriptor_offset = 16;
@@ -4923,7 +4922,7 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kMonomorphicEntryOffsetAOT = 8;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kPolymorphicEntryOffsetAOT = 20;
-static constexpr dart::compiler::target::word AOT_HeapPage_kBytesPerCardLog2 =
+static constexpr dart::compiler::target::word AOT_OldPage_kBytesPerCardLog2 =
     10;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
@@ -5015,7 +5014,7 @@ static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_length_offset = 16;
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_type_arguments_offset = 8;
-static constexpr dart::compiler::target::word AOT_HeapPage_card_table_offset =
+static constexpr dart::compiler::target::word AOT_OldPage_card_table_offset =
     40;
 static constexpr dart::compiler::target::word
     AOT_CallSiteData_arguments_descriptor_offset = 16;
@@ -5452,8 +5451,7 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kMonomorphicEntryOffsetAOT = 0;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kPolymorphicEntryOffsetAOT = 12;
-static constexpr dart::compiler::target::word AOT_HeapPage_kBytesPerCardLog2 =
-    9;
+static constexpr dart::compiler::target::word AOT_OldPage_kBytesPerCardLog2 = 9;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
@@ -5542,7 +5540,7 @@ static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_length_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_type_arguments_offset = 4;
-static constexpr dart::compiler::target::word AOT_HeapPage_card_table_offset =
+static constexpr dart::compiler::target::word AOT_OldPage_card_table_offset =
     20;
 static constexpr dart::compiler::target::word
     AOT_CallSiteData_arguments_descriptor_offset = 8;
@@ -5968,7 +5966,7 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kMonomorphicEntryOffsetAOT = 8;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kPolymorphicEntryOffsetAOT = 22;
-static constexpr dart::compiler::target::word AOT_HeapPage_kBytesPerCardLog2 =
+static constexpr dart::compiler::target::word AOT_OldPage_kBytesPerCardLog2 =
     10;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
@@ -6058,7 +6056,7 @@ static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_length_offset = 16;
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_type_arguments_offset = 8;
-static constexpr dart::compiler::target::word AOT_HeapPage_card_table_offset =
+static constexpr dart::compiler::target::word AOT_OldPage_card_table_offset =
     40;
 static constexpr dart::compiler::target::word
     AOT_CallSiteData_arguments_descriptor_offset = 16;
@@ -6490,7 +6488,7 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kMonomorphicEntryOffsetAOT = 8;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kPolymorphicEntryOffsetAOT = 20;
-static constexpr dart::compiler::target::word AOT_HeapPage_kBytesPerCardLog2 =
+static constexpr dart::compiler::target::word AOT_OldPage_kBytesPerCardLog2 =
     10;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
@@ -6580,7 +6578,7 @@ static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_length_offset = 16;
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_type_arguments_offset = 8;
-static constexpr dart::compiler::target::word AOT_HeapPage_card_table_offset =
+static constexpr dart::compiler::target::word AOT_OldPage_card_table_offset =
     40;
 static constexpr dart::compiler::target::word
     AOT_CallSiteData_arguments_descriptor_offset = 16;

@@ -157,8 +157,9 @@ class BaseFlowGraphBuilder {
         exit_collector_(exit_collector),
         inlining_unchecked_entry_(inlining_unchecked_entry) {}
 
-  Fragment LoadField(const Field& field);
-  Fragment LoadNativeField(const Slot& native_field);
+  Fragment LoadField(const Field& field, bool calls_initializer);
+  Fragment LoadNativeField(const Slot& native_field,
+                           bool calls_initializer = false);
   Fragment LoadIndexed(intptr_t index_scale);
   // Takes a [class_id] valid for StoreIndexed.
   Fragment LoadIndexedTypedData(classid_t class_id,
@@ -198,7 +199,7 @@ class BaseFlowGraphBuilder {
   Fragment StoreInstanceFieldGuarded(const Field& field,
                                      StoreInstanceFieldInstr::Kind kind =
                                          StoreInstanceFieldInstr::Kind::kOther);
-  Fragment LoadStaticField(const Field& field);
+  Fragment LoadStaticField(const Field& field, bool calls_initializer);
   Fragment RedefinitionWithType(const AbstractType& type);
   Fragment ReachabilityFence();
   Fragment StoreStaticField(TokenPosition position, const Field& field);
@@ -397,11 +398,10 @@ class BaseFlowGraphBuilder {
   // _StringBase._interpolate call.
   Fragment StringInterpolate(TokenPosition position);
 
-  // Pops function type arguments, instantiator type arguments and value; and
-  // type checks value against the type arguments.
+  // Pops function type arguments, instantiator type arguments, dst_type, and
+  // value; and type checks value against the type arguments.
   Fragment AssertAssignable(
       TokenPosition position,
-      const AbstractType& dst_type,
       const String& dst_name,
       AssertAssignableInstr::Kind kind = AssertAssignableInstr::kUnknown);
 

@@ -31,7 +31,6 @@ import 'package:build_integration/file_system/multi_root.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/front_end.dart' as fe
     show CompilerResult;
-import 'package:front_end/src/api_prototype/language_version.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
@@ -46,7 +45,10 @@ import 'package:vm/bytecode/gen_bytecode.dart'
 import 'package:vm/bytecode/options.dart' show BytecodeOptions;
 import 'package:vm/incremental_compiler.dart';
 import 'package:vm/kernel_front_end.dart'
-    show createLoadedLibrariesSet, runWithFrontEndCompilerContext;
+    show
+        autoDetectNullSafetyMode,
+        createLoadedLibrariesSet,
+        runWithFrontEndCompilerContext;
 import 'package:vm/http_filesystem.dart';
 import 'package:vm/target/vm.dart' show VmTarget;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
@@ -89,12 +91,6 @@ bool allowDartInternalImport = false;
 const int kNullSafetyOptionUnspecified = 0;
 const int kNullSafetyOptionWeak = 1;
 const int kNullSafetyOptionStrong = 2;
-
-Future<void> autoDetectNullSafetyMode(
-    Uri script, CompilerOptions options) async {
-  var isLegacy = await uriUsesLegacyLanguageVersion(script, options);
-  options.nnbdMode = isLegacy ? NnbdMode.Weak : NnbdMode.Strong;
-}
 
 abstract class Compiler {
   final int isolateId;
@@ -148,7 +144,8 @@ abstract class Compiler {
 
     options = new CompilerOptions()
       ..fileSystem = fileSystem
-      ..target = new VmTarget(new TargetFlags())
+      ..target = new VmTarget(new TargetFlags(
+          enableNullSafety: nullSafety == kNullSafetyOptionStrong))
       ..packagesFileUri = packagesUri
       ..sdkSummary = platformKernelPath
       ..verbose = verbose
@@ -358,6 +355,9 @@ class IncrementalCompilerWrapper extends Compiler {
       if ((nullSafety == kNullSafetyOptionUnspecified) &&
           options.experimentalFlags[ExperimentalFlag.nonNullable]) {
         await autoDetectNullSafetyMode(script, options);
+        // Reinitialize target to set correct null safety mode.
+        options.target = new VmTarget(new TargetFlags(
+            enableNullSafety: options.nnbdMode == NnbdMode.Strong));
       }
       generator = new IncrementalCompiler(options, script);
     }
@@ -423,6 +423,9 @@ class SingleShotCompilerWrapper extends Compiler {
     if ((nullSafety == kNullSafetyOptionUnspecified) &&
         options.experimentalFlags[ExperimentalFlag.nonNullable]) {
       await autoDetectNullSafetyMode(script, options);
+      // Reinitialize target to set correct null safety mode.
+      options.target = new VmTarget(new TargetFlags(
+          enableNullSafety: options.nnbdMode == NnbdMode.Strong));
     }
     fe.CompilerResult compilerResult = requireMain
         ? await kernelForProgram(script, options)

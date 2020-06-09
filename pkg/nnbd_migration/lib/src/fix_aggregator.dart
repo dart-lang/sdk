@@ -177,7 +177,7 @@ class FixAggregator extends UnifyingAstVisitor<void> {
   /// Runs the [FixAggregator] on a [unit] and returns the resulting edits.
   static Map<int, List<AtomicEdit>> run(
       CompilationUnit unit, String sourceText, Map<AstNode, NodeChange> changes,
-      {bool removeViaComments = true, bool warnOnWeakCode = false}) {
+      {bool removeViaComments = false, bool warnOnWeakCode = false}) {
     var planner = EditPlanner(unit.lineInfo, sourceText,
         removeViaComments: removeViaComments);
     var aggregator =
@@ -270,7 +270,7 @@ class NodeChangeForAnnotation extends NodeChange<Annotation> {
       // extract it.
       return aggregator.planner.extract(
           node, aggregator.planForNode(name) as NodeProducingEditPlan,
-          infoBefore: changeToRequiredKeywordInfo);
+          infoBefore: changeToRequiredKeywordInfo, alwaysDelete: true);
     } else {
       return aggregator.planner.replace(node,
           [AtomicEdit.insert('required', info: changeToRequiredKeywordInfo)]);
@@ -639,6 +639,60 @@ class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
   }
 }
 
+/// Implementation of [NodeChange] specialized for operating on
+/// [FieldFormalParameter] nodes.
+class NodeChangeForFieldFormalParameter
+    extends NodeChangeForType<FieldFormalParameter> {
+  /// If not `null`, an explicit type annotation that should be added to the
+  /// parameter.
+  DartType addExplicitType;
+
+  NodeChangeForFieldFormalParameter() : super._();
+
+  @override
+  Iterable<String> get _toStringParts =>
+      [if (addExplicitType != null) 'addExplicitType'];
+
+  @override
+  EditPlan _apply(FieldFormalParameter node, FixAggregator aggregator) {
+    if (addExplicitType != null) {
+      var typeText = aggregator.typeToCode(addExplicitType);
+      // Even a field formal parameter can use `var`, `final`.
+      if (node.keyword?.keyword == Keyword.VAR) {
+        // TODO(srawlins): Test instrumentation info.
+        var info =
+            AtomicEditInfo(NullabilityFixDescription.replaceVar(typeText), {});
+        return aggregator.planner.passThrough(node, innerPlans: [
+          aggregator.planner
+              .replaceToken(node, node.keyword, typeText, info: info),
+          ...aggregator.innerPlansForNode(node),
+        ]);
+      } else {
+        // TODO(srawlins): Test instrumentation info.
+        var info =
+            AtomicEditInfo(NullabilityFixDescription.addType(typeText), {});
+        var offset = node.thisKeyword.offset;
+        return aggregator.planner.passThrough(node, innerPlans: [
+          aggregator.planner.insertText(node, offset, [
+            AtomicEdit.insert(typeText, info: info),
+            AtomicEdit.insert(' ')
+          ]),
+          ...aggregator.innerPlansForNode(node),
+        ]);
+      }
+    } else {
+      return super._apply(node, aggregator);
+    }
+  }
+}
+
+/// Implementation of [NodeChange] specialized for operating on
+/// [FunctionTypedFormalParameter] nodes.
+class NodeChangeForFunctionTypedFormalParameter
+    extends NodeChangeForType<FunctionTypedFormalParameter> {
+  NodeChangeForFunctionTypedFormalParameter() : super._();
+}
+
 /// Implementation of [NodeChange] specialized for operating on [IfElement]
 /// nodes.
 class NodeChangeForIfElement extends NodeChange<IfElement>
@@ -795,17 +849,35 @@ class NodeChangeForSimpleFormalParameter
   EditPlan _apply(SimpleFormalParameter node, FixAggregator aggregator) {
     var innerPlan = aggregator.innerPlanForNode(node);
     if (addExplicitType == null) return innerPlan;
-    return aggregator.planner.surround(innerPlan, prefix: [
-      AtomicEdit.insert(
-          addExplicitType.getDisplayString(withNullability: true)),
-      AtomicEdit.insert(' ')
-    ]);
+    var typeText = aggregator.typeToCode(addExplicitType);
+    if (node.keyword?.keyword == Keyword.VAR) {
+      // TODO(srawlins): Test instrumentation info.
+      var info =
+          AtomicEditInfo(NullabilityFixDescription.replaceVar(typeText), {});
+      return aggregator.planner.passThrough(node, innerPlans: [
+        aggregator.planner
+            .replaceToken(node, node.keyword, typeText, info: info),
+        ...aggregator.innerPlansForNode(node),
+      ]);
+    } else {
+      // TODO(srawlins): Test instrumentation info.
+      var info =
+          AtomicEditInfo(NullabilityFixDescription.addType(typeText), {});
+      // Skip past the offset of any metadata, a potential `final` keyword, and
+      // a potential `covariant` keyword.
+      var offset = node.type?.offset ?? node.identifier.offset;
+      return aggregator.planner.passThrough(node, innerPlans: [
+        aggregator.planner.insertText(node, offset,
+            [AtomicEdit.insert(typeText, info: info), AtomicEdit.insert(' ')]),
+        ...aggregator.innerPlansForNode(node),
+      ]);
+    }
   }
 }
 
-/// Implementation of [NodeChange] specialized for operating on [TypeAnnotation]
-/// nodes.
-class NodeChangeForTypeAnnotation extends NodeChange<TypeAnnotation> {
+/// Implementation of [NodeChange] specialized for operating on nodes which
+/// represent a type, and can be made and hinted nullable and non-nullable.
+abstract class NodeChangeForType<N extends AstNode> extends NodeChange<N> {
   bool _makeNullable = false;
 
   HintComment _nullabilityHint;
@@ -813,11 +885,11 @@ class NodeChangeForTypeAnnotation extends NodeChange<TypeAnnotation> {
   /// The decorated type of the type annotation, or `null` if there is no
   /// decorated type info of interest.  If [makeNullable] is `true`, the node
   /// from this type will be attached to the edit that adds the `?`. If
-  /// [_makeNullable] is `false`, the node from this type will be attached to the
-  /// information about why the node wasn't made nullable.
+  /// [_makeNullable] is `false`, the node from this type will be attached to
+  /// the information about why the node wasn't made nullable.
   DecoratedType _decoratedType;
 
-  NodeChangeForTypeAnnotation() : super._();
+  NodeChangeForType._() : super._();
 
   @override
   bool get isInformative => !_makeNullable;
@@ -843,7 +915,7 @@ class NodeChangeForTypeAnnotation extends NodeChange<TypeAnnotation> {
   }
 
   @override
-  EditPlan _apply(TypeAnnotation node, FixAggregator aggregator) {
+  EditPlan _apply(N node, FixAggregator aggregator) {
     var innerPlan = aggregator.innerPlanForNode(node);
     if (_decoratedType == null) return innerPlan;
     var typeName = _decoratedType.type.getDisplayString(withNullability: false);
@@ -880,6 +952,12 @@ class NodeChangeForTypeAnnotation extends NodeChange<TypeAnnotation> {
       }
     }
   }
+}
+
+/// Implementation of [NodeChange] specialized for operating on [TypeAnnotation]
+/// nodes.
+class NodeChangeForTypeAnnotation extends NodeChangeForType<TypeAnnotation> {
+  NodeChangeForTypeAnnotation() : super._();
 }
 
 /// Implementation of [NodeChange] specialized for operating on
@@ -921,7 +999,7 @@ class NodeChangeForVariableDeclarationList
           [AtomicEdit.insert('late', info: info), AtomicEdit.insert(' ')]));
     }
     if (addExplicitType != null) {
-      var typeText = addExplicitType.getDisplayString(withNullability: true);
+      var typeText = aggregator.typeToCode(addExplicitType);
       if (node.keyword?.keyword == Keyword.VAR) {
         var info =
             AtomicEditInfo(NullabilityFixDescription.replaceVar(typeText), {});
@@ -977,6 +1055,15 @@ class _NodeChangeVisitor extends GeneralizingAstVisitor<NodeChange<AstNode>> {
 
   @override
   NodeChange visitExpression(Expression node) => NodeChangeForExpression();
+
+  @override
+  NodeChange visitFieldFormalParameter(FieldFormalParameter node) =>
+      NodeChangeForFieldFormalParameter();
+
+  @override
+  NodeChange visitFunctionTypedFormalParameter(
+          FunctionTypedFormalParameter node) =>
+      NodeChangeForFunctionTypedFormalParameter();
 
   @override
   NodeChange visitGenericFunctionType(GenericFunctionType node) =>

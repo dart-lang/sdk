@@ -216,7 +216,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   static bool TryAcquireMarkBit(ObjectPtr raw_obj) {
     if (FLAG_write_protect_code && raw_obj->IsInstructions()) {
       // A non-writable alias mapping may exist for instruction pages.
-      raw_obj = HeapPage::ToWritable(raw_obj);
+      raw_obj = OldPage::ToWritable(raw_obj);
     }
     if (!sync) {
       raw_obj->ptr()->SetMarkBitUnsynchronized();
@@ -332,21 +332,28 @@ void GCMarker::Epilogue() {}
 
 enum RootSlices {
   kIsolate = 0,
-  kNewSpace = 1,
-  kNumRootSlices = 2,
+  kNumFixedRootSlices = 1,
 };
 
 void GCMarker::ResetSlices() {
+  ASSERT(Thread::Current()->IsAtSafepoint());
+
   root_slices_started_ = 0;
   root_slices_finished_ = 0;
+  root_slices_count_ = kNumFixedRootSlices;
+  new_page_ = heap_->new_space()->head();
+  for (NewPage* p = new_page_; p != nullptr; p = p->next()) {
+    root_slices_count_++;
+  }
+
   weak_slices_started_ = 0;
 }
 
 void GCMarker::IterateRoots(ObjectPointerVisitor* visitor) {
   for (;;) {
     intptr_t slice = root_slices_started_.fetch_add(1);
-    if (slice >= kNumRootSlices) {
-      return;  // No more slices.
+    if (slice >= root_slices_count_) {
+      break;  // No more slices.
     }
 
     switch (slice) {
@@ -357,18 +364,22 @@ void GCMarker::IterateRoots(ObjectPointerVisitor* visitor) {
             visitor, ValidationPolicy::kDontValidateFrames);
         break;
       }
-      case kNewSpace: {
+      default: {
+        NewPage* page;
+        {
+          MonitorLocker ml(&root_slices_monitor_);
+          page = new_page_;
+          ASSERT(page != nullptr);
+          new_page_ = page->next();
+        }
         TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ProcessNewSpace");
-        heap_->new_space()->VisitObjectPointers(visitor);
-        break;
+        page->VisitObjectPointers(visitor);
       }
-      default:
-        UNREACHABLE();
     }
 
     MonitorLocker ml(&root_slices_monitor_);
     root_slices_finished_++;
-    if (root_slices_finished_ == kNumRootSlices) {
+    if (root_slices_finished_ == root_slices_count_) {
       ml.Notify();
     }
   }
@@ -759,7 +770,7 @@ void GCMarker::StartConcurrentMark(PageSpace* page_space) {
 
   // Wait for roots to be marked before exiting safepoint.
   MonitorLocker ml(&root_slices_monitor_);
-  while (root_slices_finished_ != kNumRootSlices) {
+  while (root_slices_finished_ != root_slices_count_) {
     ml.Wait();
   }
 }

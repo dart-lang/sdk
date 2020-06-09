@@ -13,7 +13,7 @@ main() {
   new Foo.bar();
   new Foo.bar.baz();
   //  ^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
+  // [analyzer] STATIC_WARNING.NEW_WITH_NON_TYPE
   //          ^
   // [cfe] Method not found: 'Foo.bar.baz'.
   new Foo<int>();
@@ -33,13 +33,13 @@ main() {
   new Foo.bar<int>.baz();
   //      ^
   // [cfe] A constructor invocation can't have type arguments on the constructor name.
-  //         ^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
+  //  ^^^^^^^
+  // [analyzer] STATIC_WARNING.NEW_WITH_NON_TYPE
   //               ^
   // [cfe] Method not found: 'Foo.bar.baz'.
   new Foo.bar.baz<int>();
   //  ^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
+  // [analyzer] STATIC_WARNING.NEW_WITH_NON_TYPE
   //          ^^^
   // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   // [cfe] A constructor invocation can't have type arguments on the constructor name.
@@ -50,7 +50,7 @@ main() {
   const Foo.bar();
   const Foo.bar.baz();
   //    ^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
+  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_TYPE
   //            ^
   // [cfe] Method not found: 'Foo.bar.baz'.
   const Foo<int>();
@@ -70,13 +70,13 @@ main() {
   const Foo.bar<int>.baz();
   //        ^
   // [cfe] A constructor invocation can't have type arguments on the constructor name.
-  //           ^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
+  //    ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_TYPE
   //                 ^
   // [cfe] Method not found: 'Foo.bar.baz'.
   const Foo.bar.baz<int>();
   //    ^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
+  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_TYPE
   //            ^^^
   // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   // [cfe] A constructor invocation can't have type arguments on the constructor name.
@@ -106,8 +106,8 @@ main() {
   Foo.bar<int>.baz();
   //  ^
   // [cfe] A constructor invocation can't have type arguments on the constructor name.
-  //     ^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
+//^^^^^^^
+// [analyzer] STATIC_WARNING.NEW_WITH_NON_TYPE
   //           ^
   // [cfe] Method not found: 'Foo.bar.baz'.
   Foo.bar.baz<int>();

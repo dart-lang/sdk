@@ -568,10 +568,12 @@ class FlowGraphCompiler : public ValueObject {
                      Representation src_type,
                      TemporaryRegisterAllocator* temp);
 
+  bool CheckAssertAssignableTypeTestingABILocations(
+      const LocationSummary& locs);
+
   void GenerateAssertAssignable(CompileType* receiver_type,
                                 TokenPosition token_pos,
                                 intptr_t deopt_id,
-                                const AbstractType& dst_type,
                                 const String& dst_name,
                                 LocationSummary* locs);
 
@@ -583,7 +585,6 @@ class FlowGraphCompiler : public ValueObject {
   void GenerateAssertAssignableViaTypeTestingStub(CompileType* receiver_type,
                                                   TokenPosition token_pos,
                                                   intptr_t deopt_id,
-                                                  const AbstractType& dst_type,
                                                   const String& dst_name,
                                                   LocationSummary* locs);
 
@@ -966,7 +967,6 @@ class FlowGraphCompiler : public ValueObject {
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
   friend class CheckedSmiSlowPath;          // Same.
   friend class CheckedSmiComparisonSlowPath;  // Same.
-  friend class InitInstanceFieldInstr;        // Same.
 
   // Architecture specific implementation of simple native moves.
   void EmitNativeMoveArchitecture(const compiler::ffi::NativeLocation& dst,
@@ -1094,7 +1094,6 @@ class FlowGraphCompiler : public ValueObject {
                                         intptr_t type_arguments_field_offset);
 
   void GenerateGetterIntrinsic(intptr_t offset);
-  void GenerateSetterIntrinsic(intptr_t offset);
 
   // Perform a greedy local register allocation.  Consider all registers free.
   void AllocateRegistersLocally(Instruction* instr);

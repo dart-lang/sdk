@@ -18,8 +18,8 @@ const int fromIsolateSize = 100 * 1024 * 1024;
 
 const int nIterations = 5;
 
-int iteration;
-bool keepTimerRunning;
+int iteration = -1;
+bool keepTimerRunning = false;
 
 main() async {
   keepTimerRunning = true;
@@ -37,19 +37,12 @@ main() async {
   final transferable = stopwatch.elapsedMilliseconds;
   print(
       'standard($standard ms)/transferable($transferable ms): ${standard / transferable}x');
-  Expect.isTrue(standard / transferable > 1.2);
   keepTimerRunning = false;
 }
 
 packageList(Uint8List data, bool useTransferable) {
   return useTransferable
       ? TransferableTypedData.fromList(<Uint8List>[data])
-      : data;
-}
-
-packageByteData(ByteData data, bool useTransferable) {
-  return useTransferable
-      ? TransferableTypedData.fromList(<Uint8List>[data.buffer.asUint8List()])
       : data;
 }
 
@@ -60,7 +53,7 @@ class StartMessage {
   StartMessage(this.sendPort, this.useTransferable);
 }
 
-runBatch({bool useTransferable}) async {
+runBatch({required bool useTransferable}) async {
   Timer.run(idleTimer);
   final port = ReceivePort();
   final inbox = StreamIterator<dynamic>(port);
@@ -71,7 +64,7 @@ runBatch({bool useTransferable}) async {
   final workerExitedPort = ReceivePort()
     ..listen((_) => workerCompleted.complete(true));
   worker.addOnExitListener(workerExitedPort.sendPort);
-  worker.resume(worker.pauseCapability);
+  worker.resume(worker.pauseCapability!);
 
   await inbox.moveNext();
   final outbox = inbox.current;
@@ -85,11 +78,15 @@ runBatch({bool useTransferable}) async {
     await inbox.moveNext();
 
     final received = inbox.current;
-    final receivedData =
-        received is TransferableTypedData ? received.materialize() : received;
+    final receivedData = received is TransferableTypedData
+        ? received.materialize().asUint8List()
+        : received;
+
     int time = workWatch.elapsedMilliseconds;
     print('${time}ms for round-trip');
     workWatch.reset();
+
+    Expect.equals(data.length, receivedData.length);
   }
   outbox.send(null);
 

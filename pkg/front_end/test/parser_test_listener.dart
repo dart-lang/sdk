@@ -519,8 +519,15 @@ class ParserTestListener implements Listener {
         '$kind)');
   }
 
-  void endClassFields(Token staticToken, Token covariantToken, Token lateToken,
-      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+  void endClassFields(
+      Token externalToken,
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
     indent--;
     seen(staticToken);
     seen(covariantToken);
@@ -538,8 +545,15 @@ class ParserTestListener implements Listener {
         '$endToken)');
   }
 
-  void endMixinFields(Token staticToken, Token covariantToken, Token lateToken,
-      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+  void endMixinFields(
+      Token externalToken,
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
     indent--;
     seen(staticToken);
     seen(covariantToken);
@@ -558,6 +572,7 @@ class ParserTestListener implements Listener {
   }
 
   void endExtensionFields(
+      Token externalToken,
       Token staticToken,
       Token covariantToken,
       Token lateToken,
@@ -1423,6 +1438,7 @@ class ParserTestListener implements Listener {
   }
 
   void endTopLevelFields(
+      Token externalToken,
       Token staticToken,
       Token covariantToken,
       Token lateToken,
@@ -2094,6 +2110,7 @@ class ParserTestListener implements Listener {
 
   void handleErrorToken(ErrorToken token) {
     doPrint('handleErrorToken(' '$token)');
+    handleRecoverableError(token.assertionMessage, token, token);
   }
 
   void handleUnescapeError(

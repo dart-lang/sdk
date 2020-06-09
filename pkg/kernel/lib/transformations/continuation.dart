@@ -15,17 +15,33 @@ import 'async.dart';
 
 class ContinuationVariables {
   static const awaitJumpVar = ':await_jump_var';
-  static const asyncCompleter = ':async_completer';
   static const awaitContextVar = ':await_ctx_var';
+  static const asyncCompleter = ':async_completer';
+  static const asyncOp = ':async_op';
+  static const asyncOpThen = ':async_op_then';
+  static const asyncOpError = ':async_op_error';
   static const asyncStackTraceVar = ':async_stack_trace';
   static const controller = ':controller';
   static const controllerStreamVar = ':controller_stream';
+  static const forIterator = ':for-iterator';
+  static const returnValue = ':return_value';
+  static const stream = ':stream';
+  static const syncForIterator = ':sync-for-iterator';
+  static const syncOpGen = ':sync_op_gen';
+  // sync_op(..) parameter.
+  static const iteratorParam = ':iterator';
+  // async_op(..) parameters.
   static const exceptionParam = ':exception';
   static const stackTraceParam = ':stack_trace';
 
-  static String savedTryContextVar(int depth) => ':saved_try_context_var$depth';
-  static String exceptionVar(int depth) => ':exception$depth';
-  static String stackTraceVar(int depth) => ':stack_trace$depth';
+  static const savedTryContextVarPrefix = ':saved_try_context_var';
+  static const exceptionVarPrefix = ':exception';
+  static const stackTraceVarPrefix = ':stack_trace';
+
+  static String savedTryContextVar(int depth) =>
+      '$savedTryContextVarPrefix$depth';
+  static String exceptionVar(int depth) => '$exceptionVarPrefix$depth';
+  static String stackTraceVar(int depth) => '$stackTraceVarPrefix$depth';
 }
 
 void transformLibraries(
@@ -63,10 +79,10 @@ Procedure transformProcedure(
 class RecursiveContinuationRewriter extends Transformer {
   final HelperNodes helper;
 
-  final VariableDeclaration asyncJumpVariable = new VariableDeclaration(
+  final VariableDeclaration awaitJumpVariable = new VariableDeclaration(
       ContinuationVariables.awaitJumpVar,
       initializer: new IntLiteral(0));
-  final VariableDeclaration asyncContextVariable =
+  final VariableDeclaration awaitContextVariable =
       new VariableDeclaration(ContinuationVariables.awaitContextVar);
 
   StatefulStaticTypeContext staticTypeContext;
@@ -148,7 +164,7 @@ class RecursiveContinuationRewriter extends Transformer {
     //  {
     //    final Iterator<T> :sync-for-iterator = <iterable>.iterator;
     //    for (; :sync-for-iterator.moveNext() ;) {
-    //        {var/final} T variable = :iterator.current;
+    //        {var/final} T variable = :sync-for-iterator.current;
     //        ...
     //      }
     //    }
@@ -188,25 +204,26 @@ class RecursiveContinuationRewriter extends Transformer {
     final iteratorType = InterfaceType(coreTypes.iteratorClass,
         staticTypeContext.nonNullable, [iterationType]);
 
-    final iterator = VariableDeclaration(':sync-for-iterator',
+    final syncForIterator = VariableDeclaration(
+        ContinuationVariables.syncForIterator,
         initializer: PropertyGet(
             stmt.iterable, Name('iterator'), coreTypes.iterableGetIterator)
           ..fileOffset = stmt.iterable.fileOffset,
         type: iteratorType)
       ..fileOffset = stmt.iterable.fileOffset;
 
-    final condition = MethodInvocation(VariableGet(iterator), Name('moveNext'),
-        Arguments([]), coreTypes.iteratorMoveNext)
+    final condition = MethodInvocation(VariableGet(syncForIterator),
+        Name('moveNext'), Arguments([]), coreTypes.iteratorMoveNext)
       ..fileOffset = stmt.iterable.fileOffset;
 
     final variable = stmt.variable
-      ..initializer = (PropertyGet(
-          VariableGet(iterator), Name('current'), coreTypes.iteratorGetCurrent)
+      ..initializer = (PropertyGet(VariableGet(syncForIterator),
+          Name('current'), coreTypes.iteratorGetCurrent)
         ..fileOffset = stmt.bodyOffset);
 
     final Block body = Block([variable, stmt.body]);
 
-    return Block([iterator, ForStatement([], condition, [], body)])
+    return Block([syncForIterator, ForStatement([], condition, [], body)])
         .accept<TreeNode>(this);
   }
 }
@@ -299,60 +316,142 @@ abstract class ContinuationRewriterBase extends RecursiveContinuationRewriter {
           ]);
 
   List<VariableDeclaration> variableDeclarations() {
-    asyncJumpVariable.type = staticTypeContext.typeEnvironment.coreTypes
+    awaitJumpVariable.type = staticTypeContext.typeEnvironment.coreTypes
         .intRawType(staticTypeContext.nonNullable);
-    return [asyncJumpVariable, asyncContextVariable]
+    return [awaitJumpVariable, awaitContextVariable]
       ..addAll(createCapturedTryVariables())
       ..addAll(createCapturedCatchVariables());
   }
 }
 
+// Transformer that rewrites all variable references to a given function's
+// parameters.
+// This allows us to e.g. "shadow" the original parameter variables with copies
+// unique to given sub-closure to prevent shared variables being overwritten.
+class ShadowRewriter extends Transformer {
+  final enclosingFunction;
+  Map<VariableDeclaration, VariableDeclaration> _shadowedParameters = {};
+
+  ShadowRewriter(this.enclosingFunction) {
+    for (final parameter in enclosingFunction.positionalParameters
+        .followedBy(enclosingFunction.namedParameters)) {
+      // Put in placeholers so we can allocate new variables lazily- i.e. only
+      // if they're later referenced.
+      _shadowedParameters[parameter] = null;
+    }
+  }
+
+  // Return all used parameters.
+  Iterable<VariableDeclaration> get shadowedParameters =>
+      _shadowedParameters.values.where((e) => e != null);
+
+  VariableDeclaration _rewrite(VariableDeclaration variable) {
+    if (_shadowedParameters.containsKey(variable)) {
+      // Fill in placeholder.
+      if (_shadowedParameters[variable] == null) {
+        _shadowedParameters[variable] = VariableDeclaration(
+          variable.name,
+          type: variable.type,
+          initializer: VariableGet(variable),
+        );
+      }
+      variable = _shadowedParameters[variable];
+    }
+    return variable;
+  }
+
+  @override
+  TreeNode visitVariableGet(VariableGet node) {
+    node = super.visitVariableGet(node);
+    return node..variable = _rewrite(node.variable);
+  }
+
+  @override
+  TreeNode visitVariableSet(VariableSet node) {
+    node = super.visitVariableSet(node);
+    return node..variable = _rewrite(node.variable);
+  }
+}
+
 class SyncStarFunctionRewriter extends ContinuationRewriterBase {
-  final VariableDeclaration iteratorVariable;
+  final VariableDeclaration iteratorParameter;
 
   SyncStarFunctionRewriter(HelperNodes helper, FunctionNode enclosingFunction,
       StatefulStaticTypeContext staticTypeContext)
-      : iteratorVariable = new VariableDeclaration(':iterator')
-          ..type = new InterfaceType(
-              helper.syncIteratorClass, staticTypeContext.nullable, [
-            ContinuationRewriterBase.elementTypeFrom(
-                helper.iterableClass, enclosingFunction.returnType)
-          ]),
+      : iteratorParameter =
+            VariableDeclaration(ContinuationVariables.iteratorParam)
+              ..type = InterfaceType(
+                  helper.syncIteratorClass, staticTypeContext.nullable, [
+                ContinuationRewriterBase.elementTypeFrom(
+                    helper.iterableClass, enclosingFunction.returnType)
+              ]),
         super(helper, enclosingFunction, staticTypeContext);
 
   FunctionNode rewrite() {
-    // :sync_op(:iterator) {
-    //     modified <node.body>;
-    // }
+    // We need to preserve the original parameters passed to the sync* function
+    // because each iteration should start from those parameters. To achieve
+    // this we shadow the original parameters with new variables (which are
+    // initialised to the original parameter values) and rewrite
+    // the body to use these variables instead.
+    final shadowRewriter = ShadowRewriter(enclosingFunction);
+    enclosingFunction.body =
+        enclosingFunction.body.accept<TreeNode>(shadowRewriter);
 
-    // Note: SyncYielding functions have no Dart equivalent. Since they are
-    // synchronous, we use Sync. (Note also that the Dart VM backend uses the
-    // Dart async marker to decide if functions are debuggable.)
-    final nestedClosureVariable = new VariableDeclaration(":sync_op");
-    final function = new FunctionNode(buildClosureBody(),
-        positionalParameters: [iteratorVariable],
+    final syncOpType = FunctionType([iteratorParameter.type],
+        helper.coreTypes.boolLegacyRawType, staticTypeContext.nonNullable);
+
+    final syncOpGenVariable = VariableDeclaration(
+        ContinuationVariables.syncOpGen,
+        type: FunctionType([], syncOpType, staticTypeContext.nonNullable));
+
+    // TODO(cskau): Figure out why inlining this below causes segfaults.
+    // Maybe related to http://dartbug.com/41596 ?
+    final syncOpFN = FunctionNode(buildClosureBody(),
+        positionalParameters: [iteratorParameter],
         requiredParameterCount: 1,
         asyncMarker: AsyncMarker.SyncYielding,
-        dartAsyncMarker: AsyncMarker.Sync)
+        dartAsyncMarker: AsyncMarker.Sync,
+        returnType: helper.coreTypes.boolLegacyRawType)
       ..fileOffset = enclosingFunction.fileOffset
-      ..fileEndOffset = enclosingFunction.fileEndOffset
-      ..returnType = helper.coreTypes.boolLegacyRawType;
+      ..fileEndOffset = enclosingFunction.fileEndOffset;
 
-    final closureFunction =
-        new FunctionDeclaration(nestedClosureVariable, function)
-          ..fileOffset = enclosingFunction.parent.fileOffset;
+    enclosingFunction.body = Block([
+      // :sync_op_gen() {
+      //   :await_jump_var;
+      //   :await_ctx_var;
+      //   return bool (:iterator) yielding {
+      //     modified <node.body> ...
+      //   };
+      // }
+      // Note: SyncYielding functions have no Dart equivalent. Since they are
+      // synchronous, we use Sync. (Note also that the Dart VM backend uses
+      // the Dart async marker to decide if functions are debuggable.)
+      FunctionDeclaration(
+          syncOpGenVariable,
+          FunctionNode(
+              Block([
+                // :await_jump_var, :await_ctx_var.
+                ...variableDeclarations(),
+                // Shadow any used function parameters with local copies.
+                ...shadowRewriter.shadowedParameters,
+                ReturnStatement(FunctionExpression(syncOpFN)),
+              ]),
+              returnType: syncOpType)),
 
-    // return new _SyncIterable<T>(:sync_body);
-    final arguments = new Arguments([new VariableGet(nestedClosureVariable)],
-        types: [elementTypeFromReturnType(helper.iterableClass)]);
-    final returnStatement = new ReturnStatement(
-        new ConstructorInvocation(helper.syncIterableConstructor, arguments));
+      // return _SyncIterable<T>(:sync_op_gen);
+      ReturnStatement(ConstructorInvocation(
+          helper.syncIterableConstructor,
+          Arguments([
+            VariableGet(syncOpGenVariable)
+          ], types: [
+            ContinuationRewriterBase.elementTypeFrom(
+                helper.iterableClass, enclosingFunction.returnType)
+          ]))),
+    ]);
 
-    enclosingFunction.body = new Block([]
-      ..addAll(variableDeclarations())
-      ..addAll([closureFunction, returnStatement]));
     enclosingFunction.body.parent = enclosingFunction;
     enclosingFunction.asyncMarker = AsyncMarker.Sync;
+
     return enclosingFunction;
   }
 
@@ -374,14 +473,14 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
     var statements = <Statement>[];
     if (node.isYieldStar) {
       statements.add(new ExpressionStatement(new PropertySet(
-          new VariableGet(iteratorVariable),
-          new Name("_yieldEachIterable", helper.coreLibrary),
+          VariableGet(iteratorParameter),
+          new Name('_yieldEachIterable', helper.coreLibrary),
           transformedExpression,
           helper.syncIteratorYieldEachIterable)));
     } else {
       statements.add(new ExpressionStatement(new PropertySet(
-          new VariableGet(iteratorVariable),
-          new Name("_current", helper.coreLibrary),
+          VariableGet(iteratorParameter),
+          new Name('_current', helper.coreLibrary),
           transformedExpression,
           helper.syncIteratorCurrent)));
     }
@@ -419,21 +518,25 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       StaticTypeContext staticTypeContext)
       : stackTraceVariable =
             VariableDeclaration(ContinuationVariables.asyncStackTraceVar),
-        nestedClosureVariable = VariableDeclaration(":async_op",
+        nestedClosureVariable = VariableDeclaration(
+            ContinuationVariables.asyncOp,
             type: FunctionType([
               const DynamicType(),
               const DynamicType(),
               helper.coreTypes.stackTraceRawType(staticTypeContext.nullable),
             ], const DynamicType(), staticTypeContext.nonNullable,
                 requiredParameterCount: 0)),
-        thenContinuationVariable = VariableDeclaration(":async_op_then",
+        thenContinuationVariable = VariableDeclaration(
+            ContinuationVariables.asyncOpThen,
             type: FunctionType(const [const DynamicType()], const DynamicType(),
                 staticTypeContext.nonNullable)),
-        catchErrorContinuationVariable = VariableDeclaration(":async_op_error",
-            type: FunctionType([
-              helper.coreTypes.objectRawType(staticTypeContext.nonNullable),
-              helper.coreTypes.stackTraceRawType(staticTypeContext.nonNullable),
-            ], const DynamicType(), staticTypeContext.nonNullable)),
+        catchErrorContinuationVariable =
+            VariableDeclaration(ContinuationVariables.asyncOpError,
+                type: FunctionType([
+                  helper.coreTypes.objectRawType(staticTypeContext.nonNullable),
+                  helper.coreTypes
+                      .stackTraceRawType(staticTypeContext.nonNullable),
+                ], const DynamicType(), staticTypeContext.nonNullable)),
         super(helper, enclosingFunction, staticTypeContext) {}
 
   void setupAsyncContinuations(List<Statement> statements) {
@@ -512,8 +615,8 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       ..parent = labeledBody;
     --currentTryDepth;
 
-    var exceptionVariable = new VariableDeclaration(":exception");
-    var stackTraceVariable = new VariableDeclaration(":stack_trace",
+    var exceptionVariable = VariableDeclaration('exception');
+    var stackTraceVariable = VariableDeclaration('stack_trace',
         type:
             helper.coreTypes.stackTraceRawType(staticTypeContext.nonNullable));
 
@@ -884,7 +987,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       //   }
       var valueVariable = stmt.variable;
 
-      var streamVariable = new VariableDeclaration(':stream',
+      var streamVariable = new VariableDeclaration(ContinuationVariables.stream,
           initializer: stmt.iterable,
           type: stmt.iterable.getStaticType(staticTypeContext));
 
@@ -895,7 +998,8 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
             new VariableGet(nestedClosureVariable)
           ])));
 
-      var iteratorVariable = new VariableDeclaration(':for-iterator',
+      var forIteratorVariable = VariableDeclaration(
+          ContinuationVariables.forIterator,
           initializer: new ConstructorInvocation(
               helper.streamIteratorConstructor,
               new Arguments(<Expression>[new VariableGet(streamVariable)],
@@ -905,7 +1009,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
 
       // await :for-iterator.moveNext()
       var condition = new AwaitExpression(new MethodInvocation(
-          new VariableGet(iteratorVariable),
+          VariableGet(forIteratorVariable),
           new Name('moveNext'),
           new Arguments(<Expression>[]),
           helper.streamIteratorMoveNext))
@@ -929,7 +1033,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
 
       // T <variable> = :for-iterator.current;
       valueVariable.initializer = new PropertyGet(
-          new VariableGet(iteratorVariable),
+          VariableGet(forIteratorVariable),
           new Name('current'),
           helper.streamIteratorCurrent)
         ..fileOffset = stmt.bodyOffset;
@@ -942,14 +1046,14 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       var tryFinalizer = new IfStatement(
           new Not(new MethodInvocation(
               new PropertyGet(
-                  new VariableGet(iteratorVariable),
-                  new Name("_subscription", helper.asyncLibrary),
+                  VariableGet(forIteratorVariable),
+                  new Name('_subscription', helper.asyncLibrary),
                   helper.coreTypes.streamIteratorSubscription),
-              new Name("=="),
+              new Name('=='),
               new Arguments([new NullLiteral()]),
               helper.coreTypes.objectEquals)),
           new ExpressionStatement(new AwaitExpression(new MethodInvocation(
-              new VariableGet(iteratorVariable),
+              VariableGet(forIteratorVariable),
               new Name('cancel'),
               new Arguments(<Expression>[]),
               helper.streamIteratorCancel))),
@@ -960,7 +1064,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       var block = new Block(<Statement>[
         streamVariable,
         asyncStarListenHelper,
-        iteratorVariable,
+        forIteratorVariable,
         tryFinally
       ]);
       block.accept<TreeNode>(this);
@@ -1047,7 +1151,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     return null;
   }
 
-  defaultExpression(TreeNode node) => throw 'unreachable';
+  defaultExpression(TreeNode node) => throw 'unreachable $node';
 }
 
 class AsyncStarFunctionRewriter extends AsyncRewriterBase {
@@ -1112,7 +1216,7 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
 
     var finallyBody = new ExpressionStatement(new MethodInvocation(
         new VariableGet(controllerVariable),
-        new Name("close"),
+        new Name('close'),
         new Arguments(<Expression>[]),
         helper.asyncStarStreamControllerClose));
 
@@ -1123,7 +1227,7 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
   Statement buildCatchBody(exceptionVariable, stackTraceVariable) {
     return new ExpressionStatement(new MethodInvocation(
         new VariableGet(controllerVariable),
-        new Name("addError"),
+        new Name('addError'),
         new Arguments(<Expression>[
           new VariableGet(exceptionVariable),
           new VariableGet(stackTraceVariable)
@@ -1195,7 +1299,8 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
     final completerType = new InterfaceType(helper.asyncAwaitCompleterClass,
         staticTypeContext.nonNullable, completerTypeArguments);
     // final Completer<T> :async_completer = new _AsyncAwaitCompleter<T>();
-    completerVariable = new VariableDeclaration(":async_completer",
+    completerVariable = new VariableDeclaration(
+        ContinuationVariables.asyncCompleter,
         initializer: new ConstructorInvocation(
             helper.asyncAwaitCompleterConstructor,
             new Arguments([], types: completerTypeArguments))
@@ -1204,7 +1309,8 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
         type: completerType);
     statements.add(completerVariable);
 
-    returnVariable = new VariableDeclaration(":return_value", type: returnType);
+    returnVariable = new VariableDeclaration(ContinuationVariables.returnValue,
+        type: returnType);
     statements.add(returnVariable);
 
     setupAsyncContinuations(statements);
@@ -1232,7 +1338,7 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
   Statement buildCatchBody(exceptionVariable, stackTraceVariable) {
     return new ExpressionStatement(new MethodInvocation(
         new VariableGet(completerVariable),
-        new Name("completeError"),
+        new Name('completeError'),
         new Arguments([
           new VariableGet(exceptionVariable),
           new VariableGet(stackTraceVariable)

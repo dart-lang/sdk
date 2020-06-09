@@ -9,8 +9,8 @@ static method main() → dynamic {
   core::bool #lateLocal#isSet = false;
   function #lateLocal#get() → core::int? {
     if(!#lateLocal#isSet) {
-      #lateLocal#isSet = true;
       lateLocal = self::lateLocalInit();
+      #lateLocal#isSet = true;
     }
     return lateLocal;
   }
@@ -26,8 +26,8 @@ static method main() → dynamic {
     core::bool #lateGenericLocal#isSet = false;
     function #lateGenericLocal#get() → T? {
       if(!#lateGenericLocal#isSet) {
-        #lateGenericLocal#isSet = true;
         lateGenericLocal = value1;
+        #lateGenericLocal#isSet = true;
       }
       return lateGenericLocal;
     }

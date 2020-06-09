@@ -9,6 +9,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nullability_state.dart';
+import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/nullability_node_target.dart';
 import 'package:nnbd_migration/src/postmortem_file.dart';
@@ -78,13 +79,6 @@ enum LateCondition {
   /// late, due to being assigned in a function passed to a call to the test
   /// package's `setUp` function.
   possiblyLateDueToTestSetup,
-}
-
-/// Abstract interface for assigning ids numbers to nodes.  This allows us to
-/// annotate nodes with their ids when analyzing postmortem output.
-abstract class NodeToIdMapper {
-  /// Gets the id corresponding to the given [node].
-  int idForNode(NullabilityNode node);
 }
 
 /// Data structure to keep track of the relationship from one [NullabilityNode]
@@ -549,7 +543,7 @@ class NullabilityGraphDeserializer implements NodeToIdMapper {
   }
 
   @override
-  int idForNode(NullabilityNode node) => _nodeToIdMap[node];
+  int idForNode(NullabilityNodeInfo node) => _nodeToIdMap[node];
 
   /// Gets the node having the given [id], deserializing it if it hasn't been
   /// deserialized already.
@@ -704,6 +698,9 @@ class NullabilityGraphSerializer {
 /// of the nullability inference graph.
 abstract class NullabilityNode implements NullabilityNodeInfo {
   LateCondition _lateCondition = LateCondition.notLate;
+
+  @override
+  final hintActions = <HintActionKind, Map<int, List<AtomicEdit>>>{};
 
   bool _isPossiblyOptional = false;
 
@@ -1245,8 +1242,12 @@ class UpstreamPropagationStep extends PropagationStep
   /// any.
   final NullabilityEdge edge;
 
+  @override
+  final bool isStartingPoint;
+
   UpstreamPropagationStep(
-      this.principalCause, this.node, this.newNonNullIntent, this.edge);
+      this.principalCause, this.node, this.newNonNullIntent, this.edge,
+      {this.isStartingPoint = false});
 
   UpstreamPropagationStep.fromJson(
       dynamic json, NullabilityGraphDeserializer deserializer)
@@ -1254,7 +1255,8 @@ class UpstreamPropagationStep extends PropagationStep
             as UpstreamPropagationStep,
         node = deserializer.nodeForId(json['node'] as int),
         newNonNullIntent = NonNullIntent.fromJson(json['newState']),
-        edge = deserializer.edgeForId(json['edge'] as int);
+        edge = deserializer.edgeForId(json['edge'] as int),
+        isStartingPoint = json['isStartingPoint'] as bool ?? false;
 
   @override
   CodeReference get codeReference => edge?.codeReference;
@@ -1266,7 +1268,8 @@ class UpstreamPropagationStep extends PropagationStep
       'cause': serializer.idForStep(principalCause),
       'node': serializer.idForNode(node),
       'newState': newNonNullIntent.toJson(),
-      'edge': serializer.idForEdge(edge)
+      'edge': serializer.idForEdge(edge),
+      if (isStartingPoint) 'isStartingPoint': true
     };
   }
 
@@ -1315,6 +1318,9 @@ class _NullabilityNodeImmutable extends NullabilityNode {
 
   @override
   String get debugSuffix => isNullable ? '?' : '';
+
+  @override
+  Map<HintActionKind, Map<int, List<AtomicEdit>>> get hintActions => const {};
 
   @override
   // Note: the node "always" is not exact nullable, because exact nullability is
@@ -1488,8 +1494,9 @@ class _PropagationState {
   /// lines.
   void _propagateUpstream() {
     Queue<UpstreamPropagationStep> pendingSteps = Queue();
-    pendingSteps
-        .add(UpstreamPropagationStep(null, _never, NonNullIntent.direct, null));
+    pendingSteps.add(UpstreamPropagationStep(
+        null, _never, NonNullIntent.direct, null,
+        isStartingPoint: true));
     while (pendingSteps.isNotEmpty) {
       var cause = pendingSteps.removeFirst();
       var pendingNode = cause.node;

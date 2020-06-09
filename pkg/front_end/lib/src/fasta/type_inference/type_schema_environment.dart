@@ -166,10 +166,10 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     // override.
     if (type1 is InterfaceType && type1.classNode == coreTypes.intClass) {
       if (type2 is InterfaceType && type2.classNode == coreTypes.intClass) {
-        return type2.withNullability(type1.nullability);
+        return type2.withDeclaredNullability(type1.nullability);
       }
       if (type2 is InterfaceType && type2.classNode == coreTypes.doubleClass) {
-        return type2.withNullability(type1.nullability);
+        return type2.withDeclaredNullability(type1.nullability);
       }
     }
     return coreTypes.numRawType(type1.nullability);

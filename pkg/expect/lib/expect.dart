@@ -10,6 +10,12 @@ library expect;
 
 import 'package:meta/meta.dart';
 
+/// Whether the program is running with weak null safety checking.
+bool get isWeakMode => const <Null>[] is List<Object>;
+
+/// Whether the program is running with strong null safety checking.
+bool get isStrongMode => !isWeakMode;
+
 /**
  * Expect is used for tests that do not want to make use of the
  * Dart unit test library - for example, the core language tests.
@@ -190,7 +196,7 @@ class Expect {
    *
    * Uses `[]` for objects that are only identical to themselves.
    */
-  static List<List<int>> _findEquivalences(List<Object> objects) {
+  static List<List<int>> _findEquivalences(List<dynamic> objects) {
     var equivalences = new List<List<int>>.generate(objects.length, (_) => []);
     for (int i = 0; i < objects.length; i++) {
       if (equivalences[i].isNotEmpty) continue;
@@ -208,8 +214,8 @@ class Expect {
     return equivalences;
   }
 
-  static void _writeEquivalences(
-      List<Object> objects, List<List<int>> equivalences, StringBuffer buffer) {
+  static void _writeEquivalences(List<dynamic> objects,
+      List<List<int>> equivalences, StringBuffer buffer) {
     var separator = "";
     for (int i = 0; i < objects.length; i++) {
       buffer.write(separator);
@@ -227,7 +233,7 @@ class Expect {
     }
   }
 
-  static void allIdentical(List<Object> objects, [String reason = ""]) {
+  static void allIdentical(List<dynamic> objects, [String reason = ""]) {
     if (objects.length <= 1) return;
     String msg = _getMessage(reason);
     var equivalences = _findEquivalences(objects);
@@ -252,7 +258,7 @@ class Expect {
   /**
    * Checks that no two [objects] are `identical`.
    */
-  static void allDistinct(List<Object> objects, [String reason = ""]) {
+  static void allDistinct(List<dynamic> objects, [String reason = ""]) {
     String msg = _getMessage(reason);
     var equivalences = _findEquivalences(objects);
 

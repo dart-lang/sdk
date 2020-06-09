@@ -1309,26 +1309,8 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
         }
         return false;
       }
-      case FunctionLayout::kImplicitSetter: {
-        if (!isolate()->argument_type_checks()) {
-          Field& field = Field::Handle(function().accessor_field());
-          ASSERT(!field.IsNull());
-#if defined(DEBUG)
-          // HACK: Clone the field to ignore assertion in Field::guarded_cid().
-          // The same reasons as above apply, but we only check if it's dynamic.
-          field = field.CloneFromOriginal();
-#endif
-
-          if (field.is_instance() && field.guarded_cid() == kDynamicCid) {
-            SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
-            GenerateSetterIntrinsic(compiler::target::Field::OffsetOf(field));
-            SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
-            return true;
-          }
-          return false;
-        }
+      case FunctionLayout::kImplicitSetter:
         break;
-      }
 #if !defined(TARGET_ARCH_IA32)
       case FunctionLayout::kMethodExtractor: {
         auto& extracted_method = Function::ZoneHandle(
@@ -2326,6 +2308,22 @@ void FlowGraphCompiler::GenerateCidRangesCheck(
   }
 }
 
+bool FlowGraphCompiler::CheckAssertAssignableTypeTestingABILocations(
+    const LocationSummary& locs) {
+  ASSERT(locs.in(0).IsRegister() &&
+         locs.in(0).reg() == TypeTestABI::kInstanceReg);
+  ASSERT((locs.in(1).IsConstant() && locs.in(1).constant().IsAbstractType()) ||
+         (locs.in(1).IsRegister() &&
+          locs.in(1).reg() == TypeTestABI::kDstTypeReg));
+  ASSERT(locs.in(2).IsRegister() &&
+         locs.in(2).reg() == TypeTestABI::kInstantiatorTypeArgumentsReg);
+  ASSERT(locs.in(3).IsRegister() &&
+         locs.in(3).reg() == TypeTestABI::kFunctionTypeArgumentsReg);
+  ASSERT(locs.out(0).IsRegister() &&
+         locs.out(0).reg() == TypeTestABI::kInstanceReg);
+  return true;
+}
+
 bool FlowGraphCompiler::ShouldUseTypeTestingStubFor(bool optimizing,
                                                     const AbstractType& type) {
   return FLAG_precompiled_mode ||
@@ -2368,7 +2366,7 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
   if (int_type.IsSubtypeOf(dst_type, Heap::kOld)) {
     __ BranchIfSmi(TypeTestABI::kInstanceReg, done);
     is_non_smi = true;
-  } else if (receiver_type->IsNotSmi()) {
+  } else if (!receiver_type->CanBeSmi()) {
     is_non_smi = true;
   }
 

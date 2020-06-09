@@ -163,7 +163,6 @@ Precompiler::Precompiler(Thread* thread)
       libraries_(GrowableObjectArray::Handle(I->object_store()->libraries())),
       pending_functions_(
           GrowableObjectArray::Handle(GrowableObjectArray::New())),
-      pending_static_fields_to_retain_(),
       sent_selectors_(),
       seen_functions_(HashTables::New<FunctionSet>(/*initial_capacity=*/1024)),
       possibly_retained_functions_(
@@ -293,9 +292,6 @@ void Precompiler::DoCompileAll() {
         stub_code =
             StubCode::GetBuildMethodExtractorStub(global_object_pool_builder());
         I->object_store()->set_build_method_extractor_code(stub_code);
-
-        MegamorphicCacheTable::ReInitMissHandlerCode(
-            isolate_, global_object_pool_builder());
       }
 
       CollectDynamicFunctionNames();
@@ -480,9 +476,11 @@ void Precompiler::PrecompileConstructors() {
     Zone* zone_;
   };
 
+  phase_ = Phase::kCompilingConstructorsForInstructionCounts;
   HANDLESCOPE(T);
   ConstructorVisitor visitor(this, Z);
   ProgramVisitor::WalkProgram(Z, I, &visitor);
+  phase_ = Phase::kPreparation;
 }
 
 void Precompiler::AddRoots() {
@@ -523,16 +521,10 @@ void Precompiler::AddRoots() {
   }
 }
 
-void Precompiler::AddRetainedStaticField(const Field& field) {
-  if (pending_static_fields_to_retain_.HasKey(&field)) {
-    return;
-  }
-  pending_static_fields_to_retain_.Insert(&Field::ZoneHandle(Z, field.raw()));
-}
-
 void Precompiler::Iterate() {
   Function& function = Function::Handle(Z);
 
+  phase_ = Phase::kFixpointCodeGeneration;
   while (changed_) {
     changed_ = false;
 
@@ -541,20 +533,10 @@ void Precompiler::Iterate() {
       ProcessFunction(function);
     }
 
-    // AddField might retain more static fields.
-    while (!pending_static_fields_to_retain_.IsEmpty()) {
-      FieldSet copy = pending_static_fields_to_retain_;
-      pending_static_fields_to_retain_.Clear();
-      FieldSet::Iterator it = copy.GetIterator();
-      for (const Field** field = it.Next(); field != nullptr;
-           field = it.Next()) {
-        AddField(**field);
-      }
-    }
-
     CheckForNewDynamicFunctions();
     CollectCallbackFields();
   }
+  phase_ = Phase::kDone;
 }
 
 void Precompiler::CollectCallbackFields() {
@@ -2368,7 +2350,8 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       ZoneGrowableArray<const ICData*>* ic_data_array = nullptr;
       const Function& function = parsed_function()->function();
 
-      CompilerState compiler_state(thread(), /*is_aot=*/true);
+      CompilerState compiler_state(thread(), /*is_aot=*/true,
+                                   CompilerState::ShouldTrace(function));
 
       {
         ic_data_array = new (zone) ZoneGrowableArray<const ICData*>();
@@ -2480,25 +2463,29 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
                             function_stats);
       }
 
-      for (intptr_t i = 0; i < graph_compiler.used_static_fields().length();
-           i++) {
-        // We can't use precompiler_->AddField() directly here because they
-        // need to be added later as part of Iterate(). If they are added
-        // before that, initializer functions will get their code cleared by
-        // Precompiler::ClearAllCode().
-        precompiler_->AddRetainedStaticField(
-            *graph_compiler.used_static_fields().At(i));
-      }
+      if (precompiler_->phase() ==
+          Precompiler::Phase::kFixpointCodeGeneration) {
+        for (intptr_t i = 0; i < graph_compiler.used_static_fields().length();
+             i++) {
+          precompiler_->AddField(*graph_compiler.used_static_fields().At(i));
+        }
 
-      const GrowableArray<const compiler::TableSelector*>& call_selectors =
-          graph_compiler.dispatch_table_call_targets();
-      for (intptr_t i = 0; i < call_selectors.length(); i++) {
-        precompiler_->AddTableSelector(call_selectors[i]);
+        const GrowableArray<const compiler::TableSelector*>& call_selectors =
+            graph_compiler.dispatch_table_call_targets();
+        for (intptr_t i = 0; i < call_selectors.length(); i++) {
+          precompiler_->AddTableSelector(call_selectors[i]);
+        }
+      } else {
+        // We should not be generating code outside of these two specific
+        // precompilation phases.
+        RELEASE_ASSERT(
+            precompiler_->phase() ==
+            Precompiler::Phase::kCompilingConstructorsForInstructionCounts);
       }
 
       // In bare instructions mode try adding all entries from the object
       // pool into the global object pool. This might fail if we have
-      // nested code generation (i.e. we generated some stubs) whichs means
+      // nested code generation (i.e. we generated some stubs) which means
       // that some of the object indices we used are already occupied in the
       // global object pool.
       //

@@ -6,8 +6,6 @@
 
 #include "include/dart_api.h"
 
-#include "platform/address_sanitizer.h"
-
 #include "vm/code_descriptors.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler/api/deopt_id.h"

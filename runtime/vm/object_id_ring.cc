@@ -86,16 +86,16 @@ void ObjectIdRing::PrintJSON(JSONStream* js) {
   }
 }
 
-ObjectIdRing::ObjectIdRing(int32_t capacity) {
-  ASSERT(capacity > 0);
+ObjectIdRing::ObjectIdRing() {
   serial_num_ = 0;
   wrapped_ = false;
   table_ = NULL;
-  SetCapacityAndMaxSerial(capacity, kMaxId);
+  SetCapacityAndMaxSerial(kDefaultCapacity, kMaxId);
 }
 
 void ObjectIdRing::SetCapacityAndMaxSerial(int32_t capacity,
                                            int32_t max_serial) {
+  ASSERT(capacity > 0);
   ASSERT(max_serial <= kMaxId);
   capacity_ = capacity;
   if (table_ != NULL) {

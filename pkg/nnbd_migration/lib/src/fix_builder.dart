@@ -463,7 +463,7 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
       ParameterElement parameter, DartType type) {
     var postMigrationType = parameter.type;
     if (postMigrationType != type) {
-      // TODO(paulberry): make sure we test all kinds of parameters
+      // TODO(paulberry): test field formal parameters.
       _fixBuilder._addedParameterTypes[parameter] = postMigrationType;
       return postMigrationType;
     }
@@ -925,6 +925,50 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
       }
     }
     super.visitDefaultFormalParameter(node);
+  }
+
+  @override
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    if (node.type == null) {
+      // Potentially add an explicit type to a field formal parameter.
+      var decl = node.declaredElement as FieldFormalParameterElement;
+      var decoratedType = _fixBuilder._variables.decoratedElementType(decl);
+      var decoratedFieldType =
+          _fixBuilder._variables.decoratedElementType(decl.field);
+      var typeToAdd = _fixBuilder._variables.toFinalType(decoratedType);
+      var fieldFinalType =
+          _fixBuilder._variables.toFinalType(decoratedFieldType);
+      if (typeToAdd is InterfaceType &&
+          !_fixBuilder._typeSystem.isSubtypeOf(fieldFinalType, typeToAdd)) {
+        (_fixBuilder._getChange(node) as NodeChangeForFieldFormalParameter)
+            .addExplicitType = typeToAdd;
+      }
+    } else if (node.parameters != null) {
+      // Handle function-typed field formal parameters.
+      var decoratedType =
+          _fixBuilder._variables.decoratedElementType(node.declaredElement);
+      if (decoratedType.node.isNullable) {
+        (_fixBuilder._getChange(node) as NodeChangeForFieldFormalParameter)
+            .recordNullability(decoratedType, decoratedType.node.isNullable,
+                nullabilityHint:
+                    _fixBuilder._variables.getNullabilityHint(source, node));
+      }
+    }
+    super.visitFieldFormalParameter(node);
+  }
+
+  @override
+  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+    var decoratedType =
+        _fixBuilder._variables.decoratedElementType(node.declaredElement);
+    if (decoratedType.node.isNullable) {
+      (_fixBuilder._getChange(node)
+              as NodeChangeForFunctionTypedFormalParameter)
+          .recordNullability(decoratedType, decoratedType.node.isNullable,
+              nullabilityHint:
+                  _fixBuilder._variables.getNullabilityHint(source, node));
+    }
+    super.visitFunctionTypedFormalParameter(node);
   }
 
   @override

@@ -646,7 +646,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     // Moreover, it checks that `FutureOr` and `void` are not among the
     // supertypes.
 
-    void fail(NamedTypeBuilder target, Message message) {
+    void fail(NamedTypeBuilder target, Message message,
+        TypeAliasBuilder aliasBuilder) {
       int nameOffset = target.nameOffset;
       int nameLength = target.nameLength;
       // TODO(eernst): nameOffset not fully implemented; use backup.
@@ -654,7 +655,14 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         nameOffset = this.charOffset;
         nameLength = noLength;
       }
-      addProblem(message, nameOffset, nameLength);
+      if (aliasBuilder != null) {
+        addProblem(message, nameOffset, nameLength, context: [
+          messageTypedefCause.withLocation(
+              aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
+        ]);
+      } else {
+        addProblem(message, nameOffset, nameLength);
+      }
     }
 
     // Extract and check superclass (if it exists).
@@ -662,19 +670,20 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     TypeBuilder superClassType = supertypeBuilder;
     if (superClassType is NamedTypeBuilder) {
       TypeDeclarationBuilder decl = superClassType.declaration;
+      TypeAliasBuilder aliasBuilder; // Non-null if a type alias is use.
       if (decl is TypeAliasBuilder) {
-        TypeAliasBuilder aliasBuilder = decl;
+        aliasBuilder = decl;
         decl = aliasBuilder.unaliasDeclaration(superClassType.arguments);
       }
       // TODO(eernst): Should gather 'restricted supertype' checks in one place,
       // e.g., dynamic/int/String/Null and more are checked elsewhere.
       if (decl is VoidTypeBuilder) {
-        fail(superClassType, messageExtendsVoid);
+        fail(superClassType, messageExtendsVoid, aliasBuilder);
       } else if (decl is NeverTypeBuilder) {
-        fail(superClassType, messageExtendsNever);
+        fail(superClassType, messageExtendsNever, aliasBuilder);
       } else if (decl is ClassBuilder) {
         if (decl.cls == coreTypes.futureOrClass) {
-          fail(superClassType, messageExtendsFutureOr);
+          fail(superClassType, messageExtendsFutureOr, aliasBuilder);
         }
         superClass = decl;
       }
@@ -689,9 +698,14 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       if (type is NamedTypeBuilder) {
         int charOffset = -1; // TODO(ahe): Get offset from type.
         TypeDeclarationBuilder typeDeclaration = type.declaration;
-        TypeDeclarationBuilder decl = typeDeclaration is TypeAliasBuilder
-            ? typeDeclaration.unaliasDeclaration(type.arguments)
-            : typeDeclaration;
+        TypeDeclarationBuilder decl;
+        TypeAliasBuilder aliasBuilder; // Non-null if a type alias is used.
+        if (typeDeclaration is TypeAliasBuilder) {
+          aliasBuilder = typeDeclaration;
+          decl = aliasBuilder.unaliasDeclaration(type.arguments);
+        } else {
+          decl = typeDeclaration;
+        }
         if (decl is ClassBuilder) {
           ClassBuilder interface = decl;
           if (superClass == interface) {
@@ -707,7 +721,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
             problemsOffsets ??= new Map<ClassBuilder, int>();
             problemsOffsets[interface] ??= charOffset;
           } else if (interface.cls == coreTypes.futureOrClass) {
-            fail(type, messageImplementsFutureOr);
+            fail(type, messageImplementsFutureOr, aliasBuilder);
           } else {
             implemented.add(interface);
           }
@@ -715,9 +729,9 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         if (decl != superClass) {
           // TODO(eernst): Have all 'restricted supertype' checks in one place.
           if (decl is VoidTypeBuilder) {
-            fail(type, messageImplementsVoid);
+            fail(type, messageImplementsVoid, aliasBuilder);
           } else if (decl is NeverTypeBuilder) {
-            fail(type, messageImplementsNever);
+            fail(type, messageImplementsNever, aliasBuilder);
           }
         }
       }

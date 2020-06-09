@@ -18,7 +18,7 @@ foo() async {
 }
 
 main() async {
-  var error = "no error";
+  Object error = "no error";
   try {
     await foo();
   } catch (e) {

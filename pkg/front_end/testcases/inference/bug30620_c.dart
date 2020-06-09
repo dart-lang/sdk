@@ -12,16 +12,16 @@ class A {
 
   bool operator ==(Object other) {
     if (other is A && /*@ promotedType=A* */ other
-            . /*@target=A::foo*/ foo /*@target=String::==*/ ==
-        this. /*@target=A::foo*/ foo) {
+            . /*@target=A.foo*/ foo /*@target=String.==*/ ==
+        this. /*@target=A.foo*/ foo) {
       if (/*@ promotedType=A* */ other
-              . /*@target=A::foo*/ foo /*@target=String::==*/ ==
-          this. /*@target=A::foo*/ foo) {}
+              . /*@target=A.foo*/ foo /*@target=String.==*/ ==
+          this. /*@target=A.foo*/ foo) {}
     }
     return true;
   }
 }
 
 main() {
-  print(new A("hello") /*@target=A::==*/ == new A("hello"));
+  print(new A("hello") /*@target=A.==*/ == new A("hello"));
 }

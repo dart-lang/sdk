@@ -241,9 +241,16 @@ void main() {
     final manifest = json.decode(utf8.decode(manifestSink.buffer));
 
     // There should only be two modules since C and B should be combined.
-    const moduleHeader = r"define(['dart_sdk'], function(dart_sdk) {";
-
+    final moduleHeader = r"define(['dart_sdk'], (function load__";
     expect(moduleHeader.allMatches(code), hasLength(2));
+
+    // Expected module headers.
+    final aModuleHeader =
+        r"define(['dart_sdk'], (function load__a_dart(dart_sdk) {";
+    expect(code, contains(aModuleHeader));
+    final cModuleHeader =
+        r"define(['dart_sdk'], (function load__c_dart(dart_sdk) {";
+    expect(code, contains(cModuleHeader));
 
     // verify source map url is correct.
     expect(code, contains('sourceMappingURL=a.dart.lib.js.map'));

@@ -8,6 +8,16 @@
 library opt_out;
 
 /*class: LegacyClass:LegacyClass,Object*/
+/*cfe|cfe:builder.member: LegacyClass.toString:String* Function()**/
+/*cfe|cfe:builder.member: LegacyClass.runtimeType:Type**/
+/*cfe|cfe:builder.member: LegacyClass._simpleInstanceOf:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: LegacyClass._instanceOf:bool* Function(dynamic, dynamic, dynamic)**/
+/*cfe|cfe:builder.member: LegacyClass.noSuchMethod:dynamic Function(Invocation*)**/
+/*cfe|cfe:builder.member: LegacyClass._identityHashCode:int**/
+/*cfe|cfe:builder.member: LegacyClass.hashCode:int**/
+/*cfe|cfe:builder.member: LegacyClass._simpleInstanceOfFalse:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: LegacyClass._simpleInstanceOfTrue:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: LegacyClass.==:bool* Function(dynamic)**/
 class LegacyClass {
   /*member: LegacyClass.method1:int* Function()**/
   int method1() => 0;
@@ -107,6 +117,16 @@ class LegacyClass {
 }
 
 /*class: GenericLegacyClass:GenericLegacyClass<T*>,Object*/
+/*cfe|cfe:builder.member: GenericLegacyClass.toString:String* Function()**/
+/*cfe|cfe:builder.member: GenericLegacyClass.runtimeType:Type**/
+/*cfe|cfe:builder.member: GenericLegacyClass._simpleInstanceOf:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: GenericLegacyClass._instanceOf:bool* Function(dynamic, dynamic, dynamic)**/
+/*cfe|cfe:builder.member: GenericLegacyClass.noSuchMethod:dynamic Function(Invocation*)**/
+/*cfe|cfe:builder.member: GenericLegacyClass._identityHashCode:int**/
+/*cfe|cfe:builder.member: GenericLegacyClass.hashCode:int**/
+/*cfe|cfe:builder.member: GenericLegacyClass._simpleInstanceOfFalse:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: GenericLegacyClass._simpleInstanceOfTrue:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: GenericLegacyClass.==:bool* Function(dynamic)**/
 class GenericLegacyClass<T> {
   /*member: GenericLegacyClass.method1:T* Function()**/
   T method1() => null;

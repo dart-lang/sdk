@@ -12,7 +12,7 @@ class C<T> {
 void test(C<String> c) {
   // Tear-off of c.f needs to be type checked due to contravariance.  The
   // instantiation should occur after the type check.
-  void Function(String) Function(int) tearoff = c. /*@target=C::f*/ f;
+  void Function(String) Function(int) tearoff = c. /*@target=C.f*/ f;
 }
 
 main() {}

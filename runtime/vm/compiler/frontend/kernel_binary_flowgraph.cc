@@ -763,7 +763,7 @@ void StreamingFlowGraphBuilder::CheckArgumentTypesAsNecessary(
     Fragment* explicit_checks,
     Fragment* implicit_checks,
     Fragment* implicit_redefinitions) {
-  if (!dart_function.NeedsArgumentTypeChecks(I)) return;
+  if (!dart_function.NeedsArgumentTypeChecks()) return;
 
   // Check if parent function was annotated with no-dynamic-invocations.
   const ProcedureAttributesMetadata attrs =
@@ -903,7 +903,7 @@ UncheckedEntryPointStyle StreamingFlowGraphBuilder::ChooseEntryPointStyle(
     const Fragment& every_time_prologue,
     const Fragment& type_args_handling) {
   ASSERT(!dart_function.IsImplicitClosureFunction());
-  if (!dart_function.MayHaveUncheckedEntryPoint(I) ||
+  if (!dart_function.MayHaveUncheckedEntryPoint() ||
       implicit_type_checks.is_empty()) {
     return UncheckedEntryPointStyle::kNone;
   }
@@ -1685,8 +1685,9 @@ Fragment StreamingFlowGraphBuilder::RethrowException(TokenPosition position,
   return flow_graph_builder_->RethrowException(position, catch_try_index);
 }
 
-Fragment StreamingFlowGraphBuilder::ThrowNoSuchMethodError() {
-  return flow_graph_builder_->ThrowNoSuchMethodError();
+Fragment StreamingFlowGraphBuilder::ThrowNoSuchMethodError(
+    const Function& target) {
+  return flow_graph_builder_->ThrowNoSuchMethodError(target);
 }
 
 Fragment StreamingFlowGraphBuilder::Constant(const Object& value) {
@@ -1697,8 +1698,9 @@ Fragment StreamingFlowGraphBuilder::IntConstant(int64_t value) {
   return flow_graph_builder_->IntConstant(value);
 }
 
-Fragment StreamingFlowGraphBuilder::LoadStaticField(const Field& field) {
-  return flow_graph_builder_->LoadStaticField(field);
+Fragment StreamingFlowGraphBuilder::LoadStaticField(const Field& field,
+                                                    bool calls_initializer) {
+  return flow_graph_builder_->LoadStaticField(field, calls_initializer);
 }
 
 Fragment StreamingFlowGraphBuilder::RedefinitionWithType(
@@ -1715,32 +1717,12 @@ Fragment StreamingFlowGraphBuilder::CheckNull(
                                         clear_the_temp);
 }
 
-static void BadArity(const Script& script,
-                     TokenPosition position,
-                     const String& error_message) {
-#ifndef PRODUCT
-  // TODO(https://github.com/dart-lang/sdk/issues/37517): Should emit code to
-  // throw a NoSuchMethodError.
-  // Correct arity is checked at compile time by CFE. However, an isolate reload
-  // after an arity change may lead here.
-  // Using strong mode with a mix of opted in and opted out libraries may
-  // also result in this error undetected by CFE.
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate->HasAttemptedReload() || isolate->null_safety());
-  Report::MessageF(Report::kError, script, position, Report::AtLocation,
-                   "Static call with invalid arguments: %s",
-                   error_message.ToCString());
-#endif
-  UNREACHABLE();
-}
-
 Fragment StreamingFlowGraphBuilder::StaticCall(TokenPosition position,
                                                const Function& target,
                                                intptr_t argument_count,
                                                ICData::RebindRule rebind_rule) {
-  String& error_message = String::Handle();
-  if (!target.AreValidArgumentCounts(0, argument_count, 0, &error_message)) {
-    BadArity(script_, position, error_message);
+  if (!target.AreValidArgumentCounts(0, argument_count, 0, nullptr)) {
+    return flow_graph_builder_->ThrowNoSuchMethodError(target);
   }
   return flow_graph_builder_->StaticCall(position, target, argument_count,
                                          rebind_rule);
@@ -1755,10 +1737,9 @@ Fragment StreamingFlowGraphBuilder::StaticCall(
     const InferredTypeMetadata* result_type,
     intptr_t type_args_count,
     bool use_unchecked_entry) {
-  String& error_message = String::Handle();
   if (!target.AreValidArguments(type_args_count, argument_count, argument_names,
-                                &error_message)) {
-    BadArity(script_, position, error_message);
+                                nullptr)) {
+    return flow_graph_builder_->ThrowNoSuchMethodError(target);
   }
   return flow_graph_builder_->StaticCall(
       position, target, argument_count, argument_names, rebind_rule,
@@ -2437,7 +2418,7 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
 
   const String* mangled_name = &setter_name;
   const Function* direct_call_target = &direct_call.target_;
-  if (I->should_emit_strong_mode_checks() && H.IsRoot(itarget_name)) {
+  if (H.IsRoot(itarget_name)) {
     mangled_name = &String::ZoneHandle(
         Z, Function::CreateDynamicInvocationForwarderName(setter_name));
     if (!direct_call_target->IsNull()) {
@@ -2800,7 +2781,7 @@ Fragment StreamingFlowGraphBuilder::BuildStaticGet(TokenPosition* p) {
         if (result_type.IsConstant()) {
           return Constant(result_type.constant_value);
         }
-        return LoadStaticField(field);
+        return LoadStaticField(field, /*calls_initializer=*/false);
       }
     }
   } else {
@@ -3014,8 +2995,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   //     those cases require a dynamic invocation forwarder;
   //   * we assume that all closures are entered in a checked way.
   const Function* direct_call_target = &direct_call.target_;
-  if (I->should_emit_strong_mode_checks() &&
-      (name.raw() != Symbols::EqualOperator().raw()) &&
+  if ((name.raw() != Symbols::EqualOperator().raw()) &&
       (name.raw() != Symbols::Call().raw()) && H.IsRoot(itarget_name)) {
     mangled_name = &String::ZoneHandle(
         Z, Function::CreateDynamicInvocationForwarderName(name));

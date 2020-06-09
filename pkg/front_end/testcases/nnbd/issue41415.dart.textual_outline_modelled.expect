@@ -1,3 +1,1 @@
-import "package:expect/expect.dart";
-
 main() {}

@@ -52,7 +52,7 @@ class ObjectIdRingTestHelper {
 // Test that serial number wrapping works.
 ISOLATE_UNIT_TEST_CASE(ObjectIdRingSerialWrapTest) {
   Isolate* isolate = Isolate::Current();
-  ObjectIdRing* ring = isolate->object_id_ring();
+  ObjectIdRing* ring = isolate->EnsureObjectIdRing();
   ObjectIdRingTestHelper::SetCapacityAndMaxSerial(ring, 2, 4);
   intptr_t id;
   ObjectIdRing::LookupResult kind = ObjectIdRing::kInvalid;
@@ -137,7 +137,7 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
   EXPECT_EQ(3, list_length);
 
   Isolate* isolate = thread->isolate();
-  ObjectIdRing* ring = isolate->object_id_ring();
+  ObjectIdRing* ring = isolate->EnsureObjectIdRing();
   ObjectIdRing::LookupResult kind = ObjectIdRing::kInvalid;
 
   {
@@ -196,7 +196,7 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
 // Test that the ring table is updated with nulls when the old GC collects.
 ISOLATE_UNIT_TEST_CASE(ObjectIdRingOldGCTest) {
   Isolate* isolate = thread->isolate();
-  ObjectIdRing* ring = isolate->object_id_ring();
+  ObjectIdRing* ring = isolate->EnsureObjectIdRing();
 
   ObjectIdRing::LookupResult kind = ObjectIdRing::kInvalid;
   intptr_t raw_obj_id1 = -1;
@@ -241,7 +241,7 @@ ISOLATE_UNIT_TEST_CASE(ObjectIdRingOldGCTest) {
 // overridden by new entries.
 ISOLATE_UNIT_TEST_CASE(ObjectIdRingExpiredEntryTest) {
   Isolate* isolate = Isolate::Current();
-  ObjectIdRing* ring = isolate->object_id_ring();
+  ObjectIdRing* ring = isolate->EnsureObjectIdRing();
 
   // Insert an object and check we can look it up.
   String& obj = String::Handle(String::New("I will expire"));

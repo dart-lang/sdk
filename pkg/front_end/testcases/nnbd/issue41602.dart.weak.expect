@@ -1,0 +1,25 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue41602.dart:12:9: Error: This expression has type 'void' and can't be used.
+//   await returnVoid(); // error
+//         ^
+//
+// pkg/front_end/testcases/nnbd/issue41602.dart:13:9: Error: This expression has type 'void' and can't be used.
+//   await returnVoidAsync(); // error
+//         ^
+//
+import self as self;
+import "dart:async" as asy;
+
+static method returnFutureOfVoid() → asy::Future<void> async {}
+static method returnVoid() → void {}
+static method returnVoidAsync() → void async {}
+static method test() → dynamic async {
+  await self::returnVoid();
+  await self::returnVoidAsync();
+}
+static method main() → dynamic async {
+  await self::returnFutureOfVoid();
+}

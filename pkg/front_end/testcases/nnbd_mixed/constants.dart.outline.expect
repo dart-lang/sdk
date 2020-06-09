@@ -1,0 +1,72 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "constants_lib.dart" as con;
+
+import "org-dartlang-testcase:///constants_lib.dart" as lib;
+
+typedef F1<invariant T extends core::Object? = dynamic> = (T%) → T%;
+typedef F2 = <T extends core::Object? = dynamic>(T%) → T%;
+static const field core::Type objectTypeLiteral = core::Object;
+static const field (core::int) → core::int partialInstantiation = con::id<core::int>;
+static const field con::Class<core::int> instance = const con::Class::•<core::int>(0);
+static const field core::Type functionTypeLiteral = (dynamic) → dynamic;
+static const field core::Type genericFunctionTypeLiteral = <T extends core::Object? = dynamic>(T%) → T%;
+static const field core::List<core::int> listLiteral = const <core::int>[0];
+static const field core::Set<core::int> setLiteral = const <core::int>{0};
+static const field core::Map<core::int, core::String> mapLiteral = const <core::int, core::String>{0: "foo"};
+static const field core::List<core::int> listConcatenation = self::listLiteral;
+static const field core::Set<core::int> setConcatenation = self::setLiteral;
+static const field core::Map<core::int, core::String> mapConcatenation = self::mapLiteral;
+static const field core::bool objectTypeLiteralIdentical = core::identical(self::objectTypeLiteral, con::objectTypeLiteral);
+static const field core::bool partialInstantiationIdentical = core::identical(self::partialInstantiation, con::partialInstantiation);
+static const field core::bool instanceIdentical = core::identical(self::instance, con::instance);
+static const field core::bool functionTypeLiteralIdentical = core::identical(self::functionTypeLiteral, con::functionTypeLiteral);
+static const field core::bool genericFunctionTypeLiteralIdentical = core::identical(self::genericFunctionTypeLiteral, con::genericFunctionTypeLiteral);
+static const field core::bool listLiteralIdentical = core::identical(self::listLiteral, con::listLiteral);
+static const field core::bool setLiteralIdentical = core::identical(self::setLiteral, con::setLiteral);
+static const field core::bool mapLiteralIdentical = core::identical(self::mapLiteral, con::mapLiteral);
+static const field core::bool listConcatenationIdentical = core::identical(self::listConcatenation, con::listConcatenation);
+static const field core::bool setConcatenationIdentical = core::identical(self::setConcatenation, con::setConcatenation);
+static const field core::bool mapConcatenationIdentical = core::identical(self::mapConcatenation, con::mapConcatenation);
+static final field core::bool inStrongMode;
+static method _inStrongMode() → core::bool
+  ;
+static method main() → dynamic
+  ;
+static method test(dynamic expected, dynamic actual) → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/constants_lib.dart:5:1: Error: A library can't opt out of non-nullable by default, when in nnbd-strong mode.
+// // @dart=2.6
+// ^^^^^^^^^^^^
+//
+import self as con;
+import "dart:core" as core;
+
+typedef F1<invariant T extends core::Object? = dynamic> = (T%) → T%;
+typedef F2 = <T extends core::Object? = dynamic>(T%) → T%;
+class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field con::Class::T% field;
+  const constructor •(con::Class::T% field) → con::Class<con::Class::T%>
+    : con::Class::field = field, super core::Object::•()
+    ;
+}
+static const field core::Type objectTypeLiteral = core::Object;
+static const field (core::Object?, core::Object?) → core::bool c2 = core::identical;
+static const field (core::int) → core::int partialInstantiation = con::id<core::int>;
+static const field con::Class<core::int> instance = const con::Class::•<core::int>(0);
+static const field core::Type functionTypeLiteral = (dynamic) → dynamic;
+static const field core::Type genericFunctionTypeLiteral = <T extends core::Object? = dynamic>(T%) → T%;
+static const field core::List<core::int> listLiteral = const <core::int>[0];
+static const field core::Set<core::int> setLiteral = const <core::int>{0};
+static const field core::Map<core::int, core::String> mapLiteral = const <core::int, core::String>{0: "foo"};
+static const field core::List<core::int> listConcatenation = con::listLiteral;
+static const field core::Set<core::int> setConcatenation = con::setLiteral;
+static const field core::Map<core::int, core::String> mapConcatenation = con::mapLiteral;
+static method id<T extends core::Object? = dynamic>(con::id::T% t) → con::id::T%
+  ;

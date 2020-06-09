@@ -1,0 +1,375 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in.dart:5:1: Error: A library can't opt out of non-nullable by default, when in nnbd-strong mode.
+// // @dart=2.5
+// ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in.dart:18:28: Error: Optional parameter 'b' should have a default value because its type 'int' doesn't allow null.
+//   int method6b(int a, [int b]) => 0;
+//                            ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in.dart:20:21: Error: Optional parameter 'a' should have a default value because its type 'int' doesn't allow null.
+//   int method6c([int a, int b]) => 0;
+//                     ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in.dart:20:28: Error: Optional parameter 'b' should have a default value because its type 'int' doesn't allow null.
+//   int method6c([int a, int b]) => 0;
+//                            ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in.dart:24:21: Error: Optional parameter 'a' should have a default value because its type 'int' doesn't allow null.
+//   int method8b({int a, int b: 0}) => 0;
+//                     ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in.dart:26:29: Error: Optional parameter 'b' should have a default value because its type 'int' doesn't allow null.
+//   int method10a(int a, {int b}) => 0;
+//                             ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in.dart:28:22: Error: Optional parameter 'a' should have a default value because its type 'int' doesn't allow null.
+//   int method10b({int a, int b}) => 0;
+//                      ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in.dart:28:29: Error: Optional parameter 'b' should have a default value because its type 'int' doesn't allow null.
+//   int method10b({int a, int b}) => 0;
+//                             ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in.dart:16:20: Error: The parameter 'a' of the method 'LegacyClass.method6a' has type 'int', which does not match the corresponding type, 'int?', in the overridden method, 'Interface.method6a'.
+// Change to a supertype of 'int?', or, for a covariant parameter, a subtype.
+//   int method6a(int a, int b) => 0;
+//                    ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in_lib.dart:20:8: Context: This is the overridden method ('method6a').
+//   int? method6a(int? a, int b);
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in.dart:18:20: Error: The parameter 'a' of the method 'LegacyClass.method6b' has type 'int', which does not match the corresponding type, 'int?', in the overridden method, 'Interface.method6b'.
+// Change to a supertype of 'int?', or, for a covariant parameter, a subtype.
+//   int method6b(int a, [int b]) => 0;
+//                    ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in_lib.dart:22:8: Context: This is the overridden method ('method6b').
+//   int? method6b(int? a, [int b = 0]);
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in.dart:20:21: Error: The parameter 'a' of the method 'LegacyClass.method6c' has type 'int', which does not match the corresponding type, 'int?', in the overridden method, 'Interface.method6c'.
+// Change to a supertype of 'int?', or, for a covariant parameter, a subtype.
+//   int method6c([int a, int b]) => 0;
+//                     ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in_lib.dart:24:8: Context: This is the overridden method ('method6c').
+//   int? method6c([int? a, int b = 0]);
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in.dart:22:20: Error: The parameter 'a' of the method 'LegacyClass.method8a' has type 'int', which does not match the corresponding type, 'int?', in the overridden method, 'Interface.method8a'.
+// Change to a supertype of 'int?', or, for a covariant parameter, a subtype.
+//   int method8a(int a, {int b: 0}) => 0;
+//                    ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in_lib.dart:30:8: Context: This is the overridden method ('method8a').
+//   int? method8a(int? a, {int b: 0});
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in.dart:24:21: Error: The parameter 'a' of the method 'LegacyClass.method8b' has type 'int', which does not match the corresponding type, 'int?', in the overridden method, 'Interface.method8b'.
+// Change to a supertype of 'int?', or, for a covariant parameter, a subtype.
+//   int method8b({int a, int b: 0}) => 0;
+//                     ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in_lib.dart:32:8: Context: This is the overridden method ('method8b').
+//   int? method8b({int? a, int b: 0});
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in.dart:26:21: Error: The parameter 'a' of the method 'LegacyClass.method10a' has type 'int', which does not match the corresponding type, 'int?', in the overridden method, 'Interface.method10a'.
+// Change to a supertype of 'int?', or, for a covariant parameter, a subtype.
+//   int method10a(int a, {int b}) => 0;
+//                     ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in_lib.dart:38:8: Context: This is the overridden method ('method10a').
+//   int? method10a(int? a, {required int b});
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in.dart:28:22: Error: The parameter 'a' of the method 'LegacyClass.method10b' has type 'int', which does not match the corresponding type, 'int?', in the overridden method, 'Interface.method10b'.
+// Change to a supertype of 'int?', or, for a covariant parameter, a subtype.
+//   int method10b({int a, int b}) => 0;
+//                      ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in_lib.dart:40:8: Context: This is the overridden method ('method10b').
+//   int? method10b({required int? a, required int b});
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in.dart:40:7: Error: The field 'LegacyClass.field4' has type 'int', which does not match the corresponding type, 'int?', in the overridden setter, 'Interface.field4'.
+//   int field4;
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in_lib.dart:64:8: Context: This is the overridden method ('field4').
+//   int? field4;
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in.dart:48:26: Error: The parameter 'value' of the method 'LegacyClass.property4' has type 'int', which does not match the corresponding type, 'int?', in the overridden method, 'Interface.property4'.
+// Change to a supertype of 'int?', or, for a covariant parameter, a subtype.
+//   void set property4(int value) {}
+//                          ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in_lib.dart:80:12: Context: This is the overridden method ('property4').
+//   void set property4(int? value);
+//            ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in.dart:52:7: Error: The field 'LegacyClass.property8' has type 'int', which does not match the corresponding type, 'int?', in the overridden setter, 'Interface.property8'.
+//   int property8;
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in_lib.dart:96:12: Context: This is the overridden method ('property8').
+//   void set property8(int? value);
+//            ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in.dart:36:24: Error: The parameter 'value' of the method 'LegacyClass.setter4' has type 'int', which does not match the corresponding type, 'int?', in the overridden method, 'Interface.setter4'.
+// Change to a supertype of 'int?', or, for a covariant parameter, a subtype.
+//   void set setter4(int value) {}
+//                        ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in_lib.dart:56:12: Context: This is the overridden method ('setter4').
+//   void set setter4(int? value);
+//            ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in.dart:11:7: Error: The implementation of 'method2' in the non-abstract class 'LegacyClass' does not conform to its interface.
+// class LegacyClass extends Class implements Interface {
+//       ^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in_lib.dart:102:8: Context: The return type of the method 'Class.method2' is 'int?', which does not match the return type, 'int', of the overridden method, 'Interface.method2'.
+// Change to a subtype of 'int'.
+//   int? method2() => 0;
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in_lib.dart:8:7: Context: This is the overridden method ('method2').
+//   int method2();
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in.dart:11:7: Error: The implementation of 'getter2' in the non-abstract class 'LegacyClass' does not conform to its interface.
+// class LegacyClass extends Class implements Interface {
+//       ^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in_lib.dart:120:12: Context: The return type of the method 'Class.getter2' is 'int?', which does not match the return type, 'int', of the overridden method, 'Interface.getter2'.
+// Change to a subtype of 'int'.
+//   int? get getter2 => 0;
+//            ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in_lib.dart:44:11: Context: This is the overridden method ('getter2').
+//   int get getter2;
+//           ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in.dart:11:7: Error: The implementation of 'field1' in the non-abstract class 'LegacyClass' does not conform to its interface.
+// class LegacyClass extends Class implements Interface {
+//       ^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in_lib.dart:126:7: Context: The field 'Class.field1' has type 'int', which does not match the corresponding type, 'int?', in the overridden setter, 'Interface.field1'.
+//   int field1 = 0;
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in_lib.dart:58:8: Context: This is the overridden method ('field1').
+//   int? field1;
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in.dart:11:7: Error: The implementation of 'field2' in the non-abstract class 'LegacyClass' does not conform to its interface.
+// class LegacyClass extends Class implements Interface {
+//       ^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in_lib.dart:128:8: Context: The return type of the method 'Class.field2' is 'int?', which does not match the return type, 'int', of the overridden method, 'Interface.field2'.
+// Change to a subtype of 'int'.
+//   int? field2;
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in_lib.dart:60:7: Context: This is the overridden method ('field2').
+//   int field2 = 0;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in.dart:11:7: Error: The implementation of 'property1' in the non-abstract class 'LegacyClass' does not conform to its interface.
+// class LegacyClass extends Class implements Interface {
+//       ^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in_lib.dart:132:26: Context: The parameter 'value' of the method 'Class.property1' has type 'int', which does not match the corresponding type, 'int?', in the overridden method, 'Interface.property1'.
+// Change to a supertype of 'int?', or, for a covariant parameter, a subtype.
+//   void set property1(int value) {}
+//                          ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in_lib.dart:68:12: Context: This is the overridden method ('property1').
+//   void set property1(int? value);
+//            ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in.dart:11:7: Error: The implementation of 'property2' in the non-abstract class 'LegacyClass' does not conform to its interface.
+// class LegacyClass extends Class implements Interface {
+//       ^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in_lib.dart:134:12: Context: The return type of the method 'Class.property2' is 'int?', which does not match the return type, 'int', of the overridden method, 'Interface.property2'.
+// Change to a subtype of 'int'.
+//   int? get property2 => 0;
+//            ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in_lib.dart:70:11: Context: This is the overridden method ('property2').
+//   int get property2;
+//           ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in.dart:11:7: Error: The implementation of 'property5' in the non-abstract class 'LegacyClass' does not conform to its interface.
+// class LegacyClass extends Class implements Interface {
+//       ^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in_lib.dart:138:7: Context: The field 'Class.property5' has type 'int', which does not match the corresponding type, 'int?', in the overridden setter, 'Interface.property5'.
+//   int property5 = 0;
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in_lib.dart:84:12: Context: This is the overridden method ('property5').
+//   void set property5(int? value);
+//            ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in.dart:11:7: Error: The implementation of 'property6' in the non-abstract class 'LegacyClass' does not conform to its interface.
+// class LegacyClass extends Class implements Interface {
+//       ^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in_lib.dart:140:8: Context: The return type of the method 'Class.property6' is 'int?', which does not match the return type, 'int', of the overridden method, 'Interface.property6'.
+// Change to a subtype of 'int'.
+//   int? property6;
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in_lib.dart:86:11: Context: This is the overridden method ('property6').
+//   int get property6;
+//           ^
+//
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in.dart:11:7: Error: The implementation of 'setter1' in the non-abstract class 'LegacyClass' does not conform to its interface.
+// class LegacyClass extends Class implements Interface {
+//       ^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in_lib.dart:122:24: Context: The parameter 'value' of the method 'Class.setter1' has type 'int', which does not match the corresponding type, 'int?', in the overridden method, 'Interface.setter1'.
+// Change to a supertype of 'int?', or, for a covariant parameter, a subtype.
+//   void set setter1(int value) {}
+//                        ^
+// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_in_lib.dart:50:12: Context: This is the overridden method ('setter1').
+//   void set setter1(int? value);
+//            ^
+//
+import self as self;
+import "member_inheritance_from_opt_in_lib.dart" as mem;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///member_inheritance_from_opt_in_lib.dart";
+
+class LegacyClass extends mem::Class implements mem::Interface {
+  field core::int field3;
+  field core::int field4;
+  field core::int property7;
+  field core::int property8;
+  synthetic constructor •() → self::LegacyClass
+    ;
+  method method3() → core::int
+    ;
+  method method4() → core::int
+    ;
+  method method6a(core::int a, core::int b) → core::int
+    ;
+  method method6b(core::int a, [core::int b]) → core::int
+    ;
+  method method6c([core::int a, core::int b]) → core::int
+    ;
+  method method8a(core::int a, {core::int b = 0}) → core::int
+    ;
+  method method8b({core::int a, core::int b = 0}) → core::int
+    ;
+  method method10a(core::int a, {core::int b}) → core::int
+    ;
+  method method10b({core::int a, core::int b}) → core::int
+    ;
+  get getter3() → core::int
+    ;
+  get getter4() → core::int
+    ;
+  set setter3(core::int value) → void
+    ;
+  set setter4(core::int value) → void
+    ;
+  get property3() → core::int
+    ;
+  set property3(core::int value) → void
+    ;
+  get property4() → core::int
+    ;
+  set property4(core::int value) → void
+    ;
+  abstract forwarding-stub method method2() → core::int;
+  abstract forwarding-stub get getter2() → core::int;
+  abstract forwarding-stub set field1(core::int? _) → void;
+  abstract forwarding-stub get field2() → core::int;
+  abstract forwarding-stub set property1(core::int? value) → void;
+  abstract forwarding-stub get property2() → core::int;
+  abstract forwarding-stub set property5(core::int? value) → void;
+  abstract forwarding-stub get property6() → core::int;
+  abstract forwarding-stub set setter1(core::int? value) → void;
+}
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as mem;
+import "dart:core" as core;
+
+abstract class Interface extends core::Object {
+  field core::int? field1;
+  field core::int field2;
+  field core::int field3;
+  field core::int? field4;
+  synthetic constructor •() → mem::Interface
+    ;
+  abstract method method1() → core::int?;
+  abstract method method2() → core::int;
+  abstract method method3() → core::int;
+  abstract method method4() → core::int?;
+  abstract method method5a(core::int a, core::int? b) → core::int;
+  abstract method method5b(core::int a, [core::int? b]) → core::int;
+  abstract method method5c([core::int a = 0, core::int? b]) → core::int;
+  abstract method method6a(core::int? a, core::int b) → core::int?;
+  abstract method method6b(core::int? a, [core::int b = 0]) → core::int?;
+  abstract method method6c([core::int? a, core::int b = 0]) → core::int?;
+  abstract method method7a(core::int a, {core::int? b}) → core::int;
+  abstract method method7b({core::int a = 0, core::int? b}) → core::int;
+  abstract method method8a(core::int? a, {core::int b = 0}) → core::int?;
+  abstract method method8b({core::int? a, core::int b = 0}) → core::int?;
+  abstract method method9a(core::int a, {required core::int? b}) → core::int;
+  abstract method method9b({required core::int a, required core::int? b}) → core::int;
+  abstract method method10a(core::int? a, {required core::int b}) → core::int?;
+  abstract method method10b({required core::int? a, required core::int b}) → core::int?;
+  abstract get getter1() → core::int?;
+  abstract get getter2() → core::int;
+  abstract get getter3() → core::int;
+  abstract get getter4() → core::int?;
+  abstract set setter1(core::int? value) → void;
+  abstract set setter2(core::int value) → void;
+  abstract set setter3(core::int value) → void;
+  abstract set setter4(core::int? value) → void;
+  abstract get property1() → core::int?;
+  abstract set property1(core::int? value) → void;
+  abstract get property2() → core::int;
+  abstract set property2(core::int value) → void;
+  abstract get property3() → core::int;
+  abstract set property3(core::int value) → void;
+  abstract get property4() → core::int?;
+  abstract set property4(core::int? value) → void;
+  abstract get property5() → core::int?;
+  abstract set property5(core::int? value) → void;
+  abstract get property6() → core::int;
+  abstract set property6(core::int value) → void;
+  abstract get property7() → core::int;
+  abstract set property7(core::int value) → void;
+  abstract get property8() → core::int?;
+  abstract set property8(core::int? value) → void;
+}
+class Class extends core::Object {
+  field core::int field1;
+  field core::int? field2;
+  field core::int property5;
+  field core::int? property6;
+  synthetic constructor •() → mem::Class
+    ;
+  method method1() → core::int
+    ;
+  method method2() → core::int?
+    ;
+  method method5a(core::int a, core::int? b) → core::int
+    ;
+  method method5b(core::int a, [core::int? b]) → core::int
+    ;
+  method method5c([core::int a = 0, core::int? b]) → core::int
+    ;
+  method method7a(core::int a, {core::int? b}) → core::int
+    ;
+  method method7b({core::int a = 0, core::int? b}) → core::int
+    ;
+  method method9a(core::int a, {required core::int? b}) → core::int
+    ;
+  method method9b({required core::int a, required core::int? b}) → core::int
+    ;
+  get getter1() → core::int
+    ;
+  get getter2() → core::int?
+    ;
+  set setter1(core::int value) → void
+    ;
+  set setter2(core::int? value) → void
+    ;
+  get property1() → core::int
+    ;
+  set property1(core::int value) → void
+    ;
+  get property2() → core::int?
+    ;
+  set property2(core::int? value) → void
+    ;
+}

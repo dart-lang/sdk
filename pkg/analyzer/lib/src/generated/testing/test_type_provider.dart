@@ -16,23 +16,19 @@ import 'package:analyzer/src/test_utilities/mock_sdk_elements.dart';
  * for the core library.
  */
 class TestTypeProvider extends TypeProviderImpl {
-  factory TestTypeProvider({
-    bool isNonNullableByDefault = false,
-  }) {
+  factory TestTypeProvider() {
     var analysisContext = _MockAnalysisContext();
     var analysisSession = _MockAnalysisSession();
     var sdkElements = MockSdkElements(analysisContext, analysisSession);
     return TestTypeProvider._(
       sdkElements.coreLibrary,
       sdkElements.asyncLibrary,
-      isNonNullableByDefault,
     );
   }
 
   TestTypeProvider._(
     LibraryElement coreLibrary,
     LibraryElement asyncLibrary,
-    bool isNonNullableByDefault,
   ) : super(
           coreLibrary: coreLibrary,
           asyncLibrary: asyncLibrary,
@@ -64,6 +60,9 @@ class _MockSource implements Source {
 
   @override
   String get encoding => '$uri';
+
+  @override
+  String get fullName => uri.path;
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

@@ -84,6 +84,8 @@ class SharedCompilerOptions {
   /// for more details.
   final Map<String, bool> experiments;
 
+  final bool soundNullSafety;
+
   /// The name of the module.
   ///
   /// This used when to support file concatenation. The JS module will contain
@@ -100,7 +102,8 @@ class SharedCompilerOptions {
       this.summaryModules = const {},
       this.moduleFormats = const [],
       this.experiments = const {},
-      this.moduleName});
+      this.moduleName,
+      this.soundNullSafety = false});
 
   SharedCompilerOptions.fromArguments(ArgResults args,
       [String moduleRoot, String summaryExtension])
@@ -115,7 +118,8 @@ class SharedCompilerOptions {
                 args['summary'] as List<String>, moduleRoot, summaryExtension),
             moduleFormats: parseModuleFormatOption(args),
             moduleName: _getModuleName(args, moduleRoot),
-            replCompile: args['repl-compile'] as bool);
+            replCompile: args['repl-compile'] as bool,
+            soundNullSafety: args['sound-null-safety'] as bool);
 
   static void addArguments(ArgParser parser, {bool hide = true}) {
     addModuleFormatOptions(parser, hide: hide);
@@ -144,7 +148,11 @@ class SharedCompilerOptions {
               ' to private members across library boundaries. This should'
               ' only be used by debugging tools.',
           defaultsTo: false,
-          hide: hide);
+          hide: hide)
+      ..addFlag('sound-null-safety',
+          help: 'Compile for sound null safety at runtime.',
+          negatable: true,
+          defaultsTo: false);
   }
 
   static String _getModuleName(ArgResults args, String moduleRoot) {

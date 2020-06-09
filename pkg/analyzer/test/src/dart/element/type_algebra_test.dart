@@ -371,12 +371,12 @@ class SubstituteWithNullabilityTest extends _Base {
 
 class _Base with ElementsTypesMixin {
   @override
-  final TestTypeProvider typeProvider;
+  final TestTypeProvider typeProvider = TestTypeProvider();
 
+  /// TODO(scheglov) remove it
   final bool useNnbd;
 
-  _Base({this.useNnbd = false})
-      : typeProvider = TestTypeProvider(isNonNullableByDefault: useNnbd);
+  _Base({this.useNnbd = false});
 
   InterfaceType get boolType => typeProvider.boolType;
 

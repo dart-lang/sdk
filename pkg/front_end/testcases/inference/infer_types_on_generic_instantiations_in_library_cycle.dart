@@ -26,11 +26,10 @@ class B<E> extends A<E> implements M {
 
 foo() {
   int y = /*error:INVALID_ASSIGNMENT*/ new B<String>()
-      . /*@target=B::m*/ m(null, null)
-      . /*@target=A::value*/ value;
-  String z = new B<String>()
-      . /*@target=B::m*/ m(null, null)
-      . /*@target=A::value*/ value;
+      . /*@target=B.m*/ m(null, null)
+      . /*@target=A.value*/ value;
+  String z =
+      new B<String>(). /*@target=B.m*/ m(null, null). /*@target=A.value*/ value;
 }
 
 main() {}

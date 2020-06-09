@@ -599,7 +599,8 @@ class IsTypeParameterSubtypeOf extends TypeRelation<TypeParameterType> {
 
     // Rule 12.
     return types.performNullabilityAwareSubtypeCheck(
-        intersection.promotedBound.withNullability(intersection.nullability),
+        intersection.promotedBound
+            .withDeclaredNullability(intersection.nullability),
         t);
   }
 
@@ -705,7 +706,7 @@ class IsFutureOrSubtypeOf extends TypeRelation<InterfaceType> {
     return types
         // Rule 11.
         .performNullabilityAwareSubtypeCheck(
-            s, arguments.single.withNullability(unitedNullability))
+            s, arguments.single.withDeclaredNullability(unitedNullability))
         // Rule 10.
         .orSubtypeCheckFor(
             s,
@@ -770,8 +771,8 @@ class IsFutureOrSubtypeOf extends TypeRelation<InterfaceType> {
             .performNullabilityAwareSubtypeCheck(sArgument, tFutureOfArgument)
             .andSubtypeCheckFor(sFutureOfArgument, tArgument, types))
         .and(new IsSubtypeOf.basedSolelyOnNullabilities(
-            sFutureOr.withNullability(sNullability),
-            tFutureOr.withNullability(tNullability),
+            sFutureOr.withDeclaredNullability(sNullability),
+            tFutureOr.withDeclaredNullability(tNullability),
             types.futureOrClass));
   }
 
@@ -782,7 +783,7 @@ class IsFutureOrSubtypeOf extends TypeRelation<InterfaceType> {
     DartType argument = futureOr.typeArguments.single;
     return types.performNullabilityAwareSubtypeCheck(
         s,
-        argument.withNullability(computeNullabilityOfFutureOr(
+        argument.withDeclaredNullability(computeNullabilityOfFutureOr(
             futureOr, types.hierarchy.coreTypes.futureOrClass)));
   }
 
@@ -792,7 +793,7 @@ class IsFutureOrSubtypeOf extends TypeRelation<InterfaceType> {
     DartType argument = futureOr.typeArguments.single;
     return types.performNullabilityAwareSubtypeCheck(
         s,
-        argument.withNullability(computeNullabilityOfFutureOr(
+        argument.withDeclaredNullability(computeNullabilityOfFutureOr(
             futureOr, types.hierarchy.coreTypes.futureOrClass)));
   }
 
@@ -806,10 +807,10 @@ class IsFutureOrSubtypeOf extends TypeRelation<InterfaceType> {
     return types
         // Rule 11.
         .performNullabilityAwareSubtypeCheck(
-            s, arguments.single.withNullability(unitedNullability))
+            s, arguments.single.withDeclaredNullability(unitedNullability))
         // Rule 13.
         .orSubtypeCheckFor(
-            s.parameter.bound.withNullability(
+            s.parameter.bound.withDeclaredNullability(
                 combineNullabilitiesForSubstitution(
                     s.parameter.bound.nullability, s.nullability)),
             futureOr,
@@ -829,7 +830,7 @@ class IsFutureOrSubtypeOf extends TypeRelation<InterfaceType> {
     DartType argument = futureOr.typeArguments.single;
     return types.performNullabilityAwareSubtypeCheck(
         s,
-        argument.withNullability(computeNullabilityOfFutureOr(
+        argument.withDeclaredNullability(computeNullabilityOfFutureOr(
             futureOr, types.hierarchy.coreTypes.futureOrClass)));
   }
 

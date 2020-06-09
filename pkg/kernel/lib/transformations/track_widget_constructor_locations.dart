@@ -310,13 +310,9 @@ class WidgetCreatorTracker {
   Class _widgetClass;
   Class _locationClass;
 
-  final ChangedStructureNotifier _changedStructureNotifier;
-
   /// Marker interface indicating that a private _location field is
   /// available.
   Class _hasCreationLocationClass;
-
-  WidgetCreatorTracker(this._changedStructureNotifier);
 
   void _resolveFlutterClasses(Iterable<Library> libraries) {
     // If the Widget or Debug location classes have been updated we need to get
@@ -353,7 +349,8 @@ class WidgetCreatorTracker {
   ///
   /// This method should only be called for classes that implement but do not
   /// extend [Widget].
-  void _transformClassImplementingWidget(Class clazz) {
+  void _transformClassImplementingWidget(
+      Class clazz, ChangedStructureNotifier changedStructureNotifier) {
     if (clazz.fields
         .any((Field field) => field.name.name == _locationFieldName)) {
       // This class has already been transformed. Skip
@@ -361,7 +358,7 @@ class WidgetCreatorTracker {
     }
     clazz.implementedTypes
         .add(new Supertype(_hasCreationLocationClass, <DartType>[]));
-    _changedStructureNotifier?.registerClassHierarchyChange(clazz);
+    changedStructureNotifier?.registerClassHierarchyChange(clazz);
 
     // We intentionally use the library context of the _HasCreationLocation
     // class for the private field even if [clazz] is in a different library
@@ -444,7 +441,19 @@ class WidgetCreatorTracker {
   }
 
   /// Transform the given [libraries].
-  void transform(Component module, List<Library> libraries) {
+  ///
+  /// The libraries from [module] is searched for the Widget class,
+  /// the _Location class and the _HasCreationLocation class.
+  /// If the component does not contain them, the ones from a previous run is
+  /// used (if any), otherwise no transformation is performed.
+  ///
+  /// Upon transformation the [changedStructureNotifier] (if provided) is used
+  /// to notify the listener that  that class hierarchy of certain classes has
+  /// changed. This is neccesary for instance when doing an incremental
+  /// compilation where the class hierarchy is kept between compiles and thus
+  /// has to be kept up to date.
+  void transform(Component module, List<Library> libraries,
+      ChangedStructureNotifier changedStructureNotifier) {
     if (libraries.isEmpty) {
       return;
     }
@@ -466,6 +475,7 @@ class WidgetCreatorTracker {
           librariesToTransform,
           transformedClasses,
           class_,
+          changedStructureNotifier,
         );
       }
     }
@@ -497,8 +507,11 @@ class WidgetCreatorTracker {
     return false;
   }
 
-  void _transformWidgetConstructors(Set<Library> librariesToBeTransformed,
-      Set<Class> transformedClasses, Class clazz) {
+  void _transformWidgetConstructors(
+      Set<Library> librariesToBeTransformed,
+      Set<Class> transformedClasses,
+      Class clazz,
+      ChangedStructureNotifier changedStructureNotifier) {
     if (!_isSubclassOfWidget(clazz) ||
         !librariesToBeTransformed.contains(clazz.enclosingLibrary) ||
         !transformedClasses.add(clazz)) {
@@ -512,6 +525,7 @@ class WidgetCreatorTracker {
         librariesToBeTransformed,
         transformedClasses,
         clazz.superclass,
+        changedStructureNotifier,
       );
     }
 
@@ -530,7 +544,7 @@ class WidgetCreatorTracker {
     // Handle the widget class and classes that implement but do not extend the
     // widget class.
     if (!_isSubclassOfWidget(clazz.superclass)) {
-      _transformClassImplementingWidget(clazz);
+      _transformClassImplementingWidget(clazz, changedStructureNotifier);
       return;
     }
 

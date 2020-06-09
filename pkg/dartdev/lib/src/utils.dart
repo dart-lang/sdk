@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+import 'package:path/path.dart' as p;
+
 /// Emit the given word with the correct pluralization.
 String pluralize(String word, int count) => count == 1 ? word : '${word}s';
 
@@ -18,4 +21,10 @@ String trimEnd(String s, String suffix) {
 Map<String, dynamic> castStringKeyedMap(dynamic untyped) {
   final Map<dynamic, dynamic> map = untyped as Map<dynamic, dynamic>;
   return map?.cast<String, dynamic>();
+}
+
+extension FileSystemEntityExtension on FileSystemEntity {
+  String get name => p.basename(path);
+
+  bool get isDartFile => this is File && p.extension(path) == '.dart';
 }

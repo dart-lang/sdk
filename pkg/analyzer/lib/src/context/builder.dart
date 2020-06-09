@@ -5,7 +5,6 @@
 import 'dart:collection';
 import 'dart:core';
 
-import 'package:analyzer/dart/analysis/analysis_context.dart' as api;
 import 'package:analyzer/dart/analysis/context_locator.dart' as api;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -15,7 +14,6 @@ import 'package:analyzer/src/command_line/arguments.dart'
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/context_root.dart' as api;
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriver, AnalysisDriverScheduler;
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart'
@@ -30,7 +28,6 @@ import 'package:analyzer/src/hint/sdk_constraint_extractor.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/task/options.dart';
-import 'package:analyzer/src/util/uri.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/bazel.dart';
 import 'package:analyzer/src/workspace/gn.dart';
@@ -38,7 +35,6 @@ import 'package:analyzer/src/workspace/package_build.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:args/args.dart';
-import 'package:path/src/context.dart';
 import 'package:yaml/yaml.dart';
 
 /// A utility class used to build an analysis context for a given directory.
@@ -185,17 +181,14 @@ class ContextBuilder {
 //  }
 
   Packages createPackageMap(String rootDirectoryPath) {
-    String filePath = builderOptions.defaultPackageFilePath;
-    if (filePath != null) {
-      File configFile = resourceProvider.getFile(filePath);
+    var configPath = builderOptions.defaultPackageFilePath;
+    if (configPath != null) {
+      var configFile = resourceProvider.getFile(configPath);
       return parsePackagesFile(resourceProvider, configFile);
+    } else {
+      var resource = resourceProvider.getResource(rootDirectoryPath);
+      return findPackagesFrom(resourceProvider, resource);
     }
-    String directoryPath = builderOptions.defaultPackagesDirectoryPath;
-    if (directoryPath != null) {
-      Folder folder = resourceProvider.getFolder(directoryPath);
-      return getPackagesFromFolder(folder);
-    }
-    return findPackagesFromFile(rootDirectoryPath);
   }
 
   SourceFactory createSourceFactory(String rootPath, AnalysisOptions options,
@@ -217,28 +210,6 @@ class ContextBuilder {
       driver.declaredVariables = DeclaredVariables.fromMap(variables);
       driver.configure();
     }
-  }
-
-  /// Finds a package resolution strategy for the directory at the given absolute
-  /// [path].
-  ///
-  /// This function first tries to locate a `.packages` file in the directory. If
-  /// that is not found, it instead checks for the presence of a `packages/`
-  /// directory in the same place. If that also fails, it starts checking parent
-  /// directories for a `.packages` file, and stops if it finds it. Otherwise it
-  /// gives up and returns [Packages.empty].
-  Packages findPackagesFromFile(String path) {
-    Resource location = _findPackagesLocation(path);
-    if (location is File) {
-      try {
-        return parsePackagesFile(resourceProvider, location);
-      } catch (_) {
-        return Packages.empty;
-      }
-    } else if (location is Folder) {
-      return getPackagesFromFolder(location);
-    }
-    return Packages.empty;
   }
 
   /// Return the SDK that should be used to analyze code. Use the given
@@ -387,96 +358,6 @@ class ContextBuilder {
     return null;
   }
 
-  /// Create a [Packages] object for a 'package' directory ([folder]).
-  ///
-  /// Package names are resolved as relative to sub-directories of the package
-  /// directory.
-  ///
-  /// TODO(scheglov) Remove this feature
-  Packages getPackagesFromFolder(Folder folder) {
-    Context pathContext = resourceProvider.pathContext;
-    var map = <String, Package>{};
-    for (Resource child in folder.getChildren()) {
-      if (child is Folder) {
-        // Inline resolveSymbolicLinks for performance reasons.
-        String packageName = pathContext.basename(child.path);
-        String packagePath = resolveSymbolicLink(child);
-        var rootFolder = resourceProvider.getFolder(packagePath);
-        var libFolder = rootFolder.getChildAssumingFolder('lib');
-        var package = Package(
-          name: packageName,
-          rootFolder: rootFolder,
-          libFolder: libFolder,
-          languageVersion: null,
-        );
-        map[packageName] = package;
-      }
-    }
-    return Packages(map);
-  }
-
-  /// Resolve any symbolic links encoded in the path to the given [folder].
-  String resolveSymbolicLink(Folder folder) {
-    try {
-      return folder.resolveSymbolicLinksSync().path;
-    } on FileSystemException {
-      return folder.path;
-    }
-  }
-
-  /// Resolve any symbolic links encoded in the URI's in the given [map] by
-  /// replacing the values in the map.
-  void resolveSymbolicLinks(Map<String, Uri> map) {
-    Context pathContext = resourceProvider.pathContext;
-    for (String packageName in map.keys) {
-      var uri = map[packageName];
-      String path = fileUriToNormalizedPath(pathContext, uri);
-      Folder folder = resourceProvider.getFolder(path);
-      String folderPath = resolveSymbolicLink(folder);
-      // Add a '.' so that the URI is suitable for resolving relative URI's
-      // against it.
-      String uriPath = pathContext.join(folderPath, '.');
-      map[packageName] = pathContext.toUri(uriPath);
-    }
-  }
-
-  /// Find the location of the package resolution file/directory for the
-  /// directory at the given absolute [path].
-  ///
-  /// Checks for a `.packages` file in the [path]. If not found,
-  /// checks for a `packages` directory in the same directory. If still not
-  /// found, starts checking parent directories for `.packages` until reaching
-  /// the root directory.
-  ///
-  /// Return a [File] object representing a `.packages` file if one is found, a
-  /// [Folder] object for the `packages/` directory if that is found, or `null`
-  /// if neither is found.
-  Resource _findPackagesLocation(String path) {
-    var resource = resourceProvider.getResource(path);
-    while (resource != null) {
-      if (resource is Folder) {
-        var packageConfigFile = resource
-            .getChildAssumingFolder('.dart_tool')
-            .getChildAssumingFile('package_config.json');
-        if (packageConfigFile.exists) {
-          return packageConfigFile;
-        }
-
-        var dotPackagesFile = resource.getChildAssumingFile('.packages');
-        if (dotPackagesFile.exists) {
-          return dotPackagesFile;
-        }
-
-        var packagesDirectory = resource.getChildAssumingFolder('packages');
-        if (packagesDirectory.exists) {
-          return packagesDirectory;
-        }
-      }
-      resource = resource.parent;
-    }
-    return null;
-  }
-
   /// Return the `pubspec.yaml` file that should be used when analyzing code in
   /// the directory with the given [path], possibly `null`.
   File _findPubspecFile(String path) {
@@ -564,11 +445,6 @@ class ContextBuilderOptions {
   /// file found using the normal (Package Specification DEP) lookup mechanism,
   /// or `null` if the normal lookup mechanism should be used.
   String defaultPackageFilePath;
-
-  /// The file path of the packages directory that should be used in place of any
-  /// file found using the normal (Package Specification DEP) lookup mechanism,
-  /// or `null` if the normal lookup mechanism should be used.
-  String defaultPackagesDirectoryPath;
 
   /// A list of the paths of summary files that are to be used, or `null` if no
   /// summary information is available.

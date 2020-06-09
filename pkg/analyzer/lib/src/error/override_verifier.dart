@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -24,7 +23,7 @@ class OverrideVerifier extends RecursiveAstVisitor {
   final ErrorReporter _errorReporter;
 
   /// The current class or mixin.
-  InterfaceType _currentType;
+  ClassElement _currentClass;
 
   OverrideVerifier(
       this._inheritance, LibraryElement library, this._errorReporter)
@@ -32,9 +31,9 @@ class OverrideVerifier extends RecursiveAstVisitor {
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
-    _currentType = node.declaredElement.thisType;
+    _currentClass = node.declaredElement;
     super.visitClassDeclaration(node);
-    _currentType = null;
+    _currentClass = null;
   }
 
   @override
@@ -83,14 +82,14 @@ class OverrideVerifier extends RecursiveAstVisitor {
 
   @override
   visitMixinDeclaration(MixinDeclaration node) {
-    _currentType = node.declaredElement.thisType;
+    _currentClass = node.declaredElement;
     super.visitMixinDeclaration(node);
-    _currentType = null;
+    _currentClass = null;
   }
 
   /// Return `true` if the [member] overrides a member from a superinterface.
   bool _isOverride(ExecutableElement member) {
     var name = Name(_libraryUri, member.name);
-    return _inheritance.getOverridden(_currentType, name) != null;
+    return _inheritance.getOverridden2(_currentClass, name) != null;
   }
 }

@@ -61,9 +61,10 @@ class FileState {
   final List<FileState> importedFiles = [];
   final List<FileState> exportedFiles = [];
   final List<FileState> partedFiles = [];
-  final Set<FileState> directReferencedFiles = Set();
-  final Set<FileState> directReferencedLibraries = Set();
+  final Set<FileState> directReferencedFiles = {};
+  final Set<FileState> directReferencedLibraries = {};
   final List<FileState> libraryFiles = [];
+  FileState partOfLibrary;
 
   List<int> _digest;
   bool _exists;
@@ -205,15 +206,30 @@ class FileState {
     // Build the graph.
     for (var directive in unlinked2.imports) {
       var file = _fileForRelativeUri(directive.uri);
-      importedFiles.add(file);
+      if (file != null) {
+        importedFiles.add(file);
+      }
     }
     for (var directive in unlinked2.exports) {
       var file = _fileForRelativeUri(directive.uri);
-      exportedFiles.add(file);
+      if (file != null) {
+        exportedFiles.add(file);
+      }
     }
     for (var uri in unlinked2.parts) {
       var file = _fileForRelativeUri(uri);
-      partedFiles.add(file);
+      if (file != null) {
+        partedFiles.add(file);
+      }
+    }
+    if (unlinked2.hasPartOfDirective) {
+      var uri = unlinked2.partOfUri;
+      if (uri.isNotEmpty) {
+        partOfLibrary = _fileForRelativeUri(uri);
+        if (partOfLibrary != null) {
+          directReferencedFiles.add(partOfLibrary);
+        }
+      }
     }
     libraryFiles.add(this);
     libraryFiles.addAll(partedFiles);
@@ -233,19 +249,22 @@ class FileState {
 
   FileState _fileForRelativeUri(String relativeUri) {
     if (relativeUri.isEmpty) {
-      return _fsState.unresolvedFile;
+      return null;
     }
 
     Uri absoluteUri;
     try {
       absoluteUri = resolveRelativeUri(uri, Uri.parse(relativeUri));
     } on FormatException {
-      return _fsState.unresolvedFile;
+      return null;
     }
 
     var file = _fsState.getFileForUri(absoluteUri);
-    file.referencingFiles.add(this);
+    if (file == null) {
+      return null;
+    }
 
+    file.referencingFiles.add(this);
     return file;
   }
 
@@ -292,6 +311,7 @@ class FileState {
     var hasDartCoreImport = false;
     var hasLibraryDirective = false;
     var hasPartOfDirective = false;
+    var partOfUriStr = '';
     for (var directive in unit.directives) {
       if (directive is ExportDirective) {
         var builder = _serializeNamespaceDirective(directive);
@@ -309,6 +329,9 @@ class FileState {
         parts.add(uriStr ?? '');
       } else if (directive is PartOfDirective) {
         hasPartOfDirective = true;
+        if (directive.uri != null) {
+          partOfUriStr = directive.uri.stringValue;
+        }
       }
     }
     if (!hasDartCoreImport) {
@@ -326,6 +349,7 @@ class FileState {
       parts: parts,
       hasLibraryDirective: hasLibraryDirective,
       hasPartOfDirective: hasPartOfDirective,
+      partOfUri: partOfUriStr,
       lineStarts: unit.lineInfo.lineStarts,
       informativeData: informativeData,
     );
@@ -376,11 +400,6 @@ class FileSystemState {
    */
   final void Function(List<String> paths) prefetchFiles;
 
-  /**
-   * The [FileState] instance that correspond to an unresolved URI.
-   */
-  FileState _unresolvedFile;
-
   final FileSystemStateTimers timers = FileSystemStateTimers();
 
   final FileSystemStateTestView testView = FileSystemStateTestView();
@@ -396,17 +415,6 @@ class FileSystemState {
     this.getFileDigest,
     this.prefetchFiles,
   );
-
-  /**
-   * Return the [FileState] instance that correspond to an unresolved URI.
-   */
-  FileState get unresolvedFile {
-    if (_unresolvedFile == null) {
-      _unresolvedFile = FileState._(this, null, null, null);
-      _unresolvedFile.refresh();
-    }
-    return _unresolvedFile;
-  }
 
   /// Update the state to reflect the fact that the file with the given [path]
   /// was changed. Specifically this means that we evict this file and every
@@ -455,7 +463,7 @@ class FileSystemState {
     if (file == null) {
       var source = _sourceFactory.forUri2(uri);
       if (source == null) {
-        print('[library_graph] could not create source for $uri');
+        return null;
       }
       var path = source.fullName;
 
@@ -537,7 +545,7 @@ class LibraryCycle {
   final List<FileState> libraries = [];
 
   /// The library cycles that this cycle references directly.
-  final Set<LibraryCycle> directDependencies = Set<LibraryCycle>();
+  final Set<LibraryCycle> directDependencies = <LibraryCycle>{};
 
   /// The transitive signature of this cycle.
   ///

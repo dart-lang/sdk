@@ -68,7 +68,7 @@ namespace dart {
   V(void, StoreBufferBlockProcess, Thread*)                                    \
   V(void, MarkingStackBlockProcess, Thread*)                                   \
   V(void, RememberCard, uword /*ObjectPtr*/, ObjectPtr*)                       \
-  V(uword /*ObjectPtr*/, AddAllocatedObjectToRememberedSet,                    \
+  V(uword /*ObjectPtr*/, EnsureRememberedAndMarkingDeferred,                   \
     uword /*ObjectPtr*/ object, Thread* thread)                                \
   V(double, LibcPow, double, double)                                           \
   V(double, DartModulo, double, double)                                        \

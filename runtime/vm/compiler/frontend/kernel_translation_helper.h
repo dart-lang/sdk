@@ -277,7 +277,7 @@ class FunctionNodeHelper {
     kEnd,
   };
 
-  enum AsyncMarker {
+  enum AsyncMarker : intptr_t {
     kSync = 0,
     kSyncStar = 1,
     kAsync = 2,

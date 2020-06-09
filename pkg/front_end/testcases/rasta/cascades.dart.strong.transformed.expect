@@ -8,10 +8,22 @@ class A extends core::Object {
     ;
   method add(dynamic x) → dynamic
     return x;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method main() → dynamic {
   self::A* a = new self::A::•();
   function f(dynamic x) → dynamic
     return x;
-  let final self::A* #t1 = a in let final void #t2 = #t1.{self::A::add}(f).call("WHAT") in #t1;
+  let final self::A* #t1 = a in block {
+    #t1.{self::A::add}(f).call("WHAT");
+  } =>#t1;
 }

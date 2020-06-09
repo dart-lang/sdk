@@ -6,6 +6,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/generated/type_system.dart';
@@ -255,11 +256,10 @@ class TopMergeHelper {
         R_type = mergeTypes(T_parameter.type, S_parameter.type);
       }
 
-      R_parameters[i] = ParameterElementImpl.synthetic(
-        T_parameter.name,
-        R_type,
-        R_kind,
-      )..isExplicitlyCovariant = R_isCovariant;
+      R_parameters[i] = T_parameter.copyWith(
+        type: R_type,
+        kind: R_kind,
+      );
     }
 
     return FunctionTypeImpl(

@@ -73,8 +73,8 @@ static method main() → void {
         asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
-      on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
-        :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+      on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+        :async_completer.{asy::Completer::completeError}(exception, stack_trace);
       }
     :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
     :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
@@ -99,8 +99,8 @@ static method main() → void {
         asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
-      on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
-        :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+      on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+        :async_completer.{asy::Completer::completeError}(exception, stack_trace);
       }
     :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
     :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
@@ -126,8 +126,8 @@ static method main() → void {
         asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
-      on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
-        :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+      on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+        :async_completer.{asy::Completer::completeError}(exception, stack_trace);
       }
     :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
     :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
@@ -153,8 +153,8 @@ static method main() → void {
         asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
-      on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
-        :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+      on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+        :async_completer.{asy::Completer::completeError}(exception, stack_trace);
       }
     :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
     :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
@@ -179,8 +179,8 @@ static method main() → void {
         asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
-      on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
-        :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+      on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+        :async_completer.{asy::Completer::completeError}(exception, stack_trace);
       }
     :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
     :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
@@ -206,8 +206,8 @@ static method main() → void {
         asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
-      on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
-        :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+      on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+        :async_completer.{asy::Completer::completeError}(exception, stack_trace);
       }
     :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
     :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
@@ -232,7 +232,7 @@ static method errors() → void /* originally async */ {
           try {
             throw v;
           }
-          on dynamic catch(final dynamic _) {
+          on core::Object catch(final core::Object _) {
           }
           return let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:39:29: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   String Function(int) x2 = (int v) /* error */ {
@@ -242,7 +242,7 @@ static method errors() → void /* originally async */ {
           try {
             return throw v;
           }
-          on dynamic catch(final dynamic _) {
+          on core::Object catch(final core::Object _) {
           }
           return let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:44:29: Error: A non-null value must be returned since the return type 'Never' doesn't allow null.
   String Function(int) x3 = (int v) /* error */ {
@@ -252,7 +252,7 @@ static method errors() → void /* originally async */ {
           try {
             self::throwing();
           }
-          on dynamic catch(final dynamic _) {
+          on core::Object catch(final core::Object _) {
           }
           return let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:49:29: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   String Function(int) x5 = (int v) /* error */ {
@@ -262,7 +262,7 @@ static method errors() → void /* originally async */ {
           try {
             return self::throwing();
           }
-          on dynamic catch(final dynamic _) {
+          on core::Object catch(final core::Object _) {
           }
           return let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:54:29: Error: A non-null value must be returned since the return type 'Never' doesn't allow null.
   String Function(int) x6 = (int v) /* error */ {
@@ -283,7 +283,7 @@ static method errors() → void /* originally async */ {
                 try {
                   throw v;
                 }
-                on dynamic catch(final dynamic _) {
+                on core::Object catch(final core::Object _) {
                 }
                 :return_value = let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:59:37: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   Future<String> Function(int) y2 = (int v) async /* error */ {
@@ -293,8 +293,8 @@ static method errors() → void /* originally async */ {
               asy::_completeOnAsyncReturn(:async_completer, :return_value);
               return;
             }
-            on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
-              :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+            on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+              :async_completer.{asy::Completer::completeError}(exception, stack_trace);
             }
           :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
           :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
@@ -318,7 +318,7 @@ static method errors() → void /* originally async */ {
                   :return_value = throw v;
                   break #L9;
                 }
-                on dynamic catch(final dynamic _) {
+                on core::Object catch(final core::Object _) {
                 }
                 :return_value = let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:64:37: Error: A non-null value must be returned since the return type 'Never' doesn't allow null.
   Future<String> Function(int) y3 = (int v) async /* error */ {
@@ -328,8 +328,8 @@ static method errors() → void /* originally async */ {
               asy::_completeOnAsyncReturn(:async_completer, :return_value);
               return;
             }
-            on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
-              :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+            on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+              :async_completer.{asy::Completer::completeError}(exception, stack_trace);
             }
           :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
           :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
@@ -352,7 +352,7 @@ static method errors() → void /* originally async */ {
                 try {
                   self::throwing();
                 }
-                on dynamic catch(final dynamic _) {
+                on core::Object catch(final core::Object _) {
                 }
                 :return_value = let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:69:37: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   Future<String> Function(int) y5 = (int v) async /* error */ {
@@ -362,8 +362,8 @@ static method errors() → void /* originally async */ {
               asy::_completeOnAsyncReturn(:async_completer, :return_value);
               return;
             }
-            on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
-              :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+            on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+              :async_completer.{asy::Completer::completeError}(exception, stack_trace);
             }
           :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
           :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
@@ -387,7 +387,7 @@ static method errors() → void /* originally async */ {
                   :return_value = self::throwing();
                   break #L11;
                 }
-                on dynamic catch(final dynamic _) {
+                on core::Object catch(final core::Object _) {
                 }
                 :return_value = let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:74:37: Error: A non-null value must be returned since the return type 'Never' doesn't allow null.
   Future<String> Function(int) y6 = (int v) async /* error */ {
@@ -397,8 +397,8 @@ static method errors() → void /* originally async */ {
               asy::_completeOnAsyncReturn(:async_completer, :return_value);
               return;
             }
-            on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
-              :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+            on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+              :async_completer.{asy::Completer::completeError}(exception, stack_trace);
             }
           :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
           :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
@@ -410,8 +410,8 @@ static method errors() → void /* originally async */ {
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
-    on dynamic catch(dynamic :exception, core::StackTrace :stack_trace) {
-      :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+    on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
     }
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);

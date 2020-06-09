@@ -50,6 +50,8 @@ import '../kernel/internal_ast.dart'
 
 import '../kernel/inference_visitor.dart';
 
+import '../kernel/invalid_type.dart';
+
 import '../kernel/type_algorithms.dart' show hasAnyTypeVariables;
 
 import '../names.dart';
@@ -415,8 +417,9 @@ class ClosureContext {
       returnType = inferrer.typeSchemaEnvironment.unfutureType(returnType);
     }
     if (inferrer.library.isNonNullableByDefault &&
-        isPotentiallyNonNullable(
-            returnType, inferrer.coreTypes.futureOrClass) &&
+        (containsInvalidType(returnType) ||
+            isPotentiallyNonNullable(
+                returnType, inferrer.coreTypes.futureOrClass)) &&
         inferrer.flowAnalysis.isReachable) {
       Statement resultStatement =
           inferenceResult.hasChanged ? inferenceResult.statement : body;
@@ -625,7 +628,7 @@ class TypeInferrerImpl implements TypeInferrer {
     if (type == coreTypes.nullType || type is NeverType) {
       return coreTypes.nullType;
     }
-    return type.withNullability(library.nullable);
+    return type.withDeclaredNullability(library.nullable);
   }
 
   DartType computeNonNullable(DartType type) {
@@ -638,7 +641,7 @@ class TypeInferrerImpl implements TypeInferrer {
       return new TypeParameterType(type.parameter, Nullability.nonNullable,
           computeNonNullable(type.promotedBound));
     }
-    return type.withNullability(library.nonNullable);
+    return type.withDeclaredNullability(library.nonNullable);
   }
 
   void registerIfUnreachableForTesting(TreeNode node, {bool isReachable}) {
@@ -917,7 +920,7 @@ class TypeInferrerImpl implements TypeInferrer {
           ..fileOffset = fileOffset;
     DartType tearoffType =
         getGetterTypeForMemberTarget(callMember, expressionType)
-            .withNullability(expressionType.nullability);
+            .withDeclaredNullability(expressionType.nullability);
     ConditionalExpression conditional = new ConditionalExpression(nullCheck,
         new NullLiteral()..fileOffset = fileOffset, tearOff, tearoffType);
     return new TypedTearoff(
@@ -953,7 +956,7 @@ class TypeInferrerImpl implements TypeInferrer {
           }
           expressionType =
               getGetterTypeForMemberTarget(callMember, expressionType)
-                  .withNullability(expressionType.nullability);
+                  .withDeclaredNullability(expressionType.nullability);
         }
       }
     }
@@ -1273,9 +1276,7 @@ class TypeInferrerImpl implements TypeInferrer {
           new InstrumentationValueForMember(target.member));
     }
 
-    if (target.isUnresolved &&
-        receiverBound is! DynamicType &&
-        includeExtensionMethods) {
+    if (target.isMissing && includeExtensionMethods) {
       if (isReceiverTypePotentiallyNullable) {
         // When the receiver type is potentially nullable we would have found
         // the extension member above, if available. Therefore we know that we
@@ -1342,7 +1343,6 @@ class TypeInferrerImpl implements TypeInferrer {
         return receiverType;
       case ObjectAccessTargetKind.invalid:
         return const InvalidType();
-      case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.dynamic:
       case ObjectAccessTargetKind.missing:
       case ObjectAccessTargetKind.ambiguous:
@@ -1450,7 +1450,6 @@ class TypeInferrerImpl implements TypeInferrer {
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.nullableCallFunction:
         return _getFunctionType(receiverType);
-      case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.dynamic:
       case ObjectAccessTargetKind.never:
       case ObjectAccessTargetKind.invalid:
@@ -1527,7 +1526,6 @@ class TypeInferrerImpl implements TypeInferrer {
         return const InvalidType();
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.nullableCallFunction:
-      case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.dynamic:
       case ObjectAccessTargetKind.missing:
       case ObjectAccessTargetKind.ambiguous:
@@ -1566,7 +1564,6 @@ class TypeInferrerImpl implements TypeInferrer {
         return const InvalidType();
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.nullableCallFunction:
-      case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.dynamic:
       case ObjectAccessTargetKind.never:
       case ObjectAccessTargetKind.missing:
@@ -1630,7 +1627,6 @@ class TypeInferrerImpl implements TypeInferrer {
         return const InvalidType();
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.nullableCallFunction:
-      case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.dynamic:
       case ObjectAccessTargetKind.never:
       case ObjectAccessTargetKind.missing:
@@ -1691,7 +1687,6 @@ class TypeInferrerImpl implements TypeInferrer {
         return const InvalidType();
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.nullableCallFunction:
-      case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.dynamic:
       case ObjectAccessTargetKind.never:
       case ObjectAccessTargetKind.missing:
@@ -1702,6 +1697,7 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   FunctionType _getFunctionType(DartType calleeType) {
+    calleeType = resolveTypeParameter(calleeType);
     if (calleeType is FunctionType) {
       return calleeType;
     }
@@ -1709,6 +1705,7 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   FunctionType getFunctionTypeForImplicitCall(DartType calleeType) {
+    calleeType = resolveTypeParameter(calleeType);
     if (calleeType is FunctionType) {
       return calleeType;
     } else if (calleeType is InterfaceType) {
@@ -1746,7 +1743,6 @@ class TypeInferrerImpl implements TypeInferrer {
 
   DartType getSetterType(ObjectAccessTarget target, DartType receiverType) {
     switch (target.kind) {
-      case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.dynamic:
       case ObjectAccessTargetKind.never:
       case ObjectAccessTargetKind.missing:
@@ -2012,7 +2008,7 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   InvocationInferenceResult inferInvocation(DartType typeContext, int offset,
-      FunctionType calleeType, Arguments arguments, Name targetName,
+      FunctionType calleeType, Arguments arguments,
       {List<VariableDeclaration> hoistedExpressions,
       bool isOverloadedArithmeticOperator: false,
       DartType returnType,
@@ -2029,22 +2025,16 @@ class TypeInferrerImpl implements TypeInferrer {
     if (extensionTypeParameterCount != 0) {
       assert(returnType == null,
           "Unexpected explicit return type for extension method invocation.");
-      return _inferGenericExtensionMethodInvocation(
-          extensionTypeParameterCount,
-          typeContext,
-          offset,
-          calleeType,
-          arguments,
-          targetName,
-          hoistedExpressions,
+      return _inferGenericExtensionMethodInvocation(extensionTypeParameterCount,
+          typeContext, offset, calleeType, arguments, hoistedExpressions,
           isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
           receiverType: receiverType,
           skipTypeArgumentInference: skipTypeArgumentInference,
           isConst: isConst,
           isImplicitExtensionMember: isImplicitExtensionMember);
     }
-    return _inferInvocation(typeContext, offset, calleeType, arguments,
-        targetName, hoistedExpressions,
+    return _inferInvocation(
+        typeContext, offset, calleeType, arguments, hoistedExpressions,
         isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
         receiverType: receiverType,
         returnType: returnType,
@@ -2060,7 +2050,6 @@ class TypeInferrerImpl implements TypeInferrer {
       int offset,
       FunctionType calleeType,
       Arguments arguments,
-      Name targetName,
       List<VariableDeclaration> hoistedExpressions,
       {bool isOverloadedArithmeticOperator: false,
       DartType receiverType,
@@ -2080,7 +2069,7 @@ class TypeInferrerImpl implements TypeInferrer {
         arguments.fileOffset, [arguments.positional.first],
         types: getExplicitExtensionTypeArguments(arguments));
     _inferInvocation(const UnknownType(), offset, extensionFunctionType,
-        extensionArguments, targetName, hoistedExpressions,
+        extensionArguments, hoistedExpressions,
         skipTypeArgumentInference: skipTypeArgumentInference,
         receiverType: receiverType,
         isImplicitExtensionMember: isImplicitExtensionMember,
@@ -2106,7 +2095,7 @@ class TypeInferrerImpl implements TypeInferrer {
         arguments.fileOffset, arguments.positional.skip(1).toList(),
         named: arguments.named, types: getExplicitTypeArguments(arguments));
     InvocationInferenceResult result = _inferInvocation(typeContext, offset,
-        targetFunctionType, targetArguments, targetName, hoistedExpressions,
+        targetFunctionType, targetArguments, hoistedExpressions,
         isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
         skipTypeArgumentInference: skipTypeArgumentInference,
         isConst: isConst,
@@ -2131,7 +2120,6 @@ class TypeInferrerImpl implements TypeInferrer {
       int offset,
       FunctionType calleeType,
       Arguments arguments,
-      Name targetName,
       List<VariableDeclaration> hoistedExpressions,
       {bool isOverloadedArithmeticOperator: false,
       bool isBinaryOperator: false,
@@ -2234,10 +2222,12 @@ class TypeInferrerImpl implements TypeInferrer {
             inferenceNeeded ||
                 isOverloadedArithmeticOperator ||
                 typeChecksNeeded);
+        inferredType = result.inferredType == null || isNonNullableByDefault
+            ? result.inferredType
+            : legacyErasure(coreTypes, result.inferredType);
         Expression expression =
-            _hoist(result.expression, result.inferredType, hoistedExpressions);
+            _hoist(result.expression, inferredType, hoistedExpressions);
         arguments.positional[position] = expression..parent = arguments;
-        inferredType = result.inferredType;
       }
       if (inferenceNeeded || typeChecksNeeded) {
         formalTypes.add(formalType);
@@ -2262,10 +2252,13 @@ class TypeInferrerImpl implements TypeInferrer {
           inferenceNeeded ||
               isOverloadedArithmeticOperator ||
               typeChecksNeeded);
+      DartType inferredType =
+          result.inferredType == null || isNonNullableByDefault
+              ? result.inferredType
+              : legacyErasure(coreTypes, result.inferredType);
       Expression expression =
-          _hoist(result.expression, result.inferredType, hoistedExpressions);
+          _hoist(result.expression, inferredType, hoistedExpressions);
       namedArgument.value = expression..parent = namedArgument;
-      DartType inferredType = result.inferredType;
       if (inferenceNeeded || typeChecksNeeded) {
         formalTypes.add(formalType);
         actualTypes.add(inferredType);
@@ -2643,7 +2636,7 @@ class TypeInferrerImpl implements TypeInferrer {
       {bool isImplicitCall}) {
     assert(isImplicitCall != null);
     InvocationInferenceResult result = inferInvocation(
-        typeContext, fileOffset, unknownFunction, arguments, name,
+        typeContext, fileOffset, unknownFunction, arguments,
         hoistedExpressions: hoistedExpressions,
         receiverType: const DynamicType(),
         isImplicitCall: isImplicitCall);
@@ -2667,7 +2660,7 @@ class TypeInferrerImpl implements TypeInferrer {
       {bool isImplicitCall}) {
     assert(isImplicitCall != null);
     InvocationInferenceResult result = inferInvocation(
-        typeContext, fileOffset, unknownFunction, arguments, name,
+        typeContext, fileOffset, unknownFunction, arguments,
         hoistedExpressions: hoistedExpressions,
         receiverType: receiverType,
         isImplicitCall: isImplicitCall);
@@ -2701,7 +2694,7 @@ class TypeInferrerImpl implements TypeInferrer {
         implicitInvocationPropertyName: implicitInvocationPropertyName,
         extensionAccessCandidates:
             target.isAmbiguous ? target.candidates : null);
-    inferInvocation(typeContext, fileOffset, unknownFunction, arguments, name,
+    inferInvocation(typeContext, fileOffset, unknownFunction, arguments,
         hoistedExpressions: hoistedExpressions,
         receiverType: receiverType,
         isImplicitCall: isExpressionInvocation || isImplicitCall);
@@ -2756,8 +2749,8 @@ class TypeInferrerImpl implements TypeInferrer {
     } else {
       StaticInvocation staticInvocation = transformExtensionMethodInvocation(
           fileOffset, target, receiver, arguments);
-      InvocationInferenceResult result = inferInvocation(typeContext,
-          fileOffset, functionType, staticInvocation.arguments, name,
+      InvocationInferenceResult result = inferInvocation(
+          typeContext, fileOffset, functionType, staticInvocation.arguments,
           hoistedExpressions: hoistedExpressions,
           receiverType: receiverType,
           isImplicitExtensionMember: true,
@@ -2804,7 +2797,7 @@ class TypeInferrerImpl implements TypeInferrer {
     assert(target.isCallFunction || target.isNullableCallFunction);
     FunctionType functionType = getFunctionType(target, receiverType);
     InvocationInferenceResult result = inferInvocation(
-        typeContext, fileOffset, functionType, arguments, callName,
+        typeContext, fileOffset, functionType, arguments,
         hoistedExpressions: hoistedExpressions,
         receiverType: receiverType,
         isImplicitCall: isImplicitCall);
@@ -2854,13 +2847,13 @@ class TypeInferrerImpl implements TypeInferrer {
       FunctionNode signature = method.function;
       if (arguments.positional.length < signature.requiredParameterCount ||
           arguments.positional.length > signature.positionalParameters.length) {
-        target = const ObjectAccessTarget.unresolved();
+        target = const ObjectAccessTarget.dynamic();
         method = null;
       }
       for (NamedExpression argument in arguments.named) {
         if (!signature.namedParameters
             .any((declaration) => declaration.name == argument.name)) {
-          target = const ObjectAccessTarget.unresolved();
+          target = const ObjectAccessTarget.dynamic();
           method = null;
         }
       }
@@ -2881,7 +2874,7 @@ class TypeInferrerImpl implements TypeInferrer {
       contravariantCheck = true;
     }
     InvocationInferenceResult result = inferInvocation(
-        typeContext, fileOffset, functionType, arguments, target.member?.name,
+        typeContext, fileOffset, functionType, arguments,
         hoistedExpressions: hoistedExpressions,
         receiverType: receiverType,
         isImplicitCall: isImplicitCall);
@@ -2954,13 +2947,13 @@ class TypeInferrerImpl implements TypeInferrer {
       FunctionNode signature = getter.function;
       if (arguments.positional.length < signature.requiredParameterCount ||
           arguments.positional.length > signature.positionalParameters.length) {
-        target = const ObjectAccessTarget.unresolved();
+        target = const ObjectAccessTarget.dynamic();
         getter = null;
       }
       for (NamedExpression argument in arguments.named) {
         if (!signature.namedParameters
             .any((declaration) => declaration.name == argument.name)) {
-          target = const ObjectAccessTarget.unresolved();
+          target = const ObjectAccessTarget.dynamic();
           getter = null;
         }
       }
@@ -3276,7 +3269,6 @@ class TypeInferrerImpl implements TypeInferrer {
             implicitInvocationPropertyName: implicitInvocationPropertyName);
       case ObjectAccessTargetKind.dynamic:
       case ObjectAccessTargetKind.invalid:
-      case ObjectAccessTargetKind.unresolved:
         return _inferDynamicInvocation(fileOffset, nullAwareGuards, receiver,
             name, arguments, typeContext, hoistedExpressions,
             isImplicitCall: isExpressionInvocation || isImplicitCall);
@@ -3346,6 +3338,7 @@ class TypeInferrerImpl implements TypeInferrer {
       SuperMethodInvocation expression,
       DartType typeContext,
       ObjectAccessTarget target) {
+    assert(target.isInstanceMember || target.isMissing);
     int fileOffset = expression.fileOffset;
     Name methodName = expression.name;
     Arguments arguments = expression.arguments;
@@ -3356,7 +3349,7 @@ class TypeInferrerImpl implements TypeInferrer {
     FunctionType functionType = getFunctionType(target, receiverType);
 
     InvocationInferenceResult result = inferInvocation(
-        typeContext, fileOffset, functionType, arguments, target.member?.name,
+        typeContext, fileOffset, functionType, arguments,
         isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
         receiverType: receiverType,
         isImplicitExtensionMember: target.isExtensionMember);
@@ -3392,6 +3385,7 @@ class TypeInferrerImpl implements TypeInferrer {
   /// Performs the core type inference algorithm for super property get.
   ExpressionInferenceResult inferSuperPropertyGet(SuperPropertyGet expression,
       DartType typeContext, ObjectAccessTarget readTarget) {
+    assert(readTarget.isInstanceMember || readTarget.isMissing);
     DartType receiverType = thisType;
     DartType inferredType = getGetterType(readTarget, receiverType);
     if (readTarget.isInstanceMember) {
@@ -4261,9 +4255,6 @@ enum ObjectAccessTargetKind {
   /// An access to multiple extension members, none of which are most specific.
   /// This is an erroneous case and a compile-time error is reported.
   ambiguous,
-
-  // TODO(johnniwinther): Remove this.
-  unresolved,
 }
 
 /// Result for performing an access on an object, like `o.foo`, `o.foo()` and
@@ -4304,10 +4295,6 @@ class ObjectAccessTarget {
   const ObjectAccessTarget.nullableCallFunction()
       : this.internal(ObjectAccessTargetKind.nullableCallFunction, null);
 
-  /// Creates an access with no known target.
-  const ObjectAccessTarget.unresolved()
-      : this.internal(ObjectAccessTargetKind.unresolved, null);
-
   /// Creates an access on a dynamic receiver type with no known target.
   const ObjectAccessTarget.dynamic()
       : this.internal(ObjectAccessTargetKind.dynamic, null);
@@ -4342,15 +4329,11 @@ class ObjectAccessTarget {
   bool get isNullableCallFunction =>
       kind == ObjectAccessTargetKind.nullableCallFunction;
 
-  /// Returns `true` if this is an access without a known target.
-  bool get isUnresolved =>
-      kind == ObjectAccessTargetKind.unresolved ||
-      isDynamic ||
-      isInvalid ||
-      isMissing;
-
-  /// Returns `true` if this is an access on a dynamic receiver type.
+  /// Returns `true` if this is an access on a `dynamic` receiver type.
   bool get isDynamic => kind == ObjectAccessTargetKind.dynamic;
+
+  /// Returns `true` if this is an access on a `Never` receiver type.
+  bool get isNever => kind == ObjectAccessTargetKind.never;
 
   /// Returns `true` if this is an access on an invalid receiver type.
   bool get isInvalid => kind == ObjectAccessTargetKind.invalid;

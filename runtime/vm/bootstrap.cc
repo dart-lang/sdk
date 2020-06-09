@@ -15,6 +15,7 @@
 #include "vm/kernel.h"
 #include "vm/kernel_loader.h"
 #endif
+#include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/symbols.h"
@@ -105,39 +106,49 @@ static ErrorPtr BootstrapFromKernel(Thread* thread,
     const String& msg = String::Handle(String::New(message_buffer, Heap::kOld));
     return ApiError::New(msg, Heap::kOld);
   }
-  kernel::KernelLoader loader(program.get(), /*uri_to_source_table=*/nullptr);
 
-  Isolate* isolate = thread->isolate();
+  LongJumpScope jump;
+  if (setjmp(*jump.Set()) == 0) {
+    program->AutoDetectNullSafety(thread->isolate());
+    kernel::KernelLoader loader(program.get(), /*uri_to_source_table=*/nullptr);
 
-  if (isolate->obfuscate()) {
-    loader.ReadObfuscationProhibitions();
+    Isolate* isolate = thread->isolate();
+
+    if (isolate->obfuscate()) {
+      loader.ReadObfuscationProhibitions();
+    }
+
+    // Load the bootstrap libraries in order (see object_store.h).
+    Library& library = Library::Handle(zone);
+    for (intptr_t i = 0; i < kBootstrapLibraryCount; ++i) {
+      ObjectStore::BootstrapLibraryId id = bootstrap_libraries[i].index;
+      library = isolate->object_store()->bootstrap_library(id);
+      loader.LoadLibrary(library);
+    }
+
+    // Finish bootstrapping, including class finalization.
+    Finish(thread);
+
+    // The platform binary may contain other libraries (e.g., dart:_builtin or
+    // dart:io) that will not be bundled with application.  Load them now.
+    const Object& result = Object::Handle(zone, loader.LoadProgram());
+    program.reset();
+    if (result.IsError()) {
+      return Error::Cast(result).raw();
+    }
+
+    // The builtin library should be registered with the VM.
+    const auto& dart_builtin =
+        String::Handle(zone, String::New("dart:_builtin"));
+    library = Library::LookupLibrary(thread, dart_builtin);
+    isolate->object_store()->set_builtin_library(library);
+
+    return Error::null();
   }
 
-  // Load the bootstrap libraries in order (see object_store.h).
-  Library& library = Library::Handle(zone);
-  for (intptr_t i = 0; i < kBootstrapLibraryCount; ++i) {
-    ObjectStore::BootstrapLibraryId id = bootstrap_libraries[i].index;
-    library = isolate->object_store()->bootstrap_library(id);
-    loader.LoadLibrary(library);
-  }
-
-  // Finish bootstrapping, including class finalization.
-  Finish(thread);
-
-  // The platform binary may contain other libraries (e.g., dart:_builtin or
-  // dart:io) that will not be bundled with application.  Load them now.
-  const Object& result = Object::Handle(zone, loader.LoadProgram());
-  program.reset();
-  if (result.IsError()) {
-    return Error::Cast(result).raw();
-  }
-
-  // The builtin library should be registered with the VM.
-  const auto& dart_builtin = String::Handle(zone, String::New("dart:_builtin"));
-  library = Library::LookupLibrary(thread, dart_builtin);
-  isolate->object_store()->set_builtin_library(library);
-
-  return Error::null();
+  // Either class finalization failed or we caught a compile-time error.
+  // In both cases sticky error would be set.
+  return Thread::Current()->StealStickyError();
 }
 
 ErrorPtr Bootstrap::DoBootstrapping(const uint8_t* kernel_buffer,

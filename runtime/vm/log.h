@@ -11,7 +11,7 @@
 
 namespace dart {
 
-class Isolate;
+class IsolateGroup;
 class LogBlock;
 
 #if defined(_MSC_VER)
@@ -58,7 +58,7 @@ class Log {
   bool ShouldFlush() const;
 
   // Returns false if we should drop log messages related to 'isolate'.
-  static bool ShouldLogForIsolate(const Isolate* isolate);
+  static bool ShouldLogForIsolateGroup(const IsolateGroup* isolate);
 
   static Log noop_log_;
   LogPrinter printer_;

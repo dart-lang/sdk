@@ -307,9 +307,11 @@ bool _isBrowserType(Object o) => JS(
         '(window.IDBKeyRange && # instanceof IDBKeyRange) || '
         '# instanceof ImageData || '
         '# instanceof Node || '
+        '(window.DataView && # instanceof DataView) || '
         // Int8Array.__proto__ is TypedArray.
         '(window.Int8Array && # instanceof Int8Array.__proto__) || '
         '# instanceof Window)',
+    o,
     o,
     o,
     o,

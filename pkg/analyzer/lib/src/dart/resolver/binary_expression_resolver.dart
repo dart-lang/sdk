@@ -84,15 +84,11 @@ class BinaryExpressionResolver {
   /// TODO(scheglov) this is duplicate
   void _analyzeLeastUpperBoundTypes(
       Expression node, DartType staticType1, DartType staticType2) {
-    if (staticType1 == null) {
-      // TODO(brianwilkerson) Determine whether this can still happen.
-      staticType1 = DynamicTypeImpl.instance;
-    }
+    // TODO(brianwilkerson) Determine whether this can still happen.
+    staticType1 ??= DynamicTypeImpl.instance;
 
-    if (staticType2 == null) {
-      // TODO(brianwilkerson) Determine whether this can still happen.
-      staticType2 = DynamicTypeImpl.instance;
-    }
+    // TODO(brianwilkerson) Determine whether this can still happen.
+    staticType2 ??= DynamicTypeImpl.instance;
 
     DartType staticType =
         _typeSystem.getLeastUpperBound(staticType1, staticType2) ??
@@ -264,6 +260,8 @@ class BinaryExpressionResolver {
       type?.resolveToBound(_typeProvider.objectType);
 
   void _resolveUnsupportedOperator(BinaryExpressionImpl node) {
+    node.leftOperand.accept(_resolver);
+    node.rightOperand.accept(_resolver);
     _inferenceHelper.recordStaticType(node, DynamicTypeImpl.instance);
   }
 

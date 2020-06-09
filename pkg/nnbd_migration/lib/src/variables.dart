@@ -71,10 +71,12 @@ class Variables {
 
   final PostmortemFileWriter postmortemFileWriter;
 
-  Variables(this._graph, this._typeProvider,
+  final LineInfo Function(String) _getLineInfo;
+
+  Variables(this._graph, this._typeProvider, this._getLineInfo,
       {this.instrumentation, this.postmortemFileWriter})
       : _alreadyMigratedCodeDecorator =
-            AlreadyMigratedCodeDecorator(_graph, _typeProvider);
+            AlreadyMigratedCodeDecorator(_graph, _typeProvider, _getLineInfo);
 
   /// Given a [class_], gets the decorated type information for the superclasses
   /// it directly implements/extends/etc.
@@ -176,7 +178,10 @@ class Variables {
   /// If the given [node] is followed by a `/*?*/` or /*!*/ hint, returns the
   /// HintComment for it; otherwise returns `null`.  See
   /// [recordNullabilityHint].
-  HintComment getNullabilityHint(Source source, TypeAnnotation node) {
+  HintComment getNullabilityHint(Source source, AstNode node) {
+    assert(node is TypeAnnotation ||
+        node is FunctionTypedFormalParameter ||
+        (node is FieldFormalParameter && node.parameters != null));
     return (_nullabilityHints[source] ??
         {})[uniqueIdentifierForSpan(node.offset, node.end)];
   }
@@ -248,7 +253,10 @@ class Variables {
 
   /// Records that the given [node] was followed by a `/*?*/` or `/*!*/` hint.
   void recordNullabilityHint(
-      Source source, TypeAnnotation node, HintComment hintComment) {
+      Source source, AstNode node, HintComment hintComment) {
+    assert(node is TypeAnnotation ||
+        node is FunctionTypedFormalParameter ||
+        (node is FieldFormalParameter && node.parameters != null));
     (_nullabilityHints[source] ??=
         {})[uniqueIdentifierForSpan(node.offset, node.end)] = hintComment;
   }
@@ -374,7 +382,7 @@ class Variables {
       element = (element as FunctionTypeAliasElement).function;
     }
 
-    var target = NullabilityNodeTarget.element(element);
+    var target = NullabilityNodeTarget.element(element, _getLineInfo);
     if (element is FunctionTypedElement) {
       decoratedType = _alreadyMigratedCodeDecorator.decorate(
           element.preMigrationType, element, target);

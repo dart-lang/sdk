@@ -6,10 +6,13 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:_fe_analyzer_shared/src/testing/id.dart'
     show ActualData, ClassId, Id, IdKind, IdValue, MemberId, NodeId;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
+import 'package:front_end/src/base/nnbd_mode.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/target/targets.dart';
 import '../api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
-import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
+import '../api_prototype/experimental_flags.dart'
+    show AllowedExperimentalFlags, ExperimentalFlag;
 import '../api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
 import '../base/common.dart';
@@ -41,15 +44,21 @@ class TestConfig {
   final String marker;
   final String name;
   final Map<ExperimentalFlag, bool> experimentalFlags;
+  final AllowedExperimentalFlags allowedExperimentalFlags;
   final Uri librariesSpecificationUri;
   // TODO(johnniwinther): Tailor support to redefine selected platform
   // classes/members only.
   final bool compileSdk;
+  final TargetFlags targetFlags;
+  final NnbdMode nnbdMode;
 
   const TestConfig(this.marker, this.name,
       {this.experimentalFlags = const {},
+      this.allowedExperimentalFlags,
       this.librariesSpecificationUri,
-      this.compileSdk: false});
+      this.compileSdk: false,
+      this.targetFlags: const TargetFlags(),
+      this.nnbdMode: NnbdMode.Weak});
 
   void customizeCompilerOptions(CompilerOptions options, TestData testData) {}
 }
@@ -290,7 +299,10 @@ Future<TestResult<T>> runTestForConfig<T>(
     if (!succinct) printDiagnosticMessage(message, print);
   };
   options.debugDump = printCode;
+  options.target = new NoneTarget(config.targetFlags);
   options.experimentalFlags.addAll(config.experimentalFlags);
+  options.allowedExperimentalFlags = config.allowedExperimentalFlags;
+  options.nnbdMode = config.nnbdMode;
   if (config.librariesSpecificationUri != null) {
     Set<Uri> testFiles =
         testData.memorySourceFiles.keys.map(createUriForFileName).toSet();

@@ -33,6 +33,7 @@
 #include "vm/random.h"
 #include "vm/tags.h"
 #include "vm/thread.h"
+#include "vm/thread_pool.h"
 #include "vm/thread_stack_resource.h"
 #include "vm/token_position.h"
 #include "vm/virtual_memory.h"
@@ -163,10 +164,7 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
   V(NONPRODUCT, use_field_guards, UseFieldGuards, use_field_guards,            \
     FLAG_use_field_guards)                                                     \
   V(NONPRODUCT, use_osr, UseOsr, use_osr, FLAG_use_osr)                        \
-  V(PRECOMPILER, obfuscate, Obfuscate, obfuscate, false_by_default)            \
-  V(PRODUCT, unsafe_trust_strong_mode_types, UnsafeTrustStrongModeTypes,       \
-    unsafe_trust_strong_mode_types,                                            \
-    FLAG_experimental_unsafe_mode_use_at_your_own_risk)
+  V(PRECOMPILER, obfuscate, Obfuscate, obfuscate, false_by_default)
 
 // Represents the information used for spawning the first isolate within an
 // isolate group.
@@ -274,6 +272,21 @@ class DisableIdleTimerScope : public ValueObject {
   IdleTimeHandler* handler_;
 };
 
+class MutatorThreadPool : public ThreadPool {
+ public:
+  MutatorThreadPool(IsolateGroup* isolate_group, intptr_t max_pool_size)
+      : ThreadPool(max_pool_size), isolate_group_(isolate_group) {}
+  virtual ~MutatorThreadPool() {}
+
+ protected:
+  virtual void OnEnterIdleLocked(MonitorLocker* ml);
+
+ private:
+  void NotifyIdle();
+
+  IsolateGroup* isolate_group_ = nullptr;
+};
+
 // Represents an isolate group and is shared among all isolates within a group.
 class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
  public:
@@ -296,6 +309,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   IdleTimeHandler* idle_time_handler() { return &idle_time_handler_; }
 
+  // Returns true if this is the first isolate registered.
   void RegisterIsolate(Isolate* isolate);
   void RegisterIsolateLocked(Isolate* isolate);
   void UnregisterIsolate(Isolate* isolate);
@@ -314,12 +328,12 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void CreateHeap(bool is_vm_isolate, bool is_service_or_kernel_isolate);
   void Shutdown();
 
-#if !defined(PRODUCT)
 #define ISOLATE_METRIC_ACCESSOR(type, variable, name, unit)                    \
   type* Get##variable##Metric() { return &metric_##variable##_; }
   ISOLATE_GROUP_METRIC_LIST(ISOLATE_METRIC_ACCESSOR);
 #undef ISOLATE_METRIC_ACCESSOR
 
+#if !defined(PRODUCT)
   void UpdateLastAllocationProfileAccumulatorResetTimestamp() {
     last_allocationprofile_accumulator_reset_timestamp_ =
         OS::GetCurrentTimeMillis();
@@ -350,6 +364,11 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   ClassTable* class_table() const { return class_table_.get(); }
   ObjectStore* object_store() const { return object_store_.get(); }
   SafepointRwLock* symbols_lock() { return symbols_lock_.get(); }
+  Mutex* type_canonicalization_mutex() { return &type_canonicalization_mutex_; }
+  Mutex* type_arguments_canonicalization_mutex() {
+    return &type_arguments_canonicalization_mutex_;
+  }
+  Mutex* subtype_test_cache_mutex() { return &subtype_test_cache_mutex_; }
 
   static inline IsolateGroup* Current() {
     Thread* thread = Thread::Current();
@@ -370,6 +389,9 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void UnscheduleThread(Thread* thread,
                         bool is_mutator,
                         bool bypass_safepoint = false);
+
+  void IncreaseMutatorCount(Isolate* mutator);
+  void DecreaseMutatorCount(Isolate* mutator);
 
   Dart_LibraryTagHandler library_tag_handler() const {
     return library_tag_handler_;
@@ -402,6 +424,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void ForEachIsolate(std::function<void(Isolate* isolate)> function,
                       bool at_safepoint = false);
   Isolate* FirstIsolate() const;
+  Isolate* FirstIsolateLocked() const;
 
   // Ensures mutators are stopped during execution of the provided function.
   //
@@ -475,6 +498,10 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   static void RegisterIsolateGroup(IsolateGroup* isolate_group);
   static void UnregisterIsolateGroup(IsolateGroup* isolate_group);
 
+  static bool HasApplicationIsolateGroups();
+  static bool HasOnlyVMIsolateGroup();
+  static bool IsVMInternalIsolateGroup(const IsolateGroup* group);
+
   int64_t UptimeMicros() const;
 
   ApiState* api_state() const { return api_state_.get(); }
@@ -515,6 +542,18 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     reverse_pc_lookup_cache_ = table;
   }
 
+  FieldTable* saved_initial_field_table() const {
+    return saved_initial_field_table_.get();
+  }
+  std::shared_ptr<FieldTable> saved_initial_field_table_shareable() {
+    return saved_initial_field_table_;
+  }
+  void set_saved_initial_field_table(std::shared_ptr<FieldTable> field_table) {
+    saved_initial_field_table_ = field_table;
+  }
+
+  MutatorThreadPool* thread_pool() { return thread_pool_.get(); }
+
  private:
   friend class Dart;  // For `object_store_ = ` in Dart::Init
   friend class Heap;
@@ -548,6 +587,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   bool is_vm_isolate_heap_ = false;
   void* embedder_data_ = nullptr;
 
+  IdleTimeHandler idle_time_handler_;
+  std::unique_ptr<MutatorThreadPool> thread_pool_;
   std::unique_ptr<SafepointRwLock> isolates_lock_;
   IntrusiveDList<Isolate> isolates_;
   intptr_t isolate_count_ = 0;
@@ -560,12 +601,12 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   std::shared_ptr<IsolateGroupReloadContext> group_reload_context_;
 #endif
 
-#if !defined(PRODUCT)
 #define ISOLATE_METRIC_VARIABLE(type, variable, name, unit)                    \
   type metric_##variable##_;
   ISOLATE_GROUP_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
 #undef ISOLATE_METRIC_VARIABLE
 
+#if !defined(PRODUCT)
   // Timestamps of last operation via service.
   int64_t last_allocationprofile_accumulator_reset_timestamp_ = 0;
   int64_t last_allocationprofile_gc_timestamp_ = 0;
@@ -588,18 +629,24 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   std::unique_ptr<SharedClassTable> shared_class_table_;
   std::shared_ptr<ObjectStore> object_store_;  // nullptr in JIT mode
   std::shared_ptr<ClassTable> class_table_;    // nullptr in JIT mode
-  // This symbols_mutex_ on Isolate is only used when IsolateGroup does not
-  // have object_store.
-  std::unique_ptr<SafepointRwLock>
-      symbols_lock_;  // Protects concurrent access to the symbol table.
   std::unique_ptr<StoreBuffer> store_buffer_;
   std::unique_ptr<Heap> heap_;
   std::unique_ptr<DispatchTable> dispatch_table_;
   ReversePcLookupCache* reverse_pc_lookup_cache_ = nullptr;
   ArrayPtr saved_unlinked_calls_;
-
-  IdleTimeHandler idle_time_handler_;
+  std::shared_ptr<FieldTable> saved_initial_field_table_;
   uint32_t isolate_group_flags_ = 0;
+
+  std::unique_ptr<SafepointRwLock> symbols_lock_;
+  Mutex type_canonicalization_mutex_;
+  Mutex type_arguments_canonicalization_mutex_;
+  Mutex subtype_test_cache_mutex_;
+
+  // Allow us to ensure the number of active mutators is limited by a maximum.
+  std::unique_ptr<Monitor> active_mutators_monitor_;
+  intptr_t active_mutators_ = 0;
+  intptr_t waiting_mutators_ = 0;
+  intptr_t max_active_mutators_ = 0;
 };
 
 // When an isolate sends-and-exits this class represent things that it passed
@@ -697,23 +744,12 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   static intptr_t cached_object_store_offset() {
     return OFFSET_OF(Isolate, cached_object_store_);
   }
-  SafepointRwLock* symbols_lock() { return symbols_lock_.get(); }
 
   FieldTable* field_table() const { return field_table_; }
   void set_field_table(Thread* T, FieldTable* field_table) {
     delete field_table_;
     field_table_ = field_table;
     T->field_table_values_ = field_table->table();
-  }
-
-  FieldTable* saved_initial_field_table() const {
-    return saved_initial_field_table_.get();
-  }
-  std::shared_ptr<FieldTable> saved_initial_field_table_shareable() {
-    return saved_initial_field_table_;
-  }
-  void set_saved_initial_field_table(std::shared_ptr<FieldTable> field_table) {
-    saved_initial_field_table_ = field_table;
   }
 
   IsolateObjectStore* isolate_object_store() const {
@@ -818,7 +854,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   }
 
   Mutex* mutex() { return &mutex_; }
-  Mutex* type_canonicalization_mutex() { return &type_canonicalization_mutex_; }
   Mutex* constant_canonicalization_mutex() {
     return &constant_canonicalization_mutex_;
   }
@@ -936,7 +971,8 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   }
 
 #if !defined(PRODUCT)
-  ObjectIdRing* object_id_ring() { return object_id_ring_; }
+  ObjectIdRing* object_id_ring() const { return object_id_ring_; }
+  ObjectIdRing* EnsureObjectIdRing();
 #endif  // !defined(PRODUCT)
 
   void AddPendingDeopt(uword fp, uword pc);
@@ -1122,10 +1158,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     isolate_flags_ = IsKernelIsolateBit::update(value, isolate_flags_);
   }
 
-  bool can_use_strong_mode_types() const {
-    return FLAG_use_strong_mode_types && !unsafe_trust_strong_mode_types();
-  }
-
   // Whether it's possible for unoptimized code to optimize immediately on entry
   // (can happen with random or very low optimization counter thresholds)
   bool CanOptimizeImmediately() const {
@@ -1208,14 +1240,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     isolate_flags_ = NullSafetyBit::update(null_safety, isolate_flags_);
   }
 
-  // Convenience flag tester indicating whether incoming function arguments
-  // should be type checked.
-  bool argument_type_checks() const { return should_emit_strong_mode_checks(); }
-
-  bool should_emit_strong_mode_checks() const {
-    return !unsafe_trust_strong_mode_types();
-  }
-
   bool has_attempted_stepping() const {
     return HasAttemptedSteppingBit::decode(isolate_flags_);
   }
@@ -1237,7 +1261,9 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   static void DisableIsolateCreation();
   static void EnableIsolateCreation();
   static bool IsolateCreationEnabled();
-  static bool IsVMInternalIsolate(const Isolate* isolate);
+  static bool IsVMInternalIsolate(const Isolate* isolate) {
+    return IsolateGroup::IsVMInternalIsolateGroup(isolate->group());
+  }
 
 #if !defined(PRODUCT)
   intptr_t reload_every_n_stack_overflow_checks() const {
@@ -1351,7 +1377,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   IsolateGroup* isolate_group_;
   IdleTimeHandler idle_time_handler_;
-  std::shared_ptr<FieldTable> saved_initial_field_table_;
   std::unique_ptr<IsolateObjectStore> isolate_object_store_;
   // shared in AOT(same pointer as on IsolateGroup), not shared in JIT
   std::shared_ptr<ObjectStore> object_store_shared_ptr_;
@@ -1379,8 +1404,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   V(Obfuscate)                                                                 \
   V(ShouldLoadVmService)                                                       \
   V(NullSafety)                                                                \
-  V(NullSafetySet)                                                             \
-  V(UnsafeTrustStrongModeTypes)
+  V(NullSafetySet)
 
   // Isolate specific flags.
   enum FlagBits {
@@ -1453,9 +1477,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   Random random_;
   Simulator* simulator_ = nullptr;
   Mutex mutex_;          // Protects compiler stats.
-  std::unique_ptr<SafepointRwLock>
-      symbols_lock_;  // Protects concurrent access to the symbol table.
-  Mutex type_canonicalization_mutex_;      // Protects type canonicalization.
   Mutex constant_canonicalization_mutex_;  // Protects const canonicalization.
   Mutex megamorphic_mutex_;  // Protects the table of megamorphic caches and
                              // their entries.
@@ -1517,17 +1538,14 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   // Manage list of existing isolates.
   static bool TryMarkIsolateReady(Isolate* isolate);
   static void UnMarkIsolateReady(Isolate* isolate);
-  static void MarkIsolateDead(bool is_application_isolate);
+  static void MaybeNotifyVMShutdown();
   bool AcceptsMessagesLocked() {
     ASSERT(isolate_creation_monitor_->IsOwnedByCurrentThread());
     return accepts_messages_;
   }
 
-  // This monitor protects application_isolates_count_, total_isolates_count_,
-  // creation_enabled_.
+  // This monitor protects [creation_enabled_].
   static Monitor* isolate_creation_monitor_;
-  static intptr_t application_isolates_count_;
-  static intptr_t total_isolates_count_;
   static bool creation_enabled_;
 
 #define REUSABLE_FRIEND_DECLARATION(name)                                      \
@@ -1590,6 +1608,26 @@ class StartIsolateScope {
   Isolate* saved_isolate_;
 
   DISALLOW_COPY_AND_ASSIGN(StartIsolateScope);
+};
+
+class EnterIsolateGroupScope {
+ public:
+  explicit EnterIsolateGroupScope(IsolateGroup* isolate_group)
+      : isolate_group_(isolate_group) {
+    ASSERT(IsolateGroup::Current() == nullptr);
+    const bool result = Thread::EnterIsolateGroupAsHelper(
+        isolate_group_, Thread::kUnknownTask, /*bypass_safepoint=*/false);
+    ASSERT(result);
+  }
+
+  ~EnterIsolateGroupScope() {
+    Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/false);
+  }
+
+ private:
+  IsolateGroup* isolate_group_;
+
+  DISALLOW_COPY_AND_ASSIGN(EnterIsolateGroupScope);
 };
 
 class IsolateSpawnState {

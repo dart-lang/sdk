@@ -66,7 +66,7 @@ main() async {
       try {
         await dropTable(tx, tableName);
         expect(false, true, reason: "dropTable should fail");
-      } catch (error) {
+      } on DomException catch (error) {
         expect(error.message,
             "could not prepare statement (1 no such table: test_table)");
       }
@@ -80,7 +80,7 @@ main() async {
         SqlResultSet createResult =
             await createTable(tx, tableName, columnName);
         expect(createResult.insertId, 0);
-      } catch (error) {
+      } on DomException catch (error) {
         expect(false, true, reason: "createTable failed - ${error.message}");
       }
     });
@@ -94,7 +94,7 @@ main() async {
             await insertTable(tx, tableName, columnName, 'Some text data');
         expect(insertResult.insertId, 1);
         expect(insertResult.rowsAffected, 1);
-      } catch (error) {
+      } on DomException catch (error) {
         expect(false, true, reason: "insert failed - ${error.message}");
       }
     });
@@ -107,7 +107,7 @@ main() async {
         SqlResultSet queryResult = await queryTable(tx, tableName);
         expect(queryResult.rows.length, 1);
         expect(queryResult.rows[0]['test_data'], "Some text data");
-      } catch (error) {
+      } on DomException catch (error) {
         expect(false, true, reason: "queryTable failed - ${error.message}");
       }
     });

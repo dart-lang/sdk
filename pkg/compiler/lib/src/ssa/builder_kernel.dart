@@ -230,7 +230,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
   /// Pushes a boolean checking [expression] against null.
   pushCheckNull(HInstruction expression) {
-    push(new HIdentity(expression, graph.addConstantNull(closedWorld), null,
+    push(new HIdentity(expression, graph.addConstantNull(closedWorld),
         _abstractValueDomain.boolType));
   }
 
@@ -1322,7 +1322,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
             visitCondition: () {
               HParameterValue parameter = parameters.values.first;
               push(new HIdentity(parameter, graph.addConstantNull(closedWorld),
-                  null, _abstractValueDomain.boolType));
+                  _abstractValueDomain.boolType));
             },
             visitThen: () {
               _closeAndGotoExit(HReturn(
@@ -1755,7 +1755,11 @@ class KernelSsaGraphBuilder extends ir.Visitor {
   @override
   void visitBlock(ir.Block block) {
     assert(!isAborted());
-    if (!_isReachable) return; // This can only happen when inlining.
+    // [block] can be unreachable at the beginning of a block if an
+    // ir.BlockExpression that is a subexpression of an expression that contains
+    // a throwing prior subexpression, e.g. `[throw e, {...[]}]`.
+    if (!_isReachable) return;
+
     for (ir.Statement statement in block.statements) {
       statement.accept(this);
       if (!_isReachable) {
@@ -1950,8 +1954,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       SourceInformation sourceInformation =
           _sourceInformationBuilder.buildForInMoveNext(node);
       HInstruction length = buildGetLength(sourceInformation);
-      push(new HIdentity(
-          length, originalLength, null, _abstractValueDomain.boolType)
+      push(new HIdentity(length, originalLength, _abstractValueDomain.boolType)
         ..sourceInformation = sourceInformation);
       _pushStaticInvocation(
           _commonElements.checkConcurrentModificationError,
@@ -1985,7 +1988,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
           sourceInformation: sourceInformation);
       HInstruction length = buildGetLength(sourceInformation);
       HInstruction compare =
-          new HLess(index, length, null, _abstractValueDomain.boolType)
+          new HLess(index, length, _abstractValueDomain.boolType)
             ..sourceInformation = sourceInformation;
       add(compare);
       return compare;
@@ -2008,7 +2011,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
           _sourceInformationBuilder.buildForInCurrent(node);
       HInstruction index = localsHandler.readLocal(indexVariable,
           sourceInformation: sourceInformation);
-      HInstruction value = new HIndex(array, index, null, type)
+      HInstruction value = new HIndex(array, index, type)
         ..sourceInformation = sourceInformation;
       add(value);
 
@@ -2037,7 +2040,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
           sourceInformation: sourceInformation);
       HInstruction one = graph.addConstantInt(1, closedWorld);
       HInstruction addInstruction =
-          new HAdd(index, one, null, _abstractValueDomain.positiveIntType)
+          new HAdd(index, one, _abstractValueDomain.positiveIntType)
             ..sourceInformation = sourceInformation;
       add(addInstruction);
       localsHandler.updateLocal(indexVariable, addInstruction,
@@ -3617,7 +3620,13 @@ class KernelSsaGraphBuilder extends ir.Visitor {
   @override
   void visitBlockExpression(ir.BlockExpression node) {
     node.body.accept(this);
-    node.value.accept(this);
+    // Body can be partially generated due to an exception exit and be missing
+    // bindings referenced in the value.
+    if (!_isReachable) {
+      stack.add(graph.addConstantUnreachable(closedWorld));
+    } else {
+      node.value.accept(this);
+    }
   }
 
   /// Extracts the list of instructions for the positional subset of arguments.
@@ -4384,13 +4393,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
           function.requiredParameterCount ==
               function.positionalParameters.length &&
           function.namedParameters.isEmpty) {
-        push(new HForeignCode(
-            js.js.expressionTemplateYielding(_emitter
-                .staticFunctionAccess(_elementMap.getMethod(procedure))),
-            _abstractValueDomain.dynamicType,
-            <HInstruction>[],
-            nativeBehavior: NativeBehavior.PURE,
-            foreignFunction: _elementMap.getMethod(procedure)));
+        push(HFunctionReference(_elementMap.getMethod(procedure),
+            _abstractValueDomain.dynamicType));
         return true;
       }
       problem = 'does not handle a closure with optional parameters';
@@ -5474,11 +5478,6 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     DartType typeValue =
         localsHandler.substInContext(_elementMap.getDartType(type));
 
-    if (dartTypes.isTopType(typeValue)) {
-      stack.add(graph.addConstantBool(true, closedWorld));
-      return;
-    }
-
     if (options.useNewRti) {
       HInstruction rti =
           _typeBuilder.analyzeTypeArgumentNewRti(typeValue, sourceElement);
@@ -5488,6 +5487,11 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       push(HIsTest(typeValue, checkedType, expression, rti,
           _abstractValueDomain.boolType)
         ..sourceInformation = sourceInformation);
+      return;
+    }
+
+    if (dartTypes.isTopType(typeValue)) {
+      stack.add(graph.addConstantBool(true, closedWorld));
       return;
     }
 
@@ -5956,7 +5960,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       _enterInlinedMethod(function, compiledArguments, instanceType);
       _inlinedFrom(function, sourceInformation, () {
         if (!_isReachable) {
-          _emitReturn(graph.addConstantNull(closedWorld), sourceInformation);
+          _emitReturn(
+              graph.addConstantUnreachable(closedWorld), sourceInformation);
         } else {
           _doInline(function);
         }
@@ -6571,11 +6576,19 @@ class TryCatchFinallyBuilder {
     HInstruction oldRethrowableException = kernelBuilder._rethrowableException;
     kernelBuilder._rethrowableException = exception;
 
+    AbstractValue unwrappedType = kernelBuilder._typeInferenceMap
+        .getReturnTypeOf(kernelBuilder._commonElements.exceptionUnwrapper);
+    if (!kernelBuilder.options.useLegacySubtyping) {
+      // Global type analysis does not currently understand that strong mode
+      // `Object` is not nullable, so is imprecise in the return type of the
+      // unwrapper, which leads to unnecessary checks for 'on Object'.
+      unwrappedType =
+          kernelBuilder._abstractValueDomain.excludeNull(unwrappedType);
+    }
     kernelBuilder._pushStaticInvocation(
         kernelBuilder._commonElements.exceptionUnwrapper,
         [exception],
-        kernelBuilder._typeInferenceMap
-            .getReturnTypeOf(kernelBuilder._commonElements.exceptionUnwrapper),
+        unwrappedType,
         const <DartType>[],
         sourceInformation: trySourceInformation);
     HInvokeStatic unwrappedException = kernelBuilder.pop();

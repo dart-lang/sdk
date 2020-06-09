@@ -35,6 +35,15 @@ class FormatOnTypeHandler
   @override
   Future<ErrorOr<List<TextEdit>>> handle(
       DocumentOnTypeFormattingParams params, CancellationToken token) async {
+    if (!isDartDocument(params.textDocument)) {
+      return success(null);
+    }
+
+    if (!server.clientConfiguration.enableSdkFormatter) {
+      return error(ServerErrorCodes.FeatureDisabled,
+          'Formatter was disabled by client settings');
+    }
+
     final path = pathOfDoc(params.textDocument);
     return path.mapResult((path) => formatFile(path));
   }

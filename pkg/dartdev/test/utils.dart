@@ -58,11 +58,11 @@ class TestProject {
     var arguments = [
       absolutePathToDartdevFile,
       command,
+      if (command == 'migrate')
+        // TODO(srawlins): Enable `pub outdated` in tests.
+        '--skip-pub-outdated',
+      ...?args,
     ];
-
-    if (args != null && args.isNotEmpty) {
-      arguments.addAll(args);
-    }
 
     return Process.runSync(
       Platform.resolvedExecutable,
@@ -94,11 +94,6 @@ class TestProject {
 
   String get absolutePathToDartdevFile {
     return path.join(sdkRootPath, 'pkg', 'dartdev', 'bin', 'dartdev.dart');
-  }
-
-  String get absolutePathToAnalysisServerFile {
-    return path.join(
-        sdkRootPath, 'pkg', 'analysis_server', 'bin', 'server.dart');
   }
 
   File findFile(String name) {

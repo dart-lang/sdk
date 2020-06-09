@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.33
+# Dart VM Service Protocol 3.35
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.33_ of the Dart VM Service Protocol. This
+This document describes of _version 3.35_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -27,7 +27,9 @@ The Service Protocol uses [JSON-RPC 2.0][].
 - [IDs and Names](#ids-and-names)
 - [Versioning](#versioning)
 - [Private RPCs, Types, and Properties](#private-rpcs-types-and-properties)
-- [Single Client Mode](#single-client-mode)
+- [Middleware Support](#middleware-support)
+  - [Single Client Mode](#single-client-mode)
+  - [Protocol Extensions](#protocol-extensions)
 - [Public RPCs](#public-rpcs)
   - [addBreakpoint](#addbreakpoint)
   - [addBreakpointWithScriptUri](#addbreakpointwithscripturi)
@@ -50,6 +52,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [getScripts](#getscripts)
   - [getSourceReport](#getsourcereport)
   - [getStack](#getstack)
+  - [getSupportedProtocols](#getsupportedprotocols)
   - [getVersion](#getversion)
   - [getVM](#getvm)
   - [getVMTimeline](#getvmtimeline)
@@ -406,7 +409,9 @@ become stable. Some private types and properties expose VM specific
 implementation state and will never be appropriate to add to
 the public api.
 
-## Single Client Mode
+## Middleware Support
+
+### Single Client Mode
 
 The VM service allows for an extended feature set via the Dart Development
 Service (DDS) that forward all core VM service RPCs described in this
@@ -416,6 +421,15 @@ When DDS connects to the VM service, the VM service enters single client
 mode and will no longer accept incoming web socket connections. If DDS
 disconnects from the VM service, the VM service will once again start accepting
 incoming web socket connections.
+
+### Protocol Extensions
+
+Middleware like the Dart Development Service have the option of providing
+functionality which builds on or extends the VM service protocol. Middleware
+which offer protocol extensions should intercept calls to
+[getSupportedProtocols](#getsupportedprotocols) and modify the resulting
+[ProtocolList](#protocolist) to include their own [Protocol](#protocol)
+information before responding to the requesting client.
 
 ## Public RPCs
 
@@ -979,6 +993,21 @@ _Collected_ [Sentinel](#sentinel) is returned.
 
 See [Stack](#stack).
 
+### getSupportedProtocols
+
+```
+ProtocolList getSupportedProtocols()
+```
+
+The _getSupportedProtocols_ RPC is used to determine which protocols are
+supported by the current server.
+
+The result of this call should be intercepted by any middleware that extends
+the core VM service protocol and should add its own protocol to the list of
+protocols before forwarding the response to the client.
+
+See [ProtocolList](#protocollist).
+
 ### getSourceReport
 
 ```
@@ -1390,6 +1419,9 @@ The _recordedStreams_ parameter is the list of all timeline streams which are
 to be enabled. Streams not explicitly specified will be disabled. Invalid stream
 names are ignored.
 
+A `TimelineStreamSubscriptionsUpdate` event is sent on the `Timeline` stream as
+a result of invoking this RPC.
+
 To get the list of currently enabled timeline streams, see [getVMTimelineFlags](#getvmtimelineflags).
 
 See [Success](#success).
@@ -1428,7 +1460,7 @@ Isolate | IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate, IsolateRelo
 Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, PausePostRequest, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect, None
 GC | GC
 Extension | Extension
-Timeline | TimelineEvents
+Timeline | TimelineEvents, TimelineStreamsSubscriptionUpdate
 Logging | Logging
 Service | ServiceRegistered, ServiceUnregistered
 HeapSnapshot | HeapSnapshot
@@ -2033,6 +2065,11 @@ class Event extends Response {
   // This is provided for the TimelineEvents event.
   TimelineEvent[] timelineEvents [optional];
 
+  // The new set of recorded timeline streams.
+  //
+  // This is provided for the TimelineStreamSubscriptionsUpdate event.
+  string[] updatedStreams [optional];
+
   // Is the isolate paused at an await, yield, or yield* statement?
   //
   // This is provided for the event kinds:
@@ -2175,6 +2212,17 @@ enum EventKind {
 
   // Event from dart:developer.log.
   Logging,
+
+  // A block of timeline events has been completed.
+  //
+  // This service event is not sent for individual timeline events. It is
+  // subject to buffering, so the most recent timeline events may never be
+  // included in any TimelineEvents event if no timeline events occur later to
+  // complete the block.
+  TimelineEvents,
+
+  // The set of active timeline streams was changed via `setVMTimelineFlags`.
+  TimelineStreamSubscriptionsUpdate,
 
   // Notification that a Service has been registered into the Service Protocol
   // from another client.
@@ -3196,6 +3244,37 @@ function.
 
 See [CpuSamples](#cpusamples).
 
+### ProtocolList
+
+```
+class ProtocolList extends Response {
+  // A list of supported protocols provided by this service.
+  Protocol[] protocols;
+}
+```
+
+A _ProtocolList_ contains a list of all protocols supported by the service
+instance.
+
+See [Protocol](#protocol) and [getSupportedProtocols](#getsupportedprotocols).
+
+### Protocol
+
+```
+class Protocol {
+  // The name of the supported protocol.
+  string protocolName;
+
+  // The major revision of the protocol.
+  int major;
+
+  // The minor revision of the protocol.
+  int minor;
+}
+```
+
+See [getSupportedProtocols](#getsupportedprotocols).
+
 ### ReloadReport
 
 ```
@@ -3767,5 +3846,7 @@ version | comments
 the VM service.
 3.32 | Added `getClassList` RPC and `ClassList` object.
 3.33 | Added deprecation notice for `getClientName`, `setClientName`, `requireResumeApproval`, and `ClientName`. These RPCs are moving to the DDS protocol and will be removed in v4.0 of the VM service protocol.
+3.34 | Added `TimelineStreamSubscriptionsUpdate` event which is sent when `setVMTimelineFlags` is invoked.
+3.35 | Added `getSupportedProtocols` RPC and `ProtocolList`, `Protocol` objects.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

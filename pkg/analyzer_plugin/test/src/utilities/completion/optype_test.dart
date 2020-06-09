@@ -552,27 +552,32 @@ class A {
 
   Future<void> test_block_final() async {
     addTestSource('main() {final ^}');
-    await assertOpType(typeNames: true);
+    await assertOpType(
+        completionLocation: 'VariableDeclarationList_type', typeNames: true);
   }
 
   Future<void> test_block_final2() async {
     addTestSource('main() {final S^ v;}');
-    await assertOpType(typeNames: true);
+    await assertOpType(
+        completionLocation: 'VariableDeclarationList_type', typeNames: true);
   }
 
   Future<void> test_block_final3() async {
     addTestSource('main() {final ^ v;}');
-    await assertOpType(typeNames: true);
+    await assertOpType(
+        completionLocation: 'VariableDeclarationList_type', typeNames: true);
   }
 
   Future<void> test_block_final_final() async {
     addTestSource('main() {final ^ final S x;}');
-    await assertOpType(typeNames: true);
+    await assertOpType(
+        completionLocation: 'VariableDeclarationList_type', typeNames: true);
   }
 
   Future<void> test_block_final_final2() async {
     addTestSource('main() {final S^ final S x;}');
-    await assertOpType(typeNames: true);
+    await assertOpType(
+        completionLocation: 'VariableDeclarationList_type', typeNames: true);
   }
 
   Future<void> test_block_identifier_partial() async {
@@ -933,7 +938,9 @@ class C {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
     addTestSource('main() {new Str^ing.fromCharCodes([]);}');
-    await assertOpType(constructors: true);
+    await assertOpType(
+        completionLocation: 'InstanceCreationExpression_constructorName',
+        constructors: true);
   }
 
   Future<void> test_constructorName_nameAndPrefix_resolved() async {
@@ -1166,7 +1173,8 @@ int x = E(^);
   Future<void> test_forEachStatement_loopVariable() async {
     // SimpleIdentifier  ForEachStatement  Block
     addTestSource('main(args) {for (^ in args) {}}');
-    await assertOpType(typeNames: true);
+    await assertOpType(
+        completionLocation: 'ForStatement_forLoopParts', typeNames: true);
   }
 
   Future<void> test_forEachStatement_loopVariable_name() async {
@@ -1184,13 +1192,15 @@ int x = E(^);
   Future<void> test_forEachStatement_loopVariable_type() async {
     // SimpleIdentifier  ForEachStatement  Block
     addTestSource('main(args) {for (^ foo in args) {}}');
-    await assertOpType(typeNames: true);
+    await assertOpType(
+        completionLocation: 'ForStatement_forLoopParts', typeNames: true);
   }
 
   Future<void> test_forEachStatement_loopVariable_type2() async {
     // DeclaredIdentifier  ForEachStatement  Block
     addTestSource('main(args) {for (S^ foo in args) {}}');
-    await assertOpType(typeNames: true);
+    await assertOpType(
+        completionLocation: 'ForStatement_forLoopParts', typeNames: true);
   }
 
   Future<void> test_forElement_body() async {
@@ -1213,7 +1223,8 @@ int x = E(^);
 
   Future<void> test_forElement_forEachParts_type() async {
     addTestSource('main(args) {[for (i^ foo in [0]) foo];}');
-    await assertOpType(typeNames: true);
+    await assertOpType(
+        completionLocation: 'ForElement_forLoopParts', typeNames: true);
   }
 
   Future<void> test_formalParameter_partialType() async {
@@ -1269,7 +1280,8 @@ int x = E(^);
   Future<void> test_forStatement_initializer() async {
     // SimpleIdentifier  ForStatement
     addTestSource('main() {List a; for (^)}');
-    await assertOpType(typeNames: true);
+    await assertOpType(
+        completionLocation: 'ForStatement_forLoopParts', typeNames: true);
   }
 
   Future<void> test_forStatement_initializer_inKeyword() async {
@@ -1281,7 +1293,8 @@ int x = E(^);
   Future<void> test_forStatement_initializer_type() async {
     // SimpleIdentifier  ForStatement
     addTestSource('main() {List a; for (i^ v = 0;)}');
-    await assertOpType(typeNames: true);
+    await assertOpType(
+        completionLocation: 'ForStatement_forLoopParts', typeNames: true);
   }
 
   Future<void>
@@ -1431,7 +1444,8 @@ int x = E(^);
     addTestSource('''
       /// some dartdoc
       ^ zoo(z) { } String name;''');
-    await assertOpType(typeNames: true);
+    await assertOpType(
+        completionLocation: 'FunctionDeclaration_returnType', typeNames: true);
   }
 
   Future<void>
@@ -1440,9 +1454,10 @@ int x = E(^);
     addTestSource('''
 /// some dartdoc
 ^ zoo(z) { } String name;''');
-    // TODO(brianwilkerson) This should have a location of
+    // TODO(brianwilkerson) Perhaps this should have a location of
     //  'CompilationUnit_declaration' (or 'CompilationUnit_directive')
-    await assertOpType(typeNames: true);
+    await assertOpType(
+        completionLocation: 'FunctionDeclaration_returnType', typeNames: true);
   }
 
   Future<void> test_functionDeclaration_returnType_afterStarComment() async {
@@ -1462,16 +1477,18 @@ int x = E(^);
   Future<void> test_functionDeclaration_returnType_afterStarDocComment() async {
     // FunctionDeclaration  CompilationUnit
     addTestSource('/** */ ^ zoo(z) { } String name;');
-    await assertOpType(typeNames: true);
+    await assertOpType(
+        completionLocation: 'FunctionDeclaration_returnType', typeNames: true);
   }
 
   Future<void>
       test_functionDeclaration_returnType_afterStarDocComment2() async {
     // FunctionDeclaration  CompilationUnit
     addTestSource('/** */^ zoo(z) { } String name;');
-    // TODO(brianwilkerson) This should have a location of
+    // TODO(brianwilkerson) Perhaps this should have a location of
     //  'CompilationUnit_declaration' (or 'CompilationUnit_directive')
-    await assertOpType(typeNames: true);
+    await assertOpType(
+        completionLocation: 'FunctionDeclaration_returnType', typeNames: true);
   }
 
   Future<void> test_functionExpression_beforeBody() async {
@@ -1546,7 +1563,7 @@ main() {
     // EmptyStatement  IfStatement  Block  BlockFunctionBody
     addTestSource('main(){var a; if (true) ^}');
     await assertOpType(
-        completionLocation: 'IfStatement_thenElement',
+        completionLocation: 'IfStatement_thenStatement',
         constructors: true,
         returnValue: true,
         typeNames: true,
@@ -1620,7 +1637,9 @@ main() {
   Future<void> test_instanceCreationExpression_afterNew() async {
     // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
     addTestSource('class C {foo(){var f; {var x;} new ^}}');
-    await assertOpType(constructors: true);
+    await assertOpType(
+        completionLocation: 'InstanceCreationExpression_constructorName',
+        constructors: true);
   }
 
   Future<void> test_instanceCreationExpression_keyword() async {
@@ -1648,7 +1667,9 @@ main() {
   Future<void> test_instanceCreationExpression_trailingStmt() async {
     // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
     addTestSource('class C {foo(){var f; {var x;} new ^ int x = 7;}}');
-    await assertOpType(constructors: true);
+    await assertOpType(
+        completionLocation: 'InstanceCreationExpression_constructorName',
+        constructors: true);
   }
 
   Future<void> test_integerLiteral_inArgumentList() async {
@@ -1907,9 +1928,10 @@ class C2 {
   ^ zoo(z) { } String name;
 }
 ''');
-    // TODO(brianwilkerson) This should have a location of
-    //  'ClassDeclaration_member'
-    await assertOpType(typeNames: true);
+    // TODO(brianwilkerson) Perhaps this should have a location of
+    //  'ClassDeclaration_member'.
+    await assertOpType(
+        completionLocation: 'MethodDeclaration_returnType', typeNames: true);
   }
 
   Future<void>
@@ -1921,9 +1943,10 @@ class C2 {
 ^ zoo(z) { } String name;
 
 ''');
-    // TODO(brianwilkerson) This should have a location of
-    //  'ClassDeclaration_member'
-    await assertOpType(typeNames: true);
+    // TODO(brianwilkerson) Perhaps this should have a location of
+    //  'ClassDeclaration_member'.
+    await assertOpType(
+        completionLocation: 'MethodDeclaration_returnType', typeNames: true);
   }
 
   Future<void>
@@ -1946,18 +1969,20 @@ class C2 {
       test_methodDeclaration_inClass_returnType_afterStarDocComment() async {
     // MethodDeclaration  ClassDeclaration  CompilationUnit
     addTestSource('class C2 {/** */ ^ zoo(z) { } String name; }');
-    // TODO(brianwilkerson) This should have a location of
-    //  'ClassDeclaration_member'
-    await assertOpType(typeNames: true);
+    // TODO(brianwilkerson) Perhaps this should have a location of
+    //  'ClassDeclaration_member'.
+    await assertOpType(
+        completionLocation: 'MethodDeclaration_returnType', typeNames: true);
   }
 
   Future<void>
       test_methodDeclaration_inClass_returnType_afterStarDocComment2() async {
     // MethodDeclaration  ClassDeclaration  CompilationUnit
     addTestSource('class C2 {/** */^ zoo(z) { } String name; }');
-    // TODO(brianwilkerson) This should have a location of
-    //  'ClassDeclaration_member'
-    await assertOpType(typeNames: true);
+    // TODO(brianwilkerson) Perhaps this should have a location of
+    //  'ClassDeclaration_member'.
+    await assertOpType(
+        completionLocation: 'MethodDeclaration_returnType', typeNames: true);
   }
 
   Future<void> test_methodDeclaration_inExtension2_inName() async {
@@ -2011,10 +2036,9 @@ class C2 {
       }''');
     await assertOpType(
         constructors: true,
+        prefixed: true,
         returnValue: true,
-        typeNames: true,
-        voidReturn: true,
-        prefixed: true);
+        voidReturn: true);
   }
 
   Future<void> test_mixinDeclaration_body() async {
@@ -2095,10 +2119,9 @@ void f(int a, {int b}) {}
     addTestSource('class A {a() {"hello".to^String().length}}');
     await assertOpType(
         constructors: true,
+        prefixed: true,
         returnValue: true,
-        typeNames: true,
-        voidReturn: true,
-        prefixed: true);
+        voidReturn: true);
   }
 
   Future<void> test_propertyAccess_noTarget() async {
@@ -2355,10 +2378,8 @@ main() {
 
   Future<void> test_switchStatement_body_end2() async {
     addTestSource('main() {switch(k) {case 1:as^}}');
-    // TODO(brianwilkerson) This should have a location of
-    //  'SwitchMember_statement'
     await assertOpType(
-        completionLocation: 'SwitchCase_statement',
+        completionLocation: 'SwitchMember_statement',
         constructors: true,
         returnValue: true,
         typeNames: true,
@@ -2759,8 +2780,8 @@ main() {
   Future<void> test_variableDeclarationList_final() async {
     // VariableDeclarationList  VariableDeclarationStatement  Block
     addTestSource('main() {final ^}');
-    // TODO(brianwilkerson) This should probably have a location.
-    await assertOpType(typeNames: true);
+    await assertOpType(
+        completionLocation: 'VariableDeclarationList_type', typeNames: true);
   }
 
   Future<void> test_variableDeclarationStatement_afterSemicolon() async {
