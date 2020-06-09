@@ -11,6 +11,8 @@
 
 load("//defaults.star", "defaults")
 
+lucicfg.check_version('1.15.0')
+
 DART_GIT = "https://dart.googlesource.com/sdk"
 DART_GERRIT = "https://dart-review.googlesource.com/"
 
