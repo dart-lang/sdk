@@ -144,7 +144,7 @@ vars = {
   "source_span_tag": "1.7.0",
   "stack_trace_tag": "1.9.3",
   "stagehand_tag": "v3.3.7",
-  "stream_channel_tag": "2.0.0",
+  "stream_channel_tag": "70433d577be02c48cb16d72d65654f3b4d82c6ed",
   "string_scanner_rev": "a918e7371af6b6e73bfd534ff9da6084741c1f99",
   "test_descriptor_tag": "1.1.1",
   "test_process_tag": "1.0.3",

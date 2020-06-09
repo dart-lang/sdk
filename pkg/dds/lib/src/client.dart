@@ -13,7 +13,19 @@ class _DartDevelopmentServiceClient {
     json_rpc.Peer vmServicePeer,
   ) : _vmServicePeer = vmServicePeer {
     _clientPeer = json_rpc.Peer(
-      ws.cast<String>(),
+      // Manually create a StreamChannel<String> instead of calling
+      // ws.cast<String>() as cast() results in addStream() being called,
+      // binding the underlying sink. This results in a StateError being thrown
+      // if we try and add directly to the sink, which we do for binary events
+      // in _StreamManager's streamNotify().
+      StreamChannel<String>(
+        ws.stream.cast(),
+        StreamController(sync: true)
+          ..stream
+              .cast()
+              .listen((event) => ws.sink.add(event))
+              .onDone(() => ws.sink.close()),
+      ),
       strictProtocolChecks: false,
     );
     _registerJsonRpcMethods();
