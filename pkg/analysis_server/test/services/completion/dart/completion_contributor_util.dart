@@ -461,6 +461,30 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
     return cs;
   }
 
+  CompletionSuggestion assertSuggestLocalVariable(
+      String name, String returnType,
+      {int relevance = DART_RELEVANCE_LOCAL_VARIABLE,
+      bool hasTypeBoost = false,
+      bool hasSubtypeBoost = false}) {
+    if (hasTypeBoost) {
+      relevance += DART_RELEVANCE_BOOST_TYPE;
+    } else if (hasSubtypeBoost) {
+      relevance += DART_RELEVANCE_BOOST_SUBTYPE;
+    }
+    // Local variables should only be suggested by LocalReferenceContributor
+    var cs = assertSuggest(name,
+        csKind: CompletionSuggestionKind.INVOCATION, relevance: relevance);
+    expect(cs.returnType, returnType ?? 'dynamic');
+    var element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(ElementKind.LOCAL_VARIABLE));
+    expect(element.name, equals(name));
+    expect(element.parameters, isNull);
+    expect(element.returnType, returnType ?? 'dynamic');
+    assertHasNoParameterInfo(cs);
+    return cs;
+  }
+
   CompletionSuggestion assertSuggestMethod(
       String name, String declaringType, String returnType,
       {int relevance,
@@ -527,6 +551,20 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
     return cs;
   }
 
+  CompletionSuggestion assertSuggestParameter(String name, String returnType,
+      {int relevance = DART_RELEVANCE_PARAMETER}) {
+    var cs = assertSuggest(name,
+        csKind: CompletionSuggestionKind.INVOCATION, relevance: relevance);
+    expect(cs.returnType, returnType ?? 'dynamic');
+    var element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(ElementKind.PARAMETER));
+    expect(element.name, equals(name));
+    expect(element.parameters, isNull);
+    expect(element.returnType, equals(returnType ?? 'dynamic'));
+    return cs;
+  }
+
   CompletionSuggestion assertSuggestSetter(String name,
       {int relevance,
       CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
@@ -569,6 +607,20 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
       expect(element.returnType, 'dynamic');
     }
     assertHasNoParameterInfo(cs);
+    return cs;
+  }
+
+  CompletionSuggestion assertSuggestTypeParameter(String name,
+      {int relevance = DART_RELEVANCE_TYPE_PARAMETER}) {
+    var cs = assertSuggest(name,
+        csKind: CompletionSuggestionKind.IDENTIFIER, relevance: relevance);
+    expect(cs.returnType, isNull);
+    var element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(ElementKind.TYPE_PARAMETER));
+    expect(element.name, equals(name));
+    expect(element.parameters, isNull);
+    expect(element.returnType, isNull);
     return cs;
   }
 

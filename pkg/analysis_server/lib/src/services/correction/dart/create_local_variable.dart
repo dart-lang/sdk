@@ -12,10 +12,10 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class CreateLocalVariable extends CorrectionProducer {
-  String variableName;
+  String _variableName;
 
   @override
-  List<Object> get fixArguments => [variableName];
+  List<Object> get fixArguments => [_variableName];
 
   @override
   FixKind get fixKind => DartFixKind.CREATE_LOCAL_VARIABLE;
@@ -26,7 +26,7 @@ class CreateLocalVariable extends CorrectionProducer {
       return;
     }
     SimpleIdentifier nameNode = node;
-    variableName = nameNode.name;
+    _variableName = nameNode.name;
     // if variable is assigned, convert assignment into declaration
     if (node.parent is AssignmentExpression) {
       AssignmentExpression assignment = node.parent;
@@ -53,7 +53,7 @@ class CreateLocalVariable extends CorrectionProducer {
     // build variable declaration source
     await builder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addInsertion(target.offset, (DartEditBuilder builder) {
-        builder.writeLocalVariableDeclaration(variableName,
+        builder.writeLocalVariableDeclaration(_variableName,
             nameGroupName: 'NAME', type: type, typeGroupName: 'TYPE');
         builder.write(eol);
         builder.write(prefix);

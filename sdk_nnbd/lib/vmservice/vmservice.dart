@@ -655,7 +655,7 @@ class VMService extends MessageRouter {
     return encodeSuccess(message);
   }
 
-  void _sendServiceRegisteredEvent(Client client, String service,
+  Future<void> _sendServiceRegisteredEvent(Client client, String service,
       {Client? target}) async {
     final namespace = clients.keyOf(client);
     final alias = client.services[service];

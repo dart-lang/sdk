@@ -1,9 +1,13 @@
 # Null Safety Migration Tooling
 
-Note: the null safety migration tooling is in an early state and may have bugs
-and other issues.
+**Note**:
 
-For best results, use SDK version 2.9.0-10.0.dev or higher.
+  * The null safety migration tooling is in an early state and may have bugs and
+    other issues.
+  * As null safety is still in preview, we recommend only doing trial
+    migrations. The final migration of apps and packages, should not be done
+    until the feature is more complete.
+  * For best results, use SDK version 2.9.0-10.0.dev or higher.
 
 ## How Migration Works
 
@@ -12,7 +16,7 @@ null safety.
 
 Typical code migration tools are designed to be run once, handle most cases, and
 let the developer do manual cleanup on the result. This does **not work well**
-for Null-Safety and attempting this workflow will result in a lot more manual
+for null safety and attempting this workflow will result in a lot more manual
 work. Similarly, after your migration has been applied, the migration **cannot
 be rerun** without first reverting it.
 
@@ -27,7 +31,7 @@ nullable -- because they really were nullable before.
 
 Nulls are traced through your program as far as they can go, and types are
 marked nullable in this process. If the tool makes a single mistake or choice
-you disagree with, it can lead many excess nullable types.
+you disagree with, it can lead to many excess nullable types.
 
 ### Interactive feedback to the tool
 
@@ -38,12 +42,12 @@ Adding a small number of these hints will have a huge impact on migration
 quality.
 
 The high level workflow of the tool is therefore driven through an interactive
-web UI. After running `dart migrate`, open the resulting url in a browser. Scan
+web UI. After running `dart migrate`, open the resulting URL in a browser. Scan
 through the changes, use the "nullability trace" feature to find the best place
 to add a nullability hint (adding a hint in the best place can prevent dozens of
 types from being made nullable). Rerun the migration and repeat, committing the
 hints as you go. When the output is correct and acceptable, apply the migration
-and publish your null safe code!
+and publish your null-safe code!
 
 For example,
 
@@ -70,7 +74,7 @@ adding a single `/*!*/` hint.
 
 ```dart
 List<int?> ints = const [0, null];
-int/*?*/ zero = ints[0]!; // Just add /*?*/ here, the migration tool does the rest!
+int/*!*/ zero = ints[0]!; // Just add /*!*/ here, the migration tool does the rest!
 int one = zero + 1;
 List<int> zeroOne = <int>[zero, one];
 ```
@@ -90,22 +94,22 @@ project) can be done incrementally, by committing these hints over time.
 
 ## Migrating a package
 
-- select a package to work on
-- run `pub get` for the package
+1. Select a package to work on, and open a command terminal in the top-level of
+   the package directory.
+2. Run `pub get` in order to make available all dependencies of the package.
+3. Run the migration tool from the top-level of the package directory:
 
-Then, run the migration tool from the top-level of the package directory:
+   ```
+   dart migrate
+   ```
 
-```
-dart migrate
-```
-
-The migration tool will run and display a url for the web UI. Open that url from
-a browser to view, analyze, and improve the proposed null-safe migration.
+The migration tool will display a URL for the web interface. Open that URL in a
+browser to view, analyze, and improve the proposed null-safe migration.
 
 ## Using the tool
 
 1. Run the tool (see above).
-2. Once analysis and migration is complete, open the indicated url in a browser.
+2. Once analysis and migration is complete, open the indicated URL in a browser.
 3. Start with an important or interesting file in your package on the left side
    by clicking on it.
 4. Look at the proposed edits in the upper right, and click on them in turn.
@@ -121,7 +125,12 @@ a browser to view, analyze, and improve the proposed null-safe migration.
 6. Once you are satisfied with the proposed migration:
     1. Save your work using git or other means. Applying the migration will
        overwrite the existing files on disk.
-    2. Rerun the migration by clicking the `Apply Migration` button in the
+       * Note: In addition to making edits to the Dart source code in
+         the package, applying the migration edits the package's `pubspec.yaml`
+         file, in order to change the Dart SDK version constraints, under the
+         `environment` field, and the "Package Config" file, located in the
+         package's `.dart_tool` directory, named `package_config.json`.
+    2. Apply the migration by clicking the `Apply Migration` button in the
        interface.
     3. Tip: leaving the web UI open may help you if you later have test failures
        or analysis errors.
@@ -130,7 +139,7 @@ a browser to view, analyze, and improve the proposed null-safe migration.
        what went wrong.
     2. If large changes are required, revert the migration, and go back to step
        one.
-8. Commit and/or publish your migrated null-safe code
+8. Commit and/or publish your migrated null-safe code.
 
 ## Providing feedback
 

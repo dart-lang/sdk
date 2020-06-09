@@ -29,6 +29,9 @@ get_isolate_after_language_error_test: SkipByDesign
 [ $mode == product ]
 *: SkipByDesign
 
+[ $system == android ]
+string_escaping_test: Skip # Issue http://dartbug.com/42094
+
 [ $system == windows ]
 *: Slow
 async_generator_breakpoint_test: Skip # Issue 29145

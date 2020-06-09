@@ -489,6 +489,9 @@ Dart_NewWeakPersistentHandle(Dart_Handle object,
 DART_EXPORT void Dart_DeleteWeakPersistentHandle(
     Dart_WeakPersistentHandle object);
 
+DART_EXPORT void Dart_UpdateExternalSize(Dart_WeakPersistentHandle object,
+                                         intptr_t external_allocation_size);
+
 /*
  * ==========================
  * Initialization and Globals
@@ -3351,16 +3354,6 @@ typedef struct {
   const char* uri;
   const char* source;
 } Dart_SourceFile;
-DART_EXPORT Dart_KernelCompilationResult
-Dart_CompileSourcesToKernel(const char* script_uri,
-                            const uint8_t* platform_kernel,
-                            intptr_t platform_kernel_size,
-                            int source_files_count,
-                            Dart_SourceFile source_files[],
-                            bool incremental_compile,
-                            const char* package_config,
-                            const char* multiroot_filepaths,
-                            const char* multiroot_scheme);
 
 DART_EXPORT Dart_KernelCompilationResult Dart_KernelListDependencies();
 

@@ -595,7 +595,10 @@ void IfThenElseInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 void LoadStaticFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s", String::Handle(StaticField().name()).ToCString());
+  f->Print("%s", String::Handle(field().name()).ToCString());
+  if (calls_initializer()) {
+    f->Print(", CallsInitializer");
+  }
 }
 
 void StoreStaticFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
@@ -643,6 +646,9 @@ void MaterializeObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
 void LoadFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   instance()->PrintTo(f);
   f->Print(" . %s%s", slot().Name(), slot().is_immutable() ? " {final}" : "");
+  if (calls_initializer()) {
+    f->Print(", CallsInitializer");
+  }
 }
 
 void LoadUntaggedInstr::PrintOperandsTo(BufferFormatter* f) const {

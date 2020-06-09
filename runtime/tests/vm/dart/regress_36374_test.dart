@@ -15,10 +15,10 @@ class Foo {
 }
 
 class Bar {
-  Bar(String y, Foo z);
+  Bar(String y, Foo? z);
 }
 
-foo(Object arg) {
+foo(Object? arg) {
   return Bar('abc', arg == null ? null : Foo((throw 'Err')));
 }
 

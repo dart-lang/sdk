@@ -29,7 +29,7 @@ class ShadowField extends CorrectionProducer {
       // TODO(brianwilkerson) Should we also require that the getter be synthetic?
       return;
     }
-    var statement = getStatement();
+    var statement = _getStatement();
     if (statement == null) {
       return;
     }
@@ -71,7 +71,7 @@ class ShadowField extends CorrectionProducer {
 
   /// Return the statement immediately enclosing the [node] that would promote
   /// the type of the field if it were replaced by a local variable.
-  Statement getStatement() {
+  Statement _getStatement() {
     var parent = node.parent;
 
     Statement enclosingIf(Expression expression) {

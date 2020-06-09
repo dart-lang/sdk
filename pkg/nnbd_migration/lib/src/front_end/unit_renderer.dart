@@ -227,7 +227,7 @@ class UnitRenderer {
     }
 
     var previousOffset = 0;
-    regions.write('<table data-path="${unit.path}"><tbody>');
+    regions.write('<table data-path="${pathMapper.map(unit.path)}"><tbody>');
     regions.write('<tr><td class="line-no">$lineNumber</td><td>');
     for (var region in unitInfo.regions) {
       var offset = region.offset;

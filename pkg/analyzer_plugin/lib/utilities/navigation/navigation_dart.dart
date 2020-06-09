@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -10,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation.dart';
 
 NavigationCollector computeDartNavigation(
@@ -55,8 +55,9 @@ class _DartNavigationCollector {
     if (element.location == null) {
       return;
     }
-    var kind = protocol.convertElementKind(element.kind);
-    var location = protocol.newLocation_fromElement(element);
+    var converter = AnalyzerConverter();
+    var kind = converter.convertElementKind(element.kind);
+    var location = converter.locationFromElement(element);
     if (location == null) {
       return;
     }

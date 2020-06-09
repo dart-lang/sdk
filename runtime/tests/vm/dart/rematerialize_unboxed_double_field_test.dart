@@ -17,7 +17,7 @@ class NoopSink {
 }
 
 class RealSink {
-  static C o;
+  static late C o;
   void leak(C c) {
     o = c;
   }

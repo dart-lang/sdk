@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
 
 import 'package:kernel/ast.dart' as ir;
@@ -1184,7 +1185,10 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     },
         environment: _environment.toMap(),
         enableTripleShift:
-            options.languageExperiments[ir.ExperimentalFlag.tripleShift]);
+            options.languageExperiments[ir.ExperimentalFlag.tripleShift],
+        evaluationMode: options.nullSafetyMode == NullSafetyMode.sound
+            ? ir.EvaluationMode.strong
+            : ir.EvaluationMode.weak);
   }
 
   @override
@@ -1328,7 +1332,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       var mainUri = elementEnvironment.mainLibrary.canonicalUri;
       // Tests permit lookup outside of dart: libraries.
       return mainUri.path.contains('tests/compiler/dart2js_native') ||
-          mainUri.path.contains('tests/compiler/dart2js_extra');
+          mainUri.path.contains(RegExp(r'(?<!generated_)tests/dart2js_2/internal')) ||
+          mainUri.path.contains(RegExp(r'(?<!generated_)tests/dart2js_2/native'));
     }
 
     DartType lookup(String typeName, {bool required}) {

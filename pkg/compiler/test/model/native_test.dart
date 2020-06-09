@@ -20,7 +20,7 @@ enum Kind {
 
 main() {
   asyncTest(() async {
-    await runTest('tests/compiler/dart2js_extra/jsinterop_test.dart', '', {
+    await runTest('tests/dart2js_2/jsinterop_test.dart', '', {
       'Class': Kind.regular,
       'JsInteropClass': Kind.jsInterop,
       'topLevelField': Kind.regular,
@@ -80,7 +80,7 @@ main() {
       '53',
       '54',
     ]);
-    await runTest('tests/compiler/dart2js_extra/non_jsinterop_test.dart', '', {
+    await runTest('tests/dart2js_2/non_jsinterop_test.dart', '', {
       'Class': Kind.regular,
       'JsInteropClass': Kind.jsInterop,
       'topLevelField': Kind.regular,

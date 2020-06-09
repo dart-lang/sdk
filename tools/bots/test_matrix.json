@@ -845,7 +845,8 @@
         "enable-asserts": true,
 	"vm-options": [
           "--no-null-safety"
-        ]
+        ],
+        "builder-tag": "vm_nnbd"
       }
     },
     "dartkp-weak-asserts-win-(debug|product|release)-x64": {
@@ -860,7 +861,8 @@
         "use-elf": true,
 	"vm-options": [
           "--no-null-safety"
-        ]
+        ],
+        "builder-tag": "vm_nnbd"
       }
     },
     "dartk-weak-asserts-(linux|mac|win)-(debug|product|release)-x64": {
@@ -871,7 +873,8 @@
         "enable-asserts": true,
 	"vm-options": [
           "--no-null-safety"
-        ]
+        ],
+        "builder-tag": "vm_nnbd"
       }
     },
     "dartk-strong-(linux|mac|win)-(debug|product|release)-x64": {
@@ -881,7 +884,8 @@
         ],
         "vm-options": [
           "--null-safety"
-        ]
+        ],
+        "builder-tag": "vm_nnbd"
       }
     },
     "dartkp-strong-(linux|mac)-(debug|product|release)-x64": {
@@ -894,7 +898,8 @@
         ],
         "vm-options": [
           "--null-safety"
-        ]
+        ],
+        "builder-tag": "vm_nnbd"
       }
     },
     "dartkp-strong-win-(debug|product|release)-x64": {
@@ -908,7 +913,8 @@
         ],
         "vm-options": [
           "--null-safety"
-        ]
+        ],
+        "builder-tag": "vm_nnbd"
       }
     },
     "dartk-(linux|mac|win)-(debug|product|release)-(ia32|simarm|simarm64|x64)-ast": {
@@ -1466,7 +1472,8 @@
             "ffi",
             "language",
             "lib",
-            "standalone/io"
+            "standalone/io",
+            "vm"
           ]
         },
         {
@@ -1477,7 +1484,8 @@
             "ffi",
             "language",
             "lib",
-            "standalone/io"
+            "standalone/io",
+            "vm"
           ]
         }
       ]
@@ -1841,7 +1849,8 @@
             "language",
             "lib",
             "co19",
-            "standalone/io"
+            "standalone/io",
+            "vm"
           ]
         },
         {
@@ -1853,7 +1862,8 @@
             "language",
             "lib",
             "co19",
-            "standalone/io"
+            "standalone/io",
+            "vm"
           ]
         }
       ]
@@ -2442,7 +2452,7 @@
           "arguments": [
             "-ndart2js-hostasserts-linux-ia32-d8",
             "--dart2js-batch",
-            "dart2js_extra",
+            "dart2js_2",
             "dart2js_native"
           ]
         }
@@ -2472,8 +2482,8 @@
             "--dart2js-batch",
             "language_2",
             "corelib_2",
-            "dart2js_native",
-            "dart2js_extra"
+            "dart2js_2",
+            "dart2js_native"
           ],
           "shards": 6,
           "fileset": "dart2js_hostasserts_prennbd"
@@ -2548,7 +2558,7 @@
             "-ndart2js-${system}-${runtime}",
             "--dart2js-batch",
             "--reset-browser-configuration",
-            "dart2js_extra",
+            "dart2js_2",
             "dart2js_native"
           ]
         }
@@ -2600,7 +2610,7 @@
           "arguments": [
             "-ndart2js-minified-linux-d8",
             "--dart2js-batch",
-            "dart2js_extra",
+            "dart2js_2",
             "dart2js_native"
           ]
         },
@@ -2619,7 +2629,7 @@
           "arguments": [
             "-ndart2js-production-linux-d8",
             "--dart2js-batch",
-            "dart2js_extra",
+            "dart2js_2",
             "dart2js_native"
           ]
         }
@@ -2674,7 +2684,7 @@
           "arguments": [
             "-ndart2js-minified-csp-linux-chrome",
             "--dart2js-batch",
-            "dart2js_extra",
+            "dart2js_2",
             "dart2js_native"
           ]
         }
@@ -2713,7 +2723,7 @@
             "--dart2js-batch",
             "language",
             "corelib",
-            "dart2js_extra",
+            "dart2js_2",
             "dart2js_native",
             "kernel"
           ],
@@ -2747,7 +2757,7 @@
             "--dart2js-batch",
             "language",
             "corelib",
-            "dart2js_extra",
+            "dart2js_2",
             "dart2js_native",
             "kernel"
           ],
@@ -2778,7 +2788,7 @@
           "name": "dart2js nnbd unit tests",
           "arguments": [
             "-nunittest-weak-asserts-no-sdk-linux",
-            "dart2js",
+            "dart2js_2",
             "pkg//compiler/"
           ]
         }

@@ -18,37 +18,6 @@ void main() {
 
 @reflectiveTest
 class LocalConstructorContributorTest extends DartCompletionContributorTest {
-  CompletionSuggestion assertSuggestLocalVariable(
-      String name, String returnType,
-      {int relevance = DART_RELEVANCE_LOCAL_VARIABLE}) {
-    // Local variables should only be suggested by LocalReferenceContributor
-    var cs = assertSuggest(name,
-        csKind: CompletionSuggestionKind.INVOCATION, relevance: relevance);
-    expect(cs.returnType, returnType ?? 'dynamic');
-    var element = cs.element;
-    expect(element, isNotNull);
-    expect(element.kind, equals(ElementKind.LOCAL_VARIABLE));
-    expect(element.name, equals(name));
-    expect(element.parameters, isNull);
-    expect(element.returnType, returnType ?? 'dynamic');
-    assertHasNoParameterInfo(cs);
-    return cs;
-  }
-
-  CompletionSuggestion assertSuggestParameter(String name, String returnType,
-      {int relevance = DART_RELEVANCE_PARAMETER}) {
-    var cs = assertSuggest(name,
-        csKind: CompletionSuggestionKind.INVOCATION, relevance: relevance);
-    expect(cs.returnType, returnType ?? 'dynamic');
-    var element = cs.element;
-    expect(element, isNotNull);
-    expect(element.kind, equals(ElementKind.PARAMETER));
-    expect(element.name, equals(name));
-    expect(element.parameters, isNull);
-    expect(element.returnType, equals(returnType ?? 'dynamic'));
-    return cs;
-  }
-
   @override
   DartCompletionContributor createContributor() {
     return LocalConstructorContributor();

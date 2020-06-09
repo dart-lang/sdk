@@ -26,14 +26,6 @@ class DartFixListener {
 
   ResourceProvider get resourceProvider => server.resourceProvider;
 
-  /// Add the given [detail] to the list of details to be returned to the
-  /// client.
-  void addDetail(String detail) {
-    if (details.length < 200) {
-      details.add(detail);
-    }
-  }
-
   /// Record an edit to be sent to the client.
   ///
   /// The associated suggestion should be separately added by calling

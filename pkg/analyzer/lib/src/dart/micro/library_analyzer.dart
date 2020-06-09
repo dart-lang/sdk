@@ -260,10 +260,15 @@ class LibraryAnalyzer {
     ErrorReporter errorReporter = _getErrorReporter(file);
 
     if (!_libraryElement.isNonNullableByDefault) {
-      unit.accept(DeadCodeVerifier(errorReporter, typeSystem: _typeSystem));
+      unit.accept(
+        LegacyDeadCodeVerifier(
+          errorReporter,
+          typeSystem: _typeSystem,
+        ),
+      );
     }
 
-    unit.accept(UnusedLabelVerifier(errorReporter));
+    unit.accept(DeadCodeVerifier(errorReporter));
 
     // Dart2js analysis.
     if (_analysisOptions.dart2jsHint) {

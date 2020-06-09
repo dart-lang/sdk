@@ -668,7 +668,8 @@ const nullCheck = const _NullCheck();
       sdkUri, packagesUri, null, [], DevCompilerTarget(TargetFlags()),
       fileSystem: _fileSystem,
       experiments: const {},
-      environmentDefines: const {});
+      environmentDefines: const {},
+      nnbdMode: fe.NnbdMode.Weak);
   if (!identical(oldCompilerState, _compilerState)) inference = null;
   var result =
       await fe.compile(_compilerState, [mainUri], diagnosticMessageHandler);

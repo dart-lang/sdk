@@ -4,11 +4,9 @@
 
 import 'dart:io';
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/summary/summary_file_builder.dart';
-import 'package:meta/meta.dart';
 
 void main(List<String> args) {
   String command;
@@ -42,20 +40,8 @@ void main(List<String> args) {
   //
   // Handle commands.
   //
-  if (command == 'build-non-nullable') {
-    _buildSummary(
-      sdkPath,
-      outFilePath,
-      enabledExperiments: ['non-nullable'],
-      title: 'non-nullable',
-    );
-  } else if (command == 'build-legacy' || command == 'build-strong') {
-    _buildSummary(
-      sdkPath,
-      outFilePath,
-      enabledExperiments: [],
-      title: 'legacy',
-    );
+  if (command == 'build' || command == 'build-strong') {
+    _buildSummary(sdkPath, outFilePath);
   } else {
     _printUsage();
     return;
@@ -67,17 +53,12 @@ void main(List<String> args) {
  */
 const BINARY_NAME = "build_sdk_summaries";
 
-void _buildSummary(
-  String sdkPath,
-  String outPath, {
-  @required List<String> enabledExperiments,
-  @required String title,
-}) {
-  print('Generating $title summary.');
+void _buildSummary(String sdkPath, String outPath) {
+  print('Generating summary.');
   Stopwatch sw = Stopwatch()..start();
-  var featureSet = FeatureSet.fromEnableFlags(enabledExperiments);
-  List<int> bytes = SummaryBuilder.forSdk(sdkPath).build(
-    featureSet: featureSet,
+  List<int> bytes = buildSdkSummary(
+    resourceProvider: PhysicalResourceProvider.INSTANCE,
+    sdkPath: sdkPath,
   );
   File(outPath).writeAsBytesSync(bytes, mode: FileMode.writeOnly);
   print('\tDone in ${sw.elapsedMilliseconds} ms.');
@@ -89,8 +70,6 @@ void _buildSummary(
 void _printUsage() {
   print('Usage: $BINARY_NAME command arguments');
   print('Where command can be one of the following:');
-  print('  build-non-nullable output_file [sdk_path]');
-  print('    Generate non-nullable summary file.');
-  print('  build-legacy output_file [sdk_path]');
-  print('    Generate legacy summary file.');
+  print('  build output_file [sdk_path]');
+  print('    Generate summary file.');
 }

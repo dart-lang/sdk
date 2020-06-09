@@ -12,10 +12,10 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class CreateSetter extends CorrectionProducer {
-  String setterName;
+  String _setterName;
 
   @override
-  List<Object> get fixArguments => [setterName];
+  List<Object> get fixArguments => [_setterName];
 
   @override
   FixKind get fixKind => DartFixKind.CREATE_SETTER;
@@ -89,13 +89,13 @@ class CreateSetter extends CorrectionProducer {
     // build method source
     var targetSource = targetElement.source;
     var targetFile = targetSource.fullName;
-    setterName = nameNode.name;
+    _setterName = nameNode.name;
     await builder.addFileEdit(targetFile, (DartFileEditBuilder builder) {
       builder.addInsertion(targetLocation.offset, (DartEditBuilder builder) {
         var parameterTypeNode = climbPropertyAccess(nameNode);
         var parameterType = inferUndefinedExpressionType(parameterTypeNode);
         builder.write(targetLocation.prefix);
-        builder.writeSetterDeclaration(setterName,
+        builder.writeSetterDeclaration(_setterName,
             isStatic: staticModifier,
             nameGroupName: 'NAME',
             parameterType: parameterType,

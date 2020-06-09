@@ -25,7 +25,7 @@ final genSnapshot = File(path.join(buildDir, _genSnapshotBase)).existsSync()
 final aotRuntime = path.join(
     buildDir, 'dart_precompiled_runtime' + (Platform.isWindows ? '.exe' : ''));
 
-String get clangBuildToolsDir {
+String? get clangBuildToolsDir {
   String archDir;
   if (Platform.isLinux) {
     archDir = 'linux-x64';
@@ -51,8 +51,9 @@ Future<void> assembleSnapshot(String assemblyPath, String snapshotPath) async {
   if (Platform.isMacOS) {
     cc = 'clang';
   } else if (buildDir.endsWith('SIMARM') || buildDir.endsWith('SIMARM64')) {
-    if (clangBuildToolsDir != null) {
-      cc = path.join(clangBuildToolsDir, 'clang');
+    final clangBuildTools = clangBuildToolsDir;
+    if (clangBuildTools != null) {
+      cc = path.join(clangBuildTools, 'clang');
     } else {
       throw 'Cannot assemble for ${path.basename(buildDir)} '
           'without //buildtools on ${Platform.operatingSystem}';
@@ -95,8 +96,9 @@ Future<void> stripSnapshot(String snapshotPath, String strippedPath,
   if ((Platform.isLinux &&
           (buildDir.endsWith('SIMARM') || buildDir.endsWith('SIMARM64'))) ||
       (Platform.isMacOS && forceElf)) {
-    if (clangBuildToolsDir != null) {
-      strip = path.join(clangBuildToolsDir, 'llvm-strip');
+    final clangBuildTools = clangBuildToolsDir;
+    if (clangBuildTools != null) {
+      strip = path.join(clangBuildTools, 'llvm-strip');
     } else {
       throw 'Cannot strip ELF files for ${path.basename(buildDir)} '
           'without //buildtools on ${Platform.operatingSystem}';
@@ -180,7 +182,7 @@ Future<void> withTempDir(String name, Future<void> fun(String dir)) async {
     await fun(tempDir.path);
   } finally {
     if (!Platform.environment.containsKey(keepTempKey) ||
-        Platform.environment[keepTempKey].isEmpty) {
+        Platform.environment[keepTempKey]!.isEmpty) {
       tempDir.deleteSync(recursive: true);
     }
   }

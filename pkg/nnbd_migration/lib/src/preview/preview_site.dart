@@ -261,18 +261,12 @@ class PreviewSite extends Site
       throw StateError('Cannot perform edit. Relevant code has been deleted by'
           ' a previous hint action. Rerun the migration and try again.');
     }
-    final insertionOnly = offset == end;
-    if (insertionOnly) {
-      unitInfo.handleSourceEdit(SourceEdit(offset, 0, replacement));
-      migrationState.needsRerun = true;
-    }
+    unitInfo.handleSourceEdit(SourceEdit(offset, end - offset, replacement));
+    migrationState.needsRerun = true;
     var newContent =
         diskContent.replaceRange(diskOffsetStart, diskOffsetEnd, replacement);
     file.writeAsStringSync(newContent);
     unitInfo.diskContent = newContent;
-    if (!insertionOnly) {
-      await rerunMigration();
-    }
   }
 
   /// Perform the edit indicated by the [uri].

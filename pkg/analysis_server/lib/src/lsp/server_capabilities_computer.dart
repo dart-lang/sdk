@@ -48,6 +48,10 @@ class ClientDynamicRegistrations {
   bool get definition =>
       _capabilities.textDocument?.definition?.dynamicRegistration ?? false;
 
+  bool get didChangeConfiguration =>
+      _capabilities.workspace?.didChangeConfiguration?.dynamicRegistration ??
+      false;
+
   bool get documentHighlights =>
       _capabilities.textDocument?.documentHighlight?.dynamicRegistration ??
       false;
@@ -100,6 +104,8 @@ class ServerCapabilitiesComputer {
 
     final renameOptionsSupport =
         clientCapabilities.textDocument?.rename?.prepareSupport ?? false;
+
+    final enableFormatter = _server.clientConfiguration.enableSdkFormatter;
 
     final dynamicRegistrations = ClientDynamicRegistrations(clientCapabilities);
 
@@ -159,13 +165,15 @@ class ServerCapabilitiesComputer {
         null,
         dynamicRegistrations.formatting
             ? null
-            : true, // documentFormattingProvider
+            : enableFormatter, // documentFormattingProvider
         false, // documentRangeFormattingProvider
         dynamicRegistrations.typeFormatting
             ? null
-            : DocumentOnTypeFormattingOptions(
-                dartTypeFormattingCharacters.first,
-                dartTypeFormattingCharacters.skip(1).toList()),
+            : enableFormatter
+                ? DocumentOnTypeFormattingOptions(
+                    dartTypeFormattingCharacters.first,
+                    dartTypeFormattingCharacters.skip(1).toList())
+                : null,
         dynamicRegistrations.rename
             ? null
             : renameOptionsSupport
@@ -216,6 +224,8 @@ class ServerCapabilitiesComputer {
 
     final registrations = <Registration>[];
 
+    final enableFormatter = _server.clientConfiguration.enableSdkFormatter;
+
     /// Helper for creating registrations with IDs.
     void register(bool condition, Method method, [ToJsonable options]) {
       if (condition == true) {
@@ -224,26 +234,27 @@ class ServerCapabilitiesComputer {
       }
     }
 
-    final textCapabilities = _server.clientCapabilities?.textDocument;
+    final dynamicRegistrations =
+        ClientDynamicRegistrations(_server.clientCapabilities);
 
     register(
-      textCapabilities?.synchronization?.dynamicRegistration,
+      dynamicRegistrations.textSync,
       Method.textDocument_didOpen,
       TextDocumentRegistrationOptions(allSynchronisedTypes),
     );
     register(
-      textCapabilities?.synchronization?.dynamicRegistration,
+      dynamicRegistrations.textSync,
       Method.textDocument_didClose,
       TextDocumentRegistrationOptions(allSynchronisedTypes),
     );
     register(
-      textCapabilities?.synchronization?.dynamicRegistration,
+      dynamicRegistrations.textSync,
       Method.textDocument_didChange,
       TextDocumentChangeRegistrationOptions(
           TextDocumentSyncKind.Incremental, allSynchronisedTypes),
     );
     register(
-      _server.clientCapabilities?.textDocument?.completion?.dynamicRegistration,
+      dynamicRegistrations.completion,
       Method.textDocument_completion,
       CompletionRegistrationOptions(
         dartCompletionTriggerCharacters,
@@ -253,38 +264,38 @@ class ServerCapabilitiesComputer {
       ),
     );
     register(
-      textCapabilities?.hover?.dynamicRegistration,
+      dynamicRegistrations.hover,
       Method.textDocument_hover,
       TextDocumentRegistrationOptions(allTypes),
     );
     register(
-      textCapabilities?.signatureHelp?.dynamicRegistration,
+      dynamicRegistrations.signatureHelp,
       Method.textDocument_signatureHelp,
       SignatureHelpRegistrationOptions(
           dartSignatureHelpTriggerCharacters, allTypes),
     );
     register(
-      _server.clientCapabilities?.textDocument?.references?.dynamicRegistration,
+      dynamicRegistrations.references,
       Method.textDocument_references,
       TextDocumentRegistrationOptions(allTypes),
     );
     register(
-      textCapabilities?.documentHighlight?.dynamicRegistration,
+      dynamicRegistrations.documentHighlights,
       Method.textDocument_documentHighlight,
       TextDocumentRegistrationOptions(allTypes),
     );
     register(
-      textCapabilities?.documentSymbol?.dynamicRegistration,
+      dynamicRegistrations.documentSymbol,
       Method.textDocument_documentSymbol,
       TextDocumentRegistrationOptions(allTypes),
     );
     register(
-      _server.clientCapabilities?.textDocument?.formatting?.dynamicRegistration,
+      enableFormatter && dynamicRegistrations.formatting,
       Method.textDocument_formatting,
       TextDocumentRegistrationOptions(allTypes),
     );
     register(
-      textCapabilities?.onTypeFormatting?.dynamicRegistration,
+      enableFormatter && dynamicRegistrations.typeFormatting,
       Method.textDocument_onTypeFormatting,
       DocumentOnTypeFormattingRegistrationOptions(
         dartTypeFormattingCharacters.first,
@@ -293,30 +304,34 @@ class ServerCapabilitiesComputer {
       ),
     );
     register(
-      _server.clientCapabilities?.textDocument?.definition?.dynamicRegistration,
+      dynamicRegistrations.definition,
       Method.textDocument_definition,
       TextDocumentRegistrationOptions(allTypes),
     );
     register(
-      textCapabilities?.implementation?.dynamicRegistration,
+      dynamicRegistrations.implementation,
       Method.textDocument_implementation,
       TextDocumentRegistrationOptions(allTypes),
     );
     register(
-      _server.clientCapabilities?.textDocument?.codeAction?.dynamicRegistration,
+      dynamicRegistrations.codeActions,
       Method.textDocument_codeAction,
       CodeActionRegistrationOptions(
           allTypes, DartCodeActionKind.serverSupportedKinds),
     );
     register(
-      textCapabilities?.rename?.dynamicRegistration,
+      dynamicRegistrations.rename,
       Method.textDocument_rename,
       RenameRegistrationOptions(true, allTypes),
     );
     register(
-      textCapabilities?.foldingRange?.dynamicRegistration,
+      dynamicRegistrations.folding,
       Method.textDocument_foldingRange,
       TextDocumentRegistrationOptions(allTypes),
+    );
+    register(
+      dynamicRegistrations.didChangeConfiguration,
+      Method.workspace_didChangeConfiguration,
     );
 
     await _applyRegistrations(registrations);
@@ -346,6 +361,10 @@ class ServerCapabilitiesComputer {
         removedRegistrations
             .add(Unregistration(registration.id, registration.method));
       } else {
+        // Replace the registration in our new set with the original registration
+        // so that we retain the original ID sent to the client (otherwise we
+        // will try to unregister using an ID the client was never sent).
+        newRegistrationsByMethod[method] = registration;
         additionalRegistrations.remove(newRegistrationForMethod);
       }
     }

@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-// Derived from dart2js_extra/generic_type_error_message_test.
+// Derived from tests/dart2js_2/generic_type_error_message_test.
 
 import 'package:expect/expect.dart';
 

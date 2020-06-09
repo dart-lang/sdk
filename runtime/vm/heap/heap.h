@@ -95,10 +95,10 @@ class Heap {
   }
 
   // Track external data.
-  void AllocateExternal(intptr_t cid, intptr_t size, Space space);
-  void FreeExternal(intptr_t size, Space space);
+  void AllocatedExternal(intptr_t size, Space space);
+  void FreedExternal(intptr_t size, Space space);
   // Move external size from new to old space. Does not by itself trigger GC.
-  void PromoteExternal(intptr_t cid, intptr_t size);
+  void PromotedExternal(intptr_t size);
 
   // Heap contains the specified address.
   bool Contains(uword addr) const;
@@ -409,6 +409,7 @@ class Heap {
   Monitor gc_in_progress_monitor_;
   bool gc_new_space_in_progress_;
   bool gc_old_space_in_progress_;
+  bool last_gc_was_old_space_;
 
   static const intptr_t kNoForcedGarbageCollection = -1;
 

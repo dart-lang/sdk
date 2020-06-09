@@ -10,5 +10,5 @@ void main() {
 
 // Testing that a block bodied function may have an empty return
 FutureOr<FutureOr<void>> test() {
-  return; //# none: static type warning
+  return; //# none: compile-time error
 }

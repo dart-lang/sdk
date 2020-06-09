@@ -5691,6 +5691,7 @@ bool Class::RequireLegacyErasureOfConstants(Zone* zone) const {
       type = type_arguments.TypeAt(from_index + i);
       if (!type.IsLegacy() && !type.IsVoidType() && !type.IsDynamicType() &&
           !type.IsNullType()) {
+        set.Release();
         return true;
       }
       // It is not possible for a legacy type to have non-legacy type
@@ -10281,6 +10282,8 @@ StaticTypeExactnessState StaticTypeExactnessState::Compute(
     const Instance& value,
     bool print_trace /* = false */) {
   ASSERT(!value.IsNull());  // Should be handled by the caller.
+  ASSERT(value.raw() != Object::sentinel().raw());
+  ASSERT(value.raw() != Object::transition_sentinel().raw());
 
   const TypeArguments& static_type_args =
       TypeArguments::Handle(static_type.arguments());

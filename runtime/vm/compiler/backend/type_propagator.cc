@@ -1400,7 +1400,7 @@ CompileType StringInterpolateInstr::ComputeType() const {
 }
 
 CompileType LoadStaticFieldInstr::ComputeType() const {
-  const Field& field = this->StaticField();
+  const Field& field = this->field();
   bool is_nullable = CompileType::kNullable;
   intptr_t cid = kIllegalCid;  // Abstract type is known, calculate cid lazily.
   AbstractType* abstract_type = &AbstractType::ZoneHandle(field.type());

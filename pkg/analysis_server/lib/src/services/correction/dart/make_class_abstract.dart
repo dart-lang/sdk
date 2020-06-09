@@ -9,10 +9,10 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class MakeClassAbstract extends CorrectionProducer {
-  String className;
+  String _className;
 
   @override
-  List<Object> get fixArguments => [className];
+  List<Object> get fixArguments => [_className];
 
   @override
   FixKind get fixKind => DartFixKind.MAKE_CLASS_ABSTRACT;
@@ -23,7 +23,7 @@ class MakeClassAbstract extends CorrectionProducer {
     if (enclosingClass == null) {
       return;
     }
-    className = enclosingClass.name.name;
+    _className = enclosingClass.name.name;
     await builder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addSimpleInsertion(
           enclosingClass.classKeyword.offset, 'abstract ');

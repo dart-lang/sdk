@@ -233,7 +233,14 @@ Definition* FlowGraph::TryCreateConstantReplacementFor(Definition* op,
     // We checked above that constant can be safely unboxed.
     result = UnboxInstr::Create(op->representation(), new Value(result),
                                 DeoptId::kNone, Instruction::kNotSpeculative);
-    InsertBefore(op, result, nullptr, FlowGraph::kValue);
+    // If the current instruction is a phi we need to insert the replacement
+    // into the block which contains this phi - because phis exist separately
+    // from all other instructions.
+    if (auto phi = op->AsPhi()) {
+      InsertAfter(phi->GetBlock(), result, nullptr, FlowGraph::kValue);
+    } else {
+      InsertBefore(op, result, nullptr, FlowGraph::kValue);
+    }
   }
 
   return result;
@@ -1284,10 +1291,10 @@ void FlowGraph::AttachEnvironment(Instruction* instr,
                                   GrowableArray<Definition*>* env) {
   Environment* deopt_env =
       Environment::From(zone(), *env, num_direct_parameters_, parsed_function_);
-  if (instr->IsClosureCall() || instr->IsInitInstanceField()) {
-    // Trim extra inputs of ClosureCall and InitInstanceField instructions.
-    // Inputs of those instructions are not pushed onto the stack at the
-    // point where deoptimization can occur.
+  if (instr->IsClosureCall() || instr->IsLoadField()) {
+    // Trim extra inputs of ClosureCall and LoadField instructions from
+    // the environment. Inputs of those instructions are not pushed onto
+    // the stack at the point where deoptimization can occur.
     deopt_env =
         deopt_env->DeepCopy(zone(), deopt_env->Length() - instr->InputCount() +
                                         instr->ArgumentCount());

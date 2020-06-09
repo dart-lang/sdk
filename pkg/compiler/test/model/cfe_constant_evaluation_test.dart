@@ -20,6 +20,8 @@ import 'package:compiler/src/ir/constants.dart';
 import 'package:compiler/src/ir/visitors.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/kernel/element_map_impl.dart';
+import 'package:compiler/src/options.dart';
+import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
@@ -686,7 +688,13 @@ Future testData(TestData data) async {
             // the "real error message" is the first in the context.
             errors.add(context.first.code.name);
             reportLocatedMessage(elementMap.reporter, message, context);
-          }, environment: environment, supportReevaluationForTesting: true);
+          },
+                  environment: environment,
+                  supportReevaluationForTesting: true,
+                  evaluationMode:
+                      compiler.options.nullSafetyMode == NullSafetyMode.sound
+                          ? ir.EvaluationMode.strong
+                          : ir.EvaluationMode.weak);
           ir.Constant evaluatedConstant = evaluator.evaluate(
               new ir.StaticTypeContext(node, typeEnvironment), initializer);
 

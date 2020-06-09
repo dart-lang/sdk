@@ -116,7 +116,7 @@ Future<void> main(List<String> args) async {
 
   final ArgParser parser = ArgParser(usageLineLength: outputLineWidth)
     ..addMultiOption('define', abbr: 'D', valueHelp: 'key=value', help: '''
-Set values of environment variables. To specify multiple variables, use multiple options or use commas to separate key-value pairs.
+Define an environment declaration. To specify multiple declarations, use multiple options or use commas to separate key-value pairs.
 E.g.: dart2native -Da=1,b=2 main.dart''')
     ..addFlag('enable-asserts',
         negatable: false, help: 'Enable assert statements.')

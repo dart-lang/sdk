@@ -80,10 +80,6 @@
 current-version: 2.9
 
 features:
-  extension-methods:
-    help: "Extension Methods"
-    enabledIn: '2.6.0'
-
   non-nullable:
     help: "Non Nullable by default"
 
@@ -100,6 +96,10 @@ features:
 # Flags below this line are shipped, retired, or rejected, cannot be specified
 # on the command line, and will eventually be removed.
 #
+
+  extension-methods:
+    help: "Extension Methods"
+    enabledIn: '2.6.0'
 
   constant-update-2018:
     help: "Enhanced constant expressions"

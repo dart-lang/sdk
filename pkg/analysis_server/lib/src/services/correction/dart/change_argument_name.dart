@@ -68,15 +68,15 @@ class ChangeArgumentName extends MultiCorrectionProducer {
 /// the [ChangeArgumentName] producer.
 class _ChangeName extends CorrectionProducer {
   /// The name of the argument being changed.
-  final SimpleIdentifier argumentName;
+  final SimpleIdentifier _argumentName;
 
   /// The name to which the argument name will be changed.
-  final String proposedName;
+  final String _proposedName;
 
-  _ChangeName(this.argumentName, this.proposedName);
+  _ChangeName(this._argumentName, this._proposedName);
 
   @override
-  List<Object> get fixArguments => [proposedName];
+  List<Object> get fixArguments => [_proposedName];
 
   @override
   FixKind get fixKind => DartFixKind.CHANGE_ARGUMENT_NAME;
@@ -84,7 +84,7 @@ class _ChangeName extends CorrectionProducer {
   @override
   Future<void> compute(DartChangeBuilder builder) async {
     await builder.addFileEdit(file, (builder) {
-      builder.addSimpleReplacement(range.node(argumentName), proposedName);
+      builder.addSimpleReplacement(range.node(_argumentName), _proposedName);
     });
   }
 }

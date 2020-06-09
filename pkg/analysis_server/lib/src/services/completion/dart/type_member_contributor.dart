@@ -131,9 +131,6 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredExtension(ExtensionDeclaration declaration) {}
-
-  @override
   void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
     if (varDecl.name.name == targetName) {
       // Type provided by the element in computeFull above

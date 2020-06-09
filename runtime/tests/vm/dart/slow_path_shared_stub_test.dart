@@ -12,14 +12,14 @@ import 'package:expect/expect.dart';
 import 'dart:math';
 
 class C {
-  C talk(C _) => _;
+  C? talk(C? _) => _;
 }
 
 int getPositiveNum() {
   return (new DateTime.now()).millisecondsSinceEpoch;
 }
 
-C getC() {
+C? getC() {
   if (getPositiveNum() == 0) {
     return new C();
   } else {
@@ -27,7 +27,7 @@ C getC() {
   }
 }
 
-int global;
+int global = 0;
 
 int getNum() {
   return global++;
@@ -39,7 +39,7 @@ test0(int k) {
   try {
     y = getNum();
     x = getC();
-    x.talk(x).talk(x);
+    x!.talk(x)!.talk(x);
     y = getNum();
   } catch (e) {
     Expect.equals(x, null);
@@ -59,7 +59,7 @@ test1(int k) {
     x = getC();
     z = z.ceil().toDouble();
     var k = z / 2;
-    x.talk(x).talk(x);
+    x!.talk(x)!.talk(x);
     z = k / 2;
     y = getNum();
   } catch (e) {

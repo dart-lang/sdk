@@ -119,20 +119,19 @@ struct TypeTestABI {
 // ABI for InitStaticFieldStub.
 struct InitStaticFieldABI {
   static const Register kFieldReg = EAX;
+  static const Register kResultReg = EAX;
 };
 
 // ABI for InitInstanceFieldStub.
 struct InitInstanceFieldABI {
-  static const Register kInstanceReg = EAX;
-  static const Register kFieldReg = EBX;
+  static const Register kInstanceReg = EBX;
+  static const Register kFieldReg = EDX;
+  static const Register kResultReg = EAX;
 };
 
 // Registers used inside the implementation of InitLateInstanceFieldStub.
 struct InitLateInstanceFieldInternalRegs {
   static const Register kFunctionReg = EAX;
-  static const Register kInitializerResultReg = EAX;
-  static const Register kInstanceReg = EBX;
-  static const Register kFieldReg = EDX;
   static const Register kAddressReg = ECX;
   static const Register kScratchReg = EDI;
 };

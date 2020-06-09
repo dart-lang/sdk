@@ -27,6 +27,7 @@ import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/front_end/dartfix_listener.dart';
 import 'package:nnbd_migration/src/front_end/driver_provider_impl.dart';
 import 'package:nnbd_migration/src/front_end/non_nullable_fix.dart';
+import 'package:nnbd_migration/src/utilities/json.dart' as json;
 import 'package:nnbd_migration/src/utilities/source_edit_diff_formatter.dart';
 import 'package:path/path.dart' show Context;
 
@@ -102,32 +103,33 @@ class DependencyChecker {
     try {
       if ((result.stderr as String).isNotEmpty) {
         throw FormatException(
-            '`$_pubName outdated --mode=null-safety` exited with exit code '
+            '`pub outdated --mode=null-safety` exited with exit code '
             '${result.exitCode} and stderr:\n\n${result.stderr}');
       }
       var outdatedOutput = jsonDecode(result.stdout as String);
-      var outdatedMap = _expectType<Map>(outdatedOutput, 'root');
-      var packageList = _expectType<List>(outdatedMap['packages'], 'packages');
+      var outdatedMap = json.expectType<Map>(outdatedOutput, 'root');
+      var packageList =
+          json.expectType<List>(outdatedMap['packages'], 'packages');
       for (var package_ in packageList) {
-        var package = _expectType<Map>(package_, '');
-        var current_ = _expectKey(package, 'current');
+        var package = json.expectType<Map>(package_, '');
+        var current_ = json.expectKey(package, 'current');
         if (current_ == null) {
           continue;
         }
-        var current = _expectType<Map>(current_, 'current');
-        if (_expectType<bool>(current['nullSafety'], 'nullSafety')) {
+        var current = json.expectType<Map>(current_, 'current');
+        if (json.expectType<bool>(current['nullSafety'], 'nullSafety')) {
           // For whatever reason, there is no "current" version of this package.
           // TODO(srawlins): We may want to report this to the user. But it may
           // be inconsequential.
           continue;
         }
 
-        _expectKey(package, 'package');
-        _expectKey(current, 'version');
-        var name = _expectType<String>(package['package'], 'package');
+        json.expectKey(package, 'package');
+        json.expectKey(current, 'version');
+        var name = json.expectType<String>(package['package'], 'package');
         // A version will be given, even if a package was provided with a local
         // or git path.
-        var version = _expectType<String>(current['version'], 'version');
+        var version = json.expectType<String>(current['version'], 'version');
         preNullSafetyPackages[name] = version;
       }
     } on FormatException catch (e) {
@@ -148,32 +150,16 @@ class DependencyChecker {
       _logger.stderr('');
       _logger.stderr('It is highly recommended to upgrade all dependencies to '
           'versions which have migrated. Use `$_pubName outdated '
-          '--mode=null-safety` to check the status of dependencies. Visit '
-          'https://dart.dev/tools/pub/cmd/pub-outdated for more information.');
+          '--mode=null-safety` to check the status of dependencies.');
       _logger.stderr('');
-      _logger.stderr('Force migration with --skip-outdated-dependencies-check '
-          '(not recommended)');
+      _logger.stderr('Visit https://dart.dev/tools/pub/cmd/pub-outdated for '
+          'more information.');
+      _logger.stderr('');
+      _logger.stderr('Force migration with '
+          '--${CommandLineOptions.skipPubOutdatedFlag} (not recommended)');
       return false;
     }
     return true;
-  }
-
-  dynamic _expectKey(Map<Object, Object> map, String key) {
-    if (map.containsKey(key)) {
-      return map[key];
-    }
-    throw FormatException(
-        'Unexpected `$_pubName outdated` JSON output: missing key ($key)', map);
-  }
-
-  T _expectType<T>(Object object, String errorKey) {
-    if (object is T) {
-      return object;
-    }
-    throw FormatException(
-        'Unexpected `$_pubName outdated` JSON output: expected a '
-        '$T at "$errorKey", but got a ${object.runtimeType}',
-        object);
   }
 }
 
@@ -804,7 +790,7 @@ class _FixCodeProcessor extends Object {
     _progressBar = _ProgressBar(pathsToProcess.length * _task.numPhases);
 
     // Process package
-    await _task.processPackage(context.contextRoot.root);
+    _task.processPackage(context.contextRoot.root);
 
     // Process each source file.
     await processResources((ResolvedUnitResult result) async {

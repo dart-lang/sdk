@@ -58,3 +58,6 @@ regexp/pcre_test: Slow, Pass
 bigint_parse_radix_test: Skip # Issue 31659. Issue 34361.
 bigint_test: Skip # Issue 31659
 integer_parsed_mul_div_vm_test: Slow, Pass # Slow
+
+[ $system == android ]
+throw_half_surrogate_pair_test/* : Skip # Issue http://dartbug.com/42094

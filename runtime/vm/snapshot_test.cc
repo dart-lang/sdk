@@ -699,8 +699,6 @@ ISOLATE_UNIT_TEST_CASE(SerializeEmptyByteArray) {
 }
 
 VM_UNIT_TEST_CASE(FullSnapshot) {
-  bool nullSafety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* nullableTag = nullSafety ? "?" : "";
   // clang-format off
   auto kScriptChars = Utils::CStringUniquePtr(
       OS::SCreate(
@@ -727,7 +725,7 @@ VM_UNIT_TEST_CASE(FullSnapshot) {
           "    return obj;\n"
           "  }\n"
           "}\n",
-          nullableTag),
+          TestCase::NullableTag()),
       std::free);
   // clang-format on
   Dart_Handle result;

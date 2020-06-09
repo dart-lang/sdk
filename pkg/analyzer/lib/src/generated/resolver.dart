@@ -2901,9 +2901,14 @@ class VariableResolverVisitor extends ScopedVisitor {
 /// Tracker for whether a `switch` statement has `default` or is on an
 /// enumeration, and all the enum constants are covered.
 class _SwitchExhaustiveness {
-  /// If the switch is on an enumeration, the set of all enum constants.
+  /// If the switch is on an enumeration, the set of enum constants to cover.
   /// Otherwise `null`.
   final Set<FieldElement> _enumConstants;
+
+  /// If the switch is on an enumeration, is `true` if the null value is
+  /// covered, because the switch expression type is non-nullable, or `null`
+  /// was covered explicitly.
+  bool _isNullEnumValueCovered = false;
 
   bool isExhaustive = false;
 
@@ -2913,22 +2918,28 @@ class _SwitchExhaustiveness {
       if (enum_ is EnumElementImpl) {
         return _SwitchExhaustiveness._(
           enum_.constants.toSet(),
+          expressionType.nullabilitySuffix == NullabilitySuffix.none,
         );
       }
     }
-    return _SwitchExhaustiveness._(null);
+    return _SwitchExhaustiveness._(null, false);
   }
 
-  _SwitchExhaustiveness._(this._enumConstants);
+  _SwitchExhaustiveness._(this._enumConstants, this._isNullEnumValueCovered);
 
   void visitSwitchMember(SwitchMember node) {
     if (_enumConstants != null && node is SwitchCase) {
       var element = _referencedElement(node.expression);
       if (element is PropertyAccessorElement) {
         _enumConstants.remove(element.variable);
-        if (_enumConstants.isEmpty) {
-          isExhaustive = true;
-        }
+      }
+
+      if (node.expression is NullLiteral) {
+        _isNullEnumValueCovered = true;
+      }
+
+      if (_enumConstants.isEmpty && _isNullEnumValueCovered) {
+        isExhaustive = true;
       }
     } else if (node is SwitchDefault) {
       isExhaustive = true;

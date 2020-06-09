@@ -1000,6 +1000,18 @@ Dart_NewWeakPersistentHandle(Dart_Handle object,
                                    external_allocation_size, callback);
 }
 
+DART_EXPORT void Dart_UpdateExternalSize(Dart_WeakPersistentHandle object,
+                                         intptr_t external_size) {
+  IsolateGroup* isolate_group = IsolateGroup::Current();
+  CHECK_ISOLATE_GROUP(isolate_group);
+  NoSafepointScope no_safepoint_scope;
+  ApiState* state = isolate_group->api_state();
+  ASSERT(state != NULL);
+  ASSERT(state->IsActiveWeakPersistentHandle(object));
+  auto weak_ref = FinalizablePersistentHandle::Cast(object);
+  weak_ref->UpdateExternalSize(external_size, isolate_group);
+}
+
 DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object) {
   IsolateGroup* isolate_group = IsolateGroup::Current();
   CHECK_ISOLATE_GROUP(isolate_group);
@@ -1023,7 +1035,7 @@ DART_EXPORT void Dart_DeleteWeakPersistentHandle(
   ASSERT(state != NULL);
   ASSERT(state->IsActiveWeakPersistentHandle(object));
   auto weak_ref = FinalizablePersistentHandle::Cast(object);
-  weak_ref->EnsureFreeExternal(isolate_group);
+  weak_ref->EnsureFreedExternal(isolate_group);
   state->FreeWeakPersistentHandle(weak_ref);
 }
 
@@ -5993,37 +6005,6 @@ Dart_CompileToKernel(const char* script_uri,
           "An error occurred in the CFE while accepting the most recent"
           " compilation results: %s",
           accept_result.error);
-    }
-  }
-#endif
-  return result;
-}
-
-DART_EXPORT Dart_KernelCompilationResult
-Dart_CompileSourcesToKernel(const char* script_uri,
-                            const uint8_t* platform_kernel,
-                            intptr_t platform_kernel_size,
-                            int source_files_count,
-                            Dart_SourceFile sources[],
-                            bool incremental_compile,
-                            const char* package_config,
-                            const char* multiroot_filepaths,
-                            const char* multiroot_scheme) {
-  Dart_KernelCompilationResult result = {};
-#if defined(DART_PRECOMPILED_RUNTIME)
-  result.status = Dart_KernelCompilationStatus_Unknown;
-  result.error = strdup("Dart_CompileSourcesToKernel is unsupported.");
-#else
-  result = KernelIsolate::CompileToKernel(
-      script_uri, platform_kernel, platform_kernel_size, source_files_count,
-      sources, incremental_compile, package_config, multiroot_filepaths,
-      multiroot_scheme);
-  if (result.status == Dart_KernelCompilationStatus_Ok) {
-    if (KernelIsolate::AcceptCompilation().status !=
-        Dart_KernelCompilationStatus_Ok) {
-      FATAL(
-          "An error occurred in the CFE while accepting the most recent"
-          " compilation results.");
     }
   }
 #endif

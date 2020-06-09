@@ -10,7 +10,6 @@ import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptions;
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/utilities_general.dart';
-import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
 
 /**
  * A Dart SDK installed in a specified location.
@@ -42,6 +41,10 @@ abstract class DartSdk {
    */
   static const String DEFAULT_VERSION = "0";
 
+  /// Return the content of the `allowed_experiments.json` file, or `null`
+  /// if the file cannot be read, e.g. does not exist.
+  String get allowedExperimentsJson;
+
   /**
    * Return the analysis context used for all of the sources in this [DartSdk].
    */
@@ -69,14 +72,6 @@ abstract class DartSdk {
    * SDK, or `null` if the file is not in this SDK.
    */
   Source fromFileUri(Uri uri);
-
-  /**
-   * Return the linked [PackageBundle] for this SDK, if it can be provided, or
-   * `null` otherwise.
-   *
-   * This is a temporary API, don't use it.
-   */
-  PackageBundle getLinkedBundle();
 
   /**
    * Return the library representing the library with the given 'dart:' [uri],

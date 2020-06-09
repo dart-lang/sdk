@@ -373,10 +373,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
         _mostlyEmpty(whenNullBlock) &&
         _mostlyEmpty(whenNotNullBlock)) {
       HInstruction trueConstant = _graph.addConstantBool(true, _closedWorld);
-      HInstruction replacement = new HIdentity(
-          tested, trueConstant, null, _abstractValueDomain.boolType)
-        ..sourceElement = phi.sourceElement
-        ..sourceInformation = phi.sourceInformation;
+      HInstruction replacement =
+          new HIdentity(tested, trueConstant, _abstractValueDomain.boolType)
+            ..sourceElement = phi.sourceElement
+            ..sourceInformation = phi.sourceInformation;
       block.rewrite(phi, replacement);
       block.addAtEntry(replacement);
       block.removePhi(phi);
@@ -395,8 +395,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
         _mostlyEmpty(whenNullBlock) &&
         _mostlyEmpty(whenNotNullBlock)) {
       HInstruction falseConstant = _graph.addConstantBool(false, _closedWorld);
-      HInstruction compare = new HIdentity(
-          tested, falseConstant, null, _abstractValueDomain.boolType);
+      HInstruction compare =
+          new HIdentity(tested, falseConstant, _abstractValueDomain.boolType);
       block.addAtEntry(compare);
       HInstruction replacement =
           new HNot(compare, _abstractValueDomain.boolType)
@@ -1584,7 +1584,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (element == commonElements.identicalFunction) {
       if (node.inputs.length == 2) {
         return new HIdentity(
-            node.inputs[0], node.inputs[1], null, _abstractValueDomain.boolType)
+            node.inputs[0], node.inputs[1], _abstractValueDomain.boolType)
           ..sourceInformation = node.sourceInformation;
       }
     } else if (element == commonElements.setRuntimeTypeInfo) {
@@ -2181,7 +2181,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
         HInstruction nullTest = HIdentity(
             node.checkedInput,
             _graph.addConstantNull(_closedWorld),
-            null,
             _abstractValueDomain.boolType);
         if (specialization == IsTestSpecialization.isNull) return nullTest;
         nullTest.sourceInformation = node.sourceInformation;

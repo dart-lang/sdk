@@ -278,7 +278,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
           // To-space was exhausted by fragmentation and old-space could not
           // grow.
           if (UNLIKELY(new_addr == 0)) {
-            FATAL("Failed to allocate during scavenge");
+            OUT_OF_MEMORY();
           }
         }
       }
@@ -1544,17 +1544,6 @@ void Scavenger::PrintToJSONObject(JSONObject* object) const {
   space.AddProperty("time", MicrosecondsToSeconds(gc_time_micros()));
 }
 #endif  // !PRODUCT
-
-void Scavenger::AllocateExternal(intptr_t cid, intptr_t size) {
-  ASSERT(size >= 0);
-  external_size_ += size;
-}
-
-void Scavenger::FreeExternal(intptr_t size) {
-  ASSERT(size >= 0);
-  external_size_ -= size;
-  ASSERT(external_size_ >= 0);
-}
 
 void Scavenger::Evacuate() {
   // We need a safepoint here to prevent allocation right before or right after

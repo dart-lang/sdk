@@ -9,14 +9,13 @@ import 'dart:_internal' as dart_internal;
 
 /// Similar to `Isolate.spawn<T>()` but supports `newIsolateGroup`.
 Future<Isolate> internalSpawn<T>(void entryPoint(T message), T message,
-    {SendPort onExit,
-    SendPort onError,
-    bool newIsolateGroup,
-    String debugName}) async {
-  newIsolateGroup ??= false;
+    {SendPort? onExit,
+    SendPort? onError,
+    bool newIsolateGroup = false,
+    String? debugName}) async {
   final packageConfig = null;
   final paused = false;
-  final bool errorsAreFatal = null;
+  final bool errorsAreFatal = true;
   final readyPort = new RawReceivePort();
   try {
     dart_internal.spawnFunction(
@@ -66,8 +65,8 @@ Future<Isolate> _spawnCommon(RawReceivePort readyPort) {
 /// Spawns the [staticClosure] in a detached isolate group.
 Future<Isolate> spawnInDetachedGroup<T>(
     void staticClosure(T message), T message,
-    {SendPort onExit, SendPort onError}) async {
-  _IG0([staticClosure, message]);
+    {SendPort? onExit, SendPort? onError}) {
+  return _IG0([staticClosure, message]);
 }
 
 // This is the isolate group of "main". We spawn another one.

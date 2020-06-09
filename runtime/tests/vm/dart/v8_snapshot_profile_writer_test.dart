@@ -12,11 +12,11 @@ import "package:vm/v8_snapshot_profile.dart";
 import 'use_flag_test_helper.dart';
 
 test(
-    {String dillPath,
-    bool useAsm,
-    bool useBare,
-    bool stripFlag,
-    bool stripUtil}) async {
+    {required String dillPath,
+    required bool useAsm,
+    required bool useBare,
+    required bool stripFlag,
+    required bool stripUtil}) async {
   // The assembler may add extra unnecessary information to the compiled
   // snapshot whether or not we generate DWARF information in the assembly, so
   // we force the use of a utility when generating assembly.
@@ -42,8 +42,7 @@ test(
       "--write-v8-snapshot-profile-to=$profilePath",
       // Regression test for dartbug.com/41149. We don't assume forced
       // disassembler support in Product mode.
-      if (!const bool.fromEnvironment('dart.vm.product'))
-        '--disassemble',
+      if (!const bool.fromEnvironment('dart.vm.product')) '--disassemble',
       '--ignore-unrecognized-flags',
       dillPath,
     ];
@@ -117,8 +116,8 @@ test(
   });
 }
 
-Match matchComplete(RegExp regexp, String line) {
-  Match match = regexp.firstMatch(line);
+Match? matchComplete(RegExp regexp, String line) {
+  Match? match = regexp.firstMatch(line);
   if (match == null) return match;
   if (match.start != 0 || match.end != line.length) return null;
   return match;
@@ -143,11 +142,11 @@ testMacros() async {
       .cast<List<int>>()
       .transform(utf8.decoder)
       .transform(LineSplitter())) {
-    Match match = matchComplete(fieldEntry, line);
+    Match? match = matchComplete(fieldEntry, line);
     if (match != null) {
       fields
-          .putIfAbsent(match.group(1), () => Set<String>())
-          .add(match.group(2));
+          .putIfAbsent(match.group(1)!, () => Set<String>())
+          .add(match.group(2)!);
     }
   }
 
@@ -158,14 +157,14 @@ testMacros() async {
   final String rawObjectPath =
       path.join(sdkDir, 'runtime', 'vm', 'raw_object.h');
 
-  String currentClass;
+  String? currentClass;
   bool hasMissingFields = false;
   await for (String line in File(rawObjectPath)
       .openRead()
       .cast<List<int>>()
       .transform(utf8.decoder)
       .transform(LineSplitter())) {
-    Match match = matchComplete(classStart, line);
+    Match? match = matchComplete(classStart, line);
     if (match != null) {
       currentClass = match.group(1);
       continue;
@@ -184,9 +183,9 @@ testMacros() async {
         print("$currentClass is missing entirely.");
         continue;
       }
-      if (!fields[currentClass].contains(match.group(2))) {
+      if (!fields[currentClass]!.contains(match.group(2)!)) {
         hasMissingFields = true;
-        print("$currentClass is missing ${match.group(2)}.");
+        print("$currentClass is missing ${match.group(2)!}.");
       }
     }
   }
@@ -220,6 +219,10 @@ main() async {
       '--aot',
       '--platform',
       platformDill,
+      ...Platform.executableArguments.where((arg) =>
+          arg.startsWith('--enable-experiment=') ||
+          arg == '--null-safety' ||
+          arg == '--no-null-safety'),
       '-o',
       dillPath,
       _thisTestPath

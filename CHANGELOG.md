@@ -4,6 +4,13 @@
 
 ### Core libraries
 
+#### `dart:io`
+
+*   [#42006][]: The signature of `exit` has been changed to return the
+    `Never`type instead of `void`. since no code will run after it,
+
+[#42006]: https://github.com/dart-lang/sdk/issues/42006
+
 #### `dart:convert`
 
 *   **Breaking Change** [#41100][]: When encoding a string containing unpaired
@@ -80,6 +87,10 @@ Updated the Linter to `0.1.116`, which includes:
 ### Dart VM
 
 ### Pub
+* `pub run` and `pub global run` accepts a `--enable-experiment` flag enabling
+  experiments in the Dart VM (and language).
+* Publishing Flutter plugins using the old plugin format is no longer allowed.
+  Plugins using the old plugin format can still be consumed.
 * Introduce `pub outdated --mode=null-safety` that will report which of your
   dependencies you can upgrade to fully support null safety.
 * Fix `pub run` precompilation with relative `PUB_CACHE` paths (#2486)
@@ -91,6 +102,14 @@ Updated the Linter to `0.1.116`, which includes:
 * `pub outdated` now works without a lockfile. In that case the 'Current'
   column will be empty.
 * `pub upgrade`: Show summary count of outdated packages after running.
+
+## 2.8.4 - 2020-06-04
+
+This is a patch release that fixes potential memory leaks in the Dart front-end
+(issues [#42111][] and [#42112][]).
+
+[#42111]: https://github.com/dart-lang/sdk/issues/42111
+[#42112]: https://github.com/dart-lang/sdk/issues/42112
 
 ## 2.8.3 - 2020-05-28
 

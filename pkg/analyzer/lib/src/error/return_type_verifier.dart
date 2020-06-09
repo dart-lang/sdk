@@ -126,6 +126,14 @@ class ReturnTypeVerifier {
       return;
     }
 
+    if (_typeSystem.isNonNullableByDefault) {
+      _checkReturnExpression_nullSafety(expression);
+    } else {
+      _checkReturnExpression_legacy(expression);
+    }
+  }
+
+  void _checkReturnExpression_legacy(Expression expression) {
     // `T` is the declared return type.
     // `S` is the static type of the expression.
     var T = enclosingExecutable.returnType;
@@ -188,6 +196,11 @@ class ReturnTypeVerifier {
       var flatten_S = _typeSystem.flatten(S);
       // It is a compile-time error if `T` is `void`,
       // and `flatten(S)` is neither `void`, `dynamic`, nor `Null`.
+      //
+      // Note, the specification was not implemented correctly, and
+      // implementing it now would be a breaking change. So, the code below
+      // intentionally does not implement the specification.
+      // https://github.com/dart-lang/sdk/issues/41803#issuecomment-635852474
       if (T.isVoid) {
         if (!_isVoidDynamicOrNull(flatten_S)) {
           reportTypeError();
@@ -216,10 +229,115 @@ class ReturnTypeVerifier {
     }
   }
 
-  void _checkReturnWithoutValue(ReturnStatement statement) {
-    var returnType = _flattenedReturnType;
-    if (_isVoidDynamicOrNull(returnType)) {
+  void _checkReturnExpression_nullSafety(Expression expression) {
+    // `T` is the declared return type.
+    // `S` is the static type of the expression.
+    var T = enclosingExecutable.returnType;
+    var S = getStaticType(expression);
+
+    void reportTypeError() {
+      String displayName = enclosingExecutable.element.displayName;
+      if (displayName.isEmpty) {
+        _errorReporter.reportErrorForNode(
+          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
+          expression,
+          [S, T],
+        );
+      } else if (enclosingExecutable.isMethod) {
+        _errorReporter.reportErrorForNode(
+          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
+          expression,
+          [S, T, displayName],
+        );
+      } else {
+        _errorReporter.reportErrorForNode(
+          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+          expression,
+          [S, T, displayName],
+        );
+      }
+    }
+
+    if (enclosingExecutable.isSynchronous) {
+      // It is a compile-time error if `T` is `void`,
+      // and `S` is neither `void`, `dynamic`, nor `Null`.
+      if (T.isVoid) {
+        if (!_isVoidDynamicOrNull(S)) {
+          reportTypeError();
+          return;
+        }
+      }
+      // It is a compile-time error if `S` is `void`,
+      // and `T` is neither `void` nor `dynamic`.
+      if (S.isVoid) {
+        if (!_isVoidDynamic(T)) {
+          reportTypeError();
+          return;
+        }
+      }
+      // It is a compile-time error if `S` is not `void`,
+      // and `S` is not assignable to `T`.
+      if (!S.isVoid) {
+        if (!_typeSystem.isAssignableTo2(S, T)) {
+          reportTypeError();
+          return;
+        }
+      }
+      // OK
       return;
+    }
+
+    if (enclosingExecutable.isAsynchronous) {
+      var T_v = _typeSystem.futureValueType(T);
+      var flatten_S = _typeSystem.flatten(S);
+      // It is a compile-time error if `flatten(T)` is `void`,
+      // and `flatten(S)` is neither `void`, `dynamic`, nor `Null`.
+      if (T_v.isVoid) {
+        if (!_isVoidDynamicOrNull(flatten_S)) {
+          reportTypeError();
+          return;
+        }
+      }
+      // It is a compile-time error if `flatten(S)` is `void`,
+      // and `flatten(T)` is neither `void`, `dynamic`.
+      if (flatten_S.isVoid) {
+        if (!_isVoidDynamic(T_v)) {
+          reportTypeError();
+          return;
+        }
+      }
+      // It is a compile-time error if `flatten(S)` is not `void`,
+      // and `Future<flatten(S)>` is not assignable to `T`.
+      if (!flatten_S.isVoid) {
+        if (!_typeSystem.isAssignableTo2(S, T_v) &&
+            !_typeSystem.isSubtypeOf2(flatten_S, T_v)) {
+          reportTypeError();
+          return;
+        }
+        // OK
+        return;
+      }
+    }
+  }
+
+  void _checkReturnWithoutValue(ReturnStatement statement) {
+    if (_typeSystem.isNonNullableByDefault) {
+      var T = enclosingExecutable.returnType;
+      if (enclosingExecutable.isSynchronous) {
+        if (_isVoidDynamicOrNull(T)) {
+          return;
+        }
+      } else {
+        var T_v = _typeSystem.futureValueType(T);
+        if (_isVoidDynamicOrNull(T_v)) {
+          return;
+        }
+      }
+    } else {
+      var returnType = _flattenedReturnType;
+      if (_isVoidDynamicOrNull(returnType)) {
+        return;
+      }
     }
 
     _errorReporter.reportErrorForToken(
@@ -266,6 +384,10 @@ class ReturnTypeVerifier {
       return DynamicTypeImpl.instance;
     }
     return type;
+  }
+
+  static bool _isVoidDynamic(DartType type) {
+    return type.isVoid || type.isDynamic;
   }
 
   static bool _isVoidDynamicOrNull(DartType type) {

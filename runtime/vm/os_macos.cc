@@ -127,6 +127,10 @@ int64_t OS::GetCurrentThreadCPUMicros() {
 #endif
 }
 
+int64_t OS::GetCurrentThreadCPUMicrosForTimeline() {
+  return OS::GetCurrentThreadCPUMicros();
+}
+
 intptr_t OS::ActivationFrameAlignment() {
 #if HOST_OS_IOS
 #if TARGET_ARCH_ARM

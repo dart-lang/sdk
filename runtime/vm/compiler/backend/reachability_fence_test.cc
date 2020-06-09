@@ -15,9 +15,6 @@
 namespace dart {
 
 ISOLATE_UNIT_TEST_CASE(ReachabilityFence_Simple) {
-  const bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* nullableTag = null_safety ? "?" : "";
-  const char* nullAssertTag = null_safety ? "!" : "";
   // clang-format off
   auto kScript =
       Utils::CStringUniquePtr(OS::SCreate(nullptr,
@@ -40,7 +37,7 @@ ISOLATE_UNIT_TEST_CASE(ReachabilityFence_Simple) {
         reachabilityFence(object);
       }
       )",
-      nullableTag, nullAssertTag), std::free);
+      TestCase::NullableTag(), TestCase::NullAssertTag()), std::free);
   // clang-format on
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));
@@ -78,9 +75,6 @@ ISOLATE_UNIT_TEST_CASE(ReachabilityFence_Simple) {
 }
 
 ISOLATE_UNIT_TEST_CASE(ReachabilityFence_Loop) {
-  const bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* nullableTag = null_safety ? "?" : "";
-  const char* nullAssertTag = null_safety ? "!" : "";
   // clang-format off
   auto kScript =
       Utils::CStringUniquePtr(OS::SCreate(nullptr, R"(
@@ -108,7 +102,7 @@ ISOLATE_UNIT_TEST_CASE(ReachabilityFence_Loop) {
           reachabilityFence(object);
         }
       }
-      )", nullableTag, nullAssertTag), std::free);
+      )", TestCase::NullableTag(), TestCase::NullAssertTag()), std::free);
   // clang-format on
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));
@@ -146,9 +140,6 @@ ISOLATE_UNIT_TEST_CASE(ReachabilityFence_Loop) {
 }
 
 ISOLATE_UNIT_TEST_CASE(ReachabilityFence_NoCanonicalize) {
-  const bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* nullableTag = null_safety ? "?" : "";
-  const char* nullAssertTag = null_safety ? "!" : "";
   // clang-format off
   auto kScript =
       Utils::CStringUniquePtr(OS::SCreate(nullptr, R"(
@@ -179,7 +170,7 @@ ISOLATE_UNIT_TEST_CASE(ReachabilityFence_NoCanonicalize) {
         reachabilityFence(object);
         reachabilityFence(object);
       }
-      )", nullableTag, nullAssertTag), std::free);
+      )", TestCase::NullableTag(), TestCase::NullAssertTag()), std::free);
   // clang-format on
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));

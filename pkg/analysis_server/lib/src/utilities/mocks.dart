@@ -164,7 +164,7 @@ class TestPluginManager implements PluginManager {
   }
 
   @override
-  NotificationManager get notificationManager {
+  AbstractNotificationManager get notificationManager {
     fail('Unexpected invocation of notificationManager');
   }
 

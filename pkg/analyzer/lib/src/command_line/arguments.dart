@@ -159,8 +159,9 @@ void defineAnalysisArguments(ArgParser parser,
   //
   parser.addMultiOption(defineVariableOption,
       abbr: 'D',
-      help: 'Define environment variables. For example, "-Dfoo=bar" defines an '
-          'environment variable named "foo" whose value is "bar".',
+      help:
+          'Define an environment declaration. For example, "-Dfoo=bar" defines an '
+          'environment declaration named "foo" whose value is "bar".',
       hide: hide);
   parser.addOption(packagesOption,
       help: 'The path to the package resolution configuration file, which '

@@ -268,8 +268,9 @@ class InferenceVisitor
     if (!inferrer.typeSchemaEnvironment.isEmptyContext(typeContext)) {
       typeContext = inferrer.wrapFutureOrType(typeContext);
     }
-    ExpressionInferenceResult operandResult = inferrer
-        .inferExpression(node.operand, typeContext, true, isVoidAllowed: true);
+    ExpressionInferenceResult operandResult = inferrer.inferExpression(
+        node.operand, typeContext, true,
+        isVoidAllowed: !inferrer.isNonNullableByDefault);
     DartType inferredType =
         inferrer.typeSchemaEnvironment.unfutureType(operandResult.inferredType);
     node.operand = operandResult.expression..parent = node;

@@ -16,5 +16,5 @@ main(List<String> args) async {
     cli.handleArgParsingException(e);
   }
   if (cli.exitCode == null) await cli.run(argResults);
-  exit(cli.exitCode ?? 0);
+  exitCode = cli.exitCode;
 }

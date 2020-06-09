@@ -3,9 +3,9 @@
 # BSD-style license that can be found in the LICENSE.md file.
 
 pkg/testing/test/dart_sdk_negative_test: Fail
-tests/compiler/dart2js_extra/empty_negative_test: Fail
-tests/compiler/dart2js_extra/invalid_length_negative_test: Fail
-tests/compiler/dart2js_extra/timer_negative_test: Fail
+tests/dart2js_2/empty_negative_test: Fail
+tests/dart2js_2/invalid_length_negative_test: Fail
+tests/dart2js_2/timer_negative_test: Fail
 tests/language_strong/assign_instance_method_negative_test: Fail
 tests/language_strong/bad_initializer1_negative_test: Fail
 tests/language_strong/bad_initializer2_negative_test: Fail
