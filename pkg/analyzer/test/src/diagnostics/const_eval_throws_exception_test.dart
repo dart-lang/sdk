@@ -9,11 +9,13 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../dart/constant/potentially_constant_test.dart';
 import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstEvalThrowsExceptionTest);
+    defineReflectiveTests(ConstEvalThrowsExceptionWithNullSafetyTest);
     defineReflectiveTests(ConstEvalThrowsExceptionWithConstantUpdateTest);
   });
 }
@@ -82,7 +84,7 @@ void main() {
     expect(otherFileResult.errors, isEmpty);
   }
 
-  test_default_constructor_arg_empty_map_importAnalyzedAfter() async {
+  test_default_constructor_arg_empty_map_import() async {
     newFile('/test/lib/other.dart', content: '''
 class C {
   final Map<String, int> m;
@@ -101,29 +103,15 @@ main() {
     ]);
     var otherFileResult =
         await resolveFile(convertPath('/test/lib/other.dart'));
-    expect(otherFileResult.errors, isEmpty);
-  }
-
-  test_default_constructor_arg_empty_map_importAnalyzedBefore() async {
-    newFile('/test/lib/other.dart', content: '''
-class C {
-  final Map<String, int> m;
-  const C({this.m = const <String, int>{}})
-    : assert(m != null);
-}
-''');
-    await assertErrorsInCode('''
-import 'other.dart';
-
-main() {
-  var c = const C();
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 37, 1),
-    ]);
-    var otherFileResult =
-        await resolveFile(convertPath('/test/lib/other.dart'));
-    expect(otherFileResult.errors, isEmpty);
+    assertErrorsInList(
+      otherFileResult.errors,
+      expectedErrorsByNullability(
+        nullable: [
+          error(HintCode.UNNECESSARY_NULL_COMPARISON_TRUE, 97, 7),
+        ],
+        legacy: [],
+      ),
+    );
   }
 
   test_finalAlreadySet_initializer() async {
@@ -354,5 +342,45 @@ main() {
   print(l2);
 }
 ''');
+  }
+}
+
+@reflectiveTest
+class ConstEvalThrowsExceptionWithNullSafetyTest
+    extends ConstEvalThrowsExceptionTest with WithNullSafetyMixin {
+  test_asExpression_typeParameter() async {
+    await assertErrorsInCode('''
+class C<T> {
+  final t;
+  const C(dynamic x) : t = x as T;
+}
+
+main() {
+  const C<int>(0);
+  const C<int>('foo');
+  const C<int>(null);
+}
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 92, 19),
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 115, 18),
+    ]);
+  }
+
+  test_asExpression_typeParameter_nested() async {
+    await assertErrorsInCode('''
+class C<T> {
+  final t;
+  const C(dynamic x) : t = x as List<T>;
+}
+
+main() {
+  const C<int>(<int>[]);
+  const C<int>(<num>[]);
+  const C<int>(null);
+}
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 104, 21),
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 129, 18),
+    ]);
   }
 }

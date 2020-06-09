@@ -25,6 +25,7 @@ import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -655,8 +656,11 @@ class ConstantEvaluationEngine {
       }
     }
     ConstantVisitor initializerVisitor = ConstantVisitor(
-        this, externalErrorReporter,
-        lexicalEnvironment: parameterMap);
+      this,
+      externalErrorReporter,
+      lexicalEnvironment: parameterMap,
+      substitution: Substitution.fromInterfaceType(definingClass),
+    );
     String superName;
     NodeList<Expression> superArguments;
     for (var i = 0; i < initializers.length; i++) {
@@ -948,6 +952,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   final ConstantEvaluationEngine evaluationEngine;
 
   final Map<String, DartObjectImpl> _lexicalEnvironment;
+  final Substitution _substitution;
 
   /// Error reporter that we use to report errors accumulated while computing
   /// the constant.
@@ -962,9 +967,15 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   /// no overriding is necessary. The [_errorReporter] is used to report errors
   /// found during evaluation.  The [validator] is used by unit tests to verify
   /// correct dependency analysis.
-  ConstantVisitor(this.evaluationEngine, this._errorReporter,
-      {Map<String, DartObjectImpl> lexicalEnvironment})
-      : _lexicalEnvironment = lexicalEnvironment {
+  ///
+  /// The [substitution] is specified for instance creations.
+  ConstantVisitor(
+    this.evaluationEngine,
+    this._errorReporter, {
+    Map<String, DartObjectImpl> lexicalEnvironment,
+    Substitution substitution,
+  })  : _lexicalEnvironment = lexicalEnvironment,
+        _substitution = substitution {
     this._dartObjectComputer =
         DartObjectComputer(_errorReporter, evaluationEngine);
   }
@@ -1467,6 +1478,11 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     if (!_isNonNullableByDefault && hasTypeParameterReference(type)) {
       return super.visitTypeName(node);
     }
+
+    if (_substitution != null) {
+      type = _substitution.substituteType(type);
+    }
+
     return DartObjectImpl(
       typeSystem,
       _typeProvider.typeType,
