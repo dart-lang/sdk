@@ -3,4 +3,4 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Package version.  Synchronized w/ pubspec.yaml.
-const String version = '0.1.116';
+const String version = '0.1.117';

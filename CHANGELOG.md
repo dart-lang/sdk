@@ -1,3 +1,12 @@
+# 0.1.117
+
+* fixed `directives_ordering` to remove third party package special-casing
+* fixed `unnecessary_lambdas` to check for tearoff assignability
+* fixed `exhaustive_cases` to not flag missing cases that are defaulted 
+* fixed `prefer_is_empty` to special-case assert initializers and const contexts 
+* test utilities moved to:  `lib/src/test_utilities`
+* new lint: `do_not_use_environment`
+
 # 0.1.116
 
 * new lint: `no_default_cases` (experimental)
