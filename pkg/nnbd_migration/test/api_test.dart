@@ -3485,6 +3485,27 @@ void main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/41397')
+  Future<void> test_issue_41397() async {
+    var content = '''
+void repro(){
+  List<dynamic> l = <dynamic>[];
+  for(final dynamic e in l) {
+    final List<String> a = (e['query'] as String).split('&');
+  }
+}
+''';
+    var expected = '''
+void repro(){
+  List<dynamic> l = <dynamic>[];
+  for(final dynamic e in l) {
+    final List<String> a = (e['query'] as String).split('&');
+  }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_late_hint_instance_field_with_constructor() async {
     var content = '''
 class C {
