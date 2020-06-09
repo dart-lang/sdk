@@ -1105,8 +1105,6 @@ class Parser {
     Token equals;
     TypeParamOrArgInfo typeParam =
         computeTypeParamOrArg(next, /* inDeclaration = */ true);
-    // Allow voidType here if the next is "=" as 'void' has then been used as
-    // an identifier (not legal, but an error will be given).
     if (typeInfo == noType && optional('=', typeParam.skip(next).next)) {
       // New style typedef, e.g. typedef foo = void Function();".
 
