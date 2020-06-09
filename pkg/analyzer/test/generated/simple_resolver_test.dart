@@ -753,9 +753,7 @@ class H extends D<W> {
     ]);
   }
 
-  @failingTest
   test_import_spaceInUri() async {
-    // TODO(scheglov) Fix this. The problem is in `package` URI resolver.
     newFile('/test/lib/sub folder/a.dart', content: r'''
 foo() {}''');
 
