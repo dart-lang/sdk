@@ -405,17 +405,42 @@ void Heap::EndOldSpaceGC() {
 
 void Heap::NotifyIdle(int64_t deadline) {
   Thread* thread = Thread::Current();
+  // Check if we want to collect new-space first, because if we want to collect
+  // both new-space and old-space, the new-space collection should run first
+  // to shrink the root set (make old-space GC faster) and avoid
+  // intergenerational garbage (make old-space GC free more memory).
   if (new_space_.ShouldPerformIdleScavenge(deadline)) {
     TIMELINE_FUNCTION_GC_DURATION(thread, "IdleGC");
     CollectNewSpaceGarbage(thread, kIdle);
   }
+
+  // Check if we want to collect old-space, in decreasing order of cost.
   // Because we use a deadline instead of a timeout, we automatically take any
   // time used up by a scavenge into account when deciding if we can complete
   // a mark-sweep on time.
   if (old_space_.ShouldPerformIdleMarkCompact(deadline)) {
+    // We prefer mark-compact over other old space GCs if we have enough time,
+    // since it removes old space fragmentation and frees up most memory.
+    // Blocks for O(heap), roughtly twice as costly as mark-sweep.
     TIMELINE_FUNCTION_GC_DURATION(thread, "IdleGC");
     CollectOldSpaceGarbage(thread, kMarkCompact, kIdle);
-  } else if (old_space_.ShouldStartIdleMarkSweep(deadline)) {
+  } else if (old_space_.ReachedHardThreshold()) {
+    // Even though the following GC may exceed our idle deadline, we need to
+    // ensure than that promotions during idle scavenges do not lead to
+    // unbounded growth of old space. If a program is allocating only in new
+    // space and all scavenges happen during idle time, then NotifyIdle will be
+    // the only place that checks the old space allocation limit.
+    // Compare the tail end of Heap::CollectNewSpaceGarbage.
+    // Blocks for O(heap).
+    TIMELINE_FUNCTION_GC_DURATION(thread, "IdleGC");
+    CollectOldSpaceGarbage(thread, kMarkSweep, kIdle);
+  } else if (old_space_.ShouldStartIdleMarkSweep(deadline) ||
+             old_space_.ReachedSoftThreshold()) {
+    // If we have both work to do and enough time, start or finish GC.
+    // If we have crossed the soft threshold, ignore time; the next old-space
+    // allocation will trigger this work anyway, so we try to pay at least some
+    // of that cost with idle time.
+    // Blocks for O(roots).
     PageSpace::Phase phase;
     {
       MonitorLocker ml(old_space_.tasks_lock());
@@ -428,16 +453,6 @@ void Heap::NotifyIdle(int64_t deadline) {
       TIMELINE_FUNCTION_GC_DURATION(thread, "IdleGC");
       StartConcurrentMarking(thread);
     }
-  } else if (old_space_.ReachedHardThreshold()) {
-    // Even though the following GC may exceed our idle deadline, we need to
-    // ensure than that promotions during idle scavenges do not lead to
-    // unbounded growth of old space. If a program is allocating only in new
-    // space and all scavenges happen during idle time, then NotifyIdle will be
-    // the only place that checks the old space allocation limit.
-    // Compare the tail end of Heap::CollectNewSpaceGarbage.
-    CollectOldSpaceGarbage(thread, kMarkSweep, kIdle);  // Blocks for O(heap)
-  } else {
-    CheckStartConcurrentMarking(thread, kIdle);  // Blocks for up to O(roots)
   }
 }
 
