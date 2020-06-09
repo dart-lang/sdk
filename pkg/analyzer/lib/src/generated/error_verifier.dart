@@ -444,6 +444,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _checkClassInheritance(node, superclass, withClause, implementsClause);
       }
 
+      _checkForConflictingClassMembers();
       _constructorFieldsVerifier.enterClass(node);
       _checkForFinalNotInitializedInClass(members);
       _checkForBadFunctionUse(node);
@@ -951,6 +952,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _checkMixinInheritance(node, onClause, implementsClause);
       }
 
+      _checkForConflictingClassMembers();
       _checkForFinalNotInitializedInClass(members);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       //      _checkForBadFunctionUse(node);
@@ -1267,7 +1269,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         !_checkForAllMixinErrorCodes(withClause)) {
       _checkForImplicitDynamicType(superclass);
       _checkForExtendsDeferredClass(superclass);
-      _checkForConflictingClassMembers();
       _checkForRepeatedType(implementsClause?.interfaces,
           CompileTimeErrorCode.IMPLEMENTS_REPEATED);
       _checkImplementsSuperClass(implementsClause);
@@ -1756,7 +1757,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   /**
    * Verify that the [_enclosingClass] does not have a method and getter pair
-   * with the same name on, via inheritance.
+   * with the same name, via inheritance.
    *
    * See [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE],
    * [CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD], and
@@ -4915,7 +4916,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (!_checkForOnClauseErrorCodes(onClause) &&
         !_checkForImplementsClauseErrorCodes(implementsClause)) {
 //      _checkForImplicitDynamicType(superclass);
-      _checkForConflictingClassMembers();
       _checkForRepeatedType(
         onClause?.superclassConstraints,
         CompileTimeErrorCode.ON_REPEATED,
