@@ -2084,7 +2084,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     List<js.Expression> arguments = visitArguments(node.inputs, start: 0);
 
-    if (element == _commonElements.jsAllowInterop) {
+    if (element == _commonElements.jsAllowInterop1 ||
+        element == _commonElements.jsAllowInterop2) {
       _nativeData.registerAllowInterop();
     }
 

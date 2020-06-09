@@ -111,6 +111,9 @@ abstract class CommonElements {
   /// The package:js library.
   LibraryEntity get packageJsLibrary;
 
+  /// The dart:_js_annotations library.
+  LibraryEntity get dartJsAnnotationsLibrary;
+
   /// The `NativeTypedData` class from dart:typed_data.
   ClassEntity get typedDataClass;
 
@@ -571,13 +574,35 @@ abstract class CommonElements {
       ClassEntity cls, NativeBasicData nativeBasicData);
 
   // From package:js
-  FunctionEntity get jsAllowInterop;
+  FunctionEntity get jsAllowInterop1;
+
+  // From dart:_js_annotations;
+  FunctionEntity get jsAllowInterop2;
+
+  /// Returns `true` if [function] is `allowInterop`.
+  ///
+  /// This function can come from either `package:js` or `dart:_js_annotations`.
+  bool isJsAllowInterop(FunctionEntity function);
 }
 
 abstract class KCommonElements implements CommonElements {
   // From package:js
-  ClassEntity get jsAnnotationClass;
-  ClassEntity get jsAnonymousClass;
+  ClassEntity get jsAnnotationClass1;
+  ClassEntity get jsAnonymousClass1;
+
+  // From dart:_js_annotations
+  ClassEntity get jsAnnotationClass2;
+  ClassEntity get jsAnonymousClass2;
+
+  /// Returns `true` if [cls] is a @JS() annotation.
+  ///
+  /// The class can come from either `package:js` or `dart:_js_annotations`.
+  bool isJsAnnotationClass(ClassEntity cls);
+
+  /// Returns `true` if [cls] is an @anonymous annotation.
+  ///
+  /// The class can come from either `package:js` or `dart:_js_annotations`.
+  bool isJsAnonymousClass(ClassEntity cls);
 
   ClassEntity get pragmaClass;
   FieldEntity get pragmaClassNameField;
@@ -823,6 +848,11 @@ class CommonElementsImpl
   @override
   LibraryEntity get packageJsLibrary =>
       _packageJsLibrary ??= _env.lookupLibrary(Uris.package_js);
+
+  LibraryEntity _dartJsAnnotationsLibrary;
+  @override
+  LibraryEntity get dartJsAnnotationsLibrary => _dartJsAnnotationsLibrary ??=
+      _env.lookupLibrary(Uris.dart__js_annotations);
 
   ClassEntity _typedDataClass;
   @override
@@ -1481,21 +1511,56 @@ class CommonElementsImpl
       _jsConstClass ??= _findClass(foreignLibrary, 'JS_CONST');
 
   // From dart:js
-  FunctionEntity _jsAllowInterop;
+  FunctionEntity _jsAllowInterop1;
   @override
-  FunctionEntity get jsAllowInterop => _jsAllowInterop ??=
+  FunctionEntity get jsAllowInterop1 => _jsAllowInterop1 ??=
       _findLibraryMember(dartJsLibrary, 'allowInterop', required: false);
 
-  // From package:js
-  ClassEntity _jsAnnotationClass;
+  // From dart:_js_annotations
+  FunctionEntity _jsAllowInterop2;
   @override
-  ClassEntity get jsAnnotationClass => _jsAnnotationClass ??=
+  FunctionEntity get jsAllowInterop2 => _jsAllowInterop2 ??= _findLibraryMember(
+      dartJsAnnotationsLibrary, 'allowInterop',
+      required: false);
+
+  @override
+  bool isJsAllowInterop(FunctionEntity function) {
+    return function == jsAllowInterop1 || function == jsAllowInterop2;
+  }
+
+  // From package:js
+  ClassEntity _jsAnnotationClass1;
+  @override
+  ClassEntity get jsAnnotationClass1 => _jsAnnotationClass1 ??=
       _findClass(packageJsLibrary, 'JS', required: false);
 
-  ClassEntity _jsAnonymousClass;
+  // From dart:_js_annotations
+  ClassEntity _jsAnnotationClass2;
   @override
-  ClassEntity get jsAnonymousClass => _jsAnonymousClass ??=
+  ClassEntity get jsAnnotationClass2 => _jsAnnotationClass2 ??=
+      _findClass(dartJsAnnotationsLibrary, 'JS', required: false);
+
+  @override
+  bool isJsAnnotationClass(ClassEntity cls) {
+    return cls == jsAnnotationClass1 || cls == jsAnnotationClass2;
+  }
+
+  // From dart:js
+  ClassEntity _jsAnonymousClass1;
+  @override
+  ClassEntity get jsAnonymousClass1 => _jsAnonymousClass1 ??=
       _findClass(packageJsLibrary, '_Anonymous', required: false);
+
+  // From dart:_js_annotations
+  ClassEntity _jsAnonymousClass2;
+  @override
+  ClassEntity get jsAnonymousClass2 => _jsAnonymousClass2 ??=
+      _findClass(dartJsAnnotationsLibrary, '_Anonymous', required: false);
+
+  @override
+  bool isJsAnonymousClass(ClassEntity cls) {
+    return cls == jsAnonymousClass1 || cls == jsAnonymousClass2;
+  }
 
   @override
   FunctionEntity findHelperFunction(String name) => _findHelperFunction(name);
