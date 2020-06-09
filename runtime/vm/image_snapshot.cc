@@ -573,21 +573,6 @@ static void EnsureAssemblerIdentifier(char* label) {
     *label = '_';
   }
 }
-
-static const char* NameOfStubIsolateSpecificStub(ObjectStore* object_store,
-                                                 const Code& code) {
-  if (code.raw() == object_store->build_method_extractor_code()) {
-    return "_iso_stub_BuildMethodExtractorStub";
-  }
-
-#define DO(member, name)                                                       \
-  if (code.raw() == object_store->member()) {                                  \
-    return "_iso_stub_" #name "Stub";                                          \
-  }
-  OBJECT_STORE_STUB_CODE_LIST(DO)
-#undef DO
-  return nullptr;
-}
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 const char* SnapshotTextObjectNamer::SnapshotNameFor(intptr_t code_index,
@@ -598,12 +583,8 @@ const char* SnapshotTextObjectNamer::SnapshotNameFor(intptr_t code_index,
   if (owner_.IsNull()) {
     insns_ = code.instructions();
     const char* name = StubCode::NameOfStub(insns_.EntryPoint());
-    if (name != nullptr) {
-      return OS::SCreate(zone_, "%sStub_%s", prefix, name);
-    }
-    name = NameOfStubIsolateSpecificStub(store_, code);
     ASSERT(name != nullptr);
-    return OS::SCreate(zone_, "%s_%s", prefix, name);
+    return OS::SCreate(zone_, "%sStub_%s", prefix, name);
   }
   // The weak reference to the Code's owner should never have been removed via
   // an intermediate serialization, since WSRs are only introduced during

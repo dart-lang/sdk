@@ -151,6 +151,9 @@ void main(List<String> args) {
         // Presence of async modifier should not cause tear-off name to end
         // with {body}.
         expect(inputDartSymbolNames, contains('[tear-off] C.tornOff'));
+
+        // Check that output does not contain '[unknown stub]'
+        expect(symbolRawNamesByLibrary[''], isNot(contains('[unknown stub]')));
       });
     });
   });
