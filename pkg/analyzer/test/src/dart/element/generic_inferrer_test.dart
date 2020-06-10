@@ -39,8 +39,10 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
       ],
       returnType: typeParameterTypeNone(tTo),
     );
-    expect(_inferCall(cast, [stringNone]),
-        [stringNone, (iterableNone(stringNone))]);
+    _assertTypes(
+      _inferCall(cast, [stringNone]),
+      [stringNone, (iterableNone(stringNone))],
+    );
   }
 
   void test_boundedByOuterClass() {
@@ -181,10 +183,10 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
       ],
       returnType: typeS,
     );
-    expect(_inferCall(clone, [typeB, typeB]), [typeB]);
+    _assertTypes(_inferCall(clone, [typeB, typeB]), [typeB]);
 
     // Something invalid...
-    expect(
+    _assertTypes(
       _inferCall(clone, [stringNone, numNone], expectError: true),
       [objectNone],
     );
@@ -203,7 +205,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
       ],
       returnType: typeParameterTypeNone(tTo),
     );
-    expect(_inferCall(cast, [intNone]), [intNone, dynamicNone]);
+    _assertTypes(_inferCall(cast, [intNone]), [intNone, dynamicNone]);
   }
 
   void test_genericCastFunctionWithUpperBound() {
@@ -222,7 +224,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
       ],
       returnType: typeParameterTypeNone(tTo),
     );
-    expect(_inferCall(cast, [intNone]), [intNone, intNone]);
+    _assertTypes(_inferCall(cast, [intNone]), [intNone, intNone]);
   }
 
   void test_parameter_contravariantUseUpperBound() {
@@ -244,7 +246,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
       returnType: typeParameterTypeNone(T),
     );
 
-    expect(_inferCall(function, [intNone, numFunction]), [numNone]);
+    _assertTypes(_inferCall(function, [intNone, numFunction]), [numNone]);
   }
 
   void test_parameter_covariantUseLowerBound() {
@@ -266,7 +268,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
       returnType: typeParameterTypeNone(T),
     );
 
-    expect(_inferCall(function, [intNone, numFunction]), [intNone]);
+    _assertTypes(_inferCall(function, [intNone, numFunction]), [intNone]);
   }
 
   void test_parametersToFunctionParam() {
@@ -288,7 +290,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
       ],
       returnType: typeParameterTypeNone(T),
     );
-    expect(
+    _assertTypes(
       _inferCall(cast, [
         functionTypeNone(
           parameters: [
@@ -312,7 +314,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
       ],
       returnType: typeParameterTypeNone(T),
     );
-    expect(_inferCall(cast, [intNone, doubleNone]), [numNone]);
+    _assertTypes(_inferCall(cast, [intNone, doubleNone]), [numNone]);
   }
 
   void test_parameterTypeUsesUpperBound() {
@@ -325,7 +327,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
       ],
       returnType: dynamicNone,
     );
-    expect(_inferCall(f, [intNone]), [intNone]);
+    _assertTypes(_inferCall(f, [intNone]), [intNone]);
   }
 
   void test_returnFunctionWithGenericParameter() {
@@ -350,7 +352,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
         returnType: voidNone,
       ),
     );
-    expect(
+    _assertTypes(
       _inferCall(f, [
         functionTypeNone(
           parameters: [
@@ -385,7 +387,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
         returnType: nullNone,
       ),
     );
-    expect(
+    _assertTypes(
       _inferCall(
         f,
         [],
@@ -422,7 +424,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
         returnType: typeParameterTypeNone(T),
       ),
     );
-    expect(
+    _assertTypes(
       _inferCall(f, [
         functionTypeNone(
           parameters: [
@@ -454,7 +456,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
         returnType: typeParameterTypeNone(T),
       ),
     );
-    expect(
+    _assertTypes(
       _inferCall(f, [
         functionTypeNone(
           parameters: [
@@ -474,7 +476,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
       typeFormals: [T],
       returnType: typeParameterTypeNone(T),
     );
-    expect(_inferCall(f, [], returnType: stringNone), [stringNone]);
+    _assertTypes(_inferCall(f, [], returnType: stringNone), [stringNone]);
   }
 
   void test_returnTypeWithBoundFromContext() {
@@ -484,7 +486,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
       typeFormals: [T],
       returnType: typeParameterTypeNone(T),
     );
-    expect(_inferCall(f, [], returnType: doubleNone), [doubleNone]);
+    _assertTypes(_inferCall(f, [], returnType: doubleNone), [doubleNone]);
   }
 
   void test_returnTypeWithBoundFromInvalidContext() {
@@ -494,7 +496,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
       typeFormals: [T],
       returnType: typeParameterTypeNone(T),
     );
-    expect(_inferCall(f, [], returnType: stringNone), [neverNone]);
+    _assertTypes(_inferCall(f, [], returnType: stringNone), [neverNone]);
   }
 
   void test_unifyParametersToFunctionParam() {
@@ -526,7 +528,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
       ],
       returnType: typeParameterTypeNone(T),
     );
-    expect(
+    _assertTypes(
       _inferCall(cast, [
         functionTypeNone(
           parameters: [
@@ -552,7 +554,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
       typeFormals: [T],
       returnType: typeParameterTypeNone(T),
     );
-    expect(_inferCall(f, []), [dynamicNone]);
+    _assertTypes(_inferCall(f, []), [dynamicNone]);
   }
 
   void test_unusedReturnTypeWithUpperBound() {
@@ -562,12 +564,24 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
       typeFormals: [T],
       returnType: typeParameterTypeNone(T),
     );
-    expect(_inferCall(f, []), [numNone]);
+    _assertTypes(_inferCall(f, []), [numNone]);
   }
 
   void _assertType(DartType type, String expected) {
     var typeStr = type.getDisplayString(withNullability: false);
     expect(typeStr, expected);
+  }
+
+  void _assertTypes(List<DartType> actual, List<DartType> expected) {
+    var actualStr = actual.map((e) {
+      return e.getDisplayString(withNullability: true);
+    }).toList();
+
+    var expectedStr = expected.map((e) {
+      return e.getDisplayString(withNullability: true);
+    }).toList();
+
+    expect(actualStr, expectedStr);
   }
 
   List<DartType> _inferCall(FunctionTypeImpl ft, List<DartType> arguments,
