@@ -2831,17 +2831,19 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression _emitTypeParameterType(TypeParameterType type,
       {bool emitNullability = true}) {
     var typeParam = _emitTypeParameter(type.parameter);
-    if (!emitNullability ||
-        !_cacheTypes ||
-        // Emit non-nullable version directly.
-        type.isPotentiallyNonNullable) {
-      return typeParam;
-    }
+
+    // Avoid wrapping the type parameter in a nullability or hoisting a type
+    // that has no nullability wrappers.
+    if (!emitNullability || type.isPotentiallyNonNullable) return typeParam;
+
+    var typeWithNullability =
+        _emitNullabilityWrapper(typeParam, type.nullability);
+
+    if (!_cacheTypes) return typeWithNullability;
 
     // Hoist the wrapped version to the top level and use it everywhere this
     // type appears.
-    return _typeTable.nameType(
-        type, _emitNullabilityWrapper(typeParam, type.nullability));
+    return _typeTable.nameType(type, typeWithNullability);
   }
 
   js_ast.Identifier _emitTypeParameter(TypeParameter t) =>
