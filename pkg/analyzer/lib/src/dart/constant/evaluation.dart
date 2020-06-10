@@ -893,6 +893,9 @@ abstract class ConstantEvaluationTarget extends AnalysisTarget {
 
   /// Return whether this constant is evaluated.
   bool get isConstantEvaluated;
+
+  /// The library with this constant.
+  LibraryElement get library;
 }
 
 /// Interface used by unit tests to verify correct dependency analysis during

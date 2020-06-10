@@ -470,7 +470,7 @@ void f() {}
   void _assertIntValue(ElementAnnotation annotation, int intValue) {
     _assertConstantValue(
       annotation.computeConstantValue(),
-      type: 'int*',
+      type: 'int',
       intValue: intValue,
     );
   }

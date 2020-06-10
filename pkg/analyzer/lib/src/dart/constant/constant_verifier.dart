@@ -298,9 +298,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   ///         not <i>int</i> or <i>String</i>.
   bool _implementsEqualsWhenNotAllowed(DartType type) {
     // ignore int or String
-    if (type == null || type == _intType || type == _typeProvider.stringType) {
+    if (type == null ||
+        type.element == _intType.element ||
+        type.element == _typeProvider.stringType.element) {
       return false;
-    } else if (type == _typeProvider.doubleType) {
+    } else if (type.element == _typeProvider.doubleType.element) {
       return true;
     }
     // prepare ClassElement
@@ -557,10 +559,13 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
               .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY,
         );
 
+        var expressionValueType = _typeSystem.toLegacyType(
+          expressionValue.type,
+        );
+
         if (firstType == null) {
-          firstType = expressionValue.type;
+          firstType = expressionValueType;
         } else {
-          var expressionValueType = expressionValue.type;
           if (firstType != expressionValueType) {
             _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES,

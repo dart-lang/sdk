@@ -2558,6 +2558,9 @@ class ElementAnnotationImpl implements ElementAnnotation {
       element.name == _VISIBLE_FOR_TESTING_VARIABLE_NAME &&
       element.library?.name == _META_LIB_NAME;
 
+  @override
+  LibraryElement get library => compilationUnit.library;
+
   /// Get the library containing this annotation.
   @override
   Source get librarySource => compilationUnit.librarySource;
