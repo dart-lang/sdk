@@ -12,13 +12,13 @@ Testing update steps
 Testing bots after GOLO <> gcs failures
 Trigger bots after github outage
 Trigger bots on github pull
-Trigger bots 
+Trigger bots
 Purple is the new green.
 googlecode back up
-CIT outage - all slaves rebooted
+CIT outage - all bots rebooted
 Authentication failure flake - rerun all bots
-Trigger bots after master restart - switch dart2js bots to use downloaded sdk.
-Trigger bots after master restart.
+Trigger bots after restart - switch dart2js bots to use downloaded sdk.
+Trigger bots after restart.
 Trigger mirroring of github repository
 Trigger mirroring of github repository
 Trigger mirroring of github repository

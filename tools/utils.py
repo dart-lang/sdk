@@ -292,13 +292,6 @@ DART_DIR = os.path.abspath(os.path.join(__file__, '..', '..'))
 VERSION_FILE = os.path.join(DART_DIR, 'tools', 'VERSION')
 
 
-def GetBuildbotGSUtilPath():
-    gsutil = '/b/build/scripts/slave/gsutil'
-    if platform.system() == 'Windows':
-        gsutil = 'e:\\\\b\\build\\scripts\\slave\\gsutil'
-    return gsutil
-
-
 def GetBuildMode(mode):
     return BUILD_MODES[mode]
 
