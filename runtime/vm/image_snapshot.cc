@@ -337,9 +337,10 @@ void ImageWriter::DumpInstructionsSizes() {
       js.PrintPropertyStr("l", url);
       js.PrintPropertyStr("c", name);
     }
-    js.PrintProperty(
-        "n", data.code_->QualifiedName(Object::kInternalName,
-                                       Object::NameDisambiguation::kYes));
+    js.PrintProperty("n",
+                     data.code_->QualifiedName(
+                         NameFormattingParams::DisambiguatedWithoutClassName(
+                             Object::kInternalName)));
     js.PrintProperty("s", SizeInSnapshot(data.insns_->raw()));
     js.CloseObject();
   }

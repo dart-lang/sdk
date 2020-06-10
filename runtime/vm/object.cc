@@ -8839,27 +8839,24 @@ StringPtr Function::UserVisibleName() const {
 StringPtr Function::QualifiedScrubbedName() const {
   Thread* thread = Thread::Current();
   ZoneTextBuffer printer(thread->zone());
-  PrintQualifiedName(kScrubbedName, &printer);
+  PrintQualifiedName(NameFormattingParams(kScrubbedName), &printer);
   return Symbols::New(thread, printer.buffer());
 }
 
 StringPtr Function::QualifiedUserVisibleName() const {
   Thread* thread = Thread::Current();
   ZoneTextBuffer printer(thread->zone());
-  PrintQualifiedName(kUserVisibleName, &printer);
+  PrintQualifiedName(NameFormattingParams(kUserVisibleName), &printer);
   return Symbols::New(thread, printer.buffer());
 }
 
-void Function::PrintQualifiedName(
-    NameVisibility name_visibility,
-    ZoneTextBuffer* printer,
-    NameDisambiguation name_disambiguation /* = NameDisambiguation::kNo */)
-    const {
+void Function::PrintQualifiedName(const NameFormattingParams& params,
+                                  ZoneTextBuffer* printer) const {
   // If |this| is the generated asynchronous body closure, use the
   // name of the parent function.
   Function& fun = Function::Handle(raw());
 
-  if (name_disambiguation == NameDisambiguation::kYes) {
+  if (params.disambiguate_names) {
     if (fun.IsInvokeFieldDispatcher()) {
       printer->AddString("[invoke-field] ");
     }
@@ -8891,50 +8888,49 @@ void Function::PrintQualifiedName(
         // the parent.
         parent = parent.parent_function();
       }
-      parent.PrintQualifiedName(name_visibility, printer, name_disambiguation);
+      parent.PrintQualifiedName(params, printer);
       // A function's scrubbed name and its user visible name are identical.
       printer->AddString(".");
-      if (name_disambiguation == NameDisambiguation::kYes &&
+      if (params.disambiguate_names &&
           fun.name() == Symbols::AnonymousClosure().raw()) {
         printer->Printf("<anonymous closure @%" Pd ">", fun.token_pos().Pos());
       } else {
-        printer->AddString(fun.NameCString(name_visibility));
+        printer->AddString(fun.NameCString(params.name_visibility));
       }
       // If we skipped rewritten async/async*/sync* body then append a suffix
       // to the end of the name.
-      if (fun.raw() != raw() &&
-          name_disambiguation == NameDisambiguation::kYes) {
+      if (fun.raw() != raw() && params.disambiguate_names) {
         printer->AddString("{body}");
       }
       return;
     }
   }
-  const Class& cls = Class::Handle(Owner());
-  if (!cls.IsTopLevel()) {
-    if (fun.kind() == FunctionLayout::kConstructor) {
-      printer->AddString("new ");
-    } else {
+
+  if (fun.kind() == FunctionLayout::kConstructor) {
+    printer->AddString("new ");
+  } else if (params.include_class_name) {
+    const Class& cls = Class::Handle(Owner());
+    if (!cls.IsTopLevel()) {
       const Class& mixin = Class::Handle(cls.Mixin());
-      printer->AddString(name_visibility == kUserVisibleName
+      printer->AddString(params.name_visibility == kUserVisibleName
                              ? mixin.UserVisibleNameCString()
-                             : cls.NameCString(name_visibility));
+                             : cls.NameCString(params.name_visibility));
       printer->AddString(".");
     }
   }
 
-  printer->AddString(fun.NameCString(name_visibility));
+  printer->AddString(fun.NameCString(params.name_visibility));
 
   // If we skipped rewritten async/async*/sync* body then append a suffix
   // to the end of the name.
-  if (fun.raw() != raw() && name_disambiguation == NameDisambiguation::kYes) {
+  if (fun.raw() != raw() && params.disambiguate_names) {
     printer->AddString("{body}");
   }
 
   // Field dispatchers are specialized for an argument descriptor so there
   // might be multiples of them with the same name but different argument
   // descriptors. Add a suffix to disambiguate.
-  if (name_disambiguation == NameDisambiguation::kYes &&
-      fun.IsInvokeFieldDispatcher()) {
+  if (params.disambiguate_names && fun.IsInvokeFieldDispatcher()) {
     printer->AddString(" ");
     if (NumTypeParameters() != 0) {
       printer->Printf("<%" Pd ">", fun.NumTypeParameters());
@@ -16229,7 +16225,8 @@ intptr_t Code::GetDeoptIdForOsr(uword pc) const {
 
 const char* Code::ToCString() const {
   return OS::SCreate(Thread::Current()->zone(), "Code(%s)",
-                     QualifiedName(kScrubbedName, NameDisambiguation::kYes));
+                     QualifiedName(NameFormattingParams(
+                         kScrubbedName, NameDisambiguation::kYes)));
 }
 
 const char* Code::Name() const {
@@ -16266,16 +16263,14 @@ const char* Code::Name() const {
   }
 }
 
-const char* Code::QualifiedName(NameVisibility name_visibility,
-                                NameDisambiguation name_disambiguation) const {
+const char* Code::QualifiedName(const NameFormattingParams& params) const {
   Zone* zone = Thread::Current()->zone();
   const Object& obj =
       Object::Handle(zone, WeakSerializationReference::UnwrapIfTarget(owner()));
   if (obj.IsFunction()) {
     ZoneTextBuffer printer(zone);
     printer.AddString(is_optimized() ? "[Optimized] " : "[Unoptimized] ");
-    Function::Cast(obj).PrintQualifiedName(name_visibility, &printer,
-                                           name_disambiguation);
+    Function::Cast(obj).PrintQualifiedName(params, &printer);
     return printer.buffer();
   }
   return Name();
@@ -18745,7 +18740,9 @@ void AbstractType::PrintName(
       } else if (param.parameterized_function() != Function::null()) {
         const Function& func =
             Function::Handle(zone, param.parameterized_function());
-        func.PrintQualifiedName(name_visibility, printer, name_disambiguation);
+        func.PrintQualifiedName(
+            NameFormattingParams(name_visibility, name_disambiguation),
+            printer);
         printer->AddString("::");
       }
     }

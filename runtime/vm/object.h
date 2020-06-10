@@ -2427,6 +2427,32 @@ enum {
   kAllFree = kMaxInt32,
 };
 
+// Formatting configuration for Function::PrintQualifiedName.
+struct NameFormattingParams {
+  Object::NameVisibility name_visibility;
+  bool disambiguate_names;
+
+  // By default function name includes the name of the enclosing class if any.
+  // However in some context this information is redundant and class name
+  // is already known. In this case setting |include_class_name| to false
+  // allows you to exclude this information from the formatted name.
+  bool include_class_name = true;
+
+  NameFormattingParams(Object::NameVisibility visibility,
+                       Object::NameDisambiguation name_disambiguation =
+                           Object::NameDisambiguation::kNo)
+      : name_visibility(visibility),
+        disambiguate_names(name_disambiguation ==
+                           Object::NameDisambiguation::kYes) {}
+
+  static NameFormattingParams DisambiguatedWithoutClassName(
+      Object::NameVisibility visibility) {
+    NameFormattingParams params(visibility, Object::NameDisambiguation::kYes);
+    params.include_class_name = false;
+    return params;
+  }
+};
+
 class Function : public Object {
  public:
   StringPtr name() const { return raw_ptr()->name_; }
@@ -2435,10 +2461,8 @@ class Function : public Object {
 
   const char* NameCString(NameVisibility name_visibility) const;
 
-  void PrintQualifiedName(
-      NameVisibility name_visibility,
-      ZoneTextBuffer* printer,
-      NameDisambiguation name_disambiguation = NameDisambiguation::kNo) const;
+  void PrintQualifiedName(const NameFormattingParams& params,
+                          ZoneTextBuffer* printer) const;
   StringPtr QualifiedScrubbedName() const;
   StringPtr QualifiedUserVisibleName() const;
 
@@ -6339,8 +6363,7 @@ class Code : public Object {
   intptr_t GetDeoptIdForOsr(uword pc) const;
 
   const char* Name() const;
-  const char* QualifiedName(NameVisibility name_visibility,
-                            NameDisambiguation name_disambiguation) const;
+  const char* QualifiedName(const NameFormattingParams& params) const;
 
   int64_t compile_timestamp() const {
 #if defined(PRODUCT)

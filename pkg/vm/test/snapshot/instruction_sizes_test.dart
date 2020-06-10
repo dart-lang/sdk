@@ -97,11 +97,12 @@ void main(List<String> args) {
             reason: 'Sizes file is non-empty');
 
         // Check for duplicated symbols (using both raw and scrubbed names).
-        final symbolRawNamesByLibrary = Map<String, Set<String>>();
-        final symbolScrubbedNamesByLibrary = Map<String, Set<String>>();
+        // Maps below contain mappings library-uri -> class-name -> names.
+        final symbolRawNames = <String, Map<String, Set<String>>>{};
+        final symbolScrubbedNames = <String, Map<String, Set<String>>>{};
 
-        Set<String> getSetOfNames(
-            Map<String, Set<String>> map, String libraryUri) {
+        Set<String> getSetOfNames(Map<String, Map<String, Set<String>>> map,
+            String libraryUri, String className) {
           // For file uris make sure to canonicalize the path. This prevents
           // issues with mismatching case on Windows which has case insensitive
           // file system.
@@ -112,48 +113,60 @@ void main(List<String> args) {
                   Uri.file(path.canonicalize(uri.toFilePath())).toString();
             }
           }
-          return map.putIfAbsent(libraryUri ?? '', () => {});
+          return map
+              .putIfAbsent(libraryUri ?? '', () => {})
+              .putIfAbsent(className ?? '', () => {});
         }
 
         for (var sym in symbols) {
           expect(
-              getSetOfNames(symbolRawNamesByLibrary, sym.libraryUri)
+              getSetOfNames(symbolRawNames, sym.libraryUri, sym.className)
                   .add(sym.name.raw),
               isTrue,
               reason:
                   'All symbols should have unique names (within libraries): ${sym.name.raw}');
           expect(
-              getSetOfNames(symbolScrubbedNamesByLibrary, sym.libraryUri)
+              getSetOfNames(symbolScrubbedNames, sym.libraryUri, sym.className)
                   .add(sym.name.scrubbed),
               isTrue,
               reason: 'Scrubbing the name should not make it non-unique');
         }
 
         // Check for expected names which should appear in the output.
-        final inputDartSymbolNames = symbolScrubbedNamesByLibrary[
+        final inputDartSymbolNames = symbolScrubbedNames[
             Uri.file(path.canonicalize(inputDart)).toString()];
         expect(inputDartSymbolNames, isNotNull,
             reason: 'Symbols from input.dart are included into sizes output');
 
-        expect(inputDartSymbolNames, contains('makeSomeClosures'));
-        final closures = inputDartSymbolNames.where(
+        expect(inputDartSymbolNames[''], isNotNull,
+            reason: 'Should include top-level members from input.dart');
+        expect(inputDartSymbolNames[''], contains('makeSomeClosures'));
+        final closures = inputDartSymbolNames[''].where(
             (name) => name.startsWith('makeSomeClosures.<anonymous closure'));
-        expect(closures.length, 3);
-        expect(inputDartSymbolNames, contains('A.tornOff'));
-        expect(inputDartSymbolNames, contains('[tear-off] A.tornOff'));
-        expect(inputDartSymbolNames,
-            contains('[tear-off-extractor] A.get:tornOff'));
-        expect(inputDartSymbolNames, contains('B.tornOff'));
-        expect(inputDartSymbolNames, contains('[tear-off] B.tornOff'));
-        expect(inputDartSymbolNames,
-            contains('[tear-off-extractor] B.get:tornOff'));
+        expect(closures.length, 3,
+            reason: 'There are three closures inside makeSomeClosure');
+
+        expect(inputDartSymbolNames['A'], isNotNull,
+            reason: 'Should include class A members from input.dart');
+        expect(inputDartSymbolNames['A'], contains('tornOff'));
+        expect(inputDartSymbolNames['A'], contains('[tear-off] tornOff'));
+        expect(inputDartSymbolNames['A'],
+            contains('[tear-off-extractor] get:tornOff'));
+
+        expect(inputDartSymbolNames['B'], isNotNull,
+            reason: 'Should include class B members from input.dart');
+        expect(inputDartSymbolNames['B'], contains('tornOff'));
+        expect(inputDartSymbolNames['B'], contains('[tear-off] tornOff'));
+        expect(inputDartSymbolNames['B'],
+            contains('[tear-off-extractor] get:tornOff'));
 
         // Presence of async modifier should not cause tear-off name to end
         // with {body}.
-        expect(inputDartSymbolNames, contains('[tear-off] C.tornOff'));
+        expect(inputDartSymbolNames['C'], contains('[tear-off] tornOff'));
 
         // Check that output does not contain '[unknown stub]'
-        expect(symbolRawNamesByLibrary[''], isNot(contains('[unknown stub]')));
+        expect(symbolRawNames[''][''], isNot(contains('[unknown stub]')),
+            reason: 'All stubs must be named');
       });
     });
   });
