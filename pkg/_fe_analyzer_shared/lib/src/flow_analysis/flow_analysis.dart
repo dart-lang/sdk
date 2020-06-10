@@ -2744,15 +2744,20 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   void tryCatchStatement_bodyEnd(Node body) {
-    AssignedVariablesNodeInfo<Variable> info =
-        _assignedVariables._getInfoForNode(body);
+    FlowModel<Variable, Type> afterBody = _current;
+
     _TryContext<Variable, Type> context =
         _stack.last as _TryContext<Variable, Type>;
     FlowModel<Variable, Type> beforeBody = context._previous;
-    FlowModel<Variable, Type> beforeCatch =
-        beforeBody.removePromotedAll(info._written, info._captured);
+
+    AssignedVariablesNodeInfo<Variable> info =
+        _assignedVariables._getInfoForNode(body);
+    FlowModel<Variable, Type> beforeCatch = beforeBody
+        .removePromotedAll(info._written, info._captured)
+        .joinUnassigned(other: afterBody);
+
     context._beforeCatch = beforeCatch;
-    context._afterBodyAndCatches = _current;
+    context._afterBodyAndCatches = afterBody;
   }
 
   @override
