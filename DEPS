@@ -75,7 +75,7 @@ vars = {
   "browser-compat-data_tag": "v1.0.22",
   "charcode_rev": "9085e6b6127f084d66c0a94810a808121459012a",
   "chrome_rev" : "19997",
-  "cli_util_tag" : "0.2.0",
+  "cli_util_tag" : "0.1.4",
   "collection_rev": "7be42e03d427cc19571cd7f9fc628a5913a6b757",
   "convert_rev": "49bde5b371eb5c2c8e721557cf762f17c75e49fc",
   "crypto_rev": "7422fb2f6584fe1839eb30bc4ca56e9f9760b801",

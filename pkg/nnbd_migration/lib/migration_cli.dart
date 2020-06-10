@@ -894,8 +894,7 @@ class _FixCodeProcessor extends Object {
 
   Future<void> runFirstPhase() async {
     // All tasks should be registered; [numPhases] should be finalized.
-    _progressBar = _ProgressBar(
-        _migrationCli.logger, pathsToProcess.length * _task.numPhases);
+    _progressBar = _ProgressBar(pathsToProcess.length * _task.numPhases);
 
     // Process package
     _task.processPackage(context.contextRoot.root);
@@ -1005,20 +1004,18 @@ class _ProgressBar {
   /// This represents the number of characters available for drawing progress.
   /*late*/ int _innerWidth;
 
-  final Logger _logger;
-
   final int _totalTickCount;
 
   int _tickCount = 0;
 
-  _ProgressBar(this._logger, this._totalTickCount) {
+  _ProgressBar(this._totalTickCount) {
     if (!stdout.hasTerminal) {
       _shouldDrawProgress = false;
     } else {
       _shouldDrawProgress = true;
       _width = stdout.terminalColumns;
       _innerWidth = stdout.terminalColumns - 2;
-      _logger.write('[' + ' ' * _innerWidth + ']');
+      stdout.write('[' + ' ' * _innerWidth + ']');
     }
   }
 
@@ -1028,7 +1025,7 @@ class _ProgressBar {
     if (!_shouldDrawProgress) {
       return;
     }
-    _logger.write('\r' + ' ' * _width + '\r');
+    stdout.write('\r' + ' ' * _width + '\r');
   }
 
   /// Draw the progress bar as complete, and print two newlines.
@@ -1036,7 +1033,7 @@ class _ProgressBar {
     if (!_shouldDrawProgress) {
       return;
     }
-    _logger.write('\r[' + '-' * _innerWidth + ']\n\n');
+    stdout.write('\r[' + '-' * _innerWidth + ']\n\n');
   }
 
   /// Progress the bar by one tick.
@@ -1047,7 +1044,7 @@ class _ProgressBar {
     _tickCount++;
     var fractionComplete = _tickCount * _innerWidth ~/ _totalTickCount - 1;
     var remaining = _innerWidth - fractionComplete - 1;
-    _logger.write('\r[' + // Bring cursor back to the start of the line.
+    stdout.write('\r[' + // Bring cursor back to the start of the line.
         '-' * fractionComplete + // Print complete work.
         AnsiProgress.kAnimationItems[_tickCount % 4] + // Print spinner.
         ' ' * remaining + // Print remaining work.

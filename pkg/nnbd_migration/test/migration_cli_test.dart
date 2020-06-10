@@ -1653,14 +1653,4 @@ class _TestLogger implements Logger {
   void trace(String message) {
     throw UnimplementedError('TODO(paulberry)');
   }
-
-  @override
-  void write(String message) {
-    stdoutBuffer.write(message);
-  }
-
-  @override
-  void writeCharCode(int charCode) {
-    stdoutBuffer.writeCharCode(charCode);
-  }
 }

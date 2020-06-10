@@ -72,16 +72,6 @@ class TestLogger implements Logger {
       stdoutBuffer.writeln(message);
     }
   }
-
-  @override
-  void write(String message) {
-    stdoutBuffer.write(message);
-  }
-
-  @override
-  void writeCharCode(int charCode) {
-    stdoutBuffer.writeCharCode(charCode);
-  }
 }
 
 void expectHasSuggestion(
