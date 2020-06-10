@@ -2689,7 +2689,8 @@ abstract class FunctionExpression implements Expression {
 ///        [Expression] [TypeArgumentList]? [ArgumentList]
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class FunctionExpressionInvocation implements InvocationExpression {
+abstract class FunctionExpressionInvocation
+    implements NullShortableExpression, InvocationExpression {
   /// Set the list of arguments to the method to the given [argumentList].
   set argumentList(ArgumentList argumentList);
 
