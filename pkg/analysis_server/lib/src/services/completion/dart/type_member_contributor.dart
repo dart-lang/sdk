@@ -5,8 +5,6 @@
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:analysis_server/src/protocol_server.dart'
-    show CompletionSuggestion;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -21,13 +19,13 @@ import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor
 /// instance of a type.
 class TypeMemberContributor extends DartCompletionContributor {
   @override
-  Future<List<CompletionSuggestion>> computeSuggestions(
+  Future<void> computeSuggestions(
       DartCompletionRequest request, SuggestionBuilder builder) async {
     var containingLibrary = request.libraryElement;
     // Gracefully degrade if the library could not be determined, such as with a
     // detached part file or source change.
     if (containingLibrary == null) {
-      return const <CompletionSuggestion>[];
+      return;
     }
 
     // Recompute the target because resolution might have changed it.
@@ -35,17 +33,17 @@ class TypeMemberContributor extends DartCompletionContributor {
     if (expression == null ||
         expression.isSynthetic ||
         expression is ExtensionOverride) {
-      return const <CompletionSuggestion>[];
+      return;
     }
     if (expression is Identifier) {
       var elem = expression.staticElement;
       if (elem is ClassElement) {
         // Suggestions provided by StaticMemberContributor.
-        return const <CompletionSuggestion>[];
+        return;
       }
       if (elem is PrefixElement) {
         // Suggestions provided by LibraryMemberContributor.
-        return const <CompletionSuggestion>[];
+        return;
       }
     }
 
@@ -96,8 +94,6 @@ class TypeMemberContributor extends DartCompletionContributor {
       memberBuilder.buildSuggestions(type,
           mixins: mixins, superclassConstraints: superclassConstraints);
     }
-
-    return const <CompletionSuggestion>[];
   }
 }
 

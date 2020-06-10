@@ -5,7 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol_server.dart'
-    show CompletionSuggestion, CompletionSuggestionKind;
+    show CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
@@ -37,7 +37,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
   _VisibilityTracker visibilityTracker = _VisibilityTracker();
 
   @override
-  Future<List<CompletionSuggestion>> computeSuggestions(
+  Future<void> computeSuggestions(
       DartCompletionRequest request, SuggestionBuilder builder) async {
     var opType = request.opType;
     var node = request.target.containingNode;
@@ -92,7 +92,6 @@ class LocalReferenceContributor extends DartCompletionContributor {
         }
       }
     }
-    return const <CompletionSuggestion>[];
   }
 
   void _addSuggestionsForType(InterfaceType type, DartCompletionRequest request,

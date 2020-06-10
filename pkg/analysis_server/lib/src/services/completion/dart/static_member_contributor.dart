@@ -4,8 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol_server.dart'
-    show CompletionSuggestion;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -17,7 +15,7 @@ import 'package:analyzer/dart/element/element.dart';
 /// class, enum, or extension.
 class StaticMemberContributor extends DartCompletionContributor {
   @override
-  Future<List<CompletionSuggestion>> computeSuggestions(
+  Future<void> computeSuggestions(
       DartCompletionRequest request, SuggestionBuilder builder) async {
     var library = request.libraryElement;
     if (library == null) {
@@ -25,7 +23,7 @@ class StaticMemberContributor extends DartCompletionContributor {
       // detached part file or source change.
       // TODO(brianwilkerson) Consider testing for this before invoking _any_ of
       //  the contributors.
-      return const <CompletionSuggestion>[];
+      return;
     }
     bool isVisible(Element element) => element.isAccessibleIn(library);
     var targetId = request.dotTarget;
@@ -76,6 +74,5 @@ class StaticMemberContributor extends DartCompletionContributor {
         }
       }
     }
-    return const <CompletionSuggestion>[];
   }
 }

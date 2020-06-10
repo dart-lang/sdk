@@ -184,14 +184,9 @@ class DartCompletionManager implements CompletionContributor {
         var contributorTag =
             'DartCompletionManager - ${contributor.runtimeType}';
         performance.logStartTime(contributorTag);
-        var contributorSuggestions =
-            await contributor.computeSuggestions(dartRequest, builder);
+        await contributor.computeSuggestions(dartRequest, builder);
         performance.logElapseTime(contributorTag);
         request.checkAborted();
-
-        for (var newSuggestion in contributorSuggestions) {
-          addSuggestionToMap(newSuggestion);
-        }
       }
       for (var newSuggestion in builder.suggestions) {
         addSuggestionToMap(newSuggestion);

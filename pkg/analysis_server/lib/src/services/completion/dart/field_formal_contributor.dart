@@ -4,8 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol_server.dart'
-    hide Element, ElementKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -16,19 +14,19 @@ import 'package:analyzer/dart/ast/ast.dart';
 /// expressions of the form `this.^` in a constructor's parameter list.
 class FieldFormalContributor extends DartCompletionContributor {
   @override
-  Future<List<CompletionSuggestion>> computeSuggestions(
+  Future<void> computeSuggestions(
       DartCompletionRequest request, SuggestionBuilder builder) async {
     var node = request.target.containingNode;
     // TODO(brianwilkerson) We should suggest field formal parameters even if
     //  the user hasn't already typed the `this.` prefix, by including the
     //  prefix in the completion.
     if (node is! FieldFormalParameter) {
-      return const <CompletionSuggestion>[];
+      return;
     }
 
     var constructor = node.thisOrAncestorOfType<ConstructorDeclaration>();
     if (constructor == null) {
-      return const <CompletionSuggestion>[];
+      return;
     }
 
     // Compute the list of fields already referenced in the constructor.
@@ -52,7 +50,7 @@ class FieldFormalContributor extends DartCompletionContributor {
 
     var enclosingClass = constructor.thisOrAncestorOfType<ClassDeclaration>();
     if (enclosingClass == null) {
-      return const <CompletionSuggestion>[];
+      return;
     }
 
     // Add suggestions for fields that are not already referenced.
@@ -71,6 +69,5 @@ class FieldFormalContributor extends DartCompletionContributor {
         }
       }
     }
-    return const <CompletionSuggestion>[];
   }
 }

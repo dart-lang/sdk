@@ -55,8 +55,8 @@ abstract class DartCompletionContributorTest
   Future<List<CompletionSuggestion>> computeContributedSuggestions(
       DartCompletionRequest request) async {
     var builder = SuggestionBuilder(request);
-    var suggestions = await contributor.computeSuggestions(request, builder);
-    return [...suggestions, ...builder.suggestions];
+    await contributor.computeSuggestions(request, builder);
+    return builder.suggestions.toList();
   }
 
   DartCompletionContributor createContributor();

@@ -4,8 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol_server.dart'
-    show CompletionSuggestion;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
     show DartCompletionRequestImpl;
@@ -19,7 +17,7 @@ import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor
 /// `continue` statements.
 class LabelContributor extends DartCompletionContributor {
   @override
-  Future<List<CompletionSuggestion>> computeSuggestions(
+  Future<void> computeSuggestions(
       DartCompletionRequest request, SuggestionBuilder builder) async {
     var optype = (request as DartCompletionRequestImpl).opType;
 
@@ -33,7 +31,6 @@ class LabelContributor extends DartCompletionContributor {
             .visit(request.target.containingNode);
       }
     }
-    return const <CompletionSuggestion>[];
   }
 }
 
