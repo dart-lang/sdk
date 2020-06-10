@@ -88,26 +88,36 @@ class CompletionHandler
     final offset =
         await lineInfo.mapResult((lineInfo) => toOffset(lineInfo, pos));
 
-    return offset.mapResult((offset) {
-      if (unit.isError) {
-        return _getItemsFromPluginsOnly(
-          completionCapabilities,
-          clientSupportedCompletionKinds,
-          lineInfo.result,
-          path.result,
-          offset,
-          token,
-        );
-      } else {
-        return _getItems(
-          completionCapabilities,
-          clientSupportedCompletionKinds,
-          includeSuggestionSets,
-          unit.result,
-          offset,
-          token,
-        );
-      }
+    return offset.mapResult((offset) async {
+      // For server results we need a valid unit, but if we don't have one
+      // we shouldn't consider this an error when merging with plugin results.
+      final serverResultsFuture = unit.isError
+          ? Future.value(success(const <CompletionItem>[]))
+          : _getServerItems(
+              completionCapabilities,
+              clientSupportedCompletionKinds,
+              includeSuggestionSets,
+              unit.result,
+              offset,
+              token,
+            );
+
+      final pluginResultsFuture = _getPluginResults(completionCapabilities,
+          clientSupportedCompletionKinds, lineInfo.result, path.result, offset);
+
+      // Await both server + plugin results together to allow async/IO to
+      // overlap.
+      final serverAndPluginResults =
+          await Future.wait([serverResultsFuture, pluginResultsFuture]);
+      final serverResults = serverAndPluginResults[0];
+      final pluginResults = serverAndPluginResults[1];
+
+      if (serverResults.isError) return serverResults;
+      if (pluginResults.isError) return pluginResults;
+
+      return success(
+        serverResults.result.followedBy(pluginResults.result).toList(),
+      );
     });
   }
 
@@ -142,7 +152,29 @@ class CompletionHandler
   String _createImportedSymbolKey(String name, Uri declaringUri) =>
       '$name/$declaringUri';
 
-  Future<ErrorOr<List<CompletionItem>>> _getItems(
+  Future<ErrorOr<List<CompletionItem>>> _getPluginResults(
+    TextDocumentClientCapabilitiesCompletion completionCapabilities,
+    HashSet<CompletionItemKind> clientSupportedCompletionKinds,
+    LineInfo lineInfo,
+    String path,
+    int offset,
+  ) async {
+    final requestParams = plugin.CompletionGetSuggestionsParams(path, offset);
+    final pluginResponses = await requestFromPlugins(path, requestParams);
+
+    final pluginResults = pluginResponses
+        .map((e) => plugin.CompletionGetSuggestionsResult.fromResponse(e))
+        .toList();
+
+    return success(_pluginResultsToItems(
+      completionCapabilities,
+      clientSupportedCompletionKinds,
+      lineInfo,
+      pluginResults,
+    ).toList());
+  }
+
+  Future<ErrorOr<List<CompletionItem>>> _getServerItems(
     TextDocumentClientCapabilitiesCompletion completionCapabilities,
     HashSet<CompletionItemKind> clientSupportedCompletionKinds,
     bool includeSuggestionSets,
@@ -176,12 +208,8 @@ class CompletionHandler
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
       );
 
-      final suggestions = await Future.wait([
-        contributor.computeSuggestions(completionRequest),
-        _getPluginSuggestions(unit.path, offset),
-      ]);
-      final serverSuggestions = suggestions[0];
-      final pluginSuggestions = suggestions[1];
+      final serverSuggestions =
+          await contributor.computeSuggestions(completionRequest);
 
       if (token.isCancellationRequested) {
         return cancelled();
@@ -196,14 +224,6 @@ class CompletionHandler
               item,
               completionRequest.replacementOffset,
               completionRequest.replacementLength,
-            ),
-          )
-          .followedBy(
-            _pluginResultsToItems(
-              completionCapabilities,
-              clientSupportedCompletionKinds,
-              unit.lineInfo,
-              pluginSuggestions,
             ),
           )
           .toList();
@@ -301,40 +321,6 @@ class CompletionHandler
     } on AbortCompletion {
       return success([]);
     }
-  }
-
-  Future<ErrorOr<List<CompletionItem>>> _getItemsFromPluginsOnly(
-    TextDocumentClientCapabilitiesCompletion completionCapabilities,
-    HashSet<CompletionItemKind> clientSupportedCompletionKinds,
-    LineInfo lineInfo,
-    String path,
-    int offset,
-    CancellationToken token,
-  ) async {
-    final pluginResults = await _getPluginSuggestions(path, offset);
-
-    if (token.isCancellationRequested) {
-      return cancelled();
-    }
-
-    return success(_pluginResultsToItems(
-      completionCapabilities,
-      clientSupportedCompletionKinds,
-      lineInfo,
-      pluginResults,
-    ).toList());
-  }
-
-  Future<List<plugin.CompletionGetSuggestionsResult>> _getPluginSuggestions(
-    String path,
-    int offset,
-  ) async {
-    final requestParams = plugin.CompletionGetSuggestionsParams(path, offset);
-    final responses = await requestFromPlugins(path, requestParams);
-
-    return responses
-        .map((e) => plugin.CompletionGetSuggestionsResult.fromResponse(e))
-        .toList();
   }
 
   Iterable<CompletionItem> _pluginResultsToItems(
