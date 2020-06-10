@@ -298,6 +298,8 @@ void ConstantPropagator::VisitStoreIndexed(StoreIndexedInstr* instr) {}
 void ConstantPropagator::VisitStoreInstanceField(
     StoreInstanceFieldInstr* instr) {}
 
+void ConstantPropagator::VisitMemoryCopy(MemoryCopyInstr* instr) {}
+
 void ConstantPropagator::VisitDeoptimize(DeoptimizeInstr* instr) {
   // TODO(vegorov) remove all code after DeoptimizeInstr as dead.
 }

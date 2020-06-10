@@ -12,7 +12,7 @@
 import "dart:core" hide Symbol;
 
 import "dart:isolate" show SendPort;
-import "dart:typed_data" show Int32List;
+import "dart:typed_data" show Int32List, Uint8List;
 
 /// These are the additional parts of this patch library:
 // part "class_id_fasta.dart";
@@ -40,6 +40,18 @@ String allocateOneByteString(int length)
 @pragma("vm:entry-point", "call")
 void writeIntoOneByteString(String string, int index, int codePoint)
     native "Internal_writeIntoOneByteString";
+
+/// This function is recognized by the VM and compiled into specialized code.
+/// It is assumed that [from] is a native [Uint8List] class and [to] is a
+/// [_OneByteString]. The [fromStart] and [toStart] indices together with the
+/// [length] must specify ranges within the bounds of the list / string.
+@pragma("vm:prefer-inline")
+void copyRangeFromUint8ListToOneByteString(
+    Uint8List from, String to, int fromStart, int toStart, int length) {
+  for (int i = 0; i < length; i++) {
+    writeIntoOneByteString(to, toStart + i, from[fromStart + i]);
+  }
+}
 
 /// The returned string is a [_TwoByteString] with uninitialized content.
 @pragma("vm:entry-point", "call")
