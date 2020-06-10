@@ -60,7 +60,7 @@ import '../../base/instrumentation.dart' show Instrumentation;
 
 import '../../base/nnbd_mode.dart';
 
-import '../blacklisted_classes.dart' show blacklistedCoreClasses;
+import '../denylisted_classes.dart' show denylistedCoreClasses;
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
@@ -664,9 +664,9 @@ class SourceLoader extends Loader {
     }
 
     Set<ClassBuilder> blackListedClasses = new Set<ClassBuilder>();
-    for (int i = 0; i < blacklistedCoreClasses.length; i++) {
+    for (int i = 0; i < denylistedCoreClasses.length; i++) {
       blackListedClasses.add(coreLibrary
-          .lookupLocalMember(blacklistedCoreClasses[i], required: true));
+          .lookupLocalMember(denylistedCoreClasses[i], required: true));
     }
 
     // Sort the classes topologically.

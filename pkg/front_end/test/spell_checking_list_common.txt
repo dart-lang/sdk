@@ -296,7 +296,7 @@ bit
 bits
 bitwise
 black
-blacklisted
+denylisted
 block
 blocks
 blogs
@@ -3250,7 +3250,7 @@ whether
 which
 while
 white
-whitelisted
+allowlisted
 whitespace
 whole
 whose

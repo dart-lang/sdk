@@ -54,7 +54,7 @@ benchmark
 besides
 beta
 bigger
-blacklist
+denylist
 blah
 blindly
 blocked
@@ -552,8 +552,8 @@ waiting
 walt
 warmup
 wherever
-whitelist
-whitelisting
+allowlist
+allowlisting
 wins
 workflow
 worlds

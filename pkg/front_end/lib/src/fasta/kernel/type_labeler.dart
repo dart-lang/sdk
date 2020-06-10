@@ -42,7 +42,7 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/visitor.dart' show ConstantVisitor, DartTypeVisitor;
 
-import '../blacklisted_classes.dart' show blacklistedCoreClasses;
+import '../denylisted_classes.dart' show denylistedCoreClasses;
 
 import '../fasta_codes.dart'
     show Message, templateTypeOrigin, templateTypeOriginWithFileUri;
@@ -407,8 +407,8 @@ class LabeledNode {
 
   String get originMessage {
     if (importUri.scheme == 'dart' && importUri.path == 'core') {
-      if (node is Class && blacklistedCoreClasses.contains(name)) {
-        // Blacklisted core class. Only print if ambiguous.
+      if (node is Class && denylistedCoreClasses.contains(name)) {
+        // Denylisted core class. Only print if ambiguous.
         List<LabeledNode> entityForName = typeLabeler.nameMap[name];
         if (entityForName.length == 1) {
           return "";

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // List of special classes in dart:core that can't be subclassed.
-const List<String> blacklistedCoreClasses = [
+const List<String> denylistedCoreClasses = [
   "bool",
   "int",
   "num",
