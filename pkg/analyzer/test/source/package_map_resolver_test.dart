@@ -98,7 +98,11 @@ class _PackageMapUriResolverTest {
 
   void test_resolve_OK_withNonAscii() {
     var resolver = PackageMapUriResolver(provider, {
-      'aaa': <Folder>[provider.getFolder('/packages/aaa/lib')],
+      'aaa': <Folder>[
+        provider.getFolder(
+          provider.convertPath('/packages/aaa/lib'),
+        ),
+      ],
     });
 
     var uri = Uri.parse('package:aaa/проба/a.dart');
@@ -111,7 +115,11 @@ class _PackageMapUriResolverTest {
 
   void test_resolve_OK_withSpace() {
     var resolver = PackageMapUriResolver(provider, {
-      'aaa': <Folder>[provider.getFolder('/packages/aaa/lib')],
+      'aaa': <Folder>[
+        provider.getFolder(
+          provider.convertPath('/packages/aaa/lib'),
+        ),
+      ],
     });
 
     var uri = Uri.parse('package:aaa/with space/a.dart');
