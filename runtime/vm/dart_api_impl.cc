@@ -1309,12 +1309,10 @@ Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
   {
     TransitionNativeToVM native_to_vm(thread);
 
-    // Ensure new space is empty and there are no threads running.
+    // Ensure there are no helper threads running.
     BackgroundCompiler::Stop(isolate);
-    isolate->heap()->new_space()->Evacuate();
     isolate->heap()->WaitForMarkerTasks(thread);
     isolate->heap()->WaitForSweeperTasks(thread);
-    RELEASE_ASSERT(isolate->heap()->new_space()->UsedInWords() == 0);
     RELEASE_ASSERT(isolate->heap()->old_space()->tasks() == 0);
   }
 
@@ -1344,7 +1342,7 @@ Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
         // Merge the heap from [spawning_group] to [group].
         {
           SafepointOperationScope safepoint_scope(thread);
-          group->heap()->MergeOtherHeap(isolate->group()->heap());
+          group->heap()->MergeFrom(isolate->group()->heap());
         }
 
         spawning_group->UnregisterIsolate(isolate);

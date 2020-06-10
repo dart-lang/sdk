@@ -739,19 +739,19 @@ void Heap::CollectOnNthAllocation(intptr_t num_allocations) {
   gc_on_nth_allocation_ = num_allocations;
 }
 
-void Heap::MergeOtherHeap(Heap* other) {
-  ASSERT(!other->gc_new_space_in_progress_);
-  ASSERT(!other->gc_old_space_in_progress_);
-  ASSERT(!other->read_only_);
-  ASSERT(other->new_space()->UsedInWords() == 0);
-  ASSERT(other->old_space()->tasks() == 0);
+void Heap::MergeFrom(Heap* donor) {
+  ASSERT(!donor->gc_new_space_in_progress_);
+  ASSERT(!donor->gc_old_space_in_progress_);
+  ASSERT(!donor->read_only_);
+  ASSERT(donor->old_space()->tasks() == 0);
 
-  old_space_.MergeOtherPageSpace(other->old_space());
+  new_space_.MergeFrom(donor->new_space());
+  old_space_.MergeFrom(donor->old_space());
 
   for (intptr_t i = 0; i < kNumWeakSelectors; ++i) {
     // The new space rehashing should not be necessary.
-    new_weak_tables_[i]->MergeOtherWeakTable(other->new_weak_tables_[i]);
-    old_weak_tables_[i]->MergeOtherWeakTable(other->old_weak_tables_[i]);
+    new_weak_tables_[i]->MergeFrom(donor->new_weak_tables_[i]);
+    old_weak_tables_[i]->MergeFrom(donor->old_weak_tables_[i]);
   }
 }
 
