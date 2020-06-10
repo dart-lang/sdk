@@ -935,7 +935,7 @@ class CompletionMetricsComputer {
         print('  $i Suggestion: ${topSuggestion.description}');
         if (result.listener != null) {
           var feature = result.listener.featureMap[topSuggestion];
-          if (feature.isEmpty) {
+          if (feature == null || feature.isEmpty) {
             print('    Features: <none>');
           } else {
             print('    Features: $feature');
