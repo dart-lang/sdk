@@ -20,10 +20,10 @@ main(List<String> args) async {
   String appDirPath = dirname(Platform.script.toFilePath());
 
   // Parse service.md into a model.
-  var file = new File(
+  var file = File(
       normalize(join(appDirPath, '../../../runtime/vm/service/service.md')));
-  var document = new Document();
-  StringBuffer buf = new StringBuffer(file.readAsStringSync());
+  var document = Document();
+  StringBuffer buf = StringBuffer(file.readAsStringSync());
   var nodes = document.parseLines(buf.toString().split('\n'));
   print('Parsed ${file.path}.');
   print('Service protocol version ${ApiParseUtil.parseVersionString(nodes)}.');
@@ -38,11 +38,11 @@ main(List<String> args) async {
 
 _generateDart(String appDirPath, List<Node> nodes) async {
   var outDirPath = normalize(join(appDirPath, '..', 'lib/src'));
-  var outDir = new Directory(outDirPath);
+  var outDir = Directory(outDirPath);
   if (!outDir.existsSync()) outDir.createSync(recursive: true);
-  var outputFile = new File(join(outDirPath, 'vm_service.dart'));
-  var generator = new dart.DartGenerator();
-  dart.api = new dart.Api();
+  var outputFile = File(join(outDirPath, 'vm_service.dart'));
+  var generator = dart.DartGenerator();
+  dart.api = dart.Api();
   dart.api.parse(nodes);
   dart.api.generate(generator);
   outputFile.writeAsStringSync(generator.toString());
@@ -66,8 +66,8 @@ _generateDart(String appDirPath, List<Node> nodes) async {
 
 _generateJava(String appDirPath, List<Node> nodes) async {
   var srcDirPath = normalize(join(appDirPath, '..', 'java', 'src'));
-  var generator = new java.JavaGenerator(srcDirPath);
-  java.api = new java.Api();
+  var generator = java.JavaGenerator(srcDirPath);
+  java.api = java.Api();
   java.api.parse(nodes);
   java.api.generate(generator);
 
@@ -78,7 +78,7 @@ _generateJava(String appDirPath, List<Node> nodes) async {
       .map((path) => relative(path, from: 'java'))
       .toList();
   generatedPaths.sort();
-  File gitignoreFile = new File(join(appDirPath, '..', 'java', '.gitignore'));
+  File gitignoreFile = File(join(appDirPath, '..', 'java', '.gitignore'));
   gitignoreFile.writeAsStringSync('''
 # This is a generated file.
 
@@ -87,7 +87,7 @@ ${generatedPaths.join('\n')}
 
   // Generate a version file.
   Version version = ApiParseUtil.parseVersionSemVer(nodes);
-  File file = new File(join('java', 'version.properties'));
+  File file = File(join('java', 'version.properties'));
   file.writeAsStringSync('version=${version.major}.${version.minor}\n');
 
   print('Wrote Java to $srcDirPath.');
@@ -95,11 +95,11 @@ ${generatedPaths.join('\n')}
 
 _generateAsserts(String appDirPath, List<Node> nodes) async {
   var outDirPath = normalize(join(appDirPath, '..', 'example'));
-  var outDir = new Directory(outDirPath);
+  var outDir = Directory(outDirPath);
   if (!outDir.existsSync()) outDir.createSync(recursive: true);
-  var outputFile = new File(join(outDirPath, 'vm_service_assert.dart'));
-  var generator = new dart.DartGenerator();
-  dart.api = new dart.Api();
+  var outputFile = File(join(outDirPath, 'vm_service_assert.dart'));
+  var generator = dart.DartGenerator();
+  dart.api = dart.Api();
   dart.api.parse(nodes);
   dart.api.generateAsserts(generator);
   outputFile.writeAsStringSync(generator.toString());
@@ -124,17 +124,17 @@ _generateAsserts(String appDirPath, List<Node> nodes) async {
 // Push the major and minor versions into the pubspec.
 void _stampPubspec(Version version) {
   final String pattern = 'version: ';
-  File file = new File('pubspec.yaml');
+  File file = File('pubspec.yaml');
   String text = file.readAsStringSync();
   bool found = false;
 
   text = text.split('\n').map((line) {
     if (line.startsWith(pattern)) {
       found = true;
-      Version v = new Version.parse(line.substring(pattern.length));
+      Version v = Version.parse(line.substring(pattern.length));
       String pre = v.preRelease.isEmpty ? null : v.preRelease.join('-');
       String build = v.build.isEmpty ? null : v.build.join('+');
-      v = new Version(version.major, version.minor, v.patch,
+      v = Version(version.major, version.minor, v.patch,
           pre: pre, build: build);
       return '${pattern}${v.toString()}';
     } else {
@@ -151,7 +151,7 @@ void _checkUpdateChangelog(Version version) {
   // Look for `## major.minor`.
   String check = '## ${version.major}.${version.minor}';
 
-  File file = new File('CHANGELOG.md');
+  File file = File('CHANGELOG.md');
   String text = file.readAsStringSync();
   bool containsReleaseNotes =
       text.split('\n').any((line) => line.startsWith(check));
