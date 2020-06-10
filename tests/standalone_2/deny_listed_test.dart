@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test checking that static/instance field shadowing do not conflict.
 
-// Test that certain interfaces/classes are blacklisted from being
+// Test that certain interfaces/classes are denylisted from being
 // implemented or extended (VM corelib only).
 
 library BlackListedTest;
