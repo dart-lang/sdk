@@ -36,7 +36,7 @@ class PreviewSiteTest with ResourceProviderMixin, PreviewSiteTestMixin {
   }
 
   void setUp() {
-    dartfixListener = DartFixListener(null);
+    dartfixListener = DartFixListener(null, _exceptionReported);
     resourceProvider = MemoryResourceProvider();
     final migrationInfo = MigrationInfo({}, {}, null, null);
     state = MigrationState(null, null, dartfixListener, null);
@@ -165,6 +165,10 @@ void main(List args) {
     expect(file.readAsStringSync(), currentContent);
     expect(state.hasBeenApplied, false);
   }
+
+  void _exceptionReported(String detail) {
+    fail('Unexpected error during migration: $detail');
+  }
 }
 
 mixin PreviewSiteTestMixin {
@@ -186,7 +190,7 @@ class PreviewSiteWithEngineTest extends NnbdMigrationTestBase
   @override
   void setUp() {
     super.setUp();
-    dartfixListener = DartFixListener(null);
+    dartfixListener = DartFixListener(null, _exceptionReported);
     final migrationInfo = MigrationInfo({}, {}, null, null);
     state = MigrationState(null, null, dartfixListener, null);
     nodeMapper = state.nodeMapper;
@@ -332,5 +336,9 @@ int/*?*/? y = x;
         unitInfo.content.indexOf('= x;') + '= '.length, contains('data flow'));
     expect(state.hasBeenApplied, false);
     expect(state.needsRerun, true);
+  }
+
+  void _exceptionReported(String detail) {
+    fail('Unexpected error during migration: $detail');
   }
 }

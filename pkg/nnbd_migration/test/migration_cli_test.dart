@@ -60,12 +60,10 @@ class _ExceptionGeneratingNonNullableFix extends NonNullableFix {
       ResourceProvider resourceProvider, LineInfo Function(String) getLineInfo,
       {List<String> included = const <String>[],
       int preferredPort,
-      bool enablePreview = true,
       String summaryPath})
       : super(listener, resourceProvider, getLineInfo,
             included: included,
             preferredPort: preferredPort,
-            enablePreview: enablePreview,
             summaryPath: summaryPath);
 
   @override
@@ -106,20 +104,17 @@ class _MigrationCli extends MigrationCli {
       ResourceProvider resourceProvider, LineInfo getLineInfo(String path),
       {List<String> included = const <String>[],
       int preferredPort,
-      bool enablePreview = true,
       String summaryPath}) {
     if (injectArtificialException) {
       return _ExceptionGeneratingNonNullableFix(
           listener, resourceProvider, getLineInfo,
           included: included,
           preferredPort: preferredPort,
-          enablePreview: enablePreview,
           summaryPath: summaryPath);
     } else {
       return super.createNonNullableFix(listener, resourceProvider, getLineInfo,
           included: included,
           preferredPort: preferredPort,
-          enablePreview: enablePreview,
           summaryPath: summaryPath);
     }
   }
@@ -159,6 +154,7 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
   }
 
   String assertErrorExit(MigrationCli cli, {bool withUsage = true}) {
+    expect(cli.isPreviewServerRunning, isFalse);
     expect(cli.exitCode, isNotNull);
     expect(cli.exitCode, isNot(0));
     var stderrText = logger.stderrBuffer.toString();
@@ -181,6 +177,11 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
       fail('HTTP request failed');
     }
     expect(response.statusCode, 200);
+  }
+
+  void assertNormalExit(MigrationCli cli) {
+    expect(cli.isPreviewServerRunning, isFalse);
+    expect(cli.exitCode, 0);
   }
 
   Future<String> assertParseArgsFailure(List<String> args) async {
@@ -393,6 +394,25 @@ int${migrated ? '?' : ''} f() => null;
     expect(assertParseArgsSuccess(['--ignore-errors']).ignoreErrors, isTrue);
   }
 
+  test_flag_ignore_exceptions_default() {
+    expect(assertParseArgsSuccess([]).ignoreExceptions, isFalse);
+  }
+
+  test_flag_ignore_exceptions_disable() async {
+    await assertParseArgsFailure(['--no-ignore-exceptions']);
+  }
+
+  test_flag_ignore_exceptions_enable() {
+    expect(assertParseArgsSuccess(['--ignore-exceptions']).ignoreExceptions,
+        isTrue);
+  }
+
+  test_flag_ignore_exceptions_hidden() async {
+    var flagName = '--ignore-exceptions';
+    expect(await _getHelpText(verbose: false), isNot(contains(flagName)));
+    expect(await _getHelpText(verbose: true), contains(flagName));
+  }
+
   test_flag_skip_pub_outdated_default() {
     expect(assertParseArgsSuccess([]).skipPubOutdated, isFalse);
   }
@@ -425,6 +445,7 @@ int${migrated ? '?' : ''} f() => null;
     var cli = _createCli();
     await cli
         .run(_parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    assertNormalExit(cli);
     // Check that a summary was printed
     expect(logger.stdoutBuffer.toString(), contains('Applying changes'));
     // And that it refers to test.dart and pubspec.yaml
@@ -454,6 +475,7 @@ linter:
     var projectDir = await createProjectDir(projectContents);
     var cli = _createCli();
     await cli.run(_parseArgs(['--no-web-preview', projectDir]));
+    assertNormalExit(cli);
     expect(cli.hasMultipleAnalysisContext, true);
     expect(cli.analysisContext, isNotNull);
     var output = logger.stdoutBuffer.toString();
@@ -465,6 +487,7 @@ linter:
     var projectDir = await createProjectDir(projectContents);
     var cli = _createCli();
     await cli.run(_parseArgs(['--no-web-preview', projectDir]));
+    assertNormalExit(cli);
     expect(cli.hasMultipleAnalysisContext, false);
     expect(cli.analysisContext, isNotNull);
   }
@@ -473,10 +496,61 @@ linter:
     var projectContents = simpleProject(sourceText: 'main() { print(0); }');
     var projectDir = await createProjectDir(projectContents);
     var cli = _createCli(injectArtificialException: true);
+    await cli.run(_parseArgs([projectDir]));
+    assertErrorExit(cli, withUsage: false);
+    var errorOutput = logger.stderrBuffer.toString();
+    expect(errorOutput, contains('Artificial exception triggered'));
     expect(
-        () async => runWithPreviewServer(cli, [projectDir], (url) async {}),
-        throwsA(TypeMatcher<Error>().having((e) => e.toString(), 'toString',
-            contains('Artificial exception triggered'))));
+        errorOutput, isNot(contains('try to fix errors in the source code')));
+    expect(errorOutput, contains('re-run with\n--ignore-exceptions'));
+  }
+
+  test_lifecycle_exception_handling_ignore() async {
+    var projectContents = simpleProject(sourceText: 'main() { print(0); }');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli(injectArtificialException: true);
+    await runWithPreviewServer(cli, ['--ignore-exceptions', projectDir],
+        (url) async {
+      var output = logger.stdoutBuffer.toString();
+      expect(output, contains('No analysis issues found'));
+      expect(output, isNot(contains('Artificial exception triggered')));
+      expect(
+          output,
+          contains('Attempting to perform\nmigration anyway due to the use'
+              ' of --ignore-exceptions.'));
+      expect(output, contains('re-run without --ignore-exceptions'));
+      await assertPreviewServerResponsive(url);
+    });
+    assertNormalExit(cli);
+    expect(logger.stderrBuffer.toString(), isEmpty);
+  }
+
+  test_lifecycle_exception_handling_multiple() async {
+    var projectContents =
+        simpleProject(sourceText: 'main() { print(0); print(1); }');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli(injectArtificialException: true);
+    await cli.run(_parseArgs([projectDir]));
+    assertErrorExit(cli, withUsage: false);
+    var errorOutput = logger.stderrBuffer.toString();
+    expect(
+        'Artificial exception triggered'.allMatches(errorOutput), hasLength(1));
+    expect(
+        errorOutput, isNot(contains('try to fix errors in the source code')));
+    expect(errorOutput, contains('re-run with\n--ignore-exceptions'));
+  }
+
+  test_lifecycle_exception_handling_with_error() async {
+    var projectContents =
+        simpleProject(sourceText: 'main() { print(0); unresolved; }');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli(injectArtificialException: true);
+    await cli.run(_parseArgs(['--ignore-errors', projectDir]));
+    assertErrorExit(cli, withUsage: false);
+    var errorOutput = logger.stderrBuffer.toString();
+    expect(errorOutput, contains('Artificial exception triggered'));
+    expect(errorOutput, contains('try to fix errors in the source code'));
+    expect(errorOutput, contains('re-run with\n--ignore-exceptions'));
   }
 
   test_lifecycle_ignore_errors_disable() async {
@@ -517,6 +591,7 @@ int? f() => null
               '--ignore-errors.'));
       await assertPreviewServerResponsive(url);
     });
+    assertNormalExit(cli);
   }
 
   test_lifecycle_no_preview() async {
@@ -524,6 +599,7 @@ int? f() => null
     var projectDir = await createProjectDir(projectContents);
     var cli = _createCli();
     await cli.run(_parseArgs(['--no-web-preview', projectDir]));
+    assertNormalExit(cli);
     // Check that a summary was printed
     var output = logger.stdoutBuffer.toString();
     expect(output, contains('Summary'));
@@ -547,6 +623,7 @@ int? f() => null
           logger.stdoutBuffer.toString(), contains('No analysis issues found'));
       await assertPreviewServerResponsive(url);
     });
+    assertNormalExit(cli);
     // No changes should have been made.
     assertProjectContents(projectDir, projectContents);
   }
@@ -578,6 +655,7 @@ int? f() => null
       assertProjectContents(
           projectDir, simpleProject(sourceText: 'int/*!*/ x;'));
     });
+    assertNormalExit(cli);
   }
 
   test_lifecycle_preview_extra_forward_slash() async {
@@ -588,6 +666,7 @@ int? f() => null
       await assertPreviewServerResponsive(
           uri.replace(path: uri.path + '/').toString());
     });
+    assertNormalExit(cli);
   }
 
   test_lifecycle_preview_navigation_links() async {
@@ -623,6 +702,7 @@ int? f() => null
         assertHttpSuccess(contentsResponse);
       }
     });
+    assertNormalExit(cli);
   }
 
   test_lifecycle_preview_navigation_tree() async {
@@ -656,6 +736,7 @@ int? f() => null
         }
       }
     });
+    assertNormalExit(cli);
   }
 
   test_lifecycle_preview_region_link() async {
@@ -697,6 +778,7 @@ int? f() => null
           .getChildAssumingFile(displayPath);
       expect(file.exists, isTrue);
     });
+    assertNormalExit(cli);
   }
 
   test_lifecycle_preview_region_table_path() async {
@@ -729,6 +811,7 @@ int? f() => null
           headers: {'Content-Type': 'application/json; charset=UTF-8'});
       assertHttpSuccess(contentsResponse);
     });
+    assertNormalExit(cli);
   }
 
   test_lifecycle_preview_rerun() async {
@@ -752,6 +835,7 @@ int? f() => null
       // Now that we've rerun, the server should yield the new source text
       expect(await getSourceFromServer(uri, testPath), newSourceText);
     });
+    assertNormalExit(cli);
   }
 
   test_lifecycle_preview_rerun_added_file() async {
@@ -775,6 +859,7 @@ int? f() => null
       // Now that we've rerun, the server should yield the new source text
       expect(await getSourceFromServer(uri, test2Path), newSourceText);
     });
+    assertNormalExit(cli);
   }
 
   test_lifecycle_preview_rerun_deleted_file() async {
@@ -811,6 +896,7 @@ int? f() => null
       expect(summaryData['changes']['byPath'],
           isNot(contains('lib${separator}test.dart')));
     });
+    assertNormalExit(cli);
   }
 
   test_lifecycle_preview_serves_only_from_project_dir() async {
@@ -844,6 +930,7 @@ int? f() => null
       // And check that we didn't leak any info through the 404 response.
       expect(response.body, isNot(contains(crazyFunctionName)));
     });
+    assertNormalExit(cli);
   }
 
   test_lifecycle_preview_stack_hint_action() async {
@@ -879,6 +966,7 @@ int? f() => null
       assertProjectContents(
           projectDir, simpleProject(sourceText: 'int/*?*/ x;'));
     });
+    assertNormalExit(cli);
   }
 
   test_lifecycle_preview_stacktrace_link() async {
@@ -914,6 +1002,7 @@ int? f() => null
           headers: {'Content-Type': 'application/json; charset=UTF-8'});
       assertHttpSuccess(contentsResponse);
     });
+    assertNormalExit(cli);
   }
 
   test_lifecycle_skip_pub_outdated_disable() async {
@@ -934,7 +1023,7 @@ int f() => null;
         '' /* stderr */);
     var cli = _createCli();
     await cli.run(_parseArgs([projectDir]));
-    var output = logger.stderrBuffer.toString();
+    var output = assertErrorExit(cli, withUsage: false);
     expect(output, contains('Warning: dependencies are outdated.'));
     expect(cli.exitCode, 1);
   }
@@ -960,6 +1049,7 @@ int f() => null;
         (url) async {
       await assertPreviewServerResponsive(url);
     });
+    assertNormalExit(cli);
   }
 
   test_lifecycle_summary() async {
@@ -973,6 +1063,7 @@ int f() => null;
         jsonDecode(resourceProvider.getFile(summaryPath).readAsStringSync());
     expect(summaryData, TypeMatcher<Map>());
     expect(summaryData, contains('changes'));
+    assertNormalExit(cli);
   }
 
   test_lifecycle_summary_does_not_double_count_hint_removals() async {
@@ -982,6 +1073,7 @@ int f() => null;
     var summaryPath = resourceProvider.convertPath('/summary.json');
     await cli.run(
         _parseArgs(['--no-web-preview', '--summary', summaryPath, projectDir]));
+    assertNormalExit(cli);
     var summaryData =
         jsonDecode(resourceProvider.getFile(summaryPath).readAsStringSync());
     var separator = resourceProvider.pathContext.separator;
@@ -1019,6 +1111,7 @@ int f() => null;
         'checkExpression': 1
       });
     });
+    assertNormalExit(cli);
   }
 
   test_lifecycle_uri_error() async {
@@ -1518,7 +1611,7 @@ class _MockProcessManager implements ProcessManager {
       ProcessResult(
         123 /* pid */,
         0 /* exitCode */,
-        '' /* stdout */,
+        jsonEncode({'packages': []}) /* stdout */,
         '' /* stderr */,
       );
 }

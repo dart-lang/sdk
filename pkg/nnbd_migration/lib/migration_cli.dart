@@ -47,6 +47,7 @@ class CommandLineOptions {
   static const applyChangesFlag = 'apply-changes';
   static const helpFlag = 'help';
   static const ignoreErrorsFlag = 'ignore-errors';
+  static const ignoreExceptionsFlag = 'ignore-exceptions';
   static const previewPortOption = 'preview-port';
   static const sdkPathOption = 'sdk-path';
   static const skipPubOutdatedFlag = 'skip-pub-outdated';
@@ -59,6 +60,8 @@ class CommandLineOptions {
   final String directory;
 
   final bool ignoreErrors;
+
+  final bool ignoreExceptions;
 
   final int previewPort;
 
@@ -74,6 +77,7 @@ class CommandLineOptions {
       {@required this.applyChanges,
       @required this.directory,
       @required this.ignoreErrors,
+      @required this.ignoreExceptions,
       @required this.previewPort,
       @required this.sdkPath,
       @required this.skipPubOutdated,
@@ -238,6 +242,10 @@ class MigrationCli {
 
   AnalysisContextCollection _contextCollection;
 
+  bool _hasExceptions = false;
+
+  bool _hasAnalysisErrors = false;
+
   MigrationCli(
       {@required this.binaryName,
       @visibleForTesting this.loggerFactory = _defaultLoggerFactory,
@@ -275,6 +283,10 @@ class MigrationCli {
     return contextCollection.contexts.length > 1;
   }
 
+  @visibleForTesting
+  bool get isPreviewServerRunning =>
+      _fixCodeProcessor?.isPreviewServerRunnning ?? false;
+
   Context get pathContext => resourceProvider.pathContext;
 
   /// Blocks until an interrupt signal (control-C) is received.  Tests may
@@ -289,12 +301,10 @@ class MigrationCli {
       ResourceProvider resourceProvider, LineInfo getLineInfo(String path),
       {List<String> included = const <String>[],
       int preferredPort,
-      bool enablePreview = true,
       String summaryPath}) {
     return NonNullableFix(listener, resourceProvider, getLineInfo,
         included: included,
         preferredPort: preferredPort,
-        enablePreview: enablePreview,
         summaryPath: summaryPath);
   }
 
@@ -349,6 +359,8 @@ class MigrationCli {
           applyChanges: applyChanges,
           directory: migratePath,
           ignoreErrors: argResults[CommandLineOptions.ignoreErrorsFlag] as bool,
+          ignoreExceptions:
+              argResults[CommandLineOptions.ignoreExceptionsFlag] as bool,
           previewPort: previewPort,
           sdkPath: argResults[CommandLineOptions.sdkPathOption] as String ??
               defaultSdkPathOverride ??
@@ -408,13 +420,12 @@ class MigrationCli {
     await _withProgress(
         '${ansi.emphasized('Generating migration suggestions')}', () async {
       _fixCodeProcessor = _FixCodeProcessor(context, this);
-      _dartFixListener =
-          DartFixListener(DriverProviderImpl(resourceProvider, context));
+      _dartFixListener = DartFixListener(
+          DriverProviderImpl(resourceProvider, context), _exceptionReported);
       nonNullableFix = createNonNullableFix(
           _dartFixListener, resourceProvider, _fixCodeProcessor.getLineInfo,
           included: [options.directory],
           preferredPort: options.previewPort,
-          enablePreview: options.webPreview,
           summaryPath: options.summary);
       nonNullableFix.rerunFunction = _rerunFunction;
       _fixCodeProcessor.registerCodeTask(nonNullableFix);
@@ -547,6 +558,7 @@ Use this interactive web view to review, improve, or apply the results.
       logger.stdout(
           'Note: analysis errors will result in erroneous migration suggestions.');
 
+      _hasAnalysisErrors = true;
       if (options.ignoreErrors) {
         logger.stdout('Continuing with migration suggestions due to the use of '
             '--${CommandLineOptions.ignoreErrorsFlag}.');
@@ -617,6 +629,43 @@ Use this interactive web view to review, improve, or apply the results.
         _IssueRenderer(logger, directory, pathContext, lineInfo);
     for (AnalysisError issue in issues) {
       renderer.render(issue);
+    }
+  }
+
+  void _exceptionReported(String detail) {
+    if (_hasExceptions) return;
+    _hasExceptions = true;
+    if (options.ignoreExceptions) {
+      logger.stdout('''
+Exception(s) occurred during migration.  Attempting to perform
+migration anyway due to the use of --${CommandLineOptions.ignoreExceptionsFlag}.
+
+To see exception details, re-run without --${CommandLineOptions.ignoreExceptionsFlag}.
+''');
+    } else {
+      exitCode = 1;
+      if (_hasAnalysisErrors) {
+        logger.stderr('''
+Aborting migration due to an exception.  This may be due to a bug in
+the migration tool, or it may be due to errors in the source code
+being migrated.  If possible, try to fix errors in the source code and
+re-try migrating.  If that doesn't work, consider filing a bug report
+at:
+''');
+      } else {
+        logger.stderr('''
+Aborting migration due to an exception.  This most likely is due to a
+bug in the migration tool.  Please consider filing a bug report at:
+''');
+      }
+      logger.stderr('https://github.com/dart-lang/sdk/issues/new');
+      logger.stderr('''
+To attempt to perform migration anyway, you may re-run with
+--${CommandLineOptions.ignoreExceptionsFlag}.
+
+Exception details:
+''');
+      logger.stderr(detail);
     }
   }
 
@@ -697,6 +746,12 @@ Use this interactive web view to review, improve, or apply the results.
       help: 'Attempt to perform null safety analysis even if there are '
           'analysis errors in the project.',
     );
+    parser.addFlag(CommandLineOptions.ignoreExceptionsFlag,
+        defaultsTo: false,
+        negatable: false,
+        help:
+            'Attempt to perform null safety analysis even if exceptions occur.',
+        hide: hide);
     parser.addOption(CommandLineOptions.previewPortOption,
         help:
             'Run the preview server on the specified port.  If not specified, '
@@ -779,6 +834,9 @@ class _FixCodeProcessor extends Object {
 
   _FixCodeProcessor(this.context, this._migrationCli)
       : pathsToProcess = _computePathsToProcess(context);
+
+  bool get isPreviewServerRunnning =>
+      nonNullableFixTask?.isPreviewServerRunning ?? false;
 
   LineInfo getLineInfo(String path) =>
       context.currentSession.getFile(path).lineInfo;
@@ -863,7 +921,10 @@ class _FixCodeProcessor extends Object {
         await _task.processUnit(phase, result);
       });
     }
-    await _task.finish();
+    var state = await _task.finish();
+    if (_migrationCli.exitCode == null && _migrationCli.options.webPreview) {
+      await _task.startPreviewServer(state);
+    }
     _progressBar.complete();
 
     return nonNullableFixTask.previewUrls;
