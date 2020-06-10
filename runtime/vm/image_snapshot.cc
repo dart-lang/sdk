@@ -649,6 +649,12 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   assembly_stream_.Print("%s:\n", instructions_symbol);
 
   intptr_t text_offset = 0;
+#if defined(DART_PRECOMPILER)
+  // Parent used for later profile objects. Starts off as the Image. When
+  // writing bare instructions payloads, this is later updated with the
+  // InstructionsSection object which contains all the bare payloads.
+  V8SnapshotProfileWriter::ObjectId parent_id(offset_space_, text_offset);
+#endif
 
   // This head also provides the gap to make the instructions snapshot
   // look like a OldPage.
@@ -668,18 +674,36 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   ASSERT_EQUAL(text_offset, Image::kHeaderSize);
 #if defined(DART_PRECOMPILER)
   if (profile_writer_ != nullptr) {
-    profile_writer_->AttributeBytesTo(
-        V8SnapshotProfileWriter::ArtificialRootId(),
-        (next_text_offset_ - image_size) + Image::kHeaderSize);
+    profile_writer_->SetObjectTypeAndName(parent_id, "Image",
+                                          instructions_symbol);
+    // Assign post-instruction padding to the Image, unless we're writing bare
+    // instruction payloads, in which case we'll assign it to the
+    // InstructionsSection object.
+    const intptr_t padding =
+        bare_instruction_payloads ? 0 : image_size - next_text_offset_;
+    profile_writer_->AttributeBytesTo(parent_id, Image::kHeaderSize + padding);
+    profile_writer_->AddRoot(parent_id);
   }
 #endif
 
-  // Only valid if bare_instruction_payloads is true.
-  V8SnapshotProfileWriter::ObjectId instructions_section_id(offset_space_, -1);
-
   if (bare_instruction_payloads) {
-    const intptr_t instructions_section_start = text_offset;
-    const intptr_t section_size = image_size - instructions_section_start;
+#if defined(DART_PRECOMPILER)
+    if (profile_writer_ != nullptr) {
+      const V8SnapshotProfileWriter::ObjectId id(offset_space_, text_offset);
+      profile_writer_->SetObjectTypeAndName(id, instructions_section_type_,
+                                            instructions_symbol);
+      const intptr_t padding = image_size - next_text_offset_;
+      profile_writer_->AttributeBytesTo(
+          id, compiler::target::InstructionsSection::HeaderSize() + padding);
+      const intptr_t element_offset = id.second - parent_id.second;
+      profile_writer_->AttributeReferenceTo(
+          parent_id,
+          {id, V8SnapshotProfileWriter::Reference::kElement, element_offset});
+      // Later objects will have the InstructionsSection as a parent.
+      parent_id = id;
+    }
+#endif
+    const intptr_t section_size = image_size - text_offset;
     // Add the RawInstructionsSection header.
     const compiler::target::uword marked_tags =
         ObjectLayout::OldBit::encode(true) |
@@ -694,21 +718,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     const intptr_t instructions_length =
         next_text_offset_ - (text_offset + compiler::target::kWordSize);
     text_offset += WriteWordLiteralText(instructions_length);
-
-    if (profile_writer_ != nullptr) {
-      instructions_section_id = {offset_space_, instructions_section_start};
-      const intptr_t non_instruction_bytes =
-          compiler::target::InstructionsSection::HeaderSize();
-      profile_writer_->SetObjectTypeAndName(instructions_section_id,
-                                            instructions_section_type_,
-                                            instructions_symbol);
-      profile_writer_->AttributeBytesTo(instructions_section_id,
-                                        non_instruction_bytes);
-      profile_writer_->AddRoot(instructions_section_id);
-    }
   }
-
-  const intptr_t instructions_start = text_offset;
 
   FrameUnwindPrologue();
 
@@ -730,6 +740,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
     const auto object_name = namer.SnapshotNameFor(dwarf_index, data);
 
+#if defined(DART_PRECOMPILER)
     if (profile_writer_ != nullptr) {
       const V8SnapshotProfileWriter::ObjectId id(offset_space_, text_offset);
       auto const type = is_trampoline ? trampoline_type_ : instructions_type_;
@@ -737,15 +748,12 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
                                           : SizeInSnapshot(data.insns_->raw());
       profile_writer_->SetObjectTypeAndName(id, type, object_name);
       profile_writer_->AttributeBytesTo(id, size);
-      // If the object is wrapped in an InstructionSection, then add an
-      // element reference.
-      if (bare_instruction_payloads) {
-        const intptr_t element_offset = text_offset - instructions_start;
-        profile_writer_->AttributeReferenceTo(
-            instructions_section_id,
-            {id, V8SnapshotProfileWriter::Reference::kElement, element_offset});
-      }
+      const intptr_t element_offset = id.second - parent_id.second;
+      profile_writer_->AttributeReferenceTo(
+          parent_id,
+          {id, V8SnapshotProfileWriter::Reference::kElement, element_offset});
     }
+#endif
 
     if (is_trampoline) {
       const auto start = reinterpret_cast<uword>(data.trampoline_bytes);
@@ -1082,11 +1090,11 @@ intptr_t BlobImageWriter::WriteByteSequence(uword start, uword end) {
 void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   const bool bare_instruction_payloads =
       FLAG_precompiled_mode && FLAG_use_bare_instructions;
-  const char* instructions_symbol = vm ? kVmSnapshotInstructionsAsmSymbol
-                                       : kIsolateSnapshotInstructionsAsmSymbol;
   auto const zone = Thread::Current()->zone();
 
 #if defined(DART_PRECOMPILER)
+  auto const instructions_symbol = vm ? kVmSnapshotInstructionsAsmSymbol
+                                      : kIsolateSnapshotInstructionsAsmSymbol;
   intptr_t segment_base = 0;
   if (elf_ != nullptr) {
     segment_base = elf_->NextMemoryOffset();
@@ -1098,6 +1106,14 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     // in it and the separately saved DWARF information to match.
     ASSERT(elf_ == nullptr || segment_base == debug_segment_base);
   }
+#endif
+
+  intptr_t text_offset = 0;
+#if defined(DART_PRECOMPILER)
+  // Parent used for later profile objects. Starts off as the Image. When
+  // writing bare instructions payloads, this is later updated with the
+  // InstructionsSection object which contains all the bare payloads.
+  V8SnapshotProfileWriter::ObjectId parent_id(offset_space_, text_offset);
 #endif
 
   // This header provides the gap to make the instructions snapshot look like a
@@ -1118,19 +1134,38 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 #endif
   instructions_blob_stream_.Align(kMaxObjectAlignment);
   ASSERT_EQUAL(instructions_blob_stream_.Position(), Image::kHeaderSize);
+  text_offset += Image::kHeaderSize;
 #if defined(DART_PRECOMPILER)
   if (profile_writer_ != nullptr) {
-    profile_writer_->AttributeBytesTo(
-        V8SnapshotProfileWriter::ArtificialRootId(),
-        (image_size - next_text_offset_) + Image::kHeaderSize);
+    profile_writer_->SetObjectTypeAndName(parent_id, "Image",
+                                          instructions_symbol);
+    // Assign post-instruction padding to the Image, unless we're writing bare
+    // instruction payloads, in which case we'll assign it to the
+    // InstructionsSection object.
+    const intptr_t padding =
+        bare_instruction_payloads ? 0 : image_size - next_text_offset_;
+    profile_writer_->AttributeBytesTo(parent_id, Image::kHeaderSize + padding);
+    profile_writer_->AddRoot(parent_id);
   }
 #endif
 
-  // Only valid when bare_instructions_payloads is true.
-  const V8SnapshotProfileWriter::ObjectId instructions_section_id(
-      offset_space_, bare_instruction_payloads ? Image::kHeaderSize : -1);
-
   if (bare_instruction_payloads) {
+#if defined(DART_PRECOMPILER)
+    if (profile_writer_ != nullptr) {
+      const V8SnapshotProfileWriter::ObjectId id(offset_space_, text_offset);
+      profile_writer_->SetObjectTypeAndName(id, instructions_section_type_,
+                                            instructions_symbol);
+      const intptr_t padding = image_size - next_text_offset_;
+      profile_writer_->AttributeBytesTo(
+          id, compiler::target::InstructionsSection::HeaderSize() + padding);
+      const intptr_t element_offset = id.second - parent_id.second;
+      profile_writer_->AttributeReferenceTo(
+          parent_id,
+          {id, V8SnapshotProfileWriter::Reference::kElement, element_offset});
+      // Later objects will have the InstructionsSection as a parent.
+      parent_id = id;
+    }
+#endif
     const intptr_t section_size = image_size - Image::kHeaderSize;
     // Add the RawInstructionsSection header.
     const compiler::target::uword marked_tags =
@@ -1146,20 +1181,12 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
         next_text_offset_ - Image::kHeaderSize -
         compiler::target::InstructionsSection::HeaderSize();
     instructions_blob_stream_.WriteTargetWord(instructions_length);
-
-    if (profile_writer_ != nullptr) {
-      const intptr_t non_instruction_bytes =
-          compiler::target::InstructionsSection::HeaderSize();
-      profile_writer_->SetObjectTypeAndName(instructions_section_id,
-                                            instructions_section_type_,
-                                            instructions_symbol);
-      profile_writer_->AttributeBytesTo(instructions_section_id,
-                                        non_instruction_bytes);
-      profile_writer_->AddRoot(instructions_section_id);
-    }
+    ASSERT_EQUAL(instructions_blob_stream_.Position() - text_offset,
+                 compiler::target::InstructionsSection::HeaderSize());
+    text_offset += compiler::target::InstructionsSection::HeaderSize();
   }
 
-  intptr_t text_offset = 0;
+  ASSERT_EQUAL(text_offset, instructions_blob_stream_.Position());
 
 #if defined(DART_PRECOMPILER)
   auto& descriptors = PcDescriptors::Handle(zone);
@@ -1170,27 +1197,25 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   for (intptr_t i = 0; i < instructions_.length(); i++) {
     auto& data = instructions_[i];
     const bool is_trampoline = data.trampoline_bytes != nullptr;
-    ASSERT((data.text_offset_ - instructions_[0].text_offset_) == text_offset);
+    ASSERT(data.text_offset_ == text_offset);
 
+#if defined(DART_PRECOMPILER)
     const auto object_name = namer.SnapshotNameFor(i, data);
-
     if (profile_writer_ != nullptr) {
-      const V8SnapshotProfileWriter::ObjectId object_id(
-          offset_space_, instructions_blob_stream_.Position());
+      const V8SnapshotProfileWriter::ObjectId id(offset_space_, text_offset);
       auto const type = is_trampoline ? trampoline_type_ : instructions_type_;
       const intptr_t size = is_trampoline ? data.trampoline_length
                                           : SizeInSnapshot(data.insns_->raw());
-      profile_writer_->SetObjectTypeAndName(object_id, type, object_name);
-      profile_writer_->AttributeBytesTo(object_id, size);
+      profile_writer_->SetObjectTypeAndName(id, type, object_name);
+      profile_writer_->AttributeBytesTo(id, size);
       // If the object is wrapped in an InstructionSection, then add an
       // element reference.
-      if (bare_instruction_payloads) {
-        profile_writer_->AttributeReferenceTo(
-            instructions_section_id,
-            {object_id, V8SnapshotProfileWriter::Reference::kElement,
-             text_offset});
-      }
+      const intptr_t element_offset = id.second - parent_id.second;
+      profile_writer_->AttributeReferenceTo(
+          parent_id,
+          {id, V8SnapshotProfileWriter::Reference::kElement, element_offset});
     }
+#endif
 
     if (is_trampoline) {
       const auto start = reinterpret_cast<uword>(data.trampoline_bytes);
@@ -1300,10 +1325,10 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
         // Overwrite the relocation position in the instruction stream with the
         // offset of the BSS segment from the relocation position plus the
         // addend in the relocation.
-        auto const text_offset = payload_offset + reloc_offset;
-        instructions_blob_stream_.SetPosition(text_offset);
+        auto const reloc_pos = payload_offset + reloc_offset;
+        instructions_blob_stream_.SetPosition(reloc_pos);
 
-        const compiler::target::word offset = bss_offset - text_offset + addend;
+        const compiler::target::word offset = bss_offset - reloc_pos + addend;
         instructions_blob_stream_.WriteTargetWord(offset);
       }
 
@@ -1323,8 +1348,11 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   // should match the alignment used in image_size above.
   instructions_blob_stream_.Align(
       compiler::target::ObjectAlignment::kObjectAlignment);
+  text_offset = Utils::RoundUp(
+      text_offset, compiler::target::ObjectAlignment::kObjectAlignment);
 
-  ASSERT_EQUAL(instructions_blob_stream_.bytes_written(), image_size);
+  ASSERT_EQUAL(text_offset, instructions_blob_stream_.bytes_written());
+  ASSERT_EQUAL(text_offset, image_size);
 
 #ifdef DART_PRECOMPILER
   if (elf_ != nullptr) {
