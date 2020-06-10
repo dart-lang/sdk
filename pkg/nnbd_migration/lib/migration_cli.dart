@@ -867,6 +867,7 @@ class _FixCodeProcessor extends Object {
               if (pathsToProcess.contains(unit.path) &&
                   !pathsProcessed.contains(unit.path)) {
                 await process(unit);
+                if (_migrationCli.exitCode != null) return;
                 pathsProcessed.add(unit.path);
               }
             }
@@ -883,6 +884,7 @@ class _FixCodeProcessor extends Object {
         continue;
       }
       await process(result);
+      if (_migrationCli.exitCode != null) return;
     }
   }
 
