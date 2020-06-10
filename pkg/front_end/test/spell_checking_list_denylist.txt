@@ -10,6 +10,10 @@
 # automatic tools might move it to the top of the file.
 
 alread
+blacklist
+black-list
+blacklisted
+black-listed
 chnage
 clonable
 comile
@@ -69,6 +73,7 @@ reuslt
 satifying
 seach
 singluar
+slave
 Specifiction
 staments
 statment
@@ -80,3 +85,7 @@ terminted
 tood
 unlinke
 valiation
+whitelist
+white-list
+whitelisted
+white-listed

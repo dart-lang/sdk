@@ -277,10 +277,10 @@ class ProgramBuilder {
   void _initializeSoftDeferredMap() {
     var allocatedClassesPath = _options.experimentalAllocationsPath;
     if (allocatedClassesPath != null) {
-      // TODO(29574): the following blacklist is ad-hoc and potentially
+      // TODO(29574): the following denylist is ad-hoc and potentially
       // incomplete. We need to mark all classes as black listed, that are
       // used without code going through the class' constructor.
-      var blackList = [
+      var denylist = [
         'dart:_interceptors',
         'dart:html',
         'dart:typed_data_implementation',
@@ -329,7 +329,7 @@ class ProgramBuilder {
           var key = "${element.library.canonicalUri}:${element.name}";
           if (allocatedClassesKeys.contains(key) ||
               _nativeData.isJsInteropClass(element) ||
-              blackList.contains(element.library.canonicalUri.toString())) {
+              denylist.contains(element.library.canonicalUri.toString())) {
             collect(element);
           }
         }
