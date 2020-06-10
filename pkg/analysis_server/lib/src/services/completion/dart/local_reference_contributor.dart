@@ -31,8 +31,10 @@ class LocalReferenceContributor extends DartCompletionContributor {
   /// The kind of suggestion to make.
   CompletionSuggestionKind classMemberSuggestionKind;
 
-  /// The set of known previously declared names in this contributor.
-  Set<String> declaredNames = {};
+  /// The [_VisibilityTracker] tracks the set of elements already added in the
+  /// completion list, this object helps prevents suggesting elements that have
+  /// been shadowed by local declarations.
+  _VisibilityTracker visibilityTracker = _VisibilityTracker();
 
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
@@ -67,7 +69,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
           node = node.parent.parent;
         }
 
-        localVisitor = _LocalVisitor(request, builder,
+        localVisitor = _LocalVisitor(request, builder, visibilityTracker,
             suggestLocalFields: suggestLocalFields);
         try {
           builder.laterReplacesEarlier = false;
@@ -79,9 +81,6 @@ class LocalReferenceContributor extends DartCompletionContributor {
     }
 
     // From this point forward the logic is for the inherited references.
-    if (localVisitor != null && !localVisitor.declaredNames.isEmpty) {
-      declaredNames = Set.from(localVisitor.declaredNames);
-    }
     if (request.includeIdentifiers) {
       var member = _enclosingMember(request.target);
       if (member != null) {
@@ -93,12 +92,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
         }
       }
     }
-
-    if (localVisitor == null) {
-      return const <CompletionSuggestion>[];
-    } else {
-      return localVisitor.suggestions;
-    }
+    return const <CompletionSuggestion>[];
   }
 
   void _addSuggestionsForType(InterfaceType type, DartCompletionRequest request,
@@ -107,7 +101,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
     var opType = request.opType;
     if (!isFunctionalArgument) {
       for (var accessor in type.accessors) {
-        if (_shouldSuggest(accessor.declaration)) {
+        if (visibilityTracker._isVisible(accessor.declaration)) {
           if (accessor.isGetter) {
             if (opType.includeReturnValueSuggestions) {
               memberBuilder.addSuggestionForAccessor(
@@ -123,7 +117,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
       }
     }
     for (var method in type.methods) {
-      if (_shouldSuggest(method.declaration)) {
+      if (visibilityTracker._isVisible(method.declaration)) {
         if (method.returnType == null) {
           memberBuilder.addSuggestionForMethod(
               method: method,
@@ -185,12 +179,6 @@ class LocalReferenceContributor extends DartCompletionContributor {
     }
     return null;
   }
-
-  /// Before completions are added by this contributor, we verify with this
-  /// method if the element has already been added, this prevents suggesting
-  /// [Element]s that are shadowed.
-  bool _shouldSuggest(Element element) =>
-      element != null && declaredNames.add(element.name);
 }
 
 /// A visitor for collecting suggestions from the most specific child [AstNode]
@@ -216,18 +204,15 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   /// A flag indicating whether local fields should be suggested.
   final bool suggestLocalFields;
 
-  final Map<String, CompletionSuggestion> suggestionMap =
-      <String, CompletionSuggestion>{};
-
   /// Only used when [useNewRelevance] is `false`.
   int privateMemberRelevance = DART_RELEVANCE_DEFAULT;
 
-  /// As elements are added locally, walking up the AST structure, we don't add
-  /// completions if we have previously see some [Element] name.
-  final Set<String> declaredNames = {};
+  _VisibilityTracker visibilityTracker;
 
-  _LocalVisitor(this.request, this.builder, {@required this.suggestLocalFields})
-      : opType = request.opType,
+  _LocalVisitor(this.request, this.builder, this.visibilityTracker,
+      {@required this.suggestLocalFields})
+      : assert(visibilityTracker != null),
+        opType = request.opType,
         useNewRelevance = request.useNewRelevance,
         targetIsFunctionalArgument = request.target.isFunctionalArgument(),
         super(request.offset) {
@@ -258,9 +243,6 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     }
   }
 
-  /// Return the suggestions that have been computed.
-  List<CompletionSuggestion> get suggestions => suggestionMap.values.toList();
-
   TypeProvider get typeProvider => request.libraryElement.typeProvider;
 
   CompletionSuggestionKind get _defaultKind => targetIsFunctionalArgument
@@ -270,7 +252,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   @override
   void declaredClass(ClassDeclaration declaration) {
     var classElt = declaration.declaredElement;
-    if (_shouldSuggest(classElt)) {
+    if (visibilityTracker._isVisible(classElt)) {
       if (opType.includeTypeNameSuggestions) {
         builder.suggestClass(classElt, kind: _defaultKind);
       }
@@ -303,7 +285,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredEnum(EnumDeclaration declaration) {
-    if (_shouldSuggest(declaration.declaredElement) &&
+    if (visibilityTracker._isVisible(declaration.declaredElement) &&
         opType.includeTypeNameSuggestions) {
       builder.suggestClass(declaration.declaredElement, kind: _defaultKind);
       for (var enumConstant in declaration.constants) {
@@ -316,7 +298,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredExtension(ExtensionDeclaration declaration) {
-    if (_shouldSuggest(declaration.declaredElement) &&
+    if (visibilityTracker._isVisible(declaration.declaredElement) &&
         opType.includeReturnValueSuggestions &&
         declaration.name != null) {
       builder.suggestExtension(declaration.declaredElement, kind: _defaultKind);
@@ -326,7 +308,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   @override
   void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
     var field = varDecl.declaredElement;
-    if ((_shouldSuggest(field) &&
+    if ((visibilityTracker._isVisible(field) &&
             opType.includeReturnValueSuggestions &&
             (!opType.inStaticMethodBody || fieldDecl.isStatic)) ||
         suggestLocalFields) {
@@ -344,7 +326,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredFunction(FunctionDeclaration declaration) {
-    if (_shouldSuggest(declaration.declaredElement) &&
+    if (visibilityTracker._isVisible(declaration.declaredElement) &&
         (opType.includeReturnValueSuggestions ||
             opType.includeVoidReturnSuggestions)) {
       if (declaration.isSetter) {
@@ -390,7 +372,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredLocalVar(SimpleIdentifier id, TypeAnnotation typeName) {
-    if (_shouldSuggest(id.staticElement) &&
+    if (visibilityTracker._isVisible(id.staticElement) &&
         opType.includeReturnValueSuggestions) {
       builder.suggestLocalVariable(id.staticElement as LocalVariableElement);
     }
@@ -399,7 +381,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   @override
   void declaredMethod(MethodDeclaration declaration) {
     var element = declaration.declaredElement;
-    if (_shouldSuggest(element) &&
+    if (visibilityTracker._isVisible(element) &&
         (opType.includeReturnValueSuggestions ||
             opType.includeVoidReturnSuggestions) &&
         (!opType.inStaticMethodBody || declaration.isStatic)) {
@@ -423,7 +405,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredMixin(MixinDeclaration declaration) {
-    if (_shouldSuggest(declaration.declaredElement) &&
+    if (visibilityTracker._isVisible(declaration.declaredElement) &&
         opType.includeTypeNameSuggestions) {
       builder.suggestClass(declaration.declaredElement, kind: _defaultKind);
     }
@@ -432,7 +414,8 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   @override
   void declaredParam(SimpleIdentifier id, TypeAnnotation typeName) {
     var element = id.staticElement;
-    if (_shouldSuggest(element) && opType.includeReturnValueSuggestions) {
+    if (visibilityTracker._isVisible(element) &&
+        opType.includeReturnValueSuggestions) {
       if (_isUnused(id.name)) {
         return;
       }
@@ -448,7 +431,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   void declaredTopLevelVar(
       VariableDeclarationList varList, VariableDeclaration varDecl) {
     var variableElement = varDecl.declaredElement;
-    if (_shouldSuggest(variableElement) &&
+    if (visibilityTracker._isVisible(variableElement) &&
         opType.includeReturnValueSuggestions) {
       builder.suggestTopLevelPropertyAccessor(
           (variableElement as TopLevelVariableElement).getter);
@@ -457,7 +440,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredTypeParameter(TypeParameter node) {
-    if (_shouldSuggest(node.declaredElement) &&
+    if (visibilityTracker._isVisible(node.declaredElement) &&
         opType.includeTypeNameSuggestions) {
       builder.suggestTypeParameter(node.declaredElement);
     }
@@ -476,10 +459,18 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     }
     return false;
   }
+}
+
+/// This class tracks the set of elements already added in the completion list,
+/// this object helps prevents suggesting elements that have been shadowed by
+/// local declarations.
+class _VisibilityTracker {
+  /// The set of known previously declared names in this contributor.
+  final Set<String> declaredNames = {};
 
   /// Before completions are added by this contributor, we verify with this
   /// method if the element has already been added, this prevents suggesting
   /// [Element]s that are shadowed.
-  bool _shouldSuggest(Element element) =>
+  bool _isVisible(Element element) =>
       element != null && declaredNames.add(element.name);
 }
