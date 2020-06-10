@@ -78,6 +78,11 @@ class TypeVariable {
   const TypeVariable(this.owner, this.name, this.bound);
 }
 
+getMangledTypeName(Type t) {
+  TypeImpl type = t as TypeImpl;
+  return type._typeName;
+}
+
 /// Sets the runtime type information on [target]. [rti] is a type
 /// representation of type 4 or 5, that is, either a JavaScript array or `null`.
 ///
@@ -349,8 +354,52 @@ String _joinArguments(var types, int startIndex, List<String>? genericContext) {
   return '<$buffer>';
 }
 
+/// Returns a human-readable representation of the type of [object].
+///
+/// In minified mode does *not* use unminified identifiers (even when present).
+String getRuntimeTypeString(var object) {
+  if (object is Closure) {
+    // This excludes classes that implement Function via a `call` method, but
+    // includes classes generated to represent closures in closure conversion.
+    var functionRti = extractFunctionTypeObjectFrom(object);
+    if (functionRti != null) {
+      return runtimeTypeToString(functionRti);
+    }
+  }
+  String className = getClassName(object);
+  if (object == null) return className;
+  String rtiName = JS_GET_NAME(JsGetName.RTI_NAME);
+  var rti = JS('var', r'#[#]', object, rtiName);
+  return "$className${joinArguments(rti, 0)}";
+}
+
+/// Returns the full type of [o] in the runtime type representation.
+getRti(o) {
+  if (o is Closure) {
+    // This excludes classes that implement Function via a `call` method, but
+    // includes classes generated to represent closures in closure conversion.
+    var functionRti = extractFunctionTypeObjectFrom(o);
+    if (functionRti != null) return functionRti;
+  }
+  var interceptor = getInterceptor(o);
+  var type = getRawRuntimeType(interceptor);
+  if (o == null) return type;
+  if (JS('bool', 'typeof # != "object"', o)) return type;
+  var rti = getRuntimeTypeInfo(o);
+  if (rti != null) {
+    // If the type has type variables (that is, `rti != null`), make a copy of
+    // the type arguments and insert [o] in the first position to create a
+    // compound type representation.
+    rti = JS('JSExtendableArray', '#.slice()', rti); // Make a copy.
+    JS('', '#.splice(0, 0, #)', rti, type); // Insert type at position 0.
+    type = rti;
+  }
+  return type;
+}
+
 Type getRuntimeType(var object) {
-  return newRti.getRuntimeType(object);
+  if (JS_GET_FLAG('USE_NEW_RTI')) return newRti.getRuntimeType(object);
+  return new TypeImpl(getRti(object));
 }
 
 /// Applies the [substitution] on the [arguments].
@@ -377,6 +426,31 @@ substitute(var substitution, var arguments) {
   return arguments;
 }
 
+/// Perform a type check with arguments on the Dart object [object].
+///
+/// Parameters:
+/// - [isField]: the name of the flag/function to check if the object
+///   is of the correct class.
+/// - [checks]: the (JavaScript) list of type representations for the
+///   arguments to check against.
+/// - [asField]: the name of the function that transforms the type
+///   arguments of [objects] to an instance of the class that we check
+///   against.
+bool checkSubtype(Object object, String isField, List checks, String asField) {
+  if (object == null) return false;
+  var arguments = getRuntimeTypeInfo(object);
+  // Interceptor is needed for JSArray and native classes.
+  // TODO(sra): It could be a more specialized interceptor since [object] is not
+  // `null` or a primitive.
+  var interceptor = getInterceptor(object);
+  var isSubclass = getField(interceptor, isField);
+  // When we read the field and it is not there, [isSubclass] will be `null`.
+  if (isSubclass == null) return false;
+  // Should the asField function be passed the receiver?
+  var substitution = getField(interceptor, asField);
+  return checkArguments(substitution, arguments, null, checks, null);
+}
+
 /// Returns the field's type name.
 ///
 /// In minified mode, uses the unminified names if available.
@@ -385,6 +459,38 @@ String computeTypeName(String isField, List arguments) {
   // representation of the type arguments.
   return Primitives.formatType(
       unminifyOrTag(isCheckPropertyToJsConstructorName(isField)), arguments);
+}
+
+/// Called from generated code.
+Object subtypeCast(Object object, String isField, List checks, String asField) {
+  if (object == null) return object;
+  if (checkSubtype(object, isField, checks, asField)) return object;
+  String typeName = computeTypeName(isField, checks);
+  throw new CastErrorImplementation(object, typeName);
+}
+
+/// Called from generated code.
+Object assertSubtype(
+    Object object, String isField, List checks, String asField) {
+  if (object == null) return object;
+  if (checkSubtype(object, isField, checks, asField)) return object;
+  String typeName = computeTypeName(isField, checks);
+  throw new TypeErrorImplementation(object, typeName);
+}
+
+/// Checks that the type represented by [subtype] is a subtype of [supertype].
+/// If not a type error is thrown using [prefix], [infix], [suffix] and the
+/// runtime types [subtype] and [supertype] to generate the error message.
+///
+/// Called from generated code.
+assertIsSubtype(
+    var subtype, var supertype, String prefix, String infix, String suffix) {
+  if (!isSubtype(subtype, supertype)) {
+    String message = "TypeError: "
+        "$prefix${runtimeTypeToString(subtype)}$infix"
+        "${runtimeTypeToString(supertype)}$suffix";
+    throwTypeError(message);
+  }
 }
 
 throwTypeError(message) {
@@ -451,6 +557,46 @@ bool isTopType(var type) {
       isDartJsInteropTypeArgumentRti(type);
 }
 
+/// Returns `true` if the runtime type representation [type] is a supertype of
+/// [Null].
+@pragma('dart2js:tryInline')
+bool isSupertypeOfNull(var type) {
+  return isSupertypeOfNullBase(type) || isSupertypeOfNullRecursive(type);
+}
+
+/// Returns `true` if the runtime type representation [type] is a simple
+/// supertype of [Null].
+///
+/// This method doesn't handle `FutureOr<Null>`. This is handle by
+/// [isSupertypeOfNullRecursive] because it requires a recursive check.
+@pragma('dart2js:tryInline')
+bool isSupertypeOfNullBase(var type) {
+  return isDartDynamicTypeRti(type) ||
+      isDartObjectTypeRti(type) ||
+      isNullTypeRti(type) ||
+      isDartVoidTypeRti(type) ||
+      isDartJsInteropTypeArgumentRti(type);
+}
+
+/// Returns `true` if the runtime type representation [type] is a `FutureOr`
+/// type that is a supertype of [Null].
+///
+/// This method is recursive to be able to handle both `FutureOr<Null>` and
+/// `FutureOr<FutureOr<Null>>` etc.
+bool isSupertypeOfNullRecursive(var type) {
+  if (isGenericFunctionTypeParameter(type)) {
+    // We need to check for function type variables because `isDartFutureOrType`
+    // doesn't work on numbers.
+    return false;
+  }
+  if (isDartFutureOrType(type)) {
+    var typeArgument = getFutureOrArgument(type);
+    return isSupertypeOfNullBase(type) ||
+        isSupertypeOfNullRecursive(typeArgument);
+  }
+  return false;
+}
+
 /// Returns the type argument of the `FutureOr` runtime type representation
 /// [type].
 ///
@@ -462,6 +608,63 @@ Object getFutureOrArgument(var type) {
   return hasField(type, typeArgumentTag)
       ? getField(type, typeArgumentTag)
       : null;
+}
+
+/// Tests whether the Dart object [o] is a subtype of the runtime type
+/// representation [t].
+///
+/// See the comment in the beginning of this file for a description of type
+/// representations.
+bool checkSubtypeOfRuntimeType(o, t) {
+  if (o == null) return isSupertypeOfNull(t);
+  if (isTopType(t)) return true;
+  if (JS('bool', 'typeof # == "object"', t)) {
+    if (isDartFutureOrType(t)) {
+      // `o is FutureOr<T>` is equivalent to
+      //
+      //     o is T || o is Future<T>
+      //
+      // T might be a function type, requiring extracting the closure's
+      // signature, so do the `o is T` check here and let the `Future` interface
+      // type test fall through to the `isSubtype` check at the end of this
+      // function.
+      var tTypeArgument = getFutureOrArgument(t);
+      if (checkSubtypeOfRuntimeType(o, tTypeArgument)) return true;
+    }
+
+    if (isDartFunctionType(t)) {
+      return functionTypeTest(o, t);
+    }
+  }
+
+  var interceptor = getInterceptor(o);
+  var type = getRawRuntimeType(interceptor);
+  var rti = getRuntimeTypeInfo(o);
+  if (rti != null) {
+    // If the type has type variables (that is, `rti != null`), make a copy of
+    // the type arguments and insert [o] in the first position to create a
+    // compound type representation.
+    rti = JS('JSExtendableArray', '#.slice()', rti); // Make a copy.
+    JS('', '#.splice(0, 0, #)', rti, type); // Insert type at position 0.
+    type = rti;
+  }
+  return isSubtype(type, t);
+}
+
+/// Called from generated code.
+Object subtypeOfRuntimeTypeCast(Object object, var type) {
+  if (object != null && !checkSubtypeOfRuntimeType(object, type)) {
+    throw new CastErrorImplementation(object, runtimeTypeToString(type));
+  }
+  return object;
+}
+
+/// Called from generated code.
+Object assertSubtypeOfRuntimeType(Object object, var type) {
+  if (object != null && !checkSubtypeOfRuntimeType(object, type)) {
+    throw new TypeErrorImplementation(object, runtimeTypeToString(type));
+  }
+  return object;
 }
 
 /// Extracts the type arguments from a type representation. The result is a

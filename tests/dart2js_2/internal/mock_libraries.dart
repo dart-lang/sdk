@@ -147,10 +147,15 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'assertThrow': 'assertThrow(a) {}',
   'assertHelper': 'assertHelper(a) {}',
   'assertUnreachable': 'assertUnreachable() {}',
+  'assertIsSubtype': 'assertIsSubtype(subtype, supertype, message) {}',
   'assertSubtype': 'assertSubtype(object, isField, checks, asField) {}',
+  'assertSubtypeOfRuntimeType': 'assertSubtypeOfRuntimeType(object, type) {}',
   'asyncHelper': 'asyncHelper(object, asyncBody, completer) {}',
   'boolConversionCheck': 'boolConversionCheck(x) {}',
+  'boolTypeCast': 'boolTypeCast(value) {}',
+  'boolTypeCheck': 'boolTypeCheck(value) {}',
   'checkSubtype': 'checkSubtype(object, isField, checks, asField) {}',
+  'checkSubtypeOfRuntimeType': 'checkSubtypeOfRuntimeType(o, t) {}',
   'BoundClosure': r'''abstract class BoundClosure extends Closure {
     var self;
     var target;
@@ -188,6 +193,8 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'ConstantStringMap': 'class ConstantStringMap<K, V> {}',
   'createInvocationMirror': 'createInvocationMirror(a0, a1, a2, a3, a4, a5) {}',
   'createRuntimeType': 'createRuntimeType(a) {}',
+  'doubleTypeCast': 'doubleTypeCast(value) {}',
+  'doubleTypeCheck': 'doubleTypeCheck(value) {}',
   'functionSubtypeCast':
       r'''functionSubtypeCast(Object object, String signatureName,
                               String contextName, var context) {}''',
@@ -197,6 +204,12 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
         buildNamedFunctionType(null, null, null);
         buildInterfaceType(null, null);
       }''',
+  'functionTypeTest': r'functionTypeTest(f, t) {}',
+  'functionTypeCast': r'functionTypeCast(f, t) { return f; }',
+  'functionTypeCheck': r'functionTypeCheck(f, t) { return f; }',
+  'futureOrTest': r'futureOrTest(f, t) {}',
+  'futureOrCast': r'futureOrCast(f, t) { return f; }',
+  'futureOrCheck': r'futureOrCheck(f, t) { return f; }',
   'getFallThroughError': 'getFallThroughError() {}',
   'getIsolateAffinityTag': 'getIsolateAffinityTag(_) {}',
   'getRuntimeTypeArgumentIntercepted':
@@ -215,23 +228,41 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'Instantiation3': 'class Instantiation3<T1,T2,T3> extends Closure {}',
   'interceptedTypeCast': 'interceptedTypeCast(value, property) {}',
   'interceptedTypeCheck': 'interceptedTypeCheck(value, property) {}',
+  'intTypeCast': 'intTypeCast(value) {}',
+  'intTypeCheck': 'intTypeCheck(value) {}',
   'isJsIndexable': 'isJsIndexable(a, b) {}',
   'JavaScriptIndexingBehavior': 'abstract class JavaScriptIndexingBehavior {}',
   'JSInvocationMirror': r'''
   class JSInvocationMirror {
     get typeArguments => null;
   }''',
+  'listSuperNativeTypeCast': 'listSuperNativeTypeCast(value) {}',
+  'listSuperNativeTypeCheck': 'listSuperNativeTypeCheck(value) {}',
+  'listSuperTypeCast': 'listSuperTypeCast(value) {}',
+  'listSuperTypeCheck': 'listSuperTypeCheck(value) {}',
+  'listTypeCast': 'listTypeCast(value) {}',
+  'listTypeCheck': 'listTypeCheck(value) {}',
   'makeLiteralMap': 'makeLiteralMap(List keyValuePairs) {}',
   'Native': 'class Native {}',
   'NoInline': 'class NoInline {}',
   'ForceInline': 'class ForceInline {}',
   'NoSideEffects': 'class NoSideEffects {}',
   'NoThrows': 'class NoThrows {}',
+  'numberOrStringSuperNativeTypeCast':
+      'numberOrStringSuperNativeTypeCast(value) {}',
+  'numberOrStringSuperNativeTypeCheck':
+      'numberOrStringSuperNativeTypeCheck(value) {}',
+  'numberOrStringSuperTypeCast': 'numberOrStringSuperTypeCast(value) {}',
+  'numberOrStringSuperTypeCheck': 'numberOrStringSuperTypeCheck(value) {}',
+  'numTypeCast': 'numTypeCast(value) {}',
+  'numTypeCheck': 'numTypeCheck(value) {}',
   '_Patch': 'class _Patch { final tag; const _Patch(this.tag); }',
   'patch': 'const patch = const _Patch(null);',
   'patch_full': 'const patch_full = const _Patch("full");',
   'patch_lazy': 'const patch_lazy = const _Patch("lazy");',
   'patch_startup': 'const patch_startup = const _Patch("startup");',
+  'propertyTypeCast': 'propertyTypeCast(x) {}',
+  'propertyTypeCheck': 'propertyTypeCheck(value, property) {}',
   'requiresPreamble': 'requiresPreamble() {}',
   'RuntimeFunctionType': 'class RuntimeFunctionType {}',
   'RuntimeTypeGeneric': 'class RuntimeTypeGeneric {}',
@@ -239,6 +270,13 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'runtimeTypeToString': 'runtimeTypeToString(type, {onTypeVariable(i)}) {}',
   'S': 'S() {}',
   'setRuntimeTypeInfo': 'setRuntimeTypeInfo(a, b) {}',
+  'stringSuperNativeTypeCast': 'stringSuperNativeTypeCast(value) {}',
+  'stringSuperNativeTypeCheck': 'stringSuperNativeTypeCheck(value) {}',
+  'stringSuperTypeCast': 'stringSuperTypeCast(value) {}',
+  'stringSuperTypeCheck': 'stringSuperTypeCheck(value) {}',
+  'stringTypeCast': 'stringTypeCast(x) {}',
+  'stringTypeCheck': 'stringTypeCheck(x) {}',
+  'subtypeCast': 'subtypeCast(object, isField, checks, asField) {}',
   'subtypeOfRuntimeTypeCast': 'subtypeOfRuntimeTypeCast(object, type) {}',
   'throwAbstractClassInstantiationError':
       'throwAbstractClassInstantiationError(className) {}',

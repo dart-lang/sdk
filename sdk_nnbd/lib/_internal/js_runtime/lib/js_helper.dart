@@ -2824,6 +2824,212 @@ boolConversionCheck(value) {
   return value;
 }
 
+stringTypeCheck(value) {
+  if (value == null) return value;
+  if (value is String) return value;
+  throw new TypeErrorImplementation(value, 'String');
+}
+
+stringTypeCast(value) {
+  if (value is String || value == null) return value;
+  throw new CastErrorImplementation(value, 'String');
+}
+
+doubleTypeCheck(value) {
+  if (value == null) return value;
+  if (value is double) return value;
+  throw new TypeErrorImplementation(value, 'double');
+}
+
+doubleTypeCast(value) {
+  if (value is double || value == null) return value;
+  throw new CastErrorImplementation(value, 'double');
+}
+
+numTypeCheck(value) {
+  if (value == null) return value;
+  if (value is num) return value;
+  throw new TypeErrorImplementation(value, 'num');
+}
+
+numTypeCast(value) {
+  if (value is num || value == null) return value;
+  throw new CastErrorImplementation(value, 'num');
+}
+
+boolTypeCheck(value) {
+  if (value == null) return value;
+  if (value is bool) return value;
+  throw new TypeErrorImplementation(value, 'bool');
+}
+
+boolTypeCast(value) {
+  if (value is bool || value == null) return value;
+  throw new CastErrorImplementation(value, 'bool');
+}
+
+intTypeCheck(value) {
+  if (value == null) return value;
+  if (value is int) return value;
+  throw new TypeErrorImplementation(value, 'int');
+}
+
+intTypeCast(value) {
+  if (value is int || value == null) return value;
+  throw new CastErrorImplementation(value, 'int');
+}
+
+void propertyTypeError(value, property) {
+  String name = isCheckPropertyToJsConstructorName(property);
+  throw new TypeErrorImplementation(value, unminifyOrTag(name));
+}
+
+void propertyTypeCastError(value, property) {
+  // Cuts the property name to the class name.
+  String name = isCheckPropertyToJsConstructorName(property);
+  throw new CastErrorImplementation(value, unminifyOrTag(name));
+}
+
+/// For types that are not supertypes of native (eg DOM) types,
+/// we emit a simple property check to check that an object implements
+/// that type.
+propertyTypeCheck(value, property) {
+  if (value == null) return value;
+  if (JS('bool', '!!#[#]', value, property)) return value;
+  propertyTypeError(value, property);
+}
+
+/// For types that are not supertypes of native (eg DOM) types,
+/// we emit a simple property check to check that an object implements
+/// that type.
+propertyTypeCast(value, property) {
+  if (value == null || JS('bool', '!!#[#]', value, property)) return value;
+  propertyTypeCastError(value, property);
+}
+
+/// For types that are supertypes of native (eg DOM) types, we use the
+/// interceptor for the class because we cannot add a JS property to the
+/// prototype at load time.
+interceptedTypeCheck(value, property) {
+  if (value == null) return value;
+  if ((JS('bool', 'typeof # === "object"', value) ||
+          JS('bool', 'typeof # === "function"', value)) &&
+      JS('bool', '#[#]', getInterceptor(value), property)) {
+    return value;
+  }
+  propertyTypeError(value, property);
+}
+
+/// For types that are supertypes of native (eg DOM) types, we use the
+/// interceptor for the class because we cannot add a JS property to the
+/// prototype at load time.
+interceptedTypeCast(value, property) {
+  if (value == null ||
+      ((JS('bool', 'typeof # === "object"', value) ||
+              JS('bool', 'typeof # === "function"', value)) &&
+          JS('bool', '#[#]', getInterceptor(value), property))) {
+    return value;
+  }
+  propertyTypeCastError(value, property);
+}
+
+/// Specialization of the type check for num and String and their
+/// supertype since [value] can be a JS primitive.
+numberOrStringSuperTypeCheck(value, property) {
+  if (value == null) return value;
+  if (value is String) return value;
+  if (value is num) return value;
+  if (JS('bool', '!!#[#]', value, property)) return value;
+  propertyTypeError(value, property);
+}
+
+numberOrStringSuperTypeCast(value, property) {
+  if (value is String) return value;
+  if (value is num) return value;
+  return propertyTypeCast(value, property);
+}
+
+numberOrStringSuperNativeTypeCheck(value, property) {
+  if (value == null) return value;
+  if (value is String) return value;
+  if (value is num) return value;
+  if (JS('bool', '#[#]', getInterceptor(value), property)) return value;
+  propertyTypeError(value, property);
+}
+
+numberOrStringSuperNativeTypeCast(value, property) {
+  if (value == null) return value;
+  if (value is String) return value;
+  if (value is num) return value;
+  if (JS('bool', '#[#]', getInterceptor(value), property)) return value;
+  propertyTypeCastError(value, property);
+}
+
+/// Specialization of the type check for String and its supertype
+/// since [value] can be a JS primitive.
+stringSuperTypeCheck(value, property) {
+  if (value == null) return value;
+  if (value is String) return value;
+  if (JS('bool', '!!#[#]', value, property)) return value;
+  propertyTypeError(value, property);
+}
+
+stringSuperTypeCast(value, property) {
+  if (value is String) return value;
+  return propertyTypeCast(value, property);
+}
+
+stringSuperNativeTypeCheck(value, property) {
+  if (value == null) return value;
+  if (value is String) return value;
+  if (JS('bool', '#[#]', getInterceptor(value), property)) return value;
+  propertyTypeError(value, property);
+}
+
+stringSuperNativeTypeCast(value, property) {
+  if (value is String || value == null) return value;
+  if (JS('bool', '#[#]', getInterceptor(value), property)) return value;
+  propertyTypeCastError(value, property);
+}
+
+/// Specialization of the type check for List and its supertypes,
+/// since [value] can be a JS array.
+listTypeCheck(value) {
+  if (value == null) return value;
+  if (value is List) return value;
+  throw new TypeErrorImplementation(value, 'List<dynamic>');
+}
+
+listTypeCast(value) {
+  if (value is List || value == null) return value;
+  throw new CastErrorImplementation(value, 'List<dynamic>');
+}
+
+listSuperTypeCheck(value, property) {
+  if (value == null) return value;
+  if (value is List) return value;
+  if (JS('bool', '!!#[#]', value, property)) return value;
+  propertyTypeError(value, property);
+}
+
+listSuperTypeCast(value, property) {
+  if (value is List) return value;
+  return propertyTypeCast(value, property);
+}
+
+listSuperNativeTypeCheck(value, property) {
+  if (value == null) return value;
+  if (value is List) return value;
+  if (JS('bool', '#[#]', getInterceptor(value), property)) return value;
+  propertyTypeError(value, property);
+}
+
+listSuperNativeTypeCast(value, property) {
+  if (value is List || value == null) return value;
+  if (JS('bool', '#[#]', getInterceptor(value), property)) return value;
+  propertyTypeCastError(value, property);
+}
+
 extractFunctionTypeObjectFrom(o) {
   var interceptor = getInterceptor(o);
   return extractFunctionTypeObjectFromInternal(interceptor);
@@ -2841,6 +3047,59 @@ extractFunctionTypeObjectFromInternal(o) {
   }
   return null;
 }
+
+functionTypeTest(value, functionTypeRti) {
+  if (value == null) return false;
+  if (JS('bool', 'typeof # == "function"', value)) {
+    // JavaScript functions do not have an attached type, but for convenient
+    // JS-interop, we pretend they can be any function type.
+    // TODO(sra): Tighten this up to disallow matching function types with
+    // features inaccessible from JavaScript, i.e.  optional named parameters
+    // and type parameters functions.
+    // TODO(sra): If the JavaScript function was the output of `dart:js`'s
+    // `allowInterop` then we have access to the wrapped function.
+    return true;
+  }
+  var functionTypeObject = extractFunctionTypeObjectFrom(value);
+  if (functionTypeObject == null) return false;
+  return isFunctionSubtype(functionTypeObject, functionTypeRti);
+}
+
+// Declared as 'var' to avoid assignment checks.
+var _inTypeAssertion = false;
+
+functionTypeCheck(value, functionTypeRti) {
+  if (value == null) return value;
+
+  // The function type test code contains type assertions for function
+  // types. This leads to unbounded recursion, so disable the type checking of
+  // function types while checking function types.
+
+  if (true == _inTypeAssertion) return value;
+
+  _inTypeAssertion = true;
+  try {
+    if (functionTypeTest(value, functionTypeRti)) return value;
+    var self = runtimeTypeToString(functionTypeRti);
+    throw new TypeErrorImplementation(value, self);
+  } finally {
+    _inTypeAssertion = false;
+  }
+}
+
+functionTypeCast(value, functionTypeRti) {
+  if (value == null) return value;
+  if (functionTypeTest(value, functionTypeRti)) return value;
+
+  var self = runtimeTypeToString(functionTypeRti);
+  throw new CastErrorImplementation(value, self);
+}
+
+futureOrTest(o, futureOrRti) => checkSubtypeOfRuntimeType(o, futureOrRti);
+
+futureOrCheck(o, futureOrRti) => assertSubtypeOfRuntimeType(o, futureOrRti);
+
+futureOrCast(o, futureOrRti) => subtypeOfRuntimeTypeCast(o, futureOrRti);
 
 @pragma('dart2js:noInline')
 void checkDeferredIsLoaded(String loadId) {
