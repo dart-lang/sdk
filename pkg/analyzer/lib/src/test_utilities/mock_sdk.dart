@@ -905,6 +905,8 @@ library dart.io;
 
 import 'dart:convert';
 
+Never exit(int code) => throw code;
+
 abstract class Directory implements FileSystemEntity {
   factory Directory(String path) {
     throw 0;

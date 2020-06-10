@@ -4066,6 +4066,20 @@ void g() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_migrate_reference_to_never() async {
+    var content = '''
+import 'dart:io';
+int f() =>
+  exit(1); // this returns `Never` which used to cause a crash.
+''';
+    var expected = '''
+import 'dart:io';
+int f() =>
+  exit(1); // this returns `Never` which used to cause a crash.
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_multiDeclaration_innerUsage() async {
     var content = '''
 void test() {
