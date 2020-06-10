@@ -253,6 +253,7 @@ StringBuffer tokenStreamToString(Token firstToken, List<int> lineStarts,
     lineStartsIterator.moveNext();
     lineStartsIteratorLine++;
 
+    Set<Token> seenTokens = new Set<Token>.identity();
     while (token != null) {
       if (errorTokens && token is! ErrorToken) return token;
       if (!errorTokens && token is ErrorToken) {
@@ -286,6 +287,15 @@ StringBuffer tokenStreamToString(Token firstToken, List<int> lineStarts,
       endOfLast = token.end;
       if (token == token.next) break;
       token = token.next;
+      if (!seenTokens.add(token)) {
+        // Loop in tokens: Print error and break to avoid infinite loop.
+        sb.write("\n\nERROR: Loop in tokens: $token "
+            "(${token.runtimeType}, ${token.type}, ${token.offset})) "
+            "was seen before "
+            "(linking to ${token.next}, ${token.next.runtimeType}, "
+            "${token.next.type}, ${token.next.offset})!\n\n");
+        break;
+      }
     }
 
     return token;
