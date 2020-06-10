@@ -68,8 +68,13 @@
 
 #### Linter
 
-Updated the Linter to `0.1.116`, which includes:
+Updated the Linter to `0.1.117`, which includes:
 
+* Fixed `directives_ordering` to remove third party package special-casing.
+* Fixed `unnecessary_lambdas` to check for tearoff assignability.
+* Fixed `prefer_is_empty` to special-case assert initializers and const contexts.
+* Test utilities moved to: `lib/src/test_utilities`.
+* New lint: `do_not_use_environment`.
 * New lint: `no_default_cases` (experimental).
 * New lint: `exhaustive_cases`.
 * Updated `type_annotate_public_apis` to allow inferred types in final field assignments.
