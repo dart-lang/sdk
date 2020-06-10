@@ -19,7 +19,6 @@ import 'package:analysis_server/src/services/completion/dart/extension_member_co
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/field_formal_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/inherited_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/keyword_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/label_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/library_member_contributor.dart';
@@ -134,7 +133,6 @@ class DartCompletionManager implements CompletionContributor {
       CombinatorContributor(),
       ExtensionMemberContributor(),
       FieldFormalContributor(),
-      InheritedReferenceContributor(),
       KeywordContributor(),
       LabelContributor(),
       LibraryMemberContributor(),

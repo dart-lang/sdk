@@ -15,7 +15,6 @@ import 'completion_ranking_test.dart' as completion_ranking_test;
 import 'extension_member_contributor_test.dart' as extension_member_contributor;
 import 'field_formal_contributor_test.dart' as field_formal_contributor_test;
 import 'imported_reference_contributor_test.dart' as imported_ref_test;
-import 'inherited_reference_contributor_test.dart' as inherited_ref_test;
 import 'keyword_contributor_test.dart' as keyword_test;
 import 'label_contributor_test.dart' as label_contributor_test;
 // ignore: unused_import
@@ -45,7 +44,6 @@ void main() {
     extension_member_contributor.main();
     field_formal_contributor_test.main();
     imported_ref_test.main();
-    inherited_ref_test.main();
     keyword_test.main();
     label_contributor_test.main();
     // TODO(brianwilkerson) Run this test when it's been updated to not rely on
