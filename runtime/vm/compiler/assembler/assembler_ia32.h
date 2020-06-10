@@ -298,8 +298,6 @@ class Assembler : public AssemblerBase {
   void cmovlessl(Register dst, Register src);
 
   void rep_movsb();
-  void rep_movsw();
-  void rep_movsl();
 
   void movss(XmmRegister dst, const Address& src);
   void movss(const Address& dst, XmmRegister src);

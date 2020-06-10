@@ -76,9 +76,9 @@ static inline Condition InvertCondition(Condition c) {
   F(cdq, 0x99)                                                                 \
   F(fwait, 0x9B)                                                               \
   F(movsb, 0xA4)                                                               \
-  F(movs, 0xA5) /* Size suffix added in code */                                \
+  F(movsl, 0xA5)                                                               \
   F(cmpsb, 0xA6)                                                               \
-  F(cmps, 0xA7) /* Size suffix added in code */
+  F(cmpsl, 0xA7)
 
 // clang-format off
 #define X86_ALU_CODES(F)                                                       \

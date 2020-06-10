@@ -309,19 +309,6 @@ void Assembler::rep_movsb() {
   EmitUint8(0xA4);
 }
 
-void Assembler::rep_movsw() {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xF3);
-  EmitUint8(0x66);
-  EmitUint8(0xA5);
-}
-
-void Assembler::rep_movsl() {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xF3);
-  EmitUint8(0xA5);
-}
-
 void Assembler::movss(XmmRegister dst, const Address& src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF3);

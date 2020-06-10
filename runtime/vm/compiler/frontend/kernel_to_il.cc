@@ -831,7 +831,6 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kGrowableArrayCapacity:
     case MethodRecognizer::kListFactory:
     case MethodRecognizer::kObjectArrayAllocate:
-    case MethodRecognizer::kCopyRangeFromUint8ListToOneByteString:
     case MethodRecognizer::kLinkedHashMap_getIndex:
     case MethodRecognizer::kLinkedHashMap_setIndex:
     case MethodRecognizer::kLinkedHashMap_getData:
@@ -1055,16 +1054,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadLocal(parsed_function_->RawParameterVariable(1));
       body += CreateArray();
-      break;
-    case MethodRecognizer::kCopyRangeFromUint8ListToOneByteString:
-      ASSERT(function.NumParameters() == 5);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadLocal(parsed_function_->RawParameterVariable(1));
-      body += LoadLocal(parsed_function_->RawParameterVariable(2));
-      body += LoadLocal(parsed_function_->RawParameterVariable(3));
-      body += LoadLocal(parsed_function_->RawParameterVariable(4));
-      body += MemoryCopy(kTypedDataUint8ArrayCid, kOneByteStringCid);
-      body += NullConstant();
       break;
     case MethodRecognizer::kLinkedHashMap_getIndex:
       ASSERT(function.NumParameters() == 1);

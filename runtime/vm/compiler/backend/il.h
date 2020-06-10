@@ -377,7 +377,6 @@ struct InstrAttrs {
   M(NativeParameter, kNoGC)                                                    \
   M(LoadIndexedUnsafe, kNoGC)                                                  \
   M(StoreIndexedUnsafe, kNoGC)                                                 \
-  M(MemoryCopy, kNoGC)                                                         \
   M(TailCall, kNoGC)                                                           \
   M(ParallelMove, kNoGC)                                                       \
   M(PushArgument, kNoGC)                                                       \
@@ -2690,86 +2689,6 @@ class LoadIndexedUnsafeInstr : public TemplateDefinition<1, NoThrow> {
   const Representation representation_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadIndexedUnsafeInstr);
-};
-
-class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
- public:
-  MemoryCopyInstr(Value* src,
-                  Value* dest,
-                  Value* src_start,
-                  Value* dest_start,
-                  Value* length,
-                  classid_t src_cid,
-                  classid_t dest_cid)
-      : src_cid_(src_cid),
-        dest_cid_(dest_cid),
-        element_size_(Instance::ElementSizeFor(src_cid)) {
-    ASSERT(IsArrayTypeSupported(src_cid));
-    ASSERT(IsArrayTypeSupported(dest_cid));
-    ASSERT(Instance::ElementSizeFor(src_cid) ==
-           Instance::ElementSizeFor(dest_cid));
-    SetInputAt(kSrcPos, src);
-    SetInputAt(kDestPos, dest);
-    SetInputAt(kSrcStartPos, src_start);
-    SetInputAt(kDestStartPos, dest_start);
-    SetInputAt(kLengthPos, length);
-  }
-
-  enum {
-    kSrcPos = 0,
-    kDestPos = 1,
-    kSrcStartPos = 2,
-    kDestStartPos = 3,
-    kLengthPos = 4
-  };
-
-  DECLARE_INSTRUCTION(MemoryCopy)
-
-  virtual Representation RequiredInputRepresentation(intptr_t index) const {
-    // All inputs are tagged (for now).
-    return kTagged;
-  }
-
-  virtual bool ComputeCanDeoptimize() const { return false; }
-  virtual bool HasUnknownSideEffects() const { return true; }
-
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  Value* src() const { return inputs_[kSrcPos]; }
-  Value* dest() const { return inputs_[kDestPos]; }
-  Value* src_start() const { return inputs_[kSrcStartPos]; }
-  Value* dest_start() const { return inputs_[kDestStartPos]; }
-  Value* length() const { return inputs_[kLengthPos]; }
-
- private:
-  // Set array_reg to point to the index indicated by start (contained in
-  // start_reg) of the typed data or string in array (contained in array_reg).
-  void EmitComputeStartPointer(FlowGraphCompiler* compiler,
-                               classid_t array_cid,
-                               Value* start,
-                               Register array_reg,
-                               Register start_reg);
-
-  static bool IsArrayTypeSupported(classid_t array_cid) {
-    if (IsTypedDataBaseClassId(array_cid)) {
-      return true;
-    }
-    switch (array_cid) {
-      case kOneByteStringCid:
-      case kTwoByteStringCid:
-      case kExternalOneByteStringCid:
-      case kExternalTwoByteStringCid:
-        return true;
-      default:
-        return false;
-    }
-  }
-
-  classid_t src_cid_;
-  classid_t dest_cid_;
-  intptr_t element_size_;
-
-  DISALLOW_COPY_AND_ASSIGN(MemoryCopyInstr);
 };
 
 // Unwinds the current frame and tail calls a target.

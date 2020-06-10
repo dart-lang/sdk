@@ -384,14 +384,11 @@ void Assembler::movq(const Address& dst, const Immediate& imm) {
   }
 }
 
-void Assembler::EmitSimple(int opcode, int opcode2, int opcode3) {
+void Assembler::EmitSimple(int opcode, int opcode2) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(opcode);
   if (opcode2 != -1) {
     EmitUint8(opcode2);
-    if (opcode3 != -1) {
-      EmitUint8(opcode3);
-    }
   }
 }
 

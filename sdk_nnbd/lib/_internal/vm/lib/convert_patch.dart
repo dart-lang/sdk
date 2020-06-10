@@ -12,7 +12,6 @@ import "dart:_internal"
         allocateOneByteString,
         allocateTwoByteString,
         ClassID,
-        copyRangeFromUint8ListToOneByteString,
         patch,
         POWERS_OF_TEN,
         unsafeCast,
@@ -1756,9 +1755,10 @@ class _Utf8Decoder {
     if (flags == 0) {
       // Pure ASCII.
       assert(size == end - start);
-      String result = allocateOneByteString(size);
-      copyRangeFromUint8ListToOneByteString(bytes, result, start, 0, size);
-      return result;
+      // TODO(dartbug.com/41703): String.fromCharCodes has a lot of overhead
+      // checking types and ranges, which is redundant in this case. Find a
+      // more direct way to do the conversion.
+      return String.fromCharCodes(bytes, start, end);
     }
 
     String result;
@@ -1850,9 +1850,10 @@ class _Utf8Decoder {
       // Pure ASCII.
       assert(_state == accept);
       assert(size == end - start);
-      String result = allocateOneByteString(size);
-      copyRangeFromUint8ListToOneByteString(bytes, result, start, 0, size);
-      return result;
+      // TODO(dartbug.com/41703): String.fromCharCodes has a lot of overhead
+      // checking types and ranges, which is redundant in this case. Find a
+      // more direct way to do the conversion.
+      return String.fromCharCodes(bytes, start, end);
     }
 
     // Do not include any final, incomplete character in size.
@@ -1935,6 +1936,8 @@ class _Utf8Decoder {
 
   String decode8(Uint8List bytes, int start, int end, int size) {
     assert(start < end);
+    // TODO(dartbug.com/41704): Allocate an uninitialized _OneByteString and
+    // write characters to it using _setAt.
     String result = allocateOneByteString(size);
     int i = start;
     int j = 0;
@@ -1987,6 +1990,8 @@ class _Utf8Decoder {
     assert(start < end);
     final String typeTable = _Utf8Decoder.typeTable;
     final String transitionTable = _Utf8Decoder.transitionTable;
+    // TODO(dartbug.com/41704): Allocate an uninitialized _TwoByteString and
+    // write characters to it using _setAt.
     String result = allocateTwoByteString(size);
     int i = start;
     int j = 0;
