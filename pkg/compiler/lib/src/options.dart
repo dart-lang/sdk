@@ -350,6 +350,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// unsound or sound semantics.
   ///
   /// If unspecified, the mode must be inferred from the entrypoint.
+  ///
+  /// This option should rarely need to be accessed directly. Consider using
+  /// [useLegacySubtyping] instead.
   NullSafetyMode nullSafetyMode = NullSafetyMode.unspecified;
   bool _soundNullSafety = false;
   bool _noSoundNullSafety = false;

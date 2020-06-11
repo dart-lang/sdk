@@ -1184,9 +1184,9 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         environment: _environment.toMap(),
         enableTripleShift:
             options.languageExperiments[ir.ExperimentalFlag.tripleShift],
-        evaluationMode: options.nullSafetyMode == NullSafetyMode.sound
-            ? ir.EvaluationMode.strong
-            : ir.EvaluationMode.weak);
+        evaluationMode: options.useLegacySubtyping
+            ? ir.EvaluationMode.weak
+            : ir.EvaluationMode.strong);
   }
 
   @override
