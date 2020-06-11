@@ -970,7 +970,7 @@ dart_infra_builder(
             "dart": "https://dart.googlesource.com/recipes",
         }.items(), # recipe_autoroller expects a list of tuples.
     },
-    schedule="with 1h interval",
+    schedule="with 4h interval",
 )
 
 dart_infra_builder(
