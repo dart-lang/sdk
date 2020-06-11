@@ -1547,8 +1547,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // var l = List.generate(3, (i) => i);
   // ```
   static const CompileTimeErrorCode DEFAULT_LIST_CONSTRUCTOR =
-      CompileTimeErrorCode('DEFAULT_LIST_CONSTRUCTOR',
-          "Calling the default 'List' constructor causes an error.",
+      CompileTimeErrorCode(
+          'DEFAULT_LIST_CONSTRUCTOR',
+          "The default 'List' constructor is not available when null safety is "
+              "enabled.",
           correction: "Try using a list literal, 'List.filled' or "
               "'List.generate'.");
 
