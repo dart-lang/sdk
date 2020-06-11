@@ -25,9 +25,11 @@ import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
+import 'package:nnbd_migration/src/exceptions.dart';
 import 'package:nnbd_migration/src/front_end/dartfix_listener.dart';
 import 'package:nnbd_migration/src/front_end/driver_provider_impl.dart';
 import 'package:nnbd_migration/src/front_end/non_nullable_fix.dart';
+import 'package:nnbd_migration/src/messages.dart';
 import 'package:nnbd_migration/src/utilities/json.dart' as json;
 import 'package:nnbd_migration/src/utilities/source_edit_diff_formatter.dart';
 import 'package:path/path.dart' show Context;
@@ -236,6 +238,10 @@ class MigrationCli {
 
   final Map<String, LineInfo> lineInfo = {};
 
+  /// The environment variables, tracked to help users debug if SDK_PATH was
+  /// specified and that resulted in any [ExperimentStatusException]s.
+  final Map<String, String> _environmentVariables;
+
   DartFixListener _dartFixListener;
 
   _FixCodeProcessor _fixCodeProcessor;
@@ -246,15 +252,17 @@ class MigrationCli {
 
   bool _hasAnalysisErrors = false;
 
-  MigrationCli(
-      {@required this.binaryName,
-      @visibleForTesting this.loggerFactory = _defaultLoggerFactory,
-      @visibleForTesting this.defaultSdkPathOverride,
-      @visibleForTesting ResourceProvider resourceProvider,
-      @visibleForTesting this.processManager = const ProcessManager.system()})
-      : logger = loggerFactory(false),
+  MigrationCli({
+    @required this.binaryName,
+    @visibleForTesting this.loggerFactory = _defaultLoggerFactory,
+    @visibleForTesting this.defaultSdkPathOverride,
+    @visibleForTesting ResourceProvider resourceProvider,
+    @visibleForTesting this.processManager = const ProcessManager.system(),
+    @visibleForTesting Map<String, String> environmentVariables,
+  })  : logger = loggerFactory(false),
         resourceProvider =
-            resourceProvider ?? PhysicalResourceProvider.INSTANCE;
+            resourceProvider ?? PhysicalResourceProvider.INSTANCE,
+        _environmentVariables = environmentVariables ?? Platform.environment;
 
   @visibleForTesting
   DriverBasedAnalysisContext get analysisContext {
@@ -437,8 +445,12 @@ class MigrationCli {
         await _fixCodeProcessor.runFirstPhase();
         _fixCodeProcessor._progressBar.clear();
         _checkForErrors();
-      } on StateError catch (e) {
+      } on ExperimentStatusException catch (e) {
         logger.stdout(e.toString());
+        final sdkPathVar = _environmentVariables['SDK_PATH'];
+        if (sdkPathVar != null) {
+          logger.stdout('$sdkPathEnvironmentVariableSet: $sdkPathVar');
+        }
         exitCode = 1;
       }
       if (exitCode != null) return;

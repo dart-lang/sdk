@@ -17,7 +17,7 @@ import 'package:nnbd_migration/src/edge_builder.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/fix_aggregator.dart';
 import 'package:nnbd_migration/src/fix_builder.dart';
-import 'package:nnbd_migration/src/messages.dart';
+import 'package:nnbd_migration/src/exceptions.dart';
 import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/postmortem_file.dart';
@@ -104,7 +104,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
 
   @override
   void finalizeInput(ResolvedUnitResult result) {
-    _sanityCheck(result);
+    ExperimentStatusException.sanityCheck(result);
     if (!_propagated) {
       _propagated = true;
       _graph.propagate(_postmortemFileWriter);
@@ -160,7 +160,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   }
 
   void prepareInput(ResolvedUnitResult result) {
-    _sanityCheck(result);
+    ExperimentStatusException.sanityCheck(result);
     if (_variables == null) {
       _variables = Variables(_graph, result.typeProvider, _getLineInfo,
           instrumentation: _instrumentation,
@@ -184,7 +184,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   }
 
   void processInput(ResolvedUnitResult result) {
-    _sanityCheck(result);
+    ExperimentStatusException.sanityCheck(result);
     var unit = result.unit;
     try {
       DecoratedTypeParameterBounds.current = _decoratedTypeParameterBounds;
@@ -205,26 +205,6 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   @override
   void update() {
     _graph.update(_postmortemFileWriter);
-  }
-
-  void _sanityCheck(ResolvedUnitResult result) {
-    final equalsParamType = result.typeProvider.objectType
-        .getMethod('==')
-        .parameters[0]
-        .type
-        .getDisplayString(withNullability: true);
-    if (equalsParamType == 'Object*') {
-      throw StateError(nnbdExperimentOff);
-    }
-
-    if (equalsParamType != 'Object') {
-      throw StateError(sdkNnbdOff);
-    }
-
-    if (result.unit.featureSet.isEnabled(Feature.non_nullable)) {
-      // TODO(jcollins-g): Allow for skipping already migrated compilation units.
-      throw StateError('$migratedAlready: ${result.path}');
-    }
   }
 
   static Location _computeLocation(

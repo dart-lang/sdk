@@ -25,6 +25,7 @@ import 'package:nnbd_migration/src/front_end/non_nullable_fix.dart';
 import 'package:nnbd_migration/src/front_end/web/edit_details.dart';
 import 'package:nnbd_migration/src/front_end/web/file_details.dart';
 import 'package:nnbd_migration/src/front_end/web/navigation_tree.dart';
+import 'package:nnbd_migration/src/messages.dart' as messages;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -81,14 +82,16 @@ class _MigrationCli extends MigrationCli {
   Future<void> Function() _runWhilePreviewServerActive;
 
   _MigrationCli(_MigrationCliTestBase test,
-      {this.injectArtificialException = false})
+      {this.injectArtificialException = false,
+      Map<String, String> environmentVariables})
       : super(
             binaryName: 'nnbd_migration',
             loggerFactory: (isVerbose) => test.logger = _TestLogger(isVerbose),
             defaultSdkPathOverride:
                 test.resourceProvider.convertPath(mock_sdk.sdkRoot),
             resourceProvider: test.resourceProvider,
-            processManager: test.processManager);
+            processManager: test.processManager,
+            environmentVariables: environmentVariables);
 
   @override
   Future<void> blockUntilSignalInterrupt() async {
@@ -140,6 +143,8 @@ abstract class _MigrationCliTestBase {
 mixin _MigrationCliTestMethods on _MigrationCliTestBase {
   @override
   /*late*/ _TestLogger logger;
+
+  Map<String, String> environmentVariables = {};
 
   final hasVerboseHelpMessage = contains('for verbose help output');
 
@@ -281,6 +286,7 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
 
   void setUp() {
     resourceProvider.newFolder(resourceProvider.pathContext.current);
+    environmentVariables.clear();
   }
 
   Map<String, String> simpleProject(
@@ -343,10 +349,30 @@ int${migrated ? '?' : ''} f() => null;
     await cli.run(MigrationCli.createParser().parse([projectDir]));
     assertErrorExit(cli, withUsage: false);
     var output = logger.stdoutBuffer.toString();
-    expect(
-        output,
-        contains(
-            'Bad state: Analysis seems to have an SDK without NNBD enabled'));
+    expect(output, contains(messages.sdkNnbdOff));
+  }
+
+  test_detect_old_sdk_environment_variable() async {
+    environmentVariables['SDK_PATH'] = '/fake-old-sdk-path';
+    var cli = _createCli();
+    // Alter the mock SDK, changing the signature of Object.operator== to match
+    // the signature that was present prior to NNBD.  (This is what the
+    // migration tool uses to detect an old SDK).
+    var coreLib = resourceProvider.getFile(
+        resourceProvider.convertPath('${mock_sdk.sdkRoot}/lib/core/core.dart'));
+    var oldCoreLibText = coreLib.readAsStringSync();
+    var newCoreLibText = oldCoreLibText.replaceAll(
+        'external bool operator ==(Object other)',
+        'external bool operator ==(dynamic other)');
+    expect(newCoreLibText, isNot(oldCoreLibText));
+    coreLib.writeAsStringSync(newCoreLibText);
+    var projectDir = await createProjectDir(simpleProject());
+    await cli.run(MigrationCli.createParser().parse([projectDir]));
+    assertErrorExit(cli, withUsage: false);
+    var output = logger.stdoutBuffer.toString();
+    expect(output, contains(messages.sdkNnbdOff));
+    expect(output, contains(messages.sdkPathEnvironmentVariableSet));
+    expect(output, contains(environmentVariables['SDK_PATH']));
   }
 
   test_flag_apply_changes_default() {
@@ -1547,7 +1573,8 @@ name: test
   _MigrationCli _createCli({bool injectArtificialException = false}) {
     mock_sdk.MockSdk(resourceProvider: resourceProvider);
     return _MigrationCli(this,
-        injectArtificialException: injectArtificialException);
+        injectArtificialException: injectArtificialException,
+        environmentVariables: environmentVariables);
   }
 
   Future<String> _getHelpText({@required bool verbose}) async {
