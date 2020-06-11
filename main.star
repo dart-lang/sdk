@@ -313,6 +313,15 @@ luci.cq_group(
 )
 
 luci.cq_group(
+    name="sdk-infra-config",
+    watch=cq.refset(DART_GERRIT + "sdk", refs=["refs/heads/infra/config"]),
+    allow_submit_with_open_deps=True,
+    tree_status_host="dart-status.appspot.com",
+    retry_config=cq.RETRY_NONE,
+    verifiers=None,
+)
+
+luci.cq_group(
     name="recipes",
     watch=cq.refset(
         DART_GERRIT + "recipes", refs=["refs/heads/master"]),
