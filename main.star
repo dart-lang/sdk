@@ -349,6 +349,9 @@ def dart_recipe(name):
     )
 
 
+def use_goma_rbe(name, goma_rbe, dimensions):
+    return "android" not in name and (dimensions["os"] == "Linux" or goma_rbe)
+
 def dart_try_builder(name,
                      recipe="dart/neo",
                      dimensions=None,
@@ -363,7 +366,7 @@ def dart_try_builder(name,
     dimensions = defaults.dimensions(dimensions)
     dimensions["pool"] = "luci.dart.try"
     properties = defaults.properties(properties)
-    if dimensions["os"] == "Linux" or goma_rbe:
+    if use_goma_rbe(name, goma_rbe, dimensions):
         properties.setdefault("$build/goma", GOMA_RBE)
     builder = name + "-try"
 
@@ -428,7 +431,7 @@ def dart_builder(name,
                  location_regexp=None):
     dimensions = defaults.dimensions(dimensions)
     properties = defaults.properties(properties)
-    if dimensions["os"] == "Linux" or goma_rbe:
+    if use_goma_rbe(name, goma_rbe, dimensions):
         properties.setdefault("$build/goma", GOMA_RBE)
 
     def builder(channel, triggered_by):
