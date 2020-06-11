@@ -363,7 +363,7 @@ def dart_try_builder(name,
     dimensions = defaults.dimensions(dimensions)
     dimensions["pool"] = "luci.dart.try"
     properties = defaults.properties(properties)
-    if dimensions["os"] == "Linux" and goma_rbe:
+    if dimensions["os"] == "Linux" or goma_rbe:
         properties.setdefault("$build/goma", GOMA_RBE)
     builder = name + "-try"
 
@@ -428,7 +428,7 @@ def dart_builder(name,
                  location_regexp=None):
     dimensions = defaults.dimensions(dimensions)
     properties = defaults.properties(properties)
-    if dimensions["os"] == "Linux" and goma_rbe:
+    if dimensions["os"] == "Linux" or goma_rbe:
         properties.setdefault("$build/goma", GOMA_RBE)
 
     def builder(channel, triggered_by):
@@ -564,7 +564,7 @@ def dart_vm_nightly_builder(name, **kwargs):
 
 # cfe
 dart_ci_sandbox_builder(
-    "front-end-linux-release-x64", category="cfe|l", goma_rbe=True, on_cq=True)
+    "front-end-linux-release-x64", category="cfe|l", on_cq=True)
 dart_ci_sandbox_builder(
     "front-end-mac-release-x64", category="cfe|m", dimensions=mac())
 dart_ci_sandbox_builder(
@@ -614,7 +614,7 @@ dart_vm_extra_builder(
 
 #vm|kernel
 dart_vm_extra_builder(
-    "vm-canary-linux-debug", category="vm|kernel|c", goma_rbe=True, on_cq=True)
+    "vm-canary-linux-debug", category="vm|kernel|c", on_cq=True)
 dart_ci_sandbox_builder("vm-kernel-linux-debug-x64", category="vm|kernel|d")
 dart_vm_extra_builder(
     "vm-kernel-linux-release-simarm", category="vm|kernel|a32")
@@ -844,7 +844,7 @@ dart_ci_sandbox_builder(
 
 # sdk
 dart_ci_builder(
-    "dart-sdk-linux", category="sdk|l", channels=CHANNELS, goma_rbe=True)
+    "dart-sdk-linux", category="sdk|l", channels=CHANNELS)
 dart_ci_builder(
     "dart-sdk-mac", category="sdk|m", channels=CHANNELS, dimensions=mac())
 dart_ci_builder(
@@ -858,7 +858,6 @@ dart_ci_builder(
 dart_ci_sandbox_builder(
     "ddc-linux-release-chrome",
     category="ddc|l",
-    goma_rbe=True,
     location_regexp=to_location_regexp(DDC_PATHS))
 dart_ci_sandbox_builder(
     "ddc-nnbd-linux-release-chrome",
@@ -921,7 +920,6 @@ dart_infra_builder(
 dart_ci_sandbox_builder(
     "fuzz-linux",
     channels=[],
-    goma_rbe=True,
     notifies="dart-fuzz-testing",
     schedule="0 3,4 * * *",
     triggered_by=None,
