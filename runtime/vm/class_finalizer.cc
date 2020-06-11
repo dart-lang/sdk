@@ -1643,23 +1643,17 @@ void ClassFinalizer::RehashTypes() {
 
   // Rehash the canonical Types table.
   ObjectStore* object_store = I->object_store();
-  GrowableObjectArray& types =
-      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
-  Array& types_array = Array::Handle(Z);
+  Array& types = Array::Handle(Z);
   Type& type = Type::Handle(Z);
   {
     CanonicalTypeSet types_table(Z, object_store->canonical_types());
-    types_array = HashTables::ToArray(types_table, false);
-    for (intptr_t i = 0; i < types_array.Length(); i++) {
-      type ^= types_array.At(i);
-      types.Add(type);
-    }
+    types = HashTables::ToArray(types_table, false);
     types_table.Release();
   }
 
   intptr_t dict_size = Utils::RoundUpToPowerOfTwo(types.Length() * 4 / 3);
-  types_array = HashTables::New<CanonicalTypeSet>(dict_size, Heap::kOld);
-  CanonicalTypeSet types_table(Z, types_array.raw());
+  CanonicalTypeSet types_table(
+      Z, HashTables::New<CanonicalTypeSet>(dict_size, Heap::kOld));
   for (intptr_t i = 0; i < types.Length(); i++) {
     type ^= types.At(i);
     bool present = types_table.Insert(type);
@@ -1669,25 +1663,18 @@ void ClassFinalizer::RehashTypes() {
   object_store->set_canonical_types(types_table.Release());
 
   // Rehash the canonical TypeParameters table.
-  Array& typeparams_array = Array::Handle(Z);
-  GrowableObjectArray& typeparams =
-      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+  Array& typeparams = Array::Handle(Z);
   TypeParameter& typeparam = TypeParameter::Handle(Z);
   {
     CanonicalTypeParameterSet typeparams_table(
         Z, object_store->canonical_type_parameters());
-    typeparams_array = HashTables::ToArray(typeparams_table, false);
-    for (intptr_t i = 0; i < typeparams_array.Length(); i++) {
-      typeparam ^= typeparams_array.At(i);
-      typeparams.Add(typeparam);
-    }
+    typeparams = HashTables::ToArray(typeparams_table, false);
     typeparams_table.Release();
   }
 
   dict_size = Utils::RoundUpToPowerOfTwo(typeparams.Length() * 4 / 3);
-  typeparams_array =
-      HashTables::New<CanonicalTypeParameterSet>(dict_size, Heap::kOld);
-  CanonicalTypeParameterSet typeparams_table(Z, typeparams_array.raw());
+  CanonicalTypeParameterSet typeparams_table(
+      Z, HashTables::New<CanonicalTypeParameterSet>(dict_size, Heap::kOld));
   for (intptr_t i = 0; i < typeparams.Length(); i++) {
     typeparam ^= typeparams.At(i);
     bool present = typeparams_table.Insert(typeparam);
@@ -1696,18 +1683,12 @@ void ClassFinalizer::RehashTypes() {
   object_store->set_canonical_type_parameters(typeparams_table.Release());
 
   // Rehash the canonical TypeArguments table.
-  Array& typeargs_array = Array::Handle(Z);
-  GrowableObjectArray& typeargs =
-      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+  Array& typeargs = Array::Handle(Z);
   TypeArguments& typearg = TypeArguments::Handle(Z);
   {
     CanonicalTypeArgumentsSet typeargs_table(
         Z, object_store->canonical_type_arguments());
-    typeargs_array = HashTables::ToArray(typeargs_table, false);
-    for (intptr_t i = 0; i < typeargs_array.Length(); i++) {
-      typearg ^= typeargs_array.At(i);
-      typeargs.Add(typearg);
-    }
+    typeargs = HashTables::ToArray(typeargs_table, false);
     typeargs_table.Release();
   }
 
@@ -1716,9 +1697,8 @@ void ClassFinalizer::RehashTypes() {
   I->RehashConstants();
 
   dict_size = Utils::RoundUpToPowerOfTwo(typeargs.Length() * 4 / 3);
-  typeargs_array =
-      HashTables::New<CanonicalTypeArgumentsSet>(dict_size, Heap::kOld);
-  CanonicalTypeArgumentsSet typeargs_table(Z, typeargs_array.raw());
+  CanonicalTypeArgumentsSet typeargs_table(
+      Z, HashTables::New<CanonicalTypeArgumentsSet>(dict_size, Heap::kOld));
   for (intptr_t i = 0; i < typeargs.Length(); i++) {
     typearg ^= typeargs.At(i);
     bool present = typeargs_table.Insert(typearg);
