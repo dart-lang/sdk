@@ -531,6 +531,136 @@ void ImageWriter::WriteROData(WriteStream* stream) {
   }
 }
 
+#if defined(DART_PRECOMPILER)
+class DwarfAssemblyStream : public DwarfWriteStream {
+ public:
+  explicit DwarfAssemblyStream(StreamingWriteStream* stream)
+      : stream_(ASSERT_NOTNULL(stream)) {}
+
+  void sleb128(intptr_t value) { Print(".sleb128 %" Pd "\n", value); }
+  void uleb128(uintptr_t value) { Print(".uleb128 %" Pd "\n", value); }
+  void u1(uint8_t value) { Print(".byte %u\n", value); }
+  void u2(uint16_t value) { Print(".2byte %u\n", value); }
+  void u4(uint32_t value) { Print(".4byte %" Pu32 "\n", value); }
+  void u8(uint64_t value) { Print(".8byte %" Pu64 "\n", value); }
+  void string(const char* cstr) {     // NOLINT
+    Print(".string \"%s\"\n", cstr);  // NOLINT
+  }
+  // Uses labels, so doesn't output to start or return a useful fixup position.
+  intptr_t ReserveSize(const char* prefix, intptr_t* start) {
+    // Assignment to temp works around buggy Mac assembler.
+    Print("L%s_size = .L%s_end - .L%s_start\n", prefix, prefix, prefix);
+    Print(".4byte L%s_size\n", prefix);
+    Print(".L%s_start:\n", prefix);
+    return -1;
+  }
+  // Just need to label the end so the assembler can calculate the size, so
+  // start and the fixup position is unused.
+  void SetSize(intptr_t fixup, const char* prefix, intptr_t start) {
+    Print(".L%s_end:\n", prefix);
+  }
+  void OffsetFromSymbol(const char* symbol, intptr_t offset) {
+    if (offset == 0) PrintNamedAddress(symbol);
+    PrintNamedAddressWithOffset(symbol, offset);
+  }
+  void DistanceBetweenSymbolOffsets(const char* symbol1,
+                                    intptr_t offset1,
+                                    const char* symbol2,
+                                    intptr_t offset2) {
+    Print(".uleb128 %s - %s + %" Pd "\n", symbol1, symbol2, offset1 - offset2);
+  }
+
+  // No-op, we'll be using labels.
+  void InitializeAbstractOrigins(intptr_t size) {}
+  void RegisterAbstractOrigin(intptr_t index) {
+    // Label for DW_AT_abstract_origin references
+    Print(".Lfunc%" Pd ":\n", index);
+  }
+  void AbstractOrigin(intptr_t index) {
+    // Assignment to temp works around buggy Mac assembler.
+    Print("Ltemp%" Pd " = .Lfunc%" Pd " - %s\n", temp_, index, kDebugInfoLabel);
+    Print(".4byte Ltemp%" Pd "\n", temp_);
+    temp_++;
+  }
+
+  // Methods for writing the assembly prologues for various DWARF sections.
+  void AbbreviationsPrologue() {
+#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
+    Print(".section __DWARF,__debug_abbrev,regular,debug\n");
+#elif defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID) ||                \
+    defined(TARGET_OS_FUCHSIA)
+    Print(".section .debug_abbrev,\"\"\n");
+#else
+    UNIMPLEMENTED();
+#endif
+  }
+  void DebugInfoPrologue() {
+#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
+    Print(".section __DWARF,__debug_info,regular,debug\n");
+#elif defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID) ||                \
+    defined(TARGET_OS_FUCHSIA)
+    Print(".section .debug_info,\"\"\n");
+#else
+    UNIMPLEMENTED();
+#endif
+    // Used to calculate abstract origin values.
+    Print("%s:\n", kDebugInfoLabel);
+  }
+  void LineNumberProgramPrologue() {
+#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
+    Print(".section __DWARF,__debug_line,regular,debug\n");
+#elif defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID) ||                \
+    defined(TARGET_OS_FUCHSIA)
+    Print(".section .debug_line,\"\"\n");
+#else
+    UNIMPLEMENTED();
+#endif
+  }
+
+ private:
+  static constexpr const char* kDebugInfoLabel = ".Ldebug_info";
+
+  void Print(const char* format, ...) PRINTF_ATTRIBUTE(2, 3) {
+    va_list args;
+    va_start(args, format);
+    stream_->VPrint(format, args);
+    va_end(args);
+  }
+
+#if defined(TARGET_ARCH_IS_32_BIT)
+#define FORM_ADDR ".4byte"
+#elif defined(TARGET_ARCH_IS_64_BIT)
+#define FORM_ADDR ".8byte"
+#endif
+
+  void PrintNamedAddress(const char* name) { Print(FORM_ADDR " %s\n", name); }
+  void PrintNamedAddressWithOffset(const char* name, intptr_t offset) {
+    Print(FORM_ADDR " %s + %" Pd "\n", name, offset);
+  }
+
+#undef FORM_ADDR
+
+  StreamingWriteStream* const stream_;
+  intptr_t temp_ = 0;
+
+  DISALLOW_COPY_AND_ASSIGN(DwarfAssemblyStream);
+};
+#endif
+
+static inline Dwarf* AddDwarfIfUnstripped(Zone* zone, bool strip, Elf* elf) {
+#if defined(DART_PRECOMPILER)
+  if (!strip) {
+    if (elf != nullptr) {
+      // Reuse the existing DWARF object.
+      ASSERT(elf->dwarf() != nullptr);
+      return elf->dwarf();
+    }
+    return new (zone) Dwarf(zone);
+  }
+#endif
+  return nullptr;
+}
+
 AssemblyImageWriter::AssemblyImageWriter(Thread* thread,
                                          Dart_StreamingWriteCallback callback,
                                          void* callback_data,
@@ -538,28 +668,22 @@ AssemblyImageWriter::AssemblyImageWriter(Thread* thread,
                                          Elf* debug_elf)
     : ImageWriter(thread),
       assembly_stream_(512 * KB, callback, callback_data),
-      assembly_dwarf_(nullptr),
-      debug_dwarf_(nullptr) {
-#if defined(DART_PRECOMPILER)
-  Zone* zone = Thread::Current()->zone();
-  if (!strip) {
-    assembly_dwarf_ =
-        new (zone) Dwarf(zone, &assembly_stream_, /*elf=*/nullptr);
-  }
-  if (debug_elf != nullptr) {
-    debug_dwarf_ =
-        new (zone) Dwarf(zone, /*assembly_stream=*/nullptr, debug_elf);
-  }
-#endif
-}
+      assembly_dwarf_(AddDwarfIfUnstripped(thread->zone(), strip, debug_elf)),
+      debug_elf_(debug_elf) {}
 
 void AssemblyImageWriter::Finalize() {
-#ifdef DART_PRECOMPILER
+#if defined(DART_PRECOMPILER)
   if (assembly_dwarf_ != nullptr) {
-    assembly_dwarf_->Write();
+    DwarfAssemblyStream dwarf_stream(&assembly_stream_);
+    dwarf_stream.AbbreviationsPrologue();
+    assembly_dwarf_->WriteAbbreviations(&dwarf_stream);
+    dwarf_stream.DebugInfoPrologue();
+    assembly_dwarf_->WriteDebugInfo(&dwarf_stream);
+    dwarf_stream.LineNumberProgramPrologue();
+    assembly_dwarf_->WriteLineNumberProgram(&dwarf_stream);
   }
-  if (debug_dwarf_ != nullptr) {
-    debug_dwarf_->Write();
+  if (debug_elf_ != nullptr) {
+    debug_elf_->Finalize();
   }
 #endif
 }
@@ -632,8 +756,8 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   const char* bss_symbol =
       vm ? "_kDartVmSnapshotBss" : "_kDartIsolateSnapshotBss";
   intptr_t debug_segment_base = 0;
-  if (debug_dwarf_ != nullptr) {
-    debug_segment_base = debug_dwarf_->elf()->NextMemoryOffset();
+  if (debug_elf_ != nullptr) {
+    debug_segment_base = debug_elf_->NextMemoryOffset();
   }
 #endif
 
@@ -812,8 +936,9 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     }
 
 #if defined(DART_PRECOMPILER)
-    if (debug_dwarf_ != nullptr) {
-      debug_dwarf_->AddCode(code, object_name, text_offset);
+    if (debug_elf_ != nullptr) {
+      auto const relocated_address = debug_segment_base + text_offset;
+      debug_elf_->dwarf()->AddCode(code, relocated_address);
     }
 #endif
     // 2. Write a label at the entry point.
@@ -898,7 +1023,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   FrameUnwindEpilogue();
 
 #if defined(DART_PRECOMPILER)
-  if (debug_dwarf_ != nullptr) {
+  if (debug_elf_ != nullptr) {
     // We need to generate a text segment of the appropriate size in the ELF
     // for two reasons:
     //
@@ -914,7 +1039,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     // Since we don't want to add the actual contents of the segment in the
     // separate debugging information, we pass nullptr for the bytes, which
     // creates an appropriate NOBITS section instead of PROGBITS.
-    auto const debug_segment_base2 = debug_dwarf_->elf()->AddText(
+    auto const debug_segment_base2 = debug_elf_->AddText(
         instructions_symbol, /*bytes=*/nullptr, text_offset);
     // Double-check that no other ELF sections were added in the middle of
     // writing the text section.
@@ -1061,22 +1186,18 @@ BlobImageWriter::BlobImageWriter(Thread* thread,
                                  uint8_t** instructions_blob_buffer,
                                  ReAlloc alloc,
                                  intptr_t initial_size,
-                                 Dwarf* debug_dwarf,
+                                 Elf* debug_elf,
                                  intptr_t bss_base,
-                                 Elf* elf,
-                                 Dwarf* elf_dwarf)
+                                 Elf* elf)
     : ImageWriter(thread),
       instructions_blob_stream_(instructions_blob_buffer, alloc, initial_size),
       elf_(elf),
-      elf_dwarf_(elf_dwarf),
       bss_base_(bss_base),
-      debug_dwarf_(debug_dwarf) {
+      debug_elf_(debug_elf) {
 #if defined(DART_PRECOMPILER)
-  RELEASE_ASSERT(elf_ == nullptr || elf_dwarf_ == nullptr ||
-                 elf_dwarf_->elf() == elf_);
+  ASSERT(debug_elf_ == nullptr || debug_elf_->dwarf() != nullptr);
 #else
   RELEASE_ASSERT(elf_ == nullptr);
-  RELEASE_ASSERT(elf_dwarf_ == nullptr);
 #endif
 }
 
@@ -1100,8 +1221,8 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     segment_base = elf_->NextMemoryOffset();
   }
   intptr_t debug_segment_base = 0;
-  if (debug_dwarf_ != nullptr) {
-    debug_segment_base = debug_dwarf_->elf()->NextMemoryOffset();
+  if (debug_elf_ != nullptr) {
+    debug_segment_base = debug_elf_->NextMemoryOffset();
     // If we're also generating an ELF snapshot, we want the virtual addresses
     // in it and the separately saved DWARF information to match.
     ASSERT(elf_ == nullptr || segment_base == debug_segment_base);
@@ -1293,11 +1414,13 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
 #if defined(DART_PRECOMPILER)
     const auto& code = *data.code_;
-    if (elf_dwarf_ != nullptr) {
-      elf_dwarf_->AddCode(code, object_name, payload_offset);
+    if (elf_ != nullptr && elf_->dwarf() != nullptr) {
+      auto const relocated_address = segment_base + payload_offset;
+      elf_->dwarf()->AddCode(code, relocated_address);
     }
-    if (debug_dwarf_ != nullptr) {
-      debug_dwarf_->AddCode(code, object_name, payload_offset);
+    if (debug_elf_ != nullptr) {
+      auto const relocated_address = debug_segment_base + payload_offset;
+      debug_elf_->dwarf()->AddCode(code, relocated_address);
     }
 
     // Don't patch the relocation if we're not generating ELF. The regular blobs
@@ -1361,10 +1484,10 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
                       instructions_blob_stream_.bytes_written());
     ASSERT(segment_base == segment_base2);
   }
-  if (debug_dwarf_ != nullptr) {
+  if (debug_elf_ != nullptr) {
     auto const debug_segment_base2 =
-        debug_dwarf_->elf()->AddText(instructions_symbol, nullptr,
-                                     instructions_blob_stream_.bytes_written());
+        debug_elf_->AddText(instructions_symbol, nullptr,
+                            instructions_blob_stream_.bytes_written());
     ASSERT(debug_segment_base == debug_segment_base2);
   }
 #endif

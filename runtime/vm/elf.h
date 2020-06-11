@@ -13,6 +13,7 @@
 
 namespace dart {
 
+class Dwarf;
 class DynamicSegment;
 class DynamicTable;
 class ElfWriteStream;
@@ -23,9 +24,13 @@ class SymbolTable;
 
 class Elf : public ZoneAllocated {
  public:
-  Elf(Zone* zone, StreamingWriteStream* stream, bool strip = false);
+  Elf(Zone* zone, StreamingWriteStream* stream, Dwarf* dwarf = nullptr);
 
   static const intptr_t kPageSize = 4096;
+
+  Zone* zone() { return zone_; }
+  const Dwarf* dwarf() const { return dwarf_; }
+  Dwarf* dwarf() { return dwarf_; }
 
   intptr_t NextMemoryOffset() const { return memory_offset_; }
   intptr_t NextSectionIndex() const { return sections_.length(); }
@@ -33,16 +38,17 @@ class Elf : public ZoneAllocated {
   intptr_t AddROData(const char* name, const uint8_t* bytes, intptr_t size);
   intptr_t AddBSSData(const char* name, intptr_t size);
   void AddDebug(const char* name, const uint8_t* bytes, intptr_t size);
-  void AddCodeSymbol(const char* name,
-                     intptr_t section,
-                     intptr_t address,
-                     intptr_t size);
 
   // Returns whether the symbol was found. If found, sets the contents of
   // offset and size appropriately if either or both are not nullptr.
   bool FindDynamicSymbol(const char* name,
                          intptr_t* offset,
                          intptr_t* size) const;
+  // Returns whether the symbol was found. If found, sets the contents of
+  // offset and size appropriately if either or both are not nullptr.
+  bool FindStaticSymbol(const char* name,
+                        intptr_t* offset,
+                        intptr_t* size) const;
 
   void Finalize();
 
@@ -60,6 +66,9 @@ class Elf : public ZoneAllocated {
                         intptr_t address,
                         intptr_t size);
 
+  const Section* FindSegmentForAddress(intptr_t address) const;
+
+  void FinalizeDwarfSections();
   void FinalizeProgramTable();
   void ComputeFileOffsets();
 
@@ -70,9 +79,9 @@ class Elf : public ZoneAllocated {
 
   Zone* const zone_;
   StreamingWriteStream* const unwrapped_stream_;
-  // Whether the ELF file should be stripped of static information like
+  // If nullptr, then the ELF file should be stripped of static information like
   // the static symbol table (and its corresponding string table).
-  const bool strip_;
+  Dwarf* const dwarf_;
 
   // All our strings would fit in a single page. However, we use separate
   // .shstrtab and .dynstr to work around a bug in Android's strip utility.

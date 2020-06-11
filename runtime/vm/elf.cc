@@ -6,6 +6,7 @@
 
 #include "platform/elf.h"
 #include "vm/cpu.h"
+#include "vm/dwarf.h"
 #include "vm/hash_map.h"
 #include "vm/image_snapshot.h"
 #include "vm/thread.h"
@@ -156,10 +157,10 @@ class Section : public ZoneAllocated {
   virtual intptr_t MemorySize() const = 0;
 
   // Other methods.
-  bool IsSegment() const { return segment_type != 0; }
+
   // Returns whether new content can be added to a section.
   bool HasBeenFinalized() const {
-    if (IsSegment()) {
+    if (segment_type != elf::PT_NULL) {
       // The contents of a segment must not change after the segment is added
       // (when its memory offset is calculated).
       return memory_offset_ != kInitValue;
@@ -430,6 +431,10 @@ class StringTable : public Section {
     return offset;
   }
 
+  const char* At(intptr_t index) {
+    ASSERT(index < text_.length());
+    return text_.buffer() + index;
+  }
   intptr_t Lookup(const char* str) const {
     return text_indices_.LookupValue(str) - 1;
   }
@@ -673,10 +678,10 @@ class DynamicSegment : public BlobSection {
 
 static const intptr_t kProgramTableSegmentSize = Elf::kPageSize;
 
-Elf::Elf(Zone* zone, StreamingWriteStream* stream, bool strip)
+Elf::Elf(Zone* zone, StreamingWriteStream* stream, Dwarf* dwarf)
     : zone_(zone),
       unwrapped_stream_(stream),
-      strip_(strip),
+      dwarf_(dwarf),
       shstrtab_(new (zone) StringTable(/*allocate=*/false)),
       dynstrtab_(new (zone) StringTable(/*allocate=*/true)),
       dynsym_(new (zone) SymbolTable(/*dynamic=*/true)),
@@ -689,6 +694,14 @@ Elf::Elf(Zone* zone, StreamingWriteStream* stream, bool strip)
   // Go ahead and add the section header string table, since it doesn't have
   // an in-memory segment and so can be added to until we compute file offsets.
   AddSection(shstrtab_, ".shstrtab");
+  if (dwarf_ != nullptr) {
+    // Not a stripped ELF file, so allocate static string and symbol tables.
+    strtab_ = new (zone_) StringTable(/* allocate= */ false);
+    AddSection(strtab_, ".strtab");
+    symtab_ = new (zone_) SymbolTable(/*dynamic=*/false);
+    AddSection(symtab_, ".symtab");
+    symtab_->section_link = strtab_->section_index();
+  }
 }
 
 void Elf::AddSection(Section* section, const char* name) {
@@ -708,6 +721,8 @@ void Elf::AddSection(Section* section, const char* name) {
 }
 
 intptr_t Elf::AddSegmentSymbol(const Section* section, const char* name) {
+  // While elf::STT_SECTION might seem more appropriate, those symbols are
+  // usually local and dlsym won't return them.
   auto const info = (elf::STB_GLOBAL << 4) | elf::STT_FUNC;
   auto const section_index = section->section_index();
   // For shared libraries, this is the offset from the DSO base. For static
@@ -730,21 +745,14 @@ intptr_t Elf::AddText(const char* name, const uint8_t* bytes, intptr_t size) {
   return AddSegmentSymbol(image, name);
 }
 
-void Elf::AddCodeSymbol(const char* name,
-                        intptr_t section_index,
-                        intptr_t address,
-                        intptr_t size) {
-  ASSERT(!strip_);
-  auto const info = (elf::STB_GLOBAL << 4) | elf::STT_FUNC;
-  AddStaticSymbol(name, info, section_index, address, size);
-}
-
-bool Elf::FindDynamicSymbol(const char* name,
-                            intptr_t* offset,
-                            intptr_t* size) const {
-  auto const name_index = dynstrtab_->Lookup(name);
+static bool FindSymbol(StringTable* strings,
+                       SymbolTable* symbols,
+                       const char* name,
+                       intptr_t* offset,
+                       intptr_t* size) {
+  auto const name_index = strings->Lookup(name);
   if (name_index < 0) return false;
-  auto const symbol = dynsym_->FindSymbolWithNameIndex(name_index);
+  auto const symbol = symbols->FindSymbolWithNameIndex(name_index);
   if (symbol == nullptr) return false;
   if (offset != nullptr) {
     *offset = symbol->offset;
@@ -753,6 +761,19 @@ bool Elf::FindDynamicSymbol(const char* name,
     *size = symbol->size;
   }
   return true;
+}
+
+bool Elf::FindDynamicSymbol(const char* name,
+                            intptr_t* offset,
+                            intptr_t* size) const {
+  return FindSymbol(dynstrtab_, dynsym_, name, offset, size);
+}
+
+bool Elf::FindStaticSymbol(const char* name,
+                           intptr_t* offset,
+                           intptr_t* size) const {
+  if (strtab_ == nullptr || symtab_ == nullptr) return false;
+  return FindSymbol(strtab_, symtab_, name, offset, size);
 }
 
 intptr_t Elf::AddBSSData(const char* name, intptr_t size) {
@@ -783,7 +804,7 @@ intptr_t Elf::AddROData(const char* name, const uint8_t* bytes, intptr_t size) {
 }
 
 void Elf::AddDebug(const char* name, const uint8_t* bytes, intptr_t size) {
-  ASSERT(!strip_);
+  ASSERT(dwarf_ != nullptr);
   ASSERT(bytes != nullptr);
   ProgramBits* image =
       new (zone_) ProgramBits(false, false, false, bytes, size);
@@ -803,9 +824,7 @@ void Elf::AddDynamicSymbol(const char* name,
 
   // Some tools assume the static symbol table is a superset of the dynamic
   // symbol table when it exists (see dartbug.com/41783).
-  if (!strip_) {
-    AddStaticSymbol(name, info, section_index, address, size);
-  }
+  AddStaticSymbol(name, info, section_index, address, size);
 }
 
 void Elf::AddStaticSymbol(const char* name,
@@ -813,19 +832,7 @@ void Elf::AddStaticSymbol(const char* name,
                           intptr_t section_index,
                           intptr_t address,
                           intptr_t size) {
-  ASSERT(!strip_);
-
-  // Lazily allocate the static string and symbol tables, as we only add static
-  // symbols in unstripped ELF files.
-  if (strtab_ == nullptr) {
-    ASSERT(symtab_ == nullptr);
-    ASSERT(section_table_file_size_ < 0);
-    strtab_ = new (zone_) StringTable(/* allocate= */ false);
-    AddSection(strtab_, ".strtab");
-    symtab_ = new (zone_) SymbolTable(/*dynamic=*/false);
-    AddSection(symtab_, ".symtab");
-    symtab_->section_link = strtab_->section_index();
-  }
+  if (dwarf_ == nullptr) return;  // No static info kept in stripped ELF files.
 
   ASSERT(!symtab_->HasBeenFinalized() && !strtab_->HasBeenFinalized());
   auto const name_index = strtab_->AddString(name);
@@ -834,7 +841,196 @@ void Elf::AddStaticSymbol(const char* name,
   symtab_->AddSymbol(symbol);
 }
 
+#if defined(DART_PRECOMPILER)
+class DwarfElfStream : public DwarfWriteStream {
+ public:
+  explicit DwarfElfStream(Zone* zone,
+                          WriteStream* stream,
+                          const CStringMap<intptr_t>& address_map)
+      : zone_(zone),
+        stream_(ASSERT_NOTNULL(stream)),
+        address_map_(address_map) {}
+
+  void sleb128(intptr_t value) {
+    bool is_last_part = false;
+    while (!is_last_part) {
+      uint8_t part = value & 0x7F;
+      value >>= 7;
+      if ((value == 0 && (part & 0x40) == 0) ||
+          (value == static_cast<intptr_t>(-1) && (part & 0x40) != 0)) {
+        is_last_part = true;
+      } else {
+        part |= 0x80;
+      }
+      stream_->WriteFixed(part);
+    }
+  }
+
+  void uleb128(uintptr_t value) {
+    bool is_last_part = false;
+    while (!is_last_part) {
+      uint8_t part = value & 0x7F;
+      value >>= 7;
+      if (value == 0) {
+        is_last_part = true;
+      } else {
+        part |= 0x80;
+      }
+      stream_->WriteFixed(part);
+    }
+  }
+
+  void u1(uint8_t value) { stream_->WriteFixed(value); }
+  void u2(uint16_t value) { stream_->WriteFixed(value); }
+  void u4(uint32_t value) { stream_->WriteFixed(value); }
+  void u8(uint64_t value) { stream_->WriteFixed(value); }
+  void string(const char* cstr) {  // NOLINT
+    stream_->WriteBytes(reinterpret_cast<const uint8_t*>(cstr),
+                        strlen(cstr) + 1);
+  }
+  intptr_t position() { return stream_->Position(); }
+  intptr_t ReserveSize(const char* prefix, intptr_t* start) {
+    ASSERT(start != nullptr);
+    intptr_t fixup = position();
+    // We assume DWARF v2, so all sizes are 32-bit.
+    u4(0);
+    // All sizes for DWARF sections measure the size of the section data _after_
+    // the size value.
+    *start = position();
+    return fixup;
+  }
+  void SetSize(intptr_t fixup, const char* prefix, intptr_t start) {
+    const uint32_t value = position() - start;
+    memmove(stream_->buffer() + fixup, &value, sizeof(value));
+  }
+  void OffsetFromSymbol(const char* symbol, intptr_t offset) {
+    auto const address = address_map_.LookupValue(symbol);
+    ASSERT(address != 0);
+    addr(address + offset);
+  }
+  void DistanceBetweenSymbolOffsets(const char* symbol1,
+                                    intptr_t offset1,
+                                    const char* symbol2,
+                                    intptr_t offset2) {
+    auto const address1 = address_map_.LookupValue(symbol1);
+    ASSERT(address1 != 0);
+    auto const address2 = address_map_.LookupValue(symbol2);
+    ASSERT(address2 != 0);
+    auto const delta = (address1 + offset1) - (address2 + offset2);
+    RELEASE_ASSERT(delta >= 0);
+    uleb128(delta);
+  }
+  void InitializeAbstractOrigins(intptr_t size) {
+    abstract_origins_size_ = size;
+    abstract_origins_ = zone_->Alloc<uint32_t>(abstract_origins_size_);
+  }
+  void RegisterAbstractOrigin(intptr_t index) {
+    ASSERT(abstract_origins_ != nullptr);
+    ASSERT(index < abstract_origins_size_);
+    abstract_origins_[index] = position();
+  }
+  void AbstractOrigin(intptr_t index) { u4(abstract_origins_[index]); }
+
+ private:
+  void addr(uword value) {
+#if defined(TARGET_ARCH_IS_32_BIT)
+    u4(value);
+#else
+    u8(value);
+#endif
+  }
+
+  Zone* const zone_;
+  WriteStream* const stream_;
+  const CStringMap<intptr_t>& address_map_;
+  uint32_t* abstract_origins_ = nullptr;
+  intptr_t abstract_origins_size_ = -1;
+
+  DISALLOW_COPY_AND_ASSIGN(DwarfElfStream);
+};
+
+static constexpr intptr_t kInitialDwarfBufferSize = 64 * KB;
+
+static uint8_t* ZoneReallocate(uint8_t* ptr, intptr_t len, intptr_t new_len) {
+  return Thread::Current()->zone()->Realloc<uint8_t>(ptr, len, new_len);
+}
+#endif
+
+const Section* Elf::FindSegmentForAddress(intptr_t address) const {
+  for (intptr_t i = 0; i < segments_.length(); i++) {
+    auto const segment = segments_[i];
+    auto const start = segment->memory_offset();
+    auto const end = start + segment->MemorySize();
+    if (address >= start && address < end) {
+      return segment;
+    }
+  }
+  return nullptr;
+}
+
+void Elf::FinalizeDwarfSections() {
+  if (dwarf_ == nullptr) return;
+#if defined(DART_PRECOMPILER)
+  // Add all the static symbols for Code objects. We'll keep a table of
+  // symbol names to relocated addresses for use in the DwarfElfStream.
+  CStringMap<intptr_t> symbol_to_address_map;
+  // Prime the map with any existing static symbols.
+  if (symtab_ != nullptr) {
+    ASSERT(strtab_ != nullptr);
+    // Skip the initial reserved entry in the symbol table.
+    for (intptr_t i = 1; i < symtab_->Length(); i++) {
+      auto const symbol = symtab_->At(i);
+      auto const name = strtab_->At(symbol->name_index);
+      symbol_to_address_map.Insert({name, symbol->offset});
+    }
+  }
+
+  SnapshotTextObjectNamer namer(zone_);
+  const auto& codes = dwarf_->codes();
+  for (intptr_t i = 0; i < codes.length(); i++) {
+    const auto& code = *codes[i];
+    auto const name = namer.SnapshotNameFor(i, code);
+    auto const address = dwarf_->CodeAddress(code);
+    ASSERT(address != CodeAddressPair::kNoValue);
+    auto const segment = FindSegmentForAddress(address);
+    ASSERT(segment != nullptr);
+    auto const info = (elf::STB_GLOBAL << 4) | elf::STT_FUNC;
+    AddStaticSymbol(name, info, segment->section_index(), address, code.Size());
+    symbol_to_address_map.Insert({name, address});
+  }
+
+  // TODO(rmacnak): Generate .debug_frame / .eh_frame / .arm.exidx to
+  // provide unwinding information.
+
+  {
+    uint8_t* buffer = nullptr;
+    WriteStream stream(&buffer, ZoneReallocate, kInitialDwarfBufferSize);
+    DwarfElfStream dwarf_stream(zone_, &stream, symbol_to_address_map);
+    dwarf_->WriteAbbreviations(&dwarf_stream);
+    AddDebug(".debug_abbrev", buffer, stream.bytes_written());
+  }
+
+  {
+    uint8_t* buffer = nullptr;
+    WriteStream stream(&buffer, ZoneReallocate, kInitialDwarfBufferSize);
+    DwarfElfStream dwarf_stream(zone_, &stream, symbol_to_address_map);
+    dwarf_->WriteDebugInfo(&dwarf_stream);
+    AddDebug(".debug_info", buffer, stream.bytes_written());
+  }
+
+  {
+    uint8_t* buffer = nullptr;
+    WriteStream stream(&buffer, ZoneReallocate, kInitialDwarfBufferSize);
+    DwarfElfStream dwarf_stream(zone_, &stream, symbol_to_address_map);
+    dwarf_->WriteLineNumberProgram(&dwarf_stream);
+    AddDebug(".debug_line", buffer, stream.bytes_written());
+  }
+#endif
+}
+
 void Elf::Finalize() {
+  FinalizeDwarfSections();
+
   // Unlike the static tables, we must wait until finalization to add the
   // dynamic tables, as adding them marks them as finalized.
   AddSection(dynstrtab_, ".dynstr");

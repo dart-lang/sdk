@@ -6443,7 +6443,9 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
   StreamingWriteStream debug_stream(generate_debug ? kInitialDebugSize : 0,
                                     callback, debug_callback_data);
 
-  Elf* elf = generate_debug ? new (Z) Elf(Z, &debug_stream) : nullptr;
+  auto const elf = generate_debug ? new (Z)
+                                        Elf(Z, &debug_stream, new (Z) Dwarf(Z))
+                                  : nullptr;
 
   AssemblyImageWriter image_writer(T, callback, callback_data, strip, elf);
   uint8_t* vm_snapshot_data_buffer = NULL;
@@ -6454,9 +6456,6 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
 
   writer.WriteFullSnapshot();
   image_writer.Finalize();
-  if (elf != nullptr) {
-    elf->Finalize();
-  }
 
   return Api::Success();
 #endif
@@ -6517,11 +6516,13 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
   StreamingWriteStream debug_stream(generate_debug ? kInitialDebugSize : 0,
                                     callback, debug_callback_data);
 
-  Elf* elf = new (Z) Elf(Z, &elf_stream, strip);
-  Dwarf* elf_dwarf = strip ? nullptr : new (Z) Dwarf(Z, nullptr, elf);
-  Elf* debug_elf = generate_debug ? new (Z) Elf(Z, &debug_stream) : nullptr;
-  Dwarf* debug_dwarf =
-      generate_debug ? new (Z) Dwarf(Z, nullptr, debug_elf) : nullptr;
+  auto const dwarf = strip ? nullptr : new (Z) Dwarf(Z);
+  auto const elf = new (Z) Elf(Z, &elf_stream, dwarf);
+  // Re-use the same DWARF object if unstripped.
+  auto const debug_elf =
+      generate_debug
+          ? new (Z) Elf(Z, &debug_stream, strip ? new (Z) Dwarf(Z) : dwarf)
+          : nullptr;
 
   // Here, both VM and isolate will be compiled into a single snapshot.
   // In assembly generation, each serialized text section gets a separate
@@ -6540,16 +6541,16 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
   // Add the BSS section to the separately saved debugging information, even
   // though there will be no code in it to relocate, since it precedes the
   // .text sections and thus affects their virtual addresses.
-  if (debug_dwarf != nullptr) {
+  if (debug_elf != nullptr) {
     debug_elf->AddBSSData("_kDartBSSData", bss_size);
   }
 
   BlobImageWriter vm_image_writer(T, &vm_snapshot_instructions_buffer,
-                                  ApiReallocate, kInitialSize, debug_dwarf,
-                                  vm_bss_base, elf, elf_dwarf);
+                                  ApiReallocate, kInitialSize, debug_elf,
+                                  vm_bss_base, elf);
   BlobImageWriter isolate_image_writer(T, &isolate_snapshot_instructions_buffer,
-                                       ApiReallocate, kInitialSize, debug_dwarf,
-                                       isolate_bss_base, elf, elf_dwarf);
+                                       ApiReallocate, kInitialSize, debug_elf,
+                                       isolate_bss_base, elf);
   FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data_buffer,
                             &isolate_snapshot_data_buffer, ApiReallocate,
                             &vm_image_writer, &isolate_image_writer);
@@ -6560,14 +6561,8 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
   elf->AddROData(kIsolateSnapshotDataAsmSymbol, isolate_snapshot_data_buffer,
                  writer.IsolateSnapshotSize());
 
-  if (elf_dwarf != nullptr) {
-    // TODO(rmacnak): Generate .debug_frame / .eh_frame / .arm.exidx to
-    // provide unwinding information.
-    elf_dwarf->Write();
-  }
   elf->Finalize();
-  if (generate_debug) {
-    debug_dwarf->Write();
+  if (debug_elf != nullptr) {
     debug_elf->Finalize();
   }
 

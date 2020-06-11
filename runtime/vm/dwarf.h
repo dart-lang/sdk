@@ -14,7 +14,6 @@ namespace dart {
 
 #ifdef DART_PRECOMPILER
 
-class Elf;
 class InliningNode;
 class SnapshotTextObjectNamer;
 
@@ -89,6 +88,9 @@ struct CodeAddressPair {
   typedef intptr_t Value;
   typedef CodeAddressPair Pair;
 
+  static constexpr intptr_t kNoValue = -1;
+  static_assert(kNoValue < 0, "non-negative value used for kNoValue");
+
   static Key KeyOf(Pair kv) { return kv.code_; }
 
   static Value ValueOf(Pair kv) { return kv.address_; }
@@ -109,7 +111,7 @@ struct CodeAddressPair {
     ASSERT(address >= 0);
   }
 
-  CodeAddressPair() : code_(NULL), address_(-1) {}
+  CodeAddressPair() : code_(NULL), address_(kNoValue) {}
 
   void Print() const;
 
@@ -193,43 +195,77 @@ class Trie : public ZoneAllocated {
   Trie<T>* children_[kNumValidChars];
 };
 
+class DwarfWriteStream : public ValueObject {
+ public:
+  DwarfWriteStream() {}
+  virtual ~DwarfWriteStream() {}
+
+  virtual void sleb128(intptr_t value) = 0;
+  virtual void uleb128(uintptr_t value) = 0;
+  virtual void u1(uint8_t value) = 0;
+  virtual void u2(uint16_t value) = 0;
+  virtual void u4(uint32_t value) = 0;
+  virtual void u8(uint64_t value) = 0;
+  virtual void string(const char* cstr) = 0;  // NOLINT
+
+  // Returns the position (if any) to fix up in SetSize().
+  virtual intptr_t ReserveSize(const char* prefix, intptr_t* start) = 0;
+  virtual void SetSize(intptr_t position,
+                       const char* prefix,
+                       intptr_t start) = 0;
+
+  virtual void OffsetFromSymbol(const char* symbol, intptr_t offset) = 0;
+  // Returns the difference between the relocated address at offset1 from
+  // symbol1 and the relocated address at offset2 from symbol2.
+  virtual void DistanceBetweenSymbolOffsets(const char* symbol1,
+                                            intptr_t offset1,
+                                            const char* symbol2,
+                                            intptr_t offset2) = 0;
+
+  virtual void InitializeAbstractOrigins(intptr_t size) = 0;
+  virtual void RegisterAbstractOrigin(intptr_t index) = 0;
+  virtual void AbstractOrigin(intptr_t index) = 0;
+
+  DISALLOW_COPY_AND_ASSIGN(DwarfWriteStream);
+};
+
 class Dwarf : public ZoneAllocated {
  public:
-  Dwarf(Zone* zone, StreamingWriteStream* stream, Elf* elf);
+  explicit Dwarf(Zone* zone);
 
-  Elf* elf() const { return elf_; }
+  const ZoneGrowableArray<const Code*>& codes() const { return codes_; }
 
-  // Stores the code object for later creating the line number program.
-  //
-  // Should only be called when the output is not ELF.
-  //
-  // Returns the stored index of the code object.
-  intptr_t AddCode(const Code& code);
+  // Assumes that no code objects can be at a relocated address of 0 (true
+  // for ELF, since the program header is at address 0).
+  static constexpr intptr_t kNoCodeAddress = 0;
 
   // Stores the code object for later creating the line number program.
   //
-  // [payload_offset] should be the offset of the payload within the text
-  // section. [name] is used to create an ELF static symbol for the payload.
+  // [relocated_address] is passed when the relocated address of the
+  // instructions payload is known at snapshot generation time. For example,
+  // it is provided when generating ELF snapshots.
   //
-  // Should only be called when the output is ELF.
-  void AddCode(const Code& code, const char* name, intptr_t payload_offset);
+  // Returns the stored index of the code object when the relocated address
+  // is not known at snapshot generation time (kNoCodeAddress).
+  intptr_t AddCode(const Code& code,
+                   intptr_t relocated_address = kNoCodeAddress);
+
+  // Returns the stored relocated address for the given Code object. If no
+  // address is stored, returns CodeAddressPair::kNoValue.
+  intptr_t CodeAddress(const Code& code) const {
+    return code_to_address_.LookupValue(&code);
+  }
 
   intptr_t AddFunction(const Function& function);
   intptr_t AddScript(const Script& script);
   intptr_t LookupFunction(const Function& function);
   intptr_t LookupScript(const Script& script);
 
-  void Write() {
-    WriteAbbreviations();
-    WriteCompilationUnit();
-    WriteLines();
-  }
+  void WriteAbbreviations(DwarfWriteStream* stream);
+  void WriteDebugInfo(DwarfWriteStream* stream);
+  void WriteLineNumberProgram(DwarfWriteStream* stream);
 
  private:
-  // Implements shared functionality for the two AddCode calls. Assumes the
-  // Code handle is appropriately zoned.
-  intptr_t AddCodeHelper(const Code& code);
-
   static const intptr_t DW_TAG_compile_unit = 0x11;
   static const intptr_t DW_TAG_inlined_subroutine = 0x1d;
   static const intptr_t DW_TAG_subprogram = 0x2e;
@@ -278,158 +314,32 @@ class Dwarf : public ZoneAllocated {
     kInlinedFunction,
   };
 
-  void Print(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
-
-#if defined(TARGET_ARCH_IS_32_BIT)
-#define FORM_ADDR ".4byte"
-#elif defined(TARGET_ARCH_IS_64_BIT)
-#define FORM_ADDR ".8byte"
-#endif
-
-  void PrintNamedAddress(const char* name) { Print(FORM_ADDR " %s\n", name); }
-  void PrintNamedAddressWithOffset(const char* name, intptr_t offset) {
-    Print(FORM_ADDR " %s + %" Pd "\n", name, offset);
-  }
-
-#undef FORM_ADDR
-
-  void sleb128(intptr_t value) {
-    if (asm_stream_ != nullptr) {
-      Print(".sleb128 %" Pd "\n", value);
-    }
-    if (elf_ != nullptr) {
-      bool is_last_part = false;
-      while (!is_last_part) {
-        uint8_t part = value & 0x7F;
-        value >>= 7;
-        if ((value == 0 && (part & 0x40) == 0) ||
-            (value == static_cast<intptr_t>(-1) && (part & 0x40) != 0)) {
-          is_last_part = true;
-        } else {
-          part |= 0x80;
-        }
-        bin_stream_->WriteBytes(reinterpret_cast<const uint8_t*>(&part),
-                                sizeof(part));
-      }
-    }
-  }
-  void uleb128(uintptr_t value) {
-    if (asm_stream_ != nullptr) {
-      Print(".uleb128 %" Pd "\n", value);
-    }
-    if (elf_ != nullptr) {
-      bool is_last_part = false;
-      while (!is_last_part) {
-        uint8_t part = value & 0x7F;
-        value >>= 7;
-        if (value == 0) {
-          is_last_part = true;
-        } else {
-          part |= 0x80;
-        }
-        bin_stream_->WriteBytes(reinterpret_cast<const uint8_t*>(&part),
-                                sizeof(part));
-      }
-    }
-  }
-  void u1(uint8_t value) {
-    if (asm_stream_ != nullptr) {
-      Print(".byte %u\n", value);
-    }
-    if (elf_ != nullptr) {
-      bin_stream_->WriteBytes(reinterpret_cast<const uint8_t*>(&value),
-                              sizeof(value));
-    }
-  }
-  void u2(uint16_t value) {
-    if (asm_stream_ != nullptr) {
-      Print(".2byte %u\n", value);
-    }
-    if (elf_ != nullptr) {
-      bin_stream_->WriteBytes(reinterpret_cast<const uint8_t*>(&value),
-                              sizeof(value));
-    }
-  }
-  intptr_t u4(uint32_t value) {
-    if (asm_stream_ != nullptr) {
-      Print(".4byte %" Pu32 "\n", value);
-    }
-    if (elf_ != nullptr) {
-      intptr_t fixup = position();
-      bin_stream_->WriteBytes(reinterpret_cast<const uint8_t*>(&value),
-                              sizeof(value));
-      return fixup;
-    }
-    return -1;
-  }
-  void fixup_u4(intptr_t position, uint32_t value) {
-    RELEASE_ASSERT(elf_ != nullptr);
-    memmove(bin_stream_->buffer() + position, &value, sizeof(value));
-  }
-  void u8(uint64_t value) {
-    if (asm_stream_ != nullptr) {
-      Print(".8byte %" Pu64 "\n", value);
-    }
-    if (elf_ != nullptr) {
-      bin_stream_->WriteBytes(reinterpret_cast<const uint8_t*>(&value),
-                              sizeof(value));
-    }
-  }
-  void addr(uword value) {
-    RELEASE_ASSERT(elf_ != nullptr);
-#if defined(TARGET_ARCH_IS_32_BIT)
-    u4(value);
-#else
-    u8(value);
-#endif
-  }
-  void string(const char* cstr) {  // NOLINT
-    if (asm_stream_ != nullptr) {
-      Print(".string \"%s\"\n", cstr);  // NOLINT
-    }
-    if (elf_ != nullptr) {
-      bin_stream_->WriteBytes(reinterpret_cast<const uint8_t*>(cstr),
-                              strlen(cstr) + 1);
-    }
-  }
-  intptr_t position() {
-    RELEASE_ASSERT(elf_ != nullptr);
-    return bin_stream_->Position();
-  }
-
   static constexpr intptr_t kNoLineInformation = 0;
 
   // Returns the line number or kNoLineInformation if there is no line
   // information available for the given token position.
   static intptr_t TokenPositionToLine(const TokenPosition& token_pos);
 
-  void WriteAbbreviations();
-  void WriteCompilationUnit();
-  void WriteAbstractFunctions();
-  void WriteConcreteFunctions();
+  void WriteAbstractFunctions(DwarfWriteStream* stream);
+  void WriteConcreteFunctions(DwarfWriteStream* stream);
   InliningNode* ExpandInliningTree(const Code& code);
-  void WriteInliningNode(InliningNode* node,
-                         intptr_t root_code_index,
-                         intptr_t root_code_offset,
+  void WriteInliningNode(DwarfWriteStream* stream,
+                         InliningNode* node,
+                         const char* root_code_name,
                          const Script& parent_script,
                          SnapshotTextObjectNamer* namer);
-  void WriteLines();
 
   const char* Deobfuscate(const char* cstr);
   static Trie<const char>* CreateReverseObfuscationTrie(Zone* zone);
 
   Zone* const zone_;
-  Elf* const elf_;
   Trie<const char>* const reverse_obfuscation_trie_;
-  StreamingWriteStream* asm_stream_;
-  WriteStream* bin_stream_;
   ZoneGrowableArray<const Code*> codes_;
   CodeAddressMap code_to_address_;
   ZoneGrowableArray<const Function*> functions_;
   FunctionIndexMap function_to_index_;
   ZoneGrowableArray<const Script*> scripts_;
   ScriptIndexMap script_to_index_;
-  uint32_t* abstract_origins_;
   intptr_t temp_;
 };
 
