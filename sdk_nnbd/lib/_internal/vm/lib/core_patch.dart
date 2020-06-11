@@ -15,6 +15,7 @@ import "dart:_internal"
         allocateTwoByteString,
         ClassID,
         CodeUnits,
+        copyRangeFromUint8ListToOneByteString,
         EfficientLengthIterable,
         FixedLengthListBase,
         IterableElementError,

@@ -391,6 +391,9 @@ class Assembler : public AssemblerBase {
   SIMPLE(fsin, 0xD9, 0xFE)
   SIMPLE(lock, 0xF0)
   SIMPLE(rep_movsb, 0xF3, 0xA4)
+  SIMPLE(rep_movsw, 0xF3, 0x66, 0xA5)
+  SIMPLE(rep_movsl, 0xF3, 0xA5)
+  SIMPLE(rep_movsq, 0xF3, 0x48, 0xA5)
 #undef SIMPLE
 // XmmRegister operations with another register or an address.
 #define XX(width, name, ...)                                                   \
@@ -1030,7 +1033,7 @@ class Assembler : public AssemblerBase {
             const Address& dst,
             const Immediate& imm);
 
-  void EmitSimple(int opcode, int opcode2 = -1);
+  void EmitSimple(int opcode, int opcode2 = -1, int opcode3 = -1);
   void EmitUnaryQ(Register reg, int opcode, int modrm_code);
   void EmitUnaryL(Register reg, int opcode, int modrm_code);
   void EmitUnaryQ(const Address& address, int opcode, int modrm_code);

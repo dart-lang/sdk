@@ -229,14 +229,14 @@ abstract class _StringBase implements String {
     // It's always faster to do this in Dart than to call into the runtime.
     var s = _OneByteString._allocate(len);
 
-    // Special case for _Uint8ArrayView.
-    if (charCodes is Uint8List) {
-      if (start >= 0 && len >= 0) {
-        for (int i = 0; i < len; i++) {
-          s._setAt(i, charCodes[start + i]);
-        }
-        return s;
-      }
+    // Special case for native Uint8 typed arrays.
+    final int cid = ClassID.getID(charCodes);
+    if (cid == ClassID.cidUint8ArrayView ||
+        cid == ClassID.cidUint8Array ||
+        cid == ClassID.cidExternalUint8Array) {
+      Uint8List bytes = unsafeCast<Uint8List>(charCodes);
+      copyRangeFromUint8ListToOneByteString(bytes, s, start, 0, len);
+      return s;
     }
 
     // Fall through to normal case.
