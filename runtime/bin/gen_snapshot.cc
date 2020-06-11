@@ -664,6 +664,9 @@ static int CreateIsolateAndSnapshot(const CommandLineOptions& inputs) {
 
   Dart_IsolateFlags isolate_flags;
   Dart_IsolateFlagsInitialize(&isolate_flags);
+  isolate_flags.null_safety =
+      Dart_DetectNullSafety(nullptr, nullptr, nullptr, nullptr, nullptr,
+                            kernel_buffer, kernel_buffer_size);
   if (IsSnapshottingForPrecompilation()) {
     isolate_flags.obfuscate = obfuscate;
     isolate_flags.entry_points = no_entry_points;

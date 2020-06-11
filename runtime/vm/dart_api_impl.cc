@@ -5449,7 +5449,6 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* buffer,
   if (program == nullptr) {
     return Api::NewError("Can't load Kernel binary: %s.", error);
   }
-  program->AutoDetectNullSafety(I);
   const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program.get());
   program.reset();
 
@@ -5755,7 +5754,6 @@ DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* buffer,
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
   StackZone zone(T);
-  Isolate* I = T->isolate();
 
   CHECK_CALLBACK_STATE(T);
 
@@ -5772,7 +5770,6 @@ DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* buffer,
   if (program == nullptr) {
     return Api::NewError("Can't load Kernel binary: %s.", error);
   }
-  program->AutoDetectNullSafety(I);
   const Object& result =
       kernel::KernelLoader::LoadEntireProgram(program.get(), false);
   program.reset();
@@ -6026,6 +6023,24 @@ DART_EXPORT void Dart_SetDartLibrarySourcesKernel(
   Service::SetDartLibraryKernelForSources(platform_kernel,
                                           platform_kernel_size);
 #endif
+}
+
+DART_EXPORT bool Dart_DetectNullSafety(const char* script_uri,
+                                       const char* package_config,
+                                       const char* original_working_directory,
+                                       const uint8_t* snapshot_data,
+                                       const uint8_t* snapshot_instructions,
+                                       const uint8_t* kernel_buffer,
+                                       intptr_t kernel_buffer_size) {
+  bool null_safety;
+  if (FLAG_null_safety == kNullSafetyOptionUnspecified) {
+    null_safety = Dart::DetectNullSafety(
+        script_uri, snapshot_data, snapshot_instructions, kernel_buffer,
+        kernel_buffer_size, package_config, original_working_directory);
+  } else {
+    null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
+  }
+  return null_safety;
 }
 
 // --- Service support ---

@@ -1235,11 +1235,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   }
 
   bool null_safety() const {
-    // TODO(asiva) : We return false when the null safety mode is not yet set
-    // instead of just asserting as some code runs during bootstrapping that
-    // requires the mode to be set. Once all of that is resolved this could
-    // turn into just an assert.
-    if (null_safety_not_set()) return false;
     ASSERT(!null_safety_not_set());
     return NullSafetyBit::decode(isolate_flags_);
   }

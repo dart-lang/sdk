@@ -6662,23 +6662,50 @@ char* SnapshotHeaderReader::InitializeGlobalVMFlagsFromSnapshot(
 #undef CHECK_FLAG
 #undef SET_FLAG
 
-    if (FLAG_null_safety == kNullSafetyOptionUnspecified) {
-      if (strncmp(cursor, "null-safety", end - cursor) == 0) {
-        FLAG_null_safety = kNullSafetyOptionStrong;
-        cursor = end;
-        continue;
-      }
-      if (strncmp(cursor, "no-null-safety", end - cursor) == 0) {
-        FLAG_null_safety = kNullSafetyOptionWeak;
-        cursor = end;
-        continue;
-      }
+    cursor = end;
+  }
+
+  return nullptr;
+}
+
+bool SnapshotHeaderReader::NullSafetyFromSnapshot(const Snapshot* snapshot) {
+  bool null_safety = false;
+  SnapshotHeaderReader header_reader(snapshot);
+  const char* features = nullptr;
+  intptr_t features_length = 0;
+
+  char* error = header_reader.ReadFeatures(&features, &features_length);
+  if (error != nullptr) {
+    return false;
+  }
+
+  ASSERT(features[features_length] == '\0');
+  const char* cursor = features;
+  while (*cursor != '\0') {
+    while (*cursor == ' ') {
+      cursor++;
+    }
+
+    const char* end = strstr(cursor, " ");
+    if (end == nullptr) {
+      end = features + features_length;
+    }
+
+    if (strncmp(cursor, "null-safety", end - cursor) == 0) {
+      cursor = end;
+      null_safety = true;
+      continue;
+    }
+    if (strncmp(cursor, "no-null-safety", end - cursor) == 0) {
+      cursor = end;
+      null_safety = false;
+      continue;
     }
 
     cursor = end;
   }
 
-  return nullptr;
+  return null_safety;
 }
 
 ApiErrorPtr FullSnapshotReader::ReadVMSnapshot() {
