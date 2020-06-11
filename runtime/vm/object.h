@@ -1097,9 +1097,6 @@ class Class : public Object {
   intptr_t NumTypeParameters() const {
     return NumTypeParameters(Thread::Current());
   }
-  static intptr_t type_parameters_offset() {
-    return OFFSET_OF(ClassLayout, type_parameters_);
-  }
 
   // Return a TypeParameter if the type_name is a type parameter of this class.
   // Return null otherwise.
@@ -8163,6 +8160,10 @@ class TypeParameter : public AbstractType {
         raw_ptr()->flags_);
   }
   void SetGenericCovariantImpl(bool value) const;
+  bool IsDeclaration() const {
+    return TypeParameterLayout::DeclarationBit::decode(raw_ptr()->flags_);
+  }
+  void SetDeclaration(bool value) const;
   virtual Nullability nullability() const {
     return static_cast<Nullability>(raw_ptr()->nullability_);
   }
@@ -8199,12 +8200,10 @@ class TypeParameter : public AbstractType {
       intptr_t num_free_fun_type_params,
       Heap::Space space,
       TrailPtr trail = nullptr) const;
-  virtual AbstractTypePtr Canonicalize(TrailPtr trail = nullptr) const {
-    return raw();
-  }
+  virtual AbstractTypePtr Canonicalize(TrailPtr trail = nullptr) const;
 #if defined(DEBUG)
   // Check if type parameter is canonical.
-  virtual bool CheckIsCanonical(Thread* thread) const { return true; }
+  virtual bool CheckIsCanonical(Thread* thread) const;
 #endif  // DEBUG
   virtual void EnumerateURIs(URIs* uris) const;
 
@@ -11300,6 +11299,7 @@ using MegamorphicCacheEntries =
     ArrayOfTuplesView<MegamorphicCache::EntryType, std::tuple<Smi, Object>>;
 
 void DumpTypeTable(Isolate* isolate);
+void DumpTypeParameterTable(Isolate* isolate);
 void DumpTypeArgumentsTable(Isolate* isolate);
 
 EntryPointPragma FindEntryPointPragma(Isolate* I,

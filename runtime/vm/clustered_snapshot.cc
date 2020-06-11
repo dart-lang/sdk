@@ -198,6 +198,7 @@ class ClassSerializationCluster : public SerializationCluster {
     }
   }
 
+ private:
   void WriteClass(Serializer* s, ClassPtr cls) {
     AutoTraceObjectName(cls, cls->ptr()->name_);
     WriteFromTo(cls);
@@ -228,7 +229,6 @@ class ClassSerializationCluster : public SerializationCluster {
     }
   }
 
- private:
   GrowableArray<ClassPtr> predefined_;
   GrowableArray<ClassPtr> objects_;
 
@@ -3498,19 +3498,28 @@ class TypeRefDeserializationCluster : public DeserializationCluster {
 class TypeParameterSerializationCluster : public SerializationCluster {
  public:
   TypeParameterSerializationCluster() : SerializationCluster("TypeParameter") {}
-
   ~TypeParameterSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
     TypeParameterPtr type = TypeParameter::RawCast(object);
-    objects_.Add(type);
-    ASSERT(!type->ptr()->IsCanonical());
+    if (type->ptr()->IsCanonical()) {
+      canonical_objects_.Add(type);
+    } else {
+      objects_.Add(type);
+    }
+
     PushFromTo(type);
   }
 
   void WriteAlloc(Serializer* s) {
     s->WriteCid(kTypeParameterCid);
-    const intptr_t count = objects_.length();
+    intptr_t count = canonical_objects_.length();
+    s->WriteUnsigned(count);
+    for (intptr_t i = 0; i < count; i++) {
+      TypeParameterPtr type = canonical_objects_[i];
+      s->AssignRef(type);
+    }
+    count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       TypeParameterPtr type = objects_[i];
@@ -3519,23 +3528,31 @@ class TypeParameterSerializationCluster : public SerializationCluster {
   }
 
   void WriteFill(Serializer* s) {
-    const intptr_t count = objects_.length();
+    intptr_t count = canonical_objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      TypeParameterPtr type = objects_[i];
-      AutoTraceObject(type);
-      WriteFromTo(type);
-      s->Write<int32_t>(type->ptr()->parameterized_class_id_);
-      s->WriteTokenPosition(type->ptr()->token_pos_);
-      s->Write<int16_t>(type->ptr()->index_);
-      const uint8_t combined =
-          (type->ptr()->flags_ << 4) | type->ptr()->nullability_;
-      ASSERT(type->ptr()->flags_ == (combined >> 4));
-      ASSERT(type->ptr()->nullability_ == (combined & 0xf));
-      s->Write<uint8_t>(combined);
+      WriteTypeParameter(s, canonical_objects_[i]);
+    }
+    count = objects_.length();
+    for (intptr_t i = 0; i < count; i++) {
+      WriteTypeParameter(s, objects_[i]);
     }
   }
 
  private:
+  void WriteTypeParameter(Serializer* s, TypeParameterPtr type) {
+    AutoTraceObject(type);
+    WriteFromTo(type);
+    s->Write<int32_t>(type->ptr()->parameterized_class_id_);
+    s->WriteTokenPosition(type->ptr()->token_pos_);
+    s->Write<int16_t>(type->ptr()->index_);
+    const uint8_t combined =
+        (type->ptr()->flags_ << 4) | type->ptr()->nullability_;
+    ASSERT(type->ptr()->flags_ == (combined >> 4));
+    ASSERT(type->ptr()->nullability_ == (combined & 0xf));
+    s->Write<uint8_t>(combined);
+  }
+
+  GrowableArray<TypeParameterPtr> canonical_objects_;
   GrowableArray<TypeParameterPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
@@ -3546,9 +3563,17 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
   ~TypeParameterDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d) {
-    start_index_ = d->next_index();
+    canonical_start_index_ = d->next_index();
     PageSpace* old_space = d->heap()->old_space();
-    const intptr_t count = d->ReadUnsigned();
+    intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      d->AssignRef(
+          AllocateUninitialized(old_space, TypeParameter::InstanceSize()));
+    }
+    canonical_stop_index_ = d->next_index();
+
+    start_index_ = d->next_index();
+    count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       d->AssignRef(
           AllocateUninitialized(old_space, TypeParameter::InstanceSize()));
@@ -3557,17 +3582,15 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
+    for (intptr_t id = canonical_start_index_; id < canonical_stop_index_;
+         id++) {
+      TypeParameterPtr type = static_cast<TypeParameterPtr>(d->Ref(id));
+      ReadTypeParameter(d, type, /* is_canonical = */ true);
+    }
+
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       TypeParameterPtr type = static_cast<TypeParameterPtr>(d->Ref(id));
-      Deserializer::InitializeHeader(type, kTypeParameterCid,
-                                     TypeParameter::InstanceSize());
-      ReadFromTo(type);
-      type->ptr()->parameterized_class_id_ = d->Read<int32_t>();
-      type->ptr()->token_pos_ = d->ReadTokenPosition();
-      type->ptr()->index_ = d->Read<int16_t>();
-      const uint8_t combined = d->Read<uint8_t>();
-      type->ptr()->flags_ = combined >> 4;
-      type->ptr()->nullability_ = combined & 0xf;
+      ReadTypeParameter(d, type, /* is_canonical = */ false);
     }
   }
 
@@ -3576,6 +3599,13 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
     Code& stub = Code::Handle(zone);
 
     if (Snapshot::IncludesCode(kind)) {
+      for (intptr_t id = canonical_start_index_; id < canonical_stop_index_;
+           id++) {
+        type_param ^= refs.At(id);
+        stub = type_param.type_test_stub();
+        type_param.SetTypeTestingStub(
+            stub);  // Update type_test_stub_entry_point_
+      }
       for (intptr_t id = start_index_; id < stop_index_; id++) {
         type_param ^= refs.At(id);
         stub = type_param.type_test_stub();
@@ -3583,6 +3613,12 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
             stub);  // Update type_test_stub_entry_point_
       }
     } else {
+      for (intptr_t id = canonical_start_index_; id < canonical_stop_index_;
+           id++) {
+        type_param ^= refs.At(id);
+        stub = TypeTestingStubGenerator::DefaultCodeForType(type_param);
+        type_param.SetTypeTestingStub(stub);
+      }
       for (intptr_t id = start_index_; id < stop_index_; id++) {
         type_param ^= refs.At(id);
         stub = TypeTestingStubGenerator::DefaultCodeForType(type_param);
@@ -3590,6 +3626,24 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
       }
     }
   }
+
+ private:
+  void ReadTypeParameter(Deserializer* d,
+                         TypeParameterPtr type,
+                         bool is_canonical) {
+    Deserializer::InitializeHeader(type, kTypeParameterCid,
+                                   TypeParameter::InstanceSize(), is_canonical);
+    ReadFromTo(type);
+    type->ptr()->parameterized_class_id_ = d->Read<int32_t>();
+    type->ptr()->token_pos_ = d->ReadTokenPosition();
+    type->ptr()->index_ = d->Read<int16_t>();
+    const uint8_t combined = d->Read<uint8_t>();
+    type->ptr()->flags_ = combined >> 4;
+    type->ptr()->nullability_ = combined & 0xf;
+  }
+
+  intptr_t canonical_start_index_;
+  intptr_t canonical_stop_index_;
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)

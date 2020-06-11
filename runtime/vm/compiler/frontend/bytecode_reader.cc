@@ -671,6 +671,8 @@ void BytecodeReaderHelper::ReadTypeParametersDeclaration(
                                    nullability, TokenPosition::kNoSource);
     parameter.set_index(offset + i);
     parameter.SetIsFinalized();
+    parameter.SetCanonical();
+    parameter.SetDeclaration(true);
     type_parameters.SetTypeAt(i, parameter);
   }
 

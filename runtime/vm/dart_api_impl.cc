@@ -6721,6 +6721,7 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
   if (FLAG_dump_tables) {
     Symbols::DumpTable(I);
     DumpTypeTable(I);
+    DumpTypeParameterTable(I);
     DumpTypeArgumentsTable(I);
   }
 

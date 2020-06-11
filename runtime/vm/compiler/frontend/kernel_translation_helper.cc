@@ -3273,6 +3273,8 @@ void TypeTranslator::LoadAndSetupTypeParameters(
           H.DartIdentifier(lib, helper.name_index_),  // read ith name index.
           null_bound, helper.IsGenericCovariantImpl(), nullability,
           TokenPosition::kNoSource);
+      parameter.SetCanonical();
+      parameter.SetDeclaration(true);
       type_parameters.SetTypeAt(i, parameter);
     }
   }

@@ -173,6 +173,7 @@ Precompiler::Precompiler(Thread* thread)
       classes_to_retain_(),
       typeargs_to_retain_(),
       types_to_retain_(),
+      typeparams_to_retain_(),
       consts_to_retain_(),
       seen_table_selectors_(),
       error_(Error::Handle()),
@@ -384,6 +385,7 @@ void Precompiler::DoCompileAll() {
       DropFields();
       TraceTypesFromRetainedClasses();
       DropTypes();
+      DropTypeParameters();
       DropTypeArguments();
 
       // Clear these before dropping classes as they may hold onto otherwise
@@ -779,6 +781,8 @@ void Precompiler::AddTypesOf(const Function& function) {
   ASSERT(!function.IsRedirectingFactory());
   functions_to_retain_.Insert(function);
 
+  AddTypeArguments(TypeArguments::Handle(Z, function.type_parameters()));
+
   AbstractType& type = AbstractType::Handle(Z);
   type = function.result_type();
   AddType(type);
@@ -823,6 +827,23 @@ void Precompiler::AddTypesOf(const Function& function) {
 void Precompiler::AddType(const AbstractType& abstype) {
   if (abstype.IsNull()) return;
 
+  if (abstype.IsTypeParameter()) {
+    if (typeparams_to_retain_.HasKey(&TypeParameter::Cast(abstype))) return;
+    typeparams_to_retain_.Insert(
+        &TypeParameter::ZoneHandle(Z, TypeParameter::Cast(abstype).raw()));
+
+    const AbstractType& type =
+        AbstractType::Handle(Z, TypeParameter::Cast(abstype).bound());
+    AddType(type);
+    const auto& function = Function::Handle(
+        Z, TypeParameter::Cast(abstype).parameterized_function());
+    AddTypesOf(function);
+    const Class& cls =
+        Class::Handle(Z, TypeParameter::Cast(abstype).parameterized_class());
+    AddTypesOf(cls);
+    return;
+  }
+
   if (types_to_retain_.HasKey(&abstype)) return;
   types_to_retain_.Insert(&AbstractType::ZoneHandle(Z, abstype.raw()));
 
@@ -840,16 +861,6 @@ void Precompiler::AddType(const AbstractType& abstype) {
     AbstractType& type = AbstractType::Handle(Z);
     type = TypeRef::Cast(abstype).type();
     AddType(type);
-  } else if (abstype.IsTypeParameter()) {
-    const AbstractType& type =
-        AbstractType::Handle(Z, TypeParameter::Cast(abstype).bound());
-    AddType(type);
-    const auto& function = Function::Handle(
-        Z, TypeParameter::Cast(abstype).parameterized_function());
-    AddTypesOf(function);
-    const Class& cls =
-        Class::Handle(Z, TypeParameter::Cast(abstype).parameterized_class());
-    AddTypesOf(cls);
   }
 }
 
@@ -867,8 +878,8 @@ void Precompiler::AddTypeArguments(const TypeArguments& args) {
 }
 
 void Precompiler::AddConstObject(const class Instance& instance) {
-  // Types and type arguments require special handling.
-  if (instance.IsAbstractType()) {
+  // Types, type parameters, and type arguments require special handling.
+  if (instance.IsAbstractType()) {  // Includes type parameter.
     AddType(AbstractType::Cast(instance));
     return;
   } else if (instance.IsTypeArguments()) {
@@ -1781,6 +1792,48 @@ void Precompiler::DropTypes() {
     ASSERT(!present);
   }
   object_store->set_canonical_types(types_table.Release());
+}
+
+void Precompiler::DropTypeParameters() {
+  ObjectStore* object_store = I->object_store();
+  GrowableObjectArray& retained_typeparams =
+      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+  Array& typeparams_array = Array::Handle(Z);
+  TypeParameter& typeparam = TypeParameter::Handle(Z);
+  // First drop all the type parameters that are not referenced.
+  // Note that we only visit 'free-floating' type parameters and not
+  // declarations of type parameters contained in the 'type_parameters'
+  // array in generic classes and functions.
+  {
+    CanonicalTypeParameterSet typeparams_table(
+        Z, object_store->canonical_type_parameters());
+    typeparams_array = HashTables::ToArray(typeparams_table, false);
+    for (intptr_t i = 0; i < typeparams_array.Length(); i++) {
+      typeparam ^= typeparams_array.At(i);
+      bool retain = typeparams_to_retain_.HasKey(&typeparam);
+      if (retain) {
+        retained_typeparams.Add(typeparam);
+      } else {
+        typeparam.ClearCanonical();
+        dropped_typeparam_count_++;
+      }
+    }
+    typeparams_table.Release();
+  }
+
+  // Now construct a new type parameter table and save in the object store.
+  const intptr_t dict_size =
+      Utils::RoundUpToPowerOfTwo(retained_typeparams.Length() * 4 / 3);
+  typeparams_array =
+      HashTables::New<CanonicalTypeParameterSet>(dict_size, Heap::kOld);
+  CanonicalTypeParameterSet typeparams_table(Z, typeparams_array.raw());
+  bool present;
+  for (intptr_t i = 0; i < retained_typeparams.Length(); i++) {
+    typeparam ^= retained_typeparams.At(i);
+    present = typeparams_table.Insert(typeparam);
+    ASSERT(!present);
+  }
+  object_store->set_canonical_type_parameters(typeparams_table.Release());
 }
 
 void Precompiler::DropTypeArguments() {
