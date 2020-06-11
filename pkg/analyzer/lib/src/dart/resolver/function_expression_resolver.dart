@@ -94,8 +94,15 @@ class FunctionExpressionResolver {
         // Check that there is no declared type, and that we have not already
         // inferred a type in some fashion.
         if (p.hasImplicitType && (p.type == null || p.type.isDynamic)) {
+          // If no type is declared for a parameter and there is a
+          // corresponding parameter in the context type schema with type
+          // schema `K`, the parameter is given an inferred type `T` where `T`
+          // is derived from `K` as follows.
           inferredType = _typeSystem.greatestClosure(inferredType);
-          if (inferredType.isDartCoreNull || inferredType is NeverTypeImpl) {
+
+          // If the greatest closure of `K` is `S` and `S` is a subtype of
+          // `Null`, then `T` is `Object?`. Otherwise, `T` is `S`.
+          if (_typeSystem.isSubtypeOf2(inferredType, _typeSystem.nullNone)) {
             inferredType = _isNonNullableByDefault
                 ? _typeSystem.objectQuestion
                 : _typeSystem.objectStar;
