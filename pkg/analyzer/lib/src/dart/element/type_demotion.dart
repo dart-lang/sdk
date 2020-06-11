@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/replacement_visitor.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 
 /// Returns [type] in which all promoted type variables have been replace with
 /// their unpromoted equivalents, and, if [library] is non-nullable by default,
@@ -29,8 +30,8 @@ bool hasPromotedTypeVariable(DartType type) {
 
 /// Returns [type] in which all legacy types have been replaced with
 /// non-nullable types.
-DartType nonNullifyType(LibraryElement library, DartType type) {
-  if (library.isNonNullableByDefault && type != null) {
+DartType nonNullifyType(TypeSystemImpl typeSystem, DartType type) {
+  if (typeSystem.isNonNullableByDefault && type != null) {
     var visitor = const _DemotionNonNullification(demoteTypeVariables: false);
     return visitor.visit(type) ?? type;
   }

@@ -479,6 +479,16 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
     _assertTypes(_inferCall(f, [], returnType: stringNone), [stringNone]);
   }
 
+  void test_returnTypeFromContext_nonNullify() {
+    // <T>() -> T
+    var T = typeParameter('T');
+    var f = functionTypeNone(
+      typeFormals: [T],
+      returnType: typeParameterTypeNone(T),
+    );
+    _assertTypes(_inferCall(f, [], returnType: intStar), [intNone]);
+  }
+
   void test_returnTypeWithBoundFromContext() {
     // <T extends num>() -> T
     var T = typeParameter('T', bound: numNone);

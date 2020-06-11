@@ -51,7 +51,7 @@ class FunctionExpressionResolver {
     }
 
     var contextType = InferenceContext.getContext(node);
-    contextType = nonNullifyType(_resolver.definingLibrary, contextType);
+    contextType = nonNullifyType(_typeSystem, contextType);
 
     if (contextType is FunctionType) {
       contextType = _matchFunctionTypeParameters(
