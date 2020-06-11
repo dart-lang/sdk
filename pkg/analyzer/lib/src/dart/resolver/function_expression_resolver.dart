@@ -51,8 +51,6 @@ class FunctionExpressionResolver {
     }
 
     var contextType = InferenceContext.getContext(node);
-    contextType = nonNullifyType(_typeSystem, contextType);
-
     if (contextType is FunctionType) {
       contextType = _matchFunctionTypeParameters(
         node.typeParameters,
@@ -110,6 +108,8 @@ class FunctionExpressionResolver {
           if (_migrationResolutionHooks != null) {
             inferredType = _migrationResolutionHooks
                 .modifyInferredParameterType(p, inferredType);
+          } else {
+            inferredType = nonNullifyType(_typeSystem, inferredType);
           }
           if (!inferredType.isDynamic) {
             p.type = inferredType;
