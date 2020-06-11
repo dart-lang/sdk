@@ -1065,7 +1065,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   @override
   Constant visitTypeLiteral(TypeLiteral node) {
-    final DartType type = evaluateDartType(node, convertType(node.type));
+    final DartType type = evaluateDartType(node, node.type);
     return canonicalize(new TypeLiteralConstant(type));
   }
 
