@@ -881,9 +881,10 @@ class DwarfElfStream : public DwarfWriteStream {
   }
 
   void u1(uint8_t value) { stream_->WriteFixed(value); }
-  void u2(uint16_t value) { stream_->WriteFixed(value); }
-  void u4(uint32_t value) { stream_->WriteFixed(value); }
-  void u8(uint64_t value) { stream_->WriteFixed(value); }
+  // Can't use WriteFixed for these, as we may not be at aligned positions.
+  void u2(uint16_t value) { stream_->WriteBytes(&value, sizeof(value)); }
+  void u4(uint32_t value) { stream_->WriteBytes(&value, sizeof(value)); }
+  void u8(uint64_t value) { stream_->WriteBytes(&value, sizeof(value)); }
   void string(const char* cstr) {  // NOLINT
     stream_->WriteBytes(reinterpret_cast<const uint8_t*>(cstr),
                         strlen(cstr) + 1);
