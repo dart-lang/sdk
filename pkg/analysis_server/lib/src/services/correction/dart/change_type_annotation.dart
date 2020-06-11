@@ -23,7 +23,7 @@ class ChangeTypeAnnotation extends CorrectionProducer {
 
   @override
   Future<void> compute(DartChangeBuilder builder) async {
-    var declaration = coveredNode.parent;
+    var declaration = coveredNode?.parent;
     if (declaration is VariableDeclaration &&
         declaration.initializer == coveredNode) {
       var variableList = declaration.parent;
