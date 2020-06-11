@@ -157,6 +157,19 @@ class _DartDevelopmentServiceClient {
       return supportedProtocols;
     });
 
+    // `evaluate` and `evaluateInFrame` actually consist of multiple RPC
+    // invocations, including a call to `compileExpression` which can be
+    // overridden by clients which provide their own implementation (e.g.,
+    // Flutter Tools). We handle all of this in [_ExpressionEvaluator].
+    _clientPeer.registerMethod(
+      'evaluate',
+      dds.expressionEvaluator.execute,
+    );
+    _clientPeer.registerMethod(
+      'evaluateInFrame',
+      dds.expressionEvaluator.execute,
+    );
+
     // When invoked within a fallback, the next fallback will start executing.
     // The final fallback forwards the request to the VM service directly.
     @alwaysThrows

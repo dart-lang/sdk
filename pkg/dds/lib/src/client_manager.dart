@@ -133,6 +133,16 @@ class _ClientManager {
     }
   }
 
+  _DartDevelopmentServiceClient findFirstClientThatHandlesService(
+      String service) {
+    for (final client in clients) {
+      if (client.services.containsKey(service)) {
+        return client;
+      }
+    }
+    return null;
+  }
+
   // Handles namespace generation for service extensions.
   static const _kServicePrologue = 's';
   final NamedLookup<_DartDevelopmentServiceClient> clients = NamedLookup(

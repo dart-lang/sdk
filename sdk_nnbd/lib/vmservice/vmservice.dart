@@ -47,7 +47,7 @@ final serviceAuthToken = _makeAuthToken();
 final isolateEmbedderData = <int, IsolateEmbedderData>{};
 
 // These must be kept in sync with the declarations in vm/json_stream.h and
-// pkg/dds/lib/src/stream_manager.dart.
+// pkg/dds/lib/src/rpc_error_codes.dart.
 const kParseError = -32700;
 const kInvalidRequest = -32600;
 const kMethodNotFound = -32601;
@@ -219,7 +219,7 @@ class VMService extends MessageRouter {
 
   final devfs = DevFS();
 
-  Uri get ddsUri => _ddsUri!;
+  Uri? get ddsUri => _ddsUri;
   Uri? _ddsUri;
 
   Future<String> _yieldControlToDDS(Message message) async {
