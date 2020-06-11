@@ -572,7 +572,6 @@ class Library extends NamedNode
   /// named node.
   void relink() {
     _relinkNode();
-    assert(canonicalName != null);
     for (int i = 0; i < typedefs.length; ++i) {
       Typedef typedef_ = typedefs[i];
       typedef_._relinkNode();

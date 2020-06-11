@@ -55,6 +55,12 @@ class B {
   }
 }
 
+class C {
+  static dynamic tornOff() async {
+    return true;
+  }
+}
+
 @pragma('vm:never-inline')
 Function tearOff(dynamic o) {
   return o.tornOff;
@@ -65,6 +71,7 @@ void main(List<String> args) {
     print(cl());
   }
   print(tearOff(args.isEmpty ? A() : B()));
+  print(C.tornOff);
 }
 """);
 
@@ -140,6 +147,10 @@ void main(List<String> args) {
         expect(inputDartSymbolNames, contains('[tear-off] B.tornOff'));
         expect(inputDartSymbolNames,
             contains('[tear-off-extractor] B.get:tornOff'));
+
+        // Presence of async modifier should not cause tear-off name to end
+        // with {body}.
+        expect(inputDartSymbolNames, contains('[tear-off] C.tornOff'));
       });
     });
   });

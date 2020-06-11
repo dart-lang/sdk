@@ -44,11 +44,11 @@ vars = {
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "9dacb12cf963ce92fb056b7f2fb87096fd576e9a",
+  "co19_rev": "c6adf63baea76b1f7e7833482eec023fd244fc33",
   "co19_2_rev": "620c1148c8b7a3d7f74afacf348c46f109eb64f2",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
-  "benchmarks_internal_rev": "4f5285d3711ed4225d0bf5673379e7afdc6cb8e5",
+  "benchmarks_internal_rev": "6c5cf5ca4f29f0e498a9ad51146ccb2ad3bbd2b4",
   "checkout_benchmarks_internal": False,
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
@@ -122,14 +122,14 @@ vars = {
   "mustache_rev": "664737ecad027e6b96d0d1e627257efa0e46fcb1",
   "oauth2_tag": "1.6.0",
   "package_config_rev": "9c586d04bd26fef01215fd10e7ab96a3050cfa64",
-  "path_rev": "4b8c83cd5ccfcc8101acd2940ffb5a44d24ec57e",
+  "path_rev": "4f3bb71843fe5493ba490828a1721821d7b33746",
   "pedantic_tag": "v1.9.0",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "86fbb2cde9bbc66c8d159909d2f65a5981ea5b50",
   "protobuf_rev": "3746c8fd3f2b0147623a8e3db89c3ff4330de760",
   "pub_rev": "6178cdf284baf2345d1ea578b7176a754aa576fe",
   "pub_semver_tag": "v1.4.4",
-  "quiver-dart_tag": "2.0.0+1",
+  "quiver-dart_tag": "246e754fe45cecb6aa5f3f13b4ed61037ff0d784",
   "resource_rev": "f8e37558a1c4f54550aa463b88a6a831e3e33cd6",
   "root_certificates_rev": "16ef64be64c7dfdff2b9f4b910726e635ccc519e",
   "rust_revision": "60960a260f7b5c695fd0717311d72ce62dd4eb43",
@@ -501,7 +501,7 @@ deps = {
       ],
       "dep_type": "cipd",
   },
-  Var("dart_root") + "/benchmarks/FfiCall/dart/native/out/": {
+  Var("dart_root") + "/benchmarks/FfiCall/native/out/": {
       "packages": [
           {
               "package": "dart/benchmarks/fficall",
@@ -559,21 +559,21 @@ hooks = [
     ],
   },
   {
-    # Pull Debian wheezy sysroot for i386 Linux
+    # Pull Debian sysroot for i386 Linux
     'name': 'sysroot_i386',
     'pattern': '.',
     'action': ['python', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
                '--arch', 'i386'],
   },
   {
-    # Pull Debian wheezy sysroot for amd64 Linux
+    # Pull Debian sysroot for amd64 Linux
     'name': 'sysroot_amd64',
     'pattern': '.',
     'action': ['python', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
                '--arch', 'amd64'],
   },
   {
-    # Pull Debian wheezy sysroot for arm Linux
+    # Pull Debian sysroot for arm Linux
     'name': 'sysroot_amd64',
     'pattern': '.',
     'action': ['python', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',

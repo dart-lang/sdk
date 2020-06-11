@@ -4,6 +4,8 @@
 
 import 'dart:math' as math;
 
+import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
+import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -77,6 +79,26 @@ abstract class CorrectionProducer extends _AbstractCorrectionProducer {
   }
 
   Future<void> compute(DartChangeBuilder builder);
+
+  /// Return the class, enum or mixin declaration for the given [element].
+  Future<ClassOrMixinDeclaration> getClassOrMixinDeclaration(
+      ClassElement element) async {
+    var result = await sessionHelper.getElementDeclaration(element);
+    if (result.node is ClassOrMixinDeclaration) {
+      return result.node;
+    }
+    return null;
+  }
+
+  /// Return the extension declaration for the given [element].
+  Future<ExtensionDeclaration> getExtensionDeclaration(
+      ExtensionElement element) async {
+    var result = await sessionHelper.getElementDeclaration(element);
+    if (result.node is ExtensionDeclaration) {
+      return result.node;
+    }
+    return null;
+  }
 
   /// Return the class element associated with the [target], or `null` if there
   /// is no such class element.
@@ -216,30 +238,6 @@ abstract class CorrectionProducer extends _AbstractCorrectionProducer {
     // we don't know
     return null;
   }
-
-  /// Return `true` if the [node] might be a type name.
-  bool mightBeTypeIdentifier(AstNode node) {
-    if (node is SimpleIdentifier) {
-      var parent = node.parent;
-      if (parent is TypeName) {
-        return true;
-      }
-      return _isNameOfType(node.name);
-    }
-    return false;
-  }
-
-  /// Return `true` if the [name] is capitalized.
-  bool _isNameOfType(String name) {
-    if (name.isEmpty) {
-      return false;
-    }
-    var firstLetter = name.substring(0, 1);
-    if (firstLetter.toUpperCase() != firstLetter) {
-      return false;
-    }
-    return true;
-  }
 }
 
 class CorrectionProducerContext {
@@ -258,6 +256,7 @@ class CorrectionProducerContext {
   final AnalysisSessionHelper sessionHelper;
   final ResolvedUnitResult resolvedResult;
   final ChangeWorkspace workspace;
+  final DartFixContext dartFixContext;
 
   final Diagnostic diagnostic;
 
@@ -266,6 +265,7 @@ class CorrectionProducerContext {
   CorrectionProducerContext({
     @required this.resolvedResult,
     @required this.workspace,
+    this.dartFixContext,
     this.diagnostic,
     this.selectionOffset = -1,
     this.selectionLength = 0,
@@ -404,6 +404,11 @@ abstract class _AbstractCorrectionProducer {
     return utils.getRangeText(range);
   }
 
+  /// Return the top-level declarations with the [name] in libraries that are
+  /// available to this context.
+  List<TopLevelDeclaration> getTopLevelDeclarations(String name) =>
+      _context.dartFixContext.getTopLevelDeclarations(name);
+
   /// Return `true` the lint with the given [name] is enabled.
   bool isLintEnabled(String name) {
     return _context.isLintEnabled(name);
@@ -429,6 +434,42 @@ abstract class _AbstractCorrectionProducer {
     }
     // invalid selection (part of node, etc)
     return false;
+  }
+
+  /// Return `true` if the given [node] is in a location where an implicit
+  /// constructor invocation would be allowed.
+  bool mightBeImplicitConstructor(AstNode node) {
+    if (node is SimpleIdentifier) {
+      var parent = node.parent;
+      if (parent is MethodInvocation) {
+        return parent.realTarget == null;
+      }
+    }
+    return false;
+  }
+
+  /// Return `true` if the [node] might be a type name.
+  bool mightBeTypeIdentifier(AstNode node) {
+    if (node is SimpleIdentifier) {
+      var parent = node.parent;
+      if (parent is TypeName) {
+        return true;
+      }
+      return _isNameOfType(node.name);
+    }
+    return false;
+  }
+
+  /// Return `true` if the [name] is capitalized.
+  bool _isNameOfType(String name) {
+    if (name.isEmpty) {
+      return false;
+    }
+    var firstLetter = name.substring(0, 1);
+    if (firstLetter.toUpperCase() != firstLetter) {
+      return false;
+    }
+    return true;
   }
 }
 

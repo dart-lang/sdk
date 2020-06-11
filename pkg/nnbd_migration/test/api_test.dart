@@ -380,6 +380,44 @@ abstract class C {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_call_migrated_base_class_method_non_nullable() async {
+    var content = '''
+abstract class M<V> implements Map<String, V> {}
+void f(bool b, M<int> m, int i) {
+  if (b) {
+    m['x'] = i;
+  }
+}
+void g(bool b, M<int> m) {
+  f(b, m, null);
+}
+''';
+    var expected = '''
+abstract class M<V> implements Map<String, V> {}
+void f(bool b, M<int?> m, int? i) {
+  if (b) {
+    m['x'] = i;
+  }
+}
+void g(bool b, M<int?> m) {
+  f(b, m, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_call_migrated_base_class_method_nullable() async {
+    var content = '''
+abstract class M<V> implements Map<String, V> {}
+int f(M<int> m) => m['x'];
+''';
+    var expected = '''
+abstract class M<V> implements Map<String, V> {}
+int? f(M<int> m) => m['x'];
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_catch_simple() async {
     var content = '''
 void f() {
@@ -6391,6 +6429,6 @@ class _ProvisionalApiTestWithReset extends _ProvisionalApiTestBase
 
   @override
   void _betweenStages() {
-    driver.resetUriResolution();
+    driver.clearLibraryContext();
   }
 }

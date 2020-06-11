@@ -2325,6 +2325,24 @@ main() {
     assertSuggestEnumConst('F.four');
   }
 
+  Future<void> test_enum_shadowed() async {
+    addTestSource('''
+enum E { one, two }
+main() {
+  int E = 0;
+  ^
+}
+''');
+    await computeSuggestions();
+
+    assertSuggest('E', elemKind: ElementKind.LOCAL_VARIABLE);
+
+    // Enum and all its constants are shadowed by the local variable.
+    assertNotSuggested('E', elemKind: ElementKind.ENUM);
+    assertNotSuggested('E.one', elemKind: ElementKind.ENUM_CONSTANT);
+    assertNotSuggested('E.two', elemKind: ElementKind.ENUM_CONSTANT);
+  }
+
   Future<void> test_expression_localVariable() async {
     addTestSource('''
 void f() {
@@ -2565,7 +2583,24 @@ A T;''');
     assertNotSuggested('x');
   }
 
-  Future<void> test_extensionDeclaration_unnamed() async {
+  Future<void> test_ExtensionDeclaration_shadowed() async {
+    // ExtensionDeclaration  CompilationUnit
+    addTestSource('''
+extension E on int {
+  void m() {
+    int E = 1;
+    ^
+  }
+}
+''');
+    await computeSuggestions();
+
+    assertNotSuggested('E', elemKind: ElementKind.EXTENSION);
+    assertSuggest('E', elemKind: ElementKind.LOCAL_VARIABLE);
+  }
+
+  Future<void> test_ExtensionDeclaration_unnamed() async {
+    // ExtensionDeclaration  CompilationUnit
     addTestSource('''
 extension on String {
   void something() => this.^
@@ -2597,6 +2632,23 @@ extension on String {
     await computeSuggestions();
 
     assertNoSuggestions();
+  }
+
+  Future<void> test_FieldDeclaration_shadowed() async {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // FieldDeclaration
+    addTestSource('''
+class A {
+  int foo;
+  void bar() {
+    int foo; ^
+  }
+}
+''');
+    await computeSuggestions();
+
+    assertNotSuggested('foo', elemKind: ElementKind.FIELD);
+    assertSuggest('foo', elemKind: ElementKind.LOCAL_VARIABLE);
   }
 
   Future<void> test_FieldFormalParameter_in_non_constructor() async {
@@ -3035,6 +3087,20 @@ class C2 { }
     assertNotSuggested('name');
   }
 
+  Future<void> test_FunctionDeclaration_shadowed() async {
+    // Block  BlockFunctionBody  FunctionDeclaration
+    addTestSource('''
+void bar() {
+  int bar = 1;
+  ^
+}
+''');
+    await computeSuggestions();
+
+    assertNotSuggested('bar', elemKind: ElementKind.FUNCTION);
+    assertSuggest('bar', elemKind: ElementKind.LOCAL_VARIABLE);
+  }
+
   Future<void> test_FunctionExpression_body_function() async {
     // Block  BlockFunctionBody  FunctionExpression
     addTestSource('''
@@ -3304,8 +3370,115 @@ class B {B(this.x, [String boo]) { } int x;}
 class C {C.bar({boo: 'hoo', int z: 0}) { } }
 main() {new ^ String x = "hello";}''');
     await computeSuggestions();
-    // Suggested by LocalConstructorContributor
-    assertNoSuggestions();
+    CompletionSuggestion suggestion;
+
+    suggestion = assertSuggestConstructor('A', elemOffset: -1);
+    expect(suggestion.element.parameters, '()');
+    expect(suggestion.element.returnType, 'A');
+    expect(suggestion.declaringType, 'A');
+    expect(suggestion.parameterNames, hasLength(0));
+    expect(suggestion.requiredParameterCount, 0);
+    expect(suggestion.hasNamedParameters, false);
+
+    suggestion = assertSuggestConstructor('B');
+    expect(suggestion.element.parameters, '(int x, [String boo])');
+    expect(suggestion.element.returnType, 'B');
+    expect(suggestion.declaringType, 'B');
+    expect(suggestion.parameterNames, hasLength(2));
+    expect(suggestion.parameterNames[0], 'x');
+    expect(suggestion.parameterTypes[0], 'int');
+    expect(suggestion.parameterNames[1], 'boo');
+    expect(suggestion.parameterTypes[1], 'String');
+    expect(suggestion.requiredParameterCount, 1);
+    expect(suggestion.hasNamedParameters, false);
+
+    suggestion = assertSuggestConstructor('C.bar');
+    expect(
+        suggestion.element.parameters, '({dynamic boo = \'hoo\', int z = 0})');
+    expect(suggestion.element.returnType, 'C');
+    expect(suggestion.declaringType, 'C');
+    expect(suggestion.parameterNames, hasLength(2));
+    expect(suggestion.parameterNames[0], 'boo');
+    expect(suggestion.parameterTypes[0], 'dynamic');
+    expect(suggestion.parameterNames[1], 'z');
+    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.requiredParameterCount, 0);
+    expect(suggestion.hasNamedParameters, true);
+  }
+
+  Future<void> test_InstanceCreationExpression_abstractClass() async {
+    addTestSource('''
+abstract class A {
+  A();
+  A.generative();
+  factory A.factory() => A();
+}
+
+main() {
+  new ^;
+}''');
+    await computeSuggestions();
+
+    assertNotSuggested('A');
+    assertNotSuggested('A.generative');
+    assertSuggestConstructor('A.factory');
+  }
+
+  Future<void>
+      test_InstanceCreationExpression_abstractClass_implicitConstructor() async {
+    addTestSource('''
+abstract class A {}
+
+main() {
+  new ^;
+}''');
+    await computeSuggestions();
+
+    assertNotSuggested('A');
+  }
+
+  Future<void>
+      test_InstanceCreationExpression_assignment_expression_filter() async {
+    addTestSource('''
+class A {} class B extends A {} class C implements A {} class D {}
+main() {
+  A a;
+  a = new ^
+}''');
+    await computeSuggestions();
+
+    assertSuggestConstructor('A',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
+    assertSuggestConstructor('B',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
+    assertSuggestConstructor('C',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
+    assertSuggestConstructor('D', elemOffset: -1);
+  }
+
+  Future<void>
+      test_InstanceCreationExpression_assignment_expression_filter2() async {
+    addTestSource('''
+class A {} class B extends A {} class C implements A {} class D {}
+main() {
+  A a;
+  a = new ^;
+}''');
+    await computeSuggestions();
+
+    assertSuggestConstructor('A',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
+    assertSuggestConstructor('B',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
+    assertSuggestConstructor('C',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
+    assertSuggestConstructor('D', elemOffset: -1);
   }
 
   Future<void> test_InstanceCreationExpression_imported() async {
@@ -3328,9 +3501,8 @@ class C {foo(){var f; {var x;} new ^}}''');
     assertNotSuggested('Object');
     assertNotSuggested('Future');
     assertNotSuggested('A');
-    // Suggested by LocalConstructorContributor
-    assertNotSuggested('B');
-    assertNotSuggested('C');
+    assertSuggestConstructor('B');
+    assertSuggestConstructor('C');
     assertNotSuggested('f');
     assertNotSuggested('x');
     assertNotSuggested('foo');
@@ -3340,9 +3512,46 @@ class C {foo(){var f; {var x;} new ^}}''');
     assertNotSuggested('T2');
   }
 
+  Future<void> test_InstanceCreationExpression_invocationArgument() async {
+    addTestSource('''
+class A {} class B extends A {} class C {}
+void foo(A a) {}
+main() {
+  foo(new ^);
+}''');
+    await computeSuggestions();
+
+    assertSuggestConstructor('A',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
+    assertSuggestConstructor('B',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
+    assertSuggestConstructor('C', elemOffset: -1);
+  }
+
+  Future<void>
+      test_InstanceCreationExpression_invocationArgument_named() async {
+    addTestSource('''
+class A {} class B extends A {} class C {}
+void foo({A a}) {}
+main() {
+  foo(a: new ^);
+}''');
+    await computeSuggestions();
+
+    assertSuggestConstructor('A',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
+    assertSuggestConstructor('B',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
+    assertSuggestConstructor('C', elemOffset: -1);
+  }
+
   Future<void> test_InstanceCreationExpression_unimported() async {
     // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
-    addSource('/home/test/lib/ab.dart', 'class Foo { }');
+    addSource('/testAB.dart', 'class Foo { }');
     addTestSource('class C {foo(){new F^}}');
     await computeSuggestions();
 
@@ -3352,35 +3561,46 @@ class C {foo(){var f; {var x;} new ^}}''');
     assertNotSuggested('Foo');
   }
 
-  Future<void> test_InterpolationExpression() async {
-    // SimpleIdentifier  InterpolationExpression  StringInterpolation
-    addSource('/home/test/lib/a.dart', '''
-int T1;
-F1() { }
-typedef D1();
-class C1 {C1(this.x) { } int x;}''');
+  Future<void>
+      test_InstanceCreationExpression_variable_declaration_filter() async {
     addTestSource('''
-import "a.dart";
-int T2;
-F2() { }
-typedef D2();
-class C2 { }
-main() {String name; print("hello \$^");}''');
+class A {} class B extends A {} class C implements A {} class D {}
+main() {
+  A a = new ^
+}''');
     await computeSuggestions();
 
-    expect(replacementOffset, completionOffset);
-    expect(replacementLength, 0);
-    assertNotSuggested('Object');
-    assertNotSuggested('T1');
-    assertNotSuggested('F1');
-    assertNotSuggested('D1');
-    assertNotSuggested('C1');
-    assertSuggestTopLevelVar('T2', 'int',
-        relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
-    assertSuggestFunction('F2', null, relevance: DART_RELEVANCE_LOCAL_FUNCTION);
-    assertNotSuggested('D2');
-    assertNotSuggested('C2');
-    assertSuggestLocalVariable('name', 'String');
+    assertSuggestConstructor('A',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
+    assertSuggestConstructor('B',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
+    assertSuggestConstructor('C',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
+    assertSuggestConstructor('D', elemOffset: -1);
+  }
+
+  Future<void>
+      test_InstanceCreationExpression_variable_declaration_filter2() async {
+    addTestSource('''
+class A {} class B extends A {} class C implements A {} class D {}
+main() {
+  A a = new ^;
+}''');
+    await computeSuggestions();
+
+    assertSuggestConstructor('A',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
+    assertSuggestConstructor('B',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
+    assertSuggestConstructor('C',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
+    assertSuggestConstructor('D', elemOffset: -1);
   }
 
   Future<void> test_InterpolationExpression_block() async {
@@ -3625,6 +3845,97 @@ main() {new^ X.c();}''');
     await computeSuggestions();
 
     assertNoSuggestions();
+  }
+
+  Future<void> test_localConstructor() async {
+    addMetaPackage();
+    addTestSource('''
+import 'package:meta/meta.dart';
+
+class A {
+  A(int bar, {bool boo, @required int baz});
+  baz() {
+    new ^
+  }
+}''');
+    await computeSuggestions();
+    assertSuggestConstructor('A', defaultArgListString: 'bar, baz: null');
+  }
+
+  Future<void> test_localConstructor2() async {
+    addMetaPackage();
+    addTestSource('''class A {A.named();} main() {^}}''');
+    await computeSuggestions();
+    assertSuggestConstructor('A.named');
+  }
+
+  Future<void> test_localConstructor_abstract() async {
+    addMetaPackage();
+    addTestSource('''
+abstract class A {
+  A();
+  baz() {
+    ^
+  }
+}''');
+    await computeSuggestions();
+    assertNotSuggested('A', elemKind: ElementKind.CONSTRUCTOR);
+  }
+
+  Future<void> test_localConstructor_defaultConstructor() async {
+    addMetaPackage();
+    addTestSource('''class A {} main() {^}}''');
+    await computeSuggestions();
+    assertSuggestConstructor('A');
+  }
+
+  Future<void> test_localConstructor_factory() async {
+    addMetaPackage();
+    addTestSource('''
+abstract class A {
+  factory A();
+  baz() {
+    ^
+  }
+}''');
+    await computeSuggestions();
+    assertSuggestConstructor('A');
+  }
+
+  Future<void> test_localConstructor_optionalNew() async {
+    addMetaPackage();
+    addTestSource('''
+import 'package:meta/meta.dart';
+
+class A {
+  A(int bar, {bool boo, @required int baz});
+  baz() {
+    ^
+  }
+}''');
+    await computeSuggestions();
+    assertSuggestConstructor('A', defaultArgListString: 'bar, baz: null');
+  }
+
+  Future<void> test_localConstructor_shadowed() async {
+    addTestSource('''
+class A {
+  A();
+  A.named();
+}
+main() {
+  int A = 0;
+  ^
+}
+''');
+    await computeSuggestions();
+
+    assertSuggest('A');
+
+    // Class and all its constructors are shadowed by the local variable.
+    assertNotSuggested('A', elemKind: ElementKind.CLASS);
+    assertNotSuggested('A', elemKind: ElementKind.CONSTRUCTOR);
+    assertNotSuggested('A.named', elemKind: ElementKind.CONSTRUCTOR);
   }
 
   Future<void> test_localVariableDeclarationName() async {
@@ -4113,6 +4424,24 @@ class C2 {
     assertNotSuggested('name');
   }
 
+  Future<void> test_MethodDeclaration_shadowed() async {
+    // MethodDeclaration  ClassDeclaration  CompilationUnit
+    addTestSource('''
+class A {
+  void foo() {}
+  void bar(List list) {
+    for (var foo in list) {
+      ^
+    }
+  }
+}
+''');
+    await computeSuggestions();
+
+    assertNotSuggested('foo', elemKind: ElementKind.METHOD);
+    assertSuggest('foo', elemKind: ElementKind.LOCAL_VARIABLE);
+  }
+
   Future<void> test_MethodInvocation_no_semicolon() async {
     // MethodInvocation  ExpressionStatement  Block
     addTestSource('''
@@ -4161,7 +4490,7 @@ class X{}''');
     await computeSuggestions();
   }
 
-  Future<void> test_mixinDeclaration_body() async {
+  Future<void> test_MixinDeclaration_body() async {
     // MixinDeclaration  CompilationUnit
     addSource('/home/test/lib/b.dart', '''
 class B { }''');
@@ -4190,7 +4519,8 @@ A T;''');
     assertNotSuggested('x');
   }
 
-  Future<void> test_mixinDeclaration_method_access() async {
+  Future<void> test_MixinDeclaration_method_access() async {
+    // MixinDeclaration  CompilationUnit
     addTestSource(r'''
 class A { }
 
@@ -4203,7 +4533,8 @@ mixin X on A {
     assertSuggestMethod('_x', 'X', 'int');
   }
 
-  Future<void> test_mixinDeclaration_property_access() async {
+  Future<void> test_MixinDeclaration_property_access() async {
+    // MixinDeclaration  CompilationUnit
     addTestSource(r'''
 class A { }
 
@@ -4214,6 +4545,22 @@ mixin X on A {
 ''');
     await computeSuggestions();
     assertSuggestField('_x', 'int');
+  }
+
+  Future<void> test_MixinDeclaration_shadowed() async {
+    // MixinDeclaration  CompilationUnit
+    addTestSource('''
+mixin foo on Object {
+  void bar() {
+    int foo;
+    ^
+  }
+}
+''');
+    await computeSuggestions();
+
+    assertNotSuggested('foo', elemKind: ElementKind.MIXIN);
+    assertSuggest('foo', elemKind: ElementKind.LOCAL_VARIABLE);
   }
 
   Future<void> test_new_instance() async {
@@ -4245,72 +4592,17 @@ class B extends A {m() {^}}
     assertNotSuggested('bool');
   }
 
-  Future<void> test_partFile_TypeName() async {
-    // SimpleIdentifier  TypeName  ConstructorName
-    addSource('/home/test/lib/b.dart', '''
-lib B;
-int T1;
-F1() { }
-class X {X.c(); X._d(); z() {}}''');
-    addSource('/home/test/lib/a.dart', '''
-library libA;
-import "b.dart";
-part "${resourceProvider.pathContext.basename(testFile)}";
-class A { }
-var m;''');
+  Future<void> test_parameterName_shadowed() async {
     addTestSource('''
-part of libA;
-class B { B.bar(int x); }
-main() {new ^}''');
+foo(int bar) {
+  int bar;
+  ^
+}
+''');
     await computeSuggestions();
 
-    expect(replacementOffset, completionOffset);
-    expect(replacementLength, 0);
-    // Suggested by LocalConstructorContributor
-    assertNotSuggested('B.bar');
-    assertNotSuggested('Object');
-    assertNotSuggested('X.c');
-    assertNotSuggested('X._d');
-    assertNotSuggested('A');
-    assertNotSuggested('F1');
-    assertNotSuggested('T1');
-    assertNotSuggested('_d');
-    assertNotSuggested('z');
-    assertNotSuggested('m');
-  }
-
-  Future<void> test_partFile_TypeName2() async {
-    // SimpleIdentifier  TypeName  ConstructorName
-    addSource('/home/test/lib/b.dart', '''
-lib B;
-int T1;
-F1() { }
-class X {X.c(); X._d(); z() {}}''');
-    addSource('/home/test/lib/a.dart', '''
-part of libA;
-class B { }''');
-    addTestSource('''
-library libA;
-import "b.dart";
-part "a.dart";
-class A { A({String boo: 'hoo'}) { } }
-main() {new ^}
-var m;''');
-    await computeSuggestions();
-
-    expect(replacementOffset, completionOffset);
-    expect(replacementLength, 0);
-    // Suggested by LocalConstructorContributor
-    assertNotSuggested('A');
-    assertNotSuggested('Object');
-    assertNotSuggested('X.c');
-    assertNotSuggested('X._d');
-    assertNotSuggested('B');
-    assertNotSuggested('F1');
-    assertNotSuggested('T1');
-    assertNotSuggested('_d');
-    assertNotSuggested('z');
-    assertNotSuggested('m');
+    assertNotSuggested('bar', elemKind: ElementKind.PARAMETER);
+    assertSuggest('bar', elemKind: ElementKind.LOCAL_VARIABLE);
   }
 
   Future<void> test_PrefixedIdentifier_class_const() async {
@@ -5004,6 +5296,22 @@ class X{}''');
     assertNotSuggested('==');
   }
 
+  Future<void> test_TopLevelVariableDeclaration_shadow() async {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // TopLevelVariableDeclaration
+    addTestSource('''
+var foo;
+void bar() {
+  var foo;
+  ^
+}
+''');
+    await computeSuggestions();
+
+    assertNotSuggested('foo', elemKind: ElementKind.TOP_LEVEL_VARIABLE);
+    assertSuggest('foo', elemKind: ElementKind.LOCAL_VARIABLE);
+  }
+
   Future<void> test_TopLevelVariableDeclaration_typed_name() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // TopLevelVariableDeclaration
@@ -5020,16 +5328,6 @@ class X{}''');
     await computeSuggestions();
 
     assertNoSuggestions();
-  }
-
-  Future<void> test_type_typeParameter_classDeclaration() async {
-    addTestSource('''
-class A<T> {
-  ^ m() {}
-}
-''');
-    await computeSuggestions();
-    assertSuggestTypeParameter('T');
   }
 
   Future<void> test_TypeArgumentList() async {
@@ -5077,6 +5375,30 @@ main() { C<C^> c; }''');
     expect(replacementLength, 1);
     assertNotSuggested('C1');
     assertSuggestClass('C2');
+  }
+
+  Future<void> test_TypeParameter_classDeclaration() async {
+    addTestSource('''
+class A<T> {
+  ^ m() {}
+}
+''');
+    await computeSuggestions();
+    assertSuggestTypeParameter('T');
+  }
+
+  Future<void> test_TypeParameter_shadowed() async {
+    addTestSource('''
+class A<T> {
+  m() {
+    int T;
+    ^
+  }
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('T', elemKind: ElementKind.TYPE_PARAMETER);
+    assertSuggest('T', elemKind: ElementKind.LOCAL_VARIABLE);
   }
 
   Future<void> test_VariableDeclaration_name() async {

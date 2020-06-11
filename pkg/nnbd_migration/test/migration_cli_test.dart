@@ -6,14 +6,21 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart' as mock_sdk;
 import 'package:args/args.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
+import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/migration_cli.dart';
+import 'package:nnbd_migration/src/front_end/dartfix_listener.dart';
+import 'package:nnbd_migration/src/front_end/instrumentation_listener.dart';
+import 'package:nnbd_migration/src/front_end/migration_summary.dart';
 import 'package:nnbd_migration/src/front_end/non_nullable_fix.dart';
 import 'package:nnbd_migration/src/front_end/web/edit_details.dart';
 import 'package:nnbd_migration/src/front_end/web/file_details.dart';
@@ -29,10 +36,54 @@ main() {
   });
 }
 
+/// Specialization of [InstrumentationListener] that generates artificial
+/// exceptions, so that we can test they are properly propagated to top level.
+class _ExceptionGeneratingInstrumentationListener
+    extends InstrumentationListener {
+  _ExceptionGeneratingInstrumentationListener(
+      {MigrationSummary migrationSummary})
+      : super(migrationSummary: migrationSummary);
+
+  @override
+  void externalDecoratedType(Element element, DecoratedTypeInfo decoratedType) {
+    if (element.name == 'print') {
+      throw StateError('Artificial exception triggered');
+    }
+    super.externalDecoratedType(element, decoratedType);
+  }
+}
+
+/// Specialization of [NonNullableFix] that generates artificial exceptions, so
+/// that we can test they are properly propagated to top level.
+class _ExceptionGeneratingNonNullableFix extends NonNullableFix {
+  _ExceptionGeneratingNonNullableFix(DartFixListener listener,
+      ResourceProvider resourceProvider, LineInfo Function(String) getLineInfo,
+      {List<String> included = const <String>[],
+      int preferredPort,
+      bool enablePreview = true,
+      String summaryPath})
+      : super(listener, resourceProvider, getLineInfo,
+            included: included,
+            preferredPort: preferredPort,
+            enablePreview: enablePreview,
+            summaryPath: summaryPath);
+
+  @override
+  InstrumentationListener createInstrumentationListener(
+          {MigrationSummary migrationSummary}) =>
+      _ExceptionGeneratingInstrumentationListener(
+          migrationSummary: migrationSummary);
+}
+
 class _MigrationCli extends MigrationCli {
+  /// If `true`, then an artifical exception should be generated when migration
+  /// encounters a reference to the `print` function.
+  final bool injectArtificialException;
+
   Future<void> Function() _runWhilePreviewServerActive;
 
-  _MigrationCli(_MigrationCliTestBase test)
+  _MigrationCli(_MigrationCliTestBase test,
+      {this.injectArtificialException = false})
       : super(
             binaryName: 'nnbd_migration',
             loggerFactory: (isVerbose) => test.logger = _TestLogger(isVerbose),
@@ -48,6 +99,29 @@ class _MigrationCli extends MigrationCli {
     }
     await _runWhilePreviewServerActive.call();
     _runWhilePreviewServerActive = null;
+  }
+
+  @override
+  NonNullableFix createNonNullableFix(DartFixListener listener,
+      ResourceProvider resourceProvider, LineInfo getLineInfo(String path),
+      {List<String> included = const <String>[],
+      int preferredPort,
+      bool enablePreview = true,
+      String summaryPath}) {
+    if (injectArtificialException) {
+      return _ExceptionGeneratingNonNullableFix(
+          listener, resourceProvider, getLineInfo,
+          included: included,
+          preferredPort: preferredPort,
+          enablePreview: enablePreview,
+          summaryPath: summaryPath);
+    } else {
+      return super.createNonNullableFix(listener, resourceProvider, getLineInfo,
+          included: included,
+          preferredPort: preferredPort,
+          enablePreview: enablePreview,
+          summaryPath: summaryPath);
+    }
   }
 
   Future<void> runWithPreviewServer(
@@ -360,6 +434,49 @@ int${migrated ? '?' : ''} f() => null;
     expect(logger.stdoutBuffer.toString(), isNot(contains('--apply-changes')));
     // Changes should have been made
     assertProjectContents(projectDir, simpleProject(migrated: true));
+  }
+
+  test_lifecycle_contextdiscovery_handles_multiple() async {
+    var projectContents = simpleProject();
+    var subProject = simpleProject();
+    for (var filePath in subProject.keys) {
+      projectContents['example/$filePath'] = subProject[filePath];
+    }
+    projectContents['example/analysis_options.yaml'] = '''
+analyzer:
+  strong-mode:
+    implicit-casts: false
+linter:
+  rules:
+    - empty_constructor_bodies
+''';
+
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await cli.run(_parseArgs(['--no-web-preview', projectDir]));
+    expect(cli.hasMultipleAnalysisContext, true);
+    expect(cli.analysisContext, isNotNull);
+    var output = logger.stdoutBuffer.toString();
+    expect(output, contains('more than one project found'));
+  }
+
+  test_lifecycle_contextdiscovery_handles_single() async {
+    var projectContents = simpleProject();
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await cli.run(_parseArgs(['--no-web-preview', projectDir]));
+    expect(cli.hasMultipleAnalysisContext, false);
+    expect(cli.analysisContext, isNotNull);
+  }
+
+  test_lifecycle_exception_handling() async {
+    var projectContents = simpleProject(sourceText: 'main() { print(0); }');
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli(injectArtificialException: true);
+    expect(
+        () async => runWithPreviewServer(cli, [projectDir], (url) async {}),
+        throwsA(TypeMatcher<Error>().having((e) => e.toString(), 'toString',
+            contains('Artificial exception triggered'))));
   }
 
   test_lifecycle_ignore_errors_disable() async {
@@ -950,7 +1067,7 @@ int f() => null;
   }
 
   test_migrate_path_normalized() {
-    expect(assertParseArgsSuccess(['..']).directory, isNot(contains('..')));
+    expect(assertParseArgsSuccess(['foo/..']).directory, isNot(contains('..')));
   }
 
   test_migrate_path_one() {
@@ -992,7 +1109,7 @@ int f() => null;
     var cli = MigrationCli(binaryName: 'nnbd_migration');
     cli.decodeCommandLineArgs(_parseArgs([]));
     expect(
-        File(path.join(cli.options.sdkPath, 'version')).existsSync(), isTrue);
+        Directory(path.join(cli.options.sdkPath, 'bin')).existsSync(), isTrue);
   }
 
   test_option_sdk_hidden() async {
@@ -1334,9 +1451,10 @@ name: test
         headers: {'Content-Type': 'application/json; charset=UTF-8'});
   }
 
-  _MigrationCli _createCli() {
+  _MigrationCli _createCli({bool injectArtificialException = false}) {
     mock_sdk.MockSdk(resourceProvider: resourceProvider);
-    return _MigrationCli(this);
+    return _MigrationCli(this,
+        injectArtificialException: injectArtificialException);
   }
 
   Future<String> _getHelpText({@required bool verbose}) async {

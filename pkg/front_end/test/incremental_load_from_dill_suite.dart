@@ -62,12 +62,13 @@ import 'package:kernel/kernel.dart'
         Member,
         Name,
         Procedure,
-        Supertype;
+        Supertype,
+        TreeNode;
 
 import 'package:kernel/target/targets.dart'
     show NoneTarget, Target, TargetFlags;
 
-import 'package:kernel/text/ast_to_text.dart' show componentToString;
+import 'package:kernel/text/ast_to_text.dart' show Printer, componentToString;
 
 import "package:testing/testing.dart"
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
@@ -643,7 +644,7 @@ class NewWorldTest {
         }
       }
 
-      checkExpectFile(data, worldNum, context, actualSerialized);
+      checkExpectFile(data, worldNum, "", context, actualSerialized);
       checkClassHierarchy(compiler, component, data, worldNum, context);
 
       int nonSyntheticLibraries = countNonSyntheticLibraries(component);
@@ -777,13 +778,15 @@ class NewWorldTest {
         } else {
           compilations = [world["expressionCompilation"]];
         }
+        int expressionCompilationNum = 0;
         for (Map compilation in compilations) {
+          expressionCompilationNum++;
           clearPrevErrorsEtc();
           bool expectErrors = compilation["errors"] ?? false;
           bool expectWarnings = compilation["warnings"] ?? false;
           Uri uri = base.resolve(compilation["uri"]);
           String expression = compilation["expression"];
-          await compiler.compileExpression(
+          Procedure procedure = await compiler.compileExpression(
               expression, {}, [], "debugExpr", uri);
           if (gotError && !expectErrors) {
             throw "Got error(s) on expression compilation: ${formattedErrors}.";
@@ -796,6 +799,12 @@ class NewWorldTest {
           } else if (!gotWarning && expectWarnings) {
             throw "Didn't get any warnings.";
           }
+          checkExpectFile(
+              data,
+              worldNum,
+              ".expression.$expressionCompilationNum",
+              context,
+              nodeToString(procedure));
         }
       }
 
@@ -876,10 +885,10 @@ class NewWorldTest {
   }
 }
 
-void checkExpectFile(
-    TestData data, int worldNum, Context context, String actualSerialized) {
-  Uri uri = data.loadedFrom
-      .resolve(data.loadedFrom.pathSegments.last + ".world.$worldNum.expect");
+void checkExpectFile(TestData data, int worldNum, String extraUriString,
+    Context context, String actualSerialized) {
+  Uri uri = data.loadedFrom.resolve(data.loadedFrom.pathSegments.last +
+      ".world.$worldNum${extraUriString}.expect");
   String expected;
   File file = new File.fromUri(uri);
   if (file.existsSync()) {
@@ -1272,6 +1281,12 @@ void checkNeededDillLibraries(
     if (notInExpected.isNotEmpty) doThrow();
     if (notInActual.isNotEmpty) doThrow();
   }
+}
+
+String nodeToString(TreeNode node) {
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: new NameSystem()).writeNode(node);
+  return '$buffer';
 }
 
 String componentToStringSdkFiltered(Component node) {

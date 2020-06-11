@@ -370,6 +370,10 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   }
   Mutex* subtype_test_cache_mutex() { return &subtype_test_cache_mutex_; }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Mutex* initializer_functions_mutex() { return &initializer_functions_mutex_; }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
   static inline IsolateGroup* Current() {
     Thread* thread = Thread::Current();
     return thread == nullptr ? nullptr : thread->isolate_group();
@@ -641,6 +645,10 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Mutex type_canonicalization_mutex_;
   Mutex type_arguments_canonicalization_mutex_;
   Mutex subtype_test_cache_mutex_;
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Mutex initializer_functions_mutex_;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   // Allow us to ensure the number of active mutators is limited by a maximum.
   std::unique_ptr<Monitor> active_mutators_monitor_;

@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert' show jsonDecode;
 import 'dart:io' hide File;
 
+import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
@@ -155,8 +156,8 @@ class DependencyChecker {
       _logger.stderr('Visit https://dart.dev/tools/pub/cmd/pub-outdated for '
           'more information.');
       _logger.stderr('');
-      _logger.stderr('Force migration with '
-          '--${CommandLineOptions.skipPubOutdatedFlag} (not recommended)');
+      _logger.stderr('You can force migration with '
+          "'--${CommandLineOptions.skipPubOutdatedFlag}' (not recommended).");
       return false;
     }
     return true;
@@ -235,6 +236,8 @@ class MigrationCli {
 
   _FixCodeProcessor _fixCodeProcessor;
 
+  AnalysisContextCollection _contextCollection;
+
   MigrationCli(
       {@required this.binaryName,
       @visibleForTesting this.loggerFactory = _defaultLoggerFactory,
@@ -245,7 +248,32 @@ class MigrationCli {
         resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE;
 
+  @visibleForTesting
+  DriverBasedAnalysisContext get analysisContext {
+    // Handle the case of more than one analysis context being found (typically,
+    // the current directory and one or more sub-directories).
+    if (hasMultipleAnalysisContext) {
+      return contextCollection.contextFor(options.directory)
+          as DriverBasedAnalysisContext;
+    } else {
+      return contextCollection.contexts.single as DriverBasedAnalysisContext;
+    }
+  }
+
   Ansi get ansi => logger.ansi;
+
+  AnalysisContextCollection get contextCollection {
+    _contextCollection ??= AnalysisContextCollectionImpl(
+        includedPaths: [options.directory],
+        resourceProvider: resourceProvider,
+        sdkPath: pathContext.normalize(options.sdkPath));
+    return _contextCollection;
+  }
+
+  @visibleForTesting
+  bool get hasMultipleAnalysisContext {
+    return contextCollection.contexts.length > 1;
+  }
 
   Context get pathContext => resourceProvider.pathContext;
 
@@ -255,6 +283,19 @@ class MigrationCli {
   Future<void> blockUntilSignalInterrupt() {
     Stream<ProcessSignal> stream = ProcessSignal.sigint.watch();
     return stream.first;
+  }
+
+  NonNullableFix createNonNullableFix(DartFixListener listener,
+      ResourceProvider resourceProvider, LineInfo getLineInfo(String path),
+      {List<String> included = const <String>[],
+      int preferredPort,
+      bool enablePreview = true,
+      String summaryPath}) {
+    return NonNullableFix(listener, resourceProvider, getLineInfo,
+        included: included,
+        preferredPort: preferredPort,
+        enablePreview: enablePreview,
+        summaryPath: summaryPath);
   }
 
   /// Parses and validates command-line arguments, and stores the results in
@@ -316,6 +357,7 @@ class MigrationCli {
               argResults[CommandLineOptions.skipPubOutdatedFlag] as bool,
           summary: argResults[CommandLineOptions.summaryOption] as String,
           webPreview: webPreview);
+
       if (isVerbose) {
         logger = loggerFactory(true);
       }
@@ -352,20 +394,23 @@ class MigrationCli {
     logger.stdout('Migrating ${options.directory}');
     logger.stdout('');
 
+    if (hasMultipleAnalysisContext) {
+      logger.stdout(
+          'Note: more than one project found; migrating the top-level project.');
+      logger.stdout('');
+    }
+
+    DriverBasedAnalysisContext context = analysisContext;
+
     List<String> previewUrls;
     NonNullableFix nonNullableFix;
+
     await _withProgress(
         '${ansi.emphasized('Generating migration suggestions')}', () async {
-      var contextCollection = AnalysisContextCollectionImpl(
-          includedPaths: [options.directory],
-          resourceProvider: resourceProvider,
-          sdkPath: options.sdkPath);
-      DriverBasedAnalysisContext context =
-          contextCollection.contexts.single as DriverBasedAnalysisContext;
       _fixCodeProcessor = _FixCodeProcessor(context, this);
       _dartFixListener =
           DartFixListener(DriverProviderImpl(resourceProvider, context));
-      nonNullableFix = NonNullableFix(
+      nonNullableFix = createNonNullableFix(
           _dartFixListener, resourceProvider, _fixCodeProcessor.getLineInfo,
           included: [options.directory],
           preferredPort: options.previewPort,
@@ -376,6 +421,8 @@ class MigrationCli {
       _fixCodeProcessor.nonNullableFixTask = nonNullableFix;
 
       try {
+        // TODO(devoncarew): The progress written by the fix processor conflicts
+        // with the progress written by the ansi logger above.
         await _fixCodeProcessor.runFirstPhase();
         _fixCodeProcessor._progressBar.clear();
         _checkForErrors();

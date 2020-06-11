@@ -208,18 +208,23 @@ void main(List<String> args) async {
   }
 
   String ddcSdk;
+  String sdkJsPath;
+  String requirePath;
+  var suffix = isNnbdStrong ? p.join('sound', mod) : p.join('kernel', mod);
   if (debug) {
     var sdkRoot = p.dirname(p.dirname(ddcPath));
-    var buildDir = p.join(sdkRoot, Platform.isMacOS ? 'xcodebuild' : 'out');
-    dartSdk = p.join(buildDir, 'ReleaseX64', 'dart-sdk');
-    ddcSdk = p.join(buildDir, 'ReleaseX64',
-        isNnbdStrong ? 'ddc_outline_sound.dill' : 'ddc_outline.dill');
+    var buildDir =
+        p.join(sdkRoot, Platform.isMacOS ? 'xcodebuild' : 'out', 'ReleaseX64');
+    dartSdk = p.join(buildDir, 'dart-sdk');
+    ddcSdk = p.join(
+        buildDir, isNnbdStrong ? 'ddc_outline_sound.dill' : 'ddc_outline.dill');
+    sdkJsPath = p.join(buildDir, 'gen', 'utils', 'dartdevc', suffix);
+    requirePath = p.join(sdkRoot, 'third_party', 'requirejs');
   } else {
     ddcSdk = p.join(dartSdk, 'lib', '_internal', 'ddc_sdk.dill');
+    sdkJsPath = p.join(dartSdk, 'lib', 'dev_compiler', suffix);
+    requirePath = sdkJsPath;
   }
-  var suffix = p.join('kernel', mod);
-  var sdkJsPath = p.join(dartSdk, 'lib', 'dev_compiler', suffix);
-  var requirePath = sdkJsPath;
 
   // Print an initial empty line to separate the invocation from the output.
   print('');

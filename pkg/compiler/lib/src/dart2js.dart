@@ -169,6 +169,11 @@ Future<api.CompilationResult> compile(List<String> argv,
           "supported levels are: 0, 1, 2, 3, 4");
       return;
     }
+    if (optimizationLevel != null) {
+      print("Optimization level '$argument' ignored "
+          "due to preceding '-O$optimizationLevel'");
+      return;
+    }
     optimizationLevel = value;
   }
 

@@ -312,9 +312,37 @@ class SsaInstructionSimplifier extends HBaseVisitor
           // can also be constant folded away.
           next = replacement;
         }
-        block.remove(instruction);
+        _removeInstructionAndPureDeadInputs(instruction);
       }
       instruction = next;
+    }
+  }
+
+  /// Removes [instruction] and the DAG of pure instructions that are transitive
+  /// inputs to [instruction].
+  ///
+  /// It is worth doing the cleanup of removing the instructions in the
+  /// simplifier as it reduces the `usedBy` count, which enables rewrites that
+  /// are sensitive to the use count. Such rewrites can occur much earlier with
+  /// 'online' usedBy counting.  The cost of visiting all inputs of a rewritten
+  /// instruction is regained by avoiding visiting the dead instructions in
+  /// subsequent passes.
+  void _removeInstructionAndPureDeadInputs(HInstruction instruction) {
+    List<HInstruction> worklist = instruction.inputs.toList();
+    instruction.block.remove(instruction);
+    for (int i = 0; i < worklist.length; i++) {
+      HInstruction next = worklist[i];
+      HBasicBlock block = next.block;
+      if (block == null) continue; // Already removed.
+      if (next.usedBy.isEmpty && next.isPure(_abstractValueDomain)) {
+        // Special cases that are removed properly by other phases.
+        if (next is HParameterValue) continue;
+        if (next is HLocalValue) continue;
+        if (next is HConstant) continue;
+        if (next is HPhi) continue;
+        worklist.addAll(next.inputs);
+        block.remove(next);
+      }
     }
   }
 
@@ -481,12 +509,63 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // convert to a value parameter.
 
     if (node.usedAsVariable()) {
-      if (!node.usedBy.every((user) => user is HLocalGet)) return node;
       // Trivial SSA-conversion. Replace all HLocalGet instructions with the
       // parameter.
-      for (HLocalGet user in node.usedBy.toList()) {
-        user.block.rewrite(user, node);
+      //
+      // If there is a single assignment, it could dominate all the reads, or
+      // dominate all the reads except one read, which was used to 'check' the
+      // value at entry, like this:
+      //
+      //     t1 = HLocalGet(param);
+      //     t2 = check(t1);           // replace t1 with param
+      //     HLocalSet(param, t2);
+      //     ....
+      //     t3 = HLocalGet(param);
+      //     ... t3 ...                // replace t3 with t2
+      //
+      HLocalSet assignment;
+      for (HInstruction user in node.usedBy) {
+        if (user is HLocalSet) {
+          assert(user.local == node);
+          if (assignment != null) return node; // Two or more assignments.
+          assignment = user;
+          continue;
+        }
+        if (user is HLocalGet) continue;
+        // There should not really be anything else but there are Phis which
+        // have not been cleaned up.
+        return node;
+      }
+      HLocalGet checkedLoad;
+      HInstruction value = node;
+      if (assignment != null) {
+        value = assignment.value;
+        HInstruction source = value.nonCheck();
+        if (source is HLocalGet && source.local == node) {
+          if (source.usedBy.length != 1) return node;
+          checkedLoad = source;
+        }
+      }
+      // If there is a single assignment it will dominate all other uses.
+      List<HLocalGet> loads = [];
+      for (HInstruction user in node.usedBy) {
+        if (user == assignment) continue;
+        if (user == checkedLoad) continue;
+        assert(user is HLocalGet && user.local == node);
+        if (assignment != null && !assignment.dominates(user)) return node;
+        loads.add(user);
+      }
+
+      for (HLocalGet user in loads) {
+        user.block.rewrite(user, value);
         user.block.remove(user);
+      }
+      if (checkedLoad != null) {
+        checkedLoad.block.rewrite(checkedLoad, node);
+        checkedLoad.block.remove(checkedLoad);
+      }
+      if (assignment != null) {
+        assignment.block.remove(assignment);
       }
     }
 

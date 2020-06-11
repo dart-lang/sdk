@@ -21,7 +21,7 @@ main() {
 runTest() async {
   // Pretend this is a dart2js_native test to allow use of 'native' keyword
   // and import of private libraries.
-  String main = 'sdk/tests/compiler/dart2js_native/main.dart';
+  String main = 'sdk/tests/dart2js_2/native/main.dart';
   Uri entryPoint = Uri.parse('memory:$main');
 
   CompilationResult result =

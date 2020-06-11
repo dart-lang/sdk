@@ -24,7 +24,6 @@ import 'package:analysis_server/src/services/completion/dart/keyword_contributor
 import 'package:analysis_server/src/services/completion/dart/label_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/library_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/library_prefix_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/local_constructor_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/local_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/named_constructor_contributor.dart';
@@ -140,7 +139,6 @@ class DartCompletionManager implements CompletionContributor {
       LabelContributor(),
       LibraryMemberContributor(),
       LibraryPrefixContributor(),
-      LocalConstructorContributor(),
       LocalLibraryContributor(),
       LocalReferenceContributor(),
       NamedConstructorContributor(),
@@ -457,17 +455,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   }
 
   @override
-  LibraryElement get libraryElement {
-    //TODO(danrubel) build the library element rather than all the declarations
-    var unit = target.unit;
-    if (unit != null) {
-      var elem = unit.declaredElement;
-      if (elem != null) {
-        return elem.library;
-      }
-    }
-    return null;
-  }
+  LibraryElement get libraryElement => result.libraryElement;
 
   @override
   OpType get opType {

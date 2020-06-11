@@ -932,9 +932,23 @@ bool Scavenger::ShouldPerformIdleScavenge(int64_t deadline) {
 
   // TODO(rmacnak): Investigate collecting a history of idle period durations.
   intptr_t used_in_words = UsedInWords();
-  if (used_in_words < idle_scavenge_threshold_in_words_) {
+  // Normal reason: new space is getting full.
+  bool for_new_space = used_in_words >= idle_scavenge_threshold_in_words_;
+  // New-space objects are roots during old-space GC. This means that even
+  // unreachable new-space objects prevent old-space objects they reference
+  // from being collected during an old-space GC. Normally this is not an
+  // issue because new-space GCs run much more frequently than old-space GCs.
+  // If new-space allocation is low and direct old-space allocation is high,
+  // which can happen in a program that allocates large objects and little
+  // else, old-space can fill up with unreachable objects until the next
+  // new-space GC. This check is the idle equivalent to the
+  // new-space GC before synchronous-marking in CollectMostGarbage.
+  bool for_old_space = heap_->last_gc_was_old_space_ &&
+                       heap_->old_space()->ReachedIdleThreshold();
+  if (!for_new_space && !for_old_space) {
     return false;
   }
+
   int64_t estimated_scavenge_completion =
       OS::GetCurrentMonotonicMicros() +
       used_in_words / scavenge_words_per_micro_;

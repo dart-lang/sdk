@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'native_version.dart';
+@JS()
+library native_version_javascript;
+
 import 'package:js/js.dart';
+import 'native_version.dart';
 
 const NativeBigIntMethods nativeBigInt = _Methods();
 
@@ -43,6 +46,7 @@ class _Methods implements NativeBigIntMethods {
 
   const _Methods();
 
+  @override
   bool get enabled {
     if (!_initialized) {
       _initialize();
@@ -51,6 +55,7 @@ class _Methods implements NativeBigIntMethods {
   }
 
   void _initialize() {
+    _initialized = true;
     try {
       _setup();
       _enabled = true;
@@ -64,27 +69,37 @@ class _Methods implements NativeBigIntMethods {
     }
   }
 
-  static Object bad(String message) {
-    throw UnimplementedError(message);
-  }
-
+  @override
   Object parse(String string) => _parse(string);
 
+  @override
   String toStringMethod(Object value) => _toStringMethod(value);
 
+  @override
   Object fromInt(int i) => _fromInt(i);
 
+  @override
   Object get one => _one;
 
+  @override
   Object get eight => _eight;
 
+  @override
   int bitLength(Object value) => _bitLength(value);
 
+  @override
   bool isEven(Object value) => _isEven(value);
 
+  @override
   Object add(Object left, Object right) => _add(left, right);
+
+  @override
   Object shiftLeft(Object value, Object count) => _shiftLeft(value, count);
+
+  @override
   Object shiftRight(Object value, Object count) => _shiftRight(value, count);
+
+  @override
   Object subtract(Object left, Object right) => _subtract(left, right);
 }
 

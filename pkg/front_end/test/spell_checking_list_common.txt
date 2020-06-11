@@ -510,6 +510,7 @@ common
 commonly
 compact
 comparable
+comparator
 compare
 comparing
 comparison
@@ -997,6 +998,7 @@ environment
 equal
 equality
 equals
+equate
 equivalence
 equivalent
 equivalents
@@ -2268,6 +2270,7 @@ proper
 properly
 properties
 property
+proposition
 prototype
 proves
 provide

@@ -224,6 +224,19 @@ const Field& LookupMathRandomStateFieldOffset() {
   return state_field;
 }
 
+const Field& LookupConvertUtf8DecoderScanFlagsField() {
+  const auto& convert_lib =
+      dart::Library::Handle(dart::Library::ConvertLibrary());
+  ASSERT(!convert_lib.IsNull());
+  const auto& _utf8decoder_class = dart::Class::Handle(
+      convert_lib.LookupClassAllowPrivate(dart::Symbols::_Utf8Decoder()));
+  ASSERT(!_utf8decoder_class.IsNull());
+  const auto& scan_flags_field = dart::Field::ZoneHandle(
+      _utf8decoder_class.LookupInstanceFieldAllowPrivate(
+          dart::Symbols::_scanFlags()));
+  return scan_flags_field;
+}
+
 word LookupFieldOffsetInBytes(const Field& field) {
   return field.TargetOffset();
 }

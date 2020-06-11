@@ -67,7 +67,10 @@ def _CheckNnbdTestSync(input_api, output_api):
     a test, the test's counterpart (if it exists at all) should be in the CL
     too.
     """
-    DIRS = ["co19", "corelib", "ffi", "language", "lib", "standalone"]
+    DIRS = [
+        "tests/co19", "tests/corelib", "tests/ffi", "tests/language",
+        "tests/lib", "tests/standalone", "runtime/tests/vm/dart"
+    ]
 
     files = [git_file.LocalPath() for git_file in input_api.AffectedTextFiles()]
     unsynchronized = []
@@ -75,8 +78,8 @@ def _CheckNnbdTestSync(input_api, output_api):
         if file.endswith('.status'): continue
 
         for dir in DIRS:
-            legacy_dir = "tests/{}_2/".format(dir)
-            nnbd_dir = "tests/{}/".format(dir)
+            legacy_dir = "{}_2/".format(dir)
+            nnbd_dir = "{}/".format(dir)
 
             counterpart = None
             if file.startswith(legacy_dir):

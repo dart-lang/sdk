@@ -105,9 +105,10 @@ class ArgumentAllocator : public ValueObject {
           cpu_regs_used += cpu_regs_used % 2;
         }
         if (cpu_regs_used + 2 <= CallingConventions::kNumArgRegs) {
+          const Register register_1 = AllocateCpuRegister();
+          const Register register_2 = AllocateCpuRegister();
           return *new (zone_) NativeRegistersLocation(
-              payload_type, container_type, AllocateCpuRegister(),
-              AllocateCpuRegister());
+              payload_type, container_type, register_1, register_2);
         }
       } else {
         ASSERT(payload_type.SizeInBytes() <= target::kWordSize);

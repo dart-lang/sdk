@@ -184,6 +184,9 @@ word TypedDataMaxNewSpaceElements(classid_t cid);
 // Looks up the dart:math's _Random._A field.
 const Field& LookupMathRandomStateFieldOffset();
 
+// Looks up the dart:convert's _Utf8Decoder._scanFlags field.
+const Field& LookupConvertUtf8DecoderScanFlagsField();
+
 // Returns the offset in bytes of [field].
 word LookupFieldOffsetInBytes(const Field& field);
 

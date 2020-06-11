@@ -770,6 +770,10 @@ void ConstantPropagator::VisitStringInterpolate(StringInterpolateInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
+void ConstantPropagator::VisitUtf8Scan(Utf8ScanInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
 void ConstantPropagator::VisitLoadIndexed(LoadIndexedInstr* instr) {
   const Object& array_obj = instr->array()->definition()->constant_value();
   const Object& index_obj = instr->index()->definition()->constant_value();
@@ -1000,9 +1004,8 @@ void ConstantPropagator::VisitInstantiateType(InstantiateTypeInstr* instr) {
     }
   }
   AbstractType& result = AbstractType::Handle(
-      Z,
-      instr->type().InstantiateFrom(instantiator_type_args, function_type_args,
-                                    kAllFree, nullptr, Heap::kOld));
+      Z, instr->type().InstantiateFrom(
+             instantiator_type_args, function_type_args, kAllFree, Heap::kOld));
   ASSERT(result.IsInstantiated());
   result = result.Canonicalize();
   SetValue(instr, result);
@@ -1050,10 +1053,9 @@ void ConstantPropagator::VisitInstantiateTypeArguments(
       return;
     }
   }
-  TypeArguments& result =
-      TypeArguments::Handle(Z, instr->type_arguments().InstantiateFrom(
-                                   instantiator_type_args, function_type_args,
-                                   kAllFree, nullptr, Heap::kOld));
+  TypeArguments& result = TypeArguments::Handle(
+      Z, instr->type_arguments().InstantiateFrom(
+             instantiator_type_args, function_type_args, kAllFree, Heap::kOld));
   ASSERT(result.IsInstantiated());
   result = result.Canonicalize();
   SetValue(instr, result);

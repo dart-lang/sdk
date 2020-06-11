@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
@@ -13,6 +12,9 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+
+/// A predicate is a one-argument function that returns a boolean value.
+typedef _ElementPredicate = bool Function(Element argument);
 
 class ChangeTo extends CorrectionProducer {
   /// The kind of elements that should be proposed.
@@ -104,7 +106,7 @@ class ChangeTo extends CorrectionProducer {
   }
 
   Future<void> _proposeClassOrMixinMember(DartChangeBuilder builder,
-      Expression target, ElementPredicate predicate) async {
+      Expression target, _ElementPredicate predicate) async {
     if (node is SimpleIdentifier) {
       var name = (node as SimpleIdentifier).name;
       var finder = _ClosestElementFinder(name, predicate);
@@ -259,7 +261,7 @@ class _ClosestElementFinder {
 
   /// A function used to filter the possible elements to those of the right
   /// kind.
-  final ElementPredicate _predicate;
+  final _ElementPredicate _predicate;
 
   int _distance = _maxDistance;
 

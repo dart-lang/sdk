@@ -1113,6 +1113,164 @@ void StringInterpolateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->out(0).reg() == EAX);
 }
 
+LocationSummary* Utf8ScanInstr::MakeLocationSummary(Zone* zone,
+                                                    bool opt) const {
+  const intptr_t kNumInputs = 5;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::Any());               // decoder
+  summary->set_in(1, Location::WritableRegister());  // bytes
+  summary->set_in(2, Location::WritableRegister());  // start
+  summary->set_in(3, Location::WritableRegister());  // end
+  summary->set_in(4, Location::RequiresRegister());  // table
+  summary->set_out(0, Location::RequiresRegister());
+  return summary;
+}
+
+void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register bytes_reg = locs()->in(1).reg();
+  const Register start_reg = locs()->in(2).reg();
+  const Register end_reg = locs()->in(3).reg();
+  const Register table_reg = locs()->in(4).reg();
+  const Register size_reg = locs()->out(0).reg();
+
+  const Register bytes_ptr_reg = start_reg;
+  const Register flags_reg = end_reg;
+  const Register temp_reg = bytes_reg;
+  const XmmRegister vector_reg = FpuTMP;
+
+  static const intptr_t kBytesEndTempOffset = 1 * compiler::target::kWordSize;
+  static const intptr_t kBytesEndMinus16TempOffset =
+      0 * compiler::target::kWordSize;
+
+  static const intptr_t kSizeMask = 0x03;
+  static const intptr_t kFlagsMask = 0x3C;
+
+  compiler::Label scan_ascii, ascii_loop, ascii_loop_in, nonascii_loop;
+  compiler::Label rest, rest_loop, rest_loop_in, done;
+
+  // Address of input bytes.
+  __ movl(bytes_reg,
+          compiler::FieldAddress(
+              bytes_reg, compiler::target::TypedDataBase::data_field_offset()));
+
+  // Pointers to start, end and end-16.
+  __ leal(bytes_ptr_reg, compiler::Address(bytes_reg, start_reg, TIMES_1, 0));
+  __ leal(temp_reg, compiler::Address(bytes_reg, end_reg, TIMES_1, 0));
+  __ pushl(temp_reg);
+  __ leal(temp_reg, compiler::Address(temp_reg, -16));
+  __ pushl(temp_reg);
+
+  // Initialize size and flags.
+  __ xorl(size_reg, size_reg);
+  __ xorl(flags_reg, flags_reg);
+
+  __ jmp(&scan_ascii, compiler::Assembler::kNearJump);
+
+  // Loop scanning through ASCII bytes one 16-byte vector at a time.
+  // While scanning, the size register contains the size as it was at the start
+  // of the current block of ASCII bytes, minus the address of the start of the
+  // block. After the block, the end address of the block is added to update the
+  // size to include the bytes in the block.
+  __ Bind(&ascii_loop);
+  __ addl(bytes_ptr_reg, compiler::Immediate(16));
+  __ Bind(&ascii_loop_in);
+
+  // Exit vectorized loop when there are less than 16 bytes left.
+  __ cmpl(bytes_ptr_reg, compiler::Address(ESP, kBytesEndMinus16TempOffset));
+  __ j(UNSIGNED_GREATER, &rest, compiler::Assembler::kNearJump);
+
+  // Find next non-ASCII byte within the next 16 bytes.
+  // Note: In principle, we should use MOVDQU here, since the loaded value is
+  // used as input to an integer instruction. In practice, according to Agner
+  // Fog, there is no penalty for using the wrong kind of load.
+  __ movups(vector_reg, compiler::Address(bytes_ptr_reg, 0));
+  __ pmovmskb(temp_reg, vector_reg);
+  __ bsfl(temp_reg, temp_reg);
+  __ j(EQUAL, &ascii_loop, compiler::Assembler::kNearJump);
+
+  // Point to non-ASCII byte and update size.
+  __ addl(bytes_ptr_reg, temp_reg);
+  __ addl(size_reg, bytes_ptr_reg);
+
+  // Read first non-ASCII byte.
+  __ movzxb(temp_reg, compiler::Address(bytes_ptr_reg, 0));
+
+  // Loop over block of non-ASCII bytes.
+  __ Bind(&nonascii_loop);
+  __ addl(bytes_ptr_reg, compiler::Immediate(1));
+
+  // Update size and flags based on byte value.
+  __ movzxb(temp_reg, compiler::FieldAddress(
+                          table_reg, temp_reg, TIMES_1,
+                          compiler::target::OneByteString::data_offset()));
+  __ orl(flags_reg, temp_reg);
+  __ andl(temp_reg, compiler::Immediate(kSizeMask));
+  __ addl(size_reg, temp_reg);
+
+  // Stop if end is reached.
+  __ cmpl(bytes_ptr_reg, compiler::Address(ESP, kBytesEndTempOffset));
+  __ j(UNSIGNED_GREATER_EQUAL, &done, compiler::Assembler::kNearJump);
+
+  // Go to ASCII scan if next byte is ASCII, otherwise loop.
+  __ movzxb(temp_reg, compiler::Address(bytes_ptr_reg, 0));
+  __ testl(temp_reg, compiler::Immediate(0x80));
+  __ j(NOT_EQUAL, &nonascii_loop, compiler::Assembler::kNearJump);
+
+  // Enter the ASCII scanning loop.
+  __ Bind(&scan_ascii);
+  __ subl(size_reg, bytes_ptr_reg);
+  __ jmp(&ascii_loop_in);
+
+  // Less than 16 bytes left. Process the remaining bytes individually.
+  __ Bind(&rest);
+
+  // Update size after ASCII scanning loop.
+  __ addl(size_reg, bytes_ptr_reg);
+  __ jmp(&rest_loop_in, compiler::Assembler::kNearJump);
+
+  __ Bind(&rest_loop);
+
+  // Read byte and increment pointer.
+  __ movzxb(temp_reg, compiler::Address(bytes_ptr_reg, 0));
+  __ addl(bytes_ptr_reg, compiler::Immediate(1));
+
+  // Update size and flags based on byte value.
+  __ movzxb(temp_reg, compiler::FieldAddress(
+                          table_reg, temp_reg, TIMES_1,
+                          compiler::target::OneByteString::data_offset()));
+  __ orl(flags_reg, temp_reg);
+  __ andl(temp_reg, compiler::Immediate(kSizeMask));
+  __ addl(size_reg, temp_reg);
+
+  // Stop if end is reached.
+  __ Bind(&rest_loop_in);
+  __ cmpl(bytes_ptr_reg, compiler::Address(ESP, kBytesEndTempOffset));
+  __ j(UNSIGNED_LESS, &rest_loop, compiler::Assembler::kNearJump);
+  __ Bind(&done);
+
+  // Pop temporaries.
+  __ addl(ESP, compiler::Immediate(2 * compiler::target::kWordSize));
+
+  // Write flags to field.
+  __ andl(flags_reg, compiler::Immediate(kFlagsMask));
+  if (!IsScanFlagsUnboxed()) {
+    __ SmiTag(flags_reg);
+  }
+  Register decoder_reg;
+  const Location decoder_location = locs()->in(0);
+  if (decoder_location.IsStackSlot()) {
+    __ movl(temp_reg, LocationToStackSlotAddress(decoder_location));
+    decoder_reg = temp_reg;
+  } else {
+    decoder_reg = decoder_location.reg();
+  }
+  const auto scan_flags_field_offset = scan_flags_field_.offset_in_bytes();
+  __ orl(compiler::FieldAddress(decoder_reg, scan_flags_field_offset),
+         flags_reg);
+}
+
 LocationSummary* LoadUntaggedInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;

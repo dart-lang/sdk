@@ -30,6 +30,7 @@ class as = A with B;
     await assertErrorsInCode(r'''
 typedef void as();
 ''', [
+      error(ParserErrorCode.MISSING_IDENTIFIER, 13, 2),
       error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 13, 2),
     ]);
   }
@@ -39,11 +40,7 @@ typedef void as();
 typedef as = void Function();
 ''', [
       error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 8, 2),
-      // TODO(#42158): I think recovery could be much better here.
-      error(ParserErrorCode.EXPECTED_EXECUTABLE, 11, 1),
-      error(ParserErrorCode.EXPECTED_TOKEN, 11, 1),
-      error(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, 11, 1),
-      error(ParserErrorCode.MISSING_FUNCTION_BODY, 28, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 8, 2)
     ]);
   }
 }

@@ -50,6 +50,10 @@ import 'conflicting_generic_interfaces_test.dart'
     as conflicting_generic_interfaces;
 import 'conflicting_static_and_instance_test.dart'
     as conflicting_static_and_instance;
+import 'conflicting_type_variable_and_container_test.dart'
+    as conflicting_type_variable_and_container;
+import 'conflicting_type_variable_and_member_test.dart'
+    as conflicting_type_variable_and_member;
 import 'const_constructor_param_type_mismatch_test.dart'
     as const_constructor_param_type_mismatch;
 import 'const_constructor_with_mixin_with_field_test.dart'
@@ -384,6 +388,8 @@ import 'recursive_compile_time_constant_test.dart'
 import 'recursive_constructor_redirect_test.dart'
     as recursive_constructor_redirect;
 import 'recursive_factory_redirect_test.dart' as recursive_factory_redirect;
+import 'recursive_interface_inheritance_test.dart'
+    as recursive_interface_inheritance;
 import 'redirect_generative_to_missing_constructor_test.dart'
     as redirect_generative_to_missing_constructor;
 import 'redirect_generative_to_non_generative_constructor_test.dart'
@@ -553,6 +559,8 @@ main() {
     concrete_class_with_abstract_member.main();
     conflicting_generic_interfaces.main();
     conflicting_static_and_instance.main();
+    conflicting_type_variable_and_container.main();
+    conflicting_type_variable_and_member.main();
     const_constructor_param_type_mismatch.main();
     const_constructor_with_mixin_with_field.main();
     const_eval_throws_exception.main();
@@ -777,6 +785,7 @@ main() {
     recursive_compile_time_constant.main();
     recursive_constructor_redirect.main();
     recursive_factory_redirect.main();
+    recursive_interface_inheritance.main();
     redirect_generative_to_missing_constructor.main();
     redirect_generative_to_non_generative_constructor.main();
     redirect_to_abstract_class_constructor.main();

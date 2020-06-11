@@ -3268,7 +3268,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     for (var t in typeFormals) {
       if (t.isGenericCovariantImpl && !_types.isTop(t.bound)) {
         body.add(runtimeStatement('checkTypeBound(#, #, #)', [
-          _emitType(TypeParameterType(t, Nullability.legacy)),
+          _emitTypeParameterType(TypeParameterType(t, Nullability.undetermined),
+              emitNullability: false),
           _emitType(t.bound),
           propertyName(t.name)
         ]));

@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -112,6 +113,10 @@ class NullabilityMigrationImpl implements NullabilityMigration {
     var compilationUnit = unit.declaredElement;
     var library = compilationUnit.library;
     var source = compilationUnit.source;
+    // Hierarchies were created assuming the libraries being migrated are opted
+    // out, but the FixBuilder will analyze assuming they're opted in.  So we
+    // need to clear the hierarchies before we continue.
+    (result.session as AnalysisSessionImpl).clearHierarchies();
     var fixBuilder = FixBuilder(
         source,
         _decoratedClassHierarchy,

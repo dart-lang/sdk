@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -30,16 +31,21 @@ abstract class _RemoveConst extends CorrectionProducer {
   @override
   Future<void> compute(DartChangeBuilder builder) async {
     final expression = node;
+
+    Token constToken;
     if (expression is InstanceCreationExpression) {
-      final constToken = expression.keyword;
-      await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addDeletion(range.startStart(constToken, constToken.next));
-      });
+      constToken = expression.keyword;
     } else if (expression is TypedLiteralImpl) {
-      final constToken = expression.constKeyword;
-      await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addDeletion(range.startStart(constToken, constToken.next));
-      });
+      constToken = expression.constKeyword;
     }
+
+    // Might be an implicit `const`.
+    if (constToken == null) {
+      return;
+    }
+
+    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addDeletion(range.startStart(constToken, constToken.next));
+    });
   }
 }

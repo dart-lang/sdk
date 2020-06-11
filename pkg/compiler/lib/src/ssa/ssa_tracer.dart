@@ -288,14 +288,14 @@ class HInstructionStringifier implements HVisitor<String> {
   @override
   String visitLocalGet(HLocalGet node) {
     String localName = node.variable.name;
-    return 'LocalGet: ${temporaryId(node.local)}.$localName';
+    return 'LocalGet: ${temporaryId(node.receiver)}.$localName';
   }
 
   @override
   String visitLocalSet(HLocalSet node) {
     String valueId = temporaryId(node.value);
     String localName = node.variable.name;
-    return 'LocalSet: ${temporaryId(node.local)}.$localName to $valueId';
+    return 'LocalSet: ${temporaryId(node.receiver)}.$localName to $valueId';
   }
 
   @override

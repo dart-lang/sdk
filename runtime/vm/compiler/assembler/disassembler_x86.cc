@@ -1329,6 +1329,9 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
       } else if (opcode == 0x50) {
         Print("movmskpd %s,", NameOfCPURegister(regop));
         current += PrintRightXMMOperand(current);
+      } else if (opcode == 0xD7) {
+        Print("pmovmskb %s,", NameOfCPURegister(regop));
+        current += PrintRightXMMOperand(current);
       } else {
         const char* mnemonic = "?";
         if (opcode == 0x5A) {

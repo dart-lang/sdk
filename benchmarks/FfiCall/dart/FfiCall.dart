@@ -20,7 +20,7 @@ import 'dlopen_helper.dart';
 //
 
 DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific("native_functions",
-    path: Platform.script.resolve("native/out/").path);
+    path: Platform.script.resolve("../native/out/").path);
 
 typedef NativeFunction1Uint8 = Uint8 Function(Uint8);
 typedef Function1int = int Function(int);

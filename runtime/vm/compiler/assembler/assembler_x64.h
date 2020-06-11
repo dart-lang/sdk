@@ -514,6 +514,9 @@ class Assembler : public AssemblerBase {
     EmitL(dst, src, 0x50, 0x0F, 0x66);
   }
   void movmskps(Register dst, XmmRegister src) { EmitL(dst, src, 0x50, 0x0F); }
+  void pmovmskb(Register dst, XmmRegister src) {
+    EmitL(dst, src, 0xD7, 0x0F, 0x66);
+  }
 
   void btl(Register dst, Register src) { EmitL(src, dst, 0xA3, 0x0F); }
   void btq(Register dst, Register src) { EmitQ(src, dst, 0xA3, 0x0F); }

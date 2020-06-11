@@ -3740,11 +3740,11 @@ bool AbstractType::InstantiateAndTestSubtype(
     const TypeArguments& function_type_args) {
   if (!subtype->IsInstantiated()) {
     *subtype = subtype->InstantiateFrom(
-        instantiator_type_args, function_type_args, kAllFree, NULL, Heap::kOld);
+        instantiator_type_args, function_type_args, kAllFree, Heap::kOld);
   }
   if (!supertype->IsInstantiated()) {
     *supertype = supertype->InstantiateFrom(
-        instantiator_type_args, function_type_args, kAllFree, NULL, Heap::kOld);
+        instantiator_type_args, function_type_args, kAllFree, Heap::kOld);
   }
   return subtype->IsSubtypeOf(*supertype, Heap::kOld);
 }
@@ -4269,6 +4269,10 @@ bool Class::InjectCIDFields() const {
 #undef ADD_SET_FIELD
 #define ADD_SET_FIELD(clazz) {"cid" #clazz, kTypedData##clazz##Cid},
               CLASS_LIST_TYPED_DATA(ADD_SET_FIELD)
+#undef ADD_SET_FIELD
+#define ADD_SET_FIELD(clazz)                                                   \
+  {"cidExternal" #clazz, kExternalTypedData##clazz##Cid},
+                  CLASS_LIST_TYPED_DATA(ADD_SET_FIELD)
 #undef ADD_SET_FIELD
 #undef CLASS_LIST_WITH_NULL
   };
@@ -4939,7 +4943,8 @@ bool Class::IsSubtypeOf(const Class& cls,
                         const TypeArguments& type_arguments,
                         Nullability nullability,
                         const AbstractType& other,
-                        Heap::Space space) {
+                        Heap::Space space,
+                        TrailPtr trail) {
   // This function does not support Null, Never, dynamic, or void as type T0.
   classid_t this_cid = cls.id();
   ASSERT(this_cid != kNullCid && this_cid != kNeverCid &&
@@ -4983,11 +4988,11 @@ bool Class::IsSubtypeOf(const Class& cls,
              this_class.NumTypeParameters() == 1);
       ASSERT(type_arguments.IsNull() || type_arguments.Length() >= 1);
       if (Class::IsSubtypeOf(future_class, type_arguments,
-                             Nullability::kNonNullable, other, space)) {
+                             Nullability::kNonNullable, other, space, trail)) {
         // Check S0 <: T1.
         const AbstractType& type_arg =
             AbstractType::Handle(zone, type_arguments.TypeAtNullSafe(0));
-        if (type_arg.IsSubtypeOf(other, space)) {
+        if (type_arg.IsSubtypeOf(other, space, trail)) {
           return verified_nullability;
         }
       }
@@ -5011,7 +5016,7 @@ bool Class::IsSubtypeOf(const Class& cls,
         const AbstractType& type_arg =
             AbstractType::Handle(zone, type_arguments.TypeAtNullSafe(0));
         // If T0 is Future<S0>, then T0 <: Future<S1>, iff S0 <: S1.
-        if (type_arg.IsSubtypeOf(other_type_arg, space)) {
+        if (type_arg.IsSubtypeOf(other_type_arg, space, trail)) {
           if (verified_nullability) {
             return true;
           }
@@ -5021,7 +5026,7 @@ bool Class::IsSubtypeOf(const Class& cls,
       // Check T0 <: S1.
       if (other_type_arg.HasTypeClass() &&
           Class::IsSubtypeOf(this_class, type_arguments, nullability,
-                             other_type_arg, space)) {
+                             other_type_arg, space, trail)) {
         return true;
       }
     }
@@ -5053,7 +5058,7 @@ bool Class::IsSubtypeOf(const Class& cls,
         type = type_arguments.TypeAtNullSafe(from_index + i);
         other_type = other_type_arguments.TypeAt(from_index + i);
         ASSERT(!type.IsNull() && !other_type.IsNull());
-        if (!type.IsSubtypeOf(other_type, space)) {
+        if (!type.IsSubtypeOf(other_type, space, trail)) {
           return false;
         }
       }
@@ -5080,14 +5085,14 @@ bool Class::IsSubtypeOf(const Class& cls,
         // after the type arguments of the super type of this type.
         // The index of the type parameters is adjusted upon finalization.
         interface_args = interface_args.InstantiateFrom(
-            type_arguments, Object::null_type_arguments(), kNoneFree, NULL,
-            space);
+            type_arguments, Object::null_type_arguments(), kNoneFree, space);
       }
       // In Dart 2, implementing Function has no meaning.
       // TODO(regis): Can we encounter and skip Object as well?
       if (interface_class.IsDartFunctionClass()) {
         continue;
       }
+      // No need to pass the trail as cycles are not possible via interfaces.
       if (Class::IsSubtypeOf(interface_class, interface_args,
                              Nullability::kNonNullable, other, space)) {
         return true;
@@ -6179,8 +6184,8 @@ TypeArgumentsPtr TypeArguments::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
     intptr_t num_free_fun_type_params,
-    TrailPtr instantiation_trail,
-    Heap::Space space) const {
+    Heap::Space space,
+    TrailPtr trail) const {
   ASSERT(!IsInstantiated(kAny, num_free_fun_type_params));
   if ((instantiator_type_arguments.IsNull() ||
        instantiator_type_arguments.Length() == Length()) &&
@@ -6201,9 +6206,9 @@ TypeArgumentsPtr TypeArguments::InstantiateFrom(
     // type before A is marked as finalized.
     if (!type.IsNull() &&
         !type.IsInstantiated(kAny, num_free_fun_type_params)) {
-      type = type.InstantiateFrom(
-          instantiator_type_arguments, function_type_arguments,
-          num_free_fun_type_params, instantiation_trail, space);
+      type = type.InstantiateFrom(instantiator_type_arguments,
+                                  function_type_arguments,
+                                  num_free_fun_type_params, space, trail);
       // A returned null type indicates a failed instantiation in dead code that
       // must be propagated up to the caller, the optimizing compiler.
       if (type.IsNull()) {
@@ -6255,7 +6260,7 @@ TypeArgumentsPtr TypeArguments::InstantiateAndCanonicalizeFrom(
   // Cache lookup failed. Instantiate the type arguments.
   TypeArguments& result = TypeArguments::Handle(zone);
   result = InstantiateFrom(instantiator_type_arguments, function_type_arguments,
-                           kAllFree, NULL, Heap::kOld);
+                           kAllFree, Heap::kOld);
   // Canonicalize type arguments.
   result = result.Canonicalize();
   // InstantiateAndCanonicalizeFrom is not reentrant. It cannot have been called
@@ -7919,7 +7924,7 @@ FunctionPtr Function::InstantiateSignatureFrom(
         if (!type.IsInstantiated(kAny, num_free_fun_type_params)) {
           type = type.InstantiateFrom(instantiator_type_arguments,
                                       function_type_arguments,
-                                      num_free_fun_type_params, NULL, space);
+                                      num_free_fun_type_params, space);
           // A returned null type indicates a failed instantiation in dead code
           // that must be propagated up to the caller, the optimizing compiler.
           if (type.IsNull()) {
@@ -7955,7 +7960,7 @@ FunctionPtr Function::InstantiateSignatureFrom(
   if (!type.IsInstantiated(kAny, num_free_fun_type_params)) {
     type = type.InstantiateFrom(instantiator_type_arguments,
                                 function_type_arguments,
-                                num_free_fun_type_params, NULL, space);
+                                num_free_fun_type_params, space);
     // A returned null type indicates a failed instantiation in dead code that
     // must be propagated up to the caller, the optimizing compiler.
     if (type.IsNull()) {
@@ -7973,7 +7978,7 @@ FunctionPtr Function::InstantiateSignatureFrom(
     if (!type.IsInstantiated(kAny, num_free_fun_type_params)) {
       type = type.InstantiateFrom(instantiator_type_arguments,
                                   function_type_arguments,
-                                  num_free_fun_type_params, NULL, space);
+                                  num_free_fun_type_params, space);
       // A returned null type indicates a failed instantiation in dead code that
       // must be propagated up to the caller, the optimizing compiler.
       if (type.IsNull()) {
@@ -8866,7 +8871,7 @@ void Function::PrintQualifiedName(
     }
   }
 
-  if (fun.IsClosureFunction()) {
+  if (fun.IsNonImplicitClosureFunction()) {
     // Sniff the parent function.
     fun = fun.parent_function();
     ASSERT(!fun.IsNull());
@@ -9957,6 +9962,7 @@ bool Field::IsUninitialized() const {
 
 FunctionPtr Field::EnsureInitializerFunction() const {
   ASSERT(has_nontrivial_initializer());
+  ASSERT(IsOriginal());
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Function& initializer = Function::Handle(zone, InitializerFunction());
@@ -9964,16 +9970,32 @@ FunctionPtr Field::EnsureInitializerFunction() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
 #else
-    initializer = kernel::CreateFieldInitializerFunction(thread, zone, *this);
-    SetInitializerFunction(initializer);
+    SafepointMutexLocker ml(
+        thread->isolate()->group()->initializer_functions_mutex());
+    // Double check after grabbing the lock.
+    initializer = InitializerFunction();
+    if (initializer.IsNull()) {
+      initializer = kernel::CreateFieldInitializerFunction(thread, zone, *this);
+    }
 #endif
   }
   return initializer.raw();
 }
 
 void Field::SetInitializerFunction(const Function& initializer) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   ASSERT(IsOriginal());
-  StorePointer(&raw_ptr()->initializer_function_, initializer.raw());
+  ASSERT(IsolateGroup::Current()
+             ->initializer_functions_mutex()
+             ->IsOwnedByCurrentThread());
+  // We have to ensure that all stores into the initializer function object
+  // happen before releasing the pointer to the initializer as it may be
+  // accessed without grabbing the lock.
+  StorePointer<FunctionPtr, std::memory_order_release>(
+      &raw_ptr()->initializer_function_, initializer.raw());
+#endif
 }
 
 bool Field::HasInitializerFunction() const {
@@ -10336,8 +10358,7 @@ StaticTypeExactnessState StaticTypeExactnessState::Compute(
        i--) {
     args = path[i]->arguments();
     type = type.InstantiateFrom(args, TypeArguments::null_type_arguments(),
-                                kAllFree,
-                                /*instantiation_trail=*/nullptr, Heap::kNew);
+                                kAllFree, Heap::kNew);
   }
 
   if (type.IsInstantiated()) {
@@ -13491,6 +13512,7 @@ void Library::CheckFunctionFingerprints() {
   all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::CollectionLibrary()));
+  all_libs.Add(&Library::ZoneHandle(Library::ConvertLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::InternalLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::FfiLibrary()));
   ASYNC_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS2);
@@ -17991,7 +18013,7 @@ bool Instance::NullIsInstanceOf(
   if (other.IsTypeParameter()) {
     auto& type = AbstractType::Handle(other.InstantiateFrom(
         other_instantiator_type_arguments, other_function_type_arguments,
-        kAllFree, NULL, Heap::kOld));
+        kAllFree, Heap::kOld));
     if (type.IsTypeRef()) {
       type = TypeRef::Cast(type).type();
     }
@@ -18051,7 +18073,7 @@ bool Instance::RuntimeTypeIsSubtypeOf(
     if (!other.IsInstantiated()) {
       instantiated_other = other.InstantiateFrom(
           other_instantiator_type_arguments, other_function_type_arguments,
-          kAllFree, NULL, Heap::kOld);
+          kAllFree, Heap::kOld);
       if (instantiated_other.IsTypeRef()) {
         instantiated_other = TypeRef::Cast(instantiated_other).type();
       }
@@ -18091,7 +18113,7 @@ bool Instance::RuntimeTypeIsSubtypeOf(
   if (!other.IsInstantiated()) {
     instantiated_other = other.InstantiateFrom(
         other_instantiator_type_arguments, other_function_type_arguments,
-        kAllFree, NULL, Heap::kOld);
+        kAllFree, Heap::kOld);
     if (instantiated_other.IsTypeRef()) {
       instantiated_other = TypeRef::Cast(instantiated_other).type();
     }
@@ -18531,8 +18553,8 @@ AbstractTypePtr AbstractType::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
     intptr_t num_free_fun_type_params,
-    TrailPtr instantiation_trail,
-    Heap::Space space) const {
+    Heap::Space space,
+    TrailPtr trail) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return NULL;
@@ -18924,7 +18946,8 @@ AbstractTypePtr AbstractType::UnwrapFutureOr() const {
 }
 
 bool AbstractType::IsSubtypeOf(const AbstractType& other,
-                               Heap::Space space) const {
+                               Heap::Space space,
+                               TrailPtr trail) const {
   ASSERT(IsFinalized());
   ASSERT(other.IsFinalized());
   // Reflexivity.
@@ -18978,11 +19001,15 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
     }
     const AbstractType& bound = AbstractType::Handle(zone, type_param.bound());
     ASSERT(bound.IsFinalized());
-    if (bound.IsSubtypeOf(other, space)) {
+    // Avoid cycles with F-bounded types.
+    if (TestAndAddBuddyToTrail(&trail, other)) {
+      return true;
+    }
+    if (bound.IsSubtypeOf(other, space, trail)) {
       return true;
     }
     // Apply additional subtyping rules if 'other' is 'FutureOr'.
-    if (IsSubtypeOfFutureOr(zone, other, space)) {
+    if (IsSubtypeOfFutureOr(zone, other, space, trail)) {
       return true;
     }
     return false;
@@ -19024,18 +19051,19 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
   }
   if (IsFunctionType()) {
     // Apply additional subtyping rules if 'other' is 'FutureOr'.
-    if (IsSubtypeOfFutureOr(zone, other, space)) {
+    if (IsSubtypeOfFutureOr(zone, other, space, trail)) {
       return true;
     }
     return false;
   }
   return Class::IsSubtypeOf(type_cls, TypeArguments::Handle(zone, arguments()),
-                            nullability(), other, space);
+                            nullability(), other, space, trail);
 }
 
 bool AbstractType::IsSubtypeOfFutureOr(Zone* zone,
                                        const AbstractType& other,
-                                       Heap::Space space) const {
+                                       Heap::Space space,
+                                       TrailPtr trail) const {
   if (other.IsFutureOrType()) {
     // This function is only called with a receiver that is either a function
     // type or an uninstantiated type parameter, therefore, it cannot be of
@@ -19049,7 +19077,7 @@ bool AbstractType::IsSubtypeOfFutureOr(Zone* zone,
       return true;
     }
     // Retry the IsSubtypeOf check after unwrapping type arg of FutureOr.
-    if (IsSubtypeOf(other_type_arg, space)) {
+    if (IsSubtypeOf(other_type_arg, space, trail)) {
       return true;
     }
   }
@@ -19308,8 +19336,8 @@ AbstractTypePtr Type::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
     intptr_t num_free_fun_type_params,
-    TrailPtr instantiation_trail,
-    Heap::Space space) const {
+    Heap::Space space,
+    TrailPtr trail) const {
   Zone* zone = Thread::Current()->zone();
   ASSERT(IsFinalized() || IsBeingFinalized());
   ASSERT(!IsInstantiated());
@@ -19328,7 +19356,7 @@ AbstractTypePtr Type::InstantiateFrom(
     ASSERT(type_arguments.Length() == cls.NumTypeArguments());
     type_arguments = type_arguments.InstantiateFrom(
         instantiator_type_arguments, function_type_arguments,
-        num_free_fun_type_params, instantiation_trail, space);
+        num_free_fun_type_params, space, trail);
     // A returned empty_type_arguments indicates a failed instantiation in dead
     // code that must be propagated up to the caller, the optimizing compiler.
     if (type_arguments.raw() == Object::empty_type_arguments().raw()) {
@@ -19942,22 +19970,22 @@ AbstractTypePtr TypeRef::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
     intptr_t num_free_fun_type_params,
-    TrailPtr instantiation_trail,
-    Heap::Space space) const {
+    Heap::Space space,
+    TrailPtr trail) const {
   TypeRef& instantiated_type_ref = TypeRef::Handle();
-  instantiated_type_ref ^= OnlyBuddyInTrail(instantiation_trail);
+  instantiated_type_ref ^= OnlyBuddyInTrail(trail);
   if (!instantiated_type_ref.IsNull()) {
     return instantiated_type_ref.raw();
   }
   instantiated_type_ref = TypeRef::New();
-  AddOnlyBuddyToTrail(&instantiation_trail, instantiated_type_ref);
+  AddOnlyBuddyToTrail(&trail, instantiated_type_ref);
 
   AbstractType& ref_type = AbstractType::Handle(type());
   ASSERT(!ref_type.IsNull() && !ref_type.IsTypeRef());
   AbstractType& instantiated_ref_type = AbstractType::Handle();
   instantiated_ref_type = ref_type.InstantiateFrom(
       instantiator_type_arguments, function_type_arguments,
-      num_free_fun_type_params, instantiation_trail, space);
+      num_free_fun_type_params, space, trail);
   // A returned null type indicates a failed instantiation in dead code that
   // must be propagated up to the caller, the optimizing compiler.
   if (instantiated_ref_type.IsNull()) {
@@ -20234,8 +20262,8 @@ AbstractTypePtr TypeParameter::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
     intptr_t num_free_fun_type_params,
-    TrailPtr instantiation_trail,
-    Heap::Space space) const {
+    Heap::Space space,
+    TrailPtr trail) const {
   ASSERT(IsFinalized());
   if (IsFunctionTypeParameter()) {
     if (index() >= num_free_fun_type_params) {

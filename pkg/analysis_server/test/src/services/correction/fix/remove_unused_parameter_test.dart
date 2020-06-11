@@ -98,6 +98,19 @@ class C {
 ''');
   }
 
+  Future<void> test_last_optionalNamed_noDefaultValue() async {
+    await resolveTestUnit('''
+class C {
+  C({int x});
+}
+''');
+    await assertHasFix('''
+class C {
+  C();
+}
+''');
+  }
+
   Future<void> test_last_optionalNamed_previous_optionalNamed() async {
     await resolveTestUnit('''
 class C {
@@ -124,6 +137,19 @@ class C {
 class C {
   int x;
   C(this.x);
+}
+''');
+  }
+
+  Future<void> test_last_optionalPositional_noDefaultValue() async {
+    await resolveTestUnit('''
+class C {
+  C([int x]);
+}
+''');
+    await assertHasFix('''
+class C {
+  C();
 }
 ''');
   }

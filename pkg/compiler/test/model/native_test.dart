@@ -138,8 +138,8 @@ main() {
       '54',
     ]);
 
-    await runTest('tests/compiler/dart2js_native/native_test.dart',
-        'tests/compiler/dart2js_native/', {
+    await runTest('tests/dart2js_2/native/native_test.dart',
+        'tests/dart2js_2/native/', {
       'Class': Kind.regular,
       'NativeClass': Kind.native,
       'topLevelField': Kind.regular,

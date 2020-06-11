@@ -1161,6 +1161,11 @@ void ParallelMoveInstr::PrintTo(BufferFormatter* f) const {
   }
 }
 
+void Utf8ScanInstr::PrintTo(BufferFormatter* f) const {
+  Definition::PrintTo(f);
+  f->Print(" [%s]", scan_flags_field_.Name());
+}
+
 void Environment::PrintTo(BufferFormatter* f) const {
   f->Print(" env={ ");
   int arg_count = 0;

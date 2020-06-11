@@ -44,6 +44,7 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/ast.dart' show Component, Library, Reference;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:kernel/kernel.dart' show loadComponentFromBinary;
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 
 import 'bytecode/bytecode_serialization.dart' show BytecodeSizeStatistics;
@@ -80,6 +81,9 @@ void declareCompilerOptions(ArgParser args) {
           'Produce kernel file for AOT compilation (enables global transformations).',
       defaultsTo: false);
   args.addOption('depfile', help: 'Path to output Ninja depfile');
+  args.addOption('from-dill',
+      help: 'Read existing dill file instead of compiling from sources',
+      defaultsTo: null);
   args.addFlag('link-platform',
       help: 'Include platform into resulting kernel file.', defaultsTo: true);
   args.addFlag('minimal-kernel',
@@ -165,6 +169,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final String targetName = options['target'];
   final String fileSystemScheme = options['filesystem-scheme'];
   final String depfile = options['depfile'];
+  final String fromDillFile = options['from-dill'];
   final List<String> fileSystemRoots = options['filesystem-root'];
   final bool aot = options['aot'];
   final bool tfa = options['tfa'];
@@ -260,7 +265,8 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       dropAST: dropAST && !splitOutputByPackages,
       useProtobufTreeShaker: useProtobufTreeShaker,
       minimalKernel: minimalKernel,
-      treeShakeWriteOnlyFields: treeShakeWriteOnlyFields);
+      treeShakeWriteOnlyFields: treeShakeWriteOnlyFields,
+      fromDillFile: fromDillFile);
 
   errorPrinter.printCompilationMessages();
 
@@ -335,7 +341,8 @@ Future<KernelCompilationResults> compileToKernel(
     bool dropAST: false,
     bool useProtobufTreeShaker: false,
     bool minimalKernel: false,
-    bool treeShakeWriteOnlyFields: false}) async {
+    bool treeShakeWriteOnlyFields: false,
+    String fromDillFile: null}) async {
   // Replace error handler to detect if there are compilation errors.
   final errorDetector =
       new ErrorDetector(previousErrorHandler: options.onDiagnostic);
@@ -344,7 +351,13 @@ Future<KernelCompilationResults> compileToKernel(
   options.environmentDefines =
       options.target.updateEnvironmentDefines(environmentDefines);
 
-  CompilerResult compilerResult = await kernelForProgram(source, options);
+  CompilerResult compilerResult;
+  if (fromDillFile != null) {
+    compilerResult =
+        await loadKernel(options.fileSystem, resolveInputUri(fromDillFile));
+  } else {
+    compilerResult = await kernelForProgram(source, options);
+  }
   Component component = compilerResult?.component;
   Iterable<Uri> compiledSources = component?.uriToSource?.keys;
 
@@ -857,6 +870,26 @@ Future<void> createFarManifest(
   packageManifest
       .write('data/$dataDir/app.frameworkversion=$frameworkVersionFilename\n');
   await packageManifest.close();
+}
+
+class CompilerResultLoadedFromKernel implements CompilerResult {
+  final Component component;
+  final Component sdkComponent = Component();
+
+  CompilerResultLoadedFromKernel(this.component);
+
+  List<int> get summary => null;
+  List<Component> get loadedComponents => const <Component>[];
+  List<Uri> get deps => const <Uri>[];
+  CoreTypes get coreTypes => null;
+  ClassHierarchy get classHierarchy => null;
+}
+
+Future<CompilerResult> loadKernel(
+    FileSystem fileSystem, Uri dillFileUri) async {
+  final component = loadComponentFromBinary(
+      (await asFileUri(fileSystem, dillFileUri)).toFilePath());
+  return CompilerResultLoadedFromKernel(component);
 }
 
 // Used by kernel_front_end_test.dart

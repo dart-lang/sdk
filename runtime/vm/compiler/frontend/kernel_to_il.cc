@@ -843,6 +843,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kLinkedHashMap_setDeletedKeys:
     case MethodRecognizer::kFfiAbi:
     case MethodRecognizer::kReachabilityFence:
+    case MethodRecognizer::kUtf8DecoderScan:
       return true;
     case MethodRecognizer::kAsyncStackTraceHelper:
       return !FLAG_causal_async_stacks;
@@ -1125,6 +1126,22 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
     case MethodRecognizer::kAsyncStackTraceHelper:
       ASSERT(!FLAG_causal_async_stacks);
       body += NullConstant();
+      break;
+    case MethodRecognizer::kUtf8DecoderScan:
+      ASSERT(function.NumParameters() == 5);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));  // decoder
+      body += LoadLocal(parsed_function_->RawParameterVariable(1));  // bytes
+      body += LoadLocal(parsed_function_->RawParameterVariable(2));  // start
+      body += CheckNullOptimized(TokenPosition::kNoSource,
+                                 String::ZoneHandle(Z, function.name()));
+      body += UnboxTruncate(kUnboxedIntPtr);
+      body += LoadLocal(parsed_function_->RawParameterVariable(3));  // end
+      body += CheckNullOptimized(TokenPosition::kNoSource,
+                                 String::ZoneHandle(Z, function.name()));
+      body += UnboxTruncate(kUnboxedIntPtr);
+      body += LoadLocal(parsed_function_->RawParameterVariable(4));  // table
+      body += Utf8Scan();
+      body += Box(kUnboxedIntPtr);
       break;
     case MethodRecognizer::kReachabilityFence:
       ASSERT(function.NumParameters() == 1);

@@ -713,7 +713,7 @@ static AbstractTypePtr InstantiateType(const AbstractType& type,
     instantiator_type_args = instantiator.arguments();
   }
   AbstractType& result = AbstractType::Handle(type.InstantiateFrom(
-      instantiator_type_args, Object::null_type_arguments(), kAllFree, NULL,
+      instantiator_type_args, Object::null_type_arguments(), kAllFree,
       Heap::kOld));
   ASSERT(result.IsFinalized());
   return result.Canonicalize();
@@ -1483,8 +1483,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 0, 5) {
       // type arguments of the type reflected by the class mirror.
       ASSERT(redirect_type.IsInstantiated(kFunctions));
       redirect_type ^= redirect_type.InstantiateFrom(
-          type_arguments, Object::null_type_arguments(), kNoneFree, NULL,
-          Heap::kOld);
+          type_arguments, Object::null_type_arguments(), kNoneFree, Heap::kOld);
       redirect_type ^= redirect_type.Canonicalize();
     }
 

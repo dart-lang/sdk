@@ -140,10 +140,6 @@ class Heap {
   // those in inter-generational cycles or stored during incremental marking.
   void CollectAllGarbage(GCReason reason = kFull);
 
-  bool NeedsGarbageCollection() const {
-    return old_space_.NeedsGarbageCollection();
-  }
-
   void CheckStartConcurrentMarking(Thread* thread, GCReason reason);
   void StartConcurrentMarking(Thread* thread);
   void CheckFinishConcurrentMarking(Thread* thread);

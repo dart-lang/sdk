@@ -432,7 +432,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForBuiltInIdentifierAsName(
           node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
       _checkForNoDefaultSuperConstructorImplicit(node);
-      _checkForConflictingTypeVariableErrorCodes();
+      _checkForConflictingClassTypeVariableErrorCodes();
       TypeName superclass = node.extendsClause?.superclass;
       ImplementsClause implementsClause = node.implementsClause;
       WithClause withClause = node.withClause;
@@ -583,6 +583,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     _enclosingExtension = node.declaredElement;
     _duplicateDefinitionVerifier.checkExtension(node);
+    _checkForConflictingExtensionTypeVariableErrorCodes();
     _checkForFinalNotInitializedInClass(node.members);
 
     GetterSetterTypesVerifier(
@@ -786,6 +787,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
+    _checkForBuiltInIdentifierAsName(
+        node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     _checkForTypeAliasCannotReferenceItself(node, node.declaredElement);
     super.visitGenericTypeAlias(node);
   }
@@ -914,7 +917,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForStaticAccessToInstanceMember(typeReference, methodName);
       _checkForInstanceAccessToStaticMember(
           typeReference, node.target, methodName);
-      _checkForUnnecessaryNullAware(target, node.operator);
+
+      // For `C?.foo()` the type of `C` is not set, it is not an expression.
+      if (target.staticType != null) {
+        _checkForUnnecessaryNullAware(target, node.operator);
+      }
     } else {
       _checkForUnqualifiedReferenceToNonLocalStaticMember(methodName);
     }
@@ -934,7 +941,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _duplicateDefinitionVerifier.checkMixin(node);
       _checkForBuiltInIdentifierAsName(
           node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
-      _checkForConflictingTypeVariableErrorCodes();
+      _checkForConflictingClassTypeVariableErrorCodes();
 
       OnClause onClause = node.onClause;
       ImplementsClause implementsClause = node.implementsClause;
@@ -1846,7 +1853,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * See [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS], and
    * [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER].
    */
-  void _checkForConflictingTypeVariableErrorCodes() {
+  void _checkForConflictingClassTypeVariableErrorCodes() {
     for (TypeParameterElement typeParameter in _enclosingClass.typeParameters) {
       String name = typeParameter.name;
       // name is same as the name of the enclosing class
@@ -1861,7 +1868,34 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           _enclosingClass.getGetter(name) != null ||
           _enclosingClass.getSetter(name) != null) {
         _errorReporter.reportErrorForElement(
-            CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER,
+            CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS,
+            typeParameter,
+            [name]);
+      }
+    }
+  }
+
+  /// Verify all conflicts between type variable and enclosing extension.
+  ///
+  /// See [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION], and
+  /// [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_MEMBER].
+  void _checkForConflictingExtensionTypeVariableErrorCodes() {
+    for (TypeParameterElement typeParameter
+        in _enclosingExtension.typeParameters) {
+      String name = typeParameter.name;
+      // name is same as the name of the enclosing class
+      if (_enclosingExtension.name == name) {
+        _errorReporter.reportErrorForElement(
+            CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION,
+            typeParameter,
+            [name]);
+      }
+      // check members
+      if (_enclosingExtension.getMethod(name) != null ||
+          _enclosingExtension.getGetter(name) != null ||
+          _enclosingExtension.getSetter(name) != null) {
+        _errorReporter.reportErrorForElement(
+            CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION,
             typeParameter,
             [name]);
       }
