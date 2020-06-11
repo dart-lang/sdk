@@ -349,15 +349,18 @@ def dart_recipe(name):
     )
 
 
-def use_goma_rbe(name, goma_rbe, dimensions):
-    return "android" not in name and (dimensions["os"] == "Linux" or goma_rbe)
+def use_goma_rbe(goma_rbe, dimensions):
+    if goma_rbe == None:
+        return dimensions["os"] == "Linux"
+    return goma_rbe
+
 
 def dart_try_builder(name,
                      recipe="dart/neo",
                      dimensions=None,
                      execution_timeout=None,
                      experiment_percentage=None,
-                     goma_rbe=False,
+                     goma_rbe=None,
                      location_regexp=None,
                      properties=None,
                      on_cq=False):
@@ -366,7 +369,7 @@ def dart_try_builder(name,
     dimensions = defaults.dimensions(dimensions)
     dimensions["pool"] = "luci.dart.try"
     properties = defaults.properties(properties)
-    if use_goma_rbe(name, goma_rbe, dimensions):
+    if use_goma_rbe(goma_rbe, dimensions):
         properties.setdefault("$build/goma", GOMA_RBE)
     builder = name + "-try"
 
@@ -417,7 +420,7 @@ def dart_builder(name,
                  executable=None,
                  execution_timeout=None,
                  expiration_timeout=None,
-                 goma_rbe=False,
+                 goma_rbe=None,
                  fyi=False,
                  notifies="dart",
                  priority=NORMAL,
@@ -431,7 +434,7 @@ def dart_builder(name,
                  location_regexp=None):
     dimensions = defaults.dimensions(dimensions)
     properties = defaults.properties(properties)
-    if use_goma_rbe(name, goma_rbe, dimensions):
+    if use_goma_rbe(goma_rbe, dimensions):
         properties.setdefault("$build/goma", GOMA_RBE)
 
     def builder(channel, triggered_by):
@@ -444,6 +447,7 @@ def dart_builder(name,
                 on_cq=on_cq,
                 execution_timeout=execution_timeout,
                 experiment_percentage=experiment_percentage,
+                goma_rbe=goma_rbe,
                 location_regexp=location_regexp)
         else:
             builder = name + "-" + channel if channel else name
@@ -693,10 +697,12 @@ dart_vm_nightly_builder(
 dart_vm_extra_builder(
     "vm-kernel-precomp-android-release-arm_x64",
     category="vm|kernel-precomp|android|a32",
+    goma_rbe=False,
     properties={"shard_timeout": (90 * time.minute) / time.second})
 dart_vm_extra_builder(
     "vm-kernel-precomp-android-release-arm64",
     category="vm|kernel-precomp|android|a64",
+    goma_rbe=False,
     properties={"shard_timeout": (90 * time.minute) / time.second})
 
 # vm|product
@@ -719,7 +725,8 @@ dart_vm_low_priority_builder(
 dart_vm_low_priority_builder(
     "vm-kernel-tsan-linux-release-x64", category="vm|misc|t")
 dart_vm_low_priority_builder(
-    "vm-kernel-ubsan-linux-release-x64", category="vm|misc|u")
+    "vm-kernel-ubsan-linux-release-x64", category="vm|misc|u",
+    goma_rbe=False) # ubsan is not compatible with our sysroot.
 dart_vm_low_priority_builder(
     "vm-kernel-precomp-asan-linux-release-x64", category="vm|misc|aot|a")
 dart_vm_low_priority_builder(
@@ -727,7 +734,8 @@ dart_vm_low_priority_builder(
 dart_vm_low_priority_builder(
     "vm-kernel-precomp-tsan-linux-release-x64", category="vm|misc|aot|t")
 dart_vm_low_priority_builder(
-    "vm-kernel-precomp-ubsan-linux-release-x64", category="vm|misc|aot|u")
+    "vm-kernel-precomp-ubsan-linux-release-x64", category="vm|misc|aot|u",
+    goma_rbe=False) # ubsan is not compatible with our sysroot.
 dart_vm_low_priority_builder(
     "vm-kernel-reload-linux-debug-x64", category="vm|misc|reload|d")
 dart_vm_low_priority_builder(
@@ -735,15 +743,22 @@ dart_vm_low_priority_builder(
 dart_vm_low_priority_builder(
     "vm-kernel-reload-rollback-linux-debug-x64", category="vm|misc|reload|drb")
 dart_vm_low_priority_builder(
-    "vm-kernel-reload-rollback-linux-release-x64", category="vm|misc|reload|rrb")
+    "vm-kernel-reload-rollback-linux-release-x64",
+    category="vm|misc|reload|rrb")
 
 # vm|ffi
-dart_vm_extra_builder("vm-ffi-android-debug-arm", category="vm|ffi|d32")
-dart_vm_extra_builder("vm-ffi-android-release-arm", category="vm|ffi|r32")
-dart_vm_extra_builder("vm-ffi-android-product-arm", category="vm|ffi|p32")
-dart_vm_extra_builder("vm-ffi-android-debug-arm64", category="vm|ffi|d64")
-dart_vm_extra_builder("vm-ffi-android-release-arm64", category="vm|ffi|r64")
-dart_vm_extra_builder("vm-ffi-android-product-arm64", category="vm|ffi|p64")
+dart_vm_extra_builder(
+    "vm-ffi-android-debug-arm", category="vm|ffi|d32", goma_rbe=False)
+dart_vm_extra_builder(
+    "vm-ffi-android-release-arm", category="vm|ffi|r32", goma_rbe=False)
+dart_vm_extra_builder(
+    "vm-ffi-android-product-arm", category="vm|ffi|p32", goma_rbe=False)
+dart_vm_extra_builder(
+    "vm-ffi-android-debug-arm64", category="vm|ffi|d64", goma_rbe=False)
+dart_vm_extra_builder(
+    "vm-ffi-android-release-arm64", category="vm|ffi|r64", goma_rbe=False)
+dart_vm_extra_builder(
+    "vm-ffi-android-product-arm64", category="vm|ffi|p64", goma_rbe=False)
 dart_vm_extra_builder(
     "vm-precomp-ffi-qemu-linux-release-arm", category="vm|ffi|qe")
 
