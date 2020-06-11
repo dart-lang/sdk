@@ -993,7 +993,7 @@ class ClassElementImpl extends AbstractClassElementImpl
   /// Compute a list of constructors for this class, which is a mixin
   /// application.  If specified, [visitedClasses] is a list of the other mixin
   /// application classes which have been visited on the way to reaching this
-  /// one (this is used to detect circularities).
+  /// one (this is used to detect cycles).
   List<ConstructorElement> _computeMixinAppConstructors(
       [List<ClassElementImpl> visitedClasses]) {
     if (supertype == null) {
@@ -1012,7 +1012,8 @@ class ClassElementImpl extends AbstractClassElementImpl
     if (!superElement.isMixinApplication) {
       var library = this.library;
       constructorsToForward = superElement.constructors
-          .where((constructor) => constructor.isAccessibleIn(library));
+          .where((constructor) => constructor.isAccessibleIn(library))
+          .where((constructor) => !constructor.isFactory);
     } else {
       if (visitedClasses == null) {
         visitedClasses = <ClassElementImpl>[this];

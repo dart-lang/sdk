@@ -308,8 +308,6 @@ class alias MixinApp extends Base with M {
   synthetic MixinApp.requiredArg(dynamic x) = Base.requiredArg;
   synthetic MixinApp.positionalArg([bool x = true]) = Base.positionalArg;
   synthetic MixinApp.namedArg({int x: 42}) = Base.namedArg;
-  synthetic MixinApp.fact() = Base.fact;
-  synthetic MixinApp.fact2() = Base.fact2;
 }
 ''');
   }
