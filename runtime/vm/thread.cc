@@ -631,13 +631,6 @@ void Thread::DeferredMarkingStackAcquire() {
       isolate_group()->deferred_marking_stack()->PopEmptyBlock();
 }
 
-bool Thread::IsMutatorThread() const {
-  if (isolate_ != nullptr) {
-    ASSERT(is_mutator_thread_ == (isolate_->mutator_thread() == this));
-  }
-  return is_mutator_thread_;
-}
-
 bool Thread::CanCollectGarbage() const {
   // We grow the heap instead of triggering a garbage collection when a
   // thread is at a safepoint in the following situations :

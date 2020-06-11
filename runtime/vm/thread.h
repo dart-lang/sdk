@@ -401,7 +401,8 @@ class Thread : public ThreadState {
     return OFFSET_OF(Thread, field_table_values_);
   }
 
-  bool IsMutatorThread() const;
+  bool IsMutatorThread() const { return is_mutator_thread_; }
+
   bool CanCollectGarbage() const;
 
   // Offset of Dart TimelineStream object.
