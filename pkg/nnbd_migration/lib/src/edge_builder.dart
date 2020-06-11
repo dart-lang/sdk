@@ -2925,16 +2925,18 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @alwaysThrows
   void _unimplemented(AstNode node, String message) {
-    CompilationUnit unit = node.root as CompilationUnit;
     StringBuffer buffer = StringBuffer();
     buffer.write(message);
-    buffer.write(' in "');
-    buffer.write(node.toSource());
-    buffer.write('" on line ');
-    buffer.write(unit.lineInfo.getLocation(node.offset).lineNumber);
-    buffer.write(' of "');
-    buffer.write(unit.declaredElement.source.fullName);
-    buffer.write('"');
+    if (node != null) {
+      CompilationUnit unit = node.root as CompilationUnit;
+      buffer.write(' in "');
+      buffer.write(node.toSource());
+      buffer.write('" on line ');
+      buffer.write(unit.lineInfo.getLocation(node.offset).lineNumber);
+      buffer.write(' of "');
+      buffer.write(unit.declaredElement.source.fullName);
+      buffer.write('"');
+    }
     throw UnimplementedError(buffer.toString());
   }
 
