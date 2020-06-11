@@ -16,7 +16,10 @@ import 'package:analysis_server/src/provisional/completion/completion_core.dart'
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/filtering/fuzzy_matcher.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/ast.dart' show SimpleIdentifier;
+import 'package:analyzer/dart/ast/visitor.dart' show RecursiveAstVisitor;
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -189,6 +192,10 @@ class CompletionHandler
 
     final completionRequest = CompletionRequestImpl(
         unit, offset, server.options.useNewRelevance, performance);
+    final directiveInfo =
+        server.getDartdocDirectiveInfoFor(completionRequest.result);
+    final dartCompletionRequest =
+        await DartCompletionRequestImpl.from(completionRequest, directiveInfo);
 
     Set<ElementKind> includedElementKinds;
     Set<String> includedElementNames;
@@ -201,8 +208,7 @@ class CompletionHandler
 
     try {
       CompletionContributor contributor = DartCompletionManager(
-        dartdocDirectiveInfo:
-            server.getDartdocDirectiveInfoFor(completionRequest.result),
+        dartdocDirectiveInfo: directiveInfo,
         includedElementKinds: includedElementKinds,
         includedElementNames: includedElementNames,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
@@ -312,12 +318,21 @@ class CompletionHandler
         results.addAll(setResults);
       });
 
+      // Perform fuzzy matching based on the identifier in front of the caret to
+      // reduce the size of the payload.
+      final fuzzyPattern = _prefixMatchingPattern(dartCompletionRequest);
+      final fuzzyMatcher =
+          FuzzyMatcher(fuzzyPattern, matchStyle: MatchStyle.TEXT);
+
+      final matchingResults =
+          results.where((e) => fuzzyMatcher.score(e.label) > 0).toList();
+
       performance.notificationCount = 1;
       performance.suggestionCountFirst = results.length;
       performance.suggestionCountLast = results.length;
       performance.complete();
 
-      return success(results);
+      return success(matchingResults);
     } on AbortCompletion {
       return success([]);
     }
@@ -341,5 +356,30 @@ class CompletionHandler
         ),
       );
     });
+  }
+
+  /// Return the pattern to match suggestions against, from the identifier
+  /// to the left of the caret. Return the empty string if cannot find the
+  /// identifier.
+  String _prefixMatchingPattern(DartCompletionRequestImpl request) {
+    final nodeAtOffsetVisitor =
+        _IdentifierEndingAtOffsetVisitor(request.offset);
+    request.target.containingNode.accept(nodeAtOffsetVisitor);
+
+    return nodeAtOffsetVisitor.matchingNode?.name ?? '';
+  }
+}
+
+/// An AST visitor to locate a [SimpleIdentifier] that ends at the provided offset.
+class _IdentifierEndingAtOffsetVisitor extends RecursiveAstVisitor<void> {
+  final int offset;
+  SimpleIdentifier _matchingNode;
+  _IdentifierEndingAtOffsetVisitor(this.offset);
+  SimpleIdentifier get matchingNode => _matchingNode;
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.end == offset) {
+      _matchingNode = node;
+    }
   }
 }

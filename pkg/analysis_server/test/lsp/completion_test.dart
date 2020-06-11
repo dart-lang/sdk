@@ -374,6 +374,26 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     expect(updated, contains('a.abcdefghij'));
   }
 
+  Future<void> test_prefixFilter() async {
+    final content = '''
+    class UniqueNamedClassForLspOne {}
+    class UniqueNamedClassForLspTwo {}
+    class UniqueNamedClassForLspThree {}
+
+    main() {
+      // Should match only Two and Three
+      class UniqueNamedClassForLspT^
+    }
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    expect(res.any((c) => c.label == 'UniqueNamedClassForLspOne'), isFalse);
+    expect(res.any((c) => c.label == 'UniqueNamedClassForLspTwo'), isTrue);
+    expect(res.any((c) => c.label == 'UniqueNamedClassForLspThree'), isTrue);
+  }
+
   Future<void> test_suggestionSets() async {
     newFile(
       join(projectFolderPath, 'other_file.dart'),
