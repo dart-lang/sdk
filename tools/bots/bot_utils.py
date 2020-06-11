@@ -220,10 +220,7 @@ class GSUtil(object):
     def execute(self, gsutil_args):
         self._layzCalculateGSUtilPath()
 
-        if GSUtil.GSUTIL_IS_SHELL_SCRIPT:
-            gsutil_command = [GSUtil.GSUTIL_PATH]
-        else:
-            gsutil_command = [sys.executable, GSUtil.GSUTIL_PATH]
+        gsutil_command = [sys.executable, GSUtil.GSUTIL_PATH]
 
         return run(gsutil_command + gsutil_args)
 
