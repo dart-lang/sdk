@@ -1049,6 +1049,9 @@ class ClassElementImpl extends AbstractClassElementImpl
     var substitution =
         Substitution.fromPairs(superClassParameters, argumentTypes);
 
+    bool typeHasInstanceVariables(InterfaceType type) =>
+        type.element.fields.any((e) => !e.isSynthetic);
+
     // Now create an implicit constructor for every constructor found above,
     // substituting type parameters as appropriate.
     return constructorsToForward
@@ -1057,6 +1060,9 @@ class ClassElementImpl extends AbstractClassElementImpl
           ConstructorElementImpl(superclassConstructor.name, -1);
       implicitConstructor.isSynthetic = true;
       implicitConstructor.redirectedConstructor = superclassConstructor;
+      var hasMixinWithInstanceVariables = mixins.any(typeHasInstanceVariables);
+      implicitConstructor.isConst =
+          superclassConstructor.isConst && !hasMixinWithInstanceVariables;
       List<ParameterElement> superParameters = superclassConstructor.parameters;
       int count = superParameters.length;
       if (count > 0) {

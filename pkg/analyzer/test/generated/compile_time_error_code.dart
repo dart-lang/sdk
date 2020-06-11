@@ -618,6 +618,58 @@ main() {
     ]);
   }
 
+  test_constWithNonConst_mixinApplication_constSuperConstructor() async {
+    await assertNoErrorsInCode(r'''
+mixin M {}
+class A {
+  const A();
+}
+class B = A with M;
+const b = const B();
+''');
+  }
+
+  test_constWithNonConst_mixinApplication_constSuperConstructor_field() async {
+    await assertErrorsInCode(r'''
+mixin M {
+  int i = 0;
+}
+class A {
+  const A();
+}
+class B = A with M;
+var b = const B();
+''', [
+      error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 78, 5),
+    ]);
+  }
+
+  test_constWithNonConst_mixinApplication_constSuperConstructor_getter() async {
+    await assertNoErrorsInCode(r'''
+mixin M {
+  int get i => 0;
+}
+class A {
+  const A();
+}
+class B = A with M;
+var b = const B();
+''');
+  }
+
+  test_constWithNonConst_mixinApplication_constSuperConstructor_setter() async {
+    await assertNoErrorsInCode(r'''
+mixin M {
+  set(int i) {}
+}
+class A {
+  const A();
+}
+class B = A with M;
+var b = const B();
+''');
+  }
+
   test_constWithNonConstantArgument_annotation() async {
     await assertErrorsInCode(r'''
 class A {
