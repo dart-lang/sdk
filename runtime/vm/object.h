@@ -6515,7 +6515,7 @@ class Code : public Object {
   friend class MegamorphicCacheTable;  // for set_object_pool
   friend class CodePatcher;            // for set_instructions
   friend class ProgramVisitor;         // for set_instructions
-  // So that the RawFunction pointer visitor can determine whether code the
+  // So that the FunctionLayout pointer visitor can determine whether code the
   // function points to is optimized.
   friend class FunctionLayout;
   friend class CallSiteResetter;
