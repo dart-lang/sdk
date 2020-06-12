@@ -26792,6 +26792,15 @@ class RtcPeerConnection extends EventTarget {
   static const EventStreamProvider<Event> signalingStateChangeEvent =
       const EventStreamProvider<Event>('signalingstatechange');
 
+  /**
+   * Static factory designed to expose `track` events to event
+   * handlers that are not necessarily instances of [RtcPeerConnection].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
+  static const EventStreamProvider<RtcTrackEvent> trackEvent =
+      const EventStreamProvider<RtcTrackEvent>('track');
+
   String get iceConnectionState native;
 
   String get iceGatheringState native;
@@ -26923,6 +26932,9 @@ class RtcPeerConnection extends EventTarget {
   /// Stream of `signalingstatechange` events handled by this [RtcPeerConnection].
   Stream<Event> get onSignalingStateChange =>
       signalingStateChangeEvent.forTarget(this);
+
+  /// Stream of `track` events handled by this [RtcPeerConnection].
+  Stream<RtcTrackEvent> get onTrack => trackEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
