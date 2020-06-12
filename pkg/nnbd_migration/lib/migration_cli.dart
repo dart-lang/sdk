@@ -425,37 +425,36 @@ class MigrationCli {
     List<String> previewUrls;
     NonNullableFix nonNullableFix;
 
-    await _withProgress(
-        '${ansi.emphasized('Generating migration suggestions')}', () async {
-      _fixCodeProcessor = _FixCodeProcessor(context, this);
-      _dartFixListener = DartFixListener(
-          DriverProviderImpl(resourceProvider, context), _exceptionReported);
-      nonNullableFix = createNonNullableFix(
-          _dartFixListener, resourceProvider, _fixCodeProcessor.getLineInfo,
-          included: [options.directory],
-          preferredPort: options.previewPort,
-          summaryPath: options.summary);
-      nonNullableFix.rerunFunction = _rerunFunction;
-      _fixCodeProcessor.registerCodeTask(nonNullableFix);
-      _fixCodeProcessor.nonNullableFixTask = nonNullableFix;
+    logger.stdout(ansi.emphasized('Analyzing project...'));
+    _fixCodeProcessor = _FixCodeProcessor(context, this);
+    _dartFixListener = DartFixListener(
+        DriverProviderImpl(resourceProvider, context), _exceptionReported);
+    nonNullableFix = createNonNullableFix(
+        _dartFixListener, resourceProvider, _fixCodeProcessor.getLineInfo,
+        included: [options.directory],
+        preferredPort: options.previewPort,
+        summaryPath: options.summary);
+    nonNullableFix.rerunFunction = _rerunFunction;
+    _fixCodeProcessor.registerCodeTask(nonNullableFix);
+    _fixCodeProcessor.nonNullableFixTask = nonNullableFix;
 
-      try {
-        // TODO(devoncarew): The progress written by the fix processor conflicts
-        // with the progress written by the ansi logger above.
-        await _fixCodeProcessor.runFirstPhase();
-        _fixCodeProcessor._progressBar.clear();
-        _checkForErrors();
-      } on ExperimentStatusException catch (e) {
-        logger.stdout(e.toString());
-        final sdkPathVar = _environmentVariables['SDK_PATH'];
-        if (sdkPathVar != null) {
-          logger.stdout('$sdkPathEnvironmentVariableSet: $sdkPathVar');
-        }
-        exitCode = 1;
+    try {
+      await _fixCodeProcessor.runFirstPhase(singlePhaseProgress: true);
+      _checkForErrors();
+    } on ExperimentStatusException catch (e) {
+      logger.stdout(e.toString());
+      final sdkPathVar = _environmentVariables['SDK_PATH'];
+      if (sdkPathVar != null) {
+        logger.stdout('$sdkPathEnvironmentVariableSet: $sdkPathVar');
       }
-      if (exitCode != null) return;
-      previewUrls = await _fixCodeProcessor.runLaterPhases();
-    });
+      exitCode = 1;
+    }
+    if (exitCode != null) return;
+
+    logger.stdout('');
+    logger.stdout(ansi.emphasized('Generating migration suggestions...'));
+    previewUrls = await _fixCodeProcessor.runLaterPhases(resetProgress: true);
+
     if (exitCode != null) return;
 
     if (options.applyChanges) {
@@ -491,6 +490,7 @@ Use this interactive web view to review, improve, or apply the results.
 
       logger.stdout('When finished with the preview, hit ctrl-c '
           'to terminate this process.');
+      logger.stdout('');
 
       // Block until sigint (ctrl-c).
       await blockUntilSignalInterrupt();
@@ -685,6 +685,8 @@ Exception details:
       error.errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST;
 
   Future<void> _rerunFunction() async {
+    logger.stdout(ansi.emphasized('Recalculating migration suggestions...'));
+
     _dartFixListener.reset();
     _fixCodeProcessor.prepareToRerun();
     await _fixCodeProcessor.runFirstPhase();
@@ -713,16 +715,6 @@ Exception details:
       return b.offset - a.offset;
     });
     return edits;
-  }
-
-  Future<void> _withProgress(String message, FutureOr<void> callback()) async {
-    var progress = logger.progress(message);
-    try {
-      await callback();
-      progress.finish(showTiming: true);
-    } finally {
-      progress.cancel();
-    }
   }
 
   static ArgParser createParser({bool hide = true}) {
@@ -904,9 +896,10 @@ class _FixCodeProcessor extends Object {
     _task = task;
   }
 
-  Future<void> runFirstPhase() async {
+  Future<void> runFirstPhase({bool singlePhaseProgress = false}) async {
     // All tasks should be registered; [numPhases] should be finalized.
-    _progressBar = _ProgressBar(pathsToProcess.length * _task.numPhases);
+    _progressBar = _ProgressBar(
+        pathsToProcess.length * (singlePhaseProgress ? 1 : _task.numPhases));
 
     // Process package
     _task.processPackage(context.contextRoot.root);
@@ -928,7 +921,12 @@ class _FixCodeProcessor extends Object {
     });
   }
 
-  Future<List<String>> runLaterPhases() async {
+  Future<List<String>> runLaterPhases({bool resetProgress = false}) async {
+    if (resetProgress) {
+      _progressBar =
+          _ProgressBar(pathsToProcess.length * (_task.numPhases - 1));
+    }
+
     for (var phase = 1; phase < _task.numPhases; phase++) {
       await processResources((ResolvedUnitResult result) async {
         _progressBar.tick();
