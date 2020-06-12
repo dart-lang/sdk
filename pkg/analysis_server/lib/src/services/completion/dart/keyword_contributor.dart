@@ -758,11 +758,13 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   void _addExpressionKeywords(AstNode node) {
     _addSuggestions([
-      Keyword.CONST,
       Keyword.FALSE,
       Keyword.NULL,
       Keyword.TRUE,
     ]);
+    if (!request.inConstantContext) {
+      _addSuggestions([Keyword.CONST]);
+    }
     if (node.inClassMemberBody) {
       _addSuggestions([Keyword.SUPER, Keyword.THIS]);
     }
