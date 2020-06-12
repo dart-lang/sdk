@@ -560,8 +560,11 @@ class DwarfAssemblyStream : public DwarfWriteStream {
     Print(".L%s_end:\n", prefix);
   }
   void OffsetFromSymbol(const char* symbol, intptr_t offset) {
-    if (offset == 0) PrintNamedAddress(symbol);
-    PrintNamedAddressWithOffset(symbol, offset);
+    if (offset == 0) {
+      PrintNamedAddress(symbol);
+    } else {
+      PrintNamedAddressWithOffset(symbol, offset);
+    }
   }
   void DistanceBetweenSymbolOffsets(const char* symbol1,
                                     intptr_t offset1,
