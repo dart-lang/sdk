@@ -7501,6 +7501,12 @@ bool Function::CanBeInlined() const {
   // functions cannot deoptimize to unoptimized frames we prevent them from
   // being inlined (for now).
   if (ForceOptimize()) {
+    if (IsFfiTrampoline()) {
+      // The CallSiteInliner::InlineCall asserts in PrepareGraphs that
+      // GraphEntryInstr::SuccessorCount() == 1, but FFI trampoline has two
+      // entries (a normal and a catch entry).
+      return false;
+    }
     return CompilerState::Current().is_aot();
   }
 

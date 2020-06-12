@@ -288,9 +288,12 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Anything besides the return register(s!). Callee-saved registers will be
   // restored later.
-  const Register vm_tag_reg = EBX, old_exit_frame_reg = ECX;
+  const Register vm_tag_reg = EBX;
+  const Register old_exit_frame_reg = ECX;
+  const Register old_exit_through_ffi_reg = tmp;
 
   __ popl(old_exit_frame_reg);
+  __ popl(vm_tag_reg); /* old_exit_through_ffi, we still need to use tmp. */
 
   // Restore top_resource.
   __ popl(tmp);
@@ -298,6 +301,7 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       compiler::Address(THR, compiler::target::Thread::top_resource_offset()),
       tmp);
 
+  __ movl(old_exit_through_ffi_reg, vm_tag_reg);
   __ popl(vm_tag_reg);
 
   // This will reset the exit frame info to old_exit_frame_reg *before* entering
@@ -306,7 +310,7 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // If we were called by a trampoline, it will enter the safepoint on our
   // behalf.
   __ TransitionGeneratedToNative(
-      vm_tag_reg, old_exit_frame_reg, tmp,
+      vm_tag_reg, old_exit_frame_reg, old_exit_through_ffi_reg,
       /*enter_safepoint=*/!NativeCallbackTrampolines::Enabled());
 
   // Move XMM0 into ST0 if needed.
@@ -998,13 +1002,15 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // PC-relative 'leaq' available, so we have do a trick with 'call'.
   compiler::Label get_pc;
   __ call(&get_pc);
-  compiler->EmitCallsiteMetadata(TokenPosition::kNoSource, DeoptId::kNone,
+  compiler->EmitCallsiteMetadata(TokenPosition::kNoSource, deopt_id(),
                                  PcDescriptorsLayout::Kind::kOther, locs());
   __ Bind(&get_pc);
   __ popl(temp);
   __ movl(compiler::Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize), temp);
 
   if (CanExecuteGeneratedCodeInSafepoint()) {
+    __ movl(temp,
+            compiler::Immediate(compiler::target::Thread::exit_through_ffi()));
     __ TransitionGeneratedToNative(branch, FPREG, temp,
                                    /*enter_safepoint=*/true);
     __ call(branch);
@@ -1101,6 +1107,9 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ movl(
       compiler::Address(THR, compiler::target::Thread::top_resource_offset()),
       compiler::Immediate(0));
+
+  __ pushl(compiler::Address(
+      THR, compiler::target::Thread::exit_through_ffi_offset()));
 
   // Save top exit frame info. Stack walker expects it to be here.
   __ pushl(compiler::Address(

@@ -140,6 +140,7 @@ class ObjectPointerVisitor;
   V(FfiUint64, "Uint64")                                                       \
   V(FfiUint8, "Uint8")                                                         \
   V(FfiVoid, "Void")                                                           \
+  V(FfiHandle, "Handle")                                                       \
   V(Field, "Field")                                                            \
   V(FinallyRetVal, ":finally_ret_val")                                         \
   V(FirstArg, "x")                                                             \

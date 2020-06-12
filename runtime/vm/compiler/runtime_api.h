@@ -603,6 +603,11 @@ class ArgumentsDescriptor : public AllStatic {
   static word positional_count_offset();
 };
 
+class LocalHandle : public AllStatic {
+ public:
+  static word raw_offset();
+};
+
 class Pointer : public PointerBase {
  public:
   static word type_arguments_offset();
@@ -836,6 +841,8 @@ class LanguageError : public AllStatic {
 
 class UnhandledException : public AllStatic {
  public:
+  static word exception_offset();
+  static word stacktrace_offset();
   static word InstanceSize();
   static word NextFieldOffset();
 };
@@ -945,6 +952,10 @@ class MonomorphicSmiableCall : public AllStatic {
 
 class Thread : public AllStatic {
  public:
+  static word api_top_scope_offset();
+  static word exit_through_ffi_offset();
+  static uword exit_through_runtime_call();
+  static uword exit_through_ffi();
   static word dart_stream_offset();
   static word async_stack_trace_offset();
   static word predefined_symbols_address_offset();

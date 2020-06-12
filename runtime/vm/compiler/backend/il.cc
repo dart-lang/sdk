@@ -28,6 +28,7 @@
 #include "vm/os.h"
 #include "vm/regexp_assembler_ir.h"
 #include "vm/resolver.h"
+#include "vm/runtime_entry.h"
 #include "vm/scopes.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
@@ -2601,6 +2602,8 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kPointerBase_data_field:
     case Slot::Kind::kType_arguments:
     case Slot::Kind::kTypeArgumentsIndex:
+    case Slot::Kind::kUnhandledException_exception:
+    case Slot::Kind::kUnhandledException_stacktrace:
       return false;
   }
   UNREACHABLE();
@@ -4265,7 +4268,7 @@ void ParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 void NativeParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The native entry frame has size -kExitLinkSlotFromFp. In order to access
   // the top of stack from above the entry frame, we add a constant to account
-  // for the the two frame pointers and two return addresses of the entry frame.
+  // for the two frame pointers and two return addresses of the entry frame.
   constexpr intptr_t kEntryFramePadding = 4;
   compiler::ffi::FrameRebase rebase(
       /*old_base=*/SPREG, /*new_base=*/FPREG,
@@ -5961,6 +5964,133 @@ void FfiCallInstr::EmitReturnMoves(FlowGraphCompiler* compiler) {
   const Representation dst_type = representation();
   NoTemporaryAllocator no_temp;
   compiler->EmitMoveFromNative(dst_loc, dst_type, src, &no_temp);
+}
+
+static Location FirstArgumentLocation() {
+#ifdef TARGET_ARCH_IA32
+  return Location::StackSlot(0, SPREG);
+#else
+  return Location::RegisterLocation(CallingConventions::ArgumentRegisters[0]);
+#endif
+}
+
+LocationSummary* EnterHandleScopeInstr::MakeLocationSummary(
+    Zone* zone,
+    bool is_optimizing) const {
+  LocationSummary* summary =
+      new (zone) LocationSummary(zone, /*num_inputs=*/0,
+                                 /*num_temps=*/0, LocationSummary::kCall);
+  summary->set_out(0,
+                   Location::RegisterLocation(CallingConventions::kReturnReg));
+  return summary;
+}
+
+void EnterHandleScopeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (kind_ == Kind::kGetTopHandleScope) {
+    __ LoadMemoryValue(CallingConventions::kReturnReg, THR,
+                       compiler::target::Thread::api_top_scope_offset());
+    return;
+  }
+
+  Location arg_loc = FirstArgumentLocation();
+  __ EnterCFrame(arg_loc.IsRegister() ? 0 : compiler::target::kWordSize);
+  NoTemporaryAllocator no_temp;
+  compiler->EmitMove(arg_loc, Location::RegisterLocation(THR), &no_temp);
+  __ CallCFunction(
+      compiler::Address(THR, compiler::target::Thread::OffsetFromThread(
+                                 &kEnterHandleScopeRuntimeEntry)));
+  __ LeaveCFrame();
+}
+
+LocationSummary* ExitHandleScopeInstr::MakeLocationSummary(
+    Zone* zone,
+    bool is_optimizing) const {
+  LocationSummary* summary =
+      new (zone) LocationSummary(zone, /*num_inputs=*/0,
+                                 /*num_temps=*/0, LocationSummary::kCall);
+  return summary;
+}
+
+void ExitHandleScopeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Location arg_loc = FirstArgumentLocation();
+  __ EnterCFrame(arg_loc.IsRegister() ? 0 : compiler::target::kWordSize);
+  NoTemporaryAllocator no_temp;
+  compiler->EmitMove(arg_loc, Location::RegisterLocation(THR), &no_temp);
+  __ CallCFunction(
+      compiler::Address(THR, compiler::target::Thread::OffsetFromThread(
+                                 &kExitHandleScopeRuntimeEntry)));
+  __ LeaveCFrame();
+}
+
+LocationSummary* AllocateHandleInstr::MakeLocationSummary(
+    Zone* zone,
+    bool is_optimizing) const {
+  LocationSummary* summary =
+      new (zone) LocationSummary(zone, /*num_inputs=*/1,
+                                 /*num_temps=*/0, LocationSummary::kCall);
+
+  Location arg_loc = FirstArgumentLocation();
+  // Assign input to a register that does not conflict with anything if
+  // argument is passed on the stack.
+  const Register scope_reg =
+      arg_loc.IsStackSlot() ? CallingConventions::kSecondNonArgumentRegister
+                            : arg_loc.reg();
+
+  summary->set_in(kScope, Location::RegisterLocation(scope_reg));
+  summary->set_out(0,
+                   Location::RegisterLocation(CallingConventions::kReturnReg));
+  return summary;
+}
+
+Representation AllocateHandleInstr::RequiredInputRepresentation(
+    intptr_t idx) const {
+  ASSERT(idx == kScope);
+  return kUnboxedIntPtr;
+}
+
+void AllocateHandleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Location arg_loc = FirstArgumentLocation();
+  __ EnterCFrame(arg_loc.IsRegister() ? 0 : compiler::target::kWordSize);
+  if (arg_loc.IsStackSlot()) {
+    NoTemporaryAllocator no_temp;
+    compiler->EmitMove(arg_loc, locs()->in(kScope), &no_temp);
+  }
+  __ CallCFunction(
+      compiler::Address(THR, compiler::target::Thread::OffsetFromThread(
+                                 &kAllocateHandleRuntimeEntry)));
+  __ LeaveCFrame();
+}
+
+LocationSummary* RawStoreFieldInstr::MakeLocationSummary(
+    Zone* zone,
+    bool is_optimizing) const {
+  LocationSummary* summary =
+      new (zone) LocationSummary(zone, /*num_inputs=*/2,
+                                 /*num_temps=*/0, LocationSummary::kNoCall);
+
+  summary->set_in(kBase, Location::RequiresRegister());
+  summary->set_in(kValue, Location::RequiresRegister());
+
+  return summary;
+}
+
+Representation RawStoreFieldInstr::RequiredInputRepresentation(
+    intptr_t idx) const {
+  switch (idx) {
+    case kBase:
+      return kUntagged;
+    case kValue:
+      return kTagged;
+    default:
+      break;
+  }
+  UNREACHABLE();
+}
+
+void RawStoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register base_reg = locs()->in(kBase).reg();
+  const Register value_reg = locs()->in(kValue).reg();
+  compiler->assembler()->StoreMemoryValue(value_reg, base_reg, offset_);
 }
 
 void NativeReturnInstr::EmitReturnMoves(FlowGraphCompiler* compiler) {

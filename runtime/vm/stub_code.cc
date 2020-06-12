@@ -166,6 +166,8 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
     return object_store->allocate_array_stub();
   } else if (cls.id() == kContextCid) {
     return object_store->allocate_context_stub();
+  } else if (cls.id() == kUnhandledExceptionCid) {
+    return object_store->allocate_unhandled_exception_stub();
   }
   Code& stub = Code::Handle(zone, cls.allocation_stub());
 #if !defined(DART_PRECOMPILED_RUNTIME)

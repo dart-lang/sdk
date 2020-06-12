@@ -195,7 +195,7 @@ class Address : public Operand {
   Address(Register base, Register r);
 
   Address(Register index, ScaleFactor scale, int32_t disp) {
-    ASSERT(index != RSP);  // Illegal addressing mode.
+    ASSERT(index != RSP);       // Illegal addressing mode.
     ASSERT(scale != TIMES_16);  // Unsupported scale factor.
     SetModRM(0, RSP);
     SetSIB(scale, index, RBP);
@@ -206,7 +206,7 @@ class Address : public Operand {
   Address(Register index, ScaleFactor scale, Register r);
 
   Address(Register base, Register index, ScaleFactor scale, int32_t disp) {
-    ASSERT(index != RSP);  // Illegal addressing mode.
+    ASSERT(index != RSP);       // Illegal addressing mode.
     ASSERT(scale != TIMES_16);  // Unsupported scale factor.
     if ((disp == 0) && ((base & 7) != RBP)) {
       SetModRM(0, RSP);
@@ -317,6 +317,7 @@ class Assembler : public AssemblerBase {
   void LeaveSafepoint();
   void TransitionGeneratedToNative(Register destination_address,
                                    Register new_exit_frame,
+                                   Register new_exit_through_ffi,
                                    bool enter_safepoint);
   void TransitionNativeToGenerated(bool leave_safepoint);
 
@@ -827,6 +828,7 @@ class Assembler : public AssemblerBase {
   // Call runtime function. Reserves shadow space on the stack before calling
   // if platform ABI requires that. Does not restore RSP after the call itself.
   void CallCFunction(Register reg);
+  void CallCFunction(Address address);
 
   void ExtractClassIdFromTags(Register result, Register tags);
   void ExtractInstanceSizeFromTags(Register result, Register tags);
@@ -868,6 +870,9 @@ class Assembler : public AssemblerBase {
   void LoadField(Register dst, FieldAddress address) { movq(dst, address); }
   void LoadMemoryValue(Register dst, Register base, int32_t offset) {
     movq(dst, Address(base, offset));
+  }
+  void StoreMemoryValue(Register src, Register base, int32_t offset) {
+    movq(Address(base, offset), src);
   }
   void LoadAcquire(Register dst, Register address, int32_t offset = 0) {
     // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
@@ -934,6 +939,13 @@ class Assembler : public AssemblerBase {
   //   .....
   void EnterStubFrame();
   void LeaveStubFrame();
+
+  // Set up a frame for calling a C function.
+  // Automatically save the pinned registers in Dart which are not callee-
+  // saved in the native calling convention.
+  // Use together with CallCFunction.
+  void EnterCFrame(intptr_t frame_space);
+  void LeaveCFrame();
 
   void MonomorphicCheckedEntryJIT();
   void MonomorphicCheckedEntryAOT();

@@ -1136,13 +1136,14 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // ADR loads relative to itself, so add kInstrSize to point to the next
   // instruction.
   __ adr(temp, compiler::Immediate(Instr::kInstrSize));
-  compiler->EmitCallsiteMetadata(token_pos(), DeoptId::kNone,
+  compiler->EmitCallsiteMetadata(token_pos(), deopt_id(),
                                  PcDescriptorsLayout::Kind::kOther, locs());
 
   __ StoreToOffset(temp, FPREG, kSavedCallerPcSlotFromFp * kWordSize);
 
   if (CanExecuteGeneratedCodeInSafepoint()) {
     // Update information in the thread object and enter a safepoint.
+    __ LoadImmediate(temp, compiler::target::Thread::exit_through_ffi());
     __ TransitionGeneratedToNative(branch, FPREG, temp,
                                    /*enter_safepoint=*/true);
 
@@ -1199,13 +1200,16 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The dummy return address is in LR, no need to pop it as on Intel.
 
   // These can be anything besides the return register (R0) and THR (R26).
-  const Register vm_tag_reg = R1, old_exit_frame_reg = R2, tmp = R3;
+  const Register vm_tag_reg = R1;
+  const Register old_exit_frame_reg = R2;
+  const Register old_exit_through_ffi_reg = R3;
+  const Register tmp = R4;
+
+  __ PopPair(old_exit_frame_reg, old_exit_through_ffi_reg);
 
   // Restore top_resource.
-  __ PopPair(old_exit_frame_reg, tmp);
+  __ PopPair(tmp, vm_tag_reg);
   __ StoreToOffset(tmp, THR, compiler::target::Thread::top_resource_offset());
-
-  __ Pop(vm_tag_reg);
 
   // Reset the exit frame info to old_exit_frame_reg *before* entering the
   // safepoint.
@@ -1213,7 +1217,7 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // If we were called by a trampoline, it will enter the safepoint on our
   // behalf.
   __ TransitionGeneratedToNative(
-      vm_tag_reg, old_exit_frame_reg, tmp,
+      vm_tag_reg, old_exit_frame_reg, old_exit_through_ffi_reg,
       /*enter_safepoint=*/!NativeCallbackTrampolines::Enabled());
 
   __ PopNativeCalleeSavedRegisters();
@@ -1329,6 +1333,10 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PushPair(R0, TMP);
 
   __ StoreToOffset(ZR, THR, compiler::target::Thread::top_resource_offset());
+
+  __ LoadFromOffset(R0, THR,
+                    compiler::target::Thread::exit_through_ffi_offset());
+  __ Push(R0);
 
   // Save the top exit frame info. We don't set it to 0 yet:
   // TransitionNativeToGenerated will handle that.

@@ -735,6 +735,22 @@ void ConstantPropagator::VisitFfiCall(FfiCallInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
+void ConstantPropagator::VisitEnterHandleScope(EnterHandleScopeInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+void ConstantPropagator::VisitExitHandleScope(ExitHandleScopeInstr* instr) {
+  // Nothing to do.
+}
+
+void ConstantPropagator::VisitAllocateHandle(AllocateHandleInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+void ConstantPropagator::VisitRawStoreField(RawStoreFieldInstr* instr) {
+  // Nothing to do.
+}
+
 void ConstantPropagator::VisitDebugStepCheck(DebugStepCheckInstr* instr) {
   // Nothing to do.
 }

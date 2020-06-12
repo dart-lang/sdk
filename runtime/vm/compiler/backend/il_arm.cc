@@ -1308,12 +1308,13 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // For historical reasons, the PC on ARM points 8 bytes past the current
   // instruction. Therefore we emit the metadata here, 8 bytes (2 instructions)
   // after the original mov.
-  compiler->EmitCallsiteMetadata(TokenPosition::kNoSource, DeoptId::kNone,
+  compiler->EmitCallsiteMetadata(TokenPosition::kNoSource, deopt_id(),
                                  PcDescriptorsLayout::Kind::kOther, locs());
 
   // Update information in the thread object and enter a safepoint.
   if (CanExecuteGeneratedCodeInSafepoint()) {
-    __ TransitionGeneratedToNative(branch, FPREG, saved_fp, temp,
+    __ LoadImmediate(temp, compiler::target::Thread::exit_through_ffi());
+    __ TransitionGeneratedToNative(branch, FPREG, temp, saved_fp,
                                    /*enter_safepoint=*/true);
 
     __ blx(branch);
@@ -1362,9 +1363,13 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // These can be anything besides the return registers (R0 and R1) and THR
   // (R10).
-  const Register vm_tag_reg = R2, old_exit_frame_reg = R3, tmp = R4, tmp1 = R5;
+  const Register vm_tag_reg = R2;
+  const Register old_exit_frame_reg = R3;
+  const Register old_exit_through_ffi_reg = R4;
+  const Register tmp = R5;
 
   __ Pop(old_exit_frame_reg);
+  __ Pop(old_exit_through_ffi_reg);
 
   // Restore top_resource.
   __ Pop(tmp);
@@ -1376,7 +1381,7 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // If we were called by a trampoline, it will enter the safepoint on our
   // behalf.
   __ TransitionGeneratedToNative(
-      vm_tag_reg, old_exit_frame_reg, tmp, tmp1,
+      vm_tag_reg, old_exit_frame_reg, old_exit_through_ffi_reg, tmp,
       /*enter_safepoint=*/!NativeCallbackTrampolines::Enabled());
 
   __ PopNativeCalleeSavedRegisters();
@@ -1496,6 +1501,10 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Push(R0);
   __ LoadImmediate(R0, 0);
   __ StoreToOffset(kWord, R0, THR, top_resource_offset);
+
+  __ LoadFromOffset(kWord, R0, THR,
+                    compiler::target::Thread::exit_through_ffi_offset());
+  __ Push(R0);
 
   // Save top exit frame info. Don't set it to 0 yet,
   // TransitionNativeToGenerated will handle that.

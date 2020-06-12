@@ -2218,11 +2218,16 @@ void Assembler::EnterSafepoint(Register scratch) {
 
 void Assembler::TransitionGeneratedToNative(Register destination_address,
                                             Register new_exit_frame,
-                                            Register scratch,
+                                            Register new_exit_through_ffi,
                                             bool enter_safepoint) {
   // Save exit frame information to enable stack walking.
   movl(Address(THR, target::Thread::top_exit_frame_info_offset()),
        new_exit_frame);
+
+  movl(compiler::Address(THR,
+                         compiler::target::Thread::exit_through_ffi_offset()),
+       new_exit_through_ffi);
+  Register scratch = new_exit_through_ffi;
 
   // Mark that the thread is executing native code.
   movl(VMTagAddress(), destination_address);
@@ -2235,6 +2240,7 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
 }
 
 void Assembler::ExitSafepoint(Register scratch) {
+  ASSERT(scratch != EAX);
   // We generate the same number of instructions whether or not the slow-path is
   // forced, for consistency with EnterSafepoint.
 
@@ -2287,9 +2293,12 @@ void Assembler::TransitionNativeToGenerated(Register scratch,
   movl(Address(THR, target::Thread::execution_state_offset()),
        Immediate(target::Thread::generated_execution_state()));
 
-  // Reset exit frame information in Isolate structure.
+  // Reset exit frame information in Isolate's mutator thread structure.
   movl(Address(THR, target::Thread::top_exit_frame_info_offset()),
        Immediate(0));
+  movl(compiler::Address(THR,
+                         compiler::target::Thread::exit_through_ffi_offset()),
+       compiler::Immediate(0));
 }
 
 static const intptr_t kNumberOfVolatileCpuRegisters = 3;
@@ -2556,6 +2565,15 @@ void Assembler::EnterStubFrame() {
 }
 
 void Assembler::LeaveStubFrame() {
+  LeaveFrame();
+}
+
+void Assembler::EnterCFrame(intptr_t frame_space) {
+  EnterFrame(0);
+  ReserveAlignedFrameSpace(frame_space);
+}
+
+void Assembler::LeaveCFrame() {
   LeaveFrame();
 }
 

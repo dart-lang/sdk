@@ -84,11 +84,11 @@ Thread::Thread(bool is_vm_isolate)
       execution_state_(kThreadInNative),
       safepoint_state_(0),
       ffi_callback_code_(GrowableObjectArray::null()),
+      api_top_scope_(NULL),
       task_kind_(kUnknownTask),
       dart_stream_(NULL),
       thread_lock_(),
       api_reusable_scope_(NULL),
-      api_top_scope_(NULL),
       no_callback_scope_depth_(0),
 #if defined(DEBUG)
       no_safepoint_scope_depth_(0),
@@ -744,10 +744,12 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
       // if we can trigger GC between array allocation and store.
       if (obj->GetClassId() == kArrayCid) continue;
 
-      // Dart code won't store into VM-internal objects except Contexts.
-      // This assumption is checked by an assertion in
+      // Dart code won't store into VM-internal objects except Contexts and
+      // UnhandledExceptions. This assumption is checked by an assertion in
       // WriteBarrierElimination::UpdateVectorForBlock.
-      if (!obj->IsDartInstance() && !obj->IsContext()) continue;
+      if (!obj->IsDartInstance() && !obj->IsContext() &&
+          !obj->IsUnhandledException())
+        continue;
 
       // Dart code won't store into canonical instances.
       if (obj->ptr()->IsCanonical()) continue;

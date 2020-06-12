@@ -86,6 +86,10 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ StoreToOffset(kWord, FP, THR,
                    target::Thread::top_exit_frame_info_offset());
 
+  // Mark that the thread exited generated code through a runtime call.
+  __ LoadImmediate(R8, target::Thread::exit_through_runtime_call());
+  __ StoreToOffset(kWord, R8, THR, target::Thread::exit_through_ffi_offset());
+
 #if defined(DEBUG)
   {
     Label ok;
@@ -135,8 +139,11 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ LoadImmediate(R2, VMTag::kDartCompiledTagId);
   __ StoreToOffset(kWord, R2, THR, target::Thread::vm_tag_offset());
 
-  // Reset exit frame information in Isolate structure.
+  // Mark that the thread has not exited generated Dart code.
   __ LoadImmediate(R2, 0);
+  __ StoreToOffset(kWord, R2, THR, target::Thread::exit_through_ffi_offset());
+
+  // Reset exit frame information in Isolate's mutator thread structure.
   __ StoreToOffset(kWord, R2, THR,
                    target::Thread::top_exit_frame_info_offset());
 
@@ -349,6 +356,7 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
   // TransitionGeneratedToNative might clobber LR if it takes the slow path.
   __ mov(R4, Operand(LR));
 
+  __ LoadImmediate(R9, target::Thread::exit_through_ffi());
   __ TransitionGeneratedToNative(R8, FPREG, R9 /*volatile*/, NOTFP,
                                  /*enter_safepoint=*/true);
 
@@ -583,6 +591,10 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   __ StoreToOffset(kWord, FP, THR,
                    target::Thread::top_exit_frame_info_offset());
 
+  // Mark that the thread exited generated code through a runtime call.
+  __ LoadImmediate(R8, target::Thread::exit_through_runtime_call());
+  __ StoreToOffset(kWord, R8, THR, target::Thread::exit_through_ffi_offset());
+
 #if defined(DEBUG)
   {
     Label ok;
@@ -638,8 +650,11 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   __ LoadImmediate(R2, VMTag::kDartCompiledTagId);
   __ StoreToOffset(kWord, R2, THR, target::Thread::vm_tag_offset());
 
-  // Reset exit frame information in Isolate structure.
+  // Mark that the thread has not exited generated Dart code.
   __ LoadImmediate(R2, 0);
+  __ StoreToOffset(kWord, R2, THR, target::Thread::exit_through_ffi_offset());
+
+  // Reset exit frame information in Isolate's mutator thread structure.
   __ StoreToOffset(kWord, R2, THR,
                    target::Thread::top_exit_frame_info_offset());
 
@@ -1243,21 +1258,27 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Save top resource and top exit frame info. Use R4-6 as temporary registers.
   // StackFrameIterator reads the top exit frame info saved in this frame.
-  __ LoadFromOffset(kWord, R9, THR,
-                    target::Thread::top_exit_frame_info_offset());
   __ LoadFromOffset(kWord, R4, THR, target::Thread::top_resource_offset());
+  __ Push(R4);
   __ LoadImmediate(R8, 0);
   __ StoreToOffset(kWord, R8, THR, target::Thread::top_resource_offset());
+
+  __ LoadFromOffset(kWord, R8, THR, target::Thread::exit_through_ffi_offset());
+  __ Push(R8);
+  __ LoadImmediate(R8, 0);
+  __ StoreToOffset(kWord, R8, THR, target::Thread::exit_through_ffi_offset());
+
+  __ LoadFromOffset(kWord, R9, THR,
+                    target::Thread::top_exit_frame_info_offset());
   __ StoreToOffset(kWord, R8, THR,
                    target::Thread::top_exit_frame_info_offset());
 
   // target::frame_layout.exit_link_slot_from_entry_fp must be kept in sync
   // with the code below.
-  __ Push(R4);
 #if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
-  ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -26);
-#else
   ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -27);
+#else
+  ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -28);
 #endif
   __ Push(R9);
 
@@ -1319,6 +1340,8 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Pop(R9);
   __ StoreToOffset(kWord, R9, THR,
                    target::Thread::top_exit_frame_info_offset());
+  __ Pop(R9);
+  __ StoreToOffset(kWord, R9, THR, target::Thread::exit_through_ffi_offset());
   __ Pop(R9);
   __ StoreToOffset(kWord, R9, THR, target::Thread::top_resource_offset());
 
@@ -1390,21 +1413,27 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
 
   // Save top resource and top exit frame info. Use R4-6 as temporary registers.
   // StackFrameIterator reads the top exit frame info saved in this frame.
-  __ LoadFromOffset(kWord, R9, THR,
-                    target::Thread::top_exit_frame_info_offset());
   __ LoadFromOffset(kWord, R4, THR, target::Thread::top_resource_offset());
+  __ Push(R4);
   __ LoadImmediate(R8, 0);
   __ StoreToOffset(kWord, R8, THR, target::Thread::top_resource_offset());
+
+  __ LoadFromOffset(kWord, R8, THR, target::Thread::exit_through_ffi_offset());
+  __ Push(R8);
+  __ LoadImmediate(R8, 0);
+  __ StoreToOffset(kWord, R8, THR, target::Thread::exit_through_ffi_offset());
+
+  __ LoadFromOffset(kWord, R9, THR,
+                    target::Thread::top_exit_frame_info_offset());
   __ StoreToOffset(kWord, R8, THR,
                    target::Thread::top_exit_frame_info_offset());
 
   // target::frame_layout.exit_link_slot_from_entry_fp must be kept in sync
   // with the code below.
-  __ Push(R4);
 #if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
-  ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -26);
-#else
   ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -27);
+#else
+  ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -28);
 #endif
   __ Push(R9);
 
@@ -1457,6 +1486,8 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
   __ Pop(R9);
   __ StoreToOffset(kWord, R9, THR,
                    target::Thread::top_exit_frame_info_offset());
+  __ Pop(R9);
+  __ StoreToOffset(kWord, R9, THR, target::Thread::exit_through_ffi_offset());
   __ Pop(R9);
   __ StoreToOffset(kWord, R9, THR, target::Thread::top_resource_offset());
 
@@ -2764,6 +2795,10 @@ void StubCodeCompiler::GenerateInterpretCallStub(Assembler* assembler) {
   __ StoreToOffset(kWord, FP, THR,
                    target::Thread::top_exit_frame_info_offset());
 
+  // Mark that the thread exited generated code through a runtime call.
+  __ LoadImmediate(R5, target::Thread::exit_through_runtime_call());
+  __ StoreToOffset(kWord, R5, THR, target::Thread::exit_through_ffi_offset());
+
   // Mark that the thread is executing VM code.
   __ LoadFromOffset(kWord, R5, THR,
                     target::Thread::interpret_call_entry_point_offset());
@@ -2775,8 +2810,11 @@ void StubCodeCompiler::GenerateInterpretCallStub(Assembler* assembler) {
   __ LoadImmediate(R2, VMTag::kDartCompiledTagId);
   __ StoreToOffset(kWord, R2, THR, target::Thread::vm_tag_offset());
 
-  // Reset exit frame information in Isolate structure.
+  // Mark that the thread has not exited generated Dart code.
   __ LoadImmediate(R2, 0);
+  __ StoreToOffset(kWord, R2, THR, target::Thread::exit_through_ffi_offset());
+
+  // Reset exit frame information in Isolate's mutator thread structure.
   __ StoreToOffset(kWord, R2, THR,
                    target::Thread::top_exit_frame_info_offset());
 
@@ -3251,6 +3289,18 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
 #if defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
+  Label exit_through_non_ffi;
+  Register tmp1 = R0, tmp2 = R1;
+  // Check if we exited generated from FFI. If so do transition.
+  __ LoadFromOffset(kWord, tmp1, THR,
+                    compiler::target::Thread::exit_through_ffi_offset());
+  __ LoadImmediate(tmp2, target::Thread::exit_through_ffi());
+  __ cmp(tmp1, Operand(tmp2));
+  __ b(&exit_through_non_ffi, NE);
+  __ TransitionNativeToGenerated(tmp1, tmp2,
+                                 /*leave_safepoint=*/true);
+  __ Bind(&exit_through_non_ffi);
+
   // Set the tag.
   __ LoadImmediate(R2, VMTag::kDartCompiledTagId);
   __ StoreToOffset(kWord, R2, THR, target::Thread::vm_tag_offset());

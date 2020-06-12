@@ -17,6 +17,18 @@ namespace compiler {
 
 namespace ffi {
 
+bool BaseMarshaller::ContainsHandles() const {
+  if (IsHandle(kResultIndex)) {
+    return true;
+  }
+  for (intptr_t i = 0; i < num_args(); i++) {
+    if (IsHandle(i)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 Location CallMarshaller::LocInFfiCall(intptr_t arg_index) const {
   if (arg_index == kResultIndex) {
     return Location(arg_index).AsLocation();

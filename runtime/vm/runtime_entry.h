@@ -145,6 +145,11 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_LEAF_RUNTIME_ENTRY)
 extern "C" Thread* DLRT_GetThreadForNativeCallback(uword callback_id);
 extern "C" Thread* DLRT_GetThreadForNativeCallbackTrampoline(uword callback_id);
 
+// For creating scoped handles in FFI trampolines.
+extern "C" ApiLocalScope* DLRT_EnterHandleScope(Thread* thread);
+extern "C" void DLRT_ExitHandleScope(Thread* thread);
+extern "C" LocalHandle* DLRT_AllocateHandle(ApiLocalScope* scope);
+
 const char* DeoptReasonToCString(ICData::DeoptReasonId deopt_reason);
 
 void DeoptimizeAt(const Code& optimized_code, StackFrame* frame);

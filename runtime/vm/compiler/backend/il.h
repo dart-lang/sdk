@@ -395,6 +395,10 @@ struct InstrAttrs {
   M(SpecialParameter, kNoGC)                                                   \
   M(ClosureCall, _)                                                            \
   M(FfiCall, _)                                                                \
+  M(EnterHandleScope, _)                                                       \
+  M(ExitHandleScope, _)                                                        \
+  M(AllocateHandle, _)                                                         \
+  M(RawStoreField, _)                                                          \
   M(InstanceCall, _)                                                           \
   M(PolymorphicInstanceCall, _)                                                \
   M(DispatchTableCall, _)                                                      \
@@ -5037,7 +5041,10 @@ class FfiCallInstr : public Definition {
 
   virtual intptr_t InputCount() const { return inputs_.length(); }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
-  virtual bool MayThrow() const { return false; }
+  virtual bool MayThrow() const {
+    // By Dart_PropagateError.
+    return true;
+  }
 
   // FfiCallInstr calls C code, which can call back into Dart.
   virtual bool ComputeCanDeoptimize() const {
@@ -5075,6 +5082,82 @@ class FfiCallInstr : public Definition {
   GrowableArray<Value*> inputs_;
 
   DISALLOW_COPY_AND_ASSIGN(FfiCallInstr);
+};
+
+class EnterHandleScopeInstr : public TemplateDefinition<0, NoThrow> {
+ public:
+  enum class Kind { kEnterHandleScope = 0, kGetTopHandleScope = 1 };
+
+  explicit EnterHandleScopeInstr(Kind kind) : kind_(kind) {}
+
+  DECLARE_INSTRUCTION(EnterHandleScope)
+
+  virtual Representation representation() const { return kUnboxedIntPtr; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+ private:
+  Kind kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(EnterHandleScopeInstr);
+};
+
+class ExitHandleScopeInstr : public TemplateInstruction<0, NoThrow> {
+ public:
+  ExitHandleScopeInstr() {}
+
+  DECLARE_INSTRUCTION(ExitHandleScope)
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(ExitHandleScopeInstr);
+};
+
+class AllocateHandleInstr : public TemplateDefinition<1, NoThrow> {
+ public:
+  explicit AllocateHandleInstr(Value* scope) { SetInputAt(kScope, scope); }
+
+  enum { kScope = 0 };
+
+  DECLARE_INSTRUCTION(AllocateHandle)
+
+  virtual intptr_t InputCount() const { return 1; }
+  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const;
+  virtual Representation representation() const { return kUnboxedIntPtr; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(AllocateHandleInstr);
+};
+
+class RawStoreFieldInstr : public TemplateInstruction<2, NoThrow> {
+ public:
+  RawStoreFieldInstr(Value* base, Value* value, int32_t offset)
+      : offset_(offset) {
+    SetInputAt(kBase, base);
+    SetInputAt(kValue, value);
+  }
+
+  enum { kBase = 0, kValue = 1 };
+
+  DECLARE_INSTRUCTION(RawStoreField)
+
+  virtual intptr_t InputCount() const { return 2; }
+  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const;
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+ private:
+  const int32_t offset_;
+
+  DISALLOW_COPY_AND_ASSIGN(RawStoreFieldInstr);
 };
 
 class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {

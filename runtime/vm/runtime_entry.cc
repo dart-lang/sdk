@@ -10,6 +10,7 @@
 #include "vm/compiler/api/type_check_mode.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_api_impl.h"
+#include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/exceptions.h"
@@ -3317,20 +3318,24 @@ uword RuntimeEntry::InterpretCallEntry() {
 
 extern "C" void DFLRT_EnterSafepoint(NativeArguments __unusable_) {
   CHECK_STACK_ALIGNMENT;
+  TRACE_RUNTIME_CALL("%s", "EnterSafepoint");
   Thread* thread = Thread::Current();
   ASSERT(thread->top_exit_frame_info() != 0);
   ASSERT(thread->execution_state() == Thread::kThreadInNative);
   thread->EnterSafepoint();
+  TRACE_RUNTIME_CALL("%s", "EnterSafepoint done");
 }
 DEFINE_RAW_LEAF_RUNTIME_ENTRY(EnterSafepoint, 0, false, &DFLRT_EnterSafepoint);
 
 extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_) {
   CHECK_STACK_ALIGNMENT;
+  TRACE_RUNTIME_CALL("%s", "ExitSafepoint");
   Thread* thread = Thread::Current();
   ASSERT(thread->top_exit_frame_info() != 0);
 
   ASSERT(thread->execution_state() == Thread::kThreadInVM);
   thread->ExitSafepoint();
+  TRACE_RUNTIME_CALL("%s", "ExitSafepoint done");
 }
 DEFINE_RAW_LEAF_RUNTIME_ENTRY(ExitSafepoint, 0, false, &DFLRT_ExitSafepoint);
 
@@ -3369,13 +3374,16 @@ static Thread* GetThreadForNativeCallback(uword callback_id,
 // code within this Isolate.
 extern "C" Thread* DLRT_GetThreadForNativeCallback(uword callback_id) {
   CHECK_STACK_ALIGNMENT;
+  TRACE_RUNTIME_CALL("GetThreadForNativeCallback %" Pd, callback_id);
 #if defined(HOST_OS_WINDOWS)
   void* return_address = _ReturnAddress();
 #else
   void* return_address = __builtin_return_address(0);
 #endif
-  return GetThreadForNativeCallback(callback_id,
-                                    reinterpret_cast<uword>(return_address));
+  Thread* return_value = GetThreadForNativeCallback(
+      callback_id, reinterpret_cast<uword>(return_address));
+  TRACE_RUNTIME_CALL("GetThreadForNativeCallback returning %p", return_value);
+  return return_value;
 }
 
 // This is called by a native callback trampoline
@@ -3388,5 +3396,47 @@ extern "C" Thread* DLRT_GetThreadForNativeCallbackTrampoline(
   CHECK_STACK_ALIGNMENT;
   return GetThreadForNativeCallback(callback_id, 0);
 }
+
+// This is called directly by EnterHandleScopeInstr.
+extern "C" ApiLocalScope* DLRT_EnterHandleScope(Thread* thread) {
+  CHECK_STACK_ALIGNMENT;
+  TRACE_RUNTIME_CALL("EnterHandleScope %p", thread);
+  thread->EnterApiScope();
+  ApiLocalScope* return_value = thread->api_top_scope();
+  TRACE_RUNTIME_CALL("EnterHandleScope returning %p", return_value);
+  return return_value;
+}
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(
+    EnterHandleScope,
+    1,
+    false /* is_float */,
+    reinterpret_cast<RuntimeFunction>(&DLRT_EnterHandleScope));
+
+// This is called directly by ExitHandleScopeInstr.
+extern "C" void DLRT_ExitHandleScope(Thread* thread) {
+  CHECK_STACK_ALIGNMENT;
+  TRACE_RUNTIME_CALL("ExitHandleScope %p", thread);
+  thread->ExitApiScope();
+  TRACE_RUNTIME_CALL("ExitHandleScope %s", "done");
+}
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(
+    ExitHandleScope,
+    1,
+    false /* is_float */,
+    reinterpret_cast<RuntimeFunction>(&DLRT_ExitHandleScope));
+
+// This is called directly by AllocateHandleInstr.
+extern "C" LocalHandle* DLRT_AllocateHandle(ApiLocalScope* scope) {
+  CHECK_STACK_ALIGNMENT;
+  TRACE_RUNTIME_CALL("AllocateHandle %p", scope);
+  LocalHandle* return_value = scope->local_handles()->AllocateHandle();
+  TRACE_RUNTIME_CALL("AllocateHandle returning %p", return_value);
+  return return_value;
+}
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(
+    AllocateHandle,
+    1,
+    false /* is_float */,
+    reinterpret_cast<RuntimeFunction>(&DLRT_AllocateHandle));
 
 }  // namespace dart

@@ -345,9 +345,13 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ popq(TMP);
 
   // Anything besides the return register.
-  const Register vm_tag_reg = RBX, old_exit_frame_reg = RCX;
+  const Register vm_tag_reg = RBX;
+  const Register old_exit_frame_reg = RCX;
+  const Register old_exit_through_ffi_reg = RDI;
 
   __ popq(old_exit_frame_reg);
+
+  __ popq(old_exit_through_ffi_reg);
 
   // Restore top_resource.
   __ popq(TMP);
@@ -360,7 +364,7 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // If we were called by a trampoline, it will enter the safepoint on our
   // behalf.
   __ TransitionGeneratedToNative(
-      vm_tag_reg, old_exit_frame_reg,
+      vm_tag_reg, old_exit_frame_reg, old_exit_through_ffi_reg,
       /*enter_safepoint=*/!NativeCallbackTrampolines::Enabled());
 
   // Restore C++ ABI callee-saved registers.
@@ -1069,13 +1073,15 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // instruction, so 'AddressRIPRelative' loads the address of the following
   // 'movq'.
   __ leaq(TMP, compiler::Address::AddressRIPRelative(0));
-  compiler->EmitCallsiteMetadata(TokenPosition::kNoSource, DeoptId::kNone,
+  compiler->EmitCallsiteMetadata(TokenPosition::kNoSource, deopt_id(),
                                  PcDescriptorsLayout::Kind::kOther, locs());
   __ movq(compiler::Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize), TMP);
 
   if (CanExecuteGeneratedCodeInSafepoint()) {
     // Update information in the thread object and enter a safepoint.
-    __ TransitionGeneratedToNative(target_address, FPREG,
+    __ movq(TMP,
+            compiler::Immediate(compiler::target::Thread::exit_through_ffi()));
+    __ TransitionGeneratedToNative(target_address, FPREG, TMP,
                                    /*enter_safepoint=*/true);
 
     __ CallCFunction(target_address);
@@ -1203,6 +1209,9 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ movq(
       compiler::Address(THR, compiler::target::Thread::top_resource_offset()),
       compiler::Immediate(0));
+
+  __ pushq(compiler::Address(
+      THR, compiler::target::Thread::exit_through_ffi_offset()));
 
   // Save top exit frame info. Stack walker expects it to be here.
   __ pushq(compiler::Address(
