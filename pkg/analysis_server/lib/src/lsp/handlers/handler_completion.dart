@@ -25,8 +25,8 @@ import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 
-// If the client does not provide capabilities.completion.completionItemKind.valueSet
-// then we must never send a kind that's not in this list.
+/// If the client does not provide capabilities.completion.completionItemKind.valueSet
+/// then we must never send a kind that's not in this list.
 final defaultSupportedCompletionKinds = HashSet<CompletionItemKind>.of([
   CompletionItemKind.Text,
   CompletionItemKind.Method,
@@ -163,7 +163,8 @@ class CompletionHandler
     int offset,
   ) async {
     final requestParams = plugin.CompletionGetSuggestionsParams(path, offset);
-    final pluginResponses = await requestFromPlugins(path, requestParams);
+    final pluginResponses =
+        await requestFromPlugins(path, requestParams, timeout: 100);
 
     final pluginResults = pluginResponses
         .map((e) => plugin.CompletionGetSuggestionsResult.fromResponse(e))
