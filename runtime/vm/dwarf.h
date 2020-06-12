@@ -82,18 +82,41 @@ struct FunctionIndexPair {
 
 typedef DirectChainedHashMap<FunctionIndexPair> FunctionIndexMap;
 
+struct SegmentRelativeOffset {
+  // Used for the empty constructor (for hash map usage).
+  static constexpr intptr_t kInvalidOffset = -2;
+  // Used for cases where we know which segment, but don't know the offset.
+  static constexpr intptr_t kUnknownOffset = -1;
+
+  SegmentRelativeOffset(bool vm, intptr_t offset) : vm(vm), offset(offset) {
+    ASSERT(offset >= 0);
+  }
+  explicit SegmentRelativeOffset(bool vm) : vm(vm), offset(kUnknownOffset) {}
+  SegmentRelativeOffset() : vm(false), offset(kInvalidOffset) {}
+
+  bool operator==(const SegmentRelativeOffset& b) const {
+    return vm == b.vm && offset == b.offset;
+  }
+  bool operator==(const SegmentRelativeOffset& b) {
+    return *const_cast<const SegmentRelativeOffset*>(this) == b;
+  }
+  bool operator!=(const SegmentRelativeOffset& b) { return !(*this == b); }
+
+  // Whether or not this is an offset into the VM text segment.
+  bool vm;
+  // The byte offset into the segment contents.
+  intptr_t offset;
+};
+
 struct CodeAddressPair {
   // Typedefs needed for the DirectChainedHashMap template.
   typedef const Code* Key;
-  typedef intptr_t Value;
+  typedef SegmentRelativeOffset Value;
   typedef CodeAddressPair Pair;
 
-  static constexpr intptr_t kNoValue = -1;
-  static_assert(kNoValue < 0, "non-negative value used for kNoValue");
+  static Key KeyOf(Pair kv) { return kv.code; }
 
-  static Key KeyOf(Pair kv) { return kv.code_; }
-
-  static Value ValueOf(Pair kv) { return kv.address_; }
+  static Value ValueOf(Pair kv) { return kv.segment_offset; }
 
   static inline intptr_t Hashcode(Key key) {
     // Code objects are always allocated in old space, so they don't move.
@@ -101,22 +124,19 @@ struct CodeAddressPair {
   }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair.code_->raw() == key->raw();
+    return pair.code->raw() == key->raw();
   }
 
-  CodeAddressPair(const Code* c, intptr_t address)
-      : code_(c), address_(address) {
+  CodeAddressPair(const Code* c, const SegmentRelativeOffset& o)
+      : code(c), segment_offset(o) {
     ASSERT(!c->IsNull());
     ASSERT(c->IsNotTemporaryScopedHandle());
-    ASSERT(address >= 0);
+    ASSERT(o.offset == SegmentRelativeOffset::kUnknownOffset || o.offset >= 0);
   }
+  CodeAddressPair() : code(nullptr), segment_offset() {}
 
-  CodeAddressPair() : code_(NULL), address_(kNoValue) {}
-
-  void Print() const;
-
-  const Code* code_;
-  intptr_t address_;
+  const Code* code;
+  SegmentRelativeOffset segment_offset;
 };
 
 typedef DirectChainedHashMap<CodeAddressPair> CodeAddressMap;
@@ -235,26 +255,16 @@ class Dwarf : public ZoneAllocated {
 
   const ZoneGrowableArray<const Code*>& codes() const { return codes_; }
 
-  // Assumes that no code objects can be at a relocated address of 0 (true
-  // for ELF, since the program header is at address 0).
-  static constexpr intptr_t kNoCodeAddress = 0;
-
   // Stores the code object for later creating the line number program.
   //
-  // [relocated_address] is passed when the relocated address of the
-  // instructions payload is known at snapshot generation time. For example,
-  // it is provided when generating ELF snapshots.
-  //
   // Returns the stored index of the code object when the relocated address
-  // is not known at snapshot generation time (kNoCodeAddress).
-  intptr_t AddCode(const Code& code,
-                   intptr_t relocated_address = kNoCodeAddress);
+  // is not known at snapshot generation time (that is, when offset.offset is
+  // SegmentRelativeOffset::kUnknownOffset).
+  intptr_t AddCode(const Code& code, const SegmentRelativeOffset& offset);
 
-  // Returns the stored relocated address for the given Code object. If no
-  // address is stored, returns CodeAddressPair::kNoValue.
-  intptr_t CodeAddress(const Code& code) const {
-    return code_to_address_.LookupValue(&code);
-  }
+  // Returns the stored segment offset for the given Code object. If no
+  // address is stored, the second element will be kNoCodeAddressPairOffset.
+  SegmentRelativeOffset CodeAddress(const Code& code) const;
 
   intptr_t AddFunction(const Function& function);
   intptr_t AddScript(const Script& script);

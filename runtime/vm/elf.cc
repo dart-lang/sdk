@@ -974,6 +974,8 @@ void Elf::FinalizeDwarfSections() {
 #if defined(DART_PRECOMPILER)
   // Add all the static symbols for Code objects. We'll keep a table of
   // symbol names to relocated addresses for use in the DwarfElfStream.
+  // The default kNoValue of 0 is okay here, as no symbols are defined for
+  // relocated address 0.
   CStringMap<intptr_t> symbol_to_address_map;
   // Prime the map with any existing static symbols.
   if (symtab_ != nullptr) {
@@ -986,15 +988,27 @@ void Elf::FinalizeDwarfSections() {
     }
   }
 
+  // Need these to turn offsets into relocated addresses.
+  auto const vm_start =
+      symbol_to_address_map.LookupValue(kVmSnapshotInstructionsAsmSymbol);
+  ASSERT(vm_start > 0);
+  auto const isolate_start =
+      symbol_to_address_map.LookupValue(kIsolateSnapshotInstructionsAsmSymbol);
+  ASSERT(isolate_start > 0);
+  auto const vm_text = FindSegmentForAddress(vm_start);
+  ASSERT(vm_text != nullptr);
+  auto const isolate_text = FindSegmentForAddress(isolate_start);
+  ASSERT(isolate_text != nullptr);
+
   SnapshotTextObjectNamer namer(zone_);
   const auto& codes = dwarf_->codes();
   for (intptr_t i = 0; i < codes.length(); i++) {
     const auto& code = *codes[i];
     auto const name = namer.SnapshotNameFor(i, code);
-    auto const address = dwarf_->CodeAddress(code);
-    ASSERT(address != CodeAddressPair::kNoValue);
-    auto const segment = FindSegmentForAddress(address);
-    ASSERT(segment != nullptr);
+    const auto& pair = dwarf_->CodeAddress(code);
+    ASSERT(pair.offset > 0);
+    auto const segment = pair.vm ? vm_text : isolate_text;
+    const intptr_t address = segment->memory_offset() + pair.offset;
     auto const info = (elf::STB_GLOBAL << 4) | elf::STT_FUNC;
     AddStaticSymbol(name, info, segment->section_index(), address, code.Size());
     symbol_to_address_map.Insert({name, address});

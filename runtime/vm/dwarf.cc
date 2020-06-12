@@ -101,36 +101,53 @@ Dwarf::Dwarf(Zone* zone)
       script_to_index_(zone),
       temp_(0) {}
 
-intptr_t Dwarf::AddCode(const Code& non_zone_code, intptr_t relocated_address) {
-  ASSERT(!non_zone_code.IsNull());
-  ASSERT(relocated_address == kNoCodeAddress || relocated_address > 0);
-  const auto& code = Code::ZoneHandle(zone_, non_zone_code.raw());
+SegmentRelativeOffset Dwarf::CodeAddress(const Code& code) const {
+  const auto& pair = code_to_address_.LookupValue(&code);
+  // This is only used by Elf::Finalize(), and the image writers always give a
+  // text offset when calling AddCode() for an Elf object's Dwarf object. Thus,
+  // we should have known code offsets for each code object in the map.
+  ASSERT(pair.offset != SegmentRelativeOffset::kUnknownOffset);
+  return pair;
+}
+
+intptr_t Dwarf::AddCode(const Code& orig_code,
+                        const SegmentRelativeOffset& offset) {
+  ASSERT(!orig_code.IsNull());
+  // We should never get the no-argument constructed version here.
+  ASSERT(offset.offset != SegmentRelativeOffset::kInvalidOffset);
+  // Generate an appropriately zoned ZoneHandle for storing.
+  const auto& code = Code::ZoneHandle(zone_, orig_code.raw());
 
   // For now, we assume one of two flows for a given code object:
-  // ELF: Calls to AddCode(code, address), address is the same over all calls.
-  // Assembly: An initial call to AddCode(code) (assembly), possibly
-  //     followed by a later call to AddCode(code, address)
+  // ELF: Calls to AddCode(code, vm, offset), vm and offset are the same over
+  //      all calls.
+  // Assembly: An initial call to AddCode(code, vm) (assembly), possibly
+  //     followed by a later call to AddCode(code, vm, offset)
   //     (separate debugging info ELF)
-  if (relocated_address == kNoCodeAddress) {
+  if (offset.offset == SegmentRelativeOffset::kUnknownOffset) {
     // A call without an address should always come before any calls with
     // addresses.
     ASSERT(code_to_address_.Lookup(&code) == nullptr);
     // Insert a marker so on later calls, we know we've already added to codes_.
-    code_to_address_.Insert(CodeAddressPair(&code, kNoCodeAddress));
+    code_to_address_.Insert(CodeAddressPair(&code, offset));
   } else {
-    auto const old_value = code_to_address_.LookupValue(&code);
+    const auto& old_value = code_to_address_.LookupValue(&code);
     // ELF does not need to know the index. If we've already added this Code
     // object to codes_ in a previous call, don't bother scanning codes_ to find
     // the corresponding index, just return -1 instead.
-    switch (old_value) {
-      case CodeAddressPair::kNoValue:
-        code_to_address_.Insert(CodeAddressPair(&code, relocated_address));
+    switch (old_value.offset) {
+      case SegmentRelativeOffset::kInvalidOffset:
+        code_to_address_.Insert(CodeAddressPair(&code, offset));
         break;  // Still need to add to codes_.
-      case kNoCodeAddress:
-        code_to_address_.Update(CodeAddressPair(&code, relocated_address));
+      case SegmentRelativeOffset::kUnknownOffset:
+        // Code objects should only be associated with either the VM or isolate.
+        ASSERT_EQUAL(old_value.vm, offset.vm);
+        code_to_address_.Update(CodeAddressPair(&code, offset));
         return -1;
       default:
-        ASSERT_EQUAL(old_value, relocated_address);
+        // The information for the code object shouldn't have changed since the
+        // previous update.
+        ASSERT(old_value == offset);
         return -1;
     }
   }

@@ -858,7 +858,8 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     intptr_t dwarf_index = i;
 #if defined(DART_PRECOMPILER)
     if (!is_trampoline && assembly_dwarf_ != nullptr) {
-      dwarf_index = assembly_dwarf_->AddCode(*data.code_);
+      dwarf_index =
+          assembly_dwarf_->AddCode(*data.code_, SegmentRelativeOffset(vm));
     }
 #endif
 
@@ -937,8 +938,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
 #if defined(DART_PRECOMPILER)
     if (debug_elf_ != nullptr) {
-      auto const relocated_address = debug_segment_base + text_offset;
-      debug_elf_->dwarf()->AddCode(code, relocated_address);
+      debug_elf_->dwarf()->AddCode(code, {vm, text_offset});
     }
 #endif
     // 2. Write a label at the entry point.
@@ -1415,12 +1415,10 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 #if defined(DART_PRECOMPILER)
     const auto& code = *data.code_;
     if (elf_ != nullptr && elf_->dwarf() != nullptr) {
-      auto const relocated_address = segment_base + payload_offset;
-      elf_->dwarf()->AddCode(code, relocated_address);
+      elf_->dwarf()->AddCode(code, {vm, payload_offset});
     }
     if (debug_elf_ != nullptr) {
-      auto const relocated_address = debug_segment_base + payload_offset;
-      debug_elf_->dwarf()->AddCode(code, relocated_address);
+      debug_elf_->dwarf()->AddCode(code, {vm, payload_offset});
     }
 
     // Don't patch the relocation if we're not generating ELF. The regular blobs
