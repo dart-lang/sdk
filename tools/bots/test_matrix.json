@@ -1119,6 +1119,24 @@
           ]
         },
         {
+          "name": "weak co19 tests",
+          "arguments": [
+            "-ncfe-weak-${system}",
+            "co19"
+          ],
+          "fileset": "front-end",
+          "shards": 1
+        },
+        {
+          "name": "strong co19 tests",
+          "arguments": [
+            "-ncfe-strong-${system}",
+            "co19"
+          ],
+          "fileset": "front-end",
+          "shards": 1
+        },
+        {
           "name": "weak sdk tests",
           "arguments": [
             "-ncfe-weak-${system}",
@@ -1129,13 +1147,6 @@
           ]
         },
         {
-          "name": "weak co19 tests",
-          "arguments": [
-            "-ncfe-weak-${system}",
-            "co19"
-          ]
-        },
-        {
           "name": "strong sdk tests",
           "arguments": [
             "-ncfe-strong-${system}",
@@ -1143,13 +1154,6 @@
             "ffi",
             "language",
             "lib"
-          ]
-        },
-        {
-          "name": "strong co19 tests",
-          "arguments": [
-            "-ncfe-strong-${system}",
-            "co19"
           ]
         }
       ]
@@ -1772,7 +1776,9 @@
             "co19",
             "standalone/io",
             "vm"
-          ]
+          ],
+          "fileset": "vm-kernel",
+          "shards": 2
         },
         {
           "name": "vm nnbd tests in strong mode",
@@ -1785,7 +1791,9 @@
             "co19",
             "standalone/io",
             "vm"
-          ]
+          ],
+          "fileset": "vm-kernel",
+          "shards": 2
         }
       ]
     },
