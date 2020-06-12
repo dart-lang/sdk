@@ -3041,11 +3041,13 @@ class Parser {
     Token replacement;
     if (next.isSynthetic) {
       replacement = link(
-          new SyntheticBeginToken(TokenType.OPEN_SQUARE_BRACKET, next.offset),
+          new SyntheticBeginToken(TokenType.OPEN_SQUARE_BRACKET, next.offset,
+              next.precedingComments),
           new SyntheticToken(TokenType.CLOSE_SQUARE_BRACKET, next.offset));
     } else {
       replacement = link(
-          new BeginToken(TokenType.OPEN_SQUARE_BRACKET, next.offset),
+          new BeginToken(TokenType.OPEN_SQUARE_BRACKET, next.offset,
+              next.precedingComments),
           new Token(TokenType.CLOSE_SQUARE_BRACKET, next.offset + 1));
     }
     rewriter.replaceTokenFollowing(token, replacement);
@@ -4543,12 +4545,7 @@ class Parser {
             token = parseArgumentOrIndexStar(
                 token, typeArg, /* checkedNullAware = */ true);
           } else if (identical(type, TokenType.INDEX)) {
-            BeginToken replacement = link(
-                new BeginToken(TokenType.OPEN_SQUARE_BRACKET, next.charOffset,
-                    next.precedingComments),
-                new Token(TokenType.CLOSE_SQUARE_BRACKET, next.charOffset + 1));
-            rewriter.replaceTokenFollowing(token, replacement);
-            replacement.endToken = replacement.next;
+            rewriteSquareBrackets(token);
             token = parseArgumentOrIndexStar(
                 token, noTypeParamOrArg, /* checkedNullAware = */ false);
           } else if (identical(type, TokenType.BANG)) {
@@ -4651,6 +4648,14 @@ class Parser {
         token = typeArg.parseArguments(token, this);
         next = token.next;
         assert(optional('(', next));
+      }
+      TokenType nextType = next.type;
+      if (identical(nextType, TokenType.INDEX)) {
+        // If we don't split the '[]' here we will stop parsing it as a cascade
+        // and either split it later (parsing it wrong) or inserting ; before it
+        // (also wrong).
+        // See also https://github.com/dart-lang/sdk/issues/42267.
+        rewriteSquareBrackets(token);
       }
       token = parseArgumentOrIndexStar(
           token, typeArg, /* checkedNullAware = */ false);
