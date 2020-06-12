@@ -3996,6 +3996,24 @@ const Symbol vSymbol = #aaa.bbb.ccc;
 ''');
   }
 
+  test_const_topLevel_nullSafe_nullAware_propertyAccess() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary(r'''
+const String? a = '';
+
+const List<int?> b = [
+  a?.length,
+];
+''');
+    // TODO(scheglov) include fully resolved AST, when types with suffixes
+    checkElementText(library, r'''
+const String a = '';
+const List<int> b = [
+        a/*location: test.dart;a?*/.
+        length/*location: dart:core;String;length?*/];
+''');
+  }
+
   test_const_topLevel_parenthesis() async {
     var library = await checkLibrary(r'''
 const int v1 = (1 + 2) * 3;

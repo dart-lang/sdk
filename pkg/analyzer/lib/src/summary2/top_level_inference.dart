@@ -99,6 +99,7 @@ class ConstantInitializersResolver {
             InferenceContext.setType(variable.initializer, typeNode.type);
             return variable.initializer;
           },
+          isTopLevelVariableInitializer: true,
         );
       }
     }
