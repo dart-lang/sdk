@@ -478,7 +478,6 @@ class BackendImpacts {
 
   BackendImpact get genericTypeCheck {
     return _genericTypeCheck ??= new BackendImpact(staticUses: [
-      _commonElements.checkSubtype,
       // TODO(johnniwinther): Investigate why this is needed.
       _commonElements.setRuntimeTypeInfo,
       _commonElements.getRuntimeTypeInfo
@@ -499,9 +498,8 @@ class BackendImpacts {
   BackendImpact _typeVariableTypeCheck;
 
   BackendImpact get typeVariableTypeCheck {
-    return _typeVariableTypeCheck ??= new BackendImpact(
-        staticUses: [_commonElements.checkSubtypeOfRuntimeType],
-        otherImpacts: [newRtiImpact]);
+    return _typeVariableTypeCheck ??=
+        new BackendImpact(staticUses: [], otherImpacts: [newRtiImpact]);
   }
 
   BackendImpact _functionTypeCheck;
@@ -515,9 +513,8 @@ class BackendImpacts {
   BackendImpact _futureOrTypeCheck;
 
   BackendImpact get futureOrTypeCheck {
-    return _futureOrTypeCheck ??= new BackendImpact(
-        staticUses: [_commonElements.futureOrTest],
-        otherImpacts: [newRtiImpact]);
+    return _futureOrTypeCheck ??=
+        new BackendImpact(staticUses: [], otherImpacts: [newRtiImpact]);
   }
 
   BackendImpact _nativeTypeCheck;
