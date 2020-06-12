@@ -54,6 +54,19 @@ void f() {}
 ''');
   }
 
+  Future<void> test_class_extends() async {
+    await resolveTestUnit('''
+class MyClass extends BaseClssa {}
+
+class BaseClass {}
+''');
+    await assertHasFix('''
+class MyClass extends BaseClass {}
+
+class BaseClass {}
+''');
+  }
+
   Future<void> test_class_fromImport() async {
     await resolveTestUnit('''
 main() {

@@ -47,6 +47,17 @@ main(p) {
 ''');
   }
 
+  Future<void> test_withClass_extends() async {
+    await resolveTestUnit('''
+class MyCompleter extends Completer<String> {}
+''');
+    await assertHasFix('''
+import 'dart:async';
+
+class MyCompleter extends Completer<String> {}
+''');
+  }
+
   Future<void> test_withClass_instanceCreation_explicitNew() async {
     await resolveTestUnit('''
 class C {

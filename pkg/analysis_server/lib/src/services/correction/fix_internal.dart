@@ -482,6 +482,9 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.CONST_WITH_NON_TYPE: [
       ImportLibrary.forType,
     ],
+    CompileTimeErrorCode.EXTENDS_NON_CLASS: [
+      ImportLibrary.forType,
+    ],
     CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS: [
       AddMissingParameter.newInstance,
     ],
@@ -578,6 +581,10 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.CONST_WITH_NON_TYPE: [
       ChangeTo.classOrMixin,
+    ],
+    CompileTimeErrorCode.EXTENDS_NON_CLASS: [
+      ChangeTo.classOrMixin,
+      CreateClass.newInstance,
     ],
     CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER: [
       ReplaceWithExtensionName.newInstance,
