@@ -127,7 +127,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _flowAnalysis;
 
   /// If we are visiting a function body or initializer, assigned variable
-  /// information  used in flow analysis.  Otherwise `null`.
+  /// information used in flow analysis.  Otherwise `null`.
   AssignedVariables<AstNode, PromotableElement> _assignedVariables;
 
   /// The [DecoratedType] of the innermost function or method being visited, or
@@ -279,6 +279,32 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else {
       return decoratedBaseType;
     }
+  }
+
+  @override
+  // TODO(srawlins): Theoretically, edges should be connected between arguments
+  // and parameters, as in an instance creation. It is quite rare though, to
+  // declare a class and use it as an annotation in the same package.
+  DecoratedType visitAnnotation(Annotation node) {
+    var previousFlowAnalysis = _flowAnalysis;
+    var previousAssignedVariables = _assignedVariables;
+    if (_flowAnalysis == null) {
+      _assignedVariables = AssignedVariables();
+      _flowAnalysis = FlowAnalysis<AstNode, Statement, Expression,
+              PromotableElement, DecoratedType>(
+          DecoratedTypeOperations(_typeSystem, _variables, _graph),
+          _assignedVariables);
+    }
+    try {
+      _dispatch(node.name);
+      _dispatch(node.constructorName);
+      _dispatchList(node.arguments?.arguments);
+    } finally {
+      _flowAnalysis = previousFlowAnalysis;
+      _assignedVariables = previousAssignedVariables;
+    }
+    annotationVisited(node);
+    return null;
   }
 
   @override

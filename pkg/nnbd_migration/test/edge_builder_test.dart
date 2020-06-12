@@ -7508,6 +7508,16 @@ int f() {
     expect(edge.sourceNode.displayName, 'throw expression (test.dart:2:10)');
   }
 
+  Future<void> test_top_level_annotation_begins_flow_analysis() async {
+    await analyze('''
+class C {
+  const C(bool x);
+}
+@C(true)
+int x;
+''');
+  }
+
   Future<void> test_topLevelSetter() async {
     await analyze('''
 void set x(int value) {}
