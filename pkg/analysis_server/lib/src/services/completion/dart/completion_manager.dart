@@ -266,6 +266,11 @@ class DartCompletionManager implements CompletionContributor {
   void _addIncludedSuggestionRelevanceTags(DartCompletionRequestImpl request) {
     var target = request.target;
 
+    if (request.inConstantContext && request.useNewRelevance) {
+      includedSuggestionRelevanceTags.add(IncludedSuggestionRelevanceTag(
+          'isConst', RelevanceBoost.constInConstantContext));
+    }
+
     void addTypeTag(DartType type) {
       if (type is InterfaceType) {
         var element = type.element;
