@@ -2082,6 +2082,48 @@ void g() => f(null);
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_extension_on_type_param_implementation() async {
+    var content = '''
+abstract class C {
+  C _clone();
+}
+extension Cloner<T extends C> on T {
+  T clone() => _clone() as T;
+}
+''';
+    var expected = '''
+abstract class C {
+  C _clone();
+}
+extension Cloner<T extends C> on T {
+  T clone() => _clone() as T;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_extension_on_type_param_usage() async {
+    var content = '''
+abstract class C {
+  C _clone();
+}
+extension Cloner<T extends C> on T {
+  T clone() => throw Exception();
+}
+C f(C c) => c.clone();
+''';
+    var expected = '''
+abstract class C {
+  C _clone();
+}
+extension Cloner<T extends C> on T {
+  T clone() => throw Exception();
+}
+C f(C c) => c.clone();
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_field_final_uninitalized_used() async {
     var content = '''
 class C {

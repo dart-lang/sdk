@@ -236,7 +236,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       } else {
         assert(enclosingElement is ExtensionElement);
         final extensionElement = enclosingElement as ExtensionElement;
-        final extendedType = extensionElement.extendedType;
+        final extendedType =
+            _typeSystem.resolveToBound(extensionElement.extendedType);
         if (extendedType is InterfaceType) {
           if (extensionElement.typeParameters.isNotEmpty) {
             substitution = _decoratedClassHierarchy
@@ -743,6 +744,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   DecoratedType visitExtensionDeclaration(ExtensionDeclaration node) {
     visitClassOrMixinOrExtensionDeclaration(node);
+    _dispatch(node.typeParameters);
     _dispatch(node.extendedType);
     return null;
   }
@@ -2917,6 +2919,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
                     NullabilityNode.forInferredType(
                         target.typeArgument(index++))))
                 .toList());
+      } else if (type is TypeParameterType) {
+        return DecoratedType(type, NullabilityNode.forInferredType(target));
       } else {
         _unimplemented(node, 'extension of $type (${type.runtimeType}');
       }
