@@ -745,6 +745,7 @@ class AnimationEffectTiming extends AnimationEffectTimingReadOnly {
 
   // Shadowing definition.
 
+  @Returns('num|String|Null')
   Object? get duration native;
 
   set duration(Object? value) native;

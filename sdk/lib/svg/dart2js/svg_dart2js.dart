@@ -3244,7 +3244,7 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
   SvgElement.created() : super.created();
 
   // Shadowing definition.
-
+  @JSName('className')
   AnimatedString get _svgClassName native;
 
   @JSName('ownerSVGElement')

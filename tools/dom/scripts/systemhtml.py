@@ -1394,6 +1394,14 @@ class Dart2JSBackend(HtmlDartGenerator):
             self._AddAttributeUsingProperties(attribute, html_name, read_only)
             return
 
+        output_type = self.SecureOutputType(attribute.type.id,
+                                            can_narrow_type=read_only,
+                                            nullable=attribute.type.nullable)
+
+        rename = self._RenamingAnnotation(attribute.id, html_name)
+        metadata = self._Metadata(attribute.type.id, attribute.id, output_type,
+            attribute.type.nullable)
+
         # If the attribute is shadowing, we can't generate a shadowing
         # getter or setter (Issue 1633).
         # TODO(sra): _FindShadowedAttribute does not take into account the html
@@ -1426,7 +1434,8 @@ class Dart2JSBackend(HtmlDartGenerator):
                                 'TreatNullAs' in attribute.ext_attrs))
                     return
             self._members_emitter.Emit('\n  // Shadowing definition.')
-            self._AddAttributeUsingProperties(attribute, html_name, read_only)
+            self._AddAttributeUsingProperties(attribute, html_name, read_only,
+                rename, metadata)
             return
 
         # If the attribute is shadowed incompatibly in a subclass then we also
@@ -1438,22 +1447,17 @@ class Dart2JSBackend(HtmlDartGenerator):
         if (self._interface.id == 'DOMMatrixReadOnly' or
                 self._interface.id == 'DOMPointReadOnly' or
                 self._interface.id == 'DOMRectReadOnly'):
-            self._AddAttributeUsingProperties(attribute, html_name, read_only)
+            self._AddAttributeUsingProperties(attribute, html_name, read_only,
+                rename, metadata)
             return
 
         # If the type has a conversion we need a getter or setter to contain the
         # conversion code.
         if (self._OutputConversion(attribute.type.id, attribute.id) or
                 self._InputConversion(attribute.type.id, attribute.id)):
-            self._AddAttributeUsingProperties(attribute, html_name, read_only)
+            self._AddAttributeUsingProperties(attribute, html_name, read_only,
+                rename, metadata)
             return
-
-        rename = self._RenamingAnnotation(attribute.id, html_name)
-        output_type = self.SecureOutputType(attribute.type.id,
-                                            can_narrow_type=read_only,
-                                            nullable=attribute.type.nullable)
-        metadata = self._Metadata(attribute.type.id, attribute.id, output_type,
-            attribute.type.nullable)
 
         input_type = self._NarrowInputType(attribute.type.id)
         if self._nnbd and attribute.type.nullable:
@@ -1536,7 +1540,6 @@ class Dart2JSBackend(HtmlDartGenerator):
             return self._AddConvertingGetter(attr, html_name, conversion)
         return_type = self.SecureOutputType(attr.type.id,
             nullable=attr.type.nullable)
-        native_type = self._NarrowToImplementationType(attr.type.id)
         self._members_emitter.Emit(
             '\n  $RENAME'
             '\n  $METADATA'
