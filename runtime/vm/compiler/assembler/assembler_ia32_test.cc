@@ -4756,7 +4756,7 @@ ASSEMBLER_TEST_GENERATE(TestRepMovsBytes, assembler) {
 
 ASSEMBLER_TEST_RUN(TestRepMovsBytes, test) {
   const char* from = "0123456789x";
-  char* to = new char[11];
+  char* to = new char[11]{0};
   to[10] = 'y';
   typedef void (*TestRepMovsBytes)(const char* from, char* to, int count);
   reinterpret_cast<TestRepMovsBytes>(test->entry())(from, to, 10);
@@ -4798,7 +4798,7 @@ ASSEMBLER_TEST_GENERATE(TestRepMovsWords, assembler) {
 ASSEMBLER_TEST_RUN(TestRepMovsWords, test) {
   const uint16_t from[11] = {0x0123, 0x1234, 0x2345, 0x3456, 0x4567, 0x5678,
                              0x6789, 0x789A, 0x89AB, 0x9ABC, 0xABCD};
-  uint16_t* to = new uint16_t[11];
+  uint16_t* to = new uint16_t[11]{0};
   to[10] = 0xFEFE;
   typedef void (*TestRepMovsWords)(const uint16_t* from, uint16_t* to,
                                    int count);
@@ -4842,7 +4842,7 @@ ASSEMBLER_TEST_RUN(TestRepMovsDwords, test) {
   const uint32_t from[11] = {0x01234567, 0x12345678, 0x23456789, 0x3456789A,
                              0x456789AB, 0x56789ABC, 0x6789ABCD, 0x789ABCDE,
                              0x89ABCDEF, 0x9ABCDEF0, 0xABCDEF01};
-  uint32_t* to = new uint32_t[11];
+  uint32_t* to = new uint32_t[11]{0};
   to[10] = 0xFEFEFEFE;
   typedef void (*TestRepMovsDwords)(const uint32_t* from, uint32_t* to,
                                     int count);
