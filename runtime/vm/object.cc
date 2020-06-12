@@ -20121,12 +20121,27 @@ TypeParameterPtr TypeParameter::ToNullability(Nullability value,
 bool TypeParameter::IsInstantiated(Genericity genericity,
                                    intptr_t num_free_fun_type_params,
                                    TrailPtr trail) const {
+  // Bounds of class type parameters are ignored in the VM.
   if (IsClassTypeParameter()) {
     return genericity == kFunctions;
   }
   ASSERT(IsFunctionTypeParameter());
   ASSERT(IsFinalized());
-  return (genericity == kCurrentClass) || (index() >= num_free_fun_type_params);
+  if ((genericity != kCurrentClass) && (index() < num_free_fun_type_params)) {
+    return false;
+  }
+  // Although the type parameter is instantiated, its bound may not be.
+  const AbstractType& upper_bound = AbstractType::Handle(bound());
+  if (upper_bound.IsTypeParameter() ||
+      upper_bound.arguments() != TypeArguments::null()) {
+    // Use trail to break cycles created by bound referring to type parameter.
+    if (!TestAndAddToTrail(&trail) &&
+        !upper_bound.IsInstantiated(genericity, num_free_fun_type_params,
+                                    trail)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 bool TypeParameter::IsEquivalent(const Instance& other,
@@ -20264,40 +20279,57 @@ AbstractTypePtr TypeParameter::InstantiateFrom(
     Heap::Space space,
     TrailPtr trail) const {
   ASSERT(IsFinalized());
+  AbstractType& result = AbstractType::Handle();
   if (IsFunctionTypeParameter()) {
     if (index() >= num_free_fun_type_params) {
-      // Return uninstantiated type parameter unchanged.
-      return raw();
+      // Do not instantiate the function type parameter, but possibly its bound.
+      result = raw();
+      AbstractType& upper_bound = AbstractType::Handle(bound());
+      if (!upper_bound.IsInstantiated(kAny, num_free_fun_type_params,
+                                      nullptr)) {
+        // Use trail to break cycles created by bound referring to type param.
+        if (OnlyBuddyInTrail(trail) == Object::null()) {
+          AddOnlyBuddyToTrail(&trail, *this);
+          upper_bound = upper_bound.InstantiateFrom(
+              instantiator_type_arguments, function_type_arguments,
+              num_free_fun_type_params, space, trail);
+          if (upper_bound.raw() == Type::NeverType()) {
+            // Normalize 'X extends Never' to 'Never'.
+            result = Type::NeverType();
+          } else if (upper_bound.raw() != bound()) {
+            result ^= Object::Clone(result, space);
+            TypeParameter::Cast(result).set_bound(upper_bound);
+          }
+        }
+      }
+    } else if (function_type_arguments.IsNull()) {
+      return Type::DynamicType();
+    } else {
+      result = function_type_arguments.TypeAt(index());
+      ASSERT(!result.IsTypeParameter());
     }
-    if (function_type_arguments.IsNull()) {
+  } else {
+    ASSERT(IsClassTypeParameter());
+    if (instantiator_type_arguments.IsNull()) {
       return Type::DynamicType();
     }
-    AbstractType& result =
-        AbstractType::Handle(function_type_arguments.TypeAt(index()));
-    result = result.SetInstantiatedNullability(*this, space);
-    return result.NormalizeFutureOrType(space);
+    if (instantiator_type_arguments.Length() <= index()) {
+      // InstantiateFrom can be invoked from a compilation pipeline with
+      // mismatching type arguments vector. This can only happen for
+      // a dynamically unreachable code - which compiler can't remove
+      // statically for some reason.
+      // To prevent crashes we return AbstractType::null(), understood by caller
+      // (see AssertAssignableInstr::Canonicalize).
+      return AbstractType::null();
+    }
+    result = instantiator_type_arguments.TypeAt(index());
+    // Instantiating a class type parameter cannot result in a
+    // function type parameter.
+    // Bounds of class type parameters are ignored in the VM.
   }
-  ASSERT(IsClassTypeParameter());
-  if (instantiator_type_arguments.IsNull()) {
-    return Type::DynamicType();
-  }
-  if (instantiator_type_arguments.Length() <= index()) {
-    // InstantiateFrom can be invoked from a compilation pipeline with
-    // mismatching type arguments vector. This can only happen for
-    // a dynamically unreachable code - which compiler can't remove
-    // statically for some reason.
-    // To prevent crashes we return AbstractType::null(), understood by caller
-    // (see AssertAssignableInstr::Canonicalize).
-    return AbstractType::null();
-  }
-  AbstractType& result =
-      AbstractType::Handle(instantiator_type_arguments.TypeAt(index()));
   result = result.SetInstantiatedNullability(*this, space);
+  // Canonicalization is not part of instantiation.
   return result.NormalizeFutureOrType(space);
-  // There is no need to canonicalize the instantiated type parameter, since all
-  // type arguments are canonicalized at type finalization time. It would be too
-  // early to canonicalize the returned type argument here, since instantiation
-  // not only happens at run time, but also during type finalization.
 }
 
 AbstractTypePtr TypeParameter::Canonicalize(TrailPtr trail) const {
