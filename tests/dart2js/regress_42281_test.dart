@@ -25,7 +25,7 @@ ComponentFactory? test(String s, [Map<String, ComponentFactory>? mf2]) {
   return f;
 }
 
-work() {
+main() {
   Map<String, ComponentFactory> mf2 = {'int': ComponentFactory<num>()};
 
   test('String');
@@ -34,13 +34,4 @@ work() {
   test('int', mf2);
   test('RegExp');
   test('RegExp', mf2);
-}
-
-main() {
-  try {
-    work();
-  } catch (e, st) {
-    print(e);
-    print(st);
-  }
 }
