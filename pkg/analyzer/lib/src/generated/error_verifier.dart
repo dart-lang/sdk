@@ -1903,12 +1903,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that if the given [constructor] declaration is 'const' then there
-   * are no invocations of non-'const' super constructors.
-   *
-   * See [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER].
-   */
+  /// Verify that if the given [constructor] declaration is 'const' then there
+  /// are no invocations of non-'const' super constructors, and that there are
+  /// no instance variables mixed in.
+  ///
+  /// See [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER], and
+  /// [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD].
   void _checkForConstConstructorWithNonConstSuper(
       ConstructorDeclaration constructor) {
     if (!_enclosingExecutable.isConstConstructor) {
@@ -1920,21 +1920,26 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     // check for mixins
-    var hasInstanceField = false;
+    var instanceFields = <FieldElement>[];
     for (var mixin in _enclosingClass.mixins) {
-      var fields = mixin.element.fields;
-      for (var i = 0; i < fields.length; ++i) {
-        if (!fields[i].isStatic) {
-          hasInstanceField = true;
-          break;
-        }
-      }
+      instanceFields.addAll(mixin.element.fields
+          .where((field) => !field.isStatic && !field.isSynthetic));
     }
-    if (hasInstanceField) {
-      // TODO(scheglov) Provide the list of fields.
+    if (instanceFields.length == 1) {
+      var field = instanceFields.single;
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
-          constructor.returnType);
+          constructor.returnType,
+          ["'${field.enclosingElement.name}.${field.name}'"]);
+      return;
+    } else if (instanceFields.length > 1) {
+      var fieldNames = instanceFields
+          .map((field) => "'${field.enclosingElement.name}.${field.name}'")
+          .join(', ');
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELDS,
+          constructor.returnType,
+          [fieldNames]);
       return;
     }
 
