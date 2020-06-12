@@ -30,14 +30,6 @@ void testCopySync() {
   Expect.equals(FILE_CONTENT2, file1.readAsStringSync());
   Expect.equals(FILE_CONTENT2, file2.readAsStringSync());
 
-  // Check there is no temporary files existing.
-  var list = tmp.listSync();
-  Expect.equals(2, list.length);
-  for (var file in list) {
-    final fileName = file.path.toString();
-    Expect.isTrue(fileName.contains("file1") || fileName.contains("file2"));
-  }
-
   // Fail when coping to directory.
   var dir = new Directory('${tmp.path}/dir')..createSync();
   Expect.throws(() => file1.copySync(dir.path));
