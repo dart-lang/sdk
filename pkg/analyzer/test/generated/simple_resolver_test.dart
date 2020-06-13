@@ -861,15 +861,13 @@ class C = Object with A;''');
   }
 
   test_isValidMixin_super() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   toString() {
     return super.toString();
   }
 }
-class C = Object with A;''', [
-      error(CompileTimeErrorCode.MIXIN_REFERENCES_SUPER, 82, 1),
-    ]);
+class C = Object with A;''');
     verifyTestResolved();
 
     var a = findElement.class_('A');

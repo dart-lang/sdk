@@ -1301,8 +1301,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * Verify that all classes of the given [withClause] are valid.
    *
    * See [CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR],
-   * [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT], and
-   * [CompileTimeErrorCode.MIXIN_REFERENCES_SUPER].
+   * [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT].
    */
   bool _checkForAllMixinErrorCodes(WithClause withClause) {
     if (withClause == null) {
@@ -1340,9 +1339,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
               problemReported = true;
             }
             if (_checkForMixinInheritsNotFromObject(mixinName, mixinElement)) {
-              problemReported = true;
-            }
-            if (_checkForMixinReferencesSuper(mixinName, mixinElement)) {
               problemReported = true;
             }
           }
@@ -3293,24 +3289,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             [mixinElement.name]);
         return true;
       }
-    }
-    return false;
-  }
-
-  /**
-   * Verify that the given mixin does not reference 'super'. The [mixinName] is
-   * the node to report problem on. The [mixinElement] is the mixing to
-   * evaluate.
-   *
-   * See [CompileTimeErrorCode.MIXIN_REFERENCES_SUPER].
-   */
-  bool _checkForMixinReferencesSuper(
-      TypeName mixinName, ClassElement mixinElement) {
-    if (mixinElement.hasReferenceToSuper) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.MIXIN_REFERENCES_SUPER,
-          mixinName,
-          [mixinElement.name]);
     }
     return false;
   }

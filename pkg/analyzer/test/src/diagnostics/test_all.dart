@@ -293,7 +293,6 @@ import 'mixin_inherits_from_not_object_test.dart'
 import 'mixin_of_disallowed_class_test.dart' as mixin_of_disallowed_class;
 import 'mixin_of_non_class_test.dart' as mixin_of_non_class;
 import 'mixin_on_sealed_class_test.dart' as mixin_on_sealed_class;
-import 'mixin_references_super_test.dart' as mixin_references_super;
 import 'mixin_super_class_constraint_non_interface_test.dart'
     as mixin_super_class_constraint_non_interface;
 import 'mixin_with_non_class_superclass_test.dart'
@@ -721,7 +720,6 @@ main() {
     mixin_of_disallowed_class.main();
     mixin_of_non_class.main();
     mixin_on_sealed_class.main();
-    mixin_references_super.main();
     mixin_super_class_constraint_non_interface.main();
     mixin_with_non_class_superclass.main();
     must_be_a_native_function_type.main();

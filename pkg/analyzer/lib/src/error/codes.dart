@@ -4135,16 +4135,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       'MIXIN_OF_NON_CLASS', "Classes can only mix in mixins and classes.",
       hasPublishedDocs: true);
 
-  /**
-   * 9 Mixins: It is a compile-time error if a declared or derived mixin refers
-   * to super.
-   */
-  static const CompileTimeErrorCode MIXIN_REFERENCES_SUPER =
-      CompileTimeErrorCode(
-          'MIXIN_REFERENCES_SUPER',
-          "The class '{0}' can't be used as a mixin because it references "
-              "'super'.");
-
   static const CompileTimeErrorCode
       MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS = CompileTimeErrorCode(
           'MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS',
