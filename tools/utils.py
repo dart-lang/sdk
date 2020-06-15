@@ -314,7 +314,7 @@ def IsCrossBuild(target_os, arch):
 # there is no need to build a legacy version of the SDK for comparison purposes.
 def GetBuildConf(mode, arch, conf_os=None, sanitizer=None, dont_use_nnbd=False):
     nnbd = "Legacy" if dont_use_nnbd else ""
-    if conf_os == 'android':
+    if conf_os != GuessOS() and conf_os != "host":
         return '%s%s%s%s' % (GetBuildMode(mode), conf_os.title(), arch.upper(),
                              nnbd)
     else:

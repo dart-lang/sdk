@@ -201,7 +201,9 @@ static AppSnapshot* TryReadAppSnapshotElf(
                 *isolate_data_buffer = nullptr,
                 *isolate_instructions_buffer = nullptr;
   Dart_LoadedElf* handle = nullptr;
+#if !defined(HOST_OS_FUCHSIA)
   if (force_load_elf_from_memory) {
+#endif
     File* const file =
         File::Open(/*namespc=*/nullptr, script_name, File::kRead);
     if (file == nullptr) return nullptr;
@@ -216,11 +218,13 @@ static AppSnapshot* TryReadAppSnapshotElf(
                             &isolate_data_buffer, &isolate_instructions_buffer);
     delete memory;
     file->Release();
+#if !defined(HOST_OS_FUCHSIA)
   } else {
     handle = Dart_LoadELF(script_name, file_offset, &error, &vm_data_buffer,
                           &vm_instructions_buffer, &isolate_data_buffer,
                           &isolate_instructions_buffer);
   }
+#endif
   if (handle == nullptr) {
     Syslog::PrintErr("Loading failed: %s\n", error);
     return nullptr;
