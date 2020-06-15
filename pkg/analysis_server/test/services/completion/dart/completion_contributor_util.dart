@@ -68,35 +68,6 @@ abstract class DartCompletionContributorTest
   }
 }
 
-/// Base class for tests that validate [DartCompletionManager] suggestions.
-class DartCompletionManagerTest extends _BaseDartCompletionContributorTest {
-  DartCompletionManager completionManager;
-
-  @nonVirtual
-  @override
-  Future<List<CompletionSuggestion>> computeContributedSuggestions(
-      DartCompletionRequest request) async {
-    final baseRequest = CompletionRequestImpl(request.result, completionOffset,
-        useNewRelevance, CompletionPerformance());
-    return completionManager.computeSuggestions(baseRequest);
-  }
-
-  /// Display sorted suggestions.
-  void printSuggestions() {
-    suggestions.sort(completionComparator);
-    for (var s in suggestions) {
-      print(
-          '[${s.relevance}] ${s.completion} • ${s.element?.kind?.name ?? ""} ${s.kind.name} ${s.element?.location?.file ?? ""}');
-    }
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-    completionManager = DartCompletionManager();
-  }
-}
-
 abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
   static const String _UNCHECKED = '__UNCHECKED__';
   String testFile;
