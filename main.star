@@ -301,6 +301,14 @@ luci.cq(
     submit_burst_delay=8 * time.minute,
 )
 
+def default_verifiers():
+    return [
+        luci.cq_tryjob_verifier(
+            builder='presubmit-try',
+            disable_reuse=True,
+        ),
+    ]
+
 luci.cq_group(
     name="sdk",
     watch=cq.refset(
@@ -317,7 +325,7 @@ luci.cq_group(
     allow_submit_with_open_deps=True,
     tree_status_host="dart-status.appspot.com",
     retry_config=cq.RETRY_NONE,
-    verifiers=None,
+    verifiers=default_verifiers(),
 )
 
 luci.cq_group(
@@ -327,7 +335,7 @@ luci.cq_group(
     allow_submit_with_open_deps=True,
     tree_status_host="dart-status.appspot.com",
     retry_config=cq.RETRY_NONE,
-    verifiers=None,
+    verifiers=default_verifiers(),
 )
 
 luci.cq_group(
