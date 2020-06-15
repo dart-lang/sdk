@@ -4,16 +4,14 @@
 
 // OtherResources=splay_test.dart
 
-// Tests AOT compilation split into 2 steps using '--from-dill' option.
+// Tests AOT kernel generation split into 2 steps using '--from-dill' option.
 
 import 'dart:io' show Platform;
 
 import 'package:path/path.dart' as path;
 import 'snapshot_test_helper.dart';
 
-main() async {
-  final testScriptUri = Platform.script.resolve('splay_test.dart');
-
+Future<void> runSplitAOTKernelGenerationTest(Uri testScriptUri) async {
   await withTempDir((String temp) async {
     final intermediateDillPath = path.join(temp, 'intermediate.dill');
     final outputDillPath = path.join(temp, 'output.dill');
@@ -51,4 +49,9 @@ main() async {
 
     await runBinary('RUN SNAPSHOT', dartPrecompiledRuntime, [snapshotPath]);
   });
+}
+
+main() async {
+  await runSplitAOTKernelGenerationTest(
+      Platform.script.resolve('splay_test.dart'));
 }
