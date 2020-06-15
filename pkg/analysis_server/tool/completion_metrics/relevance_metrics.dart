@@ -786,7 +786,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     // There are no completions.
-    var contextType = featureComputer.computeContextType(node);
+    var contextType = featureComputer.computeContextType(node, node.offset);
     if (contextType != null) {
       var memberType = _returnType(node.staticElement);
       if (memberType != null) {
@@ -1018,7 +1018,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       }
     }
     if (node.target != null) {
-      var contextType = featureComputer.computeContextType(node);
+      var contextType = featureComputer.computeContextType(node, node.offset);
       if (contextType != null) {
         var memberType = _returnType(member);
         if (memberType != null) {
@@ -1139,7 +1139,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       }
     }
     if (!(member is PropertyAccessorElement && member.isSetter)) {
-      var contextType = featureComputer.computeContextType(node);
+      var contextType = featureComputer.computeContextType(node, node.offset);
       if (contextType != null) {
         var memberType = _returnType(member);
         if (memberType != null) {
@@ -1610,7 +1610,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     _recordTokenDistance(node);
     _recordTokenType(context, node, allowedKeywords: allowedKeywords);
     if (node != null) {
-      var contextType = featureComputer.computeContextType(node);
+      var contextType = featureComputer.computeContextType(node, node.offset);
       _recordContextType(contextType);
       if (contextType != null) {
         var elementType = _returnType(_leftMostElement(node));
