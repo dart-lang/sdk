@@ -5878,6 +5878,18 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
     return super.name;
   }
 
+  /// Return the error reported during type inference for this method, or
+  /// `null` if this method is not a subject of type inference, or there was
+  /// no error.
+  TopLevelInferenceError get typeInferenceError {
+    if (linkedNode != null) {
+      return linkedContext.getTypeInferenceError(linkedNode);
+    }
+
+    // We don't support type inference errors without linking.
+    return null;
+  }
+
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitMethodElement(this);
 }
@@ -6421,7 +6433,9 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
     _type = type;
   }
 
-  @override
+  /// Return the error reported during type inference for this variable, or
+  /// `null` if this variable is not a subject of type inference, or there was
+  /// no error.
   TopLevelInferenceError get typeInferenceError {
     if (linkedNode != null) {
       return linkedContext.getTypeInferenceError(linkedNode);
@@ -6702,16 +6716,6 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   DartType get type => ElementTypeProvider.current.getVariableType(this);
-
-  @override
-  TopLevelInferenceError get typeInferenceError {
-    if (linkedNode != null) {
-      return linkedContext.getTypeInferenceError(linkedNode);
-    }
-
-    // We don't support type inference errors without linking.
-    return null;
-  }
 
   @override
   DartType get typeInternal {
@@ -7844,13 +7848,6 @@ abstract class VariableElementImpl extends ElementImpl
       return linkedContext.setVariableType(linkedNode, type);
     }
     _type = type;
-  }
-
-  /// Return the error reported during type inference for this variable, or
-  /// `null` if this variable is not a subject of type inference, or there was
-  /// no error.
-  TopLevelInferenceError get typeInferenceError {
-    return null;
   }
 
   /// Gets the element's type, without going through the indirection of

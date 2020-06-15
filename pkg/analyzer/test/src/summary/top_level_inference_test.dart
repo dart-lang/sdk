@@ -2112,32 +2112,28 @@ class A {
 ''');
   }
 
-  test_method_error_conflict_parameterType_generic() async {
+  test_method_error_hasMethod_noParameter_required() async {
     var library = await _encodeDecodeLibrary(r'''
-class A<T> {
-  void m(T a) {}
+class A {
+  void m(int a) {}
 }
-class B<E> {
-  void m(E a) {}
-}
-class C extends A<int> implements B<double> {
-  void m(a) {}
+class B extends A {
+  void m(a, b) {}
 }
 ''');
+    // It's an error to add a new required parameter, but it is not a
+    // top-level type inference error.
     checkElementText(library, r'''
-class A<T> {
-  void m(T a) {}
+class A {
+  void m(int a) {}
 }
-class B<E> {
-  void m(E a) {}
-}
-class C extends A<int> implements B<double> {
-  void m(dynamic a/*error: overrideConflictParameterType*/) {}
+class B extends A {
+  void m(int a, dynamic b) {}
 }
 ''');
   }
 
-  test_method_error_conflict_parameterType_notGeneric() async {
+  test_method_error_noCombinedSuperSignature1() async {
     var library = await _encodeDecodeLibrary(r'''
 class A {
   void m(int a) {}
@@ -2146,48 +2142,50 @@ class B {
   void m(String a) {}
 }
 class C extends A implements B {
-  void m(a) {}
-}
-''');
-    checkElementText(library, r'''
-class A {
-  void m(int a) {}
-}
-class B {
-  void m(String a) {}
-}
-class C extends A implements B {
-  void m(dynamic a/*error: overrideConflictParameterType*/) {}
-}
-''');
-  }
-
-  test_method_error_conflict_returnType_generic() async {
-    var library = await _encodeDecodeLibrary(r'''
-class A<K, V> {
-  V m(K a) {}
-}
-class B<T> {
-  T m(int a) {}
-}
-class C extends A<int, String> implements B<double> {
   m(a) {}
 }
 ''');
     checkElementText(library, r'''
-class A<K, V> {
-  V m(K a) {}
+class A {
+  void m(int a) {}
 }
-class B<T> {
-  T m(int a) {}
+class B {
+  void m(String a) {}
 }
-class C extends A<int, String> implements B<double> {
-  dynamic m(dynamic a/*error: overrideConflictParameterType*/) {}
+class C extends A implements B {
+  dynamic m/*error: overrideNoCombinedSuperSignature*/(dynamic a) {}
 }
 ''');
   }
 
-  test_method_error_conflict_returnType_notGeneric() async {
+  test_method_error_noCombinedSuperSignature2() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  int foo(int x);
+}
+
+abstract class B {
+  double foo(int x);
+}
+
+abstract class C implements A, B {
+  Never foo(x);
+}
+''');
+    checkElementText(library, r'''
+abstract class A {
+  int foo(int x);
+}
+abstract class B {
+  double foo(int x);
+}
+abstract class C implements A, B {
+  Null foo/*error: overrideNoCombinedSuperSignature*/(dynamic x);
+}
+''');
+  }
+
+  test_method_error_noCombinedSuperSignature3() async {
     var library = await _encodeDecodeLibrary(r'''
 class A {
   int m() {}
@@ -2208,28 +2206,57 @@ class B {
   String m() {}
 }
 class C extends A implements B {
-  dynamic m() {}
+  dynamic m/*error: overrideNoCombinedSuperSignature*/() {}
 }
 ''');
   }
 
-  test_method_error_hasMethod_noParameter_required() async {
+  test_method_error_noCombinedSuperSignature_generic1() async {
     var library = await _encodeDecodeLibrary(r'''
-class A {
-  void m(int a) {}
+class A<T> {
+  void m(T a) {}
 }
-class B extends A {
-  void m(a, b) {}
+class B<E> {
+  void m(E a) {}
+}
+class C extends A<int> implements B<double> {
+  m(a) {}
 }
 ''');
-    // It's an error to add a new required parameter, but it is not a
-    // top-level type inference error.
     checkElementText(library, r'''
-class A {
-  void m(int a) {}
+class A<T> {
+  void m(T a) {}
 }
-class B extends A {
-  void m(int a, dynamic b) {}
+class B<E> {
+  void m(E a) {}
+}
+class C extends A<int> implements B<double> {
+  dynamic m/*error: overrideNoCombinedSuperSignature*/(dynamic a) {}
+}
+''');
+  }
+
+  test_method_error_noCombinedSuperSignature_generic2() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A<K, V> {
+  V m(K a) {}
+}
+class B<T> {
+  T m(int a) {}
+}
+class C extends A<int, String> implements B<double> {
+  m(a) {}
+}
+''');
+    checkElementText(library, r'''
+class A<K, V> {
+  V m(K a) {}
+}
+class B<T> {
+  T m(int a) {}
+}
+class C extends A<int, String> implements B<double> {
+  dynamic m/*error: overrideNoCombinedSuperSignature*/(dynamic a) {}
 }
 ''');
   }

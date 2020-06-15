@@ -94,7 +94,7 @@ class CVar implements IIntInt {
     x = intVar;
     var xList = [x];
     listIntVar = xList;
-    return itVar;
+    return intVar;
   }
 }
 

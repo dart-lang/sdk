@@ -172,7 +172,7 @@ class CInvalid8 implements IReq {
 class CInvalid9 implements IReq {
   // Do not inherit `required` if there is no type.
   void foo({x}) {}
-  //       ^
+  //        ^
   // [analyzer] COMPILE_TIME_ERROR.MISSING_DEFAULT_VALUE_FOR_PARAMETER
   // [cfe] unspecified
 }

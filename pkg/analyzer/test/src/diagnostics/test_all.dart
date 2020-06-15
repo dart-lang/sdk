@@ -312,6 +312,7 @@ import 'must_call_super_test.dart' as must_call_super;
 import 'new_with_non_type_test.dart' as new_with_non_type;
 import 'new_with_undefined_constructor_test.dart'
     as new_with_undefined_constructor;
+import 'no_combined_super_signature_test.dart' as no_combined_super_signature;
 import 'no_default_super_constructor_test.dart' as no_default_super_constructor;
 import 'non_abstract_class_inherits_abstract_member_test.dart'
     as non_abstract_class_inherits_abstract_member;
@@ -739,6 +740,7 @@ main() {
     must_call_super.main();
     new_with_non_type.main();
     new_with_undefined_constructor.main();
+    no_combined_super_signature.main();
     no_default_super_constructor.main();
     non_abstract_class_inherits_abstract_member.main();
     non_bool_condition.main();
