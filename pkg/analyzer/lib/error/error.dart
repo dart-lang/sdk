@@ -706,6 +706,7 @@ const List<ErrorCode> errorCodeValues = [
   // ignore: deprecated_member_use_from_same_package
   StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
   StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
+  StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR,
   StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
   StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
   StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,

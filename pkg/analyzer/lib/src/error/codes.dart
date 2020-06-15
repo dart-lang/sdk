@@ -7343,6 +7343,20 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   /**
    * Parameters:
    * 0: the return type as declared in the return statement
+   * 1: the expected return type as defined by the enclosing class
+   * 2: the name of the constructor
+   */
+  static const StaticTypeWarningCode RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR =
+      StaticTypeWarningCodeWithUniqueName(
+          'RETURN_OF_INVALID_TYPE',
+          'StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR',
+          "A value of type '{0}' can't be returned from constructor '{2}' "
+              "because it has a return type of '{1}'.",
+          hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the return type as declared in the return statement
    * 1: the expected return type as defined by the method
    * 2: the name of the method
    */

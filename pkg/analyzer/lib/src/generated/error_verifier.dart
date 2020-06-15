@@ -71,6 +71,8 @@ class EnclosingExecutableContext {
 
   EnclosingExecutableContext.empty() : this(null);
 
+  bool get isConstructor => element is ConstructorElement;
+
   bool get isMethod => element is MethodElement;
 
   bool get isSynchronous => !isAsynchronous;

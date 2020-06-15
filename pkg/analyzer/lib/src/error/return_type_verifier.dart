@@ -141,7 +141,19 @@ class ReturnTypeVerifier {
 
     void reportTypeError() {
       String displayName = enclosingExecutable.element.displayName;
-      if (displayName.isEmpty) {
+      if (enclosingExecutable.isConstructor) {
+        var constructor = enclosingExecutable.element as ConstructorElement;
+        var className = constructor.enclosingElement.displayName;
+        var constructorBaseName = constructor.displayName;
+        var constructorName = constructorBaseName.isEmpty
+            ? className
+            : '$className.$constructorBaseName';
+        _errorReporter.reportErrorForNode(
+          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR,
+          expression,
+          [S, T, constructorName],
+        );
+      } else if (displayName.isEmpty) {
         _errorReporter.reportErrorForNode(
           StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
           expression,
@@ -237,7 +249,19 @@ class ReturnTypeVerifier {
 
     void reportTypeError() {
       String displayName = enclosingExecutable.element.displayName;
-      if (displayName.isEmpty) {
+      if (enclosingExecutable.isConstructor) {
+        var constructor = enclosingExecutable.element as ConstructorElement;
+        var className = constructor.enclosingElement.displayName;
+        var constructorBaseName = constructor.displayName;
+        var constructorName = constructorBaseName.isEmpty
+            ? className
+            : '$className.$constructorBaseName';
+        _errorReporter.reportErrorForNode(
+          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR,
+          expression,
+          [S, T, constructorName],
+        );
+      } else if (displayName.isEmpty) {
         _errorReporter.reportErrorForNode(
           StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
           expression,
