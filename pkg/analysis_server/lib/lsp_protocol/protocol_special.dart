@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
+import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 
 const jsonRpcVersion = '2.0';
@@ -19,6 +20,18 @@ ErrorOr<R> error<R>(ErrorCodes code, String message, [String data]) =>
     ErrorOr<R>.error(ResponseError(code, message, data));
 
 ErrorOr<R> failure<R>(ErrorOr<dynamic> error) => ErrorOr<R>.error(error.error);
+
+/// Returns if two objects are equal, recursively checking items in
+/// Maps/Lists.
+bool lspEquals(dynamic obj1, dynamic obj2) {
+  if (obj1 is List && obj2 is List) {
+    return listEqual(obj1, obj2, lspEquals);
+  } else if (obj1 is Map && obj2 is Map) {
+    return mapEqual(obj1, obj2, lspEquals);
+  } else {
+    return obj1.runtimeType == obj2.runtimeType && obj1 == obj2;
+  }
+}
 
 /// Returns an objects hash code, recursively combining hashes for items in
 /// Maps/Lists.
@@ -69,7 +82,8 @@ class Either2<T1, T2> {
   int get hashCode => map(lspHashCode, lspHashCode);
 
   @override
-  bool operator ==(o) => o is Either2<T1, T2> && o._t1 == _t1 && o._t2 == _t2;
+  bool operator ==(o) =>
+      o is Either2<T1, T2> && lspEquals(o._t1, _t1) && lspEquals(o._t2, _t2);
 
   T map<T>(T Function(T1) f1, T Function(T2) f2) {
     return _which == 1 ? f1(_t1) : f2(_t2);
@@ -108,7 +122,10 @@ class Either3<T1, T2, T3> {
 
   @override
   bool operator ==(o) =>
-      o is Either3<T1, T2, T3> && o._t1 == _t1 && o._t2 == _t2 && o._t3 == _t3;
+      o is Either3<T1, T2, T3> &&
+      lspEquals(o._t1, _t1) &&
+      lspEquals(o._t2, _t2) &&
+      lspEquals(o._t3, _t3);
 
   T map<T>(T Function(T1) f1, T Function(T2) f2, T Function(T3) f3) {
     switch (_which) {
@@ -170,10 +187,10 @@ class Either4<T1, T2, T3, T4> {
   @override
   bool operator ==(o) =>
       o is Either4<T1, T2, T3, T4> &&
-      o._t1 == _t1 &&
-      o._t2 == _t2 &&
-      o._t3 == _t3 &&
-      o._t4 == _t4;
+      lspEquals(o._t1, _t1) &&
+      lspEquals(o._t2, _t2) &&
+      lspEquals(o._t3, _t3) &&
+      lspEquals(o._t4, _t4);
 
   T map<T>(T Function(T1) f1, T Function(T2) f2, T Function(T3) f3,
       T Function(T4) f4) {

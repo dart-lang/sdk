@@ -48,6 +48,14 @@ void main() {
       expect(a.hashCode, equals(b.hashCode));
     });
 
+    test('with unions of lists can be checked for equality', () {
+      final a = Either2<List<String>, List<int>>.t1(['test']);
+      final b = Either2<List<String>, List<int>>.t1(['test']);
+
+      expect(a, equals(b));
+      expect(a.hashCode, equals(b.hashCode));
+    });
+
     test('with union fields can be checked for equality', () {
       final a =
           SignatureInformation('a', Either2<String, MarkupContent>.t1('a'), []);
