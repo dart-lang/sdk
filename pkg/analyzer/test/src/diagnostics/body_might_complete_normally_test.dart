@@ -22,6 +22,26 @@ class BodyMayCompleteNormallyTest extends DriverResolutionTest {
     ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.7.0', additionalFeatures: [Feature.non_nullable]);
 
+  test_factoryConstructor_named_blockBody() async {
+    await assertErrorsInCode(r'''
+class A {
+  factory A.named() {}
+}
+''', [
+      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 20, 7),
+    ]);
+  }
+
+  test_factoryConstructor_unnamed_blockBody() async {
+    await assertErrorsInCode(r'''
+class A {
+  factory A() {}
+}
+''', [
+      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 20, 1),
+    ]);
+  }
+
   test_function_future_int_blockBody_async() async {
     await assertErrorsInCode(r'''
 Future<int> foo() async {}
@@ -215,6 +235,22 @@ main() {
   int? Function() foo = () {
   };
   foo;
+}
+''');
+  }
+
+  test_generativeConstructor_blockBody() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A() {}
+}
+''');
+  }
+
+  test_generativeConstructor_emptyBody() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A();
 }
 ''');
   }

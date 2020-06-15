@@ -414,10 +414,17 @@ class ResolverVisitor extends ScopedVisitor {
       }
 
       if (typeSystem.isPotentiallyNonNullable(returnType)) {
-        errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY,
-          errorNode,
-        );
+        if (errorNode is ConstructorDeclaration) {
+          errorReporter.reportErrorForName(
+            CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY,
+            errorNode,
+          );
+        } else {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY,
+            errorNode,
+          );
+        }
       }
     }
   }
@@ -807,24 +814,41 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
-    try {
-      _flowAnalysis?.topLevelDeclaration_enter(
-          node, node.parameters, node.body);
-      _flowAnalysis?.executableDeclaration_enter(node, node.parameters, false);
+    _enclosingFunction = node.declaredElement;
+
+    if (_flowAnalysis != null) {
+      _flowAnalysis.topLevelDeclaration_enter(node, node.parameters, node.body);
+      _flowAnalysis.executableDeclaration_enter(node, node.parameters, false);
+    } else {
       _promoteManager.enterFunctionBody(node.body);
-      _enclosingFunction = node.declaredElement;
-      FunctionType type = _enclosingFunction.type;
-      InferenceContext.setType(node.body, type.returnType);
-      super.visitConstructorDeclaration(node);
-    } finally {
-      _flowAnalysis?.executableDeclaration_exit(node.body, false);
-      _flowAnalysis?.topLevelDeclaration_exit();
-      _promoteManager.exitFunctionBody();
-      _enclosingFunction = outerFunction;
     }
+
+    var returnType = _enclosingFunction.type.returnType;
+    InferenceContext.setType(node.body, returnType);
+
+    super.visitConstructorDeclaration(node);
+
+    if (_flowAnalysis != null) {
+      var bodyContext = BodyInferenceContext.of(node.body);
+      if (node.factoryKeyword != null) {
+        checkForBodyMayCompleteNormally(
+          returnType: bodyContext?.contextType,
+          body: node.body,
+          errorNode: node,
+        );
+      }
+      _flowAnalysis.executableDeclaration_exit(node.body, false);
+      _flowAnalysis.topLevelDeclaration_exit();
+      nullSafetyDeadCodeVerifier?.flowEnd(node);
+    } else {
+      _promoteManager.exitFunctionBody();
+    }
+
     ConstructorElementImpl constructor = node.declaredElement;
     constructor.constantInitializers =
         _createCloner().cloneNodeList(node.initializers);
+
+    _enclosingFunction = outerFunction;
   }
 
   @override
