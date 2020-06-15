@@ -196,19 +196,6 @@ DEFINE_NATIVE_ENTRY(Type_equality, 0, 2) {
   return Bool::Get(type.IsEquivalent(other, TypeEquality::kSyntactical)).raw();
 }
 
-DEFINE_NATIVE_ENTRY(LibraryPrefix_isLoaded, 0, 1) {
-  const LibraryPrefix& prefix =
-      LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
-  return Bool::Get(prefix.is_loaded()).raw();
-}
-
-DEFINE_NATIVE_ENTRY(LibraryPrefix_setLoaded, 0, 1) {
-  const LibraryPrefix& prefix =
-      LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
-  prefix.set_is_loaded(true);
-  return Instance::null();
-}
-
 DEFINE_NATIVE_ENTRY(Internal_inquireIs64Bit, 0, 0) {
 #if defined(ARCH_IS_64_BIT)
   return Bool::True().raw();

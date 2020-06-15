@@ -11081,6 +11081,27 @@ void ClassDictionaryIterator::MoveToNextClass() {
   }
 }
 
+LibraryPrefixIterator::LibraryPrefixIterator(const Library& library)
+    : DictionaryIterator(library) {
+  Advance();
+}
+
+LibraryPrefixPtr LibraryPrefixIterator::GetNext() {
+  ASSERT(HasNext());
+  int ix = next_ix_++;
+  Object& obj = Object::Handle(array_.At(ix));
+  Advance();
+  return LibraryPrefix::Cast(obj).raw();
+}
+
+void LibraryPrefixIterator::Advance() {
+  Object& obj = Object::Handle(array_.At(next_ix_));
+  while (!obj.IsLibraryPrefix() && HasNext()) {
+    next_ix_++;
+    obj = array_.At(next_ix_);
+  }
+}
+
 static void ReportTooManyImports(const Library& lib) {
   const String& url = String::Handle(lib.url());
   Report::MessageF(Report::kError, Script::Handle(lib.LookupScript(url)),
@@ -12054,10 +12075,6 @@ void Library::set_toplevel_class(const Class& value) const {
   StorePointer(&raw_ptr()->toplevel_class_, value.raw());
 }
 
-void Library::set_dependencies(const Array& deps) const {
-  StorePointer(&raw_ptr()->dependencies_, deps.raw());
-}
-
 void Library::set_metadata(const GrowableObjectArray& value) const {
   StorePointer(&raw_ptr()->metadata_, value.raw());
 }
@@ -12926,7 +12943,6 @@ LibraryPrefixPtr LibraryPrefix::New(const String& name,
   result.set_num_imports(0);
   result.set_importer(importer);
   result.StoreNonPointer(&result.raw_ptr()->is_deferred_load_, deferred_load);
-  result.StoreNonPointer(&result.raw_ptr()->is_loaded_, !deferred_load);
   result.set_imports(Array::Handle(Array::New(kInitialSize)));
   result.AddImport(import);
   return result.raw();
@@ -12954,7 +12970,8 @@ void LibraryPrefix::set_importer(const Library& value) const {
 
 const char* LibraryPrefix::ToCString() const {
   const String& prefix = String::Handle(name());
-  return prefix.ToCString();
+  return OS::SCreate(Thread::Current()->zone(), "LibraryPrefix:'%s'",
+                     prefix.ToCString());
 }
 
 void Namespace::set_metadata_field(const Field& value) const {

@@ -1305,7 +1305,6 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
   LibraryPrefix& library_prefix = LibraryPrefix::Handle(Z);
 
   const intptr_t deps_count = helper_.ReadListLength();
-  const Array& deps = Array::Handle(Array::New(deps_count));
   for (intptr_t dep = 0; dep < deps_count; ++dep) {
     LibraryDependencyHelper dependency_helper(&helper_);
 
@@ -1389,21 +1388,12 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
         }
       }
     }
-
     if (FLAG_enable_mirrors && dependency_helper.annotation_count_ > 0) {
       ASSERT(annotations_kernel_offset > 0);
       ns.AddMetadata(toplevel_class, TokenPosition::kNoSource,
                      annotations_kernel_offset);
     }
-
-    if (prefix.IsNull()) {
-      deps.SetAt(dep, ns);
-    } else {
-      deps.SetAt(dep, library_prefix);
-    }
   }
-
-  library->set_dependencies(deps);
 }
 
 void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,

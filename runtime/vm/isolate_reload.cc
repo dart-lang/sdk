@@ -738,7 +738,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
 
   // Ensure all functions on the stack have unoptimized code.
   // Deoptimize all code that had optimizing decisions that are dependent on
-  // assumptions from field guards or CHA or deferred library prefixes.
+  // assumptions from field guards or CHA.
   // TODO(johnmccutchan): Deoptimizing dependent code here (before the reload)
   // is paranoid. This likely can be moved to the commit phase.
   ForEachIsolate([&](Isolate* isolate) {
@@ -1312,8 +1312,6 @@ void IsolateReloadContext::DeoptimizeDependentCode() {
   }
 
   DeoptimizeTypeTestingStubs();
-
-  // TODO(rmacnak): Also call LibraryPrefix::InvalidateDependentCode.
 }
 
 void IsolateGroupReloadContext::CheckpointSharedClassTable() {
