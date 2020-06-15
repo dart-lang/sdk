@@ -1376,7 +1376,7 @@
             "co19"
           ],
           "fileset": "vm-kernel",
-          "shards": 1
+          "shards": 2
         },
         {
           "name": "co19 nnbd tests in strong mode",
@@ -1385,7 +1385,7 @@
             "co19"
           ],
           "fileset": "vm-kernel",
-          "shards": 1
+          "shards": 2
         },
         {
           "name": "vm nnbd tests in weak mode with asserts",
