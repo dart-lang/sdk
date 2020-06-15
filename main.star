@@ -946,7 +946,11 @@ dart_ci_sandbox_builder(
 # Try only builders
 dart_try_builder("benchmark-linux", on_cq=True)
 dart_try_builder("vm-kernel-gcc-linux")
-
+dart_try_builder(
+    "presubmit",
+    recipe="presubmit/presubmit",
+    execution_timeout=5 * time.minute,
+)
 
 def add_postponed_alt_console_entries():
     for entry in postponed_alt_console_entries:
