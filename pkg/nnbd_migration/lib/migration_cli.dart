@@ -195,8 +195,12 @@ class MigrateCommand extends Command<dynamic> {
   @override
   FutureOr<int> run() async {
     var cli = MigrationCli(binaryName: 'dart $name');
-    await cli.run(argResults, isVerbose: verbose);
-    return cli.exitCode;
+    try {
+      await cli.run(argResults, isVerbose: verbose);
+    } on MigrationExit catch (migrationExit) {
+      return migrationExit.exitCode;
+    }
+    return 0;
   }
 }
 
@@ -229,10 +233,6 @@ class MigrationCli {
   /// The result of parsing command-line options.
   @visibleForTesting
   /*late*/ CommandLineOptions options;
-
-  /// The exit code that should be used when the process terminates, or `null`
-  /// if there is still more work to do.
-  int exitCode;
 
   final Map<String, List<AnalysisError>> fileErrors = {};
 
@@ -327,7 +327,6 @@ class MigrationCli {
       isVerbose ??= argResults[CommandLineOptions.verboseFlag] as bool;
       if (argResults[CommandLineOptions.helpFlag] as bool) {
         _showUsage(isVerbose);
-        exitCode = 0;
         return;
       }
       var rest = argResults.rest;
@@ -398,18 +397,16 @@ class MigrationCli {
     }
     logger.stderr(message);
     _showUsage(false);
-    exitCode = 1;
-    return;
+    throw MigrationExit(1);
   }
 
   /// Runs the full migration process.
-  void run(ArgResults argResults, {bool isVerbose}) async {
+  Future<void> run(ArgResults argResults, {bool isVerbose}) async {
     decodeCommandLineArgs(argResults, isVerbose: isVerbose);
-    if (exitCode != null) return;
+    if (options == null) return;
     if (!options.skipPubOutdated) {
       _checkDependencies();
     }
-    if (exitCode != null) return;
 
     logger.stdout('Migrating ${options.directory}');
     logger.stdout('');
@@ -447,15 +444,12 @@ class MigrationCli {
       if (sdkPathVar != null) {
         logger.stdout('$sdkPathEnvironmentVariableSet: $sdkPathVar');
       }
-      exitCode = 1;
+      throw MigrationExit(1);
     }
-    if (exitCode != null) return;
 
     logger.stdout('');
     logger.stdout(ansi.emphasized('Generating migration suggestions...'));
     previewUrls = await _fixCodeProcessor.runLaterPhases(resetProgress: true);
-
-    if (exitCode != null) return;
 
     if (options.applyChanges) {
       logger.stdout(ansi.emphasized('Applying changes:'));
@@ -470,7 +464,6 @@ class MigrationCli {
       // Note: do not open the web preview if apply-changes is specified, as we
       // currently cannot tell the web preview to disable the "apply migration"
       // button.
-      exitCode = 0;
       return;
     }
 
@@ -504,7 +497,6 @@ Use this interactive web view to review, improve, or apply the results.
       logger.stdout('To apply these changes, re-run the tool with '
           '--${CommandLineOptions.applyChangesFlag}.');
     }
-    exitCode = 0;
   }
 
   /// Perform the indicated source edits to the given source, returning the
@@ -547,7 +539,7 @@ Use this interactive web view to review, improve, or apply the results.
             options.directory, pathContext, logger, processManager)
         .check();
     if (!successful) {
-      exitCode = 1;
+      throw MigrationExit(1);
     }
   }
 
@@ -586,8 +578,7 @@ Use this interactive web view to review, improve, or apply the results.
             'Please fix the analysis issues (or, force generation of migration '
             'suggestions by re-running with '
             '--${CommandLineOptions.ignoreErrorsFlag}).');
-        exitCode = 1;
-        return;
+        throw MigrationExit(1);
       }
     }
   }
@@ -655,7 +646,6 @@ migration anyway due to the use of --${CommandLineOptions.ignoreExceptionsFlag}.
 To see exception details, re-run without --${CommandLineOptions.ignoreExceptionsFlag}.
 ''');
     } else {
-      exitCode = 1;
       if (_hasAnalysisErrors) {
         logger.stderr('''
 Aborting migration due to an exception.  This may be due to a bug in
@@ -678,6 +668,7 @@ To attempt to perform migration anyway, you may re-run with
 Exception details:
 ''');
       logger.stderr(detail);
+      throw MigrationExit(1);
     }
   }
 
@@ -794,6 +785,14 @@ Exception details:
   }
 }
 
+/// Exception thrown by [MigrationCli] if the client should exit.
+class MigrationExit {
+  /// The exit code that the client should set.
+  final int exitCode;
+
+  MigrationExit(this.exitCode);
+}
+
 /// An abstraction over the static methods on [Process].
 ///
 /// Used in tests to run mock processes.
@@ -871,7 +870,6 @@ class _FixCodeProcessor extends Object {
               if (pathsToProcess.contains(unit.path) &&
                   !pathsProcessed.contains(unit.path)) {
                 await process(unit);
-                if (_migrationCli.exitCode != null) return;
                 pathsProcessed.add(unit.path);
               }
             }
@@ -888,7 +886,6 @@ class _FixCodeProcessor extends Object {
         continue;
       }
       await process(result);
-      if (_migrationCli.exitCode != null) return;
     }
   }
 
@@ -934,7 +931,7 @@ class _FixCodeProcessor extends Object {
       });
     }
     var state = await _task.finish();
-    if (_migrationCli.exitCode == null && _migrationCli.options.webPreview) {
+    if (_migrationCli.options.webPreview) {
       await _task.startPreviewServer(state);
     }
     _progressBar.complete();

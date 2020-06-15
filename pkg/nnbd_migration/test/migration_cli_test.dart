@@ -152,16 +152,25 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
 
   Future<String> assertDecodeArgsFailure(List<String> args) async {
     var cli = _createCli();
-    await cli.run(MigrationCli.createParser().parse(args));
-    var stderrText = assertErrorExit(cli);
+    var stderrText = await assertErrorExit(
+        cli, () => cli.run(MigrationCli.createParser().parse(args)),
+        withUsage: true);
     expect(stderrText, isNot(contains('Exception')));
     return stderrText;
   }
 
-  String assertErrorExit(MigrationCli cli, {bool withUsage = true}) {
+  Future<String> assertErrorExit(
+      MigrationCli cli, Future<void> Function() callback,
+      {@required bool withUsage, dynamic expectedExitCode = anything}) async {
+    try {
+      await callback();
+      fail('Migration succeeded; expected it to abort with an error');
+    } on MigrationExit catch (migrationExit) {
+      expect(migrationExit.exitCode, isNotNull);
+      expect(migrationExit.exitCode, isNot(0));
+      expect(migrationExit.exitCode, expectedExitCode);
+    }
     expect(cli.isPreviewServerRunning, isFalse);
-    expect(cli.exitCode, isNotNull);
-    expect(cli.exitCode, isNot(0));
     var stderrText = logger.stderrBuffer.toString();
     expect(stderrText, withUsage ? hasUsageText : isNot(hasUsageText));
     expect(stderrText,
@@ -186,7 +195,6 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
 
   void assertNormalExit(MigrationCli cli) {
     expect(cli.isPreviewServerRunning, isFalse);
-    expect(cli.exitCode, 0);
   }
 
   Future<String> assertParseArgsFailure(List<String> args) async {
@@ -202,8 +210,9 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
   CommandLineOptions assertParseArgsSuccess(List<String> args) {
     var cli = _createCli();
     cli.decodeCommandLineArgs(MigrationCli.createParser().parse(args));
-    expect(cli.exitCode, isNull);
+    assertNormalExit(cli);
     var options = cli.options;
+    expect(options, isNotNull);
     return options;
   }
 
@@ -251,6 +260,16 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
             projectDir, resourceProvider.pathContext, logger, processManager)
         .check();
     expect(success, isTrue);
+  }
+
+  Future<String> assertRunFailure(List<String> args,
+      {MigrationCli cli,
+      bool withUsage = false,
+      dynamic expectedExitCode = anything}) async {
+    cli ??= _createCli();
+    return await assertErrorExit(
+        cli, () => cli.run(MigrationCli.createParser().parse(args)),
+        withUsage: withUsage, expectedExitCode: expectedExitCode);
   }
 
   String createProjectDir(Map<String, String> contents,
@@ -346,15 +365,14 @@ int${migrated ? '?' : ''} f() => null;
     expect(newCoreLibText, isNot(oldCoreLibText));
     coreLib.writeAsStringSync(newCoreLibText);
     var projectDir = await createProjectDir(simpleProject());
-    await cli.run(MigrationCli.createParser().parse([projectDir]));
-    assertErrorExit(cli, withUsage: false);
+    await assertRunFailure([projectDir], cli: cli);
     var output = logger.stdoutBuffer.toString();
     expect(output, contains(messages.sdkNnbdOff));
   }
 
   test_detect_old_sdk_environment_variable() async {
     environmentVariables['SDK_PATH'] = '/fake-old-sdk-path';
-    var cli = _createCli();
+    var cli = _createCli(); // Creates the mock SDK as a side effect
     // Alter the mock SDK, changing the signature of Object.operator== to match
     // the signature that was present prior to NNBD.  (This is what the
     // migration tool uses to detect an old SDK).
@@ -367,8 +385,7 @@ int${migrated ? '?' : ''} f() => null;
     expect(newCoreLibText, isNot(oldCoreLibText));
     coreLib.writeAsStringSync(newCoreLibText);
     var projectDir = await createProjectDir(simpleProject());
-    await cli.run(MigrationCli.createParser().parse([projectDir]));
-    assertErrorExit(cli, withUsage: false);
+    await assertRunFailure([projectDir], cli: cli);
     var output = logger.stdoutBuffer.toString();
     expect(output, contains(messages.sdkNnbdOff));
     expect(output, contains(messages.sdkPathEnvironmentVariableSet));
@@ -522,8 +539,7 @@ linter:
     var projectContents = simpleProject(sourceText: 'main() { print(0); }');
     var projectDir = await createProjectDir(projectContents);
     var cli = _createCli(injectArtificialException: true);
-    await cli.run(_parseArgs([projectDir]));
-    assertErrorExit(cli, withUsage: false);
+    await assertRunFailure([projectDir], cli: cli);
     var errorOutput = logger.stderrBuffer.toString();
     expect(errorOutput, contains('Artificial exception triggered'));
     expect(
@@ -556,8 +572,7 @@ linter:
         simpleProject(sourceText: 'main() { print(0); print(1); }');
     var projectDir = await createProjectDir(projectContents);
     var cli = _createCli(injectArtificialException: true);
-    await cli.run(_parseArgs([projectDir]));
-    assertErrorExit(cli, withUsage: false);
+    await assertRunFailure([projectDir], cli: cli);
     var errorOutput = logger.stderrBuffer.toString();
     expect(
         'Artificial exception triggered'.allMatches(errorOutput), hasLength(1));
@@ -571,8 +586,7 @@ linter:
         simpleProject(sourceText: 'main() { print(0); unresolved; }');
     var projectDir = await createProjectDir(projectContents);
     var cli = _createCli(injectArtificialException: true);
-    await cli.run(_parseArgs(['--ignore-errors', projectDir]));
-    assertErrorExit(cli, withUsage: false);
+    await assertRunFailure(['--ignore-errors', projectDir], cli: cli);
     var errorOutput = logger.stderrBuffer.toString();
     expect(errorOutput, contains('Artificial exception triggered'));
     expect(errorOutput, contains('try to fix errors in the source code'));
@@ -584,9 +598,7 @@ linter:
 int f() => null
 ''');
     var projectDir = await createProjectDir(projectContents);
-    var cli = _createCli();
-    await cli.run(_parseArgs([projectDir]));
-    assertErrorExit(cli, withUsage: false);
+    await assertRunFailure([projectDir]);
     var output = logger.stdoutBuffer.toString();
     expect(output, contains('1 analysis issue found'));
     var sep = resourceProvider.pathContext.separator;
@@ -1047,11 +1059,8 @@ int f() => null;
 }
 ''' /* stdout */,
         '' /* stderr */);
-    var cli = _createCli();
-    await cli.run(_parseArgs([projectDir]));
-    var output = assertErrorExit(cli, withUsage: false);
+    var output = await assertRunFailure([projectDir], expectedExitCode: 1);
     expect(output, contains('Warning: dependencies are outdated.'));
-    expect(cli.exitCode, 1);
   }
 
   test_lifecycle_skip_pub_outdated_enable() async {
@@ -1146,9 +1155,7 @@ import 'package:does_not/exist.dart';
 int f() => null;
 ''');
     var projectDir = await createProjectDir(projectContents);
-    var cli = _createCli();
-    await cli.run(_parseArgs([projectDir]));
-    assertErrorExit(cli, withUsage: false);
+    await assertRunFailure([projectDir]);
     var output = logger.stdoutBuffer.toString();
     expect(output, contains('1 analysis issue found'));
     expect(output, contains('uri_does_not_exist'));
@@ -1199,9 +1206,7 @@ int f() => null;
   }
 
   test_migrate_path_two() async {
-    var cli = _createCli();
-    await cli.run(_parseArgs(['foo', 'bar']));
-    var stderrText = assertErrorExit(cli);
+    var stderrText = await assertRunFailure(['foo', 'bar'], withUsage: true);
     expect(stderrText, contains('No more than one path may be specified'));
   }
 
@@ -1581,7 +1586,7 @@ name: test
     var cli = _createCli();
     await cli.run(_parseArgs(
         ['--${CommandLineOptions.helpFlag}', if (verbose) '--verbose']));
-    expect(cli.exitCode, 0);
+    assertNormalExit(cli);
     var helpText = logger.stderrBuffer.toString();
     return helpText;
   }
