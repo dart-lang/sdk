@@ -226,15 +226,18 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, dont_use_nnbd):
     gn_args['is_msan'] = sanitizer == 'msan'
     gn_args['is_tsan'] = sanitizer == 'tsan'
     gn_args['is_ubsan'] = sanitizer == 'ubsan'
-    gn_args['include_dart2native'] = True
     gn_args['is_qemu'] = args.use_qemu
 
     if not args.platform_sdk and not gn_args['target_cpu'].startswith('arm'):
         gn_args['dart_platform_sdk'] = args.platform_sdk
-    gn_args['dart_stripped_binary'] = 'exe.stripped/dart'
-    gn_args[
-        'dart_precompiled_runtime_stripped_binary'] = 'exe.stripped/dart_precompiled_runtime'
-    gn_args['gen_snapshot_stripped_binary'] = 'exe.stripped/gen_snapshot'
+
+    # We don't support stripping on Windows
+    if host_os != 'win':
+        gn_args['dart_stripped_binary'] = 'exe.stripped/dart'
+        gn_args['dart_precompiled_runtime_stripped_binary'] = (
+            'exe.stripped/dart_precompiled_runtime_product')
+        gn_args['gen_snapshot_stripped_binary'] = (
+            'exe.stripped/gen_snapshot_product')
 
     # Setup the user-defined sysroot.
     if UseSysroot(args, gn_args):
