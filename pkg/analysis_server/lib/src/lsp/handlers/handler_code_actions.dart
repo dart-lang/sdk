@@ -25,6 +25,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart'
     show InconsistentAnalysisException;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
+import 'package:collection/collection.dart' show groupBy;
 
 class CodeActionHandler extends MessageHandler<CodeActionParams,
     List<Either2<Command, CodeAction>>> {
@@ -96,29 +97,52 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   /// version of each document being modified so it's important to call this
   /// immediately after computing edits to ensure the document is not modified
   /// before the version number is read.
-  Either2<Command, CodeAction> _createAssistAction(Assist assist) {
-    return Either2<Command, CodeAction>.t2(CodeAction(
+  CodeAction _createAssistAction(Assist assist) {
+    return CodeAction(
       assist.change.message,
       toCodeActionKind(assist.change.id, CodeActionKind.Refactor),
       const [],
       createWorkspaceEdit(server, assist.change.edits),
       null,
-    ));
+    );
   }
 
   /// Creates a CodeAction to apply this fix. Note: This code will fetch the
   /// version of each document being modified so it's important to call this
   /// immediately after computing edits to ensure the document is not modified
   /// before the version number is read.
-  Either2<Command, CodeAction> _createFixAction(
-      Fix fix, Diagnostic diagnostic) {
-    return Either2<Command, CodeAction>.t2(CodeAction(
+  CodeAction _createFixAction(Fix fix, Diagnostic diagnostic) {
+    return CodeAction(
       fix.change.message,
       toCodeActionKind(fix.change.id, CodeActionKind.QuickFix),
       [diagnostic],
       createWorkspaceEdit(server, fix.change.edits),
       null,
-    ));
+    );
+  }
+
+  /// Dedupes actions that perform the same edit and merge their diagnostics
+  /// together. This avoids duplicates where there are multiple errors on
+  /// the same line that have the same fix (for example importing a
+  /// library that fixes multiple unresolved types).
+  List<CodeAction> _dedupeActions(Iterable<CodeAction> actions) {
+    final groups = groupBy(actions, (CodeAction action) => action.edit);
+    return groups.keys.map((edit) {
+      final first = groups[edit].first;
+      // Avoid constructing new CodeActions if there was only one in this group.
+      if (groups[edit].length == 1) {
+        return first;
+      }
+      // Build a new CodeAction that merges the diagnostics from each same
+      // code action onto a single one.
+      return CodeAction(
+          first.title,
+          first.kind,
+          // Merge diagnostics from all of the CodeActions.
+          groups[edit].expand((r) => r.diagnostics).toList(),
+          first.edit,
+          first.command);
+    }).toList();
   }
 
   Future<List<Either2<Command, CodeAction>>> _getAssistActions(
@@ -145,7 +169,11 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       final assists = await processor.compute();
       assists.sort(Assist.SORT_BY_RELEVANCE);
 
-      return assists.map(_createAssistAction).toList();
+      final assistActions = _dedupeActions(assists.map(_createAssistAction));
+
+      return assistActions
+          .map((action) => Either2<Command, CodeAction>.t2(action))
+          .toList();
     } on InconsistentAnalysisException {
       // If an InconsistentAnalysisException occurs, it's likely the user modified
       // the source and therefore is no longer interested in the results, so
@@ -172,6 +200,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       _getFixActions(kinds, supportsLiterals, range, unit),
     ]);
     final flatResults = results.expand((x) => x).toList();
+
     return success(flatResults);
   }
 
@@ -188,7 +217,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     }
 
     final lineInfo = unit.lineInfo;
-    final codeActions = <Either2<Command, CodeAction>>[];
+    final codeActions = <CodeAction>[];
     final fixContributor = DartFixContributor();
 
     try {
@@ -216,7 +245,12 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
           }
         }
       }
-      return codeActions;
+
+      final dedupedActions = _dedupeActions(codeActions);
+
+      return dedupedActions
+          .map((action) => Either2<Command, CodeAction>.t2(action))
+          .toList();
     } on InconsistentAnalysisException {
       // If an InconsistentAnalysisException occurs, it's likely the user modified
       // the source and therefore is no longer interested in the results, so
