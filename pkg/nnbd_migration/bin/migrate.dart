@@ -16,7 +16,7 @@ main(List<String> args) async {
     } on FormatException catch (e) {
       cli.handleArgParsingException(e);
     }
-    await cli.run(argResults);
+    await cli.decodeCommandLineArgs(argResults)?.run();
   } on MigrationExit catch (migrationExit) {
     exitCode = migrationExit.exitCode;
   }
