@@ -70,7 +70,7 @@ vars = {
   "bazel_worker_tag": "v0.1.22",
   "benchmark_harness_rev": "81641290dea44c34138a109a37e215482f405f81",
   "boolean_selector_rev": "1309eabed510cc3b7536fd4367d39b97ebee3d69",
-  "boringssl_gen_rev": "b9e27cff1ff0803e97ab1f88764a83be4aa94a6d",
+  "boringssl_gen_rev": "429ccb1877f7987a6f3988228bc2440e61293499",
   "boringssl_rev" : "4dfd5af70191b068aebe567b8e29ce108cee85ce",
   "browser-compat-data_tag": "v1.0.22",
   "charcode_rev": "9085e6b6127f084d66c0a94810a808121459012a",
