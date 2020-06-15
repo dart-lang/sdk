@@ -71,7 +71,31 @@ class EnclosingExecutableContext {
 
   EnclosingExecutableContext.empty() : this(null);
 
+  String get displayName {
+    var element = this.element;
+    if (element is ConstructorElement) {
+      var className = element.enclosingElement.displayName;
+      var constructorName = element.displayName;
+      return constructorName.isEmpty
+          ? className
+          : '$className.$constructorName';
+    } else {
+      return element.displayName;
+    }
+  }
+
+  bool get isClosure {
+    return element is FunctionElement && element.displayName.isEmpty;
+  }
+
   bool get isConstructor => element is ConstructorElement;
+
+  bool get isFunction {
+    if (element is FunctionElement) {
+      return element.displayName.isNotEmpty;
+    }
+    return element is PropertyAccessorElement;
+  }
 
   bool get isMethod => element is MethodElement;
 
