@@ -10,15 +10,12 @@ CCARM=arm-linux-gnueabihf-gcc
 CCARM64=aarch64-linux-gnu-gcc
 CFLAGS=-Wall -g -O -fPIC
 
-# Bump this whenever the benchmark is updated.
-VERSION=1
-
 .PHONY: all clean
 
 all: out/linux/x64/libnative_functions.so out/linux/ia32/libnative_functions.so out/linux/arm64/libnative_functions.so out/linux/arm/libnative_functions.so
 
 cipd:
-	cipd create -name dart/benchmarks/fficall -in out -install-mode copy -tag version:$(VERSION)
+	cipd create -name dart/benchmarks/fficall -in out -install-mode copy
 
 clean:
 	rm -rf *.o *.so out
