@@ -505,7 +505,7 @@ deps = {
       "packages": [
           {
               "package": "dart/benchmarks/fficall",
-              "version": "version:1",
+              "version": "_AKfaNTE0blKZwinuNMETidy44AK5b-u_rXmdBpat9UC",
           },
       ],
       "dep_type": "cipd",
