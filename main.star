@@ -230,14 +230,13 @@ luci.bucket(
         acl.entry(acl.BUILDBUCKET_TRIGGERER, users=CI_SANDBOX_TRIGGERERS),
     ],
 )
-luci.bucket(
-    name="try",
-    acls=[
-        acl.entry(
-            acl.BUILDBUCKET_TRIGGERER,
-            groups=["project-dart-tryjob-access", "service-account-cq"]),
-    ],
-)
+TRY_ACLS=[
+    acl.entry(
+        acl.BUILDBUCKET_TRIGGERER,
+        groups=["project-dart-tryjob-access", "service-account-cq"]),
+]
+luci.bucket(name="try", acls=TRY_ACLS) # Tryjobs specific to the Dart SDK repo.
+luci.bucket(name="try.shared", acls=TRY_ACLS) # Tryjobs for all repos.
 
 luci.gitiles_poller(
     name="dart-gitiles-trigger-flutter",
@@ -357,6 +356,7 @@ def use_goma_rbe(goma_rbe, dimensions):
 
 def dart_try_builder(name,
                      recipe="dart/neo",
+                     bucket="try",
                      dimensions=None,
                      execution_timeout=None,
                      experiment_percentage=None,
@@ -376,7 +376,7 @@ def dart_try_builder(name,
     luci.builder(
         name=builder,
         build_numbers=True,
-        bucket="try",
+        bucket=bucket,
         caches=[swarming.cache("browsers")],
         dimensions=dimensions,
         executable=dart_recipe(recipe),
@@ -948,8 +948,9 @@ dart_try_builder("benchmark-linux", on_cq=True)
 dart_try_builder("vm-kernel-gcc-linux")
 dart_try_builder(
     "presubmit",
-    recipe="presubmit/presubmit",
+    bucket="try.shared",
     execution_timeout=5 * time.minute,
+    recipe="presubmit/presubmit",
 )
 
 def add_postponed_alt_console_entries():
