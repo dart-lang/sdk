@@ -85,7 +85,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   /// The flag specifying if currently visited class references 'super'
   /// expression.
-  /// TODO(scheglov) put into summary
   bool _hasReferenceToSuper = false;
 
   factory ResolutionVisitor({

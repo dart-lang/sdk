@@ -685,10 +685,12 @@ class ClassElementImpl extends AbstractClassElementImpl
     return definingClass != null && !definingClass.isDartCoreObject;
   }
 
+  @Deprecated('It was used internally, should not be part of API')
   @override
   bool get hasReferenceToSuper => hasModifier(Modifier.REFERENCES_SUPER);
 
   /// Set whether this class references 'super'.
+  /// TODO(scheglov) Remove it.
   set hasReferenceToSuper(bool isReferencedSuper) {
     setModifier(Modifier.REFERENCES_SUPER, isReferencedSuper);
   }
@@ -782,9 +784,6 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   bool get isValidMixin {
-    if (hasReferenceToSuper) {
-      return false;
-    }
     if (!supertype.isDartCoreObject) {
       return false;
     }
@@ -3402,6 +3401,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
   @override
   bool get hasNonFinalField => false;
 
+  @Deprecated('It was used internally, should not be part of API')
   @override
   bool get hasReferenceToSuper => false;
 

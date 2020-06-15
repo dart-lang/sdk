@@ -82,6 +82,7 @@ abstract class ClassElement
   /// hence cannot be used as a mixin), or `false` if this element represents a
   /// mixin, even if the mixin has a reference to `super`, because it is allowed
   /// to be used as a mixin.
+  @Deprecated('It was used internally, should not be part of API')
   bool get hasReferenceToSuper;
 
   /// Return `true` if this class declares a static member.

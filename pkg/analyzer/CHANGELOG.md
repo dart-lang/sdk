@@ -1,3 +1,7 @@
+## 0.39.11-dev
+* Deprecated `ClassElement.hasReferenceToSuper`.
+  It was used internally, should not be part of API.
+
 ## 0.39.10
 * Restored the default constructor in internal `SummaryBuilder`,
   and the `featureSet` named parameter in `build`, for `build_resolvers`
