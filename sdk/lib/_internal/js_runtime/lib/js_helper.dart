@@ -69,7 +69,8 @@ import 'dart:_rti' as newRti
         getRuntimeType,
         getTypeFromTypesTable,
         instanceTypeName,
-        instantiatedGenericFunctionType;
+        instantiatedGenericFunctionType,
+        throwTypeError;
 
 part 'annotations.dart';
 part 'constant_map.dart';
@@ -360,14 +361,8 @@ class JSInvocationMirror implements Invocation {
     if (_typeArgumentCount == 0) return const <Type>[];
     int start = _arguments.length - _typeArgumentCount;
     var list = <Type>[];
-    if (JS_GET_FLAG('USE_NEW_RTI')) {
-      for (int index = 0; index < _typeArgumentCount; index++) {
-        list.add(newRti.createRuntimeType(_arguments[start + index]));
-      }
-    } else {
-      for (int index = 0; index < _typeArgumentCount; index++) {
-        list.add(createRuntimeType(_arguments[start + index]));
-      }
+    for (int index = 0; index < _typeArgumentCount; index++) {
+      list.add(newRti.createRuntimeType(_arguments[start + index]));
     }
     return JSArray.markUnmodifiableList(list);
   }
@@ -509,18 +504,6 @@ class Primitives {
   /// [: r"$".codeUnitAt(0) :]
   static const int DOLLAR_CHAR_VALUE = 36;
 
-  /// Creates a string containing the complete type for the class [className]
-  /// with the given type arguments.
-  ///
-  /// In minified mode, uses the unminified names if available.
-  ///
-  /// The given [className] string generally contains the name of the JavaScript
-  /// constructor of the given class.
-  static String formatType(String className, List typeArguments) {
-    return unmangleAllIdentifiersIfPreservedAnyways(
-        '$className${joinArguments(typeArguments, 0)}');
-  }
-
   /// Returns the type of [object] as a string (including type arguments).
   /// Tries to return a sensible name for non-Dart objects.
   ///
@@ -528,12 +511,7 @@ class Primitives {
   /// them with 'minified:'.
   @pragma('dart2js:noInline')
   static String objectTypeName(Object object) {
-    if (JS_GET_FLAG('USE_NEW_RTI')) {
-      return _objectTypeNameNewRti(object);
-    }
-    String className = _objectClassName(object);
-    String arguments = joinArguments(getRuntimeTypeInfo(object), 0);
-    return '${className}${arguments}';
+    return _objectTypeNameNewRti(object);
   }
 
   static String _objectClassName(Object object) {
@@ -2190,10 +2168,8 @@ abstract class Closure implements Function {
           propertyName);
     }
 
-    var signatureFunction = JS_GET_FLAG('USE_NEW_RTI')
-        ? _computeSignatureFunctionNewRti(functionType, isStatic, isIntercepted)
-        : _computeSignatureFunctionLegacy(
-            functionType, isStatic, isIntercepted);
+    var signatureFunction =
+        _computeSignatureFunctionNewRti(functionType, isStatic, isIntercepted);
 
     JS('', '#[#] = #', prototype, JS_GET_NAME(JsGetName.SIGNATURE_NAME),
         signatureFunction);
@@ -2795,25 +2771,7 @@ class JSName {
 boolConversionCheck(value) {
   // The value from kernel should always be true, false, or null.
   if (value == null) assertThrow('boolean expression must not be null');
-  return value;
-}
-
-extractFunctionTypeObjectFrom(o) {
-  var interceptor = getInterceptor(o);
-  return extractFunctionTypeObjectFromInternal(interceptor);
-}
-
-extractFunctionTypeObjectFromInternal(o) {
-  var signatureName = JS_GET_NAME(JsGetName.SIGNATURE_NAME);
-  if (JS('bool', '# in #', signatureName, o)) {
-    var signature = JS('', '#[#]', o, signatureName);
-    if (JS('bool', 'typeof # == "number"', signature)) {
-      return getType(signature);
-    } else {
-      return JS('', '#[#]()', o, signatureName);
-    }
-  }
-  return null;
+  return JS('bool', '#', value);
 }
 
 @pragma('dart2js:noInline')
@@ -2828,43 +2786,6 @@ void checkDeferredIsLoaded(String loadId) {
 /// visible to anyone, and is only injected into special libraries.
 abstract class JavaScriptIndexingBehavior<E> extends JSMutableIndexable<E> {}
 
-/// Thrown by type assertions that fail.
-class TypeErrorImplementation extends Error implements TypeError, CastError {
-  final String _message;
-
-  /// Normal type error caused by a failed subtype test.
-  TypeErrorImplementation(Object value, String type)
-      : _message = "TypeError: ${Error.safeToString(value)}: type "
-            "'${_typeDescription(value)}' is not a subtype of type '$type'";
-
-  TypeErrorImplementation.fromMessage(String this._message);
-
-  String toString() => _message;
-}
-
-/// Thrown by the 'as' operator if the cast isn't valid.
-class CastErrorImplementation extends Error implements CastError, TypeError {
-  final String _message;
-
-  /// Normal cast error caused by a failed type cast.
-  CastErrorImplementation(Object value, Object type)
-      : _message = "TypeError: ${Error.safeToString(value)}: type "
-            "'${_typeDescription(value)}' is not a subtype of type '$type'";
-
-  String toString() => _message;
-}
-
-String _typeDescription(value) {
-  if (value is Closure) {
-    var functionTypeObject = extractFunctionTypeObjectFrom(value);
-    if (functionTypeObject != null) {
-      return runtimeTypeToString(functionTypeObject);
-    }
-    return 'Closure';
-  }
-  return Primitives.objectTypeName(value);
-}
-
 class FallThroughErrorImplementation extends FallThroughError {
   FallThroughErrorImplementation();
   String toString() => 'Switch case fall-through.';
@@ -2876,23 +2797,27 @@ class FallThroughErrorImplementation extends FallThroughError {
 /// Returns the negation of the condition. That is: `true` if the assert should
 /// fail.
 bool assertTest(condition) {
-  // Do bool success check first, it is common and faster than 'is Function'.
+  // Do bool success check first as it is common.
   if (true == condition) return false;
-  if (condition is bool) return !condition;
-  throw new TypeErrorImplementation(condition, 'bool');
+  if (false == condition) return true;
+  bool checked = condition as bool;
+  if (null == condition) {
+    newRti.throwTypeError('assert condition must not be null');
+  }
+  return !checked;
 }
 
 /// Helper function for implementing asserts with messages.
 /// The compiler treats this specially.
 void assertThrow(Object message) {
-  throw new _AssertionError(message);
+  throw _AssertionError(message);
 }
 
 /// Helper function for implementing asserts without messages.
 /// The compiler treats this specially.
 @pragma('dart2js:noInline')
 void assertHelper(condition) {
-  if (assertTest(condition)) throw new AssertionError();
+  if (assertTest(condition)) throw AssertionError();
 }
 
 /// Called by generated code when a method that must be statically

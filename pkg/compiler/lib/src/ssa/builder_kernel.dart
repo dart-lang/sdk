@@ -365,8 +365,6 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         return false;
       case 'USE_CONTENT_SECURITY_POLICY':
         return options.useContentSecurityPolicy;
-      case 'USE_NEW_RTI':
-        return true;
       case 'VARIANCE':
         return options.enableVariance;
       case 'NNBD':
@@ -3952,9 +3950,9 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     //
     //     r = extractTypeArguments<Map>(e, f)
     // -->
-    //     interceptor = getInterceptor(e);
-    //     T1 = getRuntimeTypeArgumentIntercepted(interceptor, e, 'Map', 0);
-    //     T2 = getRuntimeTypeArgumentIntercepted(interceptor, e, 'Map', 1);
+    //     environment = HInstanceEnvironment(e);
+    //     T1 = HTypeEval( environment, 'Map.K');
+    //     T2 = HTypeEval( environment, 'Map.V');
     //     r = f<T1, T2>();
     //
     // TODO(sra): Should we add a check before the variable extraction? We could

@@ -265,7 +265,6 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'RuntimeFunctionType': 'class RuntimeFunctionType {}',
   'RuntimeTypeGeneric': 'class RuntimeTypeGeneric {}',
   'RuntimeTypePlain': 'class RuntimeTypePlain {}',
-  'runtimeTypeToString': 'runtimeTypeToString(type, {onTypeVariable(i)}) {}',
   'S': 'S() {}',
   'setRuntimeTypeInfo': 'setRuntimeTypeInfo(a, b) {}',
   'stringSuperNativeTypeCast': 'stringSuperNativeTypeCast(value) {}',
@@ -289,7 +288,6 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'throwRuntimeError': 'throwRuntimeError(message) {}',
   'throwUnsupportedError': 'throwUnsupportedError(message) {}',
   'throwTypeError': 'throwTypeError(message) {}',
-  'TypeImpl': 'class TypeImpl {}',
   'TypeVariable': '''class TypeVariable {
     final Type owner;
     final String name;

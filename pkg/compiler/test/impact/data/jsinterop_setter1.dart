@@ -221,12 +221,10 @@ void _doStuff(String name, File file) {
   print(file.name);
 }
 
-/*spec:nnbd-off.member: main:
- static=[
- _doStuff,
- allowInterop<Function>(1),
- set:foo]
-*/
+/*spec:nnbd-off.member: main:static=[
+  _doStuff,
+  allowInterop<Function>(1),
+  set:foo]*/
 /*spec:nnbd-sdk.member: main:static=[
   _doStuff,
   allowInterop<Function*>(1),

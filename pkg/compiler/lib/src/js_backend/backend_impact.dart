@@ -98,11 +98,8 @@ class BackendImpacts {
   BackendImpact _getRuntimeTypeArgument;
 
   BackendImpact get getRuntimeTypeArgument {
-    return _getRuntimeTypeArgument ??= new BackendImpact(globalUses: [
-      _commonElements.getRuntimeTypeArgumentIntercepted,
-      _commonElements.getRuntimeTypeArgument,
-      _commonElements.getTypeArgumentByIndex,
-    ], otherImpacts: [
+    return _getRuntimeTypeArgument ??=
+        new BackendImpact(globalUses: [], otherImpacts: [
       newRtiImpact,
     ]);
   }
@@ -167,7 +164,6 @@ class BackendImpacts {
 
   BackendImpact get typeVariableBoundCheck {
     return _typeVariableBoundCheck ??= new BackendImpact(staticUses: [
-      _commonElements.throwTypeError,
       _commonElements.checkTypeBound,
     ]);
   }
@@ -671,7 +667,6 @@ class BackendImpacts {
         globalUses: [
           _commonElements.jsArrayTypedConstructor,
           _commonElements.setRuntimeTypeInfo,
-          _commonElements.getTypeArgumentByIndex
         ]);
   }
 

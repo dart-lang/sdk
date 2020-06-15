@@ -2089,7 +2089,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       _nativeData.registerAllowInterop();
     }
 
-    if (element == _commonElements.checkConcurrentModificationError) {
+    if (_commonElements.isCheckConcurrentModificationError(element)) {
       // Manually inline the [checkConcurrentModificationError] function.  This
       // function is only called from a for-loop update.  Ideally we would just
       // generate the conditionalcontrol flow in the builder but it adds basic

@@ -7,7 +7,10 @@
 /*member: Class1a.:static=[Object.(0)]*/
 class Class1a<T> {
   /*spec:nnbd-off.member: Class1a.==:
-   dynamic=[this:Class1a.runtimeType,Object.runtimeType,Type.==],
+   dynamic=[
+    Object.runtimeType,
+    Type.==,
+    this:Class1a.runtimeType],
    runtimeType=[equals:Class1a<Class1a.T>==Object]
   */
   /*spec:nnbd-sdk.member: Class1a.==:
@@ -143,10 +146,7 @@ class Class4 {}
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeArgument(3),
-  getRuntimeTypeArgumentIntercepted(4),
   getRuntimeTypeInfo(1),
-  getTypeArgumentByIndex(2),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -201,10 +201,7 @@ class Class4 {}
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeArgument(3),
-  getRuntimeTypeArgumentIntercepted(4),
   getRuntimeTypeInfo(1),
-  getTypeArgumentByIndex(2),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -259,10 +256,7 @@ toString1(Class2<int> c) => '${c.runtimeType}';
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeArgument(3),
-  getRuntimeTypeArgumentIntercepted(4),
   getRuntimeTypeInfo(1),
-  getTypeArgumentByIndex(2),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -319,10 +313,7 @@ toString1(Class2<int> c) => '${c.runtimeType}';
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeArgument(3),
-  getRuntimeTypeArgumentIntercepted(4),
   getRuntimeTypeInfo(1),
-  getTypeArgumentByIndex(2),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -376,10 +367,7 @@ toString2(Class2<int> c) => '${c?.runtimeType}';
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeArgument(3),
-  getRuntimeTypeArgumentIntercepted(4),
   getRuntimeTypeInfo(1),
-  getTypeArgumentByIndex(2),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -432,10 +420,7 @@ toString2(Class2<int> c) => '${c?.runtimeType}';
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeArgument(3),
-  getRuntimeTypeArgumentIntercepted(4),
   getRuntimeTypeInfo(1),
-  getTypeArgumentByIndex(2),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -488,10 +473,7 @@ toString3(Class2<int> c) => c.runtimeType.toString();
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeArgument(3),
-  getRuntimeTypeArgumentIntercepted(4),
   getRuntimeTypeInfo(1),
-  getTypeArgumentByIndex(2),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -546,10 +528,7 @@ toString3(Class2<int> c) => c.runtimeType.toString();
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeArgument(3),
-  getRuntimeTypeArgumentIntercepted(4),
   getRuntimeTypeInfo(1),
-  getTypeArgumentByIndex(2),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -604,10 +583,7 @@ toString4(Class2<int> c) => c.runtimeType?.toString();
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeArgument(3),
-  getRuntimeTypeArgumentIntercepted(4),
   getRuntimeTypeInfo(1),
-  getTypeArgumentByIndex(2),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -663,10 +639,7 @@ toString4(Class2<int> c) => c.runtimeType?.toString();
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeArgument(3),
-  getRuntimeTypeArgumentIntercepted(4),
   getRuntimeTypeInfo(1),
-  getTypeArgumentByIndex(2),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -720,10 +693,7 @@ toString5(Class2<int> c) => c?.runtimeType?.toString();
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeArgument(3),
-  getRuntimeTypeArgumentIntercepted(4),
   getRuntimeTypeInfo(1),
-  getTypeArgumentByIndex(2),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -778,10 +748,7 @@ toString5(Class2<int> c) => c?.runtimeType?.toString();
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeArgument(3),
-  getRuntimeTypeArgumentIntercepted(4),
   getRuntimeTypeInfo(1),
-  getTypeArgumentByIndex(2),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -832,10 +799,7 @@ toString6(Class2<int> c) => c?.runtimeType.toString();
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeArgument(3),
-  getRuntimeTypeArgumentIntercepted(4),
   getRuntimeTypeInfo(1),
-  getTypeArgumentByIndex(2),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -886,10 +850,7 @@ toString6(Class2<int> c) => c?.runtimeType.toString();
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeArgument(3),
-  getRuntimeTypeArgumentIntercepted(4),
   getRuntimeTypeInfo(1),
-  getTypeArgumentByIndex(2),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -944,10 +905,7 @@ unknown(Class2<int> c) => c.runtimeType;
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeArgument(3),
-  getRuntimeTypeArgumentIntercepted(4),
   getRuntimeTypeInfo(1),
-  getTypeArgumentByIndex(2),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -1005,10 +963,7 @@ unknown(Class2<int> c) => c.runtimeType;
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeArgument(3),
-  getRuntimeTypeArgumentIntercepted(4),
   getRuntimeTypeInfo(1),
-  getTypeArgumentByIndex(2),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -2939,7 +2894,47 @@ notEquals3(Class3 a, Class4 b) => a.runtimeType != b?.runtimeType;
 */
 notEquals4(Class3 a, Class4 b) => a?.runtimeType != b?.runtimeType;
 
-/*member: main:dynamic=[exact:Class1a.==],static=[Class1a.(0),Class1b.(0),Class1c.(0),Class1d.(0),Class2.(0),Class3.(0),Class4.(0),almostEquals1(1),almostEquals10(1),almostEquals11(1),almostEquals12(1),almostEquals2(1),almostEquals3(1),almostEquals4(1),almostEquals5(1),almostEquals6(1),almostEquals7(1),almostEquals8(1),almostEquals9(1),almostToString1(1),almostToString2(1),almostToString3(1),almostToString4(1),checkTypeBound(4),equals1(2),notEquals1(2),notEquals2(2),notEquals3(2),notEquals4(2),print(1),throwTypeError(1),toString1(1),toString2(1),toString3(1),toString4(1),toString5(1),toString6(1),unknown(1)]*/
+/*member: main:
+ dynamic=[exact:Class1a.==],
+ static=[
+  Class1a.(0),
+  Class1b.(0),
+  Class1c.(0),
+  Class1d.(0),
+  Class2.(0),
+  Class3.(0),
+  Class4.(0),
+  almostEquals1(1),
+  almostEquals10(1),
+  almostEquals11(1),
+  almostEquals12(1),
+  almostEquals2(1),
+  almostEquals3(1),
+  almostEquals4(1),
+  almostEquals5(1),
+  almostEquals6(1),
+  almostEquals7(1),
+  almostEquals8(1),
+  almostEquals9(1),
+  almostToString1(1),
+  almostToString2(1),
+  almostToString3(1),
+  almostToString4(1),
+  checkTypeBound(4),
+  equals1(2),
+  notEquals1(2),
+  notEquals2(2),
+  notEquals3(2),
+  notEquals4(2),
+  print(1),
+  toString1(1),
+  toString2(1),
+  toString3(1),
+  toString4(1),
+  toString5(1),
+  toString6(1),
+  unknown(1)]
+*/
 main() {
   Class1a<int> c1a = new Class1a<int>();
   Class1b<int> c1b = new Class1b<int>();

@@ -51,7 +51,9 @@ testConstructorInvoke() {
   new Class.generative();
 }
 
-/*member: testConstructorInvokeGeneric:static=[GenericClass.generative(0),checkTypeBound(4),throwTypeError(1)]*/
+/*member: testConstructorInvokeGeneric:static=[
+  GenericClass.generative(0),
+  checkTypeBound(4)]*/
 testConstructorInvokeGeneric() {
   new GenericClass<int, String>.generative();
 }
@@ -71,7 +73,9 @@ testFactoryInvoke() {
   new Class.fact();
 }
 
-/*member: testFactoryInvokeGeneric:static=[GenericClass.fact(0),checkTypeBound(4),throwTypeError(1)]*/
+/*member: testFactoryInvokeGeneric:static=[
+  GenericClass.fact(0),
+  checkTypeBound(4)]*/
 testFactoryInvokeGeneric() {
   new GenericClass<int, String>.fact();
 }
@@ -91,7 +95,9 @@ testRedirectingFactoryInvoke() {
   new Class.redirect();
 }
 
-/*member: testRedirectingFactoryInvokeGeneric:static=[GenericClass.generative(0),checkTypeBound(4),throwTypeError(1)]*/
+/*member: testRedirectingFactoryInvokeGeneric:static=[
+  GenericClass.generative(0),
+  checkTypeBound(4)]*/
 testRedirectingFactoryInvokeGeneric() {
   new GenericClass<int, String>.redirect();
 }

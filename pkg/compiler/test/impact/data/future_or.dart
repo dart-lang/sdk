@@ -6,15 +6,28 @@
 
 import "dart:async";
 
-/*spec:nnbd-off.member: main:dynamic=[runtimeType],runtimeType=[unknown:FutureOr<int>],static=[Future.value(1),checkTypeBound(4),print(1),throwTypeError(1)],type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]*/
+/*spec:nnbd-off.member: main:
+ dynamic=[runtimeType],
+ runtimeType=[unknown:FutureOr<int>],
+ static=[
+  Future.value(1),
+  checkTypeBound(4),
+  print(1)],
+ type=[
+  inst:JSDouble,
+  inst:JSInt,
+  inst:JSNumber,
+  inst:JSPositiveInt,
+  inst:JSUInt31,
+  inst:JSUInt32]
+*/
 /*spec:nnbd-sdk.member: main:
  dynamic=[runtimeType],
  runtimeType=[unknown:FutureOr<int*>*],
  static=[
   Future.value(1),
   checkTypeBound(4),
-  print(1),
-  throwTypeError(1)],
+  print(1)],
  type=[
   inst:JSDouble,
   inst:JSInt,
