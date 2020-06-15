@@ -42,7 +42,7 @@ class ImplicitTypeArgument extends DartType {
 
   @override
   ImplicitTypeArgument withDeclaredNullability(Nullability nullability) {
-    return unsupported("withNullability", -1, null);
+    return unsupported("withDeclaredNullability", -1, null);
   }
 
   @override

@@ -879,6 +879,7 @@ class DartTypeTagger extends DartTypeVisitor<String>
   String visitInterfaceType(InterfaceType _) => "interface";
   String visitNeverType(NeverType _) => "never";
   String visitTypedefType(TypedefType _) => "typedef";
+  String visitFutureOrType(FutureOrType _) => "futureor";
 }
 
 const TextSerializer<InvalidType> invalidTypeSerializer =
@@ -1005,6 +1006,17 @@ Tuple2<CanonicalName, List<DartType>> unwrapTypedefType(TypedefType node) {
 TypedefType wrapTypedefType(Tuple2<CanonicalName, List<DartType>> tuple) {
   return new TypedefType.byReference(
       tuple.first.reference, Nullability.legacy, tuple.second);
+}
+
+TextSerializer<FutureOrType> futureOrTypeSerializer =
+    new Wrapped(unwrapFutureOrType, wrapFutureOrType, dartTypeSerializer);
+
+DartType unwrapFutureOrType(FutureOrType node) {
+  return node.typeArgument;
+}
+
+FutureOrType wrapFutureOrType(DartType typeArgument) {
+  return new FutureOrType(typeArgument, Nullability.legacy);
 }
 
 Case<DartType> dartTypeSerializer =
@@ -1578,6 +1590,7 @@ void initializeSerializers() {
     "interface": interfaceTypeSerializer,
     "never": neverTypeSerializer,
     "typedef": typedefTypeSerializer,
+    "futureor": futureOrTypeSerializer,
   });
   statementSerializer.registerTags({
     "expr": expressionStatementSerializer,

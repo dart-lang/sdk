@@ -3257,7 +3257,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     if (type is ir.InterfaceType ||
         type is ir.DynamicType ||
         type is ir.TypedefType ||
-        type is ir.FunctionType) {
+        type is ir.FunctionType ||
+        type is ir.FutureOrType) {
       ConstantValue constant =
           _elementMap.getConstantValue(_memberContextNode, node);
       stack.add(graph.addConstant(constant, closedWorld,

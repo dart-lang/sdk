@@ -16,6 +16,7 @@ import 'package:kernel/ast.dart'
         DynamicType,
         Field,
         FunctionType,
+        FutureOrType,
         InvalidType,
         InstanceConstant,
         IntConstant,
@@ -262,6 +263,13 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
       return;
     }
     addNullability(node.nullability);
+  }
+
+  void visitFutureOrType(FutureOrType node) {
+    result.add("FutureOr<");
+    node.typeArgument.accept(this);
+    result.add(">");
+    addNullability(node.declaredNullability);
   }
 
   void defaultConstant(Constant node) {}

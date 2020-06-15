@@ -272,6 +272,10 @@ abstract class AbstractDataSource extends DataSourceMixin
         return new ir.TypedefType(typedef, nullability, typeArguments);
       case DartTypeNodeKind.dynamicType:
         return const ir.DynamicType();
+      case DartTypeNodeKind.futureOrType:
+        ir.Nullability nullability = readEnum(ir.Nullability.values);
+        ir.DartType typeArgument = _readDartTypeNode(functionTypeVariables);
+        return new ir.FutureOrType(typeArgument, nullability);
     }
     throw new UnsupportedError("Unexpected DartTypeKind $kind");
   }

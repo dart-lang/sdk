@@ -7,7 +7,6 @@ import 'ast.dart';
 import 'class_hierarchy.dart';
 import 'core_types.dart';
 
-import 'src/future_or.dart';
 import 'src/hierarchy_based_type_environment.dart'
     show HierarchyBasedTypeEnvironment;
 import 'src/types.dart';
@@ -31,7 +30,6 @@ abstract class TypeEnvironment extends Types {
   Class get intClass => coreTypes.intClass;
   Class get numClass => coreTypes.numClass;
   Class get functionClass => coreTypes.functionClass;
-  Class get futureOrClass => coreTypes.futureOrClass;
   Class get objectClass => coreTypes.objectClass;
 
   InterfaceType get objectLegacyRawType => coreTypes.objectLegacyRawType;
@@ -86,9 +84,9 @@ abstract class TypeEnvironment extends Types {
   /// This implements the function `flatten` from the spec, which unwraps a
   /// layer of Future or FutureOr from a type.
   DartType unfutureType(DartType type) {
+    if (type is FutureOrType) return type.typeArgument;
     if (type is InterfaceType) {
-      if (type.classNode == coreTypes.futureOrClass ||
-          type.classNode == coreTypes.futureClass) {
+      if (type.classNode == coreTypes.futureClass) {
         return type.typeArguments[0];
       }
       // It is a compile-time error to implement, extend, or mixin FutureOr so
@@ -276,7 +274,7 @@ class IsSubtypeOf {
   /// `Rn` is the result of [IsSubtypeOf.basedSolelyOnNullabilities] on the
   /// types `List<int>?` and `List<num>*`.
   factory IsSubtypeOf.basedSolelyOnNullabilities(
-      DartType subtype, DartType supertype, Class futureOrClass) {
+      DartType subtype, DartType supertype) {
     if (subtype is InvalidType) {
       if (supertype is InvalidType) {
         return const IsSubtypeOf.always();
@@ -287,34 +285,24 @@ class IsSubtypeOf {
       return const IsSubtypeOf.onlyIfIgnoringNullabilities();
     }
 
-    if (isPotentiallyNullable(subtype, futureOrClass) &&
-        isPotentiallyNonNullable(supertype, futureOrClass)) {
+    if (subtype.isPotentiallyNullable && supertype.isPotentiallyNonNullable) {
       // It's a special case to test X% <: X%, FutureOr<X%> <: FutureOr<X%>,
       // FutureOr<FutureOr<X%>> <: FutureOr<FutureOr<X%>>, etc, where X is a
       // type parameter.  In that case, the nullabilities of the subtype and the
       // supertype are related, that is, they are both nullable or non-nullable
       // at run time.
-      if (computeNullability(subtype, futureOrClass) ==
-              Nullability.undetermined &&
-          computeNullability(supertype, futureOrClass) ==
-              Nullability.undetermined) {
+      if (subtype.nullability == Nullability.undetermined &&
+          supertype.nullability == Nullability.undetermined) {
         DartType unwrappedSubtype = subtype;
         DartType unwrappedSupertype = supertype;
-        while (unwrappedSubtype is InterfaceType &&
-            unwrappedSubtype.classNode == futureOrClass) {
-          unwrappedSubtype =
-              (unwrappedSubtype as InterfaceType).typeArguments.single;
+        while (unwrappedSubtype is FutureOrType) {
+          unwrappedSubtype = (unwrappedSubtype as FutureOrType).typeArgument;
         }
-        while (unwrappedSupertype is InterfaceType &&
-            unwrappedSupertype.classNode == futureOrClass) {
+        while (unwrappedSupertype is FutureOrType) {
           unwrappedSupertype =
-              (unwrappedSupertype as InterfaceType).typeArguments.single;
+              (unwrappedSupertype as FutureOrType).typeArgument;
         }
-        Nullability unwrappedSubtypeNullability =
-            computeNullability(unwrappedSubtype, futureOrClass);
-        Nullability unwrappedSupertypeNullability =
-            computeNullability(unwrappedSupertype, futureOrClass);
-        if (unwrappedSubtypeNullability == unwrappedSupertypeNullability) {
+        if (unwrappedSubtype.nullability == unwrappedSupertype.nullability) {
           // The relationship between the types must be established elsewhere.
           return const IsSubtypeOf.always();
         }

@@ -13,7 +13,7 @@ class MyFuture<T extends core::Object* = dynamic> extends core::Object implement
     : super core::Object::•() {}
   method noSuchMethod(core::Invocation* invocation) → dynamic
     return null;
-  method then<S extends core::Object* = dynamic>((self::MyFuture::T*) →* asy::FutureOr<self::MyFuture::then::S*>* f, {core::Function* onError = #C1}) → self::MyFuture<self::MyFuture::then::S*>*
+  method then<S extends core::Object* = dynamic>((self::MyFuture::T*) →* FutureOr<self::MyFuture::then::S*>* f, {core::Function* onError = #C1}) → self::MyFuture<self::MyFuture::then::S*>*
     return null;
   abstract member-signature get _identityHashCode() → core::int*;
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
@@ -26,18 +26,18 @@ class MyFuture<T extends core::Object* = dynamic> extends core::Object implement
   abstract member-signature get runtimeType() → core::Type*;
   member-signature no-such-method-forwarder method catchError(core::Function* onError, {(core::Object*) →* core::bool* test = #C1}) → asy::Future<self::MyFuture::T*>*
     return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[onError]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C4: test}))) as{TypeError,ForDynamic} asy::Future<self::MyFuture::T*>*;
-  member-signature no-such-method-forwarder method whenComplete(() →* asy::FutureOr<void>* action) → asy::Future<self::MyFuture::T*>*
+  member-signature no-such-method-forwarder method whenComplete(() →* FutureOr<void>* action) → asy::Future<self::MyFuture::T*>*
     return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[action]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C7))) as{TypeError,ForDynamic} asy::Future<self::MyFuture::T*>*;
   member-signature no-such-method-forwarder method asStream() → asy::Stream<self::MyFuture::T*>*
     return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#C8, 0, #C3, #C6, core::Map::unmodifiable<core::Symbol*, dynamic>(#C7))) as{TypeError,ForDynamic} asy::Stream<self::MyFuture::T*>*;
-  member-signature no-such-method-forwarder method timeout(core::Duration* timeLimit, {generic-covariant-impl () →* asy::FutureOr<self::MyFuture::T*>* onTimeout = #C1}) → asy::Future<self::MyFuture::T*>*
+  member-signature no-such-method-forwarder method timeout(core::Duration* timeLimit, {generic-covariant-impl () →* FutureOr<self::MyFuture::T*>onTimeout = #C1}) → asy::Future<self::MyFuture::T*>*
     return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#C9, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[timeLimit]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C10: onTimeout}))) as{TypeError,ForDynamic} asy::Future<self::MyFuture::T*>*;
 }
 static method test() → void {
   asy::Future<core::bool*>* f;
   asy::Future<core::int*>* t1 = f.{asy::Future::then}<core::int*>((core::bool* x) → asy::Future<core::int*>* /* originally async */ {
     final asy::_AsyncAwaitCompleter<core::int*>* :async_completer = new asy::_AsyncAwaitCompleter::•<core::int*>();
-    asy::FutureOr<core::int*>* :return_value;
+    FutureOr<core::int*>* :return_value;
     dynamic :async_stack_trace;
     (dynamic) →* dynamic :async_op_then;
     (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
@@ -73,7 +73,7 @@ static method test() → void {
   });
   asy::Future<core::int*>* t2 = f.{asy::Future::then}<core::int*>((core::bool* x) → asy::Future<core::int*>* /* originally async */ {
     final asy::_AsyncAwaitCompleter<core::int*>* :async_completer = new asy::_AsyncAwaitCompleter::•<core::int*>();
-    asy::FutureOr<core::int*>* :return_value;
+    FutureOr<core::int*>* :return_value;
     dynamic :async_stack_trace;
     (dynamic) →* dynamic :async_op_then;
     (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
@@ -85,7 +85,7 @@ static method test() → void {
         #L2:
         {
           [yield] let dynamic #t2 = asy::_awaitHelper(x, :async_op_then, :async_op_error, :async_op) in null;
-          :return_value = (_in::unsafeCast<core::bool*>(:result) ?{core::Object*} 2 : new self::MyFuture::value<core::int*>(3)) as{TypeError} asy::FutureOr<core::int*>*;
+          :return_value = (_in::unsafeCast<core::bool*>(:result) ?{core::Object*} 2 : new self::MyFuture::value<core::int*>(3)) as{TypeError} FutureOr<core::int*>*;
           break #L2;
         }
         asy::_completeOnAsyncReturn(:async_completer, :return_value);
@@ -100,9 +100,9 @@ static method test() → void {
     :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
     return :async_completer.{asy::Completer::future};
   });
-  asy::Future<core::int*>* t5 = f.{asy::Future::then}<core::int*>((core::bool* x) → asy::FutureOr<core::int*>* => (x ?{core::Object*} 2 : new self::MyFuture::value<core::int*>(3)) as{TypeError} asy::FutureOr<core::int*>*);
-  asy::Future<core::int*>* t6 = f.{asy::Future::then}<core::int*>((core::bool* x) → asy::FutureOr<core::int*>* {
-    return (x ?{core::Object*} 2 : new self::MyFuture::value<core::int*>(3)) as{TypeError} asy::FutureOr<core::int*>*;
+  asy::Future<core::int*>* t5 = f.{asy::Future::then}<core::int*>((core::bool* x) → FutureOr<core::int*> => (x ?{core::Object*} 2 : new self::MyFuture::value<core::int*>(3)) as{TypeError} FutureOr<core::int*>);
+  asy::Future<core::int*>* t6 = f.{asy::Future::then}<core::int*>((core::bool* x) → FutureOr<core::int*> {
+    return (x ?{core::Object*} 2 : new self::MyFuture::value<core::int*>(3)) as{TypeError} FutureOr<core::int*>;
   });
 }
 static method main() → dynamic {}

@@ -20,7 +20,7 @@ static method foo1_a1([@vm.inferred-type.metadata=dart.async::_Future<InterfaceT
 static method foo1_a2([@vm.inferred-type.metadata=#lib::B] dynamic x) → void {}
 static method foo1_a3([@vm.inferred-type.metadata=dart.async::_Future<InterfaceType(B*)>] dynamic x) → void {}
 static method foo1_a4([@vm.inferred-type.metadata=#lib::B] dynamic x) → void {}
-static method foo1([@vm.inferred-type.metadata=dart.async::_Future<InterfaceType(B*)>] asy::Future<self::A*>* a1, [@vm.inferred-type.metadata=#lib::B] self::A* a2, [@vm.inferred-type.metadata=dart.async::_Future<InterfaceType(B*)>] asy::FutureOr<self::A*>* a3, [@vm.inferred-type.metadata=#lib::B] asy::FutureOr<self::A*>* a4) → void {
+static method foo1([@vm.inferred-type.metadata=dart.async::_Future<InterfaceType(B*)>] asy::Future<self::A*>* a1, [@vm.inferred-type.metadata=#lib::B] self::A* a2, [@vm.inferred-type.metadata=dart.async::_Future<InterfaceType(B*)>] FutureOr<self::A*>* a3, [@vm.inferred-type.metadata=#lib::B] FutureOr<self::A*>* a4) → void {
   self::foo1_a1(a1);
   self::foo1_a2(a2);
   self::foo1_a3(a3);
@@ -30,7 +30,7 @@ static method foo2_a1([@vm.inferred-type.metadata=dart.async::_Future?] dynamic 
 static method foo2_a2([@vm.inferred-type.metadata=#lib::B?] dynamic x) → void {}
 static method foo2_a3(dynamic x) → void {}
 static method foo2_a4(dynamic x) → void {}
-static method foo2([@vm.inferred-type.metadata=dart.async::_Future?] asy::Future<self::A*>* a1, [@vm.inferred-type.metadata=#lib::B?] self::A* a2, asy::FutureOr<self::A*>* a3, asy::FutureOr<self::A*>* a4) → void {
+static method foo2([@vm.inferred-type.metadata=dart.async::_Future?] asy::Future<self::A*>* a1, [@vm.inferred-type.metadata=#lib::B?] self::A* a2, FutureOr<self::A*>* a3, FutureOr<self::A*>* a4) → void {
   self::foo2_a1(a1);
   self::foo2_a2(a2);
   self::foo2_a3(a3);
@@ -40,5 +40,5 @@ static method getDynamic() → dynamic
   return [@vm.call-site-attributes.metadata=receiverType:InterfaceType(Function*)] self::unknown.call();
 static method main(core::List<core::String*>* args) → dynamic {
   self::foo1([@vm.inferred-type.metadata=dart.async::_Future<InterfaceType(B*)>] asy::Future::value<self::B*>(new self::B::•()), new self::B::•(), [@vm.inferred-type.metadata=dart.async::_Future<InterfaceType(B*)>] asy::Future::value<self::B*>(new self::B::•()), new self::B::•());
-  self::foo2(self::getDynamic() as{TypeError,ForDynamic} asy::Future<self::A*>*, self::getDynamic() as{TypeError,ForDynamic} self::A*, self::getDynamic() as{TypeError,ForDynamic} asy::FutureOr<self::A*>*, self::getDynamic() as{TypeError,ForDynamic} asy::FutureOr<self::A*>*);
+  self::foo2(self::getDynamic() as{TypeError,ForDynamic} asy::Future<self::A*>*, self::getDynamic() as{TypeError,ForDynamic} self::A*, self::getDynamic() as{TypeError,ForDynamic} FutureOr<self::A*>*, self::getDynamic() as{TypeError,ForDynamic} FutureOr<self::A*>*);
 }

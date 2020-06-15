@@ -490,6 +490,13 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     return new InterfaceType(node.classNode, node.nullability, typeArguments);
   }
 
+  DartType visitFutureOrType(FutureOrType node) {
+    int before = useCounter;
+    DartType typeArgument = node.typeArgument.accept(this);
+    if (useCounter == before) return node;
+    return new FutureOrType(typeArgument, node.declaredNullability);
+  }
+
   DartType visitTypedefType(TypedefType node) {
     if (node.typeArguments.isEmpty) return node;
     int before = useCounter;
@@ -805,6 +812,10 @@ class _OccurrenceVisitor implements DartTypeVisitor<bool> {
     return node.typeArguments.any(visit);
   }
 
+  bool visitFutureOrType(FutureOrType node) {
+    return visit(node.typeArgument);
+  }
+
   bool visitTypedefType(TypedefType node) {
     return node.typeArguments.any(visit);
   }
@@ -853,6 +864,10 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
     return node.typeArguments.any(visit);
   }
 
+  bool visitFutureOrType(FutureOrType node) {
+    return visit(node.typeArgument);
+  }
+
   bool visitTypedefType(TypedefType node) {
     return node.typeArguments.any(visit);
   }
@@ -877,4 +892,30 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
     if (node.defaultType == null) return false;
     return node.defaultType.accept(this);
   }
+}
+
+Nullability uniteNullabilities(Nullability a, Nullability b) {
+  if (a == Nullability.nullable || b == Nullability.nullable) {
+    return Nullability.nullable;
+  }
+  if (a == Nullability.legacy || b == Nullability.legacy) {
+    return Nullability.legacy;
+  }
+  if (a == Nullability.undetermined || b == Nullability.undetermined) {
+    return Nullability.undetermined;
+  }
+  return Nullability.nonNullable;
+}
+
+Nullability intersectNullabilities(Nullability a, Nullability b) {
+  if (a == Nullability.nonNullable || b == Nullability.nonNullable) {
+    return Nullability.nonNullable;
+  }
+  if (a == Nullability.undetermined || b == Nullability.undetermined) {
+    return Nullability.undetermined;
+  }
+  if (a == Nullability.legacy || b == Nullability.legacy) {
+    return Nullability.legacy;
+  }
+  return Nullability.nullable;
 }

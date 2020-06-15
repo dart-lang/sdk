@@ -635,6 +635,11 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
   }
 
   @override
+  InitializerComplexity visitFutureOrType(ir.FutureOrType node) {
+    return visitNode(node.typeArgument);
+  }
+
+  @override
   InitializerComplexity visitFunctionType(ir.FunctionType node) {
     InitializerComplexity complexity = visitNode(node.returnType);
     complexity = complexity.combine(visitNodes(node.positionalParameters));

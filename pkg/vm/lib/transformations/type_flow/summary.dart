@@ -494,7 +494,13 @@ class CreateRuntimeType extends Statement {
       if (computed is UnknownType) return const UnknownType();
       types[i] = computed;
     }
-    return new RuntimeType(new InterfaceType(klass, nullability), types);
+    DartType dartType;
+    if (klass == typeHierarchy.coreTypes.deprecatedFutureOrClass) {
+      dartType = new FutureOrType(const DynamicType(), nullability);
+    } else {
+      dartType = new InterfaceType(klass, nullability);
+    }
+    return new RuntimeType(dartType, types);
   }
 }
 

@@ -123,7 +123,7 @@ static method conditionals() → dynamic async {
 }
 static method asserts() → dynamic async {
   for (final core::Function* #t1 in <core::Function*>[#C1, #C2]) {
-    final <T extends core::Object* = dynamic>(T*) →* asy::FutureOr<T*>* func = #t1 as{TypeError} <T extends core::Object* = dynamic>(T*) →* asy::FutureOr<T*>*;
+    final <T extends core::Object* = dynamic>(T*) →* FutureOr<T*>* func = #t1 as{TypeError} <T extends core::Object* = dynamic>(T*) →* FutureOr<T*>*;
     assert(await func.call<core::bool*>(true));
     assert(self::id<core::bool*>(true) as{TypeError} core::bool*, await func.call<core::String*>("message"));
     assert(await func.call<core::bool*>(true), await func.call<core::String*>("message"));
@@ -139,7 +139,7 @@ static method asserts() → dynamic async {
 }
 static method controlFlow() → dynamic async {
   for (final core::Function* #t2 in <core::Function*>[#C1, #C2]) {
-    final <T extends core::Object* = dynamic>(T*) →* asy::FutureOr<T*>* func = #t2 as{TypeError} <T extends core::Object* = dynamic>(T*) →* asy::FutureOr<T*>*;
+    final <T extends core::Object* = dynamic>(T*) →* FutureOr<T*>* func = #t2 as{TypeError} <T extends core::Object* = dynamic>(T*) →* FutureOr<T*>*;
     core::int* c = 0;
     for (core::int* i = await func.call<core::int*>(0); await func.call<core::bool*>(i.{core::num::<}(5)); await func.call<core::int*>(let final core::int* #t3 = i in let final core::int* #t4 = i = #t3.{core::num::+}(1) in #t3)) {
       c = c.{core::num::+}(1);
@@ -222,9 +222,9 @@ static method controlFlow() → dynamic async {
     self::expectList(<dynamic>[42], await testStream2.call().{asy::Stream::toList}());
   }
 }
-static method future<T extends core::Object* = dynamic>(self::future::T* value) → asy::FutureOr<self::future::T*>* async 
+static method future<T extends core::Object* = dynamic>(self::future::T* value) → FutureOr<self::future::T*>* async 
   return value;
-static method id<T extends core::Object* = dynamic>(self::id::T* value) → asy::FutureOr<self::id::T*>*
+static method id<T extends core::Object* = dynamic>(self::id::T* value) → FutureOr<self::id::T*>*
   return value;
 static method intStream() → asy::Stream<core::int*>* async* {
   yield 42;

@@ -2677,6 +2677,11 @@ class IsInstantiatedVisitor extends DartTypeVisitor<bool> {
   }
 
   @override
+  bool visitFutureOrType(FutureOrType node) {
+    return node.typeArgument.accept(this);
+  }
+
+  @override
   bool visitFunctionType(FunctionType node) {
     final List<TypeParameter> parameters = node.typeParameters;
     _availableVariables.addAll(parameters);

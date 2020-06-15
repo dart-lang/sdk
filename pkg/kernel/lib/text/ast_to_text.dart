@@ -2200,6 +2200,14 @@ class Printer extends Visitor<Null> {
     writeNullability(node.nullability);
   }
 
+  visitFutureOrType(FutureOrType node) {
+    writeWord('FutureOr');
+    writeSymbol('<');
+    writeNode(node.typeArgument);
+    writeSymbol('>');
+    writeNullability(node.declaredNullability);
+  }
+
   visitFunctionType(FunctionType node) {
     writeFunctionType(node);
   }

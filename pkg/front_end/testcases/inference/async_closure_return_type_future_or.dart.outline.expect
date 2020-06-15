@@ -1,12 +1,12 @@
 library test;
 import self as self;
-import "dart:async" as asy;
 import "dart:core" as core;
+import "dart:async" as asy;
 
 import "dart:async";
 
-static field asy::FutureOr<core::int*>* futureOrInt;
-static field () →* asy::FutureOr<core::int*>* f;
+static field FutureOr<core::int*>* futureOrInt;
+static field () →* FutureOr<core::int*>* f;
 static field () →* asy::Future<core::int*>* g;
 static method main() → dynamic
   ;

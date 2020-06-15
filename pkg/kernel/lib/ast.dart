@@ -6742,11 +6742,15 @@ class InvalidType extends DartType {
 
   @override
   Nullability get declaredNullability {
-    throw "InvalidType doesn't have nullability.";
+    // TODO(johnniwinther,dmitryas): Consider implementing invalidNullability.
+    return Nullability.legacy;
   }
 
   @override
-  Nullability get nullability => throw "InvalidType doesn't have nullability.";
+  Nullability get nullability {
+    // TODO(johnniwinther,dmitryas): Consider implementing invalidNullability.
+    return Nullability.legacy;
+  }
 
   @override
   InvalidType withDeclaredNullability(Nullability declaredNullability) => this;
@@ -6892,7 +6896,7 @@ class NeverType extends DartType {
   @override
   void toTypeTextInternal(StringBuffer sb, {bool verbose: false}) {
     sb.write("Never");
-    sb.write(nullabilityToString(nullability));
+    sb.write(nullabilityToString(declaredNullability));
   }
 }
 
@@ -7044,7 +7048,7 @@ class InterfaceType extends DartType {
       }
       sb.write(">");
     }
-    sb.write(nullabilityToString(nullability));
+    sb.write(nullabilityToString(declaredNullability));
   }
 
   @override
@@ -7066,7 +7070,7 @@ class InterfaceType extends DartType {
       }
       sb.write(">");
     }
-    sb.write(nullabilityToString(nullability));
+    sb.write(nullabilityToString(declaredNullability));
     return sb.toString();
   }
 }
@@ -7304,7 +7308,7 @@ class FunctionType extends DartType {
       sb.write("}");
     }
     sb.write(")");
-    sb.write(nullabilityToString(nullability));
+    sb.write(nullabilityToString(declaredNullability));
   }
 }
 
@@ -7419,7 +7423,80 @@ class TypedefType extends DartType {
       }
       sb.write(">");
     }
-    sb.write(nullabilityToString(nullability));
+    sb.write(nullabilityToString(declaredNullability));
+  }
+}
+
+class FutureOrType extends DartType {
+  final DartType typeArgument;
+
+  final Nullability declaredNullability;
+
+  FutureOrType(this.typeArgument, this.declaredNullability);
+
+  @override
+  Nullability get nullability {
+    return uniteNullabilities(typeArgument.nullability, declaredNullability);
+  }
+
+  @override
+  R accept<R>(DartTypeVisitor<R> v) => v.visitFutureOrType(this);
+
+  @override
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) {
+    return v.visitFutureOrType(this, arg);
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    typeArgument.accept(v);
+  }
+
+  @override
+  bool operator ==(Object other) => equals(other, null);
+
+  @override
+  bool equals(Object other, Assumptions assumptions) {
+    if (identical(this, other)) return true;
+    if (other is FutureOrType) {
+      if (declaredNullability != other.declaredNullability) return false;
+      if (!typeArgument.equals(other.typeArgument, assumptions)) {
+        return false;
+      }
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0x12345678;
+    hash = 0x3fffffff & (hash * 31 + (hash ^ typeArgument.hashCode));
+    int nullabilityHash =
+        (0x33333333 >> declaredNullability.index) ^ 0x33333333;
+    hash = 0x3fffffff & (hash * 31 + (hash ^ nullabilityHash));
+    return hash;
+  }
+
+  @override
+  FutureOrType withDeclaredNullability(Nullability declaredNullability) {
+    return declaredNullability == this.declaredNullability
+        ? this
+        : new FutureOrType(typeArgument, declaredNullability);
+  }
+
+  @override
+  String toString() {
+    return "FutureOrType(${toStringInternal()})";
+  }
+
+  @override
+  void toTypeTextInternal(StringBuffer sb, {bool verbose = false}) {
+    sb.write("FutureOr<");
+    typeArgument.toTypeTextInternal(sb, verbose: verbose);
+    sb.write(">");
+    sb.write(nullabilityToString(declaredNullability));
   }
 }
 
@@ -7657,11 +7734,8 @@ class TypeParameterType extends DartType {
     bool nullabilityDependsOnItself = false;
     {
       DartType type = typeParameter.bound;
-      while (type is InterfaceType &&
-          type.classNode.name == "FutureOr" &&
-          type.classNode.enclosingLibrary.importUri.scheme == "dart" &&
-          type.classNode.enclosingLibrary.importUri.path == "async") {
-        type = (type as InterfaceType).typeArguments.single;
+      while (type is FutureOrType) {
+        type = (type as FutureOrType).typeArgument;
       }
       if (type is TypeParameterType && type.parameter == typeParameter) {
         // Intersection types can't appear in the bound.
@@ -7787,7 +7861,7 @@ class TypeParameterType extends DartType {
         sb.write(nullabilityToString(promotedBound.nullability));
       }
       sb.write("' = '");
-      sb.write(nullabilityToString(nullability));
+      sb.write(nullabilityToString(declaredNullability));
       sb.write("' */");
     }
   }

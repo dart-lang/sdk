@@ -42,7 +42,7 @@ class Y extends core::Object {
 }
 static method f1() → asy::Future<core::List<core::Object*>*>* /* originally async */ {
   final asy::_AsyncAwaitCompleter<core::List<core::Object*>*>* :async_completer = new asy::_AsyncAwaitCompleter::•<core::List<core::Object*>*>();
-  asy::FutureOr<core::List<core::Object*>*>* :return_value;
+  FutureOr<core::List<core::Object*>*>* :return_value;
   dynamic :async_stack_trace;
   (dynamic) →* dynamic :async_op_then;
   (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
@@ -71,7 +71,7 @@ static method f2() → core::List<core::Object*>*
   return <core::Object*>[2];
 static method f3() → asy::Future<core::Object*>* /* originally async */ {
   final asy::_AsyncAwaitCompleter<core::Object*>* :async_completer = new asy::_AsyncAwaitCompleter::•<core::Object*>();
-  asy::FutureOr<core::Object*>* :return_value;
+  FutureOr<core::Object*>* :return_value;
   dynamic :async_stack_trace;
   (dynamic) →* dynamic :async_op_then;
   (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
@@ -98,7 +98,7 @@ static method f3() → asy::Future<core::Object*>* /* originally async */ {
 }
 static method foo() → asy::Future<self::X*>* /* originally async */ {
   final asy::_AsyncAwaitCompleter<self::X*>* :async_completer = new asy::_AsyncAwaitCompleter::•<self::X*>();
-  asy::FutureOr<self::X*>* :return_value;
+  FutureOr<self::X*>* :return_value;
   dynamic :async_stack_trace;
   (dynamic) →* dynamic :async_op_then;
   (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
@@ -134,7 +134,7 @@ static method foo() → asy::Future<self::X*>* /* originally async */ {
 }
 static method main() → asy::Future<void>* /* originally async */ {
   final asy::_AsyncAwaitCompleter<void>* :async_completer = new asy::_AsyncAwaitCompleter::•<void>();
-  asy::FutureOr<void>* :return_value;
+  FutureOr<void>* :return_value;
   dynamic :async_stack_trace;
   (dynamic) →* dynamic :async_op_then;
   (core::Object*, core::StackTrace*) →* dynamic :async_op_error;

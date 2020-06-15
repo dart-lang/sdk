@@ -12,7 +12,6 @@ import 'package:kernel/src/nnbd_top_merge.dart';
 import 'ast.dart' hide MapEntry;
 import 'core_types.dart';
 import 'type_algebra.dart';
-import 'src/future_or.dart';
 import 'src/heap.dart';
 import 'src/legacy_erasure.dart';
 import 'src/norm.dart';

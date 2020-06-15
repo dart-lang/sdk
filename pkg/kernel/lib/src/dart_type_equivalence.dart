@@ -148,7 +148,7 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
 
   @override
   bool visitInterfaceType(InterfaceType node, DartType other) {
-    // First, check Object*, FutureOr<Object?>, etc.
+    // First, check Object*, Object?.
     if (equateTopTypes && coreTypes.isTop(node)) {
       return coreTypes.isTop(other);
     }
@@ -166,6 +166,26 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
         if (!node.typeArguments[i].accept1(this, other.typeArguments[i])) {
           return false;
         }
+      }
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitFutureOrType(FutureOrType node, DartType other) {
+    // First, check FutureOr<dynamic>, FutureOr<Object?>, etc.
+    if (equateTopTypes && coreTypes.isTop(node)) {
+      return coreTypes.isTop(other);
+    }
+
+    if (other is FutureOrType) {
+      if (!_checkAndRegisterNullabilities(
+          node.declaredNullability, other.declaredNullability)) {
+        return false;
+      }
+      if (!node.typeArgument.accept1(this, other.typeArgument)) {
+        return false;
       }
       return true;
     }
