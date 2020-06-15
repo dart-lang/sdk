@@ -848,6 +848,8 @@ class _BadArgException implements Exception {
 }
 
 class _FixCodeProcessor extends Object {
+  static const numPhases = 3;
+
   final DriverBasedAnalysisContext context;
 
   NonNullableFix _task;
@@ -922,7 +924,7 @@ class _FixCodeProcessor extends Object {
   Future<void> runFirstPhase({bool singlePhaseProgress = false}) async {
     // All tasks should be registered; [numPhases] should be finalized.
     _progressBar = _ProgressBar(
-        pathsToProcess.length * (singlePhaseProgress ? 1 : _task.numPhases));
+        pathsToProcess.length * (singlePhaseProgress ? 1 : numPhases));
 
     // Process package
     _task.processPackage(context.contextRoot.root);
@@ -939,23 +941,24 @@ class _FixCodeProcessor extends Object {
       }
       if (_migrationCli.options.ignoreErrors ||
           _migrationCli.fileErrors.isEmpty) {
-        await _task.processUnit(0, result);
+        await _task.prepareUnit(result);
       }
     });
   }
 
   Future<List<String>> runLaterPhases({bool resetProgress = false}) async {
     if (resetProgress) {
-      _progressBar =
-          _ProgressBar(pathsToProcess.length * (_task.numPhases - 1));
+      _progressBar = _ProgressBar(pathsToProcess.length * (numPhases - 1));
     }
 
-    for (var phase = 1; phase < _task.numPhases; phase++) {
-      await processResources((ResolvedUnitResult result) async {
-        _progressBar.tick();
-        await _task.processUnit(phase, result);
-      });
-    }
+    await processResources((ResolvedUnitResult result) async {
+      _progressBar.tick();
+      await _task.processUnit(result);
+    });
+    await processResources((ResolvedUnitResult result) async {
+      _progressBar.tick();
+      await _task.finalizeUnit(result);
+    });
     var state = await _task.finish();
     if (_migrationCli.options.webPreview) {
       await _task.startPreviewServer(state);
