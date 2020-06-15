@@ -243,7 +243,7 @@ config("compiler") {
   # 3. When using the sanitizers.
   # Otherwise there is a performance hit, in particular on ia32.
   if (is_android || is_asan || is_lsan || is_msan || is_tsan || is_ubsan ||
-      (is_linux && current_cpu != "x86") || is_fuchsia) {
+      (is_linux && current_cpu != "x86")) {
     cflags += [ "-fPIC" ]
     ldflags += [ "-fPIC" ]
   }
@@ -276,8 +276,6 @@ config("compiler") {
   if (is_win) {
     # Up-to-date toolchain MSVC doesn't support c++11 flag any longer.
     cc_std = [ "/std:c++14" ]
-  } else if (is_fuchsia) {
-    cc_std = [ "-std=c++17" ]
   } else {
     cc_std = [ "-std=c++11" ]
   }

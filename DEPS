@@ -470,17 +470,6 @@ deps = {
       "dep_type": "cipd",
   },
 
-  Var("dart_root") + "/third_party/fuchsia/sdk/linux": {
-    "packages": [
-      {
-      "package": "fuchsia/sdk/gn/linux-amd64",
-      "version": "git_revision:8d5242d4f6ff8b7634b492700e60b0fd09abefa3"
-      }
-    ],
-    "condition": 'host_os == "linux" and host_cpu == "x64"',
-    "dep_type": "cipd",
-  },
-
   Var("dart_root") + "/pkg/front_end/test/fasta/types/benchmark_data": {
     "packages": [
       {

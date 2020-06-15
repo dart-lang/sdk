@@ -136,10 +136,7 @@ config("dart_config") {
   }
 
   if (is_fuchsia) {
-    if (using_fuchsia_gn_sdk) {
-      lib_dirs = [ "../out/DebugFuchsiaX64/lib" ]
-    }
-    if (using_fuchsia_gn_sdk || using_fuchsia_sdk) {
+    if (using_fuchsia_sdk) {
       # TODO(chinmaygarde): Currenty these targets need to be build in the
       # Fuchsia tree as well as outside it using the SDK. However, not all
       # Fuchsia features are available in the SDK. As these features are added,
@@ -226,12 +223,7 @@ library_for_all_configs("libdart") {
     defines = [ "DART_ENABLE_WASM" ]
   }
   if (is_fuchsia) {
-    if (using_fuchsia_gn_sdk) {
-      extra_deps += [
-        "$fuchsia_sdk_root/pkg/fdio",
-        "$fuchsia_sdk_root/pkg/trace-engine",
-      ]
-    } else if (using_fuchsia_sdk) {
+    if (using_fuchsia_sdk) {
       extra_deps += [
         "$fuchsia_sdk_root/pkg:fdio",
         "$fuchsia_sdk_root/pkg:trace-engine",

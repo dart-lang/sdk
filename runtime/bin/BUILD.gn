@@ -42,9 +42,7 @@ template("build_libdart_builtin") {
     public_configs = [ ":libdart_builtin_config" ]
     deps = []
     if (is_fuchsia) {
-      if (using_fuchsia_gn_sdk) {
-        public_deps = [ "$fuchsia_sdk_root/pkg/fdio" ]
-      } else if (using_fuchsia_sdk) {
+      if (using_fuchsia_sdk) {
         public_deps = [ "$fuchsia_sdk_root/pkg:fdio" ]
       } else {
         public_deps = [ "//zircon/public/lib/fdio" ]
@@ -320,13 +318,7 @@ template("build_gen_snapshot_dart_io") {
     deps = []
 
     if (is_fuchsia) {
-      if (using_fuchsia_gn_sdk) {
-        deps += [
-          "$fuchsia_sdk_root/fidl/fuchsia.netstack",
-          "$fuchsia_sdk_root/pkg/sys_cpp",
-        ]
-        public_deps = [ "$fuchsia_sdk_root/pkg/fdio" ]
-      } else if (using_fuchsia_sdk) {
+      if (using_fuchsia_sdk) {
         deps += [
           "$fuchsia_sdk_root/fidl:fuchsia.netstack",
           "$fuchsia_sdk_root/pkg:sys_cpp",
@@ -462,13 +454,7 @@ template("dart_io") {
     deps += [ "//third_party/boringssl" ]
 
     if (is_fuchsia) {
-      if (using_fuchsia_gn_sdk) {
-        deps += [
-          "$fuchsia_sdk_root/fidl/fuchsia.netstack",
-          "$fuchsia_sdk_root/pkg/sys_cpp",
-        ]
-        public_deps = [ "$fuchsia_sdk_root/pkg/fdio" ]
-      } else if (using_fuchsia_sdk) {
+      if (using_fuchsia_sdk) {
         deps += [
           "$fuchsia_sdk_root/fidl:fuchsia.netstack",
           "$fuchsia_sdk_root/pkg:sys_cpp",
@@ -802,9 +788,7 @@ template("dart_executable") {
       # have them. They are needed for running Fuchsia binaries built for the
       # host.
       if (is_linux) {
-        # TODO(liama): Commenting this line out because it causes problems for
-        # --os=fuchsia. If no one complains, remove it.
-        # configs += [ "../../build/config/gcc:executable_ldconfig" ]
+        configs += [ "../../build/config/gcc:executable_ldconfig" ]
       } else if (is_mac) {
         configs += [ "../../build/config/mac:mac_dynamic_flags" ]
       }
@@ -1028,11 +1012,7 @@ executable("run_vm_tests") {
   }
 
   if (is_fuchsia) {
-    if (using_fuchsia_gn_sdk) {
-      include_dirs += [ "$fuchsia_sdk_path/pkg/trace-engine/include" ]
-      libs = [ "zircon" ]
-    }
-    if (!using_fuchsia_gn_sdk && !using_fuchsia_sdk) {
+    if (!using_fuchsia_sdk) {
       deps += [ "//zircon/system/ulib/trace" ]
     }
   }
