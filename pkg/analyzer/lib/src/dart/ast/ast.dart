@@ -3926,6 +3926,13 @@ class ExtensionOverrideImpl extends ExpressionImpl
   }
 
   @override
+  bool get isNullAware {
+    var nextType = argumentList.endToken.next.type;
+    return nextType == TokenType.QUESTION_PERIOD ||
+        nextType == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET;
+  }
+
+  @override
   Precedence get precedence => Precedence.postfix;
 
   @override

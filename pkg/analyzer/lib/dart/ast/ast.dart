@@ -2106,6 +2106,9 @@ abstract class ExtensionOverride implements Expression {
   /// Return the name of the extension being selected.
   Identifier get extensionName;
 
+  /// Whether this override is null aware (as opposed to non-null).
+  bool get isNullAware;
+
   /// Return the forced extension element.
   ///
   /// Return `null` if the AST structure has not been resolved.

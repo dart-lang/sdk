@@ -10,11 +10,13 @@ import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../constant/potentially_constant_test.dart';
 import 'driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionOverrideTest);
+    defineReflectiveTests(ExtensionOverrideWithNullSafetyTest);
   });
 }
 
@@ -311,20 +313,20 @@ void f(A a) {
     validateBinaryExpression();
   }
 
-  test_operator_onTearoff() async {
+  test_operator_onTearOff() async {
     // https://github.com/dart-lang/sdk/issues/38653
     await assertErrorsInCode('''
-f(){
-  E(null).v++;
-}
-extension E on Object{
+extension E on int {
   v() {}
 }
+
+f(){
+  E(0).v++;
+}
 ''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER, 15, 1),
+      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER, 45, 1),
     ]);
-    findDeclarationAndOverride(
-        declarationName: 'E ', overrideSearch: 'E(null)');
+    findDeclarationAndOverride(declarationName: 'E ', overrideSearch: 'E(0)');
     validateOverride();
   }
 
@@ -518,7 +520,7 @@ void f(p.A a) {
     validatePropertyAccess();
   }
 
-  test_tearoff() async {
+  test_tearOff() async {
     await assertNoErrorsInCode('''
 class C {}
 
@@ -599,5 +601,97 @@ f(C c) => E(c).a;
       expectedElement = extension.getGetter('g');
     }
     expect(resolvedElement, expectedElement);
+  }
+}
+
+@reflectiveTest
+class ExtensionOverrideWithNullSafetyTest extends ExtensionOverrideTest
+    with WithNullSafetyMixin {
+  test_indexExpression_read_nullAware() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  int operator [](int index) => 0;
+}
+
+void f(int? a) {
+  E(a)?.[0];
+}
+''');
+
+    assertIndexExpression(
+      findNode.index('[0]'),
+      readElement: findElement.method('[]', of: 'E'),
+      writeElement: null,
+      type: 'int?',
+    );
+  }
+
+  test_indexExpression_write_nullAware() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  operator []=(int index, int value) {}
+}
+
+void f(int? a) {
+  E(a)?.[0] = 1;
+}
+''');
+
+    assertIndexExpression(
+      findNode.index('[0]'),
+      readElement: null,
+      writeElement: findElement.method('[]=', of: 'E'),
+      type: 'int?',
+    );
+  }
+
+  test_methodInvocation_nullAware() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  int foo() => 0;
+}
+
+void f(int? a) {
+  E(a)?.foo();
+}
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('foo();'),
+      element: findElement.method('foo'),
+      typeArgumentTypes: [],
+      invokeType: 'int Function()',
+      type: 'int?',
+    );
+  }
+
+  test_propertyAccess_getter_nullAware() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  int get foo => 0;
+}
+
+void f(int? a) {
+  E(a)?.foo;
+}
+''');
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('?.foo'),
+      element: findElement.getter('foo'),
+      type: 'int?',
+    );
+  }
+
+  test_propertyAccess_setter_nullAware() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  set foo(int _) {}
+}
+
+void f(int? a) {
+  E(a)?.foo = 0;
+}
+''');
   }
 }
