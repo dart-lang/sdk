@@ -1,0 +1,5 @@
+test1<S extends num>(S s) {}
+test2<S extends num?>(S s) {}
+test3<S extends int>(S s) {}
+test4<S extends int?>(S s) {}
+main() {}

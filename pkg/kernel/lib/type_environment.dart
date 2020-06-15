@@ -102,6 +102,16 @@ abstract class TypeEnvironment extends Types {
     return type;
   }
 
+  /// Returns the non-type parameter type bound of [type].
+  DartType _resolveTypeParameterType(DartType type) {
+    while (type is TypeParameterType) {
+      TypeParameterType typeParameterType = type;
+      type =
+          typeParameterType.promotedBound ?? typeParameterType.parameter.bound;
+    }
+    return type;
+  }
+
   /// Returns the type of the element in the for-in statement [node] with
   /// [iterableType] as the static type of the iterable expression.
   ///
@@ -110,11 +120,7 @@ abstract class TypeEnvironment extends Types {
   DartType forInElementType(ForInStatement node, DartType iterableType) {
     // TODO(johnniwinther): Update this to use the type of
     //  `iterable.iterator.current` if inference is updated accordingly.
-    while (iterableType is TypeParameterType) {
-      TypeParameterType typeParameterType = iterableType;
-      iterableType =
-          typeParameterType.promotedBound ?? typeParameterType.parameter.bound;
-    }
+    iterableType = _resolveTypeParameterType(iterableType);
     if (node.isAsync) {
       List<DartType> typeArguments =
           getTypeArgumentsAsInstanceOf(iterableType, coreTypes.streamClass);
@@ -174,6 +180,9 @@ abstract class TypeEnvironment extends Types {
   /// the upper bound), then that type variable is returned.
   /// Otherwise `num` is returned.
   DartType getTypeOfOverloadedArithmetic(DartType type1, DartType type2) {
+    type1 = _resolveTypeParameterType(type1);
+    type2 = _resolveTypeParameterType(type2);
+
     if (type1 == type2) return type1;
 
     if (type1 is InterfaceType && type2 is InterfaceType) {

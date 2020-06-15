@@ -378,12 +378,22 @@ class _InnerTypeSubstitutor extends _TypeSubstitutor {
   }
 
   TypeParameter freshTypeParameter(TypeParameter node) {
-    var fresh = new TypeParameter(node.name);
-    substitution[node] = new TypeParameterType.forAlphaRenaming(node, fresh);
+    TypeParameter fresh = new TypeParameter(node.name);
+    TypeParameterType typeParameterType = substitution[node] =
+        new TypeParameterType.forAlphaRenaming(node, fresh);
     fresh.bound = visit(node.bound);
     if (node.defaultType != null) {
       fresh.defaultType = visit(node.defaultType);
     }
+    // If the bound was changed from substituting the bound we need to update
+    // implicit nullability to be based on the new bound. If the bound wasn't
+    // changed the computation below results in the same nullability.
+    //
+    // If the type variable occurred in the bound then the bound was
+    // of the form `Foo<...T..>` or `FutureOr<T>` and the nullability therefore
+    // has not changed.
+    typeParameterType.declaredNullability =
+        TypeParameterType.computeNullabilityFromBound(fresh);
     return fresh;
   }
 }
@@ -397,7 +407,7 @@ class _InnerTypeSubstitutor extends _TypeSubstitutor {
 /// and `int`.  The function computes the nullability for the replacement as
 /// per the following table:
 ///
-/// | arg \ var |  !  |  ?  |  *  |  %  |
+/// |  a  \  b  |  !  |  ?  |  *  |  %  |
 /// |-----------|-----|-----|-----|-----|
 /// |     !     |  !  |  ?  |  *  |  !  |
 /// |     ?     | N/A |  ?  |  ?  |  ?  |
@@ -413,7 +423,7 @@ Nullability combineNullabilitiesForSubstitution(Nullability a, Nullability b) {
   // with whatever is easier to implement.  In this implementation, we extend
   // the table function as follows:
   //
-  // | arg \ var |  !  |  ?  |  *  |  %  |
+  // |  a  \  b  |  !  |  ?  |  *  |  %  |
   // |-----------|-----|-----|-----|-----|
   // |     !     |  !  |  ?  |  *  |  !  |
   // |     ?     |  ?  |  ?  |  ?  |  ?  |
