@@ -22,11 +22,14 @@ import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 import '../helpers/program_lookup.dart';
 
-main(List<String> args) {
+runTests(List<String> args, [int shardIndex]) {
   asyncTest(() async {
     Directory dataDir =
         new Directory.fromUri(Platform.script.resolve('emission'));
-    await checkTests(dataDir, const RtiEmissionDataComputer(), args: args);
+    await checkTests(dataDir, const RtiEmissionDataComputer(),
+        args: args,
+        shardIndex: shardIndex ?? 0,
+        shards: shardIndex != null ? 4 : 1);
   });
 }
 
