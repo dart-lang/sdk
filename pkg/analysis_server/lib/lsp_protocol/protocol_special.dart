@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 
 const jsonRpcVersion = '2.0';
 
@@ -18,6 +19,25 @@ ErrorOr<R> error<R>(ErrorCodes code, String message, [String data]) =>
     ErrorOr<R>.error(ResponseError(code, message, data));
 
 ErrorOr<R> failure<R>(ErrorOr<dynamic> error) => ErrorOr<R>.error(error.error);
+
+/// Returns an objects hash code, recursively combining hashes for items in
+/// Maps/Lists.
+int lspHashCode(dynamic obj) {
+  var hash = 0;
+  if (obj is List) {
+    for (var element in obj) {
+      hash = JenkinsSmiHash.combine(hash, lspHashCode(element));
+    }
+  } else if (obj is Map) {
+    for (var key in obj.keys) {
+      hash = JenkinsSmiHash.combine(hash, lspHashCode(key));
+      hash = JenkinsSmiHash.combine(hash, lspHashCode(obj[key]));
+    }
+  } else {
+    hash = obj.hashCode;
+  }
+  return JenkinsSmiHash.finish(hash);
+}
 
 Object specToJson(Object obj) {
   if (obj is ToJsonable) {
@@ -46,7 +66,7 @@ class Either2<T1, T2> {
         _which = 2;
 
   @override
-  int get hashCode => map((t) => t.hashCode, (t) => t.hashCode);
+  int get hashCode => map(lspHashCode, lspHashCode);
 
   @override
   bool operator ==(o) => o is Either2<T1, T2> && o._t1 == _t1 && o._t2 == _t2;
@@ -84,8 +104,7 @@ class Either3<T1, T2, T3> {
         _which = 3;
 
   @override
-  int get hashCode =>
-      map((t) => t.hashCode, (t) => t.hashCode, (t) => t.hashCode);
+  int get hashCode => map(lspHashCode, lspHashCode, lspHashCode);
 
   @override
   bool operator ==(o) =>
@@ -146,8 +165,7 @@ class Either4<T1, T2, T3, T4> {
         _which = 4;
 
   @override
-  int get hashCode => map((t) => t.hashCode, (t) => t.hashCode,
-      (t) => t.hashCode, (t) => t.hashCode);
+  int get hashCode => map(lspHashCode, lspHashCode, lspHashCode, lspHashCode);
 
   @override
   bool operator ==(o) =>

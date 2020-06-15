@@ -516,8 +516,14 @@ void _writeHashCode(IndentableStringBuffer buffer, Interface interface) {
     ..indent()
     ..writeIndentedln('var hash = 0;');
   for (var field in _getAllFields(interface)) {
-    buffer.writeIndentedln(
-        'hash = JenkinsSmiHash.combine(hash, ${field.name}.hashCode);');
+    final type = resolveTypeAlias(field.type);
+    if (type is ArrayType || type is MapType) {
+      buffer.writeIndentedln(
+          'hash = JenkinsSmiHash.combine(hash, lspHashCode(${field.name}));');
+    } else {
+      buffer.writeIndentedln(
+          'hash = JenkinsSmiHash.combine(hash, ${field.name}.hashCode);');
+    }
   }
   buffer
     ..writeIndentedln('return JenkinsSmiHash.finish(hash);')
