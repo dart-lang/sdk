@@ -283,19 +283,27 @@ void testMaxConnectionsPerHost(int connectionCap, int connections) {
   });
 }
 
-void testMaxConnectionsWithFailure() async {
-  var client = new HttpClient();
+Future<void> testMaxConnectionsWithFailure() async {
+  // When DNS lookup failed, counter for connecting doesn't decrement which
+  // prevents the following connections.
+  final client = HttpClient();
   client.maxConnectionsPerHost = 1;
   try {
-    await client.getUrl(Uri.parse('http://mydomainismissing'));
-  } catch (e) {}
-  try {
-    await client.getUrl(Uri.parse('http://mydomainismissing'));
+    await client.getUrl(Uri.parse('http://domain.invalid'));
   } catch (e) {
-    return;
+    if (e is! SocketException) {
+      Expect.fail("Unexpected exception $e is thrown");
+    }
   }
-
-  Expect.fail('second call should also fail');
+  try {
+    await client.getUrl(Uri.parse('http://domain.invalid'));
+    Expect.fail("Calls exceed client's maxConnectionsPerHost should throw "
+        "exceptions as well");
+  } catch (e) {
+    if (e is! SocketException) {
+      Expect.fail("Unexpected exception $e is thrown");
+    }
+  }
 }
 
 void main() {

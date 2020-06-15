@@ -2080,7 +2080,6 @@ class _ConnectionTarget {
       if (connectionTimeout != null) {
         socketFuture = socketFuture.timeout(connectionTimeout, onTimeout: () {
           _socketTasks.remove(task);
-          _connecting--;
           task.cancel();
           return null;
         });
@@ -2091,13 +2090,13 @@ class _ConnectionTarget {
         // is completed with 'null' by the onTimeout callback above. In this
         // case, propagate a SocketException as specified by the
         // HttpClient.connectionTimeout docs.
+        _connecting--;
         if (socket == null) {
           assert(connectionTimeout != null);
           throw new SocketException(
               "HTTP connection timed out after ${connectionTimeout}, "
               "host: ${host}, port: ${port}");
         }
-        _connecting--;
         socket.setOption(SocketOption.tcpNoDelay, true);
         var connection =
             new _HttpClientConnection(key, socket, client, false, context);
@@ -2118,7 +2117,6 @@ class _ConnectionTarget {
           return new _ConnectionInfo(connection, proxy);
         }
       }, onError: (error) {
-        _connecting--;
         _socketTasks.remove(task);
         _checkPending();
         throw error;
