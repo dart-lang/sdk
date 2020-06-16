@@ -139,14 +139,10 @@ import 'field_in_struct_with_initializer_test.dart'
     as field_in_struct_with_initializer;
 import 'field_initialized_by_multiple_initializers_test.dart'
     as field_initialized_by_multiple_initializers;
-import 'final_initialized_in_delcaration_and_constructor_test.dart'
-    as final_initialized_in_declaration_and_constructor;
 import 'field_initialized_in_initializer_and_declaration_test.dart'
     as field_initialized_in_initializer_and_declaration;
 import 'field_initialized_in_parameter_and_initializer_test.dart'
     as field_initialized_in_parameter_and_initializer;
-import 'final_initialized_multiple_times_test.dart'
-    as final_initialized_multiple_times;
 import 'field_initializer_factory_constructor_test.dart'
     as field_initializer_factory_constructor;
 import 'field_initializer_in_struct_test.dart' as field_initializer_in_struct;
@@ -158,6 +154,10 @@ import 'field_initializer_redirecting_constructor_test.dart'
     as field_initializer_redirecting_constructor;
 import 'field_initializing_formal_not_assignable_test.dart'
     as field_initializing_formal_not_assignable;
+import 'final_initialized_in_delcaration_and_constructor_test.dart'
+    as final_initialized_in_declaration_and_constructor;
+import 'final_initialized_multiple_times_test.dart'
+    as final_initialized_multiple_times;
 import 'final_not_initialized_constructor_test.dart'
     as final_not_initialized_constructor;
 import 'final_not_initialized_test.dart' as final_not_initialized;
@@ -219,6 +219,8 @@ import 'invalid_factory_name_not_a_class_test.dart'
     as invalid_factory_name_not_a_class;
 import 'invalid_field_type_in_struct_test.dart' as invalid_field_type_in_struct;
 import 'invalid_immutable_annotation_test.dart' as invalid_immutable_annotation;
+import 'invalid_language_override_greater_test.dart'
+    as invalid_language_override_greater;
 import 'invalid_language_override_test.dart' as invalid_language_override;
 import 'invalid_literal_annotation_test.dart' as invalid_literal_annotation;
 import 'invalid_modifier_on_constructor_test.dart'
@@ -678,6 +680,7 @@ main() {
     invalid_factory_name_not_a_class.main();
     invalid_field_type_in_struct.main();
     invalid_immutable_annotation.main();
+    invalid_language_override_greater.main();
     invalid_language_override.main();
     invalid_literal_annotation.main();
     invalid_modifier_on_constructor.main();
