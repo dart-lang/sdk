@@ -89,8 +89,6 @@ class CommandLineOptions {
 
 @visibleForTesting
 class DependencyChecker {
-  static final _pubName = Platform.isWindows ? 'pub.bat' : 'pub';
-
   /// The directory which contains the package being migrated.
   final String _directory;
   final Context _pathContext;
@@ -101,16 +99,15 @@ class DependencyChecker {
       this._directory, this._pathContext, this._logger, this._processManager);
 
   bool check() {
-    var pubPath = _pathContext.join(getSdkPath(), 'bin', _pubName);
-    var result = _processManager.runSync(
-        pubPath, ['outdated', '--mode=null-safety', '--json'],
-        workingDirectory: _directory);
-
+    var pubPath = _pathContext.join(getSdkPath(), 'bin', 'dart');
+    var pubArguments = ['pub', 'outdated', '--mode=null-safety', '--json'];
     var preNullSafetyPackages = <String, String>{};
     try {
+      var result = _processManager.runSync(pubPath, pubArguments,
+          workingDirectory: _directory);
       if ((result.stderr as String).isNotEmpty) {
         throw FormatException(
-            '`pub outdated --mode=null-safety` exited with exit code '
+            '`dart pub outdated --mode=null-safety` exited with exit code '
             '${result.exitCode} and stderr:\n\n${result.stderr}');
       }
       var outdatedOutput = jsonDecode(result.stdout as String);
@@ -139,6 +136,12 @@ class DependencyChecker {
         var version = json.expectType<String>(current['version'], 'version');
         preNullSafetyPackages[name] = version;
       }
+    } on ProcessException catch (e) {
+      _logger.stderr(
+          'Warning: Could not execute `$pubPath ${pubArguments.join(' ')}`: '
+          '"${e.message}"');
+      // Allow the program to continue; users should be allowed to attempt to
+      // migrate when `pub outdated` is misbehaving, or if there is a bug above.
     } on FormatException catch (e) {
       _logger.stderr('Warning: ${e.message}');
       // Allow the program to continue; users should be allowed to attempt to
@@ -156,7 +159,7 @@ class DependencyChecker {
       }
       _logger.stderr('');
       _logger.stderr('It is highly recommended to upgrade all dependencies to '
-          'versions which have migrated. Use `$_pubName outdated '
+          'versions which have migrated. Use `dart pub outdated '
           '--mode=null-safety` to check the status of dependencies.');
       _logger.stderr('');
       _logger.stderr('Visit https://dart.dev/tools/pub/cmd/pub-outdated for '
