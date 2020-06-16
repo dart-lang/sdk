@@ -10,6 +10,7 @@ import 'package:kernel/ast.dart' hide MapEntry;
 
 import 'package:kernel/src/assumptions.dart';
 import 'package:kernel/src/legacy_erasure.dart';
+import 'package:kernel/src/printer.dart';
 
 import '../builder/field_builder.dart';
 import '../constant_context.dart';
@@ -58,8 +59,8 @@ abstract class ImplicitFieldType extends DartType {
   }
 
   @override
-  void toTypeTextInternal(StringBuffer sb, {bool verbose: false}) {
-    sb.write('<implicit-field-type:$fieldBuilder>');
+  void toTextInternal(AstPrinter printer) {
+    printer.write('<implicit-field-type:$fieldBuilder>');
   }
 
   void addOverride(ImplicitFieldType other);

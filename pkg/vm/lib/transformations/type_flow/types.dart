@@ -11,8 +11,6 @@ import 'package:kernel/ast.dart';
 
 import 'package:kernel/core_types.dart';
 
-import 'package:kernel/src/text_util.dart';
-
 import 'utils.dart';
 
 /// Dart class representation used in type flow analysis.
@@ -34,8 +32,7 @@ class TFClass {
   bool operator ==(other) => identical(this, other);
 
   @override
-  String toString() =>
-      qualifiedClassNameToString(classNode, includeLibraryName: true);
+  String toString() => nodeToText(classNode);
 }
 
 abstract class GenericInterfacesInfo {
@@ -548,7 +545,7 @@ class ConeType extends Type {
       (other is ConeType) && identical(this.cls, other.cls);
 
   @override
-  String toString() => "_T ($cls)+";
+  String toString() => "_T (${cls})+";
 
   @override
   int get order => TypeOrder.Cone.index;
@@ -767,7 +764,7 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
       buf.write("<${typeArgs.take(numImmediateTypeArgs).join(', ')}>");
     }
     if (constant != null) {
-      buf.write(", $constant");
+      buf.write(", ${nodeToText(constant)}");
     }
     buf.write(")");
     return buf.toString();
@@ -957,8 +954,8 @@ class RuntimeType extends Type {
   @override
   String toString() {
     final head = _type is InterfaceType
-        ? "${(_type as InterfaceType).classNode}"
-        : "$_type";
+        ? "${nodeToText((_type as InterfaceType).classNode)}"
+        : "${nodeToText(_type)}";
     final typeArgsStrs = (numImmediateTypeArgs == 0)
         ? ""
         : "<${typeArgs.take(numImmediateTypeArgs).map((t) => "$t").join(", ")}>";

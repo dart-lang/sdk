@@ -20,7 +20,7 @@ RESULT: t1
 RESULT: _T {}?
 ------------ _constList1 ------------
 
-RESULT: _T (dart.core::_ImmutableList, ListConstant<int*>([1, 2, 3]))
+RESULT: _T (dart.core::_ImmutableList, const <dart.core::int*>[1, 2, 3])
 ------------ _constList2 ------------
 
-RESULT: _T (dart.core::_ImmutableList, ListConstant<Object*>([hi, 33, null, -5]))
+RESULT: _T (dart.core::_ImmutableList, const <dart.core::Object*>[hi, 33, null, -5])

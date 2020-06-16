@@ -49,7 +49,7 @@ static method use_bar(dynamic x) → dynamic
 static method use_bazz(dynamic x) → dynamic
   return [@vm.inferred-type.metadata=#lib::T3] x.bazz();
 static method getDynamic() → dynamic
-  return [@vm.call-site-attributes.metadata=receiverType:InterfaceType(Function*)] self::unknown.call();
+  return [@vm.call-site-attributes.metadata=receiverType:dart.core::Function*] self::unknown.call();
 static method allocateA() → dynamic {
   new self::A::•();
 }

@@ -275,23 +275,26 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   void defaultConstant(Constant node) {}
 
   void visitNullConstant(NullConstant node) {
-    result.add(node);
+    result.add('${node.value}');
   }
 
   void visitBoolConstant(BoolConstant node) {
-    result.add(node);
+    result.add('${node.value}');
   }
 
   void visitIntConstant(IntConstant node) {
-    result.add(node);
+    result.add('${node.value}');
   }
 
   void visitDoubleConstant(DoubleConstant node) {
-    result.add(node);
+    result.add('${node.value}');
   }
 
   void visitSymbolConstant(SymbolConstant node) {
-    result.add(node);
+    String text = node.libraryReference != null
+        ? '#${node.libraryReference.asLibrary.importUri}::${node.name}'
+        : '#${node.name}';
+    result.add(text);
   }
 
   void visitStringConstant(StringConstant node) {

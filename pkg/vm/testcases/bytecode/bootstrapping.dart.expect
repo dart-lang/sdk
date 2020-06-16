@@ -980,7 +980,7 @@ Function 'get:runtimeType', getter, abstract, debuggable
     }
     static get platformScript() → dynamic {
       if(#lib::VMLibraryHooks::_cachedScript.{dart.core::Object::==}(null) && !#lib::VMLibraryHooks::_computeScriptUri.{dart.core::Object::==}(null)) {
-        #lib::VMLibraryHooks::_cachedScript = [@vm.call-site-attributes.metadata=receiverType:DynamicType(dynamic)] #lib::VMLibraryHooks::_computeScriptUri.call();
+        #lib::VMLibraryHooks::_cachedScript = [@vm.call-site-attributes.metadata=receiverType:dynamic] #lib::VMLibraryHooks::_computeScriptUri.call();
       }
       return #lib::VMLibraryHooks::_cachedScript;
     }

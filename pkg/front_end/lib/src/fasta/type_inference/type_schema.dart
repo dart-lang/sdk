@@ -15,6 +15,7 @@ import 'package:kernel/ast.dart'
         TypedefType,
         Visitor;
 import 'package:kernel/src/assumptions.dart';
+import 'package:kernel/src/printer.dart';
 
 import 'package:kernel/import_table.dart' show ImportTable;
 
@@ -92,8 +93,8 @@ class UnknownType extends DartType {
   UnknownType withDeclaredNullability(Nullability nullability) => this;
 
   @override
-  void toTypeTextInternal(StringBuffer sb, {bool verbose: false}) {
-    sb.write('?');
+  void toTextInternal(AstPrinter printer) {
+    printer.write('?');
   }
 
   @override
