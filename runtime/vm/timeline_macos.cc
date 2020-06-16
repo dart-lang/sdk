@@ -5,13 +5,10 @@
 #include "vm/globals.h"
 #if defined(HOST_OS_MACOS) && defined(SUPPORT_TIMELINE)
 
+#include <os/signpost.h>
 
 #include "vm/log.h"
 #include "vm/timeline.h"
-
-#if defined(HOST_OS_SUPPORTS_SIGNPOST)
-#include <os/signpost.h>
-#endif
 
 namespace dart {
 
@@ -26,7 +23,6 @@ void TimelineEventMacosRecorder::OnEvent(TimelineEvent* event) {
     return;
   }
 
-#if defined(HOST_OS_SUPPORTS_SIGNPOST)
   os_log_t log = event->stream_->macos_log();
   if (!os_signpost_enabled(log)) {
     return;
@@ -79,7 +75,6 @@ void TimelineEventMacosRecorder::OnEvent(TimelineEvent* event) {
     default:
       break;
   }
-#endif  // defined(HOST_OS_SUPPORTS_SIGNPOST)
 }
 
 }  // namespace dart
