@@ -3524,17 +3524,20 @@ typedef void (*Dart_StreamingWriteCallback)(void* callback_data,
 // Use the '...CSymbol' definitions for resolving through 'dlsym'. The actual
 // symbol names in the objects are given by the '...AsmSymbol' definitions.
 #if defined(__APPLE__)
+#define kSnapshotBuildIdCSymbol "kDartSnapshotBuildId"
 #define kVmSnapshotDataCSymbol "kDartVmSnapshotData"
 #define kVmSnapshotInstructionsCSymbol "kDartVmSnapshotInstructions"
 #define kIsolateSnapshotDataCSymbol "kDartIsolateSnapshotData"
 #define kIsolateSnapshotInstructionsCSymbol "kDartIsolateSnapshotInstructions"
 #else
+#define kSnapshotBuildIdCSymbol "_kDartSnapshotBuildId"
 #define kVmSnapshotDataCSymbol "_kDartVmSnapshotData"
 #define kVmSnapshotInstructionsCSymbol "_kDartVmSnapshotInstructions"
 #define kIsolateSnapshotDataCSymbol "_kDartIsolateSnapshotData"
 #define kIsolateSnapshotInstructionsCSymbol "_kDartIsolateSnapshotInstructions"
 #endif
 
+#define kSnapshotBuildIdAsmSymbol "_kDartSnapshotBuildId"
 #define kVmSnapshotDataAsmSymbol "_kDartVmSnapshotData"
 #define kVmSnapshotInstructionsAsmSymbol "_kDartVmSnapshotInstructions"
 #define kIsolateSnapshotDataAsmSymbol "_kDartIsolateSnapshotData"

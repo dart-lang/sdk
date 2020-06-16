@@ -1214,6 +1214,18 @@ class Dwarf {
         vmStartAddress, isolateStartAddress);
   }
 
+  /// The build ID for the debugging information.
+  ///
+  /// Returns null if there is no build ID information recorded.
+  String get buildId {
+    final sections = _elf.namedSections(constants.buildIdSectionName);
+    if (sections.isEmpty) return null;
+    final Note note = sections.single;
+    if (note.type != constants.buildIdNoteType) return null;
+    if (note.name != constants.buildIdNoteName) return null;
+    return note.description.map((i) => i.toRadixString(16)).join();
+  }
+
   /// The call information for the given virtual address. There may be
   /// multiple [CallInfo] objects returned for a single virtual address when
   /// code has been inlined.

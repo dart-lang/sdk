@@ -76,6 +76,8 @@ Future<void> checkStackTrace(String rawStack, Dwarf dwarf,
   // means we can't depend on virtual addresses in the snapshot lining up with
   // those in the separate debugging information.
   if (explicits.isNotEmpty) {
+    // Direct-to-ELF snapshots should have a build ID.
+    Expect.isNotNull(dwarf.buildId);
     Expect.deepEquals(relocatedAddresses, virtualAddresses);
     Expect.deepEquals(explicits, virtualAddresses);
   }

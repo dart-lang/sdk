@@ -412,6 +412,8 @@ void ImageWriter::Write(WriteStream* clustered_stream, bool vm) {
   }
 
   // Append the direct-mapped RO data objects after the clustered snapshot.
+  // We need to do this before WriteText because WriteText currently adds the
+  // finalized contents of the clustered_stream as data sections.
   offset_space_ = vm ? V8SnapshotProfileWriter::kVmData
                      : V8SnapshotProfileWriter::kIsolateData;
   WriteROData(clustered_stream);
@@ -1076,9 +1078,15 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   assembly_stream_.Print(".globl %s\n", data_symbol);
   Align(kMaxObjectAlignment);
   assembly_stream_.Print("%s:\n", data_symbol);
-  uword buffer = reinterpret_cast<uword>(clustered_stream->buffer());
-  intptr_t length = clustered_stream->bytes_written();
+  const uword buffer = reinterpret_cast<uword>(clustered_stream->buffer());
+  const intptr_t length = clustered_stream->bytes_written();
   WriteByteSequence(buffer, buffer + length);
+#if defined(DART_PRECOMPILER)
+  if (debug_elf_ != nullptr) {
+    // Add a NoBits section for the ROData as well.
+    debug_elf_->AddROData(data_symbol, clustered_stream->buffer(), length);
+  }
+#endif  // defined(DART_PRECOMPILER)
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -1486,18 +1494,20 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     auto const segment_base2 =
         elf_->AddText(instructions_symbol, instructions_blob_stream_.buffer(),
                       instructions_blob_stream_.bytes_written());
-    ASSERT(segment_base == segment_base2);
+    ASSERT_EQUAL(segment_base2, segment_base);
     // Write the .rodata section here like the AssemblyImageWriter.
     elf_->AddROData(data_symbol, clustered_stream->buffer(),
                     clustered_stream->bytes_written());
   }
   if (debug_elf_ != nullptr) {
-    // To keep memory addresses consistent, we need to add corresponding
-    // sections (though these will be NOBITS sections).
+    // To keep memory addresses consistent, we create elf::SHT_NOBITS sections
+    // in the debugging information. We still pass along the buffers because
+    // we'll need the buffer bytes at generation time to calculate the build ID
+    // so it'll match the one in the snapshot.
     auto const debug_segment_base2 = debug_elf_->AddText(
         instructions_symbol, instructions_blob_stream_.buffer(),
         instructions_blob_stream_.bytes_written());
-    ASSERT(debug_segment_base == debug_segment_base2);
+    ASSERT_EQUAL(debug_segment_base2, debug_segment_base);
     debug_elf_->AddROData(data_symbol, clustered_stream->buffer(),
                           clustered_stream->bytes_written());
   }
