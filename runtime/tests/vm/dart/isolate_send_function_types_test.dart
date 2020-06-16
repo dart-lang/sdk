@@ -25,7 +25,7 @@ main(args) async {
         "(function types are not supported yet)");
   }
 
-  void genericFunc<T>() async {
+  Future<void> genericFunc<T>() async {
     final y = A<void Function(T)>();
     final caughtErrorCompleter = Completer<String>();
     await runZoned(() {

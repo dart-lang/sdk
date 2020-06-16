@@ -652,6 +652,7 @@ void main() {
     );
   }
 
+  @Deprecated('It was used internally, should not be part of API')
   test_hasReferenceToSuper() async {
     await assertNoErrorsInCode(r'''
 class A {}
@@ -753,9 +754,7 @@ class H extends D<W> {
     ]);
   }
 
-  @failingTest
   test_import_spaceInUri() async {
-    // TODO(scheglov) Fix this. The problem is in `package` URI resolver.
     newFile('/test/lib/sub folder/a.dart', content: r'''
 foo() {}''');
 
@@ -862,20 +861,18 @@ class C = Object with A;''');
     expect(a.isValidMixin, isTrue);
   }
 
-  test_isValidMixin_super() async {
-    await assertErrorsInCode(r'''
+  test_isValidMixin_super_toString() async {
+    await assertNoErrorsInCode(r'''
 class A {
   toString() {
     return super.toString();
   }
 }
-class C = Object with A;''', [
-      error(CompileTimeErrorCode.MIXIN_REFERENCES_SUPER, 82, 1),
-    ]);
+class C = Object with A;''');
     verifyTestResolved();
 
     var a = findElement.class_('A');
-    expect(a.isValidMixin, isFalse);
+    expect(a.isValidMixin, isTrue);
   }
 
   test_isValidMixin_valid() async {

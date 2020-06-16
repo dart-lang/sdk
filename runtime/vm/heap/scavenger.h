@@ -183,6 +183,7 @@ class SemiSpace {
   NewPage* head() const { return head_; }
 
   void AddList(NewPage* head, NewPage* tail);
+  void MergeFrom(SemiSpace* donor);
 
  private:
   // Size of NewPages in this semi-space.
@@ -279,6 +280,8 @@ class Scavenger {
   // Promote all live objects.
   void Evacuate();
 
+  void MergeFrom(Scavenger* donor);
+
   int64_t UsedInWords() const {
     MutexLocker ml(&space_lock_);
     return to_->capacity_in_words();
@@ -314,8 +317,16 @@ class Scavenger {
   void PrintToJSONObject(JSONObject* object) const;
 #endif  // !PRODUCT
 
-  void AllocateExternal(intptr_t cid, intptr_t size);
-  void FreeExternal(intptr_t size);
+  void AllocatedExternal(intptr_t size) {
+    ASSERT(size >= 0);
+    external_size_ += size;
+    ASSERT(external_size_ >= 0);
+  }
+  void FreedExternal(intptr_t size) {
+    ASSERT(size >= 0);
+    external_size_ -= size;
+    ASSERT(external_size_ >= 0);
+  }
 
   void MakeNewSpaceIterable();
   int64_t FreeSpaceInWords(Isolate* isolate) const;

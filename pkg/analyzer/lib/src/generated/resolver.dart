@@ -414,10 +414,17 @@ class ResolverVisitor extends ScopedVisitor {
       }
 
       if (typeSystem.isPotentiallyNonNullable(returnType)) {
-        errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY,
-          errorNode,
-        );
+        if (errorNode is ConstructorDeclaration) {
+          errorReporter.reportErrorForName(
+            CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY,
+            errorNode,
+          );
+        } else {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY,
+            errorNode,
+          );
+        }
       }
     }
   }
@@ -449,7 +456,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   /// If we reached a null-shorting termination, and the [node] has null
   /// shorting, make the type of the [node] nullable.
-  void nullShortingTermination(Expression node) {
+  void nullShortingTermination(Expression node, {bool discardType = false}) {
     if (!_isNonNullableByDefault) return;
 
     if (identical(_unfinishedNullShorts.last, node)) {
@@ -457,7 +464,7 @@ class ResolverVisitor extends ScopedVisitor {
         _unfinishedNullShorts.removeLast();
         _flowAnalysis.flow.nullAwareAccess_end();
       } while (identical(_unfinishedNullShorts.last, node));
-      if (node is! CascadeExpression) {
+      if (node is! CascadeExpression && !discardType) {
         node.staticType = typeSystem.makeNullable(node.staticType);
       }
     }
@@ -807,24 +814,41 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
-    try {
-      _flowAnalysis?.topLevelDeclaration_enter(
-          node, node.parameters, node.body);
-      _flowAnalysis?.executableDeclaration_enter(node, node.parameters, false);
+    _enclosingFunction = node.declaredElement;
+
+    if (_flowAnalysis != null) {
+      _flowAnalysis.topLevelDeclaration_enter(node, node.parameters, node.body);
+      _flowAnalysis.executableDeclaration_enter(node, node.parameters, false);
+    } else {
       _promoteManager.enterFunctionBody(node.body);
-      _enclosingFunction = node.declaredElement;
-      FunctionType type = _enclosingFunction.type;
-      InferenceContext.setType(node.body, type.returnType);
-      super.visitConstructorDeclaration(node);
-    } finally {
-      _flowAnalysis?.executableDeclaration_exit(node.body, false);
-      _flowAnalysis?.topLevelDeclaration_exit();
-      _promoteManager.exitFunctionBody();
-      _enclosingFunction = outerFunction;
     }
+
+    var returnType = _enclosingFunction.type.returnType;
+    InferenceContext.setType(node.body, returnType);
+
+    super.visitConstructorDeclaration(node);
+
+    if (_flowAnalysis != null) {
+      var bodyContext = BodyInferenceContext.of(node.body);
+      if (node.factoryKeyword != null) {
+        checkForBodyMayCompleteNormally(
+          returnType: bodyContext?.contextType,
+          body: node.body,
+          errorNode: node,
+        );
+      }
+      _flowAnalysis.executableDeclaration_exit(node.body, false);
+      _flowAnalysis.topLevelDeclaration_exit();
+      nullSafetyDeadCodeVerifier?.flowEnd(node);
+    } else {
+      _promoteManager.exitFunctionBody();
+    }
+
     ConstructorElementImpl constructor = node.declaredElement;
     constructor.constantInitializers =
         _createCloner().cloneNodeList(node.initializers);
+
+    _enclosingFunction = outerFunction;
   }
 
   @override
@@ -1327,7 +1351,10 @@ class ResolverVisitor extends ScopedVisitor {
 
     var functionRewrite = MethodInvocationResolver.getRewriteResult(node);
     if (functionRewrite != null) {
-      _functionExpressionInvocationResolver.resolve(functionRewrite);
+      nullShortingTermination(node, discardType: true);
+      _resolveRewrittenFunctionExpressionInvocation(functionRewrite);
+    } else {
+      nullShortingTermination(node);
     }
   }
 
@@ -1802,6 +1829,30 @@ class ResolverVisitor extends ScopedVisitor {
       type = toLegacyTypeIfOptOut(type);
       InferenceContext.setType(node.argumentList, type);
     }
+  }
+
+  /// Continues resolution of a [FunctionExpressionInvocation] that was created
+  /// from a rewritten [MethodInvocation]. The target function is already
+  /// resolved.
+  ///
+  /// The specification says that `target.getter()` should be treated as an
+  /// ordinary method invocation. So, we need to perform the same null shorting
+  /// as for method invocations.
+  void _resolveRewrittenFunctionExpressionInvocation(
+    FunctionExpressionInvocation node,
+  ) {
+    var function = node.function;
+
+    if (function is PropertyAccess &&
+        _migratableAstInfoProvider.isPropertyAccessNullAware(function) &&
+        _isNonNullableByDefault) {
+      _flowAnalysis.flow.nullAwareAccess_rightBegin(function);
+      _unfinishedNullShorts.add(node.nullShortingTermination);
+    }
+
+    _functionExpressionInvocationResolver.resolve(node);
+
+    nullShortingTermination(node);
   }
 
   /// Given an [argumentList] and the [parameters] related to the element that
@@ -2901,9 +2952,14 @@ class VariableResolverVisitor extends ScopedVisitor {
 /// Tracker for whether a `switch` statement has `default` or is on an
 /// enumeration, and all the enum constants are covered.
 class _SwitchExhaustiveness {
-  /// If the switch is on an enumeration, the set of all enum constants.
+  /// If the switch is on an enumeration, the set of enum constants to cover.
   /// Otherwise `null`.
   final Set<FieldElement> _enumConstants;
+
+  /// If the switch is on an enumeration, is `true` if the null value is
+  /// covered, because the switch expression type is non-nullable, or `null`
+  /// was covered explicitly.
+  bool _isNullEnumValueCovered = false;
 
   bool isExhaustive = false;
 
@@ -2913,22 +2969,28 @@ class _SwitchExhaustiveness {
       if (enum_ is EnumElementImpl) {
         return _SwitchExhaustiveness._(
           enum_.constants.toSet(),
+          expressionType.nullabilitySuffix == NullabilitySuffix.none,
         );
       }
     }
-    return _SwitchExhaustiveness._(null);
+    return _SwitchExhaustiveness._(null, false);
   }
 
-  _SwitchExhaustiveness._(this._enumConstants);
+  _SwitchExhaustiveness._(this._enumConstants, this._isNullEnumValueCovered);
 
   void visitSwitchMember(SwitchMember node) {
     if (_enumConstants != null && node is SwitchCase) {
       var element = _referencedElement(node.expression);
       if (element is PropertyAccessorElement) {
         _enumConstants.remove(element.variable);
-        if (_enumConstants.isEmpty) {
-          isExhaustive = true;
-        }
+      }
+
+      if (node.expression is NullLiteral) {
+        _isNullEnumValueCovered = true;
+      }
+
+      if (_enumConstants.isEmpty && _isNullEnumValueCovered) {
+        isExhaustive = true;
       }
     } else if (node is SwitchDefault) {
       isExhaustive = true;

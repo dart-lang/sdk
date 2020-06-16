@@ -46,7 +46,7 @@ ISOLATE_UNIT_TEST_CASE(OptimizationTests) {
 }
 
 ISOLATE_UNIT_TEST_CASE(IRTest_EliminateWriteBarrier) {
-  const char* tag = (FLAG_null_safety == kNullSafetyOptionStrong) ? "?" : "";
+  const char* nullable_tag = TestCase::NullableTag();
   // clang-format off
   auto kScript = Utils::CStringUniquePtr(OS::SCreate(nullptr, R"(
       class Container<T> {
@@ -64,7 +64,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_EliminateWriteBarrier) {
           x[i] = i;
         }
       }
-    )", tag, tag), std::free);
+    )", nullable_tag, nullable_tag), std::free);
   // clang-format on
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));
@@ -131,7 +131,6 @@ static void RunInitializingStoresTest(
 }
 
 ISOLATE_UNIT_TEST_CASE(IRTest_InitializingStores) {
-  const char* tag = (FLAG_null_safety == kNullSafetyOptionStrong) ? "?" : "";
   // clang-format off
   auto kScript = Utils::CStringUniquePtr(OS::SCreate(nullptr, R"(
     class Bar {
@@ -155,7 +154,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_InitializingStores) {
       f4();
     }
   )",
-  tag), std::free);
+  TestCase::NullableTag()), std::free);
   // clang-format on
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));

@@ -75,6 +75,9 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
       defaultsTo: true)
   ..addOption('import-dill',
       help: 'Import libraries from existing dill file', defaultsTo: null)
+  ..addOption('from-dill',
+      help: 'Read existing dill file instead of compiling from sources',
+      defaultsTo: null)
   ..addOption('output-dill',
       help: 'Output path for the generated dill', defaultsTo: null)
   ..addOption('output-incremental-dill',
@@ -452,6 +455,13 @@ class FrontendCompiler implements CompilerInterface {
       }
     }
 
+    if (options['incremental']) {
+      if (options['from-dill'] != null) {
+        print('Error: --from-dill option cannot be used with --incremental');
+        return false;
+      }
+    }
+
     if (options['null-safety'] == null &&
         compilerOptions.experimentalFlags[ExperimentalFlag.nonNullable]) {
       await autoDetectNullSafetyMode(_mainSource, compilerOptions);
@@ -533,7 +543,8 @@ class FrontendCompiler implements CompilerInterface {
           enableAsserts: options['enable-asserts'],
           useProtobufTreeShaker: options['protobuf-tree-shaker'],
           minimalKernel: options['minimal-kernel'],
-          treeShakeWriteOnlyFields: options['tree-shake-write-only-fields']));
+          treeShakeWriteOnlyFields: options['tree-shake-write-only-fields'],
+          fromDillFile: options['from-dill']));
     }
     if (results.component != null) {
       transformer?.transform(results.component);

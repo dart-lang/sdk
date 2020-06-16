@@ -3512,6 +3512,125 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSizeOddReferents) {
   }
 }
 
+#define EXAMPLE_RESOURCE_NATIVE_LIST(V)                                        \
+  V(ExampleResource_Allocate, 1)                                               \
+  V(ExampleResource_Use, 1)                                                    \
+  V(ExampleResource_Dispose, 1)
+
+EXAMPLE_RESOURCE_NATIVE_LIST(DECLARE_FUNCTION);
+
+static struct NativeEntries {
+  const char* name_;
+  Dart_NativeFunction function_;
+  int argument_count_;
+} ExampleResourceEntries[] = {EXAMPLE_RESOURCE_NATIVE_LIST(REGISTER_FUNCTION)};
+
+static Dart_NativeFunction ExampleResourceNativeResolver(
+    Dart_Handle name,
+    int argument_count,
+    bool* auto_setup_scope) {
+  const char* function_name = nullptr;
+  Dart_Handle result = Dart_StringToCString(name, &function_name);
+  ASSERT(!Dart_IsError(result));
+  ASSERT(function_name != nullptr);
+  ASSERT(auto_setup_scope != nullptr);
+  *auto_setup_scope = true;
+  int num_entries =
+      sizeof(ExampleResourceEntries) / sizeof(struct NativeEntries);
+  for (int i = 0; i < num_entries; i++) {
+    struct NativeEntries* entry = &(ExampleResourceEntries[i]);
+    if ((strcmp(function_name, entry->name_) == 0) &&
+        (entry->argument_count_ == argument_count)) {
+      return reinterpret_cast<Dart_NativeFunction>(entry->function_);
+    }
+  }
+  return nullptr;
+}
+
+struct ExampleResource {
+  Dart_WeakPersistentHandle self;
+  void* lots_of_memory;
+};
+
+void ExampleResourceFinalizer(void* isolate_peer,
+                              Dart_WeakPersistentHandle handle,
+                              void* peer) {
+  ExampleResource* resource = reinterpret_cast<ExampleResource*>(peer);
+  free(resource->lots_of_memory);
+  delete resource;
+}
+
+void FUNCTION_NAME(ExampleResource_Allocate)(Dart_NativeArguments native_args) {
+  Dart_Handle receiver = Dart_GetNativeArgument(native_args, 0);
+  intptr_t external_size = 10 * MB;
+  ExampleResource* resource = new ExampleResource();
+  resource->lots_of_memory = malloc(external_size);
+  resource->self = Dart_NewWeakPersistentHandle(
+      receiver, resource, external_size, ExampleResourceFinalizer);
+  EXPECT_VALID(Dart_SetNativeInstanceField(
+      receiver, 0, reinterpret_cast<intptr_t>(resource)));
+  // Some pretend resource initialization.
+  *reinterpret_cast<uint8_t*>(resource->lots_of_memory) = 123;
+}
+
+void FUNCTION_NAME(ExampleResource_Use)(Dart_NativeArguments native_args) {
+  Dart_Handle receiver = Dart_GetNativeArgument(native_args, 0);
+  intptr_t native_field = 0;
+  EXPECT_VALID(Dart_GetNativeInstanceField(receiver, 0, &native_field));
+  ExampleResource* resource = reinterpret_cast<ExampleResource*>(native_field);
+  if (resource->lots_of_memory == nullptr) {
+    Dart_ThrowException(Dart_NewStringFromCString(
+        "Attempt to use a disposed ExampleResource!"));
+    UNREACHABLE();
+  } else {
+    // Some pretend resource use.
+    EXPECT_EQ(123, *reinterpret_cast<uint8_t*>(resource->lots_of_memory));
+  }
+}
+
+void FUNCTION_NAME(ExampleResource_Dispose)(Dart_NativeArguments native_args) {
+  Dart_Handle receiver = Dart_GetNativeArgument(native_args, 0);
+  intptr_t native_field = 0;
+  EXPECT_VALID(Dart_GetNativeInstanceField(receiver, 0, &native_field));
+  ExampleResource* resource = reinterpret_cast<ExampleResource*>(native_field);
+  if (resource->lots_of_memory != nullptr) {
+    free(resource->lots_of_memory);
+    resource->lots_of_memory = nullptr;
+    Dart_UpdateExternalSize(resource->self, 0);
+  }
+}
+
+TEST_CASE(DartAPI_WeakPersistentHandleUpdateSize) {
+  const char* kScriptChars = R"(
+    import "dart:nativewrappers";
+    class ExampleResource extends NativeFieldWrapperClass1 {
+      ExampleResource() { _allocate(); }
+      void _allocate() native "ExampleResource_Allocate";
+      void use() native "ExampleResource_Use";
+      void dispose() native "ExampleResource_Dispose";
+    }
+    main() {
+      var res = new ExampleResource();
+      res.use();
+      res.dispose();
+      res.dispose();  // Idempotent
+      bool threw = false;
+      try {
+        res.use();
+      } catch (_) {
+        threw = true;
+      }
+      if (!threw) {
+        throw "Exception expected";
+      }
+    }
+  )";
+
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars, ExampleResourceNativeResolver);
+  EXPECT_VALID(Dart_Invoke(lib, NewString("main"), 0, NULL));
+}
+
 static Dart_WeakPersistentHandle weak1 = NULL;
 static Dart_WeakPersistentHandle weak2 = NULL;
 static Dart_WeakPersistentHandle weak3 = NULL;
@@ -4034,7 +4153,7 @@ TEST_CASE(DartAPI_TypeGetParameterizedTypes) {
   EXPECT_VALID(double_type);
   EXPECT_VALID(Dart_ListSetAt(type_args, 1, double_type));
   Dart_Handle myclass0_type =
-      (FLAG_null_safety == kNullSafetyOptionStrong)
+      TestCase::IsNNBD()
           ? Dart_GetNonNullableType(lib, NewString("MyClass0"), 2, &type_args)
           : Dart_GetType(lib, NewString("MyClass0"), 2, &type_args);
   EXPECT_VALID(myclass0_type);
@@ -4048,7 +4167,7 @@ TEST_CASE(DartAPI_TypeGetParameterizedTypes) {
   EXPECT_VALID(list_type);
   EXPECT_VALID(Dart_ListSetAt(type_args, 1, list_type));
   Dart_Handle myclass1_type =
-      (FLAG_null_safety == kNullSafetyOptionStrong)
+      TestCase::IsNNBD()
           ? Dart_GetNonNullableType(lib, NewString("MyClass1"), 2, &type_args)
           : Dart_GetType(lib, NewString("MyClass1"), 2, &type_args);
   EXPECT_VALID(myclass1_type);
@@ -4417,9 +4536,8 @@ TEST_CASE(DartAPI_SetField_FunnyValue) {
 }
 
 TEST_CASE(DartAPI_SetField_BadType) {
-  const char* kScriptChars = (FLAG_null_safety == kNullSafetyOptionStrong)
-                                 ? "late int foo;\n"
-                                 : "int foo;\n";
+  const char* kScriptChars =
+      TestCase::IsNNBD() ? "late int foo;\n" : "int foo;\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_Handle name = NewString("foo");
   Dart_Handle result = Dart_SetField(lib, name, Dart_True());
@@ -4441,8 +4559,6 @@ static Dart_NativeFunction native_field_lookup(Dart_Handle name,
 }
 
 TEST_CASE(DartAPI_InjectNativeFields2) {
-  bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* nullableTag = null_safety ? "?" : "";
   // clang-format off
   auto kScriptChars = Utils::CStringUniquePtr(
       OS::SCreate(nullptr,
@@ -4457,7 +4573,7 @@ TEST_CASE(DartAPI_InjectNativeFields2) {
                   "  NativeFields obj = new NativeFields(10, 20);\n"
                   "  return obj;\n"
                   "}\n",
-                  nullableTag), std::free);
+                  TestCase::NullableTag()), std::free);
   // clang-format on
 
   Dart_Handle result;
@@ -4475,8 +4591,6 @@ TEST_CASE(DartAPI_InjectNativeFields2) {
 }
 
 TEST_CASE(DartAPI_InjectNativeFields3) {
-  bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* nullableTag = null_safety ? "?" : "";
   // clang-format off
   auto kScriptChars = Utils::CStringUniquePtr(
       OS::SCreate(nullptr,
@@ -4492,7 +4606,7 @@ TEST_CASE(DartAPI_InjectNativeFields3) {
                   "  NativeFields obj = new NativeFields(10, 20);\n"
                   "  return obj;\n"
                   "}\n",
-                  nullableTag), std::free);
+                  TestCase::NullableTag()), std::free);
   // clang-format on
   Dart_Handle result;
   const int kNumNativeFields = 2;
@@ -4524,8 +4638,6 @@ TEST_CASE(DartAPI_InjectNativeFields3) {
 }
 
 TEST_CASE(DartAPI_InjectNativeFields4) {
-  bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* nullableTag = null_safety ? "?" : "";
   // clang-format off
   auto kScriptChars = Utils::CStringUniquePtr(
       OS::SCreate(nullptr,
@@ -4540,7 +4652,7 @@ TEST_CASE(DartAPI_InjectNativeFields4) {
                   "  NativeFields obj = new NativeFields(10, 20);\n"
                   "  return obj;\n"
                   "}\n",
-                  nullableTag), std::free);
+                  TestCase::NullableTag()), std::free);
   // clang-format on
   Dart_Handle result;
   // Load up a test script in the test library.
@@ -4610,8 +4722,7 @@ static Dart_NativeFunction TestNativeFieldsAccess_lookup(Dart_Handle name,
 }
 
 TEST_CASE(DartAPI_TestNativeFieldsAccess) {
-  bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* nullableTag = null_safety ? "?" : "";
+  const char* nullable_tag = TestCase::NullableTag();
   // clang-format off
   auto kScriptChars = Utils::CStringUniquePtr(
       OS::SCreate(
@@ -4633,7 +4744,7 @@ TEST_CASE(DartAPI_TestNativeFieldsAccess) {
           "  obj.accessNativeFlds(null);\n"
           "  return obj;\n"
           "}\n",
-          nullableTag, nullableTag, nullableTag, nullableTag),
+          nullable_tag, nullable_tag, nullable_tag, nullable_tag),
       std::free);
   // clang-format on
 
@@ -4751,8 +4862,7 @@ static void TestNativeFields(Dart_Handle retobj) {
 }
 
 TEST_CASE(DartAPI_ImplicitNativeFieldAccess) {
-  bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* nullableTag = null_safety ? "?" : "";
+  const char* nullable_tag = TestCase::NullableTag();
   // clang-format off
   auto kScriptChars = Utils::CStringUniquePtr(
       OS::SCreate(nullptr,
@@ -4769,7 +4879,7 @@ TEST_CASE(DartAPI_ImplicitNativeFieldAccess) {
                   "  NativeFields obj = new NativeFields(10, 20);\n"
                   "  return obj;\n"
                   "}\n",
-                  nullableTag, nullableTag),
+                  nullable_tag, nullable_tag),
       std::free);
   // clang-format on
   // Load up a test script in the test library.
@@ -4785,8 +4895,6 @@ TEST_CASE(DartAPI_ImplicitNativeFieldAccess) {
 }
 
 TEST_CASE(DartAPI_NegativeNativeFieldAccess) {
-  bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* nullableTag = null_safety ? "?" : "";
   // clang-format off
   auto kScriptChars = Utils::CStringUniquePtr(
       OS::SCreate(nullptr,
@@ -4805,7 +4913,7 @@ TEST_CASE(DartAPI_NegativeNativeFieldAccess) {
                   "Function testMain2() {\n"
                   "  return () {};\n"
                   "}\n",
-                  nullableTag),
+                  TestCase::NullableTag()),
       std::free);
   // clang-format on
 
@@ -5856,8 +5964,7 @@ TEST_CASE(DartAPI_ThrowException) {
   Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
 
   // Load up a test script which extends the native wrapper class.
-  Dart_Handle lib = TestCase::LoadTestScript(
-      kScriptChars, reinterpret_cast<Dart_NativeEntryResolver>(native_lookup));
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, native_lookup);
 
   // Throwing an exception here should result in an error.
   result = Dart_ThrowException(NewString("This doesn't work"));
@@ -6043,9 +6150,7 @@ TEST_CASE(DartAPI_GetNativeArguments) {
       "                           obj2);"
       "}";
 
-  Dart_Handle lib = TestCase::LoadTestScript(
-      kScriptChars,
-      reinterpret_cast<Dart_NativeEntryResolver>(native_args_lookup));
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, native_args_lookup);
 
   const char* ascii_str = "string";
   intptr_t ascii_str_length = strlen(ascii_str);
@@ -6086,8 +6191,7 @@ TEST_CASE(DartAPI_GetNativeArgumentCount) {
       "  return obj.method1(77, 125);"
       "}";
 
-  Dart_Handle lib = TestCase::LoadTestScript(
-      kScriptChars, reinterpret_cast<Dart_NativeEntryResolver>(gnac_lookup));
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, gnac_lookup);
 
   Dart_Handle result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
   EXPECT_VALID(result);

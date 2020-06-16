@@ -583,17 +583,17 @@ abstract class Right implements Top {}
 abstract class Bottom implements Left, Right {}
 
 abstract class TakesLeft {
-  m(Left x);
+  void m(Left x);
 }
 abstract class TakesRight {
-  m(Right x);
+  void m(Right x);
 }
 abstract class TakesTop implements TakesLeft, TakesRight {
-  m(Top x); // works today
+  void m(Top x); // works today
 }
 abstract class TakesBottom implements TakesLeft, TakesRight {
   // LUB(Left, Right) == Top, so this is an implicit cast from Top to Bottom.
-  m(covariant Bottom x);
+  void m(covariant Bottom x);
 }
     ''');
   }
@@ -2820,11 +2820,11 @@ class A {}
 class B {}
 
 class Base {
-    m(A a) {}
+  void m(A a) {}
 }
 
 class I1 {
-    m(B a) {}
+  void m(B a) {}
 }
 
 class /*error:INCONSISTENT_INHERITANCE*/T1
@@ -2832,7 +2832,7 @@ class /*error:INCONSISTENT_INHERITANCE*/T1
     implements I1 {}
 
 class T2 extends Base implements I1 {
-    m(a) {}
+  void m(dynamic a) {}
 }
 
 class /*error:INCONSISTENT_INHERITANCE*/T3
@@ -2844,7 +2844,7 @@ class /*error:INCONSISTENT_INHERITANCE*/U3
     implements I1;
 
 class T4 extends Object with Base implements I1 {
-    m(a) {}
+  void m(dynamic a) {}
 }
 ''');
   }
@@ -3586,15 +3586,15 @@ class A {}
 class B {}
 
 abstract class I1 {
-    m(A a);
+  void m(A a);
 }
 
 class Base {
-    m(B a) {}
+  void m(B a) {}
 }
 
 class T1 extends Base implements I1 {
-  /*error:INVALID_OVERRIDE*/m(B a) {}
+  void /*error:INVALID_OVERRIDE*/m(B a) {}
 }
 
 class /*error:INCONSISTENT_INHERITANCE*/T2
@@ -3609,15 +3609,15 @@ class A {}
 class B {}
 
 abstract class I1 {
-    m(A a);
+  void m(A a);
 }
 
 class M {
-    m(B a) {}
+  void m(B a) {}
 }
 
 class T1 extends Object with M implements I1 {
-  /*error:INVALID_OVERRIDE*/m(B a) {}
+  void /*error:INVALID_OVERRIDE*/m(B a) {}
 }
 
 class /*error:INCONSISTENT_INHERITANCE*/T2

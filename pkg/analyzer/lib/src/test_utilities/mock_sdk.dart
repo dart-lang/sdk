@@ -2,15 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
-import 'package:analyzer/src/summary/summary_file_builder.dart';
 import 'package:meta/meta.dart';
 
 const String sdkRoot = '/sdk';
@@ -543,6 +540,7 @@ abstract class String implements Comparable<String>, Pattern {
   int indexOf(Pattern pattern, [int start = 0]);
   int lastIndexOf(Pattern pattern, [int? start]);
   bool startsWith(Pattern pattern, [int index = 0]);
+  List<String> split(Pattern pattern);
   String splitMapJoin(Pattern pattern,
       {String Function(Match)? onMatch, String Function(String)? onNonMatch});
   String substring(int startIndex, [int? endIndex]);
@@ -907,6 +905,8 @@ library dart.io;
 
 import 'dart:convert';
 
+Never exit(int code) => throw code;
+
 abstract class Directory implements FileSystemEntity {
   factory Directory(String path) {
     throw 0;
@@ -1067,7 +1067,7 @@ final Map<String, String> _librariesDartEntries = {
   'ffi': 'const LibraryInfo("ffi/ffi.dart")',
   'html': 'const LibraryInfo("html/dart2js/html_dart2js.dart")',
   'io': 'const LibraryInfo("io/io.dart")',
-  'isolate': 'const LibraryInfo("io/isolate.dart")',
+  'isolate': 'const LibraryInfo("isolate/isolate.dart")',
   'math': 'const LibraryInfo("math/math.dart")',
 };
 
@@ -1083,9 +1083,6 @@ class MockSdk implements DartSdk {
 
   @override
   final List<SdkLibrary> sdkLibraries = [];
-
-  /// The cached linked bundle of the SDK.
-  PackageBundle _bundle;
 
   /// Optional [additionalLibraries] should have unique URIs, and paths in
   /// their units are relative (will be put into `sdkRoot/lib`).
@@ -1159,17 +1156,27 @@ class MockSdk implements DartSdk {
   }
 
   @override
+  String get allowedExperimentsJson {
+    try {
+      var convertedRoot = resourceProvider.convertPath(sdkRoot);
+      return resourceProvider
+          .getFolder(convertedRoot)
+          .getChildAssumingFolder('lib')
+          .getChildAssumingFolder('_internal')
+          .getChildAssumingFile('allowed_experiments.json')
+          .readAsStringSync();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
   AnalysisContextImpl get context {
     if (_analysisContext == null) {
       var factory = SourceFactory([DartUriResolver(this)]);
       _analysisContext = SdkAnalysisContext(_analysisOptions, factory);
     }
     return _analysisContext;
-  }
-
-  Folder get directory {
-    var convertedRoot = resourceProvider.convertPath(sdkRoot);
-    return resourceProvider.getFolder(convertedRoot);
   }
 
   @override
@@ -1215,22 +1222,6 @@ class MockSdk implements DartSdk {
   }
 
   @override
-  PackageBundle getLinkedBundle() {
-    if (_bundle == null) {
-      File summaryFile = resourceProvider
-          .getFile(resourceProvider.convertPath('/lib/_internal/strong.sum'));
-      List<int> bytes;
-      if (summaryFile.exists) {
-        bytes = summaryFile.readAsBytesSync();
-      } else {
-        bytes = _computeLinkedBundleBytes();
-      }
-      _bundle = PackageBundle.fromBuffer(bytes);
-    }
-    return _bundle;
-  }
-
-  @override
   SdkLibrary getSdkLibrary(String dartUri) {
     for (SdkLibrary library in _LIBRARIES) {
       if (library.shortName == dartUri) {
@@ -1251,17 +1242,6 @@ class MockSdk implements DartSdk {
     // If we reach here then we tried to use a dartUri that's not in the
     // table above.
     return null;
-  }
-
-  /// Compute the bytes of the linked bundle associated with this SDK.
-  List<int> _computeLinkedBundleBytes() {
-    List<Source> librarySources = sdkLibraries
-        .map((SdkLibrary library) => mapDartUri(library.shortName))
-        .toList();
-    var featureSet = FeatureSet.fromEnableFlags(['non-nullable']);
-    return SummaryBuilder(librarySources, context).build(
-      featureSet: featureSet,
-    );
   }
 }
 

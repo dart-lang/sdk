@@ -202,7 +202,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
                 .classNode);
 
         if (expectedReturn == NativeType.kVoid ||
-            expectedReturn == NativeType.kPointer) {
+            expectedReturn == NativeType.kPointer ||
+            expectedReturn == NativeType.kHandle) {
           if (node.arguments.positional.length > 1) {
             diagnosticReporter.report(
                 templateFfiExpectedNoExceptionalReturn.withArguments(
@@ -380,9 +381,9 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
   void _ensureNativeTypeToDartType(
       DartType nativeType, DartType dartType, Expression node,
-      {bool allowStructs: false}) {
+      {bool allowStructs: false, bool allowHandle: false}) {
     final DartType correspondingDartType =
-        convertNativeTypeToDartType(nativeType, allowStructs);
+        convertNativeTypeToDartType(nativeType, allowStructs, allowHandle);
     if (dartType == correspondingDartType) return;
     if (env.isSubtypeOf(correspondingDartType, dartType,
         SubtypeCheckMode.ignoringNullabilities)) {
@@ -398,8 +399,9 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   }
 
   void _ensureNativeTypeValid(DartType nativeType, Expression node,
-      {bool allowStructs: false}) {
-    if (!_nativeTypeValid(nativeType, allowStructs: allowStructs)) {
+      {bool allowStructs: false, bool allowHandle: false}) {
+    if (!_nativeTypeValid(nativeType,
+        allowStructs: allowStructs, allowHandle: allowHandle)) {
       diagnosticReporter.report(
           templateFfiTypeInvalid.withArguments(
               nativeType, currentLibrary.isNonNullableByDefault),
@@ -412,8 +414,10 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
   /// The Dart type system does not enforce that NativeFunction return and
   /// parameter types are only NativeTypes, so we need to check this.
-  bool _nativeTypeValid(DartType nativeType, {bool allowStructs: false}) {
-    return convertNativeTypeToDartType(nativeType, allowStructs) != null;
+  bool _nativeTypeValid(DartType nativeType,
+      {bool allowStructs: false, allowHandle: false}) {
+    return convertNativeTypeToDartType(nativeType, allowStructs, allowHandle) !=
+        null;
   }
 
   void _ensureIsStaticFunction(Expression node) {

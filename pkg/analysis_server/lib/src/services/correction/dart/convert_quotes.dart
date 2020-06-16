@@ -16,16 +16,16 @@ abstract class ConvertQuotes extends CorrectionProducer {
 
   /// Return `true` if this producer is converting from double quotes to single
   /// quotes, or `false` if it's converting from single quotes to double quotes.
-  bool get fromDouble;
+  bool get _fromDouble;
 
   @override
   Future<void> compute(DartChangeBuilder builder) async {
     if (node is SimpleStringLiteral) {
       SimpleStringLiteral literal = node;
-      if (fromDouble ? !literal.isSingleQuoted : literal.isSingleQuoted) {
+      if (_fromDouble ? !literal.isSingleQuoted : literal.isSingleQuoted) {
         var newQuote = literal.isMultiline
-            ? (fromDouble ? "'''" : '"""')
-            : (fromDouble ? "'" : '"');
+            ? (_fromDouble ? "'''" : '"""')
+            : (_fromDouble ? "'" : '"');
         var quoteLength = literal.isMultiline ? 3 : 1;
         var lexeme = literal.literal.lexeme;
         if (!lexeme.contains(newQuote)) {
@@ -41,10 +41,10 @@ abstract class ConvertQuotes extends CorrectionProducer {
       }
     } else if (node is InterpolationString) {
       StringInterpolation parent = node.parent;
-      if (fromDouble ? !parent.isSingleQuoted : parent.isSingleQuoted) {
+      if (_fromDouble ? !parent.isSingleQuoted : parent.isSingleQuoted) {
         var newQuote = parent.isMultiline
-            ? (fromDouble ? "'''" : '"""')
-            : (fromDouble ? "'" : '"');
+            ? (_fromDouble ? "'''" : '"""')
+            : (_fromDouble ? "'" : '"');
         var quoteLength = parent.isMultiline ? 3 : 1;
         var elements = parent.elements;
         for (var i = 0; i < elements.length; i++) {
@@ -75,7 +75,7 @@ class ConvertToDoubleQuotes extends ConvertQuotes {
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING;
 
   @override
-  bool get fromDouble => false;
+  bool get _fromDouble => false;
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
   static ConvertToDoubleQuotes newInstance() => ConvertToDoubleQuotes();
@@ -91,7 +91,7 @@ class ConvertToSingleQuotes extends ConvertQuotes {
   FixKind get fixKind => DartFixKind.CONVERT_TO_SINGLE_QUOTED_STRING;
 
   @override
-  bool get fromDouble => true;
+  bool get _fromDouble => true;
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
   static ConvertToSingleQuotes newInstance() => ConvertToSingleQuotes();

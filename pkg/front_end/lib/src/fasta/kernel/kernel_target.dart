@@ -6,6 +6,7 @@ library fasta.kernel_target;
 
 import 'dart:async' show Future;
 
+import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:kernel/ast.dart'
     show
         Arguments,
@@ -47,7 +48,6 @@ import 'package:kernel/core_types.dart';
 
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
 
-import 'package:kernel/src/future_or.dart';
 import 'package:kernel/type_algebra.dart' show substitute;
 import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
@@ -251,9 +251,8 @@ class KernelTarget extends TargetImplementation {
     if (dillTarget.isLoaded) {
       LibraryBuilder builder = dillTarget.loader.builders[uri];
       if (builder != null) {
-        if (enableNonNullable &&
-            (loader.nnbdMode == NnbdMode.Strong ||
-                loader.nnbdMode == NnbdMode.Agnostic)) {
+        if (loader.nnbdMode == NnbdMode.Strong ||
+            loader.nnbdMode == NnbdMode.Agnostic) {
           if (!builder.isNonNullableByDefault) {
             loader.addProblem(messageStrongModeNNBDButOptOut, -1, 1, fileUri);
           }
@@ -400,7 +399,7 @@ class KernelTarget extends TargetImplementation {
         nameRoot: nameRoot, libraries: libraries, uriToSource: uriToSource));
 
     NonNullableByDefaultCompiledMode compiledMode = null;
-    if (enableNonNullable) {
+    if (isExperimentEnabledGlobally(ExperimentalFlag.nonNullable)) {
       switch (loader.nnbdMode) {
         case NnbdMode.Weak:
           compiledMode = NonNullableByDefaultCompiledMode.Weak;
@@ -975,8 +974,7 @@ class KernelTarget extends TargetImplementation {
                   fieldBuilder.fileUri);
             }
           } else if (fieldBuilder.fieldType is! InvalidType &&
-              isPotentiallyNonNullable(
-                  fieldBuilder.fieldType, loader.coreTypes.futureOrClass) &&
+              fieldBuilder.fieldType.isPotentiallyNonNullable &&
               (cls.constructors.isNotEmpty || cls.isMixinDeclaration)) {
             SourceLibraryBuilder library = builder.library;
             if (library.isNonNullableByDefault) {
@@ -1019,10 +1017,9 @@ class KernelTarget extends TargetImplementation {
                       .withLocation(fieldBuilder.fileUri,
                           fieldBuilder.charOffset, fieldBuilder.name.length)
                 ]);
-          } else if (fieldBuilder.type is! InvalidType &&
+          } else if (fieldBuilder.field.type is! InvalidType &&
               !fieldBuilder.isLate &&
-              isPotentiallyNonNullable(
-                  fieldBuilder.field.type, loader.coreTypes.futureOrClass)) {
+              fieldBuilder.field.type.isPotentiallyNonNullable) {
             SourceLibraryBuilder library = builder.library;
             if (library.isNonNullableByDefault) {
               library.addProblem(
@@ -1095,20 +1092,24 @@ class KernelTarget extends TargetImplementation {
     TypeEnvironment environment =
         new TypeEnvironment(loader.coreTypes, loader.hierarchy);
     constants.EvaluationMode evaluationMode;
-    if (enableNonNullable) {
-      switch (loader.nnbdMode) {
-        case NnbdMode.Weak:
-          evaluationMode = constants.EvaluationMode.weak;
-          break;
-        case NnbdMode.Strong:
-          evaluationMode = constants.EvaluationMode.strong;
-          break;
-        case NnbdMode.Agnostic:
-          evaluationMode = constants.EvaluationMode.agnostic;
-          break;
-      }
-    } else {
-      evaluationMode = constants.EvaluationMode.legacy;
+    // If nnbd is not enabled we will use weak evaluation mode. This is needed
+    // because the SDK might be agnostic and therefore needs to be weakened
+    // for legacy mode.
+    assert(
+        isExperimentEnabledGlobally(ExperimentalFlag.nonNullable) ||
+            loader.nnbdMode == NnbdMode.Weak,
+        "Non-weak nnbd mode found without experiment enabled: "
+        "${loader.nnbdMode}.");
+    switch (loader.nnbdMode) {
+      case NnbdMode.Weak:
+        evaluationMode = constants.EvaluationMode.weak;
+        break;
+      case NnbdMode.Strong:
+        evaluationMode = constants.EvaluationMode.strong;
+        break;
+      case NnbdMode.Agnostic:
+        evaluationMode = constants.EvaluationMode.agnostic;
+        break;
     }
 
     constants.transformLibraries(
@@ -1119,7 +1120,8 @@ class KernelTarget extends TargetImplementation {
         new KernelConstantErrorReporter(loader),
         evaluationMode,
         desugarSets: !backendTarget.supportsSetLiterals,
-        enableTripleShift: enableTripleShift,
+        enableTripleShift:
+            isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
         errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
     ticker.logMs("Evaluated constants");
 

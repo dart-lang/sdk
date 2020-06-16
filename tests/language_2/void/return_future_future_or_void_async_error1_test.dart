@@ -10,5 +10,5 @@ void main() {
 
 // Testing that a block bodied async function may not have an empty return
 Future<FutureOr<void>> test() async {
-  return; //# none: static type warning
+  return; //# none: compile-time error
 }

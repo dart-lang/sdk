@@ -218,15 +218,13 @@ class JsBackendStrategy implements BackendStrategy {
       rtiSubstitutions = runtimeTypesImpl;
     }
 
-    RecipeEncoder rtiRecipeEncoder = _compiler.options.useNewRti
-        ? new RecipeEncoderImpl(
-            closedWorld,
-            rtiSubstitutions,
-            closedWorld.nativeData,
-            closedWorld.elementEnvironment,
-            closedWorld.commonElements,
-            closedWorld.rtiNeed)
-        : null;
+    RecipeEncoder rtiRecipeEncoder = new RecipeEncoderImpl(
+        closedWorld,
+        rtiSubstitutions,
+        closedWorld.nativeData,
+        closedWorld.elementEnvironment,
+        closedWorld.commonElements,
+        closedWorld.rtiNeed);
 
     CodegenInputs codegen = new CodegenInputsImpl(rtiSubstitutions, rtiEncoder,
         rtiRecipeEncoder, tracer, rtiTags, fixedNames);

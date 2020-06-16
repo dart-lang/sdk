@@ -379,6 +379,16 @@ bool Options::ProcessAbiVersionOption(const char* arg,
   return true;
 }
 
+static void ResolveDartDevSnapshotPath(const char* script,
+                                       char** snapshot_path) {
+  if (!DartDevUtils::TryResolveDartDevSnapshotPath(snapshot_path)) {
+    Syslog::PrintErr(
+        "Could not find DartDev snapshot and '%s' is not a valid script.\n",
+        script);
+    Platform::Exit(kErrorExitCode);
+  }
+}
+
 int Options::ParseArguments(int argc,
                             char** argv,
                             bool vm_run_app_snapshot,
@@ -398,8 +408,12 @@ int Options::ParseArguments(int argc,
 
   CommandLineOptions temp_vm_options(vm_options->max_count());
 
+  bool enable_dartdev_analytics = false;
+  bool disable_dartdev_analytics = false;
+
   // Parse out the vm options.
   while (i < argc) {
+    bool skipVmOption = false;
     if (OptionProcessor::TryProcess(argv[i], &temp_vm_options)) {
       i++;
     } else {
@@ -413,6 +427,14 @@ int Options::ParseArguments(int argc,
       const char* kPrintFlags2 = "--print_flags";
       const char* kVerboseDebug1 = "--verbose_debug";
       const char* kVerboseDebug2 = "--verbose-debug";
+
+      // The following two flags are processed as DartDev flags and are not to
+      // be treated as if they are VM flags.
+      const char* kEnableDartDevAnalytics1 = "--enable-analytics";
+      const char* kEnableDartDevAnalytics2 = "--enable_analytics";
+      const char* kDisableDartDevAnalytics1 = "--disable-analytics";
+      const char* kDisableDartDevAnalytics2 = "--disable_analytics";
+
       if ((strncmp(argv[i], kPrintFlags1, strlen(kPrintFlags1)) == 0) ||
           (strncmp(argv[i], kPrintFlags2, strlen(kPrintFlags2)) == 0)) {
         *print_flags_seen = true;
@@ -421,8 +443,22 @@ int Options::ParseArguments(int argc,
                  (strncmp(argv[i], kVerboseDebug2, strlen(kVerboseDebug2)) ==
                   0)) {
         *verbose_debug_seen = true;
+      } else if ((strncmp(argv[i], kEnableDartDevAnalytics1,
+                          strlen(kEnableDartDevAnalytics1)) == 0) ||
+                 (strncmp(argv[i], kEnableDartDevAnalytics2,
+                          strlen(kEnableDartDevAnalytics2)) == 0)) {
+        enable_dartdev_analytics = true;
+        skipVmOption = true;
+      } else if ((strncmp(argv[i], kDisableDartDevAnalytics1,
+                          strlen(kDisableDartDevAnalytics1)) == 0) ||
+                 (strncmp(argv[i], kDisableDartDevAnalytics2,
+                          strlen(kDisableDartDevAnalytics2)) == 0)) {
+        disable_dartdev_analytics = true;
+        skipVmOption = true;
       }
-      temp_vm_options.AddArgument(argv[i]);
+      if (!skipVmOption) {
+        temp_vm_options.AddArgument(argv[i]);
+      }
       i++;
     }
   }
@@ -470,11 +506,8 @@ int Options::ParseArguments(int argc,
       *script_name = strdup(argv[i]);
       run_script = true;
       i++;
-    } else if (!DartDevUtils::TryResolveDartDevSnapshotPath(script_name)) {
-      Syslog::PrintErr(
-          "Could not find DartDev snapshot and '%s' is not a valid script.\n",
-          argv[i]);
-      Platform::Exit(kErrorExitCode);
+    } else {
+      ResolveDartDevSnapshotPath(argv[i], script_name);
     }
     // Handle the special case where the user is running a Dart program without
     // using a DartDev command and wants to use the VM service. Here we'll run
@@ -490,6 +523,19 @@ int Options::ParseArguments(int argc,
              DartDevUtils::TryResolveDartDevSnapshotPath(script_name)) {
     // Let DartDev handle the default help message.
     dart_options->AddArgument("help");
+    return 0;
+  } else if (!Options::disable_dart_dev() &&
+             (enable_dartdev_analytics || disable_dartdev_analytics)) {
+    // The analytics flags are a special case as we don't have a target script
+    // or DartDev command but we still want to launch DartDev.
+    ResolveDartDevSnapshotPath(argv[i], script_name);
+
+    if (enable_dartdev_analytics) {
+      dart_options->AddArgument("--enable-analytics");
+    }
+    if (disable_dartdev_analytics) {
+      dart_options->AddArgument("--disable-analytics");
+    }
     return 0;
   } else {
     return -1;

@@ -21,7 +21,7 @@ void periodicTask(_) {
 }
 
 void startTimer() {
-  new Timer.periodic(const Duration(milliseconds: 10), periodicTask);
+  Timer.periodic(const Duration(milliseconds: 10), periodicTask);
 }
 
 int getLineNumberFromTokenPos(Script s, int token) =>
@@ -30,7 +30,7 @@ int getLineNumberFromTokenPos(Script s, int token) =>
 var tests = <IsolateTest>[
 // Pause
   (VmService service, IsolateRef isolateRef) async {
-    Completer completer = new Completer();
+    Completer completer = Completer();
     var stream = service.onDebugEvent;
     var subscription;
     subscription = stream.listen((Event event) {

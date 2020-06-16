@@ -156,6 +156,7 @@ late_lowering/override_getter_setter: FormatterCrash
 late_lowering/override: FormatterCrash
 late_lowering/uninitialized_non_nullable_late_fields: FormatterCrash
 nnbd/covariant_late_field: FormatterCrash
+nnbd/extension_never: FormatterCrash
 nnbd/forbidden_supers: FormatterCrash
 nnbd/infer_if_null: FormatterCrash
 nnbd/inheritance_from_opt_in: FormatterCrash

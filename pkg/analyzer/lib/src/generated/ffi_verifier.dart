@@ -190,6 +190,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   bool _isPointer(Element element) =>
       element.name == 'Pointer' && element.library.name == 'dart.ffi';
 
+  bool _isHandle(Element element) =>
+      element.name == 'Handle' && element.library.name == 'dart.ffi';
+
   bool _isNativeFunctionPointerExtension(Element element) =>
       element.name == 'NativeFunctionPointer' &&
       element.library.name == 'dart.ffi';
@@ -294,6 +297,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         }
         if (name == 'Void') {
           return _PrimitiveDartType.void_;
+        }
+        if (name == 'Handle') {
+          return _PrimitiveDartType.handle;
         }
       }
     }
@@ -449,6 +455,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       return dartType.isDartCoreDouble;
     } else if (nativeReturnType == _PrimitiveDartType.void_) {
       return dartType.isVoid;
+    } else if (nativeReturnType == _PrimitiveDartType.handle) {
+      InterfaceType objectType = typeSystem.objectStar;
+      return checkCovariance
+          ? /* everything is subtype of objectStar */ true
+          : typeSystem.isSubtypeOf2(objectType, dartType);
     } else if (dartType is InterfaceType && nativeType is InterfaceType) {
       return checkCovariance
           ? typeSystem.isSubtypeOf2(dartType, nativeType)
@@ -520,7 +531,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     // TODO(brianwilkerson) Validate that `f` is a top-level function.
     final DartType R = (T as FunctionType).returnType;
-    if ((FT as FunctionType).returnType.isVoid || _isPointer(R.element)) {
+    if ((FT as FunctionType).returnType.isVoid ||
+        _isPointer(R.element) ||
+        _isHandle(R.element)) {
       if (argCount != 1) {
         _errorReporter.reportErrorForNode(
             FfiCode.INVALID_EXCEPTION_VALUE, node.argumentList.arguments[1]);
@@ -591,5 +604,6 @@ enum _PrimitiveDartType {
   double,
   int,
   void_,
+  handle,
   none,
 }

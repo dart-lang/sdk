@@ -293,16 +293,16 @@ abstract class String implements Comparable<String>, Pattern {
   int indexOf(Pattern pattern, [int start = 0]);
 
   /**
-   * Returns the position of the last match [pattern] in this string, searching
-   * backward starting at [start], inclusive:
+   * Returns the starting position of the last match [pattern] in this string,
+   * searching backward starting at [start], inclusive:
    *
    *     var string = 'Dartisans';
    *     string.lastIndexOf('a');                    // 6
-   *     string.lastIndexOf(new RegExp(r'a(r|n)'));  // 6
+   *     string.lastIndexOf(RegExp(r'a(r|n)'));      // 6
    *
    * Returns -1 if [pattern] could not be found in this string.
    *
-   *     string.lastIndexOf(new RegExp(r'DART'));    // -1
+   *     string.lastIndexOf(RegExp(r'DART'));        // -1
    *
    * If [start] is omitted, search starts from the end of the string.
    * If supplied, [start] must be non-negative and not greater than [length].

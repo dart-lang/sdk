@@ -726,8 +726,7 @@ abstract class RandomAccessFile {
   Future<RandomAccessFile> writeByte(int value);
 
   /**
-   * Synchronously writes a single byte to the file. Returns the
-   * number of bytes successfully written.
+   * Synchronously writes a single byte to the file. Returns 1 on success.
    *
    * Throws a [FileSystemException] if the operation fails.
    */

@@ -12,10 +12,10 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ChangeToNearestPreciseValue extends CorrectionProducer {
   /// The value to which the code will be changed.
-  String correction = '';
+  String _correction = '';
 
   @override
-  List<Object> get fixArguments => [correction];
+  List<Object> get fixArguments => [_correction];
 
   @override
   FixKind get fixKind => DartFixKind.CHANGE_TO_NEAREST_PRECISE_VALUE;
@@ -25,11 +25,11 @@ class ChangeToNearestPreciseValue extends CorrectionProducer {
     IntegerLiteral integer = node;
     var lexeme = integer.literal.lexeme;
     var precise = BigInt.from(IntegerLiteralImpl.nearestValidDouble(lexeme));
-    correction = lexeme.toLowerCase().contains('x')
+    _correction = lexeme.toLowerCase().contains('x')
         ? '0x${precise.toRadixString(16).toUpperCase()}'
         : precise.toString();
     await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addSimpleReplacement(range.node(integer), correction);
+      builder.addSimpleReplacement(range.node(integer), _correction);
     });
   }
 

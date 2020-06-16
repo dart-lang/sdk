@@ -5,7 +5,7 @@
 // NOTE: THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'tools/experimental_features.yaml' and run
-// 'pkg/front_end/tool/fasta generate-experimental-flags' to update.
+// 'dart pkg/front_end/tool/fasta.dart generate-experimental-flags' to update.
 
 import "ast.dart";
 

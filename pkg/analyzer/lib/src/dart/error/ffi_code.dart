@@ -61,7 +61,7 @@ class FfiCode extends AnalyzerErrorCode {
       message:
           "The method 'Pointer.fromFunction' must not have an exceptional return "
           "value (the second argument) when the return type of the function is "
-          "either 'void' or 'Pointer'.",
+          "either 'void', 'Handle' or 'Pointer'.",
       correction: "Try removing the exceptional return value.");
 
   /**
@@ -102,7 +102,7 @@ class FfiCode extends AnalyzerErrorCode {
       message:
           "The method 'Pointer.fromFunction' must have an exceptional return "
           "value (the second argument) when the return type of the function is "
-          "neither 'void' or 'Pointer'.",
+          "neither 'void', 'Handle' or 'Pointer'.",
       correction: "Try adding an exceptional return value.");
 
   /**

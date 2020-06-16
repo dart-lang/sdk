@@ -1012,6 +1012,11 @@ Rti checkTypeBound(Rti type, Rti bound, String variable, String methodName) {
   throw _TypeError.fromMessage(message);
 }
 
+/// Called from generated code.
+throwTypeError(String message) {
+  throw _TypeError.fromMessage(message);
+}
+
 /// Base class to _TypeError.
 class _Error extends Error {
   final String _message;
@@ -1083,14 +1088,16 @@ bool _isBool(Object? object) {
 /// Specialization for 'as bool'.
 /// Called from generated code.
 bool _asBool(Object? object) {
-  if (_isBool(object)) return _Utils.asBool(object);
+  if (true == object) return true;
+  if (false == object) return false;
   throw _TypeError.forType(object, 'bool');
 }
 
 /// Specialization for 'as bool*'.
 /// Called from generated code.
 bool? _asBoolS(dynamic object) {
-  if (_isBool(object)) return _Utils.asBool(object);
+  if (true == object) return true;
+  if (false == object) return false;
   if (object == null) return object;
   throw _TypeError.forType(object, 'bool');
 }
@@ -1098,7 +1105,8 @@ bool? _asBoolS(dynamic object) {
 /// Specialization for 'as bool?'.
 /// Called from generated code.
 bool? _asBoolQ(dynamic object) {
-  if (_isBool(object)) return _Utils.asBool(object);
+  if (true == object) return true;
+  if (false == object) return false;
   if (object == null) return object;
   throw _TypeError.forType(object, 'bool?');
 }

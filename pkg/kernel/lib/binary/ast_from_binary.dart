@@ -738,10 +738,21 @@ class BinaryBuilder {
           NonNullableByDefaultCompiledMode.Agnostic) {
         // Keep as-is.
       } else {
-        // Mixed mode where agnostic isn't involved.
-        throw new CompilationModeError(
-            "Mixed compilation mode found: $compilationMode "
-            "and ${index.compiledMode}.");
+        if ((compilationMode == NonNullableByDefaultCompiledMode.Disabled ||
+                index.compiledMode ==
+                    NonNullableByDefaultCompiledMode.Disabled) &&
+            (compilationMode == NonNullableByDefaultCompiledMode.Weak ||
+                index.compiledMode == NonNullableByDefaultCompiledMode.Weak)) {
+          // One is disabled and one is weak.
+          // => We allow that and "merge" them as disabled.
+          compilationMode = NonNullableByDefaultCompiledMode.Disabled;
+        } else {
+          // Mixed mode where agnostic isn't involved and it's not
+          // disabled + weak.
+          throw new CompilationModeError(
+              "Mixed compilation mode found: $compilationMode "
+              "and ${index.compiledMode}.");
+        }
       }
     }
 
@@ -2179,8 +2190,21 @@ class BinaryBuilder {
         return new NeverType(Nullability.values[nullabilityIndex]);
       case Tag.InterfaceType:
         int nullabilityIndex = readByte();
-        return new InterfaceType.byReference(readClassReference(),
-            Nullability.values[nullabilityIndex], readDartTypeList());
+        Reference reference = readClassReference();
+        List<DartType> typeArguments = readDartTypeList();
+        {
+          CanonicalName canonicalName = reference.canonicalName;
+          if (canonicalName.name == "FutureOr" &&
+              canonicalName.parent != null &&
+              canonicalName.parent.name == "dart:async" &&
+              canonicalName.parent.parent != null &&
+              canonicalName.parent.parent.isRoot) {
+            return new FutureOrType(
+                typeArguments.single, Nullability.values[nullabilityIndex]);
+          }
+        }
+        return new InterfaceType.byReference(
+            reference, Nullability.values[nullabilityIndex], typeArguments);
       case Tag.SimpleInterfaceType:
         int nullabilityIndex = readByte();
         return new InterfaceType.byReference(readClassReference(),

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.7
+
+- Added buildId accessor for retrieving GNU build IDs from DWARF files that
+  include them.
+
 ## 0.3.6
 
 - Adjusts RegExp for stack trace header line to be more flexible in what it

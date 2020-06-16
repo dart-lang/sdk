@@ -444,13 +444,21 @@ ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
 
   const auto& type_dynamic = Type::Handle(Type::DynamicType());
   auto& type_int = Type::Handle(Type::IntType());
-  type_int = type_int.ToNullability(Nullability::kLegacy, Heap::kNew);
+  if (!TestCase::IsNNBD()) {
+    type_int = type_int.ToNullability(Nullability::kLegacy, Heap::kNew);
+  }
   auto& type_string = Type::Handle(Type::StringType());
-  type_string = type_string.ToNullability(Nullability::kLegacy, Heap::kNew);
+  if (!TestCase::IsNNBD()) {
+    type_string = type_string.ToNullability(Nullability::kLegacy, Heap::kNew);
+  }
   auto& type_object = Type::Handle(Type::ObjectType());
-  type_object = type_object.ToNullability(Nullability::kLegacy, Heap::kNew);
+  type_object = type_object.ToNullability(
+      TestCase::IsNNBD() ? Nullability::kNullable : Nullability::kLegacy,
+      Heap::kNew);
   auto& type_a1 = Type::Handle(class_a1.DeclarationType());
-  type_a1 = type_a1.ToNullability(Nullability::kLegacy, Heap::kNew);
+  if (!TestCase::IsNNBD()) {
+    type_a1 = type_a1.ToNullability(Nullability::kLegacy, Heap::kNew);
+  }
   FinalizeAndCanonicalize(class_null, &type_a1);
 
   const auto& tav_null = TypeArguments::Handle(TypeArguments::null());

@@ -5,8 +5,8 @@
 import 'dart:convert';
 
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
@@ -22,7 +22,7 @@ import '../resolution/resolution.dart';
 class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
   static final String _testFile = '/workspace/dart/test/lib/test.dart';
 
-  final ByteStore byteStore = MemoryByteStore();
+  final CiderByteStore byteStore = CiderMemoryByteStore();
 
   final StringBuffer logBuffer = StringBuffer();
   PerformanceLog logger;
@@ -44,15 +44,14 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
       convertPath(_testFile),
     );
 
-    fileResolver = FileResolver(
-      logger,
-      resourceProvider,
-      byteStore,
-      workspace.createSourceFactory(sdk, null),
-      (String path) => _getDigest(path),
-      null,
+    fileResolver = FileResolver.from(
+      logger: logger,
+      resourceProvider: resourceProvider,
+      byteStore: byteStore,
+      sourceFactory: workspace.createSourceFactory(sdk, null),
+      getFileDigest: (String path) => _getDigest(path),
       workspace: workspace,
-      libraryContextResetTimeout: null,
+      prefetchFiles: null,
     );
     fileResolver.testView = FileResolverTestView();
   }

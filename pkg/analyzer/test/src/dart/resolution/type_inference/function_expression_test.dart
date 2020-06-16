@@ -50,11 +50,24 @@ T foo<T>() => throw 0;
 
 Object Function() v = () async => foo();
 ''');
+
     assertTypeArgumentTypes(
       findNode.methodInvocation('foo();'),
-      ['FutureOr<Object>'],
+      [
+        typeStringByNullability(
+          nullable: 'FutureOr<Object?>',
+          legacy: 'FutureOr<Object>',
+        ),
+      ],
     );
-    _assertReturnType('() async => foo', 'Future<Object>');
+
+    _assertReturnType(
+      '() async => foo',
+      typeStringByNullability(
+        nullable: 'Future<Object?>',
+        legacy: 'Future<Object>',
+      ),
+    );
   }
 
   test_contextFunctionType_returnType_asyncStar_blockBody() async {
@@ -219,6 +232,27 @@ var v = () {
     _assertReturnType('() {', 'int');
   }
 
+  test_noContext_returnType_sync_blockBody_dynamic() async {
+    await resolveTestCode('''
+var v = (dynamic a) {
+  return a;
+};
+''');
+    _assertReturnType('(dynamic a) {', 'dynamic');
+  }
+
+  test_noContext_returnType_sync_blockBody_Never() async {
+    await resolveTestCode('''
+var v = () {
+  throw 42;
+};
+''');
+    _assertReturnType(
+      '() {',
+      typeStringByNullability(nullable: 'Never', legacy: 'Null'),
+    );
+  }
+
   test_noContext_returnType_sync_blockBody_notNullable() async {
     await resolveTestCode('''
 var v = (bool b) {
@@ -314,6 +348,13 @@ main() {
     );
   }
 
+  test_noContext_returnType_sync_expressionBody_dynamic() async {
+    await resolveTestCode('''
+var v = (dynamic a) => a;
+''');
+    _assertReturnType('(dynamic a) =>', 'dynamic');
+  }
+
   test_noContext_returnType_sync_expressionBody_Never() async {
     await resolveTestCode('''
 var v = () => throw 42;
@@ -386,6 +427,38 @@ void f() {
 ''');
     assertType(findElement.parameter('a').type, 'int');
     _assertReturnType('(a) {', 'int');
+  }
+
+  test_contextFunctionType_nonNullify_returnType_takeActual() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.7
+
+void foo(int Function() x) {}
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart';
+
+void test(int? a) {
+  foo(() => a);
+}
+''');
+    _assertReturnType('() => a', 'int?');
+  }
+
+  test_contextFunctionType_nonNullify_returnType_takeContext() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.7
+
+void foo(int Function() x) {}
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart';
+
+void test(dynamic a) {
+  foo(() => a);
+}
+''');
+    _assertReturnType('() => a', 'int');
   }
 
   test_contextFunctionType_returnType_async_blockBody_objectQ() async {

@@ -595,7 +595,10 @@ void IfThenElseInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 void LoadStaticFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s", String::Handle(StaticField().name()).ToCString());
+  f->Print("%s", String::Handle(field().name()).ToCString());
+  if (calls_initializer()) {
+    f->Print(", CallsInitializer");
+  }
 }
 
 void StoreStaticFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
@@ -643,6 +646,9 @@ void MaterializeObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
 void LoadFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   instance()->PrintTo(f);
   f->Print(" . %s%s", slot().Name(), slot().is_immutable() ? " {final}" : "");
+  if (calls_initializer()) {
+    f->Print(", CallsInitializer");
+  }
 }
 
 void LoadUntaggedInstr::PrintOperandsTo(BufferFormatter* f) const {
@@ -1048,6 +1054,14 @@ void FfiCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   }
 }
 
+void EnterHandleScopeInstr::PrintOperandsTo(BufferFormatter* f) const {
+  if (kind_ == Kind::kEnterHandleScope) {
+    f->Print("<enter handle scope>");
+  } else {
+    f->Print("<get top api scope>");
+  }
+}
+
 void NativeReturnInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
   f->Print(" (@");
@@ -1153,6 +1167,11 @@ void ParallelMoveInstr::PrintTo(BufferFormatter* f) const {
     f->Print(" <- ");
     moves_[i]->src().PrintTo(f);
   }
+}
+
+void Utf8ScanInstr::PrintTo(BufferFormatter* f) const {
+  Definition::PrintTo(f);
+  f->Print(" [%s]", scan_flags_field_.Name());
 }
 
 void Environment::PrintTo(BufferFormatter* f) const {

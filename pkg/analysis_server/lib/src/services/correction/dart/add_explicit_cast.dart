@@ -17,10 +17,13 @@ class AddExplicitCast extends CorrectionProducer {
 
   @override
   Future<void> compute(DartChangeBuilder builder) async {
-    Expression target = coveredNode;
-    if (target is! Expression) {
+    Expression target;
+    if (coveredNode is Expression) {
+      target = coveredNode;
+    } else {
       return;
     }
+
     var fromType = target.staticType;
     DartType toType;
     var parent = target.parent;

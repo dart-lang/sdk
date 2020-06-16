@@ -24,26 +24,21 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     List<Registration> registrations,
     Method method,
   ) {
-    return registrations
-        .singleWhere((r) => r.method == method.toJson(), orElse: () => null)
-        ?.registerOptions;
+    return registrationFor(registrations, method)?.registerOptions;
   }
 
   Future<void> test_dynamicRegistration_containsAppropriateSettings() async {
     // Basic check that the server responds with the capabilities we'd expect,
     // for ex including analysis_options.yaml in text synchronization but not
     // for hovers.
-    List<Registration> registrations;
-    final initResponse =
-        await handleExpectedRequest<ResponseMessage, RegistrationParams, void>(
-      Method.client_registerCapability,
+    final registrations = <Registration>[];
+    final initResponse = await monitorDynamicRegistrations(
+      registrations,
       () => initialize(
           // Support dynamic registration for both text sync + hovers.
           textDocumentCapabilities: withTextSyncDynamicRegistration(
               withHoverDynamicRegistration(
                   emptyTextDocumentClientCapabilities))),
-      handler: (registrationParams) =>
-          registrations = registrationParams.registrations,
     );
 
     // Because we support dynamic registration for synchronisation, we won't send
@@ -128,14 +123,12 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_dynamicRegistration_onlyForClientSupportedMethods() async {
     // Check that when the server calls client/registerCapability it only includes
     // the items we advertised dynamic registration support for.
-    List<Registration> registrations;
-    await handleExpectedRequest<void, RegistrationParams, void>(
-      Method.client_registerCapability,
+    final registrations = <Registration>[];
+    await monitorDynamicRegistrations(
+      registrations,
       () => initialize(
           textDocumentCapabilities: withHoverDynamicRegistration(
               emptyTextDocumentClientCapabilities)),
-      handler: (registrationParams) =>
-          registrations = registrationParams.registrations,
     );
 
     expect(registrations, hasLength(1));
@@ -146,17 +139,13 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_dynamicRegistration_suppressesStaticRegistration() async {
     // If the client sends dynamicRegistration settings then there
     // should not be static registrations for the same capabilities.
-
-    List<Registration> registrations;
-    final initResponse =
-        await handleExpectedRequest<ResponseMessage, RegistrationParams, void>(
-      Method.client_registerCapability,
+    final registrations = <Registration>[];
+    final initResponse = await monitorDynamicRegistrations(
+      registrations,
       () => initialize(
           // Support dynamic registration for everything we support.
           textDocumentCapabilities: withAllSupportedDynamicRegistrations(
               emptyTextDocumentClientCapabilities)),
-      handler: (registrationParams) =>
-          registrations = registrationParams.registrations,
     );
 
     InitializeResult initResult = initResponse.result;
@@ -188,14 +177,12 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_dynamicRegistration_unregistersOutdatedAfterChange() async {
     // Initialize by supporting dynamic registrations everywhere
-    List<Registration> registrations;
-    await handleExpectedRequest<ResponseMessage, RegistrationParams, void>(
-      Method.client_registerCapability,
+    final registrations = <Registration>[];
+    await monitorDynamicRegistrations(
+      registrations,
       () => initialize(
           textDocumentCapabilities: withAllSupportedDynamicRegistrations(
               emptyTextDocumentClientCapabilities)),
-      handler: (registrationParams) =>
-          registrations = registrationParams.registrations,
     );
 
     final unregisterRequest =

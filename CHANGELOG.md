@@ -4,6 +4,13 @@
 
 ### Core libraries
 
+#### `dart:io`
+
+*   [#42006][]: The signature of `exit` has been changed to return the
+    `Never`type instead of `void`. since no code will run after it,
+
+[#42006]: https://github.com/dart-lang/sdk/issues/42006
+
 #### `dart:convert`
 
 *   **Breaking Change** [#41100][]: When encoding a string containing unpaired
@@ -61,25 +68,32 @@
 
 #### Linter
 
-Updated the Linter to `0.1.116`, which includes:
+Updated the Linter to `0.1.117`, which includes:
 
-* New lint: `no_default_cases` (experimental).
+* New lint: `do_not_use_environment`.
 * New lint: `exhaustive_cases`.
-* Updated `type_annotate_public_apis` to allow inferred types in final field assignments.
-* Updated `prefer_mixin` to allow "legacy" SDK abstract class mixins.
-* New lint: `use_is_even_rather_than_modulo`.
-* Updated `unsafe_html` to use a `SecurityLintCode` (making it un-ignorable).
-* Improved `sized_box_for_whitespace` to address false-positives.
-* Fixed `unsafe_html` to check attributes and methods on extensions.
-* Extended `unsafe_html` to include `Window.open`, `Element.html` and
-  `DocumentFragment.html` in unsafe API checks.
-* Improved docs for `sort_child_properties_last`.
-* (internal) `package:analyzer` API updates.
+* New lint: `no_default_cases` (experimental).
 * New lint: `sized_box_for_whitespace`.
+* New lint: `use_is_even_rather_than_modulo`.
+* Updated `directives_ordering` to remove third party package special-casing.
+* Updated `prefer_is_empty` to special-case assert initializers and const
+  contexts.
+* Updated `prefer_mixin` to allow "legacy" SDK abstract class mixins.
+* Updated `sized_box_for_whitespace` to address false-positives.
+* Updated `type_annotate_public_apis` to allow inferred types in final field
+  assignments.
+* Updated `unnecessary_lambdas` to check for tear-off assignability.
+* Updated `unsafe_html` to use a `SecurityLintCode` (making it un-ignorable) and
+  to include `Window.open`, `Element.html` and `DocumentFragment.html` in unsafe
+  API checks. Also added checks for attributes and methods on extensions.
 
 ### Dart VM
 
 ### Pub
+* `pub run` and `pub global run` accepts a `--enable-experiment` flag enabling
+  experiments in the Dart VM (and language).
+* Publishing Flutter plugins using the old plugin format is no longer allowed.
+  Plugins using the old plugin format can still be consumed.
 * Introduce `pub outdated --mode=null-safety` that will report which of your
   dependencies you can upgrade to fully support null safety.
 * Fix `pub run` precompilation with relative `PUB_CACHE` paths (#2486)
@@ -91,6 +105,14 @@ Updated the Linter to `0.1.116`, which includes:
 * `pub outdated` now works without a lockfile. In that case the 'Current'
   column will be empty.
 * `pub upgrade`: Show summary count of outdated packages after running.
+
+## 2.8.4 - 2020-06-04
+
+This is a patch release that fixes potential memory leaks in the Dart front-end
+(issues [#42111][] and [#42112][]).
+
+[#42111]: https://github.com/dart-lang/sdk/issues/42111
+[#42112]: https://github.com/dart-lang/sdk/issues/42112
 
 ## 2.8.3 - 2020-05-28
 

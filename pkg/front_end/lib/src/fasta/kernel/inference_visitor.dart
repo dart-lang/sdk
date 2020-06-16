@@ -6,7 +6,6 @@ import 'dart:core' hide MapEntry;
 
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:kernel/ast.dart';
-import 'package:kernel/src/future_or.dart';
 import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart';
 
@@ -268,8 +267,9 @@ class InferenceVisitor
     if (!inferrer.typeSchemaEnvironment.isEmptyContext(typeContext)) {
       typeContext = inferrer.wrapFutureOrType(typeContext);
     }
-    ExpressionInferenceResult operandResult = inferrer
-        .inferExpression(node.operand, typeContext, true, isVoidAllowed: true);
+    ExpressionInferenceResult operandResult = inferrer.inferExpression(
+        node.operand, typeContext, true,
+        isVoidAllowed: !inferrer.isNonNullableByDefault);
     DartType inferredType =
         inferrer.typeSchemaEnvironment.unfutureType(operandResult.inferredType);
     node.operand = operandResult.expression..parent = node;
@@ -2096,17 +2096,17 @@ class InferenceVisitor
     bool inferenceNeeded = node.keyType is ImplicitTypeArgument;
     bool typeContextIsMap = node.keyType is! ImplicitTypeArgument;
     bool typeContextIsIterable = false;
+    DartType unfuturedTypeContext =
+        inferrer.typeSchemaEnvironment.unfutureType(typeContext);
     if (!inferrer.isTopLevel && inferenceNeeded) {
       // Ambiguous set/map literal
-      DartType context =
-          inferrer.typeSchemaEnvironment.unfutureType(typeContext);
-      if (context is InterfaceType) {
+      if (unfuturedTypeContext is InterfaceType) {
         typeContextIsMap = typeContextIsMap ||
-            inferrer.classHierarchy
-                .isSubtypeOf(context.classNode, inferrer.coreTypes.mapClass);
-        typeContextIsIterable = typeContextIsIterable ||
             inferrer.classHierarchy.isSubtypeOf(
-                context.classNode, inferrer.coreTypes.iterableClass);
+                unfuturedTypeContext.classNode, inferrer.coreTypes.mapClass);
+        typeContextIsIterable = typeContextIsIterable ||
+            inferrer.classHierarchy.isSubtypeOf(unfuturedTypeContext.classNode,
+                inferrer.coreTypes.iterableClass);
         if (node.entries.isEmpty &&
             typeContextIsIterable &&
             !typeContextIsMap) {
@@ -2156,7 +2156,7 @@ class InferenceVisitor
       DartType spreadTypeContext = const UnknownType();
       if (typeContextIsIterable && !typeContextIsMap) {
         spreadTypeContext = inferrer.typeSchemaEnvironment.getTypeAsInstanceOf(
-            typeContext,
+            unfuturedTypeContext,
             inferrer.coreTypes.iterableClass,
             inferrer.library.library,
             inferrer.coreTypes);
@@ -5388,8 +5388,7 @@ class InferenceVisitor
         if ((variable.isLate && variable.isFinal) ||
             variable.isLateFinalWithoutInitializer) {
           if (isDefinitelyAssigned &&
-              isPotentiallyNonNullable(
-                  declaredOrInferredType, inferrer.coreTypes.futureOrClass)) {
+              declaredOrInferredType.isPotentiallyNonNullable) {
             return new ExpressionInferenceResult(
                 resultType,
                 inferrer.helper.wrapInProblem(
@@ -5454,7 +5453,7 @@ class InferenceVisitor
       result.add(node);
 
       VariableDeclaration isSetVariable;
-      if (isPotentiallyNullable(node.type, inferrer.coreTypes.futureOrClass)) {
+      if (node.type.isPotentiallyNullable) {
         isSetVariable = new VariableDeclaration(
             '${late_lowering.lateLocalPrefix}'
             '${node.name}'
@@ -5630,8 +5629,7 @@ class InferenceVisitor
             declaredOrInferredType is! InvalidType) {
           if (variable.isLate || variable.lateGetter != null) {
             if (isDefinitelyUnassigned &&
-                isPotentiallyNonNullable(
-                    declaredOrInferredType, inferrer.coreTypes.futureOrClass)) {
+                declaredOrInferredType.isPotentiallyNonNullable) {
               return new ExpressionInferenceResult(
                   resultType,
                   inferrer.helper.wrapInProblem(
@@ -5643,8 +5641,7 @@ class InferenceVisitor
             }
           } else {
             if (isUnassigned &&
-                isPotentiallyNonNullable(
-                    declaredOrInferredType, inferrer.coreTypes.futureOrClass)) {
+                declaredOrInferredType.isPotentiallyNonNullable) {
               return new ExpressionInferenceResult(
                   resultType,
                   inferrer.helper.wrapInProblem(
@@ -5844,9 +5841,7 @@ class InferenceVisitor
   void reportNonNullableInNullAwareWarningIfNeeded(
       DartType operandType, String operationName, int offset) {
     if (!inferrer.isTopLevel && inferrer.isNonNullableByDefault) {
-      if (operandType is! InvalidType &&
-          !isPotentiallyNullable(
-              operandType, inferrer.coreTypes.futureOrClass)) {
+      if (operandType is! InvalidType && !operandType.isPotentiallyNullable) {
         inferrer.library.addProblem(
             templateNonNullableInNullAware.withArguments(
                 operationName, operandType, inferrer.isNonNullableByDefault),

@@ -2,94 +2,35 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-Language/Classes/*: Skip # Not migrated to NNBD
-Language/Classes/Abstract_Instance_Members/*: Skip # Not migrated to NNBD
-Language/Classes/Class_Member_Conflicts/*: Skip # Not migrated to NNBD
-Language/Classes/Constructors/*: Skip # Not migrated to NNBD
-Language/Classes/Constructors/Constant_Constructors/*: Skip # Not migrated to NNBD
 Language/Classes/Constructors/Factories/*: Skip # Not migrated to NNBD
 Language/Classes/Constructors/Generative_Constructors/*: Skip # Not migrated to NNBD
-Language/Classes/Getters/*: Skip # Not migrated to NNBD
-Language/Classes/Instance_Methods/*: Skip # Not migrated to NNBD
-Language/Classes/Instance_Methods/Operators/*: Skip # Not migrated to NNBD
-Language/Classes/Instance_Variables/*: Skip # Not migrated to NNBD
-Language/Classes/Setters/*: Skip # Not migrated to NNBD
-Language/Classes/Static_Methods/*: Skip # Not migrated to NNBD
-Language/Classes/Static_Variables/*: Skip # Not migrated to NNBD
-Language/Classes/Superclasses/*: Skip # Not migrated to NNBD
-Language/Classes/Superclasses/Inheritance_and_Overriding/*: Skip # Not migrated to NNBD
-Language/Classes/Superinterfaces/*: Skip # Not migrated to NNBD
-Language/Enums/*: Skip # Not migrated to NNBD
+Language/Classes/Superclasses/Inheritance_and_Overriding/inheritance_t07: Skip # Type aliases are not fully implemented
+Language/Enums/*: Skip # Not migrated to NNBD:
 Language/Errors_and_Warnings/*: Skip # Not migrated to NNBD
-Language/Expressions/*: Skip # Not migrated to NNBD
-Language/Expressions/Additive_Expressions/*: Skip # Not migrated to NNBD
 Language/Expressions/Assignable_Expressions/*: Skip # Not migrated to NNBD
 Language/Expressions/Assignment/*: Skip # Not migrated to NNBD
 Language/Expressions/Assignment/Compound_Assignment/*: Skip # Not migrated to NNBD
-Language/Expressions/Await_Expressions/*: Skip # Not migrated to NNBD
 Language/Expressions/Bitwise_Expressions/*: Skip # Not migrated to NNBD
-Language/Expressions/Booleans/*: Skip # Not migrated to NNBD
 Language/Expressions/Booleans/Boolean_Conversion/*: Skip # Not migrated to NNBD
-Language/Expressions/Conditional/*: Skip # Not migrated to NNBD
 Language/Expressions/Constants/*: Skip # Not migrated to NNBD
 Language/Expressions/Equality/*: Skip # Not migrated to NNBD
 Language/Expressions/Function_Expressions/*: Skip # Not migrated to NNBD
-Language/Expressions/Function_Invocation/*: Skip # Not migrated to NNBD
-Language/Expressions/Function_Invocation/Actual_Argument_List_Evaluation/*: Skip # Not migrated to NNBD
-Language/Expressions/Function_Invocation/Binding_Actuals_to_Formals/*: Skip # Not migrated to NNBD
-Language/Expressions/Function_Invocation/Function_Expression_Invocation/*: Skip # Not migrated to NNBD
-Language/Expressions/Function_Invocation/Unqualified_Invocation/*: Skip # Not migrated to NNBD
 Language/Expressions/Identifier_Reference/*: Skip # Not migrated to NNBD
 Language/Expressions/If_null_Expressions/*: Skip # Not migrated to NNBD
-Language/Expressions/Instance_Creation/*: Skip # Not migrated to NNBD
 Language/Expressions/Instance_Creation/Const/*: Skip # Not migrated to NNBD
 Language/Expressions/Instance_Creation/New/*: Skip # Not migrated to NNBD
 Language/Expressions/Lists/*: Skip # Not migrated to NNBD
-Language/Expressions/Logical_Boolean_Expressions/*: Skip # Not migrated to NNBD
-Language/Expressions/Lookup/*: Skip # Not migrated to NNBD
-Language/Expressions/Lookup/Getter_and_Setter_Lookup/*: Skip # Not migrated to NNBD
-Language/Expressions/Lookup/Method_Lookup/*: Skip # Not migrated to NNBD
 Language/Expressions/Maps/*: Skip # Not migrated to NNBD
-Language/Expressions/Method_Invocation/*: Skip # Not migrated to NNBD
-Language/Expressions/Method_Invocation/Cascaded_Invocations/*: Skip # Not migrated to NNBD
 Language/Expressions/Method_Invocation/Ordinary_Invocation/*: Skip # Not migrated to NNBD
 Language/Expressions/Method_Invocation/Super_Invocation/*: Skip # Not migrated to NNBD
-Language/Expressions/Multiplicative_Expressions/*: Skip # Not migrated to NNBD
-Language/Expressions/Null/*: Skip # Not migrated to NNBD
-Language/Expressions/Numbers/*: Skip # Not migrated to NNBD
-Language/Expressions/Object_Identity/*: Skip # Not migrated to NNBD
-Language/Expressions/Postfix_Expressions/*: Skip # Not migrated to NNBD
-Language/Expressions/Property_Extraction/*: Skip # Not migrated to NNBD
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/*: Skip # Not migrated to NNBD
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/*: Skip # Not migrated to NNBD
-Language/Expressions/Property_Extraction/Super_Closurization/*: Skip # Not migrated to NNBD
-Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closurization/*: Skip # Not migrated to NNBD
-Language/Expressions/Relational_Expressions/*: Skip # Not migrated to NNBD
-Language/Expressions/Shift/*: Skip # Not migrated to NNBD
-Language/Expressions/Spawning_an_Isolate/*: Skip # Not migrated to NNBD
-Language/Expressions/Strings/*: Skip # Not migrated to NNBD
-Language/Expressions/Strings/String_Interpolation/*: Skip # Not migrated to NNBD
-Language/Expressions/Symbols/*: Skip # Not migrated to NNBD
-Language/Expressions/This/*: Skip # Not migrated to NNBD
-Language/Expressions/Throw/*: Skip # Not migrated to NNBD
-Language/Expressions/Top_level_Getter_Invocation/*: Skip # Not migrated to NNBD
-Language/Expressions/Type_Cast/*: Skip # Not migrated to NNBD
-Language/Expressions/Type_Test/*: Skip # Not migrated to NNBD
 Language/Expressions/Unary_Expressions/*: Skip # Not migrated to NNBD
 Language/Functions/*: Skip # Not migrated to NNBD
-Language/Functions/External_Functions/*: Skip # Not migrated to NNBD
-Language/Functions/Formal_Parameters/*: Skip # Not migrated to NNBD
-Language/Functions/Formal_Parameters/Optional_Formals/*: Skip # Not migrated to NNBD
-Language/Functions/Formal_Parameters/Required_Formals/*: Skip # Not migrated to NNBD
-Language/Functions/Function_Declarations/*: Skip # Not migrated to NNBD
-Language/Functions/Type_of_a_Function/*: Skip # Not migrated to NNBD
 Language/Generics/*: Skip # Not migrated to NNBD
 Language/Generics/Superbounded_types/*: Skip # Not migrated to NNBD
 Language/Interfaces/Superinterfaces/*: Skip # Not migrated to NNBD
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/*: Skip # Not migrated to NNBD
 Language/Libraries_and_Scripts/*: Skip # Not migrated to NNBD
 Language/Libraries_and_Scripts/Exports/*: Skip # Not migrated to NNBD
-Language/Libraries_and_Scripts/Imports/*: Skip # Not migrated to NNBD
 Language/Libraries_and_Scripts/Parts/*: Skip # Not migrated to NNBD
 Language/Libraries_and_Scripts/Scripts/*: Skip # Not migrated to NNBD
 Language/Libraries_and_Scripts/URIs/*: Skip # Not migrated to NNBD
@@ -157,7 +98,6 @@ LanguageFeatures/Simple-bounds/dynamic/type-aliases/*: Skip # Not migrated to NN
 LanguageFeatures/Simple-bounds/static/*: Skip # Not migrated to NNBD
 LanguageFeatures/Simple-bounds/static/type-aliases/*: Skip # Not migrated to NNBD
 LanguageFeatures/Spread-collections/*: Skip # Not migrated to NNBD
-LanguageFeatures/Subtyping/*: Skip # Not migrated to NNBD
 LanguageFeatures/Super-bounded-types/*: Skip # Not migrated to NNBD
 LanguageFeatures/Super-mixins/*: Skip # Not migrated to NNBD
 LanguageFeatures/Triple-Shift/*: Skip # Not migrated to NNBD
@@ -364,6 +304,16 @@ LibTest/typed_data/Uint64List/*: Skip # Not migrated to NNBD
 LibTest/typed_data/Uint8ClampedList/*: Skip # Not migrated to NNBD
 LibTest/typed_data/Uint8List/*: Skip # Not migrated to NNBD
 Utils/tests/Expect/*: Skip # Not migrated to NNBD
+
+[ $compiler == dart2analyzer ]
+Language/Classes/Instance_Methods/Operators/allowed_names_t01: Skip # Triple shift is not fully implemented
+Language/Classes/Instance_Methods/Operators/arity_1_t19: Skip # Triple shift is not fully implemented (https://github.com/dart-lang/sdk/issues/42353)
+LanguageFeatures/Subtyping/static/tests/left_bottom_A01_t02: Skip # Type aliases are not supported by analyzer
+LanguageFeatures/Subtyping/static/tests/left_bottom_A01_t04: Skip # Type aliases are not supported by analyzer
+LanguageFeatures/Subtyping/static/tests/left_bottom_A01_t06: Skip # Type aliases are not supported by analyzer
+
+[ $compiler == fasta ]
+Language/Classes/Superclasses/Inheritance_and_Overriding/inheritance_t10 : Skip # Type aliases are not fully implemented
 
 [ $compiler != fasta ]
 Language/Classes/Abstract_Instance_Members/inherited_t13: Skip # github.com/dart-lang/language/issues/115

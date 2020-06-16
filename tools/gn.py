@@ -458,16 +458,6 @@ def parse_args(args):
         type=str,
         help='Comma-separated list of arch=/path/to/toolchain-prefix mappings')
     other_group.add_argument(
-        '--wheezy',
-        help='This flag is deprecated.',
-        default=True,
-        action='store_true')
-    other_group.add_argument(
-        '--no-wheezy',
-        help='This flag is deprecated',
-        dest='wheezy',
-        action='store_false')
-    other_group.add_argument(
         '--workers',
         '-w',
         type=int,

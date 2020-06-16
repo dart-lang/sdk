@@ -4,8 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol_server.dart'
-    show CompletionSuggestion;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
@@ -16,7 +14,7 @@ import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart'
 /// static type of the variable.
 class VariableNameContributor extends DartCompletionContributor {
   @override
-  Future<List<CompletionSuggestion>> computeSuggestions(
+  Future<void> computeSuggestions(
       DartCompletionRequest request, SuggestionBuilder builder) async {
     var opType = request.opType;
 
@@ -65,7 +63,7 @@ class VariableNameContributor extends DartCompletionContributor {
         }
       }
       if (strName == null) {
-        return const <CompletionSuggestion>[];
+        return;
       }
 
       var doIncludePrivateVersion =
@@ -80,7 +78,6 @@ class VariableNameContributor extends DartCompletionContributor {
         }
       }
     }
-    return const <CompletionSuggestion>[];
   }
 
   /// Given some [name], add a suggestion with the name (unless the name is

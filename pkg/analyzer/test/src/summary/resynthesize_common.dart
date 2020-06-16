@@ -82,9 +82,6 @@ abstract class AbstractResynthesizeTest with ResourceProviderMixin {
 mixin ResynthesizeTestCases implements ResynthesizeTestHelpers {
   FeatureSet get disableNnbd => FeatureSet.forTesting(sdkVersion: '2.2.2');
 
-  FeatureSet get enableExtensionMethods =>
-      FeatureSet.forTesting(additionalFeatures: [Feature.extension_methods]);
-
   FeatureSet get enableNnbd =>
       FeatureSet.forTesting(additionalFeatures: [Feature.non_nullable]);
 
@@ -283,6 +280,30 @@ class E {
 ''');
   }
 
+  test_class_alias_with_const_constructors() async {
+    addLibrarySource('/a.dart', '''
+class Base {
+  const Base._priv();
+  const Base();
+  const Base.named();
+}
+''');
+    var library = await checkLibrary('''
+import "a.dart";
+class M {}
+class MixinApp = Base with M;
+''');
+    checkElementText(library, r'''
+import 'a.dart';
+class M {
+}
+class alias MixinApp extends Base with M {
+  synthetic const MixinApp() = Base;
+  synthetic const MixinApp.named() = Base.named;
+}
+''');
+  }
+
   test_class_alias_with_forwarding_constructors() async {
     addLibrarySource('/a.dart', '''
 class Base {
@@ -311,8 +332,6 @@ class alias MixinApp extends Base with M {
   synthetic MixinApp.requiredArg(dynamic x) = Base.requiredArg;
   synthetic MixinApp.positionalArg([bool x = true]) = Base.positionalArg;
   synthetic MixinApp.namedArg({int x: 42}) = Base.namedArg;
-  synthetic MixinApp.fact() = Base.fact;
-  synthetic MixinApp.fact2() = Base.fact2;
 }
 ''');
   }
@@ -1859,33 +1878,33 @@ class A/*codeOffset=0, codeLength=10*/ {
 class B/*codeOffset=12, codeLength=10*/ {
 }
 class alias Raw/*codeOffset=28, codeLength=29*/ extends Object with A, B {
-  synthetic Raw() = Object;
+  synthetic const Raw() = Object;
 }
 /// Comment 1.
 /// Comment 2.
 class alias HasDocComment/*codeOffset=59, codeLength=69*/ extends Object with A, B {
-  synthetic HasDocComment() = Object;
+  synthetic const HasDocComment() = Object;
 }
 @Object()
 class alias HasAnnotation/*codeOffset=130, codeLength=49*/ extends Object with A, B {
-  synthetic HasAnnotation() = Object;
+  synthetic const HasAnnotation() = Object;
 }
 /// Comment 1.
 /// Comment 2.
 @Object()
 class alias AnnotationThenComment/*codeOffset=181, codeLength=87*/ extends Object with A, B {
-  synthetic AnnotationThenComment() = Object;
+  synthetic const AnnotationThenComment() = Object;
 }
 /// Comment 1.
 /// Comment 2.
 @Object()
 class alias CommentThenAnnotation/*codeOffset=270, codeLength=87*/ extends Object with A, B {
-  synthetic CommentThenAnnotation() = Object;
+  synthetic const CommentThenAnnotation() = Object;
 }
 /// Comment 2.
 @Object()
 class alias CommentAroundAnnotation/*codeOffset=374, codeLength=74*/ extends Object with A, B {
-  synthetic CommentAroundAnnotation() = Object;
+  synthetic const CommentAroundAnnotation() = Object;
 }
 ''',
         withCodeRanges: true,
@@ -2031,7 +2050,6 @@ enum E/*codeOffset=0, codeLength=26*/ {
   }
 
   test_codeRange_extensions() async {
-    featureSet = enableExtensionMethods;
     var library = await checkLibrary('''
 class A {}
 
@@ -3530,7 +3548,6 @@ const int Function(int, String) V =
   }
 
   test_const_reference_staticMethod_ofExtension() async {
-    featureSet = enableExtensionMethods;
     var library = await checkLibrary('''
 class A {}
 extension E on A {
@@ -3976,6 +3993,24 @@ const String vString = 'abc';
 const String vStringConcat = 'aaabbb';
 const String vStringInterpolation = 'aaa ${true} ${42} bbb';
 const Symbol vSymbol = #aaa.bbb.ccc;
+''');
+  }
+
+  test_const_topLevel_nullSafe_nullAware_propertyAccess() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary(r'''
+const String? a = '';
+
+const List<int?> b = [
+  a?.length,
+];
+''');
+    // TODO(scheglov) include fully resolved AST, when types with suffixes
+    checkElementText(library, r'''
+const String a = '';
+const List<int> b = [
+        a/*location: test.dart;a?*/.
+        length/*location: dart:core;String;length?*/];
 ''');
   }
 
@@ -5075,7 +5110,6 @@ class B {
   }
 
   test_defaultValue_refersToExtension_method_inside() async {
-    featureSet = enableExtensionMethods;
     var library = await checkLibrary('''
 class A {}
 extension E on A {
@@ -5325,7 +5359,6 @@ enum E {
   }
 
   test_duplicateDeclaration_extension() async {
-    featureSet = enableExtensionMethods;
     var library = await checkLibrary(r'''
 class A {}
 extension E on A {}
@@ -5567,7 +5600,7 @@ class C extends Object with M {
   dynamic foo() {}
 }
 class alias D extends Object with M {
-  synthetic D() = Object;
+  synthetic const D() = Object;
 }
 ''');
   }
@@ -5982,7 +6015,6 @@ class C<T> {
   }
 
   test_extension_documented_tripleSlash() async {
-    featureSet = enableExtensionMethods;
     var library = await checkLibrary('''
 /// aaa
 /// bbbb
@@ -5998,7 +6030,6 @@ extension E on int {
   }
 
   test_extension_field_inferredType_const() async {
-    featureSet = enableExtensionMethods;
     var library = await checkLibrary('''
 extension E on int {
   static const x = 0;
@@ -7252,6 +7283,25 @@ f<T>() {
 ''');
     checkElementText(library, r'''
 dynamic f<T>() {}
+''');
+  }
+
+  test_inferred_type_functionExpressionInvocation_oppositeOrder() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary('''
+class A {
+  static final foo = bar(1.2);
+  static final bar = baz();
+
+  static int Function(double) baz() => (throw 0);
+}
+''');
+    checkElementText(library, r'''
+class A {
+  static final int foo;
+  static final int Function(double) bar;
+  static int Function(double) baz() {}
+}
 ''');
   }
 
@@ -8560,7 +8610,6 @@ const dynamic a = null;
   }
 
   test_metadata_extension_scope() async {
-    featureSet = enableExtensionMethods;
     var library = await checkLibrary(r'''
 const foo = 0;
 
@@ -8617,7 +8666,6 @@ const int foo;
   }
 
   test_metadata_extensionDeclaration() async {
-    featureSet = enableExtensionMethods;
     var library = await checkLibrary(r'''
 const a = null;
 class A {}
@@ -10293,7 +10341,7 @@ dynamic v;
     checkElementText(
         library,
         r'''
-Never* d;
+Null* d;
 ''',
         annotateNullability: true);
   }
@@ -11382,7 +11430,6 @@ final int v;
   }
 
   test_variable_initializer_staticMethod_ofExtension() async {
-    featureSet = enableExtensionMethods;
     var library = await checkLibrary('''
 class A {}
 extension E on A {

@@ -36,6 +36,7 @@ part of dart.async;
 /// As a corollary, `FutureOr<Object>` is equivalent to
 /// `FutureOr<FutureOr<Object>>`, `FutureOr<Future<Object>>` is equivalent to
 /// `Future<Object>`.
+@pragma("vm:entry-point")
 abstract class FutureOr<T> {
   // Private generative constructor, so that it is not subclassable, mixable, or
   // instantiable.

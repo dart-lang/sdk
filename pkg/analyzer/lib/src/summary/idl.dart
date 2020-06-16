@@ -1494,6 +1494,7 @@ abstract class LinkedNode extends base.SummaryClass {
   LinkedNode get throwExpression_expression;
 
   @VariantId(32, variantList: [
+    LinkedNodeKind.methodDeclaration,
     LinkedNodeKind.simpleFormalParameter,
     LinkedNodeKind.variableDeclaration,
   ])
@@ -1888,23 +1889,28 @@ abstract class PackageBundle extends base.SummaryClass {
   /// The version 2 of the summary.
   @Id(0)
   LinkedNodeBundle get bundle2;
+
+  /// The SDK specific data, if this bundle is for SDK.
+  @Id(1)
+  PackageBundleSdk get sdk;
+}
+
+/// Summary information about a package.
+abstract class PackageBundleSdk extends base.SummaryClass {
+  /// The content of the `allowed_experiments.json` from SDK.
+  @Id(0)
+  String get allowedExperimentsJson;
 }
 
 /// Summary information about a top-level type inference error.
 abstract class TopLevelInferenceError extends base.SummaryClass {
   /// The [kind] specific arguments.
-  @Id(2)
+  @Id(1)
   List<String> get arguments;
 
   /// The kind of the error.
-  @Id(1)
-  TopLevelInferenceErrorKind get kind;
-
-  /// The slot id (which is unique within the compilation unit) identifying the
-  /// target of type inference with which this [TopLevelInferenceError] is
-  /// associated.
   @Id(0)
-  int get slot;
+  TopLevelInferenceErrorKind get kind;
 }
 
 /// Enum used to indicate the kind of the error during top-level inference.
@@ -1913,8 +1919,7 @@ enum TopLevelInferenceErrorKind {
   instanceGetter,
   dependencyCycle,
   overrideConflictFieldType,
-  overrideConflictReturnType,
-  overrideConflictParameterType
+  overrideNoCombinedSuperSignature,
 }
 
 @Variant('kind')
@@ -2244,10 +2249,6 @@ abstract class UnlinkedUnit2 extends base.SummaryClass {
   @Id(3)
   bool get hasPartOfDirective;
 
-  /// URI of the `part of` directive.
-  @Id(8)
-  String get partOfUri;
-
   /// URIs of `import` directives.
   @Id(2)
   List<UnlinkedNamespaceDirective> get imports;
@@ -2259,6 +2260,10 @@ abstract class UnlinkedUnit2 extends base.SummaryClass {
   @informative
   @Id(5)
   List<int> get lineStarts;
+
+  /// URI of the `part of` directive.
+  @Id(8)
+  String get partOfUri;
 
   /// URIs of `part` directives.
   @Id(4)

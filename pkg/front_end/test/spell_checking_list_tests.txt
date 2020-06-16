@@ -54,7 +54,7 @@ benchmark
 besides
 beta
 bigger
-blacklist
+denylist
 blah
 blindly
 blocked
@@ -181,6 +181,7 @@ epoch
 err
 everytime
 evicting
+exceed
 excess
 exe
 execute
@@ -363,6 +364,7 @@ naturally
 negatable
 newest
 newworld
+nil
 ninja
 nondefault
 nonexisting
@@ -472,6 +474,7 @@ spelling
 spent
 splay
 splitting
+spurious
 sqrt
 squared
 sssp
@@ -549,8 +552,8 @@ waiting
 walt
 warmup
 wherever
-whitelist
-whitelisting
+allowlist
+allowlisting
 wins
 workflow
 worlds

@@ -65,7 +65,7 @@ typedef void _TimerCallback();
  * call occurs.
  * For example, the [first] getter listens to the stream, then returns the first
  * event that listener receives.
- * This is not necessarily the first even emitted by the stream, but the first
+ * This is not necessarily the first event emitted by the stream, but the first
  * of the *remaining* events of the broadcast stream.
  *
  * When the "done" event is fired, subscribers are unsubscribed before

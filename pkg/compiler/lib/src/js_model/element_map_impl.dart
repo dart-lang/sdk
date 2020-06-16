@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
 
 import 'package:kernel/ast.dart' as ir;
@@ -137,8 +138,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     _elementEnvironment = new JsElementEnvironment(this);
     _typeConverter = new DartTypeConverter(options, this);
     _types = new KernelDartTypes(this, options);
-    _commonElements = new CommonElementsImpl(
-        _types, _elementEnvironment, _elementMap.options);
+    _commonElements = new CommonElementsImpl(_types, _elementEnvironment);
     _constantValuefier = new ConstantValuefier(this);
 
     programEnv = _elementMap.env.convert();
@@ -298,8 +298,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     _elementEnvironment = new JsElementEnvironment(this);
     _typeConverter = new DartTypeConverter(options, this);
     _types = new KernelDartTypes(this, options);
-    _commonElements =
-        new CommonElementsImpl(_types, _elementEnvironment, options);
+    _commonElements = new CommonElementsImpl(_types, _elementEnvironment);
     _constantValuefier = new ConstantValuefier(this);
 
     source.registerComponentLookup(new ComponentLookup(component));
@@ -1184,7 +1183,10 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     },
         environment: _environment.toMap(),
         enableTripleShift:
-            options.languageExperiments[ir.ExperimentalFlag.tripleShift]);
+            options.languageExperiments[ir.ExperimentalFlag.tripleShift],
+        evaluationMode: options.useLegacySubtyping
+            ? ir.EvaluationMode.weak
+            : ir.EvaluationMode.strong);
   }
 
   @override
@@ -1327,8 +1329,14 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     bool mayLookupInMain() {
       var mainUri = elementEnvironment.mainLibrary.canonicalUri;
       // Tests permit lookup outside of dart: libraries.
-      return mainUri.path.contains('tests/compiler/dart2js_native') ||
-          mainUri.path.contains('tests/compiler/dart2js_extra');
+      return mainUri.path
+              .contains(RegExp(r'(?<!generated_)tests/dart2js/internal')) ||
+          mainUri.path
+              .contains(RegExp(r'(?<!generated_)tests/dart2js/native')) ||
+          mainUri.path
+              .contains(RegExp(r'(?<!generated_)tests/dart2js_2/internal')) ||
+          mainUri.path
+              .contains(RegExp(r'(?<!generated_)tests/dart2js_2/native'));
     }
 
     DartType lookup(String typeName, {bool required}) {

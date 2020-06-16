@@ -1636,10 +1636,10 @@ class OutlineBuilder extends StackListenerImpl {
         return;
       }
       if (type is FunctionTypeBuilder &&
-          !libraryBuilder.loader.target.enableNonfunctionTypeAliases) {
+          !libraryBuilder.enableNonfunctionTypeAliasesInLibrary) {
         if (type.nullabilityBuilder.build(libraryBuilder) ==
                 Nullability.nullable &&
-            libraryBuilder.loader.target.enableNonNullable) {
+            libraryBuilder.enableNonNullableInLibrary) {
           // The error is reported when the non-nullable experiment is enabled.
           // Otherwise, the attempt to use a nullable type will be reported
           // elsewhere.
@@ -1653,7 +1653,7 @@ class OutlineBuilder extends StackListenerImpl {
           // of a generic function).
           aliasedType = type;
         }
-      } else if (libraryBuilder.loader.target.enableNonfunctionTypeAliases) {
+      } else if (libraryBuilder.enableNonfunctionTypeAliasesInLibrary) {
         if (type is TypeBuilder) {
           aliasedType = type;
         } else {
@@ -1797,7 +1797,7 @@ class OutlineBuilder extends StackListenerImpl {
     if (typeParameters != null) {
       typeParameters[index].bound = bound;
       if (variance != null) {
-        if (!libraryBuilder.loader.target.enableVariance) {
+        if (!libraryBuilder.enableVarianceInLibrary) {
           reportVarianceModifierNotEnabled(variance);
         }
         typeParameters[index].variance = Variance.fromString(variance.lexeme);

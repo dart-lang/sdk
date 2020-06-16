@@ -615,19 +615,17 @@ class FragmentEmitter {
       this._nativeEmitter,
       this._closedWorld,
       this._codegenWorld) {
-    if (_options.useNewRti) {
-      _recipeEncoder = RecipeEncoderImpl(
-          _closedWorld,
-          _options.disableRtiOptimization
-              ? TrivialRuntimeTypesSubstitutions(_closedWorld)
-              : RuntimeTypesImpl(_closedWorld),
-          _closedWorld.nativeData,
-          _closedWorld.elementEnvironment,
-          _closedWorld.commonElements,
-          _closedWorld.rtiNeed);
-      _rulesetEncoder =
-          RulesetEncoder(_closedWorld.dartTypes, _emitter, _recipeEncoder);
-    }
+    _recipeEncoder = RecipeEncoderImpl(
+        _closedWorld,
+        _options.disableRtiOptimization
+            ? TrivialRuntimeTypesSubstitutions(_closedWorld)
+            : RuntimeTypesImpl(_closedWorld),
+        _closedWorld.nativeData,
+        _closedWorld.elementEnvironment,
+        _closedWorld.commonElements,
+        _closedWorld.rtiNeed);
+    _rulesetEncoder =
+        RulesetEncoder(_closedWorld.dartTypes, _emitter, _recipeEncoder);
   }
 
   js.Expression generateEmbeddedGlobalAccess(String global) =>
@@ -700,7 +698,7 @@ class FragmentEmitter {
           emitEmbeddedGlobalsPart2(program, deferredLoadingState),
       'typeRules': emitTypeRules(fragment),
       'variances': emitVariances(fragment),
-      'sharedTypeRtis': _options.useNewRti ? TypeReferenceResource() : [],
+      'sharedTypeRtis': TypeReferenceResource(),
       'nativeSupport': emitNativeSupport(fragment),
       'jsInteropSupport': jsInteropAnalysis.buildJsInteropBootstrap(
               _codegenWorld, _closedWorld.nativeData, _namer) ??
@@ -831,7 +829,7 @@ class FragmentEmitter {
       'types': deferredTypes,
       'nativeSupport': nativeSupport,
       'typesOffset': _namer.typesOffsetName,
-      'sharedTypeRtis': _options.useNewRti ? TypeReferenceResource() : [],
+      'sharedTypeRtis': TypeReferenceResource(),
     });
 
     if (_options.experimentStartupFunctions) {
@@ -842,8 +840,6 @@ class FragmentEmitter {
   }
 
   void finalizeTypeReferences(js.Node code) {
-    if (!_options.useNewRti) return;
-
     TypeReferenceFinalizer finalizer = TypeReferenceFinalizerImpl(
         _emitter, _commonElements, _recipeEncoder, _options.enableMinification);
     finalizer.addCode(code);
@@ -1831,12 +1827,12 @@ class FragmentEmitter {
         }
         indexes.add(js.number(index));
       }
-      libraryPartsMapEntries.add(
-          new js.Property(js.string(loadId), new js.ArrayInitializer(indexes)));
+      libraryPartsMapEntries
+          .add(js.Property(js.string(loadId), js.ArrayInitializer(indexes)));
     });
 
-    deferredLoadingState.deferredLibraryParts
-        .setValue(new js.ObjectInitializer(libraryPartsMapEntries));
+    deferredLoadingState.deferredLibraryParts.setValue(
+        js.ObjectInitializer(libraryPartsMapEntries, isOneLiner: false));
     deferredLoadingState.deferredPartUris
         .setValue(js.stringArray(fragmentUris));
     deferredLoadingState.deferredPartHashes
@@ -1918,9 +1914,7 @@ class FragmentEmitter {
           js.Property(js.string(TYPE_TO_INTERCEPTOR_MAP), js.LiteralNull()));
     }
 
-    if (_options.useNewRti) {
-      globals.add(js.Property(js.string(RTI_UNIVERSE), createRtiUniverse()));
-    }
+    globals.add(js.Property(js.string(RTI_UNIVERSE), createRtiUniverse()));
 
     globals.add(emitMangledGlobalNames());
 
@@ -1969,8 +1963,6 @@ class FragmentEmitter {
   }
 
   js.Block emitTypeRules(Fragment fragment) {
-    if (!_options.useNewRti) return js.Block.empty();
-
     List<js.Statement> statements = [];
 
     bool addJsObjectRedirections = false;
@@ -2061,7 +2053,7 @@ class FragmentEmitter {
   }
 
   js.Statement emitVariances(Fragment fragment) {
-    if (!_options.enableVariance || !_options.useNewRti) {
+    if (!_options.enableVariance) {
       return js.EmptyStatement();
     }
 

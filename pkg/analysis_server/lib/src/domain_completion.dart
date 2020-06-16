@@ -111,11 +111,11 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     // false) then send empty results
 
     //
-    // Add the fixes produced by plugins to the server-generated fixes.
+    // Add the completions produced by plugins to the server-generated list.
     //
     if (pluginFutures != null) {
       var responses = await waitForResponses(pluginFutures,
-          requestParameters: requestParams);
+          requestParameters: requestParams, timeout: 100);
       for (var response in responses) {
         var result =
             plugin.CompletionGetSuggestionsResult.fromResponse(response);

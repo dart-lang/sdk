@@ -289,7 +289,7 @@ abstract class ContextManager {
 /// modified.
 abstract class ContextManagerCallbacks {
   /// Return the notification manager associated with the server.
-  NotificationManager get notificationManager;
+  AbstractNotificationManager get notificationManager;
 
   /// Create and return a new analysis driver rooted at the given [folder], with
   /// the given analysis [options].

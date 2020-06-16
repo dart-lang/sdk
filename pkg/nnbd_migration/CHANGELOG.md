@@ -1,2 +1,2 @@
-## 0.1.0-dev (not yet published)
+## 0.1.0
 * Separated from analysis_server project.

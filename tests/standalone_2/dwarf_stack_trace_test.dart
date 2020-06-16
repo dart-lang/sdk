@@ -71,9 +71,14 @@ Future<void> checkStackTrace(String rawStack, Dwarf dwarf,
   final absolutes = absoluteAddresses(rawLines);
   final relocatedAddresses = absolutes.map((a) => a - dsoBase);
   final explicits = explicitVirtualAddresses(rawLines);
-  Expect.deepEquals(relocatedAddresses, virtualAddresses);
-  // Explicits will be empty if not generating ELF snapshots directly.
+
+  // Explicits will be empty if not generating ELF snapshots directly, which
+  // means we can't depend on virtual addresses in the snapshot lining up with
+  // those in the separate debugging information.
   if (explicits.isNotEmpty) {
+    // Direct-to-ELF snapshots should have a build ID.
+    Expect.isNotNull(dwarf.buildId);
+    Expect.deepEquals(relocatedAddresses, virtualAddresses);
     Expect.deepEquals(explicits, virtualAddresses);
   }
 

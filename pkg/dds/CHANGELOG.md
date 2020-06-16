@@ -1,3 +1,13 @@
+# 1.2.1
+
+- Fixed issue where `evaluate` and `evaluateInFrame` were not invoking client
+  provided implementations of `compileExpression`.
+
+# 1.2.0
+
+- Fixed issue where forwarding requests with no RPC parameters would return an
+  RPC error.
+
 # 1.1.0
 
 - Added `getDartDevelopmentServiceVersion` RPC.

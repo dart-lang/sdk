@@ -423,6 +423,7 @@ fuller
 function's
 fuse
 futured
+futureor
 g
 gardening
 generation
@@ -603,6 +604,7 @@ mangled
 manipulation
 markdown
 masking
+master
 matcher
 mb
 md
@@ -1205,6 +1207,7 @@ watch
 watcher
 wb
 wc
+weakened
 weakener
 weird
 weren't

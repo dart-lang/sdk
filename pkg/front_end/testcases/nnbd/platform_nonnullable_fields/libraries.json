@@ -3,7 +3,8 @@
     "libraries": {
       "test": {
         "patches": [
-          "patch_lib.dart"
+          "patch_lib.dart",
+          "patch_lib2.dart"
         ],
         "uri": "origin_lib.dart"
       }

@@ -244,7 +244,7 @@ static bool ExtractInterfaceTypeArgs(Zone* zone,
       if (!cur_interface_type_args.IsNull() &&
           !cur_interface_type_args.IsInstantiated()) {
         cur_interface_type_args = cur_interface_type_args.InstantiateFrom(
-            instance_type_args, Object::null_type_arguments(), kNoneFree, NULL,
+            instance_type_args, Object::null_type_arguments(), kNoneFree,
             Heap::kNew);
       }
       if (ExtractInterfaceTypeArgs(zone, cur_interface_cls,

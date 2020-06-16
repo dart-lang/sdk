@@ -26,17 +26,10 @@ main() {
   });
 }
 
-abstract class BaseExtensionMethodsTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
-}
-
 /// Tests that show that extension declarations and the members inside them are
 /// resolved correctly.
 @reflectiveTest
-class ExtensionMethodsDeclarationTest extends BaseExtensionMethodsTest {
+class ExtensionMethodsDeclarationTest extends DriverResolutionTest {
   @override
   List<MockSdkLibrary> get additionalMockSdkLibraries => [
         MockSdkLibrary([
@@ -323,7 +316,7 @@ f(p.C c) {
 /// Tests that show that extension declarations and the members inside them are
 /// resolved correctly.
 @reflectiveTest
-class ExtensionMethodsDeclarationWithNnbdTest extends BaseExtensionMethodsTest {
+class ExtensionMethodsDeclarationWithNnbdTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..contextFeatures = FeatureSet.forTesting(
@@ -369,7 +362,7 @@ extension E<T extends Object> on T {
 /// Tests that show that extension declarations support all of the possible
 /// types in the `on` clause.
 @reflectiveTest
-class ExtensionMethodsExtendedTypeTest extends BaseExtensionMethodsTest {
+class ExtensionMethodsExtendedTypeTest extends DriverResolutionTest {
   test_named_generic() async {
     await assertNoErrorsInCode('''
 class C<T> {}
@@ -504,7 +497,7 @@ class ExtensionMethodsExtendedTypeWithNnbdTest
 /// Tests that extension members can be correctly resolved when referenced
 /// by code external to the extension declaration.
 @reflectiveTest
-class ExtensionMethodsExternalReferenceTest extends BaseExtensionMethodsTest {
+class ExtensionMethodsExternalReferenceTest extends DriverResolutionTest {
   /// Corresponds to: extension_member_resolution_t07
   test_dynamicInvocation() async {
     await assertNoErrorsInCode(r'''
@@ -1453,6 +1446,21 @@ class ExtensionMethodsExternalReferenceWithNnbdTest
   @override
   bool get typeToStringWithNullability => true;
 
+  test_instance_getter_fromInstance_Never() async {
+    await assertNoErrorsInCode('''
+extension E on Never {
+  int get foo => 0;
+}
+
+f(Never a) {
+  a.foo;
+}
+''');
+    var access = findNode.prefixed('a.foo');
+    assertElementNull(access);
+    assertType(access, 'Never');
+  }
+
   test_instance_getter_fromInstance_nullable() async {
     await assertNoErrorsInCode('''
 extension E on int? {
@@ -1481,6 +1489,28 @@ f(int? a) {
     var identifier = findNode.simple('foo;');
     assertElement(identifier, findElement.getter('foo', of: 'E'));
     assertType(identifier, 'int');
+  }
+
+  test_instance_method_fromInstance_Never() async {
+    await assertErrorsInCode('''
+extension E on Never {
+  void foo() {}
+}
+
+f(Never a) {
+  a.foo();
+}
+''', [
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 57, 1),
+      error(HintCode.DEAD_CODE, 62, 3),
+    ]);
+    assertMethodInvocation2(
+      findNode.methodInvocation('a.foo()'),
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'dynamic',
+      type: 'Never',
+    );
   }
 
   test_instance_method_fromInstance_nullable() async {
@@ -1675,7 +1705,7 @@ f(int? a) {
 /// Tests that extension members can be correctly resolved when referenced
 /// by code internal to (within) the extension declaration.
 @reflectiveTest
-class ExtensionMethodsInternalReferenceTest extends BaseExtensionMethodsTest {
+class ExtensionMethodsInternalReferenceTest extends DriverResolutionTest {
   test_instance_call() async {
     await assertNoErrorsInCode('''
 class C {}

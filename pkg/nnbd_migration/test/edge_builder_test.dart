@@ -6836,6 +6836,26 @@ int f() {
     expect(edge.sourceNode.displayName, 'implicit null return (test.dart:2:3)');
   }
 
+  Future<void> test_return_in_asyncStar() async {
+    await analyze('''
+Stream<int> f() async* {
+  yield 1;
+  return;
+}
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('Stream<int>').node);
+  }
+
+  Future<void> test_return_in_syncStar() async {
+    await analyze('''
+Iterable<int> f() sync* {
+  yield 1;
+  return;
+}
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('Iterable<int>').node);
+  }
+
   Future<void> test_return_null() async {
     await analyze('''
 int f() {
@@ -7506,6 +7526,16 @@ int f() {
     assertNoUpstreamNullability(intNode);
     var edge = assertEdge(anyNode, intNode, hard: false);
     expect(edge.sourceNode.displayName, 'throw expression (test.dart:2:10)');
+  }
+
+  Future<void> test_top_level_annotation_begins_flow_analysis() async {
+    await analyze('''
+class C {
+  const C(bool x);
+}
+@C(true)
+int x;
+''');
   }
 
   Future<void> test_topLevelSetter() async {

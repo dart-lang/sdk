@@ -747,7 +747,7 @@ void IsolateGroup::UnregisterIsolateGroup(IsolateGroup* isolate_group) {
 bool IsolateGroup::HasApplicationIsolateGroups() {
   ReadRwLocker wl(ThreadState::Current(), isolate_groups_rwlock_);
   for (auto group : *isolate_groups_) {
-    if (!IsolateGroup::IsVMInternalIsolate(group)) {
+    if (!IsolateGroup::IsVMInternalIsolateGroup(group)) {
       return true;
     }
   }
@@ -1455,6 +1455,7 @@ void Isolate::FlagsInitialize(Dart_IsolateFlags* api_flags) {
   api_flags->entry_points = NULL;
   api_flags->load_vmservice_library = false;
   api_flags->copy_parent_code = false;
+  api_flags->null_safety = false;
 }
 
 void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
@@ -1466,6 +1467,7 @@ void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
   api_flags->entry_points = NULL;
   api_flags->load_vmservice_library = should_load_vmservice();
   api_flags->copy_parent_code = false;
+  api_flags->null_safety = null_safety();
 }
 
 void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
@@ -1495,6 +1497,7 @@ void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
 #undef SET_FROM_FLAG
 
   set_should_load_vmservice(api_flags.load_vmservice_library);
+  set_null_safety(api_flags.null_safety);
 
   // Copy entry points list.
   ASSERT(embedder_entry_points_ == NULL);
@@ -1757,26 +1760,12 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
   isolate_group->RegisterIsolate(result);
 
   if (ServiceIsolate::NameEquals(name_prefix)) {
-    // For now the service isolate always runs in weak mode.
-    result->set_null_safety(false);
     ASSERT(!ServiceIsolate::Exists());
     ServiceIsolate::SetServiceIsolate(result);
 #if !defined(DART_PRECOMPILED_RUNTIME)
   } else if (KernelIsolate::NameEquals(name_prefix)) {
-    // For now the kernel isolate always runs in weak mode.
-    result->set_null_safety(false);
     ASSERT(!KernelIsolate::Exists());
     KernelIsolate::SetKernelIsolate(result);
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  } else if (FLAG_null_safety != kNullSafetyOptionUnspecified) {
-    // If the null-safety option is specified on the command line then
-    // use the value specified on the command line, if the dill file being
-    // loaded is in a different mode than that specified on the command line
-    // we will get an error during kernel file loading.
-    result->set_null_safety(FLAG_null_safety == kNullSafetyOptionStrong);
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  } else if (!KernelIsolate::GetExperimentalFlag("non-nullable")) {
-    result->set_null_safety(false);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   }
 
@@ -3564,7 +3553,7 @@ bool Isolate::IsolateCreationEnabled() {
   return creation_enabled_;
 }
 
-bool IsolateGroup::IsVMInternalIsolate(const IsolateGroup* group) {
+bool IsolateGroup::IsVMInternalIsolateGroup(const IsolateGroup* group) {
   // We use a name comparison here because this method can be called during
   // shutdown, where the actual isolate pointers might've already been cleared.
   const char* name = group->source()->name;

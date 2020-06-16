@@ -109,7 +109,6 @@ static ErrorPtr BootstrapFromKernel(Thread* thread,
 
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    program->AutoDetectNullSafety(thread->isolate());
     kernel::KernelLoader loader(program.get(), /*uri_to_source_table=*/nullptr);
 
     Isolate* isolate = thread->isolate();

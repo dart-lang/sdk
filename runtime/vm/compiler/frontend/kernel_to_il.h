@@ -139,8 +139,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment StoreLateField(const Field& field,
                           LocalVariable* instance,
                           LocalVariable* setter_value);
-  Fragment InitInstanceField(const Field& field);
-  Fragment InitStaticField(const Field& field);
   Fragment NativeCall(const String* name, const Function* function);
   Fragment Return(
       TokenPosition position,
@@ -207,12 +205,37 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // semantics of FFI argument translation.
   Fragment FfiConvertArgumentToNative(
       const compiler::ffi::BaseMarshaller& marshaller,
-      intptr_t arg_index);
+      intptr_t arg_index,
+      LocalVariable* api_local_scope);
 
   // Reverse of 'FfiConvertArgumentToNative'.
   Fragment FfiConvertArgumentToDart(
       const compiler::ffi::BaseMarshaller& marshaller,
       intptr_t arg_index);
+
+  // Generates a call to `Thread::EnterApiScope`.
+  Fragment EnterHandleScope();
+
+  // Generates a call to `Thread::api_top_scope`.
+  Fragment GetTopHandleScope();
+
+  // Generates a call to `Thread::ExitApiScope`.
+  Fragment ExitHandleScope();
+
+  // Leaves a `LocalHandle` on the stack.
+  Fragment AllocateHandle(LocalVariable* api_local_scope);
+
+  // Populates the base + offset with a tagged value.
+  Fragment RawStoreField(int32_t offset);
+
+  // Wraps an `Object` from the stack and leaves a `LocalHandle` on the stack.
+  Fragment WrapHandle(LocalVariable* api_local_scope);
+
+  // Unwraps a `LocalHandle` from the stack and leaves the object on the stack.
+  Fragment UnwrapHandle();
+
+  // Wrap the current exception and stacktrace in an unhandled exception.
+  Fragment UnhandledException();
 
   // Return from a native -> Dart callback. Can only be used in conjunction with
   // NativeEntry and NativeParameter are used.

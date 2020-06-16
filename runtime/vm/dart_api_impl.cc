@@ -1000,6 +1000,18 @@ Dart_NewWeakPersistentHandle(Dart_Handle object,
                                    external_allocation_size, callback);
 }
 
+DART_EXPORT void Dart_UpdateExternalSize(Dart_WeakPersistentHandle object,
+                                         intptr_t external_size) {
+  IsolateGroup* isolate_group = IsolateGroup::Current();
+  CHECK_ISOLATE_GROUP(isolate_group);
+  NoSafepointScope no_safepoint_scope;
+  ApiState* state = isolate_group->api_state();
+  ASSERT(state != NULL);
+  ASSERT(state->IsActiveWeakPersistentHandle(object));
+  auto weak_ref = FinalizablePersistentHandle::Cast(object);
+  weak_ref->UpdateExternalSize(external_size, isolate_group);
+}
+
 DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object) {
   IsolateGroup* isolate_group = IsolateGroup::Current();
   CHECK_ISOLATE_GROUP(isolate_group);
@@ -1023,7 +1035,7 @@ DART_EXPORT void Dart_DeleteWeakPersistentHandle(
   ASSERT(state != NULL);
   ASSERT(state->IsActiveWeakPersistentHandle(object));
   auto weak_ref = FinalizablePersistentHandle::Cast(object);
-  weak_ref->EnsureFreeExternal(isolate_group);
+  weak_ref->EnsureFreedExternal(isolate_group);
   state->FreeWeakPersistentHandle(weak_ref);
 }
 
@@ -1297,12 +1309,10 @@ Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
   {
     TransitionNativeToVM native_to_vm(thread);
 
-    // Ensure new space is empty and there are no threads running.
+    // Ensure there are no helper threads running.
     BackgroundCompiler::Stop(isolate);
-    isolate->heap()->new_space()->Evacuate();
     isolate->heap()->WaitForMarkerTasks(thread);
     isolate->heap()->WaitForSweeperTasks(thread);
-    RELEASE_ASSERT(isolate->heap()->new_space()->UsedInWords() == 0);
     RELEASE_ASSERT(isolate->heap()->old_space()->tasks() == 0);
   }
 
@@ -1332,7 +1342,7 @@ Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
         // Merge the heap from [spawning_group] to [group].
         {
           SafepointOperationScope safepoint_scope(thread);
-          group->heap()->MergeOtherHeap(isolate->group()->heap());
+          group->heap()->MergeFrom(isolate->group()->heap());
         }
 
         spawning_group->UnregisterIsolate(isolate);
@@ -4300,8 +4310,7 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
       // We do not support generic constructors.
       ASSERT(redirect_type.IsInstantiated(kFunctions));
       redirect_type ^= redirect_type.InstantiateFrom(
-          type_arguments, Object::null_type_arguments(), kNoneFree, NULL,
-          Heap::kNew);
+          type_arguments, Object::null_type_arguments(), kNoneFree, Heap::kNew);
       redirect_type ^= redirect_type.Canonicalize();
     }
 
@@ -5440,7 +5449,6 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* buffer,
   if (program == nullptr) {
     return Api::NewError("Can't load Kernel binary: %s.", error);
   }
-  program->AutoDetectNullSafety(I);
   const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program.get());
   program.reset();
 
@@ -5746,7 +5754,6 @@ DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* buffer,
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
   StackZone zone(T);
-  Isolate* I = T->isolate();
 
   CHECK_CALLBACK_STATE(T);
 
@@ -5763,7 +5770,6 @@ DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* buffer,
   if (program == nullptr) {
     return Api::NewError("Can't load Kernel binary: %s.", error);
   }
-  program->AutoDetectNullSafety(I);
   const Object& result =
       kernel::KernelLoader::LoadEntireProgram(program.get(), false);
   program.reset();
@@ -5999,37 +6005,6 @@ Dart_CompileToKernel(const char* script_uri,
   return result;
 }
 
-DART_EXPORT Dart_KernelCompilationResult
-Dart_CompileSourcesToKernel(const char* script_uri,
-                            const uint8_t* platform_kernel,
-                            intptr_t platform_kernel_size,
-                            int source_files_count,
-                            Dart_SourceFile sources[],
-                            bool incremental_compile,
-                            const char* package_config,
-                            const char* multiroot_filepaths,
-                            const char* multiroot_scheme) {
-  Dart_KernelCompilationResult result = {};
-#if defined(DART_PRECOMPILED_RUNTIME)
-  result.status = Dart_KernelCompilationStatus_Unknown;
-  result.error = strdup("Dart_CompileSourcesToKernel is unsupported.");
-#else
-  result = KernelIsolate::CompileToKernel(
-      script_uri, platform_kernel, platform_kernel_size, source_files_count,
-      sources, incremental_compile, package_config, multiroot_filepaths,
-      multiroot_scheme);
-  if (result.status == Dart_KernelCompilationStatus_Ok) {
-    if (KernelIsolate::AcceptCompilation().status !=
-        Dart_KernelCompilationStatus_Ok) {
-      FATAL(
-          "An error occurred in the CFE while accepting the most recent"
-          " compilation results.");
-    }
-  }
-#endif
-  return result;
-}
-
 DART_EXPORT Dart_KernelCompilationResult Dart_KernelListDependencies() {
   Dart_KernelCompilationResult result = {};
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -6048,6 +6023,24 @@ DART_EXPORT void Dart_SetDartLibrarySourcesKernel(
   Service::SetDartLibraryKernelForSources(platform_kernel,
                                           platform_kernel_size);
 #endif
+}
+
+DART_EXPORT bool Dart_DetectNullSafety(const char* script_uri,
+                                       const char* package_config,
+                                       const char* original_working_directory,
+                                       const uint8_t* snapshot_data,
+                                       const uint8_t* snapshot_instructions,
+                                       const uint8_t* kernel_buffer,
+                                       intptr_t kernel_buffer_size) {
+  bool null_safety;
+  if (FLAG_null_safety == kNullSafetyOptionUnspecified) {
+    null_safety = Dart::DetectNullSafety(
+        script_uri, snapshot_data, snapshot_instructions, kernel_buffer,
+        kernel_buffer_size, package_config, original_working_directory);
+  } else {
+    null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
+  }
+  return null_safety;
 }
 
 // --- Service support ---
@@ -6450,7 +6443,10 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
   StreamingWriteStream debug_stream(generate_debug ? kInitialDebugSize : 0,
                                     callback, debug_callback_data);
 
-  Elf* elf = generate_debug ? new (Z) Elf(Z, &debug_stream) : nullptr;
+  auto const elf = generate_debug
+                       ? new (Z) Elf(Z, &debug_stream, Elf::Type::DebugInfo,
+                                     new (Z) Dwarf(Z))
+                       : nullptr;
 
   AssemblyImageWriter image_writer(T, callback, callback_data, strip, elf);
   uint8_t* vm_snapshot_data_buffer = NULL;
@@ -6461,9 +6457,6 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
 
   writer.WriteFullSnapshot();
   image_writer.Finalize();
-  if (elf != nullptr) {
-    elf->Finalize();
-  }
 
   return Api::Success();
 #endif
@@ -6524,57 +6517,27 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
   StreamingWriteStream debug_stream(generate_debug ? kInitialDebugSize : 0,
                                     callback, debug_callback_data);
 
-  Elf* elf = new (Z) Elf(Z, &elf_stream, strip);
-  Dwarf* elf_dwarf = strip ? nullptr : new (Z) Dwarf(Z, nullptr, elf);
-  Elf* debug_elf = generate_debug ? new (Z) Elf(Z, &debug_stream) : nullptr;
-  Dwarf* debug_dwarf =
-      generate_debug ? new (Z) Dwarf(Z, nullptr, debug_elf) : nullptr;
-
-  // Here, both VM and isolate will be compiled into a single snapshot.
-  // In assembly generation, each serialized text section gets a separate
-  // pointer into the BSS segment and BSS slots are created for each, since
-  // we may not serialize both VM and isolate. Here, we always serialize both,
-  // so make a BSS segment large enough for both, with the VM entries coming
-  // first.
-  auto const isolate_offset = BSS::kVmEntryCount * compiler::target::kWordSize;
-  auto const bss_size =
-      isolate_offset + BSS::kIsolateEntryCount * compiler::target::kWordSize;
-  // Note that the BSS section must come first because it cannot be placed in
-  // between any two non-writable segments, due to a bug in Jelly Bean's ELF
-  // loader. See also Elf::WriteProgramTable().
-  const intptr_t vm_bss_base = elf->AddBSSData("_kDartBSSData", bss_size);
-  const intptr_t isolate_bss_base = vm_bss_base + isolate_offset;
-  // Add the BSS section to the separately saved debugging information, even
-  // though there will be no code in it to relocate, since it precedes the
-  // .text sections and thus affects their virtual addresses.
-  if (debug_dwarf != nullptr) {
-    debug_elf->AddBSSData("_kDartBSSData", bss_size);
-  }
+  auto const dwarf = strip ? nullptr : new (Z) Dwarf(Z);
+  auto const elf = new (Z) Elf(Z, &elf_stream, Elf::Type::Snapshot, dwarf);
+  // Re-use the same DWARF object if the snapshot is unstripped.
+  auto const debug_elf =
+      generate_debug ? new (Z) Elf(Z, &debug_stream, Elf::Type::DebugInfo,
+                                   strip ? new (Z) Dwarf(Z) : dwarf)
+                     : nullptr;
 
   BlobImageWriter vm_image_writer(T, &vm_snapshot_instructions_buffer,
-                                  ApiReallocate, kInitialSize, debug_dwarf,
-                                  vm_bss_base, elf, elf_dwarf);
+                                  ApiReallocate, kInitialSize, debug_elf, elf);
   BlobImageWriter isolate_image_writer(T, &isolate_snapshot_instructions_buffer,
-                                       ApiReallocate, kInitialSize, debug_dwarf,
-                                       isolate_bss_base, elf, elf_dwarf);
+                                       ApiReallocate, kInitialSize, debug_elf,
+                                       elf);
   FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data_buffer,
                             &isolate_snapshot_data_buffer, ApiReallocate,
                             &vm_image_writer, &isolate_image_writer);
 
   writer.WriteFullSnapshot();
-  elf->AddROData(kVmSnapshotDataAsmSymbol, vm_snapshot_data_buffer,
-                 writer.VmIsolateSnapshotSize());
-  elf->AddROData(kIsolateSnapshotDataAsmSymbol, isolate_snapshot_data_buffer,
-                 writer.IsolateSnapshotSize());
 
-  if (elf_dwarf != nullptr) {
-    // TODO(rmacnak): Generate .debug_frame / .eh_frame / .arm.exidx to
-    // provide unwinding information.
-    elf_dwarf->Write();
-  }
   elf->Finalize();
-  if (generate_debug) {
-    debug_dwarf->Write();
+  if (debug_elf != nullptr) {
     debug_elf->Finalize();
   }
 
@@ -6743,6 +6706,7 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
   if (FLAG_dump_tables) {
     Symbols::DumpTable(I);
     DumpTypeTable(I);
+    DumpTypeParameterTable(I);
     DumpTypeArgumentsTable(I);
   }
 

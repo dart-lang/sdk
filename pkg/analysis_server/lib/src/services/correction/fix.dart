@@ -163,7 +163,9 @@ class DartFixKind {
       69,
       'Add optional positional parameter');
   static const ADD_MISSING_PARAMETER_REQUIRED = FixKind(
-      'dart.fix.add.missingParameterRequired', 70, 'Add required parameter');
+      'dart.fix.add.missingParameterRequired',
+      70,
+      'Add required positional parameter');
   static const ADD_MISSING_REQUIRED_ARGUMENT = FixKind(
       'dart.fix.add.missingRequiredArgument',
       70,
@@ -403,6 +405,8 @@ class DartFixKind {
       appliedTogetherMessage: "Replace all 'boolean' with 'bool' in file");
   static const REPLACE_COLON_WITH_EQUALS =
       FixKind('dart.fix.replace.colonWithEquals', 50, "Replace ':' with '='");
+  static const REPLACE_WITH_FILLED = FixKind(
+      'dart.fix.replace.finalWithListFilled', 50, "Replace with 'List.filled'");
   static const REPLACE_FINAL_WITH_CONST = FixKind(
       'dart.fix.replace.finalWithConst', 50, "Replace 'final' with 'const'");
   static const REPLACE_NEW_WITH_CONST = FixKind(

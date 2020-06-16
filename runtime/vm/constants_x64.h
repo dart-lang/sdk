@@ -161,20 +161,19 @@ struct TypeTestABI {
 // ABI for InitStaticFieldStub.
 struct InitStaticFieldABI {
   static const Register kFieldReg = RAX;
+  static const Register kResultReg = RAX;
 };
 
 // ABI for InitInstanceFieldStub.
 struct InitInstanceFieldABI {
-  static const Register kInstanceReg = RAX;
-  static const Register kFieldReg = RBX;
+  static const Register kInstanceReg = RBX;
+  static const Register kFieldReg = RDX;
+  static const Register kResultReg = RAX;
 };
 
 // Registers used inside the implementation of InitLateInstanceFieldStub.
 struct InitLateInstanceFieldInternalRegs {
   static const Register kFunctionReg = RAX;
-  static const Register kInitializerResultReg = RAX;
-  static const Register kInstanceReg = RBX;
-  static const Register kFieldReg = RDX;
   static const Register kAddressReg = RCX;
   static const Register kScratchReg = RSI;
 };
@@ -245,7 +244,7 @@ enum ScaleFactor {
 
 class CallingConventions {
  public:
-#if defined(_WIN64)
+#if defined(TARGET_OS_WINDOWS)
   static const Register kArg1Reg = RCX;
   static const Register kArg2Reg = RDX;
   static const Register kArg3Reg = R8;

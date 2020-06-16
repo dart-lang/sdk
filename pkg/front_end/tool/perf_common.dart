@@ -26,14 +26,14 @@ import 'package:front_end/src/fasta/fasta_codes.dart' as fastaCodes;
 /// Error messages that we temporarily allow when compiling benchmarks in strong
 /// mode.
 ///
-/// This whitelist lets us run the compiler benchmarks while those errors get
+/// This allowlist lets us run the compiler benchmarks while those errors get
 /// fixed. We don't blindly allow any error message because we would then miss
 /// situations where the benchmarks are actually broken.
 ///
 /// Note: the performance bots compile both dart2js and the flutter-gallery app
 /// as benchmarks, so they both need to be checked before we remove a message
 /// from this set.
-final whitelistMessageCode = new Set<fastaCodes.Code>.from(<fastaCodes.Code>[
+final allowlistMessageCode = new Set<fastaCodes.Code>.from(<fastaCodes.Code>[
   // Code names in this list should match the key used in messages.yaml
   fastaCodes.codeInvalidAssignmentError,
   fastaCodes.codeOverrideTypeMismatchParameter,
@@ -53,12 +53,12 @@ DiagnosticMessageHandler onDiagnosticMessageHandler() {
   return (DiagnosticMessage m) {
     if (m.severity == Severity.internalProblem ||
         m.severity == Severity.error) {
-      if (!whitelistMessageCode.contains(getMessageCodeObject(m))) {
+      if (!allowlistMessageCode.contains(getMessageCodeObject(m))) {
         printDiagnosticMessage(m, stderr.writeln);
         exitCode = 1;
       } else if (!messageReported) {
         messageReported = true;
-        stderr.writeln('Whitelisted error messages omitted');
+        stderr.writeln('Allowlisted error messages omitted');
       }
     }
   };

@@ -16,14 +16,17 @@ import 'package:analysis_server/src/provisional/completion/completion_core.dart'
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/filtering/fuzzy_matcher.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/ast.dart' show SimpleIdentifier;
+import 'package:analyzer/dart/ast/visitor.dart' show RecursiveAstVisitor;
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 
-// If the client does not provide capabilities.completion.completionItemKind.valueSet
-// then we must never send a kind that's not in this list.
+/// If the client does not provide capabilities.completion.completionItemKind.valueSet
+/// then we must never send a kind that's not in this list.
 final defaultSupportedCompletionKinds = HashSet<CompletionItemKind>.of([
   CompletionItemKind.Text,
   CompletionItemKind.Method,
@@ -88,26 +91,36 @@ class CompletionHandler
     final offset =
         await lineInfo.mapResult((lineInfo) => toOffset(lineInfo, pos));
 
-    return offset.mapResult((offset) {
-      if (unit.isError) {
-        return _getItemsFromPluginsOnly(
-          completionCapabilities,
-          clientSupportedCompletionKinds,
-          lineInfo.result,
-          path.result,
-          offset,
-          token,
-        );
-      } else {
-        return _getItems(
-          completionCapabilities,
-          clientSupportedCompletionKinds,
-          includeSuggestionSets,
-          unit.result,
-          offset,
-          token,
-        );
-      }
+    return offset.mapResult((offset) async {
+      // For server results we need a valid unit, but if we don't have one
+      // we shouldn't consider this an error when merging with plugin results.
+      final serverResultsFuture = unit.isError
+          ? Future.value(success(const <CompletionItem>[]))
+          : _getServerItems(
+              completionCapabilities,
+              clientSupportedCompletionKinds,
+              includeSuggestionSets,
+              unit.result,
+              offset,
+              token,
+            );
+
+      final pluginResultsFuture = _getPluginResults(completionCapabilities,
+          clientSupportedCompletionKinds, lineInfo.result, path.result, offset);
+
+      // Await both server + plugin results together to allow async/IO to
+      // overlap.
+      final serverAndPluginResults =
+          await Future.wait([serverResultsFuture, pluginResultsFuture]);
+      final serverResults = serverAndPluginResults[0];
+      final pluginResults = serverAndPluginResults[1];
+
+      if (serverResults.isError) return serverResults;
+      if (pluginResults.isError) return pluginResults;
+
+      return success(
+        serverResults.result.followedBy(pluginResults.result).toList(),
+      );
     });
   }
 
@@ -142,7 +155,30 @@ class CompletionHandler
   String _createImportedSymbolKey(String name, Uri declaringUri) =>
       '$name/$declaringUri';
 
-  Future<ErrorOr<List<CompletionItem>>> _getItems(
+  Future<ErrorOr<List<CompletionItem>>> _getPluginResults(
+    TextDocumentClientCapabilitiesCompletion completionCapabilities,
+    HashSet<CompletionItemKind> clientSupportedCompletionKinds,
+    LineInfo lineInfo,
+    String path,
+    int offset,
+  ) async {
+    final requestParams = plugin.CompletionGetSuggestionsParams(path, offset);
+    final pluginResponses =
+        await requestFromPlugins(path, requestParams, timeout: 100);
+
+    final pluginResults = pluginResponses
+        .map((e) => plugin.CompletionGetSuggestionsResult.fromResponse(e))
+        .toList();
+
+    return success(_pluginResultsToItems(
+      completionCapabilities,
+      clientSupportedCompletionKinds,
+      lineInfo,
+      pluginResults,
+    ).toList());
+  }
+
+  Future<ErrorOr<List<CompletionItem>>> _getServerItems(
     TextDocumentClientCapabilitiesCompletion completionCapabilities,
     HashSet<CompletionItemKind> clientSupportedCompletionKinds,
     bool includeSuggestionSets,
@@ -157,6 +193,10 @@ class CompletionHandler
 
     final completionRequest = CompletionRequestImpl(
         unit, offset, server.options.useNewRelevance, performance);
+    final directiveInfo =
+        server.getDartdocDirectiveInfoFor(completionRequest.result);
+    final dartCompletionRequest =
+        await DartCompletionRequestImpl.from(completionRequest, directiveInfo);
 
     Set<ElementKind> includedElementKinds;
     Set<String> includedElementNames;
@@ -169,19 +209,14 @@ class CompletionHandler
 
     try {
       CompletionContributor contributor = DartCompletionManager(
-        dartdocDirectiveInfo:
-            server.getDartdocDirectiveInfoFor(completionRequest.result),
+        dartdocDirectiveInfo: directiveInfo,
         includedElementKinds: includedElementKinds,
         includedElementNames: includedElementNames,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
       );
 
-      final suggestions = await Future.wait([
-        contributor.computeSuggestions(completionRequest),
-        _getPluginSuggestions(unit.path, offset),
-      ]);
-      final serverSuggestions = suggestions[0];
-      final pluginSuggestions = suggestions[1];
+      final serverSuggestions =
+          await contributor.computeSuggestions(completionRequest);
 
       if (token.isCancellationRequested) {
         return cancelled();
@@ -196,14 +231,6 @@ class CompletionHandler
               item,
               completionRequest.replacementOffset,
               completionRequest.replacementLength,
-            ),
-          )
-          .followedBy(
-            _pluginResultsToItems(
-              completionCapabilities,
-              clientSupportedCompletionKinds,
-              unit.lineInfo,
-              pluginSuggestions,
             ),
           )
           .toList();
@@ -292,49 +319,24 @@ class CompletionHandler
         results.addAll(setResults);
       });
 
+      // Perform fuzzy matching based on the identifier in front of the caret to
+      // reduce the size of the payload.
+      final fuzzyPattern = _prefixMatchingPattern(dartCompletionRequest);
+      final fuzzyMatcher =
+          FuzzyMatcher(fuzzyPattern, matchStyle: MatchStyle.TEXT);
+
+      final matchingResults =
+          results.where((e) => fuzzyMatcher.score(e.label) > 0).toList();
+
       performance.notificationCount = 1;
       performance.suggestionCountFirst = results.length;
       performance.suggestionCountLast = results.length;
       performance.complete();
 
-      return success(results);
+      return success(matchingResults);
     } on AbortCompletion {
       return success([]);
     }
-  }
-
-  Future<ErrorOr<List<CompletionItem>>> _getItemsFromPluginsOnly(
-    TextDocumentClientCapabilitiesCompletion completionCapabilities,
-    HashSet<CompletionItemKind> clientSupportedCompletionKinds,
-    LineInfo lineInfo,
-    String path,
-    int offset,
-    CancellationToken token,
-  ) async {
-    final pluginResults = await _getPluginSuggestions(path, offset);
-
-    if (token.isCancellationRequested) {
-      return cancelled();
-    }
-
-    return success(_pluginResultsToItems(
-      completionCapabilities,
-      clientSupportedCompletionKinds,
-      lineInfo,
-      pluginResults,
-    ).toList());
-  }
-
-  Future<List<plugin.CompletionGetSuggestionsResult>> _getPluginSuggestions(
-    String path,
-    int offset,
-  ) async {
-    final requestParams = plugin.CompletionGetSuggestionsParams(path, offset);
-    final responses = await requestFromPlugins(path, requestParams);
-
-    return responses
-        .map((e) => plugin.CompletionGetSuggestionsResult.fromResponse(e))
-        .toList();
   }
 
   Iterable<CompletionItem> _pluginResultsToItems(
@@ -355,5 +357,30 @@ class CompletionHandler
         ),
       );
     });
+  }
+
+  /// Return the pattern to match suggestions against, from the identifier
+  /// to the left of the caret. Return the empty string if cannot find the
+  /// identifier.
+  String _prefixMatchingPattern(DartCompletionRequestImpl request) {
+    final nodeAtOffsetVisitor =
+        _IdentifierEndingAtOffsetVisitor(request.offset);
+    request.target.containingNode.accept(nodeAtOffsetVisitor);
+
+    return nodeAtOffsetVisitor.matchingNode?.name ?? '';
+  }
+}
+
+/// An AST visitor to locate a [SimpleIdentifier] that ends at the provided offset.
+class _IdentifierEndingAtOffsetVisitor extends RecursiveAstVisitor<void> {
+  final int offset;
+  SimpleIdentifier _matchingNode;
+  _IdentifierEndingAtOffsetVisitor(this.offset);
+  SimpleIdentifier get matchingNode => _matchingNode;
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.end == offset) {
+      _matchingNode = node;
+    }
   }
 }

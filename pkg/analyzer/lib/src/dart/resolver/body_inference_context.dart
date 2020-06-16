@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_demotion.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:meta/meta.dart';
@@ -97,7 +98,7 @@ class BodyInferenceContext {
         _typeSystem.isSubtypeOf2(actualReturnedType, contextType)) {
       clampedReturnedType = actualReturnedType;
     } else {
-      clampedReturnedType = contextType;
+      clampedReturnedType = nonNullifyType(_typeSystem, contextType);
     }
 
     if (_isGenerator) {
@@ -188,10 +189,10 @@ class BodyInferenceContext {
       }
     }
 
-    // Otherwise the context type is `FutureOr<flatten(T)>` where `T` is the
-    // imposed return type.
+    // Otherwise the context type is `FutureOr<futureValueTypeSchema(S)>`,
+    // where `S` is the imposed return type.
     return typeSystem.typeProvider.futureOrType2(
-      typeSystem.flatten(imposedType),
+      typeSystem.futureValueType(imposedType),
     );
   }
 }

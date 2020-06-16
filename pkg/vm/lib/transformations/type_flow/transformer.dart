@@ -1464,7 +1464,9 @@ class _TreeShakerPass2 extends Transformer {
   Class visitClass(Class node) {
     if (!shaker.isClassUsed(node)) {
       debugPrint('Dropped class ${node.name}');
-      node.canonicalName?.unbind();
+      // Ensure that kernel file writer will not be able to
+      // write a dangling reference to the deleted class.
+      node.reference.canonicalName = null;
       Statistics.classesDropped++;
       return null; // Remove the class.
     }
@@ -1532,7 +1534,9 @@ class _TreeShakerPass2 extends Transformer {
   @override
   Member defaultMember(Member node) {
     if (!shaker.isMemberUsed(node) && !_preserveSpecialMember(node)) {
-      node.canonicalName?.unbind();
+      // Ensure that kernel file writer will not be able to
+      // write a dangling reference to the deleted member.
+      node.reference.canonicalName = null;
       Statistics.membersDropped++;
       return null;
     }

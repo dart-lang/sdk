@@ -21,36 +21,38 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   LocalDeclarationVisitor(this.offset);
 
-  void declaredClass(ClassDeclaration declaration);
+  void declaredClass(ClassDeclaration declaration) {}
 
-  void declaredClassTypeAlias(ClassTypeAlias declaration);
+  void declaredClassTypeAlias(ClassTypeAlias declaration) {}
+
+  void declaredConstructor(ConstructorDeclaration declaration) {}
 
   void declaredEnum(EnumDeclaration declaration) {}
 
-  void declaredExtension(ExtensionDeclaration declaration);
+  void declaredExtension(ExtensionDeclaration declaration) {}
 
-  void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl);
+  void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {}
 
-  void declaredFunction(FunctionDeclaration declaration);
+  void declaredFunction(FunctionDeclaration declaration) {}
 
-  void declaredFunctionTypeAlias(FunctionTypeAlias declaration);
+  void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {}
 
-  void declaredGenericTypeAlias(GenericTypeAlias declaration);
+  void declaredGenericTypeAlias(GenericTypeAlias declaration) {}
 
-  void declaredLabel(Label label, bool isCaseLabel);
+  void declaredLabel(Label label, bool isCaseLabel) {}
 
-  void declaredLocalVar(SimpleIdentifier name, TypeAnnotation type);
+  void declaredLocalVar(SimpleIdentifier name, TypeAnnotation type) {}
 
-  void declaredMethod(MethodDeclaration declaration);
+  void declaredMethod(MethodDeclaration declaration) {}
 
   void declaredMixin(MixinDeclaration declaration) {}
 
-  void declaredParam(SimpleIdentifier name, TypeAnnotation type);
+  void declaredParam(SimpleIdentifier name, TypeAnnotation type) {}
 
   void declaredTopLevelVar(
-      VariableDeclarationList varList, VariableDeclaration varDecl);
+      VariableDeclarationList varList, VariableDeclaration varDecl) {}
 
-  void declaredTypeParameter(TypeParameter node) {}
+  void declaredTypeParameter(TypeParameter declaration) {}
 
   /// Throw an exception indicating that [LocalDeclarationVisitor] should
   /// stop visiting. This is caught in [visit] which then exits normally.
@@ -97,46 +99,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    node.declarations.forEach((Declaration declaration) {
-      if (declaration is ClassDeclaration) {
-        declaredClass(declaration);
-        _visitTypeParameters(declaration, declaration.typeParameters);
-      } else if (declaration is EnumDeclaration) {
-        declaredEnum(declaration);
-      } else if (declaration is ExtensionDeclaration) {
-        declaredExtension(declaration);
-        _visitTypeParameters(declaration, declaration.typeParameters);
-      } else if (declaration is FunctionDeclaration) {
-        declaredFunction(declaration);
-        _visitTypeParameters(
-          declaration,
-          declaration.functionExpression.typeParameters,
-        );
-      } else if (declaration is TopLevelVariableDeclaration) {
-        var varList = declaration.variables;
-        if (varList != null) {
-          varList.variables.forEach((VariableDeclaration varDecl) {
-            declaredTopLevelVar(varList, varDecl);
-          });
-        }
-      } else if (declaration is ClassTypeAlias) {
-        declaredClassTypeAlias(declaration);
-        _visitTypeParameters(declaration, declaration.typeParameters);
-      } else if (declaration is FunctionTypeAlias) {
-        declaredFunctionTypeAlias(declaration);
-        _visitTypeParameters(declaration, declaration.typeParameters);
-      } else if (declaration is GenericTypeAlias) {
-        declaredGenericTypeAlias(declaration);
-        _visitTypeParameters(declaration, declaration.typeParameters);
-        _visitTypeParameters(
-          declaration.functionType,
-          declaration.functionType?.typeParameters,
-        );
-      } else if (declaration is MixinDeclaration) {
-        declaredMixin(declaration);
-        _visitTypeParameters(declaration, declaration.typeParameters);
-      }
-    });
+    _visitCompilationUnit(node);
   }
 
   @override
@@ -238,6 +201,58 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
         _visitTypeParameters(member, member.typeParameters);
       }
     }
+  }
+
+  void _visitCompilationUnit(CompilationUnit node) {
+    node.declarations.forEach((Declaration declaration) {
+      if (declaration is ClassDeclaration) {
+        declaredClass(declaration);
+        _visitTypeParameters(declaration, declaration.typeParameters);
+        // Call declaredConstructor all ConstructorDeclarations when the class
+        // is called: constructors are accessible if the class is accessible.
+        for (var classDeclaration
+            in node.declarations.whereType<ClassDeclaration>()) {
+          for (var constructor
+              in classDeclaration.members.whereType<ConstructorDeclaration>()) {
+            declaredConstructor(constructor);
+          }
+        }
+      } else if (declaration is EnumDeclaration) {
+        declaredEnum(declaration);
+      } else if (declaration is ExtensionDeclaration) {
+        declaredExtension(declaration);
+        _visitTypeParameters(declaration, declaration.typeParameters);
+      } else if (declaration is FunctionDeclaration) {
+        declaredFunction(declaration);
+        _visitTypeParameters(
+          declaration,
+          declaration.functionExpression.typeParameters,
+        );
+      } else if (declaration is TopLevelVariableDeclaration) {
+        var varList = declaration.variables;
+        if (varList != null) {
+          varList.variables.forEach((VariableDeclaration varDecl) {
+            declaredTopLevelVar(varList, varDecl);
+          });
+        }
+      } else if (declaration is ClassTypeAlias) {
+        declaredClassTypeAlias(declaration);
+        _visitTypeParameters(declaration, declaration.typeParameters);
+      } else if (declaration is FunctionTypeAlias) {
+        declaredFunctionTypeAlias(declaration);
+        _visitTypeParameters(declaration, declaration.typeParameters);
+      } else if (declaration is GenericTypeAlias) {
+        declaredGenericTypeAlias(declaration);
+        _visitTypeParameters(declaration, declaration.typeParameters);
+        _visitTypeParameters(
+          declaration.functionType,
+          declaration.functionType?.typeParameters,
+        );
+      } else if (declaration is MixinDeclaration) {
+        declaredMixin(declaration);
+        _visitTypeParameters(declaration, declaration.typeParameters);
+      }
+    });
   }
 
   void _visitParamList(FormalParameterList paramList) {

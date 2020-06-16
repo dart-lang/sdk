@@ -169,6 +169,11 @@ Future<api.CompilationResult> compile(List<String> argv,
           "supported levels are: 0, 1, 2, 3, 4");
       return;
     }
+    if (optimizationLevel != null) {
+      print("Optimization level '$argument' ignored "
+          "due to preceding '-O$optimizationLevel'");
+      return;
+    }
     optimizationLevel = value;
   }
 
@@ -875,7 +880,7 @@ Supported options:
     Display verbose information.
 
   -D<name>=<value>
-    Define an environment variable.
+    Define an environment declaration.
 
   --version
     Display version information.

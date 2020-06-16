@@ -4,22 +4,38 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' show Position;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class CreateMethod extends CorrectionProducer {
-  String memberName;
+  /// The kind of method to be created.
+  final _MethodKind _kind;
+
+  String _memberName;
+
+  CreateMethod(this._kind);
 
   @override
-  List<Object> get fixArguments => [memberName];
+  List<Object> get fixArguments => [_memberName];
 
   @override
   FixKind get fixKind => DartFixKind.CREATE_METHOD;
 
   @override
   Future<void> compute(DartChangeBuilder builder) async {
+    if (_kind == _MethodKind.equalsOrHashCode) {
+      await createEqualsOrHashCode(builder);
+    } else if (_kind == _MethodKind.method) {
+      await createMethod(builder);
+    }
+  }
+
+  Future<void> createEqualsOrHashCode(DartChangeBuilder builder) async {
     final methodDecl = node.thisOrAncestorOfType<MethodDeclaration>();
     final classDecl = methodDecl.thisOrAncestorOfType<ClassDeclaration>();
     if (methodDecl != null && classDecl != null) {
@@ -27,13 +43,13 @@ class CreateMethod extends CorrectionProducer {
 
       var element;
       if (methodDecl.name.name == 'hashCode') {
-        memberName = '==';
+        _memberName = '==';
         element = classElement.lookUpInheritedMethod(
-            memberName, classElement.library);
+            _memberName, classElement.library);
       } else {
-        memberName = 'hashCode';
+        _memberName = 'hashCode';
         element = classElement.lookUpInheritedConcreteGetter(
-            memberName, classElement.library);
+            _memberName, classElement.library);
       }
 
       final location =
@@ -51,6 +67,112 @@ class CreateMethod extends CorrectionProducer {
     }
   }
 
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static CreateMethod newInstance() => CreateMethod();
+  Future<void> createMethod(DartChangeBuilder builder) async {
+    if (node is! SimpleIdentifier || node.parent is! MethodInvocation) {
+      return;
+    }
+    _memberName = (node as SimpleIdentifier).name;
+    var invocation = node.parent as MethodInvocation;
+    // prepare environment
+    Element targetElement;
+    var staticModifier = false;
+
+    CompilationUnitMember targetNode;
+    var target = invocation.realTarget;
+    var utils = this.utils;
+    if (target is ExtensionOverride) {
+      targetElement = target.staticElement;
+      targetNode = await getExtensionDeclaration(targetElement);
+      if (targetNode == null) {
+        return;
+      }
+    } else if (target is Identifier &&
+        target.staticElement is ExtensionElement) {
+      targetElement = target.staticElement;
+      targetNode = await getExtensionDeclaration(targetElement);
+      if (targetNode == null) {
+        return;
+      }
+      staticModifier = true;
+    } else if (target == null) {
+      targetElement = unit.declaredElement;
+      var enclosingMember = node.thisOrAncestorOfType<ClassMember>();
+      if (enclosingMember == null) {
+        // If the undefined identifier isn't inside a class member, then it
+        // doesn't make sense to create a method.
+        return;
+      }
+      targetNode = enclosingMember.parent;
+      staticModifier = inStaticContext;
+    } else {
+      var targetClassElement = getTargetClassElement(target);
+      if (targetClassElement == null) {
+        return;
+      }
+      targetElement = targetClassElement;
+      if (targetClassElement.librarySource.isInSystemLibrary) {
+        return;
+      }
+      // prepare target ClassDeclaration
+      targetNode = await getClassOrMixinDeclaration(targetClassElement);
+      if (targetNode == null) {
+        return;
+      }
+      // maybe static
+      if (target is Identifier) {
+        staticModifier = target.staticElement.kind == ElementKind.CLASS;
+      }
+      // use different utils
+      var targetPath = targetClassElement.source.fullName;
+      var targetResolveResult =
+          await resolvedResult.session.getResolvedUnit(targetPath);
+      utils = CorrectionUtils(targetResolveResult);
+    }
+    var targetLocation = utils.prepareNewMethodLocation(targetNode);
+    var targetFile = targetElement.source.fullName;
+    // build method source
+    await builder.addFileEdit(targetFile, (DartFileEditBuilder builder) {
+      builder.addInsertion(targetLocation.offset, (DartEditBuilder builder) {
+        builder.write(targetLocation.prefix);
+        // maybe "static"
+        if (staticModifier) {
+          builder.write('static ');
+        }
+        // append return type
+        {
+          var type = inferUndefinedExpressionType(invocation);
+          if (builder.writeType(type, groupName: 'RETURN_TYPE')) {
+            builder.write(' ');
+          }
+        }
+        // append name
+        builder.addLinkedEdit('NAME', (DartLinkedEditBuilder builder) {
+          builder.write(_memberName);
+        });
+        builder.write('(');
+        builder.writeParametersMatchingArguments(invocation.argumentList);
+        builder.write(') {}');
+        builder.write(targetLocation.suffix);
+      });
+      if (targetFile == file) {
+        builder.addLinkedPosition(range.node(node), 'NAME');
+      }
+    });
+  }
+
+  /// Return an instance of this class that will create either an equals
+  /// (operator =) or `hashCode` method based on the existing other half of the
+  /// pair. Used as a tear-off in `FixProcessor`.
+  static CreateMethod equalsOrHashCode() =>
+      CreateMethod(_MethodKind.equalsOrHashCode);
+
+  /// Return an instance of this class that will create a method based on an
+  /// invocation of an undefined method. Used as a tear-off in `FixProcessor`.
+  static CreateMethod method() => CreateMethod(_MethodKind.method);
+}
+
+/// A representation of the kind of element that should be suggested.
+enum _MethodKind {
+  equalsOrHashCode,
+  method,
 }

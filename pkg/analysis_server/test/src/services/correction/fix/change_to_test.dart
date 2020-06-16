@@ -19,6 +19,54 @@ class ChangeToTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CHANGE_TO;
 
+  Future<void> test_annotation_constructor() async {
+    await resolveTestUnit('''
+@MyCalss()
+void f() {}
+
+class MyClass {
+  const MyClass();
+}
+''');
+    await assertHasFix('''
+@MyClass()
+void f() {}
+
+class MyClass {
+  const MyClass();
+}
+''');
+  }
+
+  @failingTest
+  Future<void> test_annotation_variable() async {
+    // TODO(brianwilkerson) Add support for suggesting similar top-level
+    //  variables.
+    await resolveTestUnit('''
+const annotation = '';
+@anontation
+void f() {}
+''');
+    await assertHasFix('''
+const annotation = '';
+@annotation
+void f() {}
+''');
+  }
+
+  Future<void> test_class_extends() async {
+    await resolveTestUnit('''
+class MyClass extends BaseClssa {}
+
+class BaseClass {}
+''');
+    await assertHasFix('''
+class MyClass extends BaseClass {}
+
+class BaseClass {}
+''');
+  }
+
   Future<void> test_class_fromImport() async {
     await resolveTestUnit('''
 main() {

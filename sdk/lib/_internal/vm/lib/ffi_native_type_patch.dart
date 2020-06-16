@@ -75,4 +75,8 @@ abstract class Void extends NativeType {}
 
 @patch
 @pragma("vm:entry-point")
+abstract class Handle extends NativeType {}
+
+@patch
+@pragma("vm:entry-point")
 abstract class NativeFunction<T extends Function> extends NativeType {}

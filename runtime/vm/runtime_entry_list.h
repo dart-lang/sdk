@@ -88,7 +88,10 @@ namespace dart {
   V(uword /*BoolPtr*/, CaseInsensitiveCompareUTF16, uword /*StringPtr*/,       \
     uword /*SmiPtr*/, uword /*SmiPtr*/, uword /*SmiPtr*/)                      \
   V(void, EnterSafepoint)                                                      \
-  V(void, ExitSafepoint)
+  V(void, ExitSafepoint)                                                       \
+  V(ApiLocalScope*, EnterHandleScope, Thread*)                                 \
+  V(void, ExitHandleScope, Thread*)                                            \
+  V(LocalHandle*, AllocateHandle, ApiLocalScope*)
 
 }  // namespace dart
 

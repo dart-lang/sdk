@@ -442,6 +442,18 @@ class _ServiceTesterRunner {
               }
             }
 
+            // Run dds tests.
+            if (ddsTests != null) {
+              int testIndex = 1;
+              final totalTests = ddsTests.length;
+              for (var test in ddsTests) {
+                vm.verbose = verbose_vm;
+                print('Running $name [$testIndex/$totalTests]');
+                testIndex++;
+                await test(vm, dds);
+              }
+            }
+
             // Run isolate tests.
             if (isolateTests != null) {
               final isolate = await getFirstIsolate(vm);

@@ -1,0 +1,5 @@
+extension Extension ;
+on Never (){ }
+implicitAccess(Never never) { }
+explicitAccess(Never never) { }
+main() { }

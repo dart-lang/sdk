@@ -8,7 +8,7 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
-    show DartCompletionManager, DartCompletionRequestImpl;
+    show DartCompletionRequestImpl;
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
@@ -55,8 +55,8 @@ abstract class DartCompletionContributorTest
   Future<List<CompletionSuggestion>> computeContributedSuggestions(
       DartCompletionRequest request) async {
     var builder = SuggestionBuilder(request);
-    var suggestions = await contributor.computeSuggestions(request, builder);
-    return [...suggestions, ...builder.suggestions];
+    await contributor.computeSuggestions(request, builder);
+    return builder.suggestions.toList();
   }
 
   DartCompletionContributor createContributor();
@@ -65,35 +65,6 @@ abstract class DartCompletionContributorTest
   void setUp() {
     super.setUp();
     contributor = createContributor();
-  }
-}
-
-/// Base class for tests that validate [DartCompletionManager] suggestions.
-class DartCompletionManagerTest extends _BaseDartCompletionContributorTest {
-  DartCompletionManager completionManager;
-
-  @nonVirtual
-  @override
-  Future<List<CompletionSuggestion>> computeContributedSuggestions(
-      DartCompletionRequest request) async {
-    final baseRequest = CompletionRequestImpl(request.result, completionOffset,
-        useNewRelevance, CompletionPerformance());
-    return completionManager.computeSuggestions(baseRequest);
-  }
-
-  /// Display sorted suggestions.
-  void printSuggestions() {
-    suggestions.sort(completionComparator);
-    for (var s in suggestions) {
-      print(
-          '[${s.relevance}] ${s.completion} • ${s.element?.kind?.name ?? ""} ${s.kind.name} ${s.element?.location?.file ?? ""}');
-    }
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-    completionManager = DartCompletionManager();
   }
 }
 
@@ -197,10 +168,14 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
     }
   }
 
-  void assertNotSuggested(String completion) {
-    var suggestion = suggestions.firstWhere(
-        (CompletionSuggestion cs) => cs.completion == completion,
-        orElse: () => null);
+  void assertNotSuggested(String completion, {ElementKind elemKind}) {
+    var suggestion = suggestions.firstWhere((CompletionSuggestion cs) {
+      if (elemKind == null) {
+        return cs.completion == completion;
+      } else {
+        return cs.completion == completion && cs.element.kind == elemKind;
+      }
+    }, orElse: () => null);
     if (suggestion != null) {
       failedCompletion('did not expect completion: $completion\n  $suggestion');
     }
@@ -461,6 +436,30 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
     return cs;
   }
 
+  CompletionSuggestion assertSuggestLocalVariable(
+      String name, String returnType,
+      {int relevance = DART_RELEVANCE_LOCAL_VARIABLE,
+      bool hasTypeBoost = false,
+      bool hasSubtypeBoost = false}) {
+    if (hasTypeBoost) {
+      relevance += DART_RELEVANCE_BOOST_TYPE;
+    } else if (hasSubtypeBoost) {
+      relevance += DART_RELEVANCE_BOOST_SUBTYPE;
+    }
+    // Local variables should only be suggested by LocalReferenceContributor
+    var cs = assertSuggest(name,
+        csKind: CompletionSuggestionKind.INVOCATION, relevance: relevance);
+    expect(cs.returnType, returnType ?? 'dynamic');
+    var element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(ElementKind.LOCAL_VARIABLE));
+    expect(element.name, equals(name));
+    expect(element.parameters, isNull);
+    expect(element.returnType, returnType ?? 'dynamic');
+    assertHasNoParameterInfo(cs);
+    return cs;
+  }
+
   CompletionSuggestion assertSuggestMethod(
       String name, String declaringType, String returnType,
       {int relevance,
@@ -527,6 +526,20 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
     return cs;
   }
 
+  CompletionSuggestion assertSuggestParameter(String name, String returnType,
+      {int relevance = DART_RELEVANCE_PARAMETER}) {
+    var cs = assertSuggest(name,
+        csKind: CompletionSuggestionKind.INVOCATION, relevance: relevance);
+    expect(cs.returnType, returnType ?? 'dynamic');
+    var element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(ElementKind.PARAMETER));
+    expect(element.name, equals(name));
+    expect(element.parameters, isNull);
+    expect(element.returnType, equals(returnType ?? 'dynamic'));
+    return cs;
+  }
+
   CompletionSuggestion assertSuggestSetter(String name,
       {int relevance,
       CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
@@ -569,6 +582,20 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
       expect(element.returnType, 'dynamic');
     }
     assertHasNoParameterInfo(cs);
+    return cs;
+  }
+
+  CompletionSuggestion assertSuggestTypeParameter(String name,
+      {int relevance = DART_RELEVANCE_TYPE_PARAMETER}) {
+    var cs = assertSuggest(name,
+        csKind: CompletionSuggestionKind.IDENTIFIER, relevance: relevance);
+    expect(cs.returnType, isNull);
+    var element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(ElementKind.TYPE_PARAMETER));
+    expect(element.name, equals(name));
+    expect(element.parameters, isNull);
+    expect(element.returnType, isNull);
     return cs;
   }
 

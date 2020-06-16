@@ -846,11 +846,11 @@ class FlutterOutline implements ToJsonable {
     hash = JenkinsSmiHash.combine(hash, label.hashCode);
     hash = JenkinsSmiHash.combine(hash, className.hashCode);
     hash = JenkinsSmiHash.combine(hash, variableName.hashCode);
-    hash = JenkinsSmiHash.combine(hash, attributes.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(attributes));
     hash = JenkinsSmiHash.combine(hash, dartElement.hashCode);
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, codeRange.hashCode);
-    hash = JenkinsSmiHash.combine(hash, children.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(children));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -1106,7 +1106,7 @@ class Outline implements ToJsonable {
     hash = JenkinsSmiHash.combine(hash, element.hashCode);
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, codeRange.hashCode);
-    hash = JenkinsSmiHash.combine(hash, children.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(children));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -1206,7 +1206,7 @@ class PublishClosingLabelsParams implements ToJsonable {
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, uri.hashCode);
-    hash = JenkinsSmiHash.combine(hash, labels.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(labels));
     return JenkinsSmiHash.finish(hash);
   }
 

@@ -1998,7 +1998,7 @@ ConstantPool {
 
   static field (dart.async::Future<dart.core::int*>*) →* dart.async::Future<dart.core::Null?>* asyncInFieldInitializer = (dart.async::Future<dart.core::int*>* x) → dart.async::Future<dart.core::Null?>* /* originally async */ {
     final dart.async::_AsyncAwaitCompleter<dart.core::Null?>* :async_completer = new dart.async::_AsyncAwaitCompleter::•<dart.core::Null?>();
-    dart.async::FutureOr<dart.core::Null?>* :return_value;
+    FutureOr<dart.core::Null?>* :return_value;
     dynamic :async_stack_trace;
     (dynamic) →* dynamic :async_op_then;
     (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
@@ -2026,7 +2026,7 @@ ConstantPool {
   };
   static method foo() → dart.async::Future<dart.core::int*>* /* originally async */ {
     final dart.async::_AsyncAwaitCompleter<dart.core::int*>* :async_completer = new dart.async::_AsyncAwaitCompleter::•<dart.core::int*>();
-    dart.async::FutureOr<dart.core::int*>* :return_value;
+    FutureOr<dart.core::int*>* :return_value;
     dynamic :async_stack_trace;
     (dynamic) →* dynamic :async_op_then;
     (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
@@ -2053,7 +2053,7 @@ ConstantPool {
   }
   static method simpleAsyncAwait(dart.async::Future<dart.core::int*>* a, dart.async::Future<dart.core::int*>* b) → dart.async::Future<dart.core::int*>* /* originally async */ {
     final dart.async::_AsyncAwaitCompleter<dart.core::int*>* :async_completer = new dart.async::_AsyncAwaitCompleter::•<dart.core::int*>();
-    dart.async::FutureOr<dart.core::int*>* :return_value;
+    FutureOr<dart.core::int*>* :return_value;
     dynamic :async_stack_trace;
     (dynamic) →* dynamic :async_op_then;
     (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
@@ -2085,7 +2085,7 @@ ConstantPool {
   }
   static method loops(dart.core::List<dart.core::int*>* list) → dart.async::Future<dart.core::int*>* /* originally async */ {
     final dart.async::_AsyncAwaitCompleter<dart.core::int*>* :async_completer = new dart.async::_AsyncAwaitCompleter::•<dart.core::int*>();
-    dart.async::FutureOr<dart.core::int*>* :return_value;
+    FutureOr<dart.core::int*>* :return_value;
     dynamic :async_stack_trace;
     (dynamic) →* dynamic :async_op_then;
     (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
@@ -2133,7 +2133,7 @@ ConstantPool {
   }
   static method tryCatchRethrow(dart.async::Future<dart.core::int*>* a, dart.async::Future<dart.core::int*>* b, dart.async::Future<dart.core::int*>* c) → dart.async::Future<dart.core::int*>* /* originally async */ {
     final dart.async::_AsyncAwaitCompleter<dart.core::int*>* :async_completer = new dart.async::_AsyncAwaitCompleter::•<dart.core::int*>();
-    dart.async::FutureOr<dart.core::int*>* :return_value;
+    FutureOr<dart.core::int*>* :return_value;
     dynamic :async_stack_trace;
     (dynamic) →* dynamic :async_op_then;
     (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
@@ -2193,7 +2193,7 @@ ConstantPool {
     dart.core::int* x = 3;
     function nested() → dart.async::Future<dart.core::int*>* /* originally async */ {
       final dart.async::_AsyncAwaitCompleter<dart.core::int*>* :async_completer = new dart.async::_AsyncAwaitCompleter::•<dart.core::int*>();
-      dart.async::FutureOr<dart.core::int*>* :return_value;
+      FutureOr<dart.core::int*>* :return_value;
       dynamic :async_stack_trace;
       (dynamic) →* dynamic :async_op_then;
       (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
@@ -2233,7 +2233,7 @@ ConstantPool {
   }
   static method testAssert(dart.async::Future<dart.core::int*>* a) → dart.async::Future<dart.core::int*>* /* originally async */ {
     final dart.async::_AsyncAwaitCompleter<dart.core::int*>* :async_completer = new dart.async::_AsyncAwaitCompleter::•<dart.core::int*>();
-    dart.async::FutureOr<dart.core::int*>* :return_value;
+    FutureOr<dart.core::int*>* :return_value;
     dynamic :async_stack_trace;
     (dynamic) →* dynamic :async_op_then;
     (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;

@@ -53,20 +53,20 @@ class PackageMapUriResolver extends UriResolver {
     if (!isPackageUri(uri)) {
       return null;
     }
-    // Prepare path.
-    String path = uri.path;
-    // Prepare path components.
-    int index = path.indexOf('/');
-    if (index == -1 || index == 0) {
+
+    var pathSegments = uri.pathSegments;
+    if (pathSegments.length < 2) {
       return null;
     }
+
     // <pkgName>/<relPath>
-    String pkgName = path.substring(0, index);
-    String relPath = path.substring(index + 1);
+    String pkgName = pathSegments[0];
+
     // If the package is known, return the corresponding file.
     List<Folder> packageDirs = packageMap[pkgName];
     if (packageDirs != null) {
       Folder packageDir = packageDirs.single;
+      String relPath = pathSegments.skip(1).join('/');
       File file = packageDir.getChildAssumingFile(relPath);
       return file.createSource(uri);
     }

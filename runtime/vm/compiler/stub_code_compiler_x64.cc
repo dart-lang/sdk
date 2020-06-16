@@ -87,6 +87,10 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
   // to transition to Dart VM C++ code.
   __ movq(Address(THR, target::Thread::top_exit_frame_info_offset()), RBP);
 
+  // Mark that the thread exited generated code through a runtime call.
+  __ movq(Address(THR, target::Thread::exit_through_ffi_offset()),
+          Immediate(target::Thread::exit_through_runtime_call()));
+
 #if defined(DEBUG)
   {
     Label ok;
@@ -124,7 +128,7 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
           Immediate(1 * target::kWordSize));  // Retval is next to 1st argument.
   __ movq(Address(RSP, retval_offset),
           RAX);  // Set retval in target::NativeArguments.
-#if defined(_WIN64)
+#if defined(TARGET_OS_WINDOWS)
   ASSERT(target::NativeArguments::StructSize() >
          CallingConventions::kRegisterTransferLimit);
   __ movq(CallingConventions::kArg1Reg, RSP);
@@ -134,7 +138,11 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Mark that the thread is executing Dart code.
   __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
-  // Reset exit frame information in Isolate structure.
+  // Mark that the thread has not exited generated Dart code.
+  __ movq(Address(THR, target::Thread::exit_through_ffi_offset()),
+          Immediate(0));
+
+  // Reset exit frame information in Isolate's mutator thread structure.
   __ movq(Address(THR, target::Thread::top_exit_frame_info_offset()),
           Immediate(0));
 
@@ -255,7 +263,9 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
 //   RBX, R12 clobbered
 void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
     Assembler* assembler) {
-  __ TransitionGeneratedToNative(RBX, FPREG, /*enter_safepoint=*/true);
+  __ movq(R12, compiler::Immediate(target::Thread::exit_through_ffi()));
+  __ TransitionGeneratedToNative(RBX, FPREG, R12,
+                                 /*enter_safepoint=*/true);
 
   __ popq(R12);
   __ CallCFunction(RBX);
@@ -542,7 +552,7 @@ void StubCodeCompiler::GenerateStackOverflowSharedWithFPURegsStub(
 void StubCodeCompiler::GeneratePrintStopMessageStub(Assembler* assembler) {
   __ EnterCallRuntimeFrame(0);
 // Call the runtime leaf function. RDI already contains the parameter.
-#if defined(_WIN64)
+#if defined(TARGET_OS_WINDOWS)
   __ movq(CallingConventions::kArg1Reg, RDI);
 #endif
   __ CallRuntime(kPrintStopMessageRuntimeEntry, 1);
@@ -573,6 +583,10 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
   __ movq(Address(THR, target::Thread::top_exit_frame_info_offset()), RBP);
+
+  // Mark that the thread exited generated code through a runtime call.
+  __ movq(Address(THR, target::Thread::exit_through_ffi_offset()),
+          Immediate(target::Thread::exit_through_runtime_call()));
 
 #if defined(DEBUG)
   {
@@ -619,7 +633,11 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   // Mark that the thread is executing Dart code.
   __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
-  // Reset exit frame information in Isolate structure.
+  // Mark that the thread has not exited generated Dart code.
+  __ movq(Address(THR, target::Thread::exit_through_ffi_offset()),
+          Immediate(0));
+
+  // Reset exit frame information in Isolate's mutator thread structure.
   __ movq(Address(THR, target::Thread::top_exit_frame_info_offset()),
           Immediate(0));
 
@@ -1238,6 +1256,12 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ movq(RAX, Address(THR, target::Thread::top_resource_offset()));
   __ pushq(RAX);
   __ movq(Address(THR, target::Thread::top_resource_offset()), Immediate(0));
+
+  __ movq(RAX, Address(THR, target::Thread::exit_through_ffi_offset()));
+  __ pushq(RAX);
+  __ movq(Address(THR, target::Thread::exit_through_ffi_offset()),
+          Immediate(0));
+
   __ movq(RAX, Address(THR, target::Thread::top_exit_frame_info_offset()));
   __ pushq(RAX);
 
@@ -1308,6 +1332,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Restore the saved top exit frame info and top resource back into the
   // Isolate structure.
   __ popq(Address(THR, target::Thread::top_exit_frame_info_offset()));
+  __ popq(Address(THR, target::Thread::exit_through_ffi_offset()));
   __ popq(Address(THR, target::Thread::top_resource_offset()));
 
   // Restore the current VMTag from the stack.
@@ -1391,6 +1416,12 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
   __ movq(RAX, Address(THR, target::Thread::top_resource_offset()));
   __ pushq(RAX);
   __ movq(Address(THR, target::Thread::top_resource_offset()), Immediate(0));
+
+  __ movq(RAX, Address(THR, target::Thread::exit_through_ffi_offset()));
+  __ pushq(RAX);
+  __ movq(Address(THR, target::Thread::exit_through_ffi_offset()),
+          Immediate(0));
+
   __ movq(RAX, Address(THR, target::Thread::top_exit_frame_info_offset()));
   __ pushq(RAX);
   __ movq(Address(THR, target::Thread::top_exit_frame_info_offset()),
@@ -1467,6 +1498,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
   // Restore the saved top exit frame info and top resource back into the
   // Isolate structure.
   __ popq(Address(THR, target::Thread::top_exit_frame_info_offset()));
+  __ popq(Address(THR, target::Thread::exit_through_ffi_offset()));
   __ popq(Address(THR, target::Thread::top_resource_offset()));
 
   // Restore the current VMTag from the stack.
@@ -2805,12 +2837,12 @@ void StubCodeCompiler::GenerateInterpretCallStub(Assembler* assembler) {
     __ andq(RSP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
   }
 
-  __ movq(CallingConventions::kArg1Reg, RAX);         // Function.
-  __ movq(CallingConventions::kArg2Reg, R10);         // Arguments descriptor.
-  __ movq(CallingConventions::kArg3Reg, R11);         // Negative argc.
-  __ movq(CallingConventions::kArg4Reg, R12);         // Argv.
+  __ movq(CallingConventions::kArg1Reg, RAX);  // Function.
+  __ movq(CallingConventions::kArg2Reg, R10);  // Arguments descriptor.
+  __ movq(CallingConventions::kArg3Reg, R11);  // Negative argc.
+  __ movq(CallingConventions::kArg4Reg, R12);  // Argv.
 
-#if defined(_WIN64)
+#if defined(TARGET_OS_WINDOWS)
   __ movq(Address(RSP, 0 * target::kWordSize), THR);  // Thread.
 #else
   __ movq(CallingConventions::kArg5Reg, THR);  // Thread.
@@ -2818,6 +2850,10 @@ void StubCodeCompiler::GenerateInterpretCallStub(Assembler* assembler) {
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
   __ movq(Address(THR, target::Thread::top_exit_frame_info_offset()), RBP);
+
+  // Mark that the thread exited generated code through a runtime call.
+  __ movq(Address(THR, target::Thread::exit_through_ffi_offset()),
+          Immediate(target::Thread::exit_through_runtime_call()));
 
   // Mark that the thread is executing VM code.
   __ movq(RAX,
@@ -2829,7 +2865,11 @@ void StubCodeCompiler::GenerateInterpretCallStub(Assembler* assembler) {
   // Mark that the thread is executing Dart code.
   __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
-  // Reset exit frame information in Isolate structure.
+  // Mark that the thread has not exited generated Dart code.
+  __ movq(Address(THR, target::Thread::exit_through_ffi_offset()),
+          Immediate(0));
+
+  // Reset exit frame information in Isolate's mutator thread structure.
   __ movq(Address(THR, target::Thread::top_exit_frame_info_offset()),
           Immediate(0));
 
@@ -3292,6 +3332,15 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
 #if defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
+  Label exit_through_non_ffi;
+  // Check if we exited generated from FFI. If so do transition.
+  __ cmpq(compiler::Address(
+              THR, compiler::target::Thread::exit_through_ffi_offset()),
+          compiler::Immediate(target::Thread::exit_through_ffi()));
+  __ j(NOT_EQUAL, &exit_through_non_ffi, compiler::Assembler::kNearJump);
+  __ TransitionNativeToGenerated(/*leave_safepoint=*/true);
+  __ Bind(&exit_through_non_ffi);
+
   // Set the tag.
   __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
   // Clear top exit frame.

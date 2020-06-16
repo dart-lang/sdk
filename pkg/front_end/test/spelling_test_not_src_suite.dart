@@ -30,5 +30,5 @@ class SpellContextTest extends SpellContext {
       ];
 
   @override
-  bool get onlyBlacklisted => false;
+  bool get onlyDenylisted => false;
 }

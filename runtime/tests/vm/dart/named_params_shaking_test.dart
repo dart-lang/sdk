@@ -15,7 +15,7 @@ int dec() => global = max(0, --global);
 // When converting named parameters to positional parameters, we
 // follow alphabetical order. Ensure that argument evaluation order
 // is unchanged.
-void testNamedOrder(int w, {int z, int y, int x}) {
+void testNamedOrder(int w, {int? z, int? y, int? x}) {
   Expect.equals(w, 1);
   Expect.equals(z, 2);
   Expect.equals(y, 3);
@@ -23,7 +23,7 @@ void testNamedOrder(int w, {int z, int y, int x}) {
 }
 
 class TestNamedOrderBase {
-  TestNamedOrderBase(w, {int z, int y, int x}) {
+  TestNamedOrderBase(w, {int? z, int? y, int? x}) {
     testNamedOrder(w, z: z, y: y, x: x);
   }
 }

@@ -685,10 +685,12 @@ class ClassElementImpl extends AbstractClassElementImpl
     return definingClass != null && !definingClass.isDartCoreObject;
   }
 
+  @Deprecated('It was used internally, should not be part of API')
   @override
   bool get hasReferenceToSuper => hasModifier(Modifier.REFERENCES_SUPER);
 
   /// Set whether this class references 'super'.
+  /// TODO(scheglov) Remove it.
   set hasReferenceToSuper(bool isReferencedSuper) {
     setModifier(Modifier.REFERENCES_SUPER, isReferencedSuper);
   }
@@ -709,7 +711,14 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   @override
-  List<InterfaceType> get interfaces {
+  List<InterfaceType> get interfaces =>
+      ElementTypeProvider.current.getClassInterfaces(this);
+
+  set interfaces(List<InterfaceType> interfaces) {
+    _interfaces = interfaces;
+  }
+
+  List<InterfaceType> get interfacesInternal {
     if (_interfaces != null) {
       return _interfaces;
     }
@@ -728,10 +737,6 @@ class ClassElementImpl extends AbstractClassElementImpl
       }
     }
     return _interfaces = const <InterfaceType>[];
-  }
-
-  set interfaces(List<InterfaceType> interfaces) {
-    _interfaces = interfaces;
   }
 
   @override
@@ -779,9 +784,6 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   bool get isValidMixin {
-    if (hasReferenceToSuper) {
-      return false;
-    }
     if (!supertype.isDartCoreObject) {
       return false;
     }
@@ -990,7 +992,7 @@ class ClassElementImpl extends AbstractClassElementImpl
   /// Compute a list of constructors for this class, which is a mixin
   /// application.  If specified, [visitedClasses] is a list of the other mixin
   /// application classes which have been visited on the way to reaching this
-  /// one (this is used to detect circularities).
+  /// one (this is used to detect cycles).
   List<ConstructorElement> _computeMixinAppConstructors(
       [List<ClassElementImpl> visitedClasses]) {
     if (supertype == null) {
@@ -1009,7 +1011,8 @@ class ClassElementImpl extends AbstractClassElementImpl
     if (!superElement.isMixinApplication) {
       var library = this.library;
       constructorsToForward = superElement.constructors
-          .where((constructor) => constructor.isAccessibleIn(library));
+          .where((constructor) => constructor.isAccessibleIn(library))
+          .where((constructor) => !constructor.isFactory);
     } else {
       if (visitedClasses == null) {
         visitedClasses = <ClassElementImpl>[this];
@@ -1045,6 +1048,9 @@ class ClassElementImpl extends AbstractClassElementImpl
     var substitution =
         Substitution.fromPairs(superClassParameters, argumentTypes);
 
+    bool typeHasInstanceVariables(InterfaceType type) =>
+        type.element.fields.any((e) => !e.isSynthetic);
+
     // Now create an implicit constructor for every constructor found above,
     // substituting type parameters as appropriate.
     return constructorsToForward
@@ -1053,6 +1059,9 @@ class ClassElementImpl extends AbstractClassElementImpl
           ConstructorElementImpl(superclassConstructor.name, -1);
       implicitConstructor.isSynthetic = true;
       implicitConstructor.redirectedConstructor = superclassConstructor;
+      var hasMixinWithInstanceVariables = mixins.any(typeHasInstanceVariables);
+      implicitConstructor.isConst =
+          superclassConstructor.isConst && !hasMixinWithInstanceVariables;
       List<ParameterElement> superParameters = superclassConstructor.parameters;
       int count = superParameters.length;
       if (count > 0) {
@@ -2555,6 +2564,9 @@ class ElementAnnotationImpl implements ElementAnnotation {
       element.name == _VISIBLE_FOR_TESTING_VARIABLE_NAME &&
       element.library?.name == _META_LIB_NAME;
 
+  @override
+  LibraryElement get library => compilationUnit.library;
+
   /// Get the library containing this annotation.
   @override
   Source get librarySource => compilationUnit.librarySource;
@@ -3389,6 +3401,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
   @override
   bool get hasNonFinalField => false;
 
+  @Deprecated('It was used internally, should not be part of API')
   @override
   bool get hasReferenceToSuper => false;
 
@@ -5155,8 +5168,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @override
   final LinkedUnitContext linkedContext;
 
-  @override
-  final bool isNonNullableByDefault;
+  final bool isNonNullableByDefaultInternal;
 
   /// The compilation unit that defines this library.
   CompilationUnitElement _definingCompilationUnit;
@@ -5202,7 +5214,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /// Initialize a newly created library element in the given [context] to have
   /// the given [name] and [offset].
   LibraryElementImpl(this.context, this.session, String name, int offset,
-      this.nameLength, this.isNonNullableByDefault)
+      this.nameLength, this.isNonNullableByDefaultInternal)
       : linkedContext = null,
         super(name, offset);
 
@@ -5215,7 +5227,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       this.linkedContext,
       Reference reference,
       CompilationUnit linkedNode)
-      : isNonNullableByDefault = linkedContext.isNNBD,
+      : isNonNullableByDefaultInternal = linkedContext.isNNBD,
         super.forLinkedNode(null, reference, linkedNode) {
     _name = name;
     _nameOffset = offset;
@@ -5444,6 +5456,10 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     }
     return false;
   }
+
+  @override
+  bool get isNonNullableByDefault =>
+      ElementTypeProvider.current.isLibraryNonNullableByDefault(this);
 
   /// Return `true` if the receiver directly or indirectly imports the
   /// 'dart:html' libraries.
@@ -5860,6 +5876,18 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
       return 'unary-';
     }
     return super.name;
+  }
+
+  /// Return the error reported during type inference for this method, or
+  /// `null` if this method is not a subject of type inference, or there was
+  /// no error.
+  TopLevelInferenceError get typeInferenceError {
+    if (linkedNode != null) {
+      return linkedContext.getTypeInferenceError(linkedNode);
+    }
+
+    // We don't support type inference errors without linking.
+    return null;
   }
 
   @override
@@ -6405,7 +6433,9 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
     _type = type;
   }
 
-  @override
+  /// Return the error reported during type inference for this variable, or
+  /// `null` if this variable is not a subject of type inference, or there was
+  /// no error.
   TopLevelInferenceError get typeInferenceError {
     if (linkedNode != null) {
       return linkedContext.getTypeInferenceError(linkedNode);
@@ -6686,16 +6716,6 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   DartType get type => ElementTypeProvider.current.getVariableType(this);
-
-  @override
-  TopLevelInferenceError get typeInferenceError {
-    if (linkedNode != null) {
-      return linkedContext.getTypeInferenceError(linkedNode);
-    }
-
-    // We don't support type inference errors without linking.
-    return null;
-  }
 
   @override
   DartType get typeInternal {
@@ -7132,7 +7152,21 @@ class PropertyAccessorElementImpl_ImplicitGetter
   }
 
   @override
-  DartType get returnTypeInternal => variable.type;
+  DartType get returnTypeInternal {
+    var returnType = variable.type;
+
+    // While performing inference during linking, the first step is to collect
+    // dependencies. During this step we resolve the expression, but we might
+    // reference elements that don't have their types inferred yet. So, here
+    // we give some type. A better solution would be to infer recursively, but
+    // we are not doing this yet.
+    if (returnType == null) {
+      assert(linkedContext.isLinking);
+      return DynamicTypeImpl.instance;
+    }
+
+    return returnType;
+  }
 
   @override
   FunctionType get type => ElementTypeProvider.current.getExecutableType(this);
@@ -7814,13 +7848,6 @@ abstract class VariableElementImpl extends ElementImpl
       return linkedContext.setVariableType(linkedNode, type);
     }
     _type = type;
-  }
-
-  /// Return the error reported during type inference for this variable, or
-  /// `null` if this variable is not a subject of type inference, or there was
-  /// no error.
-  TopLevelInferenceError get typeInferenceError {
-    return null;
   }
 
   /// Gets the element's type, without going through the indirection of

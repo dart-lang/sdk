@@ -229,6 +229,7 @@ TypeParameterPtr TypeParameter::ReadFrom(SnapshotReader* reader,
   // Allocate type parameter object.
   TypeParameter& type_parameter =
       TypeParameter::ZoneHandle(reader->zone(), TypeParameter::New());
+  bool is_canonical = ObjectLayout::IsCanonical(tags);
   reader->AddBackRef(object_id, &type_parameter, kIsDeserialized);
 
   // Set all non object fields.
@@ -246,15 +247,23 @@ TypeParameterPtr TypeParameter::ReadFrom(SnapshotReader* reader,
   READ_OBJECT_FIELDS(type_parameter, type_parameter.raw()->ptr()->from(),
                      type_parameter.raw()->ptr()->to(), kAsReference);
 
-  // Read in the parameterized class.
-  (*reader->ClassHandle()) =
-      Class::RawCast(reader->ReadObjectImpl(kAsReference));
+  if (type_parameter.parameterized_function() == Function::null()) {
+    // Read in the parameterized class.
+    (*reader->ClassHandle()) =
+        Class::RawCast(reader->ReadObjectImpl(kAsReference));
+  } else {
+    (*reader->ClassHandle()) = Class::null();
+  }
   type_parameter.set_parameterized_class(*reader->ClassHandle());
 
   // Fill in the type testing stub.
   Code& code = *reader->CodeHandle();
   code = TypeTestingStubGenerator::DefaultCodeForType(type_parameter);
   type_parameter.SetTypeTestingStub(code);
+
+  if (is_canonical) {
+    type_parameter ^= type_parameter.Canonicalize();
+  }
 
   return type_parameter.raw();
 }
@@ -287,10 +296,15 @@ void TypeParameterLayout::WriteTo(SnapshotWriter* writer,
   SnapshotWriterVisitor visitor(writer, kAsReference);
   visitor.VisitPointers(from(), to());
 
-  // Write out the parameterized class.
-  ClassPtr param_class =
-      writer->isolate()->class_table()->At(parameterized_class_id_);
-  writer->WriteObjectImpl(param_class, kAsReference);
+  if (parameterized_class_id_ != kFunctionCid) {
+    ASSERT(parameterized_function_ == Function::null());
+    // Write out the parameterized class.
+    ClassPtr param_class =
+        writer->isolate()->class_table()->At(parameterized_class_id_);
+    writer->WriteObjectImpl(param_class, kAsReference);
+  } else {
+    ASSERT(parameterized_function_ != Function::null());
+  }
 }
 
 TypeArgumentsPtr TypeArguments::ReadFrom(SnapshotReader* reader,
@@ -1711,7 +1725,7 @@ void TransferableTypedDataLayout::WriteTo(SnapshotWriter* writer,
       [](void* data, Dart_WeakPersistentHandle handle, void* peer) {
         TransferableTypedDataPeer* tpeer =
             reinterpret_cast<TransferableTypedDataPeer*>(peer);
-        tpeer->handle()->EnsureFreeExternal(IsolateGroup::Current());
+        tpeer->handle()->EnsureFreedExternal(IsolateGroup::Current());
         tpeer->ClearData();
       });
 }

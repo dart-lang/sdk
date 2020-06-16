@@ -191,9 +191,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         this.initializedForExpressionCompilationOnly = true {
     enableExperimentsBasedOnEnvironment();
   }
-  void enableExperimentsBasedOnEnvironment() {
+  void enableExperimentsBasedOnEnvironment({Set<String> enabledExperiments}) {
     // Note that these are all experimental. Use at your own risk.
-    Set<String> enabledExperiments = getExperimentEnvironment();
+    enabledExperiments ??= getExperimentEnvironment();
     if (enabledExperiments.contains(enableExperimentKeyInvalidation)) {
       useExperimentalInvalidation = true;
     }
@@ -203,6 +203,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         useExperimentalInvalidationSerialization = true;
       }
     }
+  }
+
+  @override
+  void setExperimentalFeaturesForTesting(Set<String> features) {
+    enableExperimentsBasedOnEnvironment(enabledExperiments: features);
   }
 
   @override

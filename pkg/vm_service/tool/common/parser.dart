@@ -5,7 +5,7 @@
 library parser;
 
 class Token {
-  static final RegExp _alpha = new RegExp(r'^[0-9a-zA-Z_\-@]+$');
+  static final RegExp _alpha = RegExp(r'^[0-9a-zA-Z_\-@]+$');
 
   final String text;
   Token next;
@@ -69,7 +69,7 @@ class Tokenizer {
   }
 
   void _emit(String value) {
-    Token token = new Token(value);
+    Token token = Token(value);
     if (_head == null) _head = token;
     if (_last != null) _last.next = token;
     _last = token;
@@ -77,11 +77,11 @@ class Tokenizer {
 
   String _peek(int i) {
     i += 1;
-    return i < text.length ? text[i] : new String.fromCharCodes([0]);
+    return i < text.length ? text[i] : String.fromCharCodes([0]);
   }
 
   String toString() {
-    StringBuffer buf = new StringBuffer();
+    StringBuffer buf = StringBuffer();
 
     Token t = _head;
 
@@ -138,7 +138,7 @@ abstract class Parser {
   }
 
   String collectComments() {
-    StringBuffer buf = new StringBuffer();
+    StringBuffer buf = StringBuffer();
 
     while (peek().isComment) {
       Token t = advance();

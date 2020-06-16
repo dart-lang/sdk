@@ -159,8 +159,7 @@ static Dart_NativeFunction native_lookup(Dart_Handle name,
 
 // Unit test case to verify stack frame iteration.
 TEST_CASE(ValidateStackFrameIteration) {
-  bool nullSafety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* nullableTag = nullSafety ? "?" : "";
+  const char* nullable_tag = TestCase::NullableTag();
   // clang-format off
   auto kScriptChars = Utils::CStringUniquePtr(
       OS::SCreate(
@@ -243,8 +242,8 @@ TEST_CASE(ValidateStackFrameIteration) {
           "    obj.method1(2);"
           "  }"
           "}",
-          nullableTag, nullableTag, nullableTag, nullableTag, nullableTag,
-          nullableTag, nullableTag, nullableTag),
+          nullable_tag, nullable_tag, nullable_tag, nullable_tag, nullable_tag,
+          nullable_tag, nullable_tag, nullable_tag),
       std::free);
   // clang-format on
   Dart_Handle lib = TestCase::LoadTestScript(

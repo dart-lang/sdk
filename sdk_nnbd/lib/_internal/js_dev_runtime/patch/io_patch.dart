@@ -216,7 +216,7 @@ class _RandomAccessFileOps {
 
 @patch
 bool _isDirectIOCapableTypedList(List<int> buffer) {
-  return buffer is Uint8List || buffer is Int8List;
+  throw UnsupportedError("_isDirectIOCapableTypedList");
 }
 
 @patch
@@ -303,7 +303,7 @@ class _Platform {
 @patch
 class _ProcessUtils {
   @patch
-  static void _exit(int status) {
+  static Never _exit(int status) {
     throw UnsupportedError("ProcessUtils._exit");
   }
 

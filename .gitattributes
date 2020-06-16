@@ -13,11 +13,15 @@
 *.md text
 *.yaml text
 
-# Files that should not be converted.
-tests/compiler/dart2js_extra/eof_line_ending_test.dart -text
-tests/compiler/dart2js_extra/string_interpolation_test.dart -text
-tests/compiler/dart2js_extra/string_interpolation_dynamic_test.dart -text
-tests/compiler/dart2js_extra/literal_string_juxtaposition_test.dart -text
+# File that should not be converted.
+tests/dart2js/eof_line_ending_test.dart -text
+tests/dart2js/string_interpolation_test.dart -text
+tests/dart2js/string_interpolation_dynamic_test.dart -text
+tests/dart2js/literal_string_juxtaposition_test.dart -text
+tests/dart2js_2/eof_line_ending_test.dart -text
+tests/dart2js_2/string_interpolation_test.dart -text
+tests/dart2js_2/string_interpolation_dynamic_test.dart -text
+tests/dart2js_2/literal_string_juxtaposition_test.dart -text
 tests/language_2/string/raw_string_test.dart -text
 tests/language_2/string/multiline_strings_test.dart -text
 tests/language_2/string/multiline_newline_cr.dart -text

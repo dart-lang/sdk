@@ -2,12 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 library dart._http;
 
-import "package:async_helper/async_helper.dart";
-import "package:expect/expect.dart";
 import "dart:async";
 import "dart:collection";
 import "dart:convert";
@@ -17,15 +13,21 @@ import "dart:math";
 import "dart:typed_data";
 import "dart:isolate";
 
-part "../../../sdk/lib/_http/crypto.dart";
-part "../../../sdk/lib/_http/embedder_config.dart";
-part "../../../sdk/lib/_http/http_impl.dart";
-part "../../../sdk/lib/_http/http_date.dart";
-part "../../../sdk/lib/_http/http_parser.dart";
-part "../../../sdk/lib/_http/http_headers.dart";
-part "../../../sdk/lib/_http/http_session.dart";
-part "../../../sdk/lib/_http/websocket.dart";
-part "../../../sdk/lib/_http/websocket_impl.dart";
+import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
+
+import "../../../sdk_nnbd/lib/internal/internal.dart"
+    show Since, valueOfNonNullableParamWithDefault, HttpStatus;
+
+part "../../../sdk_nnbd/lib/_http/crypto.dart";
+part "../../../sdk_nnbd/lib/_http/embedder_config.dart";
+part "../../../sdk_nnbd/lib/_http/http_impl.dart";
+part "../../../sdk_nnbd/lib/_http/http_date.dart";
+part "../../../sdk_nnbd/lib/_http/http_parser.dart";
+part "../../../sdk_nnbd/lib/_http/http_headers.dart";
+part "../../../sdk_nnbd/lib/_http/http_session.dart";
+part "../../../sdk_nnbd/lib/_http/websocket.dart";
+part "../../../sdk_nnbd/lib/_http/websocket_impl.dart";
 
 class WebSocketFrame {
   WebSocketFrame(int opcode, List<int> data);
@@ -35,16 +37,16 @@ class WebSocketFrame {
 // collect the message and expect it to be equal to the
 // expectedMessage field when fully received.
 class WebSocketMessageCollector {
-  List<int> expectedMessage;
+  List<int>? expectedMessage;
 
   int messageCount = 0;
 
   var data;
 
-  Function onClosed;
+  void Function()? onClosed;
 
   WebSocketMessageCollector(Stream stream,
-      [List<int> this.expectedMessage = null]) {
+      [List<int>? this.expectedMessage = null]) {
     stream.listen(onMessageData, onDone: onClosed, onError: onError);
   }
 
@@ -52,7 +54,7 @@ class WebSocketMessageCollector {
     if (buffer is String) {
       buffer = utf8.encode(buffer);
     }
-    Expect.listEquals(expectedMessage, buffer);
+    Expect.listEquals(expectedMessage!, buffer);
     messageCount++;
     data = buffer;
   }
@@ -69,7 +71,7 @@ const int FRAME_OPCODE_TEXT = 1;
 const int FRAME_OPCODE_BINARY = 2;
 
 // Function for building a web socket frame.
-List<int> createFrame(bool fin, int opcode, int maskingKey, List<int> data,
+List<int> createFrame(bool fin, int opcode, int? maskingKey, List<int> data,
     int offset, int count) {
   int frameSize = 2;
   if (count > 125) frameSize += 2;
@@ -145,8 +147,7 @@ void testFullMessages() {
 
   void runTest(int from, int to, int step) {
     for (int messageLength = from; messageLength < to; messageLength += step) {
-      List<int> message = new List<int>(messageLength);
-      for (int i = 0; i < messageLength; i++) message[i] = i & 0x7F;
+      List<int> message = [for (int i = 0; i < messageLength; i++) i & 0x7F];
       testMessage(FRAME_OPCODE_TEXT, message);
       for (int i = 0; i < messageLength; i++) message[i] = i & 0xFF;
       testMessage(FRAME_OPCODE_BINARY, message);
@@ -206,8 +207,7 @@ void testFragmentedMessages() {
 
   void runTest(int from, int to, int step) {
     for (int messageLength = from; messageLength < to; messageLength += step) {
-      List<int> message = new List<int>(messageLength);
-      for (int i = 0; i < messageLength; i++) message[i] = i & 0x7F;
+      List<int> message = [for (int i = 0; i < messageLength; i++) i & 0x7F];
       testMessageFragmentation(FRAME_OPCODE_TEXT, message);
       for (int i = 0; i < messageLength; i++) message[i] = i & 0xFF;
       testMessageFragmentation(FRAME_OPCODE_BINARY, message);

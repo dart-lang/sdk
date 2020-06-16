@@ -4,13 +4,10 @@
 
 import 'package:_fe_analyzer_shared/src/sdk/allowed_experiments.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -97,20 +94,9 @@ class FeatureSetProvider {
   }
 
   static AllowedExperiments _experimentsForSdk(DartSdk sdk) {
-    Folder sdkFolder;
-    if (sdk is FolderBasedDartSdk) {
-      sdkFolder = sdk.directory;
-    } else if (sdk is MockSdk) {
-      sdkFolder = sdk.directory;
-    }
-
-    if (sdkFolder != null) {
+    var experimentsContent = sdk.allowedExperimentsJson;
+    if (experimentsContent != null) {
       try {
-        var experimentsContent = sdkFolder
-            .getChildAssumingFolder('lib')
-            .getChildAssumingFolder('_internal')
-            .getChildAssumingFile('allowed_experiments.json')
-            .readAsStringSync();
         return parseAllowedExperiments(experimentsContent);
       } catch (_) {}
     }

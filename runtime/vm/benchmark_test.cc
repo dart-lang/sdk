@@ -180,7 +180,7 @@ BENCHMARK(GenKernelKernelCombined) {
                                /* benchmark_read_bytecode */ true));
 }
 
-BENCHMARK(GenKernelKernelMaxRSS) {
+BENCHMARK_MEMORY(GenKernelKernelMaxRSS) {
   GenKernelKernelBenchmark("GenKernelKernelMaxRSS benchmark",
                            /* benchmark_load */ false,
                            /* benchmark_read_bytecode */ true);
@@ -280,9 +280,8 @@ BENCHMARK(UseDartApi) {
       "  }\n"
       "}\n";
 
-  Dart_Handle lib = TestCase::LoadTestScript(
-      kScriptChars, reinterpret_cast<Dart_NativeEntryResolver>(bm_uda_lookup),
-      RESOLVED_USER_TEST_URI, false);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, bm_uda_lookup,
+                                             RESOLVED_USER_TEST_URI, false);
   Dart_Handle result = Dart_FinalizeLoading(false);
   EXPECT_VALID(result);
 
@@ -381,9 +380,7 @@ BENCHMARK(KernelServiceCompileAll) {
   EXPECT_VALID(result);
   Dart_Handle service_lib = Dart_LookupLibrary(NewString("dart:vmservice_io"));
   ASSERT(!Dart_IsError(service_lib));
-  Dart_SetNativeResolver(
-      service_lib, reinterpret_cast<Dart_NativeEntryResolver>(NativeResolver),
-      NULL);
+  Dart_SetNativeResolver(service_lib, NativeResolver, NULL);
   result = Dart_FinalizeLoading(false);
   EXPECT_VALID(result);
 
@@ -491,9 +488,8 @@ BENCHMARK(FrameLookup) {
       "    return obj.method1(1);"
       "  }"
       "}";
-  Dart_Handle lib = TestCase::LoadTestScript(
-      kScriptChars,
-      reinterpret_cast<Dart_NativeEntryResolver>(StackFrameNativeResolver));
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars, StackFrameNativeResolver);
   Dart_Handle cls = Dart_GetClass(lib, NewString("StackFrameTest"));
   Dart_Handle result = Dart_Invoke(cls, NewString("testMain"), 0, NULL);
   EXPECT_VALID(result);

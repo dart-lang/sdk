@@ -1100,34 +1100,50 @@ class Parser {
     assert(optional('typedef', typedefKeyword));
     listener.beginFunctionTypeAlias(typedefKeyword);
     TypeInfo typeInfo = computeType(typedefKeyword, /* required = */ false);
-    Token token = typeInfo.skipType(typedefKeyword).next;
+    Token token = typeInfo.skipType(typedefKeyword);
+    Token next = token.next;
     Token equals;
     TypeParamOrArgInfo typeParam =
-        computeTypeParamOrArg(token, /* inDeclaration = */ true);
-    if (typeInfo == noType &&
-        (token.kind == IDENTIFIER_TOKEN || token.type.isPseudo) &&
-        optional('=', typeParam.skip(token).next)) {
-      listener.handleIdentifier(token, IdentifierContext.typedefDeclaration);
-      token = typeParam.parseVariables(token, this).next;
+        computeTypeParamOrArg(next, /* inDeclaration = */ true);
+    if (typeInfo == noType && optional('=', typeParam.skip(next).next)) {
+      // New style typedef, e.g. typedef foo = void Function();".
+
+      // Parse as recovered here to 'force' using it as an identifier as we've
+      // already established that the next token is the equal sign we're looking
+      // for.
+      token = ensureIdentifierPotentiallyRecovered(token,
+          IdentifierContext.typedefDeclaration, /* isRecovered = */ true);
+
+      token = typeParam.parseVariables(token, this);
+      next = token.next;
       // parseVariables rewrites so even though we checked in the if,
       // we might not have an equal here now.
-      if (!optional('=', token) && optional('=', token.next)) {
+      if (!optional('=', next) && optional('=', next.next)) {
         // Recovery after recovery: A token was inserted, but we'll skip it now
         // to get more in line with what we thought in the if before.
-        token = token.next;
+        next = next.next;
       }
-      if (optional('=', token)) {
-        equals = token;
+      if (optional('=', next)) {
+        equals = next;
         token = computeType(equals, /* required = */ true)
             .ensureTypeOrVoid(equals, this);
       } else {
         // A rewrite caused the = to disappear
         token = parseFormalParametersRequiredOpt(
-            token, MemberKind.FunctionTypeAlias);
+            next, MemberKind.FunctionTypeAlias);
       }
     } else {
+      // Old style typedef, e.g. "typedef void foo();".
       token = typeInfo.parseType(typedefKeyword, this);
-      token = ensureIdentifier(token, IdentifierContext.typedefDeclaration);
+      next = token.next;
+      bool isIdentifierRecovered = false;
+      if (next.kind != IDENTIFIER_TOKEN &&
+          optional('(', typeParam.skip(next).next)) {
+        // Recovery: Not a valid identifier, but is used as such.
+        isIdentifierRecovered = true;
+      }
+      token = ensureIdentifierPotentiallyRecovered(
+          token, IdentifierContext.typedefDeclaration, isIdentifierRecovered);
       token = typeParam.parseVariables(token, this);
       token =
           parseFormalParametersRequiredOpt(token, MemberKind.FunctionTypeAlias);
@@ -3025,11 +3041,13 @@ class Parser {
     Token replacement;
     if (next.isSynthetic) {
       replacement = link(
-          new SyntheticBeginToken(TokenType.OPEN_SQUARE_BRACKET, next.offset),
+          new SyntheticBeginToken(TokenType.OPEN_SQUARE_BRACKET, next.offset,
+              next.precedingComments),
           new SyntheticToken(TokenType.CLOSE_SQUARE_BRACKET, next.offset));
     } else {
       replacement = link(
-          new BeginToken(TokenType.OPEN_SQUARE_BRACKET, next.offset),
+          new BeginToken(TokenType.OPEN_SQUARE_BRACKET, next.offset,
+              next.precedingComments),
           new Token(TokenType.CLOSE_SQUARE_BRACKET, next.offset + 1));
     }
     rewriter.replaceTokenFollowing(token, replacement);
@@ -4527,12 +4545,7 @@ class Parser {
             token = parseArgumentOrIndexStar(
                 token, typeArg, /* checkedNullAware = */ true);
           } else if (identical(type, TokenType.INDEX)) {
-            BeginToken replacement = link(
-                new BeginToken(TokenType.OPEN_SQUARE_BRACKET, next.charOffset,
-                    next.precedingComments),
-                new Token(TokenType.CLOSE_SQUARE_BRACKET, next.charOffset + 1));
-            rewriter.replaceTokenFollowing(token, replacement);
-            replacement.endToken = replacement.next;
+            rewriteSquareBrackets(token);
             token = parseArgumentOrIndexStar(
                 token, noTypeParamOrArg, /* checkedNullAware = */ false);
           } else if (identical(type, TokenType.BANG)) {
@@ -4635,6 +4648,14 @@ class Parser {
         token = typeArg.parseArguments(token, this);
         next = token.next;
         assert(optional('(', next));
+      }
+      TokenType nextType = next.type;
+      if (identical(nextType, TokenType.INDEX)) {
+        // If we don't split the '[]' here we will stop parsing it as a cascade
+        // and either split it later (parsing it wrong) or inserting ; before it
+        // (also wrong).
+        // See also https://github.com/dart-lang/sdk/issues/42267.
+        rewriteSquareBrackets(token);
       }
       token = parseArgumentOrIndexStar(
           token, typeArg, /* checkedNullAware = */ false);

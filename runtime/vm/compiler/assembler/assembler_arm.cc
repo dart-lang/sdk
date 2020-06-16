@@ -568,25 +568,32 @@ void Assembler::EnterSafepoint(Register addr, Register state) {
 
 void Assembler::TransitionGeneratedToNative(Register destination_address,
                                             Register exit_frame_fp,
-                                            Register addr,
-                                            Register state,
+                                            Register exit_through_ffi,
+                                            Register tmp1,
                                             bool enter_safepoint) {
   // Save exit frame information to enable stack walking.
   StoreToOffset(kWord, exit_frame_fp, THR,
                 target::Thread::top_exit_frame_info_offset());
 
+  StoreToOffset(kWord, exit_through_ffi, THR,
+                target::Thread::exit_through_ffi_offset());
+  Register tmp2 = exit_through_ffi;
+
   // Mark that the thread is executing native code.
   StoreToOffset(kWord, destination_address, THR,
                 target::Thread::vm_tag_offset());
-  LoadImmediate(state, target::Thread::native_execution_state());
-  StoreToOffset(kWord, state, THR, target::Thread::execution_state_offset());
+  LoadImmediate(tmp1, target::Thread::native_execution_state());
+  StoreToOffset(kWord, tmp1, THR, target::Thread::execution_state_offset());
 
   if (enter_safepoint) {
-    EnterSafepoint(addr, state);
+    EnterSafepoint(tmp1, tmp2);
   }
 }
 
-void Assembler::ExitSafepoint(Register addr, Register state) {
+void Assembler::ExitSafepoint(Register tmp1, Register tmp2) {
+  Register addr = tmp1;
+  Register state = tmp2;
+
   // We generate the same number of instructions whether or not the slow-path is
   // forced, for consistency with EnterSafepoint.
   Label slow_path, done, retry;
@@ -642,10 +649,11 @@ void Assembler::TransitionNativeToGenerated(Register addr,
   LoadImmediate(state, target::Thread::generated_execution_state());
   StoreToOffset(kWord, state, THR, target::Thread::execution_state_offset());
 
-  // Reset exit frame information in Isolate structure.
+  // Reset exit frame information in Isolate's mutator thread structure.
   LoadImmediate(state, 0);
   StoreToOffset(kWord, state, THR,
                 target::Thread::top_exit_frame_info_offset());
+  StoreToOffset(kWord, state, THR, target::Thread::exit_through_ffi_offset());
 }
 
 void Assembler::clrex() {
@@ -3443,6 +3451,15 @@ void Assembler::EnterStubFrame() {
 
 void Assembler::LeaveStubFrame() {
   LeaveDartFrame();
+}
+
+void Assembler::EnterCFrame(intptr_t frame_space) {
+  EnterFrame(1 << FP, 0);
+  ReserveAlignedFrameSpace(frame_space);
+}
+
+void Assembler::LeaveCFrame() {
+  LeaveFrame(1 << FP);
 }
 
 // R0 receiver, R9 ICData entries array

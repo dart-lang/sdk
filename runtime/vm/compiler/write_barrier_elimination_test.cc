@@ -13,9 +13,8 @@ DEBUG_ONLY(DECLARE_FLAG(bool, trace_write_barrier_elimination);)
 
 ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_JoinSuccessors) {
   DEBUG_ONLY(FLAG_trace_write_barrier_elimination = true);
-  const bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* nullableTag = null_safety ? "?" : "";
-  const char* nullAssertTag = null_safety ? "!" : "";
+  const char* nullable_tag = TestCase::NullableTag();
+  const char* null_assert_tag = TestCase::NullAssertTag();
 
   // This is a regression test for a bug where we were using
   // JoinEntry::SuccessorCount() to determine the number of outgoing blocks
@@ -48,8 +47,8 @@ ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_JoinSuccessors) {
 
       main() { foo(10); }
       )",
-      nullableTag, nullableTag, nullableTag, nullableTag,
-      nullableTag, nullAssertTag), std::free);
+      nullable_tag, nullable_tag, nullable_tag, nullable_tag,
+      nullable_tag, null_assert_tag), std::free);
   // clang-format on
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));
@@ -84,8 +83,6 @@ ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_JoinSuccessors) {
 
 ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_AtLeastOnce) {
   DEBUG_ONLY(FLAG_trace_write_barrier_elimination = true);
-  const bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* lateTag = null_safety ? "late" : "";
   // Ensure that we process every block at least once during the analysis
   // phase so that the out-sets will be initialized. If we don't process
   // each block at least once, the store "c.next = n" will be marked
@@ -111,7 +108,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_AtLeastOnce) {
       }
 
       main() { foo(0); foo(10); }
-      )", lateTag), std::free);
+      )", TestCase::LateTag()), std::free);
   // clang-format on
   const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));
 
@@ -141,10 +138,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_AtLeastOnce) {
 
 ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_Arrays) {
   DEBUG_ONLY(FLAG_trace_write_barrier_elimination = true);
-
-  const bool null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
-  const char* nullableTag = null_safety ? "?" : "";
-  const char* lateTag = null_safety ? "late" : "";
+  const char* nullable_tag = TestCase::NullableTag();
 
   // Test that array allocations are not considered usable after a
   // may-trigger-GC instruction (in this case CheckStackOverflow), unlike
@@ -173,7 +167,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_Arrays) {
       }
 
       main() { foo(10); }
-      )", lateTag, nullableTag, nullableTag), std::free);
+      )", TestCase::LateTag(), nullable_tag, nullable_tag), std::free);
   // clang-format on
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));

@@ -1060,7 +1060,6 @@ class _ClassHierarchyCache extends TypeHierarchy {
 
   ConcreteType addAllocatedClass(Class cl) {
     assertx(!cl.isAbstract);
-    assertx(cl != coreTypes.futureOrClass);
     assertx(!_sealed);
 
     final _TFClassImpl classImpl = getTFClass(cl);
@@ -1097,11 +1096,6 @@ class _ClassHierarchyCache extends TypeHierarchy {
       return true;
     }
 
-    // TODO(alexmarkov): handle FutureOr more precisely.
-    if (sup == coreTypes.futureOrClass) {
-      return true;
-    }
-
     _TFClassImpl subClassData = getTFClass(sub);
     _TFClassImpl superClassData = getTFClass(sup);
 
@@ -1118,10 +1112,7 @@ class _ClassHierarchyCache extends TypeHierarchy {
     // TODO(alexmarkov): consider approximating type if number of allocated
     // subtypes is too large
 
-    // TODO(alexmarkov): handle FutureOr more precisely.
-
-    if (baseClass.classNode == coreTypes.objectClass ||
-        baseClass.classNode == coreTypes.futureOrClass) {
+    if (baseClass.classNode == coreTypes.objectClass) {
       return const AnyType();
     }
 

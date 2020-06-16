@@ -6,6 +6,7 @@
 
 #include "vm/compiler/runtime_api.h"
 #include "vm/compiler/runtime_offsets_list.h"
+#include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/longjump.h"
 #include "vm/native_arguments.h"

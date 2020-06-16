@@ -216,11 +216,11 @@ class PageSpaceController {
   // Returns whether growing to 'after' should trigger a GC.
   // This method can be called before allocation (e.g., pretenuring) or after
   // (e.g., promotion), as it does not change the state of the controller.
-  bool NeedsGarbageCollection(SpaceUsage after) const;
-  bool AlmostNeedsGarbageCollection(SpaceUsage after) const;
+  bool ReachedHardThreshold(SpaceUsage after) const;
+  bool ReachedSoftThreshold(SpaceUsage after) const;
 
   // Returns whether an idle GC is worthwhile.
-  bool NeedsIdleGarbageCollection(SpaceUsage current) const;
+  bool ReachedIdleThreshold(SpaceUsage current) const;
 
   // Should be called after each collection to update the controller state.
   void EvaluateGarbageCollection(SpaceUsage before,
@@ -239,7 +239,7 @@ class PageSpaceController {
   friend class PageSpace;  // For MergeOtherPageSpaceController
 
   void RecordUpdate(SpaceUsage before, SpaceUsage after, const char* reason);
-  void MergeOtherPageSpaceController(PageSpaceController* other);
+  void MergeFrom(PageSpaceController* donor);
 
   void RecordUpdate(SpaceUsage before,
                     SpaceUsage after,
@@ -306,11 +306,14 @@ class PageSpace {
                                is_protected, is_locked);
   }
 
-  bool NeedsGarbageCollection() const {
-    return page_space_controller_.NeedsGarbageCollection(usage_);
+  bool ReachedHardThreshold() const {
+    return page_space_controller_.ReachedHardThreshold(usage_);
   }
-  bool AlmostNeedsGarbageCollection() const {
-    return page_space_controller_.AlmostNeedsGarbageCollection(usage_);
+  bool ReachedSoftThreshold() const {
+    return page_space_controller_.ReachedSoftThreshold(usage_);
+  }
+  bool ReachedIdleThreshold() const {
+    return page_space_controller_.ReachedIdleThreshold(usage_);
   }
   void EvaluateAfterLoading() {
     page_space_controller_.EvaluateAfterLoading(usage_);
@@ -409,9 +412,16 @@ class PageSpace {
     allocated_black_in_words_.fetch_add(size >> kWordSizeLog2);
   }
 
-  void AllocateExternal(intptr_t cid, intptr_t size);
-  void PromoteExternal(intptr_t cid, intptr_t size);
-  void FreeExternal(intptr_t size);
+  void AllocatedExternal(intptr_t size) {
+    ASSERT(size >= 0);
+    intptr_t size_in_words = size >> kWordSizeLog2;
+    usage_.external_in_words += size_in_words;
+  }
+  void FreedExternal(intptr_t size) {
+    ASSERT(size >= 0);
+    intptr_t size_in_words = size >> kWordSizeLog2;
+    usage_.external_in_words -= size_in_words;
+  }
 
   // Bulk data allocation.
   FreeList* DataFreeList(intptr_t i = 0) {
@@ -472,7 +482,7 @@ class PageSpace {
 
   bool IsObjectFromImagePages(ObjectPtr object);
 
-  void MergeOtherPageSpace(PageSpace* other);
+  void MergeFrom(PageSpace* donor);
 
  private:
   // Ids for time and data records in Heap::GCStats.

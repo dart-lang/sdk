@@ -146,6 +146,10 @@ void ThreadInterrupter::WakeUp() {
   }
   {
     MonitorLocker ml(monitor_);
+    if (shutdown_) {
+      // Late call
+      return;
+    }
     if (!initialized_) {
       // Early call.
       return;

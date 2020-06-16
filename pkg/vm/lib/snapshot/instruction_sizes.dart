@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:vm/snapshot/name.dart';
+import 'package:vm/snapshot/program_info.dart';
 
 /// Parse the output of `--print-instructions-sizes-to` saved in the given
 /// file [input].
@@ -22,6 +23,22 @@ Future<List<SymbolInfo>> load(File input) async {
       .cast<Map<String, dynamic>>()
       .map(SymbolInfo._fromJson)
       .toList(growable: false);
+}
+
+/// Parse the output of `--print-instructions-sizes-to` saved in the given
+/// file [input] into [ProgramInfo<int>] structure representing the sizes
+/// of individual functions.
+///
+/// If [collapseAnonymousClosures] is set to [true] then all anonymous closures
+/// within the same scopes are collapsed together. Collapsing closures is
+/// helpful when comparing symbol sizes between two versions of the same
+/// program because in general there is no reliable way to recognize the same
+/// anonymous closures into two independent compilations.
+Future<ProgramInfo<int>> loadProgramInfo(File input,
+    {bool collapseAnonymousClosures = false}) async {
+  final symbols = await load(input);
+  return toProgramInfo(symbols,
+      collapseAnonymousClosures: collapseAnonymousClosures);
 }
 
 /// Information about the size of the instruction object.
@@ -50,4 +67,44 @@ class SymbolInfo {
         name: map['n'],
         size: map['s']);
   }
+}
+
+/// Restore hierarchical [ProgramInfo<int>] representation from the list of
+/// symbols by parsing function names.
+///
+/// If [collapseAnonymousClosures] is set to [true] then all anonymous closures
+/// within the same scopes are collapsed together. Collapsing closures is
+/// helpful when comparing symbol sizes between two versions of the same
+/// program because in general there is no reliable way to recognize the same
+/// anonymous closures into two independent compilations.
+ProgramInfo<int> toProgramInfo(List<SymbolInfo> symbols,
+    {bool collapseAnonymousClosures = false}) {
+  final program = ProgramInfo<int>();
+  for (var sym in symbols) {
+    final scrubbed = sym.name.scrubbed;
+    if (sym.libraryUri == null) {
+      assert(sym.name.isStub);
+      assert(
+          !program.stubs.containsKey(scrubbed) || sym.name.isTypeTestingStub);
+      program.stubs[scrubbed] = (program.stubs[scrubbed] ?? 0) + sym.size;
+    } else {
+      // Split the name into components (names of individual functions).
+      final path = sym.name.components;
+
+      final lib =
+          program.libraries.putIfAbsent(sym.libraryUri, () => LibraryInfo());
+      final cls = lib.classes.putIfAbsent(sym.className, () => ClassInfo());
+      var fun = cls.functions.putIfAbsent(path.first, () => FunctionInfo());
+      for (var name in path.skip(1)) {
+        if (collapseAnonymousClosures &&
+            name.startsWith('<anonymous closure @')) {
+          name = '<anonymous closure>';
+        }
+        fun = fun.closures.putIfAbsent(name, () => FunctionInfo());
+      }
+      fun.info = (fun.info ?? 0) + sym.size;
+    }
+  }
+
+  return program;
 }

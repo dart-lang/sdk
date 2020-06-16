@@ -192,6 +192,49 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     expect(suggestion.label, equals('id'));
   }
 
+  Future<void> test_fromPlugin_tooSlow() async {
+    final content = '''
+    void main() {
+      var x = '';
+      print(^);
+    }
+    ''';
+
+    final pluginResult = plugin.CompletionGetSuggestionsResult(
+      content.indexOf('^'),
+      0,
+      [
+        plugin.CompletionSuggestion(
+          plugin.CompletionSuggestionKind.INVOCATION,
+          100,
+          'x.toUpperCase()',
+          -1,
+          -1,
+          false,
+          false,
+        ),
+      ],
+    );
+    configureTestPlugin(
+      respondWith: pluginResult,
+      // Don't respond within an acceptable time
+      respondAfter: Duration(seconds: 1),
+    );
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final fromServer = res.singleWhere((c) => c.label == 'x');
+    final fromPlugin = res.singleWhere((c) => c.label == 'x.toUpperCase()',
+        orElse: () => null);
+
+    // Server results should still be included.
+    expect(fromServer.kind, equals(CompletionItemKind.Variable));
+    // Plugin results are not because they didn't arrive in time.
+    expect(fromPlugin, isNull);
+  }
+
   Future<void> test_gettersAndSetters() async {
     final content = '''
     class MyClass {
@@ -372,6 +415,26 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     expect(item.insertText, anyOf(equals('abcdefghij'), isNull));
     final updated = applyTextEdits(withoutMarkers(content), [item.textEdit]);
     expect(updated, contains('a.abcdefghij'));
+  }
+
+  Future<void> test_prefixFilter() async {
+    final content = '''
+    class UniqueNamedClassForLspOne {}
+    class UniqueNamedClassForLspTwo {}
+    class UniqueNamedClassForLspThree {}
+
+    main() {
+      // Should match only Two and Three
+      class UniqueNamedClassForLspT^
+    }
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    expect(res.any((c) => c.label == 'UniqueNamedClassForLspOne'), isFalse);
+    expect(res.any((c) => c.label == 'UniqueNamedClassForLspTwo'), isTrue);
+    expect(res.any((c) => c.label == 'UniqueNamedClassForLspThree'), isTrue);
   }
 
   Future<void> test_suggestionSets() async {

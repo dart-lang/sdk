@@ -86,6 +86,21 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     expect(res, isEmpty);
   }
 
+  Future<void> test_sameLine() async {
+    final contents = '''
+    int plusOne(int [[value]]) => 1 + val^ue;
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(contents));
+    final res = await getDefinition(mainFileUri, positionFromMarker(contents));
+
+    expect(res, hasLength(1));
+    var loc = res.single;
+    expect(loc.range, equals(rangeFromMarkers(contents)));
+    expect(loc.uri, equals(mainFileUri.toString()));
+  }
+
   Future<void> test_singleFile() async {
     final contents = '''
     [[foo]]() {
@@ -112,6 +127,23 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
 
     newFile(mainFilePath, content: withoutMarkers(contents));
     await initialize();
+    final res = await getDefinition(mainFileUri, positionFromMarker(contents));
+
+    expect(res, hasLength(1));
+    var loc = res.single;
+    expect(loc.range, equals(rangeFromMarkers(contents)));
+    expect(loc.uri, equals(mainFileUri.toString()));
+  }
+
+  Future<void> test_varKeyword() async {
+    final contents = '''
+    va^r a = MyClass();
+
+    class [[MyClass]] {}
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(contents));
     final res = await getDefinition(mainFileUri, positionFromMarker(contents));
 
     expect(res, hasLength(1));

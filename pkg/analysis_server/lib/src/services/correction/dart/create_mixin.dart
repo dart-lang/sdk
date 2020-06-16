@@ -12,10 +12,10 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class CreateMixin extends CorrectionProducer {
-  String mixinName;
+  String _mixinName;
 
   @override
-  List<Object> get fixArguments => [mixinName];
+  List<Object> get fixArguments => [_mixinName];
 
   @override
   FixKind get fixKind => DartFixKind.CREATE_MIXIN;
@@ -32,7 +32,7 @@ class CreateMixin extends CorrectionProducer {
         return;
       } else {
         nameNode = node;
-        mixinName = nameNode.name;
+        _mixinName = nameNode.name;
       }
     } else if (node is PrefixedIdentifier) {
       if (node.parent is InstanceCreationExpression) {
@@ -44,7 +44,7 @@ class CreateMixin extends CorrectionProducer {
         return;
       }
       nameNode = prefixedIdentifier.identifier;
-      mixinName = prefixedIdentifier.identifier.name;
+      _mixinName = prefixedIdentifier.identifier.name;
     } else {
       return;
     }
@@ -94,7 +94,7 @@ class CreateMixin extends CorrectionProducer {
     await builder.addFileEdit(filePath, (DartFileEditBuilder builder) {
       builder.addInsertion(offset, (DartEditBuilder builder) {
         builder.write(prefix);
-        builder.writeMixinDeclaration(mixinName, nameGroupName: 'NAME');
+        builder.writeMixinDeclaration(_mixinName, nameGroupName: 'NAME');
         builder.write(suffix);
       });
       if (prefixElement == null) {

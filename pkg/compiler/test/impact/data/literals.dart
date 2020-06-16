@@ -131,7 +131,15 @@ testComplexConstSymbol() => const Symbol(complexSymbolField);
 /*member: testIfNullConstSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
 testIfNullConstSymbol() => const Symbol(null ?? 'foo');
 
-/*spec:nnbd-off.member: testTypeLiteral:static=[createRuntimeType(1),typeLiteral(1)],type=[inst:Type,inst:_Type,lit:Object]*/
+/*spec:nnbd-off.member: testTypeLiteral:
+ static=[
+  createRuntimeType(1),
+  typeLiteral(1)],
+ type=[
+  inst:Type,
+  inst:_Type,
+  lit:Object]
+*/
 /*spec:nnbd-sdk.member: testTypeLiteral:
  static=[
   createRuntimeType(1),
@@ -159,7 +167,9 @@ testEmptyListLiteralTyped() => <String>[];
 /*member: testEmptyListLiteralConstant:type=[inst:List<dynamic>]*/
 testEmptyListLiteralConstant() => const [];
 
-/*spec:nnbd-off.member: testNonEmptyListLiteral:type=[inst:JSBool,inst:List<bool>]*/
+/*spec:nnbd-off.member: testNonEmptyListLiteral:type=[
+  inst:JSBool,
+  inst:List<bool>]*/
 /*spec:nnbd-sdk.member: testNonEmptyListLiteral:type=[
   inst:JSBool,
   inst:List<bool*>]*/
@@ -184,7 +194,10 @@ type=[
 */
 testEmptyMapLiteralConstant() => const {};
 
-/*spec:nnbd-off.member: testNonEmptyMapLiteral:type=[inst:JSBool,inst:JSNull,inst:Map<Null,bool>]*/
+/*spec:nnbd-off.member: testNonEmptyMapLiteral:type=[
+  inst:JSBool,
+  inst:JSNull,
+  inst:Map<Null,bool>]*/
 /*spec:nnbd-sdk.member: testNonEmptyMapLiteral:type=[
   inst:JSBool,
   inst:JSNull,

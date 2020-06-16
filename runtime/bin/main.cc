@@ -599,6 +599,9 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
   const uint8_t* isolate_snapshot_data = app_isolate_snapshot_data;
   const uint8_t* isolate_snapshot_instructions =
       app_isolate_snapshot_instructions;
+  flags->null_safety =
+      Dart_DetectNullSafety(nullptr, nullptr, nullptr, isolate_snapshot_data,
+                            isolate_snapshot_instructions, nullptr, -1);
 #else
   // JIT: Main isolate starts from the app snapshot, if any. Other isolates
   // use the core libraries snapshot.
@@ -635,6 +638,13 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
   if (kernel_buffer == NULL && !isolate_run_app_snapshot) {
     dfe.ReadScript(script_uri, &kernel_buffer, &kernel_buffer_size);
   }
+  PathSanitizer script_uri_sanitizer(script_uri);
+  PathSanitizer packages_config_sanitizer(packages_config);
+  flags->null_safety = Dart_DetectNullSafety(
+      script_uri_sanitizer.sanitized_uri(),
+      packages_config_sanitizer.sanitized_uri(),
+      DartUtils::original_working_directory, isolate_snapshot_data,
+      isolate_snapshot_instructions, kernel_buffer, kernel_buffer_size);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   auto isolate_group_data = new IsolateGroupData(

@@ -58,9 +58,6 @@ config("libdart_vm_config") {
     if (!is_android) {
       libs += [ "pthread" ]
     }
-    if (is_linux) {
-      libs += [ "rt" ]
-    }
   }
 }
 

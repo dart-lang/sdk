@@ -1379,7 +1379,7 @@ class C {
 
 ### default_list_constructor
 
-_Calling the default 'List' constructor causes an error._
+_The default 'List' constructor is not available when null safety is enabled._
 
 #### Description
 
@@ -5553,6 +5553,9 @@ void f(int i) {
 {% endprettify %}
 
 ### return_of_invalid_type
+
+_A value of type '{0}' can't be returned from constructor '{2}' because it has a
+return type of '{1}'._
 
 _A value of type '{0}' can't be returned from function '{2}' because it has a
 return type of '{1}'._

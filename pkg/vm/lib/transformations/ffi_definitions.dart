@@ -230,8 +230,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
             nativeTypesClasses[nativeTypeAnnos.first.index],
             Nullability.legacy);
         // TODO(36730): Support structs inside structs.
-        final DartType shouldBeDartType =
-            convertNativeTypeToDartType(nativeType, /*allowStructs=*/ false);
+        final DartType shouldBeDartType = convertNativeTypeToDartType(
+            nativeType, /*allowStructs=*/ false, /*allowHandle=*/ false);
         if (shouldBeDartType == null ||
             !env.isSubtypeOf(type, shouldBeDartType,
                 SubtypeCheckMode.ignoringNullabilities)) {

@@ -32,6 +32,9 @@ class ElementTypeProvider {
   void freshTypeParameterCreated(TypeParameterElement newTypeParameter,
       TypeParameterElement oldTypeParameter) {}
 
+  List<InterfaceType> getClassInterfaces(ClassElementImpl element) =>
+      element.interfacesInternal;
+
   /// Queries the parameters of an executable element's signature.
   ///
   /// Equivalent to `getExecutableType(...).parameters`.
@@ -62,4 +65,8 @@ class ElementTypeProvider {
   /// Queries the type of a variable element.
   DartType getVariableType(VariableElementImpl variable) =>
       variable.typeInternal;
+
+  /// Queries whether NNBD is enabled for a library.
+  bool isLibraryNonNullableByDefault(LibraryElementImpl element) =>
+      element.isNonNullableByDefaultInternal;
 }

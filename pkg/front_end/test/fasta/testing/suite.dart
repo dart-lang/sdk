@@ -23,7 +23,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
 
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
-    show ExperimentalFlag, defaultExperimentalFlags;
+    show ExperimentalFlag, defaultExperimentalFlags, isExperimentEnabled;
 
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
     show StandardFileSystem;
@@ -617,7 +617,9 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
     TestOptions testOptions = context.computeTestOptions(description);
     Map<ExperimentalFlag, bool> experimentalFlags =
         testOptions.computeExperimentalFlags(context.experimentalFlags);
-    NnbdMode nnbdMode = context.weak
+    NnbdMode nnbdMode = context.weak ||
+            !isExperimentEnabled(ExperimentalFlag.nonNullable,
+                experimentalFlags: experimentalFlags)
         ? NnbdMode.Weak
         : (testOptions.nnbdAgnosticMode ? NnbdMode.Agnostic : NnbdMode.Strong);
     List<Uri> inputs = <Uri>[description.uri];

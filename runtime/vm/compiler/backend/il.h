@@ -377,6 +377,7 @@ struct InstrAttrs {
   M(NativeParameter, kNoGC)                                                    \
   M(LoadIndexedUnsafe, kNoGC)                                                  \
   M(StoreIndexedUnsafe, kNoGC)                                                 \
+  M(MemoryCopy, kNoGC)                                                         \
   M(TailCall, kNoGC)                                                           \
   M(ParallelMove, kNoGC)                                                       \
   M(PushArgument, kNoGC)                                                       \
@@ -394,6 +395,10 @@ struct InstrAttrs {
   M(SpecialParameter, kNoGC)                                                   \
   M(ClosureCall, _)                                                            \
   M(FfiCall, _)                                                                \
+  M(EnterHandleScope, _)                                                       \
+  M(ExitHandleScope, _)                                                        \
+  M(AllocateHandle, _)                                                         \
+  M(RawStoreField, _)                                                          \
   M(InstanceCall, _)                                                           \
   M(PolymorphicInstanceCall, _)                                                \
   M(DispatchTableCall, _)                                                      \
@@ -411,15 +416,13 @@ struct InstrAttrs {
   M(LoadCodeUnits, kNoGC)                                                      \
   M(StoreIndexed, kNoGC)                                                       \
   M(StoreInstanceField, _)                                                     \
-  M(InitInstanceField, _)                                                      \
-  M(InitStaticField, _)                                                        \
-  M(LoadStaticField, kNoGC)                                                    \
+  M(LoadStaticField, _)                                                        \
   M(StoreStaticField, kNoGC)                                                   \
   M(BooleanNegate, kNoGC)                                                      \
   M(InstanceOf, _)                                                             \
   M(CreateArray, _)                                                            \
   M(AllocateObject, _)                                                         \
-  M(LoadField, kNoGC)                                                          \
+  M(LoadField, _)                                                              \
   M(LoadUntagged, kNoGC)                                                       \
   M(StoreUntagged, kNoGC)                                                      \
   M(LoadClassId, kNoGC)                                                        \
@@ -470,6 +473,7 @@ struct InstrAttrs {
   M(StringToCharCode, kNoGC)                                                   \
   M(OneByteStringFromCharCode, kNoGC)                                          \
   M(StringInterpolate, _)                                                      \
+  M(Utf8Scan, kNoGC)                                                           \
   M(InvokeMathCFunction, _)                                                    \
   M(TruncDivMod, kNoGC)                                                        \
   /*We could be more precise about when these 2 instructions can trigger GC.*/ \
@@ -2690,6 +2694,86 @@ class LoadIndexedUnsafeInstr : public TemplateDefinition<1, NoThrow> {
   const Representation representation_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadIndexedUnsafeInstr);
+};
+
+class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
+ public:
+  MemoryCopyInstr(Value* src,
+                  Value* dest,
+                  Value* src_start,
+                  Value* dest_start,
+                  Value* length,
+                  classid_t src_cid,
+                  classid_t dest_cid)
+      : src_cid_(src_cid),
+        dest_cid_(dest_cid),
+        element_size_(Instance::ElementSizeFor(src_cid)) {
+    ASSERT(IsArrayTypeSupported(src_cid));
+    ASSERT(IsArrayTypeSupported(dest_cid));
+    ASSERT(Instance::ElementSizeFor(src_cid) ==
+           Instance::ElementSizeFor(dest_cid));
+    SetInputAt(kSrcPos, src);
+    SetInputAt(kDestPos, dest);
+    SetInputAt(kSrcStartPos, src_start);
+    SetInputAt(kDestStartPos, dest_start);
+    SetInputAt(kLengthPos, length);
+  }
+
+  enum {
+    kSrcPos = 0,
+    kDestPos = 1,
+    kSrcStartPos = 2,
+    kDestStartPos = 3,
+    kLengthPos = 4
+  };
+
+  DECLARE_INSTRUCTION(MemoryCopy)
+
+  virtual Representation RequiredInputRepresentation(intptr_t index) const {
+    // All inputs are tagged (for now).
+    return kTagged;
+  }
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool HasUnknownSideEffects() const { return true; }
+
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  Value* src() const { return inputs_[kSrcPos]; }
+  Value* dest() const { return inputs_[kDestPos]; }
+  Value* src_start() const { return inputs_[kSrcStartPos]; }
+  Value* dest_start() const { return inputs_[kDestStartPos]; }
+  Value* length() const { return inputs_[kLengthPos]; }
+
+ private:
+  // Set array_reg to point to the index indicated by start (contained in
+  // start_reg) of the typed data or string in array (contained in array_reg).
+  void EmitComputeStartPointer(FlowGraphCompiler* compiler,
+                               classid_t array_cid,
+                               Value* start,
+                               Register array_reg,
+                               Register start_reg);
+
+  static bool IsArrayTypeSupported(classid_t array_cid) {
+    if (IsTypedDataBaseClassId(array_cid)) {
+      return true;
+    }
+    switch (array_cid) {
+      case kOneByteStringCid:
+      case kTwoByteStringCid:
+      case kExternalOneByteStringCid:
+      case kExternalTwoByteStringCid:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  classid_t src_cid_;
+  classid_t dest_cid_;
+  intptr_t element_size_;
+
+  DISALLOW_COPY_AND_ASSIGN(MemoryCopyInstr);
 };
 
 // Unwinds the current frame and tail calls a target.
@@ -4957,7 +5041,10 @@ class FfiCallInstr : public Definition {
 
   virtual intptr_t InputCount() const { return inputs_.length(); }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
-  virtual bool MayThrow() const { return false; }
+  virtual bool MayThrow() const {
+    // By Dart_PropagateError.
+    return true;
+  }
 
   // FfiCallInstr calls C code, which can call back into Dart.
   virtual bool ComputeCanDeoptimize() const {
@@ -4995,6 +5082,82 @@ class FfiCallInstr : public Definition {
   GrowableArray<Value*> inputs_;
 
   DISALLOW_COPY_AND_ASSIGN(FfiCallInstr);
+};
+
+class EnterHandleScopeInstr : public TemplateDefinition<0, NoThrow> {
+ public:
+  enum class Kind { kEnterHandleScope = 0, kGetTopHandleScope = 1 };
+
+  explicit EnterHandleScopeInstr(Kind kind) : kind_(kind) {}
+
+  DECLARE_INSTRUCTION(EnterHandleScope)
+
+  virtual Representation representation() const { return kUnboxedIntPtr; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+ private:
+  Kind kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(EnterHandleScopeInstr);
+};
+
+class ExitHandleScopeInstr : public TemplateInstruction<0, NoThrow> {
+ public:
+  ExitHandleScopeInstr() {}
+
+  DECLARE_INSTRUCTION(ExitHandleScope)
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(ExitHandleScopeInstr);
+};
+
+class AllocateHandleInstr : public TemplateDefinition<1, NoThrow> {
+ public:
+  explicit AllocateHandleInstr(Value* scope) { SetInputAt(kScope, scope); }
+
+  enum { kScope = 0 };
+
+  DECLARE_INSTRUCTION(AllocateHandle)
+
+  virtual intptr_t InputCount() const { return 1; }
+  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const;
+  virtual Representation representation() const { return kUnboxedIntPtr; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(AllocateHandleInstr);
+};
+
+class RawStoreFieldInstr : public TemplateInstruction<2, NoThrow> {
+ public:
+  RawStoreFieldInstr(Value* base, Value* value, int32_t offset)
+      : offset_(offset) {
+    SetInputAt(kBase, base);
+    SetInputAt(kValue, value);
+  }
+
+  enum { kBase = 0, kValue = 1 };
+
+  DECLARE_INSTRUCTION(RawStoreField)
+
+  virtual intptr_t InputCount() const { return 2; }
+  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const;
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+ private:
+  const int32_t offset_;
+
+  DISALLOW_COPY_AND_ASSIGN(RawStoreFieldInstr);
 };
 
 class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {
@@ -5250,23 +5413,39 @@ class GuardFieldTypeInstr : public GuardFieldInstr {
   DISALLOW_COPY_AND_ASSIGN(GuardFieldTypeInstr);
 };
 
-class LoadStaticFieldInstr : public TemplateDefinition<0, NoThrow> {
+class LoadStaticFieldInstr : public TemplateDefinition<0, Throws> {
  public:
-  LoadStaticFieldInstr(const Field& field, TokenPosition token_pos)
-      : field_(field), token_pos_(token_pos) {}
+  LoadStaticFieldInstr(const Field& field,
+                       TokenPosition token_pos,
+                       bool calls_initializer = false,
+                       intptr_t deopt_id = DeoptId::kNone)
+      : TemplateDefinition(deopt_id),
+        field_(field),
+        token_pos_(token_pos),
+        calls_initializer_(calls_initializer) {
+    ASSERT(!calls_initializer || (deopt_id != DeoptId::kNone));
+  }
 
   DECLARE_INSTRUCTION(LoadStaticField)
+
   virtual CompileType ComputeType() const;
 
-  const Field& StaticField() const { return field_; }
+  const Field& field() const { return field_; }
   bool IsFieldInitialized() const;
 
-  virtual bool ComputeCanDeoptimize() const { return false; }
+  bool calls_initializer() const { return calls_initializer_; }
+  void set_calls_initializer(bool value) { calls_initializer_ = value; }
 
   virtual bool AllowsCSE() const {
-    return StaticField().is_final() && !FLAG_fields_may_be_reset;
+    return field().is_final() && !FLAG_fields_may_be_reset;
   }
-  virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual bool ComputeCanDeoptimize() const { return calls_initializer(); }
+  virtual bool HasUnknownSideEffects() const { return calls_initializer(); }
+  virtual bool CanTriggerGC() const { return calls_initializer(); }
+  virtual bool MayThrow() const { return calls_initializer(); }
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool AttributesEqual(Instruction* other) const;
 
@@ -5277,6 +5456,7 @@ class LoadStaticFieldInstr : public TemplateDefinition<0, NoThrow> {
  private:
   const Field& field_;
   const TokenPosition token_pos_;
+  bool calls_initializer_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadStaticFieldInstr);
 };
@@ -5543,6 +5723,76 @@ class StringInterpolateInstr : public TemplateDefinition<1, Throws> {
   Function& function_;
 
   DISALLOW_COPY_AND_ASSIGN(StringInterpolateInstr);
+};
+
+// Scanning instruction to compute the result size and decoding parameters
+// for the UTF-8 decoder. Equivalent to:
+//
+// int _scan(Uint8List bytes, int start, int end, _OneByteString table,
+//     _Utf8Decoder decoder) {
+//   int size = 0;
+//   int flags = 0;
+//   for (int i = start; i < end; i++) {
+//     int t = table.codeUnitAt(bytes[i]);
+//     size += t & sizeMask;
+//     flags |= t;
+//   }
+//   decoder._scanFlags |= flags & flagsMask;
+//   return size;
+// }
+//
+// under these assumptions:
+// - The start and end inputs are within the bounds of bytes and in smi range.
+// - The decoder._scanFlags field is unboxed or contains a smi.
+// - The first 128 entries of the table have the value 1.
+class Utf8ScanInstr : public TemplateDefinition<5, NoThrow> {
+ public:
+  Utf8ScanInstr(Value* decoder,
+                Value* bytes,
+                Value* start,
+                Value* end,
+                Value* table,
+                const Slot& decoder_scan_flags_field)
+      : scan_flags_field_(decoder_scan_flags_field) {
+    SetInputAt(0, decoder);
+    SetInputAt(1, bytes);
+    SetInputAt(2, start);
+    SetInputAt(3, end);
+    SetInputAt(4, table);
+  }
+
+  DECLARE_INSTRUCTION(Utf8Scan)
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx >= 0 || idx <= 4);
+    // The start and end inputs are unboxed, but in smi range.
+    if (idx == 2 || idx == 3) return kUnboxedIntPtr;
+    return kTagged;
+  }
+
+  virtual Representation representation() const { return kUnboxedIntPtr; }
+
+  virtual CompileType ComputeType() const { return CompileType::Int(); }
+  virtual bool HasUnknownSideEffects() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual intptr_t DeoptimizationTarget() const { return DeoptId::kNone; }
+
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return kNotSpeculative;
+  }
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    return scan_flags_field_.Equals(&other->AsUtf8Scan()->scan_flags_field_);
+  }
+
+  bool IsScanFlagsUnboxed() const;
+
+  PRINT_TO_SUPPORT
+
+ private:
+  const Slot& scan_flags_field_;
+
+  DISALLOW_COPY_AND_ASSIGN(Utf8ScanInstr);
 };
 
 class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
@@ -6110,15 +6360,25 @@ class LoadClassIdInstr : public TemplateDefinition<1, NoThrow, Pure> {
 };
 
 // LoadFieldInstr represents a load from the given [slot] in the given
-// [instance].
+// [instance]. If calls_initializer(), then LoadFieldInstr also calls field
+// initializer if field is not initialized yet (contains sentinel value).
 //
 // Note: if slot was a subject of the field unboxing optimization then this load
 // would both load the box stored in the field and then load the content of
 // the box.
-class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
+class LoadFieldInstr : public TemplateDefinition<1, Throws> {
  public:
-  LoadFieldInstr(Value* instance, const Slot& slot, TokenPosition token_pos)
-      : slot_(slot), token_pos_(token_pos) {
+  LoadFieldInstr(Value* instance,
+                 const Slot& slot,
+                 TokenPosition token_pos,
+                 bool calls_initializer = false,
+                 intptr_t deopt_id = DeoptId::kNone)
+      : TemplateDefinition(deopt_id),
+        slot_(slot),
+        token_pos_(token_pos),
+        calls_initializer_(calls_initializer) {
+    ASSERT(!calls_initializer || (deopt_id != DeoptId::kNone));
+    ASSERT(!calls_initializer || slot.IsDartField());
     SetInputAt(0, instance);
   }
 
@@ -6126,6 +6386,9 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
   const Slot& slot() const { return slot_; }
 
   virtual TokenPosition token_pos() const { return token_pos_; }
+
+  bool calls_initializer() const { return calls_initializer_; }
+  void set_calls_initializer(bool value) { calls_initializer_ = value; }
 
   virtual Representation representation() const;
 
@@ -6135,7 +6398,10 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
   DECLARE_INSTRUCTION(LoadField)
   virtual CompileType ComputeType() const;
 
-  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return calls_initializer(); }
+  virtual bool HasUnknownSideEffects() const { return calls_initializer(); }
+  virtual bool CanTriggerGC() const { return calls_initializer(); }
+  virtual bool MayThrow() const { return calls_initializer(); }
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
@@ -6162,18 +6428,23 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
   static bool IsTypedDataViewFactory(const Function& function);
 
   virtual bool AllowsCSE() const { return slot_.is_immutable(); }
-  virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool AttributesEqual(Instruction* other) const;
 
   PRINT_OPERANDS_TO_SUPPORT
   ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
+  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   intptr_t OffsetInBytes() const { return slot().offset_in_bytes(); }
 
+  // Generate code which checks if field is initialized and
+  // calls initializer if it is not. Field value is already loaded.
+  void EmitNativeCodeForInitializerCall(FlowGraphCompiler* compiler);
+
   const Slot& slot_;
   const TokenPosition token_pos_;
+  bool calls_initializer_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadFieldInstr);
 };
@@ -6310,67 +6581,6 @@ class AllocateContextInstr : public TemplateAllocation<0, NoThrow> {
   const ZoneGrowableArray<const Slot*>& context_slots_;
 
   DISALLOW_COPY_AND_ASSIGN(AllocateContextInstr);
-};
-
-class InitInstanceFieldInstr : public TemplateInstruction<1, Throws> {
- public:
-  InitInstanceFieldInstr(Value* input, const Field& field, intptr_t deopt_id)
-      : TemplateInstruction(deopt_id), field_(field) {
-    SetInputAt(0, input);
-    CheckField(field);
-  }
-
-  virtual TokenPosition token_pos() const { return field_.token_pos(); }
-  const Field& field() const { return field_; }
-
-  DECLARE_INSTRUCTION(InitInstanceField)
-
-  virtual bool ComputeCanDeoptimize() const {
-    return !CompilerState::Current().is_aot();
-  }
-  virtual bool HasUnknownSideEffects() const { return true; }
-  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
-
-  virtual bool AllowsCSE() const { return true; }
-  virtual bool AttributesEqual(Instruction* other) const {
-    return other->AsInitInstanceField()->field().raw() == field().raw();
-  }
-
- private:
-  const Field& field_;
-
-  DISALLOW_COPY_AND_ASSIGN(InitInstanceFieldInstr);
-};
-
-class InitStaticFieldInstr : public TemplateInstruction<0, Throws> {
- public:
-  InitStaticFieldInstr(const Field& field, intptr_t deopt_id)
-      : TemplateInstruction(deopt_id), field_(field) {
-    CheckField(field);
-  }
-
-  virtual TokenPosition token_pos() const { return field_.token_pos(); }
-  const Field& field() const { return field_; }
-
-  DECLARE_INSTRUCTION(InitStaticField)
-
-  virtual bool ComputeCanDeoptimize() const {
-    return !CompilerState::Current().is_aot();
-  }
-  virtual bool HasUnknownSideEffects() const { return true; }
-  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
-
-  // Two InitStaticField instructions can be canonicalized into one
-  // instruction if both are initializing the same field.
-  virtual bool AllowsCSE() const { return true; }
-  virtual bool AttributesEqual(Instruction* other) const {
-    return other->AsInitStaticField()->field().raw() == field().raw();
-  }
-
- private:
-  const Field& field_;
-
-  DISALLOW_COPY_AND_ASSIGN(InitStaticFieldInstr);
 };
 
 // [CloneContext] instruction clones the given Context object assuming that

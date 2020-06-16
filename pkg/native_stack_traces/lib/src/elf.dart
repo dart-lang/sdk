@@ -322,7 +322,7 @@ class ProgramHeaderEntry {
       ..writeln(paddedHex(paddr, wordSize))
       ..write('Size in file: ')
       ..writeln(filesz)
-      ..write('Size in memory')
+      ..write('Size in memory: ')
       ..writeln(memsz)
       ..write('Alignment: 0x')
       ..write(paddedHex(align, wordSize));
@@ -421,6 +421,7 @@ class SectionHeaderEntry {
   static const _SHT_STRTAB = 3;
   static const _SHT_HASH = 5;
   static const _SHT_DYNAMIC = 6;
+  static const _SHT_NOTE = 7;
   static const _SHT_NOBITS = 8;
   static const _SHT_DYNSYM = 11;
 
@@ -437,6 +438,7 @@ class SectionHeaderEntry {
     _SHT_STRTAB: "SHT_STRTAB",
     _SHT_HASH: "SHT_HASH",
     _SHT_DYNAMIC: "SHT_DYNAMIC",
+    _SHT_NOTE: "SHT_NOTE",
     _SHT_NOBITS: "SHT_NOBITS",
     _SHT_DYNSYM: "SHT_DYNSYM",
   };
@@ -545,6 +547,8 @@ class Section {
         return SymbolTable.fromReader(reader, entry);
       case SectionHeaderEntry._SHT_DYNSYM:
         return SymbolTable.fromReader(reader, entry);
+      case SectionHeaderEntry._SHT_NOTE:
+        return Note.fromReader(reader, entry);
       default:
         return Section._(entry);
     }
@@ -564,6 +568,55 @@ class Section {
       ..write('" is unparsed and ')
       ..write(length)
       ..writeln(' bytes long.');
+  }
+
+  @override
+  String toString() {
+    final buffer = StringBuffer();
+    writeToStringBuffer(buffer);
+    return buffer.toString();
+  }
+}
+
+/// A section that contains a single note.
+class Note extends Section {
+  final int type;
+  final String name;
+  final Uint8List description;
+
+  Note._(entry, this.type, this.name, this.description) : super._(entry);
+
+  static Note fromReader(Reader originalReader, SectionHeaderEntry entry) {
+    final reader = originalReader.refocusedCopy(entry.offset, entry.size);
+    final nameLength = reader.readBytes(4);
+    final descriptionLength = reader.readBytes(4);
+    final type = reader.readBytes(4);
+    final nameEnd = reader.offset + nameLength;
+    final name = reader.readNullTerminatedString();
+    assert(reader.offset == nameEnd);
+    assert(reader.length - reader.offset == descriptionLength);
+    final descriptionStart = reader.offset;
+    final descriptionEnd = descriptionStart + descriptionLength;
+    final description =
+        Uint8List.sublistView(reader.bdata, descriptionStart, descriptionEnd);
+    return Note._(entry, type, name, description);
+  }
+
+  void writeToStringBuffer(StringBuffer buffer) {
+    buffer
+      ..write('Section "')
+      ..write(headerEntry.name)
+      ..writeln('" is a note:');
+    buffer
+      ..write('  Type: ')
+      ..writeln(type);
+    buffer
+      ..write('  Name: "')
+      ..write(name)
+      ..writeln('"');
+    buffer
+      ..write('  Description: ')
+      ..writeln(description);
   }
 
   @override

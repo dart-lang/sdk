@@ -353,7 +353,7 @@ compiler.''',
 
   /// For printing out reproducing command lines, we don't want to add these
   /// options.
-  static final _blacklistedOptions = {
+  static final _denylistedOptions = {
     'build_directory',
     'chrome',
     'clean_exit',
@@ -585,7 +585,7 @@ compiler.''',
     for (var option in _options) {
       var name = option.name;
       if (!data.containsKey(name) ||
-          _blacklistedOptions.contains(name) ||
+          _denylistedOptions.contains(name) ||
           (usingNamedConfiguration &&
               _namedConfigurationOptions.contains(name))) {
         continue;

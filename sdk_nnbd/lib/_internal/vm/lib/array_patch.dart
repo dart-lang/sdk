@@ -69,6 +69,7 @@ class List<E> {
   }
 
   @patch
+  @pragma("vm:prefer-inline")
   factory List.generate(int length, E generator(int index),
       {bool growable = true}) {
     final List<E> result =

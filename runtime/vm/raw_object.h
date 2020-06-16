@@ -2216,10 +2216,12 @@ class TypeParameterLayout : public AbstractTypeLayout {
   enum {
     kFinalizedBit = 0,
     kGenericCovariantImplBit,
+    kDeclarationBit,
   };
   class FinalizedBit : public BitField<uint8_t, bool, kFinalizedBit, 1> {};
   class GenericCovariantImplBit
       : public BitField<uint8_t, bool, kGenericCovariantImplBit, 1> {};
+  class DeclarationBit : public BitField<uint8_t, bool, kDeclarationBit, 1> {};
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeParameter);

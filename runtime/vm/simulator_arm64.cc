@@ -2171,7 +2171,6 @@ void Simulator::DecodeLoadStoreExclusive(Instr* instr) {
     UNIMPLEMENTED();
   }
   const Register rs = instr->RsField();
-  ASSERT(rs == R31);  // Should-Be-One
   const Register rn = instr->RnField();
   const Register rt = instr->RtField();
   ASSERT(instr->Rt2Field() == R31);  // Should-Be-One
@@ -2181,12 +2180,14 @@ void Simulator::DecodeLoadStoreExclusive(Instr* instr) {
   if (is_load) {
     const bool is_load_acquire = !is_exclusive && is_ordered;
     if (is_load_acquire) {
+      ASSERT(rs == R31);  // Should-Be-One
       // Format(instr, "ldar 'rt, 'rn");
       const int64_t addr = get_register(rn, R31IsSP);
       const intptr_t value =
           (size == 3) ? ReadAcquire(addr, instr) : ReadAcquireW(addr, instr);
       set_register(instr, rt, value, R31IsSP);
     } else {
+      ASSERT(rs == R31);  // Should-Be-One
       // Format(instr, "ldxr 'rt, 'rn");
       const int64_t addr = get_register(rn, R31IsSP);
       const intptr_t value = (size == 3) ? ReadExclusiveX(addr, instr)
@@ -2196,6 +2197,7 @@ void Simulator::DecodeLoadStoreExclusive(Instr* instr) {
   } else {
     const bool is_store_release = !is_exclusive && is_ordered;
     if (is_store_release) {
+      ASSERT(rs == R31);  // Should-Be-One
       // Format(instr, "stlr 'rt, 'rn");
       const uword value = get_register(rt, R31IsSP);
       const uword addr = get_register(rn, R31IsSP);

@@ -1270,6 +1270,7 @@ class FlowModel<Variable, Type> {
       Iterable<Variable> writtenVariables,
       Iterable<Variable> capturedVariables) {
     Map<Variable, VariableModel<Variable, Type>> newVariableInfo;
+
     for (Variable variable in writtenVariables) {
       VariableModel<Variable, Type> info = infoFor(variable);
       if (info.promotedTypes != null) {
@@ -1278,6 +1279,7 @@ class FlowModel<Variable, Type> {
                 variableInfo))[variable] = info.discardPromotions();
       }
     }
+
     for (Variable variable in capturedVariables) {
       VariableModel<Variable, Type> info = variableInfo[variable];
       if (info == null) {
@@ -1291,8 +1293,14 @@ class FlowModel<Variable, Type> {
                 variableInfo))[variable] = info.writeCapture();
       }
     }
-    if (newVariableInfo == null) return this;
-    return new FlowModel<Variable, Type>._(reachable, newVariableInfo);
+
+    FlowModel<Variable, Type> result = newVariableInfo == null
+        ? this
+        : new FlowModel<Variable, Type>._(reachable, newVariableInfo);
+
+    result = result.joinUnassigned(written: writtenVariables);
+
+    return result;
   }
 
   /// Updates the state to reflect a control path that is known to have
@@ -2433,8 +2441,6 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   void for_end() {
-    FlowModel<Variable, Type> afterUpdate = _current;
-
     _WhileContext<Variable, Type> context =
         _stack.removeLast() as _WhileContext<Variable, Type>;
     // Tail of the stack: falseCondition, break
@@ -2442,7 +2448,6 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     FlowModel<Variable, Type> falseCondition = context._conditionInfo.ifFalse;
 
     _current = _join(falseCondition, breakState);
-    _current = _current.joinUnassigned(other: afterUpdate);
   }
 
   @override
@@ -2481,9 +2486,6 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     _stack.add(new _SimpleContext(_current));
     _current = _current.removePromotedAll(_assignedVariables._anywhere._written,
         _assignedVariables._anywhere._captured);
-    _current = _current.joinUnassigned(
-      written: _assignedVariables._anywhere._written,
-    );
   }
 
   @override
@@ -2744,15 +2746,19 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   void tryCatchStatement_bodyEnd(Node body) {
-    AssignedVariablesNodeInfo<Variable> info =
-        _assignedVariables._getInfoForNode(body);
+    FlowModel<Variable, Type> afterBody = _current;
+
     _TryContext<Variable, Type> context =
         _stack.last as _TryContext<Variable, Type>;
     FlowModel<Variable, Type> beforeBody = context._previous;
+
+    AssignedVariablesNodeInfo<Variable> info =
+        _assignedVariables._getInfoForNode(body);
     FlowModel<Variable, Type> beforeCatch =
         beforeBody.removePromotedAll(info._written, info._captured);
+
     context._beforeCatch = beforeCatch;
-    context._afterBodyAndCatches = _current;
+    context._afterBodyAndCatches = afterBody;
   }
 
   @override
@@ -2838,9 +2844,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   void whileStatement_end() {
     _WhileContext<Variable, Type> context =
         _stack.removeLast() as _WhileContext<Variable, Type>;
-    FlowModel<Variable, Type> afterBody = _current;
     _current = _join(context._conditionInfo.ifFalse, context._breakModel);
-    _current = _current.joinUnassigned(other: afterBody);
   }
 
   @override

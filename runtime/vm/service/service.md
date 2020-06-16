@@ -418,9 +418,9 @@ Service (DDS) that forward all core VM service RPCs described in this
 document to the true VM service.
 
 When DDS connects to the VM service, the VM service enters single client
-mode and will no longer accept incoming web socket connections. If DDS
-disconnects from the VM service, the VM service will once again start accepting
-incoming web socket connections.
+mode and will no longer accept incoming web socket connections, instead forwarding
+the web socket connection request to DDS. If DDS disconnects from the VM service,
+the VM service will once again start accepting incoming web socket connections.
 
 ### Protocol Extensions
 

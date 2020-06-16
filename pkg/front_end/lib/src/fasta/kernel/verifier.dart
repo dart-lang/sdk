@@ -263,12 +263,6 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
     return false;
   }
 
-  bool isFutureOrClass(Class c) {
-    return c.name == "FutureOr" &&
-        c.enclosingLibrary.importUri.scheme == "dart" &&
-        c.enclosingLibrary.importUri.path == "async";
-  }
-
   bool isObjectClass(Class c) {
     return c.name == "Object" &&
         c.enclosingLibrary.importUri.scheme == "dart" &&
@@ -282,16 +276,12 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
             isObjectClass(node.classNode) &&
             (node.nullability == Nullability.nullable ||
                 node.nullability == Nullability.legacy) ||
-        node is InterfaceType &&
-            isFutureOrClass(node.classNode) &&
-            isTopType(node.typeArguments.single);
+        node is FutureOrType && isTopType(node.typeArgument);
   }
 
   bool isFutureOrNull(DartType node) {
     return isNullType(node) ||
-        node is InterfaceType &&
-            isFutureOrClass(node.classNode) &&
-            isFutureOrNull(node.typeArguments.single);
+        node is FutureOrType && isFutureOrNull(node.typeArgument);
   }
 
   @override

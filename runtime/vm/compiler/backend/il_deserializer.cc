@@ -1111,7 +1111,14 @@ LoadFieldInstr* FlowGraphDeserializer::DeserializeLoadField(
   const Slot* slot;
   if (!ParseSlot(CheckTaggedList(Retrieve(sexp, 2)), &slot)) return nullptr;
 
-  return new (zone()) LoadFieldInstr(instance, *slot, info.token_pos);
+  bool calls_initializer = false;
+  if (auto const calls_initializer_sexp =
+          CheckBool(sexp->ExtraLookupValue("calls_initializer"))) {
+    calls_initializer = calls_initializer_sexp->value();
+  }
+
+  return new (zone()) LoadFieldInstr(instance, *slot, info.token_pos,
+                                     calls_initializer, info.deopt_id);
 }
 
 NativeCallInstr* FlowGraphDeserializer::DeserializeNativeCall(

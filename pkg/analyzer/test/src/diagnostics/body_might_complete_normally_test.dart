@@ -22,6 +22,26 @@ class BodyMayCompleteNormallyTest extends DriverResolutionTest {
     ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.7.0', additionalFeatures: [Feature.non_nullable]);
 
+  test_factoryConstructor_named_blockBody() async {
+    await assertErrorsInCode(r'''
+class A {
+  factory A.named() {}
+}
+''', [
+      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 20, 7),
+    ]);
+  }
+
+  test_factoryConstructor_unnamed_blockBody() async {
+    await assertErrorsInCode(r'''
+class A {
+  factory A() {}
+}
+''', [
+      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 20, 1),
+    ]);
+  }
+
   test_function_future_int_blockBody_async() async {
     await assertErrorsInCode(r'''
 Future<int> foo() async {}
@@ -62,6 +82,89 @@ Stream<int> foo() async* {}
     await assertNoErrorsInCode(r'''
 Iterable<int> foo() sync* {}
 ''');
+  }
+
+  test_function_nonNullable_blockBody_switchStatement_notNullable_exhaustive() async {
+    await assertNoErrorsInCode(r'''
+enum Foo { a, b }
+
+int f(Foo foo) {
+  switch (foo) {
+    case Foo.a:
+      return 0;
+    case Foo.b:
+      return 1;
+  }
+}
+''');
+  }
+
+  test_function_nonNullable_blockBody_switchStatement_notNullable_notExhaustive() async {
+    await assertErrorsInCode(r'''
+enum Foo { a, b }
+
+int f(Foo foo) {
+  switch (foo) {
+    case Foo.a:
+      return 0;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 23, 1),
+      error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 38, 12),
+    ]);
+  }
+
+  test_function_nonNullable_blockBody_switchStatement_nullable_exhaustive_default() async {
+    await assertNoErrorsInCode(r'''
+enum Foo { a, b }
+
+int f(Foo? foo) {
+  switch (foo) {
+    case Foo.a:
+      return 0;
+    case Foo.b:
+      return 1;
+    default:
+      return 2;
+  }
+}
+''');
+  }
+
+  test_function_nonNullable_blockBody_switchStatement_nullable_exhaustive_null() async {
+    await assertNoErrorsInCode(r'''
+enum Foo { a, b }
+
+int f(Foo? foo) {
+  switch (foo) {
+    case null:
+      return 0;
+    case Foo.a:
+      return 1;
+    case Foo.b:
+      return 2;
+  }
+}
+''');
+  }
+
+  test_function_nonNullable_blockBody_switchStatement_nullable_notExhaustive_null() async {
+    await assertErrorsInCode(r'''
+enum Foo { a, b }
+
+int f(Foo? foo) {
+  switch (foo) {
+    case Foo.a:
+      return 0;
+    case Foo.b:
+      return 1;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 23, 1),
+      error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 39, 12),
+    ]);
   }
 
   test_function_nullable_blockBody() async {
@@ -132,6 +235,22 @@ main() {
   int? Function() foo = () {
   };
   foo;
+}
+''');
+  }
+
+  test_generativeConstructor_blockBody() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A() {}
+}
+''');
+  }
+
+  test_generativeConstructor_emptyBody() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A();
 }
 ''');
   }

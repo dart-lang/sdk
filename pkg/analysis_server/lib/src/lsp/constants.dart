@@ -90,6 +90,7 @@ abstract class ServerErrorCodes {
   static const ClientFailedToApplyEdit = ErrorCodes(-32009);
   static const RenameNotValid = ErrorCodes(-32010);
   static const RefactorFailed = ErrorCodes(-32011);
+  static const FeatureDisabled = ErrorCodes(-32012);
 
   /// An error raised when the server detects that the server and client are out
   /// of sync and cannot recover. For example if a textDocument/didChange notification

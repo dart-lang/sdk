@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -15,15 +14,15 @@ import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart'
 /// inside a class declaration with templates for inherited members.
 class OverrideContributor implements DartCompletionContributor {
   @override
-  Future<List<CompletionSuggestion>> computeSuggestions(
+  Future<void> computeSuggestions(
       DartCompletionRequest request, SuggestionBuilder builder) async {
     var targetId = _getTargetId(request.target);
     if (targetId == null) {
-      return const <CompletionSuggestion>[];
+      return;
     }
     var classDecl = targetId.thisOrAncestorOfType<ClassOrMixinDeclaration>();
     if (classDecl == null) {
-      return const <CompletionSuggestion>[];
+      return;
     }
 
     var inheritance = InheritanceManager3();
@@ -36,7 +35,6 @@ class OverrideContributor implements DartCompletionContributor {
         _namesToOverride(classElem.librarySource.uri, interface);
 
     // Build suggestions
-    var suggestions = <CompletionSuggestion>[];
     for (var name in namesToOverride) {
       var element = interfaceMap[name];
       // Gracefully degrade if the overridden element has not been resolved.
@@ -45,7 +43,6 @@ class OverrideContributor implements DartCompletionContributor {
         await builder.suggestOverride(targetId, element, invokeSuper);
       }
     }
-    return suggestions;
   }
 
   /// If the target looks like a partial identifier inside a class declaration

@@ -168,7 +168,7 @@ Map<int, List<int>> diffBinary(Uint8List bytes1, Uint8List bytes2) {
 void printDiff(Map<int, List<int>> map, [int maxOutput = 100]) {
   int lines = 0;
   for (var index in map.keys) {
-    final pair = map[index];
+    final pair = map[index]!;
     if (pair[0] == -1) {
       print('$index: <>, ${pair[1]}');
       lines++;

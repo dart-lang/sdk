@@ -5,11 +5,13 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../dart/constant/potentially_constant_test.dart';
 import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReturnWithoutValueTest);
+    defineReflectiveTests(ReturnWithoutValueWithNullSafetyTest);
   });
 }
 
@@ -57,9 +59,9 @@ int f() {
     ]);
   }
 
-  test_function_dynamic() async {
+  test_function_async_block_empty__to_dynamic() async {
     await assertNoErrorsInCode('''
-f() {
+dynamic f() async {
   return;
 }
 ''');
@@ -68,6 +70,22 @@ f() {
   test_function_Null() async {
     // Test that block bodied functions with return type Null and an empty
     // return cause a static warning.
+    await assertNoErrorsInCode('''
+Null f() {
+  return;
+}
+''');
+  }
+
+  test_function_sync_block_empty__to_dynamic() async {
+    await assertNoErrorsInCode('''
+dynamic f() {
+  return;
+}
+''');
+  }
+
+  test_function_sync_block_empty__to_Null() async {
     await assertNoErrorsInCode('''
 Null f() {
   return;
@@ -98,6 +116,14 @@ f() {
     ]);
   }
 
+  test_functionExpression_async_block_empty__to_Object() async {
+    await assertNoErrorsInCode('''
+Object Function() f = () async {
+  return;
+};
+''');
+  }
+
   test_method() async {
     await assertErrorsInCode('''
 class A {
@@ -125,3 +151,7 @@ int f(int x) {
     ]);
   }
 }
+
+@reflectiveTest
+class ReturnWithoutValueWithNullSafetyTest extends ReturnWithoutValueTest
+    with WithNullSafetyMixin {}

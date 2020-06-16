@@ -120,6 +120,7 @@
   FIELD(LinkedHashMap, index_offset)                                           \
   FIELD(LinkedHashMap, type_arguments_offset)                                  \
   FIELD(LinkedHashMap, used_data_offset)                                       \
+  FIELD(LocalHandle, raw_offset)                                               \
   FIELD(MarkingStackBlock, pointers_offset)                                    \
   FIELD(MarkingStackBlock, top_offset)                                         \
   FIELD(MegamorphicCache, buckets_offset)                                      \
@@ -159,6 +160,7 @@
   FIELD(Thread, allocate_object_parameterized_stub_offset)                     \
   FIELD(Thread, allocate_object_slow_entry_point_offset)                       \
   FIELD(Thread, allocate_object_slow_stub_offset)                              \
+  FIELD(Thread, api_top_scope_offset)                                          \
   FIELD(Thread, async_stack_trace_offset)                                      \
   FIELD(Thread, auto_scope_native_wrapper_entry_point_offset)                  \
   FIELD(Thread, bool_false_offset)                                             \
@@ -190,6 +192,7 @@
   FIELD(Thread, interpret_call_entry_point_offset)                             \
   FIELD(Thread, invoke_dart_code_from_bytecode_stub_offset)                    \
   FIELD(Thread, invoke_dart_code_stub_offset)                                  \
+  FIELD(Thread, exit_through_ffi_offset)                                       \
   FIELD(Thread, isolate_offset)                                                \
   FIELD(Thread, field_table_values_offset)                                     \
   FIELD(Thread, lazy_deopt_from_return_stub_offset)                            \
@@ -247,6 +250,8 @@
   FIELD(TypedDataView, data_offset)                                            \
   FIELD(TypedDataView, offset_in_bytes_offset)                                 \
   FIELD(TypedData, data_offset)                                                \
+  FIELD(UnhandledException, exception_offset)                                  \
+  FIELD(UnhandledException, stacktrace_offset)                                 \
   FIELD(UserTag, tag_offset)                                                   \
   FIELD(MonomorphicSmiableCall, expected_cid_offset)                           \
   FIELD(MonomorphicSmiableCall, entrypoint_offset)                             \

@@ -260,10 +260,6 @@ class DartObjectImpl implements DartObject {
   DartObjectImpl castToType(
       TypeSystemImpl typeSystem, DartObjectImpl castType) {
     _assertType(castType);
-    if (isNull) {
-      return this;
-    }
-
     var resultType = (castType._state as TypeState)._type;
 
     // We don't know the actual value of a type parameter.

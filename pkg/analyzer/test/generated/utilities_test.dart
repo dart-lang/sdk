@@ -3562,9 +3562,9 @@ class SourceRangeTest {
     SourceRange r = SourceRange(5, 10);
     expect(r.contains(5), isTrue);
     expect(r.contains(10), isTrue);
-    expect(r.contains(14), isTrue);
+    expect(r.contains(15), isTrue);
     expect(r.contains(0), isFalse);
-    expect(r.contains(15), isFalse);
+    expect(r.contains(16), isFalse);
   }
 
   void test_containsExclusive() {

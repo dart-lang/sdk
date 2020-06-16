@@ -31,6 +31,7 @@ import 'package:analyzer/source/line_info.dart' as server;
 import 'package:analyzer/src/generated/source.dart' as server;
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/services/available_declarations.dart' as dec;
+import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart' as server;
 
 const languageSourceName = 'dart';
@@ -545,6 +546,69 @@ ErrorOr<String> pathOfUri(Uri uri) {
         lsp.ServerErrorCodes.InvalidFilePath,
         'File URI did not contain a valid file path',
         uri.toString()));
+  }
+}
+
+lsp.Diagnostic pluginToDiagnostic(
+  server.LineInfo Function(String) getLineInfo,
+  plugin.AnalysisError error,
+) {
+  List<DiagnosticRelatedInformation> relatedInformation;
+  if (error.contextMessages != null && error.contextMessages.isNotEmpty) {
+    relatedInformation = error.contextMessages
+        .map((message) =>
+            pluginToDiagnosticRelatedInformation(getLineInfo, message))
+        .toList();
+  }
+
+  var message = error.message;
+  if (error.correction != null) {
+    message = '$message\n${error.correction}';
+  }
+
+  var lineInfo = getLineInfo(error.location.file);
+  return lsp.Diagnostic(
+    toRange(lineInfo, error.location.offset, error.location.length),
+    pluginToDiagnosticSeverity(error.severity),
+    error.code,
+    languageSourceName,
+    message,
+    relatedInformation,
+  );
+}
+
+lsp.DiagnosticRelatedInformation pluginToDiagnosticRelatedInformation(
+    server.LineInfo Function(String) getLineInfo,
+    plugin.DiagnosticMessage message) {
+  var file = message.location.file;
+  var lineInfo = getLineInfo(file);
+  return lsp.DiagnosticRelatedInformation(
+      lsp.Location(
+        Uri.file(file).toString(),
+        toRange(
+          lineInfo,
+          message.location.offset,
+          message.location.length,
+        ),
+      ),
+      message.message);
+}
+
+lsp.DiagnosticSeverity pluginToDiagnosticSeverity(
+    plugin.AnalysisErrorSeverity severity) {
+  switch (severity) {
+    case plugin.AnalysisErrorSeverity.ERROR:
+      return lsp.DiagnosticSeverity.Error;
+    case plugin.AnalysisErrorSeverity.WARNING:
+      return lsp.DiagnosticSeverity.Warning;
+    case plugin.AnalysisErrorSeverity.INFO:
+      return lsp.DiagnosticSeverity.Information;
+    // Note: LSP also supports "Hint", but they won't render in things like the
+    // VS Code errors list as they're apparently intended to communicate
+    // non-visible diagnostics back (for example, if you wanted to grey out
+    // unreachable code without producing an item in the error list).
+    default:
+      throw 'Unknown AnalysisErrorSeverity: $severity';
   }
 }
 

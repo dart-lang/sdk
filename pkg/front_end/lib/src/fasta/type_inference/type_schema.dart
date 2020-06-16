@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart'
         DartTypeVisitor,
         DartTypeVisitor1,
         FunctionType,
+        FutureOrType,
         InterfaceType,
         NamedType,
         Nullability,
@@ -60,10 +61,10 @@ class UnknownType extends DartType {
   const UnknownType();
 
   @override
-  Nullability get nullability => null;
+  Nullability get declaredNullability => null;
 
   @override
-  Nullability get declaredNullability => null;
+  Nullability get nullability => null;
 
   @override
   bool operator ==(Object other) => equals(other, null);
@@ -129,6 +130,11 @@ class _IsKnownVisitor extends DartTypeVisitor<bool> {
       if (!typeArgument.accept(this)) return false;
     }
     return true;
+  }
+
+  @override
+  bool visitFutureOrType(FutureOrType node) {
+    return node.typeArgument.accept(this);
   }
 
   @override

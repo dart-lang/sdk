@@ -20,7 +20,7 @@ class MyFuture<T extends core::Object* = dynamic> extends core::Object implement
     : super core::Object::•() {}
   method noSuchMethod(core::Invocation* invocation) → dynamic
     return null;
-  method then<S extends core::Object* = dynamic>((self::MyFuture::T*) →* asy::FutureOr<self::MyFuture::then::S*>* f, {core::Function* onError = #C1}) → self::MyFuture<self::MyFuture::then::S*>*
+  method then<S extends core::Object* = dynamic>((self::MyFuture::T*) →* FutureOr<self::MyFuture::then::S*>* f, {core::Function* onError = #C1}) → self::MyFuture<self::MyFuture::then::S*>*
     return null;
   abstract member-signature get _identityHashCode() → core::int*;
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
@@ -33,11 +33,11 @@ class MyFuture<T extends core::Object* = dynamic> extends core::Object implement
   abstract member-signature get runtimeType() → core::Type*;
   member-signature no-such-method-forwarder method catchError(core::Function* onError, {(core::Object*) →* core::bool* test = #C1}) → asy::Future<self::MyFuture::T*>*
     return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[onError]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C4: test}))) as{TypeError,ForDynamic} asy::Future<self::MyFuture::T*>*;
-  member-signature no-such-method-forwarder method whenComplete(() →* asy::FutureOr<void>* action) → asy::Future<self::MyFuture::T*>*
+  member-signature no-such-method-forwarder method whenComplete(() →* FutureOr<void>* action) → asy::Future<self::MyFuture::T*>*
     return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[action]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C7))) as{TypeError,ForDynamic} asy::Future<self::MyFuture::T*>*;
   member-signature no-such-method-forwarder method asStream() → asy::Stream<self::MyFuture::T*>*
     return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#C8, 0, #C3, #C6, core::Map::unmodifiable<core::Symbol*, dynamic>(#C7))) as{TypeError,ForDynamic} asy::Stream<self::MyFuture::T*>*;
-  member-signature no-such-method-forwarder method timeout(core::Duration* timeLimit, {generic-covariant-impl () →* asy::FutureOr<self::MyFuture::T*>* onTimeout = #C1}) → asy::Future<self::MyFuture::T*>*
+  member-signature no-such-method-forwarder method timeout(core::Duration* timeLimit, {generic-covariant-impl () →* FutureOr<self::MyFuture::T*>onTimeout = #C1}) → asy::Future<self::MyFuture::T*>*
     return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#C9, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[timeLimit]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C10: onTimeout}))) as{TypeError,ForDynamic} asy::Future<self::MyFuture::T*>*;
 }
 static method test() → void {

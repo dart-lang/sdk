@@ -28,6 +28,7 @@
 #include "vm/os.h"
 #include "vm/regexp_assembler_ir.h"
 #include "vm/resolver.h"
+#include "vm/runtime_entry.h"
 #include "vm/scopes.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
@@ -600,11 +601,15 @@ static int OrderById(CidRange* const* a, CidRange* const* b) {
   return (*a)->cid_start - (*b)->cid_start;
 }
 
-static int OrderByFrequency(CidRange* const* a, CidRange* const* b) {
+static int OrderByFrequencyThenId(CidRange* const* a, CidRange* const* b) {
   const TargetInfo* target_info_a = static_cast<const TargetInfo*>(*a);
   const TargetInfo* target_info_b = static_cast<const TargetInfo*>(*b);
   // Negative if 'a' should sort before 'b'.
-  return target_info_b->count - target_info_a->count;
+  if (target_info_b->count != target_info_a->count) {
+    return (target_info_b->count - target_info_a->count);
+  } else {
+    return (*a)->cid_start - (*b)->cid_start;
+  }
 }
 
 bool Cids::Equals(const Cids& other) const {
@@ -1035,34 +1040,27 @@ bool LoadFieldInstr::AttributesEqual(Instruction* other) const {
   return &this->slot_ == &other_load->slot_;
 }
 
-Instruction* InitInstanceFieldInstr::Canonicalize(FlowGraph* flow_graph) {
-  return this;
+bool LoadStaticFieldInstr::AttributesEqual(Instruction* other) const {
+  ASSERT(IsFieldInitialized());
+  return field().raw() == other->AsLoadStaticField()->field().raw();
 }
 
-Instruction* InitStaticFieldInstr::Canonicalize(FlowGraph* flow_graph) {
-  const bool is_initialized =
-      (field_.StaticValue() != Object::sentinel().raw()) &&
-      (field_.StaticValue() != Object::transition_sentinel().raw());
+bool LoadStaticFieldInstr::IsFieldInitialized() const {
+  const Field& field = this->field();
+  return (field.StaticValue() != Object::sentinel().raw()) &&
+         (field.StaticValue() != Object::transition_sentinel().raw());
+}
+
+Definition* LoadStaticFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   // When precompiling, the fact that a field is currently initialized does not
   // make it safe to omit code that checks if the field needs initialization
   // because the field will be reset so it starts uninitialized in the process
   // running the precompiled code. We must be prepared to reinitialize fields.
-  return is_initialized && !FLAG_fields_may_be_reset ? NULL : this;
-}
-
-bool LoadStaticFieldInstr::AttributesEqual(Instruction* other) const {
-  LoadStaticFieldInstr* other_load = other->AsLoadStaticField();
-  ASSERT(other_load != NULL);
-  // Assert that the field is initialized.
-  ASSERT(StaticField().StaticValue() != Object::sentinel().raw());
-  ASSERT(StaticField().StaticValue() != Object::transition_sentinel().raw());
-  return StaticField().raw() == other_load->StaticField().raw();
-}
-
-bool LoadStaticFieldInstr::IsFieldInitialized() const {
-  const Field& field = StaticField();
-  return (field.StaticValue() != Object::sentinel().raw()) &&
-         (field.StaticValue() != Object::transition_sentinel().raw());
+  if (calls_initializer() && !FLAG_fields_may_be_reset &&
+      IsFieldInitialized()) {
+    set_calls_initializer(false);
+  }
+  return this;
 }
 
 ConstantInstr::ConstantInstr(const Object& value, TokenPosition token_pos)
@@ -2600,6 +2598,8 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kPointerBase_data_field:
     case Slot::Kind::kType_arguments:
     case Slot::Kind::kTypeArgumentsIndex:
+    case Slot::Kind::kUnhandledException_exception:
+    case Slot::Kind::kUnhandledException_stacktrace:
       return false;
   }
   UNREACHABLE();
@@ -2704,9 +2704,10 @@ bool LoadFieldInstr::Evaluate(const Object& instance, Object* result) {
 }
 
 Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
-  if (!HasUses()) return nullptr;
+  if (!HasUses() && !calls_initializer()) return nullptr;
 
   if (IsImmutableLengthLoad()) {
+    ASSERT(!calls_initializer());
     Definition* array = instance()->definition()->OriginalDefinition();
     if (StaticCallInstr* call = array->AsStaticCall()) {
       // For fixed length arrays if the array is the result of a known
@@ -2749,6 +2750,7 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   } else if (slot().kind() == Slot::Kind::kTypedDataView_data) {
     // This case cover the first explicit argument to typed data view
     // factories, the data (buffer).
+    ASSERT(!calls_initializer());
     Definition* array = instance()->definition()->OriginalDefinition();
     if (StaticCallInstr* call = array->AsStaticCall()) {
       if (IsTypedDataViewFactory(call->function())) {
@@ -2758,6 +2760,7 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   } else if (slot().kind() == Slot::Kind::kTypedDataView_offset_in_bytes) {
     // This case cover the second explicit argument to typed data view
     // factories, the offset into the buffer.
+    ASSERT(!calls_initializer());
     Definition* array = instance()->definition()->OriginalDefinition();
     if (StaticCallInstr* call = array->AsStaticCall()) {
       if (IsTypedDataViewFactory(call->function())) {
@@ -2770,6 +2773,7 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
       }
     }
   } else if (slot().IsTypeArguments()) {
+    ASSERT(!calls_initializer());
     Definition* array = instance()->definition()->OriginalDefinition();
     if (StaticCallInstr* call = array->AsStaticCall()) {
       if (call->is_known_list_constructor()) {
@@ -2912,9 +2916,8 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
 
   if ((instantiator_type_args != nullptr) && (function_type_args != nullptr)) {
     AbstractType& new_dst_type = AbstractType::Handle(
-        Z,
-        abs_type.InstantiateFrom(*instantiator_type_args, *function_type_args,
-                                 kAllFree, nullptr, Heap::kOld));
+        Z, abs_type.InstantiateFrom(*instantiator_type_args,
+                                    *function_type_args, kAllFree, Heap::kOld));
     if (new_dst_type.IsNull()) {
       // Failed instantiation in dead code.
       return this;
@@ -3827,7 +3830,7 @@ void CallTargets::MergeIntoRanges() {
     }
   }
   SetLength(dest + 1);
-  Sort(OrderByFrequency);
+  Sort(OrderByFrequencyThenId);
 }
 
 void CallTargets::Print() const {
@@ -4033,86 +4036,86 @@ void IndirectEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   JoinEntryInstr::EmitNativeCode(compiler);
 }
 
-LocationSummary* InitStaticFieldInstr::MakeLocationSummary(Zone* zone,
+LocationSummary* LoadStaticFieldInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = 0;
   const intptr_t kNumTemps = 0;
-  LocationSummary* locs = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  LocationSummary* locs = new (zone) LocationSummary(
+      zone, kNumInputs, kNumTemps,
+      calls_initializer() ? LocationSummary::kCall : LocationSummary::kNoCall);
+  locs->set_out(0, calls_initializer() ? Location::RegisterLocation(
+                                             InitStaticFieldABI::kResultReg)
+                                       : Location::RequiresRegister());
   return locs;
 }
 
-void InitStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register result = locs()->out(0).reg();
+
+  compiler->used_static_fields().Add(&field());
+
   // Note: static fields ids won't be changed by hot-reload.
   const intptr_t field_table_offset =
       compiler::target::Thread::field_table_values_offset();
   const intptr_t field_offset = compiler::target::FieldTable::OffsetOf(field());
 
-  auto object_store = compiler->isolate()->object_store();
-  const auto& init_static_field_stub = Code::ZoneHandle(
-      compiler->zone(), object_store->init_static_field_stub());
+  __ LoadMemoryValue(result, THR, static_cast<int32_t>(field_table_offset));
+  __ LoadMemoryValue(result, result, static_cast<int32_t>(field_offset));
 
-  const Register temp = InitStaticFieldABI::kFieldReg;
-  __ LoadMemoryValue(temp, THR, static_cast<int32_t>(field_table_offset));
-  __ LoadMemoryValue(temp, temp, static_cast<int32_t>(field_offset));
+  if (calls_initializer()) {
+    compiler::Label call_runtime, no_call;
+    __ CompareObject(result, Object::sentinel());
 
-  compiler::Label call_runtime, no_call;
-  __ CompareObject(temp, Object::sentinel());
+    if (!field().is_late()) {
+      __ BranchIf(EQUAL, &call_runtime);
+      __ CompareObject(result, Object::transition_sentinel());
+    }
 
-  if (!field().is_late()) {
-    __ BranchIf(EQUAL, &call_runtime);
-    __ CompareObject(temp, Object::transition_sentinel());
+    __ BranchIf(NOT_EQUAL, &no_call);
+
+    __ Bind(&call_runtime);
+    __ LoadObject(InitStaticFieldABI::kFieldReg,
+                  Field::ZoneHandle(field().Original()));
+
+    auto object_store = compiler->isolate()->object_store();
+    const auto& init_static_field_stub = Code::ZoneHandle(
+        compiler->zone(), object_store->init_static_field_stub());
+    compiler->GenerateStubCall(token_pos(), init_static_field_stub,
+                               /*kind=*/PcDescriptorsLayout::kOther, locs(),
+                               deopt_id());
+    __ Bind(&no_call);
   }
-
-  __ BranchIf(NOT_EQUAL, &no_call);
-
-  __ Bind(&call_runtime);
-  __ LoadObject(InitStaticFieldABI::kFieldReg,
-                Field::ZoneHandle(field().Original()));
-  compiler->GenerateStubCall(token_pos(), init_static_field_stub,
-                             /*kind=*/PcDescriptorsLayout::kOther, locs(),
-                             deopt_id());
-  __ Bind(&no_call);
 }
 
-LocationSummary* InitInstanceFieldInstr::MakeLocationSummary(Zone* zone,
-                                                             bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  auto const locs = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0,
-               Location::RegisterLocation(InitInstanceFieldABI::kInstanceReg));
-  return locs;
-}
-
-void InitInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register temp = InitInstanceFieldABI::kFieldReg;
-
-  __ LoadField(temp, compiler::FieldAddress(InitInstanceFieldABI::kInstanceReg,
-                                            field().TargetOffset()));
+void LoadFieldInstr::EmitNativeCodeForInitializerCall(
+    FlowGraphCompiler* compiler) {
+  ASSERT(calls_initializer());
+  ASSERT(locs()->in(0).reg() == InitInstanceFieldABI::kInstanceReg);
+  ASSERT(locs()->out(0).reg() == InitInstanceFieldABI::kResultReg);
+  ASSERT(slot().IsDartField());
+  const Field& field = slot().field();
+  const Field& original_field = Field::ZoneHandle(field.Original());
 
   compiler::Label no_call;
-  __ CompareObject(temp, Object::sentinel());
+  __ CompareObject(InitInstanceFieldABI::kResultReg, Object::sentinel());
   __ BranchIf(NOT_EQUAL, &no_call);
 
-  __ LoadObject(InitInstanceFieldABI::kFieldReg,
-                Field::ZoneHandle(field().Original()));
+  __ LoadObject(InitInstanceFieldABI::kFieldReg, original_field);
 
   auto object_store = compiler->isolate()->object_store();
   auto& stub = Code::ZoneHandle(compiler->zone());
-  if (field().needs_load_guard()) {
+  if (field.needs_load_guard()) {
     stub = object_store->init_instance_field_stub();
-  } else if (field().is_late()) {
-    if (!field().has_nontrivial_initializer()) {
+  } else if (field.is_late()) {
+    if (!field.has_nontrivial_initializer()) {
       // Common stub calls runtime which will throw an exception.
       stub = object_store->init_instance_field_stub();
     } else {
       // Stubs for late field initialization call initializer
       // function directly, so make sure one is created.
-      field().EnsureInitializerFunction();
+      original_field.EnsureInitializerFunction();
 
-      if (field().is_final()) {
+      if (field.is_final()) {
         stub = object_store->init_late_final_instance_field_stub();
       } else {
         stub = object_store->init_late_instance_field_stub();
@@ -4261,7 +4264,7 @@ void ParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 void NativeParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The native entry frame has size -kExitLinkSlotFromFp. In order to access
   // the top of stack from above the entry frame, we add a constant to account
-  // for the the two frame pointers and two return addresses of the entry frame.
+  // for the two frame pointers and two return addresses of the entry frame.
   constexpr intptr_t kEntryFramePadding = 4;
   compiler::ffi::FrameRebase rebase(
       /*old_base=*/SPREG, /*new_base=*/FPREG,
@@ -5731,6 +5734,10 @@ StoreIndexedInstr::StoreIndexedInstr(Value* array,
   SetInputAt(kValuePos, value);
 }
 
+bool Utf8ScanInstr::IsScanFlagsUnboxed() const {
+  return FlowGraphCompiler::IsUnboxedField(scan_flags_field_.field());
+}
+
 InvokeMathCFunctionInstr::InvokeMathCFunctionInstr(
     ZoneGrowableArray<Value*>* inputs,
     intptr_t deopt_id,
@@ -5953,6 +5960,133 @@ void FfiCallInstr::EmitReturnMoves(FlowGraphCompiler* compiler) {
   const Representation dst_type = representation();
   NoTemporaryAllocator no_temp;
   compiler->EmitMoveFromNative(dst_loc, dst_type, src, &no_temp);
+}
+
+static Location FirstArgumentLocation() {
+#ifdef TARGET_ARCH_IA32
+  return Location::StackSlot(0, SPREG);
+#else
+  return Location::RegisterLocation(CallingConventions::ArgumentRegisters[0]);
+#endif
+}
+
+LocationSummary* EnterHandleScopeInstr::MakeLocationSummary(
+    Zone* zone,
+    bool is_optimizing) const {
+  LocationSummary* summary =
+      new (zone) LocationSummary(zone, /*num_inputs=*/0,
+                                 /*num_temps=*/0, LocationSummary::kCall);
+  summary->set_out(0,
+                   Location::RegisterLocation(CallingConventions::kReturnReg));
+  return summary;
+}
+
+void EnterHandleScopeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (kind_ == Kind::kGetTopHandleScope) {
+    __ LoadMemoryValue(CallingConventions::kReturnReg, THR,
+                       compiler::target::Thread::api_top_scope_offset());
+    return;
+  }
+
+  Location arg_loc = FirstArgumentLocation();
+  __ EnterCFrame(arg_loc.IsRegister() ? 0 : compiler::target::kWordSize);
+  NoTemporaryAllocator no_temp;
+  compiler->EmitMove(arg_loc, Location::RegisterLocation(THR), &no_temp);
+  __ CallCFunction(
+      compiler::Address(THR, compiler::target::Thread::OffsetFromThread(
+                                 &kEnterHandleScopeRuntimeEntry)));
+  __ LeaveCFrame();
+}
+
+LocationSummary* ExitHandleScopeInstr::MakeLocationSummary(
+    Zone* zone,
+    bool is_optimizing) const {
+  LocationSummary* summary =
+      new (zone) LocationSummary(zone, /*num_inputs=*/0,
+                                 /*num_temps=*/0, LocationSummary::kCall);
+  return summary;
+}
+
+void ExitHandleScopeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Location arg_loc = FirstArgumentLocation();
+  __ EnterCFrame(arg_loc.IsRegister() ? 0 : compiler::target::kWordSize);
+  NoTemporaryAllocator no_temp;
+  compiler->EmitMove(arg_loc, Location::RegisterLocation(THR), &no_temp);
+  __ CallCFunction(
+      compiler::Address(THR, compiler::target::Thread::OffsetFromThread(
+                                 &kExitHandleScopeRuntimeEntry)));
+  __ LeaveCFrame();
+}
+
+LocationSummary* AllocateHandleInstr::MakeLocationSummary(
+    Zone* zone,
+    bool is_optimizing) const {
+  LocationSummary* summary =
+      new (zone) LocationSummary(zone, /*num_inputs=*/1,
+                                 /*num_temps=*/0, LocationSummary::kCall);
+
+  Location arg_loc = FirstArgumentLocation();
+  // Assign input to a register that does not conflict with anything if
+  // argument is passed on the stack.
+  const Register scope_reg =
+      arg_loc.IsStackSlot() ? CallingConventions::kSecondNonArgumentRegister
+                            : arg_loc.reg();
+
+  summary->set_in(kScope, Location::RegisterLocation(scope_reg));
+  summary->set_out(0,
+                   Location::RegisterLocation(CallingConventions::kReturnReg));
+  return summary;
+}
+
+Representation AllocateHandleInstr::RequiredInputRepresentation(
+    intptr_t idx) const {
+  ASSERT(idx == kScope);
+  return kUnboxedIntPtr;
+}
+
+void AllocateHandleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Location arg_loc = FirstArgumentLocation();
+  __ EnterCFrame(arg_loc.IsRegister() ? 0 : compiler::target::kWordSize);
+  if (arg_loc.IsStackSlot()) {
+    NoTemporaryAllocator no_temp;
+    compiler->EmitMove(arg_loc, locs()->in(kScope), &no_temp);
+  }
+  __ CallCFunction(
+      compiler::Address(THR, compiler::target::Thread::OffsetFromThread(
+                                 &kAllocateHandleRuntimeEntry)));
+  __ LeaveCFrame();
+}
+
+LocationSummary* RawStoreFieldInstr::MakeLocationSummary(
+    Zone* zone,
+    bool is_optimizing) const {
+  LocationSummary* summary =
+      new (zone) LocationSummary(zone, /*num_inputs=*/2,
+                                 /*num_temps=*/0, LocationSummary::kNoCall);
+
+  summary->set_in(kBase, Location::RequiresRegister());
+  summary->set_in(kValue, Location::RequiresRegister());
+
+  return summary;
+}
+
+Representation RawStoreFieldInstr::RequiredInputRepresentation(
+    intptr_t idx) const {
+  switch (idx) {
+    case kBase:
+      return kUntagged;
+    case kValue:
+      return kTagged;
+    default:
+      break;
+  }
+  UNREACHABLE();
+}
+
+void RawStoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register base_reg = locs()->in(kBase).reg();
+  const Register value_reg = locs()->in(kValue).reg();
+  compiler->assembler()->StoreMemoryValue(value_reg, base_reg, offset_);
 }
 
 void NativeReturnInstr::EmitReturnMoves(FlowGraphCompiler* compiler) {

@@ -409,7 +409,7 @@
       "command-lines": [
         "--checked dart2js",
         "-cdart2js -rd8 --exclude-suite=observatory_ui",
-        "-cdart2js -rd8 dart2js_extra dart2js_native"
+        "-cdart2js -rd8 dart2js_2"
       ]
     },
     {
@@ -436,7 +436,7 @@
         "-t240 --checked pkg/(kernel|front_end|fasta) dart2js",
         "-cdartk -rvm",
         "-cdart2js -rd8 --exclude-suite=observatory_ui",
-        "-cdart2js -rd8 dart2js_extra dart2js_native"
+        "-cdart2js -rd8 dart2js_2"
       ]
     },
     {
@@ -447,7 +447,7 @@
       "mode": "release",
       "common": "--dart2js-batch --time -pcolor --report -ax64 -mrelease --write-result-log",
       "command-lines": [
-        "-cdart2js -rd8 --use-sdk --minified language language_2 dart2js_extra dart2js_native corelib corelib_2"
+        "-cdart2js -rd8 --use-sdk --minified language language_2 dart2js_2 corelib corelib_2"
       ]
     }
   ],
@@ -458,7 +458,8 @@
       "tool/",
       "test/",
       "../kernel/lib/",
-      "../testing/"
+      "../testing/",
+      "../_fe_analyzer_shared/lib/"
     ],
     "git grep": {
       "pathspecs": [

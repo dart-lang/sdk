@@ -964,6 +964,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       isSet: node.isSetter,
       isStatic: node.isStatic,
     );
+    builder.topLevelTypeInferenceError = LazyAst.getTypeInferenceError(node);
     _storeClassMember(builder, node);
     _storeInformativeId(builder, node);
     _writeActualReturnType(builder, node);

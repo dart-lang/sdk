@@ -95,7 +95,7 @@ Future setup(Uri entryUri) async {
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
     // Because this is only used to create a uriResolver, we don't allow any
-    // whitelisting of error messages in the error handler.
+    // allowlisting of error messages in the error handler.
     ..onDiagnostic = onDiagnosticMessageHandler()
     ..compileSdk = true
     ..packagesFileUri = Uri.base.resolve('.packages')

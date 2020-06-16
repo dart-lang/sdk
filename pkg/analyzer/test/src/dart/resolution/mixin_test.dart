@@ -245,7 +245,8 @@ mixin M<T> {
   var T;
 }
 ''', [
-      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER, 8, 1),
+      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS, 8,
+          1),
     ]);
   }
 
@@ -255,7 +256,8 @@ mixin M<T> {
   get T => null;
 }
 ''', [
-      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER, 8, 1),
+      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS, 8,
+          1),
     ]);
   }
 
@@ -265,7 +267,8 @@ mixin M<T> {
   T() {}
 }
 ''', [
-      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER, 8, 1),
+      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS, 8,
+          1),
     ]);
   }
 
@@ -275,7 +278,8 @@ mixin M<T> {
   static T() {}
 }
 ''', [
-      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER, 8, 1),
+      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS, 8,
+          1),
     ]);
   }
 
@@ -285,7 +289,8 @@ mixin M<T> {
   void set T(_) {}
 }
 ''', [
-      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER, 8, 1),
+      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS, 8,
+          1),
     ]);
   }
 

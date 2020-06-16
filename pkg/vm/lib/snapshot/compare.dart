@@ -7,11 +7,13 @@
 /// and which symbols decreased in size.
 library vm.snapshot.compare;
 
-import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:args/command_runner.dart';
+
+import 'package:vm/snapshot/instruction_sizes.dart';
+import 'package:vm/snapshot/program_info.dart';
 
 class CompareCommand extends Command<void> {
   @override
@@ -32,10 +34,26 @@ Use --narrow flag to limit column widths.''';
       super.invocation.replaceAll('[arguments]', '<old.json> <new.json>');
 
   CompareCommand() {
-    argParser.addOption('column-width',
-        help: 'Truncate column content to the given width'
-            ' (${AsciiTable.unlimitedWidth} means do not truncate).',
-        defaultsTo: AsciiTable.unlimitedWidth.toString());
+    argParser
+      ..addOption('column-width',
+          help: 'Truncate column content to the given width'
+              ' (${AsciiTable.unlimitedWidth} means do not truncate).',
+          defaultsTo: AsciiTable.unlimitedWidth.toString())
+      ..addOption('granularity',
+          help: 'Choose the granularity of the output.',
+          allowed: ['method', 'class', 'library', 'package'],
+          defaultsTo: 'method')
+      ..addFlag('collapse-anonymous-closures', help: '''
+Collapse all anonymous closures from the same scope into a single entry.
+When comparing size of AOT snapshots for two different versions of a
+program there is no reliable way to precisely establish which two anonymous
+closures are the same and should be compared in size - so
+comparison might produce a noisy output. This option reduces confusion
+by collapsing different anonymous closures within the same scope into a
+single entry. Note that when comparing the same application compiled
+with two different versions of an AOT compiler closures can be distinguished
+precisely based on their source position (which is included in their name).
+''');
   }
 
   @override
@@ -53,108 +71,101 @@ Use --narrow flag to limit column widths.''';
 
     final oldJsonPath = _checkExists(argResults.rest[0]);
     final newJsonPath = _checkExists(argResults.rest[1]);
-    printComparison(oldJsonPath, newJsonPath, maxWidth: maxWidth);
+    printComparison(oldJsonPath, newJsonPath,
+        maxWidth: maxWidth,
+        granularity: _parseHistogramType(argResults['granularity']),
+        collapseAnonymousClosures: argResults['collapse-anonymous-closures']);
   }
 
-  String _checkExists(String path) {
-    if (!File(path).existsSync()) {
+  HistogramType _parseHistogramType(String value) {
+    switch (value) {
+      case 'method':
+        return HistogramType.bySymbol;
+      case 'class':
+        return HistogramType.byClass;
+      case 'library':
+        return HistogramType.byLibrary;
+      case 'package':
+        return HistogramType.byPackage;
+    }
+  }
+
+  File _checkExists(String path) {
+    final file = File(path);
+    if (!file.existsSync()) {
       usageException('File $path does not exist!');
     }
-    return path;
+    return file;
   }
 }
 
-void printComparison(String oldJsonPath, String newJsonPath,
-    {int maxWidth: 0}) {
-  final oldSizes = loadSymbolSizes(oldJsonPath);
-  final newSizes = loadSymbolSizes(newJsonPath);
+void printComparison(File oldJson, File newJson,
+    {int maxWidth: 0,
+    bool collapseAnonymousClosures = false,
+    HistogramType granularity = HistogramType.bySymbol}) async {
+  final oldSizes = await loadProgramInfo(oldJson,
+      collapseAnonymousClosures: collapseAnonymousClosures);
+  final newSizes = await loadProgramInfo(newJson,
+      collapseAnonymousClosures: collapseAnonymousClosures);
+  final diff = computeDiff(oldSizes, newSizes);
 
+  // Compute total sizes.
   var totalOld = 0;
+  oldSizes.visit((_, __, ___, size) {
+    totalOld += size;
+  });
+
   var totalNew = 0;
+  newSizes.visit((_, __, ___, size) {
+    totalNew += size;
+  });
+
   var totalDiff = 0;
-  final diffBySymbol = <String, int>{};
+  diff.visit((_, __, ___, size) {
+    totalDiff += size.inBytes;
+  });
 
-  // Process all symbols (from both old and new results) and compute the change
-  // in size. If symbol is not present in the compilation assume its size to be
-  // zero.
-  for (var key in Set<String>()..addAll(newSizes.keys)..addAll(oldSizes.keys)) {
-    final oldSize = oldSizes[key] ?? 0;
-    final newSize = newSizes[key] ?? 0;
-    final diff = newSize - oldSize;
-    if (diff != 0) diffBySymbol[key] = diff;
-    totalOld += oldSize;
-    totalNew += newSize;
-    totalDiff += diff;
-  }
-
-  // Compute the list of changed symbols sorted by difference (descending).
-  final changedSymbolsBySize = diffBySymbol.keys.toList();
-  changedSymbolsBySize.sort((a, b) => diffBySymbol[b] - diffBySymbol[a]);
+  // Compute histogram.
+  final histogram = SizesHistogram.from<SymbolDiff>(
+      diff, (diff) => diff.inBytes, granularity);
 
   // Now produce the report table.
   const numLargerSymbolsToReport = 30;
   const numSmallerSymbolsToReport = 10;
   final table = AsciiTable(header: [
-    Text.left('Library'),
-    Text.left('Method'),
+    for (var col in histogram.bucketing.nameComponents) Text.left(col),
     Text.right('Diff (Bytes)')
   ], maxWidth: maxWidth);
 
   // Report [numLargerSymbolsToReport] symbols that increased in size most.
-  for (var key in changedSymbolsBySize
-      .where((k) => diffBySymbol[k] > 0)
+  for (var key in histogram.bySize
+      .where((k) => histogram.buckets[k] > 0)
       .take(numLargerSymbolsToReport)) {
-    final name = key.split(librarySeparator);
-    table.addRow([name[0], name[1], '+${diffBySymbol[key]}']);
+    table.addRow([
+      ...histogram.bucketing.namesFromBucket(key),
+      '+${histogram.buckets[key]}'
+    ]);
   }
   table.addSeparator(Separator.Wave);
 
   // Report [numSmallerSymbolsToReport] symbols that decreased in size most.
-  for (var key in changedSymbolsBySize.reversed
-      .where((k) => diffBySymbol[k] < 0)
+  for (var key in histogram.bySize.reversed
+      .where((k) => histogram.buckets[k] < 0)
       .take(numSmallerSymbolsToReport)
       .toList()
       .reversed) {
-    final name = key.split(librarySeparator);
-    table.addRow([name[0], name[1], '${diffBySymbol[key]}']);
+    table.addRow([
+      ...histogram.bucketing.namesFromBucket(key),
+      '${histogram.buckets[key]}'
+    ]);
   }
   table.addSeparator();
 
   table.render();
-  print('Comparing ${oldJsonPath} (old) to ${newJsonPath} (new)');
+  print('Comparing ${oldJson.path} (old) to ${newJson.path} (new)');
   print('Old   : ${totalOld} bytes.');
   print('New   : ${totalNew} bytes.');
   print('Change: ${totalDiff > 0 ? '+' : ''}${totalDiff} bytes.');
-}
-
-/// A combination of characters that is unlikely to occur in the symbol name.
-const String librarySeparator = ',';
-
-/// Load --print-instructions-sizes-to output as a mapping from symbol names
-/// to their sizes.
-///
-/// Note: we produce a single symbol name from function name and library name
-/// by concatenating them with [librarySeparator].
-Map<String, int> loadSymbolSizes(String name) {
-  final symbols = jsonDecode(File(name).readAsStringSync());
-  final result = new Map<String, int>();
-  final regexp = new RegExp(r"0x[a-fA-F0-9]+");
-  for (int i = 0, n = symbols.length; i < n; i++) {
-    final e = symbols[i];
-    // Obtain a key by combining library and method name. Strip anything
-    // after the library separator to make sure we can easily decode later.
-    // For method names, also remove non-deterministic parts to avoid
-    // reporting non-existing differences against the same layout.
-    String lib = ((e['l'] ?? '').split(librarySeparator))[0];
-    String name = (e['n'].split(librarySeparator))[0]
-        .replaceAll('[Optimized] ', '')
-        .replaceAll(regexp, '');
-    String key = lib + librarySeparator + name;
-    int val = e['s'];
-    result[key] =
-        (result[key] ?? 0) + val; // add (key,val), accumulate if exists
-  }
-  return result;
 }
 
 /// A row in the [AsciiTable].

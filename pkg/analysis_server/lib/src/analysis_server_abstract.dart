@@ -68,7 +68,7 @@ abstract class AbstractAnalysisServer {
   /// The object used to manage sending a subset of notifications to the client.
   /// The subset of notifications are those to which plugins may contribute.
   /// This field is `null` when the new plugin support is disabled.
-  NotificationManager notificationManager;
+  AbstractNotificationManager notificationManager;
 
   /// The object used to manage the execution of plugins.
   PluginManager pluginManager;

@@ -288,6 +288,32 @@ const bar = A.foo;
     _assertIntValue(bar, 42);
   }
 
+  test_fromEnvironment_optOut_fromOptIn() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.5
+
+const cBool = const bool.fromEnvironment('foo', defaultValue: false);
+const cInt = const int.fromEnvironment('foo', defaultValue: 1);
+const cString = const String.fromEnvironment('foo', defaultValue: 'bar');
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart';
+
+const vBool = cBool;
+const vInt = cInt;
+const vString = cString;
+''');
+
+    DartObjectImpl evaluate(String name) {
+      return findElement.topVar(name).computeConstantValue();
+    }
+
+    expect(evaluate('vBool').toBoolValue(), false);
+    expect(evaluate('vInt').toIntValue(), 1);
+    expect(evaluate('vString').toStringValue(), 'bar');
+  }
+
   test_topLevelVariable_optIn_fromOptOut() async {
     newFile('/test/lib/a.dart', content: r'''
 const foo = 42;

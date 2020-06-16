@@ -20,7 +20,10 @@ abstract class DartdevCommand<int> extends Command {
 
   Project _project;
 
-  DartdevCommand(this._name, this._description);
+  @override
+  final bool hidden;
+
+  DartdevCommand(this._name, this._description, {this.hidden = false});
 
   @override
   String get name => _name;

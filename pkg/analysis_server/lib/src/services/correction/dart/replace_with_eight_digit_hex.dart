@@ -11,10 +11,10 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceWithEightDigitHex extends CorrectionProducer {
   /// The replacement text, used as an argument to the fix message.
-  String replacement;
+  String _replacement;
 
   @override
-  List<Object> get fixArguments => [replacement];
+  List<Object> get fixArguments => [_replacement];
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_EIGHT_DIGIT_HEX;
@@ -28,12 +28,12 @@ class ReplaceWithEightDigitHex extends CorrectionProducer {
       return;
     }
     var value = (node as IntegerLiteral).value;
-    replacement = '0x' + value.toRadixString(16).padLeft(8, '0');
+    _replacement = '0x' + value.toRadixString(16).padLeft(8, '0');
     //
     // Build the edit.
     //
     await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addSimpleReplacement(range.node(node), replacement);
+      builder.addSimpleReplacement(range.node(node), _replacement);
     });
   }
 

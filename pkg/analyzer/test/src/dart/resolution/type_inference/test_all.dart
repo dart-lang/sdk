@@ -10,6 +10,7 @@ import 'equality_expressions_test.dart' as equality_expressions;
 import 'extension_methods_test.dart' as extension_methods;
 import 'function_expression_test.dart' as function_expression;
 import 'list_literal_test.dart' as list_literal;
+import 'local_variable_test.dart' as local_variable;
 import 'logical_boolean_expressions_test.dart' as logical_boolean_expressions;
 import 'map_literal_test.dart' as map_literal;
 import 'set_literal_test.dart' as set_literal;
@@ -26,6 +27,7 @@ main() {
     extension_methods.main();
     function_expression.main();
     list_literal.main();
+    local_variable.main();
     logical_boolean_expressions.main();
     map_literal.main();
     set_literal.main();

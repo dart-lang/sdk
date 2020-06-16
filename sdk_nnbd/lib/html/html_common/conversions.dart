@@ -255,7 +255,7 @@ abstract class _AcceptStructuredClone {
     if (isJavaScriptArray(e)) {
       var l = JS<List>('returns:List;creates:;', '#', e);
       var slot = findSlot(l);
-      var copy = JS<List>('returns:List|Null;creates:;', '#', readSlot(slot));
+      var copy = JS<List?>('returns:List|Null;creates:;', '#', readSlot(slot));
       if (copy != null) return copy;
 
       int length = l.length;

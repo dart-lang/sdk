@@ -69,7 +69,8 @@ import 'dart:_rti' as newRti
         getRuntimeType,
         getTypeFromTypesTable,
         instanceTypeName,
-        instantiatedGenericFunctionType;
+        instantiatedGenericFunctionType,
+        throwTypeError;
 
 part 'annotations.dart';
 part 'constant_map.dart';
@@ -360,14 +361,8 @@ class JSInvocationMirror implements Invocation {
     if (_typeArgumentCount == 0) return const <Type>[];
     int start = _arguments.length - _typeArgumentCount;
     var list = <Type>[];
-    if (JS_GET_FLAG('USE_NEW_RTI')) {
-      for (int index = 0; index < _typeArgumentCount; index++) {
-        list.add(newRti.createRuntimeType(_arguments[start + index]));
-      }
-    } else {
-      for (int index = 0; index < _typeArgumentCount; index++) {
-        list.add(createRuntimeType(_arguments[start + index]));
-      }
+    for (int index = 0; index < _typeArgumentCount; index++) {
+      list.add(newRti.createRuntimeType(_arguments[start + index]));
     }
     return JSArray.markUnmodifiableList(list);
   }
@@ -509,18 +504,6 @@ class Primitives {
   /// [: r"$".codeUnitAt(0) :]
   static const int DOLLAR_CHAR_VALUE = 36;
 
-  /// Creates a string containing the complete type for the class [className]
-  /// with the given type arguments.
-  ///
-  /// In minified mode, uses the unminified names if available.
-  ///
-  /// The given [className] string generally contains the name of the JavaScript
-  /// constructor of the given class.
-  static String formatType(String className, List typeArguments) {
-    return unmangleAllIdentifiersIfPreservedAnyways(
-        '$className${joinArguments(typeArguments, 0)}');
-  }
-
   /// Returns the type of [object] as a string (including type arguments).
   /// Tries to return a sensible name for non-Dart objects.
   ///
@@ -528,12 +511,7 @@ class Primitives {
   /// them with 'minified:'.
   @pragma('dart2js:noInline')
   static String objectTypeName(Object object) {
-    if (JS_GET_FLAG('USE_NEW_RTI')) {
-      return _objectTypeNameNewRti(object);
-    }
-    String className = _objectClassName(object);
-    String arguments = joinArguments(getRuntimeTypeInfo(object), 0);
-    return '${className}${arguments}';
+    return _objectTypeNameNewRti(object);
   }
 
   static String _objectClassName(Object object) {
@@ -2190,10 +2168,8 @@ abstract class Closure implements Function {
           propertyName);
     }
 
-    var signatureFunction = JS_GET_FLAG('USE_NEW_RTI')
-        ? _computeSignatureFunctionNewRti(functionType, isStatic, isIntercepted)
-        : _computeSignatureFunctionLegacy(
-            functionType, isStatic, isIntercepted);
+    var signatureFunction =
+        _computeSignatureFunctionNewRti(functionType, isStatic, isIntercepted);
 
     JS('', '#[#] = #', prototype, JS_GET_NAME(JsGetName.SIGNATURE_NAME),
         signatureFunction);
@@ -2795,285 +2771,8 @@ class JSName {
 boolConversionCheck(value) {
   // The value from kernel should always be true, false, or null.
   if (value == null) assertThrow('boolean expression must not be null');
-  return value;
+  return JS('bool', '#', value);
 }
-
-stringTypeCheck(value) {
-  if (value == null) return value;
-  if (value is String) return value;
-  throw new TypeErrorImplementation(value, 'String');
-}
-
-stringTypeCast(value) {
-  if (value is String || value == null) return value;
-  throw new CastErrorImplementation(value, 'String');
-}
-
-doubleTypeCheck(value) {
-  if (value == null) return value;
-  if (value is double) return value;
-  throw new TypeErrorImplementation(value, 'double');
-}
-
-doubleTypeCast(value) {
-  if (value is double || value == null) return value;
-  throw new CastErrorImplementation(value, 'double');
-}
-
-numTypeCheck(value) {
-  if (value == null) return value;
-  if (value is num) return value;
-  throw new TypeErrorImplementation(value, 'num');
-}
-
-numTypeCast(value) {
-  if (value is num || value == null) return value;
-  throw new CastErrorImplementation(value, 'num');
-}
-
-boolTypeCheck(value) {
-  if (value == null) return value;
-  if (value is bool) return value;
-  throw new TypeErrorImplementation(value, 'bool');
-}
-
-boolTypeCast(value) {
-  if (value is bool || value == null) return value;
-  throw new CastErrorImplementation(value, 'bool');
-}
-
-intTypeCheck(value) {
-  if (value == null) return value;
-  if (value is int) return value;
-  throw new TypeErrorImplementation(value, 'int');
-}
-
-intTypeCast(value) {
-  if (value is int || value == null) return value;
-  throw new CastErrorImplementation(value, 'int');
-}
-
-void propertyTypeError(value, property) {
-  String name = isCheckPropertyToJsConstructorName(property);
-  throw new TypeErrorImplementation(value, unminifyOrTag(name));
-}
-
-void propertyTypeCastError(value, property) {
-  // Cuts the property name to the class name.
-  String name = isCheckPropertyToJsConstructorName(property);
-  throw new CastErrorImplementation(value, unminifyOrTag(name));
-}
-
-/// For types that are not supertypes of native (eg DOM) types,
-/// we emit a simple property check to check that an object implements
-/// that type.
-propertyTypeCheck(value, property) {
-  if (value == null) return value;
-  if (JS('bool', '!!#[#]', value, property)) return value;
-  propertyTypeError(value, property);
-}
-
-/// For types that are not supertypes of native (eg DOM) types,
-/// we emit a simple property check to check that an object implements
-/// that type.
-propertyTypeCast(value, property) {
-  if (value == null || JS('bool', '!!#[#]', value, property)) return value;
-  propertyTypeCastError(value, property);
-}
-
-/// For types that are supertypes of native (eg DOM) types, we use the
-/// interceptor for the class because we cannot add a JS property to the
-/// prototype at load time.
-interceptedTypeCheck(value, property) {
-  if (value == null) return value;
-  if ((JS('bool', 'typeof # === "object"', value) ||
-          JS('bool', 'typeof # === "function"', value)) &&
-      JS('bool', '#[#]', getInterceptor(value), property)) {
-    return value;
-  }
-  propertyTypeError(value, property);
-}
-
-/// For types that are supertypes of native (eg DOM) types, we use the
-/// interceptor for the class because we cannot add a JS property to the
-/// prototype at load time.
-interceptedTypeCast(value, property) {
-  if (value == null ||
-      ((JS('bool', 'typeof # === "object"', value) ||
-              JS('bool', 'typeof # === "function"', value)) &&
-          JS('bool', '#[#]', getInterceptor(value), property))) {
-    return value;
-  }
-  propertyTypeCastError(value, property);
-}
-
-/// Specialization of the type check for num and String and their
-/// supertype since [value] can be a JS primitive.
-numberOrStringSuperTypeCheck(value, property) {
-  if (value == null) return value;
-  if (value is String) return value;
-  if (value is num) return value;
-  if (JS('bool', '!!#[#]', value, property)) return value;
-  propertyTypeError(value, property);
-}
-
-numberOrStringSuperTypeCast(value, property) {
-  if (value is String) return value;
-  if (value is num) return value;
-  return propertyTypeCast(value, property);
-}
-
-numberOrStringSuperNativeTypeCheck(value, property) {
-  if (value == null) return value;
-  if (value is String) return value;
-  if (value is num) return value;
-  if (JS('bool', '#[#]', getInterceptor(value), property)) return value;
-  propertyTypeError(value, property);
-}
-
-numberOrStringSuperNativeTypeCast(value, property) {
-  if (value == null) return value;
-  if (value is String) return value;
-  if (value is num) return value;
-  if (JS('bool', '#[#]', getInterceptor(value), property)) return value;
-  propertyTypeCastError(value, property);
-}
-
-/// Specialization of the type check for String and its supertype
-/// since [value] can be a JS primitive.
-stringSuperTypeCheck(value, property) {
-  if (value == null) return value;
-  if (value is String) return value;
-  if (JS('bool', '!!#[#]', value, property)) return value;
-  propertyTypeError(value, property);
-}
-
-stringSuperTypeCast(value, property) {
-  if (value is String) return value;
-  return propertyTypeCast(value, property);
-}
-
-stringSuperNativeTypeCheck(value, property) {
-  if (value == null) return value;
-  if (value is String) return value;
-  if (JS('bool', '#[#]', getInterceptor(value), property)) return value;
-  propertyTypeError(value, property);
-}
-
-stringSuperNativeTypeCast(value, property) {
-  if (value is String || value == null) return value;
-  if (JS('bool', '#[#]', getInterceptor(value), property)) return value;
-  propertyTypeCastError(value, property);
-}
-
-/// Specialization of the type check for List and its supertypes,
-/// since [value] can be a JS array.
-listTypeCheck(value) {
-  if (value == null) return value;
-  if (value is List) return value;
-  throw new TypeErrorImplementation(value, 'List<dynamic>');
-}
-
-listTypeCast(value) {
-  if (value is List || value == null) return value;
-  throw new CastErrorImplementation(value, 'List<dynamic>');
-}
-
-listSuperTypeCheck(value, property) {
-  if (value == null) return value;
-  if (value is List) return value;
-  if (JS('bool', '!!#[#]', value, property)) return value;
-  propertyTypeError(value, property);
-}
-
-listSuperTypeCast(value, property) {
-  if (value is List) return value;
-  return propertyTypeCast(value, property);
-}
-
-listSuperNativeTypeCheck(value, property) {
-  if (value == null) return value;
-  if (value is List) return value;
-  if (JS('bool', '#[#]', getInterceptor(value), property)) return value;
-  propertyTypeError(value, property);
-}
-
-listSuperNativeTypeCast(value, property) {
-  if (value is List || value == null) return value;
-  if (JS('bool', '#[#]', getInterceptor(value), property)) return value;
-  propertyTypeCastError(value, property);
-}
-
-extractFunctionTypeObjectFrom(o) {
-  var interceptor = getInterceptor(o);
-  return extractFunctionTypeObjectFromInternal(interceptor);
-}
-
-extractFunctionTypeObjectFromInternal(o) {
-  var signatureName = JS_GET_NAME(JsGetName.SIGNATURE_NAME);
-  if (JS('bool', '# in #', signatureName, o)) {
-    var signature = JS('', '#[#]', o, signatureName);
-    if (JS('bool', 'typeof # == "number"', signature)) {
-      return getType(signature);
-    } else {
-      return JS('', '#[#]()', o, signatureName);
-    }
-  }
-  return null;
-}
-
-functionTypeTest(value, functionTypeRti) {
-  if (value == null) return false;
-  if (JS('bool', 'typeof # == "function"', value)) {
-    // JavaScript functions do not have an attached type, but for convenient
-    // JS-interop, we pretend they can be any function type.
-    // TODO(sra): Tighten this up to disallow matching function types with
-    // features inaccessible from JavaScript, i.e.  optional named parameters
-    // and type parameters functions.
-    // TODO(sra): If the JavaScript function was the output of `dart:js`'s
-    // `allowInterop` then we have access to the wrapped function.
-    return true;
-  }
-  var functionTypeObject = extractFunctionTypeObjectFrom(value);
-  if (functionTypeObject == null) return false;
-  return isFunctionSubtype(functionTypeObject, functionTypeRti);
-}
-
-// Declared as 'var' to avoid assignment checks.
-var _inTypeAssertion = false;
-
-functionTypeCheck(value, functionTypeRti) {
-  if (value == null) return value;
-
-  // The function type test code contains type assertions for function
-  // types. This leads to unbounded recursion, so disable the type checking of
-  // function types while checking function types.
-
-  if (true == _inTypeAssertion) return value;
-
-  _inTypeAssertion = true;
-  try {
-    if (functionTypeTest(value, functionTypeRti)) return value;
-    var self = runtimeTypeToString(functionTypeRti);
-    throw new TypeErrorImplementation(value, self);
-  } finally {
-    _inTypeAssertion = false;
-  }
-}
-
-functionTypeCast(value, functionTypeRti) {
-  if (value == null) return value;
-  if (functionTypeTest(value, functionTypeRti)) return value;
-
-  var self = runtimeTypeToString(functionTypeRti);
-  throw new CastErrorImplementation(value, self);
-}
-
-futureOrTest(o, futureOrRti) => checkSubtypeOfRuntimeType(o, futureOrRti);
-
-futureOrCheck(o, futureOrRti) => assertSubtypeOfRuntimeType(o, futureOrRti);
-
-futureOrCast(o, futureOrRti) => subtypeOfRuntimeTypeCast(o, futureOrRti);
 
 @pragma('dart2js:noInline')
 void checkDeferredIsLoaded(String loadId) {
@@ -3087,43 +2786,6 @@ void checkDeferredIsLoaded(String loadId) {
 /// visible to anyone, and is only injected into special libraries.
 abstract class JavaScriptIndexingBehavior<E> extends JSMutableIndexable<E> {}
 
-/// Thrown by type assertions that fail.
-class TypeErrorImplementation extends Error implements TypeError, CastError {
-  final String _message;
-
-  /// Normal type error caused by a failed subtype test.
-  TypeErrorImplementation(Object value, String type)
-      : _message = "TypeError: ${Error.safeToString(value)}: type "
-            "'${_typeDescription(value)}' is not a subtype of type '$type'";
-
-  TypeErrorImplementation.fromMessage(String this._message);
-
-  String toString() => _message;
-}
-
-/// Thrown by the 'as' operator if the cast isn't valid.
-class CastErrorImplementation extends Error implements CastError, TypeError {
-  final String _message;
-
-  /// Normal cast error caused by a failed type cast.
-  CastErrorImplementation(Object value, Object type)
-      : _message = "TypeError: ${Error.safeToString(value)}: type "
-            "'${_typeDescription(value)}' is not a subtype of type '$type'";
-
-  String toString() => _message;
-}
-
-String _typeDescription(value) {
-  if (value is Closure) {
-    var functionTypeObject = extractFunctionTypeObjectFrom(value);
-    if (functionTypeObject != null) {
-      return runtimeTypeToString(functionTypeObject);
-    }
-    return 'Closure';
-  }
-  return Primitives.objectTypeName(value);
-}
-
 class FallThroughErrorImplementation extends FallThroughError {
   FallThroughErrorImplementation();
   String toString() => 'Switch case fall-through.';
@@ -3135,23 +2797,27 @@ class FallThroughErrorImplementation extends FallThroughError {
 /// Returns the negation of the condition. That is: `true` if the assert should
 /// fail.
 bool assertTest(condition) {
-  // Do bool success check first, it is common and faster than 'is Function'.
+  // Do bool success check first as it is common.
   if (true == condition) return false;
-  if (condition is bool) return !condition;
-  throw new TypeErrorImplementation(condition, 'bool');
+  if (false == condition) return true;
+  bool checked = condition as bool;
+  if (null == condition) {
+    newRti.throwTypeError('assert condition must not be null');
+  }
+  return !checked;
 }
 
 /// Helper function for implementing asserts with messages.
 /// The compiler treats this specially.
 void assertThrow(Object message) {
-  throw new _AssertionError(message);
+  throw _AssertionError(message);
 }
 
 /// Helper function for implementing asserts without messages.
 /// The compiler treats this specially.
 @pragma('dart2js:noInline')
 void assertHelper(condition) {
-  if (assertTest(condition)) throw new AssertionError();
+  if (assertTest(condition)) throw AssertionError();
 }
 
 /// Called by generated code when a method that must be statically
@@ -3543,7 +3209,7 @@ void registerGlobalObject(object) {}
 // This is currently a no-op in dart2js.
 void applyExtension(name, nativeObject) {}
 
-// See tests/compiler/dart2js_extra/platform_environment_variable1_test.dart
+// See tests/dart2js_2/platform_environment_variable1_test.dart
 const String testPlatformEnvironmentVariableValue = String.fromEnvironment(
     'dart2js.test.platform.environment.variable',
     defaultValue: 'not-specified');

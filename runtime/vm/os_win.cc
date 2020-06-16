@@ -174,6 +174,10 @@ int64_t OS::GetCurrentThreadCPUMicros() {
   return -1;
 }
 
+int64_t OS::GetCurrentThreadCPUMicrosForTimeline() {
+  return OS::GetCurrentThreadCPUMicros();
+}
+
 intptr_t OS::ActivationFrameAlignment() {
 #if defined(TARGET_ARCH_ARM64)
   return 16;

@@ -3926,6 +3926,13 @@ class ExtensionOverrideImpl extends ExpressionImpl
   }
 
   @override
+  bool get isNullAware {
+    var nextType = argumentList.endToken.next.type;
+    return nextType == TokenType.QUESTION_PERIOD ||
+        nextType == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET;
+  }
+
+  @override
   Precedence get precedence => Precedence.postfix;
 
   @override
@@ -5015,6 +5022,7 @@ class FunctionExpressionImpl extends ExpressionImpl
 ///    functionExpressionInvocation ::=
 ///        [Expression] [TypeArgumentList]? [ArgumentList]
 class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
+    with NullShortableExpressionImpl
     implements FunctionExpressionInvocation {
   /// The expression producing the function being invoked.
   ExpressionImpl _function;
@@ -5054,6 +5062,9 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   Precedence get precedence => Precedence.postfix;
 
   @override
+  AstNode get _nullShortingExtensionCandidate => parent;
+
+  @override
   E accept<E>(AstVisitor<E> visitor) =>
       visitor.visitFunctionExpressionInvocation(this);
 
@@ -5063,6 +5074,9 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
     _typeArguments?.accept(visitor);
     _argumentList?.accept(visitor);
   }
+
+  @override
+  bool _extendsNullShorting(Expression child) => identical(child, _function);
 }
 
 /// A function type alias.

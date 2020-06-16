@@ -8,7 +8,6 @@ import '../tool/spec/check_all_test.dart' as check_spec;
 import 'plugin/test_all.dart' as plugin;
 import 'src/test_all.dart' as src;
 import 'utilities/test_all.dart' as utilities;
-import 'verify_sorted_test.dart' as verify_sorted;
 import 'verify_tests_test.dart' as verify_tests;
 
 void main() {
@@ -17,7 +16,6 @@ void main() {
     src.main();
     utilities.main();
     verify_tests.main();
-    verify_sorted.main();
     defineReflectiveSuite(() {
       defineReflectiveTests(SpecTest);
     }, name: 'spec');

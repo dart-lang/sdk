@@ -43,12 +43,8 @@ import 'package:js/js.dart';
   _isObject(1),
   _isString(1),
   _isTop(1),
-  checkSubtype(4),
   findType(1),
-  getRuntimeTypeArgument(3),
-  getRuntimeTypeArgumentIntercepted(4),
   getRuntimeTypeInfo(1),
-  getTypeArgumentByIndex(2),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -108,12 +104,8 @@ import 'package:js/js.dart';
   _isObject(1),
   _isString(1),
   _isTop(1),
-  checkSubtype(4),
   findType(1),
-  getRuntimeTypeArgument(3),
-  getRuntimeTypeArgumentIntercepted(4),
   getRuntimeTypeInfo(1),
-  getTypeArgumentByIndex(2),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -245,12 +237,10 @@ void _doStuff(String name, File file) {
   print(file.name);
 }
 
-/*spec:nnbd-off.member: main:
- static=[
+/*spec:nnbd-off.member: main:static=[
   _doStuff,
   allowInterop<void Function(String,File)>(1),
-  set:foo]
-*/
+  set:foo]*/
 /*spec:nnbd-sdk.member: main:static=[
   _doStuff,
   allowInterop<void Function(String*,File*)*>(1),

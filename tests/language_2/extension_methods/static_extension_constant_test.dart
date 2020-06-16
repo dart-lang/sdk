@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=extension-methods
-
 import 'package:expect/expect.dart';
 import 'static_extension_constant_lib.dart' hide b, i, d, s;
 import 'static_extension_constant_lib.dart' as lib show b, i, d, s;

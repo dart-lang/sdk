@@ -247,9 +247,7 @@ class ProgramBuilder {
 
     _markEagerClasses();
 
-    if (_options.useNewRti) {
-      associateNamedTypeVariablesNewRti();
-    }
+    associateNamedTypeVariablesNewRti();
 
     List<Holder> holders = _registry.holders.toList(growable: false);
 
@@ -279,10 +277,10 @@ class ProgramBuilder {
   void _initializeSoftDeferredMap() {
     var allocatedClassesPath = _options.experimentalAllocationsPath;
     if (allocatedClassesPath != null) {
-      // TODO(29574): the following blacklist is ad-hoc and potentially
+      // TODO(29574): the following denylist is ad-hoc and potentially
       // incomplete. We need to mark all classes as black listed, that are
       // used without code going through the class' constructor.
-      var blackList = [
+      var denylist = [
         'dart:_interceptors',
         'dart:html',
         'dart:typed_data_implementation',
@@ -331,7 +329,7 @@ class ProgramBuilder {
           var key = "${element.library.canonicalUri}:${element.name}";
           if (allocatedClassesKeys.contains(key) ||
               _nativeData.isJsInteropClass(element) ||
-              blackList.contains(element.library.canonicalUri.toString())) {
+              denylist.contains(element.library.canonicalUri.toString())) {
             collect(element);
           }
         }
@@ -982,20 +980,7 @@ class ProgramBuilder {
 
   js.Expression _generateFunctionType(ClassEntity /*?*/ enclosingClass,
           FunctionType type, OutputUnit outputUnit) =>
-      _options.useNewRti
-          ? _generateFunctionTypeNewRti(enclosingClass, type, outputUnit)
-          : _generateFunctionTypeLegacy(enclosingClass, type, outputUnit);
-
-  js.Expression _generateFunctionTypeLegacy(ClassEntity /*?*/ enclosingClass,
-      FunctionType type, OutputUnit outputUnit) {
-    if (type.containsTypeVariables) {
-      js.Expression thisAccess = js.js(r'this.$receiver');
-      return _rtiEncoder.getSignatureEncoding(
-          _namer, _task.emitter, type, thisAccess);
-    } else {
-      return _task.metadataCollector.reifyType(type, outputUnit);
-    }
-  }
+      _generateFunctionTypeNewRti(enclosingClass, type, outputUnit);
 
   js.Expression _generateFunctionTypeNewRti(ClassEntity /*?*/ enclosingClass,
       FunctionType type, OutputUnit outputUnit) {
@@ -1034,7 +1019,7 @@ class ProgramBuilder {
         _task.nativeEmitter,
         _namer,
         _rtiEncoder,
-        _options.useNewRti ? _rtiRecipeEncoder : null,
+        _rtiRecipeEncoder,
         _nativeData,
         _interceptorData,
         _codegenWorld,

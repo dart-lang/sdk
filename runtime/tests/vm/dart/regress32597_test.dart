@@ -8,7 +8,7 @@
 // VMOptions=--optimization_counter_threshold=10 --no-background-compilation
 
 class Token {
-  Token next;
+  Token? next;
 }
 
 class StringToken extends Token {}
@@ -16,7 +16,7 @@ class StringToken extends Token {}
 class ErrorToken extends Token {}
 
 void foo(Token tokens) {
-  Token current = tokens;
+  Token? current = tokens;
   for (int i = 0; i < 1; i++) {
     while (current is ErrorToken) {
       ErrorToken first = current;
@@ -25,7 +25,7 @@ void foo(Token tokens) {
       // assigned to phi.
       print(first);
     }
-    current = current.next;
+    current = current!.next;
   }
 }
 
