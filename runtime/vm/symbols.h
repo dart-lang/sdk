@@ -44,6 +44,7 @@ class ObjectPointerVisitor;
   V(Call, "call")                                                              \
   V(Cancel, "cancel")                                                          \
   V(CastError, "_CastError")                                                   \
+  V(CheckLoaded, "_checkLoaded")                                               \
   V(Class, "Class")                                                            \
   V(ClassID, "ClassID")                                                        \
   V(ClearAsyncThreadStackTrace, "_clearAsyncThreadStackTrace")                 \
@@ -139,6 +140,7 @@ class ObjectPointerVisitor;
   V(FfiUint64, "Uint64")                                                       \
   V(FfiUint8, "Uint8")                                                         \
   V(FfiVoid, "Void")                                                           \
+  V(FfiHandle, "Handle")                                                       \
   V(Field, "Field")                                                            \
   V(FinallyRetVal, ":finally_ret_val")                                         \
   V(FirstArg, "x")                                                             \
@@ -205,6 +207,7 @@ class ObjectPointerVisitor;
   V(ListFactory, "List.")                                                      \
   V(ListFilledFactory, "List.filled")                                          \
   V(ListLiteralFactory, "List._fromLiteral")                                   \
+  V(LoadLibrary, "_loadLibrary")                                               \
   V(LocalVarDescriptors, "LocalVarDescriptors")                                \
   V(Map, "Map")                                                                \
   V(MapLiteralFactory, "Map._fromLiteral")                                     \

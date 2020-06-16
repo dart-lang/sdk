@@ -44,7 +44,7 @@ vars = {
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "c6adf63baea76b1f7e7833482eec023fd244fc33",
+  "co19_rev": "b071a4729a57ee47dcc7330ab9ea3566ef58e5c2",
   "co19_2_rev": "620c1148c8b7a3d7f74afacf348c46f109eb64f2",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
@@ -112,7 +112,7 @@ vars = {
   "intl_tag": "0.16.1",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_rev": "d589e635d8ccb7cda6a804bd571f88abbabab146",
-  "linter_tag": "0.1.116",
+  "linter_tag": "0.1.117",
   "logging_rev": "9561ba016ae607747ae69b846c0e10958ca58ed4",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "markdown_rev": "dd150bb64c5f3b41d31f20f399ae2a855f7f8c00",
@@ -144,7 +144,7 @@ vars = {
   "source_span_tag": "1.7.0",
   "stack_trace_tag": "1.9.3",
   "stagehand_tag": "v3.3.7",
-  "stream_channel_tag": "2.0.0",
+  "stream_channel_tag": "70433d577be02c48cb16d72d65654f3b4d82c6ed",
   "string_scanner_rev": "a918e7371af6b6e73bfd534ff9da6084741c1f99",
   "test_descriptor_tag": "1.1.1",
   "test_process_tag": "1.0.3",

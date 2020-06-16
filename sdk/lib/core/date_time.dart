@@ -653,7 +653,10 @@ class DateTime implements Comparable<DateTime> {
   external DateTime subtract(Duration duration);
 
   /**
-   * Returns a [Duration] with the difference between [this] and [other].
+   * Returns a [Duration] with the difference when subtracting [other] from
+   * [this].
+   *
+   * The returned [Duration] will be negative if [other] occurs after [this].
    *
    * ```
    * var berlinWallFell = new DateTime.utc(1989, DateTime.november, 9);
@@ -865,8 +868,8 @@ class DateTime implements Comparable<DateTime> {
    * timezone ::= 'z' | 'Z' | sign digit{2} timezonemins_opt
    * timezonemins_opt ::= <empty> | colon_opt digit{2}
    */
-  static final RegExp _parseFormat = RegExp(
-      r'^([+-]?\d{4,6})-?(\d\d)-?(\d\d)' // Day part.
-      r'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(?:[.,](\d+))?)?)?' // Time part.
-      r'( ?[zZ]| ?([-+])(\d\d)(?::?(\d\d))?)?)?$'); // Timezone part.
+  static final RegExp _parseFormat =
+      RegExp(r'^([+-]?\d{4,6})-?(\d\d)-?(\d\d)' // Day part.
+          r'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(?:[.,](\d+))?)?)?' // Time part.
+          r'( ?[zZ]| ?([-+])(\d\d)(?::?(\d\d))?)?)?$'); // Timezone part.
 }

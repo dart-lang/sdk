@@ -53,9 +53,9 @@ static const int kLastParamSlotFromEntrySp = 1;  // Skip return address.
 
 // Entry and exit frame layout.
 #if defined(TARGET_OS_WINDOWS)
-static const int kExitLinkSlotFromEntryFp = -32;
+static const int kExitLinkSlotFromEntryFp = -33;
 #else
-static const int kExitLinkSlotFromEntryFp = -10;
+static const int kExitLinkSlotFromEntryFp = -11;
 #endif  // defined(TARGET_OS_WINDOWS)
 
 // For FFI native -> Dart callbacks, the number of stack slots between arguments

@@ -8,6 +8,7 @@
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/compiler/runtime_offsets_list.h"
+#include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/longjump.h"
 #include "vm/native_arguments.h"
@@ -373,6 +374,8 @@ static uword GetInstanceSizeImpl(const dart::Class& handle) {
       return TypedDataBase::InstanceSize();
     case kLinkedHashMapCid:
       return LinkedHashMap::InstanceSize();
+    case kUnhandledExceptionCid:
+      return UnhandledException::InstanceSize();
     case kByteBufferCid:
     case kByteDataViewCid:
     case kFfiPointerCid:
@@ -603,6 +606,14 @@ uword Thread::vm_execution_state() {
 
 uword Thread::vm_tag_compiled_id() {
   return dart::VMTag::kDartCompiledTagId;
+}
+
+uword Thread::exit_through_runtime_call() {
+  return dart::Thread::kExitThroughRuntimeCall;
+}
+
+uword Thread::exit_through_ffi() {
+  return dart::Thread::kExitThroughFfi;
 }
 
 word Thread::OffsetFromThread(const dart::Object& object) {

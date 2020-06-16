@@ -5,8 +5,6 @@
 import 'dart:async';
 import 'dart:core';
 
-import 'package:analysis_server/src/protocol_server.dart'
-    show CompletionSuggestion;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -25,11 +23,10 @@ class UriContributor extends DartCompletionContributor {
   static bool suggestFilePaths = true;
 
   @override
-  Future<List<CompletionSuggestion>> computeSuggestions(
+  Future<void> computeSuggestions(
       DartCompletionRequest request, SuggestionBuilder builder) async {
     var visitor = _UriSuggestionBuilder(request, builder);
     request.target.containingNode.accept(visitor);
-    return const <CompletionSuggestion>[];
   }
 }
 

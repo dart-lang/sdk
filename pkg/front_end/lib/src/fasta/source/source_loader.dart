@@ -60,7 +60,7 @@ import '../../base/instrumentation.dart' show Instrumentation;
 
 import '../../base/nnbd_mode.dart';
 
-import '../blacklisted_classes.dart' show blacklistedCoreClasses;
+import '../denylisted_classes.dart' show denylistedCoreClasses;
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
@@ -663,10 +663,10 @@ class SourceLoader extends Loader {
       }
     }
 
-    Set<ClassBuilder> blackListedClasses = new Set<ClassBuilder>();
-    for (int i = 0; i < blacklistedCoreClasses.length; i++) {
-      blackListedClasses.add(coreLibrary
-          .lookupLocalMember(blacklistedCoreClasses[i], required: true));
+    Set<ClassBuilder> denyListedClasses = new Set<ClassBuilder>();
+    for (int i = 0; i < denylistedCoreClasses.length; i++) {
+      denyListedClasses.add(coreLibrary
+          .lookupLocalMember(denylistedCoreClasses[i], required: true));
     }
 
     // Sort the classes topologically.
@@ -698,7 +698,7 @@ class SourceLoader extends Loader {
         }
         if (allSupertypesProcessed) {
           topologicallySortedClasses.add(cls);
-          checkClassSupertypes(cls, directSupertypeMap, blackListedClasses);
+          checkClassSupertypes(cls, directSupertypeMap, denyListedClasses);
         } else {
           workList.add(cls);
         }
@@ -748,8 +748,8 @@ class SourceLoader extends Loader {
   void checkClassSupertypes(
       SourceClassBuilder cls,
       Map<TypeDeclarationBuilder, TypeAliasBuilder> directSupertypeMap,
-      Set<ClassBuilder> blackListedClasses) {
-    // Check that the direct supertypes aren't black-listed or enums.
+      Set<ClassBuilder> denyListedClasses) {
+    // Check that the direct supertypes aren't deny-listed or enums.
     List<TypeDeclarationBuilder> directSupertypes =
         directSupertypeMap.keys.toList();
     for (int i = 0; i < directSupertypes.length; i++) {
@@ -758,7 +758,7 @@ class SourceLoader extends Loader {
         cls.addProblem(templateExtendingEnum.withArguments(supertype.name),
             cls.charOffset, noLength);
       } else if (!cls.library.mayImplementRestrictedTypes &&
-          blackListedClasses.contains(supertype)) {
+          denyListedClasses.contains(supertype)) {
         TypeAliasBuilder aliasBuilder = directSupertypeMap[supertype];
         if (aliasBuilder != null) {
           cls.addProblem(
@@ -801,7 +801,7 @@ class SourceLoader extends Loader {
                 ]);
             return;
           } else if (!cls.library.mayImplementRestrictedTypes &&
-              blackListedClasses.contains(builder)) {
+              denyListedClasses.contains(builder)) {
             cls.addProblem(
                 templateExtendingRestricted
                     .withArguments(mixedInTypeBuilder.fullNameForErrors),

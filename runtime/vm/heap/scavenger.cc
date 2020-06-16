@@ -673,6 +673,19 @@ void SemiSpace::AddList(NewPage* head, NewPage* tail) {
   tail_ = tail;
 }
 
+void SemiSpace::MergeFrom(SemiSpace* donor) {
+  for (NewPage* page = donor->head_; page != nullptr; page = page->next()) {
+    page->Release();
+  }
+
+  AddList(donor->head_, donor->tail_);
+  capacity_in_words_ += donor->capacity_in_words_;
+
+  donor->head_ = nullptr;
+  donor->tail_ = nullptr;
+  donor->capacity_in_words_ = 0;
+}
+
 // The initial estimate of how many words we can scavenge per microsecond (usage
 // before / scavenge time). This is a conservative value observed running
 // Flutter on a Nexus 4. After the first scavenge, we instead use a value based
@@ -1576,6 +1589,15 @@ void Scavenger::Evacuate() {
   // It is possible for objects to stay in the new space
   // if the VM cannot create more pages for these objects.
   ASSERT((UsedInWords() == 0) || failed_to_promote_);
+}
+
+void Scavenger::MergeFrom(Scavenger* donor) {
+  MutexLocker ml(&space_lock_);
+  MutexLocker ml2(&donor->space_lock_);
+  to_->MergeFrom(donor->to_);
+
+  external_size_ += donor->external_size_;
+  donor->external_size_ = 0;
 }
 
 }  // namespace dart

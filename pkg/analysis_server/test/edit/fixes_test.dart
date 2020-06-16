@@ -31,6 +31,24 @@ class FixesTest extends AbstractAnalysisTest {
     handler = EditDomainHandler(server);
   }
 
+  Future<void> test_fixExtendsNonClass() async {
+    createProject();
+    addTestFile('''
+class MyCompleter extends Completer<String> {}
+
+class Completer2 {}
+''');
+    await waitForTasksFinished();
+    doAllDeclarationsTrackerWork();
+    var errorFixes = await _getFixesAt('extends Completer');
+    expect(errorFixes, hasLength(1));
+    var fixes = errorFixes[0].fixes;
+    expect(fixes, hasLength(3));
+    expect(fixes[0].message, matches('Import library'));
+    expect(fixes[1].message, matches("Change to 'Completer2'"));
+    expect(fixes[2].message, matches("Create class 'Completer'"));
+  }
+
   Future<void> test_fixUndefinedClass() async {
     createProject();
     addTestFile('''

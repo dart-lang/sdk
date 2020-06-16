@@ -1379,7 +1379,7 @@ class C {
 
 ### default_list_constructor
 
-_Calling the default 'List' constructor causes an error._
+_The default 'List' constructor is not available when null safety is enabled._
 
 #### Description
 

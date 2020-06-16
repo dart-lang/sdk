@@ -208,6 +208,9 @@ dart2js:
       uri: "js/_js.dart"
       patches: "js/_js_client.dart"
 
+    _js_annotations:
+      uri: "js/_js_annotations.dart"
+
     js_util:
       uri: "js_util/js_util.dart"
 
@@ -316,6 +319,9 @@ dart2js_server:
       uri: "js/_js.dart"
       patches: "js/_js_server.dart"
 
+    _js_annotations:
+      uri: "js/_js_annotations.dart"
+
     js_util:
       uri: "js_util/js_util.dart"
 
@@ -389,6 +395,9 @@ dartdevc:
 
       _isolate_helper:
         uri: "_internal/js_dev_runtime/private/isolate_helper.dart"
+
+      _js_annotations:
+        uri: "js/_js_annotations.dart"
 
       _js_helper:
         uri: "_internal/js_dev_runtime/private/js_helper.dart"

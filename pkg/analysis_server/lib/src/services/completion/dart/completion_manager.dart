@@ -19,7 +19,6 @@ import 'package:analysis_server/src/services/completion/dart/extension_member_co
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/field_formal_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/inherited_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/keyword_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/label_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/library_member_contributor.dart';
@@ -134,7 +133,6 @@ class DartCompletionManager implements CompletionContributor {
       CombinatorContributor(),
       ExtensionMemberContributor(),
       FieldFormalContributor(),
-      InheritedReferenceContributor(),
       KeywordContributor(),
       LabelContributor(),
       LibraryMemberContributor(),
@@ -186,14 +184,9 @@ class DartCompletionManager implements CompletionContributor {
         var contributorTag =
             'DartCompletionManager - ${contributor.runtimeType}';
         performance.logStartTime(contributorTag);
-        var contributorSuggestions =
-            await contributor.computeSuggestions(dartRequest, builder);
+        await contributor.computeSuggestions(dartRequest, builder);
         performance.logElapseTime(contributorTag);
         request.checkAborted();
-
-        for (var newSuggestion in contributorSuggestions) {
-          addSuggestionToMap(newSuggestion);
-        }
       }
       for (var newSuggestion in builder.suggestions) {
         addSuggestionToMap(newSuggestion);
@@ -272,6 +265,11 @@ class DartCompletionManager implements CompletionContributor {
 
   void _addIncludedSuggestionRelevanceTags(DartCompletionRequestImpl request) {
     var target = request.target;
+
+    if (request.inConstantContext && request.useNewRelevance) {
+      includedSuggestionRelevanceTags.add(IncludedSuggestionRelevanceTag(
+          'isConst', RelevanceBoost.constInConstantContext));
+    }
 
     void addTypeTag(DartType type) {
       if (type is InterfaceType) {

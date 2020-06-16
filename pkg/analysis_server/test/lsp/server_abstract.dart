@@ -52,13 +52,15 @@ abstract class AbstractLspAnalysisServerTest
   DiscoveredPluginInfo configureTestPlugin({
     plugin.ResponseResult respondWith,
     plugin.Notification notification,
+    Duration respondAfter = Duration.zero,
   }) {
     final info = DiscoveredPluginInfo('a', 'b', 'c', null, null);
     pluginManager.plugins.add(info);
 
     if (respondWith != null) {
       pluginManager.broadcastResults = <PluginInfo, Future<plugin.Response>>{
-        info: Future.value(respondWith.toResponse('-', 1))
+        info: Future.delayed(respondAfter)
+            .then((_) => respondWith.toResponse('-', 1))
       };
     }
 

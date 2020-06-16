@@ -1097,9 +1097,6 @@ class Class : public Object {
   intptr_t NumTypeParameters() const {
     return NumTypeParameters(Thread::Current());
   }
-  static intptr_t type_parameters_offset() {
-    return OFFSET_OF(ClassLayout, type_parameters_);
-  }
 
   // Return a TypeParameter if the type_name is a type parameter of this class.
   // Return null otherwise.
@@ -2427,6 +2424,32 @@ enum {
   kAllFree = kMaxInt32,
 };
 
+// Formatting configuration for Function::PrintQualifiedName.
+struct NameFormattingParams {
+  Object::NameVisibility name_visibility;
+  bool disambiguate_names;
+
+  // By default function name includes the name of the enclosing class if any.
+  // However in some context this information is redundant and class name
+  // is already known. In this case setting |include_class_name| to false
+  // allows you to exclude this information from the formatted name.
+  bool include_class_name = true;
+
+  NameFormattingParams(Object::NameVisibility visibility,
+                       Object::NameDisambiguation name_disambiguation =
+                           Object::NameDisambiguation::kNo)
+      : name_visibility(visibility),
+        disambiguate_names(name_disambiguation ==
+                           Object::NameDisambiguation::kYes) {}
+
+  static NameFormattingParams DisambiguatedWithoutClassName(
+      Object::NameVisibility visibility) {
+    NameFormattingParams params(visibility, Object::NameDisambiguation::kYes);
+    params.include_class_name = false;
+    return params;
+  }
+};
+
 class Function : public Object {
  public:
   StringPtr name() const { return raw_ptr()->name_; }
@@ -2435,10 +2458,8 @@ class Function : public Object {
 
   const char* NameCString(NameVisibility name_visibility) const;
 
-  void PrintQualifiedName(
-      NameVisibility name_visibility,
-      ZoneTextBuffer* printer,
-      NameDisambiguation name_disambiguation = NameDisambiguation::kNo) const;
+  void PrintQualifiedName(const NameFormattingParams& params,
+                          ZoneTextBuffer* printer) const;
   StringPtr QualifiedScrubbedName() const;
   StringPtr QualifiedUserVisibleName() const;
 
@@ -4522,7 +4543,6 @@ class DictionaryIterator : public ValueObject {
   int next_ix_;     // Index of next element.
 
   friend class ClassDictionaryIterator;
-  friend class LibraryPrefixIterator;
   DISALLOW_COPY_AND_ASSIGN(DictionaryIterator);
 };
 
@@ -4551,16 +4571,6 @@ class ClassDictionaryIterator : public DictionaryIterator {
   Class& toplevel_class_;
 
   DISALLOW_COPY_AND_ASSIGN(ClassDictionaryIterator);
-};
-
-class LibraryPrefixIterator : public DictionaryIterator {
- public:
-  explicit LibraryPrefixIterator(const Library& library);
-  LibraryPrefixPtr GetNext();
-
- private:
-  void Advance();
-  DISALLOW_COPY_AND_ASSIGN(LibraryPrefixIterator);
 };
 
 class Library : public Object {
@@ -4716,6 +4726,9 @@ class Library : public Object {
   intptr_t num_imports() const { return raw_ptr()->num_imports_; }
   NamespacePtr ImportAt(intptr_t index) const;
   LibraryPtr ImportLibraryAt(intptr_t index) const;
+
+  ArrayPtr dependencies() const { return raw_ptr()->dependencies_; }
+  void set_dependencies(const Array& deps) const;
 
   void DropDependenciesAndCaches() const;
 
@@ -6339,8 +6352,7 @@ class Code : public Object {
   intptr_t GetDeoptIdForOsr(uword pc) const;
 
   const char* Name() const;
-  const char* QualifiedName(NameVisibility name_visibility,
-                            NameDisambiguation name_disambiguation) const;
+  const char* QualifiedName(const NameFormattingParams& params) const;
 
   int64_t compile_timestamp() const {
 #if defined(PRODUCT)
@@ -6503,7 +6515,7 @@ class Code : public Object {
   friend class MegamorphicCacheTable;  // for set_object_pool
   friend class CodePatcher;            // for set_instructions
   friend class ProgramVisitor;         // for set_instructions
-  // So that the RawFunction pointer visitor can determine whether code the
+  // So that the FunctionLayout pointer visitor can determine whether code the
   // function points to is optimized.
   friend class FunctionLayout;
   friend class CallSiteResetter;
@@ -7322,6 +7334,10 @@ class LibraryPrefix : public Instance {
   void AddImport(const Namespace& import) const;
 
   bool is_deferred_load() const { return raw_ptr()->is_deferred_load_; }
+  bool is_loaded() const { return raw_ptr()->is_loaded_; }
+  void set_is_loaded(bool value) const {
+    return StoreNonPointer(&raw_ptr()->is_loaded_, value);
+  }
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(LibraryPrefixLayout));
@@ -8140,6 +8156,10 @@ class TypeParameter : public AbstractType {
         raw_ptr()->flags_);
   }
   void SetGenericCovariantImpl(bool value) const;
+  bool IsDeclaration() const {
+    return TypeParameterLayout::DeclarationBit::decode(raw_ptr()->flags_);
+  }
+  void SetDeclaration(bool value) const;
   virtual Nullability nullability() const {
     return static_cast<Nullability>(raw_ptr()->nullability_);
   }
@@ -8176,12 +8196,10 @@ class TypeParameter : public AbstractType {
       intptr_t num_free_fun_type_params,
       Heap::Space space,
       TrailPtr trail = nullptr) const;
-  virtual AbstractTypePtr Canonicalize(TrailPtr trail = nullptr) const {
-    return raw();
-  }
+  virtual AbstractTypePtr Canonicalize(TrailPtr trail = nullptr) const;
 #if defined(DEBUG)
   // Check if type parameter is canonical.
-  virtual bool CheckIsCanonical(Thread* thread) const { return true; }
+  virtual bool CheckIsCanonical(Thread* thread) const;
 #endif  // DEBUG
   virtual void EnumerateURIs(URIs* uris) const;
 
@@ -11277,6 +11295,7 @@ using MegamorphicCacheEntries =
     ArrayOfTuplesView<MegamorphicCache::EntryType, std::tuple<Smi, Object>>;
 
 void DumpTypeTable(Isolate* isolate);
+void DumpTypeParameterTable(Isolate* isolate);
 void DumpTypeArgumentsTable(Isolate* isolate);
 
 EntryPointPragma FindEntryPointPragma(Isolate* I,

@@ -190,6 +190,8 @@ const Map<String, LibraryInfo> libraries = const {
       platforms: DART2JS_PLATFORM),
   "_metadata": const LibraryInfo("html/html_common/metadata.dart",
       categories: "", documented: false, platforms: DART2JS_PLATFORM),
+  "_js_annotations": const LibraryInfo("js/_js_annotations.dart",
+      categories: "", documented: false, platforms: DART2JS_PLATFORM),
 };
 
 /**

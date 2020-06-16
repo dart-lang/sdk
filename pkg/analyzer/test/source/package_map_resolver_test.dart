@@ -96,6 +96,40 @@ class _PackageMapUriResolverTest {
     }
   }
 
+  void test_resolve_OK_withNonAscii() {
+    var resolver = PackageMapUriResolver(provider, {
+      'aaa': <Folder>[
+        provider.getFolder(
+          provider.convertPath('/packages/aaa/lib'),
+        ),
+      ],
+    });
+
+    var uri = Uri.parse('package:aaa/проба/a.dart');
+    var result = resolver.resolveAbsolute(uri);
+    expect(
+      result.fullName,
+      provider.convertPath('/packages/aaa/lib/проба/a.dart'),
+    );
+  }
+
+  void test_resolve_OK_withSpace() {
+    var resolver = PackageMapUriResolver(provider, {
+      'aaa': <Folder>[
+        provider.getFolder(
+          provider.convertPath('/packages/aaa/lib'),
+        ),
+      ],
+    });
+
+    var uri = Uri.parse('package:aaa/with space/a.dart');
+    var result = resolver.resolveAbsolute(uri);
+    expect(
+      result.fullName,
+      provider.convertPath('/packages/aaa/lib/with space/a.dart'),
+    );
+  }
+
   void test_resolve_package_invalid_leadingSlash() {
     UriResolver resolver = PackageMapUriResolver(provider, EMPTY_MAP);
     Uri uri = Uri.parse('package:/foo');

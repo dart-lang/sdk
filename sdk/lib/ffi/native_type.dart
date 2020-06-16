@@ -125,6 +125,12 @@ class Double extends _NativeDouble {
 @unsized
 abstract class Void extends NativeType {}
 
+/// Represents `Dart_Handle` in C.
+///
+/// [Handle] is not constructible in the Dart code and serves purely as marker in
+/// type signatures.
+abstract class Handle extends NativeType {}
+
 /// Represents a function type in C.
 ///
 /// [NativeFunction] is not constructible in the Dart code and serves purely as

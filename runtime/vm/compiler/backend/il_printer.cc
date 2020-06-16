@@ -1054,6 +1054,14 @@ void FfiCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   }
 }
 
+void EnterHandleScopeInstr::PrintOperandsTo(BufferFormatter* f) const {
+  if (kind_ == Kind::kEnterHandleScope) {
+    f->Print("<enter handle scope>");
+  } else {
+    f->Print("<get top api scope>");
+  }
+}
+
 void NativeReturnInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
   f->Print(" (@");

@@ -298,6 +298,8 @@ void ConstantPropagator::VisitStoreIndexed(StoreIndexedInstr* instr) {}
 void ConstantPropagator::VisitStoreInstanceField(
     StoreInstanceFieldInstr* instr) {}
 
+void ConstantPropagator::VisitMemoryCopy(MemoryCopyInstr* instr) {}
+
 void ConstantPropagator::VisitDeoptimize(DeoptimizeInstr* instr) {
   // TODO(vegorov) remove all code after DeoptimizeInstr as dead.
 }
@@ -731,6 +733,22 @@ void ConstantPropagator::VisitNativeCall(NativeCallInstr* instr) {
 
 void ConstantPropagator::VisitFfiCall(FfiCallInstr* instr) {
   SetValue(instr, non_constant_);
+}
+
+void ConstantPropagator::VisitEnterHandleScope(EnterHandleScopeInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+void ConstantPropagator::VisitExitHandleScope(ExitHandleScopeInstr* instr) {
+  // Nothing to do.
+}
+
+void ConstantPropagator::VisitAllocateHandle(AllocateHandleInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+void ConstantPropagator::VisitRawStoreField(RawStoreFieldInstr* instr) {
+  // Nothing to do.
 }
 
 void ConstantPropagator::VisitDebugStepCheck(DebugStepCheckInstr* instr) {

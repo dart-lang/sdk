@@ -245,6 +245,18 @@ Fragment BaseFlowGraphBuilder::IntConstant(int64_t value) {
       Constant(Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld))));
 }
 
+Fragment BaseFlowGraphBuilder::MemoryCopy(classid_t src_cid,
+                                          classid_t dest_cid) {
+  Value* length = Pop();
+  Value* dest_start = Pop();
+  Value* src_start = Pop();
+  Value* dest = Pop();
+  Value* src = Pop();
+  auto copy = new (Z) MemoryCopyInstr(src, dest, src_start, dest_start, length,
+                                      src_cid, dest_cid);
+  return Fragment(copy);
+}
+
 Fragment BaseFlowGraphBuilder::TailCall(const Code& code) {
   Value* arg_desc = Pop();
   return Fragment(new (Z) TailCallInstr(code, arg_desc));

@@ -285,6 +285,7 @@ class BaseFlowGraphBuilder {
                               intptr_t stack_depth,
                               intptr_t loop_depth);
   Fragment CheckStackOverflowInPrologue(TokenPosition position);
+  Fragment MemoryCopy(classid_t src_cid, classid_t dest_cid);
   Fragment TailCall(const Code& code);
   Fragment Utf8Scan();
 

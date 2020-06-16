@@ -1707,7 +1707,7 @@ abstract class B {
   dynamic get x;
 }
 class C implements A, B {
-  dynamic get x {}
+  int get x {}
 }
 ''');
   }
@@ -1850,8 +1850,8 @@ abstract class B {
   void set x(String _);
 }
 class C implements A, B {
-  synthetic dynamic x;
-  void set x(dynamic _);
+  synthetic String x;
+  void set x(String _);
 }
 ''',
         withSyntheticFields: true);
@@ -2121,7 +2121,7 @@ class B<E> {
   void m(E a) {}
 }
 class C extends A<int> implements B<double> {
-  m(a) {}
+  void m(a) {}
 }
 ''');
     checkElementText(library, r'''
@@ -2146,7 +2146,7 @@ class B {
   void m(String a) {}
 }
 class C extends A implements B {
-  m(a) {}
+  void m(a) {}
 }
 ''');
     checkElementText(library, r'''
@@ -2174,7 +2174,6 @@ class C extends A<int, String> implements B<double> {
   m(a) {}
 }
 ''');
-    // TODO(scheglov) test for inference failure error
     checkElementText(library, r'''
 class A<K, V> {
   V m(K a) {}
@@ -2183,7 +2182,7 @@ class B<T> {
   T m(int a) {}
 }
 class C extends A<int, String> implements B<double> {
-  dynamic m(int a) {}
+  dynamic m(dynamic a/*error: overrideConflictParameterType*/) {}
 }
 ''');
   }
@@ -2220,7 +2219,7 @@ class A {
   void m(int a) {}
 }
 class B extends A {
-  m(a, b) {}
+  void m(a, b) {}
 }
 ''');
     // It's an error to add a new required parameter, but it is not a

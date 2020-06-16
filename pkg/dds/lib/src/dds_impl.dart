@@ -11,6 +11,7 @@ class _DartDevelopmentService implements DartDevelopmentService {
     this._authCodesEnabled,
   ) {
     _clientManager = _ClientManager(this);
+    _expressionEvaluator = _ExpressionEvaluator(this);
     _isolateManager = _IsolateManager(this);
     _loggingRepository = _LoggingRepository();
     _streamManager = _StreamManager(this);
@@ -196,6 +197,9 @@ class _DartDevelopmentService implements DartDevelopmentService {
 
   _ClientManager get clientManager => _clientManager;
   _ClientManager _clientManager;
+
+  _ExpressionEvaluator get expressionEvaluator => _expressionEvaluator;
+  _ExpressionEvaluator _expressionEvaluator;
 
   _IsolateManager get isolateManager => _isolateManager;
   _IsolateManager _isolateManager;

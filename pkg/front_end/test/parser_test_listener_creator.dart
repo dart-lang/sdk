@@ -71,7 +71,7 @@ class ParserTestListener implements Listener {
   String createTrace() {
     List<String> traceLines = StackTrace.current.toString().split("\n");
     for (int i = 0; i < traceLines.length; i++) {
-      // Find first one that's not any of the blacklisted ones.
+      // Find first one that's not any of the denylisted ones.
       String line = traceLines[i];
       if (line.contains("parser_test_listener.dart:") ||
           line.contains("parser_suite.dart:")) continue;

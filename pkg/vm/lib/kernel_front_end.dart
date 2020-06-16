@@ -123,6 +123,11 @@ void declareCompilerOptions(ArgParser args) {
       help:
           'Split resulting kernel file into multiple files (one per package).',
       defaultsTo: false);
+  args.addOption('component-name',
+      help: 'Name of the Fuchsia component', defaultsTo: null);
+  args.addOption('data-dir',
+      help: 'Name of the subdirectory of //data for output files');
+  args.addOption('manifest', help: 'Path to output Fuchsia package manifest');
   args.addFlag('gen-bytecode', help: 'Generate bytecode', defaultsTo: false);
   args.addMultiOption('bytecode-options',
       help: 'Specify options for bytecode generation:',
@@ -181,6 +186,9 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool nullSafety = options['null-safety'];
   final bool useProtobufTreeShaker = options['protobuf-tree-shaker'];
   final bool splitOutputByPackages = options['split-output-by-packages'];
+  final String manifestFilename = options['manifest'];
+  final String dataDir = options['component-name'] ?? options['data-dir'];
+
   final bool minimalKernel = options['minimal-kernel'];
   final bool treeShakeWriteOnlyFields = options['tree-shake-write-only-fields'];
   final List<String> experimentalFlags = options['enable-experiment'];
@@ -303,6 +311,10 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       bytecodeOptions: bytecodeOptions,
       dropAST: dropAST,
     );
+  }
+
+  if (manifestFilename != null) {
+    await createFarManifest(outputFileName, dataDir, manifestFilename);
   }
 
   return successExitCode;

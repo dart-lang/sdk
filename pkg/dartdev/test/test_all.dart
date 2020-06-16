@@ -4,6 +4,7 @@
 
 import 'package:test/test.dart';
 
+import 'analytics_test.dart' as analytics;
 import 'commands/analyze_test.dart' as analyze;
 import 'commands/create_test.dart' as create;
 import 'commands/flag_test.dart' as flag;
@@ -19,6 +20,7 @@ import 'utils_test.dart' as utils;
 
 main() {
   group('dart', () {
+    analytics.main();
     analyze.main();
     create.main();
     flag.main();

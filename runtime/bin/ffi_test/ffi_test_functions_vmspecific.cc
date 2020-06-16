@@ -790,4 +790,126 @@ DART_EXPORT void ThreadPoolTest_BarrierSync(
   dart_enter_isolate(isolate);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Functions for handle tests.
+//
+// vmspecific_handle_test.dart
+
+static void RunFinalizer(void* isolate_callback_data,
+                         Dart_WeakPersistentHandle handle,
+                         void* peer) {
+  printf("Running finalizer for weak handle.\n");
+}
+
+// Tests that passing handles through FFI calls works, and that the FFI call
+// sets up the VM state etc. correctly so that the handle API calls work.
+DART_EXPORT Dart_Handle PassObjectToC(Dart_Handle h) {
+  // Can use "h" until this function returns.
+
+  // A persistent handle which outlives this call. Lifetime managed in C.
+  auto persistent_handle = Dart_NewPersistentHandle(h);
+
+  Dart_Handle handle_2 = Dart_HandleFromPersistent(persistent_handle);
+  Dart_DeletePersistentHandle(persistent_handle);
+  if (Dart_IsError(handle_2)) {
+    Dart_PropagateError(handle_2);
+  }
+
+  Dart_Handle return_value;
+  if (!Dart_IsNull(h)) {
+    // A weak handle which outlives this call. Lifetime managed in C.
+    auto weak_handle = Dart_NewWeakPersistentHandle(
+        h, reinterpret_cast<void*>(0x1234), 64, RunFinalizer);
+    return_value = Dart_HandleFromWeakPersistent(weak_handle);
+
+    // Deleting a weak handle is not required, it deletes itself on
+    // finalization.
+    // Deleting a weak handle cancels the finalizer.
+    Dart_DeleteWeakPersistentHandle(weak_handle);
+  } else {
+    return_value = h;
+  }
+
+  return return_value;
+}
+
+DART_EXPORT void ClosureCallbackThroughHandle(void (*callback)(Dart_Handle),
+                                              Dart_Handle closureHandle) {
+  printf("ClosureCallbackThroughHandle %p %p\n", callback, closureHandle);
+  callback(closureHandle);
+}
+
+DART_EXPORT Dart_Handle ReturnHandleInCallback(Dart_Handle (*callback)()) {
+  printf("ReturnHandleInCallback %p\n", callback);
+  Dart_Handle handle = callback();
+  if (Dart_IsError(handle)) {
+    printf("callback() returned an error, propagating error\n");
+    // Do C/C++ resource cleanup if needed, before propagating error.
+    Dart_PropagateError(handle);
+  }
+  return handle;
+}
+
+// Recurses til `i` reaches 0. Throws some Dart_Invoke in there as well.
+DART_EXPORT Dart_Handle HandleRecursion(Dart_Handle object,
+                                        Dart_Handle (*callback)(int64_t),
+                                        int64_t i) {
+  printf("HandleRecursion %" Pd64 "\n", i);
+  const bool do_invoke = i % 3 == 0;
+  const bool do_gc = i % 7 == 3;
+  if (do_gc) {
+    Dart_ExecuteInternalCommand("gc-now", nullptr);
+  }
+  Dart_Handle result;
+  if (do_invoke) {
+    Dart_Handle method_name = Dart_NewStringFromCString("a");
+    if (Dart_IsError(method_name)) {
+      Dart_PropagateError(method_name);
+    }
+    Dart_Handle arg = Dart_NewInteger(i - 1);
+    if (Dart_IsError(arg)) {
+      Dart_PropagateError(arg);
+    }
+    printf("Dart_Invoke\n");
+    result = Dart_Invoke(object, method_name, 1, &arg);
+  } else {
+    printf("callback\n");
+    result = callback(i - 1);
+  }
+  if (do_gc) {
+    Dart_ExecuteInternalCommand("gc-now", nullptr);
+  }
+  if (Dart_IsError(result)) {
+    // Do C/C++ resource cleanup if needed, before propagating error.
+    printf("Dart_PropagateError %" Pd64 "\n", i);
+    Dart_PropagateError(result);
+  }
+  printf("return %" Pd64 "\n", i);
+  return result;
+}
+
+DART_EXPORT int64_t HandleReadFieldValue(Dart_Handle handle) {
+  printf("HandleReadFieldValue\n");
+  Dart_Handle field_name = Dart_NewStringFromCString("a");
+  if (Dart_IsError(field_name)) {
+    printf("Dart_PropagateError(field_name)\n");
+    Dart_PropagateError(field_name);
+  }
+  Dart_Handle field_value = Dart_GetField(handle, field_name);
+  if (Dart_IsError(field_value)) {
+    printf("Dart_PropagateError(field_value)\n");
+    Dart_PropagateError(field_value);
+  }
+  int64_t value;
+  Dart_Handle err = Dart_IntegerToInt64(field_value, &value);
+  if (Dart_IsError(err)) {
+    Dart_PropagateError(err);
+  }
+  return value;
+}
+
+DART_EXPORT Dart_Handle TrueHandle() {
+  return Dart_True();
+}
+
 }  // namespace dart

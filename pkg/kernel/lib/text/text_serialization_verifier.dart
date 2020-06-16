@@ -345,19 +345,14 @@ class VerificationState {
 
   static bool isStatementNotSupported(Statement node) =>
       node is BreakStatement ||
-      node is AssertBlock ||
       node is VariableDeclaration &&
           (node.parent is! Block || node.name == null) ||
       node is SwitchStatement ||
       node is TryFinally ||
-      node is EmptyStatement ||
       node is LabeledStatement ||
-      node is ForInStatement && node.isAsync ||
       node is TryCatch ||
       node is FunctionDeclaration ||
-      node is ContinueSwitchStatement ||
-      node is AssertStatement ||
-      node is ReturnStatement && node.expression == null;
+      node is ContinueSwitchStatement;
 
   static bool isSupported(Node node) => !isNotSupported(node);
 

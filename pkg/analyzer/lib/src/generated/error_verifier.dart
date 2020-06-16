@@ -444,6 +444,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _checkClassInheritance(node, superclass, withClause, implementsClause);
       }
 
+      _checkForConflictingClassMembers();
       _constructorFieldsVerifier.enterClass(node);
       _checkForFinalNotInitializedInClass(members);
       _checkForBadFunctionUse(node);
@@ -951,6 +952,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _checkMixinInheritance(node, onClause, implementsClause);
       }
 
+      _checkForConflictingClassMembers();
       _checkForFinalNotInitializedInClass(members);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       //      _checkForBadFunctionUse(node);
@@ -1267,7 +1269,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         !_checkForAllMixinErrorCodes(withClause)) {
       _checkForImplicitDynamicType(superclass);
       _checkForExtendsDeferredClass(superclass);
-      _checkForConflictingClassMembers();
       _checkForRepeatedType(implementsClause?.interfaces,
           CompileTimeErrorCode.IMPLEMENTS_REPEATED);
       _checkImplementsSuperClass(implementsClause);
@@ -1300,8 +1301,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * Verify that all classes of the given [withClause] are valid.
    *
    * See [CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR],
-   * [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT], and
-   * [CompileTimeErrorCode.MIXIN_REFERENCES_SUPER].
+   * [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT].
    */
   bool _checkForAllMixinErrorCodes(WithClause withClause) {
     if (withClause == null) {
@@ -1339,9 +1339,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
               problemReported = true;
             }
             if (_checkForMixinInheritsNotFromObject(mixinName, mixinElement)) {
-              problemReported = true;
-            }
-            if (_checkForMixinReferencesSuper(mixinName, mixinElement)) {
               problemReported = true;
             }
           }
@@ -1756,7 +1753,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   /**
    * Verify that the [_enclosingClass] does not have a method and getter pair
-   * with the same name on, via inheritance.
+   * with the same name, via inheritance.
    *
    * See [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE],
    * [CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD], and
@@ -1902,12 +1899,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that if the given [constructor] declaration is 'const' then there
-   * are no invocations of non-'const' super constructors.
-   *
-   * See [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER].
-   */
+  /// Verify that if the given [constructor] declaration is 'const' then there
+  /// are no invocations of non-'const' super constructors, and that there are
+  /// no instance variables mixed in.
+  ///
+  /// See [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER], and
+  /// [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD].
   void _checkForConstConstructorWithNonConstSuper(
       ConstructorDeclaration constructor) {
     if (!_enclosingExecutable.isConstConstructor) {
@@ -1919,21 +1916,26 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     // check for mixins
-    var hasInstanceField = false;
+    var instanceFields = <FieldElement>[];
     for (var mixin in _enclosingClass.mixins) {
-      var fields = mixin.element.fields;
-      for (var i = 0; i < fields.length; ++i) {
-        if (!fields[i].isStatic) {
-          hasInstanceField = true;
-          break;
-        }
-      }
+      instanceFields.addAll(mixin.element.fields
+          .where((field) => !field.isStatic && !field.isSynthetic));
     }
-    if (hasInstanceField) {
-      // TODO(scheglov) Provide the list of fields.
+    if (instanceFields.length == 1) {
+      var field = instanceFields.single;
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
-          constructor.returnType);
+          constructor.returnType,
+          ["'${field.enclosingElement.name}.${field.name}'"]);
+      return;
+    } else if (instanceFields.length > 1) {
+      var fieldNames = instanceFields
+          .map((field) => "'${field.enclosingElement.name}.${field.name}'")
+          .join(', ');
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELDS,
+          constructor.returnType,
+          [fieldNames]);
       return;
     }
 
@@ -3287,24 +3289,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             [mixinElement.name]);
         return true;
       }
-    }
-    return false;
-  }
-
-  /**
-   * Verify that the given mixin does not reference 'super'. The [mixinName] is
-   * the node to report problem on. The [mixinElement] is the mixing to
-   * evaluate.
-   *
-   * See [CompileTimeErrorCode.MIXIN_REFERENCES_SUPER].
-   */
-  bool _checkForMixinReferencesSuper(
-      TypeName mixinName, ClassElement mixinElement) {
-    if (mixinElement.hasReferenceToSuper) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.MIXIN_REFERENCES_SUPER,
-          mixinName,
-          [mixinElement.name]);
     }
     return false;
   }
@@ -4915,7 +4899,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (!_checkForOnClauseErrorCodes(onClause) &&
         !_checkForImplementsClauseErrorCodes(implementsClause)) {
 //      _checkForImplicitDynamicType(superclass);
-      _checkForConflictingClassMembers();
       _checkForRepeatedType(
         onClause?.superclassConstraints,
         CompileTimeErrorCode.ON_REPEATED,

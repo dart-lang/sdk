@@ -75,6 +75,14 @@ class _Evaluator {
   _Evaluator(this._message, this._isolate, this._service);
 
   Future<Response> run() async {
+    if (_service.ddsUri != null) {
+      return Response.from(encodeRpcError(
+        _message,
+        kInternalError,
+        details: 'Fell through to VM Service expression evaluation when a DDS '
+            'instance was connected. Please file an issue on GitHub.',
+      ));
+    }
     final buildScopeResponse = await _buildScope();
     final responseJson = buildScopeResponse.decodeJson();
 

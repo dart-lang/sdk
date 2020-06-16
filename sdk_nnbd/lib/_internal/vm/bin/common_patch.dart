@@ -52,7 +52,14 @@ import "dart:typed_data" show Uint8List;
 @patch
 bool _isDirectIOCapableTypedList(List<int> buffer) {
   int classID = ClassID.getID(buffer);
-  return classID == ClassID.cidUint8Array || classID == ClassID.cidInt8Array;
+  return classID == ClassID.cidExternalInt8Array ||
+      classID == ClassID.cidExternalUint8Array ||
+      classID == ClassID.cidExternalUint8ClampedArray ||
+      classID == ClassID.cidInt8Array ||
+      classID == ClassID.cidInt8ArrayView ||
+      classID == ClassID.cidUint8Array ||
+      classID == ClassID.cidUint8ArrayView ||
+      classID == ClassID.cidUint8ClampedArray;
 }
 
 @patch

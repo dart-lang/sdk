@@ -134,6 +134,134 @@ DEFINE_BACKEND(TailCall,
   __ set_constant_pool_allowed(true);
 }
 
+LocationSummary* MemoryCopyInstr::MakeLocationSummary(Zone* zone,
+                                                      bool opt) const {
+  const intptr_t kNumInputs = 5;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(kSrcPos, Location::WritableRegister());
+  locs->set_in(kDestPos, Location::WritableRegister());
+  locs->set_in(kSrcStartPos, Location::RequiresRegister());
+  locs->set_in(kDestStartPos, Location::RequiresRegister());
+  locs->set_in(kLengthPos, Location::WritableRegister());
+  locs->set_temp(0, element_size_ == 16
+                        ? Location::Pair(Location::RequiresRegister(),
+                                         Location::RequiresRegister())
+                        : Location::RequiresRegister());
+  return locs;
+}
+
+void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register src_reg = locs()->in(kSrcPos).reg();
+  const Register dest_reg = locs()->in(kDestPos).reg();
+  const Register src_start_reg = locs()->in(kSrcStartPos).reg();
+  const Register dest_start_reg = locs()->in(kDestStartPos).reg();
+  const Register length_reg = locs()->in(kLengthPos).reg();
+
+  Register temp_reg, temp_reg2;
+  if (locs()->temp(0).IsPairLocation()) {
+    PairLocation* pair = locs()->temp(0).AsPairLocation();
+    temp_reg = pair->At(0).reg();
+    temp_reg2 = pair->At(1).reg();
+  } else {
+    temp_reg = locs()->temp(0).reg();
+    temp_reg2 = kNoRegister;
+  }
+
+  EmitComputeStartPointer(compiler, src_cid_, src_start(), src_reg,
+                          src_start_reg);
+  EmitComputeStartPointer(compiler, dest_cid_, dest_start(), dest_reg,
+                          dest_start_reg);
+
+  compiler::Label loop, done;
+
+  compiler::Address src_address =
+      compiler::Address(src_reg, element_size_, compiler::Address::PostIndex);
+  compiler::Address dest_address =
+      compiler::Address(dest_reg, element_size_, compiler::Address::PostIndex);
+
+  // Untag length and skip copy if length is zero.
+  __ adds(length_reg, ZR, compiler::Operand(length_reg, ASR, 1));
+  __ b(&done, ZERO);
+
+  __ Bind(&loop);
+  switch (element_size_) {
+    case 1:
+      __ ldr(temp_reg, src_address, kUnsignedByte);
+      __ str(temp_reg, dest_address, kUnsignedByte);
+      break;
+    case 2:
+      __ ldr(temp_reg, src_address, kUnsignedHalfword);
+      __ str(temp_reg, dest_address, kUnsignedHalfword);
+      break;
+    case 4:
+      __ ldr(temp_reg, src_address, kUnsignedWord);
+      __ str(temp_reg, dest_address, kUnsignedWord);
+      break;
+    case 8:
+      __ ldr(temp_reg, src_address, kDoubleWord);
+      __ str(temp_reg, dest_address, kDoubleWord);
+      break;
+    case 16:
+      __ ldp(temp_reg, temp_reg2, src_address, kDoubleWord);
+      __ stp(temp_reg, temp_reg2, dest_address, kDoubleWord);
+      break;
+  }
+  __ subs(length_reg, length_reg, compiler::Operand(1));
+  __ b(&loop, NOT_ZERO);
+  __ Bind(&done);
+}
+
+void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
+                                              classid_t array_cid,
+                                              Value* start,
+                                              Register array_reg,
+                                              Register start_reg) {
+  if (IsTypedDataBaseClassId(array_cid)) {
+    __ ldr(
+        array_reg,
+        compiler::FieldAddress(
+            array_reg, compiler::target::TypedDataBase::data_field_offset()));
+  } else {
+    switch (array_cid) {
+      case kOneByteStringCid:
+        __ add(
+            array_reg, array_reg,
+            compiler::Operand(compiler::target::OneByteString::data_offset() -
+                              kHeapObjectTag));
+        break;
+      case kTwoByteStringCid:
+        __ add(
+            array_reg, array_reg,
+            compiler::Operand(compiler::target::OneByteString::data_offset() -
+                              kHeapObjectTag));
+        break;
+      case kExternalOneByteStringCid:
+        __ ldr(array_reg,
+               compiler::FieldAddress(array_reg,
+                                      compiler::target::ExternalOneByteString::
+                                          external_data_offset()));
+        break;
+      case kExternalTwoByteStringCid:
+        __ ldr(array_reg,
+               compiler::FieldAddress(array_reg,
+                                      compiler::target::ExternalTwoByteString::
+                                          external_data_offset()));
+        break;
+      default:
+        UNREACHABLE();
+        break;
+    }
+  }
+  intptr_t shift = Utils::ShiftForPowerOfTwo(element_size_) - 1;
+  if (shift < 0) {
+    __ add(array_reg, array_reg, compiler::Operand(start_reg, ASR, -shift));
+  } else {
+    __ add(array_reg, array_reg, compiler::Operand(start_reg, LSL, shift));
+  }
+}
+
 LocationSummary* PushArgumentInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -1008,13 +1136,14 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // ADR loads relative to itself, so add kInstrSize to point to the next
   // instruction.
   __ adr(temp, compiler::Immediate(Instr::kInstrSize));
-  compiler->EmitCallsiteMetadata(token_pos(), DeoptId::kNone,
+  compiler->EmitCallsiteMetadata(token_pos(), deopt_id(),
                                  PcDescriptorsLayout::Kind::kOther, locs());
 
   __ StoreToOffset(temp, FPREG, kSavedCallerPcSlotFromFp * kWordSize);
 
   if (CanExecuteGeneratedCodeInSafepoint()) {
     // Update information in the thread object and enter a safepoint.
+    __ LoadImmediate(temp, compiler::target::Thread::exit_through_ffi());
     __ TransitionGeneratedToNative(branch, FPREG, temp,
                                    /*enter_safepoint=*/true);
 
@@ -1071,13 +1200,16 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The dummy return address is in LR, no need to pop it as on Intel.
 
   // These can be anything besides the return register (R0) and THR (R26).
-  const Register vm_tag_reg = R1, old_exit_frame_reg = R2, tmp = R3;
+  const Register vm_tag_reg = R1;
+  const Register old_exit_frame_reg = R2;
+  const Register old_exit_through_ffi_reg = R3;
+  const Register tmp = R4;
+
+  __ PopPair(old_exit_frame_reg, old_exit_through_ffi_reg);
 
   // Restore top_resource.
-  __ PopPair(old_exit_frame_reg, tmp);
+  __ PopPair(tmp, vm_tag_reg);
   __ StoreToOffset(tmp, THR, compiler::target::Thread::top_resource_offset());
-
-  __ Pop(vm_tag_reg);
 
   // Reset the exit frame info to old_exit_frame_reg *before* entering the
   // safepoint.
@@ -1085,7 +1217,7 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // If we were called by a trampoline, it will enter the safepoint on our
   // behalf.
   __ TransitionGeneratedToNative(
-      vm_tag_reg, old_exit_frame_reg, tmp,
+      vm_tag_reg, old_exit_frame_reg, old_exit_through_ffi_reg,
       /*enter_safepoint=*/!NativeCallbackTrampolines::Enabled());
 
   __ PopNativeCalleeSavedRegisters();
@@ -1201,6 +1333,10 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PushPair(R0, TMP);
 
   __ StoreToOffset(ZR, THR, compiler::target::Thread::top_resource_offset());
+
+  __ LoadFromOffset(R0, THR,
+                    compiler::target::Thread::exit_through_ffi_offset());
+  __ Push(R0);
 
   // Save the top exit frame info. We don't set it to 0 yet:
   // TransitionNativeToGenerated will handle that.

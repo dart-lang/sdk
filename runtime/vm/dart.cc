@@ -746,6 +746,55 @@ ErrorPtr Dart::InitIsolateFromSnapshot(Thread* T,
   return Error::null();
 }
 
+bool Dart::DetectNullSafety(const char* script_uri,
+                            const uint8_t* snapshot_data,
+                            const uint8_t* snapshot_instructions,
+                            const uint8_t* kernel_buffer,
+                            intptr_t kernel_buffer_size,
+                            const char* package_config,
+                            const char* original_working_directory) {
+  // Before creating the isolate we first determine the null safety mode
+  // in which the isolate needs to run based on one of these factors :
+  // - if loading from source, based on opt-in status of the source
+  // - if loading from a kernel file, based on the mode used when
+  //   generating the kernel file
+  // - if loading from an appJIT or AOT snapshot, based on the mode used
+  //   when generating the snapshot.
+  ASSERT(FLAG_null_safety == kNullSafetyOptionUnspecified);
+
+  // If snapshot is an appJIT/AOT snapshot we will figure out the mode by
+  // sniffing the feature string in the snapshot.
+  if (snapshot_data != nullptr) {
+    // Read the snapshot and check for null safety option.
+    const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_data);
+    if (Snapshot::IncludesCode(snapshot->kind())) {
+      return SnapshotHeaderReader::NullSafetyFromSnapshot(snapshot);
+    }
+  }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // If kernel_buffer is specified, it could be a self contained
+  // kernel file or the kernel file of the application,
+  // figure out the null safety mode by sniffing the kernel file.
+  if (kernel_buffer != nullptr) {
+    const char* error = nullptr;
+    std::unique_ptr<kernel::Program> program = kernel::Program::ReadFromBuffer(
+        kernel_buffer, kernel_buffer_size, &error);
+    if (program != nullptr) {
+      return program->compilation_mode() == NNBDCompiledMode::kStrong;
+    }
+    return false;
+  }
+
+  // If we are loading from source, figure out the mode from the source.
+  if (KernelIsolate::GetExperimentalFlag("non-nullable")) {
+    return KernelIsolate::DetectNullSafety(script_uri, package_config,
+                                           original_working_directory);
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  return false;
+}
+
 #if defined(DART_PRECOMPILED_RUNTIME)
 static void PrintLLVMConstantPool(Thread* T, Isolate* I) {
   StackZone printing_zone(T);

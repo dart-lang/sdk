@@ -64,7 +64,7 @@ class KernelLoaderTask extends CompilerTask {
       // We defer selecting the platform until we've resolved the NNBD mode.
       String getPlatformFilename() {
         String platform = targetName;
-        if ((_options.nullSafetyMode == NullSafetyMode.sound)) {
+        if (!_options.useLegacySubtyping) {
           platform += "_nnbd_strong";
         }
         platform += "_platform.dill";

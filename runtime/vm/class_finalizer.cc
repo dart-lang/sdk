@@ -300,13 +300,13 @@ void ClassFinalizer::VerifyBootstrapClasses() {
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-void ClassFinalizer::FinalizeTypeParameters(const Class& cls,
-                                            PendingTypes* pending_types) {
+void ClassFinalizer::FinalizeTypeParameters(const Class& cls) {
   if (FLAG_trace_type_finalization) {
     THR_Print("Finalizing type parameters of '%s'\n",
               String::Handle(cls.Name()).ToCString());
   }
   // The type parameter bounds are not finalized here.
+  const intptr_t offset = cls.NumTypeArguments() - cls.NumTypeParameters();
   const TypeArguments& type_parameters =
       TypeArguments::Handle(cls.type_parameters());
   if (!type_parameters.IsNull()) {
@@ -314,9 +314,13 @@ void ClassFinalizer::FinalizeTypeParameters(const Class& cls,
     const intptr_t num_types = type_parameters.Length();
     for (intptr_t i = 0; i < num_types; i++) {
       type_parameter ^= type_parameters.TypeAt(i);
-      type_parameter ^=
-          FinalizeType(cls, type_parameter, kFinalize, pending_types);
-      type_parameters.SetTypeAt(i, type_parameter);
+      if (!type_parameter.IsFinalized()) {
+        type_parameter.set_index(type_parameter.index() + offset);
+        type_parameter.SetIsFinalized();
+      }
+      // The declaration of a type parameter is canonical.
+      ASSERT(type_parameter.IsDeclaration());
+      ASSERT(type_parameter.IsCanonical());
     }
   }
 }
@@ -425,7 +429,7 @@ intptr_t ClassFinalizer::ExpandAndFinalizeTypeArguments(
   Class& type_class = Class::Handle(zone, type.type_class());
   type_class.EnsureDeclarationLoaded();
   if (!type_class.is_type_finalized()) {
-    FinalizeTypeParameters(type_class, pending_types);
+    FinalizeTypeParameters(type_class);
   }
 
   // The finalized type argument vector needs num_type_arguments types.
@@ -559,7 +563,7 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
                                            TrailPtr trail) {
   ASSERT(arguments.Length() >= cls.NumTypeArguments());
   if (!cls.is_type_finalized()) {
-    FinalizeTypeParameters(cls, pending_types);
+    FinalizeTypeParameters(cls);
   }
   AbstractType& super_type = AbstractType::Handle(cls.super_type());
   if (!super_type.IsNull()) {
@@ -677,8 +681,7 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const Class& cls,
   ASSERT((pending_types == NULL) || (finalization < kCanonicalize));
   if (type.IsFinalized()) {
     // Ensure type is canonical if canonicalization is requested.
-    if ((finalization >= kCanonicalize) && !type.IsCanonical() &&
-        type.IsType()) {
+    if ((finalization >= kCanonicalize) && !type.IsCanonical()) {
       return type.Canonicalize();
     }
     return type.raw();
@@ -731,8 +734,12 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const Class& cls,
                 type_parameter.index());
     }
 
-    // We do not canonicalize type parameters.
-    return type_parameter.raw();
+    if (type_parameter.IsDeclaration()) {
+      // The declaration of a type parameter is canonical.
+      ASSERT(type_parameter.IsCanonical());
+      return type_parameter.raw();
+    }
+    return type_parameter.Canonicalize();
   }
 
   // At this point, we can only have a Type.
@@ -846,6 +853,12 @@ void ClassFinalizer::FinalizeSignature(const Class& cls,
         type_param.set_index(num_parent_type_params + i);
         type_param.SetIsFinalized();
       }
+      // The declaration of a type parameter is canonical.
+      ASSERT(type_param.IsDeclaration());
+      ASSERT(type_param.IsCanonical());
+    }
+    for (intptr_t i = 0; i < num_type_params; i++) {
+      type_param ^= type_params.TypeAt(i);
       type = type_param.bound();
       finalized_type = FinalizeType(cls, type, finalization);
       if (finalized_type.raw() != type.raw()) {
@@ -1586,6 +1599,7 @@ void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
 // Usages of canonical hash codes are:
 //
 //   * ObjectStore::canonical_types()
+//   * ObjectStore::canonical_type_parameters()
 //   * ObjectStore::canonical_type_arguments()
 //   * Class::constants()
 //
@@ -1629,23 +1643,17 @@ void ClassFinalizer::RehashTypes() {
 
   // Rehash the canonical Types table.
   ObjectStore* object_store = I->object_store();
-  GrowableObjectArray& types =
-      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
-  Array& types_array = Array::Handle(Z);
+  Array& types = Array::Handle(Z);
   Type& type = Type::Handle(Z);
   {
     CanonicalTypeSet types_table(Z, object_store->canonical_types());
-    types_array = HashTables::ToArray(types_table, false);
-    for (intptr_t i = 0; i < types_array.Length(); i++) {
-      type ^= types_array.At(i);
-      types.Add(type);
-    }
+    types = HashTables::ToArray(types_table, false);
     types_table.Release();
   }
 
   intptr_t dict_size = Utils::RoundUpToPowerOfTwo(types.Length() * 4 / 3);
-  types_array = HashTables::New<CanonicalTypeSet>(dict_size, Heap::kOld);
-  CanonicalTypeSet types_table(Z, types_array.raw());
+  CanonicalTypeSet types_table(
+      Z, HashTables::New<CanonicalTypeSet>(dict_size, Heap::kOld));
   for (intptr_t i = 0; i < types.Length(); i++) {
     type ^= types.At(i);
     bool present = types_table.Insert(type);
@@ -1654,19 +1662,33 @@ void ClassFinalizer::RehashTypes() {
   }
   object_store->set_canonical_types(types_table.Release());
 
+  // Rehash the canonical TypeParameters table.
+  Array& typeparams = Array::Handle(Z);
+  TypeParameter& typeparam = TypeParameter::Handle(Z);
+  {
+    CanonicalTypeParameterSet typeparams_table(
+        Z, object_store->canonical_type_parameters());
+    typeparams = HashTables::ToArray(typeparams_table, false);
+    typeparams_table.Release();
+  }
+
+  dict_size = Utils::RoundUpToPowerOfTwo(typeparams.Length() * 4 / 3);
+  CanonicalTypeParameterSet typeparams_table(
+      Z, HashTables::New<CanonicalTypeParameterSet>(dict_size, Heap::kOld));
+  for (intptr_t i = 0; i < typeparams.Length(); i++) {
+    typeparam ^= typeparams.At(i);
+    bool present = typeparams_table.Insert(typeparam);
+    ASSERT(!present);
+  }
+  object_store->set_canonical_type_parameters(typeparams_table.Release());
+
   // Rehash the canonical TypeArguments table.
-  Array& typeargs_array = Array::Handle(Z);
-  GrowableObjectArray& typeargs =
-      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+  Array& typeargs = Array::Handle(Z);
   TypeArguments& typearg = TypeArguments::Handle(Z);
   {
     CanonicalTypeArgumentsSet typeargs_table(
         Z, object_store->canonical_type_arguments());
-    typeargs_array = HashTables::ToArray(typeargs_table, false);
-    for (intptr_t i = 0; i < typeargs_array.Length(); i++) {
-      typearg ^= typeargs_array.At(i);
-      typeargs.Add(typearg);
-    }
+    typeargs = HashTables::ToArray(typeargs_table, false);
     typeargs_table.Release();
   }
 
@@ -1675,9 +1697,8 @@ void ClassFinalizer::RehashTypes() {
   I->RehashConstants();
 
   dict_size = Utils::RoundUpToPowerOfTwo(typeargs.Length() * 4 / 3);
-  typeargs_array =
-      HashTables::New<CanonicalTypeArgumentsSet>(dict_size, Heap::kOld);
-  CanonicalTypeArgumentsSet typeargs_table(Z, typeargs_array.raw());
+  CanonicalTypeArgumentsSet typeargs_table(
+      Z, HashTables::New<CanonicalTypeArgumentsSet>(dict_size, Heap::kOld));
   for (intptr_t i = 0; i < typeargs.Length(); i++) {
     typearg ^= typeargs.At(i);
     bool present = typeargs_table.Insert(typearg);

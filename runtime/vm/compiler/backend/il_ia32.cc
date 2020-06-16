@@ -75,6 +75,121 @@ DEFINE_BACKEND(TailCall,
   __ jmp(temp);
 }
 
+LocationSummary* MemoryCopyInstr::MakeLocationSummary(Zone* zone,
+                                                      bool opt) const {
+  const intptr_t kNumInputs = 5;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(kSrcPos, Location::RequiresRegister());
+  locs->set_in(kDestPos, Location::RegisterLocation(EDI));
+  locs->set_in(kSrcStartPos, Location::WritableRegister());
+  locs->set_in(kDestStartPos, Location::WritableRegister());
+  locs->set_in(kLengthPos, Location::RegisterLocation(ECX));
+  return locs;
+}
+
+void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register src_reg = locs()->in(kSrcPos).reg();
+  const Register src_start_reg = locs()->in(kSrcStartPos).reg();
+  const Register dest_start_reg = locs()->in(kDestStartPos).reg();
+
+  // Save ESI which is THR.
+  __ pushl(ESI);
+  __ movl(ESI, src_reg);
+
+  EmitComputeStartPointer(compiler, src_cid_, src_start(), ESI, src_start_reg);
+  EmitComputeStartPointer(compiler, dest_cid_, dest_start(), EDI,
+                          dest_start_reg);
+  if (element_size_ <= 4) {
+    __ SmiUntag(ECX);
+  } else if (element_size_ == 16) {
+    __ shll(ECX, compiler::Immediate(1));
+  }
+  switch (element_size_) {
+    case 1:
+      __ rep_movsb();
+      break;
+    case 2:
+      __ rep_movsw();
+      break;
+    case 4:
+    case 8:
+    case 16:
+      __ rep_movsl();
+      break;
+  }
+
+  // Restore THR.
+  __ popl(ESI);
+}
+
+void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
+                                              classid_t array_cid,
+                                              Value* start,
+                                              Register array_reg,
+                                              Register start_reg) {
+  intptr_t offset;
+  if (IsTypedDataBaseClassId(array_cid)) {
+    __ movl(
+        array_reg,
+        compiler::FieldAddress(
+            array_reg, compiler::target::TypedDataBase::data_field_offset()));
+    offset = 0;
+  } else {
+    switch (array_cid) {
+      case kOneByteStringCid:
+        offset =
+            compiler::target::OneByteString::data_offset() - kHeapObjectTag;
+        break;
+      case kTwoByteStringCid:
+        offset =
+            compiler::target::TwoByteString::data_offset() - kHeapObjectTag;
+        break;
+      case kExternalOneByteStringCid:
+        __ movl(array_reg,
+                compiler::FieldAddress(array_reg,
+                                       compiler::target::ExternalOneByteString::
+                                           external_data_offset()));
+        offset = 0;
+        break;
+      case kExternalTwoByteStringCid:
+        __ movl(array_reg,
+                compiler::FieldAddress(array_reg,
+                                       compiler::target::ExternalTwoByteString::
+                                           external_data_offset()));
+        offset = 0;
+        break;
+      default:
+        UNREACHABLE();
+        break;
+    }
+  }
+  ScaleFactor scale;
+  switch (element_size_) {
+    case 1:
+      __ SmiUntag(start_reg);
+      scale = TIMES_1;
+      break;
+    case 2:
+      scale = TIMES_1;
+      break;
+    case 4:
+      scale = TIMES_2;
+      break;
+    case 8:
+      scale = TIMES_4;
+      break;
+    case 16:
+      scale = TIMES_8;
+      break;
+    default:
+      UNREACHABLE();
+      break;
+  }
+  __ leal(array_reg, compiler::Address(array_reg, start_reg, scale, offset));
+}
+
 LocationSummary* PushArgumentInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -173,9 +288,12 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Anything besides the return register(s!). Callee-saved registers will be
   // restored later.
-  const Register vm_tag_reg = EBX, old_exit_frame_reg = ECX;
+  const Register vm_tag_reg = EBX;
+  const Register old_exit_frame_reg = ECX;
+  const Register old_exit_through_ffi_reg = tmp;
 
   __ popl(old_exit_frame_reg);
+  __ popl(vm_tag_reg); /* old_exit_through_ffi, we still need to use tmp. */
 
   // Restore top_resource.
   __ popl(tmp);
@@ -183,6 +301,7 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       compiler::Address(THR, compiler::target::Thread::top_resource_offset()),
       tmp);
 
+  __ movl(old_exit_through_ffi_reg, vm_tag_reg);
   __ popl(vm_tag_reg);
 
   // This will reset the exit frame info to old_exit_frame_reg *before* entering
@@ -191,7 +310,7 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // If we were called by a trampoline, it will enter the safepoint on our
   // behalf.
   __ TransitionGeneratedToNative(
-      vm_tag_reg, old_exit_frame_reg, tmp,
+      vm_tag_reg, old_exit_frame_reg, old_exit_through_ffi_reg,
       /*enter_safepoint=*/!NativeCallbackTrampolines::Enabled());
 
   // Move XMM0 into ST0 if needed.
@@ -883,13 +1002,15 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // PC-relative 'leaq' available, so we have do a trick with 'call'.
   compiler::Label get_pc;
   __ call(&get_pc);
-  compiler->EmitCallsiteMetadata(TokenPosition::kNoSource, DeoptId::kNone,
+  compiler->EmitCallsiteMetadata(TokenPosition::kNoSource, deopt_id(),
                                  PcDescriptorsLayout::Kind::kOther, locs());
   __ Bind(&get_pc);
   __ popl(temp);
   __ movl(compiler::Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize), temp);
 
   if (CanExecuteGeneratedCodeInSafepoint()) {
+    __ movl(temp,
+            compiler::Immediate(compiler::target::Thread::exit_through_ffi()));
     __ TransitionGeneratedToNative(branch, FPREG, temp,
                                    /*enter_safepoint=*/true);
     __ call(branch);
@@ -986,6 +1107,9 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ movl(
       compiler::Address(THR, compiler::target::Thread::top_resource_offset()),
       compiler::Immediate(0));
+
+  __ pushl(compiler::Address(
+      THR, compiler::target::Thread::exit_through_ffi_offset()));
 
   // Save top exit frame info. Stack walker expects it to be here.
   __ pushl(compiler::Address(

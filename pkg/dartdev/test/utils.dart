@@ -64,6 +64,8 @@ class TestProject {
       ...?args,
     ];
 
+    arguments.add('--disable-dartdev-analytics');
+
     return Process.runSync(
       Platform.resolvedExecutable,
       arguments,

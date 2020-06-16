@@ -993,7 +993,7 @@ class ClassElementImpl extends AbstractClassElementImpl
   /// Compute a list of constructors for this class, which is a mixin
   /// application.  If specified, [visitedClasses] is a list of the other mixin
   /// application classes which have been visited on the way to reaching this
-  /// one (this is used to detect circularities).
+  /// one (this is used to detect cycles).
   List<ConstructorElement> _computeMixinAppConstructors(
       [List<ClassElementImpl> visitedClasses]) {
     if (supertype == null) {
@@ -1012,7 +1012,8 @@ class ClassElementImpl extends AbstractClassElementImpl
     if (!superElement.isMixinApplication) {
       var library = this.library;
       constructorsToForward = superElement.constructors
-          .where((constructor) => constructor.isAccessibleIn(library));
+          .where((constructor) => constructor.isAccessibleIn(library))
+          .where((constructor) => !constructor.isFactory);
     } else {
       if (visitedClasses == null) {
         visitedClasses = <ClassElementImpl>[this];
@@ -1048,6 +1049,9 @@ class ClassElementImpl extends AbstractClassElementImpl
     var substitution =
         Substitution.fromPairs(superClassParameters, argumentTypes);
 
+    bool typeHasInstanceVariables(InterfaceType type) =>
+        type.element.fields.any((e) => !e.isSynthetic);
+
     // Now create an implicit constructor for every constructor found above,
     // substituting type parameters as appropriate.
     return constructorsToForward
@@ -1056,6 +1060,9 @@ class ClassElementImpl extends AbstractClassElementImpl
           ConstructorElementImpl(superclassConstructor.name, -1);
       implicitConstructor.isSynthetic = true;
       implicitConstructor.redirectedConstructor = superclassConstructor;
+      var hasMixinWithInstanceVariables = mixins.any(typeHasInstanceVariables);
+      implicitConstructor.isConst =
+          superclassConstructor.isConst && !hasMixinWithInstanceVariables;
       List<ParameterElement> superParameters = superclassConstructor.parameters;
       int count = superParameters.length;
       if (count > 0) {
@@ -2557,6 +2564,9 @@ class ElementAnnotationImpl implements ElementAnnotation {
       element is PropertyAccessorElement &&
       element.name == _VISIBLE_FOR_TESTING_VARIABLE_NAME &&
       element.library?.name == _META_LIB_NAME;
+
+  @override
+  LibraryElement get library => compilationUnit.library;
 
   /// Get the library containing this annotation.
   @override

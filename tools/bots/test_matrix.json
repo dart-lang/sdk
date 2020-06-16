@@ -42,9 +42,8 @@
       "tests/co19/co19-dartdevc.status",
       "tests/co19/co19-kernel.status",
       "tests/co19/co19-runtime.status",
-      "tests/compiler/",
       "tests/corelib_2/",
-      "tests/dart/",
+      "tests/dart2js_2/",
       "tests/kernel/",
       "tests/language_2/",
       "tests/lib_2/",
@@ -82,9 +81,8 @@
       "tests/co19/co19-dartdevc.status",
       "tests/co19/co19-kernel.status",
       "tests/co19/co19-runtime.status",
-      "tests/compiler/",
       "tests/corelib/",
-      "tests/dart/",
+      "tests/dart2js/",
       "tests/kernel/",
       "tests/language/",
       "tests/lib/",
@@ -129,9 +127,8 @@
       "tests/co19_2/co19_2-dartdevc.status",
       "tests/co19_2/co19_2-kernel.status",
       "tests/co19_2/co19_2-runtime.status",
-      "tests/compiler/",
       "tests/corelib_2/",
-      "tests/dart/",
+      "tests/dart2js_2/",
       "tests/kernel/",
       "tests/language_2/",
       "tests/lib_2/",
@@ -177,9 +174,8 @@
       "tests/co19_2/co19_2-dartdevc.status",
       "tests/co19_2/co19_2-kernel.status",
       "tests/co19_2/co19_2-runtime.status",
-      "tests/compiler/",
       "tests/corelib_2/",
-      "tests/dart/",
+      "tests/dart2js_2/",
       "tests/kernel/",
       "tests/language_2/",
       "tests/lib_2/",
@@ -218,9 +214,8 @@
       "tests/co19/co19-dartdevc.status",
       "tests/co19/co19-kernel.status",
       "tests/co19/co19-runtime.status",
-      "tests/compiler/",
       "tests/corelib/",
-      "tests/dart/",
+      "tests/dart2js/",
       "tests/kernel/",
       "tests/language/",
       "tests/lib/",
@@ -265,7 +260,8 @@
       "tests/compiler/",
       "tests/corelib/",
       "tests/corelib_2/",
-      "tests/dart/",
+      "tests/dart2js/",
+      "tests/dart2js_2/",
       "tests/kernel/",
       "tests/language/",
       "tests/language_2/",
@@ -373,7 +369,8 @@
       "tests/compiler/",
       "tests/corelib/",
       "tests/corelib_2/",
-      "tests/dart/",
+      "tests/dart2js/",
+      "tests/dart2js_2/",
       "tests/kernel/",
       "tests/language/",
       "tests/language_2/",
@@ -1122,6 +1119,24 @@
           ]
         },
         {
+          "name": "weak co19 tests",
+          "arguments": [
+            "-ncfe-weak-${system}",
+            "co19"
+          ],
+          "fileset": "front-end",
+          "shards": 1
+        },
+        {
+          "name": "strong co19 tests",
+          "arguments": [
+            "-ncfe-strong-${system}",
+            "co19"
+          ],
+          "fileset": "front-end",
+          "shards": 1
+        },
+        {
           "name": "weak sdk tests",
           "arguments": [
             "-ncfe-weak-${system}",
@@ -1132,13 +1147,6 @@
           ]
         },
         {
-          "name": "weak co19 tests",
-          "arguments": [
-            "-ncfe-weak-${system}",
-            "co19"
-          ]
-        },
-        {
           "name": "strong sdk tests",
           "arguments": [
             "-ncfe-strong-${system}",
@@ -1146,13 +1154,6 @@
             "ffi",
             "language",
             "lib"
-          ]
-        },
-        {
-          "name": "strong co19 tests",
-          "arguments": [
-            "-ncfe-strong-${system}",
-            "co19"
           ]
         }
       ]
@@ -1775,7 +1776,9 @@
             "co19",
             "standalone/io",
             "vm"
-          ]
+          ],
+          "fileset": "vm-kernel",
+          "shards": 2
         },
         {
           "name": "vm nnbd tests in strong mode",
@@ -1788,7 +1791,9 @@
             "co19",
             "standalone/io",
             "vm"
-          ]
+          ],
+          "fileset": "vm-kernel",
+          "shards": 2
         }
       ]
     },
@@ -2641,7 +2646,7 @@
             "--dart2js-batch",
             "language",
             "corelib",
-            "dart2js_2",
+            "dart2js",
             "kernel"
           ],
           "shards": 6,
@@ -2674,7 +2679,7 @@
             "--dart2js-batch",
             "language",
             "corelib",
-            "dart2js_2",
+            "dart2js",
             "kernel"
           ],
           "shards": 6,

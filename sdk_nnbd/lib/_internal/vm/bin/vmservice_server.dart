@@ -362,7 +362,7 @@ class Server {
         });
       } else {
         // Forward the websocket connection request to DDS.
-        request.response.redirect(_service.ddsUri);
+        request.response.redirect(_service.ddsUri!);
       }
       return;
     }

@@ -54,7 +54,4 @@ class Sdk {
 
   static String _binName(String base) =>
       Platform.isWindows ? '$base.bat' : base;
-
-  static String _exeName(String base) =>
-      Platform.isWindows ? '$base.exe' : base;
 }

@@ -127,6 +127,113 @@ DEFINE_BACKEND(TailCall, (NoLocation, Fixed<Register, ARGS_DESC_REG>)) {
   __ set_constant_pool_allowed(true);
 }
 
+LocationSummary* MemoryCopyInstr::MakeLocationSummary(Zone* zone,
+                                                      bool opt) const {
+  const intptr_t kNumInputs = 5;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(kSrcPos, Location::RegisterLocation(RSI));
+  locs->set_in(kDestPos, Location::RegisterLocation(RDI));
+  locs->set_in(kSrcStartPos, Location::WritableRegister());
+  locs->set_in(kDestStartPos, Location::WritableRegister());
+  locs->set_in(kLengthPos, Location::RegisterLocation(RCX));
+  return locs;
+}
+
+void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register src_start_reg = locs()->in(kSrcStartPos).reg();
+  const Register dest_start_reg = locs()->in(kDestStartPos).reg();
+
+  EmitComputeStartPointer(compiler, src_cid_, src_start(), RSI, src_start_reg);
+  EmitComputeStartPointer(compiler, dest_cid_, dest_start(), RDI,
+                          dest_start_reg);
+  if (element_size_ <= 8) {
+    __ SmiUntag(RCX);
+  }
+  switch (element_size_) {
+    case 1:
+      __ rep_movsb();
+      break;
+    case 2:
+      __ rep_movsw();
+      break;
+    case 4:
+      __ rep_movsl();
+      break;
+    case 8:
+    case 16:
+      __ rep_movsq();
+      break;
+  }
+}
+
+void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
+                                              classid_t array_cid,
+                                              Value* start,
+                                              Register array_reg,
+                                              Register start_reg) {
+  intptr_t offset;
+  if (IsTypedDataBaseClassId(array_cid)) {
+    __ movq(
+        array_reg,
+        compiler::FieldAddress(
+            array_reg, compiler::target::TypedDataBase::data_field_offset()));
+    offset = 0;
+  } else {
+    switch (array_cid) {
+      case kOneByteStringCid:
+        offset =
+            compiler::target::OneByteString::data_offset() - kHeapObjectTag;
+        break;
+      case kTwoByteStringCid:
+        offset =
+            compiler::target::TwoByteString::data_offset() - kHeapObjectTag;
+        break;
+      case kExternalOneByteStringCid:
+        __ movq(array_reg,
+                compiler::FieldAddress(array_reg,
+                                       compiler::target::ExternalOneByteString::
+                                           external_data_offset()));
+        offset = 0;
+        break;
+      case kExternalTwoByteStringCid:
+        __ movq(array_reg,
+                compiler::FieldAddress(array_reg,
+                                       compiler::target::ExternalTwoByteString::
+                                           external_data_offset()));
+        offset = 0;
+        break;
+      default:
+        UNREACHABLE();
+        break;
+    }
+  }
+  ScaleFactor scale;
+  switch (element_size_) {
+    case 1:
+      __ SmiUntag(start_reg);
+      scale = TIMES_1;
+      break;
+    case 2:
+      scale = TIMES_1;
+      break;
+    case 4:
+      scale = TIMES_2;
+      break;
+    case 8:
+      scale = TIMES_4;
+      break;
+    case 16:
+      scale = TIMES_8;
+      break;
+    default:
+      UNREACHABLE();
+      break;
+  }
+  __ leaq(array_reg, compiler::Address(array_reg, start_reg, scale, offset));
+}
+
 LocationSummary* PushArgumentInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -238,9 +345,13 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ popq(TMP);
 
   // Anything besides the return register.
-  const Register vm_tag_reg = RBX, old_exit_frame_reg = RCX;
+  const Register vm_tag_reg = RBX;
+  const Register old_exit_frame_reg = RCX;
+  const Register old_exit_through_ffi_reg = RDI;
 
   __ popq(old_exit_frame_reg);
+
+  __ popq(old_exit_through_ffi_reg);
 
   // Restore top_resource.
   __ popq(TMP);
@@ -253,7 +364,7 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // If we were called by a trampoline, it will enter the safepoint on our
   // behalf.
   __ TransitionGeneratedToNative(
-      vm_tag_reg, old_exit_frame_reg,
+      vm_tag_reg, old_exit_frame_reg, old_exit_through_ffi_reg,
       /*enter_safepoint=*/!NativeCallbackTrampolines::Enabled());
 
   // Restore C++ ABI callee-saved registers.
@@ -962,13 +1073,15 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // instruction, so 'AddressRIPRelative' loads the address of the following
   // 'movq'.
   __ leaq(TMP, compiler::Address::AddressRIPRelative(0));
-  compiler->EmitCallsiteMetadata(TokenPosition::kNoSource, DeoptId::kNone,
+  compiler->EmitCallsiteMetadata(TokenPosition::kNoSource, deopt_id(),
                                  PcDescriptorsLayout::Kind::kOther, locs());
   __ movq(compiler::Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize), TMP);
 
   if (CanExecuteGeneratedCodeInSafepoint()) {
     // Update information in the thread object and enter a safepoint.
-    __ TransitionGeneratedToNative(target_address, FPREG,
+    __ movq(TMP,
+            compiler::Immediate(compiler::target::Thread::exit_through_ffi()));
+    __ TransitionGeneratedToNative(target_address, FPREG, TMP,
                                    /*enter_safepoint=*/true);
 
     __ CallCFunction(target_address);
@@ -1096,6 +1209,9 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ movq(
       compiler::Address(THR, compiler::target::Thread::top_resource_offset()),
       compiler::Immediate(0));
+
+  __ pushq(compiler::Address(
+      THR, compiler::target::Thread::exit_through_ffi_offset()));
 
   // Save top exit frame info. Stack walker expects it to be here.
   __ pushq(compiler::Address(

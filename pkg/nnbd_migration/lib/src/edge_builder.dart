@@ -127,7 +127,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _flowAnalysis;
 
   /// If we are visiting a function body or initializer, assigned variable
-  /// information  used in flow analysis.  Otherwise `null`.
+  /// information used in flow analysis.  Otherwise `null`.
   AssignedVariables<AstNode, PromotableElement> _assignedVariables;
 
   /// The [DecoratedType] of the innermost function or method being visited, or
@@ -236,7 +236,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       } else {
         assert(enclosingElement is ExtensionElement);
         final extensionElement = enclosingElement as ExtensionElement;
-        final extendedType = extensionElement.extendedType;
+        final extendedType =
+            _typeSystem.resolveToBound(extensionElement.extendedType);
         if (extendedType is InterfaceType) {
           if (extensionElement.typeParameters.isNotEmpty) {
             substitution = _decoratedClassHierarchy
@@ -278,6 +279,32 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else {
       return decoratedBaseType;
     }
+  }
+
+  @override
+  // TODO(srawlins): Theoretically, edges should be connected between arguments
+  // and parameters, as in an instance creation. It is quite rare though, to
+  // declare a class and use it as an annotation in the same package.
+  DecoratedType visitAnnotation(Annotation node) {
+    var previousFlowAnalysis = _flowAnalysis;
+    var previousAssignedVariables = _assignedVariables;
+    if (_flowAnalysis == null) {
+      _assignedVariables = AssignedVariables();
+      _flowAnalysis = FlowAnalysis<AstNode, Statement, Expression,
+              PromotableElement, DecoratedType>(
+          DecoratedTypeOperations(_typeSystem, _variables, _graph),
+          _assignedVariables);
+    }
+    try {
+      _dispatch(node.name);
+      _dispatch(node.constructorName);
+      _dispatchList(node.arguments?.arguments);
+    } finally {
+      _flowAnalysis = previousFlowAnalysis;
+      _assignedVariables = previousAssignedVariables;
+    }
+    annotationVisited(node);
+    return null;
   }
 
   @override
@@ -743,6 +770,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   DecoratedType visitExtensionDeclaration(ExtensionDeclaration node) {
     visitClassOrMixinOrExtensionDeclaration(node);
+    _dispatch(node.typeParameters);
     _dispatch(node.extendedType);
     return null;
   }
@@ -2610,7 +2638,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       if (name != null) {
         parameterType = calleeType.namedParameters[name];
         if (parameterType == null) {
-          // TODO(paulberry)
+          // TODO(#42327)
           _unimplemented(expression, 'Missing type for named parameter');
         }
         suppliedNamedParameters.add(name);
@@ -2917,6 +2945,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
                     NullabilityNode.forInferredType(
                         target.typeArgument(index++))))
                 .toList());
+      } else if (type is TypeParameterType) {
+        return DecoratedType(type, NullabilityNode.forInferredType(target));
       } else {
         _unimplemented(node, 'extension of $type (${type.runtimeType}');
       }
@@ -2925,16 +2955,18 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @alwaysThrows
   void _unimplemented(AstNode node, String message) {
-    CompilationUnit unit = node.root as CompilationUnit;
     StringBuffer buffer = StringBuffer();
     buffer.write(message);
-    buffer.write(' in "');
-    buffer.write(node.toSource());
-    buffer.write('" on line ');
-    buffer.write(unit.lineInfo.getLocation(node.offset).lineNumber);
-    buffer.write(' of "');
-    buffer.write(unit.declaredElement.source.fullName);
-    buffer.write('"');
+    if (node != null) {
+      CompilationUnit unit = node.root as CompilationUnit;
+      buffer.write(' in "');
+      buffer.write(node.toSource());
+      buffer.write('" on line ');
+      buffer.write(unit.lineInfo.getLocation(node.offset).lineNumber);
+      buffer.write(' of "');
+      buffer.write(unit.declaredElement.source.fullName);
+      buffer.write('"');
+    }
     throw UnimplementedError(buffer.toString());
   }
 

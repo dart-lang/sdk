@@ -29,6 +29,7 @@ part 'src/client.dart';
 part 'src/client_manager.dart';
 part 'src/constants.dart';
 part 'src/dds_impl.dart';
+part 'src/expression_evaluator.dart';
 part 'src/logging_repository.dart';
 part 'src/isolate_manager.dart';
 part 'src/named_lookup.dart';

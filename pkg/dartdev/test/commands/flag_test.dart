@@ -17,7 +17,9 @@ void command() {
   // For each command description, assert that the values are not empty, don't
   // have trailing white space and end with a period.
   test('description formatting', () {
-    DartdevRunner([]).commands.forEach((String commandKey, Command command) {
+    DartdevRunner(['--disable-dartdev-analytics'])
+        .commands
+        .forEach((String commandKey, Command command) {
       expect(commandKey, isNotEmpty);
       expect(command.description, isNotEmpty);
       expect(command.description.split('\n').first, endsWith('.'));
@@ -27,7 +29,9 @@ void command() {
 
   // Assert that all found usageLineLengths are the same and null
   test('argParser usageLineLength isNull', () {
-    DartdevRunner([]).commands.forEach((String commandKey, Command command) {
+    DartdevRunner(['--disable-dartdev-analytics'])
+        .commands
+        .forEach((String commandKey, Command command) {
       if (command.argParser != null) {
         expect(command.argParser.usageLineLength, isNull);
       }

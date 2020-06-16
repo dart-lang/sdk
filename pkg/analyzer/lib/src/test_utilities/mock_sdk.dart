@@ -540,6 +540,7 @@ abstract class String implements Comparable<String>, Pattern {
   int indexOf(Pattern pattern, [int start = 0]);
   int lastIndexOf(Pattern pattern, [int? start]);
   bool startsWith(Pattern pattern, [int index = 0]);
+  List<String> split(Pattern pattern);
   String splitMapJoin(Pattern pattern,
       {String Function(Match)? onMatch, String Function(String)? onNonMatch});
   String substring(int startIndex, [int? endIndex]);
@@ -903,6 +904,8 @@ final MockSdkLibrary _LIB_IO = MockSdkLibrary(
 library dart.io;
 
 import 'dart:convert';
+
+Never exit(int code) => throw code;
 
 abstract class Directory implements FileSystemEntity {
   factory Directory(String path) {

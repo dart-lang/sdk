@@ -82,12 +82,17 @@ mixin Handler<P, R> {
 
 mixin LspPluginRequestHandlerMixin<T extends AbstractAnalysisServer>
     on RequestHandlerMixin<T> {
-  Future<List<Response>> requestFromPlugins(String path, RequestParams params) {
+  Future<List<Response>> requestFromPlugins(
+    String path,
+    RequestParams params, {
+    int timeout = 500,
+  }) {
     final driver = server.getAnalysisDriver(path);
     final pluginFutures = server.pluginManager
         .broadcastRequest(params, contextRoot: driver.contextRoot);
 
-    return waitForResponses(pluginFutures, requestParameters: params);
+    return waitForResponses(pluginFutures,
+        requestParameters: params, timeout: timeout);
   }
 }
 

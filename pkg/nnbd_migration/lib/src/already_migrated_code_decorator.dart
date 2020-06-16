@@ -91,6 +91,8 @@ class AlreadyMigratedCodeDecorator {
       return DecoratedType(type, node);
     } else if (type is TypeParameterType) {
       return DecoratedType(type, node);
+    } else if (type.isBottom) {
+      return DecoratedType(type, node);
     } else {
       // TODO(paulberry)
       throw UnimplementedError(

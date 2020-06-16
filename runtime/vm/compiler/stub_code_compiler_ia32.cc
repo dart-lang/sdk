@@ -85,6 +85,10 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
   // to transition to Dart VM C++ code.
   __ movl(Address(THR, target::Thread::top_exit_frame_info_offset()), EBP);
 
+  // Mark that the thread exited generated code through a runtime call.
+  __ movl(Address(THR, target::Thread::exit_through_ffi_offset()),
+          Immediate(target::Thread::exit_through_runtime_call()));
+
 #if defined(DEBUG)
   {
     Label ok;
@@ -124,7 +128,11 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
-  // Reset exit frame information in Isolate structure.
+  // Mark that the thread has not exited generated Dart code.
+  __ movl(Address(THR, target::Thread::exit_through_ffi_offset()),
+          Immediate(0));
+
+  // Reset exit frame information in Isolate's mutator thread structure.
   __ movl(Address(THR, target::Thread::top_exit_frame_info_offset()),
           Immediate(0));
 
@@ -193,6 +201,7 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
     Assembler* assembler) {
   __ popl(EBX);
 
+  __ movl(ECX, compiler::Immediate(target::Thread::exit_through_ffi()));
   __ TransitionGeneratedToNative(EAX, FPREG, ECX /*volatile*/,
                                  /*enter_safepoint=*/true);
   __ call(EAX);
@@ -373,6 +382,10 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   // to transition to dart VM code.
   __ movl(Address(THR, target::Thread::top_exit_frame_info_offset()), EBP);
 
+  // Mark that the thread exited generated code through a runtime call.
+  __ movl(Address(THR, target::Thread::exit_through_ffi_offset()),
+          Immediate(target::Thread::exit_through_runtime_call()));
+
 #if defined(DEBUG)
   {
     Label ok;
@@ -415,7 +428,11 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
 
   __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
-  // Reset exit frame information in Isolate structure.
+  // Mark that the thread has not exited generated Dart code.
+  __ movl(Address(THR, target::Thread::exit_through_ffi_offset()),
+          Immediate(0));
+
+  // Reset exit frame information in Isolate's mutator thread structure.
   __ movl(Address(THR, target::Thread::top_exit_frame_info_offset()),
           Immediate(0));
 
@@ -946,9 +963,13 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ movl(EDX, Address(THR, target::Thread::top_resource_offset()));
   __ pushl(EDX);
   __ movl(Address(THR, target::Thread::top_resource_offset()), Immediate(0));
+  __ movl(EAX, Address(THR, target::Thread::exit_through_ffi_offset()));
+  __ pushl(EAX);
+  __ movl(Address(THR, target::Thread::exit_through_ffi_offset()),
+          Immediate(0));
   // The constant target::frame_layout.exit_link_slot_from_entry_fp must be
   // kept in sync with the code below.
-  ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -7);
+  ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -8);
   __ movl(EDX, Address(THR, target::Thread::top_exit_frame_info_offset()));
   __ pushl(EDX);
   __ movl(Address(THR, target::Thread::top_exit_frame_info_offset()),
@@ -1012,6 +1033,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Restore the saved top exit frame info and top resource back into the
   // Isolate structure.
   __ popl(Address(THR, target::Thread::top_exit_frame_info_offset()));
+  __ popl(Address(THR, target::Thread::exit_through_ffi_offset()));
   __ popl(Address(THR, target::Thread::top_resource_offset()));
 
   // Restore the current VMTag from the stack.
@@ -1075,9 +1097,15 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
   __ movl(EDX, Address(THR, target::Thread::top_resource_offset()));
   __ pushl(EDX);
   __ movl(Address(THR, target::Thread::top_resource_offset()), Immediate(0));
+
+  __ movl(EAX, Address(THR, target::Thread::exit_through_ffi_offset()));
+  __ pushl(EAX);
+  __ movl(Address(THR, target::Thread::exit_through_ffi_offset()),
+          Immediate(0));
+
   // The constant target::frame_layout.exit_link_slot_from_entry_fp must be
   // kept in sync with the code below.
-  ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -7);
+  ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -8);
   __ movl(EDX, Address(THR, target::Thread::top_exit_frame_info_offset()));
   __ pushl(EDX);
   __ movl(Address(THR, target::Thread::top_exit_frame_info_offset()),
@@ -1133,6 +1161,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
   // Restore the saved top exit frame info and top resource back into the
   // Isolate structure.
   __ popl(Address(THR, target::Thread::top_exit_frame_info_offset()));
+  __ popl(Address(THR, target::Thread::exit_through_ffi_offset()));
   __ popl(Address(THR, target::Thread::top_resource_offset()));
 
   // Restore the current VMTag from the stack.
@@ -1185,48 +1214,48 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
   // EDX: number of context variables.
   __ cmpl(EBX, Address(THR, target::Thread::end_offset()));
 #if defined(DEBUG)
-    static const bool kJumpLength = Assembler::kFarJump;
+  static const bool kJumpLength = Assembler::kFarJump;
 #else
-    static const bool kJumpLength = Assembler::kNearJump;
+  static const bool kJumpLength = Assembler::kNearJump;
 #endif  // DEBUG
-    __ j(ABOVE_EQUAL, slow_case, kJumpLength);
+  __ j(ABOVE_EQUAL, slow_case, kJumpLength);
 
-    // Successfully allocated the object, now update top to point to
-    // next object start and initialize the object.
+  // Successfully allocated the object, now update top to point to
+  // next object start and initialize the object.
+  // EAX: new object.
+  // EBX: next object start.
+  // EDX: number of context variables.
+  __ movl(Address(THR, target::Thread::top_offset()), EBX);
+  // EBX: Size of allocation in bytes.
+  __ subl(EBX, EAX);
+  __ addl(EAX, Immediate(kHeapObjectTag));
+  // Generate isolate-independent code to allow sharing between isolates.
+
+  // Calculate the size tag.
+  // EAX: new object.
+  // EDX: number of context variables.
+  {
+    Label size_tag_overflow, done;
+    __ leal(EBX, Address(EDX, TIMES_4, fixed_size_plus_alignment_padding));
+    __ andl(EBX, Immediate(-target::ObjectAlignment::kObjectAlignment));
+    __ cmpl(EBX, Immediate(target::ObjectLayout::kSizeTagMaxSizeTag));
+    __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
+    __ shll(EBX, Immediate(target::ObjectLayout::kTagBitsSizeTagPos -
+                           target::ObjectAlignment::kObjectAlignmentLog2));
+    __ jmp(&done);
+
+    __ Bind(&size_tag_overflow);
+    // Set overflow size tag value.
+    __ movl(EBX, Immediate(0));
+
+    __ Bind(&done);
     // EAX: new object.
-    // EBX: next object start.
     // EDX: number of context variables.
-    __ movl(Address(THR, target::Thread::top_offset()), EBX);
-    // EBX: Size of allocation in bytes.
-    __ subl(EBX, EAX);
-    __ addl(EAX, Immediate(kHeapObjectTag));
-    // Generate isolate-independent code to allow sharing between isolates.
-
-    // Calculate the size tag.
-    // EAX: new object.
-    // EDX: number of context variables.
-    {
-      Label size_tag_overflow, done;
-      __ leal(EBX, Address(EDX, TIMES_4, fixed_size_plus_alignment_padding));
-      __ andl(EBX, Immediate(-target::ObjectAlignment::kObjectAlignment));
-      __ cmpl(EBX, Immediate(target::ObjectLayout::kSizeTagMaxSizeTag));
-      __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-      __ shll(EBX, Immediate(target::ObjectLayout::kTagBitsSizeTagPos -
-                             target::ObjectAlignment::kObjectAlignmentLog2));
-      __ jmp(&done);
-
-      __ Bind(&size_tag_overflow);
-      // Set overflow size tag value.
-      __ movl(EBX, Immediate(0));
-
-      __ Bind(&done);
-      // EAX: new object.
-      // EDX: number of context variables.
-      // EBX: size and bit tags.
-      uint32_t tags = target::MakeTagWordForNewSpaceObject(kContextCid, 0);
-      __ orl(EBX, Immediate(tags));
-      __ movl(FieldAddress(EAX, target::Object::tags_offset()), EBX);  // Tags.
-    }
+    // EBX: size and bit tags.
+    uint32_t tags = target::MakeTagWordForNewSpaceObject(kContextCid, 0);
+    __ orl(EBX, Immediate(tags));
+    __ movl(FieldAddress(EAX, target::Object::tags_offset()), EBX);  // Tags.
+  }
 
   // Setup up number of context variables field.
   // EAX: new object.
@@ -2279,6 +2308,10 @@ void StubCodeCompiler::GenerateInterpretCallStub(Assembler* assembler) {
   // to transition to Dart VM C++ code.
   __ movl(Address(THR, target::Thread::top_exit_frame_info_offset()), EBP);
 
+  // Mark that the thread exited generated code through a runtime call.
+  __ movl(Address(THR, target::Thread::exit_through_ffi_offset()),
+          Immediate(target::Thread::exit_through_runtime_call()));
+
   // Mark that the thread is executing VM code.
   __ movl(EAX,
           Address(THR, target::Thread::interpret_call_entry_point_offset()));
@@ -2291,7 +2324,11 @@ void StubCodeCompiler::GenerateInterpretCallStub(Assembler* assembler) {
   // Mark that the thread is executing Dart code.
   __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
-  // Reset exit frame information in Isolate structure.
+  // Mark that the thread has not exited generated Dart code.
+  __ movl(Address(THR, target::Thread::exit_through_ffi_offset()),
+          Immediate(0));
+
+  // Reset exit frame information in Isolate's mutator thread structure.
   __ movl(Address(THR, target::Thread::top_exit_frame_info_offset()),
           Immediate(0));
 
@@ -2625,6 +2662,16 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
 #if defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
+
+  Label exit_through_non_ffi;
+  // Check if we exited generated from FFI. If so do transition.
+  __ cmpl(compiler::Address(
+              THR, compiler::target::Thread::exit_through_ffi_offset()),
+          compiler::Immediate(target::Thread::exit_through_ffi()));
+  __ j(NOT_EQUAL, &exit_through_non_ffi, compiler::Assembler::kNearJump);
+  __ TransitionNativeToGenerated(ECX, /*leave_safepoint=*/true);
+  __ Bind(&exit_through_non_ffi);
+
   // Set tag.
   __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
   // Clear top exit frame.

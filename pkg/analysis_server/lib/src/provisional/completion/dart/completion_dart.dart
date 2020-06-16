@@ -13,7 +13,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
@@ -22,11 +21,9 @@ export 'package:analyzer_plugin/utilities/completion/relevance.dart';
 /// An object that contributes results for the `completion.getSuggestions`
 /// request results.
 abstract class DartCompletionContributor {
-  /// Return a [Future] that completes with a list of suggestions
-  /// for the given completion [request].
-  // TODO(brianwilkerson) When all of the suggestions are being built using the
-  //  builder, change the return type to `Future<void>`.
-  Future<List<CompletionSuggestion>> computeSuggestions(
+  /// Return a [Future] that completes when the suggestions appropriate for the
+  /// given completion [request] have been added to the [builder].
+  Future<void> computeSuggestions(
       DartCompletionRequest request, SuggestionBuilder builder);
 }
 

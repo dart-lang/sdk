@@ -10,7 +10,7 @@ void main(List<String> args) {
   int local2 = 2;
   var longList = [1, "hello", 3, 5, 7, 11, 13, 14, 15, 16, 17, 18, 19, 20];
   var deepList = [
-    new Bar(),
+    Bar(),
     [
       [
         [

@@ -449,7 +449,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   /// If we reached a null-shorting termination, and the [node] has null
   /// shorting, make the type of the [node] nullable.
-  void nullShortingTermination(Expression node) {
+  void nullShortingTermination(Expression node, {bool discardType = false}) {
     if (!_isNonNullableByDefault) return;
 
     if (identical(_unfinishedNullShorts.last, node)) {
@@ -457,7 +457,7 @@ class ResolverVisitor extends ScopedVisitor {
         _unfinishedNullShorts.removeLast();
         _flowAnalysis.flow.nullAwareAccess_end();
       } while (identical(_unfinishedNullShorts.last, node));
-      if (node is! CascadeExpression) {
+      if (node is! CascadeExpression && !discardType) {
         node.staticType = typeSystem.makeNullable(node.staticType);
       }
     }
@@ -1327,7 +1327,10 @@ class ResolverVisitor extends ScopedVisitor {
 
     var functionRewrite = MethodInvocationResolver.getRewriteResult(node);
     if (functionRewrite != null) {
-      _functionExpressionInvocationResolver.resolve(functionRewrite);
+      nullShortingTermination(node, discardType: true);
+      _resolveRewrittenFunctionExpressionInvocation(functionRewrite);
+    } else {
+      nullShortingTermination(node);
     }
   }
 
@@ -1802,6 +1805,30 @@ class ResolverVisitor extends ScopedVisitor {
       type = toLegacyTypeIfOptOut(type);
       InferenceContext.setType(node.argumentList, type);
     }
+  }
+
+  /// Continues resolution of a [FunctionExpressionInvocation] that was created
+  /// from a rewritten [MethodInvocation]. The target function is already
+  /// resolved.
+  ///
+  /// The specification says that `target.getter()` should be treated as an
+  /// ordinary method invocation. So, we need to perform the same null shorting
+  /// as for method invocations.
+  void _resolveRewrittenFunctionExpressionInvocation(
+    FunctionExpressionInvocation node,
+  ) {
+    var function = node.function;
+
+    if (function is PropertyAccess &&
+        _migratableAstInfoProvider.isPropertyAccessNullAware(function) &&
+        _isNonNullableByDefault) {
+      _flowAnalysis.flow.nullAwareAccess_rightBegin(function);
+      _unfinishedNullShorts.add(node.nullShortingTermination);
+    }
+
+    _functionExpressionInvocationResolver.resolve(node);
+
+    nullShortingTermination(node);
   }
 
   /// Given an [argumentList] and the [parameters] related to the element that

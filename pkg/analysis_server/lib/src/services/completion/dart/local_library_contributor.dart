@@ -5,7 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol_server.dart'
-    show CompletionSuggestion, CompletionSuggestionKind;
+    show CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart'
     show SuggestionBuilder;
@@ -148,15 +148,15 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
 /// which the completion is requested.
 class LocalLibraryContributor extends DartCompletionContributor {
   @override
-  Future<List<CompletionSuggestion>> computeSuggestions(
+  Future<void> computeSuggestions(
       DartCompletionRequest request, SuggestionBuilder builder) async {
     if (!request.includeIdentifiers) {
-      return const <CompletionSuggestion>[];
+      return;
     }
 
     var libraryUnits = request.result.unit.declaredElement.library.units;
     if (libraryUnits == null) {
-      return const <CompletionSuggestion>[];
+      return;
     }
 
     var visitor = LibraryElementSuggestionBuilder(request, builder);
@@ -165,6 +165,5 @@ class LocalLibraryContributor extends DartCompletionContributor {
         unit.accept(visitor);
       }
     }
-    return const <CompletionSuggestion>[];
   }
 }

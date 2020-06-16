@@ -139,19 +139,25 @@ import 'field_in_struct_with_initializer_test.dart'
     as field_in_struct_with_initializer;
 import 'field_initialized_by_multiple_initializers_test.dart'
     as field_initialized_by_multiple_initializers;
+import 'final_initialized_in_delcaration_and_constructor_test.dart'
+    as final_initialized_in_declaration_and_constructor;
 import 'field_initialized_in_initializer_and_declaration_test.dart'
     as field_initialized_in_initializer_and_declaration;
 import 'field_initialized_in_parameter_and_initializer_test.dart'
     as field_initialized_in_parameter_and_initializer;
+import 'final_initialized_multiple_times_test.dart'
+    as final_initialized_multiple_times;
+import 'field_initializer_factory_constructor_test.dart'
+    as field_initializer_factory_constructor;
 import 'field_initializer_in_struct_test.dart' as field_initializer_in_struct;
 import 'field_initializer_not_assignable_test.dart'
     as field_initializer_not_assignable;
+import 'field_initializer_outside_constructor_test.dart'
+    as field_initializer_outside_constructor;
+import 'field_initializer_redirecting_constructor_test.dart'
+    as field_initializer_redirecting_constructor;
 import 'field_initializing_formal_not_assignable_test.dart'
     as field_initializing_formal_not_assignable;
-import 'final_initialized_in_delcaration_and_constructor_test.dart'
-    as final_initialized_in_declaration_and_constructor;
-import 'final_initialized_multiple_times_test.dart'
-    as final_initialized_multiple_times;
 import 'final_not_initialized_constructor_test.dart'
     as final_not_initialized_constructor;
 import 'final_not_initialized_test.dart' as final_not_initialized;
@@ -167,6 +173,7 @@ import 'getter_not_subtype_setter_types_test.dart'
 import 'if_element_condition_from_deferred_library_test.dart'
     as if_element_condition_from_deferred_library;
 import 'illegal_async_return_type_test.dart' as illegal_async_return_type;
+import 'implements_deferred_class_test.dart' as implements_deferred_class;
 import 'implements_disallowed_class_test.dart' as implements_disallowed_class;
 import 'implements_non_class_test.dart' as implements_non_class;
 import 'implements_super_class_test.dart' as implements_super_class;
@@ -293,7 +300,6 @@ import 'mixin_inherits_from_not_object_test.dart'
 import 'mixin_of_disallowed_class_test.dart' as mixin_of_disallowed_class;
 import 'mixin_of_non_class_test.dart' as mixin_of_non_class;
 import 'mixin_on_sealed_class_test.dart' as mixin_on_sealed_class;
-import 'mixin_references_super_test.dart' as mixin_references_super;
 import 'mixin_super_class_constraint_non_interface_test.dart'
     as mixin_super_class_constraint_non_interface;
 import 'mixin_with_non_class_superclass_test.dart'
@@ -619,13 +625,16 @@ main() {
     extra_positional_arguments.main();
     field_in_struct_with_initializer.main();
     field_initialized_by_multiple_initializers.main();
+    final_initialized_in_declaration_and_constructor.main();
     field_initialized_in_initializer_and_declaration.main();
     field_initialized_in_parameter_and_initializer.main();
+    final_initialized_multiple_times.main();
+    field_initializer_factory_constructor.main();
     field_initializer_in_struct.main();
     field_initializer_not_assignable.main();
+    field_initializer_outside_constructor.main();
+    field_initializer_redirecting_constructor.main();
     field_initializing_formal_not_assignable.main();
-    final_initialized_in_declaration_and_constructor.main();
-    final_initialized_multiple_times.main();
     final_not_initialized_constructor.main();
     final_not_initialized.main();
     for_in_of_invalid_element_type.main();
@@ -636,16 +645,17 @@ main() {
     getter_not_subtype_setter_types.main();
     if_element_condition_from_deferred_library.main();
     illegal_async_return_type.main();
+    implements_deferred_class.main();
     implements_disallowed_class.main();
     implements_non_class.main();
     implements_super_class.main();
     implicit_this_reference_in_initializer.main();
     import_deferred_library_with_load_function.main();
     import_duplicated_library_named.main();
+    import_of_non_library.main();
     inconsistent_case_expression_types.main();
     inconsistent_inheritance_getter_and_method.main();
     inconsistent_inheritance.main();
-    import_of_non_library.main();
     inference_failure_on_collection_literal.main();
     inference_failure_on_function_return_type.main();
     inference_failure_on_uninitialized_variable.main();
@@ -721,7 +731,6 @@ main() {
     mixin_of_disallowed_class.main();
     mixin_of_non_class.main();
     mixin_on_sealed_class.main();
-    mixin_references_super.main();
     mixin_super_class_constraint_non_interface.main();
     mixin_with_non_class_superclass.main();
     must_be_a_native_function_type.main();

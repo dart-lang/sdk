@@ -618,6 +618,58 @@ main() {
     ]);
   }
 
+  test_constWithNonConst_mixinApplication_constSuperConstructor() async {
+    await assertNoErrorsInCode(r'''
+mixin M {}
+class A {
+  const A();
+}
+class B = A with M;
+const b = const B();
+''');
+  }
+
+  test_constWithNonConst_mixinApplication_constSuperConstructor_field() async {
+    await assertErrorsInCode(r'''
+mixin M {
+  int i = 0;
+}
+class A {
+  const A();
+}
+class B = A with M;
+var b = const B();
+''', [
+      error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 78, 5),
+    ]);
+  }
+
+  test_constWithNonConst_mixinApplication_constSuperConstructor_getter() async {
+    await assertNoErrorsInCode(r'''
+mixin M {
+  int get i => 0;
+}
+class A {
+  const A();
+}
+class B = A with M;
+var b = const B();
+''');
+  }
+
+  test_constWithNonConst_mixinApplication_constSuperConstructor_setter() async {
+    await assertNoErrorsInCode(r'''
+mixin M {
+  set(int i) {}
+}
+class A {
+  const A();
+}
+class B = A with M;
+var b = const B();
+''');
+  }
+
   test_constWithNonConstantArgument_annotation() async {
     await assertErrorsInCode(r'''
 class A {
@@ -792,121 +844,6 @@ class B extends A {
     ]);
   }
 
-  test_fieldInitializerFactoryConstructor() async {
-    await assertErrorsInCode(r'''
-class A {
-  int x;
-  factory A(this.x) => throw 0;
-}
-''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR, 31, 6),
-    ]);
-  }
-
-  test_fieldInitializerOutsideConstructor() async {
-    // TODO(brianwilkerson) Fix the duplicate error messages.
-    await assertErrorsInCode(r'''
-class A {
-  int x;
-  m(this.x) {}
-}
-''', [
-      error(ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, 23, 4),
-      error(CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, 23, 6),
-    ]);
-  }
-
-  test_fieldInitializerOutsideConstructor_closure() async {
-    await assertErrorsInCode(r'''
-class A {
-  dynamic field = ({this.field}) {};
-}
-''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, 30, 10),
-    ]);
-  }
-
-  test_fieldInitializerOutsideConstructor_defaultParameter() async {
-    await assertErrorsInCode(r'''
-class A {
-  int x;
-  m([this.x]) {}
-}
-''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, 24, 6),
-    ]);
-  }
-
-  test_fieldInitializerOutsideConstructor_inFunctionTypeParameter() async {
-    await assertErrorsInCode(r'''
-class A {
-  int x;
-  A(int p(this.x));
-}
-''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, 29, 6),
-    ]);
-  }
-
-  test_fieldInitializerOutsideConstructor_topLevelFunction() async {
-    await assertErrorsInCode(r'''
-f(this.x(y)) {}
-''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, 2, 9),
-    ]);
-  }
-
-  test_fieldInitializerRedirectingConstructor_afterRedirection() async {
-    await assertErrorsInCode(r'''
-class A {
-  int x;
-  A.named() {}
-  A() : this.named(), x = 42;
-}
-''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR, 56,
-          6),
-    ]);
-  }
-
-  test_fieldInitializerRedirectingConstructor_beforeRedirection() async {
-    await assertErrorsInCode(r'''
-class A {
-  int x;
-  A.named() {}
-  A() : x = 42, this.named();
-}
-''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR, 42,
-          6),
-    ]);
-  }
-
-  test_fieldInitializingFormalRedirectingConstructor() async {
-    await assertErrorsInCode(r'''
-class A {
-  int x;
-  A.named() {}
-  A(this.x) : this.named();
-}
-''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR, 38,
-          6),
-    ]);
-  }
-
-  test_forInWithConstVariable_forEach_identifier() async {
-    await assertErrorsInCode(r'''
-f() {
-  const x = 0;
-  for (x in [0, 1, 2]) {}
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 14, 1),
-      error(StaticWarningCode.ASSIGNMENT_TO_CONST, 28, 1),
-    ]);
-  }
-
   test_fromEnvironment_bool_badArgs() async {
     await assertErrorsInCode(r'''
 var b1 = const bool.fromEnvironment(1);
@@ -1004,36 +941,6 @@ typedef T foo<T extends S Function<S>(S)>(T t);
 void g(T f<T>(T x)) {}
 ''';
     await assertNoErrorsInCode(code);
-  }
-
-  test_implementsDeferredClass() async {
-    newFile('/test/lib/lib1.dart', content: '''
-library lib1;
-class A {}
-''');
-    await assertErrorsInCode('''
-library root;
-import 'lib1.dart' deferred as a;
-class B implements a.A {}
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 67, 3),
-    ]);
-  }
-
-  test_implementsDeferredClass_classTypeAlias() async {
-    newFile('/test/lib/lib1.dart', content: '''
-library lib1;
-class A {}
-''');
-    await assertErrorsInCode('''
-library root;
-import 'lib1.dart' deferred as a;
-class B {}
-class M {}
-class C = B with M implements a.A;
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 100, 3),
-    ]);
   }
 
   test_importInternalLibrary() async {

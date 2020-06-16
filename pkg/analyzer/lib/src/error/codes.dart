@@ -960,15 +960,43 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * implicitly declared constructor named ... is declared. If Sq is a
    * generative const constructor, and M does not declare any fields, Cq is
    * also a const constructor.
+   *
+   * Parameters:
+   * 0: the name of the instance field.
    */
   static const CompileTimeErrorCode CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD =
-      CompileTimeErrorCode(
+      CompileTimeErrorCodeWithUniqueName(
           'CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD',
-          "Const constructor can't be declared for a class with a mixin "
-              "that declares an instance field.",
-          correction: "Try removing the 'const' keyword or "
-              "removing the 'with' clause from the class declaration, "
-              "or removing fields from the mixin class.");
+          'CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD',
+          "This constructor can't be declared 'const' because a mixin adds the "
+              "instance field: {0}.",
+          correction: "Try removing the 'const' keyword or removing the 'with' "
+              "clause from the class declaration, or removing the field from "
+              "the mixin class.");
+
+  /**
+   * 7.6.3 Constant Constructors: The superinitializer that appears, explicitly
+   * or implicitly, in the initializer list of a constant constructor must
+   * specify a constant constructor of the superclass of the immediately
+   * enclosing class or a compile-time error occurs.
+   *
+   * 12.1 Mixin Application: For each generative constructor named ... an
+   * implicitly declared constructor named ... is declared. If Sq is a
+   * generative const constructor, and M does not declare any fields, Cq is
+   * also a const constructor.
+   *
+   * Parameters:
+   * 0: the names of the instance fields.
+   */
+  static const CompileTimeErrorCode CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELDS =
+      CompileTimeErrorCodeWithUniqueName(
+          'CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD',
+          'CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELDS',
+          "This constructor can't be declared 'const' because the mixins add "
+              "the instance fields: {0}.",
+          correction: "Try removing the 'const' keyword or removing the 'with' "
+              "clause from the class declaration, or removing the fields from "
+              "the mixin classes.");
 
   /**
    * 7.6.3 Constant Constructors: The superinitializer that appears, explicitly
@@ -1547,8 +1575,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // var l = List.generate(3, (i) => i);
   // ```
   static const CompileTimeErrorCode DEFAULT_LIST_CONSTRUCTOR =
-      CompileTimeErrorCode('DEFAULT_LIST_CONSTRUCTOR',
-          "Calling the default 'List' constructor causes an error.",
+      CompileTimeErrorCode(
+          'DEFAULT_LIST_CONSTRUCTOR',
+          "The default 'List' constructor is not available when null safety is "
+              "enabled.",
           correction: "Try using a list literal, 'List.filled' or "
               "'List.generate'.");
 
@@ -4104,16 +4134,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode MIXIN_OF_NON_CLASS = CompileTimeErrorCode(
       'MIXIN_OF_NON_CLASS', "Classes can only mix in mixins and classes.",
       hasPublishedDocs: true);
-
-  /**
-   * 9 Mixins: It is a compile-time error if a declared or derived mixin refers
-   * to super.
-   */
-  static const CompileTimeErrorCode MIXIN_REFERENCES_SUPER =
-      CompileTimeErrorCode(
-          'MIXIN_REFERENCES_SUPER',
-          "The class '{0}' can't be used as a mixin because it references "
-              "'super'.");
 
   static const CompileTimeErrorCode
       MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS = CompileTimeErrorCode(

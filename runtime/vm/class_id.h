@@ -131,7 +131,8 @@ namespace dart {
 
 #define CLASS_LIST_FFI_TYPE_MARKER(V)                                          \
   CLASS_LIST_FFI_NUMERIC(V)                                                    \
-  V(Void)
+  V(Void)                                                                      \
+  V(Handle)
 
 #define CLASS_LIST_FFI(V)                                                      \
   V(Pointer)                                                                   \

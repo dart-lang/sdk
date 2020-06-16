@@ -182,11 +182,11 @@ EOF
     out/ReleaseIA32/run_vm_tests InitialRSS
     out/ReleaseIA32/run_vm_tests GenKernelKernelLoadKernel
     out/ReleaseIA32/run_vm_tests KernelServiceCompileAll
-    out/ReleaseIA32/dart --profile-period=10000 --packages=.packages benchmarks/Example/dart/Example.dart
-    out/ReleaseIA32/dart benchmarks/FfiBoringssl/dart/FfiBoringssl.dart
-    out/ReleaseIA32/dart benchmarks/FfiCall/dart/FfiCall.dart
-    out/ReleaseIA32/dart benchmarks/FfiMemory/dart/FfiMemory.dart
-    out/ReleaseIA32/dart benchmarks/FfiStruct/dart/FfiStruct.dart
+    out/ReleaseIA32/dart --profile-period=10000 --packages=.packages benchmarks/Example/dart2/Example.dart
+    out/ReleaseIA32/dart benchmarks/FfiBoringssl/dart2/FfiBoringssl.dart
+    out/ReleaseIA32/dart benchmarks/FfiCall/dart2/FfiCall.dart
+    out/ReleaseIA32/dart benchmarks/FfiMemory/dart2/FfiMemory.dart
+    out/ReleaseIA32/dart benchmarks/FfiStruct/dart2/FfiStruct.dart
     cd ..
     rm -rf tmp
   elif [ "$command" = linux-x64-build ]; then
@@ -341,7 +341,7 @@ EOF
     out/ReleaseX64/run_vm_tests InitialRSS
     out/ReleaseX64/run_vm_tests GenKernelKernelLoadKernel
     out/ReleaseX64/run_vm_tests KernelServiceCompileAll
-    out/ReleaseX64/dart --profile-period=10000 --packages=.packages benchmarks/Example/dart/Example.dart
+    out/ReleaseX64/dart --profile-period=10000 --packages=.packages benchmarks/Example/dart2/Example.dart
     cd ..
     rm -rf tmp
   else

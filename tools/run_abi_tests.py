@@ -166,11 +166,18 @@ def diffResults(results, configuration_name):
 def makeLog(diffs, results, logRecords, configuration_name):
     result = pickOne(results)
     logs = ["%s: %s" % (str(v), l['log']) for v, l in logRecords.items()]
+    log = ('This test fails if there is a difference in the test results\n'
+           'between ABI versions. The expected result is the result on the\n'
+           'current ABI: %s\n'
+           'These ABI versions reported a different result: %s\n\n'
+           'These are the logs of the test runs on different ABI versions.\n'
+           'There are no logs for versions where the test passed.\n\n%s' %
+           (result['result'], repr(diffs), '\n\n\n'.join(logs)))
     return {
         'name': result['name'],
         'configuration': configuration_name,
         'result': result['result'],
-        'log': '\n\n\n'.join([repr(diffs)] + logs),
+        'log': log,
     }
 
 

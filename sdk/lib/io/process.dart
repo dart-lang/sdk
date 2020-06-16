@@ -20,8 +20,8 @@ class _ProcessUtils {
 /**
  * Exit the Dart VM process immediately with the given exit code.
  *
- * This does not wait for any asynchronous operations to terminate. Using
- * [exit] is therefore very likely to lose data.
+ * This does not wait for any asynchronous operations to terminate nor execute
+ * `finally` blocks. Using [exit] is therefore very likely to lose data.
  *
  * While debugging, the VM will not respect the `--pause-isolates-on-exit`
  * flag if [exit] is called as invoking this method causes the Dart VM

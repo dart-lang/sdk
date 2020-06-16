@@ -377,6 +377,7 @@ struct InstrAttrs {
   M(NativeParameter, kNoGC)                                                    \
   M(LoadIndexedUnsafe, kNoGC)                                                  \
   M(StoreIndexedUnsafe, kNoGC)                                                 \
+  M(MemoryCopy, kNoGC)                                                         \
   M(TailCall, kNoGC)                                                           \
   M(ParallelMove, kNoGC)                                                       \
   M(PushArgument, kNoGC)                                                       \
@@ -394,6 +395,10 @@ struct InstrAttrs {
   M(SpecialParameter, kNoGC)                                                   \
   M(ClosureCall, _)                                                            \
   M(FfiCall, _)                                                                \
+  M(EnterHandleScope, _)                                                       \
+  M(ExitHandleScope, _)                                                        \
+  M(AllocateHandle, _)                                                         \
+  M(RawStoreField, _)                                                          \
   M(InstanceCall, _)                                                           \
   M(PolymorphicInstanceCall, _)                                                \
   M(DispatchTableCall, _)                                                      \
@@ -2691,6 +2696,86 @@ class LoadIndexedUnsafeInstr : public TemplateDefinition<1, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(LoadIndexedUnsafeInstr);
 };
 
+class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
+ public:
+  MemoryCopyInstr(Value* src,
+                  Value* dest,
+                  Value* src_start,
+                  Value* dest_start,
+                  Value* length,
+                  classid_t src_cid,
+                  classid_t dest_cid)
+      : src_cid_(src_cid),
+        dest_cid_(dest_cid),
+        element_size_(Instance::ElementSizeFor(src_cid)) {
+    ASSERT(IsArrayTypeSupported(src_cid));
+    ASSERT(IsArrayTypeSupported(dest_cid));
+    ASSERT(Instance::ElementSizeFor(src_cid) ==
+           Instance::ElementSizeFor(dest_cid));
+    SetInputAt(kSrcPos, src);
+    SetInputAt(kDestPos, dest);
+    SetInputAt(kSrcStartPos, src_start);
+    SetInputAt(kDestStartPos, dest_start);
+    SetInputAt(kLengthPos, length);
+  }
+
+  enum {
+    kSrcPos = 0,
+    kDestPos = 1,
+    kSrcStartPos = 2,
+    kDestStartPos = 3,
+    kLengthPos = 4
+  };
+
+  DECLARE_INSTRUCTION(MemoryCopy)
+
+  virtual Representation RequiredInputRepresentation(intptr_t index) const {
+    // All inputs are tagged (for now).
+    return kTagged;
+  }
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool HasUnknownSideEffects() const { return true; }
+
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  Value* src() const { return inputs_[kSrcPos]; }
+  Value* dest() const { return inputs_[kDestPos]; }
+  Value* src_start() const { return inputs_[kSrcStartPos]; }
+  Value* dest_start() const { return inputs_[kDestStartPos]; }
+  Value* length() const { return inputs_[kLengthPos]; }
+
+ private:
+  // Set array_reg to point to the index indicated by start (contained in
+  // start_reg) of the typed data or string in array (contained in array_reg).
+  void EmitComputeStartPointer(FlowGraphCompiler* compiler,
+                               classid_t array_cid,
+                               Value* start,
+                               Register array_reg,
+                               Register start_reg);
+
+  static bool IsArrayTypeSupported(classid_t array_cid) {
+    if (IsTypedDataBaseClassId(array_cid)) {
+      return true;
+    }
+    switch (array_cid) {
+      case kOneByteStringCid:
+      case kTwoByteStringCid:
+      case kExternalOneByteStringCid:
+      case kExternalTwoByteStringCid:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  classid_t src_cid_;
+  classid_t dest_cid_;
+  intptr_t element_size_;
+
+  DISALLOW_COPY_AND_ASSIGN(MemoryCopyInstr);
+};
+
 // Unwinds the current frame and tail calls a target.
 //
 // The return address saved by the original caller of this frame will be in it's
@@ -4956,7 +5041,10 @@ class FfiCallInstr : public Definition {
 
   virtual intptr_t InputCount() const { return inputs_.length(); }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
-  virtual bool MayThrow() const { return false; }
+  virtual bool MayThrow() const {
+    // By Dart_PropagateError.
+    return true;
+  }
 
   // FfiCallInstr calls C code, which can call back into Dart.
   virtual bool ComputeCanDeoptimize() const {
@@ -4994,6 +5082,82 @@ class FfiCallInstr : public Definition {
   GrowableArray<Value*> inputs_;
 
   DISALLOW_COPY_AND_ASSIGN(FfiCallInstr);
+};
+
+class EnterHandleScopeInstr : public TemplateDefinition<0, NoThrow> {
+ public:
+  enum class Kind { kEnterHandleScope = 0, kGetTopHandleScope = 1 };
+
+  explicit EnterHandleScopeInstr(Kind kind) : kind_(kind) {}
+
+  DECLARE_INSTRUCTION(EnterHandleScope)
+
+  virtual Representation representation() const { return kUnboxedIntPtr; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+ private:
+  Kind kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(EnterHandleScopeInstr);
+};
+
+class ExitHandleScopeInstr : public TemplateInstruction<0, NoThrow> {
+ public:
+  ExitHandleScopeInstr() {}
+
+  DECLARE_INSTRUCTION(ExitHandleScope)
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(ExitHandleScopeInstr);
+};
+
+class AllocateHandleInstr : public TemplateDefinition<1, NoThrow> {
+ public:
+  explicit AllocateHandleInstr(Value* scope) { SetInputAt(kScope, scope); }
+
+  enum { kScope = 0 };
+
+  DECLARE_INSTRUCTION(AllocateHandle)
+
+  virtual intptr_t InputCount() const { return 1; }
+  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const;
+  virtual Representation representation() const { return kUnboxedIntPtr; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(AllocateHandleInstr);
+};
+
+class RawStoreFieldInstr : public TemplateInstruction<2, NoThrow> {
+ public:
+  RawStoreFieldInstr(Value* base, Value* value, int32_t offset)
+      : offset_(offset) {
+    SetInputAt(kBase, base);
+    SetInputAt(kValue, value);
+  }
+
+  enum { kBase = 0, kValue = 1 };
+
+  DECLARE_INSTRUCTION(RawStoreField)
+
+  virtual intptr_t InputCount() const { return 2; }
+  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const;
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+ private:
+  const int32_t offset_;
+
+  DISALLOW_COPY_AND_ASSIGN(RawStoreFieldInstr);
 };
 
 class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {

@@ -275,6 +275,10 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// The library containing the compilation unit being visited.
   LibraryElement enclosingLibrary;
 
+  /// A flag indicating whether we are currently in a context in which type
+  /// parameters are visible.
+  bool inGenericContext = false;
+
   /// The type provider associated with the current compilation unit.
   TypeProvider typeProvider;
 
@@ -433,6 +437,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
+    var wasInGenericContext = inGenericContext;
+    inGenericContext = inGenericContext || node.typeParameters != null;
     data.recordPercentage(
         'Classes with type parameters', node.typeParameters != null);
     var context = 'name';
@@ -453,10 +459,13 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           allowedKeywords: memberKeywords);
     }
     super.visitClassDeclaration(node);
+    inGenericContext = wasInGenericContext;
   }
 
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
+    var wasInGenericContext = inGenericContext;
+    inGenericContext = inGenericContext || node.typeParameters != null;
     _recordDataForNode('ClassTypeAlias (superclass)', node.superclass);
     var context = 'superclass';
     if (node.withClause != null) {
@@ -465,6 +474,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     }
     _recordTokenType('ClassDeclaration ($context)', node.implementsClause);
     super.visitClassTypeAlias(node);
+    inGenericContext = wasInGenericContext;
   }
 
   @override
@@ -660,6 +670,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
+    var wasInGenericContext = inGenericContext;
+    inGenericContext = inGenericContext || node.typeParameters != null;
     data.recordPercentage(
         'Extensions with type parameters', node.typeParameters != null);
     _recordDataForNode('ExtensionDeclaration (type)', node.extendedType);
@@ -668,6 +680,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           allowedKeywords: memberKeywords);
     }
     super.visitExtensionDeclaration(node);
+    inGenericContext = wasInGenericContext;
   }
 
   @override
@@ -787,8 +800,11 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
+    var wasInGenericContext = inGenericContext;
+    inGenericContext = inGenericContext || node.typeParameters != null;
     // There are no completions.
     super.visitFunctionTypeAlias(node);
+    inGenericContext = wasInGenericContext;
   }
 
   @override
@@ -799,15 +815,21 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitGenericFunctionType(GenericFunctionType node) {
+    var wasInGenericContext = inGenericContext;
+    inGenericContext = inGenericContext || node.typeParameters != null;
     // There are no completions.
     super.visitGenericFunctionType(node);
+    inGenericContext = wasInGenericContext;
   }
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
+    var wasInGenericContext = inGenericContext;
+    inGenericContext = inGenericContext || node.typeParameters != null;
     _recordDataForNode('GenericTypeAlias (functionType)', node.functionType,
         allowedKeywords: [Keyword.FUNCTION]);
     super.visitGenericTypeAlias(node);
+    inGenericContext = wasInGenericContext;
   }
 
   @override
@@ -957,6 +979,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
+    var wasInGenericContext = inGenericContext;
+    inGenericContext = inGenericContext || node.typeParameters != null;
     // There are no completions.
     data.recordPercentage(
         'Methods with type parameters', node.typeParameters != null);
@@ -976,6 +1000,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       }
     }
     super.visitMethodDeclaration(node);
+    inGenericContext = wasInGenericContext;
   }
 
   @override
@@ -1007,6 +1032,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
+    var wasInGenericContext = inGenericContext;
+    inGenericContext = inGenericContext || node.typeParameters != null;
     data.recordPercentage(
         'Mixins with type parameters', node.typeParameters != null);
     var context = 'name';
@@ -1023,6 +1050,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           allowedKeywords: memberKeywords);
     }
     super.visitMixinDeclaration(node);
+    inGenericContext = wasInGenericContext;
   }
 
   @override
@@ -1573,6 +1601,11 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void _recordDataForNode(String context, AstNode node,
       {List<Keyword> allowedKeywords = noKeywords}) {
     _recordElementKind(context, node);
+    if (inGenericContext) {
+      _recordElementKind(context + ' - generic', node);
+    } else {
+      _recordElementKind(context + ' - non-generic', node);
+    }
     _recordReferenceDepth(node);
     _recordTokenDistance(node);
     _recordTokenType(context, node, allowedKeywords: allowedKeywords);

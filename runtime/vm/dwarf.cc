@@ -90,54 +90,68 @@ const T* Trie<T>::Lookup(const Trie<T>* trie, const char* key, intptr_t* end) {
   return trie->value_;
 }
 
-Dwarf::Dwarf(Zone* zone, StreamingWriteStream* stream, Elf* elf)
+Dwarf::Dwarf(Zone* zone)
     : zone_(zone),
-      elf_(elf),
       reverse_obfuscation_trie_(CreateReverseObfuscationTrie(zone)),
-      asm_stream_(stream),
-      bin_stream_(nullptr),
       codes_(zone, 1024),
       code_to_address_(zone),
       functions_(zone, 1024),
       function_to_index_(zone),
       scripts_(zone, 1024),
       script_to_index_(zone),
-      abstract_origins_(nullptr),
-      temp_(0) {
-  // Must have at least one output, whether assembly or direct to ELF. Both
-  // may be set if we are not stripping assembly but also saving separate
-  // debug information.
-  RELEASE_ASSERT(stream != nullptr || elf != nullptr);
+      temp_(0) {}
+
+SegmentRelativeOffset Dwarf::CodeAddress(const Code& code) const {
+  const auto& pair = code_to_address_.LookupValue(&code);
+  // This is only used by Elf::Finalize(), and the image writers always give a
+  // text offset when calling AddCode() for an Elf object's Dwarf object. Thus,
+  // we should have known code offsets for each code object in the map.
+  ASSERT(pair.offset != SegmentRelativeOffset::kUnknownOffset);
+  return pair;
 }
 
-intptr_t Dwarf::AddCode(const Code& code) {
-  ASSERT(elf_ == nullptr);
-  ASSERT(!code.IsNull());
-  return AddCodeHelper(Code::ZoneHandle(zone_, code.raw()));
-}
+intptr_t Dwarf::AddCode(const Code& orig_code,
+                        const SegmentRelativeOffset& offset) {
+  ASSERT(!orig_code.IsNull());
+  // We should never get the no-argument constructed version here.
+  ASSERT(offset.offset != SegmentRelativeOffset::kInvalidOffset);
+  // Generate an appropriately zoned ZoneHandle for storing.
+  const auto& code = Code::ZoneHandle(zone_, orig_code.raw());
 
-void Dwarf::AddCode(const Code& code,
-                    const char* name,
-                    intptr_t payload_start) {
-  ASSERT(elf_ != nullptr);
+  // For now, we assume one of two flows for a given code object:
+  // ELF: Calls to AddCode(code, vm, offset), vm and offset are the same over
+  //      all calls.
+  // Assembly: An initial call to AddCode(code, vm) (assembly), possibly
+  //     followed by a later call to AddCode(code, vm, offset)
+  //     (separate debugging info ELF)
+  if (offset.offset == SegmentRelativeOffset::kUnknownOffset) {
+    // A call without an address should always come before any calls with
+    // addresses.
+    ASSERT(code_to_address_.Lookup(&code) == nullptr);
+    // Insert a marker so on later calls, we know we've already added to codes_.
+    code_to_address_.Insert(CodeAddressPair(&code, offset));
+  } else {
+    const auto& old_value = code_to_address_.LookupValue(&code);
+    // ELF does not need to know the index. If we've already added this Code
+    // object to codes_ in a previous call, don't bother scanning codes_ to find
+    // the corresponding index, just return -1 instead.
+    switch (old_value.offset) {
+      case SegmentRelativeOffset::kInvalidOffset:
+        code_to_address_.Insert(CodeAddressPair(&code, offset));
+        break;  // Still need to add to codes_.
+      case SegmentRelativeOffset::kUnknownOffset:
+        // Code objects should only be associated with either the VM or isolate.
+        ASSERT_EQUAL(old_value.vm, offset.vm);
+        code_to_address_.Update(CodeAddressPair(&code, offset));
+        return -1;
+      default:
+        // The information for the code object shouldn't have changed since the
+        // previous update.
+        ASSERT(old_value == offset);
+        return -1;
+    }
+  }
 
-  ASSERT(name != nullptr);
-  ASSERT(payload_start >= 0);
-  // Since we're in the middle of generating this section, pull the next section
-  // index and starting address for the next segment from the ELF object.
-  auto const section_index = elf_->NextSectionIndex();
-  auto const relocated_address = elf_->NextMemoryOffset() + payload_start;
-  elf_->AddCodeSymbol(name, section_index, relocated_address, code.Size());
-
-  ASSERT(!code.IsNull());
-  ASSERT(code_to_address_.Lookup(&code) == nullptr);
-  const auto& zone_code = Code::ZoneHandle(zone_, code.raw());
-  code_to_address_.Insert(CodeAddressPair(&zone_code, relocated_address));
-
-  AddCodeHelper(zone_code);
-}
-
-intptr_t Dwarf::AddCodeHelper(const Code& code) {
   const intptr_t index = codes_.length();
   codes_.Add(&code);
   if (code.IsFunctionCode()) {
@@ -213,219 +227,132 @@ intptr_t Dwarf::LookupScript(const Script& script) {
   return pair->index_;
 }
 
-void Dwarf::Print(const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  asm_stream_->VPrint(format, args);
-  va_end(args);
-}
-
-static uint8_t* ZoneReallocate(uint8_t* ptr,
-                               intptr_t old_size,
-                               intptr_t new_size) {
-  return Thread::Current()->zone()->Realloc<uint8_t>(ptr, old_size, new_size);
-}
-
-void Dwarf::WriteAbbreviations() {
+void Dwarf::WriteAbbreviations(DwarfWriteStream* stream) {
   // Dwarf data mostly takes the form of a tree, whose nodes are called
   // DIEs. Each DIE begins with an abbreviation code, and the abbreviation
   // describes the attributes of that DIE and their representation.
 
-  uint8_t* buffer = nullptr;
-  WriteStream stream(&buffer, ZoneReallocate, 64 * KB);
+  stream->uleb128(kCompilationUnit);     // Abbrev code.
+  stream->uleb128(DW_TAG_compile_unit);  // Type.
+  stream->u1(DW_CHILDREN_yes);
+  stream->uleb128(DW_AT_name);  // Start of attributes.
+  stream->uleb128(DW_FORM_string);
+  stream->uleb128(DW_AT_producer);
+  stream->uleb128(DW_FORM_string);
+  stream->uleb128(DW_AT_comp_dir);
+  stream->uleb128(DW_FORM_string);
+  stream->uleb128(DW_AT_low_pc);
+  stream->uleb128(DW_FORM_addr);
+  stream->uleb128(DW_AT_high_pc);
+  stream->uleb128(DW_FORM_addr);
+  stream->uleb128(DW_AT_stmt_list);
+  stream->uleb128(DW_FORM_sec_offset);
+  stream->uleb128(0);
+  stream->uleb128(0);  // End of attributes.
 
-  if (asm_stream_ != nullptr) {
-#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
-    Print(".section __DWARF,__debug_abbrev,regular,debug\n");
-#elif defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID) ||                \
-    defined(TARGET_OS_FUCHSIA)
-    Print(".section .debug_abbrev,\"\"\n");
-#else
-    UNIMPLEMENTED();
-#endif
-  }
-  if (elf_ != nullptr) {
-    bin_stream_ = &stream;
-  }
+  stream->uleb128(kAbstractFunction);  // Abbrev code.
+  stream->uleb128(DW_TAG_subprogram);  // Type.
+  stream->u1(DW_CHILDREN_yes);
+  stream->uleb128(DW_AT_name);  // Start of attributes.
+  stream->uleb128(DW_FORM_string);
+  stream->uleb128(DW_AT_decl_file);
+  stream->uleb128(DW_FORM_udata);
+  stream->uleb128(DW_AT_decl_line);
+  stream->uleb128(DW_FORM_udata);
+  stream->uleb128(DW_AT_inline);
+  stream->uleb128(DW_FORM_udata);
+  stream->uleb128(0);
+  stream->uleb128(0);  // End of attributes.
 
-  uleb128(kCompilationUnit);     // Abbrev code.
-  uleb128(DW_TAG_compile_unit);  // Type.
-  u1(DW_CHILDREN_yes);
-  uleb128(DW_AT_name);  // Start of attributes.
-  uleb128(DW_FORM_string);
-  uleb128(DW_AT_producer);
-  uleb128(DW_FORM_string);
-  uleb128(DW_AT_comp_dir);
-  uleb128(DW_FORM_string);
-  uleb128(DW_AT_low_pc);
-  uleb128(DW_FORM_addr);
-  uleb128(DW_AT_high_pc);
-  uleb128(DW_FORM_addr);
-  uleb128(DW_AT_stmt_list);
-  uleb128(DW_FORM_sec_offset);
-  uleb128(0);
-  uleb128(0);  // End of attributes.
+  stream->uleb128(kConcreteFunction);  // Abbrev code.
+  stream->uleb128(DW_TAG_subprogram);  // Type.
+  stream->u1(DW_CHILDREN_yes);
+  stream->uleb128(DW_AT_abstract_origin);  // Start of attributes.
+  stream->uleb128(DW_FORM_ref4);
+  stream->uleb128(DW_AT_low_pc);
+  stream->uleb128(DW_FORM_addr);
+  stream->uleb128(DW_AT_high_pc);
+  stream->uleb128(DW_FORM_addr);
+  stream->uleb128(0);
+  stream->uleb128(0);  // End of attributes.
 
-  uleb128(kAbstractFunction);  // Abbrev code.
-  uleb128(DW_TAG_subprogram);  // Type.
-  u1(DW_CHILDREN_yes);
-  uleb128(DW_AT_name);  // Start of attributes.
-  uleb128(DW_FORM_string);
-  uleb128(DW_AT_decl_file);
-  uleb128(DW_FORM_udata);
-  uleb128(DW_AT_decl_line);
-  uleb128(DW_FORM_udata);
-  uleb128(DW_AT_inline);
-  uleb128(DW_FORM_udata);
-  uleb128(0);
-  uleb128(0);  // End of attributes.
+  stream->uleb128(kInlinedFunction);           // Abbrev code.
+  stream->uleb128(DW_TAG_inlined_subroutine);  // Type.
+  stream->u1(DW_CHILDREN_yes);
+  stream->uleb128(DW_AT_abstract_origin);  // Start of attributes.
+  stream->uleb128(DW_FORM_ref4);
+  stream->uleb128(DW_AT_low_pc);
+  stream->uleb128(DW_FORM_addr);
+  stream->uleb128(DW_AT_high_pc);
+  stream->uleb128(DW_FORM_addr);
+  stream->uleb128(DW_AT_call_file);
+  stream->uleb128(DW_FORM_udata);
+  stream->uleb128(DW_AT_call_line);
+  stream->uleb128(DW_FORM_udata);
+  stream->uleb128(0);
+  stream->uleb128(0);  // End of attributes.
 
-  uleb128(kConcreteFunction);  // Abbrev code.
-  uleb128(DW_TAG_subprogram);  // Type.
-  u1(DW_CHILDREN_yes);
-  uleb128(DW_AT_abstract_origin);  // Start of attributes.
-  uleb128(DW_FORM_ref4);
-  uleb128(DW_AT_low_pc);
-  uleb128(DW_FORM_addr);
-  uleb128(DW_AT_high_pc);
-  uleb128(DW_FORM_addr);
-  uleb128(0);
-  uleb128(0);  // End of attributes.
-
-  uleb128(kInlinedFunction);           // Abbrev code.
-  uleb128(DW_TAG_inlined_subroutine);  // Type.
-  u1(DW_CHILDREN_yes);
-  uleb128(DW_AT_abstract_origin);  // Start of attributes.
-  uleb128(DW_FORM_ref4);
-  uleb128(DW_AT_low_pc);
-  uleb128(DW_FORM_addr);
-  uleb128(DW_AT_high_pc);
-  uleb128(DW_FORM_addr);
-  uleb128(DW_AT_call_file);
-  uleb128(DW_FORM_udata);
-  uleb128(DW_AT_call_line);
-  uleb128(DW_FORM_udata);
-  uleb128(0);
-  uleb128(0);  // End of attributes.
-
-  uleb128(0);  // End of abbreviations.
-
-  if (elf_ != nullptr) {
-    elf_->AddDebug(".debug_abbrev", buffer, stream.bytes_written());
-    bin_stream_ = nullptr;
-  }
+  stream->uleb128(0);  // End of abbreviations.
 }
 
-void Dwarf::WriteCompilationUnit() {
-  uint8_t* buffer = nullptr;
-  WriteStream stream(&buffer, ZoneReallocate, 64 * KB);
-
+void Dwarf::WriteDebugInfo(DwarfWriteStream* stream) {
   SnapshotTextObjectNamer namer(zone_);
-
-  if (asm_stream_ != nullptr) {
-#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
-    Print(".section __DWARF,__debug_info,regular,debug\n");
-#elif defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID) ||                \
-    defined(TARGET_OS_FUCHSIA)
-    Print(".section .debug_info,\"\"\n");
-#else
-    UNIMPLEMENTED();
-#endif
-    Print(".Ldebug_info:\n");
-  }
-  if (elf_ != nullptr) {
-    bin_stream_ = &stream;
-  }
 
   // 7.5.1.1 Compilation Unit Header
 
-  // Unit length. Assignment to temp works around buggy Mac assembler.
-  intptr_t cu_size_fixup = 0;
-  intptr_t cu_start = 0;
-  if (asm_stream_ != nullptr) {
-    Print("Lcu_size = .Lcu_end - .Lcu_start\n");
-    Print(".4byte Lcu_size\n");
-    Print(".Lcu_start:\n");
-  }
-  if (elf_ != nullptr) {
-    cu_size_fixup = u4(0);
-    cu_start = position();
-  }
+  // Unit length.
+  auto const cu_prefix = "cu";
+  intptr_t cu_start;
+  intptr_t cu_size_fixup = stream->ReserveSize(cu_prefix, &cu_start);
 
-  u2(2);                            // DWARF version 2
-  u4(0);                            // debug_abbrev_offset
-  u1(compiler::target::kWordSize);  // address_size
+  stream->u2(2);                            // DWARF version 2
+  stream->u4(0);                            // debug_abbrev_offset
+  stream->u1(compiler::target::kWordSize);  // address_size
 
   // Compilation Unit DIE. We describe the entire Dart program as a single
   // compilation unit. Note we write attributes in the same order we declared
   // them in our abbreviation above in WriteAbbreviations.
-  uleb128(kCompilationUnit);
+  stream->uleb128(kCompilationUnit);
   const Library& root_library = Library::Handle(
       zone_, Isolate::Current()->object_store()->root_library());
   const String& root_uri = String::Handle(zone_, root_library.url());
-  string(root_uri.ToCString());  // DW_AT_name
-  string("Dart VM");             // DW_AT_producer
-  string("");                    // DW_AT_comp_dir
+  stream->string(root_uri.ToCString());  // DW_AT_name
+  stream->string("Dart VM");             // DW_AT_producer
+  stream->string("");                    // DW_AT_comp_dir
 
-  // DW_AT_low_pc and DW_AT_high_pc
-  // The lowest and highest instruction addresses in this object file that are
-  // part of our compilation unit. Dwarf consumers use this to quickly decide
-  // which compilation unit DIE to consult for a given pc.
-  //
-  // Currently, we only write DWARF information for Dart code and only the
-  // isolate contains instructions compiled from Dart code. If we ever add Dart
-  // code to the VM snapshot, this will need to be adjusted.
-  if (asm_stream_ != nullptr) {
-    // DW_AT_low_pc
-    PrintNamedAddress(kIsolateSnapshotInstructionsAsmSymbol);
-    // DW_AT_high_pc
-    intptr_t last_code_index = codes_.length() - 1;
-    const Code& last_code = *(codes_[last_code_index]);
-    PrintNamedAddressWithOffset(
-        namer.SnapshotNameFor(last_code_index, last_code), last_code.Size());
-  }
-  if (elf_ != nullptr) {
-    intptr_t offset;
-    intptr_t size;
-    if (!elf_->FindDynamicSymbol(kIsolateSnapshotInstructionsAsmSymbol, &offset,
-                                 &size)) {
-      UNREACHABLE();
-    }
-    // DW_AT_low_pc
-    addr(offset);
-    // DW_AT_high_pc
-    addr(offset + size);
-  }
+  // DW_AT_low_pc
+  // The lowest instruction address in this object file that is part of our
+  // compilation unit. Dwarf consumers use this to quickly decide which
+  // compilation unit DIE to consult for a given pc.
+  stream->OffsetFromSymbol(kIsolateSnapshotInstructionsAsmSymbol, 0);
+
+  // DW_AT_high_pc
+  // The highest instruction address in this object file that is part of our
+  // compilation unit. Dwarf consumers use this to quickly decide which
+  // compilation unit DIE to consult for a given pc.
+  intptr_t last_code_index = codes_.length() - 1;
+  const Code& last_code = *(codes_[last_code_index]);
+  auto const last_code_name = namer.SnapshotNameFor(last_code_index, last_code);
+  stream->OffsetFromSymbol(last_code_name, last_code.Size());
 
   // DW_AT_stmt_list (offset into .debug_line)
   // Indicates which line number program is associated with this compilation
   // unit. We only emit a single line number program.
-  u4(0);
+  stream->u4(0);
 
-  WriteAbstractFunctions();
-  WriteConcreteFunctions();
+  WriteAbstractFunctions(stream);
+  WriteConcreteFunctions(stream);
 
-  uleb128(0);  // End of children.
+  stream->uleb128(0);  // End of children.
 
-  uleb128(0);  // End of entries.
-
-  if (asm_stream_ != nullptr) {
-    Print(".Lcu_end:\n");
-  }
-  if (elf_ != nullptr) {
-    fixup_u4(cu_size_fixup, position() - cu_start);
-
-    elf_->AddDebug(".debug_info", buffer, stream.bytes_written());
-    bin_stream_ = nullptr;
-  }
+  stream->uleb128(0);  // End of entries.
+  stream->SetSize(cu_size_fixup, cu_prefix, cu_start);
 }
 
-void Dwarf::WriteAbstractFunctions() {
+void Dwarf::WriteAbstractFunctions(DwarfWriteStream* stream) {
   Script& script = Script::Handle(zone_);
   String& name = String::Handle(zone_);
-  if (elf_ != nullptr) {
-    abstract_origins_ = zone_->Alloc<uint32_t>(functions_.length());
-  }
+  stream->InitializeAbstractOrigins(functions_.length());
   // By the point we're creating DWARF information, scripts have already lost
   // their token stream, so we can't look up their line number information.
   auto const line = kNoLineInformation;
@@ -434,26 +361,19 @@ void Dwarf::WriteAbstractFunctions() {
     name = function.QualifiedUserVisibleName();
     script = function.script();
     const intptr_t file = LookupScript(script);
-
-    if (asm_stream_ != nullptr) {
-      Print(".Lfunc%" Pd ":\n",
-            i);  // Label for DW_AT_abstract_origin references
-    }
-    if (elf_ != nullptr) {
-      abstract_origins_[i] = position();
-    }
     auto const name_cstr = Deobfuscate(name.ToCString());
 
-    uleb128(kAbstractFunction);
-    string(name_cstr);        // DW_AT_name
-    uleb128(file);            // DW_AT_decl_file
-    uleb128(line);            // DW_AT_decl_line
-    uleb128(DW_INL_inlined);  // DW_AT_inline
-    uleb128(0);               // End of children.
+    stream->RegisterAbstractOrigin(i);
+    stream->uleb128(kAbstractFunction);
+    stream->string(name_cstr);        // DW_AT_name
+    stream->uleb128(file);            // DW_AT_decl_file
+    stream->uleb128(line);            // DW_AT_decl_line
+    stream->uleb128(DW_INL_inlined);  // DW_AT_inline
+    stream->uleb128(0);               // End of children.
   }
 }
 
-void Dwarf::WriteConcreteFunctions() {
+void Dwarf::WriteConcreteFunctions(DwarfWriteStream* stream) {
   Function& function = Function::Handle(zone_);
   Script& script = Script::Handle(zone_);
   SnapshotTextObjectNamer namer(zone_);
@@ -464,53 +384,30 @@ void Dwarf::WriteConcreteFunctions() {
       continue;
     }
 
-    intptr_t code_address = -1;
-    if (elf_ != nullptr) {
-      CodeAddressPair* pair = code_to_address_.Lookup(&code);
-      RELEASE_ASSERT(pair != NULL);
-      code_address = pair->address_;
-    }
-
     function = code.function();
     intptr_t function_index = LookupFunction(function);
     script = function.script();
+    const char* asm_name = namer.SnapshotNameFor(i, code);
 
-    uleb128(kConcreteFunction);
+    stream->uleb128(kConcreteFunction);
     // DW_AT_abstract_origin
     // References a node written above in WriteAbstractFunctions.
-    // Assignment to temp works around buggy Mac assembler.
-    if (asm_stream_ != nullptr) {
-      intptr_t temp = temp_++;
-      Print("Ltemp%" Pd " = .Lfunc%" Pd " - .Ldebug_info\n", temp,
-            function_index);
-      Print(".4byte Ltemp%" Pd "\n", temp);
-    }
-    if (elf_ != nullptr) {
-      u4(abstract_origins_[function_index]);
-    }
+    stream->AbstractOrigin(function_index);
 
     // DW_AT_low_pc
-    if (asm_stream_ != nullptr) {
-      const char* asm_name = namer.SnapshotNameFor(i, code);
-      // DW_AT_low_pc
-      PrintNamedAddress(asm_name);
-      // DW_AT_high_pc
-      PrintNamedAddressWithOffset(asm_name, code.Size());
-    }
-    if (elf_ != nullptr) {
-      addr(code_address);
-      addr(code_address + code.Size());
-    }
+    stream->OffsetFromSymbol(asm_name, 0);
+    // DW_AT_high_pc
+    stream->OffsetFromSymbol(asm_name, code.Size());
 
     InliningNode* node = ExpandInliningTree(code);
     if (node != NULL) {
       for (InliningNode* child = node->children_head; child != NULL;
            child = child->children_next) {
-        WriteInliningNode(child, i, code_address, script, &namer);
+        WriteInliningNode(stream, child, asm_name, script, &namer);
       }
     }
 
-    uleb128(0);  // End of children.
+    stream->uleb128(0);  // End of children.
   }
 }
 
@@ -595,131 +492,77 @@ InliningNode* Dwarf::ExpandInliningTree(const Code& code) {
   return root_node;
 }
 
-void Dwarf::WriteInliningNode(InliningNode* node,
-                              intptr_t root_code_index,
-                              intptr_t root_code_address,
+void Dwarf::WriteInliningNode(DwarfWriteStream* stream,
+                              InliningNode* node,
+                              const char* root_asm_name,
                               const Script& parent_script,
                               SnapshotTextObjectNamer* namer) {
-  RELEASE_ASSERT(elf_ == nullptr || root_code_address >= 0);
   intptr_t file = LookupScript(parent_script);
   const auto& token_pos = node->call_pos;
   intptr_t function_index = LookupFunction(node->function);
   const Script& script = Script::Handle(zone_, node->function.script());
 
-  uleb128(kInlinedFunction);
+  stream->uleb128(kInlinedFunction);
   // DW_AT_abstract_origin
   // References a node written above in WriteAbstractFunctions.
-  // Assignment to temp works around buggy Mac assembler.
-  if (asm_stream_ != nullptr) {
-    intptr_t temp = temp_++;
-    Print("Ltemp%" Pd " = .Lfunc%" Pd " - .Ldebug_info\n", temp,
-          function_index);
-    Print(".4byte Ltemp%" Pd "\n", temp);
-  }
-  if (elf_ != nullptr) {
-    u4(abstract_origins_[function_index]);
-  }
+  stream->AbstractOrigin(function_index);
 
-  if (asm_stream_ != nullptr) {
-    const char* asm_name =
-        namer->SnapshotNameFor(root_code_index, *codes_[root_code_index]);
-    // DW_AT_low_pc
-    PrintNamedAddressWithOffset(asm_name, node->start_pc_offset);
-    // DW_AT_high_pc
-    PrintNamedAddressWithOffset(asm_name, node->end_pc_offset);
-  }
-  if (elf_ != nullptr) {
-    // DW_AT_low_pc
-    addr(root_code_address + node->start_pc_offset);
-    // DW_AT_high_pc
-    addr(root_code_address + node->end_pc_offset);
-  }
-
+  // DW_AT_low_pc
+  stream->OffsetFromSymbol(root_asm_name, node->start_pc_offset);
+  // DW_AT_high_pc
+  stream->OffsetFromSymbol(root_asm_name, node->end_pc_offset);
   // DW_AT_call_file
-  uleb128(file);
+  stream->uleb128(file);
   // DW_AT_call_line
-  uleb128(TokenPositionToLine(token_pos));
+  stream->uleb128(TokenPositionToLine(token_pos));
 
   for (InliningNode* child = node->children_head; child != NULL;
        child = child->children_next) {
-    WriteInliningNode(child, root_code_index, root_code_address, script, namer);
+    WriteInliningNode(stream, child, root_asm_name, script, namer);
   }
 
-  uleb128(0);  // End of children.
+  stream->uleb128(0);  // End of children.
 }
 
-void Dwarf::WriteLines() {
-  uint8_t* buffer = nullptr;
-  WriteStream stream(&buffer, ZoneReallocate, 64 * KB);
-
-  if (asm_stream_ != nullptr) {
-#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
-    Print(".section __DWARF,__debug_line,regular,debug\n");
-#elif defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID) ||                \
-    defined(TARGET_OS_FUCHSIA)
-    Print(".section .debug_line,\"\"\n");
-#else
-    UNIMPLEMENTED();
-#endif
-  }
-  if (elf_ != nullptr) {
-    bin_stream_ = &stream;
-  }
-
+void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
   // 6.2.4 The Line Number Program Header
 
   // 1. unit_length. This encoding implies 32-bit DWARF.
-  intptr_t line_size_fixup = 0;
-  intptr_t line_start = 0;
-  if (asm_stream_ != nullptr) {
-    Print("Lline_size = .Lline_end - .Lline_start\n");
-    Print(".4byte Lline_size\n");
-    Print(".Lline_start:\n");
-  }
-  if (elf_ != nullptr) {
-    line_size_fixup = u4(0);
-    line_start = position();
-  }
+  auto const line_prefix = "line";
+  intptr_t line_start;
+  intptr_t line_size_fixup = stream->ReserveSize(line_prefix, &line_start);
 
-  u2(2);  // 2. DWARF version 2
+  stream->u2(2);  // 2. DWARF version 2
 
   // 3. header_length
-  // Assignment to temp works around buggy Mac assembler.
-  intptr_t lineheader_size_fixup = 0;
-  intptr_t lineheader_start = 0;
-  if (asm_stream_ != nullptr) {
-    Print("Llineheader_size = .Llineheader_end - .Llineheader_start\n");
-    Print(".4byte Llineheader_size\n");
-    Print(".Llineheader_start:\n");
-  }
-  if (elf_ != nullptr) {
-    lineheader_size_fixup = u4(0);
-    lineheader_start = position();
-  }
+  auto const lineheader_prefix = "lineheader";
+  intptr_t lineheader_start;
+  intptr_t lineheader_size_fixup =
+      stream->ReserveSize(lineheader_prefix, &lineheader_start);
 
-  u1(1);   // 4. minimum_instruction_length
-  u1(1);   // 5. default_is_stmt (true for compatibility with dsymutil).
-  u1(0);   // 6. line_base
-  u1(1);   // 7. line_range
-  u1(13);  // 8. opcode_base (12 standard opcodes in Dwarf 2)
+  stream->u1(1);   // 4. minimum_instruction_length
+  stream->u1(1);   // 5. default_is_stmt (true for compatibility with dsymutil).
+  stream->u1(0);   // 6. line_base
+  stream->u1(1);   // 7. line_range
+  stream->u1(13);  // 8. opcode_base (12 standard opcodes in Dwarf 2)
 
   // 9. standard_opcode_lengths
-  u1(0);  // DW_LNS_copy, 0 operands
-  u1(1);  // DW_LNS_advance_pc, 1 operands
-  u1(1);  // DW_LNS_advance_list, 1 operands
-  u1(1);  // DW_LNS_set_file, 1 operands
-  u1(1);  // DW_LNS_set_column, 1 operands
-  u1(0);  // DW_LNS_negate_stmt, 0 operands
-  u1(0);  // DW_LNS_set_basic_block, 0 operands
-  u1(0);  // DW_LNS_const_add_pc, 0 operands
-  u1(1);  // DW_LNS_fixed_advance_pc, 1 operands
-  u1(0);  // DW_LNS_set_prolog_end, 0 operands
-  u1(0);  // DW_LNS_set_epligoue_begin, 0 operands
-  u1(1);  // DW_LNS_set_isa, 1 operands
+  stream->u1(0);  // DW_LNS_copy, 0 operands
+  stream->u1(1);  // DW_LNS_advance_pc, 1 operands
+  stream->u1(1);  // DW_LNS_advance_list, 1 operands
+  stream->u1(1);  // DW_LNS_set_file, 1 operands
+  stream->u1(1);  // DW_LNS_set_column, 1 operands
+  stream->u1(0);  // DW_LNS_negate_stmt, 0 operands
+  stream->u1(0);  // DW_LNS_set_basic_block, 0 operands
+  stream->u1(0);  // DW_LNS_const_add_pc, 0 operands
+  stream->u1(1);  // DW_LNS_fixed_advance_pc, 1 operands
+  stream->u1(0);  // DW_LNS_set_prolog_end, 0 operands
+  stream->u1(0);  // DW_LNS_set_epligoue_begin, 0 operands
+  stream->u1(1);  // DW_LNS_set_isa, 1 operands
 
   // 10. include_directories (sequence of path names)
   // We don't emit any because we use full paths below.
-  u1(0);
+  stream->u1(0);
 
   // 11. file_names (sequence of file entries)
   String& uri = String::Handle(zone_);
@@ -729,26 +572,19 @@ void Dwarf::WriteLines() {
     auto const uri_cstr = Deobfuscate(uri.ToCString());
     RELEASE_ASSERT(strlen(uri_cstr) != 0);
 
-    string(uri_cstr);  // NOLINT
-    uleb128(0);  // Include directory index.
-    uleb128(0);  // File modification time.
-    uleb128(0);  // File length.
+    stream->string(uri_cstr);  // NOLINT
+    stream->uleb128(0);        // Include directory index.
+    stream->uleb128(0);        // File modification time.
+    stream->uleb128(0);        // File length.
   }
-  u1(0);  // End of file names.
-
-  if (asm_stream_ != nullptr) {
-    Print(".Llineheader_end:\n");
-  }
-  if (elf_ != nullptr) {
-    fixup_u4(lineheader_size_fixup, position() - lineheader_start);
-  }
+  stream->u1(0);  // End of file names.
+  stream->SetSize(lineheader_size_fixup, lineheader_prefix, lineheader_start);
 
   // 6.2.5 The Line Number Program
 
   intptr_t previous_file = 1;
   intptr_t previous_line = 1;
-  intptr_t previous_code_address = -1;
-  intptr_t previous_code_index = -1;
+  const char* previous_asm_name = nullptr;
   intptr_t previous_pc_offset = 0;
 
   Function& root_function = Function::Handle(zone_);
@@ -761,18 +597,7 @@ void Dwarf::WriteLines() {
 
   for (intptr_t i = 0; i < codes_.length(); i++) {
     const Code& code = *(codes_[i]);
-
-    const char* asm_name = nullptr;
-    if (asm_stream_ != nullptr) {
-      asm_name = namer.SnapshotNameFor(i, code);
-    }
-
-    intptr_t current_code_address = -1;
-    if (elf_ != nullptr) {
-      CodeAddressPair* pair = code_to_address_.Lookup(&code);
-      RELEASE_ASSERT(pair != NULL);
-      current_code_address = pair->address_;
-    }
+    auto const asm_name = namer.SnapshotNameFor(i, code);
 
     map = code.code_source_map();
     if (map.IsNull()) {
@@ -782,7 +607,7 @@ void Dwarf::WriteLines() {
     functions = code.inlined_id_to_function();
 
     NoSafepointScope no_safepoint;
-    ReadStream stream(map.Data(), map.Length());
+    ReadStream code_map_stream(map.Data(), map.Length());
 
     function_stack.Clear();
     token_positions.Clear();
@@ -791,17 +616,17 @@ void Dwarf::WriteLines() {
     function_stack.Add(&root_function);
     token_positions.Add(CodeSourceMapBuilder::kInitialPosition);
 
-    while (stream.PendingBytes() > 0) {
-      uint8_t opcode = stream.Read<uint8_t>();
+    while (code_map_stream.PendingBytes() > 0) {
+      uint8_t opcode = code_map_stream.Read<uint8_t>();
       switch (opcode) {
         case CodeSourceMapBuilder::kChangePosition: {
-          int32_t position = stream.Read<int32_t>();
+          int32_t position = code_map_stream.Read<int32_t>();
           token_positions[token_positions.length() - 1] =
               TokenPosition(position);
           break;
         }
         case CodeSourceMapBuilder::kAdvancePC: {
-          int32_t delta = stream.Read<int32_t>();
+          int32_t delta = code_map_stream.Read<int32_t>();
           current_pc_offset += delta;
 
           const Function& function = *(function_stack.Last());
@@ -810,61 +635,44 @@ void Dwarf::WriteLines() {
 
           // 1. Update LNP file.
           if (file != previous_file) {
-            u1(DW_LNS_set_file);
-            uleb128(file);
+            stream->u1(DW_LNS_set_file);
+            stream->uleb128(file);
             previous_file = file;
           }
 
           // 2. Update LNP line.
           const auto line = TokenPositionToLine(token_positions.Last());
           if (line != previous_line) {
-            u1(DW_LNS_advance_line);
-            sleb128(line - previous_line);
+            stream->u1(DW_LNS_advance_line);
+            stream->sleb128(line - previous_line);
             previous_line = line;
           }
 
           // 3. Emit LNP row if the address register has been updated to a
           // non-zero value (dartbug.com/41756).
-          if (previous_code_index >= 0) {
-            u1(DW_LNS_copy);
+          if (previous_asm_name != nullptr) {
+            stream->u1(DW_LNS_copy);
           }
 
           // 4. Update LNP pc.
-          if (previous_code_index < 0) {
-            // This variant is relocatable.
-            u1(0);                                // This is an extended opcode
-            u1(1 + compiler::target::kWordSize);  // that is 5 or 9 bytes long
-            u1(DW_LNE_set_address);
-            if (asm_stream_ != nullptr) {
-              PrintNamedAddressWithOffset(asm_name, current_pc_offset);
-            }
-            if (elf_ != nullptr) {
-              ASSERT(previous_code_address < 0);
-              addr(current_code_address + current_pc_offset);
-            }
+          if (previous_asm_name == nullptr) {
+            auto const instr_size = 1 + compiler::target::kWordSize;
+            stream->u1(0);           // This is an extended opcode
+            stream->u1(instr_size);  // that is 5 or 9 bytes long
+            stream->u1(DW_LNE_set_address);
+            stream->OffsetFromSymbol(asm_name, current_pc_offset);
           } else {
-            u1(DW_LNS_advance_pc);
-            if (asm_stream_ != nullptr) {
-              const char* previous_asm_name = namer.SnapshotNameFor(
-                  previous_code_index, *codes_[previous_code_index]);
-              Print(".uleb128 %s - %s + %" Pd "\n", asm_name, previous_asm_name,
-                    current_pc_offset - previous_pc_offset);
-            }
-            if (elf_ != nullptr) {
-              ASSERT(previous_code_address >= 0);
-              intptr_t delta = current_code_address - previous_code_address +
-                               current_pc_offset - previous_pc_offset;
-              RELEASE_ASSERT(delta > 0);
-              uleb128(delta);
-            }
+            stream->u1(DW_LNS_advance_pc);
+            stream->DistanceBetweenSymbolOffsets(asm_name, current_pc_offset,
+                                                 previous_asm_name,
+                                                 previous_pc_offset);
           }
-          previous_code_address = current_code_address;
-          previous_code_index = i;
+          previous_asm_name = asm_name;
           previous_pc_offset = current_pc_offset;
           break;
         }
         case CodeSourceMapBuilder::kPushFunction: {
-          int32_t func_index = stream.Read<int32_t>();
+          int32_t func_index = code_map_stream.Read<int32_t>();
           const Function& child_func = Function::Handle(
               zone_, Function::RawCast(functions.At(func_index)));
           function_stack.Add(&child_func);
@@ -880,7 +688,7 @@ void Dwarf::WriteLines() {
           break;
         }
         case CodeSourceMapBuilder::kNullCheck: {
-          stream.Read<int32_t>();
+          code_map_stream.Read<int32_t>();
           break;
         }
         default:
@@ -889,45 +697,22 @@ void Dwarf::WriteLines() {
     }
   }
 
-  // Advance pc to end of the compilation unit.
+  // Advance pc to end of the compilation unit if not already there.
   const intptr_t last_code_index = codes_.length() - 1;
   const Code& last_code = *(codes_[last_code_index]);
+  const intptr_t last_pc_offset = last_code.Size();
+  const char* last_asm_name = namer.SnapshotNameFor(last_code_index, last_code);
 
-  u1(DW_LNS_advance_pc);
-  if (asm_stream_ != nullptr) {
-    const char* last_asm_name =
-        namer.SnapshotNameFor(last_code_index, last_code);
-    ASSERT(previous_code_index >= 0);
-    const char* previous_asm_name = namer.SnapshotNameFor(
-        previous_code_index, *codes_[previous_code_index]);
-    Print(".uleb128 %s - %s + %" Pd "\n", last_asm_name, previous_asm_name,
-          last_code.Size() - previous_pc_offset);
-  }
-  if (elf_ != nullptr) {
-    auto const pair = code_to_address_.Lookup(&last_code);
-    RELEASE_ASSERT(pair != NULL);
-    const intptr_t last_code_address = pair->address_;
-
-    const intptr_t delta = last_code_address - previous_code_address +
-                           last_code.Size() - previous_pc_offset;
-    RELEASE_ASSERT(delta >= 0);
-    uleb128(delta);
-  }
+  stream->u1(DW_LNS_advance_pc);
+  ASSERT(previous_asm_name != nullptr);
+  stream->DistanceBetweenSymbolOffsets(last_asm_name, last_pc_offset,
+                                       previous_asm_name, previous_pc_offset);
 
   // End of contiguous machine code.
-  u1(0);  // This is an extended opcode
-  u1(1);  // that is 1 byte long
-  u1(DW_LNE_end_sequence);
-
-  if (asm_stream_ != nullptr) {
-    Print(".Lline_end:\n");
-  }
-  if (elf_ != nullptr) {
-    fixup_u4(line_size_fixup, position() - line_start);
-
-    elf_->AddDebug(".debug_line", buffer, stream.bytes_written());
-    bin_stream_ = nullptr;
-  }
+  stream->u1(0);  // This is an extended opcode
+  stream->u1(1);  // that is 1 byte long
+  stream->u1(DW_LNE_end_sequence);
+  stream->SetSize(line_size_fixup, line_prefix, line_start);
 }
 
 const char* Dwarf::Deobfuscate(const char* cstr) {
