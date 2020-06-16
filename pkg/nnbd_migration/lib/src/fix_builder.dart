@@ -293,8 +293,12 @@ class FixReason_NullCheckHint implements SimpleFixReasonInfo {
 
 /// Implementation of [MigrationResolutionHooks] that interfaces with
 /// [FixBuilder].
-class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
+class MigrationResolutionHooksImpl
+    with ResolutionUtils
+    implements MigrationResolutionHooks {
   FixBuilder _fixBuilder;
+
+  TypeProvider get typeProvider => _fixBuilder.typeProvider;
 
   final Expando<List<CollectionElement>> _collectionElements = Expando();
 
@@ -583,8 +587,18 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
     return type;
   }
 
+  Element get _elementToString =>
+      _fixBuilder.typeProvider.objectType.getMethod('toString');
+  Element get _elementHashCode =>
+      _fixBuilder.typeProvider.objectType.getGetter('hashCode');
+  Element get _elementRuntimeType =>
+      _fixBuilder.typeProvider.objectType.getMethod('runtimeType');
+  Element get _elementNoSuchMethod =>
+      _fixBuilder.typeProvider.objectType.getGetter('noSuchMethod');
+
   bool _needsNullCheckDueToStructure(Expression node) {
     var parent = node.parent;
+
     if (parent is BinaryExpression) {
       if (identical(node, parent.leftOperand)) {
         var operatorType = parent.operator.type;
@@ -597,16 +611,22 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
         }
       }
     } else if (parent is PrefixedIdentifier) {
-      // TODO(paulberry): ok for toString etc. if the shape is correct
+      if (isDeclaredOnObject(parent.identifier.name)) {
+        return false;
+      }
       return identical(node, parent.prefix);
     } else if (parent is PropertyAccess) {
+      if (isDeclaredOnObject(parent.propertyName.name)) {
+        return false;
+      }
       // TODO(paulberry): what about cascaded?
-      // TODO(paulberry): ok for toString etc. if the shape is correct
       return parent.operator.type == TokenType.PERIOD &&
           identical(node, parent.target);
     } else if (parent is MethodInvocation) {
+      if (isDeclaredOnObject(parent.methodName.name)) {
+        return false;
+      }
       // TODO(paulberry): what about cascaded?
-      // TODO(paulberry): ok for toString etc. if the shape is correct
       return parent.operator.type == TokenType.PERIOD &&
           identical(node, parent.target);
     } else if (parent is IndexExpression) {
