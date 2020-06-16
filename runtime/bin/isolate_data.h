@@ -74,18 +74,6 @@ class IsolateGroupData {
     kernel_buffer_size_ = size;
   }
 
-  const char* resolved_packages_config() const {
-    return resolved_packages_config_;
-  }
-
-  void set_resolved_packages_config(const char* packages_config) {
-    if (resolved_packages_config_ != NULL) {
-      free(resolved_packages_config_);
-      resolved_packages_config_ = NULL;
-    }
-    resolved_packages_config_ = strdup(packages_config);
-  }
-
   bool RunFromAppSnapshot() const {
     // If the main isolate is using an app snapshot the [app_snapshot_] pointer
     // will be still nullptr (see main.cc:CreateIsolateGroupAndSetupHelper)
@@ -99,7 +87,6 @@ class IsolateGroupData {
   friend class IsolateData;  // For packages_file_
 
   std::unique_ptr<AppSnapshot> app_snapshot_;
-  char* resolved_packages_config_;
   std::shared_ptr<uint8_t> kernel_buffer_;
   intptr_t kernel_buffer_size_;
   char* packages_file_ = nullptr;

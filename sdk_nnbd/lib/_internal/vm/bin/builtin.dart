@@ -17,10 +17,6 @@ import 'dart:typed_data';
 // command line.
 bool _traceLoading = false;
 
-// Before handling an embedder entrypoint we finalize the setup of the
-// dart:_builtin library.
-bool _setupCompleted = false;
-
 // 'print' implementation.
 // The standalone embedder registers the closurized _print function with the
 // dart:core library.
@@ -91,17 +87,6 @@ _sanitizeWindowsPath(path) {
   }
 
   return fixedPath;
-}
-
-_setPackagesConfig(String packagesParam) {
-  var packagesName = _sanitizeWindowsPath(packagesParam);
-  var packagesUri = Uri.parse(packagesName);
-  if (packagesUri.scheme == '') {
-    // Script does not have a scheme, assume that it is a path,
-    // resolve it against the working directory.
-    packagesUri = _workingDirectory.resolveUri(packagesUri);
-  }
-  _packagesConfigUri = packagesUri;
 }
 
 // Given a uri with a 'package' scheme, return a Uri that is prefixed with
@@ -485,57 +470,53 @@ _handlePackagesRequest(bool traceLoading, int tag, Uri resource) {
 
 // Embedder Entrypoint:
 // The embedder calls this method to initial the package resolution state.
+// Returns the resolved script URI after it resolves the script uri in the
+// current working directory iff the given uri did not specify a scheme
+// (e.g. a path to a script file on the command line).
 @pragma("vm:entry-point")
-void _Init(String packagesConfig, String workingDirectory, String rootScript) {
+String _Init(
+    String packagesConfig, String workingDirectory, String rootScript) {
+  if (_traceLoading) {
+    _log("_Init: $packagesConfig $workingDirectory $rootScript");
+  }
+
   // Register callbacks and hooks with the rest of core libraries.
   _setupHooks();
 
   // _workingDirectory must be set first.
   _workingDirectory = new Uri.directory(workingDirectory);
+  if (_traceLoading) {
+    _log('_Init (working directory): $_workingDirectory');
+  }
 
   // setup _rootScript.
   if (rootScript != null) {
-    _rootScript = Uri.parse(rootScript);
+    _rootScript = _resolveScriptUri(rootScript);
+    assert(rootScript != null);
   }
 
   // If the --packages flag was passed, setup _packagesConfig.
   if (packagesConfig != null) {
     _packageMap = null;
-    _setPackagesConfig(packagesConfig);
+    VMLibraryHooks.packageConfigString = _setPackagesConfig(packagesConfig);
   }
+
+  if (_traceLoading) {
+    _log("_Init returns: ${rootScript.toString()}");
+  }
+  return _rootScript.toString();
 }
 
-// Embedder Entrypoint:
-// The embedder calls this method with the current working directory.
-@pragma("vm:entry-point")
-void _setWorkingDirectory(String cwd) {
-  if (!_setupCompleted) {
-    _setupHooks();
-  }
-  if (_traceLoading) {
-    _log('Setting working directory: $cwd');
-  }
-  _workingDirectory = new Uri.directory(cwd);
-  if (_traceLoading) {
-    _log('Working directory URI: $_workingDirectory');
-  }
-}
-
-// Embedder Entrypoint:
-// The embedder calls this method with the value of the --packages command line
-// option. It can point to a ".packages" or a ".dart_tool/package_config.json"
+// packagesParam is the value of the --packages command line option.
+// It can point to a ".packages" or a ".dart_tool/package_config.json"
 // file.
-@pragma("vm:entry-point")
-String _setPackagesMap(String packagesParam) {
-  if (!_setupCompleted) {
-    _setupHooks();
-  }
+String _setPackagesConfig(String packagesParam) {
   // First convert the packages parameter from the command line to a URI which
   // can be handled by the loader code.
   // TODO(iposva): Consider refactoring the common code below which is almost
   // shared with resolution of the root script.
   if (_traceLoading) {
-    _log("Resolving packages map: $packagesParam");
+    _log("Resolving packages config: $packagesParam");
   }
   var packagesName = _sanitizeWindowsPath(packagesParam);
   var packagesUri = Uri.parse(packagesName);
@@ -544,18 +525,16 @@ String _setPackagesMap(String packagesParam) {
     // resolve it against the working directory.
     packagesUri = _workingDirectory.resolveUri(packagesUri);
   }
-  var packagesUriStr = packagesUri.toString();
-  VMLibraryHooks.packageConfigString = packagesUriStr;
+  _packagesConfigUri = packagesUri;
   if (_traceLoading) {
-    _log('Resolved packages map to: $packagesUri');
+    _log('Resolved packages config to: $packagesUri');
   }
-  return packagesUriStr;
+  return packagesUri.toString();
 }
 
 // Resolves the script uri in the current working directory iff the given uri
 // did not specify a scheme (e.g. a path to a script file on the command line).
-@pragma("vm:entry-point")
-String _resolveScriptUri(String scriptName) {
+Uri _resolveScriptUri(String scriptName) {
   if (_traceLoading) {
     _log("Resolving script: $scriptName");
   }
@@ -568,20 +547,15 @@ String _resolveScriptUri(String scriptName) {
     scriptUri = _workingDirectory.resolveUri(scriptUri);
   }
 
-  // Remember the root script URI so that we can resolve packages based on
-  // this location.
-  _rootScript = scriptUri;
-
   if (_traceLoading) {
     _log('Resolved entry point to: $_rootScript');
   }
-  return scriptUri.toString();
+  return scriptUri;
 }
 
 // Register callbacks and hooks with the rest of the core libraries.
 @pragma("vm:entry-point")
 _setupHooks() {
-  _setupCompleted = true;
   VMLibraryHooks.packageConfigUriFuture = _getPackageConfigFuture;
   VMLibraryHooks.resolvePackageUriFuture = _resolvePackageUriFuture;
 }

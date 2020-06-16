@@ -5980,7 +5980,8 @@ Dart_CompileToKernel(const char* script_uri,
                      const uint8_t* platform_kernel,
                      intptr_t platform_kernel_size,
                      bool incremental_compile,
-                     const char* package_config) {
+                     const char* package_config,
+                     const char* original_working_directory) {
   API_TIMELINE_DURATION(Thread::Current());
 
   Dart_KernelCompilationResult result = {};
@@ -5988,9 +5989,9 @@ Dart_CompileToKernel(const char* script_uri,
   result.status = Dart_KernelCompilationStatus_Unknown;
   result.error = strdup("Dart_CompileToKernel is unsupported.");
 #else
-  result = KernelIsolate::CompileToKernel(script_uri, platform_kernel,
-                                          platform_kernel_size, 0, NULL,
-                                          incremental_compile, package_config);
+  result = KernelIsolate::CompileToKernel(
+      script_uri, platform_kernel, platform_kernel_size, 0, NULL,
+      incremental_compile, package_config, original_working_directory);
   if (result.status == Dart_KernelCompilationStatus_Ok) {
     Dart_KernelCompilationResult accept_result =
         KernelIsolate::AcceptCompilation();

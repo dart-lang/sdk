@@ -17,8 +17,7 @@ namespace bin {
 
 class Loader {
  public:
-  static Dart_Handle InitForSnapshot(const char* snapshot_uri,
-                                     IsolateData* isolate_data);
+  static Dart_Handle Init(const char* script_uri, IsolateData* isolate_data);
 
   static Dart_Handle ReloadNativeExtensions();
 
@@ -30,10 +29,6 @@ class Loader {
   static void InitOnce();
 
  private:
-  static Dart_Handle Init(const char* packages_file,
-                          const char* working_directory,
-                          const char* root_script_uri);
-
   static Dart_Handle LoadImportExtension(const char* url_string,
                                          Dart_Handle library);
 

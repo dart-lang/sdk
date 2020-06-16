@@ -3332,6 +3332,17 @@ DART_EXPORT Dart_Port Dart_KernelPort();
  *
  * \param platform_kernel_size The length of the platform_kernel buffer.
  *
+ * \param incremental_compile Specifies if incremental compilation is needed.
+ *
+ * \param package_config Uri of the package configuration file (either in format
+ *   of .packages or .dart_tool/package_config.json) for the null safety
+ *   detection to resolve package imports against. If this parameter is not
+ *   passed the package resolution of the parent isolate should be used.
+ *
+ * \param original_working_directory current working directory when the VM
+ *   process was launched, this is used to correctly resolve the path specified
+ *   for package_config.
+ *
  * \return Returns the result of the compilation.
  *
  * On a successful compilation the returned [Dart_KernelCompilationResult] has
@@ -3349,7 +3360,8 @@ Dart_CompileToKernel(const char* script_uri,
                      const uint8_t* platform_kernel,
                      const intptr_t platform_kernel_size,
                      bool incremental_compile,
-                     const char* package_config);
+                     const char* package_config,
+                     const char* original_working_directory);
 
 typedef struct {
   const char* uri;
