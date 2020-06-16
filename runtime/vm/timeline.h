@@ -20,7 +20,13 @@
 #include <lib/trace-engine/instrumentation.h>
 #elif defined(HOST_OS_MACOS)
 #include <os/availability.h>
+#if defined(__MAC_10_14) || defined (__IPHONE_12_0)
+#define HOST_OS_SUPPORTS_SIGNPOST 1
+#endif
+//signpost.h exists in macOS 10.14, iOS 12 or above
+#if defined(HOST_OS_SUPPORTS_SIGNPOST)
 #include <os/signpost.h>
+#endif
 #endif
 
 namespace dart {
@@ -94,7 +100,7 @@ class TimelineStream {
 
 #if defined(HOST_OS_FUCHSIA)
   trace_site_t* trace_site() { return &trace_site_; }
-#elif defined(HOST_OS_MACOS)
+#elif defined(HOST_OS_SUPPORTS_SIGNPOST)
   os_log_t macos_log() { return macos_log_; }
 #endif
 
@@ -108,7 +114,7 @@ class TimelineStream {
 
 #if defined(HOST_OS_FUCHSIA)
   trace_site_t trace_site_ = {};
-#elif defined(HOST_OS_MACOS)
+#elif defined(HOST_OS_SUPPORTS_SIGNPOST)
   os_log_t macos_log_ = {};
 #endif
 };
