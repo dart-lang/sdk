@@ -11,6 +11,7 @@ import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart' as mock_sdk;
 import 'package:args/args.dart';
 import 'package:cli_util/cli_logging.dart';
@@ -113,6 +114,10 @@ class _MigrationCliRunner extends MigrationCliRunner {
   }
 
   @override
+  Set<String> computePathsToProcess(DriverBasedAnalysisContext context) =>
+      cli._test.overridePathsToProcess ?? super.computePathsToProcess(context);
+
+  @override
   NonNullableFix createNonNullableFix(DartFixListener listener,
       ResourceProvider resourceProvider, LineInfo getLineInfo(String path),
       {List<String> included = const <String>[],
@@ -139,6 +144,11 @@ class _MigrationCliRunner extends MigrationCliRunner {
       fail('Preview server never started');
     }
   }
+
+  @override
+  bool shouldBeMigrated(DriverBasedAnalysisContext context, String path) =>
+      cli._test.overrideShouldBeMigrated?.call(path) ??
+      super.shouldBeMigrated(context, path);
 }
 
 abstract class _MigrationCliTestBase {
@@ -147,6 +157,12 @@ abstract class _MigrationCliTestBase {
   /// If `true`, then an artificial exception should be generated when migration
   /// encounters a reference to the `print` function.
   bool injectArtificialException = false;
+
+  /// If non-null, this is injected as the return value for
+  /// [_MigrationCliRunner.computePathsToProcess].
+  Set<String> overridePathsToProcess;
+
+  bool Function(String) overrideShouldBeMigrated;
 
   void set logger(_TestLogger logger);
 
@@ -688,6 +704,52 @@ int? f() => null
     expect(output, contains('--apply-changes'));
     // No changes should have been made
     assertProjectContents(projectDir, projectContents);
+  }
+
+  test_lifecycle_override_paths() async {
+    Map<String, String> makeProject({bool migrated = false}) {
+      var projectContents = simpleProject(migrated: migrated);
+      projectContents['lib/test.dart'] = '''
+import 'skip.dart';
+import 'analyze_but_do_not_migrate.dart';
+void f(int x) {}
+void g(int${migrated ? '?' : ''} x) {}
+void h(int${migrated ? '?' : ''} x) {}
+void call_h() => h(null);
+''';
+      projectContents['lib/skip.dart'] = '''
+import 'test.dart';
+void call_f() => f(null);
+''';
+      projectContents['lib/analyze_but_do_not_migrate.dart'] = '''
+import 'test.dart';
+void call_g() => g(null);
+''';
+      return projectContents;
+    }
+
+    var projectContents = makeProject();
+    var projectDir = await createProjectDir(projectContents);
+    var testPath =
+        resourceProvider.pathContext.join(projectDir, 'lib', 'test.dart');
+    var analyzeButDoNotMigratePath = resourceProvider.pathContext
+        .join(projectDir, 'lib', 'analyze_but_do_not_migrate.dart');
+    overridePathsToProcess = {testPath, analyzeButDoNotMigratePath};
+    overrideShouldBeMigrated = (path) => path == testPath;
+    var cliRunner = _createCli().decodeCommandLineArgs(
+        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    await cliRunner.run();
+    assertNormalExit(cliRunner);
+    // Check that a summary was printed
+    expect(logger.stdoutBuffer.toString(), contains('Applying changes'));
+    // And that it refers to test.dart and pubspec.yaml
+    expect(logger.stdoutBuffer.toString(), contains('test.dart'));
+    expect(logger.stdoutBuffer.toString(), contains('pubspec.yaml'));
+    // And that it does not tell the user they can rerun with `--apply-changes`
+    expect(logger.stdoutBuffer.toString(), isNot(contains('--apply-changes')));
+    // Changes should have been made only to test.dart, and only accounting for
+    // the calls coming from analyze_but_do_not_migrate.dart and test.dart
+    assertProjectContents(projectDir, makeProject(migrated: true));
   }
 
   test_lifecycle_preview() async {

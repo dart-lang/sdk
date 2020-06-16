@@ -498,6 +498,22 @@ class MigrationCliRunner {
     return stream.first;
   }
 
+  /// Computes the set of file paths that should be analyzed by the migration
+  /// engine.  May be overridden by a derived class.
+  ///
+  /// All files to be migrated must be included in the returned set.  It is
+  /// permissible for the set to contain additional files that could help the
+  /// migration tool build up a more complete nullability graph (for example
+  /// generated files, or usages of the code-to-be-migrated by one one of its
+  /// clients).
+  ///
+  /// By default returns the set of all `.dart` files contained in the context.
+  Set<String> computePathsToProcess(DriverBasedAnalysisContext context) =>
+      context.contextRoot
+          .analyzedFiles()
+          .where((s) => s.endsWith('.dart'))
+          .toSet();
+
   NonNullableFix createNonNullableFix(DartFixListener listener,
       ResourceProvider resourceProvider, LineInfo getLineInfo(String path),
       {List<String> included = const <String>[],
@@ -607,6 +623,22 @@ Use this interactive web view to review, improve, or apply the results.
       logger.stdout('To apply these changes, re-run the tool with '
           '--${CommandLineOptions.applyChangesFlag}.');
     }
+  }
+
+  /// Determines whether a migrated version of the file at [path] should be
+  /// output by the migration too.  May be overridden by a derived class.
+  ///
+  /// This method should return `false` for files that are being considered by
+  /// the migration tool for information only (for example generated files, or
+  /// usages of the code-to-be-migrated by one one of its clients).
+  ///
+  /// By default returns `true` if the file is contained within the context
+  /// root.  This means that if a client overrides [computePathsToProcess] to
+  /// return additional paths that aren't inside the user's project, but doesn't
+  /// override this method, then those additional paths will be analyzed but not
+  /// migrated.
+  bool shouldBeMigrated(DriverBasedAnalysisContext context, String path) {
+    return context.contextRoot.isAnalyzed(path);
   }
 
   /// Perform the indicated source edits to the given source, returning the
@@ -867,7 +899,7 @@ class _FixCodeProcessor extends Object {
   NonNullableFix nonNullableFixTask;
 
   _FixCodeProcessor(this.context, this._migrationCli)
-      : pathsToProcess = _computePathsToProcess(context);
+      : pathsToProcess = _migrationCli.computePathsToProcess(context);
 
   bool get isPreviewServerRunnning =>
       nonNullableFixTask?.isPreviewServerRunning ?? false;
@@ -877,7 +909,7 @@ class _FixCodeProcessor extends Object {
 
   void prepareToRerun() {
     var driver = context.driver;
-    pathsToProcess = _computePathsToProcess(context);
+    pathsToProcess = _migrationCli.computePathsToProcess(context);
     pathsToProcess.forEach(driver.changeFile);
   }
 
@@ -898,8 +930,7 @@ class _FixCodeProcessor extends Object {
           var result = await driver.getResolvedLibrary(path);
           if (result != null) {
             for (var unit in result.units) {
-              if (pathsToProcess.contains(unit.path) &&
-                  !pathsProcessed.contains(unit.path)) {
+              if (!pathsProcessed.contains(unit.path)) {
                 await process(unit);
                 pathsProcessed.add(unit.path);
               }
@@ -960,7 +991,9 @@ class _FixCodeProcessor extends Object {
     });
     await processResources((ResolvedUnitResult result) async {
       _progressBar.tick();
-      await _task.finalizeUnit(result);
+      if (_migrationCli.shouldBeMigrated(context, result.path)) {
+        await _task.finalizeUnit(result);
+      }
     });
     var state = await _task.finish();
     if (_migrationCli.options.webPreview) {
@@ -970,13 +1003,6 @@ class _FixCodeProcessor extends Object {
 
     return nonNullableFixTask.previewUrls;
   }
-
-  static Set<String> _computePathsToProcess(
-          DriverBasedAnalysisContext context) =>
-      context.contextRoot
-          .analyzedFiles()
-          .where((s) => s.endsWith('.dart'))
-          .toSet();
 }
 
 /// Given a Logger and an analysis issue, render the issue to the logger.
