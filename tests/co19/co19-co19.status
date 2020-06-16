@@ -2,12 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-Language/Classes/Constructors/*: Skip # Not migrated to NNBD
-Language/Classes/Constructors/Constant_Constructors/*: Skip # Not migrated to NNBD
 Language/Classes/Constructors/Factories/*: Skip # Not migrated to NNBD
 Language/Classes/Constructors/Generative_Constructors/*: Skip # Not migrated to NNBD
-Language/Classes/Instance_Methods/Operators/*: Skip # Not migrated to NNBD
-Language/Classes/Superclasses/Inheritance_and_Overriding/*: Skip # Not migrated to NNBD
+Language/Classes/Superclasses/Inheritance_and_Overriding/inheritance_t07: Skip # Type aliases are not fully implemented
 Language/Enums/*: Skip # Not migrated to NNBD:
 Language/Errors_and_Warnings/*: Skip # Not migrated to NNBD
 Language/Expressions/Assignable_Expressions/*: Skip # Not migrated to NNBD
@@ -309,9 +306,14 @@ LibTest/typed_data/Uint8List/*: Skip # Not migrated to NNBD
 Utils/tests/Expect/*: Skip # Not migrated to NNBD
 
 [ $compiler == dart2analyzer ]
+Language/Classes/Instance_Methods/Operators/allowed_names_t01: Skip # Triple shift is not fully implemented
+Language/Classes/Instance_Methods/Operators/arity_1_t19: Skip # Triple shift is not fully implemented (https://github.com/dart-lang/sdk/issues/42353)
 LanguageFeatures/Subtyping/static/tests/left_bottom_A01_t02: Skip # Type aliases are not supported by analyzer
 LanguageFeatures/Subtyping/static/tests/left_bottom_A01_t04: Skip # Type aliases are not supported by analyzer
 LanguageFeatures/Subtyping/static/tests/left_bottom_A01_t06: Skip # Type aliases are not supported by analyzer
+
+[ $compiler == fasta ]
+Language/Classes/Superclasses/Inheritance_and_Overriding/inheritance_t10 : Skip # Type aliases are not fully implemented
 
 [ $compiler != fasta ]
 Language/Classes/Abstract_Instance_Members/inherited_t13: Skip # github.com/dart-lang/language/issues/115
