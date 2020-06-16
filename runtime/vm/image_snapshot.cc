@@ -418,6 +418,8 @@ void ImageWriter::Write(WriteStream* clustered_stream, bool vm) {
 
   offset_space_ = vm ? V8SnapshotProfileWriter::kVmText
                      : V8SnapshotProfileWriter::kIsolateText;
+  // Needs to happen after WriteROData, because all image writers currently
+  // add the clustered data information to their output in WriteText().
   WriteText(clustered_stream, vm);
 }
 
@@ -1190,12 +1192,10 @@ BlobImageWriter::BlobImageWriter(Thread* thread,
                                  ReAlloc alloc,
                                  intptr_t initial_size,
                                  Elf* debug_elf,
-                                 intptr_t bss_base,
                                  Elf* elf)
     : ImageWriter(thread),
       instructions_blob_stream_(instructions_blob_buffer, alloc, initial_size),
       elf_(elf),
-      bss_base_(bss_base),
       debug_elf_(debug_elf) {
 #if defined(DART_PRECOMPILER)
   ASSERT(debug_elf_ == nullptr || debug_elf_->dwarf() != nullptr);
@@ -1248,7 +1248,8 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 #if defined(DART_PRECOMPILER)
   // Store the offset of the BSS section from the instructions section here.
   // If not compiling to ELF (and thus no BSS segment), write 0.
-  const word bss_offset = elf_ != nullptr ? bss_base_ - segment_base : 0;
+  const word bss_offset =
+      elf_ != nullptr ? elf_->BssStart(vm) - segment_base : 0;
   ASSERT_EQUAL(Utils::RoundDown(bss_offset, Image::kBssAlignment), bss_offset);
   // Set the lowest bit if we are compiling to ELF.
   const word compiled_to_elf = elf_ != nullptr ? 0x1 : 0x0;
@@ -1479,17 +1480,26 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   ASSERT_EQUAL(text_offset, image_size);
 
 #ifdef DART_PRECOMPILER
+  auto const data_symbol =
+      vm ? kVmSnapshotDataAsmSymbol : kIsolateSnapshotDataAsmSymbol;
   if (elf_ != nullptr) {
     auto const segment_base2 =
         elf_->AddText(instructions_symbol, instructions_blob_stream_.buffer(),
                       instructions_blob_stream_.bytes_written());
     ASSERT(segment_base == segment_base2);
+    // Write the .rodata section here like the AssemblyImageWriter.
+    elf_->AddROData(data_symbol, clustered_stream->buffer(),
+                    clustered_stream->bytes_written());
   }
   if (debug_elf_ != nullptr) {
-    auto const debug_segment_base2 =
-        debug_elf_->AddText(instructions_symbol, nullptr,
-                            instructions_blob_stream_.bytes_written());
+    // To keep memory addresses consistent, we need to add corresponding
+    // sections (though these will be NOBITS sections).
+    auto const debug_segment_base2 = debug_elf_->AddText(
+        instructions_symbol, instructions_blob_stream_.buffer(),
+        instructions_blob_stream_.bytes_written());
     ASSERT(debug_segment_base == debug_segment_base2);
+    debug_elf_->AddROData(data_symbol, clustered_stream->buffer(),
+                          clustered_stream->bytes_written());
   }
 #endif
 }

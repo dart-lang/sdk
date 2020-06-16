@@ -24,7 +24,18 @@ class SymbolTable;
 
 class Elf : public ZoneAllocated {
  public:
-  Elf(Zone* zone, StreamingWriteStream* stream, Dwarf* dwarf = nullptr);
+  enum class Type {
+    // A snapshot that should include segment contents.
+    Snapshot,
+    // Separately compiled debugging information that should not include
+    // most segment contents.
+    DebugInfo,
+  };
+
+  Elf(Zone* zone,
+      StreamingWriteStream* stream,
+      Type type,
+      Dwarf* dwarf = nullptr);
 
   static const intptr_t kPageSize = 4096;
 
@@ -32,11 +43,12 @@ class Elf : public ZoneAllocated {
   const Dwarf* dwarf() const { return dwarf_; }
   Dwarf* dwarf() { return dwarf_; }
 
+  uword BssStart(bool vm) const;
+
   intptr_t NextMemoryOffset() const { return memory_offset_; }
   intptr_t NextSectionIndex() const { return sections_.length(); }
   intptr_t AddText(const char* name, const uint8_t* bytes, intptr_t size);
   intptr_t AddROData(const char* name, const uint8_t* bytes, intptr_t size);
-  intptr_t AddBSSData(const char* name, intptr_t size);
   void AddDebug(const char* name, const uint8_t* bytes, intptr_t size);
 
   // Returns whether the symbol was found. If found, sets the contents of
@@ -66,6 +78,8 @@ class Elf : public ZoneAllocated {
                         intptr_t address,
                         intptr_t size);
 
+  static Section* CreateBSS(Zone* zone, Type type, intptr_t size);
+
   const Section* FindSegmentForAddress(intptr_t address) const;
 
   void FinalizeDwarfSections();
@@ -79,9 +93,14 @@ class Elf : public ZoneAllocated {
 
   Zone* const zone_;
   StreamingWriteStream* const unwrapped_stream_;
+  const Type type_;
   // If nullptr, then the ELF file should be stripped of static information like
   // the static symbol table (and its corresponding string table).
   Dwarf* const dwarf_;
+
+  // We always create a BSS section for all Elf files, though it may be NOBITS
+  // if this is separate debugging information.
+  Section* const bss_;
 
   // All our strings would fit in a single page. However, we use separate
   // .shstrtab and .dynstr to work around a bug in Android's strip utility.

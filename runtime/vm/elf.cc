@@ -678,14 +678,29 @@ class DynamicSegment : public BlobSection {
 
 static const intptr_t kProgramTableSegmentSize = Elf::kPageSize;
 
-Elf::Elf(Zone* zone, StreamingWriteStream* stream, Dwarf* dwarf)
+// Here, both VM and isolate will be compiled into a single snapshot.
+// In assembly generation, each serialized text section gets a separate
+// pointer into the BSS segment and BSS slots are created for each, since
+// we may not serialize both VM and isolate. Here, we always serialize both,
+// so make a BSS segment large enough for both, with the VM entries coming
+// first.
+static const intptr_t kBssIsolateOffset =
+    BSS::kVmEntryCount * compiler::target::kWordSize;
+static const intptr_t kBssSize =
+    kBssIsolateOffset + BSS::kIsolateEntryCount * compiler::target::kWordSize;
+
+Elf::Elf(Zone* zone, StreamingWriteStream* stream, Type type, Dwarf* dwarf)
     : zone_(zone),
       unwrapped_stream_(stream),
+      type_(type),
       dwarf_(dwarf),
+      bss_(CreateBSS(zone, type, kBssSize)),
       shstrtab_(new (zone) StringTable(/*allocate=*/false)),
       dynstrtab_(new (zone) StringTable(/*allocate=*/true)),
       dynsym_(new (zone) SymbolTable(/*dynamic=*/true)),
       memory_offset_(kProgramTableSegmentSize) {
+  // Separate debugging information should always have a Dwarf object.
+  ASSERT(type_ == Type::Snapshot || dwarf_ != nullptr);
   // Assumed by various offset logic in this file.
   ASSERT_EQUAL(unwrapped_stream_->position(), 0);
   // The first section in the section header table is always a reserved
@@ -702,6 +717,19 @@ Elf::Elf(Zone* zone, StreamingWriteStream* stream, Dwarf* dwarf)
     AddSection(symtab_, ".symtab");
     symtab_->section_link = strtab_->section_index();
   }
+  // Note that the BSS segment must be the first user-defined segment because
+  // it cannot be placed in between any two non-writable segments, due to a bug
+  // in Jelly Bean's ELF loader. See also Elf::WriteProgramTable().
+  //
+  // We add it in all cases, even to the separate debugging information ELF,
+  // to ensure that relocated addresses are consistent between ELF snapshots
+  // and ELF separate debugging information.
+  AddSection(bss_, ".bss");
+  AddSegmentSymbol(bss_, "_kDartBSSData");
+}
+
+uword Elf::BssStart(bool vm) const {
+  return bss_->memory_offset() + (vm ? 0 : kBssIsolateOffset);
 }
 
 void Elf::AddSection(Section* section, const char* name) {
@@ -734,11 +762,14 @@ intptr_t Elf::AddSegmentSymbol(const Section* section, const char* name) {
 }
 
 intptr_t Elf::AddText(const char* name, const uint8_t* bytes, intptr_t size) {
-  Section* image = nullptr;
-  if (bytes != nullptr) {
-    image = new (zone_) ProgramBits(true, true, false, bytes, size);
-  } else {
+  // When making a separate debugging info file for assembly, we don't have
+  // the binary text segment contents.
+  ASSERT(type_ == Type::DebugInfo || bytes != nullptr);
+  Section* image;
+  if (type_ == Type::DebugInfo) {
     image = new (zone_) NoBits(true, true, false, size);
+  } else {
+    image = new (zone_) ProgramBits(true, true, false, bytes, size);
   }
   AddSection(image, ".text");
 
@@ -776,28 +807,34 @@ bool Elf::FindStaticSymbol(const char* name,
   return FindSymbol(strtab_, symtab_, name, offset, size);
 }
 
-intptr_t Elf::AddBSSData(const char* name, intptr_t size) {
-  // Ideally the BSS segment would take no space in the object, but Android's
-  // "strip" utility truncates the memory-size of our segments to their
-  // file-size.
-  //
-  // Therefore we must insert zero-filled pages for the BSS.
-  uint8_t* const bytes = zone_->Alloc<uint8_t>(size);
-  memset(bytes, 0, size);
-
-  ProgramBits* const image =
-      new (zone_) ProgramBits(true, false, true, bytes, size);
+Section* Elf::CreateBSS(Zone* zone, Type type, intptr_t size) {
+  Section* image;
+  if (type == Type::DebugInfo) {
+    image = new (zone) NoBits(true, false, true, size);
+  } else {
+    // Ideally the BSS segment would take no space in the object, but Android's
+    // "strip" utility truncates the memory-size of our segments to their
+    // file-size.
+    //
+    // Therefore we must insert zero-filled pages for the BSS.
+    uint8_t* const bytes = zone->Alloc<uint8_t>(size);
+    memset(bytes, 0, size);
+    image = new (zone) ProgramBits(true, false, true, bytes, size);
+  }
   static_assert(Image::kBssAlignment <= kPageSize,
                 "ELF .bss section is not aligned as expected by Image class");
   ASSERT_EQUAL(image->alignment, kPageSize);
-  AddSection(image, ".bss");
-
-  return AddSegmentSymbol(image, name);
+  return image;
 }
 
 intptr_t Elf::AddROData(const char* name, const uint8_t* bytes, intptr_t size) {
   ASSERT(bytes != nullptr);
-  ProgramBits* image = new (zone_) ProgramBits(true, false, false, bytes, size);
+  Section* image;
+  if (type_ == Type::DebugInfo) {
+    image = new (zone_) NoBits(true, false, false, size);
+  } else {
+    image = new (zone_) ProgramBits(true, false, false, bytes, size);
+  }
   AddSection(image, ".rodata");
 
   return AddSegmentSymbol(image, name);
