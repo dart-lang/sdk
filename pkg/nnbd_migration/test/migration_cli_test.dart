@@ -75,21 +75,17 @@ class _ExceptionGeneratingNonNullableFix extends NonNullableFix {
 }
 
 class _MigrationCli extends MigrationCli {
-  /// If `true`, then an artifical exception should be generated when migration
-  /// encounters a reference to the `print` function.
-  final bool injectArtificialException;
+  final _MigrationCliTestBase _test;
 
-  _MigrationCli(_MigrationCliTestBase test,
-      {this.injectArtificialException = false,
-      Map<String, String> environmentVariables})
+  _MigrationCli(this._test)
       : super(
             binaryName: 'nnbd_migration',
-            loggerFactory: (isVerbose) => test.logger = _TestLogger(isVerbose),
+            loggerFactory: (isVerbose) => _test.logger = _TestLogger(isVerbose),
             defaultSdkPathOverride:
-                test.resourceProvider.convertPath(mock_sdk.sdkRoot),
-            resourceProvider: test.resourceProvider,
-            processManager: test.processManager,
-            environmentVariables: environmentVariables);
+                _test.resourceProvider.convertPath(mock_sdk.sdkRoot),
+            resourceProvider: _test.resourceProvider,
+            processManager: _test.processManager,
+            environmentVariables: _test.environmentVariables);
 
   _MigrationCliRunner decodeCommandLineArgs(ArgResults argResults,
       {bool isVerbose}) {
@@ -122,7 +118,7 @@ class _MigrationCliRunner extends MigrationCliRunner {
       {List<String> included = const <String>[],
       int preferredPort,
       String summaryPath}) {
-    if (cli.injectArtificialException) {
+    if (cli._test.injectArtificialException) {
       return _ExceptionGeneratingNonNullableFix(
           listener, resourceProvider, getLineInfo,
           included: included,
@@ -146,6 +142,12 @@ class _MigrationCliRunner extends MigrationCliRunner {
 }
 
 abstract class _MigrationCliTestBase {
+  Map<String, String> environmentVariables = {};
+
+  /// If `true`, then an artificial exception should be generated when migration
+  /// encounters a reference to the `print` function.
+  bool injectArtificialException = false;
+
   void set logger(_TestLogger logger);
 
   _MockProcessManager get processManager;
@@ -156,8 +158,6 @@ abstract class _MigrationCliTestBase {
 mixin _MigrationCliTestMethods on _MigrationCliTestBase {
   @override
   /*late*/ _TestLogger logger;
-
-  Map<String, String> environmentVariables = {};
 
   final hasVerboseHelpMessage = contains('for verbose help output');
 
@@ -576,8 +576,8 @@ linter:
   test_lifecycle_exception_handling() async {
     var projectContents = simpleProject(sourceText: 'main() { print(0); }');
     var projectDir = await createProjectDir(projectContents);
-    var cli = _createCli(injectArtificialException: true);
-    await assertRunFailure([projectDir], cli: cli);
+    injectArtificialException = true;
+    await assertRunFailure([projectDir]);
     var errorOutput = logger.stderrBuffer.toString();
     expect(errorOutput, contains('Artificial exception triggered'));
     expect(
@@ -588,7 +588,8 @@ linter:
   test_lifecycle_exception_handling_ignore() async {
     var projectContents = simpleProject(sourceText: 'main() { print(0); }');
     var projectDir = await createProjectDir(projectContents);
-    var cli = _createCli(injectArtificialException: true);
+    injectArtificialException = true;
+    var cli = _createCli();
     await runWithPreviewServer(cli, ['--ignore-exceptions', projectDir],
         (url) async {
       var output = logger.stdoutBuffer.toString();
@@ -608,8 +609,8 @@ linter:
     var projectContents =
         simpleProject(sourceText: 'main() { print(0); print(1); }');
     var projectDir = await createProjectDir(projectContents);
-    var cli = _createCli(injectArtificialException: true);
-    await assertRunFailure([projectDir], cli: cli);
+    injectArtificialException = true;
+    await assertRunFailure([projectDir]);
     var errorOutput = logger.stderrBuffer.toString();
     expect(
         'Artificial exception triggered'.allMatches(errorOutput), hasLength(1));
@@ -622,8 +623,8 @@ linter:
     var projectContents =
         simpleProject(sourceText: 'main() { print(0); unresolved; }');
     var projectDir = await createProjectDir(projectContents);
-    var cli = _createCli(injectArtificialException: true);
-    await assertRunFailure(['--ignore-errors', projectDir], cli: cli);
+    injectArtificialException = true;
+    await assertRunFailure(['--ignore-errors', projectDir]);
     var errorOutput = logger.stderrBuffer.toString();
     expect(errorOutput, contains('Artificial exception triggered'));
     expect(errorOutput, contains('try to fix errors in the source code'));
@@ -1594,11 +1595,9 @@ name: test
         headers: {'Content-Type': 'application/json; charset=UTF-8'});
   }
 
-  _MigrationCli _createCli({bool injectArtificialException = false}) {
+  _MigrationCli _createCli() {
     mock_sdk.MockSdk(resourceProvider: resourceProvider);
-    return _MigrationCli(this,
-        injectArtificialException: injectArtificialException,
-        environmentVariables: environmentVariables);
+    return _MigrationCli(this);
   }
 
   String _getHelpText({@required bool verbose}) {
