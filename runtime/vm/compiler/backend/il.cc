@@ -1097,7 +1097,11 @@ ConstantInstr::ConstantInstr(const Object& value, TokenPosition token_pos)
     // tables used for certain character classes are represented as TypedData,
     // and so those values are also neither immutable (as there are no immutable
     // TypedData values) or canonical.
-    ASSERT(value.IsTypeParameter() || value.IsArray() || value.IsTypedData());
+    //
+    // LibraryPrefixes are also never canonicalized since their equality is
+    // their identity.
+    ASSERT(value.IsTypeParameter() || value.IsArray() || value.IsTypedData() ||
+           value.IsLibraryPrefix());
   }
 #endif
 }

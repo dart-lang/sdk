@@ -4543,7 +4543,6 @@ class DictionaryIterator : public ValueObject {
   int next_ix_;     // Index of next element.
 
   friend class ClassDictionaryIterator;
-  friend class LibraryPrefixIterator;
   DISALLOW_COPY_AND_ASSIGN(DictionaryIterator);
 };
 
@@ -4572,16 +4571,6 @@ class ClassDictionaryIterator : public DictionaryIterator {
   Class& toplevel_class_;
 
   DISALLOW_COPY_AND_ASSIGN(ClassDictionaryIterator);
-};
-
-class LibraryPrefixIterator : public DictionaryIterator {
- public:
-  explicit LibraryPrefixIterator(const Library& library);
-  LibraryPrefixPtr GetNext();
-
- private:
-  void Advance();
-  DISALLOW_COPY_AND_ASSIGN(LibraryPrefixIterator);
 };
 
 class Library : public Object {
@@ -4737,6 +4726,9 @@ class Library : public Object {
   intptr_t num_imports() const { return raw_ptr()->num_imports_; }
   NamespacePtr ImportAt(intptr_t index) const;
   LibraryPtr ImportLibraryAt(intptr_t index) const;
+
+  ArrayPtr dependencies() const { return raw_ptr()->dependencies_; }
+  void set_dependencies(const Array& deps) const;
 
   void DropDependenciesAndCaches() const;
 
@@ -7342,6 +7334,10 @@ class LibraryPrefix : public Instance {
   void AddImport(const Namespace& import) const;
 
   bool is_deferred_load() const { return raw_ptr()->is_deferred_load_; }
+  bool is_loaded() const { return raw_ptr()->is_loaded_; }
+  void set_is_loaded(bool value) const {
+    return StoreNonPointer(&raw_ptr()->is_loaded_, value);
+  }
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(LibraryPrefixLayout));
