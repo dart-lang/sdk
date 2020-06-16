@@ -42,21 +42,39 @@ class FeatureComputerTest extends AbstractSingleUnitTest {
     }
   }
 
-  Future<void> test_argumentList_first() async {
+  Future<void> test_argumentList_named() async {
     await assertContextType('''
-void f(int i, String str, bool b) {}
+void f({int i, String s, bool b}) {}
 void g(int j) {
-  f(^j);
+  f(i:^);
 }
 ''', 'int');
   }
 
-  @failingTest
-  Future<void> test_argumentList_implicitFirst() async {
+  Future<void> test_argumentList_named2() async {
     await assertContextType('''
-void f(int i, String str, bool b) {}
+void f({int i, String s, bool b}) {}
 void g(int j) {
-  f(^);
+  f(s:^);
+}
+''', 'String');
+  }
+
+  Future<void> test_argumentList_named_with_requiredPositional() async {
+    await assertContextType('''
+void f(String s, {int i}) {}
+void g(int j) {
+  f('str', i: ^);
+}
+''', 'int');
+  }
+
+  Future<void>
+      test_argumentList_named_with_requiredPositional_defaultValue() async {
+    await assertContextType('''
+void f(String s, {int i = 0}) {}
+void g(int j) {
+  f('str', i: ^);
 }
 ''', 'int');
   }
@@ -70,26 +88,125 @@ void g() {
 ''', null);
   }
 
-  Future<void> test_argumentList_noParameters_whitespage() async {
+  Future<void> test_argumentList_noParameters_whitespace() async {
     await assertContextType('''
 void f() {}
 void g() {
-  f(  ^   );
+  f(  ^  );
 }
 ''', null);
   }
 
-  @failingTest
-  Future<void> test_argumentList_secondArg() async {
+  Future<void> test_argumentList_noParameters_whitespace_left() async {
+    await assertContextType('''
+void f() {}
+void g() {
+  f(  ^);
+}
+''', null);
+  }
+
+  Future<void> test_argumentList_noParameters_whitespace_right() async {
+    await assertContextType('''
+void f() {}
+void g() {
+  f(^  );
+}
+''', null);
+  }
+
+  Future<void> test_argumentList_positional() async {
+    await assertContextType('''
+void f([int i]) {}
+void g(int j) {
+  f(i:^);
+}
+''', 'int');
+  }
+
+  Future<void> test_argumentList_positional_completionInLabel() async {
+    await assertContextType('''
+void f([int i = 2]) {}
+void g(int j) {
+  f(^i:);
+}
+''', null);
+  }
+
+  Future<void> test_argumentList_positional_completionInLabel2() async {
+    await assertContextType('''
+void f(String s, bool b, [int i = 2]) {}
+void g(int j) {
+  f(i^:);
+}
+''', null);
+  }
+
+  Future<void> test_argumentList_positional_whitespace() async {
+    await assertContextType('''
+void f([int i]) {}
+void g(int j) {
+  f(i:  ^  );
+}
+''', 'int');
+  }
+
+  Future<void> test_argumentList_positional_with_requiredPositional() async {
+    await assertContextType('''
+void f(String s, bool b, [int i]) {}
+void g(int j) {
+  f('', 3, i:^);
+}
+''', 'int');
+  }
+
+  Future<void>
+      test_argumentList_positional_with_requiredPositional_defaultValue() async {
+    await assertContextType('''
+void f(String s, bool b, [int i = 2]) {}
+void g(int j) {
+  f('', 3, i:^);
+}
+''', 'int');
+  }
+
+  Future<void> test_argumentList_requiredPositional_first() async {
     await assertContextType('''
 void f(int i, String str, bool b) {}
 void g(int j) {
-  f(1, ^);
+  f(^j);
 }
-''', 'String');
+''', 'int');
   }
 
-  Future<void> test_argumentList_secondArg2() async {
+  Future<void> test_argumentList_requiredPositional_first_implicit() async {
+    await assertContextType('''
+void f(int i, String str, bool b) {}
+void g() {
+  f(^);
+}
+''', 'int');
+  }
+
+  Future<void> test_argumentList_requiredPositional_last() async {
+    await assertContextType('''
+void f(int i, String str, bool b) {}
+void g(int j) {
+  f(1, '2', t^);
+}
+''', 'bool');
+  }
+
+  Future<void> test_argumentList_requiredPositional_last_implicit() async {
+    await assertContextType('''
+void f(int i, String str, bool b, num n) {}
+void g(int j) {
+  f(1, '2', ^);
+}
+''', 'bool');
+  }
+
+  Future<void> test_argumentList_requiredPositional_middle() async {
     await assertContextType('''
 void f(int i, String str, bool b) {}
 void g(int j) {
@@ -98,24 +215,22 @@ void g(int j) {
 ''', 'String');
   }
 
-  @failingTest
-  Future<void> test_argumentList_thirdArg() async {
+  Future<void> test_argumentList_requiredPositional_middle2() async {
     await assertContextType('''
 void f(int i, String str, bool b) {}
 void g(int j) {
-  f(1, '2', ^);
+  f(1, ^, );
 }
-''', 'bool');
+''', 'String');
   }
 
-  @failingTest
-  Future<void> test_argumentList_thirdArg2() async {
+  Future<void> test_argumentList_requiredPositional_middle_implicit() async {
     await assertContextType('''
-void f(int i, String str, bool b, num n) {}
+void f(int i, String str, bool b) {}
 void g(int j) {
-  f(1, '2', ^);
+  f(1, ^ );
 }
-''', 'bool');
+''', 'String');
   }
 
   Future<void> test_assertInitializer_with_identifier() async {

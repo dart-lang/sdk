@@ -301,19 +301,47 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
     if (range
         .endStart(node.leftParenthesis, node.rightParenthesis)
         .contains(offset)) {
-      var parameterElts = node.functionType?.parameters;
-      if (parameterElts != null && parameterElts.isNotEmpty) {
-        for (var i = 0; i < node.arguments.length; i++) {
-          // TODO(jwren) Consider using range between commas to determine the
-          // contains conditional:
+      final paramElts = node.functionType?.parameters;
+      if (paramElts == null || paramElts.isEmpty) {
+        return null;
+      }
+
+      // Required parameters
+      final positionalParamElts =
+          paramElts.where((param) => !param.isNamed)?.toList(growable: false);
+      var i = 0;
+      if (positionalParamElts.isNotEmpty) {
+        for (;
+            i < node.arguments.length && i < positionalParamElts.length;
+            i++) {
+          // We don't need to compare offsets between commas, tests show that
+          // such tests aren't needed, also the commas and their respective
+          // offsets aren't accessible with existing getters and setters.
           if (node.arguments[i].contains(offset)) {
-            // TODO(jwren) Re-implement this as this method should handle named
-            //  parameters:
-            return parameterElts[i].type;
+            return positionalParamElts[i].type;
+          }
+        }
+        // The case where the user is filling out the required parameters
+        if (i < positionalParamElts.length) {
+          return positionalParamElts[i].type;
+        }
+      }
+      // Named and positional parameters
+      if (positionalParamElts.length < paramElts.length) {
+        for (; i < node.arguments.length && i < paramElts.length; i++) {
+          if (node.arguments[i].contains(offset)) {
+            if (node.arguments[i] is NamedExpression) {
+              var namedExpression = node.arguments[i] as NamedExpression;
+              var needle = paramElts
+                  .where((paramElt) =>
+                      paramElt.isNamed &&
+                      paramElt.name == namedExpression.name.label.name)
+                  ?.first;
+              return needle?.type;
+            }
           }
         }
       }
-      // In the case where the user is filling out the required parameters
     }
     return null;
   }
@@ -543,6 +571,14 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   }
 
   @override
+  DartType visitLabel(Label node) {
+    if (node.colon.end <= offset) {
+      return _visitParent(node);
+    }
+    return null;
+  }
+
+  @override
   DartType visitListLiteral(ListLiteral node) {
     if (range.endStart(node.leftBracket, node.rightBracket).contains(offset)) {
       return (node.staticType as InterfaceType).typeArguments[0];
@@ -574,10 +610,10 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
 
   @override
   DartType visitNamedExpression(NamedExpression node) {
-    if (node.name.end < offset) {
+    if (node.name.end <= offset) {
       return _visitParent(node);
     }
-    return super.visitNamedExpression(node);
+    return null;
   }
 
   @override
