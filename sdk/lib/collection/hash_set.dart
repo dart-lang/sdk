@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.collection;
 
 /// An unordered hash-table based [Set] implementation.
@@ -66,9 +64,9 @@ abstract class HashSet<E> implements Set<E> {
   /// and the `isValidKey` defaults to accepting all keys.
   /// Such a map can be created directly using [HashSet.identity].
   external factory HashSet(
-      {bool equals(E e1, E e2),
-      int hashCode(E e),
-      bool isValidKey(potentialKey)});
+      {bool Function(E, E)? equals,
+      int Function(E)? hashCode,
+      bool Function(dynamic)? isValidKey});
 
   /// Creates an unordered identity-based set.
   ///
@@ -80,7 +78,7 @@ abstract class HashSet<E> implements Set<E> {
 
   /// Create a hash set containing all [elements].
   ///
-  /// Creates a hash set as by `new HashSet<E>()` and adds all given [elements]
+  /// Creates a hash set as by `HashSet<E>()` and adds all given [elements]
   /// to the set. The elements are added in order. If [elements] contains
   /// two entries that are equal, but not identical, then the first one is
   /// the one in the resulting set.
@@ -91,12 +89,12 @@ abstract class HashSet<E> implements Set<E> {
   /// ```dart
   /// Set<SuperType> superSet = ...;
   /// Set<SubType> subSet =
-  ///     new HashSet<SubType>.from(superSet.whereType<SubType>());
+  ///     HashSet<SubType>.from(superSet.whereType<SubType>());
   /// ```
-  factory HashSet.from(Iterable elements) {
+  factory HashSet.from(Iterable<dynamic> elements) {
     HashSet<E> result = HashSet<E>();
     for (final e in elements) {
-      result.add(e);
+      result.add(e as E);
     }
     return result;
   }

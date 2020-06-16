@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 // part of "core_patch.dart";
 
 // NOTE: When making changes to this class, please also update
@@ -41,41 +39,43 @@ class _InvocationMirror implements Invocation {
   static const int _FIRST_NAMED_ENTRY = 4;
 
   // Internal representation of the invocation mirror.
-  String _functionName;
-  List _argumentsDescriptor;
-  List _arguments;
-  bool _isSuperInvocation;
-  int _delayedTypeArgumentsLen;
+  String? _functionName;
+  List? _argumentsDescriptor;
+  List? _arguments;
+  bool _isSuperInvocation = false;
+  int _delayedTypeArgumentsLen = 0;
 
   // External representation of the invocation mirror; populated on demand.
-  Symbol _memberName;
+  Symbol? _memberName;
   int _type = _UNINITIALIZED;
-  List<Type> _typeArguments;
-  List _positionalArguments;
-  Map<Symbol, dynamic> _namedArguments;
+  List<Type>? _typeArguments;
+  List? _positionalArguments;
+  Map<Symbol, dynamic>? _namedArguments;
 
-  _InvocationMirror._withType(this._memberName, this._type, this._typeArguments,
-      this._positionalArguments, this._namedArguments) {
+  _InvocationMirror._withType(this._memberName, int? type, this._typeArguments,
+      this._positionalArguments, this._namedArguments)
+      : _type = type ?? _UNINITIALIZED {
     _typeArguments ??= const <Type>[];
     _positionalArguments ??= const [];
     _namedArguments ??= const {};
   }
 
   void _setMemberNameAndType() {
+    final funcName = _functionName!;
     if (_type == _UNINITIALIZED) {
       _type = 0;
     }
-    if (_functionName.startsWith("get:")) {
+    if (funcName.startsWith("get:")) {
       _type |= _GETTER;
-      _memberName = new internal.Symbol.unvalidated(_functionName.substring(4));
-    } else if (_functionName.startsWith("set:")) {
+      _memberName = new internal.Symbol.unvalidated(funcName.substring(4));
+    } else if (funcName.startsWith("set:")) {
       _type |= _SETTER;
       _memberName =
-          new internal.Symbol.unvalidated(_functionName.substring(4) + "=");
+          new internal.Symbol.unvalidated(funcName.substring(4) + "=");
     } else {
       _type |=
           _isSuperInvocation ? (_SUPER << _LEVEL_SHIFT) | _METHOD : _METHOD;
-      _memberName = new internal.Symbol.unvalidated(_functionName);
+      _memberName = new internal.Symbol.unvalidated(funcName);
     }
   }
 
@@ -83,11 +83,11 @@ class _InvocationMirror implements Invocation {
     if (_memberName == null) {
       _setMemberNameAndType();
     }
-    return _memberName;
+    return _memberName!;
   }
 
   int get _typeArgsLen {
-    int typeArgsLen = _argumentsDescriptor[_TYPE_ARGS_LEN];
+    int typeArgsLen = _argumentsDescriptor![_TYPE_ARGS_LEN];
     return typeArgsLen == 0 ? _delayedTypeArgumentsLen : typeArgsLen;
   }
 
@@ -99,9 +99,9 @@ class _InvocationMirror implements Invocation {
       // A TypeArguments object does not have a corresponding Dart class and
       // cannot be accessed as an array in Dart. Therefore, we need a native
       // call to unpack the individual types into a list.
-      _typeArguments = _unpackTypeArguments(_arguments[0], _typeArgsLen);
+      _typeArguments = _unpackTypeArguments(_arguments![0], _typeArgsLen);
     }
-    return _typeArguments;
+    return _typeArguments!;
   }
 
   // Unpack the given TypeArguments object into a new list of individual types.
@@ -112,38 +112,40 @@ class _InvocationMirror implements Invocation {
     if (_positionalArguments == null) {
       // The argument descriptor counts the receiver, but not the type arguments
       // as positional arguments.
-      int numPositionalArguments = _argumentsDescriptor[_POSITIONAL_COUNT] - 1;
+      int numPositionalArguments = _argumentsDescriptor![_POSITIONAL_COUNT] - 1;
       if (numPositionalArguments == 0) {
         return _positionalArguments = const [];
       }
       // Exclude receiver and type args in the returned list.
       int receiverIndex = _typeArgsLen > 0 ? 1 : 0;
+      var args = _arguments!;
       _positionalArguments = new _ImmutableList._from(
-          _arguments, receiverIndex + 1, numPositionalArguments);
+          args, receiverIndex + 1, numPositionalArguments);
     }
-    return _positionalArguments;
+    return _positionalArguments!;
   }
 
   Map<Symbol, dynamic> get namedArguments {
     if (_namedArguments == null) {
-      int numArguments = _argumentsDescriptor[_COUNT] - 1; // Exclude receiver.
-      int numPositionalArguments = _argumentsDescriptor[_POSITIONAL_COUNT] - 1;
+      final argsDescriptor = _argumentsDescriptor!;
+      int numArguments = argsDescriptor[_COUNT] - 1; // Exclude receiver.
+      int numPositionalArguments = argsDescriptor[_POSITIONAL_COUNT] - 1;
       int numNamedArguments = numArguments - numPositionalArguments;
       if (numNamedArguments == 0) {
         return _namedArguments = const {};
       }
       int receiverIndex = _typeArgsLen > 0 ? 1 : 0;
-      _namedArguments = new Map<Symbol, dynamic>();
+      final namedArguments = new Map<Symbol, dynamic>();
       for (int i = 0; i < numNamedArguments; i++) {
         int namedEntryIndex = _FIRST_NAMED_ENTRY + 2 * i;
-        String arg_name = _argumentsDescriptor[namedEntryIndex];
-        var arg_value = _arguments[
-            receiverIndex + _argumentsDescriptor[namedEntryIndex + 1]];
-        _namedArguments[new internal.Symbol.unvalidated(arg_name)] = arg_value;
+        int pos = argsDescriptor[namedEntryIndex + 1];
+        String arg_name = argsDescriptor[namedEntryIndex];
+        var arg_value = _arguments![receiverIndex + pos];
+        namedArguments[new internal.Symbol.unvalidated(arg_name)] = arg_value;
       }
-      _namedArguments = new Map.unmodifiable(_namedArguments);
+      _namedArguments = new Map.unmodifiable(namedArguments);
     }
-    return _namedArguments;
+    return _namedArguments!;
   }
 
   bool get isMethod {
@@ -200,7 +202,7 @@ class _InvocationMirror implements Invocation {
       String functionName,
       List argumentsDescriptor,
       List arguments,
-      int type,
+      int? type,
       int delayedTypeArgumentsLen) {
     return new _InvocationMirror(functionName, argumentsDescriptor, arguments,
         false, type ?? _UNINITIALIZED, delayedTypeArgumentsLen);

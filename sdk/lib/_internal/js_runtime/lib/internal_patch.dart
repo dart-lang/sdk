@@ -2,14 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 import 'dart:core' hide Symbol;
-import 'dart:core' as core;
+import 'dart:core' as core show Symbol;
 import 'dart:_js_primitives' show printString;
-import 'dart:_js_helper' show patch, NoInline;
+import 'dart:_js_helper' show patch;
 import 'dart:_interceptors' show JSArray;
 import 'dart:_foreign_helper' show JS, JS_GET_FLAG;
+
+@patch
+@pragma('dart2js:tryInline')
+bool typeAcceptsNull<T>() {
+  bool isLegacySubtyping = JS_GET_FLAG('LEGACY');
+  return isLegacySubtyping || null is T;
+}
 
 @patch
 class Symbol implements core.Symbol {
@@ -18,7 +23,7 @@ class Symbol implements core.Symbol {
 
   @patch
   int get hashCode {
-    int hash = JS('int|Null', '#._hashCode', this);
+    int? hash = JS('int|Null', '#._hashCode', this);
     if (hash != null) return hash;
     const arbitraryPrime = 664597;
     hash = 0x1fffffff & (arbitraryPrime * _name.hashCode);

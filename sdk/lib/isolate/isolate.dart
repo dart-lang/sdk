@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 /**
  * Concurrent programming using _isolates_:
  * independent workers that are similar to threads
@@ -103,7 +101,7 @@ class Isolate {
    * If the isolate is spawned in a paused state, use this capability as
    * argument to the [resume] method in order to resume the paused isolate.
    */
-  final Capability pauseCapability;
+  final Capability? pauseCapability;
 
   /**
    * Capability granting the ability to terminate the isolate.
@@ -113,7 +111,7 @@ class Isolate {
    * capability of the isolate identified by [controlPort],
    * then calls to those methods will have no effect.
    */
-  final Capability terminateCapability;
+  final Capability? terminateCapability;
 
   /**
    * The name of the [Isolate] displayed for debug purposes.
@@ -128,7 +126,7 @@ class Isolate {
    * [IsolateMirror].
    */
   @Since("2.3")
-  external String get debugName;
+  external String? get debugName;
 
   /**
    * Create a new [Isolate] object with a restricted set of capabilities.
@@ -180,7 +178,7 @@ class Isolate {
    * in Dart 2.
    */
   @Deprecated('packages/ directory resolution is not supported in Dart 2.')
-  external static Future<Uri> get packageRoot;
+  external static Future<Uri?> get packageRoot;
 
   /**
    * The package root of the current isolate, if any.
@@ -189,7 +187,7 @@ class Isolate {
    * setup for package resolution, this getter returns `null`, otherwise it
    * returns the package config URI.
    */
-  external static Future<Uri> get packageConfig;
+  external static Future<Uri?> get packageConfig;
 
   /**
    * Maps a package: URI to a non-package Uri.
@@ -198,7 +196,7 @@ class Isolate {
    * isolate, then this call returns `null`. Non-package: URIs are
    * returned unmodified.
    */
-  external static Future<Uri> resolvePackageUri(Uri packageUri);
+  external static Future<Uri?> resolvePackageUri(Uri packageUri);
 
   /**
    * Creates and spawns an isolate that shares the same code as the current
@@ -250,11 +248,11 @@ class Isolate {
    */
   external static Future<Isolate> spawn<T>(
       void entryPoint(T message), T message,
-      {bool paused: false,
-      bool errorsAreFatal,
-      SendPort onExit,
-      SendPort onError,
-      @Since("2.3") String debugName});
+      {bool paused = false,
+      bool errorsAreFatal = true,
+      SendPort? onExit,
+      SendPort? onError,
+      @Since("2.3") String? debugName});
 
   /**
    * Creates and spawns an isolate that runs the code from the library with
@@ -332,18 +330,18 @@ class Isolate {
       Uri uri,
       List<String> args,
       var message,
-      {bool paused: false,
-      SendPort onExit,
-      SendPort onError,
-      bool errorsAreFatal,
-      bool checked,
-      Map<String, String> environment,
+      {bool paused = false,
+      SendPort? onExit,
+      SendPort? onError,
+      bool errorsAreFatal = true,
+      bool? checked,
+      Map<String, String>? environment,
       @Deprecated('The packages/ dir is not supported in Dart 2')
-          Uri packageRoot,
-      Uri packageConfig,
-      bool automaticPackageResolution: false,
+          Uri? packageRoot,
+      Uri? packageConfig,
+      bool automaticPackageResolution = false,
       @Since("2.3")
-          String debugName});
+          String? debugName});
 
   /**
    * Requests the isolate to pause.
@@ -378,7 +376,7 @@ class Isolate {
    * of the isolate identified by [controlPort],
    * the pause request is ignored by the receiving isolate.
    */
-  Capability pause([Capability resumeCapability]) {
+  Capability pause([Capability? resumeCapability]) {
     resumeCapability ??= new Capability();
     _pause(resumeCapability);
     return resumeCapability;
@@ -431,7 +429,7 @@ class Isolate {
   /* TODO(lrn): Can we do better? Can the system recognize this message and
    * send a reply if the receiving isolate is dead?
    */
-  external void addOnExitListener(SendPort responsePort, {Object response});
+  external void addOnExitListener(SendPort responsePort, {Object? response});
 
   /**
    * Stops listening for exit messages from the isolate.
@@ -498,7 +496,7 @@ class Isolate {
    * of the isolate identified by [controlPort],
    * the kill request is ignored by the receiving isolate.
    */
-  external void kill({int priority: beforeNextEvent});
+  external void kill({int priority = beforeNextEvent});
 
   /**
    * Requests that the isolate send [response] on the [responsePort].
@@ -524,7 +522,7 @@ class Isolate {
    *     are completed.
    */
   external void ping(SendPort responsePort,
-      {Object response, int priority: immediate});
+      {Object? response, int priority = immediate});
 
   /**
    * Requests that uncaught errors of the isolate are sent back to [port].
@@ -579,27 +577,27 @@ class Isolate {
    * This stream is based on [addErrorListener] and [removeErrorListener].
    */
   Stream get errors {
-    StreamController controller;
-    RawReceivePort port;
-    void handleError(message) {
-      List listMessage = message;
-      String errorDescription = listMessage[0];
-      String stackDescription = listMessage[1];
+    StreamController controller = StreamController.broadcast(sync: true);
+    RawReceivePort? port;
+    void handleError(Object? message) {
+      var listMessage = message as List<Object?>;
+      var errorDescription = listMessage[0] as String;
+      var stackDescription = listMessage[1] as String;
       var error = new RemoteError(errorDescription, stackDescription);
       controller.addError(error, error.stackTrace);
     }
 
-    controller = new StreamController.broadcast(
-        sync: true,
-        onListen: () {
-          port = new RawReceivePort(handleError);
-          this.addErrorListener(port.sendPort);
-        },
-        onCancel: () {
-          this.removeErrorListener(port.sendPort);
-          port.close();
-          port = null;
-        });
+    controller.onListen = () {
+      RawReceivePort receivePort = new RawReceivePort(handleError);
+      port = receivePort;
+      this.addErrorListener(receivePort.sendPort);
+    };
+    controller.onCancel = () {
+      var listenPort = port!;
+      port = null;
+      this.removeErrorListener(listenPort.sendPort);
+      listenPort.close();
+    };
     return controller.stream;
   }
 }
@@ -632,7 +630,7 @@ abstract class SendPort implements Capability {
    * port can receive the message as soon as its isolate's event loop is ready
    * to deliver it, independently of what the sending isolate is doing.
    */
-  void send(var message);
+  void send(Object? message);
 
   /**
    * Tests whether [other] is a [SendPort] pointing to the same
@@ -662,7 +660,7 @@ abstract class SendPort implements Capability {
  *
  * A [ReceivePort] may have many [SendPort]s.
  */
-abstract class ReceivePort implements Stream {
+abstract class ReceivePort implements Stream<dynamic> {
   /**
    * Opens a long-lived port for receiving messages.
    *
@@ -692,8 +690,8 @@ abstract class ReceivePort implements Stream {
    * The [onDone] handler will be called when the stream closes.
    * The stream closes when [close] is called.
    */
-  StreamSubscription listen(void onData(var message),
-      {Function onError, void onDone(), bool cancelOnError});
+  StreamSubscription<dynamic> listen(void onData(var message)?,
+      {Function? onError, void onDone()?, bool? cancelOnError});
 
   /**
    * Closes `this`.
@@ -719,14 +717,14 @@ abstract class RawReceivePort {
    * can not be paused. The data-handler must be set before the first
    * event is received.
    */
-  external factory RawReceivePort([Function handler]);
+  external factory RawReceivePort([Function? handler]);
 
   /**
    * Sets the handler that is invoked for every incoming message.
    *
    * The handler is invoked in the root-zone ([Zone.root]).
    */
-  void set handler(Function newHandler);
+  void set handler(Function? newHandler);
 
   /**
    * Closes the port.

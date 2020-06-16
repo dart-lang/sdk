@@ -9,7 +9,7 @@ part 'experimental_flags_generated.dart';
 /// The set of experiments enabled for SDK and packages.
 ///
 /// This are derived from an `allowed_experiments.json` file whose default is
-/// located in `sdk_nnbd/lib/_internal/allowed_experiments.json`.
+/// located in `sdk/lib/_internal/allowed_experiments.json`.
 class AllowedExperimentalFlags {
   /// The set of experiments that are enabled for all SDK libraries other than
   /// for those which are specified in [sdkLibraryExperiments].

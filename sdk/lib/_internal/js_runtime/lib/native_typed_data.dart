@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 /// Specialized integers and floating point numbers,
 /// with SIMD support and efficient lists.
 library dart.typed_data.implementation;
@@ -28,73 +26,73 @@ import 'dart:typed_data';
 @Native('ArrayBuffer')
 class NativeByteBuffer implements ByteBuffer {
   @JSName('byteLength')
-  final int lengthInBytes;
+  int get lengthInBytes native;
 
   Type get runtimeType => ByteBuffer;
 
-  Uint8List asUint8List([int offsetInBytes = 0, int length]) {
+  Uint8List asUint8List([int offsetInBytes = 0, int? length]) {
     return NativeUint8List.view(this, offsetInBytes, length);
   }
 
-  Int8List asInt8List([int offsetInBytes = 0, int length]) {
+  Int8List asInt8List([int offsetInBytes = 0, int? length]) {
     return NativeInt8List.view(this, offsetInBytes, length);
   }
 
-  Uint8ClampedList asUint8ClampedList([int offsetInBytes = 0, int length]) {
+  Uint8ClampedList asUint8ClampedList([int offsetInBytes = 0, int? length]) {
     return NativeUint8ClampedList.view(this, offsetInBytes, length);
   }
 
-  Uint16List asUint16List([int offsetInBytes = 0, int length]) {
+  Uint16List asUint16List([int offsetInBytes = 0, int? length]) {
     return NativeUint16List.view(this, offsetInBytes, length);
   }
 
-  Int16List asInt16List([int offsetInBytes = 0, int length]) {
+  Int16List asInt16List([int offsetInBytes = 0, int? length]) {
     return NativeInt16List.view(this, offsetInBytes, length);
   }
 
-  Uint32List asUint32List([int offsetInBytes = 0, int length]) {
+  Uint32List asUint32List([int offsetInBytes = 0, int? length]) {
     return NativeUint32List.view(this, offsetInBytes, length);
   }
 
-  Int32List asInt32List([int offsetInBytes = 0, int length]) {
+  Int32List asInt32List([int offsetInBytes = 0, int? length]) {
     return NativeInt32List.view(this, offsetInBytes, length);
   }
 
-  Uint64List asUint64List([int offsetInBytes = 0, int length]) {
+  Uint64List asUint64List([int offsetInBytes = 0, int? length]) {
     throw UnsupportedError('Uint64List not supported by dart2js.');
   }
 
-  Int64List asInt64List([int offsetInBytes = 0, int length]) {
+  Int64List asInt64List([int offsetInBytes = 0, int? length]) {
     throw UnsupportedError('Int64List not supported by dart2js.');
   }
 
-  Int32x4List asInt32x4List([int offsetInBytes = 0, int length]) {
-    NativeInt32List storage =
+  Int32x4List asInt32x4List([int offsetInBytes = 0, int? length]) {
+    var storage =
         this.asInt32List(offsetInBytes, length != null ? length * 4 : null);
     return NativeInt32x4List._externalStorage(storage);
   }
 
-  Float32List asFloat32List([int offsetInBytes = 0, int length]) {
+  Float32List asFloat32List([int offsetInBytes = 0, int? length]) {
     return NativeFloat32List.view(this, offsetInBytes, length);
   }
 
-  Float64List asFloat64List([int offsetInBytes = 0, int length]) {
+  Float64List asFloat64List([int offsetInBytes = 0, int? length]) {
     return NativeFloat64List.view(this, offsetInBytes, length);
   }
 
-  Float32x4List asFloat32x4List([int offsetInBytes = 0, int length]) {
-    NativeFloat32List storage =
+  Float32x4List asFloat32x4List([int offsetInBytes = 0, int? length]) {
+    var storage =
         this.asFloat32List(offsetInBytes, length != null ? length * 4 : null);
     return NativeFloat32x4List._externalStorage(storage);
   }
 
-  Float64x2List asFloat64x2List([int offsetInBytes = 0, int length]) {
-    NativeFloat64List storage =
+  Float64x2List asFloat64x2List([int offsetInBytes = 0, int? length]) {
+    var storage =
         this.asFloat64List(offsetInBytes, length != null ? length * 2 : null);
     return NativeFloat64x2List._externalStorage(storage);
   }
 
-  ByteData asByteData([int offsetInBytes = 0, int length]) {
+  ByteData asByteData([int offsetInBytes = 0, int? length]) {
     return NativeByteData.view(this, offsetInBytes, length);
   }
 }
@@ -105,7 +103,7 @@ class NativeByteBuffer implements ByteBuffer {
 class NativeFloat32x4List extends Object
     with ListMixin<Float32x4>, FixedLengthListMixin<Float32x4>
     implements Float32x4List {
-  final NativeFloat32List _storage;
+  final Float32List _storage;
 
   /// Creates a [Float32x4List] of the specified length (in elements),
   /// all of whose elements are initially zero.
@@ -164,10 +162,10 @@ class NativeFloat32x4List extends Object
     _storage[(index * 4) + 3] = value.w;
   }
 
-  Float32x4List sublist(int start, [int end]) {
-    end = _checkValidRange(start, end, this.length);
+  Float32x4List sublist(int start, [int? end]) {
+    var stop = _checkValidRange(start, end, this.length);
     return NativeFloat32x4List._externalStorage(
-        _storage.sublist(start * 4, end * 4));
+        _storage.sublist(start * 4, stop * 4));
   }
 }
 
@@ -236,10 +234,10 @@ class NativeInt32x4List extends Object
     _storage[(index * 4) + 3] = value.w;
   }
 
-  Int32x4List sublist(int start, [int end]) {
-    end = _checkValidRange(start, end, this.length);
+  Int32x4List sublist(int start, [int? end]) {
+    var stop = _checkValidRange(start, end, this.length);
     return NativeInt32x4List._externalStorage(
-        _storage.sublist(start * 4, end * 4));
+        _storage.sublist(start * 4, stop * 4));
   }
 }
 
@@ -249,7 +247,7 @@ class NativeInt32x4List extends Object
 class NativeFloat64x2List extends Object
     with ListMixin<Float64x2>, FixedLengthListMixin<Float64x2>
     implements Float64x2List {
-  final NativeFloat64List _storage;
+  final Float64List _storage;
 
   /// Creates a [Float64x2List] of the specified length (in elements),
   /// all of whose elements are initially zero.
@@ -302,10 +300,10 @@ class NativeFloat64x2List extends Object
     _storage[(index * 2) + 1] = value.y;
   }
 
-  Float64x2List sublist(int start, [int end]) {
-    end = _checkValidRange(start, end, this.length);
+  Float64x2List sublist(int start, [int? end]) {
+    var stop = _checkValidRange(start, end, this.length);
     return NativeFloat64x2List._externalStorage(
-        _storage.sublist(start * 2, end * 2));
+        _storage.sublist(start * 2, stop * 2));
   }
 }
 
@@ -314,20 +312,20 @@ class NativeTypedData implements TypedData {
   /// Returns the byte buffer associated with this object.
   @Creates('NativeByteBuffer')
   @Returns('NativeByteBuffer')
-  final ByteBuffer buffer;
+  ByteBuffer get buffer native;
 
   /// Returns the length of this view, in bytes.
   @JSName('byteLength')
-  final int lengthInBytes;
+  int get lengthInBytes native;
 
   /// Returns the offset in bytes into the underlying byte buffer of this view.
   @JSName('byteOffset')
-  final int offsetInBytes;
+  int get offsetInBytes native;
 
   /// Returns the number of bytes in the representation of each element in this
   /// list.
   @JSName('BYTES_PER_ELEMENT')
-  final int elementSizeInBytes;
+  int get elementSizeInBytes native;
 
   void _invalidPosition(int position, int length, String name) {
     if (position is! int) {
@@ -350,7 +348,8 @@ class NativeTypedData implements TypedData {
 // because passing unvalidated values to the native constructors can cause
 // conversions or create views.
 int _checkLength(length) {
-  return length is int ? length : throw ArgumentError('Invalid length $length');
+  if (length is! int) throw ArgumentError('Invalid length $length');
+  return length;
 }
 
 // Validates `.view` constructor arguments.  Checking is necessary because
@@ -364,7 +363,7 @@ void _checkViewArguments(buffer, offsetInBytes, length) {
   if (offsetInBytes is! int) {
     throw ArgumentError('Invalid view offsetInBytes $offsetInBytes');
   }
-  if (length != null && length is! int) {
+  if (length is! int?) {
     throw ArgumentError('Invalid view length $length');
   }
 }
@@ -373,7 +372,7 @@ void _checkViewArguments(buffer, offsetInBytes, length) {
 // returns a copy of the list.
 List _ensureNativeList(List list) {
   if (list is JSIndexable) return list;
-  List result = List(list.length);
+  List result = List.filled(list.length, null);
   for (int i = 0; i < list.length; i++) {
     result[i] = list[i];
   }
@@ -397,7 +396,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
   /// if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
   /// the length of [buffer].
   factory NativeByteData.view(
-      ByteBuffer buffer, int offsetInBytes, int length) {
+      ByteBuffer buffer, int offsetInBytes, int? length) {
     _checkViewArguments(buffer, offsetInBytes, length);
     return length == null
         ? _create2(buffer, offsetInBytes)
@@ -418,8 +417,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
       _getFloat32(byteOffset, Endian.little == endian);
 
   @JSName('getFloat32')
-  @Returns('num')
-  num _getFloat32(int byteOffset, [bool littleEndian]) native;
+  @Returns('double')
+  double _getFloat32(int byteOffset, [bool? littleEndian]) native;
 
   /// Returns the floating point number represented by the eight bytes at
   /// the specified [byteOffset] in this object, in IEEE 754
@@ -431,8 +430,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
       _getFloat64(byteOffset, Endian.little == endian);
 
   @JSName('getFloat64')
-  @Returns('num')
-  num _getFloat64(int byteOffset, [bool littleEndian]) native;
+  @Returns('double')
+  double _getFloat64(int byteOffset, [bool? littleEndian]) native;
 
   /// Returns the (possibly negative) integer represented by the two bytes at
   /// the specified [byteOffset] in this object, in two's complement binary
@@ -447,7 +446,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
 
   @JSName('getInt16')
   @Returns('int')
-  int _getInt16(int byteOffset, [bool littleEndian]) native;
+  int _getInt16(int byteOffset, [bool? littleEndian]) native;
 
   /// Returns the (possibly negative) integer represented by the four bytes at
   /// the specified [byteOffset] in this object, in two's complement binary
@@ -462,7 +461,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
 
   @JSName('getInt32')
   @Returns('int')
-  int _getInt32(int byteOffset, [bool littleEndian]) native;
+  int _getInt32(int byteOffset, [bool? littleEndian]) native;
 
   /// Returns the (possibly negative) integer represented by the eight bytes at
   /// the specified [byteOffset] in this object, in two's complement binary
@@ -496,7 +495,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
 
   @JSName('getUint16')
   @Returns('JSUInt31')
-  int _getUint16(int byteOffset, [bool littleEndian]) native;
+  int _getUint16(int byteOffset, [bool? littleEndian]) native;
 
   /// Returns the positive integer represented by the four bytes starting
   /// at the specified [byteOffset] in this object, in unsigned binary
@@ -510,7 +509,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
 
   @JSName('getUint32')
   @Returns('JSUInt32')
-  int _getUint32(int byteOffset, [bool littleEndian]) native;
+  int _getUint32(int byteOffset, [bool? littleEndian]) native;
 
   /// Returns the positive integer represented by the eight bytes starting
   /// at the specified [byteOffset] in this object, in unsigned binary
@@ -550,7 +549,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
       _setFloat32(byteOffset, value, Endian.little == endian);
 
   @JSName('setFloat32')
-  void _setFloat32(int byteOffset, num value, [bool littleEndian]) native;
+  void _setFloat32(int byteOffset, num value, [bool? littleEndian]) native;
 
   /// Sets the eight bytes starting at the specified [byteOffset] in this
   /// object to the IEEE 754 double-precision binary floating-point
@@ -562,7 +561,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
       _setFloat64(byteOffset, value, Endian.little == endian);
 
   @JSName('setFloat64')
-  void _setFloat64(int byteOffset, num value, [bool littleEndian]) native;
+  void _setFloat64(int byteOffset, num value, [bool? littleEndian]) native;
 
   /// Sets the two bytes starting at the specified [byteOffset] in this
   /// object to the two's complement binary representation of the specified
@@ -575,7 +574,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
       _setInt16(byteOffset, value, Endian.little == endian);
 
   @JSName('setInt16')
-  void _setInt16(int byteOffset, int value, [bool littleEndian]) native;
+  void _setInt16(int byteOffset, int value, [bool? littleEndian]) native;
 
   /// Sets the four bytes starting at the specified [byteOffset] in this
   /// object to the two's complement binary representation of the specified
@@ -588,7 +587,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
       _setInt32(byteOffset, value, Endian.little == endian);
 
   @JSName('setInt32')
-  void _setInt32(int byteOffset, int value, [bool littleEndian]) native;
+  void _setInt32(int byteOffset, int value, [bool? littleEndian]) native;
 
   /// Sets the eight bytes starting at the specified [byteOffset] in this
   /// object to the two's complement binary representation of the specified
@@ -621,7 +620,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
       _setUint16(byteOffset, value, Endian.little == endian);
 
   @JSName('setUint16')
-  void _setUint16(int byteOffset, int value, [bool littleEndian]) native;
+  void _setUint16(int byteOffset, int value, [bool? littleEndian]) native;
 
   /// Sets the four bytes starting at the specified [byteOffset] in this object
   /// to the unsigned binary representation of the specified [value],
@@ -634,7 +633,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
       _setUint32(byteOffset, value, Endian.little == endian);
 
   @JSName('setUint32')
-  void _setUint32(int byteOffset, int value, [bool littleEndian]) native;
+  void _setUint32(int byteOffset, int value, [bool? littleEndian]) native;
 
   /// Sets the eight bytes starting at the specified [byteOffset] in this object
   /// to the unsigned binary representation of the specified [value],
@@ -666,8 +665,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
       JS('NativeByteData', 'new DataView(#, #, #)', arg1, arg2, arg3);
 }
 
-abstract class NativeTypedArray extends NativeTypedData
-    implements JavaScriptIndexingBehavior {
+abstract class NativeTypedArray<E> extends NativeTypedData
+    implements JavaScriptIndexingBehavior<E> {
   int get length => JS('JSUInt32', '#.length', this);
 
   void _setRangeFast(
@@ -693,7 +692,7 @@ abstract class NativeTypedArray extends NativeTypedData
   }
 }
 
-abstract class NativeTypedArrayOfDouble extends NativeTypedArray
+abstract class NativeTypedArrayOfDouble extends NativeTypedArray<double>
     with ListMixin<double>, FixedLengthListMixin<double> {
   double operator [](int index) {
     _checkValidIndex(index, this, this.length);
@@ -715,7 +714,7 @@ abstract class NativeTypedArrayOfDouble extends NativeTypedArray
   }
 }
 
-abstract class NativeTypedArrayOfInt extends NativeTypedArray
+abstract class NativeTypedArrayOfInt extends NativeTypedArray<int>
     with ListMixin<int>, FixedLengthListMixin<int>
     implements List<int> {
   // operator[]() is not here since different versions have different return
@@ -745,7 +744,7 @@ class NativeFloat32List extends NativeTypedArrayOfDouble
       _create1(_ensureNativeList(elements));
 
   factory NativeFloat32List.view(
-      ByteBuffer buffer, int offsetInBytes, int length) {
+      ByteBuffer buffer, int offsetInBytes, int? length) {
     _checkViewArguments(buffer, offsetInBytes, length);
     return length == null
         ? _create2(buffer, offsetInBytes)
@@ -754,9 +753,9 @@ class NativeFloat32List extends NativeTypedArrayOfDouble
 
   Type get runtimeType => Float32List;
 
-  Float32List sublist(int start, [int end]) {
-    end = _checkValidRange(start, end, this.length);
-    var source = JS('NativeFloat32List', '#.subarray(#, #)', this, start, end);
+  Float32List sublist(int start, [int? end]) {
+    var stop = _checkValidRange(start, end, this.length);
+    var source = JS('NativeFloat32List', '#.subarray(#, #)', this, start, stop);
     return _create1(source);
   }
 
@@ -779,7 +778,7 @@ class NativeFloat64List extends NativeTypedArrayOfDouble
       _create1(_ensureNativeList(elements));
 
   factory NativeFloat64List.view(
-      ByteBuffer buffer, int offsetInBytes, int length) {
+      ByteBuffer buffer, int offsetInBytes, int? length) {
     _checkViewArguments(buffer, offsetInBytes, length);
     return length == null
         ? _create2(buffer, offsetInBytes)
@@ -788,9 +787,9 @@ class NativeFloat64List extends NativeTypedArrayOfDouble
 
   Type get runtimeType => Float64List;
 
-  Float64List sublist(int start, [int end]) {
-    end = _checkValidRange(start, end, this.length);
-    var source = JS('NativeFloat64List', '#.subarray(#, #)', this, start, end);
+  Float64List sublist(int start, [int? end]) {
+    var stop = _checkValidRange(start, end, this.length);
+    var source = JS('NativeFloat64List', '#.subarray(#, #)', this, start, stop);
     return _create1(source);
   }
 
@@ -812,7 +811,7 @@ class NativeInt16List extends NativeTypedArrayOfInt implements Int16List {
       _create1(_ensureNativeList(elements));
 
   factory NativeInt16List.view(
-      NativeByteBuffer buffer, int offsetInBytes, int length) {
+      NativeByteBuffer buffer, int offsetInBytes, int? length) {
     _checkViewArguments(buffer, offsetInBytes, length);
     return length == null
         ? _create2(buffer, offsetInBytes)
@@ -826,9 +825,9 @@ class NativeInt16List extends NativeTypedArrayOfInt implements Int16List {
     return JS('int', '#[#]', this, index);
   }
 
-  Int16List sublist(int start, [int end]) {
-    end = _checkValidRange(start, end, this.length);
-    var source = JS('NativeInt16List', '#.subarray(#, #)', this, start, end);
+  Int16List sublist(int start, [int? end]) {
+    var stop = _checkValidRange(start, end, this.length);
+    var source = JS('NativeInt16List', '#.subarray(#, #)', this, start, stop);
     return _create1(source);
   }
 
@@ -850,7 +849,7 @@ class NativeInt32List extends NativeTypedArrayOfInt implements Int32List {
       _create1(_ensureNativeList(elements));
 
   factory NativeInt32List.view(
-      ByteBuffer buffer, int offsetInBytes, int length) {
+      ByteBuffer buffer, int offsetInBytes, int? length) {
     _checkViewArguments(buffer, offsetInBytes, length);
     return length == null
         ? _create2(buffer, offsetInBytes)
@@ -864,9 +863,9 @@ class NativeInt32List extends NativeTypedArrayOfInt implements Int32List {
     return JS('int', '#[#]', this, index);
   }
 
-  Int32List sublist(int start, [int end]) {
-    end = _checkValidRange(start, end, this.length);
-    var source = JS('NativeInt32List', '#.subarray(#, #)', this, start, end);
+  Int32List sublist(int start, [int? end]) {
+    var stop = _checkValidRange(start, end, this.length);
+    var source = JS('NativeInt32List', '#.subarray(#, #)', this, start, stop);
     return _create1(source);
   }
 
@@ -888,7 +887,7 @@ class NativeInt8List extends NativeTypedArrayOfInt implements Int8List {
       _create1(_ensureNativeList(elements));
 
   factory NativeInt8List.view(
-      ByteBuffer buffer, int offsetInBytes, int length) {
+      ByteBuffer buffer, int offsetInBytes, int? length) {
     _checkViewArguments(buffer, offsetInBytes, length);
     return length == null
         ? _create2(buffer, offsetInBytes)
@@ -902,9 +901,9 @@ class NativeInt8List extends NativeTypedArrayOfInt implements Int8List {
     return JS('int', '#[#]', this, index);
   }
 
-  Int8List sublist(int start, [int end]) {
-    end = _checkValidRange(start, end, this.length);
-    var source = JS('NativeInt8List', '#.subarray(#, #)', this, start, end);
+  Int8List sublist(int start, [int? end]) {
+    var stop = _checkValidRange(start, end, this.length);
+    var source = JS('NativeInt8List', '#.subarray(#, #)', this, start, stop);
     return _create1(source);
   }
 
@@ -914,7 +913,7 @@ class NativeInt8List extends NativeTypedArrayOfInt implements Int8List {
   static NativeInt8List _create2(arg1, arg2) =>
       JS('NativeInt8List', 'new Int8Array(#, #)', arg1, arg2);
 
-  static Int8List _create3(arg1, arg2, arg3) =>
+  static NativeInt8List _create3(arg1, arg2, arg3) =>
       JS('NativeInt8List', 'new Int8Array(#, #, #)', arg1, arg2, arg3);
 }
 
@@ -926,7 +925,7 @@ class NativeUint16List extends NativeTypedArrayOfInt implements Uint16List {
       _create1(_ensureNativeList(list));
 
   factory NativeUint16List.view(
-      ByteBuffer buffer, int offsetInBytes, int length) {
+      ByteBuffer buffer, int offsetInBytes, int? length) {
     _checkViewArguments(buffer, offsetInBytes, length);
     return length == null
         ? _create2(buffer, offsetInBytes)
@@ -940,9 +939,9 @@ class NativeUint16List extends NativeTypedArrayOfInt implements Uint16List {
     return JS('JSUInt31', '#[#]', this, index);
   }
 
-  Uint16List sublist(int start, [int end]) {
-    end = _checkValidRange(start, end, this.length);
-    var source = JS('NativeUint16List', '#.subarray(#, #)', this, start, end);
+  Uint16List sublist(int start, [int? end]) {
+    var stop = _checkValidRange(start, end, this.length);
+    var source = JS('NativeUint16List', '#.subarray(#, #)', this, start, stop);
     return _create1(source);
   }
 
@@ -964,7 +963,7 @@ class NativeUint32List extends NativeTypedArrayOfInt implements Uint32List {
       _create1(_ensureNativeList(elements));
 
   factory NativeUint32List.view(
-      ByteBuffer buffer, int offsetInBytes, int length) {
+      ByteBuffer buffer, int offsetInBytes, int? length) {
     _checkViewArguments(buffer, offsetInBytes, length);
     return length == null
         ? _create2(buffer, offsetInBytes)
@@ -978,9 +977,9 @@ class NativeUint32List extends NativeTypedArrayOfInt implements Uint32List {
     return JS('JSUInt32', '#[#]', this, index);
   }
 
-  Uint32List sublist(int start, [int end]) {
-    end = _checkValidRange(start, end, this.length);
-    var source = JS('NativeUint32List', '#.subarray(#, #)', this, start, end);
+  Uint32List sublist(int start, [int? end]) {
+    var stop = _checkValidRange(start, end, this.length);
+    var source = JS('NativeUint32List', '#.subarray(#, #)', this, start, stop);
     return _create1(source);
   }
 
@@ -1003,7 +1002,7 @@ class NativeUint8ClampedList extends NativeTypedArrayOfInt
       _create1(_ensureNativeList(elements));
 
   factory NativeUint8ClampedList.view(
-      ByteBuffer buffer, int offsetInBytes, int length) {
+      ByteBuffer buffer, int offsetInBytes, int? length) {
     _checkViewArguments(buffer, offsetInBytes, length);
     return length == null
         ? _create2(buffer, offsetInBytes)
@@ -1019,10 +1018,10 @@ class NativeUint8ClampedList extends NativeTypedArrayOfInt
     return JS('JSUInt31', '#[#]', this, index);
   }
 
-  Uint8ClampedList sublist(int start, [int end]) {
-    end = _checkValidRange(start, end, this.length);
+  Uint8ClampedList sublist(int start, [int? end]) {
+    var stop = _checkValidRange(start, end, this.length);
     var source =
-        JS('NativeUint8ClampedList', '#.subarray(#, #)', this, start, end);
+        JS('NativeUint8ClampedList', '#.subarray(#, #)', this, start, stop);
     return _create1(source);
   }
 
@@ -1052,7 +1051,7 @@ class NativeUint8List extends NativeTypedArrayOfInt implements Uint8List {
       _create1(_ensureNativeList(elements));
 
   factory NativeUint8List.view(
-      ByteBuffer buffer, int offsetInBytes, int length) {
+      ByteBuffer buffer, int offsetInBytes, int? length) {
     _checkViewArguments(buffer, offsetInBytes, length);
     return length == null
         ? _create2(buffer, offsetInBytes)
@@ -1068,9 +1067,9 @@ class NativeUint8List extends NativeTypedArrayOfInt implements Uint8List {
     return JS('JSUInt31', '#[#]', this, index);
   }
 
-  Uint8List sublist(int start, [int end]) {
-    end = _checkValidRange(start, end, this.length);
-    var source = JS('NativeUint8List', '#.subarray(#, #)', this, start, end);
+  Uint8List sublist(int start, [int? end]) {
+    var stop = _checkValidRange(start, end, this.length);
+    var source = JS('NativeUint8List', '#.subarray(#, #)', this, start, stop);
     return _create1(source);
   }
 
@@ -1456,7 +1455,7 @@ class NativeInt32x4 implements Int32x4 {
     floatList[1] = f.y;
     floatList[2] = f.z;
     floatList[3] = f.w;
-    NativeInt32List view = floatList.buffer.asInt32List();
+    var view = floatList.buffer.asInt32List();
     return NativeInt32x4._truncated(view[0], view[1], view[2], view[3]);
   }
 
@@ -1674,7 +1673,7 @@ class NativeFloat64x2 implements Float64x2 {
   final double y;
 
   static NativeFloat64List _list = NativeFloat64List(2);
-  static NativeUint32List _uint32View = _list.buffer.asUint32List();
+  static Uint32List _uint32View = _list.buffer.asUint32List();
 
   NativeFloat64x2(this.x, this.y) {
     if (x is! num) throw ArgumentError(x);
@@ -1805,7 +1804,7 @@ void _checkValidIndex(int index, List list, int length) {
 ///
 /// Returns the actual value of `end`, which is `length` if `end` is `null`, and
 /// the original value of `end` otherwise.
-int _checkValidRange(int start, int end, int length) {
+int _checkValidRange(int start, int? end, int length) {
   if (_isInvalidArrayIndex(start) || // Ensures start is non-negative int.
       ((end == null)
           ? start > length

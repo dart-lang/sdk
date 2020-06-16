@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 // part of "common_patch.dart";
 
 @patch
@@ -24,6 +22,7 @@ class _StdIOUtils {
       case _stdioHandleTypeFile:
         return new Stdin._(new _FileStream.forStdin(), fd);
     }
+    throw new UnsupportedError("Unexpected handle type $type");
   }
 
   @patch
@@ -37,7 +36,7 @@ class _StdIOUtils {
   }
 
   @patch
-  static int _socketType(Socket socket) {
+  static int? _socketType(Socket socket) {
     if (socket is _Socket) return _nativeSocketType(socket._nativeSocket);
     return null;
   }

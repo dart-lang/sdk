@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.developer;
 
 /// Service protocol is the protocol that a client like the Observatory
@@ -21,7 +19,7 @@ class ServiceProtocolInfo {
 
   /// The Uri to access the service. If the web server is not running, this
   /// will be null.
-  final Uri serverUri;
+  final Uri? serverUri;
 
   ServiceProtocolInfo(this.serverUri);
 
@@ -44,12 +42,12 @@ class Service {
   static Future<ServiceProtocolInfo> getInfo() async {
     // Port to receive response from service isolate.
     final RawReceivePort receivePort = new RawReceivePort();
-    final Completer<Uri> uriCompleter = new Completer<Uri>();
-    receivePort.handler = (Uri uri) => uriCompleter.complete(uri);
+    final Completer<Uri?> uriCompleter = new Completer<Uri?>();
+    receivePort.handler = (Uri? uri) => uriCompleter.complete(uri);
     // Request the information from the service isolate.
     _getServerInfo(receivePort.sendPort);
     // Await the response from the service isolate.
-    Uri uri = await uriCompleter.future;
+    Uri? uri = await uriCompleter.future;
     // Close the port.
     receivePort.close();
     return new ServiceProtocolInfo(uri);
@@ -60,6 +58,7 @@ class Service {
   /// enable (true) or disable (false) the web server servicing requests.
   static Future<ServiceProtocolInfo> controlWebServer(
       {bool enable: false}) async {
+    // TODO: When NNBD is complete, delete the following line.
     ArgumentError.checkNotNull(enable, 'enable');
     // Port to receive response from service isolate.
     final RawReceivePort receivePort = new RawReceivePort();
@@ -78,7 +77,8 @@ class Service {
   ///
   /// Returns null if the running Dart environment does not support the service
   /// protocol.
-  static String getIsolateID(Isolate isolate) {
+  static String? getIsolateID(Isolate isolate) {
+    // TODO: When NNBD is complete, delete the following line.
     ArgumentError.checkNotNull(isolate, 'isolate');
     return _getIsolateIDFromSendPort(isolate.controlPort);
   }
@@ -97,4 +97,4 @@ external int _getServiceMajorVersion();
 external int _getServiceMinorVersion();
 
 /// Returns the service id for the isolate that owns [sendPort].
-external String _getIsolateIDFromSendPort(SendPort sendPort);
+external String? _getIsolateIDFromSendPort(SendPort sendPort);

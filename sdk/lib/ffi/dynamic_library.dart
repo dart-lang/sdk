@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.ffi;
 
 /// Represents a dynamically loaded C library.
@@ -31,7 +29,7 @@ class DynamicLibrary {
   external Pointer<T> lookup<T extends NativeType>(String symbolName);
 
   /// Dynamic libraries are equal if they load the same library.
-  external bool operator ==(other);
+  external bool operator ==(Object other);
 
   /// The hash code for a DynamicLibrary only depends on the loaded library
   external int get hashCode;

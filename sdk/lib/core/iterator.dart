@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.core;
 
 /**
@@ -18,8 +16,11 @@ part of dart.core;
  * The `Iterator` is initially positioned before the first element.
  * Before accessing the first element the iterator must thus be advanced using
  * [moveNext] to point to the first element.
- * If no element is left, then [moveNext] returns false, [current]
- * returns `null`, and all further calls to [moveNext] will also return false.
+ * If no element is left, then [moveNext] returns false,
+ * and all further calls to [moveNext] will also return false.
+ *
+ * The [current] value must not be accessed before calling [moveNext]
+ * or after a call to [moveNext] has returned false.
  *
  * A typical usage of an Iterator looks as follows:
  *
@@ -57,9 +58,13 @@ abstract class Iterator<E> {
   /**
    * Returns the current element.
    *
-   * Returns `null` if the iterator has not yet been moved to the first
-   * element, or if the iterator has been moved past the last element of the
-   * [Iterable].
+   * If the iterator has not yet been moved to the first element
+   * ([moveNext] has not been called yet),
+   * or if the iterator has been moved past the last element of the [Iterable]
+   * ([moveNext] has returned false),
+   * then [current] is unspecified.
+   * An [Iterator] may either throw or return an iterator specific default value
+   * in that case.
    *
    * The `current` getter should keep its value until the next call to
    * [moveNext], even if an underlying collection changes.

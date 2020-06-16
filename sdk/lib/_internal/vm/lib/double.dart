@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 // part of "core_patch.dart";
 
 @pragma("vm:entry-point")
@@ -174,6 +172,7 @@ class _Double implements double {
   double truncateToDouble() native "Double_truncate";
 
   num clamp(num lowerLimit, num upperLimit) {
+    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
     if (lowerLimit == null) {
       throw new ArgumentError.notNull("lowerLimit");
     }
@@ -200,7 +199,7 @@ class _Double implements double {
   static const int CACHE_LENGTH = 1 << (CACHE_SIZE_LOG2 + 1);
   static const int CACHE_MASK = CACHE_LENGTH - 1;
   // Each key (double) followed by its toString result.
-  static final List _cache = new List(CACHE_LENGTH);
+  static final List _cache = new List.filled(CACHE_LENGTH, null);
   static int _cacheEvictIndex = 0;
 
   String _toString() native "Double_toString";
@@ -228,6 +227,7 @@ class _Double implements double {
   String toStringAsFixed(int fractionDigits) {
     // See ECMAScript-262, 15.7.4.5 for details.
 
+    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
     if (fractionDigits == null) {
       throw new ArgumentError.notNull("fractionDigits");
     }
@@ -255,7 +255,7 @@ class _Double implements double {
 
   String _toStringAsFixed(int fractionDigits) native "Double_toStringAsFixed";
 
-  String toStringAsExponential([int fractionDigits]) {
+  String toStringAsExponential([int? fractionDigits]) {
     // See ECMAScript-262, 15.7.4.6 for details.
 
     // The EcmaScript specification checks for NaN and Infinity before looking

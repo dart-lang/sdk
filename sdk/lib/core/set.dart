@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.core;
 
 /**
@@ -112,7 +110,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
    * of [S],
    * then the returned set can be used as a `Set<T>`.
    */
-  static Set<T> castFrom<S, T>(Set<S> source, {Set<R> Function<R>() newSet}) =>
+  static Set<T> castFrom<S, T>(Set<S> source, {Set<R> Function<R>()? newSet}) =>
       CastSet<S, T>(source, newSet);
 
   /**
@@ -128,6 +126,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
    * this set as well.
    */
   Set<R> cast<R>();
+
   /**
    * Provides an iterator that iterates over the elements of this set.
    *
@@ -139,7 +138,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   /**
    * Returns true if [value] is in the set.
    */
-  bool contains(Object value);
+  bool contains(Object? value);
 
   /**
    * Adds [value] to the set.
@@ -177,7 +176,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
    * in the set. Returns false otherwise. The method has no effect
    * if [value] value was not in the set.
    */
-  bool remove(Object value);
+  bool remove(Object? value);
 
   /**
    * If an object equal to [object] is in the set, return it.
@@ -193,12 +192,12 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
    * then there may not be a specific object instance representing the
    * set element.
    */
-  E lookup(Object object);
+  E? lookup(Object? object);
 
   /**
    * Removes each element of [elements] from this set.
    */
-  void removeAll(Iterable<Object> elements);
+  void removeAll(Iterable<Object?> elements);
 
   /**
    * Removes all elements of this set that are not elements in [elements].
@@ -208,7 +207,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
    * equal element in this set is retained, and elements that are not equal
    * to any element in `elements` are removed.
    */
-  void retainAll(Iterable<Object> elements);
+  void retainAll(Iterable<Object?> elements);
 
   /**
    * Removes all elements of this set that satisfy [test].
@@ -223,7 +222,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   /**
    * Returns whether this Set contains all the elements of [other].
    */
-  bool containsAll(Iterable<Object> other);
+  bool containsAll(Iterable<Object?> other);
 
   /**
    * Returns a new set which is the intersection between this set and [other].
@@ -231,7 +230,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
    * That is, the returned set contains all the elements of this [Set] that
    * are also elements of [other] according to `other.contains`.
    */
-  Set<E> intersection(Set<Object> other);
+  Set<E> intersection(Set<Object?> other);
 
   /**
    * Returns a new set which contains all the elements of this set and [other].
@@ -247,7 +246,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
    * That is, the returned set contains all the elements of this [Set] that
    * are not elements of [other] according to `other.contains`.
    */
-  Set<E> difference(Set<Object> other);
+  Set<E> difference(Set<Object?> other);
 
   /**
    * Removes all elements in the set.

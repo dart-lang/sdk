@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 // part of "mirrors_patch.dart";
 
 var _dirty = false; // Set to true by the VM when more libraries are loaded.
@@ -20,12 +18,12 @@ Symbol _s(String name) {
   return new internal.Symbol.unvalidated(name);
 }
 
-Symbol _sOpt(String name) {
+Symbol? _sOpt(String? name) {
   if (name == null) return null;
   return new internal.Symbol.unvalidated(name);
 }
 
-Symbol _computeQualifiedName(DeclarationMirror owner, Symbol simpleName) {
+Symbol _computeQualifiedName(DeclarationMirror? owner, Symbol simpleName) {
   if (owner == null) return simpleName;
   return _s('${_n(owner.qualifiedName)}.${_n(simpleName)}');
 }
@@ -67,12 +65,12 @@ String _makeSignatureString(
   return buf.toString();
 }
 
-SourceLocation _location(reflectee) native "DeclarationMirror_location";
+SourceLocation? _location(reflectee) native "DeclarationMirror_location";
 
 List<dynamic> _metadata(reflectee) native 'DeclarationMirror_metadata';
 
 List<InstanceMirror> _wrapMetadata(List reflectees) {
-  var mirrors = new List<InstanceMirror>();
+  var mirrors = <InstanceMirror>[];
   for (var reflectee in reflectees) {
     mirrors.add(reflect(reflectee));
   }
@@ -101,7 +99,7 @@ class _MirrorSystem extends MirrorSystem {
 
   static List<dynamic> _computeLibraries() native "MirrorSystem_libraries";
 
-  IsolateMirror _isolate;
+  IsolateMirror? _isolate;
   IsolateMirror get isolate {
     var i = _isolate;
     if (i != null) return i;
@@ -147,7 +145,7 @@ class _IsolateMirror extends Mirror implements IsolateMirror {
     return result;
   }
 
-  static LibraryMirror _loadUri(String uri) native "IsolateMirror_loadUri";
+  static LibraryMirror? _loadUri(String uri) native "IsolateMirror_loadUri";
 }
 
 class _SyntheticAccessor implements MethodMirror {
@@ -186,9 +184,9 @@ class _SyntheticAccessor implements MethodMirror {
         <ParameterMirror>[new _SyntheticSetterParameter(this, this._target)]);
   }
 
-  SourceLocation get location => null;
+  SourceLocation? get location => null;
   List<InstanceMirror> get metadata => const <InstanceMirror>[];
-  String get source => null;
+  String? get source => null;
 }
 
 class _SyntheticSetterParameter implements ParameterMirror {
@@ -210,8 +208,8 @@ class _SyntheticSetterParameter implements ParameterMirror {
   bool get isPrivate => false;
   bool get isExtensionMember => false;
   bool get hasDefaultValue => false;
-  InstanceMirror get defaultValue => null;
-  SourceLocation get location => null;
+  InstanceMirror? get defaultValue => null;
+  SourceLocation? get location => null;
   List<InstanceMirror> get metadata => const <InstanceMirror>[];
 }
 
@@ -224,14 +222,14 @@ abstract class _ObjectMirror extends Mirror implements ObjectMirror {
 
   _ObjectMirror._(this._reflectee);
 
-  InstanceMirror invoke(Symbol memberName, List<dynamic> positionalArguments,
-      [Map<Symbol, dynamic> namedArguments]) {
+  InstanceMirror invoke(Symbol memberName, List positionalArguments,
+      [Map<Symbol, dynamic> namedArguments = const <Symbol, dynamic>{}]) {
     int numPositionalArguments = positionalArguments.length;
-    int numNamedArguments = namedArguments != null ? namedArguments.length : 0;
+    int numNamedArguments = namedArguments.length;
     int numArguments = numPositionalArguments + numNamedArguments;
-    List arguments = new List(numArguments);
+    List arguments = new List<dynamic>.filled(numArguments, null);
     arguments.setRange(0, numPositionalArguments, positionalArguments);
-    List names = new List(numNamedArguments);
+    List names = new List<dynamic>.filled(numNamedArguments, null);
     int argumentIndex = numPositionalArguments;
     int nameIndex = 0;
     if (numNamedArguments > 0) {
@@ -277,7 +275,7 @@ abstract class _ObjectMirror extends Mirror implements ObjectMirror {
 class _InstanceMirror extends _ObjectMirror implements InstanceMirror {
   _InstanceMirror._(reflectee) : super._(reflectee);
 
-  ClassMirror _type;
+  ClassMirror? _type;
   ClassMirror get type {
     var t = _type;
     if (t != null) return t;
@@ -294,7 +292,7 @@ class _InstanceMirror extends _ObjectMirror implements InstanceMirror {
 
   String toString() => 'InstanceMirror on ${Error.safeToString(_reflectee)}';
 
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     return other is _InstanceMirror && identical(_reflectee, other._reflectee);
   }
 
@@ -314,15 +312,15 @@ class _InstanceMirror extends _ObjectMirror implements InstanceMirror {
   }
 
   // Override to include the receiver in the arguments.
-  InstanceMirror invoke(Symbol memberName, List<dynamic> positionalArguments,
-      [Map<Symbol, dynamic> namedArguments]) {
+  InstanceMirror invoke(Symbol memberName, List positionalArguments,
+      [Map<Symbol, dynamic> namedArguments = const <Symbol, dynamic>{}]) {
     int numPositionalArguments = positionalArguments.length + 1; // Receiver.
-    int numNamedArguments = namedArguments != null ? namedArguments.length : 0;
+    int numNamedArguments = namedArguments.length;
     int numArguments = numPositionalArguments + numNamedArguments;
-    List arguments = new List(numArguments);
+    List arguments = new List<dynamic>.filled(numArguments, null);
     arguments[0] = _reflectee; // Receiver.
     arguments.setRange(1, numPositionalArguments, positionalArguments);
-    List names = new List(numNamedArguments);
+    List names = new List<dynamic>.filled(numNamedArguments, null);
     int argumentIndex = numPositionalArguments;
     int nameIndex = 0;
     if (numNamedArguments > 0) {
@@ -349,15 +347,15 @@ class _InstanceMirror extends _ObjectMirror implements InstanceMirror {
 class _ClosureMirror extends _InstanceMirror implements ClosureMirror {
   _ClosureMirror._(reflectee) : super._(reflectee);
 
-  MethodMirror _function;
+  MethodMirror? _function;
   MethodMirror get function {
     var f = _function;
     if (f != null) return f;
     return _function = _computeFunction(reflectee);
   }
 
-  InstanceMirror apply(List<dynamic> positionalArguments,
-      [Map<Symbol, dynamic> namedArguments]) {
+  InstanceMirror apply(List positionalArguments,
+      [Map<Symbol, dynamic> namedArguments = const <Symbol, dynamic>{}]) {
     return this.invoke(#call, positionalArguments, namedArguments);
   }
 
@@ -372,8 +370,8 @@ abstract class _TypeMirror {
 
 class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
   final Type _reflectedType;
-  Symbol _simpleName;
-  DeclarationMirror _owner;
+  Symbol? _simpleName;
+  DeclarationMirror? _owner;
   final bool isAbstract;
   final bool _isGeneric;
 
@@ -389,7 +387,7 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
   _ClassMirror._(
       reflectee,
       reflectedType,
-      String simpleName,
+      String? simpleName,
       this._owner,
       this.isAbstract,
       this._isGeneric,
@@ -418,7 +416,7 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
     return _simpleName = this._mixinApplicationName;
   }
 
-  Symbol _qualifiedName;
+  Symbol? _qualifiedName;
   Symbol get qualifiedName {
     var n = _qualifiedName;
     if (n != null) return n;
@@ -426,7 +424,7 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
     return _qualifiedName = _computeQualifiedName(owner, simpleName);
   }
 
-  DeclarationMirror get owner {
+  DeclarationMirror? get owner {
     var o = _owner;
     if (o != null) return o;
 
@@ -438,14 +436,14 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
 
   bool get isTopLevel => true;
 
-  SourceLocation get location {
+  SourceLocation? get location {
     return _location(_reflectee);
   }
 
-  _ClassMirror _trueSuperclassField;
-  _ClassMirror get _trueSuperclass {
+  _ClassMirror? _trueSuperclassField;
+  _ClassMirror? get _trueSuperclass {
     if (_trueSuperclassField == null) {
-      Type supertype = isOriginalDeclaration
+      Type? supertype = isOriginalDeclaration
           ? _supertype(_reflectedType)
           : _supertypeInstantiated(_reflectedType);
       if (supertype == null) {
@@ -459,7 +457,7 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
     return _trueSuperclassField;
   }
 
-  ClassMirror get superclass {
+  ClassMirror? get superclass {
     return _trueSuperclass;
   }
 
@@ -474,7 +472,7 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
     if (_isTransformedMixinApplication) {
       interfaceTypes = interfaceTypes.sublist(0, interfaceTypes.length - 1);
     }
-    var interfaceMirrors = new List<ClassMirror>();
+    var interfaceMirrors = <ClassMirror>[];
     for (var interfaceType in interfaceTypes) {
       interfaceMirrors.add(reflectType(interfaceType) as ClassMirror);
     }
@@ -483,7 +481,7 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
   }
 
   Symbol get _mixinApplicationName {
-    var mixins = new List<ClassMirror>();
+    var mixins = <ClassMirror>[];
     var klass = this;
     while (_nativeMixin(klass._reflectedType) != null) {
       mixins.add(klass.mixin);
@@ -494,12 +492,12 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
         mixins.reversed.map((ClassMirror m) => _n(m.qualifiedName)).join(', '));
   }
 
-  ClassMirror _mixin;
+  ClassMirror? _mixin;
   ClassMirror get mixin {
     var m = _mixin;
     if (m != null) return m;
 
-    Type mixinType = _nativeMixinInstantiated(_reflectedType, _instantiator);
+    Type? mixinType = _nativeMixinInstantiated(_reflectedType, _instantiator);
     if (mixinType == null) {
       // The reflectee is not a mixin application.
       return _mixin = this;
@@ -567,7 +565,7 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
         new UnmodifiableMapView<Symbol, MethodMirror>(result);
   }
 
-  Map<Symbol, DeclarationMirror> _declarations;
+  Map<Symbol, DeclarationMirror>? _declarations;
   Map<Symbol, DeclarationMirror> get declarations {
     var d = _declarations;
     if (d != null) return d;
@@ -600,7 +598,7 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
     return true;
   }
 
-  List<TypeVariableMirror> _typeVariables;
+  List<TypeVariableMirror>? _typeVariables;
   List<TypeVariableMirror> get typeVariables {
     var v = _typeVariables;
     if (v != null) return v;
@@ -608,7 +606,7 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
     if (!_isTransformedMixinApplication && _isAnonymousMixinApplication) {
       return _typeVariables = const <TypeVariableMirror>[];
     }
-    var result = new List<TypeVariableMirror>();
+    var result = <TypeVariableMirror>[];
 
     List params = _ClassMirror_type_variables(_reflectee);
     ClassMirror owner = originalDeclaration;
@@ -621,7 +619,7 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
         new UnmodifiableListView<TypeVariableMirror>(result);
   }
 
-  List<TypeMirror> _typeArguments;
+  List<TypeMirror>? _typeArguments;
   List<TypeMirror> get typeArguments {
     var a = _typeArguments;
     if (a != null) return a;
@@ -647,17 +645,16 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
 
   String toString() => "ClassMirror on '${MirrorSystem.getName(simpleName)}'";
 
-  InstanceMirror newInstance(
-      Symbol constructorName, List<dynamic> positionalArguments,
-      [Map<Symbol, dynamic> namedArguments]) {
+  InstanceMirror newInstance(Symbol constructorName, List positionalArguments,
+      [Map<Symbol, dynamic> namedArguments = const <Symbol, dynamic>{}]) {
     // Native code will add the 1 or 2 implicit arguments depending on whether
     // we end up invoking a factory or constructor respectively.
     int numPositionalArguments = positionalArguments.length;
-    int numNamedArguments = namedArguments != null ? namedArguments.length : 0;
+    int numNamedArguments = namedArguments.length;
     int numArguments = numPositionalArguments + numNamedArguments;
-    List arguments = new List(numArguments);
+    List arguments = new List<dynamic>.filled(numArguments, null);
     arguments.setRange(0, numPositionalArguments, positionalArguments);
-    List names = new List(numNamedArguments);
+    List names = new List<dynamic>.filled(numNamedArguments, null);
     int argumentIndex = numPositionalArguments;
     int nameIndex = 0;
     if (numNamedArguments > 0) {
@@ -675,8 +672,8 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
     return _wrapMetadata(_metadata(_reflectee));
   }
 
-  bool operator ==(other) {
-    return this.runtimeType == other.runtimeType &&
+  bool operator ==(Object other) {
+    return other is _ClassMirror &&
         this._reflectee == other._reflectee &&
         this._reflectedType == other._reflectedType &&
         this._isGenericDeclaration == other._isGenericDeclaration;
@@ -701,6 +698,7 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
   }
 
   bool isSubclassOf(ClassMirror other) {
+    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
     if (other == null) {
       throw new ArgumentError.notNull('other');
     }
@@ -716,9 +714,9 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
 
   static String _libraryUri(reflectee) native "ClassMirror_libraryUri";
 
-  static Type _supertype(reflectedType) native "ClassMirror_supertype";
+  static Type? _supertype(reflectedType) native "ClassMirror_supertype";
 
-  static Type _supertypeInstantiated(reflectedType)
+  static Type? _supertypeInstantiated(reflectedType)
       native "ClassMirror_supertype_instantiated";
 
   static List<dynamic> _nativeInterfaces(reflectedType)
@@ -727,9 +725,9 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
   static List<dynamic> _nativeInterfacesInstantiated(reflectedType)
       native "ClassMirror_interfaces_instantiated";
 
-  static Type _nativeMixin(reflectedType) native "ClassMirror_mixin";
+  static Type? _nativeMixin(reflectedType) native "ClassMirror_mixin";
 
-  static Type _nativeMixinInstantiated(reflectedType, instantiator)
+  static Type? _nativeMixinInstantiated(reflectedType, instantiator)
       native "ClassMirror_mixin_instantiated";
 
   static List<dynamic> _computeMembers(owner, reflectee, instantiator)
@@ -764,21 +762,21 @@ class _FunctionTypeMirror extends _ClassMirror implements FunctionTypeMirror {
   bool get _isAnonymousMixinApplication => false;
 
   // FunctionTypeMirrors have a simpleName generated from their signature.
-  Symbol _simpleName;
+  Symbol? _simpleName;
   Symbol get simpleName {
     var n = _simpleName;
     if (n != null) return n;
     return _simpleName = _s(_makeSignatureString(returnType, parameters));
   }
 
-  MethodMirror _callMethod;
+  MethodMirror? _callMethod;
   MethodMirror get callMethod {
     var m = _callMethod;
     if (m != null) return m;
     return _callMethod = _FunctionTypeMirror_call_method(_functionReflectee);
   }
 
-  TypeMirror _returnType;
+  TypeMirror? _returnType;
   TypeMirror get returnType {
     var t = _returnType;
     if (t != null) return t;
@@ -786,7 +784,7 @@ class _FunctionTypeMirror extends _ClassMirror implements FunctionTypeMirror {
         reflectType(_FunctionTypeMirror_return_type(_functionReflectee));
   }
 
-  List<ParameterMirror> _parameters;
+  List<ParameterMirror>? _parameters;
   List<ParameterMirror> get parameters {
     var p = _parameters;
     if (p != null) return p;
@@ -800,7 +798,7 @@ class _FunctionTypeMirror extends _ClassMirror implements FunctionTypeMirror {
   List<TypeVariableMirror> get typeVariables => const <TypeVariableMirror>[];
   List<TypeMirror> get typeArguments => const <TypeMirror>[];
   List<InstanceMirror> get metadata => const <InstanceMirror>[];
-  SourceLocation get location => null;
+  SourceLocation? get location => null;
 
   String toString() => "FunctionTypeMirror on '${_n(simpleName)}'";
 
@@ -822,7 +820,7 @@ abstract class _DeclarationMirror extends Mirror implements DeclarationMirror {
 
   Symbol get simpleName => _simpleName;
 
-  Symbol _qualifiedName;
+  Symbol? _qualifiedName;
   Symbol get qualifiedName {
     var n = _qualifiedName;
     if (n != null) return n;
@@ -831,7 +829,7 @@ abstract class _DeclarationMirror extends Mirror implements DeclarationMirror {
 
   bool get isPrivate => _n(simpleName).startsWith('_');
 
-  SourceLocation get location {
+  SourceLocation? get location {
     return _location(_reflectee);
   }
 
@@ -839,9 +837,8 @@ abstract class _DeclarationMirror extends Mirror implements DeclarationMirror {
     return _wrapMetadata(_metadata(_reflectee));
   }
 
-  bool operator ==(other) {
-    return this.runtimeType == other.runtimeType &&
-        this._reflectee == other._reflectee;
+  bool operator ==(Object other) {
+    return other is _DeclarationMirror && this._reflectee == other._reflectee;
   }
 
   int get hashCode => simpleName.hashCode;
@@ -852,7 +849,7 @@ class _TypeVariableMirror extends _DeclarationMirror
   _TypeVariableMirror._(reflectee, String simpleName, this._owner)
       : super._(reflectee, _s(simpleName));
 
-  DeclarationMirror _owner;
+  DeclarationMirror? _owner;
   DeclarationMirror get owner {
     var o = _owner;
     if (o != null) return o;
@@ -863,7 +860,7 @@ class _TypeVariableMirror extends _DeclarationMirror
   bool get isStatic => false;
   bool get isTopLevel => false;
 
-  TypeMirror _upperBound;
+  TypeMirror? _upperBound;
   TypeMirror get upperBound {
     var b = _upperBound;
     if (b != null) return b;
@@ -886,7 +883,7 @@ class _TypeVariableMirror extends _DeclarationMirror
 
   String toString() => "TypeVariableMirror on '${_n(simpleName)}'";
 
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     return other is TypeVariableMirror &&
         simpleName == other.simpleName &&
         owner == other.owner;
@@ -929,15 +926,15 @@ class _TypedefMirror extends _DeclarationMirror
 
   bool get isTopLevel => true;
 
-  DeclarationMirror _owner;
-  DeclarationMirror get owner {
+  DeclarationMirror? _owner;
+  DeclarationMirror? get owner {
     var o = _owner;
     if (o != null) return o;
     var uri = _ClassMirror._libraryUri(_reflectee);
     return _owner = currentMirrorSystem().libraries[Uri.parse(uri)];
   }
 
-  _FunctionTypeMirror _referent;
+  _FunctionTypeMirror? _referent;
   FunctionTypeMirror get referent {
     var r = _referent;
     if (r != null) return r;
@@ -965,12 +962,12 @@ class _TypedefMirror extends _DeclarationMirror
     }
   }
 
-  List<TypeVariableMirror> _typeVariables;
+  List<TypeVariableMirror>? _typeVariables;
   List<TypeVariableMirror> get typeVariables {
     var v = _typeVariables;
     if (v != null) return v;
 
-    var result = new List<TypeVariableMirror>();
+    var result = <TypeVariableMirror>[];
     List params = _ClassMirror._ClassMirror_type_variables(_reflectee);
     TypedefMirror owner = originalDeclaration;
     var mirror;
@@ -982,7 +979,7 @@ class _TypedefMirror extends _DeclarationMirror
         new UnmodifiableListView<TypeVariableMirror>(result);
   }
 
-  List<TypeMirror> _typeArguments;
+  List<TypeMirror>? _typeArguments;
   List<TypeMirror> get typeArguments {
     var a = _typeArguments;
     if (a != null) return a;
@@ -1038,14 +1035,14 @@ class _LibraryMirror extends _ObjectMirror implements LibraryMirror {
   // The simple name and the qualified name are the same for a library.
   Symbol get qualifiedName => simpleName;
 
-  DeclarationMirror get owner => null;
+  DeclarationMirror? get owner => null;
 
   bool get isPrivate => false;
   bool get isTopLevel => false;
 
-  Type get _instantiator => null;
+  Type? get _instantiator => null;
 
-  Map<Symbol, DeclarationMirror> _declarations;
+  Map<Symbol, DeclarationMirror>? _declarations;
   Map<Symbol, DeclarationMirror> get declarations {
     var d = _declarations;
     if (d != null) return d;
@@ -1060,7 +1057,7 @@ class _LibraryMirror extends _ObjectMirror implements LibraryMirror {
         new UnmodifiableMapView<Symbol, DeclarationMirror>(decls);
   }
 
-  SourceLocation get location {
+  SourceLocation? get location {
     return _location(_reflectee);
   }
 
@@ -1068,9 +1065,8 @@ class _LibraryMirror extends _ObjectMirror implements LibraryMirror {
     return _wrapMetadata(_metadata(_reflectee));
   }
 
-  bool operator ==(other) {
-    return this.runtimeType == other.runtimeType &&
-        this._reflectee == other._reflectee;
+  bool operator ==(Object other) {
+    return other is _LibraryMirror && this._reflectee == other._reflectee;
   }
 
   int get hashCode => simpleName.hashCode;
@@ -1105,7 +1101,7 @@ class _LibraryDependencyMirror extends Mirror
   final LibraryMirror sourceLibrary;
   var _targetMirrorOrPrefix;
   final List<CombinatorMirror> combinators;
-  final Symbol prefix;
+  final Symbol? prefix;
   final bool isImport;
   final bool isDeferred;
   final List<InstanceMirror> metadata;
@@ -1125,7 +1121,7 @@ class _LibraryDependencyMirror extends Mirror
 
   bool get isExport => !isImport;
 
-  LibraryMirror get targetLibrary {
+  LibraryMirror? get targetLibrary {
     if (_targetMirrorOrPrefix is _LibraryMirror) {
       return _targetMirrorOrPrefix;
     }
@@ -1149,7 +1145,7 @@ class _LibraryDependencyMirror extends Mirror
   static LibraryMirror _tryUpgradePrefix(libraryPrefix)
       native "LibraryMirror_fromPrefix";
 
-  SourceLocation get location => null;
+  SourceLocation? get location => null;
 }
 
 class _CombinatorMirror extends Mirror implements CombinatorMirror {
@@ -1206,7 +1202,7 @@ class _MethodMirror extends _DeclarationMirror implements MethodMirror {
   ];
   bool get isOperator => _operators.contains(_n(simpleName));
 
-  DeclarationMirror _owner;
+  DeclarationMirror? _owner;
   DeclarationMirror get owner {
     // For nested closures it is possible, that the mirror for the owner has not
     // been created yet.
@@ -1220,7 +1216,7 @@ class _MethodMirror extends _DeclarationMirror implements MethodMirror {
 
   bool get isTopLevel => owner is LibraryMirror;
 
-  TypeMirror _returnType;
+  TypeMirror? _returnType;
   TypeMirror get returnType {
     var t = _returnType;
     if (t != null) return t;
@@ -1232,7 +1228,7 @@ class _MethodMirror extends _DeclarationMirror implements MethodMirror {
     }
   }
 
-  List<ParameterMirror> _parameters;
+  List<ParameterMirror>? _parameters;
   List<ParameterMirror> get parameters {
     var p = _parameters;
     if (p != null) return p;
@@ -1242,7 +1238,7 @@ class _MethodMirror extends _DeclarationMirror implements MethodMirror {
 
   bool get isRegularMethod => !isGetter && !isSetter && !isConstructor;
 
-  Symbol _constructorName;
+  Symbol? _constructorName;
   Symbol get constructorName {
     var n = _constructorName;
     if (n != null) return n;
@@ -1265,7 +1261,7 @@ class _MethodMirror extends _DeclarationMirror implements MethodMirror {
     }
   }
 
-  String get source => _MethodMirror_source(_reflectee);
+  String? get source => _MethodMirror_source(_reflectee);
 
   void _patchConstructorName(ownerName) {
     var cn = _n(constructorName);
@@ -1287,7 +1283,7 @@ class _MethodMirror extends _DeclarationMirror implements MethodMirror {
   List<dynamic> _MethodMirror_parameters(reflectee)
       native "MethodMirror_parameters";
 
-  static String _MethodMirror_source(reflectee) native "MethodMirror_source";
+  static String? _MethodMirror_source(reflectee) native "MethodMirror_source";
 }
 
 class _VariableMirror extends _DeclarationMirror implements VariableMirror {
@@ -1303,7 +1299,7 @@ class _VariableMirror extends _DeclarationMirror implements VariableMirror {
 
   bool get isTopLevel => owner is LibraryMirror;
 
-  Type get _instantiator {
+  Type? get _instantiator {
     final o = owner; // Note: need local variable for promotion to happen.
     if (o is _ClassMirror) {
       return o._instantiator;
@@ -1316,7 +1312,7 @@ class _VariableMirror extends _DeclarationMirror implements VariableMirror {
     }
   }
 
-  TypeMirror _type;
+  TypeMirror? _type;
   TypeMirror get type {
     var t = _type;
     if (t != null) return t;
@@ -1334,7 +1330,7 @@ class _ParameterMirror extends _VariableMirror implements ParameterMirror {
   final int _position;
   final bool isOptional;
   final bool isNamed;
-  final List _unmirroredMetadata;
+  final List? _unmirroredMetadata;
 
   _ParameterMirror._(
       reflectee,
@@ -1358,8 +1354,8 @@ class _ParameterMirror extends _VariableMirror implements ParameterMirror {
             );
 
   Object _defaultValueReflectee;
-  InstanceMirror _defaultValue;
-  InstanceMirror get defaultValue {
+  InstanceMirror? _defaultValue;
+  InstanceMirror? get defaultValue {
     if (!isOptional) {
       return null;
     }
@@ -1371,7 +1367,7 @@ class _ParameterMirror extends _VariableMirror implements ParameterMirror {
 
   bool get hasDefaultValue => _defaultValueReflectee != null;
 
-  SourceLocation get location {
+  SourceLocation? get location {
     throw new UnsupportedError("ParameterMirror.location unimplemented");
   }
 
@@ -1381,7 +1377,7 @@ class _ParameterMirror extends _VariableMirror implements ParameterMirror {
     return _wrapMetadata(m);
   }
 
-  TypeMirror _type;
+  TypeMirror? _type;
   TypeMirror get type {
     var t = _type;
     if (t != null) return t;
@@ -1404,9 +1400,9 @@ class _SpecialTypeMirror extends Mirror
   bool get isPrivate => false;
   bool get isTopLevel => true;
 
-  DeclarationMirror get owner => null;
+  DeclarationMirror? get owner => null;
 
-  SourceLocation get location => null;
+  SourceLocation? get location => null;
   List<InstanceMirror> get metadata => const <InstanceMirror>[];
 
   bool get hasReflectedType => simpleName == #dynamic;
@@ -1423,7 +1419,7 @@ class _SpecialTypeMirror extends Mirror
 
   Symbol get qualifiedName => simpleName;
 
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is! _SpecialTypeMirror) {
       return false;
     }
@@ -1478,7 +1474,7 @@ class _Mirrors {
     return classMirror;
   }
 
-  static TypeMirror reflectType(Type key, [List<Type> typeArguments]) {
+  static TypeMirror reflectType(Type key, [List<Type>? typeArguments]) {
     if (typeArguments != null) {
       key = _instantiateType(key, typeArguments);
     }

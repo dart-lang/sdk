@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.io;
 
 /**
@@ -252,7 +250,7 @@ abstract class File implements FileSystemEntity {
    */
   @pragma("vm:entry-point")
   factory File(String path) {
-    final IOOverrides overrides = IOOverrides.current;
+    final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       return new _File(path);
     }
@@ -485,7 +483,7 @@ abstract class File implements FileSystemEntity {
    * must be read to completion or the subscription on the stream must
    * be cancelled.
    */
-  Stream<List<int>> openRead([int start, int end]);
+  Stream<List<int>> openRead([int? start, int? end]);
 
   /**
    * Creates a new independent [IOSink] for the file. The
@@ -703,7 +701,7 @@ abstract class RandomAccessFile {
    *
    * Returns a `Future<int>` that completes with the number of bytes read.
    */
-  Future<int> readInto(List<int> buffer, [int start = 0, int end]);
+  Future<int> readInto(List<int> buffer, [int start = 0, int? end]);
 
   /**
    * Synchronously reads into an existing [List<int>] from the file and returns
@@ -716,7 +714,7 @@ abstract class RandomAccessFile {
    *
    * Throws a [FileSystemException] if the operation fails.
    */
-  int readIntoSync(List<int> buffer, [int start = 0, int end]);
+  int readIntoSync(List<int> buffer, [int start = 0, int? end]);
 
   /**
    * Writes a single byte to the file. Returns a
@@ -741,7 +739,7 @@ abstract class RandomAccessFile {
    * [RandomAccessFile] when the write completes.
    */
   Future<RandomAccessFile> writeFrom(List<int> buffer,
-      [int start = 0, int end]);
+      [int start = 0, int? end]);
 
   /**
    * Synchronously writes from a [List<int>] to the file. It will read the
@@ -751,7 +749,7 @@ abstract class RandomAccessFile {
    *
    * Throws a [FileSystemException] if the operation fails.
    */
-  void writeFromSync(List<int> buffer, [int start = 0, int end]);
+  void writeFromSync(List<int> buffer, [int start = 0, int? end]);
 
   /**
    * Writes a string to the file using the given [Encoding]. Returns a
@@ -973,13 +971,13 @@ class FileSystemException implements IOException {
    * The file system path on which the error occurred. Can be `null`
    * if the exception does not relate directly to a file system path.
    */
-  final String path;
+  final String? path;
 
   /**
    * The underlying OS error. Can be `null` if the exception is not
    * raised due to an OS error.
    */
-  final OSError osError;
+  final OSError? osError;
 
   /**
    * Creates a new FileSystemException with an optional error message

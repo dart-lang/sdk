@@ -37,7 +37,7 @@ Uri computeYamlFile() {
 
 Uri computeAllowListFile() {
   return Platform.script
-      .resolve("../../../../sdk_nnbd/lib/_internal/allowed_experiments.json");
+      .resolve("../../../../sdk/lib/_internal/allowed_experiments.json");
 }
 
 String generateKernelFile() {

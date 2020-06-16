@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 // part of "core_patch.dart";
 
 @pragma("vm:exact-result-type", "dart:core#_Smi")
@@ -17,7 +15,7 @@ class Object {
   @patch
   @pragma("vm:exact-result-type", bool)
   @pragma("vm:prefer-inline")
-  bool operator ==(other) native "Object_equals";
+  bool operator ==(Object other) native "Object_equals";
 
   // Helpers used to implement hashCode. If a hashCode is used, we remember it
   // in a weak table in the VM (32 bit) or in the header of the object (64

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.convert;
 
 /// An instance of the default implementation of the [AsciiCodec].
@@ -50,9 +48,8 @@ class AsciiCodec extends Encoding {
   ///
   /// If [allowInvalid] is not provided, it defaults to the value used to create
   /// this [AsciiCodec].
-  String decode(List<int> bytes, {bool allowInvalid}) {
-    allowInvalid ??= _allowInvalid;
-    if (allowInvalid) {
+  String decode(List<int> bytes, {bool? allowInvalid}) {
+    if (allowInvalid ?? _allowInvalid) {
       return const AsciiDecoder(allowInvalid: true).convert(bytes);
     } else {
       return const AsciiDecoder(allowInvalid: false).convert(bytes);
@@ -77,9 +74,13 @@ class _UnicodeSubsetEncoder extends Converter<String, List<int>> {
   ///
   /// If [start] and [end] are provided, only the substring
   /// `string.substring(start, end)` is used as input to the conversion.
-  Uint8List convert(String string, [int start = 0, int end]) {
+  Uint8List convert(String string, [int start = 0, int? end]) {
     var stringLength = string.length;
     end = RangeError.checkValidRange(start, end, stringLength);
+    // TODO(38725): Remove workaround when assignment promotion is implemented
+    if (end == null) {
+      throw RangeError("Invalid range");
+    }
     var length = end - start;
     var result = Uint8List(length);
     for (var i = 0; i < length; i++) {
@@ -164,11 +165,12 @@ abstract class _UnicodeSubsetDecoder extends Converter<List<int>, String> {
   ///
   /// If [start] and [end] are provided, only the sub-list of bytes from
   /// `start` to `end` (`end` not inclusive) is used as input to the conversion.
-  String convert(List<int> bytes, [int start = 0, int end]) {
-    var byteCount = bytes.length;
-    RangeError.checkValidRange(start, end, byteCount);
-    end ??= byteCount;
-
+  String convert(List<int> bytes, [int start = 0, int? end]) {
+    end = RangeError.checkValidRange(start, end, bytes.length);
+    // TODO(38725): Remove workaround when assignment promotion is implemented
+    if (end == null) {
+      throw RangeError("Invalid range");
+    }
     for (var i = start; i < end; i++) {
       var byte = bytes[i];
       if ((byte & ~_subsetMask) != 0) {

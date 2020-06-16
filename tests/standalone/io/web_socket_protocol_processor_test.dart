@@ -16,18 +16,18 @@ import "dart:isolate";
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
-import "../../../sdk_nnbd/lib/internal/internal.dart"
+import "../../../sdk/lib/internal/internal.dart"
     show Since, valueOfNonNullableParamWithDefault, HttpStatus;
 
-part "../../../sdk_nnbd/lib/_http/crypto.dart";
-part "../../../sdk_nnbd/lib/_http/embedder_config.dart";
-part "../../../sdk_nnbd/lib/_http/http_impl.dart";
-part "../../../sdk_nnbd/lib/_http/http_date.dart";
-part "../../../sdk_nnbd/lib/_http/http_parser.dart";
-part "../../../sdk_nnbd/lib/_http/http_headers.dart";
-part "../../../sdk_nnbd/lib/_http/http_session.dart";
-part "../../../sdk_nnbd/lib/_http/websocket.dart";
-part "../../../sdk_nnbd/lib/_http/websocket_impl.dart";
+part "../../../sdk/lib/_http/crypto.dart";
+part "../../../sdk/lib/_http/embedder_config.dart";
+part "../../../sdk/lib/_http/http_impl.dart";
+part "../../../sdk/lib/_http/http_date.dart";
+part "../../../sdk/lib/_http/http_parser.dart";
+part "../../../sdk/lib/_http/http_headers.dart";
+part "../../../sdk/lib/_http/http_session.dart";
+part "../../../sdk/lib/_http/websocket.dart";
+part "../../../sdk/lib/_http/websocket_impl.dart";
 
 class WebSocketFrame {
   WebSocketFrame(int opcode, List<int> data);

@@ -2,28 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart._js_helper;
 
 // TODO(leafp): Maybe get rid of this?  Currently used by the interceptors
 // library, but that should probably be culled as well.
-Type getRuntimeType(var object) =>
+Type? getRuntimeType(object) =>
     JS('Type|null', 'dart.getReifiedType(#)', object);
 
 /// Returns the property [index] of the JavaScript array [array].
-getIndex(var array, int index) {
+getIndex(array, int index) {
   assert(isJsArray(array));
   return JS('var', r'#[#]', array, index);
 }
 
 /// Returns the length of the JavaScript array [array].
-int getLength(var array) {
+int getLength(array) {
   assert(isJsArray(array));
   return JS<int>('!', r'#.length', array);
 }
 
 /// Returns whether [value] is a JavaScript array.
-bool isJsArray(var value) {
+bool isJsArray(value) {
   return value is JSArray;
 }

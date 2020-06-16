@@ -354,13 +354,12 @@ def main():
 
     if 'htmldart2js' in systems:
         _logger.info('Generating dart2js single files.')
-        sdk_dir = 'sdk_nnbd' if options.nnbd else 'sdk'
 
         for library_name in HTML_LIBRARY_NAMES:
             source = os.path.join(dart2js_output_dir,
                                   '%s_dart2js.dart' % library_name)
             GenerateSingleFile(
-                source, os.path.join('..', '..', '..', sdk_dir, 'lib',
+                source, os.path.join('..', '..', '..', 'sdk', 'lib',
                                      library_name, 'dart2js'))
 
     print '\nGenerating single file %s seconds' % round(

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 /**
  *
  * Built-in types, collections,
@@ -169,7 +167,7 @@ import "dart:convert"
         StringConversionSink,
         utf8;
 import "dart:math" show Random; // Used by List.shuffle.
-import "dart:typed_data" show Uint8List, Uint16List, Endian;
+import "dart:typed_data" show Uint8List;
 
 @Since("2.1")
 export "dart:async" show Future, Stream;

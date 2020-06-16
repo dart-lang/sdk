@@ -29,7 +29,7 @@ export 'diagnostic_helper.dart';
 bool isDart2jsNnbd =
     !Platform.environment['DART_CONFIGURATION'].endsWith('Legacy');
 
-String sdkPath = isDart2jsNnbd ? 'sdk_nnbd/lib' : 'sdk/lib';
+String sdkPath = 'sdk/lib';
 
 String sdkLibrariesSpecificationPath = '$sdkPath/libraries.json';
 

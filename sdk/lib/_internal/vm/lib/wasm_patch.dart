@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 import 'dart:_internal' show patch;
 import "dart:nativewrappers" show NativeFieldWrapperClass1;
 import 'dart:typed_data';
@@ -39,7 +37,7 @@ class WasmModule {
 @patch
 class WasmMemory {
   @patch
-  factory WasmMemory(int initialPages, [int maxPages]) {
+  factory WasmMemory(int initialPages, [int? maxPages]) {
     return _NativeWasmMemory(initialPages, maxPages);
   }
 }
@@ -107,11 +105,12 @@ class _NativeWasmImports extends NativeFieldWrapperClass1
 }
 
 class _NativeWasmMemory extends NativeFieldWrapperClass1 implements WasmMemory {
-  int _pages;
-  Uint8List _buffer;
+  late int _pages;
+  late Uint8List _buffer;
 
-  _NativeWasmMemory(int initialPages, int maxPages) : _pages = initialPages {
+  _NativeWasmMemory(int initialPages, int? maxPages) {
     _buffer = _init(initialPages, maxPages);
+    _pages = initialPages;
   }
 
   _NativeWasmMemory.fromInstance(_NativeWasmInstance inst) {
@@ -133,7 +132,7 @@ class _NativeWasmMemory extends NativeFieldWrapperClass1 implements WasmMemory {
     return oldPages;
   }
 
-  Uint8List _init(int initialPages, int maxPages) native 'Wasm_initMemory';
+  Uint8List _init(int initialPages, int? maxPages) native 'Wasm_initMemory';
   Uint8List _grow(int deltaPages) native 'Wasm_growMemory';
   Uint8List _initFromInstance(_NativeWasmInstance inst)
       native 'Wasm_initMemoryFromInstance';

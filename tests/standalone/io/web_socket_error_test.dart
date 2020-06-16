@@ -19,7 +19,7 @@ import "dart:typed_data";
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
-part "../../../sdk_nnbd/lib/_http/crypto.dart";
+part "../../../sdk/lib/_http/crypto.dart";
 
 const String webSocketGUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 const String CERT_NAME = 'localhost_cert';

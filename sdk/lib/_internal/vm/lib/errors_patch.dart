@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 // part of "core_patch.dart";
 
 @patch
@@ -19,10 +17,10 @@ class Error {
   }
 
   @patch
-  StackTrace get stackTrace => _stackTrace;
+  StackTrace? get stackTrace => _stackTrace;
 
   @pragma("vm:entry-point")
-  StackTrace _stackTrace;
+  StackTrace? _stackTrace;
 }
 
 class _AssertionError extends Error implements AssertionError {
@@ -34,11 +32,11 @@ class _AssertionError extends Error implements AssertionError {
   // out of the script. It expects a Dart stack frame from class
   // _AssertionError. Thus we need a Dart stub that calls the native code.
   @pragma("vm:entry-point", "call")
-  static _throwNew(int assertionStart, int assertionEnd, Object message) {
+  static _throwNew(int assertionStart, int assertionEnd, Object? message) {
     _doThrowNew(assertionStart, assertionEnd, message);
   }
 
-  static _doThrowNew(int assertionStart, int assertionEnd, Object message)
+  static _doThrowNew(int assertionStart, int assertionEnd, Object? message)
       native "AssertionError_throwNew";
 
   @pragma("vm:entry-point", "call")
@@ -56,15 +54,16 @@ class _AssertionError extends Error implements AssertionError {
   }
 
   String get _messageString {
-    if (message == null) return "is not true.";
-    if (message is String) return message;
-    return Error.safeToString(message);
+    final msg = message;
+    if (msg == null) return "is not true.";
+    if (msg is String) return msg;
+    return Error.safeToString(msg);
   }
 
   String toString() {
     if (_url == null) {
-      if (message == null) return _failedAssertion?.trim();
-      return "'${_failedAssertion?.trim()}': $_messageString";
+      if (message == null) return _failedAssertion.trim();
+      return "'${_failedAssertion.trim()}': $_messageString";
     }
     var columnInfo = "";
     if (_column > 0) {
@@ -79,7 +78,7 @@ class _AssertionError extends Error implements AssertionError {
   final String _url;
   final int _line;
   final int _column;
-  final Object message;
+  final Object? message;
 }
 
 class _TypeError extends Error implements TypeError, CastError {
@@ -87,22 +86,22 @@ class _TypeError extends Error implements TypeError, CastError {
   _TypeError._create(this._url, this._line, this._column, this._message);
 
   @pragma("vm:entry-point", "call")
-  static _throwNew(int location, Object src_value, _Type dst_type,
-      String dst_name) native "TypeError_throwNew";
+  static _throwNew(int location, Object srcValue, _Type dstType, String dstName)
+      native "TypeError_throwNew";
 
   String toString() => _message;
 
   final String _url;
   final int _line;
   final int _column;
-  final Object _message;
+  final String _message;
 }
 
 class _CastError extends Error implements CastError, TypeError {
   @pragma("vm:entry-point")
   _CastError._create(this._url, this._line, this._column, this._errorMsg);
 
-  // A CastError is allocated by TypeError._throwNew() when dst_name equals
+  // A CastError is allocated by TypeError._throwNew() when dstName equals
   // Symbols::InTypeCast().
 
   String toString() => _errorMsg;
@@ -118,11 +117,9 @@ class _CastError extends Error implements CastError, TypeError {
 class FallThroughError {
   @patch
   @pragma("vm:entry-point")
-  FallThroughError._create(String url, int line)
-      : _url = url,
-        _line = line;
+  FallThroughError._create(this._url, this._line);
 
-  static _throwNew(int case_clause_pos) native "FallThroughError_throwNew";
+  static _throwNew(int caseClausePos) native "FallThroughError_throwNew";
 
   @patch
   String toString() {
@@ -131,8 +128,8 @@ class FallThroughError {
 
   // These new fields cannot be declared final, because a constructor exists
   // in the original version of this patched class.
-  String _url;
-  int _line;
+  String? _url;
+  int _line = 0;
 }
 
 class _InternalError {
@@ -163,7 +160,7 @@ class AbstractClassInstantiationError {
   AbstractClassInstantiationError._create(
       this._className, this._url, this._line);
 
-  static _throwNew(int case_clause_pos, String className)
+  static _throwNew(int caseClausePos, String className)
       native "AbstractClassInstantiationError_throwNew";
 
   @patch
@@ -174,21 +171,21 @@ class AbstractClassInstantiationError {
 
   // These new fields cannot be declared final, because a constructor exists
   // in the original version of this patched class.
-  String _url;
-  int _line;
+  String? _url;
+  int _line = 0;
 }
 
 @patch
 class NoSuchMethodError {
-  final Object _receiver;
+  final Object? _receiver;
   final Invocation _invocation;
 
   @patch
-  NoSuchMethodError.withInvocation(Object receiver, Invocation invocation)
+  NoSuchMethodError.withInvocation(Object? receiver, Invocation invocation)
       : _receiver = receiver,
         _invocation = invocation;
 
-  static void _throwNewInvocation(Object receiver, Invocation invocation) {
+  static void _throwNewInvocation(Object? receiver, Invocation invocation) {
     throw new NoSuchMethodError.withInvocation(receiver, invocation);
   }
 
@@ -201,18 +198,18 @@ class NoSuchMethodError {
       String memberName,
       int invocationType,
       int typeArgumentsLength,
-      Object typeArguments,
-      List arguments,
-      List argumentNames) {
+      Object? typeArguments,
+      List? arguments,
+      List? argumentNames) {
     throw new NoSuchMethodError._withType(receiver, memberName, invocationType,
         typeArgumentsLength, typeArguments, arguments, argumentNames);
   }
 
   // Deprecated constructor.
   @patch
-  NoSuchMethodError(this._receiver, Symbol memberName, List positionalArguments,
-      Map<Symbol, dynamic> namedArguments,
-      [List existingArgumentNames = null]) // existingArgumentNames ignored.
+  NoSuchMethodError(this._receiver, Symbol memberName,
+      List? positionalArguments, Map<Symbol, dynamic>? namedArguments,
+      [List? existingArgumentNames = null]) // existingArgumentNames ignored.
       : this._invocation = new _InvocationMirror._withType(
             memberName,
             _InvocationMirror._UNINITIALIZED,
@@ -242,52 +239,54 @@ class NoSuchMethodError {
       String memberName,
       int invocationType,
       int typeArgumentsLength, // Needed with all-dynamic (null) typeArguments.
-      Object typeArguments,
-      List arguments,
-      List argumentNames)
+      Object? typeArguments,
+      List? arguments,
+      List? argumentNames)
       : this._invocation = new _InvocationMirror._withType(
             new Symbol(memberName),
             invocationType,
             _InvocationMirror._unpackTypeArguments(
                 typeArguments, typeArgumentsLength),
             argumentNames != null
-                ? arguments.sublist(0, arguments.length - argumentNames.length)
+                ? arguments!.sublist(0, arguments.length - argumentNames.length)
                 : arguments,
             argumentNames != null
-                ? _NamedArgumentsMap(arguments, argumentNames)
+                ? _NamedArgumentsMap(arguments!, argumentNames)
                 : null);
 
-  static String _existingMethodSignature(Object receiver, String methodName,
+  static String? _existingMethodSignature(Object? receiver, String methodName,
       int invocationType) native "NoSuchMethodError_existingMethodSignature";
 
   @patch
   String toString() {
-    var invocation = _invocation;
-    if (invocation is _InvocationMirror) {
-      String memberName =
-          internal.Symbol.computeUnmangledName(invocation.memberName);
-      var level = (invocation._type >> _InvocationMirror._LEVEL_SHIFT) &
+    final localInvocation = _invocation;
+    if (localInvocation is _InvocationMirror) {
+      var internalName = localInvocation.memberName as internal.Symbol;
+      String memberName = internal.Symbol.computeUnmangledName(internalName);
+
+      var level = (localInvocation._type >> _InvocationMirror._LEVEL_SHIFT) &
           _InvocationMirror._LEVEL_MASK;
-      var kind = invocation._type & _InvocationMirror._KIND_MASK;
+      var kind = localInvocation._type & _InvocationMirror._KIND_MASK;
       if (kind == _InvocationMirror._LOCAL_VAR) {
         return "NoSuchMethodError: Cannot assign to final variable '$memberName'";
       }
 
-      StringBuffer typeArgumentsBuf = null;
-      var typeArguments = invocation.typeArguments;
+      StringBuffer? typeArgumentsBuf = null;
+      final typeArguments = localInvocation.typeArguments;
       if ((typeArguments != null) && (typeArguments.length > 0)) {
-        typeArgumentsBuf = new StringBuffer();
-        typeArgumentsBuf.write("<");
+        final argsBuf = new StringBuffer();
+        argsBuf.write("<");
         for (int i = 0; i < typeArguments.length; i++) {
           if (i > 0) {
-            typeArgumentsBuf.write(", ");
+            argsBuf.write(", ");
           }
-          typeArgumentsBuf.write(Error.safeToString(typeArguments[i]));
+          argsBuf.write(Error.safeToString(typeArguments[i]));
         }
-        typeArgumentsBuf.write(">");
+        argsBuf.write(">");
+        typeArgumentsBuf = argsBuf;
       }
       StringBuffer argumentsBuf = new StringBuffer();
-      var positionalArguments = invocation.positionalArguments;
+      var positionalArguments = localInvocation.positionalArguments;
       int argumentCount = 0;
       if (positionalArguments != null) {
         for (; argumentCount < positionalArguments.length; argumentCount++) {
@@ -298,20 +297,22 @@ class NoSuchMethodError {
               .write(Error.safeToString(positionalArguments[argumentCount]));
         }
       }
-      var namedArguments = invocation.namedArguments;
+      var namedArguments = localInvocation.namedArguments;
       if (namedArguments != null) {
         namedArguments.forEach((Symbol key, var value) {
           if (argumentCount > 0) {
             argumentsBuf.write(", ");
           }
-          argumentsBuf.write(internal.Symbol.computeUnmangledName(key));
+          var internalName = key as internal.Symbol;
+          argumentsBuf
+              .write(internal.Symbol.computeUnmangledName(internalName));
           argumentsBuf.write(": ");
           argumentsBuf.write(Error.safeToString(value));
           argumentCount++;
         });
       }
-      String existingSig =
-          _existingMethodSignature(_receiver, memberName, invocation._type);
+      String? existingSig = _existingMethodSignature(
+          _receiver, memberName, localInvocation._type);
       String argsMsg = existingSig != null ? " with matching arguments" : "";
 
       String kindBuf = "function";
@@ -326,7 +327,7 @@ class NoSuchMethodError {
       }
 
       StringBuffer msgBuf = new StringBuffer("NoSuchMethodError: ");
-      bool is_type_call = false;
+      bool isTypeCall = false;
       switch (level) {
         case _InvocationMirror._DYNAMIC:
           {
@@ -343,7 +344,7 @@ class NoSuchMethodError {
                 msgBuf.writeln("Closure call with mismatched arguments: "
                     "function '$memberName'");
               } else if (_receiver is _Type && memberName == "call") {
-                is_type_call = true;
+                isTypeCall = true;
                 String name = _receiver.toString();
                 msgBuf.writeln("Attempted to use type '$name' as a function. "
                     "Since types do not define a method 'call', this is not "
@@ -393,7 +394,7 @@ class NoSuchMethodError {
       }
 
       if (kind == _InvocationMirror._METHOD) {
-        String m = is_type_call ? "$_receiver" : "$memberName";
+        String m = isTypeCall ? "$_receiver" : "$memberName";
         msgBuf.write("Tried calling: $m");
         if (typeArgumentsBuf != null) {
           msgBuf.write(typeArgumentsBuf);
@@ -413,7 +414,7 @@ class NoSuchMethodError {
 
       return msgBuf.toString();
     }
-    return _toStringPlain(_receiver, invocation);
+    return _toStringPlain(_receiver, localInvocation);
   }
 
   /// Creates a string representation of an invocation.
@@ -421,7 +422,7 @@ class NoSuchMethodError {
   /// Used for situations where there is no extra information available
   /// about the failed invocation than the [Invocation] object and receiver,
   /// which includes errors created using [NoSuchMethodError.withInvocation].
-  static String _toStringPlain(Object receiver, Invocation invocation) {
+  static String _toStringPlain(Object? receiver, Invocation invocation) {
     var name = _symbolToString(invocation.memberName);
     var receiverType = "${receiver.runtimeType}";
     if (invocation.isAccessor) {

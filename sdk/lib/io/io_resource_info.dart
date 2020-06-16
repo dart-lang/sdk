@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.io;
 
 abstract class _IOResourceInfo {
@@ -125,10 +123,9 @@ class _FileResourceInfo extends _ReadWriteResourceInfo {
   }
 
   static Future<ServiceExtensionResponse> getFileInfoMapByID(function, params) {
-    assert(params.containsKey('id'));
-    var id = int.parse(params['id']);
+    var id = int.parse(params['id']!);
     var result =
-        openFiles.containsKey(id) ? openFiles[id].getFileInfoMap() : {};
+        openFiles.containsKey(id) ? openFiles[id]!.getFileInfoMap() : {};
     var jsonValue = json.encode(result);
     return new Future.value(new ServiceExtensionResponse.result(jsonValue));
   }
@@ -192,9 +189,9 @@ class _ProcessResourceInfo extends _IOResourceInfo {
 
   static Future<ServiceExtensionResponse> getProcessInfoMapById(
       String function, Map<String, String> params) {
-    var id = int.parse(params['id']);
+    var id = int.parse(params['id']!);
     var result = startedProcesses.containsKey(id)
-        ? startedProcesses[id].fullValueMap
+        ? startedProcesses[id]!.fullValueMap
         : {};
     var jsonValue = json.encode(result);
     return new Future.value(new ServiceExtensionResponse.result(jsonValue));
@@ -257,10 +254,9 @@ class _SocketResourceInfo extends _ReadWriteResourceInfo {
 
   static Future<ServiceExtensionResponse> getSocketInfoMapByID(
       String function, Map<String, String> params) {
-    assert(params.containsKey('id'));
-    var id = int.parse(params['id']);
+    var id = int.parse(params['id']!);
     var result =
-        openSockets.containsKey(id) ? openSockets[id].getSocketInfoMap() : {};
+        openSockets.containsKey(id) ? openSockets[id]!.getSocketInfoMap() : {};
     var jsonValue = json.encode(result);
     return new Future.value(new ServiceExtensionResponse.result(jsonValue));
   }

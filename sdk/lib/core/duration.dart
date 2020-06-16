@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.core;
 
 /**
@@ -215,7 +213,7 @@ class Duration implements Comparable<Duration> {
   /**
    * Returns `true` if this [Duration] has the same value as [other].
    */
-  bool operator ==(dynamic other) =>
+  bool operator ==(Object other) =>
       other is Duration && _duration == other.inMicroseconds;
 
   int get hashCode => _duration.hashCode;
@@ -260,10 +258,12 @@ class Duration implements Comparable<Duration> {
     if (inMicroseconds < 0) {
       return "-${-this}";
     }
-    String twoDigitMinutes = twoDigits(inMinutes.remainder(minutesPerHour));
-    String twoDigitSeconds = twoDigits(inSeconds.remainder(secondsPerMinute));
+    String twoDigitMinutes =
+        twoDigits(inMinutes.remainder(minutesPerHour) as int);
+    String twoDigitSeconds =
+        twoDigits(inSeconds.remainder(secondsPerMinute) as int);
     String sixDigitUs =
-        sixDigits(inMicroseconds.remainder(microsecondsPerSecond));
+        sixDigits(inMicroseconds.remainder(microsecondsPerSecond) as int);
     return "$inHours:$twoDigitMinutes:$twoDigitSeconds.$sixDigitUs";
   }
 

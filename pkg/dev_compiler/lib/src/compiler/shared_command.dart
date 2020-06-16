@@ -339,9 +339,7 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath, String multiRootScheme,
         // TODO(sigmund): extract all source-map normalization outside ddc. This
         // custom logic is BUILD specific and could be shared with other tools
         // like dart2js.
-        var shortPath = uri.path
-            .replaceAll('/sdk/', '/dart-sdk/')
-            .replaceAll('/sdk_nnbd/', '/dart-sdk/');
+        var shortPath = uri.path.replaceAll('/sdk/', '/dart-sdk/');
         var multiRootPath = "${multiRootOutputPath ?? ''}$shortPath";
         multiRootPath = p.url.relative(multiRootPath, from: sourceMapDir);
         return multiRootPath;

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.io;
 
 /**
@@ -117,7 +115,7 @@ class FileStat {
    * [FileSystemEntityType.notFound] and the other fields invalid.
    */
   static FileStat statSync(String path) {
-    final IOOverrides overrides = IOOverrides.current;
+    final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       return _statSyncInternal(path);
     }
@@ -147,7 +145,7 @@ class FileStat {
    * Returns a [Future] which completes with the same results as [statSync].
    */
   static Future<FileStat> stat(String path) {
-    final IOOverrides overrides = IOOverrides.current;
+    final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       return _stat(path);
     }
@@ -249,8 +247,8 @@ FileStat: type $type
  *   files and directories.
  */
 abstract class FileSystemEntity {
-  String _path;
-  Uint8List _rawPath;
+  String get _path;
+  Uint8List get _rawPath;
 
   String get path;
 
@@ -496,7 +494,7 @@ abstract class FileSystemEntity {
       {int events: FileSystemEvent.all, bool recursive: false}) {
     // FIXME(bkonyi): find a way to do this using the raw path.
     final String trimmedPath = _trimTrailingPathSeparators(path);
-    final IOOverrides overrides = IOOverrides.current;
+    final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       return _FileSystemWatcher._watch(trimmedPath, events, recursive);
     }
@@ -532,7 +530,7 @@ abstract class FileSystemEntity {
    * to an object that does not exist.
    */
   static Future<bool> identical(String path1, String path2) {
-    IOOverrides overrides = IOOverrides.current;
+    IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       return _identical(path1, path2);
     }
@@ -614,7 +612,7 @@ abstract class FileSystemEntity {
    * exist.
    */
   static bool identicalSync(String path1, String path2) {
-    IOOverrides overrides = IOOverrides.current;
+    IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       return _identicalSync(path1, path2);
     }
@@ -627,7 +625,7 @@ abstract class FileSystemEntity {
    * OS X 10.6 and below is not supported.
    */
   static bool get isWatchSupported {
-    final IOOverrides overrides = IOOverrides.current;
+    final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       return _FileSystemWatcher.isSupported;
     }
@@ -637,12 +635,9 @@ abstract class FileSystemEntity {
   // The native methods which determine type of the FileSystemEntity require
   // that the buffer provided is null terminated.
   static Uint8List _toUtf8Array(String s) =>
-      _toNullTerminatedUtf8Array(utf8.encode(s));
+      _toNullTerminatedUtf8Array(utf8.encoder.convert(s));
 
   static Uint8List _toNullTerminatedUtf8Array(Uint8List l) {
-    if (l == null) {
-      return null;
-    }
     if (l.isNotEmpty && l.last != 0) {
       final tmp = new Uint8List(l.length + 1);
       tmp.setRange(0, l.length, l);
@@ -653,9 +648,6 @@ abstract class FileSystemEntity {
   }
 
   static String _toStringFromUtf8Array(Uint8List l) {
-    if (l == null) {
-      return '';
-    }
     Uint8List nonNullTerminated = l;
     if (l.last == 0) {
       nonNullTerminated =
@@ -793,7 +785,7 @@ abstract class FileSystemEntity {
 
   static FileSystemEntityType _getTypeSync(
       Uint8List rawPath, bool followLinks) {
-    IOOverrides overrides = IOOverrides.current;
+    IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       return _getTypeSyncHelper(rawPath, followLinks);
     }
@@ -815,7 +807,7 @@ abstract class FileSystemEntity {
 
   static Future<FileSystemEntityType> _getType(
       Uint8List rawPath, bool followLinks) {
-    IOOverrides overrides = IOOverrides.current;
+    IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       return _getTypeRequest(rawPath, followLinks);
     }
@@ -823,7 +815,7 @@ abstract class FileSystemEntity {
         utf8.decode(rawPath, allowMalformed: true), followLinks);
   }
 
-  static _throwIfError(Object result, String msg, [String path]) {
+  static _throwIfError(Object result, String msg, [String? path]) {
     if (result is OSError) {
       throw new FileSystemException(msg, path, result);
     } else if (result is ArgumentError) {
@@ -833,8 +825,8 @@ abstract class FileSystemEntity {
 
   // TODO(bkonyi): find a way to do this with raw paths.
   static String _trimTrailingPathSeparators(String path) {
-    // Don't handle argument errors here.
-    if (path == null) return path;
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(path, "path");
     if (Platform.isWindows) {
       while (path.length > 1 &&
           (path.endsWith(Platform.pathSeparator) || path.endsWith('/'))) {
@@ -850,8 +842,6 @@ abstract class FileSystemEntity {
 
   // TODO(bkonyi): find a way to do this with raw paths.
   static String _ensureTrailingPathSeparators(String path) {
-    // Don't handle argument errors here.
-    if (path == null) return path;
     if (path.isEmpty) path = '.';
     if (Platform.isWindows) {
       while (!path.endsWith(Platform.pathSeparator) && !path.endsWith('/')) {
@@ -980,7 +970,7 @@ class FileSystemMoveEvent extends FileSystemEvent {
    * If the underlying implementation is able to identify the destination of
    * the moved file, [destination] will be set. Otherwise, it will be `null`.
    */
-  final String destination;
+  final String? destination;
 
   FileSystemMoveEvent._(path, isDirectory, this.destination)
       : super._(FileSystemEvent.move, path, isDirectory);
@@ -994,7 +984,7 @@ class FileSystemMoveEvent extends FileSystemEvent {
   }
 }
 
-class _FileSystemWatcher {
+abstract class _FileSystemWatcher {
   external static Stream<FileSystemEvent> _watch(
       String path, int events, bool recursive);
   external static bool get isSupported;

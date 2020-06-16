@@ -153,7 +153,6 @@ for command; do
       out/ReleaseIA32/gen_kernel_bytecode.dill \
       out/ReleaseIA32/run_vm_tests \
       sdk \
-      sdk_nnbd \
       samples-dev/swarm \
       third_party/pkg \
       third_party/pkg_tested \
@@ -292,7 +291,6 @@ EOF
       third_party/firefox_jsshell/linux/ \
       out/ReleaseX64/dart_precompiled_runtime \
       sdk \
-      sdk_nnbd \
       samples-dev/swarm \
       third_party/pkg \
       third_party/pkg_tested \

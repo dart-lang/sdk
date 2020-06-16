@@ -2,27 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.io;
 
 class _Directory extends FileSystemEntity implements Directory {
-  String _path;
-  Uint8List _rawPath;
+  final String _path;
+  final Uint8List _rawPath;
 
-  _Directory(String path) {
-    ArgumentError.checkNotNull(path, 'path');
-    _path = path;
-    _rawPath = FileSystemEntity._toUtf8Array(_path);
-  }
+  _Directory(String path)
+      : _path = _checkNotNull(path, "path"),
+        _rawPath = FileSystemEntity._toUtf8Array(path);
 
-  _Directory.fromRawPath(Uint8List rawPath) {
-    if (rawPath == null) {
-      throw new ArgumentError('rawPath cannot be null');
-    }
-    _rawPath = FileSystemEntity._toNullTerminatedUtf8Array(rawPath);
-    _path = FileSystemEntity._toStringFromUtf8Array(rawPath);
-  }
+  _Directory.fromRawPath(Uint8List rawPath)
+      : _rawPath = FileSystemEntity._toNullTerminatedUtf8Array(
+            _checkNotNull(rawPath, "rawPath")),
+        _path = FileSystemEntity._toStringFromUtf8Array(rawPath);
 
   String get path => _path;
 
@@ -53,7 +46,7 @@ class _Directory extends FileSystemEntity implements Directory {
   }
 
   static void set current(path) {
-    Uint8List _rawPath;
+    late Uint8List _rawPath;
     if (path is _Directory) {
       // For our internal Directory implementation, go ahead and use the raw
       // path.
@@ -144,7 +137,7 @@ class _Directory extends FileSystemEntity implements Directory {
   static Directory get systemTemp =>
       new Directory(_systemTemp(_Namespace._namespace));
 
-  Future<Directory> createTemp([String prefix]) {
+  Future<Directory> createTemp([String? prefix]) {
     prefix ??= '';
     if (path == '') {
       throw new ArgumentError("Directory.createTemp called with an empty path. "
@@ -168,7 +161,7 @@ class _Directory extends FileSystemEntity implements Directory {
     });
   }
 
-  Directory createTempSync([String prefix]) {
+  Directory createTempSync([String? prefix]) {
     prefix ??= '';
     if (path == '') {
       throw new ArgumentError("Directory.createTemp called with an empty path. "
@@ -220,9 +213,8 @@ class _Directory extends FileSystemEntity implements Directory {
   }
 
   Directory renameSync(String newPath) {
-    if (newPath is! String) {
-      throw new ArgumentError();
-    }
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(newPath, "newPath");
     var result = _rename(_Namespace._namespace, _rawPath, newPath);
     if (result is OSError) {
       throw new FileSystemException("Rename failed", path, result);
@@ -244,9 +236,9 @@ class _Directory extends FileSystemEntity implements Directory {
 
   List<FileSystemEntity> listSync(
       {bool recursive: false, bool followLinks: true}) {
-    if (recursive is! bool || followLinks is! bool) {
-      throw new ArgumentError();
-    }
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(recursive, "recursive");
+    ArgumentError.checkNotNull(followLinks, "followLinks");
     var result = <FileSystemEntity>[];
     _fillWithDirectoryListing(
         _Namespace._namespace,
@@ -278,12 +270,18 @@ class _Directory extends FileSystemEntity implements Directory {
         return new Exception("Unknown error");
     }
   }
+
+  // TODO(40614): Remove once non-nullability is sound.
+  static T _checkNotNull<T>(T t, String name) {
+    ArgumentError.checkNotNull(t, name);
+    return t;
+  }
 }
 
 abstract class _AsyncDirectoryListerOps {
   external factory _AsyncDirectoryListerOps(int pointer);
 
-  int getPointer();
+  int? getPointer();
 }
 
 class _AsyncDirectoryLister {
@@ -302,16 +300,18 @@ class _AsyncDirectoryLister {
   final bool recursive;
   final bool followLinks;
 
-  StreamController<FileSystemEntity> controller;
+  final controller = new StreamController<FileSystemEntity>(sync: true);
   bool canceled = false;
   bool nextRunning = false;
   bool closed = false;
-  _AsyncDirectoryListerOps _ops;
+  _AsyncDirectoryListerOps? _ops;
   Completer closeCompleter = new Completer();
 
   _AsyncDirectoryLister(this.rawPath, this.recursive, this.followLinks) {
-    controller = new StreamController<FileSystemEntity>(
-        onListen: onListen, onResume: onResume, onCancel: onCancel, sync: true);
+    controller
+      ..onListen = onListen
+      ..onResume = onResume
+      ..onCancel = onCancel;
   }
 
   // WARNING:
@@ -319,8 +319,8 @@ class _AsyncDirectoryLister {
   // object that implements the async directory lister operations. It should
   // only be called to pass the pointer to the IO Service, which will decrement
   // the reference count when it is finished with it.
-  int _pointer() {
-    return (_ops == null) ? null : _ops.getPointer();
+  int? _pointer() {
+    return _ops?.getPointer();
   }
 
   Stream<FileSystemEntity> get stream => controller.stream;

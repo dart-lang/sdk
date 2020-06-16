@@ -77,7 +77,7 @@ class SourceToSummaryDillStep implements IOModularStep {
       sources = ['dart:core'];
       extraArgs = [
         '--libraries-file',
-        '$rootScheme:///sdk_nnbd/lib/libraries.json',
+        '$rootScheme:///sdk/lib/libraries.json',
         '--enable-experiment',
         'non-nullable',
       ];
@@ -157,7 +157,7 @@ class DDCStep implements IOModularStep {
       extraArgs = [
         '--compile-sdk',
         '--libraries-file',
-        '$rootScheme:///sdk_nnbd/lib/libraries.json',
+        '$rootScheme:///sdk/lib/libraries.json',
         '--enable-experiment',
         'non-nullable',
       ];

@@ -80,24 +80,12 @@ group("runtime_precompiled") {
   ]
 }
 
-if (dont_use_nnbd) {
-  group("create_sdk") {
-    public_deps = [ "sdk:create_sdk" ]
-  }
-} else {
-  group("create_sdk") {
-    public_deps = [ "sdk_nnbd:create_sdk" ]
-  }
+group("create_sdk") {
+  public_deps = [ "sdk:create_sdk" ]
 }
 
-if (dont_use_nnbd) {
-  group("create_platform_sdk") {
-    public_deps = [ "sdk:create_platform_sdk" ]
-  }
-} else {
-  group("create_platform_sdk") {
-    public_deps = [ "sdk_nnbd:create_platform_sdk" ]
-  }
+group("create_platform_sdk") {
+  public_deps = [ "sdk:create_platform_sdk" ]
 }
 
 group("dart2js") {

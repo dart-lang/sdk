@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 // part of "isolate_patch.dart";
 
 // Timer heap implemented as a array-based binary heap[0].
@@ -45,7 +43,7 @@ class _TimerHeap {
   void remove(_Timer timer) {
     _used--;
     if (isEmpty) {
-      _list[0] = null;
+      _list[0] = _Timer._sentinelTimer;
       timer._indexOrNext = null;
       return;
     }
@@ -59,7 +57,7 @@ class _TimerHeap {
         _bubbleDown(last);
       }
     }
-    _list[_used] = null;
+    _list[_used] = _Timer._sentinelTimer;
     timer._indexOrNext = null;
   }
 
@@ -119,8 +117,9 @@ class _Timer implements Timer {
   // Cancels the timer in the event handler.
   static const _NO_TIMER = -1;
 
-  // A sentinel timer.
-  static _Timer _sentinelTimer = _Timer._sentinel();
+  // A generic null timer object that is used to populate unused slots
+  // in TimerHeap.
+  static final _sentinelTimer = _Timer._sentinel();
 
   // We distinguish what kind of message arrived based on the value being sent.
   static const _ZERO_EVENT = 1;
@@ -129,7 +128,7 @@ class _Timer implements Timer {
   // Timers are ordered by wakeup time. Timers with a timeout value of > 0 do
   // end up on the TimerHeap. Timers with a timeout of 0 are queued in a list.
   static final _heap = new _TimerHeap();
-  static _Timer _firstZeroTimer;
+  static _Timer? _firstZeroTimer;
   static _Timer _lastZeroTimer = _sentinelTimer;
 
   // We use an id to be able to sort timers with the same expiration time.
@@ -137,13 +136,13 @@ class _Timer implements Timer {
   static const _ID_MASK = 0x1fffffff;
   static int _idCount = 0;
 
-  static RawReceivePort _receivePort;
-  static SendPort _sendPort;
+  static RawReceivePort? _receivePort;
+  static SendPort? _sendPort;
   static int _scheduledWakeupTime = 0;
 
   static bool _handlingCallbacks = false;
 
-  Function _callback; // Closure to call when timer fires. null if canceled.
+  Function? _callback; // Closure to call when timer fires. null if canceled.
   int _wakeupTime; // Expiration time.
   final int _milliSeconds; // Duration specified at creation.
   final bool _repeating; // Indicates periodic timers.
@@ -274,13 +273,13 @@ class _Timer implements Timer {
   // Handle the notification of a zero timer. Make sure to also execute non-zero
   // timers with a lower expiration time.
   static List _queueFromZeroEvent() {
-    var pendingTimers = new List();
-    _Timer ftimer = _firstZeroTimer;
-    if (ftimer != null) {
+    var pendingTimers = <dynamic>[];
+    final firstTimer = _firstZeroTimer;
+    if (firstTimer != null) {
       // Collect pending timers from the timer heap that have an expiration prior
       // to the currently notified zero timer.
       var timer;
-      while (!_heap.isEmpty && (_heap.first._compareTo(ftimer) < 0)) {
+      while (!_heap.isEmpty && (_heap.first._compareTo(firstTimer) < 0)) {
         timer = _heap.removeFirst();
         pendingTimers.add(timer);
       }
@@ -325,9 +324,9 @@ class _Timer implements Timer {
   }
 
   static List _queueFromTimeoutEvent() {
-    var pendingTimers = new List();
-    _Timer ftimer = _firstZeroTimer;
-    if (ftimer != null) {
+    var pendingTimers = [];
+    final firstTimer = _firstZeroTimer;
+    if (firstTimer != null) {
       // Collect pending timers from the timer heap that have an expiration
       // prior to the next zero timer.
       // By definition the first zero timer has been scheduled before the
@@ -335,7 +334,7 @@ class _Timer implements Timer {
       // timer are expired. The first zero timer will be dispatched when its
       // corresponding message is delivered.
       var timer;
-      while (!_heap.isEmpty && (_heap.first._compareTo(ftimer) < 0)) {
+      while (!_heap.isEmpty && (_heap.first._compareTo(firstTimer) < 0)) {
         timer = _heap.removeFirst();
         pendingTimers.add(timer);
       }
@@ -456,21 +455,19 @@ class _Timer implements Timer {
   static SendPort _createTimerHandler() {
     assert(_receivePort == null);
     assert(_sendPort == null);
-    RawReceivePort port = new RawReceivePort(_handleMessage);
+    final port = new RawReceivePort(_handleMessage);
+    final sendPort = port.sendPort;
     _receivePort = port;
-    _sendPort = port.sendPort;
+    _sendPort = sendPort;
     _scheduledWakeupTime = 0;
-    return port.sendPort;
+    return sendPort;
   }
 
   static void _shutdownTimerHandler() {
-    var port = _receivePort;
-    if (port != null) {
-      port.close();
-      _receivePort = null;
-    }
     _sendPort = null;
     _scheduledWakeupTime = 0;
+    _receivePort!.close();
+    _receivePort = null;
   }
 
   // The Timer factory registered with the dart:async library by the embedder.
