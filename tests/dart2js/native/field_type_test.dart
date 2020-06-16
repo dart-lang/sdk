@@ -10,7 +10,7 @@ import "native_testing.dart";
 
 @Native("Node")
 class Node {
-  final Node parentNode;
+  Node get parentNode native;
 
   ModelSource _modelSource; // If null, inherited from parent.
 

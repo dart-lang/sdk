@@ -20,7 +20,7 @@ import 'native_testing.dart';
 class E {
   E._used() native; // Bogus native constructor, called only from fake body.
 
-  final int code;
+  int get code native;
 }
 
 // Type with exception-throwing methods.
