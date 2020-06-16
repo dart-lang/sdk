@@ -63,14 +63,7 @@ config("libdart_vm_config") {
 
 library_for_all_configs("libdart_vm") {
   target_type = "source_set"
-  extra_product_deps = [
-    "//third_party/icu:icui18n_hidden_visibility",
-    "//third_party/icu:icuuc_hidden_visibility",
-  ]
-  extra_nonproduct_deps = [
-    "//third_party/icu:icui18n",
-    "//third_party/icu:icuuc",
-  ]
+  extra_deps = [ "//third_party/icu" ]
   if (is_fuchsia) {
     if (using_fuchsia_sdk) {
       extra_deps += [
@@ -154,10 +147,6 @@ library_for_all_configs("libdart_lib") {
 template("gen_vm_platform") {
   assert(defined(invoker.output_postfix),
          "Must define output postfix (e.g., '_strong'")
-  is_product_flag = dart_runtime_mode == "release"
-  if (defined(invoker.product_mode)) {
-    is_product_flag = invoker.product_mode
-  }
   compile_platform(target_name) {
     output_postfix = invoker.output_postfix
     if (defined(invoker.add_implicit_vm_platform_dependency)) {
@@ -177,6 +166,7 @@ template("gen_vm_platform") {
       "$root_out_dir/vm_outline" + output_postfix + ".dill",
     ]
     args = [ "dart:core" ]
+    is_product_flag = dart_runtime_mode == "release"
     allow_causal_async_stacks = !is_product_flag
     args += [
       "-Ddart.vm.product=$is_product_flag",
@@ -201,16 +191,6 @@ gen_vm_platform("vm_platform") {
   add_implicit_vm_platform_dependency = false
   exclude_source = false
   output_postfix = "_strong"
-}
-
-gen_vm_platform("vm_platform_product") {
-  add_implicit_vm_platform_dependency = false
-  exclude_source = false
-  output_postfix = "_strong_product"
-
-  # In Debug mode we use debug binaries for dart2native.
-  # (see also the "dart_product_config" config)
-  product_mode = !is_debug
 }
 
 gen_vm_platform("vm_platform_stripped") {

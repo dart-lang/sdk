@@ -40,16 +40,8 @@ config("dart_maybe_product_config") {
 # If a DEBUG build has been specified it will be ignored.
 config("dart_product_config") {
   defines = []
-  cflags = []
   if (!dart_debug) {
     defines += [ "PRODUCT" ]
-    if (is_posix) {
-      cflags = [
-        # This is the equivalent from `build/config/BUILDCONFIG.gn` which includes
-        # `build/config/gcc:symbol_visibility_hidden` in product mode.
-        "-fvisibility=hidden",
-      ]
-    }
   }
 }
 
