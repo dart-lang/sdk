@@ -1415,10 +1415,10 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) => JS<bool>('!', '''(() => {
     let t1TypeArg = ${getGenericArgs(t1)}[0];
     if (${_isFutureOr(t2)}) {
       let t2TypeArg = ${getGenericArgs(t2)}[0];
-      // FutureOr<A> <: FutureOr<B> iff A <: B
-      // TODO(nshahan): Proven to not actually be true and needs cleanup.
-      // https://github.com/dart-lang/sdk/issues/38818
-      return $_isSubtype(t1TypeArg, t2TypeArg, $strictMode);
+      // FutureOr<A> <: FutureOr<B> if A <: B
+      if ($_isSubtype(t1TypeArg, t2TypeArg, $strictMode)) {
+        return true;
+      }
     }
 
     // given t1 is Future<A> | A, then:
