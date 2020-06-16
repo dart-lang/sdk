@@ -720,9 +720,15 @@ extension AstNodeFeatureComputerExtension on AstNode {
   /// Return the [FunctionType], if there is one, for this [AstNode].
   FunctionType get functionType {
     if (parent is MethodInvocation) {
-      return (parent as MethodInvocation).staticInvokeType;
+      var type = (parent as MethodInvocation).staticInvokeType;
+      if (type is FunctionType) {
+        return type;
+      }
     } else if (parent is FunctionExpressionInvocation) {
-      return (parent as FunctionExpressionInvocation).staticInvokeType;
+      var type = (parent as FunctionExpressionInvocation).staticInvokeType;
+      if (type is FunctionType) {
+        return type;
+      }
     }
     return null;
   }
