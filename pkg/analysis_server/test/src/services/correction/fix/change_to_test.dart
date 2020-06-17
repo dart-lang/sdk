@@ -99,6 +99,19 @@ main() {
 ''');
   }
 
+  Future<void> test_class_implements() async {
+    await resolveTestUnit('''
+class MyClass implements BaseClssa {}
+
+class BaseClass {}
+''');
+    await assertHasFix('''
+class MyClass implements BaseClass {}
+
+class BaseClass {}
+''');
+  }
+
   Future<void> test_class_prefixed() async {
     await resolveTestUnit('''
 import 'dart:async' as c;
@@ -113,6 +126,19 @@ main() {
   c.Future v = null;
   print(v);
 }
+''');
+  }
+
+  Future<void> test_class_with() async {
+    await resolveTestUnit('''
+class MyClass with BaseClssa {}
+
+class BaseClass {}
+''');
+    await assertHasFix('''
+class MyClass with BaseClass {}
+
+class BaseClass {}
 ''');
   }
 

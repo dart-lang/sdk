@@ -492,6 +492,9 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED: [
       AddMissingParameter.newInstance,
     ],
+    CompileTimeErrorCode.IMPLEMENTS_NON_CLASS: [
+      ImportLibrary.forType,
+    ],
     CompileTimeErrorCode.INVALID_ANNOTATION: [
       ImportLibrary.forTopLevelVariable,
       ImportLibrary.forType,
@@ -600,6 +603,10 @@ class FixProcessor extends BaseProcessor {
       CreateConstructor.newInstance,
       ConvertToNamedArguments.newInstance,
     ],
+    CompileTimeErrorCode.IMPLEMENTS_NON_CLASS: [
+      ChangeTo.classOrMixin,
+      CreateClass.newInstance,
+    ],
     CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD: [
       CreateField.newInstance,
     ],
@@ -618,6 +625,7 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.MIXIN_OF_NON_CLASS: [
       ChangeTo.classOrMixin,
+      CreateClass.newInstance,
     ],
     CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE: [
       RemoveQuestionMark.newInstance,
