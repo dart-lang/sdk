@@ -178,6 +178,14 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitDoStatement(DoStatement node) {
+    if (node.body is Block) {
+      _computer.addRegionForConditionalBlock(node.body);
+    }
+    super.visitDoStatement(node);
+  }
+
+  @override
   void visitExportDirective(ExportDirective node) {
     _computer._recordDirective(node);
     super.visitExportDirective(node);
@@ -286,5 +294,13 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
     _computer._addRegion(
         node.leftBracket.end, node.rightBracket.offset, FoldingKind.LITERAL);
     super.visitSetOrMapLiteral(node);
+  }
+
+  @override
+  void visitWhileStatement(WhileStatement node) {
+    if (node.body is Block) {
+      _computer.addRegionForConditionalBlock(node.body);
+    }
+    super.visitWhileStatement(node);
   }
 }

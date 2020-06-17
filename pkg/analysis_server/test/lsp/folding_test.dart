@@ -68,6 +68,44 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     expect(regions, unorderedEquals(expectedRegions));
   }
 
+  Future<void> test_doLoop() async {
+    final content = '''
+    f(int i) {
+      do {[[
+        print('with statements');]]
+      } while (i == 0)
+
+      do {[[
+        // only comments]]
+      } while (i == 0)
+
+      // empty
+      do {
+      } while (i == 0)
+
+      // no body
+      do;
+    }
+    ''';
+
+    final ranges = rangesFromMarkers(content);
+    final expectedRegions = ranges
+        .map((range) => FoldingRange(
+              range.start.line,
+              range.start.character,
+              range.end.line,
+              range.end.character,
+              null,
+            ))
+        .toList();
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final regions = await getFoldingRegions(mainFileUri);
+    expect(regions, containsAll(expectedRegions));
+  }
+
   Future<void> test_fromPlugins_dartFile() async {
     final pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.dart');
     final pluginAnalyzedUri = Uri.file(pluginAnalyzedFilePath);
@@ -202,6 +240,44 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
 
     final regions = await getFoldingRegions(pubspecFileUri);
     expect(regions, isEmpty);
+  }
+
+  Future<void> test_whileLoop() async {
+    final content = '''
+    f(int i) {
+      while (i == 0) {[[
+        print('with statements');]]
+      }
+
+      while (i == 0) {[[
+        // only comments]]
+      }
+
+      // empty
+      while (i == 0) {
+      }
+
+      // no body
+      while (i == 0);
+    }
+    ''';
+
+    final ranges = rangesFromMarkers(content);
+    final expectedRegions = ranges
+        .map((range) => FoldingRange(
+              range.start.line,
+              range.start.character,
+              range.end.line,
+              range.end.character,
+              null,
+            ))
+        .toList();
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final regions = await getFoldingRegions(mainFileUri);
+    expect(regions, containsAll(expectedRegions));
   }
 
   FoldingRange _toFoldingRange(Range range, FoldingRangeKind kind) {
