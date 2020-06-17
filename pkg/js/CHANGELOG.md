@@ -1,3 +1,7 @@
+## 0.6.3-dev
+
+* Opt in to null safety.
+
 ## 0.6.2
 
 * Improved documentation.

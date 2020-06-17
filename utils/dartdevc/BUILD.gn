@@ -204,7 +204,7 @@ template("dartdevc_kernel_compile") {
   #     named `${name}_js` must exist.
   #   * args: additional args to pass to dartdevc
 
-  prebuilt_dart_action(target_name) {
+  dart_action(target_name) {
     script = "../../pkg/dev_compiler/bin/dartdevc.dart"
     module = invoker.package
     out_dir = rebase_path("$js_gen_dir")

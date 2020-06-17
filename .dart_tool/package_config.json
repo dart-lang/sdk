@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2020-05-15T15:16:14.438097",
+  "generated": "2020-06-16T15:18:03.429449",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -326,7 +326,8 @@
     {
       "name": "js",
       "rootUri": "../pkg/js",
-      "packageUri": "lib/"
+      "packageUri": "lib/",
+      "languageVersion": "2.9"
     },
     {
       "name": "js_ast",
@@ -576,7 +577,7 @@
       "name": "stream_channel",
       "rootUri": "../third_party/pkg/stream_channel",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.2"
     },
     {
       "name": "string_scanner",
