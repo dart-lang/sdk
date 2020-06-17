@@ -7,16 +7,16 @@ import "package:expect/expect.dart";
 import 'dart:async';
 
 class A {
-  Future<T> foo<T>({T x}) async => x;
+  Future<int> foo(int x, int y, int z) async => x + y + z;
 }
 
 class B extends A {
-  Future<int> bar() async {
-    var x = await super.foo(x: 41);
-    return x + 1;
+  Future<int> foo(int x, int y, int z) async {
+    var w = await super.foo(x, y, z);
+    return w + 1;
   }
 }
 
 main() async {
-  Expect.equals(42, await new B().bar());
+  Expect.equals(7, await new B().foo(1, 2, 3));
 }

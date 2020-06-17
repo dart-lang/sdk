@@ -2,21 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
+import 'package:expect/expect.dart';
 
-import 'dart:async';
+var result;
 
 class A {
-  Future<T> foo<T>({T x}) async => x;
-}
+  set foo(int a);
 
-class B extends A {
-  Future<int> bar() async {
-    var x = await super.foo(x: 41);
-    return x + 1;
+  noSuchMethod(im) {
+    result = 42;
   }
 }
 
-main() async {
-  Expect.equals(42, await new B().bar());
+class B extends A {
+  noSuchMethod(im) {
+    result = 87;
+  }
+
+  set foo(v) => super.foo = v;
+}
+
+main() {
+  new B().foo = 0;
+  Expect.equals(87, result);
 }
