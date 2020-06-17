@@ -89,7 +89,7 @@
       "name": "benchmark_harness",
       "rootUri": "../third_party/pkg/benchmark_harness",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.9"
     },
     {
       "name": "boolean_selector",
