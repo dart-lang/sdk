@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2020-06-16T15:18:03.429449",
+  "generated": "2020-06-17T09:39:51.245406",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -339,7 +339,7 @@
       "name": "js_runtime",
       "rootUri": "../sdk/lib/_internal/js_runtime",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.9"
     },
     {
       "name": "json_rpc_2",
@@ -410,7 +410,7 @@
       "name": "native_stack_traces",
       "rootUri": "../pkg/native_stack_traces",
       "packageUri": "lib/",
-      "languageVersion": "2.7"
+      "languageVersion": "2.8"
     },
     {
       "name": "nnbd_migration",
@@ -493,7 +493,7 @@
       "name": "sdk_library_metadata",
       "rootUri": "../sdk/lib/_internal/sdk_library_metadata",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.9"
     },
     {
       "name": "shelf",
