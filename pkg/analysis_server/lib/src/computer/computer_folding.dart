@@ -19,6 +19,35 @@ class DartUnitFoldingComputer {
 
   DartUnitFoldingComputer(this._lineInfo, this._unit);
 
+  void addRegionForConditionalBlock(Block block) {
+    // For class/function/method blocks, we usually include the whitespace up
+    // until the `}` in the folding region so that when collapsed they would
+    // look like:
+    //
+    //    class Foo { [...] }
+    //
+    // For if statements, they may have else/elseIfs which would result in long
+    // lines like:
+    //
+    //     if (cond) { [...] } else { [...] }
+    //
+    // So these types of blocks should have their folding regions end at the
+    // end of the preceeding statement.
+
+    final start = block.leftBracket.end;
+    if (block.endToken.precedingComments != null) {
+      // If there are comments before the end token, use the last of those.
+      var lastComment = block.endToken.precedingComments;
+      while (lastComment.next != null) {
+        lastComment = lastComment.next;
+      }
+      _addRegion(start, lastComment.end, FoldingKind.BLOCK);
+    } else if (block.statements.isNotEmpty) {
+      // Otherwise, use the end of the last statement.
+      _addRegion(start, block.statements.last.end, FoldingKind.BLOCK);
+    }
+  }
+
   /// Returns a list of folding regions, not `null`.
   List<FoldingRegion> compute() {
     _addFileHeaderRegion();
@@ -179,6 +208,17 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
     _computer._addRegion(node.argumentList.leftParenthesis.end,
         node.argumentList.rightParenthesis.offset, FoldingKind.INVOCATION);
     super.visitFunctionExpressionInvocation(node);
+  }
+
+  @override
+  void visitIfStatement(IfStatement node) {
+    if (node.thenStatement is Block) {
+      _computer.addRegionForConditionalBlock(node.thenStatement);
+    }
+    if (node.elseStatement is Block) {
+      _computer.addRegionForConditionalBlock(node.elseStatement);
+    }
+    super.visitIfStatement(node);
   }
 
   @override

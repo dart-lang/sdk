@@ -162,6 +162,40 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     expect(regions, unorderedEquals(expectedRegions));
   }
 
+  Future<void> test_ifElseElseIf() async {
+    final content = '''
+    f(int i) {
+      if (i == 0) {[[
+        // only
+        // comments]]
+      } else if (i == 1) {[[
+        print('statements');]]
+      } else if (i == 2) {
+      } else {[[
+        // else
+        // comments]]
+      }
+    }
+    ''';
+
+    final ranges = rangesFromMarkers(content);
+    final expectedRegions = ranges
+        .map((range) => FoldingRange(
+              range.start.line,
+              range.start.character,
+              range.end.line,
+              range.end.character,
+              null,
+            ))
+        .toList();
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final regions = await getFoldingRegions(mainFileUri);
+    expect(regions, containsAll(expectedRegions));
+  }
+
   Future<void> test_nonDartFile() async {
     await initialize();
     await openFile(pubspecFileUri, simplePubspecContent);
