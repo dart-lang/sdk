@@ -36,7 +36,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -234,75 +233,35 @@ class DartCompletionManager implements CompletionContributor {
   }
 
   void _addIncludedSuggestionRelevanceTags(DartCompletionRequestImpl request) {
-    var target = request.target;
-
     if (request.inConstantContext && request.useNewRelevance) {
       includedSuggestionRelevanceTags.add(IncludedSuggestionRelevanceTag(
           'isConst', RelevanceBoost.constInConstantContext));
     }
 
-    void addTypeTag(DartType type) {
-      if (type is InterfaceType) {
-        var element = type.element;
-        var tag = '${element.librarySource.uri}::${element.name}';
-        if (element.isEnum) {
-          var relevance = request.useNewRelevance
-              ? RelevanceBoost.availableEnumConstant
-              : DART_RELEVANCE_BOOST_AVAILABLE_ENUM;
-          includedSuggestionRelevanceTags.add(
-            IncludedSuggestionRelevanceTag(
-              tag,
-              relevance,
-            ),
-          );
-        } else {
-          var relevance = request.useNewRelevance
-              ? RelevanceBoost.availableDeclaration
-              : DART_RELEVANCE_BOOST_AVAILABLE_DECLARATION;
-          includedSuggestionRelevanceTags.add(
-            IncludedSuggestionRelevanceTag(
-              tag,
-              relevance,
-            ),
-          );
-        }
-      }
-    }
-
-    var parameter = target.parameterElement;
-    if (parameter != null) {
-      addTypeTag(parameter.type);
-    }
-
-    var containingNode = target.containingNode;
-
-    if (containingNode is AssignmentExpression &&
-        containingNode.operator.type == TokenType.EQ &&
-        target.offset >= containingNode.operator.end) {
-      addTypeTag(containingNode.leftHandSide.staticType);
-    }
-
-    if (containingNode is ListLiteral &&
-        target.offset >= containingNode.leftBracket.end &&
-        target.offset <= containingNode.rightBracket.offset) {
-      var type = containingNode.staticType;
-      if (type is InterfaceType) {
-        var typeArguments = type.typeArguments;
-        if (typeArguments.isNotEmpty) {
-          addTypeTag(typeArguments[0]);
-        }
-      }
-    }
-
-    if (containingNode is VariableDeclaration &&
-        containingNode.equals != null &&
-        target.offset >= containingNode.equals.end) {
-      var parent = containingNode.parent;
-      if (parent is VariableDeclarationList) {
-        var type = parent.type?.type;
-        if (type is InterfaceType) {
-          addTypeTag(type);
-        }
+    var type = request.contextType;
+    if (type is InterfaceType) {
+      var element = type.element;
+      var tag = '${element.librarySource.uri}::${element.name}';
+      if (element.isEnum) {
+        var relevance = request.useNewRelevance
+            ? RelevanceBoost.availableEnumConstant
+            : DART_RELEVANCE_BOOST_AVAILABLE_ENUM;
+        includedSuggestionRelevanceTags.add(
+          IncludedSuggestionRelevanceTag(
+            tag,
+            relevance,
+          ),
+        );
+      } else {
+        var relevance = request.useNewRelevance
+            ? RelevanceBoost.availableDeclaration
+            : DART_RELEVANCE_BOOST_AVAILABLE_DECLARATION;
+        includedSuggestionRelevanceTags.add(
+          IncludedSuggestionRelevanceTag(
+            tag,
+            relevance,
+          ),
+        );
       }
     }
   }
@@ -371,9 +330,8 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   @override
   DartType get contextType {
     if (!_hasComputedContextType) {
-      var entity = target.entity;
       _contextType = featureComputer.computeContextType(
-          target.containingNode, entity.offset);
+          target.containingNode, target.offset);
       _hasComputedContextType = true;
     }
     return _contextType;

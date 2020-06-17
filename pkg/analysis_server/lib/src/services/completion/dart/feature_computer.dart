@@ -707,7 +707,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
 
   @override
   DartType visitVariableDeclaration(VariableDeclaration node) {
-    if (node.equals != null && node.equals.end < offset) {
+    if (node.equals != null && node.equals.end <= offset) {
       var parent = node.parent;
       if (parent is VariableDeclarationList) {
         return parent.type?.type;
