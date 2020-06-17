@@ -8,10 +8,10 @@
 
 ## Running the Server
 
-The analysis server snapshot is included in the `bin/snapshots` folder of the Dart SDK. Pass the `--lsp` flag to start the server in LSP mode:
+The analysis server snapshot is included in the `bin/snapshots` folder of the Dart SDK. Pass the `--lsp` flag to start the server in LSP mode and the `--client-id` and `--client-version` flags to identify your editor/plugin and version:
 
 ```
-dart bin/snapshots/analysis_server.dart.snapshot --lsp
+dart bin/snapshots/analysis_server.dart.snapshot --lsp --client-id my-editor.my-plugin --client-version 1.2
 ```
 
 Note: In LSP the client makes the first request so there is no obvious confirmation that the server is working correctly until the client sends an `initialize` request. Unlike standard JSON RPC, [LSP requires that headers are sent](https://microsoft.github.io/language-server-protocol/specification).
