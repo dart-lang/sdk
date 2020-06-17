@@ -990,7 +990,7 @@ dart_infra_builder(
         name="recipe_autoroller",
         cipd_package=
         "infra/recipe_bundles/chromium.googlesource.com/infra/infra",
-        cipd_version="git_revision:647d5e58ec508f13ccd054f1516e78d7ca3bd540"
+        cipd_version="git_revision:83c4abf53a0e73ca8b659766fbb0f7d46b05bd16"
     ),
     execution_timeout=20 * time.minute,
     expiration_timeout=time.day,
