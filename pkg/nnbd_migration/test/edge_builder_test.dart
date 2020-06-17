@@ -623,8 +623,7 @@ void f(Object o) {
     assertEdge(decoratedTypeAnnotation('Object o').node,
         decoratedTypeAnnotation('dynamic').node,
         hard: true);
-    // TODO(mfairhurst): these should probably be hard edges.
-    assertEdge(decoratedTypeAnnotation('dynamic').node, never, hard: false);
+    assertEdge(decoratedTypeAnnotation('dynamic').node, never, hard: true);
   }
 
   Future<void> test_as_int() async {
@@ -636,8 +635,7 @@ void f(Object o) {
     assertEdge(decoratedTypeAnnotation('Object o').node,
         decoratedTypeAnnotation('int').node,
         hard: true);
-    // TODO(mfairhurst): these should probably be hard edges.
-    assertEdge(decoratedTypeAnnotation('int').node, never, hard: false);
+    assertEdge(decoratedTypeAnnotation('int').node, never, hard: true);
     expect(
         variables.wasUnnecessaryCast(testSource, findNode.as_('o as')), false);
   }
@@ -666,8 +664,7 @@ void f(int i) {
     assertEdge(decoratedTypeAnnotation('int i').node,
         decoratedTypeAnnotation('int)').node,
         hard: true);
-    // TODO(mfairhurst): these should probably be hard edges.
-    assertEdge(decoratedTypeAnnotation('int)').node, never, hard: false);
+    assertEdge(decoratedTypeAnnotation('int)').node, never, hard: true);
     expect(
         variables.wasUnnecessaryCast(testSource, findNode.as_('i as')), true);
   }

@@ -3550,7 +3550,6 @@ void main() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/41397')
   Future<void> test_issue_41397() async {
     var content = '''
 void repro(){

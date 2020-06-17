@@ -1861,9 +1861,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           '(${expression.toSource()}) offset=${expression.offset}');
     }
     var origin = _makeEdgeOrigin(sourceType, expression);
+    var hard = _postDominatedLocals.isReferenceInScope(expression) ||
+        expression.unParenthesized is AsExpression;
     var edge = _graph.makeNonNullable(sourceType.node, origin,
-        hard: _postDominatedLocals.isReferenceInScope(expression),
-        guards: _guards);
+        hard: hard, guards: _guards);
     if (origin is ExpressionChecksOrigin) {
       origin.checks.edges[FixReasonTarget.root] = edge;
     }
