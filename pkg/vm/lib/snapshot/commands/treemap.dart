@@ -8,7 +8,7 @@
 ///
 /// It used the same visualization framework as Chromium's binary_size tool
 /// located in runtime/third_party/binary_size.
-library vm.snapshot.treemap;
+library vm.snapshot.commands.treemap;
 
 import 'dart:async';
 import 'dart:convert';
