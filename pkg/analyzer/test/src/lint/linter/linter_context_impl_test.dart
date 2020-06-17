@@ -191,12 +191,48 @@ B f() => B(A());
     assertCanBeConst("B(A(", false);
   }
 
+  void test_false_mapKeyType_implementsEqual() async {
+    await resolve('''
+class A {
+  const A();
+  bool operator ==(other) => false;
+}
+
+class B {
+  const B(_);
+}
+
+main() {
+  B({A(): 0});
+}
+''');
+    assertCanBeConst("B({", false);
+  }
+
   void test_false_nonConstConstructor() async {
     await resolve('''
 class A {}
 A f() => A();
 ''');
     assertCanBeConst("A(", false);
+  }
+
+  void test_false_setElementType_implementsEqual() async {
+    await resolve('''
+class A {
+  const A();
+  bool operator ==(other) => false;
+}
+
+class B {
+  const B(_);
+}
+
+main() {
+  B({A()});
+}
+''');
+    assertCanBeConst("B({", false);
   }
 
   void test_false_typeParameter() async {

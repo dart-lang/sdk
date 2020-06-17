@@ -130,6 +130,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       TypeName typeName = node.constructorName.type;
       _checkForConstWithTypeParameters(typeName);
 
+      node.argumentList.accept(this);
+
       // We need to evaluate the constant to see if any errors occur during its
       // evaluation.
       ConstructorElement constructor = node.constructorName.staticElement;
