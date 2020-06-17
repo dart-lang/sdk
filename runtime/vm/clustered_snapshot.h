@@ -255,6 +255,9 @@ class Serializer : public ThreadStackResource {
 
   void FlushBytesWrittenToRoot();
   void TraceStartWritingObject(const char* type, ObjectPtr obj, StringPtr name);
+  void TraceStartWritingObject(const char* type,
+                               ObjectPtr obj,
+                               const char* name);
   void TraceEndWritingObject();
 
   // Writes raw data to the stream (basic type).
@@ -494,11 +497,20 @@ class Serializer : public ThreadStackResource {
 
 #define WriteField(obj, field) s->WritePropertyRef(obj->ptr()->field, #field)
 
-struct SerializerWritingObjectScope {
+class SerializerWritingObjectScope {
+ public:
   SerializerWritingObjectScope(Serializer* serializer,
                                const char* type,
                                ObjectPtr object,
                                StringPtr name)
+      : serializer_(serializer) {
+    serializer_->TraceStartWritingObject(type, object, name);
+  }
+
+  SerializerWritingObjectScope(Serializer* serializer,
+                               const char* type,
+                               ObjectPtr object,
+                               const char* name)
       : serializer_(serializer) {
     serializer_->TraceStartWritingObject(type, object, name);
   }
