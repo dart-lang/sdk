@@ -1038,7 +1038,7 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
         .decoratedTypeAnnotation(_fixBuilder.source, node);
     if (!typeIsNonNullableByContext(node)) {
       var type = decoratedType.type;
-      if (!type.isDynamic && !type.isVoid) {
+      if (!type.isDynamic && !type.isVoid && !type.isDartCoreNull) {
         _makeTypeNameNullable(node, decoratedType);
       }
     }

@@ -1452,6 +1452,16 @@ int f(int i) {
     await _checkSingleFileChanges(content, expected, removeViaComments: true);
   }
 
+  Future<void> test_do_not_add_question_to_null_type() async {
+    var content = '''
+Null f() => null;
+''';
+    var expected = '''
+Null f() => null;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_do_not_propagate_non_null_intent_into_callback() async {
     var content = '''
 void f(int/*!*/ Function(int) callback) {
