@@ -68,6 +68,10 @@ class FeatureSetProvider {
   /// Each individual file might use `// @dart` to override this version, to
   /// be either lower, or higher than the package language version.
   Version getLanguageVersion(String path, Uri uri) {
+    if (uri.isScheme('dart')) {
+      return ExperimentStatus.currentVersion;
+    }
+
     var package = _packages.packageForPath(path);
     if (package != null) {
       var languageVersion = package.languageVersion;

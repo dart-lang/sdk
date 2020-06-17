@@ -23,7 +23,10 @@ CompilationUnit parseText(
   featureSet ??= FeatureSet.forTesting(sdkVersion: '2.3.0');
   CharSequenceReader reader = CharSequenceReader(text);
   Scanner scanner = Scanner(null, reader, AnalysisErrorListener.NULL_LISTENER)
-    ..configureFeatures(featureSet);
+    ..configureFeatures(
+      featureSetForOverriding: featureSet,
+      featureSet: featureSet,
+    );
   Token token = scanner.tokenize();
   // Pass the feature set from the scanner to the parser
   // because the scanner may have detected a language version comment
