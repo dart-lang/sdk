@@ -351,8 +351,6 @@ abstract class CommonElements {
 
   ClassEntity get constSetLiteralClass;
 
-  ClassEntity get typeVariableClass;
-
   ClassEntity get jsInvocationMirrorClass;
 
   ClassEntity get requiredSentinelClass;
@@ -380,8 +378,6 @@ abstract class CommonElements {
 
   /// The class for native annotations defined in dart:_js_helper.
   ClassEntity get nativeAnnotationClass;
-
-  ConstructorEntity get typeVariableConstructor;
 
   FunctionEntity get assertTest;
 
@@ -471,8 +467,6 @@ abstract class CommonElements {
   ClassEntity getInstantiationClass(int typeArgumentCount);
 
   FunctionEntity getInstantiateFunction(int typeArgumentCount);
-
-  FunctionEntity get instantiatedGenericFunctionType;
 
   // From dart:_rti
 
@@ -1575,11 +1569,6 @@ class CommonElementsImpl
   ClassEntity get constSetLiteralClass =>
       _constSetLiteralClass ??= unmodifiableSetClass;
 
-  ClassEntity _typeVariableClass;
-  @override
-  ClassEntity get typeVariableClass =>
-      _typeVariableClass ??= _findHelperClass('TypeVariable');
-
   ClassEntity _pragmaClass;
   @override
   ClassEntity get pragmaClass =>
@@ -1648,11 +1637,6 @@ class CommonElementsImpl
   @override
   ClassEntity get nativeAnnotationClass =>
       _nativeAnnotationClass ??= _findHelperClass('Native');
-
-  ConstructorEntity _typeVariableConstructor;
-  @override
-  ConstructorEntity get typeVariableConstructor => _typeVariableConstructor ??=
-      _env.lookupConstructor(typeVariableClass, '');
 
   FunctionEntity _assertTest;
   @override
@@ -1876,10 +1860,6 @@ class CommonElementsImpl
     _checkTypeArgumentCount(typeArgumentCount);
     return _findHelperFunction('instantiate$typeArgumentCount');
   }
-
-  @override
-  FunctionEntity get instantiatedGenericFunctionType =>
-      _findHelperFunction('instantiatedGenericFunctionType');
 
   @override
   bool isInstantiationClass(ClassEntity cls) {

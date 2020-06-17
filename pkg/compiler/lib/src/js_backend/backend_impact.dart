@@ -757,18 +757,6 @@ class BackendImpacts {
         new BackendImpact(globalClasses: [_commonElements.closureClass]);
   }
 
-  BackendImpact _typeVariableMirror;
-
-  /// Backend impact for type variables through mirrors.
-  BackendImpact get typeVariableMirror {
-    return _typeVariableMirror ??= new BackendImpact(staticUses: [
-      _commonElements.typeVariableConstructor,
-      _commonElements.createRuntimeType
-    ], instantiatedClasses: [
-      _commonElements.typeVariableClass
-    ]);
-  }
-
   Map<int, BackendImpact> _genericInstantiation = <int, BackendImpact>{};
 
   BackendImpact getGenericInstantiation(int typeArgumentCount) =>
