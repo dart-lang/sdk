@@ -107,7 +107,7 @@ class V8SnapshotProfile extends Graph<int> {
     final Set<int> roots = <int>{};
     for (final edge in _toEdges[root]) {
       final int to = edge.nodeOffset;
-      Expect.isTrue(!roots.contains(to));
+      Expect.isTrue(!roots.contains(to), "multiple root edges to node ${to}");
       roots.add(to);
     }
 
@@ -129,11 +129,15 @@ class V8SnapshotProfile extends Graph<int> {
   void _parseMetadata(Map meta) {
     final List nodeFields = meta["node_fields"];
     nodeFields.forEach(_nodeFields.add);
-    Expect.isTrue(_kRequiredNodeFields.every(_nodeFields.contains));
+    for (final field in _kRequiredNodeFields) {
+      Expect.isTrue(nodeFields.contains(field), "missing node field ${field}");
+    }
 
     final List edgeFields = meta["edge_fields"];
     edgeFields.forEach(_edgeFields.add);
-    Expect.isTrue(_kRequiredEdgeFields.every(_edgeFields.contains));
+    for (final field in _kRequiredEdgeFields) {
+      Expect.isTrue(edgeFields.contains(field), "missing edge field ${field}");
+    }
 
     // First entry of "node_types" is an array with the actual node types. IDK
     // what the other entries are for.
@@ -157,21 +161,23 @@ class V8SnapshotProfile extends Graph<int> {
     int offset = 0;
     for (; offset < nodes.length; offset += _nodeFields.length) {
       final int type = nodes[offset + typeIndex];
-      Expect.isTrue(0 <= type && type < _nodeTypes.length);
+      Expect.isTrue(0 <= type && type < _nodeTypes.length,
+          "node type ${type} outside range [0, ${_nodeTypes.length})");
 
       final int name = nodes[offset + nameIndex];
-      Expect.isTrue(0 <= name && name < _strings.length);
+      Expect.isTrue(0 <= name && name < _strings.length,
+          "node name ${name} outside range [0, ${_strings.length})");
 
       final int id = nodes[offset + idIndex];
-      Expect.isTrue(id >= 0);
-      Expect.isFalse(_ids.contains(id));
+      Expect.isTrue(id >= 0, "negative node ID ${id}");
+      Expect.isFalse(_ids.contains(id), "node ID ${id} already added");
       _ids.add(id);
 
       final int selfSize = nodes[offset + selfSizeIndex];
-      Expect.isTrue(selfSize >= 0);
+      Expect.isTrue(selfSize >= 0, "negative node selfSize ${selfSize}");
 
       final int edgeCount = nodes[offset + edgeCountIndex];
-      Expect.isTrue(edgeCount >= 0);
+      Expect.isTrue(edgeCount >= 0, "negative node edgeCount ${edgeCount}");
 
       _nodes[offset] = _NodeInfo(type, name, id, selfSize, edgeCount);
     }
@@ -193,14 +199,16 @@ class V8SnapshotProfile extends Graph<int> {
       final List<_EdgeInfo> nodeEdges = List<_EdgeInfo>(edgeCount);
       for (int i = 0; i < edgeCount; ++i, edgeOffset += _edgeFields.length) {
         final int type = edges[edgeOffset + typeIndex];
-        Expect.isTrue(0 <= type && type < _edgeTypes.length);
+        Expect.isTrue(0 <= type && type < _edgeTypes.length,
+            "edge type ${type} outside range [0, ${_edgeTypes.length}");
 
         final int nameOrIndex = edges[edgeOffset + nameOrIndexIndex];
         if (_edgeTypes[type] == "property") {
-          Expect.isTrue(0 <= nameOrIndex && nameOrIndex < _strings.length);
+          Expect.isTrue(0 <= nameOrIndex && nameOrIndex < _strings.length,
+              "edge name ${nameOrIndex} outside range [0, ${_strings.length}");
         } else if (_edgeTypes[type] == "element" ||
             _edgeTypes[type] == "context") {
-          Expect.isTrue(nameOrIndex >= 0);
+          Expect.isTrue(nameOrIndex >= 0, "negative edge index ${nameOrIndex}");
         }
 
         final int toNode = edges[edgeOffset + toNodeIndex];
@@ -215,9 +223,13 @@ class V8SnapshotProfile extends Graph<int> {
   }
 
   void checkNode(int offset) {
-    Expect.isTrue(offset >= 0 &&
-        offset % _nodeFields.length == 0 &&
-        offset ~/ _nodeFields.length < _nodes.length);
+    Expect.isTrue(offset >= 0, "negative offset ${offset}");
+    Expect.isTrue(offset % _nodeFields.length == 0,
+        "offset ${offset} not a multiple of ${_nodeFields.length}");
+    Expect.isTrue(
+        offset ~/ _nodeFields.length < _nodes.length,
+        "offset ${offset} divided by ${_nodeFields.length} is greater than or "
+        "equal to node count ${_nodes.length}");
   }
 
   void _calculateFromEdges() {
@@ -243,7 +255,8 @@ class V8SnapshotProfile extends Graph<int> {
 
   int get unknownCount {
     final int unknownType = _nodeTypes.indexOf("Unknown");
-    Expect.isTrue(unknownType >= 0);
+    Expect.isTrue(
+        unknownType >= 0, 'negative type index for "Unknown": ${unknownType}');
 
     int count = 0;
     for (final MapEntry<int, _NodeInfo> entry in _nodes.entries) {
