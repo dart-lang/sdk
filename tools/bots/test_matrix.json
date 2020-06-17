@@ -2652,26 +2652,6 @@
           ]
         },
         {
-          "name": "build gen_kernel.dart.snapshot",
-          "script": "tools/build.py",
-          "arguments": [
-            "--arch=x64,arm,arm64",
-            "--mode=release",
-            "copy_gen_kernel_snapshot"
-          ]
-        },
-        {
-          "name": "build gen_snapshot and dartaotruntime",
-          "script": "tools/build.py",
-          "arguments": [
-            "--arch=x64,arm,arm64",
-            "--mode=product",
-            "copy_gen_snapshot",
-            "copy_dartaotruntime",
-            "copy_vm_dill_files"
-          ]
-        },
-        {
           "name": "upload sdk",
           "script": "tools/bots/dart_sdk.py"
         },
@@ -2717,26 +2697,6 @@
           ]
         },
         {
-          "name": "build gen_kernel.dart.snapshot",
-          "script": "tools/build.py",
-          "arguments": [
-            "--arch=x64",
-            "--mode=release",
-            "copy_gen_kernel_snapshot"
-          ]
-        },
-        {
-          "name": "build gen_snapshot and dartaotruntime",
-          "script": "tools/build.py",
-          "arguments": [
-            "--arch=x64",
-            "--mode=product",
-            "copy_gen_snapshot",
-            "copy_dartaotruntime",
-            "copy_vm_dill_files"
-          ]
-        },
-        {
           "name": "upload sdk",
           "script": "tools/bots/dart_sdk.py"
         },
@@ -2765,26 +2725,6 @@
             "--mode=release",
             "create_sdk",
             "runtime_kernel"
-          ]
-        },
-        {
-          "name": "build gen_kernel.dart.snapshot",
-          "script": "tools/build.py",
-          "arguments": [
-            "--arch=x64",
-            "--mode=release",
-            "copy_gen_kernel_snapshot"
-          ]
-        },
-        {
-          "name": "build gen_snapshot and dartaotruntime",
-          "script": "tools/build.py",
-          "arguments": [
-            "--arch=x64",
-            "--mode=product",
-            "copy_gen_snapshot",
-            "copy_dartaotruntime",
-            "copy_vm_dill_files"
           ]
         },
         {

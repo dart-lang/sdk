@@ -14,6 +14,7 @@
 # fail.
 
 import("../build/dart/copy_tree.gni")
+import("../build/executable_suffix.gni")
 import("../runtime/runtime_args.gni")
 import("../sdk_args.gni")
 
@@ -21,13 +22,10 @@ declare_args() {
   # Build a SDK with less stuff. It excludes dart2js, ddc, and web libraries.
   dart_platform_sdk = true
 
-  # Whether to include dart2native in the "create_sdk" target.
-  include_dart2native = false
-
   # Path to stripped dart binaries relative to build output directory.
   dart_stripped_binary = "dart"
-  dart_precompiled_runtime_stripped_binary = "dart_precompiled_runtime"
-  gen_snapshot_stripped_binary = "gen_snapshot"
+  dart_precompiled_runtime_stripped_binary = "dart_precompiled_runtime_product"
+  gen_snapshot_stripped_binary = "gen_snapshot_product"
 }
 
 # The directory layout of the SDK is as follows:
@@ -39,11 +37,11 @@ declare_args() {
 # ......dartaotruntime or dartaotruntime.exe (executable)
 # ......dartdoc
 # ......dartfmt
-# ......dart2native (if `include_dart2native` and not on ia32)
+# ......dart2native (if not on ia32)
 # ......dart2js
 # ......dartanalyzer
 # ......dartdevc
-# ......utils/gen_snapshot or utils/gen_snapshot.exe (if `include_dart2native` and not on ia32)
+# ......utils/gen_snapshot or utils/gen_snapshot.exe (if not on ia32)
 # ......pub
 # ......snapshots/
 # ........analysis_server.dart.snapshot
@@ -53,8 +51,8 @@ declare_args() {
 # ........dartdoc.dart.snapshot
 # ........dartfmt.dart.snapshot
 # ........dartdevc.dart.snapshot
-# ........gen_kernel.dart.snapshot (if `include_dart2native` and not on ia32)
-# ........dart2native.dart.snapshot (if `include_dart2native` and not on ia32)
+# ........gen_kernel.dart.snapshot (if not on ia32)
+# ........dart2native.dart.snapshot (if not on ia32)
 # ........kernel_worker.dart.snapshot
 # ........pub.dart.snapshot
 # ........frontend_server.dart.snapshot
@@ -140,7 +138,7 @@ _platform_sdk_snapshots = [
     "../utils/pub",
   ],
 ]
-if (include_dart2native && dart_target_arch != "ia32") {
+if (dart_target_arch != "ia32") {
   _platform_sdk_snapshots += [ [
         "dart2native",
         "../utils/dart2native:generate_dart2native_snapshot",
@@ -197,7 +195,7 @@ _full_sdk_snapshots = [
     "../utils/kernel-service:frontend_server",
   ],
 ]
-if (include_dart2native && dart_target_arch != "ia32") {
+if (dart_target_arch != "ia32") {
   _full_sdk_snapshots += [ [
         "dart2native",
         "../utils/dart2native:generate_dart2native_snapshot",
@@ -411,11 +409,7 @@ if (target_os != current_os && target_os == "fuchsia") {
     visibility = [ ":create_common_sdk" ]
     deps = [ "../runtime/bin:dart" ]
     dart_out = get_label_info("../runtime/bin:dart", "root_out_dir")
-    if (is_win) {
-      sources = [ "$dart_out/dart.exe" ]
-    } else {
-      sources = [ "$dart_out/$dart_stripped_binary" ]
-    }
+    sources = [ "$dart_out/${dart_stripped_binary}${executable_suffix}" ]
     if (is_win) {
       sources += [ "$dart_out/dart.lib" ]
     }
@@ -424,29 +418,32 @@ if (target_os != current_os && target_os == "fuchsia") {
 }
 
 copy("copy_dartaotruntime") {
-  deps = [ "../runtime/bin:dart_precompiled_runtime" ]
-  dartaotruntime_out =
-      get_label_info("../runtime/bin:dart_precompiled_runtime", "root_out_dir")
-  if (is_win) {
-    sources = [ "$dartaotruntime_out/dart_precompiled_runtime.exe" ]
-    outputs = [ "$root_out_dir/dart-sdk/bin/dartaotruntime.exe" ]
-  } else {
-    sources =
-        [ "$dartaotruntime_out/$dart_precompiled_runtime_stripped_binary" ]
-    outputs = [ "$root_out_dir/dart-sdk/bin/dartaotruntime" ]
-  }
+  visibility = [ ":copy_dart2native" ]
+  deps = [ "../runtime/bin:dart_precompiled_runtime_product" ]
+  src_dir = get_label_info("../runtime/bin:dart_precompiled_runtime_product",
+                           "root_out_dir")
+  sources = [
+    "$src_dir/${dart_precompiled_runtime_stripped_binary}${executable_suffix}",
+  ]
+  outputs = [ "$root_out_dir/dart-sdk/bin/dartaotruntime${executable_suffix}" ]
 }
 
 copy("copy_gen_snapshot") {
-  deps = [ "../runtime/bin:gen_snapshot" ]
-  gen_snapshot_out =
-      get_label_info("../runtime/bin:gen_snapshot", "root_out_dir")
-  if (is_win) {
-    sources = [ "$gen_snapshot_out/gen_snapshot.exe" ]
-  } else {
-    sources = [ "$gen_snapshot_out/$gen_snapshot_stripped_binary" ]
-  }
-  outputs = [ "$root_out_dir/dart-sdk/bin/utils/{{source_file_part}}" ]
+  visibility = [ ":copy_dart2native" ]
+  deps = [ "../runtime/bin:gen_snapshot_product" ]
+  src_dir =
+      get_label_info("../runtime/bin:gen_snapshot_product", "root_out_dir")
+  sources = [ "$src_dir/${gen_snapshot_stripped_binary}${executable_suffix}" ]
+  outputs =
+      [ "$root_out_dir/dart-sdk/bin/utils/gen_snapshot${executable_suffix}" ]
+}
+
+copy("copy_vm_platform_strong_product") {
+  visibility = [ ":copy_dart2native" ]
+  deps = [ "../runtime/vm:vm_platform_product" ]
+  src_dir = get_label_info("../runtime/vm:vm_platform_product", "root_out_dir")
+  sources = [ "$src_dir/vm_platform_strong_product.dill" ]
+  outputs = [ "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}" ]
 }
 
 copy("copy_dart2native") {
@@ -454,6 +451,7 @@ copy("copy_dart2native") {
     ":copy_dartaotruntime",
     ":copy_gen_kernel_snapshot",
     ":copy_gen_snapshot",
+    ":copy_vm_platform_strong_product",
   ]
   ext = ""
   if (is_win) {
@@ -464,6 +462,7 @@ copy("copy_dart2native") {
 }
 
 copy("copy_gen_kernel_snapshot") {
+  visibility = [ ":copy_dart2native" ]
   deps = [ "../utils/gen_kernel" ]
   sources = [ "$root_gen_dir/gen_kernel.dart.snapshot" ]
   outputs = [ "$root_out_dir/dart-sdk/bin/snapshots/{{source_file_part}}" ]
@@ -890,7 +889,7 @@ group("create_common_sdk") {
 
   # We do not support AOT on ia32 and should therefore not add the
   # dart2native script (since there is no AOT compiler/runtime available)
-  if (include_dart2native && dart_target_arch != "ia32") {
+  if (dart_target_arch != "ia32") {
     public_deps += [ ":copy_dart2native" ]
   }
 
