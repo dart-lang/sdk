@@ -1001,7 +1001,6 @@ Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
     Dart_SourceFile source_files[],
     bool incremental_compile,
     const char* package_config,
-    const char* original_working_directory,
     const char* multiroot_filepaths,
     const char* multiroot_scheme) {
   // Start the kernel Isolate if it is not already running.
@@ -1027,7 +1026,7 @@ Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
       kCompileTag, kernel_port, script_uri, platform_kernel,
       platform_kernel_size, source_file_count, source_files,
       incremental_compile, package_config, multiroot_filepaths,
-      multiroot_scheme, experimental_flags_, original_working_directory);
+      multiroot_scheme, experimental_flags_, NULL);
 }
 
 bool KernelIsolate::DetectNullSafety(const char* script_uri,

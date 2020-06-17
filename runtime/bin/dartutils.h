@@ -161,6 +161,8 @@ class DartUtils {
   static Dart_Handle MakeUint8Array(const uint8_t* buffer, intptr_t length);
   static Dart_Handle PrepareForScriptLoading(bool is_service_isolate,
                                              bool trace_loading);
+  static Dart_Handle SetupPackageConfig(const char* packages_file);
+
   static Dart_Handle SetupIOLibrary(const char* namespc_path,
                                     const char* script_uri,
                                     bool disable_exit);
@@ -223,6 +225,8 @@ class DartUtils {
 
   static bool SetOriginalWorkingDirectory();
 
+  static Dart_Handle ResolveScript(Dart_Handle url);
+
   enum MagicNumber {
     kAppJITMagicNumber,
     kKernelMagicNumber,
@@ -261,6 +265,7 @@ class DartUtils {
   static Dart_Handle EnvironmentCallback(Dart_Handle name);
 
  private:
+  static Dart_Handle SetWorkingDirectory();
   static Dart_Handle PrepareBuiltinLibrary(Dart_Handle builtin_lib,
                                            Dart_Handle internal_lib,
                                            bool is_service_isolate,

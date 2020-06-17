@@ -15,6 +15,7 @@ IsolateGroupData::IsolateGroupData(const char* url,
                                    bool isolate_run_app_snapshot)
     : script_url((url != NULL) ? strdup(url) : NULL),
       app_snapshot_(app_snapshot),
+      resolved_packages_config_(NULL),
       kernel_buffer_(NULL),
       kernel_buffer_size_(0),
       isolate_run_app_snapshot_(isolate_run_app_snapshot) {
@@ -28,6 +29,8 @@ IsolateGroupData::~IsolateGroupData() {
   script_url = NULL;
   free(packages_file_);
   packages_file_ = NULL;
+  free(resolved_packages_config_);
+  resolved_packages_config_ = NULL;
   kernel_buffer_ = NULL;
   kernel_buffer_size_ = 0;
 }
