@@ -705,12 +705,10 @@ dart_vm_nightly_builder(
 dart_vm_extra_builder(
     "vm-kernel-precomp-android-release-arm_x64",
     category="vm|kernel-precomp|android|a32",
-    goma_rbe=False,
     properties={"shard_timeout": (90 * time.minute) / time.second})
 dart_vm_extra_builder(
     "vm-kernel-precomp-android-release-arm64",
     category="vm|kernel-precomp|android|a64",
-    goma_rbe=False,
     properties={"shard_timeout": (90 * time.minute) / time.second})
 
 # vm|product
@@ -755,18 +753,12 @@ dart_vm_low_priority_builder(
     category="vm|misc|reload|rrb")
 
 # vm|ffi
-dart_vm_extra_builder(
-    "vm-ffi-android-debug-arm", category="vm|ffi|d32", goma_rbe=False)
-dart_vm_extra_builder(
-    "vm-ffi-android-release-arm", category="vm|ffi|r32", goma_rbe=False)
-dart_vm_extra_builder(
-    "vm-ffi-android-product-arm", category="vm|ffi|p32", goma_rbe=False)
-dart_vm_extra_builder(
-    "vm-ffi-android-debug-arm64", category="vm|ffi|d64", goma_rbe=False)
-dart_vm_extra_builder(
-    "vm-ffi-android-release-arm64", category="vm|ffi|r64", goma_rbe=False)
-dart_vm_extra_builder(
-    "vm-ffi-android-product-arm64", category="vm|ffi|p64", goma_rbe=False)
+dart_vm_extra_builder("vm-ffi-android-debug-arm", category="vm|ffi|d32")
+dart_vm_extra_builder("vm-ffi-android-release-arm", category="vm|ffi|r32")
+dart_vm_extra_builder("vm-ffi-android-product-arm", category="vm|ffi|p32")
+dart_vm_extra_builder("vm-ffi-android-debug-arm64", category="vm|ffi|d64")
+dart_vm_extra_builder("vm-ffi-android-release-arm64", category="vm|ffi|r64")
+dart_vm_extra_builder("vm-ffi-android-product-arm64", category="vm|ffi|p64")
 dart_vm_extra_builder(
     "vm-precomp-ffi-qemu-linux-release-arm", category="vm|ffi|qe")
 
@@ -953,7 +945,8 @@ dart_ci_sandbox_builder(
 
 # Try only builders
 dart_try_builder("benchmark-linux", on_cq=True)
-dart_try_builder("vm-kernel-gcc-linux")
+# Our sysroot does not support gcc, we can't use goma on RBE for this builder
+dart_try_builder("vm-kernel-gcc-linux", goma_rbe=False)
 dart_try_builder(
     "presubmit",
     bucket="try.shared",
