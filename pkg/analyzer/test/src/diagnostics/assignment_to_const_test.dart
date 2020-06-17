@@ -51,17 +51,6 @@ f() {
     ]);
   }
 
-  test_localVariable_plusEq() async {
-    await assertErrorsInCode('''
-f() {
-  const x = 0;
-  x += 1;
-}''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 14, 1),
-      error(StaticWarningCode.ASSIGNMENT_TO_CONST, 23, 1),
-    ]);
-  }
-
   test_localVariable_inForEach() async {
     await assertErrorsInCode('''
 f() {
@@ -71,6 +60,17 @@ f() {
   }
 }''', [
       error(StaticWarningCode.ASSIGNMENT_TO_CONST, 28, 1),
+    ]);
+  }
+
+  test_localVariable_plusEq() async {
+    await assertErrorsInCode('''
+f() {
+  const x = 0;
+  x += 1;
+}''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 14, 1),
+      error(StaticWarningCode.ASSIGNMENT_TO_CONST, 23, 1),
     ]);
   }
 }

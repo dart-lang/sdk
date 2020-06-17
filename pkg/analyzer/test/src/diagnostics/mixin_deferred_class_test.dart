@@ -15,20 +15,6 @@ main() {
 
 @reflectiveTest
 class MixinDeferredClassTest extends DriverResolutionTest {
-  test_mixin_deferred_class() async {
-    newFile('/test/lib/lib1.dart', content: '''
-library lib1;
-class A {}
-''');
-    await assertErrorsInCode('''
-library root;
-import 'lib1.dart' deferred as a;
-class B extends Object with a.A {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_DEFERRED_CLASS, 76, 3),
-    ]);
-  }
-
   test_classTypeAlias() async {
     newFile('/test/lib/lib1.dart', content: '''
 library lib1;
@@ -39,6 +25,20 @@ library root;
 import 'lib1.dart' deferred as a;
 class B {}
 class C = B with a.A;
+''', [
+      error(CompileTimeErrorCode.MIXIN_DEFERRED_CLASS, 76, 3),
+    ]);
+  }
+
+  test_mixin_deferred_class() async {
+    newFile('/test/lib/lib1.dart', content: '''
+library lib1;
+class A {}
+''');
+    await assertErrorsInCode('''
+library root;
+import 'lib1.dart' deferred as a;
+class B extends Object with a.A {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_DEFERRED_CLASS, 76, 3),
     ]);

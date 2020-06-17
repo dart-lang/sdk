@@ -30,6 +30,7 @@ import 'package:analyzer/src/error/dead_code_verifier.dart';
 import 'package:analyzer/src/error/imports_verifier.dart';
 import 'package:analyzer/src/error/inheritance_override.dart';
 import 'package:analyzer/src/error/override_verifier.dart';
+import 'package:analyzer/src/error/todo_finder.dart';
 import 'package:analyzer/src/error/unused_local_elements_verifier.dart';
 import 'package:analyzer/src/generated/declaration_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -45,7 +46,6 @@ import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:pub_semver/pub_semver.dart';
-import 'package:analyzer/src/error/todo_finder.dart';
 
 var timerLibraryAnalyzer = Stopwatch();
 var timerLibraryAnalyzerConst = Stopwatch();
@@ -369,23 +369,6 @@ class LibraryAnalyzer {
     }
   }
 
-  WorkspacePackage _getPackage(CompilationUnit unit) {
-    final libraryPath = _library.source.fullName;
-    Workspace workspace =
-        unit.declaredElement.session?.analysisContext?.workspace;
-
-    // If there is no driver setup (as in test environments), we need to create
-    // a workspace ourselves.
-    // todo (pq): fix tests or otherwise de-dup this logic shared w/ resolver.
-    if (workspace == null) {
-      final builder = ContextBuilder(
-          _resourceProvider, null /* sdkManager */, null /* contentCache */);
-      workspace = ContextBuilder.createWorkspace(
-          _resourceProvider, libraryPath, builder);
-    }
-    return workspace?.findPackageFor(libraryPath);
-  }
-
   void _computeVerifyErrors(FileState file, CompilationUnit unit) {
     if (file.source == null) {
       return;
@@ -474,6 +457,34 @@ class LibraryAnalyzer {
       RecordingErrorListener listener = _getErrorListener(file);
       return ErrorReporter(listener, file.source);
     });
+  }
+
+  /**
+   * Catch all exceptions from the `getFileContent` function.
+   */
+  String _getFileContent(String path) {
+    try {
+      return getFileContent(path);
+    } catch (_) {
+      return '';
+    }
+  }
+
+  WorkspacePackage _getPackage(CompilationUnit unit) {
+    final libraryPath = _library.source.fullName;
+    Workspace workspace =
+        unit.declaredElement.session?.analysisContext?.workspace;
+
+    // If there is no driver setup (as in test environments), we need to create
+    // a workspace ourselves.
+    // todo (pq): fix tests or otherwise de-dup this logic shared w/ resolver.
+    if (workspace == null) {
+      final builder = ContextBuilder(
+          _resourceProvider, null /* sdkManager */, null /* contentCache */);
+      workspace = ContextBuilder.createWorkspace(
+          _resourceProvider, libraryPath, builder);
+    }
+    return workspace?.findPackageFor(libraryPath);
   }
 
   /**
@@ -789,17 +800,6 @@ class LibraryAnalyzer {
       if (directive is UriBasedDirective) {
         _validateUriBasedDirective(file, directive);
       }
-    }
-  }
-
-  /**
-   * Catch all exceptions from the `getFileContent` function.
-   */
-  String _getFileContent(String path) {
-    try {
-      return getFileContent(path);
-    } catch (_) {
-      return '';
     }
   }
 

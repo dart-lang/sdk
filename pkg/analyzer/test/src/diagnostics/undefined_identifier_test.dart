@@ -30,30 +30,6 @@ class A {
     ]);
   }
 
-  test_synthetic_whenExpression_defined() async {
-    await assertErrorsInCode(r'''
-print(x) {}
-main() {
-  print(is String);
-}
-''', [
-      error(ParserErrorCode.MISSING_IDENTIFIER, 29, 2),
-    ]);
-  }
-
-  test_synthetic_whenMethodName_defined() async {
-    await assertErrorsInCode(r'''
-print(x) {}
-main(int p) {
-  p.();
-}
-''', [
-      error(ParserErrorCode.MISSING_IDENTIFIER, 30, 1),
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 30, 1),
-      error(ParserErrorCode.MISSING_IDENTIFIER, 31, 1),
-    ]);
-  }
-
   test_for() async {
     await assertErrorsInCode('''
 f(var l) {
@@ -172,6 +148,30 @@ class B extends A {
   }
 }''', [
       error(StaticWarningCode.UNDEFINED_IDENTIFIER, 54, 4),
+    ]);
+  }
+
+  test_synthetic_whenExpression_defined() async {
+    await assertErrorsInCode(r'''
+print(x) {}
+main() {
+  print(is String);
+}
+''', [
+      error(ParserErrorCode.MISSING_IDENTIFIER, 29, 2),
+    ]);
+  }
+
+  test_synthetic_whenMethodName_defined() async {
+    await assertErrorsInCode(r'''
+print(x) {}
+main(int p) {
+  p.();
+}
+''', [
+      error(ParserErrorCode.MISSING_IDENTIFIER, 30, 1),
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 30, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 31, 1),
     ]);
   }
 }

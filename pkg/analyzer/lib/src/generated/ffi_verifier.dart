@@ -163,6 +163,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       element.name == 'DynamicLibraryExtension' &&
       element.library.name == 'dart.ffi';
 
+  bool _isHandle(Element element) =>
+      element.name == 'Handle' && element.library.name == 'dart.ffi';
+
   /// Returns `true` iff [nativeType] is a `ffi.NativeFunction<???>` type.
   bool _isNativeFunctionInterfaceType(DartType nativeType) {
     if (nativeType is InterfaceType) {
@@ -174,6 +177,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
     return false;
   }
+
+  bool _isNativeFunctionPointerExtension(Element element) =>
+      element.name == 'NativeFunctionPointer' &&
+      element.library.name == 'dart.ffi';
 
   /// Returns `true` iff [nativeType] is a `ffi.NativeType` type.
   bool _isNativeTypeInterfaceType(DartType nativeType) {
@@ -189,13 +196,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// Return `true` if the given [element] represents the class `Pointer`.
   bool _isPointer(Element element) =>
       element.name == 'Pointer' && element.library.name == 'dart.ffi';
-
-  bool _isHandle(Element element) =>
-      element.name == 'Handle' && element.library.name == 'dart.ffi';
-
-  bool _isNativeFunctionPointerExtension(Element element) =>
-      element.name == 'NativeFunctionPointer' &&
-      element.library.name == 'dart.ffi';
 
   /// Returns `true` iff [nativeType] is a `ffi.Pointer<???>` type.
   bool _isPointerInterfaceType(DartType nativeType) {

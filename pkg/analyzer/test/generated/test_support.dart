@@ -11,6 +11,32 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 
+/// A description of a message that is expected to be reported with an error.
+class ExpectedContextMessage {
+  /// The path of the file with which the message is associated.
+  final String filePath;
+
+  /// The offset of the beginning of the error's region.
+  final int offset;
+
+  /// The offset of the beginning of the error's region.
+  final int length;
+
+  /// The message text for the error.
+  final String text;
+
+  ExpectedContextMessage(this.filePath, this.offset, this.length, {this.text});
+
+  /// Return `true` if the [message] matches this description of what it's
+  /// expected to be.
+  bool matches(DiagnosticMessage message) {
+    return message.filePath == filePath &&
+        message.offset == offset &&
+        message.length == length &&
+        (text == null || message.message == text);
+  }
+}
+
 /// A description of an error that is expected to be reported.
 class ExpectedError {
   /// An empty array of error descriptors used when no errors are expected.
@@ -74,32 +100,6 @@ class ExpectedError {
       }
     }
     return true;
-  }
-}
-
-/// A description of a message that is expected to be reported with an error.
-class ExpectedContextMessage {
-  /// The path of the file with which the message is associated.
-  final String filePath;
-
-  /// The offset of the beginning of the error's region.
-  final int offset;
-
-  /// The offset of the beginning of the error's region.
-  final int length;
-
-  /// The message text for the error.
-  final String text;
-
-  ExpectedContextMessage(this.filePath, this.offset, this.length, {this.text});
-
-  /// Return `true` if the [message] matches this description of what it's
-  /// expected to be.
-  bool matches(DiagnosticMessage message) {
-    return message.filePath == filePath &&
-        message.offset == offset &&
-        message.length == length &&
-        (text == null || message.message == text);
   }
 }
 

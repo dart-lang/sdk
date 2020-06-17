@@ -76,6 +76,25 @@ class FileResolver {
 
   _LibraryContext libraryContext;
 
+  FileResolver(
+    PerformanceLog logger,
+    ResourceProvider resourceProvider,
+    @deprecated ByteStore byteStore,
+    SourceFactory sourceFactory,
+    String Function(String path) getFileDigest,
+    void Function(List<String> paths) prefetchFiles, {
+    @required Workspace workspace,
+    Duration libraryContextResetTimeout = const Duration(seconds: 60),
+  }) : this.from(
+          logger: logger,
+          resourceProvider: resourceProvider,
+          sourceFactory: sourceFactory,
+          getFileDigest: getFileDigest,
+          prefetchFiles: prefetchFiles,
+          workspace: workspace,
+          libraryContextResetTimeout: libraryContextResetTimeout,
+        );
+
   FileResolver.from({
     @required PerformanceLog logger,
     @required ResourceProvider resourceProvider,
@@ -98,25 +117,6 @@ class FileResolver {
       resetTimeout: libraryContextResetTimeout,
     );
   }
-
-  FileResolver(
-    PerformanceLog logger,
-    ResourceProvider resourceProvider,
-    @deprecated ByteStore byteStore,
-    SourceFactory sourceFactory,
-    String Function(String path) getFileDigest,
-    void Function(List<String> paths) prefetchFiles, {
-    @required Workspace workspace,
-    Duration libraryContextResetTimeout = const Duration(seconds: 60),
-  }) : this.from(
-          logger: logger,
-          resourceProvider: resourceProvider,
-          sourceFactory: sourceFactory,
-          getFileDigest: getFileDigest,
-          prefetchFiles: prefetchFiles,
-          workspace: workspace,
-          libraryContextResetTimeout: libraryContextResetTimeout,
-        );
 
   FeatureSet get defaultFeatureSet => FeatureSet.fromEnableFlags([]);
 
