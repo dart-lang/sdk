@@ -356,6 +356,29 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_call_already_migrated_extension() async {
+    var content = '''
+import 'already_migrated.dart';
+void f() {
+  <int>[].g();
+}
+''';
+    var alreadyMigrated = '''
+extension Ext<T> on List<T> {
+  g() {}
+}
+''';
+    var expected = '''
+import 'already_migrated.dart';
+void f() {
+  <int>[].g();
+}
+''';
+    await _checkSingleFileChanges(content, expected, migratedInput: {
+      '/home/test/lib/already_migrated.dart': alreadyMigrated
+    });
+  }
+
   Future<void> test_call_generic_function_returns_generic_class() async {
     var content = '''
 class B<E> implements List<E/*?*/> {
