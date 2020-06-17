@@ -101,8 +101,11 @@ var y = a;
 var z = PI;
 ''');
     assertType(findElement.topVar('x').type, 'int');
-    assertType(findElement.topVar('y').type, 'int*');
+    assertType(findElement.topVar('y').type, 'int');
     assertType(findElement.topVar('z').type, 'double');
+
+    var importFind = findElement.importFind('package:aaa/a.dart');
+    assertType(importFind.topVar('a').type, 'int*');
   }
 }
 
