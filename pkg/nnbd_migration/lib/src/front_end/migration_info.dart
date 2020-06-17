@@ -83,6 +83,9 @@ class MigrationInfo {
   /// The path to the highlight.pack.js stylesheet, relative to [unitInfo].
   String get highlightStylePath => PreviewSite.highlightCssPath;
 
+  /// The path of the Dart logo displayed in the toolbar.
+  String get dartLogoPath => PreviewSite.dartLogoPath;
+
   /// Return the path to [unit] from [includedRoot], to be used as a display
   /// name for a library.
   String computeName(UnitInfo unit) =>
