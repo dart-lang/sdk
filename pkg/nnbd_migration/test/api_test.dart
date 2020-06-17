@@ -4144,8 +4144,6 @@ int f() =>
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/42327')
-  // When fixing this issue, probably convert this to an edge builder test.
   Future<void> test_migratedMethod_namedParameter() async {
     var content = '''
 void f(Iterable<int> a) {

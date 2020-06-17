@@ -381,7 +381,7 @@ abstract class Iterable<E> {
 
   Iterable<R> map<R>(R f(E e));
 
-  List<E> toList();
+  List<E> toList({bool growable = true});
 
   Set<E> toSet();
 
