@@ -7,15 +7,13 @@
 
 // A dollar must be followed by a "{" or an identifier.
 
-class StringInterpolation6NegativeTest {
+class StringInterpolation2NegativeTest {
   static testMain() {
-    // Dollar not followed by "{" or identifier.
-    String regexp;
+    // Dollar followed by "/".
 
-    print(regexp);
   }
 }
 
 main() {
-  StringInterpolation6NegativeTest.testMain();
+  StringInterpolation2NegativeTest.testMain();
 }

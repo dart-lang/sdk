@@ -22,6 +22,11 @@ tests/dart2js_2/eof_line_ending_test.dart -text
 tests/dart2js_2/string_interpolation_test.dart -text
 tests/dart2js_2/string_interpolation_dynamic_test.dart -text
 tests/dart2js_2/literal_string_juxtaposition_test.dart -text
+tests/language/string/raw_string_test.dart -text
+tests/language/string/multiline_strings_test.dart -text
+tests/language/string/multiline_newline_cr.dart -text
+tests/language/string/multiline_newline_crlf.dart -text
+tests/language/string/multiline_newline_lf.dart -text
 tests/language_2/string/raw_string_test.dart -text
 tests/language_2/string/multiline_strings_test.dart -text
 tests/language_2/string/multiline_newline_cr.dart -text
