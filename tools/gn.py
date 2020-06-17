@@ -127,7 +127,7 @@ def DontUseClang(args, target_os, host_cpu, target_cpu):
 
 def UseSysroot(args, gn_args):
     # Don't try to use a Linux sysroot if we aren't on Linux.
-    if gn_args['target_os'] != 'linux':
+    if gn_args['target_os'] != 'linux' and HOST_OS != 'linux':
         return False
     # Don't use the sysroot if we're given another sysroot.
     if TargetSysroot(args):
