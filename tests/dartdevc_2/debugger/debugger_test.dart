@@ -129,7 +129,7 @@ main() async {
   // Cache blocker is a workaround for:
   // https://code.google.com/p/dart/issues/detail?id=11834
   var cacheBlocker = new DateTime.now().millisecondsSinceEpoch;
-  var goldenUrl = '/root_dart/tests/compiler/dartdevc_native/debugger/'
+  var goldenUrl = '/root_dart/tests/dartdevc_2/debugger/'
       'debugger_test_golden.txt?cacheBlock=$cacheBlocker';
 
   String golden;
@@ -326,7 +326,7 @@ window.ExampleJSClass = function ExampleJSClass(x) {
     if (actualStr != golden) {
       var helpMessage =
           'Debugger output does not match the golden data found in:\n'
-          'tests/compiler/dartdevc_native/debugger/debugger_test_golden.txt\n'
+          'tests/dartdevc_2/debugger/debugger_test_golden.txt\n'
           'The new golden data is copied to the clipboard when you click on '
           'this window.\n'
           'Please update the golden file with the following output and review '

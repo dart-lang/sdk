@@ -35,7 +35,7 @@
       'filepath': (
         '^pkg/dev_compiler|'
         '^sdk/lib/_internal/js_dev_runtime|'
-        '^tests/compiler/dartdevc_native'
+        '^tests/dartdevc'
       )
     },
     'package_vm': {
