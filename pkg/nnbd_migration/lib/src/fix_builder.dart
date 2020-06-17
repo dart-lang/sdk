@@ -298,8 +298,6 @@ class MigrationResolutionHooksImpl
     implements MigrationResolutionHooks {
   FixBuilder _fixBuilder;
 
-  TypeProvider get typeProvider => _fixBuilder.typeProvider;
-
   final Expando<List<CollectionElement>> _collectionElements = Expando();
 
   final Expando<bool> _shouldStayNullAware = Expando();
@@ -309,6 +307,20 @@ class MigrationResolutionHooksImpl
 
   FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>
       _flowAnalysis;
+
+  TypeProvider get typeProvider => _fixBuilder.typeProvider;
+
+  Element get _elementHashCode =>
+      _fixBuilder.typeProvider.objectType.getGetter('hashCode');
+
+  Element get _elementNoSuchMethod =>
+      _fixBuilder.typeProvider.objectType.getGetter('noSuchMethod');
+
+  Element get _elementRuntimeType =>
+      _fixBuilder.typeProvider.objectType.getMethod('runtimeType');
+
+  Element get _elementToString =>
+      _fixBuilder.typeProvider.objectType.getMethod('toString');
 
   @override
   void freshTypeParameterCreated(TypeParameterElement newTypeParameter,
@@ -586,15 +598,6 @@ class MigrationResolutionHooksImpl
     }
     return type;
   }
-
-  Element get _elementToString =>
-      _fixBuilder.typeProvider.objectType.getMethod('toString');
-  Element get _elementHashCode =>
-      _fixBuilder.typeProvider.objectType.getGetter('hashCode');
-  Element get _elementRuntimeType =>
-      _fixBuilder.typeProvider.objectType.getMethod('runtimeType');
-  Element get _elementNoSuchMethod =>
-      _fixBuilder.typeProvider.objectType.getGetter('noSuchMethod');
 
   bool _needsNullCheckDueToStructure(Expression node) {
     var parent = node.parent;
