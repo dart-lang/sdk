@@ -289,6 +289,62 @@ class C {
 ''', 'num');
   }
 
+  Future<void> test_fieldDeclaration_int() async {
+    await assertContextType('''
+class Foo {
+  int i=^;
+}
+''', 'int');
+  }
+
+  Future<void> test_fieldDeclaration_int_missingSemicolon() async {
+    await assertContextType('''
+class Foo {
+  int i=^
+}
+''', 'int');
+  }
+
+  Future<void> test_fieldDeclaration_int_multiple() async {
+    await assertContextType('''
+class Foo {
+  int i=1,j=2,k=^;
+}
+''', 'int');
+  }
+
+  Future<void> test_fieldDeclaration_int_multiple_whitespace() async {
+    await assertContextType('''
+class Foo {
+  int i = 1 , j = 2 , k =  ^  ;
+}
+''', 'int');
+  }
+
+  Future<void> test_fieldDeclaration_int_whitespace() async {
+    await assertContextType('''
+class Foo {
+  int i = ^ ;
+}
+''', 'int');
+  }
+
+  Future<void> test_fieldDeclaration_var() async {
+    await assertContextType('''
+class Foo {
+  var i =^;
+}
+''', null);
+  }
+
+  Future<void> test_fieldDeclaration_var_whitespace() async {
+    await assertContextType('''
+class Foo {
+  var i = ^ ;
+}
+''', null);
+  }
+
   Future<void> test_ifElement() async {
     await assertContextType('''
 void f(bool b, int e) {
@@ -442,6 +498,49 @@ void f(int e) {
 void f() {
   var s = <^int>{};
 }
+''', null);
+  }
+
+  Future<void> test_topLevelVariableDeclaration_int() async {
+    await assertContextType('''
+int i=^;
+''', 'int');
+  }
+
+  Future<void> test_topLevelVariableDeclaration_int_missingSemicolon() async {
+    await assertContextType('''
+int i=^
+''', 'int');
+  }
+
+  Future<void> test_topLevelVariableDeclaration_int_multiple() async {
+    await assertContextType('''
+int i=1,j=2,k=^;
+''', 'int');
+  }
+
+  Future<void>
+      test_topLevelVariableDeclaration_int_multiple_whitespace() async {
+    await assertContextType('''
+int i = 1 , j = 2 , k =  ^  ;
+''', 'int');
+  }
+
+  Future<void> test_topLevelVariableDeclaration_int_whitespace() async {
+    await assertContextType('''
+int i =  ^  ;
+''', 'int');
+  }
+
+  Future<void> test_topLevelVariableDeclaration_var() async {
+    await assertContextType('''
+var i=^;
+''', null);
+  }
+
+  Future<void> test_topLevelVariableDeclaration_var_whitespace() async {
+    await assertContextType('''
+var i=  ^  ;
 ''', null);
   }
 }
