@@ -260,6 +260,16 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                                Fragment* implicit_checks,
                                Fragment* implicit_redefinitions);
 
+  // Returns true if null assertion is needed for
+  // a parameter of given type.
+  bool NeedsNullAssertion(const AbstractType& type);
+
+  // Builds null assertion for the given parameter.
+  Fragment NullAssertion(LocalVariable* variable);
+
+  // Builds null assertions for all parameters (if needed).
+  Fragment BuildNullAssertions();
+
   // Builds flow graph for noSuchMethod forwarder.
   //
   // If throw_no_such_method_error is set to true, an
@@ -406,6 +416,9 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   CatchBlock* catch_block_;
 
   ActiveClass active_class_;
+
+  // Cached _AssertionError._throwNewNullAssertion.
+  Function* throw_new_null_assertion_ = nullptr;
 
   friend class BreakableBlock;
   friend class CatchBlock;

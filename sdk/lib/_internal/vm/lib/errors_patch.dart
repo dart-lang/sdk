@@ -36,8 +36,16 @@ class _AssertionError extends Error implements AssertionError {
     _doThrowNew(assertionStart, assertionEnd, message);
   }
 
+  @pragma("vm:entry-point", "call")
+  @pragma('vm:never-inline')
+  static _throwNewNullAssertion(String name, int line, int column) {
+    _doThrowNewSource('$name != null', line, column, null);
+  }
+
   static _doThrowNew(int assertionStart, int assertionEnd, Object? message)
       native "AssertionError_throwNew";
+  static _doThrowNewSource(String failedAssertion, int line, int column, Object? message)
+      native "AssertionError_throwNewSource";
 
   @pragma("vm:entry-point", "call")
   static _evaluateAssertion(condition) {
@@ -75,7 +83,7 @@ class _AssertionError extends Error implements AssertionError {
   }
 
   final String _failedAssertion;
-  final String _url;
+  final String? _url;
   final int _line;
   final int _column;
   final Object? message;
