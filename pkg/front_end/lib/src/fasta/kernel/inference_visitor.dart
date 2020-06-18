@@ -5841,7 +5841,8 @@ class InferenceVisitor
   void reportNonNullableInNullAwareWarningIfNeeded(
       DartType operandType, String operationName, int offset) {
     if (!inferrer.isTopLevel && inferrer.isNonNullableByDefault) {
-      if (operandType is! InvalidType && !operandType.isPotentiallyNullable) {
+      if (operandType is! InvalidType &&
+          operandType.nullability == Nullability.nonNullable) {
         inferrer.library.addProblem(
             templateNonNullableInNullAware.withArguments(
                 operationName, operandType, inferrer.isNonNullableByDefault),
