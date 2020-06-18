@@ -210,8 +210,11 @@ source_set("dart_api") {
   public_configs = [ ":dart_public_config" ]
   sources = [
     "include/dart_api.h",
+    "include/dart_api_dl.h",
     "include/dart_native_api.h",
     "include/dart_tools_api.h",
+    "include/dart_version.h",
+    "include/internal/dart_api_dl_impl.h",
   ]
 }
 

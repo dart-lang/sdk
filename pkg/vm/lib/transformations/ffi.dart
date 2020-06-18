@@ -216,6 +216,8 @@ class FfiTransformer extends Transformer {
   final Map<NativeType, Procedure> storeMethods;
   final Map<NativeType, Procedure> elementAtMethods;
   final Procedure loadStructMethod;
+  final Procedure asFunctionTearoff;
+  final Procedure lookupFunctionTearoff;
 
   /// Classes corresponding to [NativeType], indexed by [NativeType].
   final List<Class> nativeTypesClasses;
@@ -274,7 +276,13 @@ class FfiTransformer extends Transformer {
           final name = nativeTypeClassNames[t.index];
           return index.getTopLevelMember('dart:ffi', "_elementAt$name");
         }),
-        loadStructMethod = index.getTopLevelMember('dart:ffi', '_loadStruct');
+        loadStructMethod = index.getTopLevelMember('dart:ffi', '_loadStruct'),
+        asFunctionTearoff = index.getMember('dart:ffi', 'NativeFunctionPointer',
+            LibraryIndex.tearoffPrefix + 'asFunction'),
+        lookupFunctionTearoff = index.getMember(
+            'dart:ffi',
+            'DynamicLibraryExtension',
+            LibraryIndex.tearoffPrefix + 'lookupFunction');
 
   /// Computes the Dart type corresponding to a ffi.[NativeType], returns null
   /// if it is not a valid NativeType.

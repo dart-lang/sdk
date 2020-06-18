@@ -1139,11 +1139,14 @@ shared_library("ffi_test_dynamic_library") {
 shared_library("ffi_test_functions") {
   deps = [ ":dart" ]
 
-  # The two files here do not depend on each other.
-  # flutter/flutter integration tests will only use `ffi_test_functions.cc` -
-  # any test functionality using `dart_api.h` has to go into
-  # `ffi_test_functions_vmspecific.cc`.
   sources = [
+    # This file must be compiled in for dynamic linking.
+    "../include/dart_api_dl.cc",
+
+    # The two files here do not depend on each other.
+    # flutter/flutter integration tests will only use `ffi_test_functions.cc` -
+    # any test functionality using `dart_api.h` has to go into
+    # `ffi_test_functions_vmspecific.cc`.
     "ffi_test/ffi_test_functions.cc",
     "ffi_test/ffi_test_functions_vmspecific.cc",
   ]

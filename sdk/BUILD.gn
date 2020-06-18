@@ -742,8 +742,11 @@ copy("copy_headers") {
   visibility = [ ":create_common_sdk" ]
   sources = [
     "../runtime/include/dart_api.h",
+    "../runtime/include/dart_api_dl.h",
     "../runtime/include/dart_native_api.h",
     "../runtime/include/dart_tools_api.h",
+    "../runtime/include/dart_version.h",
+    "../runtime/include/internal/dart_api_dl_impl.h",
   ]
   outputs = [ "$root_out_dir/dart-sdk/include/{{source_file_part}}" ]
 }
