@@ -72,7 +72,16 @@ library_for_all_configs("libdart_vm") {
     "//third_party/icu:icuuc",
   ]
   if (is_fuchsia) {
-    if (using_fuchsia_sdk) {
+    if (using_fuchsia_gn_sdk) {
+      extra_deps = [
+        "$fuchsia_sdk_root/fidl/fuchsia.deprecatedtimezone",
+        "$fuchsia_sdk_root/pkg/inspect",
+        "$fuchsia_sdk_root/pkg/inspect_service_cpp",
+        "$fuchsia_sdk_root/pkg/sys_cpp",
+        "$fuchsia_sdk_root/pkg/sys_inspect_cpp",
+        "$fuchsia_sdk_root/pkg/trace-engine",
+      ]
+    } else if (using_fuchsia_sdk) {
       extra_deps = [
         "$fuchsia_sdk_root/fidl:fuchsia.deprecatedtimezone",
         "$fuchsia_sdk_root/pkg:inspect",
@@ -114,7 +123,9 @@ library_for_all_configs_with_compiler("libdart_compiler") {
   sources = rebase_path(compiler_sources, ".", "./compiler/")
   include_dirs = [ ".." ]
   if (is_fuchsia) {
-    if (using_fuchsia_sdk) {
+    if (using_fuchsia_gn_sdk) {
+      extra_deps = [ "$fuchsia_sdk_root/pkg/trace-engine" ]
+    } else if (using_fuchsia_sdk) {
       extra_deps = [ "$fuchsia_sdk_root/pkg:trace-engine" ]
     } else {
       extra_deps = [
@@ -128,7 +139,9 @@ library_for_all_configs_with_compiler("libdart_compiler") {
 library_for_all_configs("libdart_lib") {
   target_type = "source_set"
   if (is_fuchsia) {
-    if (using_fuchsia_sdk) {
+    if (using_fuchsia_gn_sdk) {
+      extra_deps = [ "$fuchsia_sdk_root/pkg/trace-engine" ]
+    } else if (using_fuchsia_sdk) {
       extra_deps = [ "$fuchsia_sdk_root/pkg:trace-engine" ]
     } else {
       extra_deps = [

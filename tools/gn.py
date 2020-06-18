@@ -281,7 +281,7 @@ def ProcessOptions(args):
     if args.mode == 'all':
         args.mode = 'debug,release,product'
     if args.os == 'all':
-        args.os = 'host,android'
+        args.os = 'host,android,fuchsia'
     if args.sanitizer == 'all':
         args.sanitizer = 'none,asan,lsan,msan,tsan,ubsan'
     args.mode = args.mode.split(',')
@@ -302,13 +302,12 @@ def ProcessOptions(args):
             return False
     oses = [ProcessOsOption(os_name) for os_name in args.os]
     for os_name in oses:
-        if not os_name in ['android', 'freebsd', 'linux', 'macos', 'win32']:
+        if not os_name in [
+                'android', 'freebsd', 'linux', 'macos', 'win32', 'fuchsia'
+        ]:
             print("Unknown os %s" % os_name)
             return False
-        if os_name != HOST_OS:
-            if os_name != 'android':
-                print("Unsupported target os %s" % os_name)
-                return False
+        if os_name == 'android':
             if not HOST_OS in ['linux', 'macos']:
                 print("Cross-compilation to %s is not supported on host os %s."
                       % (os_name, HOST_OS))
@@ -320,6 +319,19 @@ def ProcessOptions(args):
                     "Cross-compilation to %s is not supported for architecture %s."
                     % (os_name, arch))
                 return False
+        elif os_name == 'fuchsia':
+            if HOST_OS != 'linux':
+                print("Cross-compilation to %s is not supported on host os %s."
+                      % (os_name, HOST_OS))
+                return False
+            if arch != 'x64':
+                print(
+                    "Cross-compilation to %s is not supported for architecture %s."
+                    % (os_name, arch))
+                return False
+        elif os_name != HOST_OS:
+            print("Unsupported target os %s" % os_name)
+            return False
     if HOST_OS != 'win' and args.use_crashpad:
         print("Crashpad is only supported on Windows")
         return False
@@ -366,7 +378,7 @@ def parse_args(args):
         '--os',
         type=str,
         help='Target OSs (comma-separated).',
-        metavar='[all,host,android]',
+        metavar='[all,host,android,fuchsia]',
         default='host')
     common_group.add_argument(
         '--sanitizer',

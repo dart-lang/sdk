@@ -59,7 +59,7 @@ def BuildOptions():
     result.add_option(
         "--os",
         help='Target OSs (comma-separated).',
-        metavar='[all,host,android]',
+        metavar='[all,host,android,fuchsia]',
         default='host')
     result.add_option(
         "--sanitizer",
@@ -88,7 +88,7 @@ def ProcessOptions(options, args):
     if options.mode == 'all':
         options.mode = 'debug,release,product'
     if options.os == 'all':
-        options.os = 'host,android'
+        options.os = 'host,android,fuchsia'
     if options.sanitizer == 'all':
         options.sanitizer = 'none,asan,lsan,msan,tsan,ubsan'
     options.mode = options.mode.split(',')
@@ -110,13 +110,12 @@ def ProcessOptions(options, args):
             return False
     options.os = [ProcessOsOption(os_name) for os_name in options.os]
     for os_name in options.os:
-        if not os_name in ['android', 'freebsd', 'linux', 'macos', 'win32']:
+        if not os_name in [
+                'android', 'freebsd', 'linux', 'macos', 'win32', 'fuchsia'
+        ]:
             print("Unknown os %s" % os_name)
             return False
-        if os_name != HOST_OS:
-            if os_name != 'android':
-                print("Unsupported target os %s" % os_name)
-                return False
+        if os_name == 'android':
             if not HOST_OS in ['linux', 'macos']:
                 print("Cross-compilation to %s is not supported on host os %s."
                       % (os_name, HOST_OS))
@@ -135,6 +134,19 @@ def ProcessOptions(options, args):
                     "For android builds you must specify a target, such as 'runtime'."
                 )
                 return False
+        elif os_name == 'fuchsia':
+            if HOST_OS != 'linux':
+                print("Cross-compilation to %s is not supported on host os %s."
+                      % (os_name, HOST_OS))
+                return False
+            if arch != 'x64':
+                print(
+                    "Cross-compilation to %s is not supported for architecture %s."
+                    % (os_name, arch))
+                return False
+        elif os_name != HOST_OS:
+            print("Unsupported target os %s" % os_name)
+            return False
     return True
 
 
