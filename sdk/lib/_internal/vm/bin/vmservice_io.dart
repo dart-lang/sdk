@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 library vmservice_io;
 
 import 'dart:async';
@@ -14,45 +12,48 @@ import 'dart:_vmservice';
 part 'vmservice_server.dart';
 
 // The TCP ip/port that the HTTP server listens on.
-@pragma("vm:entry-point")
-int _port;
-@pragma("vm:entry-point")
-String _ip;
+@pragma('vm:entry-point')
+int _port = 0;
+@pragma('vm:entry-point')
+String _ip = '';
 // Should the HTTP server auto start?
-@pragma("vm:entry-point")
-bool _autoStart;
+@pragma('vm:entry-point')
+bool _autoStart = false;
 // Should the HTTP server require an auth code?
-@pragma("vm:entry-point")
-bool _authCodesDisabled;
+@pragma('vm:entry-point')
+bool _authCodesDisabled = false;
 // Should the HTTP server run in devmode?
-@pragma("vm:entry-point")
-bool _originCheckDisabled;
+@pragma('vm:entry-point')
+bool _originCheckDisabled = false;
 // Location of file to output VM service connection info.
-@pragma("vm:entry-point")
-String _serviceInfoFilename;
-@pragma("vm:entry-point")
+@pragma('vm:entry-point')
+String? _serviceInfoFilename;
+@pragma('vm:entry-point')
 bool _isWindows = false;
-@pragma("vm:entry-point")
+@pragma('vm:entry-point')
 bool _isFuchsia = false;
-@pragma("vm:entry-point")
-var _signalWatch;
+@pragma('vm:entry-point')
+var _signalWatch = null;
 var _signalSubscription;
 @pragma("vm:entry-point")
 bool _enableServicePortFallback = false;
 
 // HTTP server.
-Server server;
-Future<Server> serverFuture;
+Server? server;
+Future<Server>? serverFuture;
 
-_lazyServerBoot() {
-  if (server != null) {
-    return;
+Server _lazyServerBoot() {
+  var localServer = server;
+  if (localServer != null) {
+    return localServer;
   }
   // Lazily create service.
-  var service = new VMService();
+  final service = VMService();
   // Lazily create server.
-  server = new Server(service, _ip, _port, _originCheckDisabled,
+  localServer = Server(service, _ip, _port, _originCheckDisabled,
       _authCodesDisabled, _serviceInfoFilename, _enableServicePortFallback);
+  server = localServer;
+  return localServer;
 }
 
 Future cleanupCallback() async {
@@ -61,15 +62,16 @@ Future cleanupCallback() async {
     await _signalSubscription.cancel();
     _signalSubscription = null;
   }
-  if (server != null) {
+  final localServer = server;
+  if (localServer != null) {
     try {
-      await server.cleanup(true);
+      await localServer.cleanup(true);
     } catch (e, st) {
-      print("Error in vm-service shutdown: $e\n$st\n");
+      print('Error in vm-service shutdown: $e\n$st\n');
     }
   }
   if (_registerSignalHandlerTimer != null) {
-    _registerSignalHandlerTimer.cancel();
+    _registerSignalHandlerTimer!.cancel();
     _registerSignalHandlerTimer = null;
   }
   // Call out to embedder's shutdown callback.
@@ -77,40 +79,38 @@ Future cleanupCallback() async {
 }
 
 Future<Uri> createTempDirCallback(String base) async {
-  Directory temp = await Directory.systemTemp.createTemp(base);
+  final temp = await Directory.systemTemp.createTemp(base);
   // Underneath the temporary directory, create a directory with the
   // same name as the DevFS name [base].
-  var fsUri = temp.uri.resolveUri(new Uri.directory(base));
-  await new Directory.fromUri(fsUri).create();
+  final fsUri = temp.uri.resolveUri(Uri.directory(base));
+  await Directory.fromUri(fsUri).create();
   return fsUri;
 }
 
-Future deleteDirCallback(Uri path) async {
-  Directory dir = new Directory.fromUri(path);
-  await dir.delete(recursive: true);
-}
+Future deleteDirCallback(Uri path) async =>
+    await Directory.fromUri(path).delete(recursive: true);
 
 class PendingWrite {
   PendingWrite(this.uri, this.bytes);
-  final Completer completer = new Completer();
+  final completer = Completer<void>();
   final Uri uri;
   final List<int> bytes;
 
   Future write() async {
-    var file = new File.fromUri(uri);
-    var parent_directory = file.parent;
+    final file = File.fromUri(uri);
+    final parent_directory = file.parent;
     await parent_directory.create(recursive: true);
     if (await file.exists()) {
       await file.delete();
     }
-    var result = await file.writeAsBytes(bytes);
-    completer.complete(null);
+    await file.writeAsBytes(bytes);
+    completer.complete();
     WriteLimiter._writeCompleted();
   }
 }
 
 class WriteLimiter {
-  static final List<PendingWrite> pendingWrites = new List<PendingWrite>();
+  static final pendingWrites = <PendingWrite>[];
 
   // non-rooted Android devices have a very low limit for the number of
   // open files. Artificially cap ourselves to 16.
@@ -119,7 +119,7 @@ class WriteLimiter {
 
   static Future scheduleWrite(Uri path, List<int> bytes) async {
     // Create a new pending write.
-    PendingWrite pw = new PendingWrite(path, bytes);
+    final pw = PendingWrite(path, bytes);
     pendingWrites.add(pw);
     _maybeWriteFiles();
     return pw.completer.future;
@@ -128,7 +128,7 @@ class WriteLimiter {
   static _maybeWriteFiles() {
     while (openWrites < kMaxOpenWrites) {
       if (pendingWrites.length > 0) {
-        PendingWrite pw = pendingWrites.removeLast();
+        final pw = pendingWrites.removeLast();
         pw.write();
         openWrites++;
       } else {
@@ -144,38 +144,35 @@ class WriteLimiter {
   }
 }
 
-Future writeFileCallback(Uri path, List<int> bytes) async {
-  return WriteLimiter.scheduleWrite(path, bytes);
-}
+Future writeFileCallback(Uri path, List<int> bytes) async =>
+    WriteLimiter.scheduleWrite(path, bytes);
 
-Future writeStreamFileCallback(Uri path, Stream<List<int>> bytes) async {
-  var file = new File.fromUri(path);
-  var parent_directory = file.parent;
+Future<void> writeStreamFileCallback(Uri path, Stream<List<int>> bytes) async {
+  final file = File.fromUri(path);
+  final parent_directory = file.parent;
   await parent_directory.create(recursive: true);
   if (await file.exists()) {
     await file.delete();
   }
-  IOSink sink = await file.openWrite();
+  final sink = await file.openWrite();
   await sink.addStream(bytes);
   await sink.close();
 }
 
-Future<List<int>> readFileCallback(Uri path) async {
-  var file = new File.fromUri(path);
-  return await file.readAsBytes();
-}
+Future<List<int>> readFileCallback(Uri path) async =>
+    await File.fromUri(path).readAsBytes();
 
 Future<List<Map<String, dynamic>>> listFilesCallback(Uri dirPath) async {
-  var dir = new Directory.fromUri(dirPath);
-  var dirPathStr = dirPath.path;
-  var stream = dir.list(recursive: true);
-  var result = <Map<String, dynamic>>[];
+  final dir = Directory.fromUri(dirPath);
+  final dirPathStr = dirPath.path;
+  final stream = dir.list(recursive: true);
+  final result = <Map<String, dynamic>>[];
   await for (var fileEntity in stream) {
-    var filePath = new Uri.file(fileEntity.path).path;
-    var stat = await fileEntity.stat();
-    if (stat.type == FileSystemEntityType.FILE &&
+    final filePath = Uri.file(fileEntity.path).path;
+    final stat = await fileEntity.stat();
+    if (stat.type == FileSystemEntityType.file &&
         filePath.startsWith(dirPathStr)) {
-      var map = <String, dynamic>{};
+      final map = <String, dynamic>{};
       map['name'] = '/' + filePath.substring(dirPathStr.length);
       map['size'] = stat.size;
       map['modified'] = stat.modified.millisecondsSinceEpoch;
@@ -185,33 +182,26 @@ Future<List<Map<String, dynamic>>> listFilesCallback(Uri dirPath) async {
   return result;
 }
 
-Future<Uri> serverInformationCallback() async {
-  _lazyServerBoot();
-  return server.serverAddress;
-}
+Uri? serverInformationCallback() => _lazyServerBoot().serverAddress;
 
-Future<Uri> webServerControlCallback(bool enable) async {
-  _lazyServerBoot();
-  if (server.running == enable) {
-    // No change.
-    return server.serverAddress;
+Future<Uri?> webServerControlCallback(bool enable) async {
+  final _server = _lazyServerBoot();
+  if (_server.running != enable) {
+    if (enable) {
+      await _server.startup();
+    } else {
+      await _server.shutdown(true);
+    }
   }
-
-  if (enable) {
-    await server.startup();
-    return server.serverAddress;
-  } else {
-    await server.shutdown(true);
-    return server.serverAddress;
-  }
+  return _server.serverAddress;
 }
 
 void webServerAcceptNewWebSocketConnections(bool enable) {
-  _lazyServerBoot();
-  server.acceptNewWebSocketConnections = enable;
+  final _server = _lazyServerBoot();
+  _server.acceptNewWebSocketConnections = enable;
 }
 
-Null _clearFuture(_) {
+void _clearFuture(_) {
   serverFuture = null;
 }
 
@@ -220,16 +210,16 @@ _onSignal(ProcessSignal signal) {
     // Still waiting.
     return;
   }
-  _lazyServerBoot();
+  final _server = _lazyServerBoot();
   // Toggle HTTP server.
-  if (server.running) {
-    serverFuture = server.shutdown(true).then(_clearFuture);
+  if (_server.running) {
+    _server.shutdown(true).then(_clearFuture);
   } else {
-    serverFuture = server.startup().then(_clearFuture);
+    _server.startup().then(_clearFuture);
   }
 }
 
-Timer _registerSignalHandlerTimer;
+Timer? _registerSignalHandlerTimer;
 
 _registerSignalHandler() {
   _registerSignalHandlerTimer = null;
@@ -241,10 +231,10 @@ _registerSignalHandler() {
     // Cannot register for signals on Windows or Fuchsia.
     return;
   }
-  _signalSubscription = _signalWatch(ProcessSignal.SIGQUIT).listen(_onSignal);
+  _signalSubscription = _signalWatch(ProcessSignal.sigquit).listen(_onSignal);
 }
 
-@pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 main() {
   // Set embedder hooks.
   VMServiceEmbedderHooks.cleanup = cleanupCallback;
@@ -260,17 +250,17 @@ main() {
       webServerAcceptNewWebSocketConnections;
   // Always instantiate the vmservice object so that the exit message
   // can be delivered and waiting loaders can be cancelled.
-  new VMService();
+  VMService();
   if (_autoStart) {
-    _lazyServerBoot();
-    server.startup();
+    final _server = _lazyServerBoot();
+    _server.startup();
     // It's just here to push an event on the event loop so that we invoke the
     // scheduled microtasks.
     Timer.run(() {});
   }
   // Register signal handler after a small delay to avoid stalling main
   // isolate startup.
-  _registerSignalHandlerTimer = new Timer(shortDelay, _registerSignalHandler);
+  _registerSignalHandlerTimer = Timer(shortDelay, _registerSignalHandler);
 }
 
-_shutdown() native "VMServiceIO_Shutdown";
+_shutdown() native 'VMServiceIO_Shutdown';

@@ -12,10 +12,12 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/defined_names.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
@@ -24,6 +26,7 @@ import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -37,6 +40,7 @@ import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 var counterFileStateRefresh = 0;
 var counterUnlinkedLinkedBytes = 0;
@@ -567,6 +571,36 @@ class FileState {
     return _fsState.getFileForUri(absoluteUri);
   }
 
+  /// Return the language version specified in the [versionToken], or the
+  /// language version from the [FeatureSetProvider].
+  Version _getLanguageVersion(
+    LanguageVersionToken versionToken,
+    AnalysisErrorListener errorListener,
+  ) {
+    if (versionToken != null) {
+      var latestVersion = ExperimentStatus.currentVersion;
+      if (versionToken.major > latestVersion.major ||
+          versionToken.major == latestVersion.major &&
+              versionToken.minor > latestVersion.minor) {
+        errorListener.onError(
+          AnalysisError(
+            source,
+            versionToken.offset,
+            versionToken.length,
+            HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER,
+            [latestVersion.major, latestVersion.minor],
+          ),
+        );
+        // Fall-through, use the package language version.
+      } else {
+        return Version(versionToken.major, versionToken.minor, 0);
+      }
+    }
+
+    var featureSetProvider = _fsState.featureSetProvider;
+    return featureSetProvider.getLanguageVersion(path, uri);
+  }
+
   /**
    * Invalidate any data that depends on the current unlinked data of the file,
    * because [refresh] is going to recompute the unlinked data.
@@ -599,14 +633,17 @@ class FileState {
     });
     LineInfo lineInfo = LineInfo(scanner.lineStarts);
 
+    var languageVersion = _getLanguageVersion(
+      scanner.languageVersion,
+      errorListener,
+    );
+    var featureSet = _featureSet.restrictToVersion(languageVersion);
+
     bool useFasta = analysisOptions.useFastaParser;
-    // Pass the feature set from the scanner to the parser
-    // because the scanner may have detected a language version comment
-    // and downgraded the feature set it holds.
     Parser parser = Parser(
       source,
       errorListener,
-      featureSet: scanner.featureSet,
+      featureSet: featureSet,
       useFasta: useFasta,
     );
     parser.enableOptionalNewAndConst = true;
@@ -616,7 +653,10 @@ class FileState {
     try {
       unit = parser.parseCompilationUnit(token);
       unit.lineInfo = lineInfo;
-      _setLanguageVersion(unit, scanner.languageVersion);
+
+      var unitImpl = unit as CompilationUnitImpl;
+      unitImpl.languageVersionMajor = languageVersion.major;
+      unitImpl.languageVersionMinor = languageVersion.minor;
     } catch (e) {
       throw StateError('''
 Parser error.
@@ -645,22 +685,6 @@ $content
       }
     }
     return directive.uri;
-  }
-
-  /// Set the language version into the [unit], from the [languageVersionToken]
-  /// override, or the configured from the [FeatureSetProvider].
-  void _setLanguageVersion(
-    CompilationUnitImpl unit,
-    LanguageVersionToken languageVersionToken,
-  ) {
-    if (languageVersionToken != null) {
-      unit.languageVersionMajor = languageVersionToken.major;
-      unit.languageVersionMinor = languageVersionToken.minor;
-    } else {
-      var version = _fsState.featureSetProvider.getLanguageVersion(path, uri);
-      unit.languageVersionMajor = version.major;
-      unit.languageVersionMinor = version.minor;
-    }
   }
 
   static UnlinkedUnit2Builder serializeAstUnlinked2(CompilationUnit unit) {

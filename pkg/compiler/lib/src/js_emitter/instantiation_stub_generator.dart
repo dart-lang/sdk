@@ -104,8 +104,8 @@ class InstantiationStubGenerator {
   ///
   /// ```
   /// $signature:: function() {
-  ///   return H.instantiatedGenericFunctionType(
-  ///       H.extractFunctionTypeObjectFromInternal(this._genericClosure),
+  ///   return H.instantiatedGenericFunctionTypeNewRti(
+  ///       H.closureFunctionType(this._genericClosure),
   ///       this.$ti);
   /// }
   /// ```

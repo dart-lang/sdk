@@ -15,7 +15,7 @@ class Class2<T> {
 
   const Class2(
       this.
-          /*normal.Class2.T%*/
+          /*normal|limited.Class2.T%*/
           /*verbose.library org-dartlang-test:///a/b/c/main.dart::Class2.T%*/
           field1);
 }
@@ -25,11 +25,11 @@ class Class3<T, S> extends Class2<T> {
 
   const Class3(
       T
-          /*normal.Class3.T%*/
+          /*normal|limited.Class3.T%*/
           /*verbose.library org-dartlang-test:///a/b/c/main.dart::Class3.T%*/
           field1,
       this.
-          /*normal.Class3.S%*/
+          /*normal|limited.Class3.S%*/
           /*verbose.library org-dartlang-test:///a/b/c/main.dart::Class3.S%*/
           field2)
       : super(field1);
@@ -40,14 +40,14 @@ class Class4<T, S> extends Class3<T, S> {
 
   const Class4(
       T
-          /*normal.Class4.T%*/
+          /*normal|limited.Class4.T%*/
           /*verbose.library org-dartlang-test:///a/b/c/main.dart::Class4.T%*/
           field1,
       S
-          /*normal.Class4.S%*/
+          /*normal|limited.Class4.S%*/
           /*verbose.library org-dartlang-test:///a/b/c/main.dart::Class4.S%*/
           shadowedField2,
-      this. /*normal.Class4.S%*/
+      this. /*normal|limited.Class4.S%*/
           /*verbose.library org-dartlang-test:///a/b/c/main.dart::Class4.S%*/
           field2)
       : super(field1, shadowedField2);
@@ -61,92 +61,96 @@ const doubleConstant = /*3.14*/ 3.14;
 const stringConstant = /*foo*/ "foo";
 const symbolConstant = /*#name*/ #name;
 const privateSymbolConstant =
-    /*normal.#_privateName*/
+    /*normal|limited.#_privateName*/
     /*verbose.#library org-dartlang-test:///a/b/c/main.dart::_privateName*/
     #_privateName;
-const listConstant1 = /*<dynamic>[]*/ [];
+const listConstant1 = /*const <dynamic>[]*/ [];
 const listConstant2 = <int>
-    /*normal.<int>[]*/
-    /*verbose.<dart.core::int>[]*/
+    /*normal|limited.const <int>[]*/
+    /*verbose.const <dart.core::int>[]*/
     [];
 const listConstant3 = <int>
-    /*normal.<int>[0]*/
-    /*verbose.<dart.core::int>[0]*/
+    /*normal|limited.const <int>[0]*/
+    /*verbose.const <dart.core::int>[0]*/
     [0];
 const listConstant4 = <int?>
-    /*normal.<int?>[0, 1]*/
-    /*verbose.<dart.core::int?>[0, 1]*/
+    /*normal|limited.const <int?>[0, 1]*/
+    /*verbose.const <dart.core::int?>[0, 1]*/
     [0, 1];
 const setConstant1 = <int>
-    /*normal.<int>{}*/
-    /*verbose.<dart.core::int>{}*/
+    /*normal|limited.const <int>{}*/
+    /*verbose.const <dart.core::int>{}*/
     {};
 const setConstant2 = <int>
-    /*normal.<int>{0}*/
-    /*verbose.<dart.core::int>{0}*/
+    /*normal|limited.const <int>{0}*/
+    /*verbose.const <dart.core::int>{0}*/
     {0};
 const setConstant3 = <int?>
-    /*normal.<int?>{0, 1}*/
-    /*verbose.<dart.core::int?>{0, 1}*/
+    /*normal|limited.const <int?>{0, 1}*/
+    /*verbose.const <dart.core::int?>{0, 1}*/
     {0, 1};
-const mapConstant1 = /*<dynamic, dynamic>{}*/ {};
+const mapConstant1 = /*const <dynamic, dynamic>{}*/ {};
 const mapConstant2 = <int, String>
-    /*normal.<int, String>{}*/
-    /*verbose.<dart.core::int, dart.core::String>{}*/
+    /*normal|limited.const <int, String>{}*/
+    /*verbose.const <dart.core::int, dart.core::String>{}*/
     {};
 const mapConstant3 = <int, String>
-    /*normal.<int, String>{0: foo}*/
-    /*verbose.<dart.core::int, dart.core::String>{0: foo}*/
+    /*normal|limited.const <int, String>{0: foo}*/
+    /*verbose.const <dart.core::int, dart.core::String>{0: foo}*/
     {0: "foo"};
 const mapConstant4 = <int, String?>
-    /*normal.<int, String?>{0: foo, 1: bar}*/
-    /*verbose.<dart.core::int, dart.core::String?>{0: foo, 1: bar}*/
+    /*normal|limited.const <int, String?>{0: foo, 1: bar}*/
+    /*verbose.const <dart.core::int, dart.core::String?>{0: foo, 1: bar}*/
     {0: "foo", 1: "bar"};
 const tearOffConstant =
-    /*normal.id*/
+    /*normal|limited.id*/
     /*verbose.library org-dartlang-test:///a/b/c/main.dart::id*/
     id;
 const int Function(int) partialInitializationConstant =
-    /*normal.<int>id*/
-    /*verbose.<dart.core::int>library org-dartlang-test:///a/b/c/main.dart::id*/
+    /*normal|limited.id<int>*/
+    /*verbose.library org-dartlang-test:///a/b/c/main.dart::id<dart.core::int>*/
     id;
 const boolHasEnvironmentConstant = const
-    /*unevaluated{FileUriExpression()}*/
+    /*normal|limited.unevaluated{bool.hasEnvironment(foo)}*/
+    /*verbose.unevaluated{{org-dartlang-test:///a/b/c/main.dart}dart.core::bool.hasEnvironment(foo)}*/
     bool.hasEnvironment("foo");
 const boolFromEnvironmentConstant = const
-    /*unevaluated{FileUriExpression()}*/
+    /*normal|limited.unevaluated{bool.fromEnvironment(foo, defaultValue: true)}*/
+    /*verbose.unevaluated{{org-dartlang-test:///a/b/c/main.dart}dart.core::bool.fromEnvironment(foo, defaultValue: true)}*/
     bool.fromEnvironment("foo", defaultValue: true);
 const intFromEnvironmentConstant = const
-    /*unevaluated{FileUriExpression()}*/
+    /*normal|limited.unevaluated{int.fromEnvironment(foo, defaultValue: 87)}*/
+    /*verbose.unevaluated{{org-dartlang-test:///a/b/c/main.dart}dart.core::int.fromEnvironment(foo, defaultValue: 87)}*/
     int.fromEnvironment("foo", defaultValue: 87);
 const stringFromEnvironmentConstant = const
-    /*unevaluated{FileUriExpression()}*/
+    /*normal|limited.unevaluated{String.fromEnvironment(foo, defaultValue: bar)}*/
+    /*verbose.unevaluated{{org-dartlang-test:///a/b/c/main.dart}dart.core::String.fromEnvironment(foo, defaultValue: bar)}*/
     String.fromEnvironment("foo", defaultValue: "bar");
 const instanceConstant1 = const
-    /*normal.Class1<dynamic>{}*/
-    /*verbose.library org-dartlang-test:///a/b/c/main.dart::Class1<dynamic>{}*/
+    /*normal|limited.const Class1<dynamic>{}*/
+    /*verbose.const library org-dartlang-test:///a/b/c/main.dart::Class1<dynamic>{}*/
     Class1();
 const instanceConstant2 = const
-    /*normal.Class1<int>{}*/
-    /*verbose.library org-dartlang-test:///a/b/c/main.dart::Class1<dart.core::int>{}*/
+    /*normal|limited.const Class1<int>{}*/
+    /*verbose.const library org-dartlang-test:///a/b/c/main.dart::Class1<dart.core::int>{}*/
     Class1<int>();
 const instanceConstant3 = const
-    /*normal.Class1<int>{}*/
-    /*verbose.library org-dartlang-test:///a/b/c/main.dart::Class1<dart.core::int>{}*/
+    /*normal|limited.const Class1<int>{}*/
+    /*verbose.const library org-dartlang-test:///a/b/c/main.dart::Class1<dart.core::int>{}*/
     Class1<int>();
 const instanceConstant4 = const
-    /*normal.Class2<int>{Class2.field1: 0}*/
-    /*verbose.library org-dartlang-test:///a/b/c/main.dart::Class2<dart.core::int>{Class2.field1: 0}*/
+    /*normal|limited.const Class2<int>{Class2.field1: 0}*/
+    /*verbose.const library org-dartlang-test:///a/b/c/main.dart::Class2<dart.core::int>{library org-dartlang-test:///a/b/c/main.dart::Class2.field1: 0}*/
     Class2(0);
 const instanceConstant5 = const
-    /*normal.Class2<num>{Class2.field1: 42}*/
-    /*verbose.library org-dartlang-test:///a/b/c/main.dart::Class2<dart.core::num>{Class2.field1: 42}*/
+    /*normal|limited.const Class2<num>{Class2.field1: 42}*/
+    /*verbose.const library org-dartlang-test:///a/b/c/main.dart::Class2<dart.core::num>{library org-dartlang-test:///a/b/c/main.dart::Class2.field1: 42}*/
     Class2<num>(42);
 const instanceConstant6 = const
-    /*normal.Class3<int, String>{Class3.field2: foo, Class2.field1: 42}*/
-    /*verbose.library org-dartlang-test:///a/b/c/main.dart::Class3<dart.core::int, dart.core::String>{Class3.field2: foo, Class2.field1: 42}*/
+    /*normal|limited.const Class3<int, String>{Class3.field2: foo, Class2.field1: 42}*/
+    /*verbose.const library org-dartlang-test:///a/b/c/main.dart::Class3<dart.core::int, dart.core::String>{library org-dartlang-test:///a/b/c/main.dart::Class3.field2: foo, library org-dartlang-test:///a/b/c/main.dart::Class2.field1: 42}*/
     Class3<int, String>(42, "foo");
 const instanceConstant7 = const
-    /*normal.Class4<int, String?>{Class4.field2: baz, Class3.field2: foo, Class2.field1: 42}*/
-    /*verbose.library org-dartlang-test:///a/b/c/main.dart::Class4<dart.core::int, dart.core::String?>{Class4.field2: baz, Class3.field2: foo, Class2.field1: 42}*/
+    /*normal|limited.const Class4<int, String?>{Class4.field2: baz, Class3.field2: foo, Class2.field1: 42}*/
+    /*verbose.const library org-dartlang-test:///a/b/c/main.dart::Class4<dart.core::int, dart.core::String?>{library org-dartlang-test:///a/b/c/main.dart::Class4.field2: baz, library org-dartlang-test:///a/b/c/main.dart::Class3.field2: foo, library org-dartlang-test:///a/b/c/main.dart::Class2.field1: 42}*/
     Class4<int, String?>(42, "foo", "baz");

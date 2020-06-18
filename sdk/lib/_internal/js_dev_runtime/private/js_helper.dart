@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 library dart._js_helper;
 
 import 'dart:collection';
@@ -45,11 +43,11 @@ const _Patch patch = _Patch();
 // https://github.com/dart-lang/sdk/issues/28320
 class DartIterator<E> implements Iterator<E> {
   final _jsIterator;
-  E _current;
+  E? _current;
 
   DartIterator(this._jsIterator);
 
-  E get current => _current;
+  E get current => _current as E;
 
   bool moveNext() {
     final ret = JS('', '#.next()', _jsIterator);
@@ -70,11 +68,11 @@ class SyncIterable<E> extends IterableBase<E> {
 }
 
 class Primitives {
-  static int parseInt(@nullCheck String source, int _radix) {
+  static int? parseInt(@nullCheck String source, int? _radix) {
     var re = JS('', r'/^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i');
     // TODO(jmesserly): this isn't reified List<String>, but it's safe to use as
     // long as we use it locally and don't expose it to user code.
-    List<String> match = JS('', '#.exec(#)', re, source);
+    List<String>? match = JS('', '#.exec(#)', re, source);
     int digitsIndex = 1;
     int hexIndex = 2;
     int decimalIndex = 3;
@@ -84,7 +82,7 @@ class Primitives {
       // again.
       return null;
     }
-    String decimalMatch = match[decimalIndex];
+    String? decimalMatch = match[decimalIndex];
     if (_radix == null) {
       if (decimalMatch != null) {
         // Cannot fail because we know that the digits are all decimal.
@@ -140,7 +138,7 @@ class Primitives {
     return JS<int>('!', r'parseInt(#, #)', source, radix);
   }
 
-  static double parseDouble(@nullCheck String source) {
+  static double? parseDouble(@nullCheck String source) {
     // Notice that JS parseFloat accepts garbage at the end of the string.
     // Accept only:
     // - [+/-]NaN
@@ -171,10 +169,9 @@ class Primitives {
   static int dateNow() => JS<int>('!', r'Date.now()');
 
   static void initTicker() {
-    if (timerFrequency != null) return;
+    if (timerFrequency != 0) return;
     // Start with low-resolution. We overwrite the fields if we find better.
     timerFrequency = 1000;
-    timerTicks = dateNow;
     if (JS<bool>('!', 'typeof window == "undefined"')) return;
     var jsWindow = JS('var', 'window');
     if (jsWindow == null) return;
@@ -185,8 +182,9 @@ class Primitives {
     timerTicks = () => (1000 * JS<num>('!', '#.now()', performance)).floor();
   }
 
-  static int timerFrequency;
-  static num Function() timerTicks;
+  /// 0 frequency indicates the default uninitialized state.
+  static int timerFrequency = 0;
+  static int Function() timerTicks = dateNow; // Low-resolution version.
 
   static bool get isD8 {
     return JS(
@@ -310,7 +308,7 @@ class Primitives {
     // Example: "Wed May 16 2012 21:13:00 GMT+0200 (CEST)".
     // We extract this name using a regexp.
     var d = lazyAsJsDate(receiver);
-    List match = JS('JSArray|Null', r'/\((.*)\)/.exec(#.toString())', d);
+    List? match = JS('JSArray|Null', r'/\((.*)\)/.exec(#.toString())', d);
     if (match != null) return match[1];
 
     // Internet Explorer 10+ emits the zone name without parenthesis:
@@ -345,7 +343,7 @@ class Primitives {
     return -JS<int>('!', r'#.getTimezoneOffset()', lazyAsJsDate(receiver));
   }
 
-  static num valueFromDecomposedDate(
+  static int? valueFromDecomposedDate(
       @nullCheck int years,
       @nullCheck int month,
       @nullCheck int day,
@@ -356,12 +354,12 @@ class Primitives {
       @nullCheck bool isUtc) {
     final int MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
     var jsMonth = month - 1;
-    num value;
+    int value;
     if (isUtc) {
-      value = JS('!', r'Date.UTC(#, #, #, #, #, #, #)', years, jsMonth, day,
-          hours, minutes, seconds, milliseconds);
+      value = JS<int>('!', r'Date.UTC(#, #, #, #, #, #, #)', years, jsMonth,
+          day, hours, minutes, seconds, milliseconds);
     } else {
-      value = JS('!', r'new Date(#, #, #, #, #, #, #).valueOf()', years,
+      value = JS<int>('!', r'new Date(#, #, #, #, #, #, #).valueOf()', years,
           jsMonth, day, hours, minutes, seconds, milliseconds);
     }
     if (value.isNaN ||
@@ -373,14 +371,14 @@ class Primitives {
     return value;
   }
 
-  static num patchUpY2K(value, years, isUtc) {
-    var date = JS('', r'new Date(#)', value);
+  static int patchUpY2K(value, years, isUtc) {
+    var date = JS<int>('!', r'new Date(#)', value);
     if (isUtc) {
-      JS('', r'#.setUTCFullYear(#)', date, years);
+      JS<int>('!', r'#.setUTCFullYear(#)', date, years);
     } else {
-      JS('', r'#.setFullYear(#)', date, years);
+      JS<int>('!', r'#.setFullYear(#)', date, years);
     }
-    return JS('!', r'#.valueOf()', date);
+    return JS<int>('!', r'#.valueOf()', date);
   }
 
   // Lazily keep a JS Date stored in the JS object.
@@ -453,7 +451,7 @@ class Primitives {
     return value;
   }
 
-  static getProperty(object, key) {
+  static Object? getProperty(Object? object, Object key) {
     if (object == null || object is bool || object is num || object is String) {
       throw argumentErrorValue(object);
     }
@@ -489,7 +487,7 @@ Error diagnoseIndexError(indexable, int index) {
  * describes the problem.
  */
 @NoInline()
-Error diagnoseRangeError(int start, int end, int length) {
+Error diagnoseRangeError(int? start, int? end, int length) {
   if (start == null) {
     return ArgumentError.value(start, 'start');
   }
@@ -538,9 +536,9 @@ throwConcurrentModificationError(collection) {
 }
 
 class JsNoSuchMethodError extends Error implements NoSuchMethodError {
-  final String _message;
-  final String _method;
-  final String _receiver;
+  final String? _message;
+  final String? _method;
+  final String? _receiver;
 
   JsNoSuchMethodError(this._message, match)
       : _method = match == null ? null : JS('String|Null', '#.method', match),
@@ -582,11 +580,11 @@ fillLiteralMap(keyValuePairs, Map result) {
   return result;
 }
 
-bool jsHasOwnProperty(var jsObject, String property) {
+bool jsHasOwnProperty(jsObject, String property) {
   return JS<bool>('!', r'#.hasOwnProperty(#)', jsObject, property);
 }
 
-jsPropertyAccess(var jsObject, String property) {
+jsPropertyAccess(jsObject, String property) {
   return JS('var', r'#[#]', jsObject, property);
 }
 
@@ -720,12 +718,12 @@ class RuntimeError extends Error {
 
 /// Error thrown by DDC when an `assert()` fails (with or without a message).
 class AssertionErrorImpl extends AssertionError {
-  final String _fileUri;
-  final int _line;
-  final int _column;
-  final String _conditionSource;
+  final String? _fileUri;
+  final int? _line;
+  final int? _column;
+  final String? _conditionSource;
 
-  AssertionErrorImpl(Object message,
+  AssertionErrorImpl(Object? message,
       [this._fileUri, this._line, this._column, this._conditionSource])
       : super(message);
 
@@ -791,7 +789,7 @@ class PrivateSymbol implements Symbol {
 
   static String getName(Symbol symbol) => (symbol as PrivateSymbol)._name;
 
-  static Object getNativeSymbol(Symbol symbol) {
+  static Object? getNativeSymbol(Symbol symbol) {
     if (symbol is PrivateSymbol) return symbol._nativeSymbol;
     return null;
   }

@@ -273,7 +273,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    if (node.declaredElement.isFactory) {
+    if (!_isNonNullableByDefault && node.declaredElement.isFactory) {
       if (node.body is BlockFunctionBody) {
         // Check the block for a return statement, if not, create the hint.
         if (!ExitDetector.exits(node.body)) {

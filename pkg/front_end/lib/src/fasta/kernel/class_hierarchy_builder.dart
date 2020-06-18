@@ -11,10 +11,9 @@ import 'package:kernel/class_hierarchy.dart'
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import 'package:kernel/type_algebra.dart' show Substitution;
+import 'package:kernel/type_algebra.dart' show Substitution, uniteNullabilities;
 import 'package:kernel/type_environment.dart';
 
-import 'package:kernel/src/future_or.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/src/nnbd_top_merge.dart';
 import 'package:kernel/src/norm.dart';
@@ -331,8 +330,6 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
 
   final Class futureClass;
 
-  final Class futureOrClass;
-
   final Class functionClass;
 
   final Class nullClass;
@@ -354,7 +351,6 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
   ClassHierarchyBuilder(this.objectClassBuilder, this.loader, this.coreTypes)
       : objectClass = objectClassBuilder.cls,
         futureClass = coreTypes.futureClass,
-        futureOrClass = coreTypes.futureOrClass,
         functionClass = coreTypes.functionClass,
         nullClass = coreTypes.nullClass {
     types = new Types(this);
@@ -2548,9 +2544,6 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
 
   @override
   Class get functionClass => hierarchy.functionClass;
-
-  @override
-  Class get futureOrClass => hierarchy.futureOrClass;
 
   @override
   Class get nullClass => hierarchy.nullClass;

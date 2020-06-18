@@ -137,10 +137,6 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   Object _computeReceiverConstraint(
       ir.DartType receiverType, ClassRelation relation) {
     if (receiverType is ir.InterfaceType) {
-      if (receiverType.classNode == typeEnvironment.futureOrClass) {
-        // CFE encodes FutureOr as an interface type!
-        return null;
-      }
       return new StrongModeConstraint(commonElements, _nativeBasicData,
           elementMap.getClass(receiverType.classNode), relation);
     }

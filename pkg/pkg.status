@@ -47,9 +47,14 @@ compiler/test/model/subtype_test: Slow, Pass
 compiler/test/modular/*: Slow, Pass
 compiler/test/nalyses/analyze_test: Slow, Pass
 compiler/test/packages/*: SkipByDesign
-compiler/test/rti/rti_emission_test: Slow, Pass
+compiler/test/rti/rti_emission0_test: Slow, Pass
+compiler/test/rti/rti_emission1_test: Slow, Pass
+compiler/test/rti/rti_emission2_test: Slow, Pass
+compiler/test/rti/rti_emission3_test: Slow, Pass
 compiler/test/rti/rti_need0_test: Slow, Pass
 compiler/test/rti/rti_need1_test: Slow, Pass
+compiler/test/rti/rti_need2_test: Slow, Pass
+compiler/test/rti/rti_need3_test: Slow, Pass
 compiler/test/serialization/serialization_test: Slow, Pass
 compiler/test/sourcemaps/source_mapping_invokes_test: Slow, Pass
 compiler/test/sourcemaps/source_mapping_operators_test: Slow, Pass

@@ -8,7 +8,7 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
-    show DartCompletionManager, DartCompletionRequestImpl;
+    show DartCompletionRequestImpl;
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
@@ -65,35 +65,6 @@ abstract class DartCompletionContributorTest
   void setUp() {
     super.setUp();
     contributor = createContributor();
-  }
-}
-
-/// Base class for tests that validate [DartCompletionManager] suggestions.
-class DartCompletionManagerTest extends _BaseDartCompletionContributorTest {
-  DartCompletionManager completionManager;
-
-  @nonVirtual
-  @override
-  Future<List<CompletionSuggestion>> computeContributedSuggestions(
-      DartCompletionRequest request) async {
-    final baseRequest = CompletionRequestImpl(request.result, completionOffset,
-        useNewRelevance, CompletionPerformance());
-    return completionManager.computeSuggestions(baseRequest);
-  }
-
-  /// Display sorted suggestions.
-  void printSuggestions() {
-    suggestions.sort(completionComparator);
-    for (var s in suggestions) {
-      print(
-          '[${s.relevance}] ${s.completion} • ${s.element?.kind?.name ?? ""} ${s.kind.name} ${s.element?.location?.file ?? ""}');
-    }
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-    completionManager = DartCompletionManager();
   }
 }
 

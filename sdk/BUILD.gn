@@ -618,11 +618,15 @@ copy("copy_dart2js_dill_files") {
   visibility = [ ":create_full_sdk" ]
   deps = [
     ":copy_libraries",
+    "../utils/compiler:compile_dart2js_nnbd_strong_platform",
     "../utils/compiler:compile_dart2js_platform",
+    "../utils/compiler:compile_dart2js_server_nnbd_strong_platform",
     "../utils/compiler:compile_dart2js_server_platform",
   ]
   sources = [
+    "$root_out_dir/dart2js_nnbd_strong_platform.dill",
     "$root_out_dir/dart2js_platform.dill",
+    "$root_out_dir/dart2js_server_nnbd_strong_platform.dill",
     "$root_out_dir/dart2js_server_platform.dill",
   ]
   outputs = [ "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}" ]
@@ -636,7 +640,20 @@ copy("copy_dev_compiler_outline") {
     "../utils/dartdevc:dartdevc_platform",
   ]
   sources = [ "$root_out_dir/ddc_outline.dill" ]
+
+  # TODO(nshahan) Fix the name here to be consistent and merge with below.
   outputs = [ "$root_out_dir/dart-sdk/lib/_internal/ddc_sdk.dill" ]
+}
+
+# Copies DDC's SDK outline .dill with sound null safety to lib/_internal
+copy("copy_dev_compiler_outline_sound") {
+  visibility = [ "../utils/dartdevc:dartdevc_test" ]
+  deps = [
+    ":copy_libraries",
+    "../utils/dartdevc:dartdevc_platform_sound",
+  ]
+  sources = [ "$root_out_dir/ddc_outline_sound.dill" ]
+  outputs = [ "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}" ]
 }
 
 # This rule copies DDK's JS SDK and require.js to lib/dev_compiler/kernel/amd.

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 library builtin;
 
 // NOTE: Do not import 'dart:io' in builtin.
@@ -36,15 +34,15 @@ void _print(arg) {
 _getPrintClosure() => _print;
 
 // The current working directory when the embedder was launched.
-Uri _workingDirectory;
+late Uri _workingDirectory;
 
 // The URI that the root script was loaded from. Remembered so that
 // package imports can be resolved relative to it. The root script is the basis
 // for the root library in the VM.
-Uri _rootScript;
+Uri? _rootScript;
 
 // packagesConfig specified for the isolate.
-Uri _packagesConfigUri;
+Uri? _packagesConfigUri;
 
 // Packages are either resolved looking up in a map or resolved from within a
 // package root.
@@ -53,11 +51,11 @@ bool get _packagesReady => (_packageMap != null) || (_packageError != null);
 // Error string set if there was an error resolving package configuration.
 // For example not finding a .packages file or packages/ directory, malformed
 // .packages file or any other related error.
-String _packageError = null;
+String? _packageError = null;
 
 // The map describing how certain package names are mapped to Uris.
-Uri _packageConfig = null;
-Map<String, Uri> _packageMap = null;
+Uri? _packageConfig = null;
+Map<String, Uri>? _packageMap = null;
 
 // Special handling for Windows paths so that they are compatible with URI
 // handling.
@@ -145,7 +143,7 @@ Uri _resolvePackageUri(Uri uri) {
           "'package:${uri.path}/', not 'package:${uri.path}'";
     }
     var packageName = uri.path.substring(0, packageNameEnd);
-    final mapping = _packageMap[packageName];
+    final mapping = _packageMap![packageName];
     if (_traceLoading) {
       _log("Mapped '$packageName' package to '$mapping'");
     }
@@ -166,14 +164,14 @@ Uri _resolvePackageUri(Uri uri) {
   return resolvedUri;
 }
 
-void _requestPackagesMap(Uri packageConfig) {
+void _requestPackagesMap(Uri? packageConfig) {
   dynamic msg = null;
   if (packageConfig != null) {
     // Explicitly specified .packages path.
     msg = _handlePackagesRequest(_traceLoading, -2, packageConfig);
   } else {
     // Search for .packages starting at the root script.
-    msg = _handlePackagesRequest(_traceLoading, -1, _rootScript);
+    msg = _handlePackagesRequest(_traceLoading, -1, _rootScript!);
   }
   if (_traceLoading) {
     _log("Requested packages map for '$_rootScript'.");
@@ -190,10 +188,11 @@ void _requestPackagesMap(Uri packageConfig) {
     assert(msg.length >= 2);
     assert(msg[1] == null);
     _packageConfig = Uri.parse(msg[0]);
-    _packageMap = new Map<String, Uri>();
+    final pmap = new Map<String, Uri>();
+    _packageMap = pmap;
     for (var i = 2; i < msg.length; i += 2) {
       // TODO(iposva): Complain about duplicate entries.
-      _packageMap[msg[i]] = Uri.parse(msg[i + 1]);
+      pmap[msg[i]] = Uri.parse(msg[i + 1]);
     }
     if (_traceLoading) {
       _log("Setup package map: $_packageMap");
@@ -306,7 +305,7 @@ List _parsePackageConfig(bool traceLoading, Uri packageConfig, String data) {
     String rootUri = package['rootUri'];
     if (!rootUri.endsWith('/')) rootUri += '/';
     final String packageName = package['name'];
-    final String packageUri = package['packageUri'];
+    final String? packageUri = package['packageUri'];
     final Uri resolvedRootUri = packageConfig.resolve(rootUri);
     final Uri resolvedPackageUri = packageUri != null
         ? resolvedRootUri.resolve(packageUri)
@@ -454,7 +453,7 @@ _handlePackagesRequest(bool traceLoading, int tag, Uri resource) {
       if (traceLoading) {
         _log("Handling load of packages map: '$resource'.");
       }
-      Uint8List bytes;
+      late Uint8List bytes;
       if (resource.scheme == '' || resource.scheme == 'file') {
         final file = File.fromUri(resource);
         if (!file.existsSync()) {
@@ -462,7 +461,7 @@ _handlePackagesRequest(bool traceLoading, int tag, Uri resource) {
         }
         bytes = file.readAsBytesSync();
       } else if (resource.scheme == 'data') {
-        final uriData = resource.data;
+        final uriData = resource.data!;
         if (!_isValidUtf8DataUrl(uriData)) {
           return "The data resource '$resource' must have a 'text/plain' mime "
               "type and a 'utf-8' or 'US-ASCII' charset.";
@@ -593,7 +592,7 @@ _setupHooks() {
   VMLibraryHooks.resolvePackageUriFuture = _resolvePackageUriFuture;
 }
 
-Future<Uri> _getPackageConfigFuture() {
+Future<Uri?> _getPackageConfigFuture() {
   if (_traceLoading) {
     _log("Request for package config from user code.");
   }
@@ -604,7 +603,7 @@ Future<Uri> _getPackageConfigFuture() {
   return Future.value(_packageConfig);
 }
 
-Future<Uri> _resolvePackageUriFuture(Uri packageUri) {
+Future<Uri?> _resolvePackageUriFuture(Uri packageUri) {
   if (_traceLoading) {
     _log("Request for package Uri resolution from user code: $packageUri");
   }
@@ -618,7 +617,7 @@ Future<Uri> _resolvePackageUriFuture(Uri packageUri) {
   if (!_packagesReady) {
     _requestPackagesMap(_packagesConfigUri);
   }
-  Uri resolvedUri;
+  Uri? resolvedUri;
   try {
     resolvedUri = _resolvePackageUri(packageUri);
   } catch (e, s) {

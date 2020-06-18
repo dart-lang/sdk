@@ -10,13 +10,13 @@ library from "org-dartlang-test:///main.dart" as main {
     abstract member-signature get length() → dart.core::int*;
     abstract member-signature operator [](dart.core::int* index) → dart.core::int*;
     abstract member-signature operator []=(dart.core::int* index, generic-covariant-impl dart.core::int* value) → void;
-    get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ iterator() → dart.core::Iterator<dart.core::int*>
+    get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ iterator() → dart.core::Iterator<dart.core::int*>
       return new dart._internal::ListIterator::•<dart.core::int*>(this);
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ elementAt(dart.core::int index) → dart.core::int*
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ elementAt(dart.core::int index) → dart.core::int*
       return this.{dart.core::List::[]}(index);
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ followedBy(generic-covariant-impl dart.core::Iterable<dart.core::int*> other) → dart.core::Iterable<dart.core::int*>
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ followedBy(generic-covariant-impl dart.core::Iterable<dart.core::int*> other) → dart.core::Iterable<dart.core::int*>
       return dart._internal::FollowedByIterable::firstEfficient<dart.core::int*>(this, other);
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ forEach((dart.core::int*) → void action) → void {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ forEach((dart.core::int*) → void action) → void {
       dart.core::int length = this.{dart.core::List::length};
       for (dart.core::int i = 0; i.{dart.core::num::<}(length); i = i.{dart.core::num::+}(1)) {
         action.call(this.{dart.core::List::[]}(i));
@@ -26,11 +26,11 @@ library from "org-dartlang-test:///main.dart" as main {
       }
     }
     @#C3
-    get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ isEmpty() → dart.core::bool
+    get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ isEmpty() → dart.core::bool
       return this.{dart.core::List::length}.{dart.core::num::==}(0);
-    get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ isNotEmpty() → dart.core::bool
+    get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ isNotEmpty() → dart.core::bool
       return !this.{dart.collection::ListMixin::isEmpty};
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ contains(dart.core::Object? element) → dart.core::bool {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ contains(dart.core::Object? element) → dart.core::bool {
       dart.core::int length = this.{dart.core::List::length};
       for (dart.core::int i = 0; i.{dart.core::num::<}(length); i = i.{dart.core::num::+}(1)) {
         if(this.{dart.core::List::[]}(i).{dart.core::Object::==}(element))
@@ -41,7 +41,7 @@ library from "org-dartlang-test:///main.dart" as main {
       }
       return false;
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ every((dart.core::int*) → dart.core::bool test) → dart.core::bool {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ every((dart.core::int*) → dart.core::bool test) → dart.core::bool {
       dart.core::int length = this.{dart.core::List::length};
       for (dart.core::int i = 0; i.{dart.core::num::<}(length); i = i.{dart.core::num::+}(1)) {
         if(!test.call(this.{dart.core::List::[]}(i)))
@@ -52,7 +52,7 @@ library from "org-dartlang-test:///main.dart" as main {
       }
       return true;
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ any((dart.core::int*) → dart.core::bool test) → dart.core::bool {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ any((dart.core::int*) → dart.core::bool test) → dart.core::bool {
       dart.core::int length = this.{dart.core::List::length};
       for (dart.core::int i = 0; i.{dart.core::num::<}(length); i = i.{dart.core::num::+}(1)) {
         if(test.call(this.{dart.core::List::[]}(i)))
@@ -63,7 +63,7 @@ library from "org-dartlang-test:///main.dart" as main {
       }
       return false;
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ firstWhere((dart.core::int*) → dart.core::bool test, {generic-covariant-impl () →? dart.core::int* orElse = #C2}) → dart.core::int* {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ firstWhere((dart.core::int*) → dart.core::bool test, {generic-covariant-impl () →? dart.core::int* orElse = #C2}) → dart.core::int* {
       dart.core::int length = this.{dart.core::List::length};
       for (dart.core::int i = 0; i.{dart.core::num::<}(length); i = i.{dart.core::num::+}(1)) {
         dart.core::int* element = this.{dart.core::List::[]}(i);
@@ -77,7 +77,7 @@ library from "org-dartlang-test:///main.dart" as main {
         return orElse{() → dart.core::int*}.call();
       throw dart._internal::IterableElementError::noElement();
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ lastWhere((dart.core::int*) → dart.core::bool test, {generic-covariant-impl () →? dart.core::int* orElse = #C2}) → dart.core::int* {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ lastWhere((dart.core::int*) → dart.core::bool test, {generic-covariant-impl () →? dart.core::int* orElse = #C2}) → dart.core::int* {
       dart.core::int length = this.{dart.core::List::length};
       for (dart.core::int i = length.{dart.core::num::-}(1); i.{dart.core::num::>=}(0); i = i.{dart.core::num::-}(1)) {
         dart.core::int* element = this.{dart.core::List::[]}(i);
@@ -91,7 +91,7 @@ library from "org-dartlang-test:///main.dart" as main {
         return orElse{() → dart.core::int*}.call();
       throw dart._internal::IterableElementError::noElement();
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ singleWhere((dart.core::int*) → dart.core::bool test, {generic-covariant-impl () →? dart.core::int* orElse = #C2}) → dart.core::int* {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ singleWhere((dart.core::int*) → dart.core::bool test, {generic-covariant-impl () →? dart.core::int* orElse = #C2}) → dart.core::int* {
       dart.core::int length = this.{dart.core::List::length};
       late dart.core::int* match;
       dart.core::bool matchFound = false;
@@ -114,7 +114,7 @@ library from "org-dartlang-test:///main.dart" as main {
         return orElse{() → dart.core::int*}.call();
       throw dart._internal::IterableElementError::noElement();
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ join([dart.core::String separator = #C4]) → dart.core::String {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ join([dart.core::String separator = #C4]) → dart.core::String {
       if(this.{dart.core::List::length}.{dart.core::num::==}(0))
         return "";
       dart.core::StringBuffer buffer = let final dart.core::StringBuffer #t1 = new dart.core::StringBuffer::•() in block {
@@ -122,15 +122,15 @@ library from "org-dartlang-test:///main.dart" as main {
       } =>#t1;
       return buffer.{dart.core::StringBuffer::toString}();
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ where((dart.core::int*) → dart.core::bool test) → dart.core::Iterable<dart.core::int*>
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ where((dart.core::int*) → dart.core::bool test) → dart.core::Iterable<dart.core::int*>
       return new dart._internal::WhereIterable::•<dart.core::int*>(this, test);
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ whereType<T extends dart.core::Object? = dynamic>() → dart.core::Iterable<main::_WithListMixin&Object&ListMixin::whereType::T%>
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ whereType<T extends dart.core::Object? = dynamic>() → dart.core::Iterable<main::_WithListMixin&Object&ListMixin::whereType::T%>
       return new dart._internal::WhereTypeIterable::•<main::_WithListMixin&Object&ListMixin::whereType::T%>(this);
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ map<T extends dart.core::Object? = dynamic>((dart.core::int*) → main::_WithListMixin&Object&ListMixin::map::T% f) → dart.core::Iterable<main::_WithListMixin&Object&ListMixin::map::T%>
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ map<T extends dart.core::Object? = dynamic>((dart.core::int*) → main::_WithListMixin&Object&ListMixin::map::T% f) → dart.core::Iterable<main::_WithListMixin&Object&ListMixin::map::T%>
       return new dart._internal::MappedListIterable::•<dart.core::int*, main::_WithListMixin&Object&ListMixin::map::T%>(this, f);
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ expand<T extends dart.core::Object? = dynamic>((dart.core::int*) → dart.core::Iterable<main::_WithListMixin&Object&ListMixin::expand::T%> f) → dart.core::Iterable<main::_WithListMixin&Object&ListMixin::expand::T%>
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ expand<T extends dart.core::Object? = dynamic>((dart.core::int*) → dart.core::Iterable<main::_WithListMixin&Object&ListMixin::expand::T%> f) → dart.core::Iterable<main::_WithListMixin&Object&ListMixin::expand::T%>
       return new dart._internal::ExpandIterable::•<dart.core::int*, main::_WithListMixin&Object&ListMixin::expand::T%>(this, f);
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ reduce(generic-covariant-impl (dart.core::int*, dart.core::int*) → dart.core::int* combine) → dart.core::int* {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ reduce(generic-covariant-impl (dart.core::int*, dart.core::int*) → dart.core::int* combine) → dart.core::int* {
       dart.core::int length = this.{dart.core::List::length};
       if(length.{dart.core::num::==}(0))
         throw dart._internal::IterableElementError::noElement();
@@ -143,7 +143,7 @@ library from "org-dartlang-test:///main.dart" as main {
       }
       return value;
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ fold<T extends dart.core::Object? = dynamic>(main::_WithListMixin&Object&ListMixin::fold::T% initialValue, (main::_WithListMixin&Object&ListMixin::fold::T%, dart.core::int*) → main::_WithListMixin&Object&ListMixin::fold::T% combine) → main::_WithListMixin&Object&ListMixin::fold::T% {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ fold<T extends dart.core::Object? = dynamic>(main::_WithListMixin&Object&ListMixin::fold::T% initialValue, (main::_WithListMixin&Object&ListMixin::fold::T%, dart.core::int*) → main::_WithListMixin&Object&ListMixin::fold::T% combine) → main::_WithListMixin&Object&ListMixin::fold::T% {
       main::_WithListMixin&Object&ListMixin::fold::T% value = initialValue;
       dart.core::int length = this.{dart.core::List::length};
       for (dart.core::int i = 0; i.{dart.core::num::<}(length); i = i.{dart.core::num::+}(1)) {
@@ -154,17 +154,17 @@ library from "org-dartlang-test:///main.dart" as main {
       }
       return value;
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ skip(dart.core::int count) → dart.core::Iterable<dart.core::int*>
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ skip(dart.core::int count) → dart.core::Iterable<dart.core::int*>
       return new dart._internal::SubListIterable::•<dart.core::int*>(this, count, null);
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ skipWhile((dart.core::int*) → dart.core::bool test) → dart.core::Iterable<dart.core::int*> {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ skipWhile((dart.core::int*) → dart.core::bool test) → dart.core::Iterable<dart.core::int*> {
       return new dart._internal::SkipWhileIterable::•<dart.core::int*>(this, test);
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ take(dart.core::int count) → dart.core::Iterable<dart.core::int*>
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ take(dart.core::int count) → dart.core::Iterable<dart.core::int*>
       return new dart._internal::SubListIterable::•<dart.core::int*>(this, 0, count);
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ takeWhile((dart.core::int*) → dart.core::bool test) → dart.core::Iterable<dart.core::int*> {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ takeWhile((dart.core::int*) → dart.core::bool test) → dart.core::Iterable<dart.core::int*> {
       return new dart._internal::TakeWhileIterable::•<dart.core::int*>(this, test);
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ toList({dart.core::bool growable = #C5}) → dart.core::List<dart.core::int*> {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ toList({dart.core::bool growable = #C5}) → dart.core::List<dart.core::int*> {
       if(this.{dart.collection::ListMixin::isEmpty})
         return dart.core::List::empty<dart.core::int*>(growable: growable);
       dart.core::int* first = this.{dart.core::List::[]}(0);
@@ -174,14 +174,14 @@ library from "org-dartlang-test:///main.dart" as main {
       }
       return result;
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ toSet() → dart.core::Set<dart.core::int*> {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ toSet() → dart.core::Set<dart.core::int*> {
       dart.core::Set<dart.core::int*> result = dart.collection::LinkedHashSet::•<dart.core::int*>();
       for (dart.core::int i = 0; i.{dart.core::num::<}(this.{dart.core::List::length}); i = i.{dart.core::num::+}(1)) {
         result.{dart.core::Set::add}(this.{dart.core::List::[]}(i));
       }
       return result;
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ addAll(generic-covariant-impl dart.core::Iterable<dart.core::int*> iterable) → void {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ addAll(generic-covariant-impl dart.core::Iterable<dart.core::int*> iterable) → void {
       dart.core::int i = this.{dart.core::List::length};
       {
         dart.core::Iterator<dart.core::int*> :sync-for-iterator = iterable.{dart.core::Iterable::iterator};
@@ -195,7 +195,7 @@ library from "org-dartlang-test:///main.dart" as main {
         }
       }
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ remove(dart.core::Object? element) → dart.core::bool {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ remove(dart.core::Object? element) → dart.core::bool {
       for (dart.core::int i = 0; i.{dart.core::num::<}(this.{dart.core::List::length}); i = i.{dart.core::num::+}(1)) {
         if(this.{dart.core::List::[]}(i).{dart.core::Object::==}(element)) {
           this.{dart.collection::ListMixin::_closeGap}(i, i.{dart.core::num::+}(1));
@@ -204,7 +204,7 @@ library from "org-dartlang-test:///main.dart" as main {
       }
       return false;
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ _closeGap(dart.core::int start, dart.core::int end) → void {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ _closeGap(dart.core::int start, dart.core::int end) → void {
       dart.core::int length = this.{dart.core::List::length};
       assert(0.{dart.core::num::<=}(start));
       assert(start.{dart.core::num::<}(end));
@@ -215,13 +215,13 @@ library from "org-dartlang-test:///main.dart" as main {
       }
       this.{dart.core::List::length} = length.{dart.core::num::-}(size);
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ removeWhere((dart.core::int*) → dart.core::bool test) → void {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ removeWhere((dart.core::int*) → dart.core::bool test) → void {
       this.{dart.collection::ListMixin::_filter}(test, false);
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ retainWhere((dart.core::int*) → dart.core::bool test) → void {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ retainWhere((dart.core::int*) → dart.core::bool test) → void {
       this.{dart.collection::ListMixin::_filter}(test, true);
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ _filter((dart.core::int*) → dart.core::bool test, dart.core::bool retainMatching) → void {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ _filter((dart.core::int*) → dart.core::bool test, dart.core::bool retainMatching) → void {
       dart.core::List<dart.core::int*> retained = <dart.core::int*>[];
       dart.core::int length = this.{dart.core::List::length};
       for (dart.core::int i = 0; i.{dart.core::num::<}(length); i = i.{dart.core::num::+}(1)) {
@@ -238,12 +238,12 @@ library from "org-dartlang-test:///main.dart" as main {
         this.{dart.core::List::length} = retained.{dart.core::List::length};
       }
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ cast<R extends dart.core::Object? = dynamic>() → dart.core::List<main::_WithListMixin&Object&ListMixin::cast::R%>
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ cast<R extends dart.core::Object? = dynamic>() → dart.core::List<main::_WithListMixin&Object&ListMixin::cast::R%>
       return dart.core::List::castFrom<dart.core::int*, main::_WithListMixin&Object&ListMixin::cast::R%>(this);
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ sort([(dart.core::int*, dart.core::int*) →? dart.core::int compare = #C2]) → void {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ sort([(dart.core::int*, dart.core::int*) →? dart.core::int compare = #C2]) → void {
       dart._internal::Sort::sort<dart.core::int*>(this, let final (dart.core::int*, dart.core::int*) →? dart.core::int #t2 = compare in #t2.{dart.core::Object::==}(null) ?{(dart.core::int*, dart.core::int*) → dart.core::int} #C6 : #t2{(dart.core::int*, dart.core::int*) → dart.core::int});
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ shuffle([dart.math::Random? random = #C2]) → void {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ shuffle([dart.math::Random? random = #C2]) → void {
       random.{dart.core::Object::==}(null) ?{dart.math::Random} random = dart.math::Random::•() : null;
       if(random{dart.math::Random}.{dart.core::Object::==}(null))
         throw "!";
@@ -256,10 +256,10 @@ library from "org-dartlang-test:///main.dart" as main {
         this.{dart.core::List::[]=}(pos, tmp);
       }
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ asMap() → dart.core::Map<dart.core::int, dart.core::int*> {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ asMap() → dart.core::Map<dart.core::int, dart.core::int*> {
       return new dart._internal::ListMapView::•<dart.core::int*>(this);
     }
-    operator /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ +(generic-covariant-impl dart.core::List<dart.core::int*> other) → dart.core::List<dart.core::int*>
+    operator /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ +(generic-covariant-impl dart.core::List<dart.core::int*> other) → dart.core::List<dart.core::int*>
       return block {
         final dart.core::List<dart.core::int*> #t3 = <dart.core::int*>[];
         {
@@ -277,7 +277,7 @@ library from "org-dartlang-test:///main.dart" as main {
           }
         }
       } =>#t3;
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ sublist(dart.core::int start, [dart.core::int? end = #C2]) → dart.core::List<dart.core::int*> {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ sublist(dart.core::int start, [dart.core::int? end = #C2]) → dart.core::List<dart.core::int*> {
       dart.core::int listLength = this.{dart.core::List::length};
       end.{dart.core::num::==}(null) ?{dart.core::int} end = listLength : null;
       if(end{dart.core::int}.{dart.core::num::==}(null))
@@ -285,24 +285,24 @@ library from "org-dartlang-test:///main.dart" as main {
       dart.core::RangeError::checkValidRange(start, end{dart.core::int}, listLength);
       return dart.core::List::from<dart.core::int*>(this.{dart.collection::ListMixin::getRange}(start, end{dart.core::int}));
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ getRange(dart.core::int start, dart.core::int end) → dart.core::Iterable<dart.core::int*> {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ getRange(dart.core::int start, dart.core::int end) → dart.core::Iterable<dart.core::int*> {
       dart.core::RangeError::checkValidRange(start, end, this.{dart.core::List::length});
       return new dart._internal::SubListIterable::•<dart.core::int*>(this, start, end);
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ removeRange(dart.core::int start, dart.core::int end) → void {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ removeRange(dart.core::int start, dart.core::int end) → void {
       dart.core::RangeError::checkValidRange(start, end, this.{dart.core::List::length});
       if(end.{dart.core::num::>}(start)) {
         this.{dart.collection::ListMixin::_closeGap}(start, end);
       }
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ fillRange(dart.core::int start, dart.core::int end, [generic-covariant-impl dart.core::int? fill = #C2]) → void {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ fillRange(dart.core::int start, dart.core::int end, [generic-covariant-impl dart.core::int? fill = #C2]) → void {
       dart.core::int* value = let dart.core::int? #t6 = fill in #t6.==(null) ?{dart.core::int*} #t6 : #t6{dart.core::int*};
       dart.core::RangeError::checkValidRange(start, end, this.{dart.core::List::length});
       for (dart.core::int i = start; i.{dart.core::num::<}(end); i = i.{dart.core::num::+}(1)) {
         this.{dart.core::List::[]=}(i, value);
       }
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ setRange(dart.core::int start, dart.core::int end, generic-covariant-impl dart.core::Iterable<dart.core::int*> iterable, [dart.core::int skipCount = #C7]) → void {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ setRange(dart.core::int start, dart.core::int end, generic-covariant-impl dart.core::Iterable<dart.core::int*> iterable, [dart.core::int skipCount = #C7]) → void {
       dart.core::RangeError::checkValidRange(start, end, this.{dart.core::List::length});
       dart.core::int length = end.{dart.core::num::-}(start);
       if(length.{dart.core::num::==}(0))
@@ -332,7 +332,7 @@ library from "org-dartlang-test:///main.dart" as main {
         }
       }
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ replaceRange(dart.core::int start, dart.core::int end, generic-covariant-impl dart.core::Iterable<dart.core::int*> newContents) → void {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ replaceRange(dart.core::int start, dart.core::int end, generic-covariant-impl dart.core::Iterable<dart.core::int*> newContents) → void {
       dart.core::RangeError::checkValidRange(start, end, this.{dart.core::List::length});
       if(start.{dart.core::num::==}(this.{dart.core::List::length})) {
         this.{dart.collection::ListMixin::addAll}(newContents);
@@ -382,7 +382,7 @@ library from "org-dartlang-test:///main.dart" as main {
           this.{dart.collection::ListMixin::setRange}(start, insertEnd, newContents);
         }
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ indexOf(generic-covariant-impl dart.core::Object? element, [dart.core::int start = #C7]) → dart.core::int {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ indexOf(generic-covariant-impl dart.core::Object? element, [dart.core::int start = #C7]) → dart.core::int {
       if(start.{dart.core::num::<}(0))
         start = 0;
       for (dart.core::int i = start; i.{dart.core::num::<}(this.{dart.core::List::length}); i = i.{dart.core::num::+}(1)) {
@@ -391,7 +391,7 @@ library from "org-dartlang-test:///main.dart" as main {
       }
       return 1.{dart.core::int::unary-}();
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ indexWhere((dart.core::int*) → dart.core::bool test, [dart.core::int start = #C7]) → dart.core::int {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ indexWhere((dart.core::int*) → dart.core::bool test, [dart.core::int start = #C7]) → dart.core::int {
       if(start.{dart.core::num::<}(0))
         start = 0;
       for (dart.core::int i = start; i.{dart.core::num::<}(this.{dart.core::List::length}); i = i.{dart.core::num::+}(1)) {
@@ -400,7 +400,7 @@ library from "org-dartlang-test:///main.dart" as main {
       }
       return 1.{dart.core::int::unary-}();
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ lastIndexOf(generic-covariant-impl dart.core::Object? element, [dart.core::int? start = #C2]) → dart.core::int {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ lastIndexOf(generic-covariant-impl dart.core::Object? element, [dart.core::int? start = #C2]) → dart.core::int {
       if(start.{dart.core::num::==}(null) || start{dart.core::int}.{dart.core::num::>=}(this.{dart.core::List::length}))
         start = this.{dart.core::List::length}.{dart.core::num::-}(1);
       if(start{dart.core::int}.{dart.core::num::==}(null))
@@ -411,7 +411,7 @@ library from "org-dartlang-test:///main.dart" as main {
       }
       return 1.{dart.core::int::unary-}();
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ lastIndexWhere((dart.core::int*) → dart.core::bool test, [dart.core::int? start = #C2]) → dart.core::int {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ lastIndexWhere((dart.core::int*) → dart.core::bool test, [dart.core::int? start = #C2]) → dart.core::int {
       if(start.{dart.core::num::==}(null) || start{dart.core::int}.{dart.core::num::>=}(this.{dart.core::List::length}))
         start = this.{dart.core::List::length}.{dart.core::num::-}(1);
       if(start{dart.core::int}.{dart.core::num::==}(null))
@@ -422,7 +422,7 @@ library from "org-dartlang-test:///main.dart" as main {
       }
       return 1.{dart.core::int::unary-}();
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ insert(dart.core::int index, generic-covariant-impl dart.core::int* element) → void {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ insert(dart.core::int index, generic-covariant-impl dart.core::int* element) → void {
       dart.core::ArgumentError::checkNotNull<dart.core::int>(index, "index");
       dart.core::RangeError::checkValueInInterval(index, 0, this.{dart.core::List::length}, "index");
       if(index.{dart.core::num::==}(this.{dart.core::List::length})) {
@@ -433,12 +433,12 @@ library from "org-dartlang-test:///main.dart" as main {
       this.{dart.collection::ListMixin::setRange}(index.{dart.core::num::+}(1), this.{dart.core::List::length}, this, index);
       this.{dart.core::List::[]=}(index, element);
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ removeAt(dart.core::int index) → dart.core::int* {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ removeAt(dart.core::int index) → dart.core::int* {
       dart.core::int* result = this.{dart.core::List::[]}(index);
       this.{dart.collection::ListMixin::_closeGap}(index, index.{dart.core::num::+}(1));
       return result;
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ insertAll(dart.core::int index, generic-covariant-impl dart.core::Iterable<dart.core::int*> iterable) → void {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ insertAll(dart.core::int index, generic-covariant-impl dart.core::Iterable<dart.core::int*> iterable) → void {
       dart.core::RangeError::checkValueInInterval(index, 0, this.{dart.core::List::length}, "index");
       if(index.{dart.core::num::==}(this.{dart.core::List::length})) {
         this.{dart.collection::ListMixin::addAll}(iterable);
@@ -465,7 +465,7 @@ library from "org-dartlang-test:///main.dart" as main {
       }
       this.{dart.collection::ListMixin::setAll}(index, iterable);
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ setAll(dart.core::int index, generic-covariant-impl dart.core::Iterable<dart.core::int*> iterable) → void {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ setAll(dart.core::int index, generic-covariant-impl dart.core::Iterable<dart.core::int*> iterable) → void {
       if(iterable is{ForNonNullableByDefault} dart.core::List<dynamic>) {
         this.{dart.collection::ListMixin::setRange}(index, index.{dart.core::num::+}(iterable.{dart.core::Iterable::length}), iterable);
       }
@@ -481,9 +481,9 @@ library from "org-dartlang-test:///main.dart" as main {
         }
       }
     }
-    get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ reversed() → dart.core::Iterable<dart.core::int*>
+    get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ reversed() → dart.core::Iterable<dart.core::int*>
       return new dart._internal::ReversedListIterable::•<dart.core::int*>(this);
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ toString() → dart.core::String
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ toString() → dart.core::String
       return dart.collection::IterableBase::iterableToFullString(this, "[", "]");
     abstract member-signature get _identityHashCode() → dart.core::int*;
     abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*;
@@ -495,40 +495,40 @@ library from "org-dartlang-test:///main.dart" as main {
     abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic;
     abstract member-signature get runtimeType() → dart.core::Type*;
     abstract member-signature set length(dart.core::int* newLength) → void;
-    get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ first() → dart.core::int* {
+    get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ first() → dart.core::int* {
       if(this.{dart.core::List::length}.{dart.core::num::==}(0))
         throw dart._internal::IterableElementError::noElement();
       return this.{dart.core::List::[]}(0);
     }
-    set /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ first(generic-covariant-impl dart.core::int* value) → void {
+    set /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ first(generic-covariant-impl dart.core::int* value) → void {
       if(this.{dart.core::List::length}.{dart.core::num::==}(0))
         throw dart._internal::IterableElementError::noElement();
       this.{dart.core::List::[]=}(0, value);
     }
-    get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ last() → dart.core::int* {
+    get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ last() → dart.core::int* {
       if(this.{dart.core::List::length}.{dart.core::num::==}(0))
         throw dart._internal::IterableElementError::noElement();
       return this.{dart.core::List::[]}(this.{dart.core::List::length}.{dart.core::num::-}(1));
     }
-    set /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ last(generic-covariant-impl dart.core::int* value) → void {
+    set /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ last(generic-covariant-impl dart.core::int* value) → void {
       if(this.{dart.core::List::length}.{dart.core::num::==}(0))
         throw dart._internal::IterableElementError::noElement();
       this.{dart.core::List::[]=}(this.{dart.core::List::length}.{dart.core::num::-}(1), value);
     }
-    get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ single() → dart.core::int* {
+    get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ single() → dart.core::int* {
       if(this.{dart.core::List::length}.{dart.core::num::==}(0))
         throw dart._internal::IterableElementError::noElement();
       if(this.{dart.core::List::length}.{dart.core::num::>}(1))
         throw dart._internal::IterableElementError::tooMany();
       return this.{dart.core::List::[]}(0);
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ add(generic-covariant-impl dart.core::int* element) → void {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ add(generic-covariant-impl dart.core::int* element) → void {
       this.{dart.core::List::[]=}(let final dart.core::int #t9 = this.{dart.core::List::length} in let final dart.core::int #t10 = this.{dart.core::List::length} = #t9.{dart.core::num::+}(1) in #t9, element);
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ clear() → void {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ clear() → void {
       this.{dart.core::List::length} = 0;
     }
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ removeLast() → dart.core::int* {
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ removeLast() → dart.core::int* {
       if(this.{dart.core::List::length}.{dart.core::num::==}(0)) {
         throw dart._internal::IterableElementError::noElement();
       }
@@ -536,7 +536,7 @@ library from "org-dartlang-test:///main.dart" as main {
       this.{dart.core::List::length} = this.{dart.core::List::length}.{dart.core::num::-}(1);
       return result;
     }
-    static method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk_nnbd/lib/collection/list.dart */ _compareAny(dynamic a, dynamic b) → dart.core::int {
+    static method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ _compareAny(dynamic a, dynamic b) → dart.core::int {
       return dart.core::Comparable::compare(a as{ForNonNullableByDefault} dart.core::Comparable<dynamic>, b as{ForNonNullableByDefault} dart.core::Comparable<dynamic>);
     }
   }

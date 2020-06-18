@@ -429,7 +429,6 @@ class BlobImageWriter : public ImageWriter {
                   ReAlloc alloc,
                   intptr_t initial_size,
                   Elf* debug_elf = nullptr,
-                  intptr_t bss_base = 0,
                   Elf* elf = nullptr);
 
   virtual void WriteText(WriteStream* clustered_stream, bool vm);
@@ -443,7 +442,6 @@ class BlobImageWriter : public ImageWriter {
 
   WriteStream instructions_blob_stream_;
   Elf* const elf_;
-  const intptr_t bss_base_;
   Elf* const debug_elf_;
 
   DISALLOW_COPY_AND_ASSIGN(BlobImageWriter);

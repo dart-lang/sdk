@@ -211,7 +211,7 @@ class CompletionMetrics {
   MeanReciprocalRankComputer topLevelMrrComputer =
       MeanReciprocalRankComputer('non-type member completions');
 
-  Map<String, MeanReciprocalRankComputer> locationMmrComputers = {};
+  Map<String, MeanReciprocalRankComputer> locationMrrComputers = {};
 
   ArithmeticMeanComputer charsBeforeTop =
       ArithmeticMeanComputer('chars_before_top');
@@ -259,7 +259,7 @@ class CompletionMetrics {
   /// as well as the longest sets of results to compute.
   void recordCompletionResult(CompletionResult result) {
     _recordTime(result);
-    _recordMmr(result);
+    _recordMrr(result);
     _recordWorstResult(result);
     _recordSlowestResult(result);
     _recordMissingInformation(result);
@@ -279,8 +279,8 @@ class CompletionMetrics {
     }
   }
 
-  /// Record the MMR for the [result].
-  void _recordMmr(CompletionResult result) {
+  /// Record the MRR for the [result].
+  void _recordMrr(CompletionResult result) {
     var rank = result.place.rank;
     // Record globally.
     successfulMrrComputer.addRank(rank);
@@ -299,7 +299,7 @@ class CompletionMetrics {
     // Record by completion location.
     var location = result.completionLocation;
     if (location != null) {
-      var computer = locationMmrComputers.putIfAbsent(
+      var computer = locationMrrComputers.putIfAbsent(
           location, () => MeanReciprocalRankComputer(location));
       computer.addRank(rank);
     }
@@ -517,7 +517,7 @@ class CompletionMetricsComputer {
 
     if (verbose) {
       var lines = <LocationTableLine>[];
-      for (var entry in metrics.locationMmrComputers.entries) {
+      for (var entry in metrics.locationMrrComputers.entries) {
         var count = entry.value.count;
         var mrr = (1 / entry.value.mrr);
         var mrr_5 = (1 / entry.value.mrr_5);
@@ -531,7 +531,7 @@ class CompletionMetricsComputer {
       }
       lines.sort((first, second) => second.product.compareTo(first.product));
       var table = <List<String>>[];
-      table.add(['Location', 'Product', 'Count', 'Mmr', 'Mmr_5']);
+      table.add(['Location', 'Product', 'Count', 'Mrr', 'Mrr_5']);
       for (var line in lines) {
         var location = line.label;
         var product = line.product.truncate().toString();
@@ -1036,7 +1036,7 @@ class CompletionResult {
   }
 }
 
-/// The data to be printed on a single line in the table of mmr values per
+/// The data to be printed on a single line in the table of mrr values per
 /// completion location.
 class LocationTableLine {
   final String label;

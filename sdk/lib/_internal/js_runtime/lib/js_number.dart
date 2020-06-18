@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of _interceptors;
 
 /// The super interceptor class for [JSInt] and [JSDouble]. The compiler
@@ -68,7 +66,7 @@ class JSNumber extends Interceptor implements double {
       r'Math.abs(#)',
       this);
 
-  JSNumber get sign => this > 0 ? 1 : this < 0 ? -1 : this;
+  JSNumber get sign => (this > 0 ? 1 : this < 0 ? -1 : this) as JSNumber;
 
   static const int _MIN_INT32 = -0x80000000;
   static const int _MAX_INT32 = 0x7FFFFFFF;
@@ -183,7 +181,7 @@ class JSNumber extends Interceptor implements double {
     return result;
   }
 
-  String toStringAsExponential([int fractionDigits]) {
+  String toStringAsExponential([int? fractionDigits]) {
     String result;
     if (fractionDigits != null) {
       checkInt(fractionDigits);
@@ -234,7 +232,7 @@ class JSNumber extends Interceptor implements double {
     int exponent = JS('int', '+#', match[3]);
     if (match[2] != null) {
       result = JS('String', '# + #', result, match[2]);
-      exponent -= JS('int', '#.length', match[2]);
+      exponent -= JS<int>('int', '#.length', match[2]);
     }
     return result + '0' * exponent;
   }
@@ -308,13 +306,13 @@ class JSNumber extends Interceptor implements double {
   JSNumber operator %(num other) {
     if (other is! num) throw argumentErrorValue(other);
     // Euclidean Modulo.
-    num result = JS('num', r'# % #', this, other);
+    JSNumber result = JS<JSNumber>('JSNumber', r'# % #', this, other);
     if (result == 0) return JS('num', '0'); // Make sure we don't return -0.0.
     if (result > 0) return result;
     if (JS('num', '#', other) < 0) {
-      return result - JS('num', '#', other);
+      return result - JS<JSNumber>('JSNumber', '#', other);
     } else {
-      return result + JS('num', '#', other);
+      return result + JS<JSNumber>('JSNumber', '#', other);
     }
   }
 
@@ -469,7 +467,7 @@ class JSInt extends JSNumber implements int {
       this);
 
   @override
-  JSInt get sign => this > 0 ? 1 : this < 0 ? -1 : this;
+  JSInt get sign => (this > 0 ? 1 : this < 0 ? -1 : this) as JSInt;
 
   @override
   JSInt operator -() => JS('int', r'-#', this);
@@ -488,7 +486,7 @@ class JSInt extends JSNumber implements int {
   }
 
   int get bitLength {
-    JSInt nonneg = this < 0 ? -this - 1 : this;
+    int nonneg = (this < 0 ? -this - 1 : this) as int;
     int wordBits = 32;
     while (nonneg >= 0x100000000) {
       nonneg = nonneg ~/ 0x100000000;

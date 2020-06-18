@@ -71,6 +71,32 @@ class EnclosingExecutableContext {
 
   EnclosingExecutableContext.empty() : this(null);
 
+  String get displayName {
+    var element = this.element;
+    if (element is ConstructorElement) {
+      var className = element.enclosingElement.displayName;
+      var constructorName = element.displayName;
+      return constructorName.isEmpty
+          ? className
+          : '$className.$constructorName';
+    } else {
+      return element.displayName;
+    }
+  }
+
+  bool get isClosure {
+    return element is FunctionElement && element.displayName.isEmpty;
+  }
+
+  bool get isConstructor => element is ConstructorElement;
+
+  bool get isFunction {
+    if (element is FunctionElement) {
+      return element.displayName.isNotEmpty;
+    }
+    return element is PropertyAccessorElement;
+  }
+
   bool get isMethod => element is MethodElement;
 
   bool get isSynchronous => !isAsynchronous;
@@ -821,10 +847,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitIndexExpression(IndexExpression node) {
     _checkForArgumentTypeNotAssignableForArgument(node.index);
     if (node.isNullAware) {
-      _checkForUnnecessaryNullAware(
-        node.realTarget,
-        node.question ?? node.period ?? node.leftBracket,
-      );
+      var target = node.realTarget;
+      if (_isExpressionWithType(target)) {
+        _checkForUnnecessaryNullAware(
+          target,
+          node.question ?? node.period ?? node.leftBracket,
+        );
+      }
     }
     super.visitIndexExpression(node);
   }
@@ -918,9 +947,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForStaticAccessToInstanceMember(typeReference, methodName);
       _checkForInstanceAccessToStaticMember(
           typeReference, node.target, methodName);
-
-      // For `C?.foo()` the type of `C` is not set, it is not an expression.
-      if (target.staticType != null) {
+      if (_isExpressionWithType(target)) {
         _checkForUnnecessaryNullAware(target, node.operator);
       }
     } else {
@@ -1025,9 +1052,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _checkForStaticAccessToInstanceMember(typeReference, propertyName);
     _checkForInstanceAccessToStaticMember(
         typeReference, node.target, propertyName);
-
-    // For `C?.x` the type of `C` is not set, because it is not an expression.
-    if (target.staticType != null) {
+    if (_isExpressionWithType(target)) {
       _checkForUnnecessaryNullAware(target, node.operator);
     }
 
@@ -5363,6 +5388,22 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       }
     }
     return null;
+  }
+
+  static bool _isExpressionWithType(Expression node) {
+    if (node is ExtensionOverride) {
+      return false;
+    }
+
+    // For `C?.foo()` the type of `C` is not set, it is not an expression.
+    if (node is Identifier) {
+      var element = node.staticElement;
+      if (element is ClassElement || element is ExtensionElement) {
+        return false;
+      }
+    }
+
+    return true;
   }
 }
 

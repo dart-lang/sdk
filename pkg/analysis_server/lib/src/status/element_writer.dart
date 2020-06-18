@@ -39,7 +39,6 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
     properties['nameOffset'] = element.nameOffset;
     if (element is ClassElement) {
       properties['hasNonFinalField'] = element.hasNonFinalField;
-      properties['hasReferenceToSuper'] = element.hasReferenceToSuper;
       properties['hasStaticMember'] = element.hasStaticMember;
       properties['interfaces'] = element.interfaces;
       properties['isAbstract'] = element.isAbstract;

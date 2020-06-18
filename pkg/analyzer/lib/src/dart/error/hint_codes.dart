@@ -742,6 +742,15 @@ class HintCode extends AnalyzerErrorCode {
           correction: "Specify a Dart language version override with a comment "
               "like '// @dart = 2.0'.");
 
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER =
+      HintCodeWithUniqueName(
+    'INVALID_LANGUAGE_VERSION_OVERRIDE',
+    'INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER',
+    "The language version override can't specify a version greater than the "
+        "latest known language version: {0}.{1}",
+    correction: "Try removing the language version override.",
+  );
+
   static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION =
       HintCodeWithUniqueName(
     'INVALID_LANGUAGE_VERSION_OVERRIDE',

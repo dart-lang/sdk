@@ -424,6 +424,10 @@ abstract class CommonElements {
 
   FunctionEntity get throwAbstractClassInstantiationError;
 
+  /// Recognizes the `checkConcurrentModificationError` helper without needing
+  /// it to be resolved.
+  bool isCheckConcurrentModificationError(MemberEntity member);
+
   FunctionEntity get checkConcurrentModificationError;
 
   FunctionEntity get throwConcurrentModificationError;
@@ -442,15 +446,9 @@ abstract class CommonElements {
 
   FunctionEntity get getRuntimeTypeInfo;
 
-  FunctionEntity get getTypeArgumentByIndex;
-
   FunctionEntity get computeSignature;
 
   FunctionEntity get getRuntimeTypeArguments;
-
-  FunctionEntity get getRuntimeTypeArgument;
-
-  FunctionEntity get getRuntimeTypeArgumentIntercepted;
 
   FunctionEntity get checkDeferredIsLoaded;
 
@@ -475,8 +473,6 @@ abstract class CommonElements {
   FunctionEntity getInstantiateFunction(int typeArgumentCount);
 
   FunctionEntity get instantiatedGenericFunctionType;
-
-  FunctionEntity get extractFunctionTypeObjectFromInternal;
 
   // From dart:_rti
 
@@ -1732,11 +1728,19 @@ class CommonElementsImpl
       _findHelperFunction('throwUnsupportedError');
 
   @override
-  FunctionEntity get throwTypeError => _findHelperFunction('throwTypeError');
+  FunctionEntity get throwTypeError => _findRtiFunction('throwTypeError');
 
   @override
   FunctionEntity get throwAbstractClassInstantiationError =>
       _findHelperFunction('throwAbstractClassInstantiationError');
+
+  @override
+  bool isCheckConcurrentModificationError(MemberEntity member) {
+    return member.name == 'checkConcurrentModificationError' &&
+        member.isFunction &&
+        member.isTopLevel &&
+        member.library == jsHelperLibrary;
+  }
 
   FunctionEntity _cachedCheckConcurrentModificationError;
   @override
@@ -1800,24 +1804,12 @@ class CommonElementsImpl
       _findHelperFunction('getRuntimeTypeInfo');
 
   @override
-  FunctionEntity get getTypeArgumentByIndex =>
-      _findHelperFunction('getTypeArgumentByIndex');
-
-  @override
   FunctionEntity get computeSignature =>
       _findHelperFunction('computeSignature');
 
   @override
   FunctionEntity get getRuntimeTypeArguments =>
       _findHelperFunction('getRuntimeTypeArguments');
-
-  @override
-  FunctionEntity get getRuntimeTypeArgument =>
-      _findHelperFunction('getRuntimeTypeArgument');
-
-  @override
-  FunctionEntity get getRuntimeTypeArgumentIntercepted =>
-      _findHelperFunction('getRuntimeTypeArgumentIntercepted');
 
   @override
   FunctionEntity get checkDeferredIsLoaded =>
@@ -1888,10 +1880,6 @@ class CommonElementsImpl
   @override
   FunctionEntity get instantiatedGenericFunctionType =>
       _findHelperFunction('instantiatedGenericFunctionType');
-
-  @override
-  FunctionEntity get extractFunctionTypeObjectFromInternal =>
-      _findHelperFunction('extractFunctionTypeObjectFromInternal');
 
   @override
   bool isInstantiationClass(ClassEntity cls) {

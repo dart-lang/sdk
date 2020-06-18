@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 /// This library defines runtime operations on objects used by the code
 /// generator.
 part of dart._runtime;
@@ -19,7 +17,7 @@ class InvocationImpl extends Invocation {
   final bool isSetter;
   final String failureMessage;
 
-  InvocationImpl(memberName, List<Object> positionalArguments,
+  InvocationImpl(memberName, List<Object?> positionalArguments,
       {namedArguments,
       List typeArguments = const [],
       this.isMethod = false,
@@ -146,7 +144,7 @@ dput(obj, field, value) {
 /// [actuals] and [namedActuals].
 ///
 /// Returns `null` if all checks pass.
-String _argumentErrors(FunctionType type, List actuals, namedActuals) {
+String? _argumentErrors(FunctionType type, List actuals, namedActuals) {
   // Check for too few required arguments.
   int actualsCount = JS('!', '#.length', actuals);
   var required = type.args;
@@ -165,7 +163,7 @@ String _argumentErrors(FunctionType type, List actuals, namedActuals) {
   }
 
   // Check if we have invalid named arguments.
-  Iterable names;
+  Iterable? names;
   var named = type.named;
   var requiredNamed = type.requiredNamed;
   if (namedActuals != null) {
@@ -444,7 +442,7 @@ cast(obj, type) {
   return castError(obj, type);
 }
 
-bool test(bool obj) {
+bool test(bool? obj) {
   if (obj == null) throw BooleanConversionAssertionError();
   return obj;
 }
@@ -513,11 +511,11 @@ final constantMaps = JS<Object>('!', 'new Map()');
 // Keeping the paths is probably expensive.  It would probably
 // be more space efficient to just use a direct hash table with
 // an appropriately defined structural equality function.
-Object _lookupNonTerminal(Object map, Object key) {
+Object _lookupNonTerminal(Object map, Object? key) {
   var result = JS('', '#.get(#)', map, key);
   if (result != null) return result;
   JS('', '#.set(#, # = new Map())', map, key, result);
-  return result;
+  return result!;
 }
 
 Map<K, V> constMap<K, V>(JSArray elements) {
@@ -527,7 +525,7 @@ Map<K, V> constMap<K, V>(JSArray elements) {
     map = _lookupNonTerminal(map, JS('', '#[#]', elements, i));
   }
   map = _lookupNonTerminal(map, K);
-  Map<K, V> result = JS('', '#.get(#)', map, V);
+  Map<K, V>? result = JS('', '#.get(#)', map, V);
   if (result != null) return result;
   result = ImmutableMap<K, V>.from(elements);
   JS('', '#.set(#, #)', map, V, result);
@@ -550,7 +548,7 @@ Set<E> constSet<E>(JSArray<E> elements) {
   for (var i = 0; i < count; i++) {
     map = _lookupNonTerminal(map, JS('', '#[#]', elements, i));
   }
-  Set<E> result = JS('', '#.get(#)', map, E);
+  Set<E>? result = JS('', '#.get(#)', map, E);
   if (result != null) return result;
   result = _createImmutableSet<E>(elements);
   JS('', '#.set(#, #)', map, E, result);

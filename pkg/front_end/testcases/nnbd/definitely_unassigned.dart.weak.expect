@@ -92,7 +92,6 @@ library /*isNonNullableByDefault*/;
 //
 import self as self;
 import "dart:core" as core;
-import "dart:async" as asy;
 
 import "dart:async";
 
@@ -101,8 +100,8 @@ static field <T extends core::Object? = dynamic>(T%) → core::Null? fieldDirect
   late T% local2;
   core::int local3;
   late core::int local4;
-  asy::FutureOr<core::int> local5;
-  late asy::FutureOr<core::int> local6;
+  FutureOr<core::int>local5;
+  late FutureOr<core::int>local6;
   late T% local7 = value;
   let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:34:3: Error: Non-nullable variable 'local1' must be assigned before it can be used.
   local1; // error
@@ -129,8 +128,8 @@ static field <T extends core::Object? = dynamic>(core::bool, T%) → core::Null?
   late T% local2;
   core::int local3;
   late core::int local4;
-  asy::FutureOr<core::int> local5;
-  late asy::FutureOr<core::int> local6;
+  FutureOr<core::int>local5;
+  late FutureOr<core::int>local6;
   late T% local7 = value;
   if(b) {
     local1 = value;
@@ -170,8 +169,8 @@ static method methodDirect<T extends core::Object? = dynamic>(self::methodDirect
   late self::methodDirect::T% local2;
   core::int local3;
   late core::int local4;
-  asy::FutureOr<core::int> local5;
-  late asy::FutureOr<core::int> local6;
+  FutureOr<core::int>local5;
+  late FutureOr<core::int>local6;
   late self::methodDirect::T% local7 = value;
   let final<BottomType> #t12 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:16:3: Error: Non-nullable variable 'local1' must be assigned before it can be used.
   local1; // error
@@ -198,8 +197,8 @@ static method methodConditional<T extends core::Object? = dynamic>(core::bool b,
   late self::methodConditional::T% local2;
   core::int local3;
   late core::int local4;
-  asy::FutureOr<core::int> local5;
-  late asy::FutureOr<core::int> local6;
+  FutureOr<core::int>local5;
+  late FutureOr<core::int>local6;
   late self::methodConditional::T% local7 = value;
   if(b) {
     local1 = value;

@@ -443,37 +443,62 @@ class InstanceMemberInferrer {
     }
 
     var name = Name(element.library.source.uri, element.name);
-    List<ExecutableElement> overriddenElements =
-        inheritance.getOverridden2(currentClassElement, name);
+    var overriddenElements = inheritance.getOverridden2(
+      currentClassElement,
+      name,
+    );
     if (overriddenElements == null ||
         !_allSameElementKind(element, overriddenElements)) {
       return;
     }
 
     FunctionType combinedSignatureType;
-    FunctionType getCombinedSignatureType() {
-      if (combinedSignatureType == null) {
-        var combinedSignature = inheritance.combineSignatures(
-          targetClass: currentClassElement,
-          candidates: overriddenElements,
-          doTopMerge: true,
-          name: name,
+    var hasImplicitType = element.hasImplicitReturnType ||
+        element.parameters.any((e) => e.hasImplicitType);
+    if (hasImplicitType) {
+      var conflicts = <Conflict>[];
+      var combinedSignature = inheritance.combineSignatures(
+        targetClass: currentClassElement,
+        candidates: overriddenElements,
+        doTopMerge: true,
+        name: name,
+        conflicts: conflicts,
+      );
+      if (combinedSignature != null) {
+        combinedSignatureType = _toOverriddenFunctionType(
+          element,
+          combinedSignature,
         );
-        if (combinedSignature != null) {
-          combinedSignatureType = _toOverriddenFunctionType(
-            element,
-            combinedSignature,
-          );
+        if (combinedSignatureType != null) {}
+      } else {
+        var conflictExplanation = '<unknown>';
+        if (conflicts.length == 1) {
+          var conflict = conflicts.single;
+          if (conflict is CandidatesConflict) {
+            conflictExplanation = conflict.candidates.map((candidate) {
+              var className = candidate.enclosingElement.name;
+              var typeStr = candidate.type.getDisplayString(
+                withNullability: typeSystem.isNonNullableByDefault,
+              );
+              return '$className.${name.name} ($typeStr)';
+            }).join(', ');
+          }
         }
+
+        LazyAst.setTypeInferenceError(
+          element.linkedNode,
+          TopLevelInferenceErrorBuilder(
+            kind: TopLevelInferenceErrorKind.overrideNoCombinedSuperSignature,
+            arguments: [conflictExplanation],
+          ),
+        );
       }
-      return combinedSignatureType;
     }
 
     //
     // Infer the return type.
     //
     if (element.hasImplicitReturnType && element.displayName != '[]=') {
-      var combinedSignatureType = getCombinedSignatureType();
       if (combinedSignatureType != null) {
         element.returnType = combinedSignatureType.returnType;
       } else {
@@ -491,7 +516,6 @@ class InstanceMemberInferrer {
         _inferParameterCovariance(parameter, index, overriddenElements);
 
         if (parameter.hasImplicitType) {
-          var combinedSignatureType = getCombinedSignatureType();
           _inferParameterType(parameter, index, combinedSignatureType);
         }
       }
@@ -531,12 +555,6 @@ class InstanceMemberInferrer {
       }
     } else {
       parameter.type = DynamicTypeImpl.instance;
-      LazyAst.setTypeInferenceError(
-        parameter.linkedNode,
-        TopLevelInferenceErrorBuilder(
-          kind: TopLevelInferenceErrorKind.overrideConflictParameterType,
-        ),
-      );
     }
   }
 

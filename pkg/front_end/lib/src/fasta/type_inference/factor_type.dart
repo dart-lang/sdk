@@ -16,7 +16,7 @@ DartType factorType(TypeEnvironment typeEnvironment, DartType T, DartType S) {
 
   // * Else if T is R? and Null <: S then factor(R, S)
   // * Else if T is R? then factor(R, S)?
-  if (T.nullability == Nullability.nullable) {
+  if (T.declaredNullability == Nullability.nullable) {
     DartType R = T.withDeclaredNullability(Nullability.nonNullable);
     if (identical(R, T)) {
       return T;
@@ -32,7 +32,7 @@ DartType factorType(TypeEnvironment typeEnvironment, DartType T, DartType S) {
 
   // * Else if T is R* and Null <: S then factor(R, S)
   // * Else if T is R* then factor(R, S)*
-  if (T.nullability == Nullability.legacy) {
+  if (T.declaredNullability == Nullability.legacy) {
     DartType R = T.withDeclaredNullability(Nullability.nonNullable);
     DartType factor_RS = factorType(typeEnvironment, R, S);
     if (typeEnvironment.isSubtypeOf(
@@ -45,8 +45,8 @@ DartType factorType(TypeEnvironment typeEnvironment, DartType T, DartType S) {
 
   // * Else if T is FutureOr<R> and Future<R> <: S then factor(R, S)
   // * Else if T is FutureOr<R> and R <: S then factor(Future<R>, S)
-  if (T is InterfaceType && T.classNode == typeEnvironment.futureOrClass) {
-    DartType R = T.typeArguments[0];
+  if (T is FutureOrType) {
+    DartType R = T.typeArgument;
     DartType future_R = typeEnvironment.futureType(R, Nullability.nonNullable);
     if (typeEnvironment.isSubtypeOf(
         future_R, S, SubtypeCheckMode.withNullabilities)) {

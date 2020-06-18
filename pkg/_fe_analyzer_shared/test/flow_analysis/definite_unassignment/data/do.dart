@@ -40,7 +40,7 @@ breakOuterFromInner(bool c) {
 condition() {
   late int v1, v2;
   do {
-    /*unassigned*/ v1; // assigned in the condition, but not yet
+    v1;
   } while ((v1 = 0) + (v2 = 0) >= 0);
   v2;
 }

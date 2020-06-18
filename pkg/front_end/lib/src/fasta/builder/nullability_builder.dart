@@ -35,6 +35,8 @@ class NullabilityBuilder {
   const NullabilityBuilder.omitted()
       : _syntacticNullability = SyntacticNullability.omitted;
 
+  bool get isOmitted => _syntacticNullability == SyntacticNullability.omitted;
+
   factory NullabilityBuilder.fromNullability(Nullability nullability) {
     switch (nullability) {
       case Nullability.nullable:
@@ -47,13 +49,10 @@ class NullabilityBuilder {
     }
   }
 
-  Nullability build(LibraryBuilder libraryBuilder, {Nullability ifOmitted}) {
-    // TODO(dmitryas): Ensure that either ifOmitted is set or libraryBuilder is
-    // provided;
-    //assert(libraryBuilder != null || ifOmitted != null);
-    ifOmitted ??= (libraryBuilder == null ? Nullability.legacy : null);
+  Nullability build(LibraryBuilder libraryBuilder) {
+    assert(libraryBuilder != null);
 
-    ifOmitted ??= libraryBuilder.isNonNullableByDefault
+    Nullability ifOmitted = libraryBuilder.isNonNullableByDefault
         ? Nullability.nonNullable
         : Nullability.legacy;
     switch (_syntacticNullability) {

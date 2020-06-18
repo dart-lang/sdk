@@ -25,11 +25,11 @@ static method returnMixed(core::bool b) → core::String
   ;
 static method returnAsync1() → asy::Future<dynamic>
   ;
-static method returnAsync2() → asy::FutureOr<dynamic>
+static method returnAsync2() → FutureOr<dynamic>
   ;
-static method returnAsync3() → asy::FutureOr<core::int>
+static method returnAsync3() → FutureOr<core::int>
   ;
-static method returnAsync4() → asy::FutureOr<core::int?>
+static method returnAsync4() → FutureOr<core::int?>
   ;
 static method returnAsync5() → dynamic
   ;

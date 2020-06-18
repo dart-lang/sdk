@@ -4,13 +4,11 @@ library /*isNonNullableByDefault*/;
 //
 // pkg/front_end/testcases/nnbd/issue41437a.dart:14:31: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'FutureOr<bool>'.
 //  - 'Future' is from 'dart:async'.
-//  - 'FutureOr' is from 'dart:async'.
 // Future<bool> test1() async => await getNull(); // error
 //                               ^
 //
 // pkg/front_end/testcases/nnbd/issue41437a.dart:17:31: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'FutureOr<bool>'.
 //  - 'Future' is from 'dart:async'.
-//  - 'FutureOr' is from 'dart:async'.
 // Future<bool> test4() async => await getFutureNull(); // error
 //                               ^
 //
@@ -21,13 +19,11 @@ library /*isNonNullableByDefault*/;
 //
 // pkg/front_end/testcases/nnbd/issue41437a.dart:23:33: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'FutureOr<bool>'.
 //  - 'Future' is from 'dart:async'.
-//  - 'FutureOr' is from 'dart:async'.
 //   Future<bool> test1() async => await getNull(); // error
 //                                 ^
 //
 // pkg/front_end/testcases/nnbd/issue41437a.dart:26:33: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'FutureOr<bool>'.
 //  - 'Future' is from 'dart:async'.
-//  - 'FutureOr' is from 'dart:async'.
 //   Future<bool> test4() async => await getFutureNull(); // error
 //                                 ^
 //
@@ -59,7 +55,7 @@ static method getNull() → dynamic
   return null;
 static method getFutureNull() → asy::Future<dynamic> /* originally async */ {
   final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
-  asy::FutureOr<dynamic>? :return_value;
+  FutureOr<dynamic>? :return_value;
   dynamic :async_stack_trace;
   (dynamic) → dynamic :async_op_then;
   (core::Object, core::StackTrace) → dynamic :async_op_error;
@@ -86,7 +82,7 @@ static method getFutureNull() → asy::Future<dynamic> /* originally async */ {
 }
 static method getFutureBool() → asy::Future<core::bool> /* originally async */ {
   final asy::_AsyncAwaitCompleter<core::bool> :async_completer = new asy::_AsyncAwaitCompleter::•<core::bool>();
-  asy::FutureOr<core::bool>? :return_value;
+  FutureOr<core::bool>? :return_value;
   dynamic :async_stack_trace;
   (dynamic) → dynamic :async_op_then;
   (core::Object, core::StackTrace) → dynamic :async_op_error;
@@ -113,7 +109,7 @@ static method getFutureBool() → asy::Future<core::bool> /* originally async */
 }
 static method test1() → asy::Future<core::bool> /* originally async */ {
   final asy::_AsyncAwaitCompleter<core::bool> :async_completer = new asy::_AsyncAwaitCompleter::•<core::bool>();
-  asy::FutureOr<core::bool>? :return_value;
+  FutureOr<core::bool>? :return_value;
   dynamic :async_stack_trace;
   (dynamic) → dynamic :async_op_then;
   (core::Object, core::StackTrace) → dynamic :async_op_error;
@@ -126,11 +122,10 @@ static method test1() → asy::Future<core::bool> /* originally async */ {
       {
         final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437a.dart:14:31: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'FutureOr<bool>'.
  - 'Future' is from 'dart:async'.
- - 'FutureOr' is from 'dart:async'.
 Future<bool> test1() async => await getNull(); // error
                               ^";
         [yield] let dynamic #t2 = asy::_awaitHelper(self::getNull(), :async_op_then, :async_op_error, :async_op) in null;
-        :return_value = :result as{TypeError,ForNonNullableByDefault} asy::FutureOr<core::bool>;
+        :return_value = :result as{TypeError,ForNonNullableByDefault} FutureOr<core::bool>;
         break #L3;
       }
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
@@ -151,7 +146,7 @@ static method test3() → core::bool
   return self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
 static method test4() → asy::Future<core::bool> /* originally async */ {
   final asy::_AsyncAwaitCompleter<core::bool> :async_completer = new asy::_AsyncAwaitCompleter::•<core::bool>();
-  asy::FutureOr<core::bool>? :return_value;
+  FutureOr<core::bool>? :return_value;
   dynamic :async_stack_trace;
   (dynamic) → dynamic :async_op_then;
   (core::Object, core::StackTrace) → dynamic :async_op_error;
@@ -164,11 +159,10 @@ static method test4() → asy::Future<core::bool> /* originally async */ {
       {
         final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437a.dart:17:31: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'FutureOr<bool>'.
  - 'Future' is from 'dart:async'.
- - 'FutureOr' is from 'dart:async'.
 Future<bool> test4() async => await getFutureNull(); // error
                               ^";
         [yield] let dynamic #t4 = asy::_awaitHelper(self::getFutureNull(), :async_op_then, :async_op_error, :async_op) in null;
-        :return_value = :result as{TypeError,ForNonNullableByDefault} asy::FutureOr<core::bool>;
+        :return_value = :result as{TypeError,ForNonNullableByDefault} FutureOr<core::bool>;
         break #L4;
       }
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
@@ -192,7 +186,7 @@ static method test6() → asy::Future<core::bool>
   return self::getFutureBool();
 static method test7() → asy::Future<core::bool> /* originally async */ {
   final asy::_AsyncAwaitCompleter<core::bool> :async_completer = new asy::_AsyncAwaitCompleter::•<core::bool>();
-  asy::FutureOr<core::bool>? :return_value;
+  FutureOr<core::bool>? :return_value;
   dynamic :async_stack_trace;
   (dynamic) → dynamic :async_op_then;
   (core::Object, core::StackTrace) → dynamic :async_op_error;
@@ -219,7 +213,7 @@ static method test7() → asy::Future<core::bool> /* originally async */ {
 }
 static method test() → dynamic /* originally async */ {
   final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
-  asy::FutureOr<dynamic>? :return_value;
+  FutureOr<dynamic>? :return_value;
   dynamic :async_stack_trace;
   (dynamic) → dynamic :async_op_then;
   (core::Object, core::StackTrace) → dynamic :async_op_error;
@@ -231,7 +225,7 @@ static method test() → dynamic /* originally async */ {
       {
         function test1() → asy::Future<core::bool> /* originally async */ {
           final asy::_AsyncAwaitCompleter<core::bool> :async_completer = new asy::_AsyncAwaitCompleter::•<core::bool>();
-          asy::FutureOr<core::bool>? :return_value;
+          FutureOr<core::bool>? :return_value;
           dynamic :async_stack_trace;
           (dynamic) → dynamic :async_op_then;
           (core::Object, core::StackTrace) → dynamic :async_op_error;
@@ -244,11 +238,10 @@ static method test() → dynamic /* originally async */ {
               {
                 final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437a.dart:23:33: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'FutureOr<bool>'.
  - 'Future' is from 'dart:async'.
- - 'FutureOr' is from 'dart:async'.
   Future<bool> test1() async => await getNull(); // error
                                 ^";
                 [yield] let dynamic #t7 = asy::_awaitHelper(self::getNull(), :async_op_then, :async_op_error, :async_op) in null;
-                :return_value = :result as{TypeError,ForNonNullableByDefault} asy::FutureOr<core::bool>;
+                :return_value = :result as{TypeError,ForNonNullableByDefault} FutureOr<core::bool>;
                 break #L7;
               }
               asy::_completeOnAsyncReturn(:async_completer, :return_value);
@@ -269,7 +262,7 @@ static method test() → dynamic /* originally async */ {
           return self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
         function test4() → asy::Future<core::bool> /* originally async */ {
           final asy::_AsyncAwaitCompleter<core::bool> :async_completer = new asy::_AsyncAwaitCompleter::•<core::bool>();
-          asy::FutureOr<core::bool>? :return_value;
+          FutureOr<core::bool>? :return_value;
           dynamic :async_stack_trace;
           (dynamic) → dynamic :async_op_then;
           (core::Object, core::StackTrace) → dynamic :async_op_error;
@@ -282,11 +275,10 @@ static method test() → dynamic /* originally async */ {
               {
                 final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437a.dart:26:33: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'FutureOr<bool>'.
  - 'Future' is from 'dart:async'.
- - 'FutureOr' is from 'dart:async'.
   Future<bool> test4() async => await getFutureNull(); // error
                                 ^";
                 [yield] let dynamic #t9 = asy::_awaitHelper(self::getFutureNull(), :async_op_then, :async_op_error, :async_op) in null;
-                :return_value = :result as{TypeError,ForNonNullableByDefault} asy::FutureOr<core::bool>;
+                :return_value = :result as{TypeError,ForNonNullableByDefault} FutureOr<core::bool>;
                 break #L8;
               }
               asy::_completeOnAsyncReturn(:async_completer, :return_value);
@@ -310,7 +302,7 @@ static method test() → dynamic /* originally async */ {
           return self::getFutureBool();
         function test7() → asy::Future<core::bool> /* originally async */ {
           final asy::_AsyncAwaitCompleter<core::bool> :async_completer = new asy::_AsyncAwaitCompleter::•<core::bool>();
-          asy::FutureOr<core::bool>? :return_value;
+          FutureOr<core::bool>? :return_value;
           dynamic :async_stack_trace;
           (dynamic) → dynamic :async_op_then;
           (core::Object, core::StackTrace) → dynamic :async_op_error;
@@ -340,7 +332,7 @@ static method test() → dynamic /* originally async */ {
   Future<bool> var1 = (() async => await getNull())(); // error
                                                    ^" in (() → asy::Future<dynamic> /* originally async */ {
           final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
-          asy::FutureOr<dynamic>? :return_value;
+          FutureOr<dynamic>? :return_value;
           dynamic :async_stack_trace;
           (dynamic) → dynamic :async_op_then;
           (core::Object, core::StackTrace) → dynamic :async_op_error;
@@ -374,7 +366,7 @@ static method test() → dynamic /* originally async */ {
   Future<bool> var4 = (() async => await getFutureNull())(); // error
                                                          ^" in (() → asy::Future<dynamic> /* originally async */ {
           final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
-          asy::FutureOr<dynamic>? :return_value;
+          FutureOr<dynamic>? :return_value;
           dynamic :async_stack_trace;
           (dynamic) → dynamic :async_op_then;
           (core::Object, core::StackTrace) → dynamic :async_op_error;
@@ -408,7 +400,7 @@ static method test() → dynamic /* originally async */ {
         asy::Future<core::bool> var6 = (() → asy::Future<core::bool> => self::getFutureBool()).call();
         asy::Future<core::bool> var7 = (() → asy::Future<core::bool> /* originally async */ {
           final asy::_AsyncAwaitCompleter<core::bool> :async_completer = new asy::_AsyncAwaitCompleter::•<core::bool>();
-          asy::FutureOr<core::bool>? :return_value;
+          FutureOr<core::bool>? :return_value;
           dynamic :async_stack_trace;
           (dynamic) → dynamic :async_op_then;
           (core::Object, core::StackTrace) → dynamic :async_op_error;

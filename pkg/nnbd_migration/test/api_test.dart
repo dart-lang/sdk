@@ -207,22 +207,6 @@ void test(C c) {
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/42327')
-  // When fixing this issue, probably convert this to an edge builder test.
-  Future<void> test_migratedMethod_namedParameter() async {
-    var content = '''
-void f(Iterable<int> a) {
-  a.toList(growable: false);
-}
-''';
-    var expected = '''
-void f(Iterable<int> a) {
-  a.toList(growable: false);
-}
-''';
-    await _checkSingleFileChanges(content, expected);
-  }
-
   Future<void> test_add_required() async {
     var content = '''
 int f({String s}) => s.length;
@@ -4134,6 +4118,22 @@ int f() =>
 import 'dart:io';
 int f() =>
   exit(1); // this returns `Never` which used to cause a crash.
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/42327')
+  // When fixing this issue, probably convert this to an edge builder test.
+  Future<void> test_migratedMethod_namedParameter() async {
+    var content = '''
+void f(Iterable<int> a) {
+  a.toList(growable: false);
+}
+''';
+    var expected = '''
+void f(Iterable<int> a) {
+  a.toList(growable: false);
+}
 ''';
     await _checkSingleFileChanges(content, expected);
   }

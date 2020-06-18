@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 // All imports must be in all FFI patch files to not depend on the order
 // the patches are applied.
 import "dart:_internal" show patch;
@@ -31,7 +29,7 @@ int sizeOf<T extends NativeType>() {
   // This is not super fast, but it is faster than a runtime entry.
   // Hot loops with elementAt().load() do not use this sizeOf, elementAt is
   // optimized per NativeType statically to prevent use of sizeOf at runtime.
-  final int knownSize = _knownSizes[T];
+  final int? knownSize = _knownSizes[T];
   if (knownSize != null) return knownSize;
   if (T == IntPtr) return _intPtrSize;
   if (T == Pointer) return _intPtrSize;
@@ -66,10 +64,13 @@ dynamic _asExternalTypedData(Pointer ptr, int count)
 // implementation, since that would pull the callback trampoline into JIT
 // snapshots. The callback trampolines can only be serialized into AOT snapshots
 // because they embed the addresses of runtime routines in JIT mode.
-Object _nativeCallbackFunction<NS extends Function>(Function target,
+//
+// Function objects returned by this native method are not Dart instances,
+// so we need to use top type as a return type to avoid type check.
+dynamic _nativeCallbackFunction<NS extends Function>(Function target,
     Object exceptionalReturn) native "Ffi_nativeCallbackFunction";
 
-Pointer<NS> _pointerFromFunction<NS extends NativeFunction>(Object function)
+Pointer<NS> _pointerFromFunction<NS extends NativeFunction>(dynamic function)
     native "Ffi_pointerFromFunction";
 
 @patch
@@ -86,7 +87,7 @@ class Pointer<T extends NativeType> {
   @patch
   static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
       @DartRepresentationOf("T") Function f,
-      [Object exceptionalReturn]) {
+      [Object? exceptionalReturn]) {
     throw UnsupportedError(
         "Pointer.fromFunction cannot be called dynamically.");
   }

@@ -356,6 +356,8 @@ abstract class _AbstractCorrectionProducer {
   ResourceProvider get resourceProvider =>
       resolvedResult.session.resourceProvider;
 
+  int get selectionEnd => _context.selectionEnd;
+
   int get selectionLength => _context.selectionLength;
 
   int get selectionOffset => _context.selectionOffset;

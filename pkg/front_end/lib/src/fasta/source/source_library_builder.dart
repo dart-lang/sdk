@@ -66,8 +66,6 @@ import 'package:kernel/src/bounds_checks.dart'
         findTypeArgumentIssuesForInvocation,
         getGenericTypeName;
 
-import 'package:kernel/src/future_or.dart';
-
 import 'package:kernel/type_algebra.dart' show substitute;
 
 import 'package:kernel/type_environment.dart'
@@ -3046,7 +3044,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           !fieldBuilder.isLate &&
           !fieldBuilder.isExternal &&
           fieldType is! InvalidType &&
-          isPotentiallyNonNullable(fieldType, typeEnvironment.futureOrClass) &&
+          fieldType.isPotentiallyNonNullable &&
           !fieldBuilder.hasInitializer) {
         addProblem(
             templateFieldNonNullableWithoutInitializerError.withArguments(
@@ -3069,8 +3067,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       bool isOptionalNamed = !formal.isNamedRequired && formal.isNamed;
       bool isOptional = isOptionalPositional || isOptionalNamed;
       if (isOptional &&
-          isPotentiallyNonNullable(
-              formal.variable.type, typeEnvironment.futureOrClass) &&
+          formal.variable.type.isPotentiallyNonNullable &&
           !formal.hasDeclaredInitializer) {
         addProblem(
             templateOptionalNonNullableWithoutInitializerError.withArguments(

@@ -91,11 +91,16 @@ class NonNullableFix {
 
   bool get isPreviewServerRunning => _server != null;
 
-  int get numPhases => 3;
-
   InstrumentationListener createInstrumentationListener(
           {MigrationSummary migrationSummary}) =>
       InstrumentationListener(migrationSummary: migrationSummary);
+
+  Future<void> finalizeUnit(ResolvedUnitResult result) async {
+    if (!_packageIsNNBD) {
+      return;
+    }
+    migration.finalizeInput(result);
+  }
 
   Future<MigrationState> finish() async {
     migration.finish();
@@ -103,6 +108,13 @@ class NonNullableFix {
         migration, includedRoot, listener, instrumentationListener);
     await state.refresh();
     return state;
+  }
+
+  Future<void> prepareUnit(ResolvedUnitResult result) async {
+    if (!_packageIsNNBD) {
+      return;
+    }
+    migration.prepareInput(result);
   }
 
   /// Processes the non-source files of the package rooted at [pkgFolder].
@@ -138,23 +150,11 @@ class NonNullableFix {
     }
   }
 
-  Future<void> processUnit(int phase, ResolvedUnitResult result) async {
+  Future<void> processUnit(ResolvedUnitResult result) async {
     if (!_packageIsNNBD) {
       return;
     }
-    switch (phase) {
-      case 0:
-        migration.prepareInput(result);
-        break;
-      case 1:
-        migration.processInput(result);
-        break;
-      case 2:
-        migration.finalizeInput(result);
-        break;
-      default:
-        throw ArgumentError('Unsupported phase $phase');
-    }
+    migration.processInput(result);
   }
 
   Future<MigrationState> rerun() async {

@@ -652,6 +652,7 @@ void main() {
     );
   }
 
+  @Deprecated('It was used internally, should not be part of API')
   test_hasReferenceToSuper() async {
     await assertNoErrorsInCode(r'''
 class A {}
@@ -860,7 +861,7 @@ class C = Object with A;''');
     expect(a.isValidMixin, isTrue);
   }
 
-  test_isValidMixin_super() async {
+  test_isValidMixin_super_toString() async {
     await assertNoErrorsInCode(r'''
 class A {
   toString() {
@@ -871,7 +872,7 @@ class C = Object with A;''');
     verifyTestResolved();
 
     var a = findElement.class_('A');
-    expect(a.isValidMixin, isFalse);
+    expect(a.isValidMixin, isTrue);
   }
 
   test_isValidMixin_valid() async {

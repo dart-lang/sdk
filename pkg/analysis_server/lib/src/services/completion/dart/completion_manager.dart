@@ -125,8 +125,6 @@ class DartCompletionManager implements CompletionContributor {
       ..replacementLength = range.length;
 
     // Request Dart specific completions from each contributor
-    var suggestionMap = <String, CompletionSuggestion>{};
-    var constructorMap = <String, List<String>>{};
     var builder = SuggestionBuilder(dartRequest, listener: listener);
     var contributors = <DartCompletionContributor>[
       ArgListContributor(),
@@ -154,31 +152,6 @@ class DartCompletionManager implements CompletionContributor {
       contributors.add(ImportedReferenceContributor());
     }
 
-    void addSuggestionToMap(CompletionSuggestion newSuggestion) {
-      // TODO(brianwilkerson) After all contributors are using SuggestionBuilder
-      //  move this logic into SuggestionBuilder.
-      var key = newSuggestion.completion;
-
-      // Append parenthesis for constructors to disambiguate from classes.
-      if (_isConstructor(newSuggestion)) {
-        key += '()';
-        var className = _getConstructorClassName(newSuggestion);
-        _ensureList(constructorMap, className).add(key);
-      }
-
-      // Local declarations hide both the class and its constructors.
-      if (!_isClass(newSuggestion)) {
-        var constructorKeys = constructorMap[key];
-        constructorKeys?.forEach(suggestionMap.remove);
-      }
-
-      var oldSuggestion = suggestionMap[key];
-      if (oldSuggestion == null ||
-          oldSuggestion.relevance < newSuggestion.relevance) {
-        suggestionMap[key] = newSuggestion;
-      }
-    }
-
     try {
       for (var contributor in contributors) {
         var contributorTag =
@@ -188,9 +161,6 @@ class DartCompletionManager implements CompletionContributor {
         performance.logElapseTime(contributorTag);
         request.checkAborted();
       }
-      for (var newSuggestion in builder.suggestions) {
-        addSuggestionToMap(newSuggestion);
-      }
     } on InconsistentAnalysisException {
       // The state of the code being analyzed has changed, so results are likely
       // to be inconsistent. Just abort the operation.
@@ -198,7 +168,7 @@ class DartCompletionManager implements CompletionContributor {
     }
 
     // Adjust suggestion relevance before returning
-    var suggestions = suggestionMap.values.toList();
+    var suggestions = builder.suggestions.toList();
     const SORT_TAG = 'DartCompletionManager - sort';
     performance.logStartTime(SORT_TAG);
     if (ranking != null) {
@@ -336,33 +306,6 @@ class DartCompletionManager implements CompletionContributor {
       }
     }
   }
-
-  static List<String> _ensureList(Map<String, List<String>> map, String key) {
-    var list = map[key];
-    if (list == null) {
-      list = <String>[];
-      map[key] = list;
-    }
-    return list;
-  }
-
-  static String _getConstructorClassName(CompletionSuggestion suggestion) {
-    var completion = suggestion.completion;
-    var dotIndex = completion.indexOf('.');
-    if (dotIndex != -1) {
-      return completion.substring(0, dotIndex);
-    } else {
-      return completion;
-    }
-  }
-
-  static bool _isClass(CompletionSuggestion suggestion) {
-    return suggestion.element?.kind == protocol.ElementKind.CLASS;
-  }
-
-  static bool _isConstructor(CompletionSuggestion suggestion) {
-    return suggestion.element?.kind == protocol.ElementKind.CONSTRUCTOR;
-  }
 }
 
 /// The information about a requested list of completions within a Dart file.
@@ -429,9 +372,8 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   DartType get contextType {
     if (!_hasComputedContextType) {
       var entity = target.entity;
-      if (entity is AstNode) {
-        _contextType = featureComputer.computeContextType(entity);
-      }
+      _contextType = featureComputer.computeContextType(
+          target.containingNode, entity.offset);
       _hasComputedContextType = true;
     }
     return _contextType;

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 /// Note: the VM concatenates all patch files into a single patch file. This
 /// file is the first patch in "dart:core" which contains all the imports
 /// used by patches of that library. We plan to change this when we have a
@@ -122,20 +120,27 @@ class _SyncIterable<T> extends IterableBase<T> {
 }
 
 class _SyncIterator<T> implements Iterator<T> {
-  _SyncGeneratorCallback<T> _moveNextFn;
-  Iterator<T> _yieldEachIterator;
+  _SyncGeneratorCallback<T>? _moveNextFn;
+  Iterator<T>? _yieldEachIterator;
 
-  // Stack of suspended _moveNextFn, if any.
-  List<_SyncGeneratorCallback<T>> _stack;
+  // Stack of suspended _moveNextFn.
+  List<_SyncGeneratorCallback<T>>? _stack;
 
   // These two fields are set by generated code for the yield and yield*
   // statement.
-  T _current;
-  Iterable<T> _yieldEachIterable;
+  T? _current;
+  Iterable<T>? _yieldEachIterable;
 
   @override
-  T get current =>
-      _yieldEachIterator != null ? _yieldEachIterator.current : _current;
+  T get current {
+    final iterator = _yieldEachIterator;
+    if (iterator != null) {
+      return iterator.current;
+    } else {
+      final cur = _current;
+      return (cur != null) ? cur : cur as T;
+    }
+  }
 
   _SyncIterator(this._moveNextFn);
 
@@ -157,7 +162,7 @@ class _SyncIterator<T> implements Iterator<T> {
       }
 
       final stack = _stack;
-      if (!_moveNextFn(this)) {
+      if (!_moveNextFn!.call(this)) {
         _moveNextFn = null;
         _current = null;
         // If we have any suspended parent generators, continue next one up:
@@ -177,7 +182,7 @@ class _SyncIterator<T> implements Iterator<T> {
           if (stack == null) {
             _stack = [];
           }
-          _stack.add(_moveNextFn);
+          _stack!.add(_moveNextFn!);
           final typedIterable = unsafeCast<_SyncIterable<T>>(iterable);
           _moveNextFn = typedIterable._moveNextFnMaker();
         } else {

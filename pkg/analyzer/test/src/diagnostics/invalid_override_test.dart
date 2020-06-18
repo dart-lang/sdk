@@ -209,17 +209,17 @@ class B extends A {
   test_method_normalParamType_superclass_interface() async {
     await assertErrorsInCode('''
 abstract class I<U> {
-  m(U u) => null;
+  void m(U u) => null;
 }
 abstract class J<V> {
-  m(V v) => null;
+  void m(V v) => null;
 }
 class B extends I<int> implements J<String> {
-  m(double d) {}
+  void m(double d) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 132, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 132, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 147, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 147, 1),
     ]);
   }
 
@@ -244,17 +244,17 @@ class B extends A {
     // language/override_inheritance_generic_test/08
     await assertErrorsInCode('''
 abstract class I<U> {
-  m(U u) => null;
+  void m(U u) => null;
 }
 abstract class J<V> {
-  m(V v) => null;
+  void m(V v) => null;
 }
 class B implements I<int>, J<String> {
-  m(double d) {}
+  void m(double d) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 125, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 125, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 140, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 140, 1),
     ]);
   }
 

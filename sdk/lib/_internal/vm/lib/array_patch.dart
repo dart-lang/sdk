@@ -2,14 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 // part of "core_patch.dart";
 
 @patch
 class List<E> {
   @patch
-  factory List([int length]) native "List_new";
+  factory List.empty({bool growable = false}) {
+    return growable ? <E>[] : _List<E>(0);
+  }
+
+  @patch
+  factory List([int? length]) native "List_new";
 
   @patch
   factory List.filled(int length, E fill, {bool growable: false}) {
@@ -66,6 +69,18 @@ class List<E> {
   }
 
   @patch
+  @pragma("vm:prefer-inline")
+  factory List.generate(int length, E generator(int index),
+      {bool growable = true}) {
+    final List<E> result =
+        growable ? new _GrowableList<E>(length) : new _List<E>(length);
+    for (int i = 0; i < result.length; ++i) {
+      result[i] = generator(i);
+    }
+    return result;
+  }
+
+  @patch
   factory List.unmodifiable(Iterable elements) {
     final result = new List<E>.from(elements, growable: false);
     return makeFixedListUnmodifiable(result);
@@ -78,7 +93,7 @@ class List<E> {
     if (elements.isEmpty) {
       return new _GrowableList<E>(0);
     }
-    var result = new _GrowableList<E>._withData(elements);
+    final result = new _GrowableList<E>._withData(unsafeCast<_List>(elements));
     result._setLength(elements.length);
     return result;
   }

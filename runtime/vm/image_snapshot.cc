@@ -412,12 +412,16 @@ void ImageWriter::Write(WriteStream* clustered_stream, bool vm) {
   }
 
   // Append the direct-mapped RO data objects after the clustered snapshot.
+  // We need to do this before WriteText because WriteText currently adds the
+  // finalized contents of the clustered_stream as data sections.
   offset_space_ = vm ? V8SnapshotProfileWriter::kVmData
                      : V8SnapshotProfileWriter::kIsolateData;
   WriteROData(clustered_stream);
 
   offset_space_ = vm ? V8SnapshotProfileWriter::kVmText
                      : V8SnapshotProfileWriter::kIsolateText;
+  // Needs to happen after WriteROData, because all image writers currently
+  // add the clustered data information to their output in WriteText().
   WriteText(clustered_stream, vm);
 }
 
@@ -1074,9 +1078,15 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   assembly_stream_.Print(".globl %s\n", data_symbol);
   Align(kMaxObjectAlignment);
   assembly_stream_.Print("%s:\n", data_symbol);
-  uword buffer = reinterpret_cast<uword>(clustered_stream->buffer());
-  intptr_t length = clustered_stream->bytes_written();
+  const uword buffer = reinterpret_cast<uword>(clustered_stream->buffer());
+  const intptr_t length = clustered_stream->bytes_written();
   WriteByteSequence(buffer, buffer + length);
+#if defined(DART_PRECOMPILER)
+  if (debug_elf_ != nullptr) {
+    // Add a NoBits section for the ROData as well.
+    debug_elf_->AddROData(data_symbol, clustered_stream->buffer(), length);
+  }
+#endif  // defined(DART_PRECOMPILER)
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -1190,12 +1200,10 @@ BlobImageWriter::BlobImageWriter(Thread* thread,
                                  ReAlloc alloc,
                                  intptr_t initial_size,
                                  Elf* debug_elf,
-                                 intptr_t bss_base,
                                  Elf* elf)
     : ImageWriter(thread),
       instructions_blob_stream_(instructions_blob_buffer, alloc, initial_size),
       elf_(elf),
-      bss_base_(bss_base),
       debug_elf_(debug_elf) {
 #if defined(DART_PRECOMPILER)
   ASSERT(debug_elf_ == nullptr || debug_elf_->dwarf() != nullptr);
@@ -1248,7 +1256,8 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 #if defined(DART_PRECOMPILER)
   // Store the offset of the BSS section from the instructions section here.
   // If not compiling to ELF (and thus no BSS segment), write 0.
-  const word bss_offset = elf_ != nullptr ? bss_base_ - segment_base : 0;
+  const word bss_offset =
+      elf_ != nullptr ? elf_->BssStart(vm) - segment_base : 0;
   ASSERT_EQUAL(Utils::RoundDown(bss_offset, Image::kBssAlignment), bss_offset);
   // Set the lowest bit if we are compiling to ELF.
   const word compiled_to_elf = elf_ != nullptr ? 0x1 : 0x0;
@@ -1479,17 +1488,28 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   ASSERT_EQUAL(text_offset, image_size);
 
 #ifdef DART_PRECOMPILER
+  auto const data_symbol =
+      vm ? kVmSnapshotDataAsmSymbol : kIsolateSnapshotDataAsmSymbol;
   if (elf_ != nullptr) {
     auto const segment_base2 =
         elf_->AddText(instructions_symbol, instructions_blob_stream_.buffer(),
                       instructions_blob_stream_.bytes_written());
-    ASSERT(segment_base == segment_base2);
+    ASSERT_EQUAL(segment_base2, segment_base);
+    // Write the .rodata section here like the AssemblyImageWriter.
+    elf_->AddROData(data_symbol, clustered_stream->buffer(),
+                    clustered_stream->bytes_written());
   }
   if (debug_elf_ != nullptr) {
-    auto const debug_segment_base2 =
-        debug_elf_->AddText(instructions_symbol, nullptr,
-                            instructions_blob_stream_.bytes_written());
-    ASSERT(debug_segment_base == debug_segment_base2);
+    // To keep memory addresses consistent, we create elf::SHT_NOBITS sections
+    // in the debugging information. We still pass along the buffers because
+    // we'll need the buffer bytes at generation time to calculate the build ID
+    // so it'll match the one in the snapshot.
+    auto const debug_segment_base2 = debug_elf_->AddText(
+        instructions_symbol, instructions_blob_stream_.buffer(),
+        instructions_blob_stream_.bytes_written());
+    ASSERT_EQUAL(debug_segment_base2, debug_segment_base);
+    debug_elf_->AddROData(data_symbol, clustered_stream->buffer(),
+                          clustered_stream->bytes_written());
   }
 #endif
 }

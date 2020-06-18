@@ -11,8 +11,6 @@ import 'package:kernel/ast.dart';
 
 import 'package:kernel/core_types.dart';
 
-import 'package:kernel/src/text_util.dart';
-
 import 'utils.dart';
 
 /// Dart class representation used in type flow analysis.
@@ -34,8 +32,7 @@ class TFClass {
   bool operator ==(other) => identical(this, other);
 
   @override
-  String toString() =>
-      qualifiedClassNameToString(classNode, includeLibraryName: true);
+  String toString() => nodeToText(classNode);
 }
 
 abstract class GenericInterfacesInfo {
@@ -87,6 +84,9 @@ abstract class TypesBuilder {
       result = const EmptyType();
     } else if (type is FunctionType) {
       // TODO(alexmarkov): support function types
+      result = const AnyType();
+    } else if (type is FutureOrType) {
+      // TODO(alexmarkov): support FutureOr types
       result = const AnyType();
     } else if (type is TypeParameterType) {
       final bound = type.bound;
@@ -545,7 +545,7 @@ class ConeType extends Type {
       (other is ConeType) && identical(this.cls, other.cls);
 
   @override
-  String toString() => "_T ($cls)+";
+  String toString() => "_T (${cls})+";
 
   @override
   int get order => TypeOrder.Cone.index;
@@ -666,18 +666,6 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
       }
 
       if (rhs.typeArguments.isEmpty) return true;
-      if (rhs.classNode == typeHierarchy.coreTypes.futureOrClass) {
-        assertx(cls.classNode != typeHierarchy.coreTypes.futureOrClass);
-        if (typeHierarchy.isSubtype(
-            cls.classNode, typeHierarchy.coreTypes.futureClass)) {
-          final RuntimeType lhs =
-              typeArgs == null ? RuntimeType(DynamicType(), null) : typeArgs[0];
-          return lhs.isSubtypeOfRuntimeType(
-              typeHierarchy, runtimeType.typeArgs[0]);
-        } else {
-          return isSubtypeOfRuntimeType(typeHierarchy, runtimeType.typeArgs[0]);
-        }
-      }
 
       List<Type> usableTypeArgs = typeArgs;
       if (usableTypeArgs == null) {
@@ -707,6 +695,17 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
         }
       }
       return true;
+    }
+    if (rhs is FutureOrType) {
+      if (typeHierarchy.isSubtype(
+          cls.classNode, typeHierarchy.coreTypes.futureClass)) {
+        final RuntimeType lhs =
+            typeArgs == null ? RuntimeType(DynamicType(), null) : typeArgs[0];
+        return lhs.isSubtypeOfRuntimeType(
+            typeHierarchy, runtimeType.typeArgs[0]);
+      } else {
+        return isSubtypeOfRuntimeType(typeHierarchy, runtimeType.typeArgs[0]);
+      }
     }
     return false;
   }
@@ -765,7 +764,7 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
       buf.write("<${typeArgs.take(numImmediateTypeArgs).join(', ')}>");
     }
     if (constant != null) {
-      buf.write(", $constant");
+      buf.write(", ${nodeToText(constant)}");
     }
     buf.write(")");
     return buf.toString();
@@ -886,14 +885,20 @@ class RuntimeType extends Type {
 
   RuntimeType(DartType type, this.typeArgs)
       : _type = type,
-        numImmediateTypeArgs =
-            type is InterfaceType ? type.classNode.typeParameters.length : 0 {
+        numImmediateTypeArgs = type is InterfaceType
+            ? type.classNode.typeParameters.length
+            : (type is FutureOrType ? 1 : 0) {
     if (_type is InterfaceType && numImmediateTypeArgs > 0) {
       assertx(typeArgs != null);
       assertx(typeArgs.length >= numImmediateTypeArgs);
       assertx((_type as InterfaceType)
           .typeArguments
           .every((t) => t == const DynamicType()));
+    } else if (_type is FutureOrType) {
+      assertx(typeArgs != null);
+      assertx(typeArgs.length >= numImmediateTypeArgs);
+      DartType typeArgument = (_type as FutureOrType).typeArgument;
+      assertx(typeArgument == const DynamicType());
     } else {
       assertx(typeArgs == null);
     }
@@ -901,7 +906,7 @@ class RuntimeType extends Type {
 
   int get order => TypeOrder.RuntimeType.index;
 
-  Nullability get nullability => _type.nullability;
+  Nullability get nullability => _type.declaredNullability;
 
   RuntimeType withNullability(Nullability n) =>
       RuntimeType(_type.withDeclaredNullability(n), typeArgs);
@@ -917,6 +922,8 @@ class RuntimeType extends Type {
           .map((pt) => pt.representedType)
           .toList();
       return new InterfaceType(klass, type.nullability, typeArguments);
+    } else if (type is FutureOrType) {
+      return new FutureOrType(typeArgs[0].representedType, type.nullability);
     } else {
       return type;
     }
@@ -947,8 +954,8 @@ class RuntimeType extends Type {
   @override
   String toString() {
     final head = _type is InterfaceType
-        ? "${(_type as InterfaceType).classNode}"
-        : "$_type";
+        ? "${nodeToText((_type as InterfaceType).classNode)}"
+        : "${nodeToText(_type)}";
     final typeArgsStrs = (numImmediateTypeArgs == 0)
         ? ""
         : "<${typeArgs.take(numImmediateTypeArgs).map((t) => "$t").join(", ")}>";
@@ -1008,6 +1015,34 @@ class RuntimeType extends Type {
           rhs.classNode == typeHierarchy.coreTypes.objectClass);
     }
 
+    if (rhs is FutureOrType) {
+      if (_type is InterfaceType) {
+        Class thisClass = (_type as InterfaceType).classNode;
+        if (thisClass == typeHierarchy.coreTypes.futureClass) {
+          return typeArgs[0]
+              .isSubtypeOfRuntimeType(typeHierarchy, runtimeType.typeArgs[0]);
+        } else {
+          return isSubtypeOfRuntimeType(typeHierarchy, runtimeType.typeArgs[0]);
+        }
+      } else if (_type is FutureOrType) {
+        return typeArgs[0]
+            .isSubtypeOfRuntimeType(typeHierarchy, runtimeType.typeArgs[0]);
+      }
+    }
+
+    if (_type is FutureOrType) {
+      // There are more possibilities for _type to be a subtype of rhs, such as
+      // the following:
+      //   1. _type=FutureOr<Future<...>>, rhs=Future<dynamic>
+      //   2. _type=FutureOr<X>, rhs=Future<Y>, where X and Y are type
+      //      parameters declared as `X extends Y`, `Y extends Future<Y>`.
+      // Since it's ok to return false when _type <: rhs in rare cases, only the
+      // most common case of rhs being Object is handled here for now.
+      // TODO(alexmarkov): Handle other possibilities.
+      return rhs is InterfaceType &&
+          rhs.classNode == typeHierarchy.coreTypes.objectClass;
+    }
+
     final thisClass = (_type as InterfaceType).classNode;
     final otherClass = (rhs as InterfaceType).classNode;
 
@@ -1017,16 +1052,6 @@ class RuntimeType extends Type {
     // arguments which need to be examined.
     if (runtimeType.numImmediateTypeArgs == 0) {
       return true;
-    }
-
-    if (otherClass == typeHierarchy.coreTypes.futureOrClass) {
-      if (thisClass == typeHierarchy.coreTypes.futureClass ||
-          thisClass == typeHierarchy.coreTypes.futureOrClass) {
-        return typeArgs[0]
-            .isSubtypeOfRuntimeType(typeHierarchy, runtimeType.typeArgs[0]);
-      } else {
-        return isSubtypeOfRuntimeType(typeHierarchy, runtimeType.typeArgs[0]);
-      }
     }
 
     List<Type> usableTypeArgs = typeArgs;

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.io;
 
 /**
@@ -44,10 +42,10 @@ abstract class SecureSocket implements Socket {
 
    */
   static Future<SecureSocket> connect(host, int port,
-      {SecurityContext context,
-      bool onBadCertificate(X509Certificate certificate),
-      List<String> supportedProtocols,
-      Duration timeout}) {
+      {SecurityContext? context,
+      bool onBadCertificate(X509Certificate certificate)?,
+      List<String>? supportedProtocols,
+      Duration? timeout}) {
     return RawSecureSocket.connect(host, port,
             context: context,
             onBadCertificate: onBadCertificate,
@@ -60,9 +58,9 @@ abstract class SecureSocket implements Socket {
   /// [ConnectionTask] that can be cancelled if the [SecureSocket] is no
   /// longer needed.
   static Future<ConnectionTask<SecureSocket>> startConnect(host, int port,
-      {SecurityContext context,
-      bool onBadCertificate(X509Certificate certificate),
-      List<String> supportedProtocols}) {
+      {SecurityContext? context,
+      bool onBadCertificate(X509Certificate certificate)?,
+      List<String>? supportedProtocols}) {
     return RawSecureSocket.startConnect(host, port,
             context: context,
             onBadCertificate: onBadCertificate,
@@ -70,8 +68,7 @@ abstract class SecureSocket implements Socket {
         .then((rawState) {
       Future<SecureSocket> socket =
           rawState.socket.then((rawSocket) => new SecureSocket._(rawSocket));
-      return new ConnectionTask<SecureSocket>._(
-          socket: socket, onCancel: rawState._onCancel);
+      return new ConnectionTask<SecureSocket>._(socket, rawState._onCancel);
     });
   }
 
@@ -110,13 +107,13 @@ abstract class SecureSocket implements Socket {
    */
   static Future<SecureSocket> secure(Socket socket,
       {host,
-      SecurityContext context,
-      bool onBadCertificate(X509Certificate certificate),
-      @Since("2.6") List<String> supportedProtocols}) {
+      SecurityContext? context,
+      bool onBadCertificate(X509Certificate certificate)?,
+      @Since("2.6") List<String>? supportedProtocols}) {
     return ((socket as dynamic /*_Socket*/)._detachRaw() as Future)
         .then<RawSecureSocket>((detachedRaw) {
       return RawSecureSocket.secure(detachedRaw[0] as RawSocket,
-          subscription: detachedRaw[1] as StreamSubscription<RawSocketEvent>,
+          subscription: detachedRaw[1] as StreamSubscription<RawSocketEvent>?,
           host: host,
           context: context,
           onBadCertificate: onBadCertificate,
@@ -146,15 +143,15 @@ abstract class SecureSocket implements Socket {
    *
    */
   static Future<SecureSocket> secureServer(
-      Socket socket, SecurityContext context,
-      {List<int> bufferedData,
+      Socket socket, SecurityContext? context,
+      {List<int>? bufferedData,
       bool requestClientCertificate: false,
       bool requireClientCertificate: false,
-      List<String> supportedProtocols}) {
+      List<String>? supportedProtocols}) {
     return ((socket as dynamic /*_Socket*/)._detachRaw() as Future)
         .then<RawSecureSocket>((detachedRaw) {
       return RawSecureSocket.secureServer(detachedRaw[0] as RawSocket, context,
-          subscription: detachedRaw[1] as StreamSubscription<RawSocketEvent>,
+          subscription: detachedRaw[1] as StreamSubscription<RawSocketEvent>?,
           bufferedData: bufferedData,
           requestClientCertificate: requestClientCertificate,
           requireClientCertificate: requireClientCertificate,
@@ -169,7 +166,7 @@ abstract class SecureSocket implements Socket {
    * client certificate was received.  If it is the client end,
    * [peerCertificate] will return the server's certificate.
    */
-  X509Certificate get peerCertificate;
+  X509Certificate? get peerCertificate;
 
   /**
    * The protocol which was selected during ALPN protocol negotiation.
@@ -178,7 +175,7 @@ abstract class SecureSocket implements Socket {
    * specify a list of supported ALPN protocols or there was no common
    * protocol between client and server.
    */
-  String get selectedProtocol;
+  String? get selectedProtocol;
 
   /**
    * Renegotiate an existing secure connection, renewing the session keys
@@ -228,12 +225,11 @@ abstract class RawSecureSocket implements RawSocket {
    * can be obtained via [RawSecureSocket.selectedProtocol].
    */
   static Future<RawSecureSocket> connect(host, int port,
-      {SecurityContext context,
-      bool onBadCertificate(X509Certificate certificate),
-      List<String> supportedProtocols,
-      Duration timeout}) {
-    _RawSecureSocket._verifyFields(
-        host, port, false, false, false, onBadCertificate);
+      {SecurityContext? context,
+      bool onBadCertificate(X509Certificate certificate)?,
+      List<String>? supportedProtocols,
+      Duration? timeout}) {
+    _RawSecureSocket._verifyFields(host, port, false, false);
     return RawSocket.connect(host, port, timeout: timeout).then((socket) {
       return secure(socket,
           context: context,
@@ -246,9 +242,9 @@ abstract class RawSecureSocket implements RawSocket {
   /// [ConnectionTask] that can be cancelled if the [RawSecureSocket] is no
   /// longer needed.
   static Future<ConnectionTask<RawSecureSocket>> startConnect(host, int port,
-      {SecurityContext context,
-      bool onBadCertificate(X509Certificate certificate),
-      List<String> supportedProtocols}) {
+      {SecurityContext? context,
+      bool onBadCertificate(X509Certificate certificate)?,
+      List<String>? supportedProtocols}) {
     return RawSocket.startConnect(host, port)
         .then((ConnectionTask<RawSocket> rawState) {
       Future<RawSecureSocket> socket = rawState.socket.then((rawSocket) {
@@ -257,8 +253,7 @@ abstract class RawSecureSocket implements RawSocket {
             onBadCertificate: onBadCertificate,
             supportedProtocols: supportedProtocols);
       });
-      return new ConnectionTask<RawSecureSocket>._(
-          socket: socket, onCancel: rawState._onCancel);
+      return new ConnectionTask<RawSecureSocket>._(socket, rawState._onCancel);
     });
   }
 
@@ -296,17 +291,15 @@ abstract class RawSecureSocket implements RawSocket {
    *
    */
   static Future<RawSecureSocket> secure(RawSocket socket,
-      {StreamSubscription<RawSocketEvent> subscription,
+      {StreamSubscription<RawSocketEvent>? subscription,
       host,
-      SecurityContext context,
-      bool onBadCertificate(X509Certificate certificate),
-      List<String> supportedProtocols}) {
+      SecurityContext? context,
+      bool onBadCertificate(X509Certificate certificate)?,
+      List<String>? supportedProtocols}) {
     socket.readEventsEnabled = false;
     socket.writeEventsEnabled = false;
     return _RawSecureSocket.connect(
-        host != null ? host : socket.address.host, socket.port,
-        is_server: false,
-        socket: socket,
+        host != null ? host : socket.address.host, socket.port, false, socket,
         subscription: subscription,
         context: context,
         onBadCertificate: onBadCertificate,
@@ -337,18 +330,17 @@ abstract class RawSecureSocket implements RawSocket {
    *
    */
   static Future<RawSecureSocket> secureServer(
-      RawSocket socket, SecurityContext context,
-      {StreamSubscription<RawSocketEvent> subscription,
-      List<int> bufferedData,
+      RawSocket socket, SecurityContext? context,
+      {StreamSubscription<RawSocketEvent>? subscription,
+      List<int>? bufferedData,
       bool requestClientCertificate: false,
       bool requireClientCertificate: false,
-      List<String> supportedProtocols}) {
+      List<String>? supportedProtocols}) {
     socket.readEventsEnabled = false;
     socket.writeEventsEnabled = false;
-    return _RawSecureSocket.connect(socket.address, socket.remotePort,
+    return _RawSecureSocket.connect(
+        socket.address, socket.remotePort, true, socket,
         context: context,
-        is_server: true,
-        socket: socket,
         subscription: subscription,
         bufferedData: bufferedData,
         requestClientCertificate: requestClientCertificate,
@@ -375,7 +367,7 @@ abstract class RawSecureSocket implements RawSocket {
    * client certificate was received.  If it is the client end,
    * [peerCertificate] will return the server's certificate.
    */
-  X509Certificate get peerCertificate;
+  X509Certificate? get peerCertificate;
 
   /**
    * The protocol which was selected during protocol negotiation.
@@ -384,7 +376,7 @@ abstract class RawSecureSocket implements RawSocket {
    * specify a list of supported ALPN protocols or there was no common
    * protocol between client and server.
    */
-  String get selectedProtocol;
+  String? get selectedProtocol;
 }
 
 /**
@@ -443,20 +435,19 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   static bool _isBufferEncrypted(int identifier) =>
       identifier >= readEncryptedId;
 
-  RawSocket _socket;
+  final RawSocket _socket;
   final Completer<_RawSecureSocket> _handshakeComplete =
       new Completer<_RawSecureSocket>();
-  StreamController<RawSocketEvent> _controller;
-  Stream<RawSocketEvent> _stream;
-  StreamSubscription<RawSocketEvent> _socketSubscription;
-  List<int> _bufferedData;
+  final _controller = new StreamController<RawSocketEvent>(sync: true);
+  late final StreamSubscription<RawSocketEvent> _socketSubscription;
+  List<int>? _bufferedData;
   int _bufferedDataIndex = 0;
   final InternetAddress address;
-  final bool is_server;
-  SecurityContext context;
+  final bool isServer;
+  final SecurityContext context;
   final bool requestClientCertificate;
   final bool requireClientCertificate;
-  final Function onBadCertificate;
+  final bool Function(X509Certificate certificate)? onBadCertificate;
 
   var _status = handshakeStatus;
   bool _writeEventsEnabled = true;
@@ -474,22 +465,23 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   bool _filterPending = false;
   bool _filterActive = false;
 
-  _SecureFilter _secureFilter = new _SecureFilter._();
-  String _selectedProtocol;
+  _SecureFilter? _secureFilter = new _SecureFilter._();
+  String? _selectedProtocol;
 
   static Future<_RawSecureSocket> connect(
-      dynamic /*String|InternetAddress*/ host, int requestedPort,
-      {bool is_server,
-      SecurityContext context,
+      dynamic /*String|InternetAddress*/ host,
+      int requestedPort,
+      bool isServer,
       RawSocket socket,
-      StreamSubscription<RawSocketEvent> subscription,
-      List<int> bufferedData,
+      {SecurityContext? context,
+      StreamSubscription<RawSocketEvent>? subscription,
+      List<int>? bufferedData,
       bool requestClientCertificate: false,
       bool requireClientCertificate: false,
-      bool onBadCertificate(X509Certificate certificate),
-      List<String> supportedProtocols}) {
-    _verifyFields(host, requestedPort, is_server, requestClientCertificate,
-        requireClientCertificate, onBadCertificate);
+      bool onBadCertificate(X509Certificate certificate)?,
+      List<String>? supportedProtocols}) {
+    _verifyFields(host, requestedPort, requestClientCertificate,
+        requireClientCertificate);
     if (host is InternetAddress) host = host.host;
     InternetAddress address = socket.address;
     if (host != null) {
@@ -498,8 +490,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     return new _RawSecureSocket(
             address,
             requestedPort,
-            is_server,
-            context,
+            isServer,
+            context ?? SecurityContext.defaultContext,
             socket,
             subscription,
             bufferedData,
@@ -514,39 +506,38 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   _RawSecureSocket(
       this.address,
       int requestedPort,
-      this.is_server,
+      this.isServer,
       this.context,
       this._socket,
-      this._socketSubscription,
+      StreamSubscription<RawSocketEvent>? subscription,
       this._bufferedData,
       this.requestClientCertificate,
       this.requireClientCertificate,
       this.onBadCertificate,
-      List<String> supportedProtocols) {
-    context ??= SecurityContext.defaultContext;
-    _controller = new StreamController<RawSocketEvent>(
-        sync: true,
-        onListen: _onSubscriptionStateChange,
-        onPause: _onPauseStateChange,
-        onResume: _onPauseStateChange,
-        onCancel: _onSubscriptionStateChange);
-    _stream = _controller.stream;
+      List<String>? supportedProtocols) {
+    _controller
+      ..onListen = _onSubscriptionStateChange
+      ..onPause = _onPauseStateChange
+      ..onResume = _onPauseStateChange
+      ..onCancel = _onSubscriptionStateChange;
     // Throw an ArgumentError if any field is invalid.  After this, all
     // errors will be reported through the future or the stream.
-    _secureFilter.init();
-    _secureFilter
+    final secureFilter = _secureFilter!;
+    secureFilter.init();
+    secureFilter
         .registerHandshakeCompleteCallback(_secureHandshakeCompleteHandler);
     if (onBadCertificate != null) {
-      _secureFilter.registerBadCertificateCallback(_onBadCertificateWrapper);
+      secureFilter.registerBadCertificateCallback(_onBadCertificateWrapper);
     }
     _socket.readEventsEnabled = true;
     _socket.writeEventsEnabled = false;
-    if (_socketSubscription == null) {
+    if (subscription == null) {
       // If a current subscription is provided use this otherwise
       // create a new one.
       _socketSubscription = _socket.listen(_eventDispatcher,
           onError: _reportError, onDone: _doneHandler);
     } else {
+      _socketSubscription = subscription;
       if (_socketSubscription.isPaused) {
         _socket.close();
         throw new ArgumentError("Subscription passed to TLS upgrade is paused");
@@ -565,10 +556,10 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     try {
       var encodedProtocols =
           SecurityContext._protocolsToLengthEncoding(supportedProtocols);
-      _secureFilter.connect(
+      secureFilter.connect(
           address.host,
           context,
-          is_server,
+          isServer,
           requestClientCertificate || requireClientCertificate,
           requireClientCertificate,
           encodedProtocols);
@@ -578,27 +569,24 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     }
   }
 
-  StreamSubscription<RawSocketEvent> listen(void onData(RawSocketEvent data),
-      {Function onError, void onDone(), bool cancelOnError}) {
+  StreamSubscription<RawSocketEvent> listen(void onData(RawSocketEvent data)?,
+      {Function? onError, void onDone()?, bool? cancelOnError}) {
     _sendWriteEvent();
-    return _stream.listen(onData,
+    return _controller.stream.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 
-  static void _verifyFields(
-      host,
-      int requestedPort,
-      bool is_server,
-      bool requestClientCertificate,
-      bool requireClientCertificate,
-      Function onBadCertificate) {
+  static void _verifyFields(host, int requestedPort,
+      bool requestClientCertificate, bool requireClientCertificate) {
     if (host is! String && host is! InternetAddress) {
       throw new ArgumentError("host is not a String or an InternetAddress");
     }
+    // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(requestedPort, "requestedPort");
     if (requestedPort < 0 || requestedPort > 65535) {
       throw ArgumentError("requestedPort is not in the range 0..65535");
     }
+    // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(
         requestClientCertificate, "requestClientCertificate");
     ArgumentError.checkNotNull(
@@ -618,7 +606,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   int available() {
     return _status != connectedStatus
         ? 0
-        : _secureFilter.buffers[readPlaintextId].length;
+        : _secureFilter!.buffers![readPlaintextId].length;
   }
 
   Future<RawSecureSocket> close() {
@@ -626,22 +614,18 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     return _closeCompleter.future;
   }
 
-  void _completeCloseCompleter([RawSocket dummy]) {
+  void _completeCloseCompleter([RawSocket? dummy]) {
     if (!_closeCompleter.isCompleted) _closeCompleter.complete(this);
   }
 
   void _close() {
     _closedWrite = true;
     _closedRead = true;
-    if (_socket != null) {
-      _socket.close().then(_completeCloseCompleter);
-    } else {
-      _completeCloseCompleter();
-    }
+    _socket.close().then(_completeCloseCompleter);
     _socketClosedWrite = true;
     _socketClosedRead = true;
     if (!_filterActive && _secureFilter != null) {
-      _secureFilter.destroy();
+      _secureFilter!.destroy();
       _secureFilter = null;
     }
     if (_socketSubscription != null) {
@@ -690,8 +674,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     _scheduleReadEvent();
   }
 
-  Uint8List read([int length]) {
-    if (length != null && (length is! int || length < 0)) {
+  Uint8List? read([int? length]) {
+    if (length != null && length < 0) {
       throw new ArgumentError(
           "Invalid length parameter in SecureSocket.read (length: $length)");
     }
@@ -701,18 +685,22 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     if (_status != connectedStatus) {
       return null;
     }
-    var result = _secureFilter.buffers[readPlaintextId].read(length);
+    var result = _secureFilter!.buffers![readPlaintextId].read(length);
     _scheduleFilter();
     return result;
   }
 
+  static int _fixOffset(int? offset) => offset ?? 0;
+
   // Write the data to the socket, and schedule the filter to encrypt it.
-  int write(List<int> data, [int offset, int bytes]) {
-    if (bytes != null && (bytes is! int || bytes < 0)) {
+  int write(List<int> data, [int offset = 0, int? bytes]) {
+    if (bytes != null && bytes < 0) {
       throw new ArgumentError(
           "Invalid bytes parameter in SecureSocket.read (bytes: $bytes)");
     }
-    if (offset != null && (offset is! int || offset < 0)) {
+    // TODO(40614): Remove once non-nullability is sound.
+    offset = _fixOffset(offset);
+    if (offset < 0) {
       throw new ArgumentError(
           "Invalid offset parameter in SecureSocket.read (offset: $offset)");
     }
@@ -721,11 +709,10 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       return 0;
     }
     if (_status != connectedStatus) return 0;
-    offset ??= 0;
     bytes ??= data.length - offset;
 
     int written =
-        _secureFilter.buffers[writePlaintextId].write(data, offset, bytes);
+        _secureFilter!.buffers![writePlaintextId].write(data, offset, bytes);
     if (written > 0) {
       _filterStatus.writeEmpty = false;
     }
@@ -733,29 +720,25 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     return written;
   }
 
-  X509Certificate get peerCertificate => _secureFilter.peerCertificate;
+  X509Certificate? get peerCertificate => _secureFilter!.peerCertificate;
 
-  String get selectedProtocol => _selectedProtocol;
+  String? get selectedProtocol => _selectedProtocol;
 
   bool _onBadCertificateWrapper(X509Certificate certificate) {
     if (onBadCertificate == null) return false;
-    var result = onBadCertificate(certificate);
-    if (result is bool) return result;
-    throw new HandshakeException(
-        "onBadCertificate callback returned non-boolean $result");
+    return onBadCertificate!(certificate);
   }
 
   bool setOption(SocketOption option, bool enabled) {
-    if (_socket == null) return false;
     return _socket.setOption(option, enabled);
   }
 
   Uint8List getRawOption(RawSocketOption option) {
-    return _socket?.getRawOption(option);
+    return _socket.getRawOption(option);
   }
 
   void setRawOption(RawSocketOption option) {
-    _socket?.setRawOption(option);
+    _socket.setRawOption(option);
   }
 
   void _eventDispatcher(RawSocketEvent event) {
@@ -788,7 +771,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     }
   }
 
-  void _reportError(e, [StackTrace stackTrace]) {
+  void _reportError(e, [StackTrace? stackTrace]) {
     if (_status == closedStatus) {
       return;
     } else if (_connectPending) {
@@ -829,7 +812,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
   void _secureHandshake() {
     try {
-      _secureFilter.handshake();
+      _secureFilter!.handshake();
       _filterStatus.writeEmpty = false;
       _readSocket();
       _writeSocket();
@@ -847,7 +830,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       throw new HandshakeException(
           "Called renegotiate on a non-connected socket");
     }
-    _secureFilter.renegotiate(
+    _secureFilter!.renegotiate(
         useSessionCache, requestClientCertificate, requireClientCertificate);
     _status = handshakeStatus;
     _filterStatus.writeEmpty = false;
@@ -859,7 +842,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     if (_connectPending) {
       _connectPending = false;
       try {
-        _selectedProtocol = _secureFilter.selectedProtocol();
+        _selectedProtocol = _secureFilter!.selectedProtocol();
         // We don't want user code to run synchronously in this callback.
         Timer.run(() => _handshakeComplete.complete(this));
       } catch (error, stack) {
@@ -910,7 +893,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         _filterStatus = status;
         _filterActive = false;
         if (_status == closedStatus) {
-          _secureFilter.destroy();
+          _secureFilter!.destroy();
           _secureFilter = null;
           return;
         }
@@ -924,7 +907,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         }
         if (_filterStatus.readEmpty && _socketClosedRead && !_closedRead) {
           if (_status == handshakeStatus) {
-            _secureFilter.handshake();
+            _secureFilter!.handshake();
             if (_status == handshakeStatus) {
               throw new HandshakeException(
                   'Connection terminated during handshake');
@@ -958,15 +941,16 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     }
   }
 
-  List<int> _readSocketOrBufferedData(int bytes) {
-    if (_bufferedData != null) {
-      if (bytes > _bufferedData.length - _bufferedDataIndex) {
-        bytes = _bufferedData.length - _bufferedDataIndex;
+  List<int>? _readSocketOrBufferedData(int bytes) {
+    final bufferedData = _bufferedData;
+    if (bufferedData != null) {
+      if (bytes > bufferedData.length - _bufferedDataIndex) {
+        bytes = bufferedData.length - _bufferedDataIndex;
       }
       var result =
-          _bufferedData.sublist(_bufferedDataIndex, _bufferedDataIndex + bytes);
+          bufferedData.sublist(_bufferedDataIndex, _bufferedDataIndex + bytes);
       _bufferedDataIndex += bytes;
-      if (_bufferedData.length == _bufferedDataIndex) {
+      if (bufferedData.length == _bufferedDataIndex) {
         _bufferedData = null;
       }
       return result;
@@ -979,7 +963,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
   void _readSocket() {
     if (_status == closedStatus) return;
-    var buffer = _secureFilter.buffers[readEncryptedId];
+    var buffer = _secureFilter!.buffers![readEncryptedId];
     if (buffer.writeFromSource(_readSocketOrBufferedData) > 0) {
       _filterStatus.readEmpty = false;
     } else {
@@ -989,7 +973,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
   void _writeSocket() {
     if (_socketClosedWrite) return;
-    var buffer = _secureFilter.buffers[writeEncryptedId];
+    var buffer = _secureFilter!.buffers![writeEncryptedId];
     if (buffer.readToSocket(_socket)) {
       // Returns true if blocked
       _socket.writeEventsEnabled = true;
@@ -1002,7 +986,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         _readEventsEnabled &&
         _pauseCount == 0 &&
         _secureFilter != null &&
-        !_secureFilter.buffers[readPlaintextId].isEmpty) {
+        !_secureFilter!.buffers![readPlaintextId].isEmpty) {
       _pendingReadEvent = true;
       Timer.run(_sendReadEvent);
     }
@@ -1014,7 +998,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         _readEventsEnabled &&
         _pauseCount == 0 &&
         _secureFilter != null &&
-        !_secureFilter.buffers[readPlaintextId].isEmpty) {
+        !_secureFilter!.buffers![readPlaintextId].isEmpty) {
       _controller.add(RawSocketEvent.read);
       _scheduleReadEvent();
     }
@@ -1026,7 +1010,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         _writeEventsEnabled &&
         _pauseCount == 0 &&
         _secureFilter != null &&
-        _secureFilter.buffers[writePlaintextId].free > 0) {
+        _secureFilter!.buffers![writePlaintextId].free > 0) {
       _writeEventsEnabled = false;
       _controller.add(RawSocketEvent.write);
     }
@@ -1034,10 +1018,10 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
   Future<_FilterStatus> _pushAllFilterStages() {
     bool wasInHandshake = _status != connectedStatus;
-    List args = new List(2 + bufferCount * 2);
-    args[0] = _secureFilter._pointer();
+    List args = new List<dynamic>.filled(2 + bufferCount * 2, null);
+    args[0] = _secureFilter!._pointer();
     args[1] = wasInHandshake;
-    var bufs = _secureFilter.buffers;
+    var bufs = _secureFilter!.buffers!;
     for (var i = 0; i < bufferCount; ++i) {
       args[2 * i + 2] = bufs[i].start;
       args[2 * i + 3] = bufs[i].end;
@@ -1123,7 +1107,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 class _ExternalBuffer {
   // This will be an ExternalByteArray, backed by C allocated data.
   @pragma("vm:entry-point", "set")
-  List<int> data;
+  List<int>? data;
 
   @pragma("vm:entry-point")
   int start;
@@ -1131,11 +1115,12 @@ class _ExternalBuffer {
   @pragma("vm:entry-point")
   int end;
 
-  final size;
+  final int size;
 
-  _ExternalBuffer(this.size) {
-    start = end = size ~/ 2;
-  }
+  _ExternalBuffer(int size)
+      : size = size,
+        start = size ~/ 2,
+        end = size ~/ 2;
 
   void advanceStart(int bytes) {
     assert(start > end || start + bytes <= end);
@@ -1171,7 +1156,7 @@ class _ExternalBuffer {
     return size - end;
   }
 
-  Uint8List read(int bytes) {
+  Uint8List? read(int? bytes) {
     if (bytes == null) {
       bytes = length;
     } else {
@@ -1183,7 +1168,7 @@ class _ExternalBuffer {
     // Loop over zero, one, or two linear data ranges.
     while (bytesRead < bytes) {
       int toRead = min(bytes - bytesRead, linearLength);
-      result.setRange(bytesRead, bytesRead + toRead, data, start);
+      result.setRange(bytesRead, bytesRead + toRead, data!, start);
       advanceStart(toRead);
       bytesRead += toRead;
     }
@@ -1198,7 +1183,7 @@ class _ExternalBuffer {
     int toWrite = min(bytes, linearFree);
     // Loop over zero, one, or two linear data ranges.
     while (toWrite > 0) {
-      data.setRange(end, end + toWrite, inputData, offset);
+      data!.setRange(end, end + toWrite, inputData, offset);
       advanceEnd(toWrite);
       offset += toWrite;
       written += toWrite;
@@ -1207,7 +1192,7 @@ class _ExternalBuffer {
     return written;
   }
 
-  int writeFromSource(List<int> getData(int requested)) {
+  int writeFromSource(List<int>? getData(int requested)) {
     int written = 0;
     int toWrite = linearFree;
     // Loop over zero, one, or two linear data ranges.
@@ -1216,7 +1201,7 @@ class _ExternalBuffer {
       var inputData = getData(toWrite);
       if (inputData == null || inputData.length == 0) break;
       var len = inputData.length;
-      data.setRange(end, end + len, inputData);
+      data!.setRange(end, end + len, inputData);
       advanceEnd(len);
       written += len;
       toWrite = linearFree;
@@ -1229,7 +1214,7 @@ class _ExternalBuffer {
     while (true) {
       var toWrite = linearLength;
       if (toWrite == 0) return false;
-      int bytes = socket.write(data, start, toWrite);
+      int bytes = socket.write(data!, start, toWrite);
       advanceStart(bytes);
       if (bytes < toWrite) {
         // The socket has blocked while we have data to write.
@@ -1245,18 +1230,18 @@ abstract class _SecureFilter {
   void connect(
       String hostName,
       SecurityContext context,
-      bool is_server,
+      bool isServer,
       bool requestClientCertificate,
       bool requireClientCertificate,
       Uint8List protocols);
   void destroy();
   void handshake();
-  String selectedProtocol();
+  String? selectedProtocol();
   void rehandshake();
   void renegotiate(bool useSessionCache, bool requestClientCertificate,
       bool requireClientCertificate);
   void init();
-  X509Certificate get peerCertificate;
+  X509Certificate? get peerCertificate;
   int processBuffer(int bufferIndex);
   void registerBadCertificateCallback(Function callback);
   void registerHandshakeCompleteCallback(Function handshakeCompleteHandler);
@@ -1266,7 +1251,7 @@ abstract class _SecureFilter {
   // value is passed to the IO service through a call to dispatch().
   int _pointer();
 
-  List<_ExternalBuffer> get buffers;
+  List<_ExternalBuffer>? get buffers;
 }
 
 /** A secure networking exception caused by a failure in the
@@ -1275,10 +1260,10 @@ abstract class _SecureFilter {
 class TlsException implements IOException {
   final String type;
   final String message;
-  final OSError osError;
+  final OSError? osError;
 
   @pragma("vm:entry-point")
-  const TlsException([String message = "", OSError osError])
+  const TlsException([String message = "", OSError? osError])
       : this._("TlsException", message, osError);
 
   const TlsException._(this.type, this.message, this.osError);
@@ -1305,7 +1290,7 @@ class TlsException implements IOException {
 @pragma("vm:entry-point")
 class HandshakeException extends TlsException {
   @pragma("vm:entry-point")
-  const HandshakeException([String message = "", OSError osError])
+  const HandshakeException([String message = "", OSError? osError])
       : super._("HandshakeException", message, osError);
 }
 
@@ -1316,6 +1301,6 @@ class HandshakeException extends TlsException {
  */
 class CertificateException extends TlsException {
   @pragma("vm:entry-point")
-  const CertificateException([String message = "", OSError osError])
+  const CertificateException([String message = "", OSError? osError])
       : super._("CertificateException", message, osError);
 }

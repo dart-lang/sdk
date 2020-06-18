@@ -113,7 +113,9 @@ class DeduplicateMixinsTransformer extends Transformer {
     assert(canonical != null);
 
     if (canonical != c) {
-      c.canonicalName?.unbind();
+      // Ensure that kernel file writer will not be able to
+      // write a dangling reference to the deleted class.
+      c.reference.canonicalName = null;
       _duplicatedMixins[c] = canonical;
       return null; // Remove class.
     }

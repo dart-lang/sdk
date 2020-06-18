@@ -199,15 +199,10 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
       }''',
   'getFallThroughError': 'getFallThroughError() {}',
   'getIsolateAffinityTag': 'getIsolateAffinityTag(_) {}',
-  'getRuntimeTypeArgumentIntercepted':
-      'getRuntimeTypeArgumentIntercepted(interceptor, target, substitutionName, index) {}',
-  'getRuntimeTypeArgument':
-      'getRuntimeTypeArgument(target, substitutionName, index) {}',
   'getRuntimeTypeArguments':
       'getRuntimeTypeArguments(target, substitutionName) {}',
   'getRuntimeTypeInfo': 'getRuntimeTypeInfo(a) {}',
   'getTraceFromException': 'getTraceFromException(exception) {}',
-  'getTypeArgumentByIndex': 'getTypeArgumentByIndex(target, index) {}',
   'GeneralConstantMap': 'class GeneralConstantMap {}',
   'iae': 'iae(x) { throw x; } ioore(x) { throw x; }',
   'Instantiation1': 'class Instantiation1<T1> extends Closure {}',
@@ -236,7 +231,6 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'RuntimeFunctionType': 'class RuntimeFunctionType {}',
   'RuntimeTypeGeneric': 'class RuntimeTypeGeneric {}',
   'RuntimeTypePlain': 'class RuntimeTypePlain {}',
-  'runtimeTypeToString': 'runtimeTypeToString(type, {onTypeVariable(i)}) {}',
   'S': 'S() {}',
   'setRuntimeTypeInfo': 'setRuntimeTypeInfo(a, b) {}',
   'subtypeOfRuntimeTypeCast': 'subtypeOfRuntimeTypeCast(object, type) {}',
@@ -252,8 +246,6 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
       'throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {}',
   'throwRuntimeError': 'throwRuntimeError(message) {}',
   'throwUnsupportedError': 'throwUnsupportedError(message) {}',
-  'throwTypeError': 'throwTypeError(message) {}',
-  'TypeImpl': 'class TypeImpl {}',
   'TypeVariable': '''class TypeVariable {
     final Type owner;
     final String name;

@@ -217,15 +217,4 @@ class Sdk {
   Sdk(String sdkPath) {
     this.sdkPath = path.canonicalize(sdkPath);
   }
-
-  /// Returns true if the SDK was built with --nnbd.
-  ///
-  /// May throw if [sdkPath] is invalid, or there is an error parsing
-  /// the libraries.json file.
-  bool get isNnbdSdk {
-    // TODO(jcollins-g): contact eng-prod for a more foolproof detection method
-    String libraries = path.join(sdkPath, 'lib', 'libraries.json');
-    var decodedJson = JsonDecoder().convert(File(libraries).readAsStringSync());
-    return ((decodedJson['comment:1'] as String).contains('sdk_nnbd'));
-  }
 }

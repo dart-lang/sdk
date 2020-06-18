@@ -522,18 +522,14 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// given absolute path.
   bool shouldSendFlutterOutlineFor(String file) {
     // Outlines should only be sent for open (priority) files in the workspace.
-    return initializationOptions.flutterOutline &&
-        priorityFiles.contains(file) &&
-        contextManager.isInAnalysisRoot(file);
+    return initializationOptions.flutterOutline && priorityFiles.contains(file);
   }
 
   /// Returns `true` if outlines should be sent for [file] with the given
   /// absolute path.
   bool shouldSendOutlineFor(String file) {
     // Outlines should only be sent for open (priority) files in the workspace.
-    return initializationOptions.outline &&
-        priorityFiles.contains(file) &&
-        contextManager.isInAnalysisRoot(file);
+    return initializationOptions.outline && priorityFiles.contains(file);
   }
 
   void showErrorMessageToUser(String message) {

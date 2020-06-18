@@ -2,17 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.collection;
 
-/// Default function for equality comparison in customized HashMaps
-bool _defaultEquals(a, b) => a == b;
+/// Default function for equality comparison in customized HashMaps.
+bool _defaultEquals(Object? a, Object? b) => a == b;
 
-/// Default function for hash-code computation in customized HashMaps
-int _defaultHashCode(a) => a.hashCode;
+/// Default function for hash-code computation in customized HashMaps.
+int _defaultHashCode(Object? a) => a.hashCode;
 
-/// Type of custom equality function
+/// Type of custom equality function.
 typedef _Equality<K> = bool Function(K a, K b);
 
 /// Type of custom hash code function.
@@ -85,9 +83,9 @@ abstract class HashMap<K, V> implements Map<K, V> {
   /// If you supply one of [equals] and [hashCode],
   /// you should generally also to supply the other.
   external factory HashMap(
-      {bool equals(K key1, K key2),
-      int hashCode(K key),
-      bool isValidKey(potentialKey)});
+      {bool Function(K, K)? equals,
+      int Function(K)? hashCode,
+      bool Function(dynamic)? isValidKey});
 
   /// Creates an unordered identity-based map.
   ///
@@ -101,10 +99,10 @@ abstract class HashMap<K, V> implements Map<K, V> {
   ///
   /// The keys must all be instances of [K] and the values of [V].
   /// The [other] map itself can have any type.
-  factory HashMap.from(Map other) {
-    Map<K, V> result = HashMap<K, V>();
-    other.forEach((k, v) {
-      result[k] = v;
+  factory HashMap.from(Map<dynamic, dynamic> other) {
+    HashMap<K, V> result = HashMap<K, V>();
+    other.forEach((dynamic k, dynamic v) {
+      result[k as K] = v as V;
     });
     return result;
   }
@@ -124,8 +122,8 @@ abstract class HashMap<K, V> implements Map<K, V> {
   /// If no values are specified for [key] and [value] the default is the
   /// identity function.
   factory HashMap.fromIterable(Iterable iterable,
-      {K key(element), V value(element)}) {
-    Map<K, V> map = HashMap<K, V>();
+      {K Function(dynamic element)? key, V Function(dynamic element)? value}) {
+    HashMap<K, V> map = HashMap<K, V>();
     MapBase._fillMapWithMappedIterable(map, iterable, key, value);
     return map;
   }
@@ -140,7 +138,7 @@ abstract class HashMap<K, V> implements Map<K, V> {
   ///
   /// It is an error if the two [Iterable]s don't have the same length.
   factory HashMap.fromIterables(Iterable<K> keys, Iterable<V> values) {
-    Map<K, V> map = HashMap<K, V>();
+    HashMap<K, V> map = HashMap<K, V>();
     MapBase._fillMapWithIterables(map, keys, values);
     return map;
   }

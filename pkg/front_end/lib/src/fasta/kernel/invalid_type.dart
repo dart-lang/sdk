@@ -48,6 +48,11 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
   }
 
   @override
+  bool visitFutureOrType(FutureOrType node, Set<TypedefType> visitedTypedefs) {
+    return node.typeArgument.accept1(this, visitedTypedefs);
+  }
+
+  @override
   bool visitNeverType(NeverType node, Set<TypedefType> visitedTypedefs) =>
       false;
 

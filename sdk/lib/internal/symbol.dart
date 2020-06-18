@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart._internal;
 
 /**
@@ -111,7 +109,7 @@ class Symbol implements core.Symbol {
   // This is called by dart2js.
   Symbol.validated(String name) : this._name = validatePublicSymbol(name);
 
-  bool operator ==(other) => other is Symbol && _name == other._name;
+  bool operator ==(Object other) => other is Symbol && _name == other._name;
 
   external int get hashCode;
 

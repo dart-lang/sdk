@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.io;
 
 /**
@@ -69,7 +67,7 @@ abstract class SecurityContext {
    * data is used instead of two calls to [useCertificateChain] and
    * [usePrivateKey].
    */
-  void usePrivateKey(String file, {String password});
+  void usePrivateKey(String file, {String? password});
 
   /**
    * Sets the private key for a server certificate or client certificate.
@@ -77,7 +75,7 @@ abstract class SecurityContext {
    * Like [usePrivateKey], but takes the contents of the file as a list
    * of bytes.
    */
-  void usePrivateKeyBytes(List<int> keyBytes, {String password});
+  void usePrivateKeyBytes(List<int> keyBytes, {String? password});
 
   /**
    * Sets the set of trusted X509 certificates used by [SecureSocket]
@@ -99,7 +97,7 @@ abstract class SecurityContext {
    *
    *   $ openssl x509 -outform der -in cert.pem -out cert.der
    */
-  void setTrustedCertificates(String file, {String password});
+  void setTrustedCertificates(String file, {String? password});
 
   /**
    * Sets the set of trusted X509 certificates used by [SecureSocket]
@@ -107,7 +105,7 @@ abstract class SecurityContext {
    *
    * Like [setTrustedCertificates] but takes the contents of the file.
    */
-  void setTrustedCertificatesBytes(List<int> certBytes, {String password});
+  void setTrustedCertificatesBytes(List<int> certBytes, {String? password});
 
   /**
    * Sets the chain of X509 certificates served by [SecureServerSocket]
@@ -127,7 +125,7 @@ abstract class SecurityContext {
    * iOS note: As noted above, [usePrivateKey] does the job of both
    * that call and this one. On iOS, this call is a no-op.
    */
-  void useCertificateChain(String file, {String password});
+  void useCertificateChain(String file, {String? password});
 
   /**
    * Sets the chain of X509 certificates served by [SecureServerSocket]
@@ -135,7 +133,7 @@ abstract class SecurityContext {
    *
    * Like [useCertificateChain] but takes the contents of the file.
    */
-  void useCertificateChainBytes(List<int> chainBytes, {String password});
+  void useCertificateChainBytes(List<int> chainBytes, {String? password});
 
   /**
    * Sets the list of authority names that a [SecureServerSocket] will advertise
@@ -153,7 +151,7 @@ abstract class SecurityContext {
    *
    * iOS note: This call is not supported.
    */
-  void setClientAuthorities(String file, {String password});
+  void setClientAuthorities(String file, {String? password});
 
   /**
    * Sets the list of authority names that a [SecureServerSocket] will advertise
@@ -162,7 +160,7 @@ abstract class SecurityContext {
    *
    * Like [setClientAuthorities] but takes the contents of the file.
    */
-  void setClientAuthoritiesBytes(List<int> authCertBytes, {String password});
+  void setClientAuthoritiesBytes(List<int> authCertBytes, {String? password});
 
   /**
    * Whether the platform supports ALPN. This always returns true and will be
@@ -205,7 +203,7 @@ abstract class SecurityContext {
   /// `ProtocolNameList` length of 65535, this limit cannot be reached. Testing
   /// showed that more than ~ 2^14  bytes will fail to negotiate a protocol.
   /// We will be conservative and support only messages up to (1<<13)-1 bytes.
-  static Uint8List _protocolsToLengthEncoding(List<String> protocols) {
+  static Uint8List _protocolsToLengthEncoding(List<String>? protocols) {
     if (protocols == null || protocols.length == 0) {
       return new Uint8List(0);
     }

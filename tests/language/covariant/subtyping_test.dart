@@ -175,14 +175,14 @@ testGenericMethodBounds() {
   test(GenericMethodBounds<Object?> g) {
     Expect.throwsTypeError(() => g.foo<String>());
     Expect.throwsTypeError(() => g.foo());
-    Expect.equals(g.foo<Null>().t, Null);
+    Expect.equals(g.foo<Never>().t, Never);
     Expect.equals(g.foo<int>().t, int);
     Expect.isFalse(g.foo<int>() is GenericMethodBounds<double>);
     g.bar<Function(Object?)>();
     dynamic d = g;
     d.bar<Function(num)>();
     Expect.throwsTypeError(() => d.bar<Function(String)>());
-    Expect.throwsTypeError(() => d.bar<Function(Null)>());
+    Expect.throwsTypeError(() => d.bar<Function(Never)>());
   }
 
   test(new GenericMethodBounds<num>());
@@ -202,7 +202,7 @@ testCallMethod() {
   ClassF<int> cc = new ClassF<int>();
   ClassF<Object> ca = cc; // An upcast, per covariance.
   F<Object> f = ca;
-  void f2(Object x) {}
+  void f2(Object? x) {}
   Expect.equals(f.runtimeType, f2.runtimeType);
   Expect.throwsTypeError(() => f(new Object()));
 }
@@ -219,18 +219,18 @@ class TearOff<T> {
 
 testTearOffRuntimeType() {
   expectRTTI(tearoff, type) => Expect.equals('${tearoff.runtimeType}', type,
-      'covariant params should reify with Object as their type');
+      'covariant params should reify with Object? as their type');
 
   TearOff<num> t = new TearOff<int>();
-  expectRTTI(t.method1, '(Object) => dynamic');
+  expectRTTI(t.method1, '(Object?) => dynamic');
 
   expectRTTI(t.method2, '((int) => dynamic) => dynamic');
-  expectRTTI(t.method3, '(Object) => dynamic');
+  expectRTTI(t.method3, '(Object?) => dynamic');
 
-  expectRTTI(t.method4, '(Object) => dynamic');
+  expectRTTI(t.method4, '(Object?) => dynamic');
   expectRTTI(t.method5, '((() => int) => dynamic) => dynamic');
   expectRTTI(t.method6, '(() => (int) => dynamic) => dynamic');
-  expectRTTI(t.method7, '(Object) => dynamic');
+  expectRTTI(t.method7, '(Object?) => dynamic');
 }
 
 main() {

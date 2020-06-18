@@ -269,10 +269,7 @@ class ForwardingConstructorGenericSuperClass<T> {
     _isString(1),
     _isTop(1),
     findType(1),
-    getRuntimeTypeArgument(3),
-    getRuntimeTypeArgumentIntercepted(4),
     getRuntimeTypeInfo(1),
-    getTypeArgumentByIndex(2),
     instanceType(1),
     setRuntimeTypeInfo(2)],
    type=[
@@ -322,10 +319,7 @@ class ForwardingConstructorGenericSuperClass<T> {
     _isString(1),
     _isTop(1),
     findType(1),
-    getRuntimeTypeArgument(3),
-    getRuntimeTypeArgumentIntercepted(4),
     getRuntimeTypeInfo(1),
-    getTypeArgumentByIndex(2),
     instanceType(1),
     setRuntimeTypeInfo(2)],
    type=[
@@ -344,7 +338,12 @@ class ForwardingConstructorGenericSuperClass<T> {
 class ForwardingConstructorGenericClass<
     S> = ForwardingConstructorGenericSuperClass<S> with EmptyMixin;
 
-/*member: testForwardingConstructorGeneric:static=[ForwardingConstructorGenericClass.(1),checkTypeBound(4),throwTypeError(1)],type=[inst:JSNull]*/
+/*member: testForwardingConstructorGeneric:
+ static=[
+  ForwardingConstructorGenericClass.(1),
+  checkTypeBound(4)],
+ type=[inst:JSNull]
+*/
 testForwardingConstructorGeneric() {
   new ForwardingConstructorGenericClass<int>(null);
 }
@@ -400,10 +399,7 @@ testEnum() => Enum.A;
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeArgument(3),
-  getRuntimeTypeArgumentIntercepted(4),
   getRuntimeTypeInfo(1),
-  getTypeArgumentByIndex(2),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -454,10 +450,7 @@ testEnum() => Enum.A;
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeArgument(3),
-  getRuntimeTypeArgumentIntercepted(4),
   getRuntimeTypeInfo(1),
-  getTypeArgumentByIndex(2),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -475,8 +468,8 @@ testEnum() => Enum.A;
 List<T> staticGenericMethod<T>(T arg) => [arg];
 
 /*spec:nnbd-off.member: testStaticGenericMethod:
-  static=[staticGenericMethod<bool>(1)],
-  type=[inst:JSBool]
+ static=[staticGenericMethod<bool>(1)],
+ type=[inst:JSBool]
 */
 /*spec:nnbd-sdk.member: testStaticGenericMethod:
  static=[staticGenericMethod<bool*>(1)],
@@ -486,13 +479,18 @@ testStaticGenericMethod() {
   staticGenericMethod<bool>(true);
 }
 
-/*spec:nnbd-off.member: testInstanceGenericMethod:dynamic=[exact:GenericClass.genericMethod<bool>(1)],static=[GenericClass.generative(0),checkTypeBound(4),throwTypeError(1)],type=[inst:JSBool]*/
+/*spec:nnbd-off.member: testInstanceGenericMethod:
+ dynamic=[exact:GenericClass.genericMethod<bool>(1)],
+ static=[
+  GenericClass.generative(0),
+  checkTypeBound(4)],
+ type=[inst:JSBool]
+*/
 /*spec:nnbd-sdk.member: testInstanceGenericMethod:
  dynamic=[exact:GenericClass.genericMethod<bool*>(1)],
  static=[
   GenericClass.generative(0),
-  checkTypeBound(4),
-  throwTypeError(1)],
+  checkTypeBound(4)],
  type=[inst:JSBool]
 */
 testInstanceGenericMethod() {
@@ -516,10 +514,14 @@ testMixinInstantiation() => new Sub();
 /*member: testNamedMixinInstantiation:static=[NamedMixin.(0)]*/
 testNamedMixinInstantiation() => new NamedMixin();
 
-/*member: testGenericMixinInstantiation:static=[GenericSub.(0),checkTypeBound(4),throwTypeError(1)]*/
+/*member: testGenericMixinInstantiation:static=[
+  GenericSub.(0),
+  checkTypeBound(4)]*/
 testGenericMixinInstantiation() => new GenericSub<int, String>();
 
-/*member: testGenericNamedMixinInstantiation:static=[GenericNamedMixin.(0),checkTypeBound(4),throwTypeError(1)]*/
+/*member: testGenericNamedMixinInstantiation:static=[
+  GenericNamedMixin.(0),
+  checkTypeBound(4)]*/
 testGenericNamedMixinInstantiation() => new GenericNamedMixin<int, String>();
 
 class Class {
@@ -563,10 +565,7 @@ class GenericClass<X, Y> {
     _isString(1),
     _isTop(1),
     findType(1),
-    getRuntimeTypeArgument(3),
-    getRuntimeTypeArgumentIntercepted(4),
     getRuntimeTypeInfo(1),
-    getTypeArgumentByIndex(2),
     instanceType(1),
     setRuntimeTypeInfo(2)],
    type=[
@@ -618,10 +617,7 @@ class GenericClass<X, Y> {
     _isString(1),
     _isTop(1),
     findType(1),
-    getRuntimeTypeArgument(3),
-    getRuntimeTypeArgumentIntercepted(4),
     getRuntimeTypeInfo(1),
-    getTypeArgumentByIndex(2),
     instanceType(1),
     setRuntimeTypeInfo(2)],
    type=[

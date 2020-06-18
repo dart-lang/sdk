@@ -412,7 +412,11 @@ class ElementResolver extends SimpleAstVisitor<void> {
     }
 
     if (node.isNullAware) {
-      targetType = _typeSystem.promoteToNonNull(targetType);
+      if (target is ExtensionOverride) {
+        // https://github.com/dart-lang/language/pull/953
+      } else {
+        targetType = _typeSystem.promoteToNonNull(targetType);
+      }
     }
 
     String getterMethodName = TokenType.INDEX.lexeme;

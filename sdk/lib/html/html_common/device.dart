@@ -2,21 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of html_common;
 
 /**
  * Utils for device detection.
  */
 class Device {
-  static bool _isOpera;
-  static bool _isIE;
-  static bool _isFirefox;
-  static bool _isWebKit;
-  static String _cachedCssPrefix;
-  static String _cachedPropertyPrefix;
-
   /**
    * Gets the browser's user agent. Using this function allows tests to inject
    * the user agent.
@@ -27,78 +18,33 @@ class Device {
   /**
    * Determines if the current device is running Opera.
    */
-  static bool get isOpera {
-    if (_isOpera == null) {
-      _isOpera = userAgent.contains("Opera", 0);
-    }
-    return _isOpera;
-  }
+  static final bool isOpera = userAgent.contains("Opera", 0);
 
   /**
    * Determines if the current device is running Internet Explorer.
    */
-  static bool get isIE {
-    if (_isIE == null) {
-      _isIE = !isOpera && userAgent.contains("Trident/", 0);
-    }
-    return _isIE;
-  }
+  static final bool isIE = !isOpera && userAgent.contains("Trident/", 0);
 
   /**
    * Determines if the current device is running Firefox.
    */
-  static bool get isFirefox {
-    if (_isFirefox == null) {
-      _isFirefox = userAgent.contains("Firefox", 0);
-    }
-    return _isFirefox;
-  }
+  static final bool isFirefox = userAgent.contains("Firefox", 0);
 
   /**
    * Determines if the current device is running WebKit.
    */
-  static bool get isWebKit {
-    if (_isWebKit == null) {
-      _isWebKit = !isOpera && userAgent.contains("WebKit", 0);
-    }
-    return _isWebKit;
-  }
+  static final bool isWebKit = !isOpera && userAgent.contains("WebKit", 0);
 
   /**
    * Gets the CSS property prefix for the current platform.
    */
-  static String get cssPrefix {
-    String prefix = _cachedCssPrefix;
-    if (prefix != null) return prefix;
-    if (isFirefox) {
-      prefix = '-moz-';
-    } else if (isIE) {
-      prefix = '-ms-';
-    } else if (isOpera) {
-      prefix = '-o-';
-    } else {
-      prefix = '-webkit-';
-    }
-    return _cachedCssPrefix = prefix;
-  }
+  static final String cssPrefix = '-${propertyPrefix}-';
 
   /**
    * Prefix as used for JS property names.
    */
-  static String get propertyPrefix {
-    String prefix = _cachedPropertyPrefix;
-    if (prefix != null) return prefix;
-    if (isFirefox) {
-      prefix = 'moz';
-    } else if (isIE) {
-      prefix = 'ms';
-    } else if (isOpera) {
-      prefix = 'o';
-    } else {
-      prefix = 'webkit';
-    }
-    return _cachedPropertyPrefix = prefix;
-  }
+  static final String propertyPrefix =
+      isFirefox ? 'moz' : (isIE ? 'ms' : (isOpera ? 'o' : 'webkit'));
 
   /**
    * Checks to see if the event class is supported by the current platform.

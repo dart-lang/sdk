@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.core;
 
 /**
@@ -279,9 +277,9 @@ class DateTime implements Comparable<DateTime> {
   // Or not, that may be a breaking change.
   static DateTime parse(String formattedString) {
     var re = _parseFormat;
-    Match match = re.firstMatch(formattedString);
+    Match? match = re.firstMatch(formattedString);
     if (match != null) {
-      int parseIntOrZero(String matched) {
+      int parseIntOrZero(String? matched) {
         if (matched == null) return 0;
         return int.parse(matched);
       }
@@ -289,7 +287,7 @@ class DateTime implements Comparable<DateTime> {
       // Parses fractional second digits of '.(\d+)' into the combined
       // microseconds. We only use the first 6 digits because of DateTime
       // precision of 999 milliseconds and 999 microseconds.
-      int parseMilliAndMicroseconds(String matched) {
+      int parseMilliAndMicroseconds(String? matched) {
         if (matched == null) return 0;
         int length = matched.length;
         assert(length >= 1);
@@ -303,31 +301,32 @@ class DateTime implements Comparable<DateTime> {
         return result;
       }
 
-      int years = int.parse(match[1]);
-      int month = int.parse(match[2]);
-      int day = int.parse(match[3]);
+      int years = int.parse(match[1]!);
+      int month = int.parse(match[2]!);
+      int day = int.parse(match[3]!);
       int hour = parseIntOrZero(match[4]);
       int minute = parseIntOrZero(match[5]);
       int second = parseIntOrZero(match[6]);
       int milliAndMicroseconds = parseMilliAndMicroseconds(match[7]);
       int millisecond =
           milliAndMicroseconds ~/ Duration.microsecondsPerMillisecond;
-      int microsecond =
-          milliAndMicroseconds.remainder(Duration.microsecondsPerMillisecond);
+      int microsecond = milliAndMicroseconds
+          .remainder(Duration.microsecondsPerMillisecond) as int;
       bool isUtc = false;
       if (match[8] != null) {
         // timezone part
         isUtc = true;
-        if (match[9] != null) {
+        String? tzSign = match[9];
+        if (tzSign != null) {
           // timezone other than 'Z' and 'z'.
-          int sign = (match[9] == '-') ? -1 : 1;
-          int hourDifference = int.parse(match[10]);
+          int sign = (tzSign == '-') ? -1 : 1;
+          int hourDifference = int.parse(match[10]!);
           int minuteDifference = parseIntOrZero(match[11]);
           minuteDifference += 60 * hourDifference;
           minute -= sign * minuteDifference;
         }
       }
-      int value = _brokenDownDateToValue(years, month, day, hour, minute,
+      int? value = _brokenDownDateToValue(years, month, day, hour, minute,
           second, millisecond, microsecond, isUtc);
       if (value == null) {
         throw FormatException("Time out of range", formattedString);
@@ -344,7 +343,7 @@ class DateTime implements Comparable<DateTime> {
    * Works like [parse] except that this function returns `null`
    * where [parse] would throw a [FormatException].
    */
-  static DateTime tryParse(String formattedString) {
+  static DateTime? tryParse(String formattedString) {
     // TODO: Optimize to avoid throwing.
     try {
       return parse(formattedString);
@@ -386,13 +385,14 @@ class DateTime implements Comparable<DateTime> {
    *
    * If [isUtc] is false then the date is in the local time zone.
    */
-  DateTime._withValue(this._value, {this.isUtc}) {
+  DateTime._withValue(this._value, {required this.isUtc}) {
     if (millisecondsSinceEpoch.abs() > _maxMillisecondsSinceEpoch ||
         (millisecondsSinceEpoch.abs() == _maxMillisecondsSinceEpoch &&
             microsecond != 0)) {
       throw ArgumentError(
           "DateTime is outside valid range: $millisecondsSinceEpoch");
     }
+    // For backwards compatibility with legacy mode.
     ArgumentError.checkNotNull(isUtc, "isUtc");
   }
 
@@ -411,7 +411,7 @@ class DateTime implements Comparable<DateTime> {
    * See [isAtSameMomentAs] for a comparison that compares moments in time
    * independently of their zones.
    */
-  external bool operator ==(dynamic other);
+  external bool operator ==(Object other);
 
   /**
    * Returns true if [this] occurs before [other].
@@ -693,7 +693,7 @@ class DateTime implements Comparable<DateTime> {
 
   /// Returns the time as value (millisecond or microsecond since epoch), or
   /// null if the values are out of range.
-  external static int _brokenDownDateToValue(
+  external static int? _brokenDownDateToValue(
       int year,
       int month,
       int day,

@@ -437,9 +437,7 @@ enum TopLevelInferenceErrorKind : byte {
 
   overrideConflictFieldType,
 
-  overrideConflictReturnType,
-
-  overrideConflictParameterType
+  overrideNoCombinedSuperSignature
 }
 
 /// Enum of token types, corresponding to AST token types.
@@ -1267,15 +1265,10 @@ table PackageBundleSdk {
 /// Summary information about a top-level type inference error.
 table TopLevelInferenceError {
   /// The [kind] specific arguments.
-  arguments:[string] (id: 2);
+  arguments:[string] (id: 1);
 
   /// The kind of the error.
-  kind:TopLevelInferenceErrorKind (id: 1);
-
-  /// The slot id (which is unique within the compilation unit) identifying the
-  /// target of type inference with which this [TopLevelInferenceError] is
-  /// associated.
-  slot:uint (id: 0);
+  kind:TopLevelInferenceErrorKind (id: 0);
 }
 
 table UnlinkedInformativeData {

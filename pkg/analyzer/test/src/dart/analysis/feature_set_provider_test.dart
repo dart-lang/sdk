@@ -196,18 +196,6 @@ class FeatureSetProviderTest with ResourceProviderMixin {
           libFolder: newFolder('/packages/aaa/lib'),
           languageVersion: null,
         ),
-        'bbb': Package(
-          name: 'bbb',
-          rootFolder: newFolder('/packages/bbb'),
-          libFolder: newFolder('/packages/bbb/lib'),
-          languageVersion: Version(2, 7, 0),
-        ),
-        'ccc': Package(
-          name: 'ccc',
-          rootFolder: newFolder('/packages/ccc'),
-          libFolder: newFolder('/packages/ccc/lib'),
-          languageVersion: Version(2, 9, 0),
-        ),
       },
     );
 
@@ -225,14 +213,6 @@ class FeatureSetProviderTest with ResourceProviderMixin {
     _assertNonNullableForPath('/packages/aaa/a.dart', true);
     _assertNonNullableForPath('/packages/aaa/lib/b.dart', true);
     _assertNonNullableForPath('/packages/aaa/test/c.dart', true);
-
-    _assertNonNullableForPath('/packages/bbb/a.dart', false);
-    _assertNonNullableForPath('/packages/bbb/lib/b.dart', false);
-    _assertNonNullableForPath('/packages/bbb/test/c.dart', false);
-
-    _assertNonNullableForPath('/packages/ccc/a.dart', true);
-    _assertNonNullableForPath('/packages/ccc/lib/b.dart', true);
-    _assertNonNullableForPath('/packages/ccc/test/c.dart', true);
 
     _assertNonNullableForPath('/other/file.dart', false);
   }

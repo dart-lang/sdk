@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 import 'dart:_js_helper' show patch;
 import 'dart:async';
 import 'dart:convert';
@@ -75,7 +73,7 @@ class _AsyncDirectoryListerOps {
 @patch
 class _EventHandler {
   @patch
-  static void _sendData(Object sender, SendPort sendPort, int data) {
+  static void _sendData(Object? sender, SendPort sendPort, int data) {
     throw UnsupportedError("EventHandler._sendData");
   }
 }
@@ -305,7 +303,7 @@ class _Platform {
 @patch
 class _ProcessUtils {
   @patch
-  static void _exit(int status) {
+  static Never _exit(int status) {
     throw UnsupportedError("ProcessUtils._exit");
   }
 
@@ -325,7 +323,7 @@ class _ProcessUtils {
   }
 
   @patch
-  static int _pid(Process process) {
+  static int _pid(Process? process) {
     throw UnsupportedError("ProcessUtils._pid");
   }
 
@@ -352,8 +350,8 @@ class ProcessInfo {
 class Process {
   @patch
   static Future<Process> start(String executable, List<String> arguments,
-      {String workingDirectory,
-      Map<String, String> environment,
+      {String? workingDirectory,
+      Map<String, String>? environment,
       bool includeParentEnvironment = true,
       bool runInShell = false,
       ProcessStartMode mode = ProcessStartMode.normal}) {
@@ -362,8 +360,8 @@ class Process {
 
   @patch
   static Future<ProcessResult> run(String executable, List<String> arguments,
-      {String workingDirectory,
-      Map<String, String> environment,
+      {String? workingDirectory,
+      Map<String, String>? environment,
       bool includeParentEnvironment = true,
       bool runInShell = false,
       Encoding stdoutEncoding = systemEncoding,
@@ -373,8 +371,8 @@ class Process {
 
   @patch
   static ProcessResult runSync(String executable, List<String> arguments,
-      {String workingDirectory,
-      Map<String, String> environment,
+      {String? workingDirectory,
+      Map<String, String>? environment,
       bool includeParentEnvironment = true,
       bool runInShell = false,
       Encoding stdoutEncoding = systemEncoding,
@@ -411,13 +409,13 @@ class InternetAddress {
   }
 
   @patch
-  factory InternetAddress(String address, {InternetAddressType type}) {
+  factory InternetAddress(String address, {InternetAddressType? type}) {
     throw UnsupportedError("InternetAddress");
   }
 
   @patch
   factory InternetAddress.fromRawAddress(Uint8List rawAddress,
-      {InternetAddressType type}) {
+      {InternetAddressType? type}) {
     throw new UnsupportedError("InternetAddress.fromRawAddress");
   }
 
@@ -434,7 +432,7 @@ class InternetAddress {
   }
 
   @patch
-  static InternetAddress tryParse(String address) {
+  static InternetAddress? tryParse(String address) {
     throw UnsupportedError("InternetAddress.tryParse");
   }
 }
@@ -476,14 +474,14 @@ class ServerSocket {
 @patch
 class RawSocket {
   @patch
-  static Future<RawSocket> connect(host, int port,
-      {sourceAddress, Duration timeout}) {
+  static Future<RawSocket> connect(dynamic host, int port,
+      {dynamic sourceAddress, Duration? timeout}) {
     throw UnsupportedError("RawSocket constructor");
   }
 
   @patch
-  static Future<ConnectionTask<RawSocket>> startConnect(host, int port,
-      {sourceAddress}) {
+  static Future<ConnectionTask<RawSocket>> startConnect(dynamic host, int port,
+      {dynamic sourceAddress}) {
     throw UnsupportedError("RawSocket constructor");
   }
 }
@@ -491,14 +489,14 @@ class RawSocket {
 @patch
 class Socket {
   @patch
-  static Future<Socket> _connect(host, int port,
-      {sourceAddress, Duration timeout}) {
+  static Future<Socket> _connect(dynamic host, int port,
+      {dynamic sourceAddress, Duration? timeout}) {
     throw UnsupportedError("Socket constructor");
   }
 
   @patch
-  static Future<ConnectionTask<Socket>> _startConnect(host, int port,
-      {sourceAddress}) {
+  static Future<ConnectionTask<Socket>> _startConnect(dynamic host, int port,
+      {dynamic sourceAddress}) {
     throw UnsupportedError("Socket constructor");
   }
 }
@@ -514,7 +512,7 @@ class SecureSocket {
 @patch
 class RawSynchronousSocket {
   @patch
-  static RawSynchronousSocket connectSync(host, int port) {
+  static RawSynchronousSocket connectSync(dynamic host, int port) {
     throw UnsupportedError("RawSynchronousSocket.connectSync");
   }
 }
@@ -556,7 +554,7 @@ class X509Certificate {
 @patch
 class RawDatagramSocket {
   @patch
-  static Future<RawDatagramSocket> bind(host, int port,
+  static Future<RawDatagramSocket> bind(dynamic host, int port,
       {bool reuseAddress = true, bool reusePort = false, int ttl = 1}) {
     throw UnsupportedError("RawDatagramSocket.bind");
   }
@@ -618,14 +616,14 @@ class RawZLibFilter {
       int windowBits,
       int memLevel,
       int strategy,
-      List<int> dictionary,
+      List<int>? dictionary,
       bool raw) {
     throw UnsupportedError("_newZLibDeflateFilter");
   }
 
   @patch
   static RawZLibFilter _makeZLibInflateFilter(
-      int windowBits, List<int> dictionary, bool raw) {
+      int windowBits, List<int>? dictionary, bool raw) {
     throw UnsupportedError("_newZLibInflateFilter");
   }
 }

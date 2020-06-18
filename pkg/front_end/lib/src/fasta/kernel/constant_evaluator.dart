@@ -1899,7 +1899,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         if (constant is DoubleConstant && intFolder.isInt(constant)) {
           value = new BigInt.from(constant.value).toString();
         } else {
-          value = constant.toString();
+          value = constant.value.toString();
         }
         Object last = concatenated.last;
         if (last is StringBuffer) {
@@ -2674,6 +2674,11 @@ class IsInstantiatedVisitor extends DartTypeVisitor<bool> {
   bool visitInterfaceType(InterfaceType node) {
     return node.typeArguments
         .every((DartType typeArgument) => typeArgument.accept(this));
+  }
+
+  @override
+  bool visitFutureOrType(FutureOrType node) {
+    return node.typeArgument.accept(this);
   }
 
   @override

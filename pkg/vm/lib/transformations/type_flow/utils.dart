@@ -7,6 +7,9 @@
 library vm.transformations.type_flow.utils;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/src/printer.dart';
+
+String nodeToText(Node node) => node.toText(astTextStrategyForTesting);
 
 const bool kPrintTrace =
     const bool.fromEnvironment('global.type.flow.print.trace');

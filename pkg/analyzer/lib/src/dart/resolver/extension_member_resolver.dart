@@ -136,6 +136,10 @@ class ExtensionMemberResolver {
     var receiverExpression = arguments[0];
     var receiverType = receiverExpression.staticType;
 
+    if (node.isNullAware) {
+      receiverType = _typeSystem.promoteToNonNull(receiverType);
+    }
+
     var typeArgumentTypes = _inferTypeArguments(node, receiverType);
     nodeImpl.typeArgumentTypes = typeArgumentTypes;
 

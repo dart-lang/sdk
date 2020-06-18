@@ -12,7 +12,7 @@ m1() {
   var /*@type=Future<Future<List<int*>*>*>**/ x = f. /*@target=Future.then*/ then<
           Future<List<int>>>(
       /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/
-      /*@returnType=FutureOr<Future<List<int*>*>*>**/ (/*@type=int**/ x) => /*@typeArgs=dynamic*/ []);
+      /*@returnType=FutureOr<Future<List<int*>*>*>*/ (/*@type=int**/ x) => /*@typeArgs=dynamic*/ []);
   Future<List<int>> y = x;
 }
 

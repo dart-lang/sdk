@@ -4248,6 +4248,26 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
+   * A method `m` of a class `C` is subject to override inference if it is
+   * missing one or more component types of its signature, and one or more of
+   * the direct superinterfaces of `C` has a member named `m` (*that is, `C.m`
+   * overrides one or more declarations*).  Each missing type is filled in with
+   * the corresponding type from the combined member signature `s` of `m` in
+   * the direct superinterfaces of `C`.
+   *
+   * A compile-time error occurs if `s` does not exist.
+   *
+   * Parameters:
+   * 0: the name of the class where override error was detected
+   * 1: the list of candidate signatures which cannot be combined
+   */
+  static const CompileTimeErrorCode NO_COMBINED_SUPER_SIGNATURE =
+      CompileTimeErrorCode('NO_COMBINED_SUPER_SIGNATURE',
+          "No valid combined signature in superinterfaces of '{0}': {1}.",
+          correction: "Try providing explicit types for this method's "
+              "parameters and return type.");
+
+  /**
    * Parameters:
    * 0: the name of the superclass that does not define an implicitly invoked
    *    constructor
@@ -7338,6 +7358,20 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
           'RETURN_OF_INVALID_TYPE_FROM_CLOSURE',
           "The return type '{0}' isn't a '{1}', as required by the closure's "
               "context.",
+          hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the return type as declared in the return statement
+   * 1: the expected return type as defined by the enclosing class
+   * 2: the name of the constructor
+   */
+  static const StaticTypeWarningCode RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR =
+      StaticTypeWarningCodeWithUniqueName(
+          'RETURN_OF_INVALID_TYPE',
+          'StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR',
+          "A value of type '{0}' can't be returned from constructor '{2}' "
+              "because it has a return type of '{1}'.",
           hasPublishedDocs: true);
 
   /**

@@ -31,7 +31,7 @@ class FeatureSetProvider {
         _packageDefaultFeatureSet = packageDefaultFeatureSet,
         _nonPackageDefaultFeatureSet = nonPackageDefaultFeatureSet;
 
-  /// Return the [FeatureSet] for the Dart file with the given [uri].
+  /// Return the [FeatureSet] for the package that contains the file.
   FeatureSet getFeatureSet(String path, Uri uri) {
     if (uri.isScheme('dart')) {
       var pathSegments = uri.pathSegments;
@@ -57,15 +57,16 @@ class FeatureSetProvider {
 
     var package = _packages.packageForPath(path);
     if (package != null) {
-      var languageVersion = package.languageVersion;
-      languageVersion ??= ExperimentStatus.currentVersion;
-      return _packageDefaultFeatureSet.restrictToVersion(languageVersion);
+      return _packageDefaultFeatureSet;
     }
 
     return _nonPackageDefaultFeatureSet;
   }
 
-  /// Return the language version configured for the file.
+  /// Return the language version for the package that contains the file.
+  ///
+  /// Each individual file might use `// @dart` to override this version, to
+  /// be either lower, or higher than the package language version.
   Version getLanguageVersion(String path, Uri uri) {
     var package = _packages.packageForPath(path);
     if (package != null) {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.io;
 
 /**
@@ -165,7 +163,7 @@ abstract class InternetAddress {
    * [InternetAddressType.unix] and [address] should be a string.
    */
   external factory InternetAddress(String address,
-      {@Since("2.8") InternetAddressType type});
+      {@Since("2.8") InternetAddressType? type});
 
   /**
    * Creates a new [InternetAddress] from the provided raw address bytes.
@@ -182,7 +180,7 @@ abstract class InternetAddress {
    * [InternetAddress.IPv6] respectively.
    */
   external factory InternetAddress.fromRawAddress(Uint8List rawAddress,
-      {@Since("2.8") InternetAddressType type});
+      {@Since("2.8") InternetAddressType? type});
 
   /**
    * Perform a reverse DNS lookup on this [address]
@@ -197,7 +195,7 @@ abstract class InternetAddress {
 
   /**
    * Lookup a host, returning a Future of a list of
-   * [InternetAddress]s. If [type] is [InternetAddressType.any], it
+   * [InternetAddress]s. If [type] is [InternetAddressType.ANY], it
    * will lookup both IP version 4 (IPv4) and IP version 6 (IPv6)
    * addresses. If [type] is either [InternetAddressType.IPv4] or
    * [InternetAddressType.IPv6] it will only lookup addresses of the
@@ -218,9 +216,9 @@ abstract class InternetAddress {
 
   /// Attempts to parse [address] as a numeric address.
   ///
-  /// Returns `null` if [address] is not a numeric IPv4 (dotted-decimal
+  /// Returns `null` If [address] is not a numeric IPv4 (dotted-decimal
   /// notation) or IPv6 (hexadecimal representation) address.
-  external static InternetAddress tryParse(String address);
+  external static InternetAddress? tryParse(String address);
 }
 
 /**
@@ -383,7 +381,7 @@ abstract class ServerSocket implements Stream<Socket> {
    */
   static Future<ServerSocket> bind(address, int port,
       {int backlog: 0, bool v6Only: false, bool shared: false}) {
-    final IOOverrides overrides = IOOverrides.current;
+    final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       return ServerSocket._bind(address, port,
           backlog: backlog, v6Only: v6Only, shared: shared);
@@ -394,7 +392,6 @@ abstract class ServerSocket implements Stream<Socket> {
 
   external static Future<ServerSocket> _bind(address, int port,
       {int backlog: 0, bool v6Only: false, bool shared: false});
-
   /**
    * Returns the port used by this socket.
    */
@@ -471,18 +468,16 @@ enum _RawSocketOptions {
   IPPROTO_UDP, // 6
 }
 
-/// The [RawSocketOption] is used as a parameter to [Socket.setRawOption],
-/// [RawSocket.setRawOption], and [RawDatagramSocket.setRawOption] to customize
-/// the behaviour of the underlying socket.
+/// The [RawSocketOption] is used as a parameter to [Socket.setRawOption] and
+/// [RawSocket.setRawOption] to set customize the behaviour of the underlying
+/// socket.
 ///
-/// It allows for fine grained control of the socket options, and its values
-/// will be passed to the underlying platform's implementation of `setsockopt`
-/// and `getsockopt`.
+/// It allows for fine grained control of the socket options, and its values will
+/// be passed to the underlying platform's implementation of setsockopt and
+/// getsockopt.
 @Since("2.2")
 class RawSocketOption {
-  /// Creates a [RawSocketOption] for `getRawOption` and `setRawOption`.
-  ///
-  /// All arguments are required and must not be null.
+  /// Creates a RawSocketOption for getRawOption andSetRawOption.
   ///
   /// The level and option arguments correspond to level and optname arguments
   /// on the get/setsockopt native calls.
@@ -490,18 +485,15 @@ class RawSocketOption {
   /// The value argument and its length correspond to the optval and length
   /// arguments on the native call.
   ///
-  /// For a `getRawOption` call, the value parameter will be updated after a
+  /// For a [getRawOption] call, the value parameter will be updated after a
   /// successful call (although its length will not be changed).
   ///
-  /// For a `setRawOption` call, the value parameter will be used set the
+  /// For a [setRawOption] call, the value parameter will be used set the
   /// option.
   const RawSocketOption(this.level, this.option, this.value);
 
   /// Convenience constructor for creating an int based RawSocketOption.
   factory RawSocketOption.fromInt(int level, int option, int value) {
-    if (value == null) {
-      value = 0;
-    }
     final Uint8List list = Uint8List(4);
     final buffer = ByteData.view(list.buffer, list.offsetInBytes);
     buffer.setInt32(0, value, Endian.host);
@@ -510,7 +502,7 @@ class RawSocketOption {
 
   /// Convenience constructor for creating a bool based RawSocketOption.
   factory RawSocketOption.fromBool(int level, int option, bool value) =>
-      RawSocketOption.fromInt(level, option, value == true ? 1 : 0);
+      RawSocketOption.fromInt(level, option, value ? 1 : 0);
 
   /// The level for the option to set or get.
   ///
@@ -606,11 +598,8 @@ class ConnectionTask<S> {
   final Future<S> socket;
   final void Function() _onCancel;
 
-  ConnectionTask._({Future<S> socket, void Function() onCancel})
-      : assert(socket != null),
-        assert(onCancel != null),
-        this.socket = socket,
-        this._onCancel = onCancel;
+  ConnectionTask._(Future<S> this.socket, void Function() onCancel)
+      : _onCancel = onCancel;
 
   /// Cancels the connection attempt.
   ///
@@ -635,7 +624,8 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
    * Set or get, if the [RawSocket] should listen for [RawSocketEvent.read]
    * events. Default is [:true:].
    */
-  bool readEventsEnabled;
+  bool get readEventsEnabled;
+  void set readEventsEnabled(bool value);
 
   /**
    * Set or get, if the [RawSocket] should listen for [RawSocketEvent.write]
@@ -643,7 +633,8 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
    * This is a one-shot listener, and writeEventsEnabled must be set
    * to true again to receive another write event.
    */
-  bool writeEventsEnabled;
+  bool get writeEventsEnabled;
+  void set writeEventsEnabled(bool value);
 
   /**
    * Creates a new socket connection to the host and port and returns a [Future]
@@ -668,7 +659,7 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
    * connection attempts to [host] are cancelled.
    */
   external static Future<RawSocket> connect(host, int port,
-      {sourceAddress, Duration timeout});
+      {sourceAddress, Duration? timeout});
 
   /// Like [connect], but returns a [Future] that completes with a
   /// [ConnectionTask] that can be cancelled if the [RawSocket] is no
@@ -689,7 +680,7 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
    * available for immediate reading. If no data is available [:null:]
    * is returned.
    */
-  Uint8List read([int len]);
+  Uint8List? read([int? len]);
 
   /**
    * Writes up to [count] bytes of the buffer from [offset] buffer offset to
@@ -700,7 +691,7 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
    * The default value for [offset] is 0, and the default value for [count] is
    * [:buffer.length - offset:].
    */
-  int write(List<int> buffer, [int offset, int count]);
+  int write(List<int> buffer, [int offset = 0, int? count]);
 
   /**
    * Returns the port used by this socket.
@@ -807,8 +798,8 @@ abstract class Socket implements Stream<Uint8List>, IOSink {
    * connection attempts to [host] are cancelled.
    */
   static Future<Socket> connect(host, int port,
-      {sourceAddress, Duration timeout}) {
-    final IOOverrides overrides = IOOverrides.current;
+      {sourceAddress, Duration? timeout}) {
+    final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       return Socket._connect(host, port,
           sourceAddress: sourceAddress, timeout: timeout);
@@ -822,7 +813,7 @@ abstract class Socket implements Stream<Uint8List>, IOSink {
   /// longer needed.
   static Future<ConnectionTask<Socket>> startConnect(host, int port,
       {sourceAddress}) {
-    final IOOverrides overrides = IOOverrides.current;
+    final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       return Socket._startConnect(host, port, sourceAddress: sourceAddress);
     }
@@ -831,7 +822,7 @@ abstract class Socket implements Stream<Uint8List>, IOSink {
   }
 
   external static Future<Socket> _connect(host, int port,
-      {sourceAddress, Duration timeout});
+      {sourceAddress, Duration? timeout});
 
   external static Future<ConnectionTask<Socket>> _startConnect(host, int port,
       {sourceAddress});
@@ -942,7 +933,8 @@ abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
    * Set or get, if the [RawDatagramSocket] should listen for
    * [RawSocketEvent.read] events. Default is [:true:].
    */
-  bool readEventsEnabled;
+  bool get readEventsEnabled;
+  void set readEventsEnabled(bool value);
 
   /**
    * Set or get, if the [RawDatagramSocket] should listen for
@@ -950,14 +942,16 @@ abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
    * one-shot listener, and writeEventsEnabled must be set to true
    * again to receive another write event.
    */
-  bool writeEventsEnabled;
+  bool get writeEventsEnabled;
+  void set writeEventsEnabled(bool value);
 
   /**
    * Set or get, whether multicast traffic is looped back to the host.
    *
    * By default multicast loopback is enabled.
    */
-  bool multicastLoopback;
+  bool get multicastLoopback;
+  void set multicastLoopback(bool value);
 
   /**
    * Set or get, the maximum network hops for multicast packages
@@ -968,7 +962,8 @@ abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
    * By default this value is 1 causing multicast traffic to stay on
    * the local network.
    */
-  int multicastHops;
+  int get multicastHops;
+  void set multicastHops(int value);
 
   /**
    * Set or get, the network interface used for outgoing multicast packages.
@@ -980,7 +975,7 @@ abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
    */
   @Deprecated("This property is not implemented. Use getRawOption and "
       "setRawOption instead.")
-  NetworkInterface multicastInterface;
+  NetworkInterface? multicastInterface;
 
   /**
    * Set or get, whether IPv4 broadcast is enabled.
@@ -991,7 +986,8 @@ abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
    * For IPv6 there is no general broadcast mechanism. Use multicast
    * instead.
    */
-  bool broadcastEnabled;
+  bool get broadcastEnabled;
+  void set broadcastEnabled(bool value);
 
   /**
    * Creates a new raw datagram socket binding it to an address and
@@ -1029,7 +1025,7 @@ abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
    *
    * The maximum length of the datagram that can be received is 65503 bytes.
    */
-  Datagram receive();
+  Datagram? receive();
 
   /**
    * Join a multicast group.
@@ -1037,7 +1033,7 @@ abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
    * If an error occur when trying to join the multicast group an
    * exception is thrown.
    */
-  void joinMulticast(InternetAddress group, [NetworkInterface interface]);
+  void joinMulticast(InternetAddress group, [NetworkInterface? interface]);
 
   /**
    * Leave a multicast group.
@@ -1045,7 +1041,7 @@ abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
    * If an error occur when trying to join the multicase group an
    * exception is thrown.
    */
-  void leaveMulticast(InternetAddress group, [NetworkInterface interface]);
+  void leaveMulticast(InternetAddress group, [NetworkInterface? interface]);
 
   /**
    * Use [getRawOption] to get low level information about the [RawSocket]. See
@@ -1068,9 +1064,9 @@ abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
 
 class SocketException implements IOException {
   final String message;
-  final OSError osError;
-  final InternetAddress address;
-  final int port;
+  final OSError? osError;
+  final InternetAddress? address;
+  final int? port;
 
   const SocketException(this.message, {this.osError, this.address, this.port});
   const SocketException.closed()
@@ -1091,7 +1087,7 @@ class SocketException implements IOException {
       sb.write(": $osError");
     }
     if (address != null) {
-      sb.write(", address = ${address.host}");
+      sb.write(", address = ${address!.host}");
     }
     if (port != null) {
       sb.write(", port = $port");

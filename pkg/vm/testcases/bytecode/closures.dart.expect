@@ -2370,13 +2370,13 @@ Function 'get:runtimeType', getter, abstract, debuggable
             dart.core::print(<dart.core::Type*>[#lib::A::T1*, #lib::A::T2*, #lib::A::foo::T3*, #lib::A::foo::T4*, T5*, T6*, T7*, T8*]);
             #lib::callWithArgs<#lib::A::T1*, #lib::A::T2*, #lib::A::foo::T3*, #lib::A::foo::T4*, T5*, T6*, T7*, T8*>();
           };
-          [@vm.call-site-attributes.metadata=receiverType:FunctionType(Null? Function()*)] nested3.call();
+          [@vm.call-site-attributes.metadata=receiverType:dart.core::Null? Function()*] nested3.call();
         }
-        [@vm.call-site-attributes.metadata=receiverType:FunctionType(void Function<T7, T8>()*)] nested2.call<#lib::C7*, #lib::C8*>();
-        [@vm.call-site-attributes.metadata=receiverType:FunctionType(void Function<T7, T8>()*)] nested2.call<dart.core::List<#lib::C7*>*, dart.core::List<#lib::C8*>*>();
+        [@vm.call-site-attributes.metadata=receiverType:void Function<T7, T8>()*] nested2.call<#lib::C7*, #lib::C8*>();
+        [@vm.call-site-attributes.metadata=receiverType:void Function<T7, T8>()*] nested2.call<dart.core::List<#lib::C7*>*, dart.core::List<#lib::C8*>*>();
       }
-      [@vm.call-site-attributes.metadata=receiverType:FunctionType(void Function<T5, T6>()*)] nested1.call<#lib::C5*, #lib::C6*>();
-      [@vm.call-site-attributes.metadata=receiverType:FunctionType(void Function<T5, T6>()*)] nested1.call<dart.core::List<#lib::C5*>*, dart.core::List<#lib::C6*>*>();
+      [@vm.call-site-attributes.metadata=receiverType:void Function<T5, T6>()*] nested1.call<#lib::C5*, #lib::C6*>();
+      [@vm.call-site-attributes.metadata=receiverType:void Function<T5, T6>()*] nested1.call<dart.core::List<#lib::C5*>*, dart.core::List<#lib::C6*>*>();
     }
     abstract member-signature get _identityHashCode() → dart.core::int*;
     abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*;
@@ -2408,12 +2408,12 @@ Function 'get:runtimeType', getter, abstract, debuggable
                 z = x.{dart.core::num::+}(2);
                 w = this.{#lib::B::foo}.{dart.core::num::+}(y);
               }
-              [@vm.call-site-attributes.metadata=receiverType:FunctionType(void Function()*)] closure2.call();
+              [@vm.call-site-attributes.metadata=receiverType:void Function()*] closure2.call();
               dart.core::print(w);
             }
           };
-          [@vm.call-site-attributes.metadata=receiverType:FunctionType(Null? Function(int*)*)] closure1.call(10);
-          [@vm.call-site-attributes.metadata=receiverType:FunctionType(Null? Function(int*)*)] closure1.call(11);
+          [@vm.call-site-attributes.metadata=receiverType:dart.core::Null? Function(dart.core::int*)*] closure1.call(10);
+          [@vm.call-site-attributes.metadata=receiverType:dart.core::Null? Function(dart.core::int*)*] closure1.call(11);
           dart.core::print(y);
           dart.core::print(z);
         }
@@ -2424,7 +2424,7 @@ Function 'get:runtimeType', getter, abstract, debuggable
         () →* dart.core::Null? closure3 = () → dart.core::Null? {
           this.{#lib::B::foo} = x;
         };
-        [@vm.call-site-attributes.metadata=receiverType:FunctionType(Null? Function()*)] closure3.call();
+        [@vm.call-site-attributes.metadata=receiverType:dart.core::Null? Function()*] closure3.call();
       }
     }
     abstract member-signature get _identityHashCode() → dart.core::int*;
@@ -2447,8 +2447,8 @@ Function 'get:runtimeType', getter, abstract, debuggable
       dart.core::List<dart.core::Function*>* getI = <dart.core::Function*>[];
       dart.core::List<dart.core::Function*>* setI = <dart.core::Function*>[];
       for (dart.core::int* i = 0; i.{dart.core::num::<}(10); i = i.{dart.core::num::+}(1)) {
-        [@vm.call-site-attributes.metadata=receiverType:InterfaceType(List<Function*>*)] getI.{dart.core::List::add}(() → dart.core::int* => i.{dart.core::num::+}(delta));
-        [@vm.call-site-attributes.metadata=receiverType:InterfaceType(List<Function*>*)] setI.{dart.core::List::add}((dart.core::int* ii) → dart.core::Null? {
+        [@vm.call-site-attributes.metadata=receiverType:dart.core::List<dart.core::Function*>*] getI.{dart.core::List::add}(() → dart.core::int* => i.{dart.core::num::+}(delta));
+        [@vm.call-site-attributes.metadata=receiverType:dart.core::List<dart.core::Function*>*] setI.{dart.core::List::add}((dart.core::int* ii) → dart.core::Null? {
           i = ii.{dart.core::num::+}(delta);
         });
       }
@@ -2462,7 +2462,7 @@ Function 'get:runtimeType', getter, abstract, debuggable
             () →* dart.core::Null? inc = () → dart.core::Null? {
               i = i.{dart.core::num::+}(1);
             };
-            [@vm.call-site-attributes.metadata=receiverType:FunctionType(Null? Function()*)] inc.call();
+            [@vm.call-site-attributes.metadata=receiverType:dart.core::Null? Function()*] inc.call();
             dart.core::print(i);
           }
         }
@@ -2489,7 +2489,7 @@ Function 'get:runtimeType', getter, abstract, debuggable
     method bar() → dynamic {
       return () → dart.core::Null? {
         function inner() → dart.core::Null? {}
-        [@vm.call-site-attributes.metadata=receiverType:FunctionType(Null? Function()*)] inner.call();
+        [@vm.call-site-attributes.metadata=receiverType:dart.core::Null? Function()*] inner.call();
       };
     }
     abstract member-signature get _identityHashCode() → dart.core::int*;
@@ -2513,11 +2513,11 @@ Function 'get:runtimeType', getter, abstract, debuggable
     abstract method evalArg2() → dart.core::int*;
     abstract method getE() → #lib::E*;
     method testCallThroughGetter1() → dart.core::int*
-      return let final dart.core::int* #t1 = this.{#lib::E::evalArg1}() in let final dart.core::int* #t2 = this.{#lib::E::evalArg2}() in [@vm.call-site-attributes.metadata=receiverType:FunctionType(int* Function(int*, int*)*)] this.{#lib::E::foo1}.call(#t1, #t2);
+      return let final dart.core::int* #t1 = this.{#lib::E::evalArg1}() in let final dart.core::int* #t2 = this.{#lib::E::evalArg2}() in [@vm.call-site-attributes.metadata=receiverType:dart.core::int* Function(dart.core::int*, dart.core::int*)*] this.{#lib::E::foo1}.call(#t1, #t2);
     method testCallThroughGetter2() → dart.core::int*
-      return let final dart.core::int* #t3 = this.{#lib::E::evalArg1}() in let final dart.core::int* #t4 = this.{#lib::E::evalArg2}() in [@vm.call-site-attributes.metadata=receiverType:FunctionType(int* Function<T>(T*, T*)*)] this.{#lib::E::foo2}.call<dart.core::int*>(#t3, #t4);
+      return let final dart.core::int* #t3 = this.{#lib::E::evalArg1}() in let final dart.core::int* #t4 = this.{#lib::E::evalArg2}() in [@vm.call-site-attributes.metadata=receiverType:dart.core::int* Function<T>(T*, T*)*] this.{#lib::E::foo2}.call<dart.core::int*>(#t3, #t4);
     method testCallThroughGetter3() → dart.core::int*
-      return let final #lib::E* #t5 = this.{#lib::E::getE}() in let final dart.core::int* #t6 = this.{#lib::E::evalArg1}() in let final dart.core::int* #t7 = this.{#lib::E::evalArg2}() in [@vm.call-site-attributes.metadata=receiverType:FunctionType(int* Function<T>(T*, T*)*)] #t5.{#lib::E::foo2}.call<dart.core::int*>(#t6, #t7);
+      return let final #lib::E* #t5 = this.{#lib::E::getE}() in let final dart.core::int* #t6 = this.{#lib::E::evalArg1}() in let final dart.core::int* #t7 = this.{#lib::E::evalArg2}() in [@vm.call-site-attributes.metadata=receiverType:dart.core::int* Function<T>(T*, T*)*] #t5.{#lib::E::foo2}.call<dart.core::int*>(#t6, #t7);
     abstract member-signature get _identityHashCode() → dart.core::int*;
     abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*;
     abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*;
@@ -2534,7 +2534,7 @@ Function 'get:runtimeType', getter, abstract, debuggable
     (dart.core::int*) →* dart.core::Null? inc = (dart.core::int* y) → dart.core::Null? {
       x = x.{dart.core::num::+}(y);
     };
-    [@vm.call-site-attributes.metadata=receiverType:FunctionType(Null? Function(int*)*)] inc.call(3);
+    [@vm.call-site-attributes.metadata=receiverType:dart.core::Null? Function(dart.core::int*)*] inc.call(3);
     return x;
   }
   static method callWithArgs<T1 extends dart.core::Object* = dynamic, T2 extends dart.core::Object* = dynamic, T3 extends dart.core::Object* = dynamic, T4 extends dart.core::Object* = dynamic, T5 extends dart.core::Object* = dynamic, T6 extends dart.core::Object* = dynamic, T7 extends dart.core::Object* = dynamic, T8 extends dart.core::Object* = dynamic>() → void {

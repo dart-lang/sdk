@@ -2,18 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.core;
 
 /**
  * An interface for basic searches within strings.
  */
 abstract class Pattern {
-  // NOTE: When using "start" index from the language library, call
-  // without an argument if start is zero. This allows backwards compatibility
-  // with implementations of the older interface that didn't have the start
-  // index argument.
   /**
    * Match this pattern against the string repeatedly.
    *
@@ -42,7 +36,7 @@ abstract class Pattern {
    * pattern can match a part of the string starting from position [start].
    * Returns `null` if the pattern doesn't match.
    */
-  Match matchAsPrefix(String string, [int start = 0]);
+  Match? matchAsPrefix(String string, [int start = 0]);
 }
 
 /**
@@ -93,7 +87,7 @@ abstract class Match {
    * The result may be `null` if the pattern didn't assign a value to it
    * as part of this match.
    */
-  String group(int group);
+  String? group(int group);
 
   /**
    * Returns the string matched by the given [group].
@@ -102,7 +96,7 @@ abstract class Match {
    *
    * Short alias for [Match.group].
    */
-  String operator [](int group);
+  String? operator [](int group);
 
   /**
    * Returns a list of the groups with the given indices.
@@ -110,7 +104,7 @@ abstract class Match {
    * The list contains the strings returned by [group] for each index in
    * [groupIndices].
    */
-  List<String> groups(List<int> groupIndices);
+  List<String?> groups(List<int> groupIndices);
 
   /**
    * Returns the number of captured groups in the match.

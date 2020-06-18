@@ -1,7 +1,6 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart = 2.6
 
 part of dart.math;
 
@@ -34,8 +33,8 @@ class _JenkinsSmiHash {
     return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
   }
 
-  static int hash2(a, b) => finish(combine(combine(0, a), b));
+  static int hash2(int a, int b) => finish(combine(combine(0, a), b));
 
-  static int hash4(a, b, c, d) =>
+  static int hash4(int a, int b, int c, int d) =>
       finish(combine(combine(combine(combine(0, a), b), c), d));
 }

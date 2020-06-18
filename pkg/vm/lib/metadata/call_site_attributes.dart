@@ -5,6 +5,7 @@
 library vm.metadata.call_site_attributes;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/src/printer.dart';
 
 /// Metadata for annotating call sites with various attributes.
 class CallSiteAttributesMetadata {
@@ -13,7 +14,8 @@ class CallSiteAttributesMetadata {
   const CallSiteAttributesMetadata({this.receiverType});
 
   @override
-  String toString() => "receiverType:$receiverType";
+  String toString() =>
+      "receiverType:${receiverType.toText(astTextStrategyForTesting)}";
 }
 
 /// Repository for [CallSiteAttributesMetadata].

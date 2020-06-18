@@ -8,7 +8,7 @@ void method1() {
     local = 0;
     return;
   } finally {
-    print(/*unassigned*/ local);
+    print(local);
   }
   local;
 }
@@ -22,7 +22,7 @@ void method2() {
     local = 42;
     rethrow;
   } finally {
-    print(/*unassigned*/ local);
+    print(local);
   }
   local;
 }

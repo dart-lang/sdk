@@ -27,10 +27,10 @@ void test() {
   });
   Future<int> t5 = f. /*@ typeArgs=int* */ /*@target=Future.then*/ then(
       /*info:INFERRED_TYPE_CLOSURE,error:INVALID_CAST_FUNCTION_EXPR*/
-      /*@ returnType=FutureOr<int*>* */ (/*@ type=bool* */ x) =>
+      /*@ returnType=FutureOr<int*> */ (/*@ type=bool* */ x) =>
           x ? 2 : new MyFuture<int>.value(3));
   Future<int> t6 = f. /*@ typeArgs=int* */ /*@target=Future.then*/ then(
-      /*@ returnType=FutureOr<int*>* */ (/*@ type=bool* */ x) {
+      /*@ returnType=FutureOr<int*> */ (/*@ type=bool* */ x) {
     return /*info:DOWN_CAST_COMPOSITE*/ x ? 2 : new MyFuture<int>.value(3);
   });
 }

@@ -423,6 +423,7 @@ fuller
 function's
 fuse
 futured
+futureor
 g
 gardening
 generation
@@ -879,6 +880,7 @@ remedy
 removal
 remover
 reparse
+repeating
 replacements
 replacer
 replaces
@@ -1157,6 +1159,7 @@ universally
 unlinked
 unlower
 unmark
+unneeded
 unordered
 unpaired
 unparsed
@@ -1174,6 +1177,7 @@ url
 urls
 usage
 usr
+usual
 usually
 utf16
 utf8

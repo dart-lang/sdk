@@ -5,6 +5,7 @@
 library vm.metadata.direct_call;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/src/printer.dart';
 
 /// Metadata for annotating method invocations converted to direct calls.
 class DirectCallMetadata {
@@ -20,7 +21,8 @@ class DirectCallMetadata {
   Member get target => _targetReference.asMember;
 
   @override
-  String toString() => "${target}${checkReceiverForNull ? '??' : ''}";
+  String toString() => "${target.toText(astTextStrategyForTesting)}"
+      "${checkReceiverForNull ? '??' : ''}";
 }
 
 /// Repository for [DirectCallMetadata].

@@ -1606,7 +1606,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       if (node.inputs.length == 2) {
         return handleArrayTypeInfo(node);
       }
-    } else if (element == commonElements.checkConcurrentModificationError) {
+    } else if (commonElements.isCheckConcurrentModificationError(element)) {
       if (node.inputs.length == 2) {
         HInstruction firstArgument = node.inputs[0];
         if (firstArgument is HConstant) {
@@ -1679,7 +1679,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       if (user is HInterceptor) continue;
       if (user is HInvokeStatic) {
         MemberEntity element = user.element;
-        if (element == commonElements.checkConcurrentModificationError) {
+        if (commonElements.isCheckConcurrentModificationError(element)) {
           // CME check escapes the array, but we don't care.
           continue;
         }
@@ -3729,8 +3729,8 @@ class MemorySet {
         if (user is HIdentity && user.usedBy.length == 1) {
           HInstruction user2 = user.usedBy.single;
           if (user2 is HInvokeStatic &&
-              user2.element ==
-                  closedWorld.commonElements.checkConcurrentModificationError) {
+              closedWorld.commonElements
+                  .isCheckConcurrentModificationError(user2.element)) {
             return null;
           }
         }
@@ -3791,9 +3791,8 @@ class MemorySet {
             }
           }
           if (use is HInvokeStatic) {
-            if (use.element ==
-                closedWorld.commonElements.checkConcurrentModificationError)
-              return true;
+            if (closedWorld.commonElements
+                .isCheckConcurrentModificationError(use.element)) return true;
           }
 
           return false;

@@ -6836,6 +6836,26 @@ int f() {
     expect(edge.sourceNode.displayName, 'implicit null return (test.dart:2:3)');
   }
 
+  Future<void> test_return_in_asyncStar() async {
+    await analyze('''
+Stream<int> f() async* {
+  yield 1;
+  return;
+}
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('Stream<int>').node);
+  }
+
+  Future<void> test_return_in_syncStar() async {
+    await analyze('''
+Iterable<int> f() sync* {
+  yield 1;
+  return;
+}
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('Iterable<int>').node);
+  }
+
   Future<void> test_return_null() async {
     await analyze('''
 int f() {

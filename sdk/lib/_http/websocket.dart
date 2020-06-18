@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart._http;
 
 /**
@@ -99,7 +97,7 @@ class CompressionOptions {
   /// If set to `null`, the client has no preference, and the compression can
   /// use up to its default maximum window size of 15 bits depending on the
   /// server's preference.
-  final int clientMaxWindowBits;
+  final int? clientMaxWindowBits;
 
   /// The maximal window size bit count requested by the server.
   ///
@@ -109,7 +107,7 @@ class CompressionOptions {
   /// If set to `null`, the server has no preference, and the compression can
   /// use up to its default maximum window size of 15 bits depending on the
   /// client's preference.
-  final int serverMaxWindowBits;
+  final int? serverMaxWindowBits;
 
   /// Whether WebSocket compression is enabled.
   ///
@@ -132,21 +130,18 @@ class CompressionOptions {
   /// value from headers. Defaults to [WebSocket.DEFAULT_WINDOW_BITS]. Returns a
   /// [_CompressionMaxWindowBits] object which contains the response headers and
   /// negotiated max window bits.
-  _CompressionMaxWindowBits _createServerResponseHeader(HeaderValue requested) {
-    var info = new _CompressionMaxWindowBits();
+  _CompressionMaxWindowBits _createServerResponseHeader(
+      HeaderValue? requested) {
+    var info = new _CompressionMaxWindowBits("", 0);
 
-    int mwb;
-    String part;
-    if (requested?.parameters != null) {
-      part = requested.parameters[_serverMaxWindowBits];
-    }
+    String? part = requested?.parameters[_serverMaxWindowBits];
     if (part != null) {
       if (part.length >= 2 && part.startsWith('0')) {
         throw new ArgumentError("Illegal 0 padding on value.");
       } else {
-        mwb = serverMaxWindowBits == null
-            ? int.tryParse(part) ?? _WebSocketImpl.DEFAULT_WINDOW_BITS
-            : serverMaxWindowBits;
+        int mwb = serverMaxWindowBits ??
+            int.tryParse(part) ??
+            _WebSocketImpl.DEFAULT_WINDOW_BITS;
         info.headerValue = "; server_max_window_bits=${mwb}";
         info.maxWindowBits = mwb;
       }
@@ -158,7 +153,7 @@ class CompressionOptions {
   }
 
   /// Returns default values for client compression request headers.
-  String _createClientRequestHeader(HeaderValue requested, int size) {
+  String _createClientRequestHeader(HeaderValue? requested, int size) {
     var info = "";
 
     // If responding to a valid request, specify size
@@ -189,7 +184,7 @@ class CompressionOptions {
   /// `server_max_window_bits` value.  This method returns a
   /// [_CompressionMaxWindowBits] object with the response headers and
   /// negotiated `maxWindowBits` value.
-  _CompressionMaxWindowBits _createHeader([HeaderValue requested]) {
+  _CompressionMaxWindowBits _createHeader([HeaderValue? requested]) {
     var info = new _CompressionMaxWindowBits("", 0);
     if (!enabled) {
       return info;
@@ -266,8 +261,8 @@ abstract class WebSocketTransformer
    * then the [WebSocket] will be created with the default [CompressionOptions].
    */
   factory WebSocketTransformer(
-      {/*String|Future<String>*/ protocolSelector(List<String> protocols),
-      CompressionOptions compression: CompressionOptions.compressionDefault}) {
+      {/*String|Future<String>*/ protocolSelector(List<String> protocols)?,
+      CompressionOptions compression = CompressionOptions.compressionDefault}) {
     return new _WebSocketTransformerImpl(protocolSelector, compression);
   }
 
@@ -289,8 +284,8 @@ abstract class WebSocketTransformer
    * then the [WebSocket] will be created with the default [CompressionOptions].
    */
   static Future<WebSocket> upgrade(HttpRequest request,
-      {protocolSelector(List<String> protocols),
-      CompressionOptions compression: CompressionOptions.compressionDefault}) {
+      {protocolSelector(List<String> protocols)?,
+      CompressionOptions compression = CompressionOptions.compressionDefault}) {
     return _WebSocketTransformerImpl._upgrade(
         request, protocolSelector, compression);
   }
@@ -347,7 +342,7 @@ abstract class WebSocket
    *
    * The default value is `null`.
    */
-  Duration pingInterval;
+  Duration? pingInterval;
 
   /**
    * Create a new WebSocket connection. The URL supplied in [url]
@@ -377,9 +372,9 @@ abstract class WebSocket
    * authentication when setting up the connection.
    */
   static Future<WebSocket> connect(String url,
-          {Iterable<String> protocols,
-          Map<String, dynamic> headers,
-          CompressionOptions compression:
+          {Iterable<String>? protocols,
+          Map<String, dynamic>? headers,
+          CompressionOptions compression =
               CompressionOptions.compressionDefault}) =>
       _WebSocketImpl.connect(url, protocols, headers, compression: compression);
 
@@ -407,9 +402,9 @@ abstract class WebSocket
    * then the [WebSocket] will be created with the default [CompressionOptions].
    */
   factory WebSocket.fromUpgradedSocket(Socket socket,
-      {String protocol,
-      bool serverSide,
-      CompressionOptions compression: CompressionOptions.compressionDefault}) {
+      {String? protocol,
+      bool? serverSide,
+      CompressionOptions compression = CompressionOptions.compressionDefault}) {
     if (serverSide == null) {
       throw new ArgumentError("The serverSide argument must be passed "
           "explicitly to WebSocket.fromUpgradedSocket.");
@@ -436,19 +431,19 @@ abstract class WebSocket
    * selected by the server. If no subprotocol is negotiated the
    * value will remain [:null:].
    */
-  String get protocol;
+  String? get protocol;
 
   /**
    * The close code set when the WebSocket connection is closed. If
    * there is no close code available this property will be [:null:]
    */
-  int get closeCode;
+  int? get closeCode;
 
   /**
    * The close reason set when the WebSocket connection is closed. If
    * there is no close reason available this property will be [:null:]
    */
-  String get closeReason;
+  String? get closeReason;
 
   /**
    * Closes the WebSocket connection. Set the optional [code] and [reason]
@@ -456,7 +451,7 @@ abstract class WebSocket
    * omitted, the peer will see [WebSocketStatus.noStatusReceived] code
    * with no reason.
    */
-  Future close([int code, String reason]);
+  Future close([int? code, String? reason]);
 
   /**
    * Sends data on the WebSocket connection. The data in [data] must
@@ -482,12 +477,12 @@ abstract class WebSocket
   /**
    * Gets the user agent used for WebSocket connections.
    */
-  static String get userAgent => _WebSocketImpl.userAgent;
+  static String? get userAgent => _WebSocketImpl.userAgent;
 
   /**
    * Sets the user agent to use for WebSocket connections.
    */
-  static set userAgent(String userAgent) {
+  static set userAgent(String? userAgent) {
     _WebSocketImpl.userAgent = userAgent;
   }
 }

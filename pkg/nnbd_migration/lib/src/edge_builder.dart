@@ -1362,7 +1362,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitReturnStatement(ReturnStatement node) {
     DecoratedType returnType = _currentFunctionType.returnType;
     Expression returnValue = node.expression;
-    final isAsync = node.thisOrAncestorOfType<FunctionBody>().isAsynchronous;
+    var functionBody = node.thisOrAncestorOfType<FunctionBody>();
+    if (functionBody.isGenerator) {
+      // Do not connect the return value to the return type.
+      return _dispatch(returnValue);
+    }
+    final isAsync = functionBody.isAsynchronous;
     if (returnValue == null) {
       var target =
           NullabilityNodeTarget.text('implicit null return').withCodeRef(node);

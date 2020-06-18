@@ -155,12 +155,7 @@ template("gen_vm_platform") {
     }
     single_root_scheme = "org-dartlang-sdk"
     single_root_base = rebase_path("../../")
-    if (!dont_use_nnbd) {
-      libraries_specification_uri =
-          "org-dartlang-sdk:///sdk_nnbd/lib/libraries.json"
-    } else {
-      libraries_specification_uri = "org-dartlang-sdk:///sdk/lib/libraries.json"
-    }
+    libraries_specification_uri = "org-dartlang-sdk:///sdk/lib/libraries.json"
     outputs = [
       "$root_out_dir/vm_platform" + output_postfix + ".dill",
       "$root_out_dir/vm_outline" + output_postfix + ".dill",
@@ -172,11 +167,9 @@ template("gen_vm_platform") {
       "-Ddart.vm.product=$is_product_flag",
       "-Ddart.developer.causal_async_stacks=$allow_causal_async_stacks",
       "-Ddart.isVM=true",
+      "--enable-experiment=non-nullable",
+      "--nnbd-agnostic",
     ]
-    if (!dont_use_nnbd) {
-      args += [ "--enable-experiment=non-nullable" ]
-      args += [ "--nnbd-agnostic" ]
-    }
     if (defined(invoker.exclude_source) && invoker.exclude_source) {
       args += [ "--exclude-source" ]
     }

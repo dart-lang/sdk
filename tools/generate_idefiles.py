@@ -96,7 +96,6 @@ def GenerateAnalysisOptions(options):
     - runtime/**
     - samples-dev/swarm/**
     - sdk/lib/**
-    - sdk_nnbd/lib/**
     - tests/**
     - third_party/observatory_pub_packages/**
     - third_party/pkg/**

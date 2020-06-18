@@ -51,11 +51,8 @@ def GetGNArgs(args):
     return args.split()
 
 
-# TODO(38701): Remove dont_use_nnbd once the NNBD SDK is stable/performant and
-# there is no need to build a legacy version of the SDK for comparison purposes.
-def GetOutDir(mode, arch, target_os, sanitizer, dont_use_nnbd):
-    return utils.GetBuildRoot(HOST_OS, mode, arch, target_os, sanitizer,
-                              dont_use_nnbd)
+def GetOutDir(mode, arch, target_os, sanitizer):
+    return utils.GetBuildRoot(HOST_OS, mode, arch, target_os, sanitizer)
 
 
 def ToCommandLine(gn_args):
@@ -145,9 +142,7 @@ def UseSysroot(args, gn_args):
     return True
 
 
-# TODO(38701): Remove dont_use_nnbd once the NNBD SDK is stable/performant and
-# there is no need to build a legacy version of the SDK for comparison purposes.
-def ToGnArgs(args, mode, arch, target_os, sanitizer, dont_use_nnbd):
+def ToGnArgs(args, mode, arch, target_os, sanitizer):
     gn_args = {}
 
     host_os = HostOsForGn(HOST_OS)
@@ -268,8 +263,6 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, dont_use_nnbd):
         gn_args['dart_debug_optimization_level'] = args.debug_opt_level
         gn_args['debug_optimization_level'] = args.debug_opt_level
 
-    gn_args['dont_use_nnbd'] = dont_use_nnbd
-
     return gn_args
 
 
@@ -378,14 +371,6 @@ def parse_args(args):
         help='Build variants (comma-separated).',
         metavar='[all,none,asan,lsan,msan,tsan,ubsan]',
         default='none')
-    # TODO(38701): Remove dont_use_nnbd once the NNBD SDK is stable/performant
-    # and there is no need to build a legacy version of the SDK for
-    # comparison purposes.
-    common_group.add_argument(
-        "--no-nnbd",
-        help='Use the NNBD fork of the SDK.',
-        default=False,
-        action='store_true')
     common_group.add_argument(
         "-v",
         "--verbose",
@@ -508,15 +493,13 @@ def Main(argv):
         for mode in args.mode:
             for arch in args.arch:
                 for sanitizer in args.sanitizer:
-                    out_dir = GetOutDir(mode, arch, target_os, sanitizer,
-                                        args.no_nnbd)
+                    out_dir = GetOutDir(mode, arch, target_os, sanitizer)
                     # TODO(infra): Re-enable --check. Many targets fail to use
                     # public_deps to re-expose header files to their dependents.
                     # See dartbug.com/32364
                     command = [gn, 'gen', out_dir]
                     gn_args = ToCommandLine(
-                        ToGnArgs(args, mode, arch, target_os, sanitizer,
-                                 args.no_nnbd))
+                        ToGnArgs(args, mode, arch, target_os, sanitizer))
                     gn_args += GetGNArgs(args)
                     if args.verbose:
                         print("gn gen --check in %s" % out_dir)

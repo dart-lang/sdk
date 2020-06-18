@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 /// Note: the VM concatenates all patch files into a single patch file. This
 /// file is the first patch in "dart:_internal" which contains all the imports
 /// used by patches of that library. We plan to change this when we have a
@@ -18,6 +16,12 @@ import "dart:typed_data" show Int32List, Uint8List;
 // part "class_id_fasta.dart";
 // part "print_patch.dart";
 // part "symbol_patch.dart";
+
+// On the VM, we don't make the entire legacy weak mode check
+// const to avoid having a constant in the platform libraries
+// which evaluates differently in weak vs strong mode.
+@patch
+bool typeAcceptsNull<T>() => (const <Null>[]) is List<int> || null is T;
 
 @patch
 List<T> makeListFixedLength<T>(List<T> growableList)
@@ -155,7 +159,7 @@ Int32List _growRegExpStack(Int32List stack) {
 // type of a value.
 //
 // Important: this is unsafe and must be used with care.
-T unsafeCast<T>(Object v) native "Internal_unsafeCast";
+T unsafeCast<T>(Object? v) native "Internal_unsafeCast";
 
 // This function can be used to keep an object alive til that point.
 //
@@ -173,11 +177,11 @@ void spawnFunction(
     var message,
     bool paused,
     bool errorsAreFatal,
-    SendPort onExit,
-    SendPort onError,
-    String packageConfig,
+    SendPort? onExit,
+    SendPort? onError,
+    String? packageConfig,
     bool newIsolateGroup,
-    String debugName) native "Isolate_spawnFunction";
+    String? debugName) native "Isolate_spawnFunction";
 
 // Collection of functions which should only be used for testing purposes.
 abstract class VMInternalsForTesting {

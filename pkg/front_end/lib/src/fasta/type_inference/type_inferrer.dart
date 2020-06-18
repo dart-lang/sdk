@@ -23,8 +23,6 @@ import 'package:kernel/type_environment.dart';
 
 import 'package:kernel/src/bounds_checks.dart' show calculateBounds;
 
-import 'package:kernel/src/future_or.dart';
-
 import 'package:kernel/src/legacy_erasure.dart';
 
 import '../../base/instrumentation.dart'
@@ -418,8 +416,7 @@ class ClosureContext {
     }
     if (inferrer.library.isNonNullableByDefault &&
         (containsInvalidType(returnType) ||
-            isPotentiallyNonNullable(
-                returnType, inferrer.coreTypes.futureOrClass)) &&
+            returnType.isPotentiallyNonNullable) &&
         inferrer.flowAnalysis.isReachable) {
       Statement resultStatement =
           inferenceResult.hasChanged ? inferenceResult.statement : body;
@@ -709,11 +706,9 @@ class TypeInferrerImpl implements TypeInferrer {
     //   * FutureOr<T> where T is a double context
     //
     // We check directly, rather than using isAssignable because it's simpler.
-    while (typeContext is InterfaceType &&
-        typeContext.classNode == coreTypes.futureOrClass &&
-        typeContext.typeArguments.isNotEmpty) {
-      InterfaceType type = typeContext;
-      typeContext = type.typeArguments.first;
+    while (typeContext is FutureOrType) {
+      FutureOrType type = typeContext;
+      typeContext = type.typeArgument;
     }
     return typeContext is InterfaceType &&
         typeContext.classNode == coreTypes.doubleClass;
@@ -950,8 +945,7 @@ class TypeInferrerImpl implements TypeInferrer {
       if (callMember is Procedure && callMember.kind == ProcedureKind.Method) {
         if (_shouldTearOffCall(contextType, expressionType)) {
           needsTearoff = true;
-          if (isNonNullableByDefault &&
-              isPotentiallyNullable(expressionType, coreTypes.futureOrClass)) {
+          if (isNonNullableByDefault && expressionType.isPotentiallyNullable) {
             return AssignabilityKind.unassignableCantTearoff;
           }
           expressionType =
@@ -1201,7 +1195,7 @@ class TypeInferrerImpl implements TypeInferrer {
     DartType receiverBound = resolveTypeParameter(receiverType);
 
     bool isReceiverTypePotentiallyNullable = isNonNullableByDefault &&
-        isPotentiallyNullable(receiverType, coreTypes.futureOrClass) &&
+        receiverType.isPotentiallyNullable &&
         // Calls to `==` are always on a non-null receiver.
         name != equalsName;
 
@@ -2513,7 +2507,7 @@ class TypeInferrerImpl implements TypeInferrer {
         bool isOptionalNamed =
             i >= function.positionalParameters.length && !formal.isRequired;
         if ((isOptionalPositional || isOptionalNamed) &&
-            isPotentiallyNonNullable(formal.type, coreTypes.futureOrClass) &&
+            formal.type.isPotentiallyNonNullable &&
             !formal.hasDeclaredInitializer) {
           library.addProblem(
               templateOptionalNonNullableWithoutInitializerError.withArguments(
@@ -3540,8 +3534,7 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   DartType wrapFutureOrType(DartType type) {
-    if (type is InterfaceType &&
-        identical(type.classNode, coreTypes.futureOrClass)) {
+    if (type is FutureOrType) {
       return type;
     }
     // TODO(paulberry): If [type] is a subtype of `Future`, should we just
@@ -3549,8 +3542,7 @@ class TypeInferrerImpl implements TypeInferrer {
     if (type == null) {
       return coreTypes.futureRawType(library.nullable);
     }
-    return new InterfaceType(
-        coreTypes.futureOrClass, library.nonNullable, <DartType>[type]);
+    return new FutureOrType(type, library.nonNullable);
   }
 
   DartType wrapFutureType(DartType type, Nullability nullability) {
@@ -3619,9 +3611,8 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   bool _shouldTearOffCall(DartType contextType, DartType expressionType) {
-    if (contextType is InterfaceType &&
-        contextType.classNode == typeSchemaEnvironment.futureOrClass) {
-      contextType = (contextType as InterfaceType).typeArguments[0];
+    if (contextType is FutureOrType) {
+      contextType = (contextType as FutureOrType).typeArgument;
     }
     if (contextType is FunctionType) return true;
     if (contextType is InterfaceType &&

@@ -378,12 +378,22 @@ class _InnerTypeSubstitutor extends _TypeSubstitutor {
   }
 
   TypeParameter freshTypeParameter(TypeParameter node) {
-    var fresh = new TypeParameter(node.name);
-    substitution[node] = new TypeParameterType.forAlphaRenaming(node, fresh);
+    TypeParameter fresh = new TypeParameter(node.name);
+    TypeParameterType typeParameterType = substitution[node] =
+        new TypeParameterType.forAlphaRenaming(node, fresh);
     fresh.bound = visit(node.bound);
     if (node.defaultType != null) {
       fresh.defaultType = visit(node.defaultType);
     }
+    // If the bound was changed from substituting the bound we need to update
+    // implicit nullability to be based on the new bound. If the bound wasn't
+    // changed the computation below results in the same nullability.
+    //
+    // If the type variable occurred in the bound then the bound was
+    // of the form `Foo<...T..>` or `FutureOr<T>` and the nullability therefore
+    // has not changed.
+    typeParameterType.declaredNullability =
+        TypeParameterType.computeNullabilityFromBound(fresh);
     return fresh;
   }
 }
@@ -397,7 +407,7 @@ class _InnerTypeSubstitutor extends _TypeSubstitutor {
 /// and `int`.  The function computes the nullability for the replacement as
 /// per the following table:
 ///
-/// | arg \ var |  !  |  ?  |  *  |  %  |
+/// |  a  \  b  |  !  |  ?  |  *  |  %  |
 /// |-----------|-----|-----|-----|-----|
 /// |     !     |  !  |  ?  |  *  |  !  |
 /// |     ?     | N/A |  ?  |  ?  |  ?  |
@@ -413,7 +423,7 @@ Nullability combineNullabilitiesForSubstitution(Nullability a, Nullability b) {
   // with whatever is easier to implement.  In this implementation, we extend
   // the table function as follows:
   //
-  // | arg \ var |  !  |  ?  |  *  |  %  |
+  // |  a  \  b  |  !  |  ?  |  *  |  %  |
   // |-----------|-----|-----|-----|-----|
   // |     !     |  !  |  ?  |  *  |  !  |
   // |     ?     |  ?  |  ?  |  ?  |  ?  |
@@ -488,6 +498,13 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     var typeArguments = node.typeArguments.map(visit).toList();
     if (useCounter == before) return node;
     return new InterfaceType(node.classNode, node.nullability, typeArguments);
+  }
+
+  DartType visitFutureOrType(FutureOrType node) {
+    int before = useCounter;
+    DartType typeArgument = node.typeArgument.accept(this);
+    if (useCounter == before) return node;
+    return new FutureOrType(typeArgument, node.declaredNullability);
   }
 
   DartType visitTypedefType(TypedefType node) {
@@ -805,6 +822,10 @@ class _OccurrenceVisitor implements DartTypeVisitor<bool> {
     return node.typeArguments.any(visit);
   }
 
+  bool visitFutureOrType(FutureOrType node) {
+    return visit(node.typeArgument);
+  }
+
   bool visitTypedefType(TypedefType node) {
     return node.typeArguments.any(visit);
   }
@@ -853,6 +874,10 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
     return node.typeArguments.any(visit);
   }
 
+  bool visitFutureOrType(FutureOrType node) {
+    return visit(node.typeArgument);
+  }
+
   bool visitTypedefType(TypedefType node) {
     return node.typeArguments.any(visit);
   }
@@ -877,4 +902,30 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
     if (node.defaultType == null) return false;
     return node.defaultType.accept(this);
   }
+}
+
+Nullability uniteNullabilities(Nullability a, Nullability b) {
+  if (a == Nullability.nullable || b == Nullability.nullable) {
+    return Nullability.nullable;
+  }
+  if (a == Nullability.legacy || b == Nullability.legacy) {
+    return Nullability.legacy;
+  }
+  if (a == Nullability.undetermined || b == Nullability.undetermined) {
+    return Nullability.undetermined;
+  }
+  return Nullability.nonNullable;
+}
+
+Nullability intersectNullabilities(Nullability a, Nullability b) {
+  if (a == Nullability.nonNullable || b == Nullability.nonNullable) {
+    return Nullability.nonNullable;
+  }
+  if (a == Nullability.undetermined || b == Nullability.undetermined) {
+    return Nullability.undetermined;
+  }
+  if (a == Nullability.legacy || b == Nullability.legacy) {
+    return Nullability.legacy;
+  }
+  return Nullability.nullable;
 }

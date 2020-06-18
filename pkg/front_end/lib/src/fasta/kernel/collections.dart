@@ -19,6 +19,8 @@ import 'package:kernel/ast.dart'
         transformList,
         visitList;
 
+import 'package:kernel/src/printer.dart';
+
 import 'package:kernel/type_environment.dart' show StaticTypeContext;
 
 import 'package:kernel/visitor.dart'
@@ -106,8 +108,8 @@ class SpreadElement extends Expression with ControlFlowElement {
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  void toTextInternal(AstPrinter state) {
+    // TODO(johnniwinther): Implement this.
   }
 }
 
@@ -172,8 +174,8 @@ class IfElement extends Expression with ControlFlowElement {
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  void toTextInternal(AstPrinter state) {
+    // TODO(johnniwinther): Implement this.
   }
 }
 
@@ -234,8 +236,8 @@ class ForElement extends Expression with ControlFlowElement {
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  void toTextInternal(AstPrinter state) {
+    // TODO(johnniwinther): Implement this.
   }
 }
 
@@ -323,8 +325,8 @@ class ForInElement extends Expression with ControlFlowElement {
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  void toTextInternal(AstPrinter state) {
+    // TODO(johnniwinther): Implement this.
   }
 }
 
@@ -351,6 +353,16 @@ mixin ControlFlowMapEntry implements MapEntry {
 
   @override
   R accept<R>(TreeVisitor<R> v) => v.defaultTreeNode(this);
+
+  @override
+  String toStringInternal() => toText(defaultAstTextStrategy);
+
+  @override
+  String toText(AstTextStrategy strategy) {
+    AstPrinter state = new AstPrinter(strategy);
+    toTextInternal(state);
+    return state.getText();
+  }
 }
 
 /// A spread element in a map literal.
@@ -387,8 +399,8 @@ class SpreadMapEntry extends TreeNode with ControlFlowMapEntry {
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  void toTextInternal(AstPrinter state) {
+    // TODO(johnniwinther): Implement this.
   }
 }
 
@@ -433,8 +445,8 @@ class IfMapEntry extends TreeNode with ControlFlowMapEntry {
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  void toTextInternal(AstPrinter state) {
+    // TODO(johnniwinther): Implement this.
   }
 }
 
@@ -480,8 +492,8 @@ class ForMapEntry extends TreeNode with ControlFlowMapEntry {
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  void toTextInternal(AstPrinter state) {
+    // TODO(johnniwinther): Implement this.
   }
 }
 
@@ -554,8 +566,8 @@ class ForInMapEntry extends TreeNode with ControlFlowMapEntry {
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  void toTextInternal(AstPrinter state) {
+    // TODO(johnniwinther): Implement this.
   }
 }
 

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of _js_helper;
 
 // TODO(ngeoffray): stop using this method once our optimizers can
@@ -43,19 +41,19 @@ getPropertyFromPrototype(var object, String name) {
 /// Returns a String tag identifying the type of the native object, or `null`.
 /// The tag is not the name of the type, but usually the name of the JavaScript
 /// constructor function.  Initialized by [initHooks].
-Function getTagFunction;
+Function? getTagFunction;
 
 /// If a lookup via [getTagFunction] on an object [object] that has [tag] fails,
 /// this function is called to provide an alternate tag.  This allows us to fail
 /// gracefully if we can make a good guess, for example, when browsers add novel
 /// kinds of HTMLElement that we have never heard of.  Initialized by
 /// [initHooks].
-Function alternateTagFunction;
+Function? alternateTagFunction;
 
 /// Returns the prototype for the JavaScript constructor named by an input tag.
 /// Returns `null` if there is no such constructor, or if pre-patching of the
 /// constructor is to be avoided.  Initialized by [initHooks].
-Function prototypeForTagFunction;
+Function? prototypeForTagFunction;
 
 String toStringForNativeObject(var obj) {
   // TODO(sra): Is this code dead?
@@ -63,7 +61,7 @@ String toStringForNativeObject(var obj) {
   // been called via an interceptor and initialized it.
   String name = getTagFunction == null
       ? '<Unknown>'
-      : JS('String', '#', getTagFunction(obj));
+      : JS('String', '#', getTagFunction!(obj));
   return 'Instance of $name';
 }
 
@@ -148,7 +146,7 @@ const DISCRIMINATED_MARK = '*';
 @pragma('dart2js:noInline')
 lookupAndCacheInterceptor(obj) {
   assert(!isDartObject(obj));
-  String tag = getTagFunction(obj);
+  String tag = getTagFunction!(obj);
 
   // Fast path for instance (and uncached) tags because the lookup is repeated
   // for each instance (or getInterceptor call).
@@ -161,8 +159,9 @@ lookupAndCacheInterceptor(obj) {
   // [initNativeDispatch].
   var interceptorClass = lookupInterceptor(tag);
   if (interceptorClass == null) {
-    tag = alternateTagFunction(obj, tag);
-    if (tag != null) {
+    String? altTag = alternateTagFunction!(obj, tag);
+    if (altTag != null) {
+      tag = altTag;
       // Fast path for instance and uncached tags again.
       record = propertyGet(dispatchRecordsForInstanceTags, tag);
       if (record != null) return patchInstance(obj, record);
@@ -291,7 +290,7 @@ void initNativeDispatchContinue() {
     var fun = JS('=Object', 'function () {}');
     for (int i = 0; i < tags.length; i++) {
       var tag = tags[i];
-      var proto = prototypeForTagFunction(tag);
+      var proto = prototypeForTagFunction!(tag);
       if (proto != null) {
         var interceptorClass = JS('', '#[#]', map, tag);
         var record = makeDefaultDispatchRecord(tag, interceptorClass, proto);

@@ -545,6 +545,7 @@ class _ElementWriter {
 
     writeName(e);
     writeCodeRange(e);
+    writeTypeInferenceError(e);
 
     writeTypeParameterElements(e.typeParameters);
     writeParameterElements(e.parameters);
@@ -857,8 +858,6 @@ class _ElementWriter {
       buffer.write('*/');
     }
 
-    writeVariableTypeInferenceError(e);
-
     if (defaultValue != null) {
       buffer.write(defaultValueSeparator);
       writeNode(defaultValue);
@@ -992,7 +991,7 @@ class _ElementWriter {
     writeName(e);
     writeCodeRange(e);
 
-    writeVariableTypeInferenceError(e);
+    writeTypeInferenceError(e);
 
     if (withFullyResolvedAst) {
       buffer.writeln(';');
@@ -1033,6 +1032,23 @@ class _ElementWriter {
   void writeType2(DartType type) {
     writeType(type);
     buffer.write(' ');
+  }
+
+  void writeTypeInferenceError(Element e) {
+    TopLevelInferenceError inferenceError;
+    if (e is MethodElementImpl) {
+      inferenceError = e.typeInferenceError;
+    } else if (e is NonParameterVariableElementImpl) {
+      inferenceError = e.typeInferenceError;
+    }
+
+    if (inferenceError != null) {
+      String kindName = inferenceError.kind.toString();
+      if (kindName.startsWith('TopLevelInferenceErrorKind.')) {
+        kindName = kindName.substring('TopLevelInferenceErrorKind.'.length);
+      }
+      buffer.write('/*error: $kindName*/');
+    }
   }
 
   void writeTypeParameterElement(TypeParameterElement e) {
@@ -1088,19 +1104,6 @@ class _ElementWriter {
       buffer.write('\'$uriStr\'');
     } else {
       buffer.write('\'<unresolved>\'');
-    }
-  }
-
-  void writeVariableTypeInferenceError(VariableElement e) {
-    if (e is VariableElementImpl) {
-      TopLevelInferenceError inferenceError = e.typeInferenceError;
-      if (inferenceError != null) {
-        String kindName = inferenceError.kind.toString();
-        if (kindName.startsWith('TopLevelInferenceErrorKind.')) {
-          kindName = kindName.substring('TopLevelInferenceErrorKind.'.length);
-        }
-        buffer.write('/*error: $kindName*/');
-      }
     }
   }
 

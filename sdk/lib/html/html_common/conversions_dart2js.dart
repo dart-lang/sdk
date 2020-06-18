@@ -1,13 +1,12 @@
-// @dart = 2.6
-
 part of html_common;
 
 /// Converts a JavaScript object with properties into a Dart Map.
 /// Not suitable for nested objects.
-Map<String, dynamic> convertNativeToDart_Dictionary(object) {
+Map<String, dynamic>? convertNativeToDart_Dictionary(object) {
   if (object == null) return null;
   var dict = <String, dynamic>{};
-  var keys = JS('JSExtendableArray', 'Object.getOwnPropertyNames(#)', object);
+  var keys = JS<JSExtendableArray>(
+      'JSExtendableArray', 'Object.getOwnPropertyNames(#)', object);
   for (final key in keys) {
     dict[key] = JS('var', '#[#]', object, key);
   }
@@ -15,7 +14,7 @@ Map<String, dynamic> convertNativeToDart_Dictionary(object) {
 }
 
 /// Converts a flat Dart map into a JavaScript object with properties.
-convertDartToNative_Dictionary(Map dict, [void postCreate(Object f)]) {
+convertDartToNative_Dictionary(Map? dict, [void postCreate(Object? f)?]) {
   if (dict == null) return null;
   var object = JS('var', '{}');
   if (postCreate != null) {
@@ -38,7 +37,7 @@ List convertDartToNative_StringArray(List<String> input) {
 }
 
 DateTime convertNativeToDart_DateTime(date) {
-  var millisSinceEpoch = JS('int', '#.getTime()', date);
+  int millisSinceEpoch = JS('int', '#.getTime()', date);
   return new DateTime.fromMillisecondsSinceEpoch(millisSinceEpoch, isUtc: true);
 }
 
