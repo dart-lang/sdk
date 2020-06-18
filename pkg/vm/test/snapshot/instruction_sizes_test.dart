@@ -9,6 +9,7 @@ import 'package:test/test.dart';
 
 import 'package:vm/snapshot/instruction_sizes.dart' as instruction_sizes;
 import 'package:vm/snapshot/program_info.dart';
+import 'package:vm/snapshot/utils.dart';
 
 final dart2native = () {
   final sdkBin = path.dirname(Platform.executable);
@@ -171,7 +172,8 @@ void main(List<String> args) {
 
     test('basic-parsing', () async {
       await withSymbolSizes('basic-parsing', testSource, (sizesJson) async {
-        final symbols = await instruction_sizes.load(File(sizesJson));
+        final symbols =
+            instruction_sizes.fromJson(await loadJson(File(sizesJson)));
         expect(symbols, isNotNull,
             reason: 'Sizes file was successfully parsed');
         expect(symbols.length, greaterThan(0),
@@ -243,21 +245,23 @@ void main(List<String> args) {
 
     test('program-info', () async {
       await withSymbolSizes('program-info', testSource, (sizesJson) async {
-        final info = await instruction_sizes.loadProgramInfo(File(sizesJson));
-        expect(info.libraries, contains('dart:core'));
-        expect(info.libraries, contains('dart:typed_data'));
-        expect(info.libraries, contains('package:input/input.dart'));
+        final info = await loadProgramInfo(File(sizesJson));
+        expect(info.root.children, contains('dart:core'));
+        expect(info.root.children, contains('dart:typed_data'));
+        expect(info.root.children, contains('package:input'));
 
-        final inputLib = info.libraries['package:input/input.dart'];
-        expect(inputLib.classes, contains('')); // Top-level class.
-        expect(inputLib.classes, contains('A'));
-        expect(inputLib.classes, contains('B'));
-        expect(inputLib.classes, contains('C'));
+        final inputLib = info.root.children['package:input']
+            .children['package:input/input.dart'];
+        expect(inputLib, isNotNull);
+        expect(inputLib.children, contains('')); // Top-level class.
+        expect(inputLib.children, contains('A'));
+        expect(inputLib.children, contains('B'));
+        expect(inputLib.children, contains('C'));
 
-        final topLevel = inputLib.classes[''];
-        expect(topLevel.functions, contains('makeSomeClosures'));
+        final topLevel = inputLib.children[''];
+        expect(topLevel.children, contains('makeSomeClosures'));
         expect(
-            topLevel.functions['makeSomeClosures'].closures.length, equals(3));
+            topLevel.children['makeSomeClosures'].children.length, equals(3));
 
         for (var name in [
           '[tear-off] tornOff',
@@ -265,8 +269,8 @@ void main(List<String> args) {
           'Allocate A',
           '[tear-off-extractor] get:tornOff'
         ]) {
-          expect(inputLib.classes['A'].functions, contains(name));
-          expect(inputLib.classes['A'].functions[name].closures, isEmpty);
+          expect(inputLib.children['A'].children, contains(name));
+          expect(inputLib.children['A'].children[name].children, isEmpty);
         }
 
         for (var name in [
@@ -275,62 +279,62 @@ void main(List<String> args) {
           'Allocate B',
           '[tear-off-extractor] get:tornOff'
         ]) {
-          expect(inputLib.classes['B'].functions, contains(name));
-          expect(inputLib.classes['B'].functions[name].closures, isEmpty);
+          expect(inputLib.children['B'].children, contains(name));
+          expect(inputLib.children['B'].children[name].children, isEmpty);
         }
 
         for (var name in ['tornOff{body}', 'tornOff', '[tear-off] tornOff']) {
-          expect(inputLib.classes['C'].functions, contains(name));
-          expect(inputLib.classes['C'].functions[name].closures, isEmpty);
+          expect(inputLib.children['C'].children, contains(name));
+          expect(inputLib.children['C'].children[name].children, isEmpty);
         }
       });
     });
 
     test('histograms', () async {
       await withSymbolSizes('histograms', testSource, (sizesJson) async {
-        final info = await instruction_sizes.loadProgramInfo(File(sizesJson));
-        final bySymbol =
-            SizesHistogram.from(info, (size) => size, HistogramType.bySymbol);
+        final info = await loadProgramInfo(File(sizesJson));
+        final bySymbol = SizesHistogram.from(info, HistogramType.bySymbol);
         expect(
             bySymbol.buckets,
-            contains(bySymbol.bucketing
-                .bucketFor('package:input/input.dart', 'A', 'tornOff')));
+            contains(bySymbol.bucketing.bucketFor(
+                'package:input', 'package:input/input.dart', 'A', 'tornOff')));
         expect(
             bySymbol.buckets,
-            contains(bySymbol.bucketing
-                .bucketFor('package:input/input.dart', 'B', 'tornOff')));
+            contains(bySymbol.bucketing.bucketFor(
+                'package:input', 'package:input/input.dart', 'B', 'tornOff')));
         expect(
             bySymbol.buckets,
-            contains(bySymbol.bucketing
-                .bucketFor('package:input/input.dart', 'C', 'tornOff')));
+            contains(bySymbol.bucketing.bucketFor(
+                'package:input', 'package:input/input.dart', 'C', 'tornOff')));
 
-        final byClass =
-            SizesHistogram.from(info, (size) => size, HistogramType.byClass);
+        final byClass = SizesHistogram.from(info, HistogramType.byClass);
         expect(
             byClass.buckets,
-            contains(byClass.bucketing.bucketFor(
+            contains(byClass.bucketing.bucketFor('package:input',
                 'package:input/input.dart', 'A', 'does-not-matter')));
         expect(
             byClass.buckets,
-            contains(byClass.bucketing.bucketFor(
+            contains(byClass.bucketing.bucketFor('package:input',
                 'package:input/input.dart', 'B', 'does-not-matter')));
         expect(
             byClass.buckets,
-            contains(byClass.bucketing.bucketFor(
+            contains(byClass.bucketing.bucketFor('package:input',
                 'package:input/input.dart', 'C', 'does-not-matter')));
 
-        final byLibrary =
-            SizesHistogram.from(info, (size) => size, HistogramType.byLibrary);
+        final byLibrary = SizesHistogram.from(info, HistogramType.byLibrary);
         expect(
             byLibrary.buckets,
-            contains(byLibrary.bucketing.bucketFor('package:input/input.dart',
-                'does-not-matter', 'does-not-matter')));
+            contains(byLibrary.bucketing.bucketFor(
+                'package:input',
+                'package:input/input.dart',
+                'does-not-matter',
+                'does-not-matter')));
 
-        final byPackage =
-            SizesHistogram.from(info, (size) => size, HistogramType.byPackage);
+        final byPackage = SizesHistogram.from(info, HistogramType.byPackage);
         expect(
             byPackage.buckets,
             contains(byPackage.bucketing.bucketFor(
+                'package:input',
                 'package:input/does-not-matter.dart',
                 'does-not-matter',
                 'does-not-matter')));
@@ -340,10 +344,9 @@ void main(List<String> args) {
     // On Windows there is some issue with interpreting entry point URI as a package URI
     // it instead gets interpreted as a file URI - which breaks comparison. So we
     // simply ignore entry point library (main.dart).
-    Map<String, dynamic> diffToJson(ProgramInfo<SymbolDiff> diff) {
-      final diffJson = diff.toJson((diff) => diff.inBytes);
-      final libraries = diffJson['libraries'] as Map<String, dynamic>;
-      libraries.removeWhere((key, _) => key.endsWith('main.dart'));
+    Map<String, dynamic> diffToJson(ProgramInfo diff) {
+      final diffJson = diff.toJson();
+      diffJson.removeWhere((key, _) => key.startsWith('file:'));
       return diffJson;
     }
 
@@ -351,33 +354,40 @@ void main(List<String> args) {
       await withSymbolSizes('diff-1', testSource, (sizesJson) async {
         await withSymbolSizes('diff-2', testSourceModified,
             (modifiedSizesJson) async {
-          final info = await instruction_sizes.loadProgramInfo(File(sizesJson));
-          final modifiedInfo =
-              await instruction_sizes.loadProgramInfo(File(modifiedSizesJson));
+          final info = await loadProgramInfo(File(sizesJson));
+          final modifiedInfo = await loadProgramInfo(File(modifiedSizesJson));
           final diff = computeDiff(info, modifiedInfo);
 
           expect(
               diffToJson(diff),
               equals({
-                'stubs': {},
-                'libraries': {
+                '#type': 'library',
+                '@stubs': {'#type': 'library'},
+                '@unknown': {'#type': 'library'},
+                'package:input': {
+                  '#type': 'package',
                   'package:input/input.dart': {
+                    '#type': 'library',
                     '': {
+                      '#type': 'class',
                       'makeSomeClosures': {
-                        'info': greaterThan(0), // We added code here.
-                        'closures': {
-                          '<anonymous closure @118>': {
-                            'info': greaterThan(0),
-                          },
+                        '#type': 'function',
+                        '#size': greaterThan(0), // We added code here.
+                        '<anonymous closure @118>': {
+                          '#type': 'function',
+                          '#size': greaterThan(0),
                         },
                       },
                       'main': {
-                        'info': lessThan(0), // We removed code from main.
+                        '#type': 'function',
+                        '#size': lessThan(0), // We removed code from main.
                       },
                     },
                     'A': {
+                      '#type': 'class',
                       'tornOff': {
-                        'info': greaterThan(0),
+                        '#type': 'function',
+                        '#size': greaterThan(0),
                       },
                     }
                   }
@@ -391,29 +401,33 @@ void main(List<String> args) {
       await withSymbolSizes('diff-collapsed-1', testSource, (sizesJson) async {
         await withSymbolSizes('diff-collapsed-2', testSourceModified2,
             (modifiedSizesJson) async {
-          final info = await instruction_sizes.loadProgramInfo(File(sizesJson),
+          final info = await loadProgramInfo(File(sizesJson),
               collapseAnonymousClosures: true);
-          final modifiedInfo = await instruction_sizes.loadProgramInfo(
-              File(modifiedSizesJson),
+          final modifiedInfo = await loadProgramInfo(File(modifiedSizesJson),
               collapseAnonymousClosures: true);
           final diff = computeDiff(info, modifiedInfo);
 
           expect(
               diffToJson(diff),
               equals({
-                'stubs': {},
-                'libraries': {
+                '#type': 'library',
+                '@stubs': {'#type': 'library'},
+                '@unknown': {'#type': 'library'},
+                'package:input': {
+                  '#type': 'package',
                   'package:input/input.dart': {
+                    '#type': 'library',
                     '': {
+                      '#type': 'class',
                       'makeSomeClosures': {
-                        'info': lessThan(0), // We removed code here.
-                        'closures': {
-                          '<anonymous closure>': {
-                            'info': lessThan(0),
-                          },
-                        },
-                      },
-                    },
+                        '#size': lessThan(0),
+                        '#type': 'function',
+                        '<anonymous closure>': {
+                          '#size': lessThan(0),
+                          '#type': 'function'
+                        }
+                      }
+                    }
                   }
                 }
               }));

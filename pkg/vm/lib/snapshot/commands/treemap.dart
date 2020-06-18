@@ -19,6 +19,7 @@ import 'package:path/path.dart' as p;
 import 'package:args/command_runner.dart';
 
 import 'package:vm/snapshot/instruction_sizes.dart' as instruction_sizes;
+import 'package:vm/snapshot/utils.dart';
 
 class TreemapCommand extends Command<void> {
   @override
@@ -73,7 +74,7 @@ viewed in a browser:
 Future<void> generateTreeMap(File input, Directory outputDir) async {
   // Load symbols data produced by the AOT compiler and convert it to
   // a tree.
-  final symbols = await instruction_sizes.load(input);
+  final symbols = instruction_sizes.fromJson(await loadJson(input));
 
   final root = {'n': '', 'children': {}, 'k': kindPath, 'maxDepth': 0};
   for (var symbol in symbols) {

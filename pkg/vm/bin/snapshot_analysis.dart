@@ -6,12 +6,14 @@
 import 'package:args/command_runner.dart';
 
 import 'package:vm/snapshot/commands/compare.dart';
+import 'package:vm/snapshot/commands/summary.dart';
 import 'package:vm/snapshot/commands/treemap.dart';
 
 final runner = CommandRunner('snapshot_analysis.dart',
     'Tools for binary size analysis of Dart VM AOT snapshots.')
   ..addCommand(TreemapCommand())
-  ..addCommand(CompareCommand());
+  ..addCommand(CompareCommand())
+  ..addCommand(SummaryCommand());
 
 void main(List<String> args) async {
   try {
