@@ -532,6 +532,11 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
     return;
   }
   if (BeginOldSpaceGC(thread)) {
+    thread->isolate_group()->ForEachIsolate([&](Isolate* isolate) {
+      // Discard regexp backtracking stacks to further reduce memory usage.
+      isolate->CacheRegexpBacktrackStack(nullptr);
+    });
+
     RecordBeforeGC(type, reason);
     VMTagScope tagScope(thread, reason == kIdle ? VMTag::kGCIdleTagId
                                                 : VMTag::kGCOldSpaceTagId);

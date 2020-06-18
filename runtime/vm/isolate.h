@@ -1295,6 +1295,14 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   void RememberLiveTemporaries();
   void DeferredMarkLiveTemporaries();
 
+  std::unique_ptr<VirtualMemory> TakeRegexpBacktrackStack() {
+    return std::move(regexp_backtracking_stack_cache_);
+  }
+
+  void CacheRegexpBacktrackStack(std::unique_ptr<VirtualMemory> stack) {
+    regexp_backtracking_stack_cache_ = std::move(stack);
+  }
+
  private:
   friend class Dart;                  // Init, InitOnce, Shutdown.
   friend class IsolateKillerVisitor;  // Kill().
@@ -1527,6 +1535,8 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   // send a kill message).
   // This is protected by [isolate_creation_monitor_].
   bool accepts_messages_ = false;
+
+  std::unique_ptr<VirtualMemory> regexp_backtracking_stack_cache_ = nullptr;
 
   static Dart_IsolateGroupCreateCallback create_group_callback_;
   static Dart_InitializeIsolateCallback initialize_callback_;
