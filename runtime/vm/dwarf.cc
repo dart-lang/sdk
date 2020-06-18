@@ -170,14 +170,6 @@ intptr_t Dwarf::AddCode(const Code& orig_code,
   return index;
 }
 
-intptr_t Dwarf::TokenPositionToLine(const TokenPosition& token_pos) {
-  // By the point we're creating the DWARF information, the values of
-  // non-special token positions have been converted to line numbers, so
-  // we just need to handle special (negative) token positions.
-  ASSERT(token_pos.value() > TokenPosition::kLast.value());
-  return token_pos.value() < 0 ? kNoLineInformation : token_pos.value();
-}
-
 intptr_t Dwarf::AddFunction(const Function& function) {
   RELEASE_ASSERT(!function.IsNull());
   FunctionIndexPair* pair = function_to_index_.Lookup(&function);
@@ -257,8 +249,6 @@ void Dwarf::WriteAbbreviations(DwarfWriteStream* stream) {
   stream->uleb128(DW_FORM_string);
   stream->uleb128(DW_AT_decl_file);
   stream->uleb128(DW_FORM_udata);
-  stream->uleb128(DW_AT_decl_line);
-  stream->uleb128(DW_FORM_udata);
   stream->uleb128(DW_AT_inline);
   stream->uleb128(DW_FORM_udata);
   stream->uleb128(0);
@@ -288,6 +278,8 @@ void Dwarf::WriteAbbreviations(DwarfWriteStream* stream) {
   stream->uleb128(DW_AT_call_file);
   stream->uleb128(DW_FORM_udata);
   stream->uleb128(DW_AT_call_line);
+  stream->uleb128(DW_FORM_udata);
+  stream->uleb128(DW_AT_call_column);
   stream->uleb128(DW_FORM_udata);
   stream->uleb128(0);
   stream->uleb128(0);  // End of attributes.
@@ -354,8 +346,8 @@ void Dwarf::WriteAbstractFunctions(DwarfWriteStream* stream) {
   String& name = String::Handle(zone_);
   stream->InitializeAbstractOrigins(functions_.length());
   // By the point we're creating DWARF information, scripts have already lost
-  // their token stream, so we can't look up their line number information.
-  auto const line = kNoLineInformation;
+  // their token stream and we can't look up their line number or column
+  // information, hence the lack of DW_AT_decl_line and DW_AT_decl_column.
   for (intptr_t i = 0; i < functions_.length(); i++) {
     const Function& function = *(functions_[i]);
     name = function.QualifiedUserVisibleName();
@@ -367,7 +359,6 @@ void Dwarf::WriteAbstractFunctions(DwarfWriteStream* stream) {
     stream->uleb128(kAbstractFunction);
     stream->string(name_cstr);        // DW_AT_name
     stream->uleb128(file);            // DW_AT_decl_file
-    stream->uleb128(line);            // DW_AT_decl_line
     stream->uleb128(DW_INL_inlined);  // DW_AT_inline
     stream->uleb128(0);               // End of children.
   }
@@ -513,8 +504,13 @@ void Dwarf::WriteInliningNode(DwarfWriteStream* stream,
   stream->OffsetFromSymbol(root_asm_name, node->end_pc_offset);
   // DW_AT_call_file
   stream->uleb128(file);
+  intptr_t line = kNoLineInformation;
+  intptr_t col = kNoColumnInformation;
+  Script::DecodePrecompiledPosition(token_pos, &line, &col);
   // DW_AT_call_line
-  stream->uleb128(TokenPositionToLine(token_pos));
+  stream->uleb128(line);
+  // DW_at_call_column
+  stream->uleb128(col);
 
   for (InliningNode* child = node->children_head; child != NULL;
        child = child->children_next) {
@@ -582,10 +578,14 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
 
   // 6.2.5 The Line Number Program
 
+  // The initial values for the line number program state machine registers
+  // according to the DWARF standard.
+  intptr_t previous_pc_offset = 0;
   intptr_t previous_file = 1;
   intptr_t previous_line = 1;
+  intptr_t previous_column = 0;
+  // Other info not stored in the state machine registers.
   const char* previous_asm_name = nullptr;
-  intptr_t previous_pc_offset = 0;
 
   Function& root_function = Function::Handle(zone_);
   Script& script = Script::Handle(zone_);
@@ -641,11 +641,19 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
           }
 
           // 2. Update LNP line.
-          const auto line = TokenPositionToLine(token_positions.Last());
+          auto const position = token_positions.Last();
+          intptr_t line = kNoLineInformation;
+          intptr_t column = kNoColumnInformation;
+          Script::DecodePrecompiledPosition(position, &line, &column);
           if (line != previous_line) {
             stream->u1(DW_LNS_advance_line);
             stream->sleb128(line - previous_line);
             previous_line = line;
+          }
+          if (column != previous_column) {
+            stream->u1(DW_LNS_set_column);
+            stream->uleb128(column);
+            previous_column = column;
           }
 
           // 3. Emit LNP row if the address register has been updated to a

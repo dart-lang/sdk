@@ -4495,7 +4495,14 @@ class Script : public Object {
 
   void SetLocationOffset(intptr_t line_offset, intptr_t col_offset) const;
 
-  intptr_t GetTokenLineUsingLineStarts(TokenPosition token_pos) const;
+  // Decode line number and column information if present. Returns false if
+  // this is a special location and thus undecodable.
+  static bool DecodePrecompiledPosition(TokenPosition token_pos,
+                                        intptr_t* line,
+                                        intptr_t* column);
+  // For positions that have line numbers and columns, returns a non-negative
+  // value. Otherwise, returns -1.
+  int32_t GetTokenLocationUsingLineStarts(TokenPosition token_pos) const;
   void GetTokenLocation(TokenPosition token_pos,
                         intptr_t* line,
                         intptr_t* column,

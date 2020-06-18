@@ -313,6 +313,11 @@ class DebugInformationEntry {
 
   int get callLine => this[_AttributeName.callLine] as int;
 
+  // We don't assume that call columns are present for backwards compatibility.
+  int get callColumn => containsKey(_AttributeName.callColumn)
+      ? this[_AttributeName.callColumn] as int
+      : 0;
+
   List<CallInfo> callInfo(
       CompilationUnit unit, LineNumberProgram lineNumberProgram, int address) {
     String callFilename(int index) =>
@@ -333,7 +338,8 @@ class DebugInformationEntry {
               function: unit.nameOfOrigin(abstractOrigin),
               inlined: inlined,
               filename: callFilename(child.callFileIndex),
-              line: child.callLine));
+              line: child.callLine,
+              column: child.callColumn));
       }
     }
 
@@ -341,12 +347,14 @@ class DebugInformationEntry {
 
     final filename = lineNumberProgram.filename(address);
     final line = lineNumberProgram.lineNumber(address);
+    final column = lineNumberProgram.column(address);
     return [
       DartCallInfo(
           function: unit.nameOfOrigin(abstractOrigin),
           inlined: inlined,
           filename: filename,
-          line: line)
+          line: line,
+          column: column)
     ];
   }
 
@@ -980,6 +988,8 @@ class LineNumberProgram {
 
   int lineNumber(int address) => this[address]?.line;
 
+  int column(int address) => this[address]?.column;
+
   void writeToStringBuffer(StringBuffer buffer) {
     header.writeToStringBuffer(buffer);
 
@@ -1054,8 +1064,14 @@ class DartCallInfo extends CallInfo {
   final String function;
   final String filename;
   final int line;
+  final int column;
 
-  DartCallInfo({this.inlined = false, this.function, this.filename, this.line});
+  DartCallInfo(
+      {this.inlined = false,
+      this.function,
+      this.filename,
+      this.line,
+      this.column});
 
   @override
   bool get isInternal => false;
@@ -1063,9 +1079,12 @@ class DartCallInfo extends CallInfo {
   @override
   int get hashCode => _hashFinish(_hashCombine(
       _hashCombine(
-          _hashCombine(_hashCombine(0, inlined.hashCode), function.hashCode),
-          filename.hashCode),
-      line.hashCode));
+          _hashCombine(
+              _hashCombine(
+                  _hashCombine(0, inlined.hashCode), function.hashCode),
+              filename.hashCode),
+          line.hashCode),
+      column.hashCode));
 
   @override
   bool operator ==(Object other) {
@@ -1073,13 +1092,29 @@ class DartCallInfo extends CallInfo {
       return inlined == other.inlined &&
           function == other.function &&
           filename == other.filename &&
-          line == other.line;
+          line == other.line &&
+          column == other.column;
     }
     return false;
   }
 
+  void writeToStringBuffer(StringBuffer buffer) {
+    buffer..write(function)..write(' (')..write(filename);
+    if (line > 0) {
+      buffer..write(':')..write(line);
+      if (column > 0) {
+        buffer..write(':')..write(column);
+      }
+    }
+    buffer.write(')');
+  }
+
   @override
-  String toString() => "${function} (${filename}${line <= 0 ? '' : ':$line'})";
+  String toString() {
+    final buffer = StringBuffer();
+    writeToStringBuffer(buffer);
+    return buffer.toString();
+  }
 }
 
 /// Represents the information for a call site located in a Dart stub.

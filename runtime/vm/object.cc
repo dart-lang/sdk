@@ -10755,26 +10755,84 @@ void Script::SetLocationOffset(intptr_t line_offset,
   StoreNonPointer(&raw_ptr()->col_offset_, col_offset);
 }
 
+// Whether a precompiled (non-special) position contains column information.
+using PrecompiledPositionContainsColumn = BitField<int32_t, bool, 0, 1>;
+// Can be used if PrecompiledPositionContainsColumn::decode(v) is true.
+using PrecompiledPositionColumn =
+    BitField<int32_t,
+             uint32_t,
+             PrecompiledPositionContainsColumn::kNextBit,
+             10>;
+// Can be used if PrecompiledPositionContainsColumn::decode(v) is true.
+// Does not include the sign bit, which should be 0 for encoded values.
+using PrecompiledPositionLine =
+    BitField<int32_t,
+             uint32_t,
+             PrecompiledPositionColumn::kNextBit,
+             (sizeof(int32_t) * kBitsPerByte - 1) -
+                 (PrecompiledPositionColumn::bitsize() +
+                  PrecompiledPositionContainsColumn::bitsize())>;
+// Can be used if PrecompiledPositionContainsColumn::decode(v) is false.
+// Does not include the sign bit, which should be 0 for encoded values.
+using PrecompiledPositionLineOnly =
+    BitField<int32_t,
+             uint32_t,
+             PrecompiledPositionContainsColumn::kNextBit,
+             (sizeof(int32_t) * kBitsPerByte - 1) -
+                 PrecompiledPositionContainsColumn::bitsize()>;
+
+bool Script::DecodePrecompiledPosition(TokenPosition token_pos,
+                                       intptr_t* line,
+                                       intptr_t* column) {
+  ASSERT(line != nullptr);
+  ASSERT(column != nullptr);
+  auto const value = token_pos.value();
+  if (value < 0) return false;
+  // We encode zero-based offsets from start, so convert back to ordinals.
+  if (PrecompiledPositionContainsColumn::decode(value)) {
+    *line = PrecompiledPositionLine::decode(value) + 1;
+    *column = PrecompiledPositionColumn::decode(value) + 1;
+  } else {
+    *line = PrecompiledPositionLineOnly::decode(value) + 1;
+  }
+  return true;
+}
+
 // Specialized for AOT compilation, which does this lookup for every token
 // position that could be part of a stack trace.
-intptr_t Script::GetTokenLineUsingLineStarts(
+int32_t Script::GetTokenLocationUsingLineStarts(
     TokenPosition target_token_pos) const {
-  if (target_token_pos.IsNoSource()) {
-    return 0;
-  }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // Negative positions denote positions that do not correspond to Dart code.
+  if (target_token_pos.value() < 0) return TokenPosition::kNoSourcePos;
+
   Zone* zone = Thread::Current()->zone();
   TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
   // Scripts loaded from bytecode may have null line_starts().
-  if (line_starts_data.IsNull()) {
-    return 0;
-  }
+  if (line_starts_data.IsNull()) return TokenPosition::kNoSourcePos;
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
   kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
-  return line_starts_reader.LineNumberForPosition(target_token_pos.value());
-#else
-  return 0;
+  intptr_t line = -1;
+  intptr_t col = -1;
+  line_starts_reader.LocationForPosition(target_token_pos.value(), &line, &col);
+  // The line and column numbers returned are ordinals, so we shouldn't get 0.
+  ASSERT(line > 0);
+  ASSERT(col > 0);
+  // Encode the returned line and column numbers as 0-based offsets from start
+  // instead of ordinal numbers for better encoding.
+  line -= 1;
+  col -= 1;
+  if (PrecompiledPositionLine::is_valid(line) &&
+      PrecompiledPositionColumn::is_valid(col)) {
+    return PrecompiledPositionLine::encode(line) |
+           PrecompiledPositionColumn::encode(col) |
+           PrecompiledPositionContainsColumn::encode(true);
+  } else if (PrecompiledPositionLineOnly::is_valid(line)) {
+    return PrecompiledPositionLineOnly::encode(line) |
+           PrecompiledPositionContainsColumn::encode(false);
+  }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  return TokenPosition::kNoSourcePos;
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -23897,7 +23955,7 @@ static void PrintSymbolicStackFrame(Zone* zone,
   intptr_t line = -1;
   intptr_t column = -1;
   if (FLAG_precompiled_mode) {
-    line = token_pos.value();
+    Script::DecodePrecompiledPosition(token_pos, &line, &column);
   } else if (token_pos.IsSourcePosition()) {
     ASSERT(!script.IsNull());
     script.GetTokenLocation(token_pos.SourcePosition(), &line, &column);
