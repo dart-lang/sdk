@@ -410,7 +410,7 @@ if (target_os != current_os && target_os == "fuchsia") {
     deps = [ "../runtime/bin:dart" ]
     dart_out = get_label_info("../runtime/bin:dart", "root_out_dir")
     sources = [ "$dart_out/${dart_stripped_binary}${executable_suffix}" ]
-    if (is_win) {
+    if (is_win && dart_lib_export_symbols) {
       sources += [ "$dart_out/dart.lib" ]
     }
     outputs = [ "$root_out_dir/dart-sdk/bin/{{source_file_part}}" ]
