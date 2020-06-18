@@ -94,7 +94,10 @@ class CiderCompletionComputer {
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
       );
 
-      return await manager.computeSuggestions(completionRequest);
+      return await manager.computeSuggestions(
+        completionRequest,
+        enableUriContributor: false,
+      );
     });
     suggestionsTimer.stop();
 

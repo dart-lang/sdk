@@ -100,7 +100,12 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       var contributorTag = 'computeSuggestions - ${manager.runtimeType}';
       performance.logStartTime(contributorTag);
       try {
-        suggestions.addAll(await manager.computeSuggestions(request));
+        suggestions.addAll(
+          await manager.computeSuggestions(
+            request,
+            enableUriContributor: true,
+          ),
+        );
       } on AbortCompletion {
         suggestions.clear();
       }

@@ -130,6 +130,14 @@ var a = ^;
     _assertHasClass(text: 'String');
   }
 
+  Future<void> test_compute_uriContributor_disabled() async {
+    newFile('/workspace/dart/test/lib/a.dart', content: '');
+    await _compute(r'''
+import '^';
+''');
+    expect(_suggestions, isEmpty);
+  }
+
   Future<void> test_filterSort_byPattern_excludeNotMatching() async {
     await _compute(r'''
 var a = F^;

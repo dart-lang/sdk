@@ -101,7 +101,10 @@ class CompletionRunner {
           timer.start();
           var request =
               CompletionRequestImpl(result, offset, false, performance);
-          var suggestions = await contributor.computeSuggestions(request);
+          var suggestions = await contributor.computeSuggestions(
+            request,
+            enableUriContributor: true,
+          );
           timer.stop();
 
           if (!identifier.inDeclarationContext() &&
