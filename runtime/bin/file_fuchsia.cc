@@ -243,7 +243,7 @@ File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
   return OpenFD(fd);
 }
 
-static Utils::CStringUniquePtr DecodeUri(const char* uri) {
+Utils::CStringUniquePtr File::UriToPath(const char* uri) {
   const char* path = (strlen(uri) >= 8 && strncmp(uri, "file:///", 8) == 0)
       ? uri + 7 : uri;
   UriDecoder uri_decoder(path);
@@ -255,7 +255,7 @@ static Utils::CStringUniquePtr DecodeUri(const char* uri) {
 }
 
 File* File::OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode) {
-  auto path = DecodeUri(uri);
+  auto path = UriToPath(uri);
   if (path == nullptr) {
     return nullptr;
   }
@@ -277,7 +277,7 @@ bool File::Exists(Namespace* namespc, const char* name) {
 }
 
 bool File::ExistsUri(Namespace* namespc, const char* uri) {
-  auto path = DecodeUri(uri);
+  auto path = UriToPath(uri);
   if (path == nullptr) {
     return false;
   }
