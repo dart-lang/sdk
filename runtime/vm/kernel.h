@@ -140,6 +140,8 @@ class KernelLineStartsReader {
     return helper_->At(line_starts_data_, index);
   }
 
+  intptr_t LineNumberForPosition(intptr_t position) const;
+
   void LocationForPosition(intptr_t position,
                            intptr_t* line,
                            intptr_t* col) const;

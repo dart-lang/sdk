@@ -1,9 +1,5 @@
 # Changelog
 
-## 0.3.8
-
-- Support columns when present in line number programs.
-
 ## 0.3.7
 
 - Added buildId accessor for retrieving GNU build IDs from DWARF files that

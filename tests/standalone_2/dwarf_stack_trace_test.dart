@@ -24,7 +24,7 @@ foo() {
 }
 
 Future<void> main() async {
-  String rawStack = "";
+  String rawStack;
   try {
     foo();
   } catch (e, st) {
@@ -46,7 +46,10 @@ Future<void> main() async {
 }
 
 Future<void> checkStackTrace(String rawStack, Dwarf dwarf,
-    List<List<DartCallInfo>> expectedCallsInfo) async {
+    List<List<CallInfo>> expectedCallsInfo) async {
+  final expectedAllCallsInfo = expectedCallsInfo;
+  final expectedExternalCallInfo = removeInternalCalls(expectedCallsInfo);
+
   print("");
   print("Raw stack trace:");
   print(rawStack);
@@ -58,7 +61,7 @@ Future<void> checkStackTrace(String rawStack, Dwarf dwarf,
 
   // We should have at least enough PC addresses to cover the frames we'll be
   // checking.
-  Expect.isTrue(pcOffsets.length >= expectedCallsInfo.length);
+  Expect.isTrue(pcOffsets.length >= expectedAllCallsInfo.length);
 
   final virtualAddresses =
       pcOffsets.map((o) => dwarf.virtualAddressOf(o)).toList();
@@ -79,18 +82,13 @@ Future<void> checkStackTrace(String rawStack, Dwarf dwarf,
     Expect.deepEquals(explicits, virtualAddresses);
   }
 
-  final gotCallsInfo = <List<DartCallInfo>>[];
+  final externalFramesInfo = <List<CallInfo>>[];
+  final allFramesInfo = <List<CallInfo>>[];
 
   for (final addr in virtualAddresses) {
-    final externalCallInfo = dwarf.callInfoFor(addr);
-    Expect.isNotNull(externalCallInfo);
-    final allCallInfo = dwarf.callInfoFor(addr, includeInternalFrames: true);
-    Expect.isNotNull(allCallInfo);
-    for (final call in allCallInfo) {
-      Expect.isTrue(call is DartCallInfo, "got non-Dart call info ${call}");
-    }
-    Expect.deepEquals(externalCallInfo, allCallInfo);
-    gotCallsInfo.add(allCallInfo.cast<DartCallInfo>().toList());
+    externalFramesInfo.add(dwarf.callInfoFor(addr)?.toList());
+    allFramesInfo
+        .add(dwarf.callInfoFor(addr, includeInternalFrames: true)?.toList());
   }
 
   print("");
@@ -98,40 +96,66 @@ Future<void> checkStackTrace(String rawStack, Dwarf dwarf,
   for (var i = 0; i < virtualAddresses.length; i++) {
     print("For PC 0x${virtualAddresses[i].toRadixString(16)}:");
     print("  Calls corresponding to user or library code:");
-    gotCallsInfo[i].forEach((frame) => print("    ${frame}"));
+    externalFramesInfo[i]?.forEach((frame) => print("    ${frame}"));
+    print("  All calls:");
+    allFramesInfo[i]?.forEach((frame) => print("    ${frame}"));
   }
 
-  checkFrames(gotCallsInfo, expectedCallsInfo);
+  // Check that our results are also consistent.
+  checkConsistency(externalFramesInfo, allFramesInfo);
 
-  final gotSymbolizedLines = await Stream.fromIterable(rawLines)
+  checkFrames(externalFramesInfo, expectedExternalCallInfo);
+  checkFrames(allFramesInfo, expectedAllCallsInfo);
+
+  final externalSymbolizedLines = await Stream.fromIterable(rawLines)
+      .transform(DwarfStackTraceDecoder(dwarf))
+      .toList();
+
+  final externalSymbolizedCalls =
+      externalSymbolizedLines.where((s) => s.startsWith('#')).toList();
+
+  print("");
+  print("Symbolized external-only stack trace:");
+  externalSymbolizedLines.forEach(print);
+  print("");
+  print("Extracted calls:");
+  externalSymbolizedCalls.forEach(print);
+
+  final allSymbolizedLines = await Stream.fromIterable(rawLines)
       .transform(DwarfStackTraceDecoder(dwarf, includeInternalFrames: true))
       .toList();
 
-  final gotSymbolizedCalls =
-      gotSymbolizedLines.where((s) => s.startsWith('#')).toList();
+  final allSymbolizedCalls =
+      allSymbolizedLines.where((s) => s.startsWith('#')).toList();
 
   print("");
-  print("Symbolized stack trace:");
-  gotSymbolizedLines.forEach(print);
+  print("Symbolized full stack trace:");
+  allSymbolizedLines.forEach(print);
   print("");
   print("Extracted calls:");
-  gotSymbolizedCalls.forEach(print);
+  allSymbolizedCalls.forEach(print);
 
-  final expectedStrings = extractCallStrings(expectedCallsInfo);
+  final expectedExternalStrings = extractCallStrings(expectedExternalCallInfo);
   // There are two strings in the list for each line in the output.
+  final expectedExternalCallCount = expectedExternalStrings.length ~/ 2;
+  final expectedStrings = extractCallStrings(expectedAllCallsInfo);
   final expectedCallCount = expectedStrings.length ~/ 2;
 
-  Expect.isTrue(gotSymbolizedCalls.length >= expectedCallCount);
+  Expect.isTrue(externalSymbolizedCalls.length >= expectedExternalCallCount);
+  Expect.isTrue(allSymbolizedCalls.length >= expectedCallCount);
 
   // Strip off any unexpected lines, so we can also make sure we didn't get
   // unexpected calls prior to those calls we expect.
-  final gotCallsTrace =
-      gotSymbolizedCalls.sublist(0, expectedCallCount).join('\n');
+  final externalCallsTrace =
+      externalSymbolizedCalls.sublist(0, expectedExternalCallCount).join('\n');
+  final allCallsTrace =
+      allSymbolizedCalls.sublist(0, expectedCallCount).join('\n');
 
-  Expect.stringContainsInOrder(gotCallsTrace, expectedStrings);
+  Expect.stringContainsInOrder(externalCallsTrace, expectedExternalStrings);
+  Expect.stringContainsInOrder(allCallsTrace, expectedStrings);
 }
 
-final expectedCallsInfo = <List<DartCallInfo>>[
+final expectedCallsInfo = <List<CallInfo>>[
   // The first frame should correspond to the throw in bar, which was inlined
   // into foo (so we'll get information for two calls for that PC address).
   [
@@ -139,13 +163,11 @@ final expectedCallsInfo = <List<DartCallInfo>>[
         function: "bar",
         filename: "dwarf_stack_trace_test.dart",
         line: 17,
-        column: 3,
         inlined: true),
     DartCallInfo(
         function: "foo",
         filename: "dwarf_stack_trace_test.dart",
         line: 23,
-        column: 3,
         inlined: false)
   ],
   // The second frame corresponds to call to foo in main.
@@ -154,25 +176,65 @@ final expectedCallsInfo = <List<DartCallInfo>>[
         function: "main",
         filename: "dwarf_stack_trace_test.dart",
         line: 29,
-        column: 5,
         inlined: false)
   ],
   // Don't assume anything about any of the frames below the call to foo
   // in main, as this makes the test too brittle.
 ];
 
+List<List<CallInfo>> removeInternalCalls(List<List<CallInfo>> original) =>
+    original
+        .map((frame) => frame.where((call) => !call.isInternal).toList())
+        .toList();
+
+void checkConsistency(
+    List<List<CallInfo>> externalFrames, List<List<CallInfo>> allFrames) {
+  // We should have the same number of frames for both external-only
+  // and combined call information.
+  Expect.equals(allFrames.length, externalFrames.length);
+
+  for (var frame in externalFrames) {
+    // There should be no frames in either version where we failed to look up
+    // call information.
+    Expect.isNotNull(frame);
+
+    // External-only call information should only include call information with
+    // positive line numbers.
+    for (var call in frame) {
+      Expect.isTrue(!call.isInternal);
+    }
+  }
+
+  for (var frame in allFrames) {
+    // There should be no frames in either version where we failed to look up
+    // call information.
+    Expect.isNotNull(frame);
+
+    // All frames in the internal-including version should have at least one
+    // piece of call information.
+    Expect.isTrue(frame.isNotEmpty);
+  }
+
+  // The information in the external-only and combined call information should
+  // be consistent for externally visible calls.
+  final allFramesStripped = removeInternalCalls(allFrames);
+  for (var i = 0; i < allFramesStripped.length; i++) {
+    Expect.listEquals(allFramesStripped[i], externalFrames[i]);
+  }
+}
+
 void checkFrames(
-    List<List<DartCallInfo>> gotInfo, List<List<DartCallInfo>> expectedInfo) {
+    List<List<CallInfo>> framesInfo, List<List<CallInfo>> expectedInfo) {
   // There may be frames below those we check.
-  Expect.isTrue(gotInfo.length >= expectedInfo.length);
+  Expect.isTrue(framesInfo.length >= expectedInfo.length);
 
   // We can't just use deep equality, since we only have the filenames in the
   // expected version, not the whole path, and we don't really care if
   // non-positive line numbers match, as long as they're both non-positive.
   for (var i = 0; i < expectedInfo.length; i++) {
     for (var j = 0; j < expectedInfo[i].length; j++) {
-      final got = gotInfo[i][j];
-      final expected = expectedInfo[i][j];
+      final DartCallInfo got = framesInfo[i][j];
+      final DartCallInfo expected = expectedInfo[i][j];
       Expect.equals(expected.function, got.function);
       Expect.equals(expected.inlined, got.inlined);
       Expect.equals(expected.filename, path.basename(got.filename));
@@ -205,10 +267,9 @@ List<String> extractCallStrings(List<List<CallInfo>> expectedCalls) {
 Iterable<int> parseUsingAddressRegExp(RegExp re, Iterable<String> lines) sync* {
   for (final line in lines) {
     final match = re.firstMatch(line);
-    if (match == null) continue;
-    final s = match.group(1);
-    if (s == null) continue;
-    yield int.parse(s, radix: 16);
+    if (match != null) {
+      yield int.parse(match.group(1), radix: 16);
+    }
   }
 }
 

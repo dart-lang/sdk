@@ -24,7 +24,7 @@ foo() {
 }
 
 Future<void> main() async {
-  String rawStack = "";
+  String rawStack;
   try {
     foo();
   } catch (e, st) {
@@ -45,7 +45,7 @@ Future<void> main() async {
   await base.checkStackTrace(rawStack, dwarf, expectedCallsInfo);
 }
 
-final expectedCallsInfo = <List<DartCallInfo>>[
+final expectedCallsInfo = <List<CallInfo>>[
   // The first frame should correspond to the throw in bar, which was inlined
   // into foo (so we'll get information for two calls for that PC address).
   [
@@ -53,13 +53,11 @@ final expectedCallsInfo = <List<DartCallInfo>>[
         function: "bar",
         filename: "dwarf_stack_trace_obfuscate_test.dart",
         line: 17,
-        column: 3,
         inlined: true),
     DartCallInfo(
         function: "foo",
         filename: "dwarf_stack_trace_obfuscate_test.dart",
         line: 23,
-        column: 3,
         inlined: false)
   ],
   // The second frame corresponds to call to foo in main.
@@ -68,7 +66,6 @@ final expectedCallsInfo = <List<DartCallInfo>>[
         function: "main",
         filename: "dwarf_stack_trace_obfuscate_test.dart",
         line: 29,
-        column: 5,
         inlined: false)
   ],
   // Don't assume anything about any of the frames below the call to foo

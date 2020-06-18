@@ -36,6 +36,26 @@ KernelLineStartsReader::KernelLineStartsReader(
   }
 }
 
+intptr_t KernelLineStartsReader::LineNumberForPosition(
+    intptr_t position) const {
+  intptr_t line_count = line_starts_data_.Length();
+  intptr_t current_start = 0;
+  for (intptr_t i = 0; i < line_count; ++i) {
+    current_start += helper_->At(line_starts_data_, i);
+    if (current_start > position) {
+      // If current_start is greater than the desired position, it means that
+      // it is for the line after |position|. However, since line numbers
+      // start at 1, we just return |i|.
+      return i;
+    }
+
+    if (current_start == position) {
+      return i + 1;
+    }
+  }
+  return line_count;
+}
+
 void KernelLineStartsReader::LocationForPosition(intptr_t position,
                                                  intptr_t* line,
                                                  intptr_t* col) const {
