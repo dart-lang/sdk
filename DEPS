@@ -107,7 +107,7 @@ vars = {
   "http_retry_tag": "0.1.1",
   "http_rev": "a131e563c09349f624d5421237183a06fb10552d",
   "http_throttle_tag" : "1.0.2",
-  "icu_rev" : "8d29692df640668ed7e4d1817715440c4e05697a",
+  "icu_rev" : "79326efe26e5440f530963704c3c0ff965b3a4ac",
   "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
   "intl_tag": "0.16.1",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
