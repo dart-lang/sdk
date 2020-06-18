@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/element/type_demotion.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -159,7 +160,9 @@ class InstanceMemberInferrer {
           name: getterName,
         );
         if (combinedGetter != null) {
-          accessor.returnType = combinedGetter.returnType;
+          var returnType = combinedGetter.returnType;
+          returnType = nonNullifyType(typeSystem, returnType);
+          accessor.returnType = returnType;
         }
       }
 
@@ -175,7 +178,9 @@ class InstanceMemberInferrer {
           name: setterName,
         );
         if (combinedSetter != null) {
-          accessor.returnType = combinedSetter.parameters[0].type;
+          var returnType = combinedSetter.parameters[0].type;
+          returnType = nonNullifyType(typeSystem, returnType);
+          accessor.returnType = returnType;
         }
       }
 
@@ -209,7 +214,9 @@ class InstanceMemberInferrer {
           name: getterName,
         );
         if (combinedGetter != null) {
-          parameter.type = combinedGetter.returnType;
+          var type = combinedGetter.returnType;
+          type = nonNullifyType(typeSystem, type);
+          parameter.type = type;
         }
         return;
       }
@@ -230,7 +237,9 @@ class InstanceMemberInferrer {
           name: setterName,
         );
         if (combinedSetter != null) {
-          parameter.type = combinedSetter.parameters[0].type;
+          var type = combinedSetter.parameters[0].type;
+          type = nonNullifyType(typeSystem, type);
+          parameter.type = type;
         }
         return;
       }
@@ -262,7 +271,9 @@ class InstanceMemberInferrer {
           name: getterName,
         );
         if (combinedGetter != null) {
-          field.type = combinedGetter.returnType;
+          var type = combinedGetter.returnType;
+          type = nonNullifyType(typeSystem, type);
+          field.type = type;
         }
         return;
       }
@@ -279,7 +290,9 @@ class InstanceMemberInferrer {
           name: setterName,
         );
         if (combinedSetter != null) {
-          field.type = combinedSetter.parameters[0].type;
+          var type = combinedSetter.parameters[0].type;
+          type = nonNullifyType(typeSystem, type);
+          field.type = type;
         }
         return;
       }
@@ -296,7 +309,9 @@ class InstanceMemberInferrer {
             name: getterName,
           );
           if (combinedGetter != null) {
-            field.type = combinedGetter.returnType;
+            var type = combinedGetter.returnType;
+            type = nonNullifyType(typeSystem, type);
+            field.type = type;
           }
           return;
         }
@@ -329,7 +344,9 @@ class InstanceMemberInferrer {
           }
 
           if (getterType == setterType) {
-            field.type = getterType ?? _dynamicType;
+            var type = getterType ?? _dynamicType;
+            type = nonNullifyType(typeSystem, type);
+            field.type = type;
           } else {
             LazyAst.setTypeInferenceError(
               field.linkedNode,
@@ -500,7 +517,9 @@ class InstanceMemberInferrer {
     //
     if (element.hasImplicitReturnType && element.displayName != '[]=') {
       if (combinedSignatureType != null) {
-        element.returnType = combinedSignatureType.returnType;
+        var returnType = combinedSignatureType.returnType;
+        returnType = nonNullifyType(typeSystem, returnType);
+        element.returnType = returnType;
       } else {
         element.returnType = DynamicTypeImpl.instance;
       }
@@ -549,7 +568,9 @@ class InstanceMemberInferrer {
         combinedSignatureType.parameters,
       );
       if (matchingParameter != null) {
-        parameter.type = matchingParameter.type;
+        var type = matchingParameter.type;
+        type = nonNullifyType(typeSystem, type);
+        parameter.type = type;
       } else {
         parameter.type = DynamicTypeImpl.instance;
       }
