@@ -30,10 +30,6 @@ library /*isNonNullableByDefault*/;
 //   void method([int i]) {}
 //                    ^
 //
-// pkg/front_end/testcases/nnbd/platform_optional_parameters/origin_lib.dart:8:36: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
-//   external void patchedMethod([int i]);
-//                                    ^
-//
 // pkg/front_end/testcases/nnbd/platform_optional_parameters/origin_lib.dart:11:18: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
 // void method([int i]) {}
 //                  ^

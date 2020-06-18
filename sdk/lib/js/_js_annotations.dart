@@ -8,7 +8,7 @@
 library _js_annotations;
 
 class JS {
-  final String name;
+  final String? name;
   const JS([this.name]);
 }
 
