@@ -438,8 +438,6 @@ abstract class CommonElements {
 
   FunctionEntity get traceFromException;
 
-  FunctionEntity get setRuntimeTypeInfo;
-
   FunctionEntity get checkDeferredIsLoaded;
 
   FunctionEntity get throwNoSuchMethod;
@@ -463,6 +461,8 @@ abstract class CommonElements {
   FunctionEntity getInstantiateFunction(int typeArgumentCount);
 
   // From dart:_rti
+
+  FunctionEntity get setRuntimeTypeInfo;
 
   FunctionEntity get findType;
   FunctionEntity get instanceType;
@@ -1774,10 +1774,6 @@ class CommonElementsImpl
       _findHelperFunction('getTraceFromException');
 
   @override
-  FunctionEntity get setRuntimeTypeInfo =>
-      _findHelperFunction('setRuntimeTypeInfo');
-
-  @override
   FunctionEntity get checkDeferredIsLoaded =>
       _findHelperFunction('checkDeferredIsLoaded');
 
@@ -1856,6 +1852,11 @@ class CommonElementsImpl
 
   FunctionEntity _findRtiFunction(String name) =>
       _findLibraryMember(rtiLibrary, name);
+
+  FunctionEntity _setRuntimeTypeInfo;
+  @override
+  FunctionEntity get setRuntimeTypeInfo =>
+      _setRuntimeTypeInfo ??= _findRtiFunction('setRuntimeTypeInfo');
 
   FunctionEntity _findType;
   @override

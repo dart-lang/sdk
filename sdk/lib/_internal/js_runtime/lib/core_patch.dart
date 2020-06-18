@@ -25,11 +25,10 @@ import 'dart:_js_helper'
         RuntimeError;
 
 import 'dart:_foreign_helper' show JS, JS_GET_FLAG;
-
 import 'dart:_native_typed_data' show NativeUint8List;
+import 'dart:_rti' show getRuntimeType;
 
 import "dart:convert" show Encoding, utf8;
-
 import 'dart:typed_data' show Endian, Uint8List, Uint16List;
 
 String _symbolToString(Symbol symbol) =>

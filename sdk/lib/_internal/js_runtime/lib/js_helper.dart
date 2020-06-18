@@ -76,7 +76,6 @@ part 'instantiation.dart';
 part 'native_helper.dart';
 part 'regexp_helper.dart';
 part 'string_helper.dart';
-part 'js_rti.dart';
 part 'linked_hash_map.dart';
 
 /// Marks the internal map in dart2js, so that internal libraries can is-check
@@ -1914,6 +1913,16 @@ fillLiteralSet(values, Set result) {
     result.add(getIndex(values, index));
   }
   return result;
+}
+
+/// Returns the property [index] of the JavaScript array [array].
+getIndex(var array, int index) {
+  return JS('var', r'#[#]', array, index);
+}
+
+/// Returns the length of the JavaScript array [array].
+int getLength(var array) {
+  return JS('int', r'#.length', array);
 }
 
 invokeClosure(Function closure, int numberOfArguments, var arg1, var arg2,

@@ -24,7 +24,6 @@ import 'dart:_js_helper'
         defineProperty,
         diagnoseIndexError,
         getIsolateAffinityTag,
-        getRuntimeType,
         initNativeDispatch,
         initNativeDispatchFlag,
         regExpGetNative,
@@ -52,6 +51,9 @@ import 'dart:_foreign_helper'
         JS_EMBEDDED_GLOBAL,
         JS_INTERCEPTOR_CONSTANT,
         JS_STRING_CONCAT;
+
+import 'dart:_rti' show getRuntimeType;
+
 import 'dart:math' show Random, ln2;
 
 part 'js_array.dart';
