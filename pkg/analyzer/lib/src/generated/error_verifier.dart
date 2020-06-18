@@ -5395,12 +5395,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
 
-    // For `C?.foo()` the type of `C` is not set, it is not an expression.
+    // For `foo?.bar`, `foo` must be an identifier with a value.
     if (node is Identifier) {
       var element = node.staticElement;
-      if (element is ClassElement || element is ExtensionElement) {
-        return false;
-      }
+      return element is PropertyAccessorElement || element is VariableElement;
     }
 
     return true;
