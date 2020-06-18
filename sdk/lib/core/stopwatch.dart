@@ -27,7 +27,7 @@ class Stopwatch {
    * The following example shows how to start a [Stopwatch]
    * immediately after allocation.
    * ```
-   * var stopwatch = new Stopwatch()..start();
+   * var stopwatch = Stopwatch()..start();
    * ```
    */
   Stopwatch() {
