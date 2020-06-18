@@ -16,7 +16,6 @@ Language/Expressions/Identifier_Reference/*: Skip # Not migrated to NNBD
 Language/Expressions/Instance_Creation/New/type_t09: Skip # Type aliases are not fully implemented
 Language/Expressions/Lists/syntax_t01: Skip # Triple shift is not implemented yet
 Language/Expressions/Maps/syntax_t01: Skip # Triple shift is not implemented yet
-Language/Functions/*: Skip # Not migrated to NNBD
 Language/Generics/*: Skip # Not migrated to NNBD
 Language/Generics/Superbounded_types/*: Skip # Not migrated to NNBD
 Language/Interfaces/Superinterfaces/*: Skip # Not migrated to NNBD
@@ -300,6 +299,7 @@ Utils/tests/Expect/*: Skip # Not migrated to NNBD
 [ $compiler == dart2analyzer ]
 Language/Classes/Instance_Methods/Operators/allowed_names_t01: Skip # Triple shift is not fully implemented
 Language/Classes/Instance_Methods/Operators/arity_1_t19: Skip # Triple shift is not fully implemented (https://github.com/dart-lang/sdk/issues/42353)
+Language/Functions/syntax_t03: Skip # Triple shift is not implemented yet
 LanguageFeatures/Subtyping/static/tests/left_bottom_A01_t02: Skip # Type aliases are not supported by analyzer
 LanguageFeatures/Subtyping/static/tests/left_bottom_A01_t04: Skip # Type aliases are not supported by analyzer
 LanguageFeatures/Subtyping/static/tests/left_bottom_A01_t06: Skip # Type aliases are not supported by analyzer
