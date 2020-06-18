@@ -3490,13 +3490,18 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   // type argument vector instantiated from null becomes a vector of dynamic,
   // then use null as the type arguments.
   compiler::Label type_arguments_instantiated;
+  const bool can_function_type_args_be_null =
+      function_type_arguments()->CanBe(Object::null_object());
   const intptr_t len = type_arguments().Length();
-  if (type_arguments().IsRawWhenInstantiatedFromRaw(len)) {
+  if (type_arguments().IsRawWhenInstantiatedFromRaw(len) &&
+      can_function_type_args_be_null) {
     ASSERT(result_reg != instantiator_type_args_reg &&
            result_reg != function_type_args_reg);
     __ LoadObject(result_reg, Object::null_object());
     __ cmp(instantiator_type_args_reg, compiler::Operand(result_reg));
-    __ cmp(function_type_args_reg, compiler::Operand(result_reg), EQ);
+    if (!function_type_arguments()->BindsToConstant()) {
+      __ cmp(function_type_args_reg, compiler::Operand(result_reg), EQ);
+    }
     __ b(&type_arguments_instantiated, EQ);
   }
   // Lookup cache in stub before calling runtime.

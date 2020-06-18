@@ -170,6 +170,10 @@ class Value : public ZoneAllocated {
 
   bool Equals(Value* other) const;
 
+  // Returns true if this |Value| can evaluate to the given |value| during
+  // execution.
+  inline bool CanBe(const Object& value);
+
  private:
   friend class FlowGraphPrinter;
   friend class FlowGraphDeserializer;  // For setting reaching_type_ directly.
@@ -9390,6 +9394,11 @@ StringPtr TemplateDartCall<kExtraInputs>::Selector() {
   } else {
     UNREACHABLE();
   }
+}
+
+inline bool Value::CanBe(const Object& value) {
+  ConstantInstr* constant = definition()->AsConstant();
+  return (constant == nullptr) || constant->value().raw() == value.raw();
 }
 
 }  // namespace dart
