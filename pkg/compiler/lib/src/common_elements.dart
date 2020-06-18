@@ -440,12 +440,6 @@ abstract class CommonElements {
 
   FunctionEntity get setRuntimeTypeInfo;
 
-  FunctionEntity get getRuntimeTypeInfo;
-
-  FunctionEntity get computeSignature;
-
-  FunctionEntity get getRuntimeTypeArguments;
-
   FunctionEntity get checkDeferredIsLoaded;
 
   FunctionEntity get throwNoSuchMethod;
@@ -1782,18 +1776,6 @@ class CommonElementsImpl
   @override
   FunctionEntity get setRuntimeTypeInfo =>
       _findHelperFunction('setRuntimeTypeInfo');
-
-  @override
-  FunctionEntity get getRuntimeTypeInfo =>
-      _findHelperFunction('getRuntimeTypeInfo');
-
-  @override
-  FunctionEntity get computeSignature =>
-      _findHelperFunction('computeSignature');
-
-  @override
-  FunctionEntity get getRuntimeTypeArguments =>
-      _findHelperFunction('getRuntimeTypeArguments');
 
   @override
   FunctionEntity get checkDeferredIsLoaded =>

@@ -44,7 +44,6 @@ import 'package:js/js.dart';
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -105,7 +104,6 @@ import 'package:js/js.dart';
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[

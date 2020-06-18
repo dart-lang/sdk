@@ -225,7 +225,6 @@ testIs() => null is Class;
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -275,7 +274,6 @@ testIs() => null is Class;
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -579,7 +577,6 @@ testIsNot() => null is! Class;
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -629,7 +626,6 @@ testIsNot() => null is! Class;
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -848,7 +844,6 @@ testIsNotGenericDynamic() => null is! GenericClass<dynamic, dynamic>;
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -898,7 +893,6 @@ testIsNotGenericDynamic() => null is! GenericClass<dynamic, dynamic>;
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -947,7 +941,6 @@ testIsTypedef() => null is Typedef;
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -997,7 +990,6 @@ testIsTypedef() => null is Typedef;
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -1046,7 +1038,6 @@ testIsTypedefGeneric() => null is GenericTypedef<int, String>;
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -1096,7 +1087,6 @@ testIsTypedefGeneric() => null is GenericTypedef<int, String>;
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -1145,7 +1135,6 @@ testIsTypedefGenericRaw() => null is GenericTypedef;
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -1195,7 +1184,6 @@ testIsTypedefGenericRaw() => null is GenericTypedef;
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -1244,7 +1232,6 @@ testIsTypedefGenericDynamic() => null is GenericTypedef<dynamic, dynamic>;
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -1294,7 +1281,6 @@ testIsTypedefGenericDynamic() => null is GenericTypedef<dynamic, dynamic>;
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -1429,7 +1415,6 @@ testAs(dynamic o) => o as Class;
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2),
   throwRuntimeError(1)],
@@ -1479,7 +1464,6 @@ testAs(dynamic o) => o as Class;
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2),
   throwRuntimeError(1)],

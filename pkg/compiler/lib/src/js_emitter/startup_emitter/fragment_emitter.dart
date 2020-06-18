@@ -621,9 +621,7 @@ class FragmentEmitter {
             ? TrivialRuntimeTypesSubstitutions(_closedWorld)
             : RuntimeTypesImpl(_closedWorld),
         _closedWorld.nativeData,
-        _closedWorld.elementEnvironment,
-        _closedWorld.commonElements,
-        _closedWorld.rtiNeed);
+        _closedWorld.commonElements);
     _rulesetEncoder =
         RulesetEncoder(_closedWorld.dartTypes, _emitter, _recipeEncoder);
   }

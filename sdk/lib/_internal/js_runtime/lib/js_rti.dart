@@ -57,90 +57,14 @@ Object setRuntimeTypeInfo(Object target, var rti) {
   return target;
 }
 
-/// Returns the runtime type information of [target]. The returned value is a
-/// list of type representations for the type arguments.
-///
-/// Called from generated code.
-getRuntimeTypeInfo(Object target) {
-  if (target == null) return null;
-  String rtiName = JS_GET_NAME(JsGetName.RTI_NAME);
-  return JS('var', r'#[#]', target, rtiName);
-}
-
-/// Returns the type arguments of [object] as an instance of [substitutionName].
-getRuntimeTypeArguments(interceptor, object, substitutionName) {
-  var substitution = getField(interceptor,
-      '${JS_GET_NAME(JsGetName.OPERATOR_AS_PREFIX)}$substitutionName');
-  return substitute(substitution, getRuntimeTypeInfo(object));
-}
-
 Type getRuntimeType(var object) {
   return newRti.getRuntimeType(object);
 }
-
-/// Applies the [substitution] on the [arguments].
-///
-/// See the comment in the beginning of this file for a description of the
-/// possible values for [substitution].
-substitute(var substitution, var arguments) {
-  if (substitution == null) return arguments;
-  assert(isJsFunction(substitution));
-  assert(arguments == null || isJsArray(arguments));
-  substitution = invoke(substitution, arguments);
-  if (substitution == null) return null;
-  if (isJsArray(substitution)) {
-    // Substitutions are generated too late to mark Array as used, so use a
-    // tautological JS 'cast' to mark Array as used. This is needed only in
-    // some tiny tests where the substition is the only thing that creates an
-    // Array.
-    return JS('JSArray', '#', substitution);
-  }
-  if (isJsFunction(substitution)) {
-    // TODO(johnniwinther): Check if this is still needed.
-    return invoke(substitution, arguments);
-  }
-  return arguments;
-}
-
-/// Computes the signature by applying the type arguments of [context] as an
-/// instance of [contextName] to the signature function [signature].
-computeSignature(var signature, var context, var contextName) {
-  var interceptor = getInterceptor(context);
-  var typeArguments =
-      getRuntimeTypeArguments(interceptor, context, contextName);
-  return invokeOn(signature, context, typeArguments);
-}
-
-/// Calls the JavaScript [function] with the [arguments] with the global scope
-/// as the `this` context.
-invoke(var function, var arguments) => invokeOn(function, null, arguments);
-
-/// Calls the JavaScript [function] with the [arguments] with [receiver] as the
-/// `this` context.
-Object invokeOn(function, receiver, arguments) {
-  assert(isJsFunction(function));
-  assert(arguments == null || isJsArray(arguments));
-  return JS('var', r'#.apply(#, #)', function, receiver, arguments);
-}
-
-/// Calls the property [name] on the JavaScript [object].
-call(var object, String name) => JS('var', r'#[#]()', object, name);
-
-/// Returns the property [name] of the JavaScript object [object].
-getField(var object, String name) => JS('var', r'#[#]', object, name);
 
 /// Returns the property [index] of the JavaScript array [array].
 getIndex(var array, int index) {
   assert(isJsArray(array));
   return JS('var', r'#[#]', array, index);
-}
-
-setField(var object, String name, var value) {
-  JS('', '#[#] = #', object, name, value);
-}
-
-setIndex(var array, int index, var value) {
-  JS('', '#[#] = #', array, index, value);
 }
 
 /// Returns the length of the JavaScript array [array].
@@ -153,23 +77,3 @@ int getLength(var array) {
 bool isJsArray(var value) {
   return value is JSArray;
 }
-
-hasField(var object, var name) => JS('bool', r'# in #', name, object);
-
-hasNoField(var object, var name) => !hasField(object, name);
-
-/// Returns `true` if [o] is a JavaScript function.
-bool isJsFunction(var o) => JS('bool', r'typeof # == "function"', o);
-
-/// Returns `true` if [o] is a JavaScript object.
-bool isJsObject(var o) => JS('bool', r"typeof # == 'object'", o);
-
-/// Returns `true` if the JavaScript values [s] and [t] are identical. We use
-/// this helper instead of [identical] because `identical` needs to merge
-/// `null` and `undefined` (which we can avoid).
-bool isIdentical(var s, var t) => JS('bool', '# === #', s, t);
-
-/// Returns `true` if the JavaScript values [s] and [t] are not identical. We
-/// use this helper instead of [identical] because `identical` needs to merge
-/// `null` and `undefined` (which we can avoid).
-bool isNotIdentical(var s, var t) => JS('bool', '# !== #', s, t);

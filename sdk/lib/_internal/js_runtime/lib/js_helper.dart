@@ -91,34 +91,6 @@ String isCheckPropertyToJsConstructorName(String isCheckProperty) {
       JsBuiltin.isCheckPropertyToJsConstructorName, isCheckProperty);
 }
 
-/// Returns true if the given [type] is a function type object.
-// TODO(floitsch): move this to foreign_helper.dart or similar.
-@pragma('dart2js:tryInline')
-bool isDartFunctionType(Object type) {
-  // Function type test is using the `in` operator which doesn't work on
-  // primitive types.
-  assert(!(type == null || type is num || type is String));
-  return JS_BUILTIN(
-      'returns:bool;effects:none;depends:none', JsBuiltin.isFunctionType, type);
-}
-
-/// Returns true if the given [type] is a FutureOr type object.
-// TODO(floitsch): move this to foreign_helper.dart or similar.
-@pragma('dart2js:tryInline')
-bool isDartFutureOrType(Object type) {
-  // FutureOr test is using the `in` operator which doesn't work on primitive
-  // types.
-  assert(!(type == null || type is num || type is String));
-  return JS_BUILTIN(
-      'returns:bool;effects:none;depends:none', JsBuiltin.isFutureOrType, type);
-}
-
-@pragma('dart2js:tryInline')
-bool isDartVoidTypeRti(Object type) {
-  return JS_BUILTIN(
-      'returns:bool;effects:none;depends:none', JsBuiltin.isVoidType, type);
-}
-
 /// Retrieves the class name from type information stored on the constructor of
 /// [type].
 // TODO(floitsch): move this to foreign_helper.dart or similar.
@@ -153,73 +125,6 @@ jsConstructorNameToRti(String constructorName) {
 @pragma('dart2js:tryInline')
 Object getRawRuntimeType(Object o) {
   return JS_BUILTIN('', JsBuiltin.rawRuntimeType, o);
-}
-
-/// Returns whether the given [type] is a subtype of [other].
-///
-/// The argument [other] is the name of the other type, as computed by
-/// [runtimeTypeToString].
-@pragma('dart2js:tryInline')
-bool builtinIsSubtype(type, String other) {
-  return JS_BUILTIN('returns:bool;effects:none;depends:none',
-      JsBuiltin.isSubtype, other, type);
-}
-
-/// Returns true if the given [type] is _the_ `Function` type.
-// TODO(floitsch): move this to foreign_helper.dart or similar.
-@pragma('dart2js:tryInline')
-bool isDartFunctionTypeRti(Object type) {
-  return JS_BUILTIN(
-      'returns:bool;effects:none;depends:none',
-      JsBuiltin.isGivenTypeRti,
-      type,
-      JS_GET_NAME(JsGetName.FUNCTION_CLASS_TYPE_NAME));
-}
-
-/// Returns true if the given [type] is _the_ `Null` type.
-@pragma('dart2js:tryInline')
-bool isNullType(Object type) {
-  return JS_BUILTIN(
-      'returns:bool;effects:none;depends:none',
-      JsBuiltin.isGivenTypeRti,
-      type,
-      JS_GET_NAME(JsGetName.NULL_CLASS_TYPE_NAME));
-}
-
-/// Returns whether the given type is the dynamic type.
-// TODO(floitsch): move this to foreign_helper.dart or similar.
-@pragma('dart2js:tryInline')
-bool isDartDynamicTypeRti(type) {
-  return JS_BUILTIN(
-      'returns:bool;effects:none;depends:none', JsBuiltin.isDynamicType, type);
-}
-
-@pragma('dart2js:tryInline')
-bool isDartJsInteropTypeArgumentRti(type) {
-  return JS_BUILTIN('returns:bool;effects:none;depends:none',
-      JsBuiltin.isJsInteropTypeArgument, type);
-}
-
-/// Returns whether the given type is _the_ Dart Object type.
-// TODO(floitsch): move this to foreign_helper.dart or similar.
-@pragma('dart2js:tryInline')
-bool isDartObjectTypeRti(type) {
-  return JS_BUILTIN(
-      'returns:bool;effects:none;depends:none',
-      JsBuiltin.isGivenTypeRti,
-      type,
-      JS_GET_NAME(JsGetName.OBJECT_CLASS_TYPE_NAME));
-}
-
-/// Returns whether the given type is _the_ null type.
-// TODO(floitsch): move this to foreign_helper.dart or similar.
-@pragma('dart2js:tryInline')
-bool isNullTypeRti(type) {
-  return JS_BUILTIN(
-      'returns:bool;effects:none;depends:none',
-      JsBuiltin.isGivenTypeRti,
-      type,
-      JS_GET_NAME(JsGetName.NULL_CLASS_TYPE_NAME));
 }
 
 /// Returns the metadata of the given [index].

@@ -322,7 +322,6 @@ int topLevelFunction2Typed(String a, [num b, double c]) => null;
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -374,7 +373,6 @@ int topLevelFunction2Typed(String a, [num b, double c]) => null;
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -487,7 +485,6 @@ testTopLevelInvokeTyped() {
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -536,7 +533,6 @@ testTopLevelInvokeTyped() {
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -584,7 +580,6 @@ topLevelFunctionTyped1(void a(num b)) {}
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -633,7 +628,6 @@ topLevelFunctionTyped1(void a(num b)) {}
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -681,7 +675,6 @@ topLevelFunctionTyped2(void a(num b, [String c])) {}
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -730,7 +723,6 @@ topLevelFunctionTyped2(void a(num b, [String c])) {}
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -778,7 +770,6 @@ topLevelFunctionTyped3(void a(num b, {String c, int d})) {}
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -827,7 +818,6 @@ topLevelFunctionTyped3(void a(num b, {String c, int d})) {}
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -1284,7 +1274,6 @@ testTopLevelFieldGeneric2() => topLevelFieldGeneric2;
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -1334,7 +1323,6 @@ testTopLevelFieldGeneric2() => topLevelFieldGeneric2;
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -1454,10 +1442,7 @@ testLocalWithInitializerTyped() {
 
 /*member: testLocalFunction:
  static=[
-  computeSignature(3),
   def:localFunction,
-  getRuntimeTypeArguments(3),
-  getRuntimeTypeInfo(1),
   setRuntimeTypeInfo(2)],
  type=[
   inst:Function,
@@ -1504,11 +1489,8 @@ testLocalFunction() {
   _isObject(1),
   _isString(1),
   _isTop(1),
-  computeSignature(3),
   def:localFunction,
   findType(1),
-  getRuntimeTypeArguments(3),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -1558,11 +1540,8 @@ testLocalFunction() {
   _isObject(1),
   _isString(1),
   _isTop(1),
-  computeSignature(3),
   def:localFunction,
   findType(1),
-  getRuntimeTypeArguments(3),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -1584,10 +1563,8 @@ testLocalFunctionTyped() {
 
 /*member: testLocalFunctionInvoke:
  dynamic=[call(0)],
- static=[computeSignature(3),
+ static=[
   def:localFunction,
-  getRuntimeTypeArguments(3),
-  getRuntimeTypeInfo(1),
   localFunction(0),
   setRuntimeTypeInfo(2)],
   type=[inst:Function,
@@ -1601,10 +1578,8 @@ testLocalFunctionInvoke() {
   localFunction();
 }
 
-/*member: testLocalFunctionGet:static=[computeSignature(3),
+/*member: testLocalFunctionGet:static=[
   def:localFunction,
-  getRuntimeTypeArguments(3),
-  getRuntimeTypeInfo(1),
   setRuntimeTypeInfo(2)],
   type=[inst:Function,
   inst:JSArray<dynamic>,
@@ -1617,10 +1592,8 @@ testLocalFunctionGet() {
   localFunction;
 }
 
-/*member: testClosure:static=[computeSignature(3),
+/*member: testClosure:static=[
   def:<anonymous>,
-  getRuntimeTypeArguments(3),
-  getRuntimeTypeInfo(1),
   setRuntimeTypeInfo(2)],
   type=[inst:Function,
   inst:JSArray<dynamic>,
@@ -1634,10 +1607,8 @@ testClosure() {
 
 /*member: testClosureInvoke:
  dynamic=[call(0)],
- static=[computeSignature(3),
+ static=[
   def:<anonymous>,
-  getRuntimeTypeArguments(3),
-  getRuntimeTypeInfo(1),
   setRuntimeTypeInfo(2)],
   type=[inst:Function,
   inst:JSArray<dynamic>,

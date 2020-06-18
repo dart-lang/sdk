@@ -109,9 +109,6 @@ class BackendImpacts {
   BackendImpact get computeSignature {
     return _computeSignature ??= new BackendImpact(globalUses: [
       _commonElements.setRuntimeTypeInfo,
-      _commonElements.getRuntimeTypeInfo,
-      _commonElements.computeSignature,
-      _commonElements.getRuntimeTypeArguments,
     ], otherImpacts: [
       listValues
     ]);
@@ -454,7 +451,6 @@ class BackendImpacts {
   BackendImpact get typeVariableExpression {
     return _typeVariableExpression ??= new BackendImpact(staticUses: [
       _commonElements.setRuntimeTypeInfo,
-      _commonElements.getRuntimeTypeInfo,
       _commonElements.createRuntimeType
     ], otherImpacts: [
       listValues,
@@ -476,7 +472,6 @@ class BackendImpacts {
     return _genericTypeCheck ??= new BackendImpact(staticUses: [
       // TODO(johnniwinther): Investigate why this is needed.
       _commonElements.setRuntimeTypeInfo,
-      _commonElements.getRuntimeTypeInfo
     ], otherImpacts: [
       listValues,
       getRuntimeTypeArgument,
@@ -701,7 +696,6 @@ class BackendImpacts {
       _commonElements.listClass
     ], globalUses: [
       _commonElements.setRuntimeTypeInfo,
-      _commonElements.getRuntimeTypeInfo
     ], otherImpacts: [
       getRuntimeTypeArgument,
       computeSignature
