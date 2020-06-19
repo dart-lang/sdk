@@ -622,6 +622,88 @@ var b = new B();
     });
   }
 
+  Future<void> test_packageConfig_packagesOptions() async {
+    await withTempDirAsync((tempDir) async {
+      var packagesPath = path.join(tempDir, 'aaa.packages');
+
+      var aaaRoot = path.join(tempDir, 'packages', 'aaa');
+      var aPath = path.join(aaaRoot, 'lib', 'a.dart');
+
+      var aUri = 'package:aaa/a.dart';
+
+      File(packagesPath).createSync(recursive: true);
+      File(packagesPath).writeAsStringSync('''
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "aaa",
+      "rootUri": "${path.toUri(aaaRoot)}",
+      "packageUri": "lib/",
+      "languageVersion": "2.4"
+    }
+  ]
+}
+''');
+
+      File(aPath).createSync(recursive: true);
+      File(aPath).writeAsStringSync(r'''
+extension E on int {}
+''');
+
+      // Analyze package:aaa/a.dart and compute errors.
+      await _doDrive(
+        aPath,
+        fileUri: aUri,
+        additionalArgs: [
+          '--packages=$packagesPath',
+        ],
+      );
+      expect(exitCode, ErrorSeverity.ERROR.ordinal);
+      expect(errorSink.toString(), contains('extension-methods'));
+    });
+  }
+
+  Future<void> test_packageConfig_relativeToFile() async {
+    await withTempDirAsync((tempDir) async {
+      var packagesPath = path.join(tempDir, '.dart_tool/package_config.json');
+
+      var aaaRoot = path.join(tempDir, 'packages', 'aaa');
+      var aPath = path.join(aaaRoot, 'lib', 'a.dart');
+
+      var aUri = 'package:aaa/a.dart';
+
+      File(packagesPath).createSync(recursive: true);
+      File(packagesPath).writeAsStringSync('''
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "aaa",
+      "rootUri": "${path.toUri(aaaRoot)}",
+      "packageUri": "lib/",
+      "languageVersion": "2.4"
+    }
+  ]
+}
+''');
+
+      File(aPath).createSync(recursive: true);
+      File(aPath).writeAsStringSync(r'''
+extension E on int {}
+''');
+
+      // Analyze package:aaa/a.dart and compute errors.
+      await _doDrive(
+        aPath,
+        fileUri: aUri,
+        additionalArgs: [],
+      );
+      expect(exitCode, ErrorSeverity.ERROR.ordinal);
+      expect(errorSink.toString(), contains('extension-methods'));
+    });
+  }
+
   Iterable<String> _linkedLibraryUnitUriList(
     LinkedNodeBundle bundle2,
     String libraryUriStr,
