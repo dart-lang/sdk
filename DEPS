@@ -142,7 +142,7 @@ vars = {
   "source_maps-0.9.4_rev": "38524",
   "source_maps_rev": "87b4fd9027378bbd51b02e9d7df794eee8a82b7a",
   "source_span_tag": "1.7.0",
-  "stack_trace_tag": "1.9.3",
+  "stack_trace_tag": "07569831f17844ef90214a179db211954a7f7324",
   "stagehand_tag": "v3.3.7",
   "stream_channel_tag": "70433d577be02c48cb16d72d65654f3b4d82c6ed",
   "string_scanner_rev": "a918e7371af6b6e73bfd534ff9da6084741c1f99",
