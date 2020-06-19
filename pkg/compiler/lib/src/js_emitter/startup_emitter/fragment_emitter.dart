@@ -432,6 +432,9 @@ var #staticStateDeclaration = {};
 // Adds the variance table for the new RTI.
 #variances;
 
+// Shared strings need to be initialized before constants.
+#sharedStrings;
+
 // Shared types need to be initialized before constants.
 #sharedTypeRtis;
 
@@ -535,6 +538,8 @@ var #typesOffset = hunkHelpers.updateTypes(#types);
 
 // Adds the variance table for the new RTI.
 #variances;
+
+#sharedStrings;
 
 #sharedTypeRtis;
 // Instantiates all constants of this deferred fragment.
@@ -695,6 +700,7 @@ class FragmentEmitter {
       'embeddedGlobalsPart2':
           emitEmbeddedGlobalsPart2(program, deferredLoadingState),
       'typeRules': emitTypeRules(fragment),
+      'sharedStrings': StringReferenceResource(),
       'variances': emitVariances(fragment),
       'sharedTypeRtis': TypeReferenceResource(),
       'nativeSupport': emitNativeSupport(fragment),
@@ -725,7 +731,7 @@ class FragmentEmitter {
         mainCode
       ]);
     }
-    finalizeTypeReferences(mainCode);
+    finalizeStringAndTypeReferences(mainCode);
     return mainCode;
   }
 
@@ -827,17 +833,22 @@ class FragmentEmitter {
       'types': deferredTypes,
       'nativeSupport': nativeSupport,
       'typesOffset': _namer.typesOffsetName,
+      'sharedStrings': StringReferenceResource(),
       'sharedTypeRtis': TypeReferenceResource(),
     });
 
     if (_options.experimentStartupFunctions) {
       code = js.Parentheses(code);
     }
-    finalizeTypeReferences(code);
+    finalizeStringAndTypeReferences(code);
     return code;
   }
 
-  void finalizeTypeReferences(js.Node code) {
+  void finalizeStringAndTypeReferences(js.Node code) {
+    StringReferenceFinalizer stringFinalizer =
+        StringReferenceFinalizerImpl(_options.enableMinification);
+    stringFinalizer.addCode(code);
+    stringFinalizer.finalize();
     TypeReferenceFinalizer finalizer = TypeReferenceFinalizerImpl(
         _emitter, _commonElements, _recipeEncoder, _options.enableMinification);
     finalizer.addCode(code);

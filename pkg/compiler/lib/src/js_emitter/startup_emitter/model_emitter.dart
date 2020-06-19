@@ -60,6 +60,11 @@ import '../../js_backend/type_reference.dart'
         TypeReferenceFinalizer,
         TypeReferenceFinalizerImpl,
         TypeReferenceResource;
+import '../../js_backend/string_reference.dart'
+    show
+        StringReferenceFinalizer,
+        StringReferenceFinalizerImpl,
+        StringReferenceResource;
 import '../../options.dart';
 import '../../universe/class_hierarchy.dart' show ClassHierarchy;
 import '../../universe/codegen_world_builder.dart' show CodegenWorld;

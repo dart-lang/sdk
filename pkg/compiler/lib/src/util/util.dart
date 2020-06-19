@@ -36,6 +36,15 @@ class Hashing {
     return ((high * 13) ^ (low * 997) ^ h) & SMI_MASK;
   }
 
+  /// Returns a hash value computed from all the characters in the string.
+  static int stringHash(String s) {
+    int hash = mixHashCodeBits(0, s.length);
+    for (int i = 0; i < s.length; i++) {
+      hash = mixHashCodeBits(hash, s.codeUnitAt(i));
+    }
+    return hash;
+  }
+
   /// Mix the bits of `object.hashCode` with [existing].
   static int objectHash(Object object, [int existing = 0]) {
     return mixHashCodeBits(existing, object.hashCode);
