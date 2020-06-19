@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:meta/meta.dart';
+
 /// The performance of an operation.
 abstract class CiderOperationPerformance {
   /// The children operation, might be empty.
@@ -17,6 +19,12 @@ abstract class CiderOperationPerformance {
   String get name;
 
   CiderOperationPerformance getChild(String name);
+
+  /// Write this operation and its children into the [buffer].
+  void write({
+    @required StringBuffer buffer,
+    String indent = '',
+  });
 }
 
 class CiderOperationPerformanceFixed implements CiderOperationPerformance {
@@ -42,6 +50,11 @@ class CiderOperationPerformanceFixed implements CiderOperationPerformance {
   @override
   String toString() {
     return '(name: $name, elapsed: $elapsed)';
+  }
+
+  @override
+  void write({StringBuffer buffer, String indent = ''}) {
+    buffer.writeln('$indent${toString()}');
   }
 }
 
@@ -129,5 +142,15 @@ class CiderOperationPerformanceImpl implements CiderOperationPerformance {
   @override
   String toString() {
     return '(name: $name, elapsed: $elapsed, elapsedSelf: $elapsedSelf)';
+  }
+
+  @override
+  void write({StringBuffer buffer, String indent = ''}) {
+    buffer.writeln('$indent${toString()}');
+
+    var childIndent = '$indent  ';
+    for (var child in children) {
+      child.write(buffer: buffer, indent: childIndent);
+    }
   }
 }

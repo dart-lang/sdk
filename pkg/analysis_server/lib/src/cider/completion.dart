@@ -60,10 +60,11 @@ class CiderCompletionComputer {
     @required int column,
   }) async {
     return _performanceRoot.runAsync('completion', (performance) async {
-      var fileContext = performance.run('file', (performance) {
-        return _logger.run('Get file $path', () {
-          return _fileResolver.getFileContext(path);
-        });
+      var fileContext = _logger.run('Get file $path', () {
+        return _fileResolver.getFileContext(
+          path: path,
+          performance: performance,
+        );
       });
 
       var file = fileContext.file;
@@ -72,7 +73,10 @@ class CiderCompletionComputer {
       var offset = lineInfo.getOffsetOfLine(line) + column;
 
       var resolvedUnit = performance.run('resolution', (performance) {
-        return _fileResolver.resolve(path);
+        return _fileResolver.resolve2(
+          path: path,
+          performance: performance,
+        );
       });
 
       var completionRequest = CompletionRequestImpl(
@@ -147,7 +151,7 @@ class CiderCompletionComputer {
       var result = CiderCompletionResult._(
         suggestions: suggestions,
         performance: CiderCompletionPerformance._(
-          file: performance.getChild('file').elapsed,
+          file: performance.getChild('fileContext').elapsed,
           imports: performance.getChild('imports').elapsed,
           resolution: performance.getChild('resolution').elapsed,
           suggestions: performance.getChild('suggestions').elapsed,
