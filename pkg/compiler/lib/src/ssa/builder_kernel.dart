@@ -3251,6 +3251,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     ir.DartType type = node.type;
     if (type is ir.InterfaceType ||
         type is ir.DynamicType ||
+        type is ir.NeverType ||
         type is ir.TypedefType ||
         type is ir.FunctionType ||
         type is ir.FutureOrType) {
