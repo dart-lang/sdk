@@ -345,6 +345,9 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
             typeVariable(context.enclosingLibrary), _currentTypeUsage);
       }
     }
+
+    visitNode(typeParameter.bound);
+
     return const InitializerComplexity.constant();
   }
 
