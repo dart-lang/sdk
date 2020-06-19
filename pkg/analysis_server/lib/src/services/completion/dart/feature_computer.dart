@@ -29,6 +29,40 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
+const List<String> intNames = ['i', 'j', 'index', 'length'];
+const List<String> listNames = ['list', 'items'];
+const List<String> numNames = ['height', 'width'];
+const List<String> stringNames = [
+  'key',
+  'text',
+  'url',
+  'uri',
+  'name',
+  'str',
+  'string'
+];
+
+DartType impliedDartTypeWithName(TypeProvider typeProvider, String name) {
+  if (typeProvider == null || name == null || name.isEmpty) {
+    return null;
+  }
+  if (intNames.contains(name)) {
+    return typeProvider.intType;
+  } else if (numNames.contains(name)) {
+    return typeProvider.numType;
+  } else if (listNames.contains(name)) {
+    return typeProvider.listType2(typeProvider.dynamicType);
+  } else if (stringNames.contains(name)) {
+    return typeProvider.stringType;
+  } else if (name == 'iterator') {
+    return typeProvider.iterableDynamicType;
+  } else if (name == 'map') {
+    return typeProvider.mapType2(
+        typeProvider.dynamicType, typeProvider.dynamicType);
+  }
+  return null;
+}
+
 /// Convert a relevance score (assumed to be between `0.0` and `1.0` inclusive)
 /// to a relevance value between `0` and `1000`. If the score is outside that
 /// range, return the [defaultValue].
@@ -726,7 +760,8 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
     if (node.equals != null && node.equals.end <= offset) {
       var parent = node.parent;
       if (parent is VariableDeclarationList) {
-        return parent.type?.type;
+        return parent.type?.type ??
+            impliedDartTypeWithName(typeProvider, node.name?.name);
       }
     }
     return null;
@@ -737,7 +772,8 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
     for (var varDecl in node.variables) {
       if (varDecl != null && varDecl.contains(offset)) {
         if (varDecl.equals.end <= offset) {
-          return node.type?.type;
+          return node.type?.type ??
+              impliedDartTypeWithName(typeProvider, varDecl.name?.name);
         }
       }
     }
