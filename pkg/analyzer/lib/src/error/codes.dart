@@ -2836,7 +2836,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try removing one of the occurrences.");
 
   /**
-   * No parameters.
+   * Parameters:
+   * 0: the name of the instance member
    */
   // #### Description
   //
@@ -2886,7 +2887,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```
   static const CompileTimeErrorCode IMPLICIT_THIS_REFERENCE_IN_INITIALIZER =
       CompileTimeErrorCode('IMPLICIT_THIS_REFERENCE_IN_INITIALIZER',
-          "Only static members can be accessed in initializers.",
+          "The instance member '{0}' can't be accessed in an initializer.",
+          correction:
+              'Try replacing the reference to the instance member with a '
+              'different expression',
           hasPublishedDocs: true);
 
   /**
