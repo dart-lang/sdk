@@ -21,6 +21,8 @@ adopted
 affected
 albeit
 allocations
+allowlist
+allowlisting
 alt
 amortized
 analyses
@@ -54,7 +56,6 @@ benchmark
 besides
 beta
 bigger
-denylist
 blah
 blindly
 blocked
@@ -131,6 +132,7 @@ decrease
 decrements
 def
 deleting
+denylist
 depended
 depfile
 desc
@@ -233,6 +235,7 @@ forbidden
 forces
 foreign
 forrest
+foundation
 fox
 fulfill
 func
@@ -472,6 +475,7 @@ risky
 runtimes
 say
 scans
+scheduler
 screen
 scripts
 sdkroot
@@ -479,6 +483,7 @@ sdks
 secondary
 segment
 sensitive
+services
 severe
 sheets
 shipped
@@ -577,8 +582,6 @@ waiting
 walt
 warmup
 wherever
-allowlist
-allowlisting
 wins
 workflow
 worlds

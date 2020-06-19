@@ -16,13 +16,6 @@ library /*isNonNullableByDefault*/;
 //   void test_nondefault({int? i = 1}) {}
 //        ^
 //
-// pkg/front_end/testcases/nnbd_mixed/required_name_override.dart:15:35: Error: The required named parameter 'i' in method 'A.test_legacy' is not required in overridden method 'C.test_legacy'.
-//   void test_legacy({required int? i}) {}
-//                                   ^
-// pkg/front_end/testcases/nnbd_mixed/required_name_override_lib.dart:8:8: Context: This is the overridden method ('test_legacy').
-//   void test_legacy({int i}) {}
-//        ^
-//
 import self as self;
 import "dart:core" as core;
 import "required_name_override_lib.dart" as req;

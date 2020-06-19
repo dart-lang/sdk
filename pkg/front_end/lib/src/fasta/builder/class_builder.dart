@@ -1252,7 +1252,9 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           declaredParameter.isCovariant,
           declaredParameter,
           isInterfaceCheck);
-      if (declaredParameter.isRequired &&
+      if (declaredMember.isNonNullableByDefault &&
+          declaredParameter.isRequired &&
+          interfaceMember.isNonNullableByDefault &&
           !interfaceNamedParameters.current.isRequired) {
         reportInvalidOverride(
             isInterfaceCheck,

@@ -1,35 +1,4 @@
 library main /*isNonNullableByDefault*/;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:96:30: Error: The required named parameter 'a' in method 'Class2b.method5c' is not required in overridden method 'LegacyClass.method5c'.
-//   int method5c({required int a, required int b}) => 0;
-//                              ^
-// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:30:7: Context: This is the overridden method ('method5c').
-//   int method5c({int a, int b}) => 0;
-//       ^
-//
-// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:96:46: Error: The required named parameter 'b' in method 'Class2b.method5c' is not required in overridden method 'LegacyClass.method5c'.
-//   int method5c({required int a, required int b}) => 0;
-//                                              ^
-// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:30:7: Context: This is the overridden method ('method5c').
-//   int method5c({int a, int b}) => 0;
-//       ^
-//
-// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:102:32: Error: The required named parameter 'a' in method 'Class2b.method6c' is not required in overridden method 'LegacyClass.method6c'.
-//   int? method6c({required int? a, required int? b}) => 0;
-//                                ^
-// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:36:7: Context: This is the overridden method ('method6c').
-//   int method6c({int a, int b}) => 0;
-//       ^
-//
-// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out.dart:102:49: Error: The required named parameter 'b' in method 'Class2b.method6c' is not required in overridden method 'LegacyClass.method6c'.
-//   int? method6c({required int? a, required int? b}) => 0;
-//                                                 ^
-// pkg/front_end/testcases/nnbd_mixed/member_inheritance_from_opt_out_lib.dart:36:7: Context: This is the overridden method ('method6c').
-//   int method6c({int a, int b}) => 0;
-//       ^
-//
 import self as self;
 import "dart:core" as core;
 import "member_inheritance_from_opt_out_lib.dart" as opt;
