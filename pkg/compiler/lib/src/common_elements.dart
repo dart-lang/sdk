@@ -412,13 +412,9 @@ abstract class CommonElements {
 
   FunctionEntity get exceptionUnwrapper;
 
-  FunctionEntity get throwRuntimeError;
-
   FunctionEntity get throwUnsupportedError;
 
   FunctionEntity get throwTypeError;
-
-  FunctionEntity get throwAbstractClassInstantiationError;
 
   /// Recognizes the `checkConcurrentModificationError` helper without needing
   /// it to be resolved.
@@ -1698,19 +1694,11 @@ class CommonElementsImpl
       _findHelperFunction('unwrapException');
 
   @override
-  FunctionEntity get throwRuntimeError =>
-      _findHelperFunction('throwRuntimeError');
-
-  @override
   FunctionEntity get throwUnsupportedError =>
       _findHelperFunction('throwUnsupportedError');
 
   @override
   FunctionEntity get throwTypeError => _findRtiFunction('throwTypeError');
-
-  @override
-  FunctionEntity get throwAbstractClassInstantiationError =>
-      _findHelperFunction('throwAbstractClassInstantiationError');
 
   @override
   bool isCheckConcurrentModificationError(MemberEntity member) {

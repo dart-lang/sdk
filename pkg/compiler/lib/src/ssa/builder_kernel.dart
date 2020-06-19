@@ -4495,10 +4495,6 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         return js.js
             .expressionTemplateYielding(_emitter.typeAccess(closureClass));
 
-      case JsBuiltin.isCheckPropertyToJsConstructorName:
-        int isPrefixLength = _namer.fixedNames.operatorIsPrefix.length;
-        return js.js.expressionTemplateFor('#.substring($isPrefixLength)');
-
       case JsBuiltin.getMetadata:
         String metadataAccess =
             _emitter.generateEmbeddedGlobalAccessString(METADATA);

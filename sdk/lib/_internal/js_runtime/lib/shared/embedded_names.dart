@@ -252,17 +252,6 @@ enum JsBuiltin {
   ///       ...
   dartClosureConstructor,
 
-  /// Returns the JavaScript-constructor name given an [isCheckProperty].
-  ///
-  /// This relies on a deterministic encoding of is-check properties (for
-  /// example `$isFoo` for a class `Foo`). In minified code the returned
-  /// classname is the minified name of the class.
-  ///
-  ///     JS_BUILTIN('returns:String;depends:none;effects:none',
-  ///                JsBuiltin.isCheckPropertyToJsConstructorName,
-  ///                isCheckProperty);
-  isCheckPropertyToJsConstructorName,
-
   /// Returns true if the given type is a type argument of a js-interop class
   /// or a supertype of a js-interop class.
   ///

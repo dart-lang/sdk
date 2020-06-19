@@ -275,8 +275,6 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'stringTypeCheck': 'stringTypeCheck(x) {}',
   'subtypeCast': 'subtypeCast(object, isField, checks, asField) {}',
   'subtypeOfRuntimeTypeCast': 'subtypeOfRuntimeTypeCast(object, type) {}',
-  'throwAbstractClassInstantiationError':
-      'throwAbstractClassInstantiationError(className) {}',
   'checkConcurrentModificationError':
       'checkConcurrentModificationError(collection) {}',
   'throwConcurrentModificationError':
@@ -285,7 +283,6 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'throwExpression': 'throwExpression(e) {}',
   'throwNoSuchMethod':
       'throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {}',
-  'throwRuntimeError': 'throwRuntimeError(message) {}',
   'throwUnsupportedError': 'throwUnsupportedError(message) {}',
   'throwTypeError': 'throwTypeError(message) {}',
   'unwrapException': 'unwrapException(e) {}',

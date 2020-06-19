@@ -1329,8 +1329,7 @@ testIsTypedefDeep() => null is List<GenericTypedef<int, GenericTypedef>>;
   _isString(1),
   _isTop(1),
   findType(1),
-  instanceType(1),
-  throwRuntimeError(1)],
+  instanceType(1)],
  type=[
   as:Class,
   inst:Closure,
@@ -1372,8 +1371,7 @@ testIsTypedefDeep() => null is List<GenericTypedef<int, GenericTypedef>>;
   _isString(1),
   _isTop(1),
   findType(1),
-  instanceType(1),
-  throwRuntimeError(1)],
+  instanceType(1)],
  type=[
   as:Class*,
   inst:Closure,
@@ -1416,8 +1414,7 @@ testAs(dynamic o) => o as Class;
   _isTop(1),
   findType(1),
   instanceType(1),
-  setRuntimeTypeInfo(2),
-  throwRuntimeError(1)],
+  setRuntimeTypeInfo(2)],
  type=[
   as:GenericClass<int,String>,
   inst:Closure,
@@ -1465,8 +1462,7 @@ testAs(dynamic o) => o as Class;
   _isTop(1),
   findType(1),
   instanceType(1),
-  setRuntimeTypeInfo(2),
-  throwRuntimeError(1)],
+  setRuntimeTypeInfo(2)],
  type=[
   as:GenericClass<int*,String*>*,
   inst:Closure,
@@ -1513,8 +1509,7 @@ testAsGeneric(dynamic o) => o as GenericClass<int, String>;
   _isString(1),
   _isTop(1),
   findType(1),
-  instanceType(1),
-  throwRuntimeError(1)],
+  instanceType(1)],
  type=[
   as:GenericClass<dynamic,dynamic>,
   inst:Closure,
@@ -1556,8 +1551,7 @@ testAsGeneric(dynamic o) => o as GenericClass<int, String>;
   _isString(1),
   _isTop(1),
   findType(1),
-  instanceType(1),
-  throwRuntimeError(1)],
+  instanceType(1)],
  type=[
   as:GenericClass<dynamic,dynamic>*,
   inst:Closure,
@@ -1599,8 +1593,7 @@ testAsGenericRaw(dynamic o) => o as GenericClass;
   _isString(1),
   _isTop(1),
   findType(1),
-  instanceType(1),
-  throwRuntimeError(1)],
+  instanceType(1)],
  type=[
   as:GenericClass<dynamic,dynamic>,
   inst:Closure,
@@ -1642,8 +1635,7 @@ testAsGenericRaw(dynamic o) => o as GenericClass;
   _isString(1),
   _isTop(1),
   findType(1),
-  instanceType(1),
-  throwRuntimeError(1)],
+  instanceType(1)],
  type=[
   as:GenericClass<dynamic,dynamic>*,
   inst:Closure,
