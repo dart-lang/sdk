@@ -1160,7 +1160,7 @@ class _CombinatorMirror extends Mirror implements CombinatorMirror {
 }
 
 class _MethodMirror extends _DeclarationMirror implements MethodMirror {
-  final Type _instantiator;
+  final Type? _instantiator;
   final bool isStatic;
   final int _kindFlags;
 
@@ -1353,7 +1353,7 @@ class _ParameterMirror extends _VariableMirror implements ParameterMirror {
             false // Not extension member.
             );
 
-  Object _defaultValueReflectee;
+  Object? _defaultValueReflectee;
   InstanceMirror? _defaultValue;
   InstanceMirror? get defaultValue {
     if (!isOptional) {
