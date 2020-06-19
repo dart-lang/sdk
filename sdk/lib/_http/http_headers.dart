@@ -80,6 +80,9 @@ class _HttpHeaders implements HttpHeaders {
     String lowercaseName = _validateField(name);
     _headers.remove(lowercaseName);
     _originalHeaderNames?.remove(lowercaseName);
+    if (lowercaseName == HttpHeaders.contentLengthHeader) {
+      _contentLength = -1;
+    }
     if (lowercaseName == HttpHeaders.transferEncodingHeader) {
       _chunkedTransferEncoding = false;
     }
