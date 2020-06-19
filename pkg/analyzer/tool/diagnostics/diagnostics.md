@@ -2558,7 +2558,7 @@ class B implements A {}
 
 ### implicit_this_reference_in_initializer
 
-_Only static members can be accessed in initializers._
+_The instance member '{0}' can't be accessed in an initializer._
 
 #### Description
 
