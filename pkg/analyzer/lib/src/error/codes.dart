@@ -43,9 +43,52 @@ class CheckedModeCompileTimeErrorCode extends AnalyzerErrorCode {
               "has type '{2}'.");
 
   /**
-   * 16.12.2 Const: It is a compile-time error if evaluation of a constant
-   * object results in an uncaught exception being thrown.
+   * Parameters:
+   * 0: The type of the runtime value of the argument
+   * 1: The static type of the parameter
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the runtime type of a constant
+  // value can't be assigned to the static type of a constant constructor's
+  // parameter.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the runtime type of `i`
+  // is `int`, which can't be assigned to the static type of `s`:
+  //
+  // ```dart
+  // class C {
+  //   final String s;
+  //
+  //   const C(this.s);
+  // }
+  //
+  // const dynamic i = 0;
+  //
+  // void f() {
+  //   const C([!i!]);
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Pass a value of the correct type to the constructor:
+  //
+  // ```dart
+  // class C {
+  //   final String s;
+  //
+  //   const C(this.s);
+  // }
+  //
+  // const dynamic i = 0;
+  //
+  // void f() {
+  //   const C('$i');
+  // }
+  // ```
   static const CheckedModeCompileTimeErrorCode
       CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH = CheckedModeCompileTimeErrorCode(
           'CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH',
@@ -2894,11 +2937,26 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * SDK implementation libraries can be imported only by other SDK libraries.
-   *
    * Parameters:
    * 0: the uri pointing to a library
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when it finds an import whose `dart:`
+  // URI references an internal library.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `_interceptors` is an
+  // internal library:
+  //
+  // ```dart
+  // import [!'dart:_interceptors'!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the import directive.
   static const CompileTimeErrorCode IMPORT_INTERNAL_LIBRARY =
       CompileTimeErrorCode('IMPORT_INTERNAL_LIBRARY',
           "The library '{0}' is internal and can't be imported.");
@@ -2929,17 +2987,53 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "Case expressions must have the same types, '{0}' isn't a '{1}'.");
 
   /**
-   * If a class declaration does not have a member declaration with a
-   * particular name, but some super-interfaces do have a member with that
-   * name, it's a compile-time error if there is no signature among the
-   * super-interfaces that is a valid override of all the other super-interface
-   * signatures with the same name. That "most specific" signature becomes the
-   * signature of the class's interface.
-   *
    * Parameters:
    * 0: the name of the instance member with inconsistent inheritance.
    * 1: the list of all inherited signatures for this member.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a class inherits two or more
+  // conflicting signatures for a member and doesn't provide an implementation
+  // that satisfies all the inherited signatures.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `C` is inheriting the
+  // declaration of `m` from `A`, and that implementation isn't consistent with
+  // the signature of `m` that's inherited from `B`:
+  //
+  // ```dart
+  // class A {
+  //   void m({int a}) {}
+  // }
+  //
+  // class B {
+  //   void m({int b}) {}
+  // }
+  //
+  // class [!C!] extends A implements B {
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Add an implementation of the method that satisfies all the inherited
+  // signatures:
+  //
+  // ```dart
+  // class A {
+  //   void m({int a}) {}
+  // }
+  //
+  // class B {
+  //   void m({int b}) {}
+  // }
+  //
+  // class C extends A implements B {
+  //   void m({int a, int b}) {}
+  // }
+  // ```
   static const CompileTimeErrorCode INCONSISTENT_INHERITANCE =
       CompileTimeErrorCode('INCONSISTENT_INHERITANCE',
           "Superinterfaces don't have a valid override for '{0}': {1}.",
@@ -4650,14 +4744,46 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try removing the keyword 'const' from the map literal.");
 
   /**
-   * 15 Metadata: Metadata consists of a series of annotations, each of which
-   * begin with the character @, followed by a constant expression that must be
-   * either a reference to a compile-time constant variable, or a call to a
-   * constant constructor.
-   *
-   * "From deferred library" case is covered by
-   * [CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY].
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an annotation is the invocation
+  // of an existing constructor even though the invoked constructor isn't a
+  // const constructor.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the constructor for `C`
+  // isn't a const constructor:
+  //
+  // ```dart
+  // [!@C()!]
+  // void f() {
+  // }
+  //
+  // class C {
+  //   C();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If it's valid for the class to have a const constructor, then create a
+  // const constructor that can be used for the annotation:
+  //
+  // ```dart
+  // @C()
+  // void f() {
+  // }
+  //
+  // class C {
+  //   const C();
+  // }
+  // ```
+  //
+  // If it isn't valid for the class to have a const constructor, then either
+  // remove the annotation or use a different class for the annotation.
   static const CompileTimeErrorCode NON_CONSTANT_ANNOTATION_CONSTRUCTOR =
       CompileTimeErrorCode('NON_CONSTANT_ANNOTATION_CONSTRUCTOR',
           "Annotation creation can only call a const constructor.");
@@ -5415,9 +5541,43 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "Try renaming either the top-level element or the prefix.");
 
   /**
-   * 16.32 Identifier Reference: If d is a prefix p, a compile-time error
-   * occurs unless the token immediately following d is '.'.
+   * Parameters:
+   * 0: The name of the prefix
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an import prefix is used by
+  // itself, without accessing any of the names declared in the libraries
+  // associated with the prefix. Prefixes aren't variables, and therefore can't
+  // be used as a value.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the prefix `math` is
+  // being used as if it were a variable:
+  //
+  // ```dart
+  // import 'dart:math' as math;
+  //
+  // void f() {
+  //   print([!math!]);
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the code is incomplete, then reference something in one of the libraries
+  // associated with the prefix:
+  //
+  // ```dart
+  // import 'dart:math' as math;
+  //
+  // void f() {
+  //   print(math.pi);
+  // }
+  // ```
+  //
+  // If the name is wrong, then correct the name.
   static const CompileTimeErrorCode PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT =
       CompileTimeErrorCode(
           'PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT',
@@ -5725,9 +5885,53 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "'throw' expression.");
 
   /**
-   * 13.12 Return: It is a compile-time error if a return statement of the form
-   * <i>return e;</i> appears in a generative constructor.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a generative constructor
+  // contains a return statement that specifies a value to be returned.
+  // Generative constructors always return the object that was created, and
+  // therefore can't return a different object.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the return statement
+  // has an expression:
+  //
+  // ```dart
+  // class C {
+  //   C() {
+  //     return [!this!];
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the constructor should create a new instance, then remove either the
+  // return statement or the expression:
+  //
+  // ```dart
+  // class C {
+  //   C();
+  // }
+  // ```
+  //
+  // If the constructor shouldn't create a new instance, then convert it to be a
+  // factory constructor:
+  //
+  // ```dart
+  // class C {
+  //   factory C() {
+  //     return _instance;
+  //   }
+  //
+  //   static C _instance = C._();
+  //
+  //   C._();
+  // }
+  // ```
   static const CompileTimeErrorCode RETURN_IN_GENERATIVE_CONSTRUCTOR =
       CompileTimeErrorCode('RETURN_IN_GENERATIVE_CONSTRUCTOR',
           "Constructors can't return values.",
@@ -6939,9 +7143,44 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
               "removing the modifier 'async*' from the function body.");
 
   /**
-   * 9 Functions: It is a static warning if the declared return type of a
-   * function marked async may not be assigned to Future.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the body of a function has the
+  // `async` modifier even though the return type of the function isn't
+  // assignable to `Future`.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the body of the
+  // function `f` has the `async` modifier even though the return type isn't
+  // assignable to `Future`:
+  //
+  // ```dart
+  // [!int!] f() async {
+  //   return 0;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the function should be asynchronous, then change the return type to be
+  // assignable to `Future`:
+  //
+  // ```dart
+  // Future<int> f() async {
+  //   return 0;
+  // }
+  // ```
+  //
+  // If the function should be synchronous, then remove the `async` modifier:
+  //
+  // ```dart
+  // int f() {
+  //   return 0;
+  // }
+  // ```
   static const StaticTypeWarningCode ILLEGAL_ASYNC_RETURN_TYPE =
       StaticTypeWarningCode(
           'ILLEGAL_ASYNC_RETURN_TYPE',
@@ -7450,17 +7689,49 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
           correction: "Try using a type that is or is a subclass of '{1}'.");
 
   /**
-   * 12.17 Getter Invocation: It is a static warning if there is no class
-   * <i>C</i> in the enclosing lexical scope of <i>i</i>, or if <i>C</i> does
-   * not declare, implicitly or explicitly, a getter named <i>m</i>.
-   *
    * Parameters:
    * 0: the name of the enumeration constant that is not defined
    * 1: the name of the enumeration used to access the constant
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when it encounters an identifier that
+  // appears to be the name of an enum constant, and the name either isn't
+  // defined or isn't visible in the scope in which it's being referenced.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because `E` doesn't define a
+  // constant named `c`:
+  //
+  // ```dart
+  // enum E {a, b}
+  //
+  // var e = E.[!c!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the constant should be defined, then add it to the declaration of the
+  // enum:
+  //
+  // ```dart
+  // enum E {a, b, c}
+  //
+  // var e = E.c;
+  // ```
+  //
+  // If the constant shouldn't be defined, then change the name to the name of
+  // an existing constant:
+  //
+  // ```dart
+  // enum E {a, b}
+  //
+  // var e = E.b;
+  // ```
   static const StaticTypeWarningCode UNDEFINED_ENUM_CONSTANT =
       StaticTypeWarningCode('UNDEFINED_ENUM_CONSTANT',
-          "There is no constant named '{0}' in '{1}'.",
+          "There's no constant named '{0}' in '{1}'.",
           correction:
               "Try correcting the name to the name of an existing constant, or "
               "defining a constant named '{0}'.");
@@ -8617,15 +8888,54 @@ class StaticWarningCode extends AnalyzerErrorCode {
       CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED;
 
   /**
-   * 5. Variables: It is a static warning if a final instance variable that has
-   * been initialized at its point of declaration is also initialized in a
-   * constructor.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a final field is initialized in
+  // both the declaration of the field and in an initializer in a constructor.
+  // Final fields can only be assigned once, so it can't be initialized in both
+  // places.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `f` is :
+  //
+  // ```dart
+  // class C {
+  //   final int f = 0;
+  //   C() : [!f!] = 1;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the initialization doesn't depend on any values passed to the
+  // constructor, and if all of the constructors need to initialize the field to
+  // the same value, then remove the initializer from the constructor:
+  //
+  // ```dart
+  // class C {
+  //   final int f = 0;
+  //   C();
+  // }
+  // ```
+  //
+  // If the initialization depends on a value passed to the constructor, or if
+  // different constructors need to initialize the field differently, then
+  // remove the initializer in the field's declaration:
+  //
+  // ```dart
+  // class C {
+  //   final int f;
+  //   C() : f = 1;
+  // }
+  // ```
   static const StaticWarningCode
       FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION = StaticWarningCode(
           'FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION',
           "Fields can't be initialized in the constructor if they are final "
-              "and have already been initialized at their declaration.",
+              "and were already initialized at their declaration.",
           correction: "Try removing one of the initializations.");
 
   /**
@@ -8644,22 +8954,52 @@ class StaticWarningCode extends AnalyzerErrorCode {
           correction: "Try removing one of the initializations.");
 
   /**
-   * 7.6.1 Generative Constructors: Execution of an initializer of the form
-   * <b>this</b>.<i>v</i> = <i>e</i> proceeds as follows: First, the expression
-   * <i>e</i> is evaluated to an object <i>o</i>. Then, the instance variable
-   * <i>v</i> of the object denoted by this is bound to <i>o</i>.
-   *
-   * 12.14.2 Binding Actuals to Formals: Let <i>T<sub>i</sub></i> be the static
-   * type of <i>a<sub>i</sub></i>, let <i>S<sub>i</sub></i> be the type of
-   * <i>p<sub>i</sub>, 1 &lt;= i &lt;= n+k</i> and let <i>S<sub>q</sub></i> be
-   * the type of the named parameter <i>q</i> of <i>f</i>. It is a static
-   * warning if <i>T<sub>j</sub></i> may not be assigned to <i>S<sub>j</sub>, 1
-   * &lt;= j &lt;= m</i>.
-   *
    * Parameters:
    * 0: the name of the type of the initializer expression
    * 1: the name of the type of the field
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the initializer list of a
+  // constructor initializes a field to a value that isn't assignable to the
+  // field.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `0` has the type `int`,
+  // and an `int` can't be assigned to a field of type `String`:
+  //
+  // ```dart
+  // class C {
+  //   String s;
+  //
+  //   C() : s = [!0!];
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the type of the field is correct, then change the value assigned to it
+  // so that the value has a valid type:
+  //
+  // ```dart
+  // class C {
+  //   String s;
+  //
+  //   C() : s = '0';
+  // }
+  // ```
+  //
+  // If the type of the value is correct, then change the type of the field to
+  // allow the assignment:
+  //
+  // ```dart
+  // class C {
+  //   int s;
+  //
+  //   C() : s = 0;
+  // }
+  // ```
   static const StaticWarningCode FIELD_INITIALIZER_NOT_ASSIGNABLE =
       StaticWarningCode(
           'FIELD_INITIALIZER_NOT_ASSIGNABLE',
@@ -9591,14 +9931,41 @@ class StaticWarningCode extends AnalyzerErrorCode {
       CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS;
 
   /**
-   * 14.3 Parts: It is a static warning if the referenced part declaration
-   * <i>p</i> names a library other than the current library as the library to
-   * which <i>p</i> belongs.
-   *
    * Parameters:
    * 0: the name of expected library name
    * 1: the non-matching actual library name from the "part of" declaration
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a library attempts to include a
+  // file as a part of itself when the other file is a part of a different
+  // library.
+  //
+  // #### Example
+  //
+  // Given a file named `part.dart` containing
+  //
+  // ```dart
+  // %uri="package:a/part.dart"
+  // part of 'library.dart';
+  // ```
+  //
+  // The following code, in any file other than `library.dart`, produces this
+  // diagnostic because it attempts to include `part.dart` as a part of itself
+  // when `part.dart` is a part of a different library:
+  //
+  // ```dart
+  // part [!'part.dart'!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the library should be using a different file as a part, then change the
+  // URI in the part directive to be the URI of the other file.
+  //
+  // If the part file should be a part of this library, then update the URI (or
+  // library name) in the part-of directive to be the URI (or name) of the
+  // correct library.
   static const StaticWarningCode PART_OF_DIFFERENT_LIBRARY = StaticWarningCode(
       'PART_OF_DIFFERENT_LIBRARY',
       "Expected this library to be part of '{0}', not '{1}'.",
@@ -9854,9 +10221,55 @@ class StaticWarningCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * 13.9 Switch: It is a static warning if the type of <i>e</i> may not be
-   * assigned to the type of <i>e<sub>k</sub></i>.
+   * Parameters:
+   * 0: The static type of the switch expression
+   * 1: The static type of the case expressions
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the type of the expression in a
+  // switch statement isn't assignable to the type of the expressions in the
+  // case clauses.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the type of `s`
+  // (`String`) isn't assignable to the type of `0` (`int`):
+  //
+  // ```dart
+  // void f(String s) {
+  //   switch ([!s!]) {
+  //     case 0:
+  //       break;
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the type of the case expressions is correct, then change the expression
+  // in the switch statement to have the correct type:
+  //
+  // ```dart
+  // void f(String s) {
+  //   switch (int.parse(s)) {
+  //     case 0:
+  //       break;
+  //   }
+  // }
+  // ```
+  //
+  // If the type of the switch expression is correct, then change the case
+  // expressions to have the correct type:
+  //
+  // ```dart
+  // void f(String s) {
+  //   switch (s) {
+  //     case '0':
+  //       break;
+  //   }
+  // }
+  // ```
   static const StaticWarningCode SWITCH_EXPRESSION_NOT_ASSIGNABLE =
       StaticWarningCode(
           'SWITCH_EXPRESSION_NOT_ASSIGNABLE',
@@ -9996,8 +10409,32 @@ class StaticWarningCode extends AnalyzerErrorCode {
           isUnresolvedIdentifier: true);
 
   /**
-   * If the identifier is 'await', be helpful about it.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the name `await` is used in a
+  // method or function body without being declared, and the body isn't marked
+  // with the `async` keyword. The name `await` only introduces an await
+  // expression in an asynchronous function.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the name `await` is
+  // used in the body of `f` even though the body of `f` isn't marked with the
+  // `async` keyword:
+  //
+  // ```dart
+  // void f(p) { [!await!] p; }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Add the keyword `async` to the function body:
+  //
+  // ```dart
+  // void f(p) async { await p; }
+  // ```
   static const StaticWarningCode UNDEFINED_IDENTIFIER_AWAIT = StaticWarningCode(
       'UNDEFINED_IDENTIFIER_AWAIT',
       "Undefined name 'await' in function body not marked with 'async'.",

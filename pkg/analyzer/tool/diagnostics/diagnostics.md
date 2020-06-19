@@ -860,6 +860,53 @@ abstract class C {
 }
 {% endprettify %}
 
+### const_constructor_param_type_mismatch
+
+_A value of type '{0}' can't be assigned to a parameter of type '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when the runtime type of a constant
+value can't be assigned to the static type of a constant constructor's
+parameter.
+
+#### Example
+
+The following code produces this diagnostic because the runtime type of `i`
+is `int`, which can't be assigned to the static type of `s`:
+
+{% prettify dart %}
+class C {
+  final String s;
+
+  const C(this.s);
+}
+
+const dynamic i = 0;
+
+void f() {
+  const C([!i!]);
+}
+{% endprettify %}
+
+#### Common fixes
+
+Pass a value of the correct type to the constructor:
+
+{% prettify dart %}
+class C {
+  final String s;
+
+  const C(this.s);
+}
+
+const dynamic i = 0;
+
+void f() {
+  const C('$i');
+}
+{% endprettify %}
+
 ### const_constructor_with_non_final_field
 
 _Can't define a const constructor for a class with non-final fields._
@@ -1725,6 +1772,51 @@ Note that literal sets preserve the order of their elements, so the choice
 of which element to remove might affect the order in which elements are
 returned by an iterator.
 
+### equal_elements_in_set
+
+_Two elements in a set literal shouldn't be equal._
+
+#### Description
+
+The analyzer produces this diagnostic when an element in a non-constant set
+is the same as a previous element in the same set. If two elements are the
+same, then the second value is  ignored, which makes having both elements
+pointless and likely signals a bug.
+
+#### Example
+
+The following code produces this diagnostic because the element `1` appears
+twice:
+
+{% prettify dart %}
+const a = 1;
+const b = 1;
+var s = <int>{a, [!b!]};
+{% endprettify %}
+
+#### Common fixes
+
+If both elements should be included in the set, then change one of the
+elements:
+
+{% prettify dart %}
+const a = 1;
+const b = 2;
+var s = <int>{a, b};
+{% endprettify %}
+
+If only one of the elements is needed, then remove the one that isn't
+needed:
+
+{% prettify dart %}
+const a = 1;
+var s = <int>{a};
+{% endprettify %}
+
+Note that literal sets preserve the order of their elements, so the choice
+of which element to remove might affect the order in which elements are
+returned by an iterator.
+
 ### equal_keys_in_const_map
 
 _Two keys in a constant map literal can't be equal._
@@ -1764,6 +1856,50 @@ const map = <int, String>{1: 'a', 2: 'b', 4: 'd'};
 Note that literal maps preserve the order of their entries, so the choice
 of which entry to remove might affect the order in which keys and values
 are returned by an iterator.
+
+### equal_keys_in_map
+
+_Two keys in a map literal shouldn't be equal._
+
+#### Description
+
+The analyzer produces this diagnostic when a key in a non-constant map is
+the same as a previous key in the same map. If two keys are the same, then
+the second value overwrites the first value, which makes having both pairs
+pointless and likely signals a bug.
+
+#### Example
+
+The following code produces this diagnostic because the keys `a` and `b`
+have the same value:
+
+{% prettify dart %}
+const a = 1;
+const b = 1;
+var m = <int, String>{a: 'a', [!b!]: 'b'};
+{% endprettify %}
+
+#### Common fixes
+
+If both entries should be included in the map, then change one of the keys:
+
+{% prettify dart %}
+const a = 1;
+const b = 2;
+var m = <int, String>{a: 'a', b: 'b'};
+{% endprettify %}
+
+If only one of the entries is needed, then remove the one that isn't
+needed:
+
+{% prettify dart %}
+const a = 1;
+var m = <int, String>{a: 'a'};
+{% endprettify %}
+
+Note that literal maps preserve the order of their entries, so the choice
+of which entry to remove might affect the order in which the keys and
+values are returned by an iterator.
 
 ### export_legacy_symbol
 
@@ -2322,6 +2458,100 @@ void g() {
 }
 {% endprettify %}
 
+### field_initialized_in_initializer_and_declaration
+
+_Fields can't be initialized in the constructor if they are final and were
+already initialized at their declaration._
+
+#### Description
+
+The analyzer produces this diagnostic when a final field is initialized in
+both the declaration of the field and in an initializer in a constructor.
+Final fields can only be assigned once, so it can't be initialized in both
+places.
+
+#### Example
+
+The following code produces this diagnostic because `f` is :
+
+{% prettify dart %}
+class C {
+  final int f = 0;
+  C() : [!f!] = 1;
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the initialization doesn't depend on any values passed to the
+constructor, and if all of the constructors need to initialize the field to
+the same value, then remove the initializer from the constructor:
+
+{% prettify dart %}
+class C {
+  final int f = 0;
+  C();
+}
+{% endprettify %}
+
+If the initialization depends on a value passed to the constructor, or if
+different constructors need to initialize the field differently, then
+remove the initializer in the field's declaration:
+
+{% prettify dart %}
+class C {
+  final int f;
+  C() : f = 1;
+}
+{% endprettify %}
+
+### field_initializer_not_assignable
+
+_The initializer type '{0}' can't be assigned to the field type '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when the initializer list of a
+constructor initializes a field to a value that isn't assignable to the
+field.
+
+#### Example
+
+The following code produces this diagnostic because `0` has the type `int`,
+and an `int` can't be assigned to a field of type `String`:
+
+{% prettify dart %}
+class C {
+  String s;
+
+  C() : s = [!0!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the type of the field is correct, then change the value assigned to it
+so that the value has a valid type:
+
+{% prettify dart %}
+class C {
+  String s;
+
+  C() : s = '0';
+}
+{% endprettify %}
+
+If the type of the value is correct, then change the type of the field to
+allow the assignment:
+
+{% prettify dart %}
+class C {
+  int s;
+
+  C() : s = 0;
+}
+{% endprettify %}
+
 ### final_not_initialized
 
 _The final variable '{0}' must be initialized._
@@ -2494,6 +2724,47 @@ void f(Map<String, String> m) {
 }
 {% endprettify %}
 
+### illegal_async_return_type
+
+_Functions marked 'async' must have a return type assignable to 'Future'._
+
+#### Description
+
+The analyzer produces this diagnostic when the body of a function has the
+`async` modifier even though the return type of the function isn't
+assignable to `Future`.
+
+#### Example
+
+The following code produces this diagnostic because the body of the
+function `f` has the `async` modifier even though the return type isn't
+assignable to `Future`:
+
+{% prettify dart %}
+[!int!] f() async {
+  return 0;
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the function should be asynchronous, then change the return type to be
+assignable to `Future`:
+
+{% prettify dart %}
+Future<int> f() async {
+  return 0;
+}
+{% endprettify %}
+
+If the function should be synchronous, then remove the `async` modifier:
+
+{% prettify dart %}
+int f() {
+  return 0;
+}
+{% endprettify %}
+
 ### implements_non_class
 
 _Classes and mixins can only implement other classes and mixins._
@@ -2604,6 +2875,76 @@ class C {
   C() : x = 0;
 
   int get defaultX => 0;
+}
+{% endprettify %}
+
+### import_internal_library
+
+_The library '{0}' is internal and can't be imported._
+
+#### Description
+
+The analyzer produces this diagnostic when it finds an import whose `dart:`
+URI references an internal library.
+
+#### Example
+
+The following code produces this diagnostic because `_interceptors` is an
+internal library:
+
+{% prettify dart %}
+import [!'dart:_interceptors'!];
+{% endprettify %}
+
+#### Common fixes
+
+Remove the import directive.
+
+### inconsistent_inheritance
+
+_Superinterfaces don't have a valid override for '{0}': {1}._
+
+#### Description
+
+The analyzer produces this diagnostic when a class inherits two or more
+conflicting signatures for a member and doesn't provide an implementation
+that satisfies all the inherited signatures.
+
+#### Example
+
+The following code produces this diagnostic because `C` is inheriting the
+declaration of `m` from `A`, and that implementation isn't consistent with
+the signature of `m` that's inherited from `B`:
+
+{% prettify dart %}
+class A {
+  void m({int a}) {}
+}
+
+class B {
+  void m({int b}) {}
+}
+
+class [!C!] extends A implements B {
+}
+{% endprettify %}
+
+#### Common fixes
+
+Add an implementation of the method that satisfies all the inherited
+signatures:
+
+{% prettify dart %}
+class A {
+  void m({int a}) {}
+}
+
+class B {
+  void m({int b}) {}
+}
+
+class C extends A implements B {
+  void m({int a, int b}) {}
 }
 {% endprettify %}
 
@@ -4280,6 +4621,49 @@ int a = 3;
 bool b = a == 0 || a > 1;
 {% endprettify %}
 
+### non_constant_annotation_constructor
+
+_Annotation creation can only call a const constructor._
+
+#### Description
+
+The analyzer produces this diagnostic when an annotation is the invocation
+of an existing constructor even though the invoked constructor isn't a
+const constructor.
+
+#### Example
+
+The following code produces this diagnostic because the constructor for `C`
+isn't a const constructor:
+
+{% prettify dart %}
+[!@C()!]
+void f() {
+}
+
+class C {
+  C();
+}
+{% endprettify %}
+
+#### Common fixes
+
+If it's valid for the class to have a const constructor, then create a
+const constructor that can be used for the annotation:
+
+{% prettify dart %}
+@C()
+void f() {
+}
+
+class C {
+  const C();
+}
+{% endprettify %}
+
+If it isn't valid for the class to have a const constructor, then either
+remove the annotation or use a different class for the annotation.
+
 ### non_constant_case_expression
 
 _Case expressions must be constant._
@@ -5292,6 +5676,41 @@ superclass, then consider removing the member from the subclass.
 
 If the member can't be removed, then remove the annotation.
 
+### part_of_different_library
+
+_Expected this library to be part of '{0}', not '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when a library attempts to include a
+file as a part of itself when the other file is a part of a different
+library.
+
+#### Example
+
+Given a file named `part.dart` containing
+
+{% prettify dart %}
+part of 'library.dart';
+{% endprettify %}
+
+The following code, in any file other than `library.dart`, produces this
+diagnostic because it attempts to include `part.dart` as a part of itself
+when `part.dart` is a part of a different library:
+
+{% prettify dart %}
+part [!'part.dart'!];
+{% endprettify %}
+
+#### Common fixes
+
+If the library should be using a different file as a part, then change the
+URI in the part directive to be the URI of the other file.
+
+If the part file should be a part of this library, then update the URI (or
+library name) in the part-of directive to be the URI (or name) of the
+correct library.
+
 ### part_of_non_part
 
 _The included part '{0}' must have a part-of directive._
@@ -5333,6 +5752,45 @@ directive with an import directive:
 {% prettify dart %}
 import 'a.dart';
 {% endprettify %}
+
+### prefix_identifier_not_followed_by_dot
+
+_The name '{0}' refers to an import prefix, so it must be followed by '.'._
+
+#### Description
+
+The analyzer produces this diagnostic when an import prefix is used by
+itself, without accessing any of the names declared in the libraries
+associated with the prefix. Prefixes aren't variables, and therefore can't
+be used as a value.
+
+#### Example
+
+The following code produces this diagnostic because the prefix `math` is
+being used as if it were a variable:
+
+{% prettify dart %}
+import 'dart:math' as math;
+
+void f() {
+  print([!math!]);
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the code is incomplete, then reference something in one of the libraries
+associated with the prefix:
+
+{% prettify dart %}
+import 'dart:math' as math;
+
+void f() {
+  print(math.pi);
+}
+{% endprettify %}
+
+If the name is wrong, then correct the name.
 
 ### redirect_to_invalid_function_type
 
@@ -5549,6 +6007,56 @@ void f(int i) {
   print(i);
   int x = 5;
   print(x);
+}
+{% endprettify %}
+
+### return_in_generative_constructor
+
+_Constructors can't return values._
+
+#### Description
+
+The analyzer produces this diagnostic when a generative constructor
+contains a return statement that specifies a value to be returned.
+Generative constructors always return the object that was created, and
+therefore can't return a different object.
+
+#### Example
+
+The following code produces this diagnostic because the return statement
+has an expression:
+
+{% prettify dart %}
+class C {
+  C() {
+    return [!this!];
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the constructor should create a new instance, then remove either the
+return statement or the expression:
+
+{% prettify dart %}
+class C {
+  C();
+}
+{% endprettify %}
+
+If the constructor shouldn't create a new instance, then convert it to be a
+factory constructor:
+
+{% prettify dart %}
+class C {
+  factory C() {
+    return _instance;
+  }
+
+  static C _instance = C._();
+
+  C._();
 }
 {% endprettify %}
 
@@ -6234,6 +6742,57 @@ void f() {
 
 Rewrite the code to not use `super`.
 
+### switch_expression_not_assignable
+
+_Type '{0}' of the switch expression isn't assignable to the type '{1}' of case
+expressions._
+
+#### Description
+
+The analyzer produces this diagnostic when the type of the expression in a
+switch statement isn't assignable to the type of the expressions in the
+case clauses.
+
+#### Example
+
+The following code produces this diagnostic because the type of `s`
+(`String`) isn't assignable to the type of `0` (`int`):
+
+{% prettify dart %}
+void f(String s) {
+  switch ([!s!]) {
+    case 0:
+      break;
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the type of the case expressions is correct, then change the expression
+in the switch statement to have the correct type:
+
+{% prettify dart %}
+void f(String s) {
+  switch (int.parse(s)) {
+    case 0:
+      break;
+  }
+}
+{% endprettify %}
+
+If the type of the switch expression is correct, then change the case
+expressions to have the correct type:
+
+{% prettify dart %}
+void f(String s) {
+  switch (s) {
+    case '0':
+      break;
+  }
+}
+{% endprettify %}
+
 ### throw_of_invalid_type
 
 _The type '{0}' of the thrown expression must be assignable to 'Object'._
@@ -6528,6 +7087,47 @@ class A {
 class B extends A {
   B() : super.m();
 }
+{% endprettify %}
+
+### undefined_enum_constant
+
+_There's no constant named '{0}' in '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when it encounters an identifier that
+appears to be the name of an enum constant, and the name either isn't
+defined or isn't visible in the scope in which it's being referenced.
+
+#### Examples
+
+The following code produces this diagnostic because `E` doesn't define a
+constant named `c`:
+
+{% prettify dart %}
+enum E {a, b}
+
+var e = E.[!c!];
+{% endprettify %}
+
+#### Common fixes
+
+If the constant should be defined, then add it to the declaration of the
+enum:
+
+{% prettify dart %}
+enum E {a, b, c}
+
+var e = E.c;
+{% endprettify %}
+
+If the constant shouldn't be defined, then change the name to the name of
+an existing constant:
+
+{% prettify dart %}
+enum E {a, b}
+
+var e = E.b;
 {% endprettify %}
 
 ### undefined_extension_getter
@@ -6942,6 +7542,35 @@ int min(int left, int right) => left <= right ? left : right;
 
 If the identifier is defined but isn't visible, then you probably need to
 add an import or re-arrange your code to make the identifier visible.
+
+### undefined_identifier_await
+
+_Undefined name 'await' in function body not marked with 'async'._
+
+#### Description
+
+The analyzer produces this diagnostic when the name `await` is used in a
+method or function body without being declared, and the body isn't marked
+with the `async` keyword. The name `await` only introduces an await
+expression in an asynchronous function.
+
+#### Example
+
+The following code produces this diagnostic because the name `await` is
+used in the body of `f` even though the body of `f` isn't marked with the
+`async` keyword:
+
+{% prettify dart %}
+void f(p) { [!await!] p; }
+{% endprettify %}
+
+#### Common fixes
+
+Add the keyword `async` to the function body:
+
+{% prettify dart %}
+void f(p) async { await p; }
+{% endprettify %}
 
 ### undefined_method
 
