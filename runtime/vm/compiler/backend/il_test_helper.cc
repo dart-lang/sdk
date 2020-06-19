@@ -234,6 +234,11 @@ bool ILMatcher::TryMatch(std::initializer_list<MatchCode> match_codes,
   Instruction* cursor = cursor_;
   for (size_t i = 0; i < qcodes.size(); ++i) {
     Instruction** capture = qcodes[i].capture_;
+    if (parallel_moves_handling_ == ParallelMovesHandling::kSkip) {
+      while (cursor->IsParallelMove()) {
+        cursor = cursor->next();
+      }
+    }
     if (trace_) {
       OS::PrintErr("  matching %30s @ %s\n",
                    MatchOpCodeToCString(qcodes[i].opcode()),
