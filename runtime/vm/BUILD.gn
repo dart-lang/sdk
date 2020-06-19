@@ -74,7 +74,7 @@ library_for_all_configs("libdart_vm") {
   if (is_fuchsia) {
     if (using_fuchsia_gn_sdk) {
       extra_deps = [
-        "$fuchsia_sdk_root/fidl/fuchsia.intl",
+        "$fuchsia_sdk_root/fidl/fuchsia.deprecatedtimezone",
         "$fuchsia_sdk_root/pkg/inspect",
         "$fuchsia_sdk_root/pkg/inspect_service_cpp",
         "$fuchsia_sdk_root/pkg/sys_cpp",
@@ -83,7 +83,7 @@ library_for_all_configs("libdart_vm") {
       ]
     } else if (using_fuchsia_sdk) {
       extra_deps = [
-        "$fuchsia_sdk_root/fidl:fuchsia.intl",
+        "$fuchsia_sdk_root/fidl:fuchsia.deprecatedtimezone",
         "$fuchsia_sdk_root/pkg:inspect",
         "$fuchsia_sdk_root/pkg:inspect_service_cpp",
         "$fuchsia_sdk_root/pkg:sys_cpp",
@@ -92,7 +92,9 @@ library_for_all_configs("libdart_vm") {
       ]
     } else {
       extra_deps = [
-        "//sdk/fidl/fuchsia.intl",
+        # TODO(US-399): Remove time_service specific code when it is no longer
+        # necessary.
+        "//sdk/fidl/fuchsia.deprecatedtimezone",
         "//sdk/lib/sys/cpp",
         "//sdk/lib/sys/inspect/cpp",
         "//zircon/public/lib/fbl",
