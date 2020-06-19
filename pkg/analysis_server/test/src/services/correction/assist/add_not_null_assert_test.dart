@@ -10,12 +10,12 @@ import 'assist_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AddNotNullAssert);
+    defineReflectiveTests(AddNotNullAssertTest);
   });
 }
 
 @reflectiveTest
-class AddNotNullAssert extends AssistProcessorTest {
+class AddNotNullAssertTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.ADD_NOT_NULL_ASSERT;
 

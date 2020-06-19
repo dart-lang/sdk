@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:collection';
-import 'dart:math';
 
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
@@ -12,6 +10,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/base_processor.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
+import 'package:analysis_server/src/services/correction/dart/add_not_null_assert.dart';
 import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/add_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/assign_to_local_variable.dart';
@@ -23,21 +22,31 @@ import 'package:analysis_server/src/services/correction/dart/convert_documentati
 import 'package:analysis_server/src/services/correction/dart/convert_into_async_body.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_into_block_body.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_into_final_field.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_into_for_index.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_into_getter.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_into_is_not.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_into_is_not_empty.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_map_from_iterable_to_for_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_part_of_to_uri.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_quotes.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_expression_function_body.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_field_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_generic_function_syntax.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_int_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_list_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_multiline_string.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_normal_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_package_import.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_relative_import.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
+import 'package:analysis_server/src/services/correction/dart/encapsulate_field.dart';
 import 'package:analysis_server/src/services/correction/dart/exchange_operands.dart';
+import 'package:analysis_server/src/services/correction/dart/import_add_show.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_invocation.dart';
+import 'package:analysis_server/src/services/correction/dart/introduce_local_cast_type.dart';
+import 'package:analysis_server/src/services/correction/dart/invert_if_statement.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
 import 'package:analysis_server/src/services/correction/dart/shadow_field.dart';
@@ -45,17 +54,13 @@ import 'package:analysis_server/src/services/correction/dart/sort_child_property
 import 'package:analysis_server/src/services/correction/dart/split_and_condition.dart';
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
-import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
 import 'package:analysis_server/src/services/correction/statement_analyzer.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
-import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -80,6 +85,7 @@ class AssistProcessor extends BaseProcessor {
   /// A list of the generators used to produce assists.
   static const List<ProducerGenerator> generators = [
     AddDiagnosticPropertyReference.newInstance,
+    AddNotNullAssert.newInstance,
     AddReturnType.newInstance,
     AddTypeAnnotation.newInstance,
     AssignToLocalVariable.newInstance,
@@ -91,10 +97,16 @@ class AssistProcessor extends BaseProcessor {
     ConvertIntoAsyncBody.newInstance,
     ConvertIntoBlockBody.newInstance,
     ConvertIntoFinalField.newInstance,
+    ConvertIntoForIndex.newInstance,
     ConvertIntoGetter.newInstance,
+    ConvertIntoIsNot.newInstance,
+    ConvertIntoIsNotEmpty.newInstance,
     ConvertMapFromIterableToForLiteral.newInstance,
     ConvertPartOfToUri.newInstance,
     ConvertToDoubleQuotes.newInstance,
+    ConvertToFieldParameter.newInstance,
+    ConvertToMutilineString.newInstance,
+    ConvertToNormalParameter.newInstance,
     ConvertToSingleQuotes.newInstance,
     ConvertToExpressionFunctionBody.newInstance,
     ConvertToGenericFunctionSyntax.newInstance,
@@ -105,8 +117,12 @@ class AssistProcessor extends BaseProcessor {
     ConvertToPackageImport.newInstance,
     ConvertToRelativeImport.newInstance,
     ConvertToSetLiteral.newInstance,
+    EncapsulateField.newInstance,
     ExchangeOperands.newInstance,
+    ImportAddShow.newInstance,
     InlineInvocation.newInstance,
+    IntroduceLocalCastType.newInstance,
+    InvertIfStatement.newInstance,
     RemoveTypeAnnotation.newInstance,
     ReplaceWithVar.newInstance,
     ShadowField.newInstance,
@@ -131,15 +147,6 @@ class AssistProcessor extends BaseProcessor {
     if (!setupCompute()) {
       return assists;
     }
-    await _addProposal_addNotNullAssert();
-    await _addProposal_convertToFieldParameter();
-    await _addProposal_convertToForIndexLoop();
-    await _addProposal_convertToIsNot_onIs();
-    await _addProposal_convertToIsNot_onNot();
-    await _addProposal_convertToIsNotEmpty();
-    await _addProposal_convertToMultilineString();
-    await _addProposal_convertToNormalParameter();
-    await _addProposal_encapsulateField();
     await _addProposal_flutterConvertToChildren();
     await _addProposal_flutterConvertToStatefulWidget();
     await _addProposal_flutterMoveWidgetDown();
@@ -151,9 +158,6 @@ class AssistProcessor extends BaseProcessor {
     await _addProposal_flutterWrapStreamBuilder();
     await _addProposal_flutterWrapWidget();
     await _addProposal_flutterWrapWidgets();
-    await _addProposal_importAddShow();
-    await _addProposal_introduceLocalTestedType();
-    await _addProposal_invertIf();
     await _addProposal_joinIfStatementInner();
     await _addProposal_joinIfStatementOuter();
     await _addProposal_joinVariableDeclaration_onAssignment();
@@ -250,532 +254,6 @@ class AssistProcessor extends BaseProcessor {
             args: producer.assistArguments);
       }
     }
-  }
-
-  Future<void> _addProposal_addNotNullAssert() async {
-    final identifier = node;
-    if (identifier is SimpleIdentifier) {
-      if (identifier.parent is FormalParameter) {
-        final exp = identifier.parent.thisOrAncestorMatching(
-            (node) => node is FunctionExpression || node is MethodDeclaration);
-        var body;
-        if (exp is FunctionExpression) {
-          body = exp.body;
-        } else if (exp is MethodDeclaration) {
-          body = exp.body;
-        }
-        if (body is BlockFunctionBody) {
-          var blockBody = body;
-          // Check for an obvious pre-existing assertion.
-          for (var statement in blockBody.block.statements) {
-            if (statement is AssertStatement) {
-              final condition = statement.condition;
-              if (condition is BinaryExpression) {
-                final leftOperand = condition.leftOperand;
-                if (leftOperand is SimpleIdentifier) {
-                  if (leftOperand.staticElement == identifier.staticElement &&
-                      condition.operator.type == TokenType.BANG_EQ &&
-                      condition.rightOperand is NullLiteral) {
-                    return;
-                  }
-                }
-              }
-            }
-          }
-
-          final changeBuilder = _newDartChangeBuilder();
-          await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-            final id = identifier.name;
-            final prefix = utils.getNodePrefix(exp);
-            final indent = utils.getIndent(1);
-            // todo (pq): follow-ups:
-            // 1. if the end token is on the same line as the body
-            // we should add an `eol` before the assert as well.
-            // 2. also, consider asking the block for the list of statements and
-            // adding the statement to the beginning of the list, special casing
-            // when there are no statements (or when there's a single statement
-            // and the whole block is on the same line).
-            var offset = min(utils.getLineNext(blockBody.beginToken.offset),
-                blockBody.endToken.offset);
-            builder.addSimpleInsertion(
-                offset, '$prefix${indent}assert($id != null);$eol');
-            _addAssistFromBuilder(
-                changeBuilder, DartAssistKind.ADD_NOT_NULL_ASSERT);
-          });
-        }
-      }
-    }
-  }
-
-  Future<void> _addProposal_convertToFieldParameter() async {
-    if (node == null) {
-      return;
-    }
-    // prepare ConstructorDeclaration
-    var constructor = node.thisOrAncestorOfType<ConstructorDeclaration>();
-    if (constructor == null) {
-      return;
-    }
-    var parameterList = constructor.parameters;
-    List<ConstructorInitializer> initializers = constructor.initializers;
-    // prepare parameter
-    SimpleFormalParameter parameter;
-    if (node.parent is SimpleFormalParameter &&
-        node.parent.parent is FormalParameterList &&
-        node.parent.parent.parent is ConstructorDeclaration) {
-      parameter = node.parent;
-    }
-    if (node is SimpleIdentifier &&
-        node.parent is ConstructorFieldInitializer) {
-      var name = (node as SimpleIdentifier).name;
-      ConstructorFieldInitializer initializer = node.parent;
-      if (initializer.expression == node) {
-        for (var formalParameter in parameterList.parameters) {
-          if (formalParameter is SimpleFormalParameter &&
-              formalParameter.identifier.name == name) {
-            parameter = formalParameter;
-          }
-        }
-      }
-    }
-    // analyze parameter
-    if (parameter != null) {
-      var parameterName = parameter.identifier.name;
-      var parameterElement = parameter.declaredElement;
-      // check number of references
-      {
-        var numOfReferences = 0;
-        AstVisitor visitor =
-            _SimpleIdentifierRecursiveAstVisitor((SimpleIdentifier node) {
-          if (node.staticElement == parameterElement) {
-            numOfReferences++;
-          }
-        });
-        for (var initializer in initializers) {
-          initializer.accept(visitor);
-        }
-        if (numOfReferences != 1) {
-          return;
-        }
-      }
-      // find the field initializer
-      ConstructorFieldInitializer parameterInitializer;
-      for (var initializer in initializers) {
-        if (initializer is ConstructorFieldInitializer) {
-          var expression = initializer.expression;
-          if (expression is SimpleIdentifier &&
-              expression.name == parameterName) {
-            parameterInitializer = initializer;
-          }
-        }
-      }
-      if (parameterInitializer == null) {
-        return;
-      }
-      var fieldName = parameterInitializer.fieldName.name;
-
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        // replace parameter
-        builder.addSimpleReplacement(range.node(parameter), 'this.$fieldName');
-        // remove initializer
-        var initializerIndex = initializers.indexOf(parameterInitializer);
-        if (initializers.length == 1) {
-          builder
-              .addDeletion(range.endEnd(parameterList, parameterInitializer));
-        } else {
-          if (initializerIndex == 0) {
-            var next = initializers[initializerIndex + 1];
-            builder.addDeletion(range.startStart(parameterInitializer, next));
-          } else {
-            var prev = initializers[initializerIndex - 1];
-            builder.addDeletion(range.endEnd(prev, parameterInitializer));
-          }
-        }
-      });
-      _addAssistFromBuilder(
-          changeBuilder, DartAssistKind.CONVERT_TO_FIELD_PARAMETER);
-    }
-  }
-
-  Future<void> _addProposal_convertToForIndexLoop() async {
-    // find enclosing ForEachStatement
-    var forEachStatement = node.thisOrAncestorMatching(
-            (node) => node is ForStatement && node.forLoopParts is ForEachParts)
-        as ForStatement;
-    if (forEachStatement == null) {
-      return;
-    }
-    ForEachParts forEachParts = forEachStatement.forLoopParts;
-    if (selectionOffset < forEachStatement.offset ||
-        forEachStatement.rightParenthesis.end < selectionOffset) {
-      return;
-    }
-    // loop should declare variable
-    var loopVariable = forEachParts is ForEachPartsWithDeclaration
-        ? forEachParts.loopVariable
-        : null;
-    if (loopVariable == null) {
-      return;
-    }
-    // iterable should be VariableElement
-    String listName;
-    var iterable = forEachParts.iterable;
-    if (iterable is SimpleIdentifier &&
-        iterable.staticElement is VariableElement) {
-      listName = iterable.name;
-    } else {
-      return;
-    }
-    // iterable should be List
-    {
-      var iterableType = iterable.staticType;
-      if (iterableType is! InterfaceType ||
-          iterableType.element != typeProvider.listElement) {
-        return;
-      }
-    }
-    // body should be Block
-    if (forEachStatement.body is! Block) {
-      return;
-    }
-    Block body = forEachStatement.body;
-    // prepare a name for the index variable
-    String indexName;
-    {
-      var conflicts =
-          utils.findPossibleLocalVariableConflicts(forEachStatement.offset);
-      if (!conflicts.contains('i')) {
-        indexName = 'i';
-      } else if (!conflicts.contains('j')) {
-        indexName = 'j';
-      } else if (!conflicts.contains('k')) {
-        indexName = 'k';
-      } else {
-        return;
-      }
-    }
-    // prepare environment
-    var prefix = utils.getNodePrefix(forEachStatement);
-    var indent = utils.getIndent(1);
-    var firstBlockLine = utils.getLineContentEnd(body.leftBracket.end);
-    // add change
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      // TODO(brianwilkerson) Create linked positions for the loop variable.
-      builder.addSimpleReplacement(
-          range.startEnd(forEachStatement, forEachStatement.rightParenthesis),
-          'for (int $indexName = 0; $indexName < $listName.length; $indexName++)');
-      builder.addSimpleInsertion(firstBlockLine,
-          '$prefix$indent$loopVariable = $listName[$indexName];$eol');
-    });
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_INTO_FOR_INDEX);
-  }
-
-  Future<void> _addProposal_convertToIsNot_onIs() async {
-    // may be child of "is"
-    var node = this.node;
-    while (node != null && node is! IsExpression) {
-      node = node.parent;
-    }
-    // prepare "is"
-    if (node is! IsExpression) {
-      return;
-    }
-    var isExpression = node as IsExpression;
-    if (isExpression.notOperator != null) {
-      return;
-    }
-    // prepare enclosing ()
-    var parent = isExpression.parent;
-    if (parent is! ParenthesizedExpression) {
-      return;
-    }
-    var parExpression = parent as ParenthesizedExpression;
-    // prepare enclosing !()
-    var parent2 = parent.parent;
-    if (parent2 is! PrefixExpression) {
-      return;
-    }
-    var prefExpression = parent2 as PrefixExpression;
-    if (prefExpression.operator.type != TokenType.BANG) {
-      return;
-    }
-
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      if (getExpressionParentPrecedence(prefExpression) >=
-          Precedence.relational) {
-        builder.addDeletion(range.token(prefExpression.operator));
-      } else {
-        builder.addDeletion(
-            range.startEnd(prefExpression, parExpression.leftParenthesis));
-        builder.addDeletion(
-            range.startEnd(parExpression.rightParenthesis, prefExpression));
-      }
-      builder.addSimpleInsertion(isExpression.isOperator.end, '!');
-    });
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_INTO_IS_NOT);
-  }
-
-  Future<void> _addProposal_convertToIsNot_onNot() async {
-    // may be () in prefix expression
-    var node = this.node;
-    if (node is ParenthesizedExpression && node.parent is PrefixExpression) {
-      node = node.parent;
-    }
-    // prepare !()
-    if (node is! PrefixExpression) {
-      return;
-    }
-    var prefExpression = node as PrefixExpression;
-    // should be ! operator
-    if (prefExpression.operator.type != TokenType.BANG) {
-      return;
-    }
-    // prepare !()
-    var operand = prefExpression.operand;
-    if (operand is! ParenthesizedExpression) {
-      return;
-    }
-    var parExpression = operand as ParenthesizedExpression;
-    operand = parExpression.expression;
-    // prepare "is"
-    if (operand is! IsExpression) {
-      return;
-    }
-    var isExpression = operand as IsExpression;
-    if (isExpression.notOperator != null) {
-      return;
-    }
-
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      if (getExpressionParentPrecedence(prefExpression) >=
-          Precedence.relational) {
-        builder.addDeletion(range.token(prefExpression.operator));
-      } else {
-        builder.addDeletion(
-            range.startEnd(prefExpression, parExpression.leftParenthesis));
-        builder.addDeletion(
-            range.startEnd(parExpression.rightParenthesis, prefExpression));
-      }
-      builder.addSimpleInsertion(isExpression.isOperator.end, '!');
-    });
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_INTO_IS_NOT);
-  }
-
-  /// Converts "!isEmpty" -> "isNotEmpty" if possible.
-  Future<void> _addProposal_convertToIsNotEmpty() async {
-    // prepare "expr.isEmpty"
-    AstNode isEmptyAccess;
-    SimpleIdentifier isEmptyIdentifier;
-    if (node is SimpleIdentifier) {
-      var identifier = node as SimpleIdentifier;
-      var parent = identifier.parent;
-      // normal case (but rare)
-      if (parent is PropertyAccess) {
-        isEmptyIdentifier = parent.propertyName;
-        isEmptyAccess = parent;
-      }
-      // usual case
-      if (parent is PrefixedIdentifier) {
-        isEmptyIdentifier = parent.identifier;
-        isEmptyAccess = parent;
-      }
-    }
-    if (isEmptyIdentifier == null) {
-      return;
-    }
-    // should be "isEmpty"
-    var propertyElement = isEmptyIdentifier.staticElement;
-    if (propertyElement == null || 'isEmpty' != propertyElement.name) {
-      return;
-    }
-    // should have "isNotEmpty"
-    var propertyTarget = propertyElement.enclosingElement;
-    if (propertyTarget == null ||
-        getChildren(propertyTarget, 'isNotEmpty').isEmpty) {
-      return;
-    }
-    // should be in PrefixExpression
-    if (isEmptyAccess.parent is! PrefixExpression) {
-      return;
-    }
-    var prefixExpression = isEmptyAccess.parent as PrefixExpression;
-    // should be !
-    if (prefixExpression.operator.type != TokenType.BANG) {
-      return;
-    }
-
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addDeletion(
-          range.startStart(prefixExpression, prefixExpression.operand));
-      builder.addSimpleReplacement(range.node(isEmptyIdentifier), 'isNotEmpty');
-    });
-    _addAssistFromBuilder(
-        changeBuilder, DartAssistKind.CONVERT_INTO_IS_NOT_EMPTY);
-  }
-
-  Future<void> _addProposal_convertToMultilineString() async {
-    var node = this.node;
-    if (node is InterpolationElement) {
-      node = (node as InterpolationElement).parent;
-    }
-    if (node is SingleStringLiteral) {
-      var literal = node;
-      if (!literal.isMultiline) {
-        var changeBuilder = _newDartChangeBuilder();
-        await changeBuilder.addFileEdit(file, (builder) {
-          var newQuote = literal.isSingleQuoted ? "'''" : '"""';
-          builder.addReplacement(
-            SourceRange(literal.offset + (literal.isRaw ? 1 : 0), 1),
-            (builder) {
-              builder.writeln(newQuote);
-            },
-          );
-          builder.addSimpleReplacement(
-            SourceRange(literal.end - 1, 1),
-            newQuote,
-          );
-        });
-        _addAssistFromBuilder(
-          changeBuilder,
-          DartAssistKind.CONVERT_TO_MULTILINE_STRING,
-        );
-      }
-    }
-  }
-
-  Future<void> _addProposal_convertToNormalParameter() async {
-    if (node is SimpleIdentifier &&
-        node.parent is FieldFormalParameter &&
-        node.parent.parent is FormalParameterList &&
-        node.parent.parent.parent is ConstructorDeclaration) {
-      ConstructorDeclaration constructor = node.parent.parent.parent;
-      FormalParameterList parameterList = node.parent.parent;
-      FieldFormalParameter parameter = node.parent;
-      var parameterElement = parameter.declaredElement;
-      var name = (node as SimpleIdentifier).name;
-      // prepare type
-      var type = parameterElement.type;
-
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        // replace parameter
-        if (type.isDynamic) {
-          builder.addSimpleReplacement(range.node(parameter), name);
-        } else {
-          builder.addReplacement(range.node(parameter),
-              (DartEditBuilder builder) {
-            builder.writeType(type);
-            builder.write(' ');
-            builder.write(name);
-          });
-        }
-        // add field initializer
-        List<ConstructorInitializer> initializers = constructor.initializers;
-        if (initializers.isEmpty) {
-          builder.addSimpleInsertion(parameterList.end, ' : $name = $name');
-        } else {
-          builder.addSimpleInsertion(initializers.last.end, ', $name = $name');
-        }
-      });
-      _addAssistFromBuilder(
-          changeBuilder, DartAssistKind.CONVERT_TO_NORMAL_PARAMETER);
-    }
-  }
-
-  Future<void> _addProposal_encapsulateField() async {
-    // find FieldDeclaration
-    var fieldDeclaration = node.thisOrAncestorOfType<FieldDeclaration>();
-    if (fieldDeclaration == null) {
-      return;
-    }
-    // not interesting for static
-    if (fieldDeclaration.isStatic) {
-      return;
-    }
-    // has a parse error
-    var variableList = fieldDeclaration.fields;
-    if (variableList.keyword == null && variableList.type == null) {
-      return;
-    }
-    // not interesting for final
-    if (variableList.isFinal) {
-      return;
-    }
-    // should have exactly one field
-    List<VariableDeclaration> fields = variableList.variables;
-    if (fields.length != 1) {
-      return;
-    }
-    var field = fields.first;
-    var nameNode = field.name;
-    FieldElement fieldElement = nameNode.staticElement;
-    // should have a public name
-    var name = nameNode.name;
-    if (Identifier.isPrivateName(name)) {
-      return;
-    }
-    // should be on the name
-    if (nameNode != node) {
-      return;
-    }
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      // rename field
-      builder.addSimpleReplacement(range.node(nameNode), '_$name');
-      // update references in constructors
-      ClassOrMixinDeclaration classDeclaration = fieldDeclaration.parent;
-      for (var member in classDeclaration.members) {
-        if (member is ConstructorDeclaration) {
-          for (var parameter in member.parameters.parameters) {
-            var parameterElement = parameter.declaredElement;
-            if (parameterElement is FieldFormalParameterElement &&
-                parameterElement.field == fieldElement) {
-              var identifier = parameter.identifier;
-              builder.addSimpleReplacement(range.node(identifier), '_$name');
-            }
-          }
-        }
-      }
-
-      // Write getter and setter.
-      builder.addInsertion(fieldDeclaration.end, (builder) {
-        String docCode;
-        if (fieldDeclaration.documentationComment != null) {
-          docCode = utils.getNodeText(fieldDeclaration.documentationComment);
-        }
-
-        var typeCode = '';
-        if (variableList.type != null) {
-          typeCode = _getNodeText(variableList.type) + ' ';
-        }
-
-        // Write getter.
-        builder.writeln();
-        builder.writeln();
-        if (docCode != null) {
-          builder.write('  ');
-          builder.writeln(docCode);
-        }
-        builder.write('  ${typeCode}get $name => _$name;');
-
-        // Write setter.
-        builder.writeln();
-        builder.writeln();
-        if (docCode != null) {
-          builder.write('  ');
-          builder.writeln(docCode);
-        }
-        builder.writeln('  set $name($typeCode$name) {');
-        builder.writeln('    _$name = $name;');
-        builder.write('  }');
-      });
-    });
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.ENCAPSULATE_FIELD);
   }
 
   Future<void> _addProposal_flutterConvertToChildren() async {
@@ -1452,141 +930,6 @@ class AssistProcessor extends BaseProcessor {
         kind: DartAssistKind.FLUTTER_WRAP_ROW,
         parentLibraryUri: flutter.widgetsUri,
         parentClassName: 'Row');
-  }
-
-  Future<void> _addProposal_importAddShow() async {
-    // prepare ImportDirective
-    var importDirective = node.thisOrAncestorOfType<ImportDirective>();
-    if (importDirective == null) {
-      return;
-    }
-    // there should be no existing combinators
-    if (importDirective.combinators.isNotEmpty) {
-      return;
-    }
-    // prepare whole import namespace
-    ImportElement importElement = importDirective.element;
-    if (importElement == null) {
-      return;
-    }
-    var namespace = getImportNamespace(importElement);
-    // prepare names of referenced elements (from this import)
-    var referencedNames = SplayTreeSet<String>();
-    var visitor = _SimpleIdentifierRecursiveAstVisitor((SimpleIdentifier node) {
-      var element = node.staticElement;
-      if (element != null &&
-          (namespace[node.name] == element ||
-              (node.name != element.name &&
-                  namespace[element.name] == element))) {
-        referencedNames.add(element.displayName);
-      }
-    });
-    context.resolveResult.unit.accept(visitor);
-    // ignore if unused
-    if (referencedNames.isEmpty) {
-      return;
-    }
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      var showCombinator = ' show ${referencedNames.join(', ')}';
-      builder.addSimpleInsertion(importDirective.end - 1, showCombinator);
-    });
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.IMPORT_ADD_SHOW);
-  }
-
-  Future<void> _addProposal_introduceLocalTestedType() async {
-    var node = this.node;
-    if (node is IfStatement) {
-      node = (node as IfStatement).condition;
-    } else if (node is WhileStatement) {
-      node = (node as WhileStatement).condition;
-    }
-    // prepare IsExpression
-    if (node is! IsExpression) {
-      return;
-    }
-    IsExpression isExpression = node;
-    var castType = isExpression.type.type;
-    var castTypeCode = _getNodeText(isExpression.type);
-    // prepare environment
-    var indent = utils.getIndent(1);
-    String prefix;
-    Block targetBlock;
-    {
-      var statement = node.thisOrAncestorOfType<Statement>();
-      if (statement is IfStatement && statement.thenStatement is Block) {
-        targetBlock = statement.thenStatement;
-      } else if (statement is WhileStatement && statement.body is Block) {
-        targetBlock = statement.body;
-      } else {
-        return;
-      }
-      prefix = utils.getNodePrefix(statement);
-    }
-    // prepare location
-    int offset;
-    String statementPrefix;
-    if (isExpression.notOperator == null) {
-      offset = targetBlock.leftBracket.end;
-      statementPrefix = indent;
-    } else {
-      offset = targetBlock.rightBracket.end;
-      statementPrefix = '';
-    }
-    // prepare excluded names
-    var excluded = <String>{};
-    var scopedNameFinder = ScopedNameFinder(offset);
-    isExpression.accept(scopedNameFinder);
-    excluded.addAll(scopedNameFinder.locals.keys.toSet());
-    // name(s)
-    var suggestions =
-        getVariableNameSuggestionsForExpression(castType, null, excluded);
-
-    if (suggestions.isNotEmpty) {
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addInsertion(offset, (DartEditBuilder builder) {
-          builder.write(eol + prefix + statementPrefix);
-          builder.write(castTypeCode);
-          builder.write(' ');
-          builder.addSimpleLinkedEdit('NAME', suggestions[0],
-              kind: LinkedEditSuggestionKind.VARIABLE,
-              suggestions: suggestions);
-          builder.write(' = ');
-          builder.write(_getNodeText(isExpression.expression));
-          builder.write(';');
-          builder.selectHere();
-        });
-      });
-      _addAssistFromBuilder(
-          changeBuilder, DartAssistKind.INTRODUCE_LOCAL_CAST_TYPE);
-    }
-  }
-
-  Future<void> _addProposal_invertIf() async {
-    if (node is! IfStatement) {
-      return;
-    }
-    var ifStatement = node as IfStatement;
-    var condition = ifStatement.condition;
-    // should have both "then" and "else"
-    var thenStatement = ifStatement.thenStatement;
-    var elseStatement = ifStatement.elseStatement;
-    if (thenStatement == null || elseStatement == null) {
-      return;
-    }
-    // prepare source
-    var invertedCondition = utils.invertCondition(condition);
-    var thenSource = _getNodeText(thenStatement);
-    var elseSource = _getNodeText(elseStatement);
-
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addSimpleReplacement(range.node(condition), invertedCondition);
-      builder.addSimpleReplacement(range.node(thenStatement), elseSource);
-      builder.addSimpleReplacement(range.node(elseStatement), thenSource);
-    });
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.INVERT_IF_STATEMENT);
   }
 
   Future<void> _addProposal_joinIfStatementInner() async {
