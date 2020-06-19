@@ -26,19 +26,9 @@ jsCallEffectsAllDependsNoIndex() => JS('effects:all;depends:no-index', '#', 0);
 jsCallEffectsNoInstanceDependsNoStatic() =>
     JS('effects:no-instance;depends:no-static', '#', 0);
 
-/*member: jsBuiltin_rawRtiToJsConstructorName:SideEffects(reads anything; writes anything)*/
-jsBuiltin_rawRtiToJsConstructorName() {
-  return JS_BUILTIN('String', JsBuiltin.rawRtiToJsConstructorName, null);
-}
-
 /*member: jsEmbeddedGlobal_getTypeFromName:SideEffects(reads nothing; writes nothing)*/
 jsEmbeddedGlobal_getTypeFromName() {
   return JS_EMBEDDED_GLOBAL('', GET_TYPE_FROM_NAME);
-}
-
-/*member: jsEmbeddedGlobal_libraries:SideEffects(reads nothing; writes nothing)*/
-jsEmbeddedGlobal_libraries() {
-  return JS_EMBEDDED_GLOBAL('JSExtendableArray|Null', LIBRARIES);
 }
 
 /*member: jsStringConcat:SideEffects(reads nothing; writes nothing)*/
@@ -54,10 +44,7 @@ main() {
   jsCallEffectsAllDependsNoIndex();
   jsCallEffectsNoInstanceDependsNoStatic();
 
-  jsBuiltin_rawRtiToJsConstructorName();
-
   jsEmbeddedGlobal_getTypeFromName();
-  jsEmbeddedGlobal_libraries();
 
   jsStringConcat();
 

@@ -11,29 +11,6 @@
 /// This library is shared between the compiler and the runtime system.
 library dart2js._embedded_names;
 
-/// The name of the property that is used to mark a type as typedef.
-///
-/// Without reflection typedefs are removed (expanded to their function type)
-/// but with reflection an object is needed to have the typedef's name. The
-/// object is marked with this property.
-///
-/// This property name only lives on internal type-objects and is only used
-/// when reflection is enabled.
-const TYPEDEF_PREDICATE_PROPERTY_NAME = r"$$isTypedef";
-
-/// The name of the property that is used to find the function type of a
-/// typedef.
-///
-/// Without reflection typedefs are removed (expanded to their function type)
-/// but with reflection an object is needed to have the typedef's name.
-///
-/// The typedef's object contains a pointer to its function type (as an index
-/// into the embedded global [TYPES]) in this property.
-///
-/// This property name only lives on internal type-objects and is only used
-/// when reflection is enabled.
-const TYPEDEF_TYPE_PROPERTY_NAME = r"$typedefType";
-
 /// The name of the property that is used to find the native superclass of
 /// an extended class.
 ///
@@ -206,51 +183,6 @@ const DEFERRED_INITIALIZED = 'deferredInitialized';
 /// This embedded global is used for --experiment-new-rti.
 const RTI_UNIVERSE = 'typeUniverse';
 
-/// Returns a function that creates all precompiled functions (in particular
-/// constructors).
-///
-/// That is, the function returns the array that the full emitter would
-/// otherwise build dynamically when it finishes all classes.
-///
-/// This constant is only used in CSP mode.
-///
-/// This global is an emitter-internal embedded global, and not used by the
-/// runtime. The constant remains in this file to make sure that other embedded
-/// globals don't clash with it.
-const PRECOMPILED = 'precompiled';
-
-/// An emitter-internal embedded global. This global is not used by the runtime.
-const FINISHED_CLASSES = 'finishedClasses';
-
-/// A JavaScript object literal that maps the (minified) JavaScript constructor
-/// name (as given by [JsBuiltin.rawRtiToJsConstructorName] to the
-/// JavaScript constructor.
-///
-/// This embedded global is only used by reflection.
-const ALL_CLASSES = 'allClasses';
-
-/// A map from element to type information.
-///
-/// This embedded global is only used by reflection.
-const TYPE_INFORMATION = 'typeInformation';
-
-/// A map from statics to their descriptors.
-///
-/// This embedded global is only used by reflection.
-const STATICS = 'statics';
-
-/// An array of library descriptors.
-///
-/// The descriptor contains information such as name, uri, classes, ...
-///
-/// This embedded global is only used by reflection.
-const LIBRARIES = 'libraries';
-
-/// A map from lazy statics to their initializers.
-///
-/// This embedded global is only used by reflection.
-const LAZIES = 'lazies';
-
 /// Names that are supported by [JS_GET_NAME].
 // TODO(herhut): Make entries lower case (as in fields) and find a better name.
 enum JsGetName {
@@ -264,8 +196,6 @@ enum JsGetName {
   CALL_PREFIX4,
   CALL_PREFIX5,
   CALL_CATCH_ALL,
-  REFLECTABLE,
-  CLASS_DESCRIPTOR_PROPERTY,
   REQUIRED_PARAMETER_PROPERTY,
   DEFAULT_VALUES_PROPERTY,
   CALL_NAME_PROPERTY,
@@ -296,12 +226,6 @@ enum JsGetName {
 
   /// String representation of the type of the object class.
   OBJECT_CLASS_TYPE_NAME,
-
-  /// String representation of the type of the function class.
-  FUNCTION_CLASS_TYPE_NAME,
-
-  /// String representation of the type of the JavaScriptFunction class.
-  JS_FUNCTION_CLASS_TYPE_NAME,
 
   /// Property name for Rti._as field.
   RTI_FIELD_AS,
@@ -344,17 +268,6 @@ enum JsBuiltin {
   ///
   ///     JS_BUILTIN('bool', JsBuiltin.isJsInteropTypeArgument, o)
   isJsInteropTypeArgument,
-
-  /// Returns the JavaScript-constructor name given an rti encoding.
-  ///
-  ///     JS_BUILTIN('String', JsBuiltin.rawRtiToJsConstructorName, rti)
-  rawRtiToJsConstructorName,
-
-  /// Returns the raw runtime type of the given object. The given argument
-  /// [o] should be the interceptor (for non-Dart objects).
-  ///
-  ///     JS_BUILTIN('', JsBuiltin.rawRuntimeType, o)
-  rawRuntimeType,
 
   /// Returns the metadata of the given [index].
   ///

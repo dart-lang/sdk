@@ -90,14 +90,6 @@ String isCheckPropertyToJsConstructorName(String isCheckProperty) {
       JsBuiltin.isCheckPropertyToJsConstructorName, isCheckProperty);
 }
 
-/// Retrieves the class name from type information stored on the constructor of
-/// [type].
-// TODO(floitsch): move this to foreign_helper.dart or similar.
-@pragma('dart2js:tryInline')
-String rawRtiToJsConstructorName(Object rti) {
-  return JS_BUILTIN('String', JsBuiltin.rawRtiToJsConstructorName, rti);
-}
-
 /// Given a raw constructor name, return the unminified name, if available,
 /// otherwise tag the name with `minified:`.
 String unminifyOrTag(String rawClassName) {
@@ -105,25 +97,6 @@ String unminifyOrTag(String rawClassName) {
   if (preserved != null) return preserved;
   if (JS_GET_FLAG('MINIFIED')) return 'minified:${rawClassName}';
   return rawClassName;
-}
-
-/// Returns the rti from the given [constructorName].
-// TODO(floitsch): make this a builtin.
-jsConstructorNameToRti(String constructorName) {
-  var getTypeFromName = JS_EMBEDDED_GLOBAL('', GET_TYPE_FROM_NAME);
-  return JS('', '#(#)', getTypeFromName, constructorName);
-}
-
-/// Returns the raw runtime type of the given object [o].
-///
-/// The argument [o] must be the interceptor for primitive types. If
-/// necessary run it through [getInterceptor] first.
-// TODO(floitsch): move this to foreign_helper.dart or similar.
-// TODO(floitsch): we should call getInterceptor ourselves, but currently
-//    getInterceptor is not GVNed.
-@pragma('dart2js:tryInline')
-Object getRawRuntimeType(Object o) {
-  return JS_BUILTIN('', JsBuiltin.rawRuntimeType, o);
 }
 
 /// Returns the metadata of the given [index].

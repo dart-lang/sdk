@@ -2246,8 +2246,6 @@ class FixedNames {
   String get callPrefix => 'call';
   String get callCatchAllName => r'call*';
   String get callNameField => r'$callName';
-  String get reflectableField => r'$reflectable';
-  String get classDescriptorProperty => r'^';
   String get defaultValuesField => r'$defaultValues';
   String get deferredAction => r'$deferredAction';
   String get operatorIsPrefix => r'$is';
@@ -2544,10 +2542,6 @@ abstract class ModularNamer {
         return asName('${fixedNames.callPrefix}\$5');
       case JsGetName.CALL_CATCH_ALL:
         return asName(fixedNames.callCatchAllName);
-      case JsGetName.REFLECTABLE:
-        return asName(fixedNames.reflectableField);
-      case JsGetName.CLASS_DESCRIPTOR_PROPERTY:
-        return asName(fixedNames.classDescriptorProperty);
       case JsGetName.REQUIRED_PARAMETER_PROPERTY:
         return asName(fixedNames.requiredParameterField);
       case JsGetName.DEFAULT_VALUES_PROPERTY:
@@ -2570,10 +2564,6 @@ abstract class ModularNamer {
         return runtimeTypeName(_commonElements.nullClass);
       case JsGetName.OBJECT_CLASS_TYPE_NAME:
         return runtimeTypeName(_commonElements.objectClass);
-      case JsGetName.FUNCTION_CLASS_TYPE_NAME:
-        return runtimeTypeName(_commonElements.functionClass);
-      case JsGetName.JS_FUNCTION_CLASS_TYPE_NAME:
-        return runtimeTypeName(_commonElements.jsJavaScriptFunctionClass);
       case JsGetName.FUTURE_CLASS_TYPE_NAME:
         return runtimeTypeName(_commonElements.futureClass);
       case JsGetName.RTI_FIELD_AS:
