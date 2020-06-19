@@ -3429,7 +3429,7 @@ TEST_CASE(IsolateReload_ConstFieldUpdate) {
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
-  EXPECT_STREQ("value=0:00:01.000000", SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("value=00:00:01.000000", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
       "const value = const Duration(seconds: 2);\n"
@@ -3439,7 +3439,7 @@ TEST_CASE(IsolateReload_ConstFieldUpdate) {
 
   lib = TestCase::ReloadTestScript(kReloadScript);
   EXPECT_VALID(lib);
-  EXPECT_STREQ("value=0:00:02.000000", SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("value=00:00:02.000000", SimpleInvokeStr(lib, "main"));
 }
 
 TEST_CASE(IsolateReload_RunNewFieldInitializers) {

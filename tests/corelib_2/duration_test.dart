@@ -243,43 +243,43 @@ main() {
   // Regression test for http://dartbug.com/15678
 
   d = const Duration(microseconds: 1);
-  Expect.equals("0:00:00.000001", d.toString());
+  Expect.equals("00:00:00.000001", d.toString());
 
   d = const Duration(microseconds: 9);
-  Expect.equals("0:00:00.000009", d.toString());
+  Expect.equals("00:00:00.000009", d.toString());
 
   d = const Duration(microseconds: 10);
-  Expect.equals("0:00:00.000010", d.toString());
+  Expect.equals("00:00:00.000010", d.toString());
 
   d = const Duration(microseconds: 99);
-  Expect.equals("0:00:00.000099", d.toString());
+  Expect.equals("00:00:00.000099", d.toString());
 
   d = const Duration(microseconds: 100);
-  Expect.equals("0:00:00.000100", d.toString());
+  Expect.equals("00:00:00.000100", d.toString());
 
   d = const Duration(microseconds: 999);
-  Expect.equals("0:00:00.000999", d.toString());
+  Expect.equals("00:00:00.000999", d.toString());
 
   d = const Duration(microseconds: 1000);
-  Expect.equals("0:00:00.001000", d.toString());
+  Expect.equals("00:00:00.001000", d.toString());
 
   d = const Duration(microseconds: 9999);
-  Expect.equals("0:00:00.009999", d.toString());
+  Expect.equals("00:00:00.009999", d.toString());
 
   d = const Duration(microseconds: 10000);
-  Expect.equals("0:00:00.010000", d.toString());
+  Expect.equals("00:00:00.010000", d.toString());
 
   d = const Duration(microseconds: 99999);
-  Expect.equals("0:00:00.099999", d.toString());
+  Expect.equals("00:00:00.099999", d.toString());
 
   d = const Duration(microseconds: 100000);
-  Expect.equals("0:00:00.100000", d.toString());
+  Expect.equals("00:00:00.100000", d.toString());
 
   d = const Duration(microseconds: 999999);
-  Expect.equals("0:00:00.999999", d.toString());
+  Expect.equals("00:00:00.999999", d.toString());
 
   d = const Duration(microseconds: 1000000);
-  Expect.equals("0:00:01.000000", d.toString());
+  Expect.equals("00:00:01.000000", d.toString());
 
   d1 = const Duration(hours: 1);
   d2 = const Duration(hours: -1);
