@@ -1,0 +1,426 @@
+main = #lib::main;
+ [@vm.loading-units.metadata=LoadingUnitsMetadata(
+LoadingUnit(id=1, parent=0,
+  #lib
+  #pkg/vm/testcases/transformations/deferred_loading/a.dart
+  #pkg/vm/testcases/transformations/deferred_loading/b.dart
+  #pkg/vm/testcases/transformations/deferred_loading/c.dart
+  dart:async
+  dart:collection
+  dart:convert
+  dart:developer
+  dart:ffi
+  dart:_internal
+  dart:isolate
+  dart:math
+  dart:mirrors
+  dart:typed_data
+  dart:vmservice_io
+  dart:_vmservice
+  dart:_builtin
+  dart:nativewrappers
+  dart:io
+  dart:cli
+  dart:wasm
+  dart:core
+  dart:_http
+)
+LoadingUnit(id=2, parent=1,
+  #pkg/vm/testcases/transformations/deferred_loading/d.dart
+  #pkg/vm/testcases/transformations/deferred_loading/e.dart
+)
+LoadingUnit(id=3, parent=1,
+  #pkg/vm/testcases/transformations/deferred_loading/f.dart
+)
+LoadingUnit(id=4, parent=1,
+  #pkg/vm/testcases/transformations/deferred_loading/g.dart
+  #pkg/vm/testcases/transformations/deferred_loading/h.dart
+)
+LoadingUnit(id=5, parent=3,
+  #pkg/vm/testcases/transformations/deferred_loading/i.dart
+)
+LoadingUnit(id=6, parent=5,
+  #pkg/vm/testcases/transformations/deferred_loading/j.dart
+)
+)]library #lib from "#lib" as #lib {
+
+  import "#pkg/vm/testcases/transformations/deferred_loading/a.dart";
+  import "#pkg/vm/testcases/transformations/deferred_loading/b.dart";
+
+  static method main() → dynamic /* originally async */ {
+    final dart.async::_AsyncAwaitCompleter<dynamic>* :async_completer = new dart.async::_AsyncAwaitCompleter::•<dynamic>();
+    FutureOr<dynamic>* :return_value;
+    dynamic :async_stack_trace;
+    (dynamic) →* dynamic :async_op_then;
+    (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
+    dart.core::int* :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    dynamic :saved_try_context_var0;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try {
+        #L1:
+        {
+          [yield] let dynamic #t1 = dart.async::_awaitHelper(a::a(), :async_op_then, :async_op_error, :async_op) in null;
+          :result;
+          [yield] let dynamic #t2 = dart.async::_awaitHelper(b::b(), :async_op_then, :async_op_error, :async_op) in null;
+          :result;
+        }
+        dart.async::_completeOnAsyncReturn(:async_completer, :return_value);
+        return;
+      }
+      on dynamic catch(dynamic exception, dart.core::StackTrace* stack_trace) {
+        :async_completer.{dart.async::Completer::completeError}(exception, stack_trace);
+      }
+    :async_stack_trace = dart.async::_asyncStackTraceHelper(:async_op);
+    :async_op_then = dart.async::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = dart.async::_asyncErrorWrapperHelper(:async_op);
+    :async_completer.{dart.async::_AsyncAwaitCompleter::start}(:async_op);
+    return :async_completer.{dart.async::Completer::future};
+  }
+}
+library a from "#pkg/vm/testcases/transformations/deferred_loading/a.dart" as a {
+
+  import "#pkg/vm/testcases/transformations/deferred_loading/d.dart" deferred as d;
+
+  static method a() → dynamic /* originally async */ {
+    final dart.async::_AsyncAwaitCompleter<dynamic>* :async_completer = new dart.async::_AsyncAwaitCompleter::•<dynamic>();
+    FutureOr<dynamic>* :return_value;
+    dynamic :async_stack_trace;
+    (dynamic) →* dynamic :async_op_then;
+    (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
+    dart.core::int* :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    dynamic :saved_try_context_var0;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try {
+        #L2:
+        {
+          dart.core::print("A");
+          [yield] let dynamic #t3 = dart.async::_awaitHelper(LoadLibrary(d), :async_op_then, :async_op_error, :async_op) in null;
+          :result;
+          :return_value = let final dynamic #t4 = CheckLibraryIsLoaded(d) in d::d();
+          break #L2;
+        }
+        dart.async::_completeOnAsyncReturn(:async_completer, :return_value);
+        return;
+      }
+      on dynamic catch(dynamic exception, dart.core::StackTrace* stack_trace) {
+        :async_completer.{dart.async::Completer::completeError}(exception, stack_trace);
+      }
+    :async_stack_trace = dart.async::_asyncStackTraceHelper(:async_op);
+    :async_op_then = dart.async::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = dart.async::_asyncErrorWrapperHelper(:async_op);
+    :async_completer.{dart.async::_AsyncAwaitCompleter::start}(:async_op);
+    return :async_completer.{dart.async::Completer::future};
+  }
+}
+library b from "#pkg/vm/testcases/transformations/deferred_loading/b.dart" as b {
+
+  import "#pkg/vm/testcases/transformations/deferred_loading/c.dart" as c;
+
+  static method b() → dynamic /* originally async */ {
+    final dart.async::_AsyncAwaitCompleter<dynamic>* :async_completer = new dart.async::_AsyncAwaitCompleter::•<dynamic>();
+    FutureOr<dynamic>* :return_value;
+    dynamic :async_stack_trace;
+    (dynamic) →* dynamic :async_op_then;
+    (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
+    dart.core::int* :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try {
+        #L3:
+        {
+          dart.core::print("B");
+          :return_value = c::c();
+          break #L3;
+        }
+        dart.async::_completeOnAsyncReturn(:async_completer, :return_value);
+        return;
+      }
+      on dynamic catch(dynamic exception, dart.core::StackTrace* stack_trace) {
+        :async_completer.{dart.async::Completer::completeError}(exception, stack_trace);
+      }
+    :async_stack_trace = dart.async::_asyncStackTraceHelper(:async_op);
+    :async_op_then = dart.async::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = dart.async::_asyncErrorWrapperHelper(:async_op);
+    :async_completer.{dart.async::_AsyncAwaitCompleter::start}(:async_op);
+    return :async_completer.{dart.async::Completer::future};
+  }
+}
+library d from "#pkg/vm/testcases/transformations/deferred_loading/d.dart" as d {
+
+  import "#pkg/vm/testcases/transformations/deferred_loading/e.dart" as e;
+
+  static method d() → dynamic /* originally async */ {
+    final dart.async::_AsyncAwaitCompleter<dynamic>* :async_completer = new dart.async::_AsyncAwaitCompleter::•<dynamic>();
+    FutureOr<dynamic>* :return_value;
+    dynamic :async_stack_trace;
+    (dynamic) →* dynamic :async_op_then;
+    (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
+    dart.core::int* :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try {
+        #L4:
+        {
+          dart.core::print("D");
+          :return_value = e::e();
+          break #L4;
+        }
+        dart.async::_completeOnAsyncReturn(:async_completer, :return_value);
+        return;
+      }
+      on dynamic catch(dynamic exception, dart.core::StackTrace* stack_trace) {
+        :async_completer.{dart.async::Completer::completeError}(exception, stack_trace);
+      }
+    :async_stack_trace = dart.async::_asyncStackTraceHelper(:async_op);
+    :async_op_then = dart.async::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = dart.async::_asyncErrorWrapperHelper(:async_op);
+    :async_completer.{dart.async::_AsyncAwaitCompleter::start}(:async_op);
+    return :async_completer.{dart.async::Completer::future};
+  }
+}
+library c from "#pkg/vm/testcases/transformations/deferred_loading/c.dart" as c {
+
+  import "#pkg/vm/testcases/transformations/deferred_loading/b.dart" as b;
+  import "#pkg/vm/testcases/transformations/deferred_loading/f.dart" deferred as f;
+
+  static method c() → dynamic /* originally async */ {
+    final dart.async::_AsyncAwaitCompleter<dynamic>* :async_completer = new dart.async::_AsyncAwaitCompleter::•<dynamic>();
+    FutureOr<dynamic>* :return_value;
+    dynamic :async_stack_trace;
+    (dynamic) →* dynamic :async_op_then;
+    (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
+    dart.core::int* :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    dynamic :saved_try_context_var0;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try {
+        #L5:
+        {
+          dart.core::print("C");
+          [yield] let dynamic #t5 = dart.async::_awaitHelper(LoadLibrary(f), :async_op_then, :async_op_error, :async_op) in null;
+          :result;
+          :return_value = let final dynamic #t6 = CheckLibraryIsLoaded(f) in f::f();
+          break #L5;
+        }
+        dart.async::_completeOnAsyncReturn(:async_completer, :return_value);
+        return;
+      }
+      on dynamic catch(dynamic exception, dart.core::StackTrace* stack_trace) {
+        :async_completer.{dart.async::Completer::completeError}(exception, stack_trace);
+      }
+    :async_stack_trace = dart.async::_asyncStackTraceHelper(:async_op);
+    :async_op_then = dart.async::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = dart.async::_asyncErrorWrapperHelper(:async_op);
+    :async_completer.{dart.async::_AsyncAwaitCompleter::start}(:async_op);
+    return :async_completer.{dart.async::Completer::future};
+  }
+}
+library e from "#pkg/vm/testcases/transformations/deferred_loading/e.dart" as e {
+
+  import "#pkg/vm/testcases/transformations/deferred_loading/g.dart" deferred as g;
+
+  static method e() → dynamic /* originally async */ {
+    final dart.async::_AsyncAwaitCompleter<dynamic>* :async_completer = new dart.async::_AsyncAwaitCompleter::•<dynamic>();
+    FutureOr<dynamic>* :return_value;
+    dynamic :async_stack_trace;
+    (dynamic) →* dynamic :async_op_then;
+    (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
+    dart.core::int* :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    dynamic :saved_try_context_var0;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try {
+        #L6:
+        {
+          dart.core::print("E");
+          [yield] let dynamic #t7 = dart.async::_awaitHelper(LoadLibrary(g), :async_op_then, :async_op_error, :async_op) in null;
+          :result;
+          :return_value = let final dynamic #t8 = CheckLibraryIsLoaded(g) in g::g();
+          break #L6;
+        }
+        dart.async::_completeOnAsyncReturn(:async_completer, :return_value);
+        return;
+      }
+      on dynamic catch(dynamic exception, dart.core::StackTrace* stack_trace) {
+        :async_completer.{dart.async::Completer::completeError}(exception, stack_trace);
+      }
+    :async_stack_trace = dart.async::_asyncStackTraceHelper(:async_op);
+    :async_op_then = dart.async::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = dart.async::_asyncErrorWrapperHelper(:async_op);
+    :async_completer.{dart.async::_AsyncAwaitCompleter::start}(:async_op);
+    return :async_completer.{dart.async::Completer::future};
+  }
+}
+library f from "#pkg/vm/testcases/transformations/deferred_loading/f.dart" as f {
+
+  import "#pkg/vm/testcases/transformations/deferred_loading/g.dart" deferred as g;
+  import "#pkg/vm/testcases/transformations/deferred_loading/i.dart" deferred as i;
+
+  static method f() → dynamic /* originally async */ {
+    final dart.async::_AsyncAwaitCompleter<dynamic>* :async_completer = new dart.async::_AsyncAwaitCompleter::•<dynamic>();
+    FutureOr<dynamic>* :return_value;
+    dynamic :async_stack_trace;
+    (dynamic) →* dynamic :async_op_then;
+    (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
+    dart.core::int* :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    dynamic :saved_try_context_var0;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try {
+        #L7:
+        {
+          dart.core::print("F");
+          [yield] let dynamic #t9 = dart.async::_awaitHelper(LoadLibrary(g), :async_op_then, :async_op_error, :async_op) in null;
+          :result;
+          :return_value = let final dynamic #t10 = CheckLibraryIsLoaded(g) in g::g();
+          break #L7;
+          [yield] let dynamic #t11 = dart.async::_awaitHelper(LoadLibrary(i), :async_op_then, :async_op_error, :async_op) in null;
+          :result;
+          :return_value = let final dynamic #t12 = CheckLibraryIsLoaded(i) in i::i();
+          break #L7;
+        }
+        dart.async::_completeOnAsyncReturn(:async_completer, :return_value);
+        return;
+      }
+      on dynamic catch(dynamic exception, dart.core::StackTrace* stack_trace) {
+        :async_completer.{dart.async::Completer::completeError}(exception, stack_trace);
+      }
+    :async_stack_trace = dart.async::_asyncStackTraceHelper(:async_op);
+    :async_op_then = dart.async::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = dart.async::_asyncErrorWrapperHelper(:async_op);
+    :async_completer.{dart.async::_AsyncAwaitCompleter::start}(:async_op);
+    return :async_completer.{dart.async::Completer::future};
+  }
+}
+library g from "#pkg/vm/testcases/transformations/deferred_loading/g.dart" as g {
+
+  import "#pkg/vm/testcases/transformations/deferred_loading/h.dart" as h;
+
+  static method g() → dynamic /* originally async */ {
+    final dart.async::_AsyncAwaitCompleter<dynamic>* :async_completer = new dart.async::_AsyncAwaitCompleter::•<dynamic>();
+    FutureOr<dynamic>* :return_value;
+    dynamic :async_stack_trace;
+    (dynamic) →* dynamic :async_op_then;
+    (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
+    dart.core::int* :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try {
+        #L8:
+        {
+          dart.core::print("G");
+        }
+        dart.async::_completeOnAsyncReturn(:async_completer, :return_value);
+        return;
+      }
+      on dynamic catch(dynamic exception, dart.core::StackTrace* stack_trace) {
+        :async_completer.{dart.async::Completer::completeError}(exception, stack_trace);
+      }
+    :async_stack_trace = dart.async::_asyncStackTraceHelper(:async_op);
+    :async_op_then = dart.async::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = dart.async::_asyncErrorWrapperHelper(:async_op);
+    :async_completer.{dart.async::_AsyncAwaitCompleter::start}(:async_op);
+    return :async_completer.{dart.async::Completer::future};
+  }
+}
+library i from "#pkg/vm/testcases/transformations/deferred_loading/i.dart" as i {
+
+  import "#pkg/vm/testcases/transformations/deferred_loading/j.dart" deferred as j;
+  import "#pkg/vm/testcases/transformations/deferred_loading/b.dart" as b;
+
+  static method i() → dynamic /* originally async */ {
+    final dart.async::_AsyncAwaitCompleter<dynamic>* :async_completer = new dart.async::_AsyncAwaitCompleter::•<dynamic>();
+    FutureOr<dynamic>* :return_value;
+    dynamic :async_stack_trace;
+    (dynamic) →* dynamic :async_op_then;
+    (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
+    dart.core::int* :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    dynamic :saved_try_context_var0;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try {
+        #L9:
+        {
+          dart.core::print("I");
+          [yield] let dynamic #t13 = dart.async::_awaitHelper(LoadLibrary(j), :async_op_then, :async_op_error, :async_op) in null;
+          :result;
+          :return_value = let final dynamic #t14 = CheckLibraryIsLoaded(j) in j::j();
+          break #L9;
+        }
+        dart.async::_completeOnAsyncReturn(:async_completer, :return_value);
+        return;
+      }
+      on dynamic catch(dynamic exception, dart.core::StackTrace* stack_trace) {
+        :async_completer.{dart.async::Completer::completeError}(exception, stack_trace);
+      }
+    :async_stack_trace = dart.async::_asyncStackTraceHelper(:async_op);
+    :async_op_then = dart.async::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = dart.async::_asyncErrorWrapperHelper(:async_op);
+    :async_completer.{dart.async::_AsyncAwaitCompleter::start}(:async_op);
+    return :async_completer.{dart.async::Completer::future};
+  }
+}
+library h from "#pkg/vm/testcases/transformations/deferred_loading/h.dart" as h {
+
+  import "#pkg/vm/testcases/transformations/deferred_loading/g.dart" as g;
+
+  static method h() → dynamic /* originally async */ {
+    final dart.async::_AsyncAwaitCompleter<dynamic>* :async_completer = new dart.async::_AsyncAwaitCompleter::•<dynamic>();
+    FutureOr<dynamic>* :return_value;
+    dynamic :async_stack_trace;
+    (dynamic) →* dynamic :async_op_then;
+    (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
+    dart.core::int* :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try {
+        #L10:
+        {
+          dart.core::print("H");
+        }
+        dart.async::_completeOnAsyncReturn(:async_completer, :return_value);
+        return;
+      }
+      on dynamic catch(dynamic exception, dart.core::StackTrace* stack_trace) {
+        :async_completer.{dart.async::Completer::completeError}(exception, stack_trace);
+      }
+    :async_stack_trace = dart.async::_asyncStackTraceHelper(:async_op);
+    :async_op_then = dart.async::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = dart.async::_asyncErrorWrapperHelper(:async_op);
+    :async_completer.{dart.async::_AsyncAwaitCompleter::start}(:async_op);
+    return :async_completer.{dart.async::Completer::future};
+  }
+}
+library j from "#pkg/vm/testcases/transformations/deferred_loading/j.dart" as j {
+
+  import "#pkg/vm/testcases/transformations/deferred_loading/a.dart" as a;
+
+  static method j() → dynamic /* originally async */ {
+    final dart.async::_AsyncAwaitCompleter<dynamic>* :async_completer = new dart.async::_AsyncAwaitCompleter::•<dynamic>();
+    FutureOr<dynamic>* :return_value;
+    dynamic :async_stack_trace;
+    (dynamic) →* dynamic :async_op_then;
+    (dart.core::Object*, dart.core::StackTrace*) →* dynamic :async_op_error;
+    dart.core::int* :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try {
+        #L11:
+        {
+          dart.core::print("J");
+        }
+        dart.async::_completeOnAsyncReturn(:async_completer, :return_value);
+        return;
+      }
+      on dynamic catch(dynamic exception, dart.core::StackTrace* stack_trace) {
+        :async_completer.{dart.async::Completer::completeError}(exception, stack_trace);
+      }
+    :async_stack_trace = dart.async::_asyncStackTraceHelper(:async_op);
+    :async_op_then = dart.async::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = dart.async::_asyncErrorWrapperHelper(:async_op);
+    :async_completer.{dart.async::_AsyncAwaitCompleter::start}(:async_op);
+    return :async_completer.{dart.async::Completer::future};
+  }
+}

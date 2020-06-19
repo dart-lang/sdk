@@ -68,6 +68,7 @@ import 'transformations/obfuscation_prohibitions_annotator.dart'
 import 'transformations/call_site_annotator.dart' as call_site_annotator;
 import 'transformations/unreachable_code_elimination.dart'
     as unreachable_code_elimination;
+import 'transformations/deferred_loading.dart' as deferred_loading;
 
 /// Declare options consumed by [runCompiler].
 void declareCompilerOptions(ArgParser args) {
@@ -513,6 +514,8 @@ Future runGlobalTransformations(
   // We don't know yet whether gen_snapshot will want to do obfuscation, but if
   // it does it will need the obfuscation prohibitions.
   obfuscationProhibitions.transformComponent(component, coreTypes);
+
+  deferred_loading.transformComponent(component);
 }
 
 /// Runs given [action] with [CompilerContext]. This is needed to
