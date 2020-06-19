@@ -574,16 +574,16 @@ CodeSourceMapPtr CodeSourceMapBuilder::Finalize() {
 void CodeSourceMapBuilder::WriteChangePosition(TokenPosition pos) {
   stream_.Write<uint8_t>(kChangePosition);
   if (FLAG_precompiled_mode) {
-    intptr_t line = -1;
+    int32_t loc = TokenPosition::kNoSourcePos;
     intptr_t inline_id = buffered_inline_id_stack_.Last();
     if (inline_id < inline_id_to_function_.length()) {
       const Function* function = inline_id_to_function_[inline_id];
       Script& script = Script::Handle(function->script());
-      line = script.GetTokenLineUsingLineStarts(pos.SourcePosition());
+      loc = script.GetTokenLocationUsingLineStarts(pos.SourcePosition());
     }
-    stream_.Write<int32_t>(static_cast<int32_t>(line));
+    stream_.Write(loc);
   } else {
-    stream_.Write<int32_t>(static_cast<int32_t>(pos.value()));
+    stream_.Write<int32_t>(pos.value());
   }
   written_token_pos_stack_.Last() = pos;
 }
