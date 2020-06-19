@@ -312,6 +312,30 @@ main() {
     ]);
   }
 
+  Future<void> test_warmUp_cachesImportedLibraries() async {
+    var aPath = convertPath('/workspace/dart/test/lib/a.dart');
+    newFile(aPath, content: r'''
+class A {}
+''');
+
+    var bPath = convertPath('/workspace/dart/test/lib/b.dart');
+    newFile(bPath, content: r'''
+import 'a.dart';
+''');
+
+    // Pre-cache `a.dart` using import in `b.dart`
+    await _newComputer().warmUp([bPath]);
+    _assertComputedImportedLibraries([aPath], hasCore: true);
+
+    // Now we complete in `test.dart`, and `a.dart` is already cached.
+    await _compute(r'''
+import 'a.dart';
+^
+''');
+    _assertComputedImportedLibraries([]);
+    _assertHasClass(text: 'A');
+  }
+
   void _assertComputedImportedLibraries(
     List<String> expected, {
     bool hasCore = false,

@@ -173,6 +173,17 @@ class CiderCompletionComputer {
     return compute(path: path, line: line, column: column);
   }
 
+  /// Prepare for computing completions in files from the [pathList].
+  ///
+  /// This method might be called when we are finishing a large initial
+  /// analysis, so spending additionally a fraction of this time to make
+  /// any subsequent completion seem fast is a reasonable trade-off.
+  Future<void> warmUp(List<String> pathList) async {
+    for (var path in pathList) {
+      await compute(path: path, line: 0, column: 0);
+    }
+  }
+
   /// Return suggestions from libraries imported into the [target].
   ///
   /// TODO(scheglov) Implement show / hide combinators.
