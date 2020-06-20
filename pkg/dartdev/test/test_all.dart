@@ -18,7 +18,7 @@ import 'core_test.dart' as core;
 import 'sdk_test.dart' as sdk;
 import 'utils_test.dart' as utils;
 
-main() {
+void main() {
   group('dart', () {
     analytics.main();
     analyze.main();

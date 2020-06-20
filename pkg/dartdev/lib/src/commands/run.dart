@@ -15,6 +15,7 @@ import '../sdk.dart';
 import '../utils.dart';
 
 class RunCommand extends DartdevCommand<int> {
+  @override
   final ArgParser argParser = ArgParser.allowAnything();
   final bool verbose;
   RunCommand({this.verbose = false}) : super('run', '''

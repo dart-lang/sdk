@@ -105,9 +105,7 @@ void runDartdev(List<String> args) async {
     stopwatch.stop();
 
     // Set the exitCode, if it wasn't set in the catch block above.
-    if (exitCode == null) {
-      exitCode = result is int ? result : 0;
-    }
+    exitCode ??= result is int ? result : 0;
 
     // Send analytics before exiting
     if (analytics.enabled) {

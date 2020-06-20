@@ -13,6 +13,7 @@ import '../sdk.dart';
 class PubCommand extends DartdevCommand<int> {
   PubCommand({bool verbose = false}) : super('pub', 'Work with packages.');
 
+  @override
   final ArgParser argParser = ArgParser.allowAnything();
 
   @override
