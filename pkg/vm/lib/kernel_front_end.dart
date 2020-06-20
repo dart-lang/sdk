@@ -141,6 +141,9 @@ void declareCompilerOptions(ArgParser args) {
       help: 'Comma separated list of experimental features to enable.');
   args.addFlag('help',
       abbr: 'h', negatable: false, help: 'Print this help message.');
+  args.addFlag('track-widget-creation',
+      help: 'Run a kernel transformer to track creation locations for widgets.',
+      defaultsTo: false);
 }
 
 /// Create ArgParser and populate it with options consumed by [runCompiler].
@@ -256,8 +259,11 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     await autoDetectNullSafetyMode(mainUri, compilerOptions);
   }
 
-  compilerOptions.target = createFrontEndTarget(targetName,
-      nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong);
+  compilerOptions.target = createFrontEndTarget(
+    targetName,
+    trackWidgetCreation: options['track-widget-creation'],
+    nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
+  );
   if (compilerOptions.target == null) {
     print('Failed to create front-end target $targetName.');
     return badUsageExitCode;
