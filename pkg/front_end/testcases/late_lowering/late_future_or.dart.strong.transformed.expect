@@ -33,19 +33,19 @@ class C<T extends core::Object? = dynamic> extends core::Object {
   }
   get field3() → FutureOr<self::C::T%>
     return this.{self::C::_#C#field3#isSet} ?{FutureOr<self::C::T%>} let final FutureOr<self::C::T%>? #t3 = this.{self::C::_#C#field3} in #t3{FutureOr<self::C::T%>} : throw new _in::LateInitializationErrorImpl::•("Field 'field3' has not been initialized.");
-  set field3(FutureOr<self::C::T%>#t4) → void {
+  set field3(generic-covariant-impl FutureOr<self::C::T%>#t4) → void {
     this.{self::C::_#C#field3#isSet} = true;
     this.{self::C::_#C#field3} = #t4;
   }
   get field4() → FutureOr<self::C::T?>
     return this.{self::C::_#C#field4#isSet} ?{FutureOr<self::C::T?>} this.{self::C::_#C#field4} : throw new _in::LateInitializationErrorImpl::•("Field 'field4' has not been initialized.");
-  set field4(FutureOr<self::C::T?>#t5) → void {
+  set field4(generic-covariant-impl FutureOr<self::C::T?>#t5) → void {
     this.{self::C::_#C#field4#isSet} = true;
     this.{self::C::_#C#field4} = #t5;
   }
   get field5() → FutureOr<self::C::T?>?
     return this.{self::C::_#C#field5#isSet} ?{FutureOr<self::C::T?>?} this.{self::C::_#C#field5} : throw new _in::LateInitializationErrorImpl::•("Field 'field5' has not been initialized.");
-  set field5(FutureOr<self::C::T?>? #t6) → void {
+  set field5(generic-covariant-impl FutureOr<self::C::T?>? #t6) → void {
     this.{self::C::_#C#field5#isSet} = true;
     this.{self::C::_#C#field5} = #t6;
   }

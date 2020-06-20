@@ -392,7 +392,7 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
       }
       if (needsCheckVisitor != null) {
         if (fieldType.accept(needsCheckVisitor)) {
-          field.isGenericCovariantImpl = true;
+          _fieldEncoding.setGenericCovariantImpl();
         }
       }
     }
@@ -843,9 +843,11 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
 
   @override
   void setGenericCovariantImpl() {
-    // TODO(johnniwinther): Is this correct? Should the [_lateSetter] be
-    //  annotated instead?
     _field.isGenericCovariantImpl = true;
+    if (_lateSetter != null) {
+      _lateSetter.function.positionalParameters.single.isGenericCovariantImpl =
+          true;
+    }
   }
 
   @override
