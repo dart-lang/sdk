@@ -326,8 +326,7 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
   Zone* zone = Thread::Current()->zone();
   Dart_KernelCompilationResult result = KernelIsolate::CompileToKernel(
       url, platform_strong_dill, platform_strong_dill_size, sourcefiles_count,
-      sourcefiles, incrementally, nullptr, nullptr, multiroot_filepaths,
-      multiroot_scheme);
+      sourcefiles, incrementally, NULL, multiroot_filepaths, multiroot_scheme);
   if (result.status == Dart_KernelCompilationStatus_Ok) {
     if (KernelIsolate::AcceptCompilation().status !=
         Dart_KernelCompilationStatus_Ok) {

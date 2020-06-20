@@ -235,15 +235,12 @@ Dart_KernelCompilationResult DFE::CompileScript(const char* script_uri,
                                                 const char* package_config) {
   // TODO(aam): When Frontend is ready, VM should be passing vm_outline.dill
   // instead of vm_platform.dill to Frontend for compilation.
-  PathSanitizer script_uri_sanitizer(script_uri);
-  PathSanitizer packages_config_sanitizer(package_config);
+  PathSanitizer path_sanitizer(script_uri);
+  const char* sanitized_uri = path_sanitizer.sanitized_uri();
 
-  return Dart_CompileToKernel(script_uri_sanitizer.sanitized_uri(),
-                              platform_strong_dill_for_compilation_,
-                              platform_strong_dill_for_compilation_size_,
-                              incremental,
-                              packages_config_sanitizer.sanitized_uri(),
-                              DartUtils::original_working_directory);
+  return Dart_CompileToKernel(
+      sanitized_uri, platform_strong_dill_for_compilation_,
+      platform_strong_dill_for_compilation_size_, incremental, package_config);
 }
 
 void DFE::CompileAndReadScript(const char* script_uri,
