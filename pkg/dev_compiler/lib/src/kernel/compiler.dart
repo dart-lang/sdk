@@ -17,7 +17,8 @@ import 'package:path/path.dart' as p;
 
 import '../compiler/js_names.dart' as js_ast;
 import '../compiler/js_utils.dart' as js_ast;
-import '../compiler/module_builder.dart' show pathToJSIdentifier;
+import '../compiler/module_builder.dart'
+    show isSdkInternalRuntimeUri, libraryUriToJsIdentifier, pathToJSIdentifier;
 import '../compiler/shared_command.dart' show SharedCompilerOptions;
 import '../compiler/shared_compiler.dart';
 import '../js_ast/js_ast.dart' as js_ast;
@@ -371,11 +372,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   String jsLibraryName(Library library) {
-    var uri = library.importUri;
-    if (uri.scheme == 'dart') {
-      return isSdkInternalRuntime(library) ? 'dart' : uri.path;
-    }
-    return pathToJSIdentifier(p.withoutExtension(uri.pathSegments.last));
+    return libraryUriToJsIdentifier(library.importUri);
   }
 
   @override
@@ -405,8 +402,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   bool isSdkInternalRuntime(Library l) {
-    var uri = l.importUri;
-    return uri.scheme == 'dart' && uri.path == '_runtime';
+    return isSdkInternalRuntimeUri(l.importUri);
   }
 
   @override

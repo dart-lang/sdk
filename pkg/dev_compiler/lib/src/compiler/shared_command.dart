@@ -61,6 +61,13 @@ class SharedCompilerOptions {
   /// runtime can enable synchronous stack trace deobsfuscation.
   final bool inlineSourceMap;
 
+  /// Whether to emit the debug metadata
+  ///
+  /// Debugger uses this information about to construct mapping between
+  /// modules and libraries that otherwise requires expensive communication with
+  /// the browser.
+  final bool emitDebugMetadata;
+
   /// Whether to emit a summary file containing API signatures.
   ///
   /// This is required for a modular build process.
@@ -99,6 +106,7 @@ class SharedCompilerOptions {
       this.summarizeApi = true,
       this.enableAsserts = true,
       this.replCompile = false,
+      this.emitDebugMetadata = false,
       this.summaryModules = const {},
       this.moduleFormats = const [],
       this.experiments = const {},
@@ -119,7 +127,9 @@ class SharedCompilerOptions {
             moduleFormats: parseModuleFormatOption(args),
             moduleName: _getModuleName(args, moduleRoot),
             replCompile: args['repl-compile'] as bool,
-            soundNullSafety: args['sound-null-safety'] as bool);
+            soundNullSafety: args['sound-null-safety'] as bool,
+            emitDebugMetadata:
+                args['experimental-emit-debug-metadata'] as bool);
 
   static void addArguments(ArgParser parser, {bool hide = true}) {
     addModuleFormatOptions(parser, hide: hide);
@@ -152,7 +162,14 @@ class SharedCompilerOptions {
       ..addFlag('sound-null-safety',
           help: 'Compile for sound null safety at runtime.',
           negatable: true,
-          defaultsTo: false);
+          defaultsTo: false)
+      // TODO(41852) Define a process for breaking changes before graduating from
+      // experimental.
+      ..addFlag('experimental-emit-debug-metadata',
+          help: 'Experimental option for compiler development.\n'
+              'Output a metadata file for debug tools next to the .js output.',
+          defaultsTo: false,
+          hide: true);
   }
 
   static String _getModuleName(ArgResults args, String moduleRoot) {

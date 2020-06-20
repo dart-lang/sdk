@@ -103,10 +103,11 @@ void main() {
     final manifestSink = _MemorySink();
     final codeSink = _MemorySink();
     final sourcemapSink = _MemorySink();
+    final metadataSink = _MemorySink();
     final coreTypes = CoreTypes(testComponent);
 
     await javaScriptBundler.compile(ClassHierarchy(testComponent, coreTypes),
-        coreTypes, {}, codeSink, manifestSink, sourcemapSink);
+        coreTypes, {}, codeSink, manifestSink, sourcemapSink, metadataSink);
 
     final Map manifest = json.decode(utf8.decode(manifestSink.buffer));
     final String code = utf8.decode(codeSink.buffer);
@@ -143,10 +144,11 @@ void main() {
     final manifestSink = _MemorySink();
     final codeSink = _MemorySink();
     final sourcemapSink = _MemorySink();
+    final metadataSink = _MemorySink();
     final coreTypes = CoreTypes(testComponent);
 
     await javaScriptBundler.compile(ClassHierarchy(testComponent, coreTypes),
-        coreTypes, {}, codeSink, manifestSink, sourcemapSink);
+        coreTypes, {}, codeSink, manifestSink, sourcemapSink, metadataSink);
 
     final Map manifest = json.decode(utf8.decode(manifestSink.buffer));
     final String code = utf8.decode(codeSink.buffer);
@@ -183,10 +185,11 @@ void main() {
     final manifestSink = _MemorySink();
     final codeSink = _MemorySink();
     final sourcemapSink = _MemorySink();
+    final metadataSink = _MemorySink();
     final coreTypes = CoreTypes(testComponent);
 
     await javaScriptBundler.compile(ClassHierarchy(testComponent, coreTypes),
-        coreTypes, {}, codeSink, manifestSink, sourcemapSink);
+        coreTypes, {}, codeSink, manifestSink, sourcemapSink, metadataSink);
 
     final Map manifest = json.decode(utf8.decode(manifestSink.buffer));
     final String code = utf8.decode(codeSink.buffer);
@@ -232,10 +235,11 @@ void main() {
     final manifestSink = _MemorySink();
     final codeSink = _MemorySink();
     final sourcemapSink = _MemorySink();
+    final metadataSink = _MemorySink();
     final coreTypes = CoreTypes(testComponent);
 
     javaScriptBundler.compile(ClassHierarchy(testComponent, coreTypes),
-        coreTypes, {}, codeSink, manifestSink, sourcemapSink);
+        coreTypes, {}, codeSink, manifestSink, sourcemapSink, metadataSink);
 
     final code = utf8.decode(codeSink.buffer);
     final manifest = json.decode(utf8.decode(manifestSink.buffer));
