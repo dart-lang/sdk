@@ -174,10 +174,8 @@ static void OnExitHook(int64_t exit_code) {
 
 static Dart_Handle SetupCoreLibraries(Dart_Isolate isolate,
                                       IsolateData* isolate_data,
-                                      bool is_isolate_group_start,
-                                      const char** resolved_packages_config) {
+                                      bool is_isolate_group_start) {
   auto isolate_group_data = isolate_data->isolate_group_data();
-  const auto packages_file = isolate_data->packages_file();
   const auto script_uri = isolate_group_data->script_url;
 
   Dart_Handle result;
@@ -187,24 +185,6 @@ static Dart_Handle SetupCoreLibraries(Dart_Isolate isolate,
   // Set up package configuration for URI resolution.
   result = DartUtils::PrepareForScriptLoading(false, Options::trace_loading());
   if (Dart_IsError(result)) return result;
-
-  // Setup packages config if specified.
-  result = DartUtils::SetupPackageConfig(packages_file);
-  if (Dart_IsError(result)) return result;
-  if (!Dart_IsNull(result) && resolved_packages_config != nullptr) {
-    result = Dart_StringToCString(result, resolved_packages_config);
-    if (Dart_IsError(result)) return result;
-    ASSERT(*resolved_packages_config != nullptr);
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    if (is_isolate_group_start) {
-      isolate_group_data->set_resolved_packages_config(
-          *resolved_packages_config);
-    } else {
-      ASSERT(strcmp(isolate_group_data->resolved_packages_config(),
-                    *resolved_packages_config) == 0);
-    }
-#endif
-  }
 
   result = Dart_SetEnvironmentCallback(DartUtils::EnvironmentCallback);
   if (Dart_IsError(result)) return result;
@@ -235,35 +215,17 @@ static bool OnIsolateInitialize(void** child_callback_data, char** error) {
   *child_callback_data = isolate_data;
 
   Dart_EnterScope();
+  Dart_Handle resolved_script_uri;
   const auto script_uri = isolate_group_data->script_url;
   const bool isolate_run_app_snapshot =
       isolate_group_data->RunFromAppSnapshot();
   Dart_Handle result = SetupCoreLibraries(isolate, isolate_data,
-                                          /*group_start=*/false,
-                                          /*resolved_packages_config=*/nullptr);
+                                          /*group_start=*/false);
   if (Dart_IsError(result)) goto failed;
 
-  if (isolate_run_app_snapshot) {
-    if (Dart_IsVMFlagSet("support_service") || !Dart_IsPrecompiledRuntime()) {
-      result = Loader::InitForSnapshot(script_uri, isolate_data);
-      if (Dart_IsError(result)) goto failed;
-    }
-  } else {
-    result = DartUtils::ResolveScript(Dart_NewStringFromCString(script_uri));
-    if (Dart_IsError(result)) return result != nullptr;
-
-    if (isolate_group_data->kernel_buffer().get() != nullptr) {
-      // Various core-library parts will send requests to the Loader to resolve
-      // relative URIs and perform other related tasks. We need Loader to be
-      // initialized for this to work because loading from Kernel binary
-      // bypasses normal source code loading paths that initialize it.
-      const char* resolved_script_uri = NULL;
-      result = Dart_StringToCString(result, &resolved_script_uri);
-      if (Dart_IsError(result)) goto failed;
-      result = Loader::InitForSnapshot(resolved_script_uri, isolate_data);
-      if (Dart_IsError(result)) goto failed;
-    }
-  }
+  // Resolve script URI and Initialize package resolution state.
+  resolved_script_uri = Loader::Init(script_uri, isolate_data);
+  if (Dart_IsError(resolved_script_uri)) goto failed;
 
   if (isolate_run_app_snapshot) {
     result = Loader::ReloadNativeExtensions();
@@ -300,10 +262,8 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
 
   auto isolate_data = reinterpret_cast<IsolateData*>(Dart_IsolateData(isolate));
 
-  const char* resolved_packages_config = nullptr;
   result = SetupCoreLibraries(isolate, isolate_data,
-                              /*is_isolate_group_start=*/true,
-                              &resolved_packages_config);
+                              /*is_isolate_group_start=*/true);
   CHECK_RESULT(result);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -327,7 +287,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     intptr_t application_kernel_buffer_size = 0;
     dfe.CompileAndReadScript(script_uri, &application_kernel_buffer,
                              &application_kernel_buffer_size, error, exit_code,
-                             resolved_packages_config);
+                             packages_config);
     if (application_kernel_buffer == NULL) {
       Dart_ExitScope();
       Dart_ShutdownIsolate();
@@ -338,11 +298,8 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     kernel_buffer = application_kernel_buffer;
     kernel_buffer_size = application_kernel_buffer_size;
   }
+  // Load the specified application script into the newly created isolate.
   if (kernel_buffer != NULL) {
-    Dart_Handle uri = Dart_NewStringFromCString(script_uri);
-    CHECK_RESULT(uri);
-    Dart_Handle resolved_script_uri = DartUtils::ResolveScript(uri);
-    CHECK_RESULT(resolved_script_uri);
     result = Dart_LoadScriptFromKernel(kernel_buffer, kernel_buffer_size);
     CHECK_RESULT(result);
   }
@@ -353,47 +310,29 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     CHECK_RESULT(result);
   }
 
-  if (isolate_run_app_snapshot) {
-    if (Dart_IsVMFlagSet("support_service") || !Dart_IsPrecompiledRuntime()) {
-      Dart_Handle result = Loader::InitForSnapshot(script_uri, isolate_data);
-      CHECK_RESULT(result);
-    }
+  // Resolve script URI and Initialize package resolution state.
+  Dart_Handle resolved_script_uri = Loader::Init(script_uri, isolate_data);
+  CHECK_RESULT(resolved_script_uri);
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  if (isolate_run_app_snapshot) {
     if (is_main_isolate) {
       // Find the canonical uri of the app snapshot. We'll use this to decide if
       // other isolates should use the app snapshot or the core snapshot.
-      const char* resolved_script_uri = NULL;
-      result = Dart_StringToCString(
-          DartUtils::ResolveScript(Dart_NewStringFromCString(script_uri)),
-          &resolved_script_uri);
+      const char* resolved_script = NULL;
+      result = Dart_StringToCString(resolved_script_uri, &resolved_script);
       CHECK_RESULT(result);
       ASSERT(app_script_uri == NULL);
-      app_script_uri = strdup(resolved_script_uri);
+      app_script_uri = strdup(resolved_script);
     }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  } else {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    // Load the specified application script into the newly created isolate.
-    Dart_Handle uri =
-        DartUtils::ResolveScript(Dart_NewStringFromCString(script_uri));
-    CHECK_RESULT(uri);
-    if (kernel_buffer != NULL) {
-      // relative URIs and perform other related tasks. We need Loader to be
-      // initialized for this to work because loading from Kernel binary
-      // bypasses normal source code loading paths that initialize it.
-      const char* resolved_script_uri = NULL;
-      result = Dart_StringToCString(uri, &resolved_script_uri);
-      CHECK_RESULT(result);
-      result = Loader::InitForSnapshot(resolved_script_uri, isolate_data);
-      CHECK_RESULT(result);
-    }
-    Dart_TimelineEvent("LoadScript", Dart_TimelineGetMicros(),
-                       Dart_GetMainPortId(), Dart_Timeline_Event_Async_End, 0,
-                       NULL, NULL);
-#else
-    UNREACHABLE();
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   }
+  Dart_TimelineEvent("LoadScript", Dart_TimelineGetMicros(),
+                     Dart_GetMainPortId(), Dart_Timeline_Event_Async_End, 0,
+                     NULL, NULL);
+#else
+  if (!isolate_run_app_snapshot) {
+    UNREACHABLE();
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   if (Options::gen_snapshot_kind() == kAppJIT) {
     // If we sort, we must do it for all isolates, not just the main isolate,
@@ -854,8 +793,9 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
         Options::package_root());
   }
 
+  const char* packages_config = Options::packages_file();
   Dart_Isolate isolate = CreateIsolateGroupAndSetupHelper(
-      is_main_isolate, script_name, "main", Options::packages_file(), &flags,
+      is_main_isolate, script_name, "main", packages_config, &flags,
       NULL /* callback_data */, &error, &exit_code);
 
   if (isolate == NULL) {
@@ -880,8 +820,6 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
 
   Dart_EnterScope();
 
-  auto isolate_group_data =
-      reinterpret_cast<IsolateGroupData*>(Dart_IsolateGroupData(isolate));
   if (Options::gen_snapshot_kind() == kKernel) {
     if (vm_run_app_snapshot) {
       Syslog::PrintErr(
@@ -891,7 +829,7 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
       Platform::Exit(kErrorExitCode);
     }
     Snapshot::GenerateKernel(Options::snapshot_filename(), script_name,
-                             isolate_group_data->resolved_packages_config());
+                             packages_config);
   } else {
     // Lookup the library of the root script.
     Dart_Handle root_lib = Dart_RootLibrary();

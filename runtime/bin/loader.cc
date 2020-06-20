@@ -23,27 +23,22 @@ namespace bin {
 extern DFE dfe;
 #endif
 
-Dart_Handle Loader::InitForSnapshot(const char* snapshot_uri,
-                                    IsolateData* isolate_data) {
-  ASSERT(isolate_data != NULL);
-
-  return Loader::Init(isolate_data->packages_file(),
-                      DartUtils::original_working_directory, snapshot_uri);
-}
-
 // Initialize package resolution state.
-Dart_Handle Loader::Init(const char* packages_file,
-                         const char* working_directory,
-                         const char* root_script_uri) {
+// Returns the resolved script URI after it resolves 'script_uri' in the
+// current working directory iff the given uri did not specify a scheme
+// (e.g. a path to a script file on the command line).
+Dart_Handle Loader::Init(const char* script_uri, IsolateData* isolate_data) {
+  ASSERT(isolate_data != NULL);
+  const char* packages_file = isolate_data->packages_file();
   const int kNumArgs = 3;
   Dart_Handle dart_args[kNumArgs];
   dart_args[0] = (packages_file == NULL)
                      ? Dart_Null()
                      : Dart_NewStringFromCString(packages_file);
-  dart_args[1] = Dart_NewStringFromCString(working_directory);
-  dart_args[2] = (root_script_uri == NULL)
-                     ? Dart_Null()
-                     : Dart_NewStringFromCString(root_script_uri);
+  dart_args[1] =
+      Dart_NewStringFromCString(DartUtils::original_working_directory);
+  dart_args[2] = (script_uri == NULL) ? Dart_Null()
+                                      : Dart_NewStringFromCString(script_uri);
   return Dart_Invoke(DartUtils::LookupBuiltinLib(),
                      DartUtils::NewString("_Init"), kNumArgs, dart_args);
 }

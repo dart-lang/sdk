@@ -100,7 +100,8 @@ CompilerOptions setupCompilerOptions(
     int nullSafety,
     List<String> experimentalFlags,
     bool bytecode,
-    Uri packagesUri,
+    String packageConfig,
+    String workingDirectory,
     List<String> errors) {
   final expFlags = <String>[];
   if (experimentalFlags != null) {
@@ -108,7 +109,17 @@ CompilerOptions setupCompilerOptions(
       expFlags.addAll(flag.split(","));
     }
   }
-
+  Uri packagesUri = null;
+  if (packageConfig != null) {
+    packagesUri = Uri.parse(packageConfig);
+    if (packagesUri.scheme == '') {
+      // Script does not have a scheme, assume that it is a path,
+      // resolve it against the working directory.
+      packagesUri = Uri.directory(workingDirectory).resolveUri(packagesUri);
+    }
+  } else if (Platform.packageConfig != null) {
+    packagesUri = Uri.parse(Platform.packageConfig);
+  }
   return new CompilerOptions()
     ..fileSystem = fileSystem
     ..target = new VmTarget(new TargetFlags(
@@ -158,7 +169,7 @@ abstract class Compiler {
   final List<String> experimentalFlags;
   final bool bytecode;
   final String packageConfig;
-
+  final String workingDirectory;
   // Code coverage and hot reload are only supported by incremental compiler,
   // which is used if vm-service is enabled.
   final bool supportCodeCoverage;
@@ -176,21 +187,8 @@ abstract class Compiler {
       this.bytecode: false,
       this.supportCodeCoverage: false,
       this.supportHotReload: false,
-      this.packageConfig: null}) {
-    Uri packagesUri = null;
-    if (packageConfig != null) {
-      packagesUri = Uri.parse(packageConfig);
-    } else if (Platform.packageConfig != null) {
-      packagesUri = Uri.parse(Platform.packageConfig);
-    }
-
-    if (verbose) {
-      print("DFE: Platform.packageConfig: ${Platform.packageConfig}");
-      print("DFE: packagesUri: ${packagesUri}");
-      print("DFE: Platform.resolvedExecutable: ${Platform.resolvedExecutable}");
-      print("DFE: platformKernelPath: ${platformKernelPath}");
-    }
-
+      this.packageConfig: null,
+      this.workingDirectory: null}) {
     options = setupCompilerOptions(
         fileSystem,
         platformKernelPath,
@@ -199,8 +197,16 @@ abstract class Compiler {
         nullSafety,
         experimentalFlags,
         bytecode,
-        packagesUri,
+        packageConfig,
+        workingDirectory,
         errors);
+
+    if (verbose) {
+      print("DFE: Platform.packageConfig: ${Platform.packageConfig}");
+      print("DFE: packagesUri: ${options.packagesFileUri}");
+      print("DFE: Platform.resolvedExecutable: ${Platform.resolvedExecutable}");
+      print("DFE: platformKernelPath: ${platformKernelPath}");
+    }
   }
 
   Future<CompilerResult> compile(Uri script) {
@@ -337,7 +343,8 @@ class IncrementalCompilerWrapper extends Compiler {
       int nullSafety: kNullSafetyOptionUnspecified,
       List<String> experimentalFlags: null,
       bool bytecode: false,
-      String packageConfig: null})
+      String packageConfig: null,
+      String workingDirectory: null})
       : super(isolateId, fileSystem, platformKernelPath,
             suppressWarnings: suppressWarnings,
             enableAsserts: enableAsserts,
@@ -346,7 +353,8 @@ class IncrementalCompilerWrapper extends Compiler {
             bytecode: bytecode,
             supportHotReload: true,
             supportCodeCoverage: true,
-            packageConfig: packageConfig);
+            packageConfig: packageConfig,
+            workingDirectory: workingDirectory);
 
   factory IncrementalCompilerWrapper.forExpressionCompilationOnly(
       Component component,
@@ -357,7 +365,8 @@ class IncrementalCompilerWrapper extends Compiler {
       bool enableAsserts: false,
       List<String> experimentalFlags: null,
       bool bytecode: false,
-      String packageConfig: null}) {
+      String packageConfig: null,
+      String workingDirectory: null}) {
     IncrementalCompilerWrapper result = IncrementalCompilerWrapper(
         isolateId, fileSystem, platformKernelPath,
         suppressWarnings: suppressWarnings,
@@ -393,7 +402,8 @@ class IncrementalCompilerWrapper extends Compiler {
         nullSafety: nullSafety,
         experimentalFlags: experimentalFlags,
         bytecode: bytecode,
-        packageConfig: packageConfig);
+        packageConfig: packageConfig,
+        workingDirectory: workingDirectory);
 
     generator.resetDeltaState();
     Component fullComponent = await generator.compile();
@@ -424,14 +434,16 @@ class SingleShotCompilerWrapper extends Compiler {
       int nullSafety: kNullSafetyOptionUnspecified,
       List<String> experimentalFlags: null,
       bool bytecode: false,
-      String packageConfig: null})
+      String packageConfig: null,
+      String workingDirectory: null})
       : super(isolateId, fileSystem, platformKernelPath,
             suppressWarnings: suppressWarnings,
             enableAsserts: enableAsserts,
             nullSafety: nullSafety,
             experimentalFlags: experimentalFlags,
             bytecode: bytecode,
-            packageConfig: packageConfig);
+            packageConfig: packageConfig,
+            workingDirectory: workingDirectory);
 
   @override
   Future<CompilerResult> compileInternal(Uri script) async {
@@ -467,6 +479,7 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
     List<String> experimentalFlags: null,
     bool bytecode: false,
     String packageConfig: null,
+    String workingDirectory: null,
     String multirootFilepaths,
     String multirootScheme}) async {
   IncrementalCompilerWrapper compiler = lookupIncrementalCompiler(isolateId);
@@ -480,7 +493,8 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
     if (sourceFiles != null &&
         sourceFiles.length > 0 &&
         sourceFiles[1] == null) {
-      // Just use first compiler that should represent main isolate as a source for cloning.
+      // Just use first compiler that should represent main isolate as a source
+      // for cloning.
       var source = isolateCompilers.entries.first;
       compiler = await source.value.clone(isolateId);
     } else {
@@ -498,7 +512,8 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
           nullSafety: nullSafety,
           experimentalFlags: experimentalFlags,
           bytecode: bytecode,
-          packageConfig: packageConfig);
+          packageConfig: packageConfig,
+          workingDirectory: workingDirectory);
     }
     isolateCompilers[isolateId] = compiler;
   }
@@ -822,20 +837,18 @@ Future _processLoadRequest(request) async {
   } else if (tag == kDetectNullabilityTag) {
     FileSystem fileSystem = _buildFileSystem(
         sourceFiles, platformKernel, multirootFilepaths, multirootScheme);
-    Uri packagesUri = null;
-    if (packageConfig != null) {
-      packagesUri = Uri.parse(packageConfig);
-    } else if (Platform.packageConfig != null) {
-      packagesUri = Uri.parse(Platform.packageConfig);
-    }
-    if (packagesUri != null && packagesUri.scheme == '') {
-      // Script does not have a scheme, assume that it is a path,
-      // resolve it against the working directory.
-      packagesUri = Uri.directory(workingDirectory).resolveUri(packagesUri);
-    }
     final List<String> errors = <String>[];
-    var options = setupCompilerOptions(fileSystem, platformKernelPath, false,
-        false, nullSafety, experimentalFlags, false, packagesUri, errors);
+    var options = setupCompilerOptions(
+        fileSystem,
+        platformKernelPath,
+        false,
+        false,
+        nullSafety,
+        experimentalFlags,
+        false,
+        packageConfig,
+        workingDirectory,
+        errors);
 
     // script should only be null for kUpdateSourcesTag.
     assert(script != null);
@@ -861,6 +874,7 @@ Future _processLoadRequest(request) async {
         experimentalFlags: experimentalFlags,
         bytecode: bytecode,
         packageConfig: packageConfig,
+        workingDirectory: workingDirectory,
         multirootFilepaths: multirootFilepaths,
         multirootScheme: multirootScheme);
   } else {
@@ -874,7 +888,8 @@ Future _processLoadRequest(request) async {
         nullSafety: nullSafety,
         experimentalFlags: experimentalFlags,
         bytecode: bytecode,
-        packageConfig: packageConfig);
+        packageConfig: packageConfig,
+        workingDirectory: workingDirectory);
   }
 
   CompilationResult result;

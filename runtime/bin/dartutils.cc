@@ -302,15 +302,6 @@ bool DartUtils::EntropySource(uint8_t* buffer, intptr_t length) {
   return Crypto::GetRandomBytes(length, buffer);
 }
 
-static Dart_Handle SingleArgDart_Invoke(Dart_Handle lib,
-                                        const char* method,
-                                        Dart_Handle arg) {
-  const int kNumArgs = 1;
-  Dart_Handle dart_args[kNumArgs];
-  dart_args[0] = arg;
-  return Dart_Invoke(lib, DartUtils::NewString(method), kNumArgs, dart_args);
-}
-
 // TODO(iposva): Allocate from the zone instead of leaking error string
 // here. On the other hand the binary is about to exit anyway.
 #define SET_ERROR_MSG(error_msg, format, ...)                                  \
@@ -368,20 +359,6 @@ Dart_Handle DartUtils::MakeUint8Array(const uint8_t* buffer, intptr_t len) {
     RETURN_IF_ERROR(result);
   }
   return array;
-}
-
-Dart_Handle DartUtils::SetWorkingDirectory() {
-  Dart_Handle directory = NewString(original_working_directory);
-  return SingleArgDart_Invoke(LookupBuiltinLib(), "_setWorkingDirectory",
-                              directory);
-}
-
-Dart_Handle DartUtils::ResolveScript(Dart_Handle url) {
-  const int kNumArgs = 1;
-  Dart_Handle dart_args[kNumArgs];
-  dart_args[0] = url;
-  return Dart_Invoke(DartUtils::LookupBuiltinLib(),
-                     NewString("_resolveScriptUri"), kNumArgs, dart_args);
 }
 
 static bool CheckMagicNumber(const uint8_t* buffer,
@@ -465,9 +442,6 @@ Dart_Handle DartUtils::PrepareBuiltinLibrary(Dart_Handle builtin_lib,
           Dart_SetField(builtin_lib, NewString("_traceLoading"), Dart_True());
       RETURN_IF_ERROR(result);
     }
-    // Set current working directory.
-    result = SetWorkingDirectory();
-    RETURN_IF_ERROR(result);
   }
   return Dart_True();
 }
@@ -512,21 +486,6 @@ Dart_Handle DartUtils::PrepareCLILibrary(Dart_Handle cli_lib) {
   RETURN_IF_ERROR(wait_for_event_handle);
   return Dart_SetField(cli_lib, NewString("_waitForEventClosure"),
                        wait_for_event_handle);
-}
-
-Dart_Handle DartUtils::SetupPackageConfig(const char* packages_config) {
-  Dart_Handle result = Dart_Null();
-
-  if (packages_config != NULL) {
-    result = NewString(packages_config);
-    RETURN_IF_ERROR(result);
-    const int kNumArgs = 1;
-    Dart_Handle dart_args[kNumArgs];
-    dart_args[0] = result;
-    result = Dart_Invoke(DartUtils::LookupBuiltinLib(),
-                         NewString("_setPackagesMap"), kNumArgs, dart_args);
-  }
-  return result;
 }
 
 Dart_Handle DartUtils::PrepareForScriptLoading(bool is_service_isolate,

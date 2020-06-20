@@ -51,6 +51,7 @@ class KernelIsolate : public AllStatic {
       Dart_SourceFile source_files[] = NULL,
       bool incremental_compile = true,
       const char* package_config = NULL,
+      const char* original_working_directory = NULL,
       const char* multiroot_filepaths = NULL,
       const char* multiroot_scheme = NULL);
 
