@@ -753,12 +753,13 @@ bool Dart::DetectNullSafety(const char* script_uri,
                             intptr_t kernel_buffer_size,
                             const char* package_config,
                             const char* original_working_directory) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
   // Before creating the isolate we first determine the null safety mode
   // in which the isolate needs to run based on one of these factors :
   // - if loading from source, based on opt-in status of the source
   // - if loading from a kernel file, based on the mode used when
   //   generating the kernel file
-  // - if loading from an appJIT or AOT snapshot, based on the mode used
+  // - if loading from an appJIT, based on the mode used
   //   when generating the snapshot.
   ASSERT(FLAG_null_safety == kNullSafetyOptionUnspecified);
 
@@ -772,7 +773,6 @@ bool Dart::DetectNullSafety(const char* script_uri,
     }
   }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
   // If kernel_buffer is specified, it could be a self contained
   // kernel file or the kernel file of the application,
   // figure out the null safety mode by sniffing the kernel file.
@@ -791,8 +791,10 @@ bool Dart::DetectNullSafety(const char* script_uri,
     return KernelIsolate::DetectNullSafety(script_uri, package_config,
                                            original_working_directory);
   }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   return false;
+#else
+  UNREACHABLE();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 #if defined(DART_PRECOMPILED_RUNTIME)
