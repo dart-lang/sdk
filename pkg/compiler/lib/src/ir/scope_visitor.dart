@@ -143,7 +143,7 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
     for (ir.Node variable in _scopeVariables) {
       // No need to box non-assignable elements.
       if (variable is ir.VariableDeclaration) {
-        if (variable.isFinal || variable.isConst) continue;
+        if (variable.isConst) continue;
         if (!_mutatedVariables.contains(variable)) continue;
         if (_capturedVariables.contains(variable)) {
           capturedVariablesForScope.add(variable);
