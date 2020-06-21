@@ -4,6 +4,7 @@
 
 import 'dart:math' as math;
 
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
@@ -458,6 +459,24 @@ abstract class _AbstractCorrectionProducer {
         return true;
       }
       return _isNameOfType(node.name);
+    }
+    return false;
+  }
+
+  /// Replace all occurrences of the [oldIndent] with the [newIndent] within the
+  /// [source].
+  String replaceSourceIndent(
+      String source, String oldIndent, String newIndent) {
+    return source.replaceAll(RegExp('^$oldIndent', multiLine: true), newIndent);
+  }
+
+  /// Return `true` if the given [expression] should be wrapped with parenthesis
+  /// when we want to use it as operand of a logical `and` expression.
+  bool shouldWrapParenthesisBeforeAnd(Expression expression) {
+    if (expression is BinaryExpression) {
+      var binary = expression;
+      var precedence = binary.operator.type.precedence;
+      return precedence < TokenClass.LOGICAL_AND_OPERATOR.precedence;
     }
     return false;
   }
