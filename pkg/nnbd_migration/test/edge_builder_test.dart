@@ -728,6 +728,18 @@ class C {
     assertEdge(decoratedTypeAnnotation('int i').node, never, hard: true);
   }
 
+  Future<void> test_assert_is_demonstrates_non_null_intent() async {
+    // Note, this could also be handled via improved flow analysis rather than a
+    // hard edge.
+    await analyze('''
+void f(dynamic i) {
+  assert(i is int);
+}
+''');
+
+    assertEdge(decoratedTypeAnnotation('dynamic i').node, never, hard: true);
+  }
+
   Future<void> test_assign_bound_to_type_parameter() async {
     await analyze('''
 class C<T extends List<int>> {

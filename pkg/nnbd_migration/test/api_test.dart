@@ -5237,6 +5237,34 @@ void f(Object o) { // parameter should not be made nullable
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_regression_42374() async {
+    var content = '''
+class C<R> {
+  R m(dynamic x) {
+    assert(x is R);
+    return x as R;
+  }
+}
+
+void main() {
+  C<int/*!*/>().m(null!);
+}
+''';
+    var expected = '''
+class C<R> {
+  R m(dynamic x) {
+    assert(x is R);
+    return x as R;
+  }
+}
+
+void main() {
+  C<int>().m(null!);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_remove_question_from_question_dot() async {
     var content = '_f(int/*!*/ i) => i?.isEven;';
     var expected = '_f(int i) => i.isEven;';
@@ -6059,6 +6087,33 @@ F<int?> _f;
 
 f() {
   _f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void>
+      test_unconditional_assert_is_statement_implies_non_null_intent() async {
+    var content = '''
+void f(Object i) {
+  assert(i is int);
+}
+void g(bool b, int i) {
+  if (b) f(i);
+}
+main() {
+  g(false, null);
+}
+''';
+    var expected = '''
+void f(Object i) {
+  assert(i is int);
+}
+void g(bool b, int? i) {
+  if (b) f(i!);
+}
+main() {
+  g(false, null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
