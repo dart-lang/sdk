@@ -1,3 +1,7 @@
+## 1.2.0-nnbd
+
+* Opt into null safety.
+
 ## 1.1.8
 
 * Introduce `@nonVirtual` to annotate instance members that should not be

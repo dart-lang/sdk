@@ -380,7 +380,8 @@
     {
       "name": "meta",
       "rootUri": "../pkg/meta",
-      "packageUri": "lib/"
+      "packageUri": "lib/",
+      "languageVersion": "2.9"
     },
     {
       "name": "mime",
