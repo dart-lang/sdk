@@ -264,8 +264,7 @@ class Duration implements Comparable<Duration> {
         twoDigits(inSeconds.remainder(secondsPerMinute) as int);
     String sixDigitUs =
         sixDigits(inMicroseconds.remainder(microsecondsPerSecond) as int);
-    String twoDigitHours = twoDigits(inHours);
-    return "$twoDigitHours:$twoDigitMinutes:$twoDigitSeconds.$sixDigitUs";
+    return "$inHours:$twoDigitMinutes:$twoDigitSeconds.$sixDigitUs";
   }
 
   /**

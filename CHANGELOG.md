@@ -4,12 +4,6 @@
 
 ### Core libraries
 
-#### `dart:core`
-
-*   `toString()` of Class `Duration` will strictly follow the format of
-    `HH:MM:SS.mmmmmm`. Previously when `hours` is less than 10, it will output
-    a single digit `H`.
-
 #### `dart:io`
 
 *   [#42006][]: The signature of `exit` has been changed to return the
