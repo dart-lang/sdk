@@ -24,8 +24,10 @@ class CompareCommand extends Command<void> {
 Compare two instruction size outputs and report which symbols changed in size.
 
 This tool compares two JSON size reports produced by
---print-instructions-sizes-to and reports which symbols
-changed in size.
+--print-instructions-sizes-to or --write-v8-snapshot-profile-to
+and reports which symbols changed in size.
+
+Both reports should be produced by the same flag!
 
 Use --narrow flag to limit column widths.''';
 
@@ -97,43 +99,48 @@ precisely based on their source position (which is included in their name).
     }
     return file;
   }
-}
 
-void printComparison(File oldJson, File newJson,
-    {int maxWidth: 0,
-    bool collapseAnonymousClosures = false,
-    HistogramType granularity = HistogramType.bySymbol}) async {
-  final oldSizes = await loadProgramInfo(oldJson,
-      collapseAnonymousClosures: collapseAnonymousClosures);
-  final newSizes = await loadProgramInfo(newJson,
-      collapseAnonymousClosures: collapseAnonymousClosures);
-  final diff = computeDiff(oldSizes, newSizes);
+  void printComparison(File oldJson, File newJson,
+      {int maxWidth: 0,
+      bool collapseAnonymousClosures = false,
+      HistogramType granularity = HistogramType.bySymbol}) async {
+    final oldSizes = await loadProgramInfo(oldJson,
+        collapseAnonymousClosures: collapseAnonymousClosures);
+    final newSizes = await loadProgramInfo(newJson,
+        collapseAnonymousClosures: collapseAnonymousClosures);
 
-  // Compute total sizes.
-  final totalOld = oldSizes.totalSize;
-  final totalNew = newSizes.totalSize;
-  final totalDiff = diff.totalSize;
+    if ((oldSizes.snapshotInfo == null) != (newSizes.snapshotInfo == null)) {
+      usageException('Input files must be produced by the same flag.');
+    }
 
-  // Compute histogram.
-  final histogram = SizesHistogram.from(diff, granularity);
+    final diff = computeDiff(oldSizes, newSizes);
 
-  // Now produce the report table.
-  const numLargerSymbolsToReport = 30;
-  const numSmallerSymbolsToReport = 10;
-  printHistogram(histogram,
-      sizeHeader: 'Diff (Bytes)',
-      prefix: histogram.bySize
-          .where((k) => histogram.buckets[k] > 0)
-          .take(numLargerSymbolsToReport),
-      suffix: histogram.bySize.reversed
-          .where((k) => histogram.buckets[k] < 0)
-          .take(numSmallerSymbolsToReport)
-          .toList()
-          .reversed,
-      maxWidth: maxWidth);
+    // Compute total sizes.
+    final totalOld = oldSizes.totalSize;
+    final totalNew = newSizes.totalSize;
+    final totalDiff = diff.totalSize;
 
-  print('Comparing ${oldJson.path} (old) to ${newJson.path} (new)');
-  print('Old   : ${totalOld} bytes.');
-  print('New   : ${totalNew} bytes.');
-  print('Change: ${totalDiff > 0 ? '+' : ''}${totalDiff} bytes.');
+    // Compute histogram.
+    final histogram = SizesHistogram.from(diff, granularity);
+
+    // Now produce the report table.
+    const numLargerSymbolsToReport = 30;
+    const numSmallerSymbolsToReport = 10;
+    printHistogram(histogram,
+        sizeHeader: 'Diff (Bytes)',
+        prefix: histogram.bySize
+            .where((k) => histogram.buckets[k] > 0)
+            .take(numLargerSymbolsToReport),
+        suffix: histogram.bySize.reversed
+            .where((k) => histogram.buckets[k] < 0)
+            .take(numSmallerSymbolsToReport)
+            .toList()
+            .reversed,
+        maxWidth: maxWidth);
+
+    print('Comparing ${oldJson.path} (old) to ${newJson.path} (new)');
+    print('Old   : ${totalOld} bytes.');
+    print('New   : ${totalNew} bytes.');
+    print('Change: ${totalDiff > 0 ? '+' : ''}${totalDiff} bytes.');
+  }
 }

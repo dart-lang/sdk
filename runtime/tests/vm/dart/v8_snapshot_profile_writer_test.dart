@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:convert";
-import "dart:io";
+import 'dart:convert';
+import 'dart:io';
 
-import "package:expect/expect.dart";
+import 'package:expect/expect.dart';
 import 'package:path/path.dart' as path;
-import "package:vm/v8_snapshot_profile.dart";
+import 'package:vm/snapshot/v8_profile.dart';
 
 import 'use_flag_test_helper.dart';
 
@@ -77,32 +77,52 @@ test(
       strippedPath = snapshotPath;
     }
 
-    final V8SnapshotProfile profile = V8SnapshotProfile.fromJson(
-        JsonDecoder().convert(File(profilePath).readAsStringSync()));
+    final profile =
+        Snapshot.fromJson(jsonDecode(File(profilePath).readAsStringSync()));
 
     // Verify that there are no "unknown" nodes. These are emitted when we see a
     // reference to an some object but no other metadata about the object was
     // recorded. We should at least record the type for every object in the
     // graph (in some cases the shallow size can legitimately be 0, e.g. for
     // "base objects").
-    for (final int node in profile.nodes) {
-      Expect.notEquals("Unknown", profile[node].type,
-          "unknown node at ID ${profile[node].id}");
+    for (final node in profile.nodes) {
+      Expect.notEquals("Unknown", node.type, "unknown node at ID ${node.id}");
     }
 
-    // Verify that all nodes are reachable from the declared roots.
-    int unreachableNodes = 0;
-    Set<int> nodesReachableFromRoots = profile.preOrder(profile.root).toSet();
-    for (final int node in profile.nodes) {
-      Expect.isTrue(nodesReachableFromRoots.contains(node),
-          "unreachable node at ID ${profile[node].id}");
+    // HeapSnapshotWorker.HeapSnapshot.calculateDistances (from HeapSnapshot.js)
+    // assumes that the root does not have more than one edge to any other node
+    // (most likely an oversight).
+    final Set<int> roots = <int>{};
+    for (final edge in profile.nodeAt(0).edges) {
+      Expect.isTrue(roots.add(edge.target.index));
+    }
+
+    // Check that all nodes are reachable from the root (index 0).
+    final Set<int> reachable = {0};
+    final dfs = <int>[0];
+    while (!dfs.isEmpty) {
+      final next = dfs.removeLast();
+      for (final edge in profile.nodeAt(next).edges) {
+        final target = edge.target;
+        if (!reachable.contains(target.index)) {
+          reachable.add(target.index);
+          dfs.add(target.index);
+        }
+      }
+    }
+
+    if (reachable.length != profile.nodeCount) {
+      for (final node in profile.nodes) {
+        Expect.isTrue(reachable.contains(node.index),
+            "unreachable node at ID ${node.id}");
+      }
     }
 
     // Verify that the actual size of the snapshot is close to the sum of the
     // shallow sizes of all objects in the profile. They will not be exactly
     // equal because of global headers and padding.
     final actual = await File(strippedPath).length();
-    final expected = profile.accountedBytes;
+    final expected = profile.nodes.fold(0, (size, n) => size + n.selfSize);
 
     final bareUsed = useBare ? "bare" : "non-bare";
     final fileType = useAsm ? "assembly" : "ELF";

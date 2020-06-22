@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
@@ -23,20 +24,18 @@ final dart2native = () {
   return path.canonicalize(dart2native);
 }();
 
-void main() async {
-  if (!Platform.executable.contains('dart-sdk')) {
-    // If we are not running from the prebuilt SDK then this test does nothing.
-    return;
-  }
+final testSource = {
+  'input.dart': """
+class K {
+  final value;
+  const K(this.value);
+}
 
-  group('instruction-sizes', () {
-    final testSource = {
-      'input.dart': """
 @pragma('vm:never-inline')
 dynamic makeSomeClosures() {
   return [
-    () => true,
-    () => false,
+    () => const K(0),
+    () => const K(1),
     () => 11,
   ];
 }
@@ -44,20 +43,20 @@ dynamic makeSomeClosures() {
 class A {
   @pragma('vm:never-inline')
   dynamic tornOff() {
-    return true;
+    return const K(2);
   }
 }
 
 class B {
   @pragma('vm:never-inline')
   dynamic tornOff() {
-    return false;
+    return const K(3);
   }
 }
 
 class C {
   static dynamic tornOff() async {
-    return true;
+    return const K(4);
   }
 }
 
@@ -74,17 +73,22 @@ void main(List<String> args) {
   print(C.tornOff);
 }
 """
-    };
+};
 
-    // Almost exactly the same source as above, but with few modifications
-    // marked with a 'modified' comment.
-    final testSourceModified = {
-      'input.dart': """
+// Almost exactly the same source as above, but with few modifications
+// marked with a 'modified' comment.
+final testSourceModified = {
+  'input.dart': """
+class K {
+  final value;
+  const K(this.value);
+}
+
 @pragma('vm:never-inline')
 dynamic makeSomeClosures() {
   return [
-    () => true,
-    () => false,
+    () => const K(0),
+    () => const K(1),
     () => 11,
     () => {},  // modified
   ];
@@ -96,20 +100,20 @@ class A {
     for (var cl in makeSomeClosures()) {  // modified
       print(cl());                        // modified
     }                                     // modified
-    return true;
+    return const K(2);
   }
 }
 
 class B {
   @pragma('vm:never-inline')
   dynamic tornOff() {
-    return false;
+    return const K(3);
   }
 }
 
 class C {
   static dynamic tornOff() async {
-    return true;
+    return const K(4);
   }
 }
 
@@ -124,34 +128,39 @@ void main(List<String> args) {
   print(C.tornOff);
 }
 """
-    };
+};
 
-    final testSourceModified2 = {
-      'input.dart': """
+final testSourceModified2 = {
+  'input.dart': """
+class K {
+  final value;
+  const K(this.value);
+}
+
 @pragma('vm:never-inline')
 dynamic makeSomeClosures() {
   return [
-    () => 0,
+    () => const K(0),
   ];
 }
 
 class A {
   @pragma('vm:never-inline')
   dynamic tornOff() {
-    return true;
+    return const K(2);
   }
 }
 
 class B {
   @pragma('vm:never-inline')
   dynamic tornOff() {
-    return false;
+    return const K(3);
   }
 }
 
 class C {
   static dynamic tornOff() async {
-    return true;
+    return const K(4);
   }
 }
 
@@ -168,8 +177,15 @@ void main(List<String> args) {
   print(C.tornOff);
 }
 """
-    };
+};
 
+void main() async {
+  if (!Platform.executable.contains('dart-sdk')) {
+    // If we are not running from the prebuilt SDK then this test does nothing.
+    return;
+  }
+
+  group('instruction-sizes', () {
     test('basic-parsing', () async {
       await withSymbolSizes('basic-parsing', testSource, (sizesJson) async {
         final symbols =
@@ -243,8 +259,9 @@ void main(List<String> args) {
       });
     });
 
-    test('program-info', () async {
-      await withSymbolSizes('program-info', testSource, (sizesJson) async {
+    test('program-info-from-sizes', () async {
+      await withSymbolSizes('program-info-from-sizes', testSource,
+          (sizesJson) async {
         final info = await loadProgramInfo(File(sizesJson));
         expect(info.root.children, contains('dart:core'));
         expect(info.root.children, contains('dart:typed_data'));
@@ -341,15 +358,6 @@ void main(List<String> args) {
       });
     });
 
-    // On Windows there is some issue with interpreting entry point URI as a package URI
-    // it instead gets interpreted as a file URI - which breaks comparison. So we
-    // simply ignore entry point library (main.dart).
-    Map<String, dynamic> diffToJson(ProgramInfo diff) {
-      final diffJson = diff.toJson();
-      diffJson.removeWhere((key, _) => key.startsWith('file:'));
-      return diffJson;
-    }
-
     test('diff', () async {
       await withSymbolSizes('diff-1', testSource, (sizesJson) async {
         await withSymbolSizes('diff-2', testSourceModified,
@@ -373,7 +381,7 @@ void main(List<String> args) {
                       'makeSomeClosures': {
                         '#type': 'function',
                         '#size': greaterThan(0), // We added code here.
-                        '<anonymous closure @118>': {
+                        '<anonymous closure @180>': {
                           '#type': 'function',
                           '#size': greaterThan(0),
                         },
@@ -435,9 +443,220 @@ void main(List<String> args) {
       });
     });
   });
+
+  group('v8-profile', () {
+    test('program-info-from-profile', () async {
+      await withV8Profile('program-info-from-profile', testSource,
+          (profileJson) async {
+        final info = await loadProgramInfo(File(profileJson));
+        expect(info.root.children, contains('dart:core'));
+        expect(info.root.children, contains('dart:typed_data'));
+        expect(info.root.children, contains('package:input'));
+
+        final inputLib = info.root.children['package:input']
+            .children['package:input/input.dart'];
+        expect(inputLib, isNotNull);
+        expect(inputLib.children, contains('::')); // Top-level class.
+        expect(inputLib.children, contains('A'));
+        expect(inputLib.children, contains('B'));
+        expect(inputLib.children, contains('C'));
+
+        final topLevel = inputLib.children['::'];
+        expect(topLevel.children, contains('makeSomeClosures'));
+        expect(
+            topLevel.children['makeSomeClosures'].children.values
+                .where((child) => child.type == NodeType.functionNode)
+                .length,
+            equals(3));
+
+        for (var name in [
+          'tornOff',
+          'Allocate A',
+          '[tear-off-extractor] get:tornOff'
+        ]) {
+          expect(inputLib.children['A'].children, contains(name));
+        }
+        expect(inputLib.children['A'].children['tornOff'].children,
+            contains('[tear-off] tornOff'));
+
+        for (var name in [
+          'tornOff',
+          'Allocate B',
+          '[tear-off-extractor] get:tornOff'
+        ]) {
+          expect(inputLib.children['B'].children, contains(name));
+        }
+        expect(inputLib.children['B'].children['tornOff'].children,
+            contains('[tear-off] tornOff'));
+
+        expect(inputLib.children['C'].children, contains('tornOff'));
+        for (var name in ['tornOff{body}', '[tear-off] tornOff']) {
+          expect(inputLib.children['C'].children['tornOff'].children,
+              contains(name));
+        }
+      });
+    });
+
+    test('histograms', () async {
+      await withV8Profile('histograms', testSource, (sizesJson) async {
+        final info = await loadProgramInfo(File(sizesJson));
+        final bySymbol = SizesHistogram.from(info, HistogramType.bySymbol);
+        expect(
+            bySymbol.buckets,
+            contains(bySymbol.bucketing.bucketFor(
+                'package:input', 'package:input/input.dart', 'A', 'tornOff')));
+        expect(
+            bySymbol.buckets,
+            contains(bySymbol.bucketing.bucketFor(
+                'package:input', 'package:input/input.dart', 'B', 'tornOff')));
+        expect(
+            bySymbol.buckets,
+            contains(bySymbol.bucketing.bucketFor(
+                'package:input', 'package:input/input.dart', 'C', 'tornOff')));
+
+        final byClass = SizesHistogram.from(info, HistogramType.byClass);
+        expect(
+            byClass.buckets,
+            contains(byClass.bucketing.bucketFor('package:input',
+                'package:input/input.dart', 'A', 'does-not-matter')));
+        expect(
+            byClass.buckets,
+            contains(byClass.bucketing.bucketFor('package:input',
+                'package:input/input.dart', 'B', 'does-not-matter')));
+        expect(
+            byClass.buckets,
+            contains(byClass.bucketing.bucketFor('package:input',
+                'package:input/input.dart', 'C', 'does-not-matter')));
+
+        final byLibrary = SizesHistogram.from(info, HistogramType.byLibrary);
+        expect(
+            byLibrary.buckets,
+            contains(byLibrary.bucketing.bucketFor(
+                'package:input',
+                'package:input/input.dart',
+                'does-not-matter',
+                'does-not-matter')));
+
+        final byPackage = SizesHistogram.from(info, HistogramType.byPackage);
+        expect(
+            byPackage.buckets,
+            contains(byPackage.bucketing.bucketFor(
+                'package:input',
+                'package:input/does-not-matter.dart',
+                'does-not-matter',
+                'does-not-matter')));
+      });
+    });
+
+    test('diff', () async {
+      await withV8Profile('diff-1', testSource, (profileJson) async {
+        await withV8Profile('diff-2', testSourceModified,
+            (modifiedProfileJson) async {
+          final info = await loadProgramInfo(File(profileJson));
+          final modifiedInfo = await loadProgramInfo(File(modifiedProfileJson));
+          final diff = computeDiff(info, modifiedInfo);
+
+          expect(
+              diffToJson(diff, keepOnlyInputPackage: true),
+              equals({
+                'package:input': {
+                  '#type': 'package',
+                  'package:input/input.dart': {
+                    '#type': 'library',
+                    '::': {
+                      '#type': 'class',
+                      'makeSomeClosures': {
+                        '#type': 'function',
+                        '#size': greaterThan(0), // We added code here.
+                        '<anonymous closure @180>': {
+                          '#type': 'function',
+                          '#size': greaterThan(0),
+                          'makeSomeClosures.<anonymous closure @180>': {
+                            '#size': greaterThan(0)
+                          },
+                        },
+                        'makeSomeClosures': {'#size': greaterThan(0)},
+                      },
+                      'main': {
+                        '#type': 'function',
+                        '#size': lessThan(0), // We removed code from main.
+                        'main': {'#size': lessThan(0)},
+                      },
+                    },
+                    'A': {
+                      '#type': 'class',
+                      'tornOff': {
+                        '#type': 'function',
+                        '#size': greaterThan(0),
+                        'tornOff': {'#size': greaterThan(0)},
+                      },
+                    }
+                  }
+                }
+              }));
+        });
+      });
+    });
+
+    test('diff-collapsed', () async {
+      await withV8Profile('diff-collapsed-1', testSource, (profileJson) async {
+        await withV8Profile('diff-collapsed-2', testSourceModified2,
+            (modifiedProfileJson) async {
+          final info = await loadProgramInfo(File(profileJson),
+              collapseAnonymousClosures: true);
+          final modifiedInfo = await loadProgramInfo(File(modifiedProfileJson),
+              collapseAnonymousClosures: true);
+          final diff = computeDiff(info, modifiedInfo);
+
+          expect(
+              diffToJson(diff, keepOnlyInputPackage: true),
+              equals({
+                'package:input': {
+                  '#type': 'package',
+                  'package:input/input.dart': {
+                    '#type': 'library',
+                    '#size': lessThan(0),
+                    '::': {
+                      '#type': 'class',
+                      'makeSomeClosures': {
+                        '#type': 'function',
+                        '#size': lessThan(0),
+                        '<anonymous closure>': {
+                          '#type': 'function',
+                          '#size': lessThan(0),
+                          'makeSomeClosures.<anonymous closure>': {
+                            '#size': lessThan(0)
+                          },
+                        },
+                        'makeSomeClosures': {'#size': lessThan(0)},
+                      },
+                    },
+                    'B': {
+                      // There are some cascading changes to CodeSourceMap
+                      '#type': 'class',
+                      'tornOff': {
+                        '#type': 'function',
+                        '#size': lessThan(0),
+                      },
+                    }
+                  }
+                }
+              }));
+        });
+      });
+    });
+  });
 }
 
 Future withSymbolSizes(String prefix, Map<String, String> source,
+        Future Function(String sizesJson) f) =>
+    withFlag(prefix, source, '--print_instructions_sizes_to', f);
+
+Future withV8Profile(String prefix, Map<String, String> source,
+        Future Function(String sizesJson) f) =>
+    withFlag(prefix, source, '--write_v8_snapshot_profile_to', f);
+
+Future withFlag(String prefix, Map<String, String> source, String flag,
     Future Function(String sizesJson) f) {
   return withTempDir(prefix, (dir) async {
     final outputBinary = path.join(dir, 'output.exe');
@@ -463,7 +682,7 @@ void main(List<String> args) => input.main(args);
       '-o',
       outputBinary,
       '--packages=$packages',
-      '--extra-gen-snapshot-options=--print_instructions_sizes_to=$sizesJson',
+      '--extra-gen-snapshot-options=$flag=$sizesJson',
       mainDart,
     ]);
 
@@ -490,4 +709,15 @@ Future withTempDir(String prefix, Future Function(String dir) f) async {
   } finally {
     tempDir.deleteSync(recursive: true);
   }
+}
+
+// On Windows there is some issue with interpreting entry point URI as a package URI
+// it instead gets interpreted as a file URI - which breaks comparison. So we
+// simply ignore entry point library (main.dart).
+Map<String, dynamic> diffToJson(ProgramInfo diff,
+    {bool keepOnlyInputPackage = false}) {
+  final diffJson = diff.toJson();
+  diffJson.removeWhere((key, _) =>
+      keepOnlyInputPackage ? key != 'package:input' : key.startsWith('file:'));
+  return diffJson;
 }

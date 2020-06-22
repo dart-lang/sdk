@@ -7,6 +7,8 @@ library vm.snapshot.program_info;
 
 import 'package:meta/meta.dart';
 
+import 'package:vm/snapshot/v8_profile.dart';
+
 /// Represents information about compiled program.
 class ProgramInfo {
   static const int rootId = 0;
@@ -17,6 +19,10 @@ class ProgramInfo {
   final ProgramInfoNode stubs;
   final ProgramInfoNode unknown;
   int _nextId = 3;
+
+  /// V8 snapshot profile if this [ProgramInfo] object was created from an
+  /// output of `--write-v8-snapshot-profile-to=...` flag.
+  SnapshotInfo snapshotInfo;
 
   ProgramInfo._(this.root, this.stubs, this.unknown);
 

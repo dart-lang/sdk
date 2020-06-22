@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'package:vm/snapshot/ascii_table.dart';
 import 'package:vm/snapshot/program_info.dart';
 import 'package:vm/snapshot/instruction_sizes.dart' as instruction_sizes;
+import 'package:vm/snapshot/v8_profile.dart' as v8_profile;
 
 Future<Object> loadJson(File input) async {
   return await input
@@ -21,8 +22,13 @@ Future<Object> loadJson(File input) async {
 Future<ProgramInfo> loadProgramInfo(File input,
     {bool collapseAnonymousClosures = false}) async {
   final json = await loadJson(input);
-  return instruction_sizes.loadProgramInfo(json,
-      collapseAnonymousClosures: collapseAnonymousClosures);
+  if (v8_profile.Snapshot.isV8HeapSnapshot(json)) {
+    return v8_profile.toProgramInfo(v8_profile.Snapshot.fromJson(json),
+        collapseAnonymousClosures: collapseAnonymousClosures);
+  } else {
+    return instruction_sizes.loadProgramInfo(json,
+        collapseAnonymousClosures: collapseAnonymousClosures);
+  }
 }
 
 void printHistogram(SizesHistogram histogram,
