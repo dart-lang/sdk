@@ -9,7 +9,7 @@ import "package:async_helper/async_helper.dart";
 
 class Tracer {
   final String expected;
-  final String name;
+  final String? name;
   String _trace = "";
 
   Tracer(this.expected, [this.name]);

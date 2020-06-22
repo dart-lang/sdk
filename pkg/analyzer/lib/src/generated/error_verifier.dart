@@ -1845,29 +1845,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  void _checkForConflictingGenerics(NamedCompilationUnitMember node) {
-    var element = node.declaredElement as ClassElement;
-
-    var analysisSession = _currentLibrary.session as AnalysisSessionImpl;
-    var errors = analysisSession.classHierarchy.errors(element);
-
-    for (var error in errors) {
-      if (error is IncompatibleInterfacesClassHierarchyError) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
-          node,
-          [
-            _enclosingClass.name,
-            error.first.getDisplayString(withNullability: true),
-            error.second.getDisplayString(withNullability: true),
-          ],
-        );
-      } else {
-        throw UnimplementedError('${error.runtimeType}');
-      }
-    }
-  }
-
   /**
    * Verify all conflicts between type variable and enclosing class.
    * TODO(scheglov)
@@ -1920,6 +1897,29 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION,
             typeParameter,
             [name]);
+      }
+    }
+  }
+
+  void _checkForConflictingGenerics(NamedCompilationUnitMember node) {
+    var element = node.declaredElement as ClassElement;
+
+    var analysisSession = _currentLibrary.session as AnalysisSessionImpl;
+    var errors = analysisSession.classHierarchy.errors(element);
+
+    for (var error in errors) {
+      if (error is IncompatibleInterfacesClassHierarchyError) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
+          node,
+          [
+            _enclosingClass.name,
+            error.first.getDisplayString(withNullability: true),
+            error.second.getDisplayString(withNullability: true),
+          ],
+        );
+      } else {
+        throw UnimplementedError('${error.runtimeType}');
       }
     }
   }
@@ -5395,12 +5395,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
 
-    // For `C?.foo()` the type of `C` is not set, it is not an expression.
+    // For `foo?.bar`, `foo` must be an identifier with a value.
     if (node is Identifier) {
       var element = node.staticElement;
-      if (element is ClassElement || element is ExtensionElement) {
-        return false;
-      }
+      return element is PropertyAccessorElement || element is VariableElement;
     }
 
     return true;

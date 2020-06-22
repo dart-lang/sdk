@@ -5,154 +5,177 @@
 /// Classes for representing information about the program structure.
 library vm.snapshot.program_info;
 
+import 'package:meta/meta.dart';
+
 /// Represents information about compiled program.
-class ProgramInfo<T> {
-  final Map<String, LibraryInfo<T>> libraries = {};
-  final Map<String, T> stubs = {};
+class ProgramInfo {
+  static const int rootId = 0;
+  static const int stubsId = 1;
+  static const int unknownId = 2;
+
+  final ProgramInfoNode root;
+  final ProgramInfoNode stubs;
+  final ProgramInfoNode unknown;
+  int _nextId = 3;
+
+  ProgramInfo._(this.root, this.stubs, this.unknown);
+
+  factory ProgramInfo() {
+    final ProgramInfoNode root = ProgramInfoNode._(
+        id: rootId, name: '@shared', type: NodeType.libraryNode, parent: null);
+
+    final ProgramInfoNode stubs = ProgramInfoNode._(
+        id: stubsId, name: '@stubs', type: NodeType.libraryNode, parent: root);
+    root.children[stubs.name] = stubs;
+
+    final ProgramInfoNode unknown = ProgramInfoNode._(
+        id: unknownId,
+        name: '@unknown',
+        type: NodeType.libraryNode,
+        parent: root);
+    root.children[unknown.name] = unknown;
+
+    return ProgramInfo._(root, stubs, unknown);
+  }
+
+  ProgramInfoNode makeNode(
+      {@required String name,
+      @required ProgramInfoNode parent,
+      @required NodeType type}) {
+    return parent.children.putIfAbsent(name, () {
+      final node = ProgramInfoNode._(
+          id: _nextId++, name: name, parent: parent ?? root, type: type);
+      node.parent.children[name] = node;
+      return node;
+    });
+  }
 
   /// Recursively visit all function nodes, which have [FunctionInfo.info]
   /// populated.
   void visit(
-      void Function(String lib, String cls, String fun, T info) callback) {
-    void recurse(String lib, String cls, String name, FunctionInfo<T> fun) {
-      if (fun.info != null) {
-        callback(lib, cls, name, fun.info);
+      void Function(String pkg, String lib, String cls, String fun, int size)
+          callback) {
+    final context = List<String>(NodeType.values.length);
+
+    void recurse(ProgramInfoNode node) {
+      final prevContext = context[node._type];
+      if (prevContext != null && node._type == NodeType.functionNode.index) {
+        context[node._type] = '${prevContext}.${node.name}';
+      } else {
+        context[node._type] = node.name;
       }
 
-      for (var clo in fun.closures.entries) {
-        recurse(lib, cls, '$name.${clo.key}', clo.value);
+      if (node.size != null) {
+        final String pkg = context[NodeType.packageNode.index];
+        final String lib = context[NodeType.libraryNode.index];
+        final String cls = context[NodeType.classNode.index];
+        final String mem = context[NodeType.functionNode.index];
+        callback(pkg, lib, cls, mem, node.size);
       }
+
+      for (var child in node.children.values) {
+        recurse(child);
+      }
+
+      context[node._type] = prevContext;
     }
 
-    for (var stub in stubs.entries) {
-      callback(null, null, stub.key, stub.value);
-    }
+    recurse(root);
+  }
 
-    for (var lib in libraries.entries) {
-      for (var cls in lib.value.classes.entries) {
-        for (var fun in cls.value.functions.entries) {
-          recurse(lib.key, cls.key, fun.key, fun.value);
-        }
-      }
-    }
+  int get totalSize {
+    var result = 0;
+    visit((pkg, lib, cls, fun, size) {
+      result += size;
+    });
+    return result;
   }
 
   /// Convert this program info to a JSON map using [infoToJson] to convert
-  /// data attached to [FunctioInfo] nodes into its JSON representation.
-  Map<String, dynamic> toJson(Object Function(T) infoToJson) {
-    Map<String, dynamic> recurse(FunctionInfo<T> fun) {
-      return {
-        if (fun.info != null) 'info': infoToJson(fun.info),
-        if (fun.closures.isNotEmpty)
-          'closures': {
-            for (var clo in fun.closures.entries) clo.key: recurse(clo.value)
-          }
+  /// data attached to nodes into its JSON representation.
+  Map<String, dynamic> toJson() => root.toJson();
+}
+
+enum NodeType {
+  packageNode,
+  libraryNode,
+  classNode,
+  functionNode,
+  other,
+}
+
+String _typeToJson(NodeType type) => const {
+      NodeType.packageNode: 'package',
+      NodeType.libraryNode: 'library',
+      NodeType.classNode: 'class',
+      NodeType.functionNode: 'function',
+    }[type];
+
+class ProgramInfoNode {
+  final int id;
+  final String name;
+  final ProgramInfoNode parent;
+  final Map<String, ProgramInfoNode> children = {};
+  final int _type;
+
+  int size;
+
+  ProgramInfoNode._(
+      {@required this.id,
+      @required this.name,
+      @required this.parent,
+      @required NodeType type})
+      : _type = type.index;
+
+  NodeType get type => NodeType.values[_type];
+
+  Map<String, dynamic> toJson() => {
+        if (size != null) '#size': size,
+        if (_type != NodeType.other.index) '#type': _typeToJson(type),
+        if (children.isNotEmpty)
+          for (var clo in children.entries) clo.key: clo.value.toJson()
       };
-    }
+}
 
-    return {
-      'stubs': {
-        for (var stub in stubs.entries) stub.key: infoToJson(stub.value)
-      },
-      'libraries': {
-        for (var lib in libraries.entries)
-          lib.key: {
-            for (var cls in lib.value.classes.entries)
-              cls.key: {
-                for (var fun in cls.value.functions.entries)
-                  fun.key: recurse(fun.value)
-              }
-          }
+/// Computes the size difference between two [ProgramInfo].
+ProgramInfo computeDiff(ProgramInfo oldInfo, ProgramInfo newInfo) {
+  final programDiff = ProgramInfo();
+
+  var path = <Object>[];
+  void recurse(ProgramInfoNode oldNode, ProgramInfoNode newNode) {
+    if (oldNode?.size != newNode?.size) {
+      var diffNode = programDiff.root;
+      for (var i = 0; i < path.length; i += 2) {
+        final name = path[i];
+        final type = path[i + 1];
+        diffNode =
+            programDiff.makeNode(name: name, parent: diffNode, type: type);
       }
-    };
-  }
-}
-
-class LibraryInfo<T> {
-  final Map<String, ClassInfo<T>> classes = {};
-}
-
-class ClassInfo<T> {
-  final Map<String, FunctionInfo<T>> functions = {};
-}
-
-class FunctionInfo<T> {
-  final Map<String, FunctionInfo<T>> closures = {};
-
-  T info;
-}
-
-/// Computes the size difference between two [ProgramInfo<int>].
-ProgramInfo<SymbolDiff> computeDiff(
-    ProgramInfo<int> oldInfo, ProgramInfo<int> newInfo) {
-  final programDiff = ProgramInfo<SymbolDiff>();
-
-  void recursiveDiff(FunctionInfo<SymbolDiff> Function() functionInfo,
-      String fun, FunctionInfo<int> newFun, FunctionInfo<int> oldFun) {
-    if (newFun?.info != oldFun?.info) {
-      final funDiff = functionInfo();
-      final diff = funDiff.info ??= SymbolDiff();
-      diff.oldTotal += oldFun?.info ?? 0;
-      diff.newTotal += newFun?.info ?? 0;
+      diffNode.size ??= 0;
+      diffNode.size += (newNode?.size ?? 0) - (oldNode?.size ?? 0);
     }
 
-    for (var clo in _allKeys(newFun?.closures, oldFun?.closures)) {
-      final newClo = newFun != null ? newFun.closures[clo] : null;
-      final oldClo = oldFun != null ? oldFun.closures[clo] : null;
-      recursiveDiff(() {
-        return functionInfo().closures.putIfAbsent(clo, () => FunctionInfo());
-      }, clo, newClo, oldClo);
+    for (var key in _allKeys(newNode?.children, oldNode?.children)) {
+      final newChildNode = newNode != null ? newNode.children[key] : null;
+      final oldChildNode = oldNode != null ? oldNode.children[key] : null;
+      path.add(key);
+      path.add(oldChildNode?.type ?? newChildNode?.type);
+      recurse(oldChildNode, newChildNode);
+      path.removeLast();
+      path.removeLast();
     }
   }
 
-  for (var stub in _allKeys(newInfo.stubs, oldInfo.stubs)) {
-    final newSize = newInfo.stubs[stub];
-    final oldSize = oldInfo.stubs[stub];
-    if (newSize != oldSize) {
-      programDiff.stubs[stub] = SymbolDiff()
-        ..oldTotal = oldSize ?? 0
-        ..newTotal = newSize ?? 0;
-    }
-  }
-
-  for (var lib in _allKeys(newInfo.libraries, oldInfo.libraries)) {
-    final newLib = newInfo.libraries[lib];
-    final oldLib = oldInfo.libraries[lib];
-    for (var cls in _allKeys(newLib?.classes, oldLib?.classes)) {
-      final newCls = newLib != null ? newLib.classes[cls] : null;
-      final oldCls = oldLib != null ? oldLib.classes[cls] : null;
-      for (var fun in _allKeys(newCls?.functions, oldCls?.functions)) {
-        final newFun = newCls != null ? newCls.functions[fun] : null;
-        final oldFun = oldCls != null ? oldCls.functions[fun] : null;
-        recursiveDiff(() {
-          return programDiff.libraries
-              .putIfAbsent(lib, () => LibraryInfo())
-              .classes
-              .putIfAbsent(cls, () => ClassInfo())
-              .functions
-              .putIfAbsent(fun, () => FunctionInfo());
-        }, fun, newFun, oldFun);
-      }
-    }
-  }
+  recurse(oldInfo.root, newInfo.root);
 
   return programDiff;
-}
-
-class SymbolDiff {
-  int oldTotal = 0;
-  int newTotal = 0;
-
-  int get inBytes {
-    return newTotal - oldTotal;
-  }
 }
 
 Iterable<T> _allKeys<T>(Map<T, dynamic> a, Map<T, dynamic> b) {
   return <T>{...?a?.keys, ...?b?.keys};
 }
 
-/// Histogram of sizes based on a [ProgramInfo] bucketted using one of the
+/// Histogram of sizes based on a [ProgramInfo] bucketed using one of the
 /// [HistogramType] rules.
 class SizesHistogram {
   /// Rule used to produce this histogram. Specifies how bucket names
@@ -167,25 +190,28 @@ class SizesHistogram {
   /// order.
   final List<String> bySize;
 
-  SizesHistogram._(this.bucketing, this.buckets, this.bySize);
+  final int totalSize;
 
-  /// Construct the histogram of specific [type] given a [ProgramInfo<T>] and
-  /// function [toSize] for  computing an integer value based on the datum of
-  /// type [T] attached to program nodes.
-  static SizesHistogram from<T>(
-      ProgramInfo<T> info, int Function(T) toSize, HistogramType type) {
+  int get length => bySize.length;
+
+  SizesHistogram._(this.bucketing, this.buckets, this.bySize, this.totalSize);
+
+  /// Construct the histogram of specific [type] given a [ProgramInfo].
+  static SizesHistogram from(ProgramInfo info, HistogramType type) {
     final buckets = <String, int>{};
     final bucketing = Bucketing._forType[type];
 
-    info.visit((lib, cls, fun, info) {
-      final bucket = bucketing.bucketFor(lib ?? '<stubs>', cls ?? '', fun);
-      buckets[bucket] = (buckets[bucket] ?? 0) + toSize(info);
+    var totalSize = 0;
+    info.visit((pkg, lib, cls, fun, size) {
+      final bucket = bucketing.bucketFor(pkg, lib, cls, fun);
+      buckets[bucket] = (buckets[bucket] ?? 0) + size;
+      totalSize += size;
     });
 
     final bySize = buckets.keys.toList(growable: false);
     bySize.sort((a, b) => buckets[b] - buckets[a]);
 
-    return SizesHistogram._(bucketing, buckets, bySize);
+    return SizesHistogram._(bucketing, buckets, bySize, totalSize);
   }
 }
 
@@ -203,7 +229,7 @@ abstract class Bucketing {
 
   /// Constructs the bucket name from the given library name [lib], class name
   /// [cls] and function name [fun].
-  String bucketFor(String lib, String cls, String fun);
+  String bucketFor(String pkg, String lib, String cls, String fun);
 
   /// Deconstructs bucket name into human readable components (the order matches
   /// one returned by [nameComponents]).
@@ -224,11 +250,15 @@ const String _nameSeparator = ';;;';
 
 class _BucketBySymbol extends Bucketing {
   @override
-  List<String> get nameComponents => const ['Library', 'Method'];
+  List<String> get nameComponents => const ['Library', 'Symbol'];
 
   @override
-  String bucketFor(String lib, String cls, String fun) =>
-      '$lib${_nameSeparator}${cls}${cls != '' ? '.' : ''}${fun}';
+  String bucketFor(String pkg, String lib, String cls, String fun) {
+    if (fun == null) {
+      return '@other${_nameSeparator}';
+    }
+    return '$lib${_nameSeparator}${cls}${cls != '' ? '.' : ''}${fun}';
+  }
 
   @override
   List<String> namesFromBucket(String bucket) => bucket.split(_nameSeparator);
@@ -241,8 +271,12 @@ class _BucketByClass extends Bucketing {
   List<String> get nameComponents => ['Library', 'Class'];
 
   @override
-  String bucketFor(String lib, String cls, String fun) =>
-      '$lib${_nameSeparator}${cls}';
+  String bucketFor(String pkg, String lib, String cls, String fun) {
+    if (cls == null) {
+      return '@other${_nameSeparator}';
+    }
+    return '$lib${_nameSeparator}${cls}';
+  }
 
   @override
   List<String> namesFromBucket(String bucket) => bucket.split(_nameSeparator);
@@ -255,7 +289,7 @@ class _BucketByLibrary extends Bucketing {
   List<String> get nameComponents => ['Library'];
 
   @override
-  String bucketFor(String lib, String cls, String fun) => '$lib';
+  String bucketFor(String pkg, String lib, String cls, String fun) => '$lib';
 
   @override
   List<String> namesFromBucket(String bucket) => [bucket];
@@ -268,19 +302,20 @@ class _BucketByPackage extends Bucketing {
   List<String> get nameComponents => ['Package'];
 
   @override
-  String bucketFor(String lib, String cls, String fun) => _packageOf(lib);
+  String bucketFor(String pkg, String lib, String cls, String fun) =>
+      pkg ?? lib;
 
   @override
   List<String> namesFromBucket(String bucket) => [bucket];
 
   const _BucketByPackage();
+}
 
-  String _packageOf(String lib) {
-    if (lib.startsWith('package:')) {
-      final separatorPos = lib.indexOf('/');
-      return lib.substring(0, separatorPos);
-    } else {
-      return lib;
-    }
+String packageOf(String lib) {
+  if (lib.startsWith('package:')) {
+    final separatorPos = lib.indexOf('/');
+    return lib.substring(0, separatorPos);
+  } else {
+    return lib;
   }
 }

@@ -158,6 +158,7 @@ namespace dart {
   V(DateTime_timeZoneOffsetInSeconds, 1)                                       \
   V(DateTime_localTimeZoneAdjustmentInSeconds, 0)                              \
   V(AssertionError_throwNew, 3)                                                \
+  V(AssertionError_throwNewSource, 4)                                          \
   V(Async_rethrow, 2)                                                          \
   V(StackTrace_asyncStackTraceHelper, 1)                                       \
   V(StackTrace_clearAsyncThreadStackTrace, 0)                                  \
@@ -413,7 +414,10 @@ namespace dart {
   V(Ffi_asExternalTypedData, 2)                                                \
   V(Ffi_dl_processLibrary, 0)                                                  \
   V(Ffi_dl_executableLibrary, 0)                                               \
-  V(NativeApiFunctionPointer, 1)                                               \
+  V(DartApiDLInitializeData, 0)                                                \
+  V(DartApiDLMajorVersion, 0)                                                  \
+  V(DartApiDLMinorVersion, 0)                                                  \
+  V(DartNativeApiFunctionPointer, 1)                                           \
   V(TransferableTypedData_factory, 2)                                          \
   V(TransferableTypedData_materialize, 1)                                      \
   V(Wasm_initModule, 2)                                                        \

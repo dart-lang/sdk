@@ -1299,8 +1299,8 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
   } else {
 #ifndef PRODUCT
     if (!Isolate::IsVMInternalIsolate(I)) {
-      // Mark all the user isolates as white-listed for the simplified timeline
-      // page of Observatory. The internal isolates will be filtered out from
+      // Mark all the user isolates as using a simplified timeline page of
+      // Observatory. The internal isolates will be filtered out from
       // the Timeline due to absence of this argument. We still send them in
       // order to maintain the original behavior of the full timeline and allow
       // the developer to download complete dump files.

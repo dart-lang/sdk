@@ -134,7 +134,10 @@ class LineInfoTest {
     String source = "var\r\ni\n=\n1;\n";
     GatheringErrorListener listener = GatheringErrorListener();
     Scanner scanner = Scanner(null, CharSequenceReader(source), listener)
-      ..configureFeatures(featureSet);
+      ..configureFeatures(
+        featureSetForOverriding: featureSet,
+        featureSet: featureSet,
+      );
     var token = scanner.tokenize();
     expect(token.lexeme, 'var');
     var lineStarts = scanner.lineStarts;
@@ -148,7 +151,10 @@ class LineInfoTest {
     String source = '<!-- @Component(';
     GatheringErrorListener listener = GatheringErrorListener();
     Scanner scanner = Scanner(null, CharSequenceReader(source), listener)
-      ..configureFeatures(featureSet);
+      ..configureFeatures(
+        featureSetForOverriding: featureSet,
+        featureSet: featureSet,
+      );
     Token token = scanner.tokenize(reportScannerErrors: false);
     expect(token, TypeMatcher<UnmatchedToken>());
     token = token.next;
@@ -180,7 +186,10 @@ class LineInfoTest {
     GatheringErrorListener listener,
   ) {
     Scanner scanner = Scanner(null, CharSequenceReader(source), listener)
-      ..configureFeatures(featureSet);
+      ..configureFeatures(
+        featureSetForOverriding: featureSet,
+        featureSet: featureSet,
+      );
     Token result = scanner.tokenize();
     listener.setLineInfo(TestSource(), scanner.lineStarts);
     return result;
@@ -196,7 +205,10 @@ class ScannerTest with ResourceProviderMixin {
     var defaultFeatureSet = FeatureSet.fromEnableFlags([]);
     expect(defaultFeatureSet.isEnabled(Feature.extension_methods), isTrue);
 
-    scanner.configureFeatures(FeatureSet.forTesting());
+    scanner.configureFeatures(
+      featureSetForOverriding: FeatureSet.forTesting(),
+      featureSet: FeatureSet.forTesting(),
+    );
     scanner.tokenize();
 
     var featureSet = scanner.featureSet;
@@ -207,7 +219,11 @@ class ScannerTest with ResourceProviderMixin {
     var scanner = _createScanner(r'''
 // @dart = 99999999999999999999999999999999.0
 ''');
-    scanner.configureFeatures(FeatureSet.forTesting());
+    var featureSet = FeatureSet.forTesting();
+    scanner.configureFeatures(
+      featureSetForOverriding: featureSet,
+      featureSet: featureSet,
+    );
     scanner.tokenize();
     // Don't check features, but should not crash.
   }
@@ -216,7 +232,11 @@ class ScannerTest with ResourceProviderMixin {
     var scanner = _createScanner(r'''
 // @dart = 2.99999999999999999999999999999999
 ''');
-    scanner.configureFeatures(FeatureSet.forTesting());
+    var featureSet = FeatureSet.forTesting();
+    scanner.configureFeatures(
+      featureSetForOverriding: featureSet,
+      featureSet: featureSet,
+    );
     scanner.tokenize();
     // Don't check features, but should not crash.
   }

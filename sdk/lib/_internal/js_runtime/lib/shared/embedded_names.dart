@@ -284,41 +284,6 @@ enum JsGetName {
   /// instances of parameterized classes.
   RTI_NAME,
 
-  /// Name used to tag a function type.
-  FUNCTION_TYPE_TAG,
-
-  /// Name used to tag bounds of a generic function type. If bounds are present,
-  /// the property value is an Array of bounds (the length gives the number of
-  /// type parameters). If absent, the type is not a generic function type.
-  FUNCTION_TYPE_GENERIC_BOUNDS_TAG,
-
-  /// Name used to tag void return in function type representations in
-  /// JavaScript.
-  FUNCTION_TYPE_VOID_RETURN_TAG,
-
-  /// Name used to tag return types in function type representations in
-  /// JavaScript.
-  FUNCTION_TYPE_RETURN_TYPE_TAG,
-
-  /// Name used to tag required parameters in function type representations
-  /// in JavaScript.
-  FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG,
-
-  /// Name used to tag optional parameters in function type representations
-  /// in JavaScript.
-  FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG,
-
-  /// Name used to tag named parameters in function type representations in
-  /// JavaScript.
-  FUNCTION_TYPE_NAMED_PARAMETERS_TAG,
-
-  /// Name used to tag a FutureOr type.
-  FUTURE_OR_TAG,
-
-  /// Name used to tag type arguments types in FutureOr type representations in
-  /// JavaScript.
-  FUTURE_OR_TYPE_ARGUMENT_TAG,
-
   /// String representation of the type of the Future class.
   FUTURE_CLASS_TYPE_NAME,
 
@@ -374,27 +339,6 @@ enum JsBuiltin {
   ///                isCheckProperty);
   isCheckPropertyToJsConstructorName,
 
-  /// Returns true if the given type is a function type. Returns false for
-  /// the one `Function` type singleton. (See [isFunctionTypeSingleton]).
-  ///
-  ///     JS_BUILTIN('bool', JsBuiltin.isFunctionType, o)
-  isFunctionType,
-
-  /// Returns true if the given type is a FutureOr type.
-  ///
-  ///     JS_BUILTIN('bool', JsBuiltin.isFutureOrType, o)
-  isFutureOrType,
-
-  /// Returns true if the given type is the `void` type.
-  ///
-  ///     JS_BUILTIN('bool', JsBuiltin.isVoidType, o)
-  isVoidType,
-
-  /// Returns true if the given type is the `dynamic` type.
-  ///
-  ///     JS_BUILTIN('bool', JsBuiltin.isDynamicType, o)
-  isDynamicType,
-
   /// Returns true if the given type is a type argument of a js-interop class
   /// or a supertype of a js-interop class.
   ///
@@ -411,25 +355,6 @@ enum JsBuiltin {
   ///
   ///     JS_BUILTIN('', JsBuiltin.rawRuntimeType, o)
   rawRuntimeType,
-
-  /// Returns whether the given type is a subtype of other.
-  ///
-  /// The argument `other` is the name of the potential supertype. It is
-  /// computed by `runtimeTypeToString`;
-  ///
-  /// *The `other` name must be passed in before the `type`.*
-  ///
-  ///     JS_BUILTIN('returns:bool;effects:none;depends:none',
-  ///                JsBuiltin.isSubtype, other, type);
-  isSubtype,
-
-  /// Returns true if the given type equals the type given as second
-  /// argument. Use the JS_GET_NAME helpers to get the type representation
-  /// for various Dart classes.
-  ///
-  ///     JS_BUILTIN('returns:bool;effects:none;depends:none',
-  ///                JsBuiltin.isFunctionTypeLiteral, type, name);
-  isGivenTypeRti,
 
   /// Returns the metadata of the given [index].
   ///

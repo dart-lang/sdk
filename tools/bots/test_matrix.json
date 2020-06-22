@@ -42,9 +42,9 @@
       "tests/co19/co19-dartdevc.status",
       "tests/co19/co19-kernel.status",
       "tests/co19/co19-runtime.status",
-      "tests/compiler/",
       "tests/corelib_2/",
       "tests/dart2js_2/",
+      "tests/dartdevc_2/",
       "tests/kernel/",
       "tests/language/",
       "tests/language_2/",
@@ -83,9 +83,9 @@
       "tests/co19/co19-dartdevc.status",
       "tests/co19/co19-kernel.status",
       "tests/co19/co19-runtime.status",
-      "tests/compiler/",
       "tests/corelib/",
       "tests/dart2js/",
+      "tests/dartdevc/",
       "tests/kernel/",
       "tests/language/",
       "tests/language_2/",
@@ -131,9 +131,9 @@
       "tests/co19_2/co19_2-dartdevc.status",
       "tests/co19_2/co19_2-kernel.status",
       "tests/co19_2/co19_2-runtime.status",
-      "tests/compiler/",
       "tests/corelib_2/",
       "tests/dart2js_2/",
+      "tests/dartdevc_2/",
       "tests/kernel/",
       "tests/language/",
       "tests/language_2/",
@@ -175,9 +175,9 @@
       "tests/co19/co19-dartdevc.status",
       "tests/co19/co19-kernel.status",
       "tests/co19/co19-runtime.status",
-      "tests/compiler/",
       "tests/corelib/",
       "tests/dart2js/",
+      "tests/dartdevc/",
       "tests/kernel/",
       "tests/language/",
       "tests/language_2/",
@@ -219,11 +219,12 @@
       "tests/co19_2/co19_2-dartdevc.status",
       "tests/co19_2/co19_2-kernel.status",
       "tests/co19_2/co19_2-runtime.status",
-      "tests/compiler/",
       "tests/corelib/",
       "tests/corelib_2/",
       "tests/dart2js/",
       "tests/dart2js_2/",
+      "tests/dartdevc/",
+      "tests/dartdevc_2/",
       "tests/kernel/",
       "tests/language/",
       "tests/language_2/",
@@ -328,11 +329,12 @@
       "tests/co19_2/co19_2-dartdevc.status",
       "tests/co19_2/co19_2-kernel.status",
       "tests/co19_2/co19_2-runtime.status",
-      "tests/compiler/",
       "tests/corelib/",
       "tests/corelib_2/",
       "tests/dart2js/",
       "tests/dart2js_2/",
+      "tests/dartdevc",
+      "tests/dartdevc_2",
       "tests/kernel/",
       "tests/language/",
       "tests/language_2/",
@@ -1924,7 +1926,7 @@
             "language_2",
             "corelib_2",
             "lib_2",
-            "dartdevc_native"
+            "dartdevc_2"
           ]
         },
         {
@@ -2008,7 +2010,7 @@
             "language_2",
             "corelib_2",
             "lib_2",
-            "dartdevc_native"
+            "dartdevc_2"
           ]
         }
       ]
@@ -2054,7 +2056,7 @@
             "language",
             "corelib",
             "lib",
-            "dartdevc_native"
+            "dartdevc"
           ],
           "shards": 5,
           "fileset": "web_platform_nnbd"
@@ -2075,7 +2077,7 @@
             "language",
             "corelib",
             "lib",
-            "dartdevc_native"
+            "dartdevc"
           ]
         },
         {
@@ -2110,7 +2112,7 @@
             "language_2",
             "corelib_2",
             "lib_2",
-            "dartdevc_native"
+            "dartdevc_2"
           ]
         },
         {
@@ -2652,26 +2654,6 @@
           ]
         },
         {
-          "name": "build gen_kernel.dart.snapshot",
-          "script": "tools/build.py",
-          "arguments": [
-            "--arch=x64,arm,arm64",
-            "--mode=release",
-            "copy_gen_kernel_snapshot"
-          ]
-        },
-        {
-          "name": "build gen_snapshot and dartaotruntime",
-          "script": "tools/build.py",
-          "arguments": [
-            "--arch=x64,arm,arm64",
-            "--mode=product",
-            "copy_gen_snapshot",
-            "copy_dartaotruntime",
-            "copy_vm_dill_files"
-          ]
-        },
-        {
           "name": "upload sdk",
           "script": "tools/bots/dart_sdk.py"
         },
@@ -2717,26 +2699,6 @@
           ]
         },
         {
-          "name": "build gen_kernel.dart.snapshot",
-          "script": "tools/build.py",
-          "arguments": [
-            "--arch=x64",
-            "--mode=release",
-            "copy_gen_kernel_snapshot"
-          ]
-        },
-        {
-          "name": "build gen_snapshot and dartaotruntime",
-          "script": "tools/build.py",
-          "arguments": [
-            "--arch=x64",
-            "--mode=product",
-            "copy_gen_snapshot",
-            "copy_dartaotruntime",
-            "copy_vm_dill_files"
-          ]
-        },
-        {
           "name": "upload sdk",
           "script": "tools/bots/dart_sdk.py"
         },
@@ -2765,26 +2727,6 @@
             "--mode=release",
             "create_sdk",
             "runtime_kernel"
-          ]
-        },
-        {
-          "name": "build gen_kernel.dart.snapshot",
-          "script": "tools/build.py",
-          "arguments": [
-            "--arch=x64",
-            "--mode=release",
-            "copy_gen_kernel_snapshot"
-          ]
-        },
-        {
-          "name": "build gen_snapshot and dartaotruntime",
-          "script": "tools/build.py",
-          "arguments": [
-            "--arch=x64",
-            "--mode=product",
-            "copy_gen_snapshot",
-            "copy_dartaotruntime",
-            "copy_vm_dill_files"
           ]
         },
         {

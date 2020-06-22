@@ -21,7 +21,10 @@ List<Token> _getTokens(String text, FeatureSet featureSet) {
   try {
     var tokens = <Token>[];
     var scanner = Scanner(null, CharSequenceReader(text), null)
-      ..configureFeatures(featureSet);
+      ..configureFeatures(
+        featureSetForOverriding: featureSet,
+        featureSet: featureSet,
+      );
     var token = scanner.tokenize();
     while (token.type != TokenType.EOF) {
       tokens.add(token);

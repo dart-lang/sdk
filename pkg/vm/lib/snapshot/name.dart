@@ -54,6 +54,9 @@ class Name {
 
     return result;
   }
+
+  static String collapse(String name) =>
+      name.replaceAll(_collapseRe, '<anonymous closure>');
 }
 
 // Remove useless prefixes and private library suffixes from the raw name.
@@ -66,3 +69,6 @@ final _scrubbingRe =
 // Remove useless prefixes and private library suffixes from the raw name
 // for stubs.
 final _stubScrubbingRe = RegExp(r'\[Stub\]\s*|@\d+|\(H[a-f\d]+\) ');
+
+// Remove token positions from anonymous closure names.
+final _collapseRe = RegExp(r'<anonymous closure @\d+>');

@@ -1182,7 +1182,10 @@ library l;''');
     CharSequenceReader reader = CharSequenceReader(code);
     var featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
     Scanner scanner = Scanner(null, reader, listener)
-      ..configureFeatures(featureSet);
+      ..configureFeatures(
+        featureSetForOverriding: featureSet,
+        featureSet: featureSet,
+      );
     Token token = scanner.tokenize();
     Parser parser = Parser(
       NonExistingSource.unknown,

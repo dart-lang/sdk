@@ -269,7 +269,6 @@ class ForwardingConstructorGenericSuperClass<T> {
     _isString(1),
     _isTop(1),
     findType(1),
-    getRuntimeTypeInfo(1),
     instanceType(1),
     setRuntimeTypeInfo(2)],
    type=[
@@ -319,7 +318,6 @@ class ForwardingConstructorGenericSuperClass<T> {
     _isString(1),
     _isTop(1),
     findType(1),
-    getRuntimeTypeInfo(1),
     instanceType(1),
     setRuntimeTypeInfo(2)],
    type=[
@@ -399,7 +397,6 @@ testEnum() => Enum.A;
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -450,7 +447,6 @@ testEnum() => Enum.A;
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -565,7 +561,6 @@ class GenericClass<X, Y> {
     _isString(1),
     _isTop(1),
     findType(1),
-    getRuntimeTypeInfo(1),
     instanceType(1),
     setRuntimeTypeInfo(2)],
    type=[
@@ -617,7 +612,6 @@ class GenericClass<X, Y> {
     _isString(1),
     _isTop(1),
     findType(1),
-    getRuntimeTypeInfo(1),
     instanceType(1),
     setRuntimeTypeInfo(2)],
    type=[

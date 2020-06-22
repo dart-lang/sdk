@@ -227,7 +227,6 @@ class Class2<T> {
     _isString(1),
     _isTop(1),
     findType(1),
-    getRuntimeTypeInfo(1),
     instanceType(1),
     setRuntimeTypeInfo(2)],
    type=[
@@ -277,7 +276,6 @@ class Class2<T> {
     _isString(1),
     _isTop(1),
     findType(1),
-    getRuntimeTypeInfo(1),
     instanceType(1),
     setRuntimeTypeInfo(2)],
    type=[
@@ -328,7 +326,6 @@ class Class2<T> {
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -379,7 +376,6 @@ class Class2<T> {
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -805,7 +801,6 @@ class Class5<T1, T2> {
     _isString(1),
     _isTop(1),
     findType(1),
-    getRuntimeTypeInfo(1),
     instanceType(1),
     setRuntimeTypeInfo(2)],
    type=[
@@ -860,7 +855,6 @@ class Class5<T1, T2> {
     _isString(1),
     _isTop(1),
     findType(1),
-    getRuntimeTypeInfo(1),
     instanceType(1),
     setRuntimeTypeInfo(2)],
    type=[
@@ -916,7 +910,6 @@ class Class5<T1, T2> {
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -971,7 +964,6 @@ class Class5<T1, T2> {
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -1029,7 +1021,6 @@ class Class6<T1, T2> {
     _isString(1),
     _isTop(1),
     findType(1),
-    getRuntimeTypeInfo(1),
     instanceType(1),
     setRuntimeTypeInfo(2)],
    type=[
@@ -1084,7 +1075,6 @@ class Class6<T1, T2> {
     _isString(1),
     _isTop(1),
     findType(1),
-    getRuntimeTypeInfo(1),
     instanceType(1),
     setRuntimeTypeInfo(2)],
    type=[
@@ -1140,7 +1130,6 @@ class Class6<T1, T2> {
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -1195,7 +1184,6 @@ class Class6<T1, T2> {
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -1353,7 +1341,6 @@ class F<T> {
     _isString(1),
     _isTop(1),
     findType(1),
-    getRuntimeTypeInfo(1),
     instanceType(1),
     setRuntimeTypeInfo(2)],
    type=[
@@ -1403,7 +1390,6 @@ class F<T> {
     _isString(1),
     _isTop(1),
     findType(1),
-    getRuntimeTypeInfo(1),
     instanceType(1),
     setRuntimeTypeInfo(2)],
    type=[
@@ -1452,7 +1438,6 @@ class F<T> {
     _isString(1),
     _isTop(1),
     findType(1),
-    getRuntimeTypeInfo(1),
     instanceType(1),
     setRuntimeTypeInfo(2)],
    type=[
@@ -1502,7 +1487,6 @@ class F<T> {
     _isString(1),
     _isTop(1),
     findType(1),
-    getRuntimeTypeInfo(1),
     instanceType(1),
     setRuntimeTypeInfo(2)],
    type=[
@@ -1556,7 +1540,6 @@ class G extends F<int> {}
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -1609,7 +1592,6 @@ class G extends F<int> {}
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[

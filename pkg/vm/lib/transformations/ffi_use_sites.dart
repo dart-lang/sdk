@@ -122,8 +122,15 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
   @override
   visitProcedure(Procedure node) {
+    if (isFfiLibrary && node.isExtensionMember) {
+      if (node == asFunctionTearoff || node == lookupFunctionTearoff) {
+        // Skip static checks and transformation for the tearoffs.
+        return node;
+      }
+    }
+
     _staticTypeContext = new StaticTypeContext(node, env);
-    var result = super.visitProcedure(node);
+    final result = super.visitProcedure(node);
     _staticTypeContext = null;
     return result;
   }
@@ -159,15 +166,16 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
     final Member target = node.target;
     try {
-      if (target == lookupFunctionMethod && !isFfiLibrary) {
+      if (target == lookupFunctionMethod) {
         final DartType nativeType = InterfaceType(
             nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
         final DartType dartType = node.arguments.types[1];
 
         _ensureNativeTypeValid(nativeType, node);
         _ensureNativeTypeToDartType(nativeType, dartType, node);
+
         return _replaceLookupFunction(node);
-      } else if (target == asFunctionMethod && !isFfiLibrary) {
+      } else if (target == asFunctionMethod) {
         final DartType dartType = node.arguments.types[1];
         final DartType nativeType = InterfaceType(
             nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);

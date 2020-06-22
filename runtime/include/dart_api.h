@@ -243,6 +243,8 @@ typedef struct _Dart_IsolateGroup* Dart_IsolateGroup;
 typedef struct _Dart_Handle* Dart_Handle;
 typedef Dart_Handle Dart_PersistentHandle;
 typedef struct _Dart_WeakPersistentHandle* Dart_WeakPersistentHandle;
+// These three structs are versioned by DART_API_DL_MAJOR_VERSION, bump the
+// version when changing this struct.
 
 typedef void (*Dart_WeakPersistentHandleFinalizer)(
     void* isolate_callback_data,

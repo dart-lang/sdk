@@ -29,10 +29,12 @@ class MakeFinal extends CorrectionProducer {
     if (list != null) {
       if (list.variables.length == 1) {
         await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-          if (list.keyword == null) {
-            builder.addSimpleInsertion(list.offset, 'final ');
-          } else if (list.keyword.keyword == Keyword.VAR) {
+          if (list.keyword?.keyword == Keyword.VAR) {
             builder.addSimpleReplacement(range.token(list.keyword), 'final');
+          } else if (list.lateKeyword != null) {
+            builder.addSimpleInsertion(list.lateKeyword.end, ' final');
+          } else if (list.keyword == null) {
+            builder.addSimpleInsertion(list.offset, 'final ');
           }
         });
       }

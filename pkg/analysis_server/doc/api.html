@@ -109,7 +109,7 @@ a:focus, a:hover {
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  1.27.4
+  1.28.0
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -227,6 +227,13 @@ a:focus, a:hover {
     consistency</a>.
   That is, in some cases it may return responses with the currently available
   results while it's catching up with unprocessed changes.
+</p>
+<h3>Enumerations</h3>
+<p>
+  Responses from the server may include enumerations indicating the kind of a
+  specific item. The enums may be extended with new values in future versions of
+  the server so clients should ensure unknown values are handled gracefully, either
+  ignoring the item or treating it with some default/fallback handling.
 </p>
 <h3>Domains</h3>
 <p>
@@ -4170,7 +4177,7 @@ a:focus, a:hover {
       An enumeration of the kinds of folding regions.
     </p>
     
-  <dl><dt class="value">ANNOTATIONS</dt><dt class="value">CLASS_BODY</dt><dt class="value">DIRECTIVES</dt><dt class="value">DOCUMENTATION_COMMENT</dt><dt class="value">FILE_HEADER</dt><dt class="value">FUNCTION_BODY</dt><dt class="value">INVOCATION</dt><dt class="value">LITERAL</dt></dl></dd><dt class="typeDefinition"><a name="type_FoldingRegion">FoldingRegion: object</a></dt><dd>
+  <dl><dt class="value">ANNOTATIONS</dt><dt class="value">BLOCK</dt><dt class="value">CLASS_BODY</dt><dt class="value">DIRECTIVES</dt><dt class="value">DOCUMENTATION_COMMENT</dt><dt class="value">FILE_HEADER</dt><dt class="value">FUNCTION_BODY</dt><dt class="value">INVOCATION</dt><dt class="value">LITERAL</dt></dl></dd><dt class="typeDefinition"><a name="type_FoldingRegion">FoldingRegion: object</a></dt><dd>
     <p>
       A description of a region that can be folded.
     </p>

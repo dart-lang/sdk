@@ -9,7 +9,7 @@ import 'dart:async';
 import 'package:expect/expect.dart';
 
 class W<T> {
-  final FutureOr<T> v;
+  final FutureOr<T>? v;
   W({this.v});
 
   @pragma('vm:never-inline')

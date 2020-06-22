@@ -105,7 +105,7 @@ analyzer/test/src/summary/summarize_fasta_test: Slow, Pass
 _fe_analyzer_shared/test/*: SkipByDesign # Only meant to run on vm
 analysis_server/test/integration: SkipByDesign # Analysis server integration tests don't make sense to run under dart2js, since the code under test always runs in the Dart vm as a subprocess.
 analysis_server/tool/*: SkipByDesign # Only meant to run on vm
-analysis_server_client/test/live_test: SkipByDesign # Only meant to run on vm
+analysis_server_client/test/*: SkipByDesign # Only meant to run on vm
 analyzer_cli/test/*: SkipByDesign # Only meant to run on vm
 analyzer_plugin/test/*: SkipByDesign # Only meant to run on vm
 analyzer_plugin/tool/*: SkipByDesign # Only meant to run on vm

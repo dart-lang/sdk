@@ -2424,16 +2424,23 @@ enum {
   kAllFree = kMaxInt32,
 };
 
-// Formatting configuration for Function::PrintQualifiedName.
+// Formatting configuration for Function::PrintName.
 struct NameFormattingParams {
   Object::NameVisibility name_visibility;
   bool disambiguate_names;
 
   // By default function name includes the name of the enclosing class if any.
-  // However in some context this information is redundant and class name
+  // However in some contexts this information is redundant and class name
   // is already known. In this case setting |include_class_name| to false
   // allows you to exclude this information from the formatted name.
   bool include_class_name = true;
+
+  // By default function name includes the name of the enclosing function if
+  // any. However in some contexts this information is redundant and
+  // the name of the enclosing function is already known. In this case
+  // setting |include_parent_name| to false allows to exclude this information
+  // from the formatted name.
+  bool include_parent_name = true;
 
   NameFormattingParams(Object::NameVisibility visibility,
                        Object::NameDisambiguation name_disambiguation =
@@ -2448,6 +2455,14 @@ struct NameFormattingParams {
     params.include_class_name = false;
     return params;
   }
+
+  static NameFormattingParams DisambiguatedUnqualified(
+      Object::NameVisibility visibility) {
+    NameFormattingParams params(visibility, Object::NameDisambiguation::kYes);
+    params.include_class_name = false;
+    params.include_parent_name = false;
+    return params;
+  }
 };
 
 class Function : public Object {
@@ -2458,8 +2473,8 @@ class Function : public Object {
 
   const char* NameCString(NameVisibility name_visibility) const;
 
-  void PrintQualifiedName(const NameFormattingParams& params,
-                          ZoneTextBuffer* printer) const;
+  void PrintName(const NameFormattingParams& params,
+                 ZoneTextBuffer* printer) const;
   StringPtr QualifiedScrubbedName() const;
   StringPtr QualifiedUserVisibleName() const;
 

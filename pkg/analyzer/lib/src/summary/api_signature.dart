@@ -9,6 +9,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /**
  * An instance of [ApiSignature] collects data in the form of primitive types
@@ -107,6 +108,14 @@ class ApiSignature {
     _makeRoom(4);
     _data.setUint32(_offset, i, Endian.little);
     _offset += 4;
+  }
+
+  /**
+   * Collect a language version.
+   */
+  void addLanguageVersion(Version version) {
+    addInt(version.major);
+    addInt(version.minor);
   }
 
   /**

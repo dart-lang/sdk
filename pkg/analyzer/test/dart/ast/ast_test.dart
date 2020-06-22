@@ -736,7 +736,10 @@ E f() => g;
       var source =
           StringSource(contents, 'PreviousTokenTest_findPrevious.dart');
       var scanner = Scanner.fasta(source, listener)
-        ..configureFeatures(featureSet);
+        ..configureFeatures(
+          featureSetForOverriding: featureSet,
+          featureSet: featureSet,
+        );
       Token tokens = scanner.tokenize();
       _unit = Parser(
         source,
@@ -788,7 +791,10 @@ E f() => g;
     GatheringErrorListener listener = GatheringErrorListener(checkRanges: true);
     var source = StringSource('missing', 'PreviousTokenTest_missing.dart');
     var scanner = Scanner.fasta(source, listener)
-      ..configureFeatures(featureSet);
+      ..configureFeatures(
+        featureSetForOverriding: featureSet,
+        featureSet: featureSet,
+      );
     Token missing = scanner.tokenize();
 
     expect(statement.findPrevious(missing), null);

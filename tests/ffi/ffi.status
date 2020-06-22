@@ -2,8 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $builder_tag == asan ]
-data_not_asan_test: SkipByDesign # This test tries to allocate too much memory on purpose.
+[ $builder_tag == msan ]
+vmspecific_handle_test: Skip # https://dartbug.com/42314
 
 [ $system == android ]
 *: Pass, Slow # https://github.com/dart-lang/sdk/issues/38489
@@ -19,6 +19,9 @@ vmspecific_handle_test: SkipByDesign # Symbols are not exposed on purpose and ar
 
 [ $arch == simarm || $arch == simarm64 ]
 *: Skip # FFI not yet supported on the arm simulator.
+
+[ $builder_tag == asan || $builder_tag == msan || $builder_tag == tsan ]
+data_not_asan_test: SkipByDesign # This test tries to allocate too much memory on purpose.
 
 # These tests trigger and catch an abort (intentionally) and terminate the VM.
 # They're incompatible with ASAN because not all memory is freed when aborting and

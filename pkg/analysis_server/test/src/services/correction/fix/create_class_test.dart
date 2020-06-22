@@ -60,6 +60,18 @@ main() {
     await assertNoFix();
   }
 
+  Future<void> test_implements() async {
+    await resolveTestUnit('''
+class MyClass implements BaseClass {}
+''');
+    await assertHasFix('''
+class MyClass implements BaseClass {}
+
+class BaseClass {
+}
+''');
+  }
+
   Future<void> test_inLibraryOfPrefix() async {
     addSource('/home/test/lib/lib.dart', r'''
 class A {}
@@ -206,5 +218,17 @@ class Test {
 }
 ''');
     assertLinkedGroup(change.linkedEditGroups[0], ['Test v =', 'Test {']);
+  }
+
+  Future<void> test_with() async {
+    await resolveTestUnit('''
+class MyClass with BaseClass {}
+''');
+    await assertHasFix('''
+class MyClass with BaseClass {}
+
+class BaseClass {
+}
+''');
   }
 }

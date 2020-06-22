@@ -49,7 +49,6 @@ class C implements A<int>, B<String, bool> {}
   _isTop(1),
   extractTypeArguments<A<dynamic>>(2),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -102,7 +101,6 @@ class C implements A<int>, B<String, bool> {}
   _isTop(1),
   extractTypeArguments<A<dynamic>*>(2),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -154,7 +152,6 @@ testA(c, f) => extractTypeArguments<A>(c, f);
   _isTop(1),
   extractTypeArguments<B<dynamic,dynamic>>(2),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -207,7 +204,6 @@ testA(c, f) => extractTypeArguments<A>(c, f);
   _isTop(1),
   extractTypeArguments<B<dynamic,dynamic>*>(2),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[

@@ -988,7 +988,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
   // The RawParameter variables should be set to null to avoid retaining more
   // objects than necessary during GC.
   const Fragment body =
-      ClearRawParameters(dart_function) +
+      ClearRawParameters(dart_function) + B->BuildNullAssertions() +
       BuildFunctionBody(dart_function, first_parameter, is_constructor);
 
   auto extra_entry_point_style = ChooseEntryPointStyle(

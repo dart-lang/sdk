@@ -68,6 +68,7 @@ final List<String> resourceTypes = [
   '.css',
   '.html',
   '.js',
+  '.png',
 ];
 
 String base64Encode(List<int> bytes) {
@@ -170,7 +171,13 @@ String _decode(String data) {
 
   for (var resource in resources) {
     var name = path.basename(resource.path).replaceAll('.', '_');
-    var source = resource.readAsStringSync();
+
+    String source;
+    if (path.extension(resource.path) == '.png') {
+      source = resource.readAsStringSync(encoding: latin1);
+    } else {
+      source = resource.readAsStringSync();
+    }
 
     var delimiter = "'''";
 
@@ -203,6 +210,10 @@ String md5String(String str) {
   return md5.convert(str.codeUnits).toString();
 }
 
+String md5StringFromBytes(List<int> bytes) {
+  return md5.convert(bytes).toString();
+}
+
 List<FileSystemEntity> sortDir(Iterable<FileSystemEntity> entities) {
   var result = entities.toList();
   result.sort((a, b) => a.path.compareTo(b.path));
@@ -229,8 +240,8 @@ void verifyResourcesGDartGenerated({
       continue;
     }
 
-    if (name == 'migration.js') {
-      // skip the compiled js
+    if (name == 'migration.js' || name == 'dart_192.png') {
+      // skip the compiled js and logo
       continue;
     }
 

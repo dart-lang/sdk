@@ -5,6 +5,8 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -13,8 +15,9 @@ import 'driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(NullSafetyUsingAllowedExperimentsTest);
     defineReflectiveTests(NullSafetyExperimentGlobalTest);
+    defineReflectiveTests(NullSafetyUsingAllowedExperimentsTest);
+    defineReflectiveTests(PackageConfigAndLanguageOverrideTest);
   });
 }
 
@@ -30,7 +33,7 @@ class NullSafetyExperimentGlobalTest extends _FeaturesTest {
   bool get typeToStringWithNullability => true;
 
   test_jsonConfig_legacyContext_nonNullDependency() async {
-    newFile('/test/.dart_tool/package_config.json', content: '''
+    _configureTestWithJsonConfig('''
 {
   "configVersion": 2,
   "packages": [
@@ -48,7 +51,6 @@ class NullSafetyExperimentGlobalTest extends _FeaturesTest {
   ]
 }
 ''');
-    _configureTestWithJsonConfig();
 
     newFile('/aaa/lib/a.dart', content: r'''
 int a = 0;
@@ -68,7 +70,7 @@ var z = PI;
   }
 
   test_jsonConfig_nonNullContext_legacyDependency() async {
-    newFile('/test/.dart_tool/package_config.json', content: '''
+    _configureTestWithJsonConfig('''
 {
   "configVersion": 2,
   "packages": [
@@ -86,7 +88,6 @@ var z = PI;
   ]
 }
 ''');
-    _configureTestWithJsonConfig();
 
     newFile('/aaa/lib/a.dart', content: r'''
 int a = 0;
@@ -101,8 +102,11 @@ var y = a;
 var z = PI;
 ''');
     assertType(findElement.topVar('x').type, 'int');
-    assertType(findElement.topVar('y').type, 'int*');
+    assertType(findElement.topVar('y').type, 'int');
     assertType(findElement.topVar('z').type, 'double');
+
+    var importFind = findElement.importFind('package:aaa/a.dart');
+    assertType(importFind.topVar('a').type, 'int*');
   }
 }
 
@@ -114,7 +118,7 @@ class NullSafetyUsingAllowedExperimentsTest extends _FeaturesTest {
   test_jsonConfig_disable() async {
     _configureAllowedExperimentsTestNullSafety();
 
-    newFile('/test/.dart_tool/package_config.json', content: '''
+    _configureTestWithJsonConfig('''
 {
   "configVersion": 2,
   "packages": [
@@ -127,7 +131,6 @@ class NullSafetyUsingAllowedExperimentsTest extends _FeaturesTest {
   ]
 }
 ''');
-    _configureTestWithJsonConfig();
 
     await assertNoErrorsInCode('''
 var x = 0;
@@ -146,7 +149,7 @@ var x = 0;
   test_jsonConfig_enable() async {
     _configureAllowedExperimentsTestNullSafety();
 
-    newFile('/test/.dart_tool/package_config.json', content: '''
+    _configureTestWithJsonConfig('''
 {
   "configVersion": 2,
   "packages": [
@@ -158,7 +161,6 @@ var x = 0;
   ]
 }
 ''');
-    _configureTestWithJsonConfig();
 
     await assertNoErrorsInCode('''
 var x = 0;
@@ -206,8 +208,59 @@ var x = 0;
   }
 }
 
+@reflectiveTest
+class PackageConfigAndLanguageOverrideTest extends _FeaturesTest {
+  test_jsonConfigDisablesExtensions() async {
+    _configureTestWithJsonConfig('''
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "test",
+      "rootUri": "../",
+      "packageUri": "lib/",
+      "languageVersion": "2.3"
+    }
+  ]
+}
+''');
+
+    await assertErrorsInCode('''
+extension E on int {}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 0, 9),
+      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 0, 9),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 12, 2),
+      error(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 15, 3),
+    ]);
+  }
+
+  test_jsonConfigDisablesExtensions_languageOverrideEnables() async {
+    _configureTestWithJsonConfig('''
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "test",
+      "rootUri": "../",
+      "packageUri": "lib/",
+      "languageVersion": "2.3"
+    }
+  ]
+}
+''');
+
+    await assertNoErrorsInCode('''
+// @dart = 2.6
+extension E on int {}
+''');
+  }
+}
+
 class _FeaturesTest extends DriverResolutionTest {
-  void _configureTestWithJsonConfig() {
+  void _configureTestWithJsonConfig(String content) {
+    newFile('/test/.dart_tool/package_config.json', content: content);
+
     driver.configure(
       packages: findPackagesFrom(
         resourceProvider,

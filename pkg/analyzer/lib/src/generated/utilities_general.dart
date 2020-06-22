@@ -68,6 +68,17 @@ String toUpperCase(Object value) => value?.toString()?.toUpperCase();
 /// same operations as the performance critical variant, but allocates an extra
 /// object.
 class JenkinsSmiHash {
+  int _hash = 0;
+
+  /// Finalizes the hash and return the resulting hashcode.
+  @override
+  int get hashCode => finish(_hash);
+
+  /// Accumulates the object [o] into the hash.
+  void add(Object o) {
+    _hash = combine(_hash, o.hashCode);
+  }
+
   /// Accumulates the hash code [value] into the running hash [hash].
   static int combine(int hash, int value) {
     hash = 0x1fffffff & (hash + value);
@@ -91,17 +102,6 @@ class JenkinsSmiHash {
   /// Combines together four hash codes.
   static int hash4(a, b, c, d) =>
       finish(combine(combine(combine(combine(0, a), b), c), d));
-
-  int _hash = 0;
-
-  /// Accumulates the object [o] into the hash.
-  void add(Object o) {
-    _hash = combine(_hash, o.hashCode);
-  }
-
-  /// Finalizes the hash and return the resulting hashcode.
-  @override
-  int get hashCode => finish(_hash);
 }
 
 /**

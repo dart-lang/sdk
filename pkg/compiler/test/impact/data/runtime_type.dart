@@ -146,7 +146,6 @@ class Class4 {}
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -201,7 +200,6 @@ class Class4 {}
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -256,7 +254,6 @@ toString1(Class2<int> c) => '${c.runtimeType}';
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -313,7 +310,6 @@ toString1(Class2<int> c) => '${c.runtimeType}';
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -367,7 +363,6 @@ toString2(Class2<int> c) => '${c?.runtimeType}';
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -420,7 +415,6 @@ toString2(Class2<int> c) => '${c?.runtimeType}';
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -473,7 +467,6 @@ toString3(Class2<int> c) => c.runtimeType.toString();
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -528,7 +521,6 @@ toString3(Class2<int> c) => c.runtimeType.toString();
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -583,7 +575,6 @@ toString4(Class2<int> c) => c.runtimeType?.toString();
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -639,7 +630,6 @@ toString4(Class2<int> c) => c.runtimeType?.toString();
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -693,7 +683,6 @@ toString5(Class2<int> c) => c?.runtimeType?.toString();
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -748,7 +737,6 @@ toString5(Class2<int> c) => c?.runtimeType?.toString();
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -799,7 +787,6 @@ toString6(Class2<int> c) => c?.runtimeType.toString();
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -850,7 +837,6 @@ toString6(Class2<int> c) => c?.runtimeType.toString();
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -905,7 +891,6 @@ unknown(Class2<int> c) => c.runtimeType;
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -963,7 +948,6 @@ unknown(Class2<int> c) => c.runtimeType;
   _isString(1),
   _isTop(1),
   findType(1),
-  getRuntimeTypeInfo(1),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[

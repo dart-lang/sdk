@@ -307,7 +307,7 @@ class _StreamImpl<T> {
 }
 
 @pragma("vm:entry-point", "call")
-void _completeOnAsyncReturn(Completer completer, Object value) {
+void _completeOnAsyncReturn(Completer completer, Object? value) {
   completer.complete(value);
 }
 

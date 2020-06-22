@@ -157,6 +157,7 @@ for command; do
       third_party/pkg \
       third_party/pkg_tested \
       .packages \
+      .dart_tool/package_config.json \
       pkg \
       runtime/bin \
       runtime/lib \
@@ -295,6 +296,7 @@ EOF
       third_party/pkg \
       third_party/pkg_tested \
       .packages \
+      .dart_tool/package_config.json \
       pkg \
       runtime/bin \
       runtime/lib \

@@ -115,12 +115,21 @@ class FileState {
   final bool isInExternalSummaries;
 
   /**
-   * The default [FeatureSet] for the file path and URI.
+   * The [FeatureSet] for all files in the analysis context.
    *
-   * The actual language version, and the feature set, of the file might be
-   * different, if `@dart` is specified in the file header.
+   * Usually it is the feature set of the latest language version, plus
+   * possibly additional enabled experiments (from the analysis options file,
+   * or from SDK allowed experiments).
+   *
+   * This feature set is then restricted, with the [_packageLanguageVersion],
+   * or with a `@dart` language override token in the file header.
    */
-  final FeatureSet _featureSet;
+  final FeatureSet _contextFeatureSet;
+
+  /**
+   * The language version for the package that contains this file.
+   */
+  final Version _packageLanguageVersion;
 
   bool _exists;
   String _content;
@@ -153,15 +162,22 @@ class FileState {
    */
   bool hasErrorOrWarning = false;
 
-  FileState._(this._fsState, this.path, this.uri, this.source, this._featureSet)
-      : isInExternalSummaries = false;
+  FileState._(
+    this._fsState,
+    this.path,
+    this.uri,
+    this.source,
+    this._contextFeatureSet,
+    this._packageLanguageVersion,
+  ) : isInExternalSummaries = false;
 
   FileState._external(this._fsState, this.uri)
       : isInExternalSummaries = true,
         path = null,
         source = null,
         _exists = true,
-        _featureSet = null {
+        _contextFeatureSet = null,
+        _packageLanguageVersion = null {
     _apiSignature = Uint8List(16);
     _libraryCycle = LibraryCycle.external();
   }
@@ -419,7 +435,8 @@ class FileState {
     {
       var signature = ApiSignature();
       signature.addUint32List(_fsState._unlinkedSalt);
-      signature.addFeatureSet(_featureSet);
+      signature.addFeatureSet(_contextFeatureSet);
+      signature.addLanguageVersion(_packageLanguageVersion);
       signature.addString(_contentHash);
       signature.addBool(_exists);
       contentSignature = signature.toByteList();
@@ -548,7 +565,7 @@ class FileState {
     return astFactory.compilationUnit(
       beginToken: token,
       endToken: token,
-      featureSet: _featureSet,
+      featureSet: _contextFeatureSet,
     )..lineInfo = LineInfo(const <int>[0]);
   }
 
@@ -569,36 +586,6 @@ class FileState {
     }
 
     return _fsState.getFileForUri(absoluteUri);
-  }
-
-  /// Return the language version specified in the [versionToken], or the
-  /// language version from the [FeatureSetProvider].
-  Version _getLanguageVersion(
-    LanguageVersionToken versionToken,
-    AnalysisErrorListener errorListener,
-  ) {
-    if (versionToken != null) {
-      var latestVersion = ExperimentStatus.currentVersion;
-      if (versionToken.major > latestVersion.major ||
-          versionToken.major == latestVersion.major &&
-              versionToken.minor > latestVersion.minor) {
-        errorListener.onError(
-          AnalysisError(
-            source,
-            versionToken.offset,
-            versionToken.length,
-            HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER,
-            [latestVersion.major, latestVersion.minor],
-          ),
-        );
-        // Fall-through, use the package language version.
-      } else {
-        return Version(versionToken.major, versionToken.minor, 0);
-      }
-    }
-
-    var featureSetProvider = _fsState.featureSetProvider;
-    return featureSetProvider.getLanguageVersion(path, uri);
   }
 
   /**
@@ -627,23 +614,22 @@ class FileState {
 
     CharSequenceReader reader = CharSequenceReader(content);
     Scanner scanner = Scanner(source, reader, errorListener)
-      ..configureFeatures(_featureSet);
+      ..configureFeatures(
+        featureSetForOverriding: _contextFeatureSet,
+        featureSet: _contextFeatureSet.restrictToVersion(
+          _packageLanguageVersion,
+        ),
+      );
     Token token = PerformanceStatistics.scan.makeCurrentWhile(() {
       return scanner.tokenize(reportScannerErrors: false);
     });
     LineInfo lineInfo = LineInfo(scanner.lineStarts);
 
-    var languageVersion = _getLanguageVersion(
-      scanner.languageVersion,
-      errorListener,
-    );
-    var featureSet = _featureSet.restrictToVersion(languageVersion);
-
     bool useFasta = analysisOptions.useFastaParser;
     Parser parser = Parser(
       source,
       errorListener,
-      featureSet: featureSet,
+      featureSet: scanner.featureSet,
       useFasta: useFasta,
     );
     parser.enableOptionalNewAndConst = true;
@@ -653,10 +639,6 @@ class FileState {
     try {
       unit = parser.parseCompilationUnit(token);
       unit.lineInfo = lineInfo;
-
-      var unitImpl = unit as CompilationUnitImpl;
-      unitImpl.languageVersionMajor = languageVersion.major;
-      unitImpl.languageVersionMinor = languageVersion.minor;
     } catch (e) {
       throw StateError('''
 Parser error.
@@ -665,6 +647,8 @@ ${'-' * 40}
 $content
 ''');
     }
+
+    _setLanguageVersion(unit, scanner.languageVersion, errorListener);
 
     // StringToken uses a static instance of StringCanonicalizer, so we need
     // to clear it explicitly once we are done using it for this file.
@@ -685,6 +669,40 @@ $content
       }
     }
     return directive.uri;
+  }
+
+  /// Set the language version for the file, from the [versionToken], or from
+  /// the package language version.
+  void _setLanguageVersion(
+    CompilationUnit unit,
+    LanguageVersionToken versionToken,
+    AnalysisErrorListener errorListener,
+  ) {
+    var languageVersion = _packageLanguageVersion;
+
+    if (versionToken != null) {
+      var latestVersion = ExperimentStatus.currentVersion;
+      if (versionToken.major > latestVersion.major ||
+          versionToken.major == latestVersion.major &&
+              versionToken.minor > latestVersion.minor) {
+        errorListener.onError(
+          AnalysisError(
+            source,
+            versionToken.offset,
+            versionToken.length,
+            HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER,
+            [latestVersion.major, latestVersion.minor],
+          ),
+        );
+        // Fall-through, use the package language version.
+      } else {
+        languageVersion = Version(versionToken.major, versionToken.minor, 0);
+      }
+    }
+
+    var unitImpl = unit as CompilationUnitImpl;
+    unitImpl.languageVersionMajor = languageVersion.major;
+    unitImpl.languageVersionMinor = languageVersion.minor;
   }
 
   static UnlinkedUnit2Builder serializeAstUnlinked2(CompilationUnit unit) {
@@ -895,7 +913,8 @@ class FileSystemState {
   FileState get unresolvedFile {
     if (_unresolvedFile == null) {
       var featureSet = FeatureSet.fromEnableFlags([]);
-      _unresolvedFile = FileState._(this, null, null, null, featureSet);
+      _unresolvedFile = FileState._(
+          this, null, null, null, featureSet, ExperimentStatus.currentVersion);
       _unresolvedFile.refresh();
     }
     return _unresolvedFile;
@@ -924,7 +943,10 @@ class FileSystemState {
       // Create a new file.
       FileSource uriSource = FileSource(resource, uri);
       FeatureSet featureSet = featureSetProvider.getFeatureSet(path, uri);
-      file = FileState._(this, path, uri, uriSource, featureSet);
+      Version packageLanguageVersion =
+          featureSetProvider.getLanguageVersion(path, uri);
+      file = FileState._(
+          this, path, uri, uriSource, featureSet, packageLanguageVersion);
       _uriToFile[uri] = file;
       _addFileWithPath(path, file);
       _pathToCanonicalFile[path] = file;
@@ -966,7 +988,10 @@ class FileSystemState {
       File resource = _resourceProvider.getFile(path);
       FileSource source = FileSource(resource, uri);
       FeatureSet featureSet = featureSetProvider.getFeatureSet(path, uri);
-      file = FileState._(this, path, uri, source, featureSet);
+      Version packageLanguageVersion =
+          featureSetProvider.getLanguageVersion(path, uri);
+      file = FileState._(
+          this, path, uri, source, featureSet, packageLanguageVersion);
       _uriToFile[uri] = file;
       _addFileWithPath(path, file);
       file.refresh(allowCached: true);

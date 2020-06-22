@@ -63,6 +63,32 @@ import 'b.dart';
     _assertRefreshedFiles([aPath, cPath]);
   }
 
+  test_changeFile_resolution() async {
+    newFile(aPath, content: r'''
+class A {}
+''');
+
+    newFile(bPath, content: r'''
+import 'a.dart';
+A a;
+B b;
+''');
+
+    result = fileResolver.resolve(bPath);
+    assertErrorsInResolvedUnit(result, [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 22, 1),
+    ]);
+
+    newFile(aPath, content: r'''
+class A {}
+class B {}
+''');
+    fileResolver.changeFile(aPath);
+
+    result = fileResolver.resolve(bPath);
+    assertErrorsInResolvedUnit(result, []);
+  }
+
   test_changePartFile_refreshedFiles() async {
     newFile(aPath, content: r'''
 part 'b.dart';
@@ -93,32 +119,6 @@ import 'a.dart';
     fileResolver.changeFile(bPath);
     await fileResolver.resolve(cPath);
     _assertRefreshedFiles([aPath, bPath, cPath]);
-  }
-
-  test_changeFile_resolution() async {
-    newFile(aPath, content: r'''
-class A {}
-''');
-
-    newFile(bPath, content: r'''
-import 'a.dart';
-A a;
-B b;
-''');
-
-    result = fileResolver.resolve(bPath);
-    assertErrorsInResolvedUnit(result, [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 22, 1),
-    ]);
-
-    newFile(aPath, content: r'''
-class A {}
-class B {}
-''');
-    fileResolver.changeFile(aPath);
-
-    result = fileResolver.resolve(bPath);
-    assertErrorsInResolvedUnit(result, []);
   }
 
   void _assertRefreshedFiles(List<String> expected, {bool withSdk = false}) {
@@ -324,6 +324,25 @@ import 'dart:math';
     ]);
   }
 
+  test_resolve_part_of() async {
+    newFile('/workspace/dart/test/lib/a.dart', content: r'''
+part 'test.dart';
+
+class A {
+  int m;
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+part of 'a.dart';
+
+void func() {
+  var a = A();
+  print(a.m);
+}
+''');
+  }
+
   test_reuse_compatibleOptions() async {
     var aPath = '/workspace/dart/aaa/lib/a.dart';
     var aResult = await assertErrorsInFile(aPath, r'''
@@ -381,25 +400,6 @@ int b = a;
 ''', [
       error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 19, 1),
     ]);
-  }
-
-  test_resolve_part_of() async {
-    newFile('/workspace/dart/test/lib/a.dart', content: r'''
-part 'test.dart';
-
-class A {
-  int m;
-}
-''');
-
-    await assertNoErrorsInCode(r'''
-part of 'a.dart';
-
-void func() {
-  var a = A();
-  print(a.m);
-}
-''');
   }
 
   test_unknown_uri() async {

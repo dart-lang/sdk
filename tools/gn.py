@@ -127,7 +127,7 @@ def DontUseClang(args, target_os, host_cpu, target_cpu):
 
 def UseSysroot(args, gn_args):
     # Don't try to use a Linux sysroot if we aren't on Linux.
-    if gn_args['target_os'] != 'linux':
+    if gn_args['target_os'] != 'linux' and HOST_OS != 'linux':
         return False
     # Don't use the sysroot if we're given another sysroot.
     if TargetSysroot(args):
@@ -221,15 +221,18 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer):
     gn_args['is_msan'] = sanitizer == 'msan'
     gn_args['is_tsan'] = sanitizer == 'tsan'
     gn_args['is_ubsan'] = sanitizer == 'ubsan'
-    gn_args['include_dart2native'] = True
     gn_args['is_qemu'] = args.use_qemu
 
     if not args.platform_sdk and not gn_args['target_cpu'].startswith('arm'):
         gn_args['dart_platform_sdk'] = args.platform_sdk
-    gn_args['dart_stripped_binary'] = 'exe.stripped/dart'
-    gn_args[
-        'dart_precompiled_runtime_stripped_binary'] = 'exe.stripped/dart_precompiled_runtime'
-    gn_args['gen_snapshot_stripped_binary'] = 'exe.stripped/gen_snapshot'
+
+    # We don't support stripping on Windows
+    if host_os != 'win':
+        gn_args['dart_stripped_binary'] = 'exe.stripped/dart'
+        gn_args['dart_precompiled_runtime_stripped_binary'] = (
+            'exe.stripped/dart_precompiled_runtime_product')
+        gn_args['gen_snapshot_stripped_binary'] = (
+            'exe.stripped/gen_snapshot_product')
 
     # Setup the user-defined sysroot.
     if UseSysroot(args, gn_args):
@@ -278,7 +281,7 @@ def ProcessOptions(args):
     if args.mode == 'all':
         args.mode = 'debug,release,product'
     if args.os == 'all':
-        args.os = 'host,android'
+        args.os = 'host,android,fuchsia'
     if args.sanitizer == 'all':
         args.sanitizer = 'none,asan,lsan,msan,tsan,ubsan'
     args.mode = args.mode.split(',')
@@ -299,13 +302,12 @@ def ProcessOptions(args):
             return False
     oses = [ProcessOsOption(os_name) for os_name in args.os]
     for os_name in oses:
-        if not os_name in ['android', 'freebsd', 'linux', 'macos', 'win32']:
+        if not os_name in [
+                'android', 'freebsd', 'linux', 'macos', 'win32', 'fuchsia'
+        ]:
             print("Unknown os %s" % os_name)
             return False
-        if os_name != HOST_OS:
-            if os_name != 'android':
-                print("Unsupported target os %s" % os_name)
-                return False
+        if os_name == 'android':
             if not HOST_OS in ['linux', 'macos']:
                 print("Cross-compilation to %s is not supported on host os %s."
                       % (os_name, HOST_OS))
@@ -317,6 +319,19 @@ def ProcessOptions(args):
                     "Cross-compilation to %s is not supported for architecture %s."
                     % (os_name, arch))
                 return False
+        elif os_name == 'fuchsia':
+            if HOST_OS != 'linux':
+                print("Cross-compilation to %s is not supported on host os %s."
+                      % (os_name, HOST_OS))
+                return False
+            if arch != 'x64':
+                print(
+                    "Cross-compilation to %s is not supported for architecture %s."
+                    % (os_name, arch))
+                return False
+        elif os_name != HOST_OS:
+            print("Unsupported target os %s" % os_name)
+            return False
     if HOST_OS != 'win' and args.use_crashpad:
         print("Crashpad is only supported on Windows")
         return False
@@ -363,7 +378,7 @@ def parse_args(args):
         '--os',
         type=str,
         help='Target OSs (comma-separated).',
-        metavar='[all,host,android]',
+        metavar='[all,host,android,fuchsia]',
         default='host')
     common_group.add_argument(
         '--sanitizer',

@@ -627,8 +627,12 @@ class CompletionMetricsComputer {
     if (declarationsTracker == null) {
       // available suggestions == false
       suggestions = await DartCompletionManager(
-              dartdocDirectiveInfo: DartdocDirectiveInfo(), listener: listener)
-          .computeSuggestions(request);
+        dartdocDirectiveInfo: DartdocDirectiveInfo(),
+        listener: listener,
+      ).computeSuggestions(
+        request,
+        enableUriContributor: true,
+      );
     } else {
       // available suggestions == true
       var includedElementKinds = <protocol.ElementKind>{};
@@ -637,13 +641,15 @@ class CompletionMetricsComputer {
           <protocol.IncludedSuggestionRelevanceTag>[];
       var includedSuggestionSetList = <protocol.IncludedSuggestionSet>[];
       suggestions = await DartCompletionManager(
-              dartdocDirectiveInfo: DartdocDirectiveInfo(),
-              includedElementKinds: includedElementKinds,
-              includedElementNames: includedElementNames,
-              includedSuggestionRelevanceTags:
-                  includedSuggestionRelevanceTagList,
-              listener: listener)
-          .computeSuggestions(request);
+        dartdocDirectiveInfo: DartdocDirectiveInfo(),
+        includedElementKinds: includedElementKinds,
+        includedElementNames: includedElementNames,
+        includedSuggestionRelevanceTags: includedSuggestionRelevanceTagList,
+        listener: listener,
+      ).computeSuggestions(
+        request,
+        enableUriContributor: true,
+      );
 
       computeIncludedSetList(declarationsTracker, request.result,
           includedSuggestionSetList, includedElementNames);

@@ -1350,7 +1350,7 @@ class NamespaceLayout : public ObjectLayout {
   VISIT_FROM(ObjectPtr, library_);
   LibraryPtr library_;       // library with name dictionary.
   ArrayPtr show_names_;      // list of names that are exported.
-  ArrayPtr hide_names_;      // blacklist of names that are not exported.
+  ArrayPtr hide_names_;      // list of names that are hidden.
   FieldPtr metadata_field_;  // remembers the token pos of metadata if any,
                              // and the metadata values if computed.
   VISIT_TO(ObjectPtr, metadata_field_);

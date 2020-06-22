@@ -351,8 +351,6 @@ abstract class CommonElements {
 
   ClassEntity get constSetLiteralClass;
 
-  ClassEntity get typeVariableClass;
-
   ClassEntity get jsInvocationMirrorClass;
 
   ClassEntity get requiredSentinelClass;
@@ -380,8 +378,6 @@ abstract class CommonElements {
 
   /// The class for native annotations defined in dart:_js_helper.
   ClassEntity get nativeAnnotationClass;
-
-  ConstructorEntity get typeVariableConstructor;
 
   FunctionEntity get assertTest;
 
@@ -442,14 +438,6 @@ abstract class CommonElements {
 
   FunctionEntity get traceFromException;
 
-  FunctionEntity get setRuntimeTypeInfo;
-
-  FunctionEntity get getRuntimeTypeInfo;
-
-  FunctionEntity get computeSignature;
-
-  FunctionEntity get getRuntimeTypeArguments;
-
   FunctionEntity get checkDeferredIsLoaded;
 
   FunctionEntity get throwNoSuchMethod;
@@ -472,9 +460,9 @@ abstract class CommonElements {
 
   FunctionEntity getInstantiateFunction(int typeArgumentCount);
 
-  FunctionEntity get instantiatedGenericFunctionType;
-
   // From dart:_rti
+
+  FunctionEntity get setRuntimeTypeInfo;
 
   FunctionEntity get findType;
   FunctionEntity get instanceType;
@@ -1575,11 +1563,6 @@ class CommonElementsImpl
   ClassEntity get constSetLiteralClass =>
       _constSetLiteralClass ??= unmodifiableSetClass;
 
-  ClassEntity _typeVariableClass;
-  @override
-  ClassEntity get typeVariableClass =>
-      _typeVariableClass ??= _findHelperClass('TypeVariable');
-
   ClassEntity _pragmaClass;
   @override
   ClassEntity get pragmaClass =>
@@ -1648,11 +1631,6 @@ class CommonElementsImpl
   @override
   ClassEntity get nativeAnnotationClass =>
       _nativeAnnotationClass ??= _findHelperClass('Native');
-
-  ConstructorEntity _typeVariableConstructor;
-  @override
-  ConstructorEntity get typeVariableConstructor => _typeVariableConstructor ??=
-      _env.lookupConstructor(typeVariableClass, '');
 
   FunctionEntity _assertTest;
   @override
@@ -1796,22 +1774,6 @@ class CommonElementsImpl
       _findHelperFunction('getTraceFromException');
 
   @override
-  FunctionEntity get setRuntimeTypeInfo =>
-      _findHelperFunction('setRuntimeTypeInfo');
-
-  @override
-  FunctionEntity get getRuntimeTypeInfo =>
-      _findHelperFunction('getRuntimeTypeInfo');
-
-  @override
-  FunctionEntity get computeSignature =>
-      _findHelperFunction('computeSignature');
-
-  @override
-  FunctionEntity get getRuntimeTypeArguments =>
-      _findHelperFunction('getRuntimeTypeArguments');
-
-  @override
   FunctionEntity get checkDeferredIsLoaded =>
       _findHelperFunction('checkDeferredIsLoaded');
 
@@ -1878,10 +1840,6 @@ class CommonElementsImpl
   }
 
   @override
-  FunctionEntity get instantiatedGenericFunctionType =>
-      _findHelperFunction('instantiatedGenericFunctionType');
-
-  @override
   bool isInstantiationClass(ClassEntity cls) {
     return cls.library == _jsHelperLibrary &&
         cls.name != 'Instantiation' &&
@@ -1894,6 +1852,11 @@ class CommonElementsImpl
 
   FunctionEntity _findRtiFunction(String name) =>
       _findLibraryMember(rtiLibrary, name);
+
+  FunctionEntity _setRuntimeTypeInfo;
+  @override
+  FunctionEntity get setRuntimeTypeInfo =>
+      _setRuntimeTypeInfo ??= _findRtiFunction('setRuntimeTypeInfo');
 
   FunctionEntity _findType;
   @override

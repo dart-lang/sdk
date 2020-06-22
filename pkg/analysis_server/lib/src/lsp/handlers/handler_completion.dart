@@ -208,15 +208,17 @@ class CompletionHandler
     }
 
     try {
-      CompletionContributor contributor = DartCompletionManager(
+      var contributor = DartCompletionManager(
         dartdocDirectiveInfo: directiveInfo,
         includedElementKinds: includedElementKinds,
         includedElementNames: includedElementNames,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
       );
 
-      final serverSuggestions =
-          await contributor.computeSuggestions(completionRequest);
+      final serverSuggestions = await contributor.computeSuggestions(
+        completionRequest,
+        enableUriContributor: true,
+      );
 
       if (token.isCancellationRequested) {
         return cancelled();

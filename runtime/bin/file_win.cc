@@ -302,22 +302,35 @@ File* File::Open(Namespace* namespc, const char* path, FileOpenMode mode) {
   return file;
 }
 
-File* File::OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode) {
+Utils::CStringUniquePtr File::UriToPath(const char* uri) {
   UriDecoder uri_decoder(uri);
-  if (uri_decoder.decoded() == NULL) {
+  if (uri_decoder.decoded() == nullptr) {
     SetLastError(ERROR_INVALID_NAME);
-    return NULL;
+    return Utils::CreateCStringUniquePtr(nullptr);
   }
 
   Utf8ToWideScope uri_w(uri_decoder.decoded());
   if (!UrlIsFileUrlW(uri_w.wide())) {
-    return FileOpenW(uri_w.wide(), mode);
+    return Utils::CreateCStringUniquePtr(strdup(uri_decoder.decoded()));
   }
   wchar_t filename_w[MAX_PATH];
   DWORD filename_len = MAX_PATH;
-  HRESULT result = PathCreateFromUrlW(uri_w.wide(),
-      filename_w, &filename_len, /* dwFlags= */ NULL);
-  return (result == S_OK) ? FileOpenW(filename_w, mode) : NULL;
+  HRESULT result = PathCreateFromUrlW(uri_w.wide(), filename_w, &filename_len,
+                                      /* dwFlags= */ 0);
+  if (result != S_OK) {
+    return Utils::CreateCStringUniquePtr(nullptr);
+  }
+
+  WideToUtf8Scope utf8_path(filename_w);
+  return utf8_path.release();
+}
+
+File* File::OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode) {
+  auto path = UriToPath(uri);
+  if (path == nullptr) {
+    return nullptr;
+  }
+  return Open(namespc, path.get(), mode);
 }
 
 File* File::OpenStdio(int fd) {

@@ -185,36 +185,6 @@ void main(){
 ''');
   }
 
-  test_constConstructorWithFieldInitializedByNonConst() async {
-    await assertErrorsInCode(r'''
-class A {
-  final int i = f();
-  const A();
-}
-int f() {
-  return 3;
-}
-''', [
-      error(
-          CompileTimeErrorCode
-              .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
-          33,
-          10),
-    ]);
-  }
-
-  test_constConstructorWithFieldInitializedByNonConst_static() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  static final int i = f();
-  const A();
-}
-int f() {
-  return 3;
-}
-''');
-  }
-
   test_constConstructorWithNonConstSuper_explicit() async {
     await assertErrorsInCode(r'''
 class A {

@@ -1861,9 +1861,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           '(${expression.toSource()}) offset=${expression.offset}');
     }
     var origin = _makeEdgeOrigin(sourceType, expression);
+    var hard = _postDominatedLocals.isReferenceInScope(expression) ||
+        expression.unParenthesized is AsExpression;
     var edge = _graph.makeNonNullable(sourceType.node, origin,
-        hard: _postDominatedLocals.isReferenceInScope(expression),
-        guards: _guards);
+        hard: hard, guards: _guards);
     if (origin is ExpressionChecksOrigin) {
       origin.checks.edges[FixReasonTarget.root] = edge;
     }
@@ -2643,7 +2644,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       if (name != null) {
         parameterType = calleeType.namedParameters[name];
         if (parameterType == null) {
-          // TODO(#42327)
+          // TODO(paulberry)
           _unimplemented(expression, 'Missing type for named parameter');
         }
         suppliedNamedParameters.add(name);

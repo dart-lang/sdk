@@ -23,6 +23,14 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
   NodeId computeDefaultNodeId(AstNode node) =>
       NodeId(_nodeOffset(node), IdKind.node);
 
+  T computeElementValue(Id id, Element element) => null;
+
+  void computeForClass(Declaration node, Id id) {
+    if (id == null) return;
+    T value = computeNodeValue(id, node);
+    registerValue(uri, node.offset, id, value, node);
+  }
+
   void computeForCollectionElement(CollectionElement node, NodeId id) {
     if (id == null) return;
     T value = computeNodeValue(id, node);
@@ -33,12 +41,6 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
     if (id == null) return;
     T value = computeElementValue(id, library);
     registerValue(uri, 0, id, value, library);
-  }
-
-  void computeForClass(Declaration node, Id id) {
-    if (id == null) return;
-    T value = computeNodeValue(id, node);
-    registerValue(uri, node.offset, id, value, node);
   }
 
   void computeForMember(Declaration node, Id id) {
@@ -58,7 +60,10 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
   /// If `null` is returned, [node] has no associated data.
   T computeNodeValue(Id id, AstNode node);
 
-  T computeElementValue(Id id, Element element) => null;
+  Id createClassId(Declaration node) {
+    var element = node.declaredElement;
+    return ClassId(element.name);
+  }
 
   Id createLibraryId(LibraryElement node) {
     Uri uri = node.source.uri;
@@ -67,11 +72,6 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
       uri = Uri(scheme: uri.scheme, path: uri.path.substring(3));
     }
     return LibraryId(uri);
-  }
-
-  Id createClassId(Declaration node) {
-    var element = node.declaredElement;
-    return ClassId(element.name);
   }
 
   Id createMemberId(Declaration node) {
@@ -110,13 +110,6 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
   }
 
   @override
-  visitCompilationUnit(CompilationUnit node) {
-    var library = node.declaredElement.library;
-    computeForLibrary(library, createLibraryId(library));
-    return super.visitCompilationUnit(node);
-  }
-
-  @override
   visitClassDeclaration(ClassDeclaration node) {
     computeForClass(node, createClassId(node));
     return super.visitClassDeclaration(node);
@@ -126,6 +119,13 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
   visitCollectionElement(CollectionElement node) {
     computeForCollectionElement(node, computeDefaultNodeId(node));
     super.visitCollectionElement(node);
+  }
+
+  @override
+  visitCompilationUnit(CompilationUnit node) {
+    var library = node.declaredElement.library;
+    computeForLibrary(library, createLibraryId(library));
+    return super.visitCompilationUnit(node);
   }
 
   @override

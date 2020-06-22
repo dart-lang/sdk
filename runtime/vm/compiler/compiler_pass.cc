@@ -237,6 +237,13 @@ void CompilerPass::RunInliningPipeline(PipelineMode mode,
   // Run constant propagation to make sure we specialize for
   // (optional) constant arguments passed into the inlined method.
   INVOKE_PASS(ConstantPropagation);
+  // Constant propagation removes unreachable basic blocks and
+  // may open more opportunities for call specialization.
+  // Call specialization during inlining may cause more call
+  // sites to be discovered and more functions inlined.
+  if (mode == kAOT) {
+    INVOKE_PASS(ApplyClassIds);
+  }
   // Optimize (a << b) & c patterns, merge instructions. Must occur
   // before 'SelectRepresentations' which inserts conversion nodes.
   INVOKE_PASS(TryOptimizePatterns);

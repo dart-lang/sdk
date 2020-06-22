@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart' show MessageCode;
-import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/parser/forwarding_listener.dart';
+import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:test/test.dart';
 
@@ -181,15 +181,15 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginExtensionDeclarationPrelude(Token extensionKeyword) {
-    super.beginExtensionDeclarationPrelude(extensionKeyword);
-    begin('ExtensionDeclarationPrelude');
-  }
-
-  @override
   void beginExtensionDeclaration(Token extensionKeyword, Token name) {
     super.beginExtensionDeclaration(extensionKeyword, name);
     begin('ExtensionDeclaration');
+  }
+
+  @override
+  void beginExtensionDeclarationPrelude(Token extensionKeyword) {
+    super.beginExtensionDeclarationPrelude(extensionKeyword);
+    begin('ExtensionDeclarationPrelude');
   }
 
   @override

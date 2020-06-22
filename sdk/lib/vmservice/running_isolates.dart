@@ -162,7 +162,7 @@ class _Evaluator {
         if (jsonMap.containsKey('error')) {
           throw jsonMap['error'];
         }
-        return jsonMap['result']['result']['kernelBytes'];
+        return jsonMap['result']['kernelBytes'];
       });
     } else {
       // fallback to compile using kernel service

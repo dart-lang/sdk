@@ -521,8 +521,8 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   volatile bool use_far_branches = false;
 
   // In the JIT case we allow speculative inlining and have no need for a
-  // blacklist, since we don't restart optimization.
-  SpeculativeInliningPolicy speculative_policy(/* enable_blacklist= */ false);
+  // suppression, since we don't restart optimization.
+  SpeculativeInliningPolicy speculative_policy(/*enable_suppression=*/false);
 
   Code* volatile result = &Code::ZoneHandle(zone);
   while (!done) {

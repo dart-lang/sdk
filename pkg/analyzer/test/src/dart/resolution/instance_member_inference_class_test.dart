@@ -925,6 +925,122 @@ class InstanceMemberInferenceClassWithNullSafetyTest
   @override
   bool get typeToStringWithNullability => true;
 
+  test_field_multiple_gettersSetters_final_nonNullify() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.7
+abstract class A {
+  int get foo;
+}
+abstract class B {
+  set foo(num _);
+}
+''');
+
+    await resolveTestCode('''
+import 'a.dart';
+
+class X implements A, B {
+  final foo;
+}
+''');
+    var foo = findElement.field('foo', of: 'X');
+    _assertFieldType(foo, 'int');
+  }
+
+  test_field_multiple_gettersSetters_notFinal_nonNullify() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.7
+abstract class A {
+  int get foo;
+}
+abstract class B {
+  set foo(int _);
+}
+''');
+
+    await resolveTestCode('''
+import 'a.dart';
+
+class X implements A, B {
+  var foo;
+}
+''');
+    var foo = findElement.field('foo', of: 'X');
+    _assertFieldType(foo, 'int');
+  }
+
+  test_field_single_getter_nonNullify() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.7
+abstract class A {
+  int get foo;
+}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+
+abstract class B implements A {
+  var foo;
+}
+''');
+    var foo = findElement.field('foo', of: 'B');
+    _assertFieldType(foo, 'int');
+  }
+
+  test_field_single_setter_nonNullify() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.7
+abstract class A {
+  set foo(int _);
+}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+
+abstract class B implements A {
+  var foo;
+}
+''');
+    var foo = findElement.field('foo', of: 'B');
+    _assertFieldType(foo, 'int');
+  }
+
+  test_getter_single_getter_nonNullify() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.7
+abstract class A {
+  int get foo;
+}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+
+abstract class B implements A {
+  get foo;
+}
+''');
+    var foo = findElement.getter('foo', of: 'B');
+    _assertGetterType(foo, 'int');
+  }
+
+  test_getter_single_setter_nonNullify() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.7
+abstract class A {
+  set foo(int _);
+}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+
+abstract class B implements A {
+  get foo;
+}
+''');
+    var foo = findElement.getter('foo', of: 'B');
+    _assertGetterType(foo, 'int');
+  }
+
   test_method_parameter_required_multiple_different_merge() async {
     await resolveTestCode('''
 class A {
@@ -943,6 +1059,24 @@ class C implements A, B {
     assertType(p.type, 'Object?');
   }
 
+  test_method_parameter_required_single_nonNullify() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.7
+class A {
+  void foo(int p) {}
+}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+
+class B implements A {
+  void foo(p) {}
+}
+''');
+    var p = findElement.method('foo', of: 'B').parameters[0];
+    assertType(p.type, 'int');
+  }
+
   test_method_return_multiple_different_merge() async {
     await resolveTestCode('''
 class A {
@@ -959,5 +1093,59 @@ class C implements A, B {
 ''');
     var foo = findElement.method('foo', of: 'C');
     assertType(foo.returnType, 'Object?');
+  }
+
+  test_method_return_nonNullify() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.7
+abstract class A {
+  int foo();
+}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+
+abstract class B implements A {
+  foo();
+}
+''');
+    var foo = findElement.method('foo', of: 'B');
+    assertType(foo.returnType, 'int');
+  }
+
+  test_setter_single_getter_nonNullify() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.7
+abstract class A {
+  int get foo;
+}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+
+abstract class B implements A {
+  set foo(_);
+}
+''');
+    var foo = findElement.setter('foo', of: 'B');
+    _assertSetterType(foo, 'int');
+  }
+
+  test_setter_single_setter_nonNullify() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.7
+abstract class A {
+  set foo(int _);
+}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+
+abstract class B implements A {
+  set foo(_);
+}
+''');
+    var foo = findElement.setter('foo', of: 'B');
+    _assertSetterType(foo, 'int');
   }
 }

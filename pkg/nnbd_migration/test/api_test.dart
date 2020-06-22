@@ -356,6 +356,29 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_call_already_migrated_extension() async {
+    var content = '''
+import 'already_migrated.dart';
+void f() {
+  <int>[].g();
+}
+''';
+    var alreadyMigrated = '''
+extension Ext<T> on List<T> {
+  g() {}
+}
+''';
+    var expected = '''
+import 'already_migrated.dart';
+void f() {
+  <int>[].g();
+}
+''';
+    await _checkSingleFileChanges(content, expected, migratedInput: {
+      '/home/test/lib/already_migrated.dart': alreadyMigrated
+    });
+  }
+
   Future<void> test_call_generic_function_returns_generic_class() async {
     var content = '''
 class B<E> implements List<E/*?*/> {
@@ -1427,6 +1450,16 @@ int f(int i) {
 }
 ''';
     await _checkSingleFileChanges(content, expected, removeViaComments: true);
+  }
+
+  Future<void> test_do_not_add_question_to_null_type() async {
+    var content = '''
+Null f() => null;
+''';
+    var expected = '''
+Null f() => null;
+''';
+    await _checkSingleFileChanges(content, expected);
   }
 
   Future<void> test_do_not_propagate_non_null_intent_into_callback() async {
@@ -3527,7 +3560,6 @@ void main() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/41397')
   Future<void> test_issue_41397() async {
     var content = '''
 void repro(){
@@ -4122,8 +4154,6 @@ int f() =>
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/42327')
-  // When fixing this issue, probably convert this to an edge builder test.
   Future<void> test_migratedMethod_namedParameter() async {
     var content = '''
 void f(Iterable<int> a) {

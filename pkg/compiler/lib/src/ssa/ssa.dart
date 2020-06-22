@@ -68,8 +68,8 @@ class SsaFunctionCompiler implements FunctionCompiler {
     JClosedWorld closedWorld = _globalInferenceResults.closedWorld;
     CodegenRegistry registry =
         new CodegenRegistry(closedWorld.elementEnvironment, member);
-    ModularNamer namer = new ModularNamerImpl(registry,
-        closedWorld.commonElements, _codegen.rtiTags, _codegen.fixedNames);
+    ModularNamer namer = new ModularNamerImpl(
+        registry, closedWorld.commonElements, _codegen.fixedNames);
     ModularEmitter emitter = new ModularEmitterImpl(namer, registry, _options);
     if (member.isConstructor &&
         member.enclosingClass == closedWorld.commonElements.jsNullClass) {

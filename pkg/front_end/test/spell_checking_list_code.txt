@@ -178,6 +178,7 @@ class6a
 class6b
 clazz
 cli
+clock
 cls
 cn
 cnt
@@ -963,6 +964,7 @@ size
 sizes
 sj
 sk
+sky
 slash
 slb
 slots
@@ -1191,6 +1193,7 @@ variant
 variants
 vary
 vb
+vector
 vegorov
 versa
 vice

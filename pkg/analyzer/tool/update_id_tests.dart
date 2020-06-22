@@ -4,6 +4,10 @@
 
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart' as id;
 
+main() async {
+  await id.updateAllTests(idTests);
+}
+
 const List<String> idTests = <String>[
   'pkg/analyzer/test/id_tests/assigned_variables_test.dart',
   'pkg/analyzer/test/id_tests/constant_test.dart',
@@ -14,7 +18,3 @@ const List<String> idTests = <String>[
   'pkg/analyzer/test/id_tests/reachability_test.dart',
   'pkg/analyzer/test/id_tests/type_promotion_test.dart',
 ];
-
-main() async {
-  await id.updateAllTests(idTests);
-}

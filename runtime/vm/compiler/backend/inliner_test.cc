@@ -194,4 +194,65 @@ ISOLATE_UNIT_TEST_CASE(Inliner_TypedData_Regress7551) {
   RELEASE_ASSERT(unbox_instr->is_truncating());
 }
 
+#if defined(DART_PRECOMPILER)
+
+// Verifies that all calls are inlined in List.generate call
+// with a simple closure.
+ISOLATE_UNIT_TEST_CASE(Inliner_List_generate) {
+  const char* kScript = R"(
+    foo(n) => List<int>.generate(n, (int x) => x, growable: false);
+    main() {
+      foo(100);
+    }
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& function = Function::Handle(GetFunction(root_library, "foo"));
+
+  TestPipeline pipeline(function, CompilerPass::kAOT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  ILMatcher cursor(flow_graph, entry);
+
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMoveGlob,
+      kMatchAndMoveCreateArray,
+      kMoveParallelMoves,
+      kMatchAndMoveUnboxInt64,
+      kMatchAndMoveUnboxedConstant,
+      kMatchAndMoveUnboxedConstant,
+      kMoveParallelMoves,
+      kMatchAndMoveGoto,
+
+      // Loop header
+      kMatchAndMoveJoinEntry,
+      kMatchAndMoveCheckStackOverflow,
+      kMatchAndMoveBranchTrue,
+
+      // Loop body
+      kMatchAndMoveTargetEntry,
+      kMatchAndMoveBoxInt64,
+      kMatchAndMoveBoxInt64,
+      kMoveParallelMoves,
+      kMatchAndMoveStoreIndexed,
+      kMoveParallelMoves,
+      kMatchAndMoveBinaryInt64Op,
+      kMoveParallelMoves,
+      kMatchAndMoveGoto,
+
+      // Loop header once again
+      kMatchAndMoveJoinEntry,
+      kMatchAndMoveCheckStackOverflow,
+      kMatchAndMoveBranchFalse,
+
+      // After loop
+      kMatchAndMoveTargetEntry,
+      kMoveParallelMoves,
+      kMatchReturn,
+  }));
+}
+
+#endif  // defined(DART_PRECOMPILER)
+
 }  // namespace dart

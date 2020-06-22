@@ -246,12 +246,6 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
       'throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {}',
   'throwRuntimeError': 'throwRuntimeError(message) {}',
   'throwUnsupportedError': 'throwUnsupportedError(message) {}',
-  'TypeVariable': '''class TypeVariable {
-    final Type owner;
-    final String name;
-    final int bound;
-    const TypeVariable(this.owner, this.name, this.bound);
-  }''',
   'unwrapException': 'unwrapException(e) {}',
   'voidTypeCheck': 'voidTypeCheck(value) {}',
   'wrapException': 'wrapException(x) { return x; }',

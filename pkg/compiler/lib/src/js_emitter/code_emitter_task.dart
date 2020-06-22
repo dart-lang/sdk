@@ -92,7 +92,6 @@ class CodeEmitterTask extends CompilerTask {
           _compiler.dumpInfoTask,
           namer,
           closedWorld,
-          codegen.rtiEncoder,
           codegen.rtiRecipeEncoder,
           _nativeEmitter,
           _backendStrategy.sourceInformationStrategy,
@@ -119,7 +118,7 @@ class CodeEmitterTask extends CompilerTask {
       measureSubtask('finalize rti', () {
         _finalizeRti(codegenInputs, codegenWorld);
       });
-      ProgramBuilder programBuilder = new ProgramBuilder(
+      ProgramBuilder programBuilder = ProgramBuilder(
           _compiler.options,
           _compiler.reporter,
           closedWorld.elementEnvironment,
@@ -132,7 +131,6 @@ class CodeEmitterTask extends CompilerTask {
           closedWorld.rtiNeed,
           closedWorld.interceptorData,
           typeTestRegistry.rtiChecks,
-          codegenInputs.rtiEncoder,
           codegenInputs.rtiRecipeEncoder,
           codegenWorld.oneShotInterceptorData,
           _backendStrategy.customElementsCodegenAnalysis,

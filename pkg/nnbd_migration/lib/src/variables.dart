@@ -389,6 +389,9 @@ class Variables {
     } else if (element is VariableElement) {
       decoratedType = _alreadyMigratedCodeDecorator.decorate(
           element.preMigrationType, element, target);
+    } else if (element is ExtensionElement) {
+      decoratedType = _alreadyMigratedCodeDecorator.decorate(
+          element.preMigrationExtendedType, element, target);
     } else {
       // TODO(paulberry)
       throw UnimplementedError('Decorating ${element.runtimeType}');
@@ -510,6 +513,18 @@ extension on VariableElement {
     try {
       ElementTypeProvider.current = const ElementTypeProvider();
       return type;
+    } finally {
+      ElementTypeProvider.current = previousElementTypeProvider;
+    }
+  }
+}
+
+extension on ExtensionElement {
+  DartType get preMigrationExtendedType {
+    var previousElementTypeProvider = ElementTypeProvider.current;
+    try {
+      ElementTypeProvider.current = const ElementTypeProvider();
+      return extendedType;
     } finally {
       ElementTypeProvider.current = previousElementTypeProvider;
     }

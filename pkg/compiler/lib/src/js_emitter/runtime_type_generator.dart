@@ -10,10 +10,8 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-import '../js_backend/js_interop_analysis.dart' as jsInteropAnalysis;
 import '../js_backend/namer.dart' show Namer;
-import '../js_backend/runtime_types.dart'
-    show RuntimeTypesChecks, RuntimeTypesEncoder;
+import '../js_backend/runtime_types.dart' show RuntimeTypesChecks;
 import '../js_backend/runtime_types_codegen.dart'
     show ClassChecks, ClassFunctionType, TypeCheck;
 import '../js_emitter/sorter.dart';
@@ -85,16 +83,14 @@ class TypeTestProperties {
 }
 
 class RuntimeTypeGenerator {
-  final CommonElements _commonElements;
   final OutputUnitData _outputUnitData;
   final CodeEmitterTask emitterTask;
   final Namer _namer;
   final RuntimeTypesChecks _rtiChecks;
-  final RuntimeTypesEncoder _rtiEncoder;
   final _TypeContainedInOutputUnitVisitor _outputUnitVisitor;
 
-  RuntimeTypeGenerator(this._commonElements, this._outputUnitData,
-      this.emitterTask, this._namer, this._rtiChecks, this._rtiEncoder)
+  RuntimeTypeGenerator(CommonElements _commonElements, this._outputUnitData,
+      this.emitterTask, this._namer, this._rtiChecks)
       : _outputUnitVisitor = new _TypeContainedInOutputUnitVisitor(
             _commonElements, _outputUnitData);
 
@@ -185,18 +181,6 @@ class RuntimeTypeGenerator {
     _generateIsTestsOn(
         classElement, generateFunctionTypeSignature, generateTypeCheck);
 
-    if (classElement == _commonElements.jsJavaScriptFunctionClass) {
-      var type =
-          jsInteropAnalysis.buildJsFunctionType(_commonElements.dartTypes);
-      if (type != null) {
-        jsAst.Expression thisAccess = new jsAst.This();
-        jsAst.Expression encoding = _rtiEncoder.getSignatureEncoding(
-            _namer, emitterTask.emitter, type, thisAccess);
-        jsAst.Name operatorSignature =
-            _namer.asName(_namer.fixedNames.operatorSignature);
-        result.addSignature(classElement, operatorSignature, encoding);
-      }
-    }
     return result;
   }
 

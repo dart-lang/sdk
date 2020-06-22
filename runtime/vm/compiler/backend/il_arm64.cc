@@ -2989,14 +2989,19 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   // then use null as the type arguments.
   compiler::Label type_arguments_instantiated;
   const intptr_t len = type_arguments().Length();
-  if (type_arguments().IsRawWhenInstantiatedFromRaw(len)) {
+  const bool can_function_type_args_be_null =
+      function_type_arguments()->CanBe(Object::null_object());
+  if (type_arguments().IsRawWhenInstantiatedFromRaw(len) &&
+      can_function_type_args_be_null) {
     compiler::Label non_null_type_args;
     ASSERT(result_reg != instantiator_type_args_reg &&
            result_reg != function_type_args_reg);
     __ LoadObject(result_reg, Object::null_object());
     __ CompareRegisters(instantiator_type_args_reg, result_reg);
-    __ b(&non_null_type_args, NE);
-    __ CompareRegisters(function_type_args_reg, result_reg);
+    if (!function_type_arguments()->BindsToConstant()) {
+      __ b(&non_null_type_args, NE);
+      __ CompareRegisters(function_type_args_reg, result_reg);
+    }
     __ b(&type_arguments_instantiated, EQ);
     __ Bind(&non_null_type_args);
   }

@@ -15,7 +15,6 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
@@ -25,6 +24,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show
         AnalysisErrorInfo,
@@ -464,7 +464,7 @@ class LinterContextImpl implements LinterContext {
       (analysisOptions as AnalysisOptionsImpl).experimentStatus,
     );
 
-    var listener = ConstantAnalysisErrorListener();
+    var listener = _ConstantAnalysisErrorListener();
     var errorReporter = ErrorReporter(
       listener,
       unitElement.source,
@@ -802,6 +802,47 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
   Iterable<AnalysisErrorInfo> _lintPubspecFile(File sourceFile) =>
       lintPubspecSource(
           contents: sourceFile.readAsStringSync(), sourcePath: sourceFile.path);
+}
+
+/// An error listener that only records whether any constant related errors have
+/// been reported.
+class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
+  /// A flag indicating whether any constant related errors have been reported
+  /// to this listener.
+  bool hasConstError = false;
+
+  @override
+  void onError(AnalysisError error) {
+    ErrorCode errorCode = error.errorCode;
+    if (errorCode is CompileTimeErrorCode) {
+      switch (errorCode) {
+        case CompileTimeErrorCode
+            .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
+        case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL:
+        case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT:
+        case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING:
+        case CompileTimeErrorCode.CONST_EVAL_TYPE_INT:
+        case CompileTimeErrorCode.CONST_EVAL_TYPE_NUM:
+        case CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION:
+        case CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE:
+        case CompileTimeErrorCode
+            .CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS:
+        case CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS:
+        case CompileTimeErrorCode.CONST_WITH_NON_CONST:
+        case CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT:
+        case CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS:
+        case CompileTimeErrorCode.INVALID_CONSTANT:
+        case CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL:
+        case CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL:
+        case CompileTimeErrorCode.MISSING_CONST_IN_SET_LITERAL:
+        case CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT:
+        case CompileTimeErrorCode.NON_CONSTANT_MAP_KEY:
+        case CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE:
+        case CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT:
+          hasConstError = true;
+      }
+    }
+  }
 }
 
 class _LintCode extends LintCode {

@@ -27,6 +27,7 @@
 #include "vm/symbols.h"
 #include "vm/timeline.h"
 #include "vm/version.h"
+#include "vm/zone_text_buffer.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/compiler/backend/code_statistics.h"
@@ -602,7 +603,7 @@ class FunctionSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       FunctionPtr func = objects_[i];
-      AutoTraceObjectName(func, func->ptr()->name_);
+      AutoTraceObjectName(func, MakeDisambiguatedFunctionName(s, func));
       WriteFromTo(func);
       if (kind == Snapshot::kFull) {
         NOT_IN_PRECOMPILED(WriteField(func, bytecode_));
@@ -624,6 +625,22 @@ class FunctionSerializationCluster : public SerializationCluster {
       s->Write<uint32_t>(func->ptr()->packed_fields_);
       s->Write<uint32_t>(func->ptr()->kind_tag_);
     }
+  }
+
+  static const char* MakeDisambiguatedFunctionName(Serializer* s,
+                                                   FunctionPtr f) {
+    if (s->profile_writer() == nullptr) {
+      return nullptr;
+    }
+
+    REUSABLE_FUNCTION_HANDLESCOPE(s->thread());
+    Function& fun = reused_function_handle.Handle();
+    fun = f;
+    ZoneTextBuffer printer(s->thread()->zone());
+    fun.PrintName(NameFormattingParams::DisambiguatedUnqualified(
+                      Object::NameVisibility::kInternalName),
+                  &printer);
+    return printer.buffer();
   }
 
  private:
@@ -1561,7 +1578,7 @@ class CodeSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       CodePtr code = objects_[i];
-      AutoTraceObject(code);
+      AutoTraceObjectName(code, MakeDisambiguatedCodeName(s, code));
 
       intptr_t pointer_offsets_length =
           Code::PtrOffBits::decode(code->ptr()->state_bits_);
@@ -1652,6 +1669,19 @@ class CodeSerializationCluster : public SerializationCluster {
   }
 
  private:
+  static const char* MakeDisambiguatedCodeName(Serializer* s, CodePtr c) {
+    if (s->profile_writer() == nullptr) {
+      return nullptr;
+    }
+
+    REUSABLE_CODE_HANDLESCOPE(s->thread());
+    Code& code = reused_code_handle.Handle();
+    code = c;
+    return code.QualifiedName(
+        NameFormattingParams::DisambiguatedWithoutClassName(
+            Object::NameVisibility::kInternalName));
+  }
+
   GrowableArray<CodePtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
@@ -4812,6 +4842,22 @@ void Serializer::TraceStartWritingObject(const char* type,
                                          StringPtr name) {
   if (profile_writer_ == nullptr) return;
 
+  const char* name_str = nullptr;
+  if (name != nullptr) {
+    REUSABLE_STRING_HANDLESCOPE(thread());
+    String& str = reused_string_handle.Handle();
+    str = name;
+    name_str = str.ToCString();
+  }
+
+  TraceStartWritingObject(type, obj, name_str);
+}
+
+void Serializer::TraceStartWritingObject(const char* type,
+                                         ObjectPtr obj,
+                                         const char* name) {
+  if (profile_writer_ == nullptr) return;
+
   intptr_t cid = -1;
   intptr_t id = 0;
   if (obj->IsHeapObject()) {
@@ -4826,20 +4872,13 @@ void Serializer::TraceStartWritingObject(const char* type,
   }
   ASSERT(IsAllocatedReference(id));
 
-  const char* name_str = nullptr;
-  if (name != nullptr) {
-    String& str = thread()->StringHandle();
-    str = name;
-    name_str = str.ToCString();
-  }
-
   FlushBytesWrittenToRoot();
   object_currently_writing_.object_ = obj;
   object_currently_writing_.id_ = id;
   object_currently_writing_.stream_start_ = stream_.Position();
   object_currently_writing_.cid_ = cid;
   profile_writer_->SetObjectTypeAndName(
-      {V8SnapshotProfileWriter::kSnapshot, id}, type, name_str);
+      {V8SnapshotProfileWriter::kSnapshot, id}, type, name);
 }
 
 void Serializer::TraceEndWritingObject() {
@@ -4853,6 +4892,7 @@ void Serializer::TraceEndWritingObject() {
   }
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 bool Serializer::CreateArtificalNodeIfNeeded(ObjectPtr obj) {
   ASSERT(profile_writer() != nullptr);
 
@@ -4867,14 +4907,16 @@ bool Serializer::CreateArtificalNodeIfNeeded(ObjectPtr obj) {
   id = AssignArtificialRef(obj);
 
   const char* type = nullptr;
-  StringPtr name = nullptr;
+  StringPtr name_string = nullptr;
+  const char* name = nullptr;
   ObjectPtr owner = nullptr;
   const char* owner_ref_name = nullptr;
   switch (obj->GetClassId()) {
     case kFunctionCid: {
       FunctionPtr func = static_cast<FunctionPtr>(obj);
       type = "Function";
-      name = func->ptr()->name_;
+      name = FunctionSerializationCluster::MakeDisambiguatedFunctionName(this,
+                                                                         func);
       owner_ref_name = "owner_";
       owner = func->ptr()->owner_;
       break;
@@ -4882,7 +4924,7 @@ bool Serializer::CreateArtificalNodeIfNeeded(ObjectPtr obj) {
     case kClassCid: {
       ClassPtr cls = static_cast<ClassPtr>(obj);
       type = "Class";
-      name = cls->ptr()->name_;
+      name_string = cls->ptr()->name_;
       owner_ref_name = "library_";
       owner = cls->ptr()->library_;
       break;
@@ -4897,11 +4939,18 @@ bool Serializer::CreateArtificalNodeIfNeeded(ObjectPtr obj) {
     case kLibraryCid: {
       LibraryPtr lib = static_cast<LibraryPtr>(obj);
       type = "Library";
-      name = lib->ptr()->url_;
+      name_string = lib->ptr()->url_;
       break;
     }
     default:
       UNREACHABLE();
+  }
+
+  if (name_string != nullptr) {
+    REUSABLE_STRING_HANDLESCOPE(thread());
+    String& str = reused_string_handle.Handle();
+    str = name_string;
+    name = str.ToCString();
   }
 
   TraceStartWritingObject(type, obj, name);
@@ -4913,6 +4962,7 @@ bool Serializer::CreateArtificalNodeIfNeeded(ObjectPtr obj) {
   TraceEndWritingObject();
   return true;
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 const char* Serializer::ReadOnlyObjectType(intptr_t cid) {
   switch (cid) {

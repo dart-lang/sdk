@@ -17,7 +17,6 @@ import '../js_emitter/code_emitter_task.dart';
 import '../js_model/type_recipe.dart' show TypeExpressionRecipe;
 import '../options.dart';
 import 'field_analysis.dart' show JFieldAnalysis;
-import 'runtime_types.dart';
 import 'runtime_types_new.dart' show RecipeEncoder;
 import 'runtime_types_resolution.dart';
 
@@ -210,7 +209,6 @@ class ConstantEmitter extends ModularConstantEmitter {
   final JCommonElements _commonElements;
   final JElementEnvironment _elementEnvironment;
   final RuntimeTypesNeed _rtiNeed;
-  final RuntimeTypesEncoder _rtiEncoder;
   final RecipeEncoder _rtiRecipeEncoder;
   final JFieldAnalysis _fieldAnalysis;
   final Emitter _emitter;
@@ -225,7 +223,6 @@ class ConstantEmitter extends ModularConstantEmitter {
       this._commonElements,
       this._elementEnvironment,
       this._rtiNeed,
-      this._rtiEncoder,
       this._rtiRecipeEncoder,
       this._fieldAnalysis,
       this._emitter,
@@ -423,18 +420,6 @@ class ConstantEmitter extends ModularConstantEmitter {
     return rawJavaScript.replaceAll(COMMENT_RE, '');
   }
 
-  jsAst.Expression maybeAddTypeArguments(
-      ConstantValue constant, InterfaceType type, jsAst.Expression value) {
-    if (type is InterfaceType &&
-        !_commonElements.dartTypes.treatAsRawType(type) &&
-        _rtiNeed.classNeedsTypeArguments(type.element)) {
-      return new jsAst.Call(
-          getHelperProperty(_commonElements.setRuntimeTypeInfo),
-          [value, _reifiedTypeArguments(constant, type.typeArguments)]);
-    }
-    return value;
-  }
-
   jsAst.Expression maybeAddListTypeArgumentsNewRti(
       ConstantValue constant, InterfaceType type, jsAst.Expression value) {
     assert(type.element == _commonElements.jsArrayClass);
@@ -444,24 +429,6 @@ class ConstantEmitter extends ModularConstantEmitter {
           [value, _reifiedTypeNewRti(type)]);
     }
     return value;
-  }
-
-  jsAst.Expression _reifiedTypeArguments(
-      ConstantValue constant, List<DartType> typeArguments) {
-    jsAst.Expression unexpected(TypeVariableType _variable) {
-      TypeVariableType variable = _variable;
-      throw failedAt(
-          NO_LOCATION_SPANNABLE,
-          "Unexpected type variable '${variable}'"
-          " in constant '${constant.toDartText(_commonElements.dartTypes)}'");
-    }
-
-    List<jsAst.Expression> arguments = <jsAst.Expression>[];
-    for (DartType argument in typeArguments) {
-      arguments.add(
-          _rtiEncoder.getTypeRepresentation(_emitter, argument, unexpected));
-    }
-    return new jsAst.ArrayInitializer(arguments);
   }
 
   jsAst.Expression _reifiedTypeNewRti(DartType type) {

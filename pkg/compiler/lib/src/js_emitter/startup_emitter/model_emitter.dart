@@ -113,7 +113,6 @@ class ModelEmitter {
       this._emitter,
       this._nativeEmitter,
       this._sourceInformationStrategy,
-      RuntimeTypesEncoder rtiEncoder,
       RecipeEncoder rtiRecipeEncoder,
       this._shouldGenerateSourceMap)
       : _constantOrdering = new ConstantOrdering(_closedWorld.sorter) {
@@ -122,7 +121,6 @@ class ModelEmitter {
         _closedWorld.commonElements,
         _closedWorld.elementEnvironment,
         _closedWorld.rtiNeed,
-        rtiEncoder,
         rtiRecipeEncoder,
         _closedWorld.fieldAnalysis,
         _emitter,

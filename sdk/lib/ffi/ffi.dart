@@ -562,8 +562,19 @@ class Dart_CObject extends Struct {}
 
 typedef Dart_NativeMessageHandler = Void Function(Int64, Pointer<Dart_CObject>);
 
-/// Exposes function pointers to functions in `dart_native_api.h`.
+/// Utilities for accessing the Dart VM API from Dart code or
+/// from C code via `dart_api_dl.h`.
 abstract class NativeApi {
+  /// On breaking changes the major version is increased.
+  ///
+  /// The versioning covers the API surface in `dart_api_dl.h`.
+  external static int get majorVersion;
+
+  /// On backwards compatible changes the minor version is increased.
+  ///
+  /// The versioning covers the API surface in `dart_api_dl.h`.
+  external static int get minorVersion;
+
   /// A function pointer to
   /// `bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message)`
   /// in `dart_native_api.h`.
@@ -590,4 +601,8 @@ abstract class NativeApi {
   /// in `dart_native_api.h`.
   external static Pointer<NativeFunction<Int8 Function(Int64)>>
       get closeNativePort;
+
+  /// Pass this to `Dart_InitializeApiDL` in your native code to enable using the
+  /// symbols in `dart_api_dl.h`.
+  external static Pointer<Void> get initializeApiDLData;
 }

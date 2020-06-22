@@ -8853,19 +8853,19 @@ StringPtr Function::UserVisibleName() const {
 StringPtr Function::QualifiedScrubbedName() const {
   Thread* thread = Thread::Current();
   ZoneTextBuffer printer(thread->zone());
-  PrintQualifiedName(NameFormattingParams(kScrubbedName), &printer);
+  PrintName(NameFormattingParams(kScrubbedName), &printer);
   return Symbols::New(thread, printer.buffer());
 }
 
 StringPtr Function::QualifiedUserVisibleName() const {
   Thread* thread = Thread::Current();
   ZoneTextBuffer printer(thread->zone());
-  PrintQualifiedName(NameFormattingParams(kUserVisibleName), &printer);
+  PrintName(NameFormattingParams(kUserVisibleName), &printer);
   return Symbols::New(thread, printer.buffer());
 }
 
-void Function::PrintQualifiedName(const NameFormattingParams& params,
-                                  ZoneTextBuffer* printer) const {
+void Function::PrintName(const NameFormattingParams& params,
+                         ZoneTextBuffer* printer) const {
   // If |this| is the generated asynchronous body closure, use the
   // name of the parent function.
   Function& fun = Function::Handle(raw());
@@ -8902,9 +8902,11 @@ void Function::PrintQualifiedName(const NameFormattingParams& params,
         // the parent.
         parent = parent.parent_function();
       }
-      parent.PrintQualifiedName(params, printer);
-      // A function's scrubbed name and its user visible name are identical.
-      printer->AddString(".");
+      if (params.include_parent_name) {
+        parent.PrintName(params, printer);
+        // A function's scrubbed name and its user visible name are identical.
+        printer->AddString(".");
+      }
       if (params.disambiguate_names &&
           fun.name() == Symbols::AnonymousClosure().raw()) {
         printer->Printf("<anonymous closure @%" Pd ">", fun.token_pos().Pos());
@@ -16240,9 +16242,8 @@ const char* Code::Name() const {
       Object::Handle(zone, WeakSerializationReference::UnwrapIfTarget(owner()));
   if (obj.IsClass()) {
     // Allocation stub.
-    String& cls_name = String::Handle(zone, Class::Cast(obj).ScrubbedName());
-    ASSERT(!cls_name.IsNull());
-    return OS::SCreate(zone, "[Stub] Allocate %s", cls_name.ToCString());
+    return OS::SCreate(zone, "[Stub] Allocate %s",
+                       Class::Cast(obj).ScrubbedNameCString());
   } else if (obj.IsAbstractType()) {
     // Type test stub.
     return OS::SCreate(zone, "[Stub] Type Test %s",
@@ -16267,7 +16268,7 @@ const char* Code::QualifiedName(const NameFormattingParams& params) const {
   if (obj.IsFunction()) {
     ZoneTextBuffer printer(zone);
     printer.AddString(is_optimized() ? "[Optimized] " : "[Unoptimized] ");
-    Function::Cast(obj).PrintQualifiedName(params, &printer);
+    Function::Cast(obj).PrintName(params, &printer);
     return printer.buffer();
   }
   return Name();
@@ -18737,7 +18738,7 @@ void AbstractType::PrintName(
       } else if (param.parameterized_function() != Function::null()) {
         const Function& func =
             Function::Handle(zone, param.parameterized_function());
-        func.PrintQualifiedName(
+        func.PrintName(
             NameFormattingParams(name_visibility, name_disambiguation),
             printer);
         printer->AddString("::");

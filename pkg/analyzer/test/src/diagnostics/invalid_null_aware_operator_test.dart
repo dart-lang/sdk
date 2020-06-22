@@ -97,6 +97,24 @@ f(int? x) {
 ''');
   }
 
+  /// Here we test that analysis does not crash while checking whether to
+  /// report [StaticWarningCode.INVALID_NULL_AWARE_OPERATOR]. But we also
+  /// report another error.
+  test_getter_prefix() async {
+    newFile('/test/lib/a.dart', content: r'''
+int x = 0;
+''');
+    await assertErrorsInCode('''
+import 'a.dart' as p;
+
+f() {
+  p?.x;
+}
+''', [
+      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 31, 1),
+    ]);
+  }
+
   test_index_legacy() async {
     newFile('/test/lib/a.dart', content: r'''
 // @dart = 2.5
@@ -286,5 +304,23 @@ f() {
   M?.x = 0;
 }
 ''');
+  }
+
+  /// Here we test that analysis does not crash while checking whether to
+  /// report [StaticWarningCode.INVALID_NULL_AWARE_OPERATOR]. But we also
+  /// report another error.
+  test_setter_prefix() async {
+    newFile('/test/lib/a.dart', content: r'''
+int x = 0;
+''');
+    await assertErrorsInCode('''
+import 'a.dart' as p;
+
+f() {
+  p?.x = 0;
+}
+''', [
+      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 31, 1),
+    ]);
   }
 }

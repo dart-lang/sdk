@@ -13,6 +13,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 export 'package:analyzer/src/dart/error/syntactic_errors.dart';
@@ -45,6 +46,13 @@ class Scanner {
    * during the scan.
    */
   final AnalysisErrorListener _errorListener;
+
+  /**
+   * If the file has [fasta.LanguageVersionToken], it is allowed to use the
+   * language version greater than the one specified in the package config.
+   * So, we need to know the full feature set for the context.
+   */
+  FeatureSet _featureSetForOverriding;
 
   /**
    * The flag specifying whether documentation comments should be parsed.
@@ -124,7 +132,11 @@ class Scanner {
   /// TODO(paulberry): stop exposing `enableGtGtGt` and `enableNonNullable` so
   /// that callers are forced to use this API.  Note that this would be a
   /// breaking change.
-  void configureFeatures(FeatureSet featureSet) {
+  void configureFeatures({
+    @required FeatureSet featureSetForOverriding,
+    @required FeatureSet featureSet,
+  }) {
+    this._featureSetForOverriding = featureSetForOverriding;
     this._featureSet = featureSet;
     enableGtGtGt = featureSet.isEnabled(Feature.triple_shift);
     enableNonNullable = featureSet.isEnabled(Feature.non_nullable);
@@ -200,8 +212,9 @@ class Scanner {
     if (languageVersion.major >= 0 && languageVersion.minor >= 0) {
       _languageVersion = languageVersion;
       if (_featureSet != null) {
-        _featureSet = _featureSet.restrictToVersion(
-            Version(languageVersion.major, languageVersion.minor, 0));
+        _featureSet = _featureSetForOverriding.restrictToVersion(
+          Version(languageVersion.major, languageVersion.minor, 0),
+        );
         scanner.configuration = buildConfig(_featureSet);
       }
     }

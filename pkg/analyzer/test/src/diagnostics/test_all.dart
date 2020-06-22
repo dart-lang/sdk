@@ -56,6 +56,8 @@ import 'conflicting_type_variable_and_member_test.dart'
     as conflicting_type_variable_and_member;
 import 'const_constructor_param_type_mismatch_test.dart'
     as const_constructor_param_type_mismatch;
+import 'const_constructor_with_field_initialized_by_non_const_test.dart'
+    as const_constructor_with_field_initialized_by_non_const;
 import 'const_constructor_with_mixin_with_field_test.dart'
     as const_constructor_with_mixin_with_field;
 import 'const_eval_throws_exception_test.dart' as const_eval_throws_exception;
@@ -571,6 +573,7 @@ main() {
     conflicting_type_variable_and_container.main();
     conflicting_type_variable_and_member.main();
     const_constructor_param_type_mismatch.main();
+    const_constructor_with_field_initialized_by_non_const.main();
     const_constructor_with_mixin_with_field.main();
     const_eval_throws_exception.main();
     const_map_key_expression_type_implements_equals.main();

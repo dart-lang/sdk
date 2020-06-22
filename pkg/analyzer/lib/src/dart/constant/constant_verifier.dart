@@ -112,7 +112,9 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     if (node.constKeyword != null) {
       _validateConstructorInitializers(node);
-      _validateFieldInitializers(node.parent, node);
+      if (node.factoryKeyword == null) {
+        _validateFieldInitializers(node.parent, node);
+      }
     }
     _validateDefaultValues(node.parameters);
     super.visitConstructorDeclaration(node);
@@ -129,6 +131,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     if (node.isConst) {
       TypeName typeName = node.constructorName.type;
       _checkForConstWithTypeParameters(typeName);
+
+      node.argumentList.accept(this);
 
       // We need to evaluate the constant to see if any errors occur during its
       // evaluation.

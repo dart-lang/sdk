@@ -311,7 +311,7 @@ def IsCrossBuild(target_os, arch):
 
 
 def GetBuildConf(mode, arch, conf_os=None, sanitizer=None):
-    if conf_os == 'android':
+    if conf_os is not None and conf_os != GuessOS() and conf_os != "host":
         return '%s%s%s' % (GetBuildMode(mode), conf_os.title(), arch.upper())
     else:
         # Ask for a cross build if the host and target architectures don't match.

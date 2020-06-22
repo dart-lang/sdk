@@ -32,7 +32,6 @@ import '../js_backend/interceptor_data.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_backend/namer.dart' show ModularNamer;
 import '../js_backend/native_data.dart';
-import '../js_backend/runtime_types.dart';
 import '../js_backend/runtime_types_resolution.dart';
 import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../js_model/locals.dart' show JumpVisitor;
@@ -121,7 +120,6 @@ class KernelSsaGraphBuilder extends ir.Visitor {
   final CodegenRegistry registry;
   final ClosureData _closureDataLookup;
   final Tracer _tracer;
-  final RuntimeTypesEncoder _rtiEncoder;
 
   /// A stack of [InterfaceType]s that have been seen during inlining of
   /// factory constructors.  These types are preserved in [HInvokeStatic]s and
@@ -171,7 +169,6 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       this._namer,
       this._emitter,
       this._tracer,
-      this._rtiEncoder,
       this._sourceInformationStrategy,
       this._inlineCache,
       this._inlineDataCache)
@@ -4502,35 +4499,11 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         int isPrefixLength = _namer.fixedNames.operatorIsPrefix.length;
         return js.js.expressionTemplateFor('#.substring($isPrefixLength)');
 
-      case JsBuiltin.isFunctionType:
-        return _rtiEncoder.templateForIsFunctionType;
-
-      case JsBuiltin.isFutureOrType:
-        return _rtiEncoder.templateForIsFutureOrType;
-
-      case JsBuiltin.isVoidType:
-        return _rtiEncoder.templateForIsVoidType;
-
-      case JsBuiltin.isDynamicType:
-        return _rtiEncoder.templateForIsDynamicType;
-
-      case JsBuiltin.isJsInteropTypeArgument:
-        return _rtiEncoder.templateForIsJsInteropTypeArgument;
-
       case JsBuiltin.rawRtiToJsConstructorName:
         return js.js.expressionTemplateFor("#.name");
 
       case JsBuiltin.rawRuntimeType:
         return js.js.expressionTemplateFor("#.constructor");
-
-      case JsBuiltin.isSubtype:
-        // TODO(floitsch): move this closer to where is-check properties are
-        // built.
-        String isPrefix = _namer.fixedNames.operatorIsPrefix;
-        return js.js.expressionTemplateFor("('$isPrefix' + #) in #.prototype");
-
-      case JsBuiltin.isGivenTypeRti:
-        return js.js.expressionTemplateFor('#.name === #');
 
       case JsBuiltin.getMetadata:
         String metadataAccess =

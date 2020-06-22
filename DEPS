@@ -48,7 +48,7 @@ vars = {
   "co19_2_rev": "620c1148c8b7a3d7f74afacf348c46f109eb64f2",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
-  "benchmarks_internal_rev": "6c5cf5ca4f29f0e498a9ad51146ccb2ad3bbd2b4",
+  "benchmarks_internal_rev": "478f5a8be0bad2b1bc3c1c9cf150486ec77516e1",
   "checkout_benchmarks_internal": False,
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
@@ -107,7 +107,7 @@ vars = {
   "http_retry_tag": "0.1.1",
   "http_rev": "a131e563c09349f624d5421237183a06fb10552d",
   "http_throttle_tag" : "1.0.2",
-  "icu_rev" : "8d29692df640668ed7e4d1817715440c4e05697a",
+  "icu_rev" : "79326efe26e5440f530963704c3c0ff965b3a4ac",
   "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
   "intl_tag": "0.16.1",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
@@ -468,6 +468,17 @@ deps = {
       ],
       "condition": "(host_os == 'linux' or host_os == 'mac') and host_cpu == 'x64'",
       "dep_type": "cipd",
+  },
+
+  Var("dart_root") + "/third_party/fuchsia/sdk/linux": {
+    "packages": [
+      {
+      "package": "fuchsia/sdk/gn/linux-amd64",
+      "version": "git_revision:8d5242d4f6ff8b7634b492700e60b0fd09abefa3"
+      }
+    ],
+    "condition": 'host_os == "linux" and host_cpu == "x64"',
+    "dep_type": "cipd",
   },
 
   Var("dart_root") + "/pkg/front_end/test/fasta/types/benchmark_data": {

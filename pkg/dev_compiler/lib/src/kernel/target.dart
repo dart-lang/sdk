@@ -107,7 +107,7 @@ class DevCompilerTarget extends Target {
     if (uri.scheme == 'dev-dart-app') return true;
 
     var scriptName = uri.path;
-    return scriptName.contains('tests/compiler/dartdevc_native');
+    return scriptName.contains('tests/dartdevc');
   }
 
   bool _allowedDartLibrary(Uri uri) => uri.scheme == 'dart';

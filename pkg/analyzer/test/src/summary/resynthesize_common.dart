@@ -6258,6 +6258,50 @@ class C {
 ''');
   }
 
+  test_field_type_inferred_Never() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary(r'''
+class C {
+  var a = throw 42;
+}
+''');
+
+    checkElementText(
+        library,
+        r'''
+class C {
+  Never a;
+}
+''',
+        annotateNullability: true);
+  }
+
+  test_field_type_inferred_nonNullify() async {
+    featureSet = enableNnbd;
+
+    addSource('/a.dart', '''
+// @dart = 2.7
+var a = 0;
+''');
+
+    var library = await checkLibrary(r'''
+import 'a.dart';
+class C {
+  var b = a;
+}
+''');
+
+    checkElementText(
+        library,
+        r'''
+import 'a.dart';
+class C {
+  int b;
+}
+''',
+        annotateNullability: true);
+  }
+
   test_field_typed() async {
     var library = await checkLibrary('class C { int x = 0; }');
     checkElementText(library, r'''
@@ -11559,6 +11603,52 @@ unit: b.dart
 
 int get x {}
 ''');
+  }
+
+  test_variable_type_inferred_Never() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary(r'''
+var a = throw 42;
+''');
+
+    checkElementText(
+        library,
+        r'''
+Never a;
+''',
+        annotateNullability: true);
+  }
+
+  test_variable_type_inferred_noInitializer() async {
+    var library = await checkLibrary(r'''
+var a;
+''');
+
+    checkElementText(library, r'''
+dynamic a;
+''');
+  }
+
+  test_variable_type_inferred_nonNullify() async {
+    featureSet = enableNnbd;
+
+    addSource('/a.dart', '''
+// @dart = 2.7
+var a = 0;
+''');
+
+    var library = await checkLibrary(r'''
+import 'a.dart';
+var b = a;
+''');
+
+    checkElementText(
+        library,
+        r'''
+import 'a.dart';
+int b;
+''',
+        annotateNullability: true);
   }
 
   test_variableInitializer_contextType_after_astRewrite() async {

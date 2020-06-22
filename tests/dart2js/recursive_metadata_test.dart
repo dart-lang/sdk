@@ -8,7 +8,7 @@ import 'package:expect/expect.dart';
 // to other annotated types.
 
 class Annotation {
-  final String value;
+  final String? value;
   const Annotation({this.value});
 }
 
@@ -18,9 +18,9 @@ enum Enum {
 }
 
 class SubAnno extends Annotation {
-  final Enum e;
-  final Type type;
-  const SubAnno({String value, this.e, this.type}) : super(value: value);
+  final Enum? e;
+  final Type? type;
+  const SubAnno({String? value, this.e, this.type}) : super(value: value);
 }
 
 @SubAnno(value: 'super')

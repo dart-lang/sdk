@@ -16,6 +16,7 @@
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/compiler/frontend/prologue_builder.h"
 #include "vm/compiler/jit/compiler.h"
+#include "vm/kernel_isolate.h"
 #include "vm/kernel_loader.h"
 #include "vm/longjump.h"
 #include "vm/native_entry.h"
@@ -2572,6 +2573,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
       body += CheckAssignable(setter_value->type(), setter_value->name(),
                               AssertAssignableInstr::kParameterCheck);
     }
+    body += BuildNullAssertions();
     if (field.is_late()) {
       if (is_method) {
         body += Drop();
@@ -3137,6 +3139,83 @@ void FlowGraphBuilder::SetCurrentTryCatchBlock(TryCatchBlock* try_catch_block) {
   try_catch_block_ = try_catch_block;
   SetCurrentTryIndex(try_catch_block == nullptr ? kInvalidTryIndex
                                                 : try_catch_block->try_index());
+}
+
+bool FlowGraphBuilder::NeedsNullAssertion(const AbstractType& type) {
+  if (!type.IsNonNullable()) {
+    return false;
+  }
+  if (type.IsTypeParameter()) {
+    return NeedsNullAssertion(
+        AbstractType::Handle(Z, TypeParameter::Cast(type).bound()));
+  }
+  if (type.IsFutureOrType()) {
+    return NeedsNullAssertion(AbstractType::Handle(Z, type.UnwrapFutureOr()));
+  }
+  return true;
+}
+
+Fragment FlowGraphBuilder::NullAssertion(LocalVariable* variable) {
+  Fragment code;
+  if (!NeedsNullAssertion(variable->type())) {
+    return code;
+  }
+
+  TargetEntryInstr* then;
+  TargetEntryInstr* otherwise;
+
+  code += LoadLocal(variable);
+  code += NullConstant();
+  code += BranchIfEqual(&then, &otherwise);
+
+  if (throw_new_null_assertion_ == nullptr) {
+    const Class& klass = Class::ZoneHandle(
+        Z, Library::LookupCoreClass(Symbols::AssertionError()));
+    ASSERT(!klass.IsNull());
+    throw_new_null_assertion_ =
+        &Function::ZoneHandle(Z, klass.LookupStaticFunctionAllowPrivate(
+                                     Symbols::ThrowNewNullAssertion()));
+    ASSERT(!throw_new_null_assertion_->IsNull());
+  }
+
+  const Script& script =
+      Script::Handle(Z, parsed_function_->function().script());
+  intptr_t line = -1;
+  intptr_t column = -1;
+  script.GetTokenLocation(variable->token_pos(), &line, &column);
+
+  // Build equivalent of `throw _AssertionError._throwNewNullAssertion(name)`
+  // expression. We build throw (even through _throwNewNullAssertion already
+  // throws) because call is not a valid last instruction for the block.
+  // Blocks can only terminate with explicit control flow instructions
+  // (Branch, Goto, Return or Throw).
+  Fragment null_code(then);
+  null_code += Constant(variable->name());
+  null_code += IntConstant(line);
+  null_code += IntConstant(column);
+  null_code += StaticCall(variable->token_pos(), *throw_new_null_assertion_, 3,
+                          ICData::kStatic);
+  null_code += ThrowException(TokenPosition::kNoSource);
+  null_code += Drop();
+
+  return Fragment(code.entry, otherwise);
+}
+
+Fragment FlowGraphBuilder::BuildNullAssertions() {
+  Fragment code;
+  if (I->null_safety() || !I->asserts() || !FLAG_null_assertions ||
+      !KernelIsolate::GetExperimentalFlag("non-nullable")) {
+    return code;
+  }
+
+  const Function& dart_function = parsed_function_->function();
+  for (intptr_t i = dart_function.NumImplicitParameters(),
+                n = dart_function.NumParameters();
+       i < n; ++i) {
+    LocalVariable* variable = parsed_function_->ParameterVariable(i);
+    code += NullAssertion(variable);
+  }
+  return code;
 }
 
 }  // namespace kernel

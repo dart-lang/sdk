@@ -620,6 +620,19 @@ bool _isDartObject(Object? object) => _Utils.instanceOf(object,
 bool _isClosure(Object? object) => _Utils.instanceOf(object,
     JS_BUILTIN('depends:none;effects:none;', JsBuiltin.dartClosureConstructor));
 
+/// Stores an Rti on a JavaScript Array (JSArray).
+/// Rti is recovered by [_arrayInstanceType].
+/// Called from generated code.
+// Don't inline.  Let the JS engine inline this.  The call expression is much
+// more compact that the inlined expansion.
+@pragma('dart2js:noInline')
+Object? setRuntimeTypeInfo(Object? target, Object? rti) {
+  assert(rti != null);
+  var rtiProperty = JS_EMBEDDED_GLOBAL('', ARRAY_RTI_PROPERTY);
+  JS('var', r'#[#] = #', target, rtiProperty, rti);
+  return target;
+}
+
 /// Returns the structural function [Rti] of [closure], or `null`.
 /// [closure] must be a subclass of [Closure].
 /// Called from generated code.

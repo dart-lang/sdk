@@ -5,28 +5,20 @@
 /// Helper functions for parsing output of `--print-instructions-sizes-to` flag.
 library vm.snapshot.instruction_sizes;
 
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:vm/snapshot/name.dart';
 import 'package:vm/snapshot/program_info.dart';
 
 /// Parse the output of `--print-instructions-sizes-to` saved in the given
 /// file [input].
-Future<List<SymbolInfo>> load(File input) async {
-  final List<dynamic> symbolsArray = await input
-      .openRead()
-      .transform(utf8.decoder)
-      .transform(json.decoder)
-      .first;
-  return symbolsArray
+List<SymbolInfo> fromJson(List<dynamic> json) {
+  return json
       .cast<Map<String, dynamic>>()
       .map(SymbolInfo._fromJson)
       .toList(growable: false);
 }
 
 /// Parse the output of `--print-instructions-sizes-to` saved in the given
-/// file [input] into [ProgramInfo<int>] structure representing the sizes
+/// file [input] into [ProgramInfo] structure representing the sizes
 /// of individual functions.
 ///
 /// If [collapseAnonymousClosures] is set to [true] then all anonymous closures
@@ -34,9 +26,9 @@ Future<List<SymbolInfo>> load(File input) async {
 /// helpful when comparing symbol sizes between two versions of the same
 /// program because in general there is no reliable way to recognize the same
 /// anonymous closures into two independent compilations.
-Future<ProgramInfo<int>> loadProgramInfo(File input,
-    {bool collapseAnonymousClosures = false}) async {
-  final symbols = await load(input);
+ProgramInfo loadProgramInfo(List<dynamic> json,
+    {bool collapseAnonymousClosures = false}) {
+  final symbols = fromJson(json);
   return toProgramInfo(symbols,
       collapseAnonymousClosures: collapseAnonymousClosures);
 }
@@ -69,7 +61,7 @@ class SymbolInfo {
   }
 }
 
-/// Restore hierarchical [ProgramInfo<int>] representation from the list of
+/// Restore hierarchical [ProgramInfo] representation from the list of
 /// symbols by parsing function names.
 ///
 /// If [collapseAnonymousClosures] is set to [true] then all anonymous closures
@@ -77,32 +69,41 @@ class SymbolInfo {
 /// helpful when comparing symbol sizes between two versions of the same
 /// program because in general there is no reliable way to recognize the same
 /// anonymous closures into two independent compilations.
-ProgramInfo<int> toProgramInfo(List<SymbolInfo> symbols,
+ProgramInfo toProgramInfo(List<SymbolInfo> symbols,
     {bool collapseAnonymousClosures = false}) {
-  final program = ProgramInfo<int>();
+  final program = ProgramInfo();
   for (var sym in symbols) {
     final scrubbed = sym.name.scrubbed;
     if (sym.libraryUri == null) {
       assert(sym.name.isStub);
-      assert(
-          !program.stubs.containsKey(scrubbed) || sym.name.isTypeTestingStub);
-      program.stubs[scrubbed] = (program.stubs[scrubbed] ?? 0) + sym.size;
+      final node = program.makeNode(
+          name: scrubbed, parent: program.stubs, type: NodeType.functionNode);
+      assert(node.size == null || sym.name.isTypeTestingStub);
+      node.size = (node.size ?? 0) + sym.size;
     } else {
       // Split the name into components (names of individual functions).
       final path = sym.name.components;
 
-      final lib =
-          program.libraries.putIfAbsent(sym.libraryUri, () => LibraryInfo());
-      final cls = lib.classes.putIfAbsent(sym.className, () => ClassInfo());
-      var fun = cls.functions.putIfAbsent(path.first, () => FunctionInfo());
-      for (var name in path.skip(1)) {
-        if (collapseAnonymousClosures &&
-            name.startsWith('<anonymous closure @')) {
-          name = '<anonymous closure>';
-        }
-        fun = fun.closures.putIfAbsent(name, () => FunctionInfo());
+      var node = program.root;
+      final package = packageOf(sym.libraryUri);
+      if (package != sym.libraryUri) {
+        node = program.makeNode(
+            name: package, parent: node, type: NodeType.packageNode);
       }
-      fun.info = (fun.info ?? 0) + sym.size;
+      node = program.makeNode(
+          name: sym.libraryUri, parent: node, type: NodeType.libraryNode);
+      node = program.makeNode(
+          name: sym.className, parent: node, type: NodeType.classNode);
+      node = program.makeNode(
+          name: path.first, parent: node, type: NodeType.functionNode);
+      for (var name in path.skip(1)) {
+        if (collapseAnonymousClosures) {
+          name = Name.collapse(name);
+        }
+        node = program.makeNode(
+            name: name, parent: node, type: NodeType.functionNode);
+      }
+      node.size = (node.size ?? 0) + sym.size;
     }
   }
 

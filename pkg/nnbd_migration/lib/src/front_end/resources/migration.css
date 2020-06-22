@@ -65,6 +65,12 @@ header .apply-migration, .rerun-migration {
   margin: 10px;
 }
 
+header img.logo {
+  height: 24px;
+  width: 24px;
+  margin-right: 8px;
+}
+
 footer .report-problem {
   right: 0px;
   margin: 4px 8px;

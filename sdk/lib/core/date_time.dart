@@ -261,6 +261,7 @@ class DateTime implements Comparable<DateTime> {
    *
    * Examples of accepted strings:
    *
+   * * `"2012-02-27"`
    * * `"2012-02-27 13:27:00"`
    * * `"2012-02-27 13:27:00.123456789z"`
    * * `"2012-02-27 13:27:00,123456789z"`

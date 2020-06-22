@@ -471,6 +471,14 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   }
 
   @override
+  DartType visitFieldDeclaration(FieldDeclaration node) {
+    if (node.fields != null && node.fields.contains(offset)) {
+      return node.fields.accept(this);
+    }
+    return null;
+  }
+
+  @override
   DartType visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
     if (range
         .startOffsetEndOffset(node.inKeyword.end, node.end)
@@ -706,11 +714,31 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   }
 
   @override
+  DartType visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    if (node.variables != null && node.variables.contains(offset)) {
+      return node.variables.accept(this);
+    }
+    return null;
+  }
+
+  @override
   DartType visitVariableDeclaration(VariableDeclaration node) {
-    if (node.equals != null && node.equals.end < offset) {
+    if (node.equals != null && node.equals.end <= offset) {
       var parent = node.parent;
       if (parent is VariableDeclarationList) {
         return parent.type?.type;
+      }
+    }
+    return null;
+  }
+
+  @override
+  DartType visitVariableDeclarationList(VariableDeclarationList node) {
+    for (var varDecl in node.variables) {
+      if (varDecl != null && varDecl.contains(offset)) {
+        if (varDecl.equals.end <= offset) {
+          return node.type?.type;
+        }
       }
     }
     return null;

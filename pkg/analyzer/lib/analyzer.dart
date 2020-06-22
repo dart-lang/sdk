@@ -125,7 +125,10 @@ CompilationUnit parseDirectives(String contents,
   var errorCollector = _ErrorCollector();
   var reader = CharSequenceReader(contents);
   var scanner = Scanner(source, reader, errorCollector)
-    ..configureFeatures(featureSet);
+    ..configureFeatures(
+      featureSetForOverriding: featureSet,
+      featureSet: featureSet,
+    );
   var token = scanner.tokenize();
   var parser = Parser(
     source,
@@ -152,7 +155,10 @@ CompilationUnit _parseSource(
   var reader = CharSequenceReader(contents);
   var errorCollector = _ErrorCollector();
   var scanner = Scanner(source, reader, errorCollector)
-    ..configureFeatures(featureSet);
+    ..configureFeatures(
+      featureSetForOverriding: featureSet,
+      featureSet: featureSet,
+    );
   var token = scanner.tokenize();
   var parser = Parser(
     source,

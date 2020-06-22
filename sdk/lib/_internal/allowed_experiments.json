@@ -1,7 +1,9 @@
 {
   "version": 1,
   "experimentSets": {
-    "nullSafety": ["non-nullable"]
+    "nullSafety": [
+      "non-nullable"
+    ]
   },
   "sdk": {
     "default": {
@@ -13,8 +15,89 @@
       }
     }
   },
-  "_example_packages": {
+  "packages": {
+    "async": {
+      "experimentSet": "nullSafety"
+    },
+    "boolean_selector": {
+      "experimentSet": "nullSafety"
+    },
+    "characters": {
+      "experimentSet": "nullSafety"
+    },
+    "charcode": {
+      "experimentSet": "nullSafety"
+    },
+    "clock": {
+      "experimentSet": "nullSafety"
+    },
     "collection": {
+      "experimentSet": "nullSafety"
+    },
+    "fake_async": {
+      "experimentSet": "nullSafety"
+    },
+    "fixnum": {
+      "experimentSet": "nullSafety"
+    },
+    "flutter": {
+      "experimentSet": "nullSafety"
+    },
+    "js": {
+      "experimentSet": "nullSafety"
+    },
+    "matcher": {
+      "experimentSet": "nullSafety"
+    },
+    "meta": {
+      "experimentSet": "nullSafety"
+    },
+    "path": {
+      "experimentSet": "nullSafety"
+    },
+    "pedantic": {
+      "experimentSet": "nullSafety"
+    },
+    "pool": {
+      "experimentSet": "nullSafety"
+    },
+    "sky_engine": {
+      "experimentSet": "nullSafety"
+    },
+    "source_maps": {
+      "experimentSet": "nullSafety"
+    },
+    "source_map_stack_trace": {
+      "experimentSet": "nullSafety"
+    },
+    "source_span": {
+      "experimentSet": "nullSafety"
+    },
+    "stack_trace": {
+      "experimentSet": "nullSafety"
+    },
+    "stream_channel": {
+      "experimentSet": "nullSafety"
+    },
+    "string_scanner": {
+      "experimentSet": "nullSafety"
+    },
+    "term_glyph": {
+      "experimentSet": "nullSafety"
+    },
+    "test": {
+      "experimentSet": "nullSafety"
+    },
+    "test_api": {
+      "experimentSet": "nullSafety"
+    },
+    "test_core": {
+      "experimentSet": "nullSafety"
+    },
+    "typed_data": {
+      "experimentSet": "nullSafety"
+    },
+    "vector_math": {
       "experimentSet": "nullSafety"
     }
   }
