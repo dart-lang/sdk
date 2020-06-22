@@ -98,7 +98,7 @@ vars = {
 
   "dartdoc_tag" : "v0.32.1",
   "ffi_rev": "454ab0f9ea6bd06942a983238d8a6818b1357edb",
-  "fixnum_rev": "13da5123989a5d91cb59e76793c3923dd8d06e90",
+  "fixnum_rev": "9b38f49f6679654d66a363e69e48173cca07e882",
   "glob_rev": "e9f4e6b7ae8abe5071461cf8f47191bb19cf7ef6",
   "html_rev": "083a36cd801a4b787ba156b7c6e4c8b2e2daed4a",
   "http_io_rev": "2fa188caf7937e313026557713f7feffedd4978b",
