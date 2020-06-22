@@ -45,7 +45,7 @@ class Sdk {
   // if the SDK isn't completely built.
   String get dart => Platform.resolvedExecutable;
 
-  String get analysis_server_snapshot => path.absolute(
+  String get analysisServerSnapshot => path.absolute(
       sdkPath, 'bin', 'snapshots', 'analysis_server.dart.snapshot');
 
   String get dartfmt => path.absolute(sdkPath, 'bin', _binName('dartfmt'));

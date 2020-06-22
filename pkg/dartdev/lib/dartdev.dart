@@ -22,7 +22,7 @@ import 'src/core.dart';
 /// This is typically called from bin/, but given the length of the method and
 /// analytics logic, it has been moved here. Also note that this method calls
 /// [io.exit(code)] directly.
-void runDartdev(List<String> args) async {
+Future<void> runDartdev(List<String> args) async {
   final stopwatch = Stopwatch();
   dynamic result;
 
@@ -37,8 +37,6 @@ void runDartdev(List<String> args) async {
   // Any caught non-UsageExceptions when running the sub command
   Exception exception;
   StackTrace stackTrace;
-
-  var runner;
 
   analytics =
       createAnalyticsInstance(args.contains('--disable-dartdev-analytics'));
@@ -67,11 +65,11 @@ void runDartdev(List<String> args) async {
     io.exit(0);
   }
 
-  var commandName;
+  String commandName;
 
   try {
     stopwatch.start();
-    runner = DartdevRunner(args);
+    final runner = DartdevRunner(args);
     // Run can't be called with the '--disable-dartdev-analytics' flag, remove
     // it if it is contained in args.
     if (args.contains('--disable-dartdev-analytics')) {
@@ -122,7 +120,8 @@ void runDartdev(List<String> args) async {
             fatal: true);
       }
 
-      await analytics.waitForLastPing(timeout: Duration(milliseconds: 200));
+      await analytics.waitForLastPing(
+          timeout: const Duration(milliseconds: 200));
     }
 
     // As the notification to the user read on the first run, analytics are
@@ -173,10 +172,11 @@ class DartdevRunner<int> extends CommandRunner {
       'dart [<vm-flags>] <command|dart-file> [<arguments>]';
 
   @override
-  Future<int> runCommand(ArgResults results) async {
-    assert(!results.arguments.contains('--disable-dartdev-analytics'));
-    if (results.command == null && results.arguments.isNotEmpty) {
-      final firstArg = results.arguments.first;
+  Future<int> runCommand(ArgResults topLevelResults) async {
+    assert(!topLevelResults.arguments.contains('--disable-dartdev-analytics'));
+    if (topLevelResults.command == null &&
+        topLevelResults.arguments.isNotEmpty) {
+      final firstArg = topLevelResults.arguments.first;
       // If we make it this far, it means the VM couldn't find the file on disk.
       if (firstArg.endsWith('.dart')) {
         io.stderr.writeln(
@@ -185,11 +185,11 @@ class DartdevRunner<int> extends CommandRunner {
         io.exit(254);
       }
     }
-    isVerbose = results['verbose'];
+    isVerbose = topLevelResults['verbose'];
 
     final Ansi ansi = Ansi(Ansi.terminalSupportsAnsi);
     log = isVerbose ? Logger.verbose(ansi: ansi) : Logger.standard(ansi: ansi);
 
-    return await super.runCommand(results);
+    return await super.runCommand(topLevelResults);
   }
 }

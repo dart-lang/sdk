@@ -31,7 +31,7 @@ abstract class DartdevCommand<int> extends Command {
   @override
   String get description => _description;
 
-  Project get project => (_project ??= Project());
+  Project get project => _project ??= Project();
 }
 
 /// A utility method to start the given executable as a process, optionally
@@ -122,7 +122,6 @@ class PackageConfig {
     return _packages.map<Map<String, dynamic>>(castStringKeyedMap).toList();
   }
 
-  bool hasDependency(String packageName) {
-    return packages.any((element) => element['name'] == packageName);
-  }
+  bool hasDependency(String packageName) =>
+      packages.any((element) => element['name'] == packageName);
 }

@@ -39,7 +39,7 @@ void run() {
   test('no such file', () {
     p = project(mainSrc: "void main() { print('Hello World'); }");
     ProcessResult result =
-        p.runSync('run', ['no/such/file/' + p.relativeFilePath]);
+        p.runSync('run', ['no/such/file/${p.relativeFilePath}']);
 
     expect(result.stderr, isNotEmpty);
     expect(result.exitCode, isNot(0));

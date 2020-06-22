@@ -21,7 +21,7 @@ void _sdk() {
   });
 
   test('analysis_server_snapshot', () {
-    expectFileExists(Sdk().analysis_server_snapshot);
+    expectFileExists(Sdk().analysisServerSnapshot);
   });
 
   test('dartfmt', () {

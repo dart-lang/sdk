@@ -38,7 +38,7 @@ class AnalysisServer {
 
   Future<void> start() async {
     final List<String> command = <String>[
-      sdk.analysis_server_snapshot,
+      sdk.analysisServerSnapshot,
       '--disable-server-feature-completion',
       '--disable-server-feature-search',
       '--sdk',
@@ -116,7 +116,9 @@ class AnalysisServer {
         final Map<String, dynamic> error =
             castStringKeyedMap(response['error']);
         log.stderr(
-            'Error response from the server: ${error['code']} ${error['message']}');
+          'Error response from the server: '
+          '${error['code']} ${error['message']}',
+        );
         if (error['stackTrace'] != null) {
           log.stderr(error['stackTrace'] as String);
         }
@@ -235,11 +237,9 @@ class AnalysisError implements Comparable<AnalysisError> {
   }
 
   @override
-  String toString() {
-    return '${severity.toLowerCase()} • '
-        '$messageSentenceFragment at $file:$startLine:$startColumn • '
-        '($code)';
-  }
+  String toString() => '${severity.toLowerCase()} • '
+      '$messageSentenceFragment at $file:$startLine:$startColumn • '
+      '($code)';
 }
 
 class FileAnalysisErrors {

@@ -6,11 +6,11 @@ import 'package:dartdev/src/analytics.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('DisabledAnalytics', disabledAnalytics_object);
+  group('DisabledAnalytics', disabledAnalyticsObject);
   group('utils', utils);
 }
 
-void disabledAnalytics_object() {
+void disabledAnalyticsObject() {
   test('object', () {
     var diabledAnalytics = DisabledAnalytics('trackingId', 'appName');
     expect(diabledAnalytics.trackingId, 'trackingId');
