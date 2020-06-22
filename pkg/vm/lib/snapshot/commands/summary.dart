@@ -35,10 +35,16 @@ This tool can process snapshot size reports produced by
           help: 'Truncate column content to the given width'
               ' (${AsciiTable.unlimitedWidth} means do not truncate).',
           defaultsTo: AsciiTable.unlimitedWidth.toString())
-      ..addOption('granularity',
-          help: 'Choose the granularity of the output.',
+      ..addOption('by',
+          abbr: 'b',
+          help: 'Choose breakdown rule of the output.',
           allowed: ['method', 'class', 'library', 'package'],
           defaultsTo: 'method')
+      ..addOption(
+        'where',
+        abbr: 'w',
+        help: 'Filter output using the given glob.',
+      )
       ..addFlag('collapse-anonymous-closures', help: '''
 Collapse all anonymous closures from the same scope into a single entry.
 When comparing size of AOT snapshots for two different versions of a
@@ -76,8 +82,9 @@ precisely based on their source position (which is included in their name).
 
     await outputSummary(input,
         maxWidth: maxWidth,
-        granularity: _parseHistogramType(argResults['granularity']),
-        collapseAnonymousClosures: argResults['collapse-anonymous-closures']);
+        granularity: _parseHistogramType(argResults['by']),
+        collapseAnonymousClosures: argResults['collapse-anonymous-closures'],
+        filter: argResults['where']);
   }
 
   static HistogramType _parseHistogramType(String value) {
@@ -98,14 +105,23 @@ precisely based on their source position (which is included in their name).
 void outputSummary(File input,
     {int maxWidth = 0,
     bool collapseAnonymousClosures = false,
-    HistogramType granularity = HistogramType.bySymbol}) async {
+    HistogramType granularity = HistogramType.bySymbol,
+    String filter}) async {
   final info = await loadProgramInfo(input);
 
   // Compute histogram.
-  final histogram = SizesHistogram.from(info, granularity);
+  final histogram = computeHistogram(info, granularity, filter: filter);
 
   // Now produce the report table.
   const topToReport = 30;
-  printHistogram(histogram,
+  printHistogram(info, histogram,
       prefix: histogram.bySize.take(topToReport), maxWidth: maxWidth);
+
+  if (info.snapshotInfo != null) {
+    print('\nBreakdown by object type:');
+    final typeHistogram =
+        computeHistogram(info, HistogramType.byNodeType, filter: filter);
+    printHistogram(info, typeHistogram,
+        prefix: typeHistogram.bySize, maxWidth: maxWidth);
+  }
 }

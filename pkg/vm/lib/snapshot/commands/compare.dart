@@ -41,8 +41,9 @@ Use --narrow flag to limit column widths.''';
           help: 'Truncate column content to the given width'
               ' (${AsciiTable.unlimitedWidth} means do not truncate).',
           defaultsTo: AsciiTable.unlimitedWidth.toString())
-      ..addOption('granularity',
-          help: 'Choose the granularity of the output.',
+      ..addOption('by',
+          abbr: 'b',
+          help: 'Choose the breakdown rule for the output.',
           allowed: ['method', 'class', 'library', 'package'],
           defaultsTo: 'method')
       ..addFlag('collapse-anonymous-closures', help: '''
@@ -75,7 +76,7 @@ precisely based on their source position (which is included in their name).
     final newJsonPath = _checkExists(argResults.rest[1]);
     printComparison(oldJsonPath, newJsonPath,
         maxWidth: maxWidth,
-        granularity: _parseHistogramType(argResults['granularity']),
+        granularity: _parseHistogramType(argResults['by']),
         collapseAnonymousClosures: argResults['collapse-anonymous-closures']);
   }
 
@@ -121,12 +122,12 @@ precisely based on their source position (which is included in their name).
     final totalDiff = diff.totalSize;
 
     // Compute histogram.
-    final histogram = SizesHistogram.from(diff, granularity);
+    final histogram = computeHistogram(diff, granularity);
 
     // Now produce the report table.
     const numLargerSymbolsToReport = 30;
     const numSmallerSymbolsToReport = 10;
-    printHistogram(histogram,
+    printHistogram(diff, histogram,
         sizeHeader: 'Diff (Bytes)',
         prefix: histogram.bySize
             .where((k) => histogram.buckets[k] > 0)

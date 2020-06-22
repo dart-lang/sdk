@@ -179,6 +179,11 @@ void main(List<String> args) {
 """
 };
 
+extension on Histogram {
+  String bucketFor(String pkg, String lib, String cls, String fun) =>
+      (this.bucketInfo as Bucketing).bucketFor(pkg, lib, cls, fun);
+}
+
 void main() async {
   if (!Platform.executable.contains('dart-sdk')) {
     // If we are not running from the prebuilt SDK then this test does nothing.
@@ -310,47 +315,47 @@ void main() async {
     test('histograms', () async {
       await withSymbolSizes('histograms', testSource, (sizesJson) async {
         final info = await loadProgramInfo(File(sizesJson));
-        final bySymbol = SizesHistogram.from(info, HistogramType.bySymbol);
+        final bySymbol = computeHistogram(info, HistogramType.bySymbol);
         expect(
             bySymbol.buckets,
-            contains(bySymbol.bucketing.bucketFor(
+            contains(bySymbol.bucketFor(
                 'package:input', 'package:input/input.dart', 'A', 'tornOff')));
         expect(
             bySymbol.buckets,
-            contains(bySymbol.bucketing.bucketFor(
+            contains(bySymbol.bucketFor(
                 'package:input', 'package:input/input.dart', 'B', 'tornOff')));
         expect(
             bySymbol.buckets,
-            contains(bySymbol.bucketing.bucketFor(
+            contains(bySymbol.bucketFor(
                 'package:input', 'package:input/input.dart', 'C', 'tornOff')));
 
-        final byClass = SizesHistogram.from(info, HistogramType.byClass);
+        final byClass = computeHistogram(info, HistogramType.byClass);
         expect(
             byClass.buckets,
-            contains(byClass.bucketing.bucketFor('package:input',
+            contains(byClass.bucketFor('package:input',
                 'package:input/input.dart', 'A', 'does-not-matter')));
         expect(
             byClass.buckets,
-            contains(byClass.bucketing.bucketFor('package:input',
+            contains(byClass.bucketFor('package:input',
                 'package:input/input.dart', 'B', 'does-not-matter')));
         expect(
             byClass.buckets,
-            contains(byClass.bucketing.bucketFor('package:input',
+            contains(byClass.bucketFor('package:input',
                 'package:input/input.dart', 'C', 'does-not-matter')));
 
-        final byLibrary = SizesHistogram.from(info, HistogramType.byLibrary);
+        final byLibrary = computeHistogram(info, HistogramType.byLibrary);
         expect(
             byLibrary.buckets,
-            contains(byLibrary.bucketing.bucketFor(
+            contains(byLibrary.bucketFor(
                 'package:input',
                 'package:input/input.dart',
                 'does-not-matter',
                 'does-not-matter')));
 
-        final byPackage = SizesHistogram.from(info, HistogramType.byPackage);
+        final byPackage = computeHistogram(info, HistogramType.byPackage);
         expect(
             byPackage.buckets,
-            contains(byPackage.bucketing.bucketFor(
+            contains(byPackage.bucketFor(
                 'package:input',
                 'package:input/does-not-matter.dart',
                 'does-not-matter',
@@ -500,47 +505,47 @@ void main() async {
     test('histograms', () async {
       await withV8Profile('histograms', testSource, (sizesJson) async {
         final info = await loadProgramInfo(File(sizesJson));
-        final bySymbol = SizesHistogram.from(info, HistogramType.bySymbol);
+        final bySymbol = computeHistogram(info, HistogramType.bySymbol);
         expect(
             bySymbol.buckets,
-            contains(bySymbol.bucketing.bucketFor(
+            contains(bySymbol.bucketFor(
                 'package:input', 'package:input/input.dart', 'A', 'tornOff')));
         expect(
             bySymbol.buckets,
-            contains(bySymbol.bucketing.bucketFor(
+            contains(bySymbol.bucketFor(
                 'package:input', 'package:input/input.dart', 'B', 'tornOff')));
         expect(
             bySymbol.buckets,
-            contains(bySymbol.bucketing.bucketFor(
+            contains(bySymbol.bucketFor(
                 'package:input', 'package:input/input.dart', 'C', 'tornOff')));
 
-        final byClass = SizesHistogram.from(info, HistogramType.byClass);
+        final byClass = computeHistogram(info, HistogramType.byClass);
         expect(
             byClass.buckets,
-            contains(byClass.bucketing.bucketFor('package:input',
+            contains(byClass.bucketFor('package:input',
                 'package:input/input.dart', 'A', 'does-not-matter')));
         expect(
             byClass.buckets,
-            contains(byClass.bucketing.bucketFor('package:input',
+            contains(byClass.bucketFor('package:input',
                 'package:input/input.dart', 'B', 'does-not-matter')));
         expect(
             byClass.buckets,
-            contains(byClass.bucketing.bucketFor('package:input',
+            contains(byClass.bucketFor('package:input',
                 'package:input/input.dart', 'C', 'does-not-matter')));
 
-        final byLibrary = SizesHistogram.from(info, HistogramType.byLibrary);
+        final byLibrary = computeHistogram(info, HistogramType.byLibrary);
         expect(
             byLibrary.buckets,
-            contains(byLibrary.bucketing.bucketFor(
+            contains(byLibrary.bucketFor(
                 'package:input',
                 'package:input/input.dart',
                 'does-not-matter',
                 'does-not-matter')));
 
-        final byPackage = SizesHistogram.from(info, HistogramType.byPackage);
+        final byPackage = computeHistogram(info, HistogramType.byPackage);
         expect(
             byPackage.buckets,
-            contains(byPackage.bucketing.bucketFor(
+            contains(byPackage.bucketFor(
                 'package:input',
                 'package:input/does-not-matter.dart',
                 'does-not-matter',

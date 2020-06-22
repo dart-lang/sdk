@@ -59,7 +59,8 @@ class ProgramInfo {
   /// Recursively visit all function nodes, which have [FunctionInfo.info]
   /// populated.
   void visit(
-      void Function(String pkg, String lib, String cls, String fun, int size)
+      void Function(
+              String pkg, String lib, String cls, String fun, ProgramInfoNode n)
           callback) {
     final context = List<String>(NodeType.values.length);
 
@@ -71,13 +72,11 @@ class ProgramInfo {
         context[node._type] = node.name;
       }
 
-      if (node.size != null) {
-        final String pkg = context[NodeType.packageNode.index];
-        final String lib = context[NodeType.libraryNode.index];
-        final String cls = context[NodeType.classNode.index];
-        final String mem = context[NodeType.functionNode.index];
-        callback(pkg, lib, cls, mem, node.size);
-      }
+      final String pkg = context[NodeType.packageNode.index];
+      final String lib = context[NodeType.libraryNode.index];
+      final String cls = context[NodeType.classNode.index];
+      final String mem = context[NodeType.functionNode.index];
+      callback(pkg, lib, cls, mem, node);
 
       for (var child in node.children.values) {
         recurse(child);
@@ -91,8 +90,8 @@ class ProgramInfo {
 
   int get totalSize {
     var result = 0;
-    visit((pkg, lib, cls, fun, size) {
-      result += size;
+    visit((pkg, lib, cls, fun, node) {
+      result += node.size ?? 0;
     });
     return result;
   }
@@ -181,13 +180,11 @@ Iterable<T> _allKeys<T>(Map<T, dynamic> a, Map<T, dynamic> b) {
   return <T>{...?a?.keys, ...?b?.keys};
 }
 
-/// Histogram of sizes based on a [ProgramInfo] bucketed using one of the
-/// [HistogramType] rules.
-class SizesHistogram {
+class Histogram {
   /// Rule used to produce this histogram. Specifies how bucket names
   /// are constructed given (library-uri,class-name,function-name) tuples and
   /// how these bucket names can be deconstructed back into human readable form.
-  final Bucketing bucketing;
+  final BucketInfo bucketInfo;
 
   /// Histogram buckets.
   final Map<String, int> buckets;
@@ -200,24 +197,77 @@ class SizesHistogram {
 
   int get length => bySize.length;
 
-  SizesHistogram._(this.bucketing, this.buckets, this.bySize, this.totalSize);
+  Histogram._(this.bucketInfo, this.buckets)
+      : bySize = buckets.keys.toList(growable: false)
+          ..sort((a, b) => buckets[b] - buckets[a]),
+        totalSize = buckets.values.fold(0, (sum, size) => sum + size);
 
-  /// Construct the histogram of specific [type] given a [ProgramInfo].
-  static SizesHistogram from(ProgramInfo info, HistogramType type) {
+  static Histogram fromIterable<T>(
+    Iterable<T> entries, {
+    @required int Function(T) sizeOf,
+    @required String Function(T) bucketFor,
+    @required BucketInfo bucketInfo,
+  }) {
+    final buckets = <String, int>{};
+
+    for (var e in entries) {
+      final bucket = bucketFor(e);
+      final size = sizeOf(e);
+      buckets[bucket] = (buckets[bucket] ?? 0) + size;
+    }
+
+    return Histogram._(bucketInfo, buckets);
+  }
+}
+
+/// Construct the histogram of specific [type] given a [ProgramInfo].
+Histogram computeHistogram(ProgramInfo info, HistogramType type,
+    {String filter}) {
+  bool Function(String, String, String) matchesFilter;
+
+  if (filter != null) {
+    final re = RegExp(filter.replaceAll('*', '.*'), caseSensitive: false);
+    matchesFilter = (lib, cls, fun) => re.hasMatch("${lib}::${cls}.${fun}");
+  } else {
+    matchesFilter = (_, __, ___) => true;
+  }
+
+  if (type == HistogramType.byNodeType) {
+    final Set<int> filteredNodes = {};
+    if (filter != null) {
+      info.visit((pkg, lib, cls, fun, node) {
+        if (matchesFilter(lib, cls, fun)) {
+          filteredNodes.add(node.id);
+        }
+      });
+    }
+
+    return Histogram.fromIterable<Node>(
+        info.snapshotInfo.snapshot.nodes.where((n) =>
+            filter == null ||
+            filteredNodes.contains(info.snapshotInfo.ownerOf(n).id)),
+        sizeOf: (n) {
+          return n.selfSize;
+        },
+        bucketFor: (n) => n.type,
+        bucketInfo: const BucketInfo(nameComponents: ['Type']));
+  } else {
     final buckets = <String, int>{};
     final bucketing = Bucketing._forType[type];
 
-    var totalSize = 0;
-    info.visit((pkg, lib, cls, fun, size) {
+    info.visit((pkg, lib, cls, fun, node) {
+      if (node.size == null || node.size == 0) {
+        return;
+      }
+
       final bucket = bucketing.bucketFor(pkg, lib, cls, fun);
-      buckets[bucket] = (buckets[bucket] ?? 0) + size;
-      totalSize += size;
+      if (!matchesFilter(lib, cls, fun)) {
+        return;
+      }
+      buckets[bucket] = (buckets[bucket] ?? 0) + node.size;
     });
 
-    final bySize = buckets.keys.toList(growable: false);
-    bySize.sort((a, b) => buckets[b] - buckets[a]);
-
-    return SizesHistogram._(bucketing, buckets, bySize, totalSize);
+    return Histogram._(bucketing, buckets);
   }
 }
 
@@ -226,22 +276,28 @@ enum HistogramType {
   byClass,
   byLibrary,
   byPackage,
+  byNodeType,
 }
 
-abstract class Bucketing {
+class BucketInfo {
   /// Specifies which human readable name components can be extracted from
   /// the bucket name.
-  List<String> get nameComponents;
+  final List<String> nameComponents;
 
+  /// Deconstructs bucket name into human readable components (the order matches
+  /// one returned by [nameComponents]).
+  List<String> namesFromBucket(String bucket) => [bucket];
+
+  const BucketInfo({@required this.nameComponents});
+}
+
+abstract class Bucketing extends BucketInfo {
   /// Constructs the bucket name from the given library name [lib], class name
   /// [cls] and function name [fun].
   String bucketFor(String pkg, String lib, String cls, String fun);
 
-  /// Deconstructs bucket name into human readable components (the order matches
-  /// one returned by [nameComponents]).
-  List<String> namesFromBucket(String bucket);
-
-  const Bucketing();
+  const Bucketing({@required List<String> nameComponents})
+      : super(nameComponents: nameComponents);
 
   static const _forType = {
     HistogramType.bySymbol: _BucketBySymbol(),
@@ -256,9 +312,6 @@ const String _nameSeparator = ';;;';
 
 class _BucketBySymbol extends Bucketing {
   @override
-  List<String> get nameComponents => const ['Library', 'Symbol'];
-
-  @override
   String bucketFor(String pkg, String lib, String cls, String fun) {
     if (fun == null) {
       return '@other${_nameSeparator}';
@@ -269,13 +322,10 @@ class _BucketBySymbol extends Bucketing {
   @override
   List<String> namesFromBucket(String bucket) => bucket.split(_nameSeparator);
 
-  const _BucketBySymbol();
+  const _BucketBySymbol() : super(nameComponents: const ['Library', 'Symbol']);
 }
 
 class _BucketByClass extends Bucketing {
-  @override
-  List<String> get nameComponents => ['Library', 'Class'];
-
   @override
   String bucketFor(String pkg, String lib, String cls, String fun) {
     if (cls == null) {
@@ -287,34 +337,22 @@ class _BucketByClass extends Bucketing {
   @override
   List<String> namesFromBucket(String bucket) => bucket.split(_nameSeparator);
 
-  const _BucketByClass();
+  const _BucketByClass() : super(nameComponents: const ['Library', 'Class']);
 }
 
 class _BucketByLibrary extends Bucketing {
   @override
-  List<String> get nameComponents => ['Library'];
-
-  @override
   String bucketFor(String pkg, String lib, String cls, String fun) => '$lib';
 
-  @override
-  List<String> namesFromBucket(String bucket) => [bucket];
-
-  const _BucketByLibrary();
+  const _BucketByLibrary() : super(nameComponents: const ['Library']);
 }
 
 class _BucketByPackage extends Bucketing {
   @override
-  List<String> get nameComponents => ['Package'];
-
-  @override
   String bucketFor(String pkg, String lib, String cls, String fun) =>
       pkg ?? lib;
 
-  @override
-  List<String> namesFromBucket(String bucket) => [bucket];
-
-  const _BucketByPackage();
+  const _BucketByPackage() : super(nameComponents: const ['Package']);
 }
 
 String packageOf(String lib) {

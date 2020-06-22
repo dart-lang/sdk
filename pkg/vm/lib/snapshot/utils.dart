@@ -31,15 +31,18 @@ Future<ProgramInfo> loadProgramInfo(File input,
   }
 }
 
-void printHistogram(SizesHistogram histogram,
+void printHistogram(ProgramInfo info, Histogram histogram,
     {Iterable<String> prefix = const [],
     Iterable<String> suffix = const [],
     String sizeHeader = 'Size (Bytes)',
     int maxWidth = 0}) {
+  final totalSize = info.totalSize;
+  final wasFiltered = totalSize != histogram.totalSize;
   final table = AsciiTable(header: [
-    for (var col in histogram.bucketing.nameComponents) Text.left(col),
+    for (var col in histogram.bucketInfo.nameComponents) Text.left(col),
     Text.right(sizeHeader),
     Text.right('Percent'),
+    if (wasFiltered) Text.right('Of total'),
   ], maxWidth: maxWidth);
 
   String formatPercent(int value, int total) {
@@ -49,25 +52,27 @@ void printHistogram(SizesHistogram histogram,
 
   if (prefix.isNotEmpty) {
     for (var key in prefix) {
+      final size = histogram.buckets[key];
       table.addRow([
-        ...histogram.bucketing.namesFromBucket(key),
-        histogram.buckets[key].toString(),
-        formatPercent(histogram.buckets[key], histogram.totalSize),
+        ...histogram.bucketInfo.namesFromBucket(key),
+        size.toString(),
+        formatPercent(size, histogram.totalSize),
+        if (wasFiltered) formatPercent(size, totalSize),
       ]);
     }
     table.addSeparator(
         prefix.length < histogram.length ? Separator.Wave : Separator.Line);
   }
 
+  final visibleSize = [prefix, suffix]
+      .expand((l) => l)
+      .fold(0, (sum, key) => sum + histogram.buckets[key]);
   final numRestRows = histogram.length - (suffix.length + prefix.length);
   if (numRestRows > 0) {
-    final totalRestBytes = histogram.totalSize -
-        [prefix, suffix]
-            .expand((l) => l)
-            .fold(0, (sum, key) => sum + histogram.buckets[key]);
+    final totalRestBytes = histogram.totalSize - visibleSize;
     table.addTextSeparator(
         '$numRestRows more rows accounting for ${totalRestBytes}'
-        ' (${formatPercent(totalRestBytes, histogram.totalSize)}) bytes');
+        ' (${formatPercent(totalRestBytes, totalSize)} of total) bytes');
     final avg = (totalRestBytes / numRestRows).round();
     table.addTextSeparator(
         'on average that is ${avg} (${formatPercent(avg, histogram.totalSize)})'
@@ -78,7 +83,7 @@ void printHistogram(SizesHistogram histogram,
   if (suffix.isNotEmpty) {
     for (var key in suffix) {
       table.addRow([
-        ...histogram.bucketing.namesFromBucket(key),
+        ...histogram.bucketInfo.namesFromBucket(key),
         histogram.buckets[key].toString(),
         formatPercent(histogram.buckets[key], histogram.totalSize),
       ]);
@@ -87,5 +92,10 @@ void printHistogram(SizesHistogram histogram,
   }
 
   table.render();
-  print('Total: ${histogram.totalSize} bytes');
+
+  if (wasFiltered || visibleSize != histogram.totalSize) {
+    print('In visible rows: ${visibleSize}'
+        ' (${formatPercent(visibleSize, totalSize)} of total)');
+  }
+  print('Total: ${totalSize} bytes');
 }
