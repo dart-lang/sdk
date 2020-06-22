@@ -110,6 +110,9 @@ enum MatchOpCode {
   // Matches a branch and moves right.
   kMatchAndMoveBranchFalse,
 
+  // Is ignored.
+  kNop,
+
   // Moves forward across any instruction.
   kMoveAny,
 

@@ -6,6 +6,7 @@
 #include "vm/globals.h"
 
 // For `AllocateObjectInstr::WillAllocateNewOrRemembered`
+// For `GenericCheckBoundInstr::UseUnboxedRepresentation`
 #include "vm/compiler/backend/il.h"
 
 #define SHOULD_NOT_INCLUDE_RUNTIME
@@ -164,14 +165,11 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ Ret();
 }
 
-void GenerateSharedStub(
-    Assembler* assembler,
-    bool save_fpu_registers,
-    const RuntimeEntry* target,
-    intptr_t self_code_stub_offset_from_thread,
-    bool allow_return,
-    bool store_runtime_result_in_r0 = false,
-    std::initializer_list<Register> runtime_call_arguments = {}) {
+void GenerateSharedStubGeneric(Assembler* assembler,
+                               bool save_fpu_registers,
+                               intptr_t self_code_stub_offset_from_thread,
+                               bool allow_return,
+                               std::function<void()> perform_runtime_call) {
   // If the target CPU does not support VFP the caller should always use the
   // non-FPU stub.
   if (save_fpu_registers && !TargetCPUFeatures::vfp_supported()) {
@@ -187,42 +185,43 @@ void GenerateSharedStub(
   // To make the stack map calculation architecture independent we do the same
   // as on intel.
   __ Push(LR);
-
   __ PushRegisters(all_registers);
   __ ldr(CODE_REG, Address(THR, self_code_stub_offset_from_thread));
   __ EnterStubFrame();
-
-  if (store_runtime_result_in_r0) {
-    ASSERT(all_registers.ContainsRegister(R0));
-    ASSERT(allow_return);
-
-    // Push an even value so it will not be seen as a pointer
-    __ Push(LR);
-  }
-
-  for (Register argument_reg : runtime_call_arguments) {
-    __ PushRegister(argument_reg);
-  }
-  __ CallRuntime(*target, /*argument_count=*/runtime_call_arguments.size());
+  perform_runtime_call();
   if (!allow_return) {
     __ Breakpoint();
     return;
   }
-
-  __ Drop(runtime_call_arguments.size());
-  if (store_runtime_result_in_r0) {
-    __ Pop(R0);
-  }
   __ LeaveStubFrame();
-  if (store_runtime_result_in_r0) {
-    // Stores the runtime result in stack where R0 was pushed ( R0 is the very
-    // last register to be pushed by __ PushRegisters(all_registers) )
-    __ str(R0, Address(SP));
-  }
-
   __ PopRegisters(all_registers);
   __ Pop(LR);
   __ bx(LR);
+}
+
+static void GenerateSharedStub(Assembler* assembler,
+                               bool save_fpu_registers,
+                               const RuntimeEntry* target,
+                               intptr_t self_code_stub_offset_from_thread,
+                               bool allow_return,
+                               bool store_runtime_result_in_r0 = false) {
+  ASSERT(!store_runtime_result_in_r0 || allow_return);
+  auto perform_runtime_call = [&]() {
+    if (store_runtime_result_in_r0) {
+      __ PushRegister(LR);  // Push an even register.
+    }
+    __ CallRuntime(*target, /*argument_count=*/0);
+    if (store_runtime_result_in_r0) {
+      __ PopRegister(R0);
+      __ str(
+          R0,
+          Address(FP, target::kWordSize *
+                          StubCodeCompiler::WordOffsetFromFpToCpuRegister(R0)));
+    }
+  };
+  GenerateSharedStubGeneric(assembler, save_fpu_registers,
+                            self_code_stub_offset_from_thread, allow_return,
+                            perform_runtime_call);
 }
 
 // R1: The extracted method.
@@ -497,7 +496,7 @@ void StubCodeCompiler::GenerateNullErrorSharedWithoutFPURegsStub(
   GenerateSharedStub(
       assembler, /*save_fpu_registers=*/false, &kNullErrorRuntimeEntry,
       target::Thread::null_error_shared_without_fpu_regs_stub_offset(),
-      /*allow_return=*/false, {});
+      /*allow_return=*/false);
 }
 
 void StubCodeCompiler::GenerateNullErrorSharedWithFPURegsStub(
@@ -505,7 +504,7 @@ void StubCodeCompiler::GenerateNullErrorSharedWithFPURegsStub(
   GenerateSharedStub(
       assembler, /*save_fpu_registers=*/true, &kNullErrorRuntimeEntry,
       target::Thread::null_error_shared_with_fpu_regs_stub_offset(),
-      /*allow_return=*/false, {});
+      /*allow_return=*/false);
 }
 
 void StubCodeCompiler::GenerateNullArgErrorSharedWithoutFPURegsStub(
@@ -513,7 +512,7 @@ void StubCodeCompiler::GenerateNullArgErrorSharedWithoutFPURegsStub(
   GenerateSharedStub(
       assembler, /*save_fpu_registers=*/false, &kArgumentNullErrorRuntimeEntry,
       target::Thread::null_arg_error_shared_without_fpu_regs_stub_offset(),
-      /*allow_return=*/false, {});
+      /*allow_return=*/false);
 }
 
 void StubCodeCompiler::GenerateNullArgErrorSharedWithFPURegsStub(
@@ -521,27 +520,34 @@ void StubCodeCompiler::GenerateNullArgErrorSharedWithFPURegsStub(
   GenerateSharedStub(
       assembler, /*save_fpu_registers=*/true, &kArgumentNullErrorRuntimeEntry,
       target::Thread::null_arg_error_shared_with_fpu_regs_stub_offset(),
-      /*allow_return=*/false, {});
+      /*allow_return=*/false);
+}
+
+static void GenerateRangeError(Assembler* assembler, bool with_fpu_regs) {
+  auto perform_runtime_call = [&]() {
+    ASSERT(!GenericCheckBoundInstr::UseUnboxedRepresentation());
+    __ PushRegister(RangeErrorABI::kLengthReg);
+    __ PushRegister(RangeErrorABI::kIndexReg);
+    __ CallRuntime(kRangeErrorRuntimeEntry, /*argument_count=*/2);
+    __ Breakpoint();
+  };
+
+  GenerateSharedStubGeneric(
+      assembler, /*save_fpu_registers=*/with_fpu_regs,
+      with_fpu_regs
+          ? target::Thread::range_error_shared_with_fpu_regs_stub_offset()
+          : target::Thread::range_error_shared_without_fpu_regs_stub_offset(),
+      /*allow_return=*/false, perform_runtime_call);
 }
 
 void StubCodeCompiler::GenerateRangeErrorSharedWithoutFPURegsStub(
     Assembler* assembler) {
-  GenerateSharedStub(
-      assembler, /*save_fpu_registers=*/false, &kRangeErrorRuntimeEntry,
-      target::Thread::range_error_shared_without_fpu_regs_stub_offset(),
-      /*allow_return=*/false,
-      /*store_runtime_result_in_r0=*/false,
-      {RangeErrorABI::kLengthReg, RangeErrorABI::kIndexReg});
+  GenerateRangeError(assembler, /*with_fpu_regs=*/false);
 }
 
 void StubCodeCompiler::GenerateRangeErrorSharedWithFPURegsStub(
     Assembler* assembler) {
-  GenerateSharedStub(
-      assembler, /*save_fpu_registers=*/true, &kRangeErrorRuntimeEntry,
-      target::Thread::range_error_shared_with_fpu_regs_stub_offset(),
-      /*allow_return=*/false,
-      /*store_runtime_result_in_r0=*/false,
-      {RangeErrorABI::kLengthReg, RangeErrorABI::kIndexReg});
+  GenerateRangeError(assembler, /*with_fpu_regs=*/true);
 }
 
 void StubCodeCompiler::GenerateStackOverflowSharedWithoutFPURegsStub(
@@ -549,7 +555,7 @@ void StubCodeCompiler::GenerateStackOverflowSharedWithoutFPURegsStub(
   GenerateSharedStub(
       assembler, /*save_fpu_registers=*/false, &kStackOverflowRuntimeEntry,
       target::Thread::stack_overflow_shared_without_fpu_regs_stub_offset(),
-      /*allow_return=*/true, {});
+      /*allow_return=*/true);
 }
 
 void StubCodeCompiler::GenerateStackOverflowSharedWithFPURegsStub(
@@ -557,7 +563,7 @@ void StubCodeCompiler::GenerateStackOverflowSharedWithFPURegsStub(
   GenerateSharedStub(
       assembler, /*save_fpu_registers=*/true, &kStackOverflowRuntimeEntry,
       target::Thread::stack_overflow_shared_with_fpu_regs_stub_offset(),
-      /*allow_return=*/true, {});
+      /*allow_return=*/true);
 }
 
 // Input parameters:
@@ -1204,7 +1210,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub(
                      &kAllocateMintRuntimeEntry,
                      target::Thread::allocate_mint_with_fpu_regs_stub_offset(),
                      /*allow_return=*/true,
-                     /*store_runtime_result_in_r0=*/true, {});
+                     /*store_runtime_result_in_r0=*/true);
 }
 
 // Called for allocation of Mint.
@@ -1223,7 +1229,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub(
       assembler, /*save_fpu_registers=*/false, &kAllocateMintRuntimeEntry,
       target::Thread::allocate_mint_without_fpu_regs_stub_offset(),
       /*allow_return=*/true,
-      /*store_runtime_result_in_r0=*/true, {});
+      /*store_runtime_result_in_r0=*/true);
 }
 
 // Called when invoking Dart code from C++ (VM code).

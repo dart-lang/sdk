@@ -20,6 +20,22 @@ namespace dart {
 
 namespace compiler {
 
+intptr_t StubCodeCompiler::WordOffsetFromFpToCpuRegister(
+    Register cpu_register) {
+  ASSERT(RegisterSet::Contains(kDartAvailableCpuRegs, cpu_register));
+
+  // Skip FP + saved PC.
+  intptr_t slots_from_fp = 2;
+  for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
+    Register reg = static_cast<Register>(i);
+    if (reg == cpu_register) break;
+    if (RegisterSet::Contains(kDartAvailableCpuRegs, reg)) {
+      slots_from_fp++;
+    }
+  }
+  return slots_from_fp;
+}
+
 void StubCodeCompiler::GenerateInitStaticFieldStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Make room for result.

@@ -1617,19 +1617,17 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  // The smi index is either untagged (element size == 1), or it is left smi
-  // tagged (for all element sizes > 1).
-  if (index_scale() == 1) {
-    locs->set_in(1,
-                 CanBeImmediateIndex(index(), class_id())
-                     ? Location::Constant(index()->definition()->AsConstant())
-                     : Location::WritableRegister());
-  } else {
-    locs->set_in(1,
-                 CanBeImmediateIndex(index(), class_id())
-                     ? Location::Constant(index()->definition()->AsConstant())
-                     : Location::RequiresRegister());
-  }
+  // For tagged index with index_scale=1 as well as untagged index with
+  // index_scale=16 we need a writable register due to assdressing mode
+  // restrictions on X64.
+  const bool need_writable_index_register =
+      (index_scale() == 1 && !index_unboxed_) ||
+      (index_scale() == 16 && index_unboxed_);
+  locs->set_in(
+      1, CanBeImmediateIndex(index(), class_id())
+             ? Location::Constant(index()->definition()->AsConstant())
+             : (need_writable_index_register ? Location::WritableRegister()
+                                             : Location::RequiresRegister()));
   if ((representation() == kUnboxedDouble) ||
       (representation() == kUnboxedFloat32x4) ||
       (representation() == kUnboxedInt32x4) ||
@@ -1646,21 +1644,26 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register array = locs()->in(0).reg();
   const Location index = locs()->in(1);
 
+  intptr_t index_scale = index_scale_;
+  if (index.IsRegister()) {
+    if (index_scale == 1 && !index_unboxed_) {
+      __ SmiUntag(index.reg());
+    } else if (index_scale == 16 && index_unboxed_) {
+      // X64 does not support addressing mode using TIMES_16.
+      __ SmiTag(index.reg());
+      index_scale >>= 1;
+    }
+  } else {
+    ASSERT(index.IsConstant());
+  }
+
   compiler::Address element_address =
       index.IsRegister() ? compiler::Assembler::ElementAddressForRegIndex(
-                               IsExternal(), class_id(), index_scale(),
+                               IsExternal(), class_id(), index_scale,
                                index_unboxed_, array, index.reg())
                          : compiler::Assembler::ElementAddressForIntIndex(
-                               IsExternal(), class_id(), index_scale(), array,
+                               IsExternal(), class_id(), index_scale, array,
                                Smi::Cast(index.constant()).Value());
-
-  if (index_scale() == 1 && !index_unboxed_) {
-    if (index.IsRegister()) {
-      __ SmiUntag(index.reg());
-    } else {
-      ASSERT(index.IsConstant());
-    }
-  }
 
   if (representation() == kUnboxedDouble ||
       representation() == kUnboxedFloat32x4 ||
@@ -1848,19 +1851,17 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  // The smi index is either untagged (element size == 1), or it is left smi
-  // tagged (for all element sizes > 1).
-  if (index_scale() == 1) {
-    locs->set_in(1,
-                 CanBeImmediateIndex(index(), class_id())
-                     ? Location::Constant(index()->definition()->AsConstant())
-                     : Location::WritableRegister());
-  } else {
-    locs->set_in(1,
-                 CanBeImmediateIndex(index(), class_id())
-                     ? Location::Constant(index()->definition()->AsConstant())
-                     : Location::RequiresRegister());
-  }
+  // For tagged index with index_scale=1 as well as untagged index with
+  // index_scale=16 we need a writable register due to assdressing mode
+  // restrictions on X64.
+  const bool need_writable_index_register =
+      (index_scale() == 1 && !index_unboxed_) ||
+      (index_scale() == 16 && index_unboxed_);
+  locs->set_in(
+      1, CanBeImmediateIndex(index(), class_id())
+             ? Location::Constant(index()->definition()->AsConstant())
+             : (need_writable_index_register ? Location::WritableRegister()
+                                             : Location::RequiresRegister()));
   switch (class_id()) {
     case kArrayCid:
       locs->set_in(2, ShouldEmitStoreBarrier()
@@ -1915,17 +1916,27 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register array = locs()->in(0).reg();
   const Location index = locs()->in(1);
 
+  intptr_t index_scale = index_scale_;
+  if (index.IsRegister()) {
+    if (index_scale == 1 && !index_unboxed_) {
+      __ SmiUntag(index.reg());
+    } else if (index_scale == 16 && index_unboxed_) {
+      // X64 does not support addressing mode using TIMES_16.
+      __ SmiTag(index.reg());
+      index_scale >>= 1;
+    }
+  } else {
+    ASSERT(index.IsConstant());
+  }
+
   compiler::Address element_address =
       index.IsRegister() ? compiler::Assembler::ElementAddressForRegIndex(
-                               IsExternal(), class_id(), index_scale(),
+                               IsExternal(), class_id(), index_scale,
                                index_unboxed_, array, index.reg())
                          : compiler::Assembler::ElementAddressForIntIndex(
-                               IsExternal(), class_id(), index_scale(), array,
+                               IsExternal(), class_id(), index_scale, array,
                                Smi::Cast(index.constant()).Value());
 
-  if ((index_scale() == 1) && index.IsRegister() && !index_unboxed_) {
-    __ SmiUntag(index.reg());
-  }
   switch (class_id()) {
     case kArrayCid:
       if (ShouldEmitStoreBarrier()) {

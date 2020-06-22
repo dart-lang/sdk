@@ -5564,6 +5564,8 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
   ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
@@ -5863,6 +5865,8 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
   ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
@@ -8697,6 +8701,12 @@ class CheckArrayBoundInstr : public CheckBoundBase {
 // or otherwise throws an out-of-bounds exception (viz. non-speculative).
 class GenericCheckBoundInstr : public CheckBoundBase {
  public:
+  // We prefer to have unboxed inputs on 64-bit where values can fit into a
+  // register.
+  static bool UseUnboxedRepresentation() {
+    return compiler::target::kWordSize == 8;
+  }
+
   GenericCheckBoundInstr(Value* length, Value* index, intptr_t deopt_id)
       : CheckBoundBase(length, index, deopt_id) {}
 
@@ -8706,6 +8716,21 @@ class GenericCheckBoundInstr : public CheckBoundBase {
 
   virtual CompileType ComputeType() const;
   virtual bool RecomputeType();
+
+  virtual intptr_t DeoptimizationTarget() const { return DeoptId::kNone; }
+
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return kNotSpeculative;
+  }
+
+  virtual Representation representation() const {
+    return UseUnboxedRepresentation() ? kUnboxedInt64 : kTagged;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == kIndexPos || idx == kLengthPos);
+    return UseUnboxedRepresentation() ? kUnboxedInt64 : kTagged;
+  }
 
   // GenericCheckBound can implicitly call Dart code (RangeError or
   // ArgumentError constructor), so it can lazily deopt.

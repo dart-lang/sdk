@@ -279,6 +279,9 @@ Instruction* ILMatcher::MatchInternal(std::vector<MatchCode> match_codes,
     if (branch == nullptr) return nullptr;
     return branch->false_successor();
   }
+  if (opcode == kNop) {
+    return cursor;
+  }
   if (opcode == kMoveAny) {
     return cursor->next();
   }
@@ -346,6 +349,9 @@ const char* ILMatcher::MatchOpCodeToCString(MatchOpCode opcode) {
   }
   if (opcode == kMatchAndMoveBranchFalse) {
     return "kMatchAndMoveBranchFalse";
+  }
+  if (opcode == kNop) {
+    return "kNop";
   }
   if (opcode == kMoveAny) {
     return "kMoveAny";

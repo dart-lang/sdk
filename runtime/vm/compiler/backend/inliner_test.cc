@@ -220,6 +220,7 @@ ISOLATE_UNIT_TEST_CASE(Inliner_List_generate) {
     RELEASE_ASSERT(cursor.TryMatch({
         kMoveGlob,
         kMatchAndMoveCreateArray,
+        kWordSize == 8 ? kMatchAndMoveUnboxInt64 : kNop,
         kMatchAndMoveGoto,
 
         // Loop header
@@ -231,6 +232,7 @@ ISOLATE_UNIT_TEST_CASE(Inliner_List_generate) {
 
         // Loop body
         kMatchAndMoveTargetEntry,
+        kWordSize == 8 ? kMatchAndMoveUnboxInt64 : kNop,
         kMatchAndMoveGenericCheckBound,
         kMatchAndMoveStoreIndexed,
         kMatchAndMoveCheckedSmiOp,
@@ -247,7 +249,6 @@ ISOLATE_UNIT_TEST_CASE(Inliner_List_generate) {
         kMatchAndMoveTargetEntry,
         kMatchReturn,
     }));
-
   } else {
     Instruction* unbox1 = nullptr;
     Instruction* unbox2 = nullptr;
@@ -267,7 +268,7 @@ ISOLATE_UNIT_TEST_CASE(Inliner_List_generate) {
 
         // Loop body
         kMatchAndMoveTargetEntry,
-        kMatchAndMoveBoxInt64,
+        kWordSize == 4 ? kMatchAndMoveBoxInt64 : kNop,
         kMatchAndMoveBoxInt64,
         kMatchAndMoveStoreIndexed,
         kMatchAndMoveBinaryInt64Op,
