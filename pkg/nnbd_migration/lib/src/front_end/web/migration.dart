@@ -678,12 +678,12 @@ void writeNavigationSubtree(
       arrow.innerHtml = '&#x25BC;';
       Element icon = document.createElement('span');
       li.append(icon);
-      icon.innerHtml = '&#x1F4C1;';
+      icon.innerHtml = '<span class="material-icons">folder_open</span>';
       li.append(Text(entity.name));
       writeNavigationSubtree(li, entity.subtree);
       addArrowClickHandler(arrow);
     } else {
-      li.innerHtml = '&#x1F4C4;';
+      li.innerHtml = '<span class="material-icons">insert_drive_file</span>';
       Element a = document.createElement('a');
       li.append(a);
       a.classes.add('nav-link');

@@ -9,11 +9,12 @@ import 'package:nnbd_migration/src/front_end/resources/resources.g.dart'
 import 'package:nnbd_migration/src/preview/preview_page.dart';
 import 'package:nnbd_migration/src/preview/preview_site.dart';
 
-/// The page that contains the Dart logo.
-class DartLogoPage extends PreviewPage {
-  /// Initialize a newly created Dart logo page within the given [site].
-  DartLogoPage(PreviewSite site)
-      : super(site, PreviewSite.dartLogoPath.substring(1));
+/// The page that contains the CSS used to style the semantic highlighting
+/// within a Dart file.
+class RobotoPage extends PreviewPage {
+  /// Initialize a newly created CSS page within the given [site].
+  RobotoPage(PreviewSite site)
+      : super(site, PreviewSite.robotoFontPath.substring(1));
 
   @override
   bool get requiresAuth => false;
@@ -25,6 +26,6 @@ class DartLogoPage extends PreviewPage {
 
   @override
   Future<void> generatePage(Map<String, String> params) async {
-    buf.write(resources.dart_192_png);
+    buf.write(resources.RobotoRegular_ttf);
   }
 }
