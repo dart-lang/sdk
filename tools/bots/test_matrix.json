@@ -2630,7 +2630,6 @@
           "name": "dart2js nnbd unit tests",
           "arguments": [
             "-nunittest-weak-asserts-no-sdk-linux",
-            "dart2js_2",
             "pkg//compiler/"
           ]
         }
