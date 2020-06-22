@@ -573,18 +573,32 @@ CodeSourceMapPtr CodeSourceMapBuilder::Finalize() {
 
 void CodeSourceMapBuilder::WriteChangePosition(TokenPosition pos) {
   stream_.Write<uint8_t>(kChangePosition);
+  intptr_t position_or_line = pos.value();
+#if defined(DART_PRECOMPILER)
+  intptr_t column = TokenPosition::kNoSourcePos;
   if (FLAG_precompiled_mode) {
-    int32_t loc = TokenPosition::kNoSourcePos;
+    // Don't use the raw position value directly in precompiled mode. Instead,
+    // use the value of kNoSource as a fallback when no line or column
+    // information is found.
+    position_or_line = TokenPosition::kNoSourcePos;
     intptr_t inline_id = buffered_inline_id_stack_.Last();
     if (inline_id < inline_id_to_function_.length()) {
       const Function* function = inline_id_to_function_[inline_id];
       Script& script = Script::Handle(function->script());
-      loc = script.GetTokenLocationUsingLineStarts(pos.SourcePosition());
+      script.GetTokenLocationUsingLineStarts(pos.SourcePosition(),
+                                             &position_or_line, &column);
     }
-    stream_.Write(loc);
-  } else {
-    stream_.Write<int32_t>(pos.value());
   }
+#endif
+  stream_.Write<int32_t>(position_or_line);
+#if defined(DART_PRECOMPILER)
+  // For non-symbolic stack traces, the CodeSourceMaps are not serialized,
+  // so we need not worry about increasing snapshot size by including more
+  // information here.
+  if (FLAG_dwarf_stack_traces_mode) {
+    stream_.Write<int32_t>(column);
+  }
+#endif
   written_token_pos_stack_.Last() = pos;
 }
 
@@ -606,9 +620,8 @@ void CodeSourceMapReader::GetInlinedFunctionsAt(
     uint8_t opcode = stream.Read<uint8_t>();
     switch (opcode) {
       case CodeSourceMapBuilder::kChangePosition: {
-        int32_t position = stream.Read<int32_t>();
         (*token_positions)[token_positions->length() - 1] =
-            TokenPosition(position);
+            ReadPosition(&stream);
         break;
       }
       case CodeSourceMapBuilder::kAdvancePC: {
@@ -668,7 +681,7 @@ void CodeSourceMapReader::PrintJSONInlineIntervals(JSONObject* jsobj) {
     uint8_t opcode = stream.Read<uint8_t>();
     switch (opcode) {
       case CodeSourceMapBuilder::kChangePosition: {
-        stream.Read<int32_t>();
+        ReadPosition(&stream);
         break;
       }
       case CodeSourceMapBuilder::kAdvancePC: {
@@ -721,7 +734,7 @@ void CodeSourceMapReader::DumpInlineIntervals(uword start) {
     uint8_t opcode = stream.Read<uint8_t>();
     switch (opcode) {
       case CodeSourceMapBuilder::kChangePosition: {
-        stream.Read<int32_t>();
+        ReadPosition(&stream);
         break;
       }
       case CodeSourceMapBuilder::kAdvancePC: {
@@ -775,8 +788,7 @@ void CodeSourceMapReader::DumpSourcePositions(uword start) {
     uint8_t opcode = stream.Read<uint8_t>();
     switch (opcode) {
       case CodeSourceMapBuilder::kChangePosition: {
-        int32_t position = stream.Read<int32_t>();
-        token_positions[token_positions.length() - 1] = TokenPosition(position);
+        token_positions[token_positions.length() - 1] = ReadPosition(&stream);
         break;
       }
       case CodeSourceMapBuilder::kAdvancePC: {
@@ -830,7 +842,7 @@ intptr_t CodeSourceMapReader::GetNullCheckNameIndexAt(int32_t pc_offset) {
     uint8_t opcode = stream.Read<uint8_t>();
     switch (opcode) {
       case CodeSourceMapBuilder::kChangePosition: {
-        stream.Read<int32_t>();
+        ReadPosition(&stream);
         break;
       }
       case CodeSourceMapBuilder::kAdvancePC: {
@@ -860,6 +872,19 @@ intptr_t CodeSourceMapReader::GetNullCheckNameIndexAt(int32_t pc_offset) {
 
   UNREACHABLE();
   return -1;
+}
+
+TokenPosition CodeSourceMapReader::ReadPosition(ReadStream* stream) {
+  const intptr_t line = stream->Read<int32_t>();
+#if defined(DART_PRECOMPILER)
+  // The special handling for non-symbolic stack trace mode only needs to
+  // happen in the precompiler, because those CSMs are not serialized in
+  // precompiled snapshots.
+  if (FLAG_dwarf_stack_traces_mode) {
+    stream->Read<int32_t>();  // Discard the column information.
+  }
+#endif
+  return TokenPosition(line);
 }
 
 }  // namespace dart

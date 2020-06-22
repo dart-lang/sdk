@@ -325,9 +325,6 @@ class Dwarf : public ZoneAllocated {
     kInlinedFunction,
   };
 
-  static constexpr intptr_t kNoLineInformation = 0;
-  static constexpr intptr_t kNoColumnInformation = 0;
-
   void WriteAbstractFunctions(DwarfWriteStream* stream);
   void WriteConcreteFunctions(DwarfWriteStream* stream);
   InliningNode* ExpandInliningTree(const Code& code);
