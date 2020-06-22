@@ -242,13 +242,13 @@ class Node {
 class SnapshotInfo {
   final Snapshot snapshot;
 
-  final List<ProgramInfoNode> _infoNodes;
+  final List<ProgramInfoNode> infoNodes;
   final Map<int, int> _ownerOf;
 
-  SnapshotInfo._(this.snapshot, this._infoNodes, this._ownerOf);
+  SnapshotInfo._(this.snapshot, this.infoNodes, this._ownerOf);
 
   ProgramInfoNode ownerOf(Node node) =>
-      _infoNodes[_ownerOf[node.index] ?? ProgramInfo.unknownId];
+      infoNodes[_ownerOf[node.index] ?? ProgramInfo.unknownId];
 }
 
 ProgramInfo toProgramInfo(Snapshot snap,

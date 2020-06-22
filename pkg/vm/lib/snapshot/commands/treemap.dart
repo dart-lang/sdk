@@ -19,6 +19,8 @@ import 'package:path/path.dart' as p;
 import 'package:args/command_runner.dart';
 
 import 'package:vm/snapshot/instruction_sizes.dart' as instruction_sizes;
+import 'package:vm/snapshot/program_info.dart';
+import 'package:vm/snapshot/v8_profile.dart' as v8_profile;
 import 'package:vm/snapshot/utils.dart';
 
 class TreemapCommand extends Command<void> {
@@ -30,7 +32,7 @@ class TreemapCommand extends Command<void> {
 Create interactive treemap from snapshot profiling information.
 
 This tool is used to process snapshot size reports produced by
---print-instructions-sizes-to=symbol-sizes.json.
+--print-instructions-sizes-to and --write-v8-snapshot-profile-to flags.
 
 It will create an interactive web-page in the output-directory which can be
 viewed in a browser:
@@ -74,11 +76,17 @@ viewed in a browser:
 Future<void> generateTreeMap(File input, Directory outputDir) async {
   // Load symbols data produced by the AOT compiler and convert it to
   // a tree.
-  final symbols = instruction_sizes.fromJson(await loadJson(input));
+  final inputJson = await loadJson(input);
 
   final root = {'n': '', 'children': {}, 'k': kindPath, 'maxDepth': 0};
-  for (var symbol in symbols) {
-    addSymbol(root, treePath(symbol), symbol.name.scrubbed, symbol.size);
+
+  if (v8_profile.Snapshot.isV8HeapSnapshot(inputJson)) {
+    treemapFromSnapshot(root, v8_profile.Snapshot.fromJson(inputJson));
+  } else {
+    final symbols = instruction_sizes.fromJson(inputJson);
+    for (var symbol in symbols) {
+      addSymbol(root, treePath(symbol), symbol.name.scrubbed, symbol.size);
+    }
   }
   final tree = flatten(root);
 
@@ -113,6 +121,42 @@ Future<void> generateTreeMap(File input, Directory outputDir) async {
   print('Generated ${p.toUri(p.absolute(outputDir.path, 'index.html'))}');
 }
 
+void treemapFromSnapshot(Map<String, dynamic> root, v8_profile.Snapshot snap) {
+  final info = v8_profile.toProgramInfo(snap);
+
+  final ownerPathCache = List<String>(info.snapshotInfo.infoNodes.length);
+  ownerPathCache[info.root.id] = info.root.name;
+
+  String nameOf(v8_profile.Node node) {
+    switch (node.type) {
+      case 'Library':
+      case 'Class':
+      case 'Function':
+        return node.name;
+
+      default:
+        return '${node.type}';
+    }
+  }
+
+  String ownerPath(ProgramInfoNode n) {
+    return ownerPathCache[n.id] ??=
+        ((n.parent != info.root) ? '${ownerPath(n.parent)}/${n.name}' : n.name);
+  }
+
+  for (var node in snap.nodes) {
+    if (node.selfSize > 0) {
+      final owner = info.snapshotInfo.ownerOf(node);
+      final path = ownerPath(owner);
+      final name = nameOf(node);
+      addSymbol(root, path, name, node.selfSize,
+          symbolType: node.type == '(RO) Instructions'
+              ? symbolTypeGlobalText
+              : symbolTypeGlobalInitializedData);
+    }
+  }
+}
+
 /// Returns a /-separated path to the given symbol within the treemap.
 String treePath(instruction_sizes.SymbolInfo symbol) {
   if (symbol.name.isStub) {
@@ -130,14 +174,12 @@ const kindSymbol = 's';
 const kindPath = 'p';
 const kindBucket = 'b';
 const symbolTypeGlobalText = 'T';
+const symbolTypeGlobalInitializedData = 'D';
 
 /// Create a child with the given name within the given node or return
 /// an existing child.
 Map<String, dynamic> addChild(
     Map<String, dynamic> node, String kind, String name) {
-  if (kind == kindSymbol && node['children'].containsKey(name)) {
-    print('Duplicate symbol ${name}');
-  }
   return node['children'].putIfAbsent(name, () {
     final n = <String, dynamic>{'n': name, 'k': kind};
     if (kind != kindSymbol) {
@@ -148,7 +190,8 @@ Map<String, dynamic> addChild(
 }
 
 /// Add the given symbol to the tree.
-void addSymbol(Map<String, dynamic> root, String path, String name, int size) {
+void addSymbol(Map<String, dynamic> root, String path, String name, int size,
+    {String symbolType: symbolTypeGlobalText}) {
   var node = root;
   var depth = 0;
   for (var part in path.split('/')) {
@@ -156,11 +199,11 @@ void addSymbol(Map<String, dynamic> root, String path, String name, int size) {
     depth++;
   }
   node['lastPathElement'] = true;
-  node = addChild(node, kindBucket, symbolTypeGlobalText);
-  node['t'] = symbolTypeGlobalText;
+  node = addChild(node, kindBucket, symbolType);
+  node['t'] = symbolType;
   node = addChild(node, kindSymbol, name);
-  node['t'] = symbolTypeGlobalText;
-  node['value'] = size;
+  node['t'] = symbolType;
+  node['value'] = (node['value'] ?? 0) + size;
   depth += 2;
   root['maxDepth'] = max<int>(root['maxDepth'], depth);
 }
