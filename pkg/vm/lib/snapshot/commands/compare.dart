@@ -14,6 +14,7 @@ import 'package:vm/snapshot/ascii_table.dart';
 
 import 'package:vm/snapshot/program_info.dart';
 import 'package:vm/snapshot/utils.dart';
+import 'package:vm/snapshot/v8_profile.dart';
 
 class CompareCommand extends Command<void> {
   @override
@@ -143,5 +144,9 @@ precisely based on their source position (which is included in their name).
     print('Old   : ${totalOld} bytes.');
     print('New   : ${totalNew} bytes.');
     print('Change: ${totalDiff > 0 ? '+' : ''}${totalDiff} bytes.');
+
+    if (oldSizes.snapshotInfo != null) {
+      print(bucketLegend);
+    }
   }
 }

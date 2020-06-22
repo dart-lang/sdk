@@ -537,3 +537,28 @@ class _ProgramInfoBuilder {
     return pathA[i];
   }
 }
+
+final bucketLegend = '''
+
+--------------------------------------------------------------------------------
+IMPORTANT: Dart AOT snapshot is a serialized representation of Dart VM heap.
+Outside of few specific cases (e.g. an object representing a library clearly
+originates from the library it represents) there is no well defined relationship
+between snapshot bytes and a specific method/class/library to which these
+bytes can be attributed with certainty. This snapshot analysis tool tries
+to attribute bytes to specific program structure elements based on their
+reachability from objects with well defined origin - meaning that this analysis
+has some margin of error and imprecision.
+
+- @other bucket denotes bytes attributed to entities outside of the current
+granularity. For example, when breaking down the size by method name there
+might be bytes which exist outside of any specific symbol - in which case
+they will be attributed to @other.
+- @stubs bucket accumulates bytes attributed to stubs (pieces of machine code
+produced by the VM for internal purposes).
+- @shared bucket accumulates bytes shared between otherwise unrelated program
+entities
+- @unknown bucket accumulates bytes which are not reachable from any program
+structure nodes (usually VM internal objects).
+--------------------------------------------------------------------------------
+''';

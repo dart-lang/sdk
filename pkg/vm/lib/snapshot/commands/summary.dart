@@ -15,6 +15,7 @@ import 'package:args/command_runner.dart';
 import 'package:vm/snapshot/ascii_table.dart';
 import 'package:vm/snapshot/program_info.dart';
 import 'package:vm/snapshot/utils.dart';
+import 'package:vm/snapshot/v8_profile.dart';
 
 class SummaryCommand extends Command<void> {
   @override
@@ -123,5 +124,7 @@ void outputSummary(File input,
         computeHistogram(info, HistogramType.byNodeType, filter: filter);
     printHistogram(info, typeHistogram,
         prefix: typeHistogram.bySize, maxWidth: maxWidth);
+
+    print(bucketLegend);
   }
 }
