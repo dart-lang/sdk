@@ -1,4 +1,4 @@
-## 1.2.0-dev
+## 1.2.0-nnbd
 
 * Opt into null safety.
 
