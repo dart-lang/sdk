@@ -890,7 +890,7 @@ dart_ci_sandbox_builder("ddk-linux-release-firefox", category="ddc|fl")
 
 # misc
 dart_ci_sandbox_builder(
-    "gclient", recipe="dart/gclient", category="misc|g", on_cq=True)
+    "gclient", recipe="dart/gclient", category="misc|g")
 dart_ci_builder(
     "debianpackage-linux",
     category="misc|dp",
