@@ -65,8 +65,6 @@ abstract class HVisitor<R> {
   R visitInvokeSuper(HInvokeSuper node);
   R visitInvokeConstructorBody(HInvokeConstructorBody node);
   R visitInvokeGeneratorBody(HInvokeGeneratorBody node);
-  R visitIs(HIs node);
-  R visitIsViaInterceptor(HIsViaInterceptor node);
   R visitLateValue(HLateValue node);
   R visitLazyStatic(HLazyStatic node);
   R visitLess(HLess node);
@@ -578,11 +576,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   @override
   visitTry(HTry node) => visitControlFlow(node);
   @override
-  visitIs(HIs node) => visitInstruction(node);
-  @override
   visitLateValue(HLateValue node) => visitInstruction(node);
-  @override
-  visitIsViaInterceptor(HIsViaInterceptor node) => visitInstruction(node);
   @override
   visitBoolConversion(HBoolConversion node) => visitCheck(node);
   @override
@@ -1074,12 +1068,10 @@ abstract class HInstruction implements Spannable {
   static const int TYPE_KNOWN_TYPECODE = 26;
   static const int INVOKE_STATIC_TYPECODE = 27;
   static const int INDEX_TYPECODE = 28;
-  static const int IS_TYPECODE = 29;
-  static const int INVOKE_DYNAMIC_TYPECODE = 30;
-  static const int SHIFT_RIGHT_TYPECODE = 31;
+  static const int INVOKE_DYNAMIC_TYPECODE = 29;
+  static const int SHIFT_RIGHT_TYPECODE = 30;
 
   static const int TRUNCATING_DIVIDE_TYPECODE = 36;
-  static const int IS_VIA_INTERCEPTOR_TYPECODE = 37;
 
   static const int INVOKE_EXTERNAL_TYPECODE = 41;
   static const int FOREIGN_CODE_TYPECODE = 42;
@@ -3474,136 +3466,6 @@ class HIndexAssign extends HInstruction {
   @override
   bool canThrow(AbstractValueDomain domain) =>
       receiver.isNull(domain).isPotentiallyTrue;
-}
-
-/// Is-test using legacy constructor based typ representation.
-class HIs extends HInstruction {
-  /// A check against a raw type: 'o is int', 'o is A'.
-  static const int RAW_CHECK = 0;
-
-  /// A check against a type with type arguments: 'o is List<int>', 'o is C<T>'.
-  static const int COMPOUND_CHECK = 1;
-
-  /// A check against a single type variable: 'o is T'.
-  static const int VARIABLE_CHECK = 2;
-
-  final DartType typeExpression;
-  final int kind;
-  final bool useInstanceOf;
-
-  HIs.direct(DartType typeExpression, HInstruction expression,
-      AbstractValue type, SourceInformation sourceInformation)
-      : this.internal(
-            typeExpression, [expression], RAW_CHECK, type, sourceInformation);
-
-  // Pre-verified that the check can be done using 'instanceof'.
-  HIs.instanceOf(DartType typeExpression, HInstruction expression,
-      AbstractValue type, SourceInformation sourceInformation)
-      : this.internal(
-            typeExpression, [expression], RAW_CHECK, type, sourceInformation,
-            useInstanceOf: true);
-
-  factory HIs.raw(
-      DartType typeExpression,
-      HInstruction expression,
-      HInterceptor interceptor,
-      AbstractValue type,
-      SourceInformation sourceInformation) {
-    // TODO(sigmund): re-add `&& typeExpression.treatAsRaw` or something
-    // equivalent (which started failing once we allowed typeExpressions that
-    // contain type parameters matching the original bounds of the type).
-    assert((typeExpression is FunctionType || typeExpression is InterfaceType),
-        "Unexpected raw is-test type: $typeExpression");
-    return new HIs.internal(typeExpression, [expression, interceptor],
-        RAW_CHECK, type, sourceInformation);
-  }
-
-  HIs.compound(
-      DartType typeExpression,
-      HInstruction expression,
-      HInstruction call,
-      AbstractValue type,
-      SourceInformation sourceInformation)
-      : this.internal(typeExpression, [expression, call], COMPOUND_CHECK, type,
-            sourceInformation);
-
-  HIs.variable(
-      DartType typeExpression,
-      HInstruction expression,
-      HInstruction call,
-      AbstractValue type,
-      SourceInformation sourceInformation)
-      : this.internal(typeExpression, [expression, call], VARIABLE_CHECK, type,
-            sourceInformation);
-
-  HIs.internal(this.typeExpression, List<HInstruction> inputs, this.kind,
-      AbstractValue type, SourceInformation sourceInformation,
-      {bool this.useInstanceOf: false})
-      : super(inputs, type) {
-    assert(kind >= RAW_CHECK && kind <= VARIABLE_CHECK);
-    setUseGvn();
-    this.sourceInformation = sourceInformation;
-  }
-
-  HInstruction get expression => inputs[0];
-
-  HInstruction get interceptor {
-    assert(kind == RAW_CHECK);
-    return inputs.length > 1 ? inputs[1] : null;
-  }
-
-  HInstruction get checkCall {
-    assert(kind == VARIABLE_CHECK || kind == COMPOUND_CHECK);
-    return inputs[1];
-  }
-
-  bool get isRawCheck => kind == RAW_CHECK;
-  bool get isVariableCheck => kind == VARIABLE_CHECK;
-  bool get isCompoundCheck => kind == COMPOUND_CHECK;
-
-  @override
-  accept(HVisitor visitor) => visitor.visitIs(this);
-
-  @override
-  toString() => "$expression is $typeExpression";
-
-  @override
-  int typeCode() => HInstruction.IS_TYPECODE;
-
-  @override
-  bool typeEquals(HInstruction other) => other is HIs;
-
-  @override
-  bool dataEquals(HIs other) {
-    return typeExpression == other.typeExpression && kind == other.kind;
-  }
-}
-
-/// HIsViaInterceptor is a late-stage instruction for a type test that can be
-/// done entirely on an interceptor.  It is not a HCheck because the checked
-/// input is not one of the inputs.
-class HIsViaInterceptor extends HLateInstruction {
-  final DartType typeExpression;
-  HIsViaInterceptor(
-      this.typeExpression, HInstruction interceptor, AbstractValue type)
-      : super(<HInstruction>[interceptor], type) {
-    setUseGvn();
-  }
-
-  HInstruction get interceptor => inputs[0];
-
-  @override
-  accept(HVisitor visitor) => visitor.visitIsViaInterceptor(this);
-  @override
-  toString() => "$interceptor is $typeExpression";
-  @override
-  int typeCode() => HInstruction.IS_VIA_INTERCEPTOR_TYPECODE;
-  @override
-  bool typeEquals(HInstruction other) => other is HIsViaInterceptor;
-  @override
-  bool dataEquals(HIs other) {
-    return typeExpression == other.typeExpression;
-  }
 }
 
 /// HLateValue is a late-stage instruction that can be used to force a value
