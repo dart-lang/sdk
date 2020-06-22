@@ -8,6 +8,7 @@ import 'package:kernel/target/targets.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
+import 'package:kernel/src/printer.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -37,7 +38,7 @@ runTestCase(Uri source) async {
   for (Class messageClass in messageClasses) {
     expect(messageClass.enclosingLibrary.classes.contains(messageClass),
         messageClass.name.endsWith('Keep'),
-        reason: '$messageClass');
+        reason: '${messageClass.toText(astTextStrategyForTesting)}');
   }
 
   final systemTempDir = Directory.systemTemp;

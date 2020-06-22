@@ -20,9 +20,6 @@ class LintCode extends ErrorCode {
   int get hashCode => uniqueName.hashCode;
 
   @override
-  bool operator ==(other) => uniqueName == other.uniqueName;
-
-  @override
   ErrorType get type => ErrorType.LINT;
 
   /// Overridden so that [LintCode] and its subclasses share the same uniqueName
@@ -33,6 +30,9 @@ class LintCode extends ErrorCode {
 
   @override
   String get url => 'https://dart-lang.github.io/linter/lints/$name.html';
+
+  @override
+  bool operator ==(other) => uniqueName == other.uniqueName;
 }
 
 /// Defines security-related best practice recommendations.

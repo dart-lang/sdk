@@ -26,8 +26,7 @@ import '../../js_backend/inferred_data.dart';
 import '../../js_backend/interceptor_data.dart';
 import '../../js_backend/namer.dart' show Namer, StringBackedName;
 import '../../js_backend/native_data.dart';
-import '../../js_backend/runtime_types.dart'
-    show RuntimeTypesChecks, RuntimeTypesEncoder;
+import '../../js_backend/runtime_types.dart' show RuntimeTypesChecks;
 import '../../js_backend/runtime_types_new.dart'
     show RecipeEncoder, RecipeEncoding;
 import '../../js_backend/runtime_types_new.dart' as newRti;
@@ -75,7 +74,6 @@ class ProgramBuilder {
   final RuntimeTypesNeed _rtiNeed;
   final InterceptorData _interceptorData;
   final RuntimeTypesChecks _rtiChecks;
-  final RuntimeTypesEncoder _rtiEncoder;
   final RecipeEncoder _rtiRecipeEncoder;
   final OneShotInterceptorData _oneShotInterceptorData;
   final CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
@@ -123,7 +121,6 @@ class ProgramBuilder {
       this._rtiNeed,
       this._interceptorData,
       this._rtiChecks,
-      this._rtiEncoder,
       this._rtiRecipeEncoder,
       this._oneShotInterceptorData,
       this._customElementsCodegenAnalysis,
@@ -247,9 +244,7 @@ class ProgramBuilder {
 
     _markEagerClasses();
 
-    if (_options.useNewRti) {
-      associateNamedTypeVariablesNewRti();
-    }
+    associateNamedTypeVariablesNewRti();
 
     List<Holder> holders = _registry.holders.toList(growable: false);
 
@@ -279,10 +274,10 @@ class ProgramBuilder {
   void _initializeSoftDeferredMap() {
     var allocatedClassesPath = _options.experimentalAllocationsPath;
     if (allocatedClassesPath != null) {
-      // TODO(29574): the following blacklist is ad-hoc and potentially
+      // TODO(29574): the following denylist is ad-hoc and potentially
       // incomplete. We need to mark all classes as black listed, that are
       // used without code going through the class' constructor.
-      var blackList = [
+      var denylist = [
         'dart:_interceptors',
         'dart:html',
         'dart:typed_data_implementation',
@@ -331,7 +326,7 @@ class ProgramBuilder {
           var key = "${element.library.canonicalUri}:${element.name}";
           if (allocatedClassesKeys.contains(key) ||
               _nativeData.isJsInteropClass(element) ||
-              blackList.contains(element.library.canonicalUri.toString())) {
+              denylist.contains(element.library.canonicalUri.toString())) {
             collect(element);
           }
         }
@@ -648,12 +643,7 @@ class ProgramBuilder {
         _task.emitter, _commonElements, _namer, _codegenWorld, _closedWorld,
         enableMinification: _options.enableMinification);
     RuntimeTypeGenerator runtimeTypeGenerator = new RuntimeTypeGenerator(
-        _commonElements,
-        _outputUnitData,
-        _task,
-        _namer,
-        _rtiChecks,
-        _rtiEncoder);
+        _commonElements, _outputUnitData, _task, _namer, _rtiChecks);
 
     void visitInstanceMember(MemberEntity member) {
       if (!member.isAbstract && !member.isField) {
@@ -982,20 +972,7 @@ class ProgramBuilder {
 
   js.Expression _generateFunctionType(ClassEntity /*?*/ enclosingClass,
           FunctionType type, OutputUnit outputUnit) =>
-      _options.useNewRti
-          ? _generateFunctionTypeNewRti(enclosingClass, type, outputUnit)
-          : _generateFunctionTypeLegacy(enclosingClass, type, outputUnit);
-
-  js.Expression _generateFunctionTypeLegacy(ClassEntity /*?*/ enclosingClass,
-      FunctionType type, OutputUnit outputUnit) {
-    if (type.containsTypeVariables) {
-      js.Expression thisAccess = js.js(r'this.$receiver');
-      return _rtiEncoder.getSignatureEncoding(
-          _namer, _task.emitter, type, thisAccess);
-    } else {
-      return _task.metadataCollector.reifyType(type, outputUnit);
-    }
-  }
+      _generateFunctionTypeNewRti(enclosingClass, type, outputUnit);
 
   js.Expression _generateFunctionTypeNewRti(ClassEntity /*?*/ enclosingClass,
       FunctionType type, OutputUnit outputUnit) {
@@ -1029,12 +1006,10 @@ class ProgramBuilder {
       FunctionEntity element, bool canTearOff, bool canBeApplied) {
     if (!_methodNeedsStubs(element)) return const <ParameterStubMethod>[];
 
-    ParameterStubGenerator generator = new ParameterStubGenerator(
+    ParameterStubGenerator generator = ParameterStubGenerator(
         _task.emitter,
         _task.nativeEmitter,
         _namer,
-        _rtiEncoder,
-        _options.useNewRti ? _rtiRecipeEncoder : null,
         _nativeData,
         _interceptorData,
         _codegenWorld,

@@ -75,6 +75,9 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
       defaultsTo: true)
   ..addOption('import-dill',
       help: 'Import libraries from existing dill file', defaultsTo: null)
+  ..addOption('from-dill',
+      help: 'Read existing dill file instead of compiling from sources',
+      defaultsTo: null)
   ..addOption('output-dill',
       help: 'Output path for the generated dill', defaultsTo: null)
   ..addOption('output-incremental-dill',
@@ -168,6 +171,9 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
       help: 'A path or uri to the libraries specification JSON file')
   ..addFlag('debugger-module-names',
       help: 'Use debugger-friendly modules names', defaultsTo: false)
+  ..addFlag('experimental-emit-debug-metadata',
+      help: 'Emit module and library metadata for the debugger',
+      defaultsTo: false)
   ..addOption('dartdevc-module-format',
       help: 'The module format to use on for the dartdevc compiler',
       defaultsTo: 'amd');
@@ -317,7 +323,8 @@ class FrontendCompiler implements CompilerInterface {
       this.transformer,
       this.unsafePackageSerialization,
       this.incrementalSerialization: true,
-      this.useDebuggerModuleNames: false}) {
+      this.useDebuggerModuleNames: false,
+      this.emitDebugMetadata: false}) {
     _outputStream ??= stdout;
     printerFactory ??= new BinaryPrinterFactory();
   }
@@ -327,6 +334,7 @@ class FrontendCompiler implements CompilerInterface {
   bool unsafePackageSerialization;
   bool incrementalSerialization;
   bool useDebuggerModuleNames;
+  bool emitDebugMetadata;
 
   CompilerOptions _compilerOptions;
   BytecodeOptions _bytecodeOptions;
@@ -452,6 +460,13 @@ class FrontendCompiler implements CompilerInterface {
       }
     }
 
+    if (options['incremental']) {
+      if (options['from-dill'] != null) {
+        print('Error: --from-dill option cannot be used with --incremental');
+        return false;
+      }
+    }
+
     if (options['null-safety'] == null &&
         compilerOptions.experimentalFlags[ExperimentalFlag.nonNullable]) {
       await autoDetectNullSafetyMode(_mainSource, compilerOptions);
@@ -533,7 +548,8 @@ class FrontendCompiler implements CompilerInterface {
           enableAsserts: options['enable-asserts'],
           useProtobufTreeShaker: options['protobuf-tree-shaker'],
           minimalKernel: options['minimal-kernel'],
-          treeShakeWriteOnlyFields: options['tree-shake-write-only-fields']));
+          treeShakeWriteOnlyFields: options['tree-shake-write-only-fields'],
+          fromDillFile: options['from-dill']));
     }
     if (results.component != null) {
       transformer?.transform(results.component);
@@ -625,27 +641,33 @@ class FrontendCompiler implements CompilerInterface {
     final File sourceFile = File('$filename.sources');
     final File manifestFile = File('$filename.json');
     final File sourceMapsFile = File('$filename.map');
+    final File metadataFile = File('$filename.metadata');
     if (!sourceFile.parent.existsSync()) {
       sourceFile.parent.createSync(recursive: true);
     }
     _bundler = JavaScriptBundler(
         component, strongComponents, fileSystemScheme, packageConfig,
         useDebuggerModuleNames: useDebuggerModuleNames,
+        emitDebugMetadata: emitDebugMetadata,
         moduleFormat: moduleFormat);
     final sourceFileSink = sourceFile.openWrite();
     final manifestFileSink = manifestFile.openWrite();
     final sourceMapsFileSink = sourceMapsFile.openWrite();
+    final metadataFileSink =
+        emitDebugMetadata ? metadataFile.openWrite() : null;
     await _bundler.compile(
         results.classHierarchy,
         results.coreTypes,
         results.loadedLibraries,
         sourceFileSink,
         manifestFileSink,
-        sourceMapsFileSink);
+        sourceMapsFileSink,
+        metadataFileSink);
     await Future.wait([
       sourceFileSink.close(),
       manifestFileSink.close(),
-      sourceMapsFileSink.close()
+      sourceMapsFileSink.close(),
+      if (metadataFileSink != null) metadataFileSink.close()
     ]);
   }
 
@@ -1398,7 +1420,8 @@ Future<int> starter(
       printerFactory: binaryPrinterFactory,
       unsafePackageSerialization: options["unsafe-package-serialization"],
       incrementalSerialization: options["incremental-serialization"],
-      useDebuggerModuleNames: options['debugger-module-names']);
+      useDebuggerModuleNames: options['debugger-module-names'],
+      emitDebugMetadata: options['experimental-emit-debug-metadata']);
 
   if (options.rest.isNotEmpty) {
     return await compiler.compile(options.rest[0], options,

@@ -4,8 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol_server.dart'
-    hide Element, ElementKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
@@ -29,11 +27,11 @@ class ArgListContributor extends DartCompletionContributor {
   ArgumentList argumentList;
 
   @override
-  Future<List<CompletionSuggestion>> computeSuggestions(
+  Future<void> computeSuggestions(
       DartCompletionRequest request, SuggestionBuilder builder) async {
     var executable = request.target.executableElement;
     if (executable == null) {
-      return const <CompletionSuggestion>[];
+      return;
     }
     var node = request.target.containingNode;
     if (node is ArgumentList) {
@@ -43,7 +41,6 @@ class ArgListContributor extends DartCompletionContributor {
     this.request = request;
     this.builder = builder;
     _addSuggestions(executable.parameters);
-    return const <CompletionSuggestion>[];
   }
 
   void _addDefaultParamSuggestions(Iterable<ParameterElement> parameters,

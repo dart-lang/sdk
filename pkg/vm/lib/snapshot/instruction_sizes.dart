@@ -5,23 +5,32 @@
 /// Helper functions for parsing output of `--print-instructions-sizes-to` flag.
 library vm.snapshot.instruction_sizes;
 
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:vm/snapshot/name.dart';
+import 'package:vm/snapshot/program_info.dart';
 
 /// Parse the output of `--print-instructions-sizes-to` saved in the given
 /// file [input].
-Future<List<SymbolInfo>> load(File input) async {
-  final List<dynamic> symbolsArray = await input
-      .openRead()
-      .transform(utf8.decoder)
-      .transform(json.decoder)
-      .first;
-  return symbolsArray
+List<SymbolInfo> fromJson(List<dynamic> json) {
+  return json
       .cast<Map<String, dynamic>>()
       .map(SymbolInfo._fromJson)
       .toList(growable: false);
+}
+
+/// Parse the output of `--print-instructions-sizes-to` saved in the given
+/// file [input] into [ProgramInfo] structure representing the sizes
+/// of individual functions.
+///
+/// If [collapseAnonymousClosures] is set to [true] then all anonymous closures
+/// within the same scopes are collapsed together. Collapsing closures is
+/// helpful when comparing symbol sizes between two versions of the same
+/// program because in general there is no reliable way to recognize the same
+/// anonymous closures into two independent compilations.
+ProgramInfo loadProgramInfo(List<dynamic> json,
+    {bool collapseAnonymousClosures = false}) {
+  final symbols = fromJson(json);
+  return toProgramInfo(symbols,
+      collapseAnonymousClosures: collapseAnonymousClosures);
 }
 
 /// Information about the size of the instruction object.
@@ -50,4 +59,53 @@ class SymbolInfo {
         name: map['n'],
         size: map['s']);
   }
+}
+
+/// Restore hierarchical [ProgramInfo] representation from the list of
+/// symbols by parsing function names.
+///
+/// If [collapseAnonymousClosures] is set to [true] then all anonymous closures
+/// within the same scopes are collapsed together. Collapsing closures is
+/// helpful when comparing symbol sizes between two versions of the same
+/// program because in general there is no reliable way to recognize the same
+/// anonymous closures into two independent compilations.
+ProgramInfo toProgramInfo(List<SymbolInfo> symbols,
+    {bool collapseAnonymousClosures = false}) {
+  final program = ProgramInfo();
+  for (var sym in symbols) {
+    final scrubbed = sym.name.scrubbed;
+    if (sym.libraryUri == null) {
+      assert(sym.name.isStub);
+      final node = program.makeNode(
+          name: scrubbed, parent: program.stubs, type: NodeType.functionNode);
+      assert(node.size == null || sym.name.isTypeTestingStub);
+      node.size = (node.size ?? 0) + sym.size;
+    } else {
+      // Split the name into components (names of individual functions).
+      final path = sym.name.components;
+
+      var node = program.root;
+      final package = packageOf(sym.libraryUri);
+      if (package != sym.libraryUri) {
+        node = program.makeNode(
+            name: package, parent: node, type: NodeType.packageNode);
+      }
+      node = program.makeNode(
+          name: sym.libraryUri, parent: node, type: NodeType.libraryNode);
+      node = program.makeNode(
+          name: sym.className, parent: node, type: NodeType.classNode);
+      node = program.makeNode(
+          name: path.first, parent: node, type: NodeType.functionNode);
+      for (var name in path.skip(1)) {
+        if (collapseAnonymousClosures) {
+          name = Name.collapse(name);
+        }
+        node = program.makeNode(
+            name: name, parent: node, type: NodeType.functionNode);
+      }
+      node.size = (node.size ?? 0) + sym.size;
+    }
+  }
+
+  return program;
 }

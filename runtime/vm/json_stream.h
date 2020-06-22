@@ -38,6 +38,7 @@ class Zone;
 //
 //  - runtime/vm/service/vmservice.dart
 //  - runtime/observatory/lib/src/service/object.dart
+//  - pkg/dds/lib/src/rpc_error_codes.dart
 //
 enum JSONRpcErrorCode {
   kParseError = -32700,

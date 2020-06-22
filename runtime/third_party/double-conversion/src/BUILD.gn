@@ -3,6 +3,12 @@
 # BSD-style license that can be found in the LICENSE file.
 
 source_set("libdouble_conversion") {
+  # We are only interested in exposing the exported symbols (for size reasons).
+  cflags = []
+  if (is_posix) {
+    cflags += [ "-fvisibility=hidden" ]
+  }
+
   configs += [
     "../../..:dart_arch_config",
     "../../..:dart_config",

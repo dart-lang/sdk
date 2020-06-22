@@ -196,6 +196,16 @@ if (current_os == "win") {
   is_nacl = false
   is_posix = true
   is_win = false
+} else if (current_os == "fuchsia") {
+  is_android = false
+  is_chromeos = false
+  is_fuchsia = true
+  is_ios = false
+  is_linux = false
+  is_mac = false
+  is_nacl = false
+  is_posix = true
+  is_win = false
 }
 
 # =============================================================================
@@ -384,6 +394,11 @@ if (is_win) {
 } else if (is_mac) {
   host_toolchain = "//build/toolchain/mac:clang_x64"
   set_default_toolchain(host_toolchain)
+} else if (is_fuchsia) {
+  assert(host_os == "linux")
+  assert(host_cpu == "x64")
+  host_toolchain = "//build/toolchain/linux:clang_$host_cpu"
+  set_default_toolchain("//build/toolchain/fuchsia")
 }
 
 # ==============================================================================

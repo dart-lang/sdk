@@ -1669,21 +1669,12 @@ void FlowGraph::RemoveRedefinitions(bool keep_checks) {
         instr_it.RemoveCurrentFromGraph();
       } else if (keep_checks) {
         continue;
-      } else if (auto check = instruction->AsCheckArrayBound()) {
-        check->ReplaceUsesWith(check->index()->definition());
-        check->ClearSSATempIndex();
-      } else if (auto check = instruction->AsGenericCheckBound()) {
-        check->ReplaceUsesWith(check->index()->definition());
-        check->ClearSSATempIndex();
-      } else if (auto check = instruction->AsCheckNull()) {
-        check->ReplaceUsesWith(check->value()->definition());
-        check->ClearSSATempIndex();
-      } else if (auto check = instruction->AsAssertAssignable()) {
-        check->ReplaceUsesWith(check->value()->definition());
-        check->ClearSSATempIndex();
-      } else if (auto check = instruction->AsAssertBoolean()) {
-        check->ReplaceUsesWith(check->value()->definition());
-        check->ClearSSATempIndex();
+      } else if (auto def = instruction->AsDefinition()) {
+        Value* value = def->RedefinedValue();
+        if (value != nullptr) {
+          def->ReplaceUsesWith(value->definition());
+          def->ClearSSATempIndex();
+        }
       }
     }
   }

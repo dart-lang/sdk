@@ -40,8 +40,16 @@ config("dart_maybe_product_config") {
 # If a DEBUG build has been specified it will be ignored.
 config("dart_product_config") {
   defines = []
+  cflags = []
   if (!dart_debug) {
     defines += [ "PRODUCT" ]
+    if (is_posix) {
+      cflags = [
+        # This is the equivalent from `build/config/BUILDCONFIG.gn` which includes
+        # `build/config/gcc:symbol_visibility_hidden` in product mode.
+        "-fvisibility=hidden",
+      ]
+    }
   }
 }
 
@@ -128,7 +136,10 @@ config("dart_config") {
   }
 
   if (is_fuchsia) {
-    if (using_fuchsia_sdk) {
+    if (using_fuchsia_gn_sdk) {
+      lib_dirs = [ "../out/DebugFuchsiaX64/lib" ]
+    }
+    if (using_fuchsia_gn_sdk || using_fuchsia_sdk) {
       # TODO(chinmaygarde): Currenty these targets need to be build in the
       # Fuchsia tree as well as outside it using the SDK. However, not all
       # Fuchsia features are available in the SDK. As these features are added,
@@ -199,8 +210,11 @@ source_set("dart_api") {
   public_configs = [ ":dart_public_config" ]
   sources = [
     "include/dart_api.h",
+    "include/dart_api_dl.h",
     "include/dart_native_api.h",
     "include/dart_tools_api.h",
+    "include/dart_version.h",
+    "include/internal/dart_api_dl_impl.h",
   ]
 }
 
@@ -215,7 +229,12 @@ library_for_all_configs("libdart") {
     defines = [ "DART_ENABLE_WASM" ]
   }
   if (is_fuchsia) {
-    if (using_fuchsia_sdk) {
+    if (using_fuchsia_gn_sdk) {
+      extra_deps += [
+        "$fuchsia_sdk_root/pkg/fdio",
+        "$fuchsia_sdk_root/pkg/trace-engine",
+      ]
+    } else if (using_fuchsia_sdk) {
       extra_deps += [
         "$fuchsia_sdk_root/pkg:fdio",
         "$fuchsia_sdk_root/pkg:trace-engine",

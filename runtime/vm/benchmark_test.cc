@@ -180,7 +180,7 @@ BENCHMARK(GenKernelKernelCombined) {
                                /* benchmark_read_bytecode */ true));
 }
 
-BENCHMARK(GenKernelKernelMaxRSS) {
+BENCHMARK_MEMORY(GenKernelKernelMaxRSS) {
   GenKernelKernelBenchmark("GenKernelKernelMaxRSS benchmark",
                            /* benchmark_load */ false,
                            /* benchmark_read_bytecode */ true);

@@ -623,8 +623,7 @@ void f(Object o) {
     assertEdge(decoratedTypeAnnotation('Object o').node,
         decoratedTypeAnnotation('dynamic').node,
         hard: true);
-    // TODO(mfairhurst): these should probably be hard edges.
-    assertEdge(decoratedTypeAnnotation('dynamic').node, never, hard: false);
+    assertEdge(decoratedTypeAnnotation('dynamic').node, never, hard: true);
   }
 
   Future<void> test_as_int() async {
@@ -636,8 +635,7 @@ void f(Object o) {
     assertEdge(decoratedTypeAnnotation('Object o').node,
         decoratedTypeAnnotation('int').node,
         hard: true);
-    // TODO(mfairhurst): these should probably be hard edges.
-    assertEdge(decoratedTypeAnnotation('int').node, never, hard: false);
+    assertEdge(decoratedTypeAnnotation('int').node, never, hard: true);
     expect(
         variables.wasUnnecessaryCast(testSource, findNode.as_('o as')), false);
   }
@@ -666,8 +664,7 @@ void f(int i) {
     assertEdge(decoratedTypeAnnotation('int i').node,
         decoratedTypeAnnotation('int)').node,
         hard: true);
-    // TODO(mfairhurst): these should probably be hard edges.
-    assertEdge(decoratedTypeAnnotation('int)').node, never, hard: false);
+    assertEdge(decoratedTypeAnnotation('int)').node, never, hard: true);
     expect(
         variables.wasUnnecessaryCast(testSource, findNode.as_('i as')), true);
   }
@@ -6836,6 +6833,26 @@ int f() {
     expect(edge.sourceNode.displayName, 'implicit null return (test.dart:2:3)');
   }
 
+  Future<void> test_return_in_asyncStar() async {
+    await analyze('''
+Stream<int> f() async* {
+  yield 1;
+  return;
+}
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('Stream<int>').node);
+  }
+
+  Future<void> test_return_in_syncStar() async {
+    await analyze('''
+Iterable<int> f() sync* {
+  yield 1;
+  return;
+}
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('Iterable<int>').node);
+  }
+
   Future<void> test_return_null() async {
     await analyze('''
 int f() {
@@ -7506,6 +7523,16 @@ int f() {
     assertNoUpstreamNullability(intNode);
     var edge = assertEdge(anyNode, intNode, hard: false);
     expect(edge.sourceNode.displayName, 'throw expression (test.dart:2:10)');
+  }
+
+  Future<void> test_top_level_annotation_begins_flow_analysis() async {
+    await analyze('''
+class C {
+  const C(bool x);
+}
+@C(true)
+int x;
+''');
   }
 
   Future<void> test_topLevelSetter() async {

@@ -19,8 +19,8 @@ var log;
 @Native("A")
 class A {
   final a1 = log(101); // Only initialized IF named constructor called.
-  final a2; // Initialized by native constructor.
-  final a3; // Initialized only by A.two.
+  get a2 native; // Initialized by native constructor.
+  var a3; // Initialized only by A.two.
   var a4 = log(104);
 
   A.one();
@@ -39,7 +39,7 @@ class A {
 }
 
 class B extends A {
-  final b1;
+  var b1;
   final b2 = log(202);
   var b3;
 

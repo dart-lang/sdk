@@ -130,3 +130,51 @@ uint8_t *Function20PointerUint8(uint8_t *a, uint8_t *b, uint8_t *c, uint8_t *d,
                                 uint8_t *t) {
   return a + 1;
 }
+
+void* Function1Handle(void* a) {
+  return a;
+}
+
+void* Function2Handle(void* a, void* b) {
+  return a;
+}
+
+void* Function4Handle(void* a, void* b, void* c, void* d) {
+  return a;
+}
+
+void* Function10Handle(void* a,
+                       void* b,
+                       void* c,
+                       void* d,
+                       void* e,
+                       void* f,
+                       void* g,
+                       void* h,
+                       void* i,
+                       void* j) {
+  return a;
+}
+
+void* Function20Handle(void* a,
+                       void* b,
+                       void* c,
+                       void* d,
+                       void* e,
+                       void* f,
+                       void* g,
+                       void* h,
+                       void* i,
+                       void* j,
+                       void* k,
+                       void* l,
+                       void* m,
+                       void* n,
+                       void* o,
+                       void* p,
+                       void* q,
+                       void* r,
+                       void* s,
+                       void* t) {
+  return a;
+}

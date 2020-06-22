@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart'
         DartType,
         DynamicType,
         FunctionType,
+        FutureOrType,
         InterfaceType,
         Library,
         Member,
@@ -22,11 +23,10 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/core_types.dart';
 
-import 'package:kernel/type_algebra.dart' show substitute, Substitution;
+import 'package:kernel/type_algebra.dart'
+    show Substitution, substitute, uniteNullabilities;
 
 import 'package:kernel/type_environment.dart';
-
-import 'package:kernel/src/future_or.dart';
 
 import 'type_schema.dart' show UnknownType;
 
@@ -60,8 +60,6 @@ abstract class TypeConstraintGatherer {
   Class get objectClass;
 
   Class get functionClass;
-
-  Class get futureOrClass;
 
   Class get nullClass;
 
@@ -295,16 +293,14 @@ abstract class TypeConstraintGatherer {
     if (identical(subtype, supertype)) return true;
 
     // Handle FutureOr<T> union type.
-    if (subtype is InterfaceType &&
-        identical(subtype.classNode, futureOrClass)) {
-      DartType subtypeArg = subtype.typeArguments[0];
-      if (supertype is InterfaceType &&
-          identical(supertype.classNode, futureOrClass)) {
+    if (subtype is FutureOrType) {
+      DartType subtypeArg = subtype.typeArgument;
+      if (supertype is FutureOrType) {
         // `FutureOr<P>` is a subtype match for `FutureOr<Q>` with respect to
         // `L` under constraints `C`:
         // - If `P` is a subtype match for `Q` with respect to `L` under
         //   constraints `C`.
-        DartType supertypeArg = supertype.typeArguments[0];
+        DartType supertypeArg = supertype.typeArgument;
         return _isSubtypeMatch(subtypeArg, supertypeArg);
       }
 
@@ -318,13 +314,11 @@ abstract class TypeConstraintGatherer {
           futureType(subtypeArg, _currentLibrary.nonNullable);
       return _isSubtypeMatch(subtypeFuture, supertype) &&
           _isSubtypeMatch(subtypeArg, supertype) &&
-          new IsSubtypeOf.basedSolelyOnNullabilities(
-                  subtype, supertype, futureOrClass)
+          new IsSubtypeOf.basedSolelyOnNullabilities(subtype, supertype)
               .isSubtypeWhenUsingNullabilities();
     }
 
-    if (supertype is InterfaceType &&
-        identical(supertype.classNode, futureOrClass)) {
+    if (supertype is FutureOrType) {
       // `P` is a subtype match for `FutureOr<Q>` with respect to `L` under
       // constraints `C`:
       // - If `P` is a subtype match for `Future<Q>` with respect to `L` under
@@ -346,10 +340,9 @@ abstract class TypeConstraintGatherer {
       // should be united.  Also, computeNullability is used to fetch the
       // nullability of the argument because it can be a FutureOr itself.
       Nullability unitedNullability = uniteNullabilities(
-          computeNullability(supertype.typeArguments[0], futureOrClass),
-          supertype.nullability);
+          supertype.typeArgument.nullability, supertype.nullability);
       DartType supertypeArg =
-          supertype.typeArguments[0].withDeclaredNullability(unitedNullability);
+          supertype.typeArgument.withDeclaredNullability(unitedNullability);
       DartType supertypeFuture = futureType(supertypeArg, unitedNullability);
 
       // The match against FutureOr<X> succeeds if the match against either
@@ -479,9 +472,6 @@ class TypeSchemaConstraintGatherer extends TypeConstraintGatherer {
 
   @override
   Class get functionClass => environment.coreTypes.functionClass;
-
-  @override
-  Class get futureOrClass => environment.coreTypes.futureOrClass;
 
   @override
   Class get nullClass => environment.coreTypes.nullClass;

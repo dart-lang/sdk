@@ -91,7 +91,7 @@ typedef WorkToWaitAfterComputingResult = Future<void> Function(String path);
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 101;
+  static const int DATA_VERSION = 102;
 
   /// The length of the list returned by [_computeDeclaredVariablesSignature].
   static const int _declaredVariablesSignatureLength = 4;
@@ -442,7 +442,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _unitElementRequestedParts.isNotEmpty) {
       return AnalysisDriverPriority.general;
     }
-    _clearLibraryContext();
+    clearLibraryContext();
     return AnalysisDriverPriority.nothing;
   }
 
@@ -484,6 +484,17 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _throwIfNotAbsolutePath(path);
     _throwIfChangesAreNotAllowed();
     _changeFile(path);
+  }
+
+  /// Clear the library context and any related data structures. Mostly we do
+  /// this to reduce memory consumption. The library context holds to every
+  /// library that was resynthesized, but after some initial analysis we might
+  /// not get again to many of these libraries. So, we should clear the context
+  /// periodically.
+  @visibleForTesting
+  void clearLibraryContext() {
+    _libraryContext = null;
+    _currentSession.clearHierarchies();
   }
 
   /// Some state on which analysis depends has changed, so the driver needs to be
@@ -1170,7 +1181,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _throwIfNotAbsolutePath(path);
     _throwIfChangesAreNotAllowed();
     _fileTracker.removeFile(path);
-    _clearLibraryContext();
+    clearLibraryContext();
     _priorityResults.clear();
   }
 
@@ -1185,7 +1196,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Implementation for [changeFile].
   void _changeFile(String path) {
     _fileTracker.changeFile(path);
-    _clearLibraryContext();
+    clearLibraryContext();
     _priorityResults.clear();
   }
 
@@ -1193,19 +1204,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// of state.
   void _changeHook(String path) {
     _createNewSession(path);
-    _clearLibraryContext();
+    clearLibraryContext();
     _priorityResults.clear();
     _scheduler.notify(this);
-  }
-
-  /// Clear the library context and any related data structures. Mostly we do
-  /// this to reduce memory consumption. The library context holds to every
-  /// library that was resynthesized, but after some initial analysis we might
-  /// not get again to many of these libraries. So, we should clear the context
-  /// periodically.
-  void _clearLibraryContext() {
-    _libraryContext = null;
-    _currentSession.clearHierarchies();
   }
 
   /// There was an exception during a file analysis, we don't know why.
@@ -1213,7 +1214,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// the library context state. Reset the library context, and hope that
   /// we will solve the inconsistency while loading / building summaries.
   void _clearLibraryContextAfterException() {
-    _clearLibraryContext();
+    clearLibraryContext();
   }
 
   /// Return the cached or newly computed analysis result of the file with the
@@ -1504,7 +1505,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   LibraryContext _createLibraryContext(FileState library) {
     if (_libraryContext != null) {
       if (_libraryContext.pack()) {
-        _clearLibraryContext();
+        clearLibraryContext();
       }
     }
 

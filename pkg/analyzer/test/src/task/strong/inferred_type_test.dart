@@ -352,34 +352,6 @@ var y = () => /*error:TOP_LEVEL_CYCLE*/x;
     _assertTypeStr(y.initializer.returnType, 'dynamic Function()');
   }
 
-  test_conflictsCanHappen() async {
-    await checkFileElement('''
-class I1 {
-  int x;
-}
-class I2 extends I1 {
-  int y;
-}
-
-class A {
-  final I1 a = null;
-}
-
-class B {
-  final I2 a = null;
-}
-
-class C1 implements A, B {
-  get /*error:INVALID_OVERRIDE,error:INVALID_OVERRIDE*/a => null;
-}
-
-// Still ambiguous
-class C2 implements B, A {
-  get /*error:INVALID_OVERRIDE,error:INVALID_OVERRIDE*/a => null;
-}
-''');
-  }
-
   test_conflictsCanHappen2() async {
     await checkFileElement('''
 class I1 {

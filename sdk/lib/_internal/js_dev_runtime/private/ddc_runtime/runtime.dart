@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 @ReifyFunctionTypes(false)
 library dart._runtime;
 
@@ -204,7 +202,10 @@ void hotRestart() {
   for (var m in _cacheMaps) JS('', '#.clear()', m);
   _cacheMaps.clear();
   JS('', '#.clear()', _nullComparisonSet);
+  JS('', '#.clear()', constants);
+  JS('', '#.clear()', constantLists);
   JS('', '#.clear()', constantMaps);
+  JS('', '#.clear()', constantSets);
 }
 
 /// Marks enqueuing an async operation.

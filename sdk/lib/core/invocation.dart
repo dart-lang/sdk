@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.core;
 
 /**
@@ -23,8 +21,8 @@ abstract class Invocation {
    * If the named arguments are omitted, they default to no named arguments.
    */
   factory Invocation.method(
-          Symbol memberName, Iterable<Object> positionalArguments,
-          [Map<Symbol, Object> namedArguments]) =>
+          Symbol memberName, Iterable<Object?>? positionalArguments,
+          [Map<Symbol, Object?>? namedArguments]) =>
       _Invocation.method(memberName, null, positionalArguments, namedArguments);
 
   /**
@@ -37,8 +35,8 @@ abstract class Invocation {
    * If the named arguments are omitted, they default to no named arguments.
    */
   factory Invocation.genericMethod(Symbol memberName,
-          Iterable<Type> typeArguments, Iterable<Object> positionalArguments,
-          [Map<Symbol, Object> namedArguments]) =>
+          Iterable<Type>? typeArguments, Iterable<Object?>? positionalArguments,
+          [Map<Symbol, Object?>? namedArguments]) =>
       _Invocation.method(
           memberName, typeArguments, positionalArguments, namedArguments);
 
@@ -57,7 +55,7 @@ abstract class Invocation {
    * Invocation.setter(const Symbol("member="), value)
    * ```
    */
-  factory Invocation.setter(Symbol memberName, Object argument) =
+  factory Invocation.setter(Symbol memberName, Object? argument) =
       _Invocation.setter;
 
   /** The name of the invoked member. */
@@ -114,26 +112,28 @@ class _Invocation implements Invocation {
   final Symbol memberName;
   final List<Type> typeArguments;
   // Positional arguments is `null` for getters only.
-  final List<Object> _positional;
+  final List<Object?>? _positional;
   // Named arguments is `null` for accessors only.
-  final Map<Symbol, Object> _named;
+  final Map<Symbol, Object?>? _named;
 
-  _Invocation.method(this.memberName, Iterable<Type> types,
-      Iterable<Object> positional, Map<Symbol, Object> named)
-      : typeArguments = _ensureNonNullTypes(_makeUnmodifiable<Type>(types)),
-        _positional = _makeUnmodifiable<Object>(positional) ?? const <Object>[],
+  _Invocation.method(this.memberName, Iterable<Type>? types,
+      Iterable<Object?>? positional, Map<Symbol, Object?>? named)
+      : typeArguments = _ensureNonNullTypes(types),
+        _positional = positional == null
+            ? const <Object?>[]
+            : List<Object?>.unmodifiable(positional),
         _named = (named == null || named.isEmpty)
-            ? const <Symbol, Object>{}
-            : Map<Symbol, Object>.unmodifiable(named);
+            ? const <Symbol, Object?>{}
+            : Map<Symbol, Object?>.unmodifiable(named);
 
   _Invocation.getter(this.memberName)
       : typeArguments = const <Type>[],
         _positional = null,
         _named = null;
 
-  _Invocation.setter(this.memberName, Object argument)
+  _Invocation.setter(this.memberName, Object? argument)
       : typeArguments = const <Type>[],
-        _positional = List<Object>.unmodifiable([argument]),
+        _positional = List<Object?>.unmodifiable([argument]),
         _named = null;
 
   List<dynamic> get positionalArguments => _positional ?? const <Object>[];
@@ -146,19 +146,15 @@ class _Invocation implements Invocation {
   bool get isAccessor => _named == null;
 
   /// Checks that the elements of [types] are not null.
-  static List<Type> _ensureNonNullTypes(List<Type> types) {
+  static List<Type> _ensureNonNullTypes(Iterable<Type>? types) {
     if (types == null) return const <Type>[];
-    for (int i = 0; i < types.length; i++) {
-      if (types[i] == null) {
-        throw ArgumentError(
+    List<Type> typeArguments = List<Type>.unmodifiable(types);
+    for (int i = 0; i < typeArguments.length; i++) {
+      if (typeArguments[i] == null) {
+        throw ArgumentError.value(types, "types",
             "Type arguments must be non-null, was null at index $i.");
       }
     }
-    return types;
-  }
-
-  static List<T> _makeUnmodifiable<T>(Iterable<T> elements) {
-    if (elements == null) return null;
-    return List<T>.unmodifiable(elements);
+    return typeArguments;
   }
 }

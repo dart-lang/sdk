@@ -175,6 +175,9 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void beginAsOperatorType(Token asOperator) {}
+
+  @override
   void beginCascade(Token token) {
     assert(optional('..', token) || optional('?..', token));
     debugEvent("beginCascade");
@@ -255,6 +258,9 @@ class AstBuilder extends StackListener {
   void beginIfControlFlow(Token ifToken) {
     push(ifToken);
   }
+
+  @override
+  void beginIsOperatorType(Token asOperator) {}
 
   @override
   void beginLiteralString(Token literalString) {
@@ -537,6 +543,11 @@ class AstBuilder extends StackListener {
     ArgumentList arguments =
         ast.argumentList(leftParenthesis, expressions, rightParenthesis);
     push(ast.methodInvocation(null, null, null, null, arguments));
+  }
+
+  @override
+  void endAsOperatorType(Token asOperator) {
+    debugEvent("AsOperatorType");
   }
 
   @override
@@ -1682,6 +1693,11 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void endIsOperatorType(Token asOperator) {
+    debugEvent("IsOperatorType");
+  }
+
+  @override
   void endLabeledStatement(int labelCount) {
     debugEvent("LabeledStatement");
 
@@ -2293,14 +2309,6 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void beginAsOperatorType(Token asOperator) {}
-
-  @override
-  void endAsOperatorType(Token asOperator) {
-    debugEvent("AsOperatorType");
-  }
-
-  @override
   void handleAsOperator(Token asOperator) {
     assert(optional('as', asOperator));
     debugEvent("AsOperator");
@@ -2861,14 +2869,6 @@ class AstBuilder extends StackListener {
       throw UnimplementedError(
           'node is an instance of ${node.runtimeType} in handleInvalidTypeArguments');
     }
-  }
-
-  @override
-  void beginIsOperatorType(Token asOperator) {}
-
-  @override
-  void endIsOperatorType(Token asOperator) {
-    debugEvent("IsOperatorType");
   }
 
   @override

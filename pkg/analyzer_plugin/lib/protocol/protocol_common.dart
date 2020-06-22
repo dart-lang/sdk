@@ -1894,6 +1894,7 @@ class ElementKind implements Enum {
 ///
 /// enum {
 ///   ANNOTATIONS
+///   BLOCK
 ///   CLASS_BODY
 ///   DIRECTIVES
 ///   DOCUMENTATION_COMMENT
@@ -1906,6 +1907,8 @@ class ElementKind implements Enum {
 /// Clients may not extend, implement or mix-in this class.
 class FoldingKind implements Enum {
   static const FoldingKind ANNOTATIONS = FoldingKind._('ANNOTATIONS');
+
+  static const FoldingKind BLOCK = FoldingKind._('BLOCK');
 
   static const FoldingKind CLASS_BODY = FoldingKind._('CLASS_BODY');
 
@@ -1925,6 +1928,7 @@ class FoldingKind implements Enum {
   /// A list containing all of the enum values that are defined.
   static const List<FoldingKind> VALUES = <FoldingKind>[
     ANNOTATIONS,
+    BLOCK,
     CLASS_BODY,
     DIRECTIVES,
     DOCUMENTATION_COMMENT,
@@ -1943,6 +1947,8 @@ class FoldingKind implements Enum {
     switch (name) {
       case 'ANNOTATIONS':
         return ANNOTATIONS;
+      case 'BLOCK':
+        return BLOCK;
       case 'CLASS_BODY':
         return CLASS_BODY;
       case 'DIRECTIVES':

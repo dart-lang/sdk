@@ -102,4 +102,8 @@ abstract class RelevanceBoost {
   /// The relevance boost used when suggesting an enum constant from an
   /// available declaration set.
   static const int availableEnumConstant = 100;
+
+  /// The relevance boost used when suggesting a constant value / constructor
+  /// from an available declaration set in a constant context.
+  static const int constInConstantContext = 200;
 }

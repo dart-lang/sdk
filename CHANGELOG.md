@@ -68,21 +68,24 @@
 
 #### Linter
 
-Updated the Linter to `0.1.116`, which includes:
+Updated the Linter to `0.1.117`, which includes:
 
-* New lint: `no_default_cases` (experimental).
+* New lint: `do_not_use_environment`.
 * New lint: `exhaustive_cases`.
-* Updated `type_annotate_public_apis` to allow inferred types in final field assignments.
-* Updated `prefer_mixin` to allow "legacy" SDK abstract class mixins.
-* New lint: `use_is_even_rather_than_modulo`.
-* Updated `unsafe_html` to use a `SecurityLintCode` (making it un-ignorable).
-* Improved `sized_box_for_whitespace` to address false-positives.
-* Fixed `unsafe_html` to check attributes and methods on extensions.
-* Extended `unsafe_html` to include `Window.open`, `Element.html` and
-  `DocumentFragment.html` in unsafe API checks.
-* Improved docs for `sort_child_properties_last`.
-* (internal) `package:analyzer` API updates.
+* New lint: `no_default_cases` (experimental).
 * New lint: `sized_box_for_whitespace`.
+* New lint: `use_is_even_rather_than_modulo`.
+* Updated `directives_ordering` to remove third party package special-casing.
+* Updated `prefer_is_empty` to special-case assert initializers and const
+  contexts.
+* Updated `prefer_mixin` to allow "legacy" SDK abstract class mixins.
+* Updated `sized_box_for_whitespace` to address false-positives.
+* Updated `type_annotate_public_apis` to allow inferred types in final field
+  assignments.
+* Updated `unnecessary_lambdas` to check for tear-off assignability.
+* Updated `unsafe_html` to use a `SecurityLintCode` (making it un-ignorable) and
+  to include `Window.open`, `Element.html` and `DocumentFragment.html` in unsafe
+  API checks. Also added checks for attributes and methods on extensions.
 
 ### Dart VM
 

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 /**
  * Support for asynchronous programming,
  * with classes such as Future and Stream.
@@ -95,7 +93,7 @@
  */
 library dart.async;
 
-import "dart:collection" show HashMap, IterableBase;
+import "dart:collection" show HashMap;
 import "dart:_internal"
     show
         CastStream,
@@ -104,7 +102,8 @@ import "dart:_internal"
         IterableElementError,
         printToZone,
         printToConsole,
-        Since;
+        Since,
+        typeAcceptsNull;
 
 part 'async_error.dart';
 part 'broadcast_stream_controller.dart';

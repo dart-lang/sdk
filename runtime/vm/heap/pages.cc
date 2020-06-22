@@ -1437,54 +1437,53 @@ static void EnsureEqualImagePages(OldPage* pages, OldPage* other_pages) {
 #endif
 }
 
-void PageSpace::MergeOtherPageSpace(PageSpace* other) {
-  other->AbandonBumpAllocation();
+void PageSpace::MergeFrom(PageSpace* donor) {
+  donor->AbandonBumpAllocation();
 
-  ASSERT(other->tasks_ == 0);
-  ASSERT(other->concurrent_marker_tasks_ == 0);
-  ASSERT(other->phase_ == kDone);
-  DEBUG_ASSERT(other->iterating_thread_ == nullptr);
-  ASSERT(other->marker_ == nullptr);
+  ASSERT(donor->tasks_ == 0);
+  ASSERT(donor->concurrent_marker_tasks_ == 0);
+  ASSERT(donor->phase_ == kDone);
+  DEBUG_ASSERT(donor->iterating_thread_ == nullptr);
+  ASSERT(donor->marker_ == nullptr);
 
   for (intptr_t i = 0; i < num_freelists_; ++i) {
-    ASSERT(other->freelists_[i].top() == 0);
-    ASSERT(other->freelists_[i].end() == 0);
+    ASSERT(donor->freelists_[i].top() == 0);
+    ASSERT(donor->freelists_[i].end() == 0);
     const bool is_protected =
         FLAG_write_protect_code && i == OldPage::kExecutable;
-    freelists_[i].MergeOtherFreelist(&other->freelists_[i], is_protected);
-    other->freelists_[i].Reset();
+    freelists_[i].MergeFrom(&donor->freelists_[i], is_protected);
+    donor->freelists_[i].Reset();
   }
 
   // The freelist locks will be taken in MergeOtherFreelist above, and the
   // locking order is the freelist locks are taken before the page list locks,
   // so don't take the pages lock until after MergeOtherFreelist.
   MutexLocker ml(&pages_lock_);
-  MutexLocker ml2(&other->pages_lock_);
+  MutexLocker ml2(&donor->pages_lock_);
 
-  AppendList(&pages_, &pages_tail_, &other->pages_, &other->pages_tail_);
-  AppendList(&exec_pages_, &exec_pages_tail_, &other->exec_pages_,
-             &other->exec_pages_tail_);
-  AppendList(&large_pages_, &large_pages_tail_, &other->large_pages_,
-             &other->large_pages_tail_);
+  AppendList(&pages_, &pages_tail_, &donor->pages_, &donor->pages_tail_);
+  AppendList(&exec_pages_, &exec_pages_tail_, &donor->exec_pages_,
+             &donor->exec_pages_tail_);
+  AppendList(&large_pages_, &large_pages_tail_, &donor->large_pages_,
+             &donor->large_pages_tail_);
   // We intentionall do not merge [image_pages_] beause [this] and [other] have
   // the same mmap()ed image page areas.
-  EnsureEqualImagePages(image_pages_, other->image_pages_);
+  EnsureEqualImagePages(image_pages_, donor->image_pages_);
 
   // We intentionaly do not increase [max_capacity_in_words_] because this can
   // lead [max_capacity_in_words_] to become larger and larger and eventually
   // wrap-around and become negative.
-  allocated_black_in_words_ += other->allocated_black_in_words_;
-  gc_time_micros_ += other->gc_time_micros_;
-  collections_ += other->collections_;
+  allocated_black_in_words_ += donor->allocated_black_in_words_;
+  gc_time_micros_ += donor->gc_time_micros_;
+  collections_ += donor->collections_;
 
-  usage_.capacity_in_words += other->usage_.capacity_in_words;
-  usage_.used_in_words += other->usage_.used_in_words;
-  usage_.external_in_words += other->usage_.external_in_words;
+  usage_.capacity_in_words += donor->usage_.capacity_in_words;
+  usage_.used_in_words += donor->usage_.used_in_words;
+  usage_.external_in_words += donor->usage_.external_in_words;
 
-  page_space_controller_.MergeOtherPageSpaceController(
-      &other->page_space_controller_);
+  page_space_controller_.MergeFrom(&donor->page_space_controller_);
 
-  ASSERT(FLAG_concurrent_mark || other->enable_concurrent_mark_ == false);
+  ASSERT(FLAG_concurrent_mark || donor->enable_concurrent_mark_ == false);
 }
 
 PageSpaceController::PageSpaceController(Heap* heap,
@@ -1697,11 +1696,10 @@ void PageSpaceController::RecordUpdate(SpaceUsage before,
   }
 }
 
-void PageSpaceController::MergeOtherPageSpaceController(
-    PageSpaceController* other) {
-  last_usage_.capacity_in_words += other->last_usage_.capacity_in_words;
-  last_usage_.used_in_words += other->last_usage_.used_in_words;
-  last_usage_.external_in_words += other->last_usage_.external_in_words;
+void PageSpaceController::MergeFrom(PageSpaceController* donor) {
+  last_usage_.capacity_in_words += donor->last_usage_.capacity_in_words;
+  last_usage_.used_in_words += donor->last_usage_.used_in_words;
+  last_usage_.external_in_words += donor->last_usage_.external_in_words;
 }
 
 void PageSpaceGarbageCollectionHistory::AddGarbageCollectionTime(int64_t start,

@@ -108,8 +108,7 @@ foo(a) {
 main() {
   runTests() async {
     Future check(String test) {
-      return compile(test,
-          entry: 'foo', check: checkerForAbsentPresent(test), newRti: true);
+      return compile(test, entry: 'foo', check: checkerForAbsentPresent(test));
     }
 
     await check(TEST1N);

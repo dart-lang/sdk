@@ -93,7 +93,6 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 import "dart:_internal" as _in;
-import "dart:async" as asy;
 
 import "dart:async";
 
@@ -113,11 +112,11 @@ static field <T extends core::Object? = dynamic>(T%) → core::Null? fieldDirect
     return let final core::int? #t2 = local4 in #t2.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Local 'local4' has not been initialized.") : #t2{core::int};
   function #local4#set(core::int #t3) → dynamic
     return local4 = #t3;
-  asy::FutureOr<core::int> local5;
-  asy::FutureOr<core::int>? local6;
-  function #local6#get() → asy::FutureOr<core::int>
-    return let final asy::FutureOr<core::int>? #t4 = local6 in #t4.==(null) ?{asy::FutureOr<core::int>} throw new _in::LateInitializationErrorImpl::•("Local 'local6' has not been initialized.") : #t4{asy::FutureOr<core::int>};
-  function #local6#set(asy::FutureOr<core::int> #t5) → dynamic
+  FutureOr<core::int>local5;
+  FutureOr<core::int>? local6;
+  function #local6#get() → FutureOr<core::int>
+    return let final FutureOr<core::int>? #t4 = local6 in #t4.==(null) ?{FutureOr<core::int>} throw new _in::LateInitializationErrorImpl::•("Local 'local6' has not been initialized.") : #t4{FutureOr<core::int>};
+  function #local6#set(FutureOr<core::int>#t5) → dynamic
     return local6 = #t5;
   T? local7;
   core::bool #local7#isSet = false;
@@ -168,11 +167,11 @@ static field <T extends core::Object? = dynamic>(core::bool, T%) → core::Null?
     return let final core::int? #t14 = local4 in #t14.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Local 'local4' has not been initialized.") : #t14{core::int};
   function #local4#set(core::int #t15) → dynamic
     return local4 = #t15;
-  asy::FutureOr<core::int> local5;
-  asy::FutureOr<core::int>? local6;
-  function #local6#get() → asy::FutureOr<core::int>
-    return let final asy::FutureOr<core::int>? #t16 = local6 in #t16.==(null) ?{asy::FutureOr<core::int>} throw new _in::LateInitializationErrorImpl::•("Local 'local6' has not been initialized.") : #t16{asy::FutureOr<core::int>};
-  function #local6#set(asy::FutureOr<core::int> #t17) → dynamic
+  FutureOr<core::int>local5;
+  FutureOr<core::int>? local6;
+  function #local6#get() → FutureOr<core::int>
+    return let final FutureOr<core::int>? #t16 = local6 in #t16.==(null) ?{FutureOr<core::int>} throw new _in::LateInitializationErrorImpl::•("Local 'local6' has not been initialized.") : #t16{FutureOr<core::int>};
+  function #local6#set(FutureOr<core::int>#t17) → dynamic
     return local6 = #t17;
   T? local7;
   core::bool #local7#isSet = false;
@@ -240,11 +239,11 @@ static method methodDirect<T extends core::Object? = dynamic>(self::methodDirect
     return let final core::int? #t27 = local4 in #t27.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Local 'local4' has not been initialized.") : #t27{core::int};
   function #local4#set(core::int #t28) → dynamic
     return local4 = #t28;
-  asy::FutureOr<core::int> local5;
-  asy::FutureOr<core::int>? local6;
-  function #local6#get() → asy::FutureOr<core::int>
-    return let final asy::FutureOr<core::int>? #t29 = local6 in #t29.==(null) ?{asy::FutureOr<core::int>} throw new _in::LateInitializationErrorImpl::•("Local 'local6' has not been initialized.") : #t29{asy::FutureOr<core::int>};
-  function #local6#set(asy::FutureOr<core::int> #t30) → dynamic
+  FutureOr<core::int>local5;
+  FutureOr<core::int>? local6;
+  function #local6#get() → FutureOr<core::int>
+    return let final FutureOr<core::int>? #t29 = local6 in #t29.==(null) ?{FutureOr<core::int>} throw new _in::LateInitializationErrorImpl::•("Local 'local6' has not been initialized.") : #t29{FutureOr<core::int>};
+  function #local6#set(FutureOr<core::int>#t30) → dynamic
     return local6 = #t30;
   self::methodDirect::T? local7;
   core::bool #local7#isSet = false;
@@ -295,11 +294,11 @@ static method methodConditional<T extends core::Object? = dynamic>(core::bool b,
     return let final core::int? #t39 = local4 in #t39.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Local 'local4' has not been initialized.") : #t39{core::int};
   function #local4#set(core::int #t40) → dynamic
     return local4 = #t40;
-  asy::FutureOr<core::int> local5;
-  asy::FutureOr<core::int>? local6;
-  function #local6#get() → asy::FutureOr<core::int>
-    return let final asy::FutureOr<core::int>? #t41 = local6 in #t41.==(null) ?{asy::FutureOr<core::int>} throw new _in::LateInitializationErrorImpl::•("Local 'local6' has not been initialized.") : #t41{asy::FutureOr<core::int>};
-  function #local6#set(asy::FutureOr<core::int> #t42) → dynamic
+  FutureOr<core::int>local5;
+  FutureOr<core::int>? local6;
+  function #local6#get() → FutureOr<core::int>
+    return let final FutureOr<core::int>? #t41 = local6 in #t41.==(null) ?{FutureOr<core::int>} throw new _in::LateInitializationErrorImpl::•("Local 'local6' has not been initialized.") : #t41{FutureOr<core::int>};
+  function #local6#set(FutureOr<core::int>#t42) → dynamic
     return local6 = #t42;
   self::methodConditional::T? local7;
   core::bool #local7#isSet = false;

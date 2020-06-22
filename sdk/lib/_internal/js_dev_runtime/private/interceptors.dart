@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 library dart._interceptors;
 
 import 'dart:collection';
@@ -122,15 +120,15 @@ class JSNoSuchMethodError extends NativeError implements NoSuchMethodError {
   static final _extensionName = RegExp(r"^Symbol\(dartx\.(.+)\)$");
   static final _privateName = RegExp(r"^Symbol\((_.+)\)$");
 
-  String _fieldName(String message) {
-    var match = _nullError.firstMatch(message);
+  String? _fieldName(String message) {
+    RegExpMatch? match = _nullError.firstMatch(message);
     if (match == null) return null;
-    var name = match[1];
+    String name = match[1]!;
     match = _extensionName.firstMatch(name) ?? _privateName.firstMatch(name);
     return match != null ? match[1] : name;
   }
 
-  String _functionCallTarget(String message) {
+  String? _functionCallTarget(String message) {
     var match = _notAFunction.firstMatch(message);
     return match != null ? match[1] : null;
   }
@@ -180,7 +178,7 @@ class JSFunction extends Interceptor {
   // TODO(jmesserly): remove these once we canonicalize tearoffs.
   operator ==(other) {
     if (other == null) return false;
-    var boundObj = JS<Object>('', '#._boundObject', this);
+    var boundObj = JS<Object?>('', '#._boundObject', this);
     if (boundObj == null) return JS<bool>('!', '# === #', this, other);
     return JS(
         'bool',
@@ -192,7 +190,7 @@ class JSFunction extends Interceptor {
   }
 
   get hashCode {
-    var boundObj = JS<Object>('', '#._boundObject', this);
+    var boundObj = JS<Object?>('', '#._boundObject', this);
     if (boundObj == null) return identityHashCode(this);
 
     var boundMethod = JS<Object>('!', '#._boundMethod', this);
@@ -229,7 +227,7 @@ class JSRangeError extends Interceptor implements ArgumentError {
 // Warning: calls to these methods need to be removed before custom elements
 // and cross-frame dom objects behave correctly in ddc.
 // See https://github.com/dart-lang/sdk/issues/28326
-findInterceptorConstructorForType(Type type) {}
-findConstructorForNativeSubclassType(Type type, String name) {}
+findInterceptorConstructorForType(Type? type) {}
+findConstructorForNativeSubclassType(Type? type, String name) {}
 getNativeInterceptor(object) {}
 setDispatchProperty(object, value) {}

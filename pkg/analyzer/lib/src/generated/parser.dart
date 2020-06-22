@@ -1608,7 +1608,10 @@ class Parser {
       BooleanErrorListener listener = BooleanErrorListener();
       Scanner scanner = Scanner(
           null, SubSequenceReader(referenceSource, sourceOffset), listener)
-        ..configureFeatures(_featureSet);
+        ..configureFeatures(
+          featureSetForOverriding: _featureSet,
+          featureSet: _featureSet,
+        );
       scanner.setSourceStart(1, 1);
       Token firstToken = scanner.tokenize();
       if (listener.errorReported) {

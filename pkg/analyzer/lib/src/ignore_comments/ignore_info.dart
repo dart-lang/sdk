@@ -38,6 +38,11 @@ class IgnoreInfo {
   /// Whether this info object defines any ignores.
   bool get hasIgnores => _ignoreMap.isNotEmpty || _ignoreForFileSet.isNotEmpty;
 
+  /// Test whether this [errorCode] is ignored at the given [line].
+  bool ignoredAt(String errorCode, int line) =>
+      _ignoreForFileSet.contains(errorCode) ||
+      _ignoreMap[line]?.contains(errorCode) == true;
+
   /// Ignore these [errorCodes] at [line].
   void _addAll(int line, Iterable<String> errorCodes) {
     _ignoreMap.putIfAbsent(line, () => <String>[]).addAll(errorCodes);
@@ -47,11 +52,6 @@ class IgnoreInfo {
   void _addAllForFile(Iterable<String> errorCodes) {
     _ignoreForFileSet.addAll(errorCodes);
   }
-
-  /// Test whether this [errorCode] is ignored at the given [line].
-  bool ignoredAt(String errorCode, int line) =>
-      _ignoreForFileSet.contains(errorCode) ||
-      _ignoreMap[line]?.contains(errorCode) == true;
 
   /// Calculate ignores for the given [content] with line [info].
   static IgnoreInfo calculateIgnores(String content, LineInfo info) {

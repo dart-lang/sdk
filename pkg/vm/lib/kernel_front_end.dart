@@ -44,6 +44,7 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/ast.dart' show Component, Library, Reference;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:kernel/kernel.dart' show loadComponentFromBinary;
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 
 import 'bytecode/bytecode_serialization.dart' show BytecodeSizeStatistics;
@@ -67,6 +68,7 @@ import 'transformations/obfuscation_prohibitions_annotator.dart'
 import 'transformations/call_site_annotator.dart' as call_site_annotator;
 import 'transformations/unreachable_code_elimination.dart'
     as unreachable_code_elimination;
+import 'transformations/deferred_loading.dart' as deferred_loading;
 
 /// Declare options consumed by [runCompiler].
 void declareCompilerOptions(ArgParser args) {
@@ -80,6 +82,9 @@ void declareCompilerOptions(ArgParser args) {
           'Produce kernel file for AOT compilation (enables global transformations).',
       defaultsTo: false);
   args.addOption('depfile', help: 'Path to output Ninja depfile');
+  args.addOption('from-dill',
+      help: 'Read existing dill file instead of compiling from sources',
+      defaultsTo: null);
   args.addFlag('link-platform',
       help: 'Include platform into resulting kernel file.', defaultsTo: true);
   args.addFlag('minimal-kernel',
@@ -119,6 +124,11 @@ void declareCompilerOptions(ArgParser args) {
       help:
           'Split resulting kernel file into multiple files (one per package).',
       defaultsTo: false);
+  args.addOption('component-name',
+      help: 'Name of the Fuchsia component', defaultsTo: null);
+  args.addOption('data-dir',
+      help: 'Name of the subdirectory of //data for output files');
+  args.addOption('manifest', help: 'Path to output Fuchsia package manifest');
   args.addFlag('gen-bytecode', help: 'Generate bytecode', defaultsTo: false);
   args.addMultiOption('bytecode-options',
       help: 'Specify options for bytecode generation:',
@@ -131,6 +141,9 @@ void declareCompilerOptions(ArgParser args) {
       help: 'Comma separated list of experimental features to enable.');
   args.addFlag('help',
       abbr: 'h', negatable: false, help: 'Print this help message.');
+  args.addFlag('track-widget-creation',
+      help: 'Run a kernel transformer to track creation locations for widgets.',
+      defaultsTo: false);
 }
 
 /// Create ArgParser and populate it with options consumed by [runCompiler].
@@ -165,6 +178,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final String targetName = options['target'];
   final String fileSystemScheme = options['filesystem-scheme'];
   final String depfile = options['depfile'];
+  final String fromDillFile = options['from-dill'];
   final List<String> fileSystemRoots = options['filesystem-root'];
   final bool aot = options['aot'];
   final bool tfa = options['tfa'];
@@ -176,6 +190,9 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool nullSafety = options['null-safety'];
   final bool useProtobufTreeShaker = options['protobuf-tree-shaker'];
   final bool splitOutputByPackages = options['split-output-by-packages'];
+  final String manifestFilename = options['manifest'];
+  final String dataDir = options['component-name'] ?? options['data-dir'];
+
   final bool minimalKernel = options['minimal-kernel'];
   final bool treeShakeWriteOnlyFields = options['tree-shake-write-only-fields'];
   final List<String> experimentalFlags = options['enable-experiment'];
@@ -242,8 +259,11 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     await autoDetectNullSafetyMode(mainUri, compilerOptions);
   }
 
-  compilerOptions.target = createFrontEndTarget(targetName,
-      nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong);
+  compilerOptions.target = createFrontEndTarget(
+    targetName,
+    trackWidgetCreation: options['track-widget-creation'],
+    nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
+  );
   if (compilerOptions.target == null) {
     print('Failed to create front-end target $targetName.');
     return badUsageExitCode;
@@ -260,7 +280,8 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       dropAST: dropAST && !splitOutputByPackages,
       useProtobufTreeShaker: useProtobufTreeShaker,
       minimalKernel: minimalKernel,
-      treeShakeWriteOnlyFields: treeShakeWriteOnlyFields);
+      treeShakeWriteOnlyFields: treeShakeWriteOnlyFields,
+      fromDillFile: fromDillFile);
 
   errorPrinter.printCompilationMessages();
 
@@ -299,6 +320,10 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     );
   }
 
+  if (manifestFilename != null) {
+    await createFarManifest(outputFileName, dataDir, manifestFilename);
+  }
+
   return successExitCode;
 }
 
@@ -335,7 +360,8 @@ Future<KernelCompilationResults> compileToKernel(
     bool dropAST: false,
     bool useProtobufTreeShaker: false,
     bool minimalKernel: false,
-    bool treeShakeWriteOnlyFields: false}) async {
+    bool treeShakeWriteOnlyFields: false,
+    String fromDillFile: null}) async {
   // Replace error handler to detect if there are compilation errors.
   final errorDetector =
       new ErrorDetector(previousErrorHandler: options.onDiagnostic);
@@ -344,7 +370,13 @@ Future<KernelCompilationResults> compileToKernel(
   options.environmentDefines =
       options.target.updateEnvironmentDefines(environmentDefines);
 
-  CompilerResult compilerResult = await kernelForProgram(source, options);
+  CompilerResult compilerResult;
+  if (fromDillFile != null) {
+    compilerResult =
+        await loadKernel(options.fileSystem, resolveInputUri(fromDillFile));
+  } else {
+    compilerResult = await kernelForProgram(source, options);
+  }
   Component component = compilerResult?.component;
   Iterable<Uri> compiledSources = component?.uriToSource?.keys;
 
@@ -488,6 +520,8 @@ Future runGlobalTransformations(
   // We don't know yet whether gen_snapshot will want to do obfuscation, but if
   // it does it will need the obfuscation prohibitions.
   obfuscationProhibitions.transformComponent(component, coreTypes);
+
+  deferred_loading.transformComponent(component);
 }
 
 /// Runs given [action] with [CompilerContext]. This is needed to
@@ -857,6 +891,26 @@ Future<void> createFarManifest(
   packageManifest
       .write('data/$dataDir/app.frameworkversion=$frameworkVersionFilename\n');
   await packageManifest.close();
+}
+
+class CompilerResultLoadedFromKernel implements CompilerResult {
+  final Component component;
+  final Component sdkComponent = Component();
+
+  CompilerResultLoadedFromKernel(this.component);
+
+  List<int> get summary => null;
+  List<Component> get loadedComponents => const <Component>[];
+  List<Uri> get deps => const <Uri>[];
+  CoreTypes get coreTypes => null;
+  ClassHierarchy get classHierarchy => null;
+}
+
+Future<CompilerResult> loadKernel(
+    FileSystem fileSystem, Uri dillFileUri) async {
+  final component = loadComponentFromBinary(
+      (await asFileUri(fileSystem, dillFileUri)).toFilePath());
+  return CompilerResultLoadedFromKernel(component);
 }
 
 // Used by kernel_front_end_test.dart

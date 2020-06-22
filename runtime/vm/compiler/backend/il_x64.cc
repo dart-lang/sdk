@@ -127,6 +127,113 @@ DEFINE_BACKEND(TailCall, (NoLocation, Fixed<Register, ARGS_DESC_REG>)) {
   __ set_constant_pool_allowed(true);
 }
 
+LocationSummary* MemoryCopyInstr::MakeLocationSummary(Zone* zone,
+                                                      bool opt) const {
+  const intptr_t kNumInputs = 5;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(kSrcPos, Location::RegisterLocation(RSI));
+  locs->set_in(kDestPos, Location::RegisterLocation(RDI));
+  locs->set_in(kSrcStartPos, Location::WritableRegister());
+  locs->set_in(kDestStartPos, Location::WritableRegister());
+  locs->set_in(kLengthPos, Location::RegisterLocation(RCX));
+  return locs;
+}
+
+void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register src_start_reg = locs()->in(kSrcStartPos).reg();
+  const Register dest_start_reg = locs()->in(kDestStartPos).reg();
+
+  EmitComputeStartPointer(compiler, src_cid_, src_start(), RSI, src_start_reg);
+  EmitComputeStartPointer(compiler, dest_cid_, dest_start(), RDI,
+                          dest_start_reg);
+  if (element_size_ <= 8) {
+    __ SmiUntag(RCX);
+  }
+  switch (element_size_) {
+    case 1:
+      __ rep_movsb();
+      break;
+    case 2:
+      __ rep_movsw();
+      break;
+    case 4:
+      __ rep_movsl();
+      break;
+    case 8:
+    case 16:
+      __ rep_movsq();
+      break;
+  }
+}
+
+void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
+                                              classid_t array_cid,
+                                              Value* start,
+                                              Register array_reg,
+                                              Register start_reg) {
+  intptr_t offset;
+  if (IsTypedDataBaseClassId(array_cid)) {
+    __ movq(
+        array_reg,
+        compiler::FieldAddress(
+            array_reg, compiler::target::TypedDataBase::data_field_offset()));
+    offset = 0;
+  } else {
+    switch (array_cid) {
+      case kOneByteStringCid:
+        offset =
+            compiler::target::OneByteString::data_offset() - kHeapObjectTag;
+        break;
+      case kTwoByteStringCid:
+        offset =
+            compiler::target::TwoByteString::data_offset() - kHeapObjectTag;
+        break;
+      case kExternalOneByteStringCid:
+        __ movq(array_reg,
+                compiler::FieldAddress(array_reg,
+                                       compiler::target::ExternalOneByteString::
+                                           external_data_offset()));
+        offset = 0;
+        break;
+      case kExternalTwoByteStringCid:
+        __ movq(array_reg,
+                compiler::FieldAddress(array_reg,
+                                       compiler::target::ExternalTwoByteString::
+                                           external_data_offset()));
+        offset = 0;
+        break;
+      default:
+        UNREACHABLE();
+        break;
+    }
+  }
+  ScaleFactor scale;
+  switch (element_size_) {
+    case 1:
+      __ SmiUntag(start_reg);
+      scale = TIMES_1;
+      break;
+    case 2:
+      scale = TIMES_1;
+      break;
+    case 4:
+      scale = TIMES_2;
+      break;
+    case 8:
+      scale = TIMES_4;
+      break;
+    case 16:
+      scale = TIMES_8;
+      break;
+    default:
+      UNREACHABLE();
+      break;
+  }
+  __ leaq(array_reg, compiler::Address(array_reg, start_reg, scale, offset));
+}
+
 LocationSummary* PushArgumentInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -238,9 +345,13 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ popq(TMP);
 
   // Anything besides the return register.
-  const Register vm_tag_reg = RBX, old_exit_frame_reg = RCX;
+  const Register vm_tag_reg = RBX;
+  const Register old_exit_frame_reg = RCX;
+  const Register old_exit_through_ffi_reg = RDI;
 
   __ popq(old_exit_frame_reg);
+
+  __ popq(old_exit_through_ffi_reg);
 
   // Restore top_resource.
   __ popq(TMP);
@@ -253,7 +364,7 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // If we were called by a trampoline, it will enter the safepoint on our
   // behalf.
   __ TransitionGeneratedToNative(
-      vm_tag_reg, old_exit_frame_reg,
+      vm_tag_reg, old_exit_frame_reg, old_exit_through_ffi_reg,
       /*enter_safepoint=*/!NativeCallbackTrampolines::Enabled());
 
   // Restore C++ ABI callee-saved registers.
@@ -962,13 +1073,15 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // instruction, so 'AddressRIPRelative' loads the address of the following
   // 'movq'.
   __ leaq(TMP, compiler::Address::AddressRIPRelative(0));
-  compiler->EmitCallsiteMetadata(TokenPosition::kNoSource, DeoptId::kNone,
+  compiler->EmitCallsiteMetadata(TokenPosition::kNoSource, deopt_id(),
                                  PcDescriptorsLayout::Kind::kOther, locs());
   __ movq(compiler::Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize), TMP);
 
   if (CanExecuteGeneratedCodeInSafepoint()) {
     // Update information in the thread object and enter a safepoint.
-    __ TransitionGeneratedToNative(target_address, FPREG,
+    __ movq(TMP,
+            compiler::Immediate(compiler::target::Thread::exit_through_ffi()));
+    __ TransitionGeneratedToNative(target_address, FPREG, TMP,
                                    /*enter_safepoint=*/true);
 
     __ CallCFunction(target_address);
@@ -1096,6 +1209,9 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ movq(
       compiler::Address(THR, compiler::target::Thread::top_resource_offset()),
       compiler::Immediate(0));
+
+  __ pushq(compiler::Address(
+      THR, compiler::target::Thread::exit_through_ffi_offset()));
 
   // Save top exit frame info. Stack walker expects it to be here.
   __ pushq(compiler::Address(
@@ -1227,6 +1343,158 @@ void StringInterpolateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                args_info, locs(), ICData::Handle(),
                                ICData::kStatic);
   ASSERT(locs()->out(0).reg() == RAX);
+}
+
+LocationSummary* Utf8ScanInstr::MakeLocationSummary(Zone* zone,
+                                                    bool opt) const {
+  const intptr_t kNumInputs = 5;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::Any());               // decoder
+  summary->set_in(1, Location::WritableRegister());  // bytes
+  summary->set_in(2, Location::WritableRegister());  // start
+  summary->set_in(3, Location::WritableRegister());  // end
+  summary->set_in(4, Location::RequiresRegister());  // table
+  summary->set_temp(0, Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresRegister());
+  return summary;
+}
+
+void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register bytes_reg = locs()->in(1).reg();
+  const Register start_reg = locs()->in(2).reg();
+  const Register end_reg = locs()->in(3).reg();
+  const Register table_reg = locs()->in(4).reg();
+  const Register size_reg = locs()->out(0).reg();
+
+  const Register bytes_ptr_reg = start_reg;
+  const Register bytes_end_reg = end_reg;
+  const Register bytes_end_minus_16_reg = bytes_reg;
+  const Register flags_reg = locs()->temp(0).reg();
+  const Register temp_reg = TMP;
+  const XmmRegister vector_reg = FpuTMP;
+
+  static const intptr_t kSizeMask = 0x03;
+  static const intptr_t kFlagsMask = 0x3C;
+
+  compiler::Label scan_ascii, ascii_loop, ascii_loop_in, nonascii_loop;
+  compiler::Label rest, rest_loop, rest_loop_in, done;
+
+  // Address of input bytes.
+  __ movq(bytes_reg,
+          compiler::FieldAddress(
+              bytes_reg, compiler::target::TypedDataBase::data_field_offset()));
+
+  // Pointers to start, end and end-16.
+  __ leaq(bytes_ptr_reg, compiler::Address(bytes_reg, start_reg, TIMES_1, 0));
+  __ leaq(bytes_end_reg, compiler::Address(bytes_reg, end_reg, TIMES_1, 0));
+  __ leaq(bytes_end_minus_16_reg, compiler::Address(bytes_end_reg, -16));
+
+  // Initialize size and flags.
+  __ xorq(size_reg, size_reg);
+  __ xorq(flags_reg, flags_reg);
+
+  __ jmp(&scan_ascii, compiler::Assembler::kNearJump);
+
+  // Loop scanning through ASCII bytes one 16-byte vector at a time.
+  // While scanning, the size register contains the size as it was at the start
+  // of the current block of ASCII bytes, minus the address of the start of the
+  // block. After the block, the end address of the block is added to update the
+  // size to include the bytes in the block.
+  __ Bind(&ascii_loop);
+  __ addq(bytes_ptr_reg, compiler::Immediate(16));
+  __ Bind(&ascii_loop_in);
+
+  // Exit vectorized loop when there are less than 16 bytes left.
+  __ cmpq(bytes_ptr_reg, bytes_end_minus_16_reg);
+  __ j(UNSIGNED_GREATER, &rest, compiler::Assembler::kNearJump);
+
+  // Find next non-ASCII byte within the next 16 bytes.
+  // Note: In principle, we should use MOVDQU here, since the loaded value is
+  // used as input to an integer instruction. In practice, according to Agner
+  // Fog, there is no penalty for using the wrong kind of load.
+  __ movups(vector_reg, compiler::Address(bytes_ptr_reg, 0));
+  __ pmovmskb(temp_reg, vector_reg);
+  __ bsfq(temp_reg, temp_reg);
+  __ j(EQUAL, &ascii_loop, compiler::Assembler::kNearJump);
+
+  // Point to non-ASCII byte and update size.
+  __ addq(bytes_ptr_reg, temp_reg);
+  __ addq(size_reg, bytes_ptr_reg);
+
+  // Read first non-ASCII byte.
+  __ movzxb(temp_reg, compiler::Address(bytes_ptr_reg, 0));
+
+  // Loop over block of non-ASCII bytes.
+  __ Bind(&nonascii_loop);
+  __ addq(bytes_ptr_reg, compiler::Immediate(1));
+
+  // Update size and flags based on byte value.
+  __ movzxb(temp_reg, compiler::FieldAddress(
+                          table_reg, temp_reg, TIMES_1,
+                          compiler::target::OneByteString::data_offset()));
+  __ orq(flags_reg, temp_reg);
+  __ andq(temp_reg, compiler::Immediate(kSizeMask));
+  __ addq(size_reg, temp_reg);
+
+  // Stop if end is reached.
+  __ cmpq(bytes_ptr_reg, bytes_end_reg);
+  __ j(UNSIGNED_GREATER_EQUAL, &done, compiler::Assembler::kNearJump);
+
+  // Go to ASCII scan if next byte is ASCII, otherwise loop.
+  __ movzxb(temp_reg, compiler::Address(bytes_ptr_reg, 0));
+  __ testq(temp_reg, compiler::Immediate(0x80));
+  __ j(NOT_EQUAL, &nonascii_loop, compiler::Assembler::kNearJump);
+
+  // Enter the ASCII scanning loop.
+  __ Bind(&scan_ascii);
+  __ subq(size_reg, bytes_ptr_reg);
+  __ jmp(&ascii_loop_in);
+
+  // Less than 16 bytes left. Process the remaining bytes individually.
+  __ Bind(&rest);
+
+  // Update size after ASCII scanning loop.
+  __ addq(size_reg, bytes_ptr_reg);
+  __ jmp(&rest_loop_in, compiler::Assembler::kNearJump);
+
+  __ Bind(&rest_loop);
+
+  // Read byte and increment pointer.
+  __ movzxb(temp_reg, compiler::Address(bytes_ptr_reg, 0));
+  __ addq(bytes_ptr_reg, compiler::Immediate(1));
+
+  // Update size and flags based on byte value.
+  __ movzxb(temp_reg, compiler::FieldAddress(
+                          table_reg, temp_reg, TIMES_1,
+                          compiler::target::OneByteString::data_offset()));
+  __ orq(flags_reg, temp_reg);
+  __ andq(temp_reg, compiler::Immediate(kSizeMask));
+  __ addq(size_reg, temp_reg);
+
+  // Stop if end is reached.
+  __ Bind(&rest_loop_in);
+  __ cmpq(bytes_ptr_reg, bytes_end_reg);
+  __ j(UNSIGNED_LESS, &rest_loop, compiler::Assembler::kNearJump);
+  __ Bind(&done);
+
+  // Write flags to field.
+  __ andq(flags_reg, compiler::Immediate(kFlagsMask));
+  if (!IsScanFlagsUnboxed()) {
+    __ SmiTag(flags_reg);
+  }
+  Register decoder_reg;
+  const Location decoder_location = locs()->in(0);
+  if (decoder_location.IsStackSlot()) {
+    __ movq(temp_reg, LocationToStackSlotAddress(decoder_location));
+    decoder_reg = temp_reg;
+  } else {
+    decoder_reg = decoder_location.reg();
+  }
+  const auto scan_flags_field_offset = scan_flags_field_.offset_in_bytes();
+  __ orq(compiler::FieldAddress(decoder_reg, scan_flags_field_offset),
+         flags_reg);
 }
 
 LocationSummary* LoadUntaggedInstr::MakeLocationSummary(Zone* zone,
@@ -2752,14 +3020,19 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   // then use null as the type arguments.
   compiler::Label type_arguments_instantiated;
   const intptr_t len = type_arguments().Length();
-  if (type_arguments().IsRawWhenInstantiatedFromRaw(len)) {
+  const bool can_function_type_args_be_null =
+      function_type_arguments()->CanBe(Object::null_object());
+  if (type_arguments().IsRawWhenInstantiatedFromRaw(len) &&
+      can_function_type_args_be_null) {
     compiler::Label non_null_type_args;
     ASSERT(result_reg != instantiator_type_args_reg &&
            result_reg != function_type_args_reg);
     __ LoadObject(result_reg, Object::null_object());
     __ cmpq(instantiator_type_args_reg, result_reg);
-    __ j(NOT_EQUAL, &non_null_type_args, compiler::Assembler::kNearJump);
-    __ cmpq(function_type_args_reg, result_reg);
+    if (!function_type_arguments()->BindsToConstant()) {
+      __ j(NOT_EQUAL, &non_null_type_args, compiler::Assembler::kNearJump);
+      __ cmpq(function_type_args_reg, result_reg);
+    }
     __ j(EQUAL, &type_arguments_instantiated, compiler::Assembler::kNearJump);
     __ Bind(&non_null_type_args);
   }

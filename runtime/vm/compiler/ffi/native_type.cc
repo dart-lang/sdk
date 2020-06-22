@@ -233,6 +233,10 @@ static FundamentalType TypeRepresentation(classid_t class_id) {
       return compiler::target::kWordSize == 4 ? kUint32 : kInt64;
     case kFfiVoidCid:
       return kVoid;
+    case kFfiHandleCid:
+      // We never expose this pointer as a Dart int, so no need to make it
+      // unsigned on 32 bit architectures.
+      return compiler::target::kWordSize == 4 ? kInt32 : kInt64;
     default:
       UNREACHABLE();
   }

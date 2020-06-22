@@ -42,7 +42,9 @@ template("build_libdart_builtin") {
     public_configs = [ ":libdart_builtin_config" ]
     deps = []
     if (is_fuchsia) {
-      if (using_fuchsia_sdk) {
+      if (using_fuchsia_gn_sdk) {
+        public_deps = [ "$fuchsia_sdk_root/pkg/fdio" ]
+      } else if (using_fuchsia_sdk) {
         public_deps = [ "$fuchsia_sdk_root/pkg:fdio" ]
       } else {
         public_deps = [ "//zircon/public/lib/fdio" ]
@@ -69,6 +71,7 @@ build_libdart_builtin("libdart_builtin_product") {
   extra_configs = [
     "..:dart_product_config",
     "..:dart_os_config",
+    "..:dart_arch_config",
   ]
 }
 
@@ -313,7 +316,13 @@ template("build_gen_snapshot_dart_io") {
     deps = []
 
     if (is_fuchsia) {
-      if (using_fuchsia_sdk) {
+      if (using_fuchsia_gn_sdk) {
+        deps += [
+          "$fuchsia_sdk_root/fidl/fuchsia.netstack",
+          "$fuchsia_sdk_root/pkg/sys_cpp",
+        ]
+        public_deps = [ "$fuchsia_sdk_root/pkg/fdio" ]
+      } else if (using_fuchsia_sdk) {
         deps += [
           "$fuchsia_sdk_root/fidl:fuchsia.netstack",
           "$fuchsia_sdk_root/pkg:sys_cpp",
@@ -449,7 +458,13 @@ template("dart_io") {
     deps += [ "//third_party/boringssl" ]
 
     if (is_fuchsia) {
-      if (using_fuchsia_sdk) {
+      if (using_fuchsia_gn_sdk) {
+        deps += [
+          "$fuchsia_sdk_root/fidl/fuchsia.netstack",
+          "$fuchsia_sdk_root/pkg/sys_cpp",
+        ]
+        public_deps = [ "$fuchsia_sdk_root/pkg/fdio" ]
+      } else if (using_fuchsia_sdk) {
         deps += [
           "$fuchsia_sdk_root/fidl:fuchsia.netstack",
           "$fuchsia_sdk_root/pkg:sys_cpp",
@@ -512,6 +527,12 @@ dart_io("standalone_dart_io") {
   extra_deps = [ ":libdart_builtin" ]
 }
 
+dart_io("standalone_dart_io_product") {
+  extra_configs = [ "..:dart_product_config" ]
+  extra_sources = []
+  extra_deps = [ ":libdart_builtin_product" ]
+}
+
 gen_snapshot_action("generate_snapshot_bin") {
   deps = [ "../vm:vm_platform_stripped" ]
   vm_snapshot_data = "$target_gen_dir/vm_snapshot_data.bin"
@@ -528,14 +549,9 @@ gen_snapshot_action("generate_snapshot_bin") {
     isolate_snapshot_data,
     isolate_snapshot_instructions,
   ]
-  args = []
-  if (!dont_use_nnbd) {
-    args += [
-      "--enable-experiment=non-nullable",
-      "--null-safety",
-    ]
-  }
-  args += [
+  args = [
+    "--enable-experiment=non-nullable",
+    "--null-safety",
     "--deterministic",
     "--snapshot_kind=" + dart_core_snapshot_kind,
     "--vm_snapshot_data=" + rebase_path(vm_snapshot_data, root_build_dir),
@@ -732,6 +748,11 @@ action("generate_abi_version_cc_file") {
 }
 
 template("dart_executable") {
+  use_product_mode = dart_runtime_mode == "release"
+  if (defined(invoker.use_product_mode)) {
+    use_product_mode = invoker.use_product_mode
+  }
+
   extra_configs = []
   if (defined(invoker.extra_configs)) {
     extra_configs += invoker.extra_configs
@@ -761,26 +782,37 @@ template("dart_executable") {
                  "..:dart_arch_config",
                  "..:dart_config",
                  "..:dart_os_config",
-                 "..:dart_maybe_product_config",
                ] + extra_configs
+    if (use_product_mode) {
+      configs += [ "..:dart_product_config" ]
+    } else {
+      configs += [ "..:dart_maybe_product_config" ]
+    }
     if (target_os != current_os && target_os == "fuchsia") {
       # We already have these in the standalone build, but Fuchsia doesn't
       # have them. They are needed for running Fuchsia binaries built for the
       # host.
       if (is_linux) {
-        configs += [ "../../build/config/gcc:executable_ldconfig" ]
+        # TODO(liama): Commenting this line out because it causes problems for
+        # --os=fuchsia. If no one complains, remove it.
+        # configs += [ "../../build/config/gcc:executable_ldconfig" ]
       } else if (is_mac) {
         configs += [ "../../build/config/mac:mac_dynamic_flags" ]
       }
     }
 
     deps = [
-             ":standalone_dart_io",
-             "//third_party/boringssl",
-             "//third_party/zlib",
-             ":crashpad",
-             ":generate_abi_version_cc_file",
-           ] + extra_deps
+      ":crashpad",
+      ":generate_abi_version_cc_file",
+      "//third_party/boringssl",
+      "//third_party/zlib",
+    ]
+    if (use_product_mode) {
+      deps += [ ":standalone_dart_io_product" ]
+    } else {
+      deps += [ ":standalone_dart_io" ]
+    }
+    deps += extra_deps
 
     defines = extra_defines
     if (exclude_kernel_service) {
@@ -881,11 +913,36 @@ dart_executable("dart_precompiled_runtime") {
     "snapshot_empty.cc",
   ]
 
-  extra_deps += [ ":elf_loader" ]
+  if (dart_runtime_mode == "release") {
+    extra_deps += [ ":elf_loader_product" ]
+  } else {
+    extra_deps += [ ":elf_loader" ]
+  }
 
   if (dart_runtime_mode == "release") {
     extra_sources += [ "observatory_assets_empty.cc" ]
   }
+}
+
+dart_executable("dart_precompiled_runtime_product") {
+  use_product_mode = true
+  extra_configs = [ "..:dart_precompiled_runtime_config" ]
+  extra_deps = [
+    "..:libdart_precompiled_runtime_product",
+    "../platform:libdart_platform_precompiled_runtime_product",
+  ]
+  extra_sources = [
+    "builtin.cc",
+    "gzip.cc",
+    "gzip.h",
+    "loader.cc",
+    "loader.h",
+    "main.cc",
+    "observatory_assets_empty.cc",
+    "snapshot_empty.cc",
+  ]
+
+  extra_deps += [ ":elf_loader_product" ]
 }
 
 executable("process_test") {
@@ -966,7 +1023,11 @@ executable("run_vm_tests") {
   }
 
   if (is_fuchsia) {
-    if (!using_fuchsia_sdk) {
+    if (using_fuchsia_gn_sdk) {
+      include_dirs += [ "$fuchsia_sdk_path/pkg/trace-engine/include" ]
+      libs = [ "zircon" ]
+    }
+    if (!using_fuchsia_gn_sdk && !using_fuchsia_sdk) {
       deps += [ "//zircon/system/ulib/trace" ]
     }
   }
@@ -1078,11 +1139,14 @@ shared_library("ffi_test_dynamic_library") {
 shared_library("ffi_test_functions") {
   deps = [ ":dart" ]
 
-  # The two files here do not depend on each other.
-  # flutter/flutter integration tests will only use `ffi_test_functions.cc` -
-  # any test functionality using `dart_api.h` has to go into
-  # `ffi_test_functions_vmspecific.cc`.
   sources = [
+    # This file must be compiled in for dynamic linking.
+    "../include/dart_api_dl.cc",
+
+    # The two files here do not depend on each other.
+    # flutter/flutter integration tests will only use `ffi_test_functions.cc` -
+    # any test functionality using `dart_api.h` has to go into
+    # `ffi_test_functions_vmspecific.cc`.
     "ffi_test/ffi_test_functions.cc",
     "ffi_test/ffi_test_functions_vmspecific.cc",
   ]

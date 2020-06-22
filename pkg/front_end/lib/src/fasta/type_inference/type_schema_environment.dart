@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart'
         DartType,
         DynamicType,
         FunctionType,
+        FutureOrType,
         InterfaceType,
         Library,
         NamedType,
@@ -110,8 +111,6 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   Class get functionClass => coreTypes.functionClass;
 
   Class get futureClass => coreTypes.futureClass;
-
-  Class get futureOrClass => coreTypes.futureOrClass;
 
   Class get objectClass => coreTypes.objectClass;
 
@@ -361,10 +360,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       DartType subtype, DartType supertype) {
     if (subtype is UnknownType) return const IsSubtypeOf.always();
     DartType unwrappedSupertype = supertype;
-    while (unwrappedSupertype is InterfaceType &&
-        unwrappedSupertype.classNode == futureOrClass) {
-      unwrappedSupertype =
-          (unwrappedSupertype as InterfaceType).typeArguments.single;
+    while (unwrappedSupertype is FutureOrType) {
+      unwrappedSupertype = (unwrappedSupertype as FutureOrType).typeArgument;
     }
     if (unwrappedSupertype is UnknownType) {
       return const IsSubtypeOf.always();

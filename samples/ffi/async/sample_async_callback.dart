@@ -26,7 +26,11 @@ main() async {
   print("C T2 = Some C thread executing C.");
   print("C    = C T1 or C T2.");
   print("Dart: Setup.");
-  registerDart_PostCObject(NativeApi.postCObject);
+  Expect.isTrue(NativeApi.majorVersion == 1);
+  Expect.isTrue(NativeApi.minorVersion >= 0);
+  final initializeApi = dl.lookupFunction<IntPtr Function(Pointer<Void>),
+      int Function(Pointer<Void>)>("InitDartApiDL");
+  Expect.isTrue(initializeApi(NativeApi.initializeApiDLData) == 0);
 
   final interactiveCppRequests = ReceivePort()..listen(requestExecuteCallback);
   final int nativePort = interactiveCppRequests.sendPort.nativePort;
@@ -100,14 +104,6 @@ final stopWorkSimulator =
 
 final executeCallback = dl.lookupFunction<Void Function(Pointer<Work>),
     void Function(Pointer<Work>)>('ExecuteCallback');
-
-final registerDart_PostCObject = dl.lookupFunction<
-    Void Function(
-        Pointer<NativeFunction<Int8 Function(Int64, Pointer<Dart_CObject>)>>
-            functionPointer),
-    void Function(
-        Pointer<NativeFunction<Int8 Function(Int64, Pointer<Dart_CObject>)>>
-            functionPointer)>('RegisterDart_PostCObject');
 
 class Work extends Struct {}
 

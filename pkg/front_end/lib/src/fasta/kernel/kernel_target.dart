@@ -48,7 +48,6 @@ import 'package:kernel/core_types.dart';
 
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
 
-import 'package:kernel/src/future_or.dart';
 import 'package:kernel/type_algebra.dart' show substitute;
 import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
@@ -327,12 +326,12 @@ class KernelTarget extends TargetImplementation {
       loader.computeHierarchy();
       loader.performTopLevelInference(myClasses);
       loader.checkSupertypes(myClasses);
-      loader.checkTypes();
       loader.checkOverrides(myClasses);
       loader.checkAbstractMembers(myClasses);
       loader.addNoSuchMethodForwarders(myClasses);
       loader.checkMixins(myClasses);
       loader.buildOutlineExpressions(loader.coreTypes);
+      loader.checkTypes();
       loader.checkRedirectingFactories(myClasses);
       _updateDelayedParameterTypes();
       installAllComponentProblems(loader.allComponentProblems);
@@ -975,8 +974,7 @@ class KernelTarget extends TargetImplementation {
                   fieldBuilder.fileUri);
             }
           } else if (fieldBuilder.fieldType is! InvalidType &&
-              isPotentiallyNonNullable(
-                  fieldBuilder.fieldType, loader.coreTypes.futureOrClass) &&
+              fieldBuilder.fieldType.isPotentiallyNonNullable &&
               (cls.constructors.isNotEmpty || cls.isMixinDeclaration)) {
             SourceLibraryBuilder library = builder.library;
             if (library.isNonNullableByDefault) {
@@ -1019,10 +1017,9 @@ class KernelTarget extends TargetImplementation {
                       .withLocation(fieldBuilder.fileUri,
                           fieldBuilder.charOffset, fieldBuilder.name.length)
                 ]);
-          } else if (fieldBuilder.type is! InvalidType &&
+          } else if (fieldBuilder.field.type is! InvalidType &&
               !fieldBuilder.isLate &&
-              isPotentiallyNonNullable(
-                  fieldBuilder.field.type, loader.coreTypes.futureOrClass)) {
+              fieldBuilder.field.type.isPotentiallyNonNullable) {
             SourceLibraryBuilder library = builder.library;
             if (library.isNonNullableByDefault) {
               library.addProblem(

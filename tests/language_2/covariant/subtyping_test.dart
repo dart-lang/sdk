@@ -217,20 +217,25 @@ class TearOff<T> {
   method7(T Function() Function() returnsReturnsT) => null; // needs check
 }
 
+typedef F1 = dynamic Function(Object);
+typedef F2 = dynamic Function(dynamic Function(int));
+typedef F3 = dynamic Function(dynamic Function(int Function()));
+typedef F4 = dynamic Function(dynamic Function(int) Function());
+
 testTearOffRuntimeType() {
-  expectRTTI(tearoff, type) => Expect.equals('${tearoff.runtimeType}', type,
+  expectRTTI(tearoff, type) => Expect.equals(tearoff.runtimeType, type,
       'covariant params should reify with Object as their type');
 
   TearOff<num> t = new TearOff<int>();
-  expectRTTI(t.method1, '(Object) => dynamic');
+  expectRTTI(t.method1, F1);
 
-  expectRTTI(t.method2, '((int) => dynamic) => dynamic');
-  expectRTTI(t.method3, '(Object) => dynamic');
+  expectRTTI(t.method2, F2);
+  expectRTTI(t.method3, F1);
 
-  expectRTTI(t.method4, '(Object) => dynamic');
-  expectRTTI(t.method5, '((() => int) => dynamic) => dynamic');
-  expectRTTI(t.method6, '(() => (int) => dynamic) => dynamic');
-  expectRTTI(t.method7, '(Object) => dynamic');
+  expectRTTI(t.method4, F1);
+  expectRTTI(t.method5, F3);
+  expectRTTI(t.method6, F4);
+  expectRTTI(t.method7, F1);
 }
 
 main() {

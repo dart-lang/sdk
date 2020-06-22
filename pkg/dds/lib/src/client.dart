@@ -13,7 +13,19 @@ class _DartDevelopmentServiceClient {
     json_rpc.Peer vmServicePeer,
   ) : _vmServicePeer = vmServicePeer {
     _clientPeer = json_rpc.Peer(
-      ws.cast<String>(),
+      // Manually create a StreamChannel<String> instead of calling
+      // ws.cast<String>() as cast() results in addStream() being called,
+      // binding the underlying sink. This results in a StateError being thrown
+      // if we try and add directly to the sink, which we do for binary events
+      // in _StreamManager's streamNotify().
+      StreamChannel<String>(
+        ws.stream.cast(),
+        StreamController(sync: true)
+          ..stream
+              .cast()
+              .listen((event) => ws.sink.add(event))
+              .onDone(() => ws.sink.close()),
+      ),
       strictProtocolChecks: false,
     );
     _registerJsonRpcMethods();
@@ -144,6 +156,19 @@ class _DartDevelopmentServiceClient {
           .add(ddsProtocol);
       return supportedProtocols;
     });
+
+    // `evaluate` and `evaluateInFrame` actually consist of multiple RPC
+    // invocations, including a call to `compileExpression` which can be
+    // overridden by clients which provide their own implementation (e.g.,
+    // Flutter Tools). We handle all of this in [_ExpressionEvaluator].
+    _clientPeer.registerMethod(
+      'evaluate',
+      dds.expressionEvaluator.execute,
+    );
+    _clientPeer.registerMethod(
+      'evaluateInFrame',
+      dds.expressionEvaluator.execute,
+    );
 
     // When invoked within a fallback, the next fallback will start executing.
     // The final fallback forwards the request to the VM service directly.

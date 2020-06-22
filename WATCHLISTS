@@ -28,7 +28,6 @@
       'filepath': (
         '^pkg/compiler|'
         '^sdk/lib/_internal/js_runtime|'
-        '^sdk_nnbd/lib/_internal/js_runtime|'
         '^tests/compiler/dart2js'
       )
     },
@@ -36,8 +35,7 @@
       'filepath': (
         '^pkg/dev_compiler|'
         '^sdk/lib/_internal/js_dev_runtime|'
-        '^sdk_nnbd/lib/_internal/js_dev_runtime|'
-        '^tests/compiler/dartdevc_native'
+        '^tests/dartdevc'
       )
     },
     'package_vm': {

@@ -785,6 +785,111 @@ main() {
         expect(procedure, isNotNull);
       }
     });
+
+    /// This test basicaly verifies that components `relink` method is correctly
+    /// called when rejecting (i.e. logically going back in time to before a
+    /// rejected compilation).
+    test('check links after reject', () async {
+      final Uri fooUri = Uri.file('${mytest.path}/foo.dart');
+      new File.fromUri(fooUri).writeAsStringSync("""
+        import 'bar.dart';
+        main() {
+          A a = new A();
+          print(a.b());
+          print(A.a);
+        }
+        """);
+
+      final Uri barUri = Uri.file('${mytest.path}/bar.dart');
+      new File.fromUri(barUri).writeAsStringSync("""
+        class A {
+          static int a;
+          int b() { return 42; }
+        }
+        """);
+
+      final IncrementalCompiler compiler =
+          new IncrementalCompiler(options, fooUri);
+      // These are copies of the ones in
+      // pkg/front_end/lib/src/fasta/util/experiment_environment_getter.dart
+      compiler.generator.setExperimentalFeaturesForTesting({
+        "DART_CFE_ENABLE_EXPERIMENTAL_INVALIDATION",
+        "DART_CFE_ENABLE_EXPERIMENTAL_INVALIDATION_SERIALIZATION"
+      });
+      Library fooLib;
+      Library barLib;
+      {
+        final Component component = await compiler.compile(entryPoint: fooUri);
+        expect(component.libraries.length, equals(2));
+        fooLib = component.libraries.firstWhere((lib) => lib.fileUri == fooUri);
+        barLib = component.libraries.firstWhere((lib) => lib.fileUri == barUri);
+        // Verify that foo only has links to this bar.
+        final LibraryReferenceCollector lrc = new LibraryReferenceCollector();
+        fooLib.accept(lrc);
+        expect(lrc.librariesReferenced, equals(<Library>{barLib}));
+      }
+      compiler.accept();
+      {
+        final Procedure procedure = await compiler.compileExpression(
+            'a', <String>[], <String>[], barUri.toString(), 'A', true);
+        expect(procedure, isNotNull);
+        // Verify that the expression only has links to the only bar we know
+        // about.
+        final LibraryReferenceCollector lrc = new LibraryReferenceCollector();
+        procedure.accept(lrc);
+        expect(lrc.librariesReferenced, equals(<Library>{barLib}));
+      }
+
+      new File.fromUri(barUri).writeAsStringSync("""
+        class A {
+          static int a;
+          int b() { return 84; }
+        }
+        """);
+      compiler.invalidate(barUri);
+      {
+        final Component component = await compiler.compile(entryPoint: fooUri);
+        final Library fooLib2 = component.libraries
+            .firstWhere((lib) => lib.fileUri == fooUri, orElse: () => null);
+        expect(fooLib2, isNull);
+        final Library barLib2 =
+            component.libraries.firstWhere((lib) => lib.fileUri == barUri);
+        // Verify that the fooLib (we only have the original one) only has
+        // links to the newly compiled bar.
+        final LibraryReferenceCollector lrc = new LibraryReferenceCollector();
+        fooLib.accept(lrc);
+        expect(lrc.librariesReferenced, equals(<Library>{barLib2}));
+      }
+      await compiler.reject();
+      // Re-enable the experiments as reject creates a new generator.
+      compiler.generator.setExperimentalFeaturesForTesting({
+        "DART_CFE_ENABLE_EXPERIMENTAL_INVALIDATION",
+        "DART_CFE_ENABLE_EXPERIMENTAL_INVALIDATION_SERIALIZATION"
+      });
+      {
+        // Verify that the original foo library only has links to the original
+        // compiled bar.
+        final LibraryReferenceCollector lrc = new LibraryReferenceCollector();
+        fooLib.accept(lrc);
+        expect(lrc.librariesReferenced, equals(<Library>{barLib}));
+      }
+      {
+        // Verify that the saved "last known good" compnent only contains links
+        // to the original 'foo' and 'bar' libraries.
+        final LibraryReferenceCollector lrc = new LibraryReferenceCollector();
+        compiler.lastKnownGoodComponent.accept(lrc);
+        expect(lrc.librariesReferenced, equals(<Library>{fooLib, barLib}));
+      }
+      {
+        final Procedure procedure = await compiler.compileExpression(
+            'a', <String>[], <String>[], barUri.toString(), 'A', true);
+        expect(procedure, isNotNull);
+        // Verify that the expression only has links to the original bar.
+        final LibraryReferenceCollector lrc = new LibraryReferenceCollector();
+        procedure.accept(lrc);
+        expect(lrc.librariesReferenced, equals(<Library>{barLib}));
+      }
+    });
   });
 
   group('expression evaluation', () {
@@ -1259,6 +1364,18 @@ _writeProgramToFile(Component component, File outputFile) async {
   printer.writeComponentFile(component);
   await sink.flush();
   await sink.close();
+}
+
+class LibraryReferenceCollector extends RecursiveVisitor<void> {
+  Set<Library> librariesReferenced = {};
+
+  void defaultMemberReference(Member node) {
+    Library lib = node.enclosingLibrary;
+    if (lib.importUri.scheme != "dart") {
+      librariesReferenced.add(lib);
+    }
+    return super.defaultMemberReference(node);
+  }
 }
 
 /// APIs to communicate with a remote VM via the VM's service protocol.

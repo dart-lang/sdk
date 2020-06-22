@@ -356,6 +356,29 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_call_already_migrated_extension() async {
+    var content = '''
+import 'already_migrated.dart';
+void f() {
+  <int>[].g();
+}
+''';
+    var alreadyMigrated = '''
+extension Ext<T> on List<T> {
+  g() {}
+}
+''';
+    var expected = '''
+import 'already_migrated.dart';
+void f() {
+  <int>[].g();
+}
+''';
+    await _checkSingleFileChanges(content, expected, migratedInput: {
+      '/home/test/lib/already_migrated.dart': alreadyMigrated
+    });
+  }
+
   Future<void> test_call_generic_function_returns_generic_class() async {
     var content = '''
 class B<E> implements List<E/*?*/> {
@@ -376,6 +399,44 @@ class B<E> implements List<E?> {
 abstract class C {
   B<T> _castFrom<S, T>(B<S> source);
 }
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_call_migrated_base_class_method_non_nullable() async {
+    var content = '''
+abstract class M<V> implements Map<String, V> {}
+void f(bool b, M<int> m, int i) {
+  if (b) {
+    m['x'] = i;
+  }
+}
+void g(bool b, M<int> m) {
+  f(b, m, null);
+}
+''';
+    var expected = '''
+abstract class M<V> implements Map<String, V> {}
+void f(bool b, M<int?> m, int? i) {
+  if (b) {
+    m['x'] = i;
+  }
+}
+void g(bool b, M<int?> m) {
+  f(b, m, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_call_migrated_base_class_method_nullable() async {
+    var content = '''
+abstract class M<V> implements Map<String, V> {}
+int f(M<int> m) => m['x'];
+''';
+    var expected = '''
+abstract class M<V> implements Map<String, V> {}
+int? f(M<int> m) => m['x'];
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -1391,6 +1452,16 @@ int f(int i) {
     await _checkSingleFileChanges(content, expected, removeViaComments: true);
   }
 
+  Future<void> test_do_not_add_question_to_null_type() async {
+    var content = '''
+Null f() => null;
+''';
+    var expected = '''
+Null f() => null;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_do_not_propagate_non_null_intent_into_callback() async {
     var content = '''
 void f(int/*!*/ Function(int) callback) {
@@ -2040,6 +2111,48 @@ extension E on C? {
 }
 void f(C? c) => c.m();
 void g() => f(null);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_extension_on_type_param_implementation() async {
+    var content = '''
+abstract class C {
+  C _clone();
+}
+extension Cloner<T extends C> on T {
+  T clone() => _clone() as T;
+}
+''';
+    var expected = '''
+abstract class C {
+  C _clone();
+}
+extension Cloner<T extends C> on T {
+  T clone() => _clone() as T;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_extension_on_type_param_usage() async {
+    var content = '''
+abstract class C {
+  C _clone();
+}
+extension Cloner<T extends C> on T {
+  T clone() => throw Exception();
+}
+C f(C c) => c.clone();
+''';
+    var expected = '''
+abstract class C {
+  C _clone();
+}
+extension Cloner<T extends C> on T {
+  T clone() => throw Exception();
+}
+C f(C c) => c.clone();
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -3447,6 +3560,26 @@ void main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_issue_41397() async {
+    var content = '''
+void repro(){
+  List<dynamic> l = <dynamic>[];
+  for(final dynamic e in l) {
+    final List<String> a = (e['query'] as String).split('&');
+  }
+}
+''';
+    var expected = '''
+void repro(){
+  List<dynamic> l = <dynamic>[];
+  for(final dynamic e in l) {
+    final List<String> a = (e['query'] as String).split('&');
+  }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_late_hint_instance_field_with_constructor() async {
     var content = '''
 class C {
@@ -4002,6 +4135,34 @@ void g() {
 T f<T>(T t) => t;
 void g() {
   int? x = f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_migrate_reference_to_never() async {
+    var content = '''
+import 'dart:io';
+int f() =>
+  exit(1); // this returns `Never` which used to cause a crash.
+''';
+    var expected = '''
+import 'dart:io';
+int f() =>
+  exit(1); // this returns `Never` which used to cause a crash.
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_migratedMethod_namedParameter() async {
+    var content = '''
+void f(Iterable<int> a) {
+  a.toList(growable: false);
+}
+''';
+    var expected = '''
+void f(Iterable<int> a) {
+  a.toList(growable: false);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -6391,6 +6552,6 @@ class _ProvisionalApiTestWithReset extends _ProvisionalApiTestBase
 
   @override
   void _betweenStages() {
-    driver.resetUriResolution();
+    driver.clearLibraryContext();
   }
 }

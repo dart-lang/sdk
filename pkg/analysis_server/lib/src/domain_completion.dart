@@ -100,7 +100,12 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       var contributorTag = 'computeSuggestions - ${manager.runtimeType}';
       performance.logStartTime(contributorTag);
       try {
-        suggestions.addAll(await manager.computeSuggestions(request));
+        suggestions.addAll(
+          await manager.computeSuggestions(
+            request,
+            enableUriContributor: true,
+          ),
+        );
       } on AbortCompletion {
         suggestions.clear();
       }
@@ -111,11 +116,11 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     // false) then send empty results
 
     //
-    // Add the fixes produced by plugins to the server-generated fixes.
+    // Add the completions produced by plugins to the server-generated list.
     //
     if (pluginFutures != null) {
       var responses = await waitForResponses(pluginFutures,
-          requestParameters: requestParams);
+          requestParameters: requestParams, timeout: 100);
       for (var response in responses) {
         var result =
             plugin.CompletionGetSuggestionsResult.fromResponse(response);

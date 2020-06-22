@@ -458,7 +458,8 @@
       "tool/",
       "test/",
       "../kernel/lib/",
-      "../testing/"
+      "../testing/",
+      "../_fe_analyzer_shared/lib/"
     ],
     "git grep": {
       "pathspecs": [

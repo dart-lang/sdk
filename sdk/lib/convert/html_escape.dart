@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.convert;
 
 /// A `String` converter that converts characters to HTML entities.
@@ -160,11 +158,11 @@ class HtmlEscape extends Converter<String, String> {
   ///
   /// Returns `null` if no changes were necessary, otherwise returns
   /// the converted string.
-  String _convert(String text, int start, int end) {
-    StringBuffer result;
+  String? _convert(String text, int start, int end) {
+    StringBuffer? result;
     for (var i = start; i < end; i++) {
       var ch = text[i];
-      String replacement;
+      String? replacement;
       switch (ch) {
         case '&':
           replacement = '&amp;';
@@ -187,6 +185,11 @@ class HtmlEscape extends Converter<String, String> {
       }
       if (replacement != null) {
         result ??= StringBuffer();
+        // TODO(38725): Remove workaround when assignment promotion is
+        // implemented
+        if (result == null) {
+          throw "unreachable";
+        }
         if (i > start) result.write(text.substring(start, i));
         result.write(replacement);
         start = i + 1;

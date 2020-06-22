@@ -11,10 +11,10 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
+import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -27,7 +27,6 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
 import 'package:analyzer/src/summary2/informative_data.dart';
-import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 
 /// Ensure that the [FileState.libraryCycle] for the [file] and anything it
@@ -128,7 +127,10 @@ class FileState {
 
     CharSequenceReader reader = CharSequenceReader(content);
     Scanner scanner = Scanner(source, reader, errorListener)
-      ..configureFeatures(featureSet);
+      ..configureFeatures(
+        featureSetForOverriding: featureSet,
+        featureSet: featureSet,
+      );
     Token token = PerformanceStatistics.scan.makeCurrentWhile(() {
       return scanner.tokenize(reportScannerErrors: false);
     });
@@ -168,16 +170,7 @@ class FileState {
     // Prepare bytes of the unlinked bundle - existing or new.
     List<int> bytes;
     {
-      bytes = _fsState._byteStore.get(unlinkedKey);
-      // unlinked summary should be updated if contents have changed, can be
-      // seen if file digest has changed.
-      if (bytes != null) {
-        var ciderUnlinkedUnit = CiderUnlinkedUnit.fromBuffer(bytes);
-        if (!const ListEquality()
-            .equals(ciderUnlinkedUnit.contentDigest, _digest)) {
-          bytes = null;
-        }
-      }
+      bytes = _fsState._byteStore.get(unlinkedKey, _digest);
 
       if (bytes == null || bytes.isEmpty) {
         var content = _fsState.timers.read.run(() {
@@ -189,7 +182,7 @@ class FileState {
         _fsState.timers.unlinked.run(() {
           var unlinkedBuilder = serializeAstCiderUnlinked(_digest, unit);
           bytes = unlinkedBuilder.toBuffer();
-          _fsState._byteStore.put(unlinkedKey, bytes);
+          _fsState._byteStore.put(unlinkedKey, _digest, bytes);
         });
 
         _fsState.timers.prefetch.run(() {
@@ -377,7 +370,7 @@ class FileState {
 class FileSystemState {
   final PerformanceLog _logger;
   final ResourceProvider _resourceProvider;
-  final MemoryByteStore _byteStore;
+  final CiderByteStore _byteStore;
   final SourceFactory _sourceFactory;
   final AnalysisOptions _analysisOptions;
   final Uint32List _linkedSalt;

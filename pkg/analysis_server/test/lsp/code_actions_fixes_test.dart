@@ -94,6 +94,47 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
     expect(contents[mainFilePath], equals(expectedContent));
   }
 
+  Future<void> test_noDuplicates() async {
+    const content = '''
+    var a = [Test, Test, Te[[]]st];
+    ''';
+
+    await newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+    );
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final createClassActions = findEditActions(codeActions,
+        CodeActionKind('quickfix.create.class'), "Create class 'Test'");
+
+    expect(createClassActions, hasLength(1));
+    expect(createClassActions.first.diagnostics, hasLength(3));
+  }
+
+  Future<void> test_noDuplicates_withDocumentChangesSupport() async {
+    const content = '''
+    var a = [Test, Test, Te[[]]st];
+    ''';
+
+    await newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize(
+        textDocumentCapabilities: withCodeActionKinds(
+            emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+        workspaceCapabilities: withApplyEditSupport(
+            withDocumentChangesSupport(emptyWorkspaceClientCapabilities)));
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final createClassActions = findEditActions(codeActions,
+        CodeActionKind('quickfix.create.class'), "Create class 'Test'");
+
+    expect(createClassActions, hasLength(1));
+    expect(createClassActions.first.diagnostics, hasLength(3));
+  }
+
   Future<void> test_nonDartFile() async {
     await newFile(pubspecFilePath, content: simplePubspecContent);
     await initialize(

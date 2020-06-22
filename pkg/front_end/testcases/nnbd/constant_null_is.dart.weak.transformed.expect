@@ -1,7 +1,6 @@
 library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
-import "dart:async" as asy;
 
 import "dart:async";
 
@@ -52,14 +51,14 @@ static method main() → dynamic {
   self::expect(null is{ForNonNullableByDefault} core::Null?, #C2, "null is Null");
   self::expect(null is{ForNonNullableByDefault} Never?, #C2, "null is Never?");
   self::expect(null is{ForNonNullableByDefault} Never, #C3, "null is Never");
-  self::expect(null is{ForNonNullableByDefault} asy::FutureOr<core::int?>, #C2, "null is FutureOr<int?>");
-  self::expect(null is{ForNonNullableByDefault} asy::FutureOr<core::int>, #C3, "null is FutureOr<int>");
-  self::expect(null is{ForNonNullableByDefault} asy::FutureOr<core::int>?, #C2, "null is FutureOr<int>?");
-  self::expect(null is{ForNonNullableByDefault} asy::FutureOr<core::Null?>, #C2, "null is FutureOr<Null>");
-  self::expect(null is{ForNonNullableByDefault} asy::FutureOr<core::Null?>?, #C2, "null is FutureOr<Null>?");
-  self::expect(null is{ForNonNullableByDefault} asy::FutureOr<Never>, #C3, "null is FutureOr<Never>");
-  self::expect(null is{ForNonNullableByDefault} asy::FutureOr<Never?>, #C2, "null is FutureOr<Never?>");
-  self::expect(null is{ForNonNullableByDefault} asy::FutureOr<Never>?, #C2, "null is FutureOr<Never>?");
+  self::expect(null is{ForNonNullableByDefault} FutureOr<core::int?>, #C2, "null is FutureOr<int?>");
+  self::expect(null is{ForNonNullableByDefault} FutureOr<core::int>, #C3, "null is FutureOr<int>");
+  self::expect(null is{ForNonNullableByDefault} FutureOr<core::int>?, #C2, "null is FutureOr<int>?");
+  self::expect(null is{ForNonNullableByDefault} FutureOr<core::Null?>, #C2, "null is FutureOr<Null>");
+  self::expect(null is{ForNonNullableByDefault} FutureOr<core::Null?>?, #C2, "null is FutureOr<Null>?");
+  self::expect(null is{ForNonNullableByDefault} FutureOr<Never>, #C3, "null is FutureOr<Never>");
+  self::expect(null is{ForNonNullableByDefault} FutureOr<Never?>, #C2, "null is FutureOr<Never?>");
+  self::expect(null is{ForNonNullableByDefault} FutureOr<Never>?, #C2, "null is FutureOr<Never>?");
   self::expect(new self::Class::constructor1<core::int>(null).{self::Class::field}, (#C4).{self::Class::field}, "Class<int>.constructor1(null).field");
   self::expect(true, new self::Class::constructor1<core::int?>(null).{self::Class::field}, "new Class<int?>.constructor1(null).field");
   self::expect(!self::isWeakMode, (#C4).{self::Class::field}, "const Class<int?>.constructor1(null).field");

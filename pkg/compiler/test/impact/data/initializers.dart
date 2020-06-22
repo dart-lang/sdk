@@ -477,13 +477,7 @@ class ClassGeneric<T> {
     _isObject(1),
     _isString(1),
     _isTop(1),
-    checkSubtype(4),
-    checkSubtypeOfRuntimeType(2),
     findType(1),
-    getRuntimeTypeArgument(3),
-    getRuntimeTypeArgumentIntercepted(4),
-    getRuntimeTypeInfo(1),
-    getTypeArgumentByIndex(2),
     instanceType(1),
     setRuntimeTypeInfo(2)],
    type=[
@@ -532,13 +526,7 @@ class ClassGeneric<T> {
     _isObject(1),
     _isString(1),
     _isTop(1),
-    checkSubtype(4),
-    checkSubtypeOfRuntimeType(2),
     findType(1),
-    getRuntimeTypeArgument(3),
-    getRuntimeTypeArgumentIntercepted(4),
-    getRuntimeTypeInfo(1),
-    getTypeArgumentByIndex(2),
     instanceType(1),
     setRuntimeTypeInfo(2)],
    type=[
@@ -554,5 +542,16 @@ class ClassGeneric<T> {
   ClassGeneric(T arg);
 }
 
-/*member: testGenericClass:static=[ClassGeneric.(1),checkTypeBound(4),throwTypeError(1)],type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]*/
+/*member: testGenericClass:
+ static=[
+  ClassGeneric.(1),
+  checkTypeBound(4)],
+ type=[
+  inst:JSDouble,
+  inst:JSInt,
+  inst:JSNumber,
+  inst:JSPositiveInt,
+  inst:JSUInt31,
+  inst:JSUInt32]
+*/
 testGenericClass() => new ClassGeneric<int>(0);

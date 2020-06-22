@@ -9,6 +9,7 @@ import '../ast.dart'
         DartType,
         DynamicType,
         FunctionType,
+        FutureOrType,
         InterfaceType,
         InvalidType,
         Library,
@@ -320,6 +321,9 @@ List<TypeArgumentIssue> findTypeArgumentIssues(
             allowSuperBounded: true) ??
         const <TypeArgumentIssue>[]);
     return result.isEmpty ? null : result;
+  } else if (type is FutureOrType) {
+    variables = typeEnvironment.coreTypes.futureClass.typeParameters;
+    arguments = <DartType>[type.typeArgument];
   } else {
     return null;
   }
@@ -380,6 +384,9 @@ List<TypeArgumentIssue> findTypeArgumentIssues(
   } else if (type is TypedefType) {
     variables = type.typedefNode.typeParameters;
     arguments = type.typeArguments;
+  } else if (type is FutureOrType) {
+    variables = typeEnvironment.coreTypes.futureClass.typeParameters;
+    arguments = <DartType>[type.typeArgument];
   }
   substitutionMap =
       new Map<TypeParameter, DartType>.fromIterables(variables, arguments);
@@ -532,6 +539,11 @@ DartType convertSuperBoundedToRegularBounded(
         typeParameters: type.typeParameters,
         requiredParameterCount: type.requiredParameterCount,
         typedefType: type.typedefType);
+  } else if (type is FutureOrType) {
+    return new FutureOrType(
+        convertSuperBoundedToRegularBounded(
+            typeEnvironment, type.typeArgument, bottomType),
+        type.declaredNullability);
   }
   return type;
 }
@@ -589,6 +601,13 @@ class VarianceCalculator
                   computedVariances: computedVariances)));
     }
     return result;
+  }
+
+  @override
+  int visitFutureOrType(FutureOrType node,
+      Map<TypeParameter, Map<DartType, int>> computedVariances) {
+    return computeVariance(typeParameter, node.typeArgument,
+        computedVariances: computedVariances);
   }
 
   @override

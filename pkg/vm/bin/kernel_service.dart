@@ -28,7 +28,6 @@ import 'dart:isolate';
 import 'dart:typed_data' show Uint8List;
 
 import 'package:build_integration/file_system/multi_root.dart';
-import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/front_end.dart' as fe
     show CompilerResult;
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
@@ -78,6 +77,7 @@ const int kTrainTag = 3;
 const int kCompileExpressionTag = 4;
 const int kListDependenciesTag = 5;
 const int kNotifyIsolateShutdownTag = 6;
+const int kDetectNullabilityTag = 7;
 
 bool allowDartInternalImport = false;
 
@@ -91,6 +91,62 @@ bool allowDartInternalImport = false;
 const int kNullSafetyOptionUnspecified = 0;
 const int kNullSafetyOptionWeak = 1;
 const int kNullSafetyOptionStrong = 2;
+
+CompilerOptions setupCompilerOptions(
+    FileSystem fileSystem,
+    Uri platformKernelPath,
+    bool suppressWarnings,
+    bool enableAsserts,
+    int nullSafety,
+    List<String> experimentalFlags,
+    bool bytecode,
+    Uri packagesUri,
+    List<String> errors) {
+  final expFlags = <String>[];
+  if (experimentalFlags != null) {
+    for (String flag in experimentalFlags) {
+      expFlags.addAll(flag.split(","));
+    }
+  }
+
+  return new CompilerOptions()
+    ..fileSystem = fileSystem
+    ..target = new VmTarget(new TargetFlags(
+        enableNullSafety: nullSafety == kNullSafetyOptionStrong))
+    ..packagesFileUri = packagesUri
+    ..sdkSummary = platformKernelPath
+    ..verbose = verbose
+    ..omitPlatform = true
+    ..bytecode = bytecode
+    ..experimentalFlags = parseExperimentalFlags(
+        parseExperimentalArguments(expFlags),
+        onError: (msg) => errors.add(msg))
+    ..environmentDefines = new EnvironmentMap()
+    ..nnbdMode = (nullSafety == kNullSafetyOptionStrong)
+        ? NnbdMode.Strong
+        : NnbdMode.Weak
+    ..onDiagnostic = (DiagnosticMessage message) {
+      bool printMessage;
+      switch (message.severity) {
+        case Severity.error:
+        case Severity.internalProblem:
+          // TODO(sigmund): support emitting code with errors as long as they
+          // are handled in the generated code.
+          printMessage = false; // errors are printed by VM
+          errors.addAll(message.plainTextFormatted);
+          break;
+        case Severity.warning:
+          printMessage = !suppressWarnings;
+          break;
+        case Severity.context:
+        case Severity.ignored:
+          throw "Unexpected severity: ${message.severity}";
+      }
+      if (printMessage) {
+        printDiagnosticMessage(message, stderr.writeln);
+      }
+    };
+}
 
 abstract class Compiler {
   final int isolateId;
@@ -135,50 +191,16 @@ abstract class Compiler {
       print("DFE: platformKernelPath: ${platformKernelPath}");
     }
 
-    var expFlags = List<String>();
-    if (experimentalFlags != null) {
-      for (String flag in experimentalFlags) {
-        expFlags.addAll(flag.split(","));
-      }
-    }
-
-    options = new CompilerOptions()
-      ..fileSystem = fileSystem
-      ..target = new VmTarget(new TargetFlags(
-          enableNullSafety: nullSafety == kNullSafetyOptionStrong))
-      ..packagesFileUri = packagesUri
-      ..sdkSummary = platformKernelPath
-      ..verbose = verbose
-      ..omitPlatform = true
-      ..bytecode = bytecode
-      ..experimentalFlags = parseExperimentalFlags(
-          parseExperimentalArguments(expFlags),
-          onError: (msg) => errors.add(msg))
-      ..environmentDefines = new EnvironmentMap()
-      ..nnbdMode = (nullSafety == kNullSafetyOptionStrong)
-          ? NnbdMode.Strong
-          : NnbdMode.Weak
-      ..onDiagnostic = (DiagnosticMessage message) {
-        bool printMessage;
-        switch (message.severity) {
-          case Severity.error:
-          case Severity.internalProblem:
-            // TODO(sigmund): support emitting code with errors as long as they
-            // are handled in the generated code.
-            printMessage = false; // errors are printed by VM
-            errors.addAll(message.plainTextFormatted);
-            break;
-          case Severity.warning:
-            printMessage = !suppressWarnings;
-            break;
-          case Severity.context:
-          case Severity.ignored:
-            throw "Unexpected severity: ${message.severity}";
-        }
-        if (printMessage) {
-          printDiagnosticMessage(message, stderr.writeln);
-        }
-      };
+    options = setupCompilerOptions(
+        fileSystem,
+        platformKernelPath,
+        suppressWarnings,
+        enableAsserts,
+        nullSafety,
+        experimentalFlags,
+        bytecode,
+        packagesUri,
+        errors);
   }
 
   Future<CompilerResult> compile(Uri script) {
@@ -352,13 +374,6 @@ class IncrementalCompilerWrapper extends Compiler {
   @override
   Future<CompilerResult> compileInternal(Uri script) async {
     if (generator == null) {
-      if ((nullSafety == kNullSafetyOptionUnspecified) &&
-          options.experimentalFlags[ExperimentalFlag.nonNullable]) {
-        await autoDetectNullSafetyMode(script, options);
-        // Reinitialize target to set correct null safety mode.
-        options.target = new VmTarget(new TargetFlags(
-            enableNullSafety: options.nnbdMode == NnbdMode.Strong));
-      }
       generator = new IncrementalCompiler(options, script);
     }
     errors.clear();
@@ -420,13 +435,6 @@ class SingleShotCompilerWrapper extends Compiler {
 
   @override
   Future<CompilerResult> compileInternal(Uri script) async {
-    if ((nullSafety == kNullSafetyOptionUnspecified) &&
-        options.experimentalFlags[ExperimentalFlag.nonNullable]) {
-      await autoDetectNullSafetyMode(script, options);
-      // Reinitialize target to set correct null safety mode.
-      options.target = new VmTarget(new TargetFlags(
-          enableNullSafety: options.nnbdMode == NnbdMode.Strong));
-    }
     fe.CompilerResult compilerResult = requireMain
         ? await kernelForProgram(script, options)
         : await kernelForModule([script], options);
@@ -768,6 +776,7 @@ Future _processLoadRequest(request) async {
   final String packageConfig = request[12];
   final String multirootFilepaths = request[13];
   final String multirootScheme = request[14];
+  final String workingDirectory = request[15];
 
   Uri platformKernelPath = null;
   List<int> platformKernel = null;
@@ -809,6 +818,30 @@ Future _processLoadRequest(request) async {
       (compiler as IncrementalCompilerWrapper).accept();
     }
     port.send(new CompilationResult.ok(null).toResponse());
+    return;
+  } else if (tag == kDetectNullabilityTag) {
+    FileSystem fileSystem = _buildFileSystem(
+        sourceFiles, platformKernel, multirootFilepaths, multirootScheme);
+    Uri packagesUri = null;
+    if (packageConfig != null) {
+      packagesUri = Uri.parse(packageConfig);
+    } else if (Platform.packageConfig != null) {
+      packagesUri = Uri.parse(Platform.packageConfig);
+    }
+    if (packagesUri != null && packagesUri.scheme == '') {
+      // Script does not have a scheme, assume that it is a path,
+      // resolve it against the working directory.
+      packagesUri = Uri.directory(workingDirectory).resolveUri(packagesUri);
+    }
+    final List<String> errors = <String>[];
+    var options = setupCompilerOptions(fileSystem, platformKernelPath, false,
+        false, nullSafety, experimentalFlags, false, packagesUri, errors);
+
+    // script should only be null for kUpdateSourcesTag.
+    assert(script != null);
+    await autoDetectNullSafetyMode(script, options);
+    bool value = options.nnbdMode == NnbdMode.Strong;
+    port.send(new CompilationResult.nullSafety(value).toResponse());
     return;
   }
 
@@ -997,6 +1030,7 @@ Future trainInternal(
     null /* package_config */,
     null /* multirootFilepaths */,
     null /* multirootScheme */,
+    null /* original working directory */,
   ];
   await _processLoadRequest(request);
 }
@@ -1044,6 +1078,8 @@ abstract class CompilationResult {
 
   factory CompilationResult.ok(Uint8List bytes) = _CompilationOk;
 
+  factory CompilationResult.nullSafety(bool val) = _CompilationNullSafety;
+
   factory CompilationResult.errors(List<String> errors, Uint8List bytes) =
       _CompilationError;
 
@@ -1073,6 +1109,20 @@ class _CompilationOk extends CompilationResult {
   get payload => bytes;
 
   String toString() => "_CompilationOk(${bytes.length} bytes)";
+}
+
+class _CompilationNullSafety extends CompilationResult {
+  final bool _null_safety;
+
+  _CompilationNullSafety(this._null_safety) : super._() {}
+
+  @override
+  Status get status => Status.ok;
+
+  @override
+  get payload => _null_safety;
+
+  String toString() => "_CompilationNullSafety($_null_safety)";
 }
 
 abstract class _CompilationFail extends CompilationResult {

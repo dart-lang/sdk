@@ -46,9 +46,9 @@ class SourceRange {
   }
 
   /**
-   * Return `true` if [x] is in the interval `[offset, offset + length)`.
+   * Return `true` if [x] is in the interval `[offset, offset + length]`.
    */
-  bool contains(int x) => offset <= x && x < offset + length;
+  bool contains(int x) => offset <= x && x <= offset + length;
 
   /**
    * Return `true` if [x] is in the interval `(offset, offset + length)`.

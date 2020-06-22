@@ -60,7 +60,7 @@ abstract class MyStream<T extends core::Object* = dynamic> extends asy::Stream<s
   abstract member-signature method listen((self::MyStream::T*) →* void onData, {core::Function* onError, () →* void onDone, core::bool* cancelOnError}) → asy::StreamSubscription<self::MyStream::T*>*;
   abstract member-signature method where((self::MyStream::T*) →* core::bool* test) → asy::Stream<self::MyStream::T*>*;
   abstract member-signature method map<S extends core::Object* = dynamic>((self::MyStream::T*) →* self::MyStream::map::S* convert) → asy::Stream<self::MyStream::map::S*>*;
-  abstract member-signature method asyncMap<E extends core::Object* = dynamic>((self::MyStream::T*) →* asy::FutureOr<self::MyStream::asyncMap::E*>* convert) → asy::Stream<self::MyStream::asyncMap::E*>*;
+  abstract member-signature method asyncMap<E extends core::Object* = dynamic>((self::MyStream::T*) →* FutureOr<self::MyStream::asyncMap::E*>* convert) → asy::Stream<self::MyStream::asyncMap::E*>*;
   abstract member-signature method asyncExpand<E extends core::Object* = dynamic>((self::MyStream::T*) →* asy::Stream<self::MyStream::asyncExpand::E*>* convert) → asy::Stream<self::MyStream::asyncExpand::E*>*;
   abstract member-signature method handleError(core::Function* onError, {(dynamic) →* core::bool* test}) → asy::Stream<self::MyStream::T*>*;
   abstract member-signature method expand<S extends core::Object* = dynamic>((self::MyStream::T*) →* core::Iterable<self::MyStream::expand::S*>* convert) → asy::Stream<self::MyStream::expand::S*>*;

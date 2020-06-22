@@ -7272,13 +7272,15 @@ class LinkedNodeBuilder extends Object
 
   @override
   TopLevelInferenceErrorBuilder get topLevelTypeInferenceError {
-    assert(kind == idl.LinkedNodeKind.simpleFormalParameter ||
+    assert(kind == idl.LinkedNodeKind.methodDeclaration ||
+        kind == idl.LinkedNodeKind.simpleFormalParameter ||
         kind == idl.LinkedNodeKind.variableDeclaration);
     return _variantField_32;
   }
 
   set topLevelTypeInferenceError(TopLevelInferenceErrorBuilder value) {
-    assert(kind == idl.LinkedNodeKind.simpleFormalParameter ||
+    assert(kind == idl.LinkedNodeKind.methodDeclaration ||
+        kind == idl.LinkedNodeKind.simpleFormalParameter ||
         kind == idl.LinkedNodeKind.variableDeclaration);
     _variantField_32 = value;
   }
@@ -8063,6 +8065,7 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder methodDeclaration_typeParameters,
     int informativeId,
     bool methodDeclaration_hasOperatorEqualWithParameterTypeFromObject,
+    TopLevelInferenceErrorBuilder topLevelTypeInferenceError,
   })  : _kind = idl.LinkedNodeKind.methodDeclaration,
         _variantField_24 = actualReturnType,
         _variantField_4 = annotatedNode_metadata,
@@ -8072,7 +8075,8 @@ class LinkedNodeBuilder extends Object
         _variantField_9 = methodDeclaration_typeParameters,
         _variantField_36 = informativeId,
         _variantField_31 =
-            methodDeclaration_hasOperatorEqualWithParameterTypeFromObject;
+            methodDeclaration_hasOperatorEqualWithParameterTypeFromObject,
+        _variantField_32 = topLevelTypeInferenceError;
 
   LinkedNodeBuilder.methodInvocation({
     LinkedNodeTypeBuilder invocationExpression_invokeType,
@@ -8739,6 +8743,7 @@ class LinkedNodeBuilder extends Object
       methodDeclaration_returnType?.flushInformative();
       methodDeclaration_typeParameters?.flushInformative();
       informativeId = null;
+      topLevelTypeInferenceError?.flushInformative();
     } else if (kind == idl.LinkedNodeKind.methodInvocation) {
       invocationExpression_invokeType?.flushInformative();
       methodInvocation_methodName?.flushInformative();
@@ -9939,6 +9944,8 @@ class LinkedNodeBuilder extends Object
       signature.addBool(
           this.methodDeclaration_hasOperatorEqualWithParameterTypeFromObject ==
               true);
+      signature.addBool(this.topLevelTypeInferenceError != null);
+      this.topLevelTypeInferenceError?.collectApiSignature(signature);
       signature.addString(this.name ?? '');
     } else if (kind == idl.LinkedNodeKind.methodInvocation) {
       signature.addInt(this.kind == null ? 0 : this.kind.index);
@@ -12948,7 +12955,8 @@ class _LinkedNodeImpl extends Object
 
   @override
   idl.TopLevelInferenceError get topLevelTypeInferenceError {
-    assert(kind == idl.LinkedNodeKind.simpleFormalParameter ||
+    assert(kind == idl.LinkedNodeKind.methodDeclaration ||
+        kind == idl.LinkedNodeKind.simpleFormalParameter ||
         kind == idl.LinkedNodeKind.variableDeclaration);
     _variantField_32 ??= const _TopLevelInferenceErrorReader()
         .vTableGet(_bc, _bcOffset, 32, null);
@@ -14084,6 +14092,10 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
           false) {
         _result["methodDeclaration_hasOperatorEqualWithParameterTypeFromObject"] =
             methodDeclaration_hasOperatorEqualWithParameterTypeFromObject;
+      }
+      if (topLevelTypeInferenceError != null) {
+        _result["topLevelTypeInferenceError"] =
+            topLevelTypeInferenceError.toJson();
       }
     }
     if (kind == idl.LinkedNodeKind.methodInvocation) {
@@ -15441,6 +15453,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "methodDeclaration_hasOperatorEqualWithParameterTypeFromObject":
             methodDeclaration_hasOperatorEqualWithParameterTypeFromObject,
         "name": name,
+        "topLevelTypeInferenceError": topLevelTypeInferenceError,
       };
     }
     if (kind == idl.LinkedNodeKind.methodInvocation) {
@@ -17655,7 +17668,6 @@ class TopLevelInferenceErrorBuilder extends Object
     implements idl.TopLevelInferenceError {
   List<String> _arguments;
   idl.TopLevelInferenceErrorKind _kind;
-  int _slot;
 
   @override
   List<String> get arguments => _arguments ??= <String>[];
@@ -17674,29 +17686,16 @@ class TopLevelInferenceErrorBuilder extends Object
     this._kind = value;
   }
 
-  @override
-  int get slot => _slot ??= 0;
-
-  /// The slot id (which is unique within the compilation unit) identifying the
-  /// target of type inference with which this [TopLevelInferenceError] is
-  /// associated.
-  set slot(int value) {
-    assert(value == null || value >= 0);
-    this._slot = value;
-  }
-
   TopLevelInferenceErrorBuilder(
-      {List<String> arguments, idl.TopLevelInferenceErrorKind kind, int slot})
+      {List<String> arguments, idl.TopLevelInferenceErrorKind kind})
       : _arguments = arguments,
-        _kind = kind,
-        _slot = slot;
+        _kind = kind;
 
   /// Flush [informative] data recursively.
   void flushInformative() {}
 
   /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
-    signature.addInt(this._slot ?? 0);
     signature.addInt(this._kind == null ? 0 : this._kind.index);
     if (this._arguments == null) {
       signature.addInt(0);
@@ -17716,13 +17715,10 @@ class TopLevelInferenceErrorBuilder extends Object
     }
     fbBuilder.startTable();
     if (offset_arguments != null) {
-      fbBuilder.addOffset(2, offset_arguments);
+      fbBuilder.addOffset(1, offset_arguments);
     }
     if (_kind != null && _kind != idl.TopLevelInferenceErrorKind.assignment) {
-      fbBuilder.addUint8(1, _kind.index);
-    }
-    if (_slot != null && _slot != 0) {
-      fbBuilder.addUint32(0, _slot);
+      fbBuilder.addUint8(0, _kind.index);
     }
     return fbBuilder.endTable();
   }
@@ -17747,26 +17743,19 @@ class _TopLevelInferenceErrorImpl extends Object
 
   List<String> _arguments;
   idl.TopLevelInferenceErrorKind _kind;
-  int _slot;
 
   @override
   List<String> get arguments {
     _arguments ??= const fb.ListReader<String>(fb.StringReader())
-        .vTableGet(_bc, _bcOffset, 2, const <String>[]);
+        .vTableGet(_bc, _bcOffset, 1, const <String>[]);
     return _arguments;
   }
 
   @override
   idl.TopLevelInferenceErrorKind get kind {
     _kind ??= const _TopLevelInferenceErrorKindReader().vTableGet(
-        _bc, _bcOffset, 1, idl.TopLevelInferenceErrorKind.assignment);
+        _bc, _bcOffset, 0, idl.TopLevelInferenceErrorKind.assignment);
     return _kind;
-  }
-
-  @override
-  int get slot {
-    _slot ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 0, 0);
-    return _slot;
   }
 }
 
@@ -17781,9 +17770,6 @@ abstract class _TopLevelInferenceErrorMixin
     if (kind != idl.TopLevelInferenceErrorKind.assignment) {
       _result["kind"] = kind.toString().split('.')[1];
     }
-    if (slot != 0) {
-      _result["slot"] = slot;
-    }
     return _result;
   }
 
@@ -17791,7 +17777,6 @@ abstract class _TopLevelInferenceErrorMixin
   Map<String, Object> toMap() => {
         "arguments": arguments,
         "kind": kind,
-        "slot": slot,
       };
 
   @override

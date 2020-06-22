@@ -288,14 +288,14 @@ class HInstructionStringifier implements HVisitor<String> {
   @override
   String visitLocalGet(HLocalGet node) {
     String localName = node.variable.name;
-    return 'LocalGet: ${temporaryId(node.local)}.$localName';
+    return 'LocalGet: ${temporaryId(node.receiver)}.$localName';
   }
 
   @override
   String visitLocalSet(HLocalSet node) {
     String valueId = temporaryId(node.value);
     String localName = node.variable.name;
-    return 'LocalSet: ${temporaryId(node.local)}.$localName to $valueId';
+    return 'LocalSet: ${temporaryId(node.receiver)}.$localName to $valueId';
   }
 
   @override
@@ -609,26 +609,6 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   @override
-  String visitTypeConversion(HTypeConversion node) {
-    String checkedInput = temporaryId(node.checkedInput);
-    String rest;
-    if (node.inputs.length == 2) {
-      rest = " ${temporaryId(node.inputs.last)}";
-    } else {
-      assert(node.inputs.length == 1);
-      rest = "";
-    }
-    String kind = _typeConversionKind(node);
-    return "TypeConversion: $kind $checkedInput to ${node.instructionType}$rest";
-  }
-
-  String _typeConversionKind(HTypeConversion node) {
-    if (node.isTypeCheck) return 'TYPE_CHECK';
-    if (node.isCastCheck) return 'CAST_CHECK';
-    return '?';
-  }
-
-  @override
   String visitPrimitiveCheck(HPrimitiveCheck node) {
     String checkedInput = temporaryId(node.checkedInput);
     assert(node.inputs.length == 1);
@@ -672,25 +652,6 @@ class HInstructionStringifier implements HVisitor<String> {
   @override
   String visitRangeConversion(HRangeConversion node) {
     return "RangeConversion: ${node.checkedInput}";
-  }
-
-  @override
-  String visitTypeInfoReadRaw(HTypeInfoReadRaw node) {
-    var inputs = node.inputs.map(temporaryId).join(', ');
-    return "TypeInfoReadRaw: $inputs";
-  }
-
-  @override
-  String visitTypeInfoReadVariable(HTypeInfoReadVariable node) {
-    var inputs = node.inputs.map(temporaryId).join(', ');
-    return "TypeInfoReadVariable: ${node.variable}  $inputs";
-  }
-
-  @override
-  String visitTypeInfoExpression(HTypeInfoExpression node) {
-    var inputs = node.inputs.map(temporaryId).join(', ');
-    return "TypeInfoExpression: ${node.kindAsString} ${node.dartType}"
-        " ($inputs)";
   }
 
   @override

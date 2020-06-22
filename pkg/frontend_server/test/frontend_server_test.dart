@@ -1462,6 +1462,141 @@ true
       expect(await starter(args), 0);
     });
 
+    test('compile to JavaScript with no metadata', () async {
+      var file = File('${tempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync("main() {\n\n}\n");
+      File('${tempDir.path}/.packages')
+        ..createSync()
+        ..writeAsStringSync("hello:${tempDir.uri}\n");
+
+      var library = 'package:hello/foo.dart';
+
+      var dillFile = File('${tempDir.path}/app.dill');
+      var sourceFile = File('${dillFile.path}.sources');
+      var manifestFile = File('${dillFile.path}.json');
+      var sourceMapsFile = File('${dillFile.path}.map');
+      var metadataFile = File('${dillFile.path}.metadata');
+
+      expect(dillFile.existsSync(), false);
+      expect(sourceFile.existsSync(), false);
+      expect(manifestFile.existsSync(), false);
+      expect(sourceMapsFile.existsSync(), false);
+      expect(metadataFile.existsSync(), false);
+
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${ddcPlatformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--target=dartdevc',
+        '--packages=${tempDir.path}/.packages',
+        '--debugger-module-names'
+      ];
+
+      final StreamController<List<int>> streamController =
+          StreamController<List<int>>();
+      final StreamController<List<int>> stdoutStreamController =
+          StreamController<List<int>>();
+      final IOSink ioSink = IOSink(stdoutStreamController.sink);
+      StreamController<Result> receivedResults = StreamController<Result>();
+      final outputParser = OutputParser(receivedResults);
+      stdoutStreamController.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen(outputParser.listener);
+
+      Future<int> result =
+          starter(args, input: streamController.stream, output: ioSink);
+      streamController.add('compile $library\n'.codeUnits);
+      var count = 0;
+      receivedResults.stream.listen((Result compiledResult) {
+        CompilationResult result =
+            CompilationResult.parse(compiledResult.status);
+        count++;
+        // Request to 'compile', which results in full JavaScript and no metadata
+        expect(result.errorsCount, equals(0));
+        expect(sourceFile.existsSync(), equals(true));
+        expect(manifestFile.existsSync(), equals(true));
+        expect(sourceMapsFile.existsSync(), equals(true));
+        expect(metadataFile.existsSync(), equals(false));
+        expect(result.filename, dillFile.path);
+        streamController.add('accept\n'.codeUnits);
+        outputParser.expectSources = false;
+        streamController.add('quit\n'.codeUnits);
+      });
+
+      expect(await result, 0);
+      expect(count, 1);
+    });
+
+    test('compile to JavaScript with metadata', () async {
+      var file = File('${tempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync("main() {\n\n}\n");
+      File('${tempDir.path}/.packages')
+        ..createSync()
+        ..writeAsStringSync("hello:${tempDir.uri}\n");
+
+      var library = 'package:hello/foo.dart';
+
+      var dillFile = File('${tempDir.path}/app.dill');
+      var sourceFile = File('${dillFile.path}.sources');
+      var manifestFile = File('${dillFile.path}.json');
+      var sourceMapsFile = File('${dillFile.path}.map');
+      var metadataFile = File('${dillFile.path}.metadata');
+
+      expect(dillFile.existsSync(), false);
+      expect(sourceFile.existsSync(), false);
+      expect(manifestFile.existsSync(), false);
+      expect(sourceMapsFile.existsSync(), false);
+      expect(metadataFile.existsSync(), false);
+
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${ddcPlatformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--target=dartdevc',
+        '--packages=${tempDir.path}/.packages',
+        '--debugger-module-names',
+        '--experimental-emit-debug-metadata'
+      ];
+
+      final StreamController<List<int>> streamController =
+          StreamController<List<int>>();
+      final StreamController<List<int>> stdoutStreamController =
+          StreamController<List<int>>();
+      final IOSink ioSink = IOSink(stdoutStreamController.sink);
+      StreamController<Result> receivedResults = StreamController<Result>();
+      final outputParser = OutputParser(receivedResults);
+      stdoutStreamController.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen(outputParser.listener);
+
+      Future<int> result =
+          starter(args, input: streamController.stream, output: ioSink);
+      streamController.add('compile $library\n'.codeUnits);
+      int count = 0;
+      receivedResults.stream.listen((Result compiledResult) {
+        CompilationResult result =
+            CompilationResult.parse(compiledResult.status);
+        count++;
+        // Request to 'compile', which results in full JavaScript and no metadata
+        expect(result.errorsCount, equals(0));
+        expect(sourceFile.existsSync(), equals(true));
+        expect(manifestFile.existsSync(), equals(true));
+        expect(sourceMapsFile.existsSync(), equals(true));
+        expect(metadataFile.existsSync(), equals(true));
+        expect(result.filename, dillFile.path);
+        streamController.add('accept\n'.codeUnits);
+        outputParser.expectSources = false;
+        streamController.add('quit\n'.codeUnits);
+      });
+
+      expect(await result, 0);
+      expect(count, 1);
+    });
+
     test('compile expression to Javascript', () async {
       var file = File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("main() {\n\n}\n");

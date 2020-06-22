@@ -55,4 +55,4 @@ if [[ $DART_VM_OPTIONS ]]; then
   EXTRA_VM_OPTIONS+=("${OPTIONS[@]}")
 fi
 
-exec "$DART" "${EXTRA_VM_OPTIONS[@]}" "$SNAPSHOT" "${EXTRA_OPTIONS[@]}" "$@"
+exec "$DART" --enable-experiment=non-nullable "${EXTRA_VM_OPTIONS[@]}" "$SNAPSHOT" "${EXTRA_OPTIONS[@]}" "$@"

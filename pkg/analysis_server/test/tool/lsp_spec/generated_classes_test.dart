@@ -13,6 +13,7 @@ void main() {
       final b = TextDocumentIdentifier('/a');
 
       expect(a, equals(b));
+      expect(a.hashCode, equals(b.hashCode));
     });
 
     test('with list fields can be checked for equality', () {
@@ -22,6 +23,7 @@ void main() {
           [CodeActionKind.QuickFix]);
 
       expect(a, equals(b));
+      expect(a.hashCode, equals(b.hashCode));
     });
 
     test('with aliased list fields can be checked for equality', () {
@@ -31,6 +33,7 @@ void main() {
           [DocumentFilter('dart', 'file', null)]);
 
       expect(a, equals(b));
+      expect(a.hashCode, equals(b.hashCode));
     });
 
     test('with map fields can be checked for equality', () {
@@ -42,6 +45,15 @@ void main() {
       }, null);
 
       expect(a, equals(b));
+      expect(a.hashCode, equals(b.hashCode));
+    });
+
+    test('with unions of lists can be checked for equality', () {
+      final a = Either2<List<String>, List<int>>.t1(['test']);
+      final b = Either2<List<String>, List<int>>.t1(['test']);
+
+      expect(a, equals(b));
+      expect(a.hashCode, equals(b.hashCode));
     });
 
     test('with union fields can be checked for equality', () {
@@ -51,6 +63,7 @@ void main() {
           SignatureInformation('a', Either2<String, MarkupContent>.t1('a'), []);
 
       expect(a, equals(b));
+      expect(a.hashCode, equals(b.hashCode));
     });
 
     test('consider subclasses when checking for equality', () {

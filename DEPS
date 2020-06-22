@@ -39,16 +39,16 @@ vars = {
 
   # Checked-in SDK version. The checked-in SDK is a Dart SDK distribution in a
   # cipd package used to run Dart scripts in the build and test infrastructure.
-  "sdk_tag": "version:2.9.0-10.0.dev",
+  "sdk_tag": "version:2.9.0-16.0.dev",
 
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "c6adf63baea76b1f7e7833482eec023fd244fc33",
+  "co19_rev": "f3466a4fc3d201e2ca4da7214560718344aea87c",
   "co19_2_rev": "620c1148c8b7a3d7f74afacf348c46f109eb64f2",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
-  "benchmarks_internal_rev": "4f5285d3711ed4225d0bf5673379e7afdc6cb8e5",
+  "benchmarks_internal_rev": "29176ec025667ab7acb9dbb93b3e7d429c6c2c6f",
   "checkout_benchmarks_internal": False,
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
@@ -70,7 +70,7 @@ vars = {
   "bazel_worker_tag": "v0.1.22",
   "benchmark_harness_rev": "81641290dea44c34138a109a37e215482f405f81",
   "boolean_selector_rev": "1309eabed510cc3b7536fd4367d39b97ebee3d69",
-  "boringssl_gen_rev": "b9e27cff1ff0803e97ab1f88764a83be4aa94a6d",
+  "boringssl_gen_rev": "429ccb1877f7987a6f3988228bc2440e61293499",
   "boringssl_rev" : "4dfd5af70191b068aebe567b8e29ce108cee85ce",
   "browser-compat-data_tag": "v1.0.22",
   "charcode_rev": "9085e6b6127f084d66c0a94810a808121459012a",
@@ -107,12 +107,12 @@ vars = {
   "http_retry_tag": "0.1.1",
   "http_rev": "a131e563c09349f624d5421237183a06fb10552d",
   "http_throttle_tag" : "1.0.2",
-  "icu_rev" : "5005010d694e16571b8dfbf07d70817841f80a69",
+  "icu_rev" : "79326efe26e5440f530963704c3c0ff965b3a4ac",
   "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
   "intl_tag": "0.16.1",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_rev": "d589e635d8ccb7cda6a804bd571f88abbabab146",
-  "linter_tag": "0.1.116",
+  "linter_tag": "0.1.117",
   "logging_rev": "9561ba016ae607747ae69b846c0e10958ca58ed4",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "markdown_rev": "dd150bb64c5f3b41d31f20f399ae2a855f7f8c00",
@@ -142,9 +142,9 @@ vars = {
   "source_maps-0.9.4_rev": "38524",
   "source_maps_rev": "87b4fd9027378bbd51b02e9d7df794eee8a82b7a",
   "source_span_tag": "1.7.0",
-  "stack_trace_tag": "1.9.3",
+  "stack_trace_tag": "07569831f17844ef90214a179db211954a7f7324",
   "stagehand_tag": "v3.3.7",
-  "stream_channel_tag": "2.0.0",
+  "stream_channel_tag": "70433d577be02c48cb16d72d65654f3b4d82c6ed",
   "string_scanner_rev": "a918e7371af6b6e73bfd534ff9da6084741c1f99",
   "test_descriptor_tag": "1.1.1",
   "test_process_tag": "1.0.3",
@@ -470,6 +470,17 @@ deps = {
       "dep_type": "cipd",
   },
 
+  Var("dart_root") + "/third_party/fuchsia/sdk/linux": {
+    "packages": [
+      {
+      "package": "fuchsia/sdk/gn/linux-amd64",
+      "version": "git_revision:8d5242d4f6ff8b7634b492700e60b0fd09abefa3"
+      }
+    ],
+    "condition": 'host_os == "linux" and host_cpu == "x64"',
+    "dep_type": "cipd",
+  },
+
   Var("dart_root") + "/pkg/front_end/test/fasta/types/benchmark_data": {
     "packages": [
       {
@@ -505,7 +516,7 @@ deps = {
       "packages": [
           {
               "package": "dart/benchmarks/fficall",
-              "version": "version:1",
+              "version": "ebF5aRXKDananlaN4Y8b0bbCNHT1MnkGbWqfpCpiND4C",
           },
       ],
       "dep_type": "cipd",

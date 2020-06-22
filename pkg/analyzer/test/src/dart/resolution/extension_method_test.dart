@@ -1446,6 +1446,21 @@ class ExtensionMethodsExternalReferenceWithNnbdTest
   @override
   bool get typeToStringWithNullability => true;
 
+  test_instance_getter_fromInstance_Never() async {
+    await assertNoErrorsInCode('''
+extension E on Never {
+  int get foo => 0;
+}
+
+f(Never a) {
+  a.foo;
+}
+''');
+    var access = findNode.prefixed('a.foo');
+    assertElementNull(access);
+    assertType(access, 'Never');
+  }
+
   test_instance_getter_fromInstance_nullable() async {
     await assertNoErrorsInCode('''
 extension E on int? {
@@ -1474,6 +1489,28 @@ f(int? a) {
     var identifier = findNode.simple('foo;');
     assertElement(identifier, findElement.getter('foo', of: 'E'));
     assertType(identifier, 'int');
+  }
+
+  test_instance_method_fromInstance_Never() async {
+    await assertErrorsInCode('''
+extension E on Never {
+  void foo() {}
+}
+
+f(Never a) {
+  a.foo();
+}
+''', [
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 57, 1),
+      error(HintCode.DEAD_CODE, 62, 3),
+    ]);
+    assertMethodInvocation2(
+      findNode.methodInvocation('a.foo()'),
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'dynamic',
+      type: 'Never',
+    );
   }
 
   test_instance_method_fromInstance_nullable() async {

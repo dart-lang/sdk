@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 /// This library defines the operations that define and manipulate Dart
 /// classes.  Included in this are:
 ///   - Generics
@@ -109,7 +107,7 @@ final mixinOn = JS('', 'Symbol("mixinOn")');
 @JSExportName('implements')
 final implements_ = JS('', 'Symbol("implements")');
 
-List Function() getImplements(clazz) => JS(
+List? Function() getImplements(clazz) => JS(
     '',
     'Object.hasOwnProperty.call(#, #) ? #[#] : null',
     clazz,
@@ -229,11 +227,11 @@ getGenericClass(type) => safeGetOwnProperty(type, _originalDeclaration);
 
 // TODO(markzipan): Make this non-nullable if we can ensure this returns
 // an empty list or if null and the empty list are semantically the same.
-List getGenericArgs(type) =>
+List? getGenericArgs(type) =>
     JS<List>('', '#', safeGetOwnProperty(type, _typeArguments));
 
-List getGenericArgVariances(type) =>
-    JS<List>('', '#', safeGetOwnProperty(type, _variances));
+List? getGenericArgVariances(type) =>
+    JS<List?>('', '#', safeGetOwnProperty(type, _variances));
 
 void setGenericArgVariances(f, variances) =>
     JS('', '#[#] = #', f, _variances, variances);

@@ -1,5 +1,3 @@
-// @dart = 2.6
-
 /**
  * Scalable Vector Graphics:
  * Two-dimensional vector graphics with support for events and animation.
@@ -32,7 +30,7 @@ class _SvgElementFactoryProvider {
   static SvgElement createSvgElement_tag(String tag) {
     final Element temp =
         document.createElementNS("http://www.w3.org/2000/svg", tag);
-    return temp;
+    return temp as SvgElement;
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -47,7 +45,8 @@ class AElement extends GraphicsElement implements UriReference {
     throw new UnsupportedError("Not supported");
   }
 
-  factory AElement() => _SvgElementFactoryProvider.createSvgElement_tag("a");
+  factory AElement() =>
+      _SvgElementFactoryProvider.createSvgElement_tag("a") as AElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -117,7 +116,8 @@ class AnimateElement extends AnimationElement {
   }
 
   factory AnimateElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("animate");
+      _SvgElementFactoryProvider.createSvgElement_tag("animate")
+          as AnimateElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -146,7 +146,8 @@ class AnimateMotionElement extends AnimationElement {
   }
 
   factory AnimateMotionElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("animateMotion");
+      _SvgElementFactoryProvider.createSvgElement_tag("animateMotion")
+          as AnimateMotionElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -175,7 +176,8 @@ class AnimateTransformElement extends AnimationElement {
   }
 
   factory AnimateTransformElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("animateTransform");
+      _SvgElementFactoryProvider.createSvgElement_tag("animateTransform")
+          as AnimateTransformElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -403,7 +405,8 @@ class AnimationElement extends SvgElement implements Tests {
   }
 
   factory AnimationElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("animation");
+      _SvgElementFactoryProvider.createSvgElement_tag("animation")
+          as AnimationElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -446,7 +449,8 @@ class CircleElement extends GeometryElement {
   }
 
   factory CircleElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("circle");
+      _SvgElementFactoryProvider.createSvgElement_tag("circle")
+          as CircleElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -473,7 +477,8 @@ class ClipPathElement extends GraphicsElement {
   }
 
   factory ClipPathElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("clipPath");
+      _SvgElementFactoryProvider.createSvgElement_tag("clipPath")
+          as ClipPathElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -496,7 +501,7 @@ class DefsElement extends GraphicsElement {
   }
 
   factory DefsElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("defs");
+      _SvgElementFactoryProvider.createSvgElement_tag("defs") as DefsElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -517,7 +522,7 @@ class DescElement extends SvgElement {
   }
 
   factory DescElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("desc");
+      _SvgElementFactoryProvider.createSvgElement_tag("desc") as DescElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -555,7 +560,8 @@ class EllipseElement extends GeometryElement {
   }
 
   factory EllipseElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("ellipse");
+      _SvgElementFactoryProvider.createSvgElement_tag("ellipse")
+          as EllipseElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -589,7 +595,8 @@ class FEBlendElement extends SvgElement
   }
 
   factory FEBlendElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feBlend");
+      _SvgElementFactoryProvider.createSvgElement_tag("feBlend")
+          as FEBlendElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -650,7 +657,8 @@ class FEColorMatrixElement extends SvgElement
   }
 
   factory FEColorMatrixElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feColorMatrix");
+      _SvgElementFactoryProvider.createSvgElement_tag("feColorMatrix")
+          as FEColorMatrixElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -709,7 +717,8 @@ class FEComponentTransferElement extends SvgElement
   }
 
   factory FEComponentTransferElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feComponentTransfer");
+      _SvgElementFactoryProvider.createSvgElement_tag("feComponentTransfer")
+          as FEComponentTransferElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -813,7 +822,8 @@ class FEConvolveMatrixElement extends SvgElement
   }
 
   factory FEConvolveMatrixElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feConvolveMatrix");
+      _SvgElementFactoryProvider.createSvgElement_tag("feConvolveMatrix")
+          as FEConvolveMatrixElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -888,7 +898,8 @@ class FEDiffuseLightingElement extends SvgElement
   }
 
   factory FEDiffuseLightingElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feDiffuseLighting");
+      _SvgElementFactoryProvider.createSvgElement_tag("feDiffuseLighting")
+          as FEDiffuseLightingElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -941,7 +952,8 @@ class FEDisplacementMapElement extends SvgElement
   }
 
   factory FEDisplacementMapElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feDisplacementMap");
+      _SvgElementFactoryProvider.createSvgElement_tag("feDisplacementMap")
+          as FEDisplacementMapElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1003,7 +1015,8 @@ class FEDistantLightElement extends SvgElement {
   }
 
   factory FEDistantLightElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feDistantLight");
+      _SvgElementFactoryProvider.createSvgElement_tag("feDistantLight")
+          as FEDistantLightElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1038,7 +1051,8 @@ class FEFloodElement extends SvgElement
   }
 
   factory FEFloodElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feFlood");
+      _SvgElementFactoryProvider.createSvgElement_tag("feFlood")
+          as FEFloodElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1080,7 +1094,8 @@ class FEFuncAElement extends _SVGComponentTransferFunctionElement {
   }
 
   factory FEFuncAElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feFuncA");
+      _SvgElementFactoryProvider.createSvgElement_tag("feFuncA")
+          as FEFuncAElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1110,7 +1125,8 @@ class FEFuncBElement extends _SVGComponentTransferFunctionElement {
   }
 
   factory FEFuncBElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feFuncB");
+      _SvgElementFactoryProvider.createSvgElement_tag("feFuncB")
+          as FEFuncBElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1140,7 +1156,8 @@ class FEFuncGElement extends _SVGComponentTransferFunctionElement {
   }
 
   factory FEFuncGElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feFuncG");
+      _SvgElementFactoryProvider.createSvgElement_tag("feFuncG")
+          as FEFuncGElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1170,7 +1187,8 @@ class FEFuncRElement extends _SVGComponentTransferFunctionElement {
   }
 
   factory FEFuncRElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feFuncR");
+      _SvgElementFactoryProvider.createSvgElement_tag("feFuncR")
+          as FEFuncRElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1201,7 +1219,8 @@ class FEGaussianBlurElement extends SvgElement
   }
 
   factory FEGaussianBlurElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feGaussianBlur");
+      _SvgElementFactoryProvider.createSvgElement_tag("feGaussianBlur")
+          as FEGaussianBlurElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1252,7 +1271,8 @@ class FEImageElement extends SvgElement
   }
 
   factory FEImageElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feImage");
+      _SvgElementFactoryProvider.createSvgElement_tag("feImage")
+          as FEImageElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1301,7 +1321,8 @@ class FEMergeElement extends SvgElement
   }
 
   factory FEMergeElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feMerge");
+      _SvgElementFactoryProvider.createSvgElement_tag("feMerge")
+          as FEMergeElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1343,7 +1364,8 @@ class FEMergeNodeElement extends SvgElement {
   }
 
   factory FEMergeNodeElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feMergeNode");
+      _SvgElementFactoryProvider.createSvgElement_tag("feMergeNode")
+          as FEMergeNodeElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1425,7 +1447,8 @@ class FEOffsetElement extends SvgElement
   }
 
   factory FEOffsetElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feOffset");
+      _SvgElementFactoryProvider.createSvgElement_tag("feOffset")
+          as FEOffsetElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1473,7 +1496,8 @@ class FEPointLightElement extends SvgElement {
   }
 
   factory FEPointLightElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("fePointLight");
+      _SvgElementFactoryProvider.createSvgElement_tag("fePointLight")
+          as FEPointLightElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1510,7 +1534,8 @@ class FESpecularLightingElement extends SvgElement
   }
 
   factory FESpecularLightingElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feSpecularLighting");
+      _SvgElementFactoryProvider.createSvgElement_tag("feSpecularLighting")
+          as FESpecularLightingElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1564,7 +1589,8 @@ class FESpotLightElement extends SvgElement {
   }
 
   factory FESpotLightElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feSpotLight");
+      _SvgElementFactoryProvider.createSvgElement_tag("feSpotLight")
+          as FESpotLightElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1611,7 +1637,8 @@ class FETileElement extends SvgElement
   }
 
   factory FETileElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feTile");
+      _SvgElementFactoryProvider.createSvgElement_tag("feTile")
+          as FETileElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1656,7 +1683,8 @@ class FETurbulenceElement extends SvgElement
   }
 
   factory FETurbulenceElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feTurbulence");
+      _SvgElementFactoryProvider.createSvgElement_tag("feTurbulence")
+          as FETurbulenceElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1722,7 +1750,8 @@ class FilterElement extends SvgElement implements UriReference {
   }
 
   factory FilterElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("filter");
+      _SvgElementFactoryProvider.createSvgElement_tag("filter")
+          as FilterElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1803,7 +1832,8 @@ class ForeignObjectElement extends GraphicsElement {
   }
 
   factory ForeignObjectElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("foreignObject");
+      _SvgElementFactoryProvider.createSvgElement_tag("foreignObject")
+          as ForeignObjectElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1836,7 +1866,8 @@ class GElement extends GraphicsElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory GElement() => _SvgElementFactoryProvider.createSvgElement_tag("g");
+  factory GElement() =>
+      _SvgElementFactoryProvider.createSvgElement_tag("g") as GElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1921,7 +1952,7 @@ class ImageElement extends GraphicsElement implements UriReference {
   }
 
   factory ImageElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("image");
+      _SvgElementFactoryProvider.createSvgElement_tag("image") as ImageElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2091,7 +2122,7 @@ class LineElement extends GeometryElement {
   }
 
   factory LineElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("line");
+      _SvgElementFactoryProvider.createSvgElement_tag("line") as LineElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2120,7 +2151,8 @@ class LinearGradientElement extends _GradientElement {
   }
 
   factory LinearGradientElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("linearGradient");
+      _SvgElementFactoryProvider.createSvgElement_tag("linearGradient")
+          as LinearGradientElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2149,7 +2181,8 @@ class MarkerElement extends SvgElement implements FitToViewBox {
   }
 
   factory MarkerElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("marker");
+      _SvgElementFactoryProvider.createSvgElement_tag("marker")
+          as MarkerElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2206,7 +2239,7 @@ class MaskElement extends SvgElement implements Tests {
   }
 
   factory MaskElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("mask");
+      _SvgElementFactoryProvider.createSvgElement_tag("mask") as MaskElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2414,7 +2447,7 @@ class PathElement extends GeometryElement {
   }
 
   factory PathElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("path");
+      _SvgElementFactoryProvider.createSvgElement_tag("path") as PathElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2436,7 +2469,8 @@ class PatternElement extends SvgElement
   }
 
   factory PatternElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("pattern");
+      _SvgElementFactoryProvider.createSvgElement_tag("pattern")
+          as PatternElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2541,7 +2575,8 @@ class PolygonElement extends GeometryElement {
   }
 
   factory PolygonElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("polygon");
+      _SvgElementFactoryProvider.createSvgElement_tag("polygon")
+          as PolygonElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2566,7 +2601,8 @@ class PolylineElement extends GeometryElement {
   }
 
   factory PolylineElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("polyline");
+      _SvgElementFactoryProvider.createSvgElement_tag("polyline")
+          as PolylineElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2639,7 +2675,8 @@ class RadialGradientElement extends _GradientElement {
   }
 
   factory RadialGradientElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("radialGradient");
+      _SvgElementFactoryProvider.createSvgElement_tag("radialGradient")
+          as RadialGradientElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2700,7 +2737,7 @@ class RectElement extends GeometryElement {
   }
 
   factory RectElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("rect");
+      _SvgElementFactoryProvider.createSvgElement_tag("rect") as RectElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2733,7 +2770,8 @@ class ScriptElement extends SvgElement implements UriReference {
   }
 
   factory ScriptElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("script");
+      _SvgElementFactoryProvider.createSvgElement_tag("script")
+          as ScriptElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2765,7 +2803,7 @@ class SetElement extends AnimationElement {
   }
 
   factory SetElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("set");
+      _SvgElementFactoryProvider.createSvgElement_tag("set") as SetElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2791,7 +2829,7 @@ class StopElement extends SvgElement {
   }
 
   factory StopElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("stop");
+      _SvgElementFactoryProvider.createSvgElement_tag("stop") as StopElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2891,7 +2929,7 @@ class StyleElement extends SvgElement {
   }
 
   factory StyleElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("style");
+      _SvgElementFactoryProvider.createSvgElement_tag("style") as StyleElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2907,7 +2945,7 @@ class StyleElement extends SvgElement {
 
   set media(String value) native;
 
-  StyleSheet get sheet native;
+  StyleSheet? get sheet native;
 
   // Use implementation from Element.
   // String get title native;
@@ -2956,16 +2994,16 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
   static final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 
   factory SvgElement.tag(String tag) =>
-      document.createElementNS("http://www.w3.org/2000/svg", tag);
+      document.createElementNS("http://www.w3.org/2000/svg", tag) as SvgElement;
   factory SvgElement.svg(String svg,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     if (validator == null && treeSanitizer == null) {
       validator = new NodeValidatorBuilder.common()..allowSvg();
     }
 
     final match = _START_TAG_REGEXP.firstMatch(svg);
     var parentElement;
-    if (match != null && match.group(1).toLowerCase() == 'svg') {
+    if (match != null && match.group(1)!.toLowerCase() == 'svg') {
       parentElement = document.body;
     } else {
       parentElement = new SvgSvgElement();
@@ -2987,24 +3025,24 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
 
   String get outerHtml {
     final container = new DivElement();
-    final SvgElement cloned = this.clone(true);
+    final SvgElement cloned = this.clone(true) as SvgElement;
     container.children.add(cloned);
     return container.innerHtml;
   }
 
   String get innerHtml {
     final container = new DivElement();
-    final SvgElement cloned = this.clone(true);
+    final SvgElement cloned = this.clone(true) as SvgElement;
     container.children.addAll(cloned.children);
     return container.innerHtml;
   }
 
-  set innerHtml(String value) {
+  set innerHtml(String? value) {
     this.setInnerHtml(value);
   }
 
-  DocumentFragment createFragment(String svg,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+  DocumentFragment createFragment(String? svg,
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     if (treeSanitizer == null) {
       if (validator == null) {
         validator = new NodeValidatorBuilder.common()..allowSvg();
@@ -3015,13 +3053,13 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
     // We create a fragment which will parse in the HTML parser
     var html = '<svg version="1.1">$svg</svg>';
     var fragment =
-        document.body.createFragment(html, treeSanitizer: treeSanitizer);
+        document.body!.createFragment(html, treeSanitizer: treeSanitizer);
 
     var svgFragment = new DocumentFragment();
     // The root is the <svg/> element, need to pull out the contents.
     var root = fragment.nodes.single;
     while (root.firstChild != null) {
-      svgFragment.append(root.firstChild);
+      svgFragment.append(root.firstChild!);
     }
     return svgFragment;
   }
@@ -3033,7 +3071,7 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
   }
 
   void insertAdjacentHtml(String where, String text,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     throw new UnsupportedError("Cannot invoke insertAdjacentHtml on SVG.");
   }
 
@@ -3244,11 +3282,11 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
   SvgElement.created() : super.created();
 
   // Shadowing definition.
-
+  @JSName('className')
   AnimatedString get _svgClassName native;
 
   @JSName('ownerSVGElement')
-  SvgSvgElement get ownerSvgElement native;
+  SvgSvgElement? get ownerSvgElement native;
 
   // Use implementation from Element.
   // CssStyleDeclaration get style native;
@@ -3258,7 +3296,7 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
   // int get tabIndex native;
   // void set tabIndex(int value) native;
 
-  SvgElement get viewportElement native;
+  SvgElement? get viewportElement native;
 
   void blur() native;
 
@@ -3266,9 +3304,9 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
 
   // From NoncedElement
 
-  String get nonce native;
+  String? get nonce native;
 
-  set nonce(String value) native;
+  set nonce(String? value) native;
 
   ElementStream<Event> get onAbort => abortEvent.forElement(this);
 
@@ -3406,7 +3444,7 @@ class SvgSvgElement extends GraphicsElement
     final el = new SvgElement.tag("svg");
     // The SVG spec requires the version attribute to match the spec version
     el.attributes['version'] = "1.1";
-    return el;
+    return el as SvgSvgElement;
   }
 
   // To suppress missing implicit constructor warnings.
@@ -3472,13 +3510,14 @@ class SvgSvgElement extends GraphicsElement
 
   Element getElementById(String elementId) native;
 
-  @Returns('NodeList|Null')
+  @Returns('NodeList')
   @Creates('NodeList')
-  List<Node> getEnclosureList(Rect rect, SvgElement referenceElement) native;
+  List<Node> getEnclosureList(Rect rect, SvgElement? referenceElement) native;
 
-  @Returns('NodeList|Null')
+  @Returns('NodeList')
   @Creates('NodeList')
-  List<Node> getIntersectionList(Rect rect, SvgElement referenceElement) native;
+  List<Node> getIntersectionList(Rect rect, SvgElement? referenceElement)
+      native;
 
   void pauseAnimations() native;
 
@@ -3517,7 +3556,8 @@ class SwitchElement extends GraphicsElement {
   }
 
   factory SwitchElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("switch");
+      _SvgElementFactoryProvider.createSvgElement_tag("switch")
+          as SwitchElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -3538,7 +3578,8 @@ class SymbolElement extends SvgElement implements FitToViewBox {
   }
 
   factory SymbolElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("symbol");
+      _SvgElementFactoryProvider.createSvgElement_tag("symbol")
+          as SymbolElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -3565,7 +3606,7 @@ class TSpanElement extends TextPositioningElement {
   }
 
   factory TSpanElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("tspan");
+      _SvgElementFactoryProvider.createSvgElement_tag("tspan") as TSpanElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -3647,7 +3688,7 @@ class TextElement extends TextPositioningElement {
   }
 
   factory TextElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("text");
+      _SvgElementFactoryProvider.createSvgElement_tag("text") as TextElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -3736,7 +3777,7 @@ class TitleElement extends SvgElement {
   }
 
   factory TitleElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("title");
+      _SvgElementFactoryProvider.createSvgElement_tag("title") as TitleElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -3855,7 +3896,7 @@ class TransformList extends Interceptor
 
   void clear() native;
 
-  Transform consolidate() native;
+  Transform? consolidate() native;
 
   @JSName('createSVGTransformFromMatrix')
   Transform createSvgTransformFromMatrix(Matrix matrix) native;
@@ -3914,7 +3955,7 @@ class UseElement extends GraphicsElement implements UriReference {
   }
 
   factory UseElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("use");
+      _SvgElementFactoryProvider.createSvgElement_tag("use") as UseElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -3947,7 +3988,7 @@ class ViewElement extends SvgElement implements FitToViewBox, ZoomAndPan {
   }
 
   factory ViewElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("view");
+      _SvgElementFactoryProvider.createSvgElement_tag("view") as ViewElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -4076,7 +4117,8 @@ abstract class _SVGMPathElement extends SvgElement implements UriReference {
   }
 
   factory _SVGMPathElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("mpath");
+      _SvgElementFactoryProvider.createSvgElement_tag("mpath")
+          as _SVGMPathElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *

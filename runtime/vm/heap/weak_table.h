@@ -130,7 +130,7 @@ class WeakTable {
 
   void Reset();
 
-  void MergeOtherWeakTable(WeakTable* other);
+  void MergeFrom(WeakTable* donor);
 
  private:
   enum {

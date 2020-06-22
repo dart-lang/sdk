@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
+import 'package:analyzer/src/dart/element/type_demotion.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/error/codes.dart' show HintCode, StrongModeCode;
 import 'package:analyzer/src/generated/type_system.dart';
@@ -257,6 +258,7 @@ class GenericInferrer {
       }
     }
 
+    _nonNullifyTypes(result);
     return result;
   }
 
@@ -459,6 +461,14 @@ class GenericInferrer {
           isContravariant: isContravariant);
     }
     return t;
+  }
+
+  void _nonNullifyTypes(List<DartType> types) {
+    if (_typeSystem.isNonNullableByDefault) {
+      for (var i = 0; i < types.length; i++) {
+        types[i] = nonNullifyType(_typeSystem, types[i]);
+      }
+    }
   }
 
   /// If in a legacy library, return the legacy version of the [type].

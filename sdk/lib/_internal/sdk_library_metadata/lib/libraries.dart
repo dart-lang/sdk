@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
+// @dart = 2.5
 
 library libraries;
 
@@ -189,6 +189,8 @@ const Map<String, LibraryInfo> libraries = const {
       documented: false,
       platforms: DART2JS_PLATFORM),
   "_metadata": const LibraryInfo("html/html_common/metadata.dart",
+      categories: "", documented: false, platforms: DART2JS_PLATFORM),
+  "_js_annotations": const LibraryInfo("js/_js_annotations.dart",
       categories: "", documented: false, platforms: DART2JS_PLATFORM),
 };
 

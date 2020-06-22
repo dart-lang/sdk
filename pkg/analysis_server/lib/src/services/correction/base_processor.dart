@@ -8,10 +8,8 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:meta/meta.dart';
 
@@ -46,14 +44,6 @@ abstract class BaseProcessor {
         typeProvider = resolvedResult.typeProvider,
         selectionEnd = (selectionOffset ?? 0) + (selectionLength ?? 0),
         utils = CorrectionUtils(resolvedResult);
-
-  /// Returns the EOL to use for this [CompilationUnit].
-  String get eol => utils.endOfLine;
-
-  /// Return the status of known experiments.
-  ExperimentStatus get experimentStatus =>
-      (session.analysisContext.analysisOptions as AnalysisOptionsImpl)
-          .experimentStatus;
 
   @protected
   bool setupCompute() {

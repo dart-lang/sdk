@@ -76,14 +76,8 @@ class P2 {
 
 class C = Object with M;
 class D = Object with P0;
-//                    ^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_REFERENCES_SUPER
 class E = Object with M, P1;
-//                       ^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_REFERENCES_SUPER
 class F = Object with P2, M;
-//                    ^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_REFERENCES_SUPER
 
 main() {
   var p1 = new P1();

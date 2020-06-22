@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 /// Note: the VM concatenates all patch files into a single patch file. This
 /// file is the first patch in "dart:convert" which contains all the imports
 /// used by patches of that library. We plan to change this when we have a
@@ -14,8 +12,10 @@ import "dart:_internal"
         allocateOneByteString,
         allocateTwoByteString,
         ClassID,
+        copyRangeFromUint8ListToOneByteString,
         patch,
         POWERS_OF_TEN,
+        unsafeCast,
         writeIntoOneByteString,
         writeIntoTwoByteString;
 
@@ -26,7 +26,8 @@ import "dart:typed_data" show Uint8List, Uint16List;
 // JSON conversion.
 
 @patch
-dynamic _parseJson(String source, reviver(key, value)) {
+dynamic _parseJson(
+    String source, Object? Function(Object? key, Object? value)? reviver) {
   _BuildJsonListener listener;
   if (reviver == null) {
     listener = new _BuildJsonListener();
@@ -56,14 +57,14 @@ class Utf8Decoder {
 
   // Allow intercepting of UTF-8 decoding when built-in lists are passed.
   @patch
-  static String _convertIntercepted(
-      bool allowMalformed, List<int> codeUnits, int start, int end) {
+  static String? _convertIntercepted(
+      bool allowMalformed, List<int> codeUnits, int start, int? end) {
     return null; // This call was not intercepted.
   }
 }
 
 class _JsonUtf8Decoder extends Converter<List<int>, Object> {
-  final Function(Object key, Object value) _reviver;
+  final Object? Function(Object? key, Object? value)? _reviver;
   final bool _allowMalformed;
 
   _JsonUtf8Decoder(this._reviver, this._allowMalformed);
@@ -77,7 +78,7 @@ class _JsonUtf8Decoder extends Converter<List<int>, Object> {
     return parser.result;
   }
 
-  ByteConversionSink startChunkedConversion(Sink<Object> sink) {
+  ByteConversionSink startChunkedConversion(Sink<Object?> sink) {
     return new _JsonUtf8DecoderSink(_reviver, sink, _allowMalformed);
   }
 }
@@ -124,11 +125,11 @@ class _BuildJsonListener extends _JsonListener {
    * started. If the container is a [Map], there is also a current [key]
    * which is also stored on the stack.
    */
-  List stack = [];
+  final List<Object?> stack = [];
   /** The current [Map] or [List] being built. */
   dynamic currentContainer;
   /** The most recently read property key. */
-  String key;
+  String key = '';
   /** The most recently read value. */
   dynamic value;
 
@@ -142,7 +143,7 @@ class _BuildJsonListener extends _JsonListener {
   void popContainer() {
     value = currentContainer;
     currentContainer = stack.removeLast();
-    if (currentContainer is Map) key = stack.removeLast();
+    if (currentContainer is Map) key = stack.removeLast() as String;
   }
 
   void handleString(String value) {
@@ -174,7 +175,8 @@ class _BuildJsonListener extends _JsonListener {
   void propertyValue() {
     Map map = currentContainer;
     map[key] = value;
-    key = value = null;
+    key = '';
+    value = null;
   }
 
   void endObject() {
@@ -203,7 +205,7 @@ class _BuildJsonListener extends _JsonListener {
 }
 
 class _ReviverJsonListener extends _BuildJsonListener {
-  final Function(Object key, Object value) reviver;
+  final Object? Function(Object? key, Object? value) reviver;
   _ReviverJsonListener(this.reviver);
 
   void arrayElement() {
@@ -686,12 +688,12 @@ abstract class _ChunkedJsonParser<T> {
           char = getChar(position);
           digit = char ^ CHAR_0;
         } else {
-          return fail(position);
+          fail(position);
         }
       }
       if (state == NUM_ZERO) {
         // JSON does not allow insignificant leading zeros (e.g., "09").
-        if (digit <= 9) return fail(position);
+        if (digit <= 9) fail(position);
         state = NUM_DIGIT;
       }
       while (state == NUM_DIGIT) {
@@ -711,7 +713,7 @@ abstract class _ChunkedJsonParser<T> {
         digit = char ^ CHAR_0;
       }
       if (state == NUM_DOT) {
-        if (digit > 9) return fail(position);
+        if (digit > 9) fail(position);
         state = NUM_DOT_DIGIT;
       }
       while (state == NUM_DOT_DIGIT) {
@@ -806,7 +808,7 @@ abstract class _ChunkedJsonParser<T> {
           assert(keywordType == KWD_BOM);
           return position;
         }
-        return fail(position);
+        fail(position);
       }
       position++;
       count++;
@@ -852,41 +854,41 @@ abstract class _ChunkedJsonParser<T> {
           position++;
           break;
         case QUOTE:
-          if ((state & ALLOW_STRING_MASK) != 0) return fail(position);
+          if ((state & ALLOW_STRING_MASK) != 0) fail(position);
           state |= VALUE_READ_BITS;
           position = parseString(position + 1);
           break;
         case LBRACKET:
-          if ((state & ALLOW_VALUE_MASK) != 0) return fail(position);
+          if ((state & ALLOW_VALUE_MASK) != 0) fail(position);
           listener.beginArray();
           saveState(state);
           state = STATE_ARRAY_EMPTY;
           position++;
           break;
         case LBRACE:
-          if ((state & ALLOW_VALUE_MASK) != 0) return fail(position);
+          if ((state & ALLOW_VALUE_MASK) != 0) fail(position);
           listener.beginObject();
           saveState(state);
           state = STATE_OBJECT_EMPTY;
           position++;
           break;
         case CHAR_n:
-          if ((state & ALLOW_VALUE_MASK) != 0) return fail(position);
+          if ((state & ALLOW_VALUE_MASK) != 0) fail(position);
           state |= VALUE_READ_BITS;
           position = parseNull(position);
           break;
         case CHAR_f:
-          if ((state & ALLOW_VALUE_MASK) != 0) return fail(position);
+          if ((state & ALLOW_VALUE_MASK) != 0) fail(position);
           state |= VALUE_READ_BITS;
           position = parseFalse(position);
           break;
         case CHAR_t:
-          if ((state & ALLOW_VALUE_MASK) != 0) return fail(position);
+          if ((state & ALLOW_VALUE_MASK) != 0) fail(position);
           state |= VALUE_READ_BITS;
           position = parseTrue(position);
           break;
         case COLON:
-          if (state != STATE_OBJECT_KEY) return fail(position);
+          if (state != STATE_OBJECT_KEY) fail(position);
           listener.propertyName();
           state = STATE_OBJECT_COLON;
           position++;
@@ -901,7 +903,7 @@ abstract class _ChunkedJsonParser<T> {
             state = STATE_ARRAY_COMMA;
             position++;
           } else {
-            return fail(position);
+            fail(position);
           }
           break;
         case RBRACKET:
@@ -911,7 +913,7 @@ abstract class _ChunkedJsonParser<T> {
             listener.arrayElement();
             listener.endArray();
           } else {
-            return fail(position);
+            fail(position);
           }
           state = restoreState() | VALUE_READ_BITS;
           position++;
@@ -923,7 +925,7 @@ abstract class _ChunkedJsonParser<T> {
             listener.propertyValue();
             listener.endObject();
           } else {
-            return fail(position);
+            fail(position);
           }
           state = restoreState() | VALUE_READ_BITS;
           position++;
@@ -951,7 +953,7 @@ abstract class _ChunkedJsonParser<T> {
     if (getChar(position + 1) != CHAR_r ||
         getChar(position + 2) != CHAR_u ||
         getChar(position + 3) != CHAR_e) {
-      return fail(position);
+      fail(position);
     }
     listener.handleBool(true);
     return position + 4;
@@ -971,7 +973,7 @@ abstract class _ChunkedJsonParser<T> {
         getChar(position + 2) != CHAR_l ||
         getChar(position + 3) != CHAR_s ||
         getChar(position + 4) != CHAR_e) {
-      return fail(position);
+      fail(position);
     }
     listener.handleBool(false);
     return position + 5;
@@ -990,7 +992,7 @@ abstract class _ChunkedJsonParser<T> {
     if (getChar(position + 1) != CHAR_u ||
         getChar(position + 2) != CHAR_l ||
         getChar(position + 3) != CHAR_l) {
-      return fail(position);
+      fail(position);
     }
     listener.handleNull();
     return position + 4;
@@ -1003,7 +1005,7 @@ abstract class _ChunkedJsonParser<T> {
     int count = 1;
     while (++position < length) {
       int char = getChar(position);
-      if (char != chars.codeUnitAt(count)) return fail(start);
+      if (char != chars.codeUnitAt(count)) fail(start);
       count++;
     }
     this.partialState = PARTIAL_KEYWORD | type | (count << KWD_COUNT_SHIFT);
@@ -1040,7 +1042,7 @@ abstract class _ChunkedJsonParser<T> {
         return position;
       }
       if (char < SPACE) {
-        return fail(position - 1, "Control character in string");
+        fail(position - 1, "Control character in string");
       }
     }
     beginString();
@@ -1100,7 +1102,7 @@ abstract class _ChunkedJsonParser<T> {
       int char = getChar(position++);
       if (char > BACKSLASH) continue;
       if (char < SPACE) {
-        return fail(position - 1); // Control character in string.
+        fail(position - 1); // Control character in string.
       }
       if (char == QUOTE) {
         int quotePosition = position - 1;
@@ -1170,7 +1172,7 @@ abstract class _ChunkedJsonParser<T> {
           } else {
             digit = (char | 0x20) - CHAR_a;
             if (digit < 0 || digit > 5) {
-              return fail(hexStart, "Invalid unicode escape");
+              fail(hexStart, "Invalid unicode escape");
             }
             value += digit + 10;
           }
@@ -1178,8 +1180,8 @@ abstract class _ChunkedJsonParser<T> {
         char = value;
         break;
       default:
-        if (char < SPACE) return fail(position, "Control character in string");
-        return fail(position, "Unrecognized string escape");
+        if (char < SPACE) fail(position, "Control character in string");
+        fail(position, "Unrecognized string escape");
     }
     addCharToString(char);
     if (position == length) return chunkString(STR_PLAIN);
@@ -1394,7 +1396,7 @@ abstract class _ChunkedJsonParser<T> {
     return position;
   }
 
-  fail(int position, [String message]) {
+  Never fail(int position, [String? message]) {
     if (message == null) {
       message = "Unexpected character";
       if (position == chunkEnd) message = "Unexpected end of input";
@@ -1407,8 +1409,8 @@ abstract class _ChunkedJsonParser<T> {
  * Chunked JSON parser that parses [String] chunks.
  */
 class _JsonStringParser extends _ChunkedJsonParser<String> {
-  String chunk;
-  int chunkEnd;
+  String chunk = '';
+  int chunkEnd = 0;
 
   _JsonStringParser(_JsonListener listener) : super(listener);
 
@@ -1453,7 +1455,7 @@ class _JsonStringParser extends _ChunkedJsonParser<String> {
 @patch
 class JsonDecoder {
   @patch
-  StringConversionSink startChunkedConversion(Sink<Object> sink) {
+  StringConversionSink startChunkedConversion(Sink<Object?> sink) {
     return new _JsonStringDecoderSink(this._reviver, sink);
   }
 }
@@ -1466,13 +1468,14 @@ class JsonDecoder {
  */
 class _JsonStringDecoderSink extends StringConversionSinkBase {
   _JsonStringParser _parser;
-  final Function(Object key, Object value) _reviver;
-  final Sink<Object> _sink;
+  final Object? Function(Object? key, Object? value)? _reviver;
+  final Sink<Object?> _sink;
 
   _JsonStringDecoderSink(this._reviver, this._sink)
       : _parser = _createParser(_reviver);
 
-  static _JsonStringParser _createParser(reviver) {
+  static _JsonStringParser _createParser(
+      Object? Function(Object? key, Object? value)? reviver) {
     _BuildJsonListener listener;
     if (reviver == null) {
       listener = new _BuildJsonListener();
@@ -1501,7 +1504,6 @@ class _JsonStringDecoderSink extends StringConversionSinkBase {
   }
 
   ByteConversionSink asUtf8Sink(bool allowMalformed) {
-    _parser = null;
     return new _JsonUtf8DecoderSink(_reviver, _sink, allowMalformed);
   }
 }
@@ -1510,9 +1512,11 @@ class _JsonStringDecoderSink extends StringConversionSinkBase {
  * Chunked JSON parser that parses UTF-8 chunks.
  */
 class _JsonUtf8Parser extends _ChunkedJsonParser<List<int>> {
+  static final Uint8List emptyChunk = Uint8List(0);
+
   final _Utf8Decoder decoder;
-  List<int> chunk;
-  int chunkEnd;
+  List<int> chunk = emptyChunk;
+  int chunkEnd = 0;
 
   _JsonUtf8Parser(_JsonListener listener, bool allowMalformed)
       : decoder = new _Utf8Decoder(allowMalformed),
@@ -1577,12 +1581,14 @@ double _parseDouble(String source, int start, int end) native "Double_parse";
  */
 class _JsonUtf8DecoderSink extends ByteConversionSinkBase {
   final _JsonUtf8Parser _parser;
-  final Sink<Object> _sink;
+  final Sink<Object?> _sink;
 
   _JsonUtf8DecoderSink(reviver, this._sink, bool allowMalformed)
       : _parser = _createParser(reviver, allowMalformed);
 
-  static _JsonUtf8Parser _createParser(reviver, bool allowMalformed) {
+  static _JsonUtf8Parser _createParser(
+      Object? Function(Object? key, Object? value)? reviver,
+      bool allowMalformed) {
     _BuildJsonListener listener;
     if (reviver == null) {
       listener = new _BuildJsonListener();
@@ -1669,6 +1675,9 @@ class _Utf8Decoder {
       "QQQQQQQQQQQQQQQQRRRRRbbbbbbbbbbb" // E0-FF
       ;
 
+  /// Max chunk to scan at a time. Avoids staying away from safepoints too long.
+  static const int scanChunkSize = 65536;
+
   /// Reset the decoder to a state where it is ready to decode a new string but
   /// will not skip a leading BOM. Used by the fused UTF-8 / JSON decoder.
   void reset() {
@@ -1676,19 +1685,56 @@ class _Utf8Decoder {
     _bomIndex = -1;
   }
 
+  @pragma("vm:prefer-inline")
+  int scan(Uint8List bytes, int start, int end) {
+    // Assumes 0 <= start <= end <= bytes.length
+    int size = 0;
+    _scanFlags = 0;
+    int localStart = start;
+    while (end - localStart > scanChunkSize) {
+      int localEnd = localStart + scanChunkSize;
+      size += _scan(bytes, localStart, localEnd, scanTable);
+      localStart = localEnd;
+    }
+    size += _scan(bytes, localStart, end, scanTable);
+    return size;
+  }
+
+  // This method is recognized by the VM and compiled into specialized code.
+  @pragma("vm:prefer-inline")
+  int _scan(Uint8List bytes, int start, int end, String scanTable) {
+    int size = 0;
+    int flags = 0;
+    for (int i = start; i < end; i++) {
+      int t = scanTable.codeUnitAt(bytes[i]);
+      size += t & sizeMask;
+      flags |= t;
+    }
+    _scanFlags |= flags & flagsMask;
+    return size;
+  }
+
+  @pragma("vm:prefer-inline")
+  static bool _isNativeUint8List(List<int> array) {
+    final int cid = ClassID.getID(array);
+    return cid == ClassID.cidUint8ArrayView ||
+        cid == ClassID.cidUint8Array ||
+        cid == ClassID.cidExternalUint8Array;
+  }
+
   // The VM decoder handles BOM explicitly instead of via the state machine.
   @patch
   _Utf8Decoder(this.allowMalformed) : _state = initial;
 
   @patch
-  String convertSingle(List<int> codeUnits, int start, int maybeEnd) {
+  String convertSingle(List<int> codeUnits, int start, int? maybeEnd) {
     int end = RangeError.checkValidRange(start, maybeEnd, codeUnits.length);
 
     // Have bytes as Uint8List.
     Uint8List bytes;
     int errorOffset;
-    if (codeUnits is Uint8List) {
-      bytes = codeUnits;
+    if (_isNativeUint8List(codeUnits)) {
+      bytes = unsafeCast<Uint8List>(codeUnits);
       errorOffset = 0;
     } else {
       bytes = _makeUint8List(codeUnits, start, end);
@@ -1710,10 +1756,9 @@ class _Utf8Decoder {
     if (flags == 0) {
       // Pure ASCII.
       assert(size == end - start);
-      // TODO(dartbug.com/41703): String.fromCharCodes has a lot of overhead
-      // checking types and ranges, which is redundant in this case. Find a
-      // more direct way to do the conversion.
-      return String.fromCharCodes(bytes, start, end);
+      String result = allocateOneByteString(size);
+      copyRangeFromUint8ListToOneByteString(bytes, result, start, 0, size);
+      return result;
     }
 
     String result;
@@ -1746,14 +1791,14 @@ class _Utf8Decoder {
   }
 
   @patch
-  String convertChunked(List<int> codeUnits, int start, int maybeEnd) {
+  String convertChunked(List<int> codeUnits, int start, int? maybeEnd) {
     int end = RangeError.checkValidRange(start, maybeEnd, codeUnits.length);
 
     // Have bytes as Uint8List.
     Uint8List bytes;
     int errorOffset;
-    if (codeUnits is Uint8List) {
-      bytes = codeUnits;
+    if (_isNativeUint8List(codeUnits)) {
+      bytes = unsafeCast<Uint8List>(codeUnits);
       errorOffset = 0;
     } else {
       bytes = _makeUint8List(codeUnits, start, end);
@@ -1805,10 +1850,9 @@ class _Utf8Decoder {
       // Pure ASCII.
       assert(_state == accept);
       assert(size == end - start);
-      // TODO(dartbug.com/41703): String.fromCharCodes has a lot of overhead
-      // checking types and ranges, which is redundant in this case. Find a
-      // more direct way to do the conversion.
-      return String.fromCharCodes(bytes, start, end);
+      String result = allocateOneByteString(size);
+      copyRangeFromUint8ListToOneByteString(bytes, result, start, 0, size);
+      return result;
     }
 
     // Do not include any final, incomplete character in size.
@@ -1889,35 +1933,9 @@ class _Utf8Decoder {
     return i;
   }
 
-  // Scanning functions to compute the size of the resulting string and flags
-  // (written to _scanFlags) indicating which decoder to use.
-  // TODO(dartbug.com/41702): Intrinsify this function.
-  int scan(Uint8List bytes, int start, int end) {
-    _scanFlags = 0;
-    for (int i = start; i < end; i++) {
-      if (bytes[i] > 127) return i - start + scan2(bytes, i, end);
-    }
-    return end - start;
-  }
-
-  int scan2(Uint8List bytes, int start, int end) {
-    final String scanTable = _Utf8Decoder.scanTable;
-    int size = 0;
-    int flags = 0;
-    for (int i = start; i < end; i++) {
-      int t = scanTable.codeUnitAt(bytes[i]);
-      size += t & sizeMask;
-      flags |= t;
-    }
-    _scanFlags = flags & flagsMask;
-    return size;
-  }
-
   String decode8(Uint8List bytes, int start, int end, int size) {
     assert(start < end);
-    // TODO(dartbug.com/41704): Allocate an uninitialized _OneByteString and
-    // write characters to it using _setAt.
-    final String result = allocateOneByteString(size);
+    String result = allocateOneByteString(size);
     int i = start;
     int j = 0;
     if (_state == X1) {
@@ -1969,9 +1987,7 @@ class _Utf8Decoder {
     assert(start < end);
     final String typeTable = _Utf8Decoder.typeTable;
     final String transitionTable = _Utf8Decoder.transitionTable;
-    // TODO(dartbug.com/41704): Allocate an uninitialized _TwoByteString and
-    // write characters to it using _setAt.
-    final String result = allocateTwoByteString(size);
+    String result = allocateTwoByteString(size);
     int i = start;
     int j = 0;
     int state = _state;

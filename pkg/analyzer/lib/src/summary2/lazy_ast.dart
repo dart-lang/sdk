@@ -1432,6 +1432,7 @@ class LazyMethodDeclaration {
   bool _hasMetadata = false;
   bool _hasReturnType = false;
   bool _hasReturnTypeNode = false;
+  bool _hasTypeInferenceError = false;
 
   LazyMethodDeclaration(this.data);
 
@@ -1472,6 +1473,16 @@ class LazyMethodDeclaration {
       lazy._hasReturnType = true;
     }
     return LazyAst.getReturnType(node);
+  }
+
+  static TopLevelInferenceError getTypeInferenceError(MethodDeclaration node) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasTypeInferenceError) {
+      var error = lazy.data.topLevelTypeInferenceError;
+      LazyAst.setTypeInferenceError(node, error);
+      lazy._hasTypeInferenceError = true;
+    }
+    return LazyAst.getTypeInferenceError(node);
   }
 
   static bool isAbstract(MethodDeclaration node) {

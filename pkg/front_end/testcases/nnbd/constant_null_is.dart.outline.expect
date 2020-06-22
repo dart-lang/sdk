@@ -1,7 +1,6 @@
 library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
-import "dart:async" as asy;
 
 import "dart:async";
 
@@ -26,14 +25,14 @@ static const field core::bool c1 = null is{ForNonNullableByDefault} core::int;
 static const field core::bool c2 = null is{ForNonNullableByDefault} core::Null?;
 static const field core::bool c3 = null is{ForNonNullableByDefault} Never?;
 static const field core::bool c4 = null is{ForNonNullableByDefault} Never;
-static const field core::bool c5 = null is{ForNonNullableByDefault} asy::FutureOr<core::int?>;
-static const field core::bool c6 = null is{ForNonNullableByDefault} asy::FutureOr<core::int>;
-static const field core::bool c7 = null is{ForNonNullableByDefault} asy::FutureOr<core::int>?;
-static const field core::bool c8 = null is{ForNonNullableByDefault} asy::FutureOr<core::Null?>;
-static const field core::bool c9 = null is{ForNonNullableByDefault} asy::FutureOr<core::Null?>?;
-static const field core::bool c10 = null is{ForNonNullableByDefault} asy::FutureOr<Never>;
-static const field core::bool c11 = null is{ForNonNullableByDefault} asy::FutureOr<Never?>;
-static const field core::bool c12 = null is{ForNonNullableByDefault} asy::FutureOr<Never>?;
+static const field core::bool c5 = null is{ForNonNullableByDefault} FutureOr<core::int?>;
+static const field core::bool c6 = null is{ForNonNullableByDefault} FutureOr<core::int>;
+static const field core::bool c7 = null is{ForNonNullableByDefault} FutureOr<core::int>?;
+static const field core::bool c8 = null is{ForNonNullableByDefault} FutureOr<core::Null?>;
+static const field core::bool c9 = null is{ForNonNullableByDefault} FutureOr<core::Null?>?;
+static const field core::bool c10 = null is{ForNonNullableByDefault} FutureOr<Never>;
+static const field core::bool c11 = null is{ForNonNullableByDefault} FutureOr<Never?>;
+static const field core::bool c12 = null is{ForNonNullableByDefault} FutureOr<Never>?;
 static const field self::Class<core::int> e1 = const self::Class::constructor1<core::int>(null);
 static const field self::Class<core::int?> e2 = const self::Class::constructor1<core::int?>(null);
 static const field self::Class<core::Null?> e3 = const self::Class::constructor1<core::Null?>(null);

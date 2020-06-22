@@ -41,10 +41,6 @@
     "Dynamic invocation of 'containsKey'.": 1,
     "Dynamic access of '_js_helper::_first'.": 2
   },
-  "org-dartlang-sdk:///lib/_internal/js_runtime/lib/js_rti.dart": {
-    "Dynamic invocation of '<'.": 1,
-    "Dynamic invocation of '-'.": 1
-  },
   "org-dartlang-sdk:///lib/_internal/js_runtime/lib/native_helper.dart": {
     "Dynamic access of 'length'.": 2,
     "Dynamic invocation of '[]'.": 1

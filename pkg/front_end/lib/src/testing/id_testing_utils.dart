@@ -479,6 +479,13 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
     }
   }
 
+  void visitFutureOrType(FutureOrType node) {
+    sb.write('FutureOr<');
+    visit(node.typeArgument);
+    sb.write('>');
+    sb.write(nullabilityToText(node.declaredNullability, typeRepresentation));
+  }
+
   void visitFunctionType(FunctionType node) {
     visit(node.returnType);
     sb.write(' Function');

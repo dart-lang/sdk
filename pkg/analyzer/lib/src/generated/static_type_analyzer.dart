@@ -834,7 +834,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     if (initializer != null) {
       if (parent is VariableDeclarationList && parent.type == null) {
         DartType type = initializer.staticType;
-        if (type != null && !type.isBottom && !type.isDartCoreNull) {
+        if (type != null && !type.isDartCoreNull) {
           VariableElement element = node.declaredElement;
           if (element is LocalVariableElementImpl) {
             var initializerType = initializer.staticType;

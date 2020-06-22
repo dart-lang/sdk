@@ -24,6 +24,30 @@ class InvalidNullAwareOperatorTest extends DriverResolutionTest {
       [EnableString.non_nullable],
     );
 
+  test_getter_class() async {
+    await assertNoErrorsInCode('''
+class C {
+  static int x = 0;
+}
+
+f() {
+  C?.x;
+}
+''');
+  }
+
+  test_getter_extension() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  static int x = 0;
+}
+
+f() {
+  E?.x;
+}
+''');
+  }
+
   test_getter_legacy() async {
     newFile('/test/lib/a.dart', content: r'''
 // @dart = 2.5
@@ -36,6 +60,18 @@ import 'a.dart';
 f() {
   x?.isEven;
   x?..isEven;
+}
+''');
+  }
+
+  test_getter_mixin() async {
+    await assertNoErrorsInCode('''
+mixin M {
+  static int x = 0;
+}
+
+f() {
+  M?.x;
 }
 ''');
   }
@@ -61,16 +97,22 @@ f(int? x) {
 ''');
   }
 
-  test_getter_Type() async {
-    await assertNoErrorsInCode('''
-class C {
-  static int x = 0;
-}
+  /// Here we test that analysis does not crash while checking whether to
+  /// report [StaticWarningCode.INVALID_NULL_AWARE_OPERATOR]. But we also
+  /// report another error.
+  test_getter_prefix() async {
+    newFile('/test/lib/a.dart', content: r'''
+int x = 0;
+''');
+    await assertErrorsInCode('''
+import 'a.dart' as p;
 
 f() {
-  C?.x;
+  p?.x;
 }
-''');
+''', [
+      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 31, 1),
+    ]);
   }
 
   test_index_legacy() async {
@@ -114,6 +156,30 @@ f(List<int>? x) {
 ''');
   }
 
+  test_method_class() async {
+    await assertNoErrorsInCode('''
+class C {
+  static void foo() {}
+}
+
+f() {
+  C?.foo();
+}
+''');
+  }
+
+  test_method_extension() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  static void foo() {}
+}
+
+f() {
+  E?.foo();
+}
+''');
+  }
+
   test_method_legacy() async {
     newFile('/test/lib/a.dart', content: r'''
 // @dart = 2.5
@@ -126,6 +192,18 @@ import 'a.dart';
 f() {
   x?.round();
   x?..round();
+}
+''');
+  }
+
+  test_method_mixin() async {
+    await assertNoErrorsInCode('''
+mixin M {
+  static void foo() {}
+}
+
+f() {
+  M?.foo();
 }
 ''');
   }
@@ -190,5 +268,59 @@ f(List<int>? x) {
   [...?x];
 }
 ''');
+  }
+
+  test_setter_class() async {
+    await assertNoErrorsInCode('''
+class C {
+  static int x = 0;
+}
+
+f() {
+  C?.x = 0;
+}
+''');
+  }
+
+  test_setter_extension() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  static int x = 0;
+}
+
+f() {
+  E?.x = 0;
+}
+''');
+  }
+
+  test_setter_mixin() async {
+    await assertNoErrorsInCode('''
+mixin M {
+  static int x = 0;
+}
+
+f() {
+  M?.x = 0;
+}
+''');
+  }
+
+  /// Here we test that analysis does not crash while checking whether to
+  /// report [StaticWarningCode.INVALID_NULL_AWARE_OPERATOR]. But we also
+  /// report another error.
+  test_setter_prefix() async {
+    newFile('/test/lib/a.dart', content: r'''
+int x = 0;
+''');
+    await assertErrorsInCode('''
+import 'a.dart' as p;
+
+f() {
+  p?.x = 0;
+}
+''', [
+      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 31, 1),
+    ]);
   }
 }

@@ -7,14 +7,14 @@
 import "native_testing.dart";
 
 abstract class Window {
-  final int document;
+  int get document native;
 }
 
 // Defining this global object makes Frog eager on optimizing
 // call sites where the receiver is typed 'Window'.
 @Native("@*DOMWindow")
 class _DOMWindowJs implements Window {
-  final int document;
+  int get document native;
 }
 
 class Win implements Window {

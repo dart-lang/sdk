@@ -71,6 +71,32 @@ class EnclosingExecutableContext {
 
   EnclosingExecutableContext.empty() : this(null);
 
+  String get displayName {
+    var element = this.element;
+    if (element is ConstructorElement) {
+      var className = element.enclosingElement.displayName;
+      var constructorName = element.displayName;
+      return constructorName.isEmpty
+          ? className
+          : '$className.$constructorName';
+    } else {
+      return element.displayName;
+    }
+  }
+
+  bool get isClosure {
+    return element is FunctionElement && element.displayName.isEmpty;
+  }
+
+  bool get isConstructor => element is ConstructorElement;
+
+  bool get isFunction {
+    if (element is FunctionElement) {
+      return element.displayName.isNotEmpty;
+    }
+    return element is PropertyAccessorElement;
+  }
+
   bool get isMethod => element is MethodElement;
 
   bool get isSynchronous => !isAsynchronous;
@@ -432,7 +458,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForBuiltInIdentifierAsName(
           node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
       _checkForNoDefaultSuperConstructorImplicit(node);
-      _checkForConflictingTypeVariableErrorCodes();
+      _checkForConflictingClassTypeVariableErrorCodes();
       TypeName superclass = node.extendsClause?.superclass;
       ImplementsClause implementsClause = node.implementsClause;
       WithClause withClause = node.withClause;
@@ -444,6 +470,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _checkClassInheritance(node, superclass, withClause, implementsClause);
       }
 
+      _checkForConflictingClassMembers();
       _constructorFieldsVerifier.enterClass(node);
       _checkForFinalNotInitializedInClass(members);
       _checkForBadFunctionUse(node);
@@ -583,6 +610,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     _enclosingExtension = node.declaredElement;
     _duplicateDefinitionVerifier.checkExtension(node);
+    _checkForConflictingExtensionTypeVariableErrorCodes();
     _checkForFinalNotInitializedInClass(node.members);
 
     GetterSetterTypesVerifier(
@@ -819,10 +847,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitIndexExpression(IndexExpression node) {
     _checkForArgumentTypeNotAssignableForArgument(node.index);
     if (node.isNullAware) {
-      _checkForUnnecessaryNullAware(
-        node.realTarget,
-        node.question ?? node.period ?? node.leftBracket,
-      );
+      var target = node.realTarget;
+      if (_isExpressionWithType(target)) {
+        _checkForUnnecessaryNullAware(
+          target,
+          node.question ?? node.period ?? node.leftBracket,
+        );
+      }
     }
     super.visitIndexExpression(node);
   }
@@ -916,7 +947,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForStaticAccessToInstanceMember(typeReference, methodName);
       _checkForInstanceAccessToStaticMember(
           typeReference, node.target, methodName);
-      _checkForUnnecessaryNullAware(target, node.operator);
+      if (_isExpressionWithType(target)) {
+        _checkForUnnecessaryNullAware(target, node.operator);
+      }
     } else {
       _checkForUnqualifiedReferenceToNonLocalStaticMember(methodName);
     }
@@ -936,7 +969,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _duplicateDefinitionVerifier.checkMixin(node);
       _checkForBuiltInIdentifierAsName(
           node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
-      _checkForConflictingTypeVariableErrorCodes();
+      _checkForConflictingClassTypeVariableErrorCodes();
 
       OnClause onClause = node.onClause;
       ImplementsClause implementsClause = node.implementsClause;
@@ -946,6 +979,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _checkMixinInheritance(node, onClause, implementsClause);
       }
 
+      _checkForConflictingClassMembers();
       _checkForFinalNotInitializedInClass(members);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       //      _checkForBadFunctionUse(node);
@@ -1018,9 +1052,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _checkForStaticAccessToInstanceMember(typeReference, propertyName);
     _checkForInstanceAccessToStaticMember(
         typeReference, node.target, propertyName);
-
-    // For `C?.x` the type of `C` is not set, because it is not an expression.
-    if (target.staticType != null) {
+    if (_isExpressionWithType(target)) {
       _checkForUnnecessaryNullAware(target, node.operator);
     }
 
@@ -1262,7 +1294,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         !_checkForAllMixinErrorCodes(withClause)) {
       _checkForImplicitDynamicType(superclass);
       _checkForExtendsDeferredClass(superclass);
-      _checkForConflictingClassMembers();
       _checkForRepeatedType(implementsClause?.interfaces,
           CompileTimeErrorCode.IMPLEMENTS_REPEATED);
       _checkImplementsSuperClass(implementsClause);
@@ -1295,8 +1326,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * Verify that all classes of the given [withClause] are valid.
    *
    * See [CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR],
-   * [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT], and
-   * [CompileTimeErrorCode.MIXIN_REFERENCES_SUPER].
+   * [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT].
    */
   bool _checkForAllMixinErrorCodes(WithClause withClause) {
     if (withClause == null) {
@@ -1334,9 +1364,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
               problemReported = true;
             }
             if (_checkForMixinInheritsNotFromObject(mixinName, mixinElement)) {
-              problemReported = true;
-            }
-            if (_checkForMixinReferencesSuper(mixinName, mixinElement)) {
               problemReported = true;
             }
           }
@@ -1751,7 +1778,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   /**
    * Verify that the [_enclosingClass] does not have a method and getter pair
-   * with the same name on, via inheritance.
+   * with the same name, via inheritance.
    *
    * See [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE],
    * [CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD], and
@@ -1818,6 +1845,62 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  /**
+   * Verify all conflicts between type variable and enclosing class.
+   * TODO(scheglov)
+   *
+   * See [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS], and
+   * [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER].
+   */
+  void _checkForConflictingClassTypeVariableErrorCodes() {
+    for (TypeParameterElement typeParameter in _enclosingClass.typeParameters) {
+      String name = typeParameter.name;
+      // name is same as the name of the enclosing class
+      if (_enclosingClass.name == name) {
+        _errorReporter.reportErrorForElement(
+            CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS,
+            typeParameter,
+            [name]);
+      }
+      // check members
+      if (_enclosingClass.getMethod(name) != null ||
+          _enclosingClass.getGetter(name) != null ||
+          _enclosingClass.getSetter(name) != null) {
+        _errorReporter.reportErrorForElement(
+            CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS,
+            typeParameter,
+            [name]);
+      }
+    }
+  }
+
+  /// Verify all conflicts between type variable and enclosing extension.
+  ///
+  /// See [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION], and
+  /// [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_MEMBER].
+  void _checkForConflictingExtensionTypeVariableErrorCodes() {
+    for (TypeParameterElement typeParameter
+        in _enclosingExtension.typeParameters) {
+      String name = typeParameter.name;
+      // name is same as the name of the enclosing class
+      if (_enclosingExtension.name == name) {
+        _errorReporter.reportErrorForElement(
+            CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION,
+            typeParameter,
+            [name]);
+      }
+      // check members
+      if (_enclosingExtension.getMethod(name) != null ||
+          _enclosingExtension.getGetter(name) != null ||
+          _enclosingExtension.getSetter(name) != null) {
+        _errorReporter.reportErrorForElement(
+            CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION,
+            typeParameter,
+            [name]);
+      }
+    }
+  }
+
   void _checkForConflictingGenerics(NamedCompilationUnitMember node) {
     var element = node.declaredElement as ClassElement;
 
@@ -1841,41 +1924,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify all conflicts between type variable and enclosing class.
-   * TODO(scheglov)
-   *
-   * See [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS], and
-   * [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER].
-   */
-  void _checkForConflictingTypeVariableErrorCodes() {
-    for (TypeParameterElement typeParameter in _enclosingClass.typeParameters) {
-      String name = typeParameter.name;
-      // name is same as the name of the enclosing class
-      if (_enclosingClass.name == name) {
-        _errorReporter.reportErrorForElement(
-            CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS,
-            typeParameter,
-            [name]);
-      }
-      // check members
-      if (_enclosingClass.getMethod(name) != null ||
-          _enclosingClass.getGetter(name) != null ||
-          _enclosingClass.getSetter(name) != null) {
-        _errorReporter.reportErrorForElement(
-            CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER,
-            typeParameter,
-            [name]);
-      }
-    }
-  }
-
-  /**
-   * Verify that if the given [constructor] declaration is 'const' then there
-   * are no invocations of non-'const' super constructors.
-   *
-   * See [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER].
-   */
+  /// Verify that if the given [constructor] declaration is 'const' then there
+  /// are no invocations of non-'const' super constructors, and that there are
+  /// no instance variables mixed in.
+  ///
+  /// See [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER], and
+  /// [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD].
   void _checkForConstConstructorWithNonConstSuper(
       ConstructorDeclaration constructor) {
     if (!_enclosingExecutable.isConstConstructor) {
@@ -1887,21 +1941,26 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     // check for mixins
-    var hasInstanceField = false;
+    var instanceFields = <FieldElement>[];
     for (var mixin in _enclosingClass.mixins) {
-      var fields = mixin.element.fields;
-      for (var i = 0; i < fields.length; ++i) {
-        if (!fields[i].isStatic) {
-          hasInstanceField = true;
-          break;
-        }
-      }
+      instanceFields.addAll(mixin.element.fields
+          .where((field) => !field.isStatic && !field.isSynthetic));
     }
-    if (hasInstanceField) {
-      // TODO(scheglov) Provide the list of fields.
+    if (instanceFields.length == 1) {
+      var field = instanceFields.single;
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
-          constructor.returnType);
+          constructor.returnType,
+          ["'${field.enclosingElement.name}.${field.name}'"]);
+      return;
+    } else if (instanceFields.length > 1) {
+      var fieldNames = instanceFields
+          .map((field) => "'${field.enclosingElement.name}.${field.name}'")
+          .join(', ');
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELDS,
+          constructor.returnType,
+          [fieldNames]);
       return;
     }
 
@@ -2810,7 +2869,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     } else {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
-          identifier);
+          identifier,
+          [identifier.name]);
     }
   }
 
@@ -3255,24 +3315,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             [mixinElement.name]);
         return true;
       }
-    }
-    return false;
-  }
-
-  /**
-   * Verify that the given mixin does not reference 'super'. The [mixinName] is
-   * the node to report problem on. The [mixinElement] is the mixing to
-   * evaluate.
-   *
-   * See [CompileTimeErrorCode.MIXIN_REFERENCES_SUPER].
-   */
-  bool _checkForMixinReferencesSuper(
-      TypeName mixinName, ClassElement mixinElement) {
-    if (mixinElement.hasReferenceToSuper) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.MIXIN_REFERENCES_SUPER,
-          mixinName,
-          [mixinElement.name]);
     }
     return false;
   }
@@ -4883,7 +4925,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (!_checkForOnClauseErrorCodes(onClause) &&
         !_checkForImplementsClauseErrorCodes(implementsClause)) {
 //      _checkForImplicitDynamicType(superclass);
-      _checkForConflictingClassMembers();
       _checkForRepeatedType(
         onClause?.superclassConstraints,
         CompileTimeErrorCode.ON_REPEATED,
@@ -5348,6 +5389,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       }
     }
     return null;
+  }
+
+  static bool _isExpressionWithType(Expression node) {
+    if (node is ExtensionOverride) {
+      return false;
+    }
+
+    // For `foo?.bar`, `foo` must be an identifier with a value.
+    if (node is Identifier) {
+      var element = node.staticElement;
+      return element is PropertyAccessorElement || element is VariableElement;
+    }
+
+    return true;
   }
 }
 

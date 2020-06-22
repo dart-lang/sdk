@@ -65,6 +65,8 @@ namespace dart {
   V(_Int32x4ArrayView, ._, TypedData_Int32x4ArrayView_factory, 0x9bfbd6d5)     \
   V(_Float64x2ArrayView, ._, TypedData_Float64x2ArrayView_factory, 0x1a383408) \
   V(::, _toClampedUint8, ConvertIntToClampedUint8, 0x59765a4a)                 \
+  V(::, copyRangeFromUint8ListToOneByteString,                                 \
+    CopyRangeFromUint8ListToOneByteString, 0x00000000)                         \
   V(_StringBase, _interpolate, StringBaseInterpolate, 0xc0a650e4)              \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 0x22a26db3)             \
   V(_Double, _add, DoubleAdd, 0x2f5c036a)                                      \
@@ -174,6 +176,7 @@ namespace dart {
   V(::, _fromAddress, FfiFromAddress, 0x612a64d5)                              \
   V(Pointer, get:address, FfiGetAddress, 0x29a505a1)                           \
   V(::, reachabilityFence, ReachabilityFence, 0x0)                             \
+  V(_Utf8Decoder, _scan, Utf8DecoderScan, 0x78f44c3c)                          \
 
 // List of intrinsics:
 // (class-name, function-name, intrinsification method, fingerprint).

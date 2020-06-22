@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:_fe_analyzer_shared/src/sdk/allowed_experiments.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
@@ -13,7 +11,6 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
@@ -21,48 +18,45 @@ import 'package:analyzer/src/summary2/link.dart' as summary2;
 import 'package:analyzer/src/summary2/linked_element_factory.dart' as summary2;
 import 'package:analyzer/src/summary2/reference.dart' as summary2;
 import 'package:meta/meta.dart';
+import 'package:yaml/yaml.dart';
 
+/// Build summary for SDK the at the given [sdkPath].
+///
+/// If [embedderYamlPath] is provided, then libraries from this file are
+/// appended to the libraries of the specified SDK.
 List<int> buildSdkSummary({
   @required ResourceProvider resourceProvider,
   @required String sdkPath,
+  String embedderYamlPath,
 }) {
-  //
-  // Prepare SDK.
-  //
-  FolderBasedDartSdk sdk =
-      FolderBasedDartSdk(resourceProvider, resourceProvider.getFolder(sdkPath));
+  var sdk = FolderBasedDartSdk(
+    resourceProvider,
+    resourceProvider.getFolder(sdkPath),
+  );
   sdk.useSummary = false;
   sdk.analysisOptions = AnalysisOptionsImpl();
 
-  //
-  // Prepare 'dart:' URIs to serialize.
-  //
-  Set<String> uriSet =
-      sdk.sdkLibraries.map((SdkLibrary library) => library.shortName).toSet();
-  // TODO(scheglov) Why do we need it?
-  uriSet.add('dart:html_common/html_common_dart2js.dart');
-
-  Set<Source> librarySources = HashSet<Source>();
-  for (String uri in uriSet) {
-    var source = sdk.mapDartUri(uri);
-    // TODO(scheglov) Fix the previous TODO and remove this check.
-    if (source != null) {
-      librarySources.add(source);
+  // Append libraries from the embedder.
+  if (embedderYamlPath != null) {
+    var file = resourceProvider.getFile(embedderYamlPath);
+    var content = file.readAsStringSync();
+    var map = loadYaml(content) as YamlMap;
+    var embedderSdk = EmbedderSdk(resourceProvider, {file.parent: map});
+    for (var library in embedderSdk.sdkLibraries) {
+      var uriStr = library.shortName;
+      if (sdk.libraryMap.getLibrary(uriStr) == null) {
+        sdk.libraryMap.setLibrary(uriStr, library);
+      }
     }
   }
 
-  String allowedExperimentsJson;
-  try {
-    allowedExperimentsJson = sdk.directory
-        .getChildAssumingFolder('lib')
-        .getChildAssumingFolder('_internal')
-        .getChildAssumingFile('allowed_experiments.json')
-        .readAsStringSync();
-  } catch (_) {}
+  var librarySources = sdk.sdkLibraries.map((e) {
+    return sdk.mapDartUri(e.shortName);
+  }).toList();
 
   return _Builder(
     sdk.context,
-    allowedExperimentsJson,
+    sdk.allowedExperimentsJson,
     librarySources,
   ).build();
 }

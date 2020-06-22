@@ -132,10 +132,7 @@ class SourceToDillStep implements IOModularStep {
         return;
       }
       sources = ['dart:core'];
-      extraArgs = [
-        '--libraries-file',
-        '$rootScheme:///sdk_nnbd/lib/libraries.json'
-      ];
+      extraArgs = ['--libraries-file', '$rootScheme:///sdk/lib/libraries.json'];
       assert(transitiveDependencies.isEmpty);
     } else {
       sources = module.sources.map(sourceToImportUri).toList();
@@ -342,7 +339,7 @@ class RunD8 implements IOModularStep {
     if (_options.verbose) print("\nstep: d8 on $module");
     List<String> d8Args = [
       sdkRoot
-          .resolve('sdk_nnbd/lib/_internal/js_runtime/lib/preambles/d8.js')
+          .resolve('sdk/lib/_internal/js_runtime/lib/preambles/d8.js')
           .toFilePath(),
       root.resolveUri(toUri(module, jsId)).toFilePath(),
     ];

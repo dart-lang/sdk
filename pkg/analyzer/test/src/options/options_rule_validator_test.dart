@@ -90,12 +90,6 @@ linter:
   }
 }
 
-class StableLint extends LintRule {
-  StableLint()
-      : super(
-            name: 'stable_lint', group: Group.style, maturity: Maturity.stable);
-}
-
 class RuleNeg extends LintRule {
   RuleNeg() : super(name: 'rule_neg', group: Group.style);
   @override
@@ -106,4 +100,10 @@ class RulePos extends LintRule {
   RulePos() : super(name: 'rule_pos', group: Group.style);
   @override
   List<String> get incompatibleRules => ['rule_neg'];
+}
+
+class StableLint extends LintRule {
+  StableLint()
+      : super(
+            name: 'stable_lint', group: Group.style, maturity: Maturity.stable);
 }

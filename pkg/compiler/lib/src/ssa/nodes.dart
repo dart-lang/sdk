@@ -100,16 +100,11 @@ abstract class HVisitor<R> {
   R visitThrowExpression(HThrowExpression node);
   R visitTruncatingDivide(HTruncatingDivide node);
   R visitTry(HTry node);
-  R visitTypeConversion(HTypeConversion node);
   R visitPrimitiveCheck(HPrimitiveCheck node);
   R visitBoolConversion(HBoolConversion node);
   R visitNullCheck(HNullCheck node);
   R visitTypeKnown(HTypeKnown node);
   R visitYield(HYield node);
-
-  R visitTypeInfoReadRaw(HTypeInfoReadRaw node);
-  R visitTypeInfoReadVariable(HTypeInfoReadVariable node);
-  R visitTypeInfoExpression(HTypeInfoExpression node);
 
   // Instructions for 'dart:_rti'.
   R visitIsTest(HIsTest node);
@@ -589,8 +584,6 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   @override
   visitIsViaInterceptor(HIsViaInterceptor node) => visitInstruction(node);
   @override
-  visitTypeConversion(HTypeConversion node) => visitCheck(node);
-  @override
   visitBoolConversion(HBoolConversion node) => visitCheck(node);
   @override
   visitNullCheck(HNullCheck node) => visitCheck(node);
@@ -602,15 +595,6 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitAwait(HAwait node) => visitInstruction(node);
   @override
   visitYield(HYield node) => visitInstruction(node);
-
-  @override
-  visitTypeInfoReadRaw(HTypeInfoReadRaw node) => visitInstruction(node);
-  @override
-  visitTypeInfoReadVariable(HTypeInfoReadVariable node) =>
-      visitInstruction(node);
-
-  @override
-  visitTypeInfoExpression(HTypeInfoExpression node) => visitInstruction(node);
 
   @override
   visitIsTest(HIsTest node) => visitInstruction(node);
@@ -1087,7 +1071,6 @@ abstract class HInstruction implements Spannable {
   static const int STATIC_STORE_TYPECODE = 22;
   static const int FIELD_GET_TYPECODE = 23;
   static const int FUNCTION_REFERENCE_TYPECODE = 24;
-  static const int TYPE_CONVERSION_TYPECODE = 25;
   static const int TYPE_KNOWN_TYPECODE = 26;
   static const int INVOKE_STATIC_TYPECODE = 27;
   static const int INDEX_TYPECODE = 28;
@@ -1097,10 +1080,6 @@ abstract class HInstruction implements Spannable {
 
   static const int TRUNCATING_DIVIDE_TYPECODE = 36;
   static const int IS_VIA_INTERCEPTOR_TYPECODE = 37;
-
-  static const int TYPE_INFO_READ_RAW_TYPECODE = 38;
-  static const int TYPE_INFO_READ_VARIABLE_TYPECODE = 39;
-  static const int TYPE_INFO_EXPRESSION_TYPECODE = 40;
 
   static const int INVOKE_EXTERNAL_TYPECODE = 41;
   static const int FOREIGN_CODE_TYPECODE = 42;
@@ -1407,30 +1386,6 @@ abstract class HInstruction implements Spannable {
     return false;
   }
 
-  HInstruction convertType(JClosedWorld closedWorld, DartType type, int kind) {
-    if (type == null) return this;
-    // Only the builder knows how to create [HTypeConversion]
-    // instructions with generics. It has the generic type context
-    // available.
-    assert(type is! TypeVariableType);
-    assert(closedWorld.dartTypes.treatAsRawType(type) || type is FunctionType);
-    if (closedWorld.dartTypes.isTopType(type)) return this;
-    if (type is FunctionType || type is FutureOrType) {
-      return new HTypeConversion(type, kind,
-          closedWorld.abstractValueDomain.dynamicType, this, sourceInformation);
-    }
-    assert(type is InterfaceType);
-    if (kind == HTypeConversion.TYPE_CHECK &&
-        !closedWorld.dartTypes.treatAsRawType(type)) {
-      throw 'creating compound check to $type (this = ${this})';
-    } else {
-      InterfaceType interfaceType = type;
-      AbstractValue subtype = closedWorld.abstractValueDomain
-          .createNullableSubtype(interfaceType.element);
-      return new HTypeConversion(type, kind, subtype, this, sourceInformation);
-    }
-  }
-
   /// Return whether the instructions do not belong to a loop or
   /// belong to the same loop.
   bool hasSameLoopHeaderAs(HInstruction other) {
@@ -1586,15 +1541,6 @@ class HRef extends HInstruction {
   }
 
   HInstruction get value => inputs[0];
-
-  @override
-  HInstruction convertType(JClosedWorld closedWorld, DartType type, int kind) {
-    HInstruction converted = value.convertType(closedWorld, type, kind);
-    if (converted == value) return this;
-    HTypeConversion conversion = converted;
-    conversion.inputs[0] = this;
-    return conversion;
-  }
 
   @override
   accept(HVisitor visitor) => visitor.visitRef(this);
@@ -2309,6 +2255,9 @@ class HLocalGet extends HLocalAccess {
   accept(HVisitor visitor) => visitor.visitLocalGet(this);
 
   HLocalValue get local => inputs[0];
+
+  @override
+  String toString() => 'HLocalGet($local).$hashCode';
 }
 
 class HLocalSet extends HLocalAccess {
@@ -3675,121 +3624,6 @@ class HLateValue extends HLateInstruction {
   toString() => 'HLateValue($target)';
 }
 
-/// Type check or cast using legacy constructor-based type representation.
-class HTypeConversion extends HCheck {
-  // Values for [kind].
-  static const int TYPE_CHECK = 0;
-  static const int CAST_CHECK = 1;
-
-  final DartType typeExpression;
-  final int kind;
-
-  AbstractValue checkedType; // Not final because we refine it.
-
-  HTypeConversion(this.typeExpression, this.kind, AbstractValue type,
-      HInstruction input, SourceInformation sourceInformation)
-      : checkedType = type,
-        super(<HInstruction>[input], type) {
-    this.sourceElement = input.sourceElement;
-    this.sourceInformation = sourceInformation;
-  }
-
-  HTypeConversion.withTypeRepresentation(this.typeExpression, this.kind,
-      AbstractValue type, HInstruction input, HInstruction typeRepresentation)
-      : checkedType = type,
-        super(<HInstruction>[input, typeRepresentation], type) {
-    sourceElement = input.sourceElement;
-  }
-
-  bool get hasTypeRepresentation {
-    return typeExpression != null &&
-        typeExpression is InterfaceType &&
-        inputs.length > 1;
-  }
-
-  HInstruction get typeRepresentation => inputs[1];
-
-  @override
-  HInstruction get checkedInput => super.checkedInput;
-
-  @override
-  HInstruction convertType(JClosedWorld closedWorld, DartType type, int kind) {
-    if (typeExpression == type) {
-      return this;
-    }
-    return super.convertType(closedWorld, type, kind);
-  }
-
-  bool get isTypeCheck => kind == TYPE_CHECK;
-  bool get isCastCheck => kind == CAST_CHECK;
-
-  @override
-  accept(HVisitor visitor) => visitor.visitTypeConversion(this);
-
-  @override
-  bool isJsStatement() => isControlFlow();
-  @override
-  bool isControlFlow() => false;
-
-  @override
-  int typeCode() => HInstruction.TYPE_CONVERSION_TYPECODE;
-  @override
-  bool typeEquals(HInstruction other) => other is HTypeConversion;
-  @override
-  bool isCodeMotionInvariant() => false;
-
-  @override
-  bool dataEquals(HTypeConversion other) {
-    return kind == other.kind &&
-        typeExpression == other.typeExpression &&
-        checkedType == other.checkedType;
-  }
-
-  bool isRedundant(JClosedWorld closedWorld) {
-    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
-    DartType type = typeExpression;
-    if (type != null) {
-      if (type is TypeVariableType) {
-        return false;
-      }
-      if (type is FutureOrType) {
-        // `null` always passes type conversion.
-        if (checkedInput.isNull(abstractValueDomain).isDefinitelyTrue) {
-          return true;
-        }
-        // TODO(johnniwinther): Optimize FutureOr type conversions.
-        return false;
-      }
-      if (!closedWorld.dartTypes.treatAsRawType(type)) {
-        // `null` always passes type conversion.
-        if (checkedInput.isNull(abstractValueDomain).isDefinitelyTrue) {
-          return true;
-        }
-        return false;
-      }
-      if (type is FunctionType) {
-        // `null` always passes type conversion.
-        if (checkedInput.isNull(abstractValueDomain).isDefinitelyTrue) {
-          return true;
-        }
-        // TODO(johnniwinther): Optimize function type conversions.
-        return false;
-      }
-    }
-    // Type is refined from `dynamic`, so it might become non-redundant.
-    if (abstractValueDomain.containsAll(checkedType).isPotentiallyTrue) {
-      return false;
-    }
-    AbstractValue inputType = checkedInput.instructionType;
-    return abstractValueDomain.isIn(inputType, checkedType).isDefinitelyTrue;
-  }
-
-  @override
-  String toString() => 'HTypeConversion(type=$typeExpression, kind=$kind, '
-      '${hasTypeRepresentation ? 'representation=$typeRepresentation, ' : ''}'
-      'checkedInput=$checkedInput)';
-}
-
 /// Check for receiver or argument type when lowering operation to a primitive,
 /// e.g. lowering `+` to [HAdd].
 ///
@@ -3823,14 +3657,6 @@ class HPrimitiveCheck extends HCheck {
     assert(isReceiverTypeCheck == (receiverTypeCheckSelector != null));
     this.sourceElement = input.sourceElement;
     this.sourceInformation = sourceInformation;
-  }
-
-  @override
-  HInstruction convertType(JClosedWorld closedWorld, DartType type, int kind) {
-    if (typeExpression == type) {
-      return this;
-    }
-    return super.convertType(closedWorld, type, kind);
   }
 
   bool get isArgumentTypeCheck => kind == ARGUMENT_TYPE_CHECK;
@@ -4355,175 +4181,6 @@ class HSwitchBlockInformation implements HStatementInformation {
   @override
   bool accept(HStatementInformationVisitor visitor) =>
       visitor.visitSwitchInfo(this);
-}
-
-/// Reads raw reified type info from an object.
-class HTypeInfoReadRaw extends HInstruction {
-  HTypeInfoReadRaw(HInstruction receiver, AbstractValue instructionType)
-      : super(<HInstruction>[receiver], instructionType) {
-    setUseGvn();
-  }
-
-  @override
-  accept(HVisitor visitor) => visitor.visitTypeInfoReadRaw(this);
-
-  @override
-  bool canThrow(AbstractValueDomain domain) => false;
-
-  @override
-  int typeCode() => HInstruction.TYPE_INFO_READ_RAW_TYPECODE;
-  @override
-  bool typeEquals(HInstruction other) => other is HTypeInfoReadRaw;
-
-  @override
-  bool dataEquals(HTypeInfoReadRaw other) {
-    return true;
-  }
-}
-
-/// Reads a type variable from an object. The read may be a simple indexing of
-/// the type parameters or it may require 'substitution'. There may be an
-/// interceptor argument to access the substitution of native classes.
-class HTypeInfoReadVariable extends HInstruction {
-  /// The type variable being read.
-  final TypeVariableType variable;
-  final bool isIntercepted;
-
-  HTypeInfoReadVariable.intercepted(this.variable, HInstruction interceptor,
-      HInstruction receiver, AbstractValue instructionType)
-      : isIntercepted = true,
-        super(<HInstruction>[interceptor, receiver], instructionType) {
-    setUseGvn();
-  }
-
-  HTypeInfoReadVariable.noInterceptor(
-      this.variable, HInstruction receiver, AbstractValue instructionType)
-      : isIntercepted = false,
-        super(<HInstruction>[receiver], instructionType) {
-    setUseGvn();
-  }
-
-  HInstruction get interceptor {
-    assert(isIntercepted);
-    return inputs.first;
-  }
-
-  HInstruction get object => inputs.last;
-
-  @override
-  accept(HVisitor visitor) => visitor.visitTypeInfoReadVariable(this);
-
-  @override
-  bool canThrow(AbstractValueDomain domain) => false;
-
-  @override
-  int typeCode() => HInstruction.TYPE_INFO_READ_VARIABLE_TYPECODE;
-  @override
-  bool typeEquals(HInstruction other) => other is HTypeInfoReadVariable;
-
-  @override
-  bool dataEquals(HTypeInfoReadVariable other) {
-    return variable == other.variable;
-  }
-
-  @override
-  String toString() => 'HTypeInfoReadVariable($variable)';
-}
-
-enum TypeInfoExpressionKind { COMPLETE, INSTANCE }
-
-/// Constructs a representation of a closed or ground-term type (that is, a type
-/// without type variables).
-///
-/// There are two forms:
-///
-/// - COMPLETE: A complete form that is self contained, used for the values of
-///   type parameters and non-raw is-checks.
-///
-/// - INSTANCE: A headless flat form for representing the sequence of values of
-///   the type parameters of an instance of a generic type.
-///
-/// The COMPLETE form value is constructed from [dartType] by replacing the type
-/// variables with consecutive values from [inputs], in the order generated by
-/// [DartType.forEachTypeVariable].  The type variables in [dartType] are
-/// treated as 'holes' in the term, which means that it must be ensured at
-/// construction, that duplicate occurences of a type variable in [dartType] are
-/// assigned the same value.
-///
-/// The INSTANCE form is constructed as a list of [inputs]. This is the same as
-/// the COMPLETE form for the 'thisType', except the root term's type is
-/// missing; this is implicit as the raw type of instance.  The [dartType] of
-/// the INSTANCE form must be the thisType of some class.
-///
-/// We want to remove the constrains on the INSTANCE form. In the meantime we
-/// get by with a tree of TypeExpressions.  Consider:
-///
-///     class Foo<T> {
-///       ... new Set<List<T>>()
-///     }
-///     class Set<E1> {
-///       factory Set() => new _LinkedHashSet<E1>();
-///     }
-///     class List<E2> { ... }
-///     class _LinkedHashSet<E3> { ... }
-///
-/// After inlining the factory constructor for `Set<E1>`, the HCreate should
-/// have type `_LinkedHashSet<List<T>>` and the TypeExpression should be a tree:
-///
-///    HCreate(dartType: _LinkedHashSet<List<T>>,
-///        [], // No arguments
-///        HTypeInfoExpression(INSTANCE,
-///            dartType: _LinkedHashSet<E3>, // _LinkedHashSet's thisType
-///            HTypeInfoExpression(COMPLETE,  // E3 = List<T>
-///                dartType: List<E2>,
-///                HTypeInfoReadVariable(this, T)))) // E2 = T
-
-// TODO(sra): The INSTANCE form requires the actual instance for full
-// interpretation. If the COMPLETE form was used on instances, then we could
-// simplify HTypeInfoReadVariable without an object.
-
-class HTypeInfoExpression extends HInstruction {
-  final TypeInfoExpressionKind kind;
-  final DartType dartType;
-
-  /// `true` if this
-  final bool isTypeVariableReplacement;
-
-  HTypeInfoExpression(this.kind, this.dartType, List<HInstruction> inputs,
-      AbstractValue instructionType,
-      {this.isTypeVariableReplacement: false})
-      : super(inputs, instructionType) {
-    setUseGvn();
-  }
-
-  @override
-  accept(HVisitor visitor) => visitor.visitTypeInfoExpression(this);
-
-  @override
-  bool canThrow(AbstractValueDomain domain) => false;
-
-  @override
-  int typeCode() => HInstruction.TYPE_INFO_EXPRESSION_TYPECODE;
-  @override
-  bool typeEquals(HInstruction other) => other is HTypeInfoExpression;
-
-  @override
-  bool dataEquals(HTypeInfoExpression other) {
-    return kind == other.kind && dartType == other.dartType;
-  }
-
-  @override
-  String toString() => 'HTypeInfoExpression($kindAsString, $dartType)';
-
-  // ignore: MISSING_RETURN
-  String get kindAsString {
-    switch (kind) {
-      case TypeInfoExpressionKind.COMPLETE:
-        return 'COMPLETE';
-      case TypeInfoExpressionKind.INSTANCE:
-        return 'INSTANCE';
-    }
-  }
 }
 
 // -----------------------------------------------------------------------------

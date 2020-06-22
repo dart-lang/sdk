@@ -10,6 +10,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
@@ -135,6 +136,10 @@ class ExtensionMemberResolver {
     var receiverExpression = arguments[0];
     var receiverType = receiverExpression.staticType;
 
+    if (node.isNullAware) {
+      receiverType = _typeSystem.promoteToNonNull(receiverType);
+    }
+
     var typeArgumentTypes = _inferTypeArguments(node, receiverType);
     nodeImpl.typeArgumentTypes = typeArgumentTypes;
 
@@ -252,28 +257,40 @@ class ExtensionMemberResolver {
   /// Return extensions for the [type] that match the given [name] in the
   /// current scope.
   List<_InstantiatedExtension> _getApplicable(DartType type, String name) {
+    if (identical(type, NeverTypeImpl.instance)) {
+      return const <_InstantiatedExtension>[];
+    }
+
     var candidates = _getExtensionsWithMember(name);
 
     var instantiatedExtensions = <_InstantiatedExtension>[];
     for (var candidate in candidates) {
-      var typeParameters = candidate.extension.typeParameters;
-      var inferrer = GenericInferrer(_typeSystem, typeParameters);
+      var extension = candidate.extension;
+
+      var freshTypes = getFreshTypeParameters(extension.typeParameters);
+      var freshTypeParameters = freshTypes.freshTypeParameters;
+      var rawExtendedType = freshTypes.substitute(extension.extendedType);
+
+      var inferrer = GenericInferrer(_typeSystem, freshTypeParameters);
       inferrer.constrainArgument(
         type,
-        candidate.extension.extendedType,
+        rawExtendedType,
         'extendedType',
       );
-      var typeArguments = inferrer.infer(typeParameters, failAtError: true);
+      var typeArguments = inferrer.infer(
+        freshTypeParameters,
+        failAtError: true,
+      );
       if (typeArguments == null) {
         continue;
       }
 
       var substitution = Substitution.fromPairs(
-        typeParameters,
+        extension.typeParameters,
         typeArguments,
       );
       var extendedType = substitution.substituteType(
-        candidate.extension.extendedType,
+        extension.extendedType,
       );
       if (!_isSubtypeOf(type, extendedType)) {
         continue;

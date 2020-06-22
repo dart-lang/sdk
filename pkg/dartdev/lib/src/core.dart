@@ -20,7 +20,10 @@ abstract class DartdevCommand<int> extends Command {
 
   Project _project;
 
-  DartdevCommand(this._name, this._description);
+  @override
+  final bool hidden;
+
+  DartdevCommand(this._name, this._description, {this.hidden = false});
 
   @override
   String get name => _name;
@@ -45,7 +48,7 @@ Future<Process> startProcess(
 void routeToStdout(
   Process process, {
   bool logToTrace = false,
-  void listener(String str),
+  void Function(String str) listener,
 }) {
   if (isVerbose) {
     _streamLineTransform(process.stdout, (String line) {
@@ -69,7 +72,10 @@ void routeToStdout(
   }
 }
 
-void _streamLineTransform(Stream<List<int>> stream, handler(String line)) {
+void _streamLineTransform(
+  Stream<List<int>> stream,
+  Function(String line) handler,
+) {
   stream
       .transform(utf8.decoder)
       .transform(const LineSplitter())

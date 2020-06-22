@@ -321,3 +321,22 @@ class LabelContinueFinder extends StatementVisitor<void> {
     visit(node.finalizer);
   }
 }
+
+/// Ensures that all of the known DartType implementors are handled.
+///
+/// The goal of the function is to catch a new unhandled implementor of
+/// [DartType] in a chain of if-else statements analysing possibilities for an
+/// object of DartType. It doesn't introduce a run-time overhead in production
+/// code if used in an assert.
+bool isKnownDartTypeImplementor(DartType t) {
+  return t is BottomType ||
+      t is DynamicType ||
+      t is FunctionType ||
+      t is FutureOrType ||
+      t is InterfaceType ||
+      t is InvalidType ||
+      t is NeverType ||
+      t is TypeParameterType ||
+      t is TypedefType ||
+      t is VoidType;
+}

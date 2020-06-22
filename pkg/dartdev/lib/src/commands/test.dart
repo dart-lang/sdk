@@ -14,6 +14,7 @@ class TestCommand extends DartdevCommand<int> {
   TestCommand({bool verbose = false})
       : super('test', 'Runs tests in this project.');
 
+  @override
   final ArgParser argParser = ArgParser.allowAnything();
 
   @override

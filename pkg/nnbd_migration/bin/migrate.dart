@@ -11,10 +11,13 @@ main(List<String> args) async {
   var cli = MigrationCli(binaryName: 'nnbd_migration');
   ArgResults argResults;
   try {
-    argResults = MigrationCli.createParser().parse(args);
-  } on FormatException catch (e) {
-    cli.handleArgParsingException(e);
+    try {
+      argResults = MigrationCli.createParser().parse(args);
+    } on FormatException catch (e) {
+      cli.handleArgParsingException(e);
+    }
+    await cli.decodeCommandLineArgs(argResults)?.run();
+  } on MigrationExit catch (migrationExit) {
+    exitCode = migrationExit.exitCode;
   }
-  if (cli.exitCode == null) await cli.run(argResults);
-  exitCode = cli.exitCode;
 }

@@ -22,14 +22,12 @@ abstract class BuiltinTypeBuilder extends TypeDeclarationBuilderImpl {
   DartType buildType(LibraryBuilder library,
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
       [bool notInstanceContext]) {
-    // TODO(dmitryas): Use [nullabilityBuilder].
-    return type;
+    return type.withDeclaredNullability(nullabilityBuilder.build(library));
   }
 
   DartType buildTypesWithBuiltArguments(LibraryBuilder library,
       Nullability nullability, List<DartType> arguments) {
-    // TODO(dmitryas): Use [nullability].
-    return type;
+    return type.withDeclaredNullability(nullability);
   }
 
   String get debugName => "BuiltinTypeBuilder";

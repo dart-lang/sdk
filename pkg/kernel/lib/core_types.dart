@@ -74,10 +74,10 @@ class CoreTypes {
 
   Library _asyncLibrary;
   Class _futureClass;
+  Class _deprecatedFutureOrClass;
   Class _stackTraceClass;
   Class _streamClass;
   Class _asyncAwaitCompleterClass;
-  Class _futureOrClass;
   Constructor _asyncAwaitCompleterConstructor;
   Procedure _asyncAwaitCompleterStartProcedure;
   Procedure _completeOnAsyncReturnProcedure;
@@ -160,9 +160,6 @@ class CoreTypes {
   InterfaceType _streamLegacyRawType;
   InterfaceType _streamNullableRawType;
   InterfaceType _streamNonNullableRawType;
-  InterfaceType _futureOrLegacyRawType;
-  InterfaceType _futureOrNullableRawType;
-  InterfaceType _futureOrNonNullableRawType;
   InterfaceType _pragmaLegacyRawType;
   InterfaceType _pragmaNullableRawType;
   InterfaceType _pragmaNonNullableRawType;
@@ -297,9 +294,10 @@ class CoreTypes {
     return _futureClass ??= index.getClass('dart:core', 'Future');
   }
 
-  Class get futureOrClass {
-    return _futureOrClass ??= (index.tryGetClass('dart:core', 'FutureOr') ??
-        index.getClass('dart:async', 'FutureOr'));
+  // TODO(dmitryas): Remove it when FutureOrType is fully supported.
+  Class get deprecatedFutureOrClass {
+    return _deprecatedFutureOrClass ??=
+        index.getClass('dart:async', 'FutureOr');
   }
 
   Procedure get identicalProcedure {
@@ -1118,39 +1116,6 @@ class CoreTypes {
     }
   }
 
-  InterfaceType get futureOrLegacyRawType {
-    return _futureOrLegacyRawType ??= _legacyRawTypes[futureOrClass] ??=
-        new InterfaceType(futureOrClass, Nullability.legacy,
-            const <DartType>[const DynamicType()]);
-  }
-
-  InterfaceType get futureOrNullableRawType {
-    return _futureOrNullableRawType ??= _nullableRawTypes[futureOrClass] ??=
-        new InterfaceType(futureOrClass, Nullability.nullable,
-            const <DartType>[const DynamicType()]);
-  }
-
-  InterfaceType get futureOrNonNullableRawType {
-    return _futureOrNonNullableRawType ??=
-        _nonNullableRawTypes[futureOrClass] ??= new InterfaceType(futureOrClass,
-            Nullability.nonNullable, const <DartType>[const DynamicType()]);
-  }
-
-  InterfaceType futureOrRawType(Nullability nullability) {
-    switch (nullability) {
-      case Nullability.legacy:
-        return futureOrLegacyRawType;
-      case Nullability.nullable:
-        return futureOrNullableRawType;
-      case Nullability.nonNullable:
-        return futureOrNonNullableRawType;
-      case Nullability.undetermined:
-      default:
-        throw new StateError(
-            "Unsupported nullability $nullability on an InterfaceType.");
-    }
-  }
-
   InterfaceType get pragmaLegacyRawType {
     return _pragmaLegacyRawType ??= _legacyRawTypes[pragmaClass] ??=
         new InterfaceType(pragmaClass, Nullability.legacy, const <DartType>[]);
@@ -1287,17 +1252,20 @@ class CoreTypes {
 
     // TOP(T?) is true iff TOP(T) or OBJECT(T).
     // TOP(T*) is true iff TOP(T) or OBJECT(T).
-    if (type.nullability == Nullability.nullable ||
-        type.nullability == Nullability.legacy) {
+    if (type.declaredNullability == Nullability.nullable ||
+        type.declaredNullability == Nullability.legacy) {
       DartType nonNullableType =
           type.withDeclaredNullability(Nullability.nonNullable);
-      assert(type != nonNullableType);
+      assert(
+          !identical(type, nonNullableType),
+          "Setting the declared nullability of type '${type}' "
+          "to non-nullable was supposed to change the type, but it remained the same.");
       return isTop(nonNullableType) || isObject(nonNullableType);
     }
 
     // TOP(FutureOr<T>) is TOP(T).
-    if (type is InterfaceType && type.classNode == futureOrClass) {
-      return isTop(type.typeArguments.single);
+    if (type is FutureOrType) {
+      return isTop(type.typeArgument);
     }
 
     return false;
@@ -1318,10 +1286,8 @@ class CoreTypes {
     }
 
     // OBJECT(FutureOr<T>) is OBJECT(T).
-    if (type is InterfaceType &&
-        type.classNode == futureOrClass &&
-        type.nullability == Nullability.nonNullable) {
-      return isObject(type.typeArguments.single);
+    if (type is FutureOrType && type.nullability == Nullability.nonNullable) {
+      return isObject(type.typeArgument);
     }
 
     return false;

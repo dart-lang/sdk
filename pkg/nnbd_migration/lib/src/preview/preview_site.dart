@@ -14,6 +14,7 @@ import 'package:nnbd_migration/src/front_end/migration_info.dart';
 import 'package:nnbd_migration/src/front_end/migration_state.dart';
 import 'package:nnbd_migration/src/front_end/path_mapper.dart';
 import 'package:nnbd_migration/src/preview/dart_file_page.dart';
+import 'package:nnbd_migration/src/preview/dart_logo_page.dart';
 import 'package:nnbd_migration/src/preview/exception_page.dart';
 import 'package:nnbd_migration/src/preview/highlight_css_page.dart';
 import 'package:nnbd_migration/src/preview/highlight_js_page.dart';
@@ -46,6 +47,9 @@ class PreviewSite extends Site
 
   /// The path of the JS page used to associate highlighting within a Dart file.
   static const highlightJsPath = '/highlight.pack.js';
+
+  /// The path of the Dart logo displayed in the toolbar.
+  static const dartLogoPath = '/dart_192.png';
 
   static const navigationTreePath = '/_preview/navigationTree.json';
 
@@ -133,6 +137,10 @@ class PreviewSite extends Site
         // Note: `return await` needed due to
         // https://github.com/dart-lang/sdk/issues/39204
         return await respond(request, NavigationTreePage(this));
+      } else if (path == dartLogoPath) {
+        // Note: `return await` needed due to
+        // https://github.com/dart-lang/sdk/issues/39204
+        return await respond(request, DartLogoPage(this));
       } else if (path == '/' ||
           decodedPath == migrationInfo.includedRoot ||
           decodedPath ==
@@ -359,6 +367,8 @@ class PreviewSite extends Site
     } else if (page is HighlightJSPage) {
       response.headers.contentType =
           ContentType('application', 'javascript', charset: 'utf-8');
+    } else if (page is DartLogoPage) {
+      response.headers.contentType = ContentType('image', 'png');
     } else {
       response.headers.contentType = ContentType.html;
     }

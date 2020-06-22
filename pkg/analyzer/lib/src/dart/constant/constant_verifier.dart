@@ -112,7 +112,9 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     if (node.constKeyword != null) {
       _validateConstructorInitializers(node);
-      _validateFieldInitializers(node.parent, node);
+      if (node.factoryKeyword == null) {
+        _validateFieldInitializers(node.parent, node);
+      }
     }
     _validateDefaultValues(node.parameters);
     super.visitConstructorDeclaration(node);
@@ -129,6 +131,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     if (node.isConst) {
       TypeName typeName = node.constructorName.type;
       _checkForConstWithTypeParameters(typeName);
+
+      node.argumentList.accept(this);
 
       // We need to evaluate the constant to see if any errors occur during its
       // evaluation.
@@ -298,9 +302,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   ///         not <i>int</i> or <i>String</i>.
   bool _implementsEqualsWhenNotAllowed(DartType type) {
     // ignore int or String
-    if (type == null || type == _intType || type == _typeProvider.stringType) {
+    if (type == null ||
+        type.element == _intType.element ||
+        type.element == _typeProvider.stringType.element) {
       return false;
-    } else if (type == _typeProvider.doubleType) {
+    } else if (type.element == _typeProvider.doubleType.element) {
       return true;
     }
     // prepare ClassElement
@@ -557,10 +563,13 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
               .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY,
         );
 
+        var expressionValueType = _typeSystem.toLegacyType(
+          expressionValue.type,
+        );
+
         if (firstType == null) {
-          firstType = expressionValue.type;
+          firstType = expressionValueType;
         } else {
-          var expressionValueType = expressionValue.type;
           if (firstType != expressionValueType) {
             _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES,

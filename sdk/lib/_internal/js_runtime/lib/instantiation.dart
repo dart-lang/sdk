@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of _js_helper;
 
 /// Support class for generic function type instantiation (binding of types).
@@ -20,11 +18,7 @@ abstract class Instantiation extends Closure {
     if (JS('bool', 'false')) {
       // [instantiatedGenericFunctionType] is called from injected $signature
       // methods with runtime type representations.
-      if (JS_GET_FLAG('USE_NEW_RTI')) {
-        newRti.instantiatedGenericFunctionType(JS('', '0'), JS('', '0'));
-      } else {
-        instantiatedGenericFunctionType(JS('', '0'), JS('', '0'));
-      }
+      newRti.instantiatedGenericFunctionType(JS('', '0'), JS('', '0'));
     }
   }
 

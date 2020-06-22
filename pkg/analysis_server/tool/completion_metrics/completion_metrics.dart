@@ -211,7 +211,7 @@ class CompletionMetrics {
   MeanReciprocalRankComputer topLevelMrrComputer =
       MeanReciprocalRankComputer('non-type member completions');
 
-  Map<String, MeanReciprocalRankComputer> locationMmrComputers = {};
+  Map<String, MeanReciprocalRankComputer> locationMrrComputers = {};
 
   ArithmeticMeanComputer charsBeforeTop =
       ArithmeticMeanComputer('chars_before_top');
@@ -259,7 +259,7 @@ class CompletionMetrics {
   /// as well as the longest sets of results to compute.
   void recordCompletionResult(CompletionResult result) {
     _recordTime(result);
-    _recordMmr(result);
+    _recordMrr(result);
     _recordWorstResult(result);
     _recordSlowestResult(result);
     _recordMissingInformation(result);
@@ -279,8 +279,8 @@ class CompletionMetrics {
     }
   }
 
-  /// Record the MMR for the [result].
-  void _recordMmr(CompletionResult result) {
+  /// Record the MRR for the [result].
+  void _recordMrr(CompletionResult result) {
     var rank = result.place.rank;
     // Record globally.
     successfulMrrComputer.addRank(rank);
@@ -299,7 +299,7 @@ class CompletionMetrics {
     // Record by completion location.
     var location = result.completionLocation;
     if (location != null) {
-      var computer = locationMmrComputers.putIfAbsent(
+      var computer = locationMrrComputers.putIfAbsent(
           location, () => MeanReciprocalRankComputer(location));
       computer.addRank(rank);
     }
@@ -515,20 +515,36 @@ class CompletionMetricsComputer {
     metrics.topLevelMrrComputer.printMean();
     print('');
 
-    var table = <List<String>>[];
-    var computerMap = metrics.locationMmrComputers;
-    var locations = computerMap.keys.toList()..sort();
-    table.add(['Location', 'count', 'mmr', 'mmr_5']);
-    for (var location in locations) {
-      var computer = computerMap[location];
-      var mmr = (1 / computer.mrr).toStringAsFixed(3);
-      var mrr_5 = (1 / computer.mrr_5).toStringAsFixed(3);
-      table.add([computer.name, computer.count.toString(), mmr, mrr_5]);
+    if (verbose) {
+      var lines = <LocationTableLine>[];
+      for (var entry in metrics.locationMrrComputers.entries) {
+        var count = entry.value.count;
+        var mrr = (1 / entry.value.mrr);
+        var mrr_5 = (1 / entry.value.mrr_5);
+        var product = count * mrr;
+        lines.add(LocationTableLine(
+            label: entry.key,
+            product: product,
+            count: count,
+            mrr: mrr,
+            mrr_5: mrr_5));
+      }
+      lines.sort((first, second) => second.product.compareTo(first.product));
+      var table = <List<String>>[];
+      table.add(['Location', 'Product', 'Count', 'Mrr', 'Mrr_5']);
+      for (var line in lines) {
+        var location = line.label;
+        var product = line.product.truncate().toString();
+        var count = line.count.toString();
+        var mrr = line.mrr.toStringAsFixed(3);
+        var mrr_5 = line.mrr_5.toStringAsFixed(3);
+        table.add([location, product, count, mrr, mrr_5]);
+      }
+      var buffer = StringBuffer();
+      buffer.writeTable(table);
+      print(buffer.toString());
+      print('');
     }
-    var buffer = StringBuffer();
-    buffer.writeTable(table);
-    print(buffer.toString());
-    print('');
 
     metrics.charsBeforeTop.printMean();
     metrics.charsBeforeTopFive.printMean();
@@ -611,8 +627,12 @@ class CompletionMetricsComputer {
     if (declarationsTracker == null) {
       // available suggestions == false
       suggestions = await DartCompletionManager(
-              dartdocDirectiveInfo: DartdocDirectiveInfo(), listener: listener)
-          .computeSuggestions(request);
+        dartdocDirectiveInfo: DartdocDirectiveInfo(),
+        listener: listener,
+      ).computeSuggestions(
+        request,
+        enableUriContributor: true,
+      );
     } else {
       // available suggestions == true
       var includedElementKinds = <protocol.ElementKind>{};
@@ -621,13 +641,15 @@ class CompletionMetricsComputer {
           <protocol.IncludedSuggestionRelevanceTag>[];
       var includedSuggestionSetList = <protocol.IncludedSuggestionSet>[];
       suggestions = await DartCompletionManager(
-              dartdocDirectiveInfo: DartdocDirectiveInfo(),
-              includedElementKinds: includedElementKinds,
-              includedElementNames: includedElementNames,
-              includedSuggestionRelevanceTags:
-                  includedSuggestionRelevanceTagList,
-              listener: listener)
-          .computeSuggestions(request);
+        dartdocDirectiveInfo: DartdocDirectiveInfo(),
+        includedElementKinds: includedElementKinds,
+        includedElementNames: includedElementNames,
+        includedSuggestionRelevanceTags: includedSuggestionRelevanceTagList,
+        listener: listener,
+      ).computeSuggestions(
+        request,
+        enableUriContributor: true,
+      );
 
       computeIncludedSetList(declarationsTracker, request.result,
           includedSuggestionSetList, includedElementNames);
@@ -919,7 +941,7 @@ class CompletionMetricsComputer {
         print('  $i Suggestion: ${topSuggestion.description}');
         if (result.listener != null) {
           var feature = result.listener.featureMap[topSuggestion];
-          if (feature.isEmpty) {
+          if (feature == null || feature.isEmpty) {
             print('    Features: <none>');
           } else {
             print('    Features: $feature');
@@ -1018,6 +1040,23 @@ class CompletionResult {
     }
     return true;
   }
+}
+
+/// The data to be printed on a single line in the table of mrr values per
+/// completion location.
+class LocationTableLine {
+  final String label;
+  final double product;
+  final int count;
+  final double mrr;
+  final double mrr_5;
+
+  LocationTableLine(
+      {@required this.label,
+      @required this.product,
+      @required this.count,
+      @required this.mrr,
+      @required this.mrr_5});
 }
 
 class MetricsSuggestionListener implements SuggestionListener {

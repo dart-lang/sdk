@@ -64,6 +64,25 @@ void f(A<int> a) {
     assertType(invocation, 'Map<int, double>');
   }
 
+  test_implicit_method_internal() async {
+    await assertNoErrorsInCode(r'''
+extension E<T> on List<T> {
+  List<T> foo() => this;
+  List<T> bar(List<T> other) => other.foo();
+}
+''');
+    assertMethodInvocation2(
+      findNode.methodInvocation('other.foo()'),
+      element: elementMatcher(
+        findElement.method('foo'),
+        substitution: {'T': 'T'},
+      ),
+      typeArgumentTypes: [],
+      invokeType: 'List<T> Function()',
+      type: 'List<T>',
+    );
+  }
+
   test_implicit_method_onTypeParameter() async {
     await assertNoErrorsInCode('''
 extension E<T> on T {

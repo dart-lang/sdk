@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.convert;
 
 /// Open-ended Encoding enum.
@@ -74,10 +72,9 @@ abstract class Encoding extends Codec<String, List<int>> {
   ///
   /// The [name] passed is case insensitive.
   ///
-  /// If character set is not supported [:null:] is returned.
-  static Encoding getByName(String name) {
+  /// If character set is not supported `null` is returned.
+  static Encoding? getByName(String? name) {
     if (name == null) return null;
-    name = name.toLowerCase();
-    return _nameToEncoding[name];
+    return _nameToEncoding[name.toLowerCase()];
   }
 }

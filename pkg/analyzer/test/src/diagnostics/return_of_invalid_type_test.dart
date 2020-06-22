@@ -17,6 +17,39 @@ main() {
 
 @reflectiveTest
 class ReturnOfInvalidTypeTest extends DriverResolutionTest {
+  test_closure() async {
+    await assertErrorsInCode('''
+typedef Td = int Function();
+Td f() {
+  return () => "hello";
+}
+''', [
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 53, 7),
+    ]);
+  }
+
+  test_factoryConstructor_named() async {
+    await assertErrorsInCode('''
+class C {
+  factory C.named() => 7;
+}
+''', [
+      error(
+          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR, 33, 1),
+    ]);
+  }
+
+  test_factoryConstructor_unnamed() async {
+    await assertErrorsInCode('''
+class C {
+  factory C() => 7;
+}
+''', [
+      error(
+          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR, 27, 1),
+    ]);
+  }
+
   test_function_async_block__to_Future_void() async {
     await assertNoErrorsInCode(r'''
 Future<void> f1() async {}

@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 
 class A {
-  /*<T>*/ foo/*<T>*/({/*=T*/ x}) => x;
+  T foo<T>({T x}) => x;
 }
 
 class B extends A {

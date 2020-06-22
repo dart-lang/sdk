@@ -14,7 +14,7 @@ import 'dart:async';
 import 'dart:io';
 
 // Methods to be skipped, by qualified name.
-var blacklist = [
+var denylist = [
   // Don't recurse on this test.
   'test.invoke_natives',
 
@@ -39,9 +39,9 @@ var blacklist = [
   new RegExp(r"^dart\.async\._.*$"),
 ];
 
-bool isBlacklisted(Symbol qualifiedSymbol) {
+bool isDenylisted(Symbol qualifiedSymbol) {
   var qualifiedString = MirrorSystem.getName(qualifiedSymbol);
-  for (var pattern in blacklist) {
+  for (var pattern in denylist) {
     if (qualifiedString.contains(pattern)) {
       print('Skipping $qualifiedString');
       return true;
@@ -58,7 +58,7 @@ class Task {
 var queue = <Task>[];
 
 checkMethod(MethodMirror m, ObjectMirror target, [origin]) {
-  if (isBlacklisted(m.qualifiedName)) return;
+  if (isDenylisted(m.qualifiedName)) return;
 
   var task = new Task();
   task.name = '${MirrorSystem.getName(m.qualifiedName)} from $origin';
@@ -97,7 +97,7 @@ checkClass(classMirror) {
   classMirror.declarations.values
       .where((d) => d is MethodMirror && d.isConstructor)
       .forEach((m) {
-    if (isBlacklisted(m.qualifiedName)) return;
+    if (isDenylisted(m.qualifiedName)) return;
     var task = new Task();
     task.name = MirrorSystem.getName(m.qualifiedName);
 
@@ -112,7 +112,7 @@ checkClass(classMirror) {
 
 checkLibrary(libraryMirror) {
   print(libraryMirror.simpleName);
-  if (isBlacklisted(libraryMirror.qualifiedName)) return;
+  if (isDenylisted(libraryMirror.qualifiedName)) return;
 
   libraryMirror.declarations.values
       .where((d) => d is ClassMirror)

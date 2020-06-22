@@ -5,10 +5,11 @@
 part of dds;
 
 abstract class _RpcErrorCodes {
-  static json_rpc.RpcException buildRpcException(int code) {
+  static json_rpc.RpcException buildRpcException(int code, {dynamic data}) {
     return json_rpc.RpcException(
       code,
       errorMessages[code],
+      data: data,
     );
   }
 
@@ -34,7 +35,7 @@ abstract class _RpcErrorCodes {
   // static const kIsolateMustHaveReloaded = 110;
   static const kServiceAlreadyRegistered = 111;
   static const kServiceDisappeared = 112;
-  // static const kExpressionCompilationError = 113;
+  static const kExpressionCompilationError = 113;
   // static const kInvalidTimelineRequest = 114;
 
   // Experimental (used in private rpcs).
@@ -48,5 +49,6 @@ abstract class _RpcErrorCodes {
     kStreamNotSubscribed: 'Stream not subscribed',
     kServiceAlreadyRegistered: 'Service already registered',
     kServiceDisappeared: 'Service has disappeared',
+    kExpressionCompilationError: 'Expression compilation error',
   };
 }

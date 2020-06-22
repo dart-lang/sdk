@@ -297,6 +297,67 @@ typedef Function20PointerUint8 = Pointer<Uint8> Function(
 Function20PointerUint8 function20PointerUint8 = ffiTestFunctions.lookupFunction<
     Function20PointerUint8, Function20PointerUint8>("Function20PointerUint8");
 
+final function1handle = ffiTestFunctions.lookupFunction<Handle Function(Handle),
+    Object Function(Object)>("Function1Handle");
+
+final function2handle = ffiTestFunctions.lookupFunction<
+    Handle Function(Handle, Handle),
+    Object Function(Object, Object)>("Function2Handle");
+
+final function4handle = ffiTestFunctions.lookupFunction<
+    Handle Function(Handle, Handle, Handle, Handle),
+    Object Function(Object, Object, Object, Object)>("Function4Handle");
+
+final function10handle = ffiTestFunctions.lookupFunction<
+    Handle Function(Handle, Handle, Handle, Handle, Handle, Handle, Handle,
+        Handle, Handle, Handle),
+    Object Function(Object, Object, Object, Object, Object, Object, Object,
+        Object, Object, Object)>("Function10Handle");
+
+final function20handle = ffiTestFunctions.lookupFunction<
+    Handle Function(
+        Handle,
+        Handle,
+        Handle,
+        Handle,
+        Handle,
+        Handle,
+        Handle,
+        Handle,
+        Handle,
+        Handle,
+        Handle,
+        Handle,
+        Handle,
+        Handle,
+        Handle,
+        Handle,
+        Handle,
+        Handle,
+        Handle,
+        Handle),
+    Object Function(
+        Object,
+        Object,
+        Object,
+        Object,
+        Object,
+        Object,
+        Object,
+        Object,
+        Object,
+        Object,
+        Object,
+        Object,
+        Object,
+        Object,
+        Object,
+        Object,
+        Object,
+        Object,
+        Object,
+        Object)>("Function20Handle");
+
 //
 // Trampoline call.
 //
@@ -593,6 +654,69 @@ Pointer<Uint8> doCall20PointerUint8(
   for (int i = 0; i < length; i++) {
     x = function20PointerUint8(x, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12,
         p13, p14, p15, p16, p17, p18, p19, p20);
+  }
+  return x;
+}
+
+Object doCall1Handle(int length, Object p1) {
+  Object x = p1;
+  for (int i = 0; i < length; i++) {
+    x = function1handle(x);
+  }
+  return x;
+}
+
+Object doCall2Handle(int length, Object p1, Object p2) {
+  Object x = p1;
+  for (int i = 0; i < length; i++) {
+    x = function2handle(x, p2);
+  }
+  return x;
+}
+
+Object doCall4Handle(int length, Object p1, Object p2, Object p3, Object p4) {
+  Object x = p1;
+  for (int i = 0; i < length; i++) {
+    x = function4handle(x, p2, p3, p4);
+  }
+  return x;
+}
+
+Object doCall10Handle(int length, Object p1, Object p2, Object p3, Object p4,
+    Object p5, Object p6, Object p7, Object p8, Object p9, Object p10) {
+  Object x = p1;
+  for (int i = 0; i < length; i++) {
+    x = function10handle(x, p2, p3, p4, p5, p6, p7, p8, p9, p10);
+  }
+  return x;
+}
+
+Object doCall20Handle(
+    int length,
+    Object p1,
+    Object p2,
+    Object p3,
+    Object p4,
+    Object p5,
+    Object p6,
+    Object p7,
+    Object p8,
+    Object p9,
+    Object p10,
+    Object p11,
+    Object p12,
+    Object p13,
+    Object p14,
+    Object p15,
+    Object p16,
+    Object p17,
+    Object p18,
+    Object p19,
+    Object p20) {
+  Object x = p1;
+  for (int i = 0; i < length; i++) {
+    x = function20handle(x, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13,
+        p14, p15, p16, p17, p18, p19, p20);
   }
   return x;
 }
@@ -1106,6 +1230,109 @@ class PointerUint8x20 extends BenchmarkBase {
   }
 }
 
+class MyClass {
+  int a;
+  MyClass(this.a);
+}
+
+class Handlex01 extends BenchmarkBase {
+  Handlex01() : super("FfiCall.Handlex01");
+
+  void run() {
+    final p1 = MyClass(123);
+    final x = doCall1Handle(N, p1);
+
+    if (!identical(p1, x)) {
+      throw Exception("$name: Unexpected result: $x");
+    }
+  }
+}
+
+class Handlex02 extends BenchmarkBase {
+  Handlex02() : super("FfiCall.Handlex02");
+
+  void run() {
+    final p1 = MyClass(123);
+    final p2 = MyClass(2);
+    final x = doCall2Handle(N, p1, p2);
+
+    if (!identical(p1, x)) {
+      throw Exception("$name: Unexpected result: $x");
+    }
+  }
+}
+
+class Handlex04 extends BenchmarkBase {
+  Handlex04() : super("FfiCall.Handlex04");
+
+  void run() {
+    final p1 = MyClass(123);
+    final p2 = MyClass(2);
+    final p3 = MyClass(3);
+    final p4 = MyClass(4);
+    final x = doCall4Handle(N, p1, p2, p3, p4);
+
+    if (!identical(p1, x)) {
+      throw Exception("$name: Unexpected result: $x");
+    }
+  }
+}
+
+class Handlex10 extends BenchmarkBase {
+  Handlex10() : super("FfiCall.Handlex10");
+
+  void run() {
+    final p1 = MyClass(123);
+    final p2 = MyClass(2);
+    final p3 = MyClass(3);
+    final p4 = MyClass(4);
+    final p5 = MyClass(5);
+    final p6 = MyClass(6);
+    final p7 = MyClass(7);
+    final p8 = MyClass(8);
+    final p9 = MyClass(9);
+    final p10 = MyClass(10);
+    final x = doCall10Handle(N, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10);
+
+    if (!identical(p1, x)) {
+      throw Exception("$name: Unexpected result: $x");
+    }
+  }
+}
+
+class Handlex20 extends BenchmarkBase {
+  Handlex20() : super("FfiCall.Handlex20");
+
+  void run() {
+    final p1 = MyClass(123);
+    final p2 = MyClass(2);
+    final p3 = MyClass(3);
+    final p4 = MyClass(4);
+    final p5 = MyClass(5);
+    final p6 = MyClass(6);
+    final p7 = MyClass(7);
+    final p8 = MyClass(8);
+    final p9 = MyClass(9);
+    final p10 = MyClass(10);
+    final p11 = MyClass(11);
+    final p12 = MyClass(12);
+    final p13 = MyClass(13);
+    final p14 = MyClass(14);
+    final p15 = MyClass(15);
+    final p16 = MyClass(16);
+    final p17 = MyClass(17);
+    final p18 = MyClass(18);
+    final p19 = MyClass(19);
+    final p20 = MyClass(20);
+    final x = doCall20Handle(N, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11,
+        p12, p13, p14, p15, p16, p17, p18, p19, p20);
+
+    if (!identical(p1, x)) {
+      throw Exception("$name: Unexpected result: $x");
+    }
+  }
+}
+
 //
 // Main driver.
 //
@@ -1144,6 +1371,11 @@ main() {
     () => PointerUint8x04(),
     () => PointerUint8x10(),
     () => PointerUint8x20(),
+    () => Handlex01(),
+    () => Handlex02(),
+    () => Handlex04(),
+    () => Handlex10(),
+    () => Handlex20(),
   ];
   benchmarks.forEach((benchmark) => benchmark().report());
 }

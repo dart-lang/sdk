@@ -18,6 +18,7 @@ import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart';
 import '../js_backend/namer.dart';
+import '../js_backend/string_reference.dart' show StringReference;
 import '../js_backend/type_reference.dart' show TypeReference;
 import '../js_emitter/code_emitter_task.dart' show Emitter;
 import '../js_model/type_recipe.dart' show TypeRecipe;
@@ -1001,6 +1002,7 @@ enum JsNodeKind {
   expressionStatement,
   block,
   program,
+  stringReference,
   typeReference,
 }
 
@@ -1064,6 +1066,7 @@ class JsNodeTags {
   static const String expressionStatement = 'js-expressionStatement';
   static const String block = 'js-block';
   static const String program = 'js-program';
+  static const String stringReference = 'js-stringReference';
   static const String typeReference = 'js-typeReference';
 }
 
@@ -1306,6 +1309,12 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
       sink.begin(JsNodeTags.typeReference);
       node.writeToDataSink(sink);
       sink.end(JsNodeTags.typeReference);
+      _writeInfo(node);
+    } else if (node is StringReference) {
+      sink.writeEnum(JsNodeKind.stringReference);
+      sink.begin(JsNodeTags.stringReference);
+      node.writeToDataSink(sink);
+      sink.end(JsNodeTags.stringReference);
       _writeInfo(node);
     } else {
       throw new UnsupportedError(
@@ -2097,6 +2106,11 @@ class JsNodeDeserializer {
         List<js.Statement> body = readList();
         node = new js.Program(body);
         source.end(JsNodeTags.program);
+        break;
+      case JsNodeKind.stringReference:
+        source.begin(JsNodeTags.stringReference);
+        node = StringReference.readFromDataSource(source);
+        source.end(JsNodeTags.stringReference);
         break;
       case JsNodeKind.typeReference:
         source.begin(JsNodeTags.typeReference);

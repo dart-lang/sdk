@@ -158,7 +158,11 @@ checkDeterministicSnapshot(String snapshotKind, String expectedStdout) async {
   });
 }
 
-runAppJitTest(Uri testScriptUri) async {
+runAppJitTest(Uri testScriptUri,
+    {Future<Result> Function(String snapshotPath) runSnapshot}) async {
+  runSnapshot ??=
+      (snapshotPath) => runDart('RUN FROM SNAPSHOT', [snapshotPath]);
+
   await withTempDir((String temp) async {
     final snapshotPath = p.join(temp, 'app.jit');
     final testPath = testScriptUri.toFilePath();
@@ -170,7 +174,7 @@ runAppJitTest(Uri testScriptUri) async {
       '--train'
     ]);
     expectOutput("OK(Trained)", trainingResult);
-    final runResult = await runDart('RUN FROM SNAPSHOT', [snapshotPath]);
+    final runResult = await runSnapshot(snapshotPath);
     expectOutput("OK(Run)", runResult);
   });
 }

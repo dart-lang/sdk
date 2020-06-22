@@ -71,6 +71,7 @@ class InstrumentationRenderer {
       'dartPageStyle': resources.migration_css,
       'highlightJsPath': migrationInfo.highlightJsPath,
       'highlightStylePath': migrationInfo.highlightStylePath,
+      'dartLogoPath': migrationInfo.dartLogoPath,
       'sdkVersion': _dartSdkVersion,
       'migrationAppliedStyle': hasBeenApplied ? 'applied' : 'proposed',
       'needsRerunStyle': needsRerun ? 'needs-rerun' : '',

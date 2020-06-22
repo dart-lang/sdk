@@ -44,6 +44,7 @@ class ObjectPointerVisitor;
   V(Call, "call")                                                              \
   V(Cancel, "cancel")                                                          \
   V(CastError, "_CastError")                                                   \
+  V(CheckLoaded, "_checkLoaded")                                               \
   V(Class, "Class")                                                            \
   V(ClassID, "ClassID")                                                        \
   V(ClearAsyncThreadStackTrace, "_clearAsyncThreadStackTrace")                 \
@@ -139,6 +140,7 @@ class ObjectPointerVisitor;
   V(FfiUint64, "Uint64")                                                       \
   V(FfiUint8, "Uint8")                                                         \
   V(FfiVoid, "Void")                                                           \
+  V(FfiHandle, "Handle")                                                       \
   V(Field, "Field")                                                            \
   V(FinallyRetVal, ":finally_ret_val")                                         \
   V(FirstArg, "x")                                                             \
@@ -205,6 +207,7 @@ class ObjectPointerVisitor;
   V(ListFactory, "List.")                                                      \
   V(ListFilledFactory, "List.filled")                                          \
   V(ListLiteralFactory, "List._fromLiteral")                                   \
+  V(LoadLibrary, "_loadLibrary")                                               \
   V(LocalVarDescriptors, "LocalVarDescriptors")                                \
   V(Map, "Map")                                                                \
   V(MapLiteralFactory, "Map._fromLiteral")                                     \
@@ -270,6 +273,7 @@ class ObjectPointerVisitor;
   V(SymbolCtor, "Symbol.")                                                     \
   V(ThrowNew, "_throwNew")                                                     \
   V(ThrowNewInvocation, "_throwNewInvocation")                                 \
+  V(ThrowNewNullAssertion, "_throwNewNullAssertion")                           \
   V(TopLevel, "::")                                                            \
   V(TransferableTypedData, "TransferableTypedData")                            \
   V(TruncDivOperator, "~/")                                                    \
@@ -425,6 +429,7 @@ class ObjectPointerVisitor;
   V(_Uint8ClampedList, "_Uint8ClampedList")                                    \
   V(_Uint8List, "_Uint8List")                                                  \
   V(_UserTag, "_UserTag")                                                      \
+  V(_Utf8Decoder, "_Utf8Decoder")                                              \
   V(_VariableMirror, "_VariableMirror")                                        \
   V(_WeakProperty, "_WeakProperty")                                            \
   V(_classRangeCheck, "_classRangeCheck")                                      \
@@ -441,6 +446,7 @@ class ObjectPointerVisitor;
   V(_resultOrListeners, "_resultOrListeners")                                  \
   V(_runExtension, "_runExtension")                                            \
   V(_runPendingImmediateCallback, "_runPendingImmediateCallback")              \
+  V(_scanFlags, "_scanFlags")                                                  \
   V(_setLength, "_setLength")                                                  \
   V(_simpleInstanceOf, "_simpleInstanceOf")                                    \
   V(_simpleInstanceOfFalse, "_simpleInstanceOfFalse")                          \

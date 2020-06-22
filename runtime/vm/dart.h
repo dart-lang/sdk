@@ -66,6 +66,15 @@ class Dart : public AllStatic {
                                           const uint8_t* snapshot_instructions,
                                           const uint8_t* kernel_buffer,
                                           intptr_t kernel_buffer_size);
+
+  static bool DetectNullSafety(const char* script_uri,
+                               const uint8_t* snapshot_data,
+                               const uint8_t* snapshot_instructions,
+                               const uint8_t* kernel_buffer,
+                               intptr_t kernel_buffer_size,
+                               const char* package_config,
+                               const char* original_working_directory);
+
   static void RunShutdownCallback();
   static void ShutdownIsolate(Isolate* isolate);
   static void ShutdownIsolate();

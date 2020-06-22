@@ -54,6 +54,66 @@ class InheritanceManager3 {
   /// self-referencing cycles.
   final Set<ClassElement> _processingClasses = <ClassElement>{};
 
+  /// Combine [candidates] into a single signature in the [targetClass].
+  ///
+  /// If such signature does not exist, return `null`, and if [conflicts] is
+  /// not `null`, add a new [Conflict] to it.
+  ExecutableElement combineSignatures({
+    @required ClassElement targetClass,
+    @required List<ExecutableElement> candidates,
+    @required bool doTopMerge,
+    @required Name name,
+    List<Conflict> conflicts,
+  }) {
+    // If just one candidate, it is always valid.
+    if (candidates.length == 1) {
+      return candidates[0];
+    }
+
+    // Check for a getter/method conflict.
+    var conflict = _checkForGetterMethodConflict(name, candidates);
+    if (conflict != null) {
+      conflicts?.add(conflict);
+      return null;
+    }
+
+    var validOverrides = <ExecutableElement>[];
+    for (var i = 0; i < candidates.length; i++) {
+      var validOverride = candidates[i];
+      var overrideHelper = CorrectOverrideHelper(
+        library: targetClass.library,
+        thisMember: validOverride,
+      );
+      for (var j = 0; j < candidates.length; j++) {
+        var candidate = candidates[j];
+        if (!overrideHelper.isCorrectOverrideOf(superMember: candidate)) {
+          validOverride = null;
+          break;
+        }
+      }
+      if (validOverride != null) {
+        validOverrides.add(validOverride);
+      }
+    }
+
+    if (validOverrides.isEmpty) {
+      conflicts?.add(
+        CandidatesConflict(
+          name: name,
+          candidates: candidates,
+        ),
+      );
+      return null;
+    }
+
+    if (doTopMerge) {
+      var typeSystem = targetClass.library.typeSystem;
+      return _topMerge(typeSystem, targetClass, validOverrides);
+    } else {
+      return validOverrides.first;
+    }
+  }
+
   /// Return the result of [getInherited2] with [type] substitution.
   ExecutableElement getInherited(InterfaceType type, Name name) {
     var rawElement = getInherited2(type.element, name);
@@ -369,9 +429,7 @@ class InheritanceManager3 {
     Map<Name, List<ExecutableElement>> namedCandidates, {
     @required bool doTopMerge,
   }) {
-    TypeSystemImpl typeSystem = targetClass.library.typeSystem;
-
-    List<Conflict> conflicts;
+    var conflicts = <Conflict>[];
 
     for (var name in namedCandidates.keys) {
       if (map.containsKey(name)) {
@@ -380,53 +438,17 @@ class InheritanceManager3 {
 
       var candidates = namedCandidates[name];
 
-      // If just one candidate, it is always valid.
-      if (candidates.length == 1) {
-        map[name] = candidates[0];
+      var combinedSignature = combineSignatures(
+        targetClass: targetClass,
+        candidates: candidates,
+        doTopMerge: doTopMerge,
+        name: name,
+        conflicts: conflicts,
+      );
+
+      if (combinedSignature != null) {
+        map[name] = combinedSignature;
         continue;
-      }
-
-      // Check for a getter/method conflict.
-      var conflict = _checkForGetterMethodConflict(name, candidates);
-      if (conflict != null) {
-        conflicts ??= <Conflict>[];
-        conflicts.add(conflict);
-      }
-
-      var validOverrides = <ExecutableElement>[];
-      for (var i = 0; i < candidates.length; i++) {
-        var validOverride = candidates[i];
-        var overrideHelper = CorrectOverrideHelper(
-          library: targetClass.library,
-          thisMember: validOverride,
-        );
-        for (var j = 0; j < candidates.length; j++) {
-          var candidate = candidates[j];
-          if (!overrideHelper.isCorrectOverrideOf(superMember: candidate)) {
-            validOverride = null;
-            break;
-          }
-        }
-        if (validOverride != null) {
-          validOverrides.add(validOverride);
-        }
-      }
-
-      if (validOverrides.isEmpty) {
-        conflicts ??= <Conflict>[];
-        conflicts.add(
-          CandidatesConflict(
-            name: name,
-            candidates: candidates,
-          ),
-        );
-        continue;
-      }
-
-      if (doTopMerge) {
-        map[name] = _topMerge(typeSystem, targetClass, validOverrides);
-      } else {
-        map[name] = validOverrides.first;
       }
     }
 

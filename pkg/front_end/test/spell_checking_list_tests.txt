@@ -21,6 +21,8 @@ adopted
 affected
 albeit
 allocations
+allowlist
+allowlisting
 alt
 amortized
 analyses
@@ -54,7 +56,6 @@ benchmark
 besides
 beta
 bigger
-blacklist
 blah
 blindly
 blocked
@@ -131,6 +132,7 @@ decrease
 decrements
 def
 deleting
+denylist
 depended
 depfile
 desc
@@ -210,6 +212,8 @@ five
 flagged
 floor
 fluctuate
+foo"bar"baz
+foo'bar'baz
 foo1
 foo10
 foo12
@@ -223,11 +227,15 @@ foo6
 foo7
 foo8
 foo9
+foo\"bar'baz
+foo\"bar\"baz
+foo\"bar\'baz
 foos
 forbidden
 forces
 foreign
 forrest
+foundation
 fox
 fulfill
 func
@@ -277,6 +285,23 @@ internet
 interpolate
 inv
 invalidating
+invocation1a
+invocation1b
+invocation2a
+invocation2b
+invocation3a
+invocation3b
+invocation4a
+invocation4b
+invocation5a
+invocation5b
+invocation6a
+invocation6b
+invocation7a
+invocation7b
+invocation7c
+invocation7d
+invocation7e
 ioo
 isolate
 isolates
@@ -450,6 +475,7 @@ risky
 runtimes
 say
 scans
+scheduler
 screen
 scripts
 sdkroot
@@ -457,6 +483,7 @@ sdks
 secondary
 segment
 sensitive
+services
 severe
 sheets
 shipped
@@ -502,6 +529,8 @@ superinterface
 supermixin
 supplement
 suspension
+t\b\f\u
+t\u0008\f\u
 tails
 talk
 templates
@@ -539,6 +568,7 @@ unpacked
 unregistered
 untransformed
 untrimmed
+unusual
 upload
 uppercase
 upward
@@ -552,8 +582,6 @@ waiting
 walt
 warmup
 wherever
-whitelist
-whitelisting
 wins
 workflow
 worlds

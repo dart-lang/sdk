@@ -68,8 +68,8 @@ class SsaFunctionCompiler implements FunctionCompiler {
     JClosedWorld closedWorld = _globalInferenceResults.closedWorld;
     CodegenRegistry registry =
         new CodegenRegistry(closedWorld.elementEnvironment, member);
-    ModularNamer namer = new ModularNamerImpl(registry,
-        closedWorld.commonElements, _codegen.rtiTags, _codegen.fixedNames);
+    ModularNamer namer = new ModularNamerImpl(
+        registry, closedWorld.commonElements, _codegen.fixedNames);
     ModularEmitter emitter = new ModularEmitterImpl(namer, registry, _options);
     if (member.isConstructor &&
         member.enclosingClass == closedWorld.commonElements.jsNullClass) {
@@ -177,13 +177,6 @@ class SsaFunctionCompiler implements FunctionCompiler {
   /// added as a function parameter to the rewritten code.
   // TODO(sra): We could also return an empty list if the generator takes no
   // type (e.g. due to rtiNeed optimization).
-  List<js.Expression> _fetchItemType(
-      CodegenInputs codegen, ModularEmitter emitter, DartType type) {
-    if (type == null) return null;
-    var ast = codegen.rtiEncoder.getTypeRepresentation(emitter, type, null);
-    return <js.Expression>[ast];
-  }
-
   List<js.Expression> _fetchItemTypeNewRti(
       CommonElements commonElements, CodegenRegistry registry, DartType type) {
     if (type == null) return null;
@@ -206,9 +199,8 @@ class SsaFunctionCompiler implements FunctionCompiler {
     FunctionEntity startFunction = commonElements.asyncHelperStartSync;
     FunctionEntity completerFactory = commonElements.asyncAwaitCompleterFactory;
 
-    List<js.Expression> itemTypeExpression = _options.useNewRti
-        ? _fetchItemTypeNewRti(commonElements, registry, elementType)
-        : _fetchItemType(codegen, emitter, elementType);
+    List<js.Expression> itemTypeExpression =
+        _fetchItemTypeNewRti(commonElements, registry, elementType);
 
     AsyncRewriter rewriter = new AsyncRewriter(_reporter, element,
         asyncStart: emitter.staticFunctionAccess(startFunction),
@@ -243,9 +235,8 @@ class SsaFunctionCompiler implements FunctionCompiler {
       js.Expression code,
       DartType asyncTypeParameter,
       js.Name name) {
-    List<js.Expression> itemTypeExpression = _options.useNewRti
-        ? _fetchItemTypeNewRti(commonElements, registry, asyncTypeParameter)
-        : _fetchItemType(codegen, emitter, asyncTypeParameter);
+    List<js.Expression> itemTypeExpression =
+        _fetchItemTypeNewRti(commonElements, registry, asyncTypeParameter);
 
     SyncStarRewriter rewriter = new SyncStarRewriter(_reporter, element,
         endOfIteration:
@@ -279,9 +270,8 @@ class SsaFunctionCompiler implements FunctionCompiler {
       js.Expression code,
       DartType asyncTypeParameter,
       js.Name name) {
-    List<js.Expression> itemTypeExpression = _options.useNewRti
-        ? _fetchItemTypeNewRti(commonElements, registry, asyncTypeParameter)
-        : _fetchItemType(codegen, emitter, asyncTypeParameter);
+    List<js.Expression> itemTypeExpression =
+        _fetchItemTypeNewRti(commonElements, registry, asyncTypeParameter);
 
     AsyncStarRewriter rewriter = new AsyncStarRewriter(_reporter, element,
         asyncStarHelper:

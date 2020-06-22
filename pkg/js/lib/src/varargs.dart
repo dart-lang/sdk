@@ -34,7 +34,7 @@ class _Rest {
 ///       ...
 ///     }
 ///
-const _Rest rest = const _Rest();
+const _Rest rest = _Rest();
 
 /// Intrinsic function that maps to the ES6 spread operator
 /// (https://goo.gl/NedHKr).
@@ -58,6 +58,6 @@ const _Rest rest = const _Rest();
 ///     foo.apply(null, [a, b].concat(others))
 ///
 dynamic spread(args) {
-  throw new StateError('The spread function cannot be called, '
+  throw StateError('The spread function cannot be called, '
       'it should be compiled away.');
 }

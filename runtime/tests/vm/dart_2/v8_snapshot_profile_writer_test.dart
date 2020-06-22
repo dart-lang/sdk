@@ -16,7 +16,12 @@ test(
     bool useAsm,
     bool useBare,
     bool stripFlag,
-    bool stripUtil}) async {
+    bool stripUtil,
+    bool disassemble = false}) async {
+  // We don't assume forced disassembler support in Product mode, so skip any
+  // disassembly test.
+  if (!const bool.fromEnvironment('dart.vm.product') && disassemble) return;
+
   // The assembler may add extra unnecessary information to the compiled
   // snapshot whether or not we generate DWARF information in the assembly, so
   // we force the use of a utility when generating assembly.
@@ -30,7 +35,8 @@ test(
       (useAsm ? '-assembly' : '-elf') +
       (useBare ? '-bare' : '-nonbare') +
       (stripFlag ? '-intstrip' : '') +
-      (stripUtil ? '-extstrip' : '');
+      (stripUtil ? '-extstrip' : '') +
+      (disassemble ? '-disassembled' : '');
 
   await withTempDir(tempDirPrefix, (String tempDir) async {
     // Generate the snapshot profile.
@@ -40,10 +46,7 @@ test(
       if (stripFlag) '--strip',
       useBare ? '--use-bare-instructions' : '--no-use-bare-instructions',
       "--write-v8-snapshot-profile-to=$profilePath",
-      // Regression test for dartbug.com/41149. We don't assume forced
-      // disassembler support in Product mode.
-      if (!const bool.fromEnvironment('dart.vm.product'))
-        '--disassemble',
+      if (disassemble) '--disassemble',
       '--ignore-unrecognized-flags',
       dillPath,
     ];
@@ -238,6 +241,15 @@ main() async {
         stripUtil: false,
         useAsm: false,
         useBare: true);
+
+    // Regression test for dartbug.com/41149.
+    await test(
+        dillPath: dillPath,
+        stripFlag: true,
+        stripUtil: false,
+        useAsm: false,
+        useBare: false,
+        disassemble: true);
 
     // We neither generate assembly nor have a stripping utility on Windows.
     if (Platform.isWindows) {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 /// Note: the VM concatenates all patch files into a single patch file. This
 /// file is the first patch in "dart:isolate" which contains all the imports
 /// used by patches of that library. We plan to change this when we have a
@@ -64,7 +62,7 @@ class RawReceivePort {
    * event is received.
    */
   @patch
-  factory RawReceivePort([Function handler]) {
+  factory RawReceivePort([Function? handler]) {
     _RawReceivePortImpl result = new _RawReceivePortImpl();
     result.handler = handler;
     return result;
@@ -74,8 +72,9 @@ class RawReceivePort {
 class _ReceivePortImpl extends Stream implements ReceivePort {
   _ReceivePortImpl() : this.fromRawReceivePort(new RawReceivePort());
 
-  _ReceivePortImpl.fromRawReceivePort(this._rawPort) {
-    _controller = new StreamController(onCancel: close, sync: true);
+  _ReceivePortImpl.fromRawReceivePort(this._rawPort)
+      : _controller = new StreamController(sync: true) {
+    _controller.onCancel = close;
     _rawPort.handler = _controller.add;
   }
 
@@ -83,8 +82,8 @@ class _ReceivePortImpl extends Stream implements ReceivePort {
     return _rawPort.sendPort;
   }
 
-  StreamSubscription listen(void onData(var message),
-      {Function onError, void onDone(), bool cancelOnError}) {
+  StreamSubscription listen(void onData(var message)?,
+      {Function? onError, void onDone()?, bool? cancelOnError}) {
     return _controller.stream.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
@@ -95,13 +94,13 @@ class _ReceivePortImpl extends Stream implements ReceivePort {
   }
 
   final RawReceivePort _rawPort;
-  StreamController _controller;
+  final StreamController _controller;
 }
 
 typedef void _ImmediateCallback();
 
 /// The callback that has been registered through `scheduleImmediate`.
-_ImmediateCallback _pendingImmediateCallback;
+_ImmediateCallback? _pendingImmediateCallback;
 
 /// The closure that should be used as scheduleImmediateClosure, when the VM
 /// is responsible for the event loop.
@@ -173,7 +172,7 @@ class _RawReceivePortImpl implements RawReceivePort {
   // Call into the VM to close the VM maintained mappings.
   _closeInternal() native "RawReceivePortImpl_closeInternal";
 
-  void set handler(Function value) {
+  void set handler(Function? value) {
     _handlerMap[this._get_id()] = value;
   }
 
@@ -221,8 +220,8 @@ class _SendPortImpl implements SendPort {
 }
 
 typedef _NullaryFunction();
-typedef _UnaryFunction(Null args);
-typedef _BinaryFunction(Null args, Null message);
+typedef _UnaryFunction(Never args);
+typedef _BinaryFunction(Never args, Never message);
 
 /**
  * Takes the real entry point as argument and invokes it with the
@@ -258,13 +257,13 @@ Function _getStartMainIsolateFunction() {
  */
 @pragma("vm:entry-point", "call")
 void _startIsolate(
-    SendPort parentPort,
+    SendPort? parentPort,
     Function entryPoint,
-    List<String> args,
-    var message,
+    List<String>? args,
+    Object? message,
     bool isSpawnUri,
-    RawReceivePort controlPort,
-    List capabilities) {
+    RawReceivePort? controlPort,
+    List? capabilities) {
   // The control port (aka the main isolate port) does not handle any messages.
   if (controlPort != null) {
     controlPort.handler = (_) {}; // Nobody home on the control port.
@@ -274,7 +273,7 @@ void _startIsolate(
       // current isolate's control port and capabilities.
       //
       // TODO(floitsch): Send an error message if we can't find the entry point.
-      final readyMessage = List(2);
+      final readyMessage = List<Object?>.filled(2, null);
       readyMessage[0] = controlPort.sendPort;
       readyMessage[1] = capabilities;
 
@@ -321,12 +320,12 @@ class Isolate {
   String get debugName => _getDebugName(controlPort);
 
   @patch
-  static Future<Uri> get packageRoot {
+  static Future<Uri?> get packageRoot {
     return Future.value(null);
   }
 
   @patch
-  static Future<Uri> get packageConfig {
+  static Future<Uri?> get packageConfig {
     var hook = VMLibraryHooks.packageConfigUriFuture;
     if (hook == null) {
       throw new UnsupportedError("Isolate.packageConfig");
@@ -335,7 +334,7 @@ class Isolate {
   }
 
   @patch
-  static Future<Uri> resolvePackageUri(Uri packageUri) {
+  static Future<Uri?> resolvePackageUri(Uri packageUri) {
     var hook = VMLibraryHooks.resolvePackageUriFuture;
     if (hook == null) {
       throw new UnsupportedError("Isolate.resolvePackageUri");
@@ -349,11 +348,11 @@ class Isolate {
 
   @patch
   static Future<Isolate> spawn<T>(void entryPoint(T message), T message,
-      {bool paused: false,
-      bool errorsAreFatal,
-      SendPort onExit,
-      SendPort onError,
-      String debugName}) async {
+      {bool paused = false,
+      bool errorsAreFatal = true,
+      SendPort? onExit,
+      SendPort? onError,
+      String? debugName}) async {
     // `paused` isn't handled yet.
     // Check for the type of `entryPoint` on the spawning isolate to make
     // error-handling easier.
@@ -399,16 +398,16 @@ class Isolate {
 
   @patch
   static Future<Isolate> spawnUri(Uri uri, List<String> args, var message,
-      {bool paused: false,
-      SendPort onExit,
-      SendPort onError,
-      bool errorsAreFatal,
-      bool checked,
-      Map<String, String> environment,
-      Uri packageRoot,
-      Uri packageConfig,
-      bool automaticPackageResolution: false,
-      String debugName}) async {
+      {bool paused = false,
+      SendPort? onExit,
+      SendPort? onError,
+      bool errorsAreFatal = true,
+      bool? checked,
+      Map<String, String>? environment,
+      Uri? packageRoot,
+      Uri? packageConfig,
+      bool automaticPackageResolution = false,
+      String? debugName}) async {
     if (environment != null) {
       throw new UnimplementedError("environment");
     }
@@ -432,7 +431,7 @@ class Isolate {
       }
     }
     // Resolve the uri against the current isolate's root Uri first.
-    final Uri spawnedUri = _rootUri.resolveUri(uri);
+    final Uri spawnedUri = _rootUri!.resolveUri(uri);
 
     // Inherit this isolate's package resolution setup if not overridden.
     if (!automaticPackageResolution && packageConfig == null) {
@@ -521,13 +520,13 @@ class Isolate {
       List<String> args,
       var message,
       bool paused,
-      SendPort onExit,
-      SendPort onError,
+      SendPort? onExit,
+      SendPort? onError,
       bool errorsAreFatal,
-      bool checked,
-      List environment,
-      String packageConfig,
-      String debugName) native "Isolate_spawnUri";
+      bool? checked,
+      List? environment,
+      String? packageConfig,
+      String? debugName) native "Isolate_spawnUri";
 
   static void _sendOOB(port, msg) native "Isolate_sendOOB";
 
@@ -536,7 +535,9 @@ class Isolate {
 
   @patch
   void _pause(Capability resumeCapability) {
-    var msg = new List(4)
+    // _sendOOB expects a fixed length array and hence we create a fixed
+    // length array and assign values to it instead of using [ ... ].
+    var msg = new List<Object?>.filled(4, null)
       ..[0] = 0 // Make room for OOB message type.
       ..[1] = _PAUSE
       ..[2] = pauseCapability
@@ -546,7 +547,7 @@ class Isolate {
 
   @patch
   void resume(Capability resumeCapability) {
-    var msg = new List(4)
+    var msg = new List<Object?>.filled(4, null)
       ..[0] = 0 // Make room for OOB message type.
       ..[1] = _RESUME
       ..[2] = pauseCapability
@@ -555,8 +556,8 @@ class Isolate {
   }
 
   @patch
-  void addOnExitListener(SendPort responsePort, {Object response}) {
-    var msg = new List(4)
+  void addOnExitListener(SendPort responsePort, {Object? response}) {
+    var msg = new List<Object?>.filled(4, null)
       ..[0] = 0 // Make room for OOB message type.
       ..[1] = _ADD_EXIT
       ..[2] = responsePort
@@ -566,7 +567,7 @@ class Isolate {
 
   @patch
   void removeOnExitListener(SendPort responsePort) {
-    var msg = new List(3)
+    var msg = new List<Object?>.filled(3, null)
       ..[0] = 0 // Make room for OOB message type.
       ..[1] = _DEL_EXIT
       ..[2] = responsePort;
@@ -575,7 +576,7 @@ class Isolate {
 
   @patch
   void setErrorsFatal(bool errorsAreFatal) {
-    var msg = new List(4)
+    var msg = new List<Object?>.filled(4, null)
       ..[0] = 0 // Make room for OOB message type.
       ..[1] = _ERROR_FATAL
       ..[2] = terminateCapability
@@ -585,7 +586,7 @@ class Isolate {
 
   @patch
   void kill({int priority: beforeNextEvent}) {
-    var msg = new List(4)
+    var msg = new List<Object?>.filled(4, null)
       ..[0] = 0 // Make room for OOB message type.
       ..[1] = _KILL
       ..[2] = terminateCapability
@@ -594,8 +595,9 @@ class Isolate {
   }
 
   @patch
-  void ping(SendPort responsePort, {Object response, int priority: immediate}) {
-    var msg = new List(5)
+  void ping(SendPort responsePort,
+      {Object? response, int priority: immediate}) {
+    var msg = new List<Object?>.filled(5, null)
       ..[0] = 0 // Make room for OOM message type.
       ..[1] = _PING
       ..[2] = responsePort
@@ -606,7 +608,7 @@ class Isolate {
 
   @patch
   void addErrorListener(SendPort port) {
-    var msg = new List(3)
+    var msg = new List<Object?>.filled(3, null)
       ..[0] = 0 // Make room for OOB message type.
       ..[1] = _ADD_ERROR
       ..[2] = port;
@@ -615,7 +617,7 @@ class Isolate {
 
   @patch
   void removeErrorListener(SendPort port) {
-    var msg = new List(3)
+    var msg = new List<Object?>.filled(3, null)
       ..[0] = 0 // Make room for OOB message type.
       ..[1] = _DEL_ERROR
       ..[2] = port;
@@ -632,7 +634,7 @@ class Isolate {
   static List _getPortAndCapabilitiesOfCurrentIsolate()
       native "Isolate_getPortAndCapabilitiesOfCurrentIsolate";
 
-  static Uri _getCurrentRootUri() {
+  static Uri? _getCurrentRootUri() {
     try {
       return Uri.parse(_getCurrentRootUriStr());
     } catch (e) {

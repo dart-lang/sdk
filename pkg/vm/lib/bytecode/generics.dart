@@ -172,6 +172,9 @@ class FindFreeTypeParametersVisitor extends DartTypeVisitor<bool> {
       node.typeArguments.any((t) => t.accept(this));
 
   @override
+  bool visitFutureOrType(FutureOrType node) => node.typeArgument.accept(this);
+
+  @override
   bool visitTypedefType(TypedefType node) =>
       node.typeArguments.any((t) => t.accept(this));
 

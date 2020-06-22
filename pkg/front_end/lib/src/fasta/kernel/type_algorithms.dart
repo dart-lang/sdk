@@ -9,6 +9,7 @@ import 'package:kernel/ast.dart'
         DartTypeVisitor,
         DynamicType,
         FunctionType,
+        FutureOrType,
         InterfaceType,
         InvalidType,
         NamedType,
@@ -1022,6 +1023,10 @@ class TypeVariableSearch implements DartTypeVisitor<bool> {
 
   bool visitInterfaceType(InterfaceType node) {
     return anyTypeVariables(node.typeArguments);
+  }
+
+  bool visitFutureOrType(FutureOrType node) {
+    return node.typeArgument.accept(this);
   }
 
   bool visitFunctionType(FunctionType node) {

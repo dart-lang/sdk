@@ -20,15 +20,15 @@ void test() {
       /*@ returnType=Future<int*>* */ (/*@ type=bool* */ x) async =>
           x ? 2 : await new Future<int>.value(3));
   Future<int> t2 = f. /*@ typeArgs=int* */ /*@target=Future.then*/ then(
-      /*@ returnType=Future<int*>* */ (/*@ type=bool* */ x) async {
+      /*@returnType=FutureOr<int*>*/ (/*@ type=bool* */ x) async {
     return /*info:DOWN_CAST_COMPOSITE*/ await x ? 2 : new Future<int>.value(3);
   });
   Future<int> t5 = f. /*@ typeArgs=int* */ /*@target=Future.then*/ then(
       /*info:INFERRED_TYPE_CLOSURE,error:INVALID_CAST_FUNCTION_EXPR*/
-      /*@ returnType=FutureOr<int*>* */ (/*@ type=bool* */ x) =>
+      /*@ returnType=FutureOr<int*> */ (/*@ type=bool* */ x) =>
           x ? 2 : new Future<int>.value(3));
   Future<int> t6 = f. /*@ typeArgs=int* */ /*@target=Future.then*/ then(
-      /*@ returnType=FutureOr<int*>* */ (/*@ type=bool* */ x) {
+      /*@ returnType=FutureOr<int*> */ (/*@ type=bool* */ x) {
     return /*info:DOWN_CAST_COMPOSITE*/ x ? 2 : new Future<int>.value(3);
   });
 }

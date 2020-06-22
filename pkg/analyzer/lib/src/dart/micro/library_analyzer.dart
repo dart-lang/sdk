@@ -20,6 +20,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/micro/library_graph.dart';
+import 'package:analyzer/src/dart/micro/performance.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/legacy_type_asserter.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
@@ -30,6 +31,7 @@ import 'package:analyzer/src/error/dead_code_verifier.dart';
 import 'package:analyzer/src/error/imports_verifier.dart';
 import 'package:analyzer/src/error/inheritance_override.dart';
 import 'package:analyzer/src/error/override_verifier.dart';
+import 'package:analyzer/src/error/todo_finder.dart';
 import 'package:analyzer/src/error/unused_local_elements_verifier.dart';
 import 'package:analyzer/src/generated/declaration_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -44,15 +46,8 @@ import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
-import 'package:analyzer/src/error/todo_finder.dart';
-
-var timerLibraryAnalyzer = Stopwatch();
-var timerLibraryAnalyzerConst = Stopwatch();
-var timerLibraryAnalyzerFreshUnit = Stopwatch();
-var timerLibraryAnalyzerResolve = Stopwatch();
-var timerLibraryAnalyzerSplicer = Stopwatch();
-var timerLibraryAnalyzerVerify = Stopwatch();
 
 /**
  * Analyzer of a single library.
@@ -115,25 +110,17 @@ class LibraryAnalyzer {
   /**
    * Compute analysis results for all units of the library.
    */
-  Map<FileState, UnitAnalysisResult> analyze() {
-    return PerformanceStatistics.analysis.makeCurrentWhile(() {
-      return analyzeSync();
-    });
-  }
-
-  /**
-   * Compute analysis results for all units of the library.
-   */
-  Map<FileState, UnitAnalysisResult> analyzeSync() {
-    timerLibraryAnalyzer.start();
+  Map<FileState, UnitAnalysisResult> analyzeSync({
+    @required CiderOperationPerformanceImpl performance,
+  }) {
     Map<FileState, CompilationUnit> units = {};
 
     // Parse all files.
-    timerLibraryAnalyzerFreshUnit.start();
-    for (FileState file in _library.libraryFiles) {
-      units[file] = _parse(file);
-    }
-    timerLibraryAnalyzerFreshUnit.stop();
+    performance.run('parse', (performance) {
+      for (FileState file in _library.libraryFiles) {
+        units[file] = _parse(file);
+      }
+    });
 
     // Resolve URIs in directives to corresponding sources.
     FeatureSet featureSet = units[_library].featureSet;
@@ -147,29 +134,30 @@ class LibraryAnalyzer {
 
     _libraryScope = LibraryScope(_libraryElement);
 
-    timerLibraryAnalyzerResolve.start();
-    _resolveDirectives(units);
-
-    units.forEach((file, unit) {
-      _resolveFile(file, unit);
+    performance.run('resolveDirectives', (performance) {
+      _resolveDirectives(units);
     });
-    timerLibraryAnalyzerResolve.stop();
 
-    timerLibraryAnalyzerConst.start();
-    units.values.forEach(_findConstants);
-    _clearConstantEvaluationResults();
-    _computeConstants();
-    timerLibraryAnalyzerConst.stop();
+    performance.run('resolveFiles', (performance) {
+      units.forEach((file, unit) {
+        _resolveFile(file, unit);
+      });
+    });
 
-    timerLibraryAnalyzerVerify.start();
-    PerformanceStatistics.errors.makeCurrentWhile(() {
+    performance.run('computeConstants', (performance) {
+      units.values.forEach(_findConstants);
+      _clearConstantEvaluationResults();
+      _computeConstants();
+    });
+
+    performance.run('computeVerifyErrors', (performance) {
       units.forEach((file, unit) {
         _computeVerifyErrors(file, unit);
       });
     });
 
     if (_analysisOptions.hint) {
-      PerformanceStatistics.hints.makeCurrentWhile(() {
+      performance.run('computeHints', (performance) {
         units.forEach((file, unit) {
           {
             var visitor = GatherUsedLocalElementsVisitor(_libraryElement);
@@ -189,13 +177,11 @@ class LibraryAnalyzer {
     }
 
     if (_analysisOptions.lint) {
-      PerformanceStatistics.lints.makeCurrentWhile(() {
-        var allUnits = _library.libraryFiles.map(
-          (file) {
-            var content = _getFileContent(file.path);
-            return LinterContextUnit(content, units[file]);
-          },
-        ).toList();
+      performance.run('computeLints', (performance) {
+        var allUnits = _library.libraryFiles.map((file) {
+          var content = _getFileContent(file.path);
+          return LinterContextUnit(content, units[file]);
+        }).toList();
         for (int i = 0; i < allUnits.length; i++) {
           _computeLints(_library.libraryFiles[i], allUnits[i], allUnits);
         }
@@ -204,8 +190,6 @@ class LibraryAnalyzer {
 
     assert(units.values.every(LegacyTypeAsserter.assertLegacyTypes));
 
-    timerLibraryAnalyzerVerify.stop();
-
     // Return full results.
     Map<FileState, UnitAnalysisResult> results = {};
     units.forEach((file, unit) {
@@ -213,7 +197,6 @@ class LibraryAnalyzer {
       errors = _filterIgnoredErrors(file, errors);
       results[file] = UnitAnalysisResult(file, unit, errors);
     });
-    timerLibraryAnalyzer.stop();
     return results;
   }
 
@@ -369,23 +352,6 @@ class LibraryAnalyzer {
     }
   }
 
-  WorkspacePackage _getPackage(CompilationUnit unit) {
-    final libraryPath = _library.source.fullName;
-    Workspace workspace =
-        unit.declaredElement.session?.analysisContext?.workspace;
-
-    // If there is no driver setup (as in test environments), we need to create
-    // a workspace ourselves.
-    // todo (pq): fix tests or otherwise de-dup this logic shared w/ resolver.
-    if (workspace == null) {
-      final builder = ContextBuilder(
-          _resourceProvider, null /* sdkManager */, null /* contentCache */);
-      workspace = ContextBuilder.createWorkspace(
-          _resourceProvider, libraryPath, builder);
-    }
-    return workspace?.findPackageFor(libraryPath);
-  }
-
   void _computeVerifyErrors(FileState file, CompilationUnit unit) {
     if (file.source == null) {
       return;
@@ -474,6 +440,34 @@ class LibraryAnalyzer {
       RecordingErrorListener listener = _getErrorListener(file);
       return ErrorReporter(listener, file.source);
     });
+  }
+
+  /**
+   * Catch all exceptions from the `getFileContent` function.
+   */
+  String _getFileContent(String path) {
+    try {
+      return getFileContent(path);
+    } catch (_) {
+      return '';
+    }
+  }
+
+  WorkspacePackage _getPackage(CompilationUnit unit) {
+    final libraryPath = _library.source.fullName;
+    Workspace workspace =
+        unit.declaredElement.session?.analysisContext?.workspace;
+
+    // If there is no driver setup (as in test environments), we need to create
+    // a workspace ourselves.
+    // todo (pq): fix tests or otherwise de-dup this logic shared w/ resolver.
+    if (workspace == null) {
+      final builder = ContextBuilder(
+          _resourceProvider, null /* sdkManager */, null /* contentCache */);
+      workspace = ContextBuilder.createWorkspace(
+          _resourceProvider, libraryPath, builder);
+    }
+    return workspace?.findPackageFor(libraryPath);
   }
 
   /**
@@ -789,17 +783,6 @@ class LibraryAnalyzer {
       if (directive is UriBasedDirective) {
         _validateUriBasedDirective(file, directive);
       }
-    }
-  }
-
-  /**
-   * Catch all exceptions from the `getFileContent` function.
-   */
-  String _getFileContent(String path) {
-    try {
-      return getFileContent(path);
-    } catch (_) {
-      return '';
     }
   }
 

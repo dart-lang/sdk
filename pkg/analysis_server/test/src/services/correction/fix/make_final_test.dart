@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -12,6 +13,7 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MakeFinalTest);
+    defineReflectiveTests(MakeFinalWithNNBDTest);
   });
 }
 
@@ -48,6 +50,48 @@ class C {
     await assertHasFix('''
 class C {
   final _f = 2;
+  int get g => _f;
+}
+''');
+  }
+}
+
+@reflectiveTest
+class MakeFinalWithNNBDTest extends FixProcessorLintTest {
+  @override
+  List<String> get experiments => [EnableString.non_nullable];
+
+  @override
+  FixKind get kind => DartFixKind.MAKE_FINAL;
+
+  @override
+  String get lintCode => LintNames.prefer_final_fields;
+
+  Future<void> test_lateField_type() async {
+    await resolveTestUnit('''
+class C {
+  late int _f = 2;
+  int get g => _f;
+}
+''');
+    await assertHasFix('''
+class C {
+  late final int _f = 2;
+  int get g => _f;
+}
+''');
+  }
+
+  Future<void> test_lateField_var() async {
+    await resolveTestUnit('''
+class C {
+  late var _f = 2;
+  int get g => _f;
+}
+''');
+    await assertHasFix('''
+class C {
+  late final _f = 2;
   int get g => _f;
 }
 ''');

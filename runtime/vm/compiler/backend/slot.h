@@ -77,7 +77,9 @@ class ParsedFunction;
   V(ArgumentsDescriptor, ArrayLayout, count, Smi, FINAL)                       \
   V(ArgumentsDescriptor, ArrayLayout, size, Smi, FINAL)                        \
   V(PointerBase, PointerBaseLayout, data_field, Dynamic, FINAL)                \
-  V(Type, TypeLayout, arguments, TypeArguments, FINAL)
+  V(Type, TypeLayout, arguments, TypeArguments, FINAL)                         \
+  V(UnhandledException, UnhandledExceptionLayout, exception, Dynamic, FINAL)   \
+  V(UnhandledException, UnhandledExceptionLayout, stacktrace, Dynamic, FINAL)
 
 // Slot is an abstraction that describes an readable (and possibly writeable)
 // location within an object.

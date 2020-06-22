@@ -292,13 +292,6 @@ DART_DIR = os.path.abspath(os.path.join(__file__, '..', '..'))
 VERSION_FILE = os.path.join(DART_DIR, 'tools', 'VERSION')
 
 
-def GetBuildbotGSUtilPath():
-    gsutil = '/b/build/scripts/slave/gsutil'
-    if platform.system() == 'Windows':
-        gsutil = 'e:\\\\b\\build\\scripts\\slave\\gsutil'
-    return gsutil
-
-
 def GetBuildMode(mode):
     return BUILD_MODES[mode]
 
@@ -317,51 +310,33 @@ def IsCrossBuild(target_os, arch):
             (target_os != GuessOS()))
 
 
-# TODO(38701): Remove dont_use_nnbd once the NNBD SDK is stable/performant and
-# there is no need to build a legacy version of the SDK for comparison purposes.
-def GetBuildConf(mode, arch, conf_os=None, sanitizer=None, dont_use_nnbd=False):
-    nnbd = "Legacy" if dont_use_nnbd else ""
-    if conf_os == 'android':
-        return '%s%s%s%s' % (GetBuildMode(mode), conf_os.title(), arch.upper(),
-                             nnbd)
+def GetBuildConf(mode, arch, conf_os=None, sanitizer=None):
+    if conf_os is not None and conf_os != GuessOS() and conf_os != "host":
+        return '%s%s%s' % (GetBuildMode(mode), conf_os.title(), arch.upper())
     else:
         # Ask for a cross build if the host and target architectures don't match.
         host_arch = ARCH_GUESS
         cross_build = ''
         if GetArchFamily(host_arch) != GetArchFamily(arch):
             cross_build = 'X'
-        return '%s%s%s%s%s' % (GetBuildMode(mode), GetBuildSanitizer(sanitizer),
-                               cross_build, arch.upper(), nnbd)
+        return '%s%s%s%s' % (GetBuildMode(mode), GetBuildSanitizer(sanitizer),
+                             cross_build, arch.upper())
 
 
 def GetBuildDir(host_os):
     return BUILD_ROOT[host_os]
 
 
-# TODO(38701): Remove dont_use_nnbd once the NNBD SDK is stable/performant and
-# there is no need to build a legacy version of the SDK for comparison purposes.
-def GetBuildRoot(host_os,
-                 mode=None,
-                 arch=None,
-                 target_os=None,
-                 sanitizer=None,
-                 dont_use_nnbd=False):
+def GetBuildRoot(host_os, mode=None, arch=None, target_os=None, sanitizer=None):
     build_root = GetBuildDir(host_os)
     if mode:
         build_root = os.path.join(
-            build_root,
-            GetBuildConf(mode, arch, target_os, sanitizer, dont_use_nnbd))
+            build_root, GetBuildConf(mode, arch, target_os, sanitizer))
     return build_root
 
 
-# TODO(38701): Remove dont_use_nnbd once the NNBD SDK is stable/performant and
-# there is no need to build a legacy version of the SDK for comparison purposes.
-def GetBuildSdkBin(host_os,
-                   mode=None,
-                   arch=None,
-                   target_os=None,
-                   dont_use_nnbd=False):
-    build_root = GetBuildRoot(host_os, mode, arch, target_os, dont_use_nnbd)
+def GetBuildSdkBin(host_os, mode=None, arch=None, target_os=None):
+    build_root = GetBuildRoot(host_os, mode, arch, target_os)
     return os.path.join(build_root, 'dart-sdk', 'bin')
 
 

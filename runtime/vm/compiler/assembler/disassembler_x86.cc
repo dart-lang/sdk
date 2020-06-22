@@ -1150,7 +1150,25 @@ bool DisassemblerX64::DecodeInstructionType(uint8_t** data) {
           // REP.
           Print("rep ");
         }
-        Print("%s", idesc.mnem);
+        if ((current & 0x01) == 0x01) {
+          // Operation size: word, dword or qword
+          switch (operand_size()) {
+            case WORD_SIZE:
+              Print("%sw", idesc.mnem);
+              break;
+            case DOUBLEWORD_SIZE:
+              Print("%sl", idesc.mnem);
+              break;
+            case QUADWORD_SIZE:
+              Print("%sq", idesc.mnem);
+              break;
+            default:
+              UNREACHABLE();
+          }
+        } else {
+          // Operation size: byte
+          Print("%s", idesc.mnem);
+        }
       } else if (current == 0x99 && rex_w()) {
         Print("cqo");  // Cdql is called cdq and cdqq is called cqo.
       } else {
@@ -1328,6 +1346,9 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
         Print(",%s", NameOfXMMRegister(regop));
       } else if (opcode == 0x50) {
         Print("movmskpd %s,", NameOfCPURegister(regop));
+        current += PrintRightXMMOperand(current);
+      } else if (opcode == 0xD7) {
+        Print("pmovmskb %s,", NameOfCPURegister(regop));
         current += PrintRightXMMOperand(current);
       } else {
         const char* mnemonic = "?";

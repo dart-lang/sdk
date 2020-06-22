@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 library metadata;
 
 /**
@@ -25,7 +23,7 @@ class SupportedBrowser {
 
   /// The minimum version of the browser that supports the feature, or null
   /// if supported on all versions.
-  final String minimumVersion;
+  final String? minimumVersion;
 
   const SupportedBrowser(this.browserName, [this.minimumVersion]);
 }

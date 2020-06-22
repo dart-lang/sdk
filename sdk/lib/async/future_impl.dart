@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.async;
 
 /** The onValue and onError handlers return either a value or a future */
@@ -16,17 +14,20 @@ typedef dynamic _FutureAction();
 abstract class _Completer<T> implements Completer<T> {
   final _Future<T> future = new _Future<T>();
 
-  void complete([FutureOr<T> value]);
+  void complete([FutureOr<T>? value]);
 
-  void completeError(Object error, [StackTrace stackTrace]) {
+  void completeError(Object error, [StackTrace? stackTrace]) {
+    // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(error, "error");
     if (!future._mayComplete) throw new StateError("Future already completed");
-    AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
+    AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
     if (replacement != null) {
-      error = _nonNullError(replacement.error);
+      error = replacement.error;
       stackTrace = replacement.stackTrace;
+    } else {
+      stackTrace ??= AsyncError.defaultStackTrace(error);
     }
-    stackTrace ??= AsyncError.defaultStackTrace(error);
+    if (stackTrace == null) throw "unreachable"; // TODO(40088)
     _completeError(error, stackTrace);
   }
 
@@ -38,9 +39,9 @@ abstract class _Completer<T> implements Completer<T> {
 }
 
 class _AsyncCompleter<T> extends _Completer<T> {
-  void complete([FutureOr<T> value]) {
+  void complete([FutureOr<T>? value]) {
     if (!future._mayComplete) throw new StateError("Future already completed");
-    future._asyncComplete(value);
+    future._asyncComplete(value == null ? value as dynamic : value);
   }
 
   void _completeError(Object error, StackTrace stackTrace) {
@@ -49,9 +50,9 @@ class _AsyncCompleter<T> extends _Completer<T> {
 }
 
 class _SyncCompleter<T> extends _Completer<T> {
-  void complete([FutureOr<T> value]) {
+  void complete([FutureOr<T>? value]) {
     if (!future._mayComplete) throw new StateError("Future already completed");
-    future._complete(value);
+    future._complete(value == null ? value as dynamic : value);
   }
 
   void _completeError(Object error, StackTrace stackTrace) {
@@ -74,19 +75,19 @@ class _FutureListener<S, T> {
       maskValue | maskError | maskTestError | maskWhencomplete;
   static const int stateIsAwait = 16;
   // Listeners on the same future are linked through this link.
-  _FutureListener _nextListener;
+  _FutureListener? _nextListener;
   // The future to complete when this listener is activated.
   final _Future<T> result;
   // Which fields means what.
   final int state;
   // Used for then/whenDone callback and error test
   @pragma("vm:entry-point")
-  final Function callback;
+  final Function? callback;
   // Used for error callbacks.
-  final Function errorCallback;
+  final Function? errorCallback;
 
   _FutureListener.then(
-      this.result, _FutureOnValue<S, T> onValue, Function errorCallback)
+      this.result, FutureOr<T> Function(S) onValue, Function? errorCallback)
       : callback = onValue,
         errorCallback = errorCallback,
         state = (errorCallback == null) ? stateThen : stateThenOnerror;
@@ -105,7 +106,7 @@ class _FutureListener<S, T> {
       : errorCallback = null,
         state = stateWhencomplete;
 
-  Zone get _zone => result._zone;
+  _Zone get _zone => result._zone;
 
   bool get handlesValue => (state & maskValue != 0);
   bool get handlesError => (state & maskError != 0);
@@ -113,20 +114,21 @@ class _FutureListener<S, T> {
   bool get handlesComplete => (state & maskType == stateWhencomplete);
   bool get isAwait => (state & stateIsAwait != 0);
 
-  _FutureOnValue<S, T> get _onValue {
+  FutureOr<T> Function(S) get _onValue {
     assert(handlesValue);
-    return callback;
+    return callback as dynamic;
   }
 
-  Function get _onError => errorCallback;
+  Function? get _onError => errorCallback;
+
   _FutureErrorTest get _errorTest {
     assert(hasErrorTest);
-    return callback;
+    return callback as dynamic;
   }
 
   _FutureAction get _whenCompleteAction {
     assert(handlesComplete);
-    return callback;
+    return callback as dynamic;
   }
 
   /// Whether this listener has an error callback.
@@ -155,8 +157,8 @@ class _FutureListener<S, T> {
       return _zone.runBinary<dynamic, Object, StackTrace>(
           errorCallback, asyncError.error, asyncError.stackTrace);
     } else {
-      assert(errorCallback is dynamic Function(Object));
-      return _zone.runUnary<dynamic, Object>(errorCallback, asyncError.error);
+      return _zone.runUnary<dynamic, Object>(
+          errorCallback as dynamic, asyncError.error);
     }
   }
 
@@ -198,7 +200,7 @@ class _Future<T> implements Future<T> {
    * Until the future is completed, the field may hold the zone that
    * listener callbacks used to create this future should be run in.
    */
-  final Zone _zone;
+  final _Zone _zone;
 
   /**
    * Either the result, a list of listeners or another future.
@@ -219,9 +221,9 @@ class _Future<T> implements Future<T> {
   var _resultOrListeners;
 
   // This constructor is used by async/await.
-  _Future() : _zone = Zone.current;
+  _Future() : _zone = Zone._current;
 
-  _Future.immediate(FutureOr<T> result) : _zone = Zone.current {
+  _Future.immediate(FutureOr<T> result) : _zone = Zone._current {
     _asyncComplete(result);
   }
 
@@ -231,12 +233,12 @@ class _Future<T> implements Future<T> {
   }
 
   _Future.immediateError(var error, StackTrace stackTrace)
-      : _zone = Zone.current {
+      : _zone = Zone._current {
     _asyncCompleteError(error, stackTrace);
   }
 
   /** Creates a future that is already completed with the value. */
-  _Future.value(T value) : this.zoneValue(value, Zone.current);
+  _Future.value(T value) : this.zoneValue(value, Zone._current);
 
   bool get _mayComplete => _state == _stateIncomplete;
   bool get _isPendingComplete => _state == _statePendingComplete;
@@ -245,14 +247,14 @@ class _Future<T> implements Future<T> {
   bool get _isComplete => _state >= _stateValue;
   bool get _hasError => _state == _stateError;
 
-  static List<Function> _continuationFunctions(_Future<Object> future) {
-    List<Function> result = null;
+  static List<Function>? _continuationFunctions(_Future<Object> future) {
+    List<Function>? result = null;
     while (true) {
       if (future._mayAddListener) return result;
       assert(!future._isComplete);
       assert(!future._isChained);
       // So _resultOrListeners contains listeners.
-      _FutureListener<Object, Object> listener = future._resultOrListeners;
+      _FutureListener<Object, Object>? listener = future._resultOrListeners;
       if (listener != null &&
           listener._nextListener == null &&
           listener.isAwait) {
@@ -272,7 +274,7 @@ class _Future<T> implements Future<T> {
     _resultOrListeners = source;
   }
 
-  Future<R> then<R>(FutureOr<R> f(T value), {Function onError}) {
+  Future<R> then<R>(FutureOr<R> f(T value), {Function? onError}) {
     Zone currentZone = Zone.current;
     if (!identical(currentZone, _rootZone)) {
       f = currentZone.registerUnaryCallback<FutureOr<R>, T>(f);
@@ -300,7 +302,7 @@ class _Future<T> implements Future<T> {
     return result;
   }
 
-  Future<T> catchError(Function onError, {bool test(error)}) {
+  Future<T> catchError(Function onError, {bool test(Object error)?}) {
     _Future<T> result = new _Future<T>();
     if (!identical(result._zone, _rootZone)) {
       onError = _registerErrorHandler(onError, result._zone);
@@ -393,15 +395,17 @@ class _Future<T> implements Future<T> {
     }
   }
 
-  void _prependListeners(_FutureListener listeners) {
+  void _prependListeners(_FutureListener? listeners) {
     if (listeners == null) return;
     if (_mayAddListener) {
-      _FutureListener existingListeners = _resultOrListeners;
+      _FutureListener? existingListeners = _resultOrListeners;
       _resultOrListeners = listeners;
       if (existingListeners != null) {
         _FutureListener cursor = listeners;
-        while (cursor._nextListener != null) {
-          cursor = cursor._nextListener;
+        _FutureListener? next = cursor._nextListener;
+        while (next != null) {
+          cursor = next;
+          next = cursor._nextListener;
         }
         cursor._nextListener = existingListeners;
       }
@@ -425,20 +429,20 @@ class _Future<T> implements Future<T> {
     }
   }
 
-  _FutureListener _removeListeners() {
+  _FutureListener? _removeListeners() {
     // Reverse listeners before returning them, so the resulting list is in
     // subscription order.
     assert(!_isComplete);
-    _FutureListener current = _resultOrListeners;
+    _FutureListener? current = _resultOrListeners;
     _resultOrListeners = null;
     return _reverseListeners(current);
   }
 
-  _FutureListener _reverseListeners(_FutureListener listeners) {
-    _FutureListener prev;
-    _FutureListener current = listeners;
+  _FutureListener? _reverseListeners(_FutureListener? listeners) {
+    _FutureListener? prev = null;
+    _FutureListener? current = listeners;
     while (current != null) {
-      _FutureListener next = current._nextListener;
+      _FutureListener? next = current._nextListener;
       current._nextListener = prev;
       prev = current;
       current = next;
@@ -464,12 +468,7 @@ class _Future<T> implements Future<T> {
         // so use _complete instead of _completeWithValue.
         target._clearPendingComplete(); // Clear this first, it's set again.
         target._complete(value);
-      },
-          // TODO(floitsch): eventually we would like to make this non-optional
-          // and dependent on the listeners of the target future. If none of
-          // the target future's listeners want to have the stack trace we don't
-          // need a trace.
-          onError: (error, [StackTrace stackTrace]) {
+      }, onError: (Object error, StackTrace stackTrace) {
         assert(target._isPendingComplete);
         target._completeError(error, stackTrace);
       });
@@ -492,11 +491,11 @@ class _Future<T> implements Future<T> {
       source = source._chainSource;
     }
     if (source._isComplete) {
-      _FutureListener listeners = target._removeListeners();
+      _FutureListener? listeners = target._removeListeners();
       target._cloneResult(source);
       _propagateToListeners(target, listeners);
     } else {
-      _FutureListener listeners = target._resultOrListeners;
+      _FutureListener? listeners = target._resultOrListeners;
       target._setChained(source);
       source._prependListeners(listeners);
     }
@@ -511,8 +510,12 @@ class _Future<T> implements Future<T> {
         _chainForeignFuture(value, this);
       }
     } else {
-      _FutureListener listeners = _removeListeners();
-      _setValue(value);
+      _FutureListener? listeners = _removeListeners();
+      // TODO(40014): Remove cast when type promotion works.
+      // This would normally be `as T` but we use `as dynamic` to make the
+      // unneeded check be implict to match dart2js unsound optimizations in the
+      // user code.
+      _setValue(value as dynamic); // Value promoted to T.
       _propagateToListeners(this, listeners);
     }
   }
@@ -521,15 +524,15 @@ class _Future<T> implements Future<T> {
     assert(!_isComplete);
     assert(value is! Future<T>);
 
-    _FutureListener listeners = _removeListeners();
+    _FutureListener? listeners = _removeListeners();
     _setValue(value);
     _propagateToListeners(this, listeners);
   }
 
-  void _completeError(Object error, [StackTrace stackTrace]) {
+  void _completeError(Object error, StackTrace stackTrace) {
     assert(!_isComplete);
 
-    _FutureListener listeners = _removeListeners();
+    _FutureListener? listeners = _removeListeners();
     _setError(error, stackTrace);
     _propagateToListeners(this, listeners);
   }
@@ -551,7 +554,11 @@ class _Future<T> implements Future<T> {
       _chainFuture(value);
       return;
     }
-    _asyncCompleteWithValue(value);
+    // TODO(40014): Remove cast when type promotion works.
+    // This would normally be `as T` but we use `as dynamic` to make the
+    // unneeded check be implict to match dart2js unsound optimizations in the
+    // user code.
+    _asyncCompleteWithValue(value as dynamic); // Value promoted to T.
   }
 
   void _asyncCompleteWithValue(T value) {
@@ -578,7 +585,7 @@ class _Future<T> implements Future<T> {
     _chainForeignFuture(value, this);
   }
 
-  void _asyncCompleteError(error, StackTrace stackTrace) {
+  void _asyncCompleteError(Object error, StackTrace stackTrace) {
     assert(!_isComplete);
 
     _setPendingComplete();
@@ -591,7 +598,8 @@ class _Future<T> implements Future<T> {
    * Propagates the value/error of [source] to its [listeners], executing the
    * listeners' callbacks.
    */
-  static void _propagateToListeners(_Future source, _FutureListener listeners) {
+  static void _propagateToListeners(
+      _Future source, _FutureListener? listeners) {
     while (true) {
       assert(source._isComplete);
       bool hasError = source._hasError;
@@ -606,13 +614,15 @@ class _Future<T> implements Future<T> {
       // Usually futures only have one listener. If they have several, we
       // call handle them separately in recursive calls, continuing
       // here only when there is only one listener left.
-      while (listeners._nextListener != null) {
-        _FutureListener listener = listeners;
-        listeners = listener._nextListener;
+      _FutureListener listener = listeners;
+      _FutureListener? nextListener = listener._nextListener;
+      while (nextListener != null) {
         listener._nextListener = null;
         _propagateToListeners(source, listener);
+        listener = nextListener;
+        nextListener = listener._nextListener;
       }
-      _FutureListener listener = listeners;
+
       final sourceResult = source._resultOrListeners;
       // Do the actual propagation.
       // Set initial state of listenerHasError and listenerValueOrError. These
@@ -628,7 +638,7 @@ class _Future<T> implements Future<T> {
       // expensive, branch. Here we'll enter/leave the zone. Many futures
       // don't have callbacks, so this is a significant optimization.
       if (hasError || listener.handlesValue || listener.handlesComplete) {
-        Zone zone = listener._zone;
+        _Zone zone = listener._zone;
         if (hasError && !source._zone.inSameErrorZone(zone)) {
           // Don't cross zone boundaries with errors.
           AsyncError asyncError = source._error;
@@ -637,8 +647,8 @@ class _Future<T> implements Future<T> {
           return;
         }
 
-        Zone oldZone;
-        if (!identical(Zone.current, zone)) {
+        _Zone? oldZone;
+        if (!identical(Zone._current, zone)) {
           // Change zone if it's not current.
           oldZone = Zone._enter(zone);
         }
@@ -663,15 +673,15 @@ class _Future<T> implements Future<T> {
             listenerHasError = true;
             return;
           }
-          if (completeResult is Future) {
-            if (completeResult is _Future && completeResult._isComplete) {
-              if (completeResult._hasError) {
-                listenerValueOrError = completeResult._error;
-                listenerHasError = true;
-              }
-              // Otherwise use the existing result of source.
-              return;
+          if (completeResult is _Future && completeResult._isComplete) {
+            if (completeResult._hasError) {
+              listenerValueOrError = completeResult._error;
+              listenerHasError = true;
             }
+            // Otherwise use the existing result of source.
+            return;
+          }
+          if (completeResult is Future) {
             // We have to wait for the completeResult future to complete
             // before knowing if it's an error or we should use the result
             // of source.
@@ -758,21 +768,24 @@ class _Future<T> implements Future<T> {
     }
   }
 
-  Future<T> timeout(Duration timeLimit, {FutureOr<T> onTimeout()}) {
+  Future<T> timeout(Duration timeLimit, {FutureOr<T> onTimeout()?}) {
     if (_isComplete) return new _Future.immediate(this);
     _Future<T> result = new _Future<T>();
     Timer timer;
     if (onTimeout == null) {
       timer = new Timer(timeLimit, () {
         result._completeError(
-            new TimeoutException("Future not completed", timeLimit));
+            new TimeoutException("Future not completed", timeLimit),
+            StackTrace.empty);
       });
     } else {
       Zone zone = Zone.current;
-      onTimeout = zone.registerCallback(onTimeout);
+      FutureOr<T> Function() onTimeoutHandler =
+          zone.registerCallback(onTimeout);
+
       timer = new Timer(timeLimit, () {
         try {
-          result._complete(zone.run(onTimeout));
+          result._complete(zone.run(onTimeoutHandler));
         } catch (e, s) {
           result._completeError(e, s);
         }
@@ -783,7 +796,7 @@ class _Future<T> implements Future<T> {
         timer.cancel();
         result._completeWithValue(v);
       }
-    }, onError: (e, StackTrace s) {
+    }, onError: (Object e, StackTrace s) {
       if (timer.isActive) {
         timer.cancel();
         result._completeError(e, s);

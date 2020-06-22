@@ -8,7 +8,6 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 
 import 'package:kernel/ast.dart' hide MapEntry;
 import 'package:kernel/core_types.dart';
-import 'package:kernel/src/future_or.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 
 import '../constant_context.dart' show ConstantContext;
@@ -393,7 +392,7 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
       }
       if (needsCheckVisitor != null) {
         if (fieldType.accept(needsCheckVisitor)) {
-          field.isGenericCovariantImpl = true;
+          _fieldEncoding.setGenericCovariantImpl();
         }
       }
     }
@@ -834,7 +833,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       if (_lateSetter != null) {
         _lateSetter.function.positionalParameters.single.type = value;
       }
-      if (!isPotentiallyNullable(_type, null) && !_forceIncludeIsSetField) {
+      if (!_type.isPotentiallyNullable && !_forceIncludeIsSetField) {
         // We only need the is-set field if the field is potentially nullable.
         //  Otherwise we use `null` to signal that the field is uninitialized.
         _lateIsSetField = null;
@@ -844,9 +843,11 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
 
   @override
   void setGenericCovariantImpl() {
-    // TODO(johnniwinther): Is this correct? Should the [_lateSetter] be
-    //  annotated instead?
     _field.isGenericCovariantImpl = true;
+    if (_lateSetter != null) {
+      _lateSetter.function.positionalParameters.single.isGenericCovariantImpl =
+          true;
+    }
   }
 
   @override

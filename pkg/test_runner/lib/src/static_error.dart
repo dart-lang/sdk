@@ -456,7 +456,7 @@ class _ErrorExpectationParser {
   _ErrorExpectationParser(String source) : _lines = source.split("\n");
 
   List<StaticError> _parse() {
-    while (!_isAtEnd) {
+    while (_canPeek(0)) {
       var sourceLine = _peek(0);
 
       var match = _caretLocationRegExp.firstMatch(sourceLine);
@@ -504,7 +504,7 @@ class _ErrorExpectationParser {
 
     var startLine = _currentLine;
 
-    while (!_isAtEnd) {
+    while (_canPeek(1)) {
       var match = _errorMessageRegExp.firstMatch(_peek(1));
       if (match == null) break;
 
@@ -516,7 +516,7 @@ class _ErrorExpectationParser {
       _advance();
 
       // Consume as many additional error message lines as we find.
-      while (!_isAtEnd) {
+      while (_canPeek(1)) {
         var nextLine = _peek(1);
 
         // A location line shouldn't be treated as part of the message.
@@ -585,7 +585,7 @@ class _ErrorExpectationParser {
         markerEndLine: _currentLine));
   }
 
-  bool get _isAtEnd => _currentLine >= _lines.length;
+  bool _canPeek(int offset) => _currentLine + offset < _lines.length;
 
   void _advance() {
     _currentLine++;

@@ -82,4 +82,89 @@ const Map<ExperimentalFlag, bool> expiredExperimentalFlags = {
 const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
     const AllowedExperimentalFlags(sdkDefaultExperiments: {
   ExperimentalFlag.nonNullable,
-}, sdkLibraryExperiments: {}, packageExperiments: {});
+}, sdkLibraryExperiments: {}, packageExperiments: {
+  "async": {
+    ExperimentalFlag.nonNullable,
+  },
+  "boolean_selector": {
+    ExperimentalFlag.nonNullable,
+  },
+  "characters": {
+    ExperimentalFlag.nonNullable,
+  },
+  "charcode": {
+    ExperimentalFlag.nonNullable,
+  },
+  "clock": {
+    ExperimentalFlag.nonNullable,
+  },
+  "collection": {
+    ExperimentalFlag.nonNullable,
+  },
+  "fake_async": {
+    ExperimentalFlag.nonNullable,
+  },
+  "fixnum": {
+    ExperimentalFlag.nonNullable,
+  },
+  "flutter": {
+    ExperimentalFlag.nonNullable,
+  },
+  "js": {
+    ExperimentalFlag.nonNullable,
+  },
+  "matcher": {
+    ExperimentalFlag.nonNullable,
+  },
+  "meta": {
+    ExperimentalFlag.nonNullable,
+  },
+  "path": {
+    ExperimentalFlag.nonNullable,
+  },
+  "pedantic": {
+    ExperimentalFlag.nonNullable,
+  },
+  "pool": {
+    ExperimentalFlag.nonNullable,
+  },
+  "sky_engine": {
+    ExperimentalFlag.nonNullable,
+  },
+  "source_maps": {
+    ExperimentalFlag.nonNullable,
+  },
+  "source_map_stack_trace": {
+    ExperimentalFlag.nonNullable,
+  },
+  "source_span": {
+    ExperimentalFlag.nonNullable,
+  },
+  "stack_trace": {
+    ExperimentalFlag.nonNullable,
+  },
+  "stream_channel": {
+    ExperimentalFlag.nonNullable,
+  },
+  "string_scanner": {
+    ExperimentalFlag.nonNullable,
+  },
+  "term_glyph": {
+    ExperimentalFlag.nonNullable,
+  },
+  "test": {
+    ExperimentalFlag.nonNullable,
+  },
+  "test_api": {
+    ExperimentalFlag.nonNullable,
+  },
+  "test_core": {
+    ExperimentalFlag.nonNullable,
+  },
+  "typed_data": {
+    ExperimentalFlag.nonNullable,
+  },
+  "vector_math": {
+    ExperimentalFlag.nonNullable,
+  },
+});

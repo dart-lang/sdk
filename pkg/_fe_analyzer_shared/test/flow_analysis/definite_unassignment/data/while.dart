@@ -2,6 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+assignedInBody_body(bool b) {
+  late int v;
+  while (true) {
+    if (b) {
+      v = 0;
+    } else {
+      v;
+    }
+    v;
+  }
+  v;
+}
+
+assignedInBody_condition() {
+  bool firstTime = true;
+  late int v;
+  while (firstTime || v > 0) {
+    firstTime = false;
+    v = 5;
+  }
+  v;
+}
+
 condition() {
   late int v;
   while ((v = 0) >= 0) {

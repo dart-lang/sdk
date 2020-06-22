@@ -27,6 +27,7 @@ import '../js_ast/js_ast.dart' as js_ast;
 import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;
 import 'compiler.dart';
+import 'module_metadata.dart';
 import 'target.dart';
 
 const _binaryName = 'dartdevc -k';
@@ -109,13 +110,6 @@ Future<CompilerResult> _compile(List<String> args,
         help: 'The path to the libraries.json file for the sdk.')
     ..addOption('used-inputs-file',
         help: 'If set, the file to record inputs used.', hide: true)
-    // TODO(41852) Define a process for breaking changes before graduating from
-    // experimental.
-    ..addFlag('experimental-emit-debug-metadata',
-        help: 'Experimental option for compiler development.\n'
-            'Output a metadata file for debug tools next to the .js output.',
-        defaultsTo: false,
-        hide: true)
     ..addFlag('kernel',
         abbr: 'k',
         help: 'Deprecated and ignored. To be removed in a future release.',
@@ -425,6 +419,7 @@ Future<CompilerResult> _compile(List<String> args,
     var jsCode = jsProgramToCode(jsModule, moduleFormat,
         buildSourceMap: options.sourceMap,
         inlineSourceMap: options.inlineSourceMap,
+        emitDebugMetadata: options.emitDebugMetadata,
         jsUrl: p.toUri(output).toString(),
         mapUrl: mapUrl,
         customScheme: multiRootScheme,
@@ -436,21 +431,9 @@ Future<CompilerResult> _compile(List<String> args,
       outFiles.add(
           File('$output.map').writeAsString(json.encode(jsCode.sourceMap)));
     }
-
-    if (argResults['experimental-emit-debug-metadata'] as bool) {
-      var moduleMetadata = [
-        for (var lib in compiledLibraries.libraries)
-          {
-            'name': compiler.jsLibraryName(lib),
-            'sourceMapFileUri': mapUrl,
-            'dartFileUris': [
-              lib.fileUri.toString(),
-              ...lib.parts.map((p) => p.partUri.toString())
-            ],
-          }
-      ];
+    if (jsCode.metadata != null) {
       outFiles.add(
-          File('$output.metadata').writeAsString(json.encode(moduleMetadata)));
+          File('$output.metadata').writeAsString(json.encode(jsCode.metadata)));
     }
   }
 
@@ -598,7 +581,14 @@ class JSCode {
   /// using [placeSourceMap].
   final Map sourceMap;
 
-  JSCode(this.code, this.sourceMap);
+  /// Module and library information
+  ///
+  /// The [metadata] is a contract between compiler and the debugger,
+  /// helping the debugger map between libraries, modules, source paths.
+  /// see: https://goto.google.com/dart-web-debugger-metadata
+  final ModuleMetadata metadata;
+
+  JSCode(this.code, this.sourceMap, {this.metadata});
 }
 
 /// Converts [moduleTree] to [JSCode], using [format].
@@ -608,6 +598,7 @@ class JSCode {
 JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
     {bool buildSourceMap = false,
     bool inlineSourceMap = false,
+    bool emitDebugMetadata = false,
     String jsUrl,
     String mapUrl,
     String sourceMapBase,
@@ -666,7 +657,27 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
   };
   text = text.replaceFirst(
       SharedCompiler.metricsLocationID, '$compileTimeStatistics');
-  return JSCode(text, builtMap);
+
+  var debugMetadata = emitDebugMetadata
+      ? _emitMetadata(moduleTree, component, mapUrl, jsUrl)
+      : null;
+
+  return JSCode(text, builtMap, metadata: debugMetadata);
+}
+
+ModuleMetadata _emitMetadata(js_ast.Program program, Component component,
+    String sourceMapUri, String moduleUri) {
+  var metadata = ModuleMetadata(
+      program.name, loadFunctionName(program.name), sourceMapUri, moduleUri);
+
+  for (var lib in component.libraries) {
+    metadata.addLibrary(LibraryMetadata(
+        libraryUriToJsIdentifier(lib.importUri),
+        lib.importUri.toString(),
+        lib.fileUri.toString(),
+        [...lib.parts.map((p) => p.partUri)]));
+  }
+  return metadata;
 }
 
 /// Parses Dart's non-standard `-Dname=value` syntax for declared variables,

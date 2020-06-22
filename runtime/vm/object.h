@@ -1097,9 +1097,6 @@ class Class : public Object {
   intptr_t NumTypeParameters() const {
     return NumTypeParameters(Thread::Current());
   }
-  static intptr_t type_parameters_offset() {
-    return OFFSET_OF(ClassLayout, type_parameters_);
-  }
 
   // Return a TypeParameter if the type_name is a type parameter of this class.
   // Return null otherwise.
@@ -1257,7 +1254,8 @@ class Class : public Object {
                           const TypeArguments& type_arguments,
                           Nullability nullability,
                           const AbstractType& other,
-                          Heap::Space space);
+                          Heap::Space space,
+                          TrailPtr trail = nullptr);
 
   // Check if this is the top level class.
   bool IsTopLevel() const;
@@ -2426,6 +2424,47 @@ enum {
   kAllFree = kMaxInt32,
 };
 
+// Formatting configuration for Function::PrintName.
+struct NameFormattingParams {
+  Object::NameVisibility name_visibility;
+  bool disambiguate_names;
+
+  // By default function name includes the name of the enclosing class if any.
+  // However in some contexts this information is redundant and class name
+  // is already known. In this case setting |include_class_name| to false
+  // allows you to exclude this information from the formatted name.
+  bool include_class_name = true;
+
+  // By default function name includes the name of the enclosing function if
+  // any. However in some contexts this information is redundant and
+  // the name of the enclosing function is already known. In this case
+  // setting |include_parent_name| to false allows to exclude this information
+  // from the formatted name.
+  bool include_parent_name = true;
+
+  NameFormattingParams(Object::NameVisibility visibility,
+                       Object::NameDisambiguation name_disambiguation =
+                           Object::NameDisambiguation::kNo)
+      : name_visibility(visibility),
+        disambiguate_names(name_disambiguation ==
+                           Object::NameDisambiguation::kYes) {}
+
+  static NameFormattingParams DisambiguatedWithoutClassName(
+      Object::NameVisibility visibility) {
+    NameFormattingParams params(visibility, Object::NameDisambiguation::kYes);
+    params.include_class_name = false;
+    return params;
+  }
+
+  static NameFormattingParams DisambiguatedUnqualified(
+      Object::NameVisibility visibility) {
+    NameFormattingParams params(visibility, Object::NameDisambiguation::kYes);
+    params.include_class_name = false;
+    params.include_parent_name = false;
+    return params;
+  }
+};
+
 class Function : public Object {
  public:
   StringPtr name() const { return raw_ptr()->name_; }
@@ -2434,10 +2473,8 @@ class Function : public Object {
 
   const char* NameCString(NameVisibility name_visibility) const;
 
-  void PrintQualifiedName(
-      NameVisibility name_visibility,
-      ZoneTextBuffer* printer,
-      NameDisambiguation name_disambiguation = NameDisambiguation::kNo) const;
+  void PrintName(const NameFormattingParams& params,
+                 ZoneTextBuffer* printer) const;
   StringPtr QualifiedScrubbedName() const;
   StringPtr QualifiedUserVisibleName() const;
 
@@ -2518,7 +2555,7 @@ class Function : public Object {
   // generic functions or class type parameters.
   bool HasInstantiatedSignature(Genericity genericity = kAny,
                                 intptr_t num_free_fun_type_params = kAllFree,
-                                TrailPtr trail = NULL) const;
+                                TrailPtr trail = nullptr) const;
 
   ClassPtr Owner() const;
   void set_owner(const Object& value) const;
@@ -3054,14 +3091,9 @@ class Function : public Object {
   // dependencies. It will be compiled into optimized code immediately when it's
   // run.
   bool ForceOptimize() const {
-    if (IsFfiTrampoline()) {
-      return true;
-    }
-    if (IsTypedDataViewFactory() || IsFfiLoad() || IsFfiStore() ||
-        IsFfiFromAddress() || IsFfiGetAddress()) {
-      return true;
-    }
-    return false;
+    return IsFfiFromAddress() || IsFfiGetAddress() || IsFfiLoad() ||
+           IsFfiStore() || IsFfiTrampoline() || IsTypedDataViewFactory() ||
+           IsUtf8Scan();
   }
 
   bool CanBeInlined() const;
@@ -3348,6 +3380,11 @@ class Function : public Object {
   bool IsFfiGetAddress() const {
     const auto kind = recognized_kind();
     return kind == MethodRecognizer::kFfiGetAddress;
+  }
+
+  bool IsUtf8Scan() const {
+    const auto kind = recognized_kind();
+    return kind == MethodRecognizer::kUtf8DecoderScan;
   }
 
   bool IsAsyncFunction() const { return modifier() == FunctionLayout::kAsync; }
@@ -4256,6 +4293,8 @@ class Field : public Object {
 
   FunctionPtr EnsureInitializerFunction() const;
   FunctionPtr InitializerFunction() const {
+    // We rely on the fact that any loads from the initializer function
+    // are dependent loads and avoid the load-acquire barrier here.
     return raw_ptr()->initializer_function_;
   }
   void SetInitializerFunction(const Function& initializer) const;
@@ -4456,7 +4495,9 @@ class Script : public Object {
 
   void SetLocationOffset(intptr_t line_offset, intptr_t col_offset) const;
 
-  intptr_t GetTokenLineUsingLineStarts(TokenPosition token_pos) const;
+  bool GetTokenLocationUsingLineStarts(TokenPosition token_pos,
+                                       intptr_t* line,
+                                       intptr_t* column) const;
   void GetTokenLocation(TokenPosition token_pos,
                         intptr_t* line,
                         intptr_t* column,
@@ -4519,7 +4560,6 @@ class DictionaryIterator : public ValueObject {
   int next_ix_;     // Index of next element.
 
   friend class ClassDictionaryIterator;
-  friend class LibraryPrefixIterator;
   DISALLOW_COPY_AND_ASSIGN(DictionaryIterator);
 };
 
@@ -4548,16 +4588,6 @@ class ClassDictionaryIterator : public DictionaryIterator {
   Class& toplevel_class_;
 
   DISALLOW_COPY_AND_ASSIGN(ClassDictionaryIterator);
-};
-
-class LibraryPrefixIterator : public DictionaryIterator {
- public:
-  explicit LibraryPrefixIterator(const Library& library);
-  LibraryPrefixPtr GetNext();
-
- private:
-  void Advance();
-  DISALLOW_COPY_AND_ASSIGN(LibraryPrefixIterator);
 };
 
 class Library : public Object {
@@ -4713,6 +4743,9 @@ class Library : public Object {
   intptr_t num_imports() const { return raw_ptr()->num_imports_; }
   NamespacePtr ImportAt(intptr_t index) const;
   LibraryPtr ImportLibraryAt(intptr_t index) const;
+
+  ArrayPtr dependencies() const { return raw_ptr()->dependencies_; }
+  void set_dependencies(const Array& deps) const;
 
   void DropDependenciesAndCaches() const;
 
@@ -5022,7 +5055,7 @@ class Namespace : public Object {
 
   bool HidesName(const String& name) const;
   ObjectPtr Lookup(const String& name,
-                   ZoneGrowableArray<intptr_t>* trail = NULL) const;
+                   ZoneGrowableArray<intptr_t>* trail = nullptr) const;
 
   static NamespacePtr New(const Library& library,
                           const Array& show_names,
@@ -6336,8 +6369,7 @@ class Code : public Object {
   intptr_t GetDeoptIdForOsr(uword pc) const;
 
   const char* Name() const;
-  const char* QualifiedName(NameVisibility name_visibility,
-                            NameDisambiguation name_disambiguation) const;
+  const char* QualifiedName(const NameFormattingParams& params) const;
 
   int64_t compile_timestamp() const {
 #if defined(PRODUCT)
@@ -6500,7 +6532,7 @@ class Code : public Object {
   friend class MegamorphicCacheTable;  // for set_object_pool
   friend class CodePatcher;            // for set_instructions
   friend class ProgramVisitor;         // for set_instructions
-  // So that the RawFunction pointer visitor can determine whether code the
+  // So that the FunctionLayout pointer visitor can determine whether code the
   // function points to is optimized.
   friend class FunctionLayout;
   friend class CallSiteResetter;
@@ -7319,6 +7351,10 @@ class LibraryPrefix : public Instance {
   void AddImport(const Namespace& import) const;
 
   bool is_deferred_load() const { return raw_ptr()->is_deferred_load_; }
+  bool is_loaded() const { return raw_ptr()->is_loaded_; }
+  void set_is_loaded(bool value) const {
+    return StoreNonPointer(&raw_ptr()->is_loaded_, value);
+  }
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(LibraryPrefixLayout));
@@ -7443,7 +7479,7 @@ class TypeArguments : public Instance {
 
   bool IsEquivalent(const TypeArguments& other,
                     TypeEquality kind,
-                    TrailPtr trail = NULL) const {
+                    TrailPtr trail = nullptr) const {
     return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length(), kind,
                                  trail);
   }
@@ -7451,12 +7487,12 @@ class TypeArguments : public Instance {
                              intptr_t from_index,
                              intptr_t len,
                              TypeEquality kind,
-                             TrailPtr trail = NULL) const;
+                             TrailPtr trail = nullptr) const;
 
   // Check if the vector is instantiated (it must not be null).
   bool IsInstantiated(Genericity genericity = kAny,
                       intptr_t num_free_fun_type_params = kAllFree,
-                      TrailPtr trail = NULL) const {
+                      TrailPtr trail = nullptr) const {
     return IsSubvectorInstantiated(0, Length(), genericity,
                                    num_free_fun_type_params, trail);
   }
@@ -7464,7 +7500,7 @@ class TypeArguments : public Instance {
                                intptr_t len,
                                Genericity genericity = kAny,
                                intptr_t num_free_fun_type_params = kAllFree,
-                               TrailPtr trail = NULL) const;
+                               TrailPtr trail = nullptr) const;
   bool IsUninstantiatedIdentity() const;
 
   // Determine whether this uninstantiated type argument vector can share its
@@ -7492,7 +7528,7 @@ class TypeArguments : public Instance {
   }
 
   // Canonicalize only if instantiated, otherwise returns 'this'.
-  TypeArgumentsPtr Canonicalize(TrailPtr trail = NULL) const;
+  TypeArgumentsPtr Canonicalize(TrailPtr trail = nullptr) const;
 
   // Add the class name and URI of each type argument of this vector to the uris
   // list and mark ambiguous triplets to be printed.
@@ -7507,8 +7543,8 @@ class TypeArguments : public Instance {
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
-      TrailPtr instantiation_trail,
-      Heap::Space space) const;
+      Heap::Space space,
+      TrailPtr trail = nullptr) const;
 
   // Runtime instantiation with canonicalization. Not to be used during type
   // finalization at compile time.
@@ -7644,7 +7680,7 @@ class AbstractType : public Instance {
   virtual TokenPosition token_pos() const;
   virtual bool IsInstantiated(Genericity genericity = kAny,
                               intptr_t num_free_fun_type_params = kAllFree,
-                              TrailPtr trail = NULL) const;
+                              TrailPtr trail = nullptr) const;
   virtual bool CanonicalizeEquals(const Instance& other) const {
     return Equals(other);
   }
@@ -7654,7 +7690,7 @@ class AbstractType : public Instance {
   }
   virtual bool IsEquivalent(const Instance& other,
                             TypeEquality kind,
-                            TrailPtr trail = NULL) const;
+                            TrailPtr trail = nullptr) const;
   virtual bool IsRecursive() const;
 
   // Check if this type represents a function type.
@@ -7675,8 +7711,8 @@ class AbstractType : public Instance {
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
-      TrailPtr instantiation_trail,
-      Heap::Space space) const;
+      Heap::Space space,
+      TrailPtr trail = nullptr) const;
 
   virtual InstancePtr CheckAndCanonicalize(Thread* thread,
                                            const char** error_str) const {
@@ -7684,7 +7720,7 @@ class AbstractType : public Instance {
   }
 
   // Return the canonical version of this type.
-  virtual AbstractTypePtr Canonicalize(TrailPtr trail = NULL) const;
+  virtual AbstractTypePtr Canonicalize(TrailPtr trail = nullptr) const;
 
 #if defined(DEBUG)
   // Check if abstract type is canonical.
@@ -7822,7 +7858,9 @@ class AbstractType : public Instance {
   AbstractTypePtr UnwrapFutureOr() const;
 
   // Check the subtype relationship.
-  bool IsSubtypeOf(const AbstractType& other, Heap::Space space) const;
+  bool IsSubtypeOf(const AbstractType& other,
+                   Heap::Space space,
+                   TrailPtr trail = nullptr) const;
 
   // Returns true iff subtype is a subtype of supertype, false otherwise or if
   // an error occurred.
@@ -7848,7 +7886,8 @@ class AbstractType : public Instance {
   // Returns false if other type is not a FutureOr.
   bool IsSubtypeOfFutureOr(Zone* zone,
                            const AbstractType& other,
-                           Heap::Space space) const;
+                           Heap::Space space,
+                           TrailPtr trail = nullptr) const;
 
  protected:
   HEAP_OBJECT_IMPLEMENTATION(AbstractType, Instance);
@@ -7904,10 +7943,10 @@ class Type : public AbstractType {
   virtual TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated(Genericity genericity = kAny,
                               intptr_t num_free_fun_type_params = kAllFree,
-                              TrailPtr trail = NULL) const;
+                              TrailPtr trail = nullptr) const;
   virtual bool IsEquivalent(const Instance& other,
                             TypeEquality kind,
-                            TrailPtr trail = NULL) const;
+                            TrailPtr trail = nullptr) const;
   virtual bool IsRecursive() const;
 
   // Return true if this type can be used as the declaration type of cls after
@@ -7931,9 +7970,9 @@ class Type : public AbstractType {
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
-      TrailPtr instantiation_trail,
-      Heap::Space space) const;
-  virtual AbstractTypePtr Canonicalize(TrailPtr trail = NULL) const;
+      Heap::Space space,
+      TrailPtr trail = nullptr) const;
+  virtual AbstractTypePtr Canonicalize(TrailPtr trail = nullptr) const;
 #if defined(DEBUG)
   // Check if type is canonical.
   virtual bool CheckIsCanonical(Thread* thread) const;
@@ -8075,10 +8114,10 @@ class TypeRef : public AbstractType {
   }
   virtual bool IsInstantiated(Genericity genericity = kAny,
                               intptr_t num_free_fun_type_params = kAllFree,
-                              TrailPtr trail = NULL) const;
+                              TrailPtr trail = nullptr) const;
   virtual bool IsEquivalent(const Instance& other,
                             TypeEquality kind,
-                            TrailPtr trail = NULL) const;
+                            TrailPtr trail = nullptr) const;
   virtual bool IsRecursive() const { return true; }
   virtual bool IsFunctionType() const {
     const AbstractType& ref_type = AbstractType::Handle(type());
@@ -8088,9 +8127,9 @@ class TypeRef : public AbstractType {
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
-      TrailPtr instantiation_trail,
-      Heap::Space space) const;
-  virtual AbstractTypePtr Canonicalize(TrailPtr trail = NULL) const;
+      Heap::Space space,
+      TrailPtr trail = nullptr) const;
+  virtual AbstractTypePtr Canonicalize(TrailPtr trail = nullptr) const;
 #if defined(DEBUG)
   // Check if typeref is canonical.
   virtual bool CheckIsCanonical(Thread* thread) const;
@@ -8134,6 +8173,10 @@ class TypeParameter : public AbstractType {
         raw_ptr()->flags_);
   }
   void SetGenericCovariantImpl(bool value) const;
+  bool IsDeclaration() const {
+    return TypeParameterLayout::DeclarationBit::decode(raw_ptr()->flags_);
+  }
+  void SetDeclaration(bool value) const;
   virtual Nullability nullability() const {
     return static_cast<Nullability>(raw_ptr()->nullability_);
   }
@@ -8159,23 +8202,21 @@ class TypeParameter : public AbstractType {
   virtual TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated(Genericity genericity = kAny,
                               intptr_t num_free_fun_type_params = kAllFree,
-                              TrailPtr trail = NULL) const;
+                              TrailPtr trail = nullptr) const;
   virtual bool IsEquivalent(const Instance& other,
                             TypeEquality kind,
-                            TrailPtr trail = NULL) const;
+                            TrailPtr trail = nullptr) const;
   virtual bool IsRecursive() const { return false; }
   virtual AbstractTypePtr InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
-      TrailPtr instantiation_trail,
-      Heap::Space space) const;
-  virtual AbstractTypePtr Canonicalize(TrailPtr trail = NULL) const {
-    return raw();
-  }
+      Heap::Space space,
+      TrailPtr trail = nullptr) const;
+  virtual AbstractTypePtr Canonicalize(TrailPtr trail = nullptr) const;
 #if defined(DEBUG)
   // Check if type parameter is canonical.
-  virtual bool CheckIsCanonical(Thread* thread) const { return true; }
+  virtual bool CheckIsCanonical(Thread* thread) const;
 #endif  // DEBUG
   virtual void EnumerateURIs(URIs* uris) const;
 
@@ -11271,6 +11312,7 @@ using MegamorphicCacheEntries =
     ArrayOfTuplesView<MegamorphicCache::EntryType, std::tuple<Smi, Object>>;
 
 void DumpTypeTable(Isolate* isolate);
+void DumpTypeParameterTable(Isolate* isolate);
 void DumpTypeArgumentsTable(Isolate* isolate);
 
 EntryPointPragma FindEntryPointPragma(Isolate* I,

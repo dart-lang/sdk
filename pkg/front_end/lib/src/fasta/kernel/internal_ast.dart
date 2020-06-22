@@ -22,6 +22,7 @@ import 'dart:core' hide MapEntry;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/text/ast_to_text.dart' show Precedence, Printer;
+import 'package:kernel/src/printer.dart';
 import 'package:kernel/core_types.dart';
 
 import '../fasta_codes.dart'
@@ -279,8 +280,8 @@ class ForInStatementWithSynthesizedVariable extends InternalStatement {
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  void toTextInternal(AstPrinter state) {
+    // TODO(johnniwinther): Implement this.
   }
 }
 
@@ -326,8 +327,17 @@ class TryStatement extends InternalStatement {
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  void toTextInternal(AstPrinter printer) {
+    printer.write('try ');
+    printer.writeStatement(tryBlock);
+    for (Catch catchBlock in catchBlocks) {
+      printer.write(' ');
+      printer.writeCatch(catchBlock);
+    }
+    if (finallyBlock != null) {
+      printer.write(' finally ');
+      printer.writeStatement(finallyBlock);
+    }
   }
 }
 
@@ -343,11 +353,6 @@ class SwitchCaseImpl extends SwitchCase {
   @override
   String toString() {
     return "SwitchCaseImpl(${toStringInternal()})";
-  }
-
-  @override
-  String toStringInternal() {
-    return "";
   }
 }
 
@@ -365,8 +370,14 @@ class BreakStatementImpl extends BreakStatement {
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  void toTextInternal(AstPrinter printer) {
+    if (isContinue) {
+      printer.write('continue ');
+    } else {
+      printer.write('break ');
+    }
+    printer.write(printer.getLabelName(target));
+    printer.write(';');
   }
 }
 
@@ -431,6 +442,11 @@ abstract class InternalExpression extends Expression {
 
   ExpressionInferenceResult acceptInference(
       InferenceVisitor visitor, DartType typeContext);
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    // TODO(johnniwinther): Implement this.
+  }
 }
 
 /// Front end specific implementation of [Argument].
@@ -499,12 +515,6 @@ class ArgumentsImpl extends Arguments {
   @override
   String toString() {
     return "ArgumentsImpl(${toStringInternal()})";
-  }
-
-  @override
-  String toStringInternal() {
-    // TODO(jensj): Make (much) better.
-    return "";
   }
 }
 
@@ -575,8 +585,22 @@ class Cascade extends InternalExpression {
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  void toTextInternal(AstPrinter printer) {
+    printer.write('let ');
+    printer.writeVariableDeclaration(variable);
+    printer.write(' in cascade {');
+    printer.incIndentation();
+    for (Expression expression in expressions) {
+      printer.newLine();
+      printer.writeExpression(expression);
+      printer.write(';');
+    }
+    printer.decIndentation();
+    if (expressions.isNotEmpty) {
+      printer.newLine();
+    }
+    printer.write('} => ');
+    printer.write(printer.getVariableName(variable));
   }
 }
 
@@ -624,8 +648,11 @@ class DeferredCheck extends InternalExpression {
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  void toTextInternal(AstPrinter printer) {
+    printer.write('let ');
+    printer.writeVariableDeclaration(variable);
+    printer.write(' in ');
+    printer.writeExpression(expression);
   }
 }
 
@@ -661,8 +688,19 @@ class FactoryConstructorInvocationJudgment extends StaticInvocation
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  void toTextInternal(AstPrinter printer) {
+    if (isConst) {
+      printer.write('const ');
+    } else {
+      printer.write('new ');
+    }
+    printer.writeClassName(target.enclosingClass.reference);
+    printer.writeTypeArguments(arguments.types);
+    if (target.name.name.isNotEmpty) {
+      printer.write('.');
+      printer.write(target.name.name);
+    }
+    printer.writeArguments(arguments, includeTypeArguments: false);
   }
 }
 
@@ -682,11 +720,6 @@ class FunctionDeclarationImpl extends FunctionDeclaration {
   @override
   String toString() {
     return "FunctionDeclarationImpl(${toStringInternal()})";
-  }
-
-  @override
-  String toStringInternal() {
-    return "";
   }
 }
 
@@ -708,11 +741,6 @@ class InvalidSuperInitializerJudgment extends LocalInitializer
   @override
   String toString() {
     return "InvalidSuperInitializerJudgment(${toStringInternal()})";
-  }
-
-  @override
-  String toStringInternal() {
-    return "";
   }
 }
 
@@ -764,8 +792,11 @@ class IfNullExpression extends InternalExpression {
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(left, minimumPrecedence: Precedence.CONDITIONAL);
+    printer.write(' ?? ');
+    printer.writeExpression(right,
+        minimumPrecedence: Precedence.CONDITIONAL + 1);
   }
 }
 
@@ -822,8 +853,12 @@ class IntJudgment extends IntLiteral implements ExpressionJudgment {
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  void toTextInternal(AstPrinter printer) {
+    if (literal == null) {
+      printer.write('$value');
+    } else {
+      printer.write(literal);
+    }
   }
 }
 
@@ -861,8 +896,8 @@ class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  void toTextInternal(AstPrinter printer) {
+    printer.write(literal);
   }
 }
 
@@ -879,11 +914,6 @@ class ShadowInvalidInitializer extends LocalInitializer
   @override
   String toString() {
     return "ShadowInvalidInitializer(${toStringInternal()})";
-  }
-
-  @override
-  String toStringInternal() {
-    return "";
   }
 }
 
@@ -907,11 +937,6 @@ class ShadowInvalidFieldInitializer extends LocalInitializer
   @override
   String toString() {
     return "ShadowInvalidFieldInitializer(${toStringInternal()})";
-  }
-
-  @override
-  String toStringInternal() {
-    return "";
   }
 }
 
@@ -958,8 +983,9 @@ class ExpressionInvocation extends InternalExpression {
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(expression);
+    printer.writeArguments(arguments);
   }
 }
 
@@ -986,11 +1012,6 @@ class NamedFunctionExpressionJudgment extends Let
   @override
   String toString() {
     return "NamedFunctionExpressionJudgment(${toStringInternal()})";
-  }
-
-  @override
-  String toStringInternal() {
-    return "";
   }
 }
 
@@ -1046,8 +1067,24 @@ class NullAwareMethodInvocation extends InternalExpression {
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  void toTextInternal(AstPrinter printer) {
+    Expression methodInvocation = invocation;
+    if (methodInvocation is MethodInvocation) {
+      Expression receiver = methodInvocation.receiver;
+      if (receiver is VariableGet && receiver.variable == variable) {
+        // Special-case the usual use of this node.
+        printer.writeExpression(variable.initializer);
+        printer.write('?.');
+        printer.writeInterfaceMemberName(
+            methodInvocation.interfaceTargetReference, methodInvocation.name);
+        printer.writeArguments(methodInvocation.arguments);
+        return;
+      }
+    }
+    printer.write('let ');
+    printer.writeVariableDeclaration(variable);
+    printer.write(' in null-aware ');
+    printer.writeExpression(methodInvocation);
   }
 }
 
@@ -1103,8 +1140,23 @@ class NullAwarePropertyGet extends InternalExpression {
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  void toTextInternal(AstPrinter printer) {
+    Expression propertyGet = read;
+    if (propertyGet is PropertyGet) {
+      Expression receiver = propertyGet.receiver;
+      if (receiver is VariableGet && receiver.variable == variable) {
+        // Special-case the usual use of this node.
+        printer.writeExpression(variable.initializer);
+        printer.write('?.');
+        printer.writeInterfaceMemberName(
+            propertyGet.interfaceTargetReference, propertyGet.name);
+        return;
+      }
+    }
+    printer.write('let ');
+    printer.writeVariableDeclaration(variable);
+    printer.write(' in null-aware ');
+    printer.writeExpression(propertyGet);
   }
 }
 
@@ -1160,8 +1212,25 @@ class NullAwarePropertySet extends InternalExpression {
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  void toTextInternal(AstPrinter printer) {
+    Expression propertySet = write;
+    if (propertySet is PropertySet) {
+      Expression receiver = propertySet.receiver;
+      if (receiver is VariableGet && receiver.variable == variable) {
+        // Special-case the usual use of this node.
+        printer.writeExpression(variable.initializer);
+        printer.write('?.');
+        printer.writeInterfaceMemberName(
+            propertySet.interfaceTargetReference, propertySet.name);
+        printer.write(' = ');
+        printer.writeExpression(propertySet.value);
+        return;
+      }
+    }
+    printer.write('let ');
+    printer.writeVariableDeclaration(variable);
+    printer.write(' in null-aware ');
+    printer.writeExpression(propertySet);
   }
 }
 
@@ -1178,8 +1247,17 @@ class ReturnStatementImpl extends ReturnStatement {
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  void toTextInternal(AstPrinter printer) {
+    if (isArrow) {
+      printer.write('=>');
+    } else {
+      printer.write('return');
+    }
+    if (expression != null) {
+      printer.write(' ');
+      printer.writeExpression(expression);
+    }
+    printer.write(';');
   }
 }
 
@@ -1351,6 +1429,13 @@ class VariableDeclarationImpl extends VariableDeclaration {
   // This is set in `InferenceVisitor.visitVariableDeclaration` when late
   // lowering is enabled.
   DartType lateType;
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeVariableDeclaration(this,
+        isLate: isLate || lateGetter != null, type: lateType ?? type);
+    printer.write(';');
+  }
 }
 
 /// Front end specific implementation of [VariableGet].
@@ -1372,11 +1457,6 @@ class VariableGetImpl extends VariableGet {
   String toString() {
     return "VariableGetImpl(${toStringInternal()})";
   }
-
-  @override
-  String toStringInternal() {
-    return "";
-  }
 }
 
 /// Front end specific implementation of [LoadLibrary].
@@ -1391,8 +1471,10 @@ class LoadLibraryImpl extends LoadLibrary {
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  void toTextInternal(AstPrinter printer) {
+    printer.write(import.name);
+    printer.write('.loadLibrary');
+    printer.writeArguments(arguments);
   }
 }
 
@@ -1434,8 +1516,9 @@ class LoadLibraryTearOff extends InternalExpression {
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  void toTextInternal(AstPrinter printer) {
+    printer.write(import.name);
+    printer.write('.loadLibrary');
   }
 }
 
@@ -1508,8 +1591,13 @@ class IfNullPropertySet extends InternalExpression {
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  void toTextInternal(AstPrinter printer) {
+    printer.write('let ');
+    printer.writeVariableDeclaration(variable);
+    printer.write(' in if-null ');
+    printer.writeExpression(read);
+    printer.write(' ?? ');
+    printer.writeExpression(write);
   }
 }
 
@@ -1573,8 +1661,10 @@ class IfNullSet extends InternalExpression {
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(read);
+    printer.write(' ?? ');
+    printer.writeExpression(write);
   }
 }
 
@@ -1698,11 +1788,6 @@ class CompoundExtensionSet extends InternalExpression {
   String toString() {
     return "CompoundExtensionSet(${toStringInternal()})";
   }
-
-  @override
-  String toStringInternal() {
-    return "";
-  }
 }
 
 /// Internal expression representing an compound property assignment.
@@ -1792,11 +1877,6 @@ class CompoundPropertySet extends InternalExpression {
   String toString() {
     return "CompoundPropertySet(${toStringInternal()})";
   }
-
-  @override
-  String toStringInternal() {
-    return "";
-  }
 }
 
 /// Internal expression representing an compound property assignment.
@@ -1862,11 +1942,6 @@ class PropertyPostIncDec extends InternalExpression {
   String toString() {
     return "PropertyPostIncDec(${toStringInternal()})";
   }
-
-  @override
-  String toStringInternal() {
-    return "";
-  }
 }
 
 /// Internal expression representing an local variable post inc/dec expression.
@@ -1919,11 +1994,6 @@ class LocalPostIncDec extends InternalExpression {
   @override
   String toString() {
     return "LocalPostIncDec(${toStringInternal()})";
-  }
-
-  @override
-  String toStringInternal() {
-    return "";
   }
 }
 
@@ -1978,11 +2048,6 @@ class StaticPostIncDec extends InternalExpression {
   String toString() {
     return "StaticPostIncDec(${toStringInternal()})";
   }
-
-  @override
-  String toStringInternal() {
-    return "";
-  }
 }
 
 /// Internal expression representing an static member post inc/dec expression.
@@ -2036,11 +2101,6 @@ class SuperPostIncDec extends InternalExpression {
   String toString() {
     return "SuperPostIncDec(${toStringInternal()})";
   }
-
-  @override
-  String toStringInternal() {
-    return "";
-  }
 }
 
 /// Internal expression representing an index get expression.
@@ -2086,11 +2146,6 @@ class IndexGet extends InternalExpression {
   @override
   String toString() {
     return "IndexGet(${toStringInternal()})";
-  }
-
-  @override
-  String toStringInternal() {
-    return "";
   }
 }
 
@@ -2166,11 +2221,6 @@ class IndexSet extends InternalExpression {
   String toString() {
     return "IndexSet(${toStringInternal()})";
   }
-
-  @override
-  String toStringInternal() {
-    return "";
-  }
 }
 
 /// Internal expression representing a  super index set expression.
@@ -2231,11 +2281,6 @@ class SuperIndexSet extends InternalExpression {
   @override
   String toString() {
     return "SuperIndexSet(${toStringInternal()})";
-  }
-
-  @override
-  String toStringInternal() {
-    return "";
   }
 }
 
@@ -2321,11 +2366,6 @@ class ExtensionIndexSet extends InternalExpression {
   @override
   String toString() {
     return "ExtensionIndexSet(${toStringInternal()})";
-  }
-
-  @override
-  String toStringInternal() {
-    return "";
   }
 }
 
@@ -2429,11 +2469,6 @@ class IfNullIndexSet extends InternalExpression {
   String toString() {
     return "IfNullIndexSet(${toStringInternal()})";
   }
-
-  @override
-  String toStringInternal() {
-    return "";
-  }
 }
 
 /// Internal expression representing an if-null super index set expression.
@@ -2520,11 +2555,6 @@ class IfNullSuperIndexSet extends InternalExpression {
   @override
   String toString() {
     return "IfNullSuperIndexSet(${toStringInternal()})";
-  }
-
-  @override
-  String toStringInternal() {
-    return "";
   }
 }
 
@@ -2639,11 +2669,6 @@ class IfNullExtensionIndexSet extends InternalExpression {
   String toString() {
     return "IfNullExtensionIndexSet(${toStringInternal()})";
   }
-
-  @override
-  String toStringInternal() {
-    return "";
-  }
 }
 
 /// Internal expression representing a compound index assignment.
@@ -2741,11 +2766,6 @@ class CompoundIndexSet extends InternalExpression {
   @override
   String toString() {
     return "CompoundIndexSet(${toStringInternal()})";
-  }
-
-  @override
-  String toStringInternal() {
-    return "";
   }
 }
 
@@ -2859,11 +2879,6 @@ class NullAwareCompoundSet extends InternalExpression {
   String toString() {
     return "NullAwareCompoundSet(${toStringInternal()})";
   }
-
-  @override
-  String toStringInternal() {
-    return "";
-  }
 }
 
 /// Internal expression representing an null-aware if-null property set.
@@ -2950,11 +2965,6 @@ class NullAwareIfNullSet extends InternalExpression {
   @override
   String toString() {
     return "NullAwareIfNullSet(${toStringInternal()})";
-  }
-
-  @override
-  String toStringInternal() {
-    return "";
   }
 }
 
@@ -3046,11 +3056,6 @@ class CompoundSuperIndexSet extends InternalExpression {
   @override
   String toString() {
     return "CompoundSuperIndexSet(${toStringInternal()})";
-  }
-
-  @override
-  String toStringInternal() {
-    return "";
   }
 }
 
@@ -3180,11 +3185,6 @@ class CompoundExtensionIndexSet extends InternalExpression {
   String toString() {
     return "CompoundExtensionIndexSet(${toStringInternal()})";
   }
-
-  @override
-  String toStringInternal() {
-    return "";
-  }
 }
 
 /// Internal expression representing an assignment to an extension setter.
@@ -3272,11 +3272,6 @@ class ExtensionSet extends InternalExpression {
   String toString() {
     return "ExtensionSet(${toStringInternal()})";
   }
-
-  @override
-  String toStringInternal() {
-    return "";
-  }
 }
 
 /// Internal expression representing an null-aware extension expression.
@@ -3328,11 +3323,6 @@ class NullAwareExtension extends InternalExpression {
   String toString() {
     return "NullAwareExtension(${toStringInternal()})";
   }
-
-  @override
-  String toStringInternal() {
-    return "";
-  }
 }
 
 /// Front end specific implementation of [PropertySet].
@@ -3352,11 +3342,6 @@ class PropertySetImpl extends PropertySet {
   @override
   String toString() {
     return "PropertySetImpl(${toStringInternal()})";
-  }
-
-  @override
-  String toStringInternal() {
-    return "";
   }
 }
 
@@ -3409,11 +3394,6 @@ class ExtensionTearOff extends InternalExpression {
   String toString() {
     return "ExtensionTearOff(${toStringInternal()})";
   }
-
-  @override
-  String toStringInternal() {
-    return "";
-  }
 }
 
 /// Internal expression for an equals or not-equals expression.
@@ -3459,11 +3439,6 @@ class EqualsExpression extends InternalExpression {
   String toString() {
     return "EqualsExpression(${toStringInternal()})";
   }
-
-  @override
-  String toStringInternal() {
-    return "";
-  }
 }
 
 /// Internal expression for a binary expression.
@@ -3508,11 +3483,6 @@ class BinaryExpression extends InternalExpression {
   String toString() {
     return "BinaryExpression(${toStringInternal()})";
   }
-
-  @override
-  String toStringInternal() {
-    return "";
-  }
 }
 
 /// Internal expression for a unary expression.
@@ -3550,11 +3520,6 @@ class UnaryExpression extends InternalExpression {
   String toString() {
     return "UnaryExpression(${toStringInternal()})";
   }
-
-  @override
-  String toStringInternal() {
-    return "";
-  }
 }
 
 /// Internal expression for a parenthesized expression.
@@ -3590,11 +3555,6 @@ class ParenthesizedExpression extends InternalExpression {
   @override
   String toString() {
     return "ParenthesizedExpression(${toStringInternal()})";
-  }
-
-  @override
-  String toStringInternal() {
-    return "";
   }
 }
 

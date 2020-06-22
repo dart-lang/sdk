@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 /// Note: the VM concatenates all patch files into a single patch file. This
 /// file is the first patch in "dart:developer" which contains all the imports
 /// used by patches of that library. We plan to change this when we have a
@@ -20,20 +18,20 @@ import "dart:isolate" show SendPort;
 // part "timeline.dart"
 
 @patch
-bool debugger({bool when: true, String message}) native "Developer_debugger";
+bool debugger({bool when: true, String? message}) native "Developer_debugger";
 
 @patch
 Object inspect(Object object) native "Developer_inspect";
 
 @patch
 void log(String message,
-    {DateTime time,
-    int sequenceNumber,
+    {DateTime? time,
+    int? sequenceNumber,
     int level: 0,
     String name: '',
-    Zone zone,
-    Object error,
-    StackTrace stackTrace}) {
+    Zone? zone,
+    Object? error,
+    StackTrace? stackTrace}) {
   if (message is! String) {
     throw new ArgumentError.value(message, "message", "Must be a String");
   }
@@ -53,14 +51,14 @@ void log(String message,
 int _nextSequenceNumber = 0;
 
 _log(String message, int timestamp, int sequenceNumber, int level, String name,
-    Zone zone, Object error, StackTrace stackTrace) native "Developer_log";
+    Zone? zone, Object? error, StackTrace? stackTrace) native "Developer_log";
 
 @patch
 void _postEvent(String eventKind, String eventData)
     native "Developer_postEvent";
 
 @patch
-ServiceExtensionHandler _lookupExtension(String method)
+ServiceExtensionHandler? _lookupExtension(String method)
     native "Developer_lookupExtension";
 
 @patch

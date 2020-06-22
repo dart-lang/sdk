@@ -5,7 +5,7 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'add_diagnostic_property_reference_test.dart' as add_diagnostic_property;
-import 'add_not_null_assert.dart' as add_not_null_assert;
+import 'add_not_null_assert_test.dart' as add_not_null_assert;
 import 'add_return_type_test.dart' as add_return_type;
 import 'add_type_annotation_test.dart' as add_type_annotation;
 import 'assign_to_local_variable_test.dart' as assign_to_local_variable;

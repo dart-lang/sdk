@@ -239,7 +239,7 @@ class PageSpaceController {
   friend class PageSpace;  // For MergeOtherPageSpaceController
 
   void RecordUpdate(SpaceUsage before, SpaceUsage after, const char* reason);
-  void MergeOtherPageSpaceController(PageSpaceController* other);
+  void MergeFrom(PageSpaceController* donor);
 
   void RecordUpdate(SpaceUsage before,
                     SpaceUsage after,
@@ -482,7 +482,7 @@ class PageSpace {
 
   bool IsObjectFromImagePages(ObjectPtr object);
 
-  void MergeOtherPageSpace(PageSpace* other);
+  void MergeFrom(PageSpace* donor);
 
  private:
   // Ids for time and data records in Heap::GCStats.

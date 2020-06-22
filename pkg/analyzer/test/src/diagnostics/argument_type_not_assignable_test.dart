@@ -394,6 +394,24 @@ class ArgumentTypeNotAssignableTest_NNBD extends ArgumentTypeNotAssignableTest {
       [EnableString.non_nullable],
     );
 
+  test_binary_eqEq_covariantParameterType() async {
+    await assertErrorsInCode(r'''
+class A {
+  bool operator==(covariant A other) => false;
+}
+
+main(A a, A? aq) {
+  a == 0;
+  aq == 1;
+  aq == aq;
+  aq == null;
+}
+''', [
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 86, 1),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 97, 1),
+    ]);
+  }
+
   test_downcast() async {
     await assertErrorsInCode(r'''
 m() {
@@ -416,24 +434,6 @@ m() {
 n(int x) {}
 ''', [
       error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 24, 1),
-    ]);
-  }
-
-  test_binary_eqEq_covariantParameterType() async {
-    await assertErrorsInCode(r'''
-class A {
-  bool operator==(covariant A other) => false;
-}
-
-main(A a, A? aq) {
-  a == 0;
-  aq == 1;
-  aq == aq;
-  aq == null;
-}
-''', [
-      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 86, 1),
-      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 97, 1),
     ]);
   }
 

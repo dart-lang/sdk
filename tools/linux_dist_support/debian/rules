@@ -36,22 +36,6 @@ endif
 endif
 endif
 
-# Only run AOT builds for supported archs.
-ifneq (,$(findstring $(DEB_HOST_ARCH_CPU),$(AOT_SUPPORTED_ARCHS)))
-AOT_BUILD_CMD := \
-python tools/build.py -v -m release -a $(ARCH) $(TOOLCHAIN) \
-		copy_gen_kernel_snapshot; \
-python tools/build.py -v -m product -a $(ARCH) $(TOOLCHAIN) \
-		copy_gen_snapshot copy_dartaotruntime; \
-mkdir -p out/$(BUILD_TYPE)/dart-sdk/bin/utils; \
-cp out/$(BUILD_TYPE_PRODUCT)/dart-sdk/bin/utils/gen_snapshot \
-		out/$(BUILD_TYPE)/dart-sdk/bin/utils/gen_snapshot; \
-cp out/$(BUILD_TYPE_PRODUCT)/dart-sdk/bin/dartaotruntime \
-		out/$(BUILD_TYPE)/dart-sdk/bin/dartaotruntime
-else
-AOT_BUILD_CMD := # empty
-endif
-
 # Verbose?
 ifeq (1,$(DH_VERBOSE))
 BUILD_ARGS += V=1
@@ -74,7 +58,6 @@ override_dh_auto_configure:
 override_dh_auto_build:
 	cd dart; \
 	python tools/build.py -v -m release -a $(ARCH) $(TOOLCHAIN) create_sdk; \
-	$(AOT_BUILD_CMD); \
 	cd ..
 
 # Building the Dart SDK will already strip all binaries.

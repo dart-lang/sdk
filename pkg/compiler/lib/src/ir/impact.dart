@@ -298,13 +298,11 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
 
       case ir.AsyncMarker.Async:
         ir.DartType elementType = const ir.DynamicType();
-        if (returnType is ir.InterfaceType) {
-          if (returnType.classNode == typeEnvironment.coreTypes.futureOrClass) {
-            elementType = returnType.typeArguments.first;
-          } else if (returnType.classNode ==
-              typeEnvironment.coreTypes.futureClass) {
-            elementType = returnType.typeArguments.first;
-          }
+        if (returnType is ir.InterfaceType &&
+            returnType.classNode == typeEnvironment.coreTypes.futureClass) {
+          elementType = returnType.typeArguments.first;
+        } else if (returnType is ir.FutureOrType) {
+          elementType = returnType.typeArgument;
         }
         registerAsync(elementType);
         break;

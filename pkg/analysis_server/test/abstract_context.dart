@@ -132,16 +132,27 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   /// Create an analysis options file based on the given arguments.
-  void createAnalysisOptionsFile(
-      {List<String> experiments, List<String> lints}) {
+  void createAnalysisOptionsFile({
+    List<String> experiments,
+    bool implicitCasts,
+    List<String> lints,
+  }) {
     var buffer = StringBuffer();
 
-    if (experiments != null) {
+    if (experiments != null || implicitCasts != null) {
       buffer.writeln('analyzer:');
+    }
+
+    if (experiments != null) {
       buffer.writeln('  enable-experiment:');
       for (var experiment in experiments) {
         buffer.writeln('    - $experiment');
       }
+    }
+
+    if (implicitCasts != null) {
+      buffer.writeln('  strong-mode:');
+      buffer.writeln('    implicit-casts: $implicitCasts');
     }
 
     if (lints != null) {

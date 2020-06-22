@@ -35,6 +35,8 @@
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
 
+#include "include/dart_api_dl.h"
+
 namespace dart {
 
 #define CHECK(X)                                                               \
@@ -270,31 +272,9 @@ DART_EXPORT intptr_t TestCallbackWrongIsolate(void (*fn)()) {
 #endif  // defined(TARGET_OS_LINUX)
 
 ////////////////////////////////////////////////////////////////////////////////
-// Dynamic linking of dart_native_api.h for the next two samples.
-typedef bool (*Dart_PostCObjectType)(Dart_Port port_id, Dart_CObject* message);
-Dart_PostCObjectType Dart_PostCObject_ = nullptr;
-
-DART_EXPORT void RegisterDart_PostCObject(
-    Dart_PostCObjectType function_pointer) {
-  Dart_PostCObject_ = function_pointer;
-}
-
-typedef Dart_Port (*Dart_NewNativePortType)(const char* name,
-                                            Dart_NativeMessageHandler handler,
-                                            bool handle_concurrently);
-Dart_NewNativePortType Dart_NewNativePort_ = nullptr;
-
-DART_EXPORT void RegisterDart_NewNativePort(
-    Dart_NewNativePortType function_pointer) {
-  Dart_NewNativePort_ = function_pointer;
-}
-
-typedef bool (*Dart_CloseNativePortType)(Dart_Port native_port_id);
-Dart_CloseNativePortType Dart_CloseNativePort_ = nullptr;
-
-DART_EXPORT void RegisterDart_CloseNativePort(
-    Dart_CloseNativePortType function_pointer) {
-  Dart_CloseNativePort_ = function_pointer;
+// Initialize `dart_api_dl.h`
+DART_EXPORT intptr_t InitDartApiDL(void* data) {
+  return Dart_InitializeApiDL(data);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -342,7 +322,7 @@ void NotifyDart(Dart_Port send_port, const Work* work) {
   dart_object.type = Dart_CObject_kInt64;
   dart_object.value.as_int64 = work_addr;
 
-  const bool result = Dart_PostCObject_(send_port, &dart_object);
+  const bool result = Dart_PostCObject_DL(send_port, &dart_object);
   if (!result) {
     FATAL("C   :  Posting message to port failed.");
   }
@@ -504,16 +484,16 @@ class PendingCall {
   PendingCall(void** buffer, size_t* length)
       : response_buffer_(buffer), response_length_(length) {
     receive_port_ =
-        Dart_NewNativePort_("cpp-response", &PendingCall::HandleResponse,
-                            /*handle_concurrently=*/false);
+        Dart_NewNativePort_DL("cpp-response", &PendingCall::HandleResponse,
+                              /*handle_concurrently=*/false);
   }
-  ~PendingCall() { Dart_CloseNativePort_(receive_port_); }
+  ~PendingCall() { Dart_CloseNativePort_DL(receive_port_); }
 
   Dart_Port port() const { return receive_port_; }
 
   void PostAndWait(Dart_Port port, Dart_CObject* object) {
     std::unique_lock<std::mutex> lock(mutex);
-    const bool success = Dart_PostCObject_(send_port_, object);
+    const bool success = Dart_PostCObject_DL(send_port_, object);
     if (!success) FATAL("Failed to send message, invalid port or isolate died");
 
     printf("C   :  Waiting for result.\n");
@@ -668,7 +648,7 @@ void MyCallback2(uint8_t a) {
   printf("C   :  Dart_PostCObject_(request: %" Px ", call: %" Px ").\n",
          reinterpret_cast<intptr_t>(&c_request),
          reinterpret_cast<intptr_t>(&c_pending_call));
-  Dart_PostCObject_(send_port_, &c_request);
+  Dart_PostCObject_DL(send_port_, &c_request);
 }
 
 // Simulated work for Thread #1.
@@ -788,6 +768,171 @@ DART_EXPORT void ThreadPoolTest_BarrierSync(
     }
   }
   dart_enter_isolate(isolate);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Functions for handle tests.
+//
+// vmspecific_handle_test.dart (statically linked).
+// vmspecific_handle_dynamically_linked_test.dart (dynamically linked).
+
+static void RunFinalizer(void* isolate_callback_data,
+                         Dart_WeakPersistentHandle handle,
+                         void* peer) {
+  printf("Running finalizer for weak handle.\n");
+}
+
+// Tests that passing handles through FFI calls works, and that the FFI call
+// sets up the VM state etc. correctly so that the handle API calls work.
+DART_EXPORT Dart_Handle PassObjectToC(Dart_Handle h) {
+  // Can use "h" until this function returns.
+
+  // A persistent handle which outlives this call. Lifetime managed in C.
+  auto persistent_handle = Dart_NewPersistentHandle(h);
+
+  Dart_Handle handle_2 = Dart_HandleFromPersistent(persistent_handle);
+  Dart_DeletePersistentHandle(persistent_handle);
+  if (Dart_IsError(handle_2)) {
+    Dart_PropagateError(handle_2);
+  }
+
+  Dart_Handle return_value;
+  if (!Dart_IsNull(h)) {
+    // A weak handle which outlives this call. Lifetime managed in C.
+    auto weak_handle = Dart_NewWeakPersistentHandle(
+        h, reinterpret_cast<void*>(0x1234), 64, RunFinalizer);
+    return_value = Dart_HandleFromWeakPersistent(weak_handle);
+
+    // Deleting a weak handle is not required, it deletes itself on
+    // finalization.
+    // Deleting a weak handle cancels the finalizer.
+    Dart_DeleteWeakPersistentHandle(weak_handle);
+  } else {
+    return_value = h;
+  }
+
+  return return_value;
+}
+
+DART_EXPORT void ClosureCallbackThroughHandle(void (*callback)(Dart_Handle),
+                                              Dart_Handle closureHandle) {
+  printf("ClosureCallbackThroughHandle %p %p\n", callback, closureHandle);
+  callback(closureHandle);
+}
+
+DART_EXPORT Dart_Handle ReturnHandleInCallback(Dart_Handle (*callback)()) {
+  printf("ReturnHandleInCallback %p\n", callback);
+  Dart_Handle handle = callback();
+  if (Dart_IsError(handle)) {
+    printf("callback() returned an error, propagating error\n");
+    // Do C/C++ resource cleanup if needed, before propagating error.
+    Dart_PropagateError(handle);
+  }
+  return handle;
+}
+
+// Recurses til `i` reaches 0. Throws some Dart_Invoke in there as well.
+DART_EXPORT Dart_Handle HandleRecursion(Dart_Handle object,
+                                        Dart_Handle (*callback)(int64_t),
+                                        int64_t i) {
+  printf("HandleRecursion %" Pd64 "\n", i);
+  const bool do_invoke = i % 3 == 0;
+  const bool do_gc = i % 7 == 3;
+  if (do_gc) {
+    Dart_ExecuteInternalCommand("gc-now", nullptr);
+  }
+  Dart_Handle result;
+  if (do_invoke) {
+    Dart_Handle method_name = Dart_NewStringFromCString("a");
+    if (Dart_IsError(method_name)) {
+      Dart_PropagateError(method_name);
+    }
+    Dart_Handle arg = Dart_NewInteger(i - 1);
+    if (Dart_IsError(arg)) {
+      Dart_PropagateError(arg);
+    }
+    printf("Dart_Invoke\n");
+    result = Dart_Invoke(object, method_name, 1, &arg);
+  } else {
+    printf("callback\n");
+    result = callback(i - 1);
+  }
+  if (do_gc) {
+    Dart_ExecuteInternalCommand("gc-now", nullptr);
+  }
+  if (Dart_IsError(result)) {
+    // Do C/C++ resource cleanup if needed, before propagating error.
+    printf("Dart_PropagateError %" Pd64 "\n", i);
+    Dart_PropagateError(result);
+  }
+  printf("return %" Pd64 "\n", i);
+  return result;
+}
+
+DART_EXPORT int64_t HandleReadFieldValue(Dart_Handle handle) {
+  printf("HandleReadFieldValue\n");
+  Dart_Handle field_name = Dart_NewStringFromCString("a");
+  if (Dart_IsError(field_name)) {
+    printf("Dart_PropagateError(field_name)\n");
+    Dart_PropagateError(field_name);
+  }
+  Dart_Handle field_value = Dart_GetField(handle, field_name);
+  if (Dart_IsError(field_value)) {
+    printf("Dart_PropagateError(field_value)\n");
+    Dart_PropagateError(field_value);
+  }
+  int64_t value;
+  Dart_Handle err = Dart_IntegerToInt64(field_value, &value);
+  if (Dart_IsError(err)) {
+    Dart_PropagateError(err);
+  }
+  return value;
+}
+
+DART_EXPORT Dart_Handle TrueHandle() {
+  return Dart_True();
+}
+
+DART_EXPORT Dart_Handle PassObjectToCUseDynamicLinking(Dart_Handle h) {
+  auto persistent_handle = Dart_NewPersistentHandle_DL(h);
+
+  Dart_Handle handle_2 = Dart_HandleFromPersistent_DL(persistent_handle);
+  Dart_SetPersistentHandle_DL(persistent_handle, h);
+  Dart_DeletePersistentHandle_DL(persistent_handle);
+
+  auto weak_handle = Dart_NewWeakPersistentHandle_DL(
+      handle_2, reinterpret_cast<void*>(0x1234), 64, RunFinalizer);
+  Dart_Handle return_value = Dart_HandleFromWeakPersistent_DL(weak_handle);
+
+  Dart_DeleteWeakPersistentHandle_DL(weak_handle);
+
+  return return_value;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Example for doing closure callbacks with help of `dart_api.h`.
+//
+// sample_ffi_functions_callbacks_closures.dart
+
+void (*callback_)(Dart_Handle);
+Dart_PersistentHandle closure_to_callback_;
+
+DART_EXPORT void RegisterClosureCallbackFP(void (*callback)(Dart_Handle)) {
+  callback_ = callback;
+}
+
+DART_EXPORT void RegisterClosureCallback(Dart_Handle h) {
+  closure_to_callback_ = Dart_NewPersistentHandle_DL(h);
+}
+
+DART_EXPORT void InvokeClosureCallback() {
+  Dart_Handle closure_handle =
+      Dart_HandleFromPersistent_DL(closure_to_callback_);
+  callback_(closure_handle);
+}
+
+DART_EXPORT void ReleaseClosureCallback() {
+  Dart_DeletePersistentHandle_DL(closure_to_callback_);
 }
 
 }  // namespace dart

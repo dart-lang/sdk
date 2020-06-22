@@ -482,11 +482,18 @@ class BuildMode with HasContextMixin {
   }
 
   Packages _findPackages(String path) {
-    if (path != null) {
-      return findPackagesFrom(resourceProvider, resourceProvider.getFile(path));
-    } else {
-      return Packages.empty;
+    var configPath = options.packageConfigPath;
+    if (configPath != null) {
+      var configFile = resourceProvider.getFile(configPath);
+      return parsePackagesFile(resourceProvider, configFile);
     }
+
+    if (path != null) {
+      var file = resourceProvider.getFile(path);
+      return findPackagesFrom(resourceProvider, file);
+    }
+
+    return Packages.empty;
   }
 
   /// Ensure that the parsed unit for [absoluteUri] is available.

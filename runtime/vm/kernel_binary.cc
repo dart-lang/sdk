@@ -226,20 +226,6 @@ std::unique_ptr<Program> Program::ReadFromTypedData(
   return kernel::Program::ReadFrom(&reader, error);
 }
 
-void Program::AutoDetectNullSafety(Isolate* isolate) {
-  if (isolate->is_service_isolate() || isolate->is_kernel_isolate()) {
-    // For now the service isolate and kernel isolate will be running in
-    // weak mode and we assert for that here.
-    ASSERT(!isolate->null_safety());
-  } else {
-    // If null safety is not specified on the command line we use the value
-    // from the dill file that the CFE has computed based on how it was invoked.
-    if (FLAG_null_safety == kNullSafetyOptionUnspecified) {
-      isolate->set_null_safety(compilation_mode() == NNBDCompiledMode::kStrong);
-    }
-  }
-}
-
 }  // namespace kernel
 }  // namespace dart
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

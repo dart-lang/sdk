@@ -1054,6 +1054,14 @@ void FfiCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   }
 }
 
+void EnterHandleScopeInstr::PrintOperandsTo(BufferFormatter* f) const {
+  if (kind_ == Kind::kEnterHandleScope) {
+    f->Print("<enter handle scope>");
+  } else {
+    f->Print("<get top api scope>");
+  }
+}
+
 void NativeReturnInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
   f->Print(" (@");
@@ -1159,6 +1167,11 @@ void ParallelMoveInstr::PrintTo(BufferFormatter* f) const {
     f->Print(" <- ");
     moves_[i]->src().PrintTo(f);
   }
+}
+
+void Utf8ScanInstr::PrintTo(BufferFormatter* f) const {
+  Definition::PrintTo(f);
+  f->Print(" [%s]", scan_flags_field_.Name());
 }
 
 void Environment::PrintTo(BufferFormatter* f) const {

@@ -359,6 +359,10 @@ class CodeSourceMapReader : public ValueObject {
   intptr_t GetNullCheckNameIndexAt(int32_t pc_offset);
 
  private:
+  // Reads a TokenPosition value from a CSM, handling the different encoding for
+  // when non-symbolic stack traces are enabled.
+  static TokenPosition ReadPosition(ReadStream* stream);
+
   const CodeSourceMap& map_;
   const Array& functions_;
   const Function& root_;

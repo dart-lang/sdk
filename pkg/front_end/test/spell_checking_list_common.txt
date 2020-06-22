@@ -296,7 +296,7 @@ bit
 bits
 bitwise
 black
-blacklisted
+denylisted
 block
 blocks
 blogs
@@ -510,6 +510,7 @@ common
 commonly
 compact
 comparable
+comparator
 compare
 comparing
 comparison
@@ -771,6 +772,7 @@ denote
 denoted
 denotes
 denoting
+deny
 depend
 dependence
 dependencies
@@ -997,6 +999,7 @@ environment
 equal
 equality
 equals
+equate
 equivalence
 equivalent
 equivalents
@@ -1767,7 +1770,6 @@ markers
 marking
 marks
 mask
-master
 match
 matched
 matcher
@@ -2268,6 +2270,7 @@ proper
 properly
 properties
 property
+proposition
 prototype
 proves
 provide
@@ -2413,6 +2416,7 @@ rely
 relying
 remain
 remainder
+remained
 remaining
 remains
 remember
@@ -3247,7 +3251,7 @@ whether
 which
 while
 white
-whitelisted
+allowlisted
 whitespace
 whole
 whose

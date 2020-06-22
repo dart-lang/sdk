@@ -170,6 +170,10 @@ class Value : public ZoneAllocated {
 
   bool Equals(Value* other) const;
 
+  // Returns true if this |Value| can evaluate to the given |value| during
+  // execution.
+  inline bool CanBe(const Object& value);
+
  private:
   friend class FlowGraphPrinter;
   friend class FlowGraphDeserializer;  // For setting reaching_type_ directly.
@@ -377,6 +381,7 @@ struct InstrAttrs {
   M(NativeParameter, kNoGC)                                                    \
   M(LoadIndexedUnsafe, kNoGC)                                                  \
   M(StoreIndexedUnsafe, kNoGC)                                                 \
+  M(MemoryCopy, kNoGC)                                                         \
   M(TailCall, kNoGC)                                                           \
   M(ParallelMove, kNoGC)                                                       \
   M(PushArgument, kNoGC)                                                       \
@@ -394,6 +399,10 @@ struct InstrAttrs {
   M(SpecialParameter, kNoGC)                                                   \
   M(ClosureCall, _)                                                            \
   M(FfiCall, _)                                                                \
+  M(EnterHandleScope, _)                                                       \
+  M(ExitHandleScope, _)                                                        \
+  M(AllocateHandle, _)                                                         \
+  M(RawStoreField, _)                                                          \
   M(InstanceCall, _)                                                           \
   M(PolymorphicInstanceCall, _)                                                \
   M(DispatchTableCall, _)                                                      \
@@ -468,6 +477,7 @@ struct InstrAttrs {
   M(StringToCharCode, kNoGC)                                                   \
   M(OneByteStringFromCharCode, kNoGC)                                          \
   M(StringInterpolate, _)                                                      \
+  M(Utf8Scan, kNoGC)                                                           \
   M(InvokeMathCFunction, _)                                                    \
   M(TruncDivMod, kNoGC)                                                        \
   /*We could be more precise about when these 2 instructions can trigger GC.*/ \
@@ -2688,6 +2698,86 @@ class LoadIndexedUnsafeInstr : public TemplateDefinition<1, NoThrow> {
   const Representation representation_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadIndexedUnsafeInstr);
+};
+
+class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
+ public:
+  MemoryCopyInstr(Value* src,
+                  Value* dest,
+                  Value* src_start,
+                  Value* dest_start,
+                  Value* length,
+                  classid_t src_cid,
+                  classid_t dest_cid)
+      : src_cid_(src_cid),
+        dest_cid_(dest_cid),
+        element_size_(Instance::ElementSizeFor(src_cid)) {
+    ASSERT(IsArrayTypeSupported(src_cid));
+    ASSERT(IsArrayTypeSupported(dest_cid));
+    ASSERT(Instance::ElementSizeFor(src_cid) ==
+           Instance::ElementSizeFor(dest_cid));
+    SetInputAt(kSrcPos, src);
+    SetInputAt(kDestPos, dest);
+    SetInputAt(kSrcStartPos, src_start);
+    SetInputAt(kDestStartPos, dest_start);
+    SetInputAt(kLengthPos, length);
+  }
+
+  enum {
+    kSrcPos = 0,
+    kDestPos = 1,
+    kSrcStartPos = 2,
+    kDestStartPos = 3,
+    kLengthPos = 4
+  };
+
+  DECLARE_INSTRUCTION(MemoryCopy)
+
+  virtual Representation RequiredInputRepresentation(intptr_t index) const {
+    // All inputs are tagged (for now).
+    return kTagged;
+  }
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool HasUnknownSideEffects() const { return true; }
+
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  Value* src() const { return inputs_[kSrcPos]; }
+  Value* dest() const { return inputs_[kDestPos]; }
+  Value* src_start() const { return inputs_[kSrcStartPos]; }
+  Value* dest_start() const { return inputs_[kDestStartPos]; }
+  Value* length() const { return inputs_[kLengthPos]; }
+
+ private:
+  // Set array_reg to point to the index indicated by start (contained in
+  // start_reg) of the typed data or string in array (contained in array_reg).
+  void EmitComputeStartPointer(FlowGraphCompiler* compiler,
+                               classid_t array_cid,
+                               Value* start,
+                               Register array_reg,
+                               Register start_reg);
+
+  static bool IsArrayTypeSupported(classid_t array_cid) {
+    if (IsTypedDataBaseClassId(array_cid)) {
+      return true;
+    }
+    switch (array_cid) {
+      case kOneByteStringCid:
+      case kTwoByteStringCid:
+      case kExternalOneByteStringCid:
+      case kExternalTwoByteStringCid:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  classid_t src_cid_;
+  classid_t dest_cid_;
+  intptr_t element_size_;
+
+  DISALLOW_COPY_AND_ASSIGN(MemoryCopyInstr);
 };
 
 // Unwinds the current frame and tail calls a target.
@@ -4955,7 +5045,10 @@ class FfiCallInstr : public Definition {
 
   virtual intptr_t InputCount() const { return inputs_.length(); }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
-  virtual bool MayThrow() const { return false; }
+  virtual bool MayThrow() const {
+    // By Dart_PropagateError.
+    return true;
+  }
 
   // FfiCallInstr calls C code, which can call back into Dart.
   virtual bool ComputeCanDeoptimize() const {
@@ -4993,6 +5086,82 @@ class FfiCallInstr : public Definition {
   GrowableArray<Value*> inputs_;
 
   DISALLOW_COPY_AND_ASSIGN(FfiCallInstr);
+};
+
+class EnterHandleScopeInstr : public TemplateDefinition<0, NoThrow> {
+ public:
+  enum class Kind { kEnterHandleScope = 0, kGetTopHandleScope = 1 };
+
+  explicit EnterHandleScopeInstr(Kind kind) : kind_(kind) {}
+
+  DECLARE_INSTRUCTION(EnterHandleScope)
+
+  virtual Representation representation() const { return kUnboxedIntPtr; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+ private:
+  Kind kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(EnterHandleScopeInstr);
+};
+
+class ExitHandleScopeInstr : public TemplateInstruction<0, NoThrow> {
+ public:
+  ExitHandleScopeInstr() {}
+
+  DECLARE_INSTRUCTION(ExitHandleScope)
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(ExitHandleScopeInstr);
+};
+
+class AllocateHandleInstr : public TemplateDefinition<1, NoThrow> {
+ public:
+  explicit AllocateHandleInstr(Value* scope) { SetInputAt(kScope, scope); }
+
+  enum { kScope = 0 };
+
+  DECLARE_INSTRUCTION(AllocateHandle)
+
+  virtual intptr_t InputCount() const { return 1; }
+  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const;
+  virtual Representation representation() const { return kUnboxedIntPtr; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(AllocateHandleInstr);
+};
+
+class RawStoreFieldInstr : public TemplateInstruction<2, NoThrow> {
+ public:
+  RawStoreFieldInstr(Value* base, Value* value, int32_t offset)
+      : offset_(offset) {
+    SetInputAt(kBase, base);
+    SetInputAt(kValue, value);
+  }
+
+  enum { kBase = 0, kValue = 1 };
+
+  DECLARE_INSTRUCTION(RawStoreField)
+
+  virtual intptr_t InputCount() const { return 2; }
+  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const;
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+ private:
+  const int32_t offset_;
+
+  DISALLOW_COPY_AND_ASSIGN(RawStoreFieldInstr);
 };
 
 class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {
@@ -5558,6 +5727,76 @@ class StringInterpolateInstr : public TemplateDefinition<1, Throws> {
   Function& function_;
 
   DISALLOW_COPY_AND_ASSIGN(StringInterpolateInstr);
+};
+
+// Scanning instruction to compute the result size and decoding parameters
+// for the UTF-8 decoder. Equivalent to:
+//
+// int _scan(Uint8List bytes, int start, int end, _OneByteString table,
+//     _Utf8Decoder decoder) {
+//   int size = 0;
+//   int flags = 0;
+//   for (int i = start; i < end; i++) {
+//     int t = table.codeUnitAt(bytes[i]);
+//     size += t & sizeMask;
+//     flags |= t;
+//   }
+//   decoder._scanFlags |= flags & flagsMask;
+//   return size;
+// }
+//
+// under these assumptions:
+// - The start and end inputs are within the bounds of bytes and in smi range.
+// - The decoder._scanFlags field is unboxed or contains a smi.
+// - The first 128 entries of the table have the value 1.
+class Utf8ScanInstr : public TemplateDefinition<5, NoThrow> {
+ public:
+  Utf8ScanInstr(Value* decoder,
+                Value* bytes,
+                Value* start,
+                Value* end,
+                Value* table,
+                const Slot& decoder_scan_flags_field)
+      : scan_flags_field_(decoder_scan_flags_field) {
+    SetInputAt(0, decoder);
+    SetInputAt(1, bytes);
+    SetInputAt(2, start);
+    SetInputAt(3, end);
+    SetInputAt(4, table);
+  }
+
+  DECLARE_INSTRUCTION(Utf8Scan)
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx >= 0 || idx <= 4);
+    // The start and end inputs are unboxed, but in smi range.
+    if (idx == 2 || idx == 3) return kUnboxedIntPtr;
+    return kTagged;
+  }
+
+  virtual Representation representation() const { return kUnboxedIntPtr; }
+
+  virtual CompileType ComputeType() const { return CompileType::Int(); }
+  virtual bool HasUnknownSideEffects() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual intptr_t DeoptimizationTarget() const { return DeoptId::kNone; }
+
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return kNotSpeculative;
+  }
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    return scan_flags_field_.Equals(&other->AsUtf8Scan()->scan_flags_field_);
+  }
+
+  bool IsScanFlagsUnboxed() const;
+
+  PRINT_TO_SUPPORT
+
+ private:
+  const Slot& scan_flags_field_;
+
+  DISALLOW_COPY_AND_ASSIGN(Utf8ScanInstr);
 };
 
 class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
@@ -9155,6 +9394,11 @@ StringPtr TemplateDartCall<kExtraInputs>::Selector() {
   } else {
     UNREACHABLE();
   }
+}
+
+inline bool Value::CanBe(const Object& value) {
+  ConstantInstr* constant = definition()->AsConstant();
+  return (constant == nullptr) || constant->value().raw() == value.raw();
 }
 
 }  // namespace dart

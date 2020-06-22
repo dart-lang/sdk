@@ -5,6 +5,9 @@
 #include "vm/compiler/runtime_api.h"
 #include "vm/globals.h"
 
+// For `StubCodeCompiler::GenerateAllocateUnhandledExceptionStub`
+#include "vm/compiler/backend/il.h"
+
 #define SHOULD_NOT_INCLUDE_RUNTIME
 
 #include "vm/compiler/stub_code_compiler.h"
@@ -160,6 +163,22 @@ void StubCodeCompiler::GenerateInstanceOfStub(Assembler* assembler) {
   __ PopRegister(TypeTestABI::kResultReg);
   __ LeaveStubFrame();
   __ Ret();
+}
+
+// The UnhandledException class lives in the VM isolate, so it cannot cache
+// an allocation stub for itself. Instead, we cache it in the stub code list.
+void StubCodeCompiler::GenerateAllocateUnhandledExceptionStub(
+    Assembler* assembler) {
+  Thread* thread = Thread::Current();
+  auto class_table = thread->isolate()->class_table();
+  ASSERT(class_table->HasValidClassAt(kUnhandledExceptionCid));
+  const auto& cls = Class::ZoneHandle(thread->zone(),
+                                      class_table->At(kUnhandledExceptionCid));
+  ASSERT(!cls.IsNull());
+
+  GenerateAllocationStubForClass(assembler, nullptr, cls,
+                                 Code::Handle(Code::null()),
+                                 Code::Handle(Code::null()));
 }
 
 }  // namespace compiler

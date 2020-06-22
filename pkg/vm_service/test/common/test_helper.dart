@@ -15,12 +15,12 @@ export 'service_test_common.dart' show IsolateTest, VMTest;
 
 /// Whether to use causal async stacks (if not we use lazy async stacks).
 const bool useCausalAsyncStacks =
-    const bool.fromEnvironment('dart.developer.causal_async_stacks');
+    bool.fromEnvironment('dart.developer.causal_async_stacks');
 
 /// The extra arguments to use
 const List<String> extraDebuggingArgs = useCausalAsyncStacks
-    ? const ['--causal-async-stacks', '--no-lazy-async-stacks']
-    : const ['--no-causal-async-stacks', '--lazy-async-stacks'];
+    ? ['--causal-async-stacks', '--no-lazy-async-stacks']
+    : ['--no-causal-async-stacks', '--lazy-async-stacks'];
 
 List<IsolateTest> ifLazyAsyncStacks(List<IsolateTest> lazyTests) {
   if (useCausalAsyncStacks) return const <IsolateTest>[];

@@ -38,7 +38,7 @@ class TypeTestingStubNamer {
 
 class TypeTestingStubGenerator {
  public:
-  // During bootstrapping it will return `null` for a whitelisted set of types,
+  // During bootstrapping it will return `null` for |void| and |dynamic| types,
   // otherwise it will return a default stub which tail-calls
   // subtypingtest/runtime code.
   static CodePtr DefaultCodeForType(const AbstractType& type,

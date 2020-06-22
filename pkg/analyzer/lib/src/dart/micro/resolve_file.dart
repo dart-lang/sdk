@@ -19,8 +19,10 @@ import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/micro/analysis_context.dart';
+import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
 import 'package:analyzer/src/dart/micro/library_analyzer.dart';
 import 'package:analyzer/src/dart/micro/library_graph.dart';
+import 'package:analyzer/src/dart/micro/performance.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
@@ -33,7 +35,6 @@ import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
-import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
@@ -47,7 +48,7 @@ class FileContext {
 class FileResolver {
   final PerformanceLog logger;
   final ResourceProvider resourceProvider;
-  final MemoryByteStore byteStore;
+  CiderByteStore byteStore;
   final SourceFactory sourceFactory;
 
   /*
@@ -77,15 +78,41 @@ class FileResolver {
   _LibraryContext libraryContext;
 
   FileResolver(
-    this.logger,
-    this.resourceProvider,
-    this.byteStore,
-    this.sourceFactory,
-    this.getFileDigest,
-    this.prefetchFiles, {
+    PerformanceLog logger,
+    ResourceProvider resourceProvider,
+    @deprecated ByteStore byteStore,
+    SourceFactory sourceFactory,
+    String Function(String path) getFileDigest,
+    void Function(List<String> paths) prefetchFiles, {
     @required Workspace workspace,
     Duration libraryContextResetTimeout = const Duration(seconds: 60),
-  }) : this.workspace = workspace {
+  }) : this.from(
+          logger: logger,
+          resourceProvider: resourceProvider,
+          sourceFactory: sourceFactory,
+          getFileDigest: getFileDigest,
+          prefetchFiles: prefetchFiles,
+          workspace: workspace,
+          libraryContextResetTimeout: libraryContextResetTimeout,
+        );
+
+  FileResolver.from({
+    @required PerformanceLog logger,
+    @required ResourceProvider resourceProvider,
+    @required SourceFactory sourceFactory,
+    @required String Function(String path) getFileDigest,
+    @required void Function(List<String> paths) prefetchFiles,
+    @required Workspace workspace,
+    CiderByteStore byteStore,
+    Duration libraryContextResetTimeout = const Duration(seconds: 60),
+  })  : this.logger = logger,
+        this.sourceFactory = sourceFactory,
+        this.resourceProvider = resourceProvider,
+        this.getFileDigest = getFileDigest,
+        this.prefetchFiles = prefetchFiles,
+        this.workspace = workspace {
+    byteStore ??= CiderMemoryByteStore();
+    this.byteStore = byteStore;
     _libraryContextReset = _LibraryContextReset(
       fileResolver: this,
       resetTimeout: libraryContextResetTimeout,
@@ -120,12 +147,25 @@ class FileResolver {
     _libraryContextReset.dispose();
   }
 
+  @deprecated
   ErrorsResult getErrors(String path) {
+    return getErrors2(path: path);
+  }
+
+  ErrorsResult getErrors2({
+    @required String path,
+    CiderOperationPerformanceImpl performance,
+  }) {
     _throwIfNotAbsoluteNormalizedPath(path);
+
+    performance ??= CiderOperationPerformanceImpl('<default>');
 
     return _withLibraryContextReset(() {
       return logger.run('Get errors for $path', () {
-        var fileContext = getFileContext(path);
+        var fileContext = getFileContext(
+          path: path,
+          performance: performance,
+        );
         var file = fileContext.file;
 
         var errorsSignatureBuilder = ApiSignature();
@@ -134,27 +174,27 @@ class FileResolver {
         var errorsSignature = errorsSignatureBuilder.toByteList();
 
         var errorsKey = file.path + '.errors';
-        var bytes = byteStore.get(errorsKey);
-
+        var bytes = byteStore.get(errorsKey, errorsSignature);
         List<AnalysisError> errors;
         if (bytes != null) {
           var data = CiderUnitErrors.fromBuffer(bytes);
-          if (const ListEquality().equals(data.signature, errorsSignature)) {
-            errors = data.errors.map((error) {
-              return ErrorEncoding.decode(file.source, error);
-            }).toList();
-          }
+          errors = data.errors.map((error) {
+            return ErrorEncoding.decode(file.source, error);
+          }).toList();
         }
 
         if (errors == null) {
-          var unitResult = resolve(path);
+          var unitResult = resolve2(
+            path: path,
+            performance: performance,
+          );
           errors = unitResult.errors;
 
           bytes = CiderUnitErrorsBuilder(
             signature: errorsSignature,
             errors: errors.map((ErrorEncoding.encode)).toList(),
           ).toBuffer();
-          byteStore.put(errorsKey, bytes);
+          byteStore.put(errorsKey, errorsSignature, bytes);
         }
 
         return ErrorsResultImpl(
@@ -169,12 +209,17 @@ class FileResolver {
     });
   }
 
-  FileContext getFileContext(String path) {
-    var analysisOptions = _getAnalysisOptions(path);
-    _createContext(path, analysisOptions);
+  FileContext getFileContext({
+    @required String path,
+    @required CiderOperationPerformanceImpl performance,
+  }) {
+    return performance.run('fileContext', (performance) {
+      var analysisOptions = _getAnalysisOptions(path);
+      _createContext(path, analysisOptions);
 
-    var file = fsState.getFileForPath(path);
-    return FileContext(analysisOptions, file);
+      var file = fsState.getFileForPath(path);
+      return FileContext(analysisOptions, file);
+    });
   }
 
   String getLibraryLinkedSignature(String path) {
@@ -184,16 +229,31 @@ class FileResolver {
     return file.libraryCycle.signatureStr;
   }
 
+  @deprecated
   ResolvedUnitResult resolve(String path) {
+    return resolve2(path: path);
+  }
+
+  ResolvedUnitResult resolve2({
+    @required String path,
+    CiderOperationPerformanceImpl performance,
+  }) {
     _throwIfNotAbsoluteNormalizedPath(path);
+
+    performance ??= CiderOperationPerformanceImpl('<default>');
 
     return _withLibraryContextReset(() {
       return logger.run('Resolve $path', () {
-        var fileContext = getFileContext(path);
+        var fileContext = getFileContext(
+          path: path,
+          performance: performance,
+        );
         var file = fileContext.file;
         var libraryFile = file.partOfLibrary ?? file;
 
-        libraryContext.load2(libraryFile);
+        performance.run('libraryContext', (performance) {
+          libraryContext.load2(libraryFile);
+        });
 
         testView?.addResolvedFile(path);
 
@@ -217,7 +277,11 @@ class FileResolver {
             (String path) => resourceProvider.getFile(path).readAsStringSync(),
           );
 
-          results = libraryAnalyzer.analyzeSync();
+          results = performance.run('analyze', (performance) {
+            return libraryAnalyzer.analyzeSync(
+              performance: performance,
+            );
+          });
         });
         UnitAnalysisResult fileResult = results[file];
 
@@ -412,7 +476,7 @@ class FileResolverTestView {
 class _LibraryContext {
   final PerformanceLog logger;
   final ResourceProvider resourceProvider;
-  final MemoryByteStore byteStore;
+  final CiderByteStore byteStore;
   final MicroContextObjects contextObjects;
 
   LinkedElementFactory elementFactory;
@@ -451,15 +515,7 @@ class _LibraryContext {
       cycle.directDependencies.forEach(loadBundle);
 
       var key = cycle.cyclePathsHash;
-      var bytes = byteStore.get(key);
-
-      // check to see if any of the sources have changed
-      if (bytes != null) {
-        var hash = CiderLinkedLibraryCycle.fromBuffer(bytes).signature;
-        if (!const ListEquality().equals(hash, cycle.signature)) {
-          bytes = null;
-        }
-      }
+      var bytes = byteStore.get(key, cycle.signature);
 
       if (bytes == null) {
         librariesLinkedTimer.start();
@@ -510,7 +566,7 @@ class _LibraryContext {
 
         bytes = serializeBundle(cycle.signature, linkResult).toBuffer();
 
-        byteStore.put(key, bytes);
+        byteStore.put(key, cycle.signature, bytes);
         bytesPut += bytes.length;
 
         librariesLinkedTimer.stop();

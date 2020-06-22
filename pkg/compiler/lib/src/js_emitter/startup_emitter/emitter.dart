@@ -16,7 +16,6 @@ import '../../io/source_information.dart';
 import '../../js/js.dart' as js;
 import '../../js_backend/constant_emitter.dart';
 import '../../js_backend/namer.dart';
-import '../../js_backend/runtime_types.dart';
 import '../../js_backend/runtime_types_new.dart' show RecipeEncoder;
 import '../../options.dart';
 import '../../universe/codegen_world_builder.dart' show CodegenWorld;
@@ -149,7 +148,6 @@ class ModularEmitterImpl extends ModularEmitterBase {
 class EmitterImpl extends ModularEmitterBase implements Emitter {
   final DiagnosticReporter _reporter;
   final JClosedWorld _closedWorld;
-  final RuntimeTypesEncoder _rtiEncoder;
   final RecipeEncoder _rtiRecipeEncoder;
   final CompilerTask _task;
   ModelEmitter _emitter;
@@ -165,7 +163,6 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
       DumpInfoTask dumpInfoTask,
       Namer namer,
       this._closedWorld,
-      this._rtiEncoder,
       this._rtiRecipeEncoder,
       this._nativeEmitter,
       SourceInformationStrategy sourceInformationStrategy,
@@ -183,7 +180,6 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
         this,
         _nativeEmitter,
         sourceInformationStrategy,
-        _rtiEncoder,
         _rtiRecipeEncoder,
         shouldGenerateSourceMap);
   }

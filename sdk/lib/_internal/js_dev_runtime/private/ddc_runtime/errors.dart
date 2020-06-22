@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart._runtime;
 
 // We need to set these properties while the sdk is only partially initialized
@@ -21,15 +19,15 @@ throwUnimplementedError(String message) {
 
 // TODO(nshahan) Cleanup embeded strings and extract file location at runtime
 // from the stacktrace.
-assertFailed(String message,
-    [String fileUri, int line, int column, String conditionSource]) {
+assertFailed(String? message,
+    [String? fileUri, int? line, int? column, String? conditionSource]) {
   throw AssertionErrorImpl(message, fileUri, line, column, conditionSource);
 }
 
 final _nullFailedSet = JS('!', 'new Set()');
 // Run-time null safety assertion per:
 // https://github.com/dart-lang/language/blob/master/accepted/future-releases/nnbd/feature-specification.md#automatic-debug-assertion-insertion
-nullFailed(String fileUri, int line, int column, String variable) {
+nullFailed(String? fileUri, int? line, int? column, String? variable) {
   if (strictNullSafety) {
     throw AssertionErrorImpl(
         'A null value was passed into a non-nullable parameter $variable',
@@ -47,7 +45,7 @@ nullFailed(String fileUri, int line, int column, String variable) {
   }
 }
 
-throwCyclicInitializationError([String field]) {
+throwCyclicInitializationError([String? field]) {
   throw CyclicInitializationError(field);
 }
 
@@ -101,7 +99,7 @@ final Object _jsError = JS('', 'Symbol("_jsError")');
 ///
 /// If the throw originated in JavaScript, then there is not a corresponding
 /// Dart value, so we just return the error object.
-Object getThrown(Object error) {
+Object? getThrown(Object? error) {
   if (error != null) {
     // Get the Dart thrown value, if any.
     var value = JS('', '#[#]', error, _thrownValue);
@@ -123,7 +121,7 @@ final _stackTrace = JS('', 'Symbol("_stackTrace")');
 /// the corresponding stack trace the same way we do for Dart throws. If the
 /// throw object was not an Error, then we don't have a JS trace, so we create
 /// one here.
-StackTrace stackTrace(Object error) {
+StackTrace stackTrace(Object? error) {
   if (JS<bool>('!', '!(# instanceof Error)', error)) {
     // We caught something that isn't a JS Error.
     //
@@ -133,7 +131,7 @@ StackTrace stackTrace(Object error) {
   }
 
   // If we've already created the Dart stack trace object, return it.
-  StackTrace trace = JS('', '#[#]', error, _stackTrace);
+  StackTrace? trace = JS('', '#[#]', error, _stackTrace);
   if (trace != null) return trace;
 
   // Otherwise create the Dart stack trace (by parsing the JS stack), and
@@ -210,7 +208,7 @@ final Object RethrownDartError = JS(
 /// Implements `throw` of [exception], allowing for throw in an expression
 /// context, and capturing the current stack trace.
 @JSExportName('throw')
-void throw_(Object exception) {
+void throw_(Object? exception) {
   /// Wrap the object so we capture a new stack trace, and so it will print
   /// nicely from JS, as if it were a normal JS error.
   JS('', 'throw new #(#)', DartError, exception);
@@ -233,7 +231,7 @@ void throw_(Object exception) {
 /// If the stack trace is null, this will preserve the original stack trace
 /// on the exception, if available, otherwise it will capture the current stack
 /// trace.
-Object createErrorWithStack(Object exception, StackTrace trace) {
+Object? createErrorWithStack(Object exception, StackTrace? trace) {
   if (trace == null) {
     var error = JS('', '#[#]', exception, _jsError);
     return error != null ? error : JS('', 'new #(#)', DartError, exception);
@@ -257,18 +255,18 @@ void stackPrint(Object error) {
 }
 
 class _StackTrace implements StackTrace {
-  final Object _jsError;
-  final Object _jsObjectMissingTrace;
-  String _trace;
+  final Object? _jsError;
+  final Object? _jsObjectMissingTrace;
+  String? _trace;
 
   _StackTrace(this._jsError) : _jsObjectMissingTrace = null;
 
-  _StackTrace.missing(Object caughtObj)
+  _StackTrace.missing(Object? caughtObj)
       : _jsObjectMissingTrace = caughtObj != null ? caughtObj : 'null',
         _jsError = JS('', 'Error()');
 
   String toString() {
-    if (_trace != null) return _trace;
+    if (_trace != null) return _trace!;
 
     var e = _jsError;
     String trace = '';

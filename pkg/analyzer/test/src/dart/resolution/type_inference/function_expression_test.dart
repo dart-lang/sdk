@@ -429,6 +429,38 @@ void f() {
     _assertReturnType('(a) {', 'int');
   }
 
+  test_contextFunctionType_nonNullify_returnType_takeActual() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.7
+
+void foo(int Function() x) {}
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart';
+
+void test(int? a) {
+  foo(() => a);
+}
+''');
+    _assertReturnType('() => a', 'int?');
+  }
+
+  test_contextFunctionType_nonNullify_returnType_takeContext() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.7
+
+void foo(int Function() x) {}
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart';
+
+void test(dynamic a) {
+  foo(() => a);
+}
+''');
+    _assertReturnType('() => a', 'int');
+  }
+
   test_contextFunctionType_returnType_async_blockBody_objectQ() async {
     await assertNoErrorsInCode('''
 T foo<T>() => throw 0;
