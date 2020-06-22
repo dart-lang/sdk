@@ -35,7 +35,7 @@ class MyFuture<T extends core::Object* = dynamic> extends core::Object implement
 static method test() → void {
   asy::Future<core::bool*>* f;
   asy::Future<core::int*>* t1 = f.{asy::Future::then}<core::int*>((core::bool* x) → asy::Future<core::int*>* async => x ?{core::int*} 2 : await asy::Future::value<core::int*>(3));
-  asy::Future<core::int*>* t2 = f.{asy::Future::then}<core::int*>((core::bool* x) → asy::Future<core::int*>* async {
+  asy::Future<core::int*>* t2 = f.{asy::Future::then}<core::int*>((core::bool* x) → FutureOr<core::int*> async {
     return (await x ?{core::Object*} 2 : asy::Future::value<core::int*>(3)) as{TypeError} FutureOr<core::int*>*;
   });
   asy::Future<core::int*>* t5 = f.{asy::Future::then}<core::int*>((core::bool* x) → FutureOr<core::int*> => (x ?{core::Object*} 2 : asy::Future::value<core::int*>(3)) as{TypeError} FutureOr<core::int*>);

@@ -4887,9 +4887,7 @@ class InferenceVisitor
   StatementInferenceResult visitReturnStatement(
       covariant ReturnStatementImpl node) {
     ClosureContext closureContext = inferrer.closureContext;
-    DartType typeContext = !closureContext.isGenerator
-        ? closureContext.returnOrYieldContext
-        : const UnknownType();
+    DartType typeContext = closureContext.returnContext;
     DartType inferredType;
     if (node.expression != null) {
       ExpressionInferenceResult expressionResult = inferrer.inferExpression(
@@ -5682,24 +5680,18 @@ class InferenceVisitor
   StatementInferenceResult visitYieldStatement(YieldStatement node) {
     ClosureContext closureContext = inferrer.closureContext;
     ExpressionInferenceResult expressionResult;
-    if (closureContext.isGenerator) {
-      DartType typeContext = closureContext.returnOrYieldContext;
-      if (node.isYieldStar && typeContext != null) {
-        typeContext = inferrer.wrapType(
-            typeContext,
-            closureContext.isAsync
-                ? inferrer.coreTypes.streamClass
-                : inferrer.coreTypes.iterableClass,
-            inferrer.library.nonNullable);
-      }
-      expressionResult = inferrer.inferExpression(
-          node.expression, typeContext, true,
-          isVoidAllowed: true);
-    } else {
-      expressionResult = inferrer.inferExpression(
-          node.expression, const UnknownType(), true,
-          isVoidAllowed: true);
+    DartType typeContext = closureContext.yieldContext;
+    if (node.isYieldStar && typeContext is! UnknownType) {
+      typeContext = inferrer.wrapType(
+          typeContext,
+          closureContext.isAsync
+              ? inferrer.coreTypes.streamClass
+              : inferrer.coreTypes.iterableClass,
+          inferrer.library.nonNullable);
     }
+    expressionResult = inferrer.inferExpression(
+        node.expression, typeContext, true,
+        isVoidAllowed: true);
     closureContext.handleYield(inferrer, node, expressionResult);
     return const StatementInferenceResult();
   }
