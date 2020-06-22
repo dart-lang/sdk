@@ -62,7 +62,7 @@ import 'package:aaa/a.dart';
 
 var x = 0;
 var y = a;
-var z = PI;
+var z = pi;
 ''');
     assertType(findElement.topVar('x').type, 'int*');
     assertType(findElement.topVar('y').type, 'int*');
@@ -99,7 +99,7 @@ import 'package:aaa/a.dart';
 
 var x = 0;
 var y = a;
-var z = PI;
+var z = pi;
 ''');
     assertType(findElement.topVar('x').type, 'int');
     assertType(findElement.topVar('y').type, 'int');

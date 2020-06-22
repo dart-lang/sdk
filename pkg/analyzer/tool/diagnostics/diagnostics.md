@@ -5699,7 +5699,7 @@ diagnostic because it attempts to include `part.dart` as a part of itself
 when `part.dart` is a part of a different library:
 
 {% prettify dart %}
-part [!'part.dart'!];
+part [!'package:a/part.dart'!];
 {% endprettify %}
 
 #### Common fixes

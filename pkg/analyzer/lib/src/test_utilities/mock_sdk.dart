@@ -1020,9 +1020,9 @@ final MockSdkLibrary _LIB_MATH = MockSdkLibrary(
       '''
 library dart.math;
 
-const double E = 2.718281828459045;
-const double PI = 3.1415926535897932;
-const double LN10 = 2.302585092994046;
+const double e = 2.718281828459045;
+const double pi = 3.1415926535897932;
+const double ln10 = 2.302585092994046;
 
 T min<T extends num>(T a, T b) => throw 0;
 T max<T extends num>(T a, T b) => throw 0;

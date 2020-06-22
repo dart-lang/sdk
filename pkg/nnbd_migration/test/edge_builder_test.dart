@@ -6222,8 +6222,8 @@ C<int> f(C<int> c) {
   Future<void> test_prefixedIdentifier_bangHint() async {
     await analyze('''
 import 'dart:math' as m;
-double f1() => m.PI;
-double f2() => m.PI/*!*/;
+double f1() => m.pi;
+double f2() => m.pi/*!*/;
 ''');
     expect(
         assertEdge(anyNode, decoratedTypeAnnotation('double f1').node,
@@ -6235,7 +6235,7 @@ double f2() => m.PI/*!*/;
                 hard: false)
             .sourceNode,
         never);
-    expect(hasNullCheckHint(findNode.prefixed('m.PI/*!*/')), isTrue);
+    expect(hasNullCheckHint(findNode.prefixed('m.pi/*!*/')), isTrue);
   }
 
   Future<void> test_prefixedIdentifier_field_type() async {

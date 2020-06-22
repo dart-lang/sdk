@@ -9955,7 +9955,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // when `part.dart` is a part of a different library:
   //
   // ```dart
-  // part [!'part.dart'!];
+  // part [!'package:a/part.dart'!];
   // ```
   //
   // #### Common fixes
