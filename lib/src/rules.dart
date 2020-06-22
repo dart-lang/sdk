@@ -8,6 +8,7 @@ import 'rules/always_put_control_body_on_new_line.dart';
 import 'rules/always_put_required_named_parameters_first.dart';
 import 'rules/always_require_non_null_named_parameters.dart';
 import 'rules/always_specify_types.dart';
+import 'rules/always_use_package_imports.dart';
 import 'rules/annotate_overrides.dart';
 import 'rules/avoid_annotating_with_dynamic.dart';
 import 'rules/avoid_as.dart';
@@ -184,6 +185,7 @@ void registerLintRules() {
     ..register(AlwaysPutRequiredNamedParametersFirst())
     ..register(AlwaysRequireNonNullNamedParameters())
     ..register(AlwaysSpecifyTypes())
+    ..register(AlwaysUsePackageImports())
     ..register(AnnotateOverrides())
     ..register(AvoidAnnotatingWithDynamic())
     ..register(AvoidAs())

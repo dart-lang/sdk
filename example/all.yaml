@@ -7,6 +7,7 @@ linter:
     - always_put_required_named_parameters_first
     - always_require_non_null_named_parameters
     - always_specify_types
+    - always_use_package_imports
     - annotate_overrides
     - avoid_annotating_with_dynamic
     - avoid_as
