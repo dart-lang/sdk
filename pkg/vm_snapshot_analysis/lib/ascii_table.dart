@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library vm.snapshot.ascii_table;
+library vm_snapshot_analysis.ascii_table;
 
 import 'dart:math' as math;
 
@@ -126,7 +126,7 @@ class AsciiTable {
 
   final List<Row> rows = <Row>[];
 
-  AsciiTable({List<dynamic> header, this.maxWidth: unlimitedWidth}) {
+  AsciiTable({List<dynamic> header, this.maxWidth = unlimitedWidth}) {
     if (header != null) {
       addSeparator();
       addRow(header);

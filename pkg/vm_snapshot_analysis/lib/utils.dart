@@ -1,15 +1,16 @@
 // Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-library vm.snapshot.utils;
+library vm_snapshot_analysis.utils;
 
 import 'dart:io';
 import 'dart:convert';
 
-import 'package:vm/snapshot/ascii_table.dart';
-import 'package:vm/snapshot/program_info.dart';
-import 'package:vm/snapshot/instruction_sizes.dart' as instruction_sizes;
-import 'package:vm/snapshot/v8_profile.dart' as v8_profile;
+import 'package:vm_snapshot_analysis/ascii_table.dart';
+import 'package:vm_snapshot_analysis/program_info.dart';
+import 'package:vm_snapshot_analysis/instruction_sizes.dart'
+    as instruction_sizes;
+import 'package:vm_snapshot_analysis/v8_profile.dart' as v8_profile;
 
 Future<Object> loadJson(File input) async {
   return await input

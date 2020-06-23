@@ -8,20 +8,22 @@
 ///
 /// It used the same visualization framework as Chromium's binary_size tool
 /// located in runtime/third_party/binary_size.
-library vm.snapshot.commands.treemap;
+library vm_snapshot_analysis.commands.treemap;
 
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:math' show max;
 
 import 'package:path/path.dart' as p;
 import 'package:args/command_runner.dart';
 
-import 'package:vm/snapshot/instruction_sizes.dart' as instruction_sizes;
-import 'package:vm/snapshot/program_info.dart';
-import 'package:vm/snapshot/v8_profile.dart' as v8_profile;
-import 'package:vm/snapshot/utils.dart';
+import 'package:vm_snapshot_analysis/instruction_sizes.dart'
+    as instruction_sizes;
+import 'package:vm_snapshot_analysis/program_info.dart';
+import 'package:vm_snapshot_analysis/v8_profile.dart' as v8_profile;
+import 'package:vm_snapshot_analysis/utils.dart';
 
 class TreemapCommand extends Command<void> {
   @override
@@ -57,8 +59,8 @@ viewed in a browser:
       usageException('Need to specify input JSON and output directory.');
     }
 
-    final input = new File(argResults.rest[0]);
-    final outputDir = new Directory(argResults.rest[1]);
+    final input = File(argResults.rest[0]);
+    final outputDir = Directory(argResults.rest[1]);
 
     if (!input.existsSync()) {
       usageException('Input file ${input.path} does not exist!');
@@ -93,27 +95,26 @@ Future<void> generateTreeMap(File input, Directory outputDir) async {
   // Create output directory and copy all auxiliary files from binary_size tool.
   await outputDir.create(recursive: true);
 
-  final scriptLocation = p.dirname(Platform.script.toFilePath());
-  final sdkRoot = p.join(scriptLocation, '..', '..', '..');
-  final d3SrcDir = p.join(sdkRoot, 'runtime', 'third_party', 'd3', 'src');
-  final templateDir = p.join(
-      sdkRoot, 'runtime', 'third_party', 'binary_size', 'src', 'template');
+  final assetsUri = await Isolate.resolvePackageUri(
+      Uri.parse('package:vm_snapshot_analysis/src/assets'));
+  final assetsDir = assetsUri.toFilePath();
+  final d3SrcDir = p.join(assetsDir, 'd3', 'src');
 
   final d3OutDir = p.join(outputDir.path, 'd3');
-  await new Directory(d3OutDir).create(recursive: true);
+  await Directory(d3OutDir).create(recursive: true);
 
   for (var file in ['LICENSE', 'd3.js']) {
     await copyFile(d3SrcDir, file, d3OutDir);
   }
   for (var file in ['index.html', 'D3SymbolTreeMap.js']) {
-    await copyFile(templateDir, file, outputDir.path);
+    await copyFile(assetsDir, file, outputDir.path);
   }
 
   // Serialize symbol size tree as JSON.
   final dataJsPath = p.join(outputDir.path, 'data.js');
-  final sink = new File(dataJsPath).openWrite();
+  final sink = File(dataJsPath).openWrite();
   sink.write('var tree_data=');
-  await sink.addStream(new Stream<Object>.fromIterable([tree])
+  await sink.addStream(Stream<Object>.fromIterable([tree])
       .transform(json.encoder.fuse(utf8.encoder)));
   await sink.close();
 
@@ -191,7 +192,7 @@ Map<String, dynamic> addChild(
 
 /// Add the given symbol to the tree.
 void addSymbol(Map<String, dynamic> root, String path, String name, int size,
-    {String symbolType: symbolTypeGlobalText}) {
+    {String symbolType = symbolTypeGlobalText}) {
   var node = root;
   var depth = 0;
   for (var part in path.split('/')) {
@@ -225,5 +226,5 @@ Map<String, dynamic> flatten(Map<String, dynamic> node) {
 
 /// Copy file with the given name from [fromDir] to [toDir].
 Future<void> copyFile(String fromDir, String name, String toDir) async {
-  await new File(p.join(fromDir, name)).copy(p.join(toDir, name));
+  await File(p.join(fromDir, name)).copy(p.join(toDir, name));
 }

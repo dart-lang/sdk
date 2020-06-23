@@ -4,7 +4,7 @@
 
 import 'package:test/test.dart';
 
-import 'package:vm/snapshot/name.dart';
+import 'package:vm_snapshot_analysis/name.dart';
 
 void main() async {
   group('name', () {

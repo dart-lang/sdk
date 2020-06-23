@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Helper functions for parsing output of `--print-instructions-sizes-to` flag.
-library vm.snapshot.instruction_sizes;
+library vm_snapshot_analysis.instruction_sizes;
 
-import 'package:vm/snapshot/name.dart';
-import 'package:vm/snapshot/program_info.dart';
+import 'package:vm_snapshot_analysis/name.dart';
+import 'package:vm_snapshot_analysis/program_info.dart';
 
 /// Parse the output of `--print-instructions-sizes-to` saved in the given
 /// file [input].

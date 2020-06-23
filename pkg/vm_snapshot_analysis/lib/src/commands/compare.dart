@@ -5,16 +5,16 @@
 /// This tool compares two JSON size reports produced by
 /// --print-instructions-sizes-to and reports which symbols increased in size
 /// and which symbols decreased in size.
-library vm.snapshot.compare;
+library vm_snapshot_analysis.compare;
 
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
-import 'package:vm/snapshot/ascii_table.dart';
 
-import 'package:vm/snapshot/program_info.dart';
-import 'package:vm/snapshot/utils.dart';
-import 'package:vm/snapshot/v8_profile.dart';
+import 'package:vm_snapshot_analysis/ascii_table.dart';
+import 'package:vm_snapshot_analysis/program_info.dart';
+import 'package:vm_snapshot_analysis/utils.dart';
+import 'package:vm_snapshot_analysis/v8_profile.dart';
 
 class CompareCommand extends Command<void> {
   @override
@@ -92,6 +92,7 @@ precisely based on their source position (which is included in their name).
       case 'package':
         return HistogramType.byPackage;
     }
+    return null;
   }
 
   File _checkExists(String path) {
@@ -103,7 +104,7 @@ precisely based on their source position (which is included in their name).
   }
 
   void printComparison(File oldJson, File newJson,
-      {int maxWidth: 0,
+      {int maxWidth = 0,
       bool collapseAnonymousClosures = false,
       HistogramType granularity = HistogramType.bySymbol}) async {
     final oldSizes = await loadProgramInfo(oldJson,

@@ -2,15 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
-import 'package:vm/snapshot/instruction_sizes.dart' as instruction_sizes;
-import 'package:vm/snapshot/program_info.dart';
-import 'package:vm/snapshot/utils.dart';
+import 'package:vm_snapshot_analysis/instruction_sizes.dart'
+    as instruction_sizes;
+import 'package:vm_snapshot_analysis/program_info.dart';
+import 'package:vm_snapshot_analysis/utils.dart';
 
 final dart2native = () {
   final sdkBin = path.dirname(Platform.executable);
@@ -636,14 +636,6 @@ void main() async {
                         'makeSomeClosures': {'#size': lessThan(0)},
                       },
                     },
-                    'B': {
-                      // There are some cascading changes to CodeSourceMap
-                      '#type': 'class',
-                      'tornOff': {
-                        '#type': 'function',
-                        '#size': lessThan(0),
-                      },
-                    }
                   }
                 }
               }));

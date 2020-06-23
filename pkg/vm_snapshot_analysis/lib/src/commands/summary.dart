@@ -5,17 +5,17 @@
 /// This tool generates a summary report from a binary size reports produced by
 /// the AOT compiler's --print-instructions-sizes-to and
 /// --write-v8-snapshot-profile-to flags.
-library vm.snapshot.summary;
+library vm_snapshot_analysis.summary;
 
 import 'dart:async';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
 
-import 'package:vm/snapshot/ascii_table.dart';
-import 'package:vm/snapshot/program_info.dart';
-import 'package:vm/snapshot/utils.dart';
-import 'package:vm/snapshot/v8_profile.dart';
+import 'package:vm_snapshot_analysis/ascii_table.dart';
+import 'package:vm_snapshot_analysis/program_info.dart';
+import 'package:vm_snapshot_analysis/utils.dart';
+import 'package:vm_snapshot_analysis/v8_profile.dart';
 
 class SummaryCommand extends Command<void> {
   @override

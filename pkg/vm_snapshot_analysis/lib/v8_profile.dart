@@ -4,12 +4,12 @@
 
 /// This library contains utilities for reading and analyzing snapshot profiles
 /// produced by `--write-v8-snapshot-profile-to` VM flag.
-library vm.snapshot.v8_profile;
+library vm_snapshot_analysis.v8_profile;
 
 import 'package:meta/meta.dart';
-import 'package:vm/snapshot/name.dart';
+import 'package:vm_snapshot_analysis/name.dart';
 
-import 'package:vm/snapshot/program_info.dart';
+import 'package:vm_snapshot_analysis/program_info.dart';
 
 /// This class represents snapshot graph.
 ///

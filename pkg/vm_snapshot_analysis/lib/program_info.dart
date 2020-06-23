@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Classes for representing information about the program structure.
-library vm.snapshot.program_info;
+library vm_snapshot_analysis.program_info;
 
 import 'package:meta/meta.dart';
 
-import 'package:vm/snapshot/v8_profile.dart';
+import 'package:vm_snapshot_analysis/v8_profile.dart';
 
 /// Represents information about compiled program.
 class ProgramInfo {
