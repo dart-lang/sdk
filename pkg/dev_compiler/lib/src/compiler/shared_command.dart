@@ -135,26 +135,26 @@ class SharedCompilerOptions {
     addModuleFormatOptions(parser, hide: hide);
 
     parser
+      ..addMultiOption('out', abbr: 'o', help: 'Output file (required).')
       ..addMultiOption('summary',
           abbr: 's',
-          help: 'summary file(s) of imported libraries, optionally\n'
-              'with module import path: -s path.sum=js/import/path')
+          help: 'API summary file(s) of imported libraries, optionally\n'
+              'with module import path: -s path.dill=js/import/path')
       ..addMultiOption('enable-experiment',
-          help: 'used to enable/disable experimental language features',
-          hide: hide)
+          help: 'Enable/disable experimental language features.', hide: hide)
       ..addFlag('summarize',
-          help: 'emit an API summary file', defaultsTo: true, hide: hide)
+          help: 'Emit an API summary file.', defaultsTo: true, hide: hide)
       ..addFlag('source-map',
-          help: 'emit source mapping', defaultsTo: true, hide: hide)
+          help: 'Emit source mapping.', defaultsTo: true, hide: hide)
       ..addFlag('inline-source-map',
-          help: 'emit source mapping inline', defaultsTo: false, hide: hide)
+          help: 'Emit source mapping inline.', defaultsTo: false, hide: hide)
       ..addFlag('enable-asserts',
-          help: 'enable assertions', defaultsTo: true, hide: hide)
+          help: 'Enable assertions.', defaultsTo: true, hide: hide)
       ..addOption('module-name',
           help: 'The output module name, used in some JS module formats.\n'
               'Defaults to the output file name (without .js).')
       ..addFlag('repl-compile',
-          help: 'compile in a more permissive REPL mode, allowing access'
+          help: 'Compile in a more permissive REPL mode, allowing access'
               ' to private members across library boundaries. This should'
               ' only be used by debugging tools.',
           defaultsTo: false,
@@ -163,6 +163,13 @@ class SharedCompilerOptions {
           help: 'Compile for sound null safety at runtime.',
           negatable: true,
           defaultsTo: false)
+      ..addOption('multi-root-scheme',
+          help: 'The custom scheme to indicate a multi-root uri.',
+          defaultsTo: 'org-dartlang-app')
+      ..addOption('multi-root-output-path',
+          help: 'Path to set multi-root files relative to when generating'
+              ' source-maps.',
+          hide: true)
       // TODO(41852) Define a process for breaking changes before graduating from
       // experimental.
       ..addFlag('experimental-emit-debug-metadata',
