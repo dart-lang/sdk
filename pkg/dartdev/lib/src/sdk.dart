@@ -48,6 +48,8 @@ class Sdk {
   String get analysisServerSnapshot => path.absolute(
       sdkPath, 'bin', 'snapshots', 'analysis_server.dart.snapshot');
 
+  String get dart2js => path.absolute(sdkPath, 'bin', _binName('dart2js'));
+
   String get dartfmt => path.absolute(sdkPath, 'bin', _binName('dartfmt'));
 
   String get pub => path.absolute(sdkPath, 'bin', _binName('pub'));

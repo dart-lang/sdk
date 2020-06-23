@@ -12,6 +12,7 @@ import 'package:usage/usage.dart';
 
 import 'src/analytics.dart';
 import 'src/commands/analyze.dart';
+import 'src/commands/compile.dart';
 import 'src/commands/create.dart';
 import 'src/commands/format.dart';
 import 'src/commands/pub.dart';
@@ -160,6 +161,7 @@ class DartdevRunner<int> extends CommandRunner {
 
     addCommand(AnalyzeCommand(verbose: verbose));
     addCommand(CreateCommand(verbose: verbose));
+    addCommand(CompileCommand(verbose: verbose));
     addCommand(FormatCommand(verbose: verbose));
     addCommand(MigrateCommand(verbose: verbose));
     addCommand(PubCommand(verbose: verbose));

@@ -21,7 +21,7 @@ Future writeAppendedExecutable(
   final offset = dartaotruntimeLength + padding;
 
   // Note: The offset is always Little Endian regardless of host.
-  final offsetBytes = new ByteData(8) // 64 bit in bytes.
+  final offsetBytes = ByteData(8) // 64 bit in bytes.
     ..setUint64(0, offset, Endian.little);
 
   final outputFile = File(outputPath).openWrite();

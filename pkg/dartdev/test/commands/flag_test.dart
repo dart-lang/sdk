@@ -57,6 +57,7 @@ void help() {
     expect(result.stdout, contains('Available commands:'));
     expect(result.stdout, contains('analyze '));
     expect(result.stdout, contains('create '));
+    expect(result.stdout, contains('compile '));
     expect(result.stdout, contains('format '));
     expect(result.stdout, contains('migrate '));
   });
