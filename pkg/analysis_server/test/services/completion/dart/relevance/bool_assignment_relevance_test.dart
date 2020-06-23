@@ -56,6 +56,6 @@ foo() {
         element: ElementKind.LOCAL_VARIABLE,
         kind: CompletionSuggestionKind.INVOCATION);
 
-    assertOrder([trueSuggestion, falseSuggestion, bLocalVar]);
+    assertOrder([bLocalVar, trueSuggestion, falseSuggestion]);
   }
 }

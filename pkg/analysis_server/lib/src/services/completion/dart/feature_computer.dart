@@ -259,6 +259,33 @@ class FeatureComputer {
     return 0.0;
   }
 
+  /// Return the value of the _keyword_ feature for the [keyword] when
+  /// completing at the given [completionLocation].
+  double keywordFeature(String keyword, String completionLocation) {
+    if (completionLocation == null) {
+      return -1.0;
+    }
+    var locationTable = keywordRelevance[completionLocation];
+    if (locationTable == null) {
+      return -1.0;
+    }
+    var range = locationTable[keyword];
+    if (range == null) {
+      // We sometimes suggest multiple tokens where a keyword is allowed, such
+      // as 'async*'. In those cases a valid keyword is always first followed by
+      // a non-alphabetic character. Try stripping off everything after the
+      // keyword and indexing into the table again.
+      var index = keyword.indexOf(RegExp('[^a-z]'));
+      if (index > 0) {
+        range = locationTable[keyword.substring(0, index)];
+      }
+    }
+    if (range == null) {
+      return 0.0;
+    }
+    return range.upper;
+  }
+
   /// Return the value of the _starts with dollar_ feature.
   double startsWithDollarFeature(String name) =>
       name.startsWith('\$') ? 0.0 : 1.0;
