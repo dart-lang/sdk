@@ -2129,35 +2129,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       hasPublishedDocs: true);
 
   /**
-   * 12.2 Null: It is a compile-time error for a class to attempt to extend or
-   * implement Null.
-   *
-   * 12.3 Numbers: It is a compile-time error for a class to attempt to extend
-   * or implement int.
-   *
-   * 12.3 Numbers: It is a compile-time error for a class to attempt to extend
-   * or implement double.
-   *
-   * 12.3 Numbers: It is a compile-time error for any type other than the types
-   * int and double to
-   * attempt to extend or implement num.
-   *
-   * 12.4 Booleans: It is a compile-time error for a class to attempt to extend
-   * or implement bool.
-   *
-   * 12.5 Strings: It is a compile-time error for a class to attempt to extend
-   * or implement String.
-   *
    * Parameters:
-   * 0: the name of the type that cannot be extended
-   *
-   * See [IMPLEMENTS_DISALLOWED_CLASS] and [MIXIN_OF_DISALLOWED_CLASS].
-   *
-   * TODO(scheglov) We might want to restore specific code with FrontEnd.
-   * https://github.com/dart-lang/sdk/issues/31821
+   * 0: The name of the disallowed type
    */
   static const CompileTimeErrorCode EXTENDS_DISALLOWED_CLASS =
-      CompileTimeErrorCode(
+      // TODO(scheglov) We might want to restore specific code with FrontEnd.
+      //  https://github.com/dart-lang/sdk/issues/31821
+      CompileTimeErrorCodeWithUniqueName('SUBTYPE_OF_DISALLOWED_TYPE',
           'EXTENDS_DISALLOWED_CLASS', "Classes can't extend '{0}'.",
           correction: "Try specifying a different superclass, or "
               "removing the extends clause.");
@@ -2762,32 +2740,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "changing the import to not be deferred.");
 
   /**
-   * 12.2 Null: It is a compile-time error for a class to attempt to extend or
-   * implement Null.
-   *
-   * 12.3 Numbers: It is a compile-time error for a class to attempt to extend
-   * or implement int.
-   *
-   * 12.3 Numbers: It is a compile-time error for a class to attempt to extend
-   * or implement double.
-   *
-   * 12.3 Numbers: It is a compile-time error for any type other than the types
-   * int and double to
-   * attempt to extend or implement num.
-   *
-   * 12.4 Booleans: It is a compile-time error for a class to attempt to extend
-   * or implement bool.
-   *
-   * 12.5 Strings: It is a compile-time error for a class to attempt to extend
-   * or implement String.
-   *
    * Parameters:
-   * 0: the name of the type that cannot be implemented
-   *
-   * See [EXTENDS_DISALLOWED_CLASS].
+   * 0: The name of the disallowed type
    */
   static const CompileTimeErrorCode IMPLEMENTS_DISALLOWED_CLASS =
-      CompileTimeErrorCode('IMPLEMENTS_DISALLOWED_CLASS',
+      CompileTimeErrorCodeWithUniqueName(
+          'SUBTYPE_OF_DISALLOWED_TYPE',
+          'IMPLEMENTS_DISALLOWED_CLASS',
           "Classes and mixins can't implement '{0}'.",
           correction: "Try specifying a different interface, or "
               "remove the class from the list.");
@@ -4174,31 +4133,11 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       'MIXIN_INSTANTIATE', "Mixins can't be instantiated.");
 
   /**
-   * 12.2 Null: It is a compile-time error for a class to attempt to extend or
-   * implement Null.
-   *
-   * 12.3 Numbers: It is a compile-time error for a class to attempt to extend
-   * or implement int.
-   *
-   * 12.3 Numbers: It is a compile-time error for a class to attempt to extend
-   * or implement double.
-   *
-   * 12.3 Numbers: It is a compile-time error for any type other than the types
-   * int and double to attempt to extend or implement num.
-   *
-   * 12.4 Booleans: It is a compile-time error for a class to attempt to extend
-   * or implement bool.
-   *
-   * 12.5 Strings: It is a compile-time error for a class to attempt to extend
-   * or implement String.
-   *
    * Parameters:
-   * 0: the name of the type that cannot be extended
-   *
-   * See [IMPLEMENTS_DISALLOWED_CLASS].
+   * 0: The name of the disallowed type
    */
   static const CompileTimeErrorCode MIXIN_OF_DISALLOWED_CLASS =
-      CompileTimeErrorCode(
+      CompileTimeErrorCodeWithUniqueName('SUBTYPE_OF_DISALLOWED_TYPE',
           'MIXIN_OF_DISALLOWED_CLASS', "Classes can't mixin '{0}'.");
 
   /**
@@ -4233,14 +4172,23 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       'MIXIN_OF_NON_CLASS', "Classes can only mix in mixins and classes.",
       hasPublishedDocs: true);
 
+  /**
+   * No parameters.
+   */
   static const CompileTimeErrorCode
       MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS = CompileTimeErrorCode(
           'MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS',
           "Deferred classes can't be used as super-class constraints.",
           correction: "Try changing the import to not be deferred.");
 
+  /**
+   * Parameters:
+   * 0: The name of the disallowed type
+   */
   static const CompileTimeErrorCode
-      MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS = CompileTimeErrorCode(
+      MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS =
+      CompileTimeErrorCodeWithUniqueName(
+          'SUBTYPE_OF_DISALLOWED_TYPE',
           'MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS',
           "'{0}' can't be used as a super-class constraint.");
 
