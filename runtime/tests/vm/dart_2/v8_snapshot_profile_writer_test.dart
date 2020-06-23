@@ -122,7 +122,7 @@ test(
     // shallow sizes of all objects in the profile. They will not be exactly
     // equal because of global headers and padding.
     final actual = await File(strippedPath).length();
-    final expected = profile.nodes.fold(0, (size, n) => size + n.selfSize);
+    final expected = profile.nodes.fold<int>(0, (size, n) => size + n.selfSize);
 
     final bareUsed = useBare ? "bare" : "non-bare";
     final fileType = useAsm ? "assembly" : "ELF";
