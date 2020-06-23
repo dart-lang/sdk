@@ -41,7 +41,7 @@ linter:
     - library_names
     - library_prefixes
     - list_remove_unrelated_type
-    - literal_only_boolean_expressions
+    #- literal_only_boolean_expressions
     - no_adjacent_strings_in_list
     - no_duplicate_case_values
     #- non_constant_identifier_names
@@ -77,7 +77,7 @@ linter:
     - throw_in_finally
     - type_init_formals
     - unawaited_futures
-    - unnecessary_await_in_return
+    #- unnecessary_await_in_return
     - unnecessary_brace_in_string_interps
     - unnecessary_const
     - unnecessary_getters_setters
