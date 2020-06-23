@@ -861,15 +861,16 @@ bool CheckClassInstr::IsBitTest() const {
 
 intptr_t CheckClassInstr::ComputeCidMask() const {
   ASSERT(IsBitTest());
+  const uintptr_t one = 1;
   intptr_t min = cids_.ComputeLowestCid();
   intptr_t mask = 0;
   for (intptr_t i = 0; i < cids_.length(); ++i) {
-    intptr_t run;
-    uintptr_t range = 1ul + cids_[i].Extent();
+    uintptr_t run;
+    uintptr_t range = one + cids_[i].Extent();
     if (range >= static_cast<uintptr_t>(compiler::target::kBitsPerWord)) {
       run = -1;
     } else {
-      run = (1 << range) - 1;
+      run = (one << range) - 1;
     }
     mask |= run << (cids_[i].cid_start - min);
   }
