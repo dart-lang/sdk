@@ -377,15 +377,16 @@ footer .sdk-version {
 
 .region.removed-region {
   background-color: #FA557d; /* $dark-pink */
-  color: #001100;
+  color: #fff;
 }
 
 .region.informative-region {
   background-color: #178afd; /* $dark-selection-color */
+  color: #fff;
   display: inline-block;
-  height: 14px; 
+  height: 18px;
   position: relative;
-  top: 1px;
+  top: 3px;
 }
 
 .target {
