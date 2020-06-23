@@ -7,7 +7,7 @@ import 'dart:io';
 
 import 'package:expect/expect.dart';
 import 'package:path/path.dart' as path;
-import 'package:vm/snapshot/v8_profile.dart';
+import 'package:vm_snapshot_analysis/v8_profile.dart';
 
 import 'use_flag_test_helper.dart';
 
