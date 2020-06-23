@@ -36,7 +36,7 @@ Future<void> runDartdev(List<String> args) async {
   int exitCode;
 
   // Any caught non-UsageExceptions when running the sub command
-  Exception exception;
+  Object exception;
   StackTrace stackTrace;
 
   analytics =
@@ -152,8 +152,7 @@ class DartdevRunner<int> extends CommandRunner {
         negatable: false, help: 'Disable anonymous analytics.');
 
     // TODO(jwren): hook up.
-    argParser.addMultiOption('enable-experiment',
-        splitCommas: true, hide: true);
+    argParser.addMultiOption('enable-experiment', hide: true);
 
     // A hidden flag to disable analytics on this run, this constructor can be
     // called with this flag, but should be removed before run() is called as

@@ -207,7 +207,7 @@ Remove debugging information from the output and save it separately to the speci
       return 0;
     } catch (e) {
       log.stderr('Error: AOT compilation failed');
-      log.stderr(e);
+      log.stderr(e.toString());
       return compileErrorExitCode;
     }
   }

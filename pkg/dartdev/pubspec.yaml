@@ -8,12 +8,17 @@ environment:
 dependencies:
   args: ^1.6.0
   cli_util: ^0.1.4
+  dart2native:
+    path: ../dart2native
   dds:
-    path: '../dds'
+    path: ../dds
   intl: ^0.16.1
+  nnbd_migration: any # this uses the SDK version
   path: ^1.0.0
   stack_trace: ^1.9.3
   stagehand: 3.3.7
+  telemetry:
+    path: ../telemetry
   usage: ^3.4.0
   watcher: ^0.9.6
   yaml: ^2.2.0

@@ -65,7 +65,7 @@ class AnalyzeCommand extends DartdevCommand<int> {
     await server.start();
     // Completing the future in the callback can't fail.
     //ignore: unawaited_futures
-    server.onExit.then<void>((int exitCode) {
+    server.onExit.then((int exitCode) {
       if (!analysisCompleter.isCompleted) {
         analysisCompleter.completeError('analysis server exited: $exitCode');
       }
