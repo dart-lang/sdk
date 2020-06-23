@@ -151,6 +151,10 @@ class DartdevRunner<int> extends CommandRunner {
     argParser.addFlag('disable-analytics',
         negatable: false, help: 'Disable anonymous analytics.');
 
+    // TODO(jwren): hook up.
+    argParser.addMultiOption('enable-experiment',
+        splitCommas: true, hide: true);
+
     // A hidden flag to disable analytics on this run, this constructor can be
     // called with this flag, but should be removed before run() is called as
     // the flag has not been added to all sub-commands.
