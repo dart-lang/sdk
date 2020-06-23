@@ -26,12 +26,12 @@ var tests = <IsolateTest>[
   (Isolate isolate) async {
     var params = {'metricId': 'metrics/native/heap.old.used'};
     ServiceMetric counter =
-        await isolate.invokeRpc('_getIsolateMetric', params);
+        await isolate.invokeRpc('_getIsolateMetric', params) as ServiceMetric;
     expect(counter.type, equals('Counter'));
     expect(counter.name, equals('heap.old.used'));
   },
   (Isolate isolate) async {
-    bool caughtException;
+    bool caughtException = false;
     try {
       await isolate.invokeRpc(
           '_getIsolateMetric', {'metricId': 'metrics/native/doesnotexist'});

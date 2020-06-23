@@ -12,19 +12,19 @@ import 'package:observatory/src/elements/helpers/uris.dart';
 class UnlinkedCallRefElement extends CustomElement implements Renderable {
   static const tag = const Tag<UnlinkedCallRefElement>('unlinkedcall-ref');
 
-  RenderingScheduler<UnlinkedCallRefElement> _r;
+  late RenderingScheduler<UnlinkedCallRefElement> _r;
 
   Stream<RenderedEvent<UnlinkedCallRefElement>> get onRendered => _r.onRendered;
 
-  M.IsolateRef _isolate;
-  M.UnlinkedCallRef _unlinkedcall;
+  late M.IsolateRef _isolate;
+  late M.UnlinkedCallRef _unlinkedcall;
 
   M.IsolateRef get isolate => _isolate;
   M.UnlinkedCallRef get unlinkedcall => _unlinkedcall;
 
   factory UnlinkedCallRefElement(
       M.IsolateRef isolate, M.UnlinkedCallRef unlinkedcall,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(isolate != null);
     assert(unlinkedcall != null);
     UnlinkedCallRefElement e = new UnlinkedCallRefElement.created();

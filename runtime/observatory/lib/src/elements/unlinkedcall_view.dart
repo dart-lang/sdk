@@ -32,22 +32,22 @@ class UnlinkedCallViewElement extends CustomElement implements Renderable {
         ViewFooterElement.tag
       ]);
 
-  RenderingScheduler<UnlinkedCallViewElement> _r;
+  late RenderingScheduler<UnlinkedCallViewElement> _r;
 
   Stream<RenderedEvent<UnlinkedCallViewElement>> get onRendered =>
       _r.onRendered;
 
-  M.VM _vm;
-  M.IsolateRef _isolate;
-  M.EventRepository _events;
-  M.NotificationRepository _notifications;
-  M.UnlinkedCall _unlinkedcall;
-  M.UnlinkedCallRepository _unlinkedcalls;
-  M.RetainedSizeRepository _retainedSizes;
-  M.ReachableSizeRepository _reachableSizes;
-  M.InboundReferencesRepository _references;
-  M.RetainingPathRepository _retainingPaths;
-  M.ObjectRepository _objects;
+  late M.VM _vm;
+  late M.IsolateRef _isolate;
+  late M.EventRepository _events;
+  late M.NotificationRepository _notifications;
+  late M.UnlinkedCall _unlinkedcall;
+  late M.UnlinkedCallRepository _unlinkedcalls;
+  late M.RetainedSizeRepository _retainedSizes;
+  late M.ReachableSizeRepository _reachableSizes;
+  late M.InboundReferencesRepository _references;
+  late M.RetainingPathRepository _retainingPaths;
+  late M.ObjectRepository _objects;
 
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
@@ -66,7 +66,7 @@ class UnlinkedCallViewElement extends CustomElement implements Renderable {
       M.InboundReferencesRepository references,
       M.RetainingPathRepository retainingPaths,
       M.ObjectRepository objects,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -120,7 +120,7 @@ class UnlinkedCallViewElement extends CustomElement implements Renderable {
               ..onRefresh.listen((e) async {
                 e.element.disabled = true;
                 _unlinkedcall =
-                    await _unlinkedcalls.get(_isolate, _unlinkedcall.id);
+                    await _unlinkedcalls.get(_isolate, _unlinkedcall.id!);
                 _r.dirty();
               }))
             .element,

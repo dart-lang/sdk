@@ -29,26 +29,26 @@ class ClassTreeElement extends CustomElement implements Renderable {
     VirtualTreeElement.tag
   ]);
 
-  RenderingScheduler<ClassTreeElement> _r;
+  late RenderingScheduler<ClassTreeElement> _r;
 
   Stream<RenderedEvent<ClassTreeElement>> get onRendered => _r.onRendered;
 
-  M.VMRef _vm;
-  M.IsolateRef _isolate;
-  M.EventRepository _events;
-  M.NotificationRepository _notifications;
-  M.ClassRepository _classes;
-  M.Class _object;
+  late M.VM _vm;
+  late M.IsolateRef _isolate;
+  late M.EventRepository _events;
+  late M.NotificationRepository _notifications;
+  late M.ClassRepository _classes;
+  M.Class? _object;
   final _subclasses = <String, Iterable<M.Class>>{};
-  final _mixins = <String, List<M.Instance>>{};
+  final _mixins = <String, List<M.Instance>?>{};
 
   factory ClassTreeElement(
-      M.VMRef vm,
+      M.VM vm,
       M.IsolateRef isolate,
       M.EventRepository events,
       M.NotificationRepository notifications,
       M.ClassRepository classes,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -80,7 +80,7 @@ class ClassTreeElement extends CustomElement implements Renderable {
     _r.disable(notify: true);
   }
 
-  VirtualTreeElement _tree;
+  VirtualTreeElement? _tree;
 
   void render() {
     children = <Element>[
@@ -108,8 +108,8 @@ class ClassTreeElement extends CustomElement implements Renderable {
   Element _createTree() {
     _tree = new VirtualTreeElement(_create, _update, _children,
         items: [_object], search: _search, queue: _r.queue);
-    _tree.expand(_object, autoExpandSingleChildNodes: true);
-    return _tree.element;
+    _tree!.expand(_object, autoExpandSingleChildNodes: true);
+    return _tree!.element;
   }
 
   Future _refresh() async {
@@ -121,25 +121,26 @@ class ClassTreeElement extends CustomElement implements Renderable {
   }
 
   Future<M.Class> _register(M.Class cls) async {
-    _subclasses[cls.id] = await Future.wait(
-        (await Future.wait(cls.subclasses.map(_getActualChildrens)))
+    _subclasses[cls.id!] = await Future.wait(
+        (await Future.wait(cls.subclasses!.map(_getActualChildrens)))
             .expand((f) => f)
             .map(_register));
     return cls;
   }
 
   Future<Iterable<M.Class>> _getActualChildrens(M.ClassRef ref) async {
-    var cls = await _classes.get(_isolate, ref.id);
-    if (cls.isPatch) {
+    var cls = await _classes.get(_isolate, ref.id!);
+    if (cls.isPatch!) {
       return const [];
     }
     if (cls.mixin == null) {
       return [cls];
     }
-    return (await Future.wait(cls.subclasses.map(_getActualChildrens)))
+    return (await Future.wait(cls.subclasses!.map(_getActualChildrens)))
         .expand((f) => f)
           ..forEach((subcls) {
-            _mixins[subcls.id] = (_mixins[subcls.id] ?? [])..add(cls.mixin);
+            _mixins[subcls.id!] = (_mixins[subcls.id!] ?? [])
+              ..add(cls.mixin as M.Instance);
           });
   }
 
@@ -157,23 +158,23 @@ class ClassTreeElement extends CustomElement implements Renderable {
 
   void _update(HtmlElement el, classDynamic, int index) {
     M.Class cls = classDynamic;
-    virtualTreeUpdateLines(el.children[0], index);
-    if (cls.subclasses.isEmpty) {
+    virtualTreeUpdateLines(el.children[0] as SpanElement, index);
+    if (cls.subclasses!.isEmpty) {
       el.children[1].text = '';
     } else {
-      el.children[1].text = _tree.isExpanded(cls) ? '▼' : '►';
+      el.children[1].text = _tree!.isExpanded(cls) ? '▼' : '►';
     }
     el.children[2].children = <Element>[
       new ClassRefElement(_isolate, cls, queue: _r.queue).element
     ];
     if (_mixins[cls.id] != null) {
-      el.children[2].children.addAll(_createMixins(_mixins[cls.id]));
+      el.children[2].children.addAll(_createMixins(_mixins[cls.id]!));
     }
   }
 
   bool _search(Pattern pattern, classDynamic) {
     M.Class cls = classDynamic;
-    return cls.name.contains(pattern);
+    return cls.name!.contains(pattern);
   }
 
   List<Element> _createMixins(List<M.Instance> types) {
@@ -181,8 +182,8 @@ class ClassTreeElement extends CustomElement implements Renderable {
         .expand((type) => <Element>[
               new SpanElement()..text = ', ',
               type.typeClass == null
-                  ? (new SpanElement()..text = type.name.split('<').first)
-                  : new ClassRefElement(_isolate, type.typeClass,
+                  ? (new SpanElement()..text = type.name!.split('<').first)
+                  : new ClassRefElement(_isolate, type.typeClass!,
                           queue: _r.queue)
                       .element
             ])
@@ -193,6 +194,6 @@ class ClassTreeElement extends CustomElement implements Renderable {
 
   Iterable<M.Class> _children(classDynamic) {
     M.Class cls = classDynamic;
-    return _subclasses[cls.id];
+    return _subclasses[cls.id]!;
   }
 }

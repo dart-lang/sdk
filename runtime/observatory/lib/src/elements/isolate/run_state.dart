@@ -11,17 +11,17 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 class IsolateRunStateElement extends CustomElement implements Renderable {
   static const tag = const Tag<IsolateRunStateElement>('isolate-run-state');
 
-  RenderingScheduler<IsolateRunStateElement> _r;
+  late RenderingScheduler<IsolateRunStateElement> _r;
 
   Stream<RenderedEvent<IsolateRunStateElement>> get onRendered => _r.onRendered;
 
-  M.Isolate _isolate;
-  M.EventRepository _events;
-  StreamSubscription _debugSubscription;
-  StreamSubscription _isolateSubscription;
+  late M.Isolate _isolate;
+  late M.EventRepository _events;
+  late StreamSubscription _debugSubscription;
+  late StreamSubscription _isolateSubscription;
 
   factory IsolateRunStateElement(M.Isolate isolate, M.EventRepository events,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(isolate != null);
     assert(events != null);
     IsolateRunStateElement e = new IsolateRunStateElement.created();
@@ -64,7 +64,7 @@ class IsolateRunStateElement extends CustomElement implements Renderable {
       case M.IsolateStatus.paused:
         children = <Element>[
           new SpanElement()
-            ..title = '${_isolate.pauseEvent.timestamp}'
+            ..title = '${_isolate.pauseEvent!.timestamp}'
             ..text = 'paused '
         ];
         break;

@@ -48,20 +48,20 @@ class AllocationProfileElement extends CustomElement implements Renderable {
         VirtualCollectionElement.tag
       ]);
 
-  RenderingScheduler<AllocationProfileElement> _r;
+  late RenderingScheduler<AllocationProfileElement> _r;
 
   Stream<RenderedEvent<AllocationProfileElement>> get onRendered =>
       _r.onRendered;
 
-  M.VM _vm;
-  M.IsolateRef _isolate;
-  M.EventRepository _events;
-  M.NotificationRepository _notifications;
-  M.AllocationProfileRepository _repository;
-  M.AllocationProfile _profile;
+  late M.VM _vm;
+  late M.IsolateRef _isolate;
+  late M.EventRepository _events;
+  late M.NotificationRepository _notifications;
+  late M.AllocationProfileRepository _repository;
+  M.AllocationProfile? _profile;
   bool _autoRefresh = false;
   bool _isCompacted = false;
-  StreamSubscription _gcSubscription;
+  late StreamSubscription _gcSubscription;
   _SortingField _sortingField = _SortingField.size;
   _SortingDirection _sortingDirection = _SortingDirection.descending;
 
@@ -75,7 +75,7 @@ class AllocationProfileElement extends CustomElement implements Renderable {
       M.EventRepository events,
       M.NotificationRepository notifications,
       M.AllocationProfileRepository repository,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -174,9 +174,9 @@ class AllocationProfileElement extends CustomElement implements Renderable {
                             ..text = 'last forced GC at',
                           new DivElement()
                             ..classes = ['memberValue']
-                            ..text = _profile.lastServiceGC == null
+                            ..text = _profile!.lastServiceGC == null
                                 ? '---'
-                                : '${_profile.lastServiceGC}',
+                                : '${_profile!.lastServiceGC}',
                         ],
                     ],
                   new HRElement(),
@@ -190,14 +190,14 @@ class AllocationProfileElement extends CustomElement implements Renderable {
                   ? [
                       new HeadingElement.h2()
                         ..text = 'New Generation '
-                            '(${_usedCaption(_profile.newSpace)})',
+                            '(${_usedCaption(_profile!.newSpace)})',
                     ]
                   : [
                       new HeadingElement.h2()..text = 'New Generation',
                       new BRElement(),
                       new DivElement()
                         ..classes = ['memberList']
-                        ..children = _createSpaceMembers(_profile.newSpace),
+                        ..children = _createSpaceMembers(_profile!.newSpace),
                     ],
             new DivElement()
               ..classes = ['heap-space', 'left']
@@ -205,14 +205,14 @@ class AllocationProfileElement extends CustomElement implements Renderable {
                   ? [
                       new HeadingElement.h2()
                         ..text = 'Old Generation '
-                            '(${_usedCaption(_profile.oldSpace)})',
+                            '(${_usedCaption(_profile!.oldSpace)})',
                     ]
                   : [
                       new HeadingElement.h2()..text = 'Old Generation',
                       new BRElement(),
                       new DivElement()
                         ..classes = ['memberList']
-                        ..children = _createSpaceMembers(_profile.oldSpace),
+                        ..children = _createSpaceMembers(_profile!.oldSpace),
                     ],
             new DivElement()
               ..classes = ['heap-space', 'left']
@@ -220,22 +220,22 @@ class AllocationProfileElement extends CustomElement implements Renderable {
                   ? [
                       new HeadingElement.h2()
                         ..text = 'Total '
-                            '(${_usedCaption(_profile.totalSpace)})',
+                            '(${_usedCaption(_profile!.totalSpace)})',
                     ]
                   : [
                       new HeadingElement.h2()..text = 'Total',
                       new BRElement(),
                       new DivElement()
                         ..classes = ['memberList']
-                        ..children = _createSpaceMembers(_profile.totalSpace),
+                        ..children = _createSpaceMembers(_profile!.totalSpace),
                     ],
             new ButtonElement()
               ..classes = ['compact']
               ..text = _isCompacted ? 'expand ▼' : 'compact ▲'
               ..onClick.listen((_) {
-                    _isCompacted = !_isCompacted;
-                          _r.dirty();
-               }),
+                _isCompacted = !_isCompacted;
+                _r.dirty();
+              }),
             new HRElement()
           ],
         new DivElement()
@@ -245,7 +245,7 @@ class AllocationProfileElement extends CustomElement implements Renderable {
                     _createCollectionLine, _updateCollectionLine,
                     createHeader: _createCollectionHeader,
                     search: _search,
-                    items: _profile.members.toList()..sort(_createSorter()),
+                    items: _profile!.members.toList()..sort(_createSorter()),
                     queue: _r.queue)
                 .element
           ]
@@ -293,7 +293,7 @@ class AllocationProfileElement extends CustomElement implements Renderable {
         getter = _getInstances;
         break;
       case _SortingField.className:
-        getter = (M.ClassHeapStats s) => s.clazz.name;
+        getter = (M.ClassHeapStats s) => s.clazz!.name;
         break;
     }
     switch (_sortingDirection) {
@@ -376,35 +376,26 @@ class AllocationProfileElement extends CustomElement implements Renderable {
                 _SortingField.newInternalSize, _SortingDirection.descending),
             _createHeaderButton(const ['bytes'], 'External',
                 _SortingField.newExternalSize, _SortingDirection.descending),
-            _createHeaderButton(const ['bytes'], 'Size',
-                _SortingField.newSize, _SortingDirection.descending),
-            _createHeaderButton(
-                const ['instances'], 'Instances',
-                _SortingField.newInstances,
+            _createHeaderButton(const ['bytes'], 'Size', _SortingField.newSize,
                 _SortingDirection.descending),
-
+            _createHeaderButton(const ['instances'], 'Instances',
+                _SortingField.newInstances, _SortingDirection.descending),
             _createHeaderButton(const ['bytes'], 'Internal',
                 _SortingField.oldInternalSize, _SortingDirection.descending),
             _createHeaderButton(const ['bytes'], 'External',
                 _SortingField.oldExternalSize, _SortingDirection.descending),
-            _createHeaderButton(const ['bytes'], 'Size',
-                _SortingField.oldSize, _SortingDirection.descending),
-            _createHeaderButton(
-                const ['instances'], 'Instances',
-                _SortingField.oldInstances,
+            _createHeaderButton(const ['bytes'], 'Size', _SortingField.oldSize,
                 _SortingDirection.descending),
-
+            _createHeaderButton(const ['instances'], 'Instances',
+                _SortingField.oldInstances, _SortingDirection.descending),
             _createHeaderButton(const ['bytes'], 'Internal',
                 _SortingField.internalSize, _SortingDirection.descending),
             _createHeaderButton(const ['bytes'], 'External',
                 _SortingField.externalSize, _SortingDirection.descending),
-            _createHeaderButton(const ['bytes'], 'Size',
-                _SortingField.size, _SortingDirection.descending),
-            _createHeaderButton(
-                const ['instances'], 'Instances',
-                _SortingField.instances,
+            _createHeaderButton(const ['bytes'], 'Size', _SortingField.size,
                 _SortingDirection.descending),
-
+            _createHeaderButton(const ['instances'], 'Instances',
+                _SortingField.instances, _SortingDirection.descending),
             _createHeaderButton(const ['name'], 'Class',
                 _SortingField.className, _SortingDirection.ascending)
           ],
@@ -452,14 +443,14 @@ class AllocationProfileElement extends CustomElement implements Renderable {
     e.children[9].text = Utils.formatSize(_getExternalSize(item));
     e.children[10].text = Utils.formatSize(_getSize(item));
     e.children[11].text = '${_getInstances(item)}';
-    e.children[12] = new ClassRefElement(_isolate, item.clazz, queue: _r.queue)
+    e.children[12] = new ClassRefElement(_isolate, item.clazz!, queue: _r.queue)
         .element
       ..classes = ['name'];
   }
 
   bool _search(Pattern pattern, itemDynamic) {
     M.ClassHeapStats item = itemDynamic;
-    return item.clazz.name.contains(pattern);
+    return item.clazz!.name!.contains(pattern);
   }
 
   static String _usedCaption(M.HeapSpace space) =>
@@ -546,11 +537,11 @@ class AllocationProfileElement extends CustomElement implements Renderable {
           'Class'
         ].join(',') +
         '\n';
-    AnchorElement tl = document.createElement('a');
+    AnchorElement tl = document.createElement('a') as AnchorElement;
     tl
       ..attributes['href'] = 'data:text/plain;charset=utf-8,' +
           Uri.encodeComponent(header +
-              (_profile.members.toList()..sort(_createSorter()))
+              (_profile!.members.toList()..sort(_createSorter()))
                   .map(_csvOut)
                   .join('\n'))
       ..attributes['download'] = 'heap-profile.csv'
@@ -571,32 +562,23 @@ class AllocationProfileElement extends CustomElement implements Renderable {
       _getExternalSize(s),
       _getSize(s),
       _getInstances(s),
-      s.clazz.name
+      s.clazz!.name
     ].join(',');
   }
 
-  static int _getNewInstances(M.ClassHeapStats s) =>
-      s.newSpace.instances;
-  static int _getNewInternalSize(M.ClassHeapStats s) =>
-      s.newSpace.internalSize;
-  static int _getNewExternalSize(M.ClassHeapStats s) =>
-      s.newSpace.externalSize;
-  static int _getNewSize(M.ClassHeapStats s) =>
-      s.newSpace.size;
-  static int _getOldInstances(M.ClassHeapStats s) =>
-      s.oldSpace.instances;
-  static int _getOldInternalSize(M.ClassHeapStats s) =>
-      s.oldSpace.internalSize;
-  static int _getOldExternalSize(M.ClassHeapStats s) =>
-      s.oldSpace.externalSize;
-  static int _getOldSize(M.ClassHeapStats s) =>
-      s.oldSpace.size;
+  static int _getNewInstances(M.ClassHeapStats s) => s.newSpace.instances;
+  static int _getNewInternalSize(M.ClassHeapStats s) => s.newSpace.internalSize;
+  static int _getNewExternalSize(M.ClassHeapStats s) => s.newSpace.externalSize;
+  static int _getNewSize(M.ClassHeapStats s) => s.newSpace.size;
+  static int _getOldInstances(M.ClassHeapStats s) => s.oldSpace.instances;
+  static int _getOldInternalSize(M.ClassHeapStats s) => s.oldSpace.internalSize;
+  static int _getOldExternalSize(M.ClassHeapStats s) => s.oldSpace.externalSize;
+  static int _getOldSize(M.ClassHeapStats s) => s.oldSpace.size;
   static int _getInstances(M.ClassHeapStats s) =>
       s.newSpace.instances + s.oldSpace.instances;
   static int _getInternalSize(M.ClassHeapStats s) =>
       s.newSpace.internalSize + s.oldSpace.internalSize;
   static int _getExternalSize(M.ClassHeapStats s) =>
       s.newSpace.externalSize + s.oldSpace.externalSize;
-  static int _getSize(M.ClassHeapStats s) =>
-      s.newSpace.size + s.oldSpace.size;
+  static int _getSize(M.ClassHeapStats s) => s.newSpace.size + s.oldSpace.size;
 }

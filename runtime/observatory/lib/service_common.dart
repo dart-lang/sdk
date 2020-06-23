@@ -26,9 +26,9 @@ class WebSocketVMTarget implements M.Target {
   bool get standalone => !chrome;
 
   // User defined name.
-  String name;
+  late String name;
   // Network address of VM.
-  String networkAddress;
+  late String networkAddress;
 
   WebSocketVMTarget(this.networkAddress) {
     name = networkAddress;
@@ -89,7 +89,7 @@ abstract class CommonWebSocketVM extends VM {
 
   String get displayName => '${name}@${target.name}';
 
-  CommonWebSocket _webSocket;
+  CommonWebSocket? _webSocket;
 
   CommonWebSocketVM(this.target, this._webSocket) {
     assert(target != null);
@@ -120,7 +120,7 @@ abstract class CommonWebSocketVM extends VM {
   void disconnect({String reason: 'WebSocket closed'}) {
     if (_hasInitiatedConnect) {
       if (_webSocket != null) {
-        _webSocket.close();
+        _webSocket!.close();
       }
     }
     // We don't need to cancel requests and notify here.  These
@@ -135,7 +135,7 @@ abstract class CommonWebSocketVM extends VM {
     if (!_hasInitiatedConnect) {
       _hasInitiatedConnect = true;
       try {
-        _webSocket.connect(
+        _webSocket!.connect(
             target.networkAddress, _onOpen, _onMessage, _onError, _onClose);
       } catch (_, stack) {
         _webSocket = null;
@@ -150,7 +150,7 @@ abstract class CommonWebSocketVM extends VM {
     }
     String serial = (_requestSerial++).toString();
     var request = new _WebSocketRequest(method, params);
-    if ((_webSocket != null) && _webSocket.isOpen) {
+    if ((_webSocket != null) && _webSocket!.isOpen) {
       // Already connected, send request immediately.
       _sendRequest(serial, request);
     } else {
@@ -180,7 +180,7 @@ abstract class CommonWebSocketVM extends VM {
     _notifyConnect();
   }
 
-  Map _parseJSON(String message) {
+  Map? _parseJSON(String message) {
     var map;
     try {
       map = json.decode(message);
@@ -198,7 +198,7 @@ abstract class CommonWebSocketVM extends VM {
   }
 
   void _onBinaryMessage(dynamic data) {
-    _webSocket.nonStringToByteData(data).then((ByteData bytes) {
+    _webSocket!.nonStringToByteData(data).then((ByteData bytes) {
       var metadataOffset = 4;
       var dataOffset = bytes.getUint32(0, Endian.little);
       var metadataLength = dataOffset - metadataOffset;
@@ -292,7 +292,7 @@ abstract class CommonWebSocketVM extends VM {
 
   /// Send all delayed requests.
   void _sendAllDelayedRequests() {
-    assert(_webSocket.isOpen);
+    assert(_webSocket!.isOpen);
     if (_delayedRequests.length == 0) {
       return;
     }
@@ -305,7 +305,7 @@ abstract class CommonWebSocketVM extends VM {
 
   /// Send the request over WebSocket.
   void _sendRequest(String serial, _WebSocketRequest request) {
-    assert(_webSocket.isOpen);
+    assert(_webSocket!.isOpen);
     // Mark request as pending.
     assert(_pendingRequests.containsKey(serial) == false);
     _pendingRequests[serial] = request;
@@ -332,7 +332,7 @@ abstract class CommonWebSocketVM extends VM {
           'GET [${serial}] ${request.method}(${request.params}) from ${target.networkAddress}');
     }
     // Send message.
-    _webSocket.send(message);
+    _webSocket!.send(message);
   }
 
   String toString() => displayName;

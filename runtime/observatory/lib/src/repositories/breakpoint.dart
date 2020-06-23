@@ -8,12 +8,12 @@ class BreakpointRepository extends M.BreakpointRepository {
   Future addOnActivation(M.IsolateRef i, M.Instance closure) async {
     S.Isolate isolate = i as S.Isolate;
     assert(isolate != null);
-    await isolate.addBreakOnActivation(closure);
+    await isolate.addBreakOnActivation(closure as S.Instance);
   }
 
   Future remove(M.IsolateRef i, M.Breakpoint breakpoint) async {
     S.Isolate isolate = i as S.Isolate;
     assert(isolate != null);
-    await isolate.removeBreakpoint(breakpoint);
+    await isolate.removeBreakpoint(breakpoint as S.Breakpoint);
   }
 }

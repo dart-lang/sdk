@@ -25,19 +25,19 @@ class VMConnectElement extends CustomElement implements Renderable {
     VMConnectTargetElement.tag
   ]);
 
-  RenderingScheduler<VMConnectElement> _r;
+  late RenderingScheduler<VMConnectElement> _r;
 
   Stream<RenderedEvent<VMConnectElement>> get onRendered => _r.onRendered;
 
-  M.NotificationRepository _notifications;
-  M.TargetRepository _targets;
-  StreamSubscription _targetsSubscription;
+  late M.NotificationRepository _notifications;
+  late M.TargetRepository _targets;
+  late StreamSubscription _targetsSubscription;
 
-  String _address;
+  late String _address;
 
   factory VMConnectElement(
       M.TargetRepository targets, M.NotificationRepository notifications,
-      {String address: '', RenderingQueue queue}) {
+      {String address: '', RenderingQueue? queue}) {
     assert(address != null);
     assert(notifications != null);
     assert(targets != null);
@@ -147,7 +147,7 @@ class VMConnectElement extends CustomElement implements Renderable {
     _targets.add(normalizedNetworkAddress);
     var target = _targets.find(normalizedNetworkAddress);
     assert(target != null);
-    _targets.setCurrent(target);
+    _targets.setCurrent(target!);
     // the navigation to the VM page is done in the ObservatoryApplication
   }
 

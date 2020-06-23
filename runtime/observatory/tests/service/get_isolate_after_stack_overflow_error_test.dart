@@ -21,7 +21,7 @@ var tests = <IsolateTest>[
   (Isolate isolate) async {
     await isolate.reload();
     expect(isolate.error, isNotNull);
-    expect(isolate.error.message.contains('Stack Overflow'), isTrue);
+    expect(isolate.error!.message!.contains('Stack Overflow'), isTrue);
   }
 ];
 

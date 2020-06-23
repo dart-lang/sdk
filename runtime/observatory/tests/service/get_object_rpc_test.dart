@@ -13,7 +13,7 @@ import 'test_helper.dart';
 
 class _DummyClass {
   static var dummyVar = 11;
-  final List<String> dummyList = new List<String>.filled(20, null);
+  final List<String> dummyList = new List<String>.filled(20, '');
   void dummyFunction() {}
 }
 
@@ -693,7 +693,7 @@ var tests = <IsolateTest>[
     var params = {
       'objectId': 'libraries/9999999',
     };
-    bool caughtException;
+    bool caughtException = false;
     try {
       await isolate.invokeRpcNoUpgrade('getObject', params);
       expect(false, isTrue, reason: 'Unreachable');
@@ -736,7 +736,7 @@ var tests = <IsolateTest>[
     var params = {
       'objectId': 'scripts/9999999',
     };
-    bool caughtException;
+    bool caughtException = false;
     try {
       await isolate.invokeRpcNoUpgrade('getObject', params);
       expect(false, isTrue, reason: 'Unreachable');
@@ -783,7 +783,7 @@ var tests = <IsolateTest>[
     var params = {
       'objectId': 'classes/9999999',
     };
-    bool caughtException;
+    bool caughtException = false;
     try {
       await isolate.invokeRpcNoUpgrade('getObject', params);
       expect(false, isTrue, reason: 'Unreachable');
@@ -823,7 +823,7 @@ var tests = <IsolateTest>[
     var params = {
       'objectId': id,
     };
-    bool caughtException;
+    bool caughtException = false;
     try {
       await isolate.invokeRpcNoUpgrade('getObject', params);
       expect(false, isTrue, reason: 'Unreachable');
@@ -868,7 +868,7 @@ var tests = <IsolateTest>[
     var params = {
       'objectId': id,
     };
-    bool caughtException;
+    bool caughtException = false;
     try {
       await isolate.invokeRpcNoUpgrade('getObject', params);
       expect(false, isTrue, reason: 'Unreachable');
@@ -944,7 +944,7 @@ var tests = <IsolateTest>[
     var params = {
       'objectId': id,
     };
-    bool caughtException;
+    bool caughtException = false;
     try {
       await isolate.invokeRpcNoUpgrade('getObject', params);
       expect(false, isTrue, reason: 'Unreachable');
@@ -992,7 +992,7 @@ var tests = <IsolateTest>[
     var params = {
       'objectId': 'code/0',
     };
-    bool caughtException;
+    bool caughtException = false;
     try {
       await isolate.invokeRpcNoUpgrade('getObject', params);
       expect(false, isTrue, reason: 'Unreachable');

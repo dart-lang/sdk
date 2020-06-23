@@ -39,22 +39,22 @@ class ScriptViewElement extends CustomElement implements Renderable {
     ViewFooterElement.tag
   ]);
 
-  RenderingScheduler<ScriptViewElement> _r;
+  late RenderingScheduler<ScriptViewElement> _r;
 
   Stream<RenderedEvent<ScriptViewElement>> get onRendered => _r.onRendered;
 
-  M.VM _vm;
-  M.IsolateRef _isolate;
-  M.EventRepository _events;
-  M.NotificationRepository _notifications;
-  M.Script _script;
-  M.ScriptRepository _scripts;
-  M.RetainedSizeRepository _retainedSizes;
-  M.ReachableSizeRepository _reachableSizes;
-  M.InboundReferencesRepository _references;
-  M.RetainingPathRepository _retainingPaths;
-  M.ObjectRepository _objects;
-  int _pos;
+  late M.VM _vm;
+  late M.IsolateRef _isolate;
+  late M.EventRepository _events;
+  late M.NotificationRepository _notifications;
+  late M.Script _script;
+  late M.ScriptRepository _scripts;
+  late M.RetainedSizeRepository _retainedSizes;
+  late M.ReachableSizeRepository _reachableSizes;
+  late M.InboundReferencesRepository _references;
+  late M.RetainingPathRepository _retainingPaths;
+  late M.ObjectRepository _objects;
+  int? _pos;
 
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
@@ -73,8 +73,8 @@ class ScriptViewElement extends CustomElement implements Renderable {
       M.InboundReferencesRepository references,
       M.RetainingPathRepository retainingPaths,
       M.ObjectRepository objects,
-      {int pos,
-      RenderingQueue queue}) {
+      {int? pos,
+      RenderingQueue? queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -124,13 +124,13 @@ class ScriptViewElement extends CustomElement implements Renderable {
         new NavTopMenuElement(queue: _r.queue).element,
         new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
-        new NavLibraryMenuElement(_isolate, _script.library, queue: _r.queue)
+        new NavLibraryMenuElement(_isolate, _script.library!, queue: _r.queue)
             .element,
         navMenu('object'),
         (new NavRefreshElement(queue: _r.queue)
               ..onRefresh.listen((e) async {
                 e.element.disabled = true;
-                _script = await _scripts.get(_isolate, _script.id);
+                _script = await _scripts.get(_isolate, _script.id!);
                 _r.dirty();
               }))
             .element,

@@ -56,27 +56,27 @@ class ClassViewElement extends CustomElement implements Renderable {
     ViewFooterElement.tag
   ]);
 
-  RenderingScheduler<ClassViewElement> _r;
+  late RenderingScheduler<ClassViewElement> _r;
 
   Stream<RenderedEvent<ClassViewElement>> get onRendered => _r.onRendered;
 
-  M.VM _vm;
-  M.IsolateRef _isolate;
-  M.EventRepository _events;
-  M.NotificationRepository _notifications;
-  M.Class _cls;
-  M.ClassRepository _classes;
-  M.RetainedSizeRepository _retainedSizes;
-  M.ReachableSizeRepository _reachableSizes;
-  M.InboundReferencesRepository _references;
-  M.RetainingPathRepository _retainingPaths;
-  M.StronglyReachableInstancesRepository _stronglyReachableInstances;
-  M.FieldRepository _fields;
-  M.ScriptRepository _scripts;
-  M.ObjectRepository _objects;
-  M.EvalRepository _eval;
-  M.ClassSampleProfileRepository _profiles;
-  Iterable<M.Field> _classFields;
+  late M.VM _vm;
+  late M.IsolateRef _isolate;
+  late M.EventRepository _events;
+  late M.NotificationRepository _notifications;
+  late M.Class _cls;
+  late M.ClassRepository _classes;
+  late M.RetainedSizeRepository _retainedSizes;
+  late M.ReachableSizeRepository _reachableSizes;
+  late M.InboundReferencesRepository _references;
+  late M.RetainingPathRepository _retainingPaths;
+  late M.StronglyReachableInstancesRepository _stronglyReachableInstances;
+  late M.FieldRepository _fields;
+  late M.ScriptRepository _scripts;
+  late M.ObjectRepository _objects;
+  late M.EvalRepository _eval;
+  late M.ClassSampleProfileRepository _profiles;
+  Iterable<M.Field>? _classFields;
 
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
@@ -100,7 +100,7 @@ class ClassViewElement extends CustomElement implements Renderable {
       M.EvalRepository eval,
       M.StronglyReachableInstancesRepository stronglyReachable,
       M.ClassSampleProfileRepository profiles,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -154,8 +154,8 @@ class ClassViewElement extends CustomElement implements Renderable {
     children = <Element>[];
   }
 
-  ObjectCommonElement _common;
-  ClassInstancesElement _classInstances;
+  ObjectCommonElement? _common;
+  ClassInstancesElement? _classInstances;
   bool _loadProfile = false;
 
   void render() {
@@ -168,10 +168,10 @@ class ClassViewElement extends CustomElement implements Renderable {
             _reachableSizes, _stronglyReachableInstances, _objects,
             queue: _r.queue);
     var header = '';
-    if (_cls.isAbstract) {
+    if (_cls.isAbstract!) {
       header += 'abstract ';
     }
-    if (_cls.isPatch) {
+    if (_cls.isPatch!) {
       header += 'patch ';
     }
     children = <Element>[
@@ -205,7 +205,7 @@ class ClassViewElement extends CustomElement implements Renderable {
         ..children = <Element>[
           new HeadingElement.h2()..text = '$header class ${_cls.name}',
           new HRElement(),
-          _common.element,
+          _common!.element,
           new BRElement(),
           new DivElement()
             ..classes = ['memberList']
@@ -215,7 +215,7 @@ class ClassViewElement extends CustomElement implements Renderable {
                 ? const []
                 : [
                     new HRElement(),
-                    new ErrorRefElement(_cls.error, queue: _r.queue).element
+                    new ErrorRefElement(_cls.error!, queue: _r.queue).element
                   ],
           new HRElement(),
           new EvalBoxElement(_isolate, _cls, _objects, _eval, queue: _r.queue)
@@ -227,7 +227,7 @@ class ClassViewElement extends CustomElement implements Renderable {
             ..children = _createElements(),
           new HRElement(),
           new HeadingElement.h2()..text = 'Instances',
-          new DivElement()..children = [_classInstances.element],
+          new DivElement()..children = [_classInstances!.element],
           new HRElement(),
           new HeadingElement.h2()..text = 'Allocations',
           new DivElement()
@@ -238,7 +238,7 @@ class ClassViewElement extends CustomElement implements Renderable {
                 ..text = 'Tracing allocations?	',
               new DivElement()
                 ..classes = ['memberValue']
-                ..children = _cls.traceAllocations
+                ..children = _cls.traceAllocations!
                     ? [
                         new SpanElement()..text = 'Yes ',
                         new ButtonElement()
@@ -274,7 +274,7 @@ class ClassViewElement extends CustomElement implements Renderable {
             ..children = _cls.location != null
                 ? [
                     new HRElement(),
-                    new SourceInsetElement(_isolate, _cls.location, _scripts,
+                    new SourceInsetElement(_isolate, _cls.location!, _scripts,
                             _objects, _events,
                             queue: _r.queue)
                         .element
@@ -286,8 +286,8 @@ class ClassViewElement extends CustomElement implements Renderable {
     ];
   }
 
-  bool _fieldsExpanded;
-  bool _functionsExpanded;
+  bool? _fieldsExpanded;
+  bool? _functionsExpanded;
 
   List<Element> _createMembers() {
     final members = <Element>[];
@@ -301,7 +301,7 @@ class ClassViewElement extends CustomElement implements Renderable {
           new DivElement()
             ..classes = ['memberValue']
             ..children = <Element>[
-              new LibraryRefElement(_isolate, _cls.library, queue: _r.queue)
+              new LibraryRefElement(_isolate, _cls.library!, queue: _r.queue)
                   .element
             ]
         ]);
@@ -316,7 +316,7 @@ class ClassViewElement extends CustomElement implements Renderable {
           new DivElement()
             ..classes = ['memberValue']
             ..children = <Element>[
-              new SourceLinkElement(_isolate, _cls.location, _scripts,
+              new SourceLinkElement(_isolate, _cls.location!, _scripts,
                       queue: _r.queue)
                   .element
             ]
@@ -332,7 +332,7 @@ class ClassViewElement extends CustomElement implements Renderable {
           new DivElement()
             ..classes = ['memberValue']
             ..children = <Element>[
-              new ClassRefElement(_isolate, _cls.superclass, queue: _r.queue)
+              new ClassRefElement(_isolate, _cls.superclass!, queue: _r.queue)
                   .element
             ]
         ]);
@@ -347,7 +347,7 @@ class ClassViewElement extends CustomElement implements Renderable {
           new DivElement()
             ..classes = ['memberValue']
             ..children = <Element>[
-              new InstanceRefElement(_isolate, _cls.superType, _objects,
+              new InstanceRefElement(_isolate, _cls.superType!, _objects,
                       queue: _r.queue)
                   .element
             ]
@@ -363,13 +363,13 @@ class ClassViewElement extends CustomElement implements Renderable {
           new DivElement()
             ..classes = ['memberValue']
             ..children = <Element>[
-              new InstanceRefElement(_isolate, _cls.mixin, _objects,
+              new InstanceRefElement(_isolate, _cls.mixin!, _objects,
                       queue: _r.queue)
                   .element
             ]
         ]);
     }
-    if (_cls.subclasses.length > 0) {
+    if (_cls.subclasses!.length > 0) {
       members.add(new DivElement()
         ..classes = ['memberItem']
         ..children = <Element>[
@@ -378,7 +378,7 @@ class ClassViewElement extends CustomElement implements Renderable {
             ..text = 'extended by',
           new DivElement()
             ..classes = ['memberValue']
-            ..children = (_cls.subclasses
+            ..children = (_cls.subclasses!
                 .expand((subcls) => <Element>[
                       new ClassRefElement(_isolate, subcls, queue: _r.queue)
                           .element,
@@ -391,7 +391,7 @@ class ClassViewElement extends CustomElement implements Renderable {
 
     members.add(new BRElement());
 
-    if (_cls.interfaces.length > 0) {
+    if (_cls.interfaces!.length > 0) {
       members.add(new DivElement()
         ..classes = ['memberItem']
         ..children = <Element>[
@@ -400,7 +400,7 @@ class ClassViewElement extends CustomElement implements Renderable {
             ..text = 'implements',
           new DivElement()
             ..classes = ['memberValue']
-            ..children = (_cls.interfaces
+            ..children = (_cls.interfaces!
                 .expand((interf) => <Element>[
                       new InstanceRefElement(_isolate, interf, _objects,
                               queue: _r.queue)
@@ -428,8 +428,8 @@ class ClassViewElement extends CustomElement implements Renderable {
 
   List<Element> _createElements() {
     final members = <Element>[];
-    if (_classFields != null && _classFields.isNotEmpty) {
-      final fields = _classFields.toList();
+    if (_classFields != null && _classFields!.isNotEmpty) {
+      final fields = _classFields!.toList();
       _fieldsExpanded = _fieldsExpanded ?? (fields.length <= 8);
       members.add(new DivElement()
         ..classes = ['memberItem']
@@ -440,7 +440,7 @@ class ClassViewElement extends CustomElement implements Renderable {
           new DivElement()
             ..classes = ['memberValue']
             ..children = <Element>[
-              (new CurlyBlockElement(expanded: _fieldsExpanded)
+              (new CurlyBlockElement(expanded: _fieldsExpanded!)
                     ..onToggle
                         .listen((e) => _fieldsExpanded = e.control.expanded)
                     ..content = <Element>[
@@ -474,8 +474,8 @@ class ClassViewElement extends CustomElement implements Renderable {
         ]);
     }
 
-    if (_cls.functions.isNotEmpty) {
-      final functions = _cls.functions.toList();
+    if (_cls.functions!.isNotEmpty) {
+      final functions = _cls.functions!.toList();
       _functionsExpanded = _functionsExpanded ?? (functions.length <= 8);
       members.add(new DivElement()
         ..classes = ['memberItem']
@@ -486,7 +486,7 @@ class ClassViewElement extends CustomElement implements Renderable {
           new DivElement()
             ..classes = ['memberValue']
             ..children = <Element>[
-              (new CurlyBlockElement(expanded: _functionsExpanded)
+              (new CurlyBlockElement(expanded: _functionsExpanded!)
                     ..onToggle
                         .listen((e) => _functionsExpanded = e.control.expanded)
                     ..content = (functions
@@ -505,14 +505,14 @@ class ClassViewElement extends CustomElement implements Renderable {
   }
 
   Future _refresh() async {
-    _cls = await _classes.get(_isolate, _cls.id);
+    _cls = await _classes.get(_isolate, _cls.id!);
     await _loadAdditionalData();
     _r.dirty();
   }
 
   Future _loadAdditionalData() async {
-    _classFields =
-        await Future.wait(_cls.fields.map((f) => _fields.get(_isolate, f.id)));
+    _classFields = await Future.wait(
+        _cls.fields!.map((f) => _fields.get(_isolate, f.id!)));
     _r.dirty();
   }
 }

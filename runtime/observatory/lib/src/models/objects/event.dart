@@ -75,7 +75,7 @@ abstract class PauseExitEvent extends PauseEvent {}
 
 abstract class PauseBreakpointEvent extends AsyncSuspensionEvent {
   /// [optional] The breakpoint at which we are currently paused.
-  Breakpoint get breakpoint;
+  Breakpoint? get breakpoint;
 
   /// The list of breakpoints at which we are currently paused
   /// for a PauseBreakpoint event.
@@ -94,13 +94,13 @@ abstract class PauseBreakpointEvent extends AsyncSuspensionEvent {
 abstract class PauseInterruptedEvent extends AsyncSuspensionEvent {
   /// [optional] The top stack frame associated with this event. There will be
   /// no top frame if the isolate is idle (waiting in the message loop).
-  Frame get topFrame;
+  Frame? get topFrame;
 }
 
 abstract class PausePostRequestEvent extends AsyncSuspensionEvent {
   /// [optional] The top stack frame associated with this event. There will be
   /// no top frame if the isolate is idle (waiting in the message loop).
-  Frame get topFrame;
+  Frame? get topFrame;
 }
 
 abstract class PauseExceptionEvent extends PauseEvent {
@@ -115,7 +115,7 @@ abstract class ResumeEvent extends DebugEvent {
   /// [optional] The top stack frame associated with this event. It is provided
   /// at all times except for the initial resume event that is delivered when an
   /// isolate begins execution.
-  Frame get topFrame;
+  Frame? get topFrame;
 }
 
 abstract class BreakpointAddedEvent extends BreakpointEvent {}
@@ -168,7 +168,7 @@ abstract class ConnectionClosedEvent extends Event {
   String get reason;
 }
 
-Frame topFrame(DebugEvent event) {
+Frame? topFrame(Event? event) {
   if (event is PauseBreakpointEvent) {
     return event.topFrame;
   }
@@ -184,7 +184,7 @@ Frame topFrame(DebugEvent event) {
   return null;
 }
 
-bool isAtAsyncSuspension(DebugEvent event) {
+bool isAtAsyncSuspension(DebugEvent? event) {
   if (event is PauseBreakpointEvent) {
     return event.atAsyncSuspension;
   }

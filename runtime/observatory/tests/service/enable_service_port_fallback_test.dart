@@ -18,7 +18,7 @@ var tests = <VMTest>[
   }
 ];
 
-ServerSocket socket;
+late ServerSocket socket;
 int portNumber = -1;
 
 main(args) async {

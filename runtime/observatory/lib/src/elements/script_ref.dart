@@ -14,18 +14,18 @@ import 'package:observatory/src/elements/helpers/uris.dart';
 class ScriptRefElement extends CustomElement implements Renderable {
   static const tag = const Tag<ScriptRefElement>('script-ref');
 
-  RenderingScheduler<ScriptRefElement> _r;
+  late RenderingScheduler<ScriptRefElement> _r;
 
   Stream<RenderedEvent<ScriptRefElement>> get onRendered => _r.onRendered;
 
-  M.IsolateRef _isolate;
-  M.ScriptRef _script;
+  late M.IsolateRef _isolate;
+  late M.ScriptRef _script;
 
   M.IsolateRef get isolate => _isolate;
   M.ScriptRef get script => _script;
 
   factory ScriptRefElement(M.IsolateRef isolate, M.ScriptRef script,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(isolate != null);
     assert(script != null);
     ScriptRefElement e = new ScriptRefElement.created();
@@ -51,14 +51,14 @@ class ScriptRefElement extends CustomElement implements Renderable {
   }
 
   void render() {
-    var displayUri = script.uri.split('/').last;
+    var displayUri = script.uri!.split('/').last;
     if (displayUri.isEmpty) {
       displayUri = 'N/A';
     }
 
     children = <Element>[
       new AnchorElement(href: Uris.inspect(isolate, object: script))
-        ..title = script.uri
+        ..title = script.uri!
         ..text = displayUri
     ];
   }

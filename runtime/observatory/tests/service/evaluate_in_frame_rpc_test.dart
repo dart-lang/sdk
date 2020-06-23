@@ -26,17 +26,17 @@ var tests = <IsolateTest>[
 
 // Evaluate against library, class, and instance.
   (Isolate isolate) async {
-    var result;
-    result = await isolate.evalFrame(0, 'value');
+    Instance result;
+    result = await isolate.evalFrame(0, 'value') as Instance;
     expect(result.valueAsString, equals('10000'));
 
-    result = await isolate.evalFrame(0, '_');
+    result = await isolate.evalFrame(0, '_') as Instance;
     expect(result.valueAsString, equals('50'));
 
-    result = await isolate.evalFrame(0, 'value + _');
+    result = await isolate.evalFrame(0, 'value + _') as Instance;
     expect(result.valueAsString, equals('10050'));
 
-    result = await isolate.evalFrame(1, 'i');
+    result = await isolate.evalFrame(1, 'i') as Instance;
     expect(result.valueAsString, equals('100000000'));
   },
 ];

@@ -6,5 +6,5 @@ part of models;
 
 abstract class PcDescriptorsRef extends ObjectRef {
   /// [optional]
-  String get name;
+  String? get name;
 }

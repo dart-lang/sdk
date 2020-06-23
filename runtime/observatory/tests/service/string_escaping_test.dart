@@ -57,14 +57,14 @@ Future testStrings(Isolate isolate) async {
 
   expectFullString(String varName, String varValueAsString) {
     Field field = lib.variables.singleWhere((v) => v.name == varName);
-    Instance value = field.staticValue;
+    Instance value = field.staticValue as Instance;
     expect(value.valueAsString, equals(varValueAsString));
     expect(value.valueAsStringIsTruncated, isFalse);
   }
 
   expectTruncatedString(String varName, String varValueAsString) {
     Field field = lib.variables.singleWhere((v) => v.name == varName);
-    Instance value = field.staticValue;
+    Instance value = field.staticValue as Instance;
     expect(varValueAsString, startsWith(value.valueAsString));
     expect(value.valueAsStringIsTruncated, isTrue);
   }

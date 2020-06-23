@@ -24,5 +24,5 @@ main() async {
     print('${rec.level.name}: ${rec.time}: ${rec.message}');
   });
 
-  await test('bad web socket address', testBadWebSocket);
+  test('bad web socket address', testBadWebSocket);
 }

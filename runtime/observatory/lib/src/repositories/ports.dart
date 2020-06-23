@@ -9,6 +9,6 @@ class PortsRepository implements M.PortsRepository {
     S.Isolate isolate = i as S.Isolate;
     assert(isolate != null);
     final response = await isolate.invokeRpc('_getPorts', {});
-    return new S.Ports(response);
+    return new S.Ports(response as S.ServiceMap);
   }
 }

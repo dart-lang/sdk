@@ -34,18 +34,18 @@ var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   resumeIsolateAndAwaitEvent(Isolate.kLoggingStream, (ServiceEvent event) {
     expect(event.kind, equals(ServiceEvent.kLogging));
-    expect(event.logRecord['sequenceNumber'], equals(0));
-    expect(event.logRecord['message'].valueAsString, equals('Hey Buddy!'));
-    expect(event.logRecord['level'], equals(Level.FINE));
-    expect(event.logRecord['time'], new isInstanceOf<DateTime>());
+    expect(event.logRecord!['sequenceNumber'], equals(0));
+    expect(event.logRecord!['message'].valueAsString, equals('Hey Buddy!'));
+    expect(event.logRecord!['level'], equals(Level.FINE));
+    expect(event.logRecord!['time'], new isInstanceOf<DateTime>());
   }),
   hasStoppedAtBreakpoint,
   resumeIsolateAndAwaitEvent(Isolate.kLoggingStream, (ServiceEvent event) {
     expect(event.kind, equals(ServiceEvent.kLogging));
-    expect(event.logRecord['sequenceNumber'], equals(1));
-    expect(event.logRecord['level'], equals(Level.INFO));
-    expect(event.logRecord['message'].valueAsString, equals('YES'));
-    expect(event.logRecord['time'], new isInstanceOf<DateTime>());
+    expect(event.logRecord!['sequenceNumber'], equals(1));
+    expect(event.logRecord!['level'], equals(Level.INFO));
+    expect(event.logRecord!['message'].valueAsString, equals('YES'));
+    expect(event.logRecord!['time'], new isInstanceOf<DateTime>());
   }),
 ];
 

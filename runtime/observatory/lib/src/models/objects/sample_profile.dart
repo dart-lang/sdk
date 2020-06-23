@@ -26,14 +26,14 @@ abstract class Profile {
 }
 
 abstract class ProfileCode extends Profile {
-  CodeRef get code;
+  CodeRef? get code;
   Map<ProfileCode, int> get callers;
   Map<ProfileCode, int> get callees;
 }
 
 abstract class ProfileFunction extends Profile {
-  FunctionRef get function;
-  String get resolvedUrl;
+  FunctionRef? get function;
+  String? get resolvedUrl;
   Map<ProfileFunction, int> get callers;
   Map<ProfileFunction, int> get callees;
 }

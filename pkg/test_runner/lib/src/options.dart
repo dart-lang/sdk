@@ -24,9 +24,9 @@ const _defaultTestSelectors = [
   'utils',
   'lib_2',
   'analyze_library',
-  'service',
+  'service_2',
   'kernel',
-  'observatory_ui',
+  'obseratory_ui_2',
   'ffi_2'
 ];
 

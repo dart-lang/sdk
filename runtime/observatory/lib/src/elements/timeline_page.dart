@@ -27,25 +27,25 @@ class TimelinePageElement extends CustomElement implements Renderable {
     NavNotifyElement.tag
   ]);
 
-  RenderingScheduler<TimelinePageElement> _r;
+  late RenderingScheduler<TimelinePageElement> _r;
 
   Stream<RenderedEvent<TimelinePageElement>> get onRendered => _r.onRendered;
 
-  M.VM _vm;
-  M.TimelineRepository _repository;
-  M.EventRepository _events;
-  M.NotificationRepository _notifications;
-  M.TimelineRecorder _recorder;
-  Set<M.TimelineStream> _availableStreams;
-  Set<M.TimelineStream> _recordedStreams;
-  Set<M.TimelineProfile> _profiles;
+  late M.VM _vm;
+  late M.TimelineRepository _repository;
+  late M.EventRepository _events;
+  late M.NotificationRepository _notifications;
+  M.TimelineRecorder? _recorder;
+  late Set<M.TimelineStream> _availableStreams;
+  late Set<M.TimelineStream> _recordedStreams;
+  late Set<M.TimelineProfile> _profiles;
 
   M.VM get vm => _vm;
   M.NotificationRepository get notifications => _notifications;
 
   factory TimelinePageElement(M.VM vm, M.TimelineRepository repository,
       M.EventRepository events, M.NotificationRepository notifications,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(vm != null);
     assert(repository != null);
     assert(events != null);
@@ -75,25 +75,25 @@ class TimelinePageElement extends CustomElement implements Renderable {
     children = <Element>[];
   }
 
-  IFrameElement _frame;
-  DivElement _content;
+  IFrameElement? _frame;
+  DivElement? _content;
 
   bool get usingVMRecorder =>
-      _recorder.name != "Fuchsia" &&
-      _recorder.name != "Systrace" &&
-      _recorder.name != "Macos";
+      _recorder!.name != "Fuchsia" &&
+      _recorder!.name != "Systrace" &&
+      _recorder!.name != "Macos";
 
   void render() {
     if (_frame == null) {
       _frame = new IFrameElement()..src = 'timeline.html';
-      _frame.onLoad.listen((event) {
+      _frame!.onLoad.listen((event) {
         _refresh();
       });
     }
     if (_content == null) {
       _content = new DivElement()..classes = ['content-centered-big'];
     }
-    _content.children = <Element>[
+    _content!.children = <Element>[
       new HeadingElement.h1()..text = 'Timeline settings',
       _recorder == null
           ? (new DivElement()..text = 'Loading...')
@@ -108,7 +108,7 @@ class TimelinePageElement extends CustomElement implements Renderable {
                     ..text = 'Recorder:',
                   new DivElement()
                     ..classes = ['memberValue']
-                    ..text = _recorder.name
+                    ..text = _recorder!.name
                 ],
               new DivElement()
                 ..classes = ['memberItem']
@@ -170,19 +170,20 @@ class TimelinePageElement extends CustomElement implements Renderable {
             .element,
         new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
-      _content,
+      _content!,
       _createIFrameOrMessage(),
     ];
   }
 
   HtmlElement _createIFrameOrMessage() {
-    if (_recorder == null) {
+    final recorder = _recorder;
+    if (recorder == null) {
       return new DivElement()
         ..classes = ['content-centered-big']
         ..text = 'Loading...';
     }
 
-    if (_recorder.name == "Fuchsia") {
+    if (recorder.name == "Fuchsia") {
       return new DivElement()
         ..classes = ['content-centered-big']
         ..children = <Element>[
@@ -197,7 +198,7 @@ class TimelinePageElement extends CustomElement implements Renderable {
         ];
     }
 
-    if (_recorder.name == "Systrace") {
+    if (recorder.name == "Systrace") {
       return new DivElement()
         ..classes = ['content-centered-big']
         ..children = <Element>[
@@ -213,7 +214,7 @@ class TimelinePageElement extends CustomElement implements Renderable {
         ];
     }
 
-    if (_recorder.name == "Macos") {
+    if (recorder.name == "Macos") {
       return new DivElement()
         ..classes = ['content-centered-big']
         ..children = <Element>[
@@ -231,7 +232,7 @@ class TimelinePageElement extends CustomElement implements Renderable {
 
     return new DivElement()
       ..classes = ['iframe']
-      ..children = <Element>[_frame];
+      ..children = <Element>[_frame!];
   }
 
   List<Element> _createProfileSelect() {
@@ -271,12 +272,12 @@ class TimelinePageElement extends CustomElement implements Renderable {
   }
 
   Future _postMessage(String method,
-      [Map<String, dynamic> params = const <String, dynamic>{}]) async {
-    if (_frame.contentWindow == null) {
+      [Map<dynamic, dynamic> params = const <dynamic, dynamic>{}]) async {
+    if (_frame!.contentWindow == null) {
       return null;
     }
     var message = {'method': method, 'params': params};
-    _frame.contentWindow
+    _frame!.contentWindow!
         .postMessage(json.encode(message), window.location.href);
     return null;
   }

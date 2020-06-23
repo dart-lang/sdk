@@ -30,6 +30,7 @@ final testSuiteDirectories = [
   Path('runtime/tests/vm'),
   Path('runtime/observatory/tests/service'),
   Path('runtime/observatory/tests/observatory_ui'),
+  Path('runtime/observatory_2/tests/service_2'),
   Path('samples'),
   Path('samples-dev'),
   Path('tests/corelib'),

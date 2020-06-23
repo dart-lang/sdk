@@ -6,11 +6,11 @@ part of models;
 
 abstract class VMRef {
   /// A name identifying this vm. Not guaranteed to be unique.
-  String get name;
+  String? get name;
 
   /// [Not actually from the apis]
   /// A name used to identify the VM in the UI.
-  String get displayName;
+  String? get displayName;
 }
 
 abstract class VM implements VMRef {
@@ -46,7 +46,7 @@ abstract class VM implements VMRef {
   /// The time that the VM started in milliseconds since the epoch.
   ///
   /// Suitable to pass to DateTime.fromMillisecondsSinceEpoch.
-  DateTime get startTime;
+  DateTime? get startTime;
 
   // A list of isolates running in the VM.
   Iterable<IsolateRef> get isolates;

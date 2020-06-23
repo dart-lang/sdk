@@ -128,6 +128,12 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
   "pool": {
     ExperimentalFlag.nonNullable,
   },
+  "observatory": {
+    ExperimentalFlag.nonNullable,
+  },
+  "observatory_test_package": {
+    ExperimentalFlag.nonNullable,
+  },
   "sky_engine": {
     ExperimentalFlag.nonNullable,
   },

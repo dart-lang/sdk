@@ -16,13 +16,13 @@ void fooBar() {
   print(i);
 }
 
-WebSocketVM client1;
-WebSocketVM client2;
+late WebSocketVM client1;
+late WebSocketVM client2;
 
 final test = <IsolateTest>[
   hasPausedAtStart,
   (Isolate isolate) async {
-    client1 = await createClient(isolate.owner);
+    client1 = await createClient(isolate.owner as WebSocketVM);
     await setRequireApprovalForResume(
       client1,
       isolate,
@@ -30,7 +30,7 @@ final test = <IsolateTest>[
       pauseOnExit: true,
     );
     client2 = await createClient(
-      isolate.owner,
+      isolate.owner as WebSocketVM,
       clientName: otherClientName,
     );
     await setRequireApprovalForResume(

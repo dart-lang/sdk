@@ -37,15 +37,15 @@ class TimelineDashboardElement extends CustomElement implements Renderable {
   static const tag = const Tag<TimelineDashboardElement>('timeline-dashboard',
       dependencies: const [NavNotifyElement.tag]);
 
-  RenderingScheduler<TimelineDashboardElement> _r;
+  late RenderingScheduler<TimelineDashboardElement> _r;
 
   Stream<RenderedEvent<TimelineDashboardElement>> get onRendered =>
       _r.onRendered;
 
-  M.VM _vm;
-  M.TimelineRepository _repository;
-  M.NotificationRepository _notifications;
-  M.TimelineFlags _flags;
+  late M.VM _vm;
+  late M.TimelineRepository _repository;
+  late M.NotificationRepository _notifications;
+  late M.TimelineFlags _flags;
   _TimelineView _view = _TimelineView.strict;
 
   M.VM get vm => _vm;
@@ -53,7 +53,7 @@ class TimelineDashboardElement extends CustomElement implements Renderable {
 
   factory TimelineDashboardElement(M.VM vm, M.TimelineRepository repository,
       M.NotificationRepository notifications,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(vm != null);
     assert(repository != null);
     assert(notifications != null);
@@ -84,8 +84,8 @@ class TimelineDashboardElement extends CustomElement implements Renderable {
     children = <Element>[];
   }
 
-  IFrameElement _frame;
-  DivElement _content;
+  IFrameElement? _frame;
+  DivElement? _content;
 
   void render() {
     if (_frame == null) {
@@ -94,8 +94,8 @@ class TimelineDashboardElement extends CustomElement implements Renderable {
     if (_content == null) {
       _content = new DivElement()..classes = ['content-centered-big'];
     }
-    _frame.src = _makeFrameUrl();
-    _content.children = <Element>[
+    _frame!.src = _makeFrameUrl();
+    _content!.children = <Element>[
       new HeadingElement.h2()
         ..nodes = ([new Text("Timeline View")]
           ..addAll(_createButtons())
@@ -112,10 +112,10 @@ class TimelineDashboardElement extends CustomElement implements Renderable {
         navBar(<Element>[
           new NavNotifyElement(_notifications, queue: _r.queue).element
         ]),
-        _content,
+        _content!,
         new DivElement()
           ..classes = ['iframe']
-          ..children = <Element>[_frame]
+          ..children = <Element>[_frame!]
       ];
     }
   }
@@ -225,7 +225,7 @@ class TimelineDashboardElement extends CustomElement implements Renderable {
   Future _postMessage(String method,
       [Map<String, dynamic> params = const <String, dynamic>{}]) async {
     var message = {'method': method, 'params': params};
-    _frame.contentWindow
+    _frame!.contentWindow!
         .postMessage(json.encode(message), window.location.href);
     return null;
   }

@@ -5,5 +5,5 @@
 part of models;
 
 abstract class UnknownObjectRef extends ObjectRef {
-  String get vmType;
+  String? get vmType;
 }

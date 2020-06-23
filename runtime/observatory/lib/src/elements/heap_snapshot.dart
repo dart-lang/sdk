@@ -190,9 +190,9 @@ class MergedDominatorDiffTreeMap extends DiffTreeMap<MergedDominatorDiff> {
 
   String getType(MergedDominatorDiff node) => node.name;
   String getName(MergedDominatorDiff node) => "instances of ${node.name}";
-  MergedDominatorDiff getParent(MergedDominatorDiff node) => node.parent;
+  MergedDominatorDiff? getParent(MergedDominatorDiff node) => node.parent;
   Iterable<MergedDominatorDiff> getChildren(MergedDominatorDiff node) =>
-      node.children;
+      node.children!;
   void onSelect(MergedDominatorDiff node) {
     element.mergedDiffSelection = node;
     element._r.dirty();
@@ -220,7 +220,7 @@ class ClassesShallowTreeMap extends NormalTreeMap<SnapshotClass> {
       ? "${snapshot.classes.length} classes"
       : "${node.instanceCount} instances of ${node.name}";
 
-  SnapshotClass getParent(SnapshotClass node) => null;
+  SnapshotClass? getParent(SnapshotClass node) => null;
   Iterable<SnapshotClass> getChildren(SnapshotClass node) =>
       node == null ? snapshot.classes : <SnapshotClass>[];
   void onSelect(SnapshotClass node) {}
@@ -277,7 +277,7 @@ class ClassesShallowDiffTreeMap extends DiffTreeMap<SnapshotClassDiff> {
       node == null ? "Classes" : node.name;
   String getName(SnapshotClassDiff node) =>
       node == null ? "${classes.length} classes" : "instances of ${node.name}";
-  SnapshotClassDiff getParent(SnapshotClassDiff node) => null;
+  SnapshotClassDiff? getParent(SnapshotClassDiff node) => null;
   Iterable<SnapshotClassDiff> getChildren(SnapshotClassDiff node) =>
       node == null ? classes : <SnapshotClassDiff>[];
   void onSelect(SnapshotClassDiff node) {}
@@ -302,7 +302,7 @@ class ClassesOwnershipTreeMap extends NormalTreeMap<SnapshotClass> {
   String getName(SnapshotClass node) => node == null
       ? "${snapshot.classes.length} Classes"
       : "${node.instanceCount} instances of ${node.name}";
-  SnapshotClass getParent(SnapshotClass node) => null;
+  SnapshotClass? getParent(SnapshotClass node) => null;
   Iterable<SnapshotClass> getChildren(SnapshotClass node) =>
       node == null ? snapshot.classes : <SnapshotClass>[];
   void onSelect(SnapshotClass node) {}
@@ -359,7 +359,7 @@ class ClassesOwnershipDiffTreeMap extends DiffTreeMap<SnapshotClassDiff> {
       node == null ? "Classes" : node.name;
   String getName(SnapshotClassDiff node) =>
       node == null ? "${classes.length} classes" : "instances of ${node.name}";
-  SnapshotClassDiff getParent(SnapshotClassDiff node) => null;
+  SnapshotClassDiff? getParent(SnapshotClassDiff node) => null;
   Iterable<SnapshotClassDiff> getChildren(SnapshotClassDiff node) =>
       node == null ? classes : <SnapshotClassDiff>[];
   void onSelect(SnapshotClassDiff node) {}
@@ -378,10 +378,10 @@ class ProcessTreeMap extends NormalTreeMap<String> {
 
   ProcessTreeMap(this.element, this.snapshot);
 
-  int getSize(String node) => snapshot.processPartitions[node];
+  int getSize(String node) => snapshot.processPartitions[node] ?? 0;
   String getType(String node) => node;
   String getName(String node) => node;
-  String getParent(String node) => node == root ? null : root;
+  String? getParent(String node) => node == root ? null : root;
   Iterable<String> getChildren(String node) {
     if (node == root) {
       var children = snapshot.processPartitions.keys.toList();
@@ -407,22 +407,22 @@ class ProcessDiffTreeMap extends DiffTreeMap<PartitionDiff> {
   int getCommon(PartitionDiff node) => node.sizeCommon;
   String getType(PartitionDiff node) => node.name;
   String getName(PartitionDiff node) => node.name;
-  PartitionDiff getParent(PartitionDiff node) => node.parent;
-  Iterable<PartitionDiff> getChildren(PartitionDiff node) => node.children;
+  PartitionDiff? getParent(PartitionDiff node) => node.parent;
+  Iterable<PartitionDiff> getChildren(PartitionDiff node) => node.children!;
   void onSelect(PartitionDiff node) {}
   void onDetails(PartitionDiff node) {}
 }
 
 class PartitionDiff {
-  String name;
+  String name = "";
   int sizeA = 0;
   int sizeB = 0;
   int sizeGain = -1;
   int sizeLoss = -1;
   int sizeCommon = -1;
 
-  PartitionDiff parent;
-  List<PartitionDiff> children;
+  PartitionDiff? parent;
+  List<PartitionDiff>? children;
 
   static PartitionDiff from(SnapshotGraph graphA, SnapshotGraph graphB) {
     var partitions = new Set<String>();
@@ -460,7 +460,7 @@ class PartitionDiff {
       rootDiff.sizeGain += partitionDiff.sizeGain;
       rootDiff.sizeCommon += partitionDiff.sizeCommon;
       rootDiff.sizeLoss += partitionDiff.sizeLoss;
-      rootDiff.children.add(partitionDiff);
+      rootDiff.children!.add(partitionDiff);
     }
 
     var shallowA = rootDiff.sizeA - childrenA;
@@ -480,16 +480,16 @@ class PartitionDiff {
 }
 
 class SnapshotClassDiff {
-  SnapshotClass _a;
-  SnapshotClass _b;
+  SnapshotClass? _a;
+  SnapshotClass? _b;
 
-  int get shallowSizeA => _a == null ? 0 : _a.shallowSize;
-  int get ownedSizeA => _a == null ? 0 : _a.ownedSize;
-  int get instanceCountA => _a == null ? 0 : _a.instanceCount;
+  int get shallowSizeA => _a == null ? 0 : _a!.shallowSize;
+  int get ownedSizeA => _a == null ? 0 : _a!.ownedSize;
+  int get instanceCountA => _a == null ? 0 : _a!.instanceCount;
 
-  int get shallowSizeB => _b == null ? 0 : _b.shallowSize;
-  int get ownedSizeB => _b == null ? 0 : _b.ownedSize;
-  int get instanceCountB => _b == null ? 0 : _b.instanceCount;
+  int get shallowSizeB => _b == null ? 0 : _b!.shallowSize;
+  int get ownedSizeB => _b == null ? 0 : _b!.ownedSize;
+  int get instanceCountB => _b == null ? 0 : _b!.instanceCount;
 
   int get shallowSizeDiff => shallowSizeB - shallowSizeA;
   int get ownedSizeDiff => ownedSizeB - ownedSizeA;
@@ -507,12 +507,12 @@ class SnapshotClassDiff {
       shallowSizeB > shallowSizeA ? shallowSizeA : shallowSizeB;
   int get ownedSizeCommon => ownedSizeB > ownedSizeA ? ownedSizeA : ownedSizeB;
 
-  String get name => _a == null ? _b.name : _a.name;
+  String get name => _a == null ? _b!.name : _a!.name;
 
   List<SnapshotObject> get objectsA =>
-      _a == null ? <SnapshotObject>[] : _a.instances.toList();
+      _a == null ? const <SnapshotObject>[] : _a!.instances.toList();
   List<SnapshotObject> get objectsB =>
-      _b == null ? <SnapshotObject>[] : _b.instances.toList();
+      _b == null ? const <SnapshotObject>[] : _b!.instances.toList();
 
   static List<SnapshotClassDiff> from(
       SnapshotGraph graphA, SnapshotGraph graphB) {
@@ -544,32 +544,32 @@ class SnapshotClassDiff {
 }
 
 class MergedDominatorDiff {
-  SnapshotMergedDominator _a;
-  SnapshotMergedDominator _b;
-  MergedDominatorDiff parent;
-  List<MergedDominatorDiff> children;
+  SnapshotMergedDominator? _a;
+  SnapshotMergedDominator? _b;
+  MergedDominatorDiff? parent;
+  List<MergedDominatorDiff>? children;
   int retainedGain = -1;
   int retainedLoss = -1;
   int retainedCommon = -1;
 
-  int get shallowSizeA => _a == null ? 0 : _a.shallowSize;
-  int get retainedSizeA => _a == null ? 0 : _a.retainedSize;
-  int get instanceCountA => _a == null ? 0 : _a.instanceCount;
+  int get shallowSizeA => _a == null ? 0 : _a!.shallowSize;
+  int get retainedSizeA => _a == null ? 0 : _a!.retainedSize;
+  int get instanceCountA => _a == null ? 0 : _a!.instanceCount;
 
-  int get shallowSizeB => _b == null ? 0 : _b.shallowSize;
-  int get retainedSizeB => _b == null ? 0 : _b.retainedSize;
-  int get instanceCountB => _b == null ? 0 : _b.instanceCount;
+  int get shallowSizeB => _b == null ? 0 : _b!.shallowSize;
+  int get retainedSizeB => _b == null ? 0 : _b!.retainedSize;
+  int get instanceCountB => _b == null ? 0 : _b!.instanceCount;
 
   int get shallowSizeDiff => shallowSizeB - shallowSizeA;
   int get retainedSizeDiff => retainedSizeB - retainedSizeA;
   int get instanceCountDiff => instanceCountB - instanceCountA;
 
-  String get name => _a == null ? _b.klass.name : _a.klass.name;
+  String get name => _a == null ? _b!.klass.name : _a!.klass.name;
 
   List<SnapshotObject> get objectsA =>
-      _a == null ? <SnapshotObject>[] : _a.objects.toList();
+      _a == null ? const <SnapshotObject>[] : _a!.objects.toList();
   List<SnapshotObject> get objectsB =>
-      _b == null ? <SnapshotObject>[] : _b.objects.toList();
+      _b == null ? const <SnapshotObject>[] : _b!.objects.toList();
 
   static MergedDominatorDiff from(
       SnapshotMergedDominator a, SnapshotMergedDominator b) {
@@ -602,11 +602,11 @@ class MergedDominatorDiff {
     // Matching children by MergedObjectVertex.klass.qualifiedName.
     final childrenB = <String, SnapshotMergedDominator>{};
     if (_b != null)
-      for (var childB in _b.children) {
+      for (var childB in _b!.children) {
         childrenB[childB.klass.qualifiedName] = childB;
       }
     if (_a != null)
-      for (var childA in _a.children) {
+      for (var childA in _a!.children) {
         var childDiff = new MergedDominatorDiff();
         childDiff.parent = this;
         childDiff._a = childA;
@@ -616,18 +616,18 @@ class MergedDominatorDiff {
           childrenB.remove(qualifiedName);
           childDiff._b = childB;
         }
-        children.add(childDiff);
+        children!.add(childDiff);
         worklist.add(childDiff);
       }
     for (var childB in childrenB.values) {
       var childDiff = new MergedDominatorDiff();
       childDiff.parent = this;
       childDiff._b = childB;
-      children.add(childDiff);
+      children!.add(childDiff);
       worklist.add(childDiff);
     }
 
-    if (children.length == 0) {
+    if (children!.length == 0) {
       // Compress.
       children = const <MergedDominatorDiff>[];
     }
@@ -637,7 +637,7 @@ class MergedDominatorDiff {
     int g = 0;
     int l = 0;
     int c = 0;
-    for (var child in children) {
+    for (var child in children!) {
       g += child.retainedGain;
       l += child.retainedLoss;
       c += child.retainedCommon;
@@ -669,30 +669,30 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
     VirtualTreeElement.tag,
   ]);
 
-  RenderingScheduler<HeapSnapshotElement> _r;
+  late RenderingScheduler<HeapSnapshotElement> _r;
 
   Stream<RenderedEvent<HeapSnapshotElement>> get onRendered => _r.onRendered;
 
-  M.VM _vm;
-  M.IsolateRef _isolate;
-  M.EventRepository _events;
-  M.NotificationRepository _notifications;
-  M.HeapSnapshotRepository _snapshots;
-  M.ObjectRepository _objects;
-  SnapshotReader _reader;
-  String _status;
+  late M.VM _vm;
+  late M.IsolateRef _isolate;
+  late M.EventRepository _events;
+  late M.NotificationRepository _notifications;
+  late M.HeapSnapshotRepository _snapshots;
+  late M.ObjectRepository _objects;
+  SnapshotReader? _reader;
+  String? _status;
   List<SnapshotGraph> _loadedSnapshots = <SnapshotGraph>[];
-  SnapshotGraph _snapshotA;
-  SnapshotGraph _snapshotB;
+  SnapshotGraph? _snapshotA;
+  SnapshotGraph? _snapshotB;
   HeapSnapshotTreeMode _mode = HeapSnapshotTreeMode.mergedDominatorTreeMap;
   M.IsolateRef get isolate => _isolate;
   M.NotificationRepository get notifications => _notifications;
   M.HeapSnapshotRepository get profiles => _snapshots;
   M.VMRef get vm => _vm;
 
-  List<SnapshotObject> selection;
-  SnapshotMergedDominator mergedSelection;
-  MergedDominatorDiff mergedDiffSelection;
+  List<SnapshotObject>? selection;
+  SnapshotMergedDominator? mergedSelection;
+  MergedDominatorDiff? mergedDiffSelection;
 
   factory HeapSnapshotElement(
       M.VM vm,
@@ -701,7 +701,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
       M.NotificationRepository notifications,
       M.HeapSnapshotRepository snapshots,
       M.ObjectRepository objects,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -766,7 +766,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
     if (_reader != null) {
       // Loading
       content.addAll(_createStatusMessage('Loading snapshot...',
-          description: _status, progress: 1));
+          description: _status!, progress: 1));
     } else if (_snapshotA != null) {
       // Loaded
       content.addAll(_createReport());
@@ -780,7 +780,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
   }
 
   _save() {
-    var blob = new Blob(_snapshotA.chunks, 'application/octet-stream');
+    var blob = new Blob(_snapshotA!.chunks, 'application/octet-stream');
     var blobUrl = Url.createObjectUrl(blob);
     var link = new AnchorElement();
     link.href = blobUrl;
@@ -794,13 +794,13 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
     input.type = 'file';
     input.multiple = false;
     input.onChange.listen((event) {
-      var file = input.files[0];
+      var file = input.files![0];
       var reader = new FileReader();
       reader.onLoad.listen((event) async {
-        var encoded = <Uint8List>[reader.result];
+        var encoded = <Uint8List>[reader.result as Uint8List];
         var snapshotReader = new SnapshotReader();
         _snapshotLoading(snapshotReader);
-        snapshotReader.add(reader.result);
+        snapshotReader.add(reader.result as Uint8List);
         snapshotReader.close();
       });
       reader.readAsArrayBuffer(file);
@@ -854,7 +854,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
     ];
   }
 
-  VirtualTreeElement _tree;
+  VirtualTreeElement? _tree;
 
   void _createTreeMap<T>(List<HtmlElement> report, TreeMap<T> treemap, T root) {
     final content = new DivElement();
@@ -927,13 +927,13 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
     switch (_mode) {
       case HeapSnapshotTreeMode.dominatorTree:
         if (selection == null) {
-          selection = List.from(_snapshotA.root.objects);
+          selection = List.from(_snapshotA!.root.objects);
         }
         _tree = new VirtualTreeElement(
             _createDominator, _updateDominator, _getChildrenDominator,
-            items: selection, queue: _r.queue);
-        if (selection.length == 1) {
-          _tree.expand(selection.first);
+            items: selection!, queue: _r.queue);
+        if (selection!.length == 1) {
+          _tree!.expand(selection!.first);
         }
         final text = 'In a heap dominator tree, an object X is a parent of '
             'object Y if every path from the root to Y goes through '
@@ -945,49 +945,49 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
           new DivElement()
             ..classes = ['content-centered-big', 'explanation']
             ..text = text,
-          _tree.element
+          _tree!.element
         ]);
         break;
       case HeapSnapshotTreeMode.dominatorTreeMap:
         if (selection == null) {
-          selection = List.from(_snapshotA.root.objects);
+          selection = List.from(_snapshotA!.root.objects);
         }
-        _createTreeMap(report, new DominatorTreeMap(this), selection.first);
+        _createTreeMap(report, new DominatorTreeMap(this), selection!.first);
         break;
       case HeapSnapshotTreeMode.mergedDominatorTree:
         _tree = new VirtualTreeElement(_createMergedDominator,
             _updateMergedDominator, _getChildrenMergedDominator,
-            items: _getChildrenMergedDominator(_snapshotA.mergedRoot),
+            items: _getChildrenMergedDominator(_snapshotA!.mergedRoot),
             queue: _r.queue);
-        _tree.expand(_snapshotA.mergedRoot);
+        _tree!.expand(_snapshotA!.mergedRoot);
         final text = 'A heap dominator tree, where siblings with the same class'
             ' have been merged into a single node.';
         report.addAll([
           new DivElement()
             ..classes = ['content-centered-big', 'explanation']
             ..text = text,
-          _tree.element
+          _tree!.element
         ]);
         break;
       case HeapSnapshotTreeMode.mergedDominatorTreeDiff:
         var root = MergedDominatorDiff.from(
-            _snapshotA.mergedRoot, _snapshotB.mergedRoot);
+            _snapshotA!.mergedRoot, _snapshotB!.mergedRoot);
         _tree = new VirtualTreeElement(_createMergedDominatorDiff,
             _updateMergedDominatorDiff, _getChildrenMergedDominatorDiff,
             items: _getChildrenMergedDominatorDiff(root), queue: _r.queue);
-        _tree.expand(root);
+        _tree!.expand(root);
         final text = 'A heap dominator tree, where siblings with the same class'
             ' have been merged into a single node.';
         report.addAll([
           new DivElement()
             ..classes = ['content-centered-big', 'explanation']
             ..text = text,
-          _tree.element
+          _tree!.element
         ]);
         break;
       case HeapSnapshotTreeMode.mergedDominatorTreeMap:
         if (mergedSelection == null) {
-          mergedSelection = _snapshotA.mergedRoot;
+          mergedSelection = _snapshotA!.mergedRoot;
         }
         _createTreeMap(
             report, new MergedDominatorTreeMap(this), mergedSelection);
@@ -995,18 +995,19 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
       case HeapSnapshotTreeMode.mergedDominatorTreeMapDiff:
         if (mergedDiffSelection == null) {
           mergedDiffSelection = MergedDominatorDiff.from(
-              _snapshotA.mergedRoot, _snapshotB.mergedRoot);
+              _snapshotA!.mergedRoot, _snapshotB!.mergedRoot);
         }
         _createTreeMap(
             report, new MergedDominatorDiffTreeMap(this), mergedDiffSelection);
         break;
       case HeapSnapshotTreeMode.ownershipTable:
-        final items = _snapshotA.classes.where((c) => c.ownedSize > 0).toList();
+        final items =
+            _snapshotA!.classes.where((c) => c.ownedSize > 0).toList();
         items.sort((a, b) => b.ownedSize - a.ownedSize);
         _tree = new VirtualTreeElement(
             _createOwnership, _updateOwnership, _getChildrenOwnership,
             items: items, queue: _r.queue);
-        _tree.expand(_snapshotA.root);
+        _tree!.expand(_snapshotA!.root);
         final text = 'An object X is said to "own" object Y if X is the only '
             'object that references Y, or X owns the only object that '
             'references Y. In particular, objects "own" the space of any '
@@ -1015,18 +1016,18 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
           new DivElement()
             ..classes = ['content-centered-big', 'explanation']
             ..text = text,
-          _tree.element
+          _tree!.element
         ]);
         break;
       case HeapSnapshotTreeMode.ownershipTableDiff:
-        final items = SnapshotClassDiff.from(_snapshotA, _snapshotB);
+        final items = SnapshotClassDiff.from(_snapshotA!, _snapshotB!);
         items.sort((a, b) => b.ownedSizeB - a.ownedSizeB);
         items.sort((a, b) => b.ownedSizeA - a.ownedSizeA);
         items.sort((a, b) => b.ownedSizeDiff - a.ownedSizeDiff);
         _tree = new VirtualTreeElement(_createOwnershipDiff,
             _updateOwnershipDiff, _getChildrenOwnershipDiff,
             items: items, queue: _r.queue);
-        _tree.expand(_snapshotA.root);
+        _tree!.expand(_snapshotA!.root);
         final text = 'An object X is said to "own" object Y if X is the only '
             'object that references Y, or X owns the only object that '
             'references Y. In particular, objects "own" the space of any '
@@ -1035,88 +1036,88 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
           new DivElement()
             ..classes = ['content-centered-big', 'explanation']
             ..text = text,
-          _tree.element
+          _tree!.element
         ]);
         break;
       case HeapSnapshotTreeMode.ownershipTreeMap:
         _createTreeMap(
-            report, new ClassesOwnershipTreeMap(this, _snapshotA), null);
+            report, new ClassesOwnershipTreeMap(this, _snapshotA!), null);
         break;
       case HeapSnapshotTreeMode.ownershipTreeMapDiff:
-        final items = SnapshotClassDiff.from(_snapshotA, _snapshotB);
+        final items = SnapshotClassDiff.from(_snapshotA!, _snapshotB!);
         _createTreeMap(
             report, new ClassesOwnershipDiffTreeMap(this, items), null);
         break;
       case HeapSnapshotTreeMode.successors:
         if (selection == null) {
-          selection = List.from(_snapshotA.root.objects);
+          selection = List.from(_snapshotA!.root.objects);
         }
         _tree = new VirtualTreeElement(
             _createSuccessor, _updateSuccessor, _getChildrenSuccessor,
-            items: selection, queue: _r.queue);
-        if (selection.length == 1) {
-          _tree.expand(selection.first);
+            items: selection!, queue: _r.queue);
+        if (selection!.length == 1) {
+          _tree!.expand(selection!.first);
         }
         final text = '';
         report.addAll([
           new DivElement()
             ..classes = ['content-centered-big', 'explanation']
             ..text = text,
-          _tree.element
+          _tree!.element
         ]);
         break;
       case HeapSnapshotTreeMode.predecessors:
         if (selection == null) {
-          selection = List.from(_snapshotA.root.objects);
+          selection = List.from(_snapshotA!.root.objects);
         }
         _tree = new VirtualTreeElement(
             _createPredecessor, _updatePredecessor, _getChildrenPredecessor,
-            items: selection, queue: _r.queue);
-        if (selection.length == 1) {
-          _tree.expand(selection.first);
+            items: selection!, queue: _r.queue);
+        if (selection!.length == 1) {
+          _tree!.expand(selection!.first);
         }
         final text = '';
         report.addAll([
           new DivElement()
             ..classes = ['content-centered-big', 'explanation']
             ..text = text,
-          _tree.element
+          _tree!.element
         ]);
         break;
       case HeapSnapshotTreeMode.classesTable:
-        final items = _snapshotA.classes.toList();
+        final items = _snapshotA!.classes.toList();
         items.sort((a, b) => b.shallowSize - a.shallowSize);
         _tree = new VirtualTreeElement(
             _createClass, _updateClass, _getChildrenClass,
             items: items, queue: _r.queue);
-        report.add(_tree.element);
+        report.add(_tree!.element);
         break;
       case HeapSnapshotTreeMode.classesTableDiff:
-        final items = SnapshotClassDiff.from(_snapshotA, _snapshotB);
+        final items = SnapshotClassDiff.from(_snapshotA!, _snapshotB!);
         items.sort((a, b) => b.shallowSizeB - a.shallowSizeB);
         items.sort((a, b) => b.shallowSizeA - a.shallowSizeA);
         items.sort((a, b) => b.shallowSizeDiff - a.shallowSizeDiff);
         _tree = new VirtualTreeElement(
             _createClassDiff, _updateClassDiff, _getChildrenClassDiff,
             items: items, queue: _r.queue);
-        report.add(_tree.element);
+        report.add(_tree!.element);
         break;
       case HeapSnapshotTreeMode.classesTreeMap:
         _createTreeMap(
-            report, new ClassesShallowTreeMap(this, _snapshotA), null);
+            report, new ClassesShallowTreeMap(this, _snapshotA!), null);
         break;
 
       case HeapSnapshotTreeMode.classesTreeMapDiff:
-        final items = SnapshotClassDiff.from(_snapshotA, _snapshotB);
+        final items = SnapshotClassDiff.from(_snapshotA!, _snapshotB!);
         _createTreeMap(
             report, new ClassesShallowDiffTreeMap(this, items), null);
         break;
       case HeapSnapshotTreeMode.process:
         _createTreeMap(
-            report, new ProcessTreeMap(this, _snapshotA), ProcessTreeMap.root);
+            report, new ProcessTreeMap(this, _snapshotA!), ProcessTreeMap.root);
         break;
       case HeapSnapshotTreeMode.processDiff:
-        final root = PartitionDiff.from(_snapshotA, _snapshotB);
+        final root = PartitionDiff.from(_snapshotA!, _snapshotB!);
         _createTreeMap(report, new ProcessDiffTreeMap(this), root);
         break;
       default:
@@ -1364,7 +1365,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
 
   static Iterable _getChildrenMergedDominatorDiff(nodeDynamic) {
     MergedDominatorDiff node = nodeDynamic;
-    final list = node.children
+    final list = node.children!
         .where((child) =>
             child.retainedSizeA >= kMinRetainedSize ||
             child.retainedSizeB >= kMinRetainedSize)
@@ -1392,11 +1393,11 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
   void _updateDominator(HtmlElement element, nodeDynamic, int depth) {
     SnapshotObject node = nodeDynamic;
     element.children[0].text = Utils.formatPercentNormalized(
-        node.retainedSize * 1.0 / _snapshotA.size);
+        node.retainedSize * 1.0 / _snapshotA!.size);
     element.children[1].text = Utils.formatSize(node.retainedSize);
     _updateLines(element.children[2].children, depth);
     if (_getChildrenDominator(node).isNotEmpty) {
-      element.children[3].text = _tree.isExpanded(node) ? '▼' : '►';
+      element.children[3].text = _tree!.isExpanded(node) ? '▼' : '►';
     } else {
       element.children[3].text = '';
     }
@@ -1422,7 +1423,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
     SnapshotObject node = nodeDynamic;
     _updateLines(element.children[0].children, depth);
     if (_getChildrenSuccessor(node).isNotEmpty) {
-      element.children[1].text = _tree.isExpanded(node) ? '▼' : '►';
+      element.children[1].text = _tree!.isExpanded(node) ? '▼' : '►';
     } else {
       element.children[1].text = '';
     }
@@ -1450,7 +1451,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
     SnapshotObject node = nodeDynamic;
     _updateLines(element.children[0].children, depth);
     if (_getChildrenSuccessor(node).isNotEmpty) {
-      element.children[1].text = _tree.isExpanded(node) ? '▼' : '►';
+      element.children[1].text = _tree!.isExpanded(node) ? '▼' : '►';
     } else {
       element.children[1].text = '';
     }
@@ -1477,11 +1478,11 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
   void _updateMergedDominator(HtmlElement element, nodeDynamic, int depth) {
     SnapshotMergedDominator node = nodeDynamic;
     element.children[0].text = Utils.formatPercentNormalized(
-        node.retainedSize * 1.0 / _snapshotA.size);
+        node.retainedSize * 1.0 / _snapshotA!.size);
     element.children[1].text = Utils.formatSize(node.retainedSize);
     _updateLines(element.children[2].children, depth);
     if (_getChildrenMergedDominator(node).isNotEmpty) {
-      element.children[3].text = _tree.isExpanded(node) ? '▼' : '►';
+      element.children[3].text = _tree!.isExpanded(node) ? '▼' : '►';
     } else {
       element.children[3].text = '';
     }
@@ -1492,10 +1493,10 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
   void _updateMergedDominatorDiff(HtmlElement element, nodeDynamic, int depth) {
     MergedDominatorDiff node = nodeDynamic;
     element.children[0].text = Utils.formatPercentNormalized(
-        node.retainedSizeA * 1.0 / _snapshotA.size);
+        node.retainedSizeA * 1.0 / _snapshotA!.size);
     element.children[1].text = Utils.formatSize(node.retainedSizeA);
     element.children[2].text = Utils.formatPercentNormalized(
-        node.retainedSizeB * 1.0 / _snapshotB.size);
+        node.retainedSizeB * 1.0 / _snapshotB!.size);
     element.children[3].text = Utils.formatSize(node.retainedSizeB);
     element.children[4].text = (node.retainedSizeDiff > 0 ? '+' : '') +
         Utils.formatSize(node.retainedSizeDiff);
@@ -1503,7 +1504,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
         node.retainedSizeDiff > 0 ? "red" : "green";
     _updateLines(element.children[5].children, depth);
     if (_getChildrenMergedDominatorDiff(node).isNotEmpty) {
-      element.children[6].text = _tree.isExpanded(node) ? '▼' : '►';
+      element.children[6].text = _tree!.isExpanded(node) ? '▼' : '►';
     } else {
       element.children[6].text = '';
     }
@@ -1515,7 +1516,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
   void _updateOwnership(HtmlElement element, nodeDynamic, int depth) {
     SnapshotClass node = nodeDynamic;
     element.children[0].text =
-        Utils.formatPercentNormalized(node.ownedSize * 1.0 / _snapshotA.size);
+        Utils.formatPercentNormalized(node.ownedSize * 1.0 / _snapshotA!.size);
     element.children[1].text = Utils.formatSize(node.ownedSize);
     element.children[2].text = node.name;
   }
@@ -1523,10 +1524,10 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
   void _updateOwnershipDiff(HtmlElement element, nodeDynamic, int depth) {
     SnapshotClassDiff node = nodeDynamic;
     element.children[0].text =
-        Utils.formatPercentNormalized(node.ownedSizeA * 1.0 / _snapshotA.size);
+        Utils.formatPercentNormalized(node.ownedSizeA * 1.0 / _snapshotA!.size);
     element.children[1].text = Utils.formatSize(node.ownedSizeA);
     element.children[2].text =
-        Utils.formatPercentNormalized(node.ownedSizeB * 1.0 / _snapshotB.size);
+        Utils.formatPercentNormalized(node.ownedSizeB * 1.0 / _snapshotB!.size);
     element.children[3].text = Utils.formatSize(node.ownedSizeB);
     element.children[4].text = (node.ownedSizeDiff > 0 ? "+" : "") +
         Utils.formatSize(node.ownedSizeDiff);
@@ -1536,8 +1537,8 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
 
   void _updateClass(HtmlElement element, nodeDynamic, int depth) {
     SnapshotClass node = nodeDynamic;
-    element.children[0].text =
-        Utils.formatPercentNormalized(node.shallowSize * 1.0 / _snapshotA.size);
+    element.children[0].text = Utils.formatPercentNormalized(
+        node.shallowSize * 1.0 / _snapshotA!.size);
     element.children[1].text = Utils.formatSize(node.shallowSize);
     element.children[2].text = node.instanceCount.toString();
     element.children[3].text = node.name;

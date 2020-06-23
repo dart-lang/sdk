@@ -37,7 +37,7 @@ code() {
   };
   print(myList);
   print(myConstList);
-  int lookup = myMap[1];
+  int lookup = myMap[1]!;
   print(lookup);
   print(myMap);
   print(myConstMap);

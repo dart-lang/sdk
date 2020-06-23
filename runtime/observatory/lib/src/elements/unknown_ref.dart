@@ -12,19 +12,19 @@ import 'package:observatory/src/elements/helpers/uris.dart';
 class UnknownObjectRefElement extends CustomElement implements Renderable {
   static const tag = const Tag<UnknownObjectRefElement>('unknown-ref');
 
-  RenderingScheduler<UnknownObjectRefElement> _r;
+  late RenderingScheduler<UnknownObjectRefElement> _r;
 
   Stream<RenderedEvent<UnknownObjectRefElement>> get onRendered =>
       _r.onRendered;
 
-  M.IsolateRef _isolate;
-  M.UnknownObjectRef _obj;
+  late M.IsolateRef _isolate;
+  late M.UnknownObjectRef _obj;
 
   M.IsolateRef get isolate => _isolate;
   M.UnknownObjectRef get obj => _obj;
 
   factory UnknownObjectRefElement(M.IsolateRef isolate, M.UnknownObjectRef obj,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(isolate != null);
     assert(obj != null);
     UnknownObjectRefElement e = new UnknownObjectRefElement.created();

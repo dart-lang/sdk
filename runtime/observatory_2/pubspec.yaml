@@ -1,0 +1,3 @@
+name: observatory_2
+environment:
+  sdk: '>=2.2.2 <3.0.0'
