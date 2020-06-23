@@ -60,6 +60,8 @@ class PackageBuildPackageUriResolver extends UriResolver {
       : _workspace = workspace,
         _context = workspace.provider.pathContext;
 
+  Map<String, List<Folder>> get packageMap => _workspace._packageMap;
+
   @override
   Source resolveAbsolute(Uri _ignore, [Uri uri]) {
     uri ??= _ignore;

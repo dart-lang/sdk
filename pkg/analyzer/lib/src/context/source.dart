@@ -11,6 +11,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart' as utils;
 import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/workspace/package_build.dart';
 
 /**
  * Instances of the class `SourceFactory` resolve possibly relative URI's
@@ -49,9 +50,15 @@ class SourceFactoryImpl implements SourceFactory {
 
   @override
   Map<String, List<Folder>> get packageMap {
-    PackageMapUriResolver resolver = resolvers
-        .firstWhere((r) => r is PackageMapUriResolver, orElse: () => null);
-    return resolver?.packageMap;
+    for (var resolver in resolvers) {
+      if (resolver is PackageMapUriResolver) {
+        return resolver.packageMap;
+      }
+      if (resolver is PackageBuildPackageUriResolver) {
+        return resolver.packageMap;
+      }
+    }
+    return null;
   }
 
   @override
