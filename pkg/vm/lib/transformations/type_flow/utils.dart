@@ -155,6 +155,9 @@ class Statistics {
   static int constructorBodiesDropped = 0;
   static int callsDropped = 0;
   static int throwExpressionsPruned = 0;
+  static int protobufMessagesUsed = 0;
+  static int protobufMetadataInitializersUpdated = 0;
+  static int protobufMetadataFieldsPruned = 0;
 
   /// Resets statistic counters.
   static void reset() {
@@ -181,6 +184,9 @@ class Statistics {
     constructorBodiesDropped = 0;
     callsDropped = 0;
     throwExpressionsPruned = 0;
+    protobufMessagesUsed = 0;
+    protobufMetadataInitializersUpdated = 0;
+    protobufMetadataFieldsPruned = 0;
   }
 
   static void print(String caption) {
@@ -208,6 +214,9 @@ class Statistics {
     ${constructorBodiesDropped} constructor bodies dropped
     ${callsDropped} calls dropped
     ${throwExpressionsPruned} throw expressions pruned
+    ${protobufMessagesUsed} protobuf messages used
+    ${protobufMetadataInitializersUpdated} protobuf metadata initializers updated
+    ${protobufMetadataFieldsPruned} protobuf metadata fields pruned
     """);
   }
 }

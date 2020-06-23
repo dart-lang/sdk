@@ -111,6 +111,8 @@ void declareCompilerOptions(ArgParser args) {
   args.addFlag('protobuf-tree-shaker',
       help: 'Enable protobuf tree shaker transformation in AOT mode.',
       defaultsTo: false);
+  args.addFlag('protobuf-tree-shaker-v2',
+      help: 'Enable protobuf tree shaker v2 in AOT mode.', defaultsTo: false);
   args.addMultiOption('define',
       abbr: 'D',
       help: 'The values for the environment constants (e.g. -Dkey=value).');
@@ -189,6 +191,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool enableAsserts = options['enable-asserts'];
   final bool nullSafety = options['null-safety'];
   final bool useProtobufTreeShaker = options['protobuf-tree-shaker'];
+  final bool useProtobufTreeShakerV2 = options['protobuf-tree-shaker-v2'];
   final bool splitOutputByPackages = options['split-output-by-packages'];
   final String manifestFilename = options['manifest'];
   final String dataDir = options['component-name'] ?? options['data-dir'];
@@ -279,6 +282,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       bytecodeOptions: bytecodeOptions,
       dropAST: dropAST && !splitOutputByPackages,
       useProtobufTreeShaker: useProtobufTreeShaker,
+      useProtobufTreeShakerV2: useProtobufTreeShakerV2,
       minimalKernel: minimalKernel,
       treeShakeWriteOnlyFields: treeShakeWriteOnlyFields,
       fromDillFile: fromDillFile);
@@ -359,6 +363,7 @@ Future<KernelCompilationResults> compileToKernel(
     BytecodeOptions bytecodeOptions,
     bool dropAST: false,
     bool useProtobufTreeShaker: false,
+    bool useProtobufTreeShakerV2: false,
     bool minimalKernel: false,
     bool treeShakeWriteOnlyFields: false,
     String fromDillFile: null}) async {
@@ -392,6 +397,7 @@ Future<KernelCompilationResults> compileToKernel(
         useGlobalTypeFlowAnalysis,
         enableAsserts,
         useProtobufTreeShaker,
+        useProtobufTreeShakerV2,
         errorDetector,
         minimalKernel: minimalKernel,
         treeShakeWriteOnlyFields: treeShakeWriteOnlyFields);
@@ -469,6 +475,7 @@ Future runGlobalTransformations(
     bool useGlobalTypeFlowAnalysis,
     bool enableAsserts,
     bool useProtobufTreeShaker,
+    bool useProtobufTreeShakerV2,
     ErrorDetector errorDetector,
     {bool minimalKernel: false,
     bool treeShakeWriteOnlyFields: false}) async {
@@ -488,10 +495,15 @@ Future runGlobalTransformations(
   // before type flow analysis so TFA won't take unreachable code into account.
   unreachable_code_elimination.transformComponent(component, enableAsserts);
 
+  if (useProtobufTreeShaker && useProtobufTreeShakerV2) {
+    throw 'Cannot use both versions of protobuf tree shaker';
+  }
+
   if (useGlobalTypeFlowAnalysis) {
     globalTypeFlow.transformComponent(target, coreTypes, component,
         treeShakeSignatures: !minimalKernel,
-        treeShakeWriteOnlyFields: treeShakeWriteOnlyFields);
+        treeShakeWriteOnlyFields: treeShakeWriteOnlyFields,
+        treeShakeProtobufs: useProtobufTreeShakerV2);
   } else {
     devirtualization.transformComponent(coreTypes, component);
     no_dynamic_invocations_annotator.transformComponent(component);

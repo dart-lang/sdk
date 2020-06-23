@@ -64,6 +64,8 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('protobuf-tree-shaker',
       help: 'Enable protobuf tree shaker transformation in AOT mode.',
       defaultsTo: false)
+  ..addFlag('protobuf-tree-shaker-v2',
+      help: 'Enable protobuf tree shaker v2 in AOT mode.', defaultsTo: false)
   ..addFlag('minimal-kernel',
       help: 'Produce minimal tree-shaken kernel file.', defaultsTo: false)
   ..addFlag('link-platform',
@@ -547,6 +549,7 @@ class FrontendCompiler implements CompilerInterface {
           environmentDefines: environmentDefines,
           enableAsserts: options['enable-asserts'],
           useProtobufTreeShaker: options['protobuf-tree-shaker'],
+          useProtobufTreeShakerV2: options['protobuf-tree-shaker-v2'],
           minimalKernel: options['minimal-kernel'],
           treeShakeWriteOnlyFields: options['tree-shake-write-only-fields'],
           fromDillFile: options['from-dill']));

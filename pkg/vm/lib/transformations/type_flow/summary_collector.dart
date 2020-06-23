@@ -18,6 +18,7 @@ import 'package:kernel/type_algebra.dart' show Substitution;
 
 import 'calls.dart';
 import 'native_code.dart';
+import 'protobuf_handler.dart' show ProtobufHandler;
 import 'summary.dart';
 import 'types.dart';
 import 'utils.dart';
@@ -521,6 +522,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   final TypesBuilder _typesBuilder;
   final NativeCodeOracle _nativeCodeOracle;
   final GenericInterfacesInfo _genericInterfacesInfo;
+  final ProtobufHandler _protobufHandler;
 
   final Map<TreeNode, Call> callSites = <TreeNode, Call>{};
   final Map<AsExpression, TypeCheck> explicitCasts =
@@ -580,7 +582,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       this._entryPointsListener,
       this._typesBuilder,
       this._nativeCodeOracle,
-      this._genericInterfacesInfo) {
+      this._genericInterfacesInfo,
+      this._protobufHandler) {
     assertx(_genericInterfacesInfo != null);
     constantAllocationCollector = new ConstantAllocationCollector(this);
     _nullMethodsAndGetters.addAll(getSelectors(
@@ -597,6 +600,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         "===== ${member}${fieldSummaryType == FieldSummaryType.kFieldGuard ? " (guard)" : ""} =====");
     assertx(!member.isAbstract);
     assertx(!(member is Procedure && member.isRedirectingFactoryConstructor));
+
+    _protobufHandler?.beforeSummaryCreation(member);
 
     _staticTypeContext = new StaticTypeContext(member, _environment);
     _variablesInfo = new _VariablesInfoCollector(member);
