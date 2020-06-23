@@ -9,7 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import '../analyzer.dart';
 
 const _desc = r'`Future` results in `async` function bodies must be '
-    '`await`ed or marked `unawaited` using `package:pedantic`.';
+    '`await`ed or marked `unawaited` using `package:meta`.';
 
 const _details = r'''
 
@@ -19,7 +19,7 @@ It's easy to forget await in async methods as naming conventions usually don't
 tell us if a method is sync or async (except for some in `dart:io`).
 
 When you really _do_ want to start a fire-and-forget `Future`, the recommended
-way is to use `unawaited` from `package:pedantic`. The `// ignore` and
+way is to use `unawaited` from `package:meta`. The `// ignore` and
 `// ignore_for_file` comments also work.
 
 **GOOD:**
