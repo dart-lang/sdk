@@ -25,6 +25,8 @@ import 'package:kernel/text/ast_to_text.dart' show Precedence, Printer;
 import 'package:kernel/src/printer.dart';
 import 'package:kernel/core_types.dart';
 
+import '../builder/type_alias_builder.dart';
+
 import '../fasta_codes.dart'
     show noLength, templateWebLiteralCannotBeRepresentedExactly;
 
@@ -701,6 +703,65 @@ class FactoryConstructorInvocationJudgment extends StaticInvocation
       printer.write(target.name.name);
     }
     printer.writeArguments(arguments, includeTypeArguments: false);
+  }
+}
+
+/// Shadow object for [ConstructorInvocation] when the procedure being invoked
+/// is a type aliased constructor.
+class TypeAliasedConstructorInvocationJudgment extends ConstructorInvocation
+    implements ExpressionJudgment {
+  bool hasBeenInferred = false;
+  final TypeAliasBuilder typeAliasBuilder;
+
+  TypeAliasedConstructorInvocationJudgment(
+      this.typeAliasBuilder, Constructor target, ArgumentsImpl arguments,
+      {bool isConst: false})
+      : super(target, arguments, isConst: isConst);
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitTypeAliasedConstructorInvocationJudgment(
+        this, typeContext);
+  }
+
+  @override
+  String toString() {
+    return "TypeAliasedConstructorInvocationJudgment(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
+  }
+}
+
+/// Shadow object for [StaticInvocation] when the procedure being invoked is a
+/// type aliased factory constructor.
+class TypeAliasedFactoryInvocationJudgment extends StaticInvocation
+    implements ExpressionJudgment {
+  bool hasBeenInferred = false;
+  final TypeAliasBuilder typeAliasBuilder;
+
+  TypeAliasedFactoryInvocationJudgment(
+      this.typeAliasBuilder, Procedure target, ArgumentsImpl arguments,
+      {bool isConst: false})
+      : super(target, arguments, isConst: isConst);
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitTypeAliasedFactoryInvocationJudgment(this, typeContext);
+  }
+
+  @override
+  String toString() {
+    return "TypeAliasedConstructorInvocationJudgment(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 

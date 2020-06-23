@@ -2818,6 +2818,49 @@ class FunctionNode extends TreeNode {
             .applyToFunctionType(computeThisFunctionType(nullability));
   }
 
+  /// Return function type of node: return [typedefType], reuse type parameters.
+  ///
+  /// When this getter is invoked, the parent must be a [Constructor].
+  /// This getter works similarly to [computeThisFunctionType], but uses
+  /// [typedef] to compute the return type of the returned function type. It
+  /// is useful in some contexts, especially during inference of aliased
+  /// constructor invocations.
+  FunctionType computeAliasedFunctionType(Typedef typedef, Library library) {
+    TreeNode parent = this.parent;
+    assert(parent is Constructor, "Only run this method on constructors");
+    Constructor parentConstructor = parent;
+    // We need create a copy of the list of type parameters, otherwise
+    // transformations like erasure don't work.
+    List<TypeParameter> classTypeParametersCopy =
+        List.from(parentConstructor.enclosingClass.typeParameters);
+    List<TypeParameter> typedefTypeParametersCopy =
+        List.from(typedef.typeParameters);
+    List<DartType> asTypeArguments =
+        getAsTypeArguments(typedefTypeParametersCopy, library);
+    TypedefType typedefType =
+        TypedefType(typedef, library.nonNullable, asTypeArguments);
+    DartType unaliasedTypedef = typedefType.unalias;
+    assert(unaliasedTypedef is InterfaceType,
+        "[typedef] is assumed to resolve to an interface type");
+    InterfaceType targetType = unaliasedTypedef;
+    Substitution substitution = Substitution.fromPairs(
+        classTypeParametersCopy, targetType.typeArguments);
+    List<DartType> positional = positionalParameters
+        .map((VariableDeclaration decl) =>
+            substitution.substituteType(decl.type))
+        .toList(growable: false);
+    List<NamedType> named = namedParameters
+        .map((VariableDeclaration decl) => NamedType(
+            decl.name, substitution.substituteType(decl.type),
+            isRequired: decl.isRequired))
+        .toList(growable: false);
+    named.sort();
+    return new FunctionType(positional, typedefType, library.nonNullable,
+        namedParameters: named,
+        typeParameters: typedefTypeParametersCopy,
+        requiredParameterCount: requiredParameterCount);
+  }
+
   R accept<R>(TreeVisitor<R> v) => v.visitFunctionNode(this);
 
   visitChildren(Visitor v) {

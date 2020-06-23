@@ -686,6 +686,7 @@ created
 creates
 creating
 creation
+creations
 crossed
 curly
 current
@@ -1077,6 +1078,7 @@ experimentally
 experiments
 expired
 explanation
+explain
 explicit
 explicitly
 exponent
@@ -2901,6 +2903,7 @@ targeted
 targeting
 targets
 task
+tasks
 tear
 tearing
 technically

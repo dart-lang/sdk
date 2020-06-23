@@ -743,6 +743,41 @@ class InferenceVisitor
         result.inferredType, result.applyResult(resultNode));
   }
 
+  ExpressionInferenceResult visitTypeAliasedConstructorInvocationJudgment(
+      TypeAliasedConstructorInvocationJudgment node, DartType typeContext) {
+    assert(getExplicitTypeArguments(node.arguments) == null);
+    Typedef typedef = node.typeAliasBuilder.typedef;
+    FunctionType calleeType = node.target.function
+        .computeAliasedFunctionType(typedef, inferrer.library.library);
+    InvocationInferenceResult result = inferrer.inferInvocation(
+        typeContext, node.fileOffset, calleeType, node.arguments,
+        returnType: calleeType.returnType.unalias, isConst: node.isConst);
+    node.hasBeenInferred = true;
+    Expression resultNode = node;
+    if (!inferrer.isTopLevel) {
+      SourceLibraryBuilder library = inferrer.library;
+      library.checkBoundsInType(result.inferredType,
+          inferrer.typeSchemaEnvironment, inferrer.helper.uri, node.fileOffset,
+          inferred: true);
+      if (inferrer.isNonNullableByDefault) {
+        if (node.target == inferrer.coreTypes.listDefaultConstructor) {
+          resultNode = inferrer.helper.wrapInProblem(node,
+              messageDefaultListConstructorError, node.fileOffset, noLength);
+        }
+      }
+    }
+    return new ExpressionInferenceResult(
+        result.inferredType, result.applyResult(resultNode));
+  }
+
+  ExpressionInferenceResult visitTypeAliasedFactoryInvocationJudgment(
+      TypeAliasedFactoryInvocationJudgment node, DartType typeContext) {
+    // TODO(eernst): See visitTypeAliasedConstructorInvocationJudgment
+    // for an implementation handling a similar task.
+    throw "visitTypeAliasedFactoryInvocationJudgment: "
+        "${node.typeAliasBuilder}, ${node.target}, $typeContext";
+  }
+
   @override
   void visitFieldInitializer(FieldInitializer node) {
     ExpressionInferenceResult initializerResult =
