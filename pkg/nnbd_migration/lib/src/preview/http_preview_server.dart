@@ -78,7 +78,6 @@ class HttpPreviewServer {
         _serverFuture =
             HttpServer.bind(InternetAddress.loopbackIPv4, preferredPort ?? 0);
       } else if (hostname == 'any') {
-        print('yay anyipv6');
         _serverFuture =
             HttpServer.bind(InternetAddress.anyIPv6, preferredPort ?? 0);
       } else {
