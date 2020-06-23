@@ -44,19 +44,13 @@ class FeatureSetProvider {
       }
     }
 
-    if (uri.isScheme('package')) {
-      var pathSegments = uri.pathSegments;
-      if (pathSegments.isNotEmpty) {
-        var packageName = pathSegments.first;
-        var experiments = _allowedExperiments.forPackage(packageName);
-        if (experiments != null) {
-          return FeatureSet.fromEnableFlags(experiments);
-        }
-      }
-    }
-
     var package = _packages.packageForPath(path);
     if (package != null) {
+      var experiments = _allowedExperiments.forPackage(package.name);
+      if (experiments != null) {
+        return FeatureSet.fromEnableFlags(experiments);
+      }
+
       return _packageDefaultFeatureSet;
     }
 

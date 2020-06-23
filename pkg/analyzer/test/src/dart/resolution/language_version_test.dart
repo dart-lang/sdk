@@ -8,6 +8,8 @@ import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -115,7 +117,40 @@ class NullSafetyUsingAllowedExperimentsTest extends _FeaturesTest {
   @override
   bool get typeToStringWithNullability => true;
 
-  test_jsonConfig_disable() async {
+  test_jsonConfig_disable_bin() async {
+    _configureAllowedExperimentsTestNullSafety();
+
+    _configureTestWithJsonConfig('''
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "test",
+      "rootUri": "../",
+      "packageUri": "lib/",
+      "languageVersion": "2.8"
+    }
+  ]
+}
+''');
+
+    var path = convertPath('/test/bin/a.dart');
+    await _resolveFile(path, r'''
+var x = 0;
+''');
+    assertErrorsInList(result.errors, []);
+    assertType(findElement.topVar('x').type, 'int*');
+
+    // Upgrade the language version to `2.9`, so enabled Null Safety.
+    driver.changeFile(path);
+    await _resolveFile(path, r'''
+// @dart = 2.9
+var x = 0;
+''');
+    assertType(findElement.topVar('x').type, 'int');
+  }
+
+  test_jsonConfig_disable_lib() async {
     _configureAllowedExperimentsTestNullSafety();
 
     _configureTestWithJsonConfig('''
@@ -146,7 +181,39 @@ var x = 0;
     assertType(findElement.topVar('x').type, 'int');
   }
 
-  test_jsonConfig_enable() async {
+  test_jsonConfig_enable_bin() async {
+    _configureAllowedExperimentsTestNullSafety();
+
+    _configureTestWithJsonConfig('''
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "test",
+      "rootUri": "../",
+      "packageUri": "lib/"
+    }
+  ]
+}
+''');
+
+    var path = convertPath('/test/bin/a.dart');
+    await _resolveFile(path, r'''
+var x = 0;
+''');
+    assertErrorsInList(result.errors, []);
+    assertType(findElement.topVar('x').type, 'int');
+
+    // Downgrade the version to `2.8`, so disable Null Safety.
+    driver.changeFile(path);
+    await _resolveFile(path, r'''
+// @dart = 2.8
+var x = 0;
+''');
+    assertType(findElement.topVar('x').type, 'int*');
+  }
+
+  test_jsonConfig_enable_lib() async {
     _configureAllowedExperimentsTestNullSafety();
 
     _configureTestWithJsonConfig('''
@@ -203,8 +270,18 @@ var x = 0;
   }
 
   void _newSdkExperimentsFile(String content) {
-    newFile('$sdkRoot/lib/_internal/allowed_experiments.json',
-        content: content);
+    newFile(
+      '$sdkRoot/lib/_internal/allowed_experiments.json',
+      content: content,
+    );
+  }
+
+  Future<void> _resolveFile(String path, String content) async {
+    newFile(path, content: content);
+    result = await resolveFile(path);
+
+    findNode = FindNode(result.content, result.unit);
+    findElement = FindElement(result.unit);
   }
 }
 

@@ -85,8 +85,12 @@ class FeatureSetProviderTest with ResourceProviderMixin {
     );
 
     _assertNonNullableForPath('/packages/aaa/lib/a.dart', true);
+    _assertNonNullableForPath('/packages/aaa/bin/b.dart', true);
+    _assertNonNullableForPath('/packages/aaa/test/c.dart', true);
 
-    _assertNonNullableForPath('/packages/bbb/lib/b.dart', false);
+    _assertNonNullableForPath('/packages/bbb/lib/a.dart', false);
+    _assertNonNullableForPath('/packages/bbb/bin/b.dart', false);
+    _assertNonNullableForPath('/packages/bbb/test/c.dart', false);
 
     _assertNonNullableForPath('/other/file.dart', false);
   }
