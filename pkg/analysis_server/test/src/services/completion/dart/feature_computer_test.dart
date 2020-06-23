@@ -562,6 +562,12 @@ var x=^;
 ''', null);
   }
 
+  Future<void> test_topLevelVariableDeclaration_var_noEqual() async {
+    await assertContextType('''
+int x^;
+''', null);
+  }
+
   Future<void> test_topLevelVariableDeclaration_var_whitespace() async {
     await assertContextType('''
 var x=  ^  ;

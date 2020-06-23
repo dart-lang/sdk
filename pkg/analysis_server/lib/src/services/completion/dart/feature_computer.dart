@@ -798,7 +798,8 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   DartType visitVariableDeclarationList(VariableDeclarationList node) {
     for (var varDecl in node.variables) {
       if (varDecl != null && varDecl.contains(offset)) {
-        if (varDecl.equals.end <= offset) {
+        var equals = varDecl.equals;
+        if (equals != null && equals.end <= offset) {
           return node.type?.type ??
               impliedDartTypeWithName(typeProvider, varDecl.name?.name);
         }
