@@ -1,5 +1,5 @@
 name: status_file
-# This package is not intended to be published.
+# This package is not intended for consumption on pub.dev. DO NOT publish.
 publish_to: none
 environment:
   sdk: "^2.3.0"
