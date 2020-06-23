@@ -54,7 +54,7 @@ var tests = <IsolateTest>[
       'isDebuggable': false,
     };
     Map<String, dynamic> result = await isolate.invokeRpcNoUpgrade(
-        'setLibraryDebuggable', setDebugParams) as Map<String, dynamic>;
+        'setLibraryDebuggable', setDebugParams);
     expect(result['type'], 'Success');
     await has_part.reload();
     expect(has_part.debuggable, false);
@@ -63,7 +63,7 @@ var tests = <IsolateTest>[
     // Breakpoints are not allowed to set on non-debuggable libraries.
     try {
       await isolate.addBreakpoint(script, LINE_B);
-    } on dynamic catch (e) {
+    } catch (e) {
       expect(e is ServerRpcException, true);
       expect(e.code == ServerRpcException.kCannotAddBreakpoint, true);
       print("Set Breakpoint to non-debuggable library is not allowed");

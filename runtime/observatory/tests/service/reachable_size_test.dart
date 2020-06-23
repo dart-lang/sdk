@@ -11,34 +11,34 @@ import 'service_test_common.dart';
 class Pair {
   // Make sure these fields are not removed by the tree shaker.
   @pragma("vm:entry-point")
-  dynamic x;
+  var x;
   @pragma("vm:entry-point")
-  dynamic y;
+  var y;
 }
 
-dynamic p1;
-dynamic p2;
+var p1;
+var p2;
 
 buildGraph() {
   p1 = new Pair();
   p2 = new Pair();
 
   // Adds to both reachable and retained size.
-  p1.x = <dynamic>[];
-  p2.x = <dynamic>[];
+  p1.x = new List();
+  p2.x = new List();
 
   // Adds to reachable size only.
-  p1.y = p2.y = <dynamic>[];
+  p1.y = p2.y = new List();
 }
 
 Future<int> getReachableSize(ServiceObject obj) async {
-  Instance size = await obj.isolate!.getReachableSize(obj) as Instance;
-  return int.parse(size.valueAsString!);
+  Instance size = await obj.isolate.getReachableSize(obj);
+  return int.parse(size.valueAsString);
 }
 
 Future<int> getRetainedSize(ServiceObject obj) async {
-  Instance size = await obj.isolate!.getRetainedSize(obj) as Instance;
-  return int.parse(size.valueAsString!);
+  Instance size = await obj.isolate.getRetainedSize(obj);
+  return int.parse(size.valueAsString);
 }
 
 var tests = <IsolateTest>[
@@ -49,7 +49,7 @@ var tests = <IsolateTest>[
     // In general, shallow <= retained <= reachable. In this program,
     // 0 < shallow < retained < reachable.
 
-    int p1_shallow = p1.size!;
+    int p1_shallow = p1.size;
     int p1_retained = await getRetainedSize(p1);
     int p1_reachable = await getReachableSize(p1);
 
@@ -57,7 +57,7 @@ var tests = <IsolateTest>[
     expect(p1_shallow, lessThan(p1_retained));
     expect(p1_retained, lessThan(p1_reachable));
 
-    int p2_shallow = p2.size!;
+    int p2_shallow = p2.size;
     int p2_retained = await getRetainedSize(p2);
     int p2_reachable = await getReachableSize(p2);
 

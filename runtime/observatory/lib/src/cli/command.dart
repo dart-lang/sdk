@@ -46,8 +46,8 @@ abstract class _CommandBase {
   // A command may optionally have sub-commands.
   List<Command> _children = <Command>[];
 
-  _CommandBase? _parent;
-  int get _depth => (_parent == null ? 0 : _parent!._depth + 1);
+  _CommandBase _parent;
+  int get _depth => (_parent == null ? 0 : _parent._depth + 1);
 
   // Override in subclasses to provide command-specific argument completion.
   //
@@ -115,7 +115,7 @@ abstract class _CommandBase {
 
 // The root of a tree of commands.
 class RootCommand extends _CommandBase {
-  RootCommand(List<Command> children, [List<String>? history])
+  RootCommand(List<Command> children, [List<String> history])
       : this._(children, history ?? ['']);
 
   RootCommand._(List<Command> children, List<String> history)
@@ -161,7 +161,7 @@ class RootCommand extends _CommandBase {
       // If we are showing all possiblities, also include local
       // completions for the parent command.
       return commands[0]
-          ._parent!
+          ._parent
           ._buildCompletions(args, false)
           .then((localCompletions) {
         completions.addAll(localCompletions);
@@ -232,7 +232,7 @@ class RootCommand extends _CommandBase {
     throw 'should-not-execute-the-root-command';
   }
 
-  String toString() => 'RootCommand';
+  toString() => 'RootCommand';
 }
 
 // A node in the command tree.
@@ -240,18 +240,18 @@ abstract class Command extends _CommandBase {
   Command(this.name, List<Command> children) : super(children);
 
   final String name;
-  String? alias;
+  String alias;
 
   String get fullName {
     if (_parent is RootCommand) {
       return name;
     } else {
-      Command parent = _parent as Command;
+      Command parent = _parent;
       return '${parent.fullName} $name';
     }
   }
 
-  String toString() => 'Command(${name})';
+  toString() => 'Command(${name})';
 }
 
 abstract class CommandException implements Exception {}

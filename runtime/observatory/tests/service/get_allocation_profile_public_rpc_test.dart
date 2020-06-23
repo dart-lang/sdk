@@ -99,14 +99,14 @@ var tests = <IsolateTest>[
     var params = {
       'reset': 'banana',
     };
-    bool caughtException = false;
+    bool caughtException;
     try {
       await isolate.invokeRpcNoUpgrade('getAllocationProfile', params);
       expect(false, isTrue, reason: 'Unreachable');
     } on ServerRpcException catch (e) {
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kInvalidParams));
-      expect(e.data!['details'],
+      expect(e.data['details'],
           "getAllocationProfile: invalid \'reset\' parameter: banana");
     }
     expect(caughtException, isTrue);
@@ -115,14 +115,14 @@ var tests = <IsolateTest>[
     var params = {
       'gc': 'banana',
     };
-    bool caughtException = false;
+    bool caughtException;
     try {
       await isolate.invokeRpcNoUpgrade('getAllocationProfile', params);
       expect(false, isTrue, reason: 'Unreachable');
     } on ServerRpcException catch (e) {
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kInvalidParams));
-      expect(e.data!['details'],
+      expect(e.data['details'],
           "getAllocationProfile: invalid \'gc\' parameter: banana");
     }
     expect(caughtException, isTrue);

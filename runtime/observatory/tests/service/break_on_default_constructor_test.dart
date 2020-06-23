@@ -51,7 +51,7 @@ var tests = <IsolateTest>[
     if (loc.valid) {
       if (loc.function != null) {
         try {
-          await debugger.isolate.addBreakpointAtEntry(loc.function!);
+          await debugger.isolate.addBreakpointAtEntry(loc.function);
         } on S.ServerRpcException catch (e) {
           if (e.code == S.ServerRpcException.kCannotAddBreakpoint) {
             // Expected

@@ -51,8 +51,8 @@ var tests = <IsolateTest>[
       expect(result is Breakpoint, isTrue);
       Breakpoint bpt = result;
       expect(bpt.type, equals('Breakpoint'));
-      expect(bpt.location!.script.id, equals(script.id));
-      expect(bpt.location!.script.tokenToLine(bpt.location!.tokenPos),
+      expect(bpt.location.script.id, equals(script.id));
+      expect(bpt.location.script.tokenToLine(bpt.location.tokenPos),
           equals(LINE_A));
       expect(isolate.breakpoints.length, equals(1));
     }
@@ -62,8 +62,8 @@ var tests = <IsolateTest>[
       expect(result is Breakpoint, isTrue);
       Breakpoint bpt = result;
       expect(bpt.type, equals('Breakpoint'));
-      expect(bpt.location!.script.id, equals(script.id));
-      expect(bpt.location!.script.tokenToLine(bpt.location!.tokenPos),
+      expect(bpt.location.script.id, equals(script.id));
+      expect(bpt.location.script.tokenToLine(bpt.location.tokenPos),
           equals(LINE_B));
       expect(isolate.breakpoints.length, equals(2));
     }
@@ -73,8 +73,8 @@ var tests = <IsolateTest>[
       expect(result is Breakpoint, isTrue);
       Breakpoint bpt = result;
       expect(bpt.type, equals('Breakpoint'));
-      expect(bpt.location!.script.id, equals(script.id));
-      expect(bpt.location!.script.tokenToLine(bpt.location!.tokenPos),
+      expect(bpt.location.script.id, equals(script.id));
+      expect(bpt.location.script.tokenToLine(bpt.location.tokenPos),
           equals(LINE_C));
       expect(isolate.breakpoints.length, equals(3));
     }

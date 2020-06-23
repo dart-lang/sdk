@@ -17,7 +17,7 @@ class EventDeleteEvent {
 class NavNotifyEventElement extends CustomElement implements Renderable {
   static const tag = const Tag<NavNotifyEventElement>('nav-event');
 
-  late RenderingScheduler<NavNotifyEventElement> _r;
+  RenderingScheduler<NavNotifyEventElement> _r;
 
   Stream<RenderedEvent<NavNotifyEventElement>> get onRendered => _r.onRendered;
 
@@ -25,11 +25,11 @@ class NavNotifyEventElement extends CustomElement implements Renderable {
       new StreamController<EventDeleteEvent>.broadcast();
   Stream<EventDeleteEvent> get onDelete => _onDelete.stream;
 
-  late M.Event _event;
+  M.Event _event;
 
   M.Event get event => _event;
 
-  factory NavNotifyEventElement(M.Event event, {RenderingQueue? queue}) {
+  factory NavNotifyEventElement(M.Event event, {RenderingQueue queue}) {
     assert(event != null);
     NavNotifyEventElement e = new NavNotifyEventElement.created();
     e._r = new RenderingScheduler<NavNotifyEventElement>(e, queue: queue);
@@ -118,7 +118,7 @@ class NavNotifyEventElement extends CustomElement implements Renderable {
       M.PauseBreakpointEvent event) {
     String message = ' is paused';
     if (event.breakpoint != null) {
-      message += ' at breakpoint ${event.breakpoint!.number}';
+      message += ' at breakpoint ${event.breakpoint.number}';
     }
     return [
       new SpanElement()..text = 'Isolate ',

@@ -173,10 +173,10 @@ bool hasCompletedEvents(List traceEvents) {
     if (isStartEvent(event)) {
       final id = event['id'];
       events.putIfAbsent(id, () => 0);
-      events[id] = events[id]! + 1;
+      events[id]++;
     } else if (isFinishEvent(event)) {
       final id = event['id'];
-      events[id] = events[id]! - 1;
+      events[id]--;
     }
   }
   bool valid = true;

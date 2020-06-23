@@ -36,7 +36,7 @@ var tests = <IsolateTest>[
           // Check that we can 'get' this object again.
           var firstType = allTypeArgsList[0];
           return isolate.getObject(firstType.id).then((ServiceObject object) {
-            TypeArguments type = object as TypeArguments;
+            TypeArguments type = object;
             expect(firstType.name, type.name);
           });
         });

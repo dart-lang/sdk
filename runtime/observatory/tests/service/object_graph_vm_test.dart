@@ -16,9 +16,9 @@ class Foo {
   dynamic right;
 }
 
-late Foo r;
+Foo r;
 
-late List lst;
+List lst;
 
 void script() {
   // Create 3 instances of Foo, with out-degrees
@@ -30,10 +30,10 @@ void script() {
   r.right = b;
   a.left = b;
 
-  lst = new List<dynamic>.filled(2, null);
+  lst = new List(2);
   lst[0] = lst; // Self-loop.
   // Larger than any other fixed-size list in a fresh heap.
-  lst[1] = new List<dynamic>.filled(1234569, null);
+  lst[1] = new List(1234569);
 }
 
 var tests = <IsolateTest>[

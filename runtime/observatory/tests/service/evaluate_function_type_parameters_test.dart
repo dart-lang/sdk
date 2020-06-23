@@ -49,8 +49,7 @@ var tests = <IsolateTest>[
     expect(stack.type, equals('Stack'));
     expect(await stack['frames'][topFrame].location.getLine(), 14);
 
-    Instance result =
-        await isolate.evalFrame(topFrame, "S.toString()") as Instance;
+    Instance result = await isolate.evalFrame(topFrame, "S.toString()");
     print(result);
     expect(result.valueAsString, equals("String"));
   },
@@ -63,30 +62,27 @@ var tests = <IsolateTest>[
     expect(stack.type, equals('Stack'));
     expect(await stack['frames'][topFrame].location.getLine(), 16);
 
-    Instance result =
-        await isolate.evalFrame(topFrame, "TBool.toString()") as Instance;
+    Instance result = await isolate.evalFrame(topFrame, "TBool.toString()");
     print(result);
     expect(result.valueAsString, equals("bool"));
 
-    result =
-        await isolate.evalFrame(topFrame, "TString.toString()") as Instance;
+    result = await isolate.evalFrame(topFrame, "TString.toString()");
     print(result);
     expect(result.valueAsString, equals("String"));
 
-    result =
-        await isolate.evalFrame(topFrame, "TDouble.toString()") as Instance;
+    result = await isolate.evalFrame(topFrame, "TDouble.toString()");
     print(result);
     expect(result.valueAsString, equals("double"));
 
-    result = await isolate.evalFrame(topFrame, "TInt.toString()") as Instance;
+    result = await isolate.evalFrame(topFrame, "TInt.toString()");
     print(result);
     expect(result.valueAsString, equals("int"));
 
-    result = await isolate.evalFrame(topFrame, "S.toString()") as Instance;
+    result = await isolate.evalFrame(topFrame, "S.toString()");
     print(result);
     expect(result.valueAsString, equals("String"));
 
-    result = await isolate.evalFrame(topFrame, "x") as Instance;
+    result = await isolate.evalFrame(topFrame, "x");
     print(result);
     expect(result.valueAsString, equals("3"));
   },
@@ -99,8 +95,7 @@ var tests = <IsolateTest>[
     expect(stack.type, equals('Stack'));
     expect(await stack['frames'][topFrame].location.getLine(), 22);
 
-    Instance result =
-        await isolate.evalFrame(topFrame, "S.toString()") as Instance;
+    Instance result = await isolate.evalFrame(topFrame, "S.toString()");
     print(result);
     expect(result.valueAsString, equals("String"));
   },
@@ -113,12 +108,11 @@ var tests = <IsolateTest>[
     expect(stack.type, equals('Stack'));
     expect(await stack['frames'][topFrame].location.getLine(), 30);
 
-    Instance result =
-        await isolate.evalFrame(topFrame, "T.toString()") as Instance;
+    Instance result = await isolate.evalFrame(topFrame, "T.toString()");
     print(result);
     expect(result.valueAsString, equals("int"));
 
-    result = await isolate.evalFrame(topFrame, "S.toString()") as Instance;
+    result = await isolate.evalFrame(topFrame, "S.toString()");
     print(result);
     expect(result.valueAsString, equals("bool"));
   },
@@ -131,11 +125,10 @@ var tests = <IsolateTest>[
     expect(stack.type, equals('Stack'));
     expect(await stack['frames'][topFrame].location.getLine(), 34);
 
-    Instance result =
-        await isolate.evalFrame(topFrame, "T.toString()") as Instance;
+    Instance result = await isolate.evalFrame(topFrame, "T.toString()");
     print(result);
     expect(result.valueAsString, equals("dynamic"));
-    result = await isolate.evalFrame(topFrame, "t") as Instance;
+    result = await isolate.evalFrame(topFrame, "t");
     print(result);
     expect(result.valueAsString, equals("42"));
   },

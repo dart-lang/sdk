@@ -23,25 +23,25 @@ class IsolateReconnectElement extends CustomElement implements Renderable {
         ViewFooterElement.tag
       ]);
 
-  late RenderingScheduler<IsolateReconnectElement> _r;
+  RenderingScheduler<IsolateReconnectElement> _r;
 
   Stream<RenderedEvent<IsolateReconnectElement>> get onRendered =>
       _r.onRendered;
 
-  late M.VM _vm;
-  late String _missing;
-  late Uri _uri;
-  late M.EventRepository _events;
-  late StreamSubscription _subscription;
+  M.VM _vm;
+  String _missing;
+  Uri _uri;
+  M.EventRepository _events;
+  StreamSubscription _subscription;
 
   M.VM get vm => _vm;
   String get missing => _missing;
   Uri get uri => _uri;
 
-  late M.NotificationRepository _notifications;
+  M.NotificationRepository _notifications;
   factory IsolateReconnectElement(M.VM vm, M.EventRepository events,
       M.NotificationRepository notifications, String missing, Uri uri,
-      {RenderingQueue? queue}) {
+      {RenderingQueue queue}) {
     assert(vm != null);
     assert(events != null);
     assert(missing != null);
@@ -63,7 +63,7 @@ class IsolateReconnectElement extends CustomElement implements Renderable {
   void attached() {
     super.attached();
     _subscription = _events.onVMUpdate.listen((e) {
-      _vm = e.vm as M.VM;
+      _vm = e.vm;
       _r.dirty();
     });
     _r.enable();

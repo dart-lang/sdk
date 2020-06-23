@@ -20,8 +20,8 @@ enum ErrorKind {
 }
 
 abstract class ErrorRef extends ObjectRef {
-  ErrorKind? get kind;
-  String? get message;
+  ErrorKind get kind;
+  String get message;
 }
 
 abstract class Error extends Object implements ErrorRef {}

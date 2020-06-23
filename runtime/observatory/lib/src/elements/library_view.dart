@@ -49,25 +49,25 @@ class LibraryViewElement extends CustomElement implements Renderable {
     ViewFooterElement.tag
   ]);
 
-  late RenderingScheduler<LibraryViewElement> _r;
+  RenderingScheduler<LibraryViewElement> _r;
 
   Stream<RenderedEvent<LibraryViewElement>> get onRendered => _r.onRendered;
 
-  late M.VM _vm;
-  late M.IsolateRef _isolate;
-  late M.EventRepository _events;
-  late M.NotificationRepository _notifications;
-  late M.Library _library;
-  late M.LibraryRepository _libraries;
-  late M.FieldRepository _fields;
-  late M.RetainedSizeRepository _retainedSizes;
-  late M.ReachableSizeRepository _reachableSizes;
-  late M.InboundReferencesRepository _references;
-  late M.RetainingPathRepository _retainingPaths;
-  late M.ScriptRepository _scripts;
-  late M.ObjectRepository _objects;
-  late M.EvalRepository _eval;
-  Iterable<M.Field>? _variables;
+  M.VM _vm;
+  M.IsolateRef _isolate;
+  M.EventRepository _events;
+  M.NotificationRepository _notifications;
+  M.Library _library;
+  M.LibraryRepository _libraries;
+  M.FieldRepository _fields;
+  M.RetainedSizeRepository _retainedSizes;
+  M.ReachableSizeRepository _reachableSizes;
+  M.InboundReferencesRepository _references;
+  M.RetainingPathRepository _retainingPaths;
+  M.ScriptRepository _scripts;
+  M.ObjectRepository _objects;
+  M.EvalRepository _eval;
+  Iterable<M.Field> _variables;
 
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
@@ -89,7 +89,7 @@ class LibraryViewElement extends CustomElement implements Renderable {
       M.ScriptRepository scripts,
       M.ObjectRepository objects,
       M.EvalRepository eval,
-      {RenderingQueue? queue}) {
+      {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -217,19 +217,19 @@ class LibraryViewElement extends CustomElement implements Renderable {
   }
 
   Future _refresh() async {
-    _library = await _libraries.get(_isolate, _library.id!);
+    _library = await _libraries.get(_isolate, _library.id);
     _variables = null;
     _r.dirty();
     _variables = await Future.wait(
-        _library.variables!.map((field) => _fields.get(_isolate, field.id!)));
+        _library.variables.map((field) => _fields.get(_isolate, field.id)));
     _r.dirty();
   }
 
   Element _createDependencies() {
-    if (_library.dependencies!.isEmpty) {
+    if (_library.dependencies.isEmpty) {
       return new SpanElement();
     }
-    final dependencies = _library.dependencies!.toList();
+    final dependencies = _library.dependencies.toList();
     return new DivElement()
       ..children = <Element>[
         new SpanElement()..text = 'dependencies (${dependencies.length}) ',
@@ -252,10 +252,10 @@ class LibraryViewElement extends CustomElement implements Renderable {
   }
 
   Element _createScripts() {
-    if (_library.scripts!.isEmpty) {
+    if (_library.scripts.isEmpty) {
       return new SpanElement();
     }
-    final scripts = _library.scripts!.toList();
+    final scripts = _library.scripts.toList();
     return new DivElement()
       ..children = <Element>[
         new SpanElement()..text = 'scripts (${scripts.length}) ',
@@ -272,10 +272,10 @@ class LibraryViewElement extends CustomElement implements Renderable {
   }
 
   Element _createClasses() {
-    if (_library.classes!.isEmpty) {
+    if (_library.classes.isEmpty) {
       return new SpanElement();
     }
-    final classes = _library.classes!.toList();
+    final classes = _library.classes.toList();
     return new DivElement()
       ..children = <Element>[
         new SpanElement()..text = 'classes (${classes.length}) ',
@@ -292,10 +292,10 @@ class LibraryViewElement extends CustomElement implements Renderable {
   }
 
   Element _createVariables() {
-    if (_library.variables!.isEmpty) {
+    if (_library.variables.isEmpty) {
       return new SpanElement();
     }
-    final variables = _library.variables!.toList();
+    final variables = _library.variables.toList();
     return new DivElement()
       ..children = <Element>[
         new SpanElement()..text = 'variables (${variables.length}) ',
@@ -305,7 +305,7 @@ class LibraryViewElement extends CustomElement implements Renderable {
                     ? (new SpanElement()..text = 'loading...')
                     : (new DivElement()
                       ..classes = ['indent', 'memberList']
-                      ..children = _variables!
+                      ..children = _variables
                           .map<Element>((f) => new DivElement()
                             ..classes = ['memberItem']
                             ..children = <Element>[
@@ -331,10 +331,10 @@ class LibraryViewElement extends CustomElement implements Renderable {
   }
 
   Element _createFunctions() {
-    if (_library.functions!.isEmpty) {
+    if (_library.functions.isEmpty) {
       return new SpanElement();
     }
-    final functions = _library.functions!.toList();
+    final functions = _library.functions.toList();
     return new DivElement()
       ..children = <Element>[
         new SpanElement()..text = 'functions (${functions.length}) ',

@@ -70,7 +70,7 @@ class C {
 Future testMethod(Isolate isolate) async {
   // silence analyzer.
   expect(math.sqrt(4), equals(2));
-  Library rootLib = await isolate.rootLibrary.load() as Library;
+  Library rootLib = await isolate.rootLibrary.load();
   ServiceFunction function =
       rootLib.functions.singleWhere((f) => f.name == 'breakHere');
   Breakpoint bpt = await isolate.addBreakpointAtEntry(function);
@@ -83,7 +83,7 @@ Future testMethod(Isolate isolate) async {
   sub = stream.listen((ServiceEvent event) async {
     print("Event $event");
     if (event.kind == ServiceEvent.kPauseBreakpoint) {
-      dynamic frameNumber = 1, r;
+      var frameNumber = 1, r;
       r = await isolate.evalFrame(frameNumber, '123');  /// instance: ok
       expect(r.valueAsString, equals('123'));  /// instance: continued
       r = await isolate.evalFrame(frameNumber, 'this');  /// scope: ok
@@ -119,7 +119,7 @@ Future testMethod(Isolate isolate) async {
 }
 
 Future testMethod2(Isolate isolate) async {
-  Library rootLib = await isolate.rootLibrary.load() as Library;
+  Library rootLib = await isolate.rootLibrary.load();
   ServiceFunction function =
       rootLib.functions.singleWhere((f) => f.name == 'breakHere');
   Breakpoint bpt = await isolate.addBreakpointAtEntry(function);
@@ -132,7 +132,7 @@ Future testMethod2(Isolate isolate) async {
   sub = stream.listen((ServiceEvent event) async {
     print("Event $event");
     if (event.kind == ServiceEvent.kPauseBreakpoint) {
-      dynamic frameNumber = 1, r;
+      var frameNumber = 1, r;
       r = await isolate.evalFrame(frameNumber, '123');
       expect(r.valueAsString, equals('123'));
       r = await isolate.evalFrame(frameNumber, 'this');
@@ -168,7 +168,7 @@ Future testMethod2(Isolate isolate) async {
 }
 
 Future testMethod3(Isolate isolate) async {
-  Library rootLib = await isolate.rootLibrary.load() as Library;
+  Library rootLib = await isolate.rootLibrary.load();
   ServiceFunction function =
       rootLib.functions.singleWhere((f) => f.name == 'breakHere');
   Breakpoint bpt = await isolate.addBreakpointAtEntry(function);
@@ -181,7 +181,7 @@ Future testMethod3(Isolate isolate) async {
   sub = stream.listen((ServiceEvent event) async {
     print("Event $event");
     if (event.kind == ServiceEvent.kPauseBreakpoint) {
-      dynamic frameNumber = 1, r;
+      var frameNumber = 1, r;
       r = await isolate.evalFrame(frameNumber, '123');
       expect(r.valueAsString, equals('123'));
       r = await isolate.evalFrame(frameNumber, 'this');
@@ -210,7 +210,7 @@ Future testMethod3(Isolate isolate) async {
 
 
 Future testMethod4(Isolate isolate) async {
-  Library rootLib = await isolate.rootLibrary.load() as Library;
+  Library rootLib = await isolate.rootLibrary.load();
   ServiceFunction function =
       rootLib.functions.singleWhere((f) => f.name == 'breakHere');
   Breakpoint bpt = await isolate.addBreakpointAtEntry(function);
@@ -223,7 +223,7 @@ Future testMethod4(Isolate isolate) async {
   sub = stream.listen((ServiceEvent event) async {
     print("Event $event");
     if (event.kind == ServiceEvent.kPauseBreakpoint) {
-      dynamic frameNumber = 1, r;
+      var frameNumber = 1, r;
       r = await isolate.evalFrame(frameNumber, '123');  /// instance: continued
       expect(r.valueAsString, equals('123'));  /// instance: continued
       r = await isolate.evalFrame(frameNumber, 'this');  /// scope: continued

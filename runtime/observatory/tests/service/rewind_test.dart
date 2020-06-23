@@ -16,7 +16,7 @@ int LINE_D = 43;
 int global = 0;
 
 @pragma('vm:never-inline')
-b3(int x) {
+b3(x) {
   int sum = 0;
   try {
     for (int i = 0; i < x; i++) {
@@ -49,7 +49,7 @@ var tests = <IsolateTest>[
   stoppedAtLine(LINE_A),
   (Isolate isolate) async {
     // We are not able to rewind frame 0.
-    bool caughtException = false;
+    bool caughtException;
     try {
       await isolate.rewind(0);
       expect(false, isTrue, reason: 'Unreachable');
@@ -62,7 +62,7 @@ var tests = <IsolateTest>[
   },
   (Isolate isolate) async {
     // We are not able to rewind frame 13.
-    bool caughtException = false;
+    bool caughtException;
     try {
       await isolate.rewind(13);
       expect(false, isTrue, reason: 'Unreachable');
@@ -75,7 +75,7 @@ var tests = <IsolateTest>[
   },
   (Isolate isolate) async {
     // We are at our breakpoint with global=100.
-    Instance result = await isolate.rootLibrary.evaluate('global') as Instance;
+    Instance result = await isolate.rootLibrary.evaluate('global');
     print('global is $result');
     expect(result.type, equals('Instance'));
     expect(result.valueAsString, equals('100'));
@@ -94,7 +94,7 @@ var tests = <IsolateTest>[
   stoppedAtLine(LINE_A),
   (Isolate isolate) async {
     // global still is equal to 100.  We did not execute "global++".
-    Instance result = await isolate.rootLibrary.evaluate('global') as Instance;
+    Instance result = await isolate.rootLibrary.evaluate('global');
     print('global is $result');
     expect(result.type, equals('Instance'));
     expect(result.valueAsString, equals('100'));
@@ -107,8 +107,7 @@ var tests = <IsolateTest>[
   stoppedAtLine(LINE_D),
   (Isolate isolate) async {
     // Reset global to 0 and start again.
-    Instance result =
-        await isolate.rootLibrary.evaluate('global=0') as Instance;
+    Instance result = await isolate.rootLibrary.evaluate('global=0');
     print('set global to $result');
     expect(result.type, equals('Instance'));
     expect(result.valueAsString, equals('0'));
@@ -120,7 +119,7 @@ var tests = <IsolateTest>[
   stoppedAtLine(LINE_A),
   (Isolate isolate) async {
     // We are at our breakpoint with global=100.
-    Instance result = await isolate.rootLibrary.evaluate('global') as Instance;
+    Instance result = await isolate.rootLibrary.evaluate('global');
     print('global is $result');
     expect(result.type, equals('Instance'));
     expect(result.valueAsString, equals('100'));

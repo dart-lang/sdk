@@ -36,21 +36,21 @@ class ContextViewElement extends CustomElement implements Renderable {
     ViewFooterElement.tag
   ]);
 
-  late RenderingScheduler<ContextViewElement> _r;
+  RenderingScheduler<ContextViewElement> _r;
 
   Stream<RenderedEvent<ContextViewElement>> get onRendered => _r.onRendered;
 
-  late M.VM _vm;
-  late M.IsolateRef _isolate;
-  late M.EventRepository _events;
-  late M.NotificationRepository _notifications;
-  late M.Context _context;
-  late M.ContextRepository _contexts;
-  late M.RetainedSizeRepository _retainedSizes;
-  late M.ReachableSizeRepository _reachableSizes;
-  late M.InboundReferencesRepository _references;
-  late M.RetainingPathRepository _retainingPaths;
-  late M.ObjectRepository _objects;
+  M.VM _vm;
+  M.IsolateRef _isolate;
+  M.EventRepository _events;
+  M.NotificationRepository _notifications;
+  M.Context _context;
+  M.ContextRepository _contexts;
+  M.RetainedSizeRepository _retainedSizes;
+  M.ReachableSizeRepository _reachableSizes;
+  M.InboundReferencesRepository _references;
+  M.RetainingPathRepository _retainingPaths;
+  M.ObjectRepository _objects;
 
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
@@ -69,7 +69,7 @@ class ContextViewElement extends CustomElement implements Renderable {
       M.InboundReferencesRepository references,
       M.RetainingPathRepository retainingPaths,
       M.ObjectRepository objects,
-      {RenderingQueue? queue}) {
+      {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -118,13 +118,13 @@ class ContextViewElement extends CustomElement implements Renderable {
         new NavTopMenuElement(queue: _r.queue).element,
         new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
-        new NavClassMenuElement(_isolate, _context.clazz!, queue: _r.queue)
+        new NavClassMenuElement(_isolate, _context.clazz, queue: _r.queue)
             .element,
         navMenu('instance'),
         (new NavRefreshElement(queue: _r.queue)
               ..onRefresh.listen((e) async {
                 e.element.disabled = true;
-                _context = await _contexts.get(_isolate, _context.id!);
+                _context = await _contexts.get(_isolate, _context.id);
                 _r.dirty();
               }))
             .element,
@@ -160,7 +160,7 @@ class ContextViewElement extends CustomElement implements Renderable {
                       ..classes = ['memberName']
                       ..children = <Element>[
                         new ContextRefElement(
-                                _isolate, _context.parentContext!, _objects,
+                                _isolate, _context.parentContext, _objects,
                                 queue: _r.queue)
                             .element
                       ]
@@ -170,7 +170,7 @@ class ContextViewElement extends CustomElement implements Renderable {
       ]);
     }
     content.add(new HRElement());
-    if (_context.variables!.isNotEmpty) {
+    if (_context.variables.isNotEmpty) {
       int index = 0;
       content.addAll([
         new DivElement()
@@ -181,7 +181,7 @@ class ContextViewElement extends CustomElement implements Renderable {
                   ..content = <Element>[
                     new DivElement()
                       ..classes = ['memberList']
-                      ..children = _context.variables!
+                      ..children = _context.variables
                           .map<Element>((variable) => new DivElement()
                             ..classes = ['memberItem']
                             ..children = <Element>[

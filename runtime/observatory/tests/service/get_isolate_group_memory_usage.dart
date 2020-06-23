@@ -23,7 +23,7 @@ var tests = <VMTest>[
     final params = {
       'isolateGroupId': 'badid',
     };
-    bool caughtException = false;
+    bool caughtException;
     try {
       await vm.invokeRpcNoUpgrade('getIsolateGroupMemoryUsage', params);
       expect(false, isTrue, reason: 'Unreachable');

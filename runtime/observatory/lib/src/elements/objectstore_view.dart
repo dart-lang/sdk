@@ -31,17 +31,17 @@ class ObjectStoreViewElement extends CustomElement implements Renderable {
         ViewFooterElement.tag
       ]);
 
-  late RenderingScheduler<ObjectStoreViewElement> _r;
+  RenderingScheduler<ObjectStoreViewElement> _r;
 
   Stream<RenderedEvent<ObjectStoreViewElement>> get onRendered => _r.onRendered;
 
-  late M.VM _vm;
-  late M.IsolateRef _isolate;
-  late M.EventRepository _events;
-  late M.NotificationRepository _notifications;
-  M.ObjectStore? _store;
-  late M.ObjectStoreRepository _stores;
-  late M.ObjectRepository _objects;
+  M.VM _vm;
+  M.IsolateRef _isolate;
+  M.EventRepository _events;
+  M.NotificationRepository _notifications;
+  M.ObjectStore _store;
+  M.ObjectStoreRepository _stores;
+  M.ObjectRepository _objects;
 
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
@@ -54,7 +54,7 @@ class ObjectStoreViewElement extends CustomElement implements Renderable {
       M.NotificationRepository notifications,
       M.ObjectStoreRepository stores,
       M.ObjectRepository objects,
-      {RenderingQueue? queue}) {
+      {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);

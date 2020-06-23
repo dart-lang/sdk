@@ -50,24 +50,24 @@ class FunctionViewElement extends CustomElement implements Renderable {
     ViewFooterElement.tag
   ]);
 
-  late RenderingScheduler<FunctionViewElement> _r;
+  RenderingScheduler<FunctionViewElement> _r;
 
   Stream<RenderedEvent<FunctionViewElement>> get onRendered => _r.onRendered;
 
-  late M.VM _vm;
-  late M.IsolateRef _isolate;
-  late M.EventRepository _events;
-  late M.NotificationRepository _notifications;
-  late M.ServiceFunction _function;
-  M.LibraryRef? _library;
-  late M.FunctionRepository _functions;
-  late M.ClassRepository _classes;
-  late M.RetainedSizeRepository _retainedSizes;
-  late M.ReachableSizeRepository _reachableSizes;
-  late M.InboundReferencesRepository _references;
-  late M.RetainingPathRepository _retainingPaths;
-  late M.ScriptRepository _scripts;
-  late M.ObjectRepository _objects;
+  M.VM _vm;
+  M.IsolateRef _isolate;
+  M.EventRepository _events;
+  M.NotificationRepository _notifications;
+  M.ServiceFunction _function;
+  M.LibraryRef _library;
+  M.FunctionRepository _functions;
+  M.ClassRepository _classes;
+  M.RetainedSizeRepository _retainedSizes;
+  M.ReachableSizeRepository _reachableSizes;
+  M.InboundReferencesRepository _references;
+  M.RetainingPathRepository _retainingPaths;
+  M.ScriptRepository _scripts;
+  M.ObjectRepository _objects;
 
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
@@ -88,7 +88,7 @@ class FunctionViewElement extends CustomElement implements Renderable {
       M.RetainingPathRepository retainingPaths,
       M.ScriptRepository scripts,
       M.ObjectRepository objects,
-      {RenderingQueue? queue}) {
+      {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -118,7 +118,7 @@ class FunctionViewElement extends CustomElement implements Renderable {
     e._scripts = scripts;
     e._objects = objects;
     if (function.dartOwner is M.LibraryRef) {
-      e._library = function.dartOwner as M.LibraryRef;
+      e._library = function.dartOwner;
     }
     return e;
   }
@@ -160,7 +160,7 @@ class FunctionViewElement extends CustomElement implements Renderable {
             ..children = _function.location == null
                 ? const []
                 : [
-                    new SourceInsetElement(_isolate, _function.location!,
+                    new SourceInsetElement(_isolate, _function.location,
                             _scripts, _objects, _events,
                             queue: _r.queue)
                         .element
@@ -177,16 +177,15 @@ class FunctionViewElement extends CustomElement implements Renderable {
       new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element
     ];
     if (_library != null) {
-      menu.add(new NavLibraryMenuElement(_isolate, _library!, queue: _r.queue)
+      menu.add(new NavLibraryMenuElement(_isolate, _library, queue: _r.queue)
           .element);
     } else if (_function.dartOwner is M.ClassRef) {
-      menu.add(new NavClassMenuElement(
-              _isolate, _function.dartOwner as M.ClassRef,
+      menu.add(new NavClassMenuElement(_isolate, _function.dartOwner,
               queue: _r.queue)
           .element);
     }
     menu.addAll(<Element>[
-      navMenu(_function.name!),
+      navMenu(_function.name),
       (new NavRefreshElement(queue: _r.queue)
             ..onRefresh.listen((e) {
               e.element.disabled = true;
@@ -210,8 +209,8 @@ class FunctionViewElement extends CustomElement implements Renderable {
             ..classes = ['memberName']
             ..children = <Element>[
               new SpanElement()
-                ..text = '${_function.isStatic! ? "static " : ""}'
-                    '${_function.isConst! ? "const " : ""}'
+                ..text = '${_function.isStatic ? "static " : ""}'
+                    '${_function.isConst ? "const " : ""}'
                     '${_functionKindToString(_function.kind)}'
             ]
         ],
@@ -241,7 +240,7 @@ class FunctionViewElement extends CustomElement implements Renderable {
           new DivElement()
             ..classes = ['memberName']
             ..children = <Element>[
-              new FieldRefElement(_isolate, _function.field!, _objects,
+              new FieldRefElement(_isolate, _function.field, _objects,
                       queue: _r.queue)
                   .element
             ]
@@ -256,7 +255,7 @@ class FunctionViewElement extends CustomElement implements Renderable {
         new DivElement()
           ..classes = ['memberName']
           ..children = <Element>[
-            new SourceLinkElement(_isolate, _function.location!, _scripts,
+            new SourceLinkElement(_isolate, _function.location, _scripts,
                     queue: _r.queue)
                 .element
           ]
@@ -271,7 +270,7 @@ class FunctionViewElement extends CustomElement implements Renderable {
           new DivElement()
             ..classes = ['memberName']
             ..children = <Element>[
-              new CodeRefElement(_isolate, _function.code!, queue: _r.queue)
+              new CodeRefElement(_isolate, _function.code, queue: _r.queue)
                   .element
             ]
         ]);
@@ -286,7 +285,7 @@ class FunctionViewElement extends CustomElement implements Renderable {
           new DivElement()
             ..classes = ['memberName']
             ..children = <Element>[
-              new CodeRefElement(_isolate, _function.unoptimizedCode!,
+              new CodeRefElement(_isolate, _function.unoptimizedCode,
                       queue: _r.queue)
                   .element,
               new SpanElement()
@@ -307,7 +306,7 @@ class FunctionViewElement extends CustomElement implements Renderable {
           new DivElement()
             ..classes = ['memberName']
             ..children = <Element>[
-              new CodeRefElement(_isolate, _function.bytecode!, queue: _r.queue)
+              new CodeRefElement(_isolate, _function.bytecode, queue: _r.queue)
                   .element,
             ]
         ]);
@@ -326,7 +325,7 @@ class FunctionViewElement extends CustomElement implements Renderable {
           new DivElement()
             ..classes = ['memberName']
             ..children = <Element>[
-              new InstanceRefElement(_isolate, _function.icDataArray!, _objects,
+              new InstanceRefElement(_isolate, _function.icDataArray, _objects,
                       queue: _r.queue)
                   .element
             ]
@@ -352,7 +351,7 @@ class FunctionViewElement extends CustomElement implements Renderable {
             ..text = 'optimizable',
           new DivElement()
             ..classes = ['memberName']
-            ..text = _function.isOptimizable! ? 'yes' : 'no'
+            ..text = _function.isOptimizable ? 'yes' : 'no'
         ],
       new DivElement()
         ..classes = ['memberItem']
@@ -362,7 +361,7 @@ class FunctionViewElement extends CustomElement implements Renderable {
             ..text = 'inlinable',
           new DivElement()
             ..classes = ['memberName']
-            ..text = _function.isInlinable! ? 'yes' : 'no'
+            ..text = _function.isInlinable ? 'yes' : 'no'
         ],
       new DivElement()
         ..classes = ['memberItem']
@@ -372,7 +371,7 @@ class FunctionViewElement extends CustomElement implements Renderable {
             ..text = 'intrinsic',
           new DivElement()
             ..classes = ['memberName']
-            ..text = _function.hasIntrinsic! ? 'yes' : 'no'
+            ..text = _function.hasIntrinsic ? 'yes' : 'no'
         ],
       new DivElement()
         ..classes = ['memberItem']
@@ -382,7 +381,7 @@ class FunctionViewElement extends CustomElement implements Renderable {
             ..text = 'recognized',
           new DivElement()
             ..classes = ['memberName']
-            ..text = _function.isRecognized! ? 'yes' : 'no'
+            ..text = _function.isRecognized ? 'yes' : 'no'
         ],
       new DivElement()
         ..classes = ['memberItem']
@@ -392,7 +391,7 @@ class FunctionViewElement extends CustomElement implements Renderable {
             ..text = 'native',
           new DivElement()
             ..classes = ['memberName']
-            ..text = _function.isNative! ? 'yes' : 'no'
+            ..text = _function.isNative ? 'yes' : 'no'
         ],
       new DivElement()
         ..classes = ['memberItem']
@@ -409,17 +408,16 @@ class FunctionViewElement extends CustomElement implements Renderable {
   }
 
   Future _refresh() async {
-    _function = await _functions.get(_isolate, _function.id!);
+    _function = await _functions.get(_isolate, _function.id);
     if (_function.dartOwner is M.LibraryRef) {
-      _library = _function.dartOwner as M.LibraryRef;
+      _library = _function.dartOwner;
     } else if (_function.dartOwner is M.ClassRef) {
-      var cls = _function.dartOwner as M.ClassRef;
-      _library = (await _classes.get(_isolate, cls.id!)).library!;
+      _library = (await _classes.get(_isolate, _function.dartOwner.id)).library;
     }
     _r.dirty();
   }
 
-  static String _functionKindToString(M.FunctionKind? kind) {
+  static String _functionKindToString(M.FunctionKind kind) {
     switch (kind) {
       case M.FunctionKind.regular:
         return 'regular';

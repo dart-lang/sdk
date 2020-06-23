@@ -20,12 +20,12 @@ script() {
 }
 
 Future testGetter(Isolate isolate) async {
-  Library rootLibrary = await isolate.rootLibrary.load() as Library;
+  Library rootLibrary = await isolate.rootLibrary.load();
   expect(rootLibrary.classes.length, equals(1));
-  Class classA = await rootLibrary.classes[0].load() as Class;
+  Class classA = await rootLibrary.classes[0].load();
   expect(classA.name, equals('A'));
   // Find getter.
-  ServiceFunction? getterFunc;
+  ServiceFunction getterFunc;
   for (ServiceFunction function in classA.functions) {
     if (function.name == 'field') {
       getterFunc = function;
@@ -33,21 +33,21 @@ Future testGetter(Isolate isolate) async {
     }
   }
   expect(getterFunc, isNotNull);
-  await getterFunc!.load();
-  Field field = await getterFunc.field!.load() as Field;
+  await getterFunc.load();
+  Field field = await getterFunc.field.load();
   expect(field, isNotNull);
   expect(field.name, equals('field'));
-  Class classDouble = await field.guardClass!.load() as Class;
+  Class classDouble = await field.guardClass.load();
   expect(classDouble.name, equals('_Double'));
 }
 
 Future testSetter(Isolate isolate) async {
-  Library rootLibrary = await isolate.rootLibrary.load() as Library;
+  Library rootLibrary = await isolate.rootLibrary.load();
   expect(rootLibrary.classes.length, equals(1));
-  Class classA = await rootLibrary.classes[0].load() as Class;
+  Class classA = await rootLibrary.classes[0].load();
   expect(classA.name, equals('A'));
   // Find setter.
-  ServiceFunction? setterFunc;
+  ServiceFunction setterFunc;
   for (ServiceFunction function in classA.functions) {
     if (function.name == 'field=') {
       setterFunc = function;
@@ -55,11 +55,11 @@ Future testSetter(Isolate isolate) async {
     }
   }
   expect(setterFunc, isNotNull);
-  await setterFunc!.load();
-  Field field = await setterFunc.field!.load() as Field;
+  await setterFunc.load();
+  Field field = await setterFunc.field.load();
   expect(field, isNotNull);
   expect(field.name, equals('field'));
-  Class classDouble = await field.guardClass!.load() as Class;
+  Class classDouble = await field.guardClass.load();
   expect(classDouble.name, equals('_Double'));
 }
 

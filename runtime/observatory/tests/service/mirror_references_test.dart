@@ -11,14 +11,14 @@ import 'test_helper.dart';
 
 class Foo {}
 
-dynamic /*Foo*/ foo;
-dynamic /*MirrorReference*/ ref;
+Foo foo;
+var /*MirrorReference*/ ref;
 
 void script() {
   foo = new Foo();
   ClassMirror fooClassMirror = reflectClass(Foo);
   InstanceMirror fooClassMirrorMirror = reflect(fooClassMirror);
-  LibraryMirror libmirrors = fooClassMirrorMirror.type.owner as LibraryMirror;
+  LibraryMirror libmirrors = fooClassMirrorMirror.type.owner;
   ref = reflect(fooClassMirror)
       .getField(MirrorSystem.getSymbol('_reflectee', libmirrors))
       .reflectee;
@@ -26,20 +26,20 @@ void script() {
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {
-    Library lib = await isolate.rootLibrary.load() as Library;
+    Library lib = await isolate.rootLibrary.load();
     Field fooField = lib.variables.singleWhere((v) => v.name == 'foo');
     await fooField.load();
-    Instance foo = fooField.staticValue as Instance;
+    Instance foo = fooField.staticValue;
     Field refField = lib.variables.singleWhere((v) => v.name == 'ref');
     await refField.load();
-    Instance ref = refField.staticValue as Instance;
+    Instance ref = refField.staticValue;
 
     expect(foo.isMirrorReference, isFalse);
     expect(ref.isMirrorReference, isTrue);
     expect(ref.referent, isNull);
-    Instance loadedRef = await ref.load() as Instance;
+    Instance loadedRef = await ref.load();
     expect(loadedRef.referent, isNotNull);
-    expect(loadedRef.referent!.name, equals('Foo'));
+    expect(loadedRef.referent.name, equals('Foo'));
     expect(loadedRef.referent, equals(foo.clazz));
   },
 ];

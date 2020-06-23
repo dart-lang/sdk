@@ -40,7 +40,7 @@ var tests = <IsolateTest>[
       'libraryId': 'libraries/9999999',
       'isDebuggable': false,
     };
-    bool caughtException = false;
+    bool caughtException;
     try {
       await isolate.invokeRpcNoUpgrade('setLibraryDebuggable', params);
       expect(false, isTrue, reason: 'Unreachable');

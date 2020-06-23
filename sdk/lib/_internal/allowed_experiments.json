@@ -61,12 +61,6 @@
     "pool": {
       "experimentSet": "nullSafety"
     },
-    "observatory": {
-      "experimentSet": "nullSafety"
-    },
-    "observatory_test_package": {
-      "experimentSet": "nullSafety"
-    },
     "sky_engine": {
       "experimentSet": "nullSafety"
     },

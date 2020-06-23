@@ -36,9 +36,8 @@ import 'package:observatory/src/elements/source_link.dart';
 abstract class DebuggerCommand extends Command {
   ObservatoryDebugger debugger;
 
-  DebuggerCommand(Debugger debugger, name, List<Command> children)
-      : debugger = debugger as ObservatoryDebugger,
-        super(name, children);
+  DebuggerCommand(this.debugger, name, List<Command> children)
+      : super(name, children);
 
   String get helpShort;
   String get helpLong;
@@ -47,7 +46,7 @@ abstract class DebuggerCommand extends Command {
 // TODO(turnidge): Rewrite HelpCommand so that it is a general utility
 // provided by the cli library.
 class HelpCommand extends DebuggerCommand {
-  HelpCommand(ObservatoryDebugger debugger)
+  HelpCommand(Debugger debugger)
       : super(debugger, 'help', <Command>[
           new HelpHotkeysCommand(debugger),
         ]);
@@ -67,8 +66,7 @@ class HelpCommand extends DebuggerCommand {
       var commands = debugger.cmd.matchCommand(<String>[], false);
       commands.sort((a, b) => a.name.compareTo(b.name));
       con.print('List of commands:\n');
-      for (Command c in commands) {
-        DebuggerCommand command = c as DebuggerCommand;
+      for (DebuggerCommand command in commands) {
         con.print('${_nameAndAlias(command).padRight(12)} '
             '- ${command.helpShort}');
       }
@@ -91,8 +89,7 @@ class HelpCommand extends DebuggerCommand {
         return new Future.value(null);
       }
       con.print('');
-      for (Command c in commands) {
-        DebuggerCommand command = c as DebuggerCommand;
+      for (DebuggerCommand command in commands) {
         con.printBold(_nameAndAlias(command));
         con.print(command.helpLong);
 
@@ -105,8 +102,7 @@ class HelpCommand extends DebuggerCommand {
         if (subCommands.isNotEmpty) {
           subCommands.sort((a, b) => a.name.compareTo(b.name));
           con.print('Subcommands:\n');
-          for (Command c in subCommands) {
-            DebuggerCommand subCommand = c as DebuggerCommand;
+          for (DebuggerCommand subCommand in subCommands) {
             con.print('    ${subCommand.fullName.padRight(16)} '
                 '- ${subCommand.helpShort}');
           }
@@ -181,15 +177,14 @@ class PrintCommand extends DebuggerCommand {
     }
     var expression = args.join('');
     var response =
-        await debugger.isolate.evalFrame(debugger.currentFrame!, expression);
+        await debugger.isolate.evalFrame(debugger.currentFrame, expression);
     if (response is S.DartError) {
-      debugger.console.print(response.message!);
+      debugger.console.print(response.message);
     } else if (response is S.Sentinel) {
       debugger.console.print(response.valueAsString);
     } else {
       debugger.console.print('= ', newline: false);
-      debugger.console.printRef(
-          debugger.isolate, response as S.Instance, debugger.objects!);
+      debugger.console.printRef(debugger.isolate, response, debugger.objects);
     }
   }
 
@@ -219,7 +214,7 @@ class DownCommand extends DebuggerCommand {
     try {
       debugger.downFrame(count);
       debugger.console.print('frame = ${debugger.currentFrame}');
-    } on dynamic catch (e) {
+    } catch (e) {
       debugger.console
           .print('frame must be in range [${e.start}..${e.end - 1}]');
     }
@@ -256,7 +251,7 @@ class UpCommand extends DebuggerCommand {
       debugger.console.print('frame = ${debugger.currentFrame}');
     } on RangeError catch (e) {
       debugger.console
-          .print('frame must be in range [${e.start}..${e.end! - 1}]');
+          .print('frame must be in range [${e.start}..${e.end - 1}]');
     }
     return new Future.value(null);
   }
@@ -293,7 +288,7 @@ class FrameCommand extends DebuggerCommand {
       debugger.console.print('frame = ${debugger.currentFrame}');
     } on RangeError catch (e) {
       debugger.console
-          .print('frame must be in range [${e.start}..${e.end! - 1}]');
+          .print('frame must be in range [${e.start}..${e.end - 1}]');
     }
     return new Future.value(null);
   }
@@ -425,7 +420,7 @@ class RewindCommand extends DebuggerCommand {
 
   Future run(List<String> args) async {
     try {
-      int? count = 1;
+      int count = 1;
       if (args.length == 1) {
         count = int.tryParse(args[0]);
         if (count == null || count < 1 || count >= debugger.stackDepth) {
@@ -438,10 +433,10 @@ class RewindCommand extends DebuggerCommand {
         debugger.console.print('rewind expects 0 or 1 argument');
         return;
       }
-      await debugger.rewind(count!);
+      await debugger.rewind(count);
     } on S.ServerRpcException catch (e) {
       if (e.code == S.ServerRpcException.kCannotResume) {
-        debugger.console.printRed(e.data!['details']);
+        debugger.console.printRed(e.data['details']);
       } else {
         rethrow;
       }
@@ -479,7 +474,7 @@ class ReloadCommand extends DebuggerCommand {
     } on S.ServerRpcException catch (e) {
       if (e.code == S.ServerRpcException.kIsolateReloadBarred ||
           e.code == S.ServerRpcException.kIsolateIsReloading) {
-        debugger.console.printRed(e.data!['details']);
+        debugger.console.printRed(e.data['details']);
       } else {
         rethrow;
       }
@@ -532,7 +527,7 @@ class LogCommand extends DebuggerCommand {
     return new Future.value(null);
   }
 
-  Level? _findLevel(String levelName) {
+  Level _findLevel(String levelName) {
     levelName = levelName.toUpperCase();
     for (var level in Level.LEVELS) {
       if (level.name == levelName) {
@@ -674,7 +669,7 @@ class SetCommand extends DebuggerCommand {
   Future run(List<String> args) async {
     if (args.length == 0) {
       for (var name in _options.keys) {
-        dynamic getHandler = _options[name]![2];
+        dynamic getHandler = _options[name][2];
         var value = await getHandler(debugger, name);
         debugger.console.print("${name} = ${value}");
       }
@@ -727,7 +722,7 @@ class SetCommand extends DebuggerCommand {
       var prefix = args[1];
       var optionInfo = _options[name];
       if (optionInfo != null) {
-        dynamic validValues = optionInfo[0];
+        var validValues = optionInfo[0];
         for (var value in validValues) {
           if (value.startsWith(prefix)) {
             result.add('${args[0]}${value} ');
@@ -766,7 +761,7 @@ class BreakCommand extends DebuggerCommand {
     if (loc.valid) {
       if (loc.function != null) {
         try {
-          await debugger.isolate.addBreakpointAtEntry(loc.function!);
+          await debugger.isolate.addBreakpointAtEntry(loc.function);
         } on S.ServerRpcException catch (e) {
           if (e.code == S.ServerRpcException.kCannotAddBreakpoint) {
             debugger.console.print('Unable to set breakpoint at ${loc}');
@@ -776,15 +771,15 @@ class BreakCommand extends DebuggerCommand {
         }
       } else {
         assert(loc.script != null);
-        var script = loc.script!;
+        var script = loc.script;
         await script.load();
-        if (loc.line! < 1 || loc.line! > script.lines.length) {
+        if (loc.line < 1 || loc.line > script.lines.length) {
           debugger.console.print(
               'line number must be in range [1..${script.lines.length}]');
           return;
         }
         try {
-          await debugger.isolate.addBreakpoint(script, loc.line!, loc.col);
+          await debugger.isolate.addBreakpoint(script, loc.line, loc.col);
         } on S.ServerRpcException catch (e) {
           if (e.code == S.ServerRpcException.kCannotAddBreakpoint) {
             debugger.console.print('Unable to set breakpoint at ${loc}');
@@ -794,7 +789,7 @@ class BreakCommand extends DebuggerCommand {
         }
       }
     } else {
-      debugger.console.print(loc.errorMessage!);
+      debugger.console.print(loc.errorMessage);
     }
   }
 
@@ -848,7 +843,7 @@ class ClearCommand extends DebuggerCommand {
     var arg = (args.length == 0 ? '' : args[0]);
     var loc = await DebuggerLocation.parse(debugger, arg);
     if (!loc.valid) {
-      debugger.console.print(loc.errorMessage!);
+      debugger.console.print(loc.errorMessage);
       return;
     }
     if (loc.function != null) {
@@ -857,20 +852,20 @@ class ClearCommand extends DebuggerCommand {
       return;
     }
 
-    var script = loc.script!;
-    if (loc.line! < 1 || loc.line! > script.lines.length) {
+    var script = loc.script;
+    if (loc.line < 1 || loc.line > script.lines.length) {
       debugger.console
           .print('line number must be in range [1..${script.lines.length}]');
       return;
     }
-    var lineInfo = script.getLine(loc.line!)!;
+    var lineInfo = script.getLine(loc.line);
     var bpts = lineInfo.breakpoints;
     var foundBreakpoint = false;
     if (bpts != null) {
       var bptList = bpts.toList();
       for (var bpt in bptList) {
         if (loc.col == null ||
-            loc.col == script.tokenToCol(bpt.location!.tokenPos)) {
+            loc.col == script.tokenToCol(bpt.location.tokenPos)) {
           foundBreakpoint = true;
           var result = await debugger.isolate.removeBreakpoint(bpt);
           if (result is S.DartError) {
@@ -1066,7 +1061,7 @@ class IsolateCommand extends DebuggerCommand {
       }
     }
     for (var isolate in debugger.vm.isolates) {
-      if (isolate.name!.startsWith(args[0])) {
+      if (isolate.name.startsWith(args[0])) {
         result.add('${isolate.name} ');
       }
     }
@@ -1113,7 +1108,7 @@ class IsolateListCommand extends DebuggerCommand {
     const maxRunStateLen = 7;
     var maxNameLen = 'NAME'.length;
     for (var isolate in debugger.vm.isolates) {
-      maxNameLen = max(maxNameLen, isolate.name!.length);
+      maxNameLen = max(maxNameLen, isolate.name.length);
     }
     debugger.console.print("${'ID'.padLeft(maxIdLen, ' ')} "
         "${'ORIGIN'.padLeft(maxIdLen, ' ')} "
@@ -1125,7 +1120,7 @@ class IsolateListCommand extends DebuggerCommand {
       debugger.console
           .print("${isolate.number.toString().padLeft(maxIdLen, ' ')} "
               "${isolate.originNumber.toString().padLeft(maxIdLen, ' ')} "
-              "${isolate.name!.padRight(maxNameLen, ' ')} "
+              "${isolate.name.padRight(maxNameLen, ' ')} "
               "${_isolateRunState(isolate).padRight(maxRunStateLen, ' ')} "
               "${current}");
     }
@@ -1230,7 +1225,7 @@ class VmListCommand extends DebuggerCommand {
 
     for (var vm in vmList) {
       maxAddrLen = max(maxAddrLen, vm.target.networkAddress.length);
-      maxNameLen = max(maxNameLen, vm.name!.length);
+      maxNameLen = max(maxNameLen, vm.name.length);
     }
 
     debugger.console.print("${'ADDRESS'.padRight(maxAddrLen, ' ')} "
@@ -1240,7 +1235,7 @@ class VmListCommand extends DebuggerCommand {
       String current = (vm == debugger.vm ? '*' : '');
       debugger.console
           .print("${vm.target.networkAddress.padRight(maxAddrLen, ' ')} "
-              "${vm.name!.padRight(maxNameLen, ' ')} "
+              "${vm.name.padRight(maxNameLen, ' ')} "
               "${current}");
     }
   }
@@ -1297,19 +1292,19 @@ class _ConsoleStreamPrinter {
 
   _ConsoleStreamPrinter(this._debugger);
   Level _minimumLogLevel = Level.OFF;
-  String? _savedStream;
-  String? _savedIsolate;
-  String? _savedLine;
+  String _savedStream;
+  String _savedIsolate;
+  String _savedLine;
   List<String> _buffer = [];
 
   void onEvent(String streamName, S.ServiceEvent event) {
     if (event.kind == S.ServiceEvent.kLogging) {
       // Check if we should print this log message.
-      if (event.logRecord!['level'].value < _minimumLogLevel.value) {
+      if (event.logRecord['level'].value < _minimumLogLevel.value) {
         return;
       }
     }
-    String isolateName = event.isolate!.name!;
+    String isolateName = event.isolate.name;
     // If we get a line from a different isolate/stream, flush
     // any pending output, even if it is not newline-terminated.
     if ((_savedIsolate != null && isolateName != _savedIsolate) ||
@@ -1319,14 +1314,14 @@ class _ConsoleStreamPrinter {
     String data;
     bool hasNewline;
     if (event.kind == S.ServiceEvent.kLogging) {
-      data = event.logRecord!["message"].valueAsString;
+      data = event.logRecord["message"].valueAsString;
       hasNewline = true;
     } else {
-      data = event.bytesAsString!;
+      data = event.bytesAsString;
       hasNewline = data.endsWith('\n');
     }
     if (_savedLine != null) {
-      data = _savedLine! + data;
+      data = _savedLine + data;
       _savedIsolate = null;
       _savedStream = null;
       _savedLine = null;
@@ -1350,7 +1345,7 @@ class _ConsoleStreamPrinter {
   void flush() {
     // If there is any saved output, flush it now.
     if (_savedLine != null) {
-      _buffer.add(_format(_savedIsolate!, _savedStream!, _savedLine!));
+      _buffer.add(_format(_savedIsolate, _savedStream, _savedLine));
       _savedIsolate = null;
       _savedStream = null;
       _savedLine = null;
@@ -1369,18 +1364,18 @@ class _ConsoleStreamPrinter {
 // Tracks the state for an isolate debugging session.
 class ObservatoryDebugger extends Debugger {
   final SettingsGroup settings = new SettingsGroup('debugger');
-  late RootCommand cmd;
-  late DebuggerPageElement page;
-  late DebuggerConsoleElement console;
-  late DebuggerInputElement input;
-  late DebuggerStackElement stackElement;
-  S.ServiceMap? stack;
+  RootCommand cmd;
+  DebuggerPageElement page;
+  DebuggerConsoleElement console;
+  DebuggerInputElement input;
+  DebuggerStackElement stackElement;
+  S.ServiceMap stack;
   final S.Isolate isolate;
   String breakOnException = "none"; // Last known setting.
 
-  int? get currentFrame => _currentFrame;
+  int get currentFrame => _currentFrame;
 
-  void set currentFrame(int? value) {
+  void set currentFrame(int value) {
     if (value != null && (value < 0 || value >= stackDepth)) {
       throw new RangeError.range(value, 0, stackDepth);
     }
@@ -1390,7 +1385,7 @@ class ObservatoryDebugger extends Debugger {
     }
   }
 
-  int? _currentFrame = null;
+  int _currentFrame = null;
 
   bool get upIsDown => _upIsDown;
   void set upIsDown(bool value) {
@@ -1398,7 +1393,7 @@ class ObservatoryDebugger extends Debugger {
     _upIsDown = value;
   }
 
-  bool _upIsDown = false;
+  bool _upIsDown;
 
   bool get causalAsyncStacks => _causalAsyncStacks;
   void set causalAsyncStacks(bool value) {
@@ -1406,7 +1401,7 @@ class ObservatoryDebugger extends Debugger {
     _causalAsyncStacks = value;
   }
 
-  bool _causalAsyncStacks = true;
+  bool _causalAsyncStacks;
 
   bool get awaiterStacks => _awaiterStacks;
   void set awaiterStacks(bool value) {
@@ -1414,7 +1409,7 @@ class ObservatoryDebugger extends Debugger {
     _causalAsyncStacks = value;
   }
 
-  bool _awaiterStacks = true;
+  bool _awaiterStacks;
 
   static const String kAwaiterStackFrames = 'awaiterFrames';
   static const String kAsyncCausalStackFrames = 'asyncCausalFrames';
@@ -1422,50 +1417,50 @@ class ObservatoryDebugger extends Debugger {
 
   void upFrame(int count) {
     if (_upIsDown) {
-      currentFrame = currentFrame! + count;
+      currentFrame += count;
     } else {
-      currentFrame = currentFrame! - count;
+      currentFrame -= count;
     }
   }
 
   void downFrame(int count) {
     if (_upIsDown) {
-      currentFrame = currentFrame! - count;
+      currentFrame -= count;
     } else {
-      currentFrame = currentFrame! + count;
+      currentFrame += count;
     }
   }
 
   int get stackDepth {
     if (awaiterStacks) {
-      var awaiterStackFrames = stack![kAwaiterStackFrames];
+      var awaiterStackFrames = stack[kAwaiterStackFrames];
       if (awaiterStackFrames != null) {
         return awaiterStackFrames.length;
       }
     }
     if (causalAsyncStacks) {
-      var asyncCausalStackFrames = stack![kAsyncCausalStackFrames];
+      var asyncCausalStackFrames = stack[kAsyncCausalStackFrames];
       if (asyncCausalStackFrames != null) {
         return asyncCausalStackFrames.length;
       }
     }
-    return stack![kStackFrames].length;
+    return stack[kStackFrames].length;
   }
 
   List get stackFrames {
     if (awaiterStacks) {
-      var awaiterStackFrames = stack![kAwaiterStackFrames];
+      var awaiterStackFrames = stack[kAwaiterStackFrames];
       if (awaiterStackFrames != null) {
         return awaiterStackFrames;
       }
     }
     if (causalAsyncStacks) {
-      var asyncCausalStackFrames = stack![kAsyncCausalStackFrames];
+      var asyncCausalStackFrames = stack[kAsyncCausalStackFrames];
       if (asyncCausalStackFrames != null) {
         return asyncCausalStackFrames;
       }
     }
-    return stack![kStackFrames] ?? [];
+    return stack[kStackFrames] ?? [];
   }
 
   static final _history = [''];
@@ -1502,7 +1497,7 @@ class ObservatoryDebugger extends Debugger {
   }
 
   void _loadSettings() {
-    _upIsDown = settings.get('up-is-down') ?? false;
+    _upIsDown = settings.get('up-is-down');
     _causalAsyncStacks = settings.get('causal-async-stacks') ?? true;
     _awaiterStacks = settings.get('awaiter-stacks') ?? true;
   }
@@ -1523,11 +1518,11 @@ class ObservatoryDebugger extends Debugger {
 
     if ((breakOnException != isolate.exceptionsPauseInfo) &&
         (isolate.exceptionsPauseInfo != null)) {
-      breakOnException = isolate.exceptionsPauseInfo!;
+      breakOnException = isolate.exceptionsPauseInfo;
     }
 
     isolate.reload().then((serviceObject) {
-      S.Isolate response = serviceObject as S.Isolate;
+      S.Isolate response = serviceObject;
       if (response.isSentinel) {
         // The isolate has gone away.  The IsolateExit event will
         // clear the isolate for the debugger page.
@@ -1578,7 +1573,7 @@ class ObservatoryDebugger extends Debugger {
     });
   }
 
-  Future<S.ServiceMap?> _refreshStack(M.DebugEvent? pauseEvent) {
+  Future<S.ServiceMap> _refreshStack(M.DebugEvent pauseEvent) {
     return isolate.getStack().then((result) {
       if (result.isSentinel) {
         // The isolate has gone away.  The IsolateExit event will
@@ -1586,8 +1581,8 @@ class ObservatoryDebugger extends Debugger {
         return;
       }
       stack = result;
-      stackElement.updateStack(stack!, pauseEvent);
-      if (stack!['frames'].length > 0) {
+      stackElement.updateStack(stack, pauseEvent);
+      if (stack['frames'].length > 0) {
         currentFrame = 0;
       } else {
         currentFrame = null;
@@ -1605,18 +1600,18 @@ class ObservatoryDebugger extends Debugger {
     } else if (isolate.running) {
       console.print("Isolate is running (type 'pause' to interrupt)");
     } else if (isolate.pauseEvent != null) {
-      _reportPause(isolate.pauseEvent!);
+      _reportPause(isolate.pauseEvent);
     } else {
       console.print('Isolate is in unknown state');
     }
     warnOutOfDate();
   }
 
-  void _reportIsolateError(S.Isolate? isolate, M.DebugEvent event) {
+  void _reportIsolateError(S.Isolate isolate, M.DebugEvent event) {
     if (isolate == null) {
       return;
     }
-    S.DartError? error = isolate.error;
+    S.DartError error = isolate.error;
     if (error == null) {
       return;
     }
@@ -1626,11 +1621,11 @@ class ObservatoryDebugger extends Debugger {
     } else {
       console.printBold('Isolate has exited due to an unhandled exception:');
     }
-    console.print(error.message!);
+    console.print(error.message);
     console.newline();
     if (event is M.PauseExceptionEvent &&
-        (error.exception!.isStackOverflowError ||
-            error.exception!.isOutOfMemoryError)) {
+        (error.exception.isStackOverflowError ||
+            error.exception.isOutOfMemoryError)) {
       console.printBold(
           'When an unhandled stack overflow or OOM exception occurs, the VM '
           'has run out of memory and cannot keep the stack alive while '
@@ -1657,14 +1652,14 @@ class ObservatoryDebugger extends Debugger {
       console.print("Paused at an unhandled exception "
           "(type 'continue' or [F7] to exit the isolate')");
       _reportIsolateError(isolate, event);
-    } else if (stack!['frames'].length > 0) {
-      S.Frame frame = stack!['frames'][0];
-      var script = frame.location!.script;
+    } else if (stack['frames'].length > 0) {
+      S.Frame frame = stack['frames'][0];
+      var script = frame.location.script;
       script.load().then((_) {
-        var line = script.tokenToLine(frame.location!.tokenPos);
-        var col = script.tokenToCol(frame.location!.tokenPos);
+        var line = script.tokenToLine(frame.location.tokenPos);
+        var col = script.tokenToCol(frame.location.tokenPos);
         if ((event is M.PauseBreakpointEvent) && (event.breakpoint != null)) {
-          var bpId = event.breakpoint!.number;
+          var bpId = event.breakpoint.number;
           console.print('Paused at breakpoint ${bpId} at '
               '${script.name}:${line}:${col}');
         } else if ((event is M.PauseExceptionEvent) &&
@@ -1674,7 +1669,7 @@ class ObservatoryDebugger extends Debugger {
           // This seems to be missing if we are paused-at-exception after
           // paused-at-isolate-exit. Maybe we shutdown part of the debugger too
           // soon?
-          console.printRef(isolate, event.exception as S.Instance, objects!);
+          console.printRef(isolate, event.exception, objects);
         } else {
           console.print('Paused at ${script.name}:${line}:${col}');
         }
@@ -1701,12 +1696,12 @@ class ObservatoryDebugger extends Debugger {
       default:
         break;
     }
-    var script = bpt!.location!.script;
+    var script = bpt.location.script;
     await script.load();
 
     var bpId = bpt.number;
-    var locString = await bpt.location!.toUserString();
-    if (bpt.resolved!) {
+    var locString = await bpt.location.toUserString();
+    if (bpt.resolved) {
       console.print('Breakpoint ${bpId} ${verb} at ${locString}');
     } else {
       console.print('Future breakpoint ${bpId} ${verb} at ${locString}');
@@ -1716,20 +1711,20 @@ class ObservatoryDebugger extends Debugger {
   void onEvent(S.ServiceEvent event) {
     switch (event.kind) {
       case S.ServiceEvent.kVMUpdate:
-        S.VM vm = event.owner as S.VM;
+        S.VM vm = event.owner;
         console.print("VM ${vm.displayName} renamed to '${vm.name}'");
         break;
 
       case S.ServiceEvent.kIsolateStart:
         {
-          S.Isolate iso = event.owner as S.Isolate;
+          S.Isolate iso = event.owner;
           console.print("Isolate ${iso.number} '${iso.name}' has been created");
         }
         break;
 
       case S.ServiceEvent.kIsolateExit:
         {
-          S.Isolate iso = event.owner as S.Isolate;
+          S.Isolate iso = event.owner;
           if (iso == isolate) {
             console.print("The current isolate ${iso.number} '${iso.name}' "
                 "has exited");
@@ -1748,13 +1743,13 @@ class ObservatoryDebugger extends Debugger {
 
       case S.ServiceEvent.kDebuggerSettingsUpdate:
         if (breakOnException != event.exceptions) {
-          breakOnException = event.exceptions!;
+          breakOnException = event.exceptions;
           console.print("Now pausing for exceptions: $breakOnException");
         }
         break;
 
       case S.ServiceEvent.kIsolateUpdate:
-        S.Isolate iso = event.owner as S.Isolate;
+        S.Isolate iso = event.owner;
         console.print("Isolate ${iso.number} renamed to '${iso.name}'");
         break;
 
@@ -1773,7 +1768,7 @@ class ObservatoryDebugger extends Debugger {
       case S.ServiceEvent.kPauseInterrupted:
       case S.ServiceEvent.kPauseException:
         if (event.owner == isolate) {
-          var e = createEventFromServiceEvent(event) as M.DebugEvent;
+          var e = createEventFromServiceEvent(event);
           _refreshStack(e).then((_) async {
             flushStdio();
             if (isolate != null) {
@@ -1807,7 +1802,7 @@ class ObservatoryDebugger extends Debugger {
         break;
 
       case S.ServiceEvent.kLogging:
-        _consolePrinter.onEvent(event.logRecord!['level'].name, event);
+        _consolePrinter.onEvent(event.logRecord['level'].name, event);
         break;
 
       default:
@@ -1816,7 +1811,7 @@ class ObservatoryDebugger extends Debugger {
     }
   }
 
-  late _ConsoleStreamPrinter _consolePrinter;
+  _ConsoleStreamPrinter _consolePrinter;
 
   void flushStdio() {
     _consolePrinter.flush();
@@ -1870,11 +1865,11 @@ class ObservatoryDebugger extends Debugger {
   }
 
   // TODO(turnidge): Implement real command line history.
-  String? lastCommand;
+  String lastCommand;
 
   Future run(String command) {
     if (command == '' && lastCommand != null) {
-      command = lastCommand!;
+      command = lastCommand;
     }
     console.printBold('\$ $command');
     return cmd.runCommand(command).then((_) {
@@ -1926,7 +1921,7 @@ class ObservatoryDebugger extends Debugger {
     var script = loc.script;
     var line = loc.line;
     if (script != null && line != null) {
-      var bpts = script.getLine(line)!.breakpoints;
+      var bpts = script.getLine(line).breakpoints;
       if (bpts == null || bpts.isEmpty) {
         // Set a new breakpoint.
         // TODO(turnidge): Set this breakpoint at current column.
@@ -1945,8 +1940,7 @@ class ObservatoryDebugger extends Debugger {
 
   Future smartNext() async {
     if (isolatePaused()) {
-      M.AsyncSuspensionEvent event =
-          isolate.pauseEvent as M.AsyncSuspensionEvent;
+      M.AsyncSuspensionEvent event = isolate.pauseEvent;
       if (event.atAsyncSuspension) {
         return asyncNext();
       } else {
@@ -1959,8 +1953,7 @@ class ObservatoryDebugger extends Debugger {
 
   Future asyncNext() async {
     if (isolatePaused()) {
-      M.AsyncSuspensionEvent event =
-          isolate.pauseEvent as M.AsyncSuspensionEvent;
+      M.AsyncSuspensionEvent event = isolate.pauseEvent;
       if (!event.atAsyncSuspension) {
         console.print("No async continuation at this location");
       } else {
@@ -2028,11 +2021,11 @@ class DebuggerPageElement extends CustomElement implements Renderable {
     NavNotifyElement.tag,
   ]);
 
-  late S.Isolate _isolate;
-  late ObservatoryDebugger _debugger;
-  late M.ObjectRepository _objects;
-  late M.ScriptRepository _scripts;
-  late M.EventRepository _events;
+  S.Isolate _isolate;
+  ObservatoryDebugger _debugger;
+  M.ObjectRepository _objects;
+  M.ScriptRepository _scripts;
+  M.EventRepository _events;
 
   factory DebuggerPageElement(S.Isolate isolate, M.ObjectRepository objects,
       M.ScriptRepository scripts, M.EventRepository events) {
@@ -2054,16 +2047,16 @@ class DebuggerPageElement extends CustomElement implements Renderable {
 
   DebuggerPageElement.created() : super.created(tag);
 
-  Future<StreamSubscription>? _vmSubscriptionFuture;
-  Future<StreamSubscription>? _isolateSubscriptionFuture;
-  Future<StreamSubscription>? _debugSubscriptionFuture;
-  Future<StreamSubscription>? _stdoutSubscriptionFuture;
-  Future<StreamSubscription>? _stderrSubscriptionFuture;
-  Future<StreamSubscription>? _logSubscriptionFuture;
+  Future<StreamSubscription> _vmSubscriptionFuture;
+  Future<StreamSubscription> _isolateSubscriptionFuture;
+  Future<StreamSubscription> _debugSubscriptionFuture;
+  Future<StreamSubscription> _stdoutSubscriptionFuture;
+  Future<StreamSubscription> _stderrSubscriptionFuture;
+  Future<StreamSubscription> _logSubscriptionFuture;
 
   ObservatoryApplication get app => ObservatoryApplication.app;
 
-  Timer? _timer;
+  Timer _timer;
 
   static final consoleElement = new DebuggerConsoleElement();
 
@@ -2126,7 +2119,7 @@ class DebuggerPageElement extends CustomElement implements Renderable {
         app.vm.listenEventStream(S.VM.kStdoutStream, _debugger.onStdout);
     if (_stdoutSubscriptionFuture != null) {
       // TODO(turnidge): How do we want to handle this in general?
-      _stdoutSubscriptionFuture!.catchError((e, st) {
+      _stdoutSubscriptionFuture.catchError((e, st) {
         Logger.root.info('Failed to subscribe to stdout: $e\n$st\n');
         _stdoutSubscriptionFuture = null;
       });
@@ -2135,7 +2128,7 @@ class DebuggerPageElement extends CustomElement implements Renderable {
         app.vm.listenEventStream(S.VM.kStderrStream, _debugger.onStderr);
     if (_stderrSubscriptionFuture != null) {
       // TODO(turnidge): How do we want to handle this in general?
-      _stderrSubscriptionFuture!.catchError((e, st) {
+      _stderrSubscriptionFuture.catchError((e, st) {
         Logger.root.info('Failed to subscribe to stderr: $e\n$st\n');
         _stderrSubscriptionFuture = null;
       });
@@ -2165,19 +2158,19 @@ class DebuggerPageElement extends CustomElement implements Renderable {
 
   @override
   void detached() {
-    _timer!.cancel();
+    _timer.cancel();
     children = const [];
-    S.cancelFutureSubscription(_vmSubscriptionFuture!);
+    S.cancelFutureSubscription(_vmSubscriptionFuture);
     _vmSubscriptionFuture = null;
-    S.cancelFutureSubscription(_isolateSubscriptionFuture!);
+    S.cancelFutureSubscription(_isolateSubscriptionFuture);
     _isolateSubscriptionFuture = null;
-    S.cancelFutureSubscription(_debugSubscriptionFuture!);
+    S.cancelFutureSubscription(_debugSubscriptionFuture);
     _debugSubscriptionFuture = null;
-    S.cancelFutureSubscription(_stdoutSubscriptionFuture!);
+    S.cancelFutureSubscription(_stdoutSubscriptionFuture);
     _stdoutSubscriptionFuture = null;
-    S.cancelFutureSubscription(_stderrSubscriptionFuture!);
+    S.cancelFutureSubscription(_stderrSubscriptionFuture);
     _stderrSubscriptionFuture = null;
-    S.cancelFutureSubscription(_logSubscriptionFuture!);
+    S.cancelFutureSubscription(_logSubscriptionFuture);
     _logSubscriptionFuture = null;
     super.detached();
   }
@@ -2186,12 +2179,12 @@ class DebuggerPageElement extends CustomElement implements Renderable {
 class DebuggerStackElement extends CustomElement implements Renderable {
   static const tag = const Tag<DebuggerStackElement>('debugger-stack');
 
-  late S.Isolate _isolate;
-  late M.ObjectRepository _objects;
-  late M.ScriptRepository _scripts;
-  late M.EventRepository _events;
-  late Element _scroller;
-  late DivElement _isSampled;
+  S.Isolate _isolate;
+  M.ObjectRepository _objects;
+  M.ScriptRepository _scripts;
+  M.EventRepository _events;
+  Element _scroller;
+  DivElement _isSampled;
   bool get isSampled => !_isSampled.classes.contains('hidden');
   set isSampled(bool value) {
     if (value != isSampled) {
@@ -2199,7 +2192,7 @@ class DebuggerStackElement extends CustomElement implements Renderable {
     }
   }
 
-  late DivElement _hasStack;
+  DivElement _hasStack;
   bool get hasStack => _hasStack.classes.contains('hidden');
   set hasStack(bool value) {
     if (value != hasStack) {
@@ -2207,7 +2200,7 @@ class DebuggerStackElement extends CustomElement implements Renderable {
     }
   }
 
-  late DivElement _hasMessages;
+  DivElement _hasMessages;
   bool get hasMessages => _hasMessages.classes.contains('hidden');
   set hasMessages(bool value) {
     if (value != hasMessages) {
@@ -2215,10 +2208,10 @@ class DebuggerStackElement extends CustomElement implements Renderable {
     }
   }
 
-  UListElement? _frameList;
-  UListElement? _messageList;
-  int? currentFrame;
-  late ObservatoryDebugger _debugger;
+  UListElement _frameList;
+  UListElement _messageList;
+  int currentFrame;
+  ObservatoryDebugger _debugger;
 
   factory DebuggerStackElement(
       S.Isolate isolate,
@@ -2326,7 +2319,7 @@ class DebuggerStackElement extends CustomElement implements Renderable {
   ObservatoryApplication get app => ObservatoryApplication.app;
 
   void updateStackFrames(S.ServiceMap newStack) {
-    List frameElements = _frameList!.children;
+    List frameElements = _frameList.children;
     List newFrames;
     if (_debugger.awaiterStacks &&
         (newStack[ObservatoryDebugger.kAwaiterStackFrames] != null)) {
@@ -2344,8 +2337,7 @@ class DebuggerStackElement extends CustomElement implements Renderable {
     int newPos = newFrames.length - 1;
     while (oldPos >= 0 && newPos >= 0) {
       DebuggerFrameElement dbgFrameElement =
-          CustomElement.reverse(frameElements[oldPos].children[0])
-              as DebuggerFrameElement;
+          CustomElement.reverse(frameElements[oldPos].children[0]);
       if (!dbgFrameElement.matchFrame(newFrames[newPos])) {
         // The rest of the frame elements no longer match.  Remove them.
         for (int i = 0; i <= oldPos; i++) {
@@ -2381,8 +2373,7 @@ class DebuggerStackElement extends CustomElement implements Renderable {
     if (frameElements.isNotEmpty) {
       for (int i = newCount; i < frameElements.length; i++) {
         DebuggerFrameElement dbgFrameElement =
-            CustomElement.reverse(frameElements[i].children[0])
-                as DebuggerFrameElement;
+            CustomElement.reverse(frameElements[i].children[0]);
         dbgFrameElement.updateFrame(newFrames[i]);
       }
     }
@@ -2391,7 +2382,7 @@ class DebuggerStackElement extends CustomElement implements Renderable {
   }
 
   void updateStackMessages(S.ServiceMap newStack) {
-    List messageElements = _messageList!.children;
+    List messageElements = _messageList.children;
     List newMessages = newStack['messages'];
 
     // Remove any extra message elements.
@@ -2416,8 +2407,7 @@ class DebuggerStackElement extends CustomElement implements Renderable {
       // Update old messages.
       for (int i = 0; i < newStartingIndex; i++) {
         DebuggerMessageElement e =
-            CustomElement.reverse(messageElements[i].children[0])
-                as DebuggerMessageElement;
+            CustomElement.reverse(messageElements[i].children[0]);
         e.updateMessage(newMessages[i]);
       }
     }
@@ -2425,19 +2415,18 @@ class DebuggerStackElement extends CustomElement implements Renderable {
     hasMessages = messageElements.isNotEmpty;
   }
 
-  void updateStack(S.ServiceMap newStack, M.DebugEvent? pauseEvent) {
+  void updateStack(S.ServiceMap newStack, M.DebugEvent pauseEvent) {
     updateStackFrames(newStack);
     updateStackMessages(newStack);
     isSampled = pauseEvent == null;
   }
 
-  void setCurrentFrame(int? value) {
+  void setCurrentFrame(int value) {
     currentFrame = value;
-    List frameElements = _frameList!.children;
+    List frameElements = _frameList.children;
     for (var frameElement in frameElements) {
       DebuggerFrameElement dbgFrameElement =
-          CustomElement.reverse(frameElement.children[0])
-              as DebuggerFrameElement;
+          CustomElement.reverse(frameElement.children[0]);
       if (dbgFrameElement.frame.index == currentFrame) {
         dbgFrameElement.setCurrent(true);
       } else {
@@ -2452,18 +2441,18 @@ class DebuggerStackElement extends CustomElement implements Renderable {
 class DebuggerFrameElement extends CustomElement implements Renderable {
   static const tag = const Tag<DebuggerFrameElement>('debugger-frame');
 
-  late RenderingScheduler<DebuggerFrameElement> _r;
+  RenderingScheduler<DebuggerFrameElement> _r;
 
   Stream<RenderedEvent<DebuggerFrameElement>> get onRendered => _r.onRendered;
 
-  late Element _scroller;
-  late DivElement _varsDiv;
-  late M.Isolate _isolate;
-  late S.Frame _frame;
+  Element _scroller;
+  DivElement _varsDiv;
+  M.Isolate _isolate;
+  S.Frame _frame;
   S.Frame get frame => _frame;
-  late M.ObjectRepository _objects;
-  late M.ScriptRepository _scripts;
-  late M.EventRepository _events;
+  M.ObjectRepository _objects;
+  M.ScriptRepository _scripts;
+  M.EventRepository _events;
 
   // Is this the current frame?
   bool _current = false;
@@ -2475,7 +2464,7 @@ class DebuggerFrameElement extends CustomElement implements Renderable {
 
   void setCurrent(bool value) {
     Future load = (_frame.function != null)
-        ? _frame.function!.load()
+        ? _frame.function.load()
         : new Future.value(null);
     load.then((func) {
       _current = value;
@@ -2499,7 +2488,7 @@ class DebuggerFrameElement extends CustomElement implements Renderable {
       M.ObjectRepository objects,
       M.ScriptRepository scripts,
       M.EventRepository events,
-      {RenderingQueue? queue}) {
+      {RenderingQueue queue}) {
     assert(isolate != null);
     assert(frame != null);
     assert(scroller != null);
@@ -2536,12 +2525,12 @@ class DebuggerFrameElement extends CustomElement implements Renderable {
     }
     if (_frame.kind == M.FrameKind.asyncSuspensionMarker) {
       final content = <Element>[
-        new SpanElement()..children = _createMarkerHeader(_frame.marker!)
+        new SpanElement()..children = _createMarkerHeader(_frame.marker)
       ];
       children = content;
       return;
     }
-    late ButtonElement expandButton;
+    ButtonElement expandButton;
     final content = <Element>[
       expandButton = new ButtonElement()
         ..children = _createHeader()
@@ -2555,14 +2544,14 @@ class DebuggerFrameElement extends CustomElement implements Renderable {
         })
     ];
     if (_expanded) {
-      final homeMethod = _frame.function!.homeMethod;
-      String? homeMethodName;
-      if ((homeMethod.dartOwner is S.Class) && homeMethod.isStatic!) {
+      final homeMethod = _frame.function.homeMethod;
+      String homeMethodName;
+      if ((homeMethod.dartOwner is S.Class) && homeMethod.isStatic) {
         homeMethodName = '<class>';
       } else if (homeMethod.dartOwner is S.Library) {
         homeMethodName = '<library>';
       }
-      late ButtonElement collapseButton;
+      ButtonElement collapseButton;
       content.addAll([
         new DivElement()
           ..classes = ['frameDetails']
@@ -2577,11 +2566,11 @@ class DebuggerFrameElement extends CustomElement implements Renderable {
                       : [
                           (new SourceInsetElement(
                                   _isolate,
-                                  _frame.function!.location!,
+                                  _frame.function.location,
                                   _scripts,
                                   _objects,
                                   _events,
-                                  currentPos: _frame.location!.tokenPos,
+                                  currentPos: _frame.location.tokenPos,
                                   variables: _frame.variables,
                                   inDebuggerContext: true,
                                   queue: _r.queue))
@@ -2635,7 +2624,7 @@ class DebuggerFrameElement extends CustomElement implements Renderable {
                     await _toggleExpand();
                     collapseButton.disabled = false;
                   })
-                  ..children = <Element>[iconExpandLess.clone(true) as Element]
+                  ..children = <Element>[iconExpandLess.clone(true)]
               ]
           ]
       ]);
@@ -2673,7 +2662,7 @@ class DebuggerFrameElement extends CustomElement implements Renderable {
             ..children = _frame.function == null
                 ? const []
                 : [
-                    new FunctionRefElement(_isolate, _frame.function!,
+                    new FunctionRefElement(_isolate, _frame.function,
                             queue: _r.queue)
                         .element
                   ],
@@ -2683,7 +2672,7 @@ class DebuggerFrameElement extends CustomElement implements Renderable {
                 ? const []
                 : [
                     new SourceLinkElement(
-                            _isolate, _frame.function!.location!, _scripts,
+                            _isolate, _frame.function.location, _scripts,
                             queue: _r.queue)
                         .element
                   ],
@@ -2693,7 +2682,7 @@ class DebuggerFrameElement extends CustomElement implements Renderable {
     if (!_expanded) {
       content.add(new DivElement()
         ..classes = ['frameExpander']
-        ..children = <Element>[iconExpandMore.clone(true) as Element]);
+        ..children = <Element>[iconExpandMore.clone(true)]);
     }
     return [
       new DivElement()
@@ -2703,7 +2692,7 @@ class DebuggerFrameElement extends CustomElement implements Renderable {
   }
 
   String makeExpandKey(String key) {
-    return '${_frame.function!.qualifiedName}/${key}';
+    return '${_frame.function.qualifiedName}/${key}';
   }
 
   bool matchFrame(S.Frame newFrame) {
@@ -2713,8 +2702,8 @@ class DebuggerFrameElement extends CustomElement implements Renderable {
     if (newFrame.function == null) {
       return frame.function == null;
     }
-    return (newFrame.function!.id == _frame.function!.id &&
-        newFrame.location!.script.id == frame.location!.script.id);
+    return (newFrame.function.id == _frame.function.id &&
+        newFrame.location.script.id == frame.location.script.id);
   }
 
   void updateFrame(S.Frame newFrame) {
@@ -2722,15 +2711,15 @@ class DebuggerFrameElement extends CustomElement implements Renderable {
     _frame = newFrame;
   }
 
-  S.Script get script => _frame.location!.script;
+  S.Script get script => _frame.location.script;
 
   int _varsTop(DivElement varsDiv) {
     const minTop = 0;
     if (varsDiv == null) {
       return minTop;
     }
-    final num paddingTop = document.body!.contentEdge.top;
-    final Rectangle parent = varsDiv.parent!.getBoundingClientRect();
+    final num paddingTop = document.body.contentEdge.top;
+    final Rectangle parent = varsDiv.parent.getBoundingClientRect();
     final int varsHeight = varsDiv.clientHeight;
     final int maxTop = (parent.height - varsHeight).toInt();
     final int adjustedTop = (paddingTop - parent.top).toInt();
@@ -2760,8 +2749,8 @@ class DebuggerFrameElement extends CustomElement implements Renderable {
     _r.dirty();
   }
 
-  StreamSubscription? _scrollSubscription;
-  StreamSubscription? _resizeSubscription;
+  StreamSubscription _scrollSubscription;
+  StreamSubscription _resizeSubscription;
 
   void _subscribeToScroll() {
     if (_scroller != null) {
@@ -2776,11 +2765,11 @@ class DebuggerFrameElement extends CustomElement implements Renderable {
 
   void _unsubscribeToScroll() {
     if (_scrollSubscription != null) {
-      _scrollSubscription!.cancel();
+      _scrollSubscription.cancel();
       _scrollSubscription = null;
     }
     if (_resizeSubscription != null) {
-      _resizeSubscription!.cancel();
+      _resizeSubscription.cancel();
       _resizeSubscription = null;
     }
   }
@@ -2801,7 +2790,7 @@ class DebuggerFrameElement extends CustomElement implements Renderable {
   }
 
   Future _toggleExpand() async {
-    await _frame.function!.load();
+    await _frame.function.load();
     _pinned = !_pinned;
     if (_pinned) {
       _expand();
@@ -2814,16 +2803,16 @@ class DebuggerFrameElement extends CustomElement implements Renderable {
 class DebuggerMessageElement extends CustomElement implements Renderable {
   static const tag = const Tag<DebuggerMessageElement>('debugger-message');
 
-  late RenderingScheduler<DebuggerMessageElement> _r;
+  RenderingScheduler<DebuggerMessageElement> _r;
 
   Stream<RenderedEvent<DebuggerMessageElement>> get onRendered => _r.onRendered;
 
-  late S.Isolate _isolate;
-  late S.ServiceMessage _message;
-  late S.ServiceObject _preview;
-  late M.ObjectRepository _objects;
-  late M.ScriptRepository _scripts;
-  late M.EventRepository _events;
+  S.Isolate _isolate;
+  S.ServiceMessage _message;
+  S.ServiceObject _preview;
+  M.ObjectRepository _objects;
+  M.ScriptRepository _scripts;
+  M.EventRepository _events;
 
   // Is this the current message?
   bool _current = false;
@@ -2839,7 +2828,7 @@ class DebuggerMessageElement extends CustomElement implements Renderable {
       M.ObjectRepository objects,
       M.ScriptRepository scripts,
       M.EventRepository events,
-      {RenderingQueue? queue}) {
+      {RenderingQueue queue}) {
     assert(isolate != null);
     assert(message != null);
     assert(objects != null);
@@ -2867,7 +2856,7 @@ class DebuggerMessageElement extends CustomElement implements Renderable {
     } else {
       classes.remove('current');
     }
-    late ButtonElement expandButton;
+    ButtonElement expandButton;
     final content = <Element>[
       expandButton = new ButtonElement()
         ..children = _createHeader()
@@ -2881,8 +2870,8 @@ class DebuggerMessageElement extends CustomElement implements Renderable {
         })
     ];
     if (_expanded) {
-      late ButtonElement collapseButton;
-      late ButtonElement previewButton;
+      ButtonElement collapseButton;
+      ButtonElement previewButton;
       content.addAll([
         new DivElement()
           ..classes = ['messageDetails']
@@ -2897,7 +2886,7 @@ class DebuggerMessageElement extends CustomElement implements Renderable {
                       : [
                           new SourceInsetElement(
                                   _isolate,
-                                  _message.handler!.location!,
+                                  _message.handler.location,
                                   _scripts,
                                   _objects,
                                   _events,
@@ -2938,7 +2927,7 @@ class DebuggerMessageElement extends CustomElement implements Renderable {
                     await _toggleExpand();
                     collapseButton.disabled = false;
                   })
-                  ..children = <Element>[iconExpandLess.clone(true) as Element]
+                  ..children = <Element>[iconExpandLess.clone(true)]
               ]
           ]
       ]);
@@ -2964,7 +2953,7 @@ class DebuggerMessageElement extends CustomElement implements Renderable {
             ..children = _message.handler == null
                 ? const []
                 : [
-                    new FunctionRefElement(_isolate, _message.handler!,
+                    new FunctionRefElement(_isolate, _message.handler,
                             queue: _r.queue)
                         .element
                   ],
@@ -2973,8 +2962,7 @@ class DebuggerMessageElement extends CustomElement implements Renderable {
             ..children = _message.location == null
                 ? const []
                 : [
-                    new SourceLinkElement(
-                            _isolate, _message.location!, _scripts,
+                    new SourceLinkElement(_isolate, _message.location, _scripts,
                             queue: _r.queue)
                         .element
                   ],
@@ -2984,7 +2972,7 @@ class DebuggerMessageElement extends CustomElement implements Renderable {
     if (!_expanded) {
       content.add(new DivElement()
         ..classes = ['messageExpander']
-        ..children = <Element>[iconExpandMore.clone(true) as Element]);
+        ..children = <Element>[iconExpandMore.clone(true)]);
     }
     return [
       new DivElement()
@@ -3028,9 +3016,7 @@ class DebuggerMessageElement extends CustomElement implements Renderable {
   }
 
   Future<S.ServiceObject> previewMessage(_) {
-    return _message.isolate!
-        .getObject(_message.messageObjectId!)
-        .then((result) {
+    return _message.isolate.getObject(_message.messageObjectId).then((result) {
       _preview = result;
       return result;
     });
@@ -3049,7 +3035,7 @@ class DebuggerConsoleElement extends CustomElement implements Renderable {
   DebuggerConsoleElement.created() : super.created(tag);
 
   /// Is [container] scrolled to the within [threshold] pixels of the bottom?
-  static bool _isScrolledToBottom(DivElement? container, [int threshold = 2]) {
+  static bool _isScrolledToBottom(DivElement container, [int threshold = 2]) {
     if (container == null) {
       return false;
     }
@@ -3063,7 +3049,7 @@ class DebuggerConsoleElement extends CustomElement implements Renderable {
   }
 
   /// Scroll [container] so the bottom content is visible.
-  static _scrollToBottom(DivElement? container) {
+  static _scrollToBottom(DivElement container) {
     if (container == null) {
       return;
     }
@@ -3072,10 +3058,10 @@ class DebuggerConsoleElement extends CustomElement implements Renderable {
   }
 
   void _append(HtmlElement span) {
-    bool autoScroll = _isScrolledToBottom(parent as DivElement?);
+    bool autoScroll = _isScrolledToBottom(parent);
     children.add(span);
     if (autoScroll) {
-      _scrollToBottom(parent as DivElement?);
+      _scrollToBottom(parent);
     }
   }
 
@@ -3110,7 +3096,7 @@ class DebuggerConsoleElement extends CustomElement implements Renderable {
   }
 
   void printStdio(List<String> lines) {
-    bool autoScroll = _isScrolledToBottom(parent as DivElement?);
+    bool autoScroll = _isScrolledToBottom(parent);
     for (var line in lines) {
       var span = new SpanElement();
       span.classes.add('green');
@@ -3119,7 +3105,7 @@ class DebuggerConsoleElement extends CustomElement implements Renderable {
       children.add(span);
     }
     if (autoScroll) {
-      _scrollToBottom(parent as DivElement?);
+      _scrollToBottom(parent);
     }
   }
 
@@ -3150,15 +3136,15 @@ class DebuggerConsoleElement extends CustomElement implements Renderable {
 class DebuggerInputElement extends CustomElement implements Renderable {
   static const tag = const Tag<DebuggerInputElement>('debugger-input');
 
-  late S.Isolate _isolate;
-  late ObservatoryDebugger _debugger;
+  S.Isolate _isolate;
+  ObservatoryDebugger _debugger;
   bool _busy = false;
   final _modalPromptDiv = new DivElement()..classes = ['modalPrompt', 'hidden'];
   final _textBox = new TextInputElement()
     ..classes = ['textBox']
     ..autofocus = true;
-  String? get modalPrompt => _modalPromptDiv.text;
-  set modalPrompt(String? value) {
+  String get modalPrompt => _modalPromptDiv.text;
+  set modalPrompt(String value) {
     if (_modalPromptDiv.text == '') {
       _modalPromptDiv.classes.remove('hidden');
     }
@@ -3204,7 +3190,7 @@ class DebuggerInputElement extends CustomElement implements Renderable {
     switch (e.keyCode) {
       case KeyCode.TAB:
         e.preventDefault();
-        int cursorPos = _textBox.selectionStart!;
+        int cursorPos = _textBox.selectionStart;
         _debugger.complete(text.substring(0, cursorPos)).then((completion) {
           text = completion + text.substring(cursorPos);
           // TODO(turnidge): Move the cursor to the end of the

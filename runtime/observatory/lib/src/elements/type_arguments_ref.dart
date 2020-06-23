@@ -12,19 +12,19 @@ import 'package:observatory/src/elements/helpers/uris.dart';
 class TypeArgumentsRefElement extends CustomElement implements Renderable {
   static const tag = const Tag<TypeArgumentsRefElement>('type-arguments-ref');
 
-  late RenderingScheduler<TypeArgumentsRefElement> _r;
+  RenderingScheduler<TypeArgumentsRefElement> _r;
 
   Stream<RenderedEvent<TypeArgumentsRefElement>> get onRendered =>
       _r.onRendered;
 
-  late M.IsolateRef _isolate;
-  late M.TypeArgumentsRef _arguments;
+  M.IsolateRef _isolate;
+  M.TypeArgumentsRef _arguments;
 
   M.IsolateRef get isolate => _isolate;
   M.TypeArgumentsRef get arguments => _arguments;
 
   factory TypeArgumentsRefElement(M.IsolateRef isolate, M.TypeArgumentsRef args,
-      {RenderingQueue? queue}) {
+      {RenderingQueue queue}) {
     assert(isolate != null);
     assert(args != null);
     TypeArgumentsRefElement e = new TypeArgumentsRefElement.created();

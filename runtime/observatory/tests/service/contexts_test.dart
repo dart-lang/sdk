@@ -58,58 +58,58 @@ void script() {
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {
-    Library lib = await isolate.rootLibrary.load() as Library;
+    Library lib = await isolate.rootLibrary.load();
     Field field = lib.variables.singleWhere((v) => v.name == 'cleanBlock');
     await field.load();
-    Instance block = await field.staticValue!.load() as Instance;
+    Instance block = await field.staticValue.load();
     expect(block.isClosure, isTrue);
     expect(block.closureContext, isNull);
   },
   (Isolate isolate) async {
-    Library lib = await isolate.rootLibrary.load() as Library;
+    Library lib = await isolate.rootLibrary.load();
     Field field = lib.variables.singleWhere((v) => v.name == 'copyingBlock');
     await field.load();
-    Instance block = await field.staticValue!.load() as Instance;
+    Instance block = await field.staticValue.load();
     expect(block.isClosure, isTrue);
-    expect(block.closureContext!.isContext, isTrue);
-    expect(block.closureContext!.length, equals(1));
-    Context ctxt = await block.closureContext!.load() as Context;
-    expect(ctxt.variables!.single.value.asValue!.isString, isTrue);
-    expect(ctxt.variables!.single.value.asValue!.valueAsString,
+    expect(block.closureContext.isContext, isTrue);
+    expect(block.closureContext.length, equals(1));
+    Context ctxt = await block.closureContext.load();
+    expect(ctxt.variables.single.value.asValue.isString, isTrue);
+    expect(ctxt.variables.single.value.asValue.valueAsString,
         equals('I could be copied into the block'));
     expect(ctxt.parentContext, isNull);
   },
   (Isolate isolate) async {
-    Library lib = await isolate.rootLibrary.load() as Library;
+    Library lib = await isolate.rootLibrary.load();
     Field field = lib.variables.singleWhere((v) => v.name == 'fullBlock');
     await field.load();
-    Instance block = await field.staticValue!.load() as Instance;
+    Instance block = await field.staticValue.load();
     expect(block.isClosure, isTrue);
-    expect(block.closureContext!.isContext, isTrue);
-    expect(block.closureContext!.length, equals(1));
-    Context ctxt = await block.closureContext!.load() as Context;
-    expect(ctxt.variables!.single.value.asValue!.isInt, isTrue);
-    expect(ctxt.variables!.single.value.asValue!.valueAsString, equals('43'));
+    expect(block.closureContext.isContext, isTrue);
+    expect(block.closureContext.length, equals(1));
+    Context ctxt = await block.closureContext.load();
+    expect(ctxt.variables.single.value.asValue.isInt, isTrue);
+    expect(ctxt.variables.single.value.asValue.valueAsString, equals('43'));
     expect(ctxt.parentContext, isNull);
   },
   (Isolate isolate) async {
-    Library lib = await isolate.rootLibrary.load() as Library;
+    Library lib = await isolate.rootLibrary.load();
     Field field =
         lib.variables.singleWhere((v) => v.name == 'fullBlockWithChain');
     await field.load();
-    Instance block = await field.staticValue!.load() as Instance;
+    Instance block = await field.staticValue.load();
     expect(block.isClosure, isTrue);
-    expect(block.closureContext!.isContext, isTrue);
-    expect(block.closureContext!.length, equals(1));
-    Context ctxt = await block.closureContext!.load() as Context;
-    expect(ctxt.variables!.single.value.asValue!.isInt, isTrue);
-    expect(ctxt.variables!.single.value.asValue!.valueAsString, equals('4201'));
-    expect(ctxt.parentContext!.isContext, isTrue);
-    expect(ctxt.parentContext!.length, equals(1));
-    Context outerCtxt = await ctxt.parentContext!.load() as Context;
-    expect(outerCtxt.variables!.single.value.asValue!.isInt, isTrue);
-    expect(outerCtxt.variables!.single.value.asValue!.valueAsString,
-        equals('421'));
+    expect(block.closureContext.isContext, isTrue);
+    expect(block.closureContext.length, equals(1));
+    Context ctxt = await block.closureContext.load();
+    expect(ctxt.variables.single.value.asValue.isInt, isTrue);
+    expect(ctxt.variables.single.value.asValue.valueAsString, equals('4201'));
+    expect(ctxt.parentContext.isContext, isTrue);
+    expect(ctxt.parentContext.length, equals(1));
+    Context outerCtxt = await ctxt.parentContext.load();
+    expect(outerCtxt.variables.single.value.asValue.isInt, isTrue);
+    expect(
+        outerCtxt.variables.single.value.asValue.valueAsString, equals('421'));
     expect(outerCtxt.parentContext, isNull);
   },
 ];

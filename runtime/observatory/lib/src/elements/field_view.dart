@@ -44,24 +44,24 @@ class FieldViewElement extends CustomElement implements Renderable {
     ViewFooterElement.tag
   ]);
 
-  late RenderingScheduler<FieldViewElement> _r;
+  RenderingScheduler<FieldViewElement> _r;
 
   Stream<RenderedEvent<FieldViewElement>> get onRendered => _r.onRendered;
 
-  late M.VM _vm;
-  late M.IsolateRef _isolate;
-  late M.EventRepository _events;
-  late M.NotificationRepository _notifications;
-  late M.Field _field;
-  M.LibraryRef? _library;
-  late M.FieldRepository _fields;
-  late M.ClassRepository _classes;
-  late M.RetainedSizeRepository _retainedSizes;
-  late M.ReachableSizeRepository _reachableSizes;
-  late M.InboundReferencesRepository _references;
-  late M.RetainingPathRepository _retainingPaths;
-  late M.ScriptRepository _scripts;
-  late M.ObjectRepository _objects;
+  M.VM _vm;
+  M.IsolateRef _isolate;
+  M.EventRepository _events;
+  M.NotificationRepository _notifications;
+  M.Field _field;
+  M.LibraryRef _library;
+  M.FieldRepository _fields;
+  M.ClassRepository _classes;
+  M.RetainedSizeRepository _retainedSizes;
+  M.ReachableSizeRepository _reachableSizes;
+  M.InboundReferencesRepository _references;
+  M.RetainingPathRepository _retainingPaths;
+  M.ScriptRepository _scripts;
+  M.ObjectRepository _objects;
 
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
@@ -82,7 +82,7 @@ class FieldViewElement extends CustomElement implements Renderable {
       M.RetainingPathRepository retainingPaths,
       M.ScriptRepository scripts,
       M.ObjectRepository objects,
-      {RenderingQueue? queue}) {
+      {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -112,7 +112,7 @@ class FieldViewElement extends CustomElement implements Renderable {
     e._scripts = scripts;
     e._objects = objects;
     if (field.dartOwner is M.LibraryRef) {
-      e._library = field.dartOwner as M.LibraryRef;
+      e._library = field.dartOwner;
     }
     return e;
   }
@@ -135,22 +135,22 @@ class FieldViewElement extends CustomElement implements Renderable {
 
   void render() {
     var header = '';
-    if (_field.isStatic!) {
+    if (_field.isStatic) {
       if (_field.dartOwner is M.ClassRef) {
         header += 'static ';
       } else {
         header += 'top-level ';
       }
     }
-    if (_field.isFinal!) {
+    if (_field.isFinal) {
       header += 'final ';
-    } else if (_field.isConst!) {
+    } else if (_field.isConst) {
       header += 'const ';
     }
-    if (_field.declaredType!.name == 'dynamic') {
+    if (_field.declaredType.name == 'dynamic') {
       header += 'var';
     } else {
-      header += _field.declaredType!.name!;
+      header += _field.declaredType.name;
     }
     children = <Element>[
       navBar(_createMenu()),
@@ -172,10 +172,10 @@ class FieldViewElement extends CustomElement implements Renderable {
             ..children = _field.location == null
                 ? const []
                 : [
-                    new ScriptInsetElement(_isolate, _field.location!.script,
+                    new ScriptInsetElement(_isolate, _field.location.script,
                             _scripts, _objects, _events,
-                            startPos: field.location!.tokenPos,
-                            endPos: field.location!.tokenPos,
+                            startPos: field.location.tokenPos,
+                            endPos: field.location.tokenPos,
                             queue: _r.queue)
                         .element
                   ],
@@ -191,15 +191,15 @@ class FieldViewElement extends CustomElement implements Renderable {
       new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element
     ];
     if (_library != null) {
-      menu.add(new NavLibraryMenuElement(_isolate, _library!, queue: _r.queue)
+      menu.add(new NavLibraryMenuElement(_isolate, _library, queue: _r.queue)
           .element);
     } else if (_field.dartOwner is M.ClassRef) {
-      menu.add(new NavClassMenuElement(_isolate, _field.dartOwner as M.ClassRef,
-              queue: _r.queue)
-          .element);
+      menu.add(
+          new NavClassMenuElement(_isolate, _field.dartOwner, queue: _r.queue)
+              .element);
     }
     menu.addAll(<Element>[
-      navMenu(_field.name!),
+      navMenu(_field.name),
       (new NavRefreshElement(queue: _r.queue)
             ..onRefresh.listen((e) {
               e.element.disabled = true;
@@ -237,13 +237,13 @@ class FieldViewElement extends CustomElement implements Renderable {
           new DivElement()
             ..classes = ['memberName']
             ..children = <Element>[
-              new SourceLinkElement(_isolate, field.location!, _scripts,
+              new SourceLinkElement(_isolate, field.location, _scripts,
                       queue: _r.queue)
                   .element
             ]
         ]
     ];
-    if (!_field.isStatic!) {
+    if (!_field.isStatic) {
       members.add(new DivElement()
         ..classes = ['memberItem']
         ..title = 'The types observed for this field at runtime. '
@@ -286,23 +286,22 @@ class FieldViewElement extends CustomElement implements Renderable {
         break;
       case M.GuardClassKind.single:
         guard.add(
-            new ClassRefElement(_isolate, _field.guardClass!, queue: _r.queue)
+            new ClassRefElement(_isolate, _field.guardClass, queue: _r.queue)
                 .element);
         break;
     }
     guard.add(new SpanElement()
       ..text =
-          _field.guardNullable! ? '— null observed' : '— null not observed');
+          _field.guardNullable ? '— null observed' : '— null not observed');
     return guard;
   }
 
   Future _refresh() async {
-    _field = await _fields.get(_isolate, _field.id!);
+    _field = await _fields.get(_isolate, _field.id);
     if (_field.dartOwner is M.LibraryRef) {
-      _library = _field.dartOwner as M.LibraryRef;
+      _library = _field.dartOwner;
     } else if (_field.dartOwner is M.ClassRef) {
-      var cls = _field.dartOwner as M.ClassRef;
-      _library = (await _classes.get(_isolate, cls.id!)).library!;
+      _library = (await _classes.get(_isolate, _field.dartOwner.id)).library;
     }
     _r.dirty();
   }

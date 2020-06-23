@@ -18,12 +18,11 @@ class TimelineRepositoryBase {
       Future<S.ServiceObject> cpuSamples) async {
     const kRootFrameId = 0;
     final profile = SampleProfile();
-    await profile.load(
-        isolate as S.ServiceObjectOwner, await cpuSamples as S.ServiceMap);
+    await profile.load(isolate as S.ServiceObjectOwner, await cpuSamples);
     final trie = profile.loadFunctionTree(M.ProfileTreeDirection.inclusive);
     final root = trie.root;
     int nextId = kRootFrameId;
-    processFrame(FunctionCallTreeNode current, FunctionCallTreeNode? parent) {
+    processFrame(FunctionCallTreeNode current, FunctionCallTreeNode parent) {
       int id = nextId;
       ++nextId;
       current.frameId = id;
@@ -65,7 +64,7 @@ class TimelineRepositoryBase {
   }
 
   Future<Map> getCpuProfileTimeline(M.VMRef ref,
-      {int? timeOriginMicros, int? timeExtentMicros}) async {
+      {int timeOriginMicros, int timeExtentMicros}) async {
     final S.VM vm = ref as S.VM;
     final traceObject = <String, dynamic>{
       _kStackFrames: {},
@@ -87,10 +86,10 @@ class TimelineRepositoryBase {
   Future<Map> getTimeline(M.VMRef ref) async {
     final S.VM vm = ref as S.VM;
     final S.ServiceMap vmTimelineResponse =
-        await vm.invokeRpc('getVMTimeline', {}) as S.ServiceMap;
+        await vm.invokeRpc('getVMTimeline', {});
     final timeOriginMicros = vmTimelineResponse[kTimeOriginMicros];
     final timeExtentMicros = vmTimelineResponse[kTimeExtentMicros];
-    var traceObject = <dynamic, dynamic>{
+    var traceObject = <String, dynamic>{
       _kStackFrames: {},
       _kTraceEvents: [],
     };

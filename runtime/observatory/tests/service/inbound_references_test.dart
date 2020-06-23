@@ -22,19 +22,18 @@ void script() {
   n = new Node();
   e = new Edge();
   n.edge = e;
-  array = new List<dynamic>.filled(2, null);
+  array = new List(2);
   array[0] = n;
   array[1] = e;
 }
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {
-    Library lib = await isolate.rootLibrary.load() as Library;
+    Library lib = await isolate.rootLibrary.load();
     Field field = lib.variables.where((v) => v.name == 'e').single;
     await field.load();
-    Instance e = field.staticValue as Instance;
-    ServiceMap response =
-        await isolate.getInboundReferences(e, 100) as ServiceMap;
+    Instance e = field.staticValue;
+    ServiceMap response = await isolate.getInboundReferences(e, 100);
     List references = response['references'];
     hasReferenceSuchThat(predicate) {
       expect(references.any(predicate), isTrue);

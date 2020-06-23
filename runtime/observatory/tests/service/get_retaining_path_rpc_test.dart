@@ -11,20 +11,20 @@ class _TestClass {
   _TestClass();
   // Make sure these fields are not removed by the tree shaker.
   @pragma("vm:entry-point")
-  dynamic x;
+  var x;
   @pragma("vm:entry-point")
-  dynamic y;
+  var y;
 }
 
-dynamic target1 = new _TestClass();
-dynamic target2 = new _TestClass();
-dynamic target3 = new _TestClass();
-dynamic target4 = new _TestClass();
-dynamic target5 = new _TestClass();
-dynamic globalObject = new _TestClass();
-dynamic globalList = new List<dynamic>.filled(100, null);
-dynamic globalMap1 = new Map();
-dynamic globalMap2 = new Map();
+var target1 = new _TestClass();
+var target2 = new _TestClass();
+var target3 = new _TestClass();
+var target4 = new _TestClass();
+var target5 = new _TestClass();
+var globalObject = new _TestClass();
+var globalList = new List(100);
+var globalMap1 = new Map();
+var globalMap2 = new Map();
 
 void warmup() {
   globalObject.x = target1;
@@ -104,14 +104,14 @@ var tests = <IsolateTest>[
     var params = {
       'targetId': obj['id'],
     };
-    bool caughtException = false;
+    bool caughtException;
     try {
       await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
       expect(false, isTrue, reason: 'Unreachable');
     } on ServerRpcException catch (e) {
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kInvalidParams));
-      expect(e.data!['details'],
+      expect(e.data['details'],
           "getRetainingPath expects the \'limit\' parameter");
     }
     expect(caughtException, isTrue);

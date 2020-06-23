@@ -17,7 +17,7 @@ class TargetEvent {
 class VMConnectTargetElement extends CustomElement implements Renderable {
   static const tag = const Tag<VMConnectTargetElement>('vm-connect-target');
 
-  late RenderingScheduler<VMConnectTargetElement> _r;
+  RenderingScheduler<VMConnectTargetElement> _r;
 
   Stream<RenderedEvent<VMConnectTargetElement>> get onRendered => _r.onRendered;
 
@@ -28,14 +28,14 @@ class VMConnectTargetElement extends CustomElement implements Renderable {
       new StreamController<TargetEvent>.broadcast();
   Stream<TargetEvent> get onDelete => _onDelete.stream;
 
-  late M.Target _target;
-  late bool _current;
+  M.Target _target;
+  bool _current;
 
   M.Target get target => _target;
   bool get current => _current;
 
   factory VMConnectTargetElement(M.Target target,
-      {bool current: false, RenderingQueue? queue}) {
+      {bool current: false, RenderingQueue queue}) {
     assert(target != null);
     assert(current != null);
     VMConnectTargetElement e = new VMConnectTargetElement.created();

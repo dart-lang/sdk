@@ -11,8 +11,7 @@ class TimelineRepository extends TimelineRepositoryBase
 
   Future<M.TimelineFlags> getFlags(M.VMRef ref) async {
     S.VM vm = ref as S.VM;
-    S.ServiceMap response =
-        await vm.invokeRpc('getVMTimelineFlags', {}) as S.ServiceMap;
+    S.ServiceMap response = await vm.invokeRpc('getVMTimelineFlags', {});
     return new S.TimelineFlags(response);
   }
 
@@ -37,7 +36,7 @@ class TimelineRepository extends TimelineRepositoryBase
     final trie = profile.loadFunctionTree(M.ProfileTreeDirection.inclusive);
     final root = trie.root;
     int nextId = kRootFrameId;
-    processFrame(FunctionCallTreeNode current, FunctionCallTreeNode? parent) {
+    processFrame(FunctionCallTreeNode current, FunctionCallTreeNode parent) {
       int id = nextId;
       ++nextId;
       current.frameId = id;

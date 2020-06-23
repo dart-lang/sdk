@@ -55,7 +55,7 @@ var tests = <IsolateTest>[
     int match = 0;
     for (var range in ranges) {
       for (int i in range["coverage"]["hits"]) {
-        int? line = script.tokenToLine(i);
+        int line = script.tokenToLine(i);
         if (line == null) {
           throw FormatException('token ${i} was missing source location');
         }

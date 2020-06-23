@@ -28,8 +28,8 @@ var tests = <IsolateTest>[
 
     var bpt1 = await isolate.addBreakpoint(script, LINE_A);
     var bpt2 = await isolate.addBreakpoint(script, LINE_B);
-    expect(await bpt1.location!.getLine(), equals(LINE_A));
-    expect(await bpt2.location!.getLine(), equals(LINE_B));
+    expect(await bpt1.location.getLine(), equals(LINE_A));
+    expect(await bpt2.location.getLine(), equals(LINE_B));
 
     var stream = await isolate.vm.getEventStream(VM.kDebugStream);
     Completer completer = new Completer();
@@ -41,7 +41,7 @@ var tests = <IsolateTest>[
         print('break count is $breakCount');
         if (breakCount == 1) {
           // We are stopped at breakpoint 1.
-          expect(event.breakpoint!.number, equals(bpt1.number));
+          expect(event.breakpoint.number, equals(bpt1.number));
 
           // Remove both breakpoints
           var result = await isolate.removeBreakpoint(bpt1);

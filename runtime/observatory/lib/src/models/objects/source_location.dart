@@ -9,7 +9,7 @@ abstract class Location {
   ScriptRef get script;
 
   /// [optional] The first token of the location.
-  int? get tokenPos;
+  int get tokenPos;
 }
 
 abstract class SourceLocation implements Location {
@@ -17,19 +17,19 @@ abstract class SourceLocation implements Location {
   int get tokenPos;
 
   /// [optional] The last token of the location if this is a range.
-  int? get endTokenPos;
+  int get endTokenPos;
 }
 
 abstract class UnresolvedSourceLocation implements Location {
   /// [optional] The uri of the script containing the source location if the
   /// script has yet to be loaded.
-  String? get scriptUri;
+  String get scriptUri;
 
   /// [optional] An approximate line number for the source location. This may
   /// change when the location is resolved.
-  int? get line;
+  int get line;
 
   /// [optional] An approximate column number for the source location. This may
   /// change when the location is resolved.
-  int? get column;
+  int get column;
 }

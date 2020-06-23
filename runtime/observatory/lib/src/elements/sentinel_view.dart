@@ -25,15 +25,15 @@ class SentinelViewElement extends CustomElement implements Renderable {
     ViewFooterElement.tag
   ]);
 
-  late RenderingScheduler<SentinelViewElement> _r;
+  RenderingScheduler<SentinelViewElement> _r;
 
   Stream<RenderedEvent<SentinelViewElement>> get onRendered => _r.onRendered;
 
-  late M.VM _vm;
-  late M.IsolateRef _isolate;
-  late M.Sentinel _sentinel;
-  late M.EventRepository _events;
-  late M.NotificationRepository _notifications;
+  M.VM _vm;
+  M.IsolateRef _isolate;
+  M.Sentinel _sentinel;
+  M.EventRepository _events;
+  M.NotificationRepository _notifications;
 
   M.Sentinel get sentinel => _sentinel;
 
@@ -43,7 +43,7 @@ class SentinelViewElement extends CustomElement implements Renderable {
       M.Sentinel sentinel,
       M.EventRepository events,
       M.NotificationRepository notifications,
-      {RenderingQueue? queue}) {
+      {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(sentinel != null);

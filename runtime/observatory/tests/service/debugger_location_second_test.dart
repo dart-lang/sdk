@@ -41,7 +41,7 @@ class DebuggerLocationTestFoo {
   void method() {}
   void madness() {}
 
-  int? field;
+  int field;
 }
 
 class DebuggerLocationTestBar {}

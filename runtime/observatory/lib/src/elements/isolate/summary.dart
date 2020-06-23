@@ -23,22 +23,22 @@ class IsolateSummaryElement extends CustomElement implements Renderable {
     IsolateSharedSummaryElement.tag
   ]);
 
-  late RenderingScheduler<IsolateSummaryElement> _r;
+  RenderingScheduler<IsolateSummaryElement> _r;
 
   Stream<RenderedEvent<IsolateSummaryElement>> get onRendered => _r.onRendered;
 
-  late M.IsolateRef _isolate;
-  late M.EventRepository _events;
-  late M.IsolateRepository _isolates;
-  late M.ScriptRepository _scripts;
-  M.Isolate? _loadedIsolate;
+  M.IsolateRef _isolate;
+  M.EventRepository _events;
+  M.IsolateRepository _isolates;
+  M.ScriptRepository _scripts;
+  M.Isolate _loadedIsolate;
 
   factory IsolateSummaryElement(
       M.IsolateRef isolate,
       M.IsolateRepository isolates,
       M.EventRepository events,
       M.ScriptRepository scripts,
-      {RenderingQueue? queue}) {
+      {RenderingQueue queue}) {
     assert(isolate != null);
     assert(isolates != null);
     assert(events != null);
@@ -98,10 +98,9 @@ class IsolateSummaryElement extends CustomElement implements Renderable {
         new DivElement()
           ..classes = ['flex-row', 'isolate-state-container']
           ..children = <Element>[
-            new IsolateRunStateElement(_isolate as M.Isolate, _events,
-                    queue: _r.queue)
+            new IsolateRunStateElement(_isolate, _events, queue: _r.queue)
                 .element,
-            new IsolateLocationElement(_isolate as M.Isolate, _events, _scripts,
+            new IsolateLocationElement(_isolate, _events, _scripts,
                     queue: _r.queue)
                 .element,
             new SpanElement()..text = ' [',
@@ -113,14 +112,14 @@ class IsolateSummaryElement extends CustomElement implements Renderable {
 
   Element memoryRow() {
     final isolate = _isolate as M.Isolate;
-    final newHeapUsed = Utils.formatSize(isolate.newSpace!.used);
-    final newHeapCapacity = Utils.formatSize(isolate.newSpace!.capacity);
-    final oldHeapUsed = Utils.formatSize(isolate.oldSpace!.used);
-    final oldHeapCapacity = Utils.formatSize(isolate.oldSpace!.capacity);
+    final newHeapUsed = Utils.formatSize(isolate.newSpace.used);
+    final newHeapCapacity = Utils.formatSize(isolate.newSpace.capacity);
+    final oldHeapUsed = Utils.formatSize(isolate.oldSpace.used);
+    final oldHeapCapacity = Utils.formatSize(isolate.oldSpace.capacity);
     final heapUsed =
-        Utils.formatSize(isolate.newSpace!.used + isolate.oldSpace!.used);
-    final heapCapacity = Utils.formatSize(
-        isolate.newSpace!.capacity + isolate.oldSpace!.capacity);
+        Utils.formatSize(isolate.newSpace.used + isolate.oldSpace.used);
+    final heapCapacity =
+        Utils.formatSize(isolate.newSpace.capacity + isolate.oldSpace.capacity);
     return new DivElement()
       ..classes = ['flex-row-wrap-right']
       ..children = <Element>[

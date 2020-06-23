@@ -12,18 +12,18 @@ import 'package:observatory/src/elements/helpers/uris.dart';
 class ICDataRefElement extends CustomElement implements Renderable {
   static const tag = const Tag<ICDataRefElement>('icdata-ref');
 
-  late RenderingScheduler<ICDataRefElement> _r;
+  RenderingScheduler<ICDataRefElement> _r;
 
   Stream<RenderedEvent<ICDataRefElement>> get onRendered => _r.onRendered;
 
-  late M.IsolateRef _isolate;
-  late M.ICDataRef _icdata;
+  M.IsolateRef _isolate;
+  M.ICDataRef _icdata;
 
   M.IsolateRef get isolate => _isolate;
   M.ICDataRef get icdata => _icdata;
 
   factory ICDataRefElement(M.IsolateRef isolate, M.ICDataRef icdata,
-      {RenderingQueue? queue}) {
+      {RenderingQueue queue}) {
     assert(isolate != null);
     assert(icdata != null);
     ICDataRefElement e = new ICDataRefElement.created();

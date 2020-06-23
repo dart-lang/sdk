@@ -14,7 +14,7 @@ class NavTopMenuElement extends CustomElement implements Renderable {
   static const tag = const Tag<NavTopMenuElement>('nav-top-menu',
       dependencies: const [NavMenuItemElement.tag]);
 
-  late RenderingScheduler<NavTopMenuElement> _r;
+  RenderingScheduler<NavTopMenuElement> _r;
 
   Stream<RenderedEvent<NavTopMenuElement>> get onRendered => _r.onRendered;
 
@@ -27,7 +27,7 @@ class NavTopMenuElement extends CustomElement implements Renderable {
     _r.dirty();
   }
 
-  factory NavTopMenuElement({RenderingQueue? queue}) {
+  factory NavTopMenuElement({RenderingQueue queue}) {
     NavTopMenuElement e = new NavTopMenuElement.created();
     e._r = new RenderingScheduler<NavTopMenuElement>(e, queue: queue);
     return e;

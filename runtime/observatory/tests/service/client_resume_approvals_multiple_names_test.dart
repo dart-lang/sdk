@@ -16,14 +16,14 @@ void fooBar() {
   print(i);
 }
 
-late WebSocketVM client1;
-late WebSocketVM client2;
-late WebSocketVM client3;
+WebSocketVM client1;
+WebSocketVM client2;
+WebSocketVM client3;
 
 final multipleClientNamesTest = <IsolateTest>[
   // Multiple clients, different client names.
   (Isolate isolate) async {
-    client1 = await createClient(isolate.owner as WebSocketVM);
+    client1 = await createClient(isolate.owner);
     await setRequireApprovalForResume(
       client1,
       isolate,
@@ -31,11 +31,10 @@ final multipleClientNamesTest = <IsolateTest>[
       pauseOnExit: true,
     );
     client2 = await createClient(
-      isolate.owner as WebSocketVM,
+      isolate.owner,
       clientName: otherClientName,
     );
-    client3 = await createClient(isolate.owner as WebSocketVM,
-        clientName: 'DummyClient');
+    client3 = await createClient(isolate.owner, clientName: 'DummyClient');
 
     final resumeFuture = waitForResume(isolate);
     expect(await isPausedAtStart(isolate), true);

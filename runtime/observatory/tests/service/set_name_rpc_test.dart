@@ -16,8 +16,8 @@ var tests = <IsolateTest>[
     var subscription;
     subscription = stream.listen((ServiceEvent event) {
       if (event.kind == ServiceEvent.kIsolateUpdate) {
-        expect(event.owner!.type, equals('Isolate'));
-        expect(event.owner!.name, equals('Barbara'));
+        expect(event.owner.type, equals('Isolate'));
+        expect(event.owner.name, equals('Barbara'));
         subscription.cancel();
         completer.complete();
       }

@@ -8,7 +8,7 @@ import 'test_helper.dart';
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {
-    bool caughtException = false;
+    bool caughtException;
     try {
       await isolate.invokeRpc('_respondWithMalformedObject', {});
       expect(false, isTrue, reason: 'Unreachable');
@@ -21,7 +21,7 @@ var tests = <IsolateTest>[
 
   // Do this test last... it kills the vm connection.
   (Isolate isolate) async {
-    bool caughtException = false;
+    bool caughtException;
     try {
       await isolate.invokeRpc('_respondWithMalformedJson', {});
       expect(false, isTrue, reason: 'Unreachable');

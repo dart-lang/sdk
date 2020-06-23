@@ -4,7 +4,7 @@
 
 import 'dart:html';
 
-Element navBar(List<Element> content) {
+Element navBar(Iterable<Element> content) {
   assert(content != null);
   return document.createElement('nav')
     ..classes = ['nav-bar']

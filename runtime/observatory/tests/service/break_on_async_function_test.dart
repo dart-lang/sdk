@@ -26,7 +26,7 @@ var tests = <IsolateTest>[
 
 // Add breakpoint at the entry of async function
   (Isolate isolate) async {
-    Library rootLib = await isolate.rootLibrary.load() as Library;
+    Library rootLib = await isolate.rootLibrary.load();
     var function =
         rootLib.functions.singleWhere((f) => f.name == 'testFunction');
 
