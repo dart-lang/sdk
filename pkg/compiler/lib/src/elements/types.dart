@@ -2263,4 +2263,14 @@ abstract class DartTypes {
     }
     return type;
   }
+
+  bool canAssignGenericFunctionTo(DartType type) {
+    type = type.withoutNullability;
+    return type is FunctionType && type.typeVariables.isNotEmpty ||
+        isSubtype(commonElements.functionType, type) ||
+        type is FutureOrType && canAssignGenericFunctionTo(type.typeArgument) ||
+        type is TypeVariableType &&
+            canAssignGenericFunctionTo(getTypeVariableBound(type.element)) ||
+        type is FunctionTypeVariable && canAssignGenericFunctionTo(type.bound);
+  }
 }
