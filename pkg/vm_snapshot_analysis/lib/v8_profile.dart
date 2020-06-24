@@ -352,8 +352,11 @@ class _ProgramInfoBuilder {
         // Snapshot nodes which represent the program structure can't change
         // their owner during iteration - their owner is frozen and is given
         // by the program structure.
+        // Note that [ProgramInfoNode] owns its corresponding [Snapshot] node
+        // because we want the size of the snapshot node to be attributed to
+        // the info node itself.
         nodesWithFrozenOwner.add(node.index);
-        ownerOf[node.index] = info.parent?.id ?? info.id;
+        ownerOf[node.index] = info.id;
 
         // Handle some nodes specially.
         switch (node.type) {

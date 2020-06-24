@@ -494,11 +494,18 @@ void main() async {
         expect(inputLib.children['B'].children['tornOff'].children,
             contains('[tear-off] tornOff'));
 
-        expect(inputLib.children['C'].children, contains('tornOff'));
+        final classC = inputLib.children['C'];
+        expect(classC.children, contains('tornOff'));
         for (var name in ['tornOff{body}', '[tear-off] tornOff']) {
-          expect(inputLib.children['C'].children['tornOff'].children,
-              contains(name));
+          expect(classC.children['tornOff'].children, contains(name));
         }
+
+        // Verify that [ProgramInfoNode] owns its corresponding snapshot [Node].
+        final classesOwnedByC = info.snapshotInfo.snapshot.nodes
+            .where((n) => info.snapshotInfo.ownerOf(n) == classC)
+            .where((n) => n.type == 'Class')
+            .map((n) => n.name);
+        expect(classesOwnedByC, equals(['C']));
       });
     });
 
@@ -572,7 +579,6 @@ void main() async {
                       '#type': 'class',
                       'makeSomeClosures': {
                         '#type': 'function',
-                        '#size': greaterThan(0), // We added code here.
                         '<anonymous closure @180>': {
                           '#type': 'function',
                           '#size': greaterThan(0),
@@ -584,7 +590,6 @@ void main() async {
                       },
                       'main': {
                         '#type': 'function',
-                        '#size': lessThan(0), // We removed code from main.
                         'main': {'#size': lessThan(0)},
                       },
                     },
@@ -592,7 +597,6 @@ void main() async {
                       '#type': 'class',
                       'tornOff': {
                         '#type': 'function',
-                        '#size': greaterThan(0),
                         'tornOff': {'#size': greaterThan(0)},
                       },
                     }
@@ -621,11 +625,12 @@ void main() async {
                   'package:input/input.dart': {
                     '#type': 'library',
                     '#size': lessThan(0),
+                    'K': {'#size': isA<int>(), '#type': 'class'},
                     '::': {
                       '#type': 'class',
                       'makeSomeClosures': {
                         '#type': 'function',
-                        '#size': lessThan(0),
+                        '#size': greaterThan(0),
                         '<anonymous closure>': {
                           '#type': 'function',
                           '#size': lessThan(0),

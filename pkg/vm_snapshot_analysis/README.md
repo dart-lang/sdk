@@ -25,6 +25,26 @@ half of the snapshot, those this varies depending on the application.
 it attributes bytes written into a snapshot to a node in the heap graph. This
 format covers both data and code sections of the snapshot.
 
+### Passing flags to the AOT compiler
+
+Both in `dart2native` and Flutter you can use `--extra-gen-snapshot-options` to
+pass flags to the AOT compiler:
+
+```console
+$ flutter build aot --release --extra-gen-snapshot-options=--write-v8-snapshot-profile-to=profile.json
+
+$ dart2native --extra-gen-snapshot-options=--write-v8-snapshot-profile-to=profile.json -o binary input.dart
+```
+
+Similarly with `--print-instructions-sizes-to`.
+
+If you are working on the Dart SDK you can use the `pkg/vm/tool/precompiler2`
+script, in which case you can just pass these flags directly:
+
+```console
+$ pkg/vm/tool/precompiler2 --write-v8-snapshot-profile-to=profile.json input.dart binary
+```
+
 ## CLI
 
 The command line interface to the tools in this package is provided by a single

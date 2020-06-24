@@ -69,7 +69,7 @@ precisely based on their source position (which is included in their name).
       usageException('Need to specify input JSON.');
     }
 
-    final input = new File(argResults.rest[0]);
+    final input = File(argResults.rest[0]);
     if (!input.existsSync()) {
       usageException('Input file ${input.path} does not exist!');
     }
