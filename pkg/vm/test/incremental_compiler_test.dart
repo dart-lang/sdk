@@ -7,7 +7,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:front_end/src/api_unstable/vm.dart'
-    show CompilerOptions, DiagnosticMessage, computePlatformBinariesLocation;
+    show
+        CompilerOptions,
+        DiagnosticMessage,
+        ExperimentalFlag,
+        computePlatformBinariesLocation;
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/kernel.dart';
@@ -808,14 +812,12 @@ main() {
         }
         """);
 
+      final CompilerOptions optionsModified = getFreshOptions();
+      optionsModified.experimentalFlags[
+          ExperimentalFlag.alternativeInvalidationStrategy] = true;
+
       final IncrementalCompiler compiler =
-          new IncrementalCompiler(options, fooUri);
-      // These are copies of the ones in
-      // pkg/front_end/lib/src/fasta/util/experiment_environment_getter.dart
-      compiler.generator.setExperimentalFeaturesForTesting({
-        "DART_CFE_ENABLE_EXPERIMENTAL_INVALIDATION",
-        "DART_CFE_ENABLE_EXPERIMENTAL_INVALIDATION_SERIALIZATION"
-      });
+          new IncrementalCompiler(optionsModified, fooUri);
       Library fooLib;
       Library barLib;
       {
@@ -861,11 +863,6 @@ main() {
         expect(lrc.librariesReferenced, equals(<Library>{barLib2}));
       }
       await compiler.reject();
-      // Re-enable the experiments as reject creates a new generator.
-      compiler.generator.setExperimentalFeaturesForTesting({
-        "DART_CFE_ENABLE_EXPERIMENTAL_INVALIDATION",
-        "DART_CFE_ENABLE_EXPERIMENTAL_INVALIDATION_SERIALIZATION"
-      });
       {
         // Verify that the original foo library only has links to the original
         // compiled bar.

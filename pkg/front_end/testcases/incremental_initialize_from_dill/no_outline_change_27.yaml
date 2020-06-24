@@ -9,7 +9,7 @@ type: newworld
 worlds:
   - entry: main.dart
     warnings: true # Warning: Interpreting this as package URI
-    useExperimentalInvalidation: true
+    experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
         import "lib.dart";
@@ -25,7 +25,7 @@ worlds:
     expectedLibraryCount: 2
   - entry: main.dart
     warnings: true # Warning: Interpreting this as package URI
-    useExperimentalInvalidation: true
+    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:
@@ -41,7 +41,7 @@ worlds:
     expectsRebuildBodiesOnly: true
   - entry: main.dart
     warnings: true # Warning: Interpreting this as package URI
-    useExperimentalInvalidation: true
+    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:
