@@ -139,6 +139,34 @@ class InstanceMemberInferrer {
     );
     overriddenSetters ??= const [];
 
+    DartType combinedGetterType() {
+      var combinedGetter = inheritance.combineSignatures(
+        targetClass: currentClassElement,
+        candidates: overriddenGetters,
+        doTopMerge: true,
+        name: getterName,
+      );
+      if (combinedGetter != null) {
+        var returnType = combinedGetter.returnType;
+        return nonNullifyType(typeSystem, returnType);
+      }
+      return DynamicTypeImpl.instance;
+    }
+
+    DartType combinedSetterType() {
+      var combinedSetter = inheritance.combineSignatures(
+        targetClass: currentClassElement,
+        candidates: overriddenSetters,
+        doTopMerge: true,
+        name: setterName,
+      );
+      if (combinedSetter != null) {
+        var type = combinedSetter.parameters[0].type;
+        return nonNullifyType(typeSystem, type);
+      }
+      return DynamicTypeImpl.instance;
+    }
+
     if (accessor != null && accessor.isGetter) {
       if (!accessor.hasImplicitReturnType) {
         return;
@@ -153,17 +181,8 @@ class InstanceMemberInferrer {
       // and a getter is inferred to be the return type of the combined member
       // signature of said getter in the direct superinterfaces.
       if (overriddenGetters.isNotEmpty) {
-        var combinedGetter = inheritance.combineSignatures(
-          targetClass: currentClassElement,
-          candidates: overriddenGetters,
-          doTopMerge: true,
-          name: getterName,
-        );
-        if (combinedGetter != null) {
-          var returnType = combinedGetter.returnType;
-          returnType = nonNullifyType(typeSystem, returnType);
-          accessor.returnType = returnType;
-        }
+        accessor.returnType = combinedGetterType();
+        return;
       }
 
       // The return type of a getter, parameter type of a setter or type of
@@ -171,17 +190,8 @@ class InstanceMemberInferrer {
       // to be the parameter type of the combined member signature of said
       // setter in the direct superinterfaces.
       if (overriddenGetters.isEmpty && overriddenSetters.isNotEmpty) {
-        var combinedSetter = inheritance.combineSignatures(
-          targetClass: currentClassElement,
-          candidates: overriddenSetters,
-          doTopMerge: true,
-          name: setterName,
-        );
-        if (combinedSetter != null) {
-          var returnType = combinedSetter.parameters[0].type;
-          returnType = nonNullifyType(typeSystem, returnType);
-          accessor.returnType = returnType;
-        }
+        accessor.returnType = combinedSetterType();
+        return;
       }
 
       return;
@@ -207,17 +217,7 @@ class InstanceMemberInferrer {
       // to be the return type of the combined member signature of said getter
       // in the direct superinterfaces.
       if (overriddenGetters.isNotEmpty && overriddenSetters.isEmpty) {
-        var combinedGetter = inheritance.combineSignatures(
-          targetClass: currentClassElement,
-          candidates: overriddenGetters,
-          doTopMerge: true,
-          name: getterName,
-        );
-        if (combinedGetter != null) {
-          var type = combinedGetter.returnType;
-          type = nonNullifyType(typeSystem, type);
-          parameter.type = type;
-        }
+        parameter.type = combinedGetterType();
         return;
       }
 
@@ -230,17 +230,7 @@ class InstanceMemberInferrer {
       // setter and a getter is inferred to be the parameter type of the
       // combined member signature of said setter in the direct superinterfaces.
       if (overriddenSetters.isNotEmpty) {
-        var combinedSetter = inheritance.combineSignatures(
-          targetClass: currentClassElement,
-          candidates: overriddenSetters,
-          doTopMerge: true,
-          name: setterName,
-        );
-        if (combinedSetter != null) {
-          var type = combinedSetter.parameters[0].type;
-          type = nonNullifyType(typeSystem, type);
-          parameter.type = type;
-        }
+        parameter.type = combinedSetterType();
         return;
       }
 
@@ -264,17 +254,7 @@ class InstanceMemberInferrer {
       // to be the return type of the combined member signature of said getter
       // in the direct superinterfaces.
       if (overriddenGetters.isNotEmpty && overriddenSetters.isEmpty) {
-        var combinedGetter = inheritance.combineSignatures(
-          targetClass: currentClassElement,
-          candidates: overriddenGetters,
-          doTopMerge: true,
-          name: getterName,
-        );
-        if (combinedGetter != null) {
-          var type = combinedGetter.returnType;
-          type = nonNullifyType(typeSystem, type);
-          field.type = type;
-        }
+        field.type = combinedGetterType();
         return;
       }
 
@@ -283,17 +263,7 @@ class InstanceMemberInferrer {
       // to be the parameter type of the combined member signature of said
       // setter in the direct superinterfaces.
       if (overriddenGetters.isEmpty && overriddenSetters.isNotEmpty) {
-        var combinedSetter = inheritance.combineSignatures(
-          targetClass: currentClassElement,
-          candidates: overriddenSetters,
-          doTopMerge: true,
-          name: setterName,
-        );
-        if (combinedSetter != null) {
-          var type = combinedSetter.parameters[0].type;
-          type = nonNullifyType(typeSystem, type);
-          field.type = type;
-        }
+        field.type = combinedSetterType();
         return;
       }
 
@@ -302,17 +272,7 @@ class InstanceMemberInferrer {
         // and a getter is inferred to be the return type of the combined
         // member signature of said getter in the direct superinterfaces.
         if (field.isFinal) {
-          var combinedGetter = inheritance.combineSignatures(
-            targetClass: currentClassElement,
-            candidates: overriddenGetters,
-            doTopMerge: true,
-            name: getterName,
-          );
-          if (combinedGetter != null) {
-            var type = combinedGetter.returnType;
-            type = nonNullifyType(typeSystem, type);
-            field.type = type;
-          }
+          field.type = combinedGetterType();
           return;
         }
 
@@ -324,27 +284,11 @@ class InstanceMemberInferrer {
         // superinterfaces. If the types are not the same then inference
         // fails with an error.
         if (!field.isFinal) {
-          var combinedGetter = inheritance.combineSignatures(
-            targetClass: currentClassElement,
-            candidates: overriddenGetters,
-            doTopMerge: true,
-            name: getterName,
-          );
-          var getterType = combinedGetter?.returnType;
-
-          var combinedSetter = inheritance.combineSignatures(
-            targetClass: currentClassElement,
-            candidates: overriddenSetters,
-            doTopMerge: true,
-            name: setterName,
-          );
-          DartType setterType;
-          if (combinedSetter != null) {
-            setterType = combinedSetter.parameters[0].type;
-          }
+          var getterType = combinedGetterType();
+          var setterType = combinedSetterType();
 
           if (getterType == setterType) {
-            var type = getterType ?? _dynamicType;
+            var type = getterType;
             type = nonNullifyType(typeSystem, type);
             field.type = type;
           } else {
