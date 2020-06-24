@@ -145,8 +145,6 @@ void Options::PrintUsage() {
 "--help or -h\n"
 "  Display this message (add -v or --verbose for information about\n"
 "  all VM options).\n"
-"--package-root=<path> or -p<path>\n"
-"  Where to find packages, that is, \"package:...\" imports.\n"
 "--packages=<path>\n"
 "  Where to find a package spec file.\n"
 "--observe[=<port>[/<bind-address>]]\n"
@@ -180,8 +178,6 @@ void Options::PrintUsage() {
 "--help or -h\n"
 "  Display this message (add -v or --verbose for information about\n"
 "  all VM options).\n"
-"--package-root=<path> or -p<path>\n"
-"  Where to find packages, that is, \"package:...\" imports.\n"
 "--packages=<path>\n"
 "  Where to find a package spec file.\n"
 "--observe[=<port>[/<bind-address>]]\n"
@@ -659,17 +655,6 @@ int Options::ParseArguments(int argc,
     snapshot_deps_filename_ = NULL;
   }
 
-  if ((Options::package_root() != NULL) && (packages_file_ != NULL)) {
-    Syslog::PrintErr(
-        "Specifying both a packages directory and a packages "
-        "file is invalid.\n");
-    return -1;
-  }
-  if ((Options::package_root() != NULL) &&
-      (strlen(Options::package_root()) == 0)) {
-    Syslog::PrintErr("Empty package root specified.\n");
-    return -1;
-  }
   if ((packages_file_ != NULL) && (strlen(packages_file_) == 0)) {
     Syslog::PrintErr("Empty package file name specified.\n");
     return -1;

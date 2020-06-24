@@ -848,12 +848,6 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
   Dart_IsolateFlags flags;
   Dart_IsolateFlagsInitialize(&flags);
 
-  if (Options::package_root() != nullptr) {
-    Syslog::PrintErr(
-        "Warning: The --package-root option is deprecated (was: %s)\n",
-        Options::package_root());
-  }
-
   Dart_Isolate isolate = CreateIsolateGroupAndSetupHelper(
       is_main_isolate, script_name, "main", Options::packages_file(), &flags,
       NULL /* callback_data */, &error, &exit_code);
