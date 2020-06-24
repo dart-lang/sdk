@@ -1589,6 +1589,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       SourceLibraryBuilder debugLibrary = new SourceLibraryBuilder(
         libraryUri,
         debugExprUri,
+        /*packageUri*/ null,
         userCode.loader,
         null,
         scope: libraryBuilder.scope.createNestedScope("expression"),

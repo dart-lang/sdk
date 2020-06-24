@@ -9,7 +9,10 @@
 
 import 'package:foo/foo.dart';
 
-/*library: languageVersion=2.4*/
+/*library: 
+ languageVersion=2.4,
+ packageUri=package:foo
+*/
 
 main() {
   var result = foo();
