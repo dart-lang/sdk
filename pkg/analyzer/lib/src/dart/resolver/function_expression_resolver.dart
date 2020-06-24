@@ -57,7 +57,7 @@ class FunctionExpressionResolver {
         contextType,
       );
       if (contextType is FunctionType) {
-        _inferFormalParameterList(node.parameters, contextType);
+        _inferFormalParameters(node.parameters, contextType);
         InferenceContext.setType(body, contextType.returnType);
       }
     }
@@ -81,67 +81,66 @@ class FunctionExpressionResolver {
     }
   }
 
-  /// Given a formal parameter list and a function type use the function type
-  /// to infer types for any of the parameters which have implicit (missing)
-  /// types.  Returns true if inference has occurred.
-  bool _inferFormalParameterList(
-      FormalParameterList node, DartType functionType) {
-    bool inferred = false;
-    if (node != null && functionType is FunctionType) {
-      void inferType(ParameterElementImpl p, DartType inferredType) {
-        // Check that there is no declared type, and that we have not already
-        // inferred a type in some fashion.
-        if (p.hasImplicitType && (p.type == null || p.type.isDynamic)) {
-          // If no type is declared for a parameter and there is a
-          // corresponding parameter in the context type schema with type
-          // schema `K`, the parameter is given an inferred type `T` where `T`
-          // is derived from `K` as follows.
-          inferredType = _typeSystem.greatestClosure(inferredType);
+  /// Infer types of implicitly typed formal parameters.
+  void _inferFormalParameters(
+    FormalParameterList node,
+    FunctionType contextType,
+  ) {
+    if (node == null) {
+      return;
+    }
 
-          // If the greatest closure of `K` is `S` and `S` is a subtype of
-          // `Null`, then `T` is `Object?`. Otherwise, `T` is `S`.
-          if (_typeSystem.isSubtypeOf2(inferredType, _typeSystem.nullNone)) {
-            inferredType = _isNonNullableByDefault
-                ? _typeSystem.objectQuestion
-                : _typeSystem.objectStar;
-          }
-          if (_migrationResolutionHooks != null) {
-            inferredType = _migrationResolutionHooks
-                .modifyInferredParameterType(p, inferredType);
-          } else {
-            inferredType = nonNullifyType(_typeSystem, inferredType);
-          }
-          if (!inferredType.isDynamic) {
-            p.type = inferredType;
-            inferred = true;
-          }
+    void inferType(ParameterElementImpl p, DartType inferredType) {
+      // Check that there is no declared type, and that we have not already
+      // inferred a type in some fashion.
+      if (p.hasImplicitType && (p.type == null || p.type.isDynamic)) {
+        // If no type is declared for a parameter and there is a
+        // corresponding parameter in the context type schema with type
+        // schema `K`, the parameter is given an inferred type `T` where `T`
+        // is derived from `K` as follows.
+        inferredType = _typeSystem.greatestClosure(inferredType);
+
+        // If the greatest closure of `K` is `S` and `S` is a subtype of
+        // `Null`, then `T` is `Object?`. Otherwise, `T` is `S`.
+        if (_typeSystem.isSubtypeOf2(inferredType, _typeSystem.nullNone)) {
+          inferredType = _isNonNullableByDefault
+              ? _typeSystem.objectQuestion
+              : _typeSystem.objectStar;
         }
-      }
-
-      List<ParameterElement> parameters = node.parameterElements;
-      {
-        Iterator<ParameterElement> positional =
-            parameters.where((p) => p.isPositional).iterator;
-        Iterator<ParameterElement> fnPositional =
-            functionType.parameters.where((p) => p.isPositional).iterator;
-        while (positional.moveNext() && fnPositional.moveNext()) {
-          inferType(positional.current, fnPositional.current.type);
+        if (_migrationResolutionHooks != null) {
+          inferredType = _migrationResolutionHooks.modifyInferredParameterType(
+              p, inferredType);
+        } else {
+          inferredType = nonNullifyType(_typeSystem, inferredType);
         }
-      }
-
-      {
-        Map<String, DartType> namedParameterTypes =
-            functionType.namedParameterTypes;
-        Iterable<ParameterElement> named = parameters.where((p) => p.isNamed);
-        for (ParameterElementImpl p in named) {
-          if (!namedParameterTypes.containsKey(p.name)) {
-            continue;
-          }
-          inferType(p, namedParameterTypes[p.name]);
+        if (!inferredType.isDynamic) {
+          p.type = inferredType;
         }
       }
     }
-    return inferred;
+
+    List<ParameterElement> parameters = node.parameterElements;
+    {
+      Iterator<ParameterElement> positional =
+          parameters.where((p) => p.isPositional).iterator;
+      Iterator<ParameterElement> fnPositional =
+          contextType.parameters.where((p) => p.isPositional).iterator;
+      while (positional.moveNext() && fnPositional.moveNext()) {
+        inferType(positional.current, fnPositional.current.type);
+      }
+    }
+
+    {
+      Map<String, DartType> namedParameterTypes =
+          contextType.namedParameterTypes;
+      Iterable<ParameterElement> named = parameters.where((p) => p.isNamed);
+      for (ParameterElementImpl p in named) {
+        if (!namedParameterTypes.containsKey(p.name)) {
+          continue;
+        }
+        inferType(p, namedParameterTypes[p.name]);
+      }
+    }
   }
 
   /// Infers the return type of a local function, either a lambda or
