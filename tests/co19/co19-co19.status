@@ -16,10 +16,12 @@ Language/Expressions/Identifier_Reference/*: Skip # Not migrated to NNBD
 Language/Expressions/Instance_Creation/New/type_t09: Skip # Type aliases are not fully implemented
 Language/Expressions/Lists/syntax_t01: Skip # Triple shift is not implemented yet
 Language/Expressions/Maps/syntax_t01: Skip # Triple shift is not implemented yet
-Language/Generics/*: Skip # Not migrated to NNBD
-Language/Generics/Superbounded_types/*: Skip # Not migrated to NNBD
-Language/Interfaces/Superinterfaces/*: Skip # Not migrated to NNBD
-Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/*: Skip # Not migrated to NNBD
+Language/Generics/Superbounded_types/typedef2_A01_t02: Skip # Non function type aliases are not implemented yet
+Language/Generics/Superbounded_types/typedef2_A01_t03: Skip # Non function type aliases are not implemented yet
+Language/Generics/Superbounded_types/typedef2_A01_t04: Skip # Non function type aliases are not implemented yet
+Language/Generics/parameter_A01_t03: Skip # Type aliases are not fully implemented
+Language/Generics/syntax_t31: Skip # Type aliases are not fully implemented
+Language/Generics/typedef_A01_t10: Skip # Type aliases are not fully implemented
 Language/Libraries_and_Scripts/*: Skip # Not migrated to NNBD
 Language/Libraries_and_Scripts/Exports/*: Skip # Not migrated to NNBD
 Language/Libraries_and_Scripts/Parts/*: Skip # Not migrated to NNBD
