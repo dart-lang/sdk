@@ -227,6 +227,7 @@ core
 core's
 corelib
 corrected
+corrections
 cosmetic
 counters
 cr
@@ -238,6 +239,7 @@ cryptic
 crypto
 csslib
 ctx
+customized
 cut
 cwd
 cyclically
