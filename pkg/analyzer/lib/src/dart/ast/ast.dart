@@ -3426,6 +3426,7 @@ class ExportDirectiveImpl extends NamespaceDirectiveImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
+    configurations.accept(visitor);
     super.visitChildren(visitor);
     combinators.accept(visitor);
   }
@@ -5772,6 +5773,7 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
+    configurations.accept(visitor);
     _prefix?.accept(visitor);
     combinators.accept(visitor);
   }

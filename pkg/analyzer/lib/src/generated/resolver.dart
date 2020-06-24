@@ -812,6 +812,12 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  void visitConfiguration(Configuration node) {
+    // Don't visit the children. For the time being we don't resolve anything
+    // inside the configuration.
+  }
+
+  @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
     _enclosingFunction = node.declaredElement;
