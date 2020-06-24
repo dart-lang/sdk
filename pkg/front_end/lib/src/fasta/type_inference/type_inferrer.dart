@@ -3556,8 +3556,9 @@ abstract class MixinInferrer {
       // a subtype constraints.  Solve for equality by solving
       // both U0 <: S0 and S0 <: U0.
       InterfaceType s0 = mixinSupertype.asInterfaceType;
-      gatherer.trySubtypeMatch(u0, s0);
-      gatherer.trySubtypeMatch(s0, u0);
+
+      gatherer.tryConstrainLower(s0, u0);
+      gatherer.tryConstrainUpper(s0, u0);
     }
   }
 

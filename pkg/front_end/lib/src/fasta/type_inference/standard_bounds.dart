@@ -34,6 +34,8 @@ import 'package:kernel/src/legacy_erasure.dart';
 
 import 'type_schema.dart' show UnknownType;
 
+import 'type_schema_elimination.dart';
+
 import '../problems.dart';
 
 abstract class StandardBounds {
@@ -294,9 +296,15 @@ abstract class StandardBounds {
     // DOWN(T, T) = T.
     if (identical(type1, type2)) return type1;
 
-    // For any type T, SLB(?, T) = SLB(T, ?) = T.
+    //  - We add the axiom that `DOWN(T, _) == T` and the symmetric version.
+    //  - We replace all uses of `T1 <: T2` in the `DOWN` algorithm by `S1 <:
+    //  S2` where `Si` is the greatest closure of `Ti` with respect to `_`.
     if (type1 is UnknownType) return type2;
     if (type2 is UnknownType) return type1;
+    type1 = greatestClosure(type1, coreTypes.objectNullableRawType,
+        const NeverType(Nullability.nonNullable));
+    type2 = greatestClosure(type2, coreTypes.objectNullableRawType,
+        const NeverType(Nullability.nonNullable));
 
     // DOWN(T1, T2) where TOP(T1) and TOP(T2) =
     //   T1 if MORETOP(T2, T1)
@@ -617,9 +625,15 @@ abstract class StandardBounds {
     // UP(T, T) = T
     if (identical(type1, type2)) return type1;
 
-    // For any type T, SUB(?, T) = SUB(T, ?) = T.
+    //  - We add the axiom that `UP(T, _) == T` and the symmetric version.
+    //  - We replace all uses of `T1 <: T2` in the `UP` algorithm by `S1 <: S2`
+    //  where `Si` is the least closure of `Ti` with respect to `_`.
     if (type1 is UnknownType) return type2;
     if (type2 is UnknownType) return type1;
+    type1 = leastClosure(type1, coreTypes.objectNullableRawType,
+        const NeverType(Nullability.nonNullable));
+    type2 = leastClosure(type2, coreTypes.objectNullableRawType,
+        const NeverType(Nullability.nonNullable));
 
     // UP(T1, T2) where TOP(T1) and TOP(T2) =
     //   T1 if MORETOP(T1, T2)
