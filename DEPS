@@ -164,6 +164,13 @@ vars = {
   "minichromium_rev": "8d641e30a8b12088649606b912c2bc4947419ccc",
   "googletest_rev": "f854f1d27488996dc8a6db3c9453f80b02585e12",
 
+  # Pinned browser versions used by the testing infrastructure. These are not
+  # meant to be downloaded by users for local testing.
+  "download_chrome": False,
+  "chrome_tag": "81",
+  "download_firefox": False,
+  "firefox_tag": "67",
+
   # An LLVM backend needs LLVM binaries and headers. To avoid build time
   # increases we can use prebuilts. We don't want to download this on every
   # CQ/CI bot nor do we want the average Dart developer to incur that cost.
@@ -530,7 +537,27 @@ deps = {
       ],
       "condition": "checkout_llvm",
       "dep_type": "cipd",
-  }
+  },
+  Var("dart_root") + "/third_party/browsers/chrome": {
+      "packages": [
+          {
+              "package": "dart/browsers/chrome/${{platform}}",
+              "version": "version:" + Var("chrome_tag"),
+          },
+      ],
+      "condition": "download_chrome",
+      "dep_type": "cipd",
+  },
+  Var("dart_root") + "/third_party/browsers/firefox": {
+      "packages": [
+          {
+              "package": "dart/browsers/firefox/${{platform}}",
+              "version": "version:" + Var("firefox_tag"),
+          },
+      ],
+      "condition": "download_firefox",
+      "dep_type": "cipd",
+  },
 }
 
 deps_os = {
