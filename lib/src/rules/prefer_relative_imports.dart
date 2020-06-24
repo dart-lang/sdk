@@ -8,6 +8,7 @@ import 'package:path/path.dart' as path;
 
 import '../analyzer.dart';
 import '../ast.dart';
+import 'implementation_imports.dart' show samePackage;
 
 const _desc = r'Prefer relative imports for files in `lib/`.';
 
@@ -62,11 +63,15 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!isInLibFolder) return false;
 
     // Is it a package: import?
-    final importUri = node.uriContent;
-    if (importUri?.startsWith('package:') != true) return false;
+    final importUriContent = node.uriContent;
+    if (importUriContent?.startsWith('package:') != true) return false;
 
     final source = node.uriSource;
     if (source == null) return false;
+
+    final importUri = node?.uriSource?.uri;
+    final sourceUri = node?.element?.source?.uri;
+    if (!samePackage(importUri, sourceUri)) return false;
 
     // todo (pq): context.package.contains(source) should work (but does not)
     return path.isWithin(context.package.root, source.fullName);

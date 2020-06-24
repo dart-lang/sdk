@@ -684,7 +684,7 @@ void defineTests() {
             collectingOut.trim(),
             stringContainsInOrder([
               'main.dart 1:8',
-              '4 files analyzed, 1 issue found, in',
+              '5 files analyzed, 1 issue found, in',
             ]));
         expect(exitCode, 1);
       });
