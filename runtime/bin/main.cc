@@ -99,7 +99,7 @@ static Dart_Handle CreateRuntimeOptions(CommandLineOptions* options) {
 }
 
 #define SAVE_ERROR_AND_EXIT(result)                                            \
-  *error = strdup(Dart_GetError(result));                                      \
+  *error = Utils::StrDup(Dart_GetError(result));                               \
   if (Dart_IsCompilationError(result)) {                                       \
     *exit_code = kCompilationErrorExitCode;                                    \
   } else if (Dart_IsApiError(result)) {                                        \
@@ -278,7 +278,7 @@ static bool OnIsolateInitialize(void** child_callback_data, char** error) {
   return *error == nullptr;
 
 failed:
-  *error = strdup(Dart_GetError(result));
+  *error = Utils::StrDup(Dart_GetError(result));
   Dart_ExitScope();
   return false;
 }
@@ -368,7 +368,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
           &resolved_script_uri);
       CHECK_RESULT(result);
       ASSERT(app_script_uri == NULL);
-      app_script_uri = strdup(resolved_script_uri);
+      app_script_uri = Utils::StrDup(resolved_script_uri);
     }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   } else {
@@ -559,7 +559,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
           Options::vm_service_dev_mode(), Options::vm_service_auth_disabled(),
           Options::vm_write_service_info_filename(), Options::trace_loading(),
           Options::deterministic(), Options::enable_service_port_fallback())) {
-    *error = strdup(VmService::GetErrorMessage());
+    *error = Utils::StrDup(VmService::GetErrorMessage());
     return NULL;
   }
   if (Options::compile_all()) {

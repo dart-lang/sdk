@@ -190,6 +190,16 @@ deps = {
     Var("chromium_git") + "/chromium/llvm-project/cfe/tools/clang-format.git" +
     "@" + Var("clang_format_scripts_rev"),
 
+  Var("dart_root") + "/third_party/llvm-build/Release+Asserts": {
+    "packages": [
+      {
+        "package": "flutter/clang/win-amd64",
+        "version": "git_revision:5ec206df8534d2dd8cb9217c3180e5ddba587393"
+      }
+    ],
+    "condition": "download_windows_deps",
+    "dep_type": "cipd",
+  },
   Var("dart_root") + "/benchmarks-internal": {
     "url": Var("dart_internal_git") + "/benchmarks-internal.git" +
            "@" + Var("benchmarks_internal_rev"),

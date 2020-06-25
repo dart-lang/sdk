@@ -1508,11 +1508,11 @@ void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
     embedder_entry_points_ = new Dart_QualifiedFunctionName[count + 1];
     for (intptr_t i = 0; i < count; i++) {
       embedder_entry_points_[i].library_uri =
-          strdup(api_flags.entry_points[i].library_uri);
+          Utils::StrDup(api_flags.entry_points[i].library_uri);
       embedder_entry_points_[i].class_name =
-          strdup(api_flags.entry_points[i].class_name);
+          Utils::StrDup(api_flags.entry_points[i].class_name);
       embedder_entry_points_[i].function_name =
-          strdup(api_flags.entry_points[i].function_name);
+          Utils::StrDup(api_flags.entry_points[i].function_name);
     }
     memset(&embedder_entry_points_[count], 0,
            sizeof(Dart_QualifiedFunctionName));
@@ -1830,7 +1830,7 @@ void Isolate::ScheduleInterrupts(uword interrupt_bits) {
 
 void Isolate::set_name(const char* name) {
   free(name_);
-  name_ = strdup(name);
+  name_ = Utils::StrDup(name);
 }
 
 int64_t IsolateGroup::UptimeMicros() const {
@@ -1884,7 +1884,7 @@ void Isolate::BuildName(const char* name_prefix) {
   if (name_prefix == nullptr) {
     name_ = OS::SCreate(nullptr, "isolate-%" Pd64 "", main_port());
   } else {
-    name_ = strdup(name_prefix);
+    name_ = Utils::StrDup(name_prefix);
   }
 }
 

@@ -768,8 +768,9 @@ void IRRegExpMacroAssembler::CheckNotAtStart(intptr_t cp_offset,
   auto neg_len_def =
       Bind(InstanceCall(InstanceCallDescriptor::FromToken(Token::kNEGATE),
                         PushLocal(string_param_length_)));
-  auto offset_def =
-      Bind(Add(PushLocal(current_position_), Bind(Int64Constant(cp_offset))));
+  auto current_pos_def = PushLocal(current_position_);
+  auto cp_offset_def = Bind(Int64Constant(cp_offset));
+  auto offset_def = Bind(Add(current_pos_def, cp_offset_def));
   BranchOrBacktrack(Comparison(kNE, neg_len_def, offset_def), on_not_at_start);
 }
 

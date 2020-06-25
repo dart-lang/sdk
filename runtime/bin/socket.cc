@@ -289,10 +289,10 @@ bool ListeningSocketRegistry::CloseOneSafe(OSSocket* os_socket,
     // If the socket is abstract, which has a path starting with a null byte,
     // unlink() is not necessary because the file doesn't exist.
     if (os_socket->address.un.sun_path[0] != '\0') {
-      unlink(os_socket->address.un.sun_path);
+      Utils::Unlink(os_socket->address.un.sun_path);
     }
 #else
-    unlink(os_socket->address.un.sun_path);
+    Utils::Unlink(os_socket->address.un.sun_path);
 #endif  // defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
     // Remove os_socket from unix_domain_sockets_ list.
     OSSocket* prev = nullptr;

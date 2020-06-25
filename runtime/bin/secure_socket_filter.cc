@@ -494,7 +494,7 @@ void SSLFilter::Connect(const char* hostname,
     // Sets the hostname in the certificate-checking object, so it is checked
     // against the certificate presented by the server.
     X509_VERIFY_PARAM* certificate_checking_parameters = SSL_get0_param(ssl_);
-    hostname_ = strdup(hostname);
+    hostname_ = Utils::StrDup(hostname);
     X509_VERIFY_PARAM_set_flags(
         certificate_checking_parameters,
         X509_V_FLAG_PARTIAL_CHAIN | X509_V_FLAG_TRUSTED_FIRST);

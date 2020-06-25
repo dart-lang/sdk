@@ -439,7 +439,7 @@ static bool TryReadKernelListBuffer(const char* script_uri,
 
     StringPointer resolved_filename(
         File::IsAbsolutePath(filename)
-            ? strdup(filename)
+            ? Utils::StrDup(filename)
             : Utils::SCreate("%s%s", kernel_list_dirname, filename));
     if (!TryReadFile(resolved_filename.c_str(), &this_buffer,
                      &this_kernel_size)) {

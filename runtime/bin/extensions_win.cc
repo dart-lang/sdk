@@ -29,7 +29,8 @@ void* Extensions::LoadExtensionLibrary(const char* library_file) {
 
 void* Extensions::ResolveSymbol(void* lib_handle, const char* symbol) {
   SetLastError(0);
-  return GetProcAddress(reinterpret_cast<HMODULE>(lib_handle), symbol);
+  return reinterpret_cast<void*>(
+      GetProcAddress(reinterpret_cast<HMODULE>(lib_handle), symbol));
 }
 
 void Extensions::UnloadLibrary(void* lib_handle) {

@@ -392,7 +392,8 @@ bool Options::ProcessEnableExperimentOption(const char* arg,
     return false;
   }
   vm_options->AddArgument(arg);
-  Utils::CStringUniquePtr tmp = Utils::CreateCStringUniquePtr(strdup(value));
+  Utils::CStringUniquePtr tmp = Utils::CreateCStringUniquePtr(
+      Utils::StrDup(value));
   char* save_ptr;  // Needed for strtok_r.
   char* token = strtok_r(const_cast<char*>(tmp.get()), ",", &save_ptr);
   while (token != NULL) {
@@ -526,7 +527,7 @@ int Options::ParseArguments(int argc,
     script_or_cmd_index = i;
     if (Options::disable_dart_dev() ||
         (is_potential_file_path && !enable_vm_service_)) {
-      *script_name = strdup(argv[i]);
+      *script_name = Utils::StrDup(argv[i]);
       run_script = true;
       i++;
     } else {

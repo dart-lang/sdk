@@ -1201,7 +1201,7 @@ class EmbedderServiceHandler {
   explicit EmbedderServiceHandler(const char* name)
       : name_(NULL), callback_(NULL), user_data_(NULL), next_(NULL) {
     ASSERT(name != NULL);
-    name_ = strdup(name);
+    name_ = Utils::StrDup(name);
   }
 
   ~EmbedderServiceHandler() { free(name_); }
@@ -4653,7 +4653,7 @@ static const MethodParameter* set_vm_name_params[] = {
 static bool SetVMName(Thread* thread, JSONStream* js) {
   const char* name_param = js->LookupParam("name");
   free(vm_name);
-  vm_name = strdup(name_param);
+  vm_name = Utils::StrDup(name_param);
   if (Service::vm_stream.enabled()) {
     ServiceEvent event(NULL, ServiceEvent::kVMUpdate);
     Service::HandleEvent(&event);

@@ -6134,7 +6134,7 @@ char* SnapshotHeaderReader::ReadFeatures(const char** features,
 }
 
 char* SnapshotHeaderReader::BuildError(const char* message) {
-  return strdup(message);
+  return Utils::StrDup(message);
 }
 
 ApiErrorPtr FullSnapshotReader::ConvertToApiError(char* message) {
