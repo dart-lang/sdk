@@ -52,6 +52,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
       getFileDigest: (String path) => _getDigest(path),
       workspace: workspace,
       prefetchFiles: null,
+      libraryContextResetTimeout: null,
     );
     fileResolver.testView = FileResolverTestView();
   }

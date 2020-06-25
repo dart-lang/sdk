@@ -74,6 +74,7 @@ class CiderCompletionComputer {
 
       var resolvedUnit = performance.run('resolution', (performance) {
         return _fileResolver.resolve2(
+          completionOffset: offset,
           path: path,
           performance: performance,
         );

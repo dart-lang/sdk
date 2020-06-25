@@ -235,6 +235,7 @@ class FileResolver {
   }
 
   ResolvedUnitResult resolve2({
+    int completionOffset,
     @required String path,
     CiderOperationPerformanceImpl performance,
   }) {
@@ -279,6 +280,8 @@ class FileResolver {
 
           results = performance.run('analyze', (performance) {
             return libraryAnalyzer.analyzeSync(
+              completionPath: completionOffset != null ? path : null,
+              completionOffset: completionOffset,
               performance: performance,
             );
           });
