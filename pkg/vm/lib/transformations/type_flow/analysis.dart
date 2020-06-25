@@ -836,7 +836,10 @@ class _FieldValue extends _DependencyTracker {
   Type getValue(TypeFlowAnalysis typeFlowAnalysis, Type receiverType) {
     ensureInitialized(typeFlowAnalysis, receiverType);
     addDependentInvocation(typeFlowAnalysis.currentInvocation);
-    return value;
+    return (typeGuardSummary != null)
+        ? typeGuardSummary.apply(Args([receiverType, value]),
+            typeFlowAnalysis.hierarchyCache, typeFlowAnalysis)
+        : value;
   }
 
   void setValue(
@@ -1401,13 +1404,17 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   }
 
   _FieldValue getFieldValue(Field field) {
-    Summary setterSummary = null;
-    if (field.isGenericCovariantImpl) {
-      setterSummary = summaryCollector.createSummary(field,
-          fieldSummaryType: FieldSummaryType.kFieldGuard);
+    _FieldValue fieldValue = _fieldValues[field];
+    if (fieldValue == null) {
+      Summary typeGuardSummary = null;
+      if (field.isGenericCovariantImpl) {
+        typeGuardSummary = summaryCollector.createSummary(field,
+            fieldSummaryType: FieldSummaryType.kFieldGuard);
+      }
+      fieldValue = _FieldValue(field, typeGuardSummary, hierarchyCache);
+      _fieldValues[field] = fieldValue;
     }
-    return _fieldValues[field] ??=
-        new _FieldValue(field, setterSummary, hierarchyCache);
+    return fieldValue;
   }
 
   void process() {
