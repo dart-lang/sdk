@@ -564,6 +564,10 @@ void SemiSpace::Cleanup() {
   page_cache_mutex = nullptr;
 }
 
+intptr_t SemiSpace::CachedSize() {
+  return page_cache_size * kNewPageSize;
+}
+
 NewPage* NewPage::Allocate() {
   const intptr_t size = kNewPageSize;
   VirtualMemory* memory = nullptr;

@@ -538,7 +538,6 @@ abstract class SnapshotGraph {
   // TODO: Insist that the client remember the chunks if needed? Always keeping
   // this increasing the peak memory usage during analysis.
   List<Uint8List> get chunks;
-  Map<String, int> get processPartitions;
 }
 
 const _tagNone = 0;
@@ -627,8 +626,6 @@ class _SnapshotGraph implements SnapshotGraph {
     }
   }
 
-  final processPartitions = new Map<String, int>();
-
   Future<SnapshotGraph> _load(
       List<Uint8List> chunks, StreamController<String> onProgress) async {
     _chunks = chunks;
@@ -648,8 +645,6 @@ class _SnapshotGraph implements SnapshotGraph {
     onProgress.add("Loading external properties...");
     await new Future(() => _readExternalProperties(stream));
 
-    onProgress.add("Loading process partitions...");
-    await new Future(() => _readProcessPartitions(stream));
     stream = null;
 
     onProgress.add("Compute class table...");
@@ -879,17 +874,6 @@ class _SnapshotGraph implements SnapshotGraph {
     }
 
     _externalSizes = externalSizes;
-  }
-
-  void _readProcessPartitions(_ReadStream stream) {
-    // So it isn't null when loading older saved snapshots.
-    processPartitions["RSS"] = 0;
-
-    while (!stream.atEnd()) {
-      final name = stream.readUtf8();
-      final size = stream.readUnsigned();
-      processPartitions[name] = size;
-    }
   }
 
   void _computeClassTable() {

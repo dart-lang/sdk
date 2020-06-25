@@ -168,6 +168,7 @@ class SemiSpace {
  public:
   static void Init();
   static void Cleanup();
+  static intptr_t CachedSize();
 
   explicit SemiSpace(intptr_t max_capacity_in_words);
   ~SemiSpace();

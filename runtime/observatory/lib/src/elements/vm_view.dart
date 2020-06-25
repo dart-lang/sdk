@@ -211,7 +211,9 @@ class VMViewElement extends CustomElement implements Renderable {
               ..children = <Element>[
                 new DivElement()
                   ..classes = ['memberName']
-                  ..text = 'peak memory',
+                  ..text = 'peak process memory'
+                  ..title =
+                      'highest value of the resident set size of the process running this VM',
                 new DivElement()
                   ..classes = ['memberValue']
                   ..text = _vm.maxRSS != null
@@ -223,7 +225,9 @@ class VMViewElement extends CustomElement implements Renderable {
               ..children = <Element>[
                 new DivElement()
                   ..classes = ['memberName']
-                  ..text = 'current memory',
+                  ..text = 'current process memory'
+                  ..title =
+                      'current value of the resident set size of the process running this VM',
                 new DivElement()
                   ..classes = ['memberValue']
                   ..text = _vm.currentRSS != null
@@ -235,18 +239,7 @@ class VMViewElement extends CustomElement implements Renderable {
               ..children = <Element>[
                 new DivElement()
                   ..classes = ['memberName']
-                  ..text = 'native zone memory',
-                new DivElement()
-                  ..classes = ['memberValue']
-                  ..text = Utils.formatSize(_vm.nativeZoneMemoryUsage)
-                  ..title = '${_vm.nativeZoneMemoryUsage} bytes'
-              ],
-            new DivElement()
-              ..classes = ['memberItem']
-              ..children = <Element>[
-                new DivElement()
-                  ..classes = ['memberName']
-                  ..text = 'native heap memory',
+                  ..text = 'malloc memory',
                 new DivElement()
                   ..classes = ['memberValue']
                   ..text = _vm.heapAllocatedMemoryUsage != null
@@ -261,7 +254,7 @@ class VMViewElement extends CustomElement implements Renderable {
               ..children = <Element>[
                 new DivElement()
                   ..classes = ['memberName']
-                  ..text = 'native heap allocation count',
+                  ..text = 'malloc allocation count',
                 new DivElement()
                   ..classes = ['memberValue']
                   ..text = _vm.heapAllocationCount != null
@@ -293,7 +286,14 @@ class VMViewElement extends CustomElement implements Renderable {
                   ..children = <Element>[
                     new SpanElement()..text = 'view ',
                     new AnchorElement(href: Uris.nativeMemory())
-                      ..text = 'native memory profile'
+                      ..text = 'malloc profile'
+                  ],
+                new DivElement()
+                  ..classes = ['memberName']
+                  ..children = <Element>[
+                    new SpanElement()..text = 'view ',
+                    new AnchorElement(href: Uris.processSnapshot())
+                      ..text = 'process memory'
                   ]
               ]
           ],
