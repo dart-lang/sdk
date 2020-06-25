@@ -86,6 +86,8 @@ NORMAL = 50  # Used for post-submit builds.
 HIGH = 30  # Used for try-jobs.
 HIGHEST = 25  # Used for shards in the recipes, included here for completeness.
 
+CHROME = {"custom_vars": {"download_chrome": True}}
+
 
 def to_location_regexp(paths):
     return [".+/[+]/%s" % path for path in paths]
@@ -765,12 +767,22 @@ dart_vm_extra_builder("vm-precomp-ffi-qemu-linux-release-arm",
                       category="vm|ffi|qe")
 
 # pkg
-dart_ci_sandbox_builder("pkg-linux-release", category="pkg|l", on_cq=True)
-dart_ci_sandbox_builder("pkg-mac-release", category="pkg|m", dimensions=mac())
+dart_ci_sandbox_builder("pkg-linux-release",
+                        category="pkg|l",
+                        on_cq=True,
+                        properties=CHROME)
+dart_ci_sandbox_builder("pkg-mac-release",
+                        category="pkg|m",
+                        dimensions=mac(),
+                        properties=CHROME)
 dart_ci_sandbox_builder("pkg-win-release",
                         category="pkg|w",
-                        dimensions=windows())
-dart_ci_sandbox_builder("pkg-linux-debug", category="pkg|ld", channels=["try"])
+                        dimensions=windows(),
+                        properties=CHROME)
+dart_ci_sandbox_builder("pkg-linux-debug",
+                        category="pkg|ld",
+                        channels=["try"],
+                        properties=CHROME)
 
 # dart2js
 dart_ci_sandbox_builder("dart2js-strong-hostasserts-linux-ia32-d8",
