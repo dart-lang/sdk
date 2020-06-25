@@ -751,6 +751,7 @@ dart_vm_low_priority_builder(
 dart_vm_low_priority_builder(
     "vm-kernel-reload-rollback-linux-release-x64",
     category="vm|misc|reload|rrb")
+dart_vm_low_priority_builder("vm-fuchsia-release-x64", category="vm|misc|f")
 
 # vm|ffi
 dart_vm_extra_builder("vm-ffi-android-debug-arm", category="vm|ffi|d32")
