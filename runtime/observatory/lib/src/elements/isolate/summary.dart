@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/utils.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/isolate_ref.dart';
 import 'package:observatory/src/elements/isolate/location.dart';
@@ -15,14 +15,6 @@ import 'package:observatory/src/elements/isolate/run_state.dart';
 import 'package:observatory/src/elements/isolate/shared_summary.dart';
 
 class IsolateSummaryElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<IsolateSummaryElement>('isolate-summary', dependencies: const [
-    IsolateRefElement.tag,
-    IsolateLocationElement.tag,
-    IsolateRunStateElement.tag,
-    IsolateSharedSummaryElement.tag
-  ]);
-
   RenderingScheduler<IsolateSummaryElement> _r;
 
   Stream<RenderedEvent<IsolateSummaryElement>> get onRendered => _r.onRendered;
@@ -52,7 +44,7 @@ class IsolateSummaryElement extends CustomElement implements Renderable {
     return e;
   }
 
-  IsolateSummaryElement.created() : super.created(tag);
+  IsolateSummaryElement.created() : super.created('isolate-summary');
 
   @override
   void attached() {

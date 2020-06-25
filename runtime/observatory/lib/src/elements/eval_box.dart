@@ -9,13 +9,10 @@ import 'dart:async';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/instance_ref.dart';
 
 class EvalBoxElement extends CustomElement implements Renderable {
-  static const tag = const Tag<EvalBoxElement>('eval-box',
-      dependencies: const [InstanceRefElement.tag]);
-
   RenderingScheduler<EvalBoxElement> _r;
 
   Stream<RenderedEvent<EvalBoxElement>> get onRendered => _r.onRendered;
@@ -54,7 +51,7 @@ class EvalBoxElement extends CustomElement implements Renderable {
     return e;
   }
 
-  EvalBoxElement.created() : super.created(tag);
+  EvalBoxElement.created() : super.created('eval-box');
 
   @override
   void attached() {

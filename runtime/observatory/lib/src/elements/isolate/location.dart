@@ -7,13 +7,10 @@ import 'dart:async';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/function_ref.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/source_link.dart';
 
 class IsolateLocationElement extends CustomElement implements Renderable {
-  static const tag = const Tag<IsolateLocationElement>('isolate-location',
-      dependencies: const [FunctionRefElement.tag, SourceLinkElement.tag]);
-
   RenderingScheduler<IsolateLocationElement> _r;
 
   Stream<RenderedEvent<IsolateLocationElement>> get onRendered => _r.onRendered;
@@ -38,7 +35,7 @@ class IsolateLocationElement extends CustomElement implements Renderable {
     return e;
   }
 
-  IsolateLocationElement.created() : super.created(tag);
+  IsolateLocationElement.created() : super.created('isolate-location');
 
   @override
   void attached() {

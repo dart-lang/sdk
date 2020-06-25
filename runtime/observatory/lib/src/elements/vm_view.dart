@@ -9,7 +9,7 @@ import 'dart:html';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/isolate/summary.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
@@ -20,15 +20,6 @@ import 'package:observatory/src/elements/view_footer.dart';
 import 'package:observatory/utils.dart';
 
 class VMViewElement extends CustomElement implements Renderable {
-  static const tag = const Tag<VMViewElement>('vm-view', dependencies: const [
-    IsolateSummaryElement.tag,
-    NavTopMenuElement.tag,
-    NavVMMenuElement.tag,
-    NavRefreshElement.tag,
-    NavNotifyElement.tag,
-    ViewFooterElement.tag
-  ]);
-
   RenderingScheduler<VMViewElement> _r;
 
   Stream<RenderedEvent<VMViewElement>> get onRendered => _r.onRendered;
@@ -74,7 +65,7 @@ class VMViewElement extends CustomElement implements Renderable {
     return e;
   }
 
-  VMViewElement.created() : super.created(tag);
+  VMViewElement.created() : super.created('vm-view');
 
   @override
   attached() {

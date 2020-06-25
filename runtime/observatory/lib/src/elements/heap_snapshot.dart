@@ -19,7 +19,7 @@ import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
@@ -528,17 +528,6 @@ class MergedDominatorDiff {
 }
 
 class HeapSnapshotElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<HeapSnapshotElement>('heap-snapshot', dependencies: const [
-    ClassRefElement.tag,
-    NavTopMenuElement.tag,
-    NavVMMenuElement.tag,
-    NavIsolateMenuElement.tag,
-    NavRefreshElement.tag,
-    NavNotifyElement.tag,
-    VirtualTreeElement.tag,
-  ]);
-
   RenderingScheduler<HeapSnapshotElement> _r;
 
   Stream<RenderedEvent<HeapSnapshotElement>> get onRendered => _r.onRendered;
@@ -589,7 +578,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
     return e;
   }
 
-  HeapSnapshotElement.created() : super.created(tag);
+  HeapSnapshotElement.created() : super.created('heap-snapshot');
 
   @override
   attached() {

@@ -10,7 +10,7 @@ import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
@@ -20,18 +20,6 @@ import 'package:observatory/src/elements/object_common.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class ICDataViewElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<ICDataViewElement>('icdata-view', dependencies: const [
-    CurlyBlockElement.tag,
-    NavTopMenuElement.tag,
-    NavVMMenuElement.tag,
-    NavIsolateMenuElement.tag,
-    NavRefreshElement.tag,
-    NavNotifyElement.tag,
-    ObjectCommonElement.tag,
-    ViewFooterElement.tag
-  ]);
-
   RenderingScheduler<ICDataViewElement> _r;
 
   Stream<RenderedEvent<ICDataViewElement>> get onRendered => _r.onRendered;
@@ -93,7 +81,7 @@ class ICDataViewElement extends CustomElement implements Renderable {
     return e;
   }
 
-  ICDataViewElement.created() : super.created(tag);
+  ICDataViewElement.created() : super.created('icdata-view');
 
   @override
   attached() {

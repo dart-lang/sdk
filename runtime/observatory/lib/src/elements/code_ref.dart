@@ -9,12 +9,10 @@ import 'dart:async';
 import 'package:observatory/models.dart' as M
     show IsolateRef, CodeRef, isSyntheticCode;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class CodeRefElement extends CustomElement implements Renderable {
-  static const tag = const Tag<CodeRefElement>('code-ref');
-
   RenderingScheduler<CodeRefElement> _r;
 
   Stream<RenderedEvent<CodeRefElement>> get onRendered => _r.onRendered;
@@ -35,7 +33,7 @@ class CodeRefElement extends CustomElement implements Renderable {
     return e;
   }
 
-  CodeRefElement.created() : super.created(tag);
+  CodeRefElement.created() : super.created('code-ref');
 
   @override
   void attached() {

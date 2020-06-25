@@ -6,12 +6,10 @@ import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class ClassRefElement extends CustomElement implements Renderable {
-  static const tag = const Tag<ClassRefElement>('class-ref');
-
   RenderingScheduler<ClassRefElement> _r;
 
   Stream<RenderedEvent<ClassRefElement>> get onRendered => _r.onRendered;
@@ -32,7 +30,7 @@ class ClassRefElement extends CustomElement implements Renderable {
     return e;
   }
 
-  ClassRefElement.created() : super.created(tag);
+  ClassRefElement.created() : super.created('class-ref');
 
   @override
   void attached() {

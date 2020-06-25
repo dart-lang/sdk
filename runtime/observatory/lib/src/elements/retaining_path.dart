@@ -9,12 +9,9 @@ import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/instance_ref.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 
 class RetainingPathElement extends CustomElement implements Renderable {
-  static const tag = const Tag<RetainingPathElement>('retaining-path',
-      dependencies: const [CurlyBlockElement.tag, InstanceRefElement.tag]);
-
   RenderingScheduler<RetainingPathElement> _r;
 
   Stream<RenderedEvent<RetainingPathElement>> get onRendered => _r.onRendered;
@@ -45,7 +42,7 @@ class RetainingPathElement extends CustomElement implements Renderable {
     return e;
   }
 
-  RetainingPathElement.created() : super.created(tag);
+  RetainingPathElement.created() : super.created('retaining-path');
 
   @override
   void attached() {

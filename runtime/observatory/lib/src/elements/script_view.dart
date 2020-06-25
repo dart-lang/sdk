@@ -12,7 +12,7 @@ import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/library_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
@@ -24,21 +24,6 @@ import 'package:observatory/src/elements/script_inset.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class ScriptViewElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<ScriptViewElement>('script-view', dependencies: const [
-    ContextRefElement.tag,
-    CurlyBlockElement.tag,
-    NavTopMenuElement.tag,
-    NavVMMenuElement.tag,
-    NavIsolateMenuElement.tag,
-    NavLibraryMenuElement.tag,
-    NavRefreshElement.tag,
-    NavNotifyElement.tag,
-    ObjectCommonElement.tag,
-    ScriptInsetElement.tag,
-    ViewFooterElement.tag
-  ]);
-
   RenderingScheduler<ScriptViewElement> _r;
 
   Stream<RenderedEvent<ScriptViewElement>> get onRendered => _r.onRendered;
@@ -103,7 +88,7 @@ class ScriptViewElement extends CustomElement implements Renderable {
     return e;
   }
 
-  ScriptViewElement.created() : super.created(tag);
+  ScriptViewElement.created() : super.created('script-view');
 
   @override
   attached() {

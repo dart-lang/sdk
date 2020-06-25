@@ -16,12 +16,10 @@ import 'package:observatory/models.dart' as M
         getFunctionFullName;
 import 'package:observatory/src/elements/class_ref.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class FunctionRefElement extends CustomElement implements Renderable {
-  static const tag = const Tag<FunctionRefElement>('function-ref');
-
   RenderingScheduler<FunctionRefElement> _r;
 
   Stream<RenderedEvent<FunctionRefElement>> get onRendered => _r.onRendered;
@@ -46,7 +44,7 @@ class FunctionRefElement extends CustomElement implements Renderable {
     return e;
   }
 
-  FunctionRefElement.created() : super.created(tag);
+  FunctionRefElement.created() : super.created('function-ref');
 
   @override
   void attached() {

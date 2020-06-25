@@ -11,7 +11,7 @@ import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/nav/class_menu.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
@@ -22,20 +22,6 @@ import 'package:observatory/src/elements/object_common.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class ContextViewElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<ContextViewElement>('context-view', dependencies: const [
-    ContextRefElement.tag,
-    CurlyBlockElement.tag,
-    NavClassMenuElement.tag,
-    NavTopMenuElement.tag,
-    NavVMMenuElement.tag,
-    NavIsolateMenuElement.tag,
-    NavRefreshElement.tag,
-    NavNotifyElement.tag,
-    ObjectCommonElement.tag,
-    ViewFooterElement.tag
-  ]);
-
   RenderingScheduler<ContextViewElement> _r;
 
   Stream<RenderedEvent<ContextViewElement>> get onRendered => _r.onRendered;
@@ -97,7 +83,7 @@ class ContextViewElement extends CustomElement implements Renderable {
     return e;
   }
 
-  ContextViewElement.created() : super.created(tag);
+  ContextViewElement.created() : super.created('context-view');
 
   @override
   attached() {
