@@ -635,6 +635,22 @@ enum IndexSyntheticElementKind {
   unit
 }
 
+abstract class LinkedLanguageVersion extends base.SummaryClass {
+  @Id(0)
+  int get major;
+
+  @Id(1)
+  int get minor;
+}
+
+abstract class LinkedLibraryLanguageVersion extends base.SummaryClass {
+  @Id(1)
+  LinkedLanguageVersion get override2;
+
+  @Id(0)
+  LinkedLanguageVersion get package;
+}
+
 /// Information about a linked AST node.
 @Variant('kind')
 abstract class LinkedNode extends base.SummaryClass {
@@ -848,13 +864,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(3, variant: LinkedNodeKind.compilationUnit)
   List<LinkedNode> get compilationUnit_directives;
 
-  /// The major component of the actual language version (not just override).
-  @VariantId(15, variant: LinkedNodeKind.compilationUnit)
-  int get compilationUnit_languageVersionMajor;
-
-  /// The minor component of the actual language version (not just override).
-  @VariantId(16, variant: LinkedNodeKind.compilationUnit)
-  int get compilationUnit_languageVersionMinor;
+  /// The language version information.
+  @VariantId(40, variant: LinkedNodeKind.compilationUnit)
+  LinkedLibraryLanguageVersion get compilationUnit_languageVersion;
 
   @VariantId(6, variant: LinkedNodeKind.compilationUnit)
   LinkedNode get compilationUnit_scriptTag;

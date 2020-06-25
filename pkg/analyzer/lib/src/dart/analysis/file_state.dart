@@ -12,6 +12,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -562,11 +563,20 @@ class FileState {
 
   CompilationUnit _createEmptyCompilationUnit() {
     var token = Token.eof(0);
-    return astFactory.compilationUnit(
+    var unit = astFactory.compilationUnit(
       beginToken: token,
       endToken: token,
       featureSet: _contextFeatureSet,
-    )..lineInfo = LineInfo(const <int>[0]);
+    ) as CompilationUnitImpl;
+
+    unit.lineInfo = LineInfo(const <int>[0]);
+
+    unit.languageVersion = LibraryLanguageVersion(
+      package: _packageLanguageVersion,
+      override: null,
+    );
+
+    return unit;
   }
 
   /**
@@ -678,13 +688,11 @@ $content
     LanguageVersionToken versionToken,
     AnalysisErrorListener errorListener,
   ) {
-    var languageVersion = _packageLanguageVersion;
-
+    Version overrideVersion;
     if (versionToken != null) {
+      overrideVersion = Version(versionToken.major, versionToken.minor, 0);
       var latestVersion = ExperimentStatus.currentVersion;
-      if (versionToken.major > latestVersion.major ||
-          versionToken.major == latestVersion.major &&
-              versionToken.minor > latestVersion.minor) {
+      if (overrideVersion > latestVersion) {
         errorListener.onError(
           AnalysisError(
             source,
@@ -694,15 +702,15 @@ $content
             [latestVersion.major, latestVersion.minor],
           ),
         );
-        // Fall-through, use the package language version.
-      } else {
-        languageVersion = Version(versionToken.major, versionToken.minor, 0);
+        overrideVersion = null;
       }
     }
 
     var unitImpl = unit as CompilationUnitImpl;
-    unitImpl.languageVersionMajor = languageVersion.major;
-    unitImpl.languageVersionMinor = languageVersion.minor;
+    unitImpl.languageVersion = LibraryLanguageVersion(
+      package: _packageLanguageVersion,
+      override: overrideVersion,
+    );
   }
 
   static UnlinkedUnit2Builder serializeAstUnlinked2(CompilationUnit unit) {

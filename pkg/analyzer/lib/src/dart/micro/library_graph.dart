@@ -9,11 +9,14 @@ import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
@@ -153,6 +156,13 @@ class FileState {
     // StringToken uses a static instance of StringCanonicalizer, so we need
     // to clear it explicitly once we are done using it for this file.
     StringToken.canonicalizer.clear();
+
+    // TODO(scheglov) Use actual versions.
+    var unitImpl = unit as CompilationUnitImpl;
+    unitImpl.languageVersion = LibraryLanguageVersion(
+      package: ExperimentStatus.currentVersion,
+      override: null,
+    );
 
     return unit;
   }

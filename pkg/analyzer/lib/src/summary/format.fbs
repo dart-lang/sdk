@@ -1063,6 +1063,18 @@ table DirectiveInfo {
   templateValues:[string] (id: 1);
 }
 
+table LinkedLanguageVersion {
+  major:uint (id: 0);
+
+  minor:uint (id: 1);
+}
+
+table LinkedLibraryLanguageVersion {
+  override2:LinkedLanguageVersion (id: 1);
+
+  package:LinkedLanguageVersion (id: 0);
+}
+
 /// Information about a linked AST node.
 table LinkedNode {
   /// The explicit or inferred return type of a function typed node.
@@ -1102,8 +1114,8 @@ table LinkedNode {
 
   variantField_3:[LinkedNode] (id: 3);
 
-  /// The minor component of the actual language version (not just override).
-  variantField_16:uint (id: 16);
+  /// The language version information.
+  variantField_40:LinkedLibraryLanguageVersion (id: 40);
 
   variantField_10:LinkedNode (id: 10);
 
@@ -1122,6 +1134,8 @@ table LinkedNode {
   variantField_1:string (id: 1);
 
   variantField_36:uint (id: 36);
+
+  variantField_16:uint (id: 16);
 
   variantField_30:string (id: 30);
 

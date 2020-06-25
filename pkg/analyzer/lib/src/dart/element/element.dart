@@ -2639,11 +2639,8 @@ abstract class ElementImpl implements Element {
   /// The length of the element's code, or `null` if the element is synthetic.
   int _codeLength;
 
-  /// The major component of the language version.
-  int _languageVersionMajor;
-
-  /// The minor component of the language version.
-  int _languageVersionMinor;
+  /// The language version for the library.
+  LibraryLanguageVersion _languageVersion;
 
   /// Initialize a newly created element to have the given [name] at the given
   /// [_nameOffset].
@@ -5502,29 +5499,31 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   ElementKind get kind => ElementKind.LIBRARY;
 
   @override
-  int get languageVersionMajor {
-    if (_languageVersionMajor != null) return _languageVersionMajor;
+  LibraryLanguageVersion get languageVersion {
+    if (_languageVersion != null) return _languageVersion;
 
     if (linkedNode != null) {
-      _languageVersionMajor = linkedContext.getLanguageVersionMajor(linkedNode);
-      return _languageVersionMajor;
+      _languageVersion = linkedContext.getLanguageVersion(linkedNode);
+      return _languageVersion;
     }
 
-    _languageVersionMajor = ExperimentStatus.currentVersion.major;
-    return _languageVersionMajor;
+    _languageVersion = LibraryLanguageVersion(
+      package: ExperimentStatus.currentVersion,
+      override: null,
+    );
+    return _languageVersion;
   }
 
+  @Deprecated("Use 'languageVersion'")
+  @override
+  int get languageVersionMajor {
+    return languageVersion.effective.major;
+  }
+
+  @Deprecated("Use 'languageVersion'")
   @override
   int get languageVersionMinor {
-    if (_languageVersionMinor != null) return _languageVersionMinor;
-
-    if (linkedNode != null) {
-      _languageVersionMinor = linkedContext.getLanguageVersionMinor(linkedNode);
-      return _languageVersionMinor;
-    }
-
-    _languageVersionMinor = ExperimentStatus.currentVersion.minor;
-    return _languageVersionMinor;
+    return languageVersion.effective.minor;
   }
 
   @override
@@ -5674,11 +5673,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @override
   ClassElement getType(String className) {
     return getTypeFromParts(className, _definingCompilationUnit, _parts);
-  }
-
-  void setLanguageVersion(int major, int minor) {
-    _languageVersionMajor = major;
-    _languageVersionMinor = minor;
   }
 
   /// Set whether the library has the given [capability] to

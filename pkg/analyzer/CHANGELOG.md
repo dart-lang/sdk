@@ -1,6 +1,8 @@
 ## 0.39.11-dev
 * Deprecated `ClassElement.hasReferenceToSuper`.
   It was used internally, should not be part of API.
+* Deprecated `LibraryElement.languageVersionMajor/minor`.
+  Use `LibraryElement.languageVersion` to access more specific information.
 
 ## 0.39.10
 * Restored the default constructor in internal `SummaryBuilder`,

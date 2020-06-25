@@ -49,6 +49,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
 import 'package:meta/meta.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// An element that represents a class or a mixin. The class can be defined by
 /// either a class declaration (with a class body), a mixin application (without
@@ -1341,10 +1342,15 @@ abstract class LibraryElement implements Element {
 
   bool get isNonNullableByDefault;
 
+  /// The language version for this library.
+  LibraryLanguageVersion get languageVersion;
+
   /// The major component of the language version for this library.
+  @Deprecated("Use 'languageVersion'")
   int get languageVersionMajor;
 
   /// The minor component of the language version for this library.
+  @Deprecated("Use 'languageVersion'")
   int get languageVersionMinor;
 
   /// Return the element representing the synthetic function `loadLibrary` that
@@ -1397,6 +1403,24 @@ abstract class LibraryElement implements Element {
   /// If a legacy library, return the legacy version of the [type].
   /// Otherwise, return the original type.
   DartType toLegacyTypeIfOptOut(DartType type);
+}
+
+class LibraryLanguageVersion {
+  /// The version for the whole package that contains this library.
+  final Version package;
+
+  /// The version specified using `@dart` override, `null` if absent or invalid.
+  final Version override;
+
+  LibraryLanguageVersion({
+    @required this.package,
+    @required this.override,
+  });
+
+  /// The effective language version for the library.
+  Version get effective {
+    return override ?? package;
+  }
 }
 
 /// An element that can be (but is not required to be) defined within a method
