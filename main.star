@@ -230,13 +230,12 @@ luci.bucket(
         acl.entry(acl.BUILDBUCKET_TRIGGERER, users=CI_SANDBOX_TRIGGERERS),
     ],
 )
-TRY_ACLS=[
-    acl.entry(
-        acl.BUILDBUCKET_TRIGGERER,
-        groups=["project-dart-tryjob-access", "service-account-cq"]),
+TRY_ACLS = [
+    acl.entry(acl.BUILDBUCKET_TRIGGERER,
+              groups=["project-dart-tryjob-access", "service-account-cq"]),
 ]
-luci.bucket(name="try", acls=TRY_ACLS) # Tryjobs specific to the Dart SDK repo.
-luci.bucket(name="try.shared", acls=TRY_ACLS) # Tryjobs for all repos.
+luci.bucket(name="try", acls=TRY_ACLS)  # Tryjobs specific to the Dart SDK repo.
+luci.bucket(name="try.shared", acls=TRY_ACLS)  # Tryjobs for all repos.
 
 luci.gitiles_poller(
     name="dart-gitiles-trigger-flutter",
@@ -274,32 +273,31 @@ luci.gitiles_poller(
     refs=["refs/heads/master"],
 )
 
-luci.notifier(
-    name="infra",
-    on_new_failure=True,
-    notify_emails=[
-        "athom@google.com", "sortie@google.com", "whesse@google.com"
-    ])
+luci.notifier(name="infra",
+              on_new_failure=True,
+              notify_emails=[
+                  "athom@google.com", "sortie@google.com", "whesse@google.com"
+              ])
 
-luci.notifier(
-    name="dart",
-    on_new_failure=True,
-    notify_emails=["athom@google.com"],
-    notify_blamelist=True)
+luci.notifier(name="dart",
+              on_new_failure=True,
+              notify_emails=["athom@google.com"],
+              notify_blamelist=True)
 
-luci.notifier(
-    name="dart-fuzz-testing",
-    on_success=True,
-    on_failure=True,
-    notify_emails=["ajcbik@google.com", "athom@google.com"])
+luci.notifier(name="dart-fuzz-testing",
+              on_success=True,
+              on_failure=True,
+              notify_emails=["ajcbik@google.com", "athom@google.com"])
 
-luci.notifier(
-    name="frontend-team", on_failure=True, notify_emails=["jensj@google.com"])
+luci.notifier(name="frontend-team",
+              on_failure=True,
+              notify_emails=["jensj@google.com"])
 
 luci.cq(
     submit_max_burst=2,
     submit_burst_delay=8 * time.minute,
 )
+
 
 def default_verifiers():
     return [
@@ -309,10 +307,11 @@ def default_verifiers():
         ),
     ]
 
+
 luci.cq_group(
     name="sdk",
-    watch=cq.refset(
-        DART_GERRIT + "sdk", refs=["refs/heads/%s" % branch for branch in BRANCHES]),
+    watch=cq.refset(DART_GERRIT + "sdk",
+                    refs=["refs/heads/%s" % branch for branch in BRANCHES]),
     allow_submit_with_open_deps=True,
     tree_status_host="dart-status.appspot.com",
     retry_config=cq.RETRY_NONE,
@@ -330,8 +329,7 @@ luci.cq_group(
 
 luci.cq_group(
     name="recipes",
-    watch=cq.refset(
-        DART_GERRIT + "recipes", refs=["refs/heads/master"]),
+    watch=cq.refset(DART_GERRIT + "recipes", refs=["refs/heads/master"]),
     allow_submit_with_open_deps=True,
     tree_status_host="dart-status.appspot.com",
     retry_config=cq.RETRY_NONE,
@@ -340,8 +338,7 @@ luci.cq_group(
 
 luci.cq_group(
     name="dart_ci",
-    watch=cq.refset(
-        DART_GERRIT + "dart_ci", refs=["refs/heads/master"]),
+    watch=cq.refset(DART_GERRIT + "dart_ci", refs=["refs/heads/master"]),
     allow_submit_with_open_deps=True,
     tree_status_host="dart-status.appspot.com",
     retry_config=cq.RETRY_NONE,
@@ -396,12 +393,11 @@ def dart_try_builder(name,
     )
     includable_only = (not on_cq and not experiment_percentage and
                        not location_regexp)
-    luci.cq_tryjob_verifier(
-        builder=builder,
-        cq_group="sdk",
-        experiment_percentage=experiment_percentage,
-        location_regexp=location_regexp,
-        includable_only=includable_only)
+    luci.cq_tryjob_verifier(builder=builder,
+                            cq_group="sdk",
+                            experiment_percentage=experiment_percentage,
+                            location_regexp=location_regexp,
+                            includable_only=includable_only)
     luci.list_view_entry(list_view="cq", builder=builder)
 
 
@@ -447,16 +443,15 @@ def dart_builder(name,
 
     def builder(channel, triggered_by):
         if channel == "try":
-            dart_try_builder(
-                name,
-                recipe=recipe,
-                dimensions=dimensions,
-                properties=properties,
-                on_cq=on_cq,
-                execution_timeout=execution_timeout,
-                experiment_percentage=experiment_percentage,
-                goma_rbe=goma_rbe,
-                location_regexp=location_regexp)
+            dart_try_builder(name,
+                             recipe=recipe,
+                             dimensions=dimensions,
+                             properties=properties,
+                             on_cq=on_cq,
+                             execution_timeout=execution_timeout,
+                             experiment_percentage=experiment_percentage,
+                             goma_rbe=goma_rbe,
+                             location_regexp=location_regexp)
         else:
             builder = name + "-" + channel if channel else name
             branch = channel if channel else "master"
@@ -470,24 +465,23 @@ def dart_builder(name,
                         trigger.replace("dart-vm-", "dart-")
                         for trigger in triggered_by
                     ]
-            luci.builder(
-                name=builder,
-                build_numbers=True,
-                bucket=bucket,
-                caches=[swarming.cache("browsers")],
-                dimensions=dimensions,
-                executable=executable or dart_recipe(recipe),
-                execution_timeout=execution_timeout,
-                expiration_timeout=expiration_timeout,
-                priority=priority,
-                properties=properties,
-                notifies=[notifies]
-                if notifies and not channel and enabled else None,
-                schedule=schedule if enabled else None,
-                service_account=service_account,
-                swarming_tags=["vpython:native-python-wrapper"],
-                triggered_by=triggered_by if enabled else None,
-                triggering_policy=triggering_policy)
+            luci.builder(name=builder,
+                         build_numbers=True,
+                         bucket=bucket,
+                         caches=[swarming.cache("browsers")],
+                         dimensions=dimensions,
+                         executable=executable or dart_recipe(recipe),
+                         execution_timeout=execution_timeout,
+                         expiration_timeout=expiration_timeout,
+                         priority=priority,
+                         properties=properties,
+                         notifies=[notifies]
+                         if notifies and not channel and enabled else None,
+                         schedule=schedule if enabled else None,
+                         service_account=service_account,
+                         swarming_tags=["vpython:native-python-wrapper"],
+                         triggered_by=triggered_by if enabled else None,
+                         triggering_policy=triggering_policy)
             if category:
                 console_category, _, short_name = category.rpartition("|")
                 toplevel_category, _, _ = console_category.partition("|")
@@ -521,26 +515,26 @@ def dart_builder(name,
 
 def dart_ci_builder(name, dimensions={}, **kwargs):
     dimensions.setdefault("pool", "luci.dart.ci")
-    dart_builder(
-        name,
-        bucket="ci",
-        dimensions=dimensions,
-        service_account=CI_ACCOUNT,
-        **kwargs)
+    dart_builder(name,
+                 bucket="ci",
+                 dimensions=dimensions,
+                 service_account=CI_ACCOUNT,
+                 **kwargs)
 
 
 def dart_ci_sandbox_builder(name, channels=CHANNELS, **kwargs):
-    dart_builder(
-        name,
-        bucket="ci.sandbox",
-        channels=channels,
-        service_account=TRY_ACCOUNT,
-        **kwargs)
+    dart_builder(name,
+                 bucket="ci.sandbox",
+                 channels=channels,
+                 service_account=TRY_ACCOUNT,
+                 **kwargs)
 
 
 def dart_infra_builder(name, notifies="infra", triggered_by=None, **kwargs):
-    dart_ci_builder(
-        name, notifies=notifies, triggered_by=triggered_by, **kwargs)
+    dart_ci_builder(name,
+                    notifies=notifies,
+                    triggered_by=triggered_by,
+                    **kwargs)
     luci.list_view_entry(list_view="infra", builder=name)
 
 
@@ -549,17 +543,19 @@ def dart_vm_extra_builder(name, on_cq=False, location_regexp=None, **kwargs):
     if on_cq and not location_regexp:
         location_regexp = to_location_regexp(VM_PATHS)
         on_cq = False
-    dart_ci_sandbox_builder(
-        name,
-        triggered_by=triggered_by,
-        on_cq=on_cq,
-        location_regexp=location_regexp,
-        **kwargs)
+    dart_ci_sandbox_builder(name,
+                            triggered_by=triggered_by,
+                            on_cq=on_cq,
+                            location_regexp=location_regexp,
+                            **kwargs)
 
 
 def dart_vm_low_priority_builder(name, **kwargs):
-    dart_vm_extra_builder(
-        name, channels=["try"], priority=LOW, expiration_timeout=time.day, **kwargs)
+    dart_vm_extra_builder(name,
+                          channels=["try"],
+                          priority=LOW,
+                          expiration_timeout=time.day,
+                          **kwargs)
 
 
 nightly_builders = []
@@ -578,21 +574,22 @@ def dart_vm_nightly_builder(name, **kwargs):
 
 
 # cfe
-dart_ci_sandbox_builder(
-    "front-end-linux-release-x64", category="cfe|l", on_cq=True)
-dart_ci_sandbox_builder(
-    "front-end-mac-release-x64", category="cfe|m", dimensions=mac())
-dart_ci_sandbox_builder(
-    "front-end-win-release-x64", category="cfe|w", dimensions=windows())
-dart_ci_sandbox_builder(
-    "front-end-nnbd-linux-release-x64",
-    category="cfe|nn",
-    location_regexp=to_location_regexp(CFE_PATHS))
-dart_ci_sandbox_builder(
-    "flutter-frontend",
-    category="cfe|fl",
-    channels=["try"],
-    notifies="frontend-team")
+dart_ci_sandbox_builder("front-end-linux-release-x64",
+                        category="cfe|l",
+                        on_cq=True)
+dart_ci_sandbox_builder("front-end-mac-release-x64",
+                        category="cfe|m",
+                        dimensions=mac())
+dart_ci_sandbox_builder("front-end-win-release-x64",
+                        category="cfe|w",
+                        dimensions=windows())
+dart_ci_sandbox_builder("front-end-nnbd-linux-release-x64",
+                        category="cfe|nn",
+                        location_regexp=to_location_regexp(CFE_PATHS))
+dart_ci_sandbox_builder("flutter-frontend",
+                        category="cfe|fl",
+                        channels=["try"],
+                        notifies="frontend-team")
 
 # flutter
 dart_ci_sandbox_builder(
@@ -605,60 +602,66 @@ dart_ci_sandbox_builder(
 )
 
 # vm|nnbd
-dart_vm_extra_builder(
-    "vm-kernel-nnbd-linux-debug-x64", category="vm|nnbd|d", on_cq=True)
-dart_vm_extra_builder(
-    "vm-kernel-nnbd-linux-release-x64", category="vm|nnbd|r", on_cq=True)
-dart_vm_extra_builder(
-    "vm-kernel-precomp-nnbd-linux-release-x64", category="vm|nnbd|pr")
+dart_vm_extra_builder("vm-kernel-nnbd-linux-debug-x64",
+                      category="vm|nnbd|d",
+                      on_cq=True)
+dart_vm_extra_builder("vm-kernel-nnbd-linux-release-x64",
+                      category="vm|nnbd|r",
+                      on_cq=True)
+dart_vm_extra_builder("vm-kernel-precomp-nnbd-linux-release-x64",
+                      category="vm|nnbd|pr")
 
 # vm|app-kernel
-dart_vm_extra_builder(
-    "app-kernel-linux-debug-x64", category="vm|app-kernel|d64")
-dart_vm_extra_builder(
-    "app-kernel-linux-product-x64", category="vm|app-kernel|p64")
-dart_vm_extra_builder(
-    "app-kernel-linux-release-x64", category="vm|app-kernel|r64")
+dart_vm_extra_builder("app-kernel-linux-debug-x64",
+                      category="vm|app-kernel|d64")
+dart_vm_extra_builder("app-kernel-linux-product-x64",
+                      category="vm|app-kernel|p64")
+dart_vm_extra_builder("app-kernel-linux-release-x64",
+                      category="vm|app-kernel|r64")
 
 # vm|dartkb
-dart_vm_extra_builder(
-    "vm-dartkb-linux-release-simarm64", category="vm|dartkb|sr")
+dart_vm_extra_builder("vm-dartkb-linux-release-simarm64",
+                      category="vm|dartkb|sr")
 dart_vm_extra_builder("vm-dartkb-linux-release-x64", category="vm|dartkb|r")
-dart_vm_extra_builder(
-    "vm-dartkb-linux-release-x64-abi", category="vm|dartkb|abi")
+dart_vm_extra_builder("vm-dartkb-linux-release-x64-abi",
+                      category="vm|dartkb|abi")
 
 #vm|kernel
-dart_vm_extra_builder(
-    "vm-canary-linux-debug", category="vm|kernel|c", on_cq=True)
+dart_vm_extra_builder("vm-canary-linux-debug",
+                      category="vm|kernel|c",
+                      on_cq=True)
 dart_ci_sandbox_builder("vm-kernel-linux-debug-x64", category="vm|kernel|d")
-dart_vm_extra_builder(
-    "vm-kernel-linux-release-simarm", category="vm|kernel|a32")
-dart_vm_extra_builder(
-    "vm-kernel-linux-release-simarm64", category="vm|kernel|a64")
+dart_vm_extra_builder("vm-kernel-linux-release-simarm",
+                      category="vm|kernel|a32")
+dart_vm_extra_builder("vm-kernel-linux-release-simarm64",
+                      category="vm|kernel|a64")
 dart_vm_extra_builder("vm-kernel-linux-release-ia32", category="vm|kernel|r32")
-dart_ci_sandbox_builder(
-    "vm-kernel-linux-release-x64", category="vm|kernel|r", on_cq=True)
-dart_vm_extra_builder(
-    "vm-kernel-checked-linux-release-x64", category="vm|kernel|rc")
+dart_ci_sandbox_builder("vm-kernel-linux-release-x64",
+                        category="vm|kernel|r",
+                        on_cq=True)
+dart_vm_extra_builder("vm-kernel-checked-linux-release-x64",
+                      category="vm|kernel|rc")
 dart_vm_extra_builder("vm-kernel-linux-debug-ia32", category="vm|kernel|d32")
-dart_ci_sandbox_builder(
-    "vm-kernel-mac-debug-x64", category="vm|kernel|md", dimensions=mac())
-dart_ci_sandbox_builder(
-    "vm-kernel-mac-release-x64",
-    category="vm|kernel|mr",
-    dimensions=mac(),
-    on_cq=True,
-    experiment_percentage=5)
-dart_vm_extra_builder(
-    "vm-kernel-win-debug-ia32", category="vm|kernel|wd3", dimensions=windows())
-dart_ci_sandbox_builder(
-    "vm-kernel-win-debug-x64", category="vm|kernel|wd", dimensions=windows())
-dart_vm_extra_builder(
-    "vm-kernel-win-release-ia32",
-    category="vm|kernel|wr3",
-    dimensions=windows())
-dart_ci_sandbox_builder(
-    "vm-kernel-win-release-x64", category="vm|kernel|wr", dimensions=windows())
+dart_ci_sandbox_builder("vm-kernel-mac-debug-x64",
+                        category="vm|kernel|md",
+                        dimensions=mac())
+dart_ci_sandbox_builder("vm-kernel-mac-release-x64",
+                        category="vm|kernel|mr",
+                        dimensions=mac(),
+                        on_cq=True,
+                        experiment_percentage=5)
+dart_vm_extra_builder("vm-kernel-win-debug-ia32",
+                      category="vm|kernel|wd3",
+                      dimensions=windows())
+dart_ci_sandbox_builder("vm-kernel-win-debug-x64",
+                        category="vm|kernel|wd",
+                        dimensions=windows())
+dart_vm_extra_builder("vm-kernel-win-release-ia32",
+                      category="vm|kernel|wr3",
+                      dimensions=windows())
+dart_ci_sandbox_builder("vm-kernel-win-release-x64",
+                        category="vm|kernel|wr",
+                        dimensions=windows())
 dart_vm_extra_builder(
     "cross-vm-linux-release-arm64",
     category="vm|kernel|cra",
@@ -666,35 +669,30 @@ dart_vm_extra_builder(
     properties={"shard_timeout": (90 * time.minute) / time.second})
 
 # vm|kernel-precomp
-dart_vm_extra_builder(
-    "vm-kernel-precomp-linux-debug-x64", category="vm|kernel-precomp|d")
-dart_vm_extra_builder(
-    "vm-kernel-precomp-linux-product-x64", category="vm|kernel-precomp|p")
-dart_vm_extra_builder(
-    "vm-kernel-precomp-linux-release-simarm", category="vm|kernel-precomp|a32")
-dart_vm_extra_builder(
-    "vm-kernel-precomp-linux-release-simarm64",
-    category="vm|kernel-precomp|a64")
-dart_vm_extra_builder(
-    "vm-kernel-precomp-linux-release-x64", category="vm|kernel-precomp|r")
-dart_vm_extra_builder(
-    "vm-kernel-precomp-obfuscate-linux-release-x64",
-    category="vm|kernel-precomp|o")
+dart_vm_extra_builder("vm-kernel-precomp-linux-debug-x64",
+                      category="vm|kernel-precomp|d")
+dart_vm_extra_builder("vm-kernel-precomp-linux-product-x64",
+                      category="vm|kernel-precomp|p")
+dart_vm_extra_builder("vm-kernel-precomp-linux-release-simarm",
+                      category="vm|kernel-precomp|a32")
+dart_vm_extra_builder("vm-kernel-precomp-linux-release-simarm64",
+                      category="vm|kernel-precomp|a64")
+dart_vm_extra_builder("vm-kernel-precomp-linux-release-x64",
+                      category="vm|kernel-precomp|r")
+dart_vm_extra_builder("vm-kernel-precomp-obfuscate-linux-release-x64",
+                      category="vm|kernel-precomp|o")
 dart_vm_extra_builder(
     "vm-kernel-precomp-linux-debug-simarm_x64",
     category="vm|kernel-precomp|adx",
     properties={"shard_timeout": (90 * time.minute) / time.second})
-dart_vm_extra_builder(
-    "vm-kernel-precomp-linux-release-simarm_x64",
-    category="vm|kernel-precomp|arx")
-dart_vm_extra_builder(
-    "vm-kernel-precomp-mac-release-simarm64",
-    category="vm|kernel-precomp|ma",
-    dimensions=mac())
-dart_vm_extra_builder(
-    "vm-kernel-precomp-win-release-x64",
-    category="vm|kernel-precomp|wr",
-    dimensions=windows())
+dart_vm_extra_builder("vm-kernel-precomp-linux-release-simarm_x64",
+                      category="vm|kernel-precomp|arx")
+dart_vm_extra_builder("vm-kernel-precomp-mac-release-simarm64",
+                      category="vm|kernel-precomp|ma",
+                      dimensions=mac())
+dart_vm_extra_builder("vm-kernel-precomp-win-release-x64",
+                      category="vm|kernel-precomp|wr",
+                      dimensions=windows())
 dart_vm_nightly_builder(
     "cross-vm-precomp-linux-release-arm64",
     category="vm|kernel-precomp|cra",
@@ -712,45 +710,48 @@ dart_vm_extra_builder(
     properties={"shard_timeout": (90 * time.minute) / time.second})
 
 # vm|product
-dart_vm_extra_builder(
-    "vm-kernel-linux-product-x64", category="vm|product|l", on_cq=True)
-dart_ci_sandbox_builder(
-    "vm-kernel-mac-product-x64", category="vm|product|m", dimensions=mac())
-dart_ci_sandbox_builder(
-    "vm-kernel-win-product-x64", category="vm|product|w", dimensions=windows())
+dart_vm_extra_builder("vm-kernel-linux-product-x64",
+                      category="vm|product|l",
+                      on_cq=True)
+dart_ci_sandbox_builder("vm-kernel-mac-product-x64",
+                        category="vm|product|m",
+                        dimensions=mac())
+dart_ci_sandbox_builder("vm-kernel-win-product-x64",
+                        category="vm|product|w",
+                        dimensions=windows())
 
 # vm|misc
 dart_vm_low_priority_builder(
     "vm-kernel-optcounter-threshold-linux-release-ia32", category="vm|misc|o32")
-dart_vm_low_priority_builder(
-    "vm-kernel-optcounter-threshold-linux-release-x64", category="vm|misc|o64")
-dart_vm_low_priority_builder(
-    "vm-kernel-asan-linux-release-x64", category="vm|misc|a")
-dart_vm_low_priority_builder(
-    "vm-kernel-msan-linux-release-x64", category="vm|misc|m")
-dart_vm_low_priority_builder(
-    "vm-kernel-tsan-linux-release-x64", category="vm|misc|t")
+dart_vm_low_priority_builder("vm-kernel-optcounter-threshold-linux-release-x64",
+                             category="vm|misc|o64")
+dart_vm_low_priority_builder("vm-kernel-asan-linux-release-x64",
+                             category="vm|misc|a")
+dart_vm_low_priority_builder("vm-kernel-msan-linux-release-x64",
+                             category="vm|misc|m")
+dart_vm_low_priority_builder("vm-kernel-tsan-linux-release-x64",
+                             category="vm|misc|t")
 dart_vm_low_priority_builder(
     "vm-kernel-ubsan-linux-release-x64", category="vm|misc|u",
-    goma_rbe=False) # ubsan is not compatible with our sysroot.
+    goma_rbe=False)  # ubsan is not compatible with our sysroot.
+dart_vm_low_priority_builder("vm-kernel-precomp-asan-linux-release-x64",
+                             category="vm|misc|aot|a")
+dart_vm_low_priority_builder("vm-kernel-precomp-msan-linux-release-x64",
+                             category="vm|misc|aot|m")
+dart_vm_low_priority_builder("vm-kernel-precomp-tsan-linux-release-x64",
+                             category="vm|misc|aot|t")
 dart_vm_low_priority_builder(
-    "vm-kernel-precomp-asan-linux-release-x64", category="vm|misc|aot|a")
-dart_vm_low_priority_builder(
-    "vm-kernel-precomp-msan-linux-release-x64", category="vm|misc|aot|m")
-dart_vm_low_priority_builder(
-    "vm-kernel-precomp-tsan-linux-release-x64", category="vm|misc|aot|t")
-dart_vm_low_priority_builder(
-    "vm-kernel-precomp-ubsan-linux-release-x64", category="vm|misc|aot|u",
-    goma_rbe=False) # ubsan is not compatible with our sysroot.
-dart_vm_low_priority_builder(
-    "vm-kernel-reload-linux-debug-x64", category="vm|misc|reload|d")
-dart_vm_low_priority_builder(
-    "vm-kernel-reload-linux-release-x64", category="vm|misc|reload|r")
-dart_vm_low_priority_builder(
-    "vm-kernel-reload-rollback-linux-debug-x64", category="vm|misc|reload|drb")
-dart_vm_low_priority_builder(
-    "vm-kernel-reload-rollback-linux-release-x64",
-    category="vm|misc|reload|rrb")
+    "vm-kernel-precomp-ubsan-linux-release-x64",
+    category="vm|misc|aot|u",
+    goma_rbe=False)  # ubsan is not compatible with our sysroot.
+dart_vm_low_priority_builder("vm-kernel-reload-linux-debug-x64",
+                             category="vm|misc|reload|d")
+dart_vm_low_priority_builder("vm-kernel-reload-linux-release-x64",
+                             category="vm|misc|reload|r")
+dart_vm_low_priority_builder("vm-kernel-reload-rollback-linux-debug-x64",
+                             category="vm|misc|reload|drb")
+dart_vm_low_priority_builder("vm-kernel-reload-rollback-linux-release-x64",
+                             category="vm|misc|reload|rrb")
 dart_vm_low_priority_builder("vm-fuchsia-release-x64", category="vm|misc|f")
 
 # vm|ffi
@@ -760,157 +761,143 @@ dart_vm_extra_builder("vm-ffi-android-product-arm", category="vm|ffi|p32")
 dart_vm_extra_builder("vm-ffi-android-debug-arm64", category="vm|ffi|d64")
 dart_vm_extra_builder("vm-ffi-android-release-arm64", category="vm|ffi|r64")
 dart_vm_extra_builder("vm-ffi-android-product-arm64", category="vm|ffi|p64")
-dart_vm_extra_builder(
-    "vm-precomp-ffi-qemu-linux-release-arm", category="vm|ffi|qe")
+dart_vm_extra_builder("vm-precomp-ffi-qemu-linux-release-arm",
+                      category="vm|ffi|qe")
 
 # pkg
 dart_ci_sandbox_builder("pkg-linux-release", category="pkg|l", on_cq=True)
 dart_ci_sandbox_builder("pkg-mac-release", category="pkg|m", dimensions=mac())
-dart_ci_sandbox_builder(
-    "pkg-win-release", category="pkg|w", dimensions=windows())
+dart_ci_sandbox_builder("pkg-win-release",
+                        category="pkg|w",
+                        dimensions=windows())
 dart_ci_sandbox_builder("pkg-linux-debug", category="pkg|ld", channels=["try"])
 
 # dart2js
-dart_ci_sandbox_builder(
-    "dart2js-strong-hostasserts-linux-ia32-d8",
-    category="dart2js|d8|ha",
-    location_regexp=to_location_regexp(DART2JS_PATHS))
+dart_ci_sandbox_builder("dart2js-strong-hostasserts-linux-ia32-d8",
+                        category="dart2js|d8|ha",
+                        location_regexp=to_location_regexp(DART2JS_PATHS))
 dart_ci_sandbox_builder("dart2js-rti-linux-x64-d8", category="dart2js|d8|rti")
-dart_ci_sandbox_builder(
-    "dart2js-minified-strong-linux-x64-d8",
-    category="dart2js|d8|mi",
-    location_regexp=to_location_regexp(DART2JS_PATHS))
-dart_ci_sandbox_builder(
-    "dart2js-unit-linux-x64-release",
-    category="dart2js|d8|u",
-    location_regexp=to_location_regexp(DART2JS_PATHS))
-dart_ci_sandbox_builder(
-    "dart2js-strong-linux-x64-chrome",
-    category="dart2js|chrome|l",
-    location_regexp=to_location_regexp(DART2JS_PATHS))
-dart_ci_sandbox_builder(
-    "dart2js-csp-minified-linux-x64-chrome", category="dart2js|chrome|csp")
-dart_ci_sandbox_builder(
-    "dart2js-strong-mac-x64-chrome",
-    category="dart2js|chrome|m",
-    dimensions=mac())
-dart_ci_sandbox_builder(
-    "dart2js-strong-win-x64-chrome",
-    category="dart2js|chrome|w",
-    dimensions=windows())
-dart_ci_sandbox_builder(
-    "dart2js-nnbd-linux-x64-chrome",
-    category="dart2js|chrome|nn",
-    location_regexp=to_location_regexp(DART2JS_PATHS))
-dart_ci_sandbox_builder(
-    "dart2js-strong-linux-x64-firefox", category="dart2js|firefox|l")
-dart_ci_sandbox_builder(
-    "dart2js-strong-win-x64-firefox",
-    category="dart2js|firefox|w",
-    dimensions=windows(),
-    enabled=False)
-dart_ci_sandbox_builder(
-    "dart2js-strong-mac-x64-safari",
-    category="dart2js|safari|m",
-    dimensions=mac())
-dart_ci_sandbox_builder(
-    "dart2js-strong-win-x64-ie11",
-    category="dart2js|ms|ie",
-    dimensions=windows())
+dart_ci_sandbox_builder("dart2js-minified-strong-linux-x64-d8",
+                        category="dart2js|d8|mi",
+                        location_regexp=to_location_regexp(DART2JS_PATHS))
+dart_ci_sandbox_builder("dart2js-unit-linux-x64-release",
+                        category="dart2js|d8|u",
+                        location_regexp=to_location_regexp(DART2JS_PATHS))
+dart_ci_sandbox_builder("dart2js-strong-linux-x64-chrome",
+                        category="dart2js|chrome|l",
+                        location_regexp=to_location_regexp(DART2JS_PATHS))
+dart_ci_sandbox_builder("dart2js-csp-minified-linux-x64-chrome",
+                        category="dart2js|chrome|csp")
+dart_ci_sandbox_builder("dart2js-strong-mac-x64-chrome",
+                        category="dart2js|chrome|m",
+                        dimensions=mac())
+dart_ci_sandbox_builder("dart2js-strong-win-x64-chrome",
+                        category="dart2js|chrome|w",
+                        dimensions=windows())
+dart_ci_sandbox_builder("dart2js-nnbd-linux-x64-chrome",
+                        category="dart2js|chrome|nn",
+                        location_regexp=to_location_regexp(DART2JS_PATHS))
+dart_ci_sandbox_builder("dart2js-strong-linux-x64-firefox",
+                        category="dart2js|firefox|l")
+dart_ci_sandbox_builder("dart2js-strong-win-x64-firefox",
+                        category="dart2js|firefox|w",
+                        dimensions=windows(),
+                        enabled=False)
+dart_ci_sandbox_builder("dart2js-strong-mac-x64-safari",
+                        category="dart2js|safari|m",
+                        dimensions=mac())
+dart_ci_sandbox_builder("dart2js-strong-win-x64-ie11",
+                        category="dart2js|ms|ie",
+                        dimensions=windows())
 
 # analyzer
-dart_ci_sandbox_builder(
-    "flutter-analyze",
-    category="analyzer|fa",
-    channels=["try"],
-    notifies=None,
-    location_regexp=[
-        ".+/[+]/DEPS",
-        ".+/[+]/pkg/analysis_server/.+",
-        ".+/[+]/pkg/analysis_server_client/.+",
-        ".+/[+]/pkg/analyzer/.+",
-        ".+/[+]/pkg/analyzer_plugin/.+",
-        ".+/[+]/pkg/front_end/.+",
-        ".+/[+]/pkg/_fe_analyzer_shared/.+",
-        ".+/[+]/pkg/meta/.+",
-        ".+/[+]/pkg/telemetry/.+",
-    ])
-dart_ci_sandbox_builder(
-    "analyzer-analysis-server-linux",
-    category="analyzer|as",
-    location_regexp=to_location_regexp(ANALYZER_PATHS),
-    channels=CHANNELS)
-dart_ci_sandbox_builder(
-    "analyzer-linux-release",
-    category="analyzer|l",
-    location_regexp=to_location_regexp(ANALYZER_PATHS),
-    channels=CHANNELS)
-dart_ci_sandbox_builder(
-    "analyzer-nnbd-linux-release",
-    category="analyzer|nn",
-    location_regexp=to_location_regexp(ANALYZER_NNBD_PATHS),
-    channels=CHANNELS)
-dart_ci_sandbox_builder(
-    "analyzer-mac-release",
-    category="analyzer|m",
-    dimensions=mac(),
-    channels=CHANNELS)
-dart_ci_sandbox_builder(
-    "analyzer-win-release",
-    category="analyzer|w",
-    dimensions=windows(),
-    channels=CHANNELS)
+dart_ci_sandbox_builder("flutter-analyze",
+                        category="analyzer|fa",
+                        channels=["try"],
+                        notifies=None,
+                        location_regexp=[
+                            ".+/[+]/DEPS",
+                            ".+/[+]/pkg/analysis_server/.+",
+                            ".+/[+]/pkg/analysis_server_client/.+",
+                            ".+/[+]/pkg/analyzer/.+",
+                            ".+/[+]/pkg/analyzer_plugin/.+",
+                            ".+/[+]/pkg/front_end/.+",
+                            ".+/[+]/pkg/_fe_analyzer_shared/.+",
+                            ".+/[+]/pkg/meta/.+",
+                            ".+/[+]/pkg/telemetry/.+",
+                        ])
+dart_ci_sandbox_builder("analyzer-analysis-server-linux",
+                        category="analyzer|as",
+                        location_regexp=to_location_regexp(ANALYZER_PATHS),
+                        channels=CHANNELS)
+dart_ci_sandbox_builder("analyzer-linux-release",
+                        category="analyzer|l",
+                        location_regexp=to_location_regexp(ANALYZER_PATHS),
+                        channels=CHANNELS)
+dart_ci_sandbox_builder("analyzer-nnbd-linux-release",
+                        category="analyzer|nn",
+                        location_regexp=to_location_regexp(ANALYZER_NNBD_PATHS),
+                        channels=CHANNELS)
+dart_ci_sandbox_builder("analyzer-mac-release",
+                        category="analyzer|m",
+                        dimensions=mac(),
+                        channels=CHANNELS)
+dart_ci_sandbox_builder("analyzer-win-release",
+                        category="analyzer|w",
+                        dimensions=windows(),
+                        channels=CHANNELS)
 
 # sdk
-dart_ci_builder(
-    "dart-sdk-linux", category="sdk|l", channels=CHANNELS)
-dart_ci_builder(
-    "dart-sdk-mac", category="sdk|m", channels=CHANNELS, dimensions=mac())
-dart_ci_builder(
-    "dart-sdk-win",
-    category="sdk|w",
-    channels=CHANNELS,
-    dimensions=windows(),
-    on_cq=True)
+dart_ci_builder("dart-sdk-linux", category="sdk|l", channels=CHANNELS)
+dart_ci_builder("dart-sdk-mac",
+                category="sdk|m",
+                channels=CHANNELS,
+                dimensions=mac())
+dart_ci_builder("dart-sdk-win",
+                category="sdk|w",
+                channels=CHANNELS,
+                dimensions=windows(),
+                on_cq=True)
 
 # ddc
-dart_ci_sandbox_builder(
-    "ddc-linux-release-chrome",
-    category="ddc|l",
-    location_regexp=to_location_regexp(DDC_PATHS))
-dart_ci_sandbox_builder(
-    "ddc-nnbd-linux-release-chrome",
-    category="ddc|nn",
-    channels=["try"],
-    location_regexp=to_location_regexp(DDC_PATHS))
-dart_ci_sandbox_builder(
-    "ddc-mac-release-chrome", category="ddc|m", dimensions=mac())
-dart_ci_sandbox_builder(
-    "ddc-win-release-chrome", category="ddc|w", dimensions=windows())
+dart_ci_sandbox_builder("ddc-linux-release-chrome",
+                        category="ddc|l",
+                        location_regexp=to_location_regexp(DDC_PATHS))
+dart_ci_sandbox_builder("ddc-nnbd-linux-release-chrome",
+                        category="ddc|nn",
+                        channels=["try"],
+                        location_regexp=to_location_regexp(DDC_PATHS))
+dart_ci_sandbox_builder("ddc-mac-release-chrome",
+                        category="ddc|m",
+                        dimensions=mac())
+dart_ci_sandbox_builder("ddc-win-release-chrome",
+                        category="ddc|w",
+                        dimensions=windows())
 dart_ci_sandbox_builder("ddk-linux-release-firefox", category="ddc|fl")
 
 # misc
-dart_ci_sandbox_builder(
-    "gclient", recipe="dart/gclient", category="misc|g")
-dart_ci_builder(
-    "debianpackage-linux",
-    category="misc|dp",
-    channels=RELEASE_CHANNELS,
-    notifies="infra")
-dart_ci_builder(
-    "versionchecker-linux", category="misc|vc", channels=RELEASE_CHANNELS)
+dart_ci_sandbox_builder("gclient", recipe="dart/gclient", category="misc|g")
+dart_ci_builder("debianpackage-linux",
+                category="misc|dp",
+                channels=RELEASE_CHANNELS,
+                notifies="infra")
+dart_ci_builder("versionchecker-linux",
+                category="misc|vc",
+                channels=RELEASE_CHANNELS)
 
 # external
-dart_infra_builder(
-    "google", recipe="dart/external", category="external|g", enabled=False, fyi=True)
+dart_infra_builder("google",
+                   recipe="dart/external",
+                   category="external|g",
+                   enabled=False,
+                   fyi=True)
 
 # infra
-dart_infra_builder(
-    "base",
-    execution_timeout=15 * time.minute,
-    recipe="dart/forward_branch",
-    schedule="with 15m interval",
-    notifies=None)
+dart_infra_builder("base",
+                   execution_timeout=15 * time.minute,
+                   recipe="dart/forward_branch",
+                   schedule="with 15m interval",
+                   notifies=None)
 dart_infra_builder("chocolatey", recipe="dart/chocolatey", dimensions=windows())
 dart_infra_builder("co19-roller", recipe="dart/package_co19")
 dart_infra_builder("docker", recipe="dart/docker")
@@ -955,6 +942,7 @@ dart_try_builder(
     recipe="presubmit/presubmit",
 )
 
+
 def add_postponed_alt_console_entries():
     for entry in postponed_alt_console_entries:
         luci.console_view_entry(console_view="alt", **entry)
@@ -991,8 +979,7 @@ dart_infra_builder(
         name="recipe_autoroller",
         cipd_package=
         "infra/recipe_bundles/chromium.googlesource.com/infra/infra",
-        cipd_version="git_revision:905c1df843d7771bf3adc0cf21f58eb9498ff063"
-    ),
+        cipd_version="git_revision:905c1df843d7771bf3adc0cf21f58eb9498ff063"),
     execution_timeout=20 * time.minute,
     expiration_timeout=time.day,
     priority=LOW,
@@ -1000,7 +987,7 @@ dart_infra_builder(
         "db_gcs_bucket": "dart-recipe-roller-db",
         "projects": {
             "dart": "https://dart.googlesource.com/recipes",
-        }.items(), # recipe_autoroller expects a list of tuples.
+        }.items(),  # recipe_autoroller expects a list of tuples.
     },
     schedule="with 4h interval",
 )
