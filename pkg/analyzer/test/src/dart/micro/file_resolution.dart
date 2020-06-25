@@ -59,12 +59,12 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
 
   ErrorsResult getTestErrors() {
     var path = convertPath(_testFile);
-    return fileResolver.getErrors2(path: path);
+    return fileResolver.getErrors(path: path);
   }
 
   @override
   Future<ResolvedUnitResult> resolveFile(String path) async {
-    return fileResolver.resolve2(path: path);
+    return fileResolver.resolve(path: path);
   }
 
   @override

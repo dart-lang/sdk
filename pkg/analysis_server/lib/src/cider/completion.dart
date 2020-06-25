@@ -71,7 +71,7 @@ class CiderCompletionComputer {
       var offset = lineInfo.getOffsetOfLine(line) + column;
 
       var resolvedUnit = performance.run('resolution', (performance) {
-        return _fileResolver.resolve2(
+        return _fileResolver.resolve(
           completionOffset: offset,
           path: path,
           performance: performance,
