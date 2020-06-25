@@ -797,7 +797,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
     switch (_mode) {
       case HeapSnapshotTreeMode.dominatorTree:
         if (selection == null) {
-          selection = List.from(_snapshotA.root.objects);
+          selection = List.from(_snapshotA.extendedRoot.objects);
         }
         _tree = new VirtualTreeElement(
             _createDominator, _updateDominator, _getChildrenDominator,
@@ -820,16 +820,16 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
         break;
       case HeapSnapshotTreeMode.dominatorTreeMap:
         if (selection == null) {
-          selection = List.from(_snapshotA.root.objects);
+          selection = List.from(_snapshotA.extendedRoot.objects);
         }
         _createTreeMap(report, new DominatorTreeMap(this), selection.first);
         break;
       case HeapSnapshotTreeMode.mergedDominatorTree:
         _tree = new VirtualTreeElement(_createMergedDominator,
             _updateMergedDominator, _getChildrenMergedDominator,
-            items: _getChildrenMergedDominator(_snapshotA.mergedRoot),
+            items: _getChildrenMergedDominator(_snapshotA.extendedMergedRoot),
             queue: _r.queue);
-        _tree.expand(_snapshotA.mergedRoot);
+        _tree.expand(_snapshotA.extendedMergedRoot);
         final text = 'A heap dominator tree, where siblings with the same class'
             ' have been merged into a single node.';
         report.addAll([
@@ -857,7 +857,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
         break;
       case HeapSnapshotTreeMode.mergedDominatorTreeMap:
         if (mergedSelection == null) {
-          mergedSelection = _snapshotA.mergedRoot;
+          mergedSelection = _snapshotA.extendedMergedRoot;
         }
         _createTreeMap(
             report, new MergedDominatorTreeMap(this), mergedSelection);
@@ -1489,7 +1489,9 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
 
   String snapshotToString(snapshot) {
     if (snapshot == null) return "None";
-    return snapshot.description + " " + Utils.formatSize(snapshot.size);
+    return snapshot.description +
+        " " +
+        Utils.formatSize(snapshot.capacity + snapshot.externalSize);
   }
 
   List<Element> _createSnapshotSelectA() {
