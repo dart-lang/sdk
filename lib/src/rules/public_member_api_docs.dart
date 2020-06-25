@@ -88,7 +88,7 @@ class PublicMemberApiDocs extends LintRule implements NodeLintRule {
     registry.addExtensionDeclaration(this, visitor);
     registry.addFieldDeclaration(this, visitor);
     registry.addFunctionTypeAlias(this, visitor);
-    // todo (pq): add mixins
+    registry.addMixinDeclaration(this, visitor);
     registry.addTopLevelVariableDeclaration(this, visitor);
   }
 }
@@ -130,64 +130,7 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    if (!isInLibFolder) return;
-
-    if (isPrivate(node.name)) return;
-
-    check(node);
-
-    // Check methods
-
-    final getters = <String, MethodDeclaration>{};
-    final setters = <MethodDeclaration>[];
-
-    // Non-getters/setters.
-    final methods = <MethodDeclaration>[];
-
-    // Identify getter/setter pairs.
-    for (var member in node.members) {
-      if (member is MethodDeclaration && !isPrivate(member.name)) {
-        if (member.isGetter) {
-          getters[member.name.name] = member;
-        } else if (member.isSetter) {
-          setters.add(member);
-        } else {
-          methods.add(member);
-        }
-      }
-    }
-
-    // Check all getters, and collect offenders along the way.
-    final missingDocs = <MethodDeclaration>{};
-    for (var getter in getters.values) {
-      if (check(getter)) {
-        missingDocs.add(getter);
-      }
-    }
-
-    // But only setters whose getter is missing a doc.
-    for (var setter in setters) {
-      final getter = getters[setter.name.name];
-      if (getter == null) {
-        final libraryUri = node.declaredElement.library.source.uri;
-        // Look for an inherited getter.
-        Element getter = context.inheritanceManager.getMember(
-          node.declaredElement.thisType,
-          Name(libraryUri, setter.name.name),
-        );
-        if (getter is PropertyAccessorElement) {
-          if (getter.documentationComment != null) {
-            continue;
-          }
-        }
-        check(setter);
-      } else if (missingDocs.contains(getter)) {
-        check(setter);
-      }
-    }
-
-    // Check remaining methods.
-    methods.forEach(check);
+    _visitClassOrMixin(node);
   }
 
   @override
@@ -352,6 +295,11 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   @override
+  void visitMixinDeclaration(MixinDeclaration node) {
+    _visitClassOrMixin(node);
+  }
+
+  @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     if (!isInLibFolder) return;
 
@@ -360,5 +308,66 @@ class _Visitor extends SimpleAstVisitor {
         check(decl);
       }
     }
+  }
+
+  void _visitClassOrMixin(ClassOrMixinDeclaration node) {
+    if (!isInLibFolder) return;
+
+    if (isPrivate(node.name)) return;
+
+    check(node);
+
+    // Check methods
+
+    final getters = <String, MethodDeclaration>{};
+    final setters = <MethodDeclaration>[];
+
+    // Non-getters/setters.
+    final methods = <MethodDeclaration>[];
+
+    // Identify getter/setter pairs.
+    for (var member in node.members) {
+      if (member is MethodDeclaration && !isPrivate(member.name)) {
+        if (member.isGetter) {
+          getters[member.name.name] = member;
+        } else if (member.isSetter) {
+          setters.add(member);
+        } else {
+          methods.add(member);
+        }
+      }
+    }
+
+    // Check all getters, and collect offenders along the way.
+    final missingDocs = <MethodDeclaration>{};
+    for (var getter in getters.values) {
+      if (check(getter)) {
+        missingDocs.add(getter);
+      }
+    }
+
+    // But only setters whose getter is missing a doc.
+    for (var setter in setters) {
+      final getter = getters[setter.name.name];
+      if (getter == null) {
+        final libraryUri = node.declaredElement.library.source.uri;
+        // Look for an inherited getter.
+        Element getter = context.inheritanceManager.getMember(
+          node.declaredElement.thisType,
+          Name(libraryUri, setter.name.name),
+        );
+        if (getter is PropertyAccessorElement) {
+          if (getter.documentationComment != null) {
+            continue;
+          }
+        }
+        check(setter);
+      } else if (missingDocs.contains(getter)) {
+        check(setter);
+      }
+    }
+
+    // Check remaining methods.
+    methods.forEach(check);
   }
 }
