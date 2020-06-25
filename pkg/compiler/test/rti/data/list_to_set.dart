@@ -4,11 +4,11 @@
 
 // @dart = 2.7
 
-/*spec:nnbd-off.class: global#List:deps=[Class],explicit=[List,List<String>],indirect,needsArgs*/
-/*prod:nnbd-off.class: global#List:deps=[Class],explicit=[List],indirect,needsArgs*/
+/*spec.class: global#List:deps=[Class,JSArray.markFixedList],explicit=[List,List<Object>,List<String>?,List<markFixedList.T>],indirect,needsArgs*/
+/*prod.class: global#List:deps=[Class],indirect,needsArgs*/
 
-/*spec:nnbd-off.class: global#JSArray:deps=[ArrayIterator,List],explicit=[JSArray,JSArray.E,JSArray<ArrayIterator.E>],implicit=[JSArray.E],indirect,needsArgs*/
-/*prod:nnbd-off.class: global#JSArray:deps=[List],explicit=[JSArray],implicit=[JSArray.E],indirect,needsArgs*/
+/*spec.class: global#JSArray:deps=[ArrayIterator,List],explicit=[JSArray,JSArray.E,JSArray<ArrayIterator.E>],implicit=[JSArray.E],indirect,needsArgs*/
+/*prod.class: global#JSArray:deps=[List],implicit=[JSArray.E],indirect,needsArgs*/
 
 main() {
   var c = new Class<int>();

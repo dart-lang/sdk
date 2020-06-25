@@ -6,22 +6,8 @@
 
 import "dart:async";
 
-/*spec:nnbd-off.member: main:
- dynamic=[runtimeType],
- runtimeType=[unknown:FutureOr<int>],
- static=[
-  Future.value(1),
-  checkTypeBound(4),
-  print(1)],
- type=[
-  inst:JSDouble,
-  inst:JSInt,
-  inst:JSNumber,
-  inst:JSPositiveInt,
-  inst:JSUInt31,
-  inst:JSUInt32]
-*/
-/*spec:nnbd-sdk.member: main:
+@pragma('dart2js:disableFinal')
+/*member: main:
  dynamic=[runtimeType],
  runtimeType=[unknown:FutureOr<int*>*],
  static=[
@@ -36,7 +22,6 @@ import "dart:async";
   inst:JSUInt31,
   inst:JSUInt32]
 */
-@pragma('dart2js:disableFinal')
 void main() {
   FutureOr<int> i = new Future<int>.value(0);
   print(i.runtimeType);

@@ -5,7 +5,7 @@
 String method() => 'foo';
 
 const String string0 =
-    /*cfe|dart2js|dart2js:nnbd-sdk.error: Method invocation is not a constant expression.*/
+    /*cfe|dart2js.error: Method invocation is not a constant expression.*/
     method();
 
 main() {

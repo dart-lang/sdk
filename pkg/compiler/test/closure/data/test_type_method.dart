@@ -32,8 +32,8 @@ method2<T>(dynamic o) {
 
 /*member: method3:*/
 method3<T>(dynamic o) {
-  /*spec:nnbd-off|spec:nnbd-sdk.fields=[T,o],free=[T,o]*/
-  /*prod:nnbd-off|prod:nnbd-sdk.fields=[o],free=[o]*/
+  /*spec.fields=[T,o],free=[T,o]*/
+  /*prod.fields=[o],free=[o]*/
   T local() => o;
   return local;
 }

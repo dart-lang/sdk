@@ -11,14 +11,12 @@ import '../util/colors.dart' as colors;
 const String cfeMarker = 'cfe';
 const String cfeWithNnbdMarker = '$cfeMarker:nnbd';
 const String dart2jsMarker = 'dart2js';
-const String dart2jsWithNnbdSdkMarker = '$dart2jsMarker:nnbd-sdk';
 const String analyzerMarker = 'analyzer';
 
 /// Markers used in annotated tests shared by CFE, analyzer and dart2js.
 const List<String> sharedMarkers = [
   cfeMarker,
   dart2jsMarker,
-  dart2jsWithNnbdSdkMarker,
   analyzerMarker,
 ];
 
@@ -33,7 +31,6 @@ const List<String> sharedMarkersWithNnbd = [
   cfeMarker,
   cfeWithNnbdMarker,
   dart2jsMarker,
-  dart2jsWithNnbdSdkMarker,
   analyzerMarker,
 ];
 

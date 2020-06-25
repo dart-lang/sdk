@@ -6,8 +6,8 @@
 
 import 'package:expect/expect.dart';
 
-/*spec:nnbd-off.class: global#JSArray:checkedInstance,checks=[$isIterable,$isList],instance*/
-/*prod:nnbd-off.class: global#JSArray:checks=[$isList],instance*/
+/*spec.class: global#JSArray:checkedInstance,checks=[$isIterable,$isList],instance*/
+/*prod.class: global#JSArray:checks=[$isList],instance*/
 
 @pragma('dart2js:noInline')
 method<T>() {

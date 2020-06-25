@@ -4,18 +4,15 @@
 
 // @dart = 2.7
 
-/*spec:nnbd-off|prod:nnbd-off.class: Class:*/
 class Class<T> {
-  /*spec:nnbd-off|prod:nnbd-off.member: Class.:*/
   Class();
 }
 
-/*spec:nnbd-off|prod:nnbd-off.member: main:*/
 main() {
-  /*spec:nnbd-off|spec:nnbd-sdk.needsSignature*/
+  /*spec.needsSignature*/
   local1() {}
 
-  /*spec:nnbd-off|spec:nnbd-sdk.needsSignature*/
+  /*spec.needsSignature*/
   local2(int i, String s) => i;
 
   print('${local1.runtimeType}');

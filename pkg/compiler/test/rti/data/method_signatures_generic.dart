@@ -18,8 +18,7 @@ class Class1 {
 }
 
 class Class2 {
-  /*spec:nnbd-sdk.member: Class2.method4:direct,explicit=[method4.T*],needsArgs,needsInst=[<num*>,<num*>,<num*>,<num*>]*/
-  /*spec:nnbd-off.member: Class2.method4:direct,explicit=[method4.T],needsArgs,needsInst=[<num>,<num>,<num>,<num>]*/
+  /*spec.member: Class2.method4:direct,explicit=[method4.T*],needsArgs,needsInst=[<num*>,<num*>,<num*>,<num*>]*/
   num method4<T>(T n) => null;
 }
 
@@ -29,20 +28,17 @@ class Class3 {
 }
 
 class Class4 {
-  /*spec:nnbd-sdk.member: Class4.method6:direct,explicit=[method6.T*],needsArgs,needsInst=[<num*>,<num*>,<num*>,<num*>]*/
-  /*spec:nnbd-off.member: Class4.method6:direct,explicit=[method6.T],needsArgs,needsInst=[<num>,<num>,<num>,<num>]*/
+  /*spec.member: Class4.method6:direct,explicit=[method6.T*],needsArgs,needsInst=[<num*>,<num*>,<num*>,<num*>]*/
   num method6<T>(num n, T t) => null;
 }
 
-/*spec:nnbd-off.member: method7:direct,explicit=[method7.T],needsArgs,needsInst=[<num>,<num>,<num>,<num>]*/
-/*spec:nnbd-sdk.member: method7:direct,explicit=[method7.T*],needsArgs,needsInst=[<num*>,<num*>,<num*>,<num*>]*/
+/*spec.member: method7:direct,explicit=[method7.T*],needsArgs,needsInst=[<num*>,<num*>,<num*>,<num*>]*/
 num method7<T>(T n) => null;
 
 /*member: method8:*/
 T method8<T>(num n) => null;
 
-/*spec:nnbd-off.member: method9:direct,explicit=[method9.T],needsArgs,needsInst=[<num>,<num>,<num>,<num>]*/
-/*spec:nnbd-sdk.member: method9:direct,explicit=[method9.T*],needsArgs,needsInst=[<num*>,<num*>,<num*>,<num*>]*/
+/*spec.member: method9:direct,explicit=[method9.T*],needsArgs,needsInst=[<num*>,<num*>,<num*>,<num*>]*/
 num method9<T>(num n, T t) => null;
 
 @pragma('dart2js:noInline')

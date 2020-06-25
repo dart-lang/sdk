@@ -4,12 +4,12 @@
 
 // @dart = 2.7
 
-/*spec:nnbd-off.class: global#Map:instance*/
+/*spec.class: global#Map:instance*/
 
 /*class: global#LinkedHashMap:*/
 /*class: global#JsLinkedHashMap:checks=[],instance*/
 
-/*spec:nnbd-off.class: global#double:checkedInstance,checks=[],instance,typeArgument*/
+/*spec.class: global#double:checkedInstance,checks=[],instance,typeArgument*/
 
 /*class: global#JSDouble:checks=[],instance*/
 
