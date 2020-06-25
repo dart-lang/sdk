@@ -396,8 +396,16 @@ class _ProgramInfoBuilder {
           }
           final ownerNode =
               owner.type == 'Null' ? program.stubs : getInfoNodeFor(owner);
+          if (owner.type == 'Function') {
+            // For normal functions we just attribute Code object and all
+            // objects dominated by it to the function itself.
+            return ownerNode;
+          }
+
+          // For stubs we create a dummy functionNode that is going to own
+          // all objects dominated by it.
           return makeInfoNode(node.index,
-              name: node.name, parent: ownerNode, type: NodeType.other);
+              name: node.name, parent: ownerNode, type: NodeType.functionNode);
         }
         break;
 

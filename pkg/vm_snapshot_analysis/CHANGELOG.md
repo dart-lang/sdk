@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.3.0
+
+- Extract treemap construction code into a separate library, to make it
+reusable.
+- Add ability to collapse leaf nodes in a treemap created from V8 snapshot
+profile. This behavior is programmatically controlled by `TreemapFormat format`
+parameter and from CLI via `--format` flag. The following options are available
+    - `collapsed` essentially renders `ProgramInfo` as a treemap, individual
+    snapshot nodes are ignored.
+    - `simplified` same as `collapsed`, but also folds size information from
+    nested functions into outermost function (e.g. top level function or a
+    method) producing easy to consume output.
+    - `data-and-code` collapses snapshot nodes based on whether they represent
+    data or executable code.
+    - `object-type` (default) collapses snapshot nodes based on their type only.
+- When computing `ProgramInfo` from a V8 snapshot profile no longer create
+`ProgramInfoNode` for `Code` nodes which are owned by a function - instead
+directly attribute the `Code` node itself and all retained nodes into
+`ProgramInfoNode` for the function itself. For stubs (including allocation
+stubs) create an artificial `functionNode` instead of using `NodeType.other`.
+The only remaining use of `NodeType.other` is for fields.
+
 ## 0.2.0
 
 - Update CLI help message to avoid referring to a snapshot created by pub as the

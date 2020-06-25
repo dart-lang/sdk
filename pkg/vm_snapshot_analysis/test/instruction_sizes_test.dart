@@ -579,25 +579,22 @@ void main() async {
                       '#type': 'class',
                       'makeSomeClosures': {
                         '#type': 'function',
+                        '#size': greaterThan(0),
                         '<anonymous closure @180>': {
                           '#type': 'function',
                           '#size': greaterThan(0),
-                          'makeSomeClosures.<anonymous closure @180>': {
-                            '#size': greaterThan(0)
-                          },
                         },
-                        'makeSomeClosures': {'#size': greaterThan(0)},
                       },
                       'main': {
                         '#type': 'function',
-                        'main': {'#size': lessThan(0)},
+                        '#size': lessThan(0),
                       },
                     },
                     'A': {
                       '#type': 'class',
                       'tornOff': {
                         '#type': 'function',
-                        'tornOff': {'#size': greaterThan(0)},
+                        '#size': greaterThan(0),
                       },
                     }
                   }
@@ -630,15 +627,11 @@ void main() async {
                       '#type': 'class',
                       'makeSomeClosures': {
                         '#type': 'function',
-                        '#size': greaterThan(0),
+                        '#size': lessThan(0),
                         '<anonymous closure>': {
                           '#type': 'function',
                           '#size': lessThan(0),
-                          'makeSomeClosures.<anonymous closure>': {
-                            '#size': lessThan(0)
-                          },
                         },
-                        'makeSomeClosures': {'#size': lessThan(0)},
                       },
                     },
                   }
